@@ -9,7 +9,7 @@
 > But : valider la stack et avoir un combat jouable minimaliste
 
 ### Core
-- [ ] Setup monorepo (pnpm workspaces, tsconfig, Vite, Vitest)
+- [x] Setup monorepo (pnpm workspaces, tsconfig, Vite, Vitest, Biome)
 - [ ] Modèles de base (Pokemon, Move, Grid, BattleState)
 - [ ] Grille plate (pas de dénivelé), placement de 2 Pokemon
 - [ ] Système de tour simple (tri par Vitesse)
