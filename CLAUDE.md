@@ -5,6 +5,13 @@
 Pokemon Tactics : jeu de combat tactique (Pokemon x FFTA) en TypeScript + Phaser 4.
 Monorepo pnpm workspaces. Core découplé du rendu. AI-playable.
 
+## Rôle du créateur
+
+Le créateur **ne code pas**. Il est directeur créatif, architecte et reviewer.
+Claude Code est le **développeur principal** — autonome sur l'implémentation, mais valide les choix de design avec le créateur.
+Profil : dev web Angular/TS expérimenté, clean code advocate, expérience Godot + Phaser, temps limité.
+**Continuité** : le créateur peut revenir après 1 mois. Maintenir STATUS.md, plans/ et la mémoire à jour pour reprendre sans friction.
+
 ## Documentation — quoi lire et quand
 
 | Fichier | Quand le lire |
@@ -38,6 +45,12 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 - **Tests** : `.test.ts` à côté du fichier testé
 - **Linter/Formatter** : Biome (remplace ESLint + Prettier)
 - **Plans** : `plans/xxx-name.md` numérotés, avec statut en en-tête
+- **Nommage** : pas d'abréviations (`traversalContext` pas `ctx`, `pokemonInstance` pas `pkmn`)
+- **Enums** : const object pattern (`as const` + type dérivé), jamais de string literals pour les erreurs/types
+- **Types** : 1 fichier = 1 interface/type
+- **Mocks** : factories et données dans `packages/core/src/testing/`, jamais inline dans les tests
+- **Tests unitaires** : pas de commentaires. Tests intégration/scénario : commentaires OK (parcimonie), bloc Gherkin pour scénarios
+- **Écriture de code** : préférer Edit à Write. Construire les gros fichiers par petits Edit successifs, pas un Write massif
 
 ## Stack
 
@@ -56,6 +69,9 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 - Commiter des assets non libres de droits
 - Pousser sur `main` sans que les tests passent
 - Charger toute la doc en contexte quand un seul fichier suffit
+- **Git** : ne jamais commit/push/add — le créateur gère le versioning. Lecture seule (status, diff, log)
+- **Infra** : ne jamais installer globalement ni modifier nvm/npm config — le créateur travaille sur d'autres projets en parallèle
+- **Changements structurels** : consulter le créateur AVANT de modifier tsconfig, module resolution, structure de dossiers, dépendances. Les bug fixes simples n'ont pas besoin d'approbation
 
 ## Orchestration des agents
 

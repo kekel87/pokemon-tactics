@@ -2,10 +2,16 @@ import { describe, expect, it, vi } from "vitest";
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
+import { Category } from "../enums/category";
 import { Direction } from "../enums/direction";
+import { EffectKind } from "../enums/effect-kind";
+import { PokemonType } from "../enums/pokemon-type";
+import { TargetingKind } from "../enums/targeting-kind";
 import type { BattleEvent } from "../types/battle-event";
+import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import { MockBattle } from "../testing/mock-battle";
+import { MockValidation } from "../testing/mock-validation";
 import { BattleEngine } from "./BattleEngine";
 
 const P1 = MockBattle.player1Fast;
@@ -180,18 +186,18 @@ describe("BattleEngine.submitAction validation", () => {
     expect(result.error).toBe(ActionError.NotYourTurn);
   });
 
-  it("rejects use_move as not implemented", () => {
+  it("rejects use_move with unknown move", () => {
     const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
     const result = engine.submitAction("player-1", {
       kind: ActionKind.UseMove,
       pokemonId: "fast",
-      moveId: "tackle",
+      moveId: "nonexistent",
       targetPosition: { x: 1, y: 0 },
     });
     expect(result.success).toBe(false);
-    expect(result.error).toBe(ActionError.NotImplemented);
+    expect(result.error).toBe(ActionError.UnknownMove);
   });
 });
 
@@ -424,5 +430,167 @@ describe("BattleEngine.submitAction move", () => {
       engine.submitAction("player-2", { kind: ActionKind.SkipTurn, pokemonId: "slow" });
     }
     expect(state.roundNumber).toBe(4);
+  });
+});
+
+describe("BattleEngine.getLegalActions — use_move", () => {
+  const singleMove: MoveDefinition = {
+    ...MockValidation.validMove,
+    id: "tackle",
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+  };
+
+  const selfMove: MoveDefinition = {
+    ...MockValidation.validMove,
+    id: "growth",
+    category: Category.Status,
+    power: 0,
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.StatChange, stat: "attack" as never, stages: 1, target: "self" as never }],
+  };
+
+  const coneMove: MoveDefinition = {
+    ...MockValidation.validMove,
+    id: "heat-wave",
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 }, width: 3 },
+  };
+
+  const dashMove: MoveDefinition = {
+    ...MockValidation.validMove,
+    id: "quick-attack",
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+  };
+
+  it("returns use_move actions for each valid target position", () => {
+    const registry = new Map([["tackle", singleMove]]);
+    const mover = fresh(P1, {
+      id: "mover",
+      position: { x: 2, y: 2 },
+      moveIds: ["tackle"],
+      currentPp: { tackle: 35 },
+    });
+    const state = MockBattle.stateFrom([mover, fresh(P2)]);
+    const engine = new BattleEngine(state, registry);
+
+    const useMoveActions = engine
+      .getLegalActions("player-1")
+      .filter((a) => a.kind === ActionKind.UseMove);
+
+    expect(useMoveActions.length).toBeGreaterThan(0);
+    expect(useMoveActions.every((a) => a.kind === ActionKind.UseMove && a.moveId === "tackle")).toBe(true);
+  });
+
+  it("excludes moves with 0 PP", () => {
+    const registry = new Map([["tackle", singleMove]]);
+    const mover = fresh(P1, {
+      id: "mover",
+      position: { x: 2, y: 2 },
+      moveIds: ["tackle"],
+      currentPp: { tackle: 0 },
+    });
+    const state = MockBattle.stateFrom([mover, fresh(P2)]);
+    const engine = new BattleEngine(state, registry);
+
+    const useMoveActions = engine
+      .getLegalActions("player-1")
+      .filter((a) => a.kind === ActionKind.UseMove);
+
+    expect(useMoveActions.length).toBe(0);
+  });
+
+  it("returns single-target positions within range 1 to 3", () => {
+    const registry = new Map([["tackle", singleMove]]);
+    const mover = fresh(P1, {
+      id: "mover",
+      position: { x: 2, y: 2 },
+      moveIds: ["tackle"],
+      currentPp: { tackle: 35 },
+    });
+    const state = MockBattle.stateFrom([mover, fresh(P2)]);
+    const engine = new BattleEngine(state, registry);
+
+    const targets = engine
+      .getLegalActions("player-1")
+      .filter((a): a is Extract<typeof a, { kind: typeof ActionKind.UseMove }> => a.kind === ActionKind.UseMove)
+      .map((a) => a.targetPosition);
+
+    expect(targets).toContainEqual({ x: 3, y: 2 });
+    expect(targets).toContainEqual({ x: 4, y: 2 });
+    expect(targets).not.toContainEqual({ x: 2, y: 2 });
+  });
+
+  it("returns one action for self-targeting move", () => {
+    const registry = new Map([["growth", selfMove]]);
+    const mover = fresh(P1, {
+      id: "mover",
+      position: { x: 2, y: 2 },
+      moveIds: ["growth"],
+      currentPp: { growth: 20 },
+    });
+    const state = MockBattle.stateFrom([mover, fresh(P2)]);
+    const engine = new BattleEngine(state, registry);
+
+    const useMoveActions = engine
+      .getLegalActions("player-1")
+      .filter((a) => a.kind === ActionKind.UseMove);
+
+    expect(useMoveActions.length).toBe(1);
+    expect(useMoveActions[0]?.kind === ActionKind.UseMove && useMoveActions[0].targetPosition).toEqual({ x: 2, y: 2 });
+  });
+
+  it("returns 4 directional actions for cone-targeting move", () => {
+    const registry = new Map([["heat-wave", coneMove]]);
+    const mover = fresh(P1, {
+      id: "mover",
+      position: { x: 2, y: 2 },
+      moveIds: ["heat-wave"],
+      currentPp: { "heat-wave": 10 },
+    });
+    const state = MockBattle.stateFrom([mover, fresh(P2)]);
+    const engine = new BattleEngine(state, registry);
+
+    const useMoveActions = engine
+      .getLegalActions("player-1")
+      .filter((a) => a.kind === ActionKind.UseMove);
+
+    expect(useMoveActions.length).toBe(4);
+  });
+
+  it("returns 4 directional actions for dash-targeting move", () => {
+    const registry = new Map([["quick-attack", dashMove]]);
+    const mover = fresh(P1, {
+      id: "mover",
+      position: { x: 2, y: 2 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 30 },
+    });
+    const state = MockBattle.stateFrom([mover, fresh(P2)]);
+    const engine = new BattleEngine(state, registry);
+
+    const useMoveActions = engine
+      .getLegalActions("player-1")
+      .filter((a) => a.kind === ActionKind.UseMove);
+
+    expect(useMoveActions.length).toBe(4);
+  });
+
+  it("lists use_move for multiple moves with PP", () => {
+    const registry = new Map([["tackle", singleMove], ["growth", selfMove]]);
+    const mover = fresh(P1, {
+      id: "mover",
+      position: { x: 2, y: 2 },
+      moveIds: ["tackle", "growth"],
+      currentPp: { tackle: 35, growth: 20 },
+    });
+    const state = MockBattle.stateFrom([mover, fresh(P2)]);
+    const engine = new BattleEngine(state, registry);
+
+    const useMoveActions = engine
+      .getLegalActions("player-1")
+      .filter((a) => a.kind === ActionKind.UseMove);
+
+    const moveIds = [...new Set(useMoveActions.map((a) => a.kind === ActionKind.UseMove ? a.moveId : ""))];
+    expect(moveIds).toContain("tackle");
+    expect(moveIds).toContain("growth");
   });
 });

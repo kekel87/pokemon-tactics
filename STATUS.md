@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-20 (Plan 003 implémenté)
+> Dernière mise à jour : 2026-03-20 (Plan 004 terminé)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -19,7 +19,7 @@
   - 7 targeting resolvers (single, self, cone, cross, line, dash, zone)
   - Traversée alliés/Vol/Spectre implémentée
   - Mocks centralisés (MockPokemon avec les 4 Pokemon du roster)
-- **Plan 003 implémenté** (en attente du commit) :
+- **Plan 003 terminé** :
   - `TurnManager` : initiative, ordre des tours, cycle des rounds, gestion des KO
   - `BattleEngine` : `getLegalActions` (BFS pathfinding), `submitAction` (move + skip_turn), event system (on/off/emit), `getGameState`
   - `packages/data` : nouveau package avec 4 Pokemon, 16 moves complets (targeting + effects), type chart 18x18, overrides tactical/balance, deepMerge, loadData()
@@ -28,10 +28,20 @@
   - `Accuracy`/`Evasion` ajoutés à `StatName`
   - `MockBattle` : mocks centralisés pour les tests battle
   - `vitest.config.ts` : ajout `resolve.tsconfigPaths` natif
-  - **117 tests**, 100% coverage maintenu
+  - 117 tests, 100% coverage maintenu
+- **Plan 004 terminé** :
+  - `stat-modifier.ts` : multiplicateurs de stages (-6 à +6), `getStatMultiplier`, `getEffectiveStat`, `clampStages`, `isMajorStatus`
+  - `damage-calculator.ts` : formule Pokemon Gen 5+, STAB (1.5x), type effectiveness, burn penalty (-50% dégâts physiques)
+  - `accuracy-check.ts` : accuracy/evasion stages, random check (100% accuracy = toujours touche)
+  - `effect-processor.ts` : 4 processors — `processDamage`, `processStatus`, `processStatChange`, `processLink`
+  - `BattleEngine.executeUseMove` : pipeline complet `resolveTargeting` → accuracy check → `processEffects` → émission d'events
+  - `BattleEngine.getLegalActions` : retourne les `use_move` avec positions valides pour les 7 targeting patterns
+  - Test d'intégration combat complet : Charmander Ember vs Bulbasaur Razor Leaf
+  - **172 tests**, 100% coverage maintenu
+  - Note : paralysie (proc qui bloque move + dash) non implémentée — le mécanisme de tick par tour est prévu au Plan 005
 
 ### Prochaine étape
-- **Plan 004** : résolution des effets d'attaque (damage, status, stat_change, link)
+- **Plan 005** : boucle de combat complète (tick statuts par tour, burn damage, sleep countdown, freeze dégel, condition de victoire, KO countdown FFTA, proc paralysie)
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type
