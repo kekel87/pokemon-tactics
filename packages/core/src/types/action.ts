@@ -1,0 +1,14 @@
+import type { ActionKind } from "../enums/action-kind";
+import type { BattleEvent } from "./battle-event";
+import type { Position } from "./position";
+
+export type Action =
+  | { kind: typeof ActionKind.Move; pokemonId: string; path: Position[] }
+  | { kind: typeof ActionKind.UseMove; pokemonId: string; moveId: string; targetPosition: Position }
+  | { kind: typeof ActionKind.SkipTurn; pokemonId: string };
+
+export interface ActionResult {
+  success: boolean;
+  events: BattleEvent[];
+  error?: string;
+}

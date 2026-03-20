@@ -1,0 +1,21 @@
+export const BattleEventType = {
+  TurnStarted: "turn_started",
+  TurnEnded: "turn_ended",
+  MoveStarted: "move_started",
+  PokemonMoved: "pokemon_moved",
+  PokemonDashed: "pokemon_dashed",
+  DamageDealt: "damage_dealt",
+  StatusApplied: "status_applied",
+  StatusRemoved: "status_removed",
+  StatChanged: "stat_changed",
+  LinkCreated: "link_created",
+  LinkDrained: "link_drained",
+  LinkBroken: "link_broken",
+  PokemonKo: "pokemon_ko",
+  PokemonEliminated: "pokemon_eliminated",
+  PokemonRevived: "pokemon_revived",
+  MoveMissed: "move_missed",
+  BattleEnded: "battle_ended",
+} as const;
+
+export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

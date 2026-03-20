@@ -52,6 +52,17 @@
 | 40 | 2026-03-20 | Surcharges : structure | **3 couches : base → tactical → balance** | base = données Pokemon pures. tactical = targeting/effects. balance = tweaks numériques. DeepMerge au startup. |
 | 41 | 2026-03-20 | Validation données | **Oui, au startup** | Validateur qui vérifie la complétude des entités finales après merge. Léger (une fois au boot). |
 | 42 | 2026-03-20 | Référence principale | **Pokemon Conquest** (DS) | LA référence directe : Pokemon + tactical sur grille. "Ça, mais mieux." |
+| 43 | 2026-03-20 | Module resolution | **`bundler`** (pas `NodeNext`) | Vite gère le bundling. Pas d'extensions `.js` dans les imports. Aligné avec Angular/Nx. |
+| 44 | 2026-03-20 | tsconfig | **Un seul base + extends** | Pas de project references, pas de `composite`, pas de `dist/` intermédiaires. Path aliases centralisés dans `tsconfig.base.json`. Pattern Nx. |
+| 45 | 2026-03-20 | Structure core | **Flat par responsabilité (option B)** | enums/, types/, grid/, battle/. On restructurera par domaine quand la complexité le justifiera (Phase 1-2). |
+| 46 | 2026-03-20 | Const object enum | **Pattern `as const` + type dérivé** | Pas d'enum TS natif, pas de switch sur strings. Toujours le pattern `{ Key: "value" } as const`. |
+| 47 | 2026-03-20 | Nommage variables | **Même nom que le type** | `traversalContext: TraversalContext`, `position: Position`. Pas d'abréviations. |
+| 48 | 2026-03-20 | Commentaires | **Non sauf algo complexe** | Le code doit être lisible sans commentaires. |
+| 49 | 2026-03-20 | Coverage | **Core uniquement, exclut types/enums/barrels/tests** | Coverage sur le comportement, pas sur les déclarations. |
+| 50 | 2026-03-20 | Coverage threshold | **100% sur le core** | Statements, branches, functions, lines. Le core est de la logique pure, chaque chemin doit être testé. |
+| 51 | 2026-03-20 | Mocks | **`abstract class` + `static readonly` + données pures** | Pas de helper de création (`createInstance`). Les mocks sont des données explicites. Variations via spread dans le test. |
+| 52 | 2026-03-20 | Biome `noStaticOnlyClass` | **Désactivé pour testing/mocks** | Les `abstract class MockX` sont un pattern délibéré (prévient l'instanciation, regroupe les mocks). Désactivé via override Biome sur `**/testing/**` et `**/mocks/**`. |
+| 53 | 2026-03-20 | Utils extraits | **`utils/` pour les fonctions pures transversales** | `manhattanDistance`, `directionFromTo`, `stepInDirection`, `getPerpendicularOffsets` — fonctions math/géométrie réutilisables, pas liées à un domaine spécifique. |
 
 ---
 

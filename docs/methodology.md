@@ -49,16 +49,33 @@ docs/
 
 ---
 
-## 4. Conventions Git
+## 4. Conventions de code
 
-- **Conventional commits** : `feat:`, `fix:`, `refactor:`, `test:`, `docs:`
+- **Pas d'abréviations** : nommer les variables comme leur type (`traversalContext: TraversalContext`)
+- **Const object enum** : `{ Key: "value" } as const` + type dérivé (pas d'enum TS natif)
+- **1 fichier = 1 interface/type**
+- **Pas de commentaires** sauf algo complexe
+- **Pas de tests sur les types/barrels** — la compilation est la validation
+- **Fail-fast, KISS**
+
+### Conventions de test
+- **Mocks centralisés** dans `testing/` : `abstract class MockX { static readonly ... }`
+- **Données pures, pas de logique** : pas de helper `createInstance()` avec `Partial<T>`
+- **Variations par spread** dans le test : `{ ...MockPokemon.base, position: { x: 2, y: 2 } }`
+- **Coverage 100%** sur `packages/core` (threshold bloquant)
+- Les types/enums/barrels/mocks sont exclus du coverage
+
+## 5. Conventions Git
+
+- **Conventional commits** : `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`
 - **Branches** : `main` (stable) + feature branches (`feat/aoe-patterns`, `fix/damage-calc`)
 - **Pas de force push** sur main
 - **Un commit = un changement cohérent**
+- **Claude Code propose un nom de commit** automatiquement quand un plan est terminé ou à la demande
 
 ---
 
-## 5. Comment valider le visuel
+## 6. Comment valider le visuel
 
 Claude Code peut utiliser **Playwright MCP** pour :
 - Lancer le jeu dans le navigateur
@@ -69,7 +86,7 @@ Le créateur peut aussi simplement ouvrir `localhost` après `pnpm dev`.
 
 ---
 
-## 6. Comment gérer les décisions
+## 7. Comment gérer les décisions
 
 - Toute décision importante va dans `docs/decisions.md`
 - Les questions ouvertes y sont listées avec leur priorité

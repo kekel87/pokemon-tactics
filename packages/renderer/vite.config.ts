@@ -1,12 +1,8 @@
 import { defineConfig } from "vite";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      "@pokemon-tactic/core": new URL("../core/src", import.meta.url).pathname,
-      "@pokemon-tactic/data": new URL("../data/src", import.meta.url).pathname,
-    },
-  },
+  plugins: [tsconfigPaths()],
   build: {
     target: "es2022",
   },

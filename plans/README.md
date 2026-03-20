@@ -14,3 +14,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | # | Titre | Statut | Créé |
 |---|-------|--------|------|
 | 001 | [Setup monorepo](./001-setup-monorepo.md) | ready | 2026-03-20 |
+| 002 | [Modèles de base du core](./002-core-models.md) | ready | 2026-03-20 |

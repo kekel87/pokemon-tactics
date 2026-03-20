@@ -57,54 +57,65 @@
 ## 3. Structure monorepo
 
 ```
-pokemon-tactic/
+pokemon-tactics/
 ├── packages/
 │   ├── core/                    # Moteur de jeu pur (ZERO dépendance UI)
 │   │   ├── src/
-│   │   │   ├── models/          # Types : Pokemon, Move, Ability, Item, Terrain
-│   │   │   ├── battle/          # BattleEngine, TurnManager, DamageCalc
-│   │   │   ├── grid/            # Grid, Pathfinding, AoE, LineOfSight
-│   │   │   ├── types/           # TypeChart (18 types, efficacité)
-│   │   │   ├── replay/          # ReplayRecorder, ReplayPlayer
-│   │   │   └── index.ts         # API publique du core
-│   │   ├── tests/
+│   │   │   ├── enums/           # Const object enums (PokemonType, Direction, TargetingKind...)
+│   │   │   ├── types/           # Interfaces (1 fichier = 1 type)
+│   │   │   ├── utils/           # Fonctions pures (math, direction, géométrie)
+│   │   │   ├── grid/            # Grid, Pathfinding, Targeting resolvers
+│   │   │   ├── battle/          # BattleEngine, TurnManager (à venir)
+│   │   │   ├── testing/         # Mocks centralisés (MockPokemon...)
+│   │   │   └── index.ts         # Barrel export (API publique)
+│   │   ├── tsconfig.json        # extends ../../tsconfig.base.json
 │   │   └── package.json
 │   │
-│   ├── renderer/                # Interface graphique (Phaser)
+│   ├── renderer/                # Interface graphique (Phaser 4)
 │   │   ├── src/
-│   │   │   ├── scenes/          # Phaser scenes (BattleScene, MenuScene)
-│   │   │   ├── sprites/         # Gestion des sprites Pokemon
-│   │   │   ├── ui/              # HUD, menus, barres de PV
-│   │   │   ├── grid/            # Rendu isométrique de la grille
 │   │   │   └── main.ts
-│   │   ├── public/
-│   │   │   └── assets/          # Sprites, tilesets, sons
-│   │   └── package.json
-│   │
-│   ├── ai-player/               # Joueurs IA
-│   │   ├── src/
-│   │   │   ├── random.ts        # IA aléatoire (baseline)
-│   │   │   ├── heuristic.ts     # IA à heuristiques
-│   │   │   ├── llm.ts           # IA LLM (Claude API)
-│   │   │   └── mcp-server.ts    # Exposer le moteur comme MCP server
+│   │   ├── public/              # Assets (sprites, tilesets, sons)
+│   │   ├── index.html
+│   │   ├── vite.config.ts
+│   │   ├── tsconfig.json        # extends base + DOM libs
 │   │   └── package.json
 │   │
 │   └── data/                    # Données Pokemon (partagées)
-│       ├── pokemon.json         # Stats officielles
-│       ├── moves.json           # Attaques + AoE patterns + portée
-│       ├── abilities.json       # Talents
-│       ├── items.json           # Objets tenus
-│       └── type-chart.json      # Tableau des types
+│       ├── src/
+│       │   ├── base/            # Données officielles (Showdown/PokeAPI)
+│       │   ├── overrides/       # Surcharges tactiques + balance
+│       │   └── index.ts
+│       ├── tsconfig.json        # extends ../../tsconfig.base.json
+│       └── package.json
 │
-├── package.json                 # Workspace root
+├── package.json                 # Workspace root (scripts, devDependencies)
 ├── pnpm-workspace.yaml
-├── tsconfig.json
-├── biome.json                   # Config Biome (lint + format)
-├── vitest.config.ts
+├── tsconfig.base.json           # Config TS partagée (strict, bundler, path aliases)
+├── tsconfig.json                # Racine, extends base
+├── biome.json                   # Lint + format (recommended + nursery)
+├── vitest.config.ts             # Tests + coverage
 ├── CLAUDE.md
+├── STATUS.md
 ├── docs/
-└── plans/                       # Plans d'exécution numérotés
+└── plans/
 ```
+
+### Organisation du core
+
+Structure flat par responsabilité. On restructurera par domaine quand la complexité le justifiera (Phase 1-2).
+
+| Dossier | Contenu | Tests |
+|---------|---------|-------|
+| `enums/` | Const object enums (pattern `as const` + type dérivé) | Non testé (compilation = validation) |
+| `types/` | Interfaces, 1 fichier = 1 type | Non testé (compilation = validation) |
+| `utils/` | Fonctions pures réutilisables (math, direction, géométrie) | Oui |
+| `grid/` | Classe Grid, targeting resolvers | Oui |
+| `battle/` | BattleEngine, tour, initiative (à venir) | Oui |
+| `testing/` | Mocks centralisés (`abstract class MockX`) | Exclu du coverage et du build |
+
+### Configuration TypeScript
+
+Un seul `tsconfig.base.json` à la racine avec `moduleResolution: "bundler"` et les path aliases. Chaque package hérite via `extends`. Pas de project references, pas de `composite`, pas de `dist/` intermédiaires. Pattern identique à un monorepo Nx/Angular.
 
 ---
 
