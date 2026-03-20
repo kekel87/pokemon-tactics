@@ -2,16 +2,18 @@
 
 ## Contexte projet
 
-Pokemon Tactics : jeu de combat tactique (Pokemon x FFT) en TypeScript + Phaser 4.
+Pokemon Tactics : jeu de combat tactique (Pokemon x FFTA) en TypeScript + Phaser 4.
 Monorepo pnpm workspaces. Core découplé du rendu. AI-playable.
 
 ## Documentation — quoi lire et quand
 
 | Fichier | Quand le lire |
 |---------|---------------|
+| `STATUS.md` | **En premier** — quand on reprend le projet après une pause ("on en était où ?") |
 | `docs/game-design.md` | Avant d'implémenter une mécanique de jeu |
 | `docs/architecture.md` | Avant de créer un nouveau fichier/package ou changer la structure |
 | `docs/decisions.md` | Quand on hésite sur un choix (la réponse est peut-être déjà là) |
+| `docs/roster-poc.md` | Pour les Pokemon et movesets du prototype |
 | `docs/roadmap.md` | Pour savoir quoi faire ensuite |
 | `docs/references.md` | Quand on cherche comment un problème a été résolu ailleurs |
 | `docs/methodology.md` | Pour le workflow de travail |
@@ -54,3 +56,37 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 - Commiter des assets non libres de droits
 - Pousser sur `main` sans que les tests passent
 - Charger toute la doc en contexte quand un seul fichier suffit
+
+## Orchestration des agents
+
+Après un changement significatif, lancer les agents pertinents **automatiquement** :
+
+| Déclencheur | Agents à lancer |
+|-------------|-----------------|
+| Modif dans `packages/core/` | `core-guardian` + `test-writer` si nouvelle mécanique |
+| Modif de mécaniques de jeu | `game-designer` pour cohérence |
+| Avant un commit | `code-reviewer` (+ `core-guardian` si core touché) |
+| Fin de session | `session-closer` (ou `/status`) |
+| Ajout/modif de données | `game-designer` pour équilibre |
+| Après un ensemble de changements | `doc-keeper` pour la doc |
+| Ajout de dépendance | `dependency-manager` pour valider |
+| Ajout/modif d'assets | `asset-manager` pour conventions |
+| Nouveau plan ou plan à jour | `plan-reviewer` |
+| Hésitation sur une approche | `best-practices` pour recherche |
+| Bug complexe | `debugger` |
+| Ajout/modif d'un agent ou skill | `agent-manager` pour audit cohérence |
+| Audit périodique | `agent-manager` pour review globale |
+
+Ne pas lancer tous les agents à chaque fois — seulement ceux pertinents au changement.
+
+## Skills disponibles
+
+| Commande | Action |
+|----------|--------|
+| `/next` | Propose la prochaine étape de travail |
+| `/review` | Review de code sur les changements en cours |
+| `/status` | Met à jour STATUS.md en fin de session |
+| `/inspire <jeu ou URL>` | Analyse visuelle pour inspiration |
+| `/plan <titre ou numéro>` | Crée ou review un plan d'exécution |
+| `/debug <description>` | Diagnostic avancé d'un bug (opus) |
+| `/practices <sujet>` | Recherche bonnes pratiques du marché |

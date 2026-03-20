@@ -4,7 +4,22 @@
 
 ---
 
-## Projets clés à étudier
+## Jeux d'inspiration directe
+
+| Jeu | Intérêt pour le projet |
+|-----|------------------------|
+| **Pokemon** (toutes gens) | Base : créatures, types, stats, capacités, talents, objets |
+| **Pokemon Conquest** (DS) | **LA référence directe** — Pokemon + tactical RPG sur grille. Fusion types Pokemon + gameplay tactique. Le projet veut faire "ça, mais mieux". Étudier : comment ils adaptent les attaques à la grille, le système de portée, le lien guerrier-Pokemon. |
+| **Final Fantasy Tactics Advance** (GBA) | Référence principale gameplay : grille, initiative, AoE, KO countdown, dénivelés. Le créateur a joué à FFTA (pas FFT). |
+| **Fire Emblem** (à partir de Advance / GBA) | Déplacements 4 directions, positionnement tactique, blocage |
+| **Advance Wars** (GBA/DS) | Tactique grille, simplicité du gameplay, lisibilité |
+| **Dofus** (PC) | Tactical RPG MMO sur grille, AoE, portées, points d'action — référence secondaire |
+| **Triangle Strategy** (Switch) | **Référence visuelle principale** pour le style HD-2D (sprites 2D + terrain 3D + éclairage). À étudier en priorité pour le rendu. |
+| **Le Donjon de Naheulbeuk : L'Amulette du Désordre** (PC) | Tactical RPG avec humour, positionnement, AoE, friendly fire |
+
+---
+
+## Projets open source clés à étudier
 
 ### 1. Pokemon Showdown (sim/) — Architecture moteur de combat
 - **URL :** https://github.com/smogon/pokemon-showdown

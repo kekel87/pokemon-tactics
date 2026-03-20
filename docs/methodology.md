@@ -20,7 +20,9 @@ docs/
 ├── game-design.md      # Vision, règles, mécaniques de jeu
 ├── architecture.md     # Stack technique, structure, principes
 ├── decisions.md        # Log des décisions + questions ouvertes
+├── roster-poc.md       # Pokemon et movesets du prototype
 ├── roadmap.md          # Phases de développement, todolist
+├── references.md       # Projets d'inspiration et ressources
 └── methodology.md      # Ce document — comment on travaille
 ```
 
