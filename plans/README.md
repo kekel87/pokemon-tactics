@@ -11,4 +11,6 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 
 ## Index
 
-*(vide pour l'instant — les plans seront listés ici au fur et à mesure)*
+| # | Titre | Statut | Créé |
+|---|-------|--------|------|
+| 001 | [Setup monorepo](./001-setup-monorepo.md) | ready | 2026-03-20 |
