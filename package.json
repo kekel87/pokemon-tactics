@@ -10,14 +10,17 @@
     "dev": "pnpm --filter @pokemon-tactic/renderer dev",
     "build": "pnpm -r build",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
+    "@vitest/coverage-v8": "^4.1.0",
     "typescript": "^5.9.3",
     "vite": "^8.0.1",
+    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.0"
   }
 }

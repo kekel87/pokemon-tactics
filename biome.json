@@ -172,6 +172,10 @@
               {
                 "selector": { "kind": "function" },
                 "formats": ["camelCase", "PascalCase"]
+              },
+              {
+                "selector": { "kind": "objectLiteralProperty" },
+                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE"]
               }
             ]
           }
@@ -200,6 +204,16 @@
           },
           "nursery": {
             "useExplicitType": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/testing/**", "**/mocks/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noStaticOnlyClass": "off"
           }
         }
       }

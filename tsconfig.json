@@ -1,8 +1,4 @@
 {
-  "files": [],
-  "references": [
-    { "path": "packages/core" },
-    { "path": "packages/data" },
-    { "path": "packages/renderer" }
-  ]
+  "extends": "./tsconfig.base.json",
+  "include": ["packages/*/src"]
 }
