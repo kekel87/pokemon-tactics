@@ -63,6 +63,8 @@
 | 51 | 2026-03-20 | Mocks | **`abstract class` + `static readonly` + données pures** | Pas de helper de création (`createInstance`). Les mocks sont des données explicites. Variations via spread dans le test. |
 | 52 | 2026-03-20 | Biome `noStaticOnlyClass` | **Désactivé pour testing/mocks** | Les `abstract class MockX` sont un pattern délibéré (prévient l'instanciation, regroupe les mocks). Désactivé via override Biome sur `**/testing/**` et `**/mocks/**`. |
 | 53 | 2026-03-20 | Utils extraits | **`utils/` pour les fonctions pures transversales** | `manhattanDistance`, `directionFromTo`, `stepInDirection`, `getPerpendicularOffsets` — fonctions math/géométrie réutilisables, pas liées à un domaine spécifique. |
+| 54 | 2026-03-20 | Niveaux de test | **4 niveaux : unit, intégration, scénario, E2E** | Unit (*.test.ts, 100% coverage), intégration (*.integration.test.ts, pas de threshold), scénario (*.scenario.test.ts, combats headless), E2E (Playwright, séparé). |
+| 55 | 2026-03-20 | Vitest projects | **`test.projects` dans vitest.config.ts** | Vitest 4 a deprecaté `vitest.workspace.ts`. Utiliser `projects` avec `name` pour filtrer via `--project`. |
 
 ---
 
