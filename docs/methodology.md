@@ -58,11 +58,28 @@ docs/
 - **Pas de tests sur les types/barrels** — la compilation est la validation
 - **Fail-fast, KISS**
 
+### Niveaux de test
+
+| Niveau | Fichier | Commande | Coverage |
+|--------|---------|----------|----------|
+| **Unit** | `packages/*/src/**/*.test.ts` | `pnpm test` | 100% threshold (bloquant) |
+| **Intégration** | `packages/*/src/**/*.integration.test.ts` | `pnpm test:integration` | Mesuré, pas de threshold |
+| **Scénario** | `scenarios/**/*.scenario.test.ts` | `pnpm test:scenario` | Non |
+| **E2E visuel** | Playwright (séparé) | — | Non |
+| **Tous** | — | `pnpm test:all` | — |
+
+- **Unit** : 1 fonction/classe isolée, dépendances externes mockées
+- **Intégration** : teste les interactions entre composants (ex: targeting + Grid)
+- **Scénario** : combat complet headless (seed déterministe pour replay)
+- **E2E visuel** : Playwright screenshots du renderer (quand il sera en place)
+
+Un test d'intégration est utile quand il vérifie un **contrat entre composants** qu'aucun test unitaire ne couvre. S'il peut être testé en unit, c'est un unit test.
+
 ### Conventions de test
 - **Mocks centralisés** dans `testing/` : `abstract class MockX { static readonly ... }`
 - **Données pures, pas de logique** : pas de helper `createInstance()` avec `Partial<T>`
 - **Variations par spread** dans le test : `{ ...MockPokemon.base, position: { x: 2, y: 2 } }`
-- **Coverage 100%** sur `packages/core` (threshold bloquant)
+- **Coverage 100%** sur `packages/core` (threshold bloquant, unit seulement)
 - Les types/enums/barrels/mocks sont exclus du coverage
 
 ## 5. Conventions Git

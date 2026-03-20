@@ -9,8 +9,11 @@
   "scripts": {
     "dev": "pnpm --filter @pokemon-tactic/renderer dev",
     "build": "pnpm -r build",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:scenario": "vitest run --project scenario",
+    "test:all": "vitest run",
+    "test:coverage": "vitest run --project unit --coverage",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit"

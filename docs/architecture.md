@@ -94,6 +94,7 @@ pokemon-tactics/
 ├── tsconfig.json                # Racine, extends base
 ├── biome.json                   # Lint + format (recommended + nursery)
 ├── vitest.config.ts             # Tests + coverage
+├── scenarios/              # Combats headless complets (*.scenario.test.ts)
 ├── CLAUDE.md
 ├── STATUS.md
 ├── docs/
