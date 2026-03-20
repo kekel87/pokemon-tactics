@@ -40,6 +40,7 @@
 - [ ] Portée des attaques
 - [ ] Friendly fire actif
 - [ ] Statuts (brûlure, paralysie, gel, poison, sommeil)
+- [ ] Système de KO + countdown (style FFTA)
 - [ ] Système de replay (enregistrement + rejeu)
 - [ ] Hot-seat 2 joueurs
 - [ ] Sprites PMDCollab (pipeline AnimData.xml → Phaser atlas)
@@ -48,11 +49,11 @@
 
 ## Phase 2 — Terrain tactique
 
-- [ ] Dénivelés (hauteur des tiles)
-- [ ] Types de terrain (lave, eau, herbe)
+- [ ] Dénivelés (hauteur des tiles) + dégâts de chute
+- [ ] Types de terrain (lave, eau, herbe) + modificateurs précision terrain
 - [ ] Interactions type/terrain (Feu immunisé lave, Vol ignore obstacles...)
 - [ ] Modification du terrain par les attaques (Champ Herbeux, etc.)
-- [ ] Orientation des créatures (face/dos/côté) + bonus dégâts de dos (style FFT)
+- [ ] Orientation des créatures (face/dos/côté) + bonus dégâts de dos (style FFTA)
 - [ ] Team Builder (import/export format Showdown)
 - [ ] Support manette (Gamepad API)
 
@@ -78,7 +79,7 @@
 
 - [ ] Animations fluides (attaque, déplacement, KO)
 - [ ] Effets visuels isométriques (ombres, lumières, particules)
-- [ ] Rotation caméra 4 angles (style FFT)
+- [ ] Rotation caméra 4 angles (style FFTA)
 - [ ] Hot-seat jusqu'à 12 joueurs
 - [ ] Menu principal (combat rapide + entrée aventure désactivée)
 - [ ] Son / Musique
