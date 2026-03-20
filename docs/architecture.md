@@ -36,6 +36,20 @@
 - Mode headless : 1000 combats en quelques secondes (équilibrage)
 - Replays rejouables dans n'importe quel renderer
 
+### Diagramme des packages
+
+```mermaid
+graph TD
+    data["@pokemon-tactic/data<br/>(Pokemon, moves, type-chart)"]
+    core["@pokemon-tactic/core<br/>(moteur pur, zéro UI)"]
+    renderer["@pokemon-tactic/renderer<br/>(Phaser 4)"]
+    ai["@pokemon-tactic/ai-player<br/>(LLM, MCTS, MCP)"]
+
+    data --> core
+    core --> renderer
+    core --> ai
+```
+
 ---
 
 ## 2. Stack
@@ -111,8 +125,31 @@ Structure flat par responsabilité. On restructurera par domaine quand la comple
 | `types/` | Interfaces, 1 fichier = 1 type | Non testé (compilation = validation) |
 | `utils/` | Fonctions pures réutilisables (math, direction, géométrie) | Oui |
 | `grid/` | Classe Grid, targeting resolvers | Oui |
-| `battle/` | BattleEngine, tour, initiative (à venir) | Oui |
+| `battle/` | BattleEngine, TurnManager, validate | Oui |
 | `testing/` | Mocks centralisés (`abstract class MockX`) | Exclu du coverage et du build |
+
+### Diagramme interne du core
+
+```mermaid
+graph TD
+    enums["enums/<br/>TargetingKind, Direction,<br/>PokemonType, ActionError..."]
+    types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance..."]
+    utils["utils/<br/>manhattanDistance, directionFromTo,<br/>stepInDirection, getPerpendicularOffsets"]
+    grid["grid/<br/>Grid, targeting resolvers<br/>(single, cone, cross, line, dash, zone)"]
+    battle["battle/<br/>TurnManager, BattleEngine, validate"]
+    testing["testing/<br/>MockBattle, MockPokemon"]
+
+    enums --> types
+    enums --> grid
+    enums --> battle
+    types --> grid
+    types --> battle
+    utils --> grid
+    utils --> battle
+    grid --> battle
+    testing -.->|test only| battle
+    testing -.->|test only| grid
+```
 
 ### Configuration TypeScript
 
@@ -164,6 +201,29 @@ type Effect =
 
 Chaque `kind` de targeting a un **resolver** (pure function). Chaque `kind` d'effect a un **processor**.
 Ajouter une nouvelle mécanique = ajouter un `kind` dans l'union + son resolver/processor. Pas de refactor.
+
+### Flux d'un tour de combat
+
+```mermaid
+sequenceDiagram
+    participant Joueur
+    participant BattleEngine
+    participant TurnManager
+    participant Grid
+
+    Joueur->>BattleEngine: getLegalActions(playerId)
+    BattleEngine->>TurnManager: getCurrentPokemonId()
+    BattleEngine->>Grid: BFS depuis position actuelle
+    BattleEngine-->>Joueur: [skip_turn, move(A), move(B)...]
+
+    Joueur->>BattleEngine: submitAction(playerId, move)
+    BattleEngine->>Grid: setOccupant (ancien → null, nouveau → pokemonId)
+    BattleEngine->>BattleEngine: emit(PokemonMoved)
+    BattleEngine->>BattleEngine: emit(TurnEnded)
+    BattleEngine->>TurnManager: advance()
+    BattleEngine->>BattleEngine: emit(TurnStarted)
+    BattleEngine-->>Joueur: ActionResult { success: true, events: [...] }
+```
 
 ---
 
@@ -240,6 +300,26 @@ Données finales = deepMerge(base, tactical, balance)
 
 Les overrides sont **optionnels et additifs**. Changer de balance = changer un fichier.
 Permet de proposer des rulesets/métas différents plus tard.
+
+### Pipeline de données
+
+```mermaid
+flowchart LR
+    base["base/<br/>moves.ts<br/>pokemon.ts<br/>type-chart.ts"]
+    tactical["overrides/<br/>tactical.ts<br/>(+ targeting + effects)"]
+    balance["overrides/<br/>balance-v1.ts<br/>(tweaks numériques)"]
+    merge["deepMerge()"]
+    moveDef["MoveDefinition<br/>complète"]
+    validate["validateBattleData()"]
+
+    base --> merge
+    tactical --> merge
+    balance --> merge
+    merge --> moveDef
+    moveDef --> validate
+    validate -->|valid: true| ready["BattleEngine prêt"]
+    validate -->|errors| crash["Erreur au startup"]
+```
 
 ### Validation au startup
 

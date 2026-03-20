@@ -5,6 +5,8 @@ export const StatName = {
   SpAttack: "spAttack",
   SpDefense: "spDefense",
   Speed: "speed",
+  Accuracy: "accuracy",
+  Evasion: "evasion",
 } as const;
 
 export type StatName = (typeof StatName)[keyof typeof StatName];

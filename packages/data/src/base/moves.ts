@@ -1,2 +1,158 @@
-// Base move data — official Pokemon move stats
-export {};
+import { Category, PokemonType } from "@pokemon-tactic/core";
+
+export interface BaseMoveData {
+  id: string;
+  name: string;
+  type: PokemonType;
+  category: Category;
+  power: number;
+  accuracy: number;
+  pp: number;
+}
+
+export const baseMoves: BaseMoveData[] = [
+  {
+    id: "razor-leaf",
+    name: "Razor Leaf",
+    type: PokemonType.Grass,
+    category: Category.Physical,
+    power: 55,
+    accuracy: 95,
+    pp: 25,
+  },
+  {
+    id: "sleep-powder",
+    name: "Sleep Powder",
+    type: PokemonType.Grass,
+    category: Category.Status,
+    power: 0,
+    accuracy: 75,
+    pp: 15,
+  },
+  {
+    id: "leech-seed",
+    name: "Leech Seed",
+    type: PokemonType.Grass,
+    category: Category.Status,
+    power: 0,
+    accuracy: 90,
+    pp: 10,
+  },
+  {
+    id: "sludge-bomb",
+    name: "Sludge Bomb",
+    type: PokemonType.Poison,
+    category: Category.Special,
+    power: 90,
+    accuracy: 100,
+    pp: 10,
+  },
+  {
+    id: "ember",
+    name: "Ember",
+    type: PokemonType.Fire,
+    category: Category.Special,
+    power: 40,
+    accuracy: 100,
+    pp: 25,
+  },
+  {
+    id: "scratch",
+    name: "Scratch",
+    type: PokemonType.Normal,
+    category: Category.Physical,
+    power: 40,
+    accuracy: 100,
+    pp: 35,
+  },
+  {
+    id: "smokescreen",
+    name: "Smokescreen",
+    type: PokemonType.Normal,
+    category: Category.Status,
+    power: 0,
+    accuracy: 100,
+    pp: 20,
+  },
+  {
+    id: "dragon-breath",
+    name: "Dragon Breath",
+    type: PokemonType.Dragon,
+    category: Category.Special,
+    power: 60,
+    accuracy: 100,
+    pp: 20,
+  },
+  {
+    id: "water-gun",
+    name: "Water Gun",
+    type: PokemonType.Water,
+    category: Category.Special,
+    power: 40,
+    accuracy: 100,
+    pp: 25,
+  },
+  {
+    id: "tackle",
+    name: "Tackle",
+    type: PokemonType.Normal,
+    category: Category.Physical,
+    power: 40,
+    accuracy: 100,
+    pp: 35,
+  },
+  {
+    id: "withdraw",
+    name: "Withdraw",
+    type: PokemonType.Water,
+    category: Category.Status,
+    power: 0,
+    accuracy: 100,
+    pp: 40,
+  },
+  {
+    id: "bubble-beam",
+    name: "Bubble Beam",
+    type: PokemonType.Water,
+    category: Category.Special,
+    power: 65,
+    accuracy: 100,
+    pp: 20,
+  },
+  {
+    id: "gust",
+    name: "Gust",
+    type: PokemonType.Flying,
+    category: Category.Special,
+    power: 40,
+    accuracy: 100,
+    pp: 35,
+  },
+  {
+    id: "quick-attack",
+    name: "Quick Attack",
+    type: PokemonType.Normal,
+    category: Category.Physical,
+    power: 40,
+    accuracy: 100,
+    pp: 30,
+  },
+  {
+    id: "sand-attack",
+    name: "Sand Attack",
+    type: PokemonType.Ground,
+    category: Category.Status,
+    power: 0,
+    accuracy: 100,
+    pp: 15,
+  },
+  {
+    id: "wing-attack",
+    name: "Wing Attack",
+    type: PokemonType.Flying,
+    category: Category.Physical,
+    power: 60,
+    accuracy: 100,
+    pp: 35,
+  },
+];

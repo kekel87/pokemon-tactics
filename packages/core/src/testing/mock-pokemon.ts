@@ -10,6 +10,8 @@ const ZERO_STAT_STAGES: Record<StatNameType, number> = {
   [StatName.SpAttack]: 0,
   [StatName.SpDefense]: 0,
   [StatName.Speed]: 0,
+  [StatName.Accuracy]: 0,
+  [StatName.Evasion]: 0,
 };
 
 export abstract class MockPokemon {
