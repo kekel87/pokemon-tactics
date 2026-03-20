@@ -65,6 +65,12 @@
 | 53 | 2026-03-20 | Utils extraits | **`utils/` pour les fonctions pures transversales** | `manhattanDistance`, `directionFromTo`, `stepInDirection`, `getPerpendicularOffsets` — fonctions math/géométrie réutilisables, pas liées à un domaine spécifique. |
 | 54 | 2026-03-20 | Niveaux de test | **4 niveaux : unit, intégration, scénario, E2E** | Unit (*.test.ts, 100% coverage), intégration (*.integration.test.ts, pas de threshold), scénario (*.scenario.test.ts, combats headless), E2E (Playwright, séparé). |
 | 55 | 2026-03-20 | Vitest projects | **`test.projects` dans vitest.config.ts** | Vitest 4 a deprecaté `vitest.workspace.ts`. Utiliser `projects` avec `name` pour filtrer via `--project`. |
+| 56 | 2026-03-20 | `Accuracy`/`Evasion` dans `StatName` | **Ajoutés en tant que stats à part entière** | Smokescreen et Sand-Attack corrigeaient les modificateurs sur la mauvaise stat. `Accuracy` et `Evasion` doivent être dans `StatName` pour que `stat_change` fonctionne correctement. |
+| 57 | 2026-03-20 | Codes d'erreur | **`ActionError` enum** (pas des strings) | Les erreurs de `submitAction` sont typées via le const enum `ActionError`. Permet au compilateur de valider les cas d'erreur et à l'IA de les traiter sans comparer des chaînes. |
+| 58 | 2026-03-20 | `MockBattle` centralisé | **Dans `testing/`**, pas de helpers inline dans les tests | Les tests d'intégration et de scénario utilisent `MockBattle` (état initial minimal préconstruit). Cohérent avec le pattern `MockPokemon` déjà en place. |
+| 59 | 2026-03-20 | `deepMerge` et arrays | **Les arrays sont remplacés, pas concaténés** | Un override qui fournit un array `effects` remplace entièrement le tableau de base. Évite les effets doublés non intentionnels lors d'un merge multi-couches. |
+| 60 | 2026-03-20 | `TurnManager` source de vérité | **`TurnManager` est maître, `BattleState` est synchronisé après** | `BattleState.turnOrder` et `currentTurnIndex` sont mis à jour par `BattleEngine` après chaque mutation du `TurnManager`, pas avant. Évite les incohérences d'état. |
+| 61 | 2026-03-20 | Commentaires dans les tests | **Autorisés dans intégration/scénario, avec parcimonie** | Les tests unitaires restent sans commentaires. Les tests d'intégration et de scénario peuvent avoir des commentaires de structure. Les scénarios utilisent un bloc Gherkin (Given/When/Then) en commentaire d'en-tête. |
 
 ---
 

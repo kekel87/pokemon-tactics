@@ -29,7 +29,11 @@ importers:
 
   packages/core: {}
 
-  packages/data: {}
+  packages/data:
+    dependencies:
+      '@pokemon-tactic/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/renderer:
     dependencies:

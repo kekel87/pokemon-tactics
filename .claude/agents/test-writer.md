@@ -27,9 +27,11 @@ Un test d'intégration vérifie un **contrat entre composants** qu'aucun unit te
 
 ## Mocks
 
-- `abstract class MockX { static readonly ... }` dans `testing/`
-- Données pures, pas de helper de création
-- Variations par spread dans le test : `{ ...MockPokemon.base, position: { x: 2, y: 2 } }`
+- `abstract class MockX { static readonly ... }` dans `packages/core/src/testing/`
+- Données pures, pas de helper de création — **aucune fonction `createX`, `makeX`, `buildX`, `validX` dans un fichier `.test.ts`**
+- Si un objet nécessite plusieurs variantes, les déclarer comme propriétés statiques de la classe mock : `MockMove.tackle`, `MockMove.brokenNoTargeting`
+- Variations ponctuelles par spread dans le test : `{ ...MockPokemon.base, position: { x: 2, y: 2 } }`
+- Utiliser les const enums dans les mocks, jamais de string literals : `terrain: TerrainType.Normal`, pas `terrain: "normal"`
 
 ## Lancer les tests
 

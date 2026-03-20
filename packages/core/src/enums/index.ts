@@ -1,3 +1,4 @@
+export { ActionError } from "./action-error";
 export { ActionKind } from "./action-kind";
 export { BattleEventType } from "./battle-event-type";
 export { Category } from "./category";

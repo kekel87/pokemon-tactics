@@ -1,9 +1,15 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+  },
   test: {
     projects: [
       {
+        resolve: {
+          tsconfigPaths: true,
+        },
         test: {
           name: "unit",
           include: ["packages/*/src/**/*.test.ts"],
@@ -34,12 +40,18 @@ export default defineConfig({
         },
       },
       {
+        resolve: {
+          tsconfigPaths: true,
+        },
         test: {
           name: "integration",
           include: ["packages/*/src/**/*.integration.test.ts"],
         },
       },
       {
+        resolve: {
+          tsconfigPaths: true,
+        },
         test: {
           name: "scenario",
           include: ["scenarios/**/*.scenario.test.ts"],

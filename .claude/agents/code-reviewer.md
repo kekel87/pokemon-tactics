@@ -21,6 +21,10 @@ export const TargetingKind = { Single: "single", Self: "self" } as const;
 export type TargetingKind = (typeof TargetingKind)[keyof typeof TargetingKind];
 ```
 - Pas de `enum` TypeScript natif (tree-shaking problems)
+- **Les valeurs retournées (errors, event types, kinds) doivent aussi être des const enums**, pas des string literals :
+  - Mal : `return { success: false, error: "not_your_turn" }`
+  - Bien : `return { success: false, error: ActionError.NotYourTurn }`
+  - Vérifier en particulier les champs `error`, `type`, `kind`, `status` dans les return et les objets d'event
 
 ### Structure des fichiers (BLOQUANT)
 - Séparer : types/interfaces, enums, classes, utils dans des dossiers distincts
@@ -48,9 +52,11 @@ export type TargetingKind = (typeof TargetingKind)[keyof typeof TargetingKind];
 
 ### Mocks (BLOQUANT)
 - **Données pures** : `abstract class MockX { static readonly base: T = { ... } }`
-- **Pas de helpers de création** (`createInstance`, `makeMock`, `buildX`) — ça ajoute de la logique dans les tests
+- **Pas de helpers de création** (`createInstance`, `makeMock`, `buildX`, `validMove`, `validPokemon`) — ça ajoute de la logique dans les tests et masque ce qu'on teste vraiment
 - **Variations par spread** dans le test : `{ ...MockPokemon.base, position: { x: 2, y: 2 } }`
-- Les mocks vont dans `testing/` (exclus du coverage et du build)
+- Les mocks vont dans `packages/core/src/testing/` (exclus du coverage et du build)
+- **Aucune factory function dans un fichier `.test.ts`** — si une fonction produit un objet pour les tests, elle va dans `testing/`, pas dans le fichier de test
+- Vérifier : grep pour `function valid`, `function create`, `function make`, `function build` dans les `*.test.ts`
 
 ### Architecture
 - `packages/core` n'importe rien d'UI (délègue au core-guardian si doute)
@@ -67,9 +73,12 @@ export type TargetingKind = (typeof TargetingKind)[keyof typeof TargetingKind];
 ## Méthode
 
 1. Lire les fichiers modifiés (via git diff ou liste fournie)
-2. Vérifier chaque point ci-dessus
-3. Lancer `pnpm lint` (Biome) si disponible
-4. Lancer `pnpm test` si des fichiers core ont changé
+2. Vérifier chaque point ci-dessus, dans l'ordre
+3. Pour chaque fichier `.test.ts` modifié, faire ces greps ciblés :
+   - `grep -n "function valid\|function create\|function make\|function build"` → factory functions interdites dans les tests
+   - `grep -n '"[a-z_]*"' ` dans les `return` et les objets d'erreur → string literals qui devraient être des const enums
+4. Lancer `pnpm lint` (Biome) si disponible
+5. Lancer `pnpm test` si des fichiers core ont changé
 
 ## Rapport
 

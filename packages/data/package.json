@@ -8,7 +8,11 @@
       "types": "./src/index.ts"
     }
   },
+  "dependencies": {
+    "@pokemon-tactic/core": "workspace:*"
+  },
   "scripts": {
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   }
 }

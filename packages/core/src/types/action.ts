@@ -1,3 +1,4 @@
+import type { ActionError } from "../enums/action-error";
 import type { ActionKind } from "../enums/action-kind";
 import type { BattleEvent } from "./battle-event";
 import type { Position } from "./position";
@@ -10,5 +11,5 @@ export type Action =
 export interface ActionResult {
   success: boolean;
   events: BattleEvent[];
-  error?: string;
+  error?: ActionError;
 }
