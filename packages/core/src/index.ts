@@ -1,7 +1,13 @@
 export { BattleEngine } from "./battle/BattleEngine";
+export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
+export { EffectHandlerRegistry } from "./battle/effect-handler-registry";
+export { createDefaultEffectRegistry } from "./battle/effect-processor";
+export { getEffectiveInitiative } from "./battle/initiative-calculator";
 export { TurnManager } from "./battle/TurnManager";
-export { validateBattleData } from "./battle/validate";
+export type { PhaseHandler, PhaseResult } from "./battle/turn-pipeline";
+export { TurnPipeline } from "./battle/turn-pipeline";
 export type { ValidationResult } from "./battle/validate";
+export { validateBattleData } from "./battle/validate";
 export * from "./enums/index";
 export { Grid } from "./grid/Grid";
 export { resolveTargeting } from "./grid/targeting";

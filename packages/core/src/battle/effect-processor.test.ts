@@ -3,14 +3,15 @@ import { BattleEventType } from "../enums/battle-event-type";
 import { Category } from "../enums/category";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
+import { LinkType } from "../enums/link-type";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
+import { MockBattle } from "../testing/mock-battle";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
-import { MockBattle } from "../testing/mock-battle";
 import { processEffects } from "./effect-processor";
 
 const P1 = MockBattle.player1Fast;
@@ -63,7 +64,9 @@ const statChangeMove: MoveDefinition = {
   accuracy: 100,
   pp: 40,
   targeting: { kind: TargetingKind.Self },
-  effects: [{ kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self }],
+  effects: [
+    { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self },
+  ],
 };
 
 const linkMove: MoveDefinition = {
@@ -75,7 +78,15 @@ const linkMove: MoveDefinition = {
   accuracy: 90,
   pp: 10,
   targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
-  effects: [{ kind: EffectKind.Link, linkType: "leech-seed", duration: 3, maxRange: 5, drainFraction: 0.125 }],
+  effects: [
+    {
+      kind: EffectKind.Link,
+      linkType: LinkType.LeechSeed,
+      duration: null,
+      maxRange: 5,
+      drainFraction: 0.125,
+    },
+  ],
 };
 
 const simpleChart = {
@@ -232,7 +243,14 @@ describe("processEffects — statChange", () => {
     const target = fresh(P2);
     const targetDebuffMove: MoveDefinition = {
       ...statChangeMove,
-      effects: [{ kind: EffectKind.StatChange, stat: StatName.Accuracy, stages: -1, target: EffectTarget.Targets }],
+      effects: [
+        {
+          kind: EffectKind.StatChange,
+          stat: StatName.Accuracy,
+          stages: -1,
+          target: EffectTarget.Targets,
+        },
+      ],
     };
     const context = makeContext(fresh(P1), [target], targetDebuffMove);
 
@@ -252,7 +270,7 @@ describe("processEffects — link", () => {
     expect(context.state.activeLinks.length).toBe(1);
     expect(context.state.activeLinks[0]?.sourceId).toBe(P1.id);
     expect(context.state.activeLinks[0]?.targetId).toBe(P2.id);
-    expect(context.state.activeLinks[0]?.linkType).toBe("leech-seed");
+    expect(context.state.activeLinks[0]?.linkType).toBe(LinkType.LeechSeed);
     const linkEvents = events.filter((e) => e.type === BattleEventType.LinkCreated);
     expect(linkEvents.length).toBe(1);
   });

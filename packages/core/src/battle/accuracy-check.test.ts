@@ -4,8 +4,8 @@ import { EffectKind } from "../enums/effect-kind";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import { TargetingKind } from "../enums/targeting-kind";
-import type { MoveDefinition } from "../types/move-definition";
 import { MockBattle } from "../testing/mock-battle";
+import type { MoveDefinition } from "../types/move-definition";
 import { checkAccuracy } from "./accuracy-check";
 
 const move100: MoveDefinition = {
@@ -38,14 +38,20 @@ function fresh(base: typeof MockBattle.player1Fast, overrides?: Record<string, u
 describe("checkAccuracy", () => {
   it("always hits with accuracy 100 and no stage modifiers", () => {
     for (let i = 0; i < 20; i++) {
-      expect(checkAccuracy(move100, fresh(MockBattle.player1Fast), fresh(MockBattle.player2Slow))).toBe(true);
+      expect(
+        checkAccuracy(move100, fresh(MockBattle.player1Fast), fresh(MockBattle.player2Slow)),
+      ).toBe(true);
     }
   });
 
   it("can miss with accuracy < 100", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.99);
 
-    const result = checkAccuracy(move75, fresh(MockBattle.player1Fast), fresh(MockBattle.player2Slow));
+    const result = checkAccuracy(
+      move75,
+      fresh(MockBattle.player1Fast),
+      fresh(MockBattle.player2Slow),
+    );
     expect(result).toBe(false);
 
     vi.restoreAllMocks();
@@ -54,7 +60,11 @@ describe("checkAccuracy", () => {
   it("hits with accuracy < 100 when roll is low", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.01);
 
-    const result = checkAccuracy(move75, fresh(MockBattle.player1Fast), fresh(MockBattle.player2Slow));
+    const result = checkAccuracy(
+      move75,
+      fresh(MockBattle.player1Fast),
+      fresh(MockBattle.player2Slow),
+    );
     expect(result).toBe(true);
 
     vi.restoreAllMocks();

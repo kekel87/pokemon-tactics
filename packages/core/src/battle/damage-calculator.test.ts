@@ -4,9 +4,9 @@ import { EffectKind } from "../enums/effect-kind";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
+import { MockBattle } from "../testing/mock-battle";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
-import { MockBattle } from "../testing/mock-battle";
 import { calculateDamage, getStab, getTypeEffectiveness } from "./damage-calculator";
 
 const baseMove: MoveDefinition = {
@@ -22,10 +22,26 @@ const baseMove: MoveDefinition = {
 };
 
 const simpleChart: Record<PokemonType, Record<PokemonType, number>> = {
-  [PokemonType.Normal]: { [PokemonType.Normal]: 1, [PokemonType.Fire]: 1, [PokemonType.Water]: 1, [PokemonType.Rock]: 0.5, [PokemonType.Ghost]: 0 } as Record<PokemonType, number>,
-  [PokemonType.Fire]: { [PokemonType.Grass]: 2, [PokemonType.Water]: 0.5, [PokemonType.Fire]: 0.5 } as Record<PokemonType, number>,
-  [PokemonType.Water]: { [PokemonType.Fire]: 2, [PokemonType.Grass]: 0.5 } as Record<PokemonType, number>,
-  [PokemonType.Grass]: { [PokemonType.Water]: 2, [PokemonType.Fire]: 0.5 } as Record<PokemonType, number>,
+  [PokemonType.Normal]: {
+    [PokemonType.Normal]: 1,
+    [PokemonType.Fire]: 1,
+    [PokemonType.Water]: 1,
+    [PokemonType.Rock]: 0.5,
+    [PokemonType.Ghost]: 0,
+  } as Record<PokemonType, number>,
+  [PokemonType.Fire]: {
+    [PokemonType.Grass]: 2,
+    [PokemonType.Water]: 0.5,
+    [PokemonType.Fire]: 0.5,
+  } as Record<PokemonType, number>,
+  [PokemonType.Water]: { [PokemonType.Fire]: 2, [PokemonType.Grass]: 0.5 } as Record<
+    PokemonType,
+    number
+  >,
+  [PokemonType.Grass]: { [PokemonType.Water]: 2, [PokemonType.Fire]: 0.5 } as Record<
+    PokemonType,
+    number
+  >,
 } as Record<PokemonType, Record<PokemonType, number>>;
 
 function attacker(overrides?: Partial<PokemonInstance>): PokemonInstance {
@@ -53,8 +69,12 @@ function defender(overrides?: Partial<PokemonInstance>): PokemonInstance {
 describe("calculateDamage", () => {
   it("calculates neutral damage", () => {
     const damage = calculateDamage(
-      attacker(), defender(), baseMove, simpleChart,
-      [PokemonType.Normal], [PokemonType.Normal],
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
     );
     expect(damage).toBeGreaterThan(0);
   });
@@ -62,16 +82,24 @@ describe("calculateDamage", () => {
   it("returns 0 for status moves", () => {
     const statusMove = { ...baseMove, category: Category.Status, power: 0 };
     const damage = calculateDamage(
-      attacker(), defender(), statusMove, simpleChart,
-      [PokemonType.Normal], [PokemonType.Normal],
+      attacker(),
+      defender(),
+      statusMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
     );
     expect(damage).toBe(0);
   });
 
   it("returns 0 for immune type matchups", () => {
     const damage = calculateDamage(
-      attacker(), defender(), baseMove, simpleChart,
-      [PokemonType.Normal], [PokemonType.Ghost],
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Ghost],
     );
     expect(damage).toBe(0);
   });
@@ -79,24 +107,40 @@ describe("calculateDamage", () => {
   it("deals more damage with super effective", () => {
     const fireMove = { ...baseMove, type: PokemonType.Fire };
     const neutral = calculateDamage(
-      attacker(), defender(), fireMove, simpleChart,
-      [PokemonType.Fire], [PokemonType.Fire],
+      attacker(),
+      defender(),
+      fireMove,
+      simpleChart,
+      [PokemonType.Fire],
+      [PokemonType.Fire],
     );
     const superEffective = calculateDamage(
-      attacker(), defender(), fireMove, simpleChart,
-      [PokemonType.Fire], [PokemonType.Grass],
+      attacker(),
+      defender(),
+      fireMove,
+      simpleChart,
+      [PokemonType.Fire],
+      [PokemonType.Grass],
     );
     expect(superEffective).toBeGreaterThan(neutral);
   });
 
   it("applies STAB bonus", () => {
     const withStab = calculateDamage(
-      attacker(), defender(), baseMove, simpleChart,
-      [PokemonType.Normal], [PokemonType.Normal],
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
     );
     const withoutStab = calculateDamage(
-      attacker(), defender(), baseMove, simpleChart,
-      [PokemonType.Fire], [PokemonType.Normal],
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Fire],
+      [PokemonType.Normal],
     );
     expect(withStab).toBeGreaterThan(withoutStab);
   });
@@ -104,12 +148,20 @@ describe("calculateDamage", () => {
   it("halves physical damage when attacker is burned", () => {
     const burned = attacker({ statusEffects: [{ type: StatusType.Burned, remainingTurns: null }] });
     const normal = calculateDamage(
-      attacker(), defender(), baseMove, simpleChart,
-      [PokemonType.Normal], [PokemonType.Normal],
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
     );
     const burnedDamage = calculateDamage(
-      burned, defender(), baseMove, simpleChart,
-      [PokemonType.Normal], [PokemonType.Normal],
+      burned,
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
     );
     expect(burnedDamage).toBeLessThan(normal);
   });
@@ -117,12 +169,20 @@ describe("calculateDamage", () => {
   it("applies stat stage modifiers", () => {
     const boosted = attacker({ statStages: { ...MockBattle.player1Fast.statStages, attack: 2 } });
     const normal = calculateDamage(
-      attacker(), defender(), baseMove, simpleChart,
-      [PokemonType.Normal], [PokemonType.Normal],
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
     );
     const boostedDamage = calculateDamage(
-      boosted, defender(), baseMove, simpleChart,
-      [PokemonType.Normal], [PokemonType.Normal],
+      boosted,
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
     );
     expect(boostedDamage).toBeGreaterThan(normal);
   });

@@ -51,6 +51,7 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 - **Mocks** : factories et données dans `packages/core/src/testing/`, jamais inline dans les tests
 - **Tests unitaires** : pas de commentaires. Tests intégration/scénario : commentaires OK (parcimonie), bloc Gherkin pour scénarios
 - **Écriture de code** : préférer Edit à Write. Construire les gros fichiers par petits Edit successifs, pas un Write massif
+- **Code mort** : zéro tolérance. Pas de fonctions/branches/imports inutilisés. Utiliser le coverage pour détecter les branches jamais atteintes.
 
 ## Stack
 

@@ -16,6 +16,7 @@
 | **Dofus** (PC) | Tactical RPG MMO sur grille, AoE, portées, points d'action — référence secondaire |
 | **Triangle Strategy** (Switch) | **Référence visuelle principale** pour le style HD-2D (sprites 2D + terrain 3D + éclairage). À étudier en priorité pour le rendu. |
 | **Le Donjon de Naheulbeuk : L'Amulette du Désordre** (PC) | Tactical RPG avec humour, positionnement, AoE, friendly fire |
+| **Pokemon Mystery Dungeon** (série DS/3DS/Switch) | Roguelike tactique Pokemon. Intérêt : système de Travel Speed (vitesse = fréquence d'action, de x0.5 à x4), PP conservés avec attaque de base gratuite, exploration de donjons avec 400+ Pokemon. Rescue Team DX (Switch) est le remake le plus accessible. |
 
 ---
 

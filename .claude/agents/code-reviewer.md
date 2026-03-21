@@ -58,6 +58,16 @@ export type TargetingKind = (typeof TargetingKind)[keyof typeof TargetingKind];
 - **Aucune factory function dans un fichier `.test.ts`** — si une fonction produit un objet pour les tests, elle va dans `testing/`, pas dans le fichier de test
 - Vérifier : grep pour `function valid`, `function create`, `function make`, `function build` dans les `*.test.ts`
 
+### Code mort (BLOQUANT)
+- **Pas de code mort** : fonctions, variables, imports, branches inaccessibles
+- Vérifier les exports non utilisés (sauf dans les barrels `index.ts` qui exposent l'API publique)
+- Vérifier les guard clauses redondantes (ex: un check de type déjà garanti par l'appelant)
+- Vérifier les paramètres préfixés `_` — si le paramètre n'est pas utilisé et n'est pas requis par une interface, le retirer
+- Utiliser le coverage pour détecter les branches jamais atteintes : si une branche a 0% coverage et n'est pas un edge case légitime, c'est probablement du code mort
+- Greps utiles :
+  - `grep -rn "export function\|export class\|export const"` dans src/ → vérifier que chaque export est importé quelque part
+  - Coverage < 100% sur un fichier → investiguer les lignes non couvertes
+
 ### Architecture
 - `packages/core` n'importe rien d'UI (délègue au core-guardian si doute)
 - Les attaques sont déclaratives (targeting + effects), pas de code custom par move
