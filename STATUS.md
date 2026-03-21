@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-21 (Plan 006 terminé)
+> Dernière mise à jour : 2026-03-21 (Tests headless IA — core validé de bout en bout)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -51,9 +51,14 @@
   - Handlers enregistrés dans le constructeur `BattleEngine`
   - **224 tests**, 100% coverage maintenu
   - 6 tests d'intégration battle-loop : poison tue, sleep+drain, paralysie, initiative dynamique, battleOver
+- **Tests headless IA** (scripts temporaires, supprimés après validation) :
+  - Combat IA Random : Player 1 gagne (Bulbasaur+Squirtle vs Charmander+Pidgey) en 58 rounds — boucle tourne, KO gérés, victoire détectée, pas de crash
+  - Combat IA Smart : Player 2 gagne (Charmander+Squirtle vs Bulbasaur+Pidgey) en 67 rounds — bug heuristique détecté (PP grillés sans cible), corrigeable via `getLegalActions`
+  - **Core validé de bout en bout** : la boucle de combat complète fonctionne en headless
 
 ### Prochaine étape
 - **Phase 0 — Renderer** : grille isométrique Phaser, sprites placeholder, sélection + déplacement visuel, UI minimale (PV, liste d'attaques)
+- Alternative : IA améliorée Phase 3 (heuristique + vérification des cibles via `getLegalActions` avant de choisir une attaque)
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type
@@ -66,5 +71,7 @@
 
 ### Questions ouvertes (non bloquantes pour le POC)
 - Formules dérivées (Mouvement/Saut/Initiative depuis Vitesse+Poids) — Phase 1
-- Movesets POC : Bombe-Beurk trop forte, Salamèche trop faible (feedback game-designer)
+- Movesets POC : Bombe-Beurk trop forte, Salamèche trop faible (feedback game-designer) — Sludge Bomb inflige 112 dégâts sur Pidgey (40 HP), ratio 2.8x à surveiller
 - Countdown KO FFTA (décision #24) — prévu Phase 1, `koCountdown` déjà sur `PokemonInstance`
+- Friendly fire fréquent avec IA random (pas de bug, comportement attendu mais à garder en tête pour l'équilibrage)
+- PP system : une IA sans filtre de cible gaspille ses PP — `getLegalActions` peut servir de garde-fou

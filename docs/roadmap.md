@@ -10,13 +10,13 @@
 
 ### Core
 - [x] Setup monorepo (pnpm workspaces, tsconfig, Vite, Vitest, Biome)
-- [ ] Modèles de base (Pokemon, Move, Grid, BattleState)
-- [ ] Grille plate (pas de dénivelé), placement de 2 Pokemon
-- [ ] Système de tour simple (tri par Vitesse)
-- [ ] Déplacement (pathfinding basique sur grille)
-- [ ] Attaque single target + calcul de dégâts simplifié
-- [ ] Condition de victoire (PV à 0)
-- [ ] Tests unitaires pour chaque mécanique
+- [x] Modèles de base (Pokemon, Move, Grid, BattleState)
+- [x] Grille plate (pas de dénivelé), placement de 2 Pokemon
+- [x] Système de tour simple (tri par Vitesse)
+- [x] Déplacement (pathfinding BFS sur grille)
+- [x] Attaque single target + calcul de dégâts (formule Gen 5+, STAB, types)
+- [x] Condition de victoire (dernière équipe debout)
+- [x] Tests unitaires pour chaque mécanique (224 tests, 100% coverage)
 
 ### Renderer
 - [ ] Grille isométrique 2D avec Phaser
@@ -26,7 +26,7 @@
 - [ ] UI minimale (PV, sélection attaque)
 
 ### AI
-- [ ] IA random (validation que l'API core fonctionne)
+- [x] IA random (validation que l'API core fonctionne) — combat headless validé, 58 rounds, victoire détectée
 
 ---
 
