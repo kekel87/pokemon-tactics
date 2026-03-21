@@ -1,0 +1,311 @@
+import {
+  ActionKind,
+  BattleEventType,
+  type Action,
+  type BattleEngine,
+  type BattleEvent,
+  type BattleState,
+  type MoveDefinition,
+  type PokemonDefinition,
+  type PokemonInstance,
+} from "@pokemon-tactic/core";
+import { HighlightKind } from "../enums/highlight-kind";
+import type { IsometricGrid } from "../grid/IsometricGrid";
+import type { PokemonSprite } from "../sprites/PokemonSprite";
+import type { BattleUI } from "../ui/BattleUI";
+import { AnimationQueue } from "./AnimationQueue";
+import { type BattleSetupResult, createBattle } from "./BattleSetup";
+
+type InputState =
+  | { phase: "select_action" }
+  | { phase: "select_move_target"; moveId: string }
+  | { phase: "animating" }
+  | { phase: "battle_over"; winnerId: string };
+
+export class GameController {
+  private readonly setup: BattleSetupResult;
+  private readonly isometricGrid: IsometricGrid;
+  private readonly sprites: Map<string, PokemonSprite>;
+  private readonly animationQueue: AnimationQueue;
+  private readonly scene: Phaser.Scene;
+  private readonly battleUI: BattleUI;
+  private inputState: InputState = { phase: "select_action" };
+  private legalActions: Action[] = [];
+
+  constructor(
+    scene: Phaser.Scene,
+    isometricGrid: IsometricGrid,
+    sprites: Map<string, PokemonSprite>,
+    battleUI: BattleUI,
+  ) {
+    this.scene = scene;
+    this.isometricGrid = isometricGrid;
+    this.sprites = sprites;
+    this.animationQueue = new AnimationQueue();
+    this.battleUI = battleUI;
+    this.setup = createBattle();
+
+    this.refreshUI();
+  }
+
+  get engine(): BattleEngine {
+    return this.setup.engine;
+  }
+
+  get state(): BattleState {
+    return this.setup.state;
+  }
+
+  get pokemonDefinitions(): Map<string, PokemonDefinition> {
+    return this.setup.pokemonDefinitions;
+  }
+
+  get moveDefinitions(): Map<string, MoveDefinition> {
+    return this.setup.moveDefinitions;
+  }
+
+  get isAnimating(): boolean {
+    return this.inputState.phase === "animating";
+  }
+
+  getActivePokemonId(): string | null {
+    const turnOrder = this.state.turnOrder;
+    const index = this.state.currentTurnIndex;
+    return turnOrder[index] ?? null;
+  }
+
+  getActivePlayerId(): string | null {
+    const pokemonId = this.getActivePokemonId();
+    if (!pokemonId) return null;
+    return this.state.pokemon.get(pokemonId)?.playerId ?? null;
+  }
+
+  handleTileClick(gridX: number, gridY: number): void {
+    if (this.inputState.phase === "animating" || this.inputState.phase === "battle_over") {
+      return;
+    }
+
+    const activePokemonId = this.getActivePokemonId();
+    if (!activePokemonId) return;
+
+    const activePlayerId = this.getActivePlayerId();
+    if (!activePlayerId) return;
+
+    if (this.inputState.phase === "select_action") {
+      const moveAction = this.findMoveAction(gridX, gridY);
+      if (moveAction) {
+        this.executeAction(activePlayerId, moveAction);
+        return;
+      }
+    }
+
+    if (this.inputState.phase === "select_move_target") {
+      const { moveId } = this.inputState;
+      const useMoveAction = this.findUseMoveAction(moveId, gridX, gridY);
+      if (useMoveAction) {
+        this.executeAction(activePlayerId, useMoveAction);
+        return;
+      }
+      this.inputState = { phase: "select_action" };
+      this.refreshHighlights();
+    }
+  }
+
+  handleMoveSelect(moveId: string): void {
+    if (this.inputState.phase === "animating" || this.inputState.phase === "battle_over") {
+      return;
+    }
+
+    this.inputState = { phase: "select_move_target", moveId };
+    this.refreshHighlights();
+  }
+
+  handleSkipTurn(): void {
+    if (this.inputState.phase === "animating" || this.inputState.phase === "battle_over") {
+      return;
+    }
+
+    const activePokemonId = this.getActivePokemonId();
+    const activePlayerId = this.getActivePlayerId();
+    if (!activePokemonId || !activePlayerId) return;
+
+    const skipAction: Action = { kind: ActionKind.SkipTurn, pokemonId: activePokemonId };
+    this.executeAction(activePlayerId, skipAction);
+  }
+
+  refreshUI(): void {
+    const activePokemonId = this.getActivePokemonId();
+    const activePlayerId = this.getActivePlayerId();
+
+    if (!activePokemonId || !activePlayerId) return;
+
+    this.legalActions = this.engine.getLegalActions(activePlayerId);
+
+    for (const [id, sprite] of this.sprites) {
+      sprite.setActive(id === activePokemonId);
+    }
+
+    const activePokemon = this.state.pokemon.get(activePokemonId);
+    if (activePokemon) {
+      const moves: MoveDefinition[] = [];
+      for (const moveId of activePokemon.moveIds) {
+        const move = this.moveDefinitions.get(moveId);
+        if (move) moves.push(move);
+      }
+      this.battleUI.updateTurnInfo(activePokemon, activePlayerId, this.state.roundNumber);
+      this.battleUI.updateMoveList(moves, activePokemon.currentPp, this.legalActions);
+    }
+
+    this.refreshHighlights();
+  }
+
+  private refreshHighlights(): void {
+    this.isometricGrid.clearHighlights();
+
+    if (this.inputState.phase === "select_action") {
+      const movePositions = this.legalActions
+        .filter((action): action is Action & { kind: typeof ActionKind.Move } =>
+          action.kind === ActionKind.Move,
+        )
+        .map((action) => action.path[action.path.length - 1])
+        .filter((position): position is { x: number; y: number } => position !== undefined);
+
+      if (movePositions.length > 0) {
+        this.isometricGrid.highlightTiles(movePositions, HighlightKind.Move);
+      }
+    }
+
+    if (this.inputState.phase === "select_move_target") {
+      const { moveId } = this.inputState;
+      const targetPositions = this.legalActions
+        .filter((action): action is Action & { kind: typeof ActionKind.UseMove } =>
+          action.kind === ActionKind.UseMove && action.moveId === moveId,
+        )
+        .map((action) => action.targetPosition);
+
+      if (targetPositions.length > 0) {
+        this.isometricGrid.highlightTiles(targetPositions, HighlightKind.Attack);
+      }
+    }
+  }
+
+  private findMoveAction(gridX: number, gridY: number): Action | null {
+    return (
+      this.legalActions.find((action) => {
+        if (action.kind !== ActionKind.Move) return false;
+        const destination = action.path[action.path.length - 1];
+        return destination?.x === gridX && destination?.y === gridY;
+      }) ?? null
+    );
+  }
+
+  private findUseMoveAction(moveId: string, gridX: number, gridY: number): Action | null {
+    return (
+      this.legalActions.find((action) => {
+        if (action.kind !== ActionKind.UseMove) return false;
+        return (
+          action.moveId === moveId &&
+          action.targetPosition.x === gridX &&
+          action.targetPosition.y === gridY
+        );
+      }) ?? null
+    );
+  }
+
+  private executeAction(playerId: string, action: Action): void {
+    this.inputState = { phase: "animating" };
+    this.isometricGrid.clearHighlights();
+
+    const result = this.engine.submitAction(playerId, action);
+
+    if (!result.success) {
+      this.inputState = { phase: "select_action" };
+      this.refreshUI();
+      return;
+    }
+
+    this.animationQueue.enqueue(async () => {
+      await this.processEvents(result.events);
+
+      const battleEndedEvent = result.events.find(
+        (event) => event.type === BattleEventType.BattleEnded,
+      );
+
+      if (battleEndedEvent && battleEndedEvent.type === BattleEventType.BattleEnded) {
+        this.inputState = { phase: "battle_over", winnerId: battleEndedEvent.winnerId };
+        this.battleUI.showVictory(battleEndedEvent.winnerId);
+      } else {
+        this.inputState = { phase: "select_action" };
+        this.refreshUI();
+      }
+    });
+  }
+
+  private async processEvents(events: BattleEvent[]): Promise<void> {
+    for (const event of events) {
+      await this.processEvent(event);
+    }
+  }
+
+  private async processEvent(event: BattleEvent): Promise<void> {
+    switch (event.type) {
+      case BattleEventType.PokemonMoved: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          for (const step of event.path) {
+            await sprite.animateMoveTo(step.x, step.y);
+          }
+        }
+        break;
+      }
+
+      case BattleEventType.DamageDealt: {
+        const sprite = this.sprites.get(event.targetId);
+        const pokemon = this.state.pokemon.get(event.targetId);
+        if (sprite && pokemon) {
+          await sprite.flashDamage();
+          sprite.updateHp(pokemon.currentHp, pokemon.maxHp);
+        }
+        break;
+      }
+
+      case BattleEventType.PokemonKo:
+      case BattleEventType.PokemonEliminated: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          await sprite.fadeOut();
+          sprite.destroy();
+          this.sprites.delete(event.pokemonId);
+        }
+        break;
+      }
+
+      case BattleEventType.LinkDrained: {
+        const targetSprite = this.sprites.get(event.targetId);
+        const targetPokemon = this.state.pokemon.get(event.targetId);
+        if (targetSprite && targetPokemon) {
+          targetSprite.updateHp(targetPokemon.currentHp, targetPokemon.maxHp);
+        }
+        const sourceSprite = this.sprites.get(event.sourceId);
+        const sourcePokemon = this.state.pokemon.get(event.sourceId);
+        if (sourceSprite && sourcePokemon) {
+          sourceSprite.updateHp(sourcePokemon.currentHp, sourcePokemon.maxHp);
+        }
+        break;
+      }
+
+      case BattleEventType.PokemonDashed: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          for (const step of event.path) {
+            await sprite.animateMoveTo(step.x, step.y);
+          }
+        }
+        break;
+      }
+
+      default:
+        break;
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
+import type { PokemonType } from "../enums/pokemon-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { Grid } from "../grid/Grid";
 import { resolveTargeting } from "../grid/targeting";

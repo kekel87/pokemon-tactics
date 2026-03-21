@@ -5,8 +5,9 @@ import type { BattleState } from "../types/battle-state";
 import type { Effect } from "../types/effect";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import type { TypeChart } from "../types/type-chart";
 
-export type { TypeChart } from "../types/type-chart";
+export type { TypeChart };
 
 export interface EffectContext {
   attacker: PokemonInstance;
