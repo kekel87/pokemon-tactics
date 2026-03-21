@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-21 (Tests headless IA — core validé de bout en bout)
+> Dernière mise à jour : 2026-03-21 (Renderer POC étapes 1-6 terminées — hot-seat jouable dans le navigateur)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
