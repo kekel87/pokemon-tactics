@@ -399,7 +399,7 @@ Le core ne change jamais — seul le renderer est remplacé.
 
 ## 11. Agents & Skills Claude Code
 
-Agents custom dans `.claude/agents/` et skills dans `.claude/commands/` pour automatiser le workflow.
+Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour automatiser le workflow.
 
 ### Agents actifs
 

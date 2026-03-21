@@ -91,6 +91,9 @@ Après un changement significatif, lancer les agents pertinents **automatiquemen
 | Nouveau plan ou plan à jour | `plan-reviewer` |
 | Hésitation sur une approche | `best-practices` pour recherche |
 | Bug complexe | `debugger` |
+| Ajout/modif de Pokemon ou moves au roster | `data-miner` pour extraction des données |
+| Modif du pipeline CI ou ajout de package | `ci-setup` pour configuration |
+| Avant une release ou problème de perf | `performance-profiler` pour analyse |
 | Ajout/modif d'un agent ou skill | `agent-manager` pour audit cohérence |
 | Audit périodique | `agent-manager` pour review globale |
 

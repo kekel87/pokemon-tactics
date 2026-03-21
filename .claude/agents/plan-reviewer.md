@@ -74,3 +74,13 @@ Comment sait-on que c'est fini ?
 - Être concret : "Créer `Grid` class avec méthode `getNeighbors()`", pas "Implémenter la grille"
 - Chaque étape doit être faisable en une session de travail (~1-2h)
 - Ne pas documenter des décisions ici → c'est dans `decisions.md`
+
+## Critères de succès
+
+Un plan est prêt quand un développeur sans contexte peut exécuter chaque étape sans chercher d'information supplémentaire.
+
+## Chaîne d'agents
+
+Après avoir créé ou reviewé un plan, suggérer si applicable :
+- `game-designer` si le plan touche des mécaniques de jeu (vérifier la cohérence avec le game design)
+- `doc-keeper` si le plan change la direction du projet (mettre à jour roadmap/decisions)

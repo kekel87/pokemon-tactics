@@ -43,3 +43,30 @@ node --prof packages/core/bench.ts  # profiling Node.js
 | submitAction() | < 1 ms | > 10 ms |
 | 1000 combats headless | < 5 s | > 30 s |
 | Mémoire navigateur | < 100 MB | > 300 MB |
+
+## Rapport
+
+Pour chaque catégorie analysée (Runtime, Bundle, Core) :
+- **CRITIQUE** — seuil dépassé, doit être corrigé avant release
+- **ATTENTION** — proche du seuil, à surveiller
+- **OK** — dans les clous
+
+```
+## Résumé perf — YYYY-MM-DD
+
+| Métrique | Valeur | Statut |
+|----------|--------|--------|
+| ... | ... | OK / ATTENTION / CRITIQUE |
+
+## Détails
+### [Catégorie]
+- Constat : ...
+- Cause probable : ...
+- Recommandation : ...
+```
+
+## Escalade
+
+Signaler au créateur si :
+- Un seuil **critique** est dépassé
+- Une dégradation semble liée à un choix d'architecture (pas juste un bug de perf)
