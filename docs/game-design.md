@@ -242,6 +242,18 @@ Système inspiré de **FFTA** :
 
 ---
 
+## 9b. Prévisualisation des actions légales
+
+`getLegalActions()` retourne pour chaque action possible les positions de cible valides (cibles dans la zone d'effet, chemin accessible pour un déplacement, etc.).
+
+Cette API sert à deux usages :
+- **UI** : afficher les tiles disponibles quand le joueur sélectionne une attaque ou un déplacement
+- **IA** : filtrer les attaques qui n'ont pas de cible à portée avant de choisir une action
+
+> Validé par les tests headless : une IA qui ignore ce filtre gaspille ses PP sur des attaques sans cible. Toute IA correcte doit consommer `getLegalActions` avant de décider.
+
+---
+
 ## 10. Jouabilité par IA
 
 Le moteur est jouable par différents types de joueurs :

@@ -79,6 +79,8 @@
 | 67 | 2026-03-21 | Effect architecture | **Handler registry** (écart pattern switch) | Remplace le switch case dans `effect-processor.ts` par une `EffectHandlerRegistry` (Map<EffectKind, EffectHandler>). Ajouter un effet = enregistrer un handler. Inspiré de Pokemon Showdown. |
 | 68 | 2026-03-21 | Phases de tour | **StartTurn → Action → EndTurn** | Pipeline de phases avec handlers enregistrables par priorité. Status ticks en StartTurn, drain en EndTurn. Extensible pour météo, terrain, abilities. |
 | 69 | 2026-03-21 | Valeurs des ticks de statut POC | **Burn 1/16 HP/tour, Poison 1/8 HP/tour, Sleep 1-3 tours, Freeze 20% dégel/tour, Paralysie 25% proc** | Calqué sur les valeurs Pokemon. Paralysie : proc bloque move+dash, pas use_move non-dash. -50% initiative permanent sur paralysé. |
+| 70 | 2026-03-21 | Validation core headless | **Validé par deux combats IA headless** | IA Random (58 rounds) et IA Smart (67 rounds) : boucle tourne, KO gérés, victoire détectée, aucun crash. Le core est prêt pour le renderer. |
+| 71 | 2026-03-21 | `getLegalActions` comme filtre IA | **`getLegalActions()` doit être utilisé par toute IA avant de choisir une attaque** | Les tests headless ont montré qu'une IA qui attaque sans vérifier les cibles valides gaspille tous ses PP. `getLegalActions` expose déjà les positions valides et permet de savoir si une cible est à portée. |
 
 ---
 
@@ -89,7 +91,7 @@
 | 1 | Formules dérivées | Vitesse/Poids → Mouvement/Saut/Initiative. Attention : Hâte (+2 Vit) ne doit pas être OP si Initiative = Vitesse. | Phase 1 |
 | 4 | Dégâts de chute & Poids | Le poids influence-t-il les dégâts de chute ? Plus lourd = plus de dégâts au sol ? À tester. | Phase 2 |
 | 5 | Countdown KO | Combien de tours avant élimination définitive ? 3 tours (FFTA) ? Ajustable ? | Phase 1 |
-| 6 | PP ou Points d'action ? | Les PP fonctionnent-ils dans un contexte tactique ? Sinon passer à un système de points d'action style FFTA. À évaluer après les premiers tests. | Phase 1 |
+| 6 | PP ou Points d'action ? | Les PP fonctionnent-ils dans un contexte tactique ? Sinon passer à un système de points d'action style FFTA. Tests headless : une IA sans filtre de cible gaspille ses PP (bug IA, pas bug PP). Les PP fonctionnent correctement côté core. À évaluer côté équilibrage en Phase 1. | Phase 1 |
 | 7 | ~~Durée des statuts~~ | Résolu décision #65 : 1 statut majeur, durées Pokemon (sleep 1-3, freeze 20%/tour, burn/poison/paralysis permanent). | ~~Phase 1~~ |
 | 8 | ~~Stacking des statuts~~ | Résolu décision #65 : 1 seul à la fois pour le POC. | ~~Phase 1~~ |
 | 10 | Système CT (FFTA) vs Round-robin | Round-robin pour le POC (décision #62). Le CT est plus tactique (vitesse = fréquence d'action, coût CT variable par move), mais risques : vitesse trop forte, petits moves (PP élevés) trop avantageux car coût CT faible. Idée : corrélation PP ↔ coût CT (peu de PP = move puissant = coût CT élevé). Voir aussi Mystery Dungeon Travel Speed (x0.5 à x4). À évaluer en Phase 1 avec les tests headless de balancing. | Phase 1 |
