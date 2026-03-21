@@ -1,5 +1,6 @@
 import type { EffectKind } from "../enums/effect-kind";
 import type { EffectTarget } from "../enums/effect-target";
+import type { LinkType } from "../enums/link-type";
 import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
 
@@ -14,8 +15,8 @@ export type Effect =
     }
   | {
       kind: typeof EffectKind.Link;
-      linkType: string;
-      duration: number;
+      linkType: LinkType;
+      duration: number | null;
       maxRange: number;
       drainFraction: number;
     };

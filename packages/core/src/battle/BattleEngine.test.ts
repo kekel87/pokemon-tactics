@@ -7,11 +7,11 @@ import { Direction } from "../enums/direction";
 import { EffectKind } from "../enums/effect-kind";
 import { PokemonType } from "../enums/pokemon-type";
 import { TargetingKind } from "../enums/targeting-kind";
+import { MockBattle } from "../testing/mock-battle";
+import { MockValidation } from "../testing/mock-validation";
 import type { BattleEvent } from "../types/battle-event";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
-import { MockBattle } from "../testing/mock-battle";
-import { MockValidation } from "../testing/mock-validation";
 import { BattleEngine } from "./BattleEngine";
 
 const P1 = MockBattle.player1Fast;
@@ -446,7 +446,9 @@ describe("BattleEngine.getLegalActions — use_move", () => {
     category: Category.Status,
     power: 0,
     targeting: { kind: TargetingKind.Self },
-    effects: [{ kind: EffectKind.StatChange, stat: "attack" as never, stages: 1, target: "self" as never }],
+    effects: [
+      { kind: EffectKind.StatChange, stat: "attack" as never, stages: 1, target: "self" as never },
+    ],
   };
 
   const coneMove: MoveDefinition = {
@@ -477,7 +479,9 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       .filter((a) => a.kind === ActionKind.UseMove);
 
     expect(useMoveActions.length).toBeGreaterThan(0);
-    expect(useMoveActions.every((a) => a.kind === ActionKind.UseMove && a.moveId === "tackle")).toBe(true);
+    expect(
+      useMoveActions.every((a) => a.kind === ActionKind.UseMove && a.moveId === "tackle"),
+    ).toBe(true);
   });
 
   it("excludes moves with 0 PP", () => {
@@ -511,7 +515,10 @@ describe("BattleEngine.getLegalActions — use_move", () => {
 
     const targets = engine
       .getLegalActions("player-1")
-      .filter((a): a is Extract<typeof a, { kind: typeof ActionKind.UseMove }> => a.kind === ActionKind.UseMove)
+      .filter(
+        (a): a is Extract<typeof a, { kind: typeof ActionKind.UseMove }> =>
+          a.kind === ActionKind.UseMove,
+      )
       .map((a) => a.targetPosition);
 
     expect(targets).toContainEqual({ x: 3, y: 2 });
@@ -535,7 +542,9 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       .filter((a) => a.kind === ActionKind.UseMove);
 
     expect(useMoveActions.length).toBe(1);
-    expect(useMoveActions[0]?.kind === ActionKind.UseMove && useMoveActions[0].targetPosition).toEqual({ x: 2, y: 2 });
+    expect(
+      useMoveActions[0]?.kind === ActionKind.UseMove && useMoveActions[0].targetPosition,
+    ).toEqual({ x: 2, y: 2 });
   });
 
   it("returns 4 directional actions for cone-targeting move", () => {
@@ -575,7 +584,10 @@ describe("BattleEngine.getLegalActions — use_move", () => {
   });
 
   it("lists use_move for multiple moves with PP", () => {
-    const registry = new Map([["tackle", singleMove], ["growth", selfMove]]);
+    const registry = new Map([
+      ["tackle", singleMove],
+      ["growth", selfMove],
+    ]);
     const mover = fresh(P1, {
       id: "mover",
       position: { x: 2, y: 2 },
@@ -589,7 +601,9 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       .getLegalActions("player-1")
       .filter((a) => a.kind === ActionKind.UseMove);
 
-    const moveIds = [...new Set(useMoveActions.map((a) => a.kind === ActionKind.UseMove ? a.moveId : ""))];
+    const moveIds = [
+      ...new Set(useMoveActions.map((a) => (a.kind === ActionKind.UseMove ? a.moveId : ""))),
+    ];
     expect(moveIds).toContain("tackle");
     expect(moveIds).toContain("growth");
   });

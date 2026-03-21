@@ -1,6 +1,5 @@
+import { loadData, typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it, vi } from "vitest";
-import { typeChart } from "@pokemon-tactic/data";
-import { loadData } from "@pokemon-tactic/data";
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
@@ -21,7 +20,10 @@ import { BattleEngine } from "./BattleEngine";
 const HIGH_INIT = { movement: 3, jump: 1, initiative: 100 };
 const LOW_INIT = { movement: 3, jump: 1, initiative: 10 };
 
-function freshPokemon(base: PokemonInstance, overrides?: Partial<PokemonInstance>): PokemonInstance {
+function freshPokemon(
+  base: PokemonInstance,
+  overrides?: Partial<PokemonInstance>,
+): PokemonInstance {
   return {
     ...base,
     position: { ...base.position },
@@ -68,7 +70,10 @@ describe("BattleEngine.executeUseMove — valid move hits and deals damage", () 
     });
 
     const state = MockBattle.stateFrom([attacker, defender]);
-    const pokemonTypes = new Map([["bulbasaur", [PokemonType.Grass, PokemonType.Poison]], ["charmander", [PokemonType.Fire]]]);
+    const pokemonTypes = new Map([
+      ["bulbasaur", [PokemonType.Grass, PokemonType.Poison]],
+      ["charmander", [PokemonType.Fire]],
+    ]);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
 
     const hpBefore = state.pokemon.get("defender")?.currentHp ?? 0;
@@ -447,7 +452,10 @@ describe("BattleEngine.executeUseMove — miss", () => {
     });
 
     const state = MockBattle.stateFrom([attacker, defender]);
-    const pokemonTypes = new Map([["bulbasaur", [PokemonType.Grass, PokemonType.Poison]], ["charmander", [PokemonType.Fire]]]);
+    const pokemonTypes = new Map([
+      ["bulbasaur", [PokemonType.Grass, PokemonType.Poison]],
+      ["charmander", [PokemonType.Fire]],
+    ]);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
 
     vi.spyOn(Math, "random").mockReturnValue(0.99);

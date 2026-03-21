@@ -1,13 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
 import { loadData, typeChart } from "@pokemon-tactic/data";
+import { describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { PokemonType } from "../enums/pokemon-type";
+import { MockBattle } from "../testing/mock-battle";
+import { MockPokemon } from "../testing/mock-pokemon";
 import type { BattleEvent } from "../types/battle-event";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
-import { MockBattle } from "../testing/mock-battle";
-import { MockPokemon } from "../testing/mock-pokemon";
 import { BattleEngine } from "./BattleEngine";
 import { validateBattleData } from "./validate";
 
@@ -93,7 +93,10 @@ describe("BattleEngine integration", () => {
       ["charmander", [PokemonType.Fire]],
     ]);
 
-    function freshPokemon(base: PokemonInstance, overrides: Partial<PokemonInstance>): PokemonInstance {
+    function freshPokemon(
+      base: PokemonInstance,
+      overrides: Partial<PokemonInstance>,
+    ): PokemonInstance {
       return {
         ...base,
         position: { ...base.position },

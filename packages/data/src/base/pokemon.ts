@@ -1,5 +1,5 @@
-import { PokemonType } from "@pokemon-tactic/core";
 import type { PokemonDefinition } from "@pokemon-tactic/core";
+import { PokemonType } from "@pokemon-tactic/core";
 
 export const basePokemon: Omit<PokemonDefinition, "id">[] = [
   {

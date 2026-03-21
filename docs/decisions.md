@@ -71,6 +71,13 @@
 | 59 | 2026-03-20 | `deepMerge` et arrays | **Les arrays sont remplacés, pas concaténés** | Un override qui fournit un array `effects` remplace entièrement le tableau de base. Évite les effets doublés non intentionnels lors d'un merge multi-couches. |
 | 60 | 2026-03-20 | `TurnManager` source de vérité | **`TurnManager` est maître, `BattleState` est synchronisé après** | `BattleState.turnOrder` et `currentTurnIndex` sont mis à jour par `BattleEngine` après chaque mutation du `TurnManager`, pas avant. Évite les incohérences d'état. |
 | 61 | 2026-03-20 | Commentaires dans les tests | **Autorisés dans intégration/scénario, avec parcimonie** | Les tests unitaires restent sans commentaires. Les tests d'intégration et de scénario peuvent avoir des commentaires de structure. Les scénarios utilisent un bloc Gherkin (Given/When/Then) en commentaire d'en-tête. |
+| 62 | 2026-03-21 | Système de tour POC | **Round-robin** | Chaque Pokemon joue 1x par round, ordre recalculé à chaque round (initiative effective). Le système CT (style FFTA, vitesse = fréquence d'action) est prévu pour Phase 1+ — plus intéressant tactiquement mais plus complexe à implémenter et équilibrer. |
+| 63 | 2026-03-21 | KO POC | **Définitif** (écart temporaire décision #24) | Pour le POC, KO = retiré du jeu. Le countdown FFTA (décision #24) sera implémenté en Phase 1. Le champ `koCountdown` existe déjà sur `PokemonInstance`. |
+| 64 | 2026-03-21 | Vampigraine POC | **Permanent + rupture définitive** (écart décision #34) | Pour le POC, Leech Seed est permanent (comme Pokemon), brisé par KO ou distance > maxRange. La décision #34 prévoyait 3 tours max — on y reviendra si le drain permanent est trop fort. |
+| 65 | 2026-03-21 | Statuts POC | **1 seul à la fois** | Comme Pokemon : 1 statut majeur max. Confusion (volatile) hors scope POC. |
+| 66 | 2026-03-21 | Paralysie tactique | **Bloque le déplacement, pas l'attaque** | Proc 25% : le Pokemon ne peut pas bouger (move) ni dash, mais peut attaquer sur place (use_move non-dash). Différent de Pokemon classique (bloque tout). -50% initiative permanent. |
+| 67 | 2026-03-21 | Effect architecture | **Handler registry** (écart pattern switch) | Remplace le switch case dans `effect-processor.ts` par une `EffectHandlerRegistry` (Map<EffectKind, EffectHandler>). Ajouter un effet = enregistrer un handler. Inspiré de Pokemon Showdown. |
+| 68 | 2026-03-21 | Phases de tour | **StartTurn → Action → EndTurn** | Pipeline de phases avec handlers enregistrables par priorité. Status ticks en StartTurn, drain en EndTurn. Extensible pour météo, terrain, abilities. |
 
 ---
 
@@ -82,8 +89,9 @@
 | 4 | Dégâts de chute & Poids | Le poids influence-t-il les dégâts de chute ? Plus lourd = plus de dégâts au sol ? À tester. | Phase 2 |
 | 5 | Countdown KO | Combien de tours avant élimination définitive ? 3 tours (FFTA) ? Ajustable ? | Phase 1 |
 | 6 | PP ou Points d'action ? | Les PP fonctionnent-ils dans un contexte tactique ? Sinon passer à un système de points d'action style FFTA. À évaluer après les premiers tests. | Phase 1 |
-| 7 | Durée des statuts | Nombre de tours fixe ? Aléatoire ? Surchargeable par attaque ? | Phase 1 |
-| 8 | Stacking des statuts | 1 statut majeur max comme Pokemon ? Ou multiple ? | Phase 1 |
+| 7 | ~~Durée des statuts~~ | Résolu décision #65 : 1 statut majeur, durées Pokemon (sleep 1-3, freeze 20%/tour, burn/poison/paralysis permanent). | ~~Phase 1~~ |
+| 8 | ~~Stacking des statuts~~ | Résolu décision #65 : 1 seul à la fois pour le POC. | ~~Phase 1~~ |
+| 10 | Système CT (FFTA) vs Round-robin | Round-robin pour le POC (décision #62). Le CT est plus tactique (vitesse = fréquence d'action, coût CT variable par move), mais risques : vitesse trop forte, petits moves (PP élevés) trop avantageux car coût CT faible. Idée : corrélation PP ↔ coût CT (peu de PP = move puissant = coût CT élevé). Voir aussi Mystery Dungeon Travel Speed (x0.5 à x4). À évaluer en Phase 1 avec les tests headless de balancing. | Phase 1 |
 | 9 | Interaction statut/terrain | Brûlure guérie par eau ? Gel facilité sur glace ? | Phase 2 |
 | 2 | HD-2D avancé | Quand migrer ? **Babylon.js** (built-in DoF/bloom/tilt-shift, écrit en TS, NullEngine) vs **Three.js** (plus léger, plus grande communauté). Spike comparatif prévu. | Phase 4 |
 | 3 | Agents & Skills Claude Code | Quels agents/skills custom créer ? Proposition faite, à valider et affiner au fil du dev. | Phase 0 |

@@ -1,18 +1,18 @@
 import type { PokemonInstance } from "../types/pokemon-instance";
 
+type InitiativeFunction = (pokemon: PokemonInstance) => number;
+
+const defaultGetInitiative: InitiativeFunction = (pokemon) => pokemon.derivedStats.initiative;
+
 export class TurnManager {
   private turnOrder: string[];
   private currentIndex: number;
 
-  constructor(pokemon: PokemonInstance[]) {
-    const sorted = [...pokemon].sort((a, b) => {
-      const initiativeDiff = b.derivedStats.initiative - a.derivedStats.initiative;
-      if (initiativeDiff !== 0) {
-        return initiativeDiff;
-      }
-      return a.id.localeCompare(b.id);
-    });
-    this.turnOrder = sorted.map((p) => p.id);
+  constructor(
+    pokemon: PokemonInstance[],
+    getInitiative: InitiativeFunction = defaultGetInitiative,
+  ) {
+    this.turnOrder = TurnManager.sortByInitiative(pokemon, getInitiative);
     this.currentIndex = 0;
   }
 
@@ -34,6 +34,10 @@ export class TurnManager {
 
   startNewRound(): void {
     this.currentIndex = 0;
+  }
+
+  recalculateOrder(pokemon: PokemonInstance[], getInitiative: InitiativeFunction): void {
+    this.turnOrder = TurnManager.sortByInitiative(pokemon, getInitiative);
   }
 
   removePokemon(pokemonId: string): void {
@@ -61,5 +65,19 @@ export class TurnManager {
 
   getCurrentIndex(): number {
     return this.currentIndex;
+  }
+
+  private static sortByInitiative(
+    pokemon: PokemonInstance[],
+    getInitiative: InitiativeFunction,
+  ): string[] {
+    const sorted = [...pokemon].sort((a, b) => {
+      const initiativeDiff = getInitiative(b) - getInitiative(a);
+      if (initiativeDiff !== 0) {
+        return initiativeDiff;
+      }
+      return a.id.localeCompare(b.id);
+    });
+    return sorted.map((p) => p.id);
   }
 }

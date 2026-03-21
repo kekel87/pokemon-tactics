@@ -1,4 +1,5 @@
 import type { BattleEventType } from "../enums/battle-event-type";
+import type { LinkType } from "../enums/link-type";
 import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
 import type { Position } from "./position";
@@ -27,7 +28,7 @@ export type BattleEvent =
       type: typeof BattleEventType.LinkCreated;
       sourceId: string;
       targetId: string;
-      linkType: string;
+      linkType: LinkType;
     }
   | { type: typeof BattleEventType.LinkDrained; sourceId: string; targetId: string; amount: number }
   | { type: typeof BattleEventType.LinkBroken; sourceId: string; targetId: string }

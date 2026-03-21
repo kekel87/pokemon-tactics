@@ -1,11 +1,12 @@
+import type { Effect, TargetingPattern } from "@pokemon-tactic/core";
 import {
   EffectKind,
   EffectTarget,
+  LinkType,
   StatName,
   StatusType,
   TargetingKind,
 } from "@pokemon-tactic/core";
-import type { Effect, TargetingPattern } from "@pokemon-tactic/core";
 
 export interface TacticalOverride {
   targeting: TargetingPattern;
@@ -26,8 +27,8 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [
       {
         kind: EffectKind.Link,
-        linkType: "leech-seed",
-        duration: 3,
+        linkType: LinkType.LeechSeed,
+        duration: null,
         maxRange: 5,
         drainFraction: 0.125,
       },

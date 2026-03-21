@@ -1,9 +1,9 @@
 import type { MoveDefinition, PokemonDefinition } from "@pokemon-tactic/core";
 import { baseMoves } from "./base/moves";
 import { basePokemon } from "./base/pokemon";
+import { deepMerge } from "./merge";
 import { balanceOverrides } from "./overrides/balance-v1";
 import { tacticalOverrides } from "./overrides/tactical";
-import { deepMerge } from "./merge";
 
 export interface GameData {
   pokemon: PokemonDefinition[];

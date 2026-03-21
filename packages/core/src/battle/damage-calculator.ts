@@ -32,12 +32,8 @@ export function calculateDamage(
   const attackStat = isPhysical ? attacker.baseStats.attack : attacker.baseStats.spAttack;
   const defenseStat = isPhysical ? defender.baseStats.defense : defender.baseStats.spDefense;
 
-  const attackStage = isPhysical
-    ? attacker.statStages.attack
-    : attacker.statStages.spAttack;
-  const defenseStage = isPhysical
-    ? defender.statStages.defense
-    : defender.statStages.spDefense;
+  const attackStage = isPhysical ? attacker.statStages.attack : attacker.statStages.spAttack;
+  const defenseStage = isPhysical ? defender.statStages.defense : defender.statStages.spDefense;
 
   let effectiveAttack = getEffectiveStat(attackStat, attackStage);
   const effectiveDefense = getEffectiveStat(defenseStat, defenseStage);
@@ -48,7 +44,7 @@ export function calculateDamage(
   }
 
   const baseDamage = Math.floor(
-    (((2 * BATTLE_LEVEL / 5 + 2) * move.power * effectiveAttack) / effectiveDefense / 50 + 2),
+    (((2 * BATTLE_LEVEL) / 5 + 2) * move.power * effectiveAttack) / effectiveDefense / 50 + 2,
   );
 
   const stab = getStab(move.type, attackerTypes);
