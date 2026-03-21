@@ -5,12 +5,9 @@ import { getStatMultiplier } from "./stat-modifier";
 
 export function getEffectiveInitiative(pokemon: PokemonInstance): number {
   const baseInitiative = pokemon.derivedStats.initiative;
-  let effective =
-    baseInitiative * getStatMultiplier(pokemon.statStages[StatName.Speed]);
+  let effective = baseInitiative * getStatMultiplier(pokemon.statStages[StatName.Speed]);
 
-  const isParalyzed = pokemon.statusEffects.some(
-    (s) => s.type === StatusType.Paralyzed,
-  );
+  const isParalyzed = pokemon.statusEffects.some((s) => s.type === StatusType.Paralyzed);
   if (isParalyzed) {
     effective *= 0.5;
   }

@@ -1,8 +1,6 @@
 import { Category } from "../enums/category";
 import type { PokemonType } from "../enums/pokemon-type";
-import type { StatusType } from "../enums/status-type";
 import { StatusType as StatusTypeEnum } from "../enums/status-type";
-import type { BaseStats } from "../types/base-stats";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import { getEffectiveStat } from "./stat-modifier";

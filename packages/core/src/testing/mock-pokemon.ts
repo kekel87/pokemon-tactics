@@ -99,4 +99,18 @@ export abstract class MockPokemon {
     currentPp: { gust: 35, "quick-attack": 30, "sand-attack": 15, "wing-attack": 35 },
     koCountdown: null,
   };
+
+  static fresh(base: PokemonInstance, overrides?: Partial<PokemonInstance>): PokemonInstance {
+    return {
+      ...base,
+      position: { ...base.position },
+      baseStats: { ...base.baseStats },
+      derivedStats: { ...base.derivedStats },
+      statStages: { ...base.statStages },
+      statusEffects: [...base.statusEffects],
+      moveIds: [...base.moveIds],
+      currentPp: { ...base.currentPp },
+      ...overrides,
+    };
+  }
 }
