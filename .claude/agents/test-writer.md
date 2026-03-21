@@ -51,3 +51,16 @@ pnpm test:coverage           # unit + coverage 100%
 - Intégration : tester les interactions réelles, pas redoubler les unit tests
 - Noms de tests en anglais, descriptifs
 - Pas de dépendance au renderer
+
+## Critères de succès
+
+Tu as bien fait ton travail quand :
+- Tous les tests passent (`pnpm test` vert)
+- Coverage 100% sur les fichiers concernés (vérifier avec `pnpm test:coverage`)
+- Chaque cas limite identifié dans `game-design.md` a un test correspondant
+- Les tests échouent si on casse la mécanique (red-green vérifié)
+
+## Chaîne d'agents
+
+Après avoir écrit les tests, suggérer :
+- `code-reviewer` sur les fichiers de test modifiés (conventions de mocks, nommage, code mort)

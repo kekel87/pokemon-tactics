@@ -22,10 +22,10 @@ Tu es le Data Engineer du projet Pokemon Tactics. Tu récupères les données Po
 
 ## Format de sortie
 
-Les données vont dans `packages/data/base/` au format TypeScript :
+Les données vont dans `packages/data/src/base/` au format TypeScript :
 
 ```typescript
-// packages/data/base/moves.ts
+// packages/data/src/base/moves.ts
 export const moves = {
   ember: {
     id: 'ember',

@@ -31,12 +31,19 @@ Vérifier que les mécaniques de jeu sont **cohérentes, équilibrées et fun**.
 - Le positionnement est-il important (ou peut-on spammer depuis loin) ?
 - Les terrains créent-ils des choix intéressants ?
 
-## Sources de vérité
+## Sources de vérité (lire dans cet ordre)
 
-- `docs/game-design.md` — mécaniques et règles
-- `docs/roster-poc.md` — movesets et rôles
-- `docs/decisions.md` — décisions prises et leur contexte
-- `packages/data/` — données effectives dans le code
+1. `docs/game-design.md` — mécaniques et règles (toujours lire en premier)
+2. `docs/roster-poc.md` — movesets et rôles
+3. `docs/decisions.md` — décisions prises et leur contexte
+4. `packages/data/` — données effectives dans le code (lire si des données sont impliquées)
+
+## Escalade
+
+Arrête-toi et signale au créateur dans ces cas :
+- **Spec absente** — une mécanique n'a pas de spécification dans `game-design.md`. Ne l'invente pas, signale le manque.
+- **Contradiction** — les données dans `packages/data/` contredisent `game-design.md`. Signale les deux versions sans trancher.
+- **Choix de design** — une question d'équilibre a plusieurs réponses valides et aucune décision documentée dans `decisions.md`. Présente les options avec leurs trade-offs.
 
 ## Rapport
 

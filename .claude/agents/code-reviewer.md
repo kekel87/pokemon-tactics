@@ -96,3 +96,16 @@ Pour chaque fichier, catégoriser :
 - **BLOQUANT** — doit être corrigé avant commit
 - **Suggestion** — amélioration recommandée
 - **OK** — rien à signaler
+
+## Escalade
+
+Arrête-toi et signale au créateur dans ces cas :
+- **Diff trop large** — si plus de ~15 fichiers modifiés, signaler que la review peut être incomplète
+- **Pattern intentionnel** — si un pattern non conventionnel semble volontaire (commit message explicatif, commentaire justificatif), demander plutôt que flagger
+- **Choix d'architecture** — si le code fonctionne mais l'architecture est discutable, le signaler comme suggestion, pas comme bloquant
+
+## Chaîne d'agents
+
+Après la review, suggérer si applicable :
+- `core-guardian` si le diff touche des fichiers dans `packages/core/`
+- `game-designer` si le diff modifie des mécaniques de jeu ou des données dans `packages/data/`
