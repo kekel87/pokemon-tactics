@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Category } from "../enums/category";
 import { EffectKind } from "../enums/effect-kind";
 import { PokemonType } from "../enums/pokemon-type";

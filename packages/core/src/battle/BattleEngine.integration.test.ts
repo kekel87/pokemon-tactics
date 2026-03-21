@@ -7,7 +7,6 @@ import { MockBattle } from "../testing/mock-battle";
 import { MockPokemon } from "../testing/mock-pokemon";
 import type { BattleEvent } from "../types/battle-event";
 import type { MoveDefinition } from "../types/move-definition";
-import type { PokemonInstance } from "../types/pokemon-instance";
 import { BattleEngine } from "./BattleEngine";
 import { validateBattleData } from "./validate";
 
@@ -93,31 +92,17 @@ describe("BattleEngine integration", () => {
       ["charmander", [PokemonType.Fire]],
     ]);
 
-    function freshPokemon(
-      base: PokemonInstance,
-      overrides: Partial<PokemonInstance>,
-    ): PokemonInstance {
-      return {
-        ...base,
-        position: { ...base.position },
-        baseStats: { ...base.baseStats },
-        derivedStats: { ...base.derivedStats },
-        statStages: { ...base.statStages },
-        statusEffects: [...base.statusEffects],
-        moveIds: [...base.moveIds],
-        currentPp: { ...base.currentPp },
-        ...overrides,
-      };
-    }
-
     // Adjacent on 8x8 grid so they can attack each other
-    const charmander = freshPokemon(MockPokemon.charmander, {
+    // Bulbasaur gets extra HP to survive Ember (super effective STAB deals ~54 damage)
+    const charmander = MockPokemon.fresh(MockPokemon.charmander, {
       playerId: "player-2",
       position: { x: 1, y: 0 },
     });
-    const bulbasaur = freshPokemon(MockPokemon.bulbasaur, {
+    const bulbasaur = MockPokemon.fresh(MockPokemon.bulbasaur, {
       playerId: "player-1",
       position: { x: 0, y: 0 },
+      currentHp: 200,
+      maxHp: 200,
     });
 
     const state = MockBattle.stateFrom([bulbasaur, charmander], 8, 8);
@@ -129,8 +114,8 @@ describe("BattleEngine integration", () => {
     // -- Charmander has higher initiative (65 > 45), plays first --
     expect(state.turnOrder[0]).toBe("charmander-1");
 
-    const bulbasaurHpBefore = state.pokemon.get("bulbasaur-1")!.currentHp;
-    const charmanderEmberPpBefore = state.pokemon.get("charmander-1")!.currentPp["ember"]!;
+    const bulbasaurHpBefore = state.pokemon.get("bulbasaur-1")?.currentHp;
+    const charmanderEmberPpBefore = state.pokemon.get("charmander-1")?.currentPp.ember!;
 
     // Charmander uses Ember on Bulbasaur (Fire > Grass+Poison = super effective)
     const emberResult = engine.submitAction("player-2", {
@@ -148,10 +133,10 @@ describe("BattleEngine integration", () => {
     expect(emberEvents).toContain(BattleEventType.TurnEnded);
     expect(emberEvents).toContain(BattleEventType.TurnStarted);
 
-    const bulbasaurHpAfterEmber = state.pokemon.get("bulbasaur-1")!.currentHp;
+    const bulbasaurHpAfterEmber = state.pokemon.get("bulbasaur-1")?.currentHp;
     expect(bulbasaurHpAfterEmber).toBeLessThan(bulbasaurHpBefore);
 
-    const charmanderEmberPpAfter = state.pokemon.get("charmander-1")!.currentPp["ember"]!;
+    const charmanderEmberPpAfter = state.pokemon.get("charmander-1")?.currentPp.ember!;
     expect(charmanderEmberPpAfter).toBe(charmanderEmberPpBefore - 1);
 
     const emberDamageEvent = emberResult.events.find(
@@ -159,12 +144,12 @@ describe("BattleEngine integration", () => {
         e.type === BattleEventType.DamageDealt,
     );
     // Fire vs Grass+Poison: Fire>Grass = 2x, Fire>Poison = 1x → total 2x
-    expect(emberDamageEvent!.effectiveness).toBe(2);
-    const emberDamage = emberDamageEvent!.amount;
+    expect(emberDamageEvent?.effectiveness).toBe(2);
+    const emberDamage = emberDamageEvent?.amount;
 
     // -- Now it's Bulbasaur's turn --
-    const charmanderHpBefore = state.pokemon.get("charmander-1")!.currentHp;
-    const razorLeafPpBefore = state.pokemon.get("bulbasaur-1")!.currentPp["razor-leaf"]!;
+    const charmanderHpBefore = state.pokemon.get("charmander-1")?.currentHp;
+    const razorLeafPpBefore = state.pokemon.get("bulbasaur-1")?.currentPp["razor-leaf"]!;
 
     // Bulbasaur uses Razor Leaf on Charmander (Grass > Fire = not very effective)
     const razorLeafResult = engine.submitAction("player-1", {
@@ -176,10 +161,10 @@ describe("BattleEngine integration", () => {
 
     expect(razorLeafResult.success).toBe(true);
 
-    const charmanderHpAfter = state.pokemon.get("charmander-1")!.currentHp;
+    const charmanderHpAfter = state.pokemon.get("charmander-1")?.currentHp;
     expect(charmanderHpAfter).toBeLessThan(charmanderHpBefore);
 
-    const razorLeafPpAfter = state.pokemon.get("bulbasaur-1")!.currentPp["razor-leaf"]!;
+    const razorLeafPpAfter = state.pokemon.get("bulbasaur-1")?.currentPp["razor-leaf"]!;
     expect(razorLeafPpAfter).toBe(razorLeafPpBefore - 1);
 
     const razorLeafDamageEvent = razorLeafResult.events.find(
@@ -187,15 +172,15 @@ describe("BattleEngine integration", () => {
         e.type === BattleEventType.DamageDealt,
     );
     // Grass vs Fire = 0.5x
-    expect(razorLeafDamageEvent!.effectiveness).toBe(0.5);
-    const razorLeafDamage = razorLeafDamageEvent!.amount;
+    expect(razorLeafDamageEvent?.effectiveness).toBe(0.5);
+    const razorLeafDamage = razorLeafDamageEvent?.amount;
 
     // Super effective Ember should deal more damage than not-very-effective Razor Leaf
     expect(emberDamage).toBeGreaterThan(razorLeafDamage);
 
     // Stat stages should still be at 0 (no boost/debuff used)
-    const bulbasaurStages = state.pokemon.get("bulbasaur-1")!.statStages;
-    const charmanderStages = state.pokemon.get("charmander-1")!.statStages;
+    const bulbasaurStages = state.pokemon.get("bulbasaur-1")?.statStages;
+    const charmanderStages = state.pokemon.get("charmander-1")?.statStages;
     expect(Object.values(bulbasaurStages).every((s) => s === 0)).toBe(true);
     expect(Object.values(charmanderStages).every((s) => s === 0)).toBe(true);
 

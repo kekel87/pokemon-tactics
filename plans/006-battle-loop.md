@@ -1,5 +1,5 @@
 ---
-status: draft
+status: done
 created: 2026-03-21
 updated: 2026-03-21
 ---
@@ -20,6 +20,8 @@ Le Plan 005 a posé :
 - `ActiveLink.remainingTurns: number | null` (null = permanent)
 
 Le pipeline est vide — aucun handler StartTurn/EndTurn n'est enregistré. Ce plan les ajoute.
+
+Le filtrage `restrictActions` pour la paralysie (bloque Move + dash) est déjà implémenté dans `BattleEngine.getLegalActions`. `TurnManager.removePokemon()` existe aussi. Ce plan les utilise et les teste.
 
 ### Décisions prises
 - **Sommeil** : comme Pokemon — 1-3 tours aléatoire, décompte en début de tour, réveil = peut agir ce tour
@@ -47,19 +49,20 @@ function statusTickHandler(pokemonId: string, state: BattleState): PhaseResult
 ```
 
 Logique (opère sur `pokemon.statusEffects[0]` — un seul statut) :
-- **Burned** : inflige `Math.max(1, Math.floor(pokemon.maxHp / 16))` → émet `DamageDealt`, potentiellement `PokemonKo`. `skipAction: false` (le Pokemon joue quand même)
-- **Poisoned** : inflige `Math.max(1, Math.floor(pokemon.maxHp / 8))` → idem
+- **Burned** : inflige `Math.max(1, Math.floor(pokemon.maxHp / 16))` → émet `DamageDealt`, potentiellement `PokemonKo` (avec `countdownStart: 0` — KO définitif POC). `skipAction: false` (le Pokemon joue quand même)
+- **Poisoned** : inflige `Math.max(1, Math.floor(pokemon.maxHp / 8))` → idem (même `PokemonKo.countdownStart: 0`)
 - **Asleep** : décrément `remainingTurns`. Si 0 → retire le statut, émet `StatusRemoved`, `skipAction: false`. Sinon `skipAction: true`
 - **Frozen** : roll 20%. Si dégel → retire, émet `StatusRemoved`, `skipAction: false`. Sinon `skipAction: true`
 - **Paralyzed** : roll 25%. Si proc → `skipAction: false, restrictActions: true`. Sinon tout normal
 
-Enregistrement :
+Enregistrement dans le constructeur de `BattleEngine` :
 ```ts
-turnPipeline.registerStartTurn(statusTickHandler, 100);
+this.turnPipeline.registerStartTurn(statusTickHandler, 100);
 ```
 
 **Tests** :
 - Burn inflige 1/16 max HP, min 1
+- Burn KO sur le tour du Pokemon brûlé → handleKo appelé, tour terminé proprement
 - Poison inflige 1/8 max HP
 - Burn/Poison KO → `pokemonFainted: true`
 - Sleep décrément, réveille à 0 → `skipAction: false`
@@ -86,12 +89,13 @@ Logique :
   - Sinon : drain = `Math.max(1, Math.floor(target.maxHp * link.drainFraction))`
     - Inflige dégâts à la cible → émet `LinkDrained`
     - Soigne la source (cap maxHp)
-    - Si cible KO → émet `PokemonKo`, `pokemonFainted: true`
-- Nettoie les liens brisés de `state.activeLinks`
+    - Si cible KO → émet `PokemonKo` (countdownStart: 0), `pokemonFainted: true`
+- Collecter les liens à supprimer pendant l'itération, puis les retirer après (collect-then-delete pour éviter mutation pendant itération)
+- `LinkDrained` event couvre les deux côtés : `amount` = dégâts infligés à la cible = HP soignés à la source
 
-Enregistrement :
+Enregistrement dans le constructeur de `BattleEngine` :
 ```ts
-turnPipeline.registerEndTurn(linkDrainHandler, 100);
+this.turnPipeline.registerEndTurn(linkDrainHandler, 100);
 ```
 
 **Tests** :
@@ -109,7 +113,7 @@ turnPipeline.registerEndTurn(linkDrainHandler, 100);
 
 - Retire le Pokemon du turn order via `turnManager.removePokemon()`
 - Libère la tile (`grid.setOccupant(position, null)`)
-- Brise tous les liens dont ce Pokemon est source ou cible → émet `LinkBroken` pour chacun
+- Brise tous les liens restants dont ce Pokemon est source ou cible → émet `LinkBroken` pour chacun (idempotent : ne réémet pas si le lien a déjà été brisé par un handler)
 - Le Pokemon reste dans `state.pokemon` (historique) avec `currentHp = 0`
 - Le champ `koCountdown` (déjà présent sur `PokemonInstance`) reste `null` — non utilisé pour le POC (KO = définitif). Ce champ sera activé quand on implémentera le countdown FFTA en Phase 1+
 - Émet `PokemonEliminated`
@@ -145,23 +149,19 @@ private checkVictory(): string | null
 **Tests** :
 - 1v1 : KO adverse → BattleEnded
 - 2v1 : KO d'un seul → pas de BattleEnded
+- Draw : deux derniers Pokemon KO dans le même round → premier KO déclenche la victoire (pas de draw pour le POC)
 - getLegalActions après BattleEnded → []
 - submitAction après BattleEnded → erreur
 
-### Étape 5 — Paralysie : filtrage des actions
+### Étape 5 — Paralysie : vérifier et tester le filtrage existant
 
-**Dans** `BattleEngine.ts`
-
-Quand `PhaseResult.restrictActions === true` (paralysie proc), le BattleEngine stocke un flag temporaire pour le tour en cours.
-
-**Modifier `getLegalActions`** :
-- Si le flag est actif → retirer les actions `Move` et les actions `UseMove` dont le targeting est `dash`
-- Les autres `UseMove` et `SkipTurn` restent
+Le filtrage `restrictActions` est déjà implémenté dans `BattleEngine.getLegalActions` (Plan 005). Cette étape vérifie le comportement et ajoute les tests manquants.
 
 **Tests** :
 - Paralysie proc → pas de Move ni dash dans getLegalActions
 - Paralysie proc → use_move non-dash présent
 - Paralysie pas proc → toutes les actions disponibles
+- Après le tour paralysé, le flag `restrictActions` est réinitialisé au tour suivant
 
 ### Étape 6 — Tests d'intégration
 
@@ -242,6 +242,8 @@ Then au round 2, B (80) joue avant A (50)
 - **Math.random** : mock dans les tests, seed viendra avec le replay
 - **Boucle infinie** : si tous les Pokemon sont sleep/freeze, garde-fou dans la boucle while (skip de round)
 - **Ordre burn → action → drain** : burn peut tuer avant l'action, drain peut tuer après. L'ordre est gameplay-significant et verrouillé par la priorité des handlers dans le pipeline
+- **Double émission `LinkBroken`** : les handlers (linkDrainHandler) et `handleKo` peuvent tous deux briser des liens. `handleKo` ne brise que les liens restants (idempotent) pour éviter les doublons
+- **Mutation pendant itération** : `linkDrainHandler` collecte les liens à supprimer puis les retire après la boucle (collect-then-delete pattern)
 - **BadlyPoisoned / Confusion** : hors scope, les enums existent, ignorés pour le POC
 
 ## Dépendances

@@ -4,7 +4,6 @@ import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Category } from "../enums/category";
-import { Direction } from "../enums/direction";
 import { EffectKind } from "../enums/effect-kind";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";

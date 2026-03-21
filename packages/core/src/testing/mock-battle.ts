@@ -105,9 +105,13 @@ export abstract class MockBattle {
 
   static setTile(state: BattleState, x: number, y: number, overrides: Partial<TileState>): void {
     const row = state.grid[y];
-    if (!row) throw new Error(`Row ${y} does not exist`);
+    if (!row) {
+      throw new Error(`Row ${y} does not exist`);
+    }
     const tile = row[x];
-    if (!tile) throw new Error(`Tile ${x},${y} does not exist`);
+    if (!tile) {
+      throw new Error(`Tile ${x},${y} does not exist`);
+    }
     Object.assign(tile, overrides);
   }
 

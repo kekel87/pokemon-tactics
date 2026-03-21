@@ -78,6 +78,7 @@
 | 66 | 2026-03-21 | Paralysie tactique | **Bloque le déplacement, pas l'attaque** | Proc 25% : le Pokemon ne peut pas bouger (move) ni dash, mais peut attaquer sur place (use_move non-dash). Différent de Pokemon classique (bloque tout). -50% initiative permanent. |
 | 67 | 2026-03-21 | Effect architecture | **Handler registry** (écart pattern switch) | Remplace le switch case dans `effect-processor.ts` par une `EffectHandlerRegistry` (Map<EffectKind, EffectHandler>). Ajouter un effet = enregistrer un handler. Inspiré de Pokemon Showdown. |
 | 68 | 2026-03-21 | Phases de tour | **StartTurn → Action → EndTurn** | Pipeline de phases avec handlers enregistrables par priorité. Status ticks en StartTurn, drain en EndTurn. Extensible pour météo, terrain, abilities. |
+| 69 | 2026-03-21 | Valeurs des ticks de statut POC | **Burn 1/16 HP/tour, Poison 1/8 HP/tour, Sleep 1-3 tours, Freeze 20% dégel/tour, Paralysie 25% proc** | Calqué sur les valeurs Pokemon. Paralysie : proc bloque move+dash, pas use_move non-dash. -50% initiative permanent sur paralysé. |
 
 ---
 

@@ -14,6 +14,7 @@ export const ActionError = {
   NoPpLeft: "no_pp_left",
   InvalidTarget: "invalid_target",
   MoveNotInMoveset: "move_not_in_moveset",
+  BattleOver: "battle_over",
 } as const;
 
 export type ActionError = (typeof ActionError)[keyof typeof ActionError];

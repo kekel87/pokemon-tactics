@@ -16,6 +16,8 @@ import { directionFromTo } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
 import { checkAccuracy } from "./accuracy-check";
 import { processEffects } from "./effect-processor";
+import { linkDrainHandler } from "./handlers/link-drain-handler";
+import { statusTickHandler } from "./handlers/status-tick-handler";
 import { getEffectiveInitiative } from "./initiative-calculator";
 import { TurnManager } from "./TurnManager";
 import { TurnPipeline } from "./turn-pipeline";
@@ -43,6 +45,7 @@ export class BattleEngine {
   private readonly pokemonTypesMap: Map<string, PokemonType[]>;
   private readonly turnPipeline: TurnPipeline;
   private restrictActions = false;
+  private battleOver = false;
 
   constructor(
     state: BattleState,
@@ -59,6 +62,8 @@ export class BattleEngine {
     this.listeners = new Map();
     this.grid = new Grid(state.grid[0]?.length ?? 0, state.grid.length, state.grid);
     this.turnManager = new TurnManager([...state.pokemon.values()], getEffectiveInitiative);
+    this.turnPipeline.registerStartTurn(statusTickHandler, 100);
+    this.turnPipeline.registerEndTurn(linkDrainHandler, 100);
     this.syncTurnState();
   }
 
@@ -67,6 +72,10 @@ export class BattleEngine {
   }
 
   getLegalActions(playerId: string): Action[] {
+    if (this.battleOver) {
+      return [];
+    }
+
     const currentPokemonId = this.turnManager.getCurrentPokemonId();
     const currentPokemon = this.state.pokemon.get(currentPokemonId);
 
@@ -118,6 +127,10 @@ export class BattleEngine {
   }
 
   submitAction(playerId: string, action: Action): ActionResult {
+    if (this.battleOver) {
+      return { success: false, events: [], error: ActionError.BattleOver };
+    }
+
     const currentPokemonId = this.turnManager.getCurrentPokemonId();
     const currentPokemon = this.state.pokemon.get(currentPokemonId);
 
@@ -293,6 +306,15 @@ export class BattleEngine {
       events.push(event);
     }
 
+    for (const event of effectEvents) {
+      if (event.type === BattleEventType.PokemonKo) {
+        this.handleKo(event.pokemonId, events);
+        if (this.battleOver) {
+          return { success: true, events };
+        }
+      }
+    }
+
     this.endCurrentTurn(pokemon.id, events);
 
     return { success: true, events };
@@ -301,14 +323,16 @@ export class BattleEngine {
   private getReachableTiles(pokemon: PokemonInstance): ReachableTile[] {
     const result: ReachableTile[] = [];
     const visited = new Set<string>();
-    const posKey = (p: Position) => `${p.x},${p.y}`;
+    const posKey = (p: Position): string => `${p.x},${p.y}`;
 
     const queue: BfsNode[] = [{ position: pokemon.position, path: [], distance: 0 }];
     visited.add(posKey(pokemon.position));
 
     while (queue.length > 0) {
       const current = queue.shift();
-      if (!current) break;
+      if (!current) {
+        break;
+      }
 
       if (current.distance > 0) {
         const occupant = this.grid.getOccupant(current.position);
@@ -454,7 +478,20 @@ export class BattleEngine {
       events.push(event);
     }
 
-    this.advanceTurn(events);
+    if (endTurnResult.pokemonFainted) {
+      for (const event of endTurnResult.events) {
+        if (event.type === BattleEventType.PokemonKo) {
+          this.handleKo(event.pokemonId, events);
+          if (this.battleOver) {
+            return;
+          }
+        }
+      }
+    }
+
+    if (!this.battleOver) {
+      this.advanceTurn(events);
+    }
   }
 
   private advanceTurn(events: BattleEvent[]): void {
@@ -491,6 +528,9 @@ export class BattleEngine {
 
       if (startTurnResult.pokemonFainted) {
         this.handleKo(nextPokemonId, events);
+        if (this.battleOver) {
+          return;
+        }
         this.turnManager.advance();
         if (this.turnManager.isRoundComplete()) {
           const alivePokemon = this.getAlivePokemon();
@@ -510,6 +550,23 @@ export class BattleEngine {
         };
         this.emit(skipEnded);
         events.push(skipEnded);
+
+        const endTurnResult = this.turnPipeline.executeEndTurn(nextPokemonId, this.state);
+        for (const event of endTurnResult.events) {
+          this.emit(event);
+          events.push(event);
+        }
+        if (endTurnResult.pokemonFainted) {
+          for (const event of endTurnResult.events) {
+            if (event.type === BattleEventType.PokemonKo) {
+              this.handleKo(event.pokemonId, events);
+              if (this.battleOver) {
+                return;
+              }
+            }
+          }
+        }
+
         this.turnManager.advance();
         if (this.turnManager.isRoundComplete()) {
           const alivePokemon = this.getAlivePokemon();
@@ -530,7 +587,68 @@ export class BattleEngine {
     }
   }
 
-  private handleKo(_pokemonId: string, _events: BattleEvent[]): void {}
+  private handleKo(pokemonId: string, events: BattleEvent[]): void {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    if (!pokemon) {
+      return;
+    }
+
+    this.turnManager.removePokemon(pokemonId);
+    this.grid.setOccupant(pokemon.position, null);
+
+    const linksToRemove: number[] = [];
+    for (let i = 0; i < this.state.activeLinks.length; i++) {
+      const link = this.state.activeLinks[i];
+      if (!link) {
+        continue;
+      }
+      if (link.sourceId === pokemonId || link.targetId === pokemonId) {
+        linksToRemove.push(i);
+        const brokenEvent: BattleEvent = {
+          type: BattleEventType.LinkBroken,
+          sourceId: link.sourceId,
+          targetId: link.targetId,
+        };
+        this.emit(brokenEvent);
+        events.push(brokenEvent);
+      }
+    }
+    for (let i = linksToRemove.length - 1; i >= 0; i--) {
+      const index = linksToRemove[i];
+      if (index !== undefined) {
+        this.state.activeLinks.splice(index, 1);
+      }
+    }
+
+    const eliminatedEvent: BattleEvent = {
+      type: BattleEventType.PokemonEliminated,
+      pokemonId,
+    };
+    this.emit(eliminatedEvent);
+    events.push(eliminatedEvent);
+
+    this.checkVictory(events);
+  }
+
+  private checkVictory(events: BattleEvent[]): void {
+    const playersAlive = new Set<string>();
+    for (const pokemon of this.state.pokemon.values()) {
+      if (pokemon.currentHp > 0) {
+        playersAlive.add(pokemon.playerId);
+      }
+    }
+
+    if (playersAlive.size === 1) {
+      const winnerId = [...playersAlive][0] as string;
+      this.battleOver = true;
+      const endEvent: BattleEvent = {
+        type: BattleEventType.BattleEnded,
+        winnerId,
+      };
+      this.emit(endEvent);
+      events.push(endEvent);
+    }
+  }
 
   private getAlivePokemon(): PokemonInstance[] {
     const alive: PokemonInstance[] = [];

@@ -1,0 +1,97 @@
+import { BattleEventType } from "../../enums/battle-event-type";
+import { StatusType } from "../../enums/status-type";
+import type { BattleEvent } from "../../types/battle-event";
+import type { BattleState } from "../../types/battle-state";
+import type { PokemonInstance } from "../../types/pokemon-instance";
+import type { PhaseResult } from "../turn-pipeline";
+
+function applyDot(pokemon: PokemonInstance, fraction: number, events: BattleEvent[]): boolean {
+  const damage = Math.max(1, Math.floor(pokemon.maxHp / fraction));
+  pokemon.currentHp = Math.max(0, pokemon.currentHp - damage);
+  events.push({
+    type: BattleEventType.DamageDealt,
+    targetId: pokemon.id,
+    amount: damage,
+    effectiveness: 1,
+  });
+
+  if (pokemon.currentHp <= 0) {
+    events.push({ type: BattleEventType.PokemonKo, pokemonId: pokemon.id, countdownStart: 0 });
+    return true;
+  }
+  return false;
+}
+
+export function statusTickHandler(pokemonId: string, state: BattleState): PhaseResult {
+  const pokemon = state.pokemon.get(pokemonId);
+  const emptyResult: PhaseResult = {
+    events: [],
+    skipAction: false,
+    restrictActions: false,
+    pokemonFainted: false,
+  };
+
+  if (!pokemon || pokemon.statusEffects.length === 0) {
+    return emptyResult;
+  }
+
+  const status = pokemon.statusEffects[0];
+  if (!status) {
+    return emptyResult;
+  }
+
+  const events: BattleEvent[] = [];
+
+  switch (status.type) {
+    case StatusType.Burned: {
+      const fainted = applyDot(pokemon, 16, events);
+      return { events, skipAction: false, restrictActions: false, pokemonFainted: fainted };
+    }
+
+    case StatusType.Poisoned: {
+      const fainted = applyDot(pokemon, 8, events);
+      return { events, skipAction: false, restrictActions: false, pokemonFainted: fainted };
+    }
+
+    case StatusType.Asleep: {
+      if (status.remainingTurns !== null && status.remainingTurns > 0) {
+        status.remainingTurns--;
+      }
+      if (status.remainingTurns === 0) {
+        pokemon.statusEffects = pokemon.statusEffects.filter((s) => s !== status);
+        events.push({
+          type: BattleEventType.StatusRemoved,
+          targetId: pokemonId,
+          status: status.type,
+        });
+        return { events, skipAction: false, restrictActions: false, pokemonFainted: false };
+      }
+      return { events, skipAction: true, restrictActions: false, pokemonFainted: false };
+    }
+
+    case StatusType.Frozen: {
+      const thawRoll = Math.random();
+      if (thawRoll < 0.2) {
+        pokemon.statusEffects = pokemon.statusEffects.filter((s) => s !== status);
+        events.push({
+          type: BattleEventType.StatusRemoved,
+          targetId: pokemonId,
+          status: status.type,
+        });
+        return { events, skipAction: false, restrictActions: false, pokemonFainted: false };
+      }
+      return { events, skipAction: true, restrictActions: false, pokemonFainted: false };
+    }
+
+    case StatusType.Paralyzed: {
+      const procRoll = Math.random();
+      if (procRoll < 0.25) {
+        return { events, skipAction: false, restrictActions: true, pokemonFainted: false };
+      }
+      return emptyResult;
+    }
+
+    default:
+      return emptyResult;
+  }
+}
