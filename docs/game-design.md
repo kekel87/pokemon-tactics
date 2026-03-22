@@ -8,14 +8,14 @@
 ## 1. Pitch
 
 Un jeu de combat tactique sur grille isométrique qui fusionne :
-- **Pokemon** : créatures avec 4 attaques, 1 talent, 1 objet tenu
+- **Pokemon** : chacun avec 4 attaques, 1 talent, 1 objet tenu
 - **Final Fantasy Tactics Advance** : déplacements sur grille, dénivelés, aires d'effet
 - **Style HD-2D** (Octopath Traveler) : sprites 2D sur environnements 3D avec effets de lumière
 
 **Scope actuel : combat tactique uniquement.** Pas d'aventure, pas d'histoire, pas d'évolutions.
 
 ### Inspirations principales
-- **Pokemon** — créatures, types, stats, capacités
+- **Pokemon** — types, stats, capacités
 - **FFTA** — grille, initiative, AoE, KO countdown
 - **Fire Emblem** (Advance+) — positionnement, blocage
 - **Advance Wars** — tactique grille, lisibilité
@@ -26,18 +26,18 @@ Un jeu de combat tactique sur grille isométrique qui fusionne :
 
 ## 2. Format de combat
 
-- **12 créatures max** simultanément sur le terrain
+- **12 Pokemon max** simultanément sur le terrain
 - **Jusqu'à 12 joueurs** — équipes ou chacun pour soi (free-for-all)
 - Exemples : 6v6, 3v3v3v3, 2v2v2v2v2v2, 1v1v1v1 (chacun 1 Pokemon)...
 - **Taille d'équipe configurable** par format — base = 6v6 (mode histoire). Définie avant le combat.
 - **Multijoueur local hot-seat** (style Civilization : on se passe le clavier)
-- **Pas de brouillard de guerre** — chaque joueur voit l'intégralité du terrain et toutes les créatures
+- **Pas de brouillard de guerre** — chaque joueur voit l'intégralité du terrain et tous les Pokemon
 - **FFA = chacun pour soi** — pas d'alliances dynamiques. Le friendly fire gère naturellement les interactions. Mode équipe = format séparé.
 - Multijoueur réseau : plus tard
 
 ---
 
-## 3. Créature (Pokemon)
+## 3. Pokemon
 
 | Attribut | Description |
 |----------|-------------|
@@ -72,7 +72,7 @@ Exemples de surcharges possibles :
 - **Par attaque** : PP ajustés, dégâts modifiés, portée/AoE ajoutée
 - **Par talent** : effet modifié pour le contexte grille
 - **Formule de dégâts** : multiplicateurs tactiques (hauteur, orientation, terrain)
-- **Par créature** : stats dérivées (mouvement, saut, initiative)
+- **Par Pokemon** : stats dérivées (mouvement, saut, initiative)
 
 Ce système permet de :
 - Utiliser les données Pokemon officielles comme base solide
@@ -87,12 +87,12 @@ Ce système permet de :
 ## 6. Grille & Terrain
 
 - Grille isométrique avec **dénivelés** (hauteur variable par tile)
-- **Mouvement** : chaque créature a un nombre de tiles de déplacement
+- **Mouvement** : chaque Pokemon a un nombre de tiles de déplacement
 - **Pas de déplacement diagonal** (style FFTA / Fire Emblem) — 4 directions uniquement
 - **Saut** : capacité à franchir les dénivelés
 
 ### Blocage & traversée
-- Chaque créature **occupe une tile** et bloque le passage des ennemis
+- Chaque Pokemon **occupe une tile** et bloque le passage des ennemis
 - Les **alliés se traversent** librement (déplacement ET attaques dash)
 - **Seuls les ennemis et obstacles bloquent** le passage
 - **Exceptions** : les types Vol et Spectre traversent aussi les ennemis
@@ -219,11 +219,11 @@ Vampigraine plante une graine sur la cible qui **draine des PV chaque tour et le
 
 ## 8. Orientation & positionnement (style FFTA)
 
-Chaque créature a une **orientation** (la direction dans laquelle elle regarde).
+Chaque Pokemon a une **orientation** (la direction dans laquelle elle regarde).
 - **Attaque de dos** : bonus de dégâts (le défenseur ne voit pas venir le coup)
 - **Attaque de côté** : dégâts normaux
 - **Attaque de face** : possibilité de réduction de dégâts ?
-- L'orientation se met à jour quand la créature se déplace ou attaque
+- L'orientation se met à jour quand le Pokemon se déplace ou attaque
 - Ajoute une couche tactique : tourner le dos à l'ennemi est dangereux, le positionnement autour d'une cible compte
 
 > Détails (bonus exact, mécanique de retournement) à définir en Phase 1-2.

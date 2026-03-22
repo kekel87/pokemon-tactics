@@ -49,7 +49,7 @@ L'objectif de cette étape est d'avoir une fondation typée sur laquelle toutes 
   - `BaseStats` : `{ hp: number; attack: number; defense: number; spAttack: number; spDefense: number; speed: number }`
   - `DerivedStats` : `{ movement: number; jump: number; initiative: number }`
   - `PokemonDefinition` : espèce (stats de base, types, poids, movepool)
-  - `PokemonInstance` : créature en combat (`id`, `definitionId`, `currentHp`, `maxHp`, `statStages`, `statusEffects`, `position`, `orientation`, `currentPp`, `koCountdown | null`)
+  - `PokemonInstance` : Pokemon en combat (`id`, `definitionId`, `currentHp`, `maxHp`, `statStages`, `statusEffects`, `position`, `orientation`, `currentPp`, `koCountdown | null`)
   - `ActiveLink` : `{ sourceId: string; targetId: string; linkType: string; remainingTurns: number; maxRange: number; drainFraction: number }`
   - `TileState` : `{ position: Position; height: number; terrain: TerrainType; occupantId: string | null; isPassable: boolean }`
   - `BattleState` : `{ grid: TileState[][]; pokemon: Map<string, PokemonInstance>; activeLinks: ActiveLink[]; turnOrder: string[]; currentTurnIndex: number; roundNumber: number }`

@@ -53,7 +53,7 @@
 - [ ] Types de terrain (lave, eau, herbe) + modificateurs précision terrain
 - [ ] Interactions type/terrain (Feu immunisé lave, Vol ignore obstacles...)
 - [ ] Modification du terrain par les attaques (Champ Herbeux, etc.)
-- [ ] Orientation des créatures (face/dos/côté) + bonus dégâts de dos (style FFTA)
+- [ ] Orientation des Pokemon (face/dos/côté) + bonus dégâts de dos (style FFTA)
 - [ ] Team Builder (import/export format Showdown)
 - [ ] Support manette (Gamepad API)
 

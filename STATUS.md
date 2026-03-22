@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-21 (Renderer POC étapes 1-6 terminées — hot-seat jouable dans le navigateur)
+> Dernière mise à jour : 2026-03-22 (Maintenance infra, doc, agents — aucune mécanique de jeu modifiée)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -55,6 +55,14 @@
   - Combat IA Random : Player 1 gagne (Bulbasaur+Squirtle vs Charmander+Pidgey) en 58 rounds — boucle tourne, KO gérés, victoire détectée, pas de crash
   - Combat IA Smart : Player 2 gagne (Charmander+Squirtle vs Bulbasaur+Pidgey) en 67 rounds — bug heuristique détecté (PP grillés sans cible), corrigeable via `getLegalActions`
   - **Core validé de bout en bout** : la boucle de combat complète fonctionne en headless
+
+- **Maintenance 2026-03-22** :
+  - Fix infra : remplacement `vite-tsconfig-paths` par `resolve.tsconfigPaths` natif (Vite 8), dépendance supprimée
+  - Terminologie : "créature" → "Pokemon" (18 occurrences, 9 fichiers), "créateur" → "l'humain" dans doc et agents
+  - README réécrit pour repo public : description du jeu, disclaimers Nintendo + IA, sources et crédits, diagramme mermaid orchestration agents
+  - Agents améliorés : `code-reviewer` (propose titre de commit), `doc-keeper` (checklist systématique, maintenance sources README), `dependency-manager` (détection deprecation warnings build + test)
+  - Orchestration agents dans `CLAUDE.md` revue : chaînes d'agents documentées, déclencheurs plus explicites
+  - Style de commit : titre seul, pas de corps
 
 - **Plan 007 — Renderer POC** (in-progress, étapes 1-6 sur 8 terminées) :
   - Bootstrap Phaser 4 RC6 + BattleScene

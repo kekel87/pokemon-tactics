@@ -7,7 +7,7 @@
 
 ## Objectif du roster POC
 
-Valider un maximum de mécaniques avec un minimum de créatures :
+Valider un maximum de mécaniques avec un minimum de Pokemon :
 - **4 types** : Plante, Feu, Eau, Normal/Vol (triangle élémentaire + neutre)
 - **Tous les patterns AoE** : single, cône, croix, zone self, dash, portée+AoE, lien
 - **Mécaniques variées** : dégâts, statut, buff, drain, dash, AoE

@@ -5,12 +5,12 @@
 Pokemon Tactics : jeu de combat tactique (Pokemon x FFTA) en TypeScript + Phaser 4.
 Monorepo pnpm workspaces. Core découplé du rendu. AI-playable.
 
-## Rôle du créateur
+## Rôle de l'humain
 
-Le créateur **ne code pas**. Il est directeur créatif, architecte et reviewer.
-Claude Code est le **développeur principal** — autonome sur l'implémentation, mais valide les choix de design avec le créateur.
+L'humain **ne code pas**. Il est directeur créatif, architecte et reviewer.
+Claude Code est le **développeur principal** — autonome sur l'implémentation, mais valide les choix de design avec l'humain.
 Profil : dev web Angular/TS expérimenté, clean code advocate, expérience Godot + Phaser, temps limité.
-**Continuité** : le créateur peut revenir après 1 mois. Maintenir STATUS.md, plans/ et la mémoire à jour pour reprendre sans friction.
+**Continuité** : l'humain peut revenir après 1 mois. Maintenir STATUS.md, plans/ et la mémoire à jour pour reprendre sans friction.
 
 ## Documentation — quoi lire et quand
 
@@ -70,34 +70,48 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 - Commiter des assets non libres de droits
 - Pousser sur `main` sans que les tests passent
 - Charger toute la doc en contexte quand un seul fichier suffit
-- **Git** : ne jamais commit/push/add — le créateur gère le versioning. Lecture seule (status, diff, log)
-- **Infra** : ne jamais installer globalement ni modifier nvm/npm config — le créateur travaille sur d'autres projets en parallèle
-- **Changements structurels** : consulter le créateur AVANT de modifier tsconfig, module resolution, structure de dossiers, dépendances. Les bug fixes simples n'ont pas besoin d'approbation
+- **Git** : ne jamais commit/push/add — l'humain gère le versioning. Lecture seule (status, diff, log)
+- **Infra** : ne jamais installer globalement ni modifier nvm/npm config — l'humain travaille sur d'autres projets en parallèle
+- **Changements structurels** : consulter l'humain AVANT de modifier tsconfig, module resolution, structure de dossiers, dépendances. Les bug fixes simples n'ont pas besoin d'approbation
 
 ## Orchestration des agents
 
-Après un changement significatif, lancer les agents pertinents **automatiquement** :
+Les agents se déclenchent **automatiquement** après chaque changement significatif. Ne pas attendre qu'on le demande. Ne pas lancer tous les agents — seulement ceux pertinents.
 
-| Déclencheur | Agents à lancer |
-|-------------|-----------------|
-| Modif dans `packages/core/` | `core-guardian` + `test-writer` si nouvelle mécanique |
-| Modif de mécaniques de jeu | `game-designer` pour cohérence |
-| Avant un commit | `code-reviewer` (+ `core-guardian` si core touché) |
-| Fin de session | `session-closer` (ou `/status`) |
-| Ajout/modif de données | `game-designer` pour équilibre |
-| Après un ensemble de changements | `doc-keeper` pour la doc |
-| Ajout de dépendance | `dependency-manager` pour valider |
-| Ajout/modif d'assets | `asset-manager` pour conventions |
-| Nouveau plan ou plan à jour | `plan-reviewer` |
-| Hésitation sur une approche | `best-practices` pour recherche |
-| Bug complexe | `debugger` |
-| Ajout/modif de Pokemon ou moves au roster | `data-miner` pour extraction des données |
-| Modif du pipeline CI ou ajout de package | `ci-setup` pour configuration |
-| Avant une release ou problème de perf | `performance-profiler` pour analyse |
-| Ajout/modif d'un agent ou skill | `agent-manager` pour audit cohérence |
-| Audit périodique | `agent-manager` pour review globale |
+### Quand lancer quoi
 
-Ne pas lancer tous les agents à chaque fois — seulement ceux pertinents au changement.
+**Après chaque étape d'un plan (code écrit + tests passent) :**
+1. `core-guardian` — si le diff touche `packages/core/`
+2. `code-reviewer` — review qualité + propose un message de commit
+3. `doc-keeper` — met à jour TOUS les docs impactés (checklist systématique)
+
+**Après la dernière étape d'un plan :**
+- Les 3 ci-dessus + `doc-keeper` met aussi à jour roadmap.md et STATUS.md
+
+**En fin de session :**
+- `session-closer` (ou `/status`)
+
+**Selon le contexte du changement :**
+
+| Déclencheur | Agent |
+|-------------|-------|
+| Nouvelle mécanique de jeu | `game-designer` (cohérence + équilibre) |
+| Nouvelle mécanique dans le core | `test-writer` (tests first) |
+| Ajout/modif de données Pokemon | `game-designer` + `data-miner` |
+| Ajout de dépendance | `dependency-manager` (audit avant d'ajouter) |
+| Ajout/modif d'assets | `asset-manager` (conventions) |
+| Nouveau plan ou plan à reviewer | `plan-reviewer` |
+| Hésitation sur une approche | `best-practices` (recherche marché) |
+| Bug complexe | `debugger` (diagnostic opus) |
+| Modif pipeline CI ou ajout package | `ci-setup` |
+| Problème de perf ou avant release | `performance-profiler` |
+| Ajout/modif d'un agent ou skill | `agent-manager` (audit cohérence) |
+
+### Chaînes d'agents
+
+Certains agents en déclenchent d'autres :
+- `code-reviewer` → `core-guardian` (si core touché) → `game-designer` (si mécaniques modifiées)
+- `session-closer` → vérifie que `doc-keeper` a bien mis à jour la doc
 
 ## Skills disponibles
 

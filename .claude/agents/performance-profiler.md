@@ -67,6 +67,6 @@ Pour chaque catégorie analysée (Runtime, Bundle, Core) :
 
 ## Escalade
 
-Signaler au créateur si :
+Signaler à l'humain si :
 - Un seuil **critique** est dépassé
 - Une dégradation semble liée à un choix d'architecture (pas juste un bug de perf)

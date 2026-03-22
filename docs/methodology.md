@@ -8,7 +8,7 @@
 
 | Rôle | Qui | Responsabilités |
 |------|-----|-----------------|
-| **Directeur créatif / Architecte** | Toi | Vision du jeu, décisions de design, review du code, validation |
+| **L'humain** | Toi | Vision du jeu, décisions de design, review du code, validation |
 | **Développeur principal** | Claude Code | Écriture du code, tests, refactoring, implémentation |
 
 ---
@@ -41,6 +41,14 @@ docs/
 4. **Renderer ensuite** — affichage visuel
 5. **Review** — tu valides (code + visuellement via Playwright screenshots)
 6. **Commit** — conventional commit, feature branch si besoin
+
+### Orchestration automatique des agents :
+Après chaque étape significative, les agents pertinents sont lancés sans attendre qu'on le demande :
+- Modif dans `packages/core/` → `core-guardian` (+ `test-writer` si nouvelle mécanique)
+- Avant un commit → `code-reviewer` (qui propose le titre de commit si pas de bloquant)
+- Après un ensemble de changements → `doc-keeper`
+
+Voir `CLAUDE.md` pour la table complète des déclencheurs.
 
 ### Pour un bug :
 1. **Reproduire** — test qui échoue
@@ -88,7 +96,7 @@ Un test d'intégration est utile quand il vérifie un **contrat entre composants
 - **Branches** : `main` (stable) + feature branches (`feat/aoe-patterns`, `fix/damage-calc`)
 - **Pas de force push** sur main
 - **Un commit = un changement cohérent**
-- **Claude Code propose un nom de commit** automatiquement quand un plan est terminé ou à la demande
+- **Titre de commit proposé automatiquement** par le code-reviewer après chaque review sans bloquant — une seule ligne, format conventional commits
 
 ---
 
@@ -99,7 +107,7 @@ Claude Code peut utiliser **Playwright MCP** pour :
 - Prendre des screenshots
 - Interagir avec l'interface (cliquer, vérifier des éléments)
 
-Le créateur peut aussi simplement ouvrir `localhost` après `pnpm dev`.
+L'humain peut aussi simplement ouvrir `localhost` après `pnpm dev`.
 
 ---
 

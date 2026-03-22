@@ -40,7 +40,7 @@ Vérifier que les mécaniques de jeu sont **cohérentes, équilibrées et fun**.
 
 ## Escalade
 
-Arrête-toi et signale au créateur dans ces cas :
+Arrête-toi et signale à l'humain dans ces cas :
 - **Spec absente** — une mécanique n'a pas de spécification dans `game-design.md`. Ne l'invente pas, signale le manque.
 - **Contradiction** — les données dans `packages/data/` contredisent `game-design.md`. Signale les deux versions sans trancher.
 - **Choix de design** — une question d'équilibre a plusieurs réponses valides et aucune décision documentée dans `decisions.md`. Présente les options avec leurs trade-offs.

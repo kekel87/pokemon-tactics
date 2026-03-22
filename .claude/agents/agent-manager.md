@@ -124,7 +124,7 @@ Les agents d'audit (`core-guardian`, `code-reviewer`, `game-designer`) produisen
 
 ### Bonnes pratiques à promouvoir
 
-**Escalade explicite** — Chaque agent devrait avoir une clause : "Si tu n'es pas sûr ou si tu trouves X, arrête et signale au créateur." Exemples :
+**Escalade explicite** — Chaque agent devrait avoir une clause : "Si tu n'es pas sûr ou si tu trouves X, arrête et signale à l'humain." Exemples :
 - `core-guardian` : "Si tu trouves un import ambigu (utilitaire partagé qui pourrait ou non être UI), signale plutôt que deviner."
 - `game-designer` : "Si une mécanique n'a pas de spécification dans game-design.md, ne l'invente pas — signale le manque."
 - `code-reviewer` : "Si un pattern non conventionnel semble intentionnel (commentaire, commit message), demande avant de le flagger."
@@ -142,7 +142,7 @@ Les agents d'audit (`core-guardian`, `code-reviewer`, `game-designer`) produisen
 
 ### Propositions de nouveaux agents ou améliorations
 Quand tu audites, demande-toi :
-- Y a-t-il une tâche récurrente que le créateur fait manuellement et qui pourrait être un agent ?
+- Y a-t-il une tâche récurrente que l'humain fait manuellement et qui pourrait être un agent ?
 - Y a-t-il un agent existant dont le scope pourrait être scindé (trop large) ou fusionné (trop étroit) ?
 - Y a-t-il des interactions entre agents qui pourraient être formalisées dans les prompts plutôt que dans CLAUDE.md seul ?
 
@@ -193,4 +193,4 @@ Quand tu audites, demande-toi :
 - Privilégier la cohérence sur la perfection
 - Si deux agents se chevauchent, proposer une fusion ou une clarification de scope
 - Proposer des améliorations concrètes et actionnables, pas des généralités
-- Classer les suggestions par impact (haute / moyenne / idée) pour aider le créateur à prioriser
+- Classer les suggestions par impact (haute / moyenne / idée) pour aider l'humain à prioriser
