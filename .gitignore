@@ -31,3 +31,6 @@ Thumbs.db
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Reference screenshots (local only)
+docs/references/

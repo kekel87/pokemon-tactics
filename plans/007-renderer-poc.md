@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 created: 2026-03-21
-updated: 2026-03-21
+updated: 2026-03-22
 ---
 
 # Plan 007 — Renderer POC : grille isométrique + premier combat visuel

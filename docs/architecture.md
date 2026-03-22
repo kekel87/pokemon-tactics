@@ -87,13 +87,13 @@ pokemon-tactics/
 │   │
 │   ├── renderer/                # Interface graphique (Phaser 4)
 │   │   ├── src/
-│   │   │   ├── scenes/          # Scènes Phaser (BattleScene)
+│   │   │   ├── scenes/          # Scènes Phaser (BattleScene + BattleUIScene overlay)
 │   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue)
-│   │   │   ├── grid/            # Rendu isométrique (IsometricGrid)
-│   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite)
-│   │   │   ├── ui/              # Interface hot-seat (BattleUI)
+│   │   │   ├── grid/            # Rendu isométrique (IsometricGrid, curseur animé)
+│   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, barres PV)
+│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
-│   │   │   ├── constants.ts
+│   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI
 │   │   │   └── main.ts
 │   │   ├── public/              # Assets (sprites, tilesets, sons)
 │   │   ├── index.html

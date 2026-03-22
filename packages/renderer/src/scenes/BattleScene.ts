@@ -1,11 +1,9 @@
+import { GameController } from "../game/GameController";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
-import { GameController } from "../game/GameController";
-import { BattleUI } from "../ui/BattleUI";
+import type { BattleUIScene } from "./BattleUIScene";
 
 export class BattleScene extends Phaser.Scene {
-  private isometricGrid: IsometricGrid | undefined;
-  private controller: GameController | undefined;
   private lastHoverGrid: { x: number; y: number } | null = null;
 
   constructor() {
@@ -13,23 +11,34 @@ export class BattleScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.events.once("uiReady", () => {
+      const uiScene = this.scene.get("BattleUIScene") as BattleUIScene;
+      this.setupBattle(uiScene);
+    });
+
+    this.scene.launch("BattleUIScene");
+  }
+
+  private setupBattle(uiScene: BattleUIScene): void {
     const isometricGrid = new IsometricGrid(this);
     isometricGrid.drawGrid();
-    this.isometricGrid = isometricGrid;
-
-    const battleUI = new BattleUI(
-      this,
-      (moveId: string) => this.controller?.handleMoveSelect(moveId),
-      () => this.controller?.handleEndTurn(),
-    );
 
     const sprites = new Map<string, PokemonSprite>();
 
-    const controller = new GameController(this, isometricGrid, sprites, battleUI);
-    this.controller = controller;
+    const controller = new GameController(
+      this,
+      isometricGrid,
+      sprites,
+      uiScene.battleUI,
+      uiScene.actionMenu,
+      uiScene.infoPanel,
+      uiScene.turnTimeline,
+    );
 
     for (const pokemon of controller.state.pokemon.values()) {
-      if (pokemon.currentHp <= 0) continue;
+      if (pokemon.currentHp <= 0) {
+        continue;
+      }
 
       const definition = controller.pokemonDefinitions.get(pokemon.definitionId);
       const types = definition?.types ?? ["normal"];
@@ -48,18 +57,41 @@ export class BattleScene extends Phaser.Scene {
     });
 
     this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
-      if (controller.isAnimating) return;
+      if (controller.isAnimating) {
+        return;
+      }
 
       const grid = isometricGrid.screenToGrid(pointer.worldX, pointer.worldY);
 
       if (grid) {
-        if (!this.lastHoverGrid || this.lastHoverGrid.x !== grid.x || this.lastHoverGrid.y !== grid.y) {
+        if (
+          !this.lastHoverGrid ||
+          this.lastHoverGrid.x !== grid.x ||
+          this.lastHoverGrid.y !== grid.y
+        ) {
           this.lastHoverGrid = grid;
-          isometricGrid.highlightHover(grid.x, grid.y);
+          isometricGrid.showCursor(grid.x, grid.y);
+
+          const hoveredPokemon = controller.getPokemonAtPosition(grid.x, grid.y);
+          if (hoveredPokemon) {
+            uiScene.infoPanel.update(hoveredPokemon, hoveredPokemon.playerId);
+          } else {
+            const active = controller.getActivePokemon();
+            const activePlayerId = controller.getActivePlayerId();
+            if (active && activePlayerId) {
+              uiScene.infoPanel.update(active, activePlayerId);
+            }
+          }
         }
       } else {
         if (this.lastHoverGrid) {
           this.lastHoverGrid = null;
+          isometricGrid.hideCursor();
+        }
+        const active = controller.getActivePokemon();
+        const activePlayerId = controller.getActivePlayerId();
+        if (active && activePlayerId) {
+          uiScene.infoPanel.update(active, activePlayerId);
         }
       }
     });

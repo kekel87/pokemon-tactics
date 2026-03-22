@@ -19,11 +19,19 @@
 - [x] Tests unitaires pour chaque mécanique (224 tests, 100% coverage)
 
 ### Renderer
-- [ ] Grille isométrique 2D avec Phaser
-- [ ] Sprites Pokemon (placeholder ou premiers followers)
-- [ ] Sélection + déplacement visuel
-- [ ] Attaque visuelle basique
-- [ ] UI minimale (PV, sélection attaque)
+- [x] Grille isométrique 2D avec Phaser
+- [x] Sprites Pokemon (placeholder cercles colorés + barres PV)
+- [x] Sélection + déplacement visuel
+- [x] Attaque visuelle basique
+- [x] UI minimale (PV, sélection attaque)
+- [x] Menu d'action FFT-like (Deplacement, Attaque, Attendre)
+- [x] Sous-menu attaque avec 4 moves + Annuler
+- [x] Panel info bas-gauche (fond coloré par équipe, suivi hover)
+- [x] Timeline d'ordre des tours côté gauche (cercles type + bordure équipe)
+- [x] Curseur de tile animé (losange jaune pulsant)
+- [x] State machine 6 états (action_menu, select_move_destination, attack_submenu, select_attack_target, animating, battle_over)
+- [x] Overlay scene BattleUIScene séparée de BattleScene
+- [x] Écran de victoire avec numéro de round
 
 ### AI
 - [x] IA random (validation que l'API core fonctionne) — combat headless validé, 58 rounds, victoire détectée

@@ -10,7 +10,8 @@
 |-----|------------------------|
 | **Pokemon** (toutes gens) | Base : types, stats, capacités, talents, objets |
 | **Pokemon Conquest** (DS) | **LA référence directe** — Pokemon + tactical RPG sur grille. Fusion types Pokemon + gameplay tactique. Le projet veut faire "ça, mais mieux". Étudier : comment ils adaptent les attaques à la grille, le système de portée, le lien guerrier-Pokemon. |
-| **Final Fantasy Tactics Advance** (GBA) | Référence principale gameplay : grille, initiative, AoE, KO countdown, dénivelés. L'humain a joué à FFTA (pas FFT). |
+| **Final Fantasy Tactics Advance** (GBA) | Référence principale gameplay : grille, initiative, AoE, KO countdown, dénivelés. L'humain a joué à FFTA (pas à FFT original ni au remaster). Référence de second ordre pour l'UI. |
+| **Final Fantasy Tactics: The Ivalice Chronicles** (PC/PS5, 2024) | Remaster de FFT avec timeline CT permanente côté gauche, UI modernisée et lisible. Référence directe pour la timeline d'ordre des tours (plan 009) et le panel d'info Pokemon. L'humain n'y a pas joué — référence visuelle uniquement (captures/vidéos). |
 | **Fire Emblem** (à partir de Advance / GBA) | Déplacements 4 directions, positionnement tactique, blocage |
 | **Advance Wars** (GBA/DS) | Tactique grille, simplicité du gameplay, lisibilité |
 | **Dofus** (PC) | Tactical RPG MMO sur grille, AoE, portées, points d'action — référence secondaire |

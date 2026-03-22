@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-22 (Plan 008 terminé — Move+Act FFTA-like)
+> Dernière mise à jour : 2026-03-22 (Plan 009 terminé — UI FFT-like)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -64,19 +64,13 @@
   - Orchestration agents dans `CLAUDE.md` revue : chaînes d'agents documentées, déclencheurs plus explicites
   - Style de commit : titre seul, pas de corps
 
-- **Plan 007 — Renderer POC** (terminé partiellement, étapes 1-6 sur 8 terminées) :
+- **Plan 007 terminé** — Renderer POC (étapes 1-6 terminées, étapes 7-8 absorbées par plan 009) :
   - Bootstrap Phaser 4 RC6 + BattleScene
   - Grille isométrique 12x12 avec conversion coords grid ↔ screen
-  - Sprites placeholder : cercles colorés par type, noms, barres PV
+  - Sprites placeholder : cercles colorés par type, barres PV
   - Sélection + highlight tiles (bleu=déplacement, rouge=attaque)
-  - Déplacement animé par clic sur tile bleue
-  - Ciblage d'attaque via boutons UI colorés par type avec PP
-  - Hot-seat 2 joueurs fonctionnel
-  - Bouton EndTurn (ex-SkipTurn), indicateur de round/tour
+  - Déplacement animé + ciblage d'attaque + hot-seat 2 joueurs fonctionnel
   - Queue d'animations séquentielles
-  - Fix core : imports manquants PokemonType dans BattleEngine, TypeChart re-export dans effect-handler-registry
-  - Fix bug : hover pendant animation causait l'affichage de l'UI du prochain Pokemon (séparation hover/highlight en deux layers Graphics distincts)
-  - Code review : tous les bloquants corrigés (HighlightKind enum, constantes tween, readonly, isoGrid→isometricGrid, PP redondant, magic numbers)
 
 - **Plan 008 terminé** — Move+Act FFTA-like :
   - `SkipTurn` remplacé par `EndTurn` dans tout le codebase
@@ -88,8 +82,26 @@
   - Renderer adapté : `handleEndTurn`, bouton EndTurn
   - **234 tests**, 100% coverage maintenu, 9 nouveaux tests Move+Act
 
+- **Plan 009 terminé** — UI FFT-like :
+  - `BattleUIScene` overlay séparée de `BattleScene` (communication via event `uiReady`)
+  - Menu d'action FFT-like : Deplacement, Attaque, Objet (grisé), Attendre, Status (grisé)
+  - Sous-menu Attaque : 4 moves + Annuler, navigation fluide entre menus
+  - Panel info bas-gauche avec fond coloré par équipe (bleu/rouge), suit le hover
+  - Timeline d'ordre des tours côté gauche (cercles colorés type + bordure équipe)
+  - Curseur de tile animé (losange jaune pulsant)
+  - State machine 6 états : action_menu, select_move_destination, attack_submenu, select_attack_target, animating, battle_over
+  - Noms capitalisés, retirés des sprites, barres PV conservées
+  - Écran de victoire avec numéro de round
+  - Fix screenToGrid : Math.round au lieu de Math.floor (hit detection isométrique)
+  - Système de depth centralisé dans constants.ts
+  - **Bugs connus** (non bloquants pour le POC) :
+    - Vive-Attaque touche à 2 cases — bug core dans le dash targeting
+    - PlayerId ("player-1") comparé en dur dans l'UI — devrait être un const enum
+    - Resize/scaling canvas non géré (fixe 1280x720)
+    - Camera pan animé reporté (centerOn instantané)
+
 ### Prochaine étape
-- À définir (plan 008 terminé — Move+Act FFTA-like livré)
+- À définir (plan 009 terminé — UI FFT-like livrée, renderer POC complet)
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type

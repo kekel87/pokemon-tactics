@@ -86,6 +86,12 @@
 | 74 | 2026-03-22 | README public | **Disclaimers Nintendo + IA obligatoires** | Le README mentionne explicitement : fan project non affilié à Nintendo/Game Freak, assets sous licence SpriteCollab, code généré par Claude Code (Anthropic). |
 | 75 | 2026-03-22 | Move+Act par tour | **FFTA-like : Move + Act + EndTurn** | Chaque tour permet un Move (une fois) + un Act (une fois) dans n'importe quel ordre. Le tour se termine uniquement sur EndTurn explicite. Remplace SkipTurn. |
 | 76 | 2026-03-22 | Dash après Move | **Autorisé (option A)** | Un Dash consomme l'Act, pas le Move. Move→Dash et Dash→Move sont tous deux permis. Après Move 4 tiles + Dash 3 tiles = 7 tiles de portée + frappe. Accepté car seul Roucoul a un dash dans le POC — à surveiller si trop fort à mesure que le roster s'agrandit. |
+| 77 | 2026-03-22 | Overlay UI renderer | **BattleUIScene séparée de BattleScene** | L'UI (menus, panels, timeline) est une scène Phaser distincte lancée en overlay sur BattleScene. Communication via event `uiReady`. Évite les conflits de depth et de camera entre le jeu et l'UI. |
+| 78 | 2026-03-22 | ActionMenu : Zone vs Container | **Zone Phaser en coordonnées absolues** | Les containers imbriqués en Phaser créent des problèmes de depth et de coordonnées. L'ActionMenu utilise des `Phaser.GameObjects.Zone` avec coordonnées absolues sur la scène UI. |
+| 79 | 2026-03-22 | screenToGrid : round vs floor | **`Math.round` au lieu de `Math.floor`** | `Math.floor` causait une erreur de hit detection d'une demi-tile en isométrique. `Math.round` corrige la détection de clic sur les tiles. |
+| 80 | 2026-03-22 | Canvas dans container dédié | **`#game-container`** | Le canvas Phaser est monté dans un div `#game-container` plutôt que directement dans `document.body`. Facilite le layout CSS et l'éventuel resize. |
+| 81 | 2026-03-22 | Depth renderer | **Système centralisé dans `constants.ts`** | Toutes les valeurs de depth (grille, sprites, UI, menus) sont des constantes nommées dans `constants.ts`. Évite les magic numbers et les conflits de rendu entre composants. |
+| 82 | 2026-03-22 | Noms Pokemon dans l'UI | **Capitalisés, retirés des sprites** | Les noms sont capitalisés dans tous les affichages UI. Ils sont retirés au-dessus des sprites (le panel info et la timeline suffisent) pour désencombrer la grille. |
 
 ---
 
