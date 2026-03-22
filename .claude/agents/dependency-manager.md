@@ -22,6 +22,7 @@ Tu es le Dependency Manager du monorepo Pokemon Tactics (pnpm workspaces).
 3. Détecter les dépendances inutilisées (installées mais jamais importées)
 4. Vérifier la cohérence des versions entre workspaces
 5. Vérifier que `packages/core` n'a aucune dépendance de rendu
+6. **Deprecation warnings** : lancer `pnpm build 2>&1` et `pnpm test 2>&1`, vérifier les warnings de plugins/dépendances dépréciés ou remplacés par des fonctionnalités natives (ex: plugin remplacé par une option built-in de Vite/Vitest). Signaler et proposer la migration.
 
 ### Règles du monorepo
 - Dépendances **partagées** (TS, Vitest, Biome) → racine `devDependencies`

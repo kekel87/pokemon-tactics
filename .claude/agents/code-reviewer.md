@@ -74,6 +74,9 @@ export type TargetingKind = (typeof TargetingKind)[keyof typeof TargetingKind];
 - Le core émet des events, ne connaît pas le renderer
 - Les surcharges sont dans `packages/data/overrides/`, pas dans le core
 
+### Dépendances obsolètes
+- Vérifier si un plugin importé dans un fichier config (vite.config, vitest.config) a été remplacé par une fonctionnalité native du tool (ex: `vite-tsconfig-paths` → `resolve.tsconfigPaths` natif dans Vite 6+). Signaler comme **BLOQUANT**.
+
 ### Principes
 - **Fail-fast** : erreurs explicites le plus tôt possible
 - **KISS** : la solution la plus simple qui fonctionne
