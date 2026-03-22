@@ -1,6 +1,6 @@
 # Glossaire — Pokemon Tactics
 
-> Référence des termes techniques du projet, à destination du créateur non-technique.
+> Référence des termes techniques du projet.
 > Code en anglais, documentation en français.
 
 ---

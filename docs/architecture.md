@@ -12,7 +12,7 @@
 │                   @core                           │
 │  (logique pure — ZERO dépendance UI/rendu)        │
 │                                                   │
-│  - État du combat (grille, créatures, tours)      │
+│  - État du combat (grille, Pokemon, tours)          │
 │  - Calculs (dégâts, types, portée, AoE, LOS)     │
 │  - Pathfinding, initiative                        │
 │  - Validation des actions                         │
@@ -79,7 +79,7 @@ pokemon-tactics/
 │   │   │   ├── types/           # Interfaces (1 fichier = 1 type)
 │   │   │   ├── utils/           # Fonctions pures (math, direction, géométrie)
 │   │   │   ├── grid/            # Grid, Pathfinding, Targeting resolvers
-│   │   │   ├── battle/          # BattleEngine, TurnManager (à venir)
+│   │   │   ├── battle/          # BattleEngine, TurnManager, effect handlers, turn pipeline
 │   │   │   ├── testing/         # Mocks centralisés (MockPokemon...)
 │   │   │   └── index.ts         # Barrel export (API publique)
 │   │   ├── tsconfig.json        # extends ../../tsconfig.base.json
@@ -87,6 +87,13 @@ pokemon-tactics/
 │   │
 │   ├── renderer/                # Interface graphique (Phaser 4)
 │   │   ├── src/
+│   │   │   ├── scenes/          # Scènes Phaser (BattleScene)
+│   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue)
+│   │   │   ├── grid/            # Rendu isométrique (IsometricGrid)
+│   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite)
+│   │   │   ├── ui/              # Interface hot-seat (BattleUI)
+│   │   │   ├── enums/           # Enums renderer (HighlightKind)
+│   │   │   ├── constants.ts
 │   │   │   └── main.ts
 │   │   ├── public/              # Assets (sprites, tilesets, sons)
 │   │   ├── index.html
@@ -108,7 +115,7 @@ pokemon-tactics/
 ├── tsconfig.json                # Racine, extends base
 ├── biome.json                   # Lint + format (recommended + nursery)
 ├── vitest.config.ts             # Tests + coverage
-├── scenarios/              # Combats headless complets (*.scenario.test.ts)
+├── scenarios/              # Combats headless complets (*.scenario.test.ts) — à venir
 ├── CLAUDE.md
 ├── STATUS.md
 ├── docs/
@@ -406,14 +413,14 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour autom
 | Agent | Modèle | Rôle |
 |-------|--------|------|
 | `core-guardian` | haiku | Vérifie que core n'a aucune dépendance UI |
-| `doc-keeper` | sonnet | Maintient la documentation à jour |
-| `code-reviewer` | sonnet | Review qualité, TS strict, conventions |
+| `doc-keeper` | sonnet | Maintient la documentation à jour (checklist systématique sur tous les fichiers doc) |
+| `code-reviewer` | sonnet | Review qualité, TS strict, conventions — propose un titre de commit après review |
 | `game-designer` | sonnet | Cohérence et équilibre des mécaniques |
 | `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |
 | `session-closer` | sonnet | Met à jour STATUS.md en fin de session |
 | `test-writer` | sonnet | Tests Vitest, approche test-first |
 | `data-miner` | sonnet | Import données Pokemon (Showdown/PokeAPI) |
-| `dependency-manager` | sonnet | Gestion des dépendances npm du monorepo |
+| `dependency-manager` | sonnet | Gestion des dépendances npm — vérifie aussi les deprecation warnings |
 | `best-practices` | sonnet | Recherche de bonnes pratiques du marché |
 | `asset-manager` | sonnet | Gestion des assets (sprites, tilesets, sons) |
 | `plan-reviewer` | sonnet | Crée, review et maintient les plans |
@@ -421,6 +428,23 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour autom
 | `debugger` | opus | Diagnostic de bugs complexes |
 | `ci-setup` | sonnet | Configuration GitHub Actions |
 | `agent-manager` | sonnet | Audite et maintient les agents/skills (format, cohérence, qualité) |
+
+### Comportements notables
+
+- **`code-reviewer`** : si aucun bloquant, propose un titre de commit prêt à copier-coller (conventional commits, < 72 caractères). Escalade vers l'humain si diff > 15 fichiers ou pattern intentionnel détecté.
+- **`doc-keeper`** : checklist systématique — parcourt tous les fichiers de la table, vérifie la cohérence des termes entre les docs, maintient la section "Sources et crédits" du README.
+- **`dependency-manager`** : en plus de l'audit standard, détecte les plugins remplacés par des fonctionnalités natives du tool (ex: plugin Vite remplacé par une option built-in) en lançant `pnpm build 2>&1` et `pnpm test 2>&1`.
+
+### Chaînes d'agents documentées
+
+| Déclencheur | Chaîne |
+|-------------|--------|
+| Modif `packages/core/` | `code-reviewer` → `core-guardian` → `test-writer` si nouvelle mécanique |
+| Modif mécaniques de jeu | `code-reviewer` → `game-designer` |
+| Ajout/modif données Pokemon | `data-miner` → `game-designer` |
+| Fin de session | `session-closer` (ou `/status`) → `doc-keeper` |
+| Ajout de dépendance | `dependency-manager` |
+| Nouveau plan ou plan à jour | `plan-reviewer` |
 
 ### Agents placeholder (à activer plus tard)
 

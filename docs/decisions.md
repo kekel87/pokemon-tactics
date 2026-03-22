@@ -22,12 +22,12 @@
 | 10 | 2026-03-19 | Navigateur | **Oui** — web natif | Comme PokeRogue. Pas d'export WASM, du vrai web. |
 | 11 | 2026-03-19 | Versionning | **Git** | Conventional commits. |
 | 12 | 2026-03-19 | Stack | **TypeScript + Phaser 4** | Core TS pur + Phaser 4 pour le rendu. Monorepo pnpm. API compatible Phaser 3. |
-| 13 | 2026-03-19 | Développeur principal | **Claude Code** | Le créateur supervise, review, et guide. Claude Code écrit le code. |
+| 13 | 2026-03-19 | Développeur principal | **Claude Code** | L'humain supervise, review, et guide. Claude Code écrit le code. |
 | 14 | 2026-03-19 | Linter/Formatter | **Biome** | Remplace ESLint + Prettier + Stylelint. Plus rapide, une seule config. Utilisé par PokeRogue. |
 | 15 | 2026-03-19 | Plans d'exécution | **`plans/xxx-name.md`** | Numérotés, avec statut. Conservés comme historique. |
 | 16 | 2026-03-19 | Roster POC | **Bulbizarre, Salamèche, Carapuce, Roucoul** | 4 Pokemon simples, 4 types (Plante, Feu, Eau, Normal/Vol). Suffisant pour valider les mécaniques. Movesets détaillés dans `docs/roster-poc.md`. |
 | 17 | 2026-03-19 | Caméra | **Fixe + zoom (non contrôlable par l'user)** | Rotation 4 angles (style FFTA) en phase ultérieure. |
-| 18 | 2026-03-19 | Taille de grille POC | **12x12** | Taille variable par map à terme. 12x12 = bon compromis pour jusqu'à 12 créatures. |
+| 18 | 2026-03-19 | Taille de grille POC | **12x12** | Taille variable par map à terme. 12x12 = bon compromis pour jusqu'à 12 Pokemon. |
 | 19 | 2026-03-19 | Monorepo | **pnpm workspaces seul** | Pas de Nx pour l'instant. On ajoutera si le besoin se présente (partie serveur multi ?). |
 | 20 | 2026-03-19 | Sprites | **PMDCollab/SpriteCollab** | 8 directions, animations riches (Walk, Idle, Attack, Hurt...), ~48x48+, Gen 1-9. Pipeline : AnimData.xml → Phaser atlas JSON. Placeholders pour le POC, vrais sprites en Phase 1. |
 | 21 | 2026-03-20 | Formule de dégâts | **Base officielle + surcharges tactiques** | Formule Pokemon comme socle, avec couche de surcharge (hauteur, orientation, terrain). Override possible par capacité pour l'équilibrage. |
@@ -35,13 +35,13 @@
 | 23 | 2026-03-20 | PP | **Oui, conservés** | PP des attaques maintenus. Surchargeables pour l'équilibrage. Possibilité de basculer vers un système de points d'action (style FFTA) si les PP ne fonctionnent pas. |
 | 24 | 2026-03-20 | KO / élimination | **Style FFTA : countdown** | 0 PV = KO + countdown (3 tours ?). Countdown à 0 = éliminé définitivement. Rappel / capacités de revival possibles. |
 | 25 | 2026-03-20 | Déplacement diagonal | **Non** | 4 directions uniquement (style FFTA / Fire Emblem). |
-| 26 | 2026-03-20 | Blocage tiles | **Oui, sauf exceptions** | Les créatures bloquent le passage des ennemis. Alliés traversent. Exceptions : Vol, Spectre, Lévitation. |
+| 26 | 2026-03-20 | Blocage tiles | **Oui, sauf exceptions** | Les Pokemon bloquent le passage des ennemis. Alliés traversent. Exceptions : Vol, Spectre, Lévitation. |
 | 27 | 2026-03-20 | Dégâts de chute | **Oui** | Chute = dégâts proportionnels à la hauteur. Poids pourrait influencer les dégâts (à tester). Vol/Lévitation immunisés. |
 | 28 | 2026-03-20 | Brouillard de guerre | **Non** | Visibilité totale pour tous les joueurs. |
 | 29 | 2026-03-20 | Alliances FFA | **Non** | FFA = chacun pour soi. Pas d'alliances dynamiques. Mode équipe = format séparé. |
 | 30 | 2026-03-20 | Taille d'équipe | **Configurable par format** | Base = 6v6. Défini avant le combat. Exemples : 1v1v1v1, 3v3, etc. |
 | 31 | 2026-03-20 | Système d'équilibrage | **Surcharge (override) par couche** | Données officielles → surcharge globale tactique → surcharge par capacité/talent/objet. Permet d'itérer sans toucher à la base. |
-| 32 | 2026-03-20 | Inspiration principale | **FFTA** (pas FFT) | Le créateur a joué à FFTA, pas FFT. Références ajustées. |
+| 32 | 2026-03-20 | Inspiration principale | **FFTA** (pas FFT) | L'humain a joué à FFTA, pas FFT. Références ajustées. |
 | 33 | 2026-03-20 | Attaques de priorité | **Deviennent des attaques Dash** | Dash en ligne droite (X tiles) + frappe le premier ennemi. Combine déplacement et attaque. Plus tactique que "agir en premier". |
 | 34 | 2026-03-20 | Vampigraine | **Lien à distance + durée limitée** | Drain fonctionne tant que cible à ≤ X tiles du lanceur, max 3 tours. Surchargeable. |
 | 35 | 2026-03-20 | Dracosouffle | **Pattern cône** (pas ligne) | Souffle de dragon = cône devant le lanceur. |
@@ -81,6 +81,9 @@
 | 69 | 2026-03-21 | Valeurs des ticks de statut POC | **Burn 1/16 HP/tour, Poison 1/8 HP/tour, Sleep 1-3 tours, Freeze 20% dégel/tour, Paralysie 25% proc** | Calqué sur les valeurs Pokemon. Paralysie : proc bloque move+dash, pas use_move non-dash. -50% initiative permanent sur paralysé. |
 | 70 | 2026-03-21 | Validation core headless | **Validé par deux combats IA headless** | IA Random (58 rounds) et IA Smart (67 rounds) : boucle tourne, KO gérés, victoire détectée, aucun crash. Le core est prêt pour le renderer. |
 | 71 | 2026-03-21 | `getLegalActions` comme filtre IA | **`getLegalActions()` doit être utilisé par toute IA avant de choisir une attaque** | Les tests headless ont montré qu'une IA qui attaque sans vérifier les cibles valides gaspille tous ses PP. `getLegalActions` expose déjà les positions valides et permet de savoir si une cible est à portée. |
+| 72 | 2026-03-22 | Style de commit | **Titre seul, jamais de corps** | Un commit = une ligne. Le titre du commit conventionnel suffit. Pas de `git commit -m "..." -m "..."`. Garder l'historique lisible d'un coup d'œil. |
+| 73 | 2026-03-22 | Code-reviewer : titre de commit | **Toujours proposer un titre de commit après une review** | Le code-reviewer termine systématiquement sa review en proposant un titre de commit conventionnel prêt à copier-coller. |
+| 74 | 2026-03-22 | README public | **Disclaimers Nintendo + IA obligatoires** | Le README mentionne explicitement : fan project non affilié à Nintendo/Game Freak, assets sous licence SpriteCollab, code généré par Claude Code (Anthropic). |
 
 ---
 
