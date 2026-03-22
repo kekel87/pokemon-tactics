@@ -56,9 +56,22 @@
   - Combat IA Smart : Player 2 gagne (Charmander+Squirtle vs Bulbasaur+Pidgey) en 67 rounds — bug heuristique détecté (PP grillés sans cible), corrigeable via `getLegalActions`
   - **Core validé de bout en bout** : la boucle de combat complète fonctionne en headless
 
+- **Plan 007 — Renderer POC** (in-progress, étapes 1-6 sur 8 terminées) :
+  - Bootstrap Phaser 4 RC6 + BattleScene
+  - Grille isométrique 12x12 avec conversion coords grid ↔ screen
+  - Sprites placeholder : cercles colorés par type, noms, barres PV
+  - Sélection + highlight tiles (bleu=déplacement, rouge=attaque)
+  - Déplacement animé par clic sur tile bleue
+  - Ciblage d'attaque via boutons UI colorés par type avec PP
+  - Hot-seat 2 joueurs fonctionnel
+  - Bouton Skip Turn, indicateur de round/tour
+  - Queue d'animations séquentielles
+  - Fix core : imports manquants PokemonType dans BattleEngine, TypeChart re-export dans effect-handler-registry
+  - Fix bug : hover pendant animation causait l'affichage de l'UI du prochain Pokemon (séparation hover/highlight en deux layers Graphics distincts)
+  - Code review : tous les bloquants corrigés (HighlightKind enum, constantes tween, readonly, isoGrid→isometricGrid, PP redondant, magic numbers)
+
 ### Prochaine étape
-- **Phase 0 — Renderer** : grille isométrique Phaser, sprites placeholder, sélection + déplacement visuel, UI minimale (PV, liste d'attaques)
-- Alternative : IA améliorée Phase 3 (heuristique + vérification des cibles via `getLegalActions` avant de choisir une attaque)
+- **Plan 008 — Move + Act FFTA-like** (ready) : permettre Move+Act dans le même tour, EndTurn remplace SkipTurn
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type
