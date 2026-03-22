@@ -20,4 +20,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 005 | [Refactor : phases de tour + effect registry](./005-turn-phases-effect-registry.md) | done | 2026-03-21 |
 | 006 | [Boucle de combat complète](./006-battle-loop.md) | done | 2026-03-21 |
 | 007 | [Renderer POC : grille iso + combat visuel](./007-renderer-poc.md) | in-progress | 2026-03-21 |
-| 008 | [Move + Act dans le même tour (FFTA-like)](./008-move-plus-act.md) | ready | 2026-03-21 |
+| 008 | [Move + Act dans le même tour (FFTA-like)](./008-move-plus-act.md) | done | 2026-03-21 |

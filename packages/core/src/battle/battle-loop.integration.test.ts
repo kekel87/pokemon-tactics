@@ -61,13 +61,13 @@ describe("Battle loop integration", () => {
       if (actions.length === 0) {
         break;
       }
-      engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "charmander-1" });
+      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
 
       const actions2 = engine.getLegalActions("player-2");
       if (actions2.length === 0) {
         break;
       }
-      engine.submitAction("player-2", { kind: ActionKind.SkipTurn, pokemonId: "bulbasaur-1" });
+      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "bulbasaur-1" });
     }
 
     expect(bulbasaur.currentHp).toBe(0);
@@ -134,8 +134,14 @@ describe("Battle loop integration", () => {
     expect(sleepResult.success).toBe(true);
     expect(charmander.statusEffects.some((s) => s.type === StatusType.Asleep)).toBe(true);
 
-    // Charmander's turn is auto-skipped (sleep, 3 turns remaining → decremented to 2)
-    // Round 2 starts — Bulbasaur uses Leech Seed
+    // EndTurn for Bulbasaur → Charmander's turn is auto-skipped (sleep)
+    // Round 2 starts — Bulbasaur's turn again
+    engine.submitAction("player-1", {
+      kind: ActionKind.EndTurn,
+      pokemonId: "bulbasaur-1",
+    });
+
+    // Round 2: Bulbasaur uses Leech Seed
     const leechResult = engine.submitAction("player-1", {
       kind: ActionKind.UseMove,
       pokemonId: "bulbasaur-1",
@@ -144,6 +150,12 @@ describe("Battle loop integration", () => {
     });
     expect(leechResult.success).toBe(true);
     expect(state.activeLinks.length).toBeGreaterThanOrEqual(1);
+
+    // EndTurn for Bulbasaur → drain happens during EndTurn pipeline
+    engine.submitAction("player-1", {
+      kind: ActionKind.EndTurn,
+      pokemonId: "bulbasaur-1",
+    });
 
     // EndTurn drain should have healed Bulbasaur
     const bulbasaurHpAfterLeech = bulbasaur.currentHp;
@@ -180,7 +192,7 @@ describe("Battle loop integration", () => {
     const { engine } = buildEngine([charmander, bulbasaur]);
 
     // Charmander plays first (initiative 90 > 80), skip
-    engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "charmander-1" });
+    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
 
     // Bulbasaur's turn — paralysis procs (Math.random = 0 < 0.25)
     const actions = engine.getLegalActions("player-2");
@@ -235,8 +247,8 @@ describe("Battle loop integration", () => {
     pokemonA.statusEffects = [{ type: StatusType.Paralyzed, remainingTurns: null }];
 
     // Skip both turns to advance to round 2
-    engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "pokemon-a" });
-    engine.submitAction("player-2", { kind: ActionKind.SkipTurn, pokemonId: "pokemon-b" });
+    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "pokemon-a" });
+    engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "pokemon-b" });
 
     // Round 2: recalculated — B (80) should play before A (50 = 100 * 0.5 due to paralysis)
     expect(state.roundNumber).toBe(2);
@@ -263,7 +275,7 @@ describe("Battle loop integration", () => {
     const { engine } = buildEngine([charmander, bulbasaur]);
 
     // Charmander skips, Bulbasaur starts turn → poison KOs
-    engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "charmander-1" });
+    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
 
     expect(engine.getLegalActions("player-1")).toEqual([]);
     expect(engine.getLegalActions("player-2")).toEqual([]);
@@ -288,10 +300,10 @@ describe("Battle loop integration", () => {
 
     const { engine } = buildEngine([charmander, bulbasaur]);
 
-    engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "charmander-1" });
+    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
 
     const result = engine.submitAction("player-1", {
-      kind: ActionKind.SkipTurn,
+      kind: ActionKind.EndTurn,
       pokemonId: "charmander-1",
     });
     expect(result.success).toBe(false);

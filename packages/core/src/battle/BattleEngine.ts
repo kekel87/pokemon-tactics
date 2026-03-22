@@ -1,6 +1,7 @@
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
+import type { Direction } from "../enums/direction";
 import type { PokemonType } from "../enums/pokemon-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { Grid } from "../grid/Grid";
@@ -45,6 +46,7 @@ export class BattleEngine {
   private readonly grid: Grid;
   private readonly pokemonTypesMap: Map<string, PokemonType[]>;
   private readonly turnPipeline: TurnPipeline;
+  private turnState = { hasMoved: false, hasActed: false };
   private restrictActions = false;
   private battleOver = false;
 
@@ -86,9 +88,9 @@ export class BattleEngine {
 
     const actions: Action[] = [];
 
-    actions.push({ kind: ActionKind.SkipTurn, pokemonId: currentPokemonId });
+    actions.push({ kind: ActionKind.EndTurn, pokemonId: currentPokemonId });
 
-    if (!this.restrictActions) {
+    if (!this.turnState.hasMoved && !this.restrictActions) {
       const reachableTiles = this.getReachableTiles(currentPokemon);
       for (const reachable of reachableTiles) {
         actions.push({
@@ -99,28 +101,30 @@ export class BattleEngine {
       }
     }
 
-    for (const moveId of currentPokemon.moveIds) {
-      const currentPp = currentPokemon.currentPp[moveId];
-      if (currentPp === undefined || currentPp <= 0) {
-        continue;
-      }
-      const move = this.moveRegistry.get(moveId);
-      if (!move) {
-        continue;
-      }
+    if (!this.turnState.hasActed) {
+      for (const moveId of currentPokemon.moveIds) {
+        const currentPp = currentPokemon.currentPp[moveId];
+        if (currentPp === undefined || currentPp <= 0) {
+          continue;
+        }
+        const move = this.moveRegistry.get(moveId);
+        if (!move) {
+          continue;
+        }
 
-      if (this.restrictActions && move.targeting.kind === TargetingKind.Dash) {
-        continue;
-      }
+        if (this.restrictActions && move.targeting.kind === TargetingKind.Dash) {
+          continue;
+        }
 
-      const targetPositions = this.getValidTargetPositions(currentPokemon, move);
-      for (const targetPosition of targetPositions) {
-        actions.push({
-          kind: ActionKind.UseMove,
-          pokemonId: currentPokemonId,
-          moveId,
-          targetPosition,
-        });
+        const targetPositions = this.getValidTargetPositions(currentPokemon, move);
+        for (const targetPosition of targetPositions) {
+          actions.push({
+            kind: ActionKind.UseMove,
+            pokemonId: currentPokemonId,
+            moveId,
+            targetPosition,
+          });
+        }
       }
     }
 
@@ -144,8 +148,8 @@ export class BattleEngine {
     }
 
     switch (action.kind) {
-      case ActionKind.SkipTurn:
-        return this.executeSkipTurn(action.pokemonId);
+      case ActionKind.EndTurn:
+        return this.executeEndTurn(action.pokemonId, action.direction);
       case ActionKind.Move:
         return this.executeMove(currentPokemon, action.path);
       case ActionKind.UseMove:
@@ -213,6 +217,10 @@ export class BattleEngine {
     moveId: string,
     targetPosition: Position,
   ): ActionResult {
+    if (this.turnState.hasActed) {
+      return { success: false, events: [], error: ActionError.AlreadyActed };
+    }
+
     const move = this.moveRegistry.get(moveId);
     if (!move) {
       return { success: false, events: [], error: ActionError.UnknownMove };
@@ -316,7 +324,7 @@ export class BattleEngine {
       }
     }
 
-    this.endCurrentTurn(pokemon.id, events);
+    this.turnState.hasActed = true;
 
     return { success: true, events };
   }
@@ -385,6 +393,10 @@ export class BattleEngine {
   }
 
   private executeMove(pokemon: PokemonInstance, path: Position[]): ActionResult {
+    if (this.turnState.hasMoved) {
+      return { success: false, events: [], error: ActionError.AlreadyMoved };
+    }
+
     const origin = { ...pokemon.position };
     const validationError = this.validateMovePath(pokemon, path);
     if (validationError) {
@@ -409,7 +421,7 @@ export class BattleEngine {
     this.emit(moveEvent);
     events.push(moveEvent);
 
-    this.endCurrentTurn(pokemon.id, events);
+    this.turnState.hasMoved = true;
 
     return { success: true, events };
   }
@@ -462,7 +474,13 @@ export class BattleEngine {
     return null;
   }
 
-  private executeSkipTurn(pokemonId: string): ActionResult {
+  private executeEndTurn(pokemonId: string, direction?: Direction): ActionResult {
+    if (direction) {
+      const pokemon = this.state.pokemon.get(pokemonId);
+      if (pokemon) {
+        pokemon.orientation = direction;
+      }
+    }
     const events: BattleEvent[] = [];
     this.endCurrentTurn(pokemonId, events);
     return { success: true, events };
@@ -512,6 +530,10 @@ export class BattleEngine {
 
     while (iterations < totalPokemon) {
       const nextPokemonId = this.turnManager.getCurrentPokemonId();
+
+      this.turnState = { hasMoved: false, hasActed: false };
+      this.restrictActions = false;
+
       const turnStarted: BattleEvent = {
         type: BattleEventType.TurnStarted,
         pokemonId: nextPokemonId,
@@ -519,8 +541,6 @@ export class BattleEngine {
       };
       this.emit(turnStarted);
       events.push(turnStarted);
-
-      this.restrictActions = false;
       const startTurnResult = this.turnPipeline.executeStartTurn(nextPokemonId, this.state);
       for (const event of startTurnResult.events) {
         this.emit(event);

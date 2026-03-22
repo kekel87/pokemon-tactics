@@ -68,11 +68,18 @@ describe("BattleEngine integration", () => {
     const destination = (moveAction as { path: Array<{ x: number; y: number }> }).path.at(-1);
     expect(charmander.position).toEqual(destination);
 
-    const skipResult = engine.submitAction("player-1", {
-      kind: ActionKind.SkipTurn,
+    // EndTurn for Charmander (Move doesn't end the turn anymore)
+    engine.submitAction("player-2", {
+      kind: ActionKind.EndTurn,
+      pokemonId: "charmander-1",
+    });
+
+    // Bulbasaur EndTurn
+    const endTurnResult = engine.submitAction("player-1", {
+      kind: ActionKind.EndTurn,
       pokemonId: "bulbasaur-1",
     });
-    expect(skipResult.success).toBe(true);
+    expect(endTurnResult.success).toBe(true);
 
     expect(state.roundNumber).toBe(2);
 
@@ -114,8 +121,8 @@ describe("BattleEngine integration", () => {
     // -- Charmander has higher initiative (65 > 45), plays first --
     expect(state.turnOrder[0]).toBe("charmander-1");
 
-    const bulbasaurHpBefore = state.pokemon.get("bulbasaur-1")?.currentHp;
-    const charmanderEmberPpBefore = state.pokemon.get("charmander-1")?.currentPp.ember!;
+    const bulbasaurHpBefore = state.pokemon.get("bulbasaur-1")!.currentHp;
+    const charmanderEmberPpBefore = state.pokemon.get("charmander-1")!.currentPp.ember!;
 
     // Charmander uses Ember on Bulbasaur (Fire > Grass+Poison = super effective)
     const emberResult = engine.submitAction("player-2", {
@@ -130,13 +137,19 @@ describe("BattleEngine integration", () => {
     const emberEvents = emberResult.events.map((e) => e.type);
     expect(emberEvents).toContain(BattleEventType.MoveStarted);
     expect(emberEvents).toContain(BattleEventType.DamageDealt);
-    expect(emberEvents).toContain(BattleEventType.TurnEnded);
-    expect(emberEvents).toContain(BattleEventType.TurnStarted);
+    expect(emberEvents).not.toContain(BattleEventType.TurnEnded);
+    expect(emberEvents).not.toContain(BattleEventType.TurnStarted);
 
-    const bulbasaurHpAfterEmber = state.pokemon.get("bulbasaur-1")?.currentHp;
+    // EndTurn for Charmander to advance to Bulbasaur's turn
+    engine.submitAction("player-2", {
+      kind: ActionKind.EndTurn,
+      pokemonId: "charmander-1",
+    });
+
+    const bulbasaurHpAfterEmber = state.pokemon.get("bulbasaur-1")!.currentHp;
     expect(bulbasaurHpAfterEmber).toBeLessThan(bulbasaurHpBefore);
 
-    const charmanderEmberPpAfter = state.pokemon.get("charmander-1")?.currentPp.ember!;
+    const charmanderEmberPpAfter = state.pokemon.get("charmander-1")!.currentPp.ember!;
     expect(charmanderEmberPpAfter).toBe(charmanderEmberPpBefore - 1);
 
     const emberDamageEvent = emberResult.events.find(
@@ -148,8 +161,8 @@ describe("BattleEngine integration", () => {
     const emberDamage = emberDamageEvent?.amount;
 
     // -- Now it's Bulbasaur's turn --
-    const charmanderHpBefore = state.pokemon.get("charmander-1")?.currentHp;
-    const razorLeafPpBefore = state.pokemon.get("bulbasaur-1")?.currentPp["razor-leaf"]!;
+    const charmanderHpBefore = state.pokemon.get("charmander-1")!.currentHp;
+    const razorLeafPpBefore = state.pokemon.get("bulbasaur-1")!.currentPp["razor-leaf"]!;
 
     // Bulbasaur uses Razor Leaf on Charmander (Grass > Fire = not very effective)
     const razorLeafResult = engine.submitAction("player-1", {
@@ -161,10 +174,10 @@ describe("BattleEngine integration", () => {
 
     expect(razorLeafResult.success).toBe(true);
 
-    const charmanderHpAfter = state.pokemon.get("charmander-1")?.currentHp;
+    const charmanderHpAfter = state.pokemon.get("charmander-1")!.currentHp;
     expect(charmanderHpAfter).toBeLessThan(charmanderHpBefore);
 
-    const razorLeafPpAfter = state.pokemon.get("bulbasaur-1")?.currentPp["razor-leaf"]!;
+    const razorLeafPpAfter = state.pokemon.get("bulbasaur-1")!.currentPp["razor-leaf"]!;
     expect(razorLeafPpAfter).toBe(razorLeafPpBefore - 1);
 
     const razorLeafDamageEvent = razorLeafResult.events.find(
@@ -181,8 +194,14 @@ describe("BattleEngine integration", () => {
     // Stat stages should still be at 0 (no boost/debuff used)
     const bulbasaurStages = state.pokemon.get("bulbasaur-1")?.statStages;
     const charmanderStages = state.pokemon.get("charmander-1")?.statStages;
-    expect(Object.values(bulbasaurStages).every((s) => s === 0)).toBe(true);
-    expect(Object.values(charmanderStages).every((s) => s === 0)).toBe(true);
+    expect(Object.values(bulbasaurStages!).every((s) => s === 0)).toBe(true);
+    expect(Object.values(charmanderStages!).every((s) => s === 0)).toBe(true);
+
+    // EndTurn for Bulbasaur to complete round 1
+    engine.submitAction("player-1", {
+      kind: ActionKind.EndTurn,
+      pokemonId: "bulbasaur-1",
+    });
 
     // Round 2 should have started
     expect(state.roundNumber).toBe(2);

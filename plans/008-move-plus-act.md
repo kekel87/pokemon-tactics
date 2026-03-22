@@ -1,7 +1,7 @@
 ---
-status: ready
+status: done
 created: 2026-03-21
-updated: 2026-03-21
+updated: 2026-03-22
 ---
 
 # Plan 008 — Move + Act dans le même tour (FFTA-like)
@@ -21,13 +21,17 @@ En FFTA, chaque tour permet :
 
 Ces actions sont combinables dans n'importe quel ordre. Le joueur peut aussi ne faire que Move+Wait, ou Act+Wait, ou juste Wait.
 
+### Décisions applicables
+- Décision #75 : Move+Act par tour, FFTA-like
+- Décision #76 : Dash après Move autorisé (option A) — Dash consomme l'Act, pas le Move
+
 ### Bugs renderer à corriger en même temps
-- L'animation de déplacement n'est pas visible car le tour change trop vite (lié au fait que le tour se termine immédiatement après le move)
+- ~~L'animation de déplacement n'est pas visible car le tour change trop vite~~ — déjà corrigé (plan 007)
 - Le choix de direction en fin de tour n'existe pas encore
 
 ## Étapes
 
-### Étape 1 — Nouveau ActionKind : EndTurn
+### Étape 1 — Remplacer SkipTurn par EndTurn + nouveaux ActionError
 
 **Fichier** : `packages/core/src/enums/action-kind.ts`
 
@@ -48,6 +52,19 @@ Ajouter le variant EndTurn avec direction optionnelle :
 | { kind: typeof ActionKind.EndTurn; pokemonId: string; direction?: Direction }
 ```
 
+**Fichier** : `packages/core/src/enums/action-error.ts`
+
+Ajouter :
+```ts
+AlreadyMoved: "already_moved",
+AlreadyActed: "already_acted",
+```
+
+**Migration SkipTurn** : remplacer toutes les occurrences de `SkipTurn` dans le core et le renderer :
+- `BattleEngine.ts` : `executeSkipTurn` → `executeEndTurn`, `case ActionKind.SkipTurn` → `case ActionKind.EndTurn`, `getLegalActions` génération de l'action
+- `GameController.ts` : `handleSkipTurn()` → `handleEndTurn()`, construction de l'action `EndTurn`
+- `BattleUI.ts` : callback `onSkipTurn` → `onEndTurn`, label "Skip Turn" → "End Turn"
+
 ### Étape 2 — État du tour dans BattleEngine
 
 **Fichier** : `packages/core/src/battle/BattleEngine.ts`
@@ -60,13 +77,16 @@ private turnState: {
 };
 ```
 
-Réinitialisé à `{ hasMoved: false, hasActed: false }` au début de chaque tour (dans `advanceTurn`, après `TurnStarted`).
+Réinitialisé à `{ hasMoved: false, hasActed: false }` :
+- Au début de chaque tour, **avant** l'émission de `TurnStarted`
+- Dans `advanceTurn`, y compris quand un tour est sauté automatiquement (`skipAction: true` pour sommeil/gel) — le `turnState` doit être propre pour chaque Pokemon, même ceux qui ne jouent pas
 
 ### Étape 3 — Move ne termine plus le tour
 
 **Fichier** : `packages/core/src/battle/BattleEngine.ts`
 
 `executeMove` :
+- Vérifie `turnState.hasMoved` → si `true`, retourner erreur `ActionError.AlreadyMoved`
 - Déplace le Pokemon (comme avant)
 - Émet `PokemonMoved` (comme avant)
 - Met `turnState.hasMoved = true`
@@ -78,11 +98,12 @@ Réinitialisé à `{ hasMoved: false, hasActed: false }` au début de chaque tou
 **Fichier** : `packages/core/src/battle/BattleEngine.ts`
 
 `executeUseMove` :
+- Vérifie `turnState.hasActed` → si `true`, retourner erreur `ActionError.AlreadyActed`
 - Exécute l'attaque (comme avant)
 - Met `turnState.hasActed = true`
 - **NE FAIT PAS** `endCurrentTurn`
 - Retourne `{ success: true, events }`
-- Exception : si un KO déclenche `BattleEnded`, le tour se termine naturellement
+- Exception : si un KO déclenche `BattleEnded`, le tour se termine naturellement (early return existant)
 
 ### Étape 5 — EndTurn termine le tour
 
@@ -90,7 +111,7 @@ Réinitialisé à `{ hasMoved: false, hasActed: false }` au début de chaque tou
 
 Nouveau `executeEndTurn` :
 - Si `direction` fournie : met à jour `pokemon.orientation`
-- Appelle `endCurrentTurn` (comme avant, avec les phases EndTurn pipeline)
+- Appelle `endCurrentTurn` (comme avant, avec les phases EndTurn pipeline : drain Vampigraine, etc.)
 - Retourne les events
 
 ### Étape 6 — getLegalActions conditionnel
@@ -98,25 +119,32 @@ Nouveau `executeEndTurn` :
 **Fichier** : `packages/core/src/battle/BattleEngine.ts`
 
 `getLegalActions` filtre selon `turnState` :
-- Si `!hasMoved` et `!restrictActions` : inclure les actions Move
-- Si `!hasActed` : inclure les actions UseMove
-- Toujours inclure EndTurn (avec les 4 directions possibles, ou sans direction)
+- Si `!turnState.hasMoved` et `!restrictActions` : inclure les actions Move
+- Si `!turnState.hasActed` : inclure les actions UseMove (y compris Dash, même si hasMoved — décision #76)
+- Toujours inclure EndTurn
 - Ne plus inclure SkipTurn (remplacé par EndTurn)
 
-Le filtrage `restrictActions` (paralysie) continue de fonctionner :
-- Paralysie proc → `hasMoved` forcé à `true` (ne peut pas bouger) mais peut attaquer
+**`restrictActions` et `turnState` restent deux flags distincts** :
+- `restrictActions` : "ce Pokemon est paralysé ce tour, il ne peut pas se déplacer ni dash" (sémantique de statut)
+- `turnState.hasMoved` : "ce Pokemon a déjà utilisé son Move ce tour" (sémantique d'action)
+- Filtrage Move : bloqué si `turnState.hasMoved || restrictActions`
+- Filtrage Dash : bloqué si `restrictActions` (comme avant), pas par `turnState.hasMoved`
 
 ### Étape 7 — Adaptation des tests core
 
-Les tests existants utilisent `SkipTurn` → remplacer par `EndTurn`.
+**Fichiers impactés** (par ordre de priorité) :
+1. `BattleEngine.test.ts` — ~15 occurrences de `SkipTurn` → `EndTurn`, tests de fin de tour après Move à réécrire
+2. `BattleEngine.use-move.test.ts` — assertion `TurnEnded`/`TurnStarted` après UseMove à réécrire
+3. `BattleEngine.integration.test.ts` — 1 occurrence `SkipTurn`, assertions fin de tour
+4. `battle-loop.integration.test.ts` — 6 occurrences `SkipTurn` → `EndTurn`
 
-Les tests de `executeMove` et `executeUseMove` vérifient que le tour se termine → adapter pour vérifier que le tour **ne** se termine **pas**.
+**Adaptation des tests existants d'abord**, puis écriture des nouveaux tests.
 
 Nouveaux tests :
 - Move puis UseMove dans le même tour → les deux fonctionnent
 - UseMove puis Move dans le même tour → les deux fonctionnent
-- Move deux fois → erreur (déjà bougé)
-- UseMove deux fois → erreur (déjà agi)
+- Move deux fois → erreur `AlreadyMoved`
+- UseMove deux fois → erreur `AlreadyActed`
 - EndTurn après Move → le tour se termine, le suivant commence
 - EndTurn après UseMove → idem
 - EndTurn sans rien faire → idem (ancien SkipTurn)
@@ -126,39 +154,24 @@ Nouveaux tests :
 - getLegalActions après Move+UseMove → seulement EndTurn
 - Paralysie : Move bloqué mais UseMove disponible, EndTurn disponible
 - KO pendant UseMove → BattleEnded, pas besoin de EndTurn
+- Sommeil/Gel : tour sauté (`skipAction`), `turnState` propre, `getLegalActions` non consulté
+- Move → Dash : le Dash part de la position post-Move (décision #76)
+- KO d'un ennemi sans BattleEnded : le joueur peut encore EndTurn normalement
 
-### Étape 8 — Nouveau ActionError
-
-**Fichier** : `packages/core/src/enums/action-error.ts`
-
-Ajouter :
-```ts
-AlreadyMoved: "already_moved",
-AlreadyActed: "already_acted",
-```
-
-### Étape 9 — Adapter le renderer
+### Étape 8 — Adapter le renderer
 
 **Fichier** : `packages/renderer/src/game/GameController.ts`
 
 - Après un Move : rester en `select_action`, appeler `refreshUI` pour montrer les attaques encore disponibles
 - Après un UseMove : rester en `select_action`, appeler `refreshUI` pour montrer le Move encore disponible
-- "Skip Turn" → "End Turn"
-- EndTurn envoyé avec la direction actuelle du Pokemon (pas de UI de choix de direction pour le POC — on ajoutera les flèches directionnelles plus tard)
+- `handleSkipTurn()` → `handleEndTurn()` : construit `{ kind: ActionKind.EndTurn, pokemonId, direction: currentOrientation }`
+- EndTurn envoyé avec la direction actuelle du Pokemon (pas de UI de choix de direction pour le POC)
+- Vérifier que la queue d'animations attend bien la fin de chaque tween avant `refreshUI`
 
 **Fichier** : `packages/renderer/src/ui/BattleUI.ts`
 
+- Callback `onSkipTurn` → `onEndTurn`
 - Bouton "End Turn" au lieu de "Skip Turn"
-
-### Étape 10 — Fix animation timing
-
-**Fichier** : `packages/renderer/src/game/GameController.ts`
-
-Le problème actuel : l'UI se rafraîchit avant que l'animation ne soit finie.
-
-Avec le move+act, c'est naturellement résolu : après un Move, le tour ne change pas, donc l'animation joue et le joueur reste sur le même Pokemon. Le `refreshUI` après l'animation montrera les actions restantes du même Pokemon.
-
-Vérifier que la queue d'animations attend bien la fin de chaque tween avant de procéder.
 
 ## Ce que ce plan ne fait PAS
 
@@ -168,7 +181,7 @@ Vérifier que la queue d'animations attend bien la fin de chaque tween avant de 
 
 ## Impact sur les tests existants
 
-~30-40 tests à adapter (ceux qui vérifient que Move/UseMove terminent le tour). Le pattern change de :
+~20-25 tests à modifier (dont 3-4 à réécrire en profondeur). Le pattern change de :
 ```ts
 // Avant
 submitAction(move) → events contiennent TurnEnded + TurnStarted
@@ -182,9 +195,9 @@ submitAction(endTurn) → events contiennent TurnEnded + TurnStarted
 
 | Étape | Agents |
 |-------|--------|
-| Après étapes 1-6 | `test-writer` + `core-guardian` |
+| Après étapes 1-6 | `core-guardian` |
 | Après étape 7 | `game-designer` pour cohérence |
-| Après étape 9 | `code-reviewer` |
+| Après étape 8 | `code-reviewer` |
 
 ## Critères de complétion
 
@@ -201,13 +214,13 @@ submitAction(endTurn) → events contiennent TurnEnded + TurnStarted
 
 ## Risques
 
-- **Dash = Move + Act** : un dash est à la fois un déplacement et une attaque. Question : après un dash, le joueur a-t-il encore droit à un Move ou un Act ? Proposition : le dash consomme l'Act (c'est un UseMove), mais le Move reste disponible (le dash est son propre déplacement, pas un Move). Sauf si le joueur a déjà bougé avant le dash — dans ce cas le dash ne peut pas re-déplacer.
-
-  Réponse simple pour le POC : **un dash consomme l'Act**. Le Move est indépendant. Le dash déplace le Pokemon comme effet de l'attaque, pas comme un Move.
+- **Dash = Move + Act** : Décision #76 tranchée — le Dash consomme l'Act, pas le Move. Move→Dash et Dash→Move sont autorisés. Le Dash déplace le Pokemon comme effet de l'attaque, indépendamment du Move.
 
 - **Status ticks et KO pendant le tour** : les status ticks se déclenchent en StartTurn. Si le Pokemon survit aux ticks, il peut Move+Act. Si un KO arrive pendant UseMove (cible tuée), le BattleEnded peut terminer le combat — pas besoin de EndTurn dans ce cas.
 
-- **Nombre de tests impactés** : ~30-40 tests existants à adapter. Pas un risque technique, mais un volume de travail.
+- **Nombre de tests impactés** : ~20-25 tests existants à adapter, dont 3-4 en profondeur. Volume de travail modéré.
+
+- **`turnState` non exposé dans `BattleState`** : le renderer ne peut pas savoir si le Pokemon a déjà bougé/agi sans appeler `getLegalActions`. Acceptable pour le POC (le renderer appelle déjà `getLegalActions` après chaque action).
 
 ## Dépendances
 
