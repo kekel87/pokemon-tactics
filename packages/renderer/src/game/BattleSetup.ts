@@ -1,18 +1,18 @@
-import {
-  type BattleState,
-  type PokemonType,
-  BattleEngine,
-  Direction,
-  StatName,
-  TerrainType,
-  TurnPipeline,
-  validateBattleData,
-} from "@pokemon-tactic/core";
 import type {
   MoveDefinition,
   PokemonDefinition,
   PokemonInstance,
   TileState,
+} from "@pokemon-tactic/core";
+import {
+  BattleEngine,
+  type BattleState,
+  Direction,
+  type PokemonType,
+  StatName,
+  TerrainType,
+  TurnPipeline,
+  validateBattleData,
 } from "@pokemon-tactic/core";
 import { loadData, typeChart } from "@pokemon-tactic/data";
 import { GRID_SIZE } from "../constants";
@@ -115,10 +115,34 @@ export function createBattle(): BattleSetupResult {
     throw new Error("Missing Pokemon definitions for POC roster");
   }
 
-  const team1Pokemon1 = createPokemonInstance(bulbasaur, "player-1", "p1-bulbasaur", { x: 1, y: 10 }, moveDefinitions);
-  const team1Pokemon2 = createPokemonInstance(squirtle, "player-1", "p1-squirtle", { x: 2, y: 11 }, moveDefinitions);
-  const team2Pokemon1 = createPokemonInstance(charmander, "player-2", "p2-charmander", { x: 10, y: 1 }, moveDefinitions);
-  const team2Pokemon2 = createPokemonInstance(pidgey, "player-2", "p2-pidgey", { x: 9, y: 0 }, moveDefinitions);
+  const team1Pokemon1 = createPokemonInstance(
+    bulbasaur,
+    "player-1",
+    "p1-bulbasaur",
+    { x: 1, y: 10 },
+    moveDefinitions,
+  );
+  const team1Pokemon2 = createPokemonInstance(
+    squirtle,
+    "player-1",
+    "p1-squirtle",
+    { x: 2, y: 11 },
+    moveDefinitions,
+  );
+  const team2Pokemon1 = createPokemonInstance(
+    charmander,
+    "player-2",
+    "p2-charmander",
+    { x: 10, y: 1 },
+    moveDefinitions,
+  );
+  const team2Pokemon2 = createPokemonInstance(
+    pidgey,
+    "player-2",
+    "p2-pidgey",
+    { x: 9, y: 0 },
+    moveDefinitions,
+  );
 
   const allPokemon = [team1Pokemon1, team1Pokemon2, team2Pokemon1, team2Pokemon2];
 

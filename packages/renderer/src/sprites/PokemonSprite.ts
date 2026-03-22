@@ -1,14 +1,23 @@
 import type { PokemonInstance } from "@pokemon-tactic/core";
 import {
+  DAMAGE_FLASH_ALPHA,
   DAMAGE_FLASH_DURATION_MS,
   DAMAGE_FLASH_REPEAT,
   FADEOUT_DURATION_MS,
+  HP_BAR_BG_ALPHA,
+  HP_BAR_BG_COLOR,
   HP_BAR_HEIGHT,
   HP_BAR_WIDTH,
   HP_COLOR_HIGH,
   HP_COLOR_LOW,
+  HP_THRESHOLD,
   MOVE_TWEEN_DURATION_MS,
+  POKEMON_SPRITE_BORDER_ALPHA,
+  POKEMON_SPRITE_BORDER_WIDTH,
   POKEMON_SPRITE_RADIUS,
+  PULSE_DURATION_MS,
+  PULSE_MAX_SCALE,
+  PULSE_MIN_SCALE,
   TYPE_COLORS,
 } from "../constants";
 import type { IsometricGrid } from "../grid/IsometricGrid";
@@ -19,11 +28,11 @@ export class PokemonSprite {
   private readonly isometricGrid: IsometricGrid;
   private readonly container: Phaser.GameObjects.Container;
   private readonly circle: Phaser.GameObjects.Graphics;
-  private readonly nameText: Phaser.GameObjects.Text;
   private readonly hpBarBackground: Phaser.GameObjects.Graphics;
   private readonly hpBarFill: Phaser.GameObjects.Graphics;
   private readonly color: number;
   private currentHpRatio: number;
+  private pulseTween: Phaser.Tweens.Tween | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -42,24 +51,11 @@ export class PokemonSprite {
     this.circle = scene.add.graphics();
     this.drawCircle();
 
-    this.nameText = scene.add.text(0, -POKEMON_SPRITE_RADIUS - 14, pokemon.definitionId, {
-      fontSize: "11px",
-      color: "#ffffff",
-      fontFamily: "monospace",
-      align: "center",
-    });
-    this.nameText.setOrigin(0.5, 0.5);
-
     this.hpBarBackground = scene.add.graphics();
     this.hpBarFill = scene.add.graphics();
     this.drawHpBar();
 
-    this.container = scene.add.container(0, 0, [
-      this.circle,
-      this.nameText,
-      this.hpBarBackground,
-      this.hpBarFill,
-    ]);
+    this.container = scene.add.container(0, 0, [this.circle, this.hpBarBackground, this.hpBarFill]);
 
     this.updatePosition(pokemon.position.x, pokemon.position.y);
   }
@@ -77,9 +73,9 @@ export class PokemonSprite {
 
   setActive(active: boolean): void {
     if (active) {
-      this.container.setScale(1.15);
+      this.startPulse();
     } else {
-      this.container.setScale(1);
+      this.stopPulse();
     }
   }
 
@@ -114,7 +110,7 @@ export class PokemonSprite {
     return new Promise((resolve) => {
       this.scene.tweens.add({
         targets: this.container,
-        alpha: 0.3,
+        alpha: DAMAGE_FLASH_ALPHA,
         duration: DAMAGE_FLASH_DURATION_MS,
         yoyo: true,
         repeat: DAMAGE_FLASH_REPEAT,
@@ -127,27 +123,50 @@ export class PokemonSprite {
   }
 
   destroy(): void {
+    this.stopPulse();
     this.container.destroy();
+  }
+
+  private startPulse(): void {
+    this.stopPulse();
+    this.container.setScale(PULSE_MIN_SCALE);
+    this.pulseTween = this.scene.tweens.add({
+      targets: this.container,
+      scaleX: PULSE_MAX_SCALE,
+      scaleY: PULSE_MAX_SCALE,
+      duration: PULSE_DURATION_MS,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+  }
+
+  private stopPulse(): void {
+    if (this.pulseTween) {
+      this.pulseTween.destroy();
+      this.pulseTween = null;
+    }
+    this.container.setScale(1);
   }
 
   private drawCircle(): void {
     this.circle.clear();
     this.circle.fillStyle(this.color, 1);
     this.circle.fillCircle(0, 0, POKEMON_SPRITE_RADIUS);
-    this.circle.lineStyle(2, 0xffffff, 0.6);
+    this.circle.lineStyle(POKEMON_SPRITE_BORDER_WIDTH, 0xffffff, POKEMON_SPRITE_BORDER_ALPHA);
     this.circle.strokeCircle(0, 0, POKEMON_SPRITE_RADIUS);
   }
 
   private drawHpBar(): void {
-    const barY = POKEMON_SPRITE_RADIUS + 4;
+    const barY = -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
     const barX = -HP_BAR_WIDTH / 2;
 
     this.hpBarBackground.clear();
-    this.hpBarBackground.fillStyle(0x333333, 0.8);
+    this.hpBarBackground.fillStyle(HP_BAR_BG_COLOR, HP_BAR_BG_ALPHA);
     this.hpBarBackground.fillRect(barX, barY, HP_BAR_WIDTH, HP_BAR_HEIGHT);
 
     this.hpBarFill.clear();
-    const hpColor = this.currentHpRatio > 0.5 ? HP_COLOR_HIGH : HP_COLOR_LOW;
+    const hpColor = this.currentHpRatio > HP_THRESHOLD ? HP_COLOR_HIGH : HP_COLOR_LOW;
     this.hpBarFill.fillStyle(hpColor, 1);
     this.hpBarFill.fillRect(barX, barY, HP_BAR_WIDTH * this.currentHpRatio, HP_BAR_HEIGHT);
   }

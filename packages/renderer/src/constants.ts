@@ -12,14 +12,26 @@ export const TILE_FILL_COLOR = 0x4a7c59;
 export const TILE_STROKE_COLOR = 0x2d5a3f;
 export const TILE_HIGHLIGHT_MOVE_COLOR = 0x4488cc;
 export const TILE_HIGHLIGHT_ATTACK_COLOR = 0xcc4444;
-export const TILE_HOVER_COLOR = 0xffffff;
+export const TILE_STROKE_WIDTH = 1;
+
+export const CURSOR_COLOR = 0xffdd44;
+export const CURSOR_STROKE_WIDTH = 2;
+export const CURSOR_PULSE_MIN_ALPHA = 0.7;
+export const CURSOR_PULSE_MAX_ALPHA = 1.0;
+export const CURSOR_PULSE_DURATION_MS = 600;
 
 export const HP_BAR_WIDTH = 30;
 export const HP_BAR_HEIGHT = 4;
 export const HP_COLOR_HIGH = 0x44cc44;
 export const HP_COLOR_LOW = 0xcc4444;
+export const HP_BAR_BG_COLOR = 0x333333;
+export const HP_BAR_BG_ALPHA = 0.8;
+export const HP_THRESHOLD = 0.5;
 
 export const POKEMON_SPRITE_RADIUS = 12;
+export const POKEMON_SPRITE_BORDER_WIDTH = 2;
+export const POKEMON_SPRITE_BORDER_ALPHA = 0.6;
+export const DAMAGE_FLASH_ALPHA = 0.3;
 
 export const TYPE_COLORS: Partial<Record<string, number>> = {
   fire: 0xe85d3a,
@@ -38,3 +50,50 @@ export const FADEOUT_DURATION_MS = 400;
 export const VICTORY_TEXT_X = 640;
 export const VICTORY_TEXT_Y = 320;
 export const VICTORY_BUTTON_Y = 420;
+
+export const TEAM_COLOR_PLAYER_1 = 0x2255aa;
+export const TEAM_COLOR_PLAYER_2 = 0xaa2233;
+
+export const INFO_PANEL_X = 16;
+export const INFO_PANEL_Y = 620;
+export const INFO_PANEL_WIDTH = 220;
+export const INFO_PANEL_HEIGHT = 80;
+export const INFO_PANEL_ALPHA = 0.85;
+export const INFO_PANEL_CORNER_RADIUS = 6;
+
+export const ACTION_MENU_X = 1100;
+export const ACTION_MENU_Y = 300;
+export const ACTION_MENU_WIDTH = 160;
+export const ACTION_MENU_ITEM_HEIGHT = 32;
+export const ACTION_MENU_BG_COLOR = 0x111122;
+export const ACTION_MENU_BG_ALPHA = 0.9;
+export const ACTION_MENU_HOVER_COLOR = 0x334466;
+export const ACTION_MENU_HOVER_ALPHA = 0.6;
+export const ACTION_MENU_DISABLED_ALPHA = 0.4;
+export const ACTION_MENU_CORNER_RADIUS = 4;
+
+export const TIMELINE_X = 30;
+export const TIMELINE_Y = 80;
+export const TIMELINE_ENTRY_SIZE = 20;
+export const TIMELINE_ENTRY_SPACING = 8;
+export const TIMELINE_ACTIVE_SIZE = 26;
+export const TIMELINE_ACTIVE_BORDER_COLOR = 0xffdd44;
+export const TIMELINE_BORDER_WIDTH = 2;
+export const TIMELINE_ACTIVE_BORDER_WIDTH = 3;
+
+export const PULSE_MIN_SCALE = 1.0;
+export const PULSE_MAX_SCALE = 1.1;
+export const PULSE_DURATION_MS = 800;
+
+export const UI_BORDER_COLOR = 0xffffff;
+export const UI_BORDER_ALPHA = 0.3;
+export const UI_BORDER_WIDTH = 1;
+export const UI_BUTTON_CORNER_RADIUS = 4;
+
+export const DEPTH_GRID_CURSOR = 500;
+export const DEPTH_UI_BASE = 1000;
+export const DEPTH_TIMELINE = 1050;
+export const DEPTH_INFO_PANEL = 1100;
+export const DEPTH_ACTION_MENU = 1200;
+export const DEPTH_VICTORY_OVERLAY = 2000;
+export const DEPTH_VICTORY_CONTENT = 2001;
