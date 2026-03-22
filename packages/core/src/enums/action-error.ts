@@ -14,6 +14,8 @@ export const ActionError = {
   NoPpLeft: "no_pp_left",
   InvalidTarget: "invalid_target",
   MoveNotInMoveset: "move_not_in_moveset",
+  AlreadyMoved: "already_moved",
+  AlreadyActed: "already_acted",
   BattleOver: "battle_over",
 } as const;
 

@@ -45,7 +45,7 @@ describe("BattleEngine", () => {
     const events: BattleEvent[] = [];
     engine.on(BattleEventType.TurnEnded, (event) => events.push(event));
 
-    engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "fast" });
+    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
 
     const turnEndedEvents = events.filter((e) => e.type === BattleEventType.TurnEnded);
     expect(turnEndedEvents.length).toBe(1);
@@ -59,20 +59,20 @@ describe("BattleEngine", () => {
     engine.on(BattleEventType.TurnEnded, handler);
     engine.off(BattleEventType.TurnEnded, handler);
 
-    engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "fast" });
+    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
 
     expect(handler).not.toHaveBeenCalled();
   });
 });
 
 describe("BattleEngine.getLegalActions", () => {
-  it("returns skip_turn and move actions for the active pokemon", () => {
+  it("returns end_turn and move actions for the active pokemon", () => {
     const mover = fresh(P1, { id: "mover", position: { x: 2, y: 2 } });
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
     const actions = engine.getLegalActions("player-1");
-    expect(actions.filter((a) => a.kind === ActionKind.SkipTurn).length).toBe(1);
+    expect(actions.filter((a) => a.kind === ActionKind.EndTurn).length).toBe(1);
     expect(actions.filter((a) => a.kind === ActionKind.Move).length).toBeGreaterThan(0);
   });
 
@@ -167,7 +167,7 @@ describe("BattleEngine.submitAction validation", () => {
     const engine = new BattleEngine(state, new Map());
 
     const result = engine.submitAction("player-2", {
-      kind: ActionKind.SkipTurn,
+      kind: ActionKind.EndTurn,
       pokemonId: "fast",
     });
     expect(result.success).toBe(false);
@@ -301,7 +301,23 @@ describe("BattleEngine.submitAction move", () => {
     expect(result.success).toBe(false);
   });
 
-  it("advances the turn after a move", () => {
+  it("does not advance the turn after a move", () => {
+    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+    const events: BattleEvent[] = [];
+    engine.on(BattleEventType.TurnStarted, (e) => events.push(e));
+    engine.on(BattleEventType.TurnEnded, (e) => events.push(e));
+
+    engine.submitAction("player-1", {
+      kind: ActionKind.Move,
+      pokemonId: "fast",
+      path: [{ x: 1, y: 0 }],
+    });
+
+    expect(events.length).toBe(0);
+  });
+
+  it("advances the turn after Move + EndTurn", () => {
     const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
     const events: BattleEvent[] = [];
@@ -311,6 +327,10 @@ describe("BattleEngine.submitAction move", () => {
       kind: ActionKind.Move,
       pokemonId: "fast",
       path: [{ x: 1, y: 0 }],
+    });
+    engine.submitAction("player-1", {
+      kind: ActionKind.EndTurn,
+      pokemonId: "fast",
     });
 
     expect(events.length).toBe(1);
@@ -323,8 +343,8 @@ describe("BattleEngine.submitAction move", () => {
     const engine = new BattleEngine(state, new Map());
 
     expect(state.roundNumber).toBe(1);
-    engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "fast" });
-    engine.submitAction("player-2", { kind: ActionKind.SkipTurn, pokemonId: "slow" });
+    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
+    engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
     expect(state.roundNumber).toBe(2);
   });
 
@@ -414,8 +434,8 @@ describe("BattleEngine.submitAction move", () => {
     const engine = new BattleEngine(state, new Map());
 
     for (let round = 0; round < 3; round++) {
-      engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "fast" });
-      engine.submitAction("player-2", { kind: ActionKind.SkipTurn, pokemonId: "slow" });
+      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
+      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
     }
     expect(state.roundNumber).toBe(4);
   });
@@ -611,8 +631,8 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
 
       // P1 (fast) skips → P2 (slow) skips → round 2 → P1 turn starts → poison KO
-      engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "fast" });
-      engine.submitAction("player-2", { kind: ActionKind.SkipTurn, pokemonId: "slow" });
+      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
+      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
 
       expect(p1.currentHp).toBe(0);
       expect(state.grid[0]?.[0]?.occupantId).toBeNull();
@@ -651,8 +671,8 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.LinkBroken, (e) => events.push(e));
 
       // P1 skips → P2 skips → round 2 → P1 turn starts → poison KO → links break
-      engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "fast" });
-      engine.submitAction("player-2", { kind: ActionKind.SkipTurn, pokemonId: "slow" });
+      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
+      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
 
       expect(state.activeLinks).toHaveLength(0);
       const linkBrokenEvents = events.filter((e) => e.type === BattleEventType.LinkBroken);
@@ -683,9 +703,9 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
 
       // Round 1: p1-fast skips, p1-medium skips, p2 skips
-      engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "p1-fast" });
-      engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "p1-medium" });
-      engine.submitAction("player-2", { kind: ActionKind.SkipTurn, pokemonId: "slow" });
+      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "p1-fast" });
+      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "p1-medium" });
+      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
 
       // Round 2: p1-fast starts → poison KO → battle continues (p1-medium alive)
       expect(p1.currentHp).toBe(0);
@@ -723,7 +743,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
 
       // Source skips → target's turn → sleep skip → EndTurn drain → target KO
-      engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "source" });
+      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "source" });
 
       expect(target.currentHp).toBe(0);
       expect(events.some((e) => e.type === BattleEventType.PokemonKo)).toBe(true);
@@ -742,8 +762,8 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       const engine = new BattleEngine(state, new Map());
 
       // Both skip → round 2 → P1 poison KO → battle over
-      engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "fast" });
-      engine.submitAction("player-2", { kind: ActionKind.SkipTurn, pokemonId: "slow" });
+      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
+      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
 
       expect(engine.getLegalActions("player-1")).toEqual([]);
       expect(engine.getLegalActions("player-2")).toEqual([]);
@@ -759,15 +779,269 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       const engine = new BattleEngine(state, new Map());
 
       // Both skip → round 2 → P1 poison KO → battle over
-      engine.submitAction("player-1", { kind: ActionKind.SkipTurn, pokemonId: "fast" });
-      engine.submitAction("player-2", { kind: ActionKind.SkipTurn, pokemonId: "slow" });
+      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
+      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
 
       const result = engine.submitAction("player-2", {
-        kind: ActionKind.SkipTurn,
+        kind: ActionKind.EndTurn,
         pokemonId: "slow",
       });
       expect(result.success).toBe(false);
       expect(result.error).toBe(ActionError.BattleOver);
     });
+  });
+});
+
+describe("BattleEngine Move+Act (FFTA-like)", () => {
+  it("allows Move then UseMove in the same turn", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["tackle"],
+      currentPp: { tackle: 35 },
+    });
+    const target = fresh(P2, { id: "target", position: { x: 2, y: 0 } });
+    const singleMove: MoveDefinition = {
+      ...MockValidation.validMove,
+      id: "tackle",
+      targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    };
+    const state = MockBattle.stateFrom([attacker, target], 5, 1);
+    const engine = new BattleEngine(state, new Map([["tackle", singleMove]]));
+
+    const moveResult = engine.submitAction("player-1", {
+      kind: ActionKind.Move,
+      pokemonId: "attacker",
+      path: [{ x: 1, y: 0 }],
+    });
+    expect(moveResult.success).toBe(true);
+
+    const useMoveResult = engine.submitAction("player-1", {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "tackle",
+      targetPosition: { x: 2, y: 0 },
+    });
+    expect(useMoveResult.success).toBe(true);
+  });
+
+  it("allows UseMove then Move in the same turn", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 1, y: 0 },
+      moveIds: ["tackle"],
+      currentPp: { tackle: 35 },
+    });
+    const target = fresh(P2, { id: "target", position: { x: 2, y: 0 } });
+    const singleMove: MoveDefinition = {
+      ...MockValidation.validMove,
+      id: "tackle",
+      targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    };
+    const state = MockBattle.stateFrom([attacker, target], 5, 1);
+    const engine = new BattleEngine(state, new Map([["tackle", singleMove]]));
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const useMoveResult = engine.submitAction("player-1", {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "tackle",
+      targetPosition: { x: 2, y: 0 },
+    });
+    expect(useMoveResult.success).toBe(true);
+
+    const moveResult = engine.submitAction("player-1", {
+      kind: ActionKind.Move,
+      pokemonId: "attacker",
+      path: [{ x: 0, y: 0 }],
+    });
+    expect(moveResult.success).toBe(true);
+
+    vi.restoreAllMocks();
+  });
+
+  it("rejects a second Move with AlreadyMoved", () => {
+    const mover = fresh(P1, { id: "mover", position: { x: 0, y: 0 } });
+    const state = MockBattle.stateFrom([mover, fresh(P2)], 5, 1);
+    const engine = new BattleEngine(state, new Map());
+
+    engine.submitAction("player-1", {
+      kind: ActionKind.Move,
+      pokemonId: "mover",
+      path: [{ x: 1, y: 0 }],
+    });
+
+    const result = engine.submitAction("player-1", {
+      kind: ActionKind.Move,
+      pokemonId: "mover",
+      path: [{ x: 2, y: 0 }],
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toBe(ActionError.AlreadyMoved);
+  });
+
+  it("rejects a second UseMove with AlreadyActed", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 1, y: 0 },
+      moveIds: ["tackle"],
+      currentPp: { tackle: 35 },
+    });
+    const target = fresh(P2, { id: "target", position: { x: 2, y: 0 } });
+    const singleMove: MoveDefinition = {
+      ...MockValidation.validMove,
+      id: "tackle",
+      targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    };
+    const state = MockBattle.stateFrom([attacker, target], 5, 1);
+    const engine = new BattleEngine(state, new Map([["tackle", singleMove]]));
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    engine.submitAction("player-1", {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "tackle",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    const result = engine.submitAction("player-1", {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "tackle",
+      targetPosition: { x: 2, y: 0 },
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toBe(ActionError.AlreadyActed);
+
+    vi.restoreAllMocks();
+  });
+
+  it("EndTurn without any action works (former SkipTurn)", () => {
+    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+    const events: BattleEvent[] = [];
+    engine.on(BattleEventType.TurnStarted, (e) => events.push(e));
+
+    const result = engine.submitAction("player-1", {
+      kind: ActionKind.EndTurn,
+      pokemonId: "fast",
+    });
+    expect(result.success).toBe(true);
+    expect(events.length).toBe(1);
+    expect((events[0] as { pokemonId: string }).pokemonId).toBe("slow");
+  });
+
+  it("EndTurn with direction updates orientation", () => {
+    const mover = fresh(P1, { id: "mover" });
+    const state = MockBattle.stateFrom([mover, fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+
+    engine.submitAction("player-1", {
+      kind: ActionKind.EndTurn,
+      pokemonId: "mover",
+      direction: Direction.West,
+    });
+
+    expect(state.pokemon.get("mover")?.orientation).toBe(Direction.West);
+  });
+
+  it("getLegalActions after Move excludes Move but includes UseMove and EndTurn", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["tackle"],
+      currentPp: { tackle: 35 },
+    });
+    const target = fresh(P2, { id: "target", position: { x: 3, y: 0 } });
+    const singleMove: MoveDefinition = {
+      ...MockValidation.validMove,
+      id: "tackle",
+      targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    };
+    const state = MockBattle.stateFrom([attacker, target], 5, 1);
+    const engine = new BattleEngine(state, new Map([["tackle", singleMove]]));
+
+    engine.submitAction("player-1", {
+      kind: ActionKind.Move,
+      pokemonId: "attacker",
+      path: [{ x: 1, y: 0 }],
+    });
+
+    const actions = engine.getLegalActions("player-1");
+    expect(actions.filter((a) => a.kind === ActionKind.Move)).toHaveLength(0);
+    expect(actions.filter((a) => a.kind === ActionKind.UseMove).length).toBeGreaterThan(0);
+    expect(actions.filter((a) => a.kind === ActionKind.EndTurn)).toHaveLength(1);
+  });
+
+  it("getLegalActions after UseMove excludes UseMove but includes Move and EndTurn", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 1, y: 0 },
+      moveIds: ["tackle"],
+      currentPp: { tackle: 35 },
+    });
+    const target = fresh(P2, { id: "target", position: { x: 2, y: 0 } });
+    const singleMove: MoveDefinition = {
+      ...MockValidation.validMove,
+      id: "tackle",
+      targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    };
+    const state = MockBattle.stateFrom([attacker, target], 5, 1);
+    const engine = new BattleEngine(state, new Map([["tackle", singleMove]]));
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    engine.submitAction("player-1", {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "tackle",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    const actions = engine.getLegalActions("player-1");
+    expect(actions.filter((a) => a.kind === ActionKind.UseMove)).toHaveLength(0);
+    expect(actions.filter((a) => a.kind === ActionKind.Move).length).toBeGreaterThan(0);
+    expect(actions.filter((a) => a.kind === ActionKind.EndTurn)).toHaveLength(1);
+
+    vi.restoreAllMocks();
+  });
+
+  it("getLegalActions after Move+UseMove returns only EndTurn", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["tackle"],
+      currentPp: { tackle: 35 },
+    });
+    const target = fresh(P2, { id: "target", position: { x: 2, y: 0 } });
+    const singleMove: MoveDefinition = {
+      ...MockValidation.validMove,
+      id: "tackle",
+      targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    };
+    const state = MockBattle.stateFrom([attacker, target], 5, 1);
+    const engine = new BattleEngine(state, new Map([["tackle", singleMove]]));
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    engine.submitAction("player-1", {
+      kind: ActionKind.Move,
+      pokemonId: "attacker",
+      path: [{ x: 1, y: 0 }],
+    });
+    engine.submitAction("player-1", {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "tackle",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    const actions = engine.getLegalActions("player-1");
+    expect(actions).toHaveLength(1);
+    expect(actions[0]?.kind).toBe(ActionKind.EndTurn);
+
+    vi.restoreAllMocks();
   });
 });

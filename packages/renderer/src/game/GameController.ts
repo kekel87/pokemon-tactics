@@ -120,7 +120,7 @@ export class GameController {
     this.refreshHighlights();
   }
 
-  handleSkipTurn(): void {
+  handleEndTurn(): void {
     if (this.inputState.phase === "animating" || this.inputState.phase === "battle_over") {
       return;
     }
@@ -129,8 +129,8 @@ export class GameController {
     const activePlayerId = this.getActivePlayerId();
     if (!activePokemonId || !activePlayerId) return;
 
-    const skipAction: Action = { kind: ActionKind.SkipTurn, pokemonId: activePokemonId };
-    this.executeAction(activePlayerId, skipAction);
+    const endTurnAction: Action = { kind: ActionKind.EndTurn, pokemonId: activePokemonId };
+    this.executeAction(activePlayerId, endTurnAction);
   }
 
   refreshUI(): void {

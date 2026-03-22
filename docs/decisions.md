@@ -84,6 +84,8 @@
 | 72 | 2026-03-22 | Style de commit | **Titre seul, jamais de corps** | Un commit = une ligne. Le titre du commit conventionnel suffit. Pas de `git commit -m "..." -m "..."`. Garder l'historique lisible d'un coup d'œil. |
 | 73 | 2026-03-22 | Code-reviewer : titre de commit | **Toujours proposer un titre de commit après une review** | Le code-reviewer termine systématiquement sa review en proposant un titre de commit conventionnel prêt à copier-coller. |
 | 74 | 2026-03-22 | README public | **Disclaimers Nintendo + IA obligatoires** | Le README mentionne explicitement : fan project non affilié à Nintendo/Game Freak, assets sous licence SpriteCollab, code généré par Claude Code (Anthropic). |
+| 75 | 2026-03-22 | Move+Act par tour | **FFTA-like : Move + Act + EndTurn** | Chaque tour permet un Move (une fois) + un Act (une fois) dans n'importe quel ordre. Le tour se termine uniquement sur EndTurn explicite. Remplace SkipTurn. |
+| 76 | 2026-03-22 | Dash après Move | **Autorisé (option A)** | Un Dash consomme l'Act, pas le Move. Move→Dash et Dash→Move sont tous deux permis. Après Move 4 tiles + Dash 3 tiles = 7 tiles de portée + frappe. Accepté car seul Roucoul a un dash dans le POC — à surveiller si trop fort à mesure que le roster s'agrandit. |
 
 ---
 

@@ -20,7 +20,7 @@ export class BattleScene extends Phaser.Scene {
     const battleUI = new BattleUI(
       this,
       (moveId: string) => this.controller?.handleMoveSelect(moveId),
-      () => this.controller?.handleSkipTurn(),
+      () => this.controller?.handleEndTurn(),
     );
 
     const sprites = new Map<string, PokemonSprite>();

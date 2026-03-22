@@ -11,22 +11,22 @@ import {
 export class BattleUI {
   private readonly scene: Phaser.Scene;
   private readonly onMoveSelect: (moveId: string) => void;
-  private readonly onSkipTurn: () => void;
+  private readonly onEndTurn: () => void;
 
   private readonly turnInfoText: Phaser.GameObjects.Text;
   private readonly pokemonInfoText: Phaser.GameObjects.Text;
   private moveButtons: Phaser.GameObjects.Container[] = [];
-  private readonly skipButton: Phaser.GameObjects.Container;
+  private readonly endTurnButton: Phaser.GameObjects.Container;
   private victoryOverlay: Phaser.GameObjects.Container | null = null;
 
   constructor(
     scene: Phaser.Scene,
     onMoveSelect: (moveId: string) => void,
-    onSkipTurn: () => void,
+    onEndTurn: () => void,
   ) {
     this.scene = scene;
     this.onMoveSelect = onMoveSelect;
-    this.onSkipTurn = onSkipTurn;
+    this.onEndTurn = onEndTurn;
 
     this.turnInfoText = scene.add
       .text(640, 16, "", {
@@ -46,8 +46,8 @@ export class BattleUI {
       })
       .setDepth(1000);
 
-    this.skipButton = this.createButton(1160, 680, "Skip Turn", 100, 28, 0x555555, () => {
-      this.onSkipTurn();
+    this.endTurnButton = this.createButton(1160, 680, "End Turn", 100, 28, 0x555555, () => {
+      this.onEndTurn();
     });
   }
 

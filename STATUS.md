@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-22 (Maintenance infra, doc, agents — aucune mécanique de jeu modifiée)
+> Dernière mise à jour : 2026-03-22 (Plan 008 terminé — Move+Act FFTA-like)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -9,7 +9,7 @@
 ## Phase actuelle : Phase 0 — POC (en cours de développement)
 
 ### Ce qui est fait
-- Documentation complète : game-design, architecture, decisions (69 décisions), roadmap, references, methodology, roster POC, glossaire
+- Documentation complète : game-design, architecture, decisions (76 décisions), roadmap, references, methodology, roster POC, glossaire
 - 19 agents + 7 skills Claude Code en place (`.claude/`)
 - **Plan 001 terminé** : monorepo setup (pnpm workspaces, TypeScript bundler, Vite, Vitest, Biome)
 - **Plan 002 terminé** :
@@ -49,7 +49,7 @@
   - `checkVictory` : dernière équipe debout gagne, `BattleEnded` émis, combat verrouillé
   - `ActionError.BattleOver` ajouté
   - Handlers enregistrés dans le constructeur `BattleEngine`
-  - **224 tests**, 100% coverage maintenu
+  - **225 tests** à la fin du plan (234 après plan 008)
   - 6 tests d'intégration battle-loop : poison tue, sleep+drain, paralysie, initiative dynamique, battleOver
 - **Tests headless IA** (scripts temporaires, supprimés après validation) :
   - Combat IA Random : Player 1 gagne (Bulbasaur+Squirtle vs Charmander+Pidgey) en 58 rounds — boucle tourne, KO gérés, victoire détectée, pas de crash
@@ -64,7 +64,7 @@
   - Orchestration agents dans `CLAUDE.md` revue : chaînes d'agents documentées, déclencheurs plus explicites
   - Style de commit : titre seul, pas de corps
 
-- **Plan 007 — Renderer POC** (in-progress, étapes 1-6 sur 8 terminées) :
+- **Plan 007 — Renderer POC** (terminé partiellement, étapes 1-6 sur 8 terminées) :
   - Bootstrap Phaser 4 RC6 + BattleScene
   - Grille isométrique 12x12 avec conversion coords grid ↔ screen
   - Sprites placeholder : cercles colorés par type, noms, barres PV
@@ -72,14 +72,24 @@
   - Déplacement animé par clic sur tile bleue
   - Ciblage d'attaque via boutons UI colorés par type avec PP
   - Hot-seat 2 joueurs fonctionnel
-  - Bouton Skip Turn, indicateur de round/tour
+  - Bouton EndTurn (ex-SkipTurn), indicateur de round/tour
   - Queue d'animations séquentielles
   - Fix core : imports manquants PokemonType dans BattleEngine, TypeChart re-export dans effect-handler-registry
   - Fix bug : hover pendant animation causait l'affichage de l'UI du prochain Pokemon (séparation hover/highlight en deux layers Graphics distincts)
   - Code review : tous les bloquants corrigés (HighlightKind enum, constantes tween, readonly, isoGrid→isometricGrid, PP redondant, magic numbers)
 
+- **Plan 008 terminé** — Move+Act FFTA-like :
+  - `SkipTurn` remplacé par `EndTurn` dans tout le codebase
+  - `turnState { hasMoved, hasActed }` dans `BattleEngine`
+  - `executeMove` et `executeUseMove` ne terminent plus le tour automatiquement
+  - `executeEndTurn` termine le tour (avec direction optionnelle)
+  - `getLegalActions` conditionnel selon `turnState`
+  - `ActionError.AlreadyMoved` et `ActionError.AlreadyActed` ajoutés
+  - Renderer adapté : `handleEndTurn`, bouton EndTurn
+  - **234 tests**, 100% coverage maintenu, 9 nouveaux tests Move+Act
+
 ### Prochaine étape
-- **Plan 008 — Move + Act FFTA-like** (ready) : permettre Move+Act dans le même tour, EndTurn remplace SkipTurn
+- À définir (plan 008 terminé — Move+Act FFTA-like livré)
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type

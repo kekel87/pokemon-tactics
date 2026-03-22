@@ -100,8 +100,8 @@ describe("BattleEngine.executeUseMove — valid move hits and deals damage", () 
     const eventTypes = result.events.map((e) => e.type);
     expect(eventTypes).toContain(BattleEventType.MoveStarted);
     expect(eventTypes).toContain(BattleEventType.DamageDealt);
-    expect(eventTypes).toContain(BattleEventType.TurnEnded);
-    expect(eventTypes).toContain(BattleEventType.TurnStarted);
+    expect(eventTypes).not.toContain(BattleEventType.TurnEnded);
+    expect(eventTypes).not.toContain(BattleEventType.TurnStarted);
   });
 });
 
