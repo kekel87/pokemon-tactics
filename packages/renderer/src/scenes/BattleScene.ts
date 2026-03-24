@@ -1,16 +1,32 @@
+import { type BattleSetupResult, createBattle } from "../game/BattleSetup";
 import { GameController } from "../game/GameController";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
+import { createPokemonAnimations, preloadPokemonAssets } from "../sprites/SpriteLoader";
 import type { BattleUIScene } from "./BattleUIScene";
 
 export class BattleScene extends Phaser.Scene {
   private lastHoverGrid: { x: number; y: number } | null = null;
+  private battleSetup!: BattleSetupResult;
 
   constructor() {
     super("BattleScene");
   }
 
+  preload(): void {
+    this.battleSetup = createBattle();
+    const pokemonInstances = [...this.battleSetup.state.pokemon.values()];
+    preloadPokemonAssets(this, pokemonInstances);
+  }
+
   create(): void {
+    const uniqueIds = new Set(
+      [...this.battleSetup.state.pokemon.values()].map((p) => p.definitionId),
+    );
+    for (const definitionId of uniqueIds) {
+      createPokemonAnimations(this, definitionId);
+    }
+
     this.events.once("uiReady", () => {
       const uiScene = this.scene.get("BattleUIScene") as BattleUIScene;
       this.setupBattle(uiScene);
@@ -33,6 +49,7 @@ export class BattleScene extends Phaser.Scene {
       uiScene.actionMenu,
       uiScene.infoPanel,
       uiScene.turnTimeline,
+      this.battleSetup,
     );
 
     for (const pokemon of controller.state.pokemon.values()) {

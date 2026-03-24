@@ -18,13 +18,17 @@ import {
   UI_BORDER_ALPHA,
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
+  PORTRAIT_SIZE,
 } from "../constants";
-
-const HP_BAR_OFFSET_Y = 40;
-const HP_BAR_MARGIN_X = 12;
-const HP_BAR_PANEL_WIDTH: number = INFO_PANEL_WIDTH - HP_BAR_MARGIN_X * 2;
+import { getPortraitKey } from "../sprites/SpriteLoader";
+const PORTRAIT_MARGIN: number = 8;
+const TEXT_OFFSET_X: number = PORTRAIT_MARGIN + PORTRAIT_SIZE + 8;
+const HP_BAR_OFFSET_Y: number = 40;
+const HP_BAR_MARGIN_RIGHT: number = 12;
+const HP_BAR_PANEL_WIDTH: number = INFO_PANEL_WIDTH - TEXT_OFFSET_X - HP_BAR_MARGIN_RIGHT;
 
 export class InfoPanel {
+  private readonly scene: Phaser.Scene;
   private readonly container: Phaser.GameObjects.Container;
   private readonly background: Phaser.GameObjects.Graphics;
   private readonly nameText: Phaser.GameObjects.Text;
@@ -32,11 +36,14 @@ export class InfoPanel {
   private readonly hpBarBackground: Phaser.GameObjects.Graphics;
   private readonly hpBarFill: Phaser.GameObjects.Graphics;
   private readonly statusText: Phaser.GameObjects.Text;
+  private portrait: Phaser.GameObjects.Image | null = null;
+  private currentPortraitKey: string = "";
 
   constructor(scene: Phaser.Scene) {
+    this.scene = scene;
     this.background = scene.add.graphics();
 
-    this.nameText = scene.add.text(HP_BAR_MARGIN_X, 10, "", {
+    this.nameText = scene.add.text(TEXT_OFFSET_X, 10, "", {
       fontSize: "14px",
       color: "#ffffff",
       fontFamily: "monospace",
@@ -46,14 +53,14 @@ export class InfoPanel {
     this.hpBarBackground = scene.add.graphics();
     this.hpBarFill = scene.add.graphics();
 
-    this.hpText = scene.add.text(HP_BAR_MARGIN_X, HP_BAR_OFFSET_Y + HP_BAR_HEIGHT + 4, "", {
+    this.hpText = scene.add.text(TEXT_OFFSET_X, HP_BAR_OFFSET_Y + HP_BAR_HEIGHT + 4, "", {
       fontSize: "11px",
       color: "#cccccc",
       fontFamily: "monospace",
     });
 
     this.statusText = scene.add.text(
-      INFO_PANEL_WIDTH - HP_BAR_MARGIN_X,
+      INFO_PANEL_WIDTH - HP_BAR_MARGIN_RIGHT,
       HP_BAR_OFFSET_Y + HP_BAR_HEIGHT + 4,
       "",
       {
@@ -86,6 +93,8 @@ export class InfoPanel {
     const name = pokemon.definitionId.charAt(0).toUpperCase() + pokemon.definitionId.slice(1);
     this.nameText.setText(name);
 
+    this.updatePortrait(pokemon.definitionId);
+
     const hpRatio = pokemon.currentHp / pokemon.maxHp;
     this.drawHpBar(hpRatio);
 
@@ -105,6 +114,31 @@ export class InfoPanel {
 
   destroy(): void {
     this.container.destroy();
+  }
+
+  private updatePortrait(definitionId: string): void {
+    const portraitKey = getPortraitKey(definitionId);
+    if (portraitKey === this.currentPortraitKey) {
+      return;
+    }
+    this.currentPortraitKey = portraitKey;
+
+    if (this.portrait) {
+      this.portrait.destroy();
+      this.portrait = null;
+    }
+
+    const texture = this.scene.textures.get(portraitKey);
+    if (texture.key === "__MISSING") {
+      return;
+    }
+
+    this.portrait = this.scene.add.image(
+      PORTRAIT_MARGIN + PORTRAIT_SIZE / 2,
+      INFO_PANEL_HEIGHT / 2,
+      portraitKey,
+    );
+    this.container.add(this.portrait);
   }
 
   private drawBackground(teamColor: number): void {
@@ -131,7 +165,7 @@ export class InfoPanel {
     this.hpBarBackground.clear();
     this.hpBarBackground.fillStyle(HP_BAR_BG_COLOR, HP_BAR_BG_ALPHA);
     this.hpBarBackground.fillRect(
-      HP_BAR_MARGIN_X,
+      TEXT_OFFSET_X,
       HP_BAR_OFFSET_Y,
       HP_BAR_PANEL_WIDTH,
       HP_BAR_HEIGHT,
@@ -141,7 +175,7 @@ export class InfoPanel {
     const hpColor = hpRatio > HP_THRESHOLD ? HP_COLOR_HIGH : HP_COLOR_LOW;
     this.hpBarFill.fillStyle(hpColor, 1);
     this.hpBarFill.fillRect(
-      HP_BAR_MARGIN_X,
+      TEXT_OFFSET_X,
       HP_BAR_OFFSET_Y,
       HP_BAR_PANEL_WIDTH * hpRatio,
       HP_BAR_HEIGHT,

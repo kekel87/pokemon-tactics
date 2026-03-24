@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-24 (Bugfixes + features dash post-plan 009)
+> Dernière mise à jour : 2026-03-24 (Quick fixes post-plan 010 — renderer polish)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -9,7 +9,7 @@
 ## Phase actuelle : Phase 0 — POC (en cours de développement)
 
 ### Ce qui est fait
-- Documentation complète : game-design, architecture, decisions (76 décisions), roadmap, references, methodology, roster POC, glossaire
+- Documentation complète : game-design, architecture, decisions (91 décisions), roadmap, references, methodology, roster POC, glossaire
 - 19 agents + 7 skills Claude Code en place (`.claude/`)
 - **Plan 001 terminé** : monorepo setup (pnpm workspaces, TypeScript bundler, Vite, Vitest, Biome)
 - **Plan 002 terminé** :
@@ -82,6 +82,21 @@
   - Renderer adapté : `handleEndTurn`, bouton EndTurn
   - **234 tests**, 100% coverage maintenu, 9 nouveaux tests Move+Act
 
+- **Plan 010 terminé** — Sprites PMDCollab :
+  - Script `scripts/extract-sprites.ts` : télécharge sprites PMDCollab, parse AnimData.xml, génère atlas Phaser (JSON+PNG) + portraits pour les 4 Pokemon du roster
+  - `scripts/sprite-config.json` : configuration extensible (Pokemon, animations, portraits, directions)
+  - `CREDITS.md` : attribution CC BY-NC 4.0 pour PMDCollab
+  - `SpriteLoader.ts` : preload atlas + portraits, création animations Phaser (`{pokemonId}-{anim}-{direction}`)
+  - `PokemonSprite.ts` refactoré : cercles colorés → sprites animés (Idle, Walk, Attack, Hurt, Faint) avec fallback cercle si atlas absent
+  - `BattleScene.ts` : preload() ajouté, `createBattle()` déplacé ici, injecté dans `GameController`
+  - `GameController.ts` : setup injecté, `MoveStarted` joue l'animation Attack
+  - `InfoPanel.ts` : portrait 40x40 à gauche du panel
+  - `TurnTimeline.ts` : portraits dans la timeline au lieu de cercles colorés
+  - `constants.ts` : ajout `POKEMON_SPRITE_SCALE`
+  - Assets générés dans `packages/renderer/public/assets/sprites/pokemon/{name}/` (atlas.json, atlas.png, portrait-normal.png, credits.txt)
+  - Dépendances root ajoutées : `sharp`, `fast-xml-parser`, `tsx` (devDependencies)
+  - Script npm `extract-sprites` ajouté
+
 - **Plan 009 terminé** — UI FFT-like :
   - `BattleUIScene` overlay séparée de `BattleScene` (communication via event `uiReady`)
   - Menu d'action FFT-like : Deplacement, Attaque, Objet (grisé), Attendre, Status (grisé)
@@ -109,8 +124,23 @@
   - Dash dans le vide autorisé : cibler une case vide déplace le caster sans frapper (consomme l'Act)
   - Vive-Attaque `maxDistance` corrigé : 3 → 2 tiles
 
+- **Quick fixes post-plan 010 (2026-03-24)** — **244 tests**, 100% coverage :
+  - Sprites scale 2 (était 1.5), HP bars remontées à -32px, taille 36x5px
+  - Directions iso corrigées : South→SouthWest, East→SouthEast, North→NorthEast, West→NorthWest
+  - Timeline : portraits 32/40px, encadrés rectangulaires (plus de cercles)
+  - Walk animation : une seule lecture pour tout le path (plus de reset par tile)
+  - Faint : animation complète + stop sur dernière frame avant fadeOut
+  - Depth fix : highlights (100) → curseur (150) → sprites Pokemon (200+) → UI (1000+)
+  - `CAMERA_ZOOM` retiré de constants.ts (zoom caméra reporté à un plan dédié)
+  - **Bugs connus reportés** (non bloquants pour le POC) :
+    - Zoom/caméra dynamique avec pan (à étudier avec refs FFT/FFTA)
+    - Animations d'attaque par catégorie (Strike physique, Shoot spécial)
+    - Orientation dynamique pendant déplacement/attaque
+    - Animations de mouvement par type (FlapAround vol, Hop saut)
+    - Taille tiles/sprites à revoir quand le système caméra sera en place
+
 ### Prochaine étape
-- À définir (plan 009 terminé — UI FFT-like livrée, renderer POC complet)
+- Phase 1 — voir `docs/roadmap.md` : système CT FFTA, countdown KO, roster élargi, ou ajout de terrain (plan à définir)
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type

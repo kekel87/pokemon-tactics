@@ -16,11 +16,11 @@
 - [x] Déplacement (pathfinding BFS sur grille)
 - [x] Attaque single target + calcul de dégâts (formule Gen 5+, STAB, types)
 - [x] Condition de victoire (dernière équipe debout)
-- [x] Tests unitaires pour chaque mécanique (224 tests, 100% coverage)
+- [x] Tests unitaires pour chaque mécanique (244 tests, 100% coverage)
 
 ### Renderer
 - [x] Grille isométrique 2D avec Phaser
-- [x] Sprites Pokemon (placeholder cercles colorés + barres PV)
+- [x] Sprites Pokemon (PMDCollab : atlas Phaser, animations Idle/Walk/Attack/Hurt/Faint, portraits)
 - [x] Sélection + déplacement visuel
 - [x] Attaque visuelle basique
 - [x] UI minimale (PV, sélection attaque)
@@ -51,7 +51,6 @@
 - [ ] Système de KO + countdown (style FFTA)
 - [ ] Système de replay (enregistrement + rejeu)
 - [ ] Hot-seat 2 joueurs
-- [ ] Sprites PMDCollab (pipeline AnimData.xml → Phaser atlas)
 
 ---
 

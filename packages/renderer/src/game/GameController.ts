@@ -17,7 +17,7 @@ import type { BattleUI } from "../ui/BattleUI";
 import type { InfoPanel } from "../ui/InfoPanel";
 import type { TurnTimeline } from "../ui/TurnTimeline";
 import { AnimationQueue } from "./AnimationQueue";
-import { type BattleSetupResult, createBattle } from "./BattleSetup";
+import type { BattleSetupResult } from "./BattleSetup";
 
 type InputState =
   | { phase: "action_menu" }
@@ -48,6 +48,7 @@ export class GameController {
     actionMenu: ActionMenu,
     infoPanel: InfoPanel,
     turnTimeline: TurnTimeline,
+    setup: BattleSetupResult,
   ) {
     this.scene = scene;
     this.isometricGrid = isometricGrid;
@@ -57,7 +58,7 @@ export class GameController {
     this.actionMenu = actionMenu;
     this.infoPanel = infoPanel;
     this.turnTimeline = turnTimeline;
-    this.setup = createBattle();
+    this.setup = setup;
   }
 
   get engine(): BattleEngine {
@@ -343,12 +344,22 @@ export class GameController {
 
   private async processEvent(event: BattleEvent): Promise<void> {
     switch (event.type) {
+      case BattleEventType.MoveStarted: {
+        const sprite = this.sprites.get(event.attackerId);
+        if (sprite) {
+          await sprite.playAnimationOnce("Attack");
+        }
+        break;
+      }
+
       case BattleEventType.PokemonMoved: {
         const sprite = this.sprites.get(event.pokemonId);
         if (sprite) {
+          sprite.playAnimation("Walk");
           for (const step of event.path) {
             await sprite.animateMoveTo(step.x, step.y);
           }
+          sprite.playAnimation("Idle");
         }
         break;
       }
@@ -393,9 +404,11 @@ export class GameController {
       case BattleEventType.PokemonDashed: {
         const sprite = this.sprites.get(event.pokemonId);
         if (sprite) {
+          sprite.playAnimation("Walk");
           for (const step of event.path) {
             await sprite.animateMoveTo(step.x, step.y);
           }
+          sprite.playAnimation("Idle");
         }
         break;
       }
