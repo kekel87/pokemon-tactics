@@ -28,8 +28,8 @@ La carte de combat sous forme de cases (tiles) carrées. Taille par défaut pour
 **Initiative**
 Statistique dérivée (calculée depuis Vitesse et Poids) qui détermine l'ordre de passage dans un round. Le Pokemon avec la plus haute initiative joue en premier.
 
-**KO countdown**
-Quand un Pokemon tombe à 0 PV, il n'est pas immédiatement éliminé : un compteur démarre (3 tours par défaut, FFTA-like). À 0, élimination définitive. Des capacités de revival peuvent intervenir entre-temps.
+**KO**
+Un Pokemon à 0 PV est définitivement KO. Son corps reste sur la tile et bloque le passage. Seule la capacité Second Souffle (Revival Blessing, 1 PP) peut ranimer un allié KO.
 
 **Pathfinding**
 Calcul des cases qu'un Pokemon peut atteindre depuis sa position, en tenant compte des obstacles, des ennemis, des alliés et des dénivelés. Utilise un BFS dans ce projet.

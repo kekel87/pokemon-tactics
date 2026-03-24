@@ -33,7 +33,7 @@
 | 21 | 2026-03-20 | Formule de dégâts | **Base officielle + surcharges tactiques** | Formule Pokemon comme socle, avec couche de surcharge (hauteur, orientation, terrain). Override possible par capacité pour l'équilibrage. |
 | 22 | 2026-03-20 | Précision / esquive | **Système Pokemon + modificateurs terrain** | Précision × évasion (base Pokemon) + bonus/malus terrain (herbe, glace, hauteur). Surchargeable. |
 | 23 | 2026-03-20 | PP | **Oui, conservés** | PP des attaques maintenus. Surchargeables pour l'équilibrage. Possibilité de basculer vers un système de points d'action (style FFTA) si les PP ne fonctionnent pas. |
-| 24 | 2026-03-20 | KO / élimination | **Style FFTA : countdown** | 0 PV = KO + countdown (3 tours ?). Countdown à 0 = éliminé définitivement. Rappel / capacités de revival possibles. |
+| 24 | 2026-03-24 | KO / élimination | **KO définitif, corps reste sur la tile** | 0 PV = KO définitif. Le Pokemon reste sur sa tile (bloque le passage). Seule capacité de revival : Second Souffle (Revival Blessing, 1 PP). Pas de countdown FFTA. |
 | 25 | 2026-03-20 | Déplacement diagonal | **Non** | 4 directions uniquement (style FFTA / Fire Emblem). |
 | 26 | 2026-03-20 | Blocage tiles | **Oui, sauf exceptions** | Les Pokemon bloquent le passage des ennemis. Alliés traversent. Exceptions : Vol, Spectre, Lévitation. |
 | 27 | 2026-03-20 | Dégâts de chute | **Oui** | Chute = dégâts proportionnels à la hauteur. Poids pourrait influencer les dégâts (à tester). Vol/Lévitation immunisés. |
@@ -72,7 +72,7 @@
 | 60 | 2026-03-20 | `TurnManager` source de vérité | **`TurnManager` est maître, `BattleState` est synchronisé après** | `BattleState.turnOrder` et `currentTurnIndex` sont mis à jour par `BattleEngine` après chaque mutation du `TurnManager`, pas avant. Évite les incohérences d'état. |
 | 61 | 2026-03-20 | Commentaires dans les tests | **Autorisés dans intégration/scénario, avec parcimonie** | Les tests unitaires restent sans commentaires. Les tests d'intégration et de scénario peuvent avoir des commentaires de structure. Les scénarios utilisent un bloc Gherkin (Given/When/Then) en commentaire d'en-tête. |
 | 62 | 2026-03-21 | Système de tour POC | **Round-robin** | Chaque Pokemon joue 1x par round, ordre recalculé à chaque round (initiative effective). Le système CT (style FFTA, vitesse = fréquence d'action) est prévu pour Phase 1+ — plus intéressant tactiquement mais plus complexe à implémenter et équilibrer. |
-| 63 | 2026-03-21 | KO POC | **Définitif** (écart temporaire décision #24) | Pour le POC, KO = retiré du jeu. Le countdown FFTA (décision #24) sera implémenté en Phase 1. Le champ `koCountdown` existe déjà sur `PokemonInstance`. |
+| 63 | 2026-03-24 | KO POC | **Définitif** (aligné décision #24) | KO = définitif, le corps reste sur la tile et bloque le passage. Pas de countdown. `koCountdown` supprimé de `PokemonInstance`. |
 | 64 | 2026-03-21 | Vampigraine POC | **Permanent + rupture définitive** (écart décision #34) | Pour le POC, Leech Seed est permanent (comme Pokemon), brisé par KO ou distance > maxRange. La décision #34 prévoyait 3 tours max — on y reviendra si le drain permanent est trop fort. |
 | 65 | 2026-03-21 | Statuts POC | **1 seul à la fois** | Comme Pokemon : 1 statut majeur max. Confusion (volatile) hors scope POC. |
 | 66 | 2026-03-21 | Paralysie tactique | **Bloque le déplacement, pas l'attaque** | Proc 25% : le Pokemon ne peut pas bouger (move) ni dash, mais peut attaquer sur place (use_move non-dash). Différent de Pokemon classique (bloque tout). -50% initiative permanent. |
@@ -101,6 +101,8 @@
 | 89 | 2026-03-24 | Clés d'animation Phaser | **`{pokemonId}-{anim}-{direction}`** (ex : `bulbasaur-idle-south`) | Convention pour nommer les frames/animations Phaser. Permet un lookup direct sans map, compatible avec l'extension future vers 8 directions. |
 | 90 | 2026-03-24 | Fallback sprites | **Cercle coloré si atlas absent** | `PokemonSprite` tente de charger l'atlas PMDCollab et revient silencieusement aux cercles colorés si l'atlas n'est pas disponible. Robustesse pour les nouveaux Pokemon non encore extractés. |
 | 91 | 2026-03-24 | Setup Phaser injecté | **`BattleSetup` injecté dans `GameController`** (au lieu d'être créé dedans) | `BattleScene.createBattle()` est maintenant déplacé dans `BattleScene` et le setup est injecté dans `GameController`. Meilleure séparation des responsabilités : BattleScene gère le cycle de vie Phaser, GameController gère l'orchestration. |
+| 92 | 2026-03-24 | Roster cible | **151 premiers Pokemon (Gen 1)** | Le jeu se limite aux 151 Pokemon de la Gen 1 pour le moment. Le pipeline de sprites PMDCollab supporte déjà l'extraction par Pokemon — il suffit d'étendre la config. |
+| 93 | 2026-03-24 | Revival | **Seule capacité : Second Souffle (Revival Blessing), 1 PP** | La seule façon de ranimer un Pokemon KO est Second Souffle (1 PP). Pas de countdown, pas d'objet Rappel. Le KO est quasi-définitif — la revival est rare et coûteuse. |
 
 ---
 
@@ -110,7 +112,7 @@
 |---|----------|-------|----------|
 | 1 | Formules dérivées | Vitesse/Poids → Mouvement/Saut/Initiative. Attention : Hâte (+2 Vit) ne doit pas être OP si Initiative = Vitesse. | Phase 1 |
 | 4 | Dégâts de chute & Poids | Le poids influence-t-il les dégâts de chute ? Plus lourd = plus de dégâts au sol ? À tester. | Phase 2 |
-| 5 | Countdown KO | Combien de tours avant élimination définitive ? 3 tours (FFTA) ? Ajustable ? | Phase 1 |
+| 5 | ~~Countdown KO~~ | Résolu décision #24 : pas de countdown, KO définitif. Corps reste sur la tile. Seule revival : Second Souffle (1 PP). | ~~Phase 1~~ |
 | 6 | PP ou Points d'action ? | Les PP fonctionnent-ils dans un contexte tactique ? Sinon passer à un système de points d'action style FFTA. Tests headless : une IA sans filtre de cible gaspille ses PP (bug IA, pas bug PP). Les PP fonctionnent correctement côté core. À évaluer côté équilibrage en Phase 1. | Phase 1 |
 | 7 | ~~Durée des statuts~~ | Résolu décision #65 : 1 statut majeur, durées Pokemon (sleep 1-3, freeze 20%/tour, burn/poison/paralysis permanent). | ~~Phase 1~~ |
 | 8 | ~~Stacking des statuts~~ | Résolu décision #65 : 1 seul à la fois pour le POC. | ~~Phase 1~~ |

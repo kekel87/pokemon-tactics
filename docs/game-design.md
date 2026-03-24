@@ -16,7 +16,7 @@ Un jeu de combat tactique sur grille isométrique qui fusionne :
 
 ### Inspirations principales
 - **Pokemon** — types, stats, capacités
-- **FFTA** — grille, initiative, AoE, KO countdown
+- **FFTA** — grille, initiative, AoE, Move+Act
 - **Fire Emblem** (Advance+) — positionnement, blocage
 - **Advance Wars** — tactique grille, lisibilité
 - **Triangle Strategy** — référence visuelle HD-2D
@@ -235,13 +235,12 @@ Chaque Pokemon a une **orientation** (la direction dans laquelle elle regarde).
 
 ## 9. KO & élimination
 
-Système inspiré de **FFTA** :
-- Un Pokemon à **0 PV** tombe **KO** mais n'est pas immédiatement éliminé
-- Un **countdown** démarre (ex: 3 tours). Si le countdown atteint 0, le Pokemon est **définitivement éliminé**
-- Pendant le countdown, un allié ou un effet peut **ranimer** le Pokemon (objet Rappel, capacités comme Voeu, etc.)
-- Certains talents pourraient interagir avec ce système (à explorer en Phase 3)
+Un Pokemon à **0 PV** est **KO définitif** :
+- Le corps reste sur la tile et **bloque le passage** (comme un obstacle)
+- Seule capacité de revival : **Second Souffle** (Revival Blessing, **1 PP**) — rare et coûteuse
+- Victoire = tous les Pokemon adverses sont KO
 
-> Ce système ajoute une couche tactique : faut-il finir un KO ou sauver un allié ? On peut ajuster la durée du countdown pour l'équilibrage.
+> Le KO définitif avec corps bloquant crée une dimension tactique : les cadavres modifient la topologie de la grille. La revival ultra-rare (1 PP) en fait une décision stratégique majeure.
 
 ---
 

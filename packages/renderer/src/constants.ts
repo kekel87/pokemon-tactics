@@ -48,6 +48,7 @@ export const MOVE_TWEEN_DURATION_MS = 200;
 export const DAMAGE_FLASH_DURATION_MS = 100;
 export const DAMAGE_FLASH_REPEAT = 2;
 export const FADEOUT_DURATION_MS = 400;
+export const KO_TINT_COLOR = 0x444444;
 
 export const VICTORY_TEXT_X = 640;
 export const VICTORY_TEXT_Y = 320;

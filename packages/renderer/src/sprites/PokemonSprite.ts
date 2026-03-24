@@ -3,7 +3,7 @@ import {
   DAMAGE_FLASH_ALPHA,
   DAMAGE_FLASH_DURATION_MS,
   DAMAGE_FLASH_REPEAT,
-  FADEOUT_DURATION_MS,
+  KO_TINT_COLOR,
   HP_BAR_BG_ALPHA,
   HP_BAR_BG_COLOR,
   HP_BAR_HEIGHT,
@@ -148,7 +148,8 @@ export class PokemonSprite {
     }
   }
 
-  fadeOut(): Promise<void> {
+  playFaintAndStay(): Promise<void> {
+    this.setActive(false);
     const sprite = this.sprite;
     const key = sprite ? getAnimationKey(this.definitionId, "Faint", this.currentDirection) : null;
     const canPlayFaint = sprite && key && this.scene.anims.exists(key);
@@ -158,21 +159,25 @@ export class PokemonSprite {
         sprite.play(key);
         sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
           sprite.stop();
-          this.tweenFadeOut(resolve);
+          this.darkenSprite();
+          resolve();
         });
       });
     }
 
-    return new Promise((resolve) => this.tweenFadeOut(resolve));
+    this.darkenSprite();
+    return Promise.resolve();
   }
 
-  private tweenFadeOut(onComplete: () => void): void {
-    this.scene.tweens.add({
-      targets: this.container,
-      alpha: 0,
-      duration: FADEOUT_DURATION_MS,
-      onComplete,
-    });
+  private darkenSprite(): void {
+    if (this.sprite) {
+      this.sprite.setTint(KO_TINT_COLOR);
+    }
+    if (this.circle) {
+      this.circle.setAlpha(0.4);
+    }
+    this.hpBarBackground.setVisible(false);
+    this.hpBarFill.setVisible(false);
   }
 
   animateMoveTo(gridX: number, gridY: number): Promise<void> {

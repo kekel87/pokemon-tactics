@@ -376,12 +376,12 @@ export class GameController {
       }
 
       case BattleEventType.PokemonKo:
+        break;
+
       case BattleEventType.PokemonEliminated: {
         const sprite = this.sprites.get(event.pokemonId);
         if (sprite) {
-          await sprite.fadeOut();
-          sprite.destroy();
-          this.sprites.delete(event.pokemonId);
+          await sprite.playFaintAndStay();
         }
         break;
       }
