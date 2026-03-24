@@ -103,6 +103,7 @@
 | 91 | 2026-03-24 | Setup Phaser injecté | **`BattleSetup` injecté dans `GameController`** (au lieu d'être créé dedans) | `BattleScene.createBattle()` est maintenant déplacé dans `BattleScene` et le setup est injecté dans `GameController`. Meilleure séparation des responsabilités : BattleScene gère le cycle de vie Phaser, GameController gère l'orchestration. |
 | 92 | 2026-03-24 | Roster cible | **151 premiers Pokemon (Gen 1)** | Le jeu se limite aux 151 Pokemon de la Gen 1 pour le moment. Le pipeline de sprites PMDCollab supporte déjà l'extraction par Pokemon — il suffit d'étendre la config. |
 | 93 | 2026-03-24 | Revival | **Seule capacité : Second Souffle (Revival Blessing), 1 PP** | La seule façon de ranimer un Pokemon KO est Second Souffle (1 PP). Pas de countdown, pas d'objet Rappel. Le KO est quasi-définitif — la revival est rare et coûteuse. |
+| 94 | 2026-03-24 | Replay & fixtures visuelles | **Replay Showdown-like avec navigation next/prev** | Le système de replay (état initial sérialisé + log d'actions) servira aussi de base pour les fixtures de test visuel. Une fixture = un replay pausé à un moment donné. Permet au visual-tester de charger un état spécifique via `?fixture=post-ko` sans rejouer 20 tours. À implémenter avec le replay (Phase 1). |
 
 ---
 
