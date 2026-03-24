@@ -426,6 +426,7 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour autom
 | `plan-reviewer` | sonnet | Crée, review et maintient les plans |
 | `performance-profiler` | sonnet | Analyse performances (FPS, mémoire, bundle) |
 | `debugger` | opus | Diagnostic de bugs complexes |
+| `visual-tester` | sonnet | Vérification visuelle via Playwright MCP (screenshots, console, interactions) |
 | `ci-setup` | sonnet | Configuration GitHub Actions |
 | `agent-manager` | sonnet | Audite et maintient les agents/skills (format, cohérence, qualité) |
 
@@ -441,6 +442,7 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour autom
 |-------------|--------|
 | Modif `packages/core/` | `code-reviewer` → `core-guardian` → `test-writer` si nouvelle mécanique |
 | Modif mécaniques de jeu | `code-reviewer` → `game-designer` |
+| Modif `packages/renderer/` | `code-reviewer` → `visual-tester` (si dev server lancé) |
 | Ajout/modif données Pokemon | `data-miner` → `game-designer` |
 | Fin de session | `session-closer` (ou `/status`) → `doc-keeper` |
 | Ajout de dépendance | `dependency-manager` |

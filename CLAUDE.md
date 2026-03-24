@@ -103,6 +103,8 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 | Nouveau plan ou plan à reviewer | `plan-reviewer` |
 | Hésitation sur une approche | `best-practices` (recherche marché) |
 | Bug complexe | `debugger` (diagnostic opus) |
+| Modif renderer ou UI Phaser | `visual-tester` (vérification visuelle via Playwright) |
+| Bug visuel / rendu cassé | `visual-tester` (screenshot + console + interactions) |
 | Modif pipeline CI ou ajout package | `ci-setup` |
 | Problème de perf ou avant release | `performance-profiler` |
 | Ajout/modif d'un agent ou skill | `agent-manager` (audit cohérence) |
@@ -111,6 +113,8 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 
 Certains agents en déclenchent d'autres :
 - `code-reviewer` → `core-guardian` (si core touché) → `game-designer` (si mécaniques modifiées)
+- `code-reviewer` → `visual-tester` (si renderer touché, dev server lancé)
+- `debugger` → `visual-tester` (si le bug a une composante visuelle)
 - `session-closer` → vérifie que `doc-keeper` a bien mis à jour la doc
 
 ## Skills disponibles
