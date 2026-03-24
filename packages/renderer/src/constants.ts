@@ -20,8 +20,8 @@ export const CURSOR_PULSE_MIN_ALPHA = 0.7;
 export const CURSOR_PULSE_MAX_ALPHA = 1.0;
 export const CURSOR_PULSE_DURATION_MS = 600;
 
-export const HP_BAR_WIDTH = 30;
-export const HP_BAR_HEIGHT = 4;
+export const HP_BAR_WIDTH = 36;
+export const HP_BAR_HEIGHT = 5;
 export const HP_COLOR_HIGH = 0x44cc44;
 export const HP_COLOR_LOW = 0xcc4444;
 export const HP_BAR_BG_COLOR = 0x333333;
@@ -31,6 +31,8 @@ export const HP_THRESHOLD = 0.5;
 export const POKEMON_SPRITE_RADIUS = 12;
 export const POKEMON_SPRITE_BORDER_WIDTH = 2;
 export const POKEMON_SPRITE_BORDER_ALPHA = 0.6;
+export const POKEMON_SPRITE_SCALE = 2;
+export const PORTRAIT_SIZE = 40;
 export const DAMAGE_FLASH_ALPHA = 0.3;
 
 export const TYPE_COLORS: Partial<Record<string, number>> = {
@@ -74,9 +76,9 @@ export const ACTION_MENU_CORNER_RADIUS = 4;
 
 export const TIMELINE_X = 30;
 export const TIMELINE_Y = 80;
-export const TIMELINE_ENTRY_SIZE = 20;
-export const TIMELINE_ENTRY_SPACING = 8;
-export const TIMELINE_ACTIVE_SIZE = 26;
+export const TIMELINE_ENTRY_SIZE = 32;
+export const TIMELINE_ENTRY_SPACING = 6;
+export const TIMELINE_ACTIVE_SIZE = 40;
 export const TIMELINE_ACTIVE_BORDER_COLOR = 0xffdd44;
 export const TIMELINE_BORDER_WIDTH = 2;
 export const TIMELINE_ACTIVE_BORDER_WIDTH = 3;
@@ -91,7 +93,8 @@ export const UI_BORDER_WIDTH = 1;
 export const UI_BUTTON_CORNER_RADIUS = 4;
 
 export const DEPTH_GRID_HIGHLIGHT = 100;
-export const DEPTH_GRID_CURSOR = 500;
+export const DEPTH_GRID_CURSOR = 150;
+export const DEPTH_POKEMON_BASE = 200;
 export const DEPTH_UI_BASE = 1000;
 export const DEPTH_TIMELINE = 1050;
 export const DEPTH_INFO_PANEL = 1100;

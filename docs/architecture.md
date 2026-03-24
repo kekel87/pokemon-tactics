@@ -90,12 +90,13 @@ pokemon-tactics/
 │   │   │   ├── scenes/          # Scènes Phaser (BattleScene + BattleUIScene overlay)
 │   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue)
 │   │   │   ├── grid/            # Rendu isométrique (IsometricGrid, curseur animé)
-│   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, barres PV)
+│   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
 │   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
-│   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI
+│   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI, POKEMON_SPRITE_SCALE
 │   │   │   └── main.ts
-│   │   ├── public/              # Assets (sprites, tilesets, sons)
+│   │   ├── public/
+│   │   │   └── assets/sprites/pokemon/{name}/  # atlas.json, atlas.png, portrait-normal.png, credits.txt (générés)
 │   │   ├── index.html
 │   │   ├── vite.config.ts
 │   │   ├── tsconfig.json        # extends base + DOM libs
@@ -109,6 +110,9 @@ pokemon-tactics/
 │       ├── tsconfig.json        # extends ../../tsconfig.base.json
 │       └── package.json
 │
+├── scripts/                     # Outils de build one-shot (non packagés)
+│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas Phaser
+│   └── sprite-config.json       # Config extensible (Pokemon, animations, portraits)
 ├── package.json                 # Workspace root (scripts, devDependencies)
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json           # Config TS partagée (strict, bundler, path aliases)
@@ -117,6 +121,7 @@ pokemon-tactics/
 ├── vitest.config.ts             # Tests + coverage
 ├── scenarios/              # Combats headless complets (*.scenario.test.ts) — à venir
 ├── CLAUDE.md
+├── CREDITS.md                   # Attribution CC BY-NC 4.0 PMDCollab (artistes par Pokemon)
 ├── STATUS.md
 ├── docs/
 └── plans/
@@ -340,7 +345,36 @@ Léger en coût (ne tourne qu'une fois au boot), gros gain en confiance sur les 
 
 ---
 
-## 7. API du core
+## 7. Pipeline sprites PMDCollab
+
+Les sprites sont extraits depuis [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) par un script one-shot (`scripts/extract-sprites.ts`), non packagé dans le jeu.
+
+```
+PMDCollab GitHub (raw)
+  └── AnimData.xml + {Anim}-Anim.png + PortraitSheet.png + credits.txt
+        │  (téléchargement + parse fast-xml-parser)
+        ▼
+scripts/extract-sprites.ts  ←  scripts/sprite-config.json
+        │  (découpe frames via sharp, génère atlas)
+        ▼
+packages/renderer/public/assets/sprites/pokemon/{name}/
+  ├── atlas.json          # Phaser atlas descriptor (frames + metadata)
+  ├── atlas.png           # Spritesheet combiné (toutes anims + directions)
+  ├── portrait-normal.png # Portrait 40x40 (émotion Normal)
+  └── credits.txt         # Attribution artiste (CC BY-NC 4.0)
+```
+
+**Clés d'animation Phaser** : `{pokemonId}-{anim}-{direction}` (ex : `bulbasaur-idle-south`)
+
+**SpriteLoader** (`packages/renderer/src/sprites/SpriteLoader.ts`) :
+- `preloadPokemonAssets(scene, pokemonIds[])` — charge atlas + portrait au preload
+- `createAnimations(scene, pokemonId)` — enregistre les animations Phaser depuis les metadata d'atlas
+
+**PokemonSprite** utilise les animations (Idle, Walk, Attack, Hurt, Faint) avec fallback sur cercle coloré si atlas absent.
+
+---
+
+## 8. API du core
 
 Le core expose une interface simple que tout joueur (humain ou IA) utilise :
 
@@ -362,7 +396,7 @@ interface BattleEngine {
 
 ---
 
-## 8. Système de replay
+## 9. Système de replay
 
 ```typescript
 interface BattleReplay {
@@ -376,7 +410,7 @@ Le replay est **déterministe** : même seed + mêmes actions = même résultat.
 
 ---
 
-## 9. Outillage Claude Code
+## 10. Outillage Claude Code
 
 | Besoin | Solution |
 |--------|----------|
@@ -389,7 +423,7 @@ Le replay est **déterministe** : même seed + mêmes actions = même résultat.
 
 ---
 
-## 10. Évolutions prévues du renderer
+## 11. Évolutions prévues du renderer
 
 | Phase | Renderer | Style |
 |-------|----------|-------|
@@ -404,7 +438,7 @@ Le core ne change jamais — seul le renderer est remplacé.
 
 ---
 
-## 11. Agents & Skills Claude Code
+## 12. Agents & Skills Claude Code
 
 Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour automatiser le workflow.
 

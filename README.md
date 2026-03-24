@@ -154,12 +154,14 @@ flowchart TB
 | [PokeAPI](https://pokeapi.co/) | Donnees Pokemon complementaires |
 | [Bulbapedia](https://bulbapedia.bulbagarden.net/) | Documentation formules (degats, types, statuts) |
 
-### Sprites (prevu Phase 1)
+### Sprites
 
-| Source | Usage |
-|--------|-------|
-| [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | Sprites Pokemon style PMD (8 directions, animations) |
-| [PokeSprite](https://github.com/msikma/pokesprite) | Icones Pokemon pour l'UI |
+| Source | Usage | Licence |
+|--------|-------|---------|
+| [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | Sprites Pokemon + portraits (8 directions, animations) | CC BY-NC 4.0 |
+| [PokeSprite](https://github.com/msikma/pokesprite) | Icones Pokemon pour l'UI | MIT |
+
+Voir [CREDITS.md](CREDITS.md) pour les credits detailles par Pokemon et artiste.
 
 ### Projets d'inspiration
 

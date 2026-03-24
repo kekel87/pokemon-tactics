@@ -16,11 +16,15 @@
     "test:coverage": "vitest run --project unit --coverage",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "extract-sprites": "tsx scripts/extract-sprites.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
     "@vitest/coverage-v8": "^4.1.0",
+    "fast-xml-parser": "^5.5.9",
+    "sharp": "^0.34.5",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^8.0.1",
     "vitest": "^4.1.0"

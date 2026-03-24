@@ -1,0 +1,22 @@
+{
+  "pokedexEntries": [
+    { "number": "0001", "name": "bulbasaur" },
+    { "number": "0004", "name": "charmander" },
+    { "number": "0007", "name": "squirtle" },
+    { "number": "0016", "name": "pidgey" }
+  ],
+  "animations": ["Idle", "Walk", "Attack", "Hurt", "Faint"],
+  "portraits": ["Normal"],
+  "directions": [
+    "South",
+    "SouthEast",
+    "East",
+    "NorthEast",
+    "North",
+    "NorthWest",
+    "West",
+    "SouthWest"
+  ],
+  "baseUrl": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master",
+  "outputDir": "packages/renderer/public/assets/sprites/pokemon"
+}

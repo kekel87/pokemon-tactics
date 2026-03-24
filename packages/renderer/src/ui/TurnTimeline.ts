@@ -1,6 +1,7 @@
-import { PlayerId, type BattleState, type PokemonDefinition } from "@pokemon-tactic/core";
+import { type BattleState, PlayerId, type PokemonDefinition } from "@pokemon-tactic/core";
 import {
   DEPTH_TIMELINE,
+  PORTRAIT_SIZE,
   TEAM_COLOR_PLAYER_1,
   TEAM_COLOR_PLAYER_2,
   TIMELINE_ACTIVE_BORDER_COLOR,
@@ -13,6 +14,7 @@ import {
   TIMELINE_Y,
   TYPE_COLORS,
 } from "../constants";
+import { getPortraitKey } from "../sprites/SpriteLoader";
 
 export class TurnTimeline {
   private readonly scene: Phaser.Scene;
@@ -45,9 +47,10 @@ export class TurnTimeline {
       const definition = pokemonDefinitions.get(pokemon.definitionId);
       const primaryType = definition?.types[0] ?? "normal";
       const typeColor = TYPE_COLORS[primaryType] ?? 0xa0a0a0;
-      const teamColor = pokemon.playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
+      const teamColor =
+        pokemon.playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
 
-      const entry = this.createEntry(y, typeColor, teamColor, isActive);
+      const entry = this.createEntry(y, typeColor, teamColor, isActive, pokemon.definitionId);
       this.container.add(entry);
       this.entries.push(entry);
 
@@ -66,21 +69,40 @@ export class TurnTimeline {
     typeColor: number,
     teamColor: number,
     isActive: boolean,
+    definitionId: string,
   ): Phaser.GameObjects.Container {
     const size = isActive ? TIMELINE_ACTIVE_SIZE : TIMELINE_ENTRY_SIZE;
-    const radius = size / 2;
+    const half = size / 2;
+    const children: Phaser.GameObjects.GameObject[] = [];
 
-    const graphics = this.scene.add.graphics();
+    const background = this.scene.add.graphics();
+    background.fillStyle(0x111122, 0.8);
+    background.fillRoundedRect(-half, -half, size, size, 4);
+    children.push(background);
 
-    graphics.fillStyle(typeColor, 1);
-    graphics.fillCircle(0, 0, radius);
+    const portraitKey = getPortraitKey(definitionId);
+    const texture = this.scene.textures.get(portraitKey);
+    const hasPortrait = texture.key !== "__MISSING";
 
+    if (hasPortrait) {
+      const portrait = this.scene.add.image(0, 0, portraitKey);
+      portrait.setScale(size / PORTRAIT_SIZE);
+      children.push(portrait);
+    } else {
+      const fallback = this.scene.add.graphics();
+      fallback.fillStyle(typeColor, 1);
+      fallback.fillRoundedRect(-half + 2, -half + 2, size - 4, size - 4, 3);
+      children.push(fallback);
+    }
+
+    const border = this.scene.add.graphics();
     const borderColor = isActive ? TIMELINE_ACTIVE_BORDER_COLOR : teamColor;
     const borderWidth = isActive ? TIMELINE_ACTIVE_BORDER_WIDTH : TIMELINE_BORDER_WIDTH;
-    graphics.lineStyle(borderWidth, borderColor, 1);
-    graphics.strokeCircle(0, 0, radius);
+    border.lineStyle(borderWidth, borderColor, 1);
+    border.strokeRoundedRect(-half, -half, size, size, 4);
+    children.push(border);
 
-    return this.scene.add.container(0, y + radius, [graphics]);
+    return this.scene.add.container(0, y + half, children);
   }
 
   private clearEntries(): void {

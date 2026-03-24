@@ -1,4 +1,4 @@
-import type { PokemonInstance } from "@pokemon-tactic/core";
+import { Direction, type PokemonInstance } from "@pokemon-tactic/core";
 import {
   DAMAGE_FLASH_ALPHA,
   DAMAGE_FLASH_DURATION_MS,
@@ -15,23 +15,37 @@ import {
   POKEMON_SPRITE_BORDER_ALPHA,
   POKEMON_SPRITE_BORDER_WIDTH,
   POKEMON_SPRITE_RADIUS,
+  DEPTH_POKEMON_BASE,
+  POKEMON_SPRITE_SCALE,
   PULSE_DURATION_MS,
   PULSE_MAX_SCALE,
   PULSE_MIN_SCALE,
   TYPE_COLORS,
 } from "../constants";
 import type { IsometricGrid } from "../grid/IsometricGrid";
+import { getAnimationKey } from "./SpriteLoader";
+
+const CORE_TO_PMD_DIRECTION: Record<Direction, string> = {
+  [Direction.South]: "SouthWest",
+  [Direction.East]: "SouthEast",
+  [Direction.North]: "NorthEast",
+  [Direction.West]: "NorthWest",
+};
 
 export class PokemonSprite {
   readonly pokemonId: string;
   private readonly scene: Phaser.Scene;
   private readonly isometricGrid: IsometricGrid;
   private readonly container: Phaser.GameObjects.Container;
-  private readonly circle: Phaser.GameObjects.Graphics;
   private readonly hpBarBackground: Phaser.GameObjects.Graphics;
   private readonly hpBarFill: Phaser.GameObjects.Graphics;
-  private readonly color: number;
+  private readonly definitionId: string;
+  private readonly usesAtlas: boolean;
+  private sprite: Phaser.GameObjects.Sprite | null = null;
+  private circle: Phaser.GameObjects.Graphics | null = null;
   private currentHpRatio: number;
+  private currentDirection: string;
+  private currentAnimation: string;
   private pulseTween: Phaser.Tweens.Tween | null = null;
 
   constructor(
@@ -44,31 +58,86 @@ export class PokemonSprite {
     this.scene = scene;
     this.isometricGrid = isometricGrid;
     this.currentHpRatio = pokemon.currentHp / pokemon.maxHp;
+    this.definitionId = pokemon.definitionId;
+    this.currentDirection = CORE_TO_PMD_DIRECTION[pokemon.orientation] ?? "South";
+    this.currentAnimation = "Idle";
 
-    const primaryType = pokemonTypes[0] ?? "normal";
-    this.color = TYPE_COLORS[primaryType] ?? TYPE_COLORS.normal ?? 0xa0a0a0;
+    const children: Phaser.GameObjects.GameObject[] = [];
 
-    this.circle = scene.add.graphics();
-    this.drawCircle();
+    const texture = scene.textures.get(this.definitionId);
+    this.usesAtlas = texture.key !== "__MISSING";
+
+    if (this.usesAtlas) {
+      const animKey = getAnimationKey(this.definitionId, "Idle", this.currentDirection);
+      this.sprite = scene.add.sprite(0, 0, this.definitionId);
+      this.sprite.setScale(POKEMON_SPRITE_SCALE);
+      this.sprite.play(animKey);
+      children.push(this.sprite);
+    } else {
+      const primaryType = pokemonTypes[0] ?? "normal";
+      const color = TYPE_COLORS[primaryType] ?? TYPE_COLORS.normal ?? 0xa0a0a0;
+      this.circle = scene.add.graphics();
+      this.drawCircle(color);
+      children.push(this.circle);
+    }
 
     this.hpBarBackground = scene.add.graphics();
     this.hpBarFill = scene.add.graphics();
     this.drawHpBar();
+    children.push(this.hpBarBackground, this.hpBarFill);
 
-    this.container = scene.add.container(0, 0, [this.circle, this.hpBarBackground, this.hpBarFill]);
-
+    this.container = scene.add.container(0, 0, children);
     this.updatePosition(pokemon.position.x, pokemon.position.y);
   }
 
   updatePosition(gridX: number, gridY: number): void {
     const screen = this.isometricGrid.gridToScreen(gridX, gridY);
     this.container.setPosition(screen.x, screen.y);
-    this.container.setDepth(gridX + gridY);
+    this.container.setDepth(DEPTH_POKEMON_BASE + gridX + gridY);
   }
 
   updateHp(currentHp: number, maxHp: number): void {
     this.currentHpRatio = currentHp / maxHp;
     this.drawHpBar();
+  }
+
+  setDirection(direction: Direction): void {
+    const pmdDirection = CORE_TO_PMD_DIRECTION[direction] ?? "South";
+    if (pmdDirection === this.currentDirection) {
+      return;
+    }
+    this.currentDirection = pmdDirection;
+    this.playAnimation(this.currentAnimation);
+  }
+
+  playAnimation(animation: string): void {
+    if (!this.sprite || !this.usesAtlas) {
+      return;
+    }
+    this.currentAnimation = animation;
+    const key = getAnimationKey(this.definitionId, animation, this.currentDirection);
+    if (this.scene.anims.exists(key)) {
+      this.sprite.play(key);
+    }
+  }
+
+  playAnimationOnce(animation: string): Promise<void> {
+    if (!this.sprite || !this.usesAtlas) {
+      return Promise.resolve();
+    }
+    const key = getAnimationKey(this.definitionId, animation, this.currentDirection);
+    if (!this.scene.anims.exists(key)) {
+      return Promise.resolve();
+    }
+
+    const sprite = this.sprite;
+    return new Promise((resolve) => {
+      sprite.play(key);
+      sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+        this.playAnimation("Idle");
+        resolve();
+      });
+    });
   }
 
   setActive(active: boolean): void {
@@ -80,13 +149,29 @@ export class PokemonSprite {
   }
 
   fadeOut(): Promise<void> {
-    return new Promise((resolve) => {
-      this.scene.tweens.add({
-        targets: this.container,
-        alpha: 0,
-        duration: FADEOUT_DURATION_MS,
-        onComplete: () => resolve(),
+    const sprite = this.sprite;
+    const key = sprite ? getAnimationKey(this.definitionId, "Faint", this.currentDirection) : null;
+    const canPlayFaint = sprite && key && this.scene.anims.exists(key);
+
+    if (canPlayFaint) {
+      return new Promise((resolve) => {
+        sprite.play(key);
+        sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+          sprite.stop();
+          this.tweenFadeOut(resolve);
+        });
       });
+    }
+
+    return new Promise((resolve) => this.tweenFadeOut(resolve));
+  }
+
+  private tweenFadeOut(onComplete: () => void): void {
+    this.scene.tweens.add({
+      targets: this.container,
+      alpha: 0,
+      duration: FADEOUT_DURATION_MS,
+      onComplete,
     });
   }
 
@@ -99,7 +184,7 @@ export class PokemonSprite {
         y: screen.y,
         duration: MOVE_TWEEN_DURATION_MS,
         onComplete: () => {
-          this.container.setDepth(gridX + gridY);
+          this.container.setDepth(DEPTH_POKEMON_BASE + gridX + gridY);
           resolve();
         },
       });
@@ -108,6 +193,9 @@ export class PokemonSprite {
 
   flashDamage(): Promise<void> {
     return new Promise((resolve) => {
+      this.playAnimationOnce("Hurt").catch(() => {
+        // Hurt animation is best-effort, flash tween handles the visual feedback
+      });
       this.scene.tweens.add({
         targets: this.container,
         alpha: DAMAGE_FLASH_ALPHA,
@@ -149,25 +237,28 @@ export class PokemonSprite {
     this.container.setScale(1);
   }
 
-  private drawCircle(): void {
+  private drawCircle(color: number): void {
+    if (!this.circle) {
+      return;
+    }
     this.circle.clear();
-    this.circle.fillStyle(this.color, 1);
+    this.circle.fillStyle(color, 1);
     this.circle.fillCircle(0, 0, POKEMON_SPRITE_RADIUS);
     this.circle.lineStyle(POKEMON_SPRITE_BORDER_WIDTH, 0xffffff, POKEMON_SPRITE_BORDER_ALPHA);
     this.circle.strokeCircle(0, 0, POKEMON_SPRITE_RADIUS);
   }
 
   private drawHpBar(): void {
-    const barY = -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
+    const offsetY = this.usesAtlas ? -32 : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
     const barX = -HP_BAR_WIDTH / 2;
 
     this.hpBarBackground.clear();
     this.hpBarBackground.fillStyle(HP_BAR_BG_COLOR, HP_BAR_BG_ALPHA);
-    this.hpBarBackground.fillRect(barX, barY, HP_BAR_WIDTH, HP_BAR_HEIGHT);
+    this.hpBarBackground.fillRect(barX, offsetY, HP_BAR_WIDTH, HP_BAR_HEIGHT);
 
     this.hpBarFill.clear();
     const hpColor = this.currentHpRatio > HP_THRESHOLD ? HP_COLOR_HIGH : HP_COLOR_LOW;
     this.hpBarFill.fillStyle(hpColor, 1);
-    this.hpBarFill.fillRect(barX, barY, HP_BAR_WIDTH * this.currentHpRatio, HP_BAR_HEIGHT);
+    this.hpBarFill.fillRect(barX, offsetY, HP_BAR_WIDTH * this.currentHpRatio, HP_BAR_HEIGHT);
   }
 }

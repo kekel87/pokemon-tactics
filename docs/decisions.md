@@ -97,6 +97,10 @@
 | 85 | 2026-03-24 | Dash déplace le caster | **Oui — le caster se déplace vers la case ciblée** | Après un `UseMove` dash, le caster se déplace vers la tile d'impact (ou juste devant un ennemi bloquant). Cela ajoute un repositionnement tactique intrinsèque au dash. |
 | 86 | 2026-03-24 | Dash ne consomme pas `hasMoved` | **Le dash consomme `hasActed`, pas `hasMoved`** | Décision #76 confirmée et précisée : un dash consomme l'Act. Le Move reste disponible après un dash. Move→Dash et Dash→Move sont tous deux permis. Permet un double repositionnement (dash + déplacement). |
 | 87 | 2026-03-24 | Dash dans le vide | **Autorisé — repositionnement sans frappe** | Un dash peut cibler une case vide (aucun ennemi sur le chemin). Le caster se déplace jusqu'à la case ciblée, aucun dégât infligé. Consomme `hasActed` mais pas `hasMoved`. Permet de se repositionner rapidement via une action dash, au coût de l'Act du tour. |
+| 88 | 2026-03-24 | Pipeline sprites | **Script one-shot `scripts/extract-sprites.ts`** (hors packages) | Le pipeline d'extraction PMDCollab n'est pas packagé dans le jeu. C'est un outil de build autonome (Node.js, devDependencies root) qui génère des assets statiques dans `public/`. Déclenché manuellement via `pnpm extract-sprites`. |
+| 89 | 2026-03-24 | Clés d'animation Phaser | **`{pokemonId}-{anim}-{direction}`** (ex : `bulbasaur-idle-south`) | Convention pour nommer les frames/animations Phaser. Permet un lookup direct sans map, compatible avec l'extension future vers 8 directions. |
+| 90 | 2026-03-24 | Fallback sprites | **Cercle coloré si atlas absent** | `PokemonSprite` tente de charger l'atlas PMDCollab et revient silencieusement aux cercles colorés si l'atlas n'est pas disponible. Robustesse pour les nouveaux Pokemon non encore extractés. |
+| 91 | 2026-03-24 | Setup Phaser injecté | **`BattleSetup` injecté dans `GameController`** (au lieu d'être créé dedans) | `BattleScene.createBattle()` est maintenant déplacé dans `BattleScene` et le setup est injecté dans `GameController`. Meilleure séparation des responsabilités : BattleScene gère le cycle de vie Phaser, GameController gère l'orchestration. |
 
 ---
 
