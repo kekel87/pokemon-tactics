@@ -361,7 +361,10 @@ export class BattleEngine {
       const position = stepInDirection(pokemon.position, direction, step);
       const occupant = this.grid.getOccupant(position);
       if (occupant !== null && occupant !== pokemon.id) {
-        break;
+        const occupantPokemon = this.state.pokemon.get(occupant);
+        if (occupantPokemon && occupantPokemon.currentHp > 0) {
+          break;
+        }
       }
       destination = position;
     }
@@ -431,7 +434,11 @@ export class BattleEngine {
         const occupant = neighbor.occupantId;
         if (occupant !== null) {
           const occupantPokemon = this.state.pokemon.get(occupant);
-          if (occupantPokemon && occupantPokemon.playerId !== pokemon.playerId) {
+          if (
+            occupantPokemon &&
+            occupantPokemon.currentHp > 0 &&
+            occupantPokemon.playerId !== pokemon.playerId
+          ) {
             continue;
           }
         }
@@ -516,10 +523,14 @@ export class BattleEngine {
       const occupant = tile.occupantId;
       if (occupant !== null && occupant !== pokemon.id) {
         const occupantPokemon = this.state.pokemon.get(occupant);
-        if (occupantPokemon && occupantPokemon.playerId !== pokemon.playerId) {
-          return ActionError.BlockedByEnemy;
-        }
-        if (isLastStep) {
+        if (occupantPokemon && occupantPokemon.currentHp > 0) {
+          if (occupantPokemon.playerId !== pokemon.playerId) {
+            return ActionError.BlockedByEnemy;
+          }
+          if (isLastStep) {
+            return ActionError.DestinationOccupied;
+          }
+        } else if (isLastStep) {
           return ActionError.DestinationOccupied;
         }
       }
@@ -671,7 +682,6 @@ export class BattleEngine {
     }
 
     this.turnManager.removePokemon(pokemonId);
-    this.grid.setOccupant(pokemon.position, null);
 
     const linksToRemove: number[] = [];
     for (let i = 0; i < this.state.activeLinks.length; i++) {

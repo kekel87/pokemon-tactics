@@ -20,5 +20,4 @@ export interface PokemonInstance {
   orientation: Direction;
   moveIds: string[];
   currentPp: Record<string, number>;
-  koCountdown: number | null;
 }

@@ -30,7 +30,6 @@ export abstract class MockPokemon {
     orientation: Direction.South,
     moveIds: [],
     currentPp: {},
-    koCountdown: null,
   };
 
   static readonly bulbasaur: PokemonInstance = {
@@ -47,7 +46,6 @@ export abstract class MockPokemon {
     orientation: Direction.South,
     moveIds: ["razor-leaf", "sleep-powder", "leech-seed", "sludge-bomb"],
     currentPp: { "razor-leaf": 25, "sleep-powder": 15, "leech-seed": 10, "sludge-bomb": 10 },
-    koCountdown: null,
   };
 
   static readonly charmander: PokemonInstance = {
@@ -64,7 +62,6 @@ export abstract class MockPokemon {
     orientation: Direction.South,
     moveIds: ["ember", "scratch", "smokescreen", "dragon-breath"],
     currentPp: { ember: 25, scratch: 35, smokescreen: 20, "dragon-breath": 20 },
-    koCountdown: null,
   };
 
   static readonly squirtle: PokemonInstance = {
@@ -81,7 +78,6 @@ export abstract class MockPokemon {
     orientation: Direction.South,
     moveIds: ["water-gun", "tackle", "withdraw", "bubble-beam"],
     currentPp: { "water-gun": 25, tackle: 35, withdraw: 40, "bubble-beam": 20 },
-    koCountdown: null,
   };
 
   static readonly pidgey: PokemonInstance = {
@@ -98,7 +94,6 @@ export abstract class MockPokemon {
     orientation: Direction.South,
     moveIds: ["gust", "quick-attack", "sand-attack", "wing-attack"],
     currentPp: { gust: 35, "quick-attack": 30, "sand-attack": 15, "wing-attack": 35 },
-    koCountdown: null,
   };
 
   static fresh(base: PokemonInstance, overrides?: Partial<PokemonInstance>): PokemonInstance {

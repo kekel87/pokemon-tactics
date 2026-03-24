@@ -1,10 +1,11 @@
 # Roadmap — Pokemon Tactics
 
 > Phases de développement du POC au jeu complet.
+> Limite de roster : 151 premiers Pokemon (Gen 1) — décision #92.
 
 ---
 
-## Phase 0 — Prototype technique (POC) 🎯 *Objectif immédiat*
+## Phase 0 — Prototype technique (POC) ✅ *Terminé*
 
 > But : valider la stack et avoir un combat jouable minimaliste
 
@@ -12,45 +13,58 @@
 - [x] Setup monorepo (pnpm workspaces, tsconfig, Vite, Vitest, Biome)
 - [x] Modèles de base (Pokemon, Move, Grid, BattleState)
 - [x] Grille plate (pas de dénivelé), placement de 2 Pokemon
-- [x] Système de tour simple (tri par Vitesse)
+- [x] Système de tour simple (round-robin par Vitesse)
 - [x] Déplacement (pathfinding BFS sur grille)
 - [x] Attaque single target + calcul de dégâts (formule Gen 5+, STAB, types)
 - [x] Condition de victoire (dernière équipe debout)
+- [x] Move+Act par tour (FFTA-like)
+- [x] 5 statuts majeurs (brûlure, poison, paralysie, gel, sommeil)
+- [x] 7 targeting patterns (single, self, cone, cross, line, dash, zone)
+- [x] Friendly fire actif
+- [x] Type chart 18x18
 - [x] Tests unitaires pour chaque mécanique (244 tests, 100% coverage)
 
 ### Renderer
-- [x] Grille isométrique 2D avec Phaser
-- [x] Sprites Pokemon (PMDCollab : atlas Phaser, animations Idle/Walk/Attack/Hurt/Faint, portraits)
-- [x] Sélection + déplacement visuel
-- [x] Attaque visuelle basique
-- [x] UI minimale (PV, sélection attaque)
-- [x] Menu d'action FFT-like (Deplacement, Attaque, Attendre)
-- [x] Sous-menu attaque avec 4 moves + Annuler
-- [x] Panel info bas-gauche (fond coloré par équipe, suivi hover)
-- [x] Timeline d'ordre des tours côté gauche (cercles type + bordure équipe)
-- [x] Curseur de tile animé (losange jaune pulsant)
-- [x] State machine 6 états (action_menu, select_move_destination, attack_submenu, select_attack_target, animating, battle_over)
-- [x] Overlay scene BattleUIScene séparée de BattleScene
-- [x] Écran de victoire avec numéro de round
+- [x] Grille isométrique 2D avec Phaser 4
+- [x] Sprites Pokemon animés (PMDCollab : Idle/Walk/Attack/Hurt/Faint, portraits)
+- [x] Sélection + déplacement visuel + animation
+- [x] UI FFT-like (menu d'action, sous-menu attaque, panel info, timeline, curseur)
+- [x] State machine 6 états + overlay scene séparée
+- [x] Écran de victoire
+- [x] Hot-seat 2 joueurs basique
 
 ### AI
-- [x] IA random (validation que l'API core fonctionne) — combat headless validé, 58 rounds, victoire détectée
+- [x] IA random headless (validation API core, 58 rounds, victoire détectée)
 
 ---
 
-## Phase 1 — Combat fonctionnel
+## Phase 1 — Combat fonctionnel 🎯 *En cours*
 
-- [ ] 4 attaques par Pokemon avec choix
-- [ ] Système de types complet (18 types, tableau d'efficacité)
-- [ ] Calcul de dégâts fidèle (formule Pokemon adaptée)
-- [ ] Plusieurs Pokemon par équipe (2v2, 3v3)
-- [ ] AoE patterns (single, cross, line, circle)
-- [ ] Portée des attaques
-- [ ] Friendly fire actif
-- [ ] Statuts (brûlure, paralysie, gel, poison, sommeil)
-- [ ] Système de KO + countdown (style FFTA)
-- [ ] Système de replay (enregistrement + rejeu)
-- [ ] Hot-seat 2 joueurs
+> But : un combat complet et varié, jouable en hot-seat, avec assez de Pokemon pour tester toutes les mécaniques
+
+### Ce qui est posé (fondations Phase 0)
+Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friendly fire, Move+Act, stat stages (-6/+6), hot-seat basique, 4 Pokemon avec 16 moves.
+
+### Core
+- [ ] KO définitif : corps reste sur la tile, traversable mais non-stoppable (plan 011)
+- [ ] Placement initial configurable (positions de spawn par map/format)
+- [ ] Direction de fin de tour (orientation choisie avant EndTurn)
+- [ ] Plus de moves stat changes (Épée Danse, Groz'Yeux, Abri, etc.)
+- [ ] Plus de moves AoE variés (utiliser les patterns existants avec plus de diversité)
+- [ ] Plus de moves avec portées variées (mêlée, 2-3 tiles, globale)
+- [ ] Statuts volatils : confusion (chance de se frapper soi-même)
+- [ ] Poison grave (dégâts croissants)
+- [ ] Plusieurs Pokemon par équipe (3v3, 4v4, configurable)
+- [ ] Roster élargi (~8-12 Pokemon, couvrant plus de types et mécaniques)
+- [ ] Système de replay (log d'actions déterministe, seed + rejeu)
+
+### Renderer
+- [ ] Placement initial visuel (choix des positions de départ)
+- [ ] Choix de direction en fin de tour
+- [ ] Corps KO visible sur la grille (sprite Faint persistant, alpha réduit)
+- [ ] Feedback visuel des montées/descentes de stats
+- [ ] Feedback visuel des statuts sur les sprites
+- [ ] Prévisualisation des dégâts / portée avant confirmation
 
 ---
 
@@ -60,7 +74,7 @@
 - [ ] Types de terrain (lave, eau, herbe) + modificateurs précision terrain
 - [ ] Interactions type/terrain (Feu immunisé lave, Vol ignore obstacles...)
 - [ ] Modification du terrain par les attaques (Champ Herbeux, etc.)
-- [ ] Orientation des Pokemon (face/dos/côté) + bonus dégâts de dos (style FFTA)
+- [ ] Orientation : bonus dégâts de dos / réduction de face (style FFTA)
 - [ ] Team Builder (import/export format Showdown)
 - [ ] Support manette (Gamepad API)
 
@@ -70,8 +84,9 @@
 
 - [ ] Talents (capacités passives)
 - [ ] Objets tenus
+- [ ] Système CT (FFTA Clock Tick) en remplacement du round-robin (si décidé)
 - [ ] Formules dérivées affinées (Mouvement/Saut/Initiative)
-- [ ] Plus de Pokemon (roster ~30+)
+- [ ] Roster élargi (~30+ Pokemon)
 - [ ] IA heuristique (jouer solo)
 - [ ] IA LLM (Claude comme adversaire)
 - [ ] MCP server pour exposer le moteur
@@ -84,12 +99,13 @@
 
 ## Phase 4 — Polish & Multi
 
-- [ ] Animations fluides (attaque, déplacement, KO)
+- [ ] Animations fluides (attaque par catégorie, déplacement par type)
 - [ ] Effets visuels isométriques (ombres, lumières, particules)
 - [ ] Rotation caméra 4 angles (style FFTA)
+- [ ] Zoom / caméra dynamique avec pan
 - [ ] Hot-seat jusqu'à 12 joueurs
 - [ ] Menu principal (combat rapide + entrée aventure désactivée)
 - [ ] Son / Musique
-- [ ] Migration renderer vers Three.js pour vrai HD-2D (optionnel)
+- [ ] Migration renderer vers Three.js/Babylon.js pour vrai HD-2D (optionnel)
 - [ ] Multijoueur réseau (WebSocket)
 - [ ] Mode histoire / aventure (si décidé)

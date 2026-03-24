@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-24 (Quick fixes post-plan 010 — renderer polish)
+> Dernière mise à jour : 2026-03-24 (Plan 011 — KO body blocking)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -139,8 +139,17 @@
     - Animations de mouvement par type (FlapAround vol, Hop saut)
     - Taille tiles/sprites à revoir quand le système caméra sera en place
 
+- **Plan 011 terminé** — KO body blocking + suppression koCountdown :
+  - `koCountdown` supprimé de `PokemonInstance`, mocks et `BattleSetup`
+  - `handleKo` ne retire plus l'occupant de la grille — le corps reste sur la tile
+  - BFS/`validateMove`/`dashMoveCaster` : un corps KO est traversable mais non-stoppable
+  - Renderer : `playFaintAndStay()` — sprite reste visible (alpha 0.5) au lieu de fadeOut+destroy
+  - `PokemonKo` et `PokemonEliminated` dissociés dans `GameController`
+  - Décisions #24 révisée (KO définitif), #92 (Gen 1), #93 (Second Souffle 1PP)
+  - **249 tests**, 100% coverage
+
 ### Prochaine étape
-- Phase 1 — voir `docs/roadmap.md` : système CT FFTA, countdown KO, roster élargi, ou ajout de terrain (plan à définir)
+- Phase 1 — voir `docs/roadmap.md` : placement initial, direction de fin de tour, plus de moves/Pokemon, statuts volatils (plan à définir)
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type
@@ -154,6 +163,6 @@
 ### Questions ouvertes (non bloquantes pour le POC)
 - Formules dérivées (Mouvement/Saut/Initiative depuis Vitesse+Poids) — Phase 1
 - Movesets POC : Bombe-Beurk trop forte, Salamèche trop faible (feedback game-designer) — Sludge Bomb inflige 112 dégâts sur Pidgey (40 HP), ratio 2.8x à surveiller
-- Countdown KO FFTA (décision #24) — prévu Phase 1, `koCountdown` déjà sur `PokemonInstance`
+- KO définitif avec corps bloquant (décision #24 révisée) — implémenté plan 011
 - Friendly fire fréquent avec IA random (pas de bug, comportement attendu mais à garder en tête pour l'équilibrage)
 - PP system : une IA sans filtre de cible gaspille ses PP — `getLegalActions` peut servir de garde-fou

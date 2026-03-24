@@ -78,7 +78,6 @@ function createPokemonInstance(
     orientation: Direction.South,
     moveIds: [...definition.movepool],
     currentPp,
-    koCountdown: null,
   };
 }
 

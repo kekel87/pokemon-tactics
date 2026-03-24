@@ -618,7 +618,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
   });
 
   describe("handleKo", () => {
-    it("KO removes pokemon from turn order and frees tile", () => {
+    it("KO removes pokemon from turn order but body stays on tile", () => {
       const p1 = fresh(P1, {
         currentHp: 1,
         statusEffects: [{ type: StatusType.Poisoned, remainingTurns: null }],
@@ -636,7 +636,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
 
       expect(p1.currentHp).toBe(0);
-      expect(state.grid[0]?.[0]?.occupantId).toBeNull();
+      expect(state.grid[0]?.[0]?.occupantId).toBe("fast");
       expect(events.some((e) => e.type === BattleEventType.PokemonEliminated)).toBe(true);
       expect(events.some((e) => e.type === BattleEventType.BattleEnded)).toBe(true);
     });
@@ -1300,5 +1300,158 @@ describe("BattleEngine dash move", () => {
     });
 
     expect(state.pokemon.get("attacker")?.orientation).toBe(Direction.South);
+  });
+});
+
+describe("BattleEngine KO body blocking", () => {
+  const dashMove: MoveDefinition = {
+    ...MockValidation.validMove,
+    id: "quick-attack",
+    targeting: { kind: TargetingKind.Dash, maxDistance: 5 },
+  };
+
+  const aoeMove: MoveDefinition = {
+    ...MockValidation.validMove,
+    id: "earthquake",
+    targeting: { kind: TargetingKind.Zone },
+  };
+
+  it("getLegalActions includes a tile beyond a KO body", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      derivedStats: { movement: 3, jump: 1, initiative: 90 },
+    });
+    const koEnemy = fresh(P2, {
+      id: "ko-enemy",
+      position: { x: 1, y: 0 },
+      currentHp: 0,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const state = MockBattle.stateFrom([attacker, koEnemy], 5, 1);
+    const engine = new BattleEngine(state, new Map());
+
+    const destinations = engine
+      .getLegalActions(PlayerId.Player1)
+      .filter((a) => a.kind === ActionKind.Move)
+      .map((a) => (a.kind === ActionKind.Move ? a.path[a.path.length - 1] : null));
+
+    expect(destinations).toContainEqual({ x: 2, y: 0 });
+  });
+
+  it("getLegalActions excludes the tile occupied by a KO body", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      derivedStats: { movement: 3, jump: 1, initiative: 90 },
+    });
+    const koEnemy = fresh(P2, {
+      id: "ko-enemy",
+      position: { x: 1, y: 0 },
+      currentHp: 0,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const state = MockBattle.stateFrom([attacker, koEnemy], 5, 1);
+    const engine = new BattleEngine(state, new Map());
+
+    const destinations = engine
+      .getLegalActions(PlayerId.Player1)
+      .filter((a) => a.kind === ActionKind.Move)
+      .map((a) => (a.kind === ActionKind.Move ? a.path[a.path.length - 1] : null));
+
+    expect(destinations).not.toContainEqual({ x: 1, y: 0 });
+  });
+
+  it("dash traverses a KO body and stops just before a living enemy", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 5 },
+      derivedStats: { movement: 3, jump: 1, initiative: 90 },
+    });
+    const koEnemy = fresh(P2, {
+      id: "ko-enemy",
+      position: { x: 1, y: 0 },
+      currentHp: 0,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const livingEnemy = fresh(P2, {
+      id: "living-enemy",
+      position: { x: 3, y: 0 },
+      derivedStats: { movement: 3, jump: 1, initiative: 5 },
+    });
+    const state = MockBattle.stateFrom([attacker, koEnemy, livingEnemy], 5, 1);
+    const engine = new BattleEngine(state, new Map([["quick-attack", dashMove]]));
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 3, y: 0 },
+    });
+
+    expect(state.pokemon.get("attacker")?.position).toEqual({ x: 2, y: 0 });
+
+    vi.restoreAllMocks();
+  });
+
+  it("dash stops just before a living enemy (unaffected by KO body logic)", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 5 },
+      derivedStats: { movement: 3, jump: 1, initiative: 90 },
+    });
+    const livingEnemy = fresh(P2, {
+      id: "living-enemy",
+      position: { x: 2, y: 0 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const state = MockBattle.stateFrom([attacker, livingEnemy], 5, 1);
+    const engine = new BattleEngine(state, new Map([["quick-attack", dashMove]]));
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    expect(state.pokemon.get("attacker")?.position).toEqual({ x: 1, y: 0 });
+
+    vi.restoreAllMocks();
+  });
+
+  it("AoE move does not deal damage to a KO body on an affected tile", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["earthquake"],
+      currentPp: { earthquake: 10 },
+      derivedStats: { movement: 3, jump: 1, initiative: 90 },
+    });
+    const koEnemy = fresh(P2, {
+      id: "ko-enemy",
+      position: { x: 1, y: 0 },
+      currentHp: 0,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const state = MockBattle.stateFrom([attacker, koEnemy], 5, 5);
+    const engine = new BattleEngine(state, new Map([["earthquake", aoeMove]]));
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "earthquake",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    expect(state.pokemon.get("ko-enemy")?.currentHp).toBe(0);
   });
 });
