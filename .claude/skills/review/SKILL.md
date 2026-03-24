@@ -12,3 +12,4 @@ Lance l'agent `code-reviewer` sur les changements actuels.
 4. Affiche le rapport à l'humain
 
 Si des fichiers dans `packages/core/` ont changé, lance aussi l'agent `core-guardian` en parallèle.
+Si des fichiers dans `packages/renderer/` ont changé, lance aussi l'agent `visual-tester` en parallèle (si le dev server est lancé).

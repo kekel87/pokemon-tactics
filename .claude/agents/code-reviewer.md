@@ -127,3 +127,4 @@ Arrête-toi et signale à l'humain dans ces cas :
 Après la review, suggérer si applicable :
 - `core-guardian` si le diff touche des fichiers dans `packages/core/`
 - `game-designer` si le diff modifie des mécaniques de jeu ou des données dans `packages/data/`
+- `visual-tester` si le diff touche des fichiers dans `packages/renderer/` (et le dev server est lancé)
