@@ -58,7 +58,7 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 | # | Attaque | Type | Cat. | Puiss. | Portée | Pattern | Notes |
 |---|---------|------|------|--------|--------|---------|-------|
 | 1 | Tornade | Vol | Spé | 40 | 1-3 | single | Ranged STAB |
-| 2 | Vive-Attaque | Normal | Phys | 40 | dash 3 | dash | **Dash** : fonce en ligne droite (3 tiles max), frappe le premier ennemi |
+| 2 | Vive-Attaque | Normal | Phys | 40 | dash 2 | dash | **Dash** : fonce en ligne droite (2 tiles max), frappe le premier ennemi — ou se repositionne dans le vide |
 | 3 | Jet de Sable | Sol | Statut | — | 1-2 | cône | -1 Précision, teste le cône |
 | 4 | Cru-Aile | Vol | Phys | 60 | 1 | single | Mêlée puissante STAB |
 

@@ -1,4 +1,4 @@
-import type { PokemonInstance } from "@pokemon-tactic/core";
+import { PlayerId, type PokemonInstance } from "@pokemon-tactic/core";
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
@@ -34,7 +34,7 @@ export class BattleUI {
   }
 
   updateTurnInfo(pokemon: PokemonInstance, playerId: string, roundNumber: number): void {
-    const playerLabel = playerId === "player-1" ? "Player 1" : "Player 2";
+    const playerLabel = playerId === PlayerId.Player1 ? "Player 1" : "Player 2";
     const name = pokemon.definitionId.charAt(0).toUpperCase() + pokemon.definitionId.slice(1);
     this.turnInfoText.setText(`Round ${roundNumber} — ${playerLabel} — ${name}`);
   }
@@ -44,7 +44,7 @@ export class BattleUI {
       return;
     }
 
-    const playerLabel = winnerId === "player-1" ? "Player 1" : "Player 2";
+    const playerLabel = winnerId === PlayerId.Player1 ? "Player 1" : "Player 2";
 
     const overlay = this.scene.add.graphics();
     overlay.fillStyle(0x000000, 0.7);

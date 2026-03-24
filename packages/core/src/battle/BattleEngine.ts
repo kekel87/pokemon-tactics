@@ -1,7 +1,7 @@
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
-import type { Direction } from "../enums/direction";
+import { Direction } from "../enums/direction";
 import type { PokemonType } from "../enums/pokemon-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { Grid } from "../grid/Grid";
@@ -14,7 +14,7 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import type { TraversalContext } from "../types/traversal-context";
 import type { TypeChart } from "../types/type-chart";
-import { directionFromTo } from "../utils/direction";
+import { directionFromTo, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
 import { checkAccuracy } from "./accuracy-check";
 import { processEffects } from "./effect-processor";
@@ -198,8 +198,9 @@ export class BattleEngine {
         );
       case TargetingKind.Cone:
       case TargetingKind.Line:
-      case TargetingKind.Dash:
         return this.getFourDirectionPositions(pokemon.position);
+      case TargetingKind.Dash:
+        return this.getDashPositions(pokemon.position, targeting.maxDistance);
     }
   }
 
@@ -210,6 +211,20 @@ export class BattleEngine {
       { x: origin.x - 1, y: origin.y },
       { x: origin.x + 1, y: origin.y },
     ].filter((p) => this.grid.isInBounds(p));
+  }
+
+  private getDashPositions(origin: Position, maxDistance: number): Position[] {
+    const positions: Position[] = [];
+    for (const direction of [Direction.North, Direction.South, Direction.East, Direction.West]) {
+      for (let step = 1; step <= maxDistance; step++) {
+        const position = stepInDirection(origin, direction, step);
+        if (!this.grid.isInBounds(position)) {
+          break;
+        }
+        positions.push(position);
+      }
+    }
+    return positions;
   }
 
   private executeUseMove(
@@ -324,9 +339,50 @@ export class BattleEngine {
       }
     }
 
+    if (move.targeting.kind === TargetingKind.Dash) {
+      this.dashMoveCaster(pokemon, targetPosition, events);
+    }
+
     this.turnState.hasActed = true;
 
     return { success: true, events };
+  }
+
+  private dashMoveCaster(
+    pokemon: PokemonInstance,
+    targetPosition: Position,
+    events: BattleEvent[],
+  ): void {
+    const direction = directionFromTo(pokemon.position, targetPosition);
+    let destination: Position | null = null;
+    const distance = manhattanDistance(pokemon.position, targetPosition);
+
+    for (let step = 1; step <= distance; step++) {
+      const position = stepInDirection(pokemon.position, direction, step);
+      const occupant = this.grid.getOccupant(position);
+      if (occupant !== null && occupant !== pokemon.id) {
+        break;
+      }
+      destination = position;
+    }
+
+    if (destination === null) {
+      return;
+    }
+
+    const origin = pokemon.position;
+    this.grid.setOccupant(origin, null);
+    this.grid.setOccupant(destination, pokemon.id);
+    pokemon.position = destination;
+    pokemon.orientation = direction;
+
+    const moveEvent: BattleEvent = {
+      type: BattleEventType.PokemonMoved,
+      pokemonId: pokemon.id,
+      path: [destination],
+    };
+    this.emit(moveEvent);
+    events.push(moveEvent);
   }
 
   private getReachableTiles(pokemon: PokemonInstance): ReachableTile[] {

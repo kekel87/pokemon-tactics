@@ -92,6 +92,11 @@
 | 80 | 2026-03-22 | Canvas dans container dédié | **`#game-container`** | Le canvas Phaser est monté dans un div `#game-container` plutôt que directement dans `document.body`. Facilite le layout CSS et l'éventuel resize. |
 | 81 | 2026-03-22 | Depth renderer | **Système centralisé dans `constants.ts`** | Toutes les valeurs de depth (grille, sprites, UI, menus) sont des constantes nommées dans `constants.ts`. Évite les magic numbers et les conflits de rendu entre composants. |
 | 82 | 2026-03-22 | Noms Pokemon dans l'UI | **Capitalisés, retirés des sprites** | Les noms sont capitalisés dans tous les affichages UI. Ils sont retirés au-dessus des sprites (le panel info et la timeline suffisent) pour désencombrer la grille. |
+| 83 | 2026-03-24 | `PlayerId` const enum | **`PlayerId` (Player1/Player2) remplace les string literals** | `"player-1"` / `"player-2"` comparés en dur dans l'UI et le core étaient des string literals fragiles. Remplacés par un const object enum `PlayerId` (`Player1`, `Player2`). Cohérent avec le pattern établi (décision #46). |
+| 84 | 2026-03-24 | Vive-Attaque `maxDistance` | **2 tiles (réduit de 3 à 2)** | La portée de 3 tiles était documentée dans game-design.md et roster-poc.md mais l'implémentation corrigée la fixe à 2. Décision retenue : 2 tiles pour Vive-Attaque. À ajuster pour d'autres moves dash si besoin via le système d'override. |
+| 85 | 2026-03-24 | Dash déplace le caster | **Oui — le caster se déplace vers la case ciblée** | Après un `UseMove` dash, le caster se déplace vers la tile d'impact (ou juste devant un ennemi bloquant). Cela ajoute un repositionnement tactique intrinsèque au dash. |
+| 86 | 2026-03-24 | Dash ne consomme pas `hasMoved` | **Le dash consomme `hasActed`, pas `hasMoved`** | Décision #76 confirmée et précisée : un dash consomme l'Act. Le Move reste disponible après un dash. Move→Dash et Dash→Move sont tous deux permis. Permet un double repositionnement (dash + déplacement). |
+| 87 | 2026-03-24 | Dash dans le vide | **Autorisé — repositionnement sans frappe** | Un dash peut cibler une case vide (aucun ennemi sur le chemin). Le caster se déplace jusqu'à la case ciblée, aucun dégât infligé. Consomme `hasActed` mais pas `hasMoved`. Permet de se repositionner rapidement via une action dash, au coût de l'Act du tour. |
 
 ---
 

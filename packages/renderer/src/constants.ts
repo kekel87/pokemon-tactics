@@ -90,6 +90,7 @@ export const UI_BORDER_ALPHA = 0.3;
 export const UI_BORDER_WIDTH = 1;
 export const UI_BUTTON_CORNER_RADIUS = 4;
 
+export const DEPTH_GRID_HIGHLIGHT = 100;
 export const DEPTH_GRID_CURSOR = 500;
 export const DEPTH_UI_BASE = 1000;
 export const DEPTH_TIMELINE = 1050;

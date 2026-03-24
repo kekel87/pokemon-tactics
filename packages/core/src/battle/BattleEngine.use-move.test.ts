@@ -2,6 +2,7 @@ import { loadData, typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it, vi } from "vitest";
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
+import { PlayerId } from "../enums/player-id";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Category } from "../enums/category";
 import { EffectKind } from "../enums/effect-kind";
@@ -55,7 +56,7 @@ describe("BattleEngine.executeUseMove — valid move hits and deals damage", () 
 
     const attacker = freshPokemon(MockPokemon.bulbasaur, {
       id: "attacker",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       derivedStats: { ...MockPokemon.bulbasaur.derivedStats, initiative: 100 },
       moveIds: ["razor-leaf"],
@@ -63,7 +64,7 @@ describe("BattleEngine.executeUseMove — valid move hits and deals damage", () 
     });
     const defender = freshPokemon(MockPokemon.charmander, {
       id: "defender",
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       derivedStats: { ...MockPokemon.charmander.derivedStats, initiative: 10 },
     });
@@ -80,7 +81,7 @@ describe("BattleEngine.executeUseMove — valid move hits and deals damage", () 
 
     vi.spyOn(Math, "random").mockReturnValue(0);
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "razor-leaf",
@@ -116,7 +117,7 @@ describe("BattleEngine.executeUseMove — no PP left", () => {
 
     const attacker = freshPokemon(MockPokemon.charmander, {
       id: "attacker",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       derivedStats: HIGH_INIT,
       moveIds: ["scratch"],
@@ -124,7 +125,7 @@ describe("BattleEngine.executeUseMove — no PP left", () => {
     });
     const defender = freshPokemon(MockPokemon.bulbasaur, {
       id: "defender",
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       derivedStats: LOW_INIT,
     });
@@ -132,7 +133,7 @@ describe("BattleEngine.executeUseMove — no PP left", () => {
     const state = MockBattle.stateFrom([attacker, defender]);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "scratch",
@@ -148,21 +149,21 @@ describe("BattleEngine.executeUseMove — unknown move", () => {
   it("rejects the action with UnknownMove when the moveId is not in the registry", () => {
     const attacker = freshPokemon(MockPokemon.charmander, {
       id: "attacker",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["nonexistent-move"],
       currentPp: { "nonexistent-move": 10 },
     });
     const defender = freshPokemon(MockPokemon.bulbasaur, {
       id: "defender",
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
     });
 
     const state = MockBattle.stateFrom([attacker, defender]);
     const engine = new BattleEngine(state, new Map(), typeChart, pokemonTypes);
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "nonexistent-move",
@@ -185,21 +186,21 @@ describe("BattleEngine.executeUseMove — target out of range", () => {
 
     const attacker = freshPokemon(MockPokemon.charmander, {
       id: "attacker",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
       currentPp: { scratch: 35 },
     });
     const defender = freshPokemon(MockPokemon.bulbasaur, {
       id: "defender",
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 3, y: 0 },
     });
 
     const state = MockBattle.stateFrom([attacker, defender]);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "scratch",
@@ -218,7 +219,7 @@ describe("BattleEngine.executeUseMove — status move hits", () => {
 
     const attacker = freshPokemon(MockPokemon.bulbasaur, {
       id: "attacker",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       derivedStats: HIGH_INIT,
       moveIds: ["sleep-powder"],
@@ -226,7 +227,7 @@ describe("BattleEngine.executeUseMove — status move hits", () => {
     });
     const defender = freshPokemon(MockPokemon.charmander, {
       id: "defender",
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       derivedStats: LOW_INIT,
     });
@@ -236,7 +237,7 @@ describe("BattleEngine.executeUseMove — status move hits", () => {
 
     vi.spyOn(Math, "random").mockReturnValue(0);
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "sleep-powder",
@@ -277,7 +278,7 @@ describe("BattleEngine.executeUseMove — AoE cross hits multiple targets", () =
 
     const attacker = freshPokemon(MockPokemon.bulbasaur, {
       id: "attacker",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       derivedStats: HIGH_INIT,
       moveIds: ["bubble-beam"],
@@ -285,13 +286,13 @@ describe("BattleEngine.executeUseMove — AoE cross hits multiple targets", () =
     });
     const targetNorth = freshPokemon(MockPokemon.charmander, {
       id: "target-north",
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 2, y: 1 },
       derivedStats: LOW_INIT,
     });
     const targetSouth = freshPokemon(MockPokemon.charmander, {
       id: "target-south",
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 2, y: 3 },
       derivedStats: LOW_INIT,
     });
@@ -299,7 +300,7 @@ describe("BattleEngine.executeUseMove — AoE cross hits multiple targets", () =
     const state = MockBattle.stateFrom([attacker, targetNorth, targetSouth], 5, 5);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "bubble-beam",
@@ -335,7 +336,7 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
 
     const attacker = freshPokemon(MockPokemon.bulbasaur, {
       id: "attacker",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       derivedStats: HIGH_INIT,
       moveIds: ["bubble-beam"],
@@ -343,13 +344,13 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
     });
     const ally = freshPokemon(MockPokemon.bulbasaur, {
       id: "ally",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 2, y: 1 },
       derivedStats: LOW_INIT,
     });
     const enemy = freshPokemon(MockPokemon.charmander, {
       id: "enemy",
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 2, y: 3 },
       derivedStats: LOW_INIT,
     });
@@ -357,7 +358,7 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
     const state = MockBattle.stateFrom([attacker, ally, enemy], 5, 5);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "bubble-beam",
@@ -394,7 +395,7 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
 
     const attacker = freshPokemon(MockPokemon.bulbasaur, {
       id: "attacker",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       derivedStats: HIGH_INIT,
       moveIds: ["sludge-bomb"],
@@ -402,7 +403,7 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
     });
     const ally = freshPokemon(MockPokemon.bulbasaur, {
       id: "ally",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 3, y: 1 },
       derivedStats: LOW_INIT,
     });
@@ -410,7 +411,7 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
     const state = MockBattle.stateFrom([attacker, ally], 5, 5);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "sludge-bomb",
@@ -437,7 +438,7 @@ describe("BattleEngine.executeUseMove — miss", () => {
 
     const attacker = freshPokemon(MockPokemon.bulbasaur, {
       id: "attacker",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       derivedStats: { ...MockPokemon.bulbasaur.derivedStats, initiative: 100 },
       moveIds: ["razor-leaf"],
@@ -445,7 +446,7 @@ describe("BattleEngine.executeUseMove — miss", () => {
     });
     const defender = freshPokemon(MockPokemon.charmander, {
       id: "defender",
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       derivedStats: { ...MockPokemon.charmander.derivedStats, initiative: 10 },
     });
@@ -459,7 +460,7 @@ describe("BattleEngine.executeUseMove — miss", () => {
 
     vi.spyOn(Math, "random").mockReturnValue(0.99);
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "razor-leaf",

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
+import { PlayerId } from "../enums/player-id";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Category } from "../enums/category";
 import { Direction } from "../enums/direction";
@@ -24,7 +25,7 @@ describe("BattleEngine", () => {
     const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    const gameState = engine.getGameState("player-1");
+    const gameState = engine.getGameState(PlayerId.Player1);
     expect(gameState.pokemon.size).toBe(2);
     expect(gameState.roundNumber).toBe(1);
   });
@@ -33,7 +34,7 @@ describe("BattleEngine", () => {
     const state = MockBattle.stateFrom([fresh(P2), fresh(P1)]);
     const engine = new BattleEngine(state, new Map());
 
-    const gameState = engine.getGameState("player-1");
+    const gameState = engine.getGameState(PlayerId.Player1);
     expect(gameState.turnOrder).toEqual(["fast", "slow"]);
     expect(gameState.currentTurnIndex).toBe(0);
   });
@@ -45,7 +46,7 @@ describe("BattleEngine", () => {
     const events: BattleEvent[] = [];
     engine.on(BattleEventType.TurnEnded, (event) => events.push(event));
 
-    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
 
     const turnEndedEvents = events.filter((e) => e.type === BattleEventType.TurnEnded);
     expect(turnEndedEvents.length).toBe(1);
@@ -59,7 +60,7 @@ describe("BattleEngine", () => {
     engine.on(BattleEventType.TurnEnded, handler);
     engine.off(BattleEventType.TurnEnded, handler);
 
-    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
 
     expect(handler).not.toHaveBeenCalled();
   });
@@ -71,7 +72,7 @@ describe("BattleEngine.getLegalActions", () => {
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    const actions = engine.getLegalActions("player-1");
+    const actions = engine.getLegalActions(PlayerId.Player1);
     expect(actions.filter((a) => a.kind === ActionKind.EndTurn).length).toBe(1);
     expect(actions.filter((a) => a.kind === ActionKind.Move).length).toBeGreaterThan(0);
   });
@@ -82,7 +83,7 @@ describe("BattleEngine.getLegalActions", () => {
     const engine = new BattleEngine(state, new Map());
 
     const moveActions = engine
-      .getLegalActions("player-1")
+      .getLegalActions(PlayerId.Player1)
       .filter((a) => a.kind === ActionKind.Move);
 
     expect(moveActions.length).toBeGreaterThan(0);
@@ -96,7 +97,7 @@ describe("BattleEngine.getLegalActions", () => {
     const engine = new BattleEngine(state, new Map());
 
     const destinations = engine
-      .getLegalActions("player-1")
+      .getLegalActions(PlayerId.Player1)
       .filter((a) => a.kind === ActionKind.Move)
       .map((a) => (a.kind === ActionKind.Move ? a.path[a.path.length - 1] : null));
 
@@ -117,7 +118,7 @@ describe("BattleEngine.getLegalActions", () => {
     const engine = new BattleEngine(state, new Map());
 
     const destinations = engine
-      .getLegalActions("player-1")
+      .getLegalActions(PlayerId.Player1)
       .filter((a) => a.kind === ActionKind.Move)
       .map((a) => (a.kind === ActionKind.Move ? a.path[a.path.length - 1] : null));
 
@@ -134,7 +135,7 @@ describe("BattleEngine.getLegalActions", () => {
     const engine = new BattleEngine(state, new Map());
 
     const destinations = engine
-      .getLegalActions("player-1")
+      .getLegalActions(PlayerId.Player1)
       .filter((a) => a.kind === ActionKind.Move)
       .map((a) => (a.kind === ActionKind.Move ? a.path[a.path.length - 1] : null));
 
@@ -149,7 +150,7 @@ describe("BattleEngine.getLegalActions", () => {
     const engine = new BattleEngine(state, new Map());
 
     expect(
-      engine.getLegalActions("player-1").filter((a) => a.kind === ActionKind.Move).length,
+      engine.getLegalActions(PlayerId.Player1).filter((a) => a.kind === ActionKind.Move).length,
     ).toBe(0);
   });
 
@@ -157,7 +158,7 @@ describe("BattleEngine.getLegalActions", () => {
     const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    expect(engine.getLegalActions("player-2")).toEqual([]);
+    expect(engine.getLegalActions(PlayerId.Player2)).toEqual([]);
   });
 });
 
@@ -166,7 +167,7 @@ describe("BattleEngine.submitAction validation", () => {
     const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-2", {
+    const result = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.EndTurn,
       pokemonId: "fast",
     });
@@ -178,7 +179,7 @@ describe("BattleEngine.submitAction validation", () => {
     const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "fast",
       moveId: "nonexistent",
@@ -195,7 +196,7 @@ describe("BattleEngine.submitAction move", () => {
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [
@@ -217,7 +218,7 @@ describe("BattleEngine.submitAction move", () => {
     const events: BattleEvent[] = [];
     engine.on(BattleEventType.PokemonMoved, (e) => events.push(e));
 
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [{ x: 1, y: 0 }],
@@ -232,7 +233,7 @@ describe("BattleEngine.submitAction move", () => {
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [{ x: 0, y: 1 }],
@@ -246,7 +247,7 @@ describe("BattleEngine.submitAction move", () => {
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [
@@ -263,7 +264,7 @@ describe("BattleEngine.submitAction move", () => {
     const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "slow",
       path: [{ x: 3, y: 4 }],
@@ -276,7 +277,7 @@ describe("BattleEngine.submitAction move", () => {
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [{ x: 2, y: 0 }],
@@ -290,7 +291,7 @@ describe("BattleEngine.submitAction move", () => {
     const state = MockBattle.stateFrom([mover, enemy], 5, 1);
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [
@@ -308,7 +309,7 @@ describe("BattleEngine.submitAction move", () => {
     engine.on(BattleEventType.TurnStarted, (e) => events.push(e));
     engine.on(BattleEventType.TurnEnded, (e) => events.push(e));
 
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "fast",
       path: [{ x: 1, y: 0 }],
@@ -323,12 +324,12 @@ describe("BattleEngine.submitAction move", () => {
     const events: BattleEvent[] = [];
     engine.on(BattleEventType.TurnStarted, (e) => events.push(e));
 
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "fast",
       path: [{ x: 1, y: 0 }],
     });
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "fast",
     });
@@ -343,8 +344,8 @@ describe("BattleEngine.submitAction move", () => {
     const engine = new BattleEngine(state, new Map());
 
     expect(state.roundNumber).toBe(1);
-    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
-    engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
+    engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
     expect(state.roundNumber).toBe(2);
   });
 
@@ -359,7 +360,7 @@ describe("BattleEngine.submitAction move", () => {
     const state = MockBattle.stateFrom([mover, ally, enemy]);
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [
@@ -376,7 +377,7 @@ describe("BattleEngine.submitAction move", () => {
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [],
@@ -390,7 +391,7 @@ describe("BattleEngine.submitAction move", () => {
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [{ x: -1, y: 0 }],
@@ -405,7 +406,7 @@ describe("BattleEngine.submitAction move", () => {
     MockBattle.setTile(state, 1, 0, { isPassable: false });
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [{ x: 1, y: 0 }],
@@ -420,7 +421,7 @@ describe("BattleEngine.submitAction move", () => {
     MockBattle.setTile(state, 1, 0, { height: 3 });
     const engine = new BattleEngine(state, new Map());
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [{ x: 1, y: 0 }],
@@ -434,8 +435,8 @@ describe("BattleEngine.submitAction move", () => {
     const engine = new BattleEngine(state, new Map());
 
     for (let round = 0; round < 3; round++) {
-      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
-      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
     }
     expect(state.roundNumber).toBe(4);
   });
@@ -483,7 +484,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
     const engine = new BattleEngine(state, registry);
 
     const useMoveActions = engine
-      .getLegalActions("player-1")
+      .getLegalActions(PlayerId.Player1)
       .filter((a) => a.kind === ActionKind.UseMove);
 
     expect(useMoveActions.length).toBeGreaterThan(0);
@@ -504,7 +505,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
     const engine = new BattleEngine(state, registry);
 
     const useMoveActions = engine
-      .getLegalActions("player-1")
+      .getLegalActions(PlayerId.Player1)
       .filter((a) => a.kind === ActionKind.UseMove);
 
     expect(useMoveActions.length).toBe(0);
@@ -522,7 +523,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
     const engine = new BattleEngine(state, registry);
 
     const targets = engine
-      .getLegalActions("player-1")
+      .getLegalActions(PlayerId.Player1)
       .filter(
         (a): a is Extract<typeof a, { kind: typeof ActionKind.UseMove }> =>
           a.kind === ActionKind.UseMove,
@@ -546,7 +547,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
     const engine = new BattleEngine(state, registry);
 
     const useMoveActions = engine
-      .getLegalActions("player-1")
+      .getLegalActions(PlayerId.Player1)
       .filter((a) => a.kind === ActionKind.UseMove);
 
     expect(useMoveActions.length).toBe(1);
@@ -567,13 +568,13 @@ describe("BattleEngine.getLegalActions — use_move", () => {
     const engine = new BattleEngine(state, registry);
 
     const useMoveActions = engine
-      .getLegalActions("player-1")
+      .getLegalActions(PlayerId.Player1)
       .filter((a) => a.kind === ActionKind.UseMove);
 
     expect(useMoveActions.length).toBe(4);
   });
 
-  it("returns 4 directional actions for dash-targeting move", () => {
+  it("returns actions for all reachable tiles in 4 directions for dash-targeting move", () => {
     const registry = new Map([["quick-attack", dashMove]]);
     const mover = fresh(P1, {
       id: "mover",
@@ -585,10 +586,10 @@ describe("BattleEngine.getLegalActions — use_move", () => {
     const engine = new BattleEngine(state, registry);
 
     const useMoveActions = engine
-      .getLegalActions("player-1")
+      .getLegalActions(PlayerId.Player1)
       .filter((a) => a.kind === ActionKind.UseMove);
 
-    expect(useMoveActions.length).toBe(4);
+    expect(useMoveActions.length).toBe(8);
   });
 
   it("lists use_move for multiple moves with PP", () => {
@@ -606,7 +607,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
     const engine = new BattleEngine(state, registry);
 
     const useMoveActions = engine
-      .getLegalActions("player-1")
+      .getLegalActions(PlayerId.Player1)
       .filter((a) => a.kind === ActionKind.UseMove);
 
     const moveIds = [
@@ -631,8 +632,8 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
 
       // P1 (fast) skips → P2 (slow) skips → round 2 → P1 turn starts → poison KO
-      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
-      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
 
       expect(p1.currentHp).toBe(0);
       expect(state.grid[0]?.[0]?.occupantId).toBeNull();
@@ -671,8 +672,8 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.LinkBroken, (e) => events.push(e));
 
       // P1 skips → P2 skips → round 2 → P1 turn starts → poison KO → links break
-      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
-      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
 
       expect(state.activeLinks).toHaveLength(0);
       const linkBrokenEvents = events.filter((e) => e.type === BattleEventType.LinkBroken);
@@ -688,7 +689,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       });
       const p1b = fresh(P1, {
         id: "p1-medium",
-        playerId: "player-1",
+        playerId: PlayerId.Player1,
         position: { x: 2, y: 0 },
         derivedStats: { movement: 3, jump: 1, initiative: 50 },
       });
@@ -703,9 +704,9 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
 
       // Round 1: p1-fast skips, p1-medium skips, p2 skips
-      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "p1-fast" });
-      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "p1-medium" });
-      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "p1-fast" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "p1-medium" });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
 
       // Round 2: p1-fast starts → poison KO → battle continues (p1-medium alive)
       expect(p1.currentHp).toBe(0);
@@ -743,7 +744,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
 
       // Source skips → target's turn → sleep skip → EndTurn drain → target KO
-      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "source" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "source" });
 
       expect(target.currentHp).toBe(0);
       expect(events.some((e) => e.type === BattleEventType.PokemonKo)).toBe(true);
@@ -762,11 +763,11 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       const engine = new BattleEngine(state, new Map());
 
       // Both skip → round 2 → P1 poison KO → battle over
-      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
-      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
 
-      expect(engine.getLegalActions("player-1")).toEqual([]);
-      expect(engine.getLegalActions("player-2")).toEqual([]);
+      expect(engine.getLegalActions(PlayerId.Player1)).toEqual([]);
+      expect(engine.getLegalActions(PlayerId.Player2)).toEqual([]);
     });
 
     it("submitAction returns BattleOver error after battle ends", () => {
@@ -779,10 +780,10 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       const engine = new BattleEngine(state, new Map());
 
       // Both skip → round 2 → P1 poison KO → battle over
-      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "fast" });
-      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
 
-      const result = engine.submitAction("player-2", {
+      const result = engine.submitAction(PlayerId.Player2, {
         kind: ActionKind.EndTurn,
         pokemonId: "slow",
       });
@@ -809,14 +810,14 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
     const state = MockBattle.stateFrom([attacker, target], 5, 1);
     const engine = new BattleEngine(state, new Map([["tackle", singleMove]]));
 
-    const moveResult = engine.submitAction("player-1", {
+    const moveResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "attacker",
       path: [{ x: 1, y: 0 }],
     });
     expect(moveResult.success).toBe(true);
 
-    const useMoveResult = engine.submitAction("player-1", {
+    const useMoveResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "tackle",
@@ -843,7 +844,7 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
 
     vi.spyOn(Math, "random").mockReturnValue(0);
 
-    const useMoveResult = engine.submitAction("player-1", {
+    const useMoveResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "tackle",
@@ -851,7 +852,7 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
     });
     expect(useMoveResult.success).toBe(true);
 
-    const moveResult = engine.submitAction("player-1", {
+    const moveResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "attacker",
       path: [{ x: 0, y: 0 }],
@@ -866,13 +867,13 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
     const state = MockBattle.stateFrom([mover, fresh(P2)], 5, 1);
     const engine = new BattleEngine(state, new Map());
 
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [{ x: 1, y: 0 }],
     });
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "mover",
       path: [{ x: 2, y: 0 }],
@@ -899,14 +900,14 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
 
     vi.spyOn(Math, "random").mockReturnValue(0);
 
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "tackle",
       targetPosition: { x: 2, y: 0 },
     });
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "tackle",
@@ -924,7 +925,7 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
     const events: BattleEvent[] = [];
     engine.on(BattleEventType.TurnStarted, (e) => events.push(e));
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "fast",
     });
@@ -938,7 +939,7 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, new Map());
 
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "mover",
       direction: Direction.West,
@@ -963,13 +964,13 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
     const state = MockBattle.stateFrom([attacker, target], 5, 1);
     const engine = new BattleEngine(state, new Map([["tackle", singleMove]]));
 
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "attacker",
       path: [{ x: 1, y: 0 }],
     });
 
-    const actions = engine.getLegalActions("player-1");
+    const actions = engine.getLegalActions(PlayerId.Player1);
     expect(actions.filter((a) => a.kind === ActionKind.Move)).toHaveLength(0);
     expect(actions.filter((a) => a.kind === ActionKind.UseMove).length).toBeGreaterThan(0);
     expect(actions.filter((a) => a.kind === ActionKind.EndTurn)).toHaveLength(1);
@@ -993,14 +994,14 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
 
     vi.spyOn(Math, "random").mockReturnValue(0);
 
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "tackle",
       targetPosition: { x: 2, y: 0 },
     });
 
-    const actions = engine.getLegalActions("player-1");
+    const actions = engine.getLegalActions(PlayerId.Player1);
     expect(actions.filter((a) => a.kind === ActionKind.UseMove)).toHaveLength(0);
     expect(actions.filter((a) => a.kind === ActionKind.Move).length).toBeGreaterThan(0);
     expect(actions.filter((a) => a.kind === ActionKind.EndTurn)).toHaveLength(1);
@@ -1026,22 +1027,278 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
 
     vi.spyOn(Math, "random").mockReturnValue(0);
 
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: "attacker",
       path: [{ x: 1, y: 0 }],
     });
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
       moveId: "tackle",
       targetPosition: { x: 2, y: 0 },
     });
 
-    const actions = engine.getLegalActions("player-1");
+    const actions = engine.getLegalActions(PlayerId.Player1);
     expect(actions).toHaveLength(1);
     expect(actions[0]?.kind).toBe(ActionKind.EndTurn);
 
     vi.restoreAllMocks();
+  });
+});
+
+describe("BattleEngine dash move", () => {
+  const dashMove: MoveDefinition = {
+    ...MockValidation.validMove,
+    id: "quick-attack",
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+  };
+
+  const dashRegistry = new Map([["quick-attack", dashMove]]);
+
+  it("moves caster to the targeted empty tile", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 30 },
+    });
+    const state = MockBattle.stateFrom([attacker, fresh(P2)]);
+    const engine = new BattleEngine(state, dashRegistry);
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get("attacker")?.position).toEqual({ x: 2, y: 0 });
+  });
+
+  it("frees the origin tile and occupies the destination tile in the grid", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 30 },
+    });
+    const state = MockBattle.stateFrom([attacker, fresh(P2)]);
+    const engine = new BattleEngine(state, dashRegistry);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    expect(state.grid[0]?.[0]?.occupantId).toBeNull();
+    expect(state.grid[0]?.[2]?.occupantId).toBe("attacker");
+  });
+
+  it("emits PokemonMoved event with caster id and destination", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 30 },
+    });
+    const state = MockBattle.stateFrom([attacker, fresh(P2)]);
+    const engine = new BattleEngine(state, dashRegistry);
+
+    const events: BattleEvent[] = [];
+    engine.on(BattleEventType.PokemonMoved, (e) => events.push(e));
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    const movedEvents = events.filter((e) => e.type === BattleEventType.PokemonMoved);
+    expect(movedEvents.length).toBe(1);
+    expect(movedEvents[0]).toMatchObject({
+      type: BattleEventType.PokemonMoved,
+      pokemonId: "attacker",
+      path: [{ x: 2, y: 0 }],
+    });
+  });
+
+  it("stops just before an enemy on the path and attacks the enemy", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 30 },
+    });
+    const enemy = fresh(P2, { id: "enemy", position: { x: 2, y: 0 } });
+    const state = MockBattle.stateFrom([attacker, enemy], 5, 1);
+    const engine = new BattleEngine(state, dashRegistry);
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    expect(state.pokemon.get("attacker")?.position).toEqual({ x: 1, y: 0 });
+
+    vi.restoreAllMocks();
+  });
+
+  it("does not move caster when enemy is directly adjacent (no room to stop before)", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 30 },
+    });
+    const enemy = fresh(P2, { id: "enemy", position: { x: 1, y: 0 } });
+    const state = MockBattle.stateFrom([attacker, enemy], 5, 1);
+    const engine = new BattleEngine(state, dashRegistry);
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    expect(state.pokemon.get("attacker")?.position).toEqual({ x: 0, y: 0 });
+
+    vi.restoreAllMocks();
+  });
+
+  it("does not emit PokemonMoved when caster cannot advance", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 30 },
+    });
+    const enemy = fresh(P2, { id: "enemy", position: { x: 1, y: 0 } });
+    const state = MockBattle.stateFrom([attacker, enemy], 5, 1);
+    const engine = new BattleEngine(state, dashRegistry);
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const events: BattleEvent[] = [];
+    engine.on(BattleEventType.PokemonMoved, (e) => events.push(e));
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    expect(events.filter((e) => e.type === BattleEventType.PokemonMoved)).toHaveLength(0);
+
+    vi.restoreAllMocks();
+  });
+
+  it("consumes hasActed — cannot use another move after dash", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 30 },
+    });
+    const state = MockBattle.stateFrom([attacker, fresh(P2)]);
+    const engine = new BattleEngine(state, dashRegistry);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 3, y: 0 },
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe(ActionError.AlreadyActed);
+  });
+
+  it("does not consume hasMoved — caster can still move after dash", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 30 },
+    });
+    const state = MockBattle.stateFrom([attacker, fresh(P2)]);
+    const engine = new BattleEngine(state, dashRegistry);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    const moveResult = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.Move,
+      pokemonId: "attacker",
+      path: [{ x: 2, y: 1 }],
+    });
+
+    expect(moveResult.success).toBe(true);
+  });
+
+  it("getLegalActions after dash excludes UseMove but includes Move", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 30 },
+    });
+    const state = MockBattle.stateFrom([attacker, fresh(P2)]);
+    const engine = new BattleEngine(state, dashRegistry);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    const actions = engine.getLegalActions(PlayerId.Player1);
+    expect(actions.filter((a) => a.kind === ActionKind.UseMove)).toHaveLength(0);
+    expect(actions.filter((a) => a.kind === ActionKind.Move).length).toBeGreaterThan(0);
+    expect(actions.filter((a) => a.kind === ActionKind.EndTurn)).toHaveLength(1);
+  });
+
+  it("updates caster orientation toward target after dash", () => {
+    const attacker = fresh(P1, {
+      id: "attacker",
+      position: { x: 0, y: 0 },
+      moveIds: ["quick-attack"],
+      currentPp: { "quick-attack": 30 },
+    });
+    const state = MockBattle.stateFrom([attacker, fresh(P2)]);
+    const engine = new BattleEngine(state, dashRegistry);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "quick-attack",
+      targetPosition: { x: 0, y: 2 },
+    });
+
+    expect(state.pokemon.get("attacker")?.orientation).toBe(Direction.South);
   });
 });

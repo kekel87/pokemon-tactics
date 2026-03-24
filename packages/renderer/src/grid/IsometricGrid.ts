@@ -7,6 +7,7 @@ import {
   CURSOR_PULSE_MIN_ALPHA,
   CURSOR_STROKE_WIDTH,
   DEPTH_GRID_CURSOR,
+  DEPTH_GRID_HIGHLIGHT,
   GRID_SIZE,
   TILE_FILL_COLOR,
   TILE_HEIGHT,
@@ -16,7 +17,7 @@ import {
   TILE_STROKE_WIDTH,
   TILE_WIDTH,
 } from "../constants";
-import type { HighlightKind } from "../enums/highlight-kind";
+import { HighlightKind } from "../enums/highlight-kind";
 
 interface ScreenPosition {
   x: number;
@@ -36,6 +37,7 @@ export class IsometricGrid {
     this.scene = scene;
     this.tileGraphics = scene.add.graphics();
     this.highlightGraphics = scene.add.graphics();
+    this.highlightGraphics.setDepth(DEPTH_GRID_HIGHLIGHT);
     this.cursorGraphics = scene.add.graphics();
     this.cursorGraphics.setDepth(DEPTH_GRID_CURSOR);
 

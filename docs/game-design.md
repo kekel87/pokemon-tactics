@@ -165,12 +165,15 @@ Le Pokemon **se déplace en ligne droite** sur X tiles et frappe le premier enne
 
 **Propriétés d'une attaque Dash :**
 - Direction : 4 directions (pas de diagonale)
-- Distance max : variable par attaque (ex: Vive-Attaque = 3 tiles, Vitesse Extrême = 5 tiles)
-- Frappe le **premier ennemi** sur le chemin
-- Le lanceur s'arrête **à côté** de la cible après l'impact
+- Distance max : variable par attaque (ex: Vive-Attaque = 2 tiles, Vitesse Extrême = 5 tiles)
+- Frappe le **premier ennemi** sur le chemin — le lanceur s'arrête **à côté** de la cible après l'impact
+- **Cible valide** : toutes les cases dans les 4 directions jusqu'à `maxDistance` (pas seulement les cases occupées par un ennemi)
+- **Dash dans le vide** : si aucun ennemi sur le chemin, le caster se déplace jusqu'à la case ciblée sans frapper. Consomme l'Act, pas le Move.
+- **Le lanceur est repositionné** après tout dash (frappe ou non)
+- Ne consomme **pas** `hasMoved` — le Pokemon peut encore se déplacer après un dash
 - **Traverse les alliés** (comme le déplacement normal), bloqué par les ennemis et obstacles
 
-> Ça ouvre des possibilités tactiques : fermer un gap, foncer à travers une ouverture, fuir + frapper dans la direction de fuite... Les alliés peuvent body-blocker un dash ennemi.
+> Ça ouvre des possibilités tactiques : fermer un gap, foncer à travers une ouverture, fuir + frapper dans la direction de fuite, ou se repositionner rapidement dans le vide. Les alliés peuvent body-blocker un dash ennemi.
 
 ---
 
