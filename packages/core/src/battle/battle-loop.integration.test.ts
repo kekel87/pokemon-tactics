@@ -2,6 +2,7 @@ import { loadData } from "@pokemon-tactic/data";
 import { describe, expect, it, vi } from "vitest";
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
+import { PlayerId } from "../enums/player-id";
 import { BattleEventType } from "../enums/battle-event-type";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
@@ -38,11 +39,11 @@ describe("Battle loop integration", () => {
    */
   it("poison kills over multiple rounds", () => {
     const charmander = MockPokemon.fresh(MockPokemon.charmander, {
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
     });
     const bulbasaur = MockPokemon.fresh(MockPokemon.bulbasaur, {
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 7, y: 7 },
       statusEffects: [{ type: StatusType.Poisoned, remainingTurns: null }],
     });
@@ -57,17 +58,17 @@ describe("Battle loop integration", () => {
     const turnsToKill = Math.ceil(bulbasaur.currentHp / poisonDamage);
 
     for (let i = 0; i < turnsToKill + 5; i++) {
-      const actions = engine.getLegalActions("player-1");
+      const actions = engine.getLegalActions(PlayerId.Player1);
       if (actions.length === 0) {
         break;
       }
-      engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
 
-      const actions2 = engine.getLegalActions("player-2");
+      const actions2 = engine.getLegalActions(PlayerId.Player2);
       if (actions2.length === 0) {
         break;
       }
-      engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "bulbasaur-1" });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "bulbasaur-1" });
     }
 
     expect(bulbasaur.currentHp).toBe(0);
@@ -78,10 +79,10 @@ describe("Battle loop integration", () => {
       (e): e is Extract<BattleEvent, { type: typeof BattleEventType.BattleEnded }> =>
         e.type === BattleEventType.BattleEnded,
     );
-    expect(battleEnded?.winnerId).toBe("player-1");
+    expect(battleEnded?.winnerId).toBe(PlayerId.Player1);
 
-    expect(engine.getLegalActions("player-1")).toEqual([]);
-    expect(engine.getLegalActions("player-2")).toEqual([]);
+    expect(engine.getLegalActions(PlayerId.Player1)).toEqual([]);
+    expect(engine.getLegalActions(PlayerId.Player2)).toEqual([]);
   });
 
   /**
@@ -109,14 +110,14 @@ describe("Battle loop integration", () => {
       .mockReturnValue(0); // default for remaining calls (accuracy, etc.)
 
     const bulbasaur = MockPokemon.fresh(MockPokemon.bulbasaur, {
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 3, y: 3 },
       currentHp: 30,
       maxHp: 45,
       derivedStats: { movement: 3, jump: 1, initiative: 70 },
     });
     const charmander = MockPokemon.fresh(MockPokemon.charmander, {
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 4, y: 3 },
       derivedStats: { movement: 3, jump: 1, initiative: 50 },
     });
@@ -125,7 +126,7 @@ describe("Battle loop integration", () => {
 
     // Round 1: Bulbasaur uses Sleep Powder on Charmander
     expect(state.turnOrder[0]).toBe("bulbasaur-1");
-    const sleepResult = engine.submitAction("player-1", {
+    const sleepResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "bulbasaur-1",
       moveId: "sleep-powder",
@@ -136,13 +137,13 @@ describe("Battle loop integration", () => {
 
     // EndTurn for Bulbasaur → Charmander's turn is auto-skipped (sleep)
     // Round 2 starts — Bulbasaur's turn again
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "bulbasaur-1",
     });
 
     // Round 2: Bulbasaur uses Leech Seed
-    const leechResult = engine.submitAction("player-1", {
+    const leechResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "bulbasaur-1",
       moveId: "leech-seed",
@@ -152,7 +153,7 @@ describe("Battle loop integration", () => {
     expect(state.activeLinks.length).toBeGreaterThanOrEqual(1);
 
     // EndTurn for Bulbasaur → drain happens during EndTurn pipeline
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "bulbasaur-1",
     });
@@ -178,12 +179,12 @@ describe("Battle loop integration", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 
     const charmander = MockPokemon.fresh(MockPokemon.charmander, {
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
     const bulbasaur = MockPokemon.fresh(MockPokemon.bulbasaur, {
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 7, y: 7 },
       statusEffects: [{ type: StatusType.Paralyzed, remainingTurns: null }],
       derivedStats: { movement: 3, jump: 1, initiative: 80 },
@@ -192,10 +193,10 @@ describe("Battle loop integration", () => {
     const { engine } = buildEngine([charmander, bulbasaur]);
 
     // Charmander plays first (initiative 90 > 80), skip
-    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
 
     // Bulbasaur's turn — paralysis procs (Math.random = 0 < 0.25)
-    const actions = engine.getLegalActions("player-2");
+    const actions = engine.getLegalActions(PlayerId.Player2);
 
     const moveActions = actions.filter((a) => a.kind === ActionKind.Move);
     expect(moveActions).toHaveLength(0);
@@ -224,7 +225,7 @@ describe("Battle loop integration", () => {
     const pokemonA = MockPokemon.fresh(MockPokemon.charmander, {
       id: "pokemon-a",
       definitionId: "test",
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       statusEffects: [],
@@ -232,7 +233,7 @@ describe("Battle loop integration", () => {
     const pokemonB = MockPokemon.fresh(MockPokemon.bulbasaur, {
       id: "pokemon-b",
       definitionId: "test",
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 7, y: 7 },
       derivedStats: { movement: 3, jump: 1, initiative: 80 },
       statusEffects: [],
@@ -247,8 +248,8 @@ describe("Battle loop integration", () => {
     pokemonA.statusEffects = [{ type: StatusType.Paralyzed, remainingTurns: null }];
 
     // Skip both turns to advance to round 2
-    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "pokemon-a" });
-    engine.submitAction("player-2", { kind: ActionKind.EndTurn, pokemonId: "pokemon-b" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "pokemon-a" });
+    engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "pokemon-b" });
 
     // Round 2: recalculated — B (80) should play before A (50 = 100 * 0.5 due to paralysis)
     expect(state.roundNumber).toBe(2);
@@ -261,11 +262,11 @@ describe("Battle loop integration", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 
     const charmander = MockPokemon.fresh(MockPokemon.charmander, {
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
     });
     const bulbasaur = MockPokemon.fresh(MockPokemon.bulbasaur, {
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       currentHp: 1,
       maxHp: 45,
@@ -275,10 +276,10 @@ describe("Battle loop integration", () => {
     const { engine } = buildEngine([charmander, bulbasaur]);
 
     // Charmander skips, Bulbasaur starts turn → poison KOs
-    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
 
-    expect(engine.getLegalActions("player-1")).toEqual([]);
-    expect(engine.getLegalActions("player-2")).toEqual([]);
+    expect(engine.getLegalActions(PlayerId.Player1)).toEqual([]);
+    expect(engine.getLegalActions(PlayerId.Player2)).toEqual([]);
 
     vi.restoreAllMocks();
   });
@@ -287,11 +288,11 @@ describe("Battle loop integration", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 
     const charmander = MockPokemon.fresh(MockPokemon.charmander, {
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
     });
     const bulbasaur = MockPokemon.fresh(MockPokemon.bulbasaur, {
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       currentHp: 1,
       maxHp: 45,
@@ -300,9 +301,9 @@ describe("Battle loop integration", () => {
 
     const { engine } = buildEngine([charmander, bulbasaur]);
 
-    engine.submitAction("player-1", { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
 
-    const result = engine.submitAction("player-1", {
+    const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "charmander-1",
     });

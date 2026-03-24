@@ -1,4 +1,4 @@
-import type { BattleState, PokemonDefinition } from "@pokemon-tactic/core";
+import { PlayerId, type BattleState, type PokemonDefinition } from "@pokemon-tactic/core";
 import {
   DEPTH_TIMELINE,
   TEAM_COLOR_PLAYER_1,
@@ -45,7 +45,7 @@ export class TurnTimeline {
       const definition = pokemonDefinitions.get(pokemon.definitionId);
       const primaryType = definition?.types[0] ?? "normal";
       const typeColor = TYPE_COLORS[primaryType] ?? 0xa0a0a0;
-      const teamColor = pokemon.playerId === "player-1" ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
+      const teamColor = pokemon.playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
 
       const entry = this.createEntry(y, typeColor, teamColor, isActive);
       this.container.add(entry);

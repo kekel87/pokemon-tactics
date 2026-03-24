@@ -230,7 +230,7 @@ describe("resolveTargeting", () => {
   });
 
   describe("dash", () => {
-    it("should dash east", () => {
+    it("should return last reachable tile when dashing east with no obstacles", () => {
       const caster = { ...MockPokemon.base, position: { x: 1, y: 4 } };
       const result = resolveTargeting(
         { kind: TargetingKind.Dash, maxDistance: 3 },
@@ -238,14 +238,10 @@ describe("resolveTargeting", () => {
         { x: 4, y: 4 },
         grid,
       );
-      expect(result).toEqual([
-        { x: 2, y: 4 },
-        { x: 3, y: 4 },
-        { x: 4, y: 4 },
-      ]);
+      expect(result).toEqual([{ x: 4, y: 4 }]);
     });
 
-    it("should dash north", () => {
+    it("should return last reachable tile when dashing north", () => {
       const caster = { ...MockPokemon.base, position: { x: 4, y: 5 } };
       const result = resolveTargeting(
         { kind: TargetingKind.Dash, maxDistance: 3 },
@@ -253,14 +249,10 @@ describe("resolveTargeting", () => {
         { x: 4, y: 0 },
         grid,
       );
-      expect(result).toEqual([
-        { x: 4, y: 4 },
-        { x: 4, y: 3 },
-        { x: 4, y: 2 },
-      ]);
+      expect(result).toEqual([{ x: 4, y: 2 }]);
     });
 
-    it("should dash west", () => {
+    it("should return last reachable tile when dashing west", () => {
       const caster = { ...MockPokemon.base, position: { x: 5, y: 4 } };
       const result = resolveTargeting(
         { kind: TargetingKind.Dash, maxDistance: 2 },
@@ -268,13 +260,10 @@ describe("resolveTargeting", () => {
         { x: 0, y: 4 },
         grid,
       );
-      expect(result).toEqual([
-        { x: 4, y: 4 },
-        { x: 3, y: 4 },
-      ]);
+      expect(result).toEqual([{ x: 3, y: 4 }]);
     });
 
-    it("should dash south", () => {
+    it("should return last reachable tile when dashing south", () => {
       const caster = { ...MockPokemon.base, position: { x: 4, y: 1 } };
       const result = resolveTargeting(
         { kind: TargetingKind.Dash, maxDistance: 2 },
@@ -282,13 +271,10 @@ describe("resolveTargeting", () => {
         { x: 4, y: 7 },
         grid,
       );
-      expect(result).toEqual([
-        { x: 4, y: 2 },
-        { x: 4, y: 3 },
-      ]);
+      expect(result).toEqual([{ x: 4, y: 3 }]);
     });
 
-    it("should stop at grid edge", () => {
+    it("should return empty when dashing out of bounds", () => {
       const caster = { ...MockPokemon.base, position: { x: 1, y: 0 } };
       const result = resolveTargeting(
         { kind: TargetingKind.Dash, maxDistance: 5 },
@@ -299,7 +285,7 @@ describe("resolveTargeting", () => {
       expect(result).toEqual([]);
     });
 
-    it("should stop at first enemy", () => {
+    it("should return only the first enemy tile", () => {
       const gridWithEnemy = Grid.createFlat(8, 8);
       gridWithEnemy.setOccupant({ x: 3, y: 4 }, "enemy-1");
 
@@ -312,13 +298,10 @@ describe("resolveTargeting", () => {
         gridWithEnemy,
         traversalContext,
       );
-      expect(result).toEqual([
-        { x: 2, y: 4 },
-        { x: 3, y: 4 },
-      ]);
+      expect(result).toEqual([{ x: 3, y: 4 }]);
     });
 
-    it("should traverse allies", () => {
+    it("should skip allies and return first enemy tile", () => {
       const gridWithAlly = Grid.createFlat(8, 8);
       gridWithAlly.setOccupant({ x: 2, y: 4 }, "ally-1");
       gridWithAlly.setOccupant({ x: 4, y: 4 }, "enemy-1");
@@ -335,14 +318,10 @@ describe("resolveTargeting", () => {
         gridWithAlly,
         traversalContext,
       );
-      expect(result).toEqual([
-        { x: 2, y: 4 },
-        { x: 3, y: 4 },
-        { x: 4, y: 4 },
-      ]);
+      expect(result).toEqual([{ x: 4, y: 4 }]);
     });
 
-    it("should traverse enemies when Flying or Ghost type", () => {
+    it("should return last reachable tile when traversing enemies (Flying/Ghost)", () => {
       const gridWithEnemy = Grid.createFlat(8, 8);
       gridWithEnemy.setOccupant({ x: 3, y: 4 }, "enemy-1");
 
@@ -355,13 +334,7 @@ describe("resolveTargeting", () => {
         gridWithEnemy,
         traversalContext,
       );
-      expect(result).toEqual([
-        { x: 2, y: 4 },
-        { x: 3, y: 4 },
-        { x: 4, y: 4 },
-        { x: 5, y: 4 },
-        { x: 6, y: 4 },
-      ]);
+      expect(result).toEqual([{ x: 6, y: 4 }]);
     });
   });
 });

@@ -1,4 +1,5 @@
 import { Direction } from "../enums/direction";
+import { PlayerId } from "../enums/player-id";
 import type { StatName as StatNameType } from "../enums/stat-name";
 import { StatName } from "../enums/stat-name";
 import type { PokemonInstance } from "../types/pokemon-instance";
@@ -18,7 +19,7 @@ export abstract class MockPokemon {
   static readonly base: PokemonInstance = {
     id: "pokemon-1",
     definitionId: "test",
-    playerId: "player-1",
+    playerId: PlayerId.Player1,
     currentHp: 100,
     maxHp: 100,
     baseStats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
@@ -35,7 +36,7 @@ export abstract class MockPokemon {
   static readonly bulbasaur: PokemonInstance = {
     id: "bulbasaur-1",
     definitionId: "bulbasaur",
-    playerId: "player-1",
+    playerId: PlayerId.Player1,
     currentHp: 45,
     maxHp: 45,
     baseStats: { hp: 45, attack: 49, defense: 49, spAttack: 65, spDefense: 65, speed: 45 },
@@ -52,7 +53,7 @@ export abstract class MockPokemon {
   static readonly charmander: PokemonInstance = {
     id: "charmander-1",
     definitionId: "charmander",
-    playerId: "player-1",
+    playerId: PlayerId.Player1,
     currentHp: 39,
     maxHp: 39,
     baseStats: { hp: 39, attack: 52, defense: 43, spAttack: 60, spDefense: 50, speed: 65 },
@@ -69,7 +70,7 @@ export abstract class MockPokemon {
   static readonly squirtle: PokemonInstance = {
     id: "squirtle-1",
     definitionId: "squirtle",
-    playerId: "player-1",
+    playerId: PlayerId.Player1,
     currentHp: 44,
     maxHp: 44,
     baseStats: { hp: 44, attack: 48, defense: 65, spAttack: 50, spDefense: 64, speed: 43 },
@@ -86,7 +87,7 @@ export abstract class MockPokemon {
   static readonly pidgey: PokemonInstance = {
     id: "pidgey-1",
     definitionId: "pidgey",
-    playerId: "player-1",
+    playerId: PlayerId.Player1,
     currentHp: 40,
     maxHp: 40,
     baseStats: { hp: 40, attack: 45, defense: 40, spAttack: 35, spDefense: 35, speed: 56 },

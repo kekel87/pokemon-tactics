@@ -1,6 +1,7 @@
 import { loadData, typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../enums/action-kind";
+import { PlayerId } from "../enums/player-id";
 import { BattleEventType } from "../enums/battle-event-type";
 import { PokemonType } from "../enums/pokemon-type";
 import { MockBattle } from "../testing/mock-battle";
@@ -32,12 +33,12 @@ describe("BattleEngine integration", () => {
     // Bulbasaur (player-1) vs Charmander (player-2) on 8x8 grid
     const bulbasaur = {
       ...MockPokemon.bulbasaur,
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 1, y: 1 },
     };
     const charmander = {
       ...MockPokemon.charmander,
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 6, y: 6 },
     };
 
@@ -45,7 +46,7 @@ describe("BattleEngine integration", () => {
     const engine = new BattleEngine(state, moveRegistry);
 
     // Charmander has higher initiative (65 > 45)
-    const gameState = engine.getGameState("player-2");
+    const gameState = engine.getGameState(PlayerId.Player2);
     expect(gameState.turnOrder[0]).toBe("charmander-1");
 
     const events: BattleEvent[] = [];
@@ -53,7 +54,7 @@ describe("BattleEngine integration", () => {
     engine.on(BattleEventType.TurnStarted, (e) => events.push(e));
     engine.on(BattleEventType.TurnEnded, (e) => events.push(e));
 
-    const actions = engine.getLegalActions("player-2");
+    const actions = engine.getLegalActions(PlayerId.Player2);
     expect(actions.length).toBeGreaterThan(0);
 
     const moveActions = actions.filter((a) => a.kind === ActionKind.Move);
@@ -62,20 +63,20 @@ describe("BattleEngine integration", () => {
     const moveAction = moveActions[0]!;
     expect(moveAction.kind).toBe(ActionKind.Move);
 
-    const result = engine.submitAction("player-2", moveAction);
+    const result = engine.submitAction(PlayerId.Player2, moveAction);
     expect(result.success).toBe(true);
 
     const destination = (moveAction as { path: Array<{ x: number; y: number }> }).path.at(-1);
     expect(charmander.position).toEqual(destination);
 
     // EndTurn for Charmander (Move doesn't end the turn anymore)
-    engine.submitAction("player-2", {
+    engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.EndTurn,
       pokemonId: "charmander-1",
     });
 
     // Bulbasaur EndTurn
-    const endTurnResult = engine.submitAction("player-1", {
+    const endTurnResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "bulbasaur-1",
     });
@@ -102,11 +103,11 @@ describe("BattleEngine integration", () => {
     // Adjacent on 8x8 grid so they can attack each other
     // Bulbasaur gets extra HP to survive Ember (super effective STAB deals ~54 damage)
     const charmander = MockPokemon.fresh(MockPokemon.charmander, {
-      playerId: "player-2",
+      playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
     });
     const bulbasaur = MockPokemon.fresh(MockPokemon.bulbasaur, {
-      playerId: "player-1",
+      playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       currentHp: 200,
       maxHp: 200,
@@ -125,7 +126,7 @@ describe("BattleEngine integration", () => {
     const charmanderEmberPpBefore = state.pokemon.get("charmander-1")!.currentPp.ember!;
 
     // Charmander uses Ember on Bulbasaur (Fire > Grass+Poison = super effective)
-    const emberResult = engine.submitAction("player-2", {
+    const emberResult = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
       pokemonId: "charmander-1",
       moveId: "ember",
@@ -141,7 +142,7 @@ describe("BattleEngine integration", () => {
     expect(emberEvents).not.toContain(BattleEventType.TurnStarted);
 
     // EndTurn for Charmander to advance to Bulbasaur's turn
-    engine.submitAction("player-2", {
+    engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.EndTurn,
       pokemonId: "charmander-1",
     });
@@ -165,7 +166,7 @@ describe("BattleEngine integration", () => {
     const razorLeafPpBefore = state.pokemon.get("bulbasaur-1")!.currentPp["razor-leaf"]!;
 
     // Bulbasaur uses Razor Leaf on Charmander (Grass > Fire = not very effective)
-    const razorLeafResult = engine.submitAction("player-1", {
+    const razorLeafResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "bulbasaur-1",
       moveId: "razor-leaf",
@@ -198,7 +199,7 @@ describe("BattleEngine integration", () => {
     expect(Object.values(charmanderStages!).every((s) => s === 0)).toBe(true);
 
     // EndTurn for Bulbasaur to complete round 1
-    engine.submitAction("player-1", {
+    engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "bulbasaur-1",
     });

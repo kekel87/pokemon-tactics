@@ -1,4 +1,4 @@
-import type { PokemonInstance } from "@pokemon-tactic/core";
+import { PlayerId, type PokemonInstance } from "@pokemon-tactic/core";
 import {
   DEPTH_INFO_PANEL,
   HP_BAR_BG_ALPHA,
@@ -80,7 +80,7 @@ export class InfoPanel {
   update(pokemon: PokemonInstance, playerId: string): void {
     this.container.setVisible(true);
 
-    const teamColor = playerId === "player-1" ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
+    const teamColor = playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
     this.drawBackground(teamColor);
 
     const name = pokemon.definitionId.charAt(0).toUpperCase() + pokemon.definitionId.slice(1);

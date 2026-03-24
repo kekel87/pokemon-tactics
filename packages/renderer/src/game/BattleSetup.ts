@@ -8,6 +8,7 @@ import {
   BattleEngine,
   type BattleState,
   Direction,
+  PlayerId,
   type PokemonType,
   StatName,
   TerrainType,
@@ -48,7 +49,7 @@ const ZERO_STAT_STAGES = {
 
 function createPokemonInstance(
   definition: PokemonDefinition,
-  playerId: string,
+  playerId: PlayerId,
   instanceId: string,
   position: { x: number; y: number },
   moveRegistry: Map<string, MoveDefinition>,
@@ -117,28 +118,28 @@ export function createBattle(): BattleSetupResult {
 
   const team1Pokemon1 = createPokemonInstance(
     bulbasaur,
-    "player-1",
+    PlayerId.Player1,
     "p1-bulbasaur",
     { x: 1, y: 10 },
     moveDefinitions,
   );
   const team1Pokemon2 = createPokemonInstance(
     squirtle,
-    "player-1",
+    PlayerId.Player1,
     "p1-squirtle",
     { x: 2, y: 11 },
     moveDefinitions,
   );
   const team2Pokemon1 = createPokemonInstance(
     charmander,
-    "player-2",
+    PlayerId.Player2,
     "p2-charmander",
     { x: 10, y: 1 },
     moveDefinitions,
   );
   const team2Pokemon2 = createPokemonInstance(
     pidgey,
-    "player-2",
+    PlayerId.Player2,
     "p2-pidgey",
     { x: 9, y: 0 },
     moveDefinitions,

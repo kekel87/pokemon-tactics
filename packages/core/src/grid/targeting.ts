@@ -144,7 +144,7 @@ function resolveDash(
   traversal: TraversalContext,
 ): Position[] {
   const direction = directionFromTo(caster.position, target);
-  const result: Position[] = [];
+  let lastReachable: Position | null = null;
 
   for (let step = 1; step <= maxDistance; step++) {
     const position = stepInDirection(caster.position, direction, step);
@@ -156,17 +156,16 @@ function resolveDash(
     if (occupant !== null && occupant !== caster.id) {
       const isAlly = traversal.allyIds.has(occupant);
       if (isAlly || traversal.canTraverseEnemies) {
-        result.push(position);
+        lastReachable = position;
         continue;
       }
-      result.push(position);
-      break;
+      return [position];
     }
 
-    result.push(position);
+    lastReachable = position;
   }
 
-  return result;
+  return lastReachable ? [lastReachable] : [];
 }
 
 function resolveZone(center: Position, radius: number, grid: Grid): Position[] {

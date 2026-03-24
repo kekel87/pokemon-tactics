@@ -6,6 +6,7 @@ export { Direction } from "./direction";
 export { EffectKind } from "./effect-kind";
 export { EffectTarget } from "./effect-target";
 export { LinkType } from "./link-type";
+export { PlayerId } from "./player-id";
 export { PokemonType } from "./pokemon-type";
 export { StatName } from "./stat-name";
 export { StatusType } from "./status-type";

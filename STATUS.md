@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-22 (Plan 009 terminé — UI FFT-like)
+> Dernière mise à jour : 2026-03-24 (Bugfixes + features dash post-plan 009)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -94,11 +94,20 @@
   - Écran de victoire avec numéro de round
   - Fix screenToGrid : Math.round au lieu de Math.floor (hit detection isométrique)
   - Système de depth centralisé dans constants.ts
-  - **Bugs connus** (non bloquants pour le POC) :
-    - Vive-Attaque touche à 2 cases — bug core dans le dash targeting
-    - PlayerId ("player-1") comparé en dur dans l'UI — devrait être un const enum
+  - **Bugs connus restants** (non bloquants pour le POC) :
     - Resize/scaling canvas non géré (fixe 1280x720)
     - Camera pan animé reporté (centerOn instantané)
+
+- **Post-plan 009 — Bugfixes + features dash (2026-03-24)** :
+  - `PlayerId` const enum (`Player1`/`Player2`) remplace les string literals `"player-1"`/`"player-2"` dans tout le codebase
+  - Fix `HighlightKind` : `import type` → `import` corrige un crash runtime Linux
+  - Fix depth highlights : `DEPTH_GRID_HIGHLIGHT = 100` ajouté dans `constants.ts`, highlights visibles cross-platform
+  - Fix dash targeting : `resolveDash` ne retourne que la tile d'impact (corrige le bug "Vive-Attaque touche à 2 cases")
+  - `getValidTargetPositions` pour Dash retourne toutes les cases dans les 4 directions jusqu'à `maxDistance` (pas seulement les tiles occupées)
+  - Dash déplace le caster vers la tile ciblée (ou juste devant l'ennemi bloquant) — repositionnement tactique inclus
+  - Dash ne consomme pas `hasMoved` — Move + Dash et Dash + Move tous deux permis
+  - Dash dans le vide autorisé : cibler une case vide déplace le caster sans frapper (consomme l'Act)
+  - Vive-Attaque `maxDistance` corrigé : 3 → 2 tiles
 
 ### Prochaine étape
 - À définir (plan 009 terminé — UI FFT-like livrée, renderer POC complet)

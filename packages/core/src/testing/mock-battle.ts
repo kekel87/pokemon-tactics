@@ -1,4 +1,5 @@
 import { Direction } from "../enums/direction";
+import { PlayerId } from "../enums/player-id";
 import type { StatName as StatNameType } from "../enums/stat-name";
 import { StatName } from "../enums/stat-name";
 import { TerrainType } from "../enums/terrain-type";
@@ -53,7 +54,7 @@ export abstract class MockBattle {
   static readonly player1Fast: PokemonInstance = {
     id: "fast",
     definitionId: "test",
-    playerId: "player-1",
+    playerId: PlayerId.Player1,
     currentHp: 100,
     maxHp: 100,
     baseStats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
@@ -70,7 +71,7 @@ export abstract class MockBattle {
   static readonly player2Slow: PokemonInstance = {
     id: "slow",
     definitionId: "test",
-    playerId: "player-2",
+    playerId: PlayerId.Player2,
     currentHp: 100,
     maxHp: 100,
     baseStats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
@@ -87,7 +88,7 @@ export abstract class MockBattle {
   static readonly player1Medium: PokemonInstance = {
     id: "medium",
     definitionId: "test",
-    playerId: "player-1",
+    playerId: PlayerId.Player1,
     currentHp: 100,
     maxHp: 100,
     baseStats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },

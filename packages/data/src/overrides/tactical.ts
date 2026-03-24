@@ -99,7 +99,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
   },
   "quick-attack": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
     effects: [{ kind: EffectKind.Damage }],
   },
   "sand-attack": {
