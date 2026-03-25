@@ -22,7 +22,7 @@
 - [x] 7 targeting patterns (single, self, cone, cross, line, dash, zone)
 - [x] Friendly fire actif
 - [x] Type chart 18x18
-- [x] Tests unitaires pour chaque mécanique (249 tests, 100% coverage)
+- [x] Tests unitaires pour chaque mécanique (244 tests unitaires + 36 tests intégration, 100% coverage)
 
 ### Renderer
 - [x] Grille isométrique 2D avec Phaser 4
@@ -47,7 +47,7 @@ Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friend
 
 ### Core
 - [x] KO définitif : corps reste sur la tile, traversable mais non-stoppable (plan 011)
-- [ ] Placement initial configurable (positions de spawn par map/format)
+- [x] Placement initial configurable : `MapDefinition`, `PlacementPhase`, alternance serpent, mode random (plan 013 — implémenté, non commité)
 - [x] Direction de fin de tour (orientation choisie avant EndTurn)
 - [ ] Plus de moves stat changes (Épée Danse, Groz'Yeux, Abri, etc.)
 - [ ] Plus de moves AoE variés (utiliser les patterns existants avec plus de diversité)
@@ -59,7 +59,7 @@ Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friend
 - [ ] Système de replay (log d'actions déterministe, seed + rejeu)
 
 ### Renderer
-- [ ] Placement initial visuel (choix des positions de départ)
+- [x] Placement initial visuel : phase de placement interactive, panel roster, zones de spawn highlight (plan 013 — implémenté, non commité)
 - [x] Choix de direction en fin de tour
 - [x] Corps KO visible sur la grille (sprite Faint persistant, alpha réduit)
 - [ ] Feedback visuel des montées/descentes de stats

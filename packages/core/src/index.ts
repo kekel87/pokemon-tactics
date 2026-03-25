@@ -1,4 +1,6 @@
 export { BattleEngine } from "./battle/BattleEngine";
+export { PlacementError, PlacementPhase } from "./battle/PlacementPhase";
+export type { PlacementResult } from "./battle/PlacementPhase";
 export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
 export { EffectHandlerRegistry } from "./battle/effect-handler-registry";
 export { createDefaultEffectRegistry } from "./battle/effect-processor";
@@ -8,6 +10,7 @@ export type { PhaseHandler, PhaseResult } from "./battle/turn-pipeline";
 export { TurnPipeline } from "./battle/turn-pipeline";
 export type { ValidationResult } from "./battle/validate";
 export { validateBattleData } from "./battle/validate";
+export { validateMapDefinition } from "./battle/validate-map";
 export * from "./enums/index";
 export { Grid } from "./grid/Grid";
 export { resolveTargeting } from "./grid/targeting";

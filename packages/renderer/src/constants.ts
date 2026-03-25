@@ -93,6 +93,17 @@ export const UI_BORDER_ALPHA = 0.3;
 export const UI_BORDER_WIDTH = 1;
 export const UI_BUTTON_CORNER_RADIUS = 4;
 
+export const TILE_SPAWN_ZONE_ACTIVE_COLOR = 0x55aaff;
+export const TILE_SPAWN_ZONE_INACTIVE_COLOR = 0x8888aa;
+export const TILE_SPAWN_ZONE_OCCUPIED_COLOR = 0x335577;
+export const TILE_SPAWN_ZONE_ALPHA = 0.5;
+
+export const PLACEMENT_PANEL_HEIGHT = 110;
+export const PLACEMENT_PANEL_Y = 610;
+export const PLACEMENT_PANEL_ALPHA = 0.85;
+export const PLACEMENT_PORTRAIT_SIZE = 48;
+export const PLACEMENT_PORTRAIT_SPACING = 12;
+
 export const DEPTH_GRID_HIGHLIGHT = 100;
 export const DEPTH_GRID_CURSOR = 150;
 export const DEPTH_POKEMON_BASE = 200;

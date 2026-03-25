@@ -1,5 +1,9 @@
 import type {
+  Direction,
+  MapDefinition,
   MoveDefinition,
+  PlacementEntry,
+  PlacementTeam,
   PokemonDefinition,
   PokemonInstance,
   TileState,
@@ -7,34 +11,17 @@ import type {
 import {
   BattleEngine,
   type BattleState,
+  PlacementMode,
+  PlacementPhase,
+  PlayerController,
   PlayerId,
-  directionFromTo,
   type PokemonType,
   StatName,
-  TerrainType,
   TurnPipeline,
   validateBattleData,
+  validateMapDefinition,
 } from "@pokemon-tactic/core";
-import { loadData, typeChart } from "@pokemon-tactic/data";
-import { GRID_SIZE } from "../constants";
-
-function buildFlatGrid(size: number): TileState[][] {
-  const tiles: TileState[][] = [];
-  for (let y = 0; y < size; y++) {
-    const row: TileState[] = [];
-    for (let x = 0; x < size; x++) {
-      row.push({
-        position: { x, y },
-        height: 0,
-        terrain: TerrainType.Normal,
-        occupantId: null,
-        isPassable: true,
-      });
-    }
-    tiles.push(row);
-  }
-  return tiles;
-}
+import { loadData, pocArena, typeChart } from "@pokemon-tactic/data";
 
 const ZERO_STAT_STAGES = {
   [StatName.Hp]: 0,
@@ -52,8 +39,8 @@ function createPokemonInstance(
   playerId: PlayerId,
   instanceId: string,
   position: { x: number; y: number },
+  orientation: Direction,
   moveRegistry: Map<string, MoveDefinition>,
-  gridSize: number,
 ): PokemonInstance {
   const hpStat = definition.baseStats.hp;
   const currentPp: Record<string, number> = {};
@@ -61,7 +48,6 @@ function createPokemonInstance(
     const move = moveRegistry.get(moveId);
     currentPp[moveId] = move?.pp ?? 0;
   }
-  const gridCenter = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
   return {
     id: instanceId,
     definitionId: definition.id,
@@ -77,7 +63,7 @@ function createPokemonInstance(
     statStages: { ...ZERO_STAT_STAGES },
     statusEffects: [],
     position,
-    orientation: directionFromTo(position, gridCenter),
+    orientation,
     moveIds: [...definition.movepool],
     currentPp,
   };
@@ -88,11 +74,17 @@ export interface BattleSetupResult {
   state: BattleState;
   pokemonDefinitions: Map<string, PokemonDefinition>;
   moveDefinitions: Map<string, MoveDefinition>;
+  map: MapDefinition;
 }
 
-export function createBattle(): BattleSetupResult {
-  const gameData = loadData();
+export interface BattleSetupConfig {
+  map: MapDefinition;
+  teams: PlacementTeam[];
+  placements: PlacementEntry[];
+}
 
+function loadGameData() {
+  const gameData = loadData();
   const validation = validateBattleData(gameData);
   if (!validation.valid) {
     throw new Error(`Invalid battle data: ${validation.errors.join(", ")}`);
@@ -108,59 +100,55 @@ export function createBattle(): BattleSetupResult {
     moveDefinitions.set(move.id, move);
   }
 
-  const bulbasaur = pokemonDefinitions.get("bulbasaur");
-  const charmander = pokemonDefinitions.get("charmander");
-  const squirtle = pokemonDefinitions.get("squirtle");
-  const pidgey = pokemonDefinitions.get("pidgey");
-
-  if (!bulbasaur || !charmander || !squirtle || !pidgey) {
-    throw new Error("Missing Pokemon definitions for POC roster");
+  const pokemonTypesMap = new Map<string, PokemonType[]>();
+  for (const definition of gameData.pokemon) {
+    pokemonTypesMap.set(definition.id, definition.types);
   }
 
-  const team1Pokemon1 = createPokemonInstance(
-    bulbasaur,
-    PlayerId.Player1,
-    "p1-bulbasaur",
-    { x: 1, y: 10 },
-    moveDefinitions,
-    GRID_SIZE,
-  );
-  const team1Pokemon2 = createPokemonInstance(
-    squirtle,
-    PlayerId.Player1,
-    "p1-squirtle",
-    { x: 2, y: 11 },
-    moveDefinitions,
-    GRID_SIZE,
-  );
-  const team2Pokemon1 = createPokemonInstance(
-    charmander,
-    PlayerId.Player2,
-    "p2-charmander",
-    { x: 10, y: 1 },
-    moveDefinitions,
-    GRID_SIZE,
-  );
-  const team2Pokemon2 = createPokemonInstance(
-    pidgey,
-    PlayerId.Player2,
-    "p2-pidgey",
-    { x: 9, y: 0 },
-    moveDefinitions,
-    GRID_SIZE,
+  return { gameData, pokemonDefinitions, moveDefinitions, pokemonTypesMap };
+}
+
+export function createBattleFromPlacements(config: BattleSetupConfig): BattleSetupResult {
+  const { pokemonDefinitions, moveDefinitions, pokemonTypesMap } = loadGameData();
+
+  const mapValidation = validateMapDefinition(config.map);
+  if (!mapValidation.valid) {
+    throw new Error(`Invalid map: ${mapValidation.errors.join(", ")}`);
+  }
+
+  const grid: TileState[][] = config.map.tiles.map((row) =>
+    row.map((tile) => ({ ...tile, occupantId: null })),
   );
 
-  const allPokemon = [team1Pokemon1, team1Pokemon2, team2Pokemon1, team2Pokemon2];
-
-  const grid = buildFlatGrid(GRID_SIZE);
   const pokemonMap = new Map<string, PokemonInstance>();
-  for (const pokemon of allPokemon) {
-    pokemonMap.set(pokemon.id, pokemon);
-    const row = grid[pokemon.position.y];
+
+  for (const placement of config.placements) {
+    const team = config.teams.find((t) => t.pokemonIds.includes(placement.pokemonId));
+    if (!team) {
+      throw new Error(`No team found for Pokemon ${placement.pokemonId}`);
+    }
+
+    const definitionId = placement.pokemonId.replace(/^p\d+-/, "");
+    const definition = pokemonDefinitions.get(definitionId);
+    if (!definition) {
+      throw new Error(`Unknown Pokemon definition: ${definitionId}`);
+    }
+
+    const instance = createPokemonInstance(
+      definition,
+      team.playerId,
+      placement.pokemonId,
+      placement.position,
+      placement.direction,
+      moveDefinitions,
+    );
+
+    pokemonMap.set(instance.id, instance);
+    const row = grid[placement.position.y];
     if (row) {
-      const tile = row[pokemon.position.x];
+      const tile = row[placement.position.x];
       if (tile) {
-        tile.occupantId = pokemon.id;
+        tile.occupantId = instance.id;
       }
     }
   }
@@ -174,13 +162,49 @@ export function createBattle(): BattleSetupResult {
     roundNumber: 1,
   };
 
-  const pokemonTypesMap = new Map<string, PokemonType[]>();
-  for (const definition of gameData.pokemon) {
-    pokemonTypesMap.set(definition.id, definition.types);
-  }
-
   const turnPipeline = new TurnPipeline();
   const engine = new BattleEngine(state, moveDefinitions, typeChart, pokemonTypesMap, turnPipeline);
 
-  return { engine, state, pokemonDefinitions, moveDefinitions };
+  return {
+    engine,
+    state,
+    pokemonDefinitions,
+    moveDefinitions,
+    map: config.map,
+  };
+}
+
+export function createDefaultBattleConfig(): BattleSetupConfig {
+  const map = pocArena;
+  const format = map.formats[0];
+  if (!format) {
+    throw new Error("POC arena has no formats defined");
+  }
+
+  const teams: PlacementTeam[] = [
+    {
+      playerId: PlayerId.Player1,
+      pokemonIds: ["p1-bulbasaur", "p1-squirtle"],
+      controller: PlayerController.Human,
+    },
+    {
+      playerId: PlayerId.Player2,
+      pokemonIds: ["p2-charmander", "p2-pidgey"],
+      controller: PlayerController.Human,
+    },
+  ];
+
+  const gridCenter = {
+    x: Math.floor(map.width / 2),
+    y: Math.floor(map.height / 2),
+  };
+
+  const placementPhase = new PlacementPhase(map, teams, format, PlacementMode.Random, 12345);
+  const placements = placementPhase.autoPlaceAll(gridCenter);
+
+  return { map, teams, placements };
+}
+
+export function createBattle(): BattleSetupResult {
+  return createBattleFromPlacements(createDefaultBattleConfig());
 }

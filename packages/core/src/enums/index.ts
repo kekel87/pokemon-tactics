@@ -6,6 +6,8 @@ export { Direction } from "./direction";
 export { EffectKind } from "./effect-kind";
 export { EffectTarget } from "./effect-target";
 export { LinkType } from "./link-type";
+export { PlacementMode } from "./placement-mode";
+export { PlayerController } from "./player-controller";
 export { PlayerId } from "./player-id";
 export { PokemonType } from "./pokemon-type";
 export { StatName } from "./stat-name";

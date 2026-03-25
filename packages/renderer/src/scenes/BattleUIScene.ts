@@ -1,6 +1,7 @@
 import { ActionMenu } from "../ui/ActionMenu";
 import { BattleUI } from "../ui/BattleUI";
 import { InfoPanel } from "../ui/InfoPanel";
+import { PlacementRosterPanel } from "../ui/PlacementRosterPanel";
 import { TurnTimeline } from "../ui/TurnTimeline";
 
 export class BattleUIScene extends Phaser.Scene {
@@ -8,6 +9,7 @@ export class BattleUIScene extends Phaser.Scene {
   actionMenu!: ActionMenu;
   battleUI!: BattleUI;
   turnTimeline!: TurnTimeline;
+  placementRosterPanel!: PlacementRosterPanel;
 
   constructor() {
     super("BattleUIScene");
@@ -18,6 +20,7 @@ export class BattleUIScene extends Phaser.Scene {
     this.actionMenu = new ActionMenu(this);
     this.battleUI = new BattleUI(this);
     this.turnTimeline = new TurnTimeline(this);
+    this.placementRosterPanel = new PlacementRosterPanel(this);
 
     this.scene.get("BattleScene").events.emit("uiReady");
   }
