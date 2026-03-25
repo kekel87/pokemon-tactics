@@ -91,7 +91,7 @@ pokemon-tactics/
 │   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue)
 │   │   │   ├── grid/            # Rendu isométrique (IsometricGrid, curseur animé)
 │   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
-│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker)
+│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
 │   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI, POKEMON_SPRITE_SCALE
 │   │   │   └── main.ts
@@ -135,22 +135,22 @@ Structure flat par responsabilité. On restructurera par domaine quand la comple
 
 | Dossier | Contenu | Tests |
 |---------|---------|-------|
-| `enums/` | Const object enums (pattern `as const` + type dérivé) | Non testé (compilation = validation) |
-| `types/` | Interfaces, 1 fichier = 1 type | Non testé (compilation = validation) |
+| `enums/` | Const object enums (pattern `as const` + type dérivé) — dont `PlacementMode`, `PlayerController` | Non testé (compilation = validation) |
+| `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry` | Non testé (compilation = validation) |
 | `utils/` | Fonctions pures réutilisables (math, direction, géométrie) | Oui |
 | `grid/` | Classe Grid, targeting resolvers | Oui |
-| `battle/` | BattleEngine, TurnManager, validate | Oui |
+| `battle/` | BattleEngine, TurnManager, PlacementPhase, validate, validate-map | Oui |
 | `testing/` | Mocks centralisés (`abstract class MockX`) | Exclu du coverage et du build |
 
 ### Diagramme interne du core
 
 ```mermaid
 graph TD
-    enums["enums/<br/>TargetingKind, Direction,<br/>PokemonType, ActionError..."]
-    types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance..."]
+    enums["enums/<br/>TargetingKind, Direction,<br/>PokemonType, ActionError,<br/>PlacementMode, PlayerController..."]
+    types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance,<br/>MapDefinition, MapFormat, SpawnZone,<br/>PlacementTeam, PlacementEntry..."]
     utils["utils/<br/>manhattanDistance, directionFromTo,<br/>stepInDirection, getPerpendicularOffsets"]
     grid["grid/<br/>Grid, targeting resolvers<br/>(single, cone, cross, line, dash, zone)"]
-    battle["battle/<br/>TurnManager, BattleEngine, validate"]
+    battle["battle/<br/>TurnManager, BattleEngine, PlacementPhase,<br/>validate, validate-map"]
     testing["testing/<br/>MockBattle, MockPokemon"]
 
     enums --> types
@@ -300,6 +300,9 @@ packages/data/
   overrides/
     tactical.ts            # Ajoute targeting + effects (n'existe pas dans Pokemon)
     balance-v1.ts          # Ajustements numériques (PP, chances, portées...)
+
+  maps/                    # Définitions de cartes (MapDefinition)
+    poc-arena.ts           # Carte POC 12x12, format 2 joueurs (plan 013)
 ```
 
 ### Merge par couches

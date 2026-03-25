@@ -91,6 +91,16 @@ export class IsometricGrid {
     }
   }
 
+  highlightTilesWithColor(
+    positions: Array<{ x: number; y: number }>,
+    color: number,
+    alpha: number,
+  ): void {
+    for (const position of positions) {
+      this.drawTile(this.highlightGraphics, position.x, position.y, color, color, alpha);
+    }
+  }
+
   showCursor(gridX: number, gridY: number): void {
     this.cursorGraphics.clear();
     this.drawTileOutline(this.cursorGraphics, gridX, gridY, CURSOR_COLOR, CURSOR_STROKE_WIDTH);

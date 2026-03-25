@@ -28,12 +28,27 @@ Un jeu de combat tactique sur grille isométrique qui fusionne :
 
 - **12 Pokemon max** simultanément sur le terrain
 - **Jusqu'à 12 joueurs** — équipes ou chacun pour soi (free-for-all)
-- Exemples : 6v6, 3v3v3v3, 2v2v2v2v2v2, 1v1v1v1 (chacun 1 Pokemon)...
+- Formats explicites : 2p (6v6 max), 3p (4v4v4), 4p (3v3v3v3), 6p (2v2x6), 12p (1x12)
 - **Taille d'équipe configurable** par format — base = 6v6 (mode histoire). Définie avant le combat.
 - **Multijoueur local hot-seat** (style Civilization : on se passe le clavier)
 - **Pas de brouillard de guerre** — chaque joueur voit l'intégralité du terrain et tous les Pokemon
 - **FFA = chacun pour soi** — pas d'alliances dynamiques. Le friendly fire gère naturellement les interactions. Mode équipe = format séparé.
 - Multijoueur réseau : plus tard
+
+---
+
+## 2b. Phase de placement
+
+Avant le premier tour de combat, les joueurs placent leurs Pokemon sur les zones de spawn.
+
+- **La carte porte les zones de spawn** : chaque `MapDefinition` déclare les zones de spawn par équipe pour chaque format supporté. Les zones sont des `Position[]` arbitraires (pas nécessairement des rectangles).
+- **Alternance serpent** (défaut) : P1-P2-P2-P1-P1-P2... Plus équitable que l'alternance simple — l'avantage informationnel s'inverse à chaque paire.
+- **Mode random** : positions tirées sans remise dans les zones, seed injectable pour le replay.
+- **Repositionnement** : uniquement le Pokemon placé lors de l'alternance courante (undo).
+- **Direction** : choix obligatoire après chaque placement via `DirectionPicker`. En mode random, direction calculée automatiquement vers le centre de la grille.
+- **IA** : placement random instantané dès que c'est son tour d'alternance (`PlayerController.Ai`).
+- **Placement blind** : hors scope pour l'instant.
+- **`PlacementPhase` est séparé de `BattleEngine`** : le placement se termine, les positions finales sont passées à `BattleEngine` pour créer le combat.
 
 ---
 

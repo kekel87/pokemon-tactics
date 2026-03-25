@@ -1,5 +1,3 @@
-import type { PokemonInstance } from "@pokemon-tactic/core";
-
 const SPRITE_BASE_PATH = "assets/sprites/pokemon";
 
 interface AnimationMetadata {
@@ -20,9 +18,9 @@ const TICK_DURATION_MS = 33;
 
 export function preloadPokemonAssets(
   scene: Phaser.Scene,
-  pokemonInstances: PokemonInstance[],
+  pokemonEntries: Array<{ definitionId: string }>,
 ): void {
-  const uniqueDefinitionIds = new Set(pokemonInstances.map((pokemon) => pokemon.definitionId));
+  const uniqueDefinitionIds = new Set(pokemonEntries.map((entry) => entry.definitionId));
 
   for (const definitionId of uniqueDefinitionIds) {
     const basePath = `${SPRITE_BASE_PATH}/${definitionId}`;
