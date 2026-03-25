@@ -88,7 +88,9 @@ export class BattleEngine {
 
     const actions: Action[] = [];
 
-    actions.push({ kind: ActionKind.EndTurn, pokemonId: currentPokemonId });
+    for (const direction of [Direction.North, Direction.South, Direction.East, Direction.West]) {
+      actions.push({ kind: ActionKind.EndTurn, pokemonId: currentPokemonId, direction });
+    }
 
     if (!this.turnState.hasMoved && !this.restrictActions) {
       const reachableTiles = this.getReachableTiles(currentPokemon);
@@ -541,12 +543,10 @@ export class BattleEngine {
     return null;
   }
 
-  private executeEndTurn(pokemonId: string, direction?: Direction): ActionResult {
-    if (direction) {
-      const pokemon = this.state.pokemon.get(pokemonId);
-      if (pokemon) {
-        pokemon.orientation = direction;
-      }
+  private executeEndTurn(pokemonId: string, direction: Direction): ActionResult {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    if (pokemon) {
+      pokemon.orientation = direction;
     }
     const events: BattleEvent[] = [];
     this.endCurrentTurn(pokemonId, events);

@@ -1,8 +1,9 @@
 import { loadData, typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../enums/action-kind";
-import { PlayerId } from "../enums/player-id";
 import { BattleEventType } from "../enums/battle-event-type";
+import { Direction } from "../enums/direction";
+import { PlayerId } from "../enums/player-id";
 import { PokemonType } from "../enums/pokemon-type";
 import { MockBattle } from "../testing/mock-battle";
 import { MockPokemon } from "../testing/mock-pokemon";
@@ -73,12 +74,14 @@ describe("BattleEngine integration", () => {
     engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.EndTurn,
       pokemonId: "charmander-1",
+      direction: Direction.South,
     });
 
     // Bulbasaur EndTurn
     const endTurnResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "bulbasaur-1",
+      direction: Direction.South,
     });
     expect(endTurnResult.success).toBe(true);
 
@@ -145,6 +148,7 @@ describe("BattleEngine integration", () => {
     engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.EndTurn,
       pokemonId: "charmander-1",
+      direction: Direction.South,
     });
 
     const bulbasaurHpAfterEmber = state.pokemon.get("bulbasaur-1")!.currentHp;
@@ -202,6 +206,7 @@ describe("BattleEngine integration", () => {
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "bulbasaur-1",
+      direction: Direction.South,
     });
 
     // Round 2 should have started

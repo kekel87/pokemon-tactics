@@ -104,6 +104,10 @@
 | 92 | 2026-03-24 | Roster cible | **151 premiers Pokemon (Gen 1)** | Le jeu se limite aux 151 Pokemon de la Gen 1 pour le moment. Le pipeline de sprites PMDCollab supporte déjà l'extraction par Pokemon — il suffit d'étendre la config. |
 | 93 | 2026-03-24 | Revival | **Seule capacité : Second Souffle (Revival Blessing), 1 PP** | La seule façon de ranimer un Pokemon KO est Second Souffle (1 PP). Pas de countdown, pas d'objet Rappel. Le KO est quasi-définitif — la revival est rare et coûteuse. |
 | 94 | 2026-03-24 | Replay & fixtures visuelles | **Replay Showdown-like avec navigation next/prev** | Le système de replay (état initial sérialisé + log d'actions) servira aussi de base pour les fixtures de test visuel. Une fixture = un replay pausé à un moment donné. Permet au visual-tester de charger un état spécifique via `?fixture=post-ko` sans rejouer 20 tours. À implémenter avec le replay (Phase 1). |
+| 95 | 2026-03-25 | `EndTurn` direction | **Direction obligatoire** (plus optionnelle) | `direction?: Direction` → `direction: Direction`. `getLegalActions` génère 4 actions `EndTurn`. Le joueur choisit toujours sa direction avant de terminer son tour. |
+| 96 | 2026-03-25 | Orientation initiale | **Vers le centre de la grille** via `directionFromTo` | Au lieu de `Direction.South` fixe, chaque Pokemon regarde le centre de la grille au spawn. Centre = `{ x: Math.floor(width / 2), y: Math.floor(height / 2) }`. |
+| 97 | 2026-03-25 | DirectionPicker — sprites vs Graphics | **Spritesheet `arrows.png`** (pas de dessin programmatique) | Le DirectionPicker utilise un spritesheet d'assets visuels pour les flèches au lieu de `Phaser.GameObjects.Graphics`. Plus robuste, plus facile à personnaliser visuellement. |
+| 98 | 2026-03-25 | Détection direction — quadrants | **Quadrants cardinaux écran** (croix horizontale/verticale) | La direction est déterminée par la position de la souris dans les 4 quadrants formés par les axes horizontal et vertical passant par le sprite, pas les diagonales isométriques. Plus intuitif en vue iso. |
 
 ---
 

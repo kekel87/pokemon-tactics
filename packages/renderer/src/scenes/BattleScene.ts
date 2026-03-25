@@ -3,6 +3,7 @@ import { GameController } from "../game/GameController";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import { createPokemonAnimations, preloadPokemonAssets } from "../sprites/SpriteLoader";
+import { DirectionPicker } from "../ui/DirectionPicker";
 import type { BattleUIScene } from "./BattleUIScene";
 
 export class BattleScene extends Phaser.Scene {
@@ -17,6 +18,10 @@ export class BattleScene extends Phaser.Scene {
     this.battleSetup = createBattle();
     const pokemonInstances = [...this.battleSetup.state.pokemon.values()];
     preloadPokemonAssets(this, pokemonInstances);
+    this.load.spritesheet("arrows", "assets/ui/arrows.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
   }
 
   create(): void {
@@ -40,6 +45,7 @@ export class BattleScene extends Phaser.Scene {
     isometricGrid.drawGrid();
 
     const sprites = new Map<string, PokemonSprite>();
+    const directionPicker = new DirectionPicker(this);
 
     const controller = new GameController(
       this,
@@ -47,6 +53,7 @@ export class BattleScene extends Phaser.Scene {
       sprites,
       uiScene.battleUI,
       uiScene.actionMenu,
+      directionPicker,
       uiScene.infoPanel,
       uiScene.turnTimeline,
       this.battleSetup,

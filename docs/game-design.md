@@ -222,14 +222,23 @@ Vampigraine plante une graine sur la cible qui **draine des PV chaque tour et le
 
 ## 8. Orientation & positionnement (style FFTA)
 
-Chaque Pokemon a une **orientation** (la direction dans laquelle elle regarde).
+Chaque Pokemon a une **orientation** (la direction dans laquelle il regarde).
 - **Attaque de dos** : bonus de dégâts (le défenseur ne voit pas venir le coup)
 - **Attaque de côté** : dégâts normaux
 - **Attaque de face** : possibilité de réduction de dégâts ?
 - L'orientation se met à jour quand le Pokemon se déplace ou attaque
 - Ajoute une couche tactique : tourner le dos à l'ennemi est dangereux, le positionnement autour d'une cible compte
 
-> Détails (bonus exact, mécanique de retournement) à définir en Phase 1-2.
+### Choix de direction en fin de tour (implémenté — plan 012)
+
+- **Direction obligatoire** : le joueur choisit toujours sa direction avant de terminer son tour (`EndTurn` exige une `Direction`)
+- **4 directions** : `getLegalActions` génère 4 actions `EndTurn` (une par direction)
+- **Orientation initiale** : chaque Pokemon regarde le centre de la grille au spawn (calculé via `directionFromTo`)
+- **UI style FFT** : `DirectionPicker` — flèches spritesheet positionnées au-dessus du sprite, flèche active jaune / inactives grises
+- **Détection quadrants** : la direction est déterminée par la position de la souris dans les 4 quadrants cardinaux écran (croix horizontale/verticale)
+- **Barre PV masquée** pendant le choix de direction pour améliorer la lisibilité
+
+> Les bonus/malus d'attaque selon l'orientation (dos, face, côté) restent à implémenter (Phase 2).
 
 ---
 

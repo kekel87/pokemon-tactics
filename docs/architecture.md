@@ -91,12 +91,14 @@ pokemon-tactics/
 │   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue)
 │   │   │   ├── grid/            # Rendu isométrique (IsometricGrid, curseur animé)
 │   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
-│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI)
+│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
 │   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI, POKEMON_SPRITE_SCALE
 │   │   │   └── main.ts
 │   │   ├── public/
-│   │   │   └── assets/sprites/pokemon/{name}/  # atlas.json, atlas.png, portrait-normal.png, credits.txt (générés)
+│   │   │   └── assets/
+│   │   │       ├── sprites/pokemon/{name}/  # atlas.json, atlas.png, portrait-normal.png, credits.txt (générés)
+│   │   │       └── ui/                      # Assets UI statiques (arrows.png — spritesheet flèches DirectionPicker)
 │   │   ├── index.html
 │   │   ├── vite.config.ts
 │   │   ├── tsconfig.json        # extends base + DOM libs

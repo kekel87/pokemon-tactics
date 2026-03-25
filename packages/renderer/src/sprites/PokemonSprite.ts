@@ -101,6 +101,11 @@ export class PokemonSprite {
     this.drawHpBar();
   }
 
+  setHpBarVisible(visible: boolean): void {
+    this.hpBarBackground.setVisible(visible);
+    this.hpBarFill.setVisible(visible);
+  }
+
   setDirection(direction: Direction): void {
     const pmdDirection = CORE_TO_PMD_DIRECTION[direction] ?? "South";
     if (pmdDirection === this.currentDirection) {

@@ -24,3 +24,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 009 | [UI FFT-like : menu d'action, curseur, panel info, timeline](./009-ui-fft-like.md) | done | 2026-03-22 |
 | 010 | [Sprites PMDCollab : pipeline d'extraction + intégration renderer](./010-pmdcollab-sprites.md) | done | 2026-03-24 |
 | 011 | [KO définitif avec corps bloquant + suppression koCountdown](./011-ko-body-blocking.md) | done | 2026-03-24 |
+| 012 | [Direction de fin de tour](./012-end-turn-direction.md) | done | 2026-03-24 |
