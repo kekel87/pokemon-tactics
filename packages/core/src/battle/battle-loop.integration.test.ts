@@ -2,8 +2,9 @@ import { loadData } from "@pokemon-tactic/data";
 import { describe, expect, it, vi } from "vitest";
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
-import { PlayerId } from "../enums/player-id";
 import { BattleEventType } from "../enums/battle-event-type";
+import { Direction } from "../enums/direction";
+import { PlayerId } from "../enums/player-id";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
 import { MockBattle, MockPokemon } from "../testing";
@@ -62,13 +63,13 @@ describe("Battle loop integration", () => {
       if (actions.length === 0) {
         break;
       }
-      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1", direction: Direction.South });
 
       const actions2 = engine.getLegalActions(PlayerId.Player2);
       if (actions2.length === 0) {
         break;
       }
-      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "bulbasaur-1" });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "bulbasaur-1", direction: Direction.South });
     }
 
     expect(bulbasaur.currentHp).toBe(0);
@@ -140,6 +141,7 @@ describe("Battle loop integration", () => {
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "bulbasaur-1",
+      direction: Direction.South,
     });
 
     // Round 2: Bulbasaur uses Leech Seed
@@ -156,6 +158,7 @@ describe("Battle loop integration", () => {
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "bulbasaur-1",
+      direction: Direction.South,
     });
 
     // EndTurn drain should have healed Bulbasaur
@@ -193,7 +196,7 @@ describe("Battle loop integration", () => {
     const { engine } = buildEngine([charmander, bulbasaur]);
 
     // Charmander plays first (initiative 90 > 80), skip
-    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1", direction: Direction.South });
 
     // Bulbasaur's turn — paralysis procs (Math.random = 0 < 0.25)
     const actions = engine.getLegalActions(PlayerId.Player2);
@@ -248,8 +251,8 @@ describe("Battle loop integration", () => {
     pokemonA.statusEffects = [{ type: StatusType.Paralyzed, remainingTurns: null }];
 
     // Skip both turns to advance to round 2
-    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "pokemon-a" });
-    engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "pokemon-b" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "pokemon-a", direction: Direction.South });
+    engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "pokemon-b", direction: Direction.South });
 
     // Round 2: recalculated — B (80) should play before A (50 = 100 * 0.5 due to paralysis)
     expect(state.roundNumber).toBe(2);
@@ -276,7 +279,7 @@ describe("Battle loop integration", () => {
     const { engine } = buildEngine([charmander, bulbasaur]);
 
     // Charmander skips, Bulbasaur starts turn → poison KOs
-    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1", direction: Direction.South });
 
     expect(engine.getLegalActions(PlayerId.Player1)).toEqual([]);
     expect(engine.getLegalActions(PlayerId.Player2)).toEqual([]);
@@ -301,11 +304,12 @@ describe("Battle loop integration", () => {
 
     const { engine } = buildEngine([charmander, bulbasaur]);
 
-    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1", direction: Direction.South });
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "charmander-1",
+      direction: Direction.South,
     });
     expect(result.success).toBe(false);
     expect(result.error).toBe(ActionError.BattleOver);

@@ -22,7 +22,7 @@
 - [x] 7 targeting patterns (single, self, cone, cross, line, dash, zone)
 - [x] Friendly fire actif
 - [x] Type chart 18x18
-- [x] Tests unitaires pour chaque mécanique (244 tests, 100% coverage)
+- [x] Tests unitaires pour chaque mécanique (249 tests, 100% coverage)
 
 ### Renderer
 - [x] Grille isométrique 2D avec Phaser 4
@@ -46,9 +46,9 @@
 Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friendly fire, Move+Act, stat stages (-6/+6), hot-seat basique, 4 Pokemon avec 16 moves.
 
 ### Core
-- [ ] KO définitif : corps reste sur la tile, traversable mais non-stoppable (plan 011)
+- [x] KO définitif : corps reste sur la tile, traversable mais non-stoppable (plan 011)
 - [ ] Placement initial configurable (positions de spawn par map/format)
-- [ ] Direction de fin de tour (orientation choisie avant EndTurn)
+- [x] Direction de fin de tour (orientation choisie avant EndTurn)
 - [ ] Plus de moves stat changes (Épée Danse, Groz'Yeux, Abri, etc.)
 - [ ] Plus de moves AoE variés (utiliser les patterns existants avec plus de diversité)
 - [ ] Plus de moves avec portées variées (mêlée, 2-3 tiles, globale)
@@ -60,8 +60,8 @@ Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friend
 
 ### Renderer
 - [ ] Placement initial visuel (choix des positions de départ)
-- [ ] Choix de direction en fin de tour
-- [ ] Corps KO visible sur la grille (sprite Faint persistant, alpha réduit)
+- [x] Choix de direction en fin de tour
+- [x] Corps KO visible sur la grille (sprite Faint persistant, alpha réduit)
 - [ ] Feedback visuel des montées/descentes de stats
 - [ ] Feedback visuel des statuts sur les sprites
 - [ ] Prévisualisation des dégâts / portée avant confirmation

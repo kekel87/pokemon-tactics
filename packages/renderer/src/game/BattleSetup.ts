@@ -7,8 +7,8 @@ import type {
 import {
   BattleEngine,
   type BattleState,
-  Direction,
   PlayerId,
+  directionFromTo,
   type PokemonType,
   StatName,
   TerrainType,
@@ -53,6 +53,7 @@ function createPokemonInstance(
   instanceId: string,
   position: { x: number; y: number },
   moveRegistry: Map<string, MoveDefinition>,
+  gridSize: number,
 ): PokemonInstance {
   const hpStat = definition.baseStats.hp;
   const currentPp: Record<string, number> = {};
@@ -60,6 +61,7 @@ function createPokemonInstance(
     const move = moveRegistry.get(moveId);
     currentPp[moveId] = move?.pp ?? 0;
   }
+  const gridCenter = { x: Math.floor(gridSize / 2), y: Math.floor(gridSize / 2) };
   return {
     id: instanceId,
     definitionId: definition.id,
@@ -75,7 +77,7 @@ function createPokemonInstance(
     statStages: { ...ZERO_STAT_STAGES },
     statusEffects: [],
     position,
-    orientation: Direction.South,
+    orientation: directionFromTo(position, gridCenter),
     moveIds: [...definition.movepool],
     currentPp,
   };
@@ -121,6 +123,7 @@ export function createBattle(): BattleSetupResult {
     "p1-bulbasaur",
     { x: 1, y: 10 },
     moveDefinitions,
+    GRID_SIZE,
   );
   const team1Pokemon2 = createPokemonInstance(
     squirtle,
@@ -128,6 +131,7 @@ export function createBattle(): BattleSetupResult {
     "p1-squirtle",
     { x: 2, y: 11 },
     moveDefinitions,
+    GRID_SIZE,
   );
   const team2Pokemon1 = createPokemonInstance(
     charmander,
@@ -135,6 +139,7 @@ export function createBattle(): BattleSetupResult {
     "p2-charmander",
     { x: 10, y: 1 },
     moveDefinitions,
+    GRID_SIZE,
   );
   const team2Pokemon2 = createPokemonInstance(
     pidgey,
@@ -142,6 +147,7 @@ export function createBattle(): BattleSetupResult {
     "p2-pidgey",
     { x: 9, y: 0 },
     moveDefinitions,
+    GRID_SIZE,
   );
 
   const allPokemon = [team1Pokemon1, team1Pokemon2, team2Pokemon1, team2Pokemon2];

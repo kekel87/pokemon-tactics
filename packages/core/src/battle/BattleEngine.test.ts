@@ -46,7 +46,7 @@ describe("BattleEngine", () => {
     const events: BattleEvent[] = [];
     engine.on(BattleEventType.TurnEnded, (event) => events.push(event));
 
-    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast", direction: Direction.South });
 
     const turnEndedEvents = events.filter((e) => e.type === BattleEventType.TurnEnded);
     expect(turnEndedEvents.length).toBe(1);
@@ -60,7 +60,7 @@ describe("BattleEngine", () => {
     engine.on(BattleEventType.TurnEnded, handler);
     engine.off(BattleEventType.TurnEnded, handler);
 
-    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast", direction: Direction.South });
 
     expect(handler).not.toHaveBeenCalled();
   });
@@ -73,7 +73,7 @@ describe("BattleEngine.getLegalActions", () => {
     const engine = new BattleEngine(state, new Map());
 
     const actions = engine.getLegalActions(PlayerId.Player1);
-    expect(actions.filter((a) => a.kind === ActionKind.EndTurn).length).toBe(1);
+    expect(actions.filter((a) => a.kind === ActionKind.EndTurn).length).toBe(4);
     expect(actions.filter((a) => a.kind === ActionKind.Move).length).toBeGreaterThan(0);
   });
 
@@ -170,6 +170,7 @@ describe("BattleEngine.submitAction validation", () => {
     const result = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.EndTurn,
       pokemonId: "fast",
+      direction: Direction.South,
     });
     expect(result.success).toBe(false);
     expect(result.error).toBe(ActionError.NotYourTurn);
@@ -332,6 +333,7 @@ describe("BattleEngine.submitAction move", () => {
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "fast",
+      direction: Direction.South,
     });
 
     expect(events.length).toBe(1);
@@ -344,8 +346,8 @@ describe("BattleEngine.submitAction move", () => {
     const engine = new BattleEngine(state, new Map());
 
     expect(state.roundNumber).toBe(1);
-    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
-    engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
+    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast", direction: Direction.South });
+    engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow", direction: Direction.South });
     expect(state.roundNumber).toBe(2);
   });
 
@@ -435,8 +437,8 @@ describe("BattleEngine.submitAction move", () => {
     const engine = new BattleEngine(state, new Map());
 
     for (let round = 0; round < 3; round++) {
-      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
-      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast", direction: Direction.South });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow", direction: Direction.South });
     }
     expect(state.roundNumber).toBe(4);
   });
@@ -632,8 +634,8 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
 
       // P1 (fast) skips → P2 (slow) skips → round 2 → P1 turn starts → poison KO
-      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
-      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast", direction: Direction.South });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow", direction: Direction.South });
 
       expect(p1.currentHp).toBe(0);
       expect(state.grid[0]?.[0]?.occupantId).toBe("fast");
@@ -672,8 +674,8 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.LinkBroken, (e) => events.push(e));
 
       // P1 skips → P2 skips → round 2 → P1 turn starts → poison KO → links break
-      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
-      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast", direction: Direction.South });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow", direction: Direction.South });
 
       expect(state.activeLinks).toHaveLength(0);
       const linkBrokenEvents = events.filter((e) => e.type === BattleEventType.LinkBroken);
@@ -704,9 +706,9 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
 
       // Round 1: p1-fast skips, p1-medium skips, p2 skips
-      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "p1-fast" });
-      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "p1-medium" });
-      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "p1-fast", direction: Direction.South });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "p1-medium", direction: Direction.South });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow", direction: Direction.South });
 
       // Round 2: p1-fast starts → poison KO → battle continues (p1-medium alive)
       expect(p1.currentHp).toBe(0);
@@ -744,7 +746,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
 
       // Source skips → target's turn → sleep skip → EndTurn drain → target KO
-      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "source" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "source", direction: Direction.South });
 
       expect(target.currentHp).toBe(0);
       expect(events.some((e) => e.type === BattleEventType.PokemonKo)).toBe(true);
@@ -763,8 +765,8 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       const engine = new BattleEngine(state, new Map());
 
       // Both skip → round 2 → P1 poison KO → battle over
-      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
-      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast", direction: Direction.South });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow", direction: Direction.South });
 
       expect(engine.getLegalActions(PlayerId.Player1)).toEqual([]);
       expect(engine.getLegalActions(PlayerId.Player2)).toEqual([]);
@@ -780,12 +782,13 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       const engine = new BattleEngine(state, new Map());
 
       // Both skip → round 2 → P1 poison KO → battle over
-      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast" });
-      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow" });
+      engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "fast", direction: Direction.South });
+      engine.submitAction(PlayerId.Player2, { kind: ActionKind.EndTurn, pokemonId: "slow", direction: Direction.South });
 
       const result = engine.submitAction(PlayerId.Player2, {
         kind: ActionKind.EndTurn,
         pokemonId: "slow",
+        direction: Direction.South,
       });
       expect(result.success).toBe(false);
       expect(result.error).toBe(ActionError.BattleOver);
@@ -928,6 +931,7 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "fast",
+      direction: Direction.South,
     });
     expect(result.success).toBe(true);
     expect(events.length).toBe(1);
@@ -946,6 +950,22 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
     });
 
     expect(state.pokemon.get("mover")?.orientation).toBe(Direction.West);
+  });
+
+  it("getLegalActions returns EndTurn with all 4 directions", () => {
+    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+
+    const endTurnActions = engine
+      .getLegalActions(PlayerId.Player1)
+      .filter((a) => a.kind === ActionKind.EndTurn);
+
+    expect(endTurnActions).toHaveLength(4);
+    const directions = endTurnActions.map((a) => a.kind === ActionKind.EndTurn && a.direction);
+    expect(directions).toContain(Direction.North);
+    expect(directions).toContain(Direction.South);
+    expect(directions).toContain(Direction.East);
+    expect(directions).toContain(Direction.West);
   });
 
   it("getLegalActions after Move excludes Move but includes UseMove and EndTurn", () => {
@@ -973,7 +993,7 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
     const actions = engine.getLegalActions(PlayerId.Player1);
     expect(actions.filter((a) => a.kind === ActionKind.Move)).toHaveLength(0);
     expect(actions.filter((a) => a.kind === ActionKind.UseMove).length).toBeGreaterThan(0);
-    expect(actions.filter((a) => a.kind === ActionKind.EndTurn)).toHaveLength(1);
+    expect(actions.filter((a) => a.kind === ActionKind.EndTurn)).toHaveLength(4);
   });
 
   it("getLegalActions after UseMove excludes UseMove but includes Move and EndTurn", () => {
@@ -1004,7 +1024,7 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
     const actions = engine.getLegalActions(PlayerId.Player1);
     expect(actions.filter((a) => a.kind === ActionKind.UseMove)).toHaveLength(0);
     expect(actions.filter((a) => a.kind === ActionKind.Move).length).toBeGreaterThan(0);
-    expect(actions.filter((a) => a.kind === ActionKind.EndTurn)).toHaveLength(1);
+    expect(actions.filter((a) => a.kind === ActionKind.EndTurn)).toHaveLength(4);
 
     vi.restoreAllMocks();
   });
@@ -1040,8 +1060,8 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
     });
 
     const actions = engine.getLegalActions(PlayerId.Player1);
-    expect(actions).toHaveLength(1);
-    expect(actions[0]?.kind).toBe(ActionKind.EndTurn);
+    expect(actions).toHaveLength(4);
+    expect(actions.every((a) => a.kind === ActionKind.EndTurn)).toBe(true);
 
     vi.restoreAllMocks();
   });
@@ -1279,7 +1299,7 @@ describe("BattleEngine dash move", () => {
     const actions = engine.getLegalActions(PlayerId.Player1);
     expect(actions.filter((a) => a.kind === ActionKind.UseMove)).toHaveLength(0);
     expect(actions.filter((a) => a.kind === ActionKind.Move).length).toBeGreaterThan(0);
-    expect(actions.filter((a) => a.kind === ActionKind.EndTurn)).toHaveLength(1);
+    expect(actions.filter((a) => a.kind === ActionKind.EndTurn)).toHaveLength(4);
   });
 
   it("updates caster orientation toward target after dash", () => {

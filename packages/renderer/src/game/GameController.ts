@@ -5,6 +5,7 @@ import {
   type BattleEvent,
   BattleEventType,
   type BattleState,
+  Direction,
   type MoveDefinition,
   type PokemonDefinition,
   type PokemonInstance,
@@ -14,6 +15,7 @@ import type { IsometricGrid } from "../grid/IsometricGrid";
 import type { PokemonSprite } from "../sprites/PokemonSprite";
 import type { ActionMenu } from "../ui/ActionMenu";
 import type { BattleUI } from "../ui/BattleUI";
+import type { DirectionPicker } from "../ui/DirectionPicker";
 import type { InfoPanel } from "../ui/InfoPanel";
 import type { TurnTimeline } from "../ui/TurnTimeline";
 import { AnimationQueue } from "./AnimationQueue";
@@ -24,6 +26,7 @@ type InputState =
   | { phase: "select_move_destination" }
   | { phase: "attack_submenu" }
   | { phase: "select_attack_target"; moveId: string }
+  | { phase: "select_direction" }
   | { phase: "animating" }
   | { phase: "battle_over"; winnerId: string };
 
@@ -35,6 +38,7 @@ export class GameController {
   private readonly animationQueue: AnimationQueue;
   private readonly battleUI: BattleUI;
   private readonly actionMenu: ActionMenu;
+  private readonly directionPicker: DirectionPicker;
   private readonly infoPanel: InfoPanel;
   private readonly turnTimeline: TurnTimeline;
   private inputState: InputState = { phase: "action_menu" };
@@ -46,6 +50,7 @@ export class GameController {
     sprites: Map<string, PokemonSprite>,
     battleUI: BattleUI,
     actionMenu: ActionMenu,
+    directionPicker: DirectionPicker,
     infoPanel: InfoPanel,
     turnTimeline: TurnTimeline,
     setup: BattleSetupResult,
@@ -56,6 +61,7 @@ export class GameController {
     this.animationQueue = new AnimationQueue();
     this.battleUI = battleUI;
     this.actionMenu = actionMenu;
+    this.directionPicker = directionPicker;
     this.infoPanel = infoPanel;
     this.turnTimeline = turnTimeline;
     this.setup = setup;
@@ -113,7 +119,11 @@ export class GameController {
   }
 
   handleTileClick(gridX: number, gridY: number): void {
-    if (this.inputState.phase === "animating" || this.inputState.phase === "battle_over") {
+    if (
+      this.inputState.phase === "animating" ||
+      this.inputState.phase === "battle_over" ||
+      this.inputState.phase === "select_direction"
+    ) {
       return;
     }
 
@@ -270,15 +280,66 @@ export class GameController {
   }
 
   private handleEndTurn(): void {
+    this.enterDirectionSelection();
+  }
+
+  private enterDirectionSelection(): void {
+    const activePokemon = this.getActivePokemon();
+    if (!activePokemon) {
+      return;
+    }
+
+    this.inputState = { phase: "select_direction" };
+    this.actionMenu.hide();
+    this.isometricGrid.clearHighlights();
+
+    const sprite = this.sprites.get(activePokemon.id);
+    if (sprite) {
+      sprite.setHpBarVisible(false);
+    }
+
+    const screenPos = this.isometricGrid.gridToScreen(
+      activePokemon.position.x,
+      activePokemon.position.y,
+    );
+
+    this.directionPicker.show(screenPos.x, screenPos.y, activePokemon.orientation, {
+      onPreview: (direction: Direction) => {
+        if (sprite) {
+          sprite.setDirection(direction);
+        }
+      },
+      onConfirm: (direction: Direction) => this.confirmDirection(direction),
+      onCancel: () => this.cancelDirectionSelection(),
+    });
+  }
+
+  private confirmDirection(direction: Direction): void {
     const activePokemonId = this.getActivePokemonId();
     const activePlayerId = this.getActivePlayerId();
     if (!activePokemonId || !activePlayerId) {
       return;
     }
 
-    this.actionMenu.hide();
-    const endTurnAction: Action = { kind: ActionKind.EndTurn, pokemonId: activePokemonId };
+    const sprite = this.sprites.get(activePokemonId);
+    if (sprite) {
+      sprite.setHpBarVisible(true);
+    }
+
+    const endTurnAction: Action = { kind: ActionKind.EndTurn, pokemonId: activePokemonId, direction };
     this.executeAction(activePlayerId, endTurnAction);
+  }
+
+  private cancelDirectionSelection(): void {
+    const activePokemon = this.getActivePokemon();
+    if (activePokemon) {
+      const sprite = this.sprites.get(activePokemon.id);
+      if (sprite) {
+        sprite.setHpBarVisible(true);
+        sprite.setDirection(activePokemon.orientation);
+      }
+    }
+    this.enterActionMenu();
   }
 
   private findMoveAction(gridX: number, gridY: number): Action | null {
@@ -409,6 +470,15 @@ export class GameController {
             await sprite.animateMoveTo(step.x, step.y);
           }
           sprite.playAnimation("Idle");
+        }
+        break;
+      }
+
+      case BattleEventType.TurnEnded: {
+        const pokemon = this.state.pokemon.get(event.pokemonId);
+        const sprite = this.sprites.get(event.pokemonId);
+        if (pokemon && sprite) {
+          sprite.setDirection(pokemon.orientation);
         }
         break;
       }

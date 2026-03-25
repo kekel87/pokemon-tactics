@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-24 (Plan 011 — KO body blocking)
+> Dernière mise à jour : 2026-03-25 (Plan 012 — Direction de fin de tour, terminé)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -148,8 +148,19 @@
   - Décisions #24 révisée (KO définitif), #92 (Gen 1), #93 (Second Souffle 1PP)
   - **249 tests**, 100% coverage
 
+- **Plan 012 terminé** — Direction de fin de tour :
+  - Core : `direction` obligatoire sur `EndTurn` (plus optionnel), `getLegalActions` génère 4 actions `EndTurn` (une par direction)
+  - Core : orientation initiale calculée vers le centre de la grille via `directionFromTo` au lieu de `Direction.South` fixe
+  - Renderer : état `select_direction` ajouté à la state machine de `GameController`
+  - Renderer : `DirectionPicker` réécrit — spritesheet `arrows.png` (sprites) au lieu de dessin programmatique (Graphics)
+  - Détection de direction par quadrants cardinaux écran (croix horizontale/verticale), pas les diagonales iso
+  - Asset `arrows.png` ajouté dans `public/assets/ui/`, chargé dans `BattleScene.preload`
+  - Flèches positionnées au-dessus de la tête du Pokemon (style FFT) — flèche active jaune, inactives grises
+  - `PokemonSprite.setHpBarVisible()` : barre PV masquée pendant le choix de direction
+  - Orientation appliquée sur `TurnEnded` via `sprite.setDirection(orientation)` dans `processEvents`
+
 ### Prochaine étape
-- Phase 1 — voir `docs/roadmap.md` : placement initial, direction de fin de tour, plus de moves/Pokemon, statuts volatils (plan à définir)
+- Phase 1 — voir `docs/roadmap.md` : placement initial configurable, plus de moves/Pokemon, statuts volatils (plan à définir)
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type
