@@ -57,6 +57,7 @@ Avant le premier tour de combat, les joueurs placent leurs Pokemon sur les zones
 | Attribut | Description |
 |----------|-------------|
 | **Stats de base** | PV, Attaque, Défense, Atk Spé, Déf Spé, Vitesse — **stats officielles Pokemon** |
+| **Niveau de combat** | Fixé à **50**. Les stats sont calculées avec la formule Pokemon Gen 5+ au niveau 50 (sans IV/EV pour le POC). Donne des Pokemon plus bulky et des combats plus tactiques. |
 | **Stats dérivées** | Mouvement, Saut, Initiative — **calculées depuis Vitesse + Poids** (formules à définir) |
 | **Types** | Système de types Pokemon (18 types, faiblesses/résistances) |
 | **4 Attaques** | Puissance, précision, PP, type, catégorie (phys/spé/statut), **pattern d'AoE**, **portée** — chaque valeur peut être surchargée pour l'équilibrage tactique |
@@ -394,3 +395,14 @@ Deux modes prévus :
 - Minimaliste, inspirée Pokemon + FFTA
 - Barre de PV, infos attaques, grille de portée visible, barre d'initiative
 - Menu principal avec entrées désactivables (aventure grisée)
+
+---
+
+## 17. Internationalisation (i18n)
+
+Prévu en Phase 2 : système de traduction léger pour les noms de Pokemon, moves, statuts et textes UI.
+
+- **Langues cibles** : français et anglais
+- **Source** : [pokemon-showdown-fr](https://github.com/Sykless/pokemon-showdown-fr) pour les traductions françaises
+- Pas de lib i18n lourde — un simple dictionnaire JSON suffit pour le POC
+- Les données core restent en anglais ; la couche de traduction est uniquement dans le renderer/UI

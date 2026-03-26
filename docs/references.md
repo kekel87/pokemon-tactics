@@ -115,6 +115,12 @@
 
 ---
 
+## Traductions Pokemon
+
+- [pokemon-showdown-fr](https://github.com/Sykless/pokemon-showdown-fr) — Traductions françaises des noms de Pokemon, moves, abilities, statuts. Source prévue pour le système i18n (Phase 2).
+
+---
+
 ## Ressources documentation
 
 - [Phaser 3 API docs](https://docs.phaser.io/)

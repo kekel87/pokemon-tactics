@@ -129,6 +129,7 @@
 | 119 | 2026-03-26 | Status icons dans la timeline | **Pastilles colorées** par type de statut dans la turn timeline | Chaque statut majeur (brûlure, poison, paralysie, gel, sommeil) a une couleur distincte. La pastille apparaît à côté du portrait dans la timeline quand le Pokemon est affecté. |
 | 120 | 2026-03-26 | Stat change indicators | **Flèches ↑↓ colorées** dans l'info panel | Les modificateurs de stats actifs sont affichés sous forme de flèches colorées (vert montée, rouge descente) dans l'info panel du Pokemon sélectionné. |
 | 121 | 2026-03-26 | Movesets 8 nouveaux Pokemon | **À valider par l'humain** — implémentés fonctionnellement, pas encore équilibrés | Les 32 nouveaux moves des 8 Pokemon (Pikachu → Otaria) sont dans `packages/data`. Ils couvrent les patterns Line, Dash supplémentaires, et le statut Gel. L'équilibrage (puissances, PP, ranges tactiques) est à revoir avec l'humain avant validation. |
+| 122 | 2026-03-26 | Niveau des Pokemon | **Niveau 50, sans IV/EV** | Les stats sont calculées via `computeStatAtLevel(base, level=50)` — formule officielle sans IV ni EV (tous à 0). Donne des valeurs plus réalistes que les baseStats brutes. HP trop bas constaté en POC (baseStats directes = ~45 HP pour Bulbizarre). Décision de session design. |
 
 ---
 
