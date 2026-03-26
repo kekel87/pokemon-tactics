@@ -1,4 +1,4 @@
-import { PlayerId, type PokemonInstance } from "@pokemon-tactic/core";
+import { PlayerId, type PokemonInstance, StatName } from "@pokemon-tactic/core";
 import {
   DEPTH_INFO_PANEL,
   HP_BAR_BG_ALPHA,
@@ -13,19 +13,34 @@ import {
   INFO_PANEL_WIDTH,
   INFO_PANEL_X,
   INFO_PANEL_Y,
+  PORTRAIT_SIZE,
   TEAM_COLOR_PLAYER_1,
   TEAM_COLOR_PLAYER_2,
   UI_BORDER_ALPHA,
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
-  PORTRAIT_SIZE,
 } from "../constants";
 import { getPortraitKey } from "../sprites/SpriteLoader";
+
 const PORTRAIT_MARGIN: number = 8;
 const TEXT_OFFSET_X: number = PORTRAIT_MARGIN + PORTRAIT_SIZE + 8;
 const HP_BAR_OFFSET_Y: number = 40;
 const HP_BAR_MARGIN_RIGHT: number = 12;
 const HP_BAR_PANEL_WIDTH: number = INFO_PANEL_WIDTH - TEXT_OFFSET_X - HP_BAR_MARGIN_RIGHT;
+const STAT_CHANGES_OFFSET_Y: number = 68;
+
+const STAT_LABELS: Record<string, string> = {
+  [StatName.Attack]: "Atk",
+  [StatName.Defense]: "Def",
+  [StatName.SpAttack]: "SpA",
+  [StatName.SpDefense]: "SpD",
+  [StatName.Speed]: "Spd",
+  [StatName.Accuracy]: "Acc",
+  [StatName.Evasion]: "Eva",
+};
+
+const BUFF_COLOR = "#44bbff";
+const DEBUFF_COLOR = "#ff6644";
 
 export class InfoPanel {
   private readonly scene: Phaser.Scene;
@@ -36,6 +51,7 @@ export class InfoPanel {
   private readonly hpBarBackground: Phaser.GameObjects.Graphics;
   private readonly hpBarFill: Phaser.GameObjects.Graphics;
   private readonly statusText: Phaser.GameObjects.Text;
+  private readonly statChangesText: Phaser.GameObjects.Text;
   private portrait: Phaser.GameObjects.Image | null = null;
   private currentPortraitKey: string = "";
 
@@ -72,6 +88,12 @@ export class InfoPanel {
     );
     this.statusText.setOrigin(1, 0);
 
+    this.statChangesText = scene.add.text(TEXT_OFFSET_X, STAT_CHANGES_OFFSET_Y, "", {
+      fontSize: "10px",
+      color: "#aaaaaa",
+      fontFamily: "monospace",
+    });
+
     this.container = scene.add.container(INFO_PANEL_X, INFO_PANEL_Y, [
       this.background,
       this.nameText,
@@ -79,6 +101,7 @@ export class InfoPanel {
       this.hpBarFill,
       this.hpText,
       this.statusText,
+      this.statChangesText,
     ]);
     this.container.setDepth(DEPTH_INFO_PANEL);
     this.container.setVisible(false);
@@ -105,6 +128,40 @@ export class InfoPanel {
       this.statusText.setText(statusName.toUpperCase());
     } else {
       this.statusText.setText("");
+    }
+
+    this.updateStatChanges(pokemon);
+  }
+
+  private updateStatChanges(pokemon: PokemonInstance): void {
+    const parts: string[] = [];
+
+    for (const [stat, label] of Object.entries(STAT_LABELS)) {
+      const stages = pokemon.statStages[stat as keyof typeof pokemon.statStages];
+      if (stages === undefined || stages === 0) {
+        continue;
+      }
+
+      const arrows = stages > 0 ? "↑".repeat(stages) : "↓".repeat(-stages);
+      parts.push(`${label}${arrows}`);
+    }
+
+    if (parts.length === 0) {
+      this.statChangesText.setText("");
+      return;
+    }
+
+    this.statChangesText.setText(parts.join(" "));
+
+    const hasBuffs = Object.values(pokemon.statStages).some((s) => s > 0);
+    const hasDebuffs = Object.values(pokemon.statStages).some((s) => s < 0);
+
+    if (hasBuffs && hasDebuffs) {
+      this.statChangesText.setColor("#dddddd");
+    } else if (hasBuffs) {
+      this.statChangesText.setColor(BUFF_COLOR);
+    } else {
+      this.statChangesText.setColor(DEBUFF_COLOR);
     }
   }
 

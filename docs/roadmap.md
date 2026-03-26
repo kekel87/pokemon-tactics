@@ -22,7 +22,7 @@
 - [x] 7 targeting patterns (single, self, cone, cross, line, dash, zone)
 - [x] Friendly fire actif
 - [x] Type chart 18x18
-- [x] Tests unitaires pour chaque mécanique (244 tests unitaires + 36 tests intégration, 100% coverage)
+- [x] Tests unitaires pour chaque mécanique (244 tests unitaires, 100% coverage)
 
 ### Renderer
 - [x] Grille isométrique 2D avec Phaser 4
@@ -43,7 +43,7 @@
 > But : un combat complet et varié, jouable en hot-seat, avec assez de Pokemon pour tester toutes les mécaniques
 
 ### Ce qui est posé (fondations Phase 0)
-Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friendly fire, Move+Act, stat stages (-6/+6), hot-seat basique, 4 Pokemon avec 16 moves.
+Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friendly fire, Move+Act, stat stages (-6/+6), hot-seat basique, 12 Pokemon avec 48 moves, format 6v6, phase de placement interactive.
 
 ### Core
 - [x] KO définitif : corps reste sur la tile, traversable mais non-stoppable (plan 011)
@@ -54,16 +54,17 @@ Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friend
 - [ ] Plus de moves avec portées variées (mêlée, 2-3 tiles, globale)
 - [ ] Statuts volatils : confusion (chance de se frapper soi-même)
 - [ ] Poison grave (dégâts croissants)
-- [ ] Plusieurs Pokemon par équipe (3v3, 4v4, configurable)
-- [ ] Roster élargi (~8-12 Pokemon, couvrant plus de types et mécaniques)
+- [x] Plusieurs Pokemon par équipe : format 6v6 implémenté (plan 013)
+- [ ] Roster élargi (~8-12 Pokemon) — **12 Pokemon implémentés, movesets en attente de review humain**
 - [ ] Système de replay (log d'actions déterministe, seed + rejeu)
 
 ### Renderer
 - [x] Placement initial visuel : phase de placement interactive, panel roster, zones de spawn highlight (plan 013 — implémenté, non commité)
 - [x] Choix de direction en fin de tour
 - [x] Corps KO visible sur la grille (sprite Faint persistant, alpha réduit)
-- [ ] Feedback visuel des montées/descentes de stats
-- [ ] Feedback visuel des statuts sur les sprites
+- [x] Stat change indicators (flèches ↑↓ colorées) dans l'info panel
+- [x] Status icons (pastilles colorées) dans la turn timeline
+- [ ] Feedback visuel des statuts sur les sprites (icône ou effet au-dessus du sprite)
 - [ ] Prévisualisation des dégâts / portée avant confirmation
 
 ---

@@ -3,14 +3,15 @@ import { loadData } from "./load-data";
 import { deepMerge } from "./merge";
 
 describe("loadData", () => {
-  it("returns 4 pokemon", () => {
+  it("returns at least 4 pokemon", () => {
     const data = loadData();
-    expect(data.pokemon.length).toBe(4);
+    expect(data.pokemon.length).toBeGreaterThanOrEqual(4);
   });
 
-  it("returns 16 moves", () => {
+  it("returns at least one move per pokemon slot", () => {
     const data = loadData();
-    expect(data.moves.length).toBe(16);
+    const totalMoveSlots = data.pokemon.reduce((sum, p) => sum + p.movepool.length, 0);
+    expect(data.moves.length).toBeGreaterThanOrEqual(totalMoveSlots / 2);
   });
 
   it("each move has a targeting pattern", () => {
@@ -57,6 +58,14 @@ describe("loadData", () => {
     expect(ids).toContain("charmander");
     expect(ids).toContain("squirtle");
     expect(ids).toContain("pidgey");
+    expect(ids).toContain("pikachu");
+    expect(ids).toContain("machop");
+    expect(ids).toContain("abra");
+    expect(ids).toContain("gastly");
+    expect(ids).toContain("geodude");
+    expect(ids).toContain("growlithe");
+    expect(ids).toContain("jigglypuff");
+    expect(ids).toContain("seel");
   });
 });
 

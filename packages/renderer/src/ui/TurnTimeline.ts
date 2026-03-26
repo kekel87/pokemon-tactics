@@ -1,4 +1,10 @@
-import { type BattleState, PlayerId, type PokemonDefinition } from "@pokemon-tactic/core";
+import {
+  type BattleState,
+  PlayerId,
+  type PokemonDefinition,
+  type PokemonInstance,
+  StatusType,
+} from "@pokemon-tactic/core";
 import {
   DEPTH_TIMELINE,
   PORTRAIT_SIZE,
@@ -15,6 +21,16 @@ import {
   TYPE_COLORS,
 } from "../constants";
 import { getPortraitKey } from "../sprites/SpriteLoader";
+
+const STATUS_ICON_CONFIG: Record<string, { label: string; color: number }> = {
+  [StatusType.Burned]: { label: "B", color: 0xe84020 },
+  [StatusType.Poisoned]: { label: "P", color: 0xa040c0 },
+  [StatusType.Paralyzed]: { label: "Z", color: 0xd0b020 },
+  [StatusType.Asleep]: { label: "S", color: 0x6080c0 },
+  [StatusType.Frozen]: { label: "F", color: 0x60c0d0 },
+  [StatusType.BadlyPoisoned]: { label: "P", color: 0x802090 },
+  [StatusType.Confused]: { label: "?", color: 0xc08040 },
+};
 
 export class TurnTimeline {
   private readonly scene: Phaser.Scene;
@@ -50,7 +66,14 @@ export class TurnTimeline {
       const teamColor =
         pokemon.playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
 
-      const entry = this.createEntry(y, typeColor, teamColor, isActive, pokemon.definitionId);
+      const entry = this.createEntry(
+        y,
+        typeColor,
+        teamColor,
+        isActive,
+        pokemon.definitionId,
+        pokemon,
+      );
       this.container.add(entry);
       this.entries.push(entry);
 
@@ -70,6 +93,7 @@ export class TurnTimeline {
     teamColor: number,
     isActive: boolean,
     definitionId: string,
+    pokemon: PokemonInstance,
   ): Phaser.GameObjects.Container {
     const size = isActive ? TIMELINE_ACTIVE_SIZE : TIMELINE_ENTRY_SIZE;
     const half = size / 2;
@@ -102,7 +126,49 @@ export class TurnTimeline {
     border.strokeRoundedRect(-half, -half, size, size, 4);
     children.push(border);
 
+    if (pokemon.statusEffects.length > 0) {
+      const statusIcon = this.createStatusIcon(pokemon.statusEffects[0]?.type, half);
+      if (statusIcon) {
+        children.push(statusIcon);
+      }
+    }
+
     return this.scene.add.container(0, y + half, children);
+  }
+
+  private createStatusIcon(
+    statusType: string | undefined,
+    half: number,
+  ): Phaser.GameObjects.Container | null {
+    if (!statusType) {
+      return null;
+    }
+
+    const statusConfig = STATUS_ICON_CONFIG[statusType];
+    if (!statusConfig) {
+      return null;
+    }
+
+    const iconSize = 12;
+    const iconX = half - iconSize / 2;
+    const iconY = half - iconSize / 2;
+
+    const iconBg = this.scene.add.graphics();
+    iconBg.fillStyle(0x000000, 0.7);
+    iconBg.fillRoundedRect(iconX - 1, iconY - 1, iconSize + 2, iconSize + 2, 2);
+    iconBg.fillStyle(statusConfig.color, 1);
+    iconBg.fillRoundedRect(iconX, iconY, iconSize, iconSize, 2);
+
+    const label = this.scene.add
+      .text(iconX + iconSize / 2, iconY + iconSize / 2, statusConfig.label, {
+        fontSize: "8px",
+        color: "#ffffff",
+        fontFamily: "monospace",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5, 0.5);
+
+    return this.scene.add.container(0, 0, [iconBg, label]);
   }
 
   private clearEntries(): void {

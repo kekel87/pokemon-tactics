@@ -3,7 +3,15 @@
     { "number": "0001", "name": "bulbasaur" },
     { "number": "0004", "name": "charmander" },
     { "number": "0007", "name": "squirtle" },
-    { "number": "0016", "name": "pidgey" }
+    { "number": "0016", "name": "pidgey" },
+    { "number": "0025", "name": "pikachu" },
+    { "number": "0066", "name": "machop" },
+    { "number": "0063", "name": "abra" },
+    { "number": "0092", "name": "gastly" },
+    { "number": "0074", "name": "geodude" },
+    { "number": "0058", "name": "growlithe" },
+    { "number": "0039", "name": "jigglypuff" },
+    { "number": "0086", "name": "seel" }
   ],
   "animations": ["Idle", "Walk", "Attack", "Hurt", "Faint"],
   "portraits": ["Normal"],
