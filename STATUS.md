@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-26 (Session conception patterns d'attaque — aucun code modifié)
+> Dernière mise à jour : 2026-03-26 (Session design — 7 idées validées, aucun code modifié)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -194,6 +194,18 @@
   - Heuristique 2v2 Showdown ajoutée comme outil d'aide à la décision
   - game-design.md mis à jour (slash/blast + effets spéciaux), roadmap.md mis à jour (tâches d'implémentation ajoutées)
   - Correction numérotation decisions.md : doublons #108-114 corrigés en #115-121
+
+- **Session 2026-03-26 — Design Phase 1** (aucun code modifié) :
+  - 7 idées validées et intégrées dans la doc :
+    1. **Stats niveau 50** : `computeStatAtLevel(base, 50)` sans IV/EV — décision #122, roadmap Phase 1
+    2. **Preview AoE + confirmation** avant attaque — déjà dans roadmap, priorité confirmée
+    3. **i18n français/anglais** — Phase 2, source : pokemon-showdown-fr (docs/references.md + README mis à jour)
+    4. **Infos détaillées des attaques** dans le sous-menu (puissance, type, PP, pattern) — roadmap Phase 1
+    5. **Scaling sprites selon taille Pokemon** — Phase 2, basé sur height/weight PokeAPI
+    6. **Icons/sprites pour les statuts** sur les sprites — déjà dans roadmap Phase 1, priorité confirmée
+    7. **Refonte panel info stats** : stages lisibles (+1/+2/-1 avec code couleur) — roadmap Phase 1
+  - game-design.md, docs/roadmap.md, docs/references.md, README.md mis à jour par doc-keeper
+  - decisions.md : décision #122 ajoutée (niveau 50 sans IV/EV)
 
 ### Prochaine étape
 - **Implémenter `slash` et `blast`** dans `packages/core` (targeting resolvers + tests) — prérequis avant de mettre à jour `tactical.ts`

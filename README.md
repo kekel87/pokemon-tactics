@@ -151,8 +151,9 @@ flowchart TB
 | Source | Usage |
 |--------|-------|
 | [Pokemon Showdown](https://github.com/smogon/pokemon-showdown) | Stats, moves, type chart, formules de degats |
-| [PokeAPI](https://pokeapi.co/) | Donnees Pokemon complementaires |
+| [PokeAPI](https://pokeapi.co/) | Donnees Pokemon complementaires (height/weight) |
 | [Bulbapedia](https://bulbapedia.bulbagarden.net/) | Documentation formules (degats, types, statuts) |
+| [pokemon-showdown-fr](https://github.com/Sykless/pokemon-showdown-fr) | Traductions francaises (noms Pokemon, moves, statuts) — i18n Phase 2 |
 
 ### Sprites
 

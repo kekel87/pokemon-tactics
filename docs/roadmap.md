@@ -58,6 +58,7 @@ Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friend
 - [ ] Poison grave (dégâts croissants)
 - [x] Plusieurs Pokemon par équipe : format 6v6 implémenté (plan 013)
 - [ ] Roster élargi (~8-12 Pokemon) — **12 Pokemon implémentés, movesets en attente de review humain**
+- [ ] Stats niveau 50 : fonction `computeStatAtLevel` pour calculer HP et stats réelles au niveau 50 (actuellement baseStats brutes utilisées directement, HP trop bas)
 - [ ] Système de replay (log d'actions déterministe, seed + rejeu)
 
 ### Renderer
@@ -66,6 +67,9 @@ Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friend
 - [x] Corps KO visible sur la grille (sprite Faint persistant, alpha réduit)
 - [x] Stat change indicators (flèches ↑↓ colorées) dans l'info panel
 - [x] Status icons (pastilles colorées) dans la turn timeline
+- [ ] Afficher le niveau dans l'UI
+- [ ] Info détaillées des attaques dans le sous-menu (puissance, type, catégorie, précision, PP restants, pattern)
+- [ ] Refonte panel info stats : affichage clair des stages actuels (+1/+2/-1 etc.) avec code couleur lisible
 - [ ] Feedback visuel des statuts sur les sprites (icône ou effet au-dessus du sprite)
 - [ ] Prévisualisation des dégâts / portée avant confirmation
 
@@ -73,6 +77,8 @@ Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friend
 
 ## Phase 2 — Terrain tactique
 
+- [ ] i18n français/anglais : système de traduction léger pour noms Pokemon, moves, statuts, UI (source : https://github.com/Sykless/pokemon-showdown-fr)
+- [ ] Scaling sprites selon taille Pokemon : scale relatif basé sur height/weight de PokeAPI
 - [ ] Dénivelés (hauteur des tiles) + dégâts de chute
 - [ ] Types de terrain (lave, eau, herbe) + modificateurs précision terrain
 - [ ] Interactions type/terrain (Feu immunisé lave, Vol ignore obstacles...)
