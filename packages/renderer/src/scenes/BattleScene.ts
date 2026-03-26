@@ -45,6 +45,8 @@ export class BattleScene extends Phaser.Scene {
       createPokemonAnimations(this, definitionId);
     }
 
+    this.scene.stop("BattleUIScene");
+
     this.events.once("uiReady", () => {
       const uiScene = this.scene.get("BattleUIScene") as BattleUIScene;
       this.startPlacementPhase(uiScene);
