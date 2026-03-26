@@ -21,6 +21,7 @@ Profil : dev web Angular/TS expérimenté, clean code advocate, expérience Godo
 | `docs/architecture.md` | Avant de créer un nouveau fichier/package ou changer la structure |
 | `docs/decisions.md` | Quand on hésite sur un choix (la réponse est peut-être déjà là) |
 | `docs/roster-poc.md` | Pour les Pokemon et movesets du prototype |
+| `docs/reflexion-patterns-attaques.md` | Avant d'attribuer ou implémenter un pattern d'attaque |
 | `docs/roadmap.md` | Pour savoir quoi faire ensuite |
 | `docs/references.md` | Quand on cherche comment un problème a été résolu ailleurs |
 | `docs/methodology.md` | Pour le workflow de travail |
@@ -98,6 +99,7 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 | Nouvelle mécanique de jeu | `game-designer` (cohérence + équilibre) |
 | Nouvelle mécanique dans le core | `test-writer` (tests first) |
 | Ajout/modif de données Pokemon | `game-designer` + `data-miner` |
+| Revue/attribution des patterns d'attaque | `move-pattern-designer` (semantique nom → pattern) |
 | Ajout de dépendance | `dependency-manager` (audit avant d'ajouter) |
 | Ajout/modif d'assets | `asset-manager` (conventions) |
 | Nouveau plan ou plan à reviewer | `plan-reviewer` |

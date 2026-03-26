@@ -148,10 +148,12 @@ Le système de précision Pokemon (précision attaque × évasion cible) est con
 
 Chaque attaque a un **pattern** (inspiré FFTA) :
 - Single tile (cible unique)
+- Arc frontal / slash (3 cases devant : face + 2 diagonales adjacentes)
 - Croix (3x3, 5x5...)
 - Ligne droite (portée X)
 - Cône
 - Zone circulaire
+- Blast (projectile à distance qui explose en cercle)
 - Pattern custom par attaque
 
 **Friendly fire : OUI** — les AoE touchent les alliés. Force le positionnement tactique.
@@ -160,10 +162,27 @@ Chaque attaque a un **pattern** (inspiré FFTA) :
 - **Mêlée** (portée 1) : tile adjacente
 - **Portée X** (portée 1-3, 2-4...) : cible à distance, single tile
 - **Portée + AoE** : cible un point à distance, l'effet se propage en zone autour du point d'impact (ex: boule de feu tirée à portée 3, explose en croix 3x3)
-- **Zone self** (portée 0) : zone centrée sur le lanceur (ex: Brouillard)
-- **Cône** : éventail devant le lanceur
+- **Zone self** (portée 0) : zone centrée sur le lanceur (ex: Brouillard, Ampleur)
+- **Cône** : éventail devant le lanceur (ex: Dracosouffle, Blizzard, Tornade)
+- **Slash / arc frontal** : touche les 3 cases devant le lanceur (face + 2 diagonales) — balayage, coup d'aile (ex: Tranch'Herbe, Cru-Aile) — *à implémenter*
+- **Blast** : projectile lancé à distance (`range`) qui explose en cercle à l'impact (`radius`) — différent de `cross` (forme en +) et de `zone` (centré sur soi) (ex: Bombe-Beurk) — *à implémenter*
 - **Ligne** : ligne droite depuis le lanceur
 - **Dash** : le lanceur se déplace en ligne droite et frappe (voir attaques de priorité)
+
+### Effets spéciaux sur les attaques (flags)
+
+Au-delà du pattern de ciblage, certaines attaques ont des propriétés supplémentaires qui ne sont pas des patterns de ciblage :
+
+| Propriété | Description | Exemples |
+|-----------|-------------|---------|
+| **knockback** | Repousse la cible de N cases dans la direction de l'impact | Cyclone, Draco-Queue, Torgnole |
+| **warp** | Le lanceur se téléporte sur la cible (ignore obstacles), reste à l'arrivée | Tunnel, Vol, Ombre Portée, Téléport |
+| **ground** | Pose une zone persistante au sol (N tours) — piège, terrain, brouillard | Picots, Piège de Roc, Cage-Éclair zone |
+| **self-damage** | Le lanceur subit des dégâts (recul) | Voltacle, Bélier, Danse Lames |
+| **pierce** | Traverse les cibles (variante de `line`) | Laser traversant |
+| **ignore-height** | Ignore les bonus/malus de hauteur | Séisme, Ampleur |
+
+> Ces propriétés sont des effets ou flags sur le move. À implémenter en Phase 1+. Voir `docs/reflexion-patterns-attaques.md` pour le détail et les décisions prises.
 
 ---
 

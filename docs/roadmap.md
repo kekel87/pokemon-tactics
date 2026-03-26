@@ -49,6 +49,8 @@ Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friend
 - [x] KO définitif : corps reste sur la tile, traversable mais non-stoppable (plan 011)
 - [x] Placement initial configurable : `MapDefinition`, `PlacementPhase`, alternance serpent, mode random (plan 013 — implémenté, non commité)
 - [x] Direction de fin de tour (orientation choisie avant EndTurn)
+- [ ] Nouveaux patterns core : `slash` (arc frontal 3 cases) et `blast` (projectile + explosion circulaire) — voir `docs/reflexion-patterns-attaques.md` et décisions #108-109
+- [ ] Mettre à jour `tactical.ts` avec les 8 changements de pattern validés (décision #110) — après implémentation slash + blast
 - [ ] Plus de moves stat changes (Épée Danse, Groz'Yeux, Abri, etc.)
 - [ ] Plus de moves AoE variés (utiliser les patterns existants avec plus de diversité)
 - [ ] Plus de moves avec portées variées (mêlée, 2-3 tiles, globale)

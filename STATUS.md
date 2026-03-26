@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-26 (Plan 013 commité — roster élargi 12 Pokemon, 48 moves, format 6v6, UI améliorations)
+> Dernière mise à jour : 2026-03-26 (Session conception patterns d'attaque — aucun code modifié)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -185,9 +185,20 @@
   - **Stat change indicators** (flèches ↑↓ colorées) dans l'info panel
   - Sandbox `localhost` autorisé dans la CSP
 
+- **Session 2026-03-26 — Conception patterns d'attaque** (aucun code modifié) :
+  - Nouvel agent `move-pattern-designer` créé dans `.claude/agents/`
+  - Document de réflexion `docs/reflexion-patterns-attaques.md` — philosophie, règles sémantiques, tableau des 48 attaques
+  - 2 nouveaux patterns décidés : `slash` (arc 3 cases devant) et `blast` (projectile + explosion circulaire) — décisions #108-109
+  - 8 changements de pattern validés sur les movesets existants — décision #110
+  - 4 nouvelles mécaniques identifiées pour Phase 1+ : knockback, warp, ground (zones persistantes), self-damage — décision #112
+  - Heuristique 2v2 Showdown ajoutée comme outil d'aide à la décision
+  - game-design.md mis à jour (slash/blast + effets spéciaux), roadmap.md mis à jour (tâches d'implémentation ajoutées)
+  - Correction numérotation decisions.md : doublons #108-114 corrigés en #115-121
+
 ### Prochaine étape
-- Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage)
-- Plan 014 : refactor `PlayerId` pour N joueurs, support formats 3+
+- **Implémenter `slash` et `blast`** dans `packages/core` (targeting resolvers + tests) — prérequis avant de mettre à jour `tactical.ts`
+- Mettre à jour `tactical.ts` avec les 8 changements de pattern validés (décision #110)
+- Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage) — décision #121
 - Feedback visuel des statuts sur les sprites (Phase 1 Renderer)
 
 ### Standards de code établis
