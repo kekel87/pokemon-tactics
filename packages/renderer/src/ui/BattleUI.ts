@@ -69,7 +69,7 @@ export class BattleUI {
       40,
       0x44aa44,
       () => {
-        this.scene.scene.restart();
+        this.scene.scene.get("BattleScene").scene.restart();
       },
     );
     restartButton.setDepth(DEPTH_VICTORY_CONTENT);
