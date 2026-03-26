@@ -3,6 +3,9 @@
 > Les 12 Pokemon du prototype élargi et leurs movesets.
 > Chaque attaque teste un pattern ou une mécanique différente pour valider le moteur.
 > Les movesets des 8 nouveaux Pokemon (plan 013+) n'ont pas encore été revus par l'humain.
+>
+> **Révision de patterns en attente** : 8 attaques ont un pattern validé différent de l'implémentation actuelle. Les changements seront effectifs après l'implémentation des patterns `slash` et `blast` dans le core. Voir `docs/reflexion-patterns-attaques.md` (section 8) et décision #110.
+> Attaques concernées : Tranch'Herbe (→slash), Poudre Dodo (→zone r1), Bombe-Beurk (→blast r2), Bulles d'O (→cone), Tornade (→cone), Cru-Aile (→slash), Ampleur (→zone r2).
 
 ---
 
