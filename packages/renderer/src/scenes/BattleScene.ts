@@ -2,13 +2,14 @@ import {
   type PlacementEntry,
   PlacementMode,
   PlacementPhase,
-  type PlacementTeam,
-  PlayerController,
-  PlayerId,
   type PokemonDefinition,
 } from "@pokemon-tactic/core";
 import { loadData, pocArena } from "@pokemon-tactic/data";
-import { type BattleSetupConfig, createBattleFromPlacements } from "../game/BattleSetup";
+import {
+  type BattleSetupConfig,
+  createBattleFromPlacements,
+  defaultTeams,
+} from "../game/BattleSetup";
 import { GameController, type PlacementConfig } from "../game/GameController";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
@@ -62,21 +63,7 @@ export class BattleScene extends Phaser.Scene {
       throw new Error("POC arena has no formats defined");
     }
 
-    const teams: PlacementTeam[] = [
-      {
-        playerId: PlayerId.Player1,
-        pokemonIds: ["p1-bulbasaur", "p1-squirtle"],
-        controller: PlayerController.Human,
-      },
-      {
-        playerId: PlayerId.Player2,
-        pokemonIds: ["p2-charmander", "p2-pidgey"],
-        controller: PlayerController.Human,
-      },
-    ];
-
-    const placementPhase = new PlacementPhase(map, teams, format, PlacementMode.Alternating);
-
+    const teams = defaultTeams;
     const isometricGrid = new IsometricGrid(this);
     isometricGrid.drawGrid();
 
@@ -95,6 +82,18 @@ export class BattleScene extends Phaser.Scene {
       uiScene.placementRosterPanel,
     );
     this.setupInput(controller, isometricGrid, uiScene);
+
+    const useRandomPlacement = new URLSearchParams(window.location.search).has("random");
+
+    if (useRandomPlacement) {
+      const gridCenter = { x: Math.floor(map.width / 2), y: Math.floor(map.height / 2) };
+      const randomPhase = new PlacementPhase(map, teams, format, PlacementMode.Random);
+      const placements = randomPhase.autoPlaceAll(gridCenter);
+      this.transitionToBattle(controller, isometricGrid, sprites, { map, teams, placements });
+      return;
+    }
+
+    const placementPhase = new PlacementPhase(map, teams, format, PlacementMode.Alternating);
 
     const placementConfig: PlacementConfig = {
       placementPhase,
@@ -120,7 +119,9 @@ export class BattleScene extends Phaser.Scene {
     controller.setSetup(battleSetup);
 
     for (const pokemon of battleSetup.state.pokemon.values()) {
-      if (pokemon.currentHp <= 0) continue;
+      if (pokemon.currentHp <= 0) {
+        continue;
+      }
 
       const definition = battleSetup.pokemonDefinitions.get(pokemon.definitionId);
       const types = definition?.types ?? ["normal"];
@@ -145,7 +146,9 @@ export class BattleScene extends Phaser.Scene {
     });
 
     this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
-      if (controller.isAnimating) return;
+      if (controller.isAnimating) {
+        return;
+      }
 
       const grid = isometricGrid.screenToGrid(pointer.worldX, pointer.worldY);
 
@@ -161,11 +164,20 @@ export class BattleScene extends Phaser.Scene {
           const hoveredPokemon = controller.getPokemonAtPosition(grid.x, grid.y);
           if (hoveredPokemon) {
             uiScene.infoPanel.update(hoveredPokemon, hoveredPokemon.playerId);
+          } else {
+            const activePokemon = controller.getActivePokemon();
+            if (activePokemon) {
+              uiScene.infoPanel.update(activePokemon, activePokemon.playerId);
+            }
           }
         }
       } else if (this.lastHoverGrid) {
         this.lastHoverGrid = null;
         isometricGrid.hideCursor();
+        const activePokemon = controller.getActivePokemon();
+        if (activePokemon) {
+          uiScene.infoPanel.update(activePokemon, activePokemon.playerId);
+        }
       }
     });
 

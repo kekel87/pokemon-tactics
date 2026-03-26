@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-25 (Plan 013 — Modèle de carte + phase de placement, in-progress, toutes étapes implémentées, non commité)
+> Dernière mise à jour : 2026-03-26 (Plan 013 commité — roster élargi 12 Pokemon, 48 moves, format 6v6, UI améliorations)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -159,7 +159,7 @@
   - `PokemonSprite.setHpBarVisible()` : barre PV masquée pendant le choix de direction
   - Orientation appliquée sur `TurnEnded` via `sprite.setDirection(orientation)` dans `processEvents`
 
-- **Plan 013 (toutes étapes implémentées, non commité)** — Modèle de carte + phase de placement :
+- **Plan 013 terminé** — Modèle de carte + phase de placement :
   - Core : 7 nouveaux types/enums (`MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `PlacementMode`, `PlayerController`)
   - Core : `validateMapDefinition` (11 tests)
   - Core : carte `poc-arena` 12x12 avec 2 zones de spawn de 9 tiles dans `packages/data`
@@ -171,14 +171,24 @@
   - Renderer : `IsometricGrid.highlightTilesWithColor` pour les zones de spawn
   - Renderer : `BattleScene` flow complet placement → combat (`PlacementMode.Alternating` et `Random`)
   - Renderer : `SpriteLoader.preloadPokemonAssets` signature assouplie
-  - Bugfixes post-test visuel : texte masqué par portraits, sélection libre Pokemon, couleurs zones ternes
-  - **244 tests unitaires + 36 tests intégration**, build 100% OK
-  - **Bug connu** : bouton Restart après victoire cassé (probablement par le refactor `BattleScene`)
+
+- **Post-plan 013 — Roster élargi + UI (2026-03-26)** — **244 tests**, build OK :
+  - Fix Restart : `BattleUI` redémarre `BattleScene` (au lieu de `BattleUIScene`)
+  - **Roster 4 → 12 Pokemon** : Pikachu, Machop, Abra, Fantominus, Racaillou, Caninos, Rondoudou, Otaria
+  - **16 → 48 moves** : 32 nouveaux moves, tous les patterns couverts
+  - Nouveaux patterns utilisés : Line (Tonnerre, Psykoud'boul, Lance-Flammes, Laser Glace), Dash (Voltacle, Tunnel, Roue de Feu), Gel via Blizzard
+  - Format **6v6**, zones de spawn centrées sur les bords opposés (haut/bas de la carte)
+  - Sprites PMDCollab extraits pour les 8 nouveaux Pokemon (Otaria sans animation Faint disponible — fallback)
+  - URL param `?random` pour placement instantané en mode random
+  - Info panel revient sur le Pokemon actif quand le hover quitte la grille
+  - **Status icons** (pastilles colorées) dans la turn timeline
+  - **Stat change indicators** (flèches ↑↓ colorées) dans l'info panel
+  - Sandbox `localhost` autorisé dans la CSP
 
 ### Prochaine étape
-- Commiter le plan 013, marquer `done` dans `plans/README.md`
-- Corriger le bug Restart (bouton victory screen)
+- Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage)
 - Plan 014 : refactor `PlayerId` pour N joueurs, support formats 3+
+- Feedback visuel des statuts sur les sprites (Phase 1 Renderer)
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type

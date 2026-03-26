@@ -58,9 +58,9 @@ export const TEAM_COLOR_PLAYER_1 = 0x2255aa;
 export const TEAM_COLOR_PLAYER_2 = 0xaa2233;
 
 export const INFO_PANEL_X = 16;
-export const INFO_PANEL_Y = 620;
+export const INFO_PANEL_Y = 606;
 export const INFO_PANEL_WIDTH = 220;
-export const INFO_PANEL_HEIGHT = 80;
+export const INFO_PANEL_HEIGHT = 94;
 export const INFO_PANEL_ALPHA = 0.85;
 export const INFO_PANEL_CORNER_RADIUS = 6;
 

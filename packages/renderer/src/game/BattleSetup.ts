@@ -174,6 +174,26 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
   };
 }
 
+export const defaultTeams: PlacementTeam[] = [
+  {
+    playerId: PlayerId.Player1,
+    pokemonIds: ["p1-bulbasaur", "p1-squirtle", "p1-pikachu", "p1-machop", "p1-abra", "p1-geodude"],
+    controller: PlayerController.Human,
+  },
+  {
+    playerId: PlayerId.Player2,
+    pokemonIds: [
+      "p2-charmander",
+      "p2-pidgey",
+      "p2-gastly",
+      "p2-growlithe",
+      "p2-jigglypuff",
+      "p2-seel",
+    ],
+    controller: PlayerController.Human,
+  },
+];
+
 export function createDefaultBattleConfig(): BattleSetupConfig {
   const map = pocArena;
   const format = map.formats[0];
@@ -181,18 +201,7 @@ export function createDefaultBattleConfig(): BattleSetupConfig {
     throw new Error("POC arena has no formats defined");
   }
 
-  const teams: PlacementTeam[] = [
-    {
-      playerId: PlayerId.Player1,
-      pokemonIds: ["p1-bulbasaur", "p1-squirtle"],
-      controller: PlayerController.Human,
-    },
-    {
-      playerId: PlayerId.Player2,
-      pokemonIds: ["p2-charmander", "p2-pidgey"],
-      controller: PlayerController.Human,
-    },
-  ];
+  const teams = defaultTeams;
 
   const gridCenter = {
     x: Math.floor(map.width / 2),
