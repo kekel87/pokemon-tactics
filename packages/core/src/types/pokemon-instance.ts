@@ -10,9 +10,11 @@ export interface PokemonInstance {
   id: string;
   definitionId: string;
   playerId: PlayerId;
+  level: number;
   currentHp: number;
   maxHp: number;
   baseStats: BaseStats;
+  combatStats: BaseStats;
   derivedStats: DerivedStats;
   statStages: Record<StatName, number>;
   statusEffects: StatusEffect[];

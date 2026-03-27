@@ -114,7 +114,7 @@ export class InfoPanel {
     this.drawBackground(teamColor);
 
     const name = pokemon.definitionId.charAt(0).toUpperCase() + pokemon.definitionId.slice(1);
-    this.nameText.setText(name);
+    this.nameText.setText(`${name}  Lv.${pokemon.level}`);
 
     this.updatePortrait(pokemon.definitionId);
 

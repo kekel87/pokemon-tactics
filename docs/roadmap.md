@@ -22,7 +22,7 @@
 - [x] 9 targeting patterns (single, self, cone, cross, line, dash, zone, slash, blast)
 - [x] Friendly fire actif
 - [x] Type chart 18x18
-- [x] Tests unitaires pour chaque mécanique (244 tests unitaires, 100% coverage)
+- [x] Tests unitaires pour chaque mécanique (305 tests unitaires, 100% coverage)
 
 ### Renderer
 - [x] Grille isométrique 2D avec Phaser 4
@@ -58,7 +58,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [ ] Poison grave (dégâts croissants)
 - [x] Plusieurs Pokemon par équipe : format 6v6 implémenté (plan 013)
 - [ ] Roster élargi (~8-12 Pokemon) — **12 Pokemon implémentés, movesets en attente de review humain**
-- [ ] Stats niveau 50 : fonction `computeStatAtLevel` pour calculer HP et stats réelles au niveau 50 (actuellement baseStats brutes utilisées directement, HP trop bas)
+- [x] Stats niveau 50 : fonction `computeStatAtLevel` pour calculer HP et stats réelles au niveau 50 (plan 015)
 - [ ] Système de replay (log d'actions déterministe, seed + rejeu)
 
 ### Renderer
@@ -67,7 +67,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Corps KO visible sur la grille (sprite Faint persistant, alpha réduit)
 - [x] Stat change indicators (flèches ↑↓ colorées) dans l'info panel
 - [x] Status icons (pastilles colorées) dans la turn timeline
-- [ ] Afficher le niveau dans l'UI
+- [x] Afficher le niveau dans l'UI (`Lv.50` dans l'InfoPanel)
 - [ ] Info détaillées des attaques dans le sous-menu (puissance, type, catégorie, précision, PP restants, pattern)
 - [ ] Refonte panel info stats : affichage clair des stages actuels (+1/+2/-1 etc.) avec code couleur lisible
 - [ ] Feedback visuel des statuts sur les sprites (icône ou effet au-dessus du sprite)

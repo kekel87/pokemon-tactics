@@ -11,6 +11,7 @@ import type {
 import {
   BattleEngine,
   type BattleState,
+  computeCombatStats,
   PlacementMode,
   PlacementPhase,
   PlayerController,
@@ -34,6 +35,8 @@ const ZERO_STAT_STAGES = {
   [StatName.Evasion]: 0,
 };
 
+const BATTLE_LEVEL = 50;
+
 function createPokemonInstance(
   definition: PokemonDefinition,
   playerId: PlayerId,
@@ -42,23 +45,25 @@ function createPokemonInstance(
   orientation: Direction,
   moveRegistry: Map<string, MoveDefinition>,
 ): PokemonInstance {
-  const hpStat = definition.baseStats.hp;
   const currentPp: Record<string, number> = {};
   for (const moveId of definition.movepool) {
     const move = moveRegistry.get(moveId);
     currentPp[moveId] = move?.pp ?? 0;
   }
+  const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
   return {
     id: instanceId,
     definitionId: definition.id,
     playerId,
-    currentHp: hpStat,
-    maxHp: hpStat,
+    level: BATTLE_LEVEL,
+    currentHp: combatStats.hp,
+    maxHp: combatStats.hp,
     baseStats: { ...definition.baseStats },
+    combatStats,
     derivedStats: {
       movement: 3,
       jump: 1,
-      initiative: definition.baseStats.speed,
+      initiative: combatStats.speed,
     },
     statStages: { ...ZERO_STAT_STAGES },
     statusEffects: [],
