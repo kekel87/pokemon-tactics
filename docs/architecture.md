@@ -420,11 +420,11 @@ Le replay est **déterministe** : même seed + mêmes actions = même résultat.
 
 ---
 
-## 10. Outillage Claude Code
+## 10. Outillage
 
 | Besoin | Solution |
 |--------|----------|
-| Écrire du code | Claude Code + TypeScript (natif) |
+| Écrire du code | Agent + TypeScript (natif) |
 | Lancer le jeu | `pnpm dev` → Vite dev server |
 | Voir le rendu | MCP Playwright — screenshots, interaction |
 | Tests | `pnpm test` (Vitest) |
@@ -448,17 +448,17 @@ Le core ne change jamais — seul le renderer est remplacé.
 
 ---
 
-## 12. Agents & Skills Claude Code
+## 12. Agents & Skills
 
-Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour automatiser le workflow.
+Agents custom dans `.vibe/agents/` et skills dans `.vibe/skills/` pour automatiser le workflow.
 
 ### Agents actifs
 
 | Agent | Modèle | Rôle |
 |-------|--------|------|
-| `core-guardian` | haiku | Vérifie que core n'a aucune dépendance UI |
-| `doc-keeper` | sonnet | Maintient la documentation à jour (checklist systématique sur tous les fichiers doc) |
-| `code-reviewer` | sonnet | Review qualité, TS strict, conventions — propose un titre de commit après review |
+| `core-guardian` | devstral-2 | Vérifie que core n'a aucune dépendance UI |
+| `doc-keeper` | devstral-2 | Maintient la documentation à jour (checklist systématique sur tous les fichiers doc) |
+| `code-reviewer` | devstral-2 | Review qualité, TS strict, conventions — propose un titre de commit après review |
 | `game-designer` | sonnet | Cohérence et équilibre des mécaniques |
 | `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |
 | `session-closer` | sonnet | Met à jour STATUS.md en fin de session |

@@ -12,6 +12,7 @@ export const TILE_FILL_COLOR = 0x4a7c59;
 export const TILE_STROKE_COLOR = 0x2d5a3f;
 export const TILE_HIGHLIGHT_MOVE_COLOR = 0x4488cc;
 export const TILE_HIGHLIGHT_ATTACK_COLOR = 0xcc4444;
+export const TILE_HIGHLIGHT_AOE_PREVIEW_COLOR = 0xcccc44;
 export const TILE_STROKE_WIDTH = 1;
 
 export const CURSOR_COLOR = 0xffdd44;

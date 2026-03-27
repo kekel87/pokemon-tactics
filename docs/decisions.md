@@ -22,7 +22,7 @@
 | 10 | 2026-03-19 | Navigateur | **Oui** — web natif | Comme PokeRogue. Pas d'export WASM, du vrai web. |
 | 11 | 2026-03-19 | Versionning | **Git** | Conventional commits. |
 | 12 | 2026-03-19 | Stack | **TypeScript + Phaser 4** | Core TS pur + Phaser 4 pour le rendu. Monorepo pnpm. API compatible Phaser 3. |
-| 13 | 2026-03-19 | Développeur principal | **Claude Code** | L'humain supervise, review, et guide. Claude Code écrit le code. |
+| 13 | 2026-03-19 | Développeur principal | **Agent** | L'humain supervise, review, et guide. L'agent écrit le code. |
 | 14 | 2026-03-19 | Linter/Formatter | **Biome** | Remplace ESLint + Prettier + Stylelint. Plus rapide, une seule config. Utilisé par PokeRogue. |
 | 15 | 2026-03-19 | Plans d'exécution | **`plans/xxx-name.md`** | Numérotés, avec statut. Conservés comme historique. |
 | 16 | 2026-03-19 | Roster POC | **Bulbizarre, Salamèche, Carapuce, Roucoul** | 4 Pokemon simples, 4 types (Plante, Feu, Eau, Normal/Vol). Suffisant pour valider les mécaniques. Movesets détaillés dans `docs/roster-poc.md`. |
@@ -83,7 +83,7 @@
 | 71 | 2026-03-21 | `getLegalActions` comme filtre IA | **`getLegalActions()` doit être utilisé par toute IA avant de choisir une attaque** | Les tests headless ont montré qu'une IA qui attaque sans vérifier les cibles valides gaspille tous ses PP. `getLegalActions` expose déjà les positions valides et permet de savoir si une cible est à portée. |
 | 72 | 2026-03-22 | Style de commit | **Titre seul, jamais de corps** | Un commit = une ligne. Le titre du commit conventionnel suffit. Pas de `git commit -m "..." -m "..."`. Garder l'historique lisible d'un coup d'œil. |
 | 73 | 2026-03-22 | Code-reviewer : titre de commit | **Toujours proposer un titre de commit après une review** | Le code-reviewer termine systématiquement sa review en proposant un titre de commit conventionnel prêt à copier-coller. |
-| 74 | 2026-03-22 | README public | **Disclaimers Nintendo + IA obligatoires** | Le README mentionne explicitement : fan project non affilié à Nintendo/Game Freak, assets sous licence SpriteCollab, code généré par Claude Code (Anthropic). |
+| 74 | 2026-03-22 | README public | **Disclaimers Nintendo + IA obligatoires** | Le README mentionne explicitement : fan project non affilié à Nintendo/Game Freak, assets sous licence SpriteCollab, code généré par un agent IA. |
 | 75 | 2026-03-22 | Move+Act par tour | **FFTA-like : Move + Act + EndTurn** | Chaque tour permet un Move (une fois) + un Act (une fois) dans n'importe quel ordre. Le tour se termine uniquement sur EndTurn explicite. Remplace SkipTurn. |
 | 76 | 2026-03-22 | Dash après Move | **Autorisé (option A)** | Un Dash consomme l'Act, pas le Move. Move→Dash et Dash→Move sont tous deux permis. Après Move 4 tiles + Dash 3 tiles = 7 tiles de portée + frappe. Accepté car seul Roucoul a un dash dans le POC — à surveiller si trop fort à mesure que le roster s'agrandit. |
 | 77 | 2026-03-22 | Overlay UI renderer | **BattleUIScene séparée de BattleScene** | L'UI (menus, panels, timeline) est une scène Phaser distincte lancée en overlay sur BattleScene. Communication via event `uiReady`. Évite les conflits de depth et de camera entre le jeu et l'UI. |
@@ -153,7 +153,7 @@
 | 10 | Système CT (FFTA) vs Round-robin | Round-robin pour le POC (décision #62). Le CT est plus tactique (vitesse = fréquence d'action, coût CT variable par move), mais risques : vitesse trop forte, petits moves (PP élevés) trop avantageux car coût CT faible. Idée : corrélation PP ↔ coût CT (peu de PP = move puissant = coût CT élevé). Voir aussi Mystery Dungeon Travel Speed (x0.5 à x4). À évaluer en Phase 1 avec les tests headless de balancing. | Phase 1 |
 | 9 | Interaction statut/terrain | Brûlure guérie par eau ? Gel facilité sur glace ? | Phase 2 |
 | 2 | HD-2D avancé | Quand migrer ? **Babylon.js** (built-in DoF/bloom/tilt-shift, écrit en TS, NullEngine) vs **Three.js** (plus léger, plus grande communauté). Spike comparatif prévu. | Phase 4 |
-| 3 | Agents & Skills Claude Code | Quels agents/skills custom créer ? Proposition faite, à valider et affiner au fil du dev. | Phase 0 |
+| 3 | Agents & Skills | Quels agents/skills custom créer ? Proposition faite, à valider et affiner au fil du dev. | Phase 0 |
 
 ---
 

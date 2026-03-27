@@ -1,0 +1,9 @@
+display_name = "Core Guardian"
+description = "Verifie que packages/core n'a aucune dependance UI/rendu. Utiliser apres chaque modification du core."
+active_model = "devstral-2"
+safety = "safe"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep"]
+
+[tools.bash]
+permission = "ask"

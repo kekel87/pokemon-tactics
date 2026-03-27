@@ -1,0 +1,9 @@
+display_name = "Agent Manager"
+description = "Meta-agent qui audite, maintient et ameliore les agents et skills du projet."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace", "bash"]
+
+[tools.bash]
+permission = "ask"

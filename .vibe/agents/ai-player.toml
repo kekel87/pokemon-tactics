@@ -1,0 +1,9 @@
+display_name = "AI Player"
+description = "Joue au core via l'API (getLegalActions -> submitAction), teste les mecaniques, rapporte bugs. Phase 1+."
+active_model = "devstral-2"
+safety = "safe"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "bash"]
+
+[tools.bash]
+permission = "ask"

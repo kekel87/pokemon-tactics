@@ -1,0 +1,6 @@
+display_name = "Level Designer"
+description = "Cree des maps (JSON), valide la jouabilite (taille, deniveles, spawn points, terrain types). Phase 1-2."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace"]

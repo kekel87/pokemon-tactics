@@ -1,0 +1,6 @@
+display_name = "Move Pattern Designer"
+description = "Attribue et justifie le pattern tactique (targeting) de chaque move. Input - liste de moves, nom de Pokemon, ou 'all'."
+active_model = "devstral-2"
+safety = "safe"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace"]

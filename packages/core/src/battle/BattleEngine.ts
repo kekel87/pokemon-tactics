@@ -74,6 +74,34 @@ export class BattleEngine {
     return this.state;
   }
 
+  getAoePreview(pokemonId: string, moveId: string, targetPosition: Position): Position[] {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    if (!pokemon) {
+      return [];
+    }
+
+    const move = this.moveRegistry.get(moveId);
+    if (!move) {
+      return [];
+    }
+
+    const allyIds = new Set<string>();
+    for (const [id, p] of this.state.pokemon) {
+      if (p.playerId === pokemon.playerId && id !== pokemon.id) {
+        allyIds.add(id);
+      }
+    }
+    const traversalContext: TraversalContext = { allyIds, canTraverseEnemies: false };
+
+    return resolveTargeting(
+      move.targeting,
+      pokemon,
+      targetPosition,
+      this.grid,
+      traversalContext,
+    );
+  }
+
   getLegalActions(playerId: string): Action[] {
     if (this.battleOver) {
       return [];

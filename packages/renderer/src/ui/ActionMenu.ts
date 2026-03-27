@@ -208,13 +208,13 @@ export class ActionMenu {
     const alpha = enabled ? 1 : ACTION_MENU_DISABLED_ALPHA;
     const centerY = y + ACTION_MENU_ITEM_HEIGHT / 2;
 
-    const typeIcon = this.scene.add
-      .image(ACTION_MENU_X + 8, centerY, `type-${move.definition.type}`)
+    const categoryIcon = this.scene.add
+      .image(ACTION_MENU_X + 8, centerY, `category-${move.definition.category}`)
       .setOrigin(0, 0.5)
       .setDisplaySize(20, 20)
       .setAlpha(alpha)
       .setDepth(DEPTH_ACTION_MENU + 2);
-    this.objects.push(typeIcon);
+    this.objects.push(categoryIcon);
 
     const iconWidth = 20;
     const nameX = ACTION_MENU_X + 8 + iconWidth + 6;

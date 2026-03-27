@@ -1,0 +1,6 @@
+display_name = "Doc Keeper"
+description = "Maintient la documentation a jour apres un changement. Met a jour decisions.md, roadmap.md, STATUS.md, architecture.md, game-design.md, roster-poc.md, README.md."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace"]

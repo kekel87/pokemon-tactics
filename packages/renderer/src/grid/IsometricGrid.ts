@@ -84,10 +84,22 @@ export class IsometricGrid {
   }
 
   highlightTiles(positions: Array<{ x: number; y: number }>, kind: HighlightKind): void {
-    const color =
-      kind === HighlightKind.Move ? TILE_HIGHLIGHT_MOVE_COLOR : TILE_HIGHLIGHT_ATTACK_COLOR;
+    let color;
+    let alpha = 0.4;
+    switch (kind) {
+      case HighlightKind.Move:
+        color = TILE_HIGHLIGHT_MOVE_COLOR;
+        break;
+      case HighlightKind.Attack:
+        color = TILE_HIGHLIGHT_ATTACK_COLOR;
+        break;
+      case HighlightKind.AoePreview:
+        color = TILE_HIGHLIGHT_AOE_PREVIEW_COLOR;
+        alpha = 0.3;
+        break;
+    }
     for (const position of positions) {
-      this.drawTile(this.highlightGraphics, position.x, position.y, color, color, 0.4);
+      this.drawTile(this.highlightGraphics, position.x, position.y, color, color, alpha);
     }
   }
 
