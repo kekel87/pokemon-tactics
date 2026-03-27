@@ -1,0 +1,6 @@
+display_name = "Plan Reviewer"
+description = "Aide a creer, reviewer et maintenir les plans d'execution dans plans/."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace"]

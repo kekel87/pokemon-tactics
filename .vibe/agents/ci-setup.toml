@@ -1,0 +1,9 @@
+display_name = "CI Setup"
+description = "Configure et maintient la CI/CD (GitHub Actions). Tests, lint, build, deploiement."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace", "bash"]
+
+[tools.bash]
+permission = "ask"

@@ -1,0 +1,6 @@
+display_name = "Performance Profiler"
+description = "Analyse les performances du jeu web — FPS, memoire, bundle size, temps de chargement."
+active_model = "devstral-2"
+safety = "safe"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "bash"]

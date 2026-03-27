@@ -1,0 +1,9 @@
+display_name = "Session Closer"
+description = "Met a jour STATUS.md et verifie que la documentation est a jour en fin de session de travail."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace", "bash"]
+
+[tools.bash]
+permission = "ask"

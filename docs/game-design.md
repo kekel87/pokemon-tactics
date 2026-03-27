@@ -416,3 +416,57 @@ Prévu en Phase 2 : système de traduction léger pour les noms de Pokemon, move
 - **Source** : [pokemon-showdown-fr](https://github.com/Sykless/pokemon-showdown-fr) pour les traductions françaises
 - Pas de lib i18n lourde — un simple dictionnaire JSON suffit pour le POC
 - Les données core restent en anglais ; la couche de traduction est uniquement dans le renderer/UI
+
+---
+
+## Exemples de Game Design
+
+### Analyse d'un Pokemon : Pikachu
+
+#### Moveset
+- **Thunderbolt** : Attaque électrique puissante avec une portée de 3 cases.
+- **Quick Attack** : Attaque rapide avec une priorité élevée.
+- **Iron Tail** : Attaque physique avec un taux de critique élevé.
+- **Agility** : Augmente la vitesse de Pikachu.
+
+#### Analyse
+- **Cohérence** : Le moveset est cohérent avec le rôle de Pikachu en tant qu'attaquant rapide.
+- **Équilibre** : Thunderbolt et Quick Attack offrent un bon équilibre entre puissance et vitesse.
+- **Suggestion** : Ajouter une attaque de type AoE pour diversifier les options tactiques.
+- **Incohérence** : Aucune détectée.
+
+### Analyse d'une attaque : Flammeche
+
+#### Pattern
+- **Pattern actuel** : single (cible unique)
+- **Pattern proposé** : cone — portée 3, largeur 3
+- **Justification** : Le mot "Flammeche" évoque un souffle de feu, ce qui correspond à un pattern en cone.
+- **Statut** : À changer
+
+#### Impact sur le gameplay
+- **Avantage** : Permet de toucher plusieurs cibles, ce qui est plus cohérent avec l'idée d'un souffle de feu.
+- **Inconvénient** : Peut rendre l'attaque trop puissante si mal équilibrée.
+- **Suggestion** : Réduire légèrement la puissance de base pour compenser la capacité à toucher plusieurs cibles.
+
+### Analyse d'une mécanique : Friendly Fire
+
+#### Description
+Le friendly fire est une mécanique où les attaques AoE (Area of Effect) peuvent toucher les alliés ainsi que les ennemis.
+
+#### Impact sur le gameplay
+- **Avantage** : Ajoute une couche de stratégie supplémentaire, car les joueurs doivent positionner leurs Pokemon avec soin.
+- **Inconvénient** : Peut être frustrant pour les nouveaux joueurs.
+- **Suggestion** : Ajouter un mode optionnel sans friendly fire pour les débutants.
+
+#### Exemple de scénario
+- **Situation** : Un joueur utilise une attaque Bombe (blast) pour toucher plusieurs ennemis, mais un allié est également dans la zone d'effet.
+- **Choix tactique** : Le joueur doit décider s'il est prêt à sacrifier une partie des PV de son allié pour éliminer les ennemis.
+- **Résultat** : Si l'ennemi est plus dangereux que l'allié, le joueur peut décider d'utiliser l'attaque malgré le friendly fire.
+
+---
+
+## Références
+
+- [FFTA Wiki](https://finalfantasy.fandom.com/wiki/Final_Fantasy_Tactics_Advance)
+- [Pokemon Showdown](https://pokemonshowdown.com/)
+- [Bulbapedia](https://bulbapedia.bulbagarden.net/)

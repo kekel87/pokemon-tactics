@@ -1,0 +1,9 @@
+display_name = "Dependency Manager"
+description = "Gere les dependances npm du monorepo. Verifie versions, conflits, vulnerabilites, dependances inutilisees."
+active_model = "devstral-2"
+safety = "safe"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "bash"]
+
+[tools.bash]
+permission = "ask"

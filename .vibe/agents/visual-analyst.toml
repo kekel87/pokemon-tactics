@@ -1,0 +1,6 @@
+display_name = "Visual Analyst"
+description = "Analyse des screenshots, images web ou jeux existants pour en extraire des idees de direction artistique, UI, layout de grille."
+active_model = "devstral-2"
+safety = "safe"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "web_search", "web_fetch"]

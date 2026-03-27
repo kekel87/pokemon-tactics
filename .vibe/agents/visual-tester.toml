@@ -1,0 +1,6 @@
+display_name = "Visual Tester"
+description = "Verifie visuellement le jeu via Playwright MCP — navigation, screenshots, console, interactions."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "bash", "mcp_playwright_*"]

@@ -44,6 +44,7 @@ type InputState =
   | { phase: "select_move_destination" }
   | { phase: "attack_submenu" }
   | { phase: "select_attack_target"; moveId: string }
+  | { phase: "previewing_attack"; moveId: string }
   | { phase: "select_direction" }
   | { phase: "animating" }
   | { phase: "battle_over"; winnerId: string };
@@ -201,10 +202,20 @@ export class GameController {
       const { moveId } = this.inputState;
       const useMoveAction = this.findUseMoveAction(moveId, gridX, gridY);
       if (useMoveAction) {
-        this.executeAction(activePlayerId, useMoveAction);
+        this.enterAoePreview(moveId, { x: gridX, y: gridY });
         return;
       }
       this.enterAttackSubmenu();
+    }
+
+    if (this.inputState.phase === "previewing_attack") {
+      const { moveId } = this.inputState;
+      const useMoveAction = this.findUseMoveAction(moveId, gridX, gridY);
+      if (useMoveAction) {
+        this.executeAction(activePlayerId, useMoveAction);
+        return;
+      }
+      this.enterAttackTarget(moveId);
     }
   }
 
@@ -317,6 +328,11 @@ export class GameController {
     this.actionMenu.hide();
     this.isometricGrid.clearHighlights();
 
+    const activePokemonId = this.getActivePokemonId();
+    if (!activePokemonId) {
+      return;
+    }
+
     const targetPositions = this.legalActions
       .filter(
         (action): action is Action & { kind: typeof ActionKind.UseMove } =>
@@ -326,6 +342,22 @@ export class GameController {
 
     if (targetPositions.length > 0) {
       this.isometricGrid.highlightTiles(targetPositions, HighlightKind.Attack);
+    }
+  }
+
+  private enterAoePreview(moveId: string, targetPosition: { x: number; y: number }): void {
+    this.inputState = { phase: "previewing_attack", moveId };
+    this.actionMenu.hide();
+    this.isometricGrid.clearHighlights();
+
+    const activePokemonId = this.getActivePokemonId();
+    if (!activePokemonId) {
+      return;
+    }
+
+    const aoePositions = this.engine.getAoePreview(activePokemonId, moveId, targetPosition);
+    if (aoePositions.length > 0) {
+      this.isometricGrid.highlightTiles(aoePositions, HighlightKind.AoePreview);
     }
   }
 

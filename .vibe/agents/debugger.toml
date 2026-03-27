@@ -1,0 +1,6 @@
+display_name = "Debugger"
+description = "Diagnostic avance de bugs complexes — reproduire, isoler, comprendre la cause racine."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace", "bash"]

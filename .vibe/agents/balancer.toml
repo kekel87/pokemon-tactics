@@ -1,0 +1,9 @@
+display_name = "Balancer"
+description = "Lance N combats headless, analyse les winrates et propose des ajustements d'override. Phase 2-3."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace", "bash"]
+
+[tools.bash]
+permission = "ask"

@@ -1,0 +1,79 @@
+# Mistral Vibe — config Pokemon Tactics
+# Modele principal : Devstral 2 via API Mistral (Le Chat Pro)
+active_model = "devstral-2"
+system_prompt_id = "pokemon-tactics"
+
+# Auto-update
+enable_auto_update = true
+
+# Outils desactives globalement (actives par agent si besoin)
+disabled_tools = ["mcp_playwright_*"]
+
+# ── MCP servers ──────────────────────────────────────────────
+
+[[mcp_servers]]
+name = "context7"
+transport = "stdio"
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+env = { "CONTEXT7_API_KEY" = "${CONTEXT7_API_KEY}" }
+
+[[mcp_servers]]
+name = "playwright"
+transport = "stdio"
+command = "npx"
+args = ["@playwright/mcp@latest"]
+
+[[mcp_servers]]
+name = "pixellab"
+transport = "stdio"
+command = "npx"
+args = ["mcp-pixellab", "--secret=${PIXELLAB_SECRET}"]
+
+# ── Permissions globales ─────────────────────────────────────
+# Equivalent des permissions de .claude/settings.json
+#
+# Vibe utilise "always" (auto-approve) ou "ask" (demande confirmation)
+# pas de deny list comme Claude — on met les outils safe en "always"
+# et bash en "ask" pour garder le controle
+
+[tools.read_file]
+permission = "always"
+
+[tools.grep]
+permission = "always"
+
+[tools.write_file]
+permission = "always"
+
+[tools.search_replace]
+permission = "always"
+
+[tools.task]
+permission = "always"
+
+# Bash : "ask" par defaut — Vibe demandera confirmation avant chaque commande
+# L'humain gere le versioning, donc git commit/push/checkout seront naturellement bloques
+# car l'humain peut refuser chaque commande bash individuellement
+[tools.bash]
+permission = "ask"
+
+# MCP tools
+[tools.mcp_context7_query-docs]
+permission = "always"
+
+[tools.mcp_context7_resolve-library-id]
+permission = "always"
+
+# PixelLab MCP : permission geree via enabled_tools dans l'agent qui l'utilise
+
+[project]
+ignore = [
+  "node_modules/",
+  "dist/",
+  ".git/",
+  "logs/",
+  ".claude/",
+  "*.tmp",
+  "CLAUDE.md",
+]

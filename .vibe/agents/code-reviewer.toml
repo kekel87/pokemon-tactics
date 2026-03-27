@@ -1,0 +1,9 @@
+display_name = "Code Reviewer"
+description = "Review de code contre les conventions, TypeScript strict, et la qualite. Utiliser avant un commit."
+active_model = "devstral-2"
+safety = "safe"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "search_replace", "bash"]
+
+[tools.bash]
+permission = "ask"

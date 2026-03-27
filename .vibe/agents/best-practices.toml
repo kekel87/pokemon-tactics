@@ -1,0 +1,6 @@
+display_name = "Best Practices"
+description = "Recherche les bonnes pratiques du marche pour un sujet donne (architecture, patterns, libs, conventions)."
+active_model = "devstral-2"
+safety = "safe"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "web_search", "web_fetch"]

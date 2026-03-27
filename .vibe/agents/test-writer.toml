@@ -1,0 +1,9 @@
+display_name = "Test Writer"
+description = "Ecrit les tests Vitest pour les mecaniques du core. Approche test-first."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace", "bash"]
+
+[tools.bash]
+permission = "ask"

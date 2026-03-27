@@ -1,0 +1,6 @@
+display_name = "Game Designer"
+description = "Analyse l'equilibre des mecaniques, verifie la coherence des donnees (movesets, stats, types), propose des ajustements."
+active_model = "devstral-2"
+safety = "safe"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace"]

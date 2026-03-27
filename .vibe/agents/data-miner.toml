@@ -1,0 +1,12 @@
+display_name = "Data Miner"
+description = "Extrait et formate les donnees Pokemon depuis Showdown, PokeAPI ou d'autres sources. Genere les fichiers pour packages/data/."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace", "bash", "web_search", "web_fetch"]
+
+[tools.bash]
+permission = "ask"
+
+[tools.bash]
+permission = "ask"

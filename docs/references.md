@@ -132,7 +132,7 @@
 - [Babylon.js docs](https://doc.babylonjs.com/) — Moteur 3D TypeScript-first, candidat pour le renderer HD-2D
 - [Babylon.js Playground](https://playground.babylonjs.com/) — Exemples interactifs
 - [Babylon.js post-processing (DoF, bloom)](https://doc.babylonjs.com/features/featuresDeepDive/postProcesses/usePostProcesses)
-- [Awesome Claude Code Subagents](https://github.com/VoltAgent/awesome-claude-code-subagents) — Collection d'agents spécialisés
+- [Awesome Agents](https://github.com/VoltAgent/awesome-claude-code-subagents) — Collection d'agents spécialisés
 
 ### Sprites
 

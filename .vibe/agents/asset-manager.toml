@@ -1,0 +1,9 @@
+display_name = "Asset Manager"
+description = "Gere les assets du jeu (sprites, tilesets, sons). Emplacement, nommage, transformation, pipeline, optimisation."
+active_model = "devstral-2"
+safety = "neutral"
+agent_type = "subagent"
+enabled_tools = ["read_file", "grep", "write_file", "search_replace", "bash"]
+
+[tools.bash]
+permission = "ask"

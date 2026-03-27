@@ -1,6 +1,6 @@
 # Méthodologie de travail — Pokemon Tactics
 
-> Comment on travaille ensemble (humain + Claude Code).
+> Comment on travaille ensemble (humain + agent).
 
 ---
 
@@ -9,7 +9,7 @@
 | Rôle | Qui | Responsabilités |
 |------|-----|-----------------|
 | **L'humain** | Toi | Vision du jeu, décisions de design, review du code, validation |
-| **Développeur principal** | Claude Code | Écriture du code, tests, refactoring, implémentation |
+| **Développeur principal** | Agent | Écriture du code, tests, refactoring, implémentation |
 
 ---
 
@@ -26,7 +26,7 @@ docs/
 └── methodology.md      # Ce document — comment on travaille
 ```
 
-- **CLAUDE.md** (racine) : instructions permanentes pour Claude Code
+- **pokemon-tactics.md** (racine) : instructions permanentes pour l'agent
 - **README.md** (racine) : présentation du projet pour un nouveau venu
 - La doc est en **français**, le code en **anglais**
 
@@ -36,7 +36,7 @@ docs/
 
 ### Pour une nouvelle feature :
 1. **Discussion** — on en parle, on clarifie le besoin
-2. **Plan** — Claude Code propose un plan d'implémentation
+2. **Plan** — le développeur principal propose un plan d'implémentation
 3. **Core d'abord** — logique pure + tests
 4. **Renderer ensuite** — affichage visuel
 5. **Review** — tu valides (code + visuellement via Playwright screenshots)
@@ -48,7 +48,7 @@ Après chaque étape significative, les agents pertinents sont lancés sans atte
 - Avant un commit → `code-reviewer` (qui propose le titre de commit si pas de bloquant)
 - Après un ensemble de changements → `doc-keeper`
 
-Voir `CLAUDE.md` pour la table complète des déclencheurs.
+Voir `AGENTS.md` pour la table complète des déclencheurs.
 
 ### Pour un bug :
 1. **Reproduire** — test qui échoue
@@ -102,7 +102,7 @@ Un test d'intégration est utile quand il vérifie un **contrat entre composants
 
 ## 6. Comment valider le visuel
 
-Claude Code peut utiliser **Playwright MCP** pour :
+Le développeur principal peut utiliser **Playwright MCP** pour :
 - Lancer le jeu dans le navigateur
 - Prendre des screenshots
 - Interagir avec l'interface (cliquer, vérifier des éléments)
@@ -116,3 +116,22 @@ L'humain peut aussi simplement ouvrir `localhost` après `pnpm dev`.
 - Toute décision importante va dans `docs/decisions.md`
 - Les questions ouvertes y sont listées avec leur priorité
 - On tranche au fil des conversations, pas besoin de tout décider d'avance
+
+## 8. Idées pour de nouveaux agents
+
+Voici quelques idées pour de nouveaux agents qui pourraient être utiles :
+
+1. **`localization-manager`** : Gère les traductions et la localisation du jeu.
+2. **`build-optimizer`** : Optimise le bundle et les assets pour la production.
+3. **`community-manager`** : Gère les interactions avec la communauté (GitHub issues, Discord, etc.).
+4. **`security-auditor`** : Audite la sécurité du code et des dépendances.
+5. **`accessibility-tester`** : Vérifie l'accessibilité du jeu (contrastes, navigation au clavier, etc.).
+
+## 9. Automatisation de l'orchestration des agents
+
+Pour automatiser davantage l'orchestration des agents, on pourrait :
+
+1. **Créer un script** qui lance automatiquement les agents pertinents après un commit ou un push.
+2. **Intégrer les agents dans la CI/CD** pour qu'ils s'exécutent automatiquement dans GitHub Actions.
+3. **Utiliser des hooks Git** pour déclencher des agents spécifiques avant ou après un commit.
+4. **Créer un tableau de bord** pour visualiser l'état des agents et leurs résultats.
