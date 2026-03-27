@@ -64,10 +64,10 @@ describe("resolveTargeting", () => {
   });
 
   describe("cross", () => {
-    it("should return cross-shaped tiles centered on target", () => {
-      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+    it("should return cross-shaped tiles centered on caster", () => {
+      const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
       const result = resolveTargeting(
-        { kind: TargetingKind.Cross, range: { min: 1, max: 4 }, size: 3 },
+        { kind: TargetingKind.Cross, size: 3 },
         caster,
         { x: 4, y: 4 },
         grid,
@@ -83,7 +83,7 @@ describe("resolveTargeting", () => {
     it("should clip cross at grid edge", () => {
       const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
       const result = resolveTargeting(
-        { kind: TargetingKind.Cross, range: { min: 0, max: 0 }, size: 3 },
+        { kind: TargetingKind.Cross, size: 3 },
         caster,
         { x: 0, y: 0 },
         grid,
@@ -180,52 +180,89 @@ describe("resolveTargeting", () => {
   });
 
   describe("cone", () => {
-    it("should return a cone east", () => {
-      const caster = { ...MockPokemon.base, position: { x: 2, y: 4 } };
+    it("should return 1 tile at distance 1 (width = 1)", () => {
+      const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
       const result = resolveTargeting(
-        { kind: TargetingKind.Cone, range: { min: 1, max: 2 }, width: 3 },
+        { kind: TargetingKind.Cone, range: { min: 1, max: 1 } },
         caster,
         { x: 5, y: 4 },
         grid,
       );
-      expect(result).toHaveLength(6);
+      expect(result).toEqual([{ x: 5, y: 4 }]);
+    });
+
+    it("should widen with distance: 1 + 3 = 4 tiles for range 1-2", () => {
+      const caster = { ...MockPokemon.base, position: { x: 2, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+        caster,
+        { x: 5, y: 4 },
+        grid,
+      );
+      expect(result).toHaveLength(4);
+      expect(result).toContainEqual({ x: 3, y: 4 });
+      expect(result).toContainEqual({ x: 4, y: 4 });
+      expect(result).toContainEqual({ x: 4, y: 3 });
+      expect(result).toContainEqual({ x: 4, y: 5 });
+    });
+
+    it("should widen with distance: 1 + 3 + 5 = 9 tiles for range 1-3", () => {
+      const caster = { ...MockPokemon.base, position: { x: 2, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+        caster,
+        { x: 6, y: 4 },
+        grid,
+      );
+      expect(result).toHaveLength(9);
+      expect(result).toContainEqual({ x: 3, y: 4 });
+      expect(result).toContainEqual({ x: 4, y: 4 });
+      expect(result).toContainEqual({ x: 4, y: 3 });
+      expect(result).toContainEqual({ x: 4, y: 5 });
+      expect(result).toContainEqual({ x: 5, y: 4 });
+      expect(result).toContainEqual({ x: 5, y: 3 });
+      expect(result).toContainEqual({ x: 5, y: 5 });
+      expect(result).toContainEqual({ x: 5, y: 2 });
+      expect(result).toContainEqual({ x: 5, y: 6 });
     });
 
     it("should return a cone north", () => {
       const caster = { ...MockPokemon.base, position: { x: 4, y: 5 } };
       const result = resolveTargeting(
-        { kind: TargetingKind.Cone, range: { min: 1, max: 2 }, width: 3 },
+        { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
         caster,
         { x: 4, y: 1 },
         grid,
       );
-      expect(result).toHaveLength(6);
+      expect(result).toHaveLength(4);
       expect(result).toContainEqual({ x: 4, y: 4 });
-      expect(result).toContainEqual({ x: 3, y: 4 });
-      expect(result).toContainEqual({ x: 5, y: 4 });
+      expect(result).toContainEqual({ x: 4, y: 3 });
+      expect(result).toContainEqual({ x: 3, y: 3 });
+      expect(result).toContainEqual({ x: 5, y: 3 });
     });
 
     it("should clip cone at grid edge", () => {
       const caster = { ...MockPokemon.base, position: { x: 0, y: 4 } };
       const result = resolveTargeting(
-        { kind: TargetingKind.Cone, range: { min: 1, max: 1 }, width: 3 },
+        { kind: TargetingKind.Cone, range: { min: 1, max: 1 } },
         caster,
         { x: 0, y: 0 },
         grid,
       );
-      expect(result.length).toBeGreaterThan(0);
-      expect(result.length).toBeLessThanOrEqual(3);
+      expect(result).toHaveLength(1);
+      expect(result).toContainEqual({ x: 0, y: 3 });
     });
 
-    it("should handle cone center going out of bounds", () => {
-      const caster = { ...MockPokemon.base, position: { x: 7, y: 4 } };
+    it("should clip wide cone at grid edge", () => {
+      const caster = { ...MockPokemon.base, position: { x: 1, y: 4 } };
       const result = resolveTargeting(
-        { kind: TargetingKind.Cone, range: { min: 1, max: 3 }, width: 3 },
+        { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
         caster,
-        { x: 10, y: 4 },
+        { x: 0, y: 4 },
         grid,
       );
       expect(result.length).toBeLessThan(9);
+      expect(result.length).toBeGreaterThan(0);
     });
   });
 

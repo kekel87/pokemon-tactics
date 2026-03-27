@@ -19,8 +19,8 @@ Le nom d'une attaque evoque une **image mentale**. Cette image doit se traduire 
 | ---------- | ---------------- | ------------------- | ----------------------------------------- |
 | **single** | 1 case           | `range: {min, max}` | Projectile cible, coup direct             |
 | **line**   | Ligne droite     | `length`            | Rayon, laser, eclair, faisceau            |
-| **cone**   | Eventail         | `range, width`      | Souffle, vent, voix, vague                |
-| **cross**  | Croix (+)        | `range, size`       | Bombe, explosion, onde de choc a distance |
+| **cone**   | Eventail         | `range`             | Souffle, vent, voix, vague — largeur = distance * 2 - 1 (pas de parametre width) |
+| **cross**  | Croix (+)        | `size`              | Onde de choc centree sur soi — TOUJOURS centre sur le caster (pas de range) |
 | **zone**   | Cercle self      | `radius`            | Seisme, onde centree sur soi              |
 | **dash**   | Le lanceur fonce | `maxDistance`       | Charge, ruee, plaquage en mouvement       |
 | **self**   | Soi-meme         | —                   | Buff, meditation, danse                   |
@@ -35,21 +35,22 @@ Pattern `slash` — aucun parametre, toujours 3 cases devant.
 
 ## 3. Regles d'attribution par mot-cle
 
-### 3.1 Bombes et explosions → cross (portee + AoE)
+### 3.1 Bombes et explosions → blast (portee + AoE circulaire)
 
-Les mots **bombe**, **explosion**, **boule** evoquent un projectile qui explose a l'arrivee.
+Les mots **bombe**, **explosion**, **boule** evoquent un projectile qui explose a l'arrivee en cercle.
 
-| Attaque             | Nom EN      | Mot-cle | Pattern | Portee | Taille |
-| ------------------- | ----------- | ------- | ------- | ------ | ------ |
-| Bombe-Beurk         | Sludge Bomb | bombe   | cross   | 2-4    | 3x3    |
-| Ball'Ombre          | Shadow Ball | ball    | cross   | 2-4    | 3x3    |
-| Bombe Oeuf          | Egg Bomb    | bombe   | cross   | 2-3    | 3x3    |
-| Bomb-Beurk (poison) | Sludge Bomb | bombe   | cross   | 2-4    | 3x3    |
+> Note : `cross` (forme en +) reste pour les ondes de choc centrees sur le lanceur (Eclate-Roc, Ombre Nuit). `blast` est un projectile lance a distance.
+
+| Attaque             | Nom EN      | Mot-cle | Pattern | Portee | Rayon |
+| ------------------- | ----------- | ------- | ------- | ------ | ----- |
+| Bombe-Beurk         | Sludge Bomb | bombe   | blast   | 2-4    | r1    |
+| Ball'Ombre          | Shadow Ball | ball    | blast   | 2-4    | r1    |
+| Bombe Oeuf          | Egg Bomb    | bombe   | blast   | 2-3    | r1    |
 
 **Variantes possibles** :
 
-- Rayon d'AoE 2 (r2 = 5x5 losange) pour les grosses explosions
-- Rayon 1 (r1 = 3x3 croix) pour les petites bombes
+- Rayon r2 pour les grosses explosions (losange 13 cases)
+- Rayon r1 pour les petites bombes (losange 5 cases)
 
 ### 3.2 Rayons et lasers → line
 
@@ -68,15 +69,17 @@ Les mots **rayon**, **laser**, **eclair**, **beam**, **faisceau** evoquent un tr
 
 Les mots **souffle**, **vent**, **voix**, **chant**, **cri**, **hurlement** evoquent une dispersion en eventail.
 
-| Attaque      | Nom EN        | Mot-cle            | Pattern   | Portee | Largeur |
-| ------------ | ------------- | ------------------ | --------- | ------ | ------- |
-| Dracosouffle | Dragon Breath | souffle/breath     | cone      | 1-2    | 3       |
-| Vent Glace   | Icy Wind      | vent/wind          | cone      | 1-2    | 3       |
-| Blizzard     | Blizzard      | (tempete de neige) | cone      | 1-3    | 3       |
-| Berceuse     | Sing          | chant/sing         | cone      | 1-3    | 3       |
-| Jet de Sable | Sand Attack   | jet (dispersion)   | cone      | 1-2    | 3       |
-| Hurlement    | Roar          | hurlement/roar     | cone      | 1-3    | 3       |
-| Brouillard   | Smokescreen   | brouillard         | zone self | —      | r1      |
+| Attaque      | Nom EN        | Mot-cle            | Pattern   | Portee |
+| ------------ | ------------- | ------------------ | --------- | ------ |
+| Dracosouffle | Dragon Breath | souffle/breath     | cone      | 1-2    |
+| Vent Glace   | Icy Wind      | vent/wind          | cone      | 1-2    |
+| Blizzard     | Blizzard      | (tempete de neige) | cone      | 1-3    |
+| Berceuse     | Sing          | chant/sing         | cone      | 1-3    |
+| Jet de Sable | Sand Attack   | jet (dispersion)   | cone      | 1-2    |
+| Hurlement    | Roar          | hurlement/roar     | cone      | 1-3    |
+| Brouillard   | Smokescreen   | brouillard         | zone self | —      |
+
+> La largeur est toujours derivee automatiquement de la distance via `distance * 2 - 1`. Pas de parametre `width` a specifier.
 
 > **Note** : Brouillard est une exception — ca se repand autour de soi plutot qu'en direction.
 
@@ -185,7 +188,7 @@ Un seisme devrait avoir un rayon plus large. Passer de r1 a r2.
 
 ### 5.1 Tornade → cone ✅
 
-Gust = rafale soufflee devant soi. `cone 1-3 w3`.
+Gust = rafale soufflee devant soi. `cone 1-3` (largeur automatique par distance).
 
 ### 5.2 Cru-Aile → slash ✅
 
@@ -336,22 +339,22 @@ Au-dela du pattern, certaines attaques ont des **proprietes speciales** qui modi
 
 | #   | Attaque        | Nom EN        | Pattern actuel | Pattern valide     | Statut  |
 | --- | -------------- | ------------- | -------------- | ------------------ | ------- |
-| 1   | Tranch'Herbe   | Razor Leaf    | single 1-2     | **slash 1**        | CHANGER |
-| 2   | Poudre Dodo    | Sleep Powder  | single 1-2     | **zone r1** (self) | CHANGER |
+| 1   | Tranch'Herbe   | Razor Leaf    | single 1-2     | slash              | FAIT    |
+| 2   | Poudre Dodo    | Sleep Powder  | single 1-2     | zone r1 (self)     | FAIT    |
 | 3   | Vampigraine    | Leech Seed    | single 1-3     | single 1-3         | OK      |
-| 4   | Bombe-Beurk    | Sludge Bomb   | cross 2-4 s3   | **blast 2-4 r1**   | CHANGER |
+| 4   | Bombe-Beurk    | Sludge Bomb   | cross 2-4 s3   | blast 2-4 r1       | FAIT    |
 | 5   | Flammeche      | Ember         | single 1-3     | single 1-3         | OK      |
 | 6   | Griffe         | Scratch       | single 1       | single 1           | OK      |
 | 7   | Brouillard     | Smokescreen   | zone r1        | zone r1            | OK      |
-| 8   | Dracosouffle   | Dragon Breath | cone 1-2 w3    | cone 1-2 w3        | OK      |
+| 8   | Dracosouffle   | Dragon Breath | cone 1-2| cone 1-2    | OK      |
 | 9   | Pistolet a O   | Water Gun     | single 1-3     | single 1-3         | OK      |
 | 10  | Charge         | Tackle        | single 1       | single 1           | OK      |
 | 11  | Repli          | Withdraw      | self           | self               | OK      |
-| 12  | Bulles d'O     | Bubble Beam   | cross 1-2 s3   | **cone 1-2 w3**    | CHANGER |
-| 13  | Tornade        | Gust          | single 1-3     | **cone 1-3 w3**    | CHANGER |
+| 12  | Bulles d'O     | Bubble Beam   | cross 1-2 s3   | cone 1-2           | FAIT    |
+| 13  | Tornade        | Gust          | single 1-3     | cone 1-3           | FAIT    |
 | 14  | Vive-Attaque   | Quick Attack  | dash 2         | dash 2             | OK      |
-| 15  | Jet de Sable   | Sand Attack   | cone 1-2 w3    | cone 1-2 w3        | OK      |
-| 16  | Cru-Aile       | Wing Attack   | single 1       | **slash**          | CHANGER |
+| 15  | Jet de Sable   | Sand Attack   | cone 1-2| cone 1-2    | OK      |
+| 16  | Cru-Aile       | Wing Attack   | single 1       | slash              | FAIT    |
 | 17  | Tonnerre       | Thunderbolt   | line 4         | line 4             | OK      |
 | 18  | Cage-Eclair    | Thunder Wave  | single 1-3     | single 1-3         | OK      |
 | 19  | Jackpot        | Double Team   | self           | self               | OK      |
@@ -359,17 +362,17 @@ Au-dela du pattern, certaines attaques ont des **proprietes speciales** qui modi
 | 21  | Tranche        | Karate Chop   | single 1       | single 1           | OK      |
 | 22  | Seisme         | Seismic Toss  | single 1       | single 1           | OK      |
 | 23  | Pugilat        | Bulk Up       | self           | self               | OK      |
-| 24  | Eclate-Roc     | Rock Smash    | cross 1-2 s3   | cross 1-2 s3       | OK      |
+| 24  | Eclate-Roc     | Rock Smash    | cross 1-2 s3   | cross s3 (self)    | FAIT    |
 | 25  | Psykoud'boul   | Psybeam       | line 5         | line 5             | OK      |
 | 26  | Choc Mental    | Confusion     | single 1-4     | single 1-4         | OK      |
 | 27  | Kinesie        | Kinesis       | single 1-3     | single 1-3         | OK      |
 | 28  | Zen Absolu     | Calm Mind     | self           | self               | OK      |
 | 29  | Lechouille     | Lick          | single 1       | single 1           | OK      |
 | 30  | Hypnose        | Hypnosis      | single 1-3     | single 1-3         | OK      |
-| 31  | Ombre Nuit     | Night Shade   | cross 1-2 s3   | cross 1-2 s3       | OK      |
+| 31  | Ombre Nuit     | Night Shade   | cross 1-2 s3   | cross s3 (self)    | FAIT    |
 | 32  | Miniminus      | Minimize      | self           | self               | OK      |
 | 33  | Lancer-Roc     | Rock Throw    | single 1-3     | single 1-3         | OK      |
-| 34  | Ampleur        | Magnitude     | zone r1        | **zone r2**        | CHANGER |
+| 34  | Ampleur        | Magnitude     | zone r1        | zone r2            | FAIT    |
 | 35  | Armure         | Defense Curl  | self           | self               | OK      |
 | 36  | Tunnel         | Rollout       | dash 4         | dash 4             | OK      |
 | 37  | Morsure        | Bite          | single 1       | single 1           | OK      |
@@ -377,15 +380,15 @@ Au-dela du pattern, certaines attaques ont des **proprietes speciales** qui modi
 | 39  | Tranche Rapide | Agility       | self           | self               | OK      |
 | 40  | Roue de Feu    | Flame Wheel   | dash 3         | dash 3             | OK      |
 | 41  | Ecras'Face     | Pound         | single 1       | single 1           | OK      |
-| 42  | Berceuse       | Sing          | cone 1-3 w3    | cone 1-3 w3        | OK      |
+| 42  | Berceuse       | Sing          | cone 1-3| cone 1-3    | OK      |
 | 43  | Plaquage       | Body Slam     | single 1       | single 1           | OK      |
 | 44  | Entassement    | Stockpile     | self           | self               | OK      |
 | 45  | Laser Glace    | Ice Beam      | line 3         | line 3             | OK      |
-| 46  | Blizzard       | Blizzard      | cone 1-3 w3    | cone 1-3 w3        | OK      |
+| 46  | Blizzard       | Blizzard      | cone 1-3| cone 1-3    | OK      |
 | 47  | Tete de Roc    | Headbutt      | single 1       | single 1           | OK      |
-| 48  | Vent Glace     | Icy Wind      | cone 1-2 w3    | cone 1-2 w3        | OK      |
+| 48  | Vent Glace     | Icy Wind      | cone 1-2| cone 1-2    | OK      |
 
-**Resume** : 40 OK, 8 a changer
+**Resume** : 48 FAIT ou OK — tous les changements valides ont ete implementes (plans 014 et 016)
 
 ---
 
@@ -407,9 +410,8 @@ Exemple : Tornade (Gust) est `normal` en 2v2 (1 cible), mais le nom evoque un so
 
 ## 10. Prochaines etapes
 
-1. Implementer les nouveaux patterns dans le core : `slash`, `blast`
-2. Implementer l'effet `knockback`
-3. Mettre a jour `tactical.ts` avec les 8 changements valides
-4. Mettre a jour `roster-poc.md` en consequence
-5. Considerer `warp` et `ground` (zones persistantes) pour les futurs Pokemon du roster
-6. Utiliser le champ `target` de Showdown comme heuristique pour les futurs movesets
+1. ~~Implementer les nouveaux patterns dans le core : `slash`, `blast`~~ — FAIT (plan 014)
+2. ~~Mettre a jour `tactical.ts` avec les 8 changements valides~~ — FAIT (plan 014 + 016)
+3. Implementer l'effet `knockback` (Phase 1+)
+4. Considerer `warp` et `ground` (zones persistantes) pour les futurs Pokemon du roster
+5. Utiliser le champ `target` de Showdown comme heuristique pour les futurs movesets

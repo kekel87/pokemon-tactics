@@ -44,6 +44,34 @@ export const TYPE_COLORS: Partial<Record<string, number>> = {
   poison: 0xa040a0,
 };
 
+export const TYPE_NAMES = [
+  "normal",
+  "fighting",
+  "flying",
+  "poison",
+  "ground",
+  "rock",
+  "bug",
+  "ghost",
+  "steel",
+  "fire",
+  "water",
+  "grass",
+  "electric",
+  "psychic",
+  "ice",
+  "dragon",
+  "dark",
+  "fairy",
+] as const;
+
+export const TOOLTIP_WIDTH = 160;
+export const TOOLTIP_CELL_SIZE = 10;
+export const TOOLTIP_CELL_GAP = 2;
+export const TOOLTIP_BG_COLOR = 0x111122;
+export const TOOLTIP_BG_ALPHA = 0.95;
+export const DEPTH_TOOLTIP = 1250;
+
 export const MOVE_TWEEN_DURATION_MS = 200;
 export const DAMAGE_FLASH_DURATION_MS = 100;
 export const DAMAGE_FLASH_REPEAT = 2;
@@ -64,9 +92,9 @@ export const INFO_PANEL_HEIGHT = 94;
 export const INFO_PANEL_ALPHA = 0.85;
 export const INFO_PANEL_CORNER_RADIUS = 6;
 
-export const ACTION_MENU_X = 1100;
+export const ACTION_MENU_X = 1050;
 export const ACTION_MENU_Y = 300;
-export const ACTION_MENU_WIDTH = 160;
+export const ACTION_MENU_WIDTH = 210;
 export const ACTION_MENU_ITEM_HEIGHT = 32;
 export const ACTION_MENU_BG_COLOR = 0x111122;
 export const ACTION_MENU_BG_ALPHA = 0.9;

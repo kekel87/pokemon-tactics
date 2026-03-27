@@ -1,6 +1,7 @@
 import { ActionMenu } from "../ui/ActionMenu";
 import { BattleUI } from "../ui/BattleUI";
 import { InfoPanel } from "../ui/InfoPanel";
+import { MoveTooltip } from "../ui/MoveTooltip";
 import { PlacementRosterPanel } from "../ui/PlacementRosterPanel";
 import { TurnTimeline } from "../ui/TurnTimeline";
 
@@ -21,6 +22,9 @@ export class BattleUIScene extends Phaser.Scene {
     this.battleUI = new BattleUI(this);
     this.turnTimeline = new TurnTimeline(this);
     this.placementRosterPanel = new PlacementRosterPanel(this);
+
+    const moveTooltip = new MoveTooltip(this);
+    this.actionMenu.setTooltip(moveTooltip);
 
     this.scene.get("BattleScene").events.emit("uiReady");
   }

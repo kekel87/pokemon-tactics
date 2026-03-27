@@ -164,9 +164,10 @@ Chaque attaque a un **pattern** (inspiré FFTA) :
 - **Portée X** (portée 1-3, 2-4...) : cible à distance, single tile
 - **Portée + AoE** : cible un point à distance, l'effet se propage en zone autour du point d'impact (ex: boule de feu tirée à portée 3, explose en croix 3x3)
 - **Zone self** (portée 0) : zone centrée sur le lanceur (ex: Brouillard, Ampleur)
-- **Cône** : éventail devant le lanceur (ex: Dracosouffle, Blizzard, Tornade)
-- **Slash / arc frontal** : touche les 3 cases devant le lanceur (face + 2 diagonales) — balayage, coup d'aile (ex: Tranch'Herbe, Cru-Aile)
+- **Cône** : éventail devant le lanceur, largeur dynamique = `distance * 2 - 1` (distance 1 → 1 case, distance 2 → 3 cases, distance 3 → 5 cases) — ex: Dracosouffle, Blizzard, Tornade. Aucun paramètre `width` — la largeur est entièrement dérivée de la distance.
+- **Slash / arc frontal** : touche les 3 cases devant le lanceur (face + 2 perpendiculaires adjacentes) — balayage, coup d'aile (ex: Tranch'Herbe, Cru-Aile). Aucun paramètre.
 - **Blast** : projectile lancé à distance (`range`) qui explose en cercle à l'impact (`radius`) — différent de `cross` (forme en +) et de `zone` (centré sur soi) (ex: Bombe-Beurk)
+- **Croix** : toujours centrée sur le caster, aucun paramètre de portée — ex: Éclate-Roc, Ombre Nuit. Non ciblable à distance.
 - **Ligne** : ligne droite depuis le lanceur
 - **Dash** : le lanceur se déplace en ligne droite et frappe (voir attaques de priorité)
 
@@ -395,6 +396,15 @@ Deux modes prévus :
 - Minimaliste, inspirée Pokemon + FFTA
 - Barre de PV, infos attaques, grille de portée visible, barre d'initiative
 - Menu principal avec entrées désactivables (aventure grisée)
+- **Sous-menu attaque enrichi** : icône catégorie (Bulbagarden SV, 50x40px) + nom du move + PP courants/max alignés à droite + type icon (Pokepedia ZA, 36x36px sans texte) au hover
+- **MoveTooltip** : tooltip au hover sur chaque attaque avec layout fixe :
+  1. Icône catégorie SV (physique/spécial/statut)
+  2. Puissance / Précision (`—` si nul)
+  3. Nom du pattern en français + portée conditionnelle (affichée uniquement pour Single à distance range>1 et Blast)
+  4. Grille dynamique du pattern (taille adaptée au pattern réel, minimum 3x3, centrée)
+- **Noms patterns FR** : Cible, Soi, Ligne, Cône, Slash, Croix, Zone, Dash, Bombe
+- **Type icons** : sprites Pokepedia ZA (Légendes Pokémon Z-A) 36x36px sans texte, chargés comme `type-{typeName}` dans Phaser
+- **Category icons** : sprites Bulbagarden Sword & Shield (`PhysicalIC_SV.png`, `SpecialIC_SV.png`, `StatusIC_SV.png`), chargés comme `category-{type}` dans Phaser
 
 ---
 

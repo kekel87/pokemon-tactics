@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-27 (Plan 015 terminé — stats niveau 50, 305 tests)
+> Dernière mise à jour : 2026-03-27 (Plan 016 terminé — infos attaques UI, type icons, fix cone)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -205,6 +205,20 @@
   - **305 tests**, 100% coverage maintenu, 10 nouveaux tests `computeStatAtLevel`
   - Fix tests préexistants : intégration (pokemon count 4→12, spawn zone positions)
 
+- **Plan 016 terminé** — Infos attaques UI + type icons + fix cone :
+  - **Fix core** : `resolveCone` — largeur dynamique `distance * 2 - 1`, paramètre `width` supprimé du type `TargetingPattern.Cone`
+  - **Fix core** : `Cross` — désormais TOUJOURS centré sur le caster (plus de paramètre `range`). Night Shade et Éclate-Roc mis à jour dans tactical.ts.
+  - **Script** `scripts/download-type-icons.ts` — télécharge les 18 type icons Pokepedia ZA (36x36px sans texte) dans `public/assets/ui/types/`
+  - **Category icons** Bulbagarden SV (`physical.png`, `special.png`, `status.png`) dans `public/assets/ui/categories/`
+  - **`BattleScene.preload`** : charge les 18 type icons (`type-{name}`) et les 3 category icons (`category-{type}`)
+  - **`ActionMenu`** : icône catégorie SV à gauche + nom du move + PP courants/max à droite
+  - **`MoveTooltip`** (nouveau) : tooltip au hover — catégorie icon, puissance/précision, nom pattern FR + portée conditionnelle, grille dynamique adaptée
+  - **`pattern-preview.ts`** (nouveau) : helper `buildPatternPreview(targeting)` → grille de `PatternCell[][]` (target, dash, caster, empty)
+  - **`TYPE_NAMES`** et constantes tooltip (`TOOLTIP_WIDTH`, `TOOLTIP_CELL_SIZE`, `TOOLTIP_CELL_GAP`, `DEPTH_TOOLTIP`) dans `constants.ts`
+  - Noms patterns en français : Cible, Soi, Ligne, Cône, Slash, Croix, Zone, Dash, Bombe
+  - Portée affichée uniquement pour Single distance (range>1) et Blast
+  - Grille dynamique : taille adaptée au pattern réel, minimum 3x3, centrée
+
 - **Session 2026-03-26 — Design Phase 1** (aucun code modifié) :
   - 7 idées validées et intégrées dans la doc :
     1. **Stats niveau 50** : `computeStatAtLevel(base, 50)` sans IV/EV — décision #122, roadmap Phase 1
@@ -218,10 +232,10 @@
   - decisions.md : décision #122 ajoutée (niveau 50 sans IV/EV)
 
 ### Prochaine étape
-- **Implémenter `slash` et `blast`** dans `packages/core` (targeting resolvers + tests) — prérequis avant de mettre à jour `tactical.ts`
-- Mettre à jour `tactical.ts` avec les 8 changements de pattern validés (décision #110)
-- Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage, HP réalistes maintenant) — décision #121
-- Feedback visuel des statuts sur les sprites (Phase 1 Renderer)
+- **Feedback visuel des statuts sur les sprites** (icône ou effet au-dessus du sprite) — Phase 1 Renderer
+- **Refonte panel info stats** : affichage clair des stages actuels (+1/+2/-1 avec code couleur)
+- **Prévisualisation AoE** sur la grille de jeu avant confirmation d'attaque — Plan 017 (bloqué par plan 016 → maintenant débloqué)
+- Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage) — décision #121
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type

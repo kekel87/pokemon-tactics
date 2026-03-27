@@ -64,7 +64,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   "dragon-breath": {
-    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 }, width: 3 },
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
     effects: [
       { kind: EffectKind.Damage },
       { kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 30 },
@@ -91,11 +91,11 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   "bubble-beam": {
-    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 }, width: 3 },
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
     effects: [{ kind: EffectKind.Damage }],
   },
   gust: {
-    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 }, width: 3 },
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
     effects: [{ kind: EffectKind.Damage }],
   },
   "quick-attack": {
@@ -103,7 +103,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
   },
   "sand-attack": {
-    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 }, width: 3 },
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
     effects: [
       {
         kind: EffectKind.StatChange,
@@ -117,7 +117,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Slash },
     effects: [{ kind: EffectKind.Damage }],
   },
-  // Pikachu
+
   thunderbolt: {
     targeting: { kind: TargetingKind.Line, length: 4 },
     effects: [
@@ -139,7 +139,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
     effects: [{ kind: EffectKind.Damage }],
   },
-  // Machop
+
   "karate-chop": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.Damage }],
@@ -156,7 +156,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   "rock-smash": {
-    targeting: { kind: TargetingKind.Cross, range: { min: 1, max: 2 }, size: 3 },
+    targeting: { kind: TargetingKind.Cross, size: 3 },
     effects: [
       { kind: EffectKind.Damage },
       {
@@ -167,7 +167,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
       },
     ],
   },
-  // Abra
+
   psybeam: {
     targeting: { kind: TargetingKind.Line, length: 5 },
     effects: [{ kind: EffectKind.Damage }],
@@ -204,7 +204,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
       },
     ],
   },
-  // Gastly
+
   lick: {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [
@@ -217,7 +217,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Status, status: StatusType.Asleep, chance: 100 }],
   },
   "night-shade": {
-    targeting: { kind: TargetingKind.Cross, range: { min: 1, max: 2 }, size: 3 },
+    targeting: { kind: TargetingKind.Cross, size: 3 },
     effects: [{ kind: EffectKind.Damage }],
   },
   minimize: {
@@ -226,7 +226,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
       { kind: EffectKind.StatChange, stat: StatName.Evasion, stages: 2, target: EffectTarget.Self },
     ],
   },
-  // Geodude
+
   "rock-throw": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
     effects: [{ kind: EffectKind.Damage }],
@@ -245,7 +245,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Dash, maxDistance: 4 },
     effects: [{ kind: EffectKind.Damage }],
   },
-  // Growlithe
+
   bite: {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.Damage }],
@@ -270,13 +270,13 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
       { kind: EffectKind.Status, status: StatusType.Burned, chance: 10 },
     ],
   },
-  // Jigglypuff
+
   pound: {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.Damage }],
   },
   sing: {
-    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 }, width: 3 },
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
     effects: [{ kind: EffectKind.Status, status: StatusType.Asleep, chance: 100 }],
   },
   "body-slam": {
@@ -298,7 +298,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
       },
     ],
   },
-  // Seel
+
   "aurora-beam": {
     targeting: { kind: TargetingKind.Line, length: 3 },
     effects: [
@@ -312,7 +312,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   blizzard: {
-    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 }, width: 3 },
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
     effects: [
       { kind: EffectKind.Damage },
       { kind: EffectKind.Status, status: StatusType.Frozen, chance: 10 },
@@ -323,7 +323,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
   },
   "icy-wind": {
-    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 }, width: 3 },
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
     effects: [
       { kind: EffectKind.Damage },
       {

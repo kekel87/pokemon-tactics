@@ -2,10 +2,10 @@ import { loadData, typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it, vi } from "vitest";
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
-import { PlayerId } from "../enums/player-id";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Category } from "../enums/category";
 import { EffectKind } from "../enums/effect-kind";
+import { PlayerId } from "../enums/player-id";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
@@ -271,7 +271,7 @@ describe("BattleEngine.executeUseMove — AoE cross hits multiple targets", () =
       power: 65,
       accuracy: 100,
       pp: 20,
-      targeting: { kind: TargetingKind.Cross, range: { min: 1, max: 2 }, size: 3 },
+      targeting: { kind: TargetingKind.Cross, size: 3 },
       effects: [{ kind: EffectKind.Damage }],
     };
     const registry = new Map([["bubble-beam", crossMove]]);
@@ -279,7 +279,7 @@ describe("BattleEngine.executeUseMove — AoE cross hits multiple targets", () =
     const attacker = freshPokemon(MockPokemon.bulbasaur, {
       id: "attacker",
       playerId: PlayerId.Player1,
-      position: { x: 0, y: 2 },
+      position: { x: 2, y: 2 },
       derivedStats: HIGH_INIT,
       moveIds: ["bubble-beam"],
       currentPp: { "bubble-beam": 20 },
@@ -329,7 +329,7 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
       power: 65,
       accuracy: 100,
       pp: 20,
-      targeting: { kind: TargetingKind.Cross, range: { min: 1, max: 2 }, size: 3 },
+      targeting: { kind: TargetingKind.Cross, size: 3 },
       effects: [{ kind: EffectKind.Damage }],
     };
     const registry = new Map([["bubble-beam", crossMove]]);
@@ -337,7 +337,7 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
     const attacker = freshPokemon(MockPokemon.bulbasaur, {
       id: "attacker",
       playerId: PlayerId.Player1,
-      position: { x: 0, y: 2 },
+      position: { x: 2, y: 2 },
       derivedStats: HIGH_INIT,
       moveIds: ["bubble-beam"],
       currentPp: { "bubble-beam": 20 },
@@ -385,7 +385,7 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
       power: 90,
       accuracy: 100,
       pp: 10,
-      targeting: { kind: TargetingKind.Cross, range: { min: 2, max: 4 }, size: 3 },
+      targeting: { kind: TargetingKind.Blast, range: { min: 2, max: 4 }, radius: 1 },
       effects: [
         { kind: EffectKind.Damage },
         { kind: EffectKind.Status, status: StatusType.Poisoned, chance: 100 },

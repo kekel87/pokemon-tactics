@@ -33,11 +33,10 @@ export function resolveTargeting(
         caster.position,
         targetPosition,
         targetingPattern.range,
-        targetingPattern.width,
         grid,
       );
     case TargetingKind.Cross:
-      return resolveCross(targetPosition, targetingPattern.size, grid);
+      return resolveCross(caster.position, targetingPattern.size, grid);
     case TargetingKind.Line:
       return resolveLine(caster.position, targetPosition, targetingPattern.length, grid);
     case TargetingKind.Dash:
@@ -78,12 +77,10 @@ function resolveCone(
   origin: Position,
   target: Position,
   range: RangeConfig,
-  width: number,
   grid: Grid,
 ): Position[] {
   const direction = directionFromTo(origin, target);
   const result: Position[] = [];
-  const halfWidth = Math.floor(width / 2);
 
   for (let distance = range.min; distance <= range.max; distance++) {
     const center = stepInDirection(origin, direction, distance);
@@ -91,6 +88,7 @@ function resolveCone(
       result.push(center);
     }
 
+    const halfWidth = distance - 1;
     const perpendicularOffsets = getPerpendicularOffsets(direction);
     for (let offset = 1; offset <= halfWidth; offset++) {
       for (const perpendicular of perpendicularOffsets) {

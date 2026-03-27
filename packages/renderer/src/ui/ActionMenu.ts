@@ -11,11 +11,11 @@ import {
   ACTION_MENU_X,
   ACTION_MENU_Y,
   DEPTH_ACTION_MENU,
-  TYPE_COLORS,
   UI_BORDER_ALPHA,
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
 } from "../constants";
+import type { MoveTooltip } from "./MoveTooltip";
 
 interface ActionMenuCallbacks {
   onMove: () => void;
@@ -38,9 +38,14 @@ interface AttackSubmenuOptions {
 export class ActionMenu {
   private readonly scene: Phaser.Scene;
   private objects: Phaser.GameObjects.GameObject[] = [];
+  private tooltip: MoveTooltip | null = null;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
+  }
+
+  setTooltip(tooltip: MoveTooltip): void {
+    this.tooltip = tooltip;
   }
 
   show(options: ActionMenuOptions): void {
@@ -60,25 +65,43 @@ export class ActionMenu {
   showAttackSubmenu(options: AttackSubmenuOptions): void {
     this.clearItems();
 
-    const entries: Array<{
-      label: string;
-      enabled: boolean;
-      callback: () => void;
-      color?: number;
-    }> = options.moves.map((move) => ({
-      label: `${move.definition.name}  ${move.currentPp}/${move.definition.pp}`,
-      enabled: move.currentPp > 0 && move.hasTargets,
-      callback: () => options.onSelect(move.definition.id),
-      color: TYPE_COLORS[move.definition.type] ?? 0x888888,
-    }));
+    const totalEntries = options.moves.length + 1;
+    const totalHeight = totalEntries * ACTION_MENU_ITEM_HEIGHT;
 
-    entries.push({
-      label: "Annuler",
-      enabled: true,
-      callback: options.onCancel,
-    });
+    const background = this.scene.add.graphics();
+    background.fillStyle(ACTION_MENU_BG_COLOR, ACTION_MENU_BG_ALPHA);
+    background.fillRoundedRect(
+      ACTION_MENU_X,
+      ACTION_MENU_Y,
+      ACTION_MENU_WIDTH,
+      totalHeight,
+      ACTION_MENU_CORNER_RADIUS,
+    );
+    background.lineStyle(UI_BORDER_WIDTH, UI_BORDER_COLOR, UI_BORDER_ALPHA);
+    background.strokeRoundedRect(
+      ACTION_MENU_X,
+      ACTION_MENU_Y,
+      ACTION_MENU_WIDTH,
+      totalHeight,
+      ACTION_MENU_CORNER_RADIUS,
+    );
+    background.setDepth(DEPTH_ACTION_MENU);
+    this.objects.push(background);
 
-    this.buildMenu(entries);
+    for (let i = 0; i < options.moves.length; i++) {
+      const move = options.moves[i];
+      if (!move) {
+        continue;
+      }
+      const itemY = ACTION_MENU_Y + i * ACTION_MENU_ITEM_HEIGHT;
+      this.createMoveItem(move, itemY, options.onSelect);
+    }
+
+    const cancelY = ACTION_MENU_Y + options.moves.length * ACTION_MENU_ITEM_HEIGHT;
+    this.createMenuItem(
+      { label: "Annuler", enabled: true, callback: options.onCancel },
+      cancelY,
+    );
   }
 
   hide(): void {
@@ -176,7 +199,99 @@ export class ActionMenu {
     }
   }
 
+  private createMoveItem(
+    move: { definition: MoveDefinition; currentPp: number; hasTargets: boolean },
+    y: number,
+    onSelect: (moveId: string) => void,
+  ): void {
+    const enabled = move.currentPp > 0 && move.hasTargets;
+    const alpha = enabled ? 1 : ACTION_MENU_DISABLED_ALPHA;
+    const centerY = y + ACTION_MENU_ITEM_HEIGHT / 2;
+
+    const typeIcon = this.scene.add
+      .image(ACTION_MENU_X + 8, centerY, `type-${move.definition.type}`)
+      .setOrigin(0, 0.5)
+      .setDisplaySize(20, 20)
+      .setAlpha(alpha)
+      .setDepth(DEPTH_ACTION_MENU + 2);
+    this.objects.push(typeIcon);
+
+    const iconWidth = 20;
+    const nameX = ACTION_MENU_X + 8 + iconWidth + 6;
+    const ppWidth = 45;
+    const maxNameWidth = ACTION_MENU_WIDTH - 8 - iconWidth - 6 - ppWidth - 8;
+
+    const nameText = this.scene.add
+      .text(nameX, centerY, move.definition.name, {
+        fontSize: "12px",
+        color: "#ffffff",
+        fontFamily: "monospace",
+        maxLines: 1,
+      })
+      .setOrigin(0, 0.5)
+      .setAlpha(alpha)
+      .setDepth(DEPTH_ACTION_MENU + 2);
+
+    if (nameText.width > maxNameWidth) {
+      nameText.setCrop(0, 0, maxNameWidth, nameText.height);
+    }
+
+    this.objects.push(nameText);
+
+    const ppText = this.scene.add
+      .text(
+        ACTION_MENU_X + ACTION_MENU_WIDTH - 8,
+        centerY,
+        `${move.currentPp}/${move.definition.pp}`,
+        {
+          fontSize: "11px",
+          color: "#aaaaaa",
+          fontFamily: "monospace",
+        },
+      )
+      .setOrigin(1, 0.5)
+      .setAlpha(alpha)
+      .setDepth(DEPTH_ACTION_MENU + 2);
+    this.objects.push(ppText);
+
+    const hoverBg = this.scene.add.graphics();
+    hoverBg.setDepth(DEPTH_ACTION_MENU + 1);
+    hoverBg.setVisible(false);
+    this.objects.push(hoverBg);
+
+    const zone = this.scene.add.zone(
+      ACTION_MENU_X + ACTION_MENU_WIDTH / 2,
+      centerY,
+      ACTION_MENU_WIDTH,
+      ACTION_MENU_ITEM_HEIGHT,
+    );
+    zone.setDepth(DEPTH_ACTION_MENU + 3);
+    zone.setInteractive({ useHandCursor: enabled });
+    this.objects.push(zone);
+
+    if (enabled) {
+      zone.on("pointerover", () => {
+        hoverBg.clear();
+        hoverBg.fillStyle(ACTION_MENU_HOVER_COLOR, ACTION_MENU_HOVER_ALPHA);
+        hoverBg.fillRect(ACTION_MENU_X, y, ACTION_MENU_WIDTH, ACTION_MENU_ITEM_HEIGHT);
+        hoverBg.setVisible(true);
+        this.tooltip?.show(move.definition, ACTION_MENU_X, y);
+      });
+
+      zone.on("pointerout", () => {
+        hoverBg.setVisible(false);
+        this.tooltip?.hide();
+      });
+
+      zone.on("pointerdown", () => {
+        this.tooltip?.hide();
+        onSelect(move.definition.id);
+      });
+    }
+  }
+
   private clearItems(): void {
+    this.tooltip?.hide();
     for (const obj of this.objects) {
       obj.destroy();
     }
