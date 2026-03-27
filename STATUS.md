@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-26 (Session design — 7 idées validées, aucun code modifié)
+> Dernière mise à jour : 2026-03-27 (Plan 015 terminé — stats niveau 50, 305 tests)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -172,7 +172,7 @@
   - Renderer : `BattleScene` flow complet placement → combat (`PlacementMode.Alternating` et `Random`)
   - Renderer : `SpriteLoader.preloadPokemonAssets` signature assouplie
 
-- **Post-plan 013 — Roster élargi + UI (2026-03-26)** — **244 tests**, build OK :
+- **Post-plan 013 — Roster élargi + UI (2026-03-26)** — **244 tests** (avant plan 015), build OK :
   - Fix Restart : `BattleUI` redémarre `BattleScene` (au lieu de `BattleUIScene`)
   - **Roster 4 → 12 Pokemon** : Pikachu, Machop, Abra, Fantominus, Racaillou, Caninos, Rondoudou, Otaria
   - **16 → 48 moves** : 32 nouveaux moves, tous les patterns couverts
@@ -195,6 +195,16 @@
   - game-design.md mis à jour (slash/blast + effets spéciaux), roadmap.md mis à jour (tâches d'implémentation ajoutées)
   - Correction numérotation decisions.md : doublons #108-114 corrigés en #115-121
 
+- **Plan 015 terminé** — Stats niveau 50 :
+  - `stat-calculator.ts` : `computeStatAtLevel(base, level, isHp)` et `computeCombatStats(baseStats, level)` — formule Gen 5, niveau 50, IV=0, EV=0
+  - `PokemonInstance` : nouveaux champs `level: number` et `combatStats: BaseStats` (valeurs calculées, séparées des `baseStats` officiels)
+  - `damage-calculator.ts` : utilise `combatStats` au lieu de `baseStats`
+  - Mocks et `build-test-engine.ts` mis à jour avec les stats niveau 50
+  - Renderer : `InfoPanel.ts` affiche `Lv.50` à côté du nom, `BattleSetup.ts` utilise `computeCombatStats`
+  - Exemples HP : Bulbasaur 45→105, Charmander 39→99, Pidgey 40→100, Abra 25→85, Rondoudou 115→175
+  - **305 tests**, 100% coverage maintenu, 10 nouveaux tests `computeStatAtLevel`
+  - Fix tests préexistants : intégration (pokemon count 4→12, spawn zone positions)
+
 - **Session 2026-03-26 — Design Phase 1** (aucun code modifié) :
   - 7 idées validées et intégrées dans la doc :
     1. **Stats niveau 50** : `computeStatAtLevel(base, 50)` sans IV/EV — décision #122, roadmap Phase 1
@@ -210,7 +220,7 @@
 ### Prochaine étape
 - **Implémenter `slash` et `blast`** dans `packages/core` (targeting resolvers + tests) — prérequis avant de mettre à jour `tactical.ts`
 - Mettre à jour `tactical.ts` avec les 8 changements de pattern validés (décision #110)
-- Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage) — décision #121
+- Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage, HP réalistes maintenant) — décision #121
 - Feedback visuel des statuts sur les sprites (Phase 1 Renderer)
 
 ### Standards de code établis

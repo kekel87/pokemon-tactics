@@ -1,11 +1,14 @@
 import { loadData, pocArena } from "@pokemon-tactic/data";
 import { BattleEngine } from "../battle/BattleEngine";
+import { computeCombatStats } from "../battle/stat-calculator";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PlacementEntry } from "../types/placement-entry";
 import type { PlacementTeam } from "../types/placement-team";
 import type { PokemonInstance } from "../types/pokemon-instance";
+
+const BATTLE_LEVEL = 50;
 
 const ZERO_STAT_STAGES = {
   [StatName.Hp]: 0,
@@ -48,21 +51,24 @@ export function buildTestEngineFromPlacements(
       throw new Error(`Unknown definition: ${definitionId}`);
     }
 
-    const hpStat = definition.baseStats.hp;
     const currentPp: Record<string, number> = {};
     for (const moveId of definition.movepool) {
       const move = moveRegistry.get(moveId);
       currentPp[moveId] = move?.pp ?? 0;
     }
 
+    const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
+
     const instance: PokemonInstance = {
       id: placement.pokemonId,
       definitionId: definition.id,
       playerId: team.playerId,
-      currentHp: hpStat,
-      maxHp: hpStat,
+      level: BATTLE_LEVEL,
+      currentHp: combatStats.hp,
+      maxHp: combatStats.hp,
       baseStats: { ...definition.baseStats },
-      derivedStats: { movement: 3, jump: 1, initiative: definition.baseStats.speed },
+      combatStats,
+      derivedStats: { movement: 3, jump: 1, initiative: combatStats.speed },
       statStages: { ...ZERO_STAT_STAGES },
       statusEffects: [],
       position: placement.position,

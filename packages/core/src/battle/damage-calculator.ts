@@ -27,8 +27,8 @@ export function calculateDamage(
   }
 
   const isPhysical = move.category === Category.Physical;
-  const attackStat = isPhysical ? attacker.baseStats.attack : attacker.baseStats.spAttack;
-  const defenseStat = isPhysical ? defender.baseStats.defense : defender.baseStats.spDefense;
+  const attackStat = isPhysical ? attacker.combatStats.attack : attacker.combatStats.spAttack;
+  const defenseStat = isPhysical ? defender.combatStats.defense : defender.combatStats.spDefense;
 
   const attackStage = isPhysical ? attacker.statStages.attack : attacker.statStages.spAttack;
   const defenseStage = isPhysical ? defender.statStages.defense : defender.statStages.spDefense;

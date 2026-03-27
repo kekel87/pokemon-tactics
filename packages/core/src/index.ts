@@ -1,4 +1,5 @@
 export { BattleEngine } from "./battle/BattleEngine";
+export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator";
 export { PlacementError, PlacementPhase } from "./battle/PlacementPhase";
 export type { PlacementResult } from "./battle/PlacementPhase";
 export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
