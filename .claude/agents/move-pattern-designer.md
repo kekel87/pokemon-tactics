@@ -21,7 +21,7 @@ Determiner le **pattern d'attaque** (targeting) de chaque move en te basant sur 
 |---------|-------------|------------|----------------|
 | **single** | Une seule cible | `range: {min, max}` | Tir cible |
 | **line** | Ligne droite traversante | `length` | Rayon laser |
-| **cone** | Cone devant le lanceur | `range: {min, max}, width` | Souffle de feu |
+| **cone** | Cone devant le lanceur (largeur = distance × 2 − 1) | `range: {min, max}` | Souffle de feu |
 | **cross** | Zone en croix (+) | `range: {min, max}, size` | Eclate-Roc |
 | **zone** | Cercle centre sur soi | `radius` | Seisme, poudres |
 | **dash** | Le lanceur fonce en ligne | `maxDistance` | Vive-Attaque |

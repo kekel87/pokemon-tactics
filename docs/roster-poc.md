@@ -49,7 +49,7 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 | 1 | Pistolet à O | Eau | Spé | 40 | 100 | 25 | 1-3 | single | Ranged basique |
 | 2 | Charge | Normal | Phys | 40 | 100 | 35 | 1 | single | Mêlée |
 | 3 | Repli | Eau | Statut | — | 100 | 40 | 0 (self) | self | +1 Déf, +1 Déf Spé — tank |
-| 4 | Bulles d'O | Eau | Spé | 65 | 100 | 20 | 1-2 | cône w3 | Cône devant soi, friendly fire |
+| 4 | Bulles d'O | Eau | Spé | 65 | 100 | 20 | 1-2 | cône | Cône devant soi, friendly fire |
 
 **Rôle** : tank. Repli pour encaisser, Bulles d'O pour zone denial, Pistolet à O en harcèlement à distance.
 
@@ -59,7 +59,7 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 
 | # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
 |---|---------|------|------|--------|-------|-----|--------|---------|-------|
-| 1 | Tornade | Vol | Spé | 40 | 100 | 35 | 1-3 | cône w3 | Cône devant soi, STAB |
+| 1 | Tornade | Vol | Spé | 40 | 100 | 35 | 1-3 | cône | Cône devant soi, STAB |
 | 2 | Vive-Attaque | Normal | Phys | 40 | 100 | 30 | dash 2 | dash | **Dash** : fonce en ligne droite (2 tiles max), frappe le premier ennemi — ou se repositionne dans le vide |
 | 3 | Jet de Sable | Sol | Statut | — | 100 | 15 | 1-2 | cône | -1 Précision, teste le cône |
 | 4 | Cru-Aile | Vol | Phys | 60 | 100 | 35 | 1 | slash | Arc frontal 3 cases, mêlée STAB |
@@ -88,7 +88,7 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 | 1 | Tranche | Combat | Phys | 50 | 100 | 25 | 1 | single | Mêlée, haute priorité critique |
 | 2 | Séisme | Combat | Phys | 40 | 100 | 20 | 1 | single | Mêlée |
 | 3 | Pugilat | Combat | Statut | — | 100 | 20 | 0 (self) | self | +1 Attaque, +1 Défense |
-| 4 | Éclate-Roc | Combat | Phys | 40 | 100 | 15 | 1-2 | croix 3x3 | AoE croix + -1 Déf aux cibles |
+| 4 | Éclate-Roc | Combat | Phys | 40 | 100 | 15 | self | croix 3x3 | AoE croix centrée sur le lanceur + -1 Déf aux cibles |
 
 **Rôle** : bruiser mêlée. Pugilat pour se booster, Éclate-Roc pour affaiblir les défenses en zone.
 
@@ -113,7 +113,7 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 |---|---------|------|------|--------|-------|-----|--------|---------|-------|
 | 1 | Léchouille | Spectre | Phys | 30 | 100 | 30 | 1 | single | Mêlée, chance paralysie 30% |
 | 2 | Hypnose | Psy | Statut | — | 60 | 20 | 1-3 | single | Sommeil 100% (précision basse) |
-| 3 | Ombre Nuit | Spectre | Spé | 50 | 100 | 15 | 1-2 | croix 3x3 | AoE croix |
+| 3 | Ombre Nuit | Spectre | Spé | 50 | 100 | 15 | self | croix 3x3 | AoE croix centrée sur le lanceur |
 | 4 | Miniminus | Normal | Statut | — | 100 | 10 | 0 (self) | self | +2 Esquive |
 
 **Rôle** : contrôle furtif. Type Spectre = traverse les ennemis. Hypnose pour mettre hors combat, Miniminus pour devenir insaisissable.

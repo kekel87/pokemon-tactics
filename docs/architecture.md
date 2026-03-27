@@ -91,14 +91,17 @@ pokemon-tactics/
 │   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue)
 │   │   │   ├── grid/            # Rendu isométrique (IsometricGrid, curseur animé)
 │   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
-│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel)
+│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
 │   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI, POKEMON_SPRITE_SCALE
 │   │   │   └── main.ts
 │   │   ├── public/
 │   │   │   └── assets/
 │   │   │       ├── sprites/pokemon/{name}/  # atlas.json, atlas.png, portrait-normal.png, credits.txt (générés)
-│   │   │       └── ui/                      # Assets UI statiques (arrows.png — spritesheet flèches DirectionPicker)
+│   │   │       └── ui/
+│   │   │           ├── arrows.png           # Spritesheet flèches DirectionPicker
+│   │   │           ├── types/               # Type icons Pokepedia ZA (Légendes Pokémon Z-A) : {type}.png, 36x36px sans texte (18 types)
+│   │   │           └── categories/          # Category icons Bulbagarden SV : physical.png, special.png, status.png — 50x40px
 │   │   ├── index.html
 │   │   ├── vite.config.ts
 │   │   ├── tsconfig.json        # extends base + DOM libs
@@ -193,11 +196,13 @@ interface MoveDefinition {
 type TargetingPattern =
   | { kind: 'single'; range: { min: number; max: number } }
   | { kind: 'self' }
-  | { kind: 'cone'; range: { min: number; max: number }; width: number }
-  | { kind: 'cross'; range: { min: number; max: number }; size: number }
+  | { kind: 'cone'; range: { min: number; max: number } }      // largeur = distance * 2 - 1 (pas de paramètre width)
+  | { kind: 'cross'; size: number }                             // toujours centré sur le caster, pas de range
   | { kind: 'line'; length: number }
   | { kind: 'dash'; maxDistance: number }
   | { kind: 'zone'; radius: number }
+  | { kind: 'slash' }                                           // arc frontal 3 cases, pas de paramètre
+  | { kind: 'blast'; range: { min: number; max: number }; radius: number }
 
 // Effets — composables, une attaque peut en avoir plusieurs
 type Effect =

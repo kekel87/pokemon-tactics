@@ -68,7 +68,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Stat change indicators (flèches ↑↓ colorées) dans l'info panel
 - [x] Status icons (pastilles colorées) dans la turn timeline
 - [x] Afficher le niveau dans l'UI (`Lv.50` dans l'InfoPanel)
-- [ ] Info détaillées des attaques dans le sous-menu (puissance, type, catégorie, précision, PP restants, pattern)
+- [x] Info détaillées des attaques dans le sous-menu (catégorie icon SV + nom + PP courants/max) + tooltip hover (catégorie, puissance, précision, nom pattern FR + portée conditionnelle, grille dynamique) — plan 016
 - [ ] Refonte panel info stats : affichage clair des stages actuels (+1/+2/-1 etc.) avec code couleur lisible
 - [ ] Feedback visuel des statuts sur les sprites (icône ou effet au-dessus du sprite)
 - [ ] Prévisualisation des dégâts / portée avant confirmation

@@ -465,7 +465,7 @@ describe("BattleEngine.getLegalActions — use_move", () => {
   const coneMove: MoveDefinition = {
     ...MockValidation.validMove,
     id: "heat-wave",
-    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 }, width: 3 },
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
   };
 
   const dashMove: MoveDefinition = {

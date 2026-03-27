@@ -10,6 +10,7 @@ import {
   createBattleFromPlacements,
   defaultTeams,
 } from "../game/BattleSetup";
+import { TYPE_NAMES } from "../constants";
 import { GameController, type PlacementConfig } from "../game/GameController";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
@@ -39,6 +40,14 @@ export class BattleScene extends Phaser.Scene {
       frameWidth: 32,
       frameHeight: 32,
     });
+
+    for (const typeName of TYPE_NAMES) {
+      this.load.image(`type-${typeName}`, `assets/ui/types/${typeName}.png`);
+    }
+
+    this.load.image("category-physical", "assets/ui/categories/physical.png");
+    this.load.image("category-special", "assets/ui/categories/special.png");
+    this.load.image("category-status", "assets/ui/categories/status.png");
   }
 
   create(): void {

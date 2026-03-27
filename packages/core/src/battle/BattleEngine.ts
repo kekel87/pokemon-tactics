@@ -190,9 +190,9 @@ export class BattleEngine {
       case TargetingKind.Self:
         return [pokemon.position];
       case TargetingKind.Zone:
+      case TargetingKind.Cross:
         return [pokemon.position];
       case TargetingKind.Single:
-      case TargetingKind.Cross:
         return this.grid.getTilesInRange(
           pokemon.position,
           targeting.range.min,

@@ -60,7 +60,7 @@ Pattern TypeScript du projet : `{ Key: "value" } as const` + type dérivé. Évi
 Fonction qui fusionne plusieurs objets couche par couche. Dans ce projet, les arrays sont **remplacés** (pas concaténés) lors du merge. Utilisée pour combiner les données base + tactical + balance en `MoveDefinition` complètes.
 
 **Discriminated union**
-Type TypeScript où plusieurs formes d'un même type se distinguent par un champ commun (souvent `kind`). Exemple : `TargetingPattern` peut être `{ kind: 'single'; range: ... }` ou `{ kind: 'cone'; width: ... }`. TypeScript sait exactement quel type est actif selon la valeur de `kind`.
+Type TypeScript où plusieurs formes d'un même type se distinguent par un champ commun (souvent `kind`). Exemple : `TargetingPattern` peut être `{ kind: 'single'; range: ... }` ou `{ kind: 'cone'; range: ... }` (la largeur du cône est dérivée de la distance, pas un paramètre explicite). TypeScript sait exactement quel type est actif selon la valeur de `kind`.
 
 **Event emitter** (Émetteur d'événements)
 Pattern où un objet publie des événements que d'autres peuvent écouter. Dans ce projet, le `BattleEngine` émet des `BattleEvent` que le renderer, l'IA et le système de replay écoutent. Découple totalement le core de l'affichage.
