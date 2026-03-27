@@ -25,4 +25,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 010 | [Sprites PMDCollab : pipeline d'extraction + intégration renderer](./010-pmdcollab-sprites.md) | done | 2026-03-24 |
 | 011 | [KO définitif avec corps bloquant + suppression koCountdown](./011-ko-body-blocking.md) | done | 2026-03-24 |
 | 012 | [Direction de fin de tour](./012-end-turn-direction.md) | done | 2026-03-24 |
-| 013 | [Modèle de carte + phase de placement](./013-map-model-placement.md) | in-progress | 2026-03-25 |
+| 013 | [Modèle de carte + phase de placement](./013-map-model-placement.md) | done | 2026-03-25 |
+| 014 | [Patterns slash et blast + mise à jour tactical.ts](./014-slash-blast-patterns.md) | done | 2026-03-27 |

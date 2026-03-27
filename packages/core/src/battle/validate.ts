@@ -45,6 +45,12 @@ export function validateBattleData(data: {
         errors.push(`Move ${move.id} has range min (${range.min}) > max (${range.max})`);
       }
     }
+
+    if (move.targeting && "radius" in move.targeting) {
+      if (move.targeting.radius < 0) {
+        errors.push(`Move ${move.id} has negative radius: ${move.targeting.radius}`);
+      }
+    }
   }
 
   const pokemonIds = new Set<string>();

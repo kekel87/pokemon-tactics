@@ -44,6 +44,16 @@ export function resolveTargeting(
       return resolveDash(caster, targetPosition, targetingPattern.maxDistance, grid, traversal);
     case TargetingKind.Zone:
       return resolveZone(caster.position, targetingPattern.radius, grid);
+    case TargetingKind.Slash:
+      return resolveSlash(caster.position, targetPosition, grid);
+    case TargetingKind.Blast:
+      return resolveBlast(
+        caster.position,
+        targetPosition,
+        targetingPattern.range,
+        targetingPattern.radius,
+        grid,
+      );
   }
 }
 
@@ -169,6 +179,47 @@ function resolveDash(
 }
 
 function resolveZone(center: Position, radius: number, grid: Grid): Position[] {
+  return getTilesInRadius(center, radius, grid);
+}
+
+function resolveSlash(origin: Position, target: Position, grid: Grid): Position[] {
+  const direction = directionFromTo(origin, target);
+  const center = stepInDirection(origin, direction, 1);
+  const result: Position[] = [];
+
+  if (grid.isInBounds(center)) {
+    result.push(center);
+  }
+
+  const perpendicularOffsets = getPerpendicularOffsets(direction);
+  for (const perpendicular of perpendicularOffsets) {
+    const position = { x: center.x + perpendicular.x, y: center.y + perpendicular.y };
+    if (grid.isInBounds(position)) {
+      result.push(position);
+    }
+  }
+
+  return result;
+}
+
+function resolveBlast(
+  origin: Position,
+  target: Position,
+  range: RangeConfig,
+  radius: number,
+  grid: Grid,
+): Position[] {
+  if (!grid.isInBounds(target)) {
+    return [];
+  }
+  const distance = manhattanDistance(origin, target);
+  if (distance < range.min || distance > range.max) {
+    return [];
+  }
+  return getTilesInRadius(target, radius, grid);
+}
+
+function getTilesInRadius(center: Position, radius: number, grid: Grid): Position[] {
   const result: Position[] = [];
   for (let dy = -radius; dy <= radius; dy++) {
     for (let dx = -radius; dx <= radius; dx++) {

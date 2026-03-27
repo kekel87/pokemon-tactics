@@ -3,9 +3,6 @@
 > Les 12 Pokemon du prototype élargi et leurs movesets.
 > Chaque attaque teste un pattern ou une mécanique différente pour valider le moteur.
 > Les movesets des 8 nouveaux Pokemon (plan 013+) n'ont pas encore été revus par l'humain.
->
-> **Révision de patterns en attente** : 8 attaques ont un pattern validé différent de l'implémentation actuelle. Les changements seront effectifs après l'implémentation des patterns `slash` et `blast` dans le core. Voir `docs/reflexion-patterns-attaques.md` (section 8) et décision #110.
-> Attaques concernées : Tranch'Herbe (→slash), Poudre Dodo (→zone r1), Bombe-Beurk (→blast r2), Bulles d'O (→cone), Tornade (→cone), Cru-Aile (→slash), Ampleur (→zone r2).
 
 ---
 
@@ -14,7 +11,7 @@
 Valider un maximum de mécaniques avec un minimum de Pokemon :
 - **Roster initial (4)** : Plante, Feu, Eau, Normal/Vol — triangle élémentaire + neutre
 - **Roster élargi (12)** : Électrique, Combat, Psy, Spectre/Poison, Roche/Sol, Feu (2e), Normal/Fée, Eau/Glace
-- **Tous les patterns AoE** : single, cône, croix, zone self, dash, portée+AoE, lien, ligne
+- **Tous les patterns AoE** : single, cône, croix, zone self, dash, portée+AoE, lien, ligne, slash, blast
 - **Mécaniques variées** : dégâts, statut, buff, drain, dash, AoE, debuff
 
 ---
@@ -23,10 +20,10 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 
 | # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
 |---|---------|------|------|--------|-------|-----|--------|---------|-------|
-| 1 | Tranch'Herbe | Plante | Phys | 55 | 95 | 25 | 1-2 | single | Attaque fiable, petite portée |
-| 2 | Poudre Dodo | Plante | Statut | — | 75 | 15 | 1-2 | single | Endort la cible — contrôle |
+| 1 | Tranch'Herbe | Plante | Phys | 55 | 95 | 25 | 1 | slash | Arc frontal 3 cases devant le lanceur |
+| 2 | Poudre Dodo | Plante | Statut | — | 75 | 15 | 0 (self) | zone r1 | Endort en zone autour du lanceur — risque friendly fire |
 | 3 | Vampigraine | Plante | Statut | — | 90 | 10 | 1-3 | single (lien) | Drain PV/tour tant que cible à ≤5 tiles, permanent |
-| 4 | Bombe-Beurk | Poison | Spé | 90 | 100 | 10 | 2-4 | croix 3x3 | **Portée + AoE** — tire à distance, explose en zone. Chance poison 30%. |
+| 4 | Bombe-Beurk | Poison | Spé | 90 | 100 | 10 | 2-4 | blast r1 | **Portée + AoE** — tire à distance, explose en cercle r1. Chance poison 30%. |
 
 **Rôle** : contrôle + attrition. Vampigraine force l'ennemi à fuir ou subir. Bombe-Beurk punit les regroupements.
 
@@ -52,7 +49,7 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 | 1 | Pistolet à O | Eau | Spé | 40 | 100 | 25 | 1-3 | single | Ranged basique |
 | 2 | Charge | Normal | Phys | 40 | 100 | 35 | 1 | single | Mêlée |
 | 3 | Repli | Eau | Statut | — | 100 | 40 | 0 (self) | self | +1 Déf, +1 Déf Spé — tank |
-| 4 | Bulles d'O | Eau | Spé | 65 | 100 | 20 | 1-2 | croix 3x3 | AoE croix, teste le friendly fire |
+| 4 | Bulles d'O | Eau | Spé | 65 | 100 | 20 | 1-2 | cône w3 | Cône devant soi, friendly fire |
 
 **Rôle** : tank. Repli pour encaisser, Bulles d'O pour zone denial, Pistolet à O en harcèlement à distance.
 
@@ -62,10 +59,10 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 
 | # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
 |---|---------|------|------|--------|-------|-----|--------|---------|-------|
-| 1 | Tornade | Vol | Spé | 40 | 100 | 35 | 1-3 | single | Ranged STAB |
+| 1 | Tornade | Vol | Spé | 40 | 100 | 35 | 1-3 | cône w3 | Cône devant soi, STAB |
 | 2 | Vive-Attaque | Normal | Phys | 40 | 100 | 30 | dash 2 | dash | **Dash** : fonce en ligne droite (2 tiles max), frappe le premier ennemi — ou se repositionne dans le vide |
 | 3 | Jet de Sable | Sol | Statut | — | 100 | 15 | 1-2 | cône | -1 Précision, teste le cône |
-| 4 | Cru-Aile | Vol | Phys | 60 | 100 | 35 | 1 | single | Mêlée puissante STAB |
+| 4 | Cru-Aile | Vol | Phys | 60 | 100 | 35 | 1 | slash | Arc frontal 3 cases, mêlée STAB |
 
 **Rôle** : mobile et harceleur. Type Vol = ignore le blocage et les dégâts de chute. Vive-Attaque pour gap-close ou fuir en frappant.
 
@@ -128,7 +125,7 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 | # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
 |---|---------|------|------|--------|-------|-----|--------|---------|-------|
 | 1 | Lancer-Roc | Roche | Phys | 50 | 90 | 15 | 1-3 | single | Ranged, précision réduite |
-| 2 | Ampleur | Sol | Phys | 70 | 100 | 30 | 0 (self) | zone 3x3 | AoE zone self, friendly fire |
+| 2 | Ampleur | Sol | Phys | 70 | 100 | 30 | 0 (self) | zone r2 | AoE zone self r2 (13 cases), friendly fire |
 | 3 | Armure | Normal | Statut | — | 100 | 40 | 0 (self) | self | +1 Défense |
 | 4 | Tunnel | Roche | Phys | 30 | 90 | 20 | dash 4 | dash | Dash longue portée |
 
@@ -179,19 +176,20 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 
 | Mécanique | Testée par |
 |-----------|-----------|
-| Single target mêlée | Griffe, Charge, Cru-Aile, Tranche, Séisme, Léchouille, Morsure, Écras'Face, Tête de Roc |
-| Single target ranged | Flammèche, Pistolet à O, Tornade, Tranch'Herbe, Cage-Éclair, Kinésie, Choc Mental, Lancer-Roc |
-| AoE croix | Bombe-Beurk, Bulles d'O, Éclate-Roc, Ombre Nuit |
-| AoE cône | Dracosouffle, Jet de Sable, Berceuse, Blizzard, Vent Glace |
+| Single target mêlée | Griffe, Charge, Tranche, Séisme, Léchouille, Morsure, Écras'Face, Tête de Roc |
+| Single target ranged | Flammèche, Pistolet à O, Cage-Éclair, Kinésie, Choc Mental, Lancer-Roc |
+| **Slash** (arc frontal 3 cases) | Tranch'Herbe, Cru-Aile |
+| **Blast** (projectile + explosion circulaire) | Bombe-Beurk |
+| AoE croix | Éclate-Roc, Ombre Nuit |
+| AoE cône | Tornade, Dracosouffle, Bulles d'O, Jet de Sable, Berceuse, Blizzard, Vent Glace |
 | **Ligne** | Tonnerre, Psykoud'boul, Lance-Flammes, Laser Glace |
-| Zone self | Brouillard, Ampleur |
+| Zone self | Brouillard, Poudre Dodo, Ampleur |
 | Buff self (Attaque/Déf) | Repli, Pugilat, Entassement, Armure, Défense Enroulée |
 | Buff self (Atk Spé/Déf Spé) | Zen Absolu |
 | Buff self (Vitesse) | Tranche Rapide |
 | Buff self (Esquive) | Jackpot, Miniminus |
 | Attaque dash | Vive-Attaque, Voltacle, Tunnel, Roue de Feu |
 | Lien persistant | Vampigraine |
-| Portée + AoE (tir à distance + explosion) | Bombe-Beurk |
 | Statut : sommeil | Poudre Dodo, Hypnose, Berceuse |
 | Statut : brûlure | Flammèche, Lance-Flammes, Roue de Feu |
 | Statut : poison | Bombe-Beurk |
@@ -200,7 +198,7 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 | Statut : -précision | Brouillard, Jet de Sable, Kinésie |
 | Debuff : -Attaque | Éclate-Roc (via -1 Déf), Laser Glace |
 | Debuff : -Vitesse | Vent Glace |
-| Friendly fire AoE | Bombe-Beurk, Bulles d'O, Dracosouffle, Ampleur, Berceuse, Blizzard |
+| Friendly fire AoE | Tranch'Herbe, Cru-Aile (slash), Bombe-Beurk (blast), Poudre Dodo, Tornade, Bulles d'O (cône), Dracosouffle, Ampleur, Berceuse, Blizzard |
 | Type Vol (survol, chute) | Roucoul |
 | Type Spectre (traversée ennemis) | Fantominus |
 | Triangle de types | Plante > Eau > Feu > Plante |

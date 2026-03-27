@@ -6,6 +6,8 @@ export const TargetingKind = {
   Line: "line",
   Dash: "dash",
   Zone: "zone",
+  Slash: "slash",
+  Blast: "blast",
 } as const;
 
 export type TargetingKind = (typeof TargetingKind)[keyof typeof TargetingKind];

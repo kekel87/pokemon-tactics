@@ -91,6 +91,80 @@ describe("BattleEngine integration", () => {
     expect(movedEvents.length).toBe(1);
   });
 
+  it("Bulbasaur Sludge Bomb (blast) applies poison to all targets in radius", () => {
+    const data = loadData();
+    const moveRegistry = new Map<string, MoveDefinition>();
+    for (const move of data.moves) {
+      moveRegistry.set(move.id, move);
+    }
+
+    const pokemonTypesMap = new Map<string, PokemonType[]>([
+      ["bulbasaur", [PokemonType.Grass, PokemonType.Poison]],
+      ["pidgey", [PokemonType.Normal, PokemonType.Flying]],
+    ]);
+
+    // Bulbasaur at (0,4), two Pidgeys adjacent at (3,4) and (4,4) — within blast r1 radius
+    const bulbasaur = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 4 },
+    });
+    const pidgey1 = MockPokemon.fresh(MockPokemon.pidgey, {
+      id: "pidgey-1",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 4 },
+      currentHp: 200,
+      maxHp: 200,
+    });
+    const pidgey2 = MockPokemon.fresh(MockPokemon.pidgey, {
+      id: "pidgey-2",
+      definitionId: "pidgey",
+      playerId: PlayerId.Player2,
+      position: { x: 4, y: 4 },
+      currentHp: 200,
+      maxHp: 200,
+    });
+
+    const state = MockBattle.stateFrom([bulbasaur, pidgey1, pidgey2], 8, 8);
+    const engine = new BattleEngine(state, moveRegistry, typeChart, pokemonTypesMap);
+
+    // Force accuracy + status chance to always hit
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    // Bulbasaur has lowest initiative (45), but we need it to go first for the test
+    // Skip pidgeys' turns
+    for (const pidgeyId of ["pidgey-1", "pidgey-2"]) {
+      engine.submitAction(PlayerId.Player2, {
+        kind: ActionKind.EndTurn,
+        pokemonId: pidgeyId,
+        direction: Direction.South,
+      });
+    }
+
+    // Now it's Bulbasaur's turn — use Sludge Bomb targeting (3,4)
+    // blast range 2-4, radius 1 → hits (3,4) + diamond r1 around it
+    // Both pidgeys at (3,4) and (4,4) should be in the blast zone
+    const sludgeBombResult = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "bulbasaur-1",
+      moveId: "sludge-bomb",
+      targetPosition: { x: 3, y: 4 },
+    });
+
+    expect(sludgeBombResult.success).toBe(true);
+
+    const damageEvents = sludgeBombResult.events.filter(
+      (e) => e.type === BattleEventType.DamageDealt,
+    );
+    expect(damageEvents).toHaveLength(2);
+
+    const statusEvents = sludgeBombResult.events.filter(
+      (e) => e.type === BattleEventType.StatusApplied,
+    );
+    expect(statusEvents).toHaveLength(2);
+
+    vi.restoreAllMocks();
+  });
+
   it("Charmander Ember vs Bulbasaur then Bulbasaur Razor Leaf vs Charmander", () => {
     const data = loadData();
     const moveRegistry = new Map<string, MoveDefinition>();

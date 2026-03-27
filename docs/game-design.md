@@ -165,8 +165,8 @@ Chaque attaque a un **pattern** (inspiré FFTA) :
 - **Portée + AoE** : cible un point à distance, l'effet se propage en zone autour du point d'impact (ex: boule de feu tirée à portée 3, explose en croix 3x3)
 - **Zone self** (portée 0) : zone centrée sur le lanceur (ex: Brouillard, Ampleur)
 - **Cône** : éventail devant le lanceur (ex: Dracosouffle, Blizzard, Tornade)
-- **Slash / arc frontal** : touche les 3 cases devant le lanceur (face + 2 diagonales) — balayage, coup d'aile (ex: Tranch'Herbe, Cru-Aile) — *à implémenter*
-- **Blast** : projectile lancé à distance (`range`) qui explose en cercle à l'impact (`radius`) — différent de `cross` (forme en +) et de `zone` (centré sur soi) (ex: Bombe-Beurk) — *à implémenter*
+- **Slash / arc frontal** : touche les 3 cases devant le lanceur (face + 2 diagonales) — balayage, coup d'aile (ex: Tranch'Herbe, Cru-Aile)
+- **Blast** : projectile lancé à distance (`range`) qui explose en cercle à l'impact (`radius`) — différent de `cross` (forme en +) et de `zone` (centré sur soi) (ex: Bombe-Beurk)
 - **Ligne** : ligne droite depuis le lanceur
 - **Dash** : le lanceur se déplace en ligne droite et frappe (voir attaques de priorité)
 

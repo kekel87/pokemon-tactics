@@ -19,7 +19,7 @@
 - [x] Condition de victoire (dernière équipe debout)
 - [x] Move+Act par tour (FFTA-like)
 - [x] 5 statuts majeurs (brûlure, poison, paralysie, gel, sommeil)
-- [x] 7 targeting patterns (single, self, cone, cross, line, dash, zone)
+- [x] 9 targeting patterns (single, self, cone, cross, line, dash, zone, slash, blast)
 - [x] Friendly fire actif
 - [x] Type chart 18x18
 - [x] Tests unitaires pour chaque mécanique (244 tests unitaires, 100% coverage)
@@ -43,14 +43,14 @@
 > But : un combat complet et varié, jouable en hot-seat, avec assez de Pokemon pour tester toutes les mécaniques
 
 ### Ce qui est posé (fondations Phase 0)
-Formule de dégâts, type chart, 7 targeting patterns, 5 statuts majeurs, friendly fire, Move+Act, stat stages (-6/+6), hot-seat basique, 12 Pokemon avec 48 moves, format 6v6, phase de placement interactive.
+Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly fire, Move+Act, stat stages (-6/+6), hot-seat basique, 12 Pokemon avec 48 moves, format 6v6, phase de placement interactive.
 
 ### Core
 - [x] KO définitif : corps reste sur la tile, traversable mais non-stoppable (plan 011)
 - [x] Placement initial configurable : `MapDefinition`, `PlacementPhase`, alternance serpent, mode random (plan 013 — implémenté, non commité)
 - [x] Direction de fin de tour (orientation choisie avant EndTurn)
-- [ ] Nouveaux patterns core : `slash` (arc frontal 3 cases) et `blast` (projectile + explosion circulaire) — voir `docs/reflexion-patterns-attaques.md` et décisions #108-109
-- [ ] Mettre à jour `tactical.ts` avec les 8 changements de pattern validés (décision #110) — après implémentation slash + blast
+- [x] Nouveaux patterns core : `slash` (arc frontal 3 cases) et `blast` (projectile + explosion circulaire) — voir `docs/reflexion-patterns-attaques.md` et décisions #108-109
+- [x] Mettre à jour `tactical.ts` avec les 7 changements de pattern effectifs (décision #110) — Ball'Ombre absente du roster actuel
 - [ ] Plus de moves stat changes (Épée Danse, Groz'Yeux, Abri, etc.)
 - [ ] Plus de moves AoE variés (utiliser les patterns existants avec plus de diversité)
 - [ ] Plus de moves avec portées variées (mêlée, 2-3 tiles, globale)
