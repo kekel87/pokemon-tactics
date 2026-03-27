@@ -200,9 +200,16 @@ export class BattleEngine {
         );
       case TargetingKind.Cone:
       case TargetingKind.Line:
+      case TargetingKind.Slash:
         return this.getFourDirectionPositions(pokemon.position);
       case TargetingKind.Dash:
         return this.getDashPositions(pokemon.position, targeting.maxDistance);
+      case TargetingKind.Blast:
+        return this.grid.getTilesInRange(
+          pokemon.position,
+          targeting.range.min,
+          targeting.range.max,
+        );
     }
   }
 

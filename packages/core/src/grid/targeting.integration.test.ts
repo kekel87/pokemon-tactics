@@ -337,4 +337,182 @@ describe("resolveTargeting", () => {
       expect(result).toEqual([{ x: 6, y: 4 }]);
     });
   });
+
+  describe("slash", () => {
+    it("should return 3 tiles in front when facing north", () => {
+      const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Slash },
+        caster,
+        { x: 4, y: 3 },
+        grid,
+      );
+      expect(result).toHaveLength(3);
+      expect(result).toContainEqual({ x: 4, y: 3 });
+      expect(result).toContainEqual({ x: 3, y: 3 });
+      expect(result).toContainEqual({ x: 5, y: 3 });
+    });
+
+    it("should return 3 tiles in front when facing south", () => {
+      const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Slash },
+        caster,
+        { x: 4, y: 5 },
+        grid,
+      );
+      expect(result).toHaveLength(3);
+      expect(result).toContainEqual({ x: 4, y: 5 });
+      expect(result).toContainEqual({ x: 3, y: 5 });
+      expect(result).toContainEqual({ x: 5, y: 5 });
+    });
+
+    it("should return 3 tiles in front when facing east", () => {
+      const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Slash },
+        caster,
+        { x: 5, y: 4 },
+        grid,
+      );
+      expect(result).toHaveLength(3);
+      expect(result).toContainEqual({ x: 5, y: 4 });
+      expect(result).toContainEqual({ x: 5, y: 3 });
+      expect(result).toContainEqual({ x: 5, y: 5 });
+    });
+
+    it("should return 3 tiles in front when facing west", () => {
+      const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Slash },
+        caster,
+        { x: 3, y: 4 },
+        grid,
+      );
+      expect(result).toHaveLength(3);
+      expect(result).toContainEqual({ x: 3, y: 4 });
+      expect(result).toContainEqual({ x: 3, y: 3 });
+      expect(result).toContainEqual({ x: 3, y: 5 });
+    });
+
+    it("should clip at grid corner", () => {
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Slash },
+        caster,
+        { x: 0, y: -1 },
+        grid,
+      );
+      expect(result.length).toBeLessThanOrEqual(2);
+    });
+
+    it("should clip at grid edge", () => {
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Slash },
+        caster,
+        { x: 0, y: 3 },
+        grid,
+      );
+      expect(result).toHaveLength(2);
+      expect(result).toContainEqual({ x: 0, y: 3 });
+      expect(result).toContainEqual({ x: 1, y: 3 });
+    });
+  });
+
+  describe("blast", () => {
+    it("should return 5 tiles for radius 1 at center", () => {
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Blast, range: { min: 2, max: 5 }, radius: 1 },
+        caster,
+        { x: 4, y: 4 },
+        grid,
+      );
+      expect(result).toHaveLength(5);
+      expect(result).toContainEqual({ x: 4, y: 4 });
+      expect(result).toContainEqual({ x: 3, y: 4 });
+      expect(result).toContainEqual({ x: 5, y: 4 });
+      expect(result).toContainEqual({ x: 4, y: 3 });
+      expect(result).toContainEqual({ x: 4, y: 5 });
+    });
+
+    it("should return 13 tiles for radius 2 at center", () => {
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Blast, range: { min: 2, max: 5 }, radius: 2 },
+        caster,
+        { x: 4, y: 4 },
+        grid,
+      );
+      expect(result).toHaveLength(13);
+    });
+
+    it("should return empty if target is too close", () => {
+      const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Blast, range: { min: 2, max: 4 }, radius: 1 },
+        caster,
+        { x: 5, y: 4 },
+        grid,
+      );
+      expect(result).toEqual([]);
+    });
+
+    it("should return empty if target is too far", () => {
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Blast, range: { min: 2, max: 4 }, radius: 1 },
+        caster,
+        { x: 7, y: 7 },
+        grid,
+      );
+      expect(result).toEqual([]);
+    });
+
+    it("should clip at grid edge with radius 1", () => {
+      const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Blast, range: { min: 1, max: 8 }, radius: 1 },
+        caster,
+        { x: 0, y: 0 },
+        grid,
+      );
+      expect(result).toHaveLength(3);
+    });
+
+    it("should clip at grid edge with radius 2", () => {
+      const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Blast, range: { min: 1, max: 8 }, radius: 2 },
+        caster,
+        { x: 0, y: 0 },
+        grid,
+      );
+      expect(result.length).toBeLessThan(13);
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it("should return 1 tile for radius 0", () => {
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Blast, range: { min: 1, max: 4 }, radius: 0 },
+        caster,
+        { x: 3, y: 0 },
+        grid,
+      );
+      expect(result).toEqual([{ x: 3, y: 0 }]);
+    });
+
+    it("should return empty if target is out of bounds", () => {
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Blast, range: { min: 1, max: 4 }, radius: 1 },
+        caster,
+        { x: -1, y: 0 },
+        grid,
+      );
+      expect(result).toEqual([]);
+    });
+  });
 });

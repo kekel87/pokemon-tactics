@@ -15,11 +15,11 @@ export interface TacticalOverride {
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
   "razor-leaf": {
-    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    targeting: { kind: TargetingKind.Slash },
     effects: [{ kind: EffectKind.Damage }],
   },
   "sleep-powder": {
-    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
     effects: [{ kind: EffectKind.Status, status: StatusType.Asleep, chance: 75 }],
   },
   "leech-seed": {
@@ -35,7 +35,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   "sludge-bomb": {
-    targeting: { kind: TargetingKind.Cross, range: { min: 2, max: 4 }, size: 3 },
+    targeting: { kind: TargetingKind.Blast, range: { min: 2, max: 4 }, radius: 1 },
     effects: [
       { kind: EffectKind.Damage },
       { kind: EffectKind.Status, status: StatusType.Poisoned, chance: 30 },
@@ -91,11 +91,11 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   "bubble-beam": {
-    targeting: { kind: TargetingKind.Cross, range: { min: 1, max: 2 }, size: 3 },
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 }, width: 3 },
     effects: [{ kind: EffectKind.Damage }],
   },
   gust: {
-    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 }, width: 3 },
     effects: [{ kind: EffectKind.Damage }],
   },
   "quick-attack": {
@@ -114,7 +114,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   "wing-attack": {
-    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    targeting: { kind: TargetingKind.Slash },
     effects: [{ kind: EffectKind.Damage }],
   },
   // Pikachu
@@ -232,7 +232,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
   },
   magnitude: {
-    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
     effects: [{ kind: EffectKind.Damage }],
   },
   "defense-curl": {

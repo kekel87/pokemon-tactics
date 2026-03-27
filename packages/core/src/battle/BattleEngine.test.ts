@@ -1333,7 +1333,7 @@ describe("BattleEngine KO body blocking", () => {
   const aoeMove: MoveDefinition = {
     ...MockValidation.validMove,
     id: "earthquake",
-    targeting: { kind: TargetingKind.Zone },
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
   };
 
   it("getLegalActions includes a tile beyond a KO body", () => {
