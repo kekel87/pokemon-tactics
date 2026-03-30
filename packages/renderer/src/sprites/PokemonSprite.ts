@@ -1,5 +1,13 @@
-import { Direction, type PokemonInstance } from "@pokemon-tactic/core";
+import { Direction, type DamageEstimate, type PokemonInstance } from "@pokemon-tactic/core";
 import {
+  DAMAGE_ESTIMATE_COLOR_GUARANTEED,
+  DAMAGE_ESTIMATE_COLOR_POSSIBLE,
+  DAMAGE_ESTIMATE_IMMUNE_COLOR,
+  DAMAGE_ESTIMATE_TEXT_COLOR,
+  DAMAGE_ESTIMATE_TEXT_OFFSET_Y,
+  DAMAGE_ESTIMATE_TEXT_SIZE,
+  DAMAGE_ESTIMATE_TEXT_STROKE_COLOR,
+  DAMAGE_ESTIMATE_TEXT_STROKE_WIDTH,
   DAMAGE_FLASH_ALPHA,
   DAMAGE_FLASH_DURATION_MS,
   DAMAGE_FLASH_REPEAT,
@@ -55,6 +63,9 @@ export class PokemonSprite {
   private pulseTween: Phaser.Tweens.Tween | null = null;
   private statusIcon: Phaser.GameObjects.Image | null = null;
   private currentStatusKey: string = "";
+  private damageEstimateGraphics: Phaser.GameObjects.Graphics | null = null;
+  private damageEstimateText: Phaser.GameObjects.Text | null = null;
+  private maxHp = 0;
 
   constructor(
     scene: Phaser.Scene,
@@ -66,6 +77,7 @@ export class PokemonSprite {
     this.scene = scene;
     this.isometricGrid = isometricGrid;
     this.currentHpRatio = pokemon.currentHp / pokemon.maxHp;
+    this.maxHp = pokemon.maxHp;
     this.definitionId = pokemon.definitionId;
     this.currentDirection = CORE_TO_PMD_DIRECTION[pokemon.orientation] ?? "South";
     this.currentAnimation = "Idle";
@@ -108,8 +120,13 @@ export class PokemonSprite {
     return this.container;
   }
 
+  getFlashTarget(): Phaser.GameObjects.Sprite | Phaser.GameObjects.Graphics | Phaser.GameObjects.Container {
+    return this.sprite ?? this.circle ?? this.container;
+  }
+
   updateHp(currentHp: number, maxHp: number): void {
     this.currentHpRatio = currentHp / maxHp;
+    this.maxHp = maxHp;
     this.drawHpBar();
   }
 
@@ -256,9 +273,7 @@ export class PokemonSprite {
 
   flashDamage(): Promise<void> {
     return new Promise((resolve) => {
-      this.playAnimationOnce("Hurt").catch(() => {
-        // Hurt animation is best-effort, flash tween handles the visual feedback
-      });
+      this.playAnimationOnce("Hurt").catch(() => undefined);
       this.scene.tweens.add({
         targets: this.container,
         alpha: DAMAGE_FLASH_ALPHA,
@@ -273,8 +288,109 @@ export class PokemonSprite {
     });
   }
 
+  showDamageEstimate(estimate: DamageEstimate | null): void {
+    if (this.damageEstimateGraphics) {
+      this.damageEstimateGraphics.destroy();
+      this.damageEstimateGraphics = null;
+    }
+
+    if (!estimate || (estimate.min === 0 && estimate.max === 0)) {
+      return;
+    }
+
+    const offsetY = this.usesAtlas ? -32 : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
+    const barX = -HP_BAR_WIDTH / 2;
+    const innerWidth = HP_BAR_WIDTH - 2;
+
+    const hpAfterMax = Math.max(0, (this.currentHpRatio * this.maxHp - estimate.max) / this.maxHp);
+    const hpAfterMin = Math.max(0, (this.currentHpRatio * this.maxHp - estimate.min) / this.maxHp);
+
+    this.damageEstimateGraphics = this.scene.add.graphics();
+    this.damageEstimateGraphics.setPosition(this.container.x, this.container.y);
+    this.damageEstimateGraphics.setDepth(this.container.depth + 1);
+
+    const barAfterMaxDamage = innerWidth * hpAfterMax;
+    const barAfterMinDamage = innerWidth * hpAfterMin;
+    const barCurrentHp = innerWidth * this.currentHpRatio;
+
+    if (barAfterMinDamage - barAfterMaxDamage > 0) {
+      this.damageEstimateGraphics.fillStyle(DAMAGE_ESTIMATE_COLOR_POSSIBLE, 0.7);
+      this.damageEstimateGraphics.fillRect(
+        barX + 1 + barAfterMaxDamage,
+        offsetY + 1,
+        barAfterMinDamage - barAfterMaxDamage,
+        HP_BAR_HEIGHT - 2,
+      );
+    }
+
+    if (barCurrentHp - barAfterMinDamage > 0) {
+      this.damageEstimateGraphics.fillStyle(DAMAGE_ESTIMATE_COLOR_GUARANTEED, 0.9);
+      this.damageEstimateGraphics.fillRect(
+        barX + 1 + barAfterMinDamage,
+        offsetY + 1,
+        barCurrentHp - barAfterMinDamage,
+        HP_BAR_HEIGHT - 2,
+      );
+    }
+  }
+
+  showDamageText(estimate: DamageEstimate | null): void {
+    if (this.damageEstimateText) {
+      this.damageEstimateText.destroy();
+      this.damageEstimateText = null;
+    }
+
+    if (!estimate) {
+      return;
+    }
+
+    if (estimate.effectiveness === 0) {
+      this.damageEstimateText = this.scene.add.text(
+        this.container.x,
+        this.container.y + DAMAGE_ESTIMATE_TEXT_OFFSET_Y,
+        "Immune",
+        {
+          fontSize: `${DAMAGE_ESTIMATE_TEXT_SIZE}px`,
+          color: DAMAGE_ESTIMATE_IMMUNE_COLOR,
+          stroke: DAMAGE_ESTIMATE_TEXT_STROKE_COLOR,
+          strokeThickness: DAMAGE_ESTIMATE_TEXT_STROKE_WIDTH,
+          fontStyle: "bold",
+        },
+      );
+      this.damageEstimateText.setOrigin(0.5, 0.5);
+      this.damageEstimateText.setDepth(this.container.depth + 1);
+      return;
+    }
+
+    if (estimate.min === 0 && estimate.max === 0) {
+      return;
+    }
+
+    const text = estimate.min === estimate.max ? `${estimate.min}` : `${estimate.min}-${estimate.max}`;
+    this.damageEstimateText = this.scene.add.text(
+      this.container.x,
+      this.container.y + DAMAGE_ESTIMATE_TEXT_OFFSET_Y,
+      text,
+      {
+        fontSize: `${DAMAGE_ESTIMATE_TEXT_SIZE}px`,
+        color: DAMAGE_ESTIMATE_TEXT_COLOR,
+        stroke: DAMAGE_ESTIMATE_TEXT_STROKE_COLOR,
+        strokeThickness: DAMAGE_ESTIMATE_TEXT_STROKE_WIDTH,
+        fontStyle: "bold",
+      },
+    );
+    this.damageEstimateText.setOrigin(0.5, 0.5);
+    this.damageEstimateText.setDepth(this.container.depth + 1);
+  }
+
+  clearDamagePreview(): void {
+    this.showDamageEstimate(null);
+    this.showDamageText(null);
+  }
+
   destroy(): void {
     this.stopPulse();
+    this.clearDamagePreview();
     this.container.destroy();
   }
 

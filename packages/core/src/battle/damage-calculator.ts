@@ -1,6 +1,7 @@
 import { Category } from "../enums/category";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatusType as StatusTypeEnum } from "../enums/status-type";
+import type { DamageEstimate } from "../types/damage-estimate";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import { getEffectiveStat } from "./stat-modifier";
@@ -16,6 +17,7 @@ export function calculateDamage(
   typeChart: TypeChart,
   attackerTypes: PokemonType[],
   defenderTypes: PokemonType[],
+  rollFactor?: number,
 ): number {
   if (move.category === Category.Status || move.power === 0) {
     return 0;
@@ -47,7 +49,9 @@ export function calculateDamage(
 
   const stab = getStab(move.type, attackerTypes);
 
-  return Math.max(1, Math.floor(baseDamage * stab * effectiveness));
+  const roll = rollFactor ?? Math.random() * 0.15 + 0.85;
+
+  return Math.max(1, Math.floor(baseDamage * stab * effectiveness * roll));
 }
 
 export function getTypeEffectiveness(
@@ -71,4 +75,21 @@ export function getTypeEffectiveness(
 
 export function getStab(moveType: PokemonType, attackerTypes: PokemonType[]): number {
   return attackerTypes.includes(moveType) ? 1.5 : 1;
+}
+
+const ROLL_MIN = 0.85;
+const ROLL_MAX = 1.0;
+
+export function estimateDamage(
+  attacker: PokemonInstance,
+  defender: PokemonInstance,
+  move: MoveDefinition,
+  typeChart: TypeChart,
+  attackerTypes: PokemonType[],
+  defenderTypes: PokemonType[],
+): DamageEstimate {
+  const effectiveness = getTypeEffectiveness(move.type, defenderTypes, typeChart);
+  const min = calculateDamage(attacker, defender, move, typeChart, attackerTypes, defenderTypes, ROLL_MIN);
+  const max = calculateDamage(attacker, defender, move, typeChart, attackerTypes, defenderTypes, ROLL_MAX);
+  return { min, max, effectiveness };
 }

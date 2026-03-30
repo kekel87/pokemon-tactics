@@ -214,6 +214,53 @@ describe("processEffects — status", () => {
 
     expect(target.statusEffects.length).toBe(0);
   });
+
+  it("does not apply status when target is immune to move type", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.01);
+    const thunderbolt: MoveDefinition = {
+      id: "thunderbolt",
+      name: "Thunderbolt",
+      type: PokemonType.Electric,
+      category: Category.Special,
+      power: 90,
+      accuracy: 100,
+      pp: 15,
+      targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+      effects: [
+        { kind: EffectKind.Damage },
+        { kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 100 },
+      ],
+    };
+    const immuneChart = {
+      [PokemonType.Electric]: { [PokemonType.Ground]: 0 },
+    } as Record<PokemonType, Record<PokemonType, number>>;
+    const target = fresh(P2, { currentHp: 100, maxHp: 100 });
+    const context = {
+      attacker: fresh(P1),
+      targets: [target],
+      move: thunderbolt,
+      state: {
+        grid: [],
+        pokemon: new Map(),
+        activeLinks: [],
+        turnOrder: [],
+        currentTurnIndex: 0,
+        roundNumber: 1,
+      } as BattleState,
+      typeChart: immuneChart,
+      attackerTypes: [PokemonType.Electric] as PokemonType[],
+      targetTypesMap: new Map([[target.id, [PokemonType.Ground] as PokemonType[]]]),
+    };
+
+    const events = processEffects(context);
+
+    expect(target.currentHp).toBe(100);
+    expect(target.statusEffects.length).toBe(0);
+    const damageEvents = events.filter((e) => e.type === BattleEventType.DamageDealt);
+    expect(damageEvents.length).toBe(0);
+    const statusEvents = events.filter((e) => e.type === BattleEventType.StatusApplied);
+    expect(statusEvents.length).toBe(0);
+  });
 });
 
 describe("processEffects — statChange", () => {

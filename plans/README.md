@@ -31,3 +31,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 016 | [Infos attaques UI + type icons + fix cone](./016-attack-info-ui-type-icons-cone-fix.md) | done | 2026-03-27 |
 | 017 | [Prévisualisation AoE sur la grille](./017-aoe-preview.md) | done | 2026-03-30 |
 | 018 | [Status icons ZA + HP bar FFTIC + badges stat changes + sleep animation](./018-status-icons-hp-bar-sleep-anim.md) | done | 2026-03-30 |
+| 019 | [Preview dégâts estimés avec random roll](./019-damage-estimate-preview.md) | done | 2026-03-30 |

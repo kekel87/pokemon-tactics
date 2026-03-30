@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-30 (Plan 018 terminé — status icons ZA, HP bar FFTIC, badges stat changes, sleep animation)
+> Dernière mise à jour : 2026-03-30 (Plan 019 terminé — preview dégâts estimés dans confirm_attack)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -205,6 +205,16 @@
   - **305 tests**, 100% coverage maintenu, 10 nouveaux tests `computeStatAtLevel`
   - Fix tests préexistants : intégration (pokemon count 4→12, spawn zone positions)
 
+- **Plan 019 terminé** — Preview dégâts estimés dans confirm_attack :
+  - `damage-calculator.ts` : random roll `x0.85–1.00` ajouté à la formule de dégâts
+  - `estimateDamage()` : nouvelle fonction retournant `{ min, max, effectiveness }` (min = dégâts au roll 0.85, max = dégâts au roll 1.00)
+  - `BattleEngine.estimateDamage(attackerId, moveId, defenderId)` : méthode publique utilisable par l'UI et l'IA
+  - Preview visuelle dans le flow `confirm_attack` : zone dégradée sur la HP bar (rouge foncé = garanti, rouge clair = possible) + texte flottant "min–max" au-dessus des cibles
+  - "Immune" affiché en gris pour les immunités de type (effectiveness 0)
+  - Multi-cibles AoE : preview simultanée sur toutes les cibles dans la zone
+  - Caster exclu de la preview (cohérent avec les dégâts réels)
+  - **316 tests** (263 → 316 avec intégration), 100% coverage maintenu
+
 - **Plan 018 terminé** — Status icons ZA + HP bar FFTIC + badges stat changes + sleep animation :
   - Script `scripts/download-status-icons.ts` : 14 assets PNG téléchargés (7 icônes 52x36 + 7 miniatures 172x36) dans `public/assets/ui/statuses/`
   - `TurnTimeline` : icônes ZA remplacent les pastilles colorées (fallback cercle+lettre conservé si assets absents)
@@ -256,7 +266,6 @@
   - decisions.md : décision #122 ajoutée (niveau 50 sans IV/EV)
 
 ### Prochaine étape
-- **Preview dégâts estimés** dans la phase `confirm_attack` (slot prévu dans le plan 017, non implémenté)
 - **i18n français/anglais** — Phase 2, source : pokemon-showdown-fr (noms moves, Pokemon, statuts, UI)
 - **Zoom / caméra dynamique avec pan** — Phase 4 (non bloquant, résolution fixe 1280x720 acceptable pour le POC)
 - Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage) — décision #121

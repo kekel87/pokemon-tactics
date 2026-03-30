@@ -1,4 +1,5 @@
 export type * from "./action";
+export type * from "./damage-estimate";
 export type * from "./active-link";
 export type * from "./base-stats";
 export type * from "./battle-event";

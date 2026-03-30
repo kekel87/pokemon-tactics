@@ -782,6 +782,7 @@ export class GameController {
     this.inputState = { phase: "confirm_attack", moveId, action, affectedTiles };
     this.actionMenu.updateInstruction("Confirmer ?");
     this.startPreviewFlash(affectedTiles);
+    this.showDamageEstimates(moveId, affectedTiles);
   }
 
   private startPreviewFlash(affectedTiles: Position[]): void {
@@ -797,7 +798,7 @@ export class GameController {
           pokemon.position.y === tile.y
         ) {
           const tween = this.scene.tweens.add({
-            targets: sprite.getContainer(),
+            targets: sprite.getFlashTarget(),
             alpha: PREVIEW_FLASH_ALPHA,
             duration: PREVIEW_FLASH_DURATION_MS,
             yoyo: true,
@@ -816,18 +817,47 @@ export class GameController {
     this.previewFlashTweens = [];
 
     for (const [, sprite] of this.sprites) {
-      const pokemon = this.state.pokemon.get(sprite.pokemonId);
-      if (pokemon && pokemon.currentHp > 0) {
-        sprite.getContainer().setAlpha(1);
-      }
+      sprite.getFlashTarget().setAlpha(1);
     }
   }
 
   private clearPreviewState(): void {
     this.stopPreviewFlash();
+    this.clearDamageEstimates();
     this.isometricGrid.clearPreview();
     this.currentPreviewDirection = null;
     this.currentPreviewTiles = [];
+  }
+
+  private showDamageEstimates(moveId: string, affectedTiles: Position[]): void {
+    const activePokemon = this.getActivePokemon();
+    if (!activePokemon) return;
+
+    for (const tile of affectedTiles) {
+      for (const [, sprite] of this.sprites) {
+        const pokemon = this.state.pokemon.get(sprite.pokemonId);
+        if (
+          !pokemon ||
+          pokemon.currentHp <= 0 ||
+          pokemon.id === activePokemon.id ||
+          pokemon.position.x !== tile.x ||
+          pokemon.position.y !== tile.y
+        ) {
+          continue;
+        }
+        const estimate = this.engine.estimateDamage(activePokemon.id, moveId, pokemon.id);
+        if (estimate) {
+          sprite.showDamageEstimate(estimate);
+          sprite.showDamageText(estimate);
+        }
+      }
+    }
+  }
+
+  private clearDamageEstimates(): void {
+    for (const [, sprite] of this.sprites) {
+      sprite.clearDamagePreview();
+    }
   }
 
   startPlacement(config: PlacementConfig): void {
@@ -1072,6 +1102,7 @@ export class GameController {
     if (this.inputState.phase === "confirm_attack") {
       const { moveId } = this.inputState;
       this.stopPreviewFlash();
+      this.clearDamageEstimates();
       this.actionMenu.updateInstruction("Sélectionne la cible");
       this.inputState = { phase: "select_attack_target", moveId };
       return;
