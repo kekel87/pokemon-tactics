@@ -301,6 +301,39 @@ Cette API sert à deux usages :
 
 ---
 
+## 9c. Prévisualisation AoE et flow de confirmation (implémenté — plan 017)
+
+En phase `select_attack_target`, les tiles affectées par l'attaque sont affichées en temps réel avant exécution.
+
+### Comportement par type de pattern
+- **Directionnels (Cone, Line, Slash, Dash)** : la preview suit la direction de la souris par rapport au caster (algorithme quadrants, identique au DirectionPicker)
+- **Point-target (Single, Blast)** : la preview suit la tile survolée si elle est dans les cibles valides
+- **Self-centered (Self, Cross, Zone)** : la preview est affichée statiquement dès l'entrée en phase de ciblage
+
+### Couleurs (décision #129)
+- **Rouge** (`0xff4444`) : tiles avec au moins un effet de dégâts
+- **Bleu** (`0x4488ff`) : tiles avec uniquement des buffs/effets positifs
+- **Outline périmétrique rouge** : contour de la zone de portée (pas chaque tile — lisibilité)
+
+### Flow de confirmation 2 étapes (style FFTA)
+Contrôlé par le paramètre `confirmAttack: boolean` dans `BattleConfig` :
+
+| Étape | Action | Effet |
+|-------|--------|-------|
+| **Preview (hover)** | Survol de la grille | Tiles affectées colorées en temps réel |
+| **Verrouillage (1er clic)** | Clic = verrouille la cible | Sprites des Pokemon touchés clignotent (alpha 0.3↔1.0) |
+| **Confirmation (2e clic)** | Clic = exécute l'attaque | Combat normal |
+| **Escape** | À tout moment | Annule et retour au sous-menu attaque |
+
+- `confirmAttack: true` (défaut) : flow complet 2 étapes
+- `confirmAttack: false` : le 1er clic exécute directement (pas de clignotement)
+
+> Pas de warning friendly fire (décision #128) — les alliés dans la zone clignotent comme les ennemis, sans couleur d'alerte distincte. La visibilité des tiles suffit.
+
+> Slot prévu pour une preview de dégâts estimés dans la phase de verrouillage (non implémenté — Phase 1).
+
+---
+
 ## 10. Jouabilité par IA
 
 Le moteur est jouable par différents types de joueurs :

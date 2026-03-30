@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-27 (Plan 016 terminé — infos attaques UI, type icons, fix cone)
+> Dernière mise à jour : 2026-03-30 (Plan 017 terminé — prévisualisation AoE, flow confirmation 2 étapes)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -205,6 +205,17 @@
   - **305 tests**, 100% coverage maintenu, 10 nouveaux tests `computeStatAtLevel`
   - Fix tests préexistants : intégration (pokemon count 4→12, spawn zone positions)
 
+- **Plan 017 terminé** — Prévisualisation AoE sur la grille :
+  - Preview AoE dynamique : suit la souris pour les directionnels (Cone, Line, Slash, Dash), hover pour point-target (Single, Blast), statique à l'entrée pour self-centered (Self, Cross, Zone)
+  - Flow 2 étapes style FFTA : preview → verrouillage (sprites clignotent) → confirmation. Paramètre `confirmAttack` configurable (`true` = flow complet, `false` = clic direct)
+  - Portée affichée en outline périmétrique (contour extérieur de la zone, pas chaque tile)
+  - Couleurs : rouge = dégâts, bleu = buff (basé sur les effets du move), outline rouge = portée
+  - Texte d'instruction dans le menu ("Sélectionne la cible" / "Confirmer ?")
+  - Escape contextuel ajouté : `attack_submenu` et `select_move_destination`
+  - Utilitaire `getDirectionFromScreenPosition` extrait dans `utils/screen-direction.ts`
+  - `BattleEngine.getGrid()` rendu public
+  - Décisions #128 (pas de warning friendly fire) et #129 (couleurs preview AoE)
+
 - **Plan 016 terminé** — Infos attaques UI + type icons + fix cone :
   - **Fix core** : `resolveCone` — largeur dynamique `distance * 2 - 1`, paramètre `width` supprimé du type `TargetingPattern.Cone`
   - **Fix core** : `Cross` — désormais TOUJOURS centré sur le caster (plus de paramètre `range`). Night Shade et Éclate-Roc mis à jour dans tactical.ts.
@@ -234,7 +245,7 @@
 ### Prochaine étape
 - **Feedback visuel des statuts sur les sprites** (icône ou effet au-dessus du sprite) — Phase 1 Renderer
 - **Refonte panel info stats** : affichage clair des stages actuels (+1/+2/-1 avec code couleur)
-- **Prévisualisation AoE** sur la grille de jeu avant confirmation d'attaque — Plan 017 (bloqué par plan 016 → maintenant débloqué)
+- **Preview dégâts estimés** dans la phase `confirm_attack` (slot prévu dans le plan 017, non implémenté)
 - Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage) — décision #121
 
 ### Standards de code établis

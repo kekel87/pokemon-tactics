@@ -8,6 +8,7 @@ import {
   CURSOR_STROKE_WIDTH,
   DEPTH_GRID_CURSOR,
   DEPTH_GRID_HIGHLIGHT,
+  DEPTH_GRID_PREVIEW,
   GRID_SIZE,
   TILE_FILL_COLOR,
   TILE_HEIGHT,
@@ -16,6 +17,9 @@ import {
   TILE_STROKE_COLOR,
   TILE_STROKE_WIDTH,
   TILE_WIDTH,
+  TILE_RANGE_OUTLINE_COLOR,
+  TILE_RANGE_OUTLINE_ALPHA,
+  TILE_RANGE_OUTLINE_WIDTH,
 } from "../constants";
 import { HighlightKind } from "../enums/highlight-kind";
 
@@ -28,6 +32,7 @@ export class IsometricGrid {
   private readonly scene: Phaser.Scene;
   private readonly tileGraphics: Phaser.GameObjects.Graphics;
   private readonly highlightGraphics: Phaser.GameObjects.Graphics;
+  private readonly previewGraphics: Phaser.GameObjects.Graphics;
   private readonly cursorGraphics: Phaser.GameObjects.Graphics;
   private cursorTween: Phaser.Tweens.Tween | null = null;
   private readonly offsetX: number;
@@ -38,6 +43,8 @@ export class IsometricGrid {
     this.tileGraphics = scene.add.graphics();
     this.highlightGraphics = scene.add.graphics();
     this.highlightGraphics.setDepth(DEPTH_GRID_HIGHLIGHT);
+    this.previewGraphics = scene.add.graphics();
+    this.previewGraphics.setDepth(DEPTH_GRID_PREVIEW);
     this.cursorGraphics = scene.add.graphics();
     this.cursorGraphics.setDepth(DEPTH_GRID_CURSOR);
 
@@ -89,6 +96,61 @@ export class IsometricGrid {
     for (const position of positions) {
       this.drawTile(this.highlightGraphics, position.x, position.y, color, color, 0.4);
     }
+  }
+
+  showPreview(
+    positions: Array<{ x: number; y: number }>,
+    color: number,
+    alpha: number,
+  ): void {
+    for (const position of positions) {
+      this.drawTile(this.previewGraphics, position.x, position.y, color, color, alpha);
+    }
+  }
+
+  clearPreview(): void {
+    this.previewGraphics.clear();
+  }
+
+  highlightTilesOutline(positions: Array<{ x: number; y: number }>): void {
+    const positionSet = new Set(positions.map((p) => `${p.x},${p.y}`));
+    const halfW = TILE_WIDTH / 2;
+    const halfH = TILE_HEIGHT / 2;
+
+    this.highlightGraphics.lineStyle(
+      TILE_RANGE_OUTLINE_WIDTH,
+      TILE_RANGE_OUTLINE_COLOR,
+      TILE_RANGE_OUTLINE_ALPHA,
+    );
+
+    for (const position of positions) {
+      const center = this.gridToScreen(position.x, position.y);
+
+      const top = { x: center.x, y: center.y - halfH };
+      const right = { x: center.x + halfW, y: center.y };
+      const bottom = { x: center.x, y: center.y + halfH };
+      const left = { x: center.x - halfW, y: center.y };
+
+      if (!positionSet.has(`${position.x},${position.y - 1}`)) {
+        this.drawEdge(top, right);
+      }
+      if (!positionSet.has(`${position.x + 1},${position.y}`)) {
+        this.drawEdge(right, bottom);
+      }
+      if (!positionSet.has(`${position.x},${position.y + 1}`)) {
+        this.drawEdge(bottom, left);
+      }
+      if (!positionSet.has(`${position.x - 1},${position.y}`)) {
+        this.drawEdge(left, top);
+      }
+    }
+  }
+
+  private drawEdge(from: { x: number; y: number }, to: { x: number; y: number }): void {
+    this.highlightGraphics.beginPath();
+    this.highlightGraphics.moveTo(from.x, from.y);
+    this.highlightGraphics.lineTo(to.x, to.y);
+    this.highlightGraphics.strokePath();
   }
 
   highlightTilesWithColor(

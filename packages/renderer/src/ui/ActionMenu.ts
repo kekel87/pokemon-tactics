@@ -39,6 +39,7 @@ export class ActionMenu {
   private readonly scene: Phaser.Scene;
   private objects: Phaser.GameObjects.GameObject[] = [];
   private tooltip: MoveTooltip | null = null;
+  private instructionText: Phaser.GameObjects.Text | null = null;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -102,6 +103,94 @@ export class ActionMenu {
       { label: "Annuler", enabled: true, callback: options.onCancel },
       cancelY,
     );
+  }
+
+  showSelectedMove(
+    move: { definition: MoveDefinition; currentPp: number },
+    instruction: string,
+  ): void {
+    this.clearItems();
+
+    const headerHeight = ACTION_MENU_ITEM_HEIGHT;
+    const moveHeight = ACTION_MENU_ITEM_HEIGHT;
+    const totalHeight = headerHeight + moveHeight;
+
+    const background = this.scene.add.graphics();
+    background.fillStyle(ACTION_MENU_BG_COLOR, ACTION_MENU_BG_ALPHA);
+    background.fillRoundedRect(
+      ACTION_MENU_X,
+      ACTION_MENU_Y,
+      ACTION_MENU_WIDTH,
+      totalHeight,
+      ACTION_MENU_CORNER_RADIUS,
+    );
+    background.lineStyle(UI_BORDER_WIDTH, UI_BORDER_COLOR, UI_BORDER_ALPHA);
+    background.strokeRoundedRect(
+      ACTION_MENU_X,
+      ACTION_MENU_Y,
+      ACTION_MENU_WIDTH,
+      totalHeight,
+      ACTION_MENU_CORNER_RADIUS,
+    );
+    background.setDepth(DEPTH_ACTION_MENU);
+    this.objects.push(background);
+
+    this.instructionText = this.scene.add
+      .text(
+        ACTION_MENU_X + ACTION_MENU_WIDTH / 2,
+        ACTION_MENU_Y + headerHeight / 2,
+        instruction,
+        {
+          fontSize: "11px",
+          color: "#ffdd44",
+          fontFamily: "monospace",
+          fontStyle: "bold",
+        },
+      )
+      .setOrigin(0.5, 0.5)
+      .setDepth(DEPTH_ACTION_MENU + 2);
+    this.objects.push(this.instructionText);
+
+    const moveY = ACTION_MENU_Y + headerHeight;
+    const centerY = moveY + moveHeight / 2;
+
+    const typeIcon = this.scene.add
+      .image(ACTION_MENU_X + 8, centerY, `type-${move.definition.type}`)
+      .setOrigin(0, 0.5)
+      .setDisplaySize(20, 20)
+      .setDepth(DEPTH_ACTION_MENU + 2);
+    this.objects.push(typeIcon);
+
+    const nameText = this.scene.add
+      .text(ACTION_MENU_X + 34, centerY, move.definition.name, {
+        fontSize: "12px",
+        color: "#ffffff",
+        fontFamily: "monospace",
+      })
+      .setOrigin(0, 0.5)
+      .setDepth(DEPTH_ACTION_MENU + 2);
+    this.objects.push(nameText);
+
+    const ppText = this.scene.add
+      .text(
+        ACTION_MENU_X + ACTION_MENU_WIDTH - 8,
+        centerY,
+        `${move.currentPp}/${move.definition.pp}`,
+        {
+          fontSize: "11px",
+          color: "#aaaaaa",
+          fontFamily: "monospace",
+        },
+      )
+      .setOrigin(1, 0.5)
+      .setDepth(DEPTH_ACTION_MENU + 2);
+    this.objects.push(ppText);
+  }
+
+  updateInstruction(instruction: string): void {
+    if (this.instructionText) {
+      this.instructionText.setText(instruction);
+    }
   }
 
   hide(): void {
@@ -296,5 +385,6 @@ export class ActionMenu {
       obj.destroy();
     }
     this.objects = [];
+    this.instructionText = null;
   }
 }

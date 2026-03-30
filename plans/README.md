@@ -29,3 +29,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 014 | [Patterns slash et blast + mise à jour tactical.ts](./014-slash-blast-patterns.md) | done | 2026-03-27 |
 | 015 | [Stats niveau 50](./015-stats-level-50.md) | done | 2026-03-27 |
 | 016 | [Infos attaques UI + type icons + fix cone](./016-attack-info-ui-type-icons-cone-fix.md) | done | 2026-03-27 |
+| 017 | [Prévisualisation AoE sur la grille](./017-aoe-preview.md) | ready | 2026-03-30 |

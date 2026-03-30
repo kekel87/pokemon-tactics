@@ -137,6 +137,8 @@
 | 127 | 2026-03-27 | Tooltip grille dynamique | **Grille adaptée au pattern réel, minimum 3x3** | La grille du tooltip n'est plus fixe 5x5. Elle s'adapte à la taille réelle du pattern (ex: cone distance 3 = 5 cases de large). Minimum 3x3. Centrée visuellement dans le tooltip. |
 | 128 | 2026-03-27 | Portée dans le tooltip | **Affichée uniquement pour Single (range>1) et Blast** | La portée dans le tooltip est omise pour les patterns self, mêlée (range=1), zone, slash, cross et line — inutile ou évidente. Affichée uniquement quand la distance est variable et non évidente à la lecture du pattern. |
 | 129 | 2026-03-27 | Single deux modes d'affichage | **Mêlée (range=1) vs distance (range>1)** dans la grille tooltip | Single mêlée : affiche le caster + la case adjacente (2 cases). Single distance : affiche seulement la case cible seule + mention de portée dans le texte. |
+| 130 | 2026-03-30 | Pas de warning friendly fire | **Pas de couleur spéciale pour les alliés dans la zone AoE** | Le friendly fire est un pilier du game design (force le positionnement). Le joueur voit la preview AoE + les sprites clignotent — c'est suffisant pour qu'il prenne sa décision. Pas de warning couleur supplémentaire. |
+| 131 | 2026-03-30 | Couleurs preview AoE | **Rouge = dégâts, Bleu = buff, Outline = portée** | La portée des moves n'est plus affichée en tiles remplies rouges (se confondait avec la preview AoE). Portée = outline périmétrique seulement, uniquement pour les moves avec range variable. Preview AoE dégâts = rouge rempli. Preview AoE buff (Self, etc.) = bleu rempli. Confirmation 2 étapes (style FFTA) avec clignotement des sprites touchés. Paramètre `confirmAttack` configurable. |
 
 ---
 

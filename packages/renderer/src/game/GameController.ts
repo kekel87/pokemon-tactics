@@ -16,15 +16,27 @@ import {
   PlayerId,
   type PokemonDefinition,
   type PokemonInstance,
+  type Position,
   type SpawnZone,
   StatName,
+  TargetingKind,
+  EffectKind,
+  EffectTarget,
+  resolveTargeting,
+  stepInDirection,
 } from "@pokemon-tactic/core";
 import {
+  TILE_PREVIEW_ALPHA,
+  TILE_PREVIEW_ATTACK_COLOR,
+  TILE_PREVIEW_BUFF_COLOR,
+  PREVIEW_FLASH_ALPHA,
+  PREVIEW_FLASH_DURATION_MS,
   TILE_SPAWN_ZONE_ACTIVE_COLOR,
   TILE_SPAWN_ZONE_ALPHA,
   TILE_SPAWN_ZONE_INACTIVE_COLOR,
   TILE_SPAWN_ZONE_OCCUPIED_COLOR,
 } from "../constants";
+import { getDirectionFromScreenPosition } from "../utils/screen-direction";
 import { HighlightKind } from "../enums/highlight-kind";
 import type { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
@@ -37,6 +49,14 @@ import type { TurnTimeline } from "../ui/TurnTimeline";
 import { AnimationQueue } from "./AnimationQueue";
 import type { BattleSetupResult } from "./BattleSetup";
 
+export interface BattleConfig {
+  confirmAttack: boolean;
+}
+
+const DEFAULT_BATTLE_CONFIG: BattleConfig = {
+  confirmAttack: true,
+};
+
 type InputState =
   | { phase: "placement"; selectedPokemonId: string | null }
   | { phase: "placement_direction" }
@@ -44,6 +64,7 @@ type InputState =
   | { phase: "select_move_destination" }
   | { phase: "attack_submenu" }
   | { phase: "select_attack_target"; moveId: string }
+  | { phase: "confirm_attack"; moveId: string; action: Action; affectedTiles: Position[] }
   | { phase: "select_direction" }
   | { phase: "animating" }
   | { phase: "battle_over"; winnerId: string };
@@ -69,10 +90,14 @@ export class GameController {
   private readonly infoPanel: InfoPanel;
   private readonly turnTimeline: TurnTimeline;
   private readonly placementRosterPanel: PlacementRosterPanel | null;
+  private readonly battleConfig: BattleConfig;
   private inputState: InputState = { phase: "placement", selectedPokemonId: null };
   private legalActions: Action[] = [];
   private placementConfig: PlacementConfig | null = null;
   private placementSprites: Map<string, PokemonSprite> = new Map();
+  private currentPreviewDirection: Direction | null = null;
+  private currentPreviewTiles: Position[] = [];
+  private previewFlashTweens: Phaser.Tweens.Tween[] = [];
 
   constructor(
     scene: Phaser.Scene,
@@ -85,6 +110,7 @@ export class GameController {
     turnTimeline: TurnTimeline,
     placementRosterPanel: PlacementRosterPanel | null,
     setup?: BattleSetupResult,
+    battleConfig?: BattleConfig,
   ) {
     this.scene = scene;
     this.isometricGrid = isometricGrid;
@@ -97,6 +123,7 @@ export class GameController {
     this.turnTimeline = turnTimeline;
     this.placementRosterPanel = placementRosterPanel;
     this.setup = setup ?? null;
+    this.battleConfig = battleConfig ?? DEFAULT_BATTLE_CONFIG;
   }
 
   setSetup(setup: BattleSetupResult): void {
@@ -199,13 +226,103 @@ export class GameController {
 
     if (this.inputState.phase === "select_attack_target") {
       const { moveId } = this.inputState;
-      const useMoveAction = this.findUseMoveAction(moveId, gridX, gridY);
-      if (useMoveAction) {
-        this.executeAction(activePlayerId, useMoveAction);
+      const action = this.resolveAttackAction(moveId, gridX, gridY);
+      if (action) {
+        if (this.battleConfig.confirmAttack) {
+          this.enterConfirmAttack(moveId, action);
+        } else {
+          this.clearPreviewState();
+          this.executeAction(activePlayerId, action);
+        }
         return;
       }
+      this.clearPreviewState();
       this.enterAttackSubmenu();
+      return;
     }
+
+    if (this.inputState.phase === "confirm_attack") {
+      const { action } = this.inputState;
+      this.clearPreviewState();
+      this.executeAction(activePlayerId, action);
+    }
+  }
+
+  handleTileHover(
+    gridPosition: { x: number; y: number } | null,
+    worldPosition: { x: number; y: number },
+  ): void {
+    if (this.inputState.phase !== "select_attack_target") {
+      return;
+    }
+
+    const { moveId } = this.inputState;
+    const activePokemon = this.getActivePokemon();
+    if (!activePokemon) {
+      return;
+    }
+
+    const moveDefinition = this.moveDefinitions.get(moveId);
+    if (!moveDefinition) {
+      return;
+    }
+
+    const targeting = moveDefinition.targeting;
+
+    if (this.isStaticPattern(targeting.kind)) {
+      return;
+    }
+
+    if (!gridPosition) {
+      this.isometricGrid.clearPreview();
+      this.currentPreviewDirection = null;
+      this.currentPreviewTiles = [];
+      return;
+    }
+
+    const grid = this.engine.getGrid();
+    const casterScreenPos = this.isometricGrid.gridToScreen(
+      activePokemon.position.x,
+      activePokemon.position.y,
+    );
+
+    let affectedTiles: Position[] = [];
+
+    if (this.isDirectionalPattern(targeting.kind) || targeting.kind === TargetingKind.Dash) {
+      const direction = getDirectionFromScreenPosition(
+        worldPosition.x,
+        worldPosition.y,
+        casterScreenPos.x,
+        casterScreenPos.y,
+      );
+
+      if (direction === this.currentPreviewDirection) {
+        return;
+      }
+
+      this.currentPreviewDirection = direction;
+      const targetPosition = stepInDirection(activePokemon.position, direction, 1);
+      affectedTiles = resolveTargeting(targeting, activePokemon, targetPosition, grid);
+    } else {
+      const isValidTarget = this.legalActions.some(
+        (action) =>
+          action.kind === ActionKind.UseMove &&
+          action.moveId === moveId &&
+          action.targetPosition.x === gridPosition.x &&
+          action.targetPosition.y === gridPosition.y,
+      );
+
+      if (!isValidTarget) {
+        this.isometricGrid.clearPreview();
+        this.currentPreviewTiles = [];
+        return;
+      }
+
+      affectedTiles = resolveTargeting(targeting, activePokemon, gridPosition, grid);
+    }
+
+    this.currentPreviewTiles = affectedTiles;
+    this.renderPreview(affectedTiles, this.isBuff(moveDefinition));
   }
 
   refreshUI(): void {
@@ -314,8 +431,35 @@ export class GameController {
 
   private enterAttackTarget(moveId: string): void {
     this.inputState = { phase: "select_attack_target", moveId };
-    this.actionMenu.hide();
     this.isometricGrid.clearHighlights();
+    this.clearPreviewState();
+
+    const moveDefinition = this.moveDefinitions.get(moveId);
+    if (!moveDefinition) return;
+
+    const activePokemon = this.getActivePokemon();
+    const currentPp = activePokemon?.currentPp[moveId] ?? 0;
+    this.actionMenu.showSelectedMove(
+      { definition: moveDefinition, currentPp },
+      "Sélectionne la cible",
+    );
+
+    const targeting = moveDefinition.targeting;
+
+    if (this.isStaticPattern(targeting.kind)) {
+      const activePokemon = this.getActivePokemon();
+      if (activePokemon) {
+        const grid = this.engine.getGrid();
+        const affectedTiles = resolveTargeting(targeting, activePokemon, activePokemon.position, grid);
+        this.currentPreviewTiles = affectedTiles;
+        this.renderPreview(affectedTiles, this.isBuff(moveDefinition));
+      }
+      return;
+    }
+
+    if (this.isDirectionalPattern(targeting.kind)) {
+      return;
+    }
 
     const targetPositions = this.legalActions
       .filter(
@@ -325,7 +469,7 @@ export class GameController {
       .map((action) => action.targetPosition);
 
     if (targetPositions.length > 0) {
-      this.isometricGrid.highlightTiles(targetPositions, HighlightKind.Attack);
+      this.isometricGrid.highlightTilesOutline(targetPositions);
     }
   }
 
@@ -425,6 +569,7 @@ export class GameController {
 
   private executeAction(playerId: string, action: Action): void {
     this.inputState = { phase: "animating" };
+    this.clearPreviewState();
     this.isometricGrid.clearHighlights();
     this.actionMenu.hide();
 
@@ -550,7 +695,119 @@ export class GameController {
     }
   }
 
+  private isDirectionalPattern(kind: TargetingKind): boolean {
+    return (
+      kind === TargetingKind.Cone ||
+      kind === TargetingKind.Line ||
+      kind === TargetingKind.Slash
+    );
+  }
 
+  private isBuff(move: MoveDefinition): boolean {
+    const hasDamage = move.effects.some((effect) => effect.kind === EffectKind.Damage);
+    const hasOffensiveEffect = move.effects.some(
+      (effect) =>
+        (effect.kind === EffectKind.StatChange && effect.target === EffectTarget.Targets) ||
+        effect.kind === EffectKind.Status ||
+        effect.kind === EffectKind.Link,
+    );
+    return !hasDamage && !hasOffensiveEffect;
+  }
+
+  private isStaticPattern(kind: TargetingKind): boolean {
+    return (
+      kind === TargetingKind.Self ||
+      kind === TargetingKind.Cross ||
+      kind === TargetingKind.Zone
+    );
+  }
+
+  private renderPreview(affectedTiles: Position[], isBuff: boolean): void {
+    this.isometricGrid.clearPreview();
+
+    if (affectedTiles.length === 0) {
+      return;
+    }
+
+    const color = isBuff ? TILE_PREVIEW_BUFF_COLOR : TILE_PREVIEW_ATTACK_COLOR;
+    this.isometricGrid.showPreview(affectedTiles, color, TILE_PREVIEW_ALPHA);
+  }
+
+  private resolveAttackAction(moveId: string, gridX: number, gridY: number): Action | null {
+    const moveDefinition = this.moveDefinitions.get(moveId);
+    if (!moveDefinition) return null;
+
+    const targeting = moveDefinition.targeting;
+
+    if (this.isDirectionalPattern(targeting.kind)) {
+      if (this.currentPreviewDirection === null) return null;
+      const activePokemon = this.getActivePokemon();
+      if (!activePokemon) return null;
+      const adjacent = stepInDirection(activePokemon.position, this.currentPreviewDirection, 1);
+      return this.findUseMoveAction(moveId, adjacent.x, adjacent.y);
+    }
+
+    if (this.isStaticPattern(targeting.kind)) {
+      const activePokemon = this.getActivePokemon();
+      if (!activePokemon) return null;
+      return this.findUseMoveAction(moveId, activePokemon.position.x, activePokemon.position.y);
+    }
+
+    return this.findUseMoveAction(moveId, gridX, gridY);
+  }
+
+  private enterConfirmAttack(moveId: string, action: Action): void {
+    const affectedTiles = this.currentPreviewTiles;
+    this.inputState = { phase: "confirm_attack", moveId, action, affectedTiles };
+    this.actionMenu.updateInstruction("Confirmer ?");
+    this.startPreviewFlash(affectedTiles);
+  }
+
+  private startPreviewFlash(affectedTiles: Position[]): void {
+    this.stopPreviewFlash();
+
+    for (const tile of affectedTiles) {
+      for (const [, sprite] of this.sprites) {
+        const pokemon = this.state.pokemon.get(sprite.pokemonId);
+        if (
+          pokemon &&
+          pokemon.currentHp > 0 &&
+          pokemon.position.x === tile.x &&
+          pokemon.position.y === tile.y
+        ) {
+          const tween = this.scene.tweens.add({
+            targets: sprite.getContainer(),
+            alpha: PREVIEW_FLASH_ALPHA,
+            duration: PREVIEW_FLASH_DURATION_MS,
+            yoyo: true,
+            repeat: -1,
+          });
+          this.previewFlashTweens.push(tween);
+        }
+      }
+    }
+  }
+
+  private stopPreviewFlash(): void {
+    for (const tween of this.previewFlashTweens) {
+      tween.destroy();
+    }
+    this.previewFlashTweens = [];
+
+    for (const [, sprite] of this.sprites) {
+      const pokemon = this.state.pokemon.get(sprite.pokemonId);
+      if (pokemon && pokemon.currentHp > 0) {
+        sprite.getContainer().setAlpha(1);
+      }
+    }
+  }
+
+  private clearPreviewState(): void {
+    this.stopPreviewFlash();
+    this.isometricGrid.clearPreview();
+    this.currentPreviewDirection = null;
+    this.currentPreviewTiles = [];
+  }
 
   startPlacement(config: PlacementConfig): void {
     this.placementConfig = config;
@@ -791,6 +1048,31 @@ export class GameController {
   }
 
   handleEscapeKey(): void {
+    if (this.inputState.phase === "confirm_attack") {
+      const { moveId } = this.inputState;
+      this.stopPreviewFlash();
+      this.actionMenu.updateInstruction("Sélectionne la cible");
+      this.inputState = { phase: "select_attack_target", moveId };
+      return;
+    }
+
+    if (this.inputState.phase === "select_attack_target") {
+      this.clearPreviewState();
+      this.enterAttackSubmenu();
+      return;
+    }
+
+    if (this.inputState.phase === "attack_submenu") {
+      this.enterActionMenu();
+      return;
+    }
+
+    if (this.inputState.phase === "select_move_destination") {
+      this.isometricGrid.clearHighlights();
+      this.enterActionMenu();
+      return;
+    }
+
     if (this.inputState.phase === "placement" && this.placementConfig) {
       const undone = this.placementConfig.placementPhase.undoLastPlacement();
       if (undone) {

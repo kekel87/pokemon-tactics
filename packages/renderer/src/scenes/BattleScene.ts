@@ -160,6 +160,9 @@ export class BattleScene extends Phaser.Scene {
       }
 
       const grid = isometricGrid.screenToGrid(pointer.worldX, pointer.worldY);
+      const worldPosition = { x: pointer.worldX, y: pointer.worldY };
+
+      controller.handleTileHover(grid, worldPosition);
 
       if (grid) {
         if (
