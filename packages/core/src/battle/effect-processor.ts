@@ -4,6 +4,7 @@ import type { BattleEvent } from "../types/battle-event";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { getTypeEffectiveness } from "./damage-calculator";
 import type { EffectContext, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { handleDamage } from "./handlers/handle-damage";
@@ -37,9 +38,16 @@ export function processEffects(
   const effectRegistry = registry ?? createDefaultEffectRegistry();
   const events: BattleEvent[] = [];
 
+  const nonImmuneTargets = context.targets.filter((target) => {
+    const defenderTypes = context.targetTypesMap.get(target.id) ?? [];
+    const effectiveness = getTypeEffectiveness(context.move.type, defenderTypes, context.typeChart);
+    return effectiveness !== 0;
+  });
+
   for (const effect of context.move.effects) {
     const effectContext: EffectContext = {
       ...context,
+      targets: nonImmuneTargets,
       effect,
     };
     events.push(...effectRegistry.process(effectContext));

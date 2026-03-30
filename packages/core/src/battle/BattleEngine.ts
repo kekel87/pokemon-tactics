@@ -8,6 +8,7 @@ import { Grid } from "../grid/Grid";
 import { resolveTargeting } from "../grid/targeting";
 import type { Action, ActionResult } from "../types/action";
 import type { BattleEvent } from "../types/battle-event";
+import type { DamageEstimate } from "../types/damage-estimate";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
@@ -17,6 +18,7 @@ import type { TypeChart } from "../types/type-chart";
 import { directionFromTo, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
 import { checkAccuracy } from "./accuracy-check";
+import { estimateDamage } from "./damage-calculator";
 import { processEffects } from "./effect-processor";
 import { linkDrainHandler } from "./handlers/link-drain-handler";
 import { statusTickHandler } from "./handlers/status-tick-handler";
@@ -76,6 +78,18 @@ export class BattleEngine {
 
   getGameState(_playerId: string): BattleState {
     return this.state;
+  }
+
+  estimateDamage(attackerId: string, moveId: string, defenderId: string): DamageEstimate | null {
+    const attacker = this.state.pokemon.get(attackerId);
+    const defender = this.state.pokemon.get(defenderId);
+    const move = this.moveRegistry.get(moveId);
+    if (!attacker || !defender || !move) {
+      return null;
+    }
+    const attackerTypes = this.pokemonTypesMap.get(attacker.definitionId) ?? [];
+    const defenderTypes = this.pokemonTypesMap.get(defender.definitionId) ?? [];
+    return estimateDamage(attacker, defender, move, this.typeChart, attackerTypes, defenderTypes);
   }
 
   getLegalActions(playerId: string): Action[] {

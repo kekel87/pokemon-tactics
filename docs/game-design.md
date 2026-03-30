@@ -100,6 +100,32 @@ Ce système permet de :
 
 ---
 
+## 5b. Formule de dégâts (implémentée)
+
+Basée sur la formule Pokemon Gen 5+, adaptée au contexte tactique.
+
+```
+Dégâts = ((2 × Level / 5 + 2) × Power × (Atk / Def) / 50 + 2)
+         × STAB × Effectiveness × random
+```
+
+| Modificateur | Valeur | Condition |
+|---|---|---|
+| **STAB** | ×1.5 | L'attaque est du même type que le lanceur |
+| **Effectiveness** | ×0, ×0.25, ×0.5, ×1, ×2, ×4 | Tableau des types 18×18 |
+| **Burn** | ×0.5 | Sur l'Attaque physique si le lanceur est brûlé |
+| **random** | ×0.85–1.00 (uniforme) | Variance de ±15% à chaque attaque |
+
+**Preview de dégâts** (implémentée — plan 019) :
+- `estimateDamage(attackerId, moveId, defenderId)` retourne `{ min, max, effectiveness }`
+- `min` = dégâts au roll 0.85, `max` = dégâts au roll 1.00
+- Utilisé pour afficher la fourchette min–max sur la HP bar dans la phase de confirmation d'attaque
+- `effectiveness = 0` → affiche "Immune" en gris dans l'UI
+
+> Modificateurs supplémentaires prévus en Phase 2 : hauteur (avantage/désavantage), orientation (dos/face), terrain. Tout est surchargeable via le système d'override.
+
+---
+
 ## 6. Grille & Terrain
 
 - Grille isométrique avec **dénivelés** (hauteur variable par tile)
@@ -330,7 +356,7 @@ Contrôlé par le paramètre `confirmAttack: boolean` dans `BattleConfig` :
 
 > Pas de warning friendly fire (décision #128) — les alliés dans la zone clignotent comme les ennemis, sans couleur d'alerte distincte. La visibilité des tiles suffit.
 
-> Slot prévu pour une preview de dégâts estimés dans la phase de verrouillage (non implémenté — Phase 1).
+> Preview de dégâts implémentée (plan 019) — voir section 5b pour la formule et l'API `estimateDamage`.
 
 ---
 

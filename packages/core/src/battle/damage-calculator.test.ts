@@ -7,7 +7,7 @@ import { TargetingKind } from "../enums/targeting-kind";
 import { MockBattle } from "../testing/mock-battle";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
-import { calculateDamage, getStab, getTypeEffectiveness } from "./damage-calculator";
+import { calculateDamage, estimateDamage, getStab, getTypeEffectiveness } from "./damage-calculator";
 
 const baseMove: MoveDefinition = {
   id: "test-move",
@@ -213,5 +213,157 @@ describe("getStab", () => {
 
   it("returns 1 when no match", () => {
     expect(getStab(PokemonType.Fire, [PokemonType.Water])).toBe(1);
+  });
+});
+
+describe("rollFactor", () => {
+  it("applies minimum roll (0.85) when specified", () => {
+    const minDamage = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      0.85,
+    );
+    const maxDamage = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+    );
+    expect(minDamage).toBeLessThanOrEqual(maxDamage);
+    expect(minDamage).toBeGreaterThan(0);
+  });
+
+  it("produces deterministic results with explicit rollFactor", () => {
+    const first = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      0.9,
+    );
+    const second = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      0.9,
+    );
+    expect(first).toBe(second);
+  });
+
+  it("returns 0 for status moves regardless of rollFactor", () => {
+    const statusMove = { ...baseMove, category: Category.Status, power: 0 };
+    const damage = calculateDamage(
+      attacker(),
+      defender(),
+      statusMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+    );
+    expect(damage).toBe(0);
+  });
+});
+
+describe("estimateDamage", () => {
+  it("returns min <= max for a normal attack", () => {
+    const estimate = estimateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+    );
+    expect(estimate.min).toBeGreaterThan(0);
+    expect(estimate.max).toBeGreaterThanOrEqual(estimate.min);
+    expect(estimate.effectiveness).toBe(1);
+  });
+
+  it("returns min=0, max=0 for immune matchup", () => {
+    const estimate = estimateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Ghost],
+    );
+    expect(estimate.min).toBe(0);
+    expect(estimate.max).toBe(0);
+    expect(estimate.effectiveness).toBe(0);
+  });
+
+  it("returns min=0, max=0 for status moves", () => {
+    const statusMove = { ...baseMove, category: Category.Status, power: 0 };
+    const estimate = estimateDamage(
+      attacker(),
+      defender(),
+      statusMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+    );
+    expect(estimate.min).toBe(0);
+    expect(estimate.max).toBe(0);
+  });
+
+  it("returns effectiveness=2 for super effective", () => {
+    const fireMove = { ...baseMove, type: PokemonType.Fire };
+    const estimate = estimateDamage(
+      attacker(),
+      defender(),
+      fireMove,
+      simpleChart,
+      [PokemonType.Fire],
+      [PokemonType.Grass],
+    );
+    expect(estimate.effectiveness).toBe(2);
+    expect(estimate.min).toBeGreaterThan(0);
+  });
+
+  it("returns effectiveness=0.5 for not very effective", () => {
+    const fireMove = { ...baseMove, type: PokemonType.Fire };
+    const estimate = estimateDamage(
+      attacker(),
+      defender(),
+      fireMove,
+      simpleChart,
+      [PokemonType.Fire],
+      [PokemonType.Water],
+    );
+    expect(estimate.effectiveness).toBe(0.5);
+  });
+
+  it("includes STAB in damage range", () => {
+    const withStab = estimateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+    );
+    const withoutStab = estimateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Fire],
+      [PokemonType.Normal],
+    );
+    expect(withStab.max).toBeGreaterThan(withoutStab.max);
   });
 });

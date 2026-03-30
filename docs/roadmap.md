@@ -22,7 +22,7 @@
 - [x] 9 targeting patterns (single, self, cone, cross, line, dash, zone, slash, blast)
 - [x] Friendly fire actif
 - [x] Type chart 18x18
-- [x] Tests unitaires pour chaque mécanique (305 tests unitaires, 100% coverage)
+- [x] Tests unitaires pour chaque mécanique (316 tests unitaires, 100% coverage)
 
 ### Renderer
 - [x] Grille isométrique 2D avec Phaser 4
@@ -72,6 +72,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Refonte panel info stats : badges colorés Showdown (bleu buff / rouge debuff) pour les stat changes (plan 018)
 - [x] Feedback visuel des statuts sur les sprites (icônes ZA sur sprites + timeline, miniature ZA dans InfoPanel, animation Sleep PMD) (plan 018)
 - [x] Prévisualisation AoE dynamique sur la grille : preview hover, flow 2 étapes FFTA (verrouillage + clignotement + confirmation), `confirmAttack` configurable, couleurs rouge/bleu selon effets, outline périmétrique pour la portée (plan 017)
+- [x] Preview dégâts estimés dans `confirm_attack` : random roll x0.85–1.00, `estimateDamage()` core, zone dégradée HP bar + texte flottant min–max, "Immune" pour les immunités, AoE multi-cibles (plan 019)
 
 ---
 
