@@ -13,7 +13,7 @@
     { "number": "0039", "name": "jigglypuff" },
     { "number": "0086", "name": "seel" }
   ],
-  "animations": ["Idle", "Walk", "Attack", "Hurt", "Faint"],
+  "animations": ["Idle", "Walk", "Attack", "Hurt", "Faint", "Sleep"],
   "portraits": ["Normal"],
   "directions": [
     "South",

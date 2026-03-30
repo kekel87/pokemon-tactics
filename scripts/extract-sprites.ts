@@ -143,10 +143,18 @@ async function extractFrames(
   const frameCount = animation.durations.length;
   const frames: { direction: number; frameIndex: number; buffer: Buffer }[] = [];
 
+  const metadata = await sharp(sheetBuffer).metadata();
+  const sheetWidth = metadata.width ?? 0;
+  const sheetHeight = metadata.height ?? 0;
+
   for (const dirIndex of directionIndices) {
     for (let frameIdx = 0; frameIdx < frameCount; frameIdx++) {
       const x = frameIdx * animation.frameWidth;
       const y = dirIndex * animation.frameHeight;
+
+      if (x + animation.frameWidth > sheetWidth || y + animation.frameHeight > sheetHeight) {
+        continue;
+      }
 
       const frameBuffer = await sharp(sheetBuffer)
         .extract({
@@ -320,19 +328,24 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
 
   for (const animation of requestedAnimations) {
     console.log(`  Downloading ${animation.name}-Anim.png...`);
-    const sheetBuffer = await fetchBuffer(`${spriteBaseUrl}/${animation.name}-Anim.png`);
+    try {
+      const sheetBuffer = await fetchBuffer(`${spriteBaseUrl}/${animation.name}-Anim.png`);
 
-    const frames = await extractFrames(sheetBuffer, animation, directionIndices);
+      const frames = await extractFrames(sheetBuffer, animation, directionIndices);
 
-    for (const frame of frames) {
-      const dirName = config.directions[directionIndices.indexOf(frame.direction)];
-      const key = `${animation.name}-${dirName}-${frame.frameIndex}`;
-      allFrames.push({
-        key,
-        buffer: frame.buffer,
-        width: animation.frameWidth,
-        height: animation.frameHeight,
-      });
+      for (const frame of frames) {
+        const dirName = config.directions[directionIndices.indexOf(frame.direction)];
+        const key = `${animation.name}-${dirName}-${frame.frameIndex}`;
+        allFrames.push({
+          key,
+          buffer: frame.buffer,
+          width: animation.frameWidth,
+          height: animation.frameHeight,
+        });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`  Warning: skipping ${animation.name} — ${message}`);
     }
   }
 

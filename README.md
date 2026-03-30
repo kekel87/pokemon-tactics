@@ -18,8 +18,8 @@ Pokemon Tactics transpose les combats Pokemon sur une grille tactique inspirée 
 ### Ce qui fonctionne aujourd'hui
 
 - Moteur de combat complet : déplacement BFS, 9 patterns de ciblage (single, self, cone, cross, line, dash, zone, slash, blast), calcul de dégâts Gen 5+, STAB, efficacité des types, statuts (brulure, poison, paralysie, gel, sommeil), drain Vampigraine, KO, victoire
-- Renderer Phaser 4 : grille isométrique 12x12, sprites PMDCollab, hot-seat 2 joueurs, animations, UI de combat avec tooltip d'attaque
-- 305+ tests, 100% coverage sur le core
+- Renderer Phaser 4 : grille isométrique 12x12, sprites PMDCollab, hot-seat 2 joueurs, animations (dont Sleep), icônes de statut ZA, HP bar 3 couleurs, badges stat changes, UI de combat avec tooltip d'attaque
+- 254 tests, 100% coverage sur le core
 - IA headless validée (random + heuristique)
 
 ## Stack technique
@@ -161,7 +161,7 @@ flowchart TB
 |--------|-------|---------|
 | [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | Sprites Pokemon + portraits (8 directions, animations) | CC BY-NC 4.0 |
 | [PokeSprite](https://github.com/msikma/pokesprite) | Icones Pokemon pour l'UI | MIT |
-| [Pokepedia](https://www.pokepedia.fr/) | Type icons Légendes Pokémon Z-A (18 types, 36x36px sans texte) | libre |
+| [Pokepedia](https://www.pokepedia.fr/) | Type icons Légendes Pokémon Z-A (18 types, 36x36px) + Status icons ZA (icônes 52x36px et miniatures 172x36px pour les 7 statuts majeurs) | libre |
 | [Bulbagarden](https://archives.bulbagarden.net/) | Category icons Sword & Shield (Physical/Special/Status, 50x40px) | libre |
 
 Voir [CREDITS.md](CREDITS.md) pour les credits detailles par Pokemon et artiste.

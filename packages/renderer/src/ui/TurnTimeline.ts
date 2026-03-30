@@ -3,11 +3,11 @@ import {
   PlayerId,
   type PokemonDefinition,
   type PokemonInstance,
-  StatusType,
 } from "@pokemon-tactic/core";
 import {
   DEPTH_TIMELINE,
   PORTRAIT_SIZE,
+  STATUS_ASSET_KEY,
   TEAM_COLOR_PLAYER_1,
   TEAM_COLOR_PLAYER_2,
   TIMELINE_ACTIVE_BORDER_COLOR,
@@ -22,16 +22,6 @@ import {
 } from "../constants";
 import { getPortraitKey } from "../sprites/SpriteLoader";
 
-const STATUS_ICON_CONFIG: Record<string, { label: string; color: number }> = {
-  [StatusType.Burned]: { label: "B", color: 0xe84020 },
-  [StatusType.Poisoned]: { label: "P", color: 0xa040c0 },
-  [StatusType.Paralyzed]: { label: "Z", color: 0xd0b020 },
-  [StatusType.Asleep]: { label: "S", color: 0x6080c0 },
-  [StatusType.Frozen]: { label: "F", color: 0x60c0d0 },
-  [StatusType.BadlyPoisoned]: { label: "P", color: 0x802090 },
-  [StatusType.Confused]: { label: "?", color: 0xc08040 },
-};
-
 export class TurnTimeline {
   private readonly scene: Phaser.Scene;
   private readonly container: Phaser.GameObjects.Container;
@@ -43,7 +33,10 @@ export class TurnTimeline {
     this.container.setDepth(DEPTH_TIMELINE);
   }
 
-  update(state: BattleState, pokemonDefinitions: Map<string, PokemonDefinition>): void {
+  update(
+    state: BattleState,
+    pokemonDefinitions: Map<string, PokemonDefinition>,
+  ): void {
     this.clearEntries();
 
     let y = 0;
@@ -64,7 +57,9 @@ export class TurnTimeline {
       const primaryType = definition?.types[0] ?? "normal";
       const typeColor = TYPE_COLORS[primaryType] ?? 0xa0a0a0;
       const teamColor =
-        pokemon.playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
+        pokemon.playerId === PlayerId.Player1
+          ? TEAM_COLOR_PLAYER_1
+          : TEAM_COLOR_PLAYER_2;
 
       const entry = this.createEntry(
         y,
@@ -121,13 +116,18 @@ export class TurnTimeline {
 
     const border = this.scene.add.graphics();
     const borderColor = isActive ? TIMELINE_ACTIVE_BORDER_COLOR : teamColor;
-    const borderWidth = isActive ? TIMELINE_ACTIVE_BORDER_WIDTH : TIMELINE_BORDER_WIDTH;
+    const borderWidth = isActive
+      ? TIMELINE_ACTIVE_BORDER_WIDTH
+      : TIMELINE_BORDER_WIDTH;
     border.lineStyle(borderWidth, borderColor, 1);
     border.strokeRoundedRect(-half, -half, size, size, 4);
     children.push(border);
 
     if (pokemon.statusEffects.length > 0) {
-      const statusIcon = this.createStatusIcon(pokemon.statusEffects[0]?.type, half);
+      const statusIcon = this.createStatusIcon(
+        pokemon.statusEffects[0]?.type,
+        half,
+      );
       if (statusIcon) {
         children.push(statusIcon);
       }
@@ -139,36 +139,32 @@ export class TurnTimeline {
   private createStatusIcon(
     statusType: string | undefined,
     half: number,
-  ): Phaser.GameObjects.Container | null {
+  ): Phaser.GameObjects.GameObject | null {
     if (!statusType) {
       return null;
     }
 
-    const statusConfig = STATUS_ICON_CONFIG[statusType];
-    if (!statusConfig) {
+    const assetKey = STATUS_ASSET_KEY[statusType];
+    if (!assetKey) {
       return null;
     }
 
-    const iconSize = 12;
-    const iconX = half - iconSize / 2;
-    const iconY = half - iconSize / 2;
+    const textureKey = `status-icon-${assetKey}`;
+    const texture = this.scene.textures.get(textureKey);
+    if (texture.key === "__MISSING") {
+      return null;
+    }
 
-    const iconBg = this.scene.add.graphics();
-    iconBg.fillStyle(0x000000, 0.7);
-    iconBg.fillRoundedRect(iconX - 1, iconY - 1, iconSize + 2, iconSize + 2, 2);
-    iconBg.fillStyle(statusConfig.color, 1);
-    iconBg.fillRoundedRect(iconX, iconY, iconSize, iconSize, 2);
+    const targetHeight = 10;
+    const icon = this.scene.add.image(0, 0, textureKey);
+    const scale = targetHeight / icon.height;
+    icon.setScale(scale);
+    icon.setPosition(
+      half + (icon.width * scale) / 2 - 10,
+      -half + targetHeight / 2 - 2,
+    );
 
-    const label = this.scene.add
-      .text(iconX + iconSize / 2, iconY + iconSize / 2, statusConfig.label, {
-        fontSize: "8px",
-        color: "#ffffff",
-        fontFamily: "monospace",
-        fontStyle: "bold",
-      })
-      .setOrigin(0.5, 0.5);
-
-    return this.scene.add.container(0, 0, [iconBg, label]);
+    return icon;
   }
 
   private clearEntries(): void {

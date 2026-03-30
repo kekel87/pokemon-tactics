@@ -10,7 +10,7 @@ import {
   createBattleFromPlacements,
   defaultTeams,
 } from "../game/BattleSetup";
-import { TYPE_NAMES } from "../constants";
+import { STATUS_ICON_KEYS, TYPE_NAMES } from "../constants";
 import { GameController, type PlacementConfig } from "../game/GameController";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
@@ -48,6 +48,11 @@ export class BattleScene extends Phaser.Scene {
     this.load.image("category-physical", "assets/ui/categories/physical.png");
     this.load.image("category-special", "assets/ui/categories/special.png");
     this.load.image("category-status", "assets/ui/categories/status.png");
+
+    for (const key of STATUS_ICON_KEYS) {
+      this.load.image(`status-icon-${key}`, `assets/ui/statuses/icon-${key}.png`);
+      this.load.image(`status-label-${key}`, `assets/ui/statuses/label-${key}.png`);
+    }
   }
 
   create(): void {
