@@ -95,7 +95,7 @@ pokemon-tactics/
 │   │   │   ├── utils/           # Utilitaires renderer (screen-direction : getDirectionFromScreenPosition)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
 │   │   │   ├── types/           # Types renderer (BattleConfig : confirmAttack)
-│   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI, POKEMON_SPRITE_SCALE, DEPTH_GRID_PREVIEW, TILE_PREVIEW_COLOR
+│   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI, POKEMON_SPRITE_SCALE, DEPTH_GRID_PREVIEW, TILE_PREVIEW_COLOR, STATUS_ICON_KEY, HP_COLOR_MEDIUM, STAT_BADGE_BUFF_COLOR, STAT_BADGE_DEBUFF_COLOR
 │   │   │   └── main.ts
 │   │   ├── public/
 │   │   │   └── assets/
@@ -103,7 +103,8 @@ pokemon-tactics/
 │   │   │       └── ui/
 │   │   │           ├── arrows.png           # Spritesheet flèches DirectionPicker
 │   │   │           ├── types/               # Type icons Pokepedia ZA (Légendes Pokémon Z-A) : {type}.png, 36x36px sans texte (18 types)
-│   │   │           └── categories/          # Category icons Bulbagarden SV : physical.png, special.png, status.png — 50x40px
+│   │   │           ├── categories/          # Category icons Bulbagarden SV : physical.png, special.png, status.png — 50x40px
+│   │   │           └── statuses/            # Status icons Pokepedia ZA : icon-{status}.png (52x36), label-{status}.png (172x36) — 7 statuts majeurs
 │   │   ├── index.html
 │   │   ├── vite.config.ts
 │   │   ├── tsconfig.json        # extends base + DOM libs
@@ -118,8 +119,9 @@ pokemon-tactics/
 │       └── package.json
 │
 ├── scripts/                     # Outils de build one-shot (non packagés)
-│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas Phaser
-│   └── sprite-config.json       # Config extensible (Pokemon, animations, portraits)
+│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas Phaser (inclut Sleep depuis plan 018)
+│   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
+│   └── sprite-config.json       # Config extensible (Pokemon, animations dont Sleep, portraits)
 ├── package.json                 # Workspace root (scripts, devDependencies)
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json           # Config TS partagée (strict, bundler, path aliases)

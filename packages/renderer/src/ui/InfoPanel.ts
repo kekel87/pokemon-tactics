@@ -3,10 +3,13 @@ import {
   DEPTH_INFO_PANEL,
   HP_BAR_BG_ALPHA,
   HP_BAR_BG_COLOR,
+  HP_BAR_BORDER_COLOR,
   HP_BAR_HEIGHT,
   HP_COLOR_HIGH,
   HP_COLOR_LOW,
-  HP_THRESHOLD,
+  HP_COLOR_MEDIUM,
+  HP_THRESHOLD_HIGH,
+  HP_THRESHOLD_LOW,
   INFO_PANEL_ALPHA,
   INFO_PANEL_CORNER_RADIUS,
   INFO_PANEL_HEIGHT,
@@ -14,6 +17,13 @@ import {
   INFO_PANEL_X,
   INFO_PANEL_Y,
   PORTRAIT_SIZE,
+  STAT_BADGE_BUFF_BG,
+  STAT_BADGE_CORNER_RADIUS,
+  STAT_BADGE_DEBUFF_BG,
+  STAT_BADGE_HEIGHT,
+  STAT_BADGE_PADDING_X,
+  STAT_BADGE_SPACING,
+  STATUS_ASSET_KEY,
   TEAM_COLOR_PLAYER_1,
   TEAM_COLOR_PLAYER_2,
   UI_BORDER_ALPHA,
@@ -39,9 +49,6 @@ const STAT_LABELS: Record<string, string> = {
   [StatName.Evasion]: "Eva",
 };
 
-const BUFF_COLOR = "#44bbff";
-const DEBUFF_COLOR = "#ff6644";
-
 export class InfoPanel {
   private readonly scene: Phaser.Scene;
   private readonly container: Phaser.GameObjects.Container;
@@ -50,10 +57,11 @@ export class InfoPanel {
   private readonly hpText: Phaser.GameObjects.Text;
   private readonly hpBarBackground: Phaser.GameObjects.Graphics;
   private readonly hpBarFill: Phaser.GameObjects.Graphics;
-  private readonly statusText: Phaser.GameObjects.Text;
-  private readonly statChangesText: Phaser.GameObjects.Text;
+  private readonly statBadgeContainer: Phaser.GameObjects.Container;
   private portrait: Phaser.GameObjects.Image | null = null;
   private currentPortraitKey: string = "";
+  private statusLabel: Phaser.GameObjects.Image | null = null;
+  private currentStatusKey: string = "";
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -75,24 +83,7 @@ export class InfoPanel {
       fontFamily: "monospace",
     });
 
-    this.statusText = scene.add.text(
-      INFO_PANEL_WIDTH - HP_BAR_MARGIN_RIGHT,
-      HP_BAR_OFFSET_Y + HP_BAR_HEIGHT + 4,
-      "",
-      {
-        fontSize: "11px",
-        color: "#ffcc44",
-        fontFamily: "monospace",
-        align: "right",
-      },
-    );
-    this.statusText.setOrigin(1, 0);
-
-    this.statChangesText = scene.add.text(TEXT_OFFSET_X, STAT_CHANGES_OFFSET_Y, "", {
-      fontSize: "10px",
-      color: "#aaaaaa",
-      fontFamily: "monospace",
-    });
+    this.statBadgeContainer = scene.add.container(TEXT_OFFSET_X, STAT_CHANGES_OFFSET_Y);
 
     this.container = scene.add.container(INFO_PANEL_X, INFO_PANEL_Y, [
       this.background,
@@ -100,8 +91,7 @@ export class InfoPanel {
       this.hpBarBackground,
       this.hpBarFill,
       this.hpText,
-      this.statusText,
-      this.statChangesText,
+      this.statBadgeContainer,
     ]);
     this.container.setDepth(DEPTH_INFO_PANEL);
     this.container.setVisible(false);
@@ -123,18 +113,50 @@ export class InfoPanel {
 
     this.hpText.setText(`${pokemon.currentHp} / ${pokemon.maxHp}`);
 
-    if (pokemon.statusEffects.length > 0) {
-      const statusName = pokemon.statusEffects[0]?.type ?? "";
-      this.statusText.setText(statusName.toUpperCase());
-    } else {
-      this.statusText.setText("");
-    }
-
-    this.updateStatChanges(pokemon);
+    this.updateStatusLabel(pokemon);
+    this.updateStatBadges(pokemon);
   }
 
-  private updateStatChanges(pokemon: PokemonInstance): void {
-    const parts: string[] = [];
+  private updateStatusLabel(pokemon: PokemonInstance): void {
+    const statusType = pokemon.statusEffects[0]?.type;
+    const assetKey = statusType ? STATUS_ASSET_KEY[statusType] : undefined;
+    const newKey = assetKey ? `status-label-${assetKey}` : "";
+
+    if (newKey === this.currentStatusKey) {
+      return;
+    }
+    this.currentStatusKey = newKey;
+
+    if (this.statusLabel) {
+      this.statusLabel.destroy();
+      this.statusLabel = null;
+    }
+
+    if (!newKey) {
+      return;
+    }
+
+    const texture = this.scene.textures.get(newKey);
+    if (texture.key === "__MISSING") {
+      return;
+    }
+
+    const targetHeight = 14;
+    this.statusLabel = this.scene.add.image(0, 0, newKey);
+    const scale = targetHeight / this.statusLabel.height;
+    this.statusLabel.setScale(scale);
+    const scaledWidth = this.statusLabel.width * scale;
+    this.statusLabel.setPosition(
+      INFO_PANEL_WIDTH - HP_BAR_MARGIN_RIGHT - scaledWidth / 2,
+      HP_BAR_OFFSET_Y + HP_BAR_HEIGHT + 4 + targetHeight / 2,
+    );
+    this.container.add(this.statusLabel);
+  }
+
+  private updateStatBadges(pokemon: PokemonInstance): void {
+    this.statBadgeContainer.removeAll(true);
+
+    let offsetX = 0;
 
     for (const [stat, label] of Object.entries(STAT_LABELS)) {
       const stages = pokemon.statStages[stat as keyof typeof pokemon.statStages];
@@ -142,26 +164,29 @@ export class InfoPanel {
         continue;
       }
 
-      const arrows = stages > 0 ? "↑".repeat(stages) : "↓".repeat(-stages);
-      parts.push(`${label}${arrows}`);
-    }
+      const sign = stages > 0 ? "+" : "";
+      const badgeText = `${label} ${sign}${stages}`;
+      const bgColor = stages > 0 ? STAT_BADGE_BUFF_BG : STAT_BADGE_DEBUFF_BG;
 
-    if (parts.length === 0) {
-      this.statChangesText.setText("");
-      return;
-    }
+      const text = this.scene.add.text(0, 0, badgeText, {
+        fontSize: "9px",
+        color: "#ffffff",
+        fontFamily: "monospace",
+        fontStyle: "bold",
+      });
+      const textWidth = text.width;
 
-    this.statChangesText.setText(parts.join(" "));
+      const badgeWidth = textWidth + STAT_BADGE_PADDING_X * 2;
+      const bg = this.scene.add.graphics();
+      bg.fillStyle(bgColor, 0.9);
+      bg.fillRoundedRect(offsetX, 0, badgeWidth, STAT_BADGE_HEIGHT, STAT_BADGE_CORNER_RADIUS);
 
-    const hasBuffs = Object.values(pokemon.statStages).some((s) => s > 0);
-    const hasDebuffs = Object.values(pokemon.statStages).some((s) => s < 0);
+      text.setPosition(offsetX + STAT_BADGE_PADDING_X, (STAT_BADGE_HEIGHT - text.height) / 2);
 
-    if (hasBuffs && hasDebuffs) {
-      this.statChangesText.setColor("#dddddd");
-    } else if (hasBuffs) {
-      this.statChangesText.setColor(BUFF_COLOR);
-    } else {
-      this.statChangesText.setColor(DEBUFF_COLOR);
+      this.statBadgeContainer.add(bg);
+      this.statBadgeContainer.add(text);
+
+      offsetX += badgeWidth + STAT_BADGE_SPACING;
     }
   }
 
@@ -218,24 +243,49 @@ export class InfoPanel {
     );
   }
 
+  private getHpColor(ratio: number): number {
+    if (ratio > HP_THRESHOLD_HIGH) {
+      return HP_COLOR_HIGH;
+    }
+    if (ratio > HP_THRESHOLD_LOW) {
+      return HP_COLOR_MEDIUM;
+    }
+    return HP_COLOR_LOW;
+  }
+
   private drawHpBar(hpRatio: number): void {
+    const radius = 2;
+
     this.hpBarBackground.clear();
     this.hpBarBackground.fillStyle(HP_BAR_BG_COLOR, HP_BAR_BG_ALPHA);
-    this.hpBarBackground.fillRect(
+    this.hpBarBackground.fillRoundedRect(
       TEXT_OFFSET_X,
       HP_BAR_OFFSET_Y,
       HP_BAR_PANEL_WIDTH,
       HP_BAR_HEIGHT,
+      radius,
+    );
+    this.hpBarBackground.lineStyle(1, HP_BAR_BORDER_COLOR, 1);
+    this.hpBarBackground.strokeRoundedRect(
+      TEXT_OFFSET_X,
+      HP_BAR_OFFSET_Y,
+      HP_BAR_PANEL_WIDTH,
+      HP_BAR_HEIGHT,
+      radius,
     );
 
     this.hpBarFill.clear();
-    const hpColor = hpRatio > HP_THRESHOLD ? HP_COLOR_HIGH : HP_COLOR_LOW;
-    this.hpBarFill.fillStyle(hpColor, 1);
-    this.hpBarFill.fillRect(
-      TEXT_OFFSET_X,
-      HP_BAR_OFFSET_Y,
-      HP_BAR_PANEL_WIDTH * hpRatio,
-      HP_BAR_HEIGHT,
-    );
+    const fillWidth = (HP_BAR_PANEL_WIDTH - 2) * hpRatio;
+    if (fillWidth > 0) {
+      const hpColor = this.getHpColor(hpRatio);
+      this.hpBarFill.fillStyle(hpColor, 1);
+      this.hpBarFill.fillRoundedRect(
+        TEXT_OFFSET_X + 1,
+        HP_BAR_OFFSET_Y + 1,
+        fillWidth,
+        HP_BAR_HEIGHT - 2,
+        radius,
+      );
+    }
   }
 }

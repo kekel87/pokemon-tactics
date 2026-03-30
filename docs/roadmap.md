@@ -69,8 +69,8 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Status icons (pastilles colorées) dans la turn timeline
 - [x] Afficher le niveau dans l'UI (`Lv.50` dans l'InfoPanel)
 - [x] Info détaillées des attaques dans le sous-menu (catégorie icon SV + nom + PP courants/max) + tooltip hover (catégorie, puissance, précision, nom pattern FR + portée conditionnelle, grille dynamique) — plan 016
-- [ ] Refonte panel info stats : affichage clair des stages actuels (+1/+2/-1 etc.) avec code couleur lisible
-- [ ] Feedback visuel des statuts sur les sprites (icône ou effet au-dessus du sprite)
+- [x] Refonte panel info stats : badges colorés Showdown (bleu buff / rouge debuff) pour les stat changes (plan 018)
+- [x] Feedback visuel des statuts sur les sprites (icônes ZA sur sprites + timeline, miniature ZA dans InfoPanel, animation Sleep PMD) (plan 018)
 - [x] Prévisualisation AoE dynamique sur la grille : preview hover, flow 2 étapes FFTA (verrouillage + clignotement + confirmation), `confirmAttack` configurable, couleurs rouge/bleu selon effets, outline périmétrique pour la portée (plan 017)
 
 ---

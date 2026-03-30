@@ -53,17 +53,26 @@ export function createPokemonAnimations(scene: Phaser.Scene, definitionId: strin
       const frames: Phaser.Types.Animations.AnimationFrame[] = [];
 
       for (let i = 0; i < frameCount; i++) {
+        const frameName = `${animName}-${direction}-${i}`;
+        if (!texture.has(frameName)) {
+          break;
+        }
         frames.push({
           key: definitionId,
-          frame: `${animName}-${direction}-${i}`,
+          frame: frameName,
           duration: (animMeta.durations[i] ?? 4) * TICK_DURATION_MS,
         });
       }
 
+      if (frames.length === 0) {
+        continue;
+      }
+
+      const looping = animName === "Idle" || animName === "Walk" || animName === "Sleep";
       scene.anims.create({
         key,
         frames,
-        repeat: animName === "Idle" || animName === "Walk" ? -1 : 0,
+        repeat: looping ? -1 : 0,
       });
     }
   }

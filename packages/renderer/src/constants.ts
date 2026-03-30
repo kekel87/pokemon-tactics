@@ -23,10 +23,13 @@ export const CURSOR_PULSE_DURATION_MS = 600;
 export const HP_BAR_WIDTH = 36;
 export const HP_BAR_HEIGHT = 5;
 export const HP_COLOR_HIGH = 0x44cc44;
+export const HP_COLOR_MEDIUM = 0xddcc22;
 export const HP_COLOR_LOW = 0xcc4444;
-export const HP_BAR_BG_COLOR = 0x333333;
-export const HP_BAR_BG_ALPHA = 0.8;
-export const HP_THRESHOLD = 0.5;
+export const HP_BAR_BG_COLOR = 0x222222;
+export const HP_BAR_BG_ALPHA = 0.9;
+export const HP_BAR_BORDER_COLOR = 0x000000;
+export const HP_THRESHOLD_HIGH = 0.6;
+export const HP_THRESHOLD_LOW = 0.3;
 
 export const POKEMON_SPRITE_RADIUS = 12;
 export const POKEMON_SPRITE_BORDER_WIDTH = 2;
@@ -152,3 +155,31 @@ export const DEPTH_INFO_PANEL = 1100;
 export const DEPTH_ACTION_MENU = 1200;
 export const DEPTH_VICTORY_OVERLAY = 2000;
 export const DEPTH_VICTORY_CONTENT = 2001;
+
+export const STATUS_ASSET_KEY: Partial<Record<string, string>> = {
+  burned: "burned",
+  frozen: "frozen",
+  paralyzed: "paralyzed",
+  poisoned: "poisoned",
+  badly_poisoned: "badly-poisoned",
+  asleep: "asleep",
+};
+
+export const STATUS_ICON_KEYS = [
+  "burned",
+  "frozen",
+  "paralyzed",
+  "poisoned",
+  "badly-poisoned",
+  "asleep",
+] as const;
+
+export const STATUS_SPRITE_ICON_OFFSET_X = 16;
+export const STATUS_SPRITE_ICON_SCALE = 0.35;
+
+export const STAT_BADGE_BUFF_BG = 0x1a4a8a;
+export const STAT_BADGE_DEBUFF_BG = 0x8a1a1a;
+export const STAT_BADGE_HEIGHT = 14;
+export const STAT_BADGE_CORNER_RADIUS = 3;
+export const STAT_BADGE_PADDING_X = 5;
+export const STAT_BADGE_SPACING = 3;

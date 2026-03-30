@@ -3200,12 +3200,12 @@
         "h": 32
       }
     },
-    "Idle-South-0": {
+    "Sleep-South-0": {
       "frame": {
         "x": 1664,
         "y": 320,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "rotated": false,
       "trimmed": false,
@@ -3213,19 +3213,19 @@
         "x": 0,
         "y": 0,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "sourceSize": {
         "w": 32,
-        "h": 24
+        "h": 32
       }
     },
-    "Idle-South-1": {
+    "Sleep-South-1": {
       "frame": {
         "x": 1696,
         "y": 320,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "rotated": false,
       "trimmed": false,
@@ -3233,19 +3233,19 @@
         "x": 0,
         "y": 0,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "sourceSize": {
         "w": 32,
-        "h": 24
+        "h": 32
       }
     },
-    "Idle-South-2": {
+    "Sleep-South-2": {
       "frame": {
         "x": 1728,
         "y": 320,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "rotated": false,
       "trimmed": false,
@@ -3253,19 +3253,19 @@
         "x": 0,
         "y": 0,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "sourceSize": {
         "w": 32,
-        "h": 24
+        "h": 32
       }
     },
-    "Idle-South-3": {
+    "Sleep-South-3": {
       "frame": {
         "x": 1760,
         "y": 320,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "rotated": false,
       "trimmed": false,
@@ -3273,19 +3273,19 @@
         "x": 0,
         "y": 0,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "sourceSize": {
         "w": 32,
-        "h": 24
+        "h": 32
       }
     },
-    "Idle-SouthEast-0": {
+    "Sleep-South-4": {
       "frame": {
         "x": 1792,
         "y": 320,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "rotated": false,
       "trimmed": false,
@@ -3293,19 +3293,19 @@
         "x": 0,
         "y": 0,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "sourceSize": {
         "w": 32,
-        "h": 24
+        "h": 32
       }
     },
-    "Idle-SouthEast-1": {
+    "Sleep-South-5": {
       "frame": {
         "x": 1824,
         "y": 320,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "rotated": false,
       "trimmed": false,
@@ -3313,14 +3313,14 @@
         "x": 0,
         "y": 0,
         "w": 32,
-        "h": 24
+        "h": 32
       },
       "sourceSize": {
         "w": 32,
-        "h": 24
+        "h": 32
       }
     },
-    "Idle-SouthEast-2": {
+    "Idle-South-0": {
       "frame": {
         "x": 1856,
         "y": 320,
@@ -3340,7 +3340,7 @@
         "h": 24
       }
     },
-    "Idle-SouthEast-3": {
+    "Idle-South-1": {
       "frame": {
         "x": 1888,
         "y": 320,
@@ -3360,7 +3360,7 @@
         "h": 24
       }
     },
-    "Idle-East-0": {
+    "Idle-South-2": {
       "frame": {
         "x": 1920,
         "y": 320,
@@ -3380,7 +3380,7 @@
         "h": 24
       }
     },
-    "Idle-East-1": {
+    "Idle-South-3": {
       "frame": {
         "x": 1952,
         "y": 320,
@@ -3400,7 +3400,7 @@
         "h": 24
       }
     },
-    "Idle-East-2": {
+    "Idle-SouthEast-0": {
       "frame": {
         "x": 1984,
         "y": 320,
@@ -3420,7 +3420,7 @@
         "h": 24
       }
     },
-    "Idle-East-3": {
+    "Idle-SouthEast-1": {
       "frame": {
         "x": 2016,
         "y": 320,
@@ -3440,7 +3440,7 @@
         "h": 24
       }
     },
-    "Idle-NorthEast-0": {
+    "Idle-SouthEast-2": {
       "frame": {
         "x": 0,
         "y": 368,
@@ -3460,7 +3460,7 @@
         "h": 24
       }
     },
-    "Idle-NorthEast-1": {
+    "Idle-SouthEast-3": {
       "frame": {
         "x": 32,
         "y": 368,
@@ -3480,7 +3480,7 @@
         "h": 24
       }
     },
-    "Idle-NorthEast-2": {
+    "Idle-East-0": {
       "frame": {
         "x": 64,
         "y": 368,
@@ -3500,7 +3500,7 @@
         "h": 24
       }
     },
-    "Idle-NorthEast-3": {
+    "Idle-East-1": {
       "frame": {
         "x": 96,
         "y": 368,
@@ -3520,7 +3520,7 @@
         "h": 24
       }
     },
-    "Idle-North-0": {
+    "Idle-East-2": {
       "frame": {
         "x": 128,
         "y": 368,
@@ -3540,7 +3540,7 @@
         "h": 24
       }
     },
-    "Idle-North-1": {
+    "Idle-East-3": {
       "frame": {
         "x": 160,
         "y": 368,
@@ -3560,7 +3560,7 @@
         "h": 24
       }
     },
-    "Idle-North-2": {
+    "Idle-NorthEast-0": {
       "frame": {
         "x": 192,
         "y": 368,
@@ -3580,7 +3580,7 @@
         "h": 24
       }
     },
-    "Idle-North-3": {
+    "Idle-NorthEast-1": {
       "frame": {
         "x": 224,
         "y": 368,
@@ -3600,7 +3600,7 @@
         "h": 24
       }
     },
-    "Idle-NorthWest-0": {
+    "Idle-NorthEast-2": {
       "frame": {
         "x": 256,
         "y": 368,
@@ -3620,7 +3620,7 @@
         "h": 24
       }
     },
-    "Idle-NorthWest-1": {
+    "Idle-NorthEast-3": {
       "frame": {
         "x": 288,
         "y": 368,
@@ -3640,7 +3640,7 @@
         "h": 24
       }
     },
-    "Idle-NorthWest-2": {
+    "Idle-North-0": {
       "frame": {
         "x": 320,
         "y": 368,
@@ -3660,7 +3660,7 @@
         "h": 24
       }
     },
-    "Idle-NorthWest-3": {
+    "Idle-North-1": {
       "frame": {
         "x": 352,
         "y": 368,
@@ -3680,7 +3680,7 @@
         "h": 24
       }
     },
-    "Idle-West-0": {
+    "Idle-North-2": {
       "frame": {
         "x": 384,
         "y": 368,
@@ -3700,7 +3700,7 @@
         "h": 24
       }
     },
-    "Idle-West-1": {
+    "Idle-North-3": {
       "frame": {
         "x": 416,
         "y": 368,
@@ -3720,7 +3720,7 @@
         "h": 24
       }
     },
-    "Idle-West-2": {
+    "Idle-NorthWest-0": {
       "frame": {
         "x": 448,
         "y": 368,
@@ -3740,7 +3740,7 @@
         "h": 24
       }
     },
-    "Idle-West-3": {
+    "Idle-NorthWest-1": {
       "frame": {
         "x": 480,
         "y": 368,
@@ -3760,7 +3760,7 @@
         "h": 24
       }
     },
-    "Idle-SouthWest-0": {
+    "Idle-NorthWest-2": {
       "frame": {
         "x": 512,
         "y": 368,
@@ -3780,7 +3780,7 @@
         "h": 24
       }
     },
-    "Idle-SouthWest-1": {
+    "Idle-NorthWest-3": {
       "frame": {
         "x": 544,
         "y": 368,
@@ -3800,7 +3800,7 @@
         "h": 24
       }
     },
-    "Idle-SouthWest-2": {
+    "Idle-West-0": {
       "frame": {
         "x": 576,
         "y": 368,
@@ -3820,9 +3820,129 @@
         "h": 24
       }
     },
-    "Idle-SouthWest-3": {
+    "Idle-West-1": {
       "frame": {
         "x": 608,
+        "y": 368,
+        "w": 32,
+        "h": 24
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 24
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 24
+      }
+    },
+    "Idle-West-2": {
+      "frame": {
+        "x": 640,
+        "y": 368,
+        "w": 32,
+        "h": 24
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 24
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 24
+      }
+    },
+    "Idle-West-3": {
+      "frame": {
+        "x": 672,
+        "y": 368,
+        "w": 32,
+        "h": 24
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 24
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 24
+      }
+    },
+    "Idle-SouthWest-0": {
+      "frame": {
+        "x": 704,
+        "y": 368,
+        "w": 32,
+        "h": 24
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 24
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 24
+      }
+    },
+    "Idle-SouthWest-1": {
+      "frame": {
+        "x": 736,
+        "y": 368,
+        "w": 32,
+        "h": 24
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 24
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 24
+      }
+    },
+    "Idle-SouthWest-2": {
+      "frame": {
+        "x": 768,
+        "y": 368,
+        "w": 32,
+        "h": 24
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 24
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 24
+      }
+    },
+    "Idle-SouthWest-3": {
+      "frame": {
+        "x": 800,
         "y": 368,
         "w": 32,
         "h": 24
@@ -3884,6 +4004,18 @@
         "rushFrame": 2,
         "hitFrame": 5,
         "returnFrame": 8
+      },
+      "Sleep": {
+        "frameWidth": 32,
+        "frameHeight": 32,
+        "durations": [
+          9,
+          8,
+          20,
+          9,
+          8,
+          20
+        ]
       },
       "Hurt": {
         "frameWidth": 40,

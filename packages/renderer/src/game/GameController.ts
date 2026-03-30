@@ -19,6 +19,7 @@ import {
   type Position,
   type SpawnZone,
   StatName,
+  StatusType,
   TargetingKind,
   EffectKind,
   EffectTarget,
@@ -670,6 +671,26 @@ export class GameController {
           }
           sprite.playAnimation("Idle");
         }
+        break;
+      }
+
+      case BattleEventType.StatusApplied: {
+        const sprite = this.sprites.get(event.targetId);
+        if (sprite) {
+          sprite.updateStatus([{ type: event.status }]);
+          sprite.setStatusAnimation(event.status === StatusType.Asleep);
+        }
+        this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
+      case BattleEventType.StatusRemoved: {
+        const sprite = this.sprites.get(event.targetId);
+        if (sprite) {
+          sprite.updateStatus([]);
+          sprite.setStatusAnimation(false);
+        }
+        this.updateInfoPanelForActivePokemon();
         break;
       }
 

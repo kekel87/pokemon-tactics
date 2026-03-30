@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-30 (Plan 017 terminé — prévisualisation AoE, flow confirmation 2 étapes)
+> Dernière mise à jour : 2026-03-30 (Plan 018 terminé — status icons ZA, HP bar FFTIC, badges stat changes, sleep animation)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -205,6 +205,19 @@
   - **305 tests**, 100% coverage maintenu, 10 nouveaux tests `computeStatAtLevel`
   - Fix tests préexistants : intégration (pokemon count 4→12, spawn zone positions)
 
+- **Plan 018 terminé** — Status icons ZA + HP bar FFTIC + badges stat changes + sleep animation :
+  - Script `scripts/download-status-icons.ts` : 14 assets PNG téléchargés (7 icônes 52x36 + 7 miniatures 172x36) dans `public/assets/ui/statuses/`
+  - `TurnTimeline` : icônes ZA remplacent les pastilles colorées (fallback cercle+lettre conservé si assets absents)
+  - `PokemonSprite` : HP bar rework style FFTIC — gradient 3 couleurs (vert >60%, jaune >30%, rouge <=30%) avec bordure fine, coins arrondis
+  - `PokemonSprite` : icône statut ZA affichée à droite de la HP bar (apparaît/disparaît avec le statut)
+  - `InfoPanel` : miniature ZA (172x36) remplace le texte uppercase BURNED/PARALYZED etc.
+  - `InfoPanel` : badges colorés style Showdown pour les stat changes (fond bleu = buff, rouge = debuff)
+  - `SpriteLoader` : vérification des frames, 0 warnings à l'exécution
+  - `scripts/extract-sprites.ts` : bounds checking amélioré (résilient aux animations manquantes)
+  - Animation Sleep PMD extraite et intégrée : Pokemon endormi joue Sleep en boucle, retour Idle à la guérison
+  - `GameController` écoute `StatusApplied`/`StatusRemoved` pour synchroniser icône + animation
+  - **254 tests**, 100% coverage maintenu
+
 - **Plan 017 terminé** — Prévisualisation AoE sur la grille :
   - Preview AoE dynamique : suit la souris pour les directionnels (Cone, Line, Slash, Dash), hover pour point-target (Single, Blast), statique à l'entrée pour self-centered (Self, Cross, Zone)
   - Flow 2 étapes style FFTA : preview → verrouillage (sprites clignotent) → confirmation. Paramètre `confirmAttack` configurable (`true` = flow complet, `false` = clic direct)
@@ -243,10 +256,11 @@
   - decisions.md : décision #122 ajoutée (niveau 50 sans IV/EV)
 
 ### Prochaine étape
-- **Feedback visuel des statuts sur les sprites** (icône ou effet au-dessus du sprite) — Phase 1 Renderer
-- **Refonte panel info stats** : affichage clair des stages actuels (+1/+2/-1 avec code couleur)
 - **Preview dégâts estimés** dans la phase `confirm_attack` (slot prévu dans le plan 017, non implémenté)
+- **i18n français/anglais** — Phase 2, source : pokemon-showdown-fr (noms moves, Pokemon, statuts, UI)
+- **Zoom / caméra dynamique avec pan** — Phase 4 (non bloquant, résolution fixe 1280x720 acceptable pour le POC)
 - Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage) — décision #121
+- **Plus de moves** stat changes (Épée Danse, Groz'Yeux, Abri) et AoE variés — Phase 1 Core
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type

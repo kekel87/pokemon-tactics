@@ -4159,6 +4159,46 @@
         "w": 32,
         "h": 40
       }
+    },
+    "Sleep-South-0": {
+      "frame": {
+        "x": 1304,
+        "y": 376,
+        "w": 32,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 40
+      }
+    },
+    "Sleep-South-1": {
+      "frame": {
+        "x": 1336,
+        "y": 376,
+        "w": 32,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 40
+      }
     }
   },
   "meta": {
@@ -4200,6 +4240,14 @@
         "rushFrame": 1,
         "hitFrame": 3,
         "returnFrame": 6
+      },
+      "Sleep": {
+        "frameWidth": 32,
+        "frameHeight": 40,
+        "durations": [
+          30,
+          35
+        ]
       },
       "Hurt": {
         "frameWidth": 48,

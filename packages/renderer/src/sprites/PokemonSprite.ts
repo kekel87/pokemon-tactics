@@ -6,11 +6,14 @@ import {
   KO_TINT_COLOR,
   HP_BAR_BG_ALPHA,
   HP_BAR_BG_COLOR,
+  HP_BAR_BORDER_COLOR,
   HP_BAR_HEIGHT,
   HP_BAR_WIDTH,
   HP_COLOR_HIGH,
   HP_COLOR_LOW,
-  HP_THRESHOLD,
+  HP_COLOR_MEDIUM,
+  HP_THRESHOLD_HIGH,
+  HP_THRESHOLD_LOW,
   MOVE_TWEEN_DURATION_MS,
   POKEMON_SPRITE_BORDER_ALPHA,
   POKEMON_SPRITE_BORDER_WIDTH,
@@ -20,6 +23,9 @@ import {
   PULSE_DURATION_MS,
   PULSE_MAX_SCALE,
   PULSE_MIN_SCALE,
+  STATUS_ASSET_KEY,
+  STATUS_SPRITE_ICON_OFFSET_X,
+  STATUS_SPRITE_ICON_SCALE,
   TYPE_COLORS,
 } from "../constants";
 import type { IsometricGrid } from "../grid/IsometricGrid";
@@ -47,6 +53,8 @@ export class PokemonSprite {
   private currentDirection: string;
   private currentAnimation: string;
   private pulseTween: Phaser.Tweens.Tween | null = null;
+  private statusIcon: Phaser.GameObjects.Image | null = null;
+  private currentStatusKey: string = "";
 
   constructor(
     scene: Phaser.Scene,
@@ -108,6 +116,47 @@ export class PokemonSprite {
   setHpBarVisible(visible: boolean): void {
     this.hpBarBackground.setVisible(visible);
     this.hpBarFill.setVisible(visible);
+  }
+
+  updateStatus(statusEffects: { type: string }[]): void {
+    const statusType = statusEffects[0]?.type;
+    const assetKey = statusType ? STATUS_ASSET_KEY[statusType] : undefined;
+    const newKey = assetKey ? `status-icon-${assetKey}` : "";
+
+    if (newKey === this.currentStatusKey) {
+      return;
+    }
+    this.currentStatusKey = newKey;
+
+    if (this.statusIcon) {
+      this.statusIcon.destroy();
+      this.statusIcon = null;
+    }
+
+    if (!newKey) {
+      return;
+    }
+
+    const texture = this.scene.textures.get(newKey);
+    if (texture.key === "__MISSING") {
+      return;
+    }
+
+    const offsetY = this.usesAtlas ? -32 : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
+    this.statusIcon = this.scene.add.image(HP_BAR_WIDTH / 2 + STATUS_SPRITE_ICON_OFFSET_X, offsetY + HP_BAR_HEIGHT / 2, newKey);
+    this.statusIcon.setScale(STATUS_SPRITE_ICON_SCALE);
+    this.container.add(this.statusIcon);
+  }
+
+  setStatusAnimation(isAsleep: boolean): void {
+    if (isAsleep) {
+      const key = getAnimationKey(this.definitionId, "Sleep", this.currentDirection);
+      if (this.scene.anims.exists(key)) {
+        this.playAnimation("Sleep");
+      }
+    } else if (this.currentAnimation === "Sleep") {
+      this.playAnimation("Idle");
+    }
   }
 
   setDirection(direction: Direction): void {
@@ -262,17 +311,33 @@ export class PokemonSprite {
     this.circle.strokeCircle(0, 0, POKEMON_SPRITE_RADIUS);
   }
 
+  private getHpColor(ratio: number): number {
+    if (ratio > HP_THRESHOLD_HIGH) {
+      return HP_COLOR_HIGH;
+    }
+    if (ratio > HP_THRESHOLD_LOW) {
+      return HP_COLOR_MEDIUM;
+    }
+    return HP_COLOR_LOW;
+  }
+
   private drawHpBar(): void {
     const offsetY = this.usesAtlas ? -32 : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
     const barX = -HP_BAR_WIDTH / 2;
+    const radius = 2;
 
     this.hpBarBackground.clear();
     this.hpBarBackground.fillStyle(HP_BAR_BG_COLOR, HP_BAR_BG_ALPHA);
-    this.hpBarBackground.fillRect(barX, offsetY, HP_BAR_WIDTH, HP_BAR_HEIGHT);
+    this.hpBarBackground.fillRoundedRect(barX, offsetY, HP_BAR_WIDTH, HP_BAR_HEIGHT, radius);
+    this.hpBarBackground.lineStyle(1, HP_BAR_BORDER_COLOR, 1);
+    this.hpBarBackground.strokeRoundedRect(barX, offsetY, HP_BAR_WIDTH, HP_BAR_HEIGHT, radius);
 
     this.hpBarFill.clear();
-    const hpColor = this.currentHpRatio > HP_THRESHOLD ? HP_COLOR_HIGH : HP_COLOR_LOW;
-    this.hpBarFill.fillStyle(hpColor, 1);
-    this.hpBarFill.fillRect(barX, offsetY, HP_BAR_WIDTH * this.currentHpRatio, HP_BAR_HEIGHT);
+    const hpColor = this.getHpColor(this.currentHpRatio);
+    const fillWidth = (HP_BAR_WIDTH - 2) * this.currentHpRatio;
+    if (fillWidth > 0) {
+      this.hpBarFill.fillStyle(hpColor, 1);
+      this.hpBarFill.fillRoundedRect(barX + 1, offsetY + 1, fillWidth, HP_BAR_HEIGHT - 2, radius);
+    }
   }
 }
