@@ -1,4 +1,5 @@
 import { Direction } from "@pokemon-tactic/core";
+import { getDirectionFromScreenPosition } from "../utils/screen-direction";
 
 const COLS_PER_ROW = 6;
 const YELLOW_ROW = 3;
@@ -75,7 +76,7 @@ export class DirectionPicker {
     this.updateArrows(initialDirection);
 
     this.onPointerMove = (pointer: Phaser.Input.Pointer): void => {
-      const direction = this.getDirectionFromPointer(
+      const direction = getDirectionFromScreenPosition(
         pointer.worldX,
         pointer.worldY,
         screenX,
@@ -122,24 +123,6 @@ export class DirectionPicker {
       this.onKeyDown = null;
     }
     this.callbacks = null;
-  }
-
-  // Screen-space cardinal axes as quadrant boundaries (horizontal + vertical
-  // cross through the sprite center). Each screen quadrant maps to an iso direction:
-  //   top-right → North, bottom-right → East, bottom-left → South, top-left → West
-  private getDirectionFromPointer(
-    worldX: number,
-    worldY: number,
-    centerX: number,
-    centerY: number,
-  ): Direction {
-    const dx = worldX - centerX;
-    const dy = worldY - centerY;
-
-    if (dx >= 0) {
-      return dy < 0 ? Direction.North : Direction.East;
-    }
-    return dy <= 0 ? Direction.West : Direction.South;
   }
 
   private updateArrows(activeDirection: Direction): void {

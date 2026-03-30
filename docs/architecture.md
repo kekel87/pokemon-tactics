@@ -92,8 +92,10 @@ pokemon-tactics/
 │   │   │   ├── grid/            # Rendu isométrique (IsometricGrid, curseur animé)
 │   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
 │   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview)
+│   │   │   ├── utils/           # Utilitaires renderer (screen-direction : getDirectionFromScreenPosition)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
-│   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI, POKEMON_SPRITE_SCALE
+│   │   │   ├── types/           # Types renderer (BattleConfig : confirmAttack)
+│   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI, POKEMON_SPRITE_SCALE, DEPTH_GRID_PREVIEW, TILE_PREVIEW_COLOR
 │   │   │   └── main.ts
 │   │   ├── public/
 │   │   │   └── assets/

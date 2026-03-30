@@ -71,7 +71,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Info détaillées des attaques dans le sous-menu (catégorie icon SV + nom + PP courants/max) + tooltip hover (catégorie, puissance, précision, nom pattern FR + portée conditionnelle, grille dynamique) — plan 016
 - [ ] Refonte panel info stats : affichage clair des stages actuels (+1/+2/-1 etc.) avec code couleur lisible
 - [ ] Feedback visuel des statuts sur les sprites (icône ou effet au-dessus du sprite)
-- [ ] Prévisualisation des dégâts / portée avant confirmation
+- [x] Prévisualisation AoE dynamique sur la grille : preview hover, flow 2 étapes FFTA (verrouillage + clignotement + confirmation), `confirmAttack` configurable, couleurs rouge/bleu selon effets, outline périmétrique pour la portée (plan 017)
 
 ---
 

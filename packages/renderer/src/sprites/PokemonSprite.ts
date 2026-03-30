@@ -96,6 +96,10 @@ export class PokemonSprite {
     this.container.setDepth(DEPTH_POKEMON_BASE + gridX + gridY);
   }
 
+  getContainer(): Phaser.GameObjects.Container {
+    return this.container;
+  }
+
   updateHp(currentHp: number, maxHp: number): void {
     this.currentHpRatio = currentHp / maxHp;
     this.drawHpBar();

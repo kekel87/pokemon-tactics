@@ -70,6 +70,10 @@ export class BattleEngine {
     this.syncTurnState();
   }
 
+  getGrid(): Grid {
+    return this.grid;
+  }
+
   getGameState(_playerId: string): BattleState {
     return this.state;
   }
