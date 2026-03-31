@@ -10,6 +10,10 @@ import {
   createBattleFromPlacements,
   defaultTeams,
 } from "../game/BattleSetup";
+import { DummyAiController } from "../game/DummyAiController";
+import { createSandboxBattle } from "../game/SandboxSetup";
+import type { SandboxConfig } from "../types/SandboxConfig";
+import { parseSandboxQueryParams } from "../utils/sandbox-query-params";
 import {
   ARROW_PAN_SPEED,
   CAMERA_BOUNDS_MARGIN,
@@ -37,6 +41,7 @@ export class BattleScene extends Phaser.Scene {
   private zoomIndex = ZOOM_DEFAULT_INDEX;
   private controller: GameController | null = null;
   private arrowKeysDown = new Set<string>();
+  private activeGridSize = GRID_SIZE;
 
   constructor() {
     super("BattleScene");
@@ -83,10 +88,69 @@ export class BattleScene extends Phaser.Scene {
 
     this.events.once("uiReady", () => {
       const uiScene = this.scene.get("BattleUIScene") as BattleUIScene;
-      this.startPlacementPhase(uiScene);
+      const sandboxConfig = parseSandboxQueryParams();
+      if (sandboxConfig) {
+        this.startSandboxMode(uiScene, sandboxConfig);
+      } else {
+        this.startPlacementPhase(uiScene);
+      }
     });
 
     this.scene.launch("BattleUIScene");
+  }
+
+  private startSandboxMode(uiScene: BattleUIScene, config: SandboxConfig): void {
+    this.activeGridSize = 6;
+    this.setupCameraBounds();
+
+    const isometricGrid = new IsometricGrid(this, 6);
+    isometricGrid.drawGrid();
+
+    const sprites = new Map<string, PokemonSprite>();
+    const directionPicker = new DirectionPicker(this);
+
+    const controller = new GameController(
+      this,
+      isometricGrid,
+      sprites,
+      uiScene.battleUI,
+      uiScene.actionMenu,
+      directionPicker,
+      uiScene.infoPanel,
+      uiScene.turnTimeline,
+      uiScene.placementRosterPanel,
+    );
+    this.controller = controller;
+    this.setupInput(controller, isometricGrid, uiScene);
+
+    const battleSetup = createSandboxBattle(config);
+    controller.setSetup(battleSetup);
+
+    const dummyPokemonId = `p2-${config.dummyPokemon}`;
+    const dummyAi = new DummyAiController(
+      battleSetup.engine,
+      dummyPokemonId,
+      config.dummyMove,
+      config.dummyDirection,
+    );
+
+    controller.onTurnReady = (activePokemonId: string) => {
+      if (activePokemonId === dummyPokemonId) {
+        dummyAi.playTurn();
+        return true;
+      }
+      return false;
+    };
+
+    for (const pokemon of battleSetup.state.pokemon.values()) {
+      if (pokemon.currentHp <= 0) continue;
+      const definition = battleSetup.pokemonDefinitions.get(pokemon.definitionId);
+      const types = definition?.types ?? ["normal"];
+      const sprite = new PokemonSprite(this, isometricGrid, pokemon, types);
+      sprites.set(pokemon.id, sprite);
+    }
+
+    controller.refreshUI();
   }
 
   private startPlacementPhase(uiScene: BattleUIScene): void {
@@ -276,10 +340,10 @@ export class BattleScene extends Phaser.Scene {
 
   private setupCameraBounds(): void {
     const offsetX = CANVAS_WIDTH / 2;
-    const offsetY = CANVAS_HEIGHT / 2 - (GRID_SIZE * TILE_HEIGHT) / 2;
+    const offsetY = CANVAS_HEIGHT / 2 - (this.activeGridSize * TILE_HEIGHT) / 2;
 
-    const gridWorldWidth = GRID_SIZE * TILE_WIDTH;
-    const gridWorldHeight = GRID_SIZE * TILE_HEIGHT;
+    const gridWorldWidth = this.activeGridSize * TILE_WIDTH;
+    const gridWorldHeight = this.activeGridSize * TILE_HEIGHT;
 
     const boundsX = offsetX - gridWorldWidth / 2 - CAMERA_BOUNDS_MARGIN;
     const boundsY = offsetY - CAMERA_BOUNDS_MARGIN;

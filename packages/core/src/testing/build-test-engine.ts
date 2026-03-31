@@ -75,6 +75,8 @@ export function buildTestEngineFromPlacements(
       orientation: placement.direction,
       moveIds: [...definition.movepool],
       currentPp,
+      activeDefense: null,
+      lastEndureRound: null,
     };
 
     pokemonMap.set(instance.id, instance);

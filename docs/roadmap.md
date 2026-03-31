@@ -51,13 +51,15 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Direction de fin de tour (orientation choisie avant EndTurn)
 - [x] Nouveaux patterns core : `slash` (arc frontal 3 cases) et `blast` (projectile + explosion circulaire) — voir `docs/reflexion-patterns-attaques.md` et décisions #108-109
 - [x] Mettre à jour `tactical.ts` avec les 7 changements de pattern effectifs (décision #110) — Ball'Ombre absente du roster actuel
-- [ ] Plus de moves stat changes (Épée Danse, Groz'Yeux, Abri, etc.)
+- [ ] **Mode Sandbox** (`?sandbox`) : 1 Pokemon joueur vs 1 Dummy configurable sur micro-carte 6x6, panels collapsibles, query params (décisions #138-139)
+- [ ] 8 moves défensifs : Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité (décisions #141-146) + tests d'intégration scénario Gherkin (décision #140)
+- [ ] Plus de moves stat changes (Épée Danse, Groz'Yeux, etc.)
 - [ ] Plus de moves AoE variés (utiliser les patterns existants avec plus de diversité)
 - [ ] Plus de moves avec portées variées (mêlée, 2-3 tiles, globale)
 - [ ] Statuts volatils : confusion (chance de se frapper soi-même)
 - [ ] Poison grave (dégâts croissants)
 - [x] Plusieurs Pokemon par équipe : format 6v6 implémenté (plan 013)
-- [ ] Roster élargi (~8-12 Pokemon) — **12 Pokemon implémentés, movesets en attente de review humain**
+- [ ] Roster élargi (~8-12 Pokemon) — **12 Pokemon implémentés, movesets en attente de review humain** — reporté après sandbox (décision #139)
 - [x] Stats niveau 50 : fonction `computeStatAtLevel` pour calculer HP et stats réelles au niveau 50 (plan 015)
 - [ ] Système de replay (log d'actions déterministe, seed + rejeu)
 

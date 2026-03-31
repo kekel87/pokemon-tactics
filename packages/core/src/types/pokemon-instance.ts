@@ -1,6 +1,7 @@
 import type { Direction } from "../enums/direction";
 import type { PlayerId } from "../enums/player-id";
 import type { StatName } from "../enums/stat-name";
+import type { ActiveDefense } from "./active-defense";
 import type { BaseStats } from "./base-stats";
 import type { DerivedStats } from "./derived-stats";
 import type { Position } from "./position";
@@ -22,4 +23,6 @@ export interface PokemonInstance {
   orientation: Direction;
   moveIds: string[];
   currentPp: Record<string, number>;
+  activeDefense: ActiveDefense | null;
+  lastEndureRound: number | null;
 }
