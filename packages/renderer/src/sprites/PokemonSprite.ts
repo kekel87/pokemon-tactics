@@ -4,10 +4,12 @@ import {
   DAMAGE_ESTIMATE_COLOR_POSSIBLE,
   DAMAGE_ESTIMATE_IMMUNE_COLOR,
   DAMAGE_ESTIMATE_TEXT_COLOR,
-  DAMAGE_ESTIMATE_TEXT_OFFSET_Y,
   DAMAGE_ESTIMATE_TEXT_SIZE,
   DAMAGE_ESTIMATE_TEXT_STROKE_COLOR,
   DAMAGE_ESTIMATE_TEXT_STROKE_WIDTH,
+  TILE_WIDTH,
+  TILE_HEIGHT,
+  POKEMON_SPRITE_GROUND_OFFSET_Y,
   DAMAGE_FLASH_ALPHA,
   DAMAGE_FLASH_DURATION_MS,
   DAMAGE_FLASH_REPEAT,
@@ -27,7 +29,6 @@ import {
   POKEMON_SPRITE_BORDER_WIDTH,
   POKEMON_SPRITE_RADIUS,
   DEPTH_POKEMON_BASE,
-  POKEMON_SPRITE_OFFSET_Y,
   POKEMON_SPRITE_SCALE,
   PULSE_DURATION_MS,
   PULSE_MAX_SCALE,
@@ -38,7 +39,7 @@ import {
   TYPE_COLORS,
 } from "../constants";
 import type { IsometricGrid } from "../grid/IsometricGrid";
-import { getAnimationKey } from "./SpriteLoader";
+import { type SpriteOffsets, getAnimationKey, getSpriteOffsets } from "./SpriteLoader";
 
 const CORE_TO_PMD_DIRECTION: Record<Direction, string> = {
   [Direction.South]: "SouthWest",
@@ -67,6 +68,9 @@ export class PokemonSprite {
   private damageEstimateGraphics: Phaser.GameObjects.Graphics | null = null;
   private damageEstimateText: Phaser.GameObjects.Text | null = null;
   private maxHp = 0;
+  private readonly spriteOffsets: SpriteOffsets;
+  private readonly uiOffsetY: number;
+  private shadowGraphics: Phaser.GameObjects.Graphics | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -82,8 +86,14 @@ export class PokemonSprite {
     this.definitionId = pokemon.definitionId;
     this.currentDirection = CORE_TO_PMD_DIRECTION[pokemon.orientation] ?? "South";
     this.currentAnimation = "Idle";
+    this.spriteOffsets = getSpriteOffsets(scene, this.definitionId);
+    this.uiOffsetY = this.spriteOffsets.headOffsetY * POKEMON_SPRITE_SCALE - 26;
 
     const children: Phaser.GameObjects.GameObject[] = [];
+
+    this.shadowGraphics = scene.add.graphics();
+    this.drawShadow();
+    children.push(this.shadowGraphics);
 
     const texture = scene.textures.get(this.definitionId);
     this.usesAtlas = texture.key !== "__MISSING";
@@ -114,7 +124,7 @@ export class PokemonSprite {
 
   updatePosition(gridX: number, gridY: number): void {
     const screen = this.isometricGrid.gridToScreen(gridX, gridY);
-    this.container.setPosition(screen.x, screen.y + POKEMON_SPRITE_OFFSET_Y);
+    this.container.setPosition(screen.x, screen.y + POKEMON_SPRITE_GROUND_OFFSET_Y);
     this.container.setDepth(DEPTH_POKEMON_BASE + gridX + gridY);
   }
 
@@ -161,7 +171,7 @@ export class PokemonSprite {
       return;
     }
 
-    const offsetY = this.usesAtlas ? -32 : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
+    const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
     this.statusIcon = this.scene.add.image(HP_BAR_WIDTH / 2 + STATUS_SPRITE_ICON_OFFSET_X, offsetY + HP_BAR_HEIGHT / 2, newKey);
     this.statusIcon.setScale(STATUS_SPRITE_ICON_SCALE);
     this.container.add(this.statusIcon);
@@ -246,12 +256,25 @@ export class PokemonSprite {
     return Promise.resolve();
   }
 
+  private drawShadow(): void {
+    if (!this.shadowGraphics) return;
+    this.shadowGraphics.clear();
+    const shadowWidth = TILE_WIDTH * 0.4;
+    const shadowHeight = TILE_HEIGHT * 0.3;
+    const shadowY = this.spriteOffsets.footOffsetY * POKEMON_SPRITE_SCALE;
+    this.shadowGraphics.fillStyle(0x000000, 0.35);
+    this.shadowGraphics.fillEllipse(0, shadowY, shadowWidth, shadowHeight);
+  }
+
   private darkenSprite(): void {
     if (this.sprite) {
       this.sprite.setTint(KO_TINT_COLOR);
     }
     if (this.circle) {
       this.circle.setAlpha(0.4);
+    }
+    if (this.shadowGraphics) {
+      this.shadowGraphics.setVisible(false);
     }
     this.hpBarBackground.setVisible(false);
     this.hpBarFill.setVisible(false);
@@ -263,7 +286,7 @@ export class PokemonSprite {
       this.scene.tweens.add({
         targets: this.container,
         x: screen.x,
-        y: screen.y + POKEMON_SPRITE_OFFSET_Y,
+        y: screen.y + POKEMON_SPRITE_GROUND_OFFSET_Y,
         duration: MOVE_TWEEN_DURATION_MS,
         onComplete: () => {
           this.container.setDepth(DEPTH_POKEMON_BASE + gridX + gridY);
@@ -300,7 +323,7 @@ export class PokemonSprite {
       return;
     }
 
-    const offsetY = this.usesAtlas ? -32 : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
+    const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
     const barX = -HP_BAR_WIDTH / 2;
     const innerWidth = HP_BAR_WIDTH - 2;
 
@@ -349,7 +372,7 @@ export class PokemonSprite {
     if (estimate.effectiveness === 0) {
       this.damageEstimateText = this.scene.add.text(
         this.container.x,
-        this.container.y + DAMAGE_ESTIMATE_TEXT_OFFSET_Y,
+        this.container.y + this.uiOffsetY - 10,
         "Immune",
         {
           fontSize: `${DAMAGE_ESTIMATE_TEXT_SIZE}px`,
@@ -371,7 +394,7 @@ export class PokemonSprite {
     const text = estimate.min === estimate.max ? `${estimate.min}` : `${estimate.min}-${estimate.max}`;
     this.damageEstimateText = this.scene.add.text(
       this.container.x,
-      this.container.y + DAMAGE_ESTIMATE_TEXT_OFFSET_Y,
+      this.container.y + this.uiOffsetY - 10,
       text,
       {
         fontSize: `${DAMAGE_ESTIMATE_TEXT_SIZE}px`,
@@ -440,7 +463,7 @@ export class PokemonSprite {
   }
 
   private drawHpBar(): void {
-    const offsetY = this.usesAtlas ? -32 : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
+    const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
     const barX = -HP_BAR_WIDTH / 2;
     const radius = 2;
 

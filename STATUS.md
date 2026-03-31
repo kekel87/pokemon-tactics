@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-31 (Plan 020 terminé — canvas responsive + zoom/pan caméra)
+> Dernière mise à jour : 2026-03-31 (Plan 021 terminé — sprite offsets PMDCollab + ombres sous sprites)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -224,9 +224,16 @@
   - Camera bounds limités à la grille + marge (`CAMERA_BOUNDS_MARGIN`)
   - Timeline portraits ajustés (42px inactif / 48px actif), Y=20, alignée à gauche avec InfoPanel (X=16)
   - `roundPixels` et `antialias` retirés de la config globale Phaser, filtre `NEAREST` appliqué par sprite via `texture.setFilter(Phaser.Textures.NEAREST)` (pixel art propre, texte non pixelisé)
-  - `POKEMON_SPRITE_OFFSET_Y` ajouté (à 0), sera utilisé en plan 021 avec Shadow.png PMDCollab
   - Annulé : agrandissement tiles (96x48) et sprite scale (2.5x) — on garde 64x32 et scale 2x, tout passe par la caméra
   - Test visuel complet : combat hot-seat OK, zoom/pan/recenter OK, 0 erreurs console
+
+- **Plan 021 terminé** — Sprite offsets corrects via Shadow.png/Offsets.png PMDCollab + ombres sous sprites :
+  - `scripts/extract-sprites.ts` : télécharge `Idle-Offsets.png`, parse les pixels marqueurs (pixel noir = tête, pixel vert = corps), lit `ShadowSize` depuis `AnimData.xml`, génère `offsets.json` par Pokemon
+  - `SpriteLoader.ts` : preload `offsets.json` par Pokemon, export `getSpriteOffsets()` avec interface `SpriteOffsets` et fallback si fichier absent
+  - `PokemonSprite.ts` : HP bar, icône statut et texte dégâts positionnés via `headOffsetY` (position réelle de la tête), ombre ellipse dessinée sous les pieds (`footOffsetY`), ombre masquée sur KO
+  - `constants.ts` : ajout `POKEMON_SPRITE_GROUND_OFFSET_Y = -4`, suppression de `POKEMON_SPRITE_OFFSET_Y` (remplacé par les offsets par Pokemon) et `DAMAGE_ESTIMATE_TEXT_OFFSET_Y` (absorbé)
+  - 12 `offsets.json` générés pour les Pokemon du roster
+  - **264 tests**, build OK
 
 - **Plan 018 terminé** — Status icons ZA + HP bar FFTIC + badges stat changes + sleep animation :
   - Script `scripts/download-status-icons.ts` : 14 assets PNG téléchargés (7 icônes 52x36 + 7 miniatures 172x36) dans `public/assets/ui/statuses/`
@@ -279,11 +286,6 @@
   - decisions.md : décision #122 ajoutée (niveau 50 sans IV/EV)
 
 ### Prochaine étape
-- **Plan 021** — Sprite offsets corrects via Shadow.png/Offsets.png PMDCollab :
-  - `Shadow.png` : pixel blanc = centre au sol du sprite, utilisé pour calculer `POKEMON_SPRITE_OFFSET_Y` par Pokemon
-  - `Offsets.png` : pixel vert = centre du corps, pixel noir = tête, utilisés pour positionner les icônes de statut
-  - Ombres sous les sprites (sprite Shadow.png ou cercle généré)
-  - Ombres sous les sprites (sprite Shadow.png ou cercle généré)
 - **Plan 022** — Refonte du turn order (timeline) : revoir taille/espacement pour que 12 Pokemon tiennent sans chevaucher l'InfoPanel
 - **i18n français/anglais** — Phase 2, source : pokemon-showdown-fr (noms moves, Pokemon, statuts, UI)
 - Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage) — décision #121

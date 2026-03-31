@@ -59,6 +59,14 @@ interface AtlasMetadata {
   >;
 }
 
+interface SpriteOffsets {
+  footOffsetY: number;
+  headOffsetY: number;
+  bodyOffsetY: number;
+  idleFrameHeight: number;
+  shadowSize: number;
+}
+
 const ALL_DIRECTION_NAMES = [
   "South",
   "SouthEast",
@@ -290,6 +298,63 @@ function buildAtlasJson(
   return { atlas, metadata: { animations: animationMetadata } };
 }
 
+function parseShadowSize(xmlContent: string): number {
+  const match = xmlContent.match(/<ShadowSize>(\d+)<\/ShadowSize>/);
+  return match ? Number(match[1]) : 1;
+}
+
+async function parseOffsetsFromSheet(
+  sheetBuffer: Buffer,
+  frameWidth: number,
+  frameHeight: number,
+  directionIndex: number,
+): Promise<{ headOffsetY: number; bodyOffsetY: number }> {
+  const centerY = Math.floor(frameHeight / 2);
+
+  const { data, info } = await sharp(sheetBuffer)
+    .extract({
+      left: 0,
+      top: directionIndex * frameHeight,
+      width: frameWidth,
+      height: frameHeight,
+    })
+    .raw()
+    .ensureAlpha()
+    .toBuffer({ resolveWithObject: true });
+
+  let headY = centerY;
+  let bodyY = centerY;
+  let foundHead = false;
+  let foundBody = false;
+
+  for (let y = 0; y < info.height; y++) {
+    for (let x = 0; x < info.width; x++) {
+      const idx = (y * info.width + x) * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+      const a = data[idx + 3];
+      if (a === 0) continue;
+
+      // BLACK pixel = head position
+      if (!foundHead && r < 30 && g < 30 && b < 30 && a >= 250) {
+        headY = y;
+        foundHead = true;
+      }
+      // GREEN pixel = body center
+      if (!foundBody && g >= 200 && r < 100 && b < 100 && a >= 250) {
+        bodyY = y;
+        foundBody = true;
+      }
+    }
+  }
+
+  return {
+    headOffsetY: headY - centerY,
+    bodyOffsetY: bodyY - centerY,
+  };
+}
+
 async function downloadPortrait(
   baseUrl: string,
   pokedexNumber: string,
@@ -371,6 +436,39 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
     }
   }
 
+  console.log("  Extracting sprite offsets...");
+  const idleAnim = requestedAnimations.find((a) => a.name === "Idle");
+  const shadowSize = parseShadowSize(animDataXml);
+  const footOffsetY = 4; // PMDCollab convention: WHITE pixel always at centerY + 4
+
+  const idleFrameHeight = idleAnim?.frameHeight ?? 40;
+  let spriteOffsets: SpriteOffsets = {
+    footOffsetY,
+    headOffsetY: -Math.floor(idleFrameHeight / 2),
+    bodyOffsetY: -Math.floor(idleFrameHeight / 4),
+    idleFrameHeight,
+    shadowSize,
+  };
+
+  if (idleAnim) {
+    const southWestIndex = ALL_DIRECTION_NAMES.indexOf("SouthWest");
+    try {
+      const offsetsSheet = await fetchBuffer(`${spriteBaseUrl}/Idle-Offsets.png`);
+      const offsets = await parseOffsetsFromSheet(
+        offsetsSheet,
+        idleAnim.frameWidth,
+        idleAnim.frameHeight,
+        southWestIndex,
+      );
+      spriteOffsets = { ...spriteOffsets, ...offsets, idleFrameHeight };
+      console.log(
+        `  Offsets: head=${offsets.headOffsetY}, body=${offsets.bodyOffsetY}, shadow=${shadowSize}`,
+      );
+    } catch {
+      console.warn("  Warning: Could not download Idle-Offsets.png, using defaults");
+    }
+  }
+
   console.log("  Downloading credits...");
   let credits = "";
   try {
@@ -392,6 +490,8 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
   if (credits) {
     writeFileSync(join(outputPath, "credits.txt"), credits);
   }
+
+  writeFileSync(join(outputPath, "offsets.json"), JSON.stringify(spriteOffsets, null, 2));
 
   console.log(
     `  Done! Atlas: ${atlasWidth}x${atlasHeight}, ${allFrames.length} frames, ${portraitBuffers.length} portrait(s)`,
