@@ -1,3 +1,4 @@
+import type { DefensiveKind } from "../enums/defensive-kind";
 import type { EffectKind } from "../enums/effect-kind";
 import type { EffectTarget } from "../enums/effect-target";
 import type { LinkType } from "../enums/link-type";
@@ -19,4 +20,8 @@ export type Effect =
       duration: number | null;
       maxRange: number;
       drainFraction: number;
+    }
+  | {
+      kind: typeof EffectKind.Defensive;
+      defenseKind: DefensiveKind;
     };

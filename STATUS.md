@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-31 (Plan 022 terminé — refonte timeline turn order)
+> Dernière mise à jour : 2026-03-31 (Session design — mode sandbox, 8 moves défensifs, tests intégration moves)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -293,8 +293,10 @@
   - **266 tests unitaires + 53 intégration**, build OK, 0 régressions
 
 ### Prochaine étape (Phase 1 Core)
+- **Mode Sandbox** (`?sandbox`) — 1 Pokemon joueur vs 1 Dummy configurable sur micro-carte 6x6, prioritaire avant l'élargissement roster (décisions #138-139)
+- **8 moves défensifs** — Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité (décisions #141-146) avec tests d'intégration scénario Gherkin (décision #140)
 - Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage) — décision #121
-- **Plus de moves** stat changes (Épée Danse, Groz'Yeux, Abri) et AoE variés — diversité tactique
+- **Plus de moves** stat changes (Épée Danse, Groz'Yeux) et AoE variés — diversité tactique
 - Statuts volatils : confusion (chance de se frapper soi-même)
 - Système de replay (log d'actions déterministe, seed + rejeu)
 

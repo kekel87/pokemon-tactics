@@ -71,6 +71,8 @@ function createPokemonInstance(
     orientation,
     moveIds: [...definition.movepool],
     currentPp,
+    activeDefense: null,
+    lastEndureRound: null,
   };
 }
 

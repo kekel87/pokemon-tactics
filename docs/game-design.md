@@ -262,7 +262,32 @@ Le Pokemon **se déplace en ligne droite** sur X tiles et frappe le premier enne
 
 ---
 
-## 7d. Vampigraine — mécanique spéciale (lien à distance)
+## 7d. Moves défensifs (décidés — à implémenter en Phase 1)
+
+Huit moves défensifs adaptés au contexte tactique.
+
+**Règle générale de durée** : un move défensif actif dure "jusqu'au prochain tour du lanceur". Exception : Prévention est consommé au premier coup reçu. Si le lanceur est KO pendant que l'effet est actif, l'effet disparaît immédiatement.
+
+| Move | Effet | Notes d'adaptation |
+|------|-------|-------------------|
+| **Abri** / Protect | Bloque les attaques de face et de côtés. | Directionnel (dos vulnérable). Pas de spam penalty. |
+| **Détection** / Detect | Clone d'Abri, même effet. | Distribution roster différente. |
+| **Garde Large** / Wide Guard | Bloque les AoE dans un rayon de 2 tiles, protège les alliés dans ce rayon. | Portée localisée (adapté grille). Disparaît si KO. |
+| **Prévention** / Quick Guard | Bloque la prochaine attaque reçue (toute direction). Consommé en 1 coup. | Repurposé : omnidirectionnel mais à 1 usage. |
+| **Riposte** / Counter | Prend les dégâts d'attaques au contact, renvoie x2. Actif toute la durée. | Contact uniquement. Pas de renvoi si KO. |
+| **Voile Miroir** / Mirror Coat | Prend les dégâts d'attaques à distance, renvoie x2. Actif toute la durée. | Distance uniquement. Pas de renvoi si KO. |
+| **Fulmifer** / Metal Burst | Prend les dégâts (contact ou distance), renvoie x1.5. Actif toute la durée. | Universel, multiplicateur plus faible. Pas de renvoi si KO. |
+| **Ténacité** / Endure | Ne peut pas tomber en dessous de 1 PV. | Spam penalty (pas 2 tours de suite). Ne bloque PAS statut/terrain/chute. |
+
+**Différences notables avec le jeu Pokemon de base :**
+- Abri/Détection sont directionnels — le dos reste exposé
+- Abri/Détection n'ont pas de spam penalty (la contrainte directionnelle suffit)
+- Prévention est repurposée : bloque 1 coup (toute direction) au lieu de bloquer les moves prioritaires
+- Garde Large est localisée à un rayon de 2 tiles au lieu de protéger toute l'équipe
+
+---
+
+## 7e. Vampigraine — mécanique spéciale (lien à distance)
 
 Vampigraine plante une graine sur la cible qui **draine des PV chaque tour et les rend au lanceur**.
 

@@ -67,6 +67,8 @@ export abstract class MockBattle {
     orientation: Direction.South,
     moveIds: [],
     currentPp: {},
+    activeDefense: null,
+    lastEndureRound: null,
   };
 
   static readonly player2Slow: PokemonInstance = {
@@ -85,6 +87,8 @@ export abstract class MockBattle {
     orientation: Direction.South,
     moveIds: [],
     currentPp: {},
+    activeDefense: null,
+    lastEndureRound: null,
   };
 
   static readonly player1Medium: PokemonInstance = {
@@ -103,6 +107,8 @@ export abstract class MockBattle {
     orientation: Direction.South,
     moveIds: [],
     currentPp: {},
+    activeDefense: null,
+    lastEndureRound: null,
   };
 
   static readonly flatGrid5x5: TileState[][] = buildFlatGrid(5, 5);
