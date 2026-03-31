@@ -35,7 +35,7 @@ export const POKEMON_SPRITE_RADIUS = 12;
 export const POKEMON_SPRITE_BORDER_WIDTH = 2;
 export const POKEMON_SPRITE_BORDER_ALPHA = 0.6;
 export const POKEMON_SPRITE_SCALE = 2;
-export const POKEMON_SPRITE_OFFSET_Y = 0;
+export const POKEMON_SPRITE_GROUND_OFFSET_Y = -4;
 export const PORTRAIT_SIZE = 40;
 export const DAMAGE_FLASH_ALPHA = 0.3;
 
@@ -194,7 +194,6 @@ export const DAMAGE_ESTIMATE_TEXT_SIZE = 13;
 export const DAMAGE_ESTIMATE_TEXT_COLOR = "#ffffff";
 export const DAMAGE_ESTIMATE_TEXT_STROKE_COLOR = "#000000";
 export const DAMAGE_ESTIMATE_TEXT_STROKE_WIDTH = 3;
-export const DAMAGE_ESTIMATE_TEXT_OFFSET_Y = -42;
 export const DAMAGE_ESTIMATE_IMMUNE_COLOR = "#888888";
 
 export const STAT_BADGE_BUFF_BG = 0x1a4a8a;

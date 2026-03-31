@@ -33,3 +33,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 018 | [Status icons ZA + HP bar FFTIC + badges stat changes + sleep animation](./018-status-icons-hp-bar-sleep-anim.md) | done | 2026-03-30 |
 | 019 | [Preview dégâts estimés avec random roll](./019-damage-estimate-preview.md) | done | 2026-03-30 |
 | 020 | [Canvas responsive, proportions agrandies et camera zoom/pan](./020-responsive-scaling-camera.md) | done | 2026-03-30 |
+| 021 | [Sprite offsets corrects via Shadow.png/Offsets.png PMDCollab + ombres sous sprites](./021-sprite-offsets-shadows.md) | done | 2026-03-31 |

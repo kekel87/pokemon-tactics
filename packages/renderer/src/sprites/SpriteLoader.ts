@@ -14,6 +14,16 @@ interface AtlasMeta {
   directions: string[];
 }
 
+export interface SpriteOffsets {
+  footOffsetY: number;
+  headOffsetY: number;
+}
+
+const DEFAULT_SPRITE_OFFSETS: SpriteOffsets = {
+  footOffsetY: 4,
+  headOffsetY: 0,
+};
+
 const TICK_DURATION_MS = 33;
 
 export function preloadPokemonAssets(
@@ -26,6 +36,7 @@ export function preloadPokemonAssets(
     const basePath = `${SPRITE_BASE_PATH}/${definitionId}`;
     scene.load.atlas(definitionId, `${basePath}/atlas.png`, `${basePath}/atlas.json`);
     scene.load.image(`${definitionId}-portrait`, `${basePath}/portrait-normal.png`);
+    scene.load.json(`${definitionId}-offsets`, `${basePath}/offsets.json`);
   }
 }
 
@@ -84,6 +95,11 @@ export function getAnimationKey(
   direction: string,
 ): string {
   return `${definitionId}-${animation}-${direction}`;
+}
+
+export function getSpriteOffsets(scene: Phaser.Scene, definitionId: string): SpriteOffsets {
+  const data = scene.cache.json.get(`${definitionId}-offsets`) as SpriteOffsets | undefined;
+  return data ?? DEFAULT_SPRITE_OFFSETS;
 }
 
 export function getPortraitKey(definitionId: string): string {

@@ -95,11 +95,11 @@ pokemon-tactics/
 │   │   │   ├── utils/           # Utilitaires renderer (screen-direction : getDirectionFromScreenPosition)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
 │   │   │   ├── types/           # Types renderer (BattleConfig : confirmAttack)
-│   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI, POKEMON_SPRITE_SCALE, DEPTH_GRID_PREVIEW, TILE_PREVIEW_COLOR, STATUS_ICON_KEY, HP_COLOR_MEDIUM, STAT_BADGE_BUFF_COLOR, STAT_BADGE_DEBUFF_COLOR
+│   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI, POKEMON_SPRITE_SCALE, POKEMON_SPRITE_GROUND_OFFSET_Y, DEPTH_GRID_PREVIEW, TILE_PREVIEW_COLOR, STATUS_ICON_KEY, HP_COLOR_MEDIUM, STAT_BADGE_BUFF_COLOR, STAT_BADGE_DEBUFF_COLOR
 │   │   │   └── main.ts
 │   │   ├── public/
 │   │   │   └── assets/
-│   │   │       ├── sprites/pokemon/{name}/  # atlas.json, atlas.png, portrait-normal.png, credits.txt (générés)
+│   │   │       ├── sprites/pokemon/{name}/  # atlas.json, atlas.png, portrait-normal.png, credits.txt, offsets.json (générés)
 │   │   │       └── ui/
 │   │   │           ├── arrows.png           # Spritesheet flèches DirectionPicker
 │   │   │           ├── types/               # Type icons Pokepedia ZA (Légendes Pokémon Z-A) : {type}.png, 36x36px sans texte (18 types)
@@ -365,24 +365,26 @@ Les sprites sont extraits depuis [PMDCollab/SpriteCollab](https://github.com/PMD
 
 ```
 PMDCollab GitHub (raw)
-  └── AnimData.xml + {Anim}-Anim.png + PortraitSheet.png + credits.txt
+  └── AnimData.xml + {Anim}-Anim.png + Idle-Offsets.png + PortraitSheet.png + credits.txt
         │  (téléchargement + parse fast-xml-parser)
         ▼
 scripts/extract-sprites.ts  ←  scripts/sprite-config.json
-        │  (découpe frames via sharp, génère atlas)
+        │  (découpe frames via sharp, génère atlas, parse pixels offsets)
         ▼
 packages/renderer/public/assets/sprites/pokemon/{name}/
   ├── atlas.json          # Phaser atlas descriptor (frames + metadata)
   ├── atlas.png           # Spritesheet combiné (toutes anims + directions)
   ├── portrait-normal.png # Portrait 40x40 (émotion Normal)
+  ├── offsets.json        # Offsets par Pokemon : shadowOffsetY, bodyOffset, headOffset (générés)
   └── credits.txt         # Attribution artiste (CC BY-NC 4.0)
 ```
 
 **Clés d'animation Phaser** : `{pokemonId}-{anim}-{direction}` (ex : `bulbasaur-idle-south`)
 
 **SpriteLoader** (`packages/renderer/src/sprites/SpriteLoader.ts`) :
-- `preloadPokemonAssets(scene, pokemonIds[])` — charge atlas + portrait au preload
+- `preloadPokemonAssets(scene, pokemonIds[])` — charge atlas + portrait + `offsets.json` au preload
 - `createAnimations(scene, pokemonId)` — enregistre les animations Phaser depuis les metadata d'atlas
+- `getSpriteOffsets(scene, definitionId)` — retourne `SpriteOffsets` depuis le cache JSON, avec fallback sur valeurs par défaut si absent
 
 **PokemonSprite** utilise les animations (Idle, Walk, Attack, Hurt, Faint) avec fallback sur cercle coloré si atlas absent.
 

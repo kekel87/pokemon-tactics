@@ -22,7 +22,7 @@
 - [x] 9 targeting patterns (single, self, cone, cross, line, dash, zone, slash, blast)
 - [x] Friendly fire actif
 - [x] Type chart 18x18
-- [x] Tests unitaires pour chaque mécanique (316 tests unitaires, 100% coverage)
+- [x] Tests unitaires pour chaque mécanique (264 tests unitaires, 100% coverage)
 
 ### Renderer
 - [x] Grille isométrique 2D avec Phaser 4
@@ -115,7 +115,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Canvas responsive FIT (Phaser.Scale.FIT, CSS 100vw/100vh) — plan 020
 - [x] Zoom 3 niveaux discrets (close-up 2.0x / medium 1.3x / overview 0.85x), molette + touches +/- — plan 020
 - [x] Pan caméra aux bords de l'écran (50px threshold, 6px/frame) + suivi automatique du Pokemon actif (camera.pan fluide) — plan 020
-- [ ] Sprite offsets corrects via Shadow.png PMDCollab (pixel blanc = centre au sol → `POKEMON_SPRITE_OFFSET_Y` par Pokemon) + Offsets.png (pixel vert = corps, noir = tête → positions icônes statut) + ombres sous sprites — plan 021
+- [x] Sprite offsets corrects via Shadow.png PMDCollab (`Idle-Offsets.png` : pixel noir = tête, pixel vert = corps, `ShadowSize` XML → `offsets.json` par Pokemon) + ombres ellipse sous sprites — plan 021
 - [ ] Refonte turn order (timeline) : taille/espacement pour 12 Pokemon, pas de chevauchement avec InfoPanel — plan 022
 - [ ] Hot-seat jusqu'à 12 joueurs
 - [ ] Menu principal (combat rapide + entrée aventure désactivée)
