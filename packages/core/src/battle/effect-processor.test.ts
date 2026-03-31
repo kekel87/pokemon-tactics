@@ -106,6 +106,7 @@ function makeContext(
     turnOrder: [],
     currentTurnIndex: 0,
     roundNumber: 1,
+    predictedNextRoundOrder: [],
     ...state,
   };
   return {
@@ -246,6 +247,7 @@ describe("processEffects — status", () => {
         turnOrder: [],
         currentTurnIndex: 0,
         roundNumber: 1,
+        predictedNextRoundOrder: [],
       } as BattleState,
       typeChart: immuneChart,
       attackerTypes: [PokemonType.Electric] as PokemonType[],

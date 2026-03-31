@@ -16,6 +16,10 @@ import {
   TIMELINE_BORDER_WIDTH,
   TIMELINE_ENTRY_SIZE,
   TIMELINE_ENTRY_SPACING,
+  TIMELINE_PAST_ENTRY_ALPHA,
+  TIMELINE_SEPARATOR_ALPHA,
+  TIMELINE_SEPARATOR_COLOR,
+  TIMELINE_SEPARATOR_LINE_HEIGHT,
   TIMELINE_X,
   TIMELINE_Y,
   TYPE_COLORS,
@@ -25,7 +29,7 @@ import { getPortraitKey } from "../sprites/SpriteLoader";
 export class TurnTimeline {
   private readonly scene: Phaser.Scene;
   private readonly container: Phaser.GameObjects.Container;
-  private entries: Phaser.GameObjects.Container[] = [];
+  private entries: Phaser.GameObjects.GameObject[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -39,41 +43,57 @@ export class TurnTimeline {
   ): void {
     this.clearEntries();
 
+    const turnOrder = state.turnOrder;
+    const currentIndex = state.currentTurnIndex;
+
+    const activePokemonId = turnOrder[currentIndex];
+    const remainingIds = turnOrder.slice(currentIndex + 1);
+
+    const alreadyActedSet = new Set<string>();
+    for (let i = 0; i < currentIndex; i++) {
+      const id = turnOrder[i];
+      if (id) {
+        alreadyActedSet.add(id);
+      }
+    }
+
+    const nextRoundForActed = state.predictedNextRoundOrder.filter((id) =>
+      alreadyActedSet.has(id),
+    );
+
     let y = 0;
 
-    for (let i = 0; i < state.turnOrder.length; i++) {
-      const pokemonId = state.turnOrder[i];
-      if (!pokemonId) {
-        continue;
+    if (activePokemonId) {
+      const pokemon = state.pokemon.get(activePokemonId);
+      if (pokemon && pokemon.currentHp > 0) {
+        y = this.renderEntry(y, pokemon, pokemonDefinitions, true, 1.0);
       }
+    }
 
+    for (const pokemonId of remainingIds) {
       const pokemon = state.pokemon.get(pokemonId);
       if (!pokemon || pokemon.currentHp <= 0) {
         continue;
       }
+      y = this.renderEntry(y, pokemon, pokemonDefinitions, false, 1.0);
+    }
 
-      const isActive = i === state.currentTurnIndex;
-      const definition = pokemonDefinitions.get(pokemon.definitionId);
-      const primaryType = definition?.types[0] ?? "normal";
-      const typeColor = TYPE_COLORS[primaryType] ?? 0xa0a0a0;
-      const teamColor =
-        pokemon.playerId === PlayerId.Player1
-          ? TEAM_COLOR_PLAYER_1
-          : TEAM_COLOR_PLAYER_2;
+    if (nextRoundForActed.length > 0) {
+      y = this.renderSeparator(y, state.roundNumber + 1);
 
-      const entry = this.createEntry(
-        y,
-        typeColor,
-        teamColor,
-        isActive,
-        pokemon.definitionId,
-        pokemon,
-      );
-      this.container.add(entry);
-      this.entries.push(entry);
-
-      const entrySize = isActive ? TIMELINE_ACTIVE_SIZE : TIMELINE_ENTRY_SIZE;
-      y += entrySize + TIMELINE_ENTRY_SPACING;
+      for (const pokemonId of nextRoundForActed) {
+        const pokemon = state.pokemon.get(pokemonId);
+        if (!pokemon || pokemon.currentHp <= 0) {
+          continue;
+        }
+        y = this.renderEntry(
+          y,
+          pokemon,
+          pokemonDefinitions,
+          false,
+          TIMELINE_PAST_ENTRY_ALPHA,
+        );
+      }
     }
   }
 
@@ -82,24 +102,31 @@ export class TurnTimeline {
     this.container.destroy();
   }
 
-  private createEntry(
+  private renderEntry(
     y: number,
-    typeColor: number,
-    teamColor: number,
-    isActive: boolean,
-    definitionId: string,
     pokemon: PokemonInstance,
-  ): Phaser.GameObjects.Container {
+    pokemonDefinitions: Map<string, PokemonDefinition>,
+    isActive: boolean,
+    alpha: number,
+  ): number {
     const size = isActive ? TIMELINE_ACTIVE_SIZE : TIMELINE_ENTRY_SIZE;
     const half = size / 2;
     const children: Phaser.GameObjects.GameObject[] = [];
+
+    const definition = pokemonDefinitions.get(pokemon.definitionId);
+    const primaryType = definition?.types[0] ?? "normal";
+    const typeColor = TYPE_COLORS[primaryType] ?? 0xa0a0a0;
+    const teamColor =
+      pokemon.playerId === PlayerId.Player1
+        ? TEAM_COLOR_PLAYER_1
+        : TEAM_COLOR_PLAYER_2;
 
     const background = this.scene.add.graphics();
     background.fillStyle(0x111122, 0.8);
     background.fillRoundedRect(-half, -half, size, size, 4);
     children.push(background);
 
-    const portraitKey = getPortraitKey(definitionId);
+    const portraitKey = getPortraitKey(pokemon.definitionId);
     const texture = this.scene.textures.get(portraitKey);
     const hasPortrait = texture.key !== "__MISSING";
 
@@ -133,7 +160,37 @@ export class TurnTimeline {
       }
     }
 
-    return this.scene.add.container(half, y + half, children);
+    const entry = this.scene.add.container(half, y + half, children);
+    entry.setAlpha(alpha);
+    this.container.add(entry);
+    this.entries.push(entry);
+
+    return y + size + TIMELINE_ENTRY_SPACING;
+  }
+
+  private renderSeparator(y: number, roundNumber: number): number {
+    const centerX = TIMELINE_ENTRY_SIZE / 2;
+    const lineY = y + TIMELINE_SEPARATOR_LINE_HEIGHT / 2;
+
+    const line = this.scene.add.graphics();
+    line.lineStyle(5, TIMELINE_ACTIVE_BORDER_COLOR, 0.5);
+    line.lineBetween(0, lineY, TIMELINE_ENTRY_SIZE, lineY);
+    this.container.add(line);
+    this.entries.push(line);
+
+    const label = this.scene.add.text(centerX, lineY, `${roundNumber}`, {
+      fontSize: "13px",
+      color: "#ffdd44",
+      fontFamily: "monospace",
+      fontStyle: "bold",
+      backgroundColor: "#1a1a2e",
+      padding: { x: 4, y: 1 },
+    });
+    label.setOrigin(0.5, 0.5);
+    this.container.add(label);
+    this.entries.push(label);
+
+    return lineY + TIMELINE_SEPARATOR_LINE_HEIGHT / 2 + TIMELINE_ENTRY_SPACING;
   }
 
   private createStatusIcon(

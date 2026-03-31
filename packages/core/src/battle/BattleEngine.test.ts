@@ -39,6 +39,24 @@ describe("BattleEngine", () => {
     expect(gameState.currentTurnIndex).toBe(0);
   });
 
+  it("computes predictedNextRoundOrder sorted by effective initiative", () => {
+    const state = MockBattle.stateFrom([fresh(P2), fresh(P1)]);
+    const engine = new BattleEngine(state, new Map());
+
+    const gameState = engine.getGameState(PlayerId.Player1);
+    expect(gameState.predictedNextRoundOrder).toEqual(["fast", "slow"]);
+  });
+
+  it("excludes KO pokemon from predictedNextRoundOrder", () => {
+    const p1 = fresh(P1);
+    const p2 = fresh(P2, { currentHp: 0 });
+    const state = MockBattle.stateFrom([p1, p2]);
+    const engine = new BattleEngine(state, new Map());
+
+    const gameState = engine.getGameState(PlayerId.Player1);
+    expect(gameState.predictedNextRoundOrder).toEqual(["fast"]);
+  });
+
   it("notifies event handlers via on()", () => {
     const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
     const engine = new BattleEngine(state, new Map());

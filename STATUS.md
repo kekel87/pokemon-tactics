@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-31 (Plan 021 terminé — sprite offsets PMDCollab + ombres sous sprites)
+> Dernière mise à jour : 2026-03-31 (Plan 022 terminé — refonte timeline turn order)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -285,11 +285,18 @@
   - game-design.md, docs/roadmap.md, docs/references.md, README.md mis à jour par doc-keeper
   - decisions.md : décision #122 ajoutée (niveau 50 sans IV/EV)
 
-### Prochaine étape
-- **Plan 022** — Refonte du turn order (timeline) : revoir taille/espacement pour que 12 Pokemon tiennent sans chevaucher l'InfoPanel
-- **i18n français/anglais** — Phase 2, source : pokemon-showdown-fr (noms moves, Pokemon, statuts, UI)
+- **Plan 022 terminé** — Refonte timeline turn order :
+  - Core : `predictedNextRoundOrder: string[]` ajouté à `BattleState`, calculé dans `syncTurnState()` (tri par initiative décroissante, tie-break par ID)
+  - Renderer : `TurnTimeline.update()` réécrit — section haute (actif + restants ce round), séparateur `══ N ══` (numéro du prochain round, uniquement si au moins 1 Pokemon a déjà joué), section basse (déjà passés en alpha 0.55 dans l'ordre prédit)
+  - Tailles réduites : 36px inactif, 42px actif, espacement 3px — 12 Pokemon + séparateur sans chevauchement InfoPanel
+  - Pokemon KO retirés de la timeline
+  - **266 tests unitaires + 53 intégration**, build OK, 0 régressions
+
+### Prochaine étape (Phase 1 Core)
 - Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage) — décision #121
-- **Plus de moves** stat changes (Épée Danse, Groz'Yeux, Abri) et AoE variés — Phase 1 Core
+- **Plus de moves** stat changes (Épée Danse, Groz'Yeux, Abri) et AoE variés — diversité tactique
+- Statuts volatils : confusion (chance de se frapper soi-même)
+- Système de replay (log d'actions déterministe, seed + rejeu)
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type
@@ -300,9 +307,8 @@
 - Tests : comportement uniquement, const enums (pas de string literals)
 - Coverage 100% sur le core (threshold bloquant)
 
-### Questions ouvertes (non bloquantes pour le POC)
+### Questions ouvertes
 - Formules dérivées (Mouvement/Saut/Initiative depuis Vitesse+Poids) — Phase 1
 - Movesets POC : Bombe-Beurk trop forte, Salamèche trop faible (feedback game-designer) — Sludge Bomb inflige 112 dégâts sur Pidgey (40 HP), ratio 2.8x à surveiller
-- KO définitif avec corps bloquant (décision #24 révisée) — implémenté plan 011
 - Friendly fire fréquent avec IA random (pas de bug, comportement attendu mais à garder en tête pour l'équilibrage)
 - PP system : une IA sans filtre de cible gaspille ses PP — `getLegalActions` peut servir de garde-fou

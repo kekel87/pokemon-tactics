@@ -775,5 +775,18 @@ export class BattleEngine {
   private syncTurnState(): void {
     this.state.turnOrder = this.turnManager.getTurnOrder();
     this.state.currentTurnIndex = this.turnManager.getCurrentIndex();
+    this.state.predictedNextRoundOrder = this.computePredictedNextRoundOrder();
+  }
+
+  private computePredictedNextRoundOrder(): string[] {
+    const alivePokemon = this.getAlivePokemon();
+    const sorted = [...alivePokemon].sort((a, b) => {
+      const initiativeDiff = getEffectiveInitiative(b) - getEffectiveInitiative(a);
+      if (initiativeDiff !== 0) {
+        return initiativeDiff;
+      }
+      return a.id.localeCompare(b.id);
+    });
+    return sorted.map((pokemon) => pokemon.id);
   }
 }

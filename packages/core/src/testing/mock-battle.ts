@@ -133,6 +133,7 @@ export abstract class MockBattle {
       turnOrder: [],
       currentTurnIndex: 0,
       roundNumber: 1,
+      predictedNextRoundOrder: [],
     };
   }
 }

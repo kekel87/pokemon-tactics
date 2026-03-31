@@ -109,12 +109,16 @@ export const ACTION_MENU_CORNER_RADIUS = 4;
 
 export const TIMELINE_X = 16;
 export const TIMELINE_Y = 20;
-export const TIMELINE_ENTRY_SIZE = 42;
-export const TIMELINE_ENTRY_SPACING = 4;
-export const TIMELINE_ACTIVE_SIZE = 48;
+export const TIMELINE_ENTRY_SIZE = 36;
+export const TIMELINE_ENTRY_SPACING = 10;
+export const TIMELINE_ACTIVE_SIZE = 42;
 export const TIMELINE_ACTIVE_BORDER_COLOR = 0xffdd44;
 export const TIMELINE_BORDER_WIDTH = 2;
 export const TIMELINE_ACTIVE_BORDER_WIDTH = 3;
+export const TIMELINE_SEPARATOR_LINE_HEIGHT = 2;
+export const TIMELINE_SEPARATOR_COLOR = 0x888888;
+export const TIMELINE_SEPARATOR_ALPHA = 0.6;
+export const TIMELINE_PAST_ENTRY_ALPHA = 0.55;
 
 export const PULSE_MIN_SCALE = 1.0;
 export const PULSE_MAX_SCALE = 1.1;
