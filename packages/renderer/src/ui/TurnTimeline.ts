@@ -133,7 +133,7 @@ export class TurnTimeline {
       }
     }
 
-    return this.scene.add.container(0, y + half, children);
+    return this.scene.add.container(half, y + half, children);
   }
 
   private createStatusIcon(

@@ -112,7 +112,11 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [ ] Animations fluides (attaque par catégorie, déplacement par type)
 - [ ] Effets visuels isométriques (ombres, lumières, particules)
 - [ ] Rotation caméra 4 angles (style FFTA)
-- [ ] Zoom / caméra dynamique avec pan
+- [x] Canvas responsive FIT (Phaser.Scale.FIT, CSS 100vw/100vh) — plan 020
+- [x] Zoom 3 niveaux discrets (close-up 2.0x / medium 1.3x / overview 0.85x), molette + touches +/- — plan 020
+- [x] Pan caméra aux bords de l'écran (50px threshold, 6px/frame) + suivi automatique du Pokemon actif (camera.pan fluide) — plan 020
+- [ ] Sprite offsets corrects via Shadow.png PMDCollab (pixel blanc = centre au sol → `POKEMON_SPRITE_OFFSET_Y` par Pokemon) + Offsets.png (pixel vert = corps, noir = tête → positions icônes statut) + ombres sous sprites — plan 021
+- [ ] Refonte turn order (timeline) : taille/espacement pour 12 Pokemon, pas de chevauchement avec InfoPanel — plan 022
 - [ ] Hot-seat jusqu'à 12 joueurs
 - [ ] Menu principal (combat rapide + entrée aventure désactivée)
 - [ ] Son / Musique

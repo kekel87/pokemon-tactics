@@ -74,6 +74,7 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 - **Git** : ne jamais commit/push/add — l'humain gère le versioning. Lecture seule (status, diff, log)
 - **Infra** : ne jamais installer globalement ni modifier nvm/npm config — l'humain travaille sur d'autres projets en parallèle
 - **Changements structurels** : consulter l'humain AVANT de modifier tsconfig, module resolution, structure de dossiers, dépendances. Les bug fixes simples n'ont pas besoin d'approbation
+- **Mémoire Claude vs doc projet** : les recherches, comparatifs, décisions et contexte technique vont dans la doc du projet (plans/, docs/, decisions.md) — versionnée dans git, accessible partout. La mémoire Claude ne sert que pour les préférences personnelles de l'humain.
 
 ## Orchestration des agents
 

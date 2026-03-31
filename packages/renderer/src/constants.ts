@@ -35,6 +35,7 @@ export const POKEMON_SPRITE_RADIUS = 12;
 export const POKEMON_SPRITE_BORDER_WIDTH = 2;
 export const POKEMON_SPRITE_BORDER_ALPHA = 0.6;
 export const POKEMON_SPRITE_SCALE = 2;
+export const POKEMON_SPRITE_OFFSET_Y = 0;
 export const PORTRAIT_SIZE = 40;
 export const DAMAGE_FLASH_ALPHA = 0.3;
 
@@ -106,11 +107,11 @@ export const ACTION_MENU_HOVER_ALPHA = 0.6;
 export const ACTION_MENU_DISABLED_ALPHA = 0.4;
 export const ACTION_MENU_CORNER_RADIUS = 4;
 
-export const TIMELINE_X = 30;
-export const TIMELINE_Y = 80;
-export const TIMELINE_ENTRY_SIZE = 32;
-export const TIMELINE_ENTRY_SPACING = 6;
-export const TIMELINE_ACTIVE_SIZE = 40;
+export const TIMELINE_X = 16;
+export const TIMELINE_Y = 20;
+export const TIMELINE_ENTRY_SIZE = 42;
+export const TIMELINE_ENTRY_SPACING = 4;
+export const TIMELINE_ACTIVE_SIZE = 48;
 export const TIMELINE_ACTIVE_BORDER_COLOR = 0xffdd44;
 export const TIMELINE_BORDER_WIDTH = 2;
 export const TIMELINE_ACTIVE_BORDER_WIDTH = 3;
@@ -155,6 +156,16 @@ export const DEPTH_INFO_PANEL = 1100;
 export const DEPTH_ACTION_MENU = 1200;
 export const DEPTH_VICTORY_OVERLAY = 2000;
 export const DEPTH_VICTORY_CONTENT = 2001;
+
+const ZOOM_CLOSE = 2.0;
+const ZOOM_MEDIUM = 1.3;
+const ZOOM_OVERVIEW = 0.85;
+export const ZOOM_LEVELS = [ZOOM_OVERVIEW, ZOOM_MEDIUM, ZOOM_CLOSE] as const;
+export const ZOOM_DEFAULT_INDEX = 1;
+export const ZOOM_TWEEN_DURATION_MS = 300;
+
+export const ARROW_PAN_SPEED = 6;
+export const CAMERA_BOUNDS_MARGIN = 200;
 
 export const STATUS_ASSET_KEY: Partial<Record<string, string>> = {
   burned: "burned",
