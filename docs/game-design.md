@@ -437,6 +437,19 @@ Deux modes prévus :
 
 > Clavier/souris pour le POC. Manette en Phase 2-3.
 
+### Raccourcis clavier/souris
+
+| Entrée | Action |
+|--------|--------|
+| **Clic gauche** | Sélectionner tile / confirmer action |
+| **Survol souris** | Preview AoE, info panel du Pokemon survolé |
+| **Molette** | Zoom (3 niveaux : close-up 2.0x, medium 1.3x, overview 0.85x) |
+| **+** / **-** / **=** | Zoom in / out (clavier) |
+| **Pavé num +** / **-** | Zoom in / out (pavé numérique) |
+| **Flèches directionnelles** | Pan caméra (maintenir enfoncé) |
+| **Espace** | Recentrer la caméra sur le Pokemon actif |
+| **Echap** | Annuler / revenir au menu précédent |
+
 ---
 
 ## 16. Assets & Style visuel

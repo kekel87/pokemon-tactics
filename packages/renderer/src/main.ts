@@ -10,6 +10,10 @@ const config: Phaser.Types.Core.GameConfig = {
   backgroundColor: BACKGROUND_COLOR,
   parent: "game-container",
   scene: [BattleScene, BattleUIScene],
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+  },
 };
 
 new Phaser.Game(config);

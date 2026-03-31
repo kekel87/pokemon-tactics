@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-30 (Plan 019 terminé — preview dégâts estimés dans confirm_attack)
+> Dernière mise à jour : 2026-03-31 (Plan 020 terminé — canvas responsive + zoom/pan caméra)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -215,6 +215,19 @@
   - Caster exclu de la preview (cohérent avec les dégâts réels)
   - **316 tests** (263 → 316 avec intégration), 100% coverage maintenu
 
+- **Plan 020 terminé** — Canvas responsive + zoom/pan caméra :
+  - Canvas responsive FIT (`Phaser.Scale.FIT`, CSS `100vw/100vh`)
+  - Zoom 3 niveaux discrets : close-up 2.0x, medium 1.3x (défaut), overview 0.85x — molette + touches +/-/=
+  - Pan caméra via flèches clavier + `camera.pan()` fluide au début du tour
+  - Espace pour recentrer sur le Pokemon actif
+  - Edge pan (souris aux bords) supprimé — feedback utilisateur
+  - Camera bounds limités à la grille + marge (`CAMERA_BOUNDS_MARGIN`)
+  - Timeline portraits ajustés (42px inactif / 48px actif), Y=20, alignée à gauche avec InfoPanel (X=16)
+  - `roundPixels` et `antialias` retirés de la config globale Phaser, filtre `NEAREST` appliqué par sprite via `texture.setFilter(Phaser.Textures.NEAREST)` (pixel art propre, texte non pixelisé)
+  - `POKEMON_SPRITE_OFFSET_Y` ajouté (à 0), sera utilisé en plan 021 avec Shadow.png PMDCollab
+  - Annulé : agrandissement tiles (96x48) et sprite scale (2.5x) — on garde 64x32 et scale 2x, tout passe par la caméra
+  - Test visuel complet : combat hot-seat OK, zoom/pan/recenter OK, 0 erreurs console
+
 - **Plan 018 terminé** — Status icons ZA + HP bar FFTIC + badges stat changes + sleep animation :
   - Script `scripts/download-status-icons.ts` : 14 assets PNG téléchargés (7 icônes 52x36 + 7 miniatures 172x36) dans `public/assets/ui/statuses/`
   - `TurnTimeline` : icônes ZA remplacent les pastilles colorées (fallback cercle+lettre conservé si assets absents)
@@ -266,8 +279,13 @@
   - decisions.md : décision #122 ajoutée (niveau 50 sans IV/EV)
 
 ### Prochaine étape
+- **Plan 021** — Sprite offsets corrects via Shadow.png/Offsets.png PMDCollab :
+  - `Shadow.png` : pixel blanc = centre au sol du sprite, utilisé pour calculer `POKEMON_SPRITE_OFFSET_Y` par Pokemon
+  - `Offsets.png` : pixel vert = centre du corps, pixel noir = tête, utilisés pour positionner les icônes de statut
+  - Ombres sous les sprites (sprite Shadow.png ou cercle généré)
+  - Ombres sous les sprites (sprite Shadow.png ou cercle généré)
+- **Plan 022** — Refonte du turn order (timeline) : revoir taille/espacement pour que 12 Pokemon tiennent sans chevaucher l'InfoPanel
 - **i18n français/anglais** — Phase 2, source : pokemon-showdown-fr (noms moves, Pokemon, statuts, UI)
-- **Zoom / caméra dynamique avec pan** — Phase 4 (non bloquant, résolution fixe 1280x720 acceptable pour le POC)
 - Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage) — décision #121
 - **Plus de moves** stat changes (Épée Danse, Groz'Yeux, Abri) et AoE variés — Phase 1 Core
 

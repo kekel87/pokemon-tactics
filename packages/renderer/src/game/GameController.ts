@@ -349,7 +349,7 @@ export class GameController {
         activePokemon.position.x,
         activePokemon.position.y,
       );
-      this.scene.cameras.main.centerOn(screenPos.x, screenPos.y);
+      this.scene.cameras.main.pan(screenPos.x, screenPos.y, 400, "Sine.easeInOut");
     }
 
     this.turnTimeline.update(this.state, this.pokemonDefinitions);

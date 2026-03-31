@@ -10,7 +10,20 @@ import {
   createBattleFromPlacements,
   defaultTeams,
 } from "../game/BattleSetup";
-import { STATUS_ICON_KEYS, TYPE_NAMES } from "../constants";
+import {
+  ARROW_PAN_SPEED,
+  CAMERA_BOUNDS_MARGIN,
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  GRID_SIZE,
+  STATUS_ICON_KEYS,
+  TILE_HEIGHT,
+  TILE_WIDTH,
+  TYPE_NAMES,
+  ZOOM_DEFAULT_INDEX,
+  ZOOM_LEVELS,
+  ZOOM_TWEEN_DURATION_MS,
+} from "../constants";
 import { GameController, type PlacementConfig } from "../game/GameController";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
@@ -21,6 +34,9 @@ import type { BattleUIScene } from "./BattleUIScene";
 export class BattleScene extends Phaser.Scene {
   private lastHoverGrid: { x: number; y: number } | null = null;
   private pokemonDefinitions!: Map<string, PokemonDefinition>;
+  private zoomIndex = ZOOM_DEFAULT_INDEX;
+  private controller: GameController | null = null;
+  private arrowKeysDown = new Set<string>();
 
   constructor() {
     super("BattleScene");
@@ -60,6 +76,9 @@ export class BattleScene extends Phaser.Scene {
       createPokemonAnimations(this, definitionId);
     }
 
+    this.cameras.main.setZoom(ZOOM_LEVELS[this.zoomIndex]);
+    this.setupCameraBounds();
+
     this.scene.stop("BattleUIScene");
 
     this.events.once("uiReady", () => {
@@ -95,6 +114,7 @@ export class BattleScene extends Phaser.Scene {
       uiScene.turnTimeline,
       uiScene.placementRosterPanel,
     );
+    this.controller = controller;
     this.setupInput(controller, isometricGrid, uiScene);
 
     const useRandomPlacement = new URLSearchParams(window.location.search).has("random");
@@ -200,6 +220,88 @@ export class BattleScene extends Phaser.Scene {
 
     this.input.keyboard?.on("keydown-ESC", () => {
       controller.handleEscapeKey();
+    });
+
+    this.input.on("wheel", (_pointer: Phaser.Input.Pointer, _gameObjects: unknown[], _deltaX: number, deltaY: number) => {
+      this.changeZoom(deltaY > 0 ? -1 : 1);
+    });
+
+    this.input.keyboard?.on("keydown-PLUS", () => this.changeZoom(1));
+    this.input.keyboard?.on("keydown-EQUAL", () => this.changeZoom(1));
+    this.input.keyboard?.on("keydown-MINUS", () => this.changeZoom(-1));
+    this.input.keyboard?.on("keydown-NUMPAD_ADD", () => this.changeZoom(1));
+    this.input.keyboard?.on("keydown-NUMPAD_SUBTRACT", () => this.changeZoom(-1));
+
+    this.input.keyboard?.on("keydown-SPACE", () => this.recenterOnActivePokemon(isometricGrid));
+
+    for (const arrow of ["UP", "DOWN", "LEFT", "RIGHT"]) {
+      this.input.keyboard?.on(`keydown-${arrow}`, () => this.arrowKeysDown.add(arrow));
+      this.input.keyboard?.on(`keyup-${arrow}`, () => this.arrowKeysDown.delete(arrow));
+    }
+  }
+
+  update(): void {
+    if (this.arrowKeysDown.size === 0) {
+      return;
+    }
+
+    const camera = this.cameras.main;
+    const speed = ARROW_PAN_SPEED / camera.zoom;
+
+    if (this.arrowKeysDown.has("LEFT")) {
+      camera.scrollX -= speed;
+    }
+    if (this.arrowKeysDown.has("RIGHT")) {
+      camera.scrollX += speed;
+    }
+    if (this.arrowKeysDown.has("UP")) {
+      camera.scrollY -= speed;
+    }
+    if (this.arrowKeysDown.has("DOWN")) {
+      camera.scrollY += speed;
+    }
+  }
+
+  private recenterOnActivePokemon(isometricGrid: IsometricGrid): void {
+    const activePokemon = this.controller?.getActivePokemon();
+    if (!activePokemon) {
+      return;
+    }
+    const screenPos = isometricGrid.gridToScreen(
+      activePokemon.position.x,
+      activePokemon.position.y,
+    );
+    this.cameras.main.pan(screenPos.x, screenPos.y, 400, "Sine.easeInOut");
+  }
+
+  private setupCameraBounds(): void {
+    const offsetX = CANVAS_WIDTH / 2;
+    const offsetY = CANVAS_HEIGHT / 2 - (GRID_SIZE * TILE_HEIGHT) / 2;
+
+    const gridWorldWidth = GRID_SIZE * TILE_WIDTH;
+    const gridWorldHeight = GRID_SIZE * TILE_HEIGHT;
+
+    const boundsX = offsetX - gridWorldWidth / 2 - CAMERA_BOUNDS_MARGIN;
+    const boundsY = offsetY - CAMERA_BOUNDS_MARGIN;
+    const boundsWidth = gridWorldWidth + CAMERA_BOUNDS_MARGIN * 2;
+    const boundsHeight = gridWorldHeight + CAMERA_BOUNDS_MARGIN * 2;
+
+    this.cameras.main.setBounds(boundsX, boundsY, boundsWidth, boundsHeight);
+  }
+
+  private changeZoom(direction: number): void {
+    const newIndex = this.zoomIndex + direction;
+    if (newIndex < 0 || newIndex >= ZOOM_LEVELS.length) {
+      return;
+    }
+    this.zoomIndex = newIndex;
+    const targetZoom = ZOOM_LEVELS[this.zoomIndex];
+
+    this.tweens.add({
+      targets: this.cameras.main,
+      zoom: targetZoom,
+      duration: ZOOM_TWEEN_DURATION_MS,
+      ease: "Sine.easeInOut",
     });
   }
 }

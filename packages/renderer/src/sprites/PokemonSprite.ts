@@ -27,6 +27,7 @@ import {
   POKEMON_SPRITE_BORDER_WIDTH,
   POKEMON_SPRITE_RADIUS,
   DEPTH_POKEMON_BASE,
+  POKEMON_SPRITE_OFFSET_Y,
   POKEMON_SPRITE_SCALE,
   PULSE_DURATION_MS,
   PULSE_MAX_SCALE,
@@ -88,6 +89,7 @@ export class PokemonSprite {
     this.usesAtlas = texture.key !== "__MISSING";
 
     if (this.usesAtlas) {
+      texture.setFilter(Phaser.Textures.NEAREST);
       const animKey = getAnimationKey(this.definitionId, "Idle", this.currentDirection);
       this.sprite = scene.add.sprite(0, 0, this.definitionId);
       this.sprite.setScale(POKEMON_SPRITE_SCALE);
@@ -112,7 +114,7 @@ export class PokemonSprite {
 
   updatePosition(gridX: number, gridY: number): void {
     const screen = this.isometricGrid.gridToScreen(gridX, gridY);
-    this.container.setPosition(screen.x, screen.y);
+    this.container.setPosition(screen.x, screen.y + POKEMON_SPRITE_OFFSET_Y);
     this.container.setDepth(DEPTH_POKEMON_BASE + gridX + gridY);
   }
 
@@ -261,7 +263,7 @@ export class PokemonSprite {
       this.scene.tweens.add({
         targets: this.container,
         x: screen.x,
-        y: screen.y,
+        y: screen.y + POKEMON_SPRITE_OFFSET_Y,
         duration: MOVE_TWEEN_DURATION_MS,
         onComplete: () => {
           this.container.setDepth(DEPTH_POKEMON_BASE + gridX + gridY);
