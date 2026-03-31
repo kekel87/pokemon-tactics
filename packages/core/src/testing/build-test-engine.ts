@@ -103,5 +103,6 @@ function buildState(
     turnOrder: [] as string[],
     currentTurnIndex: 0,
     roundNumber: 1,
+    predictedNextRoundOrder: [] as string[],
   };
 }

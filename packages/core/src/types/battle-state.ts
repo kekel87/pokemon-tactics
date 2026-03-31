@@ -9,4 +9,5 @@ export interface BattleState {
   turnOrder: string[];
   currentTurnIndex: number;
   roundNumber: number;
+  predictedNextRoundOrder: string[];
 }

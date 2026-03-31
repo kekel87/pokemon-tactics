@@ -165,6 +165,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     turnOrder: [],
     currentTurnIndex: 0,
     roundNumber: 1,
+    predictedNextRoundOrder: [],
   };
 
   const turnPipeline = new TurnPipeline();
