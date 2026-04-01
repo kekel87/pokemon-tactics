@@ -120,6 +120,12 @@ export class PokemonSprite {
 
     this.container = scene.add.container(0, 0, children);
     this.updatePosition(pokemon.position.x, pokemon.position.y);
+
+    if (pokemon.statusEffects.length > 0) {
+      this.updateStatus(pokemon.statusEffects);
+      const isAsleep = pokemon.statusEffects[0]?.type === "asleep";
+      this.setStatusAnimation(isAsleep);
+    }
   }
 
   updatePosition(gridX: number, gridY: number): void {

@@ -1,6 +1,7 @@
 import { Category, TargetingKind } from "@pokemon-tactic/core";
 import type { MoveDefinition } from "@pokemon-tactic/core";
 import {
+  ACTION_MENU_BOTTOM_Y,
   ACTION_MENU_CORNER_RADIUS,
   DEPTH_TOOLTIP,
   TOOLTIP_BG_ALPHA,
@@ -61,7 +62,7 @@ export class MoveTooltip {
     const totalHeight = padding + textLines * lineHeight + 4 + gridHeight + padding;
 
     const x = menuX - TOOLTIP_WIDTH - 8;
-    const y = menuItemY;
+    const y = Math.min(menuItemY, ACTION_MENU_BOTTOM_Y - totalHeight);
 
     const background = this.scene.add.graphics();
     background.fillStyle(TOOLTIP_BG_COLOR, TOOLTIP_BG_ALPHA);

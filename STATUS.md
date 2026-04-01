@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-01 (Plan 023 + améliorations sandbox post-plan terminés — 2 panels séparés, Copier URL, Dummy configurable, 8 moves défensifs, 386 tests)
+> Dernière mise à jour : 2026-04-01 (Plan 024 terminé — bugfixes sandbox + menu d'action relocalisé, 333 tests)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -315,9 +315,15 @@
     - Endure : survit à 1 HP, spam check (pas 2 tours de suite)
   - Infrastructure core : `DefensiveKind` enum, `ActiveDefense` type, `defense-check.ts`, `handle-defensive.ts`, `defensive-clear-handler.ts`
   - Events : `DefenseActivated`, `DefenseCleared`, `DefenseTriggered`
-  - **386 tests** (292 unit + 53 intégration + 94 nouveaux/modifiés), 0 régressions
   - **56 moves** dans le roster (48 + 8 défensifs)
   - Build OK, TypeScript OK, Vite build OK
+
+- **Plan 024 terminé** — Bugfixes sandbox + relocalisation menu d'action (non commité) :
+  - **Fix status au spawn** : `PokemonSprite.ts` constructeur appelle `updateStatus()` + `setStatusAnimation()` — les statuts pré-existants (burn, sleep, etc.) s'affichent dès le spawn (`?sandbox&status=burned` fonctionne)
+  - **Fix Vampigraine HP bar** : `GameController.ts` handler `LinkDrained` ajoute `await targetSprite.flashDamage()` avant `updateHp()` — force le cycle de rendu Phaser, la barre descend visuellement
+  - **Menu d'action relocalisé en bas à droite** : `ACTION_MENU_X = 1054`, `ACTION_MENU_BOTTOM_Y = 700` — menu aligné avec le bas de l'InfoPanel, grandit vers le haut. `MoveTooltip` à gauche du menu, clampé verticalement.
+  - Note : le plan 024 prévoyait initialement le menu en bas à gauche (X=16), la position finale choisie est bas à droite (X=1054) pour ne pas chevaucher la timeline 12 Pokemon.
+  - **333 tests**, 0 régressions, build OK, vérification visuelle OK
 
 ### Prochaine étape (Phase 1 Core)
 - Review des movesets des 12 Pokemon par l'humain (équilibrage) — décision #121
@@ -327,7 +333,7 @@
 
 ### Points à adresser (renderer)
 - Représentation visuelle des moves défensifs : animation/feedback quand Protect bloque, Counter renvoie, etc.
-- Déplacer le menu d'attaque en bas à gauche (actuellement en haut à droite)
+- Menu d'action : position bas à droite retenue (bas à gauche écarté — chevauchement timeline 12 Pokemon). Position définitive à confirmer lors de la prochaine session.
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type

@@ -96,8 +96,8 @@ export const INFO_PANEL_HEIGHT = 94;
 export const INFO_PANEL_ALPHA = 0.85;
 export const INFO_PANEL_CORNER_RADIUS = 6;
 
-export const ACTION_MENU_X = 1050;
-export const ACTION_MENU_Y = 300;
+export const ACTION_MENU_X = 1054;
+export const ACTION_MENU_BOTTOM_Y = 700;
 export const ACTION_MENU_WIDTH = 210;
 export const ACTION_MENU_ITEM_HEIGHT = 32;
 export const ACTION_MENU_BG_COLOR = 0x111122;
