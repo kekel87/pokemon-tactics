@@ -2,6 +2,7 @@ import type { MoveDefinition } from "@pokemon-tactic/core";
 import {
   ACTION_MENU_BG_ALPHA,
   ACTION_MENU_BG_COLOR,
+  ACTION_MENU_BOTTOM_Y,
   ACTION_MENU_CORNER_RADIUS,
   ACTION_MENU_DISABLED_ALPHA,
   ACTION_MENU_HOVER_ALPHA,
@@ -9,7 +10,6 @@ import {
   ACTION_MENU_ITEM_HEIGHT,
   ACTION_MENU_WIDTH,
   ACTION_MENU_X,
-  ACTION_MENU_Y,
   DEPTH_ACTION_MENU,
   UI_BORDER_ALPHA,
   UI_BORDER_COLOR,
@@ -68,12 +68,13 @@ export class ActionMenu {
 
     const totalEntries = options.moves.length + 1;
     const totalHeight = totalEntries * ACTION_MENU_ITEM_HEIGHT;
+    const menuTopY = ACTION_MENU_BOTTOM_Y - totalHeight;
 
     const background = this.scene.add.graphics();
     background.fillStyle(ACTION_MENU_BG_COLOR, ACTION_MENU_BG_ALPHA);
     background.fillRoundedRect(
       ACTION_MENU_X,
-      ACTION_MENU_Y,
+      menuTopY,
       ACTION_MENU_WIDTH,
       totalHeight,
       ACTION_MENU_CORNER_RADIUS,
@@ -81,7 +82,7 @@ export class ActionMenu {
     background.lineStyle(UI_BORDER_WIDTH, UI_BORDER_COLOR, UI_BORDER_ALPHA);
     background.strokeRoundedRect(
       ACTION_MENU_X,
-      ACTION_MENU_Y,
+      menuTopY,
       ACTION_MENU_WIDTH,
       totalHeight,
       ACTION_MENU_CORNER_RADIUS,
@@ -94,11 +95,11 @@ export class ActionMenu {
       if (!move) {
         continue;
       }
-      const itemY = ACTION_MENU_Y + i * ACTION_MENU_ITEM_HEIGHT;
+      const itemY = menuTopY + i * ACTION_MENU_ITEM_HEIGHT;
       this.createMoveItem(move, itemY, options.onSelect);
     }
 
-    const cancelY = ACTION_MENU_Y + options.moves.length * ACTION_MENU_ITEM_HEIGHT;
+    const cancelY = menuTopY + options.moves.length * ACTION_MENU_ITEM_HEIGHT;
     this.createMenuItem(
       { label: "Annuler", enabled: true, callback: options.onCancel },
       cancelY,
@@ -114,12 +115,13 @@ export class ActionMenu {
     const headerHeight = ACTION_MENU_ITEM_HEIGHT;
     const moveHeight = ACTION_MENU_ITEM_HEIGHT;
     const totalHeight = headerHeight + moveHeight;
+    const menuTopY = ACTION_MENU_BOTTOM_Y - totalHeight;
 
     const background = this.scene.add.graphics();
     background.fillStyle(ACTION_MENU_BG_COLOR, ACTION_MENU_BG_ALPHA);
     background.fillRoundedRect(
       ACTION_MENU_X,
-      ACTION_MENU_Y,
+      menuTopY,
       ACTION_MENU_WIDTH,
       totalHeight,
       ACTION_MENU_CORNER_RADIUS,
@@ -127,7 +129,7 @@ export class ActionMenu {
     background.lineStyle(UI_BORDER_WIDTH, UI_BORDER_COLOR, UI_BORDER_ALPHA);
     background.strokeRoundedRect(
       ACTION_MENU_X,
-      ACTION_MENU_Y,
+      menuTopY,
       ACTION_MENU_WIDTH,
       totalHeight,
       ACTION_MENU_CORNER_RADIUS,
@@ -138,7 +140,7 @@ export class ActionMenu {
     this.instructionText = this.scene.add
       .text(
         ACTION_MENU_X + ACTION_MENU_WIDTH / 2,
-        ACTION_MENU_Y + headerHeight / 2,
+        menuTopY + headerHeight / 2,
         instruction,
         {
           fontSize: "11px",
@@ -151,7 +153,7 @@ export class ActionMenu {
       .setDepth(DEPTH_ACTION_MENU + 2);
     this.objects.push(this.instructionText);
 
-    const moveY = ACTION_MENU_Y + headerHeight;
+    const moveY = menuTopY + headerHeight;
     const centerY = moveY + moveHeight / 2;
 
     const typeIcon = this.scene.add
@@ -205,12 +207,13 @@ export class ActionMenu {
     entries: Array<{ label: string; enabled: boolean; callback: () => void; color?: number }>,
   ): void {
     const totalHeight = entries.length * ACTION_MENU_ITEM_HEIGHT;
+    const menuTopY = ACTION_MENU_BOTTOM_Y - totalHeight;
 
     const background = this.scene.add.graphics();
     background.fillStyle(ACTION_MENU_BG_COLOR, ACTION_MENU_BG_ALPHA);
     background.fillRoundedRect(
       ACTION_MENU_X,
-      ACTION_MENU_Y,
+      menuTopY,
       ACTION_MENU_WIDTH,
       totalHeight,
       ACTION_MENU_CORNER_RADIUS,
@@ -218,7 +221,7 @@ export class ActionMenu {
     background.lineStyle(UI_BORDER_WIDTH, UI_BORDER_COLOR, UI_BORDER_ALPHA);
     background.strokeRoundedRect(
       ACTION_MENU_X,
-      ACTION_MENU_Y,
+      menuTopY,
       ACTION_MENU_WIDTH,
       totalHeight,
       ACTION_MENU_CORNER_RADIUS,
@@ -232,7 +235,7 @@ export class ActionMenu {
         continue;
       }
 
-      const itemY = ACTION_MENU_Y + i * ACTION_MENU_ITEM_HEIGHT;
+      const itemY = menuTopY + i * ACTION_MENU_ITEM_HEIGHT;
       this.createMenuItem(entry, itemY);
     }
   }

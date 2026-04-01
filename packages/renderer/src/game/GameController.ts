@@ -657,6 +657,7 @@ export class GameController {
         const targetSprite = this.sprites.get(event.targetId);
         const targetPokemon = this.state.pokemon.get(event.targetId);
         if (targetSprite && targetPokemon) {
+          await targetSprite.flashDamage();
           targetSprite.updateHp(targetPokemon.currentHp, targetPokemon.maxHp);
         }
         const sourceSprite = this.sprites.get(event.sourceId);
