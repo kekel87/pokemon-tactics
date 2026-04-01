@@ -105,6 +105,7 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 |-------------|-------|
 | Nouvelle mécanique de jeu | `game-designer` (cohérence + équilibre) |
 | Nouvelle mécanique dans le core | `test-writer` (tests first) |
+| Ajout/suppression/modif d'un move | `test-writer` (audit moves/ + mécanique, crée/supprime/MAJ le fichier de test) |
 | Ajout/modif de données Pokemon | `game-designer` + `data-miner` |
 | Revue/attribution des patterns d'attaque | `move-pattern-designer` (semantique nom → pattern) |
 | Ajout de dépendance | `dependency-manager` (audit avant d'ajouter) |
