@@ -59,7 +59,8 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [ ] Statuts volatils : confusion (chance de se frapper soi-même)
 - [ ] Poison grave (dégâts croissants)
 - [x] Plusieurs Pokemon par équipe : format 6v6 implémenté (plan 013)
-- [ ] Roster élargi (~8-12 Pokemon) — **12 Pokemon implémentés, movesets en attente de review humain** — reporté après sandbox (décision #139)
+- [x] Tests d'intégration par move : 56 fichiers moves + 9 fichiers mécaniques, helper `buildMoveTestEngine`, 534 tests unitaires + 48 tests intégration = 582 tests (plan 025)
+- [ ] Roster élargi (~8-12 Pokemon) — **12 Pokemon implémentés, movesets en attente de review humain** — tests d'intégration par move disponibles pour guider l'équilibrage (décision #139)
 - [x] Stats niveau 50 : fonction `computeStatAtLevel` pour calculer HP et stats réelles au niveau 50 (plan 015)
 - [ ] Système de replay (log d'actions déterministe, seed + rejeu)
 

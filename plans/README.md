@@ -37,3 +37,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 022 | [Refonte timeline turn order](./022-timeline-turn-order.md) | done | 2026-03-31 |
 | 023 | [Mode Sandbox : training dummy, carte mini, panels config, moves défensifs](./023-sandbox-mode.md) | done | 2026-03-31 |
 | 024 | [Bugfixes sandbox + relocalisation menu d'attaque](./024-bugfixes-menu-relocation.md) | done | 2026-04-01 |
+| 025 | [Tests d'intégration par move](./025-move-integration-tests.md) | ready | 2026-04-01 |

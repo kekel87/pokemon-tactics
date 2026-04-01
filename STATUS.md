@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-01 (Plan 024 terminé — bugfixes sandbox + menu d'action relocalisé, 333 tests + refonte orchestration agents)
+> Dernière mise à jour : 2026-04-01 (Plan 025 terminé — 56 tests moves + 9 mécaniques transversales + nettoyage doublons, 534 tests unitaires + 48 tests intégration = 582 tests)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -324,6 +324,26 @@
   - `session-closer` chaîne désormais vers `commit-message` si changements non commités
   - Flow plan revu : `core-guardian` aux étapes intermédiaires, review + doc-keeper reportés en fin de plan, `visual-tester` automatique en fin de plan renderer
   - 21 agents actifs au total
+
+- **Plan 025 terminé** — Tests d'intégration par move + mécaniques transversales :
+  - 56 fichiers de test créés dans `packages/core/src/battle/moves/` (un par move)
+  - Helper `buildMoveTestEngine` dans `packages/core/src/testing/build-move-test-engine.ts`, exporté depuis `testing/index.ts`
+  - Chaque move couvert : hit à portée, miss hors portée, effets secondaires (statuts, stat changes, défenses)
+  - **9 fichiers de mécaniques transversales** dans `packages/core/src/battle/mechanics/` :
+    - `stab.test.ts` : x1.5 STAB
+    - `type-effectiveness.test.ts` : x0 / x0.25 / x0.5 / x2 / x4
+    - `burn-status.test.ts` : tick 1/16 HP + penalty -50% physique
+    - `poison-status.test.ts` : tick 1/8 HP + kill
+    - `paralysis-status.test.ts` : blocage move/dash + impact initiative
+    - `sleep-status.test.ts` : skip tour + réveil
+    - `freeze-status.test.ts` : skip tour + dégel
+    - `pp-consumption.test.ts` : décrément PP + épuisement
+    - `friendly-fire.test.ts` : dégâts AoE sur alliés
+  - **Gaps comblés** dans les tests existants : +2 tests leech-seed (rupture KO source, distance > maxRange), +2 rollout (dash vide, hasMoved non consommé), +2 volt-tackle (idem), +1 counter (distance > 1), +1 endure (coup non fatal), +1 quick-guard (2e attaque post-consommation)
+  - **Nettoyage doublons** : `BattleEngine.integration.test.ts` -2 tests (Sludge Bomb blast + Ember vs Razor Leaf), `battle-loop.integration.test.ts` -3 tests (poison kills, paralysis restricts, paralysis initiative) — désormais couverts dans les fichiers mechanics/
+  - **`test-writer.md`** mis à jour : section maintenance tests par move et mechanics, audit de cohérence, templates par pattern
+  - **`CLAUDE.md`** mis à jour : nouveau déclencheur "Ajout/suppression/modif d'un move → test-writer"
+  - **534 tests unitaires** (91 fichiers) + **48 tests intégration** (4 fichiers) = **582 tests**, 0 régressions, build OK
 
 - **Plan 024 terminé** — Bugfixes sandbox + relocalisation menu d'action (non commité) :
   - **Fix status au spawn** : `PokemonSprite.ts` constructeur appelle `updateStatus()` + `setStatusAnimation()` — les statuts pré-existants (burn, sleep, etc.) s'affichent dès le spawn (`?sandbox&status=burned` fonctionne)
