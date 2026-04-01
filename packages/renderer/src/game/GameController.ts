@@ -709,6 +709,11 @@ export class GameController {
         break;
       }
 
+      case BattleEventType.DefenseActivated:
+      case BattleEventType.DefenseCleared:
+      case BattleEventType.DefenseTriggered:
+        break;
+
       default:
         break;
     }
@@ -1087,6 +1092,8 @@ export class GameController {
       orientation: Direction.South,
       moveIds: [],
       currentPp: {},
+      activeDefense: null,
+      lastEndureRound: null,
     };
   }
 

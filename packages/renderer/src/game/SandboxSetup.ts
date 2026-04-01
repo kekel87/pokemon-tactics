@@ -1,8 +1,19 @@
-import type { PlacementEntry, PlacementTeam } from "@pokemon-tactic/core";
-import { Direction, PlayerController, PlayerId, StatName, StatusType } from "@pokemon-tactic/core";
+import type { BaseStats, PlacementEntry, PlacementTeam } from "@pokemon-tactic/core";
+import {
+  computeCombatStats,
+  Direction,
+  PlayerController,
+  PlayerId,
+  StatName,
+  StatusType,
+} from "@pokemon-tactic/core";
 import { sandboxArena } from "@pokemon-tactic/data";
 import type { SandboxConfig } from "../types/SandboxConfig";
-import { type BattleSetupConfig, type BattleSetupResult, createBattleFromPlacements } from "./BattleSetup";
+import {
+  type BattleSetupConfig,
+  type BattleSetupResult,
+  createBattleFromPlacements,
+} from "./BattleSetup";
 
 function applyConfigToInstance(
   result: BattleSetupResult,
@@ -31,6 +42,41 @@ function applyConfigToInstance(
     if (stages !== undefined) {
       instance.statStages[stat as StatName] = stages;
     }
+  }
+}
+
+function applyDummyStats(
+  result: BattleSetupResult,
+  dummyPokemonId: string,
+  level: number,
+  baseStats: BaseStats | null,
+): void {
+  const instance = result.state.pokemon.get(dummyPokemonId);
+  if (!instance) return;
+
+  if (baseStats) {
+    instance.baseStats = { ...baseStats };
+    const combat = computeCombatStats(baseStats, level);
+    instance.combatStats = combat;
+    instance.level = level;
+    instance.maxHp = combat.hp;
+    instance.currentHp = combat.hp;
+    instance.derivedStats = {
+      movement: 3,
+      jump: 1,
+      initiative: combat.speed,
+    };
+  } else if (level !== 50) {
+    const combat = computeCombatStats(instance.baseStats, level);
+    instance.combatStats = combat;
+    instance.level = level;
+    instance.maxHp = combat.hp;
+    instance.currentHp = combat.hp;
+    instance.derivedStats = {
+      movement: 3,
+      jump: 1,
+      initiative: combat.speed,
+    };
   }
 }
 
@@ -67,7 +113,7 @@ export function createSandboxBattle(config: SandboxConfig): BattleSetupResult {
     {
       pokemonId: playerPokemonId,
       position: playerSpawn,
-      direction: Direction.East,
+      direction: Direction.North,
     },
     {
       pokemonId: dummyPokemonId,
@@ -78,6 +124,8 @@ export function createSandboxBattle(config: SandboxConfig): BattleSetupResult {
 
   const battleConfig: BattleSetupConfig = { map, teams, placements };
   const result = createBattleFromPlacements(battleConfig);
+
+  applyDummyStats(result, dummyPokemonId, config.dummyLevel, config.dummyBaseStats);
 
   const playerInstance = result.state.pokemon.get(playerPokemonId);
   if (playerInstance && config.moves.length > 0) {
@@ -91,7 +139,13 @@ export function createSandboxBattle(config: SandboxConfig): BattleSetupResult {
   }
 
   applyConfigToInstance(result, playerPokemonId, config.hp, config.status, config.statStages);
-  applyConfigToInstance(result, dummyPokemonId, config.dummyHp, config.dummyStatus, config.dummyStatStages);
+  applyConfigToInstance(
+    result,
+    dummyPokemonId,
+    config.dummyHp,
+    config.dummyStatus,
+    config.dummyStatStages,
+  );
 
   return result;
 }

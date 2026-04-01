@@ -88,10 +88,10 @@ pokemon-tactics/
 │   ├── renderer/                # Interface graphique (Phaser 4)
 │   │   ├── src/
 │   │   │   ├── scenes/          # Scènes Phaser (BattleScene + BattleUIScene overlay)
-│   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue)
+│   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue, DummyAiController)
 │   │   │   ├── grid/            # Rendu isométrique (IsometricGrid, curseur animé)
 │   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
-│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview)
+│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel — panel Joueur + panel Dummy + toolbar)
 │   │   │   ├── utils/           # Utilitaires renderer (screen-direction : getDirectionFromScreenPosition)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
 │   │   │   ├── types/           # Types renderer (BattleConfig : confirmAttack)
@@ -112,7 +112,7 @@ pokemon-tactics/
 │   │
 │   └── data/                    # Données Pokemon (partagées)
 │       ├── src/
-│       │   ├── base/            # Données officielles (Showdown/PokeAPI)
+│       │   ├── base/            # Données officielles (Showdown/PokeAPI) — inclut Pokemon "Dummy" (Normal, stats 100/50x5, movepool défensif)
 │       │   ├── overrides/       # Surcharges tactiques + balance
 │       │   └── index.ts
 │       ├── tsconfig.json        # extends ../../tsconfig.base.json
@@ -142,22 +142,22 @@ Structure flat par responsabilité. On restructurera par domaine quand la comple
 
 | Dossier | Contenu | Tests |
 |---------|---------|-------|
-| `enums/` | Const object enums (pattern `as const` + type dérivé) — dont `PlacementMode`, `PlayerController` | Non testé (compilation = validation) |
-| `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry` | Non testé (compilation = validation) |
+| `enums/` | Const object enums (pattern `as const` + type dérivé) — dont `PlacementMode`, `PlayerController`, `DefensiveKind` | Non testé (compilation = validation) |
+| `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `ActiveDefense` | Non testé (compilation = validation) |
 | `utils/` | Fonctions pures réutilisables (math, direction, géométrie) | Oui |
 | `grid/` | Classe Grid, targeting resolvers | Oui |
-| `battle/` | BattleEngine, TurnManager, PlacementPhase, validate, validate-map | Oui |
+| `battle/` | BattleEngine, TurnManager, PlacementPhase, validate, validate-map, defense-check, handle-defensive, defensive-clear-handler | Oui |
 | `testing/` | Mocks centralisés (`abstract class MockX`) | Exclu du coverage et du build |
 
 ### Diagramme interne du core
 
 ```mermaid
 graph TD
-    enums["enums/<br/>TargetingKind, Direction,<br/>PokemonType, ActionError,<br/>PlacementMode, PlayerController..."]
-    types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance,<br/>MapDefinition, MapFormat, SpawnZone,<br/>PlacementTeam, PlacementEntry..."]
+    enums["enums/<br/>TargetingKind, Direction,<br/>PokemonType, ActionError,<br/>PlacementMode, PlayerController,<br/>DefensiveKind..."]
+    types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance,<br/>MapDefinition, MapFormat, SpawnZone,<br/>PlacementTeam, PlacementEntry,<br/>ActiveDefense..."]
     utils["utils/<br/>manhattanDistance, directionFromTo,<br/>stepInDirection, getPerpendicularOffsets"]
     grid["grid/<br/>Grid, targeting resolvers<br/>(single, cone, cross, line, dash, zone)"]
-    battle["battle/<br/>TurnManager, BattleEngine, PlacementPhase,<br/>validate, validate-map"]
+    battle["battle/<br/>TurnManager, BattleEngine, PlacementPhase,<br/>validate, validate-map,<br/>defense-check, handle-defensive,<br/>defensive-clear-handler"]
     testing["testing/<br/>MockBattle, MockPokemon"]
 
     enums --> types
@@ -266,6 +266,9 @@ type BattleEvent =
   | { type: 'link_created'; sourceId: string; targetId: string; linkType: string }
   | { type: 'link_drained'; sourceId: string; targetId: string; amount: number }
   | { type: 'link_broken'; sourceId: string; targetId: string }
+  | { type: 'defense_activated'; pokemonId: string; kind: DefensiveKind }
+  | { type: 'defense_triggered'; pokemonId: string; kind: DefensiveKind }
+  | { type: 'defense_cleared'; pokemonId: string }
   | { type: 'pokemon_ko'; pokemonId: string; countdownStart: number }
   | { type: 'pokemon_eliminated'; pokemonId: string }
   | ...
@@ -292,6 +295,42 @@ Core (sync)          Renderer (async)         IA (sync)
 ```
 
 Les mêmes events alimentent les **replays** (sérialisation JSON).
+
+---
+
+## 5b. Mode Sandbox
+
+Accessible via `?sandbox` dans l'URL. Lance un combat 1v1 sur micro-carte 6x6.
+
+### Architecture du mode sandbox
+
+- **`BattleSetup.createSandboxBattle(config)`** : crée la carte 6x6, place le joueur en bas et le Dummy en haut, sans phase de placement interactif
+- **`DummyAiController`** : contrôleur IA minimal — soumet l'action du move assigné si légale, sinon `EndTurn`. Le dummy peut être passif ou utiliser un des 8 moves défensifs.
+- **`SandboxPanel`** (HTML overlay) : 2 panneaux côte à côte (Joueur à gauche, Dummy à droite) + toolbar au-dessus
+  - Panel Joueur : dropdown Pokemon, 2 dropdowns moves (filtrés par movepool + dédoublonnage), slider HP %, dropdown statut, stages de stats
+  - Panel Dummy : dropdown "Stats de" (custom ou preset Pokemon), stats éditables, niveau, slider HP %, dropdown move défensif, dropdown direction
+  - Toolbar : bouton Réinitialiser (recrée le combat), bouton Copier URL (génère l'URL avec tous les params)
+- **Écran de victoire HTML** : overlay HTML au lieu de Phaser Graphics — contourne le bug de hitbox Phaser 4 avec camera zoom
+
+### Query params disponibles
+
+| Param | Description | Défaut |
+|-------|-------------|--------|
+| `sandbox` | Active le mode sandbox | — |
+| `pokemon` | Pokemon du joueur | `bulbasaur` |
+| `moves` | Moves du joueur (ex: `razor-leaf,sleep-powder`) | premier move du movepool |
+| `hp` | HP du joueur en % | `100` |
+| `status` | Statut du joueur (`burned/poisoned/paralyzed/frozen/asleep`) | aucun |
+| `statStages` | Stages de stats du joueur (ex: `attack:2,defense:-1`) | aucun |
+| `dummy` | Pokemon de référence pour les stats/types du dummy | `dummy` (custom) |
+| `dummyMove` | Move défensif du dummy | passif |
+| `dummyDirection` | Direction du dummy | `south` |
+| `dummyHp` | HP du dummy en % | `100` |
+| `dummyLevel` | Niveau du dummy | `50` |
+| `dummyStatus` | Statut du dummy | aucun |
+| `dummyStatStages` | Stages de stats du dummy | aucun |
+
+> Le sprite du Dummy est le sprite PMDCollab `#0000 form 1` (sprite générique).
 
 ---
 

@@ -35,4 +35,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 020 | [Canvas responsive, proportions agrandies et camera zoom/pan](./020-responsive-scaling-camera.md) | done | 2026-03-30 |
 | 021 | [Sprite offsets corrects via Shadow.png/Offsets.png PMDCollab + ombres sous sprites](./021-sprite-offsets-shadows.md) | done | 2026-03-31 |
 | 022 | [Refonte timeline turn order](./022-timeline-turn-order.md) | done | 2026-03-31 |
-| 023 | [Mode Sandbox : training dummy, carte mini, panels config, moves défensifs](./023-sandbox-mode.md) | ready | 2026-03-31 |
+| 023 | [Mode Sandbox : training dummy, carte mini, panels config, moves défensifs](./023-sandbox-mode.md) | done | 2026-03-31 |

@@ -1,4 +1,5 @@
 import type { BattleEventType } from "../enums/battle-event-type";
+import type { DefensiveKind } from "../enums/defensive-kind";
 import type { LinkType } from "../enums/link-type";
 import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
@@ -36,4 +37,16 @@ export type BattleEvent =
   | { type: typeof BattleEventType.PokemonEliminated; pokemonId: string }
   | { type: typeof BattleEventType.PokemonRevived; pokemonId: string; hp: number }
   | { type: typeof BattleEventType.MoveMissed; attackerId: string; targetId: string }
+  | {
+      type: typeof BattleEventType.DefenseActivated;
+      pokemonId: string;
+      defenseKind: DefensiveKind;
+    }
+  | { type: typeof BattleEventType.DefenseCleared; pokemonId: string; defenseKind: DefensiveKind }
+  | {
+      type: typeof BattleEventType.DefenseTriggered;
+      defenderId: string;
+      defenseKind: DefensiveKind;
+      blocked: boolean;
+    }
   | { type: typeof BattleEventType.BattleEnded; winnerId: string };

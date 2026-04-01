@@ -262,7 +262,7 @@ Le Pokemon **se déplace en ligne droite** sur X tiles et frappe le premier enne
 
 ---
 
-## 7d. Moves défensifs (décidés — à implémenter en Phase 1)
+## 7d. Moves défensifs (implémentés — plan 023)
 
 Huit moves défensifs adaptés au contexte tactique.
 
@@ -284,6 +284,16 @@ Huit moves défensifs adaptés au contexte tactique.
 - Abri/Détection n'ont pas de spam penalty (la contrainte directionnelle suffit)
 - Prévention est repurposée : bloque 1 coup (toute direction) au lieu de bloquer les moves prioritaires
 - Garde Large est localisée à un rayon de 2 tiles au lieu de protéger toute l'équipe
+
+---
+
+## 7d bis. Blast + Protect — interaction directionnelle
+
+Pour les moves de type Blast, le check directionnel d'Abri/Détection est effectué depuis le **centre de l'explosion** (paramètre `targetPosition`) et non depuis la position du lanceur.
+
+Conséquence tactique : cibler une tile **derrière** un Pokemon qui utilise Abri contourne sa protection. La case d'explosion se trouve dans le dos du défenseur — l'onde de choc contourne le bouclier.
+
+> Ceci crée une interaction tactique intentionnelle : Abri/Détection bloquent le tir direct, mais pas un Blast qui atterrit derrière soi. Le joueur peut donc choisir la tile d'impact pour contourner la défense.
 
 ---
 

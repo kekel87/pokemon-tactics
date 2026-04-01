@@ -20,6 +20,7 @@ import { manhattanDistance } from "../utils/manhattan-distance";
 import { checkAccuracy } from "./accuracy-check";
 import { estimateDamage } from "./damage-calculator";
 import { processEffects } from "./effect-processor";
+import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { linkDrainHandler } from "./handlers/link-drain-handler";
 import { statusTickHandler } from "./handlers/status-tick-handler";
 import { getEffectiveInitiative } from "./initiative-calculator";
@@ -67,6 +68,7 @@ export class BattleEngine {
     this.listeners = new Map();
     this.grid = new Grid(state.grid[0]?.length ?? 0, state.grid.length, state.grid);
     this.turnManager = new TurnManager([...state.pokemon.values()], getEffectiveInitiative);
+    this.turnPipeline.registerStartTurn(defensiveClearHandler, 50);
     this.turnPipeline.registerStartTurn(statusTickHandler, 100);
     this.turnPipeline.registerEndTurn(linkDrainHandler, 100);
     this.syncTurnState();
@@ -350,6 +352,7 @@ export class BattleEngine {
       typeChart: this.typeChart,
       attackerTypes,
       targetTypesMap,
+      targetPosition,
     });
 
     for (const event of effectEvents) {
@@ -707,6 +710,8 @@ export class BattleEngine {
     }
 
     this.turnManager.removePokemon(pokemonId);
+
+    pokemon.activeDefense = null;
 
     const linksToRemove: number[] = [];
     for (let i = 0; i < this.state.activeLinks.length; i++) {

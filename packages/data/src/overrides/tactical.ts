@@ -1,5 +1,6 @@
 import type { Effect, TargetingPattern } from "@pokemon-tactic/core";
 import {
+  DefensiveKind,
   EffectKind,
   EffectTarget,
   LinkType,
@@ -333,5 +334,38 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
         target: EffectTarget.Targets,
       },
     ],
+  },
+
+  protect: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.Protect }],
+  },
+  detect: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.Detect }],
+  },
+  "wide-guard": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.WideGuard }],
+  },
+  "quick-guard": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.QuickGuard }],
+  },
+  counter: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.Counter }],
+  },
+  "mirror-coat": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.MirrorCoat }],
+  },
+  "metal-burst": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.MetalBurst }],
+  },
+  endure: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.Endure }],
   },
 };

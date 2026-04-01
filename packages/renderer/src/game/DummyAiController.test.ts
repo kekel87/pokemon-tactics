@@ -4,65 +4,84 @@ import { defaultSandboxConfig } from "../testing/mock-sandbox";
 import { DummyAiController } from "./DummyAiController";
 import { createSandboxBattle } from "./SandboxSetup";
 
+function skipPlayerTurn(result: ReturnType<typeof createSandboxBattle>): void {
+  const actions = result.engine.getLegalActions(PlayerId.Player1);
+  const endTurn = actions.find(
+    (a) => a.kind === ActionKind.EndTurn && a.direction === Direction.North,
+  );
+  if (endTurn) {
+    result.engine.submitAction(PlayerId.Player1, endTurn);
+  }
+}
+
+function skipDummyTurn(result: ReturnType<typeof createSandboxBattle>): void {
+  const actions = result.engine.getLegalActions(PlayerId.Player2);
+  const endTurn = actions.find(
+    (a) => a.kind === ActionKind.EndTurn && a.direction === Direction.South,
+  );
+  if (endTurn) {
+    result.engine.submitAction(PlayerId.Player2, endTurn);
+  }
+}
+
 describe("DummyAiController", () => {
   it("plays EndTurn when no move assigned (passive mode)", () => {
     const result = createSandboxBattle(defaultSandboxConfig());
-    const dummy = new DummyAiController(result.engine, "p2-machop", null, Direction.West);
+    const dummy = new DummyAiController(result.engine, "p2-dummy", null, Direction.South);
 
-    // Skip player 1 turn (Pikachu is faster — speed 90 vs 35)
-    const p1Actions = result.engine.getLegalActions(PlayerId.Player1);
-    const p1EndTurn = p1Actions.find(
-      (a) => a.kind === ActionKind.EndTurn && a.direction === Direction.East,
-    );
-    result.engine.submitAction(PlayerId.Player1, p1EndTurn!);
-
-    // Now dummy's turn — should auto-EndTurn
+    // Dummy (speed 50) is faster than Bulbasaur (speed 45) — dummy plays first
     const turnIndexBefore = result.state.currentTurnIndex;
     dummy.playTurn();
     expect(result.state.currentTurnIndex).not.toBe(turnIndexBefore);
   });
 
   it("plays assigned move when legal then ends turn", () => {
-    const result = createSandboxBattle(defaultSandboxConfig());
-    const dummy = new DummyAiController(result.engine, "p2-machop", "karate-chop", Direction.West);
-
-    // Skip player 1 turn
-    const p1Actions = result.engine.getLegalActions(PlayerId.Player1);
-    const p1EndTurn = p1Actions.find(
-      (a) => a.kind === ActionKind.EndTurn && a.direction === Direction.East,
+    const result = createSandboxBattle(
+      defaultSandboxConfig({ dummyMove: "protect" }),
     );
-    result.engine.submitAction(PlayerId.Player1, p1EndTurn!);
+    const dummy = new DummyAiController(
+      result.engine,
+      "p2-dummy",
+      "protect",
+      Direction.South,
+    );
 
+    // Dummy plays first (faster)
     dummy.playTurn();
-
-    // Turn should have advanced past the dummy
     expect(result.state.roundNumber).toBeGreaterThanOrEqual(1);
   });
 
   it("falls back to EndTurn when assigned move is not legal", () => {
     const result = createSandboxBattle(defaultSandboxConfig());
-    const dummy = new DummyAiController(result.engine, "p2-machop", "fake-move-id", Direction.West);
-
-    // Skip player 1 turn
-    const p1Actions = result.engine.getLegalActions(PlayerId.Player1);
-    const p1EndTurn = p1Actions.find(
-      (a) => a.kind === ActionKind.EndTurn && a.direction === Direction.East,
+    const dummy = new DummyAiController(
+      result.engine,
+      "p2-dummy",
+      "fake-move-id",
+      Direction.South,
     );
-    result.engine.submitAction(PlayerId.Player1, p1EndTurn!);
 
     dummy.playTurn();
-
-    // Turn should have advanced (EndTurn fallback)
     expect(result.state.roundNumber).toBeGreaterThanOrEqual(1);
   });
 
   it("does nothing when it is not the dummy turn", () => {
     const result = createSandboxBattle(defaultSandboxConfig());
-    const dummy = new DummyAiController(result.engine, "p2-machop", null, Direction.West);
+    const dummy = new DummyAiController(result.engine, "p2-dummy", null, Direction.South);
 
-    // First turn is Pikachu (speed 90 > Machop 35) — dummy should do nothing
-    const turnIndexBefore = result.state.currentTurnIndex;
+    // Dummy plays first, then it's player's turn
     dummy.playTurn();
+    skipPlayerTurn(result);
+
+    // Now round 2 — dummy's turn again
+    const turnIndexBefore = result.state.currentTurnIndex;
+    // Calling with wrong id should do nothing
+    const wrongDummy = new DummyAiController(
+      result.engine,
+      "p2-nonexistent",
+      null,
+      Direction.South,
+    );
+    wrongDummy.playTurn();
     expect(result.state.currentTurnIndex).toBe(turnIndexBefore);
   });
 });

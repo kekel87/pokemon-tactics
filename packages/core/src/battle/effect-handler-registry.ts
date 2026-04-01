@@ -5,6 +5,7 @@ import type { BattleState } from "../types/battle-state";
 import type { Effect } from "../types/effect";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import type { Position } from "../types/position";
 import type { TypeChart } from "../types/type-chart";
 
 export type { TypeChart };
@@ -18,6 +19,7 @@ export interface EffectContext {
   typeChart: TypeChart;
   attackerTypes: PokemonType[];
   targetTypesMap: Map<string, PokemonType[]>;
+  targetPosition: Position;
 }
 
 export type EffectHandler = (context: EffectContext) => BattleEvent[];

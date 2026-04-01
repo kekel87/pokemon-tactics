@@ -16,7 +16,7 @@ describe("sandboxArena", () => {
     const format = sandboxArena.formats[0]!;
     expect(format.teamCount).toBe(2);
     expect(format.maxPokemonPerTeam).toBe(1);
-    expect(format.spawnZones[0]!.positions).toEqual([{ x: 1, y: 3 }]);
-    expect(format.spawnZones[1]!.positions).toEqual([{ x: 4, y: 3 }]);
+    expect(format.spawnZones[0]!.positions).toEqual([{ x: 3, y: 4 }]);
+    expect(format.spawnZones[1]!.positions).toEqual([{ x: 3, y: 1 }]);
   });
 });
