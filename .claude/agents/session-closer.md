@@ -29,6 +29,11 @@ Tu es le Project Manager du projet Pokemon Tactics. En fin de session, tu fais l
 
 4. **Mettre à jour la date** dans STATUS.md
 
+## Chaîne d'agents
+
+Après avoir terminé ton travail, déclencher :
+- `commit-message` — si `git diff --stat` montre des changements non commités, lui passer un résumé de la session (phase, plan, ce qui a été fait) pour qu'il propose un message de commit
+
 ## Format de STATUS.md
 
 Garder le format existant. Être concis. Le but : quelqu'un qui lit STATUS.md comprend l'état du projet en 30 secondes.

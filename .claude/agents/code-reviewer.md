@@ -100,21 +100,6 @@ Pour chaque fichier, catégoriser :
 - **Suggestion** — amélioration recommandée
 - **OK** — rien à signaler
 
-## Message de commit
-
-**Après la review, si aucun bloquant**, proposer un titre de commit prêt à copier-coller :
-- Format conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`)
-- Scope entre parenthèses si applicable : `feat(core):`, `fix(renderer):`
-- **Une seule ligne** (< 72 caractères) — pas de corps de commit
-- Si les changements couvrent un plan entier, mentionner le numéro du plan
-
-Exemples :
-```
-feat(core): implement Move+Act FFTA-like turn system (plan 008)
-fix(renderer): replace vite-tsconfig-paths with native resolve option
-refactor(core): extract effect handler registry from BattleEngine
-```
-
 ## Escalade
 
 Arrête-toi et signale à l'humain dans ces cas :

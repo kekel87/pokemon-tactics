@@ -503,10 +503,11 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour autom
 |-------|--------|------|
 | `core-guardian` | haiku | Vérifie que core n'a aucune dépendance UI |
 | `doc-keeper` | sonnet | Maintient la documentation à jour (checklist systématique sur tous les fichiers doc) |
-| `code-reviewer` | sonnet | Review qualité, TS strict, conventions — propose un titre de commit après review |
+| `code-reviewer` | sonnet | Review qualité, TS strict, conventions |
+| `commit-message` | sonnet | Propose un message de commit basé sur le contexte (plan, phase, session) puis valide via `git diff` |
 | `game-designer` | sonnet | Cohérence et équilibre des mécaniques |
 | `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |
-| `session-closer` | sonnet | Met à jour STATUS.md en fin de session |
+| `session-closer` | sonnet | Met à jour STATUS.md en fin de session, chaîne vers `commit-message` si changements non commités |
 | `test-writer` | sonnet | Tests Vitest, approche test-first |
 | `data-miner` | sonnet | Import données Pokemon (Showdown/PokeAPI) |
 | `dependency-manager` | sonnet | Gestion des dépendances npm — vérifie aussi les deprecation warnings |
@@ -518,10 +519,13 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour autom
 | `visual-tester` | sonnet | Vérification visuelle via Playwright MCP (screenshots, console, interactions) |
 | `ci-setup` | sonnet | Configuration GitHub Actions |
 | `agent-manager` | sonnet | Audite et maintient les agents/skills (format, cohérence, qualité) |
+| `sandbox-url` | sonnet | Génère des URLs sandbox complètes à partir de descriptions en langage naturel |
 
 ### Comportements notables
 
-- **`code-reviewer`** : si aucun bloquant, propose un titre de commit prêt à copier-coller (conventional commits, < 72 caractères). Escalade vers l'humain si diff > 15 fichiers ou pattern intentionnel détecté.
+- **`code-reviewer`** : review qualité, TypeScript strict, conventions. Escalade vers l'humain si diff > 15 fichiers ou pattern intentionnel détecté. Ne propose plus de message de commit (délégué à `commit-message`).
+- **`commit-message`** : part du contexte (numéro de plan, phase, description de session) pour proposer un titre, puis confirme avec `git diff`. Appelé par `session-closer` en fin de session si des changements ne sont pas encore commités.
+- **`sandbox-url`** : traduit une description en langage naturel ("Bulbizarre brûlé face à un Dummy Protect") en URL sandbox complète. Connaît tous les query params et leurs valeurs valides.
 - **`doc-keeper`** : checklist systématique — parcourt tous les fichiers de la table, vérifie la cohérence des termes entre les docs, maintient la section "Sources et crédits" du README.
 - **`dependency-manager`** : en plus de l'audit standard, détecte les plugins remplacés par des fonctionnalités natives du tool (ex: plugin Vite remplacé par une option built-in) en lançant `pnpm build 2>&1` et `pnpm test 2>&1`.
 
@@ -529,13 +533,19 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour autom
 
 | Déclencheur | Chaîne |
 |-------------|--------|
-| Modif `packages/core/` | `code-reviewer` → `core-guardian` → `test-writer` si nouvelle mécanique |
-| Modif mécaniques de jeu | `code-reviewer` → `game-designer` |
-| Modif `packages/renderer/` | `code-reviewer` → `visual-tester` (si dev server lancé) |
-| Ajout/modif données Pokemon | `data-miner` → `game-designer` |
-| Fin de session | `session-closer` (ou `/status`) → `doc-keeper` |
+| Étape intermédiaire d'un plan (core touché) | `core-guardian` + `test-writer` |
+| Étape intermédiaire d'un plan (renderer touché) | rien (seulement en fin de plan) |
+| Fin de plan | `code-reviewer` + `doc-keeper` (+ `core-guardian` si core touché, + `visual-tester` si renderer touché) |
+| Bugfix / refacto / expérimentation hors plan | `code-reviewer` + `doc-keeper` |
+| Modif mécaniques de jeu | `game-designer` |
+| `code-reviewer` déclenche | `core-guardian` (si core), `game-designer` (si mécaniques), `visual-tester` (si renderer) |
+| `visual-tester` déclenche | `sandbox-url` (si génération d'URL nécessaire) |
+| `debugger` déclenche | `visual-tester` (si composante visuelle) |
+| Ajout/modif données Pokemon | `data-miner` + `game-designer` |
+| Fin de session | vérification `pnpm build` + `pnpm test` → `session-closer` → `doc-keeper` + `commit-message` (si non commité) |
 | Ajout de dépendance | `dependency-manager` |
-| Nouveau plan ou plan à jour | `plan-reviewer` |
+| Nouveau plan ou plan à réviser | `plan-reviewer` |
+| Bug visuel ou modif renderer isolée | `visual-tester` |
 
 ### Agents placeholder (à activer plus tard)
 

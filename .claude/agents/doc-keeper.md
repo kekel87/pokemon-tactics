@@ -18,7 +18,7 @@ Tu es le Technical Writer du projet Pokemon Tactics. Après chaque changement si
 | `docs/architecture.md` | Structure, patterns, diagrammes | Quand on ajoute un package, change la structure, ou ajoute un pattern |
 | `docs/roster-poc.md` | Movesets, ajouts de Pokemon | Quand on modifie les Pokemon ou leurs attaques |
 | `docs/references.md` | Nouvelles inspirations ou ressources | Quand on découvre un nouveau projet/outil utile |
-| `README.md` | Section "Sources et crédits" | Quand on ajoute une nouvelle source de données, lib, ou outil |
+| `README.md` | Section "Sources et crédits", diagramme mermaid orchestration agents, tableau agents | Quand on ajoute une source, ou quand l'orchestration/les agents changent |
 | `CLAUDE.md` | Conventions, orchestration agents | Quand les conventions ou la structure changent |
 
 ## Checklist systématique
@@ -38,6 +38,7 @@ Pour chaque changement, passer en revue cette checklist :
 - **Nouvelle source de données** → README.md (section Sources et crédits) + references.md
 - **Nouvelle lib/outil** → README.md (section Sources et crédits)
 - **Changement de convention** → CLAUDE.md + methodology.md
+- **Changement d'orchestration/agents** → README.md (diagramme mermaid + tableau agents) + architecture.md (section agents). Le diagramme mermaid doit refléter exactement les flows décrits dans CLAUDE.md (déclencheurs, chaînes, flows intermédiaires vs fin de plan, flow hors plan)
 - **Nouveau Pokemon/move** → roster-poc.md + game-design.md si nouvelle mécanique
 - **Fin d'un plan** → roadmap.md (cocher) + STATUS.md (ce qui est fait) + architecture.md si changement structurel
 
