@@ -1,4 +1,4 @@
-import type { Direction, StatName, StatusType } from "@pokemon-tactic/core";
+import type { BaseStats, Direction, StatName, StatusType } from "@pokemon-tactic/core";
 
 export interface SandboxConfig {
   pokemon: string;
@@ -10,6 +10,8 @@ export interface SandboxConfig {
   dummyMove: string | null;
   dummyDirection: Direction;
   dummyHp: number;
+  dummyLevel: number;
+  dummyBaseStats: BaseStats | null;
   dummyStatus: StatusType | null;
   dummyStatStages: Partial<Record<StatName, number>>;
 }

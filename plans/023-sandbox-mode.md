@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 created: 2026-03-31
 updated: 2026-03-31
 ---
@@ -60,14 +60,14 @@ Le POC est fonctionnel avec un combat 6v6 complet et une phase de placement. Ava
 
 > Tous les moves défensifs ont `targeting: { kind: 'self' }`. Ils durent "jusqu'au prochain tour du lanceur" sauf Prévention (1 coup). L'effet disparaît si le lanceur est KO.
 
-- [ ] **Étape 6** — Infrastructure des effets défensifs dans le core
+- [x] **Étape 6** — Infrastructure des effets défensifs dans le core
   - Nouveau type d'effet dans `packages/core/src/types/Effect.ts` : `{ kind: 'defensive'; defenseKind: DefensiveKind }`
   - Nouveau const enum `DefensiveKind` dans `packages/core/src/enums/DefensiveKind.ts` : `Protect | Detect | WideGuard | QuickGuard | Counter | MirrorCoat | MetalBurst | Endure`
   - Nouveau champ sur `PokemonInstance` : `activeDefense: ActiveDefense | null` avec type `ActiveDefense = { kind: DefensiveKind; usedAt: number }` (round + turnIndex pour savoir quand ça expire)
   - Méthode `clearExpiredDefenses(state: BattleState)` appelée au début du tour du défenseur — efface `activeDefense` si `usedAt` correspond au dernier tour du Pokemon
   - Tests unitaires : `ActiveDefense` correctement posé et effacé après 1 tour du lanceur, effacé sur KO
 
-- [ ] **Étape 7** — Handler `defensive-effect-handler.ts` : Abri / Protect et Détection / Detect
+- [x] **Étape 7** — Handler `defensive-effect-handler.ts` : Abri / Protect et Détection / Detect
   - Enregistre `activeDefense = { kind: Protect }` sur le lanceur
   - Dans `effect-processor.ts` : avant d'appliquer des dégâts/effets sur une cible, vérifier `activeDefense`
   - Protect/Detect : bloquer si l'attaque vient de face (direction de l'attaquant dans l'arc frontal 180° + côtés)
@@ -75,36 +75,36 @@ Le POC est fonctionnel avec un combat 6v6 complet et une phase de placement. Ava
   - Pas de spam penalty (contrairement au jeu principal — décision délibérée pour le tactique)
   - Tests unitaires : attaque bloquée de face, attaque non bloquée de dos, bloc AoE, expiration après tour
 
-- [ ] **Étape 8** — Garde Large / Wide Guard
+- [x] **Étape 8** — Garde Large / Wide Guard
   - Bloque les attaques AoE (targeting kind `zone`, `cross`, `cone`, `slash`, `blast`) dans un rayon de 2 tiles autour du lanceur
   - Protège aussi les alliés dans ce rayon (les alliés avec `activeDefense = WideGuard` partagent la protection)
   - Dans `effect-processor.ts` : vérifier Wide Guard avant d'appliquer les effets AoE
   - Tests unitaires : AoE bloquée, single target non bloquée, protection alliés, expiration
 
-- [ ] **Étape 9** — Prévention / Quick Guard
+- [x] **Étape 9** — Prévention / Quick Guard
   - Bloque la prochaine attaque reçue (toute direction), consommée en 1 coup (pas durée = tour suivant)
   - `activeDefense` effacé après le premier coup reçu (dans `effect-processor.ts` après le bloc)
   - Tests unitaires : premier coup bloqué, deuxième coup non bloqué, expiration au prochain tour si non déclenché
 
-- [ ] **Étape 10** — Riposte / Counter et Voile Miroir / Mirror Coat
+- [x] **Étape 10** — Riposte / Counter et Voile Miroir / Mirror Coat
   - Counter : prend les dégâts, renvoie x2 si l'attaque est de catégorie `physical` et que l'attaquant est adjacent (manhattanDistance = 1)
   - Mirror Coat : prend les dégâts, renvoie x2 si l'attaque est de catégorie `special` (toute portée)
   - Renvoi : appliquer `damage_dealt` sur l'attaquant après résolution du coup normal. Si le défenseur est KO du coup → pas de renvoi.
   - Tests unitaires : riposte physique contact, riposte ignorée si spéciale, mirror coat spéciale, mirror coat ignorée si physique, pas de renvoi si KO, expiration
 
-- [ ] **Étape 11** — Fulmifer / Metal Burst
+- [x] **Étape 11** — Fulmifer / Metal Burst
   - Renvoie x1.5 des dégâts reçus, contact ET distance (physique et spécial)
   - Même règle KO : si le défenseur meurt du coup → pas de renvoi
   - Tests unitaires : renvoi physique, renvoi spécial, pas de renvoi si KO, expiration
 
-- [ ] **Étape 12** — Ténacité / Endure
+- [x] **Étape 12** — Ténacité / Endure
   - Pose un flag `activeDefense = { kind: Endure }` sur le lanceur
   - Dans `effect-processor.ts` (processDamage) : si Endure actif et que les dégâts amèneraient à ≤ 0 HP → HP fixé à 1 au lieu de 0
   - Ne bloque PAS les dégâts de statut (burn/poison tick), terrain, chute — uniquement les dégâts d'attaque (`processDamage`)
   - Spam check : ne peut pas être utilisé 2 tours de suite. `ActionError.EndureSpam` si tentative. Implémenter `lastEndureRound` sur `PokemonInstance`.
   - Tests unitaires : HP bloqué à 1, statut tick passe quand même, spam rejeté, expiration
 
-- [ ] **Étape 13** — Ajouter les 8 moves dans `packages/data`
+- [x] **Étape 13** — Ajouter les 8 moves dans `packages/data`
   - `packages/data/src/base/moves.ts` : ajouter les 8 moves (power 0, accuracy 100, pp selon le jeu officiel, category `status`)
   - `packages/data/src/overrides/tactical.ts` : ajouter `targeting: { kind: 'self' }` et `effects: [{ kind: 'defensive', defenseKind: ... }]` pour chacun
   - `packages/data/src/overrides/balance-v1.ts` : PP ajustés si nécessaire pour l'équilibre tactique
@@ -115,7 +115,7 @@ Le POC est fonctionnel avec un combat 6v6 complet et une phase de placement. Ava
 
 ### Partie 4 — Panels UI sandbox
 
-- [ ] **Étape 14** — Créer `SandboxPanel.ts` dans `packages/renderer/src/ui/`
+- [x] **Étape 14** — Créer `SandboxPanel.ts` dans `packages/renderer/src/ui/`
   - Panel overlay dans `BattleUIScene`, visible seulement si `isSandboxMode`, collapsible (toggle avec un bouton ou touche)
   - Positionné à côté de la TurnTimeline (colonne gauche, sous la timeline) pour ne pas empiéter sur la grille
   - **Section joueur** : dropdown Pokemon (12 du roster), 4 slots moves (dropdowns), HP slider 0–100%, dropdown statut (Aucun / Brûlure / Poison / Paralysie / Gel / Sommeil), stat stages -6/+6 par stat (Atk, Déf, AtkSpé, DéfSpé, Vit)
@@ -124,7 +124,7 @@ Le POC est fonctionnel avec un combat 6v6 complet et une phase de placement. Ava
   - Collapsé par défaut si l'écran est petit, expanded sur 4K — toggle visible en permanence
   - Pas de tests unitaires pour le rendu Phaser — validation visuelle Playwright
 
-- [ ] **Étape 15** — Connecter les panels à la config live
+- [x] **Étape 15** — Connecter les panels à la config live
   - `SandboxPanel` émet un event custom `SandboxConfigChanged` avec la nouvelle `SandboxConfig`
   - `GameController` (ou une couche sandbox dédiée) écoute `SandboxConfigChanged` et relance `SandboxSetup.createSandboxBattle` + réinitialise la scène
   - `DummyAiController` mis à jour avec le nouveau `dummyMove` et `dummyDirection` lors du reset
@@ -134,7 +134,7 @@ Le POC est fonctionnel avec un combat 6v6 complet et une phase de placement. Ava
 
 ### Partie 5 — Validation visuelle finale
 
-- [ ] **Étape 16** — Tests visuels Playwright du mode sandbox
+- [x] **Étape 16** — Tests visuels Playwright du mode sandbox
   - Ouvrir `http://localhost:5173/?sandbox` : vérifier que la grille 6x6 charge, 2 Pokemon présents, panels visibles
   - Ouvrir `?sandbox&pokemon=bulbasaur&moves=vine-whip,razor-leaf&hp=50&dummy=charmander&dummyMove=protect` : vérifier la configuration
   - Jouer un tour : Protect sur le dummy → l'attaque est bloquée, event `DefenseTriggered` visible dans console si debug

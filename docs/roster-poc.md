@@ -3,6 +3,7 @@
 > Les 12 Pokemon du prototype élargi et leurs movesets.
 > Chaque attaque teste un pattern ou une mécanique différente pour valider le moteur.
 > Les movesets des 8 nouveaux Pokemon (plan 013+) n'ont pas encore été revus par l'humain.
+> **56 moves au total** : 48 moves offensifs/statut (roster élargi) + 8 moves défensifs (Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité) ajoutés en plan 023.
 
 ---
 
@@ -12,7 +13,7 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 - **Roster initial (4)** : Plante, Feu, Eau, Normal/Vol — triangle élémentaire + neutre
 - **Roster élargi (12)** : Électrique, Combat, Psy, Spectre/Poison, Roche/Sol, Feu (2e), Normal/Fée, Eau/Glace
 - **Tous les patterns AoE** : single, cône, croix, zone self, dash, portée+AoE, lien, ligne, slash, blast
-- **Mécaniques variées** : dégâts, statut, buff, drain, dash, AoE, debuff
+- **Mécaniques variées** : dégâts, statut, buff, drain, dash, AoE, debuff, défensif (Protect/Counter/Endure...)
 
 ---
 
@@ -172,6 +173,25 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 
 ---
 
+## 13. Dummy (Normal) — cible du mode sandbox
+
+Pokemon de test uniquement, utilisé comme adversaire en mode sandbox. Non présent dans les combats normaux.
+
+| Stat de base | Valeur |
+|---|---|
+| PV | 100 |
+| Attaque | 50 |
+| Défense | 50 |
+| Atk Spé | 50 |
+| Déf Spé | 50 |
+| Vitesse | 50 |
+
+**Movepool** : les 8 moves défensifs uniquement (Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité) + option passif (EndTurn immédiat). Le move actif est configurable via le panel Dummy ou le query param `dummyMove`.
+
+**Sprite** : clone PMDCollab sprite `#0000 form 1` (sprite générique partagé).
+
+---
+
 ## Mécaniques testées par le roster élargi
 
 | Mécanique | Testée par |
@@ -203,3 +223,10 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 | Type Spectre (traversée ennemis) | Fantominus |
 | Triangle de types | Plante > Eau > Feu > Plante |
 | Couverture types | Électrique, Combat, Psy, Spectre, Roche, Sol, Glace, Ténèbres, Fée |
+| **Défensif : blocage directionnel** | Abri, Détection (Dummy) |
+| **Défensif : blocage AoE** | Garde Large (Dummy) |
+| **Défensif : omnidirectionnel 1 coup** | Prévention (Dummy) |
+| **Défensif : renvoi contact x2** | Riposte (Dummy) |
+| **Défensif : renvoi distance x2** | Voile Miroir (Dummy) |
+| **Défensif : renvoi universel x1.5** | Fulmifer (Dummy) |
+| **Défensif : survie 1 PV** | Ténacité (Dummy) |

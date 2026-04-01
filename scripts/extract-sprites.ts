@@ -24,6 +24,7 @@ interface SpriteConfig {
 interface PokedexEntry {
   number: string;
   name: string;
+  form?: string;
 }
 
 interface ParsedAnimation {
@@ -365,7 +366,8 @@ async function downloadPortrait(
 }
 
 async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promise<void> {
-  const spriteBaseUrl = `${config.baseUrl}/sprite/${entry.number}`;
+  const spritePath = entry.form ? `${entry.number}/${entry.form}` : entry.number;
+  const spriteBaseUrl = `${config.baseUrl}/sprite/${spritePath}`;
   const outputPath = join(ROOT_DIR, config.outputDir, entry.name);
 
   console.log(`\n--- Extracting ${entry.name} (#${entry.number}) ---`);
@@ -429,7 +431,8 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
   const portraitBuffers: { emotion: string; buffer: Buffer }[] = [];
   for (const emotion of config.portraits) {
     try {
-      const buffer = await downloadPortrait(config.baseUrl, entry.number, emotion);
+      const portraitPath = entry.form ? `${entry.number}/${entry.form}` : entry.number;
+      const buffer = await downloadPortrait(config.baseUrl, portraitPath, emotion);
       portraitBuffers.push({ emotion, buffer });
     } catch {
       console.warn(`  Warning: Could not download portrait "${emotion}", skipping`);

@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-03-31 (Session design — mode sandbox, 8 moves défensifs, tests intégration moves)
+> Dernière mise à jour : 2026-04-01 (Plan 023 + améliorations sandbox post-plan terminés — 2 panels séparés, Copier URL, Dummy configurable, 8 moves défensifs, 386 tests)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -292,13 +292,42 @@
   - Pokemon KO retirés de la timeline
   - **266 tests unitaires + 53 intégration**, build OK, 0 régressions
 
+- **Plan 023 terminé + améliorations sandbox post-plan** — Mode Sandbox + 8 moves défensifs :
+  - Mode sandbox accessible via `?sandbox` (URL param) — micro-carte 6x6, 1 Pokemon joueur vs 1 Dummy
+  - `DummyAiController` : dummy passif ou move assigné (8 moves défensifs + "(passif)")
+  - **2 panels séparés** : Joueur (gauche) et Dummy (droite), toolbar au-dessus (Réinitialiser + Copier URL)
+  - Temps réel : chaque changement relance le combat automatiquement
+  - Moves joueur filtrés par movepool du Pokemon sélectionné + dédoublonnage (vide l'autre slot)
+  - Dummy : dropdown "Stats de" avec "(custom)" + presets Pokemon, stats de base éditables, niveau, stats calculées
+  - Défauts : Bulbasaur (joueur, en bas face Nord) vs Dummy custom (en haut face Sud)
+  - Copier URL : génère l'URL complète avec tous les query params
+  - Sprite clone PMDCollab (#0000 form 1) pour le dummy
+  - Pokemon "Dummy" ajouté aux data (Normal, 100/50/50/50/50/50, movepool défensif)
+  - Écran de victoire + Restart en HTML overlay (fix bug hitbox Phaser 4 avec camera zoom)
+  - **Blast + Protect** : `defense-check.ts` utilise `targetPosition` (centre d'explosion) pour Blast — cibler derrière un défenseur contourne Protect
+  - **8 moves défensifs** dans le core avec handlers testés :
+    - Protect/Detect : bloque de face (direction checking)
+    - Wide Guard : bloque AoE (zone, cross, cone, slash, blast)
+    - Quick Guard : bloque 1 coup, toute direction, consommé
+    - Counter : renvoie x2 physique adjacent
+    - Mirror Coat : renvoie x2 spécial (toute portée)
+    - Metal Burst : renvoie x1.5 physique+spécial
+    - Endure : survit à 1 HP, spam check (pas 2 tours de suite)
+  - Infrastructure core : `DefensiveKind` enum, `ActiveDefense` type, `defense-check.ts`, `handle-defensive.ts`, `defensive-clear-handler.ts`
+  - Events : `DefenseActivated`, `DefenseCleared`, `DefenseTriggered`
+  - **386 tests** (292 unit + 53 intégration + 94 nouveaux/modifiés), 0 régressions
+  - **56 moves** dans le roster (48 + 8 défensifs)
+  - Build OK, TypeScript OK, Vite build OK
+
 ### Prochaine étape (Phase 1 Core)
-- **Mode Sandbox** (`?sandbox`) — 1 Pokemon joueur vs 1 Dummy configurable sur micro-carte 6x6, prioritaire avant l'élargissement roster (décisions #138-139)
-- **8 moves défensifs** — Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité (décisions #141-146) avec tests d'intégration scénario Gherkin (décision #140)
-- Review des movesets des 8 nouveaux Pokemon par l'humain (équilibrage) — décision #121
+- Review des movesets des 12 Pokemon par l'humain (équilibrage) — décision #121
 - **Plus de moves** stat changes (Épée Danse, Groz'Yeux) et AoE variés — diversité tactique
 - Statuts volatils : confusion (chance de se frapper soi-même)
 - Système de replay (log d'actions déterministe, seed + rejeu)
+
+### Points à adresser (renderer)
+- Représentation visuelle des moves défensifs : animation/feedback quand Protect bloque, Counter renvoie, etc.
+- Déplacer le menu d'attaque en bas à gauche (actuellement en haut à droite)
 
 ### Standards de code établis
 - Pas d'abréviations, variables nommées comme leur type

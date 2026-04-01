@@ -31,10 +31,10 @@ export const sandboxArena: MapDefinition = {
       maxPokemonPerTeam: 1,
       spawnZones: [
         {
-          positions: [{ x: 1, y: 3 }],
+          positions: [{ x: 3, y: 4 }],
         },
         {
-          positions: [{ x: 4, y: 3 }],
+          positions: [{ x: 3, y: 1 }],
         },
       ],
     },

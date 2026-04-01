@@ -11,14 +11,14 @@ describe("parseSandboxQueryParams", () => {
   it("returns defaults when only sandbox param is present", () => {
     const config = parseSandboxQueryParams("?sandbox");
     expect(config).not.toBeNull();
-    expect(config!.pokemon).toBe("pikachu");
-    expect(config!.moves).toEqual(["thunderbolt", "thunder-wave", "double-team", "volt-tackle"]);
+    expect(config!.pokemon).toBe("bulbasaur");
+    expect(config!.moves).toEqual(["razor-leaf", "sleep-powder", "leech-seed", "sludge-bomb"]);
     expect(config!.hp).toBe(100);
     expect(config!.status).toBeNull();
     expect(config!.statStages).toEqual({});
-    expect(config!.dummyPokemon).toBe("machop");
+    expect(config!.dummyPokemon).toBe("dummy");
     expect(config!.dummyMove).toBeNull();
-    expect(config!.dummyDirection).toBe(Direction.West);
+    expect(config!.dummyDirection).toBe(Direction.South);
     expect(config!.dummyHp).toBe(100);
     expect(config!.dummyStatus).toBeNull();
     expect(config!.dummyStatStages).toEqual({});
@@ -48,12 +48,14 @@ describe("parseSandboxQueryParams", () => {
 
   it("falls back to defaults for invalid pokemon", () => {
     const config = parseSandboxQueryParams("?sandbox&pokemon=mewtwo&dummy=arceus");
-    expect(config!.pokemon).toBe("pikachu");
-    expect(config!.dummyPokemon).toBe("machop");
+    expect(config!.pokemon).toBe("bulbasaur");
+    expect(config!.dummyPokemon).toBe("dummy");
   });
 
   it("filters out invalid moves", () => {
-    const config = parseSandboxQueryParams("?sandbox&pokemon=bulbasaur&moves=razor-leaf,hyper-beam,fake-move");
+    const config = parseSandboxQueryParams(
+      "?sandbox&pokemon=bulbasaur&moves=razor-leaf,hyper-beam,fake-move",
+    );
     expect(config!.moves).toEqual(["razor-leaf"]);
   });
 
@@ -85,6 +87,6 @@ describe("parseSandboxQueryParams", () => {
 
   it("ignores invalid dummyDirection", () => {
     const config = parseSandboxQueryParams("?sandbox&dummyDirection=northeast");
-    expect(config!.dummyDirection).toBe(Direction.West);
+    expect(config!.dummyDirection).toBe(Direction.South);
   });
 });

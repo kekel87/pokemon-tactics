@@ -4,10 +4,12 @@ import type { BattleEvent } from "../types/battle-event";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import type { Position } from "../types/position";
 import { getTypeEffectiveness } from "./damage-calculator";
 import type { EffectContext, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { handleDamage } from "./handlers/handle-damage";
+import { handleDefensive } from "./handlers/handle-defensive";
 import { handleLink } from "./handlers/handle-link";
 import { handleStatChange } from "./handlers/handle-stat-change";
 import { handleStatus } from "./handlers/handle-status";
@@ -20,6 +22,7 @@ interface ProcessContext {
   typeChart: TypeChart;
   attackerTypes: PokemonType[];
   targetTypesMap: Map<string, PokemonType[]>;
+  targetPosition: Position;
 }
 
 export function createDefaultEffectRegistry(): EffectHandlerRegistry {
@@ -28,6 +31,7 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.Status, handleStatus);
   registry.register(EffectKind.StatChange, handleStatChange);
   registry.register(EffectKind.Link, handleLink);
+  registry.register(EffectKind.Defensive, handleDefensive);
   return registry;
 }
 

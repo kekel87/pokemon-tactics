@@ -86,4 +86,11 @@ export const basePokemon: Omit<PokemonDefinition, "id">[] = [
     weight: 90.0,
     movepool: ["aurora-beam", "blizzard", "headbutt", "icy-wind"],
   },
+  {
+    name: "Dummy",
+    types: [PokemonType.Normal],
+    baseStats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
+    weight: 10.0,
+    movepool: ["protect", "detect", "counter", "endure"],
+  },
 ];

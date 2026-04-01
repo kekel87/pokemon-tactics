@@ -13,6 +13,7 @@ import {
 import { DummyAiController } from "../game/DummyAiController";
 import { createSandboxBattle } from "../game/SandboxSetup";
 import type { SandboxConfig } from "../types/SandboxConfig";
+import { SandboxPanel } from "../ui/SandboxPanel";
 import { parseSandboxQueryParams } from "../utils/sandbox-query-params";
 import {
   ARROW_PAN_SPEED,
@@ -42,6 +43,8 @@ export class BattleScene extends Phaser.Scene {
   private controller: GameController | null = null;
   private arrowKeysDown = new Set<string>();
   private activeGridSize = GRID_SIZE;
+  private sandboxPanel: SandboxPanel | null = null;
+  private sandboxUiScene: BattleUIScene | null = null;
 
   constructor() {
     super("BattleScene");
@@ -100,9 +103,18 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private startSandboxMode(uiScene: BattleUIScene, config: SandboxConfig): void {
+    this.sandboxUiScene = uiScene;
     this.activeGridSize = 6;
     this.setupCameraBounds();
 
+    this.sandboxPanel = new SandboxPanel(config, (newConfig: SandboxConfig) => {
+      this.resetSandbox(newConfig);
+    });
+
+    this.initSandboxBattle(uiScene, config);
+  }
+
+  private initSandboxBattle(uiScene: BattleUIScene, config: SandboxConfig): void {
     const isometricGrid = new IsometricGrid(this, 6);
     isometricGrid.drawGrid();
 
@@ -151,6 +163,22 @@ export class BattleScene extends Phaser.Scene {
     }
 
     controller.refreshUI();
+  }
+
+  private resetSandbox(config: SandboxConfig): void {
+    if (!this.sandboxUiScene) return;
+    this.children.removeAll(true);
+    this.controller = null;
+    this.lastHoverGrid = null;
+    this.arrowKeysDown.clear();
+    this.input.removeAllListeners();
+
+    this.sandboxUiScene.battleUI.hideVictory();
+    this.sandboxUiScene.actionMenu.hide();
+
+    this.cameras.main.setZoom(ZOOM_LEVELS[this.zoomIndex]);
+    this.setupCameraBounds();
+    this.initSandboxBattle(this.sandboxUiScene, config);
   }
 
   private startPlacementPhase(uiScene: BattleUIScene): void {
@@ -286,9 +314,17 @@ export class BattleScene extends Phaser.Scene {
       controller.handleEscapeKey();
     });
 
-    this.input.on("wheel", (_pointer: Phaser.Input.Pointer, _gameObjects: unknown[], _deltaX: number, deltaY: number) => {
-      this.changeZoom(deltaY > 0 ? -1 : 1);
-    });
+    this.input.on(
+      "wheel",
+      (
+        _pointer: Phaser.Input.Pointer,
+        _gameObjects: unknown[],
+        _deltaX: number,
+        deltaY: number,
+      ) => {
+        this.changeZoom(deltaY > 0 ? -1 : 1);
+      },
+    );
 
     this.input.keyboard?.on("keydown-PLUS", () => this.changeZoom(1));
     this.input.keyboard?.on("keydown-EQUAL", () => this.changeZoom(1));

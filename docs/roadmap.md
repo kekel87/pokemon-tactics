@@ -22,7 +22,7 @@
 - [x] 9 targeting patterns (single, self, cone, cross, line, dash, zone, slash, blast)
 - [x] Friendly fire actif
 - [x] Type chart 18x18
-- [x] Tests unitaires pour chaque mécanique (266 tests unitaires + 53 intégration = 319 tests, 100% coverage)
+- [x] Tests unitaires pour chaque mécanique (292 tests unitaires + 53 intégration = 345 tests + 94 nouveaux/modifiés défensifs = 386 total, 100% coverage)
 
 ### Renderer
 - [x] Grille isométrique 2D avec Phaser 4
@@ -51,8 +51,8 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Direction de fin de tour (orientation choisie avant EndTurn)
 - [x] Nouveaux patterns core : `slash` (arc frontal 3 cases) et `blast` (projectile + explosion circulaire) — voir `docs/reflexion-patterns-attaques.md` et décisions #108-109
 - [x] Mettre à jour `tactical.ts` avec les 7 changements de pattern effectifs (décision #110) — Ball'Ombre absente du roster actuel
-- [ ] **Mode Sandbox** (`?sandbox`) : 1 Pokemon joueur vs 1 Dummy configurable sur micro-carte 6x6, panels collapsibles, query params (décisions #138-139)
-- [ ] 8 moves défensifs : Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité (décisions #141-146) + tests d'intégration scénario Gherkin (décision #140)
+- [x] **Mode Sandbox** (`?sandbox`) : 1 Pokemon joueur vs 1 Dummy configurable sur micro-carte 6x6, 2 panels séparés (Joueur/Dummy), toolbar Réinitialiser + Copier URL, query params complets, Dummy avec preset Pokemon ou custom stats (décisions #138-139) — plan 023 + post-plan
+- [x] 8 moves défensifs : Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité (décisions #141-146) + tests d'intégration scénario Gherkin (décision #140) — plan 023
 - [ ] Plus de moves stat changes (Épée Danse, Groz'Yeux, etc.)
 - [ ] Plus de moves AoE variés (utiliser les patterns existants avec plus de diversité)
 - [ ] Plus de moves avec portées variées (mêlée, 2-3 tiles, globale)

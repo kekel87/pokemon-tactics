@@ -5,9 +5,9 @@ import type { SandboxConfig } from "../types/SandboxConfig";
 const VALID_STATUSES = new Set<string>(Object.values(StatusType));
 const VALID_DIRECTIONS = new Set<string>(Object.values(Direction));
 
-const DEFAULT_POKEMON: string = "pikachu";
-const DEFAULT_DUMMY_POKEMON: string = "machop";
-const DEFAULT_DUMMY_DIRECTION: Direction = Direction.West;
+const DEFAULT_POKEMON: string = "bulbasaur";
+const DEFAULT_DUMMY_POKEMON: string = "dummy";
+const DEFAULT_DUMMY_DIRECTION: Direction = Direction.South;
 
 function parseStatStages(raw: string | null): Partial<Record<StatName, number>> {
   if (!raw) {
@@ -57,7 +57,8 @@ export function parseSandboxQueryParams(
 
   const rawHp = params.get("hp");
   const parsedHp = rawHp !== null ? Number(rawHp) : null;
-  const hp = parsedHp !== null && !Number.isNaN(parsedHp) ? Math.max(1, Math.min(100, parsedHp)) : 100;
+  const hp =
+    parsedHp !== null && !Number.isNaN(parsedHp) ? Math.max(1, Math.min(100, parsedHp)) : 100;
 
   const rawStatus = params.get("status");
   const status = rawStatus && VALID_STATUSES.has(rawStatus) ? (rawStatus as StatusType) : null;
@@ -81,13 +82,23 @@ export function parseSandboxQueryParams(
 
   const rawDummyHp = params.get("dummyHp");
   const parsedDummyHp = rawDummyHp !== null ? Number(rawDummyHp) : null;
-  const dummyHp = parsedDummyHp !== null && !Number.isNaN(parsedDummyHp) ? Math.max(1, Math.min(100, parsedDummyHp)) : 100;
+  const dummyHp =
+    parsedDummyHp !== null && !Number.isNaN(parsedDummyHp)
+      ? Math.max(1, Math.min(100, parsedDummyHp))
+      : 100;
 
   const rawDummyStatus = params.get("dummyStatus");
   const dummyStatus =
     rawDummyStatus && VALID_STATUSES.has(rawDummyStatus) ? (rawDummyStatus as StatusType) : null;
 
   const dummyStatStages = parseStatStages(params.get("dummyStatStages"));
+
+  const rawDummyLevel = params.get("dummyLevel");
+  const parsedDummyLevel = rawDummyLevel !== null ? Number(rawDummyLevel) : null;
+  const dummyLevel =
+    parsedDummyLevel !== null && !Number.isNaN(parsedDummyLevel)
+      ? Math.max(1, Math.min(100, parsedDummyLevel))
+      : 50;
 
   return {
     pokemon,
@@ -99,6 +110,8 @@ export function parseSandboxQueryParams(
     dummyMove,
     dummyDirection,
     dummyHp,
+    dummyLevel,
+    dummyBaseStats: null,
     dummyStatus,
     dummyStatStages,
   };

@@ -15,6 +15,9 @@ export const BattleEventType = {
   PokemonEliminated: "pokemon_eliminated",
   PokemonRevived: "pokemon_revived",
   MoveMissed: "move_missed",
+  DefenseActivated: "defense_activated",
+  DefenseCleared: "defense_cleared",
+  DefenseTriggered: "defense_triggered",
   BattleEnded: "battle_ended",
 } as const;
 

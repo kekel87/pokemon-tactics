@@ -11,7 +11,8 @@
     { "number": "0074", "name": "geodude" },
     { "number": "0058", "name": "growlithe" },
     { "number": "0039", "name": "jigglypuff" },
-    { "number": "0086", "name": "seel" }
+    { "number": "0086", "name": "seel" },
+    { "number": "0000", "name": "dummy", "form": "0001" }
   ],
   "animations": ["Idle", "Walk", "Attack", "Hurt", "Faint", "Sleep"],
   "portraits": ["Normal"],

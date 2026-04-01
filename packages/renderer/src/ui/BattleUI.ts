@@ -1,23 +1,10 @@
 import { PlayerId, type PokemonInstance } from "@pokemon-tactic/core";
-import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-  DEPTH_UI_BASE,
-  DEPTH_VICTORY_CONTENT,
-  DEPTH_VICTORY_OVERLAY,
-  UI_BORDER_ALPHA,
-  UI_BORDER_COLOR,
-  UI_BORDER_WIDTH,
-  UI_BUTTON_CORNER_RADIUS,
-  VICTORY_BUTTON_Y,
-  VICTORY_TEXT_X,
-  VICTORY_TEXT_Y,
-} from "../constants";
+import { CANVAS_WIDTH, DEPTH_UI_BASE } from "../constants";
 
 export class BattleUI {
   private readonly scene: Phaser.Scene;
   private readonly turnInfoText: Phaser.GameObjects.Text;
-  private victoryOverlay: Phaser.GameObjects.Container | null = null;
+  private victoryOverlay: HTMLDivElement | null = null;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -46,71 +33,39 @@ export class BattleUI {
 
     const playerLabel = winnerId === PlayerId.Player1 ? "Player 1" : "Player 2";
 
-    const overlay = this.scene.add.graphics();
-    overlay.fillStyle(0x000000, 0.7);
-    overlay.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    overlay.setDepth(DEPTH_VICTORY_OVERLAY);
+    const overlay = document.createElement("div");
+    overlay.style.cssText = `
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 2000; font-family: monospace;
+    `;
 
-    const text = this.scene.add
-      .text(VICTORY_TEXT_X, VICTORY_TEXT_Y, `${playerLabel} wins!\nRound ${roundNumber}`, {
-        fontSize: "48px",
-        color: "#ffcc00",
-        fontFamily: "monospace",
-        align: "center",
-      })
-      .setOrigin(0.5, 0.5)
-      .setDepth(DEPTH_VICTORY_CONTENT);
+    const text = document.createElement("div");
+    text.textContent = `${playerLabel} wins! — Round ${roundNumber}`;
+    text.style.cssText = "font-size: 42px; color: #ffcc00; margin-bottom: 24px; text-align: center;";
+    overlay.appendChild(text);
 
-    const restartButton = this.createButton(
-      VICTORY_TEXT_X,
-      VICTORY_BUTTON_Y,
-      "Restart",
-      140,
-      40,
-      0x44aa44,
-      () => {
-        this.scene.scene.get("BattleScene").scene.restart();
-      },
-    );
-    restartButton.setDepth(DEPTH_VICTORY_CONTENT);
+    const button = document.createElement("button");
+    button.textContent = "Restart";
+    button.style.cssText = `
+      padding: 10px 40px; font-size: 16px; font-family: monospace;
+      background: #44aa44; color: white; border: 2px solid #66cc66;
+      border-radius: 6px; cursor: pointer;
+    `;
+    button.addEventListener("click", () => {
+      this.hideVictory();
+      this.scene.scene.get("BattleScene").scene.restart();
+    });
+    overlay.appendChild(button);
 
-    this.victoryOverlay = this.scene.add.container(0, 0, [overlay, text, restartButton]);
-    this.victoryOverlay.setDepth(DEPTH_VICTORY_OVERLAY);
+    document.body.appendChild(overlay);
+    this.victoryOverlay = overlay;
   }
 
-  private createButton(
-    x: number,
-    y: number,
-    label: string,
-    width: number,
-    height: number,
-    color: number,
-    onClick: () => void,
-  ): Phaser.GameObjects.Container {
-    const background = this.scene.add.graphics();
-    background.fillStyle(color, 1);
-    background.fillRoundedRect(-width / 2, -height / 2, width, height, UI_BUTTON_CORNER_RADIUS);
-    background.lineStyle(UI_BORDER_WIDTH, UI_BORDER_COLOR, UI_BORDER_ALPHA);
-    background.strokeRoundedRect(-width / 2, -height / 2, width, height, UI_BUTTON_CORNER_RADIUS);
-
-    const buttonText = this.scene.add
-      .text(0, 0, label, {
-        fontSize: "12px",
-        color: "#ffffff",
-        fontFamily: "monospace",
-        align: "center",
-      })
-      .setOrigin(0.5, 0.5);
-
-    const container = this.scene.add.container(x, y, [background, buttonText]);
-    container.setSize(width, height);
-    container.setInteractive(
-      new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height),
-      Phaser.Geom.Rectangle.Contains,
-    );
-    container.setDepth(DEPTH_UI_BASE);
-    container.on("pointerdown", onClick);
-
-    return container;
+  hideVictory(): void {
+    if (this.victoryOverlay) {
+      this.victoryOverlay.remove();
+      this.victoryOverlay = null;
+    }
   }
 }
