@@ -82,16 +82,22 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 
 ### Quand lancer quoi
 
-**Après chaque étape d'un plan (code écrit + tests passent) :**
-1. `core-guardian` — si le diff touche `packages/core/`
-2. `code-reviewer` — review qualité + propose un message de commit
-3. `doc-keeper` — met à jour TOUS les docs impactés (checklist systématique)
+**Après chaque étape intermédiaire d'un plan (code écrit + tests passent) :**
+- `core-guardian` — si le diff touche `packages/core/`
 
 **Après la dernière étape d'un plan :**
-- Les 3 ci-dessus + `doc-keeper` met aussi à jour roadmap.md et STATUS.md
+1. `core-guardian` — si le diff touche `packages/core/`
+2. `code-reviewer` — review qualité (pas de commit message, c'est le rôle de `commit-message`)
+3. `doc-keeper` — met à jour TOUS les docs impactés + roadmap.md + STATUS.md
+4. `visual-tester` — si le plan touche `packages/renderer/` (vérification visuelle via `sandbox-url`)
+
+**Travail hors plan (bugfix, expérimentation, refacto opportuniste) :**
+- `code-reviewer` — review qualité (si changements significatifs)
+- `doc-keeper` — si la doc est impactée
 
 **En fin de session :**
-- `session-closer` (ou `/status`)
+- `pnpm build` + `pnpm test` — vérifier que tout compile et passe avant de proposer un commit
+- `session-closer` (ou `/status`) → `commit-message` (si changements non commités)
 
 **Selon le contexte du changement :**
 
@@ -111,14 +117,18 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 | Modif pipeline CI ou ajout package | `ci-setup` |
 | Problème de perf ou avant release | `performance-profiler` |
 | Ajout/modif d'un agent ou skill | `agent-manager` (audit cohérence) |
+| Besoin d'une URL sandbox | `sandbox-url` (génère l'URL à partir d'une description) |
+| Fin de session avec changements non commités | `commit-message` (propose un message de commit) |
 
 ### Chaînes d'agents
 
 Certains agents en déclenchent d'autres :
-- `code-reviewer` → `core-guardian` (si core touché) → `game-designer` (si mécaniques modifiées)
-- `code-reviewer` → `visual-tester` (si renderer touché, dev server lancé)
+- `code-reviewer` (hors flow principal, ex: via `/review`) → `core-guardian` (si core touché) → `game-designer` (si mécaniques modifiées)
+- `code-reviewer` (hors flow principal) → `visual-tester` (si renderer touché, dev server lancé)
 - `debugger` → `visual-tester` (si le bug a une composante visuelle)
-- `session-closer` → vérifie que `doc-keeper` a bien mis à jour la doc
+- `session-closer` → vérifie que `doc-keeper` a bien mis à jour la doc → `commit-message` (si changements non commités)
+- `visual-tester` peut appeler `sandbox-url` pour obtenir l'URL de navigation
+- `agent-manager` — à déclencher manuellement après ajout/modif d'agents pour auditer la cohérence
 
 ## Skills disponibles
 

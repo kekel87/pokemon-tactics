@@ -73,14 +73,16 @@ Le repo sert aussi de terrain d'experimentation pour le travail avec une **equip
 ```mermaid
 flowchart TB
     subgraph triggers["Declencheurs"]
-        modCore["Modif packages/core/"]
+        etapeInter["Etape intermediaire d'un plan"]
+        finPlan["Fin d'un plan"]
+        horsplan["Bugfix / refacto / exp. hors plan"]
+        modCore["Nouvelle mecanique core"]
         modMecanique["Modif mecaniques de jeu"]
         modData["Modif donnees Pokemon"]
         modAssets["Modif assets"]
         modDeps["Ajout dependance"]
         modAgent["Modif agent/skill"]
         modCI["Modif CI/pipeline"]
-        finPlan["Fin d'un plan"]
         finSession["Fin de session"]
         bug["Bug complexe"]
         hesitation["Hesitation approche"]
@@ -90,7 +92,8 @@ flowchart TB
         coreGuardian["core-guardian\n(zero dependance UI)"]
         testWriter["test-writer\n(tests Vitest)"]
         gameDesigner["game-designer\n(equilibre mecaniques)"]
-        codeReviewer["code-reviewer\n(qualite + commit msg)"]
+        codeReviewer["code-reviewer\n(qualite)"]
+        commitMessage["commit-message\n(message de commit)"]
         docKeeper["doc-keeper\n(documentation)"]
         sessionCloser["session-closer\n(STATUS.md)"]
         depManager["dependency-manager\n(audit deps)"]
@@ -101,16 +104,24 @@ flowchart TB
         bestPractices["best-practices\n(recherche)"]
         dataMiner["data-miner\n(donnees Pokemon)"]
         perfProfiler["performance-profiler\n(FPS, bundle)"]
+        visualTester["visual-tester\n(screenshots Playwright)"]
+        sandboxUrl["sandbox-url\n(URLs sandbox)"]
     end
 
-    modCore --> coreGuardian
+    etapeInter -->|"si core touche"| coreGuardian
+
+    finPlan --> codeReviewer
+    finPlan --> docKeeper
+    finPlan -->|"si core touche"| coreGuardian
+    finPlan -->|"si renderer touche"| visualTester
+
+    horsplan --> codeReviewer
+    horsplan --> docKeeper
+
     modCore --> testWriter
     modMecanique --> gameDesigner
     modData --> gameDesigner
     modData --> dataMiner
-    finPlan --> codeReviewer
-    finPlan --> docKeeper
-    finSession --> sessionCloser
     modDeps --> depManager
     modAssets --> assetManager
     modAgent --> agentManager
@@ -120,7 +131,14 @@ flowchart TB
 
     codeReviewer -->|"si core touche"| coreGuardian
     codeReviewer -->|"si mecaniques"| gameDesigner
+    codeReviewer -->|"si renderer touche"| visualTester
+    debugger_ -->|"si composante visuelle"| visualTester
+    visualTester -->|"generation URL"| sandboxUrl
+
+    finSession --> buildCheck{{"pnpm build + test"}}
+    buildCheck --> sessionCloser
     sessionCloser -->|"verifie"| docKeeper
+    sessionCloser -->|"si non commite"| commitMessage
 ```
 
 ### Agents disponibles
@@ -128,11 +146,12 @@ flowchart TB
 | Agent | Role | Modele |
 |-------|------|--------|
 | `core-guardian` | Verifie que le core n'a aucune dependance UI | Haiku |
-| `code-reviewer` | Review qualite, conventions, propose un commit message | Sonnet |
+| `code-reviewer` | Review qualite, conventions | Sonnet |
+| `commit-message` | Propose un message de commit depuis le contexte + git diff | Haiku |
 | `test-writer` | Ecrit les tests Vitest (test-first) | Sonnet |
 | `doc-keeper` | Maintient toute la documentation a jour | Sonnet |
 | `game-designer` | Coherence et equilibre des mecaniques | Sonnet |
-| `session-closer` | Met a jour STATUS.md en fin de session | Sonnet |
+| `session-closer` | Met a jour STATUS.md, chaîne vers commit-message si non commite | Sonnet |
 | `data-miner` | Extrait les donnees Pokemon (Showdown/PokeAPI) | Sonnet |
 | `dependency-manager` | Audit dependances, vulnerabilites, deprecations | Sonnet |
 | `asset-manager` | Conventions et pipeline des assets | Sonnet |
@@ -141,8 +160,12 @@ flowchart TB
 | `ci-setup` | Configuration GitHub Actions | Sonnet |
 | `performance-profiler` | Analyse performances (FPS, memoire, bundle) | Sonnet |
 | `agent-manager` | Meta-agent qui audite les autres agents | Sonnet |
+| `visual-tester` | Verification visuelle via Playwright | Sonnet |
+| `sandbox-url` | Genere des URLs sandbox depuis une description | Haiku |
 | `plan-reviewer` | Cree et review les plans d'execution | Sonnet |
+| `visual-tester` | Verification visuelle via Playwright (screenshots, console, interactions) | Sonnet |
 | `visual-analyst` | Analyse visuels de jeux pour inspiration | Sonnet |
+| `sandbox-url` | Genere des URLs sandbox depuis une description en langage naturel | Sonnet |
 
 ## Sources et credits
 

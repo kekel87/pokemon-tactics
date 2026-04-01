@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-01 (Plan 024 terminé — bugfixes sandbox + menu d'action relocalisé, 333 tests)
+> Dernière mise à jour : 2026-04-01 (Plan 024 terminé — bugfixes sandbox + menu d'action relocalisé, 333 tests + refonte orchestration agents)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -10,7 +10,7 @@
 
 ### Ce qui est fait
 - Documentation complète : game-design, architecture, decisions (91 décisions), roadmap, references, methodology, roster POC, glossaire
-- 19 agents + 7 skills Claude Code en place (`.claude/`)
+- 21 agents + 7 skills Claude Code en place (`.claude/`)
 - **Plan 001 terminé** : monorepo setup (pnpm workspaces, TypeScript bundler, Vite, Vitest, Biome)
 - **Plan 002 terminé** :
   - 11 const object enums (TargetingKind, Direction, EffectTarget...)
@@ -317,6 +317,13 @@
   - Events : `DefenseActivated`, `DefenseCleared`, `DefenseTriggered`
   - **56 moves** dans le roster (48 + 8 défensifs)
   - Build OK, TypeScript OK, Vite build OK
+
+- **Refonte orchestration agents (2026-04-01)** :
+  - 2 nouveaux agents : `commit-message` (propose message de commit depuis contexte + `git diff`, appelé par `session-closer`) et `sandbox-url` (génère URLs sandbox depuis description en langage naturel)
+  - `code-reviewer` allégé : ne propose plus de message de commit (délégué à `commit-message`)
+  - `session-closer` chaîne désormais vers `commit-message` si changements non commités
+  - Flow plan revu : `core-guardian` aux étapes intermédiaires, review + doc-keeper reportés en fin de plan, `visual-tester` automatique en fin de plan renderer
+  - 21 agents actifs au total
 
 - **Plan 024 terminé** — Bugfixes sandbox + relocalisation menu d'action (non commité) :
   - **Fix status au spawn** : `PokemonSprite.ts` constructeur appelle `updateStatus()` + `setStatusAnimation()` — les statuts pré-existants (burn, sleep, etc.) s'affichent dès le spawn (`?sandbox&status=burned` fonctionne)
