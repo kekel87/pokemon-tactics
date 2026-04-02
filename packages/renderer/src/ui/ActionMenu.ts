@@ -100,10 +100,7 @@ export class ActionMenu {
     }
 
     const cancelY = menuTopY + options.moves.length * ACTION_MENU_ITEM_HEIGHT;
-    this.createMenuItem(
-      { label: "Annuler", enabled: true, callback: options.onCancel },
-      cancelY,
-    );
+    this.createMenuItem({ label: "Annuler", enabled: true, callback: options.onCancel }, cancelY);
   }
 
   showSelectedMove(
@@ -138,17 +135,12 @@ export class ActionMenu {
     this.objects.push(background);
 
     this.instructionText = this.scene.add
-      .text(
-        ACTION_MENU_X + ACTION_MENU_WIDTH / 2,
-        menuTopY + headerHeight / 2,
-        instruction,
-        {
-          fontSize: "11px",
-          color: "#ffdd44",
-          fontFamily: "monospace",
-          fontStyle: "bold",
-        },
-      )
+      .text(ACTION_MENU_X + ACTION_MENU_WIDTH / 2, menuTopY + headerHeight / 2, instruction, {
+        fontSize: "11px",
+        color: "#ffdd44",
+        fontFamily: "monospace",
+        fontStyle: "bold",
+      })
       .setOrigin(0.5, 0.5)
       .setDepth(DEPTH_ACTION_MENU + 2);
     this.objects.push(this.instructionText);

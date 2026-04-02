@@ -241,24 +241,28 @@ Le Pokemon **se déplace en ligne droite** sur X tiles et frappe le premier enne
 
 ## 7c. Effets de statut
 
-### Statuts existants (base Pokemon, adaptés au tactique)
+### Statuts majeurs (1 seul à la fois sur un Pokemon)
 | Statut | Effet | Durée |
 |--------|-------|-------|
-| Brûlure | Dégâts par tour + -50% Attaque phys | À définir (fixe ou surchargeable) |
-| Paralysie | -50% Vitesse + chance de ne pas agir | À définir |
-| Poison | Dégâts par tour | À définir |
-| Poison grave | Dégâts croissants par tour | À définir |
-| Gel | Ne peut pas agir, chance de dégel par tour | À définir |
-| Sommeil | Ne peut pas agir, se réveille après X tours | À définir |
-| Confusion | Chance de se frapper soi-même | À définir |
+| Brûlure | Dégâts 1/16 HP max/tour + -50% Attaque phys | Permanent (jusqu'à guérison) |
+| Paralysie | -50% initiative permanent + 25% proc bloque Move et Dash (pas use_move non-dash) | Permanent |
+| Poison | Dégâts 1/8 HP max/tour | Permanent |
+| **Poison grave** | Dégâts croissants : `toxicCounter/16` HP max/tour (1/16 → 15/16, cap 15) | Permanent — `toxicCounter` incrémenté à chaque tick |
+| Gel | Ne peut pas agir, 20% chance de dégel par tour | Variable |
+| Sommeil | Ne peut pas agir, se réveille après 1-3 tours | 1-3 tours |
+
+### Statuts volatils (coexistent avec un statut majeur, stockés dans `volatileStatuses[]`)
+| Statut | Effet | Durée |
+|--------|-------|-------|
+| **Confusion** | 50% chance/tour de dérailler (redirection allié aléatoire, direction aléatoire AoE, tour perdu si aucun allié) | 2-5 tours |
+
+### Stacking
+- **1 statut majeur max** — comme Pokemon : un nouveau statut ne s'applique pas si un statut majeur est déjà actif
+- **Statuts volatils** : coexistent avec les statuts majeurs et entre eux. Distinction par le champ de stockage (`status` vs `volatileStatuses[]`).
 
 ### Questions ouvertes sur les statuts
-- **Durée** : nombre de tours fixe ? Aléatoire ? Surchargeable par attaque ?
-- **Stacking** : un Pokemon peut-il avoir plusieurs statuts à la fois ? (Dans Pokemon : 1 statut majeur max + statuts volatils illimités)
-- **Interaction terrain** : un Pokemon Brûlé sur eau = guéri ? Un Pokemon sur glace = plus facile à geler ?
-- **Guérison** : par talent, objet, ou passage du temps uniquement ?
-
-> À trancher en Phase 1. Le système de surcharge permettra d'ajuster tous les chiffres.
+- **Interaction terrain** : un Pokemon Brûlé sur eau = guéri ? Un Pokemon sur glace = plus facile à geler ? (Phase 2)
+- **Guérison active** : par talent, objet, ou capacité (Repos, Glas de Soin, Psycho-Transfert, Rune Protect — prévus Phase 1)
 
 ---
 
@@ -314,6 +318,96 @@ Vampigraine plante une graine sur la cible qui **draine des PV chaque tour et le
 - Combo : Vampigraine + allié qui ralentit/bloque la cible
 
 > Premier prototype d'attaque à "lien persistant". Pourrait s'appliquer à d'autres attaques plus tard (Attraction, Embargo...).
+
+---
+
+## 7f. Bind — immobilisation via Ligotage (implémenté — plan 026)
+
+Ligotage (Wrap) plante un **lien Bind** sur une cible adjacente. Extension de `LinkType` existant (même système que Vampigraine).
+
+**Comportement :**
+- **Immobilisation** : la cible ne peut pas se déplacer (Move) tant que le lien est actif
+- La cible **peut** toujours attaquer (Act)
+- **Dégâts passifs** : 1/16 HP max par tour en EndTurn (ne heal PAS le lanceur, contrairement à Vampigraine)
+- **Durée** : 2-3 tours
+- **Rupture** : lanceur > distance 1, lanceur KO, durée expirée
+
+**Différence clé avec Vampigraine :**
+| Propriété | Vampigraine | Ligotage |
+|-----------|------------|----------|
+| Drain vers source | Oui | Non |
+| Immobilise la cible | Non | Oui |
+| Durée | Permanente | 2-3 tours |
+| Portée max du lien | 5 tiles | 1 tile (adjacence) |
+| Dégâts/tour | 1/8 HP | 1/16 HP |
+
+---
+
+## 7g. Knockback — poussée via Draco-Queue (implémenté — plan 026)
+
+Certaines attaques repoussent la cible de N cases dans la direction opposée au lanceur.
+
+**Comportement :**
+- S'exécute **après** les dégâts dans le pipeline d'effets
+- Pousse chaque cible individuellement selon sa position relative au lanceur
+- **Bloqué si** : bord de grille, tile occupée (allié, ennemi, corps KO)
+- Si bloqué : pas de déplacement, les dégâts sont infligés normalement
+- Avec pattern slash : chaque cible est poussée dans sa propre direction
+
+---
+
+## 7h. Multi-hit (implémenté — plan 026)
+
+Certaines attaques frappent plusieurs fois en une seule action.
+
+**Deux modes :**
+- **Fixe** (ex: Double Pied) : `hits: 2` — toujours 2 coups
+- **Variable** (ex: Combo-Griffe) : `hits: { min: 2, max: 5 }` — roll 35/35/15/15% pour 2/3/4/5 coups
+
+**Comportement :**
+- Un seul accuracy check au début (pas par hit)
+- Chaque hit = event `DamageDealt` séparé (peut trigger Riposte/Voile Miroir)
+- Stop si cible KO avant la fin des hits
+- Event `MultiHitComplete` en fin de séquence
+
+---
+
+## 7i. Recharge — Ultralaser (implémenté — plan 026)
+
+Après utilisation d'un move avec `recharge: true`, le Pokemon ne peut pas attaquer au tour suivant.
+
+**Comportement :**
+- Le Pokemon **peut** se déplacer (Move) et choisir sa direction en fin de tour
+- `getLegalActions` ne retourne aucune action `use_move` pendant le tour de recharge
+- Le flag `recharging` est reset en fin du tour de recharge (quand le Pokemon n'a pas attaqué)
+- Si KO pendant la recharge, le flag est sans effet
+
+---
+
+## 7j. Badly Poisoned — poison grave (implémenté — plan 026)
+
+**Statut majeur** (exclusif avec les autres statuts majeurs, comme le poison normal).
+
+- Compteur `toxicCounter` sur le Pokemon, démarre à 1, +1 par tour, plafonne à 15
+- Dégâts par tour = `max(1, floor(maxHp * toxicCounter / 16))`
+- Dégâts croissants : 1/16, 2/16, 3/16... jusqu'à 15/16 du max HP
+
+---
+
+## 7k. Confusion tactique (implémentée — plan 026)
+
+**Statut volatil** — coexiste avec un statut majeur. Stocké dans `volatileStatuses[]`.
+
+Dure 2-5 tours. Chaque tour : 50% de chance que l'action déraille.
+
+| Situation | Comportement si confusion déclenche |
+|-----------|--------------------------------------|
+| Attaque single/dash | Cible redirigée vers un **allié aléatoire à portée** |
+| Attaque AoE (cône, ligne, slash) | **Direction aléatoire** |
+| Attaque zone self | Exécutée normalement (friendly fire gère) |
+| Buff self | Fonctionne normalement |
+| Aucun allié à portée | **Tour perdu** |
+| Déplacement | Direction aléatoire, 1-2 cases |
 
 ---
 

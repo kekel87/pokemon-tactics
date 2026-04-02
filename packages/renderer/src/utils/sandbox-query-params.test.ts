@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { Direction, StatName, StatusType } from "@pokemon-tactic/core";
+import { describe, expect, it } from "vitest";
 import { parseSandboxQueryParams } from "./sandbox-query-params";
 
 describe("parseSandboxQueryParams", () => {
@@ -54,7 +54,7 @@ describe("parseSandboxQueryParams", () => {
 
   it("filters out invalid moves", () => {
     const config = parseSandboxQueryParams(
-      "?sandbox&pokemon=bulbasaur&moves=razor-leaf,hyper-beam,fake-move",
+      "?sandbox&pokemon=bulbasaur&moves=razor-leaf,totally-fake-move,fake-move",
     );
     expect(config!.moves).toEqual(["razor-leaf"]);
   });

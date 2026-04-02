@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
 import { StatName } from "../../enums/stat-name";
-import { MockPokemon, buildMoveTestEngine } from "../../testing";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
 describe("rock-smash", () => {
   it("deals damage to target in cardinal cross (adjacent)", () => {

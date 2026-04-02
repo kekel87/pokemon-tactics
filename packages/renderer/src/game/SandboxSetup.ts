@@ -4,7 +4,7 @@ import {
   Direction,
   PlayerController,
   PlayerId,
-  StatName,
+  type StatName,
   StatusType,
 } from "@pokemon-tactic/core";
 import { sandboxArena } from "@pokemon-tactic/data";
@@ -20,6 +20,7 @@ function applyConfigToInstance(
   pokemonId: string,
   hp: number,
   status: StatusType | null,
+  volatileStatus: StatusType | null,
   statStages: Partial<Record<StatName, number>>,
 ): void {
   const instance = result.state.pokemon.get(pokemonId);
@@ -36,6 +37,12 @@ function applyConfigToInstance(
         remainingTurns: status === StatusType.Asleep ? 3 : null,
       },
     ];
+  }
+
+  if (volatileStatus) {
+    const remainingTurns =
+      volatileStatus === StatusType.Confused ? Math.floor(Math.random() * 4) + 2 : 3;
+    instance.volatileStatuses = [{ type: volatileStatus, remainingTurns }];
   }
 
   for (const [stat, stages] of Object.entries(statStages)) {
@@ -138,12 +145,20 @@ export function createSandboxBattle(config: SandboxConfig): BattleSetupResult {
     playerInstance.currentPp = newPp;
   }
 
-  applyConfigToInstance(result, playerPokemonId, config.hp, config.status, config.statStages);
+  applyConfigToInstance(
+    result,
+    playerPokemonId,
+    config.hp,
+    config.status,
+    config.volatileStatus,
+    config.statStages,
+  );
   applyConfigToInstance(
     result,
     dummyPokemonId,
     config.dummyHp,
     config.dummyStatus,
+    config.dummyVolatileStatus,
     config.dummyStatStages,
   );
 

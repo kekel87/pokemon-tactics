@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
 import { StatName } from "../../enums/stat-name";
-import { MockPokemon, buildMoveTestEngine } from "../../testing";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
 describe("smokescreen", () => {
   it("reduces accuracy of target within zone radius 1", () => {

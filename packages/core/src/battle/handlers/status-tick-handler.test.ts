@@ -101,6 +101,97 @@ describe("statusTickHandler", () => {
     });
   });
 
+  describe("badly_poisoned", () => {
+    it("inflicts 1/16 max HP on first turn (counter = 1)", () => {
+      const pokemon = MockPokemon.fresh(P1, {
+        currentHp: 160,
+        maxHp: 160,
+        statusEffects: [{ type: StatusType.BadlyPoisoned, remainingTurns: null }],
+        toxicCounter: 0,
+      });
+      const result = statusTickHandler(pokemon.id, MockBattle.stateFrom([pokemon]));
+
+      expect(pokemon.toxicCounter).toBe(1);
+      expect(pokemon.currentHp).toBe(150);
+      expect(result.events).toContainEqual({
+        type: BattleEventType.DamageDealt,
+        targetId: pokemon.id,
+        amount: 10,
+        effectiveness: 1,
+      });
+      expect(result.skipAction).toBe(false);
+      expect(result.pokemonFainted).toBe(false);
+    });
+
+    it("inflicts increasing damage each turn", () => {
+      const pokemon = MockPokemon.fresh(P1, {
+        currentHp: 160,
+        maxHp: 160,
+        statusEffects: [{ type: StatusType.BadlyPoisoned, remainingTurns: null }],
+        toxicCounter: 0,
+      });
+      const state = MockBattle.stateFrom([pokemon]);
+
+      statusTickHandler(pokemon.id, state);
+      expect(pokemon.toxicCounter).toBe(1);
+      expect(pokemon.currentHp).toBe(150);
+
+      statusTickHandler(pokemon.id, state);
+      expect(pokemon.toxicCounter).toBe(2);
+      expect(pokemon.currentHp).toBe(130);
+
+      statusTickHandler(pokemon.id, state);
+      expect(pokemon.toxicCounter).toBe(3);
+      expect(pokemon.currentHp).toBe(100);
+    });
+
+    it("caps counter at 15", () => {
+      const pokemon = MockPokemon.fresh(P1, {
+        currentHp: 1000,
+        maxHp: 160,
+        statusEffects: [{ type: StatusType.BadlyPoisoned, remainingTurns: null }],
+        toxicCounter: 14,
+      });
+      const state = MockBattle.stateFrom([pokemon]);
+
+      statusTickHandler(pokemon.id, state);
+      expect(pokemon.toxicCounter).toBe(15);
+
+      statusTickHandler(pokemon.id, state);
+      expect(pokemon.toxicCounter).toBe(15);
+    });
+
+    it("inflicts minimum 1 damage", () => {
+      const pokemon = MockPokemon.fresh(P1, {
+        currentHp: 10,
+        maxHp: 10,
+        statusEffects: [{ type: StatusType.BadlyPoisoned, remainingTurns: null }],
+        toxicCounter: 0,
+      });
+      statusTickHandler(pokemon.id, MockBattle.stateFrom([pokemon]));
+
+      expect(pokemon.currentHp).toBe(9);
+    });
+
+    it("causes KO when HP reaches 0", () => {
+      const pokemon = MockPokemon.fresh(P1, {
+        currentHp: 5,
+        maxHp: 160,
+        statusEffects: [{ type: StatusType.BadlyPoisoned, remainingTurns: null }],
+        toxicCounter: 0,
+      });
+      const result = statusTickHandler(pokemon.id, MockBattle.stateFrom([pokemon]));
+
+      expect(pokemon.currentHp).toBe(0);
+      expect(result.pokemonFainted).toBe(true);
+      expect(result.events).toContainEqual({
+        type: BattleEventType.PokemonKo,
+        pokemonId: pokemon.id,
+        countdownStart: 0,
+      });
+    });
+  });
+
   describe("asleep", () => {
     it("decrements remainingTurns and skips action when still asleep", () => {
       const pokemon = MockPokemon.fresh(P1, {

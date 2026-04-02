@@ -4,7 +4,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatName } from "../../enums/stat-name";
-import { MockPokemon, buildMoveTestEngine } from "../../testing";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
 describe("double-team", () => {
   it("raises Evasion by 1", () => {

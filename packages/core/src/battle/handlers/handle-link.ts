@@ -9,14 +9,17 @@ export function handleLink(context: EffectContext): BattleEvent[] {
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.Link }>;
 
   for (const target of context.targets) {
-    context.state.activeLinks.push({
+    const link = {
       sourceId: context.attacker.id,
       targetId: target.id,
       linkType: effect.linkType,
       remainingTurns: effect.duration,
       maxRange: effect.maxRange,
       drainFraction: effect.drainFraction,
-    });
+      ...(effect.immobilize === undefined ? {} : { immobilize: effect.immobilize }),
+      ...(effect.drainToSource === undefined ? {} : { drainToSource: effect.drainToSource }),
+    };
+    context.state.activeLinks.push(link);
 
     const linkEvent: BattleEvent = {
       type: BattleEventType.LinkCreated,

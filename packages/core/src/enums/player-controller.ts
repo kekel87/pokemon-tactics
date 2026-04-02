@@ -3,5 +3,4 @@ export const PlayerController = {
   Ai: "ai",
 } as const;
 
-export type PlayerController =
-  (typeof PlayerController)[keyof typeof PlayerController];
+export type PlayerController = (typeof PlayerController)[keyof typeof PlayerController];

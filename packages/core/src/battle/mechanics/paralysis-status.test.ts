@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
-import { MockPokemon, buildMoveTestEngine } from "../../testing";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
 describe("paralysis status", () => {
   it("blocks movement when paralysis procs (random < 0.25)", () => {
@@ -61,7 +61,9 @@ describe("paralysis status", () => {
 
     const actions = engine.getLegalActions(PlayerId.Player2);
     const useMoveActions = actions.filter((a) => a.kind === ActionKind.UseMove);
-    const moveIds = [...new Set(useMoveActions.map((a) => (a.kind === ActionKind.UseMove ? a.moveId : "")))];
+    const moveIds = [
+      ...new Set(useMoveActions.map((a) => (a.kind === ActionKind.UseMove ? a.moveId : ""))),
+    ];
     expect(moveIds).not.toContain("quick-attack");
 
     vi.restoreAllMocks();
@@ -92,7 +94,9 @@ describe("paralysis status", () => {
 
     const actions = engine.getLegalActions(PlayerId.Player2);
     const useMoveActions = actions.filter((a) => a.kind === ActionKind.UseMove);
-    const moveIds = [...new Set(useMoveActions.map((a) => (a.kind === ActionKind.UseMove ? a.moveId : "")))];
+    const moveIds = [
+      ...new Set(useMoveActions.map((a) => (a.kind === ActionKind.UseMove ? a.moveId : ""))),
+    ];
     expect(moveIds).toContain("razor-leaf");
     expect(moveIds).toContain("sludge-bomb");
 

@@ -7,6 +7,7 @@ export function defaultSandboxConfig(overrides: Partial<SandboxConfig> = {}): Sa
     moves: [],
     hp: 100,
     status: null,
+    volatileStatus: null,
     statStages: {},
     dummyPokemon: "dummy",
     dummyMove: null,
@@ -15,6 +16,7 @@ export function defaultSandboxConfig(overrides: Partial<SandboxConfig> = {}): Sa
     dummyLevel: 50,
     dummyBaseStats: null,
     dummyStatus: null,
+    dummyVolatileStatus: null,
     dummyStatStages: {},
     ...overrides,
   };

@@ -19,6 +19,15 @@ export const BattleEventType = {
   DefenseCleared: "defense_cleared",
   DefenseTriggered: "defense_triggered",
   BattleEnded: "battle_ended",
+  ConfusionTriggered: "confusion_triggered",
+  ConfusionRedirected: "confusion_redirected",
+  ConfusionResisted: "confusion_resisted",
+  ConfusionFailed: "confusion_failed",
+  KnockbackApplied: "knockback_applied",
+  KnockbackBlocked: "knockback_blocked",
+  MultiHitComplete: "multi_hit_complete",
+  RechargeStarted: "recharge_started",
+  RechargeEnded: "recharge_ended",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

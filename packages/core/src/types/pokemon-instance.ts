@@ -6,6 +6,7 @@ import type { BaseStats } from "./base-stats";
 import type { DerivedStats } from "./derived-stats";
 import type { Position } from "./position";
 import type { StatusEffect } from "./status-effect";
+import type { VolatileStatus } from "./volatile-status";
 
 export interface PokemonInstance {
   id: string;
@@ -25,4 +26,7 @@ export interface PokemonInstance {
   currentPp: Record<string, number>;
   activeDefense: ActiveDefense | null;
   lastEndureRound: number | null;
+  toxicCounter: number;
+  volatileStatuses: VolatileStatus[];
+  recharging: boolean;
 }

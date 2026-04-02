@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { validateMapDefinition } from "@pokemon-tactic/core";
+import { describe, expect, it } from "vitest";
 import { sandboxArena } from "./sandbox-arena";
 
 describe("sandboxArena", () => {

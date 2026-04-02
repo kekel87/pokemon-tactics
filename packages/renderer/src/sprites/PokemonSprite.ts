@@ -1,4 +1,4 @@
-import { Direction, type DamageEstimate, type PokemonInstance } from "@pokemon-tactic/core";
+import { type DamageEstimate, Direction, type PokemonInstance } from "@pokemon-tactic/core";
 import {
   DAMAGE_ESTIMATE_COLOR_GUARANTEED,
   DAMAGE_ESTIMATE_COLOR_POSSIBLE,
@@ -7,13 +7,10 @@ import {
   DAMAGE_ESTIMATE_TEXT_SIZE,
   DAMAGE_ESTIMATE_TEXT_STROKE_COLOR,
   DAMAGE_ESTIMATE_TEXT_STROKE_WIDTH,
-  TILE_WIDTH,
-  TILE_HEIGHT,
-  POKEMON_SPRITE_GROUND_OFFSET_Y,
   DAMAGE_FLASH_ALPHA,
   DAMAGE_FLASH_DURATION_MS,
   DAMAGE_FLASH_REPEAT,
-  KO_TINT_COLOR,
+  DEPTH_POKEMON_BASE,
   HP_BAR_BG_ALPHA,
   HP_BAR_BG_COLOR,
   HP_BAR_BORDER_COLOR,
@@ -24,11 +21,12 @@ import {
   HP_COLOR_MEDIUM,
   HP_THRESHOLD_HIGH,
   HP_THRESHOLD_LOW,
+  KO_TINT_COLOR,
   MOVE_TWEEN_DURATION_MS,
   POKEMON_SPRITE_BORDER_ALPHA,
   POKEMON_SPRITE_BORDER_WIDTH,
+  POKEMON_SPRITE_GROUND_OFFSET_Y,
   POKEMON_SPRITE_RADIUS,
-  DEPTH_POKEMON_BASE,
   POKEMON_SPRITE_SCALE,
   PULSE_DURATION_MS,
   PULSE_MAX_SCALE,
@@ -36,10 +34,12 @@ import {
   STATUS_ASSET_KEY,
   STATUS_SPRITE_ICON_OFFSET_X,
   STATUS_SPRITE_ICON_SCALE,
+  TILE_HEIGHT,
+  TILE_WIDTH,
   TYPE_COLORS,
 } from "../constants";
 import type { IsometricGrid } from "../grid/IsometricGrid";
-import { type SpriteOffsets, getAnimationKey, getSpriteOffsets } from "./SpriteLoader";
+import { getAnimationKey, getSpriteOffsets, type SpriteOffsets } from "./SpriteLoader";
 
 const CORE_TO_PMD_DIRECTION: Record<Direction, string> = {
   [Direction.South]: "SouthWest",
@@ -138,7 +138,10 @@ export class PokemonSprite {
     return this.container;
   }
 
-  getFlashTarget(): Phaser.GameObjects.Sprite | Phaser.GameObjects.Graphics | Phaser.GameObjects.Container {
+  getFlashTarget():
+    | Phaser.GameObjects.Sprite
+    | Phaser.GameObjects.Graphics
+    | Phaser.GameObjects.Container {
     return this.sprite ?? this.circle ?? this.container;
   }
 
@@ -178,7 +181,11 @@ export class PokemonSprite {
     }
 
     const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
-    this.statusIcon = this.scene.add.image(HP_BAR_WIDTH / 2 + STATUS_SPRITE_ICON_OFFSET_X, offsetY + HP_BAR_HEIGHT / 2, newKey);
+    this.statusIcon = this.scene.add.image(
+      HP_BAR_WIDTH / 2 + STATUS_SPRITE_ICON_OFFSET_X,
+      offsetY + HP_BAR_HEIGHT / 2,
+      newKey,
+    );
     this.statusIcon.setScale(STATUS_SPRITE_ICON_SCALE);
     this.container.add(this.statusIcon);
   }
@@ -397,7 +404,8 @@ export class PokemonSprite {
       return;
     }
 
-    const text = estimate.min === estimate.max ? `${estimate.min}` : `${estimate.min}-${estimate.max}`;
+    const text =
+      estimate.min === estimate.max ? `${estimate.min}` : `${estimate.min}-${estimate.max}`;
     this.damageEstimateText = this.scene.add.text(
       this.container.x,
       this.container.y + this.uiOffsetY - 10,

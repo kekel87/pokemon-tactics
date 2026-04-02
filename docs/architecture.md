@@ -210,12 +210,20 @@ type TargetingPattern =
 
 // Effets — composables, une attaque peut en avoir plusieurs
 type Effect =
-  | { kind: 'damage' }
+  | { kind: 'damage'; hits?: number | { min: number; max: number } }  // hits = multi-hit (fixe ou variable)
   | { kind: 'status'; status: StatusType; chance: number }
   | { kind: 'stat_change'; stat: Stat; stages: number; target: 'self' | 'targets' }
-  | { kind: 'link'; linkType: string; duration: number;
-      maxRange: number; drainFraction: number }
+  | { kind: 'link'; linkType: LinkType; duration: number;
+      maxRange: number; drainFraction: number }           // LinkType.LeechSeed | LinkType.Bind
+  | { kind: 'knockback' }                                 // pousse 1 case dans la direction opposée au lanceur
 ```
+
+// Sur PokemonInstance :
+// - `status: StatusType | null`          — 1 statut majeur max (Burned, Poisoned, BadlyPoisoned, ...)
+// - `volatileStatuses: VolatileStatus[]` — statuts volatils coexistants (Confused, ...)
+// - `toxicCounter: number`               — compteur de tours pour BadlyPoisoned (0 = inactif)
+// - `recharging: boolean`                — true si le Pokemon doit recharger (Hyper Beam)
+// - `activeLinks: ActiveLink[]`          — liens actifs (LeechSeed, Bind) avec champs immobilize? et drainToSource?
 
 **Exécution en 3 étapes :**
 1. `resolveTargeting(move, caster, targetTile, grid)` → tiles affectées

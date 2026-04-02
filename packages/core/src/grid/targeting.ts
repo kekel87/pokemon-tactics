@@ -29,12 +29,7 @@ export function resolveTargeting(
     case TargetingKind.Self:
       return [caster.position];
     case TargetingKind.Cone:
-      return resolveCone(
-        caster.position,
-        targetPosition,
-        targetingPattern.range,
-        grid,
-      );
+      return resolveCone(caster.position, targetPosition, targetingPattern.range, grid);
     case TargetingKind.Cross:
       return resolveCross(caster.position, targetingPattern.size, grid);
     case TargetingKind.Line:

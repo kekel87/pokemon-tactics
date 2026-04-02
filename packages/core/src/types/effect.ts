@@ -6,7 +6,7 @@ import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
 
 export type Effect =
-  | { kind: typeof EffectKind.Damage }
+  | { kind: typeof EffectKind.Damage; hits?: number | { min: number; max: number } }
   | { kind: typeof EffectKind.Status; status: StatusType; chance: number }
   | {
       kind: typeof EffectKind.StatChange;
@@ -20,8 +20,14 @@ export type Effect =
       duration: number | null;
       maxRange: number;
       drainFraction: number;
+      immobilize?: boolean;
+      drainToSource?: boolean;
     }
   | {
       kind: typeof EffectKind.Defensive;
       defenseKind: DefensiveKind;
+    }
+  | {
+      kind: typeof EffectKind.Knockback;
+      distance: number;
     };

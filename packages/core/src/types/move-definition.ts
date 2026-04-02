@@ -13,4 +13,5 @@ export interface MoveDefinition {
   pp: number;
   targeting: TargetingPattern;
   effects: Effect[];
+  recharge?: boolean;
 }

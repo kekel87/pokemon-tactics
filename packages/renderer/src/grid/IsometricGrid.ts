@@ -14,12 +14,12 @@ import {
   TILE_HEIGHT,
   TILE_HIGHLIGHT_ATTACK_COLOR,
   TILE_HIGHLIGHT_MOVE_COLOR,
+  TILE_RANGE_OUTLINE_ALPHA,
+  TILE_RANGE_OUTLINE_COLOR,
+  TILE_RANGE_OUTLINE_WIDTH,
   TILE_STROKE_COLOR,
   TILE_STROKE_WIDTH,
   TILE_WIDTH,
-  TILE_RANGE_OUTLINE_COLOR,
-  TILE_RANGE_OUTLINE_ALPHA,
-  TILE_RANGE_OUTLINE_WIDTH,
 } from "../constants";
 import { HighlightKind } from "../enums/highlight-kind";
 
@@ -100,11 +100,7 @@ export class IsometricGrid {
     }
   }
 
-  showPreview(
-    positions: Array<{ x: number; y: number }>,
-    color: number,
-    alpha: number,
-  ): void {
+  showPreview(positions: Array<{ x: number; y: number }>, color: number, alpha: number): void {
     for (const position of positions) {
       this.drawTile(this.previewGraphics, position.x, position.y, color, color, alpha);
     }

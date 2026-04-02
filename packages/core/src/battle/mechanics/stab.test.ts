@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { MockPokemon, buildMoveTestEngine } from "../../testing";
 import { PlayerId } from "../../enums/player-id";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
 describe("STAB", () => {
   it("Charmander Ember (Fire move, Fire Pokemon) deals more damage than non-STAB", () => {
@@ -62,7 +62,11 @@ describe("STAB", () => {
     const stabEstimate = pidgeyEngine.estimateDamage("pidgey-1", "wing-attack", "charmander-1");
 
     const { engine: squirtleEngine } = buildMoveTestEngine([squirtle, charmander2]);
-    const noStabEstimate = squirtleEngine.estimateDamage("squirtle-1", "wing-attack", "charmander-1");
+    const noStabEstimate = squirtleEngine.estimateDamage(
+      "squirtle-1",
+      "wing-attack",
+      "charmander-1",
+    );
 
     expect(stabEstimate).not.toBeNull();
     expect(noStabEstimate).not.toBeNull();
@@ -94,7 +98,11 @@ describe("STAB", () => {
     });
 
     const { engine: charmanderEngine } = buildMoveTestEngine([charmander, bulbasaur]);
-    const charmanderEstimate = charmanderEngine.estimateDamage("charmander-1", "scratch", "bulbasaur-1");
+    const charmanderEstimate = charmanderEngine.estimateDamage(
+      "charmander-1",
+      "scratch",
+      "bulbasaur-1",
+    );
 
     const { engine: noFireEngine } = buildMoveTestEngine([nonFireAttacker, bulbasaur2]);
     const noFireEstimate = noFireEngine.estimateDamage("attacker-nofire", "scratch", "bulbasaur-1");

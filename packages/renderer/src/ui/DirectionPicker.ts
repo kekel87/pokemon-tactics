@@ -28,12 +28,7 @@ interface DirectionPickerCallbacks {
   onCancel: () => void;
 }
 
-const ALL_DIRECTIONS = [
-  Direction.North,
-  Direction.South,
-  Direction.East,
-  Direction.West,
-] as const;
+const ALL_DIRECTIONS = [Direction.North, Direction.South, Direction.East, Direction.West] as const;
 
 export class DirectionPicker {
   private readonly scene: Phaser.Scene;
@@ -41,10 +36,8 @@ export class DirectionPicker {
   private readonly arrows: Map<Direction, Phaser.GameObjects.Image> = new Map();
   private callbacks: DirectionPickerCallbacks | null = null;
   private currentDirection: Direction = Direction.South;
-  private onPointerMove: ((pointer: Phaser.Input.Pointer) => void) | null =
-    null;
-  private onPointerDown: ((pointer: Phaser.Input.Pointer) => void) | null =
-    null;
+  private onPointerMove: ((pointer: Phaser.Input.Pointer) => void) | null = null;
+  private onPointerDown: ((pointer: Phaser.Input.Pointer) => void) | null = null;
   private onKeyDown: ((event: KeyboardEvent) => void) | null = null;
 
   constructor(scene: Phaser.Scene) {

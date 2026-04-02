@@ -1,5 +1,5 @@
-import { Category, TargetingKind } from "@pokemon-tactic/core";
 import type { MoveDefinition } from "@pokemon-tactic/core";
+import { Category, TargetingKind } from "@pokemon-tactic/core";
 import {
   ACTION_MENU_BOTTOM_Y,
   ACTION_MENU_CORNER_RADIUS,
@@ -13,7 +13,7 @@ import {
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
 } from "../constants";
-import { PatternCell, buildPatternPreview } from "./pattern-preview";
+import { buildPatternPreview, PatternCell } from "./pattern-preview";
 
 const CELL_COLORS: Record<PatternCell, number> = {
   [PatternCell.Target]: 0xff6644,

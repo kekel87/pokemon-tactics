@@ -57,10 +57,13 @@ const BASE_STAT_LABELS: Record<string, string> = {
 const STATUS_LABELS: [StatusType, string][] = [
   [StatusType.Burned, "Brulure"],
   [StatusType.Poisoned, "Poison"],
+  [StatusType.BadlyPoisoned, "Poison grave"],
   [StatusType.Paralyzed, "Paralysie"],
   [StatusType.Frozen, "Gel"],
   [StatusType.Asleep, "Sommeil"],
 ];
+
+const VOLATILE_STATUS_LABELS: [StatusType, string][] = [[StatusType.Confused, "Confusion"]];
 
 const DIRECTION_LABELS: [Direction, string][] = [
   [Direction.North, "Nord"],
@@ -94,6 +97,7 @@ export class SandboxPanel {
   private moveSelects: HTMLSelectElement[] = [];
   private hpSlider!: HTMLInputElement;
   private statusSelect!: HTMLSelectElement;
+  private volatileStatusSelect!: HTMLSelectElement;
   private statSliders: Map<StatName, HTMLInputElement> = new Map();
 
   private dummyPokemonSelect!: HTMLSelectElement;
@@ -102,6 +106,7 @@ export class SandboxPanel {
   private dummyHpSlider!: HTMLInputElement;
   private dummyLevelInput!: HTMLInputElement;
   private dummyStatusSelect!: HTMLSelectElement;
+  private dummyVolatileStatusSelect!: HTMLSelectElement;
   private dummyStatSliders: Map<StatName, HTMLInputElement> = new Map();
   private dummyBaseStatInputs: Map<string, HTMLInputElement> = new Map();
   private dummyComputedLabels: Map<string, HTMLSpanElement> = new Map();
@@ -214,6 +219,18 @@ export class SandboxPanel {
     body.appendChild(statusSelect.row);
     this.statusSelect = statusSelect.select;
 
+    const volatileStatusSelect = this.createSelect(
+      "Volatil",
+      [
+        { value: "", label: "(aucun)" },
+        ...VOLATILE_STATUS_LABELS.map(([s, l]) => ({ value: s, label: l })),
+      ],
+      config.volatileStatus ?? "",
+    );
+    volatileStatusSelect.select.addEventListener("change", () => this.emit());
+    body.appendChild(volatileStatusSelect.row);
+    this.volatileStatusSelect = volatileStatusSelect.select;
+
     for (const stat of STAT_NAMES) {
       const slider = this.createSlider(
         STAT_LABELS[stat] ?? stat,
@@ -276,6 +293,18 @@ export class SandboxPanel {
     statusSelect.select.addEventListener("change", () => this.emit());
     body.appendChild(statusSelect.row);
     this.dummyStatusSelect = statusSelect.select;
+
+    const dummyVolatileStatusSelect = this.createSelect(
+      "Volatil",
+      [
+        { value: "", label: "(aucun)" },
+        ...VOLATILE_STATUS_LABELS.map(([s, l]) => ({ value: s, label: l })),
+      ],
+      config.dummyVolatileStatus ?? "",
+    );
+    dummyVolatileStatusSelect.select.addEventListener("change", () => this.emit());
+    body.appendChild(dummyVolatileStatusSelect.row);
+    this.dummyVolatileStatusSelect = dummyVolatileStatusSelect.select;
 
     for (const stat of STAT_NAMES) {
       const slider = this.createSlider(
@@ -417,11 +446,16 @@ export class SandboxPanel {
 
   private syncDummyBaseStats(): void {
     const selectedId = this.dummyPokemonSelect.value;
-    const pokemonDef = selectedId
-      ? this.gameData.pokemon.find((p) => p.id === selectedId)
-      : null;
+    const pokemonDef = selectedId ? this.gameData.pokemon.find((p) => p.id === selectedId) : null;
 
-    const defaultStats = { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 };
+    const defaultStats = {
+      hp: 100,
+      attack: 50,
+      defense: 50,
+      spAttack: 50,
+      spDefense: 50,
+      speed: 50,
+    };
 
     for (const key of BASE_STAT_KEYS) {
       const input = this.dummyBaseStatInputs.get(key);
@@ -445,9 +479,7 @@ export class SandboxPanel {
   }
 
   private readConfig(): SandboxConfig {
-    const moves = this.moveSelects
-      .map((s) => s.value)
-      .filter((v) => v !== "");
+    const moves = this.moveSelects.map((s) => s.value).filter((v) => v !== "");
 
     const statStages: Partial<Record<StatName, number>> = {};
     for (const stat of STAT_NAMES) {
@@ -472,6 +504,9 @@ export class SandboxPanel {
       moves: moves.length > 0 ? moves : this.getMovepoolFor(this.pokemonSelect.value),
       hp: Number(this.hpSlider.value),
       status: this.statusSelect.value ? (this.statusSelect.value as StatusType) : null,
+      volatileStatus: this.volatileStatusSelect.value
+        ? (this.volatileStatusSelect.value as StatusType)
+        : null,
       statStages,
       dummyPokemon: this.dummyPokemonSelect.value || "dummy",
       dummyMove: this.dummyMoveSelect.value || null,
@@ -481,6 +516,9 @@ export class SandboxPanel {
       dummyBaseStats: this.readDummyBaseStats(),
       dummyStatus: this.dummyStatusSelect.value
         ? (this.dummyStatusSelect.value as StatusType)
+        : null,
+      dummyVolatileStatus: this.dummyVolatileStatusSelect.value
+        ? (this.dummyVolatileStatusSelect.value as StatusType)
         : null,
       dummyStatStages,
     };
@@ -522,6 +560,7 @@ export class SandboxPanel {
     if (config.moves.length > 0) params.set("moves", config.moves.join(","));
     if (config.hp !== 100) params.set("hp", String(config.hp));
     if (config.status) params.set("status", config.status);
+    if (config.volatileStatus) params.set("volatileStatus", config.volatileStatus);
     if (Object.keys(config.statStages).length > 0) {
       params.set(
         "statStages",
@@ -536,6 +575,7 @@ export class SandboxPanel {
       params.set("dummyDirection", config.dummyDirection);
     if (config.dummyHp !== 100) params.set("dummyHp", String(config.dummyHp));
     if (config.dummyStatus) params.set("dummyStatus", config.dummyStatus);
+    if (config.dummyVolatileStatus) params.set("dummyVolatileStatus", config.dummyVolatileStatus);
     if (Object.keys(config.dummyStatStages).length > 0) {
       params.set(
         "dummyStatStages",

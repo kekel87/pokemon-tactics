@@ -1,8 +1,8 @@
 export { ActionError } from "./action-error";
 export { ActionKind } from "./action-kind";
-export { DefensiveKind } from "./defensive-kind";
 export { BattleEventType } from "./battle-event-type";
 export { Category } from "./category";
+export { DefensiveKind } from "./defensive-kind";
 export { Direction } from "./direction";
 export { EffectKind } from "./effect-kind";
 export { EffectTarget } from "./effect-target";

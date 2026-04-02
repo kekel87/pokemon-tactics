@@ -127,7 +127,11 @@ describe("Battle loop integration", () => {
     const { engine } = buildEngine([charmander, bulbasaur]);
 
     // Charmander skips, Bulbasaur starts turn → poison KOs
-    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1", direction: Direction.South });
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "charmander-1",
+      direction: Direction.South,
+    });
 
     expect(engine.getLegalActions(PlayerId.Player1)).toEqual([]);
     expect(engine.getLegalActions(PlayerId.Player2)).toEqual([]);
@@ -152,7 +156,11 @@ describe("Battle loop integration", () => {
 
     const { engine } = buildEngine([charmander, bulbasaur]);
 
-    engine.submitAction(PlayerId.Player1, { kind: ActionKind.EndTurn, pokemonId: "charmander-1", direction: Direction.South });
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "charmander-1",
+      direction: Direction.South,
+    });
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,

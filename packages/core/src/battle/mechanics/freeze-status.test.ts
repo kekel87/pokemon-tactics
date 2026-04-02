@@ -4,7 +4,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
-import { MockPokemon, buildMoveTestEngine } from "../../testing";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
 import type { BattleEvent } from "../../types/battle-event";
 
 describe("freeze status", () => {
@@ -68,10 +68,12 @@ describe("freeze status", () => {
     });
 
     expect(pokemon.statusEffects.some((s) => s.type === StatusType.Frozen)).toBe(false);
-    expect(statusRemovedEvents.some((e) => {
-      const event = e as Extract<BattleEvent, { type: typeof BattleEventType.StatusRemoved }>;
-      return event.status === StatusType.Frozen;
-    })).toBe(true);
+    expect(
+      statusRemovedEvents.some((e) => {
+        const event = e as Extract<BattleEvent, { type: typeof BattleEventType.StatusRemoved }>;
+        return event.status === StatusType.Frozen;
+      }),
+    ).toBe(true);
 
     vi.restoreAllMocks();
   });

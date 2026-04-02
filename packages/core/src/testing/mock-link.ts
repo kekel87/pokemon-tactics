@@ -10,4 +10,15 @@ export abstract class MockLink {
     maxRange: 4,
     drainFraction: 1 / 8,
   };
+
+  static readonly bind: ActiveLink = {
+    sourceId: "source",
+    targetId: "target",
+    linkType: LinkType.Bind,
+    remainingTurns: 3,
+    maxRange: 1,
+    drainFraction: 1 / 16,
+    immobilize: true,
+    drainToSource: false,
+  };
 }

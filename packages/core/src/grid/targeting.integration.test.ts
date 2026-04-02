@@ -378,12 +378,7 @@ describe("resolveTargeting", () => {
   describe("slash", () => {
     it("should return 3 tiles in front when facing north", () => {
       const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
-      const result = resolveTargeting(
-        { kind: TargetingKind.Slash },
-        caster,
-        { x: 4, y: 3 },
-        grid,
-      );
+      const result = resolveTargeting({ kind: TargetingKind.Slash }, caster, { x: 4, y: 3 }, grid);
       expect(result).toHaveLength(3);
       expect(result).toContainEqual({ x: 4, y: 3 });
       expect(result).toContainEqual({ x: 3, y: 3 });
@@ -392,12 +387,7 @@ describe("resolveTargeting", () => {
 
     it("should return 3 tiles in front when facing south", () => {
       const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
-      const result = resolveTargeting(
-        { kind: TargetingKind.Slash },
-        caster,
-        { x: 4, y: 5 },
-        grid,
-      );
+      const result = resolveTargeting({ kind: TargetingKind.Slash }, caster, { x: 4, y: 5 }, grid);
       expect(result).toHaveLength(3);
       expect(result).toContainEqual({ x: 4, y: 5 });
       expect(result).toContainEqual({ x: 3, y: 5 });
@@ -406,12 +396,7 @@ describe("resolveTargeting", () => {
 
     it("should return 3 tiles in front when facing east", () => {
       const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
-      const result = resolveTargeting(
-        { kind: TargetingKind.Slash },
-        caster,
-        { x: 5, y: 4 },
-        grid,
-      );
+      const result = resolveTargeting({ kind: TargetingKind.Slash }, caster, { x: 5, y: 4 }, grid);
       expect(result).toHaveLength(3);
       expect(result).toContainEqual({ x: 5, y: 4 });
       expect(result).toContainEqual({ x: 5, y: 3 });
@@ -420,12 +405,7 @@ describe("resolveTargeting", () => {
 
     it("should return 3 tiles in front when facing west", () => {
       const caster = { ...MockPokemon.base, position: { x: 4, y: 4 } };
-      const result = resolveTargeting(
-        { kind: TargetingKind.Slash },
-        caster,
-        { x: 3, y: 4 },
-        grid,
-      );
+      const result = resolveTargeting({ kind: TargetingKind.Slash }, caster, { x: 3, y: 4 }, grid);
       expect(result).toHaveLength(3);
       expect(result).toContainEqual({ x: 3, y: 4 });
       expect(result).toContainEqual({ x: 3, y: 3 });
@@ -434,23 +414,13 @@ describe("resolveTargeting", () => {
 
     it("should clip at grid corner", () => {
       const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
-      const result = resolveTargeting(
-        { kind: TargetingKind.Slash },
-        caster,
-        { x: 0, y: -1 },
-        grid,
-      );
+      const result = resolveTargeting({ kind: TargetingKind.Slash }, caster, { x: 0, y: -1 }, grid);
       expect(result.length).toBeLessThanOrEqual(2);
     });
 
     it("should clip at grid edge", () => {
       const caster = { ...MockPokemon.base, position: { x: 0, y: 4 } };
-      const result = resolveTargeting(
-        { kind: TargetingKind.Slash },
-        caster,
-        { x: 0, y: 3 },
-        grid,
-      );
+      const result = resolveTargeting({ kind: TargetingKind.Slash }, caster, { x: 0, y: 3 }, grid);
       expect(result).toHaveLength(2);
       expect(result).toContainEqual({ x: 0, y: 3 });
       expect(result).toContainEqual({ x: 1, y: 3 });

@@ -89,5 +89,4 @@ describe("BattleEngine integration", () => {
     const movedEvents = events.filter((e) => e.type === BattleEventType.PokemonMoved);
     expect(movedEvents.length).toBe(1);
   });
-
 });

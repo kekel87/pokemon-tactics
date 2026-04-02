@@ -7,6 +7,8 @@ import {
   type BattleState,
   Direction,
   directionFromTo,
+  EffectKind,
+  EffectTarget,
   type MapDefinition,
   type MoveDefinition,
   type PlacementEntry,
@@ -17,27 +19,24 @@ import {
   type PokemonDefinition,
   type PokemonInstance,
   type Position,
+  resolveTargeting,
   type SpawnZone,
   StatName,
   StatusType,
-  TargetingKind,
-  EffectKind,
-  EffectTarget,
-  resolveTargeting,
   stepInDirection,
+  TargetingKind,
 } from "@pokemon-tactic/core";
 import {
+  PREVIEW_FLASH_ALPHA,
+  PREVIEW_FLASH_DURATION_MS,
   TILE_PREVIEW_ALPHA,
   TILE_PREVIEW_ATTACK_COLOR,
   TILE_PREVIEW_BUFF_COLOR,
-  PREVIEW_FLASH_ALPHA,
-  PREVIEW_FLASH_DURATION_MS,
   TILE_SPAWN_ZONE_ACTIVE_COLOR,
   TILE_SPAWN_ZONE_ALPHA,
   TILE_SPAWN_ZONE_INACTIVE_COLOR,
   TILE_SPAWN_ZONE_OCCUPIED_COLOR,
 } from "../constants";
-import { getDirectionFromScreenPosition } from "../utils/screen-direction";
 import { HighlightKind } from "../enums/highlight-kind";
 import type { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
@@ -47,6 +46,7 @@ import type { DirectionPicker } from "../ui/DirectionPicker";
 import type { InfoPanel } from "../ui/InfoPanel";
 import type { PlacementRosterPanel } from "../ui/PlacementRosterPanel";
 import type { TurnTimeline } from "../ui/TurnTimeline";
+import { getDirectionFromScreenPosition } from "../utils/screen-direction";
 import { AnimationQueue } from "./AnimationQueue";
 import type { BattleSetupResult } from "./BattleSetup";
 
@@ -457,7 +457,12 @@ export class GameController {
       const activePokemon = this.getActivePokemon();
       if (activePokemon) {
         const grid = this.engine.getGrid();
-        const affectedTiles = resolveTargeting(targeting, activePokemon, activePokemon.position, grid);
+        const affectedTiles = resolveTargeting(
+          targeting,
+          activePokemon,
+          activePokemon.position,
+          grid,
+        );
         this.currentPreviewTiles = affectedTiles;
         this.renderPreview(affectedTiles, this.isBuff(moveDefinition));
       }
@@ -730,9 +735,7 @@ export class GameController {
 
   private isDirectionalPattern(kind: TargetingKind): boolean {
     return (
-      kind === TargetingKind.Cone ||
-      kind === TargetingKind.Line ||
-      kind === TargetingKind.Slash
+      kind === TargetingKind.Cone || kind === TargetingKind.Line || kind === TargetingKind.Slash
     );
   }
 
@@ -749,9 +752,7 @@ export class GameController {
 
   private isStaticPattern(kind: TargetingKind): boolean {
     return (
-      kind === TargetingKind.Self ||
-      kind === TargetingKind.Cross ||
-      kind === TargetingKind.Zone
+      kind === TargetingKind.Self || kind === TargetingKind.Cross || kind === TargetingKind.Zone
     );
   }
 
