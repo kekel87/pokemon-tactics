@@ -38,7 +38,7 @@
 
 ---
 
-## Phase 1 — Combat fonctionnel 🎯 *En cours*
+## Phase 1 — Combat fonctionnel ✅ *Terminé*
 
 > But : un combat complet et varié, jouable en hot-seat, avec assez de Pokemon pour tester toutes les mécaniques
 
@@ -76,53 +76,108 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Feedback visuel des statuts sur les sprites (icônes ZA sur sprites + timeline, miniature ZA dans InfoPanel, animation Sleep PMD) (plan 018)
 - [x] Prévisualisation AoE dynamique sur la grille : preview hover, flow 2 étapes FFTA (verrouillage + clignotement + confirmation), `confirmAttack` configurable, couleurs rouge/bleu selon effets, outline périmétrique pour la portée (plan 017)
 - [x] Preview dégâts estimés dans `confirm_attack` : random roll x0.85–1.00, `estimateDamage()` core, zone dégradée HP bar + texte flottant min–max, "Immune" pour les immunités, AoE multi-cibles (plan 019)
-
----
-
-## Phase 2 — Terrain tactique
-
-- [ ] i18n français/anglais : système de traduction léger pour noms Pokemon, moves, statuts, UI (source : https://github.com/Sykless/pokemon-showdown-fr)
-- [ ] Scaling sprites selon taille Pokemon : scale relatif basé sur height/weight de PokeAPI
-- [ ] Dénivelés (hauteur des tiles) + dégâts de chute
-- [ ] Types de terrain (lave, eau, herbe) + modificateurs précision terrain
-- [ ] Interactions type/terrain (Feu immunisé lave, Vol ignore obstacles...)
-- [ ] Modification du terrain par les attaques (Champ Herbeux, etc.)
-- [ ] Orientation : bonus dégâts de dos / réduction de face (style FFTA)
-- [ ] Team Builder (import/export format Showdown)
-- [ ] Support manette (Gamepad API)
-
----
-
-## Phase 3 — Profondeur & IA
-
-- [ ] Talents (capacités passives)
-- [ ] Objets tenus
-- [ ] Système CT (FFTA Clock Tick) en remplacement du round-robin (si décidé)
-- [ ] Formules dérivées affinées (Mouvement/Saut/Initiative)
-- [ ] Roster élargi (~30+ Pokemon)
-- [ ] IA heuristique (jouer solo)
-- [ ] IA LLM (Claude comme adversaire)
-- [ ] MCP server pour exposer le moteur
-- [ ] Mode headless accéléré (1000 combats sans rendu)
-- [ ] Outils d'équilibrage (stats de winrate)
-- [ ] Éditeur de terrain visuel
-- [ ] Génération de terrain par prompt IA ("arène de feu", "village de montagne")
-
----
-
-## Phase 4 — Polish & Multi
-
-- [ ] Animations fluides (attaque par catégorie, déplacement par type)
-- [ ] Effets visuels isométriques (ombres, lumières, particules)
-- [ ] Rotation caméra 4 angles (style FFTA)
 - [x] Canvas responsive FIT (Phaser.Scale.FIT, CSS 100vw/100vh) — plan 020
 - [x] Zoom 3 niveaux discrets (close-up 2.0x / medium 1.3x / overview 0.85x), molette + touches +/- — plan 020
 - [x] Pan caméra aux bords de l'écran (50px threshold, 6px/frame) + suivi automatique du Pokemon actif (camera.pan fluide) — plan 020
-- [x] Sprite offsets corrects via Shadow.png PMDCollab (`Idle-Offsets.png` : pixel noir = tête, pixel vert = corps, `ShadowSize` XML → `offsets.json` par Pokemon) + ombres ellipse sous sprites — plan 021
-- [x] Refonte turn order (timeline) : section haute actif+restants, séparateur round, section basse déjà-passés en transparence, tailles réduites pour 12 Pokemon sans chevauchement InfoPanel — plan 022
-- [ ] Hot-seat jusqu'à 12 joueurs
-- [ ] Menu principal (combat rapide + entrée aventure désactivée)
-- [ ] Son / Musique
-- [ ] Migration renderer vers Three.js/Babylon.js pour vrai HD-2D (optionnel)
+- [x] Sprite offsets corrects via Shadow.png PMDCollab + ombres ellipse sous sprites — plan 021
+- [x] Refonte turn order (timeline) — plan 022
+
+---
+
+## Phase 2 — Démo jouable 🎯 *En cours*
+
+> But : un lien partageable où quelqu'un peut jouer seul contre l'IA et s'amuser
+
+- [ ] i18n FR/EN (détection auto navigateur)
+- [ ] Menu principal + Settings (langue, damage preview on/off)
+- [ ] Feedbacks visuels des mécaniques (confusion, vampigraine, bind, knockback, etc.)
+- [ ] Animations fluides (attaque par catégorie, déplacement par type, polish mouvement)
+- [ ] IA jouable avec personnalité
+- [ ] Sélection d'équipe (grille portraits, bouton Auto)
+- [ ] Hot-seat 1v1 + multi-équipes (2 à 12 joueurs, IA ou humain par équipe)
+- [ ] Repo public (README présentable, système de feedback)
+- [ ] Publication + collecte feedback
+
+---
+
+## Phase 3 — Terrain & Tactics
+
+> But : la vraie profondeur tactique — le terrain change la façon de jouer
+
+- [ ] Tileset isométrique (sourcing ou génération)
+- [ ] Dénivelés (hauteur tiles) + dégâts de chute
+- [ ] Obstacles + line of sight (trajectoires de tir visibles)
+- [ ] Types de terrain (lave, eau, herbe) + modificateurs
+- [ ] Interactions type/terrain + modification terrain par attaques
+- [ ] Orientation tactique (bonus dos/face FFTA)
+- [ ] Système CT (remplacement round-robin)
+- [ ] Undo déplacement (annulable tant qu'on n'a pas attaqué)
+- [ ] Éditeur de terrain / génération IA
+- [ ] Maps variées + roster d'attaques terrain/dénivelé
+
+---
+
+## Phase 4 — Gameplay Pokemon complet
+
+> But : couvrir les mécaniques Pokemon qui donnent de la profondeur stratégique
+
+- [ ] Talents (capacités passives)
+- [ ] Objets tenus
+- [ ] Méga-évolutions
+- [ ] Roster élargi (~30-40 Pokemon) + attaques
+- [ ] Team Builder (import/export Showdown)
+
+---
+
+## Phase 5 — Équilibrage
+
+> But : des outils pour tester et équilibrer avant d'ouvrir le multi
+
+- [ ] IA LLM (Claude adversaire)
+- [ ] Mode headless + outils d'équilibrage
+- [ ] Passes d'équilibrage
+
+---
+
+## Phase 6 — Social & Partage
+
+> But : les features qui donnent envie de partager et revenir
+
+- [ ] Share replay via URL + lecteur de replay
+- [ ] Défi du jour (seed quotidienne, même combat pour tous)
+- [ ] Screenshot de fin de combat partageable
+
+---
+
+## Phase 7 — Multijoueur
+
+> But : jouer contre de vrais adversaires
+
 - [ ] Multijoueur réseau (WebSocket)
-- [ ] Mode histoire / aventure (si décidé)
+- [ ] Écran de victoire enrichi (récap, tours, KO, MVP)
+- [ ] Speed controls (skip/accélérer animations)
+- [ ] Tutoriel interactif
+- [ ] Support manette
+
+---
+
+## Phase 8 — Polish
+
+> But : le confort et la qualité visuelle
+
+- [ ] Scaling sprites selon taille Pokemon
+- [ ] Son / Musique
+- [ ] Effets visuels (particules, ombres, lumières)
+- [ ] Décors sur les maps
+- [ ] Rotation caméra 4 angles
+- [ ] UI revamps
+- [ ] Auto-save localStorage
+- [ ] Tooltips type chart (efficacités au hover)
+
+---
+
+## Phase 9 — Futur / À voir
+
+- [ ] Mode histoire / aventure
+- [ ] Conditions de victoire alternatives
+- [ ] Draft/ban phase
