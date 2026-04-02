@@ -1,10 +1,9 @@
 # Roster POC — Pokemon Tactics
 
-> Les 12 Pokemon du prototype élargi et leurs movesets.
+> Les 20 Pokemon jouables (+1 Dummy) et leurs movesets.
 > Chaque attaque teste un pattern ou une mécanique différente pour valider le moteur.
-> Les movesets des 8 nouveaux Pokemon (plan 013+) n'ont pas encore été revus par l'humain.
-> **72 moves au total** : 56 moves offensifs/statut/buff (roster élargi plan 013+ et plan 026) + 8 moves défensifs (Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité) ajoutés en plan 023 + Dummy.
-> Les 17 nouveaux moves du plan 026 (toxic, supersonic, swords-dance, iron-defense, double-kick, fury-swipes, hyper-beam, dragon-tail, wrap, growl, roar, flash, acid, earthquake, mega-punch, slash, poison-sting) sont en cours d'attribution aux 12 Pokemon — **review humain en attente** (décision #121).
+> **72 moves au total** : 56 moves offensifs/statut/buff + 8 moves défensifs (Dummy) + 8 moves partagés entre les nouveaux Pokemon.
+> 8 nouveaux Pokemon ajoutés en plan 027 : Évoli, Tentacool, Nidoran♂, Miaouss, Magnéti, Sabelette, Excelangue, Kangourex.
 
 ---
 
@@ -12,7 +11,7 @@
 
 Valider un maximum de mécaniques avec un minimum de Pokemon :
 - **Roster initial (4)** : Plante, Feu, Eau, Normal/Vol — triangle élémentaire + neutre
-- **Roster élargi (12)** : Électrique, Combat, Psy, Spectre/Poison, Roche/Sol, Feu (2e), Normal/Fée, Eau/Glace
+- **Roster élargi (20)** : Électrique, Combat, Psy, Spectre/Poison, Roche/Sol, Feu (2e), Normal/Fée, Eau/Glace, Eau/Poison, Sol, Élec/Acier, Normal (x4)
 - **Tous les patterns AoE** : single, cône, croix, zone self, dash, portée+AoE, lien, ligne, slash, blast
 - **Mécaniques variées** : dégâts, statut, buff, drain, dash, AoE, debuff, défensif (Protect/Counter/Endure...)
 
@@ -193,43 +192,147 @@ Pokemon de test uniquement, utilisé comme adversaire en mode sandbox. Non prés
 
 ---
 
+## 14. Évoli (Normal)
+
+| # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
+|---|---------|------|------|--------|-------|-----|--------|---------|-------|
+| 1 | Morsure | Ténèbres | Phys | 60 | 100 | 25 | 1 | single | Mêlée |
+| 2 | Vive-Attaque | Normal | Phys | 40 | 100 | 30 | dash 2 | dash | Dash repositionnement |
+| 3 | Rugissement | Normal | Statut | — | 100 | 40 | 1-2 | cône | -1 Atk aux cibles |
+| 4 | Reflet | Normal | Statut | — | 100 | 15 | 0 (self) | self | +1 Esquive |
+
+**Rôle** : harceleur rapide. Morsure en mêlée, Vive-Attaque pour gap-close, Rugissement pour affaiblir les ennemis devant lui, Reflet pour l'esquive.
+
+---
+
+## 15. Tentacool (Eau/Poison)
+
+| # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
+|---|---------|------|------|--------|-------|-----|--------|---------|-------|
+| 1 | Pistolet à O | Eau | Spé | 40 | 100 | 25 | 1-3 | single | Ranged basique |
+| 2 | Acide | Poison | Spé | 40 | 100 | 30 | 1-2 | cône | Cône + -1 Déf Spé aux cibles |
+| 3 | Toxik | Poison | Statut | — | 90 | 10 | 1-3 | single | Poison grave (dégâts croissants) |
+| 4 | Ligotage | Normal | Phys | 15 | 90 | 20 | 1 | single | Bind : immobilise 4-5 tours, dégâts/tour |
+
+**Rôle** : empoisonneur et contrôleur. Toxik pour l'attrition lourde, Ligotage pour immobiliser, Acide pour affaiblir la Déf Spé en zone. 100 Déf Spé tank les attaquants spéciaux.
+
+---
+
+## 16. Nidoran♂ (Poison)
+
+| # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
+|---|---------|------|------|--------|-------|-----|--------|---------|-------|
+| 1 | Dard-Venin | Poison | Phys | 15 | 100 | 35 | 1 | single | Mêlée, chance poison 30% |
+| 2 | Double Pied | Combat | Phys | 30 | 100 | 30 | 1 | single | Multi-hit x2 fixe |
+| 3 | Hurlement | Normal | Statut | — | 100 | 40 | 1-2 | cône | -1 Atk aux cibles en cône |
+| 4 | Ultrason | Normal | Statut | — | 55 | 20 | 1-3 | single | Confusion (redirection aléatoire) |
+
+**Rôle** : harceleur mêlée avec contrôle. Dard-Venin pour empoisonner, Double Pied pour accumuler les dégâts, Ultrason pour semer la confusion.
+
+---
+
+## 17. Miaouss (Normal)
+
+| # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
+|---|---------|------|------|--------|-------|-----|--------|---------|-------|
+| 1 | Griffe | Normal | Phys | 40 | 100 | 35 | 1 | single | Mêlée basique |
+| 2 | Combo-Griffe | Normal | Phys | 18 | 80 | 15 | 1 | single | Multi-hit 2-5 (35/35/15/15%) |
+| 3 | Rugissement | Normal | Statut | — | 100 | 40 | 1-2 | cône | -1 Atk aux cibles |
+| 4 | Hâte | Psy | Statut | — | 100 | 30 | 0 (self) | self | +2 Vitesse |
+
+**Rôle** : mobile et burst aléatoire. 90 Vitesse + Hâte pour agir souvent. Combo-Griffe pour du burst potentiel. Rugissement pour débuffer.
+
+---
+
+## 18. Magnéti (Électrique/Acier)
+
+| # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
+|---|---------|------|------|--------|-------|-----|--------|---------|-------|
+| 1 | Tonnerre | Électrique | Spé | 90 | 100 | 15 | ligne 4 | ligne | Traverse en ligne, chance paralysie 10% |
+| 2 | Cage-Éclair | Électrique | Statut | — | 90 | 20 | 1-3 | single | Paralysie 100% |
+| 3 | Flash | Normal | Statut | — | 100 | 20 | 0 (self) | zone r2 | -1 Précision en zone autour du lanceur |
+| 4 | Mur de Fer | Acier | Statut | — | 100 | 15 | 0 (self) | self | +2 Défense |
+
+**Rôle** : tourelle défensive. 95 Atk Spé + Tonnerre en ligne. Cage-Éclair pour paralyser à distance. Flash pour zone denial. Mur de Fer pour renforcer sa défense déjà solide (70). Double type Élec/Acier offre de bonnes résistances.
+
+---
+
+## 19. Sabelette (Sol)
+
+| # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
+|---|---------|------|------|--------|-------|-----|--------|---------|-------|
+| 1 | Tranche | Normal | Phys | 70 | 100 | 20 | 1 | slash | Arc frontal 3 cases, taux critique élevé |
+| 2 | Griffe | Normal | Phys | 40 | 100 | 35 | 1 | single | Mêlée basique |
+| 3 | Séisme | Sol | Phys | 100 | 100 | 10 | 0 (self) | zone r2 | AoE sol 13 cases, friendly fire |
+| 4 | Jet de Sable | Sol | Statut | — | 100 | 15 | 1-2 | cône | -1 Précision en cône |
+
+**Rôle** : bruiser sol. 85 Défense + 75 Attaque. Tranche (slash) pour balayer en mêlée. Séisme pour punir les regroupements. Jet de Sable pour affaiblir la précision ennemie.
+
+---
+
+## 20. Excelangue (Normal)
+
+| # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
+|---|---------|------|------|--------|-------|-----|--------|---------|-------|
+| 1 | Léchouille | Spectre | Phys | 30 | 100 | 30 | 1 | single | Mêlée, chance paralysie 30% |
+| 2 | Ultralaser | Normal | Spé | 150 | 90 | 5 | ligne 5 | ligne | Nuke en ligne, recharge au tour suivant |
+| 3 | Rugissement | Normal | Statut | — | 100 | 40 | 1-2 | cône | -1 Atk aux cibles |
+| 4 | Draco-Queue | Dragon | Phys | 60 | 90 | 10 | 1 | slash | Arc frontal 3 cases + knockback |
+
+**Rôle** : contrôle lent et nuke. 90 PV + bonnes défenses (75/75). Ultralaser pour dévastation en ligne (mais recharge). Draco-Queue pour repousser les ennemis. Rugissement pour débuffer. Très lent (30 Vitesse).
+
+---
+
+## 21. Kangourex (Normal)
+
+| # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
+|---|---------|------|------|--------|-------|-----|--------|---------|-------|
+| 1 | Ultimapoing | Normal | Phys | 80 | 85 | 20 | 1 | single | Mêlée puissante |
+| 2 | Griffe | Normal | Phys | 40 | 100 | 35 | 1 | single | Mêlée basique |
+| 3 | Danse-Lames | Normal | Statut | — | 100 | 20 | 0 (self) | self | +2 Attaque |
+| 4 | Plaquage | Normal | Phys | 85 | 100 | 15 | 1 | single | Mêlée puissante, chance paralysie 30% |
+
+**Rôle** : bruiser tank offensif. 105 PV, 95 Attaque, 90 Vitesse. Danse-Lames pour +2 Atk puis Ultimapoing/Plaquage pour faire très mal. Résistant avec 80 Déf et 80 Déf Spé.
+
+---
+
 ## Mécaniques testées par le roster élargi
 
 | Mécanique | Testée par |
 |-----------|-----------|
-| Single target mêlée | Griffe, Charge, Tranche, Séisme, Léchouille, Morsure, Écras'Face, Tête de Roc |
-| Single target ranged | Flammèche, Pistolet à O, Cage-Éclair, Kinésie, Choc Mental, Lancer-Roc |
-| **Slash** (arc frontal 3 cases) | Tranch'Herbe, Cru-Aile |
+| Single target mêlée | Griffe, Charge, Tranche, Séisme, Léchouille, Morsure, Écras'Face, Tête de Roc, Dard-Venin, Double Pied, Ultimapoing, Plaquage |
+| Single target ranged | Flammèche, Pistolet à O, Cage-Éclair, Kinésie, Choc Mental, Lancer-Roc, Toxik, Ultrason |
+| **Slash** (arc frontal 3 cases) | Tranch'Herbe, Cru-Aile, Tranche (Sabelette), Draco-Queue (Excelangue) |
 | **Blast** (projectile + explosion circulaire) | Bombe-Beurk |
 | AoE croix | Éclate-Roc, Ombre Nuit |
-| AoE cône | Tornade, Dracosouffle, Bulles d'O, Jet de Sable, Berceuse, Blizzard, Vent Glace |
-| **Ligne** | Tonnerre, Psykoud'boul, Lance-Flammes, Laser Glace |
-| Zone self | Brouillard, Poudre Dodo, Ampleur |
+| AoE cône | Tornade, Dracosouffle, Bulles d'O, Jet de Sable, Berceuse, Blizzard, Vent Glace, Rugissement, Hurlement, Acide |
+| **Ligne** | Tonnerre, Psykoud'boul, Lance-Flammes, Laser Glace, Ultralaser (Excelangue) |
+| Zone self | Brouillard, Poudre Dodo, Ampleur, Flash, Séisme (Sabelette) |
 | Buff self (Attaque/Déf) | Repli, Pugilat, Entassement, Armure, Défense Enroulée |
 | Buff self (Atk Spé/Déf Spé) | Zen Absolu |
-| Buff self (Vitesse) | Tranche Rapide |
-| Buff self (Esquive) | Miniminus |
-| **+2 Attaque (Épée Danse)** | swords-dance |
-| **+2 Défense (Mur de Fer)** | iron-defense |
-| Attaque dash | Vive-Attaque, Voltacle, Tunnel, Roue de Feu |
+| Buff self (Vitesse) | Tranche Rapide, Hâte (Miaouss) |
+| Buff self (Esquive) | Miniminus, Reflet (Évoli) |
+| **+2 Attaque (Épée Danse)** | Danse-Lames (Kangourex) |
+| **+2 Défense (Mur de Fer)** | Mur de Fer (Magnéti) |
+| Attaque dash | Vive-Attaque, Voltacle, Tunnel, Roue de Feu, Vive-Attaque (Évoli) |
 | Lien persistant (drain) | Vampigraine |
-| **Lien Bind (immobilisation)** | Ligotage (wrap) |
-| **Multi-hit fixe** | Double Pied (double-kick x2) |
-| **Multi-hit variable** | Combo-Griffe (fury-swipes 2-5) |
-| **Recharge tour suivant** | Ultralaser (hyper-beam) |
-| **Knockback** | Draco-Queue (dragon-tail) |
+| **Lien Bind (immobilisation)** | Ligotage (Tentacool) |
+| **Multi-hit fixe** | Double Pied (Nidoran♂ x2) |
+| **Multi-hit variable** | Combo-Griffe (Pikachu, Miaouss 2-5) |
+| **Recharge tour suivant** | Ultralaser (Excelangue) |
+| **Knockback** | Draco-Queue (Excelangue) |
 | Statut : sommeil | Poudre Dodo, Hypnose, Berceuse |
 | Statut : brûlure | Flammèche, Lance-Flammes, Roue de Feu |
-| Statut : poison | Bombe-Beurk, Dard-Venin (poison-sting) |
-| **Statut : poison grave** | Toxik (toxic) |
-| Statut : paralysie | Dracosouffle, Cage-Éclair, Tonnerre, Léchouille, Plaquage |
-| **Statut volatil : confusion** | Ultrason (supersonic) |
+| Statut : poison | Bombe-Beurk, Dard-Venin (Nidoran♂) |
+| **Statut : poison grave** | Toxik (Tentacool) |
+| Statut : paralysie | Dracosouffle, Cage-Éclair, Tonnerre, Léchouille, Plaquage (Kangourex), Plaquage (Rondoudou) |
+| **Statut volatil : confusion** | Ultrason (Nidoran♂) |
 | **Statut : gel** | Blizzard |
 | Statut : -précision | Brouillard, Jet de Sable, Kinésie, Flash |
-| Debuff : -Attaque | Laser Glace, Rugissement (growl, cône), Hurlement (roar, cône) |
-| Debuff : -Déf Spé | Acide (acid, cône) |
+| Debuff : -Attaque | Laser Glace, Rugissement (Évoli, Miaouss, Excelangue), Hurlement (Nidoran♂) |
+| Debuff : -Déf Spé | Acide (Tentacool) |
 | Debuff : -Vitesse | Vent Glace |
-| Friendly fire AoE | Tranch'Herbe, Cru-Aile (slash), Bombe-Beurk (blast), Poudre Dodo, Tornade, Bulles d'O (cône), Dracosouffle, Ampleur, Berceuse, Blizzard |
+| Friendly fire AoE | Tranch'Herbe, Cru-Aile, Bombe-Beurk, Poudre Dodo, Tornade, Bulles d'O, Dracosouffle, Ampleur, Berceuse, Blizzard, Rugissement, Hurlement, Acide, Flash, Séisme, Tranche, Draco-Queue |
 | Type Vol (survol, chute) | Roucoul |
 | Type Spectre (traversée ennemis) | Fantominus |
 | Triangle de types | Plante > Eau > Feu > Plante |

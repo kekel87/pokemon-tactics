@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-02 (Plan 026 terminé — 6 nouvelles mécaniques + 17 moves, 595 tests au total)
+> Dernière mise à jour : 2026-04-02 (Plan 027 terminé — 8 nouveaux Pokemon ajoutés, roster 12 → 20 jouables ; bugfix DummyAiController événements non animés ; test wrap.test.ts)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -357,6 +357,19 @@
   - **`CLAUDE.md`** mis à jour : nouveau déclencheur "Ajout/suppression/modif d'un move → test-writer"
   - **534 tests unitaires** (91 fichiers) + **48 tests intégration** (4 fichiers) = **582 tests**, 0 régressions, build OK
 
+- **Plan 027 terminé** — Roster élargi 12 → 20 Pokemon :
+  - **8 nouveaux Pokemon** dans `packages/data/src/base/pokemon.ts` : Évoli, Tentacool, Nidoran♂, Miaouss, Magnéti, Sabelette, Excelangue, Kangourex
+  - Sprites PMDCollab extraits pour les 8 Pokemon (atlas + portraits + offsets.json)
+  - `docs/roster-poc.md` mis à jour avec les 8 fiches Pokemon et leurs movesets
+  - `docs/roadmap.md` : "Roster élargi (~20 Pokemon)" coché
+
+- **Bugfix DummyAiController — événements non animés (2026-04-02)** :
+  - `DummyAiController.playTurn()` retourne désormais `BattleEvent[]` au lieu de `void`
+  - `GameController.onTurnReady` accepte `BattleEvent[] | false` et anime les événements du Dummy via `processEvents()`
+  - Résout le bug où les dégâts de bind/status tick du tour Dummy n'étaient pas visibles (HP bars, flash dégâts, etc.)
+  - `wrap.test.ts` ajouté dans `packages/core/src/battle/moves/` : "deals 1/16 max HP per turn to the bound target (no heal to source)"
+  - **596 tests**, build OK
+
 - **Plan 024 terminé** — Bugfixes sandbox + relocalisation menu d'action (non commité) :
   - **Fix status au spawn** : `PokemonSprite.ts` constructeur appelle `updateStatus()` + `setStatusAnimation()` — les statuts pré-existants (burn, sleep, etc.) s'affichent dès le spawn (`?sandbox&status=burned` fonctionne)
   - **Fix Vampigraine HP bar** : `GameController.ts` handler `LinkDrained` ajoute `await targetSprite.flashDamage()` avant `updateHp()` — force le cycle de rendu Phaser, la barre descend visuellement
@@ -365,13 +378,11 @@
   - **333 tests**, 0 régressions, build OK, vérification visuelle OK
 
 ### Prochaine étape (Phase 1 Core)
-- **Plan 027 prêt** (status: ready) — 8 nouveaux Pokemon (Évoli, Tentacool, Nidoran, Miaouss, Magnéti, Sabelette, Excelangue, Kangourex) : données, sprites PMDCollab, tests. Roster 12 → 20.
 - **Feedback visuel renderer** : représentation des nouvelles mécaniques (confusion, bind, knockback, multi-hit, recharge, badly poisoned) — pas d'icône ni message pour la confusion actuellement
-- **Review des movesets des 12 Pokemon** par l'humain (équilibrage) — décision #121. 73 moves disponibles, tests d'intégration par move disponibles pour guider l'équilibrage.
+- **Review des movesets des 20 Pokemon** par l'humain (équilibrage) — décision #121. 72 moves disponibles (+8 défensifs), tests d'intégration par move disponibles pour guider l'équilibrage.
 - Système de replay (log d'actions déterministe, seed + rejeu)
 
 ### Bugs connus non corrigés
-- HP bar flottante (Vampigraine) pas mise à jour au spawn — bug existant, non bloquant
 - Confusion sans feedback visuel côté renderer (pas d'icône, pas de message d'info) — à traiter dans un plan renderer
 
 ### Points à adresser (renderer)

@@ -148,8 +148,7 @@ export class BattleScene extends Phaser.Scene {
 
     controller.onTurnReady = (activePokemonId: string) => {
       if (activePokemonId === dummyPokemonId) {
-        dummyAi.playTurn();
-        return true;
+        return dummyAi.playTurn();
       }
       return false;
     };

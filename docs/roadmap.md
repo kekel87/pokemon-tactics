@@ -22,7 +22,7 @@
 - [x] 9 targeting patterns (single, self, cone, cross, line, dash, zone, slash, blast)
 - [x] Friendly fire actif
 - [x] Type chart 18x18
-- [x] Tests unitaires pour chaque mécanique (292 tests unitaires + 53 intégration = 345 tests + 94 nouveaux/modifiés défensifs = 386 total, 100% coverage)
+- [x] Tests unitaires pour chaque mécanique (596 tests, 100% coverage — 73 fichiers moves + 14 mécaniques transversales)
 
 ### Renderer
 - [x] Grille isométrique 2D avec Phaser 4
@@ -60,7 +60,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Poison grave : dégâts croissants via toxicCounter (1/16 à 15/16 HP) — plan 026
 - [x] Plusieurs Pokemon par équipe : format 6v6 implémenté (plan 013)
 - [x] Tests d'intégration par move : 73 fichiers moves + 14 fichiers mécaniques, helper `buildMoveTestEngine`, **595 tests** (plans 025+026)
-- [ ] Roster élargi (~8-12 Pokemon) — **12 Pokemon implémentés, movesets en attente de review humain** — tests d'intégration par move disponibles pour guider l'équilibrage (décision #139)
+- [x] Roster élargi (~20 Pokemon) — **20 Pokemon jouables** (+1 Dummy) avec 72 moves, sprites PMDCollab, tests d'intégration par move (plan 027)
 - [x] Stats niveau 50 : fonction `computeStatAtLevel` pour calculer HP et stats réelles au niveau 50 (plan 015)
 - [ ] Système de replay (log d'actions déterministe, seed + rejeu)
 

@@ -1,5 +1,5 @@
 ---
-status: ready
+status: done
 created: 2026-04-02
 updated: 2026-04-02
 ---
@@ -126,11 +126,11 @@ Le plan 026 ajoute 17 nouveaux moves et 5 mécaniques core. Ce plan ajoute les 8
 
 ## Critères de complétion
 
-- [ ] 8 Pokemon dans `packages/data/src/base/pokemon.ts` avec stats correctes
-- [ ] `validate.ts` passe
-- [ ] Sprites PMDCollab pour les 8 Pokemon (ou placeholder)
-- [ ] `docs/roster-poc.md` reflète 20 Pokemon jouables
-- [ ] `pnpm test` passe
+- [x] 8 Pokemon dans `packages/data/src/base/pokemon.ts` avec stats correctes
+- [x] `validate.ts` passe
+- [x] Sprites PMDCollab pour les 8 Pokemon (ou placeholder)
+- [x] `docs/roster-poc.md` reflète 20 Pokemon jouables
+- [x] `pnpm test` passe
 
 ## Risques
 
