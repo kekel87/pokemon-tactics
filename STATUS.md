@@ -6,7 +6,7 @@
 
 ---
 
-## Phase actuelle : Phase 0 — POC (en cours de développement)
+## Phase actuelle : Phase 1 — Combat fonctionnel ✅ Terminé — Prochaine phase : Phase 2 — Démo jouable
 
 ### Ce qui est fait
 - Documentation complète : game-design, architecture, decisions (91 décisions), roadmap, references, methodology, roster POC, glossaire
