@@ -1,4 +1,10 @@
-import { ActionKind, type BattleEngine, type Direction, PlayerId } from "@pokemon-tactic/core";
+import {
+  ActionKind,
+  type BattleEngine,
+  type BattleEvent,
+  type Direction,
+  PlayerId,
+} from "@pokemon-tactic/core";
 
 export class DummyAiController {
   private readonly engine: BattleEngine;
@@ -24,9 +30,11 @@ export class DummyAiController {
     return activePokemonId === this.dummyPokemonId;
   }
 
-  playTurn(): void {
+  playTurn(): BattleEvent[] {
+    const allEvents: BattleEvent[] = [];
+
     if (!this.isDummyTurn()) {
-      return;
+      return allEvents;
     }
 
     if (this.assignedMoveId) {
@@ -35,7 +43,10 @@ export class DummyAiController {
         (action) => action.kind === ActionKind.UseMove && action.moveId === this.assignedMoveId,
       );
       if (moveAction) {
-        this.engine.submitAction(PlayerId.Player2, moveAction);
+        const result = this.engine.submitAction(PlayerId.Player2, moveAction);
+        if (result.success) {
+          allEvents.push(...result.events);
+        }
       }
     }
 
@@ -45,7 +56,12 @@ export class DummyAiController {
     );
 
     if (endTurnAction) {
-      this.engine.submitAction(PlayerId.Player2, endTurnAction);
+      const result = this.engine.submitAction(PlayerId.Player2, endTurnAction);
+      if (result.success) {
+        allEvents.push(...result.events);
+      }
     }
+
+    return allEvents;
   }
 }

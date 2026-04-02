@@ -94,7 +94,7 @@ export class GameController {
   private readonly battleConfig: BattleConfig;
   private inputState: InputState = { phase: "placement", selectedPokemonId: null };
   private legalActions: Action[] = [];
-  onTurnReady: ((activePokemonId: string) => boolean) | null = null;
+  onTurnReady: ((activePokemonId: string) => BattleEvent[] | false) | null = null;
   private placementConfig: PlacementConfig | null = null;
   private placementSprites: Map<string, PokemonSprite> = new Map();
   private currentPreviewDirection: Direction | null = null;
@@ -355,9 +355,19 @@ export class GameController {
 
     this.turnTimeline.update(this.state, this.pokemonDefinitions);
 
-    if (this.onTurnReady && activePokemonId && this.onTurnReady(activePokemonId)) {
-      this.scene.time.delayedCall(100, () => this.refreshUI());
-      return;
+    if (this.onTurnReady && activePokemonId) {
+      const dummyEvents = this.onTurnReady(activePokemonId);
+      if (dummyEvents !== false) {
+        if (dummyEvents.length > 0) {
+          this.animationQueue.enqueue(async () => {
+            await this.processEvents(dummyEvents);
+            this.refreshUI();
+          });
+        } else {
+          this.scene.time.delayedCall(100, () => this.refreshUI());
+        }
+        return;
+      }
     }
 
     this.enterActionMenu();

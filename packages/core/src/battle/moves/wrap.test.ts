@@ -47,6 +47,59 @@ describe("wrap", () => {
     vi.restoreAllMocks();
   });
 
+  it("deals 1/16 max HP per turn to the bound target (no heal to source)", () => {
+    // Given: source uses Wrap on adjacent target
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const caster = MockPokemon.fresh(MockPokemon.base, {
+      id: "caster",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      orientation: Direction.East,
+      moveIds: ["wrap"],
+      currentPp: { wrap: 20 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      currentHp: 100,
+      maxHp: 100,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const { engine, state } = buildMoveTestEngine([caster, target]);
+    const sourceHpBefore = state.pokemon.get(caster.id)!.currentHp;
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: caster.id,
+      moveId: "wrap",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    const hpAfterHit = state.pokemon.get(target.id)!.currentHp;
+
+    // When: a full round passes (both end turn)
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: caster.id,
+      direction: Direction.East,
+    });
+    engine.submitAction(PlayerId.Player2, {
+      kind: ActionKind.EndTurn,
+      pokemonId: target.id,
+      direction: Direction.West,
+    });
+
+    // Then: target loses 1/16 max HP from bind tick, source does NOT heal
+    const hpAfterTick = state.pokemon.get(target.id)!.currentHp;
+    const expectedDrain = Math.max(1, Math.floor(100 / 16)); // 6
+    expect(hpAfterHit - hpAfterTick).toBe(expectedDrain);
+    expect(state.pokemon.get(caster.id)!.currentHp).toBe(sourceHpBefore);
+
+    vi.restoreAllMocks();
+  });
+
   it("cannot hit target at range 2", () => {
     const caster = MockPokemon.fresh(MockPokemon.base, {
       id: "caster",
