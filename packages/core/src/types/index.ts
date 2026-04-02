@@ -3,6 +3,7 @@ export type * from "./active-defense";
 export type * from "./active-link";
 export type * from "./base-stats";
 export type * from "./battle-event";
+export type * from "./battle-replay";
 export type * from "./battle-state";
 export type * from "./damage-estimate";
 export type * from "./derived-stats";

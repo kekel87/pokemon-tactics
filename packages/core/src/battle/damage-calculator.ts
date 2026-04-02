@@ -4,6 +4,7 @@ import { StatusType as StatusTypeEnum } from "../enums/status-type";
 import type { DamageEstimate } from "../types/damage-estimate";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import type { RandomFn } from "../utils/prng";
 import { getEffectiveStat } from "./stat-modifier";
 
 const BATTLE_LEVEL = 50;
@@ -18,6 +19,7 @@ export function calculateDamage(
   attackerTypes: PokemonType[],
   defenderTypes: PokemonType[],
   rollFactor?: number,
+  random: RandomFn = () => Math.random(),
 ): number {
   if (move.category === Category.Status || move.power === 0) {
     return 0;
@@ -49,7 +51,7 @@ export function calculateDamage(
 
   const stab = getStab(move.type, attackerTypes);
 
-  const roll = rollFactor ?? Math.random() * 0.15 + 0.85;
+  const roll = rollFactor ?? random() * 0.15 + 0.85;
 
   return Math.max(1, Math.floor(baseDamage * stab * effectiveness * roll));
 }

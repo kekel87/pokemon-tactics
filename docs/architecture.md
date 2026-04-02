@@ -121,7 +121,11 @@ pokemon-tactics/
 ├── scripts/                     # Outils de build one-shot (non packagés)
 │   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas Phaser (inclut Sleep depuis plan 018)
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
+│   ├── generate-golden-replay.ts # Génère fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
 │   └── sprite-config.json       # Config extensible (Pokemon, animations dont Sleep, portraits)
+├── fixtures/
+│   └── replays/
+│       └── golden-replay.json   # Replay de référence commité (Player 1 gagne en 32 rounds, 247 actions)
 ├── package.json                 # Workspace root (scripts, devDependencies)
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json           # Config TS partagée (strict, bundler, path aliases)
@@ -146,7 +150,8 @@ Structure flat par responsabilité. On restructurera par domaine quand la comple
 | `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `ActiveDefense` | Non testé (compilation = validation) |
 | `utils/` | Fonctions pures réutilisables (math, direction, géométrie) | Oui |
 | `grid/` | Classe Grid, targeting resolvers | Oui |
-| `battle/` | BattleEngine, TurnManager, PlacementPhase, validate, validate-map, defense-check, handle-defensive, defensive-clear-handler | Oui |
+| `battle/` | BattleEngine, TurnManager, PlacementPhase, validate, validate-map, defense-check, handle-defensive, defensive-clear-handler, replay-runner | Oui |
+| `ai/` | IA scriptées headless : `random-ai.ts` (action légale aléatoire), `aggressive-ai.ts` (fonce + tape le plus puissant) | Oui |
 | `testing/` | Mocks centralisés (`abstract class MockX`) | Exclu du coverage et du build |
 
 ### Diagramme interne du core
@@ -154,10 +159,11 @@ Structure flat par responsabilité. On restructurera par domaine quand la comple
 ```mermaid
 graph TD
     enums["enums/<br/>TargetingKind, Direction,<br/>PokemonType, ActionError,<br/>PlacementMode, PlayerController,<br/>DefensiveKind..."]
-    types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance,<br/>MapDefinition, MapFormat, SpawnZone,<br/>PlacementTeam, PlacementEntry,<br/>ActiveDefense..."]
-    utils["utils/<br/>manhattanDistance, directionFromTo,<br/>stepInDirection, getPerpendicularOffsets"]
+    types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance,<br/>MapDefinition, MapFormat, SpawnZone,<br/>PlacementTeam, PlacementEntry,<br/>ActiveDefense, BattleReplay..."]
+    utils["utils/<br/>manhattanDistance, directionFromTo,<br/>stepInDirection, getPerpendicularOffsets,<br/>prng (RandomFn, createPrng)"]
     grid["grid/<br/>Grid, targeting resolvers<br/>(single, cone, cross, line, dash, zone)"]
-    battle["battle/<br/>TurnManager, BattleEngine, PlacementPhase,<br/>validate, validate-map,<br/>defense-check, handle-defensive,<br/>defensive-clear-handler"]
+    battle["battle/<br/>TurnManager, BattleEngine, PlacementPhase,<br/>validate, validate-map,<br/>defense-check, handle-defensive,<br/>defensive-clear-handler, replay-runner"]
+    ai["ai/<br/>random-ai, aggressive-ai"]
     testing["testing/<br/>MockBattle, MockPokemon"]
 
     enums --> types
@@ -168,6 +174,7 @@ graph TD
     utils --> grid
     utils --> battle
     grid --> battle
+    battle --> ai
     testing -.->|test only| battle
     testing -.->|test only| grid
 ```
@@ -463,13 +470,27 @@ interface BattleEngine {
 
 ```typescript
 interface BattleReplay {
-  initialState: BattleState   // état au début (grille, placements, équipes)
-  actions: Action[]            // chaque action jouée dans l'ordre
-  randomSeed: number           // pour reproduire l'aléatoire (crits, miss...)
+  seed: number;      // seed du PRNG mulberry32 (0 si Math.random utilisé)
+  actions: Action[]; // chaque action jouée dans l'ordre (enregistrée par submitAction)
 }
 ```
 
 Le replay est **déterministe** : même seed + mêmes actions = même résultat.
+
+### PRNG mulberry32
+
+`packages/core/src/utils/prng.ts` expose :
+- `type RandomFn = () => number` — même signature que `Math.random`
+- `createPrng(seed: number): RandomFn` — constructeur du PRNG
+
+Le `BattleEngine` accepte un `random?: RandomFn` en dernier paramètre du constructeur (défaut : `Math.random`). La fonction est propagée via `EffectContext` à tous les handlers qui ont besoin d'aléatoire (`accuracy-check`, `damage-calculator`, `handle-status`, `handle-damage`, `status-tick-handler`). Zéro `Math.random()` direct dans `packages/core/src/battle/`.
+
+### Enregistrement et rejeu
+
+- `BattleEngine.exportReplay()` retourne `{ seed, actions: [...recordedActions] }`
+- `runReplay(replay, buildEngine)` dans `replay-runner.ts` recrée un engine avec le seed et soumet les actions dans l'ordre
+- `fixtures/replays/golden-replay.json` : replay de référence (3v3 aggressive vs aggressive, seed 12345, Player 1 gagne en 32 rounds / 247 actions)
+- `golden-replay.test.ts` : test de non-régression — si une mécanique aléatoire change, le test pète → relancer `pnpm replay:generate`
 
 ---
 

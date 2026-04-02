@@ -62,7 +62,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Tests d'intégration par move : 73 fichiers moves + 14 fichiers mécaniques, helper `buildMoveTestEngine`, **595 tests** (plans 025+026)
 - [x] Roster élargi (~20 Pokemon) — **20 Pokemon jouables** (+1 Dummy) avec 72 moves, sprites PMDCollab, tests d'intégration par move (plan 027)
 - [x] Stats niveau 50 : fonction `computeStatAtLevel` pour calculer HP et stats réelles au niveau 50 (plan 015)
-- [ ] Système de replay (log d'actions déterministe, seed + rejeu)
+- [x] Système de replay (log d'actions déterministe, seed + rejeu)
 
 ### Renderer
 - [x] Placement initial visuel : phase de placement interactive, panel roster, zones de spawn highlight (plan 013 — implémenté, non commité)

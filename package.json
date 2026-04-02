@@ -18,7 +18,8 @@
     "lint:fix": "biome check --write .",
     "typecheck": "tsc --noEmit",
     "extract-sprites": "tsx scripts/extract-sprites.ts",
-    "download-status-icons": "tsx scripts/download-status-icons.ts"
+    "download-status-icons": "tsx scripts/download-status-icons.ts",
+    "replay:generate": "tsx scripts/generate-golden-replay.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",

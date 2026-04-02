@@ -8,6 +8,7 @@ import type { PlacementEntry } from "../types/placement-entry";
 import type { PlacementTeam } from "../types/placement-team";
 import type { Position } from "../types/position";
 import { directionFromTo } from "../utils/direction";
+import { createPrng } from "../utils/prng";
 
 export const PlacementError = {
   PositionOutOfZone: "position_out_of_zone",
@@ -22,18 +23,6 @@ export type PlacementError = (typeof PlacementError)[keyof typeof PlacementError
 export interface PlacementResult {
   success: boolean;
   error?: PlacementError;
-}
-
-function mulberry32(seed: number): () => number {
-  let state = seed | 0;
-  return () => {
-    state = (state + 0x6d2b79f5) | 0;
-    let intermediate = Math.imul(state ^ (state >>> 15), 1 | state);
-    intermediate =
-      (intermediate + Math.imul(intermediate ^ (intermediate >>> 7), 61 | intermediate)) ^
-      intermediate;
-    return ((intermediate ^ (intermediate >>> 14)) >>> 0) / 4294967296;
-  };
 }
 
 export class PlacementPhase {
@@ -53,7 +42,7 @@ export class PlacementPhase {
     private readonly mode: PlacementMode,
     randomSeed?: number,
   ) {
-    this.random = randomSeed == null ? Math.random : mulberry32(randomSeed);
+    this.random = randomSeed == null ? Math.random : createPrng(randomSeed);
     this.turnQueue = this.buildTurnQueue();
     this.zonesByPlayer = this.buildZonesByPlayer();
     this.pokemonByPlayer = new Map(teams.map((team) => [team.playerId, [...team.pokemonIds]]));

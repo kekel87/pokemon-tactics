@@ -5,14 +5,15 @@ import type { PokemonType } from "../../enums/pokemon-type";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import type { PokemonInstance } from "../../types/pokemon-instance";
+import type { RandomFn } from "../../utils/prng";
 import { calculateDamage } from "../damage-calculator";
 import { checkDefense } from "../defense-check";
 import type { EffectContext, TypeChart } from "../effect-handler-registry";
 
 const MULTI_HIT_PROBABILITIES = [0.35, 0.35, 0.15, 0.15];
 
-function rollMultiHitCount(min: number, max: number): number {
-  const roll = Math.random();
+function rollMultiHitCount(min: number, max: number, random: RandomFn): number {
+  const roll = random();
   let cumulative = 0;
   for (let i = 0; i < MULTI_HIT_PROBABILITIES.length; i++) {
     cumulative += MULTI_HIT_PROBABILITIES[i]!;
@@ -23,14 +24,17 @@ function rollMultiHitCount(min: number, max: number): number {
   return max;
 }
 
-function getHitCount(effect: Extract<Effect, { kind: typeof EffectKind.Damage }>): number {
+function getHitCount(
+  effect: Extract<Effect, { kind: typeof EffectKind.Damage }>,
+  random: RandomFn,
+): number {
   if (effect.hits === undefined) {
     return 1;
   }
   if (typeof effect.hits === "number") {
     return effect.hits;
   }
-  return rollMultiHitCount(effect.hits.min, effect.hits.max);
+  return rollMultiHitCount(effect.hits.min, effect.hits.max, random);
 }
 
 function dealSingleHit(
@@ -46,6 +50,8 @@ function dealSingleHit(
     context.typeChart,
     context.attackerTypes,
     defenderTypes,
+    undefined,
+    context.random,
   );
 
   const defenseResult = checkDefense(
@@ -124,7 +130,7 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
   }
 
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.Damage }>;
-  const hitCount = getHitCount(effect);
+  const hitCount = getHitCount(effect, context.random);
   const isMultiHit = hitCount > 1;
 
   for (const target of context.targets) {

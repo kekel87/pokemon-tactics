@@ -12,9 +12,10 @@ const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([StatusTypeEnum.Confu
 export function handleStatus(context: EffectContext): BattleEvent[] {
   const events: BattleEvent[] = [];
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.Status }>;
+  const random = context.random;
 
   for (const target of context.targets) {
-    if (Math.random() * 100 >= effect.chance) {
+    if (random() * 100 >= effect.chance) {
       continue;
     }
 
@@ -23,14 +24,14 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       if (alreadyHas) {
         continue;
       }
-      const remainingTurns = getStatusDuration(effect.status) ?? 1;
+      const remainingTurns = getStatusDuration(effect.status, random) ?? 1;
       target.volatileStatuses.push({ type: effect.status, remainingTurns });
     } else {
       const targetHasMajor = target.statusEffects.some((s) => isMajorStatus(s.type));
       if (targetHasMajor && isMajorStatus(effect.status)) {
         continue;
       }
-      const remainingTurns = getStatusDuration(effect.status);
+      const remainingTurns = getStatusDuration(effect.status, random);
       target.statusEffects.push({ type: effect.status, remainingTurns });
     }
 
@@ -49,12 +50,12 @@ function isVolatileStatus(status: StatusType): boolean {
   return VOLATILE_STATUSES.has(status);
 }
 
-function getStatusDuration(status: StatusType): number | null {
+function getStatusDuration(status: StatusType, random: () => number): number | null {
   switch (status) {
     case StatusTypeEnum.Asleep:
-      return Math.floor(Math.random() * 3) + 1;
+      return Math.floor(random() * 3) + 1;
     case StatusTypeEnum.Confused:
-      return Math.floor(Math.random() * 4) + 1;
+      return Math.floor(random() * 4) + 1;
     default:
       return null;
   }

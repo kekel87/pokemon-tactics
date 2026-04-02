@@ -11,6 +11,7 @@ import { Grid } from "../grid/Grid";
 import { resolveTargeting } from "../grid/targeting";
 import type { Action, ActionResult } from "../types/action";
 import type { BattleEvent } from "../types/battle-event";
+import type { BattleReplay } from "../types/battle-replay";
 import type { BattleState } from "../types/battle-state";
 import type { DamageEstimate } from "../types/damage-estimate";
 import type { MoveDefinition } from "../types/move-definition";
@@ -20,12 +21,13 @@ import type { TraversalContext } from "../types/traversal-context";
 import type { TypeChart } from "../types/type-chart";
 import { directionFromTo, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
+import type { RandomFn } from "../utils/prng";
 import { checkAccuracy } from "./accuracy-check";
 import { estimateDamage } from "./damage-calculator";
 import { processEffects } from "./effect-processor";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { linkDrainHandler } from "./handlers/link-drain-handler";
-import { statusTickHandler } from "./handlers/status-tick-handler";
+import { createStatusTickHandler } from "./handlers/status-tick-handler";
 import { getEffectiveInitiative } from "./initiative-calculator";
 import { TurnManager } from "./TurnManager";
 import { TurnPipeline } from "./turn-pipeline";
@@ -52,6 +54,9 @@ export class BattleEngine {
   private readonly grid: Grid;
   private readonly pokemonTypesMap: Map<string, PokemonType[]>;
   private readonly turnPipeline: TurnPipeline;
+  private readonly random: RandomFn;
+  private readonly seed: number;
+  private readonly recordedActions: Action[] = [];
   private turnState = { hasMoved: false, hasActed: false };
   private restrictActions = false;
   private confusedThisTurn = false;
@@ -64,17 +69,21 @@ export class BattleEngine {
     typeChart: TypeChart = {} as TypeChart,
     pokemonTypesMap: Map<string, PokemonType[]> = new Map(),
     turnPipeline: TurnPipeline = new TurnPipeline(),
+    random?: RandomFn,
+    seed = 0,
   ) {
     this.state = state;
     this.moveRegistry = moveRegistry;
     this.typeChart = typeChart;
     this.pokemonTypesMap = pokemonTypesMap;
     this.turnPipeline = turnPipeline;
+    this.random = random ?? (() => Math.random());
+    this.seed = seed;
     this.listeners = new Map();
     this.grid = new Grid(state.grid[0]?.length ?? 0, state.grid.length, state.grid);
     this.turnManager = new TurnManager([...state.pokemon.values()], getEffectiveInitiative);
     this.turnPipeline.registerStartTurn(defensiveClearHandler, 50);
-    this.turnPipeline.registerStartTurn(statusTickHandler, 100);
+    this.turnPipeline.registerStartTurn(createStatusTickHandler(this.random), 100);
     this.turnPipeline.registerEndTurn(linkDrainHandler, 100);
     this.syncTurnState();
   }
@@ -85,6 +94,10 @@ export class BattleEngine {
 
   getGameState(_playerId: string): BattleState {
     return this.state;
+  }
+
+  exportReplay(): BattleReplay {
+    return { seed: this.seed, actions: [...this.recordedActions] };
   }
 
   estimateDamage(attackerId: string, moveId: string, defenderId: string): DamageEstimate | null {
@@ -184,30 +197,47 @@ export class BattleEngine {
       this.processConfusion(currentPokemon, confusionEvents);
     }
 
+    let result: ActionResult;
+
     switch (action.kind) {
       case ActionKind.EndTurn:
-        return this.executeEndTurn(action.pokemonId, action.direction);
+        result = this.executeEndTurn(action.pokemonId, action.direction);
+        break;
       case ActionKind.Move: {
         if (this.confusedThisTurn) {
-          const result = this.executeConfusedMove(currentPokemon);
-          return { ...result, events: [...confusionEvents, ...result.events] };
+          const moveResult = this.executeConfusedMove(currentPokemon);
+          result = { ...moveResult, events: [...confusionEvents, ...moveResult.events] };
+        } else {
+          const moveResult = this.executeMove(currentPokemon, action.path);
+          result = { ...moveResult, events: [...confusionEvents, ...moveResult.events] };
         }
-        const result = this.executeMove(currentPokemon, action.path);
-        return { ...result, events: [...confusionEvents, ...result.events] };
+        break;
       }
       case ActionKind.UseMove: {
         if (this.confusedThisTurn) {
-          const result = this.executeConfusedUseMove(
+          const useMoveResult = this.executeConfusedUseMove(
             currentPokemon,
             action.moveId,
             action.targetPosition,
           );
-          return { ...result, events: [...confusionEvents, ...result.events] };
+          result = { ...useMoveResult, events: [...confusionEvents, ...useMoveResult.events] };
+        } else {
+          const useMoveResult = this.executeUseMove(
+            currentPokemon,
+            action.moveId,
+            action.targetPosition,
+          );
+          result = { ...useMoveResult, events: [...confusionEvents, ...useMoveResult.events] };
         }
-        const result = this.executeUseMove(currentPokemon, action.moveId, action.targetPosition);
-        return { ...result, events: [...confusionEvents, ...result.events] };
+        break;
       }
     }
+
+    if (result.success) {
+      this.recordedActions.push(action);
+    }
+
+    return result;
   }
 
   on(eventType: string, handler: EventHandler): void {
@@ -356,7 +386,7 @@ export class BattleEngine {
         continue;
       }
 
-      if (checkAccuracy(move, pokemon, target)) {
+      if (checkAccuracy(move, pokemon, target, this.random)) {
         targets.push(target);
       } else {
         const missEvent: BattleEvent = {
@@ -384,6 +414,7 @@ export class BattleEngine {
       attackerTypes,
       targetTypesMap,
       targetPosition,
+      random: this.random,
     });
 
     for (const event of effectEvents) {
@@ -427,8 +458,8 @@ export class BattleEngine {
     const events: BattleEvent[] = [];
     const directions = [Direction.North, Direction.South, Direction.East, Direction.West];
     const randomDirection =
-      directions[Math.floor(Math.random() * directions.length)] ?? Direction.North;
-    const steps = Math.floor(Math.random() * 2) + 1;
+      directions[Math.floor(this.random() * directions.length)] ?? Direction.North;
+    const steps = Math.floor(this.random() * 2) + 1;
 
     const path: Position[] = [];
     let currentPos = pokemon.position;
@@ -510,7 +541,7 @@ export class BattleEngine {
     if (isDirectional || (isSelfTargeting && targeting.kind !== TargetingKind.Self)) {
       const directions = [Direction.North, Direction.South, Direction.East, Direction.West];
       const randomDirection =
-        directions[Math.floor(Math.random() * directions.length)] ?? Direction.North;
+        directions[Math.floor(this.random() * directions.length)] ?? Direction.North;
       const redirectedTarget = stepInDirection(pokemon.position, randomDirection, 1);
 
       const events: BattleEvent[] = [];
@@ -570,7 +601,7 @@ export class BattleEngine {
       return { success: true, events };
     }
 
-    const randomAlly = allies[Math.floor(Math.random() * allies.length)];
+    const randomAlly = allies[Math.floor(this.random() * allies.length)];
     if (!randomAlly) {
       this.turnState.hasActed = true;
       return { success: true, events: [] };
@@ -963,7 +994,7 @@ export class BattleEngine {
       return;
     }
 
-    const roll = Math.random();
+    const roll = this.random();
     if (roll < 0.5) {
       this.confusedThisTurn = true;
       const triggeredEvent: BattleEvent = {

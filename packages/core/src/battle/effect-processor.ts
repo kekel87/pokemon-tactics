@@ -5,6 +5,7 @@ import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
+import type { RandomFn } from "../utils/prng";
 import { getTypeEffectiveness } from "./damage-calculator";
 import type { EffectContext, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
@@ -24,6 +25,7 @@ interface ProcessContext {
   attackerTypes: PokemonType[];
   targetTypesMap: Map<string, PokemonType[]>;
   targetPosition: Position;
+  random: RandomFn;
 }
 
 export function createDefaultEffectRegistry(): EffectHandlerRegistry {
