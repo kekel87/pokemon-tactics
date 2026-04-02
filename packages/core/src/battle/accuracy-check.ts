@@ -1,12 +1,14 @@
 import { StatName } from "../enums/stat-name";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import type { RandomFn } from "../utils/prng";
 import { getStatMultiplier } from "./stat-modifier";
 
 export function checkAccuracy(
   move: MoveDefinition,
   attacker: PokemonInstance,
   defender: PokemonInstance,
+  random: RandomFn = () => Math.random(),
 ): boolean {
   const accuracyStages = attacker.statStages[StatName.Accuracy];
   const evasionStages = defender.statStages[StatName.Evasion];
@@ -20,5 +22,5 @@ export function checkAccuracy(
     return true;
   }
 
-  return Math.random() * 100 < effectiveAccuracy;
+  return random() * 100 < effectiveAccuracy;
 }

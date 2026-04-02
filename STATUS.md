@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-02 (Plan 027 terminé — 8 nouveaux Pokemon ajoutés, roster 12 → 20 jouables ; bugfix DummyAiController événements non animés ; test wrap.test.ts)
+> Dernière mise à jour : 2026-04-02 (Plan 028 terminé — Replay déterministe PRNG seedé : PRNG mulberry32, BattleReplay, exportReplay, runReplay, IA random + agressive, golden replay 3v3 Player 1 gagne en 32 rounds / 247 actions, test de non-régression — 659 tests)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -369,6 +369,22 @@
   - Résout le bug où les dégâts de bind/status tick du tour Dummy n'étaient pas visibles (HP bars, flash dégâts, etc.)
   - `wrap.test.ts` ajouté dans `packages/core/src/battle/moves/` : "deals 1/16 max HP per turn to the bound target (no heal to source)"
   - **596 tests**, build OK
+
+- **Plan 028 terminé** — Replay déterministe avec PRNG seedé :
+  - `packages/core/src/utils/prng.ts` : PRNG mulberry32 seedé (`createPrng(seed)`), `RandomFn` type exporté
+  - PRNG injecté dans tout le core : `BattleEngine`, `accuracy-check.ts`, `damage-calculator.ts`, handlers (`handle-status.ts`, `handle-damage.ts`, `status-tick-handler.ts`)
+  - `EffectContext` étendu avec champ `random: RandomFn` — zéro `Math.random()` direct dans `packages/core/src/battle/`
+  - `packages/core/src/types/battle-replay.ts` : type `BattleReplay { seed, actions[] }`
+  - `BattleEngine.submitAction` : enregistre chaque action dans `recordedActions` (si seed fourni)
+  - `BattleEngine.exportReplay()` : retourne `{ seed, actions }` sérialisable JSON
+  - `packages/core/src/battle/replay-runner.ts` : `runReplay(replay, buildEngine)` — rejoue un combat action par action
+  - `packages/core/src/ai/random-ai.ts` : pioche une action légale au hasard via `RandomFn`
+  - `packages/core/src/ai/aggressive-ai.ts` : fonce vers l'ennemi le plus proche (BFS), tape avec le move le plus puissant si portée
+  - `scripts/generate-golden-replay.ts` : script 3v3 aggressive vs aggressive sur poc-arena, seed 12345
+  - `fixtures/replays/golden-replay.json` : replay golden commité (Player 1 gagne en 32 rounds, 247 actions)
+  - `packages/core/src/battle/golden-replay.test.ts` : test de non-régression — lit le golden, rejoue, vérifie état final
+  - Fix préexistant : `BattleEngine.integration.test.ts` attendait 13 Pokemon au lieu de 21
+  - **659 tests** (648 + 11 nouveaux), build OK
 
 - **Plan 024 terminé** — Bugfixes sandbox + relocalisation menu d'action (non commité) :
   - **Fix status au spawn** : `PokemonSprite.ts` constructeur appelle `updateStatus()` + `setStatusAnimation()` — les statuts pré-existants (burn, sleep, etc.) s'affichent dès le spawn (`?sandbox&status=burned` fonctionne)

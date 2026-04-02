@@ -117,6 +117,7 @@ function makeContext(
     typeChart: simpleChart,
     attackerTypes: [PokemonType.Normal] as PokemonType[],
     targetTypesMap: new Map(targets.map((t) => [t.id, [PokemonType.Normal] as PokemonType[]])),
+    random: () => Math.random(),
   };
 }
 

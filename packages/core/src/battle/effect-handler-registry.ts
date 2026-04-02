@@ -7,6 +7,7 @@ import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import type { TypeChart } from "../types/type-chart";
+import type { RandomFn } from "../utils/prng";
 
 export type { TypeChart };
 
@@ -20,6 +21,7 @@ export interface EffectContext {
   attackerTypes: PokemonType[];
   targetTypesMap: Map<string, PokemonType[]>;
   targetPosition: Position;
+  random: RandomFn;
 }
 
 export type EffectHandler = (context: EffectContext) => BattleEvent[];

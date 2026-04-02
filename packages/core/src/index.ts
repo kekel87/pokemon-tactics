@@ -1,3 +1,4 @@
+export { pickAggressiveAction, pickRandomAction } from "./ai/index";
 export { BattleEngine } from "./battle/BattleEngine";
 export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
 export { EffectHandlerRegistry } from "./battle/effect-handler-registry";
@@ -9,6 +10,8 @@ export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator
 export { TurnManager } from "./battle/TurnManager";
 export type { PhaseHandler, PhaseResult } from "./battle/turn-pipeline";
 export { TurnPipeline } from "./battle/turn-pipeline";
+export type { EngineFactory } from "./battle/replay-runner";
+export { runReplay } from "./battle/replay-runner";
 export type { ValidationResult } from "./battle/validate";
 export { validateBattleData } from "./battle/validate";
 export { validateMapDefinition } from "./battle/validate-map";

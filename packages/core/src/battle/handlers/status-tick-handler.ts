@@ -3,7 +3,8 @@ import { StatusType } from "../../enums/status-type";
 import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
 import type { PokemonInstance } from "../../types/pokemon-instance";
-import type { PhaseResult } from "../turn-pipeline";
+import type { RandomFn } from "../../utils/prng";
+import type { PhaseHandler, PhaseResult } from "../turn-pipeline";
 
 function applyDot(pokemon: PokemonInstance, fraction: number, events: BattleEvent[]): boolean {
   const damage = Math.max(1, Math.floor(pokemon.maxHp / fraction));
@@ -22,7 +23,15 @@ function applyDot(pokemon: PokemonInstance, fraction: number, events: BattleEven
   return false;
 }
 
-export function statusTickHandler(pokemonId: string, state: BattleState): PhaseResult {
+export function createStatusTickHandler(random: RandomFn = () => Math.random()): PhaseHandler {
+  return (pokemonId: string, state: BattleState) => statusTickHandler(pokemonId, state, random);
+}
+
+export function statusTickHandler(
+  pokemonId: string,
+  state: BattleState,
+  random: RandomFn = () => Math.random(),
+): PhaseResult {
   const pokemon = state.pokemon.get(pokemonId);
   const emptyResult: PhaseResult = {
     events: [],
@@ -87,7 +96,7 @@ export function statusTickHandler(pokemonId: string, state: BattleState): PhaseR
     }
 
     case StatusType.Frozen: {
-      const thawRoll = Math.random();
+      const thawRoll = random();
       if (thawRoll < 0.2) {
         pokemon.statusEffects = pokemon.statusEffects.filter((s) => s !== status);
         events.push({
@@ -101,7 +110,7 @@ export function statusTickHandler(pokemonId: string, state: BattleState): PhaseR
     }
 
     case StatusType.Paralyzed: {
-      const procRoll = Math.random();
+      const procRoll = random();
       if (procRoll < 0.25) {
         return { events, skipAction: false, restrictActions: true, pokemonFainted: false };
       }
