@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { Direction, PlayerId, StatName, StatusType } from "@pokemon-tactic/core";
+import { describe, expect, it } from "vitest";
 import { defaultSandboxConfig } from "../testing/mock-sandbox";
 import { createSandboxBattle } from "./SandboxSetup";
 
@@ -18,9 +18,7 @@ describe("createSandboxBattle", () => {
   });
 
   it("applies player orientation north and dummy orientation from config", () => {
-    const result = createSandboxBattle(
-      defaultSandboxConfig({ dummyDirection: Direction.East }),
-    );
+    const result = createSandboxBattle(defaultSandboxConfig({ dummyDirection: Direction.East }));
     const player = result.state.pokemon.get("p1-bulbasaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 
@@ -42,18 +40,11 @@ describe("createSandboxBattle", () => {
     const result = createSandboxBattle(defaultSandboxConfig());
     const player = result.state.pokemon.get("p1-bulbasaur")!;
 
-    expect(player.moveIds).toEqual([
-      "razor-leaf",
-      "sleep-powder",
-      "leech-seed",
-      "sludge-bomb",
-    ]);
+    expect(player.moveIds).toEqual(["razor-leaf", "sleep-powder", "leech-seed", "sludge-bomb"]);
   });
 
   it("applies HP percentage", () => {
-    const result = createSandboxBattle(
-      defaultSandboxConfig({ hp: 50, dummyHp: 25 }),
-    );
+    const result = createSandboxBattle(defaultSandboxConfig({ hp: 50, dummyHp: 25 }));
     const player = result.state.pokemon.get("p1-bulbasaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 
@@ -71,23 +62,15 @@ describe("createSandboxBattle", () => {
     const player = result.state.pokemon.get("p1-bulbasaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 
-    expect(player.statusEffects).toEqual([
-      { type: StatusType.Burned, remainingTurns: null },
-    ]);
-    expect(dummy.statusEffects).toEqual([
-      { type: StatusType.Paralyzed, remainingTurns: null },
-    ]);
+    expect(player.statusEffects).toEqual([{ type: StatusType.Burned, remainingTurns: null }]);
+    expect(dummy.statusEffects).toEqual([{ type: StatusType.Paralyzed, remainingTurns: null }]);
   });
 
   it("applies sleep with remaining turns", () => {
-    const result = createSandboxBattle(
-      defaultSandboxConfig({ status: StatusType.Asleep }),
-    );
+    const result = createSandboxBattle(defaultSandboxConfig({ status: StatusType.Asleep }));
     const player = result.state.pokemon.get("p1-bulbasaur")!;
 
-    expect(player.statusEffects).toEqual([
-      { type: StatusType.Asleep, remainingTurns: 3 },
-    ]);
+    expect(player.statusEffects).toEqual([{ type: StatusType.Asleep, remainingTurns: 3 }]);
   });
 
   it("applies stat stages", () => {
@@ -108,10 +91,9 @@ describe("createSandboxBattle", () => {
 
   it("returns a functional BattleEngine", () => {
     const result = createSandboxBattle(defaultSandboxConfig());
-    const activePlayerId =
-      result.state.turnOrder[result.state.currentTurnIndex]?.startsWith("p1")
-        ? PlayerId.Player1
-        : PlayerId.Player2;
+    const activePlayerId = result.state.turnOrder[result.state.currentTurnIndex]?.startsWith("p1")
+      ? PlayerId.Player1
+      : PlayerId.Player2;
     const actions = result.engine.getLegalActions(activePlayerId);
 
     expect(actions.length).toBeGreaterThan(0);

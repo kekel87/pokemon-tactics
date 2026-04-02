@@ -2,14 +2,17 @@ import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
+import { EffectKind } from "../enums/effect-kind";
+import { EffectTarget } from "../enums/effect-target";
 import type { PokemonType } from "../enums/pokemon-type";
+import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { Grid } from "../grid/Grid";
 import { resolveTargeting } from "../grid/targeting";
 import type { Action, ActionResult } from "../types/action";
 import type { BattleEvent } from "../types/battle-event";
-import type { DamageEstimate } from "../types/damage-estimate";
 import type { BattleState } from "../types/battle-state";
+import type { DamageEstimate } from "../types/damage-estimate";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
@@ -51,6 +54,8 @@ export class BattleEngine {
   private readonly turnPipeline: TurnPipeline;
   private turnState = { hasMoved: false, hasActed: false };
   private restrictActions = false;
+  private confusedThisTurn = false;
+  private confusionChecked = false;
   private battleOver = false;
 
   constructor(
@@ -112,7 +117,11 @@ export class BattleEngine {
       actions.push({ kind: ActionKind.EndTurn, pokemonId: currentPokemonId, direction });
     }
 
-    if (!this.turnState.hasMoved && !this.restrictActions) {
+    const isBound = this.state.activeLinks.some(
+      (link) => link.targetId === currentPokemonId && link.immobilize === true,
+    );
+
+    if (!this.turnState.hasMoved && !this.restrictActions && !isBound) {
       const reachableTiles = this.getReachableTiles(currentPokemon);
       for (const reachable of reachableTiles) {
         actions.push({
@@ -123,7 +132,7 @@ export class BattleEngine {
       }
     }
 
-    if (!this.turnState.hasActed) {
+    if (!this.turnState.hasActed && !currentPokemon.recharging) {
       for (const moveId of currentPokemon.moveIds) {
         const currentPp = currentPokemon.currentPp[moveId];
         if (currentPp === undefined || currentPp <= 0) {
@@ -169,13 +178,35 @@ export class BattleEngine {
       return { success: false, events: [], error: ActionError.WrongPokemon };
     }
 
+    const confusionEvents: BattleEvent[] = [];
+    if (!this.confusionChecked) {
+      this.confusionChecked = true;
+      this.processConfusion(currentPokemon, confusionEvents);
+    }
+
     switch (action.kind) {
       case ActionKind.EndTurn:
         return this.executeEndTurn(action.pokemonId, action.direction);
-      case ActionKind.Move:
-        return this.executeMove(currentPokemon, action.path);
-      case ActionKind.UseMove:
-        return this.executeUseMove(currentPokemon, action.moveId, action.targetPosition);
+      case ActionKind.Move: {
+        if (this.confusedThisTurn) {
+          const result = this.executeConfusedMove(currentPokemon);
+          return { ...result, events: [...confusionEvents, ...result.events] };
+        }
+        const result = this.executeMove(currentPokemon, action.path);
+        return { ...result, events: [...confusionEvents, ...result.events] };
+      }
+      case ActionKind.UseMove: {
+        if (this.confusedThisTurn) {
+          const result = this.executeConfusedUseMove(
+            currentPokemon,
+            action.moveId,
+            action.targetPosition,
+          );
+          return { ...result, events: [...confusionEvents, ...result.events] };
+        }
+        const result = this.executeUseMove(currentPokemon, action.moveId, action.targetPosition);
+        return { ...result, events: [...confusionEvents, ...result.events] };
+      }
     }
   }
 
@@ -375,7 +406,191 @@ export class BattleEngine {
 
     this.turnState.hasActed = true;
 
+    if (move.recharge && pokemon.currentHp > 0) {
+      pokemon.recharging = true;
+      const rechargeEvent: BattleEvent = {
+        type: BattleEventType.RechargeStarted,
+        pokemonId: pokemon.id,
+      };
+      this.emit(rechargeEvent);
+      events.push(rechargeEvent);
+    }
+
     return { success: true, events };
+  }
+
+  private executeConfusedMove(pokemon: PokemonInstance): ActionResult {
+    if (this.turnState.hasMoved) {
+      return { success: false, events: [], error: ActionError.AlreadyMoved };
+    }
+
+    const events: BattleEvent[] = [];
+    const directions = [Direction.North, Direction.South, Direction.East, Direction.West];
+    const randomDirection =
+      directions[Math.floor(Math.random() * directions.length)] ?? Direction.North;
+    const steps = Math.floor(Math.random() * 2) + 1;
+
+    const path: Position[] = [];
+    let currentPos = pokemon.position;
+    for (let i = 0; i < steps; i++) {
+      const next = stepInDirection(currentPos, randomDirection, 1);
+      if (!this.grid.isInBounds(next)) {
+        break;
+      }
+      const tile = this.grid.getTile(next);
+      if (!tile || !tile.isPassable) {
+        break;
+      }
+      const occupant = tile.occupantId;
+      if (occupant !== null && occupant !== pokemon.id) {
+        const occupantPokemon = this.state.pokemon.get(occupant);
+        if (occupantPokemon && occupantPokemon.currentHp > 0) {
+          break;
+        }
+      }
+      path.push(next);
+      currentPos = next;
+    }
+
+    if (path.length === 0) {
+      this.turnState.hasMoved = true;
+      return { success: true, events };
+    }
+
+    const origin = { ...pokemon.position };
+    this.grid.setOccupant(origin, null);
+    const destination = path[path.length - 1] as Position;
+    this.grid.setOccupant(destination, pokemon.id);
+    pokemon.position = destination;
+    pokemon.orientation = randomDirection;
+
+    const moveEvent: BattleEvent = {
+      type: BattleEventType.PokemonMoved,
+      pokemonId: pokemon.id,
+      path,
+    };
+    this.emit(moveEvent);
+    events.push(moveEvent);
+
+    this.turnState.hasMoved = true;
+    return { success: true, events };
+  }
+
+  private executeConfusedUseMove(
+    pokemon: PokemonInstance,
+    moveId: string,
+    targetPosition: Position,
+  ): ActionResult {
+    const move = this.moveRegistry.get(moveId);
+    if (!move) {
+      return this.executeUseMove(pokemon, moveId, targetPosition);
+    }
+
+    const targeting = move.targeting;
+    const isSelfTargeting =
+      targeting.kind === TargetingKind.Self ||
+      targeting.kind === TargetingKind.Zone ||
+      targeting.kind === TargetingKind.Cross;
+    const isSelfOnly = targeting.kind === TargetingKind.Self;
+    const isSelfBuff =
+      isSelfOnly &&
+      move.effects.every(
+        (e) => e.kind === EffectKind.StatChange && "target" in e && e.target === EffectTarget.Self,
+      );
+
+    if (isSelfBuff || isSelfOnly) {
+      return this.executeUseMove(pokemon, moveId, targetPosition);
+    }
+
+    const isDirectional =
+      targeting.kind === TargetingKind.Cone ||
+      targeting.kind === TargetingKind.Line ||
+      targeting.kind === TargetingKind.Slash;
+
+    if (isDirectional || (isSelfTargeting && targeting.kind !== TargetingKind.Self)) {
+      const directions = [Direction.North, Direction.South, Direction.East, Direction.West];
+      const randomDirection =
+        directions[Math.floor(Math.random() * directions.length)] ?? Direction.North;
+      const redirectedTarget = stepInDirection(pokemon.position, randomDirection, 1);
+
+      const events: BattleEvent[] = [];
+      const redirectEvent: BattleEvent = {
+        type: BattleEventType.ConfusionRedirected,
+        pokemonId: pokemon.id,
+        originalDirection: directionFromTo(pokemon.position, targetPosition),
+        newDirection: randomDirection,
+      };
+      this.emit(redirectEvent);
+      events.push(redirectEvent);
+
+      const result = this.executeUseMove(pokemon, moveId, redirectedTarget);
+      return {
+        success: result.success,
+        events: [...events, ...result.events],
+        error: result.error,
+      };
+    }
+
+    const allies: PokemonInstance[] = [];
+    for (const [, p] of this.state.pokemon) {
+      if (p.playerId === pokemon.playerId && p.id !== pokemon.id && p.currentHp > 0) {
+        if (targeting.kind === TargetingKind.Single) {
+          const distance = manhattanDistance(pokemon.position, p.position);
+          if (distance >= targeting.range.min && distance <= targeting.range.max) {
+            allies.push(p);
+          }
+        } else if (targeting.kind === TargetingKind.Dash) {
+          const distance = manhattanDistance(pokemon.position, p.position);
+          if (distance <= targeting.maxDistance) {
+            const dx = p.position.x - pokemon.position.x;
+            const dy = p.position.y - pokemon.position.y;
+            if (dx === 0 || dy === 0) {
+              allies.push(p);
+            }
+          }
+        } else if (targeting.kind === TargetingKind.Blast) {
+          const distance = manhattanDistance(pokemon.position, p.position);
+          if (distance >= targeting.range.min && distance <= targeting.range.max) {
+            allies.push(p);
+          }
+        }
+      }
+    }
+
+    if (allies.length === 0) {
+      const events: BattleEvent[] = [];
+      const failEvent: BattleEvent = {
+        type: BattleEventType.ConfusionFailed,
+        pokemonId: pokemon.id,
+        reason: "no_ally_in_range",
+      };
+      this.emit(failEvent);
+      events.push(failEvent);
+      this.turnState.hasActed = true;
+      return { success: true, events };
+    }
+
+    const randomAlly = allies[Math.floor(Math.random() * allies.length)];
+    if (!randomAlly) {
+      this.turnState.hasActed = true;
+      return { success: true, events: [] };
+    }
+    const events: BattleEvent[] = [];
+    const redirectEvent: BattleEvent = {
+      type: BattleEventType.ConfusionRedirected,
+      pokemonId: pokemon.id,
+      originalTarget: `${targetPosition.x},${targetPosition.y}`,
+      newTarget: randomAlly.id,
+    };
+    this.emit(redirectEvent);
+    events.push(redirectEvent);
+
+    const result = this.executeUseMove(pokemon, moveId, randomAlly.position);
+    return {
+      success: result.success,
+      events: [...events, ...result.events],
+      error: result.error,
+    };
   }
 
   private dashMoveCaster(
@@ -577,6 +792,17 @@ export class BattleEngine {
       pokemon.orientation = direction;
     }
     const events: BattleEvent[] = [];
+
+    if (pokemon && pokemon.recharging && !this.turnState.hasActed) {
+      pokemon.recharging = false;
+      const rechargeEndEvent: BattleEvent = {
+        type: BattleEventType.RechargeEnded,
+        pokemonId,
+      };
+      this.emit(rechargeEndEvent);
+      events.push(rechargeEndEvent);
+    }
+
     this.endCurrentTurn(pokemonId, events);
     return { success: true, events };
   }
@@ -628,6 +854,8 @@ export class BattleEngine {
 
       this.turnState = { hasMoved: false, hasActed: false };
       this.restrictActions = false;
+      this.confusedThisTurn = false;
+      this.confusionChecked = false;
 
       const turnStarted: BattleEvent = {
         type: BattleEventType.TurnStarted,
@@ -636,6 +864,7 @@ export class BattleEngine {
       };
       this.emit(turnStarted);
       events.push(turnStarted);
+
       const startTurnResult = this.turnPipeline.executeStartTurn(nextPokemonId, this.state);
       for (const event of startTurnResult.events) {
         this.emit(event);
@@ -699,7 +928,57 @@ export class BattleEngine {
         this.restrictActions = true;
       }
 
+      if (!startTurnResult.skipAction) {
+        const nextPokemon = this.state.pokemon.get(nextPokemonId);
+        if (nextPokemon) {
+          this.processConfusion(nextPokemon, events);
+          this.confusionChecked = true;
+        }
+      }
+
       break;
+    }
+  }
+
+  private processConfusion(pokemon: PokemonInstance, events: BattleEvent[]): void {
+    const confusionIndex = pokemon.volatileStatuses.findIndex(
+      (v) => v.type === StatusType.Confused,
+    );
+    if (confusionIndex === -1) {
+      return;
+    }
+
+    const confusion = pokemon.volatileStatuses[confusionIndex]!;
+    confusion.remainingTurns--;
+
+    if (confusion.remainingTurns <= 0) {
+      pokemon.volatileStatuses.splice(confusionIndex, 1);
+      const removedEvent: BattleEvent = {
+        type: BattleEventType.StatusRemoved,
+        targetId: pokemon.id,
+        status: StatusType.Confused,
+      };
+      this.emit(removedEvent);
+      events.push(removedEvent);
+      return;
+    }
+
+    const roll = Math.random();
+    if (roll < 0.5) {
+      this.confusedThisTurn = true;
+      const triggeredEvent: BattleEvent = {
+        type: BattleEventType.ConfusionTriggered,
+        pokemonId: pokemon.id,
+      };
+      this.emit(triggeredEvent);
+      events.push(triggeredEvent);
+    } else {
+      const resistedEvent: BattleEvent = {
+        type: BattleEventType.ConfusionResisted,
+        pokemonId: pokemon.id,
+      };
+      this.emit(resistedEvent);
+      events.push(resistedEvent);
     }
   }
 

@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
-import { MockPokemon, buildMoveTestEngine } from "../../testing";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
 describe("flamethrower", () => {
   it("deals damage to target in line", () => {
@@ -176,7 +176,8 @@ describe("flamethrower", () => {
 
     expect(result.success).toBe(true);
     const damageEvents = result.events.filter(
-      (e): e is Extract<typeof e, { type: "damage_dealt" }> => e.type === BattleEventType.DamageDealt,
+      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+        e.type === BattleEventType.DamageDealt,
     );
     const hitIds = damageEvents.map((e) => e.targetId);
     expect(hitIds).toContain("foe-on-line");

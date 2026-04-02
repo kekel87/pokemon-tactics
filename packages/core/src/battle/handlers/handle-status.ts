@@ -7,6 +7,8 @@ import type { Effect } from "../../types/effect";
 import type { EffectContext } from "../effect-handler-registry";
 import { isMajorStatus } from "../stat-modifier";
 
+const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([StatusTypeEnum.Confused]);
+
 export function handleStatus(context: EffectContext): BattleEvent[] {
   const events: BattleEvent[] = [];
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.Status }>;
@@ -16,14 +18,21 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       continue;
     }
 
-    const targetHasMajor = target.statusEffects.some((s) => isMajorStatus(s.type));
-    if (targetHasMajor && isMajorStatus(effect.status)) {
-      continue;
+    if (isVolatileStatus(effect.status)) {
+      const alreadyHas = target.volatileStatuses.some((v) => v.type === effect.status);
+      if (alreadyHas) {
+        continue;
+      }
+      const remainingTurns = getStatusDuration(effect.status) ?? 1;
+      target.volatileStatuses.push({ type: effect.status, remainingTurns });
+    } else {
+      const targetHasMajor = target.statusEffects.some((s) => isMajorStatus(s.type));
+      if (targetHasMajor && isMajorStatus(effect.status)) {
+        continue;
+      }
+      const remainingTurns = getStatusDuration(effect.status);
+      target.statusEffects.push({ type: effect.status, remainingTurns });
     }
-
-    const remainingTurns = getStatusDuration(effect.status);
-
-    target.statusEffects.push({ type: effect.status, remainingTurns });
 
     const statusEvent: BattleEvent = {
       type: BattleEventType.StatusApplied,
@@ -34,6 +43,10 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
   }
 
   return events;
+}
+
+function isVolatileStatus(status: StatusType): boolean {
+  return VOLATILE_STATUSES.has(status);
 }
 
 function getStatusDuration(status: StatusType): number | null {

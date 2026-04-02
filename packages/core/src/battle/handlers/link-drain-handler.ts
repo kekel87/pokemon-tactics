@@ -42,9 +42,26 @@ export function linkDrainHandler(pokemonId: string, state: BattleState): PhaseRe
       continue;
     }
 
+    if (link.remainingTurns !== null) {
+      link.remainingTurns--;
+      if (link.remainingTurns <= 0) {
+        linksToRemove.push(i);
+        events.push({
+          type: BattleEventType.LinkBroken,
+          sourceId: link.sourceId,
+          targetId: link.targetId,
+        });
+        continue;
+      }
+    }
+
     const drainAmount = Math.max(1, Math.floor(target.maxHp * link.drainFraction));
     target.currentHp = Math.max(0, target.currentHp - drainAmount);
-    source.currentHp = Math.min(source.maxHp, source.currentHp + drainAmount);
+
+    if (link.drainToSource !== false) {
+      source.currentHp = Math.min(source.maxHp, source.currentHp + drainAmount);
+    }
+
     events.push({
       type: BattleEventType.LinkDrained,
       sourceId: link.sourceId,

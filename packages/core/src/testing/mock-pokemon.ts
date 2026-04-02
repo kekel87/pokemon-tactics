@@ -34,6 +34,9 @@ export abstract class MockPokemon {
     currentPp: {},
     activeDefense: null,
     lastEndureRound: null,
+    toxicCounter: 0,
+    volatileStatuses: [],
+    recharging: false,
   };
 
   static readonly bulbasaur: PokemonInstance = {
@@ -54,6 +57,9 @@ export abstract class MockPokemon {
     currentPp: { "razor-leaf": 25, "sleep-powder": 15, "leech-seed": 10, "sludge-bomb": 10 },
     activeDefense: null,
     lastEndureRound: null,
+    toxicCounter: 0,
+    volatileStatuses: [],
+    recharging: false,
   };
 
   static readonly charmander: PokemonInstance = {
@@ -74,6 +80,9 @@ export abstract class MockPokemon {
     currentPp: { ember: 25, scratch: 35, smokescreen: 20, "dragon-breath": 20 },
     activeDefense: null,
     lastEndureRound: null,
+    toxicCounter: 0,
+    volatileStatuses: [],
+    recharging: false,
   };
 
   static readonly squirtle: PokemonInstance = {
@@ -94,6 +103,9 @@ export abstract class MockPokemon {
     currentPp: { "water-gun": 25, tackle: 35, withdraw: 40, "bubble-beam": 20 },
     activeDefense: null,
     lastEndureRound: null,
+    toxicCounter: 0,
+    volatileStatuses: [],
+    recharging: false,
   };
 
   static readonly pidgey: PokemonInstance = {
@@ -114,6 +126,9 @@ export abstract class MockPokemon {
     currentPp: { gust: 35, "quick-attack": 30, "sand-attack": 15, "wing-attack": 35 },
     activeDefense: null,
     lastEndureRound: null,
+    toxicCounter: 0,
+    volatileStatuses: [],
+    recharging: false,
   };
 
   static fresh(base: PokemonInstance, overrides?: Partial<PokemonInstance>): PokemonInstance {
@@ -125,6 +140,7 @@ export abstract class MockPokemon {
       derivedStats: { ...base.derivedStats },
       statStages: { ...base.statStages },
       statusEffects: [...base.statusEffects],
+      volatileStatuses: [...base.volatileStatuses],
       moveIds: [...base.moveIds],
       currentPp: { ...base.currentPp },
       ...overrides,

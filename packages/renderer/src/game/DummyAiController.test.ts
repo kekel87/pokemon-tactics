@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { ActionKind, Direction, PlayerId } from "@pokemon-tactic/core";
+import { describe, expect, it } from "vitest";
 import { defaultSandboxConfig } from "../testing/mock-sandbox";
 import { DummyAiController } from "./DummyAiController";
 import { createSandboxBattle } from "./SandboxSetup";
@@ -36,15 +36,8 @@ describe("DummyAiController", () => {
   });
 
   it("plays assigned move when legal then ends turn", () => {
-    const result = createSandboxBattle(
-      defaultSandboxConfig({ dummyMove: "protect" }),
-    );
-    const dummy = new DummyAiController(
-      result.engine,
-      "p2-dummy",
-      "protect",
-      Direction.South,
-    );
+    const result = createSandboxBattle(defaultSandboxConfig({ dummyMove: "protect" }));
+    const dummy = new DummyAiController(result.engine, "p2-dummy", "protect", Direction.South);
 
     // Dummy plays first (faster)
     dummy.playTurn();
@@ -53,12 +46,7 @@ describe("DummyAiController", () => {
 
   it("falls back to EndTurn when assigned move is not legal", () => {
     const result = createSandboxBattle(defaultSandboxConfig());
-    const dummy = new DummyAiController(
-      result.engine,
-      "p2-dummy",
-      "fake-move-id",
-      Direction.South,
-    );
+    const dummy = new DummyAiController(result.engine, "p2-dummy", "fake-move-id", Direction.South);
 
     dummy.playTurn();
     expect(result.state.roundNumber).toBeGreaterThanOrEqual(1);

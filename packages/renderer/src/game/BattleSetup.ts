@@ -73,6 +73,9 @@ function createPokemonInstance(
     currentPp,
     activeDefense: null,
     lastEndureRound: null,
+    toxicCounter: 0,
+    volatileStatuses: [],
+    recharging: false,
   };
 }
 

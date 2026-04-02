@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
-import { MockPokemon, buildMoveTestEngine } from "../../testing";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
 describe("magnitude", () => {
   it("hits two targets within radius 2", () => {

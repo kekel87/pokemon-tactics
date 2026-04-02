@@ -4,6 +4,7 @@ export const EffectKind = {
   StatChange: "stat_change",
   Link: "link",
   Defensive: "defensive",
+  Knockback: "knockback",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

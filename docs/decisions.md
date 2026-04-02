@@ -157,6 +157,20 @@
 | 147 | 2026-04-01 | Message de commit — responsabilité | **Agent `commit-message` dédié, séparé de `code-reviewer`** | Le `code-reviewer` ne propose plus de message de commit. Cette responsabilité est déléguée à un agent `commit-message` spécialisé qui part du contexte (plan, phase, session) puis valide via `git diff`. Appelé par `session-closer` en fin de session. Principe de responsabilité unique. |
 | 148 | 2026-04-01 | Nouvel agent `sandbox-url` | **Génère des URLs sandbox complètes à partir de descriptions en langage naturel** | Un agent capable de traduire "Bulbizarre brûlé face à un Dummy Protect" en URL `?sandbox&pokemon=bulbasaur&status=burned&...`. Utilisable par les autres agents ou directement par l'humain. Évite d'avoir à connaître les query params par cœur. |
 
+| 150 | 2026-04-02 | Stockage statuts volatils | **Champ `volatileStatuses: VolatileStatus[]` sur `PokemonInstance`** | Séparé des statuts majeurs, extensible pour flinch/provoc futurs. La distinction majeur/volatil se fait par le stockage (`status` vs `volatileStatuses[]`), pas par l'enum `StatusType`. |
+| 151 | 2026-04-02 | Compteur toxic | **Champ `toxicCounter: number` sur `PokemonInstance`** | Démarre à 0, incrémenté à chaque tick (plafond 15). Reset si le statut est retiré. |
+| 152 | 2026-04-02 | Bind via LinkType | **Extension `LinkType.Bind` via `EffectKind.Link` existant** | Bind EST un lien (lanceur-cible, rupture distance/KO). Ajout `immobilize?: boolean` et `drainToSource?: boolean` sur `ActiveLink`. Vampigraine a `drainToSource` par défaut (undefined=true), Bind a `drainToSource: false`. |
+| 153 | 2026-04-02 | Confusion interception | **Dans `submitAction`, avant `executeUseMove`** | Modifie l'action soumise (cible/direction) puis exécute normalement. Events émis pour le renderer. |
+| 154 | 2026-04-02 | Knockback + corps KO | **Bloqué** (corps KO = tile non-stoppable) | Cohérent avec plan 011 : les corps sont traversables mais on ne peut pas s'y arrêter. |
+| 155 | 2026-04-02 | Confusion réutilise StatusType | **`StatusType.Confused` réutilisé** | La distinction majeur/volatil se fait par le stockage, pas par l'enum. |
+| 156 | 2026-04-02 | Recharge : Move autorisé, Act bloqué | **Flag `recharging: boolean` sur `PokemonInstance`** | Bloque les actions `use_move` dans `getLegalActions`, reset en fin de tour quand hasActed est false. Le champ `recharge: true` est dans `TacticalOverride` et `MoveDefinition`. |
+| 157 | 2026-04-02 | Flash — pattern zone | **Zone r2 (pas cône)** | Flash aveugle dans toutes les directions — le cône ne rend pas justice à l'effet omnidirectionnel. Compensé par le friendly fire (touche les alliés aussi). |
+| 158 | 2026-04-02 | Draco-Queue — pattern slash | **Slash (arc frontal)**, pas single | Le mouvement de queue balaie un arc devant le lanceur. Pattern slash cohérent avec l'image de l'attaque, knockback sur chaque cible touchée. |
+| 159 | 2026-04-02 | Tranche — pattern slash | **Slash**, pas single | Même logique que Draco-Queue. Balayage d'épée = arc frontal. |
+| 160 | 2026-04-02 | Jackpot (pay-day) → Combo-Griffe (fury-swipes) pour Miaouss | **Combo-Griffe remplace Jackpot dans le moveset de Miaouss** | Jackpot est thématiquement Pokemon (pièces de monnaie) mais mécaniquement peu intéressant (dégâts normaux). Combo-Griffe (multi-hit 2-5) offre une interaction tactique bien plus riche et représente mieux le style de combat de Miaouss. |
+| 161 | 2026-04-02 | Ligotage (Wrap) — immobilisation tactique | **Empêche le déplacement (Move), pas l'attaque (Act). Dégâts 1/16/tour. Contact requis (adjacence).** | Contrepoint tactique à la mobilité : une cible ligotée peut riposte mais ne peut pas fuir. Cohérent avec `LinkType.Bind` — même infrastructure que Vampigraine, comportement différent. |
+| 162 | 2026-04-02 | Confusion — pas de self-hit | **Redirection vers allié, pas vers soi** | La version tactique de la confusion redirige vers un allié aléatoire plutôt que de se frapper soi-même. Plus intéressant tactiquement (friendly fire). Si aucun allié à portée, le tour est perdu (pas de self-hit non plus). |
+
 ---
 
 ## Questions ouvertes

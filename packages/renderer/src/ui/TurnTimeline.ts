@@ -37,10 +37,7 @@ export class TurnTimeline {
     this.container.setDepth(DEPTH_TIMELINE);
   }
 
-  update(
-    state: BattleState,
-    pokemonDefinitions: Map<string, PokemonDefinition>,
-  ): void {
+  update(state: BattleState, pokemonDefinitions: Map<string, PokemonDefinition>): void {
     this.clearEntries();
 
     const turnOrder = state.turnOrder;
@@ -57,9 +54,7 @@ export class TurnTimeline {
       }
     }
 
-    const nextRoundForActed = state.predictedNextRoundOrder.filter((id) =>
-      alreadyActedSet.has(id),
-    );
+    const nextRoundForActed = state.predictedNextRoundOrder.filter((id) => alreadyActedSet.has(id));
 
     let y = 0;
 
@@ -86,13 +81,7 @@ export class TurnTimeline {
         if (!pokemon || pokemon.currentHp <= 0) {
           continue;
         }
-        y = this.renderEntry(
-          y,
-          pokemon,
-          pokemonDefinitions,
-          false,
-          TIMELINE_PAST_ENTRY_ALPHA,
-        );
+        y = this.renderEntry(y, pokemon, pokemonDefinitions, false, TIMELINE_PAST_ENTRY_ALPHA);
       }
     }
   }
@@ -117,9 +106,7 @@ export class TurnTimeline {
     const primaryType = definition?.types[0] ?? "normal";
     const typeColor = TYPE_COLORS[primaryType] ?? 0xa0a0a0;
     const teamColor =
-      pokemon.playerId === PlayerId.Player1
-        ? TEAM_COLOR_PLAYER_1
-        : TEAM_COLOR_PLAYER_2;
+      pokemon.playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
 
     const background = this.scene.add.graphics();
     background.fillStyle(0x111122, 0.8);
@@ -143,18 +130,13 @@ export class TurnTimeline {
 
     const border = this.scene.add.graphics();
     const borderColor = isActive ? TIMELINE_ACTIVE_BORDER_COLOR : teamColor;
-    const borderWidth = isActive
-      ? TIMELINE_ACTIVE_BORDER_WIDTH
-      : TIMELINE_BORDER_WIDTH;
+    const borderWidth = isActive ? TIMELINE_ACTIVE_BORDER_WIDTH : TIMELINE_BORDER_WIDTH;
     border.lineStyle(borderWidth, borderColor, 1);
     border.strokeRoundedRect(-half, -half, size, size, 4);
     children.push(border);
 
     if (pokemon.statusEffects.length > 0) {
-      const statusIcon = this.createStatusIcon(
-        pokemon.statusEffects[0]?.type,
-        half,
-      );
+      const statusIcon = this.createStatusIcon(pokemon.statusEffects[0]?.type, half);
       if (statusIcon) {
         children.push(statusIcon);
       }
@@ -216,10 +198,7 @@ export class TurnTimeline {
     const icon = this.scene.add.image(0, 0, textureKey);
     const scale = targetHeight / icon.height;
     icon.setScale(scale);
-    icon.setPosition(
-      half + (icon.width * scale) / 2 - 10,
-      -half + targetHeight / 2 - 2,
-    );
+    icon.setPosition(half + (icon.width * scale) / 2 - 10, -half + targetHeight / 2 - 2);
 
     return icon;
   }

@@ -77,6 +77,9 @@ export function buildTestEngineFromPlacements(
       currentPp,
       activeDefense: null,
       lastEndureRound: null,
+      toxicCounter: 0,
+      volatileStatuses: [],
+      recharging: false,
     };
 
     pokemonMap.set(instance.id, instance);

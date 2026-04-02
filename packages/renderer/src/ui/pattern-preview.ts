@@ -1,5 +1,5 @@
-import { TargetingKind } from "@pokemon-tactic/core";
 import type { TargetingPattern } from "@pokemon-tactic/core";
+import { TargetingKind } from "@pokemon-tactic/core";
 
 export const PatternCell = {
   Empty: "empty",

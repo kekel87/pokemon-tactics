@@ -4,6 +4,7 @@ import type { SandboxConfig } from "../types/SandboxConfig";
 
 const VALID_STATUSES = new Set<string>(Object.values(StatusType));
 const VALID_DIRECTIONS = new Set<string>(Object.values(Direction));
+const VOLATILE_STATUSES = new Set<string>([StatusType.Confused]);
 
 const DEFAULT_POKEMON: string = "bulbasaur";
 const DEFAULT_DUMMY_POKEMON: string = "dummy";
@@ -56,12 +57,21 @@ export function parseSandboxQueryParams(
     : [...defaultMoves];
 
   const rawHp = params.get("hp");
-  const parsedHp = rawHp !== null ? Number(rawHp) : null;
+  const parsedHp = rawHp === null ? null : Number(rawHp);
   const hp =
     parsedHp !== null && !Number.isNaN(parsedHp) ? Math.max(1, Math.min(100, parsedHp)) : 100;
 
   const rawStatus = params.get("status");
-  const status = rawStatus && VALID_STATUSES.has(rawStatus) ? (rawStatus as StatusType) : null;
+  const status =
+    rawStatus && VALID_STATUSES.has(rawStatus) && !VOLATILE_STATUSES.has(rawStatus)
+      ? (rawStatus as StatusType)
+      : null;
+
+  const rawVolatileStatus = params.get("volatileStatus");
+  const volatileStatus =
+    rawVolatileStatus && VOLATILE_STATUSES.has(rawVolatileStatus)
+      ? (rawVolatileStatus as StatusType)
+      : null;
 
   const statStages = parseStatStages(params.get("statStages"));
 
@@ -81,7 +91,7 @@ export function parseSandboxQueryParams(
       : DEFAULT_DUMMY_DIRECTION;
 
   const rawDummyHp = params.get("dummyHp");
-  const parsedDummyHp = rawDummyHp !== null ? Number(rawDummyHp) : null;
+  const parsedDummyHp = rawDummyHp === null ? null : Number(rawDummyHp);
   const dummyHp =
     parsedDummyHp !== null && !Number.isNaN(parsedDummyHp)
       ? Math.max(1, Math.min(100, parsedDummyHp))
@@ -89,12 +99,20 @@ export function parseSandboxQueryParams(
 
   const rawDummyStatus = params.get("dummyStatus");
   const dummyStatus =
-    rawDummyStatus && VALID_STATUSES.has(rawDummyStatus) ? (rawDummyStatus as StatusType) : null;
+    rawDummyStatus && VALID_STATUSES.has(rawDummyStatus) && !VOLATILE_STATUSES.has(rawDummyStatus)
+      ? (rawDummyStatus as StatusType)
+      : null;
+
+  const rawDummyVolatileStatus = params.get("dummyVolatileStatus");
+  const dummyVolatileStatus =
+    rawDummyVolatileStatus && VOLATILE_STATUSES.has(rawDummyVolatileStatus)
+      ? (rawDummyVolatileStatus as StatusType)
+      : null;
 
   const dummyStatStages = parseStatStages(params.get("dummyStatStages"));
 
   const rawDummyLevel = params.get("dummyLevel");
-  const parsedDummyLevel = rawDummyLevel !== null ? Number(rawDummyLevel) : null;
+  const parsedDummyLevel = rawDummyLevel === null ? null : Number(rawDummyLevel);
   const dummyLevel =
     parsedDummyLevel !== null && !Number.isNaN(parsedDummyLevel)
       ? Math.max(1, Math.min(100, parsedDummyLevel))
@@ -105,6 +123,7 @@ export function parseSandboxQueryParams(
     moves,
     hp,
     status,
+    volatileStatus,
     statStages,
     dummyPokemon,
     dummyMove,
@@ -113,6 +132,7 @@ export function parseSandboxQueryParams(
     dummyLevel,
     dummyBaseStats: null,
     dummyStatus,
+    dummyVolatileStatus,
     dummyStatStages,
   };
 }

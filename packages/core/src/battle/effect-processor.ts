@@ -10,6 +10,7 @@ import type { EffectContext, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { handleDamage } from "./handlers/handle-damage";
 import { handleDefensive } from "./handlers/handle-defensive";
+import { handleKnockback } from "./handlers/handle-knockback";
 import { handleLink } from "./handlers/handle-link";
 import { handleStatChange } from "./handlers/handle-stat-change";
 import { handleStatus } from "./handlers/handle-status";
@@ -32,6 +33,7 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.StatChange, handleStatChange);
   registry.register(EffectKind.Link, handleLink);
   registry.register(EffectKind.Defensive, handleDefensive);
+  registry.register(EffectKind.Knockback, handleKnockback);
   return registry;
 }
 

@@ -7,7 +7,12 @@ import { TargetingKind } from "../enums/targeting-kind";
 import { MockBattle } from "../testing/mock-battle";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
-import { calculateDamage, estimateDamage, getStab, getTypeEffectiveness } from "./damage-calculator";
+import {
+  calculateDamage,
+  estimateDamage,
+  getStab,
+  getTypeEffectiveness,
+} from "./damage-calculator";
 
 const baseMove: MoveDefinition = {
   id: "test-move",

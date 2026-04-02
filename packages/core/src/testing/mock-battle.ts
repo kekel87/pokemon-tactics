@@ -69,6 +69,9 @@ export abstract class MockBattle {
     currentPp: {},
     activeDefense: null,
     lastEndureRound: null,
+    toxicCounter: 0,
+    volatileStatuses: [],
+    recharging: false,
   };
 
   static readonly player2Slow: PokemonInstance = {
@@ -89,6 +92,9 @@ export abstract class MockBattle {
     currentPp: {},
     activeDefense: null,
     lastEndureRound: null,
+    toxicCounter: 0,
+    volatileStatuses: [],
+    recharging: false,
   };
 
   static readonly player1Medium: PokemonInstance = {
@@ -109,6 +115,9 @@ export abstract class MockBattle {
     currentPp: {},
     activeDefense: null,
     lastEndureRound: null,
+    toxicCounter: 0,
+    volatileStatuses: [],
+    recharging: false,
   };
 
   static readonly flatGrid5x5: TileState[][] = buildFlatGrid(5, 5);

@@ -5,6 +5,7 @@ export interface SandboxConfig {
   moves: string[];
   hp: number;
   status: StatusType | null;
+  volatileStatus: StatusType | null;
   statStages: Partial<Record<StatName, number>>;
   dummyPokemon: string;
   dummyMove: string | null;
@@ -13,5 +14,6 @@ export interface SandboxConfig {
   dummyLevel: number;
   dummyBaseStats: BaseStats | null;
   dummyStatus: StatusType | null;
+  dummyVolatileStatus: StatusType | null;
   dummyStatStages: Partial<Record<StatName, number>>;
 }

@@ -1,11 +1,11 @@
 export { BattleEngine } from "./battle/BattleEngine";
-export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator";
-export { PlacementError, PlacementPhase } from "./battle/PlacementPhase";
-export type { PlacementResult } from "./battle/PlacementPhase";
 export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
 export { EffectHandlerRegistry } from "./battle/effect-handler-registry";
 export { createDefaultEffectRegistry } from "./battle/effect-processor";
 export { getEffectiveInitiative } from "./battle/initiative-calculator";
+export type { PlacementResult } from "./battle/PlacementPhase";
+export { PlacementError, PlacementPhase } from "./battle/PlacementPhase";
+export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator";
 export { TurnManager } from "./battle/TurnManager";
 export type { PhaseHandler, PhaseResult } from "./battle/turn-pipeline";
 export { TurnPipeline } from "./battle/turn-pipeline";

@@ -6,16 +6,6 @@ import {
 } from "@pokemon-tactic/core";
 import { loadData, pocArena } from "@pokemon-tactic/data";
 import {
-  type BattleSetupConfig,
-  createBattleFromPlacements,
-  defaultTeams,
-} from "../game/BattleSetup";
-import { DummyAiController } from "../game/DummyAiController";
-import { createSandboxBattle } from "../game/SandboxSetup";
-import type { SandboxConfig } from "../types/SandboxConfig";
-import { SandboxPanel } from "../ui/SandboxPanel";
-import { parseSandboxQueryParams } from "../utils/sandbox-query-params";
-import {
   ARROW_PAN_SPEED,
   CAMERA_BOUNDS_MARGIN,
   CANVAS_HEIGHT,
@@ -29,11 +19,21 @@ import {
   ZOOM_LEVELS,
   ZOOM_TWEEN_DURATION_MS,
 } from "../constants";
+import {
+  type BattleSetupConfig,
+  createBattleFromPlacements,
+  defaultTeams,
+} from "../game/BattleSetup";
+import { DummyAiController } from "../game/DummyAiController";
 import { GameController, type PlacementConfig } from "../game/GameController";
+import { createSandboxBattle } from "../game/SandboxSetup";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import { createPokemonAnimations, preloadPokemonAssets } from "../sprites/SpriteLoader";
+import type { SandboxConfig } from "../types/SandboxConfig";
 import { DirectionPicker } from "../ui/DirectionPicker";
+import { SandboxPanel } from "../ui/SandboxPanel";
+import { parseSandboxQueryParams } from "../utils/sandbox-query-params";
 import type { BattleUIScene } from "./BattleUIScene";
 
 export class BattleScene extends Phaser.Scene {

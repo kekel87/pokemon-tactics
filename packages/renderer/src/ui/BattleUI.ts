@@ -42,7 +42,8 @@ export class BattleUI {
 
     const text = document.createElement("div");
     text.textContent = `${playerLabel} wins! — Round ${roundNumber}`;
-    text.style.cssText = "font-size: 42px; color: #ffcc00; margin-bottom: 24px; text-align: center;";
+    text.style.cssText =
+      "font-size: 42px; color: #ffcc00; margin-bottom: 24px; text-align: center;";
     overlay.appendChild(text);
 
     const button = document.createElement("button");

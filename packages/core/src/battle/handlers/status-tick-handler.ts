@@ -53,6 +53,23 @@ export function statusTickHandler(pokemonId: string, state: BattleState): PhaseR
       return { events, skipAction: false, restrictActions: false, pokemonFainted: fainted };
     }
 
+    case StatusType.BadlyPoisoned: {
+      pokemon.toxicCounter = Math.min(pokemon.toxicCounter + 1, 15);
+      const damage = Math.max(1, Math.floor((pokemon.maxHp * pokemon.toxicCounter) / 16));
+      pokemon.currentHp = Math.max(0, pokemon.currentHp - damage);
+      events.push({
+        type: BattleEventType.DamageDealt,
+        targetId: pokemon.id,
+        amount: damage,
+        effectiveness: 1,
+      });
+      if (pokemon.currentHp <= 0) {
+        events.push({ type: BattleEventType.PokemonKo, pokemonId: pokemon.id, countdownStart: 0 });
+        return { events, skipAction: false, restrictActions: false, pokemonFainted: true };
+      }
+      return { events, skipAction: false, restrictActions: false, pokemonFainted: false };
+    }
+
     case StatusType.Asleep: {
       if (status.remainingTurns !== null && status.remainingTurns > 0) {
         status.remainingTurns--;

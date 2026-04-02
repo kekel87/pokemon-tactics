@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-01 (Plan 025 terminé — 56 tests moves + 9 mécaniques transversales + nettoyage doublons, 534 tests unitaires + 48 tests intégration = 582 tests)
+> Dernière mise à jour : 2026-04-02 (Plan 026 terminé — 6 nouvelles mécaniques + 17 moves, 595 tests au total)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -325,6 +325,18 @@
   - Flow plan revu : `core-guardian` aux étapes intermédiaires, review + doc-keeper reportés en fin de plan, `visual-tester` automatique en fin de plan renderer
   - 21 agents actifs au total
 
+- **Plan 026 terminé** — Roster expansion Phase 1 (mécaniques + moves) :
+  - **6 nouvelles mécaniques core** :
+    - `StatusType.BadlyPoisoned` : poison grave, `toxicCounter` sur `PokemonInstance`, dégâts croissants 1/16 → 15/16/tour, cap 15
+    - Confusion tactique : statut volatil via `volatileStatuses: VolatileStatus[]` sur `PokemonInstance`, redirection vers allié aléatoire (single/dash), direction aléatoire (AoE), tour perdu si aucun allié
+    - Bind (`LinkType.Bind`) : extension `ActiveLink` avec `immobilize?: boolean` + `drainToSource?: boolean`, empêche le Move, dégâts 1/16/tour, rupture distance > 1 ou KO lanceur
+    - Knockback (`EffectKind.Knockback`) : pousse 1 case direction opposée, bloqué par bord/occupant/corps KO
+    - Multi-hit : champ `hits?: number | { min: number; max: number }` sur effet Damage, fixe (x2) ou variable (2-5, probas 35/35/15/15%), stop si KO
+    - Recharge : flag `recharging: boolean` sur `PokemonInstance`, bloque `use_move` au tour suivant, autorise Move
+  - **17 nouveaux moves** : toxic, supersonic, swords-dance, iron-defense, double-kick, fury-swipes, hyper-beam, dragon-tail, wrap, growl, roar, flash, acid, earthquake, mega-punch, slash, poison-sting
+  - **42 nouveaux tests** — **595 tests au total**, 100% coverage maintenu
+  - Décisions techniques D1-D7 (decisions.md #150-156)
+
 - **Plan 025 terminé** — Tests d'intégration par move + mécaniques transversales :
   - 56 fichiers de test créés dans `packages/core/src/battle/moves/` (un par move)
   - Helper `buildMoveTestEngine` dans `packages/core/src/testing/build-move-test-engine.ts`, exporté depuis `testing/index.ts`
@@ -353,10 +365,14 @@
   - **333 tests**, 0 régressions, build OK, vérification visuelle OK
 
 ### Prochaine étape (Phase 1 Core)
-- Review des movesets des 12 Pokemon par l'humain (équilibrage) — décision #121
-- **Plus de moves** stat changes (Épée Danse, Groz'Yeux) et AoE variés — diversité tactique
-- Statuts volatils : confusion (chance de se frapper soi-même)
+- **Plan 027 prêt** (status: ready) — 8 nouveaux Pokemon (Évoli, Tentacool, Nidoran, Miaouss, Magnéti, Sabelette, Excelangue, Kangourex) : données, sprites PMDCollab, tests. Roster 12 → 20.
+- **Feedback visuel renderer** : représentation des nouvelles mécaniques (confusion, bind, knockback, multi-hit, recharge, badly poisoned) — pas d'icône ni message pour la confusion actuellement
+- **Review des movesets des 12 Pokemon** par l'humain (équilibrage) — décision #121. 73 moves disponibles, tests d'intégration par move disponibles pour guider l'équilibrage.
 - Système de replay (log d'actions déterministe, seed + rejeu)
+
+### Bugs connus non corrigés
+- HP bar flottante (Vampigraine) pas mise à jour au spawn — bug existant, non bloquant
+- Confusion sans feedback visuel côté renderer (pas d'icône, pas de message d'info) — à traiter dans un plan renderer
 
 ### Points à adresser (renderer)
 - Représentation visuelle des moves défensifs : animation/feedback quand Protect bloque, Counter renvoie, etc.

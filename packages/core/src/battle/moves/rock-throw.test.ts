@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { ActionKind } from "../../enums/action-kind";
 import { ActionError } from "../../enums/action-error";
+import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
-import { MockPokemon, buildMoveTestEngine } from "../../testing";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
 describe("rock-throw", () => {
   it("deals damage at max range when accuracy hits", () => {

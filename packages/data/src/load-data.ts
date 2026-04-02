@@ -34,6 +34,7 @@ export function loadData(): GameData {
       pp: merged.pp,
       targeting: merged.targeting,
       effects: merged.effects,
+      ...(merged.recharge ? { recharge: true } : {}),
     };
     return moveDefinition;
   });

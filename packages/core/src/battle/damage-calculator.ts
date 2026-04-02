@@ -89,7 +89,23 @@ export function estimateDamage(
   defenderTypes: PokemonType[],
 ): DamageEstimate {
   const effectiveness = getTypeEffectiveness(move.type, defenderTypes, typeChart);
-  const min = calculateDamage(attacker, defender, move, typeChart, attackerTypes, defenderTypes, ROLL_MIN);
-  const max = calculateDamage(attacker, defender, move, typeChart, attackerTypes, defenderTypes, ROLL_MAX);
+  const min = calculateDamage(
+    attacker,
+    defender,
+    move,
+    typeChart,
+    attackerTypes,
+    defenderTypes,
+    ROLL_MIN,
+  );
+  const max = calculateDamage(
+    attacker,
+    defender,
+    move,
+    typeChart,
+    attackerTypes,
+    defenderTypes,
+    ROLL_MAX,
+  );
   return { min, max, effectiveness };
 }

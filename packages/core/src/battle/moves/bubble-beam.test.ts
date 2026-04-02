@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
-import { MockPokemon, buildMoveTestEngine } from "../../testing";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
 describe("bubble-beam", () => {
   it("hits single target at distance 1 in cone", () => {
@@ -102,7 +102,8 @@ describe("bubble-beam", () => {
 
     expect(result.success).toBe(true);
     const damageEvents = result.events.filter(
-      (e): e is Extract<typeof e, { type: "damage_dealt" }> => e.type === BattleEventType.DamageDealt,
+      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+        e.type === BattleEventType.DamageDealt,
     );
     const hitIds = damageEvents.map((e) => e.targetId);
     expect(hitIds).not.toContain("foe-outside");

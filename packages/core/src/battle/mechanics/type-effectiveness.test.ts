@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { MockPokemon, buildMoveTestEngine } from "../../testing";
 import { PlayerId } from "../../enums/player-id";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
 describe("type effectiveness", () => {
   it("super effective: Fire vs Grass/Poison deals x2", () => {

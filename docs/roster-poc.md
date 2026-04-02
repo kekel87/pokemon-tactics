@@ -3,7 +3,8 @@
 > Les 12 Pokemon du prototype élargi et leurs movesets.
 > Chaque attaque teste un pattern ou une mécanique différente pour valider le moteur.
 > Les movesets des 8 nouveaux Pokemon (plan 013+) n'ont pas encore été revus par l'humain.
-> **56 moves au total** : 48 moves offensifs/statut (roster élargi) + 8 moves défensifs (Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité) ajoutés en plan 023.
+> **72 moves au total** : 56 moves offensifs/statut/buff (roster élargi plan 013+ et plan 026) + 8 moves défensifs (Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité) ajoutés en plan 023 + Dummy.
+> Les 17 nouveaux moves du plan 026 (toxic, supersonic, swords-dance, iron-defense, double-kick, fury-swipes, hyper-beam, dragon-tail, wrap, growl, roar, flash, acid, earthquake, mega-punch, slash, poison-sting) sont en cours d'attribution aux 12 Pokemon — **review humain en attente** (décision #121).
 
 ---
 
@@ -75,10 +76,10 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 |---|---------|------|------|--------|-------|-----|--------|---------|-------|
 | 1 | Tonnerre | Électrique | Spé | 90 | 100 | 15 | ligne 4 | ligne | **Ligne** : traverse en ligne droite, chance paralysie 10% |
 | 2 | Cage-Éclair | Électrique | Statut | — | 90 | 20 | 1-3 | single | Paralysie 100% |
-| 3 | Jackpot | Normal | Statut | — | 100 | 15 | 0 (self) | self | +1 Esquive |
+| 3 | Combo-Griffe | Normal | Phys | 18 | 85 | 15 | 1 | single | **Multi-hit 2-5** (35/35/15/15%). Frappe jusqu'à 5 fois, s'arrête si KO. |
 | 4 | Volttackle | Électrique | Phys | 120 | 100 | 15 | dash 3 | dash | Dash puissant, repositionnement |
 
-**Rôle** : contrôle électrique + mobilité. Tonnerre en ligne pour punir les files. Voltacle ferme le gap avec puissance.
+**Rôle** : contrôle électrique + mobilité. Tonnerre en ligne pour punir les files. Combo-Griffe pour accumuler les dégâts et potentiellement KO. Voltacle ferme le gap avec puissance.
 
 ---
 
@@ -86,12 +87,12 @@ Valider un maximum de mécaniques avec un minimum de Pokemon :
 
 | # | Attaque | Type | Cat. | Puiss. | Préc. | PP | Portée | Pattern | Notes |
 |---|---------|------|------|--------|-------|-----|--------|---------|-------|
-| 1 | Tranche | Combat | Phys | 50 | 100 | 25 | 1 | single | Mêlée, haute priorité critique |
-| 2 | Séisme | Combat | Phys | 40 | 100 | 20 | 1 | single | Mêlée |
+| 1 | Tranche | Normal | Phys | 70 | 100 | 20 | 1 | slash | **Slash** : arc frontal 3 cases, taux critique élevé |
+| 2 | Séisme | Sol | Phys | 100 | 100 | 10 | 0 (self) | zone r2 | **Zone r2** : AoE sol 13 cases, friendly fire |
 | 3 | Pugilat | Combat | Statut | — | 100 | 20 | 0 (self) | self | +1 Attaque, +1 Défense |
 | 4 | Éclate-Roc | Combat | Phys | 40 | 100 | 15 | self | croix 3x3 | AoE croix centrée sur le lanceur + -1 Déf aux cibles |
 
-**Rôle** : bruiser mêlée. Pugilat pour se booster, Éclate-Roc pour affaiblir les défenses en zone.
+**Rôle** : bruiser mêlée. Tranche (slash) pour balayer plusieurs ennemis adjacents. Séisme (zone r2) pour punir les regroupements. Pugilat pour se booster.
 
 ---
 
@@ -207,16 +208,26 @@ Pokemon de test uniquement, utilisé comme adversaire en mode sandbox. Non prés
 | Buff self (Attaque/Déf) | Repli, Pugilat, Entassement, Armure, Défense Enroulée |
 | Buff self (Atk Spé/Déf Spé) | Zen Absolu |
 | Buff self (Vitesse) | Tranche Rapide |
-| Buff self (Esquive) | Jackpot, Miniminus |
+| Buff self (Esquive) | Miniminus |
+| **+2 Attaque (Épée Danse)** | swords-dance |
+| **+2 Défense (Mur de Fer)** | iron-defense |
 | Attaque dash | Vive-Attaque, Voltacle, Tunnel, Roue de Feu |
-| Lien persistant | Vampigraine |
+| Lien persistant (drain) | Vampigraine |
+| **Lien Bind (immobilisation)** | Ligotage (wrap) |
+| **Multi-hit fixe** | Double Pied (double-kick x2) |
+| **Multi-hit variable** | Combo-Griffe (fury-swipes 2-5) |
+| **Recharge tour suivant** | Ultralaser (hyper-beam) |
+| **Knockback** | Draco-Queue (dragon-tail) |
 | Statut : sommeil | Poudre Dodo, Hypnose, Berceuse |
 | Statut : brûlure | Flammèche, Lance-Flammes, Roue de Feu |
-| Statut : poison | Bombe-Beurk |
+| Statut : poison | Bombe-Beurk, Dard-Venin (poison-sting) |
+| **Statut : poison grave** | Toxik (toxic) |
 | Statut : paralysie | Dracosouffle, Cage-Éclair, Tonnerre, Léchouille, Plaquage |
+| **Statut volatil : confusion** | Ultrason (supersonic) |
 | **Statut : gel** | Blizzard |
-| Statut : -précision | Brouillard, Jet de Sable, Kinésie |
-| Debuff : -Attaque | Éclate-Roc (via -1 Déf), Laser Glace |
+| Statut : -précision | Brouillard, Jet de Sable, Kinésie, Flash |
+| Debuff : -Attaque | Laser Glace, Rugissement (growl, cône), Hurlement (roar, cône) |
+| Debuff : -Déf Spé | Acide (acid, cône) |
 | Debuff : -Vitesse | Vent Glace |
 | Friendly fire AoE | Tranch'Herbe, Cru-Aile (slash), Bombe-Beurk (blast), Poudre Dodo, Tornade, Bulles d'O (cône), Dracosouffle, Ampleur, Berceuse, Blizzard |
 | Type Vol (survol, chute) | Roucoul |

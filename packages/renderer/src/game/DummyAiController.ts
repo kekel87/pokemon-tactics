@@ -1,9 +1,4 @@
-import {
-  ActionKind,
-  type BattleEngine,
-  type Direction,
-  PlayerId,
-} from "@pokemon-tactic/core";
+import { ActionKind, type BattleEngine, type Direction, PlayerId } from "@pokemon-tactic/core";
 
 export class DummyAiController {
   private readonly engine: BattleEngine;
@@ -37,8 +32,7 @@ export class DummyAiController {
     if (this.assignedMoveId) {
       const legalActions = this.engine.getLegalActions(PlayerId.Player2);
       const moveAction = legalActions.find(
-        (action) =>
-          action.kind === ActionKind.UseMove && action.moveId === this.assignedMoveId,
+        (action) => action.kind === ActionKind.UseMove && action.moveId === this.assignedMoveId,
       );
       if (moveAction) {
         this.engine.submitAction(PlayerId.Player2, moveAction);
@@ -47,8 +41,7 @@ export class DummyAiController {
 
     const postActions = this.engine.getLegalActions(PlayerId.Player2);
     const endTurnAction = postActions.find(
-      (action) =>
-        action.kind === ActionKind.EndTurn && action.direction === this.direction,
+      (action) => action.kind === ActionKind.EndTurn && action.direction === this.direction,
     );
 
     if (endTurnAction) {

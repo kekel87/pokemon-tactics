@@ -1,5 +1,6 @@
 import type { BattleEventType } from "../enums/battle-event-type";
 import type { DefensiveKind } from "../enums/defensive-kind";
+import type { Direction } from "../enums/direction";
 import type { LinkType } from "../enums/link-type";
 import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
@@ -49,4 +50,34 @@ export type BattleEvent =
       defenseKind: DefensiveKind;
       blocked: boolean;
     }
-  | { type: typeof BattleEventType.BattleEnded; winnerId: string };
+  | { type: typeof BattleEventType.BattleEnded; winnerId: string }
+  | { type: typeof BattleEventType.ConfusionTriggered; pokemonId: string }
+  | {
+      type: typeof BattleEventType.ConfusionRedirected;
+      pokemonId: string;
+      originalTarget?: string;
+      newTarget?: string;
+      originalDirection?: Direction;
+      newDirection?: Direction;
+    }
+  | { type: typeof BattleEventType.ConfusionResisted; pokemonId: string }
+  | { type: typeof BattleEventType.ConfusionFailed; pokemonId: string; reason: string }
+  | {
+      type: typeof BattleEventType.KnockbackApplied;
+      pokemonId: string;
+      from: Position;
+      to: Position;
+    }
+  | {
+      type: typeof BattleEventType.KnockbackBlocked;
+      pokemonId: string;
+      reason: string;
+    }
+  | {
+      type: typeof BattleEventType.MultiHitComplete;
+      attackerId: string;
+      targetId: string;
+      totalHits: number;
+    }
+  | { type: typeof BattleEventType.RechargeStarted; pokemonId: string }
+  | { type: typeof BattleEventType.RechargeEnded; pokemonId: string };
