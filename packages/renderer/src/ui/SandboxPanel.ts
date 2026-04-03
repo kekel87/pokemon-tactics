@@ -6,7 +6,9 @@ import {
   StatName,
   StatusType,
 } from "@pokemon-tactic/core";
-import { loadData } from "@pokemon-tactic/data";
+import { getMoveName, getPokemonName, loadData } from "@pokemon-tactic/data";
+import { getLanguage, t } from "../i18n";
+import type { TranslationKey } from "../i18n";
 import type { SandboxConfig } from "../types/SandboxConfig";
 
 const DEFENSIVE_MOVE_IDS = [
@@ -28,12 +30,15 @@ const STAT_NAMES: StatName[] = [
   StatName.Speed,
 ];
 
-const STAT_LABELS: Record<string, string> = {
-  [StatName.Attack]: "Atk",
-  [StatName.Defense]: "Def",
-  [StatName.SpAttack]: "SpA",
-  [StatName.SpDefense]: "SpD",
-  [StatName.Speed]: "Spe",
+const STAT_TRANSLATION_KEYS: Record<StatName, TranslationKey> = {
+  [StatName.Hp]: "sandbox.hpPercent",
+  [StatName.Attack]: "stat.atk",
+  [StatName.Defense]: "stat.def",
+  [StatName.SpAttack]: "stat.spA",
+  [StatName.SpDefense]: "stat.spD",
+  [StatName.Speed]: "stat.spd",
+  [StatName.Accuracy]: "stat.acc",
+  [StatName.Evasion]: "stat.eva",
 };
 
 const BASE_STAT_KEYS: (keyof BaseStats)[] = [
@@ -51,25 +56,27 @@ const BASE_STAT_LABELS: Record<string, string> = {
   defense: "Def",
   spAttack: "SpA",
   spDefense: "SpD",
-  speed: "Spe",
+  speed: "Spd",
 };
 
-const STATUS_LABELS: [StatusType, string][] = [
-  [StatusType.Burned, "Brulure"],
-  [StatusType.Poisoned, "Poison"],
-  [StatusType.BadlyPoisoned, "Poison grave"],
-  [StatusType.Paralyzed, "Paralysie"],
-  [StatusType.Frozen, "Gel"],
-  [StatusType.Asleep, "Sommeil"],
+const STATUS_ENTRIES: [StatusType, TranslationKey][] = [
+  [StatusType.Burned, "status.burned"],
+  [StatusType.Poisoned, "status.poisoned"],
+  [StatusType.BadlyPoisoned, "status.badlyPoisoned"],
+  [StatusType.Paralyzed, "status.paralyzed"],
+  [StatusType.Frozen, "status.frozen"],
+  [StatusType.Asleep, "status.asleep"],
 ];
 
-const VOLATILE_STATUS_LABELS: [StatusType, string][] = [[StatusType.Confused, "Confusion"]];
+const VOLATILE_STATUS_ENTRIES: [StatusType, TranslationKey][] = [
+  [StatusType.Confused, "status.confused"],
+];
 
-const DIRECTION_LABELS: [Direction, string][] = [
-  [Direction.North, "Nord"],
-  [Direction.East, "Est"],
-  [Direction.South, "Sud"],
-  [Direction.West, "Ouest"],
+const DIRECTION_ENTRIES: [Direction, TranslationKey][] = [
+  [Direction.North, "direction.north"],
+  [Direction.East, "direction.east"],
+  [Direction.South, "direction.south"],
+  [Direction.West, "direction.west"],
 ];
 
 const PANEL_STYLE = `
@@ -143,12 +150,12 @@ export class SandboxPanel {
       display: flex; gap: 6px; z-index: 1001;
     `;
 
-    const resetButton = this.createButton("Reinitialiser", () => this.emit());
+    const resetButton = this.createButton(t("sandbox.reset"), () => this.emit());
     resetButton.style.width = "auto";
     resetButton.style.flex = "1";
     toolbar.appendChild(resetButton);
 
-    const urlButton = this.createButton("Copier URL", () => this.copyUrl());
+    const urlButton = this.createButton(t("sandbox.copyUrl"), () => this.copyUrl());
     urlButton.style.width = "auto";
     urlButton.style.flex = "1";
     toolbar.appendChild(urlButton);
@@ -163,7 +170,7 @@ export class SandboxPanel {
   private buildPlayerPanel(config: SandboxConfig): HTMLDivElement {
     const panel = document.createElement("div");
 
-    const header = this.createHeader("Joueur", () => {
+    const header = this.createHeader(t("sandbox.player"), () => {
       this.playerCollapsed = !this.playerCollapsed;
       this.toggleBody(panel, this.playerCollapsed);
     });
@@ -173,7 +180,7 @@ export class SandboxPanel {
     panel.appendChild(body);
 
     const pokemonSelect = this.createSelect(
-      "Pokemon",
+      t("sandbox.pokemon"),
       this.pokemonIds
         .filter((id) => id !== "dummy")
         .map((id) => ({ value: id, label: this.pokemonName(id) })),
@@ -190,9 +197,9 @@ export class SandboxPanel {
     for (let i = 0; i < 4; i++) {
       const moveId = config.moves[i] ?? "";
       const moveSelect = this.createSelect(
-        `Move ${i + 1}`,
+        `${t("sandbox.move")} ${i + 1}`,
         [
-          { value: "", label: "(aucun)" },
+          { value: "", label: t("sandbox.none") },
           ...movepool.map((id) => ({ value: id, label: this.moveName(id) })),
         ],
         moveId,
@@ -205,14 +212,14 @@ export class SandboxPanel {
       this.moveSelects.push(moveSelect.select);
     }
 
-    const hpSlider = this.createSlider("HP %", 1, 100, config.hp);
+    const hpSlider = this.createSlider(t("sandbox.hpPercent"), 1, 100, config.hp);
     hpSlider.input.addEventListener("change", () => this.emit());
     body.appendChild(hpSlider.row);
     this.hpSlider = hpSlider.input;
 
     const statusSelect = this.createSelect(
-      "Statut",
-      [{ value: "", label: "(aucun)" }, ...STATUS_LABELS.map(([s, l]) => ({ value: s, label: l }))],
+      t("sandbox.status"),
+      [{ value: "", label: t("sandbox.none") }, ...STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) }))],
       config.status ?? "",
     );
     statusSelect.select.addEventListener("change", () => this.emit());
@@ -220,10 +227,10 @@ export class SandboxPanel {
     this.statusSelect = statusSelect.select;
 
     const volatileStatusSelect = this.createSelect(
-      "Volatil",
+      t("sandbox.volatile"),
       [
-        { value: "", label: "(aucun)" },
-        ...VOLATILE_STATUS_LABELS.map(([s, l]) => ({ value: s, label: l })),
+        { value: "", label: t("sandbox.none") },
+        ...VOLATILE_STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) })),
       ],
       config.volatileStatus ?? "",
     );
@@ -233,7 +240,7 @@ export class SandboxPanel {
 
     for (const stat of STAT_NAMES) {
       const slider = this.createSlider(
-        STAT_LABELS[stat] ?? stat,
+        t(STAT_TRANSLATION_KEYS[stat]),
         -6,
         6,
         config.statStages[stat] ?? 0,
@@ -249,7 +256,7 @@ export class SandboxPanel {
   private buildDummyPanel(config: SandboxConfig): HTMLDivElement {
     const panel = document.createElement("div");
 
-    const header = this.createHeader("Dummy", () => {
+    const header = this.createHeader(t("sandbox.dummy"), () => {
       this.dummyCollapsed = !this.dummyCollapsed;
       this.toggleBody(panel, this.dummyCollapsed);
     });
@@ -260,9 +267,9 @@ export class SandboxPanel {
 
     const defensiveMoves = this.gameData.moves.filter((m) => DEFENSIVE_MOVE_IDS.includes(m.id));
     const dummyMoveSelect = this.createSelect(
-      "Move",
+      t("sandbox.move"),
       [
-        { value: "", label: "(passif)" },
+        { value: "", label: t("sandbox.passive") },
         ...defensiveMoves.map((m) => ({ value: m.id, label: this.moveName(m.id) })),
       ],
       config.dummyMove ?? "",
@@ -272,22 +279,22 @@ export class SandboxPanel {
     this.dummyMoveSelect = dummyMoveSelect.select;
 
     const dirSelect = this.createSelect(
-      "Direction",
-      DIRECTION_LABELS.map(([d, l]) => ({ value: d, label: l })),
+      t("sandbox.direction"),
+      DIRECTION_ENTRIES.map(([d, key]) => ({ value: d, label: t(key) })),
       config.dummyDirection,
     );
     dirSelect.select.addEventListener("change", () => this.emit());
     body.appendChild(dirSelect.row);
     this.dummyDirectionSelect = dirSelect.select;
 
-    const hpSlider = this.createSlider("HP %", 1, 100, config.dummyHp);
+    const hpSlider = this.createSlider(t("sandbox.hpPercent"), 1, 100, config.dummyHp);
     hpSlider.input.addEventListener("change", () => this.emit());
     body.appendChild(hpSlider.row);
     this.dummyHpSlider = hpSlider.input;
 
     const statusSelect = this.createSelect(
-      "Statut",
-      [{ value: "", label: "(aucun)" }, ...STATUS_LABELS.map(([s, l]) => ({ value: s, label: l }))],
+      t("sandbox.status"),
+      [{ value: "", label: t("sandbox.none") }, ...STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) }))],
       config.dummyStatus ?? "",
     );
     statusSelect.select.addEventListener("change", () => this.emit());
@@ -295,10 +302,10 @@ export class SandboxPanel {
     this.dummyStatusSelect = statusSelect.select;
 
     const dummyVolatileStatusSelect = this.createSelect(
-      "Volatil",
+      t("sandbox.volatile"),
       [
-        { value: "", label: "(aucun)" },
-        ...VOLATILE_STATUS_LABELS.map(([s, l]) => ({ value: s, label: l })),
+        { value: "", label: t("sandbox.none") },
+        ...VOLATILE_STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) })),
       ],
       config.dummyVolatileStatus ?? "",
     );
@@ -308,7 +315,7 @@ export class SandboxPanel {
 
     for (const stat of STAT_NAMES) {
       const slider = this.createSlider(
-        STAT_LABELS[stat] ?? stat,
+        t(STAT_TRANSLATION_KEYS[stat]),
         -6,
         6,
         config.dummyStatStages[stat] ?? 0,
@@ -319,9 +326,9 @@ export class SandboxPanel {
     }
 
     const presetSelect = this.createSelect(
-      "Stats de",
+      t("sandbox.statsFrom"),
       [
-        { value: "", label: "(custom)" },
+        { value: "", label: t("sandbox.custom") },
         ...this.pokemonIds
           .filter((id) => id !== "dummy")
           .map((id) => ({ value: id, label: this.pokemonName(id) })),
@@ -339,13 +346,13 @@ export class SandboxPanel {
     statsHeader.style.cssText =
       "display: flex; justify-content: space-between; font-size: 9px; color: #888; margin-bottom: 2px;";
     statsHeader.innerHTML =
-      '<span style="width:30px"></span><span style="flex:1;text-align:center">Base</span><span style="width:35px;text-align:right">Lv</span>';
+      `<span style="width:30px"></span><span style="flex:1;text-align:center">${t("sandbox.base")}</span><span style="width:35px;text-align:right">${t("sandbox.computed")}</span>`;
     body.appendChild(statsHeader);
 
     const dummyDef = this.gameData.pokemon.find((p) => p.id === config.dummyPokemon);
     const dummyLevel = 50;
 
-    const levelRow = this.createNumberInput("Niveau", 1, 100, dummyLevel);
+    const levelRow = this.createNumberInput(t("sandbox.level"), 1, 100, dummyLevel);
     levelRow.input.addEventListener("change", () => {
       this.updateComputedStats();
       this.emit();
@@ -430,7 +437,7 @@ export class SandboxPanel {
 
       const emptyOpt = document.createElement("option");
       emptyOpt.value = "";
-      emptyOpt.textContent = "(aucun)";
+      emptyOpt.textContent = t("sandbox.none");
       select.appendChild(emptyOpt);
 
       for (const id of movepool) {
@@ -599,13 +606,11 @@ export class SandboxPanel {
   }
 
   private pokemonName(id: string): string {
-    const def = this.gameData.pokemon.find((p) => p.id === id);
-    return def?.name ?? id.charAt(0).toUpperCase() + id.slice(1);
+    return getPokemonName(id, getLanguage());
   }
 
   private moveName(id: string): string {
-    const def = this.gameData.moves.find((m) => m.id === id);
-    return def?.name ?? id;
+    return getMoveName(id, getLanguage());
   }
 
   private createHeader(title: string, onClick: () => void): HTMLDivElement {

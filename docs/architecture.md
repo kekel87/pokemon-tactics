@@ -91,7 +91,8 @@ pokemon-tactics/
 │   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue, DummyAiController)
 │   │   │   ├── grid/            # Rendu isométrique (IsometricGrid, curseur animé)
 │   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
-│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel — panel Joueur + panel Dummy + toolbar)
+│   │   │   ├── i18n/            # Système i18n maison : types.ts, locales/fr.ts, locales/en.ts, index.ts (t, setLanguage, detectLanguage, onLanguageChange, Language enum)
+│   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel, LanguageToggle — panel Joueur + panel Dummy + toolbar)
 │   │   │   ├── utils/           # Utilitaires renderer (screen-direction : getDirectionFromScreenPosition)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
 │   │   │   ├── types/           # Types renderer (BattleConfig : confirmAttack)
@@ -114,7 +115,8 @@ pokemon-tactics/
 │       ├── src/
 │       │   ├── base/            # Données officielles (Showdown/PokeAPI) — inclut Pokemon "Dummy" (Normal, stats 100/50x5, movepool défensif)
 │       │   ├── overrides/       # Surcharges tactiques + balance
-│       │   └── index.ts
+│       │   ├── i18n/            # Noms localisés : moves.fr.json, moves.en.json, pokemon-names.fr.json, pokemon-names.en.json
+│       │   └── index.ts         # Exporte getMoveName(id, lang) et getPokemonName(id, lang)
 │       ├── tsconfig.json        # extends ../../tsconfig.base.json
 │       └── package.json
 │
@@ -346,6 +348,47 @@ Accessible via `?sandbox` dans l'URL. Lance un combat 1v1 sur micro-carte 6x6.
 | `dummyStatStages` | Stages de stats du dummy | aucun |
 
 > Le sprite du Dummy est le sprite PMDCollab `#0000 form 1` (sprite générique).
+
+---
+
+## 5c. Système i18n
+
+Le renderer supporte FR et EN. Le core est i18n-free : il émet des events avec des IDs, le renderer traduit.
+
+### Principe
+
+- **Pas de lib externe** : ~70 lignes maison pour <300 clés et 2 langues — `i18next` serait surdimensionné
+- **Core i18n-free** : le core manipule des IDs (`pokemon-id`, `move-id`). La traduction est au niveau du renderer
+- **Noms Pokemon/moves dans `@pokemon-tactic/data`** : fichiers JSON localisés séparés du système de traduction UI — pas de dépendance cyclique
+
+### Fichiers
+
+```
+packages/renderer/src/i18n/
+  types.ts          # Language const enum ('fr' | 'en'), interface Translations (toutes les clés UI typées)
+  index.ts          # t(key), setLanguage(lang), detectLanguage(), getLanguage(), onLanguageChange(callback)
+                    # Persistance localStorage sous la clé 'pt-lang'
+  locales/
+    fr.ts           # Textes français
+    en.ts           # Textes anglais
+
+packages/data/src/i18n/
+  moves.fr.json          # move-id → nom FR
+  moves.en.json          # move-id → nom EN
+  pokemon-names.fr.json  # pokemon-id → nom FR
+  pokemon-names.en.json  # pokemon-id → nom EN
+```
+
+### Comportements
+
+- **Détection auto** : `detectLanguage()` lit `navigator.language` → 'fr' si commence par 'fr', sinon 'en'
+- **Persistance** : `setLanguage()` écrit en localStorage ; relecture au démarrage
+- **Changement de langue** : restart de scène Phaser (rebuild complet des UI) — pas de hot-swap des Text Phaser individuels
+- **`Language` type dans le renderer uniquement** : `@pokemon-tactic/data` accepte `string` pour éviter une dépendance cyclique
+
+### Composant LanguageToggle
+
+`packages/renderer/src/ui/LanguageToggle.ts` — bouton bascule FR/EN (coin haut gauche), appelle `setLanguage()` puis `scene.restart()`.
 
 ---
 

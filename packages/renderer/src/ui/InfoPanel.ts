@@ -1,4 +1,6 @@
 import { PlayerId, type PokemonInstance, StatName } from "@pokemon-tactic/core";
+import { getPokemonName } from "@pokemon-tactic/data";
+import { getLanguage, t } from "../i18n";
 import {
   DEPTH_INFO_PANEL,
   HP_BAR_BG_ALPHA,
@@ -39,14 +41,16 @@ const HP_BAR_MARGIN_RIGHT: number = 12;
 const HP_BAR_PANEL_WIDTH: number = INFO_PANEL_WIDTH - TEXT_OFFSET_X - HP_BAR_MARGIN_RIGHT;
 const STAT_CHANGES_OFFSET_Y: number = 68;
 
-const STAT_LABELS: Record<string, string> = {
-  [StatName.Attack]: "Atk",
-  [StatName.Defense]: "Def",
-  [StatName.SpAttack]: "SpA",
-  [StatName.SpDefense]: "SpD",
-  [StatName.Speed]: "Spd",
-  [StatName.Accuracy]: "Acc",
-  [StatName.Evasion]: "Eva",
+import type { TranslationKey } from "../i18n";
+
+const STAT_TRANSLATION_KEYS: Record<string, TranslationKey> = {
+  [StatName.Attack]: "stat.atk",
+  [StatName.Defense]: "stat.def",
+  [StatName.SpAttack]: "stat.spA",
+  [StatName.SpDefense]: "stat.spD",
+  [StatName.Speed]: "stat.spd",
+  [StatName.Accuracy]: "stat.acc",
+  [StatName.Evasion]: "stat.eva",
 };
 
 export class InfoPanel {
@@ -103,7 +107,7 @@ export class InfoPanel {
     const teamColor = playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
     this.drawBackground(teamColor);
 
-    const name = pokemon.definitionId.charAt(0).toUpperCase() + pokemon.definitionId.slice(1);
+    const name = getPokemonName(pokemon.definitionId, getLanguage());
     this.nameText.setText(`${name}  Lv.${pokemon.level}`);
 
     this.updatePortrait(pokemon.definitionId);
@@ -158,12 +162,13 @@ export class InfoPanel {
 
     let offsetX = 0;
 
-    for (const [stat, label] of Object.entries(STAT_LABELS)) {
+    for (const [stat, translationKey] of Object.entries(STAT_TRANSLATION_KEYS)) {
       const stages = pokemon.statStages[stat as keyof typeof pokemon.statStages];
       if (stages === undefined || stages === 0) {
         continue;
       }
 
+      const label = t(translationKey);
       const sign = stages > 0 ? "+" : "";
       const badgeText = `${label} ${sign}${stages}`;
       const bgColor = stages > 0 ? STAT_BADGE_BUFF_BG : STAT_BADGE_DEBUFF_BG;

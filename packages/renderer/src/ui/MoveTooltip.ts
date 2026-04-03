@@ -1,5 +1,7 @@
 import type { MoveDefinition } from "@pokemon-tactic/core";
 import { Category, TargetingKind } from "@pokemon-tactic/core";
+import { t } from "../i18n";
+import type { TranslationKey } from "../i18n";
 import {
   ACTION_MENU_BOTTOM_Y,
   ACTION_MENU_CORNER_RADIUS,
@@ -28,16 +30,16 @@ const CATEGORY_TEXTURE: Record<Category, string> = {
   [Category.Status]: "category-status",
 };
 
-const PATTERN_NAMES: Record<string, string> = {
-  [TargetingKind.Single]: "Cible",
-  [TargetingKind.Self]: "Soi",
-  [TargetingKind.Line]: "Ligne",
-  [TargetingKind.Cone]: "Cône",
-  [TargetingKind.Slash]: "Slash",
-  [TargetingKind.Cross]: "Croix",
-  [TargetingKind.Zone]: "Zone",
-  [TargetingKind.Dash]: "Dash",
-  [TargetingKind.Blast]: "Bombe",
+const PATTERN_TRANSLATION_KEYS: Record<string, TranslationKey> = {
+  [TargetingKind.Single]: "pattern.single",
+  [TargetingKind.Self]: "pattern.self",
+  [TargetingKind.Line]: "pattern.line",
+  [TargetingKind.Cone]: "pattern.cone",
+  [TargetingKind.Slash]: "pattern.slash",
+  [TargetingKind.Cross]: "pattern.cross",
+  [TargetingKind.Zone]: "pattern.zone",
+  [TargetingKind.Dash]: "pattern.dash",
+  [TargetingKind.Blast]: "pattern.blast",
 };
 
 export class MoveTooltip {
@@ -85,12 +87,13 @@ export class MoveTooltip {
 
     const powerLabel = move.power > 0 ? `${move.power}` : "—";
     const accuracyLabel = move.accuracy > 0 ? `${move.accuracy}` : "—";
-    this.addText(contentX, contentY, `Puis: ${powerLabel}  Préc: ${accuracyLabel}`);
+    this.addText(contentX, contentY, `${t("move.power", { value: powerLabel })}  ${t("move.accuracy", { value: accuracyLabel })}`);
     contentY += lineHeight;
 
-    const patternName = PATTERN_NAMES[move.targeting.kind] ?? move.targeting.kind;
+    const patternKey = PATTERN_TRANSLATION_KEYS[move.targeting.kind];
+    const patternName = patternKey ? t(patternKey) : move.targeting.kind;
     const rangeLabel = this.getRangeLabel(move);
-    const thirdLine = rangeLabel ? `${patternName}  Portée: ${rangeLabel}` : patternName;
+    const thirdLine = rangeLabel ? `${patternName}  ${t("move.range", { value: rangeLabel })}` : patternName;
     this.addText(contentX, contentY, thirdLine);
     contentY += lineHeight + 4;
 

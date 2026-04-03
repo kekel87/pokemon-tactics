@@ -1,4 +1,6 @@
 import { PlayerId } from "@pokemon-tactic/core";
+import { getPokemonName } from "@pokemon-tactic/data";
+import { getLanguage, t } from "../i18n";
 import {
   CANVAS_WIDTH,
   DEPTH_INFO_PANEL,
@@ -62,7 +64,7 @@ export class PlacementRosterPanel {
     this.drawBackground(teamColor);
 
     const playerNumber = playerId === PlayerId.Player1 ? "1" : "2";
-    this.turnText.setText(`Player ${playerNumber} — Place a Pokemon`);
+    this.turnText.setText(t("placement.instruction", { player: playerNumber }));
 
     this.clearPortraits();
 
@@ -149,7 +151,7 @@ export class PlacementRosterPanel {
       container.add(checkmark);
     }
 
-    const name = entry.definitionId.charAt(0).toUpperCase() + entry.definitionId.slice(1);
+    const name = getPokemonName(entry.definitionId, getLanguage());
     const nameText = this.scene.add.text(0, PLACEMENT_PORTRAIT_SIZE / 2 + 4, name, {
       fontSize: "9px",
       color: "#cccccc",

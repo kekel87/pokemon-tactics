@@ -88,7 +88,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 
 > But : un lien partageable où quelqu'un peut jouer seul contre l'IA et s'amuser
 
-- [ ] i18n FR/EN (détection auto navigateur)
+- [x] i18n FR/EN (détection auto navigateur, persistance localStorage, bouton bascule) — plan 030
 - [ ] Menu principal + Settings (langue, damage preview on/off)
 - [ ] Feedbacks visuels des mécaniques (confusion, vampigraine, bind, knockback, etc.)
 - [ ] Indicateur visuel de miss (attaque ratée)

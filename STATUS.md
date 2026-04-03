@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-03 (Plan 029 terminé + améliorations IA post-plan : EndTurn orienté ennemi, scoring tiles réelles, friendly fire penalty, self-buffs intelligents, lookahead move+attack, filtrage scores négatifs — bug fixes : Volt Tackle dash sur cadavre, status icon après KO, golden replay régénéré 10 rounds/129 actions — 671 tests, 126 fichiers)
+> Dernière mise à jour : 2026-04-03 (Plan 030 terminé : i18n FR/EN — système maison ~70 lignes, 16 tests, fichiers JSON pokemon-names + moves, 7 fichiers UI migrés, bouton bascule, détection navigateur, persistance localStorage — 687 tests)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -398,6 +398,16 @@
   - `docs/ai-system.md` créé : architecture IA, pipeline scoring, niveaux de difficulté, décisions de design
   - `decisions.md` : décisions #163–167 ajoutées (scoring découplé, profils clones pour l'instant, bruit top-3, AiTeamController dans renderer, extraction Phase 5)
 
+- **Plan 030 terminé** — i18n FR/EN :
+  - Système i18n maison (~70 lignes) dans `packages/renderer/src/i18n/` : `t()`, `setLanguage()`, `detectLanguage()`, `onLanguageChange()`, persistance localStorage, const enum `Language`
+  - 16 tests dans `packages/renderer/src/i18n/index.test.ts`
+  - Fichiers de données localisées dans `packages/data/src/i18n/` : `pokemon-names.fr.json`, `pokemon-names.en.json`, `moves.en.json` (+ `moves.fr.json` existant réutilisé)
+  - `getMoveName(id, lang)` et `getPokemonName(id, lang)` exportés depuis `@pokemon-tactic/data`
+  - 7 fichiers UI migrés (plus aucun texte hardcodé) : ActionMenu, BattleUI, InfoPanel, MoveTooltip, PlacementRosterPanel, SandboxPanel, GameController
+  - Bouton bascule FR/EN (coin haut gauche) via `LanguageToggle.ts` — restart de scène Phaser au changement
+  - Détection auto de la langue navigateur au démarrage (navigator.language → 'fr' si commence par 'fr', sinon 'en')
+  - **687 tests**, build OK
+
 - **Plan 028 terminé** — Replay déterministe avec PRNG seedé :
   - `packages/core/src/utils/prng.ts` : PRNG mulberry32 seedé (`createPrng(seed)`), `RandomFn` type exporté
   - PRNG injecté dans tout le core : `BattleEngine`, `accuracy-check.ts`, `damage-calculator.ts`, handlers (`handle-status.ts`, `handle-damage.ts`, `status-tick-handler.ts`)
@@ -422,12 +432,12 @@
   - **333 tests**, 0 régressions, build OK, vérification visuelle OK
 
 ### Prochaine étape (Phase 2 — Démo jouable)
+- **Menu principal + Settings** : langue (i18n déjà fait — plan 030), damage preview on/off
 - **Battle log** : afficher les moves utilisés par l'IA et les joueurs (lisibilité du combat solo)
 - **Feedbacks visuels des mécaniques** : confusion, bind, knockback, multi-hit, recharge, badly poisoned — aucun retour visuel actuellement dans le renderer
 - **Indicateur de miss** : attaque ratée visible (texte flottant "Miss" ou animation dédiée)
 - **Portée de déplacement des ennemis** : afficher la portée au hover (aide à la lecture tactique)
 - **Algo de portée de déplacement** : tous les Pokemon semblent avoir la même portée — à revoir
-- **Menu principal + Settings** : langue (i18n FR/EN), damage preview on/off
 - **Sélection d'équipe** : grille portraits, bouton Auto — AiDifficulty s'y greffrera naturellement (choix du niveau de difficulté)
 
 ### Bugs connus non corrigés

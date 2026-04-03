@@ -1,4 +1,6 @@
 import { PlayerId, type PokemonInstance } from "@pokemon-tactic/core";
+import { getPokemonName } from "@pokemon-tactic/data";
+import { getLanguage, t } from "../i18n";
 import { CANVAS_WIDTH, DEPTH_UI_BASE } from "../constants";
 
 export class BattleUI {
@@ -21,9 +23,9 @@ export class BattleUI {
   }
 
   updateTurnInfo(pokemon: PokemonInstance, playerId: string, roundNumber: number): void {
-    const playerLabel = playerId === PlayerId.Player1 ? "Player 1" : "Player 2";
-    const name = pokemon.definitionId.charAt(0).toUpperCase() + pokemon.definitionId.slice(1);
-    this.turnInfoText.setText(`Round ${roundNumber} — ${playerLabel} — ${name}`);
+    const playerLabel = playerId === PlayerId.Player1 ? t("battle.player1") : t("battle.player2");
+    const name = getPokemonName(pokemon.definitionId, getLanguage());
+    this.turnInfoText.setText(`${t("battle.round", { round: roundNumber })} — ${playerLabel} — ${name}`);
   }
 
   showVictory(winnerId: string, roundNumber: number): void {
@@ -31,7 +33,7 @@ export class BattleUI {
       return;
     }
 
-    const playerLabel = winnerId === PlayerId.Player1 ? "Player 1" : "Player 2";
+    const playerLabel = winnerId === PlayerId.Player1 ? t("battle.player1") : t("battle.player2");
 
     const overlay = document.createElement("div");
     overlay.style.cssText = `
@@ -41,13 +43,13 @@ export class BattleUI {
     `;
 
     const text = document.createElement("div");
-    text.textContent = `${playerLabel} wins! — Round ${roundNumber}`;
+    text.textContent = t("battle.wins", { player: playerLabel, round: roundNumber });
     text.style.cssText =
       "font-size: 42px; color: #ffcc00; margin-bottom: 24px; text-align: center;";
     overlay.appendChild(text);
 
     const button = document.createElement("button");
-    button.textContent = "Restart";
+    button.textContent = t("battle.restart");
     button.style.cssText = `
       padding: 10px 40px; font-size: 16px; font-family: monospace;
       background: #44aa44; color: white; border: 2px solid #66cc66;

@@ -42,3 +42,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 027 | [8 nouveaux Pokemon : données, sprites et documentation](./027-new-pokemon-roster.md) | done | 2026-04-02 |
 | 028 | [Replay déterministe avec PRNG seedé](./028-deterministic-replay.md) | done | 2026-04-02 |
 | 029 | [IA jouable avec niveaux de difficulté](./029-ai-difficulty-levels.md) | ready | 2026-04-02 |
+| 030 | [Internationalisation FR/EN](./030-i18n-fr-en.md) | ready | 2026-04-03 |
