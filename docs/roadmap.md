@@ -91,8 +91,13 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [ ] i18n FR/EN (détection auto navigateur)
 - [ ] Menu principal + Settings (langue, damage preview on/off)
 - [ ] Feedbacks visuels des mécaniques (confusion, vampigraine, bind, knockback, etc.)
+- [ ] Indicateur visuel de miss (attaque ratée)
 - [ ] Animations fluides (attaque par catégorie, déplacement par type, polish mouvement)
-- [ ] IA jouable avec personnalité
+- [x] IA jouable avec personnalité (plan 029 — AiDifficulty easy/medium/hard, action-scorer, scored-ai, AiTeamController, smoke test 6v6)
+- [x] IA améliorée : lookahead move+attack (évaluer les attaques possibles après déplacement)
+- [ ] Battle log (afficher les moves utilisés par l'IA et les joueurs)
+- [ ] Afficher la portée de déplacement des ennemis au hover
+- [ ] Revoir l'algo de portée de déplacement (tous les Pokemon semblent avoir la même portée)
 - [ ] Sélection d'équipe (grille portraits, bouton Auto)
 - [ ] Hot-seat 1v1 + multi-équipes (2 à 12 joueurs, IA ou humain par équipe)
 - [ ] Repo public (README présentable, système de feedback)

@@ -1,4 +1,6 @@
 export { pickAggressiveAction, pickRandomAction } from "./ai/index";
+export { EASY_PROFILE, HARD_PROFILE, MEDIUM_PROFILE } from "./ai/ai-profiles";
+export { pickScoredAction } from "./ai/scored-ai";
 export { BattleEngine } from "./battle/BattleEngine";
 export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
 export { EffectHandlerRegistry } from "./battle/effect-handler-registry";

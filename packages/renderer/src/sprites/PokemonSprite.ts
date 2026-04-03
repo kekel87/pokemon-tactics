@@ -250,6 +250,11 @@ export class PokemonSprite {
 
   playFaintAndStay(): Promise<void> {
     this.setActive(false);
+    if (this.statusIcon) {
+      this.statusIcon.destroy();
+      this.statusIcon = null;
+      this.currentStatusKey = "";
+    }
     const sprite = this.sprite;
     const key = sprite ? getAnimationKey(this.definitionId, "Faint", this.currentDirection) : null;
     const canPlayFaint = sprite && key && this.scene.anims.exists(key);

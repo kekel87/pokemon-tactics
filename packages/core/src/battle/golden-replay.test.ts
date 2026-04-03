@@ -152,10 +152,10 @@ describe("golden replay", () => {
       (p) => p.playerId === PlayerId.Player2 && p.currentHp > 0,
     );
 
-    expect(team1Alive.length).toBeGreaterThan(0);
-    expect(team2Alive.length).toBe(0);
-    expect(finalState.roundNumber).toBe(32);
-    expect(replay.actions.length).toBe(247);
+    expect(team2Alive.length).toBeGreaterThan(0);
+    expect(team1Alive.length).toBe(0);
+    expect(finalState.roundNumber).toBe(10);
+    expect(replay.actions.length).toBe(129);
   });
 
   it("produces the same replay when running the battle from scratch", () => {

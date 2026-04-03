@@ -641,6 +641,7 @@ export class BattleEngine {
         if (occupantPokemon && occupantPokemon.currentHp > 0) {
           break;
         }
+        continue;
       }
       destination = position;
     }

@@ -25,6 +25,7 @@ Profil : dev web Angular/TS expérimenté, clean code advocate, expérience Godo
 | `docs/roadmap.md` | Pour savoir quoi faire ensuite |
 | `docs/references.md` | Quand on cherche comment un problème a été résolu ailleurs |
 | `docs/methodology.md` | Pour le workflow de travail |
+| `docs/ai-system.md` | Avant de modifier l'IA (scoring, profils, AiTeamController) |
 | `plans/` | Lire le plan en cours avant de coder. Consulter les anciens si besoin de contexte. |
 
 Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.

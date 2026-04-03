@@ -41,3 +41,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 026 | [Nouvelles mécaniques core : badly_poisoned, confusion, bind, knockback, multi-hit, recharge](./026-roster-expansion-phase1.md) | done | 2026-04-02 |
 | 027 | [8 nouveaux Pokemon : données, sprites et documentation](./027-new-pokemon-roster.md) | done | 2026-04-02 |
 | 028 | [Replay déterministe avec PRNG seedé](./028-deterministic-replay.md) | done | 2026-04-02 |
+| 029 | [IA jouable avec niveaux de difficulté](./029-ai-difficulty-levels.md) | ready | 2026-04-02 |
