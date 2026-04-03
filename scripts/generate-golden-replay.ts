@@ -9,6 +9,7 @@ import type {
 import {
   BattleEngine,
   computeCombatStats,
+  computeMovement,
   createPrng,
   Direction,
   PlayerId,
@@ -84,7 +85,7 @@ function buildGoldenEngine(seed: number) {
       maxHp: combatStats.hp,
       baseStats: { ...definition.baseStats },
       combatStats,
-      derivedStats: { movement: 3, jump: 1, initiative: combatStats.speed },
+      derivedStats: { movement: computeMovement(definition.baseStats.speed, 0), jump: 1, initiative: combatStats.speed },
       statStages: { ...ZERO_STAT_STAGES },
       statusEffects: [],
       position: pos,
@@ -113,12 +114,6 @@ function buildGoldenEngine(seed: number) {
   const state = {
     grid,
     pokemon: pokemonMap,
-    activeLinks: [] as Array<{
-      sourceId: string;
-      targetId: string;
-      type: string;
-      maxRange: number;
-    }>,
     turnOrder: [] as string[],
     currentTurnIndex: 0,
     roundNumber: 1,

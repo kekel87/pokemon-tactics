@@ -12,6 +12,7 @@ import {
   BattleEngine,
   type BattleState,
   computeCombatStats,
+  computeMovement,
   PlacementMode,
   PlacementPhase,
   PlayerController,
@@ -61,7 +62,7 @@ function createPokemonInstance(
     baseStats: { ...definition.baseStats },
     combatStats,
     derivedStats: {
-      movement: 3,
+      movement: computeMovement(definition.baseStats.speed, 0),
       jump: 1,
       initiative: combatStats.speed,
     },

@@ -14,7 +14,7 @@
 | 2 | 2026-03-19 | Friendly fire | **Oui** | AoE touche les alliés. Force le positionnement. |
 | 3 | 2026-03-19 | Format joueurs | **Hot-seat**, jusqu'à 12 joueurs | Style Civilization. Équipes ou FFA. Réseau plus tard. |
 | 4 | 2026-03-19 | Stats de base | **Stats officielles Pokemon** | On adapte les formules, pas les stats. |
-| 5 | 2026-03-19 | Stats dérivées | **Calculées depuis Vitesse + Poids** | Mouvement, Saut, Initiative. Formules à définir. |
+| 5 | 2026-03-19 | Stats dérivées | **Mouvement = paliers base speed (décisions #179-181). Initiative = combat speed. Saut = 1 (à définir).** | Mouvement basé sur base speed + stages. Poids écarté du mouvement. Saut fixe à 1 pour l'instant (pas de dénivelé en Phase 2). |
 | 6 | 2026-03-19 | Formule de dégâts | **Formule Pokemon officielle** comme base | Adaptée au contexte tactique (terrain, hauteur...). |
 | 7 | 2026-03-19 | Architecture | **Moteur découplé du rendu** | Core TS pur. Permet AI, tests headless, changement de renderer. |
 | 8 | 2026-03-19 | AI-playable | **Oui** | IA classique + LLM + MCP server. Pour tests, équilibrage, solo. |
@@ -185,6 +185,10 @@
 | 175 | 2026-04-03 | Moves piège — catalogue complet pour référence | **10 moves piège dans Pokemon (Ligotage, Étreinte, Claquoir, Danse Flammes, Siphon, Tourbi-Sable, Vortex Magma, Harcèlement, Troquenard, Voltageôle). Tous : 1/8 HP/tour, 4-5 tours, immobilise.** | Visuels différents par type (feu, eau, sable, électrique...) mais mécaniquement identiques. Approche visuelle : effet générique teinté par type. Polish avec effets dédiés en Phase 8. |
 | 176 | 2026-04-03 | Rapid Spin — retire vampigraine et pièges | **Rapid Spin (et moves similaires) retirera les statuts Seeded et Trapped** | À implémenter quand Rapid Spin sera ajouté au roster. Moves similaires à identifier : Mortal Spin, Court Change, Defog (hazards). |
 | 177 | 2026-04-03 | Coups critiques — plan dédié | **Mécanique core manquante. Plan dédié à créer.** | Doit inclure : formule de probabilité, multiplicateur de dégâts, texte flottant "Critical hit!", intégration dans le pipeline de dégâts. |
+| 179 | 2026-04-03 | Mouvement — basé sur base speed, pas combat speed | **`effectiveSpeed = floor(baseSpeed × stageMultiplier)` → paliers vers move 2–7** | La combat speed dépend du niveau (un Pikachu niv.5 aurait move 2 comme Ramoloss). La base speed est fixe par espèce → mouvement constant quel que soit le niveau. Les buffs de vitesse (Hâte +2 stages) modifient naturellement le mouvement. |
+| 180 | 2026-04-03 | Mouvement — paliers et range | **Move 2 (≤20) / 3 (21–45) / 4 (46–85) / 5 (86–170) / 6 (171–340) / 7 (≥341). Plancher 2, plafond 7.** | Calibré sur toutes les gens (speed 5 à 200). Stage 0 : move 2–5 (move 6–7 uniquement via buffs). Distribution Gen 1 : ~9% move 2, ~22% move 3, ~37% move 4, ~32% move 5. Sur grille 12×12, move 5 ≈ 40% de la carte. Inspiré Pokemon Conquest (move fixe par espèce) + FFT (buffs Move+N). |
+| 181 | 2026-04-03 | Mouvement — pas d'influence du poids | **Le poids n'affecte pas le mouvement** | Initialement envisagé (Vitesse + Poids). Écarté car un Ronflex serait injouable (lent ET immobile). Aucun jeu tactique de référence ne dérive le mouvement du poids. Le poids pourra influencer d'autres mécaniques (dégâts de chute, knockback resistance). |
+| 182 | 2026-04-03 | Stats et mécaniques — versions les plus récentes | **On utilise les stats, formules, attaques et talents de la dernière génération (Gen 9 / Scarlet-Violet)** | Le roster est limité Gen 1 (décision #92), mais les données (base stats, movepool, formules de calcul) suivent les valeurs les plus récentes. Permet de bénéficier des ajustements d'équilibrage faits par Game Freak au fil des générations. |
 | 178 | 2026-04-03 | Niveaux d'efficacité affichés — 5 paliers style Pokemon Champions | **x4 "Extremely effective" / "Extrêmement efficace", x2 "Super effective" / "Super efficace", x0.5 "Not very effective" / "Pas très efficace", x0.25 "Mostly ineffective" / "Quasi inefficace", x0 "No effect" / "Immunisé"** | Inspiré de Pokemon Champions qui ajoute les paliers x4 et x0.25 absents des jeux mainline. Affiché en texte flottant après l'attaque (pas uniquement en preview). L'immunité (x0) est également affichée post-attaque, et pas seulement dans la preview de dégâts. |
 
 ---
@@ -193,7 +197,7 @@
 
 | # | Question | Notes | Priorité |
 |---|----------|-------|----------|
-| 1 | Formules dérivées | Vitesse/Poids → Mouvement/Saut/Initiative. Attention : Hâte (+2 Vit) ne doit pas être OP si Initiative = Vitesse. | Phase 1 |
+| ~~1~~ | ~~Formules dérivées~~ | Résolu décisions #179-181 : Mouvement = paliers base speed (2–7), pas de poids. Initiative = combat speed. Saut = 1 pour l'instant. | ~~Phase 1~~ |
 | 4 | Dégâts de chute & Poids | Le poids influence-t-il les dégâts de chute ? Plus lourd = plus de dégâts au sol ? À tester. | Phase 2 |
 | 5 | ~~Countdown KO~~ | Résolu décision #24 : pas de countdown, KO définitif. Corps reste sur la tile. Seule revival : Second Souffle (1 PP). | ~~Phase 1~~ |
 | 6 | PP ou Points d'action ? | Les PP fonctionnent-ils dans un contexte tactique ? Sinon passer à un système de points d'action style FFTA. Tests headless : une IA sans filtre de cible gaspille ses PP (bug IA, pas bug PP). Les PP fonctionnent correctement côté core. À évaluer côté équilibrage en Phase 1. | Phase 1 |

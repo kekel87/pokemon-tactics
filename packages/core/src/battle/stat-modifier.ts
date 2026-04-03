@@ -27,3 +27,23 @@ export function clampStages(current: number, change: number): number {
 export function isMajorStatus(status: StatusType): boolean {
   return MAJOR_STATUSES.has(status);
 }
+
+const MOVEMENT_THRESHOLDS: ReadonlyArray<{ readonly maxSpeed: number; readonly movement: number }> = [
+  { maxSpeed: 20, movement: 2 },
+  { maxSpeed: 45, movement: 3 },
+  { maxSpeed: 85, movement: 4 },
+  { maxSpeed: 170, movement: 5 },
+  { maxSpeed: 340, movement: 6 },
+];
+
+const MAX_MOVEMENT = 7;
+
+export function computeMovement(baseSpeed: number, speedStages: number): number {
+  const effectiveSpeed = Math.floor(baseSpeed * getStatMultiplier(speedStages));
+  for (const threshold of MOVEMENT_THRESHOLDS) {
+    if (effectiveSpeed <= threshold.maxSpeed) {
+      return threshold.movement;
+    }
+  }
+  return MAX_MOVEMENT;
+}
