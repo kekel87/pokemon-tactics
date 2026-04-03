@@ -281,6 +281,7 @@ describe("BattleEngine.submitAction move", () => {
         { x: 2, y: 0 },
         { x: 3, y: 0 },
         { x: 4, y: 0 },
+        { x: 4, y: 1 },
       ],
     });
     expect(result.success).toBe(false);

@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-03 (Plan 031 + corrections post-review : feedbacks visuels de combat + refactor statuts volatils — BattleText fire-and-forget 2200ms, knockback slide, confusion wobble permanent, 5 niveaux d'efficacité style Pokemon Champions, Immune post-attaque, badges volatils InfoPanel, Seeded/Trapped remplacent ActiveLink — 630 tests, 122 fichiers)
+> Dernière mise à jour : 2026-04-03 (Plan 032 : portée de déplacement variable par Pokemon — computeMovement(baseSpeed, speedStages), recalcul dynamique après speed stages, mocks + golden replay mis à jour — 705 tests)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -398,6 +398,15 @@
   - `docs/ai-system.md` créé : architecture IA, pipeline scoring, niveaux de difficulté, décisions de design
   - `decisions.md` : décisions #163–167 ajoutées (scoring découplé, profils clones pour l'instant, bruit top-3, AiTeamController dans renderer, extraction Phase 5)
 
+- **Plan 032 terminé** — Portée de déplacement variable par Pokemon :
+  - `computeMovement(baseSpeed, speedStages)` dans `stat-modifier.ts` — formule basée sur effective speed avec paliers 2-7 (≤20→2, 21-45→3, 46-85→4, 86-170→5, 171-340→6, ≥341→7)
+  - Recalcul dynamique de `derivedStats.movement` après chaque changement de speed stages (Hâte, etc.)
+  - `BattleSetup.ts` et helpers de test ne hardcodent plus `movement: 3`
+  - Mocks `MockPokemon` recalculés selon la base speed réelle de chaque espèce
+  - Golden replay mis à jour
+  - `movement-stages.test.ts` : test intégration Gherkin (Hâte agrandit la portée, Rugissement la réduit, plancher 2 respecté)
+  - **705 tests**, build OK
+
 - **Plan 031 terminé + corrections post-review** — Feedbacks visuels de combat + refactor statuts volatils :
   - **BattleText** : système de textes flottants unifiés (dégâts, miss, effectiveness, stat changes, statuts, knockback, piège, etc.) — fire-and-forget, knockback enchaîne pendant le hit
   - **Textes flottants ralentis** : durée 2200ms (au lieu de 1000ms) pour lisibilité
@@ -451,7 +460,7 @@
 - **Battle log** : afficher les moves utilisés par l'IA et les joueurs (lisibilité du combat solo)
 - **Indicateur de miss** : ✓ couvert par BattleText plan 031 (texte flottant "Miss")
 - **Portée de déplacement des ennemis** : afficher la portée au hover (aide à la lecture tactique)
-- **Algo de portée de déplacement** : tous les Pokemon semblent avoir la même portée — à revoir
+- ~~**Algo de portée de déplacement** : tous les Pokemon semblent avoir la même portée~~ ✓ Couvert par plan 032
 - **Sélection d'équipe** : grille portraits, bouton Auto — AiDifficulty s'y greffrera naturellement (choix du niveau de difficulté)
 
 ### Bugs connus non corrigés

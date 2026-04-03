@@ -15,6 +15,7 @@ import { createPrng } from "../utils/prng";
 import { BattleEngine } from "./BattleEngine";
 import { runReplay } from "./replay-runner";
 import { computeCombatStats } from "./stat-calculator";
+import { computeMovement } from "./stat-modifier";
 
 const BATTLE_LEVEL = 50;
 
@@ -79,7 +80,7 @@ function buildGoldenEngine(seed: number): BattleEngine {
       maxHp: combatStats.hp,
       baseStats: { ...definition.baseStats },
       combatStats,
-      derivedStats: { movement: 3, jump: 1, initiative: combatStats.speed },
+      derivedStats: { movement: computeMovement(definition.baseStats.speed, 0), jump: 1, initiative: combatStats.speed },
       statStages: { ...ZERO_STAT_STAGES },
       statusEffects: [],
       position: pos,
@@ -148,8 +149,8 @@ describe("golden replay", () => {
 
     expect(team2Alive.length).toBeGreaterThan(0);
     expect(team1Alive.length).toBe(0);
-    expect(finalState.roundNumber).toBe(10);
-    expect(replay.actions.length).toBe(129);
+    expect(finalState.roundNumber).toBe(6);
+    expect(replay.actions.length).toBe(82);
   });
 
   it("produces the same replay when running the battle from scratch", () => {

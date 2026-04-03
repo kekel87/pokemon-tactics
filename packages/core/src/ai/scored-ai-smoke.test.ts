@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { BattleEngine } from "../battle/BattleEngine";
 import { PlacementPhase } from "../battle/PlacementPhase";
 import { computeCombatStats } from "../battle/stat-calculator";
+import { computeMovement } from "../battle/stat-modifier";
 import { TurnPipeline } from "../battle/turn-pipeline";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
@@ -111,7 +112,7 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
         maxHp: combatStats.hp,
         baseStats: { ...definition.baseStats },
         combatStats,
-        derivedStats: { movement: 3, jump: 1, initiative: combatStats.speed },
+        derivedStats: { movement: computeMovement(definition.baseStats.speed, 0), jump: 1, initiative: combatStats.speed },
         statStages: { ...ZERO_STAT_STAGES },
         statusEffects: [],
         position: placement.position,

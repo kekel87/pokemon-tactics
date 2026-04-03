@@ -44,3 +44,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 029 | [IA jouable avec niveaux de difficulté](./029-ai-difficulty-levels.md) | ready | 2026-04-02 |
 | 030 | [Internationalisation FR/EN](./030-i18n-fr-en.md) | ready | 2026-04-03 |
 | 031 | [Feedbacks visuels de combat et refactor statuts volatils](./031-battle-visual-feedback.md) | draft | 2026-04-03 |
+| 032 | [Portée de déplacement variable par Pokemon](./032-variable-movement-by-speed.md) | done | 2026-04-03 |

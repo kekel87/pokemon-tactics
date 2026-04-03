@@ -98,7 +98,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] IA améliorée : lookahead move+attack (évaluer les attaques possibles après déplacement)
 - [ ] Battle log (afficher les moves utilisés par l'IA et les joueurs)
 - [ ] Afficher la portée de déplacement des ennemis au hover
-- [ ] Revoir l'algo de portée de déplacement (tous les Pokemon semblent avoir la même portée)
+- [x] Revoir l'algo de portée de déplacement (tous les Pokemon semblent avoir la même portée) — plan 032
 - [ ] Sélection d'équipe (grille portraits, bouton Auto)
 - [ ] Hot-seat 1v1 + multi-équipes (2 à 12 joueurs, IA ou humain par équipe)
 - [ ] Repo public (README présentable, système de feedback)

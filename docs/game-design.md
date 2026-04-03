@@ -58,7 +58,7 @@ Avant le premier tour de combat, les joueurs placent leurs Pokemon sur les zones
 |----------|-------------|
 | **Stats de base** | PV, Attaque, Défense, Atk Spé, Déf Spé, Vitesse — **stats officielles Pokemon** |
 | **Niveau de combat** | Fixé à **50**. Les stats sont calculées avec la formule Pokemon Gen 5+ au niveau 50 (sans IV/EV pour le POC). Donne des Pokemon plus bulky et des combats plus tactiques. |
-| **Stats dérivées** | Mouvement, Saut, Initiative — **calculées depuis Vitesse + Poids** (formules à définir) |
+| **Stats dérivées** | Mouvement, Saut, Initiative — voir [section 6b](#6b-mouvement--formule-de-portée-de-déplacement) pour la formule |
 | **Types** | Système de types Pokemon (18 types, faiblesses/résistances) |
 | **4 Attaques** | Puissance, précision, PP, type, catégorie (phys/spé/statut), **pattern d'AoE**, **portée** — chaque valeur peut être surchargée pour l'équilibrage tactique |
 | **1 Talent** | Capacité passive (ex: Intimidation, Lévitation...) |
@@ -168,6 +168,65 @@ Le système de précision Pokemon (précision attaque × évasion cible) est con
 - Les Pokemon **Feu** sont immunisés à la lave
 - Les Pokemon **Eau** nagent dans l'eau
 - Les attaques peuvent **modifier le terrain** (Champ Herbeux, Champ Électrifié, etc.)
+
+---
+
+## 6b. Mouvement — formule de portée de déplacement
+
+Le mouvement (nombre de tiles par tour) est dérivé de la **base speed** du Pokemon (stat officielle, indépendante du niveau) et des **stages de vitesse** en combat (-6 à +6).
+
+### Formule
+
+```
+effectiveSpeed = floor(baseSpeed × stageMultiplier)
+movement = palier correspondant (voir table ci-dessous)
+```
+
+Le `stageMultiplier` est celui des jeux Pokemon : `(2 + stages) / 2` si positif, `2 / (2 - stages)` si négatif. Soit x0.25 à x4.0.
+
+### Paliers de mouvement
+
+| Move | Vitesse effective | Exemples stage 0 |
+|------|-------------------|-------------------|
+| **2** | ≤ 20 | Ramoloss (15), Racaillou (20), Rondoudou (20) |
+| **3** | 21–45 | Ronflex (30), Machoc (35), Bulbizarre (45) |
+| **4** | 46–85 | Évoli (55), Caninos (60), Fantominus (80) |
+| **5** | 86–170 | Pikachu (90), Dracaufeu (100), Electrode (150) |
+| **6** | 171–340 | *Uniquement via buffs (ex: Hâte ×1 sur base 86+)* |
+| **7** | ≥ 341 | *Uniquement via buffs (ex: Hâte ×2 sur base 86+)* |
+
+**Plancher : 2. Plafond : 7.**
+
+### Pourquoi la base speed et pas la combat speed ?
+
+La combat speed dépend du niveau (`floor(2 × base × level / 100) + 5`). Si on l'utilisait, un Pikachu niveau 5 aurait 14 de combat speed → move 2, aussi lent que Ramoloss. En se basant sur la base speed (fixe par espèce), le mouvement est **constant quel que soit le niveau** — seuls les stages en combat le modifient.
+
+### Interactions avec les buffs/debuffs
+
+| Situation | Effet sur le mouvement |
+|-----------|------------------------|
+| Hâte (+2 stages, ×2.0) | +1 à +2 move selon le Pokemon |
+| Double Hâte (+4 stages, ×3.0) | Rapides atteignent move 7 |
+| Paralysie (si impacte speed) | Réduit le mouvement via le stage |
+| Toile Gluante, Vent Arrière | Modificateurs futurs possibles |
+
+### Exemples concrets avec Hâte
+
+| Pokemon (base) | Stage 0 | +2 (Hâte) | +4 | +6 |
+|----------------|---------|-----------|-----|-----|
+| Ramoloss (15) | 2 | 3 | 3 | 4 |
+| Ronflex (30) | 3 | 4 | 5 | 5 |
+| Bulbizarre (45) | 4 | 5 | 5 | 6 |
+| Pikachu (90) | 5 | 6 | 7 | 7 |
+| Electrode (150) | 5 | 7 | 7 | 7 |
+
+### Principes de design
+
+- **Inspiré de Pokemon Conquest** : mouvement fixe par espèce, range serré (Conquest : 2–4).
+- **Aucun jeu tactique de référence** (FFT, Fire Emblem, Disgaea, Advance Wars) ne dérive le mouvement de la vitesse directement — c'est toujours une stat fixe. Ici on fait un compromis : fixe par espèce mais modifiable par les buffs de vitesse.
+- **Move 5 max naturel** : sur une grille 12×12, move 5 permet de traverser ~40% de la carte. Move 6–7 est réservé aux buffs pour rester impactant.
+- **Distribution Gen 1** : ~9% move 2 / ~22% move 3 / ~37% move 4 / ~32% move 5 — bonne répartition sur 4 tiers.
+- **Extensible** : les paliers peuvent être ajustés si on introduit des cartes plus grandes.
 
 ---
 

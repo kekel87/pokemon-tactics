@@ -1,6 +1,7 @@
 import { loadData, pocArena } from "@pokemon-tactic/data";
 import { BattleEngine } from "../battle/BattleEngine";
 import { computeCombatStats } from "../battle/stat-calculator";
+import { computeMovement } from "../battle/stat-modifier";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import type { MoveDefinition } from "../types/move-definition";
@@ -68,7 +69,7 @@ export function buildTestEngineFromPlacements(
       maxHp: combatStats.hp,
       baseStats: { ...definition.baseStats },
       combatStats,
-      derivedStats: { movement: 3, jump: 1, initiative: combatStats.speed },
+      derivedStats: { movement: computeMovement(definition.baseStats.speed, 0), jump: 1, initiative: combatStats.speed },
       statStages: { ...ZERO_STAT_STAGES },
       statusEffects: [],
       position: placement.position,

@@ -9,6 +9,7 @@ export { getEffectiveInitiative } from "./battle/initiative-calculator";
 export type { PlacementResult } from "./battle/PlacementPhase";
 export { PlacementError, PlacementPhase } from "./battle/PlacementPhase";
 export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator";
+export { computeMovement } from "./battle/stat-modifier";
 export { TurnManager } from "./battle/TurnManager";
 export type { PhaseHandler, PhaseResult } from "./battle/turn-pipeline";
 export { TurnPipeline } from "./battle/turn-pipeline";
