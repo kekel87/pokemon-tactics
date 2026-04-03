@@ -52,6 +52,27 @@ Avant le premier tour de combat, les joueurs placent leurs Pokemon sur les zones
 
 ---
 
+## 2c. Sélection d'équipe (TeamSelectScene)
+
+Avant la phase de placement, les joueurs construisent leur équipe dans `TeamSelectScene` — le premier écran affiché au démarrage.
+
+- **Grille de portraits** : 5×4, portraits 82px — les 20 Pokemon du roster sont affichés
+- **Deux encadrés d'équipe** toujours visibles : actif (lumineux) et inactif (discret). Couleur bleu pour Joueur 1, rouge pour Joueur 2 — aligné avec les couleurs d'équipe dans l'InfoPanel et les zones de spawn
+- **Sélection** : clic sur un portrait l'ajoute à l'équipe active (max 6, un seul exemplaire par espèce par équipe). Mirror match autorisé entre équipes (décision #184)
+- **Toggle Humain/IA** sur la même ligne que "Joueur X" — IA vs IA possible (mode spectateur, décision #185)
+- **Bouton Auto** : re-randomize toute l'équipe à chaque clic (6 Pokemon aléatoires distincts)
+- **Bouton Vider** : réinitialise l'équipe à 0 Pokemon
+- **Bouton Valider** : valide l'équipe via `validateTeamSelection()` (core), affiche les erreurs i18n si invalide
+- **Toggle Placement auto / Placement manuel** : à côté du bouton "Lancer le combat" — contrôle le `PlacementMode` transmis à `BattleScene`
+- **Lancer le combat** : actif seulement si les deux équipes sont validées
+- **Noms des Pokemon** : affichés en FR ou EN selon la langue active (i18n depuis `@pokemon-tactic/data`)
+- **Zones de spawn** sur la carte poc-arena colorées selon les équipes (bleu/rouge, décision #189)
+- **Bypass sandbox** : `parseSandboxQueryParams()` court-circuite `TeamSelectScene` si `?sandbox` est présent dans l'URL (décision #187)
+
+**Flow complet :** `TeamSelectScene` → `BattleScene` (placement) → Combat → Écran de victoire (Rejouer ou Retour au menu)
+
+---
+
 ## 3. Pokemon
 
 | Attribut | Description |

@@ -50,10 +50,10 @@ import {
   TILE_PREVIEW_ALPHA,
   TILE_PREVIEW_ATTACK_COLOR,
   TILE_PREVIEW_BUFF_COLOR,
-  TILE_SPAWN_ZONE_ACTIVE_COLOR,
+  TEAM_COLOR_PLAYER_1,
+  TEAM_COLOR_PLAYER_2,
   TILE_SPAWN_ZONE_ALPHA,
   TILE_SPAWN_ZONE_INACTIVE_COLOR,
-  TILE_SPAWN_ZONE_OCCUPIED_COLOR,
 } from "../constants";
 import { HighlightKind } from "../enums/highlight-kind";
 import type { IsometricGrid } from "../grid/IsometricGrid";
@@ -1238,25 +1238,31 @@ export class GameController {
     activeTeamIndex: number,
     occupiedPositions: Array<{ x: number; y: number }>,
   ): void {
+    const teamColors = [TEAM_COLOR_PLAYER_1, TEAM_COLOR_PLAYER_2];
     const occupiedKeys = new Set(occupiedPositions.map((p) => `${p.x},${p.y}`));
 
     for (let i = 0; i < spawnZones.length; i++) {
       const zone = spawnZones[i];
       if (!zone) continue;
+      const baseColor = teamColors[i] ?? TILE_SPAWN_ZONE_INACTIVE_COLOR;
 
       for (const position of zone.positions) {
         const key = `${position.x},${position.y}`;
         let color: number;
+        let alpha: number;
 
         if (occupiedKeys.has(key)) {
-          color = TILE_SPAWN_ZONE_OCCUPIED_COLOR;
+          color = baseColor;
+          alpha = 0.2;
         } else if (i === activeTeamIndex) {
-          color = TILE_SPAWN_ZONE_ACTIVE_COLOR;
+          color = baseColor;
+          alpha = TILE_SPAWN_ZONE_ALPHA;
         } else {
-          color = TILE_SPAWN_ZONE_INACTIVE_COLOR;
+          color = baseColor;
+          alpha = 0.25;
         }
 
-        this.isometricGrid.highlightTilesWithColor([position], color, TILE_SPAWN_ZONE_ALPHA);
+        this.isometricGrid.highlightTilesWithColor([position], color, alpha);
       }
     }
   }

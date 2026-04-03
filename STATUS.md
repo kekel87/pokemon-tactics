@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-03 (Plan 032 : portée de déplacement variable par Pokemon — computeMovement(baseSpeed, speedStages), recalcul dynamique après speed stages, mocks + golden replay mis à jour — 705 tests)
+> Dernière mise à jour : 2026-04-03 (Plan 033 + améliorations UI : TeamSelectScene — grille 5x4 portraits 82px, slots colorés équipe (bleu/rouge), zones de spawn carte alignées, toggle Humain/IA sur une ligne, bouton Vider, bouton Retour au menu victoire, placement auto/manuel, noms Pokemon i18n, bouton Auto re-randomize, TeamValidationError const enum, MockTeamSelection — 664 tests)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -398,6 +398,29 @@
   - `docs/ai-system.md` créé : architecture IA, pipeline scoring, niveaux de difficulté, décisions de design
   - `decisions.md` : décisions #163–167 ajoutées (scoring découplé, profils clones pour l'instant, bruit top-3, AiTeamController dans renderer, extraction Phase 5)
 
+- **Plan 033 terminé + améliorations UI post-review** — Écran de sélection d'équipe (Team Select) :
+  - `TeamSelectScene` : premier écran du jeu, grille 5x4 de portraits, sélection d'équipe jusqu'à 6 Pokemon distincts par équipe
+  - `validateTeamSelection()` dans le core avec `TeamValidationError` const enum, `TeamSelection` et `TeamValidationResult` types
+  - `MockTeamSelection` dans `packages/core/src/testing/`, erreurs i18n
+  - `preloadPortraitsOnly()` dans `SpriteLoader` : charge uniquement les portraits sans les atlas complets
+  - 16 clés i18n `teamSelect.*` (FR + EN) — noms Pokemon traduits (20 Pokemon)
+  - Toggle Humain/IA par joueur sur la même ligne que "Joueur X" — IA vs IA possible (auto-placement des deux équipes)
+  - Bouton "Auto" re-randomize l'équipe à chaque clic (pas de fill progressif)
+  - Bouton "Vider" (Clear) pour réinitialiser une équipe
+  - Bouton "Valider" par équipe avec feedback d'erreur, verrouillage/déverrouillage
+  - Bouton "Lancer le combat" + toggle "Placement auto / Placement manuel" sur la même ligne
+  - Bouton "Retour au menu" dans l'écran de victoire (en plus de Rejouer)
+  - **Slots colorés** : couleur d'équipe (bleu J1, rouge J2) sur les encadrés de slots
+  - **Deux encadrés toujours visibles** : actif lumineux, inactif discret
+  - **Zones de spawn** sur la carte poc-arena colorées selon les équipes (bleu/rouge au lieu de bleu/gris générique)
+  - **Grille de portraits agrandie** : 82px (au lieu de 64px), noms sans débordement
+  - Boutons Valider/Auto/Vider répartis uniformément en bas de chaque panel
+  - `BattleScene` reçoit les équipes depuis `TeamSelectScene` (plus de `defaultTeams` hardcodé)
+  - Flow : `TeamSelectScene` → `BattleScene` (placement) → Combat
+  - Mode sandbox (`?sandbox`) bypass `TeamSelectScene` via `parseSandboxQueryParams()`
+  - `main.ts` : ordre des scènes `[TeamSelectScene, BattleScene, BattleUIScene]`
+  - **664 tests**, build OK
+
 - **Plan 032 terminé** — Portée de déplacement variable par Pokemon :
   - `computeMovement(baseSpeed, speedStages)` dans `stat-modifier.ts` — formule basée sur effective speed avec paliers 2-7 (≤20→2, 21-45→3, 46-85→4, 86-170→5, 171-340→6, ≥341→7)
   - Recalcul dynamique de `derivedStats.movement` après chaque changement de speed stages (Hâte, etc.)
@@ -461,7 +484,8 @@
 - **Indicateur de miss** : ✓ couvert par BattleText plan 031 (texte flottant "Miss")
 - **Portée de déplacement des ennemis** : afficher la portée au hover (aide à la lecture tactique)
 - ~~**Algo de portée de déplacement** : tous les Pokemon semblent avoir la même portée~~ ✓ Couvert par plan 032
-- **Sélection d'équipe** : grille portraits, bouton Auto — AiDifficulty s'y greffrera naturellement (choix du niveau de difficulté)
+- ~~**Sélection d'équipe** : grille portraits, bouton Auto~~ ✓ Couvert par plan 033
+- **Hot-seat 1v1 + multi-équipes** : 2 à 12 joueurs, IA ou humain par équipe (fondations posées par plan 033)
 
 ### Bugs connus non corrigés
 *(aucun bug connu bloquant pour la Phase 2)*

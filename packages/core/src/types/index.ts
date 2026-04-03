@@ -22,4 +22,6 @@ export type * from "./status-effect";
 export type * from "./targeting-pattern";
 export type * from "./tile-state";
 export type * from "./traversal-context";
+export type * from "./team-selection";
+export type * from "./team-validation-result";
 export type * from "./volatile-status";

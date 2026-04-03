@@ -26,6 +26,16 @@ const DEFAULT_SPRITE_OFFSETS: SpriteOffsets = {
 
 const TICK_DURATION_MS = 33;
 
+export function preloadPortraitsOnly(
+  scene: Phaser.Scene,
+  definitionIds: string[],
+): void {
+  for (const definitionId of definitionIds) {
+    const basePath = `${SPRITE_BASE_PATH}/${definitionId}`;
+    scene.load.image(`${definitionId}-portrait`, `${basePath}/portrait-normal.png`);
+  }
+}
+
 export function preloadPokemonAssets(
   scene: Phaser.Scene,
   pokemonEntries: Array<{ definitionId: string }>,

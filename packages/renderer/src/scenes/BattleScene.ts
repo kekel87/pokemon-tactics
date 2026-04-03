@@ -5,6 +5,7 @@ import {
   PlacementMode,
   PlacementPhase,
   PlayerController,
+  PlayerId,
   type PokemonDefinition,
 } from "@pokemon-tactic/core";
 import { loadData, pocArena } from "@pokemon-tactic/data";
@@ -25,7 +26,6 @@ import {
 import {
   type BattleSetupConfig,
   createBattleFromPlacements,
-  defaultTeams,
 } from "../game/BattleSetup";
 import { AiTeamController } from "../game/AiTeamController";
 import { DummyAiController } from "../game/DummyAiController";
@@ -35,6 +35,7 @@ import { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import { createPokemonAnimations, preloadPokemonAssets } from "../sprites/SpriteLoader";
 import type { SandboxConfig } from "../types/SandboxConfig";
+import type { TeamSelectResult } from "./TeamSelectScene";
 import { DirectionPicker } from "../ui/DirectionPicker";
 import { LanguageToggle } from "../ui/LanguageToggle";
 import { SandboxPanel } from "../ui/SandboxPanel";
@@ -110,7 +111,11 @@ export class BattleScene extends Phaser.Scene {
       if (sandboxConfig) {
         this.startSandboxMode(uiScene, sandboxConfig);
       } else {
-        this.startPlacementPhase(uiScene);
+        const sceneData = this.scene.settings.data as { teamSelectResult?: TeamSelectResult } | undefined;
+        if (!sceneData?.teamSelectResult) {
+          throw new Error("BattleScene requires teamSelectResult from TeamSelectScene");
+        }
+        this.startPlacementPhase(uiScene, sceneData.teamSelectResult, sceneData.teamSelectResult.autoPlacement);
       }
     });
 
@@ -195,14 +200,20 @@ export class BattleScene extends Phaser.Scene {
     this.initSandboxBattle(this.sandboxUiScene, config);
   }
 
-  private startPlacementPhase(uiScene: BattleUIScene): void {
+  private startPlacementPhase(uiScene: BattleUIScene, teamSelectResult: TeamSelectResult, autoPlacement: boolean): void {
     const map = pocArena;
     const format = map.formats[0];
     if (!format) {
       throw new Error("POC arena has no formats defined");
     }
 
-    const teams = defaultTeams;
+    const teams: import("@pokemon-tactic/core").PlacementTeam[] = teamSelectResult.teams.map((selection) => ({
+      playerId: selection.playerId,
+      pokemonIds: selection.pokemonDefinitionIds.map(
+        (defId) => `${selection.playerId === PlayerId.Player1 ? "p1" : "p2"}-${defId}`,
+      ),
+      controller: selection.controller,
+    }));
     const isometricGrid = new IsometricGrid(this);
     isometricGrid.drawGrid();
 
@@ -223,7 +234,8 @@ export class BattleScene extends Phaser.Scene {
     this.controller = controller;
     this.setupInput(controller, isometricGrid, uiScene);
 
-    const useRandomPlacement = new URLSearchParams(window.location.search).has("random");
+    const allAi = teams.every((team) => team.controller === PlayerController.Ai);
+    const useRandomPlacement = allAi || autoPlacement;
 
     if (useRandomPlacement) {
       const gridCenter = { x: Math.floor(map.width / 2), y: Math.floor(map.height / 2) };
@@ -258,19 +270,27 @@ export class BattleScene extends Phaser.Scene {
     const battleSetup = createBattleFromPlacements(config);
     controller.setSetup(battleSetup);
 
-    const aiTeam = config.teams.find((team) => team.controller === PlayerController.Ai);
-    if (aiTeam) {
-      const aiController = new AiTeamController(
-        battleSetup.engine,
-        aiTeam.playerId,
-        EASY_PROFILE,
-        createPrng(Date.now()),
-        battleSetup.moveDefinitions,
-      );
+    const aiTeams = config.teams.filter((team) => team.controller === PlayerController.Ai);
+    if (aiTeams.length > 0) {
+      const aiControllers = new Map<string, AiTeamController>();
+      for (const aiTeam of aiTeams) {
+        aiControllers.set(
+          aiTeam.playerId,
+          new AiTeamController(
+            battleSetup.engine,
+            aiTeam.playerId,
+            EASY_PROFILE,
+            createPrng(Date.now()),
+            battleSetup.moveDefinitions,
+          ),
+        );
+      }
 
       controller.onTurnReady = (activePokemonId: string) => {
         const pokemon = battleSetup.state.pokemon.get(activePokemonId);
-        if (pokemon?.playerId === aiTeam.playerId) {
+        if (!pokemon) return false;
+        const aiController = aiControllers.get(pokemon.playerId);
+        if (aiController) {
           return aiController.playTurn();
         }
         return false;
