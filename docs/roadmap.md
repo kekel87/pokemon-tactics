@@ -22,7 +22,7 @@
 - [x] 9 targeting patterns (single, self, cone, cross, line, dash, zone, slash, blast)
 - [x] Friendly fire actif
 - [x] Type chart 18x18
-- [x] Tests unitaires pour chaque mécanique (596 tests, 100% coverage — 73 fichiers moves + 14 mécaniques transversales)
+- [x] Tests unitaires pour chaque mécanique (664 tests, 100% coverage — 73 fichiers moves + 14 mécaniques transversales)
 
 ### Renderer
 - [x] Grille isométrique 2D avec Phaser 4
@@ -99,7 +99,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [ ] Battle log (afficher les moves utilisés par l'IA et les joueurs)
 - [ ] Afficher la portée de déplacement des ennemis au hover
 - [x] Revoir l'algo de portée de déplacement (tous les Pokemon semblent avoir la même portée) — plan 032
-- [ ] Sélection d'équipe (grille portraits, bouton Auto)
+- [x] Sélection d'équipe (grille portraits 82px colorés par équipe, bouton Auto re-randomize/Vider, toggle Humain/IA, toggle placement auto/manuel, validation core validateTeamSelection(), support IA vs IA, bypass sandbox, noms Pokemon i18n, bouton Retour au menu en victoire) — plan 033
 - [ ] Hot-seat 1v1 + multi-équipes (2 à 12 joueurs, IA ou humain par équipe)
 - [ ] Repo public (README présentable, système de feedback)
 - [ ] Publication + collecte feedback

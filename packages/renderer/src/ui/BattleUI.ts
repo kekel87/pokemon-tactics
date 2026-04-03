@@ -48,18 +48,39 @@ export class BattleUI {
       "font-size: 42px; color: #ffcc00; margin-bottom: 24px; text-align: center;";
     overlay.appendChild(text);
 
-    const button = document.createElement("button");
-    button.textContent = t("battle.restart");
-    button.style.cssText = `
+    const buttonContainer = document.createElement("div");
+    buttonContainer.style.cssText = "display: flex; gap: 16px;";
+
+    const restartButton = document.createElement("button");
+    restartButton.textContent = t("battle.restart");
+    restartButton.style.cssText = `
       padding: 10px 40px; font-size: 16px; font-family: monospace;
       background: #44aa44; color: white; border: 2px solid #66cc66;
       border-radius: 6px; cursor: pointer;
     `;
-    button.addEventListener("click", () => {
+    restartButton.addEventListener("click", () => {
       this.hideVictory();
       this.scene.scene.get("BattleScene").scene.restart();
     });
-    overlay.appendChild(button);
+    buttonContainer.appendChild(restartButton);
+
+    const menuButton = document.createElement("button");
+    menuButton.textContent = t("battle.backToMenu");
+    menuButton.style.cssText = `
+      padding: 10px 40px; font-size: 16px; font-family: monospace;
+      background: #335577; color: white; border: 2px solid #5577aa;
+      border-radius: 6px; cursor: pointer;
+    `;
+    menuButton.addEventListener("click", () => {
+      this.hideVictory();
+      const battleScene = this.scene.scene.get("BattleScene");
+      battleScene.scene.stop("BattleScene");
+      battleScene.scene.stop("BattleUIScene");
+      battleScene.scene.start("TeamSelectScene");
+    });
+    buttonContainer.appendChild(menuButton);
+
+    overlay.appendChild(buttonContainer);
 
     document.body.appendChild(overlay);
     this.victoryOverlay = overlay;

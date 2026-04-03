@@ -87,12 +87,12 @@ pokemon-tactics/
 │   │
 │   ├── renderer/                # Interface graphique (Phaser 4)
 │   │   ├── src/
-│   │   │   ├── scenes/          # Scènes Phaser (BattleScene + BattleUIScene overlay)
+│   │   │   ├── scenes/          # Scènes Phaser (TeamSelectScene → BattleScene + BattleUIScene overlay)
 │   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue, DummyAiController)
 │   │   │   ├── grid/            # Rendu isométrique (IsometricGrid, curseur animé)
 │   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
 │   │   │   ├── i18n/            # Système i18n maison : types.ts, locales/fr.ts, locales/en.ts, index.ts (t, setLanguage, detectLanguage, onLanguageChange, Language enum)
-│   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel, LanguageToggle — panel Joueur + panel Dummy + toolbar)
+│   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel, LanguageToggle, TeamSelectPanel — panel Joueur + panel Dummy + toolbar)
 │   │   │   ├── utils/           # Utilitaires renderer (screen-direction : getDirectionFromScreenPosition)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
 │   │   │   ├── types/           # Types renderer (BattleConfig : confirmAttack)
@@ -148,23 +148,23 @@ Structure flat par responsabilité. On restructurera par domaine quand la comple
 
 | Dossier | Contenu | Tests |
 |---------|---------|-------|
-| `enums/` | Const object enums (pattern `as const` + type dérivé) — dont `PlacementMode`, `PlayerController`, `DefensiveKind` | Non testé (compilation = validation) |
-| `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `ActiveDefense` | Non testé (compilation = validation) |
+| `enums/` | Const object enums (pattern `as const` + type dérivé) — dont `PlacementMode`, `PlayerController`, `DefensiveKind`, `TeamValidationError` | Non testé (compilation = validation) |
+| `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `ActiveDefense`, `TeamSelection`, `TeamValidationResult` | Non testé (compilation = validation) |
 | `utils/` | Fonctions pures réutilisables (math, direction, géométrie) | Oui |
 | `grid/` | Classe Grid, targeting resolvers | Oui |
-| `battle/` | BattleEngine, TurnManager, PlacementPhase, validate, validate-map, defense-check, handle-defensive, defensive-clear-handler, replay-runner | Oui |
+| `battle/` | BattleEngine, TurnManager, PlacementPhase, validate, validate-map, team-validator, defense-check, handle-defensive, defensive-clear-handler, replay-runner | Oui |
 | `ai/` | IA scriptées headless : `random-ai.ts` (action légale aléatoire), `aggressive-ai.ts` (fonce + tape le plus puissant) | Oui |
-| `testing/` | Mocks centralisés (`abstract class MockX`) | Exclu du coverage et du build |
+| `testing/` | Mocks centralisés (`abstract class MockX`) — dont `MockTeamSelection` | Exclu du coverage et du build |
 
 ### Diagramme interne du core
 
 ```mermaid
 graph TD
     enums["enums/<br/>TargetingKind, Direction,<br/>PokemonType, ActionError,<br/>PlacementMode, PlayerController,<br/>DefensiveKind..."]
-    types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance,<br/>MapDefinition, MapFormat, SpawnZone,<br/>PlacementTeam, PlacementEntry,<br/>ActiveDefense, BattleReplay..."]
+    types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance,<br/>MapDefinition, MapFormat, SpawnZone,<br/>PlacementTeam, PlacementEntry,<br/>ActiveDefense, BattleReplay,<br/>TeamSelection, TeamValidationResult..."]
     utils["utils/<br/>manhattanDistance, directionFromTo,<br/>stepInDirection, getPerpendicularOffsets,<br/>prng (RandomFn, createPrng)"]
     grid["grid/<br/>Grid, targeting resolvers<br/>(single, cone, cross, line, dash, zone)"]
-    battle["battle/<br/>TurnManager, BattleEngine, PlacementPhase,<br/>validate, validate-map,<br/>defense-check, handle-defensive,<br/>defensive-clear-handler, replay-runner"]
+    battle["battle/<br/>TurnManager, BattleEngine, PlacementPhase,<br/>validate, validate-map, team-validator,<br/>defense-check, handle-defensive,<br/>defensive-clear-handler, replay-runner"]
     ai["ai/<br/>random-ai, aggressive-ai"]
     testing["testing/<br/>MockBattle, MockPokemon"]
 

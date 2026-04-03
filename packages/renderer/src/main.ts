@@ -3,6 +3,7 @@ import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from "./constants";
 import { initLanguage } from "./i18n";
 import { BattleScene } from "./scenes/BattleScene";
 import { BattleUIScene } from "./scenes/BattleUIScene";
+import { TeamSelectScene } from "./scenes/TeamSelectScene";
 
 initLanguage();
 
@@ -12,7 +13,7 @@ const config: Phaser.Types.Core.GameConfig = {
   height: CANVAS_HEIGHT,
   backgroundColor: BACKGROUND_COLOR,
   parent: "game-container",
-  scene: [BattleScene, BattleUIScene],
+  scene: [TeamSelectScene, BattleScene, BattleUIScene],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
