@@ -37,6 +37,7 @@ import {
   TILE_SPAWN_ZONE_INACTIVE_COLOR,
   TILE_SPAWN_ZONE_OCCUPIED_COLOR,
 } from "../constants";
+import { t } from "../i18n";
 import { HighlightKind } from "../enums/highlight-kind";
 import type { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
@@ -458,7 +459,7 @@ export class GameController {
     const currentPp = activePokemon?.currentPp[moveId] ?? 0;
     this.actionMenu.showSelectedMove(
       { definition: moveDefinition, currentPp },
-      "Sélectionne la cible",
+      t("attack.selectTarget"),
     );
 
     const targeting = moveDefinition.targeting;
@@ -803,7 +804,7 @@ export class GameController {
   private enterConfirmAttack(moveId: string, action: Action): void {
     const affectedTiles = this.currentPreviewTiles;
     this.inputState = { phase: "confirm_attack", moveId, action, affectedTiles };
-    this.actionMenu.updateInstruction("Confirmer ?");
+    this.actionMenu.updateInstruction(t("attack.confirm"));
     this.startPreviewFlash(affectedTiles);
     this.showDamageEstimates(moveId, affectedTiles);
   }
@@ -1128,7 +1129,7 @@ export class GameController {
       const { moveId } = this.inputState;
       this.stopPreviewFlash();
       this.clearDamageEstimates();
-      this.actionMenu.updateInstruction("Sélectionne la cible");
+      this.actionMenu.updateInstruction(t("attack.selectTarget"));
       this.inputState = { phase: "select_attack_target", moveId };
       return;
     }

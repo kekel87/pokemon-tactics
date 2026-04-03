@@ -1,4 +1,6 @@
 import type { MoveDefinition } from "@pokemon-tactic/core";
+import { getMoveName } from "@pokemon-tactic/data";
+import { getLanguage, t } from "../i18n";
 import {
   ACTION_MENU_BG_ALPHA,
   ACTION_MENU_BG_COLOR,
@@ -53,11 +55,11 @@ export class ActionMenu {
     this.clearItems();
 
     const entries = [
-      { label: "Deplacement", enabled: options.canMove, callback: options.callbacks.onMove },
-      { label: "Attaque", enabled: options.canAct, callback: options.callbacks.onAttack },
-      { label: "Objet", enabled: false, callback: (): void => {} },
-      { label: "Attendre", enabled: true, callback: options.callbacks.onWait },
-      { label: "Status", enabled: false, callback: (): void => {} },
+      { label: t("action.move"), enabled: options.canMove, callback: options.callbacks.onMove },
+      { label: t("action.attack"), enabled: options.canAct, callback: options.callbacks.onAttack },
+      { label: t("action.item"), enabled: false, callback: (): void => {} },
+      { label: t("action.wait"), enabled: true, callback: options.callbacks.onWait },
+      { label: t("action.status"), enabled: false, callback: (): void => {} },
     ];
 
     this.buildMenu(entries);
@@ -100,7 +102,7 @@ export class ActionMenu {
     }
 
     const cancelY = menuTopY + options.moves.length * ACTION_MENU_ITEM_HEIGHT;
-    this.createMenuItem({ label: "Annuler", enabled: true, callback: options.onCancel }, cancelY);
+    this.createMenuItem({ label: t("action.cancel"), enabled: true, callback: options.onCancel }, cancelY);
   }
 
   showSelectedMove(
@@ -156,7 +158,7 @@ export class ActionMenu {
     this.objects.push(typeIcon);
 
     const nameText = this.scene.add
-      .text(ACTION_MENU_X + 34, centerY, move.definition.name, {
+      .text(ACTION_MENU_X + 34, centerY, getMoveName(move.definition.id, getLanguage()), {
         fontSize: "12px",
         color: "#ffffff",
         fontFamily: "monospace",
@@ -306,7 +308,7 @@ export class ActionMenu {
     const maxNameWidth = ACTION_MENU_WIDTH - 8 - iconWidth - 6 - ppWidth - 8;
 
     const nameText = this.scene.add
-      .text(nameX, centerY, move.definition.name, {
+      .text(nameX, centerY, getMoveName(move.definition.id, getLanguage()), {
         fontSize: "12px",
         color: "#ffffff",
         fontFamily: "monospace",

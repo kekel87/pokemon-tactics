@@ -36,6 +36,7 @@ import { PokemonSprite } from "../sprites/PokemonSprite";
 import { createPokemonAnimations, preloadPokemonAssets } from "../sprites/SpriteLoader";
 import type { SandboxConfig } from "../types/SandboxConfig";
 import { DirectionPicker } from "../ui/DirectionPicker";
+import { LanguageToggle } from "../ui/LanguageToggle";
 import { SandboxPanel } from "../ui/SandboxPanel";
 import { parseSandboxQueryParams } from "../utils/sandbox-query-params";
 import type { BattleUIScene } from "./BattleUIScene";
@@ -49,6 +50,7 @@ export class BattleScene extends Phaser.Scene {
   private activeGridSize = GRID_SIZE;
   private sandboxPanel: SandboxPanel | null = null;
   private sandboxUiScene: BattleUIScene | null = null;
+  private languageToggle: LanguageToggle | null = null;
 
   constructor() {
     super("BattleScene");
@@ -90,6 +92,15 @@ export class BattleScene extends Phaser.Scene {
 
     this.cameras.main.setZoom(ZOOM_LEVELS[this.zoomIndex]);
     this.setupCameraBounds();
+
+    this.languageToggle?.destroy();
+    this.languageToggle = new LanguageToggle(() => {
+      this.sandboxPanel?.destroy();
+      this.sandboxPanel = null;
+      this.languageToggle?.destroy();
+      this.languageToggle = null;
+      this.scene.restart();
+    });
 
     this.scene.stop("BattleUIScene");
 

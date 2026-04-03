@@ -91,6 +91,7 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 2. `code-reviewer` — review qualité (pas de commit message, c'est le rôle de `commit-message`)
 3. `doc-keeper` — met à jour TOUS les docs impactés + roadmap.md + STATUS.md
 4. `visual-tester` — si le plan touche `packages/renderer/` (vérification visuelle via `sandbox-url`)
+5. `commit-message` — **toujours en dernier**, propose un message de commit à l'humain
 
 **Travail hors plan (bugfix, expérimentation, refacto opportuniste) :**
 - `code-reviewer` — review qualité (si changements significatifs)

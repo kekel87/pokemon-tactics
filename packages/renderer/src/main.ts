@@ -1,7 +1,10 @@
 import Phaser from "phaser";
 import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from "./constants";
+import { initLanguage } from "./i18n";
 import { BattleScene } from "./scenes/BattleScene";
 import { BattleUIScene } from "./scenes/BattleUIScene";
+
+initLanguage();
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
