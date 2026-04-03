@@ -1,3 +1,4 @@
+import { BattleEventType } from "../enums/battle-event-type";
 import { EffectKind } from "../enums/effect-kind";
 import type { PokemonType } from "../enums/pokemon-type";
 import type { BattleEvent } from "../types/battle-event";
@@ -12,7 +13,6 @@ import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { handleDamage } from "./handlers/handle-damage";
 import { handleDefensive } from "./handlers/handle-defensive";
 import { handleKnockback } from "./handlers/handle-knockback";
-import { handleLink } from "./handlers/handle-link";
 import { handleStatChange } from "./handlers/handle-stat-change";
 import { handleStatus } from "./handlers/handle-status";
 
@@ -33,7 +33,6 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.Damage, handleDamage);
   registry.register(EffectKind.Status, handleStatus);
   registry.register(EffectKind.StatChange, handleStatChange);
-  registry.register(EffectKind.Link, handleLink);
   registry.register(EffectKind.Defensive, handleDefensive);
   registry.register(EffectKind.Knockback, handleKnockback);
   return registry;
@@ -46,11 +45,21 @@ export function processEffects(
   const effectRegistry = registry ?? createDefaultEffectRegistry();
   const events: BattleEvent[] = [];
 
-  const nonImmuneTargets = context.targets.filter((target) => {
+  const nonImmuneTargets: PokemonInstance[] = [];
+  for (const target of context.targets) {
     const defenderTypes = context.targetTypesMap.get(target.id) ?? [];
     const effectiveness = getTypeEffectiveness(context.move.type, defenderTypes, context.typeChart);
-    return effectiveness !== 0;
-  });
+    if (effectiveness === 0) {
+      events.push({
+        type: BattleEventType.DamageDealt,
+        targetId: target.id,
+        amount: 0,
+        effectiveness: 0,
+      });
+    } else {
+      nonImmuneTargets.push(target);
+    }
+  }
 
   for (const effect of context.move.effects) {
     const effectContext: EffectContext = {

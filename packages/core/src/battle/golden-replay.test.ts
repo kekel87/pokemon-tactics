@@ -114,12 +114,6 @@ function buildGoldenEngine(seed: number): BattleEngine {
   const state = {
     grid,
     pokemon: pokemonMap,
-    activeLinks: [] as Array<{
-      sourceId: string;
-      targetId: string;
-      type: string;
-      maxRange: number;
-    }>,
     turnOrder: [] as string[],
     currentTurnIndex: 0,
     roundNumber: 1,

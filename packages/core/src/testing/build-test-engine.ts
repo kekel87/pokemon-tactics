@@ -104,7 +104,6 @@ function buildState(
   return {
     grid,
     pokemon: pokemonMap,
-    activeLinks: [],
     turnOrder: [] as string[],
     currentTurnIndex: 0,
     roundNumber: 1,

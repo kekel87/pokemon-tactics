@@ -4,10 +4,11 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
+import { StatusType } from "../../enums/status-type";
 import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
 describe("wrap", () => {
-  it("deals damage and creates a Bind link on adjacent target", () => {
+  it("deals damage and applies Trapped status on adjacent target", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const caster = MockPokemon.fresh(MockPokemon.base, {
       id: "caster",
@@ -36,19 +37,66 @@ describe("wrap", () => {
 
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.DamageDealt);
-    expect(result.events.map((e) => e.type)).toContain(BattleEventType.LinkCreated);
+    expect(result.events.map((e) => e.type)).toContain(BattleEventType.StatusApplied);
     expect(state.pokemon.get(target.id)!.currentHp).toBeLessThan(hpBefore);
-    expect(state.activeLinks).toHaveLength(1);
-    expect(state.activeLinks[0]).toMatchObject({
-      sourceId: caster.id,
-      targetId: target.id,
-      immobilize: true,
-    });
+
+    const trapped = state.pokemon.get(target.id)!.volatileStatuses.find(
+      (v) => v.type === StatusType.Trapped,
+    );
+    expect(trapped).toBeDefined();
+    expect(trapped!.damagePerTurn).toBe(0.125);
+
     vi.restoreAllMocks();
   });
 
-  it("deals 1/16 max HP per turn to the bound target (no heal to source)", () => {
-    // Given: source uses Wrap on adjacent target
+  it("immobilizes the trapped target (no Move actions)", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const caster = MockPokemon.fresh(MockPokemon.base, {
+      id: "caster",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      orientation: Direction.East,
+      moveIds: ["wrap"],
+      currentPp: { wrap: 20 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const { engine, state } = buildMoveTestEngine([caster, target]);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: caster.id,
+      moveId: "wrap",
+      targetPosition: { x: 1, y: 0 },
+    });
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: caster.id,
+      direction: Direction.East,
+    });
+
+    expect(state.pokemon.get(target.id)!.volatileStatuses.some(
+      (v) => v.type === StatusType.Trapped,
+    )).toBe(true);
+
+    const legalActions = engine.getLegalActions(PlayerId.Player2);
+    const moveActions = legalActions.filter((a) => a.kind === ActionKind.Move);
+    const attackActions = legalActions.filter((a) => a.kind === ActionKind.UseMove);
+
+    expect(moveActions).toHaveLength(0);
+    expect(attackActions.length).toBeGreaterThan(0);
+
+    vi.restoreAllMocks();
+  });
+
+  it("deals 1/8 max HP per turn to the trapped target", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const caster = MockPokemon.fresh(MockPokemon.base, {
       id: "caster",
@@ -68,7 +116,6 @@ describe("wrap", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([caster, target]);
-    const sourceHpBefore = state.pokemon.get(caster.id)!.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -79,7 +126,6 @@ describe("wrap", () => {
 
     const hpAfterHit = state.pokemon.get(target.id)!.currentHp;
 
-    // When: a full round passes (both end turn)
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: caster.id,
@@ -91,11 +137,9 @@ describe("wrap", () => {
       direction: Direction.West,
     });
 
-    // Then: target loses 1/16 max HP from bind tick, source does NOT heal
     const hpAfterTick = state.pokemon.get(target.id)!.currentHp;
-    const expectedDrain = Math.max(1, Math.floor(100 / 16)); // 6
-    expect(hpAfterHit - hpAfterTick).toBe(expectedDrain);
-    expect(state.pokemon.get(caster.id)!.currentHp).toBe(sourceHpBefore);
+    const expectedDamage = Math.max(1, Math.floor(100 * 0.125));
+    expect(hpAfterHit - hpAfterTick).toBe(expectedDamage);
 
     vi.restoreAllMocks();
   });

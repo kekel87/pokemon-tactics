@@ -4,7 +4,11 @@ import type { SandboxConfig } from "../types/SandboxConfig";
 
 const VALID_STATUSES = new Set<string>(Object.values(StatusType));
 const VALID_DIRECTIONS = new Set<string>(Object.values(Direction));
-const VOLATILE_STATUSES = new Set<string>([StatusType.Confused]);
+const VOLATILE_STATUSES = new Set<string>([
+  StatusType.Confused,
+  StatusType.Seeded,
+  StatusType.Trapped,
+]);
 
 const DEFAULT_POKEMON: string = "bulbasaur";
 const DEFAULT_DUMMY_POKEMON: string = "dummy";

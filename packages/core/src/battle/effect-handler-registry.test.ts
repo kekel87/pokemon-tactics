@@ -11,7 +11,7 @@ const baseContext: EffectContext = {
   targets: [],
   move: { effects: [] } as unknown as EffectContext["move"],
   effect: { kind: EffectKind.Damage } as EffectContext["effect"],
-  state: { activeLinks: [] } as unknown as EffectContext["state"],
+  state: {} as unknown as EffectContext["state"],
   typeChart: {} as EffectContext["typeChart"],
   attackerTypes: [],
   targetTypesMap: new Map(),

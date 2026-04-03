@@ -2,7 +2,6 @@ export const EffectKind = {
   Damage: "damage",
   Status: "status",
   StatChange: "stat_change",
-  Link: "link",
   Defensive: "defensive",
   Knockback: "knockback",
 } as const;

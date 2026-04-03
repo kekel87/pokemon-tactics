@@ -70,6 +70,8 @@ const STATUS_ENTRIES: [StatusType, TranslationKey][] = [
 
 const VOLATILE_STATUS_ENTRIES: [StatusType, TranslationKey][] = [
   [StatusType.Confused, "status.confused"],
+  [StatusType.Seeded, "status.seeded"],
+  [StatusType.Trapped, "status.trapped"],
 ];
 
 const DIRECTION_ENTRIES: [Direction, TranslationKey][] = [

@@ -166,7 +166,6 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
   const state: BattleState = {
     grid,
     pokemon: pokemonMap,
-    activeLinks: [],
     turnOrder: [],
     currentTurnIndex: 0,
     roundNumber: 1,

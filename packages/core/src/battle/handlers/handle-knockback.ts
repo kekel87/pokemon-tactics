@@ -1,5 +1,6 @@
 import { BattleEventType } from "../../enums/battle-event-type";
 import type { EffectKind } from "../../enums/effect-kind";
+import { StatusType } from "../../enums/status-type";
 import { Grid } from "../../grid/Grid";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
@@ -76,6 +77,18 @@ export function handleKnockback(context: EffectContext): BattleEvent[] {
         from,
         to: destination,
       });
+
+      const hadTrapped = target.volatileStatuses.some((v) => v.type === StatusType.Trapped);
+      if (hadTrapped) {
+        target.volatileStatuses = target.volatileStatuses.filter(
+          (v) => v.type !== StatusType.Trapped,
+        );
+        events.push({
+          type: BattleEventType.StatusRemoved,
+          targetId: target.id,
+          status: StatusType.Trapped,
+        });
+      }
     }
   }
 

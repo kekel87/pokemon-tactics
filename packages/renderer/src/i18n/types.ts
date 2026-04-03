@@ -63,10 +63,24 @@ export interface Translations {
   "status.frozen": string;
   "status.asleep": string;
   "status.confused": string;
+  "status.seeded": string;
+  "status.trapped": string;
   "direction.north": string;
   "direction.east": string;
   "direction.south": string;
   "direction.west": string;
+  "battle.miss": string;
+  "battle.immune": string;
+  "battle.extremelyEffective": string;
+  "battle.superEffective": string;
+  "battle.notVeryEffective": string;
+  "battle.mostlyIneffective": string;
+  "battle.confused": string;
+  "battle.blocked": string;
+  "battle.hits": string;
+  "battle.recharge": string;
+  "battle.statUp": string;
+  "battle.statDown": string;
 }
 
 export type TranslationKey = keyof Translations;

@@ -144,7 +144,6 @@ export abstract class MockBattle {
     return {
       grid,
       pokemon: pokemonMap,
-      activeLinks: [],
       turnOrder: [],
       currentTurnIndex: 0,
       roundNumber: 1,

@@ -200,6 +200,34 @@ export const DAMAGE_ESTIMATE_TEXT_STROKE_COLOR = "#000000";
 export const DAMAGE_ESTIMATE_TEXT_STROKE_WIDTH = 3;
 export const DAMAGE_ESTIMATE_IMMUNE_COLOR = "#888888";
 
+export const BATTLE_TEXT_FONT_SIZE = 14;
+export const BATTLE_TEXT_DURATION_MS = 2200;
+export const BATTLE_TEXT_DRIFT_Y = -30;
+export const BATTLE_TEXT_STROKE_COLOR = "#000000";
+export const BATTLE_TEXT_STROKE_WIDTH = 3;
+export const BATTLE_TEXT_STAGGER_Y = -14;
+export const DEPTH_BATTLE_TEXT = 1500;
+
+export const BATTLE_TEXT_COLOR_DAMAGE = "#ffffff";
+export const BATTLE_TEXT_COLOR_HEAL = "#44dd44";
+export const BATTLE_TEXT_COLOR_MISS = "#888888";
+export const BATTLE_TEXT_COLOR_IMMUNE = "#888888";
+export const BATTLE_TEXT_COLOR_EXTREMELY_EFFECTIVE = "#ff6600";
+export const BATTLE_TEXT_COLOR_SUPER_EFFECTIVE = "#ffcc00";
+export const BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE = "#aaaaaa";
+export const BATTLE_TEXT_COLOR_MOSTLY_INEFFECTIVE = "#777777";
+export const BATTLE_TEXT_COLOR_BUFF = "#4488ff";
+export const BATTLE_TEXT_COLOR_DEBUFF = "#ff4444";
+export const BATTLE_TEXT_COLOR_CONFUSED = "#aa44dd";
+export const BATTLE_TEXT_COLOR_INFO = "#dddddd";
+
+export const CONFUSION_WOBBLE_ANGLE = 5;
+export const CONFUSION_WOBBLE_DURATION_MS = 300;
+
+export const KNOCKBACK_SHAKE_OFFSET_X = 3;
+export const KNOCKBACK_SHAKE_DURATION_MS = 50;
+export const KNOCKBACK_SHAKE_REPEAT = 2;
+
 export const STAT_BADGE_BUFF_BG = 0x1a4a8a;
 export const STAT_BADGE_DEBUFF_BG = 0x8a1a1a;
 export const STAT_BADGE_HEIGHT = 14;

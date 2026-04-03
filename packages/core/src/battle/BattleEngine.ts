@@ -26,8 +26,9 @@ import { checkAccuracy } from "./accuracy-check";
 import { estimateDamage } from "./damage-calculator";
 import { processEffects } from "./effect-processor";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
-import { linkDrainHandler } from "./handlers/link-drain-handler";
+import { seededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
+import { trappedTickHandler } from "./handlers/trapped-tick-handler";
 import { getEffectiveInitiative } from "./initiative-calculator";
 import { TurnManager } from "./TurnManager";
 import { TurnPipeline } from "./turn-pipeline";
@@ -84,7 +85,8 @@ export class BattleEngine {
     this.turnManager = new TurnManager([...state.pokemon.values()], getEffectiveInitiative);
     this.turnPipeline.registerStartTurn(defensiveClearHandler, 50);
     this.turnPipeline.registerStartTurn(createStatusTickHandler(this.random), 100);
-    this.turnPipeline.registerEndTurn(linkDrainHandler, 100);
+    this.turnPipeline.registerEndTurn(seededTickHandler, 200);
+    this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
     this.syncTurnState();
   }
 
@@ -130,11 +132,11 @@ export class BattleEngine {
       actions.push({ kind: ActionKind.EndTurn, pokemonId: currentPokemonId, direction });
     }
 
-    const isBound = this.state.activeLinks.some(
-      (link) => link.targetId === currentPokemonId && link.immobilize === true,
+    const isTrapped = currentPokemon.volatileStatuses.some(
+      (v) => v.type === StatusType.Trapped,
     );
 
-    if (!this.turnState.hasMoved && !this.restrictActions && !isBound) {
+    if (!this.turnState.hasMoved && !this.restrictActions && !isTrapped) {
       const reachableTiles = this.getReachableTiles(currentPokemon);
       for (const reachable of reachableTiles) {
         actions.push({
@@ -1024,27 +1026,19 @@ export class BattleEngine {
 
     pokemon.activeDefense = null;
 
-    const linksToRemove: number[] = [];
-    for (let i = 0; i < this.state.activeLinks.length; i++) {
-      const link = this.state.activeLinks[i];
-      if (!link) {
-        continue;
-      }
-      if (link.sourceId === pokemonId || link.targetId === pokemonId) {
-        linksToRemove.push(i);
-        const brokenEvent: BattleEvent = {
-          type: BattleEventType.LinkBroken,
-          sourceId: link.sourceId,
-          targetId: link.targetId,
+    for (const other of this.state.pokemon.values()) {
+      const seededBefore = other.volatileStatuses.length;
+      other.volatileStatuses = other.volatileStatuses.filter(
+        (v) => !(v.type === StatusType.Seeded && v.sourceId === pokemonId),
+      );
+      if (other.volatileStatuses.length < seededBefore) {
+        const removedEvent: BattleEvent = {
+          type: BattleEventType.StatusRemoved,
+          targetId: other.id,
+          status: StatusType.Seeded,
         };
-        this.emit(brokenEvent);
-        events.push(brokenEvent);
-      }
-    }
-    for (let i = linksToRemove.length - 1; i >= 0; i--) {
-      const index = linksToRemove[i];
-      if (index !== undefined) {
-        this.state.activeLinks.splice(index, 1);
+        this.emit(removedEvent);
+        events.push(removedEvent);
       }
     }
 

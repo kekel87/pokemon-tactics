@@ -6,6 +6,8 @@ export const StatusType = {
   Frozen: "frozen",
   Asleep: "asleep",
   Confused: "confused",
+  Seeded: "seeded",
+  Trapped: "trapped",
 } as const;
 
 export type StatusType = (typeof StatusType)[keyof typeof StatusType];

@@ -137,7 +137,6 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
     const state: BattleState = {
       grid,
       pokemon: pokemonMap,
-      activeLinks: [],
       turnOrder: [],
       currentTurnIndex: 0,
       roundNumber: 1,
