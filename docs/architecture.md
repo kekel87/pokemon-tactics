@@ -222,17 +222,19 @@ type Effect =
   | { kind: 'damage'; hits?: number | { min: number; max: number } }  // hits = multi-hit (fixe ou variable)
   | { kind: 'status'; status: StatusType; chance: number }
   | { kind: 'stat_change'; stat: Stat; stages: number; target: 'self' | 'targets' }
-  | { kind: 'link'; linkType: LinkType; duration: number;
-      maxRange: number; drainFraction: number }           // LinkType.LeechSeed | LinkType.Bind
+  | { kind: 'volatile_status'; status: 'seeded' | 'trapped'; duration?: number }
+                                                          // Seeded = Vampigraine (drain + heal source), Trapped = Piège (immobilise + DoT)
   | { kind: 'knockback' }                                 // pousse 1 case dans la direction opposée au lanceur
 ```
 
 // Sur PokemonInstance :
 // - `status: StatusType | null`          — 1 statut majeur max (Burned, Poisoned, BadlyPoisoned, ...)
-// - `volatileStatuses: VolatileStatus[]` — statuts volatils coexistants (Confused, ...)
+// - `volatileStatuses: VolatileStatus[]` — statuts volatils coexistants (Confused, Seeded, Trapped...)
 // - `toxicCounter: number`               — compteur de tours pour BadlyPoisoned (0 = inactif)
 // - `recharging: boolean`                — true si le Pokemon doit recharger (Hyper Beam)
-// - `activeLinks: ActiveLink[]`          — liens actifs (LeechSeed, Bind) avec champs immobilize? et drainToSource?
+// Note : le système `ActiveLink` (LeechSeed + Bind via LinkType) a été supprimé en plan 031.
+//        Vampigraine → statut volatil `Seeded` (sourceId, drain 1/8 HP/tour, immunité Plante)
+//        Piège (Wrap/Bind) → statut volatil `Trapped` (immobilise, 1/8 HP/tour, N tours)
 
 **Exécution en 3 étapes :**
 1. `resolveTargeting(move, caster, targetTile, grid)` → tiles affectées
@@ -280,9 +282,9 @@ type BattleEvent =
   | { type: 'damage_dealt'; targetId: string; amount: number; effectiveness: number }
   | { type: 'status_applied'; targetId: string; status: StatusType }
   | { type: 'stat_changed'; targetId: string; stat: Stat; stages: number }
-  | { type: 'link_created'; sourceId: string; targetId: string; linkType: string }
-  | { type: 'link_drained'; sourceId: string; targetId: string; amount: number }
-  | { type: 'link_broken'; sourceId: string; targetId: string }
+  | { type: 'volatile_status_applied'; targetId: string; status: 'seeded' | 'trapped'; sourceId?: string }
+  | { type: 'volatile_status_removed'; targetId: string; status: 'seeded' | 'trapped' }
+  | { type: 'seeded_drained'; targetId: string; sourceId: string; amount: number }
   | { type: 'defense_activated'; pokemonId: string; kind: DefensiveKind }
   | { type: 'defense_triggered'; pokemonId: string; kind: DefensiveKind }
   | { type: 'defense_cleared'; pokemonId: string }

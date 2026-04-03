@@ -3,7 +3,6 @@ import { BattleEventType } from "../enums/battle-event-type";
 import { Category } from "../enums/category";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
-import { LinkType } from "../enums/link-type";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
@@ -69,26 +68,6 @@ const statChangeMove: MoveDefinition = {
   ],
 };
 
-const linkMove: MoveDefinition = {
-  id: "leech-seed",
-  name: "Leech Seed",
-  type: PokemonType.Grass,
-  category: Category.Status,
-  power: 0,
-  accuracy: 90,
-  pp: 10,
-  targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
-  effects: [
-    {
-      kind: EffectKind.Link,
-      linkType: LinkType.LeechSeed,
-      duration: null,
-      maxRange: 5,
-      drainFraction: 0.125,
-    },
-  ],
-};
-
 const simpleChart = {
   [PokemonType.Normal]: { [PokemonType.Normal]: 1 },
 } as Record<PokemonType, Record<PokemonType, number>>;
@@ -102,7 +81,6 @@ function makeContext(
   const fullState: BattleState = {
     grid: [],
     pokemon: new Map(),
-    activeLinks: [],
     turnOrder: [],
     currentTurnIndex: 0,
     roundNumber: 1,
@@ -244,8 +222,7 @@ describe("processEffects — status", () => {
       state: {
         grid: [],
         pokemon: new Map(),
-        activeLinks: [],
-        turnOrder: [],
+            turnOrder: [],
         currentTurnIndex: 0,
         roundNumber: 1,
         predictedNextRoundOrder: [],
@@ -260,7 +237,8 @@ describe("processEffects — status", () => {
     expect(target.currentHp).toBe(100);
     expect(target.statusEffects.length).toBe(0);
     const damageEvents = events.filter((e) => e.type === BattleEventType.DamageDealt);
-    expect(damageEvents.length).toBe(0);
+    expect(damageEvents.length).toBe(1);
+    expect(damageEvents[0]).toMatchObject({ amount: 0, effectiveness: 0 });
     const statusEvents = events.filter((e) => e.type === BattleEventType.StatusApplied);
     expect(statusEvents.length).toBe(0);
   });
@@ -310,18 +288,3 @@ describe("processEffects — statChange", () => {
   });
 });
 
-describe("processEffects — link", () => {
-  it("creates ActiveLink in state and emits LinkCreated", () => {
-    const target = fresh(P2);
-    const context = makeContext(fresh(P1), [target], linkMove);
-
-    const events = processEffects(context);
-
-    expect(context.state.activeLinks.length).toBe(1);
-    expect(context.state.activeLinks[0]?.sourceId).toBe(P1.id);
-    expect(context.state.activeLinks[0]?.targetId).toBe(P2.id);
-    expect(context.state.activeLinks[0]?.linkType).toBe(LinkType.LeechSeed);
-    const linkEvents = events.filter((e) => e.type === BattleEventType.LinkCreated);
-    expect(linkEvents.length).toBe(1);
-  });
-});

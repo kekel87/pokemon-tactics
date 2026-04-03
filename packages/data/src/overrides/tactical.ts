@@ -3,7 +3,7 @@ import {
   DefensiveKind,
   EffectKind,
   EffectTarget,
-  LinkType,
+
   StatName,
   StatusType,
   TargetingKind,
@@ -28,11 +28,9 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
     effects: [
       {
-        kind: EffectKind.Link,
-        linkType: LinkType.LeechSeed,
-        duration: null,
-        maxRange: 5,
-        drainFraction: 0.125,
+        kind: EffectKind.Status,
+        status: StatusType.Seeded,
+        chance: 100,
       },
     ],
   },
@@ -475,13 +473,10 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [
       { kind: EffectKind.Damage },
       {
-        kind: EffectKind.Link,
-        linkType: LinkType.Bind,
-        duration: 3,
-        maxRange: 1,
-        drainFraction: 1 / 16,
-        immobilize: true,
-        drainToSource: false,
+        kind: EffectKind.Status,
+        status: StatusType.Trapped,
+        chance: 100,
+        damagePerTurn: 0.125,
       },
     ],
   },

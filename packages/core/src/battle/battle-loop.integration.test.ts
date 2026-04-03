@@ -93,7 +93,7 @@ describe("Battle loop integration", () => {
       targetPosition: { x: 4, y: 3 },
     });
     expect(leechResult.success).toBe(true);
-    expect(state.activeLinks.length).toBeGreaterThanOrEqual(1);
+    expect(charmander.volatileStatuses.some((v) => v.type === StatusType.Seeded)).toBe(true);
 
     // EndTurn for Bulbasaur → drain happens during EndTurn pipeline
     engine.submitAction(PlayerId.Player1, {

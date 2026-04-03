@@ -5,7 +5,6 @@ import { BattleEventType } from "../enums/battle-event-type";
 import { Category } from "../enums/category";
 import { Direction } from "../enums/direction";
 import { EffectKind } from "../enums/effect-kind";
-import { LinkType } from "../enums/link-type";
 import { PlayerId } from "../enums/player-id";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
@@ -693,53 +692,6 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       expect(events.some((e) => e.type === BattleEventType.BattleEnded)).toBe(true);
     });
 
-    it("KO breaks all links involving the KO'd pokemon", () => {
-      const p1 = fresh(P1, {
-        currentHp: 1,
-        statusEffects: [{ type: StatusType.Poisoned, remainingTurns: null }],
-      });
-      const p2 = fresh(P2);
-      const state = MockBattle.stateFrom([p1, p2]);
-      state.activeLinks = [
-        {
-          sourceId: p1.id,
-          targetId: p2.id,
-          linkType: LinkType.LeechSeed,
-          remainingTurns: null,
-          maxRange: 10,
-          drainFraction: 1 / 8,
-        },
-        {
-          sourceId: p2.id,
-          targetId: p1.id,
-          linkType: LinkType.LeechSeed,
-          remainingTurns: null,
-          maxRange: 10,
-          drainFraction: 1 / 8,
-        },
-      ];
-      const engine = new BattleEngine(state, new Map());
-
-      const events: BattleEvent[] = [];
-      engine.on(BattleEventType.LinkBroken, (e) => events.push(e));
-
-      // P1 skips → P2 skips → round 2 → P1 turn starts → poison KO → links break
-      engine.submitAction(PlayerId.Player1, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "fast",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "slow",
-        direction: Direction.South,
-      });
-
-      expect(state.activeLinks).toHaveLength(0);
-      const linkBrokenEvents = events.filter((e) => e.type === BattleEventType.LinkBroken);
-      expect(linkBrokenEvents.length).toBeGreaterThanOrEqual(2);
-    });
-
     it("KO from status tick does not end battle when other teammates alive", () => {
       const p1 = fresh(P1, {
         id: "p1-fast",
@@ -786,46 +738,6 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       expect(events.some((e) => e.type === BattleEventType.BattleEnded)).toBe(false);
     });
 
-    it("KO from EndTurn drain during skip (sleep + leech seed)", () => {
-      const source = fresh(P1, {
-        id: "source",
-        currentHp: 50,
-        derivedStats: { movement: 3, jump: 1, initiative: 90 },
-      });
-      const target = fresh(P2, {
-        id: "target",
-        currentHp: 1,
-        statusEffects: [{ type: StatusType.Asleep, remainingTurns: 3 }],
-        derivedStats: { movement: 3, jump: 1, initiative: 30 },
-      });
-      const state = MockBattle.stateFrom([source, target]);
-      state.activeLinks = [
-        {
-          sourceId: "source",
-          targetId: "target",
-          linkType: LinkType.LeechSeed,
-          remainingTurns: null,
-          maxRange: 10,
-          drainFraction: 1 / 8,
-        },
-      ];
-      const engine = new BattleEngine(state, new Map());
-
-      const events: BattleEvent[] = [];
-      engine.on(BattleEventType.PokemonKo, (e) => events.push(e));
-      engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
-
-      // Source skips → target's turn → sleep skip → EndTurn drain → target KO
-      engine.submitAction(PlayerId.Player1, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "source",
-        direction: Direction.South,
-      });
-
-      expect(target.currentHp).toBe(0);
-      expect(events.some((e) => e.type === BattleEventType.PokemonKo)).toBe(true);
-      expect(events.some((e) => e.type === BattleEventType.BattleEnded)).toBe(true);
-    });
   });
 
   describe("battleOver", () => {

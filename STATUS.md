@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-03 (Plan 030 terminé : i18n FR/EN — système maison ~70 lignes, 16 tests, fichiers JSON pokemon-names + moves, 7 fichiers UI migrés, bouton bascule, détection navigateur, persistance localStorage — 687 tests)
+> Dernière mise à jour : 2026-04-03 (Plan 031 + corrections post-review : feedbacks visuels de combat + refactor statuts volatils — BattleText fire-and-forget 2200ms, knockback slide, confusion wobble permanent, 5 niveaux d'efficacité style Pokemon Champions, Immune post-attaque, badges volatils InfoPanel, Seeded/Trapped remplacent ActiveLink — 630 tests, 122 fichiers)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -398,6 +398,21 @@
   - `docs/ai-system.md` créé : architecture IA, pipeline scoring, niveaux de difficulté, décisions de design
   - `decisions.md` : décisions #163–167 ajoutées (scoring découplé, profils clones pour l'instant, bruit top-3, AiTeamController dans renderer, extraction Phase 5)
 
+- **Plan 031 terminé + corrections post-review** — Feedbacks visuels de combat + refactor statuts volatils :
+  - **BattleText** : système de textes flottants unifiés (dégâts, miss, effectiveness, stat changes, statuts, knockback, piège, etc.) — fire-and-forget, knockback enchaîne pendant le hit
+  - **Textes flottants ralentis** : durée 2200ms (au lieu de 1000ms) pour lisibilité
+  - **Knockback slide** : animation de glissement de la cible repoussée
+  - **Confusion wobble permanent** : rotation oscillante en continu sur le sprite confus (pas one-shot), stoppée à la guérison
+  - **5 niveaux d'efficacité style Pokemon Champions** : x4 "Extremely effective" / "Extrêmement efficace", x2 "Super effective", x0.5 "Not very effective", x0.25 "Mostly ineffective" / "Quasi inefficace", x0 "No effect" / "Immune"
+  - **Immune post-attaque** : "No effect" / "Immunisé" affiché sous forme de texte flottant après l'attaque (pas uniquement en preview)
+  - **Badges volatils dans l'InfoPanel** : Confusion, Vampigraine, Piégé fusionnés avec les badges stat stages existants
+  - **Refactor core** : `ActiveLink` → statuts volatils `Seeded` (Vampigraine) et `Trapped` (Piège), suppression complète du système de liens (`LinkType`, `ActiveLink`, `link-drain-handler`, `link-broken-handler`)
+  - **Vampigraine** : statut `Seeded` avec `sourceId`, drain 1/8 HP/tour + heal lanceur, pas de maxRange, immunité Plante
+  - **Piège (Trapped)** : statut volatil, immobilise + 1/8 HP/tour pendant N tours, sortie par knockback/dash reçu
+  - **Icônes statut volatils** : `Seeded` et `Trapped` affichés dans la timeline et sur le sprite
+  - **i18n** : nouvelles clés pour les textes de feedback (miss, critique, statuts volatils, etc.)
+  - **630 tests**, 122 fichiers, build + lint clean
+
 - **Plan 030 terminé** — i18n FR/EN :
   - Système i18n maison (~70 lignes) dans `packages/renderer/src/i18n/` : `t()`, `setLanguage()`, `detectLanguage()`, `onLanguageChange()`, persistance localStorage, const enum `Language`
   - 16 tests dans `packages/renderer/src/i18n/index.test.ts`
@@ -434,14 +449,13 @@
 ### Prochaine étape (Phase 2 — Démo jouable)
 - **Menu principal + Settings** : langue (i18n déjà fait — plan 030), damage preview on/off
 - **Battle log** : afficher les moves utilisés par l'IA et les joueurs (lisibilité du combat solo)
-- **Feedbacks visuels des mécaniques** : confusion, bind, knockback, multi-hit, recharge, badly poisoned — aucun retour visuel actuellement dans le renderer
-- **Indicateur de miss** : attaque ratée visible (texte flottant "Miss" ou animation dédiée)
+- **Indicateur de miss** : ✓ couvert par BattleText plan 031 (texte flottant "Miss")
 - **Portée de déplacement des ennemis** : afficher la portée au hover (aide à la lecture tactique)
 - **Algo de portée de déplacement** : tous les Pokemon semblent avoir la même portée — à revoir
 - **Sélection d'équipe** : grille portraits, bouton Auto — AiDifficulty s'y greffrera naturellement (choix du niveau de difficulté)
 
 ### Bugs connus non corrigés
-- Confusion sans feedback visuel côté renderer (pas d'icône, pas de message d'info) — à traiter dans un plan renderer
+*(aucun bug connu bloquant pour la Phase 2)*
 
 ### Points à adresser (renderer)
 - Représentation visuelle des moves défensifs : animation/feedback quand Protect bloque, Counter renvoie, etc.

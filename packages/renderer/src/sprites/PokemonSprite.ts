@@ -1,5 +1,8 @@
 import { type DamageEstimate, Direction, type PokemonInstance } from "@pokemon-tactic/core";
+import { t } from "../i18n";
 import {
+  CONFUSION_WOBBLE_ANGLE,
+  CONFUSION_WOBBLE_DURATION_MS,
   DAMAGE_ESTIMATE_COLOR_GUARANTEED,
   DAMAGE_ESTIMATE_COLOR_POSSIBLE,
   DAMAGE_ESTIMATE_IMMUNE_COLOR,
@@ -71,6 +74,7 @@ export class PokemonSprite {
   private readonly spriteOffsets: SpriteOffsets;
   private readonly uiOffsetY: number;
   private shadowGraphics: Phaser.GameObjects.Graphics | null = null;
+  private confusionTween: Phaser.Tweens.Tween | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -138,6 +142,13 @@ export class PokemonSprite {
     return this.container;
   }
 
+  getTextPosition(): { x: number; y: number } {
+    return {
+      x: this.container.x,
+      y: this.container.y + this.uiOffsetY - 10,
+    };
+  }
+
   getFlashTarget():
     | Phaser.GameObjects.Sprite
     | Phaser.GameObjects.Graphics
@@ -199,6 +210,36 @@ export class PokemonSprite {
     } else if (this.currentAnimation === "Sleep") {
       this.playAnimation("Idle");
     }
+  }
+
+  setConfusionWobble(active: boolean): void {
+    if (!active) {
+      if (this.confusionTween) {
+        this.confusionTween.destroy();
+        this.confusionTween = null;
+        if (this.sprite) {
+          this.sprite.setAngle(0);
+        }
+      }
+      return;
+    }
+
+    if (this.confusionTween) {
+      return;
+    }
+
+    if (!this.sprite) {
+      return;
+    }
+
+    this.confusionTween = this.scene.tweens.add({
+      targets: this.sprite,
+      angle: { from: -CONFUSION_WOBBLE_ANGLE, to: CONFUSION_WOBBLE_ANGLE },
+      duration: CONFUSION_WOBBLE_DURATION_MS * 2,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
   }
 
   setDirection(direction: Direction): void {
@@ -391,7 +432,7 @@ export class PokemonSprite {
       this.damageEstimateText = this.scene.add.text(
         this.container.x,
         this.container.y + this.uiOffsetY - 10,
-        "Immune",
+        t("battle.immune"),
         {
           fontSize: `${DAMAGE_ESTIMATE_TEXT_SIZE}px`,
           color: DAMAGE_ESTIMATE_IMMUNE_COLOR,

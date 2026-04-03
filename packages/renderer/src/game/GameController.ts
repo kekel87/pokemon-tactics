@@ -27,6 +27,24 @@ import {
   TargetingKind,
 } from "@pokemon-tactic/core";
 import {
+  BATTLE_TEXT_COLOR_BUFF,
+  BATTLE_TEXT_COLOR_CONFUSED,
+  BATTLE_TEXT_COLOR_DAMAGE,
+  BATTLE_TEXT_COLOR_DEBUFF,
+  BATTLE_TEXT_COLOR_EXTREMELY_EFFECTIVE,
+  BATTLE_TEXT_COLOR_HEAL,
+  BATTLE_TEXT_COLOR_IMMUNE,
+  BATTLE_TEXT_COLOR_INFO,
+  BATTLE_TEXT_COLOR_MISS,
+  BATTLE_TEXT_COLOR_MOSTLY_INEFFECTIVE,
+  BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE,
+  BATTLE_TEXT_COLOR_SUPER_EFFECTIVE,
+  BATTLE_TEXT_STAGGER_Y,
+  KNOCKBACK_SHAKE_DURATION_MS,
+  KNOCKBACK_SHAKE_OFFSET_X,
+  KNOCKBACK_SHAKE_REPEAT,
+  MOVE_TWEEN_DURATION_MS,
+  POKEMON_SPRITE_GROUND_OFFSET_Y,
   PREVIEW_FLASH_ALPHA,
   PREVIEW_FLASH_DURATION_MS,
   TILE_PREVIEW_ALPHA,
@@ -37,11 +55,12 @@ import {
   TILE_SPAWN_ZONE_INACTIVE_COLOR,
   TILE_SPAWN_ZONE_OCCUPIED_COLOR,
 } from "../constants";
-import { t } from "../i18n";
 import { HighlightKind } from "../enums/highlight-kind";
 import type { IsometricGrid } from "../grid/IsometricGrid";
+import { t } from "../i18n";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import type { ActionMenu } from "../ui/ActionMenu";
+import { showBattleText } from "../ui/BattleText";
 import type { BattleUI } from "../ui/BattleUI";
 import type { DirectionPicker } from "../ui/DirectionPicker";
 import type { InfoPanel } from "../ui/InfoPanel";
@@ -57,6 +76,16 @@ export interface BattleConfig {
 
 const DEFAULT_BATTLE_CONFIG: BattleConfig = {
   confirmAttack: true,
+};
+
+const STAT_SHORT_KEYS: Partial<Record<StatName, string>> = {
+  attack: "atk",
+  defense: "def",
+  spAttack: "spA",
+  spDefense: "spD",
+  speed: "spd",
+  accuracy: "acc",
+  evasion: "eva",
 };
 
 type InputState =
@@ -340,6 +369,13 @@ export class GameController {
 
     for (const [id, sprite] of this.sprites) {
       sprite.setActive(id === activePokemonId);
+      const pokemon = this.state.pokemon.get(id);
+      if (pokemon) {
+        const isConfused = pokemon.volatileStatuses.some(
+          (v) => v.type === StatusType.Confused,
+        );
+        sprite.setConfusionWobble(isConfused);
+      }
     }
 
     const activePokemon = this.state.pokemon.get(activePokemonId);
@@ -651,8 +687,44 @@ export class GameController {
         const sprite = this.sprites.get(event.targetId);
         const pokemon = this.state.pokemon.get(event.targetId);
         if (sprite && pokemon) {
-          await sprite.flashDamage();
-          sprite.updateHp(pokemon.currentHp, pokemon.maxHp);
+          const pos = sprite.getTextPosition();
+          if (event.amount < 0) {
+            sprite.updateHp(pokemon.currentHp, pokemon.maxHp);
+            showBattleText(this.scene, pos.x, pos.y, `+${Math.abs(event.amount)}`, {
+              color: BATTLE_TEXT_COLOR_HEAL,
+            });
+          } else if (event.effectiveness === 0) {
+            showBattleText(this.scene, pos.x, pos.y, t("battle.immune"), {
+              color: BATTLE_TEXT_COLOR_IMMUNE,
+            });
+          } else {
+            sprite.updateHp(pokemon.currentHp, pokemon.maxHp);
+            showBattleText(this.scene, pos.x, pos.y, `-${event.amount}`, {
+              color: BATTLE_TEXT_COLOR_DAMAGE,
+            });
+            if (event.effectiveness >= 4) {
+              showBattleText(this.scene, pos.x, pos.y, t("battle.extremelyEffective"), {
+                color: BATTLE_TEXT_COLOR_EXTREMELY_EFFECTIVE,
+                offsetY: BATTLE_TEXT_STAGGER_Y,
+              });
+            } else if (event.effectiveness >= 2) {
+              showBattleText(this.scene, pos.x, pos.y, t("battle.superEffective"), {
+                color: BATTLE_TEXT_COLOR_SUPER_EFFECTIVE,
+                offsetY: BATTLE_TEXT_STAGGER_Y,
+              });
+            } else if (event.effectiveness <= 0.25) {
+              showBattleText(this.scene, pos.x, pos.y, t("battle.mostlyIneffective"), {
+                color: BATTLE_TEXT_COLOR_MOSTLY_INEFFECTIVE,
+                offsetY: BATTLE_TEXT_STAGGER_Y,
+              });
+            } else if (event.effectiveness <= 0.5) {
+              showBattleText(this.scene, pos.x, pos.y, t("battle.notVeryEffective"), {
+                color: BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE,
+                offsetY: BATTLE_TEXT_STAGGER_Y,
+              });
+            }
+            sprite.flashDamage();
+          }
         }
         this.updateInfoPanelForActivePokemon();
         break;
@@ -666,22 +738,6 @@ export class GameController {
         if (sprite) {
           await sprite.playFaintAndStay();
         }
-        break;
-      }
-
-      case BattleEventType.LinkDrained: {
-        const targetSprite = this.sprites.get(event.targetId);
-        const targetPokemon = this.state.pokemon.get(event.targetId);
-        if (targetSprite && targetPokemon) {
-          await targetSprite.flashDamage();
-          targetSprite.updateHp(targetPokemon.currentHp, targetPokemon.maxHp);
-        }
-        const sourceSprite = this.sprites.get(event.sourceId);
-        const sourcePokemon = this.state.pokemon.get(event.sourceId);
-        if (sourceSprite && sourcePokemon) {
-          sourceSprite.updateHp(sourcePokemon.currentHp, sourcePokemon.maxHp);
-        }
-        this.updateInfoPanelForActivePokemon();
         break;
       }
 
@@ -702,6 +758,9 @@ export class GameController {
         if (sprite) {
           sprite.updateStatus([{ type: event.status }]);
           sprite.setStatusAnimation(event.status === StatusType.Asleep);
+          if (event.status === StatusType.Confused) {
+            sprite.setConfusionWobble(true);
+          }
         }
         this.updateInfoPanelForActivePokemon();
         break;
@@ -712,6 +771,9 @@ export class GameController {
         if (sprite) {
           sprite.updateStatus([]);
           sprite.setStatusAnimation(false);
+          if (event.status === StatusType.Confused) {
+            sprite.setConfusionWobble(false);
+          }
         }
         this.updateInfoPanelForActivePokemon();
         break;
@@ -726,10 +788,136 @@ export class GameController {
         break;
       }
 
+      case BattleEventType.MoveMissed: {
+        const missSprite = this.sprites.get(event.targetId);
+        if (missSprite) {
+          const pos = missSprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("battle.miss"), {
+            color: BATTLE_TEXT_COLOR_MISS,
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.StatChanged: {
+        const statSprite = this.sprites.get(event.targetId);
+        if (statSprite) {
+          const pos = statSprite.getTextPosition();
+          const statKey = `stat.${STAT_SHORT_KEYS[event.stat] ?? event.stat}` as const;
+          const statLabel = t(statKey as Parameters<typeof t>[0]);
+          const isUp = event.stages > 0;
+          const text = isUp
+            ? t("battle.statUp", { stat: statLabel, stages: String(event.stages) })
+            : t("battle.statDown", { stat: statLabel, stages: String(event.stages) });
+          showBattleText(this.scene, pos.x, pos.y, text, {
+            color: isUp ? BATTLE_TEXT_COLOR_BUFF : BATTLE_TEXT_COLOR_DEBUFF,
+          });
+        }
+        this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
+      case BattleEventType.ConfusionTriggered: {
+        const confSprite = this.sprites.get(event.pokemonId);
+        if (confSprite) {
+          const pos = confSprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("battle.confused"), {
+            color: BATTLE_TEXT_COLOR_CONFUSED,
+          });
+        }
+        break;
+      }
+
       case BattleEventType.DefenseActivated:
       case BattleEventType.DefenseCleared:
-      case BattleEventType.DefenseTriggered:
         break;
+
+      case BattleEventType.DefenseTriggered: {
+        if (event.blocked) {
+          const defSprite = this.sprites.get(event.defenderId);
+          if (defSprite) {
+            const pos = defSprite.getTextPosition();
+            showBattleText(this.scene, pos.x, pos.y, t("battle.blocked"), {
+              color: BATTLE_TEXT_COLOR_BUFF,
+            });
+          }
+        }
+        break;
+      }
+
+      case BattleEventType.MultiHitComplete: {
+        const mhSprite = this.sprites.get(event.targetId);
+        if (mhSprite) {
+          const pos = mhSprite.getTextPosition();
+          showBattleText(
+            this.scene,
+            pos.x,
+            pos.y,
+            t("battle.hits", { count: String(event.totalHits) }),
+            {
+              color: BATTLE_TEXT_COLOR_INFO,
+            },
+          );
+        }
+        break;
+      }
+
+      case BattleEventType.RechargeStarted: {
+        const rcSprite = this.sprites.get(event.pokemonId);
+        if (rcSprite) {
+          const pos = rcSprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("battle.recharge"), {
+            color: BATTLE_TEXT_COLOR_INFO,
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.KnockbackApplied: {
+        const kbSprite = this.sprites.get(event.pokemonId);
+        if (kbSprite) {
+          const target = this.isometricGrid.gridToScreen(event.to.x, event.to.y);
+          kbSprite.playAnimation("Hurt");
+          await new Promise<void>((resolve) => {
+            this.scene.tweens.add({
+              targets: kbSprite.getContainer(),
+              x: target.x,
+              y: target.y + POKEMON_SPRITE_GROUND_OFFSET_Y,
+              duration: MOVE_TWEEN_DURATION_MS,
+              onComplete: () => {
+                kbSprite.getContainer().setDepth(200 + event.to.x + event.to.y);
+                kbSprite.playAnimation("Idle");
+                resolve();
+              },
+            });
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.KnockbackBlocked: {
+        const kbBlockSprite = this.sprites.get(event.pokemonId);
+        if (kbBlockSprite) {
+          kbBlockSprite.playAnimation("Hurt");
+          const container = kbBlockSprite.getContainer();
+          const originalX = container.x;
+          await new Promise<void>((resolve) => {
+            this.scene.tweens.add({
+              targets: container,
+              x: originalX + KNOCKBACK_SHAKE_OFFSET_X,
+              duration: KNOCKBACK_SHAKE_DURATION_MS,
+              yoyo: true,
+              repeat: KNOCKBACK_SHAKE_REPEAT,
+              onComplete: () => {
+                container.setX(originalX);
+                kbBlockSprite.playAnimation("Idle");
+                resolve();
+              },
+            });
+          });
+        }
+        break;
+      }
 
       default:
         break;
@@ -755,8 +943,7 @@ export class GameController {
     const hasOffensiveEffect = move.effects.some(
       (effect) =>
         (effect.kind === EffectKind.StatChange && effect.target === EffectTarget.Targets) ||
-        effect.kind === EffectKind.Status ||
-        effect.kind === EffectKind.Link,
+        effect.kind === EffectKind.Status,
     );
     return !hasDamage && !hasOffensiveEffect;
   }

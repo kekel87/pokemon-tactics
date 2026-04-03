@@ -1,4 +1,4 @@
-import { PlayerId, type PokemonInstance, StatName } from "@pokemon-tactic/core";
+import { PlayerId, type PokemonInstance, StatName, StatusType } from "@pokemon-tactic/core";
 import { getPokemonName } from "@pokemon-tactic/data";
 import { getLanguage, t } from "../i18n";
 import {
@@ -40,6 +40,12 @@ const HP_BAR_OFFSET_Y: number = 40;
 const HP_BAR_MARGIN_RIGHT: number = 12;
 const HP_BAR_PANEL_WIDTH: number = INFO_PANEL_WIDTH - TEXT_OFFSET_X - HP_BAR_MARGIN_RIGHT;
 const STAT_CHANGES_OFFSET_Y: number = 68;
+const VOLATILE_BADGE_BG = 0x6a3a8a;
+const VOLATILE_LABELS: Partial<Record<string, TranslationKey>> = {
+  [StatusType.Confused]: "status.confused",
+  [StatusType.Seeded]: "status.seeded",
+  [StatusType.Trapped]: "status.trapped",
+};
 
 import type { TranslationKey } from "../i18n";
 
@@ -118,7 +124,7 @@ export class InfoPanel {
     this.hpText.setText(`${pokemon.currentHp} / ${pokemon.maxHp}`);
 
     this.updateStatusLabel(pokemon);
-    this.updateStatBadges(pokemon);
+    this.updateBadges(pokemon);
   }
 
   private updateStatusLabel(pokemon: PokemonInstance): void {
@@ -157,7 +163,7 @@ export class InfoPanel {
     this.container.add(this.statusLabel);
   }
 
-  private updateStatBadges(pokemon: PokemonInstance): void {
+  private updateBadges(pokemon: PokemonInstance): void {
     this.statBadgeContainer.removeAll(true);
 
     let offsetX = 0;
@@ -173,26 +179,37 @@ export class InfoPanel {
       const badgeText = `${label} ${sign}${stages}`;
       const bgColor = stages > 0 ? STAT_BADGE_BUFF_BG : STAT_BADGE_DEBUFF_BG;
 
-      const text = this.scene.add.text(0, 0, badgeText, {
-        fontSize: "9px",
-        color: "#ffffff",
-        fontFamily: "monospace",
-        fontStyle: "bold",
-      });
-      const textWidth = text.width;
-
-      const badgeWidth = textWidth + STAT_BADGE_PADDING_X * 2;
-      const bg = this.scene.add.graphics();
-      bg.fillStyle(bgColor, 0.9);
-      bg.fillRoundedRect(offsetX, 0, badgeWidth, STAT_BADGE_HEIGHT, STAT_BADGE_CORNER_RADIUS);
-
-      text.setPosition(offsetX + STAT_BADGE_PADDING_X, (STAT_BADGE_HEIGHT - text.height) / 2);
-
-      this.statBadgeContainer.add(bg);
-      this.statBadgeContainer.add(text);
-
-      offsetX += badgeWidth + STAT_BADGE_SPACING;
+      offsetX = this.addBadge(badgeText, bgColor, offsetX);
     }
+
+    for (const volatile of pokemon.volatileStatuses) {
+      const translationKey = VOLATILE_LABELS[volatile.type];
+      if (!translationKey) {
+        continue;
+      }
+      offsetX = this.addBadge(t(translationKey), VOLATILE_BADGE_BG, offsetX);
+    }
+  }
+
+  private addBadge(label: string, bgColor: number, offsetX: number): number {
+    const text = this.scene.add.text(0, 0, label, {
+      fontSize: "9px",
+      color: "#ffffff",
+      fontFamily: "monospace",
+      fontStyle: "bold",
+    });
+
+    const badgeWidth = text.width + STAT_BADGE_PADDING_X * 2;
+    const bg = this.scene.add.graphics();
+    bg.fillStyle(bgColor, 0.9);
+    bg.fillRoundedRect(offsetX, 0, badgeWidth, STAT_BADGE_HEIGHT, STAT_BADGE_CORNER_RADIUS);
+
+    text.setPosition(offsetX + STAT_BADGE_PADDING_X, (STAT_BADGE_HEIGHT - text.height) / 2);
+
+    this.statBadgeContainer.add(bg);
+    this.statBadgeContainer.add(text);
+
+    return offsetX + badgeWidth + STAT_BADGE_SPACING;
   }
 
   hide(): void {

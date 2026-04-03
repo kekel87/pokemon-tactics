@@ -301,45 +301,48 @@ Conséquence tactique : cibler une tile **derrière** un Pokemon qui utilise Abr
 
 ---
 
-## 7e. Vampigraine — mécanique spéciale (lien à distance)
+## 7e. Vampigraine — statut volatil `Seeded` (refactoré plan 031)
 
 Vampigraine plante une graine sur la cible qui **draine des PV chaque tour et les rend au lanceur**.
 
-**Adaptation tactique :**
+**Implémentation :** statut volatil `Seeded` avec `sourceId` (plus de lien à distance, plus de `ActiveLink`).
+
+**Comportement :**
 - **Portée de lancer** : 1-3 tiles
-- **Lien à distance** : le drain ne fonctionne que tant que la cible est à **≤ X tiles** du lanceur (ex: 5 tiles)
-- **Durée limitée** : 3 tours max (surchargeable)
-- Si la cible **s'éloigne** au-delà de la portée du lien → le drain est interrompu (mais reprend si elle revient à portée)
+- **Drain** : 1/8 HP max de la cible par tour en EndTurn — soigné au lanceur si encore en vie
+- **Immunité** : les Pokemon de type Plante ne peuvent pas être ensemencés
+- **Pas de maxRange** : le drain est permanent quelle que soit la distance
+- **Rupture** : lanceur KO (le drain s'arrête, pas de soin) ; Rapid Spin (futur) ; case Feu/lave (futur)
+- Un lanceur peut poser Vampigraine sur plusieurs cibles simultanément
 
 **Pourquoi c'est tactique :**
-- Le lanceur doit rester à portée → se met en danger
-- La cible peut fuir pour rompre le lien
-- Les alliés peuvent body-blocker pour empêcher le lanceur de suivre
-- Combo : Vampigraine + allié qui ralentit/bloque la cible
-
-> Premier prototype d'attaque à "lien persistant". Pourrait s'appliquer à d'autres attaques plus tard (Attraction, Embargo...).
+- Drain passif permanent → pression continue sur la cible
+- Immunité Plante → lecture du roster adverse importante
+- Combo : Vampigraine + moves de ralentissement/blocage pour maximiser le drain
 
 ---
 
-## 7f. Bind — immobilisation via Ligotage (implémenté — plan 026)
+## 7f. Piège — statut volatil `Trapped` (refactoré plan 031)
 
-Ligotage (Wrap) plante un **lien Bind** sur une cible adjacente. Extension de `LinkType` existant (même système que Vampigraine).
+Les attaques de type "piège" (Ligotage/Wrap, Étreinte, Danse Flammes...) appliquent le statut volatil **`Trapped`** sur la cible.
 
 **Comportement :**
-- **Immobilisation** : la cible ne peut pas se déplacer (Move) tant que le lien est actif
+- **Immobilisation** : la cible ne peut pas se déplacer (Move) tant que le statut est actif
 - La cible **peut** toujours attaquer (Act)
-- **Dégâts passifs** : 1/16 HP max par tour en EndTurn (ne heal PAS le lanceur, contrairement à Vampigraine)
-- **Durée** : 2-3 tours
-- **Rupture** : lanceur > distance 1, lanceur KO, durée expirée
+- **Dégâts passifs** : 1/8 HP max par tour en EndTurn (sans heal au lanceur)
+- **Durée** : N tours (configurable par move)
+- **Sortie anticipée** : knockback reçu ou dash reçu libère la cible ; Rapid Spin (futur)
+- **Pas de lien source-cible** : le lanceur peut bouger librement après avoir piégé
 
 **Différence clé avec Vampigraine :**
-| Propriété | Vampigraine | Ligotage |
-|-----------|------------|----------|
-| Drain vers source | Oui | Non |
-| Immobilise la cible | Non | Oui |
-| Durée | Permanente | 2-3 tours |
-| Portée max du lien | 5 tiles | 1 tile (adjacence) |
-| Dégâts/tour | 1/8 HP | 1/16 HP |
+| Propriété | Vampigraine (`Seeded`) | Piège (`Trapped`) |
+|-----------|----------------------|-------------------|
+| Drain vers source | Oui (1/8 HP/tour) | Non |
+| Immobilise la cible | Non | Oui (Move bloqué) |
+| Durée | Permanente (jusqu'à rupture) | N tours |
+| Lien source-cible | Non (sourceId pour le drain) | Non |
+| Dégâts/tour | 1/8 HP | 1/8 HP |
+| Immunité | Type Plante | Aucune |
 
 ---
 
