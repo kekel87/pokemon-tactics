@@ -67,6 +67,49 @@ describe("volt-tackle", () => {
     expect(state.pokemon.get(foe.id)?.currentHp).toBe(foeHpBefore);
   });
 
+  it("stops before KO'd body — does not land on corpse tile", () => {
+    const caster = MockPokemon.fresh(MockPokemon.base, {
+      id: "caster",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      combatStats: { hp: 200, attack: 200, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
+      currentHp: 200,
+      maxHp: 200,
+      moveIds: ["volt-tackle"],
+      currentPp: { "volt-tackle": 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-1",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 0 },
+      currentHp: 1,
+      maxHp: 100,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const bystander = MockPokemon.fresh(MockPokemon.base, {
+      id: "bystander",
+      playerId: PlayerId.Player2,
+      position: { x: 5, y: 5 },
+      derivedStats: { movement: 3, jump: 1, initiative: 5 },
+    });
+    const { engine, state } = buildMoveTestEngine([caster, target, bystander]);
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: caster.id,
+      moveId: "volt-tackle",
+      targetPosition: { x: 3, y: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.events.map((e) => e.type)).toContain(BattleEventType.PokemonKo);
+    const casterPos = state.pokemon.get(caster.id)?.position;
+    const targetPos = state.pokemon.get(target.id)?.position;
+    expect(casterPos).not.toEqual(targetPos);
+    expect(casterPos).toEqual({ x: 2, y: 0 });
+  });
+
   it("does not consume hasMoved after dashing", () => {
     const caster = MockPokemon.fresh(MockPokemon.base, {
       id: "caster",

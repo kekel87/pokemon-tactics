@@ -1,5 +1,6 @@
 export type * from "./action";
 export type * from "./active-defense";
+export type * from "./ai-profile";
 export type * from "./active-link";
 export type * from "./base-stats";
 export type * from "./battle-event";

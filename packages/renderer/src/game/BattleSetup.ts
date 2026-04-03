@@ -201,7 +201,7 @@ export const defaultTeams: PlacementTeam[] = [
       "p2-jigglypuff",
       "p2-seel",
     ],
-    controller: PlayerController.Human,
+    controller: PlayerController.Ai,
   },
 ];
 

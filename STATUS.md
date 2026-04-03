@@ -1,12 +1,12 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-02 (Plan 028 terminé — Replay déterministe PRNG seedé : PRNG mulberry32, BattleReplay, exportReplay, runReplay, IA random + agressive, golden replay 3v3 Player 1 gagne en 32 rounds / 247 actions, test de non-régression — 659 tests)
+> Dernière mise à jour : 2026-04-03 (Plan 029 terminé + améliorations IA post-plan : EndTurn orienté ennemi, scoring tiles réelles, friendly fire penalty, self-buffs intelligents, lookahead move+attack, filtrage scores négatifs — bug fixes : Volt Tackle dash sur cadavre, status icon après KO, golden replay régénéré 10 rounds/129 actions — 671 tests, 126 fichiers)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
 ---
 
-## Phase actuelle : Phase 1 — Combat fonctionnel ✅ Terminé — Prochaine phase : Phase 2 — Démo jouable
+## Phase actuelle : Phase 2 — Démo jouable 🎯 En cours
 
 ### Ce qui est fait
 - Documentation complète : game-design, architecture, decisions (91 décisions), roadmap, references, methodology, roster POC, glossaire
@@ -370,6 +370,34 @@
   - `wrap.test.ts` ajouté dans `packages/core/src/battle/moves/` : "deals 1/16 max HP per turn to the bound target (no heal to source)"
   - **596 tests**, build OK
 
+- **Plan 029 terminé** — IA jouable avec niveaux de difficulté :
+  - `packages/core/src/enums/ai-difficulty.ts` : `AiDifficulty` enum (`easy`/`medium`/`hard`)
+  - `packages/core/src/types/ai-profile.ts` : interface `AiProfile` (difficulty, randomWeight, scoringWeights)
+  - `packages/core/src/ai/ai-profiles.ts` : `EASY_PROFILE` (randomWeight 0.4), `MEDIUM_PROFILE`, `HARD_PROFILE`
+  - `packages/core/src/ai/action-scorer.ts` : `scoreAction()` — kill potential, type advantage, positioning, stat changes
+  - `packages/core/src/ai/scored-ai.ts` : `pickScoredAction()` — sélecteur pondéré top-N avec bruit intentionnel, filtrage scores négatifs
+  - `packages/renderer/src/game/AiTeamController.ts` : gère un tour complet d'une équipe IA (move + attack + end turn)
+  - Player2 = IA Easy par défaut en mode normal (`BattleScene` + `BattleSetup`)
+  - `scenarios/human-vs-easy-ai.scenario.test.ts` : smoke test 6v6 Aggressive vs Easy, victoire détectée sans boucle infinie
+  - **671 tests** (659 + 12 nouveaux), 126 fichiers, build + lint clean
+
+- **Améliorations IA post-plan (2026-04-03)** :
+  - `EndTurn` orienté vers l'ennemi le plus proche (au lieu de direction aléatoire)
+  - Scoring basé sur les tiles réellement affectées via `estimateAffectedTiles` (au lieu du centre de zone)
+  - Friendly fire penalty dans `scoreAction` : malus si alliés dans la zone d'effet
+  - Self-buffs intelligents : score réduit si l'ennemi est trop loin pour que le buff soit utile
+  - Lookahead move+attack : `scoreAction` évalue les attaques possibles depuis la destination avant de scorer le déplacement
+  - Filtrage scores négatifs : `pickScoredAction` ignore les actions avec score ≤ 0 (l'IA n'attaque plus dans le vide)
+
+- **Bug fixes (2026-04-03)** :
+  - Volt Tackle dash sur cadavre : `continue` au lieu de `break` dans la boucle de traversée — le caster traverse les corps KO mais ne s'arrête pas dessus
+  - Status icon reste visible après KO : nettoyée dans `playFaintAndStay()` dans `PokemonSprite.ts`
+  - Golden replay régénéré : 10 rounds, 129 actions (était 32 rounds / 247 actions avec l'ancienne IA aggressive)
+
+- **Documentation IA (2026-04-03)** :
+  - `docs/ai-system.md` créé : architecture IA, pipeline scoring, niveaux de difficulté, décisions de design
+  - `decisions.md` : décisions #163–167 ajoutées (scoring découplé, profils clones pour l'instant, bruit top-3, AiTeamController dans renderer, extraction Phase 5)
+
 - **Plan 028 terminé** — Replay déterministe avec PRNG seedé :
   - `packages/core/src/utils/prng.ts` : PRNG mulberry32 seedé (`createPrng(seed)`), `RandomFn` type exporté
   - PRNG injecté dans tout le core : `BattleEngine`, `accuracy-check.ts`, `damage-calculator.ts`, handlers (`handle-status.ts`, `handle-damage.ts`, `status-tick-handler.ts`)
@@ -393,10 +421,14 @@
   - Note : le plan 024 prévoyait initialement le menu en bas à gauche (X=16), la position finale choisie est bas à droite (X=1054) pour ne pas chevaucher la timeline 12 Pokemon.
   - **333 tests**, 0 régressions, build OK, vérification visuelle OK
 
-### Prochaine étape (Phase 1 Core)
-- **Feedback visuel renderer** : représentation des nouvelles mécaniques (confusion, bind, knockback, multi-hit, recharge, badly poisoned) — pas d'icône ni message pour la confusion actuellement
-- **Review des movesets des 20 Pokemon** par l'humain (équilibrage) — décision #121. 72 moves disponibles (+8 défensifs), tests d'intégration par move disponibles pour guider l'équilibrage.
-- Système de replay (log d'actions déterministe, seed + rejeu)
+### Prochaine étape (Phase 2 — Démo jouable)
+- **Battle log** : afficher les moves utilisés par l'IA et les joueurs (lisibilité du combat solo)
+- **Feedbacks visuels des mécaniques** : confusion, bind, knockback, multi-hit, recharge, badly poisoned — aucun retour visuel actuellement dans le renderer
+- **Indicateur de miss** : attaque ratée visible (texte flottant "Miss" ou animation dédiée)
+- **Portée de déplacement des ennemis** : afficher la portée au hover (aide à la lecture tactique)
+- **Algo de portée de déplacement** : tous les Pokemon semblent avoir la même portée — à revoir
+- **Menu principal + Settings** : langue (i18n FR/EN), damage preview on/off
+- **Sélection d'équipe** : grille portraits, bouton Auto — AiDifficulty s'y greffrera naturellement (choix du niveau de difficulté)
 
 ### Bugs connus non corrigés
 - Confusion sans feedback visuel côté renderer (pas d'icône, pas de message d'info) — à traiter dans un plan renderer

@@ -1,7 +1,10 @@
 import {
+  createPrng,
+  EASY_PROFILE,
   type PlacementEntry,
   PlacementMode,
   PlacementPhase,
+  PlayerController,
   type PokemonDefinition,
 } from "@pokemon-tactic/core";
 import { loadData, pocArena } from "@pokemon-tactic/data";
@@ -24,6 +27,7 @@ import {
   createBattleFromPlacements,
   defaultTeams,
 } from "../game/BattleSetup";
+import { AiTeamController } from "../game/AiTeamController";
 import { DummyAiController } from "../game/DummyAiController";
 import { GameController, type PlacementConfig } from "../game/GameController";
 import { createSandboxBattle } from "../game/SandboxSetup";
@@ -242,6 +246,25 @@ export class BattleScene extends Phaser.Scene {
   ): void {
     const battleSetup = createBattleFromPlacements(config);
     controller.setSetup(battleSetup);
+
+    const aiTeam = config.teams.find((team) => team.controller === PlayerController.Ai);
+    if (aiTeam) {
+      const aiController = new AiTeamController(
+        battleSetup.engine,
+        aiTeam.playerId,
+        EASY_PROFILE,
+        createPrng(Date.now()),
+        battleSetup.moveDefinitions,
+      );
+
+      controller.onTurnReady = (activePokemonId: string) => {
+        const pokemon = battleSetup.state.pokemon.get(activePokemonId);
+        if (pokemon?.playerId === aiTeam.playerId) {
+          return aiController.playTurn();
+        }
+        return false;
+      };
+    }
 
     for (const pokemon of battleSetup.state.pokemon.values()) {
       if (pokemon.currentHp <= 0) {

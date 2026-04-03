@@ -1,5 +1,5 @@
 {
-  "seed": 12345,
+  "seed": 42,
   "actions": [
     {
       "kind": "use_move",
@@ -375,18 +375,42 @@
       "pokemonId": "p2-pikachu",
       "path": [
         {
-          "x": 5,
-          "y": 4
-        },
-        {
           "x": 4,
-          "y": 4
+          "y": 6
         }
       ]
     },
     {
       "kind": "end_turn",
       "pokemonId": "p2-pikachu",
+      "direction": "north"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p1-charmander",
+      "moveId": "dragon-breath",
+      "targetPosition": {
+        "x": 5,
+        "y": 4
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p1-charmander",
+      "path": [
+        {
+          "x": 5,
+          "y": 4
+        },
+        {
+          "x": 6,
+          "y": 4
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p1-charmander",
       "direction": "south"
     },
     {
@@ -436,7 +460,7 @@
         },
         {
           "x": 5,
-          "y": 6
+          "y": 4
         }
       ]
     },
@@ -464,7 +488,7 @@
         },
         {
           "x": 3,
-          "y": 4
+          "y": 6
         }
       ]
     },
@@ -487,11 +511,11 @@
       "pokemonId": "p2-geodude",
       "path": [
         {
-          "x": 7,
+          "x": 5,
           "y": 7
         },
         {
-          "x": 7,
+          "x": 5,
           "y": 6
         }
       ]
@@ -499,7 +523,7 @@
     {
       "kind": "end_turn",
       "pokemonId": "p2-geodude",
-      "direction": "west"
+      "direction": "east"
     },
     {
       "kind": "use_move",
@@ -507,7 +531,7 @@
       "moveId": "volt-tackle",
       "targetPosition": {
         "x": 4,
-        "y": 3
+        "y": 5
       }
     },
     {
@@ -516,7 +540,7 @@
       "path": [
         {
           "x": 4,
-          "y": 4
+          "y": 6
         }
       ]
     },
@@ -524,6 +548,34 @@
       "kind": "end_turn",
       "pokemonId": "p2-pikachu",
       "direction": "west"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p1-charmander",
+      "moveId": "dragon-breath",
+      "targetPosition": {
+        "x": 6,
+        "y": 3
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p1-charmander",
+      "path": [
+        {
+          "x": 6,
+          "y": 3
+        },
+        {
+          "x": 5,
+          "y": 3
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p1-charmander",
+      "direction": "south"
     },
     {
       "kind": "use_move",
@@ -551,7 +603,7 @@
     {
       "kind": "end_turn",
       "pokemonId": "p1-pidgey",
-      "direction": "south"
+      "direction": "north"
     },
     {
       "kind": "use_move",
@@ -559,7 +611,7 @@
       "moveId": "sludge-bomb",
       "targetPosition": {
         "x": 5,
-        "y": 2
+        "y": 0
       }
     },
     {
@@ -568,11 +620,11 @@
       "path": [
         {
           "x": 4,
-          "y": 6
+          "y": 4
         },
         {
           "x": 4,
-          "y": 5
+          "y": 3
         }
       ]
     },
@@ -587,7 +639,7 @@
       "moveId": "bubble-beam",
       "targetPosition": {
         "x": 3,
-        "y": 3
+        "y": 5
       }
     },
     {
@@ -596,11 +648,11 @@
       "path": [
         {
           "x": 3,
-          "y": 3
+          "y": 5
         },
         {
           "x": 4,
-          "y": 3
+          "y": 5
         }
       ]
     },
@@ -614,7 +666,7 @@
       "pokemonId": "p2-geodude",
       "moveId": "magnitude",
       "targetPosition": {
-        "x": 7,
+        "x": 5,
         "y": 6
       }
     },
@@ -623,8 +675,8 @@
       "pokemonId": "p2-geodude",
       "path": [
         {
-          "x": 7,
-          "y": 5
+          "x": 6,
+          "y": 6
         },
         {
           "x": 6,
@@ -639,30 +691,30 @@
     },
     {
       "kind": "use_move",
-      "pokemonId": "p2-pikachu",
-      "moveId": "volt-tackle",
+      "pokemonId": "p1-charmander",
+      "moveId": "dragon-breath",
       "targetPosition": {
-        "x": 4,
-        "y": 3
+        "x": 5,
+        "y": 2
       }
     },
     {
       "kind": "move",
-      "pokemonId": "p2-pikachu",
+      "pokemonId": "p1-charmander",
       "path": [
         {
-          "x": 4,
-          "y": 4
+          "x": 5,
+          "y": 2
         },
         {
-          "x": 5,
-          "y": 4
+          "x": 4,
+          "y": 2
         }
       ]
     },
     {
       "kind": "end_turn",
-      "pokemonId": "p2-pikachu",
+      "pokemonId": "p1-charmander",
       "direction": "south"
     },
     {
@@ -680,26 +732,26 @@
       "path": [
         {
           "x": 5,
-          "y": 6
+          "y": 4
         },
         {
-          "x": 4,
-          "y": 6
+          "x": 6,
+          "y": 4
         }
       ]
     },
     {
       "kind": "end_turn",
       "pokemonId": "p1-pidgey",
-      "direction": "north"
+      "direction": "south"
     },
     {
       "kind": "use_move",
       "pokemonId": "p2-bulbasaur",
       "moveId": "sludge-bomb",
       "targetPosition": {
-        "x": 4,
-        "y": 1
+        "x": 3,
+        "y": 0
       }
     },
     {
@@ -708,11 +760,11 @@
       "path": [
         {
           "x": 3,
-          "y": 5
+          "y": 3
         },
         {
           "x": 3,
-          "y": 6
+          "y": 2
         }
       ]
     },
@@ -735,27 +787,55 @@
       "pokemonId": "p2-geodude",
       "path": [
         {
-          "x": 6,
-          "y": 6
+          "x": 5,
+          "y": 5
         },
         {
           "x": 5,
-          "y": 6
+          "y": 4
         }
       ]
     },
     {
       "kind": "end_turn",
       "pokemonId": "p2-geodude",
-      "direction": "west"
+      "direction": "east"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p1-charmander",
+      "moveId": "dragon-breath",
+      "targetPosition": {
+        "x": 4,
+        "y": 1
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p1-charmander",
+      "path": [
+        {
+          "x": 4,
+          "y": 1
+        },
+        {
+          "x": 3,
+          "y": 1
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p1-charmander",
+      "direction": "south"
     },
     {
       "kind": "use_move",
       "pokemonId": "p1-pidgey",
       "moveId": "wing-attack",
       "targetPosition": {
-        "x": 4,
-        "y": 5
+        "x": 6,
+        "y": 3
       }
     },
     {
@@ -763,12 +843,12 @@
       "pokemonId": "p1-pidgey",
       "path": [
         {
-          "x": 4,
-          "y": 5
+          "x": 6,
+          "y": 3
         },
         {
-          "x": 3,
-          "y": 5
+          "x": 5,
+          "y": 3
         }
       ]
     },
@@ -782,8 +862,8 @@
       "pokemonId": "p2-bulbasaur",
       "moveId": "sludge-bomb",
       "targetPosition": {
-        "x": 3,
-        "y": 2
+        "x": 1,
+        "y": 0
       }
     },
     {
@@ -792,11 +872,11 @@
       "path": [
         {
           "x": 2,
-          "y": 6
+          "y": 2
         },
         {
           "x": 2,
-          "y": 5
+          "y": 1
         }
       ]
     },
@@ -811,7 +891,7 @@
       "moveId": "magnitude",
       "targetPosition": {
         "x": 5,
-        "y": 6
+        "y": 4
       }
     },
     {
@@ -819,27 +899,55 @@
       "pokemonId": "p2-geodude",
       "path": [
         {
-          "x": 5,
-          "y": 5
+          "x": 4,
+          "y": 4
         },
         {
           "x": 4,
-          "y": 5
+          "y": 3
         }
       ]
     },
     {
       "kind": "end_turn",
       "pokemonId": "p2-geodude",
-      "direction": "west"
+      "direction": "east"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p1-charmander",
+      "moveId": "dragon-breath",
+      "targetPosition": {
+        "x": 3,
+        "y": 0
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p1-charmander",
+      "path": [
+        {
+          "x": 3,
+          "y": 0
+        },
+        {
+          "x": 2,
+          "y": 0
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p1-charmander",
+      "direction": "south"
     },
     {
       "kind": "use_move",
       "pokemonId": "p1-pidgey",
       "moveId": "wing-attack",
       "targetPosition": {
-        "x": 3,
-        "y": 4
+        "x": 5,
+        "y": 2
       }
     },
     {
@@ -847,12 +955,12 @@
       "pokemonId": "p1-pidgey",
       "path": [
         {
-          "x": 3,
-          "y": 4
+          "x": 5,
+          "y": 2
         },
         {
-          "x": 2,
-          "y": 4
+          "x": 4,
+          "y": 2
         }
       ]
     },
@@ -866,8 +974,8 @@
       "pokemonId": "p2-bulbasaur",
       "moveId": "sludge-bomb",
       "targetPosition": {
-        "x": 2,
-        "y": 1
+        "x": 0,
+        "y": 0
       }
     },
     {
@@ -876,11 +984,11 @@
       "path": [
         {
           "x": 1,
-          "y": 5
+          "y": 1
         },
         {
           "x": 1,
-          "y": 4
+          "y": 0
         }
       ]
     },
@@ -895,7 +1003,7 @@
       "moveId": "magnitude",
       "targetPosition": {
         "x": 4,
-        "y": 5
+        "y": 3
       }
     },
     {
@@ -903,27 +1011,55 @@
       "pokemonId": "p2-geodude",
       "path": [
         {
-          "x": 4,
-          "y": 4
+          "x": 3,
+          "y": 3
         },
         {
           "x": 3,
-          "y": 4
+          "y": 2
         }
       ]
     },
     {
       "kind": "end_turn",
       "pokemonId": "p2-geodude",
-      "direction": "west"
+      "direction": "east"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p1-charmander",
+      "moveId": "dragon-breath",
+      "targetPosition": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p1-charmander",
+      "path": [
+        {
+          "x": 2,
+          "y": 1
+        },
+        {
+          "x": 1,
+          "y": 1
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p1-charmander",
+      "direction": "north"
     },
     {
       "kind": "use_move",
       "pokemonId": "p1-pidgey",
       "moveId": "wing-attack",
       "targetPosition": {
-        "x": 2,
-        "y": 3
+        "x": 4,
+        "y": 1
       }
     },
     {
@@ -931,12 +1067,12 @@
       "pokemonId": "p1-pidgey",
       "path": [
         {
-          "x": 2,
-          "y": 3
+          "x": 4,
+          "y": 1
         },
         {
-          "x": 1,
-          "y": 3
+          "x": 3,
+          "y": 1
         }
       ]
     },
@@ -950,7 +1086,7 @@
       "pokemonId": "p2-bulbasaur",
       "moveId": "sludge-bomb",
       "targetPosition": {
-        "x": 1,
+        "x": 3,
         "y": 0
       }
     },
@@ -960,11 +1096,11 @@
       "path": [
         {
           "x": 0,
-          "y": 4
+          "y": 0
         },
         {
           "x": 0,
-          "y": 3
+          "y": 1
         }
       ]
     },
@@ -979,83 +1115,55 @@
       "moveId": "magnitude",
       "targetPosition": {
         "x": 3,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 3,
-          "y": 3
-        },
-        {
-          "x": 2,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
         "y": 2
       }
     },
     {
       "kind": "move",
-      "pokemonId": "p1-pidgey",
+      "pokemonId": "p2-geodude",
       "path": [
         {
-          "x": 1,
+          "x": 2,
           "y": 2
         },
         {
-          "x": 0,
-          "y": 2
+          "x": 2,
+          "y": 1
         }
       ]
     },
     {
       "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "south"
+      "pokemonId": "p2-geodude",
+      "direction": "west"
     },
     {
       "kind": "use_move",
-      "pokemonId": "p2-bulbasaur",
-      "moveId": "sludge-bomb",
+      "pokemonId": "p1-charmander",
+      "moveId": "dragon-breath",
       "targetPosition": {
-        "x": 0,
+        "x": 1,
         "y": 0
       }
     },
     {
       "kind": "move",
-      "pokemonId": "p2-bulbasaur",
+      "pokemonId": "p1-charmander",
       "path": [
         {
           "x": 1,
-          "y": 3
+          "y": 0
         },
         {
-          "x": 1,
-          "y": 2
+          "x": 0,
+          "y": 0
         }
       ]
     },
     {
       "kind": "end_turn",
-      "pokemonId": "p2-bulbasaur",
-      "direction": "west"
+      "pokemonId": "p1-charmander",
+      "direction": "south"
     },
     {
       "kind": "use_move",
@@ -1063,1238 +1171,6 @@
       "moveId": "magnitude",
       "targetPosition": {
         "x": 2,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 1,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 0,
-        "y": 1
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 1,
-          "y": 2
-        },
-        {
-          "x": 1,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 0,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
-        "y": 2
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 0,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 1,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 1,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 1,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 0,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
-        "y": 2
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 0,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 1,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 1,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 1,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 0,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
-        "y": 2
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 0,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 1,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 1,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 1,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 0,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
-        "y": 2
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 0,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 1,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 1,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 1,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 0,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
-        "y": 2
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 0,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 1,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 1,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 1,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 0,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
-        "y": 2
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 0,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 1,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 1,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 1,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 0,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
-        "y": 2
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 0,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 1,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 1,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 1,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 0,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
-        "y": 2
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 0,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 1,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 1,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 1,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 0,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
-        "y": 2
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 0,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 1,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 1,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 1,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 0,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
-        "y": 2
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 0,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 1,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 1,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 1,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "magnitude",
-      "targetPosition": {
-        "x": 0,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-geodude",
-      "path": [
-        {
-          "x": 0,
-          "y": 4
-        },
-        {
-          "x": 1,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-geodude",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
-      "targetPosition": {
-        "x": 1,
-        "y": 2
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-pidgey",
-      "path": [
-        {
-          "x": 0,
-          "y": 3
-        },
-        {
-          "x": 0,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-pidgey",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-geodude",
-      "moveId": "rock-throw",
-      "targetPosition": {
-        "x": 1,
         "y": 1
       }
     },
@@ -2303,27 +1179,41 @@
       "pokemonId": "p2-geodude",
       "path": [
         {
-          "x": 1,
-          "y": 3
+          "x": 2,
+          "y": 0
         },
         {
-          "x": 0,
-          "y": 3
+          "x": 1,
+          "y": 0
         }
       ]
     },
     {
       "kind": "end_turn",
       "pokemonId": "p2-geodude",
+      "direction": "west"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p1-charmander",
+      "moveId": "dragon-breath",
+      "targetPosition": {
+        "x": 0,
+        "y": 1
+      }
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p1-charmander",
       "direction": "south"
     },
     {
       "kind": "use_move",
-      "pokemonId": "p1-pidgey",
-      "moveId": "wing-attack",
+      "pokemonId": "p2-bulbasaur",
+      "moveId": "sludge-bomb",
       "targetPosition": {
-        "x": 0,
-        "y": 3
+        "x": 1,
+        "y": 0
       }
     }
   ]
