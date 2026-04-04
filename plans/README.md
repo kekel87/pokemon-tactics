@@ -49,3 +49,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 034 | [Supprimer l'accès sandbox via URL (query params)](./034-remove-sandbox.md) | abandoned | 2026-04-03 |
 | 035 | [Sandbox CLI : suppression query params + accès JSON](./035-sandbox-cli-json.md) | done | 2026-04-04 |
 | 036 | [Menu principal, Settings et Disclaimer](./036-main-menu-settings.md) | draft | 2026-04-04 |
+| 037 | [Battle Log Panel](./037-battle-log.md) | ready | 2026-04-04 |

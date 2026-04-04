@@ -1,3 +1,4 @@
+import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
 import {
   type Action,
   ActionKind,
@@ -57,11 +58,13 @@ import {
 } from "../constants";
 import { HighlightKind } from "../enums/highlight-kind";
 import type { IsometricGrid } from "../grid/IsometricGrid";
-import { t } from "../i18n";
+import { getLanguage, t } from "../i18n";
 import { getSettings } from "../settings";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import type { ActionMenu } from "../ui/ActionMenu";
 import { showBattleText } from "../ui/BattleText";
+import { formatBattleEvent, type BattleLogContext, type BattleLogEntry } from "../ui/BattleLogFormatter";
+import type { BattleLogPanel } from "../ui/BattleLogPanel";
 import type { BattleUI } from "../ui/BattleUI";
 import type { DirectionPicker } from "../ui/DirectionPicker";
 import type { InfoPanel } from "../ui/InfoPanel";
@@ -122,6 +125,7 @@ export class GameController {
   private readonly infoPanel: InfoPanel;
   private readonly turnTimeline: TurnTimeline;
   private readonly placementRosterPanel: PlacementRosterPanel | null;
+  private readonly battleLogPanel: BattleLogPanel | null;
   private readonly battleConfig: BattleConfig;
   private inputState: InputState = { phase: "placement", selectedPokemonId: null };
   private legalActions: Action[] = [];
@@ -142,6 +146,7 @@ export class GameController {
     infoPanel: InfoPanel,
     turnTimeline: TurnTimeline,
     placementRosterPanel: PlacementRosterPanel | null,
+    battleLogPanel: BattleLogPanel | null,
     setup?: BattleSetupResult,
     battleConfig?: BattleConfig,
   ) {
@@ -155,6 +160,7 @@ export class GameController {
     this.infoPanel = infoPanel;
     this.turnTimeline = turnTimeline;
     this.placementRosterPanel = placementRosterPanel;
+    this.battleLogPanel = battleLogPanel;
     this.setup = setup ?? null;
     this.battleConfig = battleConfig ?? DEFAULT_BATTLE_CONFIG;
   }
@@ -661,6 +667,8 @@ export class GameController {
   }
 
   private async processEvent(event: BattleEvent): Promise<void> {
+    this.feedBattleLog(event);
+
     switch (event.type) {
       case BattleEventType.MoveStarted: {
         const sprite = this.sprites.get(event.attackerId);
@@ -1373,5 +1381,49 @@ export class GameController {
 
     const placements = this.placementConfig.placementPhase.getPlacements();
     this.placementConfig.onPlacementComplete(placements);
+  }
+
+  private feedBattleLog(event: BattleEvent): void {
+    if (!this.battleLogPanel || !this.setup) return;
+
+    const setup = this.setup;
+    const lang = getLanguage();
+    const context: BattleLogContext = {
+      getPokemonName: (id) => {
+        const pokemon = setup.state.pokemon.get(id);
+        if (!pokemon) return id;
+        return getPokemonName(pokemon.definitionId, lang);
+      },
+      getMoveName: (moveId) => {
+        return getMoveName(moveId, lang);
+      },
+      language: lang,
+    };
+
+    const result = formatBattleEvent(event, context);
+    if (!result) return;
+
+    if (Array.isArray(result)) {
+      this.battleLogPanel.addEntries(result);
+    } else {
+      this.battleLogPanel.addEntry(result);
+    }
+  }
+
+  setupBattleLogClickHandler(): void {
+    if (!this.battleLogPanel) return;
+
+    this.battleLogPanel.onPokemonClick = (pokemonId: string) => {
+      const pokemon = this.state.pokemon.get(pokemonId);
+      if (!pokemon) return;
+      const screenPos = this.isometricGrid.gridToScreen(pokemon.position.x, pokemon.position.y);
+      this.scene.cameras.main.pan(screenPos.x, screenPos.y, 300, "Sine.easeInOut");
+    };
+
+    this.battleLogPanel.getTeamColor = (pokemonId: string) => {
+      const pokemon = this.state.pokemon.get(pokemonId);
+      if (!pokemon) return 0xaaaaaa;
+      return pokemon.playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
+    };
   }
 }

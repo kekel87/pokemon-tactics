@@ -96,7 +96,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [ ] Animations fluides (attaque par catégorie, déplacement par type, polish mouvement)
 - [x] IA jouable avec personnalité (plan 029 — AiDifficulty easy/medium/hard, action-scorer, scored-ai, AiTeamController, smoke test 6v6)
 - [x] IA améliorée : lookahead move+attack (évaluer les attaques possibles après déplacement)
-- [ ] Battle log (afficher les moves utilisés par l'IA et les joueurs)
+- [x] Battle log (afficher les moves utilisés par l'IA et les joueurs) — panel haut droite, i18n FR/EN, couleurs par type de message, noms cliquables, pliable, scroll auto (plan 037)
 - [ ] Afficher la portée de déplacement des ennemis au hover
 - [x] Revoir l'algo de portée de déplacement (tous les Pokemon semblent avoir la même portée) — plan 032
 - [x] Sélection d'équipe (grille portraits 82px colorés par équipe, bouton Auto re-randomize/Vider, toggle Humain/IA, toggle placement auto/manuel, validation core validateTeamSelection(), support IA vs IA, bypass sandbox, noms Pokemon i18n, bouton Retour au menu en victoire) — plan 033

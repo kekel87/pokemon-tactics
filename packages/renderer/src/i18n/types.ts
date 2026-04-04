@@ -138,6 +138,7 @@ export interface Translations {
   "credits.sprites": string;
   "credits.code": string;
   "credits.back": string;
+  "log.title": string;
 }
 
 export type TranslationKey = keyof Translations;
