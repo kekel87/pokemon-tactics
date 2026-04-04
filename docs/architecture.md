@@ -93,7 +93,7 @@ pokemon-tactics/
 │   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
 │   │   │   ├── i18n/            # Système i18n maison : types.ts, locales/fr.ts, locales/en.ts, index.ts (t, setLanguage, detectLanguage, onLanguageChange, Language enum)
 │   │   │   ├── settings/        # Paramètres persistants : GameSettings { damagePreview }, getSettings(), updateSettings(), localStorage("pt-settings")
-│   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel, LanguageToggle, TeamSelectPanel — panel Joueur + panel Dummy + toolbar)
+│   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel, LanguageToggle, TeamSelectPanel — panel Joueur + panel Dummy + toolbar, BattleLogPanel, BattleLogFormatter)
 │   │   │   ├── utils/           # Utilitaires renderer (screen-direction : getDirectionFromScreenPosition)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind)
 │   │   │   ├── types/           # Types renderer (BattleConfig : confirmAttack)
@@ -384,6 +384,19 @@ packages/data/src/i18n/
 ### Composant LanguageToggle
 
 `packages/renderer/src/ui/LanguageToggle.ts` — bouton bascule FR/EN (coin haut gauche), appelle `setLanguage()` puis `scene.restart()`.
+
+### Composant BattleLogPanel (plan 037)
+
+`packages/renderer/src/ui/BattleLogPanel.ts` — panel de log de combat affiché en haut à droite de `BattleUIScene`.
+
+- Alimenté par les `BattleEvent` existants (TurnStarted, MoveStarted, DamageDealt, MoveMissed, StatusApplied/Removed, StatChanged, PokemonKo, DefenseActivated/Triggered, ConfusionTriggered, KnockbackApplied, MultiHitComplete, RechargeStarted, BattleEnded)
+- Couleurs par type de message (dégâts rouge, stat up bleu, stat down rouge, statut orange, défense vert, KO rouge vif, effectiveness jaune)
+- Noms de Pokemon cliquables → `camera.pan()` vers le Pokemon ciblé
+- Pliable/dépliable via header toggle (icône ☰ en état replié)
+- Scroll interne (molette) avec auto-scroll bas à chaque nouveau message
+- Barre d'actions replay grisée réservée (⏮ ⏪ ▶ ⏩ ⏭)
+
+`packages/renderer/src/ui/BattleLogFormatter.ts` — traduit chaque `BattleEvent` en message texte i18n. Logique pure, sans dépendance Phaser. Couvert par 41 tests unitaires.
 
 ---
 

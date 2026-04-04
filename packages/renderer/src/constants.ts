@@ -228,6 +228,18 @@ export const KNOCKBACK_SHAKE_OFFSET_X = 3;
 export const KNOCKBACK_SHAKE_DURATION_MS = 50;
 export const KNOCKBACK_SHAKE_REPEAT = 2;
 
+export const BATTLE_LOG_WIDTH = 300;
+export const BATTLE_LOG_VISIBLE_LINES = 6;
+export const BATTLE_LOG_LINE_HEIGHT = 18;
+export const BATTLE_LOG_PADDING = 8;
+export const BATTLE_LOG_HEADER_HEIGHT = 28;
+export const BATTLE_LOG_ACTIONS_HEIGHT = 28;
+export const BATTLE_LOG_BG_ALPHA = 0.7;
+export const BATTLE_LOG_BG_COLOR = 0x111122;
+export const BATTLE_LOG_MAX_ENTRIES = 50;
+export const BATTLE_LOG_FONT_SIZE = 12;
+export const DEPTH_BATTLE_LOG = 1300;
+
 export const STAT_BADGE_BUFF_BG = 0x1a4a8a;
 export const STAT_BADGE_DEBUFF_BG = 0x8a1a1a;
 export const STAT_BADGE_HEIGHT = 14;

@@ -134,6 +134,7 @@ const fr: Translations = {
   "credits.sprites": "Sprites : PMDCollab SpriteCollab — CC-BY-NC 4.0\nhttps://sprites.pmdcollab.org",
   "credits.code": "Code : développé avec l'aide de Claude (Anthropic)",
   "credits.back": "Retour",
+  "log.title": "Journal de combat",
 };
 
 export default fr;

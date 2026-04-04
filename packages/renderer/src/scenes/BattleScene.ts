@@ -157,12 +157,14 @@ export class BattleScene extends Phaser.Scene {
       uiScene.infoPanel,
       uiScene.turnTimeline,
       uiScene.placementRosterPanel,
+      uiScene.battleLogPanel,
     );
     this.controller = controller;
     this.setupInput(controller, isometricGrid, uiScene);
 
     const battleSetup = createSandboxBattle(config);
     controller.setSetup(battleSetup);
+    controller.setupBattleLogClickHandler();
 
     const dummyPokemonId = `p2-${config.dummyPokemon}`;
     const dummyAi = new DummyAiController(
@@ -242,6 +244,7 @@ export class BattleScene extends Phaser.Scene {
       uiScene.infoPanel,
       uiScene.turnTimeline,
       uiScene.placementRosterPanel,
+      uiScene.battleLogPanel,
     );
     this.controller = controller;
     this.setupInput(controller, isometricGrid, uiScene);
@@ -281,6 +284,7 @@ export class BattleScene extends Phaser.Scene {
   ): void {
     const battleSetup = createBattleFromPlacements(config);
     controller.setSetup(battleSetup);
+    controller.setupBattleLogClickHandler();
 
     const aiTeams = config.teams.filter((team) => team.controller === PlayerController.Ai);
     if (aiTeams.length > 0) {

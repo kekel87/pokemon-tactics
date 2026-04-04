@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-04 (Plan 036 : Menu principal + Settings — MainMenuScene comme point d'entrée, BattleModeScene, SettingsScene (damage preview on/off), CreditsScene (disclaimer fan project), GameSettings localStorage, ~20 clés i18n FR/EN, retour menu depuis victoire)
+> Dernière mise à jour : 2026-04-04 (Plan 037 corrections post-review : burger aligné à droite, panel fermé par défaut, titre i18n, scroll molette, boutons replay ◁▷, clic ligne → camera pan, pastille couleur d'équipe, nettoyage code mort — 694 tests, build OK)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -478,6 +478,27 @@
   - Note : le plan 024 prévoyait initialement le menu en bas à gauche (X=16), la position finale choisie est bas à droite (X=1054) pour ne pas chevaucher la timeline 12 Pokemon.
   - **333 tests**, 0 régressions, build OK, vérification visuelle OK
 
+- **Plan 037 terminé** — Battle Log Panel :
+  - **`BattleLogFormatter`** : traduit chaque `BattleEvent` en message texte i18n FR/EN — TurnStarted, MoveStarted, DamageDealt (avec effectiveness), MoveMissed, StatusApplied/Removed, StatChanged, PokemonKo, DefenseActivated/Triggered, ConfusionTriggered, KnockbackApplied, MultiHitComplete, RechargeStarted, BattleEnded
+  - **Couleurs par type de message** : dégâts rouge, stat up bleu, stat down rouge, statut orange, défense vert, KO rouge vif, effectiveness jaune
+  - **`BattleLogPanel`** : panel Phaser en haut à droite de `BattleUIScene`, scroll interne (molette), auto-scroll bas à chaque nouveau message
+  - **Noms Pokemon cliquables** → `camera.pan()` vers le Pokemon ciblé
+  - **Pliable/dépliable** via header toggle (icône burger ☰ en état replié)
+  - **Barre d'actions replay** grisée réservée pour le futur (⏮ ⏪ ▶ ⏩ ⏭)
+  - **41 tests unitaires** pour `BattleLogFormatter`
+  - **694 tests total**, build OK
+
+- **Plan 037 — corrections post-review** :
+  - Burger ☰ aligné à droite (même position ouvert/fermé)
+  - Panel fermé par défaut
+  - Titre traduit i18n ("Journal de combat" FR / "Battle Log" EN)
+  - Scroll molette fonctionnel (écoute `scene.input.on wheel` avec bounds check)
+  - Boutons replay en caractères non-emoji (◁▷) pour éviter le rendu orange natif du système
+  - Clic sur ligne → camera pan vers le Pokemon mentionné (via `gridToScreen`)
+  - Pastille couleur d'équipe (dot) devant chaque ligne mentionnant un Pokemon
+  - Nettoyage code mort : suppression `getTeamId`, non-null assertions, fuite mémoire `scrollZone`
+  - **694 tests**, build OK
+
 - **Plan 036 terminé** — Menu principal, Settings et Disclaimer :
   - **4 nouvelles scènes** : `MainMenuScene` (point d'entrée du jeu), `BattleModeScene` (sous-menu Local/En ligne grisé/Tutoriel grisé), `SettingsScene` (damage preview toggle + langue), `CreditsScene` (disclaimer fan project + attribution sprites)
   - **Module settings** : `packages/renderer/src/settings/index.ts` — `GameSettings { damagePreview: boolean }`, `getSettings()` / `updateSettings()`, persistance `localStorage("pt-settings")`
@@ -503,7 +524,7 @@
   - **653 tests** (705 → 653 : suppression de `sandbox-query-params.test.ts` — 92 tests intentionnellement retirés avec le code source), build OK
 
 ### Prochaine étape (Phase 2 — Démo jouable)
-- **Battle log** : afficher les moves utilisés par l'IA et les joueurs (lisibilité du combat solo)
+- ~~**Battle log**~~ ✓ Couvert par plan 037
 - **Indicateur de miss** : ✓ couvert par BattleText plan 031 (texte flottant "Miss")
 - **Portée de déplacement des ennemis** : afficher la portée au hover (aide à la lecture tactique)
 - ~~**Algo de portée de déplacement** : tous les Pokemon semblent avoir la même portée~~ ✓ Couvert par plan 032
@@ -511,7 +532,7 @@
 - **Hot-seat 1v1 + multi-équipes** : 2 à 12 joueurs, IA ou humain par équipe (fondations posées par plan 033)
 
 ### Bugs connus non corrigés
-*(aucun bug connu bloquant pour la Phase 2)*
+- **Confusion wobble post-KO** : un Pokemon confus qui est KO continue à osciller (tween confusion non stoppé dans `playFaintAndStay`)
 
 ### Points à adresser (renderer)
 - Représentation visuelle des moves défensifs : animation/feedback quand Protect bloque, Counter renvoie, etc.
