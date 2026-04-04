@@ -1,7 +1,7 @@
 import en from "./locales/en";
 import fr from "./locales/fr";
-import { Language } from "./types";
 import type { TranslationKey, Translations } from "./types";
+import { Language } from "./types";
 
 export { Language } from "./types";
 export type { TranslationKey, Translations };

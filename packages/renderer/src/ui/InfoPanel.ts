@@ -1,6 +1,5 @@
 import { PlayerId, type PokemonInstance, StatName, StatusType } from "@pokemon-tactic/core";
 import { getPokemonName } from "@pokemon-tactic/data";
-import { getLanguage, t } from "../i18n";
 import {
   DEPTH_INFO_PANEL,
   HP_BAR_BG_ALPHA,
@@ -32,6 +31,7 @@ import {
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
 } from "../constants";
+import { getLanguage, t } from "../i18n";
 import { getPortraitKey } from "../sprites/SpriteLoader";
 
 const PORTRAIT_MARGIN: number = 8;

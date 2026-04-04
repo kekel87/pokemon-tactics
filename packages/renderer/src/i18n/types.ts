@@ -41,7 +41,7 @@ export interface Translations {
   "move.range": string;
   "placement.instruction": string;
   "sandbox.reset": string;
-  "sandbox.copyUrl": string;
+  "sandbox.exportJson": string;
   "sandbox.player": string;
   "sandbox.dummy": string;
   "sandbox.pokemon": string;

@@ -36,7 +36,7 @@ const en: Translations = {
   "move.range": "Range: {value}",
   "placement.instruction": "Player {player} — Place a Pokemon",
   "sandbox.reset": "Reset",
-  "sandbox.copyUrl": "Copy URL",
+  "sandbox.exportJson": "Export JSON",
   "sandbox.player": "Player",
   "sandbox.dummy": "Dummy",
   "sandbox.pokemon": "Pokemon",

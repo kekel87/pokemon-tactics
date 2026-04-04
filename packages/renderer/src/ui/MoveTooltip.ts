@@ -1,7 +1,5 @@
 import type { MoveDefinition } from "@pokemon-tactic/core";
 import { Category, TargetingKind } from "@pokemon-tactic/core";
-import { t } from "../i18n";
-import type { TranslationKey } from "../i18n";
 import {
   ACTION_MENU_BOTTOM_Y,
   ACTION_MENU_CORNER_RADIUS,
@@ -15,6 +13,8 @@ import {
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
 } from "../constants";
+import type { TranslationKey } from "../i18n";
+import { t } from "../i18n";
 import { buildPatternPreview, PatternCell } from "./pattern-preview";
 
 const CELL_COLORS: Record<PatternCell, number> = {
@@ -87,13 +87,19 @@ export class MoveTooltip {
 
     const powerLabel = move.power > 0 ? `${move.power}` : "—";
     const accuracyLabel = move.accuracy > 0 ? `${move.accuracy}` : "—";
-    this.addText(contentX, contentY, `${t("move.power", { value: powerLabel })}  ${t("move.accuracy", { value: accuracyLabel })}`);
+    this.addText(
+      contentX,
+      contentY,
+      `${t("move.power", { value: powerLabel })}  ${t("move.accuracy", { value: accuracyLabel })}`,
+    );
     contentY += lineHeight;
 
     const patternKey = PATTERN_TRANSLATION_KEYS[move.targeting.kind];
     const patternName = patternKey ? t(patternKey) : move.targeting.kind;
     const rangeLabel = this.getRangeLabel(move);
-    const thirdLine = rangeLabel ? `${patternName}  ${t("move.range", { value: rangeLabel })}` : patternName;
+    const thirdLine = rangeLabel
+      ? `${patternName}  ${t("move.range", { value: rangeLabel })}`
+      : patternName;
     this.addText(contentX, contentY, thirdLine);
     contentY += lineHeight + 4;
 

@@ -56,7 +56,9 @@ async function main(): Promise<void> {
     await downloadFile(url, join(CATEGORIES_DIR, `${name}.png`), name);
   }
 
-  console.log(`\nDone! ${Object.keys(TYPE_ICONS).length} types + ${Object.keys(CATEGORY_ICONS).length} categories downloaded`);
+  console.log(
+    `\nDone! ${Object.keys(TYPE_ICONS).length} types + ${Object.keys(CATEGORY_ICONS).length} categories downloaded`,
+  );
 }
 
 main().catch((error) => {

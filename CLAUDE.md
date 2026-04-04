@@ -90,7 +90,7 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 1. `core-guardian` — si le diff touche `packages/core/`
 2. `code-reviewer` — review qualité (pas de commit message, c'est le rôle de `commit-message`)
 3. `doc-keeper` — met à jour TOUS les docs impactés + roadmap.md + STATUS.md
-4. `visual-tester` — si le plan touche `packages/renderer/` (vérification visuelle via `sandbox-url`)
+4. `visual-tester` — si le plan touche `packages/renderer/` (vérification visuelle via Playwright)
 5. `commit-message` — **toujours en dernier**, propose un message de commit à l'humain
 
 **Travail hors plan (bugfix, expérimentation, refacto opportuniste) :**
@@ -120,7 +120,7 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 | Modif pipeline CI ou ajout package | `ci-setup` |
 | Problème de perf ou avant release | `performance-profiler` |
 | Ajout/modif d'un agent ou skill | `agent-manager` (audit cohérence) |
-| Besoin d'une URL sandbox | `sandbox-url` (génère l'URL à partir d'une description) |
+| Besoin d'une config sandbox | `sandbox-json` (génère une commande CLI à partir d'une description) |
 | Fin de session avec changements non commités | `commit-message` (propose un message de commit) |
 
 ### Chaînes d'agents
@@ -130,7 +130,7 @@ Certains agents en déclenchent d'autres :
 - `code-reviewer` (hors flow principal) → `visual-tester` (si renderer touché, dev server lancé)
 - `debugger` → `visual-tester` (si le bug a une composante visuelle)
 - `session-closer` → vérifie que `doc-keeper` a bien mis à jour la doc → `commit-message` (si changements non commités)
-- `visual-tester` peut appeler `sandbox-url` pour obtenir l'URL de navigation
+- `visual-tester` peut appeler `sandbox-json` pour obtenir une config de test
 - `agent-manager` — à déclencher manuellement après ajout/modif d'agents pour auditer la cohérence
 
 ## Skills disponibles

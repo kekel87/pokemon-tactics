@@ -1,6 +1,5 @@
 import type { MoveDefinition } from "@pokemon-tactic/core";
 import { getMoveName } from "@pokemon-tactic/data";
-import { getLanguage, t } from "../i18n";
 import {
   ACTION_MENU_BG_ALPHA,
   ACTION_MENU_BG_COLOR,
@@ -17,6 +16,7 @@ import {
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
 } from "../constants";
+import { getLanguage, t } from "../i18n";
 import type { MoveTooltip } from "./MoveTooltip";
 
 interface ActionMenuCallbacks {
@@ -102,7 +102,10 @@ export class ActionMenu {
     }
 
     const cancelY = menuTopY + options.moves.length * ACTION_MENU_ITEM_HEIGHT;
-    this.createMenuItem({ label: t("action.cancel"), enabled: true, callback: options.onCancel }, cancelY);
+    this.createMenuItem(
+      { label: t("action.cancel"), enabled: true, callback: options.onCancel },
+      cancelY,
+    );
   }
 
   showSelectedMove(

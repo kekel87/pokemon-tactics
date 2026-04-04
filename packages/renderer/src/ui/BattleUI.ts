@@ -1,7 +1,7 @@
 import { PlayerId, type PokemonInstance } from "@pokemon-tactic/core";
 import { getPokemonName } from "@pokemon-tactic/data";
-import { getLanguage, t } from "../i18n";
 import { CANVAS_WIDTH, DEPTH_UI_BASE } from "../constants";
+import { getLanguage, t } from "../i18n";
 
 export class BattleUI {
   private readonly scene: Phaser.Scene;
@@ -25,7 +25,9 @@ export class BattleUI {
   updateTurnInfo(pokemon: PokemonInstance, playerId: string, roundNumber: number): void {
     const playerLabel = playerId === PlayerId.Player1 ? t("battle.player1") : t("battle.player2");
     const name = getPokemonName(pokemon.definitionId, getLanguage());
-    this.turnInfoText.setText(`${t("battle.round", { round: roundNumber })} — ${playerLabel} — ${name}`);
+    this.turnInfoText.setText(
+      `${t("battle.round", { round: roundNumber })} — ${playerLabel} — ${name}`,
+    );
   }
 
   showVictory(winnerId: string, roundNumber: number): void {

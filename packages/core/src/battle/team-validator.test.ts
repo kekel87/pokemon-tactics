@@ -48,7 +48,18 @@ describe("validateTeamSelection", () => {
 
   it("rejects a team exceeding max size", () => {
     const result = validateTeamSelection(
-      { ...MockTeamSelection.base, pokemonDefinitionIds: ["bulbasaur", "charmander", "squirtle", "pikachu", "machop", "abra", "extra"] },
+      {
+        ...MockTeamSelection.base,
+        pokemonDefinitionIds: [
+          "bulbasaur",
+          "charmander",
+          "squirtle",
+          "pikachu",
+          "machop",
+          "abra",
+          "extra",
+        ],
+      },
       [...ALL_IDS, "extra"],
       6,
     );
@@ -73,6 +84,9 @@ describe("validateTeamSelection", () => {
       6,
     );
     expect(result.valid).toBe(false);
-    expect(result.errors).toEqual([TeamValidationError.DuplicatePokemon, TeamValidationError.UnknownPokemon]);
+    expect(result.errors).toEqual([
+      TeamValidationError.DuplicatePokemon,
+      TeamValidationError.UnknownPokemon,
+    ]);
   });
 });

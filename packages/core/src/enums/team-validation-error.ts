@@ -5,5 +5,4 @@ export const TeamValidationError = {
   UnknownPokemon: "unknown_pokemon",
 } as const;
 
-export type TeamValidationError =
-  (typeof TeamValidationError)[keyof typeof TeamValidationError];
+export type TeamValidationError = (typeof TeamValidationError)[keyof typeof TeamValidationError];

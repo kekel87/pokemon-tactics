@@ -1,6 +1,5 @@
 import { PlayerId } from "@pokemon-tactic/core";
 import { getPokemonName } from "@pokemon-tactic/data";
-import { getLanguage, t } from "../i18n";
 import {
   CANVAS_WIDTH,
   DEPTH_INFO_PANEL,
@@ -16,6 +15,7 @@ import {
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
 } from "../constants";
+import { getLanguage, t } from "../i18n";
 import { getPortraitKey } from "../sprites/SpriteLoader";
 
 interface RosterEntry {

@@ -3,7 +3,6 @@ import {
   DefensiveKind,
   EffectKind,
   EffectTarget,
-
   StatName,
   StatusType,
   TargetingKind,

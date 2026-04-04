@@ -132,9 +132,7 @@ export class BattleEngine {
       actions.push({ kind: ActionKind.EndTurn, pokemonId: currentPokemonId, direction });
     }
 
-    const isTrapped = currentPokemon.volatileStatuses.some(
-      (v) => v.type === StatusType.Trapped,
-    );
+    const isTrapped = currentPokemon.volatileStatuses.some((v) => v.type === StatusType.Trapped);
 
     if (!this.turnState.hasMoved && !this.restrictActions && !isTrapped) {
       const reachableTiles = this.getReachableTiles(currentPokemon);

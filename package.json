@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "pnpm --filter @pokemon-tactic/renderer dev",
+    "dev:sandbox": "pnpm --filter @pokemon-tactic/renderer dev:sandbox",
     "build": "pnpm -r build",
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration",

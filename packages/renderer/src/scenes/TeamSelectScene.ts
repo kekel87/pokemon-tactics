@@ -1,10 +1,10 @@
 import {
   PlayerController,
   PlayerId,
-  TeamValidationError,
-  validateTeamSelection,
   type PokemonDefinition,
   type TeamSelection,
+  TeamValidationError,
+  validateTeamSelection,
 } from "@pokemon-tactic/core";
 import { loadData } from "@pokemon-tactic/data";
 import {
@@ -14,10 +14,10 @@ import {
   TEAM_COLOR_PLAYER_1,
   TEAM_COLOR_PLAYER_2,
 } from "../constants";
+import { sandboxBootConfig } from "../sandbox-boot";
 import { t } from "../i18n";
 import type { TranslationKey } from "../i18n/types";
 import { preloadPortraitsOnly } from "../sprites/SpriteLoader";
-import { parseSandboxQueryParams } from "../utils/sandbox-query-params";
 
 const MAX_TEAM_SIZE = 6;
 
@@ -86,8 +86,14 @@ export class TeamSelectScene extends Phaser.Scene {
   private toggleTexts: [Phaser.GameObjects.Text, Phaser.GameObjects.Text] | null = null;
   private validateBgs: [Phaser.GameObjects.Rectangle, Phaser.GameObjects.Rectangle] | null = null;
   private validateTexts: [Phaser.GameObjects.Text, Phaser.GameObjects.Text] | null = null;
-  private slotContainers: [Phaser.GameObjects.Container | null, Phaser.GameObjects.Container | null] = [null, null];
-  private columnHighlights: [Phaser.GameObjects.Rectangle | null, Phaser.GameObjects.Rectangle | null] = [null, null];
+  private slotContainers: [
+    Phaser.GameObjects.Container | null,
+    Phaser.GameObjects.Container | null,
+  ] = [null, null];
+  private columnHighlights: [
+    Phaser.GameObjects.Rectangle | null,
+    Phaser.GameObjects.Rectangle | null,
+  ] = [null, null];
   private errorTexts: [Phaser.GameObjects.Text, Phaser.GameObjects.Text] | null = null;
   private gridContainer: Phaser.GameObjects.Container | null = null;
   private launchBg: Phaser.GameObjects.Rectangle | null = null;
@@ -109,8 +115,11 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   create(): void {
-    if (parseSandboxQueryParams()) {
-      this.scene.start("BattleScene");
+    if (sandboxBootConfig.enabled) {
+      this.scene.start("BattleScene", {
+        sandboxMode: true,
+        sandboxConfig: sandboxBootConfig.config,
+      });
       return;
     }
 
@@ -155,8 +164,18 @@ export class TeamSelectScene extends Phaser.Scene {
     const validateTexts: Phaser.GameObjects.Text[] = [];
 
     this.errorTexts = [
-      this.add.text(COLUMN_LEFT_X, ERROR_TEXT_Y, "", { fontSize: "11px", fontFamily: "monospace", color: "#ff4444", wordWrap: { width: COLUMN_WIDTH } }),
-      this.add.text(COLUMN_RIGHT_X, ERROR_TEXT_Y, "", { fontSize: "11px", fontFamily: "monospace", color: "#ff4444", wordWrap: { width: COLUMN_WIDTH } }),
+      this.add.text(COLUMN_LEFT_X, ERROR_TEXT_Y, "", {
+        fontSize: "11px",
+        fontFamily: "monospace",
+        color: "#ff4444",
+        wordWrap: { width: COLUMN_WIDTH },
+      }),
+      this.add.text(COLUMN_RIGHT_X, ERROR_TEXT_Y, "", {
+        fontSize: "11px",
+        fontFamily: "monospace",
+        color: "#ff4444",
+        wordWrap: { width: COLUMN_WIDTH },
+      }),
     ];
 
     for (let colIndex = 0; colIndex < 2; colIndex++) {
@@ -191,22 +210,30 @@ export class TeamSelectScene extends Phaser.Scene {
     this.validateTexts = validateTexts as [Phaser.GameObjects.Text, Phaser.GameObjects.Text];
   }
 
-  private buildControllerToggle(colIndex: number): { toggleBg: Phaser.GameObjects.Rectangle; toggleText: Phaser.GameObjects.Text } {
+  private buildControllerToggle(colIndex: number): {
+    toggleBg: Phaser.GameObjects.Rectangle;
+    toggleText: Phaser.GameObjects.Text;
+  } {
     const x = this.getColumnX(colIndex);
     const toggleX = x + COLUMN_WIDTH - 40;
     const toggleY = HEADER_Y + 7;
 
-    const toggleBg = this.add.rectangle(toggleX, toggleY, 80, 20, 0x225522, 0.8).setInteractive({ useHandCursor: true });
-    const toggleText = this.add.text(toggleX, toggleY, "", {
-      fontSize: "11px",
-      fontFamily: "monospace",
-      color: "#ffffff",
-    }).setOrigin(0.5);
+    const toggleBg = this.add
+      .rectangle(toggleX, toggleY, 80, 20, 0x225522, 0.8)
+      .setInteractive({ useHandCursor: true });
+    const toggleText = this.add
+      .text(toggleX, toggleY, "", {
+        fontSize: "11px",
+        fontFamily: "monospace",
+        color: "#ffffff",
+      })
+      .setOrigin(0.5);
 
     toggleBg.on("pointerdown", () => {
       const state = this.playerStates[colIndex]!;
       if (state.validated) return;
-      state.controller = state.controller === PlayerController.Human ? PlayerController.Ai : PlayerController.Human;
+      state.controller =
+        state.controller === PlayerController.Human ? PlayerController.Ai : PlayerController.Human;
       this.refreshAll();
     });
 
@@ -222,7 +249,14 @@ export class TeamSelectScene extends Phaser.Scene {
       const slotX = startX + col * (SLOT_SIZE + SLOT_GAP);
       const slotY = SLOTS_TOP_Y + row * (SLOT_SIZE + SLOT_GAP);
 
-      const bg = this.add.rectangle(slotX + SLOT_SIZE / 2, slotY + SLOT_SIZE / 2, SLOT_SIZE, SLOT_SIZE, teamColor, 0.15);
+      const bg = this.add.rectangle(
+        slotX + SLOT_SIZE / 2,
+        slotY + SLOT_SIZE / 2,
+        SLOT_SIZE,
+        SLOT_SIZE,
+        teamColor,
+        0.15,
+      );
       bg.setStrokeStyle(1, teamColor, 0.3);
     }
   }
@@ -231,13 +265,20 @@ export class TeamSelectScene extends Phaser.Scene {
     return this.getColumnX(colIndex) + buttonIndex * (BUTTON_WIDTH + BUTTON_GAP) + BUTTON_WIDTH / 2;
   }
 
-  private buildValidateButton(colIndex: number): { validateBg: Phaser.GameObjects.Rectangle; validateText: Phaser.GameObjects.Text } {
+  private buildValidateButton(colIndex: number): {
+    validateBg: Phaser.GameObjects.Rectangle;
+    validateText: Phaser.GameObjects.Text;
+  } {
     const buttonX = this.getButtonX(colIndex, 0);
     const buttonY = BUTTONS_Y + BUTTON_HEIGHT / 2;
 
-    const validateBg = this.add.rectangle(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT, 0x335533, 0.9).setInteractive({ useHandCursor: true });
+    const validateBg = this.add
+      .rectangle(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT, 0x335533, 0.9)
+      .setInteractive({ useHandCursor: true });
     validateBg.setStrokeStyle(1, 0x558855);
-    const validateText = this.add.text(buttonX, buttonY, "", { fontSize: "11px", fontFamily: "monospace", color: "#ffffff" }).setOrigin(0.5);
+    const validateText = this.add
+      .text(buttonX, buttonY, "", { fontSize: "11px", fontFamily: "monospace", color: "#ffffff" })
+      .setOrigin(0.5);
 
     validateBg.on("pointerdown", () => {
       const state = this.playerStates[colIndex]!;
@@ -269,9 +310,17 @@ export class TeamSelectScene extends Phaser.Scene {
     const buttonX = this.getButtonX(colIndex, 1);
     const buttonY = BUTTONS_Y + BUTTON_HEIGHT / 2;
 
-    const bg = this.add.rectangle(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT, 0x333355, 0.9).setInteractive({ useHandCursor: true });
+    const bg = this.add
+      .rectangle(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT, 0x333355, 0.9)
+      .setInteractive({ useHandCursor: true });
     bg.setStrokeStyle(1, 0x555577);
-    this.add.text(buttonX, buttonY, t("teamSelect.autoFill"), { fontSize: "10px", fontFamily: "monospace", color: "#aaaacc" }).setOrigin(0.5);
+    this.add
+      .text(buttonX, buttonY, t("teamSelect.autoFill"), {
+        fontSize: "10px",
+        fontFamily: "monospace",
+        color: "#aaaacc",
+      })
+      .setOrigin(0.5);
 
     bg.on("pointerdown", () => {
       const state = this.playerStates[colIndex]!;
@@ -285,9 +334,17 @@ export class TeamSelectScene extends Phaser.Scene {
     const buttonX = this.getButtonX(colIndex, 2);
     const buttonY = BUTTONS_Y + BUTTON_HEIGHT / 2;
 
-    const bg = this.add.rectangle(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT, 0x443333, 0.9).setInteractive({ useHandCursor: true });
+    const bg = this.add
+      .rectangle(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT, 0x443333, 0.9)
+      .setInteractive({ useHandCursor: true });
     bg.setStrokeStyle(1, 0x775555);
-    this.add.text(buttonX, buttonY, t("teamSelect.clear"), { fontSize: "10px", fontFamily: "monospace", color: "#ccaaaa" }).setOrigin(0.5);
+    this.add
+      .text(buttonX, buttonY, t("teamSelect.clear"), {
+        fontSize: "10px",
+        fontFamily: "monospace",
+        color: "#ccaaaa",
+      })
+      .setOrigin(0.5);
 
     bg.on("pointerdown", () => {
       const state = this.playerStates[colIndex]!;
@@ -331,18 +388,27 @@ export class TeamSelectScene extends Phaser.Scene {
       const centerX = cellX + GRID_CELL_SIZE / 2;
       const centerY = cellY + GRID_CELL_SIZE / 2 - 6;
 
-      const bg = this.add.rectangle(centerX, cellY + GRID_CELL_SIZE / 2, GRID_CELL_SIZE, GRID_CELL_SIZE, 0x2a2a3e, 0.8);
+      const bg = this.add.rectangle(
+        centerX,
+        cellY + GRID_CELL_SIZE / 2,
+        GRID_CELL_SIZE,
+        GRID_CELL_SIZE,
+        0x2a2a3e,
+        0.8,
+      );
       bg.setStrokeStyle(1, 0x444466);
       bg.setInteractive({ useHandCursor: true });
 
       const portrait = this.add.image(centerX, centerY, `${definition.id}-portrait`);
       portrait.setDisplaySize(GRID_PORTRAIT_SIZE, GRID_PORTRAIT_SIZE);
 
-      this.add.text(centerX, cellY + GRID_CELL_SIZE - 2, this.getPokemonName(definition.id), {
-        fontSize: "9px",
-        fontFamily: "monospace",
-        color: "#cccccc",
-      }).setOrigin(0.5, 1);
+      this.add
+        .text(centerX, cellY + GRID_CELL_SIZE - 2, this.getPokemonName(definition.id), {
+          fontSize: "9px",
+          fontFamily: "monospace",
+          color: "#cccccc",
+        })
+        .setOrigin(0.5, 1);
 
       bg.on("pointerdown", () => this.onPokemonClicked(definition.id));
       bg.on("pointerover", () => bg.setFillStyle(0x3a3a5e, 1));
@@ -372,29 +438,42 @@ export class TeamSelectScene extends Phaser.Scene {
     const centerX = CANVAS_WIDTH / 2;
 
     const toggleX = centerX - LAUNCH_BUTTON_WIDTH / 2 - 90;
-    this.placementToggleBg = this.add.rectangle(toggleX, LAUNCH_BUTTON_Y, 150, 28, 0x333344, 0.8).setInteractive({ useHandCursor: true });
+    this.placementToggleBg = this.add
+      .rectangle(toggleX, LAUNCH_BUTTON_Y, 150, 28, 0x333344, 0.8)
+      .setInteractive({ useHandCursor: true });
     this.placementToggleBg.setStrokeStyle(1, 0x555566);
-    this.placementToggleText = this.add.text(toggleX, LAUNCH_BUTTON_Y, "", {
-      fontSize: "11px",
-      fontFamily: "monospace",
-      color: "#cccccc",
-    }).setOrigin(0.5);
+    this.placementToggleText = this.add
+      .text(toggleX, LAUNCH_BUTTON_Y, "", {
+        fontSize: "11px",
+        fontFamily: "monospace",
+        color: "#cccccc",
+      })
+      .setOrigin(0.5);
 
     this.placementToggleBg.on("pointerdown", () => {
       this.autoPlacement = !this.autoPlacement;
       this.refreshPlacementToggle();
     });
 
-    this.launchBg = this.add.rectangle(centerX, LAUNCH_BUTTON_Y, LAUNCH_BUTTON_WIDTH, LAUNCH_BUTTON_HEIGHT, 0x225522, 0.9);
+    this.launchBg = this.add.rectangle(
+      centerX,
+      LAUNCH_BUTTON_Y,
+      LAUNCH_BUTTON_WIDTH,
+      LAUNCH_BUTTON_HEIGHT,
+      0x225522,
+      0.9,
+    );
     this.launchBg.setStrokeStyle(2, 0x44aa44);
     this.launchBg.setInteractive({ useHandCursor: true });
 
-    this.launchText = this.add.text(centerX, LAUNCH_BUTTON_Y, t("teamSelect.launch"), {
-      fontSize: "16px",
-      fontFamily: "monospace",
-      color: "#ffffff",
-      fontStyle: "bold",
-    }).setOrigin(0.5);
+    this.launchText = this.add
+      .text(centerX, LAUNCH_BUTTON_Y, t("teamSelect.launch"), {
+        fontSize: "16px",
+        fontFamily: "monospace",
+        color: "#ffffff",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5);
 
     this.launchBg.on("pointerdown", () => this.onLaunch());
 
@@ -403,7 +482,9 @@ export class TeamSelectScene extends Phaser.Scene {
 
   private refreshPlacementToggle(): void {
     if (!this.placementToggleBg || !this.placementToggleText) return;
-    const label = this.autoPlacement ? t("teamSelect.autoPlacement") : t("teamSelect.manualPlacement");
+    const label = this.autoPlacement
+      ? t("teamSelect.autoPlacement")
+      : t("teamSelect.manualPlacement");
     this.placementToggleText.setText(label);
     this.placementToggleBg.setFillStyle(this.autoPlacement ? 0x442255 : 0x333344, 0.8);
   }
@@ -513,9 +594,12 @@ export class TeamSelectScene extends Phaser.Scene {
       const strokeAlpha = isActive ? 0.5 : 0.15;
 
       const highlight = this.add.rectangle(
-        x + COLUMN_WIDTH / 2, highlightY,
-        COLUMN_WIDTH + 10, COLUMN_HIGHLIGHT_HEIGHT,
-        teamColor, alpha,
+        x + COLUMN_WIDTH / 2,
+        highlightY,
+        COLUMN_WIDTH + 10,
+        COLUMN_HIGHLIGHT_HEIGHT,
+        teamColor,
+        alpha,
       );
       highlight.setStrokeStyle(isActive ? 2 : 1, teamColor, strokeAlpha);
       highlight.setDepth(-1);
@@ -547,7 +631,9 @@ export class TeamSelectScene extends Phaser.Scene {
     const bg = this.gridContainer.list[bgIndex] as Phaser.GameObjects.Rectangle;
     if (!bg) return;
 
-    const inActiveTeam = this.playerStates[this.activeColumnIndex]!.selectedIds.includes(definition.id);
+    const inActiveTeam = this.playerStates[this.activeColumnIndex]!.selectedIds.includes(
+      definition.id,
+    );
     const inTeam1 = this.playerStates[0].selectedIds.includes(definition.id);
     const inTeam2 = this.playerStates[1].selectedIds.includes(definition.id);
 

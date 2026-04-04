@@ -105,7 +105,7 @@ flowchart TB
         dataMiner["data-miner\n(donnees Pokemon)"]
         perfProfiler["performance-profiler\n(FPS, bundle)"]
         visualTester["visual-tester\n(screenshots Playwright)"]
-        sandboxUrl["sandbox-url\n(URLs sandbox)"]
+        sandboxJson["sandbox-json\n(configs sandbox JSON)"]
     end
 
     etapeInter -->|"si core touche"| coreGuardian
@@ -133,7 +133,7 @@ flowchart TB
     codeReviewer -->|"si mecaniques"| gameDesigner
     codeReviewer -->|"si renderer touche"| visualTester
     debugger_ -->|"si composante visuelle"| visualTester
-    visualTester -->|"generation URL"| sandboxUrl
+    visualTester -->|"generation config"| sandboxJson
 
     finSession --> buildCheck{{"pnpm build + test"}}
     buildCheck --> sessionCloser
@@ -161,11 +161,10 @@ flowchart TB
 | `performance-profiler` | Analyse performances (FPS, memoire, bundle) | Sonnet |
 | `agent-manager` | Meta-agent qui audite les autres agents | Sonnet |
 | `visual-tester` | Verification visuelle via Playwright | Sonnet |
-| `sandbox-url` | Genere des URLs sandbox depuis une description | Haiku |
+| `sandbox-json` | Genere des configs sandbox JSON depuis une description en langage naturel | Sonnet |
 | `plan-reviewer` | Cree et review les plans d'execution | Sonnet |
 | `visual-tester` | Verification visuelle via Playwright (screenshots, console, interactions) | Sonnet |
 | `visual-analyst` | Analyse visuels de jeux pour inspiration | Sonnet |
-| `sandbox-url` | Genere des URLs sandbox depuis une description en langage naturel | Sonnet |
 
 ## Sources et credits
 

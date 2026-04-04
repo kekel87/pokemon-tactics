@@ -1,7 +1,7 @@
-import movesFr from "./moves.fr.json";
 import movesEn from "./moves.en.json";
-import pokemonNamesFr from "./pokemon-names.fr.json";
+import movesFr from "./moves.fr.json";
 import pokemonNamesEn from "./pokemon-names.en.json";
+import pokemonNamesFr from "./pokemon-names.fr.json";
 
 const moveNames: Record<string, Record<string, string>> = {
   fr: movesFr,

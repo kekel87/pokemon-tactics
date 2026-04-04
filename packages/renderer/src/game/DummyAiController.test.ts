@@ -1,6 +1,6 @@
 import { ActionKind, Direction, PlayerId } from "@pokemon-tactic/core";
 import { describe, expect, it } from "vitest";
-import { defaultSandboxConfig } from "../testing/mock-sandbox";
+import { DEFAULT_SANDBOX_CONFIG } from "../types/SandboxConfig";
 import { DummyAiController } from "./DummyAiController";
 import { createSandboxBattle } from "./SandboxSetup";
 
@@ -26,7 +26,7 @@ function skipDummyTurn(result: ReturnType<typeof createSandboxBattle>): void {
 
 describe("DummyAiController", () => {
   it("plays EndTurn when no move assigned (passive mode)", () => {
-    const result = createSandboxBattle(defaultSandboxConfig());
+    const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
     const dummy = new DummyAiController(result.engine, "p2-dummy", null, Direction.South);
 
     // Dummy (speed 50) is faster than Bulbasaur (speed 45) — dummy plays first
@@ -36,7 +36,7 @@ describe("DummyAiController", () => {
   });
 
   it("plays assigned move when legal then ends turn", () => {
-    const result = createSandboxBattle(defaultSandboxConfig({ dummyMove: "protect" }));
+    const result = createSandboxBattle({ ...DEFAULT_SANDBOX_CONFIG, dummyMove: "protect" });
     const dummy = new DummyAiController(result.engine, "p2-dummy", "protect", Direction.South);
 
     // Dummy plays first (faster)
@@ -45,7 +45,7 @@ describe("DummyAiController", () => {
   });
 
   it("falls back to EndTurn when assigned move is not legal", () => {
-    const result = createSandboxBattle(defaultSandboxConfig());
+    const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
     const dummy = new DummyAiController(result.engine, "p2-dummy", "fake-move-id", Direction.South);
 
     dummy.playTurn();
@@ -53,7 +53,7 @@ describe("DummyAiController", () => {
   });
 
   it("does nothing when it is not the dummy turn", () => {
-    const result = createSandboxBattle(defaultSandboxConfig());
+    const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
     const dummy = new DummyAiController(result.engine, "p2-dummy", null, Direction.South);
 
     // Dummy plays first, then it's player's turn
