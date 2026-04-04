@@ -319,35 +319,27 @@ Les mêmes events alimentent les **replays** (sérialisation JSON).
 
 ## 5b. Mode Sandbox
 
-Accessible via `?sandbox` dans l'URL. Lance un combat 1v1 sur micro-carte 6x6.
+Accessible uniquement via `pnpm dev:sandbox` (variable d'environnement Vite `VITE_SANDBOX`). Lance un combat 1v1 sur micro-carte 6x6. Les query params URL ont été supprimés (plan 035).
+
+### Lancement
+
+```bash
+pnpm dev:sandbox                        # Config par défaut (DEFAULT_SANDBOX_CONFIG)
+pnpm dev:sandbox sandbox-configs/config.json   # Depuis un fichier JSON
+pnpm dev:sandbox '{"pokemon":"pikachu"}'       # JSON inline
+```
 
 ### Architecture du mode sandbox
 
+- **`SandboxConfig.ts`** : type `SandboxConfig` + constante `DEFAULT_SANDBOX_CONFIG` — config par défaut injectée si aucun argument CLI
 - **`BattleSetup.createSandboxBattle(config)`** : crée la carte 6x6, place le joueur en bas et le Dummy en haut, sans phase de placement interactif
 - **`DummyAiController`** : contrôleur IA minimal — soumet l'action du move assigné si légale, sinon `EndTurn`. Le dummy peut être passif ou utiliser un des 8 moves défensifs.
 - **`SandboxPanel`** (HTML overlay) : 2 panneaux côte à côte (Joueur à gauche, Dummy à droite) + toolbar au-dessus
   - Panel Joueur : dropdown Pokemon, 2 dropdowns moves (filtrés par movepool + dédoublonnage), slider HP %, dropdown statut, stages de stats
   - Panel Dummy : dropdown "Stats de" (custom ou preset Pokemon), stats éditables, niveau, slider HP %, dropdown move défensif, dropdown direction
-  - Toolbar : bouton Réinitialiser (recrée le combat), bouton Copier URL (génère l'URL avec tous les params)
+  - Toolbar : bouton Réinitialiser (recrée le combat), bouton **Exporter JSON** (copie la config courante en JSON dans le presse-papier)
 - **Écran de victoire HTML** : overlay HTML au lieu de Phaser Graphics — contourne le bug de hitbox Phaser 4 avec camera zoom
-
-### Query params disponibles
-
-| Param | Description | Défaut |
-|-------|-------------|--------|
-| `sandbox` | Active le mode sandbox | — |
-| `pokemon` | Pokemon du joueur | `bulbasaur` |
-| `moves` | Moves du joueur (ex: `razor-leaf,sleep-powder`) | premier move du movepool |
-| `hp` | HP du joueur en % | `100` |
-| `status` | Statut du joueur (`burned/poisoned/paralyzed/frozen/asleep`) | aucun |
-| `statStages` | Stages de stats du joueur (ex: `attack:2,defense:-1`) | aucun |
-| `dummy` | Pokemon de référence pour les stats/types du dummy | `dummy` (custom) |
-| `dummyMove` | Move défensif du dummy | passif |
-| `dummyDirection` | Direction du dummy | `south` |
-| `dummyHp` | HP du dummy en % | `100` |
-| `dummyLevel` | Niveau du dummy | `50` |
-| `dummyStatus` | Statut du dummy | aucun |
-| `dummyStatStages` | Stages de stats du dummy | aucun |
+- **`sandbox-configs/`** : fichiers JSON d'exemple (configs prêtes à l'emploi)
 
 > Le sprite du Dummy est le sprite PMDCollab `#0000 form 1` (sprite générique).
 
@@ -593,13 +585,13 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour autom
 | `visual-tester` | sonnet | Vérification visuelle via Playwright MCP (screenshots, console, interactions) |
 | `ci-setup` | sonnet | Configuration GitHub Actions |
 | `agent-manager` | sonnet | Audite et maintient les agents/skills (format, cohérence, qualité) |
-| `sandbox-url` | sonnet | Génère des URLs sandbox complètes à partir de descriptions en langage naturel |
+| `sandbox-json` | sonnet | Génère des configs sandbox JSON à partir de descriptions en langage naturel |
 
 ### Comportements notables
 
 - **`code-reviewer`** : review qualité, TypeScript strict, conventions. Escalade vers l'humain si diff > 15 fichiers ou pattern intentionnel détecté. Ne propose plus de message de commit (délégué à `commit-message`).
 - **`commit-message`** : part du contexte (numéro de plan, phase, description de session) pour proposer un titre, puis confirme avec `git diff`. Appelé par `session-closer` en fin de session si des changements ne sont pas encore commités.
-- **`sandbox-url`** : traduit une description en langage naturel ("Bulbizarre brûlé face à un Dummy Protect") en URL sandbox complète. Connaît tous les query params et leurs valeurs valides.
+- **`sandbox-json`** : traduit une description en langage naturel ("Bulbizarre brûlé face à un Dummy Protect") en config JSON sandbox complète. Connaît tous les champs de `SandboxConfig` et leurs valeurs valides. Génère un JSON prêt à copier-coller ou à passer en argument à `pnpm dev:sandbox`.
 - **`doc-keeper`** : checklist systématique — parcourt tous les fichiers de la table, vérifie la cohérence des termes entre les docs, maintient la section "Sources et crédits" du README.
 - **`dependency-manager`** : en plus de l'audit standard, détecte les plugins remplacés par des fonctionnalités natives du tool (ex: plugin Vite remplacé par une option built-in) en lançant `pnpm build 2>&1` et `pnpm test 2>&1`.
 
@@ -613,7 +605,7 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour autom
 | Bugfix / refacto / expérimentation hors plan | `code-reviewer` + `doc-keeper` |
 | Modif mécaniques de jeu | `game-designer` |
 | `code-reviewer` déclenche | `core-guardian` (si core), `game-designer` (si mécaniques), `visual-tester` (si renderer) |
-| `visual-tester` déclenche | `sandbox-url` (si génération d'URL nécessaire) |
+| `visual-tester` déclenche | `sandbox-json` (si génération de config sandbox nécessaire) |
 | `debugger` déclenche | `visual-tester` (si composante visuelle) |
 | Ajout/modif données Pokemon | `data-miner` + `game-designer` |
 | Fin de session | vérification `pnpm build` + `pnpm test` → `session-closer` → `doc-keeper` + `commit-message` (si non commité) |

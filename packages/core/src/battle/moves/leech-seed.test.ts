@@ -220,7 +220,9 @@ describe("leech-seed", () => {
     expect(result.success).toBe(true);
     // No Seeded status applied
     const targetPokemon = state.pokemon.get(grassTarget.id)!;
-    expect(targetPokemon.volatileStatuses.find((v) => v.type === StatusType.Seeded)).toBeUndefined();
+    expect(
+      targetPokemon.volatileStatuses.find((v) => v.type === StatusType.Seeded),
+    ).toBeUndefined();
 
     vi.restoreAllMocks();
   });
@@ -268,7 +270,9 @@ describe("leech-seed", () => {
     });
 
     const targetPokemon = state.pokemon.get(target.id)!;
-    const seededStatuses = targetPokemon.volatileStatuses.filter((v) => v.type === StatusType.Seeded);
+    const seededStatuses = targetPokemon.volatileStatuses.filter(
+      (v) => v.type === StatusType.Seeded,
+    );
     expect(seededStatuses).toHaveLength(2);
     expect(seededStatuses[0]!.sourceId).toBe(caster1.id);
     expect(seededStatuses[1]!.sourceId).toBe(caster2.id);

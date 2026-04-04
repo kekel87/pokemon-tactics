@@ -4055,29 +4055,12 @@
       "Walk": {
         "frameWidth": 32,
         "frameHeight": 32,
-        "durations": [
-          6,
-          8,
-          6,
-          8
-        ]
+        "durations": [6, 8, 6, 8]
       },
       "Attack": {
         "frameWidth": 64,
         "frameHeight": 64,
-        "durations": [
-          2,
-          2,
-          4,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2
-        ],
+        "durations": [2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2],
         "rushFrame": 2,
         "hitFrame": 6,
         "returnFrame": 8
@@ -4085,38 +4068,22 @@
       "Sleep": {
         "frameWidth": 32,
         "frameHeight": 24,
-        "durations": [
-          30,
-          35
-        ]
+        "durations": [30, 35]
       },
       "Hurt": {
         "frameWidth": 48,
         "frameHeight": 56,
-        "durations": [
-          2,
-          8
-        ]
+        "durations": [2, 8]
       },
       "Idle": {
         "frameWidth": 32,
         "frameHeight": 40,
-        "durations": [
-          12,
-          8,
-          8,
-          8
-        ]
+        "durations": [12, 8, 8, 8]
       },
       "Faint": {
         "frameWidth": 32,
         "frameHeight": 32,
-        "durations": [
-          8,
-          12,
-          4,
-          10
-        ]
+        "durations": [8, 12, 4, 10]
       }
     },
     "directions": [

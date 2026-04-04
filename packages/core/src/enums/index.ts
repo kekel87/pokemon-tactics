@@ -1,6 +1,6 @@
 export { ActionError } from "./action-error";
-export { AiDifficulty } from "./ai-difficulty";
 export { ActionKind } from "./action-kind";
+export { AiDifficulty } from "./ai-difficulty";
 export { BattleEventType } from "./battle-event-type";
 export { Category } from "./category";
 export { DefensiveKind } from "./defensive-kind";

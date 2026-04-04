@@ -1,11 +1,11 @@
 import { Direction, PlayerId, StatName, StatusType } from "@pokemon-tactic/core";
 import { describe, expect, it } from "vitest";
-import { defaultSandboxConfig } from "../testing/mock-sandbox";
+import { DEFAULT_SANDBOX_CONFIG } from "../types/SandboxConfig";
 import { createSandboxBattle } from "./SandboxSetup";
 
 describe("createSandboxBattle", () => {
   it("creates a battle with player and dummy on sandbox arena", () => {
-    const result = createSandboxBattle(defaultSandboxConfig());
+    const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
     const playerPokemon = result.state.pokemon.get("p1-bulbasaur");
     const dummyPokemon = result.state.pokemon.get("p2-dummy");
 
@@ -18,7 +18,7 @@ describe("createSandboxBattle", () => {
   });
 
   it("applies player orientation north and dummy orientation from config", () => {
-    const result = createSandboxBattle(defaultSandboxConfig({ dummyDirection: Direction.East }));
+    const result = createSandboxBattle({ ...DEFAULT_SANDBOX_CONFIG, dummyDirection: Direction.East });
     const player = result.state.pokemon.get("p1-bulbasaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 
@@ -27,9 +27,10 @@ describe("createSandboxBattle", () => {
   });
 
   it("overrides player moves when specified", () => {
-    const result = createSandboxBattle(
-      defaultSandboxConfig({ moves: ["razor-leaf", "sleep-powder"] }),
-    );
+    const result = createSandboxBattle({
+      ...DEFAULT_SANDBOX_CONFIG,
+      moves: ["razor-leaf", "sleep-powder"],
+    });
     const player = result.state.pokemon.get("p1-bulbasaur")!;
 
     expect(player.moveIds).toEqual(["razor-leaf", "sleep-powder"]);
@@ -37,14 +38,14 @@ describe("createSandboxBattle", () => {
   });
 
   it("uses default movepool when moves is empty", () => {
-    const result = createSandboxBattle(defaultSandboxConfig());
+    const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
     const player = result.state.pokemon.get("p1-bulbasaur")!;
 
     expect(player.moveIds).toEqual(["razor-leaf", "sleep-powder", "leech-seed", "sludge-bomb"]);
   });
 
   it("applies HP percentage", () => {
-    const result = createSandboxBattle(defaultSandboxConfig({ hp: 50, dummyHp: 25 }));
+    const result = createSandboxBattle({ ...DEFAULT_SANDBOX_CONFIG, hp: 50, dummyHp: 25 });
     const player = result.state.pokemon.get("p1-bulbasaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 
@@ -53,12 +54,11 @@ describe("createSandboxBattle", () => {
   });
 
   it("applies status effects", () => {
-    const result = createSandboxBattle(
-      defaultSandboxConfig({
-        status: StatusType.Burned,
-        dummyStatus: StatusType.Paralyzed,
-      }),
-    );
+    const result = createSandboxBattle({
+      ...DEFAULT_SANDBOX_CONFIG,
+      status: StatusType.Burned,
+      dummyStatus: StatusType.Paralyzed,
+    });
     const player = result.state.pokemon.get("p1-bulbasaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 
@@ -67,19 +67,18 @@ describe("createSandboxBattle", () => {
   });
 
   it("applies sleep with remaining turns", () => {
-    const result = createSandboxBattle(defaultSandboxConfig({ status: StatusType.Asleep }));
+    const result = createSandboxBattle({ ...DEFAULT_SANDBOX_CONFIG, status: StatusType.Asleep });
     const player = result.state.pokemon.get("p1-bulbasaur")!;
 
     expect(player.statusEffects).toEqual([{ type: StatusType.Asleep, remainingTurns: 3 }]);
   });
 
   it("applies stat stages", () => {
-    const result = createSandboxBattle(
-      defaultSandboxConfig({
-        statStages: { [StatName.Attack]: 2, [StatName.Defense]: -1 },
-        dummyStatStages: { [StatName.Speed]: -3 },
-      }),
-    );
+    const result = createSandboxBattle({
+      ...DEFAULT_SANDBOX_CONFIG,
+      statStages: { [StatName.Attack]: 2, [StatName.Defense]: -1 },
+      dummyStatStages: { [StatName.Speed]: -3 },
+    });
     const player = result.state.pokemon.get("p1-bulbasaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 
@@ -90,7 +89,7 @@ describe("createSandboxBattle", () => {
   });
 
   it("returns a functional BattleEngine", () => {
-    const result = createSandboxBattle(defaultSandboxConfig());
+    const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
     const activePlayerId = result.state.turnOrder[result.state.currentTurnIndex]?.startsWith("p1")
       ? PlayerId.Player1
       : PlayerId.Player2;

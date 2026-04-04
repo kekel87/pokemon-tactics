@@ -40,9 +40,9 @@ describe("wrap", () => {
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.StatusApplied);
     expect(state.pokemon.get(target.id)!.currentHp).toBeLessThan(hpBefore);
 
-    const trapped = state.pokemon.get(target.id)!.volatileStatuses.find(
-      (v) => v.type === StatusType.Trapped,
-    );
+    const trapped = state.pokemon
+      .get(target.id)!
+      .volatileStatuses.find((v) => v.type === StatusType.Trapped);
     expect(trapped).toBeDefined();
     expect(trapped!.damagePerTurn).toBe(0.125);
 
@@ -82,9 +82,9 @@ describe("wrap", () => {
       direction: Direction.East,
     });
 
-    expect(state.pokemon.get(target.id)!.volatileStatuses.some(
-      (v) => v.type === StatusType.Trapped,
-    )).toBe(true);
+    expect(
+      state.pokemon.get(target.id)!.volatileStatuses.some((v) => v.type === StatusType.Trapped),
+    ).toBe(true);
 
     const legalActions = engine.getLegalActions(PlayerId.Player2);
     const moveActions = legalActions.filter((a) => a.kind === ActionKind.Move);

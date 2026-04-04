@@ -222,7 +222,7 @@ describe("processEffects — status", () => {
       state: {
         grid: [],
         pokemon: new Map(),
-            turnOrder: [],
+        turnOrder: [],
         currentTurnIndex: 0,
         roundNumber: 1,
         predictedNextRoundOrder: [],
@@ -287,4 +287,3 @@ describe("processEffects — statChange", () => {
     expect(target.statStages[StatName.Accuracy]).toBe(-1);
   });
 });
-

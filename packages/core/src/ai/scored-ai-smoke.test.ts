@@ -112,7 +112,11 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
         maxHp: combatStats.hp,
         baseStats: { ...definition.baseStats },
         combatStats,
-        derivedStats: { movement: computeMovement(definition.baseStats.speed, 0), jump: 1, initiative: combatStats.speed },
+        derivedStats: {
+          movement: computeMovement(definition.baseStats.speed, 0),
+          jump: 1,
+          initiative: combatStats.speed,
+        },
         statStages: { ...ZERO_STAT_STAGES },
         statusEffects: [],
         position: placement.position,
@@ -198,9 +202,7 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
       const result = engine.submitAction(playerId, action);
       totalActions++;
 
-      const battleEndEvent = result.events.find(
-        (e) => e.type === BattleEventType.BattleEnded,
-      );
+      const battleEndEvent = result.events.find((e) => e.type === BattleEventType.BattleEnded);
       if (battleEndEvent && battleEndEvent.type === BattleEventType.BattleEnded) {
         winner = battleEndEvent.winnerId;
         break;

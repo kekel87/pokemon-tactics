@@ -28,13 +28,14 @@ export function isMajorStatus(status: StatusType): boolean {
   return MAJOR_STATUSES.has(status);
 }
 
-const MOVEMENT_THRESHOLDS: ReadonlyArray<{ readonly maxSpeed: number; readonly movement: number }> = [
-  { maxSpeed: 20, movement: 2 },
-  { maxSpeed: 45, movement: 3 },
-  { maxSpeed: 85, movement: 4 },
-  { maxSpeed: 170, movement: 5 },
-  { maxSpeed: 340, movement: 6 },
-];
+const MOVEMENT_THRESHOLDS: ReadonlyArray<{ readonly maxSpeed: number; readonly movement: number }> =
+  [
+    { maxSpeed: 20, movement: 2 },
+    { maxSpeed: 45, movement: 3 },
+    { maxSpeed: 85, movement: 4 },
+    { maxSpeed: 170, movement: 5 },
+    { maxSpeed: 340, movement: 6 },
+  ];
 
 const MAX_MOVEMENT = 7;
 

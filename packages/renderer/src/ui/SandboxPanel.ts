@@ -7,8 +7,8 @@ import {
   StatusType,
 } from "@pokemon-tactic/core";
 import { getMoveName, getPokemonName, loadData } from "@pokemon-tactic/data";
-import { getLanguage, t } from "../i18n";
 import type { TranslationKey } from "../i18n";
+import { getLanguage, t } from "../i18n";
 import type { SandboxConfig } from "../types/SandboxConfig";
 
 const DEFENSIVE_MOVE_IDS = [
@@ -157,10 +157,10 @@ export class SandboxPanel {
     resetButton.style.flex = "1";
     toolbar.appendChild(resetButton);
 
-    const urlButton = this.createButton(t("sandbox.copyUrl"), () => this.copyUrl());
-    urlButton.style.width = "auto";
-    urlButton.style.flex = "1";
-    toolbar.appendChild(urlButton);
+    const exportButton = this.createButton(t("sandbox.exportJson"), () => this.copyJson());
+    exportButton.style.width = "auto";
+    exportButton.style.flex = "1";
+    toolbar.appendChild(exportButton);
 
     return toolbar;
   }
@@ -221,7 +221,10 @@ export class SandboxPanel {
 
     const statusSelect = this.createSelect(
       t("sandbox.status"),
-      [{ value: "", label: t("sandbox.none") }, ...STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) }))],
+      [
+        { value: "", label: t("sandbox.none") },
+        ...STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) })),
+      ],
       config.status ?? "",
     );
     statusSelect.select.addEventListener("change", () => this.emit());
@@ -296,7 +299,10 @@ export class SandboxPanel {
 
     const statusSelect = this.createSelect(
       t("sandbox.status"),
-      [{ value: "", label: t("sandbox.none") }, ...STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) }))],
+      [
+        { value: "", label: t("sandbox.none") },
+        ...STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) })),
+      ],
       config.dummyStatus ?? "",
     );
     statusSelect.select.addEventListener("change", () => this.emit());
@@ -347,8 +353,7 @@ export class SandboxPanel {
     const statsHeader = document.createElement("div");
     statsHeader.style.cssText =
       "display: flex; justify-content: space-between; font-size: 9px; color: #888; margin-bottom: 2px;";
-    statsHeader.innerHTML =
-      `<span style="width:30px"></span><span style="flex:1;text-align:center">${t("sandbox.base")}</span><span style="width:35px;text-align:right">${t("sandbox.computed")}</span>`;
+    statsHeader.innerHTML = `<span style="width:30px"></span><span style="flex:1;text-align:center">${t("sandbox.base")}</span><span style="width:35px;text-align:right">${t("sandbox.computed")}</span>`;
     body.appendChild(statsHeader);
 
     const dummyDef = this.gameData.pokemon.find((p) => p.id === config.dummyPokemon);
@@ -561,45 +566,10 @@ export class SandboxPanel {
     return hasOverride ? stats : null;
   }
 
-  private buildUrl(): string {
+  private copyJson(): void {
     const config = this.readConfig();
-    const params = new URLSearchParams();
-    params.set("sandbox", "");
-    params.set("pokemon", config.pokemon);
-    if (config.moves.length > 0) params.set("moves", config.moves.join(","));
-    if (config.hp !== 100) params.set("hp", String(config.hp));
-    if (config.status) params.set("status", config.status);
-    if (config.volatileStatus) params.set("volatileStatus", config.volatileStatus);
-    if (Object.keys(config.statStages).length > 0) {
-      params.set(
-        "statStages",
-        Object.entries(config.statStages)
-          .map(([k, v]) => `${k}:${v}`)
-          .join(","),
-      );
-    }
-    params.set("dummy", config.dummyPokemon);
-    if (config.dummyMove) params.set("dummyMove", config.dummyMove);
-    if (config.dummyDirection !== Direction.West)
-      params.set("dummyDirection", config.dummyDirection);
-    if (config.dummyHp !== 100) params.set("dummyHp", String(config.dummyHp));
-    if (config.dummyStatus) params.set("dummyStatus", config.dummyStatus);
-    if (config.dummyVolatileStatus) params.set("dummyVolatileStatus", config.dummyVolatileStatus);
-    if (Object.keys(config.dummyStatStages).length > 0) {
-      params.set(
-        "dummyStatStages",
-        Object.entries(config.dummyStatStages)
-          .map(([k, v]) => `${k}:${v}`)
-          .join(","),
-      );
-    }
-
-    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-  }
-
-  private copyUrl(): void {
-    const url = this.buildUrl();
-    navigator.clipboard.writeText(url);
+    const json = JSON.stringify(config, null, 2);
+    navigator.clipboard.writeText(json);
   }
 
   private getMovepoolFor(pokemonId: string): string[] {

@@ -47,11 +47,11 @@ import {
   POKEMON_SPRITE_GROUND_OFFSET_Y,
   PREVIEW_FLASH_ALPHA,
   PREVIEW_FLASH_DURATION_MS,
+  TEAM_COLOR_PLAYER_1,
+  TEAM_COLOR_PLAYER_2,
   TILE_PREVIEW_ALPHA,
   TILE_PREVIEW_ATTACK_COLOR,
   TILE_PREVIEW_BUFF_COLOR,
-  TEAM_COLOR_PLAYER_1,
-  TEAM_COLOR_PLAYER_2,
   TILE_SPAWN_ZONE_ALPHA,
   TILE_SPAWN_ZONE_INACTIVE_COLOR,
 } from "../constants";
@@ -371,9 +371,7 @@ export class GameController {
       sprite.setActive(id === activePokemonId);
       const pokemon = this.state.pokemon.get(id);
       if (pokemon) {
-        const isConfused = pokemon.volatileStatuses.some(
-          (v) => v.type === StatusType.Confused,
-        );
+        const isConfused = pokemon.volatileStatuses.some((v) => v.type === StatusType.Confused);
         sprite.setConfusionWobble(isConfused);
       }
     }

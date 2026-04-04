@@ -51,7 +51,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Direction de fin de tour (orientation choisie avant EndTurn)
 - [x] Nouveaux patterns core : `slash` (arc frontal 3 cases) et `blast` (projectile + explosion circulaire) — voir `docs/reflexion-patterns-attaques.md` et décisions #108-109
 - [x] Mettre à jour `tactical.ts` avec les 7 changements de pattern effectifs (décision #110) — Ball'Ombre absente du roster actuel
-- [x] **Mode Sandbox** (`?sandbox`) : 1 Pokemon joueur vs 1 Dummy configurable sur micro-carte 6x6, 2 panels séparés (Joueur/Dummy), toolbar Réinitialiser + Copier URL, query params complets, Dummy avec preset Pokemon ou custom stats (décisions #138-139) — plan 023 + post-plan
+- [x] **Mode Sandbox** : 1 Pokemon joueur vs 1 Dummy configurable sur micro-carte 6x6, 2 panels séparés (Joueur/Dummy), toolbar Réinitialiser + Exporter JSON, accès via `pnpm dev:sandbox [config.json|json]`, Dummy avec preset Pokemon ou custom stats (décisions #138-139) — plan 023 + post-plan + plan 035
 - [x] 8 moves défensifs : Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité (décisions #141-146) + tests d'intégration scénario Gherkin (décision #140) — plan 023
 - [x] Plus de moves stat changes : Épée Danse (+2 Atk), Mur de Fer (+2 Def), Rugissement (-1 Atk cone), Hurlement (-1 Atk cone), Flash (-1 Accuracy zone r2) — plan 026
 - [x] Plus de moves AoE variés : Séisme (zone r2), Acide (cone + SpDef debuff), Tranche (slash), Draco-Queue (slash + knockback) — plan 026

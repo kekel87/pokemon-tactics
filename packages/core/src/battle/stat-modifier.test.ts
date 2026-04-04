@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { StatusType } from "../enums/status-type";
-import { clampStages, computeMovement, getEffectiveStat, getStatMultiplier, isMajorStatus } from "./stat-modifier";
+import {
+  clampStages,
+  computeMovement,
+  getEffectiveStat,
+  getStatMultiplier,
+  isMajorStatus,
+} from "./stat-modifier";
 
 describe("getStatMultiplier", () => {
   it("returns 1 for stage 0", () => {

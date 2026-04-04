@@ -1,0 +1,17 @@
+{
+  "pokemon": "bulbasaur",
+  "moves": [],
+  "hp": 100,
+  "status": null,
+  "volatileStatus": null,
+  "statStages": {},
+  "dummyPokemon": "dummy",
+  "dummyMove": null,
+  "dummyDirection": "south",
+  "dummyHp": 100,
+  "dummyLevel": 50,
+  "dummyBaseStats": null,
+  "dummyStatus": null,
+  "dummyVolatileStatus": null,
+  "dummyStatStages": {}
+}

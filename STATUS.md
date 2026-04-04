@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-03 (Plan 033 + améliorations UI : TeamSelectScene — grille 5x4 portraits 82px, slots colorés équipe (bleu/rouge), zones de spawn carte alignées, toggle Humain/IA sur une ligne, bouton Vider, bouton Retour au menu victoire, placement auto/manuel, noms Pokemon i18n, bouton Auto re-randomize, TeamValidationError const enum, MockTeamSelection — 664 tests)
+> Dernière mise à jour : 2026-04-04 (Plan 035 : Sandbox CLI — suppression query params URL, accès via `pnpm dev:sandbox [config.json|json]`, variable VITE_SANDBOX, DEFAULT_SANDBOX_CONFIG, bouton "Exporter JSON" remplace "Copier URL", sandbox-configs/, agent sandbox-url → sandbox-json)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -478,8 +478,21 @@
   - Note : le plan 024 prévoyait initialement le menu en bas à gauche (X=16), la position finale choisie est bas à droite (X=1054) pour ne pas chevaucher la timeline 12 Pokemon.
   - **333 tests**, 0 régressions, build OK, vérification visuelle OK
 
+- **Plan 035 terminé** — Sandbox CLI : suppression query params + accès JSON :
+  - Suppression de tous les query params URL (`?sandbox`, `?random`, `?pokemon`, etc.) — mode sandbox invisible depuis une URL partagée
+  - Sandbox activé uniquement via variable d'environnement Vite `VITE_SANDBOX` (injectée par `pnpm dev:sandbox`)
+  - Script CLI : `pnpm dev:sandbox [config.json | '{json}']` — config par défaut si aucun argument
+  - `SandboxConfig.ts` : type `SandboxConfig` + constante `DEFAULT_SANDBOX_CONFIG`
+  - `sandbox-boot.ts` : module de boot conditionnel, `TeamSelectScene` redirige vers `BattleScene` en mode sandbox
+  - Bouton "Copier URL" → **"Exporter JSON"** : copie la config courante en JSON dans le presse-papier
+  - `sandbox-configs/` : répertoire de fichiers JSON d'exemple prêts à l'emploi
+  - `env.d.ts` : types Vite pour `VITE_SANDBOX` / `VITE_SANDBOX_CONFIG`
+  - Agent `sandbox-url` → **`sandbox-json`** : génère des configs JSON (plus des URLs) depuis une description en langage naturel
+  - `CLAUDE.md` + `docs/architecture.md` + `README.md` mis à jour
+  - **653 tests** (705 → 653 : suppression de `sandbox-query-params.test.ts` — 92 tests intentionnellement retirés avec le code source), build OK
+
 ### Prochaine étape (Phase 2 — Démo jouable)
-- **Menu principal + Settings** : langue (i18n déjà fait — plan 030), damage preview on/off
+- **Plan 036 (draft prêt)** — Menu principal + Settings + Disclaimer : `MainMenuScene`, sous-menu Combat, Settings persistants (langue, damage preview), disclaimer fan project
 - **Battle log** : afficher les moves utilisés par l'IA et les joueurs (lisibilité du combat solo)
 - **Indicateur de miss** : ✓ couvert par BattleText plan 031 (texte flottant "Miss")
 - **Portée de déplacement des ennemis** : afficher la portée au hover (aide à la lecture tactique)

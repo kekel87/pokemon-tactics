@@ -38,9 +38,7 @@ describe("i18n", () => {
     });
 
     it("interpolates multiple parameters", () => {
-      expect(t("battle.wins", { player: "Joueur 1", round: 3 })).toBe(
-        "Joueur 1 gagne ! — Round 3",
-      );
+      expect(t("battle.wins", { player: "Joueur 1", round: 3 })).toBe("Joueur 1 gagne ! — Round 3");
     });
 
     it("returns the key if translation is missing", () => {

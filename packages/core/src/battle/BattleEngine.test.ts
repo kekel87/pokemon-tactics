@@ -738,7 +738,6 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       expect(events.some((e) => e.type === BattleEventType.PokemonEliminated)).toBe(true);
       expect(events.some((e) => e.type === BattleEventType.BattleEnded)).toBe(false);
     });
-
   });
 
   describe("battleOver", () => {

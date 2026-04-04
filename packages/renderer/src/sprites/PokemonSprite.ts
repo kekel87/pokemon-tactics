@@ -1,5 +1,4 @@
 import { type DamageEstimate, Direction, type PokemonInstance } from "@pokemon-tactic/core";
-import { t } from "../i18n";
 import {
   CONFUSION_WOBBLE_ANGLE,
   CONFUSION_WOBBLE_DURATION_MS,
@@ -42,6 +41,7 @@ import {
   TYPE_COLORS,
 } from "../constants";
 import type { IsometricGrid } from "../grid/IsometricGrid";
+import { t } from "../i18n";
 import { getAnimationKey, getSpriteOffsets, type SpriteOffsets } from "./SpriteLoader";
 
 const CORE_TO_PMD_DIRECTION: Record<Direction, string> = {

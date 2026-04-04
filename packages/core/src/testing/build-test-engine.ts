@@ -69,7 +69,11 @@ export function buildTestEngineFromPlacements(
       maxHp: combatStats.hp,
       baseStats: { ...definition.baseStats },
       combatStats,
-      derivedStats: { movement: computeMovement(definition.baseStats.speed, 0), jump: 1, initiative: combatStats.speed },
+      derivedStats: {
+        movement: computeMovement(definition.baseStats.speed, 0),
+        jump: 1,
+        initiative: combatStats.speed,
+      },
       statStages: { ...ZERO_STAT_STAGES },
       statusEffects: [],
       position: placement.position,

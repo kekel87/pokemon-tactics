@@ -10,11 +10,7 @@ import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import type { TargetingPattern } from "../types/targeting-pattern";
-import {
-  directionFromTo,
-  getPerpendicularOffsets,
-  stepInDirection,
-} from "../utils/direction";
+import { directionFromTo, getPerpendicularOffsets, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
 
 export function scoreAction(

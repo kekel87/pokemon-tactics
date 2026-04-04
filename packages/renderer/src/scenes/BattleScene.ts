@@ -23,24 +23,20 @@ import {
   ZOOM_LEVELS,
   ZOOM_TWEEN_DURATION_MS,
 } from "../constants";
-import {
-  type BattleSetupConfig,
-  createBattleFromPlacements,
-} from "../game/BattleSetup";
 import { AiTeamController } from "../game/AiTeamController";
+import { type BattleSetupConfig, createBattleFromPlacements } from "../game/BattleSetup";
 import { DummyAiController } from "../game/DummyAiController";
 import { GameController, type PlacementConfig } from "../game/GameController";
 import { createSandboxBattle } from "../game/SandboxSetup";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import { createPokemonAnimations, preloadPokemonAssets } from "../sprites/SpriteLoader";
-import type { SandboxConfig } from "../types/SandboxConfig";
-import type { TeamSelectResult } from "./TeamSelectScene";
+import { DEFAULT_SANDBOX_CONFIG, type SandboxConfig } from "../types/SandboxConfig";
 import { DirectionPicker } from "../ui/DirectionPicker";
 import { LanguageToggle } from "../ui/LanguageToggle";
 import { SandboxPanel } from "../ui/SandboxPanel";
-import { parseSandboxQueryParams } from "../utils/sandbox-query-params";
 import type { BattleUIScene } from "./BattleUIScene";
+import type { TeamSelectResult } from "./TeamSelectScene";
 
 export class BattleScene extends Phaser.Scene {
   private lastHoverGrid: { x: number; y: number } | null = null;
@@ -107,15 +103,25 @@ export class BattleScene extends Phaser.Scene {
 
     this.events.once("uiReady", () => {
       const uiScene = this.scene.get("BattleUIScene") as BattleUIScene;
-      const sandboxConfig = parseSandboxQueryParams();
-      if (sandboxConfig) {
-        this.startSandboxMode(uiScene, sandboxConfig);
+      const sceneData = this.scene.settings.data as
+        | {
+            teamSelectResult?: TeamSelectResult;
+            sandboxMode?: boolean;
+            sandboxConfig?: SandboxConfig | null;
+          }
+        | undefined;
+      if (sceneData?.sandboxMode) {
+        const config = sceneData.sandboxConfig ?? DEFAULT_SANDBOX_CONFIG;
+        this.startSandboxMode(uiScene, config);
       } else {
-        const sceneData = this.scene.settings.data as { teamSelectResult?: TeamSelectResult } | undefined;
         if (!sceneData?.teamSelectResult) {
           throw new Error("BattleScene requires teamSelectResult from TeamSelectScene");
         }
-        this.startPlacementPhase(uiScene, sceneData.teamSelectResult, sceneData.teamSelectResult.autoPlacement);
+        this.startPlacementPhase(
+          uiScene,
+          sceneData.teamSelectResult,
+          sceneData.teamSelectResult.autoPlacement,
+        );
       }
     });
 
@@ -200,20 +206,26 @@ export class BattleScene extends Phaser.Scene {
     this.initSandboxBattle(this.sandboxUiScene, config);
   }
 
-  private startPlacementPhase(uiScene: BattleUIScene, teamSelectResult: TeamSelectResult, autoPlacement: boolean): void {
+  private startPlacementPhase(
+    uiScene: BattleUIScene,
+    teamSelectResult: TeamSelectResult,
+    autoPlacement: boolean,
+  ): void {
     const map = pocArena;
     const format = map.formats[0];
     if (!format) {
       throw new Error("POC arena has no formats defined");
     }
 
-    const teams: import("@pokemon-tactic/core").PlacementTeam[] = teamSelectResult.teams.map((selection) => ({
-      playerId: selection.playerId,
-      pokemonIds: selection.pokemonDefinitionIds.map(
-        (defId) => `${selection.playerId === PlayerId.Player1 ? "p1" : "p2"}-${defId}`,
-      ),
-      controller: selection.controller,
-    }));
+    const teams: import("@pokemon-tactic/core").PlacementTeam[] = teamSelectResult.teams.map(
+      (selection) => ({
+        playerId: selection.playerId,
+        pokemonIds: selection.pokemonDefinitionIds.map(
+          (defId) => `${selection.playerId === PlayerId.Player1 ? "p1" : "p2"}-${defId}`,
+        ),
+        controller: selection.controller,
+      }),
+    );
     const isometricGrid = new IsometricGrid(this);
     isometricGrid.drawGrid();
 
