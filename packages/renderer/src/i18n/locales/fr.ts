@@ -113,6 +113,27 @@ const fr: Translations = {
   "pokemon.sandshrew": "Sabelette",
   "pokemon.lickitung": "Excelangue",
   "pokemon.kangaskhan": "Kangourex",
+  "menu.adventure": "Aventure",
+  "menu.battle": "Combat",
+  "menu.settings": "Paramètres",
+  "menu.credits": "Crédits",
+  "battleMode.title": "Mode de combat",
+  "battleMode.local": "Local",
+  "battleMode.online": "En ligne",
+  "battleMode.tutorial": "Tutoriel",
+  "battleMode.back": "Retour",
+  "settings.title": "Paramètres",
+  "settings.language": "Langue",
+  "settings.damagePreview": "Prévisualisation dégâts",
+  "settings.on": "OUI",
+  "settings.off": "NON",
+  "settings.back": "Retour",
+  "credits.title": "Crédits",
+  "credits.disclaimer":
+    "Pokemon Tactics est un projet de fan, non commercial.\nIl n'est pas affilié, soutenu, ni approuvé par\nNintendo, Game Freak, ou The Pokemon Company.\nPokemon et tous les noms associés sont des marques\ndéposées de leurs propriétaires respectifs.",
+  "credits.sprites": "Sprites : PMDCollab SpriteCollab — CC-BY-NC 4.0\nhttps://sprites.pmdcollab.org",
+  "credits.code": "Code : développé avec l'aide de Claude (Anthropic)",
+  "credits.back": "Retour",
 };
 
 export default fr;

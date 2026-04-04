@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-04 (Plan 035 : Sandbox CLI — suppression query params URL, accès via `pnpm dev:sandbox [config.json|json]`, variable VITE_SANDBOX, DEFAULT_SANDBOX_CONFIG, bouton "Exporter JSON" remplace "Copier URL", sandbox-configs/, agent sandbox-url → sandbox-json)
+> Dernière mise à jour : 2026-04-04 (Plan 036 : Menu principal + Settings — MainMenuScene comme point d'entrée, BattleModeScene, SettingsScene (damage preview on/off), CreditsScene (disclaimer fan project), GameSettings localStorage, ~20 clés i18n FR/EN, retour menu depuis victoire)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -478,6 +478,17 @@
   - Note : le plan 024 prévoyait initialement le menu en bas à gauche (X=16), la position finale choisie est bas à droite (X=1054) pour ne pas chevaucher la timeline 12 Pokemon.
   - **333 tests**, 0 régressions, build OK, vérification visuelle OK
 
+- **Plan 036 terminé** — Menu principal, Settings et Disclaimer :
+  - **4 nouvelles scènes** : `MainMenuScene` (point d'entrée du jeu), `BattleModeScene` (sous-menu Local/En ligne grisé/Tutoriel grisé), `SettingsScene` (damage preview toggle + langue), `CreditsScene` (disclaimer fan project + attribution sprites)
+  - **Module settings** : `packages/renderer/src/settings/index.ts` — `GameSettings { damagePreview: boolean }`, `getSettings()` / `updateSettings()`, persistance `localStorage("pt-settings")`
+  - **`GameController`** : `showDamageEstimates()` conditionné sur `settings.damagePreview`
+  - **`BattleUI`** : bouton "Retour" mène désormais à `MainMenuScene` (au lieu de `TeamSelectScene`)
+  - **`main.ts`** : `MainMenuScene` comme première scène en mode normal — le mode sandbox (`VITE_SANDBOX`) bypass directement vers `TeamSelectScene`
+  - **i18n** : ~20 nouvelles clés ajoutées (`menu.*`, `battleMode.*`, `settings.*`, `credits.*`) en FR et EN
+  - Boutons Aventure / En ligne / Tutoriel visibles mais grisés (Phase 9 / Phase 7)
+  - Version statique affichée en bas à gauche de `MainMenuScene`
+  - `LanguageToggle` repositionné dans `MainMenuScene`
+
 - **Plan 035 terminé** — Sandbox CLI : suppression query params + accès JSON :
   - Suppression de tous les query params URL (`?sandbox`, `?random`, `?pokemon`, etc.) — mode sandbox invisible depuis une URL partagée
   - Sandbox activé uniquement via variable d'environnement Vite `VITE_SANDBOX` (injectée par `pnpm dev:sandbox`)
@@ -492,7 +503,6 @@
   - **653 tests** (705 → 653 : suppression de `sandbox-query-params.test.ts` — 92 tests intentionnellement retirés avec le code source), build OK
 
 ### Prochaine étape (Phase 2 — Démo jouable)
-- **Plan 036 (draft prêt)** — Menu principal + Settings + Disclaimer : `MainMenuScene`, sous-menu Combat, Settings persistants (langue, damage preview), disclaimer fan project
 - **Battle log** : afficher les moves utilisés par l'IA et les joueurs (lisibilité du combat solo)
 - **Indicateur de miss** : ✓ couvert par BattleText plan 031 (texte flottant "Miss")
 - **Portée de déplacement des ennemis** : afficher la portée au hover (aide à la lecture tactique)

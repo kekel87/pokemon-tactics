@@ -78,7 +78,7 @@ export class BattleUI {
       const battleScene = this.scene.scene.get("BattleScene");
       battleScene.scene.stop("BattleScene");
       battleScene.scene.stop("BattleUIScene");
-      battleScene.scene.start("TeamSelectScene");
+      battleScene.scene.start("MainMenuScene");
     });
     buttonContainer.appendChild(menuButton);
 
