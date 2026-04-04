@@ -118,6 +118,26 @@ export interface Translations {
   "pokemon.sandshrew": string;
   "pokemon.lickitung": string;
   "pokemon.kangaskhan": string;
+  "menu.adventure": string;
+  "menu.battle": string;
+  "menu.settings": string;
+  "menu.credits": string;
+  "battleMode.title": string;
+  "battleMode.local": string;
+  "battleMode.online": string;
+  "battleMode.tutorial": string;
+  "battleMode.back": string;
+  "settings.title": string;
+  "settings.language": string;
+  "settings.damagePreview": string;
+  "settings.on": string;
+  "settings.off": string;
+  "settings.back": string;
+  "credits.title": string;
+  "credits.disclaimer": string;
+  "credits.sprites": string;
+  "credits.code": string;
+  "credits.back": string;
 }
 
 export type TranslationKey = keyof Translations;

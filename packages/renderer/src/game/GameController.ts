@@ -58,6 +58,7 @@ import {
 import { HighlightKind } from "../enums/highlight-kind";
 import type { IsometricGrid } from "../grid/IsometricGrid";
 import { t } from "../i18n";
+import { getSettings } from "../settings";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import type { ActionMenu } from "../ui/ActionMenu";
 import { showBattleText } from "../ui/BattleText";
@@ -991,7 +992,9 @@ export class GameController {
     this.inputState = { phase: "confirm_attack", moveId, action, affectedTiles };
     this.actionMenu.updateInstruction(t("attack.confirm"));
     this.startPreviewFlash(affectedTiles);
-    this.showDamageEstimates(moveId, affectedTiles);
+    if (getSettings().damagePreview) {
+      this.showDamageEstimates(moveId, affectedTiles);
+    }
   }
 
   private startPreviewFlash(affectedTiles: Position[]): void {

@@ -89,7 +89,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 > But : un lien partageable où quelqu'un peut jouer seul contre l'IA et s'amuser
 
 - [x] i18n FR/EN (détection auto navigateur, persistance localStorage, bouton bascule) — plan 030
-- [ ] Menu principal + Settings (langue, damage preview on/off)
+- [x] Menu principal + Settings (langue, damage preview on/off) — plan 036 (MainMenuScene, BattleModeScene, SettingsScene, CreditsScene, GameSettings localStorage, i18n ~20 clés)
 - [x] Feedbacks visuels des mécaniques (confusion, vampigraine, bind, knockback, etc.) — plan 031 (BattleText, knockback slide, confusion wobble, icônes Seeded/Trapped)
 - [x] Refactor core : Vampigraine et Piège en statuts volatils (remplace ActiveLink) — plan 031
 - [x] Indicateur visuel de miss (attaque ratée) — texte flottant "Miss" via BattleText (plan 031)

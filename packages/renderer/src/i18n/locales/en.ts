@@ -113,6 +113,27 @@ const en: Translations = {
   "pokemon.sandshrew": "Sandshrew",
   "pokemon.lickitung": "Lickitung",
   "pokemon.kangaskhan": "Kangaskhan",
+  "menu.adventure": "Adventure",
+  "menu.battle": "Battle",
+  "menu.settings": "Settings",
+  "menu.credits": "Credits",
+  "battleMode.title": "Battle Mode",
+  "battleMode.local": "Local",
+  "battleMode.online": "Online",
+  "battleMode.tutorial": "Tutorial",
+  "battleMode.back": "Back",
+  "settings.title": "Settings",
+  "settings.language": "Language",
+  "settings.damagePreview": "Damage Preview",
+  "settings.on": "ON",
+  "settings.off": "OFF",
+  "settings.back": "Back",
+  "credits.title": "Credits",
+  "credits.disclaimer":
+    "Pokemon Tactics is a fan-made, non-commercial project.\nIt is not affiliated with, endorsed, or approved by\nNintendo, Game Freak, or The Pokemon Company.\nPokemon and all related names are trademarks\nof their respective owners.",
+  "credits.sprites": "Sprites: PMDCollab SpriteCollab — CC-BY-NC 4.0\nhttps://sprites.pmdcollab.org",
+  "credits.code": "Code: developed with the assistance of Claude (Anthropic)",
+  "credits.back": "Back",
 };
 
 export default en;
