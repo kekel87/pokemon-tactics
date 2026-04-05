@@ -1,5 +1,21 @@
 import type { BattleEvent } from "@pokemon-tactic/core";
 import { BattleEventType, DefensiveKind, StatName, StatusType } from "@pokemon-tactic/core";
+import {
+  BATTLE_LOG_COLOR_BATTLE_ENDED,
+  BATTLE_LOG_COLOR_DAMAGE,
+  BATTLE_LOG_COLOR_DEFENSE,
+  BATTLE_LOG_COLOR_EFFECTIVENESS,
+  BATTLE_LOG_COLOR_KO,
+  BATTLE_LOG_COLOR_KNOCKBACK,
+  BATTLE_LOG_COLOR_MISS,
+  BATTLE_LOG_COLOR_MOVE,
+  BATTLE_LOG_COLOR_MULTI_HIT,
+  BATTLE_LOG_COLOR_RECHARGE,
+  BATTLE_LOG_COLOR_STAT_DOWN,
+  BATTLE_LOG_COLOR_STAT_UP,
+  BATTLE_LOG_COLOR_STATUS,
+  BATTLE_LOG_COLOR_TURN,
+} from "../constants";
 import type { Language } from "../i18n/types";
 
 export interface BattleLogEntry {
@@ -15,20 +31,20 @@ export interface BattleLogContext {
 }
 
 export const BattleLogColors = {
-  turn: "#aaaaaa",
-  move: "#ffffff",
-  damage: "#ff6666",
-  effectiveness: "#ffdd00",
-  miss: "#ffffff",
-  status: "#ffaa44",
-  statUp: "#4488ff",
-  statDown: "#ff4444",
-  ko: "#ff2222",
-  defense: "#44cc66",
-  knockback: "#ffffff",
-  multiHit: "#ffffff",
-  recharge: "#aaaaaa",
-  battleEnded: "#ffee00",
+  turn: BATTLE_LOG_COLOR_TURN,
+  move: BATTLE_LOG_COLOR_MOVE,
+  damage: BATTLE_LOG_COLOR_DAMAGE,
+  effectiveness: BATTLE_LOG_COLOR_EFFECTIVENESS,
+  miss: BATTLE_LOG_COLOR_MISS,
+  status: BATTLE_LOG_COLOR_STATUS,
+  statUp: BATTLE_LOG_COLOR_STAT_UP,
+  statDown: BATTLE_LOG_COLOR_STAT_DOWN,
+  ko: BATTLE_LOG_COLOR_KO,
+  defense: BATTLE_LOG_COLOR_DEFENSE,
+  knockback: BATTLE_LOG_COLOR_KNOCKBACK,
+  multiHit: BATTLE_LOG_COLOR_MULTI_HIT,
+  recharge: BATTLE_LOG_COLOR_RECHARGE,
+  battleEnded: BATTLE_LOG_COLOR_BATTLE_ENDED,
 } as const;
 
 const STATUS_LOG_KEY: Record<string, { applied: { fr: string; en: string }; removed: { fr: string; en: string } }> = {

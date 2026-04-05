@@ -1,4 +1,5 @@
 import { Direction } from "@pokemon-tactic/core";
+import { DIRECTION_DIRECTION_INACTIVE_TINT } from "../constants";
 import { getDirectionFromScreenPosition } from "../utils/screen-direction";
 
 const COLS_PER_ROW = 6;
@@ -9,8 +10,6 @@ const ARROW_FRAMES: Record<Direction, number> = {
   [Direction.South]: YELLOW_ROW * COLS_PER_ROW + 4, // ↙ SW
   [Direction.West]: YELLOW_ROW * COLS_PER_ROW + 5, // ↖ NW
 };
-
-const INACTIVE_TINT = 0x888888;
 const ARROW_SCALE = 0.7;
 const SPREAD = 22;
 const VERTICAL_OFFSET = -30;
@@ -127,7 +126,7 @@ export class DirectionPicker {
         arrow.clearTint();
         arrow.setAlpha(1);
       } else {
-        arrow.setTint(INACTIVE_TINT);
+        arrow.setTint(DIRECTION_INACTIVE_TINT);
       }
     }
   }

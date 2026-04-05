@@ -135,6 +135,7 @@ export class GameController {
   private currentPreviewDirection: Direction | null = null;
   private currentPreviewTiles: Position[] = [];
   private previewFlashTweens: Phaser.Tweens.Tween[] = [];
+  private hoveredEnemyRangePokemonId: string | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -364,7 +365,53 @@ export class GameController {
     this.renderPreview(affectedTiles, this.isBuff(moveDefinition));
   }
 
+  handleEnemyRangeHover(hoveredPokemon: PokemonInstance | null): void {
+    const activePlayerId = this.getActivePlayerId();
+    if (!activePlayerId) {
+      this.clearEnemyRangeHighlight();
+      return;
+    }
+
+    const validPhases: InputState["phase"][] = [
+      "action_menu",
+      "select_move_destination",
+      "attack_submenu",
+      "select_attack_target",
+      "confirm_attack",
+    ];
+    if (!validPhases.includes(this.inputState.phase)) {
+      this.clearEnemyRangeHighlight();
+      return;
+    }
+
+    if (
+      !hoveredPokemon ||
+      hoveredPokemon.playerId === activePlayerId ||
+      hoveredPokemon.currentHp <= 0 ||
+      hoveredPokemon.id === this.getActivePokemonId()
+    ) {
+      this.clearEnemyRangeHighlight();
+      return;
+    }
+
+    if (hoveredPokemon.id === this.hoveredEnemyRangePokemonId) {
+      return;
+    }
+
+    const tiles = this.engine.getReachableTilesForPokemon(hoveredPokemon.id);
+    this.isometricGrid.showEnemyRange(tiles);
+    this.hoveredEnemyRangePokemonId = hoveredPokemon.id;
+  }
+
+  clearEnemyRangeHighlight(): void {
+    if (this.hoveredEnemyRangePokemonId !== null) {
+      this.isometricGrid.clearEnemyRange();
+      this.hoveredEnemyRangePokemonId = null;
+    }
+  }
+
   refreshUI(): void {
+    this.clearEnemyRangeHighlight();
     const activePokemonId = this.getActivePokemonId();
     const activePlayerId = this.getActivePlayerId();
 

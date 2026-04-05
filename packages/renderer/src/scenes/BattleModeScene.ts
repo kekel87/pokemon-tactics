@@ -1,4 +1,13 @@
-import { BACKGROUND_COLOR, CANVAS_WIDTH } from "../constants";
+import {
+  BACKGROUND_COLOR,
+  BUTTON_BORDER_COLOR,
+  BUTTON_COLOR,
+  BUTTON_DISABLED_BORDER_COLOR,
+  BUTTON_DISABLED_COLOR,
+  BUTTON_HOVER_COLOR,
+  CANVAS_WIDTH,
+  TEXT_COLOR_PRIMARY,
+} from "../constants";
 import { t } from "../i18n";
 import type { TranslationKey } from "../i18n/types";
 
@@ -21,7 +30,7 @@ export class BattleModeScene extends Phaser.Scene {
       .text(CANVAS_WIDTH / 2, TITLE_Y, t("battleMode.title"), {
         fontSize: "28px",
         fontFamily: "monospace",
-        color: "#ffffff",
+        color: TEXT_COLOR_PRIMARY,
       })
       .setOrigin(0.5, 0.5);
 
@@ -37,8 +46,8 @@ export class BattleModeScene extends Phaser.Scene {
     const disabled = !action;
 
     const bg = this.add
-      .rectangle(CANVAS_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT, disabled ? 0x333344 : 0x335577)
-      .setStrokeStyle(2, disabled ? 0x444455 : 0x5577aa)
+      .rectangle(CANVAS_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT, disabled ? BUTTON_DISABLED_COLOR : BUTTON_COLOR)
+      .setStrokeStyle(2, disabled ? BUTTON_DISABLED_BORDER_COLOR : BUTTON_BORDER_COLOR)
       .setOrigin(0.5, 0.5);
 
     this.add
@@ -51,16 +60,16 @@ export class BattleModeScene extends Phaser.Scene {
 
     if (action) {
       bg.setInteractive({ useHandCursor: true });
-      bg.on("pointerover", () => bg.setFillStyle(0x446688));
-      bg.on("pointerout", () => bg.setFillStyle(0x335577));
+      bg.on("pointerover", () => bg.setFillStyle(BUTTON_HOVER_COLOR));
+      bg.on("pointerout", () => bg.setFillStyle(BUTTON_COLOR));
       bg.on("pointerdown", action);
     }
   }
 
   private buildBackButton(): void {
     const bg = this.add
-      .rectangle(CANVAS_WIDTH / 2, BACK_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, 0x335577)
-      .setStrokeStyle(2, 0x5577aa)
+      .rectangle(CANVAS_WIDTH / 2, BACK_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, BUTTON_COLOR)
+      .setStrokeStyle(2, BUTTON_BORDER_COLOR)
       .setOrigin(0.5, 0.5)
       .setInteractive({ useHandCursor: true });
 
@@ -68,12 +77,12 @@ export class BattleModeScene extends Phaser.Scene {
       .text(CANVAS_WIDTH / 2, BACK_BUTTON_Y, t("battleMode.back"), {
         fontSize: "18px",
         fontFamily: "monospace",
-        color: "#ffffff",
+        color: TEXT_COLOR_PRIMARY,
       })
       .setOrigin(0.5, 0.5);
 
-    bg.on("pointerover", () => bg.setFillStyle(0x446688));
-    bg.on("pointerout", () => bg.setFillStyle(0x335577));
+    bg.on("pointerover", () => bg.setFillStyle(BUTTON_HOVER_COLOR));
+    bg.on("pointerout", () => bg.setFillStyle(BUTTON_COLOR));
     bg.on("pointerdown", () => this.scene.start("MainMenuScene"));
   }
 }

@@ -6,6 +6,10 @@ import {
   DEPTH_TOOLTIP,
   TOOLTIP_BG_ALPHA,
   TOOLTIP_BG_COLOR,
+  TOOLTIP_CELL_COLOR_CASTER,
+  TOOLTIP_CELL_COLOR_DASH,
+  TOOLTIP_CELL_COLOR_EMPTY,
+  TOOLTIP_CELL_COLOR_TARGET,
   TOOLTIP_CELL_GAP,
   TOOLTIP_CELL_SIZE,
   TOOLTIP_WIDTH,
@@ -18,10 +22,10 @@ import { t } from "../i18n";
 import { buildPatternPreview, PatternCell } from "./pattern-preview";
 
 const CELL_COLORS: Record<PatternCell, number> = {
-  [PatternCell.Target]: 0xff6644,
-  [PatternCell.Dash]: 0xffdd44,
-  [PatternCell.Caster]: 0xffdd44,
-  [PatternCell.Empty]: 0x333333,
+  [PatternCell.Target]: TOOLTIP_CELL_COLOR_TARGET,
+  [PatternCell.Dash]: TOOLTIP_CELL_COLOR_DASH,
+  [PatternCell.Caster]: TOOLTIP_CELL_COLOR_CASTER,
+  [PatternCell.Empty]: TOOLTIP_CELL_COLOR_EMPTY,
 };
 
 const CATEGORY_TEXTURE: Record<Category, string> = {

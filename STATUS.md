@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-04 (Plan 037 corrections post-review : burger aligné à droite, panel fermé par défaut, titre i18n, scroll molette, boutons replay ◁▷, clic ligne → camera pan, pastille couleur d'équipe, nettoyage code mort — 694 tests, build OK)
+> Dernière mise à jour : 2026-04-05 (Plan 038 terminé : overlay portée ennemie orange au hover, `getReachableTilesForPokemon` core public, layer `enemyRangeGraphics` dédié dans IsometricGrid, centralisation couleurs dans constants.ts, docs/design-system.md créé — 699 tests, build OK)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -499,6 +499,16 @@
   - Nettoyage code mort : suppression `getTeamId`, non-null assertions, fuite mémoire `scrollZone`
   - **694 tests**, build OK
 
+- **Plan 038 terminé** — Portée de déplacement des ennemis au hover :
+  - **Core** : `BattleEngine.getReachableTilesForPokemon(pokemonId)` — méthode publique, retourne `Position[]` accessibles (hors position courante, hors ennemis vivants), `[]` si KO/inexistant/battleOver
+  - **Renderer IsometricGrid** : layer dédié `enemyRangeGraphics` avec `DEPTH_GRID_ENEMY_RANGE` (entre highlight et preview), méthodes `showEnemyRange(positions)` et `clearEnemyRangeHighlight()`
+  - **Renderer GameController** : `handleEnemyRangeHover(hoveredPokemon)` — affiche l'overlay orange uniquement sur les ennemis hors tour, cache `hoveredEnemyRangePokemonId` anti-recalcul
+  - **Renderer BattleScene** : `pointermove` appelle `handleEnemyRangeHover` après calcul du `hoveredPokemon`
+  - **Constantes** : `TILE_HIGHLIGHT_ENEMY_RANGE_COLOR`, `DEPTH_GRID_ENEMY_RANGE`, `HighlightKind.EnemyRange` + centralisation de ~30 couleurs (BattleLogColors, tooltip cells, buttons, text colors, etc.)
+  - **Doc** : `docs/design-system.md` créé — inventaire complet des couleurs, palette, conventions visuelles
+  - **5 tests unitaires** pour `getReachableTilesForPokemon` (portée correcte, KO, bataille terminée)
+  - **699 tests total**, build OK
+
 - **Plan 036 terminé** — Menu principal, Settings et Disclaimer :
   - **4 nouvelles scènes** : `MainMenuScene` (point d'entrée du jeu), `BattleModeScene` (sous-menu Local/En ligne grisé/Tutoriel grisé), `SettingsScene` (damage preview toggle + langue), `CreditsScene` (disclaimer fan project + attribution sprites)
   - **Module settings** : `packages/renderer/src/settings/index.ts` — `GameSettings { damagePreview: boolean }`, `getSettings()` / `updateSettings()`, persistance `localStorage("pt-settings")`
@@ -525,8 +535,8 @@
 
 ### Prochaine étape (Phase 2 — Démo jouable)
 - ~~**Battle log**~~ ✓ Couvert par plan 037
-- **Indicateur de miss** : ✓ couvert par BattleText plan 031 (texte flottant "Miss")
-- **Portée de déplacement des ennemis** : afficher la portée au hover (aide à la lecture tactique)
+- ~~**Indicateur de miss**~~ ✓ couvert par BattleText plan 031 (texte flottant "Miss")
+- ~~**Portée de déplacement des ennemis**~~ ✓ Couvert par plan 038 (overlay orange, layer dédié)
 - ~~**Algo de portée de déplacement** : tous les Pokemon semblent avoir la même portée~~ ✓ Couvert par plan 032
 - ~~**Sélection d'équipe** : grille portraits, bouton Auto~~ ✓ Couvert par plan 033
 - **Hot-seat 1v1 + multi-équipes** : 2 à 12 joueurs, IA ou humain par équipe (fondations posées par plan 033)

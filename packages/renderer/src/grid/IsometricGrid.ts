@@ -7,12 +7,15 @@ import {
   CURSOR_PULSE_MIN_ALPHA,
   CURSOR_STROKE_WIDTH,
   DEPTH_GRID_CURSOR,
+  DEPTH_GRID_ENEMY_RANGE,
   DEPTH_GRID_HIGHLIGHT,
   DEPTH_GRID_PREVIEW,
   GRID_SIZE,
   TILE_FILL_COLOR,
   TILE_HEIGHT,
   TILE_HIGHLIGHT_ATTACK_COLOR,
+  TILE_HIGHLIGHT_ENEMY_RANGE_ALPHA,
+  TILE_HIGHLIGHT_ENEMY_RANGE_COLOR,
   TILE_HIGHLIGHT_MOVE_COLOR,
   TILE_RANGE_OUTLINE_ALPHA,
   TILE_RANGE_OUTLINE_COLOR,
@@ -32,6 +35,7 @@ export class IsometricGrid {
   private readonly scene: Phaser.Scene;
   private readonly tileGraphics: Phaser.GameObjects.Graphics;
   private readonly highlightGraphics: Phaser.GameObjects.Graphics;
+  private readonly enemyRangeGraphics: Phaser.GameObjects.Graphics;
   private readonly previewGraphics: Phaser.GameObjects.Graphics;
   private readonly cursorGraphics: Phaser.GameObjects.Graphics;
   private cursorTween: Phaser.Tweens.Tween | null = null;
@@ -45,6 +49,8 @@ export class IsometricGrid {
     this.tileGraphics = scene.add.graphics();
     this.highlightGraphics = scene.add.graphics();
     this.highlightGraphics.setDepth(DEPTH_GRID_HIGHLIGHT);
+    this.enemyRangeGraphics = scene.add.graphics();
+    this.enemyRangeGraphics.setDepth(DEPTH_GRID_ENEMY_RANGE);
     this.previewGraphics = scene.add.graphics();
     this.previewGraphics.setDepth(DEPTH_GRID_PREVIEW);
     this.cursorGraphics = scene.add.graphics();
@@ -93,11 +99,33 @@ export class IsometricGrid {
   }
 
   highlightTiles(positions: Array<{ x: number; y: number }>, kind: HighlightKind): void {
+    if (kind === HighlightKind.EnemyRange) {
+      this.showEnemyRange(positions);
+      return;
+    }
     const color =
       kind === HighlightKind.Move ? TILE_HIGHLIGHT_MOVE_COLOR : TILE_HIGHLIGHT_ATTACK_COLOR;
     for (const position of positions) {
       this.drawTile(this.highlightGraphics, position.x, position.y, color, color, 0.4);
     }
+  }
+
+  showEnemyRange(positions: Array<{ x: number; y: number }>): void {
+    this.enemyRangeGraphics.clear();
+    for (const position of positions) {
+      this.drawTile(
+        this.enemyRangeGraphics,
+        position.x,
+        position.y,
+        TILE_HIGHLIGHT_ENEMY_RANGE_COLOR,
+        TILE_HIGHLIGHT_ENEMY_RANGE_COLOR,
+        TILE_HIGHLIGHT_ENEMY_RANGE_ALPHA,
+      );
+    }
+  }
+
+  clearEnemyRange(): void {
+    this.enemyRangeGraphics.clear();
   }
 
   showPreview(positions: Array<{ x: number; y: number }>, color: number, alpha: number): void {

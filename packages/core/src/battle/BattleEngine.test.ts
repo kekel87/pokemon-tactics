@@ -1476,4 +1476,75 @@ describe("BattleEngine KO body blocking", () => {
 
     expect(state.pokemon.get("ko-enemy")?.currentHp).toBe(0);
   });
+
+  describe("getReachableTilesForPokemon", () => {
+    it("returns reachable positions for an alive Pokemon", () => {
+      const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+      const engine = new BattleEngine(state, new Map());
+
+      const tiles = engine.getReachableTilesForPokemon("fast");
+      expect(tiles.length).toBeGreaterThan(0);
+      expect(tiles.every((t) => t.x !== undefined && t.y !== undefined)).toBe(true);
+      expect(tiles.find((t) => t.x === 0 && t.y === 0)).toBeUndefined();
+    });
+
+    it("returns empty array for a KO Pokemon", () => {
+      const p1 = fresh(P1);
+      const p2 = fresh(P2, { currentHp: 0 });
+      const state = MockBattle.stateFrom([p1, p2]);
+      const engine = new BattleEngine(state, new Map());
+
+      expect(engine.getReachableTilesForPokemon("slow")).toEqual([]);
+    });
+
+    it("returns empty array for a non-existent Pokemon", () => {
+      const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+      const engine = new BattleEngine(state, new Map());
+
+      expect(engine.getReachableTilesForPokemon("does-not-exist")).toEqual([]);
+    });
+
+    it("returns empty array when battle is over", () => {
+      const p1 = fresh(P1, { position: { x: 0, y: 0 } });
+      const p2 = fresh(P2, { position: { x: 1, y: 0 }, currentHp: 1 });
+      const state = MockBattle.stateFrom([p1, p2]);
+      const move: MoveDefinition = {
+        id: "test-hit",
+        name: "Test Hit",
+        type: "normal",
+        category: Category.Physical,
+        power: 200,
+        accuracy: 100,
+        pp: 10,
+        targeting: { kind: TargetingKind.Single, range: 1 },
+        effects: [{ kind: EffectKind.Damage, target: "foe" }],
+      };
+      const engine = new BattleEngine(
+        MockBattle.stateFrom([
+          fresh(P1, { position: { x: 0, y: 0 }, moveIds: ["test-hit"], currentPp: { "test-hit": 10 } }),
+          fresh(P2, { position: { x: 1, y: 0 }, currentHp: 1 }),
+        ]),
+        new Map([["test-hit", move]]),
+      );
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UseMove,
+        pokemonId: "fast",
+        moveId: "test-hit",
+        targetPosition: { x: 1, y: 0 },
+      });
+
+      expect(engine.getReachableTilesForPokemon("fast")).toEqual([]);
+    });
+
+    it("does not include tiles occupied by living enemies", () => {
+      const p1 = fresh(P1, { position: { x: 0, y: 0 } });
+      const p2 = fresh(P2, { position: { x: 1, y: 0 } });
+      const state = MockBattle.stateFrom([p1, p2]);
+      const engine = new BattleEngine(state, new Map());
+
+      const tiles = engine.getReachableTilesForPokemon("fast");
+      expect(tiles.find((t) => t.x === 1 && t.y === 0)).toBeUndefined();
+    });
+  });
 });
