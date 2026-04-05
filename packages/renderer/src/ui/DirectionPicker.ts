@@ -1,5 +1,5 @@
 import { Direction } from "@pokemon-tactic/core";
-import { DIRECTION_DIRECTION_INACTIVE_TINT } from "../constants";
+import { DIRECTION_INACTIVE_TINT } from "../constants";
 import { getDirectionFromScreenPosition } from "../utils/screen-direction";
 
 const COLS_PER_ROW = 6;

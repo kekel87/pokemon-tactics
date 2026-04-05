@@ -392,6 +392,7 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
   });
 
   const allFrames: { key: string; buffer: Buffer; width: number; height: number }[] = [];
+  const extractedAnimations: ParsedAnimation[] = [];
 
   for (const animation of requestedAnimations) {
     console.log(`  Downloading ${animation.name}-Anim.png...`);
@@ -410,6 +411,7 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
           height: animation.frameHeight,
         });
       }
+      extractedAnimations.push(animation);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.warn(`  Warning: skipping ${animation.name} — ${message}`);
@@ -423,7 +425,7 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
     packed,
     atlasWidth,
     atlasHeight,
-    requestedAnimations,
+    extractedAnimations,
     config.directions,
   );
 

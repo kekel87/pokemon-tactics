@@ -1,3 +1,4 @@
+export { AnimationCategory, moveAnimationCategory } from "./base/animation-category";
 export { typeChart } from "./base/type-chart";
 export { getMoveName, getPokemonName } from "./i18n/index";
 export type { GameData } from "./load-data";

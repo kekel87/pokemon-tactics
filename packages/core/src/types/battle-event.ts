@@ -8,7 +8,12 @@ import type { Position } from "./position";
 export type BattleEvent =
   | { type: typeof BattleEventType.TurnStarted; pokemonId: string; roundNumber: number }
   | { type: typeof BattleEventType.TurnEnded; pokemonId: string }
-  | { type: typeof BattleEventType.MoveStarted; attackerId: string; moveId: string }
+  | {
+      type: typeof BattleEventType.MoveStarted;
+      attackerId: string;
+      moveId: string;
+      direction: Direction;
+    }
   | { type: typeof BattleEventType.PokemonMoved; pokemonId: string; path: Position[] }
   | {
       type: typeof BattleEventType.PokemonDashed;

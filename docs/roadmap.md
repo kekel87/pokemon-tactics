@@ -93,7 +93,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Feedbacks visuels des mécaniques (confusion, vampigraine, bind, knockback, etc.) — plan 031 (BattleText, knockback slide, confusion wobble, icônes Seeded/Trapped)
 - [x] Refactor core : Vampigraine et Piège en statuts volatils (remplace ActiveLink) — plan 031
 - [x] Indicateur visuel de miss (attaque ratée) — texte flottant "Miss" via BattleText (plan 031)
-- [ ] Animations fluides (attaque par catégorie, déplacement par type, polish mouvement)
+- [x] Animations fluides (attaque par catégorie Contact/Shoot/Charge, direction dynamique pendant déplacement et avant attaque, pipeline sprites Shoot/Charge/Hop) — plan 039
 - [x] IA jouable avec personnalité (plan 029 — AiDifficulty easy/medium/hard, action-scorer, scored-ai, AiTeamController, smoke test 6v6)
 - [x] IA améliorée : lookahead move+attack (évaluer les attaques possibles après déplacement)
 - [x] Battle log (afficher les moves utilisés par l'IA et les joueurs) — panel haut droite, i18n FR/EN, couleurs par type de message, noms cliquables, pliable, scroll auto (plan 037)

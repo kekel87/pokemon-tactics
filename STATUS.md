@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-05 (Plan 038 terminé : overlay portée ennemie orange au hover, `getReachableTilesForPokemon` core public, layer `enemyRangeGraphics` dédié dans IsometricGrid, centralisation couleurs dans constants.ts, docs/design-system.md créé — 699 tests, build OK)
+> Dernière mise à jour : 2026-04-05 (Bugfixes post-plan 039 : DirectionPicker import cassé, portée ennemie cachée en select_attack_target/confirm_attack, direction IA depuis event MoveStarted, pas de rotation sur self-target — 699 tests, build OK)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -498,6 +498,21 @@
   - Pastille couleur d'équipe (dot) devant chaque ligne mentionnant un Pokemon
   - Nettoyage code mort : suppression `getTeamId`, non-null assertions, fuite mémoire `scrollZone`
   - **694 tests**, build OK
+
+- **Bugfixes post-plan 039 (2026-04-05)** — 699 tests, build OK :
+  - Fix `DirectionPicker` : import `DIRECTION_DIRECTION_INACTIVE_TINT` → `DIRECTION_INACTIVE_TINT` (constante mal nommée provoquait un crash au moment du choix de direction en fin de tour)
+  - Fix portée ennemie hover : phases `select_attack_target` et `confirm_attack` retirées des `validPhases` de `handleEnemyRangeHover` — la portée de déplacement ennemi n'est plus affichée pendant la sélection/confirmation d'une cible d'attaque
+  - Fix direction IA : champ `direction: Direction` ajouté à l'event `MoveStarted` — le renderer lit la direction capturée au moment de l'attaque, pas le state final après toutes les actions IA
+  - Fix self-target direction : un move self-target (Charge, buffs) ne change plus l'orientation du Pokemon — il garde son orientation courante
+
+- **Plan 039 terminé** — Animations de combat : direction, catégorie de move, pipeline sprites :
+  - **`packages/data/src/base/animation-category.ts`** : `AnimationCategory` enum (`Contact`/`Shoot`/`Charge`) + `moveAnimationCategory` — 73 moves classifiés
+  - **Pipeline sprites** : 3 nouvelles animations PMDCollab extraites pour tout le roster (Shoot, Charge, Hop). Charmander et Sandshrew n'ont pas de Shoot disponible sur PMDCollab (404). Fix script d'extraction : exclusion des animations dont le PNG est absent.
+  - **Direction pendant déplacement** : les sprites tournent à chaque step du chemin
+  - **Direction avant attaque** : le sprite se tourne vers la cible avant de jouer l'animation (orientation lue depuis le state core)
+  - **Animation par catégorie** : Contact → Attack, Shoot → Shoot, Charge → Charge, avec fallback Attack si l'animation est manquante pour ce Pokemon
+  - **`PokemonSprite`** : tracking de `gridPosition`, méthode `playAnimationOnce(anim, fallback?)` avec fallback optionnel
+  - **699 tests**, build OK
 
 - **Plan 038 terminé** — Portée de déplacement des ennemis au hover :
   - **Core** : `BattleEngine.getReachableTilesForPokemon(pokemonId)` — méthode publique, retourne `Position[]` accessibles (hors position courante, hors ennemis vivants), `[]` si KO/inexistant/battleOver
