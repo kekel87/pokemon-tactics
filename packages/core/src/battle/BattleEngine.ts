@@ -114,6 +114,17 @@ export class BattleEngine {
     return estimateDamage(attacker, defender, move, this.typeChart, attackerTypes, defenderTypes);
   }
 
+  getReachableTilesForPokemon(pokemonId: string): Position[] {
+    if (this.battleOver) {
+      return [];
+    }
+    const pokemon = this.state.pokemon.get(pokemonId);
+    if (!pokemon || pokemon.currentHp <= 0) {
+      return [];
+    }
+    return this.getReachableTiles(pokemon).map((tile) => tile.position);
+  }
+
   getLegalActions(playerId: string): Action[] {
     if (this.battleOver) {
       return [];

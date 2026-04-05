@@ -1,4 +1,17 @@
-import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from "../constants";
+import {
+  BACKGROUND_COLOR,
+  BUTTON_BORDER_COLOR,
+  BUTTON_COLOR,
+  BUTTON_DISABLED_BORDER_COLOR,
+  BUTTON_DISABLED_COLOR,
+  BUTTON_HOVER_COLOR,
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  TEXT_COLOR_DISABLED,
+  TEXT_COLOR_MUTED,
+  TEXT_COLOR_PRIMARY,
+  TEXT_COLOR_TITLE,
+} from "../constants";
 import { getLanguage, setLanguage, t } from "../i18n";
 import type { TranslationKey } from "../i18n/types";
 import { Language } from "../i18n/types";
@@ -22,7 +35,7 @@ export class MainMenuScene extends Phaser.Scene {
       .text(CANVAS_WIDTH / 2, TITLE_Y, "POKEMON TACTICS", {
         fontSize: "36px",
         fontFamily: "monospace",
-        color: "#ffcc00",
+        color: TEXT_COLOR_TITLE,
         fontStyle: "bold",
       })
       .setOrigin(0.5, 0.5);
@@ -36,7 +49,7 @@ export class MainMenuScene extends Phaser.Scene {
       .text(20, CANVAS_HEIGHT - 24, VERSION_TEXT, {
         fontSize: "12px",
         fontFamily: "monospace",
-        color: "#666666",
+        color: TEXT_COLOR_DISABLED,
       })
       .setOrigin(0, 1);
 
@@ -44,7 +57,7 @@ export class MainMenuScene extends Phaser.Scene {
       .text(CANVAS_WIDTH - 20, CANVAS_HEIGHT - 24, getLanguage().toUpperCase(), {
         fontSize: "14px",
         fontFamily: "monospace",
-        color: "#aaaaaa",
+        color: TEXT_COLOR_MUTED,
         backgroundColor: "#222233",
         padding: { x: 8, y: 4 },
       })
@@ -63,22 +76,22 @@ export class MainMenuScene extends Phaser.Scene {
     const disabled = !action;
 
     const bg = this.add
-      .rectangle(CANVAS_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT, disabled ? 0x333344 : 0x335577)
-      .setStrokeStyle(2, disabled ? 0x444455 : 0x5577aa)
+      .rectangle(CANVAS_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT, disabled ? BUTTON_DISABLED_COLOR : BUTTON_COLOR)
+      .setStrokeStyle(2, disabled ? BUTTON_DISABLED_BORDER_COLOR : BUTTON_BORDER_COLOR)
       .setOrigin(0.5, 0.5);
 
     this.add
       .text(CANVAS_WIDTH / 2, y, t(key), {
         fontSize: "18px",
         fontFamily: "monospace",
-        color: disabled ? "#555566" : "#ffffff",
+        color: disabled ? "#555566" : TEXT_COLOR_PRIMARY,
       })
       .setOrigin(0.5, 0.5);
 
     if (action) {
       bg.setInteractive({ useHandCursor: true });
-      bg.on("pointerover", () => bg.setFillStyle(0x446688));
-      bg.on("pointerout", () => bg.setFillStyle(0x335577));
+      bg.on("pointerover", () => bg.setFillStyle(BUTTON_HOVER_COLOR));
+      bg.on("pointerout", () => bg.setFillStyle(BUTTON_COLOR));
       bg.on("pointerdown", action);
     }
   }

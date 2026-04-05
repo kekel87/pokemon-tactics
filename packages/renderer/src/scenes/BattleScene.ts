@@ -360,6 +360,7 @@ export class BattleScene extends Phaser.Scene {
           isometricGrid.showCursor(grid.x, grid.y);
 
           const hoveredPokemon = controller.getPokemonAtPosition(grid.x, grid.y);
+          controller.handleEnemyRangeHover(hoveredPokemon);
           if (hoveredPokemon) {
             uiScene.infoPanel.update(hoveredPokemon, hoveredPokemon.playerId);
           } else {
@@ -372,6 +373,7 @@ export class BattleScene extends Phaser.Scene {
       } else if (this.lastHoverGrid) {
         this.lastHoverGrid = null;
         isometricGrid.hideCursor();
+        controller.handleEnemyRangeHover(null);
         const activePokemon = controller.getActivePokemon();
         if (activePokemon) {
           uiScene.infoPanel.update(activePokemon, activePokemon.playerId);

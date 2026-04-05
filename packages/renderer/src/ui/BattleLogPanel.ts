@@ -11,13 +11,14 @@ import {
   BATTLE_LOG_WIDTH,
   CANVAS_WIDTH,
   DEPTH_BATTLE_LOG,
+  REPLAY_BUTTON_DISABLED_COLOR,
+  TEXT_COLOR_SECONDARY,
 } from "../constants";
 import { t } from "../i18n";
 import type { BattleLogEntry } from "./BattleLogFormatter";
 
 const HEADER_FONT_SIZE = 13;
 const REPLAY_BUTTON_LABELS = ["|◁", "◁◁", "▷", "▷▷", "▷|"];
-const REPLAY_BUTTON_DISABLED_COLOR = "#555555";
 const COLLAPSED_SIZE = 32;
 const MARGIN = 8;
 const TEAM_DOT_SIZE = 6;
@@ -111,7 +112,7 @@ export class BattleLogPanel {
     this.headerTitle = this.scene.add
       .text(this.x + BATTLE_LOG_PADDING, this.y + 6, t("log.title"), {
         fontSize: `${HEADER_FONT_SIZE}px`,
-        color: "#cccccc",
+        color: TEXT_COLOR_SECONDARY,
         fontFamily: "monospace",
       })
       .setDepth(DEPTH_BATTLE_LOG + 1);
@@ -119,7 +120,7 @@ export class BattleLogPanel {
     this.headerBurger = this.scene.add
       .text(this.x + BATTLE_LOG_WIDTH - BATTLE_LOG_PADDING, this.y + 6, "☰", {
         fontSize: `${HEADER_FONT_SIZE}px`,
-        color: "#cccccc",
+        color: TEXT_COLOR_SECONDARY,
         fontFamily: "monospace",
       })
       .setOrigin(1, 0)
@@ -203,7 +204,7 @@ export class BattleLogPanel {
     this.collapsedIcon = this.scene.add
       .text(collapsedX + COLLAPSED_SIZE / 2, this.y + COLLAPSED_SIZE / 2, "☰", {
         fontSize: "16px",
-        color: "#cccccc",
+        color: TEXT_COLOR_SECONDARY,
         fontFamily: "monospace",
       })
       .setOrigin(0.5)

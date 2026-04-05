@@ -12,6 +12,8 @@ export const TILE_FILL_COLOR = 0x4a7c59;
 export const TILE_STROKE_COLOR = 0x2d5a3f;
 export const TILE_HIGHLIGHT_MOVE_COLOR = 0x4488cc;
 export const TILE_HIGHLIGHT_ATTACK_COLOR = 0xcc4444;
+export const TILE_HIGHLIGHT_ENEMY_RANGE_COLOR = 0xdd6622;
+export const TILE_HIGHLIGHT_ENEMY_RANGE_ALPHA = 0.35;
 export const TILE_STROKE_WIDTH = 1;
 
 export const CURSOR_COLOR = 0xffdd44;
@@ -151,6 +153,7 @@ export const PLACEMENT_PORTRAIT_SIZE = 48;
 export const PLACEMENT_PORTRAIT_SPACING = 12;
 
 export const DEPTH_GRID_HIGHLIGHT = 100;
+export const DEPTH_GRID_ENEMY_RANGE = 110;
 export const DEPTH_GRID_PREVIEW = 120;
 export const DEPTH_GRID_CURSOR = 150;
 export const DEPTH_POKEMON_BASE = 200;
@@ -242,7 +245,45 @@ export const DEPTH_BATTLE_LOG = 1300;
 
 export const STAT_BADGE_BUFF_BG = 0x1a4a8a;
 export const STAT_BADGE_DEBUFF_BG = 0x8a1a1a;
+export const STAT_BADGE_VOLATILE_BG = 0x6a3a8a;
 export const STAT_BADGE_HEIGHT = 14;
 export const STAT_BADGE_CORNER_RADIUS = 3;
 export const STAT_BADGE_PADDING_X = 5;
 export const STAT_BADGE_SPACING = 3;
+
+export const DIRECTION_INACTIVE_TINT = 0x888888;
+
+export const TOOLTIP_CELL_COLOR_TARGET = 0xff6644;
+export const TOOLTIP_CELL_COLOR_DASH = 0xffdd44;
+export const TOOLTIP_CELL_COLOR_CASTER = 0xffdd44;
+export const TOOLTIP_CELL_COLOR_EMPTY = 0x333333;
+
+export const BATTLE_LOG_COLOR_TURN = "#aaaaaa";
+export const BATTLE_LOG_COLOR_MOVE = "#ffffff";
+export const BATTLE_LOG_COLOR_DAMAGE = "#ff6666";
+export const BATTLE_LOG_COLOR_EFFECTIVENESS = "#ffdd00";
+export const BATTLE_LOG_COLOR_MISS = "#ffffff";
+export const BATTLE_LOG_COLOR_STATUS = "#ffaa44";
+export const BATTLE_LOG_COLOR_STAT_UP = "#4488ff";
+export const BATTLE_LOG_COLOR_STAT_DOWN = "#ff4444";
+export const BATTLE_LOG_COLOR_KO = "#ff2222";
+export const BATTLE_LOG_COLOR_DEFENSE = "#44cc66";
+export const BATTLE_LOG_COLOR_KNOCKBACK = "#ffffff";
+export const BATTLE_LOG_COLOR_MULTI_HIT = "#ffffff";
+export const BATTLE_LOG_COLOR_RECHARGE = "#aaaaaa";
+export const BATTLE_LOG_COLOR_BATTLE_ENDED = "#ffee00";
+
+export const BUTTON_COLOR = 0x335577;
+export const BUTTON_BORDER_COLOR = 0x5577aa;
+export const BUTTON_HOVER_COLOR = 0x446688;
+export const BUTTON_DISABLED_COLOR = 0x333344;
+export const BUTTON_DISABLED_BORDER_COLOR = 0x444455;
+
+export const TEXT_COLOR_PRIMARY = "#ffffff";
+export const TEXT_COLOR_SECONDARY = "#cccccc";
+export const TEXT_COLOR_MUTED = "#aaaaaa";
+export const TEXT_COLOR_DISABLED = "#666666";
+export const TEXT_COLOR_TITLE = "#ffcc00";
+export const TEXT_COLOR_ACCENT = "#ffdd44";
+
+export const REPLAY_BUTTON_DISABLED_COLOR = "#555555";

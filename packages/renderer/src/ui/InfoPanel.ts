@@ -24,6 +24,7 @@ import {
   STAT_BADGE_HEIGHT,
   STAT_BADGE_PADDING_X,
   STAT_BADGE_SPACING,
+  STAT_BADGE_VOLATILE_BG,
   STATUS_ASSET_KEY,
   TEAM_COLOR_PLAYER_1,
   TEAM_COLOR_PLAYER_2,
@@ -40,7 +41,6 @@ const HP_BAR_OFFSET_Y: number = 40;
 const HP_BAR_MARGIN_RIGHT: number = 12;
 const HP_BAR_PANEL_WIDTH: number = INFO_PANEL_WIDTH - TEXT_OFFSET_X - HP_BAR_MARGIN_RIGHT;
 const STAT_CHANGES_OFFSET_Y: number = 68;
-const VOLATILE_BADGE_BG = 0x6a3a8a;
 const VOLATILE_LABELS: Partial<Record<string, TranslationKey>> = {
   [StatusType.Confused]: "status.confused",
   [StatusType.Seeded]: "status.seeded",
@@ -187,7 +187,7 @@ export class InfoPanel {
       if (!translationKey) {
         continue;
       }
-      offsetX = this.addBadge(t(translationKey), VOLATILE_BADGE_BG, offsetX);
+      offsetX = this.addBadge(t(translationKey), STAT_BADGE_VOLATILE_BG, offsetX);
     }
   }
 
