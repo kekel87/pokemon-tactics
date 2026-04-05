@@ -75,6 +75,7 @@ export class PokemonSprite {
   private readonly uiOffsetY: number;
   private shadowGraphics: Phaser.GameObjects.Graphics | null = null;
   private confusionTween: Phaser.Tweens.Tween | null = null;
+  private _gridPosition: { x: number; y: number } = { x: 0, y: 0 };
 
   constructor(
     scene: Phaser.Scene,
@@ -132,7 +133,12 @@ export class PokemonSprite {
     }
   }
 
+  get gridPosition(): { x: number; y: number } {
+    return this._gridPosition;
+  }
+
   updatePosition(gridX: number, gridY: number): void {
+    this._gridPosition = { x: gridX, y: gridY };
     const screen = this.isometricGrid.gridToScreen(gridX, gridY);
     this.container.setPosition(screen.x, screen.y + POKEMON_SPRITE_GROUND_OFFSET_Y);
     this.container.setDepth(DEPTH_POKEMON_BASE + gridX + gridY);
@@ -262,13 +268,20 @@ export class PokemonSprite {
     }
   }
 
-  playAnimationOnce(animation: string): Promise<void> {
+  playAnimationOnce(animation: string, fallback?: string): Promise<void> {
     if (!this.sprite || !this.usesAtlas) {
       return Promise.resolve();
     }
-    const key = getAnimationKey(this.definitionId, animation, this.currentDirection);
+    let key = getAnimationKey(this.definitionId, animation, this.currentDirection);
     if (!this.scene.anims.exists(key)) {
-      return Promise.resolve();
+      if (fallback) {
+        key = getAnimationKey(this.definitionId, fallback, this.currentDirection);
+        if (!this.scene.anims.exists(key)) {
+          return Promise.resolve();
+        }
+      } else {
+        return Promise.resolve();
+      }
     }
 
     const sprite = this.sprite;
@@ -348,6 +361,7 @@ export class PokemonSprite {
         y: screen.y + POKEMON_SPRITE_GROUND_OFFSET_Y,
         duration: MOVE_TWEEN_DURATION_MS,
         onComplete: () => {
+          this._gridPosition = { x: gridX, y: gridY };
           this.container.setDepth(DEPTH_POKEMON_BASE + gridX + gridY);
           resolve();
         },

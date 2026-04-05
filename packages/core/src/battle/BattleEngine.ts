@@ -375,12 +375,17 @@ export class BattleEngine {
 
     const events: BattleEvent[] = [];
 
-    pokemon.orientation = directionFromTo(pokemon.position, targetPosition);
+    const isSelfTarget =
+      pokemon.position.x === targetPosition.x && pokemon.position.y === targetPosition.y;
+    if (!isSelfTarget) {
+      pokemon.orientation = directionFromTo(pokemon.position, targetPosition);
+    }
 
     const moveStarted: BattleEvent = {
       type: BattleEventType.MoveStarted,
       attackerId: pokemon.id,
       moveId,
+      direction: pokemon.orientation,
     };
     this.emit(moveStarted);
     events.push(moveStarted);

@@ -22,7 +22,7 @@
     { "number": "0115", "name": "kangaskhan" },
     { "number": "0000", "name": "dummy", "form": "0001" }
   ],
-  "animations": ["Idle", "Walk", "Attack", "Hurt", "Faint", "Sleep"],
+  "animations": ["Idle", "Walk", "Attack", "Shoot", "Charge", "Hop", "Hurt", "Faint", "Sleep"],
   "portraits": ["Normal"],
   "directions": [
     "South",

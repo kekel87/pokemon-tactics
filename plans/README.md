@@ -51,3 +51,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 036 | [Menu principal, Settings et Disclaimer](./036-main-menu-settings.md) | draft | 2026-04-04 |
 | 037 | [Battle Log Panel](./037-battle-log.md) | ready | 2026-04-04 |
 | 038 | [Afficher la portée de déplacement des ennemis au hover](./038-enemy-move-range-hover.md) | done | 2026-04-05 |
+| 039 | [Animations de combat : direction, catégorie de move, pipeline sprites](./039-battle-animations-direction-category.md) | done | 2026-04-05 |

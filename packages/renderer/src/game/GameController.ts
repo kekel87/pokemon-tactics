@@ -1,4 +1,4 @@
-import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
+import { AnimationCategory, getMoveName, getPokemonName, moveAnimationCategory } from "@pokemon-tactic/data";
 import {
   type Action,
   ActionKind,
@@ -376,8 +376,6 @@ export class GameController {
       "action_menu",
       "select_move_destination",
       "attack_submenu",
-      "select_attack_target",
-      "confirm_attack",
     ];
     if (!validPhases.includes(this.inputState.phase)) {
       this.clearEnemyRangeHighlight();
@@ -707,6 +705,20 @@ export class GameController {
     });
   }
 
+  private async animateAlongPath(pokemonId: string, path: Position[]): Promise<void> {
+    const sprite = this.sprites.get(pokemonId);
+    if (!sprite) return;
+    sprite.playAnimation("Walk");
+    let previous = sprite.gridPosition;
+    for (const step of path) {
+      const direction = directionFromTo(previous, step);
+      sprite.setDirection(direction);
+      await sprite.animateMoveTo(step.x, step.y);
+      previous = step;
+    }
+    sprite.playAnimation("Idle");
+  }
+
   private async processEvents(events: BattleEvent[]): Promise<void> {
     for (const event of events) {
       await this.processEvent(event);
@@ -720,20 +732,21 @@ export class GameController {
       case BattleEventType.MoveStarted: {
         const sprite = this.sprites.get(event.attackerId);
         if (sprite) {
-          await sprite.playAnimationOnce("Attack");
+          sprite.setDirection(event.direction);
+          const category = moveAnimationCategory[event.moveId] ?? AnimationCategory.Contact;
+          const animationName =
+            category === AnimationCategory.Shoot
+              ? "Shoot"
+              : category === AnimationCategory.Charge
+                ? "Charge"
+                : "Attack";
+          await sprite.playAnimationOnce(animationName, "Attack");
         }
         break;
       }
 
       case BattleEventType.PokemonMoved: {
-        const sprite = this.sprites.get(event.pokemonId);
-        if (sprite) {
-          sprite.playAnimation("Walk");
-          for (const step of event.path) {
-            await sprite.animateMoveTo(step.x, step.y);
-          }
-          sprite.playAnimation("Idle");
-        }
+        await this.animateAlongPath(event.pokemonId, event.path);
         break;
       }
 
@@ -796,14 +809,7 @@ export class GameController {
       }
 
       case BattleEventType.PokemonDashed: {
-        const sprite = this.sprites.get(event.pokemonId);
-        if (sprite) {
-          sprite.playAnimation("Walk");
-          for (const step of event.path) {
-            await sprite.animateMoveTo(step.x, step.y);
-          }
-          sprite.playAnimation("Idle");
-        }
+        await this.animateAlongPath(event.pokemonId, event.path);
         break;
       }
 
