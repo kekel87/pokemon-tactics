@@ -57,17 +57,20 @@ Avant le premier tour de combat, les joueurs placent leurs Pokemon sur les zones
 Avant la phase de placement, les joueurs construisent leur équipe dans `TeamSelectScene` — le premier écran affiché au démarrage.
 
 - **Grille de portraits** : 5×4, portraits 82px — les 20 Pokemon du roster sont affichés
-- **Deux encadrés d'équipe** toujours visibles : actif (lumineux) et inactif (discret). Couleur bleu pour Joueur 1, rouge pour Joueur 2 — aligné avec les couleurs d'équipe dans l'InfoPanel et les zones de spawn
-- **Sélection** : clic sur un portrait l'ajoute à l'équipe active (max 6, un seul exemplaire par espèce par équipe). Mirror match autorisé entre équipes (décision #184)
-- **Toggle Humain/IA** sur la même ligne que "Joueur X" — IA vs IA possible (mode spectateur, décision #185)
-- **Bouton Auto** : re-randomize toute l'équipe à chaque clic (6 Pokemon aléatoires distincts)
+- **Sélecteur de nombre d'équipes** : bouton cyclique dans la bottom bar (2→3→4→6→12→2). `maxPokemonPerTeam` = 12 / teamCount (ex : 3 équipes → max 4 Pokemon chacune)
+- **Layout dynamique** : les encadrés d'équipe s'empilent en 2 colonnes. Nombre impair → colonne gauche reçoit une équipe de plus. Pour les formats 1-2 Pokemon/équipe (6 ou 12 équipes), chaque équipe s'affiche en ligne compacte (nom + toggle + portrait)
+- **Encadrés d'équipe** : toujours visibles, actif lumineux / inactif discret. Couleur issue de `TEAM_COLORS[index]` — 12 couleurs distinctes (décision #202-204)
+- **Sélection** : clic sur un portrait l'ajoute à l'équipe active (max `maxPokemonPerTeam`, un seul exemplaire par espèce par équipe). Mirror match autorisé entre équipes (décision #184)
+- **Toggle Humain/IA** sur la même ligne que "Joueur X" — IA vs IA possible sur toutes les équipes (décision #185)
+- **Bouton Auto** : re-randomize toute l'équipe à chaque clic (Pokemon aléatoires distincts, count = maxPokemonPerTeam)
 - **Bouton Vider** : réinitialise l'équipe à 0 Pokemon
+- **Bouton Remplir IA** : dans la bottom bar, remplit toutes les équipes manquantes avec des équipes IA aléatoires pour lancer rapidement
 - **Bouton Valider** : valide l'équipe via `validateTeamSelection()` (core), affiche les erreurs i18n si invalide
 - **Toggle Placement auto / Placement manuel** : à côté du bouton "Lancer le combat" — contrôle le `PlacementMode` transmis à `BattleScene`
-- **Lancer le combat** : actif seulement si les deux équipes sont validées
+- **Lancer le combat** : actif seulement si toutes les équipes sont validées
 - **Noms des Pokemon** : affichés en FR ou EN selon la langue active (i18n depuis `@pokemon-tactic/data`)
-- **Zones de spawn** sur la carte poc-arena colorées selon les équipes (bleu/rouge, décision #189)
-- **Bypass sandbox** : `parseSandboxQueryParams()` court-circuite `TeamSelectScene` si `?sandbox` est présent dans l'URL (décision #187)
+- **Zones de spawn** sur la carte poc-arena colorées selon les équipes via `TEAM_COLORS` (décision #189)
+- **Bypass sandbox** : le mode sandbox (`VITE_SANDBOX`) court-circuite `TeamSelectScene` entièrement
 
 **Flow complet :** `TeamSelectScene` → `BattleScene` (placement) → Combat → Écran de victoire (Rejouer ou Retour au menu)
 

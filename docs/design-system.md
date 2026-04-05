@@ -21,7 +21,7 @@ Le jeu fusionne l'univers Pokemon avec le gameplay de Final Fantasy Tactics Adva
 
 **Menu principal** : centré verticalement, titre doré "POKEMON TACTICS" en gros, boutons empilés en bleu acier, version en bas-gauche, toggle langue en bas-droite. Minimaliste.
 
-**Sélection d'équipe** : grille centrale de portraits Pokemon (5x4+), deux colonnes d'équipe (gauche = Joueur 1 bleu, droite = Joueur 2 rouge), boutons d'action en bas. Les portraits sélectionnés ont un liseré coloré par équipe.
+**Sélection d'équipe** : grille centrale de portraits Pokemon (5x4+), deux colonnes d'équipe dynamiques (les encadrés s'empilent verticalement, couleur issue de `TEAM_COLORS`), sélecteur de nombre d'équipes + bouton "Remplir IA" dans la bottom bar. Les portraits sélectionnés ont un liseré coloré par équipe. Layout compact (lignes) pour 6+ équipes.
 
 **Combat (écran principal)** : la grille isométrique occupe le centre. L'UI se répartit en périphérie :
 - **Haut-gauche** : timeline des tours (colonne verticale de portraits, actif en haut avec bordure dorée, séparateur entre rounds)
@@ -124,10 +124,24 @@ L'information la plus importante est toujours la plus visible :
 
 ## Équipes
 
-| Couleur | Hex | Usage |
-|---------|-----|-------|
-| Bleu équipe 1 | `#2255aa` / `0x2255aa` | Joueur 1 (info panel BG, pastilles timeline, team select) |
-| Rouge équipe 2 | `#aa2233` / `0xaa2233` | Joueur 2 / IA (info panel BG, pastilles timeline, team select) |
+Les couleurs d'équipe sont centralisées dans `TEAM_COLORS` (tableau de 12 valeurs dans `constants.ts`). L'index correspond à `playerIndex` (0 = P1, 1 = P2, etc.). Les composants n'utilisent plus de ternaires `player1 ? BLUE : RED` — ils indexent `TEAM_COLORS`.
+
+| Index | Joueur | Couleur | Hex |
+|-------|--------|---------|-----|
+| 0 | Joueur 1 | Bleu | `#3B82F6` / `0x3B82F6` |
+| 1 | Joueur 2 | Rouge | `#EF4444` / `0xEF4444` |
+| 2 | Joueur 3 | Vert | `#22C55E` / `0x22C55E` |
+| 3 | Joueur 4 | Jaune | `#EAB308` / `0xEAB308` |
+| 4 | Joueur 5 | Violet | `#A855F7` / `0xA855F7` |
+| 5 | Joueur 6 | Orange | `#F97316` / `0xF97316` |
+| 6 | Joueur 7 | Cyan | `#06B6D4` / `0x06B6D4` |
+| 7 | Joueur 8 | Rose | `#EC4899` / `0xEC4899` |
+| 8 | Joueur 9 | Lime | `#84CC16` / `0x84CC16` |
+| 9 | Joueur 10 | Brun | `#92400E` / `0x92400E` |
+| 10 | Joueur 11 | Bleu clair | `#67E8F9` / `0x67E8F9` |
+| 11 | Joueur 12 | Gris | `#9CA3AF` / `0x9CA3AF` |
+
+Usage : InfoPanel (fond), TurnTimeline (pastilles), BattleLogPanel (dot d'équipe), zones de spawn (highlight placement), slots TeamSelectScene (bordures).
 
 ---
 

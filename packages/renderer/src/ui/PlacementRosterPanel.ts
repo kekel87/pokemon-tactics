@@ -9,8 +9,7 @@ import {
   PLACEMENT_PANEL_Y,
   PLACEMENT_PORTRAIT_SIZE,
   PLACEMENT_PORTRAIT_SPACING,
-  TEAM_COLOR_PLAYER_1,
-  TEAM_COLOR_PLAYER_2,
+  getTeamColorByPlayerId,
   UI_BORDER_ALPHA,
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
@@ -59,11 +58,12 @@ export class PlacementRosterPanel {
     this.onSelectCallback = onSelect;
     this.container.setVisible(true);
 
-    const teamColor = playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
+    const teamColor = getTeamColorByPlayerId(playerId);
 
     this.drawBackground(teamColor);
 
-    const playerNumber = playerId === PlayerId.Player1 ? "1" : "2";
+    const match = playerId.match(/player-(\d+)/);
+    const playerNumber = match ? match[1]! : "1";
     this.turnText.setText(t("placement.instruction", { player: playerNumber }));
 
     this.clearPortraits();

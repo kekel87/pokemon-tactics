@@ -1,4 +1,4 @@
-import { PlayerId, type PokemonInstance } from "@pokemon-tactic/core";
+import type { PokemonInstance } from "@pokemon-tactic/core";
 import { getPokemonName } from "@pokemon-tactic/data";
 import { CANVAS_WIDTH, DEPTH_UI_BASE } from "../constants";
 import { getLanguage, t } from "../i18n";
@@ -22,8 +22,14 @@ export class BattleUI {
       .setDepth(DEPTH_UI_BASE);
   }
 
+  private getPlayerLabel(playerId: string): string {
+    const match = playerId.match(/player-(\d+)/);
+    const num = match ? match[1] : "1";
+    return t(`teamSelect.player${num}` as import("../i18n/types").TranslationKey);
+  }
+
   updateTurnInfo(pokemon: PokemonInstance, playerId: string, roundNumber: number): void {
-    const playerLabel = playerId === PlayerId.Player1 ? t("battle.player1") : t("battle.player2");
+    const playerLabel = this.getPlayerLabel(playerId);
     const name = getPokemonName(pokemon.definitionId, getLanguage());
     this.turnInfoText.setText(
       `${t("battle.round", { round: roundNumber })} — ${playerLabel} — ${name}`,
@@ -35,7 +41,7 @@ export class BattleUI {
       return;
     }
 
-    const playerLabel = winnerId === PlayerId.Player1 ? t("battle.player1") : t("battle.player2");
+    const playerLabel = this.getPlayerLabel(winnerId);
 
     const overlay = document.createElement("div");
     overlay.style.cssText = `

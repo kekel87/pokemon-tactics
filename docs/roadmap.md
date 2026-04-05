@@ -100,7 +100,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Afficher la portée de déplacement des ennemis au hover (overlay orange, layer dédié `enemyRangeGraphics`) — plan 038
 - [x] Revoir l'algo de portée de déplacement (tous les Pokemon semblent avoir la même portée) — plan 032
 - [x] Sélection d'équipe (grille portraits 82px colorés par équipe, bouton Auto re-randomize/Vider, toggle Humain/IA, toggle placement auto/manuel, validation core validateTeamSelection(), support IA vs IA, bypass sandbox, noms Pokemon i18n, bouton Retour au menu en victoire) — plan 033
-- [ ] Hot-seat 1v1 + multi-équipes (2 à 12 joueurs, IA ou humain par équipe)
+- [x] Hot-seat 1v1 + multi-équipes (2 à 12 joueurs, IA ou humain par équipe, carte 12x20, 12 couleurs d'équipe) — plan 040
 - [ ] Repo public (README présentable, système de feedback)
 - [ ] Publication + collecte feedback
 

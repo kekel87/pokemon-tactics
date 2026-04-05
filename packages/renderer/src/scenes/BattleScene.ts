@@ -5,16 +5,13 @@ import {
   PlacementMode,
   PlacementPhase,
   PlayerController,
-  PlayerId,
   type PokemonDefinition,
 } from "@pokemon-tactic/core";
 import { loadData, pocArena } from "@pokemon-tactic/data";
 import {
   ARROW_PAN_SPEED,
-  CAMERA_BOUNDS_MARGIN,
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
-  GRID_SIZE,
   STATUS_ICON_KEYS,
   TILE_HEIGHT,
   TILE_WIDTH,
@@ -44,7 +41,6 @@ export class BattleScene extends Phaser.Scene {
   private zoomIndex = ZOOM_DEFAULT_INDEX;
   private controller: GameController | null = null;
   private arrowKeysDown = new Set<string>();
-  private activeGridSize = GRID_SIZE;
   private sandboxPanel: SandboxPanel | null = null;
   private sandboxUiScene: BattleUIScene | null = null;
   private languageToggle: LanguageToggle | null = null;
@@ -88,7 +84,6 @@ export class BattleScene extends Phaser.Scene {
     }
 
     this.cameras.main.setZoom(ZOOM_LEVELS[this.zoomIndex]);
-    this.setupCameraBounds();
 
     this.languageToggle?.destroy();
     this.languageToggle = new LanguageToggle(() => {
@@ -130,8 +125,7 @@ export class BattleScene extends Phaser.Scene {
 
   private startSandboxMode(uiScene: BattleUIScene, config: SandboxConfig): void {
     this.sandboxUiScene = uiScene;
-    this.activeGridSize = 6;
-    this.setupCameraBounds();
+    this.setupCameraBounds(6, 6);
 
     this.sandboxPanel = new SandboxPanel(config, (newConfig: SandboxConfig) => {
       this.resetSandbox(newConfig);
@@ -204,7 +198,7 @@ export class BattleScene extends Phaser.Scene {
     this.sandboxUiScene.actionMenu.hide();
 
     this.cameras.main.setZoom(ZOOM_LEVELS[this.zoomIndex]);
-    this.setupCameraBounds();
+    this.setupCameraBounds(6, 6);
     this.initSandboxBattle(this.sandboxUiScene, config);
   }
 
@@ -214,21 +208,25 @@ export class BattleScene extends Phaser.Scene {
     autoPlacement: boolean,
   ): void {
     const map = pocArena;
-    const format = map.formats[0];
+    const teamCount = teamSelectResult.teams.length;
+    const format = map.formats.find((f) => f.teamCount === teamCount);
     if (!format) {
-      throw new Error("POC arena has no formats defined");
+      throw new Error(`POC arena has no format for ${teamCount} teams`);
     }
 
     const teams: import("@pokemon-tactic/core").PlacementTeam[] = teamSelectResult.teams.map(
-      (selection) => ({
+      (selection, index) => ({
         playerId: selection.playerId,
         pokemonIds: selection.pokemonDefinitionIds.map(
-          (defId) => `${selection.playerId === PlayerId.Player1 ? "p1" : "p2"}-${defId}`,
+          (defId) => `p${index + 1}-${defId}`,
         ),
         controller: selection.controller,
       }),
     );
-    const isometricGrid = new IsometricGrid(this);
+
+    this.setupCameraBounds(map.width, map.height);
+
+    const isometricGrid = new IsometricGrid(this, map.width, map.height);
     isometricGrid.drawGrid();
 
     const sprites = new Map<string, PokemonSprite>();
@@ -262,11 +260,12 @@ export class BattleScene extends Phaser.Scene {
 
     const placementPhase = new PlacementPhase(map, teams, format, PlacementMode.Alternating);
 
+    const formatIndex = map.formats.indexOf(format);
     const placementConfig: PlacementConfig = {
       placementPhase,
       teams,
       map,
-      formatIndex: 0,
+      formatIndex,
       pokemonDefinitions: this.pokemonDefinitions,
       onPlacementComplete: (placements: PlacementEntry[]) => {
         this.transitionToBattle(controller, isometricGrid, sprites, { map, teams, placements });
@@ -445,17 +444,19 @@ export class BattleScene extends Phaser.Scene {
     this.cameras.main.pan(screenPos.x, screenPos.y, 400, "Sine.easeInOut");
   }
 
-  private setupCameraBounds(): void {
+  private setupCameraBounds(gridWidth: number, gridHeight: number): void {
     const offsetX = CANVAS_WIDTH / 2;
-    const offsetY = CANVAS_HEIGHT / 2 - (this.activeGridSize * TILE_HEIGHT) / 2;
+    const isoTotalWidth = (gridWidth + gridHeight) * TILE_WIDTH / 2;
+    const isoTotalHeight = (gridWidth + gridHeight) * TILE_HEIGHT / 2;
+    const offsetY = CANVAS_HEIGHT / 2 - isoTotalHeight / 2;
 
-    const gridWorldWidth = this.activeGridSize * TILE_WIDTH;
-    const gridWorldHeight = this.activeGridSize * TILE_HEIGHT;
+    const marginX = isoTotalWidth / 2;
+    const marginY = isoTotalHeight / 2;
 
-    const boundsX = offsetX - gridWorldWidth / 2 - CAMERA_BOUNDS_MARGIN;
-    const boundsY = offsetY - CAMERA_BOUNDS_MARGIN;
-    const boundsWidth = gridWorldWidth + CAMERA_BOUNDS_MARGIN * 2;
-    const boundsHeight = gridWorldHeight + CAMERA_BOUNDS_MARGIN * 2;
+    const boundsX = offsetX - isoTotalWidth / 2 - marginX;
+    const boundsY = offsetY - marginY;
+    const boundsWidth = isoTotalWidth + marginX * 2;
+    const boundsHeight = isoTotalHeight + marginY * 2;
 
     this.cameras.main.setBounds(boundsX, boundsY, boundsWidth, boundsHeight);
   }

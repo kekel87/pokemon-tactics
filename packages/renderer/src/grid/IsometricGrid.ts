@@ -41,11 +41,13 @@ export class IsometricGrid {
   private cursorTween: Phaser.Tweens.Tween | null = null;
   private readonly offsetX: number;
   private readonly offsetY: number;
-  readonly gridSize: number;
+  readonly gridWidth: number;
+  readonly gridHeight: number;
 
-  constructor(scene: Phaser.Scene, gridSize: number = GRID_SIZE) {
+  constructor(scene: Phaser.Scene, gridWidth: number = GRID_SIZE, gridHeight: number = gridWidth) {
     this.scene = scene;
-    this.gridSize = gridSize;
+    this.gridWidth = gridWidth;
+    this.gridHeight = gridHeight;
     this.tileGraphics = scene.add.graphics();
     this.highlightGraphics = scene.add.graphics();
     this.highlightGraphics.setDepth(DEPTH_GRID_HIGHLIGHT);
@@ -57,7 +59,8 @@ export class IsometricGrid {
     this.cursorGraphics.setDepth(DEPTH_GRID_CURSOR);
 
     this.offsetX = CANVAS_WIDTH / 2;
-    this.offsetY = CANVAS_HEIGHT / 2 - (gridSize * TILE_HEIGHT) / 2;
+    const isoTotalHeight = (gridWidth + gridHeight) * TILE_HEIGHT / 2;
+    this.offsetY = CANVAS_HEIGHT / 2 - isoTotalHeight / 2;
   }
 
   gridToScreen(gridX: number, gridY: number): ScreenPosition {
@@ -77,7 +80,7 @@ export class IsometricGrid {
     const roundedX = Math.round(gridX);
     const roundedY = Math.round(gridY);
 
-    if (roundedX < 0 || roundedX >= this.gridSize || roundedY < 0 || roundedY >= this.gridSize) {
+    if (roundedX < 0 || roundedX >= this.gridWidth || roundedY < 0 || roundedY >= this.gridHeight) {
       return null;
     }
 
@@ -87,8 +90,8 @@ export class IsometricGrid {
   drawGrid(): void {
     this.tileGraphics.clear();
 
-    for (let y = 0; y < this.gridSize; y++) {
-      for (let x = 0; x < this.gridSize; x++) {
+    for (let y = 0; y < this.gridHeight; y++) {
+      for (let x = 0; x < this.gridWidth; x++) {
         this.drawTile(this.tileGraphics, x, y, TILE_FILL_COLOR, TILE_STROKE_COLOR);
       }
     }
