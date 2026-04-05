@@ -85,6 +85,18 @@ export interface Translations {
   "teamSelect.title": string;
   "teamSelect.player1": string;
   "teamSelect.player2": string;
+  "teamSelect.player3": string;
+  "teamSelect.player4": string;
+  "teamSelect.player5": string;
+  "teamSelect.player6": string;
+  "teamSelect.player7": string;
+  "teamSelect.player8": string;
+  "teamSelect.player9": string;
+  "teamSelect.player10": string;
+  "teamSelect.player11": string;
+  "teamSelect.player12": string;
+  "teamSelect.teams": string;
+  "teamSelect.fillAi": string;
   "teamSelect.human": string;
   "teamSelect.ai": string;
   "teamSelect.validate": string;

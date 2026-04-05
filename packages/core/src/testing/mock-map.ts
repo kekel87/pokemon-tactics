@@ -101,6 +101,49 @@ export abstract class MockMap {
     controller: PlayerController.Human,
   };
 
+  static readonly format4teams: MapFormat = {
+    teamCount: 4,
+    maxPokemonPerTeam: 1,
+    spawnZones: [
+      {
+        positions: [
+          { x: 0, y: 0 },
+          { x: 1, y: 0 },
+        ],
+      },
+      {
+        positions: [
+          { x: 5, y: 0 },
+          { x: 5, y: 1 },
+        ],
+      },
+      {
+        positions: [
+          { x: 0, y: 5 },
+          { x: 1, y: 5 },
+        ],
+      },
+      {
+        positions: [
+          { x: 5, y: 5 },
+          { x: 4, y: 5 },
+        ],
+      },
+    ],
+  };
+
+  static readonly team3: PlacementTeam = {
+    playerId: PlayerId.Player3,
+    pokemonIds: ["poke-e"],
+    controller: PlayerController.Ai,
+  };
+
+  static readonly team4: PlacementTeam = {
+    playerId: PlayerId.Player4,
+    pokemonIds: ["poke-f"],
+    controller: PlayerController.Ai,
+  };
+
   static readonly gridCenter6x6 = { x: 3, y: 3 };
 
   static buildFlatTiles(width: number, height: number): TileState[][] {

@@ -1,4 +1,4 @@
-import { PlayerId, type PokemonInstance, StatName, StatusType } from "@pokemon-tactic/core";
+import { type PokemonInstance, StatName, StatusType } from "@pokemon-tactic/core";
 import { getPokemonName } from "@pokemon-tactic/data";
 import {
   DEPTH_INFO_PANEL,
@@ -26,8 +26,7 @@ import {
   STAT_BADGE_SPACING,
   STAT_BADGE_VOLATILE_BG,
   STATUS_ASSET_KEY,
-  TEAM_COLOR_PLAYER_1,
-  TEAM_COLOR_PLAYER_2,
+  getTeamColorByPlayerId,
   UI_BORDER_ALPHA,
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
@@ -110,7 +109,7 @@ export class InfoPanel {
   update(pokemon: PokemonInstance, playerId: string): void {
     this.container.setVisible(true);
 
-    const teamColor = playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
+    const teamColor = getTeamColorByPlayerId(playerId);
     this.drawBackground(teamColor);
 
     const name = getPokemonName(pokemon.definitionId, getLanguage());

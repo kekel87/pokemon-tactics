@@ -48,8 +48,8 @@ import {
   POKEMON_SPRITE_GROUND_OFFSET_Y,
   PREVIEW_FLASH_ALPHA,
   PREVIEW_FLASH_DURATION_MS,
-  TEAM_COLOR_PLAYER_1,
-  TEAM_COLOR_PLAYER_2,
+  TEAM_COLORS,
+  getTeamColorByPlayerId,
   TILE_PREVIEW_ALPHA,
   TILE_PREVIEW_ATTACK_COLOR,
   TILE_PREVIEW_BUFF_COLOR,
@@ -1300,13 +1300,12 @@ export class GameController {
     activeTeamIndex: number,
     occupiedPositions: Array<{ x: number; y: number }>,
   ): void {
-    const teamColors = [TEAM_COLOR_PLAYER_1, TEAM_COLOR_PLAYER_2];
     const occupiedKeys = new Set(occupiedPositions.map((p) => `${p.x},${p.y}`));
 
     for (let i = 0; i < spawnZones.length; i++) {
       const zone = spawnZones[i];
       if (!zone) continue;
-      const baseColor = teamColors[i] ?? TILE_SPAWN_ZONE_INACTIVE_COLOR;
+      const baseColor = TEAM_COLORS[i] ?? TILE_SPAWN_ZONE_INACTIVE_COLOR;
 
       for (const position of zone.positions) {
         const key = `${position.x},${position.y}`;
@@ -1476,7 +1475,7 @@ export class GameController {
     this.battleLogPanel.getTeamColor = (pokemonId: string) => {
       const pokemon = this.state.pokemon.get(pokemonId);
       if (!pokemon) return 0xaaaaaa;
-      return pokemon.playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
+      return getTeamColorByPlayerId(pokemon.playerId);
     };
   }
 }

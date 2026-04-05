@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-05 (Bugfixes post-plan 039 : DirectionPicker import cassé, portée ennemie cachée en select_attack_target/confirm_attack, direction IA depuis event MoveStarted, pas de rotation sur self-target — 699 tests, build OK)
+> Dernière mise à jour : 2026-04-05 (Plan 040 terminé : hot-seat multi-équipes 2/3/4/6/12 joueurs, carte 12×20, 12 couleurs d'équipe, layout dynamique TeamSelectScene — 699 tests, build OK)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -548,13 +548,29 @@
   - `CLAUDE.md` + `docs/architecture.md` + `README.md` mis à jour
   - **653 tests** (705 → 653 : suppression de `sandbox-query-params.test.ts` — 92 tests intentionnellement retirés avec le code source), build OK
 
+- **Plan 040 terminé** — Hot-seat multi-équipes :
+  - `PlayerId` étendu à 12 valeurs (`Player1`–`Player12`)
+  - `PlacementPhase` : serpentine généralisée à N équipes (`P1-P2-...-PN-PN-...-P1-P1-...`)
+  - `TeamSelectResult` : tableau dynamique `Team[]` (était tuple `[Team, Team]`)
+  - `poc-arena` redimensionnée 12×12 → 12×20 avec formats 2/3/4/6/12 équipes et zones de spawn dédiées
+  - `TEAM_COLORS[12]` dans `constants.ts` — 12 couleurs distinctes, indexées par `playerIndex`
+  - InfoPanel, TurnTimeline, BattleLogPanel, zones de spawn : tous utilisent `TEAM_COLORS` (plus de ternaires hardcodés)
+  - `BattleScene` : génération d'IDs Pokemon en boucle générique (`p${i+1}-${name}`)
+  - `BattleSetup` : suppression des hypothèses 2-équipes
+  - `TeamSelectScene` : sélecteur de nombre d'équipes (bouton cyclique), layout 2 colonnes dynamique, blocs standard (3-6 pkm/équipe) et lignes compactes (1-2 pkm/équipe), bouton "Remplir IA" global
+  - `IsometricGrid` : support grilles rectangulaires (`gridWidth × gridHeight`)
+  - Camera bounds = grille + demi-grille de marge
+  - **699 tests**, build OK
+
 ### Prochaine étape (Phase 2 — Démo jouable)
 - ~~**Battle log**~~ ✓ Couvert par plan 037
 - ~~**Indicateur de miss**~~ ✓ couvert par BattleText plan 031 (texte flottant "Miss")
 - ~~**Portée de déplacement des ennemis**~~ ✓ Couvert par plan 038 (overlay orange, layer dédié)
 - ~~**Algo de portée de déplacement** : tous les Pokemon semblent avoir la même portée~~ ✓ Couvert par plan 032
 - ~~**Sélection d'équipe** : grille portraits, bouton Auto~~ ✓ Couvert par plan 033
-- **Hot-seat 1v1 + multi-équipes** : 2 à 12 joueurs, IA ou humain par équipe (fondations posées par plan 033)
+- ~~**Hot-seat 1v1 + multi-équipes**~~ ✓ Couvert par plan 040 (2 à 12 joueurs, IA ou humain par équipe, carte 12×20)
+- **Repo public** : README présentable, système de feedback
+- **Publication + collecte feedback**
 
 ### Bugs connus non corrigés
 - **Confusion wobble post-KO** : un Pokemon confus qui est KO continue à osciller (tween confusion non stoppé dans `playFaintAndStay`)

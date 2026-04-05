@@ -36,6 +36,32 @@ describe("PlacementPhase", () => {
       expect(phase.getNextToPlace()).toBeNull();
     });
 
+    it("alternates in serpentine order for 4 teams: P1-P2-P3-P4-P4-P3-P2-P1", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [MockMap.team1, MockMap.team2, MockMap.team3, MockMap.team4].map((t) => ({
+          ...t,
+          pokemonIds: t.pokemonIds.slice(0, 1),
+        })),
+        MockMap.format4teams,
+        PlacementMode.Alternating,
+      );
+
+      expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player1 });
+      phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
+
+      expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player2 });
+      phase.submitPlacement("poke-c", { x: 5, y: 0 }, Direction.West);
+
+      expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player3 });
+      phase.submitPlacement("poke-e", { x: 0, y: 5 }, Direction.East);
+
+      expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player4 });
+      phase.submitPlacement("poke-f", { x: 5, y: 5 }, Direction.West);
+
+      expect(phase.isComplete()).toBe(true);
+    });
+
     it("allows free choice of which Pokemon to place on your turn", () => {
       const phase = new PlacementPhase(
         testMap,

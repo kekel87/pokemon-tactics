@@ -88,8 +88,29 @@ export const VICTORY_TEXT_X = 640;
 export const VICTORY_TEXT_Y = 320;
 export const VICTORY_BUTTON_Y = 420;
 
-export const TEAM_COLOR_PLAYER_1 = 0x2255aa;
-export const TEAM_COLOR_PLAYER_2 = 0xaa2233;
+export const TEAM_COLORS: readonly number[] = [
+  0x2255aa, // Player 1 — Blue
+  0xaa2233, // Player 2 — Red
+  0x22aa44, // Player 3 — Green
+  0xccaa00, // Player 4 — Yellow
+  0x8833aa, // Player 5 — Purple
+  0xdd6622, // Player 6 — Orange
+  0x22aaaa, // Player 7 — Cyan
+  0xdd4488, // Player 8 — Pink
+  0x88cc22, // Player 9 — Lime
+  0x885522, // Player 10 — Brown
+  0x4488dd, // Player 11 — Light blue
+  0x777777, // Player 12 — Grey
+];
+
+const FALLBACK_TEAM_COLOR = 0x2255aa;
+
+export function getTeamColorByPlayerId(playerId: string): number {
+  const match = playerId.match(/player-(\d+)/);
+  if (!match) return FALLBACK_TEAM_COLOR;
+  const index = Number.parseInt(match[1] ?? "1", 10) - 1;
+  return TEAM_COLORS[index] ?? FALLBACK_TEAM_COLOR;
+}
 
 export const INFO_PANEL_X = 16;
 export const INFO_PANEL_Y = 606;

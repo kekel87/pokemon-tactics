@@ -1,6 +1,5 @@
 import {
   type BattleState,
-  PlayerId,
   type PokemonDefinition,
   type PokemonInstance,
 } from "@pokemon-tactic/core";
@@ -8,8 +7,7 @@ import {
   DEPTH_TIMELINE,
   PORTRAIT_SIZE,
   STATUS_ASSET_KEY,
-  TEAM_COLOR_PLAYER_1,
-  TEAM_COLOR_PLAYER_2,
+  getTeamColorByPlayerId,
   TIMELINE_ACTIVE_BORDER_COLOR,
   TIMELINE_ACTIVE_BORDER_WIDTH,
   TIMELINE_ACTIVE_SIZE,
@@ -105,8 +103,7 @@ export class TurnTimeline {
     const definition = pokemonDefinitions.get(pokemon.definitionId);
     const primaryType = definition?.types[0] ?? "normal";
     const typeColor = TYPE_COLORS[primaryType] ?? 0xa0a0a0;
-    const teamColor =
-      pokemon.playerId === PlayerId.Player1 ? TEAM_COLOR_PLAYER_1 : TEAM_COLOR_PLAYER_2;
+    const teamColor = getTeamColorByPlayerId(pokemon.playerId);
 
     const background = this.scene.add.graphics();
     background.fillStyle(0x111122, 0.8);
