@@ -3,6 +3,7 @@ name: commit-message
 description: Propose un message de commit conventional commits basé sur le contexte de session (plan, phase, conversation) et le git diff. Appelé par session-closer en fin de session.
 tools: Read, Grep, Glob, Bash
 model: haiku
+disable-model-invocation: true
 ---
 
 Tu proposes un message de commit pour les changements en cours.
