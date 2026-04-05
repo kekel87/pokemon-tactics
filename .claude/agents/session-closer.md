@@ -3,6 +3,7 @@ name: session-closer
 description: Met à jour STATUS.md et vérifie que la documentation est à jour en fin de session de travail. Utiliser avec /status ou en fin de conversation.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
+disable-model-invocation: true
 ---
 
 Tu es le Project Manager du projet Pokemon Tactics. En fin de session, tu fais le point.

@@ -33,28 +33,24 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 
 ## Principes de développement
 
-- **Core découplé** : `packages/core` n'a AUCUNE dépendance UI/rendu. Logique pure uniquement.
-- **Tests first** : chaque mécanique du core a des tests avant d'être rendue visuellement.
-- **Petit et incrémental** : un changement = une chose.
-- **Pas de sur-ingénierie** : commencer simple, refactorer quand nécessaire.
-- **TypeScript strict** : `strict: true`, pas de `any` implicite, pas de `as` abusif.
+- **Core découplé** : logique pure, zéro dépendance UI (détails dans `.claude/rules/core.md`)
+- **Tests first** : chaque mécanique du core a des tests avant d'être rendue visuellement
+- **Petit et incrémental** : un changement = une chose
+- **Pas de sur-ingénierie** : commencer simple, refactorer quand nécessaire
+- **TypeScript strict** : `strict: true`, pas de `any` implicite, pas de `as` abusif
 
 ## Conventions
 
 - **Commits** : conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`)
 - **Langue du code** : anglais (variables, fonctions, types, commentaires)
 - **Langue de la doc** : français
-- **Imports** : path aliases `@pokemon-tactic/core`, `@pokemon-tactic/renderer`, etc.
-- **Tests** : `.test.ts` à côté du fichier testé
 - **Linter/Formatter** : Biome (remplace ESLint + Prettier)
 - **Plans** : `plans/xxx-name.md` numérotés, avec statut en en-tête
 - **Nommage** : pas d'abréviations (`traversalContext` pas `ctx`, `pokemonInstance` pas `pkmn`)
-- **Enums** : const object pattern (`as const` + type dérivé), jamais de string literals pour les erreurs/types
-- **Types** : 1 fichier = 1 interface/type
-- **Mocks** : factories et données dans `packages/core/src/testing/`, jamais inline dans les tests
-- **Tests unitaires** : pas de commentaires. Tests intégration/scénario : commentaires OK (parcimonie), bloc Gherkin pour scénarios
 - **Écriture de code** : préférer Edit à Write. Construire les gros fichiers par petits Edit successifs, pas un Write massif
-- **Code mort** : zéro tolérance. Pas de fonctions/branches/imports inutilisés. Utiliser le coverage pour détecter les branches jamais atteintes.
+- **Code mort** : zéro tolérance. Pas de fonctions/branches/imports inutilisés.
+
+> Les règles détaillées par package (core, renderer, data, tests) sont dans `.claude/rules/` — chargées automatiquement selon les fichiers touchés.
 
 ## Stack
 
@@ -68,13 +64,11 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 
 ## Ce qu'il ne faut PAS faire
 
-- Ajouter des dépendances UI/Phaser dans `packages/core`
 - Utiliser `any` sans justification
 - Commiter des assets non libres de droits
-- Pousser sur `main` sans que les tests passent
 - Charger toute la doc en contexte quand un seul fichier suffit
-- **Git** : ne jamais commit/push/add — l'humain gère le versioning. Lecture seule (status, diff, log)
-- **Infra** : ne jamais installer globalement ni modifier nvm/npm config — l'humain travaille sur d'autres projets en parallèle
+- **Git** : ne jamais commit/push/add — l'humain gère le versioning. Lecture seule (status, diff, log). Bloqué par hook PreToolUse.
+- **Infra** : ne jamais installer globalement ni modifier nvm/npm config. Bloqué par hook PreToolUse.
 - **Changements structurels** : consulter l'humain AVANT de modifier tsconfig, module resolution, structure de dossiers, dépendances. Les bug fixes simples n'ont pas besoin d'approbation
 - **Mémoire Claude vs doc projet** : les recherches, comparatifs, décisions et contexte technique vont dans la doc du projet (plans/, docs/, decisions.md) — versionnée dans git, accessible partout. La mémoire Claude ne sert que pour les préférences personnelles de l'humain.
 
