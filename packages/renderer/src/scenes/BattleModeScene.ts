@@ -46,7 +46,13 @@ export class BattleModeScene extends Phaser.Scene {
     const disabled = !action;
 
     const bg = this.add
-      .rectangle(CANVAS_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT, disabled ? BUTTON_DISABLED_COLOR : BUTTON_COLOR)
+      .rectangle(
+        CANVAS_WIDTH / 2,
+        y,
+        BUTTON_WIDTH,
+        BUTTON_HEIGHT,
+        disabled ? BUTTON_DISABLED_COLOR : BUTTON_COLOR,
+      )
       .setStrokeStyle(2, disabled ? BUTTON_DISABLED_BORDER_COLOR : BUTTON_BORDER_COLOR)
       .setOrigin(0.5, 0.5);
 

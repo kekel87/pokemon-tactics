@@ -1507,7 +1507,7 @@ describe("BattleEngine KO body blocking", () => {
     it("returns empty array when battle is over", () => {
       const p1 = fresh(P1, { position: { x: 0, y: 0 } });
       const p2 = fresh(P2, { position: { x: 1, y: 0 }, currentHp: 1 });
-      const state = MockBattle.stateFrom([p1, p2]);
+      const _state = MockBattle.stateFrom([p1, p2]);
       const move: MoveDefinition = {
         id: "test-hit",
         name: "Test Hit",
@@ -1521,7 +1521,11 @@ describe("BattleEngine KO body blocking", () => {
       };
       const engine = new BattleEngine(
         MockBattle.stateFrom([
-          fresh(P1, { position: { x: 0, y: 0 }, moveIds: ["test-hit"], currentPp: { "test-hit": 10 } }),
+          fresh(P1, {
+            position: { x: 0, y: 0 },
+            moveIds: ["test-hit"],
+            currentPp: { "test-hit": 10 },
+          }),
           fresh(P2, { position: { x: 1, y: 0 }, currentHp: 1 }),
         ]),
         new Map([["test-hit", move]]),

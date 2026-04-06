@@ -47,8 +47,8 @@ describe("supersonic", () => {
     expect(targetPokemon.volatileStatuses).toContainEqual(
       expect.objectContaining({ type: StatusType.Confused }),
     );
-    expect(targetPokemon.volatileStatuses[0]!.remainingTurns).toBeGreaterThanOrEqual(1);
-    expect(targetPokemon.volatileStatuses[0]!.remainingTurns).toBeLessThanOrEqual(4);
+    expect(targetPokemon.volatileStatuses[0]?.remainingTurns).toBeGreaterThanOrEqual(1);
+    expect(targetPokemon.volatileStatuses[0]?.remainingTurns).toBeLessThanOrEqual(4);
     vi.restoreAllMocks();
   });
 
@@ -65,7 +65,7 @@ describe("supersonic", () => {
       targetPosition: { x: 3, y: 0 },
     });
 
-    expect(state.pokemon.get(target.id)!.volatileStatuses).toContainEqual(
+    expect(state.pokemon.get(target.id)?.volatileStatuses).toContainEqual(
       expect.objectContaining({ type: StatusType.Confused }),
     );
     vi.restoreAllMocks();
@@ -85,7 +85,7 @@ describe("supersonic", () => {
       targetPosition: { x: 2, y: 0 },
     });
 
-    expect(state.pokemon.get(target.id)!.volatileStatuses).toHaveLength(1);
+    expect(state.pokemon.get(target.id)?.volatileStatuses).toHaveLength(1);
     vi.restoreAllMocks();
   });
 
@@ -105,7 +105,7 @@ describe("supersonic", () => {
 
     const targetPokemon = state.pokemon.get(target.id)!;
     expect(targetPokemon.statusEffects).toHaveLength(1);
-    expect(targetPokemon.statusEffects[0]!.type).toBe(StatusType.Burned);
+    expect(targetPokemon.statusEffects[0]?.type).toBe(StatusType.Burned);
     expect(targetPokemon.volatileStatuses).toContainEqual(
       expect.objectContaining({ type: StatusType.Confused }),
     );

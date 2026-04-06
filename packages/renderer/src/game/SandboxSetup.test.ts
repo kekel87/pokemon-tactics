@@ -11,14 +11,17 @@ describe("createSandboxBattle", () => {
 
     expect(playerPokemon).toBeDefined();
     expect(dummyPokemon).toBeDefined();
-    expect(playerPokemon!.position).toEqual({ x: 3, y: 4 });
-    expect(dummyPokemon!.position).toEqual({ x: 3, y: 1 });
-    expect(playerPokemon!.playerId).toBe(PlayerId.Player1);
-    expect(dummyPokemon!.playerId).toBe(PlayerId.Player2);
+    expect(playerPokemon?.position).toEqual({ x: 3, y: 4 });
+    expect(dummyPokemon?.position).toEqual({ x: 3, y: 1 });
+    expect(playerPokemon?.playerId).toBe(PlayerId.Player1);
+    expect(dummyPokemon?.playerId).toBe(PlayerId.Player2);
   });
 
   it("applies player orientation north and dummy orientation from config", () => {
-    const result = createSandboxBattle({ ...DEFAULT_SANDBOX_CONFIG, dummyDirection: Direction.East });
+    const result = createSandboxBattle({
+      ...DEFAULT_SANDBOX_CONFIG,
+      dummyDirection: Direction.East,
+    });
     const player = result.state.pokemon.get("p1-bulbasaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 

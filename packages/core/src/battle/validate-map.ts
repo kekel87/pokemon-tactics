@@ -40,7 +40,9 @@ export function validateMapDefinition(map: MapDefinition): ValidationResult {
 
     for (let zoneIndex = 0; zoneIndex < format.spawnZones.length; zoneIndex++) {
       const zone = format.spawnZones[zoneIndex];
-      if (!zone) continue;
+      if (!zone) {
+        continue;
+      }
 
       if (zone.positions.length < format.maxPokemonPerTeam) {
         errors.push(

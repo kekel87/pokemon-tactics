@@ -21,7 +21,7 @@ describe("PP consumption", () => {
 
     const { engine, state } = buildMoveTestEngine([charmander, bulbasaur]);
     const pokemon = state.pokemon.get("charmander-1")!;
-    const ppBefore = pokemon.currentPp["ember"]!;
+    const ppBefore = pokemon.currentPp.ember!;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -31,7 +31,7 @@ describe("PP consumption", () => {
     });
 
     expect(result.success).toBe(true);
-    expect(pokemon.currentPp["ember"]).toBe(ppBefore - 1);
+    expect(pokemon.currentPp.ember).toBe(ppBefore - 1);
 
     vi.restoreAllMocks();
   });

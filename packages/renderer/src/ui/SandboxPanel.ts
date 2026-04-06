@@ -1,6 +1,5 @@
 import {
   type BaseStats,
-  computeCombatStats,
   computeStatAtLevel,
   Direction,
   StatName,
@@ -412,7 +411,9 @@ export class SandboxPanel {
 
     for (let i = 0; i < this.moveSelects.length; i++) {
       const select = this.moveSelects[i];
-      if (!select) continue;
+      if (!select) {
+        continue;
+      }
 
       if (!movepool.includes(select.value)) {
         select.value = "";
@@ -426,7 +427,9 @@ export class SandboxPanel {
 
   private deduplicateMoveSlot(changedSelect: HTMLSelectElement): void {
     const selectedValue = changedSelect.value;
-    if (!selectedValue) return;
+    if (!selectedValue) {
+      return;
+    }
 
     for (const other of this.moveSelects) {
       if (other !== changedSelect && other.value === selectedValue) {
@@ -500,7 +503,9 @@ export class SandboxPanel {
       const slider = this.statSliders.get(stat);
       if (slider) {
         const value = Number(slider.value);
-        if (value !== 0) statStages[stat] = value;
+        if (value !== 0) {
+          statStages[stat] = value;
+        }
       }
     }
 
@@ -509,7 +514,9 @@ export class SandboxPanel {
       const slider = this.dummyStatSliders.get(stat);
       if (slider) {
         const value = Number(slider.value);
-        if (value !== 0) dummyStatStages[stat] = value;
+        if (value !== 0) {
+          dummyStatStages[stat] = value;
+        }
       }
     }
 
@@ -610,8 +617,12 @@ export class SandboxPanel {
   private toggleBody(panel: HTMLDivElement, collapsed: boolean): void {
     const body = panel.querySelector(".sandbox-body") as HTMLElement | null;
     const toggle = panel.querySelector(".sandbox-toggle") as HTMLElement | null;
-    if (body) body.style.display = collapsed ? "none" : "flex";
-    if (toggle) toggle.textContent = collapsed ? "▶" : "▼";
+    if (body) {
+      body.style.display = collapsed ? "none" : "flex";
+    }
+    if (toggle) {
+      toggle.textContent = collapsed ? "▶" : "▼";
+    }
   }
 
   private createSelect(
@@ -635,7 +646,9 @@ export class SandboxPanel {
       const opt = document.createElement("option");
       opt.value = option.value;
       opt.textContent = option.label;
-      if (option.value === selected) opt.selected = true;
+      if (option.value === selected) {
+        opt.selected = true;
+      }
       select.appendChild(opt);
     }
     row.appendChild(select);

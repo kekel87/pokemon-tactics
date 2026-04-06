@@ -10,13 +10,13 @@ import { calculateDamage } from "../damage-calculator";
 import { checkDefense } from "../defense-check";
 import type { EffectContext, TypeChart } from "../effect-handler-registry";
 
-const MULTI_HIT_PROBABILITIES = [0.35, 0.35, 0.15, 0.15];
+const MULTI_HIT_PROBABILITIES: number[] = [0.35, 0.35, 0.15, 0.15];
 
 function rollMultiHitCount(min: number, max: number, random: RandomFn): number {
   const roll = random();
   let cumulative = 0;
   for (let i = 0; i < MULTI_HIT_PROBABILITIES.length; i++) {
-    cumulative += MULTI_HIT_PROBABILITIES[i]!;
+    cumulative += MULTI_HIT_PROBABILITIES[i] ?? 0;
     if (roll < cumulative) {
       return min + i;
     }

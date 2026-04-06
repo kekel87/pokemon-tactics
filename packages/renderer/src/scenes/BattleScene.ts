@@ -176,7 +176,9 @@ export class BattleScene extends Phaser.Scene {
     };
 
     for (const pokemon of battleSetup.state.pokemon.values()) {
-      if (pokemon.currentHp <= 0) continue;
+      if (pokemon.currentHp <= 0) {
+        continue;
+      }
       const definition = battleSetup.pokemonDefinitions.get(pokemon.definitionId);
       const types = definition?.types ?? ["normal"];
       const sprite = new PokemonSprite(this, isometricGrid, pokemon, types);
@@ -187,7 +189,9 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private resetSandbox(config: SandboxConfig): void {
-    if (!this.sandboxUiScene) return;
+    if (!this.sandboxUiScene) {
+      return;
+    }
     this.children.removeAll(true);
     this.controller = null;
     this.lastHoverGrid = null;
@@ -217,9 +221,7 @@ export class BattleScene extends Phaser.Scene {
     const teams: import("@pokemon-tactic/core").PlacementTeam[] = teamSelectResult.teams.map(
       (selection, index) => ({
         playerId: selection.playerId,
-        pokemonIds: selection.pokemonDefinitionIds.map(
-          (defId) => `p${index + 1}-${defId}`,
-        ),
+        pokemonIds: selection.pokemonDefinitionIds.map((defId) => `p${index + 1}-${defId}`),
         controller: selection.controller,
       }),
     );
@@ -303,7 +305,9 @@ export class BattleScene extends Phaser.Scene {
 
       controller.onTurnReady = (activePokemonId: string) => {
         const pokemon = battleSetup.state.pokemon.get(activePokemonId);
-        if (!pokemon) return false;
+        if (!pokemon) {
+          return false;
+        }
         const aiController = aiControllers.get(pokemon.playerId);
         if (aiController) {
           return aiController.playTurn();
@@ -446,8 +450,8 @@ export class BattleScene extends Phaser.Scene {
 
   private setupCameraBounds(gridWidth: number, gridHeight: number): void {
     const offsetX = CANVAS_WIDTH / 2;
-    const isoTotalWidth = (gridWidth + gridHeight) * TILE_WIDTH / 2;
-    const isoTotalHeight = (gridWidth + gridHeight) * TILE_HEIGHT / 2;
+    const isoTotalWidth = ((gridWidth + gridHeight) * TILE_WIDTH) / 2;
+    const isoTotalHeight = ((gridWidth + gridHeight) * TILE_HEIGHT) / 2;
     const offsetY = CANVAS_HEIGHT / 2 - isoTotalHeight / 2;
 
     const marginX = isoTotalWidth / 2;

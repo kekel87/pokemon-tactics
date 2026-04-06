@@ -7,7 +7,7 @@ export class AnimationQueue {
   enqueue(task: AnimationTask): void {
     this.queue.push(task);
     if (!this.running) {
-      this.flush();
+      void this.flush();
     }
   }
 

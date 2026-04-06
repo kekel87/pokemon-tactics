@@ -37,7 +37,7 @@ describe("leech-seed", () => {
     const targetPokemon = state.pokemon.get(target.id)!;
     const seeded = targetPokemon.volatileStatuses.find((v) => v.type === StatusType.Seeded);
     expect(seeded).toBeDefined();
-    expect(seeded!.sourceId).toBe(caster.id);
+    expect(seeded?.sourceId).toBe(caster.id);
 
     vi.restoreAllMocks();
   });
@@ -69,7 +69,7 @@ describe("leech-seed", () => {
       targetPosition: { x: 2, y: 0 },
     });
 
-    const casterHpAfterSeed = state.pokemon.get(caster.id)!.currentHp;
+    const casterHpAfterSeed = state.pokemon.get(caster.id)?.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
@@ -84,8 +84,8 @@ describe("leech-seed", () => {
       direction: Direction.South,
     });
 
-    const targetHpAfter = state.pokemon.get(target.id)!.currentHp;
-    const casterHpAfter = state.pokemon.get(caster.id)!.currentHp;
+    const targetHpAfter = state.pokemon.get(target.id)?.currentHp;
+    const casterHpAfter = state.pokemon.get(caster.id)?.currentHp;
 
     // Target lost 1/8 of 99 = 12 HP
     expect(targetHpAfter).toBeLessThan(99);
@@ -184,7 +184,7 @@ describe("leech-seed", () => {
       direction: Direction.South,
     });
 
-    expect(state.pokemon.get(source.id)!.currentHp).toBe(0);
+    expect(state.pokemon.get(source.id)?.currentHp).toBe(0);
     // Seeded status should be removed from target since source is dead
     const targetPokemon = state.pokemon.get(target.id)!;
     const seeded = targetPokemon.volatileStatuses.find((v) => v.type === StatusType.Seeded);
@@ -274,8 +274,8 @@ describe("leech-seed", () => {
       (v) => v.type === StatusType.Seeded,
     );
     expect(seededStatuses).toHaveLength(2);
-    expect(seededStatuses[0]!.sourceId).toBe(caster1.id);
-    expect(seededStatuses[1]!.sourceId).toBe(caster2.id);
+    expect(seededStatuses[0]?.sourceId).toBe(caster1.id);
+    expect(seededStatuses[1]?.sourceId).toBe(caster2.id);
 
     vi.restoreAllMocks();
   });

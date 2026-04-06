@@ -153,9 +153,15 @@ export class MoveTooltip {
     graphics.setDepth(DEPTH_TOOLTIP + 1);
 
     for (let row = 0; row < preview.length; row++) {
-      const rowData = preview[row]!;
+      const rowData = preview[row];
+      if (!rowData) {
+        continue;
+      }
       for (let col = 0; col < rowData.length; col++) {
-        const cell = rowData[col]!;
+        const cell = rowData[col];
+        if (cell === undefined) {
+          continue;
+        }
         const cellX = gridX + col * cellStep;
         const cellY = gridY + row * cellStep;
 

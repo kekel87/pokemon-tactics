@@ -42,8 +42,8 @@ describe("knockback", () => {
       targetPosition: { x: 3, y: 2 },
     });
 
-    expect(state.pokemon.get(foe.id)!.position).toEqual({ x: 4, y: 2 });
-    const knockbackEvents = engine.submitAction(PlayerId.Player1, {
+    expect(state.pokemon.get(foe.id)?.position).toEqual({ x: 4, y: 2 });
+    const _knockbackEvents = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: attacker.id,
       direction: Direction.East,
@@ -64,7 +64,7 @@ describe("knockback", () => {
       targetPosition: { x: 5, y: 2 },
     });
 
-    expect(state.pokemon.get(foe.id)!.position).toEqual({ x: 5, y: 2 });
+    expect(state.pokemon.get(foe.id)?.position).toEqual({ x: 5, y: 2 });
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.KnockbackBlocked);
     vi.restoreAllMocks();
   });
@@ -88,7 +88,7 @@ describe("knockback", () => {
       targetPosition: { x: 3, y: 2 },
     });
 
-    expect(state.pokemon.get(foe.id)!.position).toEqual({ x: 3, y: 2 });
+    expect(state.pokemon.get(foe.id)?.position).toEqual({ x: 3, y: 2 });
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.KnockbackBlocked);
     vi.restoreAllMocks();
   });
@@ -98,7 +98,7 @@ describe("knockback", () => {
     const attacker = makeAttacker({ position: { x: 4, y: 2 } });
     const foe = makeFoe({ position: { x: 5, y: 2 } });
     const { engine, state } = buildMoveTestEngine([attacker, foe]);
-    const hpBefore = state.pokemon.get(foe.id)!.currentHp;
+    const hpBefore = state.pokemon.get(foe.id)?.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -107,7 +107,7 @@ describe("knockback", () => {
       targetPosition: { x: 5, y: 2 },
     });
 
-    expect(state.pokemon.get(foe.id)!.currentHp).toBeLessThan(hpBefore);
+    expect(state.pokemon.get(foe.id)?.currentHp).toBeLessThan(hpBefore);
     vi.restoreAllMocks();
   });
 
@@ -135,8 +135,8 @@ describe("knockback", () => {
       targetPosition: { x: 3, y: 2 },
     });
 
-    expect(state.pokemon.get(foeFront.id)!.position).toEqual({ x: 4, y: 2 });
-    expect(state.pokemon.get(foeDiag.id)!.position).toEqual({ x: 4, y: 1 });
+    expect(state.pokemon.get(foeFront.id)?.position).toEqual({ x: 4, y: 2 });
+    expect(state.pokemon.get(foeDiag.id)?.position).toEqual({ x: 4, y: 1 });
     vi.restoreAllMocks();
   });
 });

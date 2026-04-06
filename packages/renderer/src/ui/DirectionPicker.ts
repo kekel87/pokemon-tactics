@@ -120,7 +120,9 @@ export class DirectionPicker {
   private updateArrows(activeDirection: Direction): void {
     for (const direction of ALL_DIRECTIONS) {
       const arrow = this.arrows.get(direction);
-      if (!arrow) continue;
+      if (!arrow) {
+        continue;
+      }
 
       if (direction === activeDirection) {
         arrow.clearTint();

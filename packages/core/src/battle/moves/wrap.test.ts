@@ -26,7 +26,7 @@ describe("wrap", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([caster, target]);
-    const hpBefore = state.pokemon.get(target.id)!.currentHp;
+    const hpBefore = state.pokemon.get(target.id)?.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -38,13 +38,13 @@ describe("wrap", () => {
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.DamageDealt);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.StatusApplied);
-    expect(state.pokemon.get(target.id)!.currentHp).toBeLessThan(hpBefore);
+    expect(state.pokemon.get(target.id)?.currentHp).toBeLessThan(hpBefore);
 
     const trapped = state.pokemon
-      .get(target.id)!
-      .volatileStatuses.find((v) => v.type === StatusType.Trapped);
+      .get(target.id)
+      ?.volatileStatuses.find((v) => v.type === StatusType.Trapped);
     expect(trapped).toBeDefined();
-    expect(trapped!.damagePerTurn).toBe(0.125);
+    expect(trapped?.damagePerTurn).toBe(0.125);
 
     vi.restoreAllMocks();
   });
@@ -83,7 +83,7 @@ describe("wrap", () => {
     });
 
     expect(
-      state.pokemon.get(target.id)!.volatileStatuses.some((v) => v.type === StatusType.Trapped),
+      state.pokemon.get(target.id)?.volatileStatuses.some((v) => v.type === StatusType.Trapped),
     ).toBe(true);
 
     const legalActions = engine.getLegalActions(PlayerId.Player2);
@@ -124,7 +124,7 @@ describe("wrap", () => {
       targetPosition: { x: 1, y: 0 },
     });
 
-    const hpAfterHit = state.pokemon.get(target.id)!.currentHp;
+    const hpAfterHit = state.pokemon.get(target.id)?.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
@@ -137,7 +137,7 @@ describe("wrap", () => {
       direction: Direction.West,
     });
 
-    const hpAfterTick = state.pokemon.get(target.id)!.currentHp;
+    const hpAfterTick = state.pokemon.get(target.id)?.currentHp;
     const expectedDamage = Math.max(1, Math.floor(100 * 0.125));
     expect(hpAfterHit - hpAfterTick).toBe(expectedDamage);
 

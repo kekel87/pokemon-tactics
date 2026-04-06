@@ -24,7 +24,7 @@ describe("dragon-tail", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([attacker, defender]);
-    const hpBefore = state.pokemon.get(defender.id)!.currentHp;
+    const hpBefore = state.pokemon.get(defender.id)?.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -36,8 +36,8 @@ describe("dragon-tail", () => {
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.DamageDealt);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.KnockbackApplied);
-    expect(state.pokemon.get(defender.id)!.currentHp).toBeLessThan(hpBefore);
-    expect(state.pokemon.get(defender.id)!.position).toEqual({ x: 4, y: 2 });
+    expect(state.pokemon.get(defender.id)?.currentHp).toBeLessThan(hpBefore);
+    expect(state.pokemon.get(defender.id)?.position).toEqual({ x: 4, y: 2 });
     vi.restoreAllMocks();
   });
 

@@ -78,7 +78,9 @@ export class BattleLogPanel {
     this.entries.push(entry);
     if (this.entries.length > BATTLE_LOG_MAX_ENTRIES) {
       this.entries.shift();
-      if (this.scrollOffset > 0) this.scrollOffset--;
+      if (this.scrollOffset > 0) {
+        this.scrollOffset--;
+      }
     }
   }
 
@@ -91,10 +93,16 @@ export class BattleLogPanel {
     this.headerTitle.destroy();
     this.headerBurger.destroy();
     this.headerHitArea.destroy();
-    for (const text of this.lineTexts) text.destroy();
-    for (const dot of this.teamDots) dot.destroy();
+    for (const text of this.lineTexts) {
+      text.destroy();
+    }
+    for (const dot of this.teamDots) {
+      dot.destroy();
+    }
     this.replayBar.destroy();
-    for (const button of this.replayButtons) button.destroy();
+    for (const button of this.replayButtons) {
+      button.destroy();
+    }
     this.scrollZone.destroy();
     this.collapsedBg.destroy();
     this.collapsedIcon.destroy();
@@ -149,17 +157,12 @@ export class BattleLogPanel {
       this.teamDots.push(dot);
 
       const lineText = this.scene.add
-        .text(
-          this.x + textOffsetX,
-          lineY,
-          "",
-          {
-            fontSize: `${BATTLE_LOG_FONT_SIZE}px`,
-            color: "#ffffff",
-            fontFamily: "monospace",
-            wordWrap: { width: BATTLE_LOG_WIDTH - textOffsetX - BATTLE_LOG_PADDING },
-          },
-        )
+        .text(this.x + textOffsetX, lineY, "", {
+          fontSize: `${BATTLE_LOG_FONT_SIZE}px`,
+          color: "#ffffff",
+          fontFamily: "monospace",
+          wordWrap: { width: BATTLE_LOG_WIDTH - textOffsetX - BATTLE_LOG_PADDING },
+        })
         .setDepth(DEPTH_BATTLE_LOG + 1)
         .setInteractive({ useHandCursor: true })
         .on("pointerdown", () => this.onLineClick(i));
@@ -231,17 +234,25 @@ export class BattleLogPanel {
     this.headerTitle.setVisible(!collapsed);
     this.headerBurger.setVisible(!collapsed);
     this.headerHitArea.setActive(!collapsed).setVisible(!collapsed);
-    for (const text of this.lineTexts) text.setVisible(!collapsed);
-    for (const dot of this.teamDots) dot.setVisible(!collapsed);
+    for (const text of this.lineTexts) {
+      text.setVisible(!collapsed);
+    }
+    for (const dot of this.teamDots) {
+      dot.setVisible(!collapsed);
+    }
     this.replayBar.setVisible(!collapsed);
-    for (const button of this.replayButtons) button.setVisible(!collapsed);
+    for (const button of this.replayButtons) {
+      button.setVisible(!collapsed);
+    }
     this.scrollZone.setActive(!collapsed).setVisible(!collapsed);
 
     this.collapsedBg.setVisible(collapsed);
     this.collapsedIcon.setVisible(collapsed);
     this.collapsedHitArea.setActive(collapsed).setVisible(collapsed);
 
-    if (!collapsed) this.renderLines();
+    if (!collapsed) {
+      this.renderLines();
+    }
   }
 
   private drawExpandedBackground(totalHeight: number): void {
@@ -266,9 +277,13 @@ export class BattleLogPanel {
     this.scene.input.on(
       "wheel",
       (pointer: Phaser.Input.Pointer, _gameObjects: unknown[], _dx: number, dy: number) => {
-        if (this.collapsed) return;
+        if (this.collapsed) {
+          return;
+        }
         const bounds = this.scrollZone.getBounds();
-        if (!bounds.contains(pointer.x, pointer.y)) return;
+        if (!bounds.contains(pointer.x, pointer.y)) {
+          return;
+        }
 
         const maxOffset = Math.max(0, this.entries.length - BATTLE_LOG_VISIBLE_LINES);
         if (dy > 0) {
@@ -286,7 +301,9 @@ export class BattleLogPanel {
   }
 
   private renderLines(): void {
-    if (this.collapsed) return;
+    if (this.collapsed) {
+      return;
+    }
 
     const bodyY = this.y + BATTLE_LOG_HEADER_HEIGHT;
     for (let i = 0; i < BATTLE_LOG_VISIBLE_LINES; i++) {

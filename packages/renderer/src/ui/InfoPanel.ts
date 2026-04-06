@@ -2,6 +2,7 @@ import { type PokemonInstance, StatName, StatusType } from "@pokemon-tactic/core
 import { getPokemonName } from "@pokemon-tactic/data";
 import {
   DEPTH_INFO_PANEL,
+  getTeamColorByPlayerId,
   HP_BAR_BG_ALPHA,
   HP_BAR_BG_COLOR,
   HP_BAR_BORDER_COLOR,
@@ -26,7 +27,6 @@ import {
   STAT_BADGE_SPACING,
   STAT_BADGE_VOLATILE_BG,
   STATUS_ASSET_KEY,
-  getTeamColorByPlayerId,
   UI_BORDER_ALPHA,
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,

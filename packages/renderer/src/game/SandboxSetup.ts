@@ -24,7 +24,9 @@ function applyConfigToInstance(
   statStages: Partial<Record<StatName, number>>,
 ): void {
   const instance = result.state.pokemon.get(pokemonId);
-  if (!instance) return;
+  if (!instance) {
+    return;
+  }
 
   if (hp < 100) {
     instance.currentHp = Math.max(1, Math.floor(instance.maxHp * (hp / 100)));
@@ -59,7 +61,9 @@ function applyDummyStats(
   baseStats: BaseStats | null,
 ): void {
   const instance = result.state.pokemon.get(dummyPokemonId);
-  if (!instance) return;
+  if (!instance) {
+    return;
+  }
 
   if (baseStats) {
     instance.baseStats = { ...baseStats };

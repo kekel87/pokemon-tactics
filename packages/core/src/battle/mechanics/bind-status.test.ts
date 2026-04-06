@@ -40,7 +40,7 @@ describe("trapped status", () => {
     });
 
     expect(
-      state.pokemon.get(target.id)!.volatileStatuses.some((v) => v.type === StatusType.Trapped),
+      state.pokemon.get(target.id)?.volatileStatuses.some((v) => v.type === StatusType.Trapped),
     ).toBe(true);
     const legalActions = engine.getLegalActions(PlayerId.Player2);
     expect(legalActions.filter((a) => a.kind === ActionKind.Move)).toHaveLength(0);
@@ -115,8 +115,8 @@ describe("trapped status", () => {
       targetPosition: { x: 1, y: 0 },
     });
 
-    const hpAfterHit = state.pokemon.get(target.id)!.currentHp;
-    const sourceHpAfterHit = state.pokemon.get(source.id)!.currentHp;
+    const hpAfterHit = state.pokemon.get(target.id)?.currentHp;
+    const sourceHpAfterHit = state.pokemon.get(source.id)?.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
@@ -129,11 +129,11 @@ describe("trapped status", () => {
       direction: Direction.West,
     });
 
-    const hpAfterTick = state.pokemon.get(target.id)!.currentHp;
+    const hpAfterTick = state.pokemon.get(target.id)?.currentHp;
     const expectedDamage = Math.max(1, Math.floor(100 * 0.125));
 
     expect(hpAfterHit - hpAfterTick).toBe(expectedDamage);
-    expect(state.pokemon.get(source.id)!.currentHp).toBe(sourceHpAfterHit);
+    expect(state.pokemon.get(source.id)?.currentHp).toBe(sourceHpAfterHit);
 
     vi.restoreAllMocks();
   });
@@ -169,7 +169,7 @@ describe("trapped status", () => {
     });
 
     expect(
-      state.pokemon.get(target.id)!.volatileStatuses.some((v) => v.type === StatusType.Trapped),
+      state.pokemon.get(target.id)?.volatileStatuses.some((v) => v.type === StatusType.Trapped),
     ).toBe(true);
 
     for (let turn = 0; turn < 5; turn++) {
@@ -178,7 +178,9 @@ describe("trapped status", () => {
         pokemonId: source.id,
         direction: Direction.East,
       });
-      if (state.pokemon.get(target.id)!.currentHp <= 0) break;
+      if (state.pokemon.get(target.id)?.currentHp <= 0) {
+        break;
+      }
       engine.submitAction(PlayerId.Player2, {
         kind: ActionKind.EndTurn,
         pokemonId: target.id,
@@ -187,7 +189,7 @@ describe("trapped status", () => {
     }
 
     expect(
-      state.pokemon.get(target.id)!.volatileStatuses.some((v) => v.type === StatusType.Trapped),
+      state.pokemon.get(target.id)?.volatileStatuses.some((v) => v.type === StatusType.Trapped),
     ).toBe(false);
 
     vi.restoreAllMocks();
@@ -229,7 +231,7 @@ describe("trapped status", () => {
     });
 
     expect(
-      state.pokemon.get(target.id)!.volatileStatuses.some((v) => v.type === StatusType.Trapped),
+      state.pokemon.get(target.id)?.volatileStatuses.some((v) => v.type === StatusType.Trapped),
     ).toBe(true);
 
     engine.submitAction(PlayerId.Player1, {
@@ -246,7 +248,7 @@ describe("trapped status", () => {
     });
 
     expect(
-      state.pokemon.get(target.id)!.volatileStatuses.some((v) => v.type === StatusType.Trapped),
+      state.pokemon.get(target.id)?.volatileStatuses.some((v) => v.type === StatusType.Trapped),
     ).toBe(false);
 
     vi.restoreAllMocks();

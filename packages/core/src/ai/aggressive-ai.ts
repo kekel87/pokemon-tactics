@@ -99,7 +99,9 @@ function findClosestEnemy(from: Position, enemies: Position[]): Position {
   let minDist = manhattanDistance(from, closest);
   for (let i = 1; i < enemies.length; i++) {
     const enemy = enemies[i];
-    if (!enemy) continue;
+    if (!enemy) {
+      continue;
+    }
     const dist = manhattanDistance(from, enemy);
     if (dist < minDist) {
       minDist = dist;

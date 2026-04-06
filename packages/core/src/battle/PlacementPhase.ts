@@ -1,6 +1,5 @@
 import type { Direction } from "../enums/direction";
 import type { PlacementMode } from "../enums/placement-mode";
-import { PlayerController } from "../enums/player-controller";
 import type { PlayerId } from "../enums/player-id";
 import type { MapDefinition } from "../types/map-definition";
 import type { MapFormat } from "../types/map-format";
@@ -36,10 +35,10 @@ export class PlacementPhase {
   private turnIndex = 0;
 
   constructor(
-    private readonly mapDefinition: MapDefinition,
+    _mapDefinition: MapDefinition,
     private readonly teams: PlacementTeam[],
     private readonly format: MapFormat,
-    private readonly mode: PlacementMode,
+    _mode: PlacementMode,
     randomSeed?: number,
   ) {
     this.random = randomSeed == null ? Math.random : createPrng(randomSeed);
@@ -70,7 +69,9 @@ export class PlacementPhase {
     for (let teamIndex = 0; teamIndex < this.teams.length; teamIndex++) {
       const team = this.teams[teamIndex];
       const zone = this.format.spawnZones[teamIndex];
-      if (!team || !zone) continue;
+      if (!team || !zone) {
+        continue;
+      }
 
       const positionKeys = new Set<string>();
       for (const position of zone.positions) {
@@ -82,9 +83,13 @@ export class PlacementPhase {
   }
 
   getNextToPlace(): { playerId: PlayerId } | null {
-    if (this.turnIndex >= this.turnQueue.length) return null;
+    if (this.turnIndex >= this.turnQueue.length) {
+      return null;
+    }
     const playerId = this.turnQueue[this.turnIndex];
-    if (!playerId) return null;
+    if (!playerId) {
+      return null;
+    }
     return { playerId };
   }
 
@@ -143,10 +148,14 @@ export class PlacementPhase {
   }
 
   undoLastPlacement(): boolean {
-    if (this.placements.length === 0 || this.turnIndex === 0) return false;
+    if (this.placements.length === 0 || this.turnIndex === 0) {
+      return false;
+    }
 
     const last = this.placements.pop();
-    if (!last) return false;
+    if (!last) {
+      return false;
+    }
 
     this.placedPokemonIds.delete(last.pokemonId);
     this.occupiedPositionKeys.delete(`${last.position.x},${last.position.y}`);
@@ -158,10 +167,14 @@ export class PlacementPhase {
   autoPlaceAll(gridCenter: Position): PlacementEntry[] {
     while (!this.isComplete()) {
       const next = this.getNextToPlace();
-      if (!next) break;
+      if (!next) {
+        break;
+      }
       const unplaced = this.getUnplacedPokemonIds(next.playerId);
       const firstUnplaced = unplaced[0];
-      if (!firstUnplaced) break;
+      if (!firstUnplaced) {
+        break;
+      }
       this.autoPlaceOne(next.playerId, firstUnplaced, gridCenter);
     }
     return this.getPlacements();
@@ -171,12 +184,18 @@ export class PlacementPhase {
     const placed: PlacementEntry[] = [];
     while (!this.isComplete()) {
       const next = this.getNextToPlace();
-      if (!next || next.playerId !== playerId) break;
+      if (!next || next.playerId !== playerId) {
+        break;
+      }
       const unplaced = this.getUnplacedPokemonIds(playerId);
       const firstUnplaced = unplaced[0];
-      if (!firstUnplaced) break;
+      if (!firstUnplaced) {
+        break;
+      }
       const entry = this.autoPlaceOne(playerId, firstUnplaced, gridCenter);
-      if (entry) placed.push(entry);
+      if (entry) {
+        placed.push(entry);
+      }
     }
     return placed;
   }
@@ -187,7 +206,9 @@ export class PlacementPhase {
     gridCenter: Position,
   ): PlacementEntry | null {
     const playerZone = this.zonesByPlayer.get(playerId);
-    if (!playerZone) return null;
+    if (!playerZone) {
+      return null;
+    }
 
     const available: Position[] = [];
     for (const key of playerZone) {
@@ -197,14 +218,21 @@ export class PlacementPhase {
       }
     }
 
-    if (available.length === 0) return null;
+    if (available.length === 0) {
+      return null;
+    }
 
     const index = Math.floor(this.random() * available.length);
-    const position = available[index]!;
+    const position = available[index];
+    if (!position) {
+      return null;
+    }
     const direction = directionFromTo(position, gridCenter);
 
     const result = this.submitPlacement(pokemonId, position, direction);
-    if (!result.success) return null;
+    if (!result.success) {
+      return null;
+    }
 
     return { pokemonId, position, direction };
   }

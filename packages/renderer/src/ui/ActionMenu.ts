@@ -57,9 +57,21 @@ export class ActionMenu {
     const entries = [
       { label: t("action.move"), enabled: options.canMove, callback: options.callbacks.onMove },
       { label: t("action.attack"), enabled: options.canAct, callback: options.callbacks.onAttack },
-      { label: t("action.item"), enabled: false, callback: (): void => {} },
+      {
+        label: t("action.item"),
+        enabled: false,
+        callback: (): void => {
+          /* not implemented */
+        },
+      },
       { label: t("action.wait"), enabled: true, callback: options.callbacks.onWait },
-      { label: t("action.status"), enabled: false, callback: (): void => {} },
+      {
+        label: t("action.status"),
+        enabled: false,
+        callback: (): void => {
+          /* not implemented */
+        },
+      },
     ];
 
     this.buildMenu(entries);

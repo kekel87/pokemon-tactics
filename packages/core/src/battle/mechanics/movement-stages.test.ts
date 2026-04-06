@@ -26,7 +26,7 @@ describe("movement recalculation after speed stage changes", () => {
     });
     const { engine, state } = buildMoveTestEngine([growlithe, foe]);
 
-    expect(state.pokemon.get("growlithe")!.derivedStats.movement).toBe(4);
+    expect(state.pokemon.get("growlithe")?.derivedStats.movement).toBe(4);
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

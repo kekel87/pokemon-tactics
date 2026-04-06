@@ -7255,29 +7255,12 @@
       "Walk": {
         "frameWidth": 32,
         "frameHeight": 32,
-        "durations": [
-          6,
-          8,
-          6,
-          8
-        ]
+        "durations": [6, 8, 6, 8]
       },
       "Attack": {
         "frameWidth": 64,
         "frameHeight": 64,
-        "durations": [
-          2,
-          2,
-          4,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2
-        ],
+        "durations": [2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2],
         "rushFrame": 2,
         "hitFrame": 6,
         "returnFrame": 8
@@ -7285,73 +7268,35 @@
       "Sleep": {
         "frameWidth": 32,
         "frameHeight": 24,
-        "durations": [
-          30,
-          35
-        ]
+        "durations": [30, 35]
       },
       "Hurt": {
         "frameWidth": 48,
         "frameHeight": 56,
-        "durations": [
-          2,
-          8
-        ]
+        "durations": [2, 8]
       },
       "Idle": {
         "frameWidth": 32,
         "frameHeight": 40,
-        "durations": [
-          12,
-          8,
-          8,
-          8
-        ]
+        "durations": [12, 8, 8, 8]
       },
       "Hop": {
         "frameWidth": 32,
         "frameHeight": 88,
-        "durations": [
-          2,
-          1,
-          2,
-          3,
-          4,
-          4,
-          3,
-          2,
-          1,
-          2
-        ],
+        "durations": [2, 1, 2, 3, 4, 4, 3, 2, 1, 2],
         "hitFrame": 9
       },
       "Charge": {
         "frameWidth": 32,
         "frameHeight": 40,
-        "durations": [
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2
-        ],
+        "durations": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
         "hitFrame": 5,
         "returnFrame": 9
       },
       "Faint": {
         "frameWidth": 32,
         "frameHeight": 32,
-        "durations": [
-          8,
-          12,
-          4,
-          10
-        ]
+        "durations": [8, 12, 4, 10]
       }
     },
     "directions": [

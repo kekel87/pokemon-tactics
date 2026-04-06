@@ -34,6 +34,6 @@ describe("swords-dance", () => {
 
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.StatChanged);
-    expect(state.pokemon.get(user.id)!.statStages[StatName.Attack]).toBe(2);
+    expect(state.pokemon.get(user.id)?.statStages[StatName.Attack]).toBe(2);
   });
 });

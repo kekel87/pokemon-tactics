@@ -1,4 +1,3 @@
-import { AnimationCategory, getMoveName, getPokemonName, moveAnimationCategory } from "@pokemon-tactic/data";
 import {
   type Action,
   ActionKind,
@@ -28,6 +27,12 @@ import {
   TargetingKind,
 } from "@pokemon-tactic/core";
 import {
+  AnimationCategory,
+  getMoveName,
+  getPokemonName,
+  moveAnimationCategory,
+} from "@pokemon-tactic/data";
+import {
   BATTLE_TEXT_COLOR_BUFF,
   BATTLE_TEXT_COLOR_CONFUSED,
   BATTLE_TEXT_COLOR_DAMAGE,
@@ -41,6 +46,7 @@ import {
   BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE,
   BATTLE_TEXT_COLOR_SUPER_EFFECTIVE,
   BATTLE_TEXT_STAGGER_Y,
+  getTeamColorByPlayerId,
   KNOCKBACK_SHAKE_DURATION_MS,
   KNOCKBACK_SHAKE_OFFSET_X,
   KNOCKBACK_SHAKE_REPEAT,
@@ -49,7 +55,6 @@ import {
   PREVIEW_FLASH_ALPHA,
   PREVIEW_FLASH_DURATION_MS,
   TEAM_COLORS,
-  getTeamColorByPlayerId,
   TILE_PREVIEW_ALPHA,
   TILE_PREVIEW_ATTACK_COLOR,
   TILE_PREVIEW_BUFF_COLOR,
@@ -62,9 +67,9 @@ import { getLanguage, t } from "../i18n";
 import { getSettings } from "../settings";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import type { ActionMenu } from "../ui/ActionMenu";
-import { showBattleText } from "../ui/BattleText";
-import { formatBattleEvent, type BattleLogContext, type BattleLogEntry } from "../ui/BattleLogFormatter";
+import { type BattleLogContext, formatBattleEvent } from "../ui/BattleLogFormatter";
 import type { BattleLogPanel } from "../ui/BattleLogPanel";
+import { showBattleText } from "../ui/BattleText";
 import type { BattleUI } from "../ui/BattleUI";
 import type { DirectionPicker } from "../ui/DirectionPicker";
 import type { InfoPanel } from "../ui/InfoPanel";
@@ -171,22 +176,30 @@ export class GameController {
   }
 
   get engine(): BattleEngine {
-    if (!this.setup) throw new Error("BattleEngine not initialized — placement phase still active");
+    if (!this.setup) {
+      throw new Error("BattleEngine not initialized — placement phase still active");
+    }
     return this.setup.engine;
   }
 
   get state(): BattleState {
-    if (!this.setup) throw new Error("BattleState not initialized — placement phase still active");
+    if (!this.setup) {
+      throw new Error("BattleState not initialized — placement phase still active");
+    }
     return this.setup.state;
   }
 
   get pokemonDefinitions(): Map<string, PokemonDefinition> {
-    if (!this.setup) throw new Error("Setup not initialized — placement phase still active");
+    if (!this.setup) {
+      throw new Error("Setup not initialized — placement phase still active");
+    }
     return this.setup.pokemonDefinitions;
   }
 
   get moveDefinitions(): Map<string, MoveDefinition> {
-    if (!this.setup) throw new Error("Setup not initialized — placement phase still active");
+    if (!this.setup) {
+      throw new Error("Setup not initialized — placement phase still active");
+    }
     return this.setup.moveDefinitions;
   }
 
@@ -195,7 +208,9 @@ export class GameController {
   }
 
   getActivePokemon(): PokemonInstance | null {
-    if (!this.setup) return null;
+    if (!this.setup) {
+      return null;
+    }
     const pokemonId = this.getActivePokemonId();
     if (!pokemonId) {
       return null;
@@ -204,7 +219,9 @@ export class GameController {
   }
 
   getPokemonAtPosition(gridX: number, gridY: number): PokemonInstance | null {
-    if (!this.setup) return null;
+    if (!this.setup) {
+      return null;
+    }
     for (const pokemon of this.setup.state.pokemon.values()) {
       if (pokemon.currentHp > 0 && pokemon.position.x === gridX && pokemon.position.y === gridY) {
         return pokemon;
@@ -214,14 +231,18 @@ export class GameController {
   }
 
   getActivePokemonId(): string | null {
-    if (!this.setup) return null;
+    if (!this.setup) {
+      return null;
+    }
     const turnOrder = this.setup.state.turnOrder;
     const index = this.setup.state.currentTurnIndex;
     return turnOrder[index] ?? null;
   }
 
   getActivePlayerId(): string | null {
-    if (!this.setup) return null;
+    if (!this.setup) {
+      return null;
+    }
     const pokemonId = this.getActivePokemonId();
     if (!pokemonId) {
       return null;
@@ -539,7 +560,9 @@ export class GameController {
     this.clearPreviewState();
 
     const moveDefinition = this.moveDefinitions.get(moveId);
-    if (!moveDefinition) return;
+    if (!moveDefinition) {
+      return;
+    }
 
     const activePokemon = this.getActivePokemon();
     const currentPp = activePokemon?.currentPp[moveId] ?? 0;
@@ -707,7 +730,9 @@ export class GameController {
 
   private async animateAlongPath(pokemonId: string, path: Position[]): Promise<void> {
     const sprite = this.sprites.get(pokemonId);
-    if (!sprite) return;
+    if (!sprite) {
+      return;
+    }
     sprite.playAnimation("Walk");
     let previous = sprite.gridPosition;
     for (const step of path) {
@@ -1027,21 +1052,29 @@ export class GameController {
 
   private resolveAttackAction(moveId: string, gridX: number, gridY: number): Action | null {
     const moveDefinition = this.moveDefinitions.get(moveId);
-    if (!moveDefinition) return null;
+    if (!moveDefinition) {
+      return null;
+    }
 
     const targeting = moveDefinition.targeting;
 
     if (this.isDirectionalPattern(targeting.kind)) {
-      if (this.currentPreviewDirection === null) return null;
+      if (this.currentPreviewDirection === null) {
+        return null;
+      }
       const activePokemon = this.getActivePokemon();
-      if (!activePokemon) return null;
+      if (!activePokemon) {
+        return null;
+      }
       const adjacent = stepInDirection(activePokemon.position, this.currentPreviewDirection, 1);
       return this.findUseMoveAction(moveId, adjacent.x, adjacent.y);
     }
 
     if (this.isStaticPattern(targeting.kind)) {
       const activePokemon = this.getActivePokemon();
-      if (!activePokemon) return null;
+      if (!activePokemon) {
+        return null;
+      }
       return this.findUseMoveAction(moveId, activePokemon.position.x, activePokemon.position.y);
     }
 
@@ -1104,7 +1137,9 @@ export class GameController {
 
   private showDamageEstimates(moveId: string, affectedTiles: Position[]): void {
     const activePokemon = this.getActivePokemon();
-    if (!activePokemon) return;
+    if (!activePokemon) {
+      return;
+    }
 
     for (const tile of affectedTiles) {
       for (const [, sprite] of this.sprites) {
@@ -1140,7 +1175,9 @@ export class GameController {
   }
 
   private enterPlacement(): void {
-    if (!this.placementConfig) return;
+    if (!this.placementConfig) {
+      return;
+    }
 
     const { placementPhase, teams, map, formatIndex } = this.placementConfig;
     const next = placementPhase.getNextToPlace();
@@ -1158,7 +1195,9 @@ export class GameController {
     }
 
     const format = map.formats[formatIndex];
-    if (!format) return;
+    if (!format) {
+      return;
+    }
 
     const teamIndex = teams.findIndex((t) => t.playerId === next.playerId);
 
@@ -1188,37 +1227,55 @@ export class GameController {
   }
 
   private handlePlacementTileClick(gridX: number, gridY: number): void {
-    if (this.inputState.phase !== "placement") return;
-    if (!this.placementConfig) return;
+    if (this.inputState.phase !== "placement") {
+      return;
+    }
+    if (!this.placementConfig) {
+      return;
+    }
 
     const { selectedPokemonId } = this.inputState;
-    if (!selectedPokemonId) return;
+    if (!selectedPokemonId) {
+      return;
+    }
 
     const { placementPhase } = this.placementConfig;
     const next = placementPhase.getNextToPlace();
-    if (!next) return;
+    if (!next) {
+      return;
+    }
 
     const { teams, map, formatIndex } = this.placementConfig;
     const format = map.formats[formatIndex];
-    if (!format) return;
+    if (!format) {
+      return;
+    }
 
     const teamIndex = teams.findIndex((t) => t.playerId === next.playerId);
     const zone = format.spawnZones[teamIndex];
-    if (!zone) return;
+    if (!zone) {
+      return;
+    }
 
     const isInZone = zone.positions.some((p) => p.x === gridX && p.y === gridY);
-    if (!isInZone) return;
+    if (!isInZone) {
+      return;
+    }
 
     const isOccupied = placementPhase
       .getPlacedPositions()
       .some((p) => p.x === gridX && p.y === gridY);
-    if (isOccupied) return;
+    if (isOccupied) {
+      return;
+    }
 
     this.enterPlacementDirection(selectedPokemonId, { x: gridX, y: gridY });
   }
 
   private enterPlacementDirection(pokemonId: string, position: { x: number; y: number }): void {
-    if (!this.placementConfig) return;
+    if (!this.placementConfig) {
+      return;
+    }
 
     this.inputState = { phase: "placement_direction" };
 
@@ -1263,7 +1320,9 @@ export class GameController {
     position: { x: number; y: number },
     direction: Direction,
   ): void {
-    if (!this.placementConfig) return;
+    if (!this.placementConfig) {
+      return;
+    }
 
     const result = this.placementConfig.placementPhase.submitPlacement(
       pokemonId,
@@ -1304,7 +1363,9 @@ export class GameController {
 
     for (let i = 0; i < spawnZones.length; i++) {
       const zone = spawnZones[i];
-      if (!zone) continue;
+      if (!zone) {
+        continue;
+      }
       const baseColor = TEAM_COLORS[i] ?? TILE_SPAWN_ZONE_INACTIVE_COLOR;
 
       for (const position of zone.positions) {
@@ -1369,7 +1430,9 @@ export class GameController {
     roster: Array<{ pokemonId: string; definitionId: string; placed: boolean }>,
     selectedPokemonId: string,
   ): void {
-    if (!this.placementRosterPanel) return;
+    if (!this.placementRosterPanel) {
+      return;
+    }
     this.placementRosterPanel.show(playerId, roster, selectedPokemonId, (pokemonId: string) => {
       if (this.inputState.phase === "placement") {
         this.inputState = { phase: "placement", selectedPokemonId: pokemonId };
@@ -1421,7 +1484,9 @@ export class GameController {
   }
 
   private finishPlacement(): void {
-    if (!this.placementConfig) return;
+    if (!this.placementConfig) {
+      return;
+    }
 
     for (const [, sprite] of this.placementSprites) {
       sprite.destroy();
@@ -1436,14 +1501,18 @@ export class GameController {
   }
 
   private feedBattleLog(event: BattleEvent): void {
-    if (!this.battleLogPanel || !this.setup) return;
+    if (!this.battleLogPanel || !this.setup) {
+      return;
+    }
 
     const setup = this.setup;
     const lang = getLanguage();
     const context: BattleLogContext = {
       getPokemonName: (id) => {
         const pokemon = setup.state.pokemon.get(id);
-        if (!pokemon) return id;
+        if (!pokemon) {
+          return id;
+        }
         return getPokemonName(pokemon.definitionId, lang);
       },
       getMoveName: (moveId) => {
@@ -1453,7 +1522,9 @@ export class GameController {
     };
 
     const result = formatBattleEvent(event, context);
-    if (!result) return;
+    if (!result) {
+      return;
+    }
 
     if (Array.isArray(result)) {
       this.battleLogPanel.addEntries(result);
@@ -1463,18 +1534,24 @@ export class GameController {
   }
 
   setupBattleLogClickHandler(): void {
-    if (!this.battleLogPanel) return;
+    if (!this.battleLogPanel) {
+      return;
+    }
 
     this.battleLogPanel.onPokemonClick = (pokemonId: string) => {
       const pokemon = this.state.pokemon.get(pokemonId);
-      if (!pokemon) return;
+      if (!pokemon) {
+        return;
+      }
       const screenPos = this.isometricGrid.gridToScreen(pokemon.position.x, pokemon.position.y);
       this.scene.cameras.main.pan(screenPos.x, screenPos.y, 300, "Sine.easeInOut");
     };
 
     this.battleLogPanel.getTeamColor = (pokemonId: string) => {
       const pokemon = this.state.pokemon.get(pokemonId);
-      if (!pokemon) return 0xaaaaaa;
+      if (!pokemon) {
+        return 0xaaaaaa;
+      }
       return getTeamColorByPlayerId(pokemon.playerId);
     };
   }

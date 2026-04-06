@@ -80,8 +80,8 @@ describe("confusion status", () => {
       expect(result.events.map((e) => e.type)).toContain(BattleEventType.ConfusionTriggered);
       expect(result.events.map((e) => e.type)).toContain(BattleEventType.ConfusionRedirected);
       // Ally should have taken damage, not the enemy
-      expect(state.pokemon.get("ally")!.currentHp).toBeLessThan(100);
-      expect(state.pokemon.get("enemy")!.currentHp).toBe(100);
+      expect(state.pokemon.get("ally")?.currentHp).toBeLessThan(100);
+      expect(state.pokemon.get("enemy")?.currentHp).toBe(100);
 
       vi.restoreAllMocks();
     });
@@ -124,7 +124,7 @@ describe("confusion status", () => {
 
       expect(result.success).toBe(true);
       expect(result.events.map((e) => e.type)).toContain(BattleEventType.ConfusionResisted);
-      expect(state.pokemon.get("enemy")!.currentHp).toBeLessThan(100);
+      expect(state.pokemon.get("enemy")?.currentHp).toBeLessThan(100);
 
       vi.restoreAllMocks();
     });
@@ -194,12 +194,12 @@ describe("confusion status", () => {
         derivedStats: { movement: 3, jump: 1, initiative: 10 },
       });
 
-      const state = MockBattle.stateFrom([pokemon, enemy]);
+      const _state = MockBattle.stateFrom([pokemon, enemy]);
 
       expect(pokemon.statusEffects).toHaveLength(1);
-      expect(pokemon.statusEffects[0]!.type).toBe(StatusType.Paralyzed);
+      expect(pokemon.statusEffects[0]?.type).toBe(StatusType.Paralyzed);
       expect(pokemon.volatileStatuses).toHaveLength(1);
-      expect(pokemon.volatileStatuses[0]!.type).toBe(StatusType.Confused);
+      expect(pokemon.volatileStatuses[0]?.type).toBe(StatusType.Confused);
     });
   });
 

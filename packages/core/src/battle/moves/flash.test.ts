@@ -35,7 +35,7 @@ describe("flash", () => {
 
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.StatChanged);
-    expect(state.pokemon.get(foe.id)!.statStages[StatName.Accuracy]).toBe(-1);
+    expect(state.pokemon.get(foe.id)?.statStages[StatName.Accuracy]).toBe(-1);
     vi.restoreAllMocks();
   });
 });

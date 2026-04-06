@@ -1,13 +1,9 @@
-import {
-  type BattleState,
-  type PokemonDefinition,
-  type PokemonInstance,
-} from "@pokemon-tactic/core";
+import type { BattleState, PokemonDefinition, PokemonInstance } from "@pokemon-tactic/core";
 import {
   DEPTH_TIMELINE,
+  getTeamColorByPlayerId,
   PORTRAIT_SIZE,
   STATUS_ASSET_KEY,
-  getTeamColorByPlayerId,
   TIMELINE_ACTIVE_BORDER_COLOR,
   TIMELINE_ACTIVE_BORDER_WIDTH,
   TIMELINE_ACTIVE_SIZE,
@@ -15,8 +11,6 @@ import {
   TIMELINE_ENTRY_SIZE,
   TIMELINE_ENTRY_SPACING,
   TIMELINE_PAST_ENTRY_ALPHA,
-  TIMELINE_SEPARATOR_ALPHA,
-  TIMELINE_SEPARATOR_COLOR,
   TIMELINE_SEPARATOR_LINE_HEIGHT,
   TIMELINE_X,
   TIMELINE_Y,

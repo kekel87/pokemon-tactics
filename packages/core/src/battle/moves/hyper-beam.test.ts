@@ -26,7 +26,7 @@ describe("hyper-beam", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([attacker, defender]);
-    const hpBefore = state.pokemon.get(defender.id)!.currentHp;
+    const hpBefore = state.pokemon.get(defender.id)?.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -38,8 +38,8 @@ describe("hyper-beam", () => {
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.DamageDealt);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.RechargeStarted);
-    expect(state.pokemon.get(defender.id)!.currentHp).toBeLessThan(hpBefore);
-    expect(state.pokemon.get(attacker.id)!.recharging).toBe(true);
+    expect(state.pokemon.get(defender.id)?.currentHp).toBeLessThan(hpBefore);
+    expect(state.pokemon.get(attacker.id)?.recharging).toBe(true);
     vi.restoreAllMocks();
   });
 
