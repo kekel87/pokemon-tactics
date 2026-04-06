@@ -26,6 +26,8 @@ pnpm dev
 
 Open http://localhost:5173 in your browser.
 
+**Or play online at [kekel87.github.io/pokemon-tactics](https://kekel87.github.io/pokemon-tactics/)**
+
 ## Tech Stack
 
 | | |

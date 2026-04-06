@@ -84,7 +84,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 
 ---
 
-## Phase 2 — Démo jouable 🎯 *En cours*
+## Phase 2 — Démo jouable ✅ *Terminé*
 
 > But : un lien partageable où quelqu'un peut jouer seul contre l'IA et s'amuser
 
@@ -101,8 +101,8 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Revoir l'algo de portée de déplacement (tous les Pokemon semblent avoir la même portée) — plan 032
 - [x] Sélection d'équipe (grille portraits 82px colorés par équipe, bouton Auto re-randomize/Vider, toggle Humain/IA, toggle placement auto/manuel, validation core validateTeamSelection(), support IA vs IA, bypass sandbox, noms Pokemon i18n, bouton Retour au menu en victoire) — plan 033
 - [x] Hot-seat 1v1 + multi-équipes (2 à 12 joueurs, IA ou humain par équipe, carte 12x20, 12 couleurs d'équipe) — plan 040
-- [ ] Repo public (README présentable, système de feedback)
-- [ ] Publication + collecte feedback
+- [x] Repo public (README EN, LICENSE MIT, issue templates, wiki joueur, CI GitHub Actions) — hors plan
+- [x] Publication (GitHub Pages, release v2026.4.1, CalVer) — hors plan
 
 ---
 
