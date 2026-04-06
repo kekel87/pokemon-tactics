@@ -1,12 +1,12 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-05 (Plan 040 terminé : hot-seat multi-équipes 2/3/4/6/12 joueurs, carte 12×20, 12 couleurs d'équipe, layout dynamique TeamSelectScene — 699 tests, build OK)
+> Dernière mise à jour : 2026-04-06 (Phase 2 terminée : publication GitHub Pages, 5 nouveaux agents, fix lint/typecheck complet — 699 tests, build OK)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
 ---
 
-## Phase actuelle : Phase 2 — Démo jouable 🎯 En cours
+## Phase actuelle : Phase 3 — Terrain & Tactics
 
 ### Ce qui est fait
 - Documentation complète : game-design, architecture, decisions (91 décisions), roadmap, references, methodology, roster POC, glossaire
@@ -562,17 +562,29 @@
   - Camera bounds = grille + demi-grille de marge
   - **699 tests**, build OK
 
-### Prochaine étape (Phase 2 — Démo jouable)
-- ~~**Battle log**~~ ✓ Couvert par plan 037
-- ~~**Indicateur de miss**~~ ✓ couvert par BattleText plan 031 (texte flottant "Miss")
-- ~~**Portée de déplacement des ennemis**~~ ✓ Couvert par plan 038 (overlay orange, layer dédié)
-- ~~**Algo de portée de déplacement** : tous les Pokemon semblent avoir la même portée~~ ✓ Couvert par plan 032
-- ~~**Sélection d'équipe** : grille portraits, bouton Auto~~ ✓ Couvert par plan 033
-- ~~**Hot-seat 1v1 + multi-équipes**~~ ✓ Couvert par plan 040 (2 à 12 joueurs, IA ou humain par équipe, carte 12×20)
-- **Repo public** : README présentable, système de feedback
-- **Publication + collecte feedback**
+- **Publication du projet — Phase 2 terminée (2026-04-06)** :
+  - **README.md** réécrit en anglais (minimaliste, pitch + screenshot + feedback + credits)
+  - **LICENSE MIT** créé (avec note CC BY-NC 4.0 pour les sprites)
+  - **Issue templates GitHub** : `.github/ISSUE_TEMPLATE/` (bug, feature, feedback)
+  - **Structure nettoyée** : `plans/` → `docs/plans/`, `fixtures/` → `packages/core/fixtures/`, `sandbox-configs/` → `packages/data/sandbox-configs/`
+  - **Wiki joueur** initialisé en submodule git (Home, How to Play, Roadmap)
+  - **CI GitHub Actions** : `ci.yml` (lint + typecheck + test), `deploy.yml` (build + GitHub Pages sur release)
+  - **GitHub Pages** fonctionnel : https://kekel87.github.io/pokemon-tactics/
+  - **Config GitHub** : description, 8 topics, wiki activé, issues activées, homepage
+  - **Vite base path** configuré pour GitHub Pages
+  - **Draft release v2026.4.1** créée (CalVer YYYY.MM.XX)
+  - **5 nouveaux agents** : `feedback-triager`, `wiki-keeper`, `release-drafter`, `publisher` (profil GitHub mis à jour)
+  - **Fix lint + typecheck** : ~100 violations Biome corrigées, `biome.json` overrides tests/renderer, `useExplicitType` en warn, `tsconfig` packages `exclude .test.ts`, code mort supprimé
+  - `code-reviewer.md` + `CLAUDE.md` + `publisher.md` : lint + typecheck + test obligatoires avant commit
+
+### Prochaine étape (Phase 3 — Terrain & Tactics)
+- Sourcing ou génération d'un tileset isométrique
+- Dénivelés (hauteur tiles) + dégâts de chute
+- Obstacles + line of sight
 
 ### Bugs connus non corrigés
+- **IA vs IA — pas d'écran de victoire** : le combat se termine mais l'écran de victoire n'apparaît pas en mode IA vs IA
+- **Badge statut — border manquant** : les badges de statut dans l'InfoPanel n'ont pas de bordure blanche (TODO cosmétique)
 - **Confusion wobble post-KO** : un Pokemon confus qui est KO continue à osciller (tween confusion non stoppé dans `playFaintAndStay`)
 
 ### Points à adresser (renderer)
