@@ -10,7 +10,7 @@ Monorepo pnpm workspaces. Core découplé du rendu. AI-playable.
 L'humain **ne code pas**. Il est directeur créatif, architecte et reviewer.
 Claude Code est le **développeur principal** — autonome sur l'implémentation, mais valide les choix de design avec l'humain.
 Profil : dev web Angular/TS expérimenté, clean code advocate, expérience Godot + Phaser, temps limité.
-**Continuité** : l'humain peut revenir après 1 mois. Maintenir STATUS.md, plans/ et la mémoire à jour pour reprendre sans friction.
+**Continuité** : l'humain peut revenir après 1 mois. Maintenir STATUS.md, docs/plans/ et la mémoire à jour pour reprendre sans friction.
 
 ## Documentation — quoi lire et quand
 
@@ -27,7 +27,7 @@ Profil : dev web Angular/TS expérimenté, clean code advocate, expérience Godo
 | `docs/methodology.md` | Pour le workflow de travail |
 | `docs/ai-system.md` | Avant de modifier l'IA (scoring, profils, AiTeamController) |
 | `docs/design-system.md` | Avant d'ajouter ou modifier des couleurs, depths ou constantes visuelles dans le renderer |
-| `plans/` | Lire le plan en cours avant de coder. Consulter les anciens si besoin de contexte. |
+| `docs/plans/` | Lire le plan en cours avant de coder. Consulter les anciens si besoin de contexte. |
 
 Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 
@@ -45,7 +45,7 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 - **Langue du code** : anglais (variables, fonctions, types, commentaires)
 - **Langue de la doc** : français
 - **Linter/Formatter** : Biome (remplace ESLint + Prettier)
-- **Plans** : `plans/xxx-name.md` numérotés, avec statut en en-tête
+- **Plans** : `docs/plans/xxx-name.md` numérotés, avec statut en en-tête
 - **Nommage** : pas d'abréviations (`traversalContext` pas `ctx`, `pokemonInstance` pas `pkmn`)
 - **Écriture de code** : préférer Edit à Write. Construire les gros fichiers par petits Edit successifs, pas un Write massif
 - **Code mort** : zéro tolérance. Pas de fonctions/branches/imports inutilisés.
@@ -70,7 +70,7 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 - **Git** : ne jamais commit/push/add — l'humain gère le versioning. Lecture seule (status, diff, log). Bloqué par hook PreToolUse.
 - **Infra** : ne jamais installer globalement ni modifier nvm/npm config. Bloqué par hook PreToolUse.
 - **Changements structurels** : consulter l'humain AVANT de modifier tsconfig, module resolution, structure de dossiers, dépendances. Les bug fixes simples n'ont pas besoin d'approbation
-- **Mémoire Claude vs doc projet** : les recherches, comparatifs, décisions et contexte technique vont dans la doc du projet (plans/, docs/, decisions.md) — versionnée dans git, accessible partout. La mémoire Claude ne sert que pour les préférences personnelles de l'humain.
+- **Mémoire Claude vs doc projet** : les recherches, comparatifs, décisions et contexte technique vont dans la doc du projet (docs/plans/, docs/, decisions.md) — versionnée dans git, accessible partout. La mémoire Claude ne sert que pour les préférences personnelles de l'humain.
 
 ## Orchestration des agents
 
@@ -117,6 +117,8 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 | Ajout/modif d'un agent ou skill | `agent-manager` (audit cohérence) |
 | Besoin d'une config sandbox | `sandbox-json` (génère une commande CLI à partir d'une description) |
 | Fin de session avec changements non commités | `commit-message` (propose un message de commit) |
+| Nouvelles issues GitHub à trier | `feedback-triager` (classe, dédoublonne, propose labels + réponse) |
+| Ajout Pokemon/move/mécanique ou modif game design | `wiki-keeper` (met à jour le wiki joueur GitHub) |
 
 ### Chaînes d'agents
 
@@ -127,6 +129,7 @@ Certains agents en déclenchent d'autres :
 - `session-closer` → vérifie que `doc-keeper` a bien mis à jour la doc → `commit-message` (si changements non commités)
 - `visual-tester` peut appeler `sandbox-json` pour obtenir une config de test
 - `agent-manager` — à déclencher manuellement après ajout/modif d'agents pour auditer la cohérence
+- `doc-keeper` → `wiki-keeper` (si le game design ou le roster a changé)
 
 ## Skills disponibles
 

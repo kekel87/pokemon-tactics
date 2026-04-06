@@ -77,4 +77,4 @@ pnpm dev:sandbox '{"pokemon":"pikachu","status":"paralyzed","dummyPokemon":"squi
 - Ne pas inclure les champs à valeur par défaut (JSON minimal)
 - Retourner uniquement la commande CLI, pas d'explications superflues
 - Si un Pokemon ou move demandé n'existe pas dans les données, le signaler
-- On peut aussi sauvegarder dans un fichier : `pnpm dev:sandbox sandbox-configs/nom.json`
+- On peut aussi sauvegarder dans un fichier : `pnpm dev:sandbox packages/data/sandbox-configs/nom.json`

@@ -24,7 +24,7 @@
 | 12 | 2026-03-19 | Stack | **TypeScript + Phaser 4** | Core TS pur + Phaser 4 pour le rendu. Monorepo pnpm. API compatible Phaser 3. |
 | 13 | 2026-03-19 | Développeur principal | **Claude Code** | L'humain supervise, review, et guide. Claude Code écrit le code. |
 | 14 | 2026-03-19 | Linter/Formatter | **Biome** | Remplace ESLint + Prettier + Stylelint. Plus rapide, une seule config. Utilisé par PokeRogue. |
-| 15 | 2026-03-19 | Plans d'exécution | **`plans/xxx-name.md`** | Numérotés, avec statut. Conservés comme historique. |
+| 15 | 2026-03-19 | Plans d'exécution | **`docs/plans/xxx-name.md`** | Numérotés, avec statut. Conservés comme historique. |
 | 16 | 2026-03-19 | Roster POC | **Bulbizarre, Salamèche, Carapuce, Roucoul** | 4 Pokemon simples, 4 types (Plante, Feu, Eau, Normal/Vol). Suffisant pour valider les mécaniques. Movesets détaillés dans `docs/roster-poc.md`. |
 | 17 | 2026-03-19 | Caméra | **Fixe + zoom (non contrôlable par l'user)** | Rotation 4 angles (style FFTA) en phase ultérieure. |
 | 18 | 2026-03-19 | Taille de grille POC | **12x12** | Taille variable par map à terme. 12x12 = bon compromis pour jusqu'à 12 Pokemon. |

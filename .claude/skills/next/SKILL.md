@@ -7,7 +7,7 @@ user-invocable: true
 Lis les fichiers suivants dans cet ordre :
 1. `STATUS.md` — état actuel du projet
 2. `docs/roadmap.md` — phases et tâches
-3. `plans/README.md` — index des plans
+3. `docs/plans/README.md` — index des plans
 4. Le plan en cours s'il y en a un (statut `in-progress` ou `ready`)
 
 Puis propose :

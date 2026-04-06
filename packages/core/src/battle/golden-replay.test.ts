@@ -132,7 +132,7 @@ function buildGoldenEngine(seed: number): BattleEngine {
 function loadGoldenReplay(): BattleReplay {
   const goldenPath = resolve(
     import.meta.dirname ?? ".",
-    "../../../../fixtures/replays/golden-replay.json",
+    "../../fixtures/replays/golden-replay.json",
   );
   const content = readFileSync(goldenPath, "utf-8");
   return JSON.parse(content) as BattleReplay;

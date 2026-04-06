@@ -1,0 +1,11 @@
+name: General Feedback
+description: Share your thoughts, impressions, or suggestions
+labels: ["feedback"]
+body:
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Your feedback
+      description: Tell us what you think! First impressions, ideas, anything goes.
+    validations:
+      required: true
