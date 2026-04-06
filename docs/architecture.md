@@ -124,23 +124,30 @@ pokemon-tactics/
 ├── scripts/                     # Outils de build one-shot (non packagés)
 │   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas Phaser (inclut Sleep depuis plan 018)
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
-│   ├── generate-golden-replay.ts # Génère fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
+│   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
 │   └── sprite-config.json       # Config extensible (Pokemon, animations dont Sleep, portraits)
-├── fixtures/
-│   └── replays/
-│       └── golden-replay.json   # Replay de référence commité (Player 1 gagne en 32 rounds, 247 actions)
+├── docs/
+│   ├── images/                  # Screenshots pour le README
+│   ├── plans/                   # Plans d'exécution numérotés (40 plans)
+│   ├── architecture.md
+│   ├── game-design.md
+│   ├── decisions.md
+│   ├── roadmap.md
+│   ├── references.md
+│   └── ...
+├── .github/
+│   └── ISSUE_TEMPLATE/          # Templates bug report, feature request, feedback
 ├── package.json                 # Workspace root (scripts, devDependencies)
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json           # Config TS partagée (strict, bundler, path aliases)
 ├── tsconfig.json                # Racine, extends base
 ├── biome.json                   # Lint + format (recommended + nursery)
 ├── vitest.config.ts             # Tests + coverage
-├── scenarios/              # Combats headless complets (*.scenario.test.ts) — à venir
 ├── CLAUDE.md
 ├── CREDITS.md                   # Attribution CC BY-NC 4.0 PMDCollab (artistes par Pokemon)
-├── STATUS.md
-├── docs/
-└── plans/
+├── LICENSE                      # MIT (code) + note CC BY-NC 4.0 (sprites)
+├── README.md
+└── STATUS.md
 ```
 
 ### Organisation du core
@@ -326,7 +333,7 @@ Accessible uniquement via `pnpm dev:sandbox` (variable d'environnement Vite `VIT
 
 ```bash
 pnpm dev:sandbox                        # Config par défaut (DEFAULT_SANDBOX_CONFIG)
-pnpm dev:sandbox sandbox-configs/config.json   # Depuis un fichier JSON
+pnpm dev:sandbox packages/data/sandbox-configs/config.json   # Depuis un fichier JSON
 pnpm dev:sandbox '{"pokemon":"pikachu"}'       # JSON inline
 ```
 
@@ -340,7 +347,7 @@ pnpm dev:sandbox '{"pokemon":"pikachu"}'       # JSON inline
   - Panel Dummy : dropdown "Stats de" (custom ou preset Pokemon), stats éditables, niveau, slider HP %, dropdown move défensif, dropdown direction
   - Toolbar : bouton Réinitialiser (recrée le combat), bouton **Exporter JSON** (copie la config courante en JSON dans le presse-papier)
 - **Écran de victoire HTML** : overlay HTML au lieu de Phaser Graphics — contourne le bug de hitbox Phaser 4 avec camera zoom
-- **`sandbox-configs/`** : fichiers JSON d'exemple (configs prêtes à l'emploi)
+- **`packages/data/sandbox-configs/`** : fichiers JSON d'exemple (configs prêtes à l'emploi)
 
 > Le sprite du Dummy est le sprite PMDCollab `#0000 form 1` (sprite générique).
 
@@ -540,7 +547,7 @@ Le `BattleEngine` accepte un `random?: RandomFn` en dernier paramètre du constr
 
 - `BattleEngine.exportReplay()` retourne `{ seed, actions: [...recordedActions] }`
 - `runReplay(replay, buildEngine)` dans `replay-runner.ts` recrée un engine avec le seed et soumet les actions dans l'ordre
-- `fixtures/replays/golden-replay.json` : replay de référence (3v3 aggressive vs aggressive, seed 12345, Player 1 gagne en 32 rounds / 247 actions)
+- `packages/core/fixtures/replays/golden-replay.json` : replay de référence (3v3 aggressive vs aggressive, seed 12345, Player 1 gagne en 32 rounds / 247 actions)
 - `golden-replay.test.ts` : test de non-régression — si une mécanique aléatoire change, le test pète → relancer `pnpm replay:generate`
 
 ---

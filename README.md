@@ -1,222 +1,99 @@
 # Pokemon Tactics
 
-Un jeu de combat tactique sur grille isométrique fusionnant **Pokemon** et **Final Fantasy Tactics Advance**, développé en TypeScript.
+A tactical combat game on an isometric grid, fusing **Pokemon** and **Final Fantasy Tactics**, built in TypeScript.
 
-> **Statut : Phase 0 — POC en cours.** Le moteur de combat fonctionne, le renderer affiche un combat hot-seat jouable dans le navigateur.
+> **Status: Playable demo** — 20 Pokemon, 72 moves, AI opponents, hot-seat up to 12 players.
 
-## Le jeu
+![Pokemon Tactics — Battle screenshot](docs/images/battle-screenshot.png)
 
-Pokemon Tactics transpose les combats Pokemon sur une grille tactique inspirée de FFTA :
+## The Game
 
-- **Grille isométrique** avec dénivelés, terrains interactifs et aires d'effet
-- **Système Pokemon** : stats officielles, 18 types, STAB, statuts, 4 attaques par Pokemon
-- **Initiative individuelle** : chaque Pokemon agit selon sa vitesse (pas de tour par équipe)
-- **Friendly fire** : les AoE touchent les alliés, le positionnement compte
-- **Jusqu'à 12 Pokemon / 12 joueurs** en hot-seat (équipes ou free-for-all)
-- **Jouable par des humains ou des IA** (classique, LLM, ou via MCP)
+Pokemon Tactics brings Pokemon battles to a tactical grid inspired by FFTA:
 
-### Ce qui fonctionne aujourd'hui
+- **Isometric grid** with areas of effect and positioning that matters
+- **Pokemon system** — official stats, 18 types, STAB, status conditions, 4 moves per Pokemon
+- **Individual initiative** — each Pokemon acts based on its Speed (no team turns)
+- **Friendly fire** — AoE hits allies too, think before you blast
+- **Up to 12 players** in hot-seat (teams or free-for-all)
+- **AI opponents** with difficulty levels (easy / medium / hard)
 
-- Moteur de combat complet : déplacement BFS, 9 patterns de ciblage (single, self, cone, cross, line, dash, zone, slash, blast), calcul de dégâts Gen 5+, STAB, efficacité des types, statuts (brulure, poison, paralysie, gel, sommeil), drain Vampigraine, KO, victoire
-- Renderer Phaser 4 : grille isométrique 12x12, sprites PMDCollab, hot-seat 2 joueurs, animations (dont Sleep), icônes de statut ZA, HP bar 3 couleurs, badges stat changes, UI de combat avec tooltip d'attaque
-- 254 tests, 100% coverage sur le core
-- IA headless validée (random + heuristique)
-
-## Stack technique
-
-| | |
-|---|---|
-| Langage | TypeScript (strict) |
-| Moteur de jeu | Core pur TypeScript (zero dependance UI) |
-| Rendu | Phaser 4 (2D isometrique) |
-| Tests | Vitest (core) + Playwright (rendu) |
-| Bundler | Vite |
-| Linter/Formatter | Biome |
-| Monorepo | pnpm workspaces |
-
-## Structure
-
-```
-packages/
-  core/        Moteur de jeu pur (logique, calculs, grille)
-  renderer/    Interface graphique (Phaser 4)
-  data/        Donnees Pokemon (stats, moves, type chart, overrides)
-docs/          Documentation du projet
-plans/         Plans d'execution numerotes
-```
-
-## Demarrage rapide
+## Getting Started
 
 ```bash
 pnpm install
-pnpm dev          # Lance le jeu en dev (Vite)
-pnpm test         # Tests unitaires (Vitest)
-pnpm test:all     # Tous les tests (unit + integration + scenario)
-pnpm lint         # Lint + format (Biome)
+pnpm dev
 ```
 
-## Documentation
+Open http://localhost:5173 in your browser.
 
-- [Game Design](docs/game-design.md) — Vision, regles de combat, mecaniques
-- [Architecture](docs/architecture.md) — Architecture technique, stack, principes
-- [Decisions](docs/decisions.md) — Log des decisions prises et questions ouvertes
-- [Roadmap](docs/roadmap.md) — Phases de developpement, POC vers polish
-- [Methodologie](docs/methodology.md) — Comment on travaille (humain + Claude Code)
-- [References](docs/references.md) — Projets open source d'inspiration
+## Tech Stack
 
-## Construit avec l'IA
+| | |
+|---|---|
+| Language | TypeScript (strict) |
+| Game engine | Pure TypeScript core (zero UI dependency) |
+| Renderer | Phaser 4 (2D isometric) |
+| Tests | Vitest (700+ tests) |
+| Bundler | Vite |
+| Linter | Biome |
+| Monorepo | pnpm workspaces |
 
-Ce projet est une experience de developpement assiste par IA. Le createur humain est **directeur creatif et architecte** — il ne code pas. [Claude Code](https://claude.com/claude-code) (Anthropic) est le **developpeur principal** : il ecrit le code, les tests, la documentation, et gere les plans d'execution.
+## Project Structure
 
-Le repo sert aussi de terrain d'experimentation pour le travail avec une **equipe d'agents IA specialises**. Chaque agent a un role precis et se declenche automatiquement selon le contexte :
-
-```mermaid
-flowchart TB
-    subgraph triggers["Declencheurs"]
-        etapeInter["Etape intermediaire d'un plan"]
-        finPlan["Fin d'un plan"]
-        horsplan["Bugfix / refacto / exp. hors plan"]
-        modCore["Nouvelle mecanique core"]
-        modMecanique["Modif mecaniques de jeu"]
-        modData["Modif donnees Pokemon"]
-        modAssets["Modif assets"]
-        modDeps["Ajout dependance"]
-        modAgent["Modif agent/skill"]
-        modCI["Modif CI/pipeline"]
-        finSession["Fin de session"]
-        bug["Bug complexe"]
-        hesitation["Hesitation approche"]
-    end
-
-    subgraph agents["Agents"]
-        coreGuardian["core-guardian\n(zero dependance UI)"]
-        testWriter["test-writer\n(tests Vitest)"]
-        gameDesigner["game-designer\n(equilibre mecaniques)"]
-        codeReviewer["code-reviewer\n(qualite)"]
-        commitMessage["commit-message\n(message de commit)"]
-        docKeeper["doc-keeper\n(documentation)"]
-        sessionCloser["session-closer\n(STATUS.md)"]
-        depManager["dependency-manager\n(audit deps)"]
-        assetManager["asset-manager\n(conventions assets)"]
-        agentManager["agent-manager\n(audit agents)"]
-        ciSetup["ci-setup\n(GitHub Actions)"]
-        debugger_["debugger\n(diagnostic)"]
-        bestPractices["best-practices\n(recherche)"]
-        dataMiner["data-miner\n(donnees Pokemon)"]
-        perfProfiler["performance-profiler\n(FPS, bundle)"]
-        visualTester["visual-tester\n(screenshots Playwright)"]
-        sandboxJson["sandbox-json\n(configs sandbox JSON)"]
-    end
-
-    etapeInter -->|"si core touche"| coreGuardian
-
-    finPlan --> codeReviewer
-    finPlan --> docKeeper
-    finPlan -->|"si core touche"| coreGuardian
-    finPlan -->|"si renderer touche"| visualTester
-
-    horsplan --> codeReviewer
-    horsplan --> docKeeper
-
-    modCore --> testWriter
-    modMecanique --> gameDesigner
-    modData --> gameDesigner
-    modData --> dataMiner
-    modDeps --> depManager
-    modAssets --> assetManager
-    modAgent --> agentManager
-    modCI --> ciSetup
-    bug --> debugger_
-    hesitation --> bestPractices
-
-    codeReviewer -->|"si core touche"| coreGuardian
-    codeReviewer -->|"si mecaniques"| gameDesigner
-    codeReviewer -->|"si renderer touche"| visualTester
-    debugger_ -->|"si composante visuelle"| visualTester
-    visualTester -->|"generation config"| sandboxJson
-
-    finSession --> buildCheck{{"pnpm build + test"}}
-    buildCheck --> sessionCloser
-    sessionCloser -->|"verifie"| docKeeper
-    sessionCloser -->|"si non commite"| commitMessage
+```
+packages/
+  core/        Pure game engine (logic, calculations, grid)
+  renderer/    Visual interface (Phaser 4)
+  data/        Pokemon data (stats, moves, type chart)
+docs/          Game design, architecture, decisions, roadmap
 ```
 
-### Agents disponibles
+## Feedback
 
-| Agent | Role | Modele |
-|-------|------|--------|
-| `core-guardian` | Verifie que le core n'a aucune dependance UI | Haiku |
-| `code-reviewer` | Review qualite, conventions | Sonnet |
-| `commit-message` | Propose un message de commit depuis le contexte + git diff | Haiku |
-| `test-writer` | Ecrit les tests Vitest (test-first) | Sonnet |
-| `doc-keeper` | Maintient toute la documentation a jour | Sonnet |
-| `game-designer` | Coherence et equilibre des mecaniques | Sonnet |
-| `session-closer` | Met a jour STATUS.md, chaîne vers commit-message si non commite | Sonnet |
-| `data-miner` | Extrait les donnees Pokemon (Showdown/PokeAPI) | Sonnet |
-| `dependency-manager` | Audit dependances, vulnerabilites, deprecations | Sonnet |
-| `asset-manager` | Conventions et pipeline des assets | Sonnet |
-| `best-practices` | Recherche bonnes pratiques du marche | Sonnet |
-| `debugger` | Diagnostic avance de bugs complexes | Opus |
-| `ci-setup` | Configuration GitHub Actions | Sonnet |
-| `performance-profiler` | Analyse performances (FPS, memoire, bundle) | Sonnet |
-| `agent-manager` | Meta-agent qui audite les autres agents | Sonnet |
-| `visual-tester` | Verification visuelle via Playwright | Sonnet |
-| `sandbox-json` | Genere des configs sandbox JSON depuis une description en langage naturel | Sonnet |
-| `plan-reviewer` | Cree et review les plans d'execution | Sonnet |
-| `visual-tester` | Verification visuelle via Playwright (screenshots, console, interactions) | Sonnet |
-| `visual-analyst` | Analyse visuels de jeux pour inspiration | Sonnet |
+This is a personal side project built in my spare time. I welcome feedback, bug reports and feature ideas — I'll address them when I can.
 
-## Sources et credits
+- [Report a bug](../../issues/new?template=bug_report.yml)
+- [Request a feature](../../issues/new?template=feature_request.yml)
+- [General feedback](../../issues/new?template=general_feedback.yml)
 
-### Donnees Pokemon
+## Built with AI
+
+This project is an AI-assisted development experiment. The human creator is **creative director and architect** — he doesn't write code. [Claude Code](https://claude.com/claude-code) (Anthropic) is the **lead developer**: it writes the code, tests, documentation, and manages execution plans, assisted by a team of 20+ specialized AI agents.
+
+## Credits
+
+### Pokemon Data
 
 | Source | Usage |
 |--------|-------|
-| [Pokemon Showdown](https://github.com/smogon/pokemon-showdown) | Stats, moves, type chart, formules de degats |
-| [PokeAPI](https://pokeapi.co/) | Donnees Pokemon complementaires (height/weight) |
-| [Bulbapedia](https://bulbapedia.bulbagarden.net/) | Documentation formules (degats, types, statuts) |
-| [pokemon-showdown-fr](https://github.com/Sykless/pokemon-showdown-fr) | Traductions francaises (noms Pokemon, moves, statuts) — i18n Phase 2 |
+| [Pokemon Showdown](https://github.com/smogon/pokemon-showdown) | Stats, moves, type chart, damage formulas |
+| [PokeAPI](https://pokeapi.co/) | Complementary Pokemon data |
+| [Bulbapedia](https://bulbapedia.bulbagarden.net/) | Formula documentation |
+| [pokemon-showdown-fr](https://github.com/Sykless/pokemon-showdown-fr) | French translations |
 
 ### Sprites
 
-| Source | Usage | Licence |
-|--------|-------|---------|
-| [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | Sprites Pokemon + portraits (8 directions, animations) | CC BY-NC 4.0 |
-| [PokeSprite](https://github.com/msikma/pokesprite) | Icones Pokemon pour l'UI | MIT |
-| [Pokepedia](https://www.pokepedia.fr/) | Type icons Légendes Pokémon Z-A (18 types, 36x36px) + Status icons ZA (icônes 52x36px et miniatures 172x36px pour les 7 statuts majeurs) | libre |
-| [Bulbagarden](https://archives.bulbagarden.net/) | Category icons Sword & Shield (Physical/Special/Status, 50x40px) | libre |
-
-Voir [CREDITS.md](CREDITS.md) pour les credits detailles par Pokemon et artiste.
-
-### Projets d'inspiration
-
-| Projet | Interet |
+| Source | License |
 |--------|---------|
-| [Pokemon Showdown (sim/)](https://github.com/smogon/pokemon-showdown) | Architecture moteur de combat decoupled |
-| [PokeRogue](https://github.com/pagefaultgames/pokerogue) | Stack Phaser + TS + Vitest + Biome + pnpm |
-| [Grid Engine](https://github.com/Annoraaq/grid-engine) | Librairie grille isometrique TypeScript |
-| [godot-tactical-rpg](https://github.com/ramaureirac/godot-tactical-rpg) | Patterns game design tactical RPG |
+| [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | CC BY-NC 4.0 |
+| [PokeSprite](https://github.com/msikma/pokesprite) | MIT |
+| [Pokepedia](https://www.pokepedia.fr/) | Type & status icons |
+| [Bulbagarden](https://archives.bulbagarden.net/) | Category icons (Sword & Shield) |
 
-### Outils
+See [CREDITS.md](CREDITS.md) for detailed per-Pokemon sprite credits.
 
-| Outil | Usage |
-|-------|-------|
-| [Claude Code](https://claude.com/claude-code) | Developpeur principal (Anthropic) |
-| [Phaser 4](https://phaser.io/) | Moteur de rendu 2D |
-| [Vite](https://vite.dev/) | Bundler |
-| [Vitest](https://vitest.dev/) | Tests unitaires |
-| [Biome](https://biomejs.dev/) | Linter et formatter |
+### Inspiration
+
+**Games** — Pokemon Conquest · Final Fantasy Tactics · Fire Emblem · Advance Wars · Triangle Strategy · Dofus · Pokemon Mystery Dungeon
+
+**Open source** — [Pokemon Showdown](https://github.com/smogon/pokemon-showdown) · [PokeRogue](https://github.com/pagefaultgames/pokerogue) · [Grid Engine](https://github.com/Annoraaq/grid-engine) · [godot-tactical-rpg](https://github.com/ramaureirac/godot-tactical-rpg)
 
 ## Disclaimers
 
-### Propriete intellectuelle
+**Intellectual property** — This is a **non-commercial fan game** made for educational and experimental purposes. Pokemon and all related properties are trademarks of **Nintendo, Game Freak and The Pokemon Company**. This project is not affiliated with, endorsed, or sponsored by these companies. If rights holders request removal, it will be taken down immediately.
 
-Ce projet est un **fan-game non commercial** realise a des fins educatives et experimentales. Pokemon, les noms de Pokemon, et tous les elements associes sont des marques deposees de **Nintendo, Game Freak et The Pokemon Company**. Ce projet n'est ni affilie, ni endosse, ni sponsorise par ces entreprises. Aucun profit n'est tire de ce projet. Si les ayants droit demandent le retrait de ce projet, il sera retire immediatement.
+**Artificial intelligence** — Nearly all code, tests, and documentation in this project were generated by **Claude Code** (Anthropic). The human creator acts as creative director and architect — he guides, reviews, and validates, but does not write the code himself.
 
-### Intelligence artificielle
+## License
 
-La quasi-totalite du code, des tests et de la documentation de ce projet a ete generee par **Claude Code** (Anthropic). Le createur humain agit en tant que directeur creatif et architecte — il guide, review et valide, mais n'ecrit pas le code lui-meme. Ce repo sert egalement de terrain d'experimentation pour le developpement assiste par une equipe d'agents IA specialises.
-
-## Licence
-
-A definir. Ce projet est actuellement en developpement prive.
+Code is licensed under [MIT](LICENSE). Pokemon sprites are from PMDCollab under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) — see [CREDITS.md](CREDITS.md) for details.

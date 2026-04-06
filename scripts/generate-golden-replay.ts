@@ -204,7 +204,7 @@ function runGoldenBattle(): {
 
 const result = runGoldenBattle();
 
-const outputPath = resolve(import.meta.dirname ?? ".", "../fixtures/replays/golden-replay.json");
+const outputPath = resolve(import.meta.dirname ?? ".", "../packages/core/fixtures/replays/golden-replay.json");
 mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, JSON.stringify(result.replay, null, 2));
 

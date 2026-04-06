@@ -9,7 +9,7 @@ Fichiers de configuration pour le mode sandbox.
 pnpm dev:sandbox
 
 # Depuis un fichier
-pnpm dev:sandbox sandbox-configs/charizard-test.json
+pnpm dev:sandbox packages/data/sandbox-configs/charizard-test.json
 
 # JSON inline
 pnpm dev:sandbox '{"pokemon":"charizard","moves":["flamethrower"]}'
