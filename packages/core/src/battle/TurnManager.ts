@@ -2,7 +2,8 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 
 type InitiativeFunction = (pokemon: PokemonInstance) => number;
 
-const defaultGetInitiative: InitiativeFunction = (pokemon) => pokemon.derivedStats.initiative;
+const defaultGetInitiative: InitiativeFunction = (pokemon: PokemonInstance): number =>
+  pokemon.derivedStats.initiative;
 
 export class TurnManager {
   private turnOrder: string[];

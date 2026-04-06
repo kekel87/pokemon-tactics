@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest";
 import { BattleEventType, DefensiveKind, StatName, StatusType } from "@pokemon-tactic/core";
+import { describe, expect, it } from "vitest";
 import {
-  formatBattleEvent,
   BattleLogColors,
   type BattleLogContext,
   type BattleLogEntry,
+  formatBattleEvent,
 } from "./BattleLogFormatter";
 
 const frContext: BattleLogContext = {
@@ -210,7 +210,12 @@ describe("BattleLogFormatter", () => {
 
     it("formats stat down in English", () => {
       const result = formatBattleEvent(
-        { type: BattleEventType.StatChanged, targetId: "bulba", stat: StatName.Defense, stages: -1 },
+        {
+          type: BattleEventType.StatChanged,
+          targetId: "bulba",
+          stat: StatName.Defense,
+          stages: -1,
+        },
         enContext,
       ) as BattleLogEntry;
       expect(result.message).toBe("Bulbasaur's Defense fell!");
@@ -248,7 +253,11 @@ describe("BattleLogFormatter", () => {
   describe("DefenseActivated", () => {
     it("formats Protect in French", () => {
       const result = formatBattleEvent(
-        { type: BattleEventType.DefenseActivated, pokemonId: "pika", defenseKind: DefensiveKind.Protect },
+        {
+          type: BattleEventType.DefenseActivated,
+          pokemonId: "pika",
+          defenseKind: DefensiveKind.Protect,
+        },
         frContext,
       ) as BattleLogEntry;
       expect(result.message).toBe("Pikachu se protège avec Abri !");
@@ -257,7 +266,11 @@ describe("BattleLogFormatter", () => {
 
     it("formats Counter in English", () => {
       const result = formatBattleEvent(
-        { type: BattleEventType.DefenseActivated, pokemonId: "pika", defenseKind: DefensiveKind.Counter },
+        {
+          type: BattleEventType.DefenseActivated,
+          pokemonId: "pika",
+          defenseKind: DefensiveKind.Counter,
+        },
         enContext,
       ) as BattleLogEntry;
       expect(result.message).toBe("Pikachu used Counter!");
@@ -306,7 +319,12 @@ describe("BattleLogFormatter", () => {
   describe("KnockbackApplied", () => {
     it("formats in French", () => {
       const result = formatBattleEvent(
-        { type: BattleEventType.KnockbackApplied, pokemonId: "bulba", from: { x: 0, y: 0 }, to: { x: 1, y: 0 } },
+        {
+          type: BattleEventType.KnockbackApplied,
+          pokemonId: "bulba",
+          from: { x: 0, y: 0 },
+          to: { x: 1, y: 0 },
+        },
         frContext,
       ) as BattleLogEntry;
       expect(result.message).toBe("Bulbizarre est repoussé !");
@@ -316,7 +334,12 @@ describe("BattleLogFormatter", () => {
   describe("MultiHitComplete", () => {
     it("formats in French", () => {
       const result = formatBattleEvent(
-        { type: BattleEventType.MultiHitComplete, attackerId: "pika", targetId: "bulba", totalHits: 3 },
+        {
+          type: BattleEventType.MultiHitComplete,
+          attackerId: "pika",
+          targetId: "bulba",
+          totalHits: 3,
+        },
         frContext,
       ) as BattleLogEntry;
       expect(result.message).toBe("Touché 3 fois !");
@@ -324,7 +347,12 @@ describe("BattleLogFormatter", () => {
 
     it("formats in English", () => {
       const result = formatBattleEvent(
-        { type: BattleEventType.MultiHitComplete, attackerId: "pika", targetId: "bulba", totalHits: 5 },
+        {
+          type: BattleEventType.MultiHitComplete,
+          attackerId: "pika",
+          targetId: "bulba",
+          totalHits: 5,
+        },
         enContext,
       ) as BattleLogEntry;
       expect(result.message).toBe("Hit 5 times!");
@@ -362,20 +390,30 @@ describe("BattleLogFormatter", () => {
 
     it("returns null for PokemonMoved", () => {
       expect(
-        formatBattleEvent({ type: BattleEventType.PokemonMoved, pokemonId: "pika", path: [] }, frContext),
+        formatBattleEvent(
+          { type: BattleEventType.PokemonMoved, pokemonId: "pika", path: [] },
+          frContext,
+        ),
       ).toBeNull();
     });
 
     it("returns null for PokemonDashed", () => {
       expect(
-        formatBattleEvent({ type: BattleEventType.PokemonDashed, pokemonId: "pika", path: [] }, frContext),
+        formatBattleEvent(
+          { type: BattleEventType.PokemonDashed, pokemonId: "pika", path: [] },
+          frContext,
+        ),
       ).toBeNull();
     });
 
     it("returns null for DefenseCleared", () => {
       expect(
         formatBattleEvent(
-          { type: BattleEventType.DefenseCleared, pokemonId: "pika", defenseKind: DefensiveKind.Protect },
+          {
+            type: BattleEventType.DefenseCleared,
+            pokemonId: "pika",
+            defenseKind: DefensiveKind.Protect,
+          },
           frContext,
         ),
       ).toBeNull();

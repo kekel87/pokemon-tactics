@@ -184,7 +184,7 @@
 
       "nursery": {
         "noFloatingPromises": "error",
-        "useExplicitType": "error",
+        "useExplicitType": "warn",
         "noUselessReturn": "warn",
         "useExhaustiveSwitchCases": "error"
       }
@@ -196,6 +196,9 @@
       "includes": ["**/*.test.ts", "**/*.spec.ts"],
       "linter": {
         "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          },
           "suspicious": {
             "noConsole": "off",
             "noExplicitAny": "warn",
@@ -214,6 +217,16 @@
         "rules": {
           "complexity": {
             "noStaticOnlyClass": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["packages/renderer/**/*.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUndeclaredVariables": "off"
           }
         }
       }

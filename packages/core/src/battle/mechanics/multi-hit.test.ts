@@ -53,7 +53,9 @@ describe("multi-hit", () => {
     let callCount = 0;
     vi.spyOn(Math, "random").mockImplementation(() => {
       callCount++;
-      if (callCount === 1) return 0;
+      if (callCount === 1) {
+        return 0;
+      }
       return 0.8;
     });
     const attacker = makeAttacker("fury-swipes");
@@ -103,11 +105,7 @@ describe("multi-hit", () => {
   });
 
   it("performs a single accuracy check for all hits", () => {
-    let callCount = 0;
-    vi.spyOn(Math, "random").mockImplementation(() => {
-      callCount++;
-      return 0.99;
-    });
+    vi.spyOn(Math, "random").mockImplementation(() => 0.99);
     const attacker = makeAttacker("fury-swipes");
     const foe = makeFoe({ currentHp: 500, maxHp: 500 });
     const { engine } = buildMoveTestEngine([attacker, foe]);

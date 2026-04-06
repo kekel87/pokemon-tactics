@@ -14,16 +14,6 @@ function skipPlayerTurn(result: ReturnType<typeof createSandboxBattle>): void {
   }
 }
 
-function skipDummyTurn(result: ReturnType<typeof createSandboxBattle>): void {
-  const actions = result.engine.getLegalActions(PlayerId.Player2);
-  const endTurn = actions.find(
-    (a) => a.kind === ActionKind.EndTurn && a.direction === Direction.South,
-  );
-  if (endTurn) {
-    result.engine.submitAction(PlayerId.Player2, endTurn);
-  }
-}
-
 describe("DummyAiController", () => {
   it("plays EndTurn when no move assigned (passive mode)", () => {
     const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);

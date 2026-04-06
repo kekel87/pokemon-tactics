@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { Category } from "../enums/category";
 import { DefensiveKind } from "../enums/defensive-kind";
 import { Direction } from "../enums/direction";
 import { TargetingKind } from "../enums/targeting-kind";

@@ -68,7 +68,7 @@ interface SpriteOffsets {
   shadowSize: number;
 }
 
-const ALL_DIRECTION_NAMES = [
+const ALL_DIRECTION_NAMES: string[] = [
   "South",
   "SouthEast",
   "East",
@@ -79,7 +79,7 @@ const ALL_DIRECTION_NAMES = [
   "SouthWest",
 ];
 
-const ROOT_DIR = resolve(import.meta.dirname, "..");
+const ROOT_DIR: string = resolve(import.meta.dirname, "..");
 
 async function fetchBuffer(url: string): Promise<Buffer> {
   const response = await fetch(url);
@@ -100,7 +100,7 @@ async function fetchText(url: string): Promise<string> {
 function parseAnimData(xmlContent: string): ParsedAnimation[] {
   const parser = new XMLParser({
     ignoreAttributes: false,
-    isArray: (name) => name === "Duration" || name === "Anim",
+    isArray: (name: string): boolean => name === "Duration" || name === "Anim",
   });
   const parsed = parser.parse(xmlContent);
   const anims = parsed.AnimData.Anims.Anim;
@@ -335,7 +335,9 @@ async function parseOffsetsFromSheet(
       const g = data[idx + 1];
       const b = data[idx + 2];
       const a = data[idx + 3];
-      if (a === 0) continue;
+      if (a === 0) {
+        continue;
+      }
 
       // BLACK pixel = head position
       if (!foundHead && r < 30 && g < 30 && b < 30 && a >= 250) {
@@ -369,10 +371,6 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
   const spritePath = entry.form ? `${entry.number}/${entry.form}` : entry.number;
   const spriteBaseUrl = `${config.baseUrl}/sprite/${spritePath}`;
   const outputPath = join(ROOT_DIR, config.outputDir, entry.name);
-
-  console.log(`\n--- Extracting ${entry.name} (#${entry.number}) ---`);
-
-  console.log("  Downloading AnimData.xml...");
   const animDataXml = await fetchText(`${spriteBaseUrl}/AnimData.xml`);
   const allAnimations = parseAnimData(animDataXml);
 
@@ -382,12 +380,14 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
     (name) => !requestedAnimations.some((a) => a.name === name),
   );
   if (missing.length > 0) {
-    console.warn(`  Warning: animations not found: ${missing.join(", ")}`);
+    // Silently skip missing animations — not all Pokemon have all animation types
   }
 
   const directionIndices = config.directions.map((dir) => {
     const index = ALL_DIRECTION_NAMES.indexOf(dir);
-    if (index === -1) throw new Error(`Unknown direction: ${dir}`);
+    if (index === -1) {
+      throw new Error(`Unknown direction: ${dir}`);
+    }
     return index;
   });
 
@@ -395,7 +395,6 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
   const extractedAnimations: ParsedAnimation[] = [];
 
   for (const animation of requestedAnimations) {
-    console.log(`  Downloading ${animation.name}-Anim.png...`);
     try {
       const sheetBuffer = await fetchBuffer(`${spriteBaseUrl}/${animation.name}-Anim.png`);
 
@@ -413,12 +412,9 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
       }
       extractedAnimations.push(animation);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn(`  Warning: skipping ${animation.name} — ${message}`);
+      const _message = error instanceof Error ? error.message : String(error);
     }
   }
-
-  console.log(`  Packing ${allFrames.length} frames into atlas...`);
   const { packed, atlasWidth, atlasHeight } = packFrames(allFrames);
   const atlasBuffer = await compositeAtlas(packed, atlasWidth, atlasHeight);
   const { atlas } = buildAtlasJson(
@@ -428,8 +424,6 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
     extractedAnimations,
     config.directions,
   );
-
-  console.log("  Downloading portraits...");
   const portraitBuffers: { emotion: string; buffer: Buffer }[] = [];
   for (const emotion of config.portraits) {
     try {
@@ -437,11 +431,9 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
       const buffer = await downloadPortrait(config.baseUrl, portraitPath, emotion);
       portraitBuffers.push({ emotion, buffer });
     } catch {
-      console.warn(`  Warning: Could not download portrait "${emotion}", skipping`);
+      // Portrait not available for this emotion
     }
   }
-
-  console.log("  Extracting sprite offsets...");
   const idleAnim = requestedAnimations.find((a) => a.name === "Idle");
   const shadowSize = parseShadowSize(animDataXml);
   const footOffsetY = 4; // PMDCollab convention: WHITE pixel always at centerY + 4
@@ -466,20 +458,15 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
         southWestIndex,
       );
       spriteOffsets = { ...spriteOffsets, ...offsets, idleFrameHeight };
-      console.log(
-        `  Offsets: head=${offsets.headOffsetY}, body=${offsets.bodyOffsetY}, shadow=${shadowSize}`,
-      );
     } catch {
-      console.warn("  Warning: Could not download Idle-Offsets.png, using defaults");
+      // Offsets sheet not available for all Pokemon
     }
   }
-
-  console.log("  Downloading credits...");
   let credits = "";
   try {
     credits = await fetchText(`${spriteBaseUrl}/credits.txt`);
   } catch {
-    console.warn("  Warning: Could not download credits.txt");
+    // Credits file not available
   }
 
   mkdirSync(outputPath, { recursive: true });
@@ -497,30 +484,17 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
   }
 
   writeFileSync(join(outputPath, "offsets.json"), JSON.stringify(spriteOffsets, null, 2));
-
-  console.log(
-    `  Done! Atlas: ${atlasWidth}x${atlasHeight}, ${allFrames.length} frames, ${portraitBuffers.length} portrait(s)`,
-  );
 }
 
 async function main(): Promise<void> {
   const configPath = join(ROOT_DIR, "scripts/sprite-config.json");
   const config: SpriteConfig = JSON.parse(readFileSync(configPath, "utf-8"));
 
-  console.log("Pokemon Tactics — PMDCollab Sprite Extraction");
-  console.log(`Pokemon: ${config.pokedexEntries.map((e) => e.name).join(", ")}`);
-  console.log(`Animations: ${config.animations.join(", ")}`);
-  console.log(`Directions: ${config.directions.length}`);
-  console.log(`Portraits: ${config.portraits.join(", ")}`);
-
   for (const entry of config.pokedexEntries) {
     await extractPokemon(entry, config);
   }
-
-  console.log("\nAll extractions complete!");
 }
 
-main().catch((error) => {
-  console.error("Extraction failed:", error);
+main().catch((_error) => {
   process.exit(1);
 });

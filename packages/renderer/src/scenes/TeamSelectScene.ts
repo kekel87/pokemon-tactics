@@ -3,19 +3,13 @@ import {
   PlayerId,
   type PokemonDefinition,
   type TeamSelection,
-  TeamValidationError,
   validateTeamSelection,
 } from "@pokemon-tactic/core";
 import { loadData } from "@pokemon-tactic/data";
-import {
-  BACKGROUND_COLOR,
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-  TEAM_COLORS,
-} from "../constants";
-import { sandboxBootConfig } from "../sandbox-boot";
+import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, TEAM_COLORS } from "../constants";
 import { t } from "../i18n";
 import type { TranslationKey } from "../i18n/types";
+import { sandboxBootConfig } from "../sandbox-boot";
 import { preloadPortraitsOnly } from "../sprites/SpriteLoader";
 
 const ALLOWED_TEAM_COUNTS = [2, 3, 4, 6, 12] as const;
@@ -47,17 +41,19 @@ const LAUNCH_BUTTON_Y = CANVAS_HEIGHT - 50;
 const LAUNCH_BUTTON_WIDTH = 200;
 const LAUNCH_BUTTON_HEIGHT = 36;
 
-const ERROR_I18N_MAP: Record<TeamValidationError, TranslationKey> = {
-  [TeamValidationError.EmptyTeam]: "teamSelect.errorEmpty",
-  [TeamValidationError.ExceedsMaxSize]: "teamSelect.errorTooMany",
-  [TeamValidationError.DuplicatePokemon]: "teamSelect.errorDuplicate",
-  [TeamValidationError.UnknownPokemon]: "teamSelect.errorUnknown",
-};
-
 const PLAYER_IDS: PlayerId[] = [
-  PlayerId.Player1, PlayerId.Player2, PlayerId.Player3, PlayerId.Player4,
-  PlayerId.Player5, PlayerId.Player6, PlayerId.Player7, PlayerId.Player8,
-  PlayerId.Player9, PlayerId.Player10, PlayerId.Player11, PlayerId.Player12,
+  PlayerId.Player1,
+  PlayerId.Player2,
+  PlayerId.Player3,
+  PlayerId.Player4,
+  PlayerId.Player5,
+  PlayerId.Player6,
+  PlayerId.Player7,
+  PlayerId.Player8,
+  PlayerId.Player9,
+  PlayerId.Player10,
+  PlayerId.Player11,
+  PlayerId.Player12,
 ];
 
 interface PlayerColumnState {
@@ -184,7 +180,9 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   private buildColumnStack(teamIndices: number[], columnX: number): void {
-    if (teamIndices.length === 0) return;
+    if (teamIndices.length === 0) {
+      return;
+    }
 
     if (this.useCompactLayout) {
       this.buildCompactStack(teamIndices, columnX);
@@ -197,12 +195,19 @@ export class TeamSelectScene extends Phaser.Scene {
 
     const teamBlockHeight = this.getTeamBlockHeight(slotRows);
     const availableHeight = LAUNCH_BUTTON_Y - 60 - COLUMN_TOP_Y;
-    const gap = teamIndices.length > 1
-      ? Math.min(12, (availableHeight - teamIndices.length * teamBlockHeight) / (teamIndices.length - 1))
-      : 0;
+    const gap =
+      teamIndices.length > 1
+        ? Math.min(
+            12,
+            (availableHeight - teamIndices.length * teamBlockHeight) / (teamIndices.length - 1),
+          )
+        : 0;
 
     for (let stackIndex = 0; stackIndex < teamIndices.length; stackIndex++) {
-      const teamIndex = teamIndices[stackIndex]!;
+      const teamIndex = teamIndices[stackIndex];
+      if (teamIndex === undefined) {
+        continue;
+      }
       const blockY = COLUMN_TOP_Y + stackIndex * (teamBlockHeight + gap);
       this.buildTeamBlock(teamIndex, columnX, blockY, slotCols, slotRows);
     }
@@ -213,15 +218,19 @@ export class TeamSelectScene extends Phaser.Scene {
     const rowHeight = compactSlotSize + 12;
     const availableHeight = LAUNCH_BUTTON_Y - 60 - COLUMN_TOP_Y;
     const totalRowsHeight = teamIndices.length * rowHeight;
-    const gap = teamIndices.length > 1
-      ? Math.min(10, (availableHeight - totalRowsHeight) / (teamIndices.length - 1))
-      : 0;
+    const gap =
+      teamIndices.length > 1
+        ? Math.min(10, (availableHeight - totalRowsHeight) / (teamIndices.length - 1))
+        : 0;
 
     const isLeft = columnX < CANVAS_WIDTH / 2;
     const actualX = isLeft ? COLUMN_LEFT_X : COMPACT_COLUMN_RIGHT_X;
 
     for (let stackIndex = 0; stackIndex < teamIndices.length; stackIndex++) {
-      const teamIndex = teamIndices[stackIndex]!;
+      const teamIndex = teamIndices[stackIndex];
+      if (teamIndex === undefined) {
+        continue;
+      }
       const rowY = COLUMN_TOP_Y + stackIndex * (rowHeight + gap);
       this.buildCompactRow(teamIndex, actualX, rowY, compactSlotSize);
     }
@@ -235,7 +244,10 @@ export class TeamSelectScene extends Phaser.Scene {
   ): void {
     const colWidth = COMPACT_COLUMN_WIDTH;
     const teamColor = this.getTeamColor(teamIndex);
-    const state = this.playerStates[teamIndex]!;
+    const state = this.playerStates[teamIndex];
+    if (!state) {
+      return;
+    }
     const isActive = teamIndex === this.activeColumnIndex;
     const centerY = rowY + slotSize / 2 + 6;
     const rowHeight = slotSize + 12;
@@ -259,18 +271,20 @@ export class TeamSelectScene extends Phaser.Scene {
         this.refreshLaunchButton();
       }
     });
-    this.dynamicContainer!.add(highlight);
+    this.dynamicContainer?.add(highlight);
 
     let cursorX = columnX + 6;
 
     const shortLabel = this.getPlayerLabel(teamIndex);
-    const labelText = this.add.text(cursorX, centerY, shortLabel, {
-      fontSize: "11px",
-      fontFamily: "monospace",
-      color: `#${teamColor.toString(16).padStart(6, "0")}`,
-      fontStyle: "bold",
-    }).setOrigin(0, 0.5);
-    this.dynamicContainer!.add(labelText);
+    const labelText = this.add
+      .text(cursorX, centerY, shortLabel, {
+        fontSize: "11px",
+        fontFamily: "monospace",
+        color: `#${teamColor.toString(16).padStart(6, "0")}`,
+        fontStyle: "bold",
+      })
+      .setOrigin(0, 0.5);
+    this.dynamicContainer?.add(labelText);
     cursorX += 62;
 
     const isHuman = state.controller === PlayerController.Human;
@@ -281,15 +295,20 @@ export class TeamSelectScene extends Phaser.Scene {
     const toggleLabel = isHuman ? "H" : "IA";
     const toggleText = this.add
       .text(cursorX + toggleW / 2, centerY, toggleLabel, {
-        fontSize: "10px", fontFamily: "monospace", color: "#ffffff",
-      }).setOrigin(0.5);
+        fontSize: "10px",
+        fontFamily: "monospace",
+        color: "#ffffff",
+      })
+      .setOrigin(0.5);
     toggleBg.on("pointerdown", () => {
-      if (state.validated) return;
+      if (state.validated) {
+        return;
+      }
       state.controller =
         state.controller === PlayerController.Human ? PlayerController.Ai : PlayerController.Human;
       this.rebuildColumns();
     });
-    this.dynamicContainer!.add([toggleBg, toggleText]);
+    this.dynamicContainer?.add([toggleBg, toggleText]);
     cursorX += toggleW + 6;
 
     const buttonsRightEdge = columnX + colWidth - 4;
@@ -307,10 +326,13 @@ export class TeamSelectScene extends Phaser.Scene {
       const cx = slotsStartX + i * (slotSize + 4) + slotSize / 2;
       const slotBg = this.add.rectangle(cx, centerY, slotSize, slotSize, teamColor, 0.15);
       slotBg.setStrokeStyle(1, teamColor, 0.3);
-      this.dynamicContainer!.add(slotBg);
+      this.dynamicContainer?.add(slotBg);
 
       if (i < state.selectedIds.length) {
-        const defId = state.selectedIds[i]!;
+        const defId = state.selectedIds[i];
+        if (!defId) {
+          continue;
+        }
         const portrait = this.add.image(cx, centerY, `${defId}-portrait`);
         portrait.setDisplaySize(slotSize - 4, slotSize - 4);
         if (!state.validated) {
@@ -322,23 +344,33 @@ export class TeamSelectScene extends Phaser.Scene {
             this.refreshLaunchButton();
           });
         }
-        this.dynamicContainer!.add(portrait);
+        this.dynamicContainer?.add(portrait);
       }
     }
 
     let btnX = btnsLeftEdge;
 
     const valBg = this.add
-      .rectangle(btnX + btnSize / 2, centerY, btnSize, btnSize, state.validated ? 0x553322 : 0x335533, 0.9)
+      .rectangle(
+        btnX + btnSize / 2,
+        centerY,
+        btnSize,
+        btnSize,
+        state.validated ? 0x553322 : 0x335533,
+        0.9,
+      )
       .setInteractive({ useHandCursor: true });
     valBg.setStrokeStyle(1, state.validated ? 0x775544 : 0x558855);
     const valLabel = state.validated ? "✎" : "✓";
     const valText = this.add
       .text(btnX + btnSize / 2, centerY, valLabel, {
-        fontSize: "12px", fontFamily: "monospace", color: "#ffffff",
-      }).setOrigin(0.5);
+        fontSize: "12px",
+        fontFamily: "monospace",
+        color: "#ffffff",
+      })
+      .setOrigin(0.5);
     valBg.on("pointerdown", () => this.onValidateClick(teamIndex));
-    this.dynamicContainer!.add([valBg, valText]);
+    this.dynamicContainer?.add([valBg, valText]);
     btnX += btnSize + btnGap;
 
     const autoBg = this.add
@@ -347,16 +379,21 @@ export class TeamSelectScene extends Phaser.Scene {
     autoBg.setStrokeStyle(1, 0x555577);
     const autoText = this.add
       .text(btnX + btnSize / 2, centerY, "⟳", {
-        fontSize: "12px", fontFamily: "monospace", color: "#aaaacc",
-      }).setOrigin(0.5);
+        fontSize: "12px",
+        fontFamily: "monospace",
+        color: "#aaaacc",
+      })
+      .setOrigin(0.5);
     autoBg.on("pointerdown", () => {
-      if (state.validated) return;
+      if (state.validated) {
+        return;
+      }
       this.autoFillTeam(teamIndex);
       this.rebuildColumns();
       this.refreshGrid();
       this.refreshLaunchButton();
     });
-    this.dynamicContainer!.add([autoBg, autoText]);
+    this.dynamicContainer?.add([autoBg, autoText]);
     btnX += btnSize + btnGap;
 
     const clearBg = this.add
@@ -365,16 +402,21 @@ export class TeamSelectScene extends Phaser.Scene {
     clearBg.setStrokeStyle(1, 0x775555);
     const clearText = this.add
       .text(btnX + btnSize / 2, centerY, "✕", {
-        fontSize: "12px", fontFamily: "monospace", color: "#ccaaaa",
-      }).setOrigin(0.5);
+        fontSize: "12px",
+        fontFamily: "monospace",
+        color: "#ccaaaa",
+      })
+      .setOrigin(0.5);
     clearBg.on("pointerdown", () => {
-      if (state.validated) return;
+      if (state.validated) {
+        return;
+      }
       state.selectedIds = [];
       this.rebuildColumns();
       this.refreshGrid();
       this.refreshLaunchButton();
     });
-    this.dynamicContainer!.add([clearBg, clearText]);
+    this.dynamicContainer?.add([clearBg, clearText]);
   }
 
   private getTeamBlockHeight(slotRows: number): number {
@@ -392,7 +434,10 @@ export class TeamSelectScene extends Phaser.Scene {
     slotRows: number,
   ): void {
     const teamColor = this.getTeamColor(teamIndex);
-    const state = this.playerStates[teamIndex]!;
+    const state = this.playerStates[teamIndex];
+    if (!state) {
+      return;
+    }
 
     const headerHeight = 25;
     const slotsTopY = blockY + headerHeight;
@@ -423,7 +468,7 @@ export class TeamSelectScene extends Phaser.Scene {
         this.refreshLaunchButton();
       }
     });
-    this.dynamicContainer!.add(highlight);
+    this.dynamicContainer?.add(highlight);
 
     const label = this.getPlayerLabel(teamIndex);
     const headerText = this.add.text(columnX, blockY, label, {
@@ -432,7 +477,7 @@ export class TeamSelectScene extends Phaser.Scene {
       color: `#${teamColor.toString(16).padStart(6, "0")}`,
       fontStyle: "bold",
     });
-    this.dynamicContainer!.add(headerText);
+    this.dynamicContainer?.add(headerText);
 
     const toggleX = columnX + COLUMN_WIDTH - 40;
     const toggleY = blockY + 7;
@@ -448,12 +493,14 @@ export class TeamSelectScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     toggleBg.on("pointerdown", () => {
-      if (state.validated) return;
+      if (state.validated) {
+        return;
+      }
       state.controller =
         state.controller === PlayerController.Human ? PlayerController.Ai : PlayerController.Human;
       this.rebuildColumns();
     });
-    this.dynamicContainer!.add([toggleBg, toggleText]);
+    this.dynamicContainer?.add([toggleBg, toggleText]);
 
     const slotsGridWidth = slotCols * (SLOT_SIZE + SLOT_GAP) - SLOT_GAP;
     const slotsStartX = columnX + (COLUMN_WIDTH - slotsGridWidth) / 2;
@@ -468,10 +515,13 @@ export class TeamSelectScene extends Phaser.Scene {
 
       const slotBg = this.add.rectangle(cx, cy, SLOT_SIZE, SLOT_SIZE, teamColor, 0.15);
       slotBg.setStrokeStyle(1, teamColor, 0.3);
-      this.dynamicContainer!.add(slotBg);
+      this.dynamicContainer?.add(slotBg);
 
       if (i < state.selectedIds.length) {
-        const defId = state.selectedIds[i]!;
+        const defId = state.selectedIds[i];
+        if (!defId) {
+          continue;
+        }
         const portrait = this.add.image(cx, cy, `${defId}-portrait`);
         portrait.setDisplaySize(SLOT_SIZE - 4, SLOT_SIZE - 4);
         if (!state.validated) {
@@ -483,7 +533,7 @@ export class TeamSelectScene extends Phaser.Scene {
             this.refreshLaunchButton();
           });
         }
-        this.dynamicContainer!.add(portrait);
+        this.dynamicContainer?.add(portrait);
       }
     }
 
@@ -512,7 +562,7 @@ export class TeamSelectScene extends Phaser.Scene {
       )
       .setOrigin(0.5);
     validateBg.on("pointerdown", () => this.onValidateClick(teamIndex));
-    this.dynamicContainer!.add([validateBg, validateText]);
+    this.dynamicContainer?.add([validateBg, validateText]);
 
     const autoBtnX = columnX + (buttonWidth + BUTTON_GAP) + buttonWidth / 2;
     const autoBg = this.add
@@ -527,13 +577,15 @@ export class TeamSelectScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     autoBg.on("pointerdown", () => {
-      if (state.validated) return;
+      if (state.validated) {
+        return;
+      }
       this.autoFillTeam(teamIndex);
       this.rebuildColumns();
       this.refreshGrid();
       this.refreshLaunchButton();
     });
-    this.dynamicContainer!.add([autoBg, autoText]);
+    this.dynamicContainer?.add([autoBg, autoText]);
 
     const clearBtnX = columnX + 2 * (buttonWidth + BUTTON_GAP) + buttonWidth / 2;
     const clearBg = this.add
@@ -548,21 +600,29 @@ export class TeamSelectScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     clearBg.on("pointerdown", () => {
-      if (state.validated) return;
+      if (state.validated) {
+        return;
+      }
       state.selectedIds = [];
       this.rebuildColumns();
       this.refreshGrid();
       this.refreshLaunchButton();
     });
-    this.dynamicContainer!.add([clearBg, clearText]);
+    this.dynamicContainer?.add([clearBg, clearText]);
   }
 
   private onValidateClick(teamIndex: number): void {
-    const state = this.playerStates[teamIndex]!;
+    const state = this.playerStates[teamIndex];
+    if (!state) {
+      return;
+    }
     if (state.validated) {
       state.validated = false;
     } else {
-      const playerId = PLAYER_IDS[teamIndex]!;
+      const playerId = PLAYER_IDS[teamIndex];
+      if (!playerId) {
+        return;
+      }
       const result = validateTeamSelection(
         { playerId, pokemonDefinitionIds: state.selectedIds, controller: state.controller },
         this.allDefinitionIds,
@@ -580,7 +640,10 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   private autoFillTeam(teamIndex: number): void {
-    const state = this.playerStates[teamIndex]!;
+    const state = this.playerStates[teamIndex];
+    if (!state) {
+      return;
+    }
     state.selectedIds = [];
     const shuffled = [...this.allDefinitionIds].sort(() => Math.random() - 0.5);
     state.selectedIds = shuffled.slice(0, this.maxTeamSize);
@@ -593,7 +656,10 @@ export class TeamSelectScene extends Phaser.Scene {
     this.gridContainer = this.add.container(0, 0);
 
     for (let i = 0; i < this.pokemonDefinitions.length; i++) {
-      const definition = this.pokemonDefinitions[i]!;
+      const definition = this.pokemonDefinitions[i];
+      if (!definition) {
+        continue;
+      }
       const col = i % GRID_COLS;
       const row = Math.floor(i / GRID_COLS);
       const cellX = gridStartX + col * (GRID_CELL_SIZE + GRID_CELL_GAP);
@@ -632,14 +698,18 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   private onPokemonClicked(definitionId: string): void {
-    const state = this.playerStates[this.activeColumnIndex]!;
-    if (state.validated) return;
+    const state = this.playerStates[this.activeColumnIndex];
+    if (!state || state.validated) {
+      return;
+    }
 
     const existingIndex = state.selectedIds.indexOf(definitionId);
     if (existingIndex >= 0) {
       state.selectedIds.splice(existingIndex, 1);
     } else {
-      if (state.selectedIds.length >= this.maxTeamSize) return;
+      if (state.selectedIds.length >= this.maxTeamSize) {
+        return;
+      }
       state.selectedIds.push(definitionId);
     }
 
@@ -650,13 +720,23 @@ export class TeamSelectScene extends Phaser.Scene {
 
   private autoFillAndValidateAi(): void {
     for (let i = 0; i < this.playerStates.length; i++) {
-      const state = this.playerStates[i]!;
-      if (state.controller !== PlayerController.Ai) continue;
-      if (state.validated) continue;
+      const state = this.playerStates[i];
+      if (!state) {
+        continue;
+      }
+      if (state.controller !== PlayerController.Ai) {
+        continue;
+      }
+      if (state.validated) {
+        continue;
+      }
       if (state.selectedIds.length < this.maxTeamSize) {
         this.autoFillTeam(i);
       }
-      const playerId = PLAYER_IDS[i]!;
+      const playerId = PLAYER_IDS[i];
+      if (!playerId) {
+        continue;
+      }
       const result = validateTeamSelection(
         { playerId, pokemonDefinitionIds: state.selectedIds, controller: state.controller },
         this.allDefinitionIds,
@@ -749,9 +829,11 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   private cycleTeamCount(): void {
-    const currentIndex = ALLOWED_TEAM_COUNTS.indexOf(this.teamCount as typeof ALLOWED_TEAM_COUNTS[number]);
+    const currentIndex = ALLOWED_TEAM_COUNTS.indexOf(
+      this.teamCount as (typeof ALLOWED_TEAM_COUNTS)[number],
+    );
     const nextIndex = (currentIndex + 1) % ALLOWED_TEAM_COUNTS.length;
-    this.teamCount = ALLOWED_TEAM_COUNTS[nextIndex]!;
+    this.teamCount = ALLOWED_TEAM_COUNTS[nextIndex] ?? 2;
 
     for (const state of this.playerStates) {
       state.validated = false;
@@ -782,12 +864,16 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   private refreshTeamCountText(): void {
-    if (!this.teamCountText) return;
+    if (!this.teamCountText) {
+      return;
+    }
     this.teamCountText.setText(`${this.teamCount} ${t("teamSelect.teams")}`);
   }
 
   private refreshPlacementToggle(): void {
-    if (!this.placementToggleBg || !this.placementToggleText) return;
+    if (!this.placementToggleBg || !this.placementToggleText) {
+      return;
+    }
     const label = this.autoPlacement
       ? t("teamSelect.autoPlacement")
       : t("teamSelect.manualPlacement");
@@ -797,13 +883,23 @@ export class TeamSelectScene extends Phaser.Scene {
 
   private onLaunch(): void {
     const allValidated = this.playerStates.every((s) => s.validated);
-    if (!allValidated) return;
+    if (!allValidated) {
+      return;
+    }
 
-    const teams: TeamSelection[] = this.playerStates.map((state, index) => ({
-      playerId: PLAYER_IDS[index]!,
-      pokemonDefinitionIds: [...state.selectedIds],
-      controller: state.controller,
-    }));
+    const teams: TeamSelection[] = this.playerStates
+      .map((state, index) => {
+        const playerId = PLAYER_IDS[index];
+        if (!playerId) {
+          return undefined;
+        }
+        return {
+          playerId,
+          pokemonDefinitionIds: [...state.selectedIds],
+          controller: state.controller,
+        };
+      })
+      .filter((team): team is TeamSelection => team !== undefined);
 
     const result: TeamSelectResult = {
       teams,
@@ -819,20 +915,29 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   private refreshGrid(): void {
-    if (!this.gridContainer) return;
+    if (!this.gridContainer) {
+      return;
+    }
     for (let i = 0; i < this.pokemonDefinitions.length; i++) {
       this.refreshGridCell(i);
     }
   }
 
   private refreshGridCell(index: number): void {
-    if (!this.gridContainer) return;
-    const definition = this.pokemonDefinitions[index]!;
+    if (!this.gridContainer) {
+      return;
+    }
+    const definition = this.pokemonDefinitions[index];
+    if (!definition) {
+      return;
+    }
     const bgIndex = index * 2;
     const bg = this.gridContainer.list[bgIndex] as Phaser.GameObjects.Rectangle;
-    if (!bg) return;
+    if (!bg) {
+      return;
+    }
 
-    const inActiveTeam = this.playerStates[this.activeColumnIndex]!.selectedIds.includes(
+    const inActiveTeam = this.playerStates[this.activeColumnIndex]?.selectedIds.includes(
       definition.id,
     );
 
@@ -844,8 +949,10 @@ export class TeamSelectScene extends Phaser.Scene {
     }
 
     for (let i = 0; i < this.playerStates.length; i++) {
-      if (i === this.activeColumnIndex) continue;
-      if (this.playerStates[i]!.selectedIds.includes(definition.id)) {
+      if (i === this.activeColumnIndex) {
+        continue;
+      }
+      if (this.playerStates[i]?.selectedIds.includes(definition.id)) {
         const teamColor = this.getTeamColor(i);
         bg.setFillStyle(teamColor, 0.2);
         bg.setStrokeStyle(1, teamColor, 0.4);
@@ -858,7 +965,9 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   private refreshLaunchButton(): void {
-    if (!this.launchBg || !this.launchText) return;
+    if (!this.launchBg || !this.launchText) {
+      return;
+    }
     const canLaunch = this.playerStates.every((s) => s.validated);
 
     if (canLaunch) {

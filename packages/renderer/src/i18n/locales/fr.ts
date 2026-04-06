@@ -143,7 +143,8 @@ const fr: Translations = {
   "credits.title": "Crédits",
   "credits.disclaimer":
     "Pokemon Tactics est un projet de fan, non commercial.\nIl n'est pas affilié, soutenu, ni approuvé par\nNintendo, Game Freak, ou The Pokemon Company.\nPokemon et tous les noms associés sont des marques\ndéposées de leurs propriétaires respectifs.",
-  "credits.sprites": "Sprites : PMDCollab SpriteCollab — CC-BY-NC 4.0\nhttps://sprites.pmdcollab.org",
+  "credits.sprites":
+    "Sprites : PMDCollab SpriteCollab — CC-BY-NC 4.0\nhttps://sprites.pmdcollab.org",
   "credits.code": "Code : développé avec l'aide de Claude (Anthropic)",
   "credits.back": "Retour",
   "log.title": "Journal de combat",

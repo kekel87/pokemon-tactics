@@ -17,7 +17,7 @@ describe("type effectiveness", () => {
     const estimate = engine.estimateDamage("charmander-1", "ember", "bulbasaur-1");
 
     expect(estimate).not.toBeNull();
-    expect(estimate!.effectiveness).toBe(2);
+    expect(estimate?.effectiveness).toBe(2);
   });
 
   it("not very effective: Grass vs Fire deals x0.5", () => {
@@ -34,7 +34,7 @@ describe("type effectiveness", () => {
     const estimate = engine.estimateDamage("bulbasaur-1", "razor-leaf", "charmander-1");
 
     expect(estimate).not.toBeNull();
-    expect(estimate!.effectiveness).toBe(0.5);
+    expect(estimate?.effectiveness).toBe(0.5);
   });
 
   it("immune: Normal vs Ghost deals x0", () => {
@@ -53,9 +53,9 @@ describe("type effectiveness", () => {
     const estimate = engine.estimateDamage("squirtle-1", "tackle", "gastly-1");
 
     expect(estimate).not.toBeNull();
-    expect(estimate!.effectiveness).toBe(0);
-    expect(estimate!.min).toBe(0);
-    expect(estimate!.max).toBe(0);
+    expect(estimate?.effectiveness).toBe(0);
+    expect(estimate?.min).toBe(0);
+    expect(estimate?.max).toBe(0);
   });
 
   it("double super effective: Grass vs Rock/Ground (Geodude) deals x4", () => {
@@ -74,7 +74,7 @@ describe("type effectiveness", () => {
     const estimate = engine.estimateDamage("bulbasaur-1", "razor-leaf", "geodude-1");
 
     expect(estimate).not.toBeNull();
-    expect(estimate!.effectiveness).toBe(4);
+    expect(estimate?.effectiveness).toBe(4);
   });
 
   it("resist: Fire vs Rock (0.5) — deals reduced damage", () => {
@@ -93,7 +93,7 @@ describe("type effectiveness", () => {
     const estimate = engine.estimateDamage("charmander-1", "ember", "geodude-1");
 
     expect(estimate).not.toBeNull();
-    expect(estimate!.effectiveness).toBe(0.5);
+    expect(estimate?.effectiveness).toBe(0.5);
   });
 
   it("immune trumps super effective: Normal vs Ghost/Poison deals x0", () => {
@@ -112,7 +112,7 @@ describe("type effectiveness", () => {
     const estimate = engine.estimateDamage("squirtle-1", "tackle", "gastly-1");
 
     expect(estimate).not.toBeNull();
-    expect(estimate!.effectiveness).toBe(0);
-    expect(estimate!.min).toBe(0);
+    expect(estimate?.effectiveness).toBe(0);
+    expect(estimate?.min).toBe(0);
   });
 });

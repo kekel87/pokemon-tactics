@@ -841,7 +841,7 @@ export class BattleEngine {
     }
     const events: BattleEvent[] = [];
 
-    if (pokemon && pokemon.recharging && !this.turnState.hasActed) {
+    if (pokemon?.recharging && !this.turnState.hasActed) {
       pokemon.recharging = false;
       const rechargeEndEvent: BattleEvent = {
         type: BattleEventType.RechargeEnded,
@@ -996,7 +996,10 @@ export class BattleEngine {
       return;
     }
 
-    const confusion = pokemon.volatileStatuses[confusionIndex]!;
+    const confusion = pokemon.volatileStatuses[confusionIndex];
+    if (!confusion) {
+      return;
+    }
     confusion.remainingTurns--;
 
     if (confusion.remainingTurns <= 0) {

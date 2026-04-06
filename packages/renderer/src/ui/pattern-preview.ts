@@ -26,7 +26,7 @@ function ensureMinSize(cells: PatternCell[][]): PatternCell[][] {
     result = result.map((row) => {
       const padded = emptyRow(MIN_SIZE);
       for (let i = 0; i < row.length; i++) {
-        padded[padLeft + i] = row[i]!;
+        padded[padLeft + i] = row[i] ?? PatternCell.Empty;
       }
       return padded;
     });

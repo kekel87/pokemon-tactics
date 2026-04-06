@@ -1,11 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
-import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
 import { buildMoveTestEngine, MockPokemon } from "../../testing";
-import type { BattleEvent } from "../../types/battle-event";
+import type { PokemonInstance } from "../../types/pokemon-instance";
 
 describe("burn status", () => {
   it("deals 1/16 max HP tick damage at start of turn", () => {
@@ -22,7 +21,7 @@ describe("burn status", () => {
     });
 
     const { engine, state } = buildMoveTestEngine([charmander, bulbasaur]);
-    const pokemon = state.pokemon.get("charmander-1")!;
+    const pokemon = state.pokemon.get("charmander-1") as PokemonInstance;
     const hpBefore = pokemon.currentHp;
     const expectedDamage = Math.max(1, Math.floor(pokemon.maxHp / 16));
 
@@ -69,9 +68,9 @@ describe("burn status", () => {
 
     expect(normalEstimate).not.toBeNull();
     expect(burnedEstimate).not.toBeNull();
-    expect(burnedEstimate!.max).toBeLessThan(normalEstimate!.max);
-    expect(burnedEstimate!.max).toBeLessThanOrEqual(Math.ceil(normalEstimate!.max / 2) + 1);
-    expect(burnedEstimate!.max).toBeGreaterThanOrEqual(Math.floor(normalEstimate!.max / 2) - 1);
+    expect(burnedEstimate?.max).toBeLessThan(normalEstimate?.max);
+    expect(burnedEstimate?.max).toBeLessThanOrEqual(Math.ceil(normalEstimate?.max / 2) + 1);
+    expect(burnedEstimate?.max).toBeGreaterThanOrEqual(Math.floor(normalEstimate?.max / 2) - 1);
   });
 
   it("does not halve Special move damage", () => {
@@ -102,7 +101,7 @@ describe("burn status", () => {
 
     expect(normalEstimate).not.toBeNull();
     expect(burnedEstimate).not.toBeNull();
-    expect(burnedEstimate!.min).toBe(normalEstimate!.min);
-    expect(burnedEstimate!.max).toBe(normalEstimate!.max);
+    expect(burnedEstimate?.min).toBe(normalEstimate?.min);
+    expect(burnedEstimate?.max).toBe(normalEstimate?.max);
   });
 });

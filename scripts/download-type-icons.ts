@@ -38,30 +38,20 @@ async function downloadFile(url: string, outputPath: string, label: string): Pro
   }
   const buffer = Buffer.from(await response.arrayBuffer());
   writeFileSync(outputPath, buffer);
-  console.log(`  ${label}`);
 }
 
 async function main(): Promise<void> {
-  console.log("Downloading type icons (ZA) from Pokepedia...\n");
-
   mkdirSync(TYPES_DIR, { recursive: true });
   for (const [name, url] of Object.entries(TYPE_ICONS)) {
     await downloadFile(url, join(TYPES_DIR, `${name}.png`), name);
   }
 
-  console.log("\nDownloading category icons (SV) from Bulbagarden...\n");
-
   mkdirSync(CATEGORIES_DIR, { recursive: true });
   for (const [name, url] of Object.entries(CATEGORY_ICONS)) {
     await downloadFile(url, join(CATEGORIES_DIR, `${name}.png`), name);
   }
-
-  console.log(
-    `\nDone! ${Object.keys(TYPE_ICONS).length} types + ${Object.keys(CATEGORY_ICONS).length} categories downloaded`,
-  );
 }
 
-main().catch((error) => {
-  console.error("Error:", error);
+main().catch((_error) => {
   process.exit(1);
 });

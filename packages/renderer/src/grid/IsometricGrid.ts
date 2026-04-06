@@ -59,7 +59,7 @@ export class IsometricGrid {
     this.cursorGraphics.setDepth(DEPTH_GRID_CURSOR);
 
     this.offsetX = CANVAS_WIDTH / 2;
-    const isoTotalHeight = (gridWidth + gridHeight) * TILE_HEIGHT / 2;
+    const isoTotalHeight = ((gridWidth + gridHeight) * TILE_HEIGHT) / 2;
     this.offsetY = CANVAS_HEIGHT / 2 - isoTotalHeight / 2;
   }
 

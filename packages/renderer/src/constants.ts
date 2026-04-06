@@ -107,7 +107,9 @@ const FALLBACK_TEAM_COLOR = 0x2255aa;
 
 export function getTeamColorByPlayerId(playerId: string): number {
   const match = playerId.match(/player-(\d+)/);
-  if (!match) return FALLBACK_TEAM_COLOR;
+  if (!match) {
+    return FALLBACK_TEAM_COLOR;
+  }
   const index = Number.parseInt(match[1] ?? "1", 10) - 1;
   return TEAM_COLORS[index] ?? FALLBACK_TEAM_COLOR;
 }

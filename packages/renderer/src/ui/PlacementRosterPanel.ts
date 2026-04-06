@@ -1,15 +1,15 @@
-import { PlayerId } from "@pokemon-tactic/core";
+import type { PlayerId } from "@pokemon-tactic/core";
 import { getPokemonName } from "@pokemon-tactic/data";
 import {
   CANVAS_WIDTH,
   DEPTH_INFO_PANEL,
+  getTeamColorByPlayerId,
   INFO_PANEL_CORNER_RADIUS,
   PLACEMENT_PANEL_ALPHA,
   PLACEMENT_PANEL_HEIGHT,
   PLACEMENT_PANEL_Y,
   PLACEMENT_PORTRAIT_SIZE,
   PLACEMENT_PORTRAIT_SPACING,
-  getTeamColorByPlayerId,
   UI_BORDER_ALPHA,
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
@@ -63,7 +63,7 @@ export class PlacementRosterPanel {
     this.drawBackground(teamColor);
 
     const match = playerId.match(/player-(\d+)/);
-    const playerNumber = match ? match[1]! : "1";
+    const playerNumber = match?.[1] ?? "1";
     this.turnText.setText(t("placement.instruction", { player: playerNumber }));
 
     this.clearPortraits();
@@ -75,7 +75,9 @@ export class PlacementRosterPanel {
 
     for (let i = 0; i < roster.length; i++) {
       const entry = roster[i];
-      if (!entry) continue;
+      if (!entry) {
+        continue;
+      }
 
       const x =
         startX +

@@ -31,7 +31,9 @@ describe("createPrng", () => {
     let belowHalf = 0;
     const total = 1000;
     for (let i = 0; i < total; i++) {
-      if (random() < 0.5) belowHalf++;
+      if (random() < 0.5) {
+        belowHalf++;
+      }
     }
     expect(belowHalf).toBeGreaterThan(400);
     expect(belowHalf).toBeLessThan(600);

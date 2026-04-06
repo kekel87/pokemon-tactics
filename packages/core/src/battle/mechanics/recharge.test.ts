@@ -44,7 +44,7 @@ describe("recharge", () => {
 
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.RechargeStarted);
-    expect(state.pokemon.get(attacker.id)!.recharging).toBe(true);
+    expect(state.pokemon.get(attacker.id)?.recharging).toBe(true);
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
@@ -125,7 +125,7 @@ describe("recharge", () => {
     });
 
     expect(endTurnResult.events.map((e) => e.type)).toContain(BattleEventType.RechargeEnded);
-    expect(state.pokemon.get(attacker.id)!.recharging).toBe(false);
+    expect(state.pokemon.get(attacker.id)?.recharging).toBe(false);
 
     vi.restoreAllMocks();
   });

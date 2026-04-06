@@ -93,7 +93,7 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 - `doc-keeper` — si la doc est impactée
 
 **En fin de session :**
-- `pnpm build` + `pnpm test` — vérifier que tout compile et passe avant de proposer un commit
+- `pnpm build` + `pnpm lint` + `pnpm test` — vérifier que tout compile, lint clean (0 erreurs) et passe avant de proposer un commit
 - `session-closer` (ou `/status`) → `commit-message` (si changements non commités)
 
 **Selon le contexte du changement :**

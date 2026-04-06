@@ -33,7 +33,11 @@ const ZERO_STAT_STAGES = {
   [StatName.Evasion]: 0,
 };
 
-function buildGoldenEngine(seed: number) {
+function buildGoldenEngine(seed: number): {
+  engine: BattleEngine;
+  moveRegistry: Map<string, MoveDefinition>;
+  random: () => number;
+} {
   const data = loadData();
   const moveRegistry = new Map<string, MoveDefinition>();
   for (const move of data.moves) {
@@ -64,7 +68,7 @@ function buildGoldenEngine(seed: number) {
     { x: 10, y: 7 },
   ];
 
-  function placePokemon(defId: string, playerId: string, pos: { x: number; y: number }) {
+  function placePokemon(defId: string, playerId: string, pos: { x: number; y: number }): void {
     const definition = pokemonDefinitions.get(defId);
     if (!definition) {
       throw new Error(`Unknown pokemon: ${defId}`);
@@ -112,8 +116,18 @@ function buildGoldenEngine(seed: number) {
     }
   }
 
-  team1Ids.forEach((id, i) => placePokemon(id, PlayerId.Player1, team1Positions[i]!));
-  team2Ids.forEach((id, i) => placePokemon(id, PlayerId.Player2, team2Positions[i]!));
+  for (let i = 0; i < team1Ids.length; i++) {
+    const pos = team1Positions[i];
+    if (pos) {
+      placePokemon(team1Ids[i] ?? "", PlayerId.Player1, pos);
+    }
+  }
+  for (let i = 0; i < team2Ids.length; i++) {
+    const pos = team2Positions[i];
+    if (pos) {
+      placePokemon(team2Ids[i] ?? "", PlayerId.Player2, pos);
+    }
+  }
 
   const state = {
     grid,
@@ -154,7 +168,6 @@ function runGoldenBattle(): {
     const state = engine.getGameState("");
 
     if (state.roundNumber > MAX_ROUNDS) {
-      console.warn(`Battle exceeded ${MAX_ROUNDS} rounds, stopping.`);
       break;
     }
 
@@ -202,15 +215,12 @@ function runGoldenBattle(): {
   };
 }
 
-const result = runGoldenBattle();
+const result: { replay: BattleReplay; winner: string; rounds: number; totalActions: number } =
+  runGoldenBattle();
 
-const outputPath = resolve(import.meta.dirname ?? ".", "../packages/core/fixtures/replays/golden-replay.json");
+const outputPath: string = resolve(
+  import.meta.dirname ?? ".",
+  "../packages/core/fixtures/replays/golden-replay.json",
+);
 mkdirSync(dirname(outputPath), { recursive: true });
 writeFileSync(outputPath, JSON.stringify(result.replay, null, 2));
-
-console.log("Golden replay generated:");
-console.log(`  Winner: ${result.winner}`);
-console.log(`  Rounds: ${result.rounds}`);
-console.log(`  Actions: ${result.totalActions}`);
-console.log(`  Seed: ${SEED}`);
-console.log(`  Output: ${outputPath}`);

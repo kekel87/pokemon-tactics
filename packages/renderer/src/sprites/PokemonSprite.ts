@@ -329,7 +329,9 @@ export class PokemonSprite {
   }
 
   private drawShadow(): void {
-    if (!this.shadowGraphics) return;
+    if (!this.shadowGraphics) {
+      return;
+    }
     this.shadowGraphics.clear();
     const shadowWidth = TILE_WIDTH * 0.4;
     const shadowHeight = TILE_HEIGHT * 0.3;

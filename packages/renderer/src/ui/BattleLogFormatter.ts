@@ -5,8 +5,8 @@ import {
   BATTLE_LOG_COLOR_DAMAGE,
   BATTLE_LOG_COLOR_DEFENSE,
   BATTLE_LOG_COLOR_EFFECTIVENESS,
-  BATTLE_LOG_COLOR_KO,
   BATTLE_LOG_COLOR_KNOCKBACK,
+  BATTLE_LOG_COLOR_KO,
   BATTLE_LOG_COLOR_MISS,
   BATTLE_LOG_COLOR_MOVE,
   BATTLE_LOG_COLOR_MULTI_HIT,
@@ -47,7 +47,10 @@ export const BattleLogColors = {
   battleEnded: BATTLE_LOG_COLOR_BATTLE_ENDED,
 } as const;
 
-const STATUS_LOG_KEY: Record<string, { applied: { fr: string; en: string }; removed: { fr: string; en: string } }> = {
+const STATUS_LOG_KEY: Record<
+  string,
+  { applied: { fr: string; en: string }; removed: { fr: string; en: string } }
+> = {
   [StatusType.Burned]: {
     applied: { fr: "{name} est brûlé !", en: "{name} was burned!" },
     removed: { fr: "{name} n'est plus brûlé", en: "{name} is no longer burned" },
@@ -132,7 +135,9 @@ export function formatBattleEvent(
     }
 
     case BattleEventType.DamageDealt: {
-      if (event.effectiveness === 0) return null;
+      if (event.effectiveness === 0) {
+        return null;
+      }
       const name = context.getPokemonName(event.targetId);
       const dmgMessage =
         lang === "fr" ? `${name} perd ${event.amount} PV !` : `${name} lost ${event.amount} HP!`;
@@ -142,7 +147,11 @@ export function formatBattleEvent(
 
       const effectivenessText = getEffectivenessText(event.effectiveness, lang);
       if (effectivenessText) {
-        entries.push({ message: effectivenessText, color: BattleLogColors.effectiveness, pokemonIds: [] });
+        entries.push({
+          message: effectivenessText,
+          color: BattleLogColors.effectiveness,
+          pokemonIds: [],
+        });
       }
       return entries;
     }
@@ -156,7 +165,9 @@ export function formatBattleEvent(
     case BattleEventType.StatusApplied: {
       const name = context.getPokemonName(event.targetId);
       const statusEntry = STATUS_LOG_KEY[event.status];
-      if (!statusEntry) return null;
+      if (!statusEntry) {
+        return null;
+      }
       const message = resolve(statusEntry.applied[lang], name);
       return { message, color: BattleLogColors.status, pokemonIds: [event.targetId] };
     }
@@ -164,7 +175,9 @@ export function formatBattleEvent(
     case BattleEventType.StatusRemoved: {
       const name = context.getPokemonName(event.targetId);
       const statusEntry = STATUS_LOG_KEY[event.status];
-      if (!statusEntry) return null;
+      if (!statusEntry) {
+        return null;
+      }
       const message = resolve(statusEntry.removed[lang], name);
       return { message, color: BattleLogColors.status, pokemonIds: [event.targetId] };
     }
@@ -197,9 +210,7 @@ export function formatBattleEvent(
       const name = context.getPokemonName(event.pokemonId);
       const defenseName = DEFENSE_NAME[event.defenseKind]?.[lang] ?? event.defenseKind;
       const message =
-        lang === "fr"
-          ? `${name} se protège avec ${defenseName} !`
-          : `${name} used ${defenseName}!`;
+        lang === "fr" ? `${name} se protège avec ${defenseName} !` : `${name} used ${defenseName}!`;
       return { message, color: BattleLogColors.defense, pokemonIds: [event.pokemonId] };
     }
 
@@ -254,9 +265,17 @@ export function formatBattleEvent(
 }
 
 function getEffectivenessText(effectiveness: number, lang: Language): string | null {
-  if (effectiveness >= 4) return lang === "fr" ? "  (Extrêmement efficace !)" : "  (Extremely effective!)";
-  if (effectiveness >= 2) return lang === "fr" ? "  (Super efficace !)" : "  (Super effective!)";
-  if (effectiveness <= 0.25) return lang === "fr" ? "  (Quasi inefficace...)" : "  (Barely effective...)";
-  if (effectiveness <= 0.5) return lang === "fr" ? "  (Pas très efficace...)" : "  (Not very effective...)";
+  if (effectiveness >= 4) {
+    return lang === "fr" ? "  (Extrêmement efficace !)" : "  (Extremely effective!)";
+  }
+  if (effectiveness >= 2) {
+    return lang === "fr" ? "  (Super efficace !)" : "  (Super effective!)";
+  }
+  if (effectiveness <= 0.25) {
+    return lang === "fr" ? "  (Quasi inefficace...)" : "  (Barely effective...)";
+  }
+  if (effectiveness <= 0.5) {
+    return lang === "fr" ? "  (Pas très efficace...)" : "  (Not very effective...)";
+  }
   return null;
 }

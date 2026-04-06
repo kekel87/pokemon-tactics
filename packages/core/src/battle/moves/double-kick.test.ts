@@ -27,7 +27,7 @@ describe("double-kick", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([attacker, defender]);
-    const hpBefore = state.pokemon.get(defender.id)!.currentHp;
+    const hpBefore = state.pokemon.get(defender.id)?.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -39,7 +39,7 @@ describe("double-kick", () => {
     expect(result.success).toBe(true);
     const damageEvents = result.events.filter((e) => e.type === BattleEventType.DamageDealt);
     expect(damageEvents).toHaveLength(2);
-    expect(state.pokemon.get(defender.id)!.currentHp).toBeLessThan(hpBefore);
+    expect(state.pokemon.get(defender.id)?.currentHp).toBeLessThan(hpBefore);
     vi.restoreAllMocks();
   });
 

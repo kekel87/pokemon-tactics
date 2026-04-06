@@ -109,11 +109,15 @@ function buildGoldenEngine(seed: number): BattleEngine {
 
   for (let i = 0; i < team1Ids.length; i++) {
     const pos = team1Positions[i];
-    if (pos) placePokemon(team1Ids[i] ?? "", PlayerId.Player1, pos);
+    if (pos) {
+      placePokemon(team1Ids[i] ?? "", PlayerId.Player1, pos);
+    }
   }
   for (let i = 0; i < team2Ids.length; i++) {
     const pos = team2Positions[i];
-    if (pos) placePokemon(team2Ids[i] ?? "", PlayerId.Player2, pos);
+    if (pos) {
+      placePokemon(team2Ids[i] ?? "", PlayerId.Player2, pos);
+    }
   }
 
   const state = {
@@ -174,10 +178,14 @@ describe("golden replay", () => {
       const state = freshEngine.getGameState("");
       const currentPokemonId = state.turnOrder[state.currentTurnIndex];
       const currentPokemon = currentPokemonId ? state.pokemon.get(currentPokemonId) : undefined;
-      if (!currentPokemon) break;
+      if (!currentPokemon) {
+        break;
+      }
 
       const legalActions = freshEngine.getLegalActions(currentPokemon.playerId);
-      if (legalActions.length === 0) break;
+      if (legalActions.length === 0) {
+        break;
+      }
 
       const action = pickAggressiveAction(legalActions, state, moveRegistry, freshRandom);
       const result = freshEngine.submitAction(currentPokemon.playerId, action);
@@ -193,7 +201,9 @@ describe("golden replay", () => {
       const team2 = [...postState.pokemon.values()].filter(
         (p) => p.playerId === PlayerId.Player2 && p.currentHp > 0,
       );
-      if (team1.length === 0 || team2.length === 0) break;
+      if (team1.length === 0 || team2.length === 0) {
+        break;
+      }
     }
 
     expect(generatedActions.length).toBe(goldenReplay.actions.length);

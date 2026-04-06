@@ -24,7 +24,7 @@ describe("earthquake", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, foe]);
-    const hpBefore = state.pokemon.get(foe.id)!.currentHp;
+    const hpBefore = state.pokemon.get(foe.id)?.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -35,7 +35,7 @@ describe("earthquake", () => {
 
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.DamageDealt);
-    expect(state.pokemon.get(foe.id)!.currentHp).toBeLessThan(hpBefore);
+    expect(state.pokemon.get(foe.id)?.currentHp).toBeLessThan(hpBefore);
     vi.restoreAllMocks();
   });
 
