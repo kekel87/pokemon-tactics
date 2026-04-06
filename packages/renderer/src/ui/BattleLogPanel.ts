@@ -181,7 +181,7 @@ export class BattleLogPanel {
         .text(
           this.x + buttonSpacing * (i + 1),
           actionsY + BATTLE_LOG_ACTIONS_HEIGHT / 2,
-          REPLAY_BUTTON_LABELS[i],
+          REPLAY_BUTTON_LABELS[i] ?? "",
           {
             fontSize: "14px",
             color: REPLAY_BUTTON_DISABLED_COLOR,
@@ -311,6 +311,9 @@ export class BattleLogPanel {
       const entry = this.entries[entryIndex];
       const lineText = this.lineTexts[i];
       const dot = this.teamDots[i];
+      if (!lineText || !dot) {
+        continue;
+      }
       const lineY = bodyY + i * BATTLE_LOG_LINE_HEIGHT + 2;
 
       dot.clear();
@@ -320,8 +323,9 @@ export class BattleLogPanel {
         lineText.setColor(entry.color);
         lineText.setVisible(true);
 
-        if (entry.pokemonIds.length > 0 && this.getTeamColor) {
-          const teamColor = this.getTeamColor(entry.pokemonIds[0]);
+        const firstPokemonId = entry.pokemonIds[0];
+        if (firstPokemonId && this.getTeamColor) {
+          const teamColor = this.getTeamColor(firstPokemonId);
           dot.fillStyle(teamColor, 1);
           dot.fillCircle(
             this.x + BATTLE_LOG_PADDING + TEAM_DOT_SIZE / 2,
@@ -333,7 +337,7 @@ export class BattleLogPanel {
           dot.setVisible(false);
         }
 
-        if (entry.pokemonIds.length > 0) {
+        if (firstPokemonId) {
           lineText.setInteractive({ useHandCursor: true });
         } else {
           lineText.removeInteractive();
@@ -349,8 +353,9 @@ export class BattleLogPanel {
   private onLineClick(lineIndex: number): void {
     const entryIndex = this.scrollOffset + lineIndex;
     const entry = this.entries[entryIndex];
-    if (entry && entry.pokemonIds.length > 0 && this.onPokemonClick) {
-      this.onPokemonClick(entry.pokemonIds[0]);
+    const clickedPokemonId = entry?.pokemonIds[0];
+    if (clickedPokemonId && this.onPokemonClick) {
+      this.onPokemonClick(clickedPokemonId);
     }
   }
 }

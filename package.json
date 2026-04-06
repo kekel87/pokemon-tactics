@@ -17,7 +17,7 @@
     "test:coverage": "vitest run --project unit --coverage",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm -r --parallel run typecheck",
     "extract-sprites": "tsx scripts/extract-sprites.ts",
     "download-status-icons": "tsx scripts/download-status-icons.ts",
     "replay:generate": "tsx scripts/generate-golden-replay.ts"

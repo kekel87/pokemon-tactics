@@ -91,7 +91,8 @@ export type TargetingKind = (typeof TargetingKind)[keyof typeof TargetingKind];
    - `grep -n "function valid\|function create\|function make\|function build"` → factory functions interdites dans les tests
    - `grep -n '"[a-z_]*"' ` dans les `return` et les objets d'erreur → string literals qui devraient être des const enums
 4. **Lancer `pnpm lint`** (Biome) — **OBLIGATOIRE**. Si des erreurs existent, les lister comme BLOQUANT.
-5. **Lancer `pnpm test`** — **OBLIGATOIRE**. Si des tests échouent, les lister comme BLOQUANT.
+5. **Lancer `pnpm typecheck`** — **OBLIGATOIRE**. Si des erreurs TypeScript existent, les lister comme BLOQUANT.
+6. **Lancer `pnpm test`** — **OBLIGATOIRE**. Si des tests échouent, les lister comme BLOQUANT.
 
 ## Rapport
 

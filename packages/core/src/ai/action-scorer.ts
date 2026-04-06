@@ -85,7 +85,7 @@ function scoreUseMove(
   const hasEnemyDebuff = move.effects.some(
     (effect) =>
       effect.kind === EffectKind.StatChange &&
-      effect.target === EffectTarget.Target &&
+      effect.target === EffectTarget.Targets &&
       effect.stages < 0,
   );
   const hasStatus = move.effects.some((effect) => effect.kind === EffectKind.Status);
