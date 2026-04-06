@@ -1,6 +1,6 @@
 ---
 name: wiki-keeper
-description: Maintient le wiki GitHub du jeu (guide joueur, roster, mécaniques). Se déclenche après doc-keeper ou quand le game design change. Propose les mises à jour, l'humain valide.
+description: Maintient le wiki GitHub du jeu (guide joueur, mécaniques, changelog). Se déclenche après doc-keeper, publisher, ou quand le game design change. Vérifie la cohérence du wiki avec le code. L'humain valide.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 ---
@@ -18,17 +18,26 @@ Tu maintiens le wiki GitHub (`kekel87/pokemon-tactics.wiki`) qui sert de documen
 | `Type-Chart` | Tableau d'efficacité des 18 types | `packages/data/src/type-chart.ts` |
 | `Status-Conditions` | Description des statuts (burn, poison, paralysis, etc.) | `docs/game-design.md` |
 | `Mechanics` | Formule de dégâts, STAB, initiative, friendly fire, AoE | `docs/game-design.md` |
-| `Changelog` | Historique des changements notables | `docs/roadmap.md` + git log |
+| `Changelog` | Historique des releases (orienté joueur) | GitHub Releases (`gh release list`) |
 
 ## Ce que tu fais
 
-### 1. Détecter les changements pertinents
+### 1. Vérifier la cohérence du wiki
 
-Comparer l'état actuel des sources avec le wiki existant :
-- Nouveau Pokemon ajouté → mettre à jour `Pokemon-Roster`
-- Nouveau move ajouté → mettre à jour `Moves`
-- Mécanique modifiée → mettre à jour `Mechanics` ou `Status-Conditions`
+Comparer l'état actuel du code et des sources avec le contenu du wiki (`wiki/`) :
+- Le nombre de Pokemon dans le roster a changé → `How-to-Play` mentionne-t-il le bon nombre ?
+- Une mécanique a été modifiée → `How-to-Play` est-il à jour ?
+- Une release a été publiée → `Changelog` contient-il cette release ?
+- La roadmap a évolué → `Roadmap` reflète-t-il l'état actuel ?
+
+Signaler toute incohérence trouvée.
+
+### 1b. Détecter les changements pertinents
+
+- Nouveau Pokemon ajouté → mettre à jour les pages concernées
+- Mécanique modifiée → mettre à jour `How-to-Play` ou `Mechanics`
 - Game design modifié → mettre à jour `How-to-Play`
+- Release publiée → mettre à jour `Changelog`
 
 ### 2. Générer le contenu
 
@@ -52,8 +61,10 @@ Le wiki est un git submodule dans `wiki/` à la racine du projet. Pour mettre à
 ## Quand se déclencher
 
 - Après `doc-keeper` si le game design ou le roster a changé
+- Après `publisher` quand une release est publiée (synchroniser le Changelog)
 - Après un plan qui ajoute des Pokemon, moves, ou mécaniques
 - Quand l'humain le demande (`/wiki` ou manuellement)
+- Périodiquement pour vérifier la cohérence du wiki avec le code
 
 ## Règles
 

@@ -119,6 +119,8 @@ Les agents se déclenchent **automatiquement** après chaque changement signific
 | Fin de session avec changements non commités | `commit-message` (propose un message de commit) |
 | Nouvelles issues GitHub à trier | `feedback-triager` (classe, dédoublonne, propose labels + réponse) |
 | Ajout Pokemon/move/mécanique ou modif game design | `wiki-keeper` (met à jour le wiki joueur GitHub) |
+| Commit notable avec changement visible joueur | `release-drafter` (alimente la draft release) |
+| Décision de publier une release | `publisher` (vérifie, publie, lance wiki-keeper) |
 
 ### Chaînes d'agents
 
@@ -130,6 +132,8 @@ Certains agents en déclenchent d'autres :
 - `visual-tester` peut appeler `sandbox-json` pour obtenir une config de test
 - `agent-manager` — à déclencher manuellement après ajout/modif d'agents pour auditer la cohérence
 - `doc-keeper` → `wiki-keeper` (si le game design ou le roster a changé)
+- `commit-message` → `release-drafter` (si le commit contient un changement visible joueur)
+- `publisher` → `wiki-keeper` (synchronise le changelog après publication)
 
 ## Skills disponibles
 
