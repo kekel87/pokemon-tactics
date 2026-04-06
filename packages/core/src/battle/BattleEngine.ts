@@ -554,7 +554,7 @@ export class BattleEngine {
       targeting.kind === TargetingKind.Line ||
       targeting.kind === TargetingKind.Slash;
 
-    if (isDirectional || (isSelfTargeting && targeting.kind !== TargetingKind.Self)) {
+    if (isDirectional || isSelfTargeting) {
       const directions = [Direction.North, Direction.South, Direction.East, Direction.West];
       const randomDirection =
         directions[Math.floor(this.random() * directions.length)] ?? Direction.North;

@@ -25,6 +25,8 @@ Vérifications :
 ### 2. Vérifier le build
 
 ```bash
+pnpm lint
+pnpm typecheck
 pnpm build
 pnpm test
 ```

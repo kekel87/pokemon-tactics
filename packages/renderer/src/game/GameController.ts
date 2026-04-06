@@ -1422,6 +1422,9 @@ export class GameController {
       currentPp: {},
       activeDefense: null,
       lastEndureRound: null,
+      toxicCounter: 0,
+      volatileStatuses: [],
+      recharging: false,
     };
   }
 

@@ -4,10 +4,12 @@ import { computeCombatStats } from "../battle/stat-calculator";
 import { computeMovement } from "../battle/stat-modifier";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
+import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PlacementEntry } from "../types/placement-entry";
 import type { PlacementTeam } from "../types/placement-team";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import type { TileState } from "../types/tile-state";
 
 const BATTLE_LEVEL = 50;
 
@@ -36,7 +38,9 @@ export function buildTestEngineFromPlacements(
   const pokemonTypesMap = new Map<string, PokemonType[]>(data.pokemon.map((p) => [p.id, p.types]));
 
   const map = pocArena;
-  const grid = map.tiles.map((row) => row.map((tile) => ({ ...tile, occupantId: null })));
+  const grid: TileState[][] = map.tiles.map((row) =>
+    row.map((tile) => ({ ...tile, occupantId: null as string | null })),
+  );
 
   const pokemonMap = new Map<string, PokemonInstance>();
 
@@ -102,10 +106,7 @@ export function buildTestEngineFromPlacements(
   return { engine, state };
 }
 
-function buildState(
-  grid: ReturnType<typeof pocArena.tiles.map>,
-  pokemonMap: Map<string, PokemonInstance>,
-) {
+function buildState(grid: TileState[][], pokemonMap: Map<string, PokemonInstance>): BattleState {
   return {
     grid,
     pokemon: pokemonMap,
