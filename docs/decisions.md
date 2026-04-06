@@ -217,6 +217,13 @@
 | 207 | 2026-04-05 | Carte poc-arena redimensionnée à 12×20 | **`width: 12, height: 20`** dans `packages/data/src/maps/poc-arena.ts` | La carte 12×12 était trop petite pour accueillir 3+ équipes avec des zones de spawn distinctes. 12×20 offre assez d'espace pour 12 zones de spawn périmétriques et un champ de bataille central. Camera bounds = grille + demi-grille de marge de chaque côté. |
 | 208 | 2026-04-05 | `IsometricGrid` — support grille rectangulaire | **`IsometricGrid` accepte `gridWidth` et `gridHeight` distincts** (au lieu d'un `gridSize` carré) | Nécessaire pour rendre la carte 12×20. Aucun impact sur les maps carrées existantes. |
 
+| 209 | 2026-04-06 | Multijoueur — P2P WebRTC via PeerJS | **Pas de serveur dédié. Connexion directe entre joueurs via WebRTC (PeerJS).** | Zéro coût, le jeu est tour par tour (pas de contrainte latence), les données échangées sont minuscules (~100 octets/action). PeerJS fournit un signaling server gratuit. TURN server à évaluer si NAT pose problème (~10% des cas). |
+| 210 | 2026-04-06 | Multijoueur — exécution dupliquée (pas de host autoritaire) | **Chaque joueur fait tourner son propre BattleEngine avec le même seed. Seules les actions sont échangées.** | Pas de host = pas de triche possible. Le PRNG seedé + core déterministe garantissent que les deux moteurs produisent le même état. Vérifié par le système de replay existant. |
+| 211 | 2026-04-06 | Multijoueur — détection de triche par validation d'action | **Chaque action reçue est validée contre `getLegalActions()`. 3 actions illégales = forfait.** | En P2P sans host, chaque joueur valide les actions de l'autre. Le jeu est à information complète (pas de fog of war, HP visibles) donc il n'y a rien à cacher. Seule triche possible = actions illégales → détectable. |
+| 212 | 2026-04-06 | Multijoueur — détection de désync par checksum | **Comparaison périodique d'un hash du BattleState entre les joueurs.** | Si les hash divergent, resync possible via le replay (seed + actions = reconstruction identique). Filet de sécurité contre les bugs de déterminisme. |
+| 213 | 2026-04-06 | Versioning — CalVer YYYY.MM.XX style JetBrains | **`2026.4.1`, `2026.4.2`, `2026.5.1`** (année, mois, incrément) | Plus parlant qu'un semver pour un jeu. La date de release est visible dans le numéro. GitHub Releases comme support de changelog orienté joueur. |
+| 214 | 2026-04-06 | Deploy — GitHub Pages sur release | **Build Vite déployé automatiquement via GitHub Actions quand une release est publiée.** | Gratuit, simple, pas de compte externe. Le deploy ne se fait pas à chaque push sur main — seulement quand on décide de publier. |
+
 ---
 
 ## Questions ouvertes
