@@ -53,6 +53,18 @@ export class CreditsScene extends Phaser.Scene {
     y += 60;
 
     this.add
+      .text(CANVAS_WIDTH / 2, y, t("credits.tileset"), {
+        fontSize: "13px",
+        fontFamily: "monospace",
+        color: "#aaaacc",
+        align: "center",
+        lineSpacing: 6,
+      })
+      .setOrigin(0.5, 0);
+
+    y += 50;
+
+    this.add
       .text(CANVAS_WIDTH / 2, y, t("credits.code"), {
         fontSize: "13px",
         fontFamily: "monospace",

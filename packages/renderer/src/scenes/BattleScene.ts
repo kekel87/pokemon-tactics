@@ -15,6 +15,7 @@ import {
   STATUS_ICON_KEYS,
   TILE_HEIGHT,
   TILE_WIDTH,
+  TILESET_KEY,
   TYPE_NAMES,
   ZOOM_DEFAULT_INDEX,
   ZOOM_LEVELS,
@@ -76,9 +77,19 @@ export class BattleScene extends Phaser.Scene {
       this.load.image(`status-icon-${key}`, `assets/ui/statuses/icon-${key}.png`);
       this.load.image(`status-label-${key}`, `assets/ui/statuses/label-${key}.png`);
     }
+
+    this.load.spritesheet(TILESET_KEY, "assets/tilesets/terrain/icon-tileset.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
   }
 
   create(): void {
+    const tilesetTexture = this.textures.get(TILESET_KEY);
+    if (tilesetTexture) {
+      tilesetTexture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
+
     for (const definitionId of this.pokemonDefinitions.keys()) {
       createPokemonAnimations(this, definitionId);
     }
@@ -253,10 +264,17 @@ export class BattleScene extends Phaser.Scene {
     const useRandomPlacement = allAi || autoPlacement;
 
     if (useRandomPlacement) {
-      const gridCenter = { x: Math.floor(map.width / 2), y: Math.floor(map.height / 2) };
+      const gridCenter = {
+        x: Math.floor(map.width / 2),
+        y: Math.floor(map.height / 2),
+      };
       const randomPhase = new PlacementPhase(map, teams, format, PlacementMode.Random);
       const placements = randomPhase.autoPlaceAll(gridCenter);
-      this.transitionToBattle(controller, isometricGrid, sprites, { map, teams, placements });
+      this.transitionToBattle(controller, isometricGrid, sprites, {
+        map,
+        teams,
+        placements,
+      });
       return;
     }
 
@@ -270,7 +288,11 @@ export class BattleScene extends Phaser.Scene {
       formatIndex,
       pokemonDefinitions: this.pokemonDefinitions,
       onPlacementComplete: (placements: PlacementEntry[]) => {
-        this.transitionToBattle(controller, isometricGrid, sprites, { map, teams, placements });
+        this.transitionToBattle(controller, isometricGrid, sprites, {
+          map,
+          teams,
+          placements,
+        });
       },
     };
 

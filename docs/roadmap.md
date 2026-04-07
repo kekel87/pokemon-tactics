@@ -110,7 +110,10 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 
 > But : la vraie profondeur tactique — le terrain change la façon de jouer
 
-- [ ] Tileset isométrique (sourcing ou génération)
+- [x] Tileset isométrique (ICON Isometric Pack / Jao — tiles 32×32 ×2, filtre NEAREST, marquages arène overlay) — plan 043
+- [ ] Supprimer POKEMON_SPRITE_SCALE=2 + TILE_SPRITE_SCALE=2, rattraper offsets, ajuster zoom — uniformiser la résolution pixel (tâche technique)
+- [ ] Mode pixelArt Phaser (antialias off, roundPixels, police adaptée, portraits)
+- [ ] Format de carte compatible Tiled + pipeline de chargement (voir questions ci-dessous)
 - [ ] Dénivelés (hauteur tiles) + dégâts de chute
 - [ ] Obstacles + line of sight (trajectoires de tir visibles)
 - [ ] Types de terrain (lave, eau, herbe) + modificateurs
@@ -120,6 +123,15 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [ ] Undo déplacement (annulable tant qu'on n'a pas attaqué)
 - [ ] Éditeur de terrain / génération IA
 - [ ] Maps variées + roster d'attaques terrain/dénivelé
+
+### Questions ouvertes — Format de carte
+
+À trancher au moment du plan dédié :
+- Tiled comme éditeur principal de maps, ou éditeur in-game, ou les deux ?
+- Le core doit-il comprendre le format Tiled (.tmx/.json) ou on convertit en `MapDefinition` au chargement ?
+- Gestion des layers : terrain de base, déco, objets, spawn zones — comment les mapper sur `TileState` + `MapDefinition` ?
+- Compatibilité Tiled : quelles propriétés custom par tile (TerrainType, hauteur, isPassable) ?
+- Pipeline : Tiled → export JSON → packages/data/ ou chargement dynamique ?
 
 ---
 

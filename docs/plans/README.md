@@ -41,17 +41,18 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 026 | [Nouvelles mécaniques core : badly_poisoned, confusion, bind, knockback, multi-hit, recharge](./026-roster-expansion-phase1.md) | done | 2026-04-02 |
 | 027 | [8 nouveaux Pokemon : données, sprites et documentation](./027-new-pokemon-roster.md) | done | 2026-04-02 |
 | 028 | [Replay déterministe avec PRNG seedé](./028-deterministic-replay.md) | done | 2026-04-02 |
-| 029 | [IA jouable avec niveaux de difficulté](./029-ai-difficulty-levels.md) | ready | 2026-04-02 |
-| 030 | [Internationalisation FR/EN](./030-i18n-fr-en.md) | ready | 2026-04-03 |
-| 031 | [Feedbacks visuels de combat et refactor statuts volatils](./031-battle-visual-feedback.md) | draft | 2026-04-03 |
+| 029 | [IA jouable avec niveaux de difficulté](./029-ai-difficulty-levels.md) | done | 2026-04-02 |
+| 030 | [Internationalisation FR/EN](./030-i18n-fr-en.md) | done | 2026-04-03 |
+| 031 | [Feedbacks visuels de combat et refactor statuts volatils](./031-battle-visual-feedback.md) | done | 2026-04-03 |
 | 032 | [Portée de déplacement variable par Pokemon](./032-variable-movement-by-speed.md) | done | 2026-04-03 |
 | 033 | [Écran de sélection d'équipe (Team Select)](./033-team-select.md) | done | 2026-04-03 |
 | 034 | [Supprimer l'accès sandbox via URL (query params)](./034-remove-sandbox.md) | abandoned | 2026-04-03 |
 | 035 | [Sandbox CLI : suppression query params + accès JSON](./035-sandbox-cli-json.md) | done | 2026-04-04 |
-| 036 | [Menu principal, Settings et Disclaimer](./036-main-menu-settings.md) | draft | 2026-04-04 |
-| 037 | [Battle Log Panel](./037-battle-log.md) | ready | 2026-04-04 |
+| 036 | [Menu principal, Settings et Disclaimer](./036-main-menu-settings.md) | done | 2026-04-04 |
+| 037 | [Battle Log Panel](./037-battle-log.md) | done | 2026-04-04 |
 | 038 | [Afficher la portée de déplacement des ennemis au hover](./038-enemy-move-range-hover.md) | done | 2026-04-05 |
 | 039 | [Animations de combat : direction, catégorie de move, pipeline sprites](./039-battle-animations-direction-category.md) | done | 2026-04-05 |
 | 040 | [Hot-seat multi-équipes (2 à 12 joueurs)](./040-multi-team-hot-seat.md) | done | 2026-04-05 |
 | 041 | [Intégration Goatcounter (analytics)](./041-goatcounter-analytics.md) | done | 2026-04-07 |
 | 042 | [Bugfixes et feedback playtest](./042-bugfixes-feedback-session.md) | done | 2026-04-07 |
+| 043 | [Tileset arène Pokemon + intégration renderer](./043-arena-tileset-renderer.md) | done | 2026-04-07 |

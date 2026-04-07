@@ -145,6 +145,8 @@ const en: Translations = {
     "Pokemon Tactics is a fan-made, non-commercial project.\nIt is not affiliated with, endorsed, or approved by\nNintendo, Game Freak, or The Pokemon Company.\nPokemon and all related names are trademarks\nof their respective owners.",
   "credits.sprites":
     "Sprites: PMDCollab SpriteCollab — CC-BY-NC 4.0\nhttps://sprites.pmdcollab.org",
+  "credits.tileset":
+    "Tileset: ICON Isometric Pack by Jao\nhttps://jaofazjogos.itch.io/iconisometricpack",
   "credits.code": "Code: developed with the assistance of Claude (Anthropic)",
   "credits.back": "Back",
   "log.title": "Battle Log",
