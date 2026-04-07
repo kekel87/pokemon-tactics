@@ -54,3 +54,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 039 | [Animations de combat : direction, catégorie de move, pipeline sprites](./039-battle-animations-direction-category.md) | done | 2026-04-05 |
 | 040 | [Hot-seat multi-équipes (2 à 12 joueurs)](./040-multi-team-hot-seat.md) | done | 2026-04-05 |
 | 041 | [Intégration Goatcounter (analytics)](./041-goatcounter-analytics.md) | done | 2026-04-07 |
+| 042 | [Bugfixes et feedback playtest](./042-bugfixes-feedback-session.md) | done | 2026-04-07 |

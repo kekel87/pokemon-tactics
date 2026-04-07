@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-07 (Plan 041 terminé : Goatcounter analytics injecté en production via plugin Vite — 215 décisions)
+> Dernière mise à jour : 2026-04-07 (Plan 042 terminé : Bugfixes et feedback playtest — 219 décisions)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -577,14 +577,23 @@
   - **Fix lint + typecheck** : ~100 violations Biome corrigées, `biome.json` overrides tests/renderer, `useExplicitType` en warn, `tsconfig` packages `exclude .test.ts`, code mort supprimé
   - `code-reviewer.md` + `CLAUDE.md` + `publisher.md` : lint + typecheck + test obligatoires avant commit
 
+- **Plan 041 terminé** — Analytics Goatcounter :
+  - Plugin Vite injecte le script Goatcounter uniquement en production (`mode === 'production'`)
+  - Sans cookies, conforme RGPD, zéro impact dev local
+
+- **Plan 042 terminé** — Bugfixes et feedback playtest :
+  - **HP bar couleur d'équipe** : `PokemonSprite.ts`, `InfoPanel.ts` — couleur indexée via `TEAM_COLORS[playerIndex]`, remplace gradient vert/jaune/rouge (décision #216)
+  - **Preview dégâts noir semi-transparent** : `PokemonSprite.ts`, constante `DAMAGE_PREVIEW_COLOR` dans `constants.ts` — remplace rouge qui se confondait avec l'équipe 2 (décision #217)
+  - **Border blanc badges statut** : `InfoPanel.ts` — `setStrokeStyle` blanc sur les rectangles de badges (décision #219)
+  - **Raccourcis clavier** : Espace → end turn, C → recentrer caméra — `BattleScene.ts`, `GameController.ts` (décision #218)
+  - **Fix IA vs IA sans écran de victoire** : `GameController.ts` — le flow BattleEnded → showVictory fonctionne désormais en mode spectateur
+
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
 - Sourcing ou génération d'un tileset isométrique
 - Dénivelés (hauteur tiles) + dégâts de chute
 - Obstacles + line of sight
 
 ### Bugs connus non corrigés
-- **IA vs IA — pas d'écran de victoire** : le combat se termine mais l'écran de victoire n'apparaît pas en mode IA vs IA
-- **Badge statut — border manquant** : les badges de statut dans l'InfoPanel n'ont pas de bordure blanche (TODO cosmétique)
 - **Confusion wobble post-KO** : un Pokemon confus qui est KO continue à osciller (tween confusion non stoppé dans `playFaintAndStay`)
 
 ### Points à adresser (renderer)

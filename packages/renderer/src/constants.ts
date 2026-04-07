@@ -24,14 +24,9 @@ export const CURSOR_PULSE_DURATION_MS = 600;
 
 export const HP_BAR_WIDTH = 36;
 export const HP_BAR_HEIGHT = 5;
-export const HP_COLOR_HIGH = 0x44cc44;
-export const HP_COLOR_MEDIUM = 0xddcc22;
-export const HP_COLOR_LOW = 0xcc4444;
 export const HP_BAR_BG_COLOR = 0x222222;
 export const HP_BAR_BG_ALPHA = 0.9;
 export const HP_BAR_BORDER_COLOR = 0x000000;
-export const HP_THRESHOLD_HIGH = 0.6;
-export const HP_THRESHOLD_LOW = 0.3;
 
 export const POKEMON_SPRITE_RADIUS = 12;
 export const POKEMON_SPRITE_BORDER_WIDTH = 2;
@@ -218,8 +213,9 @@ export const STATUS_ICON_KEYS = [
 export const STATUS_SPRITE_ICON_OFFSET_X = 16;
 export const STATUS_SPRITE_ICON_SCALE = 0.35;
 
-export const DAMAGE_ESTIMATE_COLOR_GUARANTEED = 0xcc0000;
-export const DAMAGE_ESTIMATE_COLOR_POSSIBLE = 0xff4444;
+export const DAMAGE_ESTIMATE_COLOR = 0x000000;
+export const DAMAGE_ESTIMATE_ALPHA_GUARANTEED = 0.5;
+export const DAMAGE_ESTIMATE_ALPHA_POSSIBLE = 0.3;
 export const DAMAGE_ESTIMATE_TEXT_SIZE = 13;
 export const DAMAGE_ESTIMATE_TEXT_COLOR = "#ffffff";
 export const DAMAGE_ESTIMATE_TEXT_STROKE_COLOR = "#000000";

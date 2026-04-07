@@ -2,8 +2,9 @@ import { type DamageEstimate, Direction, type PokemonInstance } from "@pokemon-t
 import {
   CONFUSION_WOBBLE_ANGLE,
   CONFUSION_WOBBLE_DURATION_MS,
-  DAMAGE_ESTIMATE_COLOR_GUARANTEED,
-  DAMAGE_ESTIMATE_COLOR_POSSIBLE,
+  DAMAGE_ESTIMATE_ALPHA_GUARANTEED,
+  DAMAGE_ESTIMATE_ALPHA_POSSIBLE,
+  DAMAGE_ESTIMATE_COLOR,
   DAMAGE_ESTIMATE_IMMUNE_COLOR,
   DAMAGE_ESTIMATE_TEXT_COLOR,
   DAMAGE_ESTIMATE_TEXT_SIZE,
@@ -13,16 +14,12 @@ import {
   DAMAGE_FLASH_DURATION_MS,
   DAMAGE_FLASH_REPEAT,
   DEPTH_POKEMON_BASE,
+  getTeamColorByPlayerId,
   HP_BAR_BG_ALPHA,
   HP_BAR_BG_COLOR,
   HP_BAR_BORDER_COLOR,
   HP_BAR_HEIGHT,
   HP_BAR_WIDTH,
-  HP_COLOR_HIGH,
-  HP_COLOR_LOW,
-  HP_COLOR_MEDIUM,
-  HP_THRESHOLD_HIGH,
-  HP_THRESHOLD_LOW,
   KO_TINT_COLOR,
   MOVE_TWEEN_DURATION_MS,
   POKEMON_SPRITE_BORDER_ALPHA,
@@ -76,6 +73,7 @@ export class PokemonSprite {
   private shadowGraphics: Phaser.GameObjects.Graphics | null = null;
   private confusionTween: Phaser.Tweens.Tween | null = null;
   private _gridPosition: { x: number; y: number } = { x: 0, y: 0 };
+  private readonly teamColor: number;
 
   constructor(
     scene: Phaser.Scene,
@@ -89,6 +87,7 @@ export class PokemonSprite {
     this.currentHpRatio = pokemon.currentHp / pokemon.maxHp;
     this.maxHp = pokemon.maxHp;
     this.definitionId = pokemon.definitionId;
+    this.teamColor = getTeamColorByPlayerId(pokemon.playerId);
     this.currentDirection = CORE_TO_PMD_DIRECTION[pokemon.orientation] ?? "South";
     this.currentAnimation = "Idle";
     this.spriteOffsets = getSpriteOffsets(scene, this.definitionId);
@@ -414,7 +413,7 @@ export class PokemonSprite {
     const barCurrentHp = innerWidth * this.currentHpRatio;
 
     if (barAfterMinDamage - barAfterMaxDamage > 0) {
-      this.damageEstimateGraphics.fillStyle(DAMAGE_ESTIMATE_COLOR_POSSIBLE, 0.7);
+      this.damageEstimateGraphics.fillStyle(DAMAGE_ESTIMATE_COLOR, DAMAGE_ESTIMATE_ALPHA_POSSIBLE);
       this.damageEstimateGraphics.fillRect(
         barX + 1 + barAfterMaxDamage,
         offsetY + 1,
@@ -424,7 +423,10 @@ export class PokemonSprite {
     }
 
     if (barCurrentHp - barAfterMinDamage > 0) {
-      this.damageEstimateGraphics.fillStyle(DAMAGE_ESTIMATE_COLOR_GUARANTEED, 0.9);
+      this.damageEstimateGraphics.fillStyle(
+        DAMAGE_ESTIMATE_COLOR,
+        DAMAGE_ESTIMATE_ALPHA_GUARANTEED,
+      );
       this.damageEstimateGraphics.fillRect(
         barX + 1 + barAfterMinDamage,
         offsetY + 1,
@@ -528,16 +530,6 @@ export class PokemonSprite {
     this.circle.strokeCircle(0, 0, POKEMON_SPRITE_RADIUS);
   }
 
-  private getHpColor(ratio: number): number {
-    if (ratio > HP_THRESHOLD_HIGH) {
-      return HP_COLOR_HIGH;
-    }
-    if (ratio > HP_THRESHOLD_LOW) {
-      return HP_COLOR_MEDIUM;
-    }
-    return HP_COLOR_LOW;
-  }
-
   private drawHpBar(): void {
     const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
     const barX = -HP_BAR_WIDTH / 2;
@@ -550,10 +542,9 @@ export class PokemonSprite {
     this.hpBarBackground.strokeRoundedRect(barX, offsetY, HP_BAR_WIDTH, HP_BAR_HEIGHT, radius);
 
     this.hpBarFill.clear();
-    const hpColor = this.getHpColor(this.currentHpRatio);
     const fillWidth = (HP_BAR_WIDTH - 2) * this.currentHpRatio;
     if (fillWidth > 0) {
-      this.hpBarFill.fillStyle(hpColor, 1);
+      this.hpBarFill.fillStyle(this.teamColor, 1);
       this.hpBarFill.fillRoundedRect(barX + 1, offsetY + 1, fillWidth, HP_BAR_HEIGHT - 2, radius);
     }
   }
