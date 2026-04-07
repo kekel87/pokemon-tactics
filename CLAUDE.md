@@ -27,6 +27,7 @@ Profil : dev web Angular/TS expérimenté, clean code advocate, expérience Godo
 | `docs/methodology.md` | Pour le workflow de travail |
 | `docs/ai-system.md` | Avant de modifier l'IA (scoring, profils, AiTeamController) |
 | `docs/design-system.md` | Avant d'ajouter ou modifier des couleurs, depths ou constantes visuelles dans le renderer |
+| `docs/backlog.md` | Bugs connus et feedback playtest non traités |
 | `docs/plans/` | Lire le plan en cours avant de coder. Consulter les anciens si besoin de contexte. |
 
 Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.

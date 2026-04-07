@@ -223,6 +223,7 @@
 | 212 | 2026-04-06 | Multijoueur — détection de désync par checksum | **Comparaison périodique d'un hash du BattleState entre les joueurs.** | Si les hash divergent, resync possible via le replay (seed + actions = reconstruction identique). Filet de sécurité contre les bugs de déterminisme. |
 | 213 | 2026-04-06 | Versioning — CalVer YYYY.MM.XX style JetBrains | **`2026.4.1`, `2026.4.2`, `2026.5.1`** (année, mois, incrément) | Plus parlant qu'un semver pour un jeu. La date de release est visible dans le numéro. GitHub Releases comme support de changelog orienté joueur. |
 | 214 | 2026-04-06 | Deploy — GitHub Pages sur release | **Build Vite déployé automatiquement via GitHub Actions quand une release est publiée.** | Gratuit, simple, pas de compte externe. Le deploy ne se fait pas à chaque push sur main — seulement quand on décide de publier. |
+| 215 | 2026-04-07 | Analytics — choix de Goatcounter | **Goatcounter** injecté via plugin Vite en production uniquement | Léger, sans cookies, conforme RGPD, gratuit. Un seul `<script>` suffit. L'URL `https://kekel87.goatcounter.com/count` est publique, donc hardcodée dans le plugin. Pas d'impact sur le dev local (plugin actif uniquement si `mode === 'production'`). |
 
 ---
 
