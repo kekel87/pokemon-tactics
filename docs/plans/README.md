@@ -53,3 +53,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 038 | [Afficher la portée de déplacement des ennemis au hover](./038-enemy-move-range-hover.md) | done | 2026-04-05 |
 | 039 | [Animations de combat : direction, catégorie de move, pipeline sprites](./039-battle-animations-direction-category.md) | done | 2026-04-05 |
 | 040 | [Hot-seat multi-équipes (2 à 12 joueurs)](./040-multi-team-hot-seat.md) | done | 2026-04-05 |
+| 041 | [Intégration Goatcounter (analytics)](./041-goatcounter-analytics.md) | done | 2026-04-07 |

@@ -7,8 +7,9 @@ user-invocable: true
 Lis les fichiers suivants dans cet ordre :
 1. `STATUS.md` — état actuel du projet
 2. `docs/roadmap.md` — phases et tâches
-3. `docs/plans/README.md` — index des plans
-4. Le plan en cours s'il y en a un (statut `in-progress` ou `ready`)
+3. `docs/backlog.md` — bugs connus et feedback non traités
+4. `docs/plans/README.md` — index des plans
+5. Le plan en cours s'il y en a un (statut `in-progress` ou `ready`)
 
 Puis propose :
 1. **Ce qu'on devrait faire maintenant** — la prochaine tâche logique

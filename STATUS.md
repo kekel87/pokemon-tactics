@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-06 (Phase 2 terminée : publication GitHub Pages, 5 nouveaux agents, fix lint/typecheck complet — 699 tests, build OK)
+> Dernière mise à jour : 2026-04-07 (Plan 041 terminé : Goatcounter analytics injecté en production via plugin Vite — 215 décisions)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 

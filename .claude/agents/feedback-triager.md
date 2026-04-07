@@ -76,6 +76,10 @@ gh issue comment NUMBER --body "message"
 gh issue close NUMBER --comment "Duplicate of #XX" --reason "not planned"
 ```
 
+### 6. Synchroniser avec le backlog local
+
+Si un feedback ou bug vient d'une issue GitHub et n'est pas encore dans `docs/backlog.md`, l'ajouter dans la section appropriée pour centraliser le suivi.
+
 ## Règles
 
 - **Ne JAMAIS agir sans validation de l'humain** — tu proposes, il valide, tu exécutes
