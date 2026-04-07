@@ -141,5 +141,6 @@
 - [PokeAPI/sprites](https://github.com/PokeAPI/sprites) — Sprites de combat, artwork officiel. Utile pour un Pokédex.
 - [Pokepedia](https://www.pokepedia.fr/) — Type icons Légendes Pokémon Z-A, 36x36px sans texte (18 types). Utilisés dans l'UI du sous-menu attaque. Également : status icons ZA — icônes 52x36px et miniatures 172x36px pour les 7 statuts majeurs (brûlure, gel, paralysie, poison, poison grave, sommeil, K.O.). Utilisés dans TurnTimeline, sprites grille et InfoPanel.
 - [Bulbagarden Archives](https://archives.bulbagarden.net/) — Category icons Sword & Shield (Physical/Special/Status). Utilisés dans le MoveTooltip.
+- [ICON Isometric Pack — Jao](https://jao-itch.itch.io/icon-isometric-pack) — Tileset pixel art isométrique, tiles 32×32px. Utilisé pour le sol et les bordures de l'arène (plan 043). Filtre NEAREST, scale ×2.
 - [Spriters Resource HGSS](https://www.spriters-resource.com/ds_dsi/pokemonheartgoldsoulsilver/) — Overworld HGSS 32x32 (écarté : pas d'animation d'attaque).
 - [TexturePacker](https://www.codeandweb.com/texturepacker) — Outil pour générer des atlas Phaser (JSON + PNG). Alternative gratuite : [free-tex-packer.com](https://free-tex-packer.com/app/)

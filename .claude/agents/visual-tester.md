@@ -37,9 +37,9 @@ sleep 3
 
 ### 4. Prendre des screenshots
 
-- Sauvegarde TOUJOURS dans `.screenshots/` à la racine du projet
-- Nommage : `.screenshots/{contexte}-{timestamp}.png`
-  - Exemples : `.screenshots/grid-render-2026-03-24.png`, `.screenshots/action-menu-open.png`
+- Sauvegarde TOUJOURS dans `screenshots/` à la racine du projet
+- Nommage : `screenshots/{contexte}-{timestamp}.png`
+  - Exemples : `screenshots/grid-render-2026-03-24.png`, `screenshots/action-menu-open.png`
 - Utilise des noms descriptifs qui expliquent ce qu'on vérifie
 
 ### 5. Vérifier la console
@@ -84,7 +84,7 @@ sleep 3
 ## Vérification visuelle — {contexte}
 
 **URL** : http://localhost:5173
-**Screenshots** : .screenshots/{fichiers}
+**Screenshots** : screenshots/{fichiers}
 
 ### État
 - ✅ Canvas Phaser chargé
@@ -107,7 +107,7 @@ sleep 3
 ## Critères de succès
 
 La vérification est complète quand :
-- Au moins 1 screenshot a été pris et sauvegardé dans `.screenshots/`
+- Au moins 1 screenshot a été pris et sauvegardé dans `screenshots/`
 - La console a été vérifiée (errors + warnings)
 - Chaque point de la checklist "Ce que tu vérifies" a un statut (OK ou KO)
 - Tout problème détecté a une description factuelle avec preuve (screenshot ou message de console)

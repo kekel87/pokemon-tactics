@@ -170,6 +170,8 @@ export const PLACEMENT_PANEL_ALPHA = 0.85;
 export const PLACEMENT_PORTRAIT_SIZE = 48;
 export const PLACEMENT_PORTRAIT_SPACING = 12;
 
+export const DEPTH_GRID_TILES = 1;
+export const DEPTH_GRID_MARKINGS = 50;
 export const DEPTH_GRID_HIGHLIGHT = 100;
 export const DEPTH_GRID_ENEMY_RANGE = 110;
 export const DEPTH_GRID_PREVIEW = 120;
@@ -306,3 +308,18 @@ export const TEXT_COLOR_TITLE = "#ffcc00";
 export const TEXT_COLOR_ACCENT = "#ffdd44";
 
 export const REPLAY_BUTTON_DISABLED_COLOR = "#555555";
+
+export const ARENA_MARKING_COLOR = 0xeeddcc;
+export const ARENA_MARKING_ALPHA = 0.7;
+export const ARENA_MARKING_LINE_WIDTH = 4;
+export const ARENA_GRASS_BORDER_SIZE = 1;
+export const TILE_SPRITE_SCALE = 2;
+export const TILE_ORIGIN_Y = 0.25;
+
+export const ARENA_TILE_FRAME_GRASS = 22;
+export const ARENA_TILE_FRAME_GRASS_VARIANTS = [22, 4, 5, 6, 7, 8] as const;
+export const ARENA_TILE_FRAME_FLOOR = 202;
+export const ARENA_TILE_FRAME_FLOOR_VARIANTS = [202, 184, 185, 186, 187, 188] as const;
+export const ARENA_TILE_VARIANT_RATIO = 0.15;
+
+export const TILESET_KEY = "icon-tileset";

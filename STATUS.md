@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-07 (Plan 042 terminé : Bugfixes et feedback playtest — 219 décisions)
+> Dernière mise à jour : 2026-04-07
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -588,8 +588,18 @@
   - **Raccourcis clavier** : Espace → end turn, C → recentrer caméra — `BattleScene.ts`, `GameController.ts` (décision #218)
   - **Fix IA vs IA sans écran de victoire** : `GameController.ts` — le flow BattleEnded → showVictory fonctionne désormais en mode spectateur
 
+- **Plan 043 terminé** — Tileset arène Pokemon + intégration renderer :
+  - **ICON Isometric Pack (Jao)** : tileset pixel art retenu (licence libre), tiles 32×32 scalées ×2 avec filtre NEAREST — PixelLab évalué mais pas encore au niveau pour ce usage
+  - **IsometricGrid** : `drawGrid()` remplace les polygones `Graphics.fillStyle` par des `scene.add.image()` texturés, variantes de tiles pseudo-aléatoires (15%)
+  - **BattleScene** : preload spritesheet tileset 32×32, filtre NEAREST pour pixels nets
+  - **Marquages d'arène** : pokeball centrale + lignes latérales en overlay Graphics au-dessus des tiles
+  - **constants.ts** : `TILESET_KEY`, `TILE_ORIGIN_Y=0.25`, `TILE_SPRITE_SCALE=2`, frames arène, couleurs/alpha marquages
+  - **CreditsScene + i18n FR/EN** : crédit Jao (ICON Isometric Pack) ajouté
+  - **asset-manager.md** : géométrie ICON, paramètres PixelLab (view angle 30°, depth ratio 0.5), bonnes pratiques prompts, workflow pilote → style_images
+
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
-- Sourcing ou génération d'un tileset isométrique
+- Supprimer POKEMON_SPRITE_SCALE=2 + TILE_SPRITE_SCALE=2, rattraper offsets, ajuster zoom (uniformiser la résolution pixel)
+- Mode pixelArt Phaser (antialias off, roundPixels, police adaptée, portraits)
 - Dénivelés (hauteur tiles) + dégâts de chute
 - Obstacles + line of sight
 
