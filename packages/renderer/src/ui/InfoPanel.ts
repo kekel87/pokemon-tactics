@@ -7,11 +7,6 @@ import {
   HP_BAR_BG_COLOR,
   HP_BAR_BORDER_COLOR,
   HP_BAR_HEIGHT,
-  HP_COLOR_HIGH,
-  HP_COLOR_LOW,
-  HP_COLOR_MEDIUM,
-  HP_THRESHOLD_HIGH,
-  HP_THRESHOLD_LOW,
   INFO_PANEL_ALPHA,
   INFO_PANEL_CORNER_RADIUS,
   INFO_PANEL_HEIGHT,
@@ -118,7 +113,7 @@ export class InfoPanel {
     this.updatePortrait(pokemon.definitionId);
 
     const hpRatio = pokemon.currentHp / pokemon.maxHp;
-    this.drawHpBar(hpRatio);
+    this.drawHpBar(hpRatio, teamColor);
 
     this.hpText.setText(`${pokemon.currentHp} / ${pokemon.maxHp}`);
 
@@ -202,6 +197,8 @@ export class InfoPanel {
     const bg = this.scene.add.graphics();
     bg.fillStyle(bgColor, 0.9);
     bg.fillRoundedRect(offsetX, 0, badgeWidth, STAT_BADGE_HEIGHT, STAT_BADGE_CORNER_RADIUS);
+    bg.lineStyle(UI_BORDER_WIDTH, UI_BORDER_COLOR, UI_BORDER_ALPHA);
+    bg.strokeRoundedRect(offsetX, 0, badgeWidth, STAT_BADGE_HEIGHT, STAT_BADGE_CORNER_RADIUS);
 
     text.setPosition(offsetX + STAT_BADGE_PADDING_X, (STAT_BADGE_HEIGHT - text.height) / 2);
 
@@ -264,17 +261,7 @@ export class InfoPanel {
     );
   }
 
-  private getHpColor(ratio: number): number {
-    if (ratio > HP_THRESHOLD_HIGH) {
-      return HP_COLOR_HIGH;
-    }
-    if (ratio > HP_THRESHOLD_LOW) {
-      return HP_COLOR_MEDIUM;
-    }
-    return HP_COLOR_LOW;
-  }
-
-  private drawHpBar(hpRatio: number): void {
+  private drawHpBar(hpRatio: number, teamColor: number): void {
     const radius = 2;
 
     this.hpBarBackground.clear();
@@ -298,8 +285,7 @@ export class InfoPanel {
     this.hpBarFill.clear();
     const fillWidth = (HP_BAR_PANEL_WIDTH - 2) * hpRatio;
     if (fillWidth > 0) {
-      const hpColor = this.getHpColor(hpRatio);
-      this.hpBarFill.fillStyle(hpColor, 1);
+      this.hpBarFill.fillStyle(teamColor, 1);
       this.hpBarFill.fillRoundedRect(
         TEXT_OFFSET_X + 1,
         HP_BAR_OFFSET_Y + 1,

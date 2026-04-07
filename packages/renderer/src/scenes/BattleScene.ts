@@ -406,7 +406,8 @@ export class BattleScene extends Phaser.Scene {
     this.input.keyboard?.on("keydown-NUMPAD_ADD", () => this.changeZoom(1));
     this.input.keyboard?.on("keydown-NUMPAD_SUBTRACT", () => this.changeZoom(-1));
 
-    this.input.keyboard?.on("keydown-SPACE", () => this.recenterOnActivePokemon(isometricGrid));
+    this.input.keyboard?.on("keydown-SPACE", () => controller.handleSpaceKey());
+    this.input.keyboard?.on("keydown-C", () => this.recenterOnActivePokemon(isometricGrid));
 
     for (const arrow of ["UP", "DOWN", "LEFT", "RIGHT"]) {
       this.input.keyboard?.on(`keydown-${arrow}`, () => this.arrowKeysDown.add(arrow));

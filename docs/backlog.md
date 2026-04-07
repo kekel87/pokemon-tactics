@@ -4,10 +4,9 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Bugs
 
-### Pas d'écran de victoire en mode IA vs IA
-- **Source** : session 2026-04-03
-- **Description** : quand les deux joueurs sont en mode IA, le combat se déroule mais l'écran de victoire ne s'affiche pas
-- **Cause probable** : le flow de victoire (event BattleEnded → showVictory) n'est pas déclenché quand aucun humain ne joue
+### Confusion wobble post-KO
+- **Source** : observation interne
+- **Description** : un Pokemon confus qui est KO continue à osciller (tween confusion non stoppé dans `playFaintAndStay`)
 - **Statut** : ouvert
 
 ## Feedback visuel
@@ -19,20 +18,16 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 - **Question ouverte** : couleurs par équipe (utile en hot-seat multi-équipes) ou simplification alliés/ennemis relatif au joueur actif ?
 - **Statut** : ouvert
 
-### Border blanc sur les badges de statut (InfoPanel)
-- **Source** : observation interne
-- **Description** : les badges de statut (burn, poison, etc.) manquent de contraste sur le fond sombre
-- **Solution** : ajouter un `setStrokeStyle` blanc sur les rectangles de badges
-- **Statut** : ouvert
-
-## Feedback input
-
-### Touche Espace pour passer le tour
-- **Source** : playtest proche (2026-04-07)
-- **Description** : convention standard des jeux tactiques sur PC, Espace devrait être mappé sur end turn
-- **Statut** : ouvert
-
 ## Résolus
+
+### ~~Pas d'écran de victoire en mode IA vs IA~~ (plan 042)
+- Fix dans `GameController.ts` — le flow BattleEnded → showVictory fonctionne désormais en mode spectateur IA vs IA
+
+### ~~Border blanc sur les badges de statut (InfoPanel)~~ (plan 042)
+- `setStrokeStyle` blanc ajouté sur les rectangles de badges dans `InfoPanel.ts`
+
+### ~~Touche Espace pour passer le tour~~ (plan 042)
+- Espace → end turn, touche C → recentrer la caméra (décision #219)
 
 ### ~~Dégâts Vampigraine pas reflétés sur la HP bar~~ (plan 024)
 ### ~~Status burn non affiché au spawn en sandbox~~ (plan 024)

@@ -147,21 +147,22 @@ Usage : InfoPanel (fond), TurnTimeline (pastilles), BattleLogPanel (dot d'équip
 
 ## HP Bars
 
-| Couleur | Hex | Seuil | Usage |
-|---------|-----|-------|-------|
-| Vert HP | `#44cc44` / `0x44cc44` | > 60% | HP haute |
-| Jaune HP | `#ddcc22` / `0xddcc22` | 30–60% | HP moyenne |
-| Rouge HP | `#cc4444` / `0xcc4444` | < 30% | HP basse |
-| Gris fond | `#222222` / `0x222222` | — | Fond de la barre (alpha 0.9) |
-| Noir bordure | `#000000` / `0x000000` | — | Bordure de la barre |
-
-### Estimation de dégâts
+La couleur de la HP bar est celle de l'équipe du Pokemon (`TEAM_COLORS[playerIndex]`). Le gradient vert/jaune/rouge a été remplacé en plan 042 pour améliorer la lisibilité en combat multi-équipes — décision #216.
 
 | Couleur | Hex | Usage |
 |---------|-----|-------|
-| Rouge garanti | `#cc0000` / `0xcc0000` | Zone HP perdue (dégâts min garantis) |
-| Rouge possible | `#ff4444` / `0xff4444` | Zone HP possible (dégâts max) |
-| Gris immunité | `#888888` | Texte "Immune" |
+| Couleur d'équipe | `TEAM_COLORS[playerIndex]` | Barre HP active |
+| Gris fond | `#222222` / `0x222222` | Fond de la barre (alpha 0.9) |
+| Noir bordure | `#000000` / `0x000000` | Bordure de la barre |
+
+### Estimation de dégâts
+
+La preview de dégâts est affichée en noir semi-transparent depuis le plan 042 — décision #217. L'ancien rouge se confondait avec la couleur de l'équipe 2.
+
+| Couleur | Hex | Alpha | Usage |
+|---------|-----|-------|-------|
+| Noir preview | `#000000` / `0x000000` | 0.5 | Zone HP preview dégâts (garanti + possible) |
+| Gris immunité | `#888888` | — | Texte "Immune" |
 
 ---
 

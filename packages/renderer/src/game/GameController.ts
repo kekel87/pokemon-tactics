@@ -469,7 +469,16 @@ export class GameController {
         if (dummyEvents.length > 0) {
           this.animationQueue.enqueue(async () => {
             await this.processEvents(dummyEvents);
-            this.refreshUI();
+
+            const battleEndedEvent = dummyEvents.find(
+              (event) => event.type === BattleEventType.BattleEnded,
+            );
+            if (battleEndedEvent && battleEndedEvent.type === BattleEventType.BattleEnded) {
+              this.inputState = { phase: "battle_over", winnerId: battleEndedEvent.winnerId };
+              this.battleUI.showVictory(battleEndedEvent.winnerId, this.state.roundNumber);
+            } else {
+              this.refreshUI();
+            }
           });
         } else {
           this.scene.time.delayedCall(100, () => this.refreshUI());
@@ -1442,6 +1451,12 @@ export class GameController {
         this.updateRosterSelection(playerId, roster, pokemonId);
       }
     });
+  }
+
+  handleSpaceKey(): void {
+    if (this.inputState.phase === "action_menu") {
+      this.handleEndTurn();
+    }
   }
 
   handleEscapeKey(): void {
