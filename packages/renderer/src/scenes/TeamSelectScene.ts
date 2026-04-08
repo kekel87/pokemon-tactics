@@ -6,7 +6,13 @@ import {
   validateTeamSelection,
 } from "@pokemon-tactic/core";
 import { loadData } from "@pokemon-tactic/data";
-import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH, TEAM_COLORS } from "../constants";
+import {
+  BACKGROUND_COLOR,
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  FONT_FAMILY,
+  TEAM_COLORS,
+} from "../constants";
 import { t } from "../i18n";
 import type { TranslationKey } from "../i18n/types";
 import { sandboxBootConfig } from "../sandbox-boot";
@@ -108,8 +114,8 @@ export class TeamSelectScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, TITLE_Y, t("teamSelect.title"), {
-        fontSize: "24px",
-        fontFamily: "monospace",
+        fontSize: "40px",
+        fontFamily: FONT_FAMILY,
         color: "#ffffff",
       })
       .setOrigin(0.5, 0);
@@ -278,8 +284,8 @@ export class TeamSelectScene extends Phaser.Scene {
     const shortLabel = this.getPlayerLabel(teamIndex);
     const labelText = this.add
       .text(cursorX, centerY, shortLabel, {
-        fontSize: "11px",
-        fontFamily: "monospace",
+        fontSize: "18px",
+        fontFamily: FONT_FAMILY,
         color: `#${teamColor.toString(16).padStart(6, "0")}`,
         fontStyle: "bold",
       })
@@ -295,8 +301,8 @@ export class TeamSelectScene extends Phaser.Scene {
     const toggleLabel = isHuman ? "H" : "IA";
     const toggleText = this.add
       .text(cursorX + toggleW / 2, centerY, toggleLabel, {
-        fontSize: "10px",
-        fontFamily: "monospace",
+        fontSize: "18px",
+        fontFamily: FONT_FAMILY,
         color: "#ffffff",
       })
       .setOrigin(0.5);
@@ -364,8 +370,8 @@ export class TeamSelectScene extends Phaser.Scene {
     const valLabel = state.validated ? "✎" : "✓";
     const valText = this.add
       .text(btnX + btnSize / 2, centerY, valLabel, {
-        fontSize: "12px",
-        fontFamily: "monospace",
+        fontSize: "20px",
+        fontFamily: FONT_FAMILY,
         color: "#ffffff",
       })
       .setOrigin(0.5);
@@ -379,8 +385,8 @@ export class TeamSelectScene extends Phaser.Scene {
     autoBg.setStrokeStyle(1, 0x555577);
     const autoText = this.add
       .text(btnX + btnSize / 2, centerY, "⟳", {
-        fontSize: "12px",
-        fontFamily: "monospace",
+        fontSize: "20px",
+        fontFamily: FONT_FAMILY,
         color: "#aaaacc",
       })
       .setOrigin(0.5);
@@ -402,8 +408,8 @@ export class TeamSelectScene extends Phaser.Scene {
     clearBg.setStrokeStyle(1, 0x775555);
     const clearText = this.add
       .text(btnX + btnSize / 2, centerY, "✕", {
-        fontSize: "12px",
-        fontFamily: "monospace",
+        fontSize: "20px",
+        fontFamily: FONT_FAMILY,
         color: "#ccaaaa",
       })
       .setOrigin(0.5);
@@ -472,8 +478,8 @@ export class TeamSelectScene extends Phaser.Scene {
 
     const label = this.getPlayerLabel(teamIndex);
     const headerText = this.add.text(columnX, blockY, label, {
-      fontSize: "13px",
-      fontFamily: "monospace",
+      fontSize: "20px",
+      fontFamily: FONT_FAMILY,
       color: `#${teamColor.toString(16).padStart(6, "0")}`,
       fontStyle: "bold",
     });
@@ -487,8 +493,8 @@ export class TeamSelectScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
     const toggleText = this.add
       .text(toggleX, toggleY, isHuman ? t("teamSelect.human") : t("teamSelect.ai"), {
-        fontSize: "11px",
-        fontFamily: "monospace",
+        fontSize: "18px",
+        fontFamily: FONT_FAMILY,
         color: "#ffffff",
       })
       .setOrigin(0.5);
@@ -558,7 +564,7 @@ export class TeamSelectScene extends Phaser.Scene {
         valBtnX,
         buttonCenterY,
         state.validated ? t("teamSelect.modify") : t("teamSelect.validate"),
-        { fontSize: "11px", fontFamily: "monospace", color: "#ffffff" },
+        { fontSize: "18px", fontFamily: FONT_FAMILY, color: "#ffffff" },
       )
       .setOrigin(0.5);
     validateBg.on("pointerdown", () => this.onValidateClick(teamIndex));
@@ -571,8 +577,8 @@ export class TeamSelectScene extends Phaser.Scene {
     autoBg.setStrokeStyle(1, 0x555577);
     const autoText = this.add
       .text(autoBtnX, buttonCenterY, t("teamSelect.autoFill"), {
-        fontSize: "10px",
-        fontFamily: "monospace",
+        fontSize: "18px",
+        fontFamily: FONT_FAMILY,
         color: "#aaaacc",
       })
       .setOrigin(0.5);
@@ -594,8 +600,8 @@ export class TeamSelectScene extends Phaser.Scene {
     clearBg.setStrokeStyle(1, 0x775555);
     const clearText = this.add
       .text(clearBtnX, buttonCenterY, t("teamSelect.clear"), {
-        fontSize: "10px",
-        fontFamily: "monospace",
+        fontSize: "18px",
+        fontFamily: FONT_FAMILY,
         color: "#ccaaaa",
       })
       .setOrigin(0.5);
@@ -683,8 +689,8 @@ export class TeamSelectScene extends Phaser.Scene {
 
       this.add
         .text(centerX, cellY + GRID_CELL_SIZE - 2, this.getPokemonName(definition.id), {
-          fontSize: "9px",
-          fontFamily: "monospace",
+          fontSize: "16px",
+          fontFamily: FONT_FAMILY,
           color: "#cccccc",
         })
         .setOrigin(0.5, 1);
@@ -764,8 +770,8 @@ export class TeamSelectScene extends Phaser.Scene {
     teamCountBg.setStrokeStyle(1, 0x555566);
     this.teamCountText = this.add
       .text(curX + btnWidth / 2, btnY, "", {
-        fontSize: "11px",
-        fontFamily: "monospace",
+        fontSize: "18px",
+        fontFamily: FONT_FAMILY,
         color: "#cccccc",
       })
       .setOrigin(0.5);
@@ -779,8 +785,8 @@ export class TeamSelectScene extends Phaser.Scene {
     this.placementToggleBg.setStrokeStyle(1, 0x555566);
     this.placementToggleText = this.add
       .text(curX + btnWidth / 2, btnY, "", {
-        fontSize: "11px",
-        fontFamily: "monospace",
+        fontSize: "18px",
+        fontFamily: FONT_FAMILY,
         color: "#cccccc",
       })
       .setOrigin(0.5);
@@ -796,8 +802,8 @@ export class TeamSelectScene extends Phaser.Scene {
     fillAiBg.setStrokeStyle(1, 0x555577);
     this.add
       .text(curX + btnWidth / 2, btnY, t("teamSelect.fillAi"), {
-        fontSize: "11px",
-        fontFamily: "monospace",
+        fontSize: "18px",
+        fontFamily: FONT_FAMILY,
         color: "#aaaacc",
       })
       .setOrigin(0.5);
@@ -816,8 +822,8 @@ export class TeamSelectScene extends Phaser.Scene {
 
     this.launchText = this.add
       .text(launchX, btnY, t("teamSelect.launch"), {
-        fontSize: "16px",
-        fontFamily: "monospace",
+        fontSize: "24px",
+        fontFamily: FONT_FAMILY,
         color: "#ffffff",
         fontStyle: "bold",
       })

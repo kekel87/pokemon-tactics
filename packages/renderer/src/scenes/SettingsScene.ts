@@ -1,4 +1,4 @@
-import { BACKGROUND_COLOR, CANVAS_WIDTH } from "../constants";
+import { BACKGROUND_COLOR, CANVAS_WIDTH, FONT_FAMILY } from "../constants";
 import { getLanguage, setLanguage, t } from "../i18n";
 import { Language } from "../i18n/types";
 import { getSettings, updateSettings } from "../settings";
@@ -24,8 +24,8 @@ export class SettingsScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, TITLE_Y, t("settings.title"), {
-        fontSize: "28px",
-        fontFamily: "monospace",
+        fontSize: "36px",
+        fontFamily: FONT_FAMILY,
         color: "#ffffff",
       })
       .setOrigin(0.5, 0.5);
@@ -38,8 +38,8 @@ export class SettingsScene extends Phaser.Scene {
   private buildLanguageRow(y: number): void {
     this.add
       .text(LABEL_X, y, t("settings.language"), {
-        fontSize: "16px",
-        fontFamily: "monospace",
+        fontSize: "20px",
+        fontFamily: FONT_FAMILY,
         color: "#cccccc",
       })
       .setOrigin(0, 0.5);
@@ -55,8 +55,8 @@ export class SettingsScene extends Phaser.Scene {
 
     this.add
       .text(TOGGLE_X, y, langText, {
-        fontSize: "16px",
-        fontFamily: "monospace",
+        fontSize: "20px",
+        fontFamily: FONT_FAMILY,
         color: "#ffffff",
       })
       .setOrigin(0.5, 0.5);
@@ -73,8 +73,8 @@ export class SettingsScene extends Phaser.Scene {
   private buildDamagePreviewRow(y: number): void {
     this.add
       .text(LABEL_X, y, t("settings.damagePreview"), {
-        fontSize: "16px",
-        fontFamily: "monospace",
+        fontSize: "20px",
+        fontFamily: FONT_FAMILY,
         color: "#cccccc",
       })
       .setOrigin(0, 0.5);
@@ -90,8 +90,8 @@ export class SettingsScene extends Phaser.Scene {
 
     this.add
       .text(TOGGLE_X, y, toggleText, {
-        fontSize: "16px",
-        fontFamily: "monospace",
+        fontSize: "20px",
+        fontFamily: FONT_FAMILY,
         color: "#ffffff",
       })
       .setOrigin(0.5, 0.5);
@@ -113,8 +113,8 @@ export class SettingsScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, BACK_BUTTON_Y, t("settings.back"), {
-        fontSize: "18px",
-        fontFamily: "monospace",
+        fontSize: "24px",
+        fontFamily: FONT_FAMILY,
         color: "#ffffff",
       })
       .setOrigin(0.5, 0.5);

@@ -4,6 +4,7 @@ import {
   ACTION_MENU_BOTTOM_Y,
   ACTION_MENU_CORNER_RADIUS,
   DEPTH_TOOLTIP,
+  FONT_FAMILY,
   TOOLTIP_BG_ALPHA,
   TOOLTIP_BG_COLOR,
   TOOLTIP_CELL_COLOR_CASTER,
@@ -139,9 +140,9 @@ export class MoveTooltip {
   private addText(x: number, y: number, content: string): void {
     const text = this.scene.add
       .text(x, y, content, {
-        fontSize: "11px",
+        fontSize: "14px",
         color: "#cccccc",
-        fontFamily: "monospace",
+        fontFamily: FONT_FAMILY,
       })
       .setDepth(DEPTH_TOOLTIP + 1);
     this.objects.push(text);

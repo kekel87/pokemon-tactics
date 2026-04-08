@@ -7,6 +7,7 @@ import {
   BUTTON_HOVER_COLOR,
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
+  FONT_FAMILY,
   TEXT_COLOR_DISABLED,
   TEXT_COLOR_MUTED,
   TEXT_COLOR_PRIMARY,
@@ -33,8 +34,8 @@ export class MainMenuScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, TITLE_Y, "POKEMON TACTICS", {
-        fontSize: "36px",
-        fontFamily: "monospace",
+        fontSize: "48px",
+        fontFamily: FONT_FAMILY,
         color: TEXT_COLOR_TITLE,
         fontStyle: "bold",
       })
@@ -47,16 +48,16 @@ export class MainMenuScene extends Phaser.Scene {
 
     this.add
       .text(20, CANVAS_HEIGHT - 24, VERSION_TEXT, {
-        fontSize: "12px",
-        fontFamily: "monospace",
+        fontSize: "16px",
+        fontFamily: FONT_FAMILY,
         color: TEXT_COLOR_DISABLED,
       })
       .setOrigin(0, 1);
 
     const langButton = this.add
       .text(CANVAS_WIDTH - 20, CANVAS_HEIGHT - 24, getLanguage().toUpperCase(), {
-        fontSize: "14px",
-        fontFamily: "monospace",
+        fontSize: "18px",
+        fontFamily: FONT_FAMILY,
         color: TEXT_COLOR_MUTED,
         backgroundColor: "#222233",
         padding: { x: 8, y: 4 },
@@ -88,8 +89,8 @@ export class MainMenuScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, y, t(key), {
-        fontSize: "18px",
-        fontFamily: "monospace",
+        fontSize: "24px",
+        fontFamily: FONT_FAMILY,
         color: disabled ? "#555566" : TEXT_COLOR_PRIMARY,
       })
       .setOrigin(0.5, 0.5);

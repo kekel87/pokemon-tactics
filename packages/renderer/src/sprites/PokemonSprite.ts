@@ -14,6 +14,7 @@ import {
   DAMAGE_FLASH_DURATION_MS,
   DAMAGE_FLASH_REPEAT,
   DEPTH_POKEMON_BASE,
+  FONT_FAMILY,
   getTeamColorByPlayerId,
   HP_BAR_BG_ALPHA,
   HP_BAR_BG_COLOR,
@@ -91,7 +92,7 @@ export class PokemonSprite {
     this.currentDirection = CORE_TO_PMD_DIRECTION[pokemon.orientation] ?? "South";
     this.currentAnimation = "Idle";
     this.spriteOffsets = getSpriteOffsets(scene, this.definitionId);
-    this.uiOffsetY = this.spriteOffsets.headOffsetY * POKEMON_SPRITE_SCALE - 26;
+    this.uiOffsetY = this.spriteOffsets.headOffsetY * POKEMON_SPRITE_SCALE - 16;
 
     const children: Phaser.GameObjects.GameObject[] = [];
 
@@ -150,7 +151,7 @@ export class PokemonSprite {
   getTextPosition(): { x: number; y: number } {
     return {
       x: this.container.x,
-      y: this.container.y + this.uiOffsetY - 10,
+      y: this.container.y + this.uiOffsetY - 5,
     };
   }
 
@@ -196,7 +197,7 @@ export class PokemonSprite {
       return;
     }
 
-    const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
+    const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 2;
     this.statusIcon = this.scene.add.image(
       HP_BAR_WIDTH / 2 + STATUS_SPRITE_ICON_OFFSET_X,
       offsetY + HP_BAR_HEIGHT / 2,
@@ -397,7 +398,7 @@ export class PokemonSprite {
       return;
     }
 
-    const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
+    const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 2;
     const barX = -HP_BAR_WIDTH / 2;
     const innerWidth = HP_BAR_WIDTH - 2;
 
@@ -449,9 +450,10 @@ export class PokemonSprite {
     if (estimate.effectiveness === 0) {
       this.damageEstimateText = this.scene.add.text(
         this.container.x,
-        this.container.y + this.uiOffsetY - 10,
+        this.container.y + this.uiOffsetY - 5,
         t("battle.immune"),
         {
+          fontFamily: FONT_FAMILY,
           fontSize: `${DAMAGE_ESTIMATE_TEXT_SIZE}px`,
           color: DAMAGE_ESTIMATE_IMMUNE_COLOR,
           stroke: DAMAGE_ESTIMATE_TEXT_STROKE_COLOR,
@@ -472,9 +474,10 @@ export class PokemonSprite {
       estimate.min === estimate.max ? `${estimate.min}` : `${estimate.min}-${estimate.max}`;
     this.damageEstimateText = this.scene.add.text(
       this.container.x,
-      this.container.y + this.uiOffsetY - 10,
+      this.container.y + this.uiOffsetY - 5,
       text,
       {
+        fontFamily: FONT_FAMILY,
         fontSize: `${DAMAGE_ESTIMATE_TEXT_SIZE}px`,
         color: DAMAGE_ESTIMATE_TEXT_COLOR,
         stroke: DAMAGE_ESTIMATE_TEXT_STROKE_COLOR,
@@ -531,9 +534,9 @@ export class PokemonSprite {
   }
 
   private drawHpBar(): void {
-    const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 4;
+    const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 2;
     const barX = -HP_BAR_WIDTH / 2;
-    const radius = 2;
+    const radius = 1;
 
     this.hpBarBackground.clear();
     this.hpBarBackground.fillStyle(HP_BAR_BG_COLOR, HP_BAR_BG_ALPHA);
@@ -542,10 +545,10 @@ export class PokemonSprite {
     this.hpBarBackground.strokeRoundedRect(barX, offsetY, HP_BAR_WIDTH, HP_BAR_HEIGHT, radius);
 
     this.hpBarFill.clear();
-    const fillWidth = (HP_BAR_WIDTH - 2) * this.currentHpRatio;
+    const fillWidth = HP_BAR_WIDTH * this.currentHpRatio;
     if (fillWidth > 0) {
       this.hpBarFill.fillStyle(this.teamColor, 1);
-      this.hpBarFill.fillRoundedRect(barX + 1, offsetY + 1, fillWidth, HP_BAR_HEIGHT - 2, radius);
+      this.hpBarFill.fillRoundedRect(barX, offsetY, fillWidth, HP_BAR_HEIGHT, radius);
     }
   }
 }

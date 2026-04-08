@@ -1,6 +1,6 @@
 import type { PokemonInstance } from "@pokemon-tactic/core";
 import { getPokemonName } from "@pokemon-tactic/data";
-import { CANVAS_WIDTH, DEPTH_UI_BASE } from "../constants";
+import { CANVAS_WIDTH, DEPTH_UI_BASE, FONT_FAMILY } from "../constants";
 import { getLanguage, t } from "../i18n";
 
 export class BattleUI {
@@ -13,9 +13,9 @@ export class BattleUI {
 
     this.turnInfoText = scene.add
       .text(CANVAS_WIDTH / 2, 16, "", {
-        fontSize: "16px",
+        fontSize: "24px",
         color: "#ffffff",
-        fontFamily: "monospace",
+        fontFamily: FONT_FAMILY,
         align: "center",
       })
       .setOrigin(0.5, 0)

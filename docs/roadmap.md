@@ -111,8 +111,8 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 > But : la vraie profondeur tactique — le terrain change la façon de jouer
 
 - [x] Tileset isométrique (ICON Isometric Pack / Jao — tiles 32×32 ×2, filtre NEAREST, marquages arène overlay) — plan 043
-- [ ] Supprimer POKEMON_SPRITE_SCALE=2 + TILE_SPRITE_SCALE=2, rattraper offsets, ajuster zoom — uniformiser la résolution pixel (tâche technique)
-- [ ] Mode pixelArt Phaser (antialias off, roundPixels, police adaptée, portraits)
+- [x] Supprimer POKEMON_SPRITE_SCALE=2 + TILE_SPRITE_SCALE=2, rattraper offsets, ajuster zoom — uniformiser la résolution pixel (plan 044)
+- [x] Mode pixel art Phaser (roundPixels:true, NEAREST manuel par texture, police adaptée) — plan 044
 - [ ] Format de carte compatible Tiled + pipeline de chargement (voir questions ci-dessous)
 - [ ] Dénivelés (hauteur tiles) + dégâts de chute
 - [ ] Obstacles + line of sight (trajectoires de tir visibles)

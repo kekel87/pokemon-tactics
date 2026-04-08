@@ -3,6 +3,7 @@ import { getPokemonName } from "@pokemon-tactic/data";
 import {
   CANVAS_WIDTH,
   DEPTH_INFO_PANEL,
+  FONT_FAMILY,
   getTeamColorByPlayerId,
   INFO_PANEL_CORNER_RADIUS,
   PLACEMENT_PANEL_ALPHA,
@@ -35,9 +36,9 @@ export class PlacementRosterPanel {
     this.scene = scene;
     this.background = scene.add.graphics();
     this.turnText = scene.add.text(CANVAS_WIDTH / 2, 12, "", {
-      fontSize: "14px",
+      fontSize: "18px",
       color: "#ffffff",
-      fontFamily: "monospace",
+      fontFamily: FONT_FAMILY,
       fontStyle: "bold",
       align: "center",
     });
@@ -144,9 +145,9 @@ export class PlacementRosterPanel {
 
     if (entry.placed) {
       const checkmark = this.scene.add.text(0, 0, "\u2713", {
-        fontSize: "20px",
+        fontSize: "24px",
         color: "#44cc44",
-        fontFamily: "monospace",
+        fontFamily: FONT_FAMILY,
         fontStyle: "bold",
       });
       checkmark.setOrigin(0.5, 0.5);
@@ -155,9 +156,9 @@ export class PlacementRosterPanel {
 
     const name = getPokemonName(entry.definitionId, getLanguage());
     const nameText = this.scene.add.text(0, PLACEMENT_PORTRAIT_SIZE / 2 + 4, name, {
-      fontSize: "9px",
+      fontSize: "12px",
       color: "#cccccc",
-      fontFamily: "monospace",
+      fontFamily: FONT_FAMILY,
       align: "center",
     });
     nameText.setOrigin(0.5, 0);

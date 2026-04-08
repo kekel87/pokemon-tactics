@@ -2,11 +2,11 @@ import { type PokemonInstance, StatName, StatusType } from "@pokemon-tactic/core
 import { getPokemonName } from "@pokemon-tactic/data";
 import {
   DEPTH_INFO_PANEL,
+  FONT_FAMILY,
   getTeamColorByPlayerId,
   HP_BAR_BG_ALPHA,
   HP_BAR_BG_COLOR,
   HP_BAR_BORDER_COLOR,
-  HP_BAR_HEIGHT,
   INFO_PANEL_ALPHA,
   INFO_PANEL_CORNER_RADIUS,
   INFO_PANEL_HEIGHT,
@@ -33,6 +33,7 @@ const PORTRAIT_MARGIN: number = 8;
 const TEXT_OFFSET_X: number = PORTRAIT_MARGIN + PORTRAIT_SIZE + 8;
 const HP_BAR_OFFSET_Y: number = 40;
 const HP_BAR_MARGIN_RIGHT: number = 12;
+const HP_BAR_PANEL_HEIGHT: number = 6;
 const HP_BAR_PANEL_WIDTH: number = INFO_PANEL_WIDTH - TEXT_OFFSET_X - HP_BAR_MARGIN_RIGHT;
 const STAT_CHANGES_OFFSET_Y: number = 68;
 const VOLATILE_LABELS: Partial<Record<string, TranslationKey>> = {
@@ -72,19 +73,19 @@ export class InfoPanel {
     this.background = scene.add.graphics();
 
     this.nameText = scene.add.text(TEXT_OFFSET_X, 10, "", {
-      fontSize: "14px",
+      fontSize: "22px",
       color: "#ffffff",
-      fontFamily: "monospace",
+      fontFamily: FONT_FAMILY,
       fontStyle: "bold",
     });
 
     this.hpBarBackground = scene.add.graphics();
     this.hpBarFill = scene.add.graphics();
 
-    this.hpText = scene.add.text(TEXT_OFFSET_X, HP_BAR_OFFSET_Y + HP_BAR_HEIGHT + 4, "", {
-      fontSize: "11px",
+    this.hpText = scene.add.text(TEXT_OFFSET_X, HP_BAR_OFFSET_Y + HP_BAR_PANEL_HEIGHT + 4, "", {
+      fontSize: "18px",
       color: "#cccccc",
-      fontFamily: "monospace",
+      fontFamily: FONT_FAMILY,
     });
 
     this.statBadgeContainer = scene.add.container(TEXT_OFFSET_X, STAT_CHANGES_OFFSET_Y);
@@ -152,7 +153,7 @@ export class InfoPanel {
     const scaledWidth = this.statusLabel.width * scale;
     this.statusLabel.setPosition(
       INFO_PANEL_WIDTH - HP_BAR_MARGIN_RIGHT - scaledWidth / 2,
-      HP_BAR_OFFSET_Y + HP_BAR_HEIGHT + 4 + targetHeight / 2,
+      HP_BAR_OFFSET_Y + HP_BAR_PANEL_HEIGHT + 4 + targetHeight / 2,
     );
     this.container.add(this.statusLabel);
   }
@@ -187,9 +188,9 @@ export class InfoPanel {
 
   private addBadge(label: string, bgColor: number, offsetX: number): number {
     const text = this.scene.add.text(0, 0, label, {
-      fontSize: "9px",
+      fontSize: "16px",
       color: "#ffffff",
-      fontFamily: "monospace",
+      fontFamily: FONT_FAMILY,
       fontStyle: "bold",
     });
 
@@ -270,7 +271,7 @@ export class InfoPanel {
       TEXT_OFFSET_X,
       HP_BAR_OFFSET_Y,
       HP_BAR_PANEL_WIDTH,
-      HP_BAR_HEIGHT,
+      HP_BAR_PANEL_HEIGHT,
       radius,
     );
     this.hpBarBackground.lineStyle(1, HP_BAR_BORDER_COLOR, 1);
@@ -278,7 +279,7 @@ export class InfoPanel {
       TEXT_OFFSET_X,
       HP_BAR_OFFSET_Y,
       HP_BAR_PANEL_WIDTH,
-      HP_BAR_HEIGHT,
+      HP_BAR_PANEL_HEIGHT,
       radius,
     );
 
@@ -290,7 +291,7 @@ export class InfoPanel {
         TEXT_OFFSET_X + 1,
         HP_BAR_OFFSET_Y + 1,
         fillWidth,
-        HP_BAR_HEIGHT - 2,
+        HP_BAR_PANEL_HEIGHT - 2,
         radius,
       );
     }

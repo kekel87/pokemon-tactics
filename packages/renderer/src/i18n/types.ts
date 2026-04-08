@@ -149,6 +149,7 @@ export interface Translations {
   "credits.disclaimer": string;
   "credits.sprites": string;
   "credits.tileset": string;
+  "credits.font": string;
   "credits.code": string;
   "credits.back": string;
   "log.title": string;

@@ -1,6 +1,7 @@
 import type { BattleState, PokemonDefinition, PokemonInstance } from "@pokemon-tactic/core";
 import {
   DEPTH_TIMELINE,
+  FONT_FAMILY,
   getTeamColorByPlayerId,
   PORTRAIT_SIZE,
   STATUS_ASSET_KEY,
@@ -152,9 +153,9 @@ export class TurnTimeline {
     this.entries.push(line);
 
     const label = this.scene.add.text(centerX, lineY, `${roundNumber}`, {
-      fontSize: "13px",
+      fontSize: "20px",
       color: "#ffdd44",
-      fontFamily: "monospace",
+      fontFamily: FONT_FAMILY,
       fontStyle: "bold",
       backgroundColor: "#1a1a2e",
       padding: { x: 4, y: 1 },
