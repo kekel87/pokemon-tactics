@@ -4,21 +4,19 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Bugs
 
-### Confusion wobble post-KO
-- **Source** : observation interne
-- **Description** : un Pokemon confus qui est KO continue à osciller (tween confusion non stoppé dans `playFaintAndStay`)
-- **Statut** : ouvert
+*(rien d'ouvert)*
 
 ## Feedback visuel
 
-### Distinguer alliés et ennemis sur la grille
-- **Source** : playtest proche (2026-04-07)
-- **Description** : pas assez clair visuellement qui est allié et qui est ennemi
-- **Suggestion** : contour du carré vert fluo pour les alliés, rouge fluo pour les ennemis
-- **Question ouverte** : couleurs par équipe (utile en hot-seat multi-équipes) ou simplification alliés/ennemis relatif au joueur actif ?
-- **Statut** : ouvert
+*(rien d'ouvert)*
 
 ## Résolus
+
+### ~~Confusion wobble post-KO~~ (commit a0b0c0a)
+- Tween confusion stoppé dans `playFaintAndStay`
+
+### ~~Distinguer alliés et ennemis sur la grille~~ (plan 042)
+- HP bars, InfoPanel, Timeline et BattleLog colorisés par couleur d'équipe (12 couleurs, `TEAM_COLORS` dans constants.ts)
 
 ### ~~Pas d'écran de victoire en mode IA vs IA~~ (plan 042)
 - Fix dans `GameController.ts` — le flow BattleEnded → showVictory fonctionne désormais en mode spectateur IA vs IA

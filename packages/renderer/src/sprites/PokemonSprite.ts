@@ -304,6 +304,7 @@ export class PokemonSprite {
 
   playFaintAndStay(): Promise<void> {
     this.setActive(false);
+    this.setConfusionWobble(false);
     if (this.statusIcon) {
       this.statusIcon.destroy();
       this.statusIcon = null;
