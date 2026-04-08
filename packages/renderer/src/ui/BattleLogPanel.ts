@@ -11,13 +11,14 @@ import {
   BATTLE_LOG_WIDTH,
   CANVAS_WIDTH,
   DEPTH_BATTLE_LOG,
+  FONT_FAMILY,
   REPLAY_BUTTON_DISABLED_COLOR,
   TEXT_COLOR_SECONDARY,
 } from "../constants";
 import { t } from "../i18n";
 import type { BattleLogEntry } from "./BattleLogFormatter";
 
-const HEADER_FONT_SIZE = 13;
+const HEADER_FONT_SIZE = 20;
 const REPLAY_BUTTON_LABELS = ["|◁", "◁◁", "▷", "▷▷", "▷|"];
 const COLLAPSED_SIZE = 32;
 const MARGIN = 8;
@@ -121,7 +122,7 @@ export class BattleLogPanel {
       .text(this.x + BATTLE_LOG_PADDING, this.y + 6, t("log.title"), {
         fontSize: `${HEADER_FONT_SIZE}px`,
         color: TEXT_COLOR_SECONDARY,
-        fontFamily: "monospace",
+        fontFamily: FONT_FAMILY,
       })
       .setDepth(DEPTH_BATTLE_LOG + 1);
 
@@ -129,7 +130,7 @@ export class BattleLogPanel {
       .text(this.x + BATTLE_LOG_WIDTH - BATTLE_LOG_PADDING, this.y + 6, "☰", {
         fontSize: `${HEADER_FONT_SIZE}px`,
         color: TEXT_COLOR_SECONDARY,
-        fontFamily: "monospace",
+        fontFamily: FONT_FAMILY,
       })
       .setOrigin(1, 0)
       .setDepth(DEPTH_BATTLE_LOG + 1);
@@ -160,7 +161,7 @@ export class BattleLogPanel {
         .text(this.x + textOffsetX, lineY, "", {
           fontSize: `${BATTLE_LOG_FONT_SIZE}px`,
           color: "#ffffff",
-          fontFamily: "monospace",
+          fontFamily: FONT_FAMILY,
           wordWrap: { width: BATTLE_LOG_WIDTH - textOffsetX - BATTLE_LOG_PADDING },
         })
         .setDepth(DEPTH_BATTLE_LOG + 1)
@@ -183,9 +184,9 @@ export class BattleLogPanel {
           actionsY + BATTLE_LOG_ACTIONS_HEIGHT / 2,
           REPLAY_BUTTON_LABELS[i] ?? "",
           {
-            fontSize: "14px",
+            fontSize: "22px",
             color: REPLAY_BUTTON_DISABLED_COLOR,
-            fontFamily: "monospace",
+            fontFamily: FONT_FAMILY,
           },
         )
         .setOrigin(0.5)
@@ -206,9 +207,9 @@ export class BattleLogPanel {
 
     this.collapsedIcon = this.scene.add
       .text(collapsedX + COLLAPSED_SIZE / 2, this.y + COLLAPSED_SIZE / 2, "☰", {
-        fontSize: "16px",
+        fontSize: "24px",
         color: TEXT_COLOR_SECONDARY,
-        fontFamily: "monospace",
+        fontFamily: FONT_FAMILY,
       })
       .setOrigin(0.5)
       .setDepth(DEPTH_BATTLE_LOG + 1);

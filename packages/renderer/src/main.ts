@@ -19,6 +19,7 @@ const config: Phaser.Types.Core.GameConfig = {
   width: CANVAS_WIDTH,
   height: CANVAS_HEIGHT,
   backgroundColor: BACKGROUND_COLOR,
+  roundPixels: true,
   parent: "game-container",
   scene: sandboxBootConfig.enabled
     ? [TeamSelectScene, BattleScene, BattleUIScene]

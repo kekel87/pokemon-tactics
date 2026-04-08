@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-07
+> Dernière mise à jour : 2026-04-08
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -597,9 +597,20 @@
   - **CreditsScene + i18n FR/EN** : crédit Jao (ICON Isometric Pack) ajouté
   - **asset-manager.md** : géométrie ICON, paramètres PixelLab (view angle 30°, depth ratio 0.5), bonnes pratiques prompts, workflow pilote → style_images
 
+- **Plan 044 terminé** — Mode pixel art + police Pokemon Emerald Pro :
+  - **`roundPixels: true`** dans la config Phaser (aligne les sprites sur les pixels entiers sans affecter le texte) — `pixelArt: true` écarté car il applique NEAREST aux textures de texte (BitmapText), les rendant flous
+  - **`setFilter(NEAREST)` restauré manuellement** sur les textures tileset (`BattleScene`) et sprites Pokemon (`PokemonSprite`)
+  - **Suppression de `applyPortraitFilters()`** — sans `pixelArt: true`, les portraits restent en LINEAR par défaut
+  - **Suppression POKEMON_SPRITE_SCALE=2 et TILE_SPRITE_SCALE=2** (désormais 1), tiles réduites à 32×16 (était 64×32), zoom doublé en compensation (`ZOOM_LEVELS` ×2)
+  - **HP bars sprites** : `HP_BAR_HEIGHT=2`, pas de padding interne, fill pleine hauteur + stroke extérieur ; `HP_BAR_PANEL_HEIGHT=6` dans l'InfoPanel (découplé)
+  - **Flèches de direction** : `ARROW_SCALE` 0.7→0.35, `SPREAD` 22→11, `VERTICAL_OFFSET` -30→-15 (divisés par 2 avec le reste des constantes world-space)
+  - **Tailles de police augmentées ~50–80%** dans tous les fichiers UI pour compenser le rendu plus petit de la police pixel
+  - **Constante `FONT_FAMILY`** dans `constants.ts` : valeur `"Pokemon Emerald Pro, monospace"` — remplace toutes les occurrences hardcodées `"monospace"` (14 fichiers)
+  - **`@font-face` CSS** déclaré WOFF2 + TTF fallback (WOFF2 a des problèmes CFF sur certains navigateurs) — **fichier non encore téléchargé** : `public/assets/fonts/pokemon-emerald-pro.ttf` manquant, fallback `monospace` actif
+  - **Toutes les constantes world-space** divisées par 2 (HP bars, tailles de texte, offsets) pour correspondre aux nouvelles dimensions de grille
+
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
-- Supprimer POKEMON_SPRITE_SCALE=2 + TILE_SPRITE_SCALE=2, rattraper offsets, ajuster zoom (uniformiser la résolution pixel)
-- Mode pixelArt Phaser (antialias off, roundPixels, police adaptée, portraits)
+- Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (fichier TTF manquant — @font-face déjà en place)
 - Dénivelés (hauteur tiles) + dégâts de chute
 - Obstacles + line of sight
 

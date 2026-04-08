@@ -147,6 +147,8 @@ const en: Translations = {
     "Sprites: PMDCollab SpriteCollab — CC-BY-NC 4.0\nhttps://sprites.pmdcollab.org",
   "credits.tileset":
     "Tileset: ICON Isometric Pack by Jao\nhttps://jaofazjogos.itch.io/iconisometricpack",
+  "credits.font":
+    'Font: "Pokémon Emerald Pro" by crystalwalrein — CC-BY-SA 3.0\nhttps://fontstruct.com/fontstructions/show/832818',
   "credits.code": "Code: developed with the assistance of Claude (Anthropic)",
   "credits.back": "Back",
   "log.title": "Battle Log",

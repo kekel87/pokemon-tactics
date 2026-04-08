@@ -5,6 +5,7 @@ import {
   BATTLE_TEXT_STROKE_COLOR,
   BATTLE_TEXT_STROKE_WIDTH,
   DEPTH_BATTLE_TEXT,
+  FONT_FAMILY,
 } from "../constants";
 
 export interface BattleTextOptions {
@@ -29,6 +30,7 @@ export function showBattleText(
   } = options;
 
   const textObject = scene.add.text(x, y + offsetY, text, {
+    fontFamily: FONT_FAMILY,
     fontSize: `${fontSize}px`,
     color,
     stroke: BATTLE_TEXT_STROKE_COLOR,

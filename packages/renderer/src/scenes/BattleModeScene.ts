@@ -6,6 +6,7 @@ import {
   BUTTON_DISABLED_COLOR,
   BUTTON_HOVER_COLOR,
   CANVAS_WIDTH,
+  FONT_FAMILY,
   TEXT_COLOR_PRIMARY,
 } from "../constants";
 import { t } from "../i18n";
@@ -28,8 +29,8 @@ export class BattleModeScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, TITLE_Y, t("battleMode.title"), {
-        fontSize: "28px",
-        fontFamily: "monospace",
+        fontSize: "36px",
+        fontFamily: FONT_FAMILY,
         color: TEXT_COLOR_PRIMARY,
       })
       .setOrigin(0.5, 0.5);
@@ -58,8 +59,8 @@ export class BattleModeScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, y, t(key), {
-        fontSize: "18px",
-        fontFamily: "monospace",
+        fontSize: "24px",
+        fontFamily: FONT_FAMILY,
         color: disabled ? "#555566" : "#ffffff",
       })
       .setOrigin(0.5, 0.5);
@@ -81,8 +82,8 @@ export class BattleModeScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, BACK_BUTTON_Y, t("battleMode.back"), {
-        fontSize: "18px",
-        fontFamily: "monospace",
+        fontSize: "24px",
+        fontFamily: FONT_FAMILY,
         color: TEXT_COLOR_PRIMARY,
       })
       .setOrigin(0.5, 0.5);

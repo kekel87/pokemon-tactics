@@ -10,9 +10,9 @@ const ARROW_FRAMES: Record<Direction, number> = {
   [Direction.South]: YELLOW_ROW * COLS_PER_ROW + 4, // ↙ SW
   [Direction.West]: YELLOW_ROW * COLS_PER_ROW + 5, // ↖ NW
 };
-const ARROW_SCALE = 0.7;
-const SPREAD = 22;
-const VERTICAL_OFFSET = -30;
+const ARROW_SCALE = 0.35;
+const SPREAD = 11;
+const VERTICAL_OFFSET = -15;
 
 const ARROW_POSITIONS: Record<Direction, { x: number; y: number }> = {
   [Direction.North]: { x: SPREAD, y: VERTICAL_OFFSET - SPREAD / 2 },

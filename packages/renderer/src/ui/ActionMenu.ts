@@ -12,6 +12,7 @@ import {
   ACTION_MENU_WIDTH,
   ACTION_MENU_X,
   DEPTH_ACTION_MENU,
+  FONT_FAMILY,
   UI_BORDER_ALPHA,
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
@@ -153,9 +154,9 @@ export class ActionMenu {
 
     this.instructionText = this.scene.add
       .text(ACTION_MENU_X + ACTION_MENU_WIDTH / 2, menuTopY + headerHeight / 2, instruction, {
-        fontSize: "11px",
+        fontSize: "18px",
         color: "#ffdd44",
-        fontFamily: "monospace",
+        fontFamily: FONT_FAMILY,
         fontStyle: "bold",
       })
       .setOrigin(0.5, 0.5)
@@ -174,9 +175,9 @@ export class ActionMenu {
 
     const nameText = this.scene.add
       .text(ACTION_MENU_X + 34, centerY, getMoveName(move.definition.id, getLanguage()), {
-        fontSize: "12px",
+        fontSize: "20px",
         color: "#ffffff",
-        fontFamily: "monospace",
+        fontFamily: FONT_FAMILY,
       })
       .setOrigin(0, 0.5)
       .setDepth(DEPTH_ACTION_MENU + 2);
@@ -188,9 +189,9 @@ export class ActionMenu {
         centerY,
         `${move.currentPp}/${move.definition.pp}`,
         {
-          fontSize: "11px",
+          fontSize: "18px",
           color: "#aaaaaa",
-          fontFamily: "monospace",
+          fontFamily: FONT_FAMILY,
         },
       )
       .setOrigin(1, 0.5)
@@ -258,9 +259,9 @@ export class ActionMenu {
 
     const text = this.scene.add
       .text(ACTION_MENU_X + 12, y + ACTION_MENU_ITEM_HEIGHT / 2, entry.label, {
-        fontSize: "13px",
+        fontSize: "20px",
         color: textColor,
-        fontFamily: "monospace",
+        fontFamily: FONT_FAMILY,
       })
       .setOrigin(0, 0.5)
       .setAlpha(alpha)
@@ -324,9 +325,9 @@ export class ActionMenu {
 
     const nameText = this.scene.add
       .text(nameX, centerY, getMoveName(move.definition.id, getLanguage()), {
-        fontSize: "12px",
+        fontSize: "20px",
         color: "#ffffff",
-        fontFamily: "monospace",
+        fontFamily: FONT_FAMILY,
         maxLines: 1,
       })
       .setOrigin(0, 0.5)
@@ -345,9 +346,9 @@ export class ActionMenu {
         centerY,
         `${move.currentPp}/${move.definition.pp}`,
         {
-          fontSize: "11px",
+          fontSize: "18px",
           color: "#aaaaaa",
-          fontFamily: "monospace",
+          fontFamily: FONT_FAMILY,
         },
       )
       .setOrigin(1, 0.5)

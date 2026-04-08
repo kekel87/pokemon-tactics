@@ -15,7 +15,7 @@ Le jeu fusionne l'univers Pokemon avec le gameplay de Final Fantasy Tactics Adva
 
 - **Dark mode intégral** : fond bleu nuit profond (`#1a1a2e`), panneaux UI quasi-noirs avec une teinte bleu-violet (`#111122`). Aucune surface claire. Le contraste vient des sprites colorés et des accents.
 - **Esthétique "terminal de combat"** : police monospace exclusive, panneaux rectangulaires avec coins arrondis subtils (4-6px), bordures fines blanches semi-transparentes. L'UI rappelle un HUD militaire ou un overlay de données sur le champ de bataille.
-- **Sprites pixel art PMDCollab** : sprites Pokemon Mystery Dungeon (Idle/Walk/Attack/Hurt/Faint), scale x2 pour la lisibilité. Portraits carrés dans les panneaux. Les sprites sont le seul élément visuellement "chaud" du jeu — tout le reste est sobre.
+- **Sprites pixel art PMDCollab** : sprites Pokemon Mystery Dungeon (Idle/Walk/Attack/Hurt/Faint), rendu via zoom caméra (plus de `POKEMON_SPRITE_SCALE` hardcodé depuis plan 044), filtre NEAREST appliqué manuellement. Portraits carrés dans les panneaux (filtre LINEAR). Les sprites sont le seul élément visuellement "chaud" du jeu — tout le reste est sobre.
 
 ### Structure des écrans
 
@@ -34,9 +34,17 @@ Le jeu fusionne l'univers Pokemon avec le gameplay de Final Fantasy Tactics Adva
 
 **Victoire** : overlay semi-transparent noir sur la scène de combat, texte doré "Player X wins!" centré, bouton vert "Restart".
 
+### Mode pixel art
+
+Depuis le plan 044, Phaser est configuré avec `roundPixels: true` pour aligner les sprites sur les pixels entiers sans affecter le rendu du texte. Le filtre `NEAREST` est appliqué **manuellement** sur les textures pixel art uniquement : tileset (dans `BattleScene`) et sprites Pokemon (dans `PokemonSprite`).
+
+`pixelArt: true` a été **écarté** : il applique NEAREST à toutes les textures, y compris les textures de texte (BitmapText), ce qui les rend flous — décision #220.
+
+Les **portraits** restent en filtre `LINEAR` par défaut (haute résolution, pas de filtre NEAREST). Les appels `applyPortraitFilters()` ont été supprimés — inutiles sans `pixelArt: true`.
+
 ### Grille isométrique
 
-La grille est le coeur visuel du jeu. Projection isométrique classique (losanges 64x32px). Tiles vertes unies sans texture (POC), contours vert foncé fins. La grille flotte sur le fond sombre, ce qui crée naturellement une scène de "plateau de jeu".
+La grille est le coeur visuel du jeu. Projection isométrique classique (losanges 32×16px world-space, rendu par zoom caméra). Tiles texturées ICON Isometric Pack (Jao), filtre NEAREST appliqué manuellement via `setFilter(NEAREST)` dans `BattleScene`. La grille flotte sur le fond sombre, ce qui crée naturellement une scène de "plateau de jeu".
 
 Les overlays de grille utilisent des couleurs semi-transparentes superposées aux tiles :
 - **Bleu** = allié, possibilité, buff (déplacement, zone de buff)
@@ -70,12 +78,12 @@ L'information la plus importante est toujours la plus visible :
 
 ### Ce qui n'est PAS encore défini
 
-- Tileset : actuellement des losanges verts unis, pas de texture ni de variation de terrain
 - Animations d'attaque : pas de particules, pas d'effets visuels par type
 - Son / musique : aucun asset audio
 - Scaling des sprites par taille Pokemon : tous les sprites ont la même taille
 - Décors / éléments de map : aucun élément décoratif
-- Logo : le titre est du texte monospace doré, pas de logo graphique
+- Logo : le titre est du texte doré, pas de logo graphique
+- Police Pokemon Emerald Pro : `@font-face` déclaré, mais le fichier TTF (`public/assets/fonts/pokemon-emerald-pro.ttf`) n'est pas encore intégré — fallback `monospace` actif
 
 ---
 
@@ -149,11 +157,15 @@ Usage : InfoPanel (fond), TurnTimeline (pastilles), BattleLogPanel (dot d'équip
 
 La couleur de la HP bar est celle de l'équipe du Pokemon (`TEAM_COLORS[playerIndex]`). Le gradient vert/jaune/rouge a été remplacé en plan 042 pour améliorer la lisibilité en combat multi-équipes — décision #216.
 
+Deux constantes de hauteur distinctes depuis le plan 044 :
+- **`HP_BAR_HEIGHT = 2`** : barre HP sur les sprites en world-space (sans padding interne, le fill couvre toute la hauteur, contour via stroke)
+- **`HP_BAR_PANEL_HEIGHT = 6`** : barre HP dans l'InfoPanel (plus grande pour la lisibilité UI)
+
 | Couleur | Hex | Usage |
 |---------|-----|-------|
 | Couleur d'équipe | `TEAM_COLORS[playerIndex]` | Barre HP active |
 | Gris fond | `#222222` / `0x222222` | Fond de la barre (alpha 0.9) |
-| Noir bordure | `#000000` / `0x000000` | Bordure de la barre |
+| Noir bordure | `#000000` / `0x000000` | Bordure de la barre (stroke extérieur) |
 
 ### Estimation de dégâts
 
@@ -285,14 +297,16 @@ La preview de dégâts est affichée en noir semi-transparent depuis le plan 042
 
 ## Typographie
 
+La police est centralisée dans la constante `FONT_FAMILY = "Pokemon Emerald Pro, monospace"` dans `constants.ts`. Tous les textes Phaser utilisent cette constante. Le fichier TTF `public/assets/fonts/pokemon-emerald-pro.ttf` n'est pas encore intégré — la police se rabat sur `monospace` en attendant.
+
 | Usage | Font | Taille | Couleur |
 |-------|------|--------|---------|
-| Texte UI général | `monospace` | 11–16px | `#ffffff` / `#cccccc` |
-| Titre menu | `monospace` | 24px | `#ffcc00` (doré) |
-| Sous-titre menu | `monospace` | 10–12px | `#aaaaaa` / `#666666` |
-| Battle text | `monospace` | 14px | variable (voir section) |
-| Battle log | `monospace` | 12px | variable (voir section) |
-| Damage estimate | `monospace` | 13px | `#ffffff` (stroke `#000000` 3px) |
+| Texte UI général | `FONT_FAMILY` | 11–16px | `#ffffff` / `#cccccc` |
+| Titre menu | `FONT_FAMILY` | 24px | `#ffcc00` (doré) |
+| Sous-titre menu | `FONT_FAMILY` | 10–12px | `#aaaaaa` / `#666666` |
+| Battle text | `FONT_FAMILY` | 14px | variable (voir section) |
+| Battle log | `FONT_FAMILY` | 12px | variable (voir section) |
+| Damage estimate | `FONT_FAMILY` | 13px | `#ffffff` (stroke `#000000` 3px) |
 
 ---
 
@@ -323,5 +337,6 @@ La preview de dégâts est affichée en noir semi-transparent depuis le plan 042
 2. **Accent doré** : le jaune `#ffdd44` est l'accent principal (curseur, titre menu, bordure active, timeline active).
 3. **Sémantique rouge/bleu** : rouge = danger/ennemi/attaque, bleu = allié/buff/déplacement. Cohérent dans toute l'UI.
 4. **Orange = menace ennemie** : overlay spécifique pour distinguer la portée ennemie des zones d'attaque.
-5. **Texte monospace** : police unique `monospace` partout, cohérent avec l'esthétique pixel/rétro.
+5. **Police `FONT_FAMILY`** : constante centrale, cible Pokemon Emerald Pro avec fallback `monospace`. Cohérent avec l'esthétique pixel/rétro.
 6. **Alphas semi-transparents** : les overlays de grille utilisent des alphas 0.3–0.5 pour rester lisibles sans cacher la carte.
+7. **Pixel art sélectif** : `roundPixels: true` dans Phaser aligne les sprites sur les pixels entiers. Filtre NEAREST appliqué manuellement sur tileset et sprites Pokemon. Texte et portraits restent en filtre LINEAR.

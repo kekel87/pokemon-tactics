@@ -1,4 +1,4 @@
-import { BACKGROUND_COLOR, CANVAS_WIDTH } from "../constants";
+import { BACKGROUND_COLOR, CANVAS_WIDTH, FONT_FAMILY } from "../constants";
 import { t } from "../i18n";
 
 const TITLE_Y = 140;
@@ -16,8 +16,8 @@ export class CreditsScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, TITLE_Y, t("credits.title"), {
-        fontSize: "28px",
-        fontFamily: "monospace",
+        fontSize: "36px",
+        fontFamily: FONT_FAMILY,
         color: "#ffffff",
       })
       .setOrigin(0.5, 0.5);
@@ -26,8 +26,8 @@ export class CreditsScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, y, t("credits.disclaimer"), {
-        fontSize: "13px",
-        fontFamily: "monospace",
+        fontSize: "16px",
+        fontFamily: FONT_FAMILY,
         color: "#cccccc",
         align: "center",
         lineSpacing: 6,
@@ -42,8 +42,8 @@ export class CreditsScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, y, t("credits.sprites"), {
-        fontSize: "13px",
-        fontFamily: "monospace",
+        fontSize: "16px",
+        fontFamily: FONT_FAMILY,
         color: "#aaaacc",
         align: "center",
         lineSpacing: 6,
@@ -54,8 +54,20 @@ export class CreditsScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, y, t("credits.tileset"), {
-        fontSize: "13px",
-        fontFamily: "monospace",
+        fontSize: "16px",
+        fontFamily: FONT_FAMILY,
+        color: "#aaaacc",
+        align: "center",
+        lineSpacing: 6,
+      })
+      .setOrigin(0.5, 0);
+
+    y += 50;
+
+    this.add
+      .text(CANVAS_WIDTH / 2, y, t("credits.font"), {
+        fontSize: "16px",
+        fontFamily: FONT_FAMILY,
         color: "#aaaacc",
         align: "center",
         lineSpacing: 6,
@@ -66,8 +78,8 @@ export class CreditsScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, y, t("credits.code"), {
-        fontSize: "13px",
-        fontFamily: "monospace",
+        fontSize: "16px",
+        fontFamily: FONT_FAMILY,
         color: "#aaaacc",
         align: "center",
       })
@@ -87,8 +99,8 @@ export class CreditsScene extends Phaser.Scene {
 
     this.add
       .text(CANVAS_WIDTH / 2, y, t("credits.back"), {
-        fontSize: "18px",
-        fontFamily: "monospace",
+        fontSize: "24px",
+        fontFamily: FONT_FAMILY,
         color: "#ffffff",
       })
       .setOrigin(0.5, 0.5);
