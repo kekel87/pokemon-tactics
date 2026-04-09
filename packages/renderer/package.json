@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "dev:sandbox": "node scripts/sandbox.js",
+    "dev:map": "node scripts/map-preview.js",
     "build": "vite build",
     "typecheck": "tsc --noEmit"
   },

@@ -7,6 +7,7 @@ import { EffectTarget } from "../enums/effect-target";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
+import { isTerrainPassable } from "../enums/terrain-type";
 import { Grid } from "../grid/Grid";
 import { resolveTargeting } from "../grid/targeting";
 import type { Action, ActionResult } from "../types/action";
@@ -485,7 +486,7 @@ export class BattleEngine {
         break;
       }
       const tile = this.grid.getTile(next);
-      if (!tile || !tile.isPassable) {
+      if (!tile || !isTerrainPassable(tile.terrain)) {
         break;
       }
       const occupant = tile.occupantId;
@@ -713,7 +714,7 @@ export class BattleEngine {
           continue;
         }
 
-        if (!neighbor.isPassable) {
+        if (!isTerrainPassable(neighbor.terrain)) {
           continue;
         }
 
@@ -802,7 +803,7 @@ export class BattleEngine {
       }
 
       const tile = this.grid.getTile(step);
-      if (!tile || !tile.isPassable) {
+      if (!tile || !isTerrainPassable(tile.terrain)) {
         return ActionError.ImpassableTile;
       }
 

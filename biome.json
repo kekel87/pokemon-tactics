@@ -227,12 +227,15 @@
         "rules": {
           "correctness": {
             "noUndeclaredVariables": "off"
+          },
+          "suspicious": {
+            "noConsole": "warn"
           }
         }
       }
     },
     {
-      "includes": ["vite.config.ts", "vitest.config.ts", "*.config.mjs"],
+      "includes": ["vite.config.ts", "vitest.config.ts", "*.config.mjs", "**/scripts/**"],
       "linter": {
         "rules": {
           "suspicious": {

@@ -57,3 +57,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 042 | [Bugfixes et feedback playtest](./042-bugfixes-feedback-session.md) | done | 2026-04-07 |
 | 043 | [Tileset arène Pokemon + intégration renderer](./043-arena-tileset-renderer.md) | done | 2026-04-07 |
 | 044 | [Mode pixelArt global + police Pokemon Emerald Pro](./044-pixelart-mode-font.md) | done | 2026-04-08 |
+| 045 | [Format de carte Tiled + parser + validation + preview](./045-tiled-map-format-parser-validation-preview.md) | done | 2026-04-08 |

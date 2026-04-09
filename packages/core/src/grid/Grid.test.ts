@@ -12,12 +12,11 @@ describe("Grid", () => {
       expect(grid.height).toBe(12);
     });
 
-    it("should create tiles with normal passable terrain at height 0", () => {
+    it("should create tiles with normal terrain at height 0", () => {
       const grid = Grid.createFlat(4, 4);
       const tile = grid.getTile({ x: 2, y: 3 });
       expect(tile).not.toBeNull();
       expect(tile?.terrain).toBe(TerrainType.Normal);
-      expect(tile?.isPassable).toBe(true);
       expect(tile?.height).toBe(0);
       expect(tile?.occupantId).toBeNull();
     });

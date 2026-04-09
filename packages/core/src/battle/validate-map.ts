@@ -1,3 +1,4 @@
+import { isTerrainPassable } from "../enums/terrain-type";
 import type { MapDefinition } from "../types/map-definition";
 import type { ValidationResult } from "./validate";
 
@@ -65,9 +66,9 @@ export function validateMapDefinition(map: MapDefinition): ValidationResult {
 
         const row = map.tiles[position.y];
         const tile = row?.[position.x];
-        if (tile && !tile.isPassable) {
+        if (tile && !isTerrainPassable(tile.terrain)) {
           errors.push(
-            `Format ${format.teamCount}p zone ${zoneIndex} has impassable position (${position.x}, ${position.y})`,
+            `Format ${format.teamCount}p zone ${zoneIndex} has impassable terrain "${tile.terrain}" at position (${position.x}, ${position.y})`,
           );
         }
 

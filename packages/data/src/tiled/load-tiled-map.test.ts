@@ -1,0 +1,101 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { TerrainType } from "@pokemon-tactic/core";
+import { describe, expect, it } from "vitest";
+import { parseTiledMap } from "./parse-tiled-map";
+import type { TiledMap } from "./tiled-types";
+import { validateTiledMap } from "./validate-tiled-map";
+
+const testArenaPath = resolve(__dirname, "../../../renderer/public/assets/maps/test-arena.tmj");
+
+function loadTestArena(): TiledMap {
+  const raw = readFileSync(testArenaPath, "utf-8");
+  return JSON.parse(raw) as TiledMap;
+}
+
+describe("test-arena.tmj", () => {
+  it("parses into a valid MapDefinition", () => {
+    const result = parseTiledMap(loadTestArena());
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.map.id).toBe("test-arena");
+    expect(result.map.name).toBe("Test Arena");
+    expect(result.map.width).toBe(12);
+    expect(result.map.height).toBe(20);
+  });
+
+  it("has correct tile dimensions", () => {
+    const result = parseTiledMap(loadTestArena());
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.map.tiles).toHaveLength(20);
+    expect(result.map.tiles[0]).toHaveLength(12);
+
+    for (const row of result.map.tiles) {
+      for (const tile of row!) {
+        expect(tile.terrain).toBe(TerrainType.Normal);
+        expect(tile.height).toBe(0);
+        expect(tile.occupantId).toBeNull();
+      }
+    }
+  });
+
+  it("has 2-team format with 16 spawns per team", () => {
+    const result = parseTiledMap(loadTestArena());
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.map.formats).toHaveLength(1);
+    const format = result.map.formats[0]!;
+    expect(format.teamCount).toBe(2);
+    expect(format.spawnZones).toHaveLength(2);
+    expect(format.spawnZones[0]!.positions).toHaveLength(16);
+    expect(format.spawnZones[1]!.positions).toHaveLength(16);
+  });
+
+  it("spawn positions have correct col range (2-9)", () => {
+    const result = parseTiledMap(loadTestArena());
+    if (!result.ok) {
+      return;
+    }
+
+    for (const zone of result.map.formats[0]!.spawnZones) {
+      const xValues = new Set(zone.positions.map((p) => p.x));
+      expect(xValues).toEqual(new Set([2, 3, 4, 5, 6, 7, 8, 9]));
+    }
+  });
+
+  it("spawn positions have 16 per team", () => {
+    const result = parseTiledMap(loadTestArena());
+    if (!result.ok) {
+      return;
+    }
+
+    for (const zone of result.map.formats[0]!.spawnZones) {
+      expect(zone.positions).toHaveLength(16);
+      for (const pos of zone.positions) {
+        expect(pos.x).toBeGreaterThanOrEqual(0);
+        expect(pos.x).toBeLessThan(result.map.width);
+        expect(pos.y).toBeGreaterThanOrEqual(0);
+        expect(pos.y).toBeLessThan(result.map.height);
+      }
+    }
+  });
+
+  it("passes validation", () => {
+    const result = parseTiledMap(loadTestArena());
+    if (!result.ok) {
+      return;
+    }
+
+    const validation = validateTiledMap(result.map);
+    expect(validation.valid).toBe(true);
+    expect(validation.errors).toHaveLength(0);
+  });
+});

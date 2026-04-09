@@ -4,11 +4,23 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Bugs
 
-*(rien d'ouvert)*
+### Police WOFF2 corrompue
+- `public/assets/fonts/pokemon-emerald-pro.woff2` : problème CFF sur certains navigateurs — le TTF fallback fonctionne
+- Fix mineur : re-générer le WOFF2 ou supprimer la déclaration WOFF2 du `@font-face` pour éviter la tentative de chargement
 
 ## Feedback visuel
 
 *(rien d'ouvert)*
+
+## Tâches futures identifiées (hors backlog actif)
+
+### Marquages d'arène → tiles Tiled
+- Les overlay Graphics (pokeball centrale, lignes latérales) devraient être des tiles Tiled dans le layer `decorations`, pas des Graphics Phaser dessinés au runtime
+- À traiter dans un plan dédié (après tileset custom)
+
+### Tileset custom pour remplacer les tiles JAO
+- Les tiles ICON Isometric Pack (Jao) sont libres mais limitées — un tileset custom permettrait d'améliorer la lisibilité tactique
+- À planifier après implémentation du rendu des dénivelés (height rendering)
 
 ## Résolus
 

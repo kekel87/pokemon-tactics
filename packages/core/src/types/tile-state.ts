@@ -6,5 +6,4 @@ export interface TileState {
   height: number;
   terrain: TerrainType;
   occupantId: string | null;
-  isPassable: boolean;
 }

@@ -87,7 +87,8 @@ pokemon-tactics/
 │   │
 │   ├── renderer/                # Interface graphique (Phaser 4)
 │   │   ├── src/
-│   │   │   ├── scenes/          # Scènes Phaser : MainMenuScene → BattleModeScene → TeamSelectScene → BattleScene + BattleUIScene overlay ; SettingsScene, CreditsScene
+│   │   │   ├── scenes/          # Scènes Phaser : MainMenuScene → BattleModeScene → TeamSelectScene → BattleScene + BattleUIScene overlay ; SettingsScene, CreditsScene ; MapPreviewScene (pnpm dev:map)
+│   │   │   ├── maps/            # Chargement de cartes Tiled au runtime (loadTiledMap)
 │   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue, DummyAiController)
 │   │   │   ├── grid/            # Rendu isométrique (IsometricGrid : highlightGraphics, enemyRangeGraphics layer dédié, curseur animé)
 │   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
@@ -102,7 +103,8 @@ pokemon-tactics/
 │   │   ├── public/
 │   │   │   └── assets/
 │   │   │       ├── sprites/pokemon/{name}/  # atlas.json, atlas.png, portrait-normal.png, credits.txt, offsets.json (générés)
-│   │   │       ├── tilesets/               # Tiles isométriques : ICON Isometric Pack (Jao), 32×32px, filtre NEAREST, scale ×2
+│   │   │       ├── tilesets/terrain/        # Tiles isométriques : ICON Isometric Pack (Jao), 32×32px, filtre NEAREST ; icon-tileset.tsj (tileset externe Tiled)
+│   │   │       ├── maps/                    # Cartes Tiled (.tmj) servies au runtime (ex: test-arena.tmj)
 │   │   │       └── ui/
 │   │   │           ├── arrows.png           # Spritesheet flèches DirectionPicker
 │   │   │           ├── types/               # Type icons Pokepedia ZA (Légendes Pokémon Z-A) : {type}.png, 36x36px sans texte (18 types)
@@ -117,8 +119,18 @@ pokemon-tactics/
 │       ├── src/
 │       │   ├── base/            # Données officielles (Showdown/PokeAPI) — inclut Pokemon "Dummy" (Normal, stats 100/50x5, movepool défensif)
 │       │   ├── overrides/       # Surcharges tactiques + balance
+│       │   ├── maps/            # Cartes statiques TS (poc-arena 12×20, sandbox-arena 6×6)
+│       │   ├── tiled/           # Parser Tiled JSON → MapDefinition (plan 045)
+│       │   │   ├── tiled-types.ts          # Interfaces TiledMap, TiledLayer, TiledObject, TiledTileset, TiledTile, TiledProperty
+│       │   │   ├── tileset-resolver.ts     # resolveTileProperties(gid, tileset) → { terrain, height }
+│       │   │   ├── parse-terrain-layer.ts  # TiledLayer → TileState[][]
+│       │   │   ├── parse-spawns-layer.ts   # TiledLayer → MapFormat[] (pixel Tiled → coords grille)
+│       │   │   ├── parse-tiled-map.ts      # parseTiledMap(json) → ParseResult ({ map, warnings } | { errors })
+│       │   │   ├── validate-tiled-map.ts   # validateTiledMap : règles bloquantes (spawn passable, BFS connectivité) + warnings
+│       │   │   ├── load-tiled-map.ts       # loadTiledMap(url) → Promise<MapDefinition> (fetch + parse + validate)
+│       │   │   └── index.ts                # Barrel export
 │       │   ├── i18n/            # Noms localisés : moves.fr.json, moves.en.json, pokemon-names.fr.json, pokemon-names.en.json
-│       │   └── index.ts         # Exporte getMoveName(id, lang) et getPokemonName(id, lang)
+│       │   └── index.ts         # Exporte getMoveName(id, lang), getPokemonName(id, lang), parseTiledMap, loadTiledMap...
 │       ├── tsconfig.json        # extends ../../tsconfig.base.json
 │       └── package.json
 │
@@ -126,7 +138,8 @@ pokemon-tactics/
 │   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas Phaser (inclut Sleep depuis plan 018)
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
 │   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
-│   └── sprite-config.json       # Config extensible (Pokemon, animations dont Sleep, portraits)
+│   ├── sprite-config.json       # Config extensible (Pokemon, animations dont Sleep, portraits)
+│   └── map-preview.js           # Script Vite helper pour pnpm dev:map (injecte le chemin .tmj via env)
 ├── docs/
 │   ├── images/                  # Screenshots pour le README
 │   ├── plans/                   # Plans d'exécution numérotés (40 plans)

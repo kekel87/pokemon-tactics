@@ -31,7 +31,6 @@ export class Grid {
           height: 0,
           terrain: TerrainType.Normal,
           occupantId: null,
-          isPassable: true,
         });
       }
       tiles.push(row);
@@ -49,7 +48,6 @@ export class Grid {
     if (!this.isInBounds(position)) {
       return null;
     }
-    // Safe: isInBounds guarantees position.y and position.x are valid indices
     const row = this.tiles[position.y] as TileState[];
     return row[position.x] as TileState;
   }

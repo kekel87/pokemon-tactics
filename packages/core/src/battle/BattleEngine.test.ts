@@ -8,6 +8,7 @@ import { EffectKind } from "../enums/effect-kind";
 import { PlayerId } from "../enums/player-id";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
+import { TerrainType } from "../enums/terrain-type";
 import { MockBattle, MockPokemon } from "../testing";
 import { MockValidation } from "../testing/mock-validation";
 import type { BattleEvent } from "../types/battle-event";
@@ -171,7 +172,7 @@ describe("BattleEngine.getLegalActions", () => {
   it("excludes impassable tiles from reachable tiles", () => {
     const mover = fresh(P1, { id: "mover", position: { x: 0, y: 0 } });
     const state = MockBattle.stateFrom([mover, fresh(P2)], 5, 1);
-    MockBattle.setTile(state, 1, 0, { isPassable: false });
+    MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Obstacle });
     const engine = new BattleEngine(state, new Map());
 
     expect(
@@ -439,7 +440,7 @@ describe("BattleEngine.submitAction move", () => {
   it("rejects move through impassable tile", () => {
     const mover = fresh(P1, { id: "mover" });
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
-    MockBattle.setTile(state, 1, 0, { isPassable: false });
+    MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Obstacle });
     const engine = new BattleEngine(state, new Map());
 
     const result = engine.submitAction(PlayerId.Player1, {
