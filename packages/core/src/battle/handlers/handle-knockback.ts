@@ -1,11 +1,13 @@
 import { BattleEventType } from "../../enums/battle-event-type";
 import type { EffectKind } from "../../enums/effect-kind";
+import { PokemonType } from "../../enums/pokemon-type";
 import { StatusType } from "../../enums/status-type";
 import { Grid } from "../../grid/Grid";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import type { Position } from "../../types/position";
 import type { EffectContext } from "../effect-handler-registry";
+import { calculateFallDamage } from "../fall-damage";
 
 function getKnockbackDirection(
   attackerPos: Position,
@@ -67,6 +69,8 @@ export function handleKnockback(context: EffectContext): BattleEvent[] {
 
     if (destination) {
       const from = { ...target.position };
+      const fromTile = grid.getTile(from);
+      const destTile = grid.getTile(destination);
       grid.setOccupant(from, null);
       grid.setOccupant(destination, target.id);
       target.position = destination;
@@ -77,6 +81,33 @@ export function handleKnockback(context: EffectContext): BattleEvent[] {
         from,
         to: destination,
       });
+
+      const fromHeight = fromTile?.height ?? 0;
+      const destHeight = destTile?.height ?? 0;
+      const heightDiff = fromHeight - destHeight;
+      if (heightDiff > 0) {
+        const targetTypes = context.targetTypesMap.get(target.id) ?? [];
+        const isFlying = targetTypes.includes(PokemonType.Flying);
+        if (!isFlying) {
+          const fallDamage = calculateFallDamage(heightDiff, target.maxHp);
+          if (fallDamage > 0) {
+            target.currentHp = Math.max(0, target.currentHp - fallDamage);
+            events.push({
+              type: BattleEventType.FallDamageDealt,
+              pokemonId: target.id,
+              amount: fallDamage,
+              heightDiff,
+            });
+            if (target.currentHp <= 0) {
+              events.push({
+                type: BattleEventType.PokemonKo,
+                pokemonId: target.id,
+                countdownStart: 0,
+              });
+            }
+          }
+        }
+      }
 
       const hadTrapped = target.volatileStatuses.some((v) => v.type === StatusType.Trapped);
       if (hadTrapped) {

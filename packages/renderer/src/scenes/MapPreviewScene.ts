@@ -77,14 +77,14 @@ export class MapPreviewScene extends Phaser.Scene {
   }
 
   private renderMap(loaded: LoadedTiledMap): void {
-    const { map, terrainData, firstgid } = loaded;
+    const { map, elevationLayers, heightData, slopeData, firstgid } = loaded;
     this.currentMap = map;
     this.formatIndex = 0;
 
     this.uiScene?.setMapInfo(map.name, map.width, map.height);
 
     this.isometricGrid = new IsometricGrid(this, map.width, map.height);
-    this.isometricGrid.drawGridFromTileData(terrainData, firstgid);
+    this.isometricGrid.drawGridFromTileData(elevationLayers, firstgid, heightData, slopeData);
 
     this.renderCurrentFormat();
     this.setupCameraBounds(map.width, map.height);
@@ -135,8 +135,8 @@ export class MapPreviewScene extends Phaser.Scene {
     const isoTotalHeight = ((gridWidth + gridHeight) * TILE_HEIGHT) / 2;
     const offsetY = CANVAS_HEIGHT / 2 - isoTotalHeight / 2;
 
-    const marginX = isoTotalWidth / 2;
-    const marginY = isoTotalHeight / 2;
+    const marginX = Math.max(isoTotalWidth / 2, CANVAS_WIDTH);
+    const marginY = Math.max(isoTotalHeight / 2, CANVAS_HEIGHT);
 
     this.cameras.main.setBounds(
       offsetX - isoTotalWidth / 2 - marginX,
@@ -198,6 +198,10 @@ export class MapPreviewScene extends Phaser.Scene {
         const gridPos = grid.screenToGrid(pointer.worldX, pointer.worldY);
         if (gridPos) {
           grid.showCursor(gridPos.x, gridPos.y);
+          const height = grid.getTileHeight(gridPos.x, gridPos.y);
+          this.uiScene?.setCursorInfo(gridPos.x, gridPos.y, height);
+        } else {
+          this.uiScene?.clearCursorInfo();
         }
       });
     }

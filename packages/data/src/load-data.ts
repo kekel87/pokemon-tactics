@@ -35,6 +35,7 @@ export function loadData(): GameData {
       targeting: merged.targeting,
       effects: merged.effects,
       ...(merged.recharge ? { recharge: true } : {}),
+      ...(merged.ignoresHeight ? { ignoresHeight: true } : {}),
     };
     return moveDefinition;
   });

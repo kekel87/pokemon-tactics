@@ -14,4 +14,5 @@ export interface MoveDefinition {
   targeting: TargetingPattern;
   effects: Effect[];
   recharge?: boolean;
+  ignoresHeight?: boolean;
 }

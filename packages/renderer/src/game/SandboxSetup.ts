@@ -1,4 +1,9 @@
-import type { BaseStats, PlacementEntry, PlacementTeam } from "@pokemon-tactic/core";
+import type {
+  BaseStats,
+  MapDefinition,
+  PlacementEntry,
+  PlacementTeam,
+} from "@pokemon-tactic/core";
 import {
   computeCombatStats,
   Direction,
@@ -91,11 +96,13 @@ function applyDummyStats(
   }
 }
 
-export function createSandboxBattle(config: SandboxConfig): BattleSetupResult {
-  const map = sandboxArena;
+export function createSandboxBattle(
+  config: SandboxConfig,
+  map: MapDefinition = sandboxArena,
+): BattleSetupResult {
   const format = map.formats[0];
   if (!format) {
-    throw new Error("Sandbox arena has no formats defined");
+    throw new Error(`Map "${map.name}" has no formats defined`);
   }
 
   const playerPokemonId = `p1-${config.pokemon}`;
@@ -114,17 +121,17 @@ export function createSandboxBattle(config: SandboxConfig): BattleSetupResult {
     },
   ];
 
-  const playerSpawn = format.spawnZones[0]?.positions[0];
-  const dummySpawn = format.spawnZones[1]?.positions[0];
+  const playerSpawn = config.playerPosition ?? format.spawnZones[0]?.positions[0];
+  const dummySpawn = config.dummyPosition ?? format.spawnZones[1]?.positions[0];
   if (!playerSpawn || !dummySpawn) {
-    throw new Error("Sandbox arena: spawn zones missing");
+    throw new Error(`Map "${map.name}": spawn zones missing and no override provided`);
   }
 
   const placements: PlacementEntry[] = [
     {
       pokemonId: playerPokemonId,
       position: playerSpawn,
-      direction: Direction.North,
+      direction: config.playerDirection ?? Direction.North,
     },
     {
       pokemonId: dummyPokemonId,

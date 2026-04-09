@@ -22,6 +22,7 @@ export interface EffectContext {
   targetTypesMap: Map<string, PokemonType[]>;
   targetPosition: Position;
   random: RandomFn;
+  heightModifier: number;
 }
 
 export type EffectHandler = (context: EffectContext) => BattleEvent[];

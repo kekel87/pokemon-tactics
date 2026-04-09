@@ -96,6 +96,7 @@ function makeContext(
     attackerTypes: [PokemonType.Normal] as PokemonType[],
     targetTypesMap: new Map(targets.map((t) => [t.id, [PokemonType.Normal] as PokemonType[]])),
     random: () => Math.random(),
+    heightModifier: 1.0,
   };
 }
 
@@ -230,6 +231,8 @@ describe("processEffects — status", () => {
       typeChart: immuneChart,
       attackerTypes: [PokemonType.Electric] as PokemonType[],
       targetTypesMap: new Map([[target.id, [PokemonType.Ground] as PokemonType[]]]),
+      random: () => Math.random(),
+      heightModifier: 1.0,
     };
 
     const events = processEffects(context);

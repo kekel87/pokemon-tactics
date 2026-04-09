@@ -80,11 +80,20 @@ const DIRECTION_ENTRIES: [Direction, TranslationKey][] = [
   [Direction.West, "direction.west"],
 ];
 
+const SANDBOX_MAPS: { value: string; label: string }[] = [
+  { value: "assets/maps/sandbox-flat.tmj", label: "Sandbox Flat" },
+  { value: "assets/maps/sandbox-slopes.tmj", label: "Sandbox Slopes" },
+  { value: "assets/maps/sandbox-melee-block.tmj", label: "Sandbox Melee Block (+2)" },
+  { value: "assets/maps/sandbox-fall-1.tmj", label: "Sandbox Fall 1" },
+  { value: "assets/maps/sandbox-fall-2.tmj", label: "Sandbox Fall 2 (33%)" },
+  { value: "assets/maps/sandbox-fall-3.tmj", label: "Sandbox Fall 3 (66%)" },
+  { value: "assets/maps/sandbox-fall-4.tmj", label: "Sandbox Fall 4 (lethal)" },
+];
+
 const PANEL_STYLE = `
-  position: fixed; top: 10px; width: 220px;
   background: rgba(10, 10, 30, 0.92); color: #ddd; font-family: monospace;
   font-size: 11px; border-radius: 6px; border: 1px solid #444;
-  z-index: 1000; overflow: hidden; user-select: none;
+  user-select: none; overflow: hidden;
 `;
 
 const HEADER_STYLE = `
@@ -95,11 +104,19 @@ const HEADER_STYLE = `
 
 export class SandboxPanel {
   private toolbarPanel: HTMLDivElement;
+  private mapPanel: HTMLDivElement;
   private playerPanel: HTMLDivElement;
   private dummyPanel: HTMLDivElement;
   private readonly onConfigChanged: (config: SandboxConfig) => void;
   private readonly gameData = loadData();
   private readonly pokemonIds: string[];
+
+  private mapSelect!: HTMLSelectElement;
+  private playerXInput!: HTMLInputElement;
+  private playerYInput!: HTMLInputElement;
+  private playerDirectionSelect!: HTMLSelectElement;
+  private dummyXInput!: HTMLInputElement;
+  private dummyYInput!: HTMLInputElement;
 
   private pokemonSelect!: HTMLSelectElement;
   private moveSelects: HTMLSelectElement[] = [];
@@ -119,46 +136,61 @@ export class SandboxPanel {
   private dummyBaseStatInputs: Map<string, HTMLInputElement> = new Map();
   private dummyComputedLabels: Map<string, HTMLSpanElement> = new Map();
 
-  private playerCollapsed = false;
-  private dummyCollapsed = false;
+  private mapCollapsed = true;
+  private playerCollapsed = true;
+  private dummyCollapsed = true;
+  private leftContainer!: HTMLDivElement;
 
   constructor(initialConfig: SandboxConfig, onConfigChanged: (config: SandboxConfig) => void) {
     this.onConfigChanged = onConfigChanged;
     this.pokemonIds = this.gameData.pokemon.map((p) => p.id);
 
-    this.toolbarPanel = this.buildToolbar();
-    document.body.appendChild(this.toolbarPanel);
+    this.leftContainer = document.createElement("div");
+    this.leftContainer.style.cssText = `
+      position: fixed; top: 10px; right: 10px; width: 240px;
+      display: flex; flex-direction: column; gap: 6px;
+      z-index: 1000;
+    `;
 
-    this.dummyPanel = this.buildDummyPanel(initialConfig);
-    this.dummyPanel.style.cssText = `${PANEL_STYLE} right: 10px; top: 46px;`;
-    document.body.appendChild(this.dummyPanel);
+    this.toolbarPanel = this.buildToolbar();
+    this.leftContainer.appendChild(this.toolbarPanel);
+
+    this.mapPanel = this.buildMapPanel(initialConfig);
+    this.mapPanel.style.cssText = PANEL_STYLE;
+    this.leftContainer.appendChild(this.mapPanel);
+    this.toggleBody(this.mapPanel, true);
 
     this.playerPanel = this.buildPlayerPanel(initialConfig);
-    this.playerPanel.style.cssText = `${PANEL_STYLE} right: 240px; top: 46px;`;
-    document.body.appendChild(this.playerPanel);
+    this.playerPanel.style.cssText = PANEL_STYLE;
+    this.leftContainer.appendChild(this.playerPanel);
+    this.toggleBody(this.playerPanel, true);
+
+    this.dummyPanel = this.buildDummyPanel(initialConfig);
+    this.dummyPanel.style.cssText = PANEL_STYLE;
+    this.leftContainer.appendChild(this.dummyPanel);
+    this.toggleBody(this.dummyPanel, true);
+
+    document.body.appendChild(this.leftContainer);
   }
 
   destroy(): void {
-    this.toolbarPanel.remove();
-    this.playerPanel.remove();
-    this.dummyPanel.remove();
+    this.leftContainer.remove();
   }
 
   private buildToolbar(): HTMLDivElement {
     const toolbar = document.createElement("div");
-    toolbar.style.cssText = `
-      position: fixed; top: 10px; right: 10px; width: 450px;
-      display: flex; gap: 6px; z-index: 1001;
-    `;
+    toolbar.style.cssText = `display: flex; gap: 6px; flex-shrink: 0;`;
 
     const resetButton = this.createButton(t("sandbox.reset"), () => this.emit());
     resetButton.style.width = "auto";
     resetButton.style.flex = "1";
+    resetButton.style.marginTop = "0";
     toolbar.appendChild(resetButton);
 
     const exportButton = this.createButton(t("sandbox.exportJson"), () => this.copyJson());
     exportButton.style.width = "auto";
     exportButton.style.flex = "1";
+    exportButton.style.marginTop = "0";
     toolbar.appendChild(exportButton);
 
     return toolbar;
@@ -168,12 +200,78 @@ export class SandboxPanel {
     this.onConfigChanged(this.readConfig());
   }
 
+  private buildMapPanel(config: SandboxConfig): HTMLDivElement {
+    const panel = document.createElement("div");
+
+    const header = this.createHeader("Map", () => {
+      this.openOnly("map");
+    });
+    panel.appendChild(header);
+
+    const body = this.createBody();
+    panel.appendChild(body);
+
+    const mapSelect = this.createSelect("Map", SANDBOX_MAPS, config.mapUrl ?? "");
+    mapSelect.select.addEventListener("change", () => this.emit());
+    body.appendChild(mapSelect.row);
+    this.mapSelect = mapSelect.select;
+
+    const playerLabel = document.createElement("div");
+    playerLabel.textContent = "Player";
+    playerLabel.style.cssText = "color: #8cf; font-weight: bold; margin-top: 4px;";
+    body.appendChild(playerLabel);
+
+    const playerX = this.createOptionalNumberInput("X", 0, 99, config.playerPosition?.x, "auto");
+    playerX.input.addEventListener("change", () => this.emit());
+    body.appendChild(playerX.row);
+    this.playerXInput = playerX.input;
+
+    const playerY = this.createOptionalNumberInput("Y", 0, 99, config.playerPosition?.y, "auto");
+    playerY.input.addEventListener("change", () => this.emit());
+    body.appendChild(playerY.row);
+    this.playerYInput = playerY.input;
+
+    const playerDir = this.createSelect(
+      "Dir",
+      DIRECTION_ENTRIES.map(([d, key]) => ({ value: d, label: t(key) })),
+      config.playerDirection ?? Direction.North,
+    );
+    playerDir.select.addEventListener("change", () => this.emit());
+    body.appendChild(playerDir.row);
+    this.playerDirectionSelect = playerDir.select;
+
+    const dummyLabel = document.createElement("div");
+    dummyLabel.textContent = "Dummy";
+    dummyLabel.style.cssText = "color: #f88; font-weight: bold; margin-top: 4px;";
+    body.appendChild(dummyLabel);
+
+    const dummyX = this.createOptionalNumberInput("X", 0, 99, config.dummyPosition?.x, "auto");
+    dummyX.input.addEventListener("change", () => this.emit());
+    body.appendChild(dummyX.row);
+    this.dummyXInput = dummyX.input;
+
+    const dummyY = this.createOptionalNumberInput("Y", 0, 99, config.dummyPosition?.y, "auto");
+    dummyY.input.addEventListener("change", () => this.emit());
+    body.appendChild(dummyY.row);
+    this.dummyYInput = dummyY.input;
+
+    const dummyDir = this.createSelect(
+      "Dir",
+      DIRECTION_ENTRIES.map(([d, key]) => ({ value: d, label: t(key) })),
+      config.dummyDirection,
+    );
+    dummyDir.select.addEventListener("change", () => this.emit());
+    body.appendChild(dummyDir.row);
+    this.dummyDirectionSelect = dummyDir.select;
+
+    return panel;
+  }
+
   private buildPlayerPanel(config: SandboxConfig): HTMLDivElement {
     const panel = document.createElement("div");
 
     const header = this.createHeader(t("sandbox.player"), () => {
-      this.playerCollapsed = !this.playerCollapsed;
-      this.toggleBody(panel, this.playerCollapsed);
+      this.openOnly("player");
     });
     panel.appendChild(header);
 
@@ -261,8 +359,7 @@ export class SandboxPanel {
     const panel = document.createElement("div");
 
     const header = this.createHeader(t("sandbox.dummy"), () => {
-      this.dummyCollapsed = !this.dummyCollapsed;
-      this.toggleBody(panel, this.dummyCollapsed);
+      this.openOnly("dummy");
     });
     panel.appendChild(header);
 
@@ -281,15 +378,6 @@ export class SandboxPanel {
     dummyMoveSelect.select.addEventListener("change", () => this.emit());
     body.appendChild(dummyMoveSelect.row);
     this.dummyMoveSelect = dummyMoveSelect.select;
-
-    const dirSelect = this.createSelect(
-      t("sandbox.direction"),
-      DIRECTION_ENTRIES.map(([d, key]) => ({ value: d, label: t(key) })),
-      config.dummyDirection,
-    );
-    dirSelect.select.addEventListener("change", () => this.emit());
-    body.appendChild(dirSelect.row);
-    this.dummyDirectionSelect = dirSelect.select;
 
     const hpSlider = this.createSlider(t("sandbox.hpPercent"), 1, 100, config.dummyHp);
     hpSlider.input.addEventListener("change", () => this.emit());
@@ -520,6 +608,21 @@ export class SandboxPanel {
       }
     }
 
+    const mapUrl = this.mapSelect.value || undefined;
+    const playerX = this.playerXInput.value;
+    const playerY = this.playerYInput.value;
+    const playerPosition =
+      playerX !== "" && playerY !== ""
+        ? { x: Number(playerX), y: Number(playerY) }
+        : undefined;
+    const dummyX = this.dummyXInput.value;
+    const dummyY = this.dummyYInput.value;
+    const dummyPosition =
+      dummyX !== "" && dummyY !== ""
+        ? { x: Number(dummyX), y: Number(dummyY) }
+        : undefined;
+    const playerDirection = this.playerDirectionSelect.value as Direction;
+
     return {
       pokemon: this.pokemonSelect.value,
       moves: moves.length > 0 ? moves : this.getMovepoolFor(this.pokemonSelect.value),
@@ -529,6 +632,8 @@ export class SandboxPanel {
         ? (this.volatileStatusSelect.value as StatusType)
         : null,
       statStages,
+      playerPosition,
+      playerDirection,
       dummyPokemon: this.dummyPokemonSelect.value || "dummy",
       dummyMove: this.dummyMoveSelect.value || null,
       dummyDirection: this.dummyDirectionSelect.value as Direction,
@@ -542,6 +647,8 @@ export class SandboxPanel {
         ? (this.dummyVolatileStatusSelect.value as StatusType)
         : null,
       dummyStatStages,
+      dummyPosition,
+      mapUrl,
     };
   }
 
@@ -622,6 +729,35 @@ export class SandboxPanel {
     }
     if (toggle) {
       toggle.textContent = collapsed ? "▶" : "▼";
+    }
+  }
+
+  private openOnly(target: "map" | "player" | "dummy"): void {
+    const wasOpen =
+      (target === "map" && !this.mapCollapsed) ||
+      (target === "player" && !this.playerCollapsed) ||
+      (target === "dummy" && !this.dummyCollapsed);
+
+    this.mapCollapsed = true;
+    this.playerCollapsed = true;
+    this.dummyCollapsed = true;
+    this.toggleBody(this.mapPanel, true);
+    this.toggleBody(this.playerPanel, true);
+    this.toggleBody(this.dummyPanel, true);
+
+    if (wasOpen) {
+      return;
+    }
+
+    if (target === "map") {
+      this.mapCollapsed = false;
+      this.toggleBody(this.mapPanel, false);
+    } else if (target === "player") {
+      this.playerCollapsed = false;
+      this.toggleBody(this.playerPanel, false);
+    } else {
+      this.dummyCollapsed = false;
+      this.toggleBody(this.dummyPanel, false);
     }
   }
 
@@ -708,6 +844,34 @@ export class SandboxPanel {
     input.min = String(min);
     input.max = String(max);
     input.value = String(value);
+    input.style.cssText =
+      "width: 50px; background: #222; color: #ddd; border: 1px solid #444; border-radius: 3px; padding: 1px 3px; font-size: 10px; font-family: monospace; text-align: center;";
+    row.appendChild(input);
+    return { row, input };
+  }
+
+  private createOptionalNumberInput(
+    label: string,
+    min: number,
+    max: number,
+    value: number | undefined,
+    placeholder: string,
+  ): { row: HTMLDivElement; input: HTMLInputElement } {
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display: flex; justify-content: space-between; align-items: center; margin: 1px 0;";
+
+    const labelElement = document.createElement("span");
+    labelElement.textContent = label;
+    labelElement.style.cssText = "flex-shrink: 0; width: 45px;";
+    row.appendChild(labelElement);
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.min = String(min);
+    input.max = String(max);
+    input.value = value !== undefined ? String(value) : "";
+    input.placeholder = placeholder;
     input.style.cssText =
       "width: 50px; background: #222; color: #ddd; border: 1px solid #444; border-radius: 3px; padding: 1px 3px; font-size: 10px; font-family: monospace; text-align: center;";
     row.appendChild(input);

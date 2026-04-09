@@ -52,6 +52,7 @@ function dealSingleHit(
     defenderTypes,
     undefined,
     context.random,
+    context.heightModifier,
   );
 
   const defenseResult = checkDefense(

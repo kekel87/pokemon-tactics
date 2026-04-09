@@ -4,7 +4,7 @@ import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
-import type { PokemonType } from "../enums/pokemon-type";
+import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { isTerrainPassable } from "../enums/terrain-type";
@@ -26,10 +26,13 @@ import type { RandomFn } from "../utils/prng";
 import { checkAccuracy } from "./accuracy-check";
 import { estimateDamage } from "./damage-calculator";
 import { processEffects } from "./effect-processor";
+import { calculateFallDamage } from "./fall-damage";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { seededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
+import { getHeightModifier, isMeleeBlockedByHeight } from "./height-modifier";
+import { canTraverse } from "./height-traversal";
 import { getEffectiveInitiative } from "./initiative-calculator";
 import { TurnManager } from "./TurnManager";
 import { TurnPipeline } from "./turn-pipeline";
@@ -112,7 +115,22 @@ export class BattleEngine {
     }
     const attackerTypes = this.pokemonTypesMap.get(attacker.definitionId) ?? [];
     const defenderTypes = this.pokemonTypesMap.get(defender.definitionId) ?? [];
-    return estimateDamage(attacker, defender, move, this.typeChart, attackerTypes, defenderTypes);
+    const attackerHeight = this.grid.getTile(attacker.position)?.height ?? 0;
+    const defenderHeight = this.grid.getTile(defender.position)?.height ?? 0;
+    const heightMod = getHeightModifier(
+      attackerHeight,
+      defenderHeight,
+      move.ignoresHeight ?? false,
+    );
+    return estimateDamage(
+      attacker,
+      defender,
+      move,
+      this.typeChart,
+      attackerTypes,
+      defenderTypes,
+      heightMod,
+    );
   }
 
   getReachableTilesForPokemon(pokemonId: string): Position[] {
@@ -173,7 +191,18 @@ export class BattleEngine {
         }
 
         const targetPositions = this.getValidTargetPositions(currentPokemon, move);
+        const attackerHeight = this.grid.getTile(currentPokemon.position)?.height ?? 0;
+        const moveRange =
+          move.targeting.kind === TargetingKind.Single
+            ? move.targeting.range.max
+            : move.targeting.kind === TargetingKind.Dash
+              ? 1
+              : 99;
         for (const targetPosition of targetPositions) {
+          const targetHeight = this.grid.getTile(targetPosition)?.height ?? 0;
+          if (isMeleeBlockedByHeight(attackerHeight, targetHeight, moveRange)) {
+            continue;
+          }
           actions.push({
             kind: ActionKind.UseMove,
             pokemonId: currentPokemonId,
@@ -422,6 +451,13 @@ export class BattleEngine {
       targetTypesMap.set(target.id, this.pokemonTypesMap.get(target.definitionId) ?? []);
     }
 
+    const attackerHeight = this.grid.getTile(pokemon.position)?.height ?? 0;
+    const heightMod = getHeightModifier(
+      attackerHeight,
+      this.grid.getTile(targetPosition)?.height ?? 0,
+      move.ignoresHeight ?? false,
+    );
+
     const effectEvents = processEffects({
       attacker: pokemon,
       targets,
@@ -432,6 +468,7 @@ export class BattleEngine {
       targetTypesMap,
       targetPosition,
       random: this.random,
+      heightModifier: heightMod,
     });
 
     for (const event of effectEvents) {
@@ -668,6 +705,8 @@ export class BattleEngine {
     }
 
     const origin = pokemon.position;
+    const originHeight = this.grid.getTile(origin)?.height ?? 0;
+    const destHeight = this.grid.getTile(destination)?.height ?? 0;
     this.grid.setOccupant(origin, null);
     this.grid.setOccupant(destination, pokemon.id);
     pokemon.position = destination;
@@ -680,12 +719,44 @@ export class BattleEngine {
     };
     this.emit(moveEvent);
     events.push(moveEvent);
+
+    const dashHeightDiff = originHeight - destHeight;
+    if (dashHeightDiff > 0) {
+      const dasherTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+      const isFlying = dasherTypes.includes(PokemonType.Flying);
+      if (!isFlying) {
+        const fallDamage = calculateFallDamage(dashHeightDiff, pokemon.maxHp);
+        if (fallDamage > 0) {
+          pokemon.currentHp = Math.max(0, pokemon.currentHp - fallDamage);
+          const fallEvent: BattleEvent = {
+            type: BattleEventType.FallDamageDealt,
+            pokemonId: pokemon.id,
+            amount: fallDamage,
+            heightDiff: dashHeightDiff,
+          };
+          this.emit(fallEvent);
+          events.push(fallEvent);
+          if (pokemon.currentHp <= 0) {
+            const koEvent: BattleEvent = {
+              type: BattleEventType.PokemonKo,
+              pokemonId: pokemon.id,
+              countdownStart: 0,
+            };
+            this.emit(koEvent);
+            events.push(koEvent);
+          }
+        }
+      }
+    }
   }
 
   private getReachableTiles(pokemon: PokemonInstance): ReachableTile[] {
     const result: ReachableTile[] = [];
     const visited = new Set<string>();
     const posKey = (p: Position): string => `${p.x},${p.y}`;
+    const isFlying = (this.pokemonTypesMap.get(pokemon.definitionId) ?? []).includes(
+      PokemonType.Flying,
+    );
 
     const queue: BfsNode[] = [{ position: pokemon.position, path: [], distance: 0 }];
     visited.add(posKey(pokemon.position));
@@ -718,10 +789,8 @@ export class BattleEngine {
           continue;
         }
 
-        const heightDiff = Math.abs(
-          neighbor.height - (this.grid.getTile(current.position)?.height ?? 0),
-        );
-        if (heightDiff > pokemon.derivedStats.jump) {
+        const currentHeight = this.grid.getTile(current.position)?.height ?? 0;
+        if (!canTraverse(currentHeight, neighbor.height, isFlying)) {
           continue;
         }
 
@@ -808,8 +877,11 @@ export class BattleEngine {
       }
 
       const currentTile = this.grid.getTile(currentPosition);
-      const heightDiff = Math.abs(tile.height - (currentTile?.height ?? 0));
-      if (heightDiff > pokemon.derivedStats.jump) {
+      const fromHeight = currentTile?.height ?? 0;
+      const isFlying = (this.pokemonTypesMap.get(pokemon.definitionId) ?? []).includes(
+        PokemonType.Flying,
+      );
+      if (!canTraverse(fromHeight, tile.height, isFlying)) {
         return ActionError.JumpTooHigh;
       }
 

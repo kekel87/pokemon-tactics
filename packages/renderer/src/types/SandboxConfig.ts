@@ -1,5 +1,10 @@
 import { type BaseStats, Direction, type StatName, type StatusType } from "@pokemon-tactic/core";
 
+export interface Position2D {
+  x: number;
+  y: number;
+}
+
 export interface SandboxConfig {
   pokemon: string;
   moves: string[];
@@ -7,6 +12,10 @@ export interface SandboxConfig {
   status: StatusType | null;
   volatileStatus: StatusType | null;
   statStages: Partial<Record<StatName, number>>;
+  /** Optional override for player spawn position (otherwise uses map spawn zone 0). */
+  playerPosition?: Position2D;
+  /** Optional override for player orientation. */
+  playerDirection?: Direction;
   dummyPokemon: string;
   dummyMove: string | null;
   dummyDirection: Direction;
@@ -16,6 +25,10 @@ export interface SandboxConfig {
   dummyStatus: StatusType | null;
   dummyVolatileStatus: StatusType | null;
   dummyStatStages: Partial<Record<StatName, number>>;
+  /** Optional override for dummy spawn position. */
+  dummyPosition?: Position2D;
+  /** Optional Tiled map URL (relative to public/), e.g. "assets/maps/sandbox-flat.tmj" */
+  mapUrl?: string;
 }
 
 export const DEFAULT_SANDBOX_CONFIG: SandboxConfig = {
@@ -34,4 +47,5 @@ export const DEFAULT_SANDBOX_CONFIG: SandboxConfig = {
   dummyStatus: null,
   dummyVolatileStatus: null,
   dummyStatStages: {},
+  mapUrl: "assets/maps/sandbox-flat.tmj",
 };

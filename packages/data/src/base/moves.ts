@@ -8,6 +8,7 @@ export interface BaseMoveData {
   power: number;
   accuracy: number;
   pp: number;
+  ignoresHeight?: boolean;
 }
 
 export const baseMoves: BaseMoveData[] = [
@@ -649,6 +650,7 @@ export const baseMoves: BaseMoveData[] = [
     power: 100,
     accuracy: 100,
     pp: 10,
+    ignoresHeight: true,
   },
   {
     id: "mega-punch",
