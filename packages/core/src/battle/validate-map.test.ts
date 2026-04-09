@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { TerrainType } from "../enums/terrain-type";
 import { MockMap } from "../testing/mock-map";
 import { validateMapDefinition } from "./validate-map";
 
@@ -89,15 +90,15 @@ describe("validateMapDefinition", () => {
     expect(result.errors[0]).toContain("out-of-bounds");
   });
 
-  it("rejects impassable spawn position", () => {
+  it("rejects obstacle terrain on spawn position", () => {
     const map = structuredClone(MockMap.map8x8);
     const tile = map.tiles[7]?.[0];
     if (tile) {
-      tile.isPassable = false;
+      tile.terrain = TerrainType.Obstacle;
     }
     const result = validateMapDefinition(map);
     expect(result.valid).toBe(false);
-    expect(result.errors[0]).toContain("impassable");
+    expect(result.errors[0]).toContain("impassable terrain");
   });
 
   it("rejects overlapping spawn positions between zones", () => {

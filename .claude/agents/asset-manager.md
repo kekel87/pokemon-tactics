@@ -77,19 +77,33 @@ Tu as accès au MCP PixelLab pour générer des assets pixel art. Tier 1 Apprent
 
 ### Workflow de génération de tiles
 
-**IMPORTANT** : le MCP `create_tiles_pro` avec `style_images` ne produit pas les mêmes résultats que l'interface web (bug remonté sur Discord). Pour le moment :
-1. **L'humain génère via l'interface web** PixelLab (meilleurs résultats avec style_images)
-2. **Déposer les résultats** dans `tiles/pixellab-{nom}/`
-3. **Valider ensemble** puis copier les tiles retenues dans `packages/renderer/public/assets/tilesets/terrain/`
+Le tileset de base est celui de Jao (ICON Isometric Pack). On construit notre propre tileset à partir de celui-ci + variantes PixelLab.
 
-Le tileset de base est celui de Jao (ICON Isometric Pack). On construit notre propre tileset à partir de celui-ci + tiles PixelLab générées via l'UI web.
+Les tiles individuelles de Jao sont pré-découpées dans `tiles/jao/` (290 tiles, nommées `frame-{index}-r{row}-c{col}.png`).
 
-Workflow MCP (quand le bug sera corrigé) :
-1. **Tile pilote** : générer 1 seul tile avec `create_isometric_tile`
-2. **Valider** avec l'humain
-3. **Variantes** : passer le tile pilote en `style_images` dans `create_tiles_pro` avec `style_options: {color_palette: true, outline: true, detail: true, shading: true}`
-4. **Polling** : `get_isometric_tile` / `get_tiles_pro` jusqu'à completion (~2-4 min en Tier 1)
-5. **Télécharger** dans `tiles/` puis copier les validées dans les assets
+**Workflow recommandé :**
+1. **Choisir une tile de base** dans `tiles/jao/` qui correspond au biome voulu
+2. **Générer des variantes** avec `create_tiles_pro` en passant la tile Jao en `style_images`
+3. **Valider** avec l'humain
+4. **Assembler** les tiles retenues en spritesheet si besoin
+5. **Copier** dans `packages/renderer/public/assets/tilesets/terrain/`
+
+**Appel MCP `create_tiles_pro` avec style_images :**
+```
+description: "description de la scène, no objects, no decorations"
+style_images: [{"base64": "<base64 de la tile Jao>", "width": 32, "height": 32}]
+style_options: {"color_palette": true, "outline": true, "detail": true, "shading": true}
+```
+- Ne PAS passer `tile_type`, `tile_size`, `tile_view_angle`, `tile_depth_ratio` — tout est déduit du style_image
+- `n_tiles` a été supprimé de l'API — le nombre est calculé automatiquement
+- Le polling prend ~3-5 min en Tier 1, avec un palier fréquent à 49%
+
+**Résultats après fix MCP (2026-04-08) :**
+- `create_tiles_pro` avec `style_images` fonctionne correctement — produit des cubes iso cohérents avec la tile de référence Jao. Testé avec briques et briques+herbe, résultats validés.
+- `create_isometric_tile` fonctionne aussi pour les nouvelles tiles sans référence — testé avec une tile d'eau peu profonde, bon résultat. Attention : pas de `style_images` sur cet outil, c'est prompt-only.
+- Le palier à 49% existe toujours en Tier 1 mais finit par passer (~1-2 min d'attente supplémentaire).
+
+**Intégration des tiles dans le projet :** à définir — le format d'intégration (tileset unique, tilesets par biome, Tiled compatible) fait partie des questions ouvertes Phase 3 dans la roadmap.
 
 ### Bonnes pratiques prompts PixelLab
 

@@ -7,12 +7,34 @@ import { BattleScene } from "./scenes/BattleScene";
 import { BattleUIScene } from "./scenes/BattleUIScene";
 import { CreditsScene } from "./scenes/CreditsScene";
 import { MainMenuScene } from "./scenes/MainMenuScene";
+import { MapPreviewScene } from "./scenes/MapPreviewScene";
+import { MapPreviewUIScene } from "./scenes/MapPreviewUIScene";
 import { SettingsScene } from "./scenes/SettingsScene";
 import { TeamSelectScene } from "./scenes/TeamSelectScene";
 import { initSettings } from "./settings";
 
 initLanguage();
 initSettings();
+
+const mapPreviewUrl = new URLSearchParams(window.location.search).get("map");
+
+function getScenes(): Phaser.Types.Scenes.SceneType[] {
+  if (mapPreviewUrl) {
+    return [MapPreviewScene, MapPreviewUIScene];
+  }
+  if (sandboxBootConfig.enabled) {
+    return [TeamSelectScene, BattleScene, BattleUIScene];
+  }
+  return [
+    MainMenuScene,
+    BattleModeScene,
+    SettingsScene,
+    CreditsScene,
+    TeamSelectScene,
+    BattleScene,
+    BattleUIScene,
+  ];
+}
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -21,21 +43,15 @@ const config: Phaser.Types.Core.GameConfig = {
   backgroundColor: BACKGROUND_COLOR,
   roundPixels: true,
   parent: "game-container",
-  scene: sandboxBootConfig.enabled
-    ? [TeamSelectScene, BattleScene, BattleUIScene]
-    : [
-        MainMenuScene,
-        BattleModeScene,
-        SettingsScene,
-        CreditsScene,
-        TeamSelectScene,
-        BattleScene,
-        BattleUIScene,
-      ],
+  scene: getScenes(),
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+
+if (mapPreviewUrl) {
+  game.scene.start("MapPreviewScene", { mapUrl: mapPreviewUrl });
+}

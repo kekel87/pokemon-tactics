@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-08
+> Dernière mise à jour : 2026-04-08 (plan 045)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -9,7 +9,7 @@
 ## Phase actuelle : Phase 3 — Terrain & Tactics
 
 ### Ce qui est fait
-- Documentation complète : game-design, architecture, decisions (91 décisions), roadmap, references, methodology, roster POC, glossaire
+- Documentation complète : game-design, architecture, decisions (229 décisions), roadmap, references, methodology, roster POC, glossaire
 - 21 agents + 7 skills Claude Code en place (`.claude/`)
 - **Plan 001 terminé** : monorepo setup (pnpm workspaces, TypeScript bundler, Vite, Vitest, Biome)
 - **Plan 002 terminé** :
@@ -609,10 +609,33 @@
   - **`@font-face` CSS** déclaré WOFF2 + TTF fallback (WOFF2 a des problèmes CFF sur certains navigateurs) — **fichier non encore téléchargé** : `public/assets/fonts/pokemon-emerald-pro.ttf` manquant, fallback `monospace` actif
   - **Toutes les constantes world-space** divisées par 2 (HP bars, tailles de texte, offsets) pour correspondre aux nouvelles dimensions de grille
 
+- **Plan 045 terminé** — Format de carte Tiled + parser + validation + preview :
+  - **`TerrainType` étendu à 11 valeurs** : Normal, TallGrass, Obstacle, Water, DeepWater, Magma, Lava, Ice, Sand, Snow, Swamp — effets gameplay réservés à un plan séparé
+  - **`isPassable` supprimé de `TileState`** — passabilité déterminée par `isTerrainPassable(terrain)` partout dans le codebase (Grid, validateMap, BattleSetup, mocks, tests)
+  - **`packages/data/src/tiled/`** : pipeline complet Tiled→MapDefinition
+    - `tiled-types.ts` : interfaces TiledMap, TiledLayer, TiledObject, TiledTileset, TiledTile, TiledProperty
+    - `tileset-resolver.ts` : `resolveTileProperties(gid, tileset)` → `{ terrain, height }` ; GID 0 = obstacle implicite
+    - `parse-terrain-layer.ts` : TiledLayer → `TileState[][]`
+    - `parse-spawns-layer.ts` : objets Tiled (teamIndex + formatTeamCount) → `MapFormat[]` avec conversion pixel iso → coords grille
+    - `parse-tiled-map.ts` : `parseTiledMap(json)` → `ParseResult` (`{ map, warnings }` | `{ errors }`)
+    - `validate-tiled-map.ts` : règles bloquantes (spawn sur tiles passables, BFS connectivité) + warnings (hauteurs incohérentes, spawns sur terrains hostiles)
+    - `load-tiled-map.ts` : `loadTiledMap(url)` → `Promise<MapDefinition>` (fetch + parse + validate, zéro Phaser)
+  - **Tilesets externes `.tsj` supportés** (en plus des tilesets embarqués dans le .tmj)
+  - **3 cartes `.tmj`** dans `packages/renderer/public/assets/maps/` :
+    - `test-arena.tmj` — version iso de `poc-arena` (12×20, 2 équipes, tileset externe `icon-tileset.tsj`)
+    - `river-crossing.tmj` — carte de test avec eau/traversée, valide les terrains non-passables
+    - `tile-palette.tmj` — palette complète des 11 terrains pour vérification visuelle
+  - **`MapPreviewScene` + `MapPreviewUIScene`** dans `packages/renderer/src/scenes/` — `pnpm dev:map <fichier.tmj>` affiche la carte sans combat ; zoom molette, pan clic+drag, R pour recharger, spawn zones colorées par équipe ; `MapPreviewUIScene` overlay : nom de la carte, cycle de formats (T ou clic) `[n/total]`
+  - **`packages/renderer/scripts/map-preview.js`** : Vite plugin Node.js qui résout le chemin .tmj depuis le cwd appelant et injecte `VITE_MAP_FILE` pour le mode preview
+  - `packages/data/src/index.ts` exporte le module tiled complet
+
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
-- Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (fichier TTF manquant — @font-face déjà en place)
-- Dénivelés (hauteur tiles) + dégâts de chute
+- **Dénivelés (hauteur tiles)** + rendu isométrique hauteur + dégâts de chute
+- **Tileset custom** pour remplacer/améliorer les tiles JAO — étape suivante après le rendu des dénivelés (décision à prendre)
+- Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
 - Obstacles + line of sight
+- Règles de déplacement par terrain/type Pokemon (effets gameplay des 11 terrains)
+- Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
 
 ### Bugs connus non corrigés
 - **Confusion wobble post-KO** : un Pokemon confus qui est KO continue à osciller (tween confusion non stoppé dans `playFaintAndStay`)

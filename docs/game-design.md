@@ -171,12 +171,26 @@ Dégâts = ((2 × Level / 5 + 2) × Power × (Atk / Def) / 50 + 2)
 - **Immunités** : types Vol, talent Lévitation — ne prennent pas de dégâts de chute
 
 ### Types de terrain
-| Terrain | Effet | Immunité |
-|---------|-------|----------|
-| Lave | Dégâts + brûlure | Type Feu |
-| Eau | Dégâts + ralentissement ? | Type Eau |
-| Herbe haute | Bonus évasion ? | — |
-| Glace | Glissade ? | Type Glace ? |
+
+11 types de terrain définis dans `TerrainType` (implémentés en plan 045 — effets gameplay à implémenter dans un plan séparé) :
+
+| Terrain | Effet gameplay (futur) | Immunité terrain |
+|---------|----------------------|-----------------|
+| `normal` | Rien | — |
+| `tall_grass` | +évasion | — |
+| `obstacle` | Bloque mouvement + LOS. Vol : traverse + arrêt. Spectre : traverse, pas d'arrêt. | Vol, Spectre (traverse seul) |
+| `water` | Malus déplacement | Eau/Vol/Lévitation |
+| `deep_water` | Intraversable + bonus Eau | Eau/Vol/Lévitation |
+| `magma` | Brûlure au passage, brûlure aggravée à l'arrêt | Feu/Vol/Lévitation |
+| `lava` | Intraversable + bonus Feu | Feu/Vol/Lévitation |
+| `ice` | Knockback augmenté + bonus Glace | Glace/Vol/Lévitation |
+| `sand` | Malus déplacement + bonus Sol | Sol/Vol/Lévitation |
+| `snow` | Malus déplacement + bonus Glace | Glace/Vol/Lévitation |
+| `swamp` | Malus déplacement fort + risque Poison | Poison/Vol/Lévitation |
+
+> La passabilité est déterminée directement par le terrain (`isTerrainPassable(terrain)`). Le flag `isPassable` a été supprimé de `TileState` (plan 045).
+>
+> **Règle globale Vol/Lévitation** : pas affectés par les terrains, sauf `obstacle` où Spectre ne peut pas s'arrêter. Implémentation dans un plan séparé (règles de déplacement par terrain).
 
 ### Influence du terrain sur la précision
 Le système de précision Pokemon (précision attaque × évasion cible) est conservé, avec des **modificateurs terrain** en plus :

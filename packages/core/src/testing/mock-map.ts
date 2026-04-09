@@ -16,7 +16,6 @@ function buildFlatTiles(width: number, height: number): TileState[][] {
         height: 0,
         terrain: TerrainType.Normal,
         occupantId: null,
-        isPassable: true,
       });
     }
     tiles.push(row);

@@ -116,6 +116,35 @@ export class IsometricGrid {
     }
   }
 
+  drawGridFromTileData(tileData: readonly number[], firstgid: number): void {
+    for (const sprite of this.tileSprites) {
+      sprite.destroy();
+    }
+    this.tileSprites.length = 0;
+
+    if (!this.useTexturedTiles) {
+      this.drawFallbackGrid();
+      return;
+    }
+
+    for (let y = 0; y < this.gridHeight; y++) {
+      for (let x = 0; x < this.gridWidth; x++) {
+        const index = y * this.gridWidth + x;
+        const gid = tileData[index] ?? 0;
+        if (gid === 0) {
+          continue;
+        }
+        const frameIndex = gid - firstgid;
+        const center = this.gridToScreen(x, y);
+        const sprite = this.scene.add.sprite(center.x, center.y, TILESET_KEY, frameIndex);
+        sprite.setScale(TILE_SPRITE_SCALE);
+        sprite.setOrigin(0.5, TILE_ORIGIN_Y);
+        sprite.setDepth(DEPTH_GRID_TILES + y);
+        this.tileSprites.push(sprite);
+      }
+    }
+  }
+
   private drawFallbackGrid(): void {
     this.tileGraphics.clear();
     for (let y = 0; y < this.gridHeight; y++) {

@@ -113,8 +113,10 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Tileset isométrique (ICON Isometric Pack / Jao — tiles 32×32 ×2, filtre NEAREST, marquages arène overlay) — plan 043
 - [x] Supprimer POKEMON_SPRITE_SCALE=2 + TILE_SPRITE_SCALE=2, rattraper offsets, ajuster zoom — uniformiser la résolution pixel (plan 044)
 - [x] Mode pixel art Phaser (roundPixels:true, NEAREST manuel par texture, police adaptée) — plan 044
-- [ ] Format de carte compatible Tiled + pipeline de chargement (voir questions ci-dessous)
+- [x] Format de carte compatible Tiled + pipeline de chargement (parseTiledMap, validateTiledMap, loadTiledMap, MapPreviewScene, test-arena.tmj — plan 045)
 - [ ] Dénivelés (hauteur tiles) + dégâts de chute
+- [ ] Tileset custom (remplacer/améliorer les tiles JAO) — après dénivelés
+- [ ] Marquages d'arène en tiles Tiled (layer decorations) au lieu d'overlay Graphics — après tileset custom
 - [ ] Obstacles + line of sight (trajectoires de tir visibles)
 - [ ] Types de terrain (lave, eau, herbe) + modificateurs
 - [ ] Interactions type/terrain + modification terrain par attaques
@@ -124,14 +126,14 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [ ] Éditeur de terrain / génération IA
 - [ ] Maps variées + roster d'attaques terrain/dénivelé
 
-### Questions ouvertes — Format de carte
+### Décisions prises — Format de carte (plan 045)
 
-À trancher au moment du plan dédié :
-- Tiled comme éditeur principal de maps, ou éditeur in-game, ou les deux ?
-- Le core doit-il comprendre le format Tiled (.tmx/.json) ou on convertit en `MapDefinition` au chargement ?
-- Gestion des layers : terrain de base, déco, objets, spawn zones — comment les mapper sur `TileState` + `MapDefinition` ?
-- Compatibilité Tiled : quelles propriétés custom par tile (TerrainType, hauteur, isPassable) ?
-- Pipeline : Tiled → export JSON → packages/data/ ou chargement dynamique ?
+- **Tiled comme éditeur principal** de maps. Le core ne connaît pas Tiled — il ne voit que `MapDefinition`.
+- **Parser dans `packages/data`** (`packages/data/src/tiled/`) : convertit .tmj → `MapDefinition` au chargement runtime. Zéro dépendance Phaser.
+- **Layers** : `terrain` (tilelayer, GID→TileState via propriétés custom), `decorations` (ignoré par le core), `spawns` (objectgroup, teamIndex + formatTeamCount).
+- **Propriétés custom** par tile : `terrain` (string → TerrainType), `height` (int). `isPassable` supprimé — le terrain détermine la passabilité.
+- **Chargement dynamique** : `loadTiledMap(url)` fait un fetch runtime + parse + validate. Pas de conversion build-time.
+- **Tilesets externes .tsj supportés** en plus des tilesets embarqués.
 
 ---
 

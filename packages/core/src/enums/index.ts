@@ -15,4 +15,4 @@ export { StatName } from "./stat-name";
 export { StatusType } from "./status-type";
 export { TargetingKind } from "./targeting-kind";
 export { TeamValidationError } from "./team-validation-error";
-export { TerrainType } from "./terrain-type";
+export { isTerrainPassable, TerrainType } from "./terrain-type";
