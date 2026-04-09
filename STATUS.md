@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-08 (plan 045)
+> Dernière mise à jour : 2026-04-11 (plan 046 post-playtest)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -629,16 +629,42 @@
   - **`packages/renderer/scripts/map-preview.js`** : Vite plugin Node.js qui résout le chemin .tmj depuis le cwd appelant et injecte `VITE_MAP_FILE` pour le mode preview
   - `packages/data/src/index.ts` exporte le module tiled complet
 
+- **Plan 046 terminé** — Dénivelés, hauteur des tiles et dégâts de chute :
+  - **Core** : `canTraverse` (montée max 0.5, descente libre, Vol jamais bloqué), `getHeightModifier` (±10%/niveau, plafonds +50%/-30%), `isMeleeBlockedByHeight` (mêlée bloquée si diff ≥ 2), `calculateFallDamage` (paliers Math.floor(diff) → 33/66/100%)
+  - **BFS** : filtrage asymétrique montée/descente dans `getReachableTiles` et `validateMovePath`, Vol ignore la hauteur
+  - **Dégâts de chute** : knockback ET dash vers tile plus basse, paliers 2→33%, 3→66%, 4→mort. Vol immunisé. Endure ne protège pas.
+  - **`ignoresHeight?: boolean`** sur `MoveDefinition` — Séisme marqué `ignoresHeight: true` dans `packages/data`
+  - **Renderer** : `gridToScreen(x, y, height)` + `TILE_ELEVATION_STEP=8`, tiles surélevées, sprites décalés verticalement par hauteur, animation Hop/Walk selon `heightDiff`, feedback visuel "Fall -XX" en orange
+  - **Data** : map `highlands.tmj` (12×12) avec hauteurs 0–3, plateau central h2, rampes h1, tour h3, fossé h0
+  - **45 nouveaux tests** (unit + intégration scénarios Gherkin)
+  - `BattleEventType.FallDamageDealt` ajouté
+
+- **Plan 046 — 6 vagues de feedback playtest sandbox (2026-04-11)** :
+  - Core : `canTraverse` limite la descente volontaire à 1.0 (Vol exempté)
+  - Data : `tileset-resolver` + `parse-tiled-map` propagent la propriété `slope` via `slopeData` dans `ParseSuccess`/`LoadedTiledMap`
+  - Renderer : `IsometricGrid.isSlopeAt(x, y)` expose les rampes à `GameController.animateAlongPath`
+  - Renderer : `packages/renderer/src/game/movement-animation.ts` — `MovementStep { heightDiff, isRamp, isFlying }`, `isJumpStep`, `selectMovementAnimation`, `selectMovementDuration`, `FLYING_JUMP_ANIMATION_CANDIDATES`
+  - Renderer : `PokemonSprite.animateMoveTo` — single diagonal tween `{ x: Linear, y: Quad.easeOut|easeIn }` pour les jumps, depth fixée à `max(source, target)` pendant le tween puis snap
+  - Renderer : `PokemonSprite.playAnimation` ne skip que les anims loopées (`repeat === -1`) — Hop/Attack/Hurt redémarrent à chaque appel
+  - Renderer : i18n key `battle.fall` (Chute/Fall), wirée sur `FallDamageDealt`
+  - Renderer : `packages/renderer/src/scenes/camera-bounds.ts` — pure function extraite + test
+  - Renderer : constantes `JUMP_TWEEN_DURATION_MS=800`, `MOVE_TWEEN_DURATION_FLYING_MS=400`, `BATTLE_TEXT_FONT_SIZE=10`, `BATTLE_TEXT_DURATION_MS=3500`, `BATTLE_TEXT_DRIFT_Y=-20`, `BATTLE_TEXT_STAGGER_Y=-10`
+  - Data : 7 maps sandbox (`sandbox-flat`, `sandbox-slopes`, `sandbox-melee-block`, `sandbox-fall-1..4`) dans `packages/renderer/public/assets/maps/`
+  - Renderer : SandboxPanel accordéon 3 panels (Map/Player/Dummy), tous fermés par défaut
+  - **810/810 tests unitaires**, 97/98 intégration (1 échec `PlacementPhase > manual placement` pré-existant, sans lien avec ce plan)
+  - Typecheck clean, lint clean (warnings nursery pré-existants uniquement)
+  - Changements non encore commités (`docs/backlog.md` modifié) — voir `git diff --stat`
+
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
-- **Dénivelés (hauteur tiles)** + rendu isométrique hauteur + dégâts de chute
-- **Tileset custom** pour remplacer/améliorer les tiles JAO — étape suivante après le rendu des dénivelés (décision à prendre)
+- **Tileset custom** pour remplacer/améliorer les tiles JAO (décision à prendre)
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
 - Obstacles + line of sight
 - Règles de déplacement par terrain/type Pokemon (effets gameplay des 11 terrains)
 - Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
 
 ### Bugs connus non corrigés
-- **Confusion wobble post-KO** : un Pokemon confus qui est KO continue à osciller (tween confusion non stoppé dans `playFaintAndStay`)
+
+*(rien d'ouvert — confusion wobble post-KO résolu, voir backlog.md)*
 
 ### Points à adresser (renderer)
 - Représentation visuelle des moves défensifs : animation/feedback quand Protect bloque, Counter renvoie, etc.

@@ -1,5 +1,6 @@
 export const TILE_WIDTH = 32;
 export const TILE_HEIGHT = 16;
+export const TILE_ELEVATION_STEP = 16;
 
 export const GRID_SIZE = 12;
 
@@ -73,7 +74,15 @@ export const TOOLTIP_BG_COLOR = 0x111122;
 export const TOOLTIP_BG_ALPHA = 0.95;
 export const DEPTH_TOOLTIP = 1250;
 
-export const MOVE_TWEEN_DURATION_MS = 200;
+export const MOVE_TWEEN_DURATION_MS = 300;
+export const MOVE_TWEEN_DURATION_FLYING_MS = 400;
+/**
+ * Duration of a single jump tween (walk-to-edge then fall/rise), in ms.
+ * Shorter than the raw Hop sprite animation (≈792 ms) — the Hop anim is
+ * slightly truncated on the trailing recovery frames so the movement
+ * between tiles feels snappy on a staircase while still reading as a jump.
+ */
+export const JUMP_TWEEN_DURATION_MS = 800;
 export const DAMAGE_FLASH_DURATION_MS = 100;
 export const DAMAGE_FLASH_REPEAT = 2;
 export const FADEOUT_DURATION_MS = 400;
@@ -171,12 +180,13 @@ export const PLACEMENT_PORTRAIT_SIZE = 48;
 export const PLACEMENT_PORTRAIT_SPACING = 12;
 
 export const DEPTH_GRID_TILES = 1;
-export const DEPTH_GRID_MARKINGS = 50;
-export const DEPTH_GRID_HIGHLIGHT = 100;
-export const DEPTH_GRID_ENEMY_RANGE = 110;
-export const DEPTH_GRID_PREVIEW = 120;
-export const DEPTH_GRID_CURSOR = 150;
-export const DEPTH_POKEMON_BASE = 200;
+export const DEPTH_TILE_MAX_ELEVATION = 5;
+export const DEPTH_POKEMON_BASE = 1;
+export const DEPTH_GRID_MARKINGS = 800;
+export const DEPTH_GRID_HIGHLIGHT = 820;
+export const DEPTH_GRID_ENEMY_RANGE = 830;
+export const DEPTH_GRID_PREVIEW = 840;
+export const DEPTH_GRID_CURSOR = 850;
 export const DEPTH_UI_BASE = 1000;
 export const DEPTH_TIMELINE = 1050;
 export const DEPTH_INFO_PANEL = 1100;
@@ -224,12 +234,12 @@ export const DAMAGE_ESTIMATE_TEXT_STROKE_COLOR = "#000000";
 export const DAMAGE_ESTIMATE_TEXT_STROKE_WIDTH = 2;
 export const DAMAGE_ESTIMATE_IMMUNE_COLOR = "#888888";
 
-export const BATTLE_TEXT_FONT_SIZE = 7;
-export const BATTLE_TEXT_DURATION_MS = 2200;
-export const BATTLE_TEXT_DRIFT_Y = -15;
+export const BATTLE_TEXT_FONT_SIZE = 10;
+export const BATTLE_TEXT_DURATION_MS = 3500;
+export const BATTLE_TEXT_DRIFT_Y = -20;
 export const BATTLE_TEXT_STROKE_COLOR = "#000000";
 export const BATTLE_TEXT_STROKE_WIDTH = 2;
-export const BATTLE_TEXT_STAGGER_Y = -7;
+export const BATTLE_TEXT_STAGGER_Y = -10;
 export const DEPTH_BATTLE_TEXT = 1500;
 
 export const BATTLE_TEXT_COLOR_DAMAGE = "#ffffff";
@@ -240,6 +250,7 @@ export const BATTLE_TEXT_COLOR_EXTREMELY_EFFECTIVE = "#ff6600";
 export const BATTLE_TEXT_COLOR_SUPER_EFFECTIVE = "#ffcc00";
 export const BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE = "#aaaaaa";
 export const BATTLE_TEXT_COLOR_MOSTLY_INEFFECTIVE = "#777777";
+export const BATTLE_TEXT_COLOR_FALL_DAMAGE = "#ff8844";
 export const BATTLE_TEXT_COLOR_BUFF = "#4488ff";
 export const BATTLE_TEXT_COLOR_DEBUFF = "#ff4444";
 export const BATTLE_TEXT_COLOR_CONFUSED = "#aa44dd";
@@ -316,12 +327,14 @@ export const ARENA_MARKING_ALPHA = 0.7;
 export const ARENA_MARKING_LINE_WIDTH = 2;
 export const ARENA_GRASS_BORDER_SIZE = 1;
 export const TILE_SPRITE_SCALE = 1;
-export const TILE_ORIGIN_Y = 0.25;
+export const TILE_ORIGIN_Y = 1.0;
 
 export const ARENA_TILE_FRAME_GRASS = 22;
 export const ARENA_TILE_FRAME_GRASS_VARIANTS = [22, 4, 5, 6, 7, 8] as const;
 export const ARENA_TILE_FRAME_FLOOR = 202;
-export const ARENA_TILE_FRAME_FLOOR_VARIANTS = [202, 184, 185, 186, 187, 188] as const;
+export const ARENA_TILE_FRAME_FLOOR_VARIANTS = [
+  202, 184, 185, 186, 187, 188,
+] as const;
 export const ARENA_TILE_VARIANT_RATIO = 0.15;
 
 export const TILESET_KEY = "icon-tileset";

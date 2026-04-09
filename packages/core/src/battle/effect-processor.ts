@@ -26,6 +26,7 @@ interface ProcessContext {
   targetTypesMap: Map<string, PokemonType[]>;
   targetPosition: Position;
   random: RandomFn;
+  heightModifier: number;
 }
 
 export function createDefaultEffectRegistry(): EffectHandlerRegistry {

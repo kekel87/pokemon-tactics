@@ -114,7 +114,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Supprimer POKEMON_SPRITE_SCALE=2 + TILE_SPRITE_SCALE=2, rattraper offsets, ajuster zoom — uniformiser la résolution pixel (plan 044)
 - [x] Mode pixel art Phaser (roundPixels:true, NEAREST manuel par texture, police adaptée) — plan 044
 - [x] Format de carte compatible Tiled + pipeline de chargement (parseTiledMap, validateTiledMap, loadTiledMap, MapPreviewScene, test-arena.tmj — plan 045)
-- [ ] Dénivelés (hauteur tiles) + dégâts de chute
+- [x] Dénivelés (hauteur tiles) + dégâts de chute (plan 046 — canTraverse, getHeightModifier, isMeleeBlockedByHeight, calculateFallDamage, renderer surélevé, highlands.tmj, 45 tests)
 - [ ] Tileset custom (remplacer/améliorer les tiles JAO) — après dénivelés
 - [ ] Marquages d'arène en tiles Tiled (layer decorations) au lieu d'overlay Graphics — après tileset custom
 - [ ] Obstacles + line of sight (trajectoires de tir visibles)

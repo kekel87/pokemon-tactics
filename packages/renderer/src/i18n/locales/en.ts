@@ -67,6 +67,7 @@ const en: Translations = {
   "direction.west": "West",
   "battle.miss": "Miss!",
   "battle.immune": "No effect",
+  "battle.fall": "Fall",
   "battle.extremelyEffective": "Extremely effective!",
   "battle.superEffective": "Super effective!",
   "battle.notVeryEffective": "Not very effective...",

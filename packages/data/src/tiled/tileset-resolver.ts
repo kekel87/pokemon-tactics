@@ -5,13 +5,19 @@ import { findProperty } from "./tiled-utils";
 export interface ResolvedTileProperties {
   readonly terrain: TerrainType;
   readonly height: number;
+  /**
+   * Direction of the ramp ("north" | "south" | "east" | "west"), or `null`
+   * for flat tiles. Ramps are half-height slope tiles that let Pokemon
+   * walk smoothly between elevations without triggering a jump animation.
+   */
+  readonly slope: string | null;
 }
 
 const TERRAIN_VALUES: ReadonlySet<string> = new Set(Object.values(TerrainType));
 
 export function resolveTileProperties(gid: number, tileset: TiledTileset): ResolvedTileProperties {
   if (gid === 0) {
-    return { terrain: TerrainType.Obstacle, height: 0 };
+    return { terrain: TerrainType.Obstacle, height: 0, slope: null };
   }
 
   const localId = gid - tileset.firstgid;
@@ -19,6 +25,7 @@ export function resolveTileProperties(gid: number, tileset: TiledTileset): Resol
 
   const terrainProp = findProperty(tileDefinition?.properties, "terrain");
   const heightProp = findProperty(tileDefinition?.properties, "height");
+  const slopeProp = findProperty(tileDefinition?.properties, "slope");
 
   let terrain: TerrainType = TerrainType.Normal;
   if (terrainProp !== undefined) {
@@ -32,6 +39,7 @@ export function resolveTileProperties(gid: number, tileset: TiledTileset): Resol
   }
 
   const height = heightProp === undefined ? 0 : Number(heightProp.value);
+  const slope = slopeProp === undefined ? null : String(slopeProp.value);
 
-  return { terrain, height };
+  return { terrain, height, slope };
 }

@@ -18,6 +18,7 @@ import {
   PlayerId,
   type PokemonDefinition,
   type PokemonInstance,
+  PokemonType,
   type Position,
   resolveTargeting,
   type SpawnZone,
@@ -38,6 +39,7 @@ import {
   BATTLE_TEXT_COLOR_DAMAGE,
   BATTLE_TEXT_COLOR_DEBUFF,
   BATTLE_TEXT_COLOR_EXTREMELY_EFFECTIVE,
+  BATTLE_TEXT_COLOR_FALL_DAMAGE,
   BATTLE_TEXT_COLOR_HEAL,
   BATTLE_TEXT_COLOR_IMMUNE,
   BATTLE_TEXT_COLOR_INFO,
@@ -78,6 +80,12 @@ import type { TurnTimeline } from "../ui/TurnTimeline";
 import { getDirectionFromScreenPosition } from "../utils/screen-direction";
 import { AnimationQueue } from "./AnimationQueue";
 import type { BattleSetupResult } from "./BattleSetup";
+import {
+  FLYING_JUMP_ANIMATION_CANDIDATES,
+  isJumpStep,
+  selectMovementAnimation,
+  selectMovementDuration,
+} from "./movement-animation";
 
 export interface BattleConfig {
   confirmAttack: boolean;
@@ -342,9 +350,14 @@ export class GameController {
     }
 
     const grid = this.engine.getGrid();
+    const casterTileHeight = this.isometricGrid.getTileHeight(
+      activePokemon.position.x,
+      activePokemon.position.y,
+    );
     const casterScreenPos = this.isometricGrid.gridToScreen(
       activePokemon.position.x,
       activePokemon.position.y,
+      casterTileHeight,
     );
 
     let affectedTiles: Position[] = [];
@@ -633,9 +646,14 @@ export class GameController {
       sprite.setHpBarVisible(false);
     }
 
+    const height = this.isometricGrid.getTileHeight(
+      activePokemon.position.x,
+      activePokemon.position.y,
+    );
     const screenPos = this.isometricGrid.gridToScreen(
       activePokemon.position.x,
       activePokemon.position.y,
+      height,
     );
 
     this.directionPicker.show(screenPos.x, screenPos.y, activePokemon.orientation, {
@@ -742,12 +760,35 @@ export class GameController {
     if (!sprite) {
       return;
     }
-    sprite.playAnimation("Walk");
+    const pokemon = this.state.pokemon.get(pokemonId);
+    const definitionId = pokemon?.definitionId ?? pokemonId.replace(/^p\d+-/, "");
+    const definition = this.pokemonDefinitions.get(definitionId);
+    const isFlying = definition?.types.includes(PokemonType.Flying) ?? false;
+
     let previous = sprite.gridPosition;
     for (const step of path) {
       const direction = directionFromTo(previous, step);
       sprite.setDirection(direction);
-      await sprite.animateMoveTo(step.x, step.y);
+      const prevHeight = this.isometricGrid.getTileHeight(previous.x, previous.y);
+      const stepHeight = this.isometricGrid.getTileHeight(step.x, step.y);
+      const heightDiff = Math.abs(stepHeight - prevHeight);
+      const isRamp =
+        this.isometricGrid.isSlopeAt(previous.x, previous.y) ||
+        this.isometricGrid.isSlopeAt(step.x, step.y);
+      const movementStep = { heightDiff, isRamp, isFlying };
+      const isJump = isJumpStep(movementStep);
+      const stepDuration = selectMovementDuration(movementStep);
+
+      if (isJump && isFlying) {
+        const playedFlying = sprite.playFirstAvailableAnimation(FLYING_JUMP_ANIMATION_CANDIDATES);
+        if (playedFlying === null) {
+          sprite.playAnimation(selectMovementAnimation(movementStep));
+        }
+      } else {
+        sprite.playAnimation(selectMovementAnimation(movementStep));
+      }
+
+      await sprite.animateMoveTo(step.x, step.y, stepHeight, stepDuration, { isJump });
       previous = step;
     }
     sprite.playAnimation("Idle");
@@ -970,7 +1011,8 @@ export class GameController {
       case BattleEventType.KnockbackApplied: {
         const kbSprite = this.sprites.get(event.pokemonId);
         if (kbSprite) {
-          const target = this.isometricGrid.gridToScreen(event.to.x, event.to.y);
+          const kbHeight = this.isometricGrid.getTileHeight(event.to.x, event.to.y);
+          const target = this.isometricGrid.gridToScreen(event.to.x, event.to.y, kbHeight);
           kbSprite.playAnimation("Hurt");
           await new Promise<void>((resolve) => {
             this.scene.tweens.add({
@@ -979,7 +1021,7 @@ export class GameController {
               y: target.y + POKEMON_SPRITE_GROUND_OFFSET_Y,
               duration: MOVE_TWEEN_DURATION_MS,
               onComplete: () => {
-                kbSprite.getContainer().setDepth(200 + event.to.x + event.to.y);
+                kbSprite.getContainer().setDepth(200 + event.to.x + event.to.y - kbHeight * 0.01);
                 kbSprite.playAnimation("Idle");
                 resolve();
               },
@@ -1008,6 +1050,20 @@ export class GameController {
                 resolve();
               },
             });
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.FallDamageDealt: {
+        const fallSprite = this.sprites.get(event.pokemonId);
+        const fallPokemon = this.state.pokemon.get(event.pokemonId);
+        if (fallSprite && fallPokemon) {
+          fallSprite.updateHp(fallPokemon.currentHp, fallPokemon.maxHp);
+          await fallSprite.flashDamage();
+          const fallPos = fallSprite.getTextPosition();
+          showBattleText(this.scene, fallPos.x, fallPos.y, `${t("battle.fall")} -${event.amount}`, {
+            color: BATTLE_TEXT_COLOR_FALL_DAMAGE,
           });
         }
         break;
@@ -1300,7 +1356,8 @@ export class GameController {
     );
     this.placementSprites.set(pokemonId, tempSprite);
 
-    const screenPos = this.isometricGrid.gridToScreen(position.x, position.y);
+    const placementHeight = this.isometricGrid.getTileHeight(position.x, position.y);
+    const screenPos = this.isometricGrid.gridToScreen(position.x, position.y, placementHeight);
     const gridCenter = {
       x: Math.floor(this.placementConfig.map.width / 2),
       y: Math.floor(this.placementConfig.map.height / 2),

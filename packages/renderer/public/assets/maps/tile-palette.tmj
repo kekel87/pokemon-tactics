@@ -1,660 +1,1960 @@
 {
- "width": 22,
- "height": 24,
- "tilewidth": 32,
- "tileheight": 16,
- "orientation": "isometric",
- "renderorder": "right-down",
- "type": "map",
- "version": "1.10",
- "infinite": false,
- "properties": [
-  {
-   "name": "id",
-   "type": "string",
-   "value": "tile-palette"
-  },
-  {
-   "name": "name",
-   "type": "string",
-   "value": "Tile Palette (22x24)"
-  }
- ],
- "tilesets": [
-  {
-   "firstgid": 1,
-   "name": "icon-tileset",
-   "tilewidth": 32,
-   "tileheight": 32,
-   "tilecount": 528,
-   "columns": 22,
-   "image": "../tilesets/terrain/icon-tileset.png",
-   "imagewidth": 704,
-   "imageheight": 768,
-   "margin": 0,
-   "spacing": 0,
-   "tiles": [
+  "width": 22,
+  "height": 24,
+  "tilewidth": 32,
+  "tileheight": 16,
+  "orientation": "isometric",
+  "renderorder": "right-down",
+  "type": "map",
+  "version": "1.10",
+  "infinite": false,
+  "properties": [
     {
-     "id": 0,
-     "properties": [
-      {
-       "name": "terrain",
-       "type": "string",
-       "value": "normal"
-      },
-      {
-       "name": "height",
-       "type": "int",
-       "value": 0
-      }
-     ]
-    }
-   ]
-  }
- ],
- "layers": [
-  {
-   "name": "terrain",
-   "type": "tilelayer",
-   "width": 22,
-   "height": 24,
-   "visible": true,
-   "id": 1,
-   "opacity": 1,
-   "x": 0,
-   "y": 0,
-   "data": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    21,
-    22,
-    23,
-    24,
-    25,
-    26,
-    27,
-    28,
-    29,
-    30,
-    31,
-    32,
-    33,
-    34,
-    35,
-    36,
-    37,
-    38,
-    39,
-    40,
-    41,
-    42,
-    43,
-    44,
-    45,
-    46,
-    47,
-    48,
-    49,
-    50,
-    51,
-    52,
-    53,
-    54,
-    55,
-    56,
-    57,
-    58,
-    59,
-    60,
-    61,
-    62,
-    63,
-    64,
-    65,
-    66,
-    67,
-    68,
-    69,
-    70,
-    71,
-    72,
-    73,
-    74,
-    75,
-    76,
-    77,
-    78,
-    79,
-    80,
-    81,
-    82,
-    83,
-    84,
-    85,
-    86,
-    87,
-    88,
-    89,
-    90,
-    91,
-    92,
-    93,
-    94,
-    95,
-    96,
-    97,
-    98,
-    99,
-    100,
-    101,
-    102,
-    103,
-    104,
-    105,
-    106,
-    107,
-    108,
-    109,
-    110,
-    111,
-    112,
-    113,
-    114,
-    115,
-    116,
-    117,
-    118,
-    119,
-    120,
-    121,
-    122,
-    123,
-    124,
-    125,
-    126,
-    127,
-    128,
-    129,
-    130,
-    131,
-    132,
-    133,
-    134,
-    135,
-    136,
-    137,
-    138,
-    139,
-    140,
-    141,
-    142,
-    143,
-    144,
-    145,
-    146,
-    147,
-    148,
-    149,
-    150,
-    151,
-    152,
-    153,
-    154,
-    155,
-    156,
-    157,
-    158,
-    159,
-    160,
-    161,
-    162,
-    163,
-    164,
-    165,
-    166,
-    167,
-    168,
-    169,
-    170,
-    171,
-    172,
-    173,
-    174,
-    175,
-    176,
-    177,
-    178,
-    179,
-    180,
-    181,
-    182,
-    183,
-    184,
-    185,
-    186,
-    187,
-    188,
-    189,
-    190,
-    191,
-    192,
-    193,
-    194,
-    195,
-    196,
-    197,
-    198,
-    199,
-    200,
-    201,
-    202,
-    203,
-    204,
-    205,
-    206,
-    207,
-    208,
-    209,
-    210,
-    211,
-    212,
-    213,
-    214,
-    215,
-    216,
-    217,
-    218,
-    219,
-    220,
-    221,
-    222,
-    223,
-    224,
-    225,
-    226,
-    227,
-    228,
-    229,
-    230,
-    231,
-    232,
-    233,
-    234,
-    235,
-    236,
-    237,
-    238,
-    239,
-    240,
-    241,
-    242,
-    243,
-    244,
-    245,
-    246,
-    247,
-    248,
-    249,
-    250,
-    251,
-    252,
-    253,
-    254,
-    255,
-    256,
-    257,
-    258,
-    259,
-    260,
-    261,
-    262,
-    263,
-    264,
-    265,
-    266,
-    267,
-    268,
-    269,
-    270,
-    271,
-    272,
-    273,
-    274,
-    275,
-    276,
-    277,
-    278,
-    279,
-    280,
-    281,
-    282,
-    283,
-    284,
-    285,
-    286,
-    287,
-    288,
-    289,
-    290,
-    291,
-    292,
-    293,
-    294,
-    295,
-    296,
-    297,
-    298,
-    299,
-    300,
-    301,
-    302,
-    303,
-    304,
-    305,
-    306,
-    307,
-    308,
-    309,
-    310,
-    311,
-    312,
-    313,
-    314,
-    315,
-    316,
-    317,
-    318,
-    319,
-    320,
-    321,
-    322,
-    323,
-    324,
-    325,
-    326,
-    327,
-    328,
-    329,
-    330,
-    331,
-    332,
-    333,
-    334,
-    335,
-    336,
-    337,
-    338,
-    339,
-    340,
-    341,
-    342,
-    343,
-    344,
-    345,
-    346,
-    347,
-    348,
-    349,
-    350,
-    351,
-    352,
-    353,
-    354,
-    355,
-    356,
-    357,
-    358,
-    359,
-    360,
-    361,
-    362,
-    363,
-    364,
-    365,
-    366,
-    367,
-    368,
-    369,
-    370,
-    371,
-    372,
-    373,
-    374,
-    375,
-    376,
-    377,
-    378,
-    379,
-    380,
-    381,
-    382,
-    383,
-    384,
-    385,
-    386,
-    387,
-    388,
-    389,
-    390,
-    391,
-    392,
-    393,
-    394,
-    395,
-    396,
-    397,
-    398,
-    399,
-    400,
-    401,
-    402,
-    403,
-    404,
-    405,
-    406,
-    407,
-    408,
-    409,
-    410,
-    411,
-    412,
-    413,
-    414,
-    415,
-    416,
-    417,
-    418,
-    419,
-    420,
-    421,
-    422,
-    423,
-    424,
-    425,
-    426,
-    427,
-    428,
-    429,
-    430,
-    431,
-    432,
-    433,
-    434,
-    435,
-    436,
-    437,
-    438,
-    439,
-    440,
-    441,
-    442,
-    443,
-    444,
-    445,
-    446,
-    447,
-    448,
-    449,
-    450,
-    451,
-    452,
-    453,
-    454,
-    455,
-    456,
-    457,
-    458,
-    459,
-    460,
-    461,
-    462,
-    463,
-    464,
-    465,
-    466,
-    467,
-    468,
-    469,
-    470,
-    471,
-    472,
-    473,
-    474,
-    475,
-    476,
-    477,
-    478,
-    479,
-    480,
-    481,
-    482,
-    483,
-    484,
-    485,
-    486,
-    487,
-    488,
-    489,
-    490,
-    491,
-    492,
-    493,
-    494,
-    495,
-    496,
-    497,
-    498,
-    499,
-    500,
-    501,
-    502,
-    503,
-    504,
-    505,
-    506,
-    507,
-    508,
-    509,
-    510,
-    511,
-    512,
-    513,
-    514,
-    515,
-    516,
-    517,
-    518,
-    519,
-    520,
-    521,
-    522,
-    523,
-    524,
-    525,
-    526,
-    527,
-    528
-   ]
-  },
-  {
-   "name": "spawns",
-   "type": "objectgroup",
-   "visible": true,
-   "id": 2,
-   "opacity": 1,
-   "x": 0,
-   "y": 0,
-   "draworder": "topdown",
-   "objects": [
-    {
-     "id": 1,
-     "x": 16,
-     "y": 8,
-     "width": 0,
-     "height": 0,
-     "name": "",
-     "type": "",
-     "point": true,
-     "visible": true,
-     "rotation": 0,
-     "opacity": 1,
-     "properties": [
-      {
-       "name": "teamIndex",
-       "type": "int",
-       "value": 0
-      },
-      {
-       "name": "formatTeamCount",
-       "type": "int",
-       "value": 2
-      }
-     ]
+      "name": "id",
+      "type": "string",
+      "value": "tile-palette"
     },
     {
-     "id": 2,
-     "x": 16,
-     "y": 24,
-     "width": 0,
-     "height": 0,
-     "name": "",
-     "type": "",
-     "point": true,
-     "visible": true,
-     "rotation": 0,
-     "opacity": 1,
-     "properties": [
-      {
-       "name": "teamIndex",
-       "type": "int",
-       "value": 1
-      },
-      {
-       "name": "formatTeamCount",
-       "type": "int",
-       "value": 2
-      }
-     ]
+      "name": "name",
+      "type": "string",
+      "value": "Tile Palette (22x24)"
     }
-   ]
-  }
- ]
+  ],
+  "tilesets": [
+    {
+      "firstgid": 1,
+      "name": "icon-tileset",
+      "tilewidth": 32,
+      "tileheight": 32,
+      "tilecount": 528,
+      "columns": 22,
+      "image": "../tilesets/terrain/icon-tileset.png",
+      "imagewidth": 704,
+      "imageheight": 768,
+      "margin": 0,
+      "spacing": 0,
+      "tiles": [
+        {
+          "id": 0,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "east"
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "south"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "north"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "west"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 8,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 22,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 23,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 24,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "east"
+            }
+          ]
+        },
+        {
+          "id": 25,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "south"
+            }
+          ]
+        },
+        {
+          "id": 44,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "southeast"
+            }
+          ]
+        },
+        {
+          "id": 92,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "east"
+            }
+          ]
+        },
+        {
+          "id": 93,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "south"
+            }
+          ]
+        },
+        {
+          "id": 94,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "north"
+            }
+          ]
+        },
+        {
+          "id": 95,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "west"
+            }
+          ]
+        },
+        {
+          "id": 96,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 97,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 98,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 99,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 100,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 114,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 115,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 116,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "east"
+            }
+          ]
+        },
+        {
+          "id": 117,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "south"
+            }
+          ]
+        },
+        {
+          "id": 136,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "southeast"
+            }
+          ]
+        },
+        {
+          "id": 180,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "east"
+            }
+          ]
+        },
+        {
+          "id": 181,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "south"
+            }
+          ]
+        },
+        {
+          "id": 182,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "north"
+            }
+          ]
+        },
+        {
+          "id": 183,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "west"
+            }
+          ]
+        },
+        {
+          "id": 184,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 185,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 186,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 187,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 188,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 198,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "water"
+            }
+          ]
+        },
+        {
+          "id": 199,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "water"
+            }
+          ]
+        },
+        {
+          "id": 202,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 203,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 204,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "east"
+            }
+          ]
+        },
+        {
+          "id": 205,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "south"
+            }
+          ]
+        },
+        {
+          "id": 224,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "southeast"
+            }
+          ]
+        },
+        {
+          "id": 268,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "east"
+            }
+          ]
+        },
+        {
+          "id": 269,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "south"
+            }
+          ]
+        },
+        {
+          "id": 270,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "north"
+            }
+          ]
+        },
+        {
+          "id": 271,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "west"
+            }
+          ]
+        },
+        {
+          "id": 272,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            }
+          ]
+        },
+        {
+          "id": 273,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            }
+          ]
+        },
+        {
+          "id": 274,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            }
+          ]
+        },
+        {
+          "id": 275,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            }
+          ]
+        },
+        {
+          "id": 276,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            }
+          ]
+        },
+        {
+          "id": 286,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "lava"
+            }
+          ]
+        },
+        {
+          "id": 287,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "lava"
+            }
+          ]
+        },
+        {
+          "id": 290,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            }
+          ]
+        },
+        {
+          "id": 291,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            }
+          ]
+        },
+        {
+          "id": 292,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "east"
+            }
+          ]
+        },
+        {
+          "id": 293,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "south"
+            }
+          ]
+        },
+        {
+          "id": 312,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "sand"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "southeast"
+            }
+          ]
+        },
+        {
+          "id": 356,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "east"
+            }
+          ]
+        },
+        {
+          "id": 357,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "south"
+            }
+          ]
+        },
+        {
+          "id": 358,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "north"
+            }
+          ]
+        },
+        {
+          "id": 359,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "west"
+            }
+          ]
+        },
+        {
+          "id": 360,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 361,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 362,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 363,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 364,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 378,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 379,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 380,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "east"
+            }
+          ]
+        },
+        {
+          "id": 381,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "south"
+            }
+          ]
+        },
+        {
+          "id": 400,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            },
+            {
+              "name": "slope",
+              "type": "string",
+              "value": "southeast"
+            }
+          ]
+        },
+        {
+          "id": 462,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 1
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        },
+        {
+          "id": 463,
+          "properties": [
+            {
+              "name": "height",
+              "type": "float",
+              "value": 0.5
+            },
+            {
+              "name": "terrain",
+              "type": "string",
+              "value": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "layers": [
+    {
+      "name": "terrain",
+      "type": "tilelayer",
+      "width": 22,
+      "height": 24,
+      "visible": true,
+      "id": 1,
+      "opacity": 1,
+      "x": 0,
+      "y": 0,
+      "data": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        216,
+        217,
+        218,
+        219,
+        220,
+        221,
+        222,
+        223,
+        224,
+        225,
+        226,
+        227,
+        228,
+        229,
+        230,
+        231,
+        232,
+        233,
+        234,
+        235,
+        236,
+        237,
+        238,
+        239,
+        240,
+        241,
+        242,
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        249,
+        250,
+        251,
+        252,
+        253,
+        254,
+        255,
+        256,
+        257,
+        258,
+        259,
+        260,
+        261,
+        262,
+        263,
+        264,
+        265,
+        266,
+        267,
+        268,
+        269,
+        270,
+        271,
+        272,
+        273,
+        274,
+        275,
+        276,
+        277,
+        278,
+        279,
+        280,
+        281,
+        282,
+        283,
+        284,
+        285,
+        286,
+        287,
+        288,
+        289,
+        290,
+        291,
+        292,
+        293,
+        294,
+        295,
+        296,
+        297,
+        298,
+        299,
+        300,
+        301,
+        302,
+        303,
+        304,
+        305,
+        306,
+        307,
+        308,
+        309,
+        310,
+        311,
+        312,
+        313,
+        314,
+        315,
+        316,
+        317,
+        318,
+        319,
+        320,
+        321,
+        322,
+        323,
+        324,
+        325,
+        326,
+        327,
+        328,
+        329,
+        330,
+        331,
+        332,
+        333,
+        334,
+        335,
+        336,
+        337,
+        338,
+        339,
+        340,
+        341,
+        342,
+        343,
+        344,
+        345,
+        346,
+        347,
+        348,
+        349,
+        350,
+        351,
+        352,
+        353,
+        354,
+        355,
+        356,
+        357,
+        358,
+        359,
+        360,
+        361,
+        362,
+        363,
+        364,
+        365,
+        366,
+        367,
+        368,
+        369,
+        370,
+        371,
+        372,
+        373,
+        374,
+        375,
+        376,
+        377,
+        378,
+        379,
+        380,
+        381,
+        382,
+        383,
+        384,
+        385,
+        386,
+        387,
+        388,
+        389,
+        390,
+        391,
+        392,
+        393,
+        394,
+        395,
+        396,
+        397,
+        398,
+        399,
+        400,
+        401,
+        402,
+        403,
+        404,
+        405,
+        406,
+        407,
+        408,
+        409,
+        410,
+        411,
+        412,
+        413,
+        414,
+        415,
+        416,
+        417,
+        418,
+        419,
+        420,
+        421,
+        422,
+        423,
+        424,
+        425,
+        426,
+        427,
+        428,
+        429,
+        430,
+        431,
+        432,
+        433,
+        434,
+        435,
+        436,
+        437,
+        438,
+        439,
+        440,
+        441,
+        442,
+        443,
+        444,
+        445,
+        446,
+        447,
+        448,
+        449,
+        450,
+        451,
+        452,
+        453,
+        454,
+        455,
+        456,
+        457,
+        458,
+        459,
+        460,
+        461,
+        462,
+        463,
+        464,
+        465,
+        466,
+        467,
+        468,
+        469,
+        470,
+        471,
+        472,
+        473,
+        474,
+        475,
+        476,
+        477,
+        478,
+        479,
+        480,
+        481,
+        482,
+        483,
+        484,
+        485,
+        486,
+        487,
+        488,
+        489,
+        490,
+        491,
+        492,
+        493,
+        494,
+        495,
+        496,
+        497,
+        498,
+        499,
+        500,
+        501,
+        502,
+        503,
+        504,
+        505,
+        506,
+        507,
+        508,
+        509,
+        510,
+        511,
+        512,
+        513,
+        514,
+        515,
+        516,
+        517,
+        518,
+        519,
+        520,
+        521,
+        522,
+        523,
+        524,
+        525,
+        526,
+        527,
+        528
+      ]
+    },
+    {
+      "name": "spawns",
+      "type": "objectgroup",
+      "visible": true,
+      "id": 2,
+      "opacity": 1,
+      "x": 0,
+      "y": 0,
+      "draworder": "topdown",
+      "objects": [
+        {
+          "id": 1,
+          "x": 16,
+          "y": 8,
+          "width": 0,
+          "height": 0,
+          "name": "",
+          "type": "",
+          "point": true,
+          "visible": true,
+          "rotation": 0,
+          "opacity": 1,
+          "properties": [
+            {
+              "name": "teamIndex",
+              "type": "int",
+              "value": 0
+            },
+            {
+              "name": "formatTeamCount",
+              "type": "int",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "x": 16,
+          "y": 24,
+          "width": 0,
+          "height": 0,
+          "name": "",
+          "type": "",
+          "point": true,
+          "visible": true,
+          "rotation": 0,
+          "opacity": 1,
+          "properties": [
+            {
+              "name": "teamIndex",
+              "type": "int",
+              "value": 1
+            },
+            {
+              "name": "formatTeamCount",
+              "type": "int",
+              "value": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

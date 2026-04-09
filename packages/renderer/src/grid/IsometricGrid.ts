@@ -21,7 +21,9 @@ import {
   DEPTH_GRID_MARKINGS,
   DEPTH_GRID_PREVIEW,
   DEPTH_GRID_TILES,
+  DEPTH_TILE_MAX_ELEVATION,
   GRID_SIZE,
+  TILE_ELEVATION_STEP,
   TILE_FILL_COLOR,
   TILE_HEIGHT,
   TILE_HIGHLIGHT_ATTACK_COLOR,
@@ -39,11 +41,12 @@ import {
   TILESET_KEY,
 } from "../constants";
 import { HighlightKind } from "../enums/highlight-kind";
-
-interface ScreenPosition {
-  x: number;
-  y: number;
-}
+import {
+  gridToScreen as isoGridToScreen,
+  screenToGridFlat as isoScreenToGridFlat,
+  screenToGridWithHeight as isoScreenToGridWithHeight,
+  type ScreenPosition,
+} from "./iso-math";
 
 export class IsometricGrid {
   private readonly scene: Phaser.Scene;
@@ -60,6 +63,8 @@ export class IsometricGrid {
   readonly gridWidth: number;
   readonly gridHeight: number;
   private readonly useTexturedTiles: boolean;
+  private heightData: readonly number[] = [];
+  private slopeData: readonly (string | null)[] = [];
 
   constructor(scene: Phaser.Scene, gridWidth: number = GRID_SIZE, gridHeight: number = gridWidth) {
     this.scene = scene;
@@ -83,28 +88,25 @@ export class IsometricGrid {
     this.offsetY = CANVAS_HEIGHT / 2 - isoTotalHeight / 2;
   }
 
-  gridToScreen(gridX: number, gridY: number): ScreenPosition {
+  private get projectionContext() {
     return {
-      x: (gridX - gridY) * (TILE_WIDTH / 2) + this.offsetX,
-      y: (gridX + gridY) * (TILE_HEIGHT / 2) + this.offsetY,
+      gridWidth: this.gridWidth,
+      gridHeight: this.gridHeight,
+      offsetX: this.offsetX,
+      offsetY: this.offsetY,
     };
   }
 
+  gridToScreen(gridX: number, gridY: number, height = 0): ScreenPosition {
+    return isoGridToScreen(gridX, gridY, height, this.projectionContext);
+  }
+
   screenToGrid(screenX: number, screenY: number): { x: number; y: number } | null {
-    const relX = screenX - this.offsetX;
-    const relY = screenY - this.offsetY;
-
-    const gridX = (relX / (TILE_WIDTH / 2) + relY / (TILE_HEIGHT / 2)) / 2;
-    const gridY = (relY / (TILE_HEIGHT / 2) - relX / (TILE_WIDTH / 2)) / 2;
-
-    const roundedX = Math.round(gridX);
-    const roundedY = Math.round(gridY);
-
-    if (roundedX < 0 || roundedX >= this.gridWidth || roundedY < 0 || roundedY >= this.gridHeight) {
-      return null;
+    if (this.heightData.length > 0) {
+      return isoScreenToGridWithHeight(screenX, screenY, this.heightData, this.projectionContext);
     }
 
-    return { x: roundedX, y: roundedY };
+    return isoScreenToGridFlat(screenX, screenY, this.projectionContext);
   }
 
   drawGrid(): void {
@@ -116,33 +118,61 @@ export class IsometricGrid {
     }
   }
 
-  drawGridFromTileData(tileData: readonly number[], firstgid: number): void {
+  drawGridFromTileData(
+    elevationLayers: readonly { elevation: number; tileData: readonly number[] }[],
+    firstgid: number,
+    heightData?: readonly number[],
+    slopeData?: readonly (string | null)[],
+  ): void {
     for (const sprite of this.tileSprites) {
       sprite.destroy();
     }
     this.tileSprites.length = 0;
+
+    this.heightData = heightData ?? [];
+    this.slopeData = slopeData ?? [];
 
     if (!this.useTexturedTiles) {
       this.drawFallbackGrid();
       return;
     }
 
-    for (let y = 0; y < this.gridHeight; y++) {
-      for (let x = 0; x < this.gridWidth; x++) {
-        const index = y * this.gridWidth + x;
-        const gid = tileData[index] ?? 0;
-        if (gid === 0) {
-          continue;
+    const sorted = [...elevationLayers].sort((a, b) => a.elevation - b.elevation);
+
+    for (const layer of sorted) {
+      for (let y = 0; y < this.gridHeight; y++) {
+        for (let x = 0; x < this.gridWidth; x++) {
+          const index = y * this.gridWidth + x;
+          const gid = layer.tileData[index] ?? 0;
+          if (gid === 0) {
+            continue;
+          }
+          const frameIndex = gid - firstgid;
+          const center = this.gridToScreen(x, y, layer.elevation);
+          const spriteY = center.y + TILE_HEIGHT / 2;
+          const sprite = this.scene.add.sprite(center.x, spriteY, TILESET_KEY, frameIndex);
+          sprite.setScale(TILE_SPRITE_SCALE);
+          sprite.setOrigin(0.5, TILE_ORIGIN_Y);
+          sprite.setDepth(DEPTH_GRID_TILES + (x + y) * DEPTH_TILE_MAX_ELEVATION + layer.elevation);
+          this.tileSprites.push(sprite);
         }
-        const frameIndex = gid - firstgid;
-        const center = this.gridToScreen(x, y);
-        const sprite = this.scene.add.sprite(center.x, center.y, TILESET_KEY, frameIndex);
-        sprite.setScale(TILE_SPRITE_SCALE);
-        sprite.setOrigin(0.5, TILE_ORIGIN_Y);
-        sprite.setDepth(DEPTH_GRID_TILES + y);
-        this.tileSprites.push(sprite);
       }
     }
+  }
+
+  getTileHeight(gridX: number, gridY: number): number {
+    const index = gridY * this.gridWidth + gridX;
+    return this.heightData[index] ?? 0;
+  }
+
+  /**
+   * Returns `true` when the cell (x, y) carries a `slope` property in the
+   * Tiled map (any layer). Slope tiles are ramps that let Pokemon walk
+   * smoothly between elevations without the animation switching to "Hop".
+   */
+  isSlopeAt(gridX: number, gridY: number): boolean {
+    const index = gridY * this.gridWidth + gridX;
+    return this.slopeData[index] != null;
   }
 
   private drawFallbackGrid(): void {
@@ -182,7 +212,8 @@ export class IsometricGrid {
           frameIndex = baseFrame;
         }
 
-        const sprite = this.scene.add.sprite(center.x, center.y, TILESET_KEY, frameIndex);
+        const spriteY = center.y + TILE_HEIGHT;
+        const sprite = this.scene.add.sprite(center.x, spriteY, TILESET_KEY, frameIndex);
         sprite.setScale(TILE_SPRITE_SCALE);
         sprite.setOrigin(0.5, TILE_ORIGIN_Y);
         sprite.setDepth(DEPTH_GRID_TILES + y);
@@ -304,7 +335,8 @@ export class IsometricGrid {
     );
 
     for (const position of positions) {
-      const center = this.gridToScreen(position.x, position.y);
+      const height = this.getTileHeight(position.x, position.y);
+      const center = this.gridToScreen(position.x, position.y, height);
 
       const top = { x: center.x, y: center.y - halfH };
       const right = { x: center.x + halfW, y: center.y };
@@ -345,7 +377,15 @@ export class IsometricGrid {
 
   showCursor(gridX: number, gridY: number): void {
     this.cursorGraphics.clear();
-    this.drawTileOutline(this.cursorGraphics, gridX, gridY, CURSOR_COLOR, CURSOR_STROKE_WIDTH);
+    const height = this.getTileHeight(gridX, gridY);
+    this.drawTileOutline(
+      this.cursorGraphics,
+      gridX,
+      gridY,
+      CURSOR_COLOR,
+      CURSOR_STROKE_WIDTH,
+      height,
+    );
 
     if (this.cursorTween) {
       this.cursorTween.destroy();
@@ -375,8 +415,9 @@ export class IsometricGrid {
     gridY: number,
     color: number,
     lineWidth: number,
+    height = 0,
   ): void {
-    const center = this.gridToScreen(gridX, gridY);
+    const center = this.gridToScreen(gridX, gridY, height);
     const halfW = TILE_WIDTH / 2;
     const halfH = TILE_HEIGHT / 2;
 
@@ -398,7 +439,8 @@ export class IsometricGrid {
     strokeColor: number,
     alpha: number = 1,
   ): void {
-    const center = this.gridToScreen(gridX, gridY);
+    const height = this.getTileHeight(gridX, gridY);
+    const center = this.gridToScreen(gridX, gridY, height);
     const halfW = TILE_WIDTH / 2;
     const halfH = TILE_HEIGHT / 2;
 

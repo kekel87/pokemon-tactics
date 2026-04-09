@@ -89,6 +89,30 @@ describe("resolveTileProperties", () => {
     expect(() => resolveTileProperties(1, tileset)).toThrow('Invalid terrain "banana"');
   });
 
+  it("returns null slope by default", () => {
+    const result = resolveTileProperties(1, baseTileset);
+    expect(result.slope).toBeNull();
+  });
+
+  it("resolves the slope property when present", () => {
+    const tileset: TiledTileset = {
+      ...baseTileset,
+      tiles: [
+        {
+          id: 0,
+          properties: [
+            { name: "terrain", type: "string", value: "normal" },
+            { name: "height", type: "float", value: 0.5 },
+            { name: "slope", type: "string", value: "east" },
+          ],
+        },
+      ],
+    };
+    const result = resolveTileProperties(1, tileset);
+    expect(result.slope).toBe("east");
+    expect(result.height).toBe(0.5);
+  });
+
   it("resolves all 11 terrain types", () => {
     for (const terrainValue of Object.values(TerrainType)) {
       const tileset: TiledTileset = {

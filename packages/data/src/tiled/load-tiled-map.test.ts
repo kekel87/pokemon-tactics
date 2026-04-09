@@ -39,7 +39,7 @@ describe("test-arena.tmj", () => {
     for (const row of result.map.tiles) {
       for (const tile of row!) {
         expect(tile.terrain).toBe(TerrainType.Normal);
-        expect(tile.height).toBe(0);
+        expect(tile.height).toBe(1);
         expect(tile.occupantId).toBeNull();
       }
     }

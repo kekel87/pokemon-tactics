@@ -1,10 +1,12 @@
 import type { MapDefinition } from "@pokemon-tactic/core";
-import type { TiledTileset } from "@pokemon-tactic/data";
+import type { ElevationLayer, TiledTileset } from "@pokemon-tactic/data";
 import { parseTiledMap, type TiledMap, validateTiledMap } from "@pokemon-tactic/data";
 
 export interface LoadedTiledMap {
   readonly map: MapDefinition;
-  readonly terrainData: readonly number[];
+  readonly elevationLayers: readonly ElevationLayer[];
+  readonly heightData: readonly number[];
+  readonly slopeData: readonly (string | null)[];
   readonly firstgid: number;
 }
 
@@ -55,9 +57,20 @@ export async function loadTiledMap(url: string): Promise<LoadedTiledMap> {
     console.warn(`Map "${url}" parse warnings:\n${parseResult.warnings.join("\n")}`);
   }
 
-  const terrainLayer = tiledMap.layers.find((l) => l.name === "terrain" && l.type === "tilelayer");
-  const terrainData = terrainLayer?.data ?? [];
   const firstgid = tiledMap.tilesets[0]?.firstgid ?? 1;
 
-  return { map: parseResult.map, terrainData, firstgid };
+  const heightData: number[] = [];
+  for (const row of parseResult.map.tiles) {
+    for (const tile of row) {
+      heightData.push(tile.height);
+    }
+  }
+
+  return {
+    map: parseResult.map,
+    elevationLayers: parseResult.elevationLayers,
+    heightData,
+    slopeData: parseResult.slopeData,
+    firstgid,
+  };
 }

@@ -39,6 +39,9 @@ export interface TiledLayer {
   readonly data?: readonly number[];
   readonly objects?: readonly TiledObject[];
   readonly visible: boolean;
+  readonly offsetx?: number;
+  readonly offsety?: number;
+  readonly properties?: readonly TiledProperty[];
 }
 
 export interface TiledMap {

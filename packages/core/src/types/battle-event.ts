@@ -76,4 +76,10 @@ export type BattleEvent =
       totalHits: number;
     }
   | { type: typeof BattleEventType.RechargeStarted; pokemonId: string }
-  | { type: typeof BattleEventType.RechargeEnded; pokemonId: string };
+  | { type: typeof BattleEventType.RechargeEnded; pokemonId: string }
+  | {
+      type: typeof BattleEventType.FallDamageDealt;
+      pokemonId: string;
+      amount: number;
+      heightDiff: number;
+    };

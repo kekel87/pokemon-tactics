@@ -146,7 +146,8 @@ Dégâts = ((2 × Level / 5 + 2) × Power × (Atk / Def) / 50 + 2)
 - Utilisé pour afficher la fourchette min–max sur la HP bar dans la phase de confirmation d'attaque
 - `effectiveness = 0` → affiche "Immune" en gris dans l'UI
 
-> Modificateurs supplémentaires prévus en Phase 2 : hauteur (avantage/désavantage), orientation (dos/face), terrain. Tout est surchargeable via le système d'override.
+> **Modificateur hauteur** (implémenté — plan 046) : ±10%/niveau, plafonds +50%/-30%. Voir section 6.
+> Autres modificateurs prévus : orientation (dos/face), terrain. Tout est surchargeable via le système d'override.
 
 ---
 
@@ -164,11 +165,44 @@ Dégâts = ((2 × Level / 5 + 2) × Power × (Atk / Def) / 50 + 2)
 - **Exceptions** : les types Vol et Spectre traversent aussi les ennemis
 - Certains talents (Lévitation) pourraient permettre de traverser aussi (à valider en Phase 1)
 
-### Chute & dégâts de chute
-- Un Pokemon poussé hors d'une tile élevée **tombe** sur la tile inférieure
-- **Dégâts de chute** proportionnels à la hauteur tombée
-- Le **Poids** du Pokemon pourrait influencer les dégâts de chute (plus lourd = plus de dégâts ?) — à tester
-- **Immunités** : types Vol, talent Lévitation — ne prennent pas de dégâts de chute
+### Hauteur des tiles (implémenté — plan 046)
+
+`TileState.height` est un `number` (supporte les demi-tiles : 0, 0.5, 1, 1.5, 2, 3…). Tile pleine = hauteur 1.0, demi-tile = 0.5. Les rampes/escaliers sont des séquences de tiles à hauteurs intermédiaires.
+
+**Pathfinding asymétrique (BFS) :**
+- `jump` par défaut : 0.5 (tout le monde peut sauter une demi-tile)
+- **Montée ≤ 0.5** : autorisée (animation Hop)
+- **Montée > 0.5** : bloquée — il faut passer par une rampe
+- **Descente** : toujours libre (animation Hop si diff > 0.5, Walk sur les rampes)
+- **Vol** : jamais bloqué, coût 1 quel que soit le dénivelé
+
+**Blocage mêlée par la hauteur :**
+- Les moves mêlée (range 1) sont bloqués si `|heightDiff| ≥ 2` entre l'attaquant et la cible
+- Un Pokemon sur position haute est intouchable en mêlée depuis le sol — il faut monter ou utiliser une attaque à distance
+
+**Bonus/malus d'attaque par la hauteur :**
+- +10% de dégâts par niveau d'avantage (attaquant plus haut), plafonné à +50%
+- -10% par niveau de désavantage (attaquant plus bas), plafonné à -30%
+- S'applique aux dégâts physiques et spéciaux
+- Flag `ignoresHeight: true` sur un move supprime ce modificateur (Séisme, Ampleur…)
+
+### Chute & dégâts de chute (implémenté — plan 046)
+
+Déclenchés quand un knockback ou un dash envoie un Pokemon vers une tile plus basse. L'attaquant lui-même subit les dégâts s'il dash dans le vide.
+
+| Chute (diff) | Dégâts |
+|---|---|
+| ≤ 1.0 | 0 |
+| 2.0 | 33% maxHp |
+| 3.0 | 66% maxHp |
+| 4.0+ | 100% = mort |
+
+Calcul par palier : `Math.floor(diff)` → index dans `[0, 0, 33, 66, 100]`.
+
+- **Types Vol** : immunisés (ils ne tombent pas)
+- **Ténacité (Endure)** : ne protège PAS des dégâts de chute
+- Le Pokemon atterrit sur la tile de destination si passable ; si hors-grille ou impassable, knockback bloqué, pas de chute
+- Émet `BattleEventType.FallDamageDealt { pokemonId, amount, heightDiff }`
 
 ### Types de terrain
 

@@ -45,6 +45,15 @@ describe("i18n", () => {
       const key = "nonexistent.key" as Parameters<typeof t>[0];
       expect(t(key)).toBe("nonexistent.key");
     });
+
+    it("translates battle.fall to Chute in french", () => {
+      expect(t("battle.fall")).toBe("Chute");
+    });
+
+    it("translates battle.fall to Fall in english", () => {
+      setLanguage("en");
+      expect(t("battle.fall")).toBe("Fall");
+    });
   });
 
   describe("setLanguage() / getLanguage()", () => {

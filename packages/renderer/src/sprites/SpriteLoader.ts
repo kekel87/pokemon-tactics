@@ -26,6 +26,8 @@ const DEFAULT_SPRITE_OFFSETS: SpriteOffsets = {
 
 const TICK_DURATION_MS = 33;
 
+const LOOPING_ANIMATIONS = new Set(["Idle", "Walk", "Sleep", "FlapAround", "Hover", "Special10"]);
+
 export function preloadPortraitsOnly(scene: Phaser.Scene, definitionIds: string[]): void {
   for (const definitionId of definitionIds) {
     const basePath = `${SPRITE_BASE_PATH}/${definitionId}`;
@@ -86,7 +88,7 @@ export function createPokemonAnimations(scene: Phaser.Scene, definitionId: strin
         continue;
       }
 
-      const looping = animName === "Idle" || animName === "Walk" || animName === "Sleep";
+      const looping = LOOPING_ANIMATIONS.has(animName);
       scene.anims.create({
         key,
         frames,

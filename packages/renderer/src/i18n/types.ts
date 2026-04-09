@@ -72,6 +72,7 @@ export interface Translations {
   "direction.west": string;
   "battle.miss": string;
   "battle.immune": string;
+  "battle.fall": string;
   "battle.extremelyEffective": string;
   "battle.superEffective": string;
   "battle.notVeryEffective": string;

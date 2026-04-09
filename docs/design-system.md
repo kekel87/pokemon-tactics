@@ -46,6 +46,8 @@ Les **portraits** restent en filtre `LINEAR` par défaut (haute résolution, pas
 
 La grille est le coeur visuel du jeu. Projection isométrique classique (losanges 32×16px world-space, rendu par zoom caméra). Tiles texturées ICON Isometric Pack (Jao), filtre NEAREST appliqué manuellement via `setFilter(NEAREST)` dans `BattleScene`. La grille flotte sur le fond sombre, ce qui crée naturellement une scène de "plateau de jeu".
 
+**Dénivelés (plan 046)** : `gridToScreen(x, y, height)` décale le point de rendu vers le haut selon `TILE_ELEVATION_STEP`. Les tiles surélevées ont une depth ajustée (`DEPTH_GRID_TILES + y - height * 0.1`) pour le tri de profondeur correct. Les sprites Pokemon sont également décalés verticalement par la hauteur de leur tile.
+
 Les overlays de grille utilisent des couleurs semi-transparentes superposées aux tiles :
 - **Bleu** = allié, possibilité, buff (déplacement, zone de buff)
 - **Rouge** = danger, attaque, dégâts (zone d'attaque, confirmation)
@@ -195,6 +197,8 @@ La preview de dégâts est affichée en noir semi-transparent depuis le plan 042
 
 ## Texte flottant (BattleText)
 
+### Couleurs
+
 | Couleur | Hex | Usage |
 |---------|-----|-------|
 | Blanc dégâts | `#ffffff` | Dégâts normaux |
@@ -208,7 +212,26 @@ La preview de dégâts est affichée en noir semi-transparent depuis le plan 042
 | Bleu buff | `#4488ff` | Stat augmentée |
 | Rouge debuff | `#ff4444` | Stat diminuée |
 | Violet confusion | `#aa44dd` | Confusion |
+| Orange chute | `#ff8800` | Dégâts de chute ("Fall -XX") |
 | Gris info | `#dddddd` | Messages d'info divers |
+
+### Comportement
+
+Constantes dans `packages/renderer/src/constants.ts` :
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BATTLE_TEXT_FONT_SIZE` | `10` | Taille en pixels du texte (police `PokemonEmeraldPro`) |
+| `BATTLE_TEXT_DURATION_MS` | `3500` | Durée avant disparition (fade complet) |
+| `BATTLE_TEXT_DRIFT_Y` | `-20` | Drift vertical en pixels (le texte monte) |
+| `BATTLE_TEXT_STAGGER_Y` | `-10` | Offset Y entre deux textes empilés (ex: dégâts + effectiveness) |
+| `BATTLE_TEXT_STROKE_COLOR` | `#000000` | Contour noir pour lisibilité sur fond clair |
+| `BATTLE_TEXT_STROKE_WIDTH` | `2` | Épaisseur du contour |
+| `DEPTH_BATTLE_TEXT` | `1500` | Au-dessus de tout le combat, sous l'UI modale |
+
+Ces valeurs ont été retunées après feedback playtest (plan 046) — la police pixel art rendait les anciennes valeurs (`FONT_SIZE = 7`, `DURATION_MS = 2200`) trop petites et trop fugaces pour être lues en combat.
+
+La clé i18n `battle.fall` (FR "Chute", EN "Fall") est utilisée par le handler `FallDamageDealt` dans `GameController.ts`. Jamais de texte hardcodé côté renderer.
 
 ---
 
@@ -307,6 +330,16 @@ La police est centralisée dans la constante `FONT_FAMILY = "Pokemon Emerald Pro
 | Battle text | `FONT_FAMILY` | 14px | variable (voir section) |
 | Battle log | `FONT_FAMILY` | 12px | variable (voir section) |
 | Damage estimate | `FONT_FAMILY` | 13px | `#ffffff` (stroke `#000000` 3px) |
+
+---
+
+## Constantes de grille
+
+| Constante | Valeur | Description |
+|-----------|--------|-------------|
+| `TILE_WIDTH` | 32 | Largeur d'une tile en world-space (px) |
+| `TILE_HEIGHT` | 16 | Hauteur d'une tile en world-space (px) |
+| `TILE_ELEVATION_STEP` | 8 | Décalage vertical par niveau de hauteur dans `gridToScreen(x, y, height)` (plan 046) |
 
 ---
 

@@ -78,6 +78,7 @@ export function parseSpawnsLayer(
   }
 
   const formats: MapFormat[] = [];
+  const MAX_POKEMON_PER_BATTLE = 12;
 
   for (const [teamCount, teamMap] of [...byFormat.entries()].sort(([a], [b]) => a - b)) {
     const spawnZones = [...teamMap.entries()]
@@ -85,10 +86,12 @@ export function parseSpawnsLayer(
       .map(([, positions]) => ({ positions }));
 
     const maxPositions = Math.max(...spawnZones.map((z) => z.positions.length));
+    const gameplayCap = Math.floor(MAX_POKEMON_PER_BATTLE / teamCount);
+    const maxPokemonPerTeam = Math.min(maxPositions, gameplayCap);
 
     formats.push({
       teamCount,
-      maxPokemonPerTeam: maxPositions,
+      maxPokemonPerTeam,
       spawnZones,
     });
   }

@@ -1,1052 +1,2679 @@
-{ "compressionlevel":-1,
- "height":20,
- "infinite":false,
- "layers":[
-        {
-         "data":[5, 8, 6, 23, 23, 23, 23, 23, 23, 23, 23, 23,
-            7, 203, 203, 203, 203, 203, 203, 203, 203, 189, 187, 23,
-            23, 203, 203, 203, 203, 203, 187, 203, 203, 203, 203, 23,
-            23, 203, 203, 203, 188, 203, 203, 203, 203, 203, 203, 23,
-            23, 203, 203, 187, 203, 203, 203, 203, 187, 203, 203, 23,
-            23, 203, 186, 203, 203, 203, 203, 203, 203, 203, 203, 8,
-            23, 185, 203, 203, 203, 187, 203, 203, 203, 189, 203, 23,
-            23, 203, 203, 203, 186, 203, 203, 203, 203, 203, 203, 23,
-            6, 203, 203, 203, 203, 203, 203, 203, 203, 203, 186, 23,
-            23, 203, 203, 203, 203, 203, 203, 203, 203, 203, 203, 23,
-            23, 203, 186, 203, 203, 203, 203, 203, 203, 203, 185, 23,
-            23, 203, 203, 203, 189, 203, 203, 203, 203, 189, 203, 23,
-            23, 203, 203, 203, 203, 203, 187, 203, 188, 203, 203, 23,
-            23, 203, 203, 185, 203, 203, 203, 203, 203, 203, 203, 23,
-            23, 203, 203, 203, 203, 203, 203, 203, 203, 203, 203, 23,
-            23, 203, 203, 203, 187, 203, 188, 203, 189, 203, 203, 23,
-            7, 203, 203, 203, 203, 203, 203, 203, 203, 189, 203, 5,
-            23, 203, 203, 203, 203, 189, 203, 203, 203, 203, 189, 23,
-            23, 203, 203, 203, 203, 203, 189, 203, 203, 203, 203, 9,
-            23, 6, 23, 23, 5, 23, 23, 23, 23, 23, 23, 23],
-         "height":20,
-         "id":1,
-         "name":"terrain",
-         "opacity":1,
-         "type":"tilelayer",
-         "visible":false,
-         "width":12,
-         "x":0,
-         "y":0
-        },
-        {
-         "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-         "height":20,
-         "id":3,
-         "name":"decorations",
-         "opacity":1,
-         "type":"tilelayer",
-         "visible":true,
-         "width":12,
-         "x":0,
-         "y":0
-        },
-        {
-         "draworder":"topdown",
-         "id":2,
-         "name":"spawns",
-         "objects":[
-                {
-                 "height":0,
-                 "id":1,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":56,
-                 "y":312
-                }, 
-                {
-                 "height":0,
-                 "id":2,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":72,
-                 "y":312
-                }, 
-                {
-                 "height":0,
-                 "id":3,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":72,
-                 "y":296
-                }, 
-                {
-                 "height":0,
-                 "id":4,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":120,
-                 "y":312
-                }, 
-                {
-                 "height":0,
-                 "id":5,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":136,
-                 "y":312
-                }, 
-                {
-                 "height":0,
-                 "id":6,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":152,
-                 "y":312
-                }, 
-                {
-                 "height":0,
-                 "id":7,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":152,
-                 "y":296
-                }, 
-                {
-                 "height":0,
-                 "id":8,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":104,
-                 "y":296
-                }, 
-                {
-                 "height":0,
-                 "id":9,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":40,
-                 "y":296
-                }, 
-                {
-                 "height":0,
-                 "id":10,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":40,
-                 "y":312
-                }, 
-                {
-                 "height":0,
-                 "id":11,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":56,
-                 "y":296
-                }, 
-                {
-                 "height":0,
-                 "id":12,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":88,
-                 "y":296
-                },
-            
-                {
-                 "height":0,
-                 "id":13,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":88,
-                 "y":312
-                }, 
-                {
-                 "height":0,
-                 "id":14,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":104,
-                 "y":312
-                }, 
-                {
-                 "height":0,
-                 "id":15,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":120,
-                 "y":296
-                }, 
-                {
-                 "height":0,
-                 "id":16,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":136,
-                 "y":296
-                }, 
-                {
-                 "height":0,
-                 "id":17,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":56,
-                 "y":24
-                }, 
-                {
-                 "height":0,
-                 "id":18,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":72,
-                 "y":24
-                }, 
-                {
-                 "height":0,
-                 "id":19,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":136,
-                 "y":24
-                }, 
-                {
-                 "height":0,
-                 "id":20,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":152,
-                 "y":24
-                }, 
-                {
-                 "height":0,
-                 "id":21,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":72,
-                 "y":8
-                }, 
-                {
-                 "height":0,
-                 "id":22,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":88,
-                 "y":8
-                }, 
-                {
-                 "height":0,
-                 "id":23,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":136,
-                 "y":8
-                }, 
-                {
-                 "height":0,
-                 "id":24,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":152,
-                 "y":8
-                },
-            
-                {
-                 "height":0,
-                 "id":25,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":40,
-                 "y":24
-                }, 
-                {
-                 "height":0,
-                 "id":26,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":88,
-                 "y":24
-                }, 
-                {
-                 "height":0,
-                 "id":27,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":104,
-                 "y":24
-                }, 
-                {
-                 "height":0,
-                 "id":28,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":120,
-                 "y":24
-                }, 
-                {
-                 "height":0,
-                 "id":29,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":40,
-                 "y":8
-                }, 
-                {
-                 "height":0,
-                 "id":30,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":56,
-                 "y":8
-                }, 
-                {
-                 "height":0,
-                 "id":31,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":104,
-                 "y":8
-                }, 
-                {
-                 "height":0,
-                 "id":32,
-                 "name":"spawn",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":120,
-                 "y":8
-                }],
-         "opacity":1,
-         "type":"objectgroup",
-         "visible":true,
-         "x":0,
-         "y":0
-        }],
- "nextlayerid":1,
- "nextobjectid":1,
- "orientation":"isometric",
- "properties":[
-        {
-         "name":"id",
-         "type":"string",
-         "value":"test-arena"
-        }, 
-        {
-         "name":"name",
-         "type":"string",
-         "value":"Test Arena"
-        }],
- "renderorder":"right-down",
- "tiledversion":"1.12.1",
- "tileheight":16,
- "tilesets":[
-        {
-         "columns":22,
-         "firstgid":1,
-         "image":"..\/tilesets\/terrain\/icon-tileset.png",
-         "imageheight":768,
-         "imagewidth":704,
-         "margin":0,
-         "name":"icon-tileset",
-         "spacing":0,
-         "tilecount":528,
-         "tileheight":32,
-         "tiles":[
-                {
-                 "id":4,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }, 
-                {
-                 "id":5,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }, 
-                {
-                 "id":6,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }, 
-                {
-                 "id":7,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }, 
-                {
-                 "id":8,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }, 
-                {
-                 "id":22,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }, 
-                {
-                 "id":184,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }, 
-                {
-                 "id":185,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }, 
-                {
-                 "id":186,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }, 
-                {
-                 "id":187,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }, 
-                {
-                 "id":188,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }, 
-                {
-                 "id":202,
-                 "properties":[
-                        {
-                         "name":"height",
-                         "type":"int",
-                         "value":0
-                        }, 
-                        {
-                         "name":"terrain",
-                         "type":"string",
-                         "value":"normal"
-                        }]
-                }],
-         "tilewidth":32
-        }],
- "tilewidth":32,
- "type":"map",
- "version":"1.10",
- "width":12
+{
+ "compressionlevel": -1,
+ "height": 20,
+ "infinite": false,
+ "layers": [
+  {
+   "data": [
+    5,
+    8,
+    6,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    7,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    189,
+    187,
+    23,
+    23,
+    203,
+    203,
+    203,
+    203,
+    203,
+    187,
+    203,
+    203,
+    203,
+    203,
+    23,
+    23,
+    203,
+    203,
+    203,
+    188,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    23,
+    23,
+    203,
+    203,
+    187,
+    203,
+    203,
+    203,
+    203,
+    187,
+    203,
+    203,
+    23,
+    23,
+    203,
+    186,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    8,
+    23,
+    185,
+    203,
+    203,
+    203,
+    187,
+    203,
+    203,
+    203,
+    189,
+    203,
+    23,
+    23,
+    203,
+    203,
+    203,
+    186,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    23,
+    6,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    186,
+    23,
+    23,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    23,
+    23,
+    203,
+    186,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    185,
+    23,
+    23,
+    203,
+    203,
+    203,
+    189,
+    203,
+    203,
+    203,
+    203,
+    189,
+    203,
+    23,
+    23,
+    203,
+    203,
+    203,
+    203,
+    203,
+    187,
+    203,
+    188,
+    203,
+    203,
+    23,
+    23,
+    203,
+    203,
+    185,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    23,
+    23,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    23,
+    23,
+    203,
+    203,
+    203,
+    187,
+    203,
+    188,
+    203,
+    189,
+    203,
+    203,
+    23,
+    7,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    203,
+    189,
+    203,
+    5,
+    23,
+    203,
+    203,
+    203,
+    203,
+    189,
+    203,
+    203,
+    203,
+    203,
+    189,
+    23,
+    23,
+    203,
+    203,
+    203,
+    203,
+    203,
+    189,
+    203,
+    203,
+    203,
+    203,
+    9,
+    23,
+    6,
+    23,
+    23,
+    5,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23
+   ],
+   "height": 20,
+   "id": 1,
+   "name": "terrain",
+   "opacity": 1,
+   "type": "tilelayer",
+   "visible": false,
+   "width": 12,
+   "x": 0,
+   "y": 0
+  },
+  {
+   "data": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "height": 20,
+   "id": 3,
+   "name": "decorations",
+   "opacity": 1,
+   "type": "tilelayer",
+   "visible": true,
+   "width": 12,
+   "x": 0,
+   "y": 0
+  },
+  {
+   "draworder": "topdown",
+   "id": 2,
+   "name": "spawns",
+   "objects": [
+    {
+     "height": 0,
+     "id": 1,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 56,
+     "y": 312
+    },
+    {
+     "height": 0,
+     "id": 2,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 72,
+     "y": 312
+    },
+    {
+     "height": 0,
+     "id": 3,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 72,
+     "y": 296
+    },
+    {
+     "height": 0,
+     "id": 4,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 120,
+     "y": 312
+    },
+    {
+     "height": 0,
+     "id": 5,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 136,
+     "y": 312
+    },
+    {
+     "height": 0,
+     "id": 6,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 152,
+     "y": 312
+    },
+    {
+     "height": 0,
+     "id": 7,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 152,
+     "y": 296
+    },
+    {
+     "height": 0,
+     "id": 8,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 104,
+     "y": 296
+    },
+    {
+     "height": 0,
+     "id": 9,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 40,
+     "y": 296
+    },
+    {
+     "height": 0,
+     "id": 10,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 40,
+     "y": 312
+    },
+    {
+     "height": 0,
+     "id": 11,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 56,
+     "y": 296
+    },
+    {
+     "height": 0,
+     "id": 12,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 88,
+     "y": 296
+    },
+    {
+     "height": 0,
+     "id": 13,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 88,
+     "y": 312
+    },
+    {
+     "height": 0,
+     "id": 14,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 104,
+     "y": 312
+    },
+    {
+     "height": 0,
+     "id": 15,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 120,
+     "y": 296
+    },
+    {
+     "height": 0,
+     "id": 16,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 136,
+     "y": 296
+    },
+    {
+     "height": 0,
+     "id": 17,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 56,
+     "y": 24
+    },
+    {
+     "height": 0,
+     "id": 18,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 72,
+     "y": 24
+    },
+    {
+     "height": 0,
+     "id": 19,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 136,
+     "y": 24
+    },
+    {
+     "height": 0,
+     "id": 20,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 152,
+     "y": 24
+    },
+    {
+     "height": 0,
+     "id": 21,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 72,
+     "y": 8
+    },
+    {
+     "height": 0,
+     "id": 22,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 88,
+     "y": 8
+    },
+    {
+     "height": 0,
+     "id": 23,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 136,
+     "y": 8
+    },
+    {
+     "height": 0,
+     "id": 24,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 152,
+     "y": 8
+    },
+    {
+     "height": 0,
+     "id": 25,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 40,
+     "y": 24
+    },
+    {
+     "height": 0,
+     "id": 26,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 88,
+     "y": 24
+    },
+    {
+     "height": 0,
+     "id": 27,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 104,
+     "y": 24
+    },
+    {
+     "height": 0,
+     "id": 28,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 120,
+     "y": 24
+    },
+    {
+     "height": 0,
+     "id": 29,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 40,
+     "y": 8
+    },
+    {
+     "height": 0,
+     "id": 30,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 56,
+     "y": 8
+    },
+    {
+     "height": 0,
+     "id": 31,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 104,
+     "y": 8
+    },
+    {
+     "height": 0,
+     "id": 32,
+     "name": "spawn",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 120,
+     "y": 8
+    }
+   ],
+   "opacity": 1,
+   "type": "objectgroup",
+   "visible": true,
+   "x": 0,
+   "y": 0
+  }
+ ],
+ "nextlayerid": 1,
+ "nextobjectid": 1,
+ "orientation": "isometric",
+ "properties": [
+  {
+   "name": "id",
+   "type": "string",
+   "value": "test-arena"
+  },
+  {
+   "name": "name",
+   "type": "string",
+   "value": "Test Arena"
+  }
+ ],
+ "renderorder": "right-down",
+ "tiledversion": "1.12.1",
+ "tileheight": 16,
+ "tilesets": [
+  {
+   "columns": 22,
+   "firstgid": 1,
+   "image": "../tilesets/terrain/icon-tileset.png",
+   "imageheight": 768,
+   "imagewidth": 704,
+   "margin": 0,
+   "name": "icon-tileset",
+   "spacing": 0,
+   "tilecount": 528,
+   "tileheight": 32,
+   "tiles": [
+    {
+     "id": 0,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "east"
+      }
+     ]
+    },
+    {
+     "id": 1,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "south"
+      }
+     ]
+    },
+    {
+     "id": 2,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "north"
+      }
+     ]
+    },
+    {
+     "id": 3,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "west"
+      }
+     ]
+    },
+    {
+     "id": 4,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 5,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 6,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 7,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 8,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 22,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 23,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 24,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "east"
+      }
+     ]
+    },
+    {
+     "id": 25,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "south"
+      }
+     ]
+    },
+    {
+     "id": 44,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "southeast"
+      }
+     ]
+    },
+    {
+     "id": 92,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "east"
+      }
+     ]
+    },
+    {
+     "id": 93,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "south"
+      }
+     ]
+    },
+    {
+     "id": 94,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "north"
+      }
+     ]
+    },
+    {
+     "id": 95,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "west"
+      }
+     ]
+    },
+    {
+     "id": 96,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 97,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 98,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 99,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 100,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 114,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 115,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 116,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "east"
+      }
+     ]
+    },
+    {
+     "id": 117,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "south"
+      }
+     ]
+    },
+    {
+     "id": 136,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "southeast"
+      }
+     ]
+    },
+    {
+     "id": 180,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "east"
+      }
+     ]
+    },
+    {
+     "id": 181,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "south"
+      }
+     ]
+    },
+    {
+     "id": 182,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "north"
+      }
+     ]
+    },
+    {
+     "id": 183,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "west"
+      }
+     ]
+    },
+    {
+     "id": 184,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 185,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 186,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 187,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 188,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 198,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "water"
+      }
+     ]
+    },
+    {
+     "id": 199,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "water"
+      }
+     ]
+    },
+    {
+     "id": 202,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 203,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 204,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "east"
+      }
+     ]
+    },
+    {
+     "id": 205,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "south"
+      }
+     ]
+    },
+    {
+     "id": 224,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "southeast"
+      }
+     ]
+    },
+    {
+     "id": 268,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "east"
+      }
+     ]
+    },
+    {
+     "id": 269,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "south"
+      }
+     ]
+    },
+    {
+     "id": 270,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "north"
+      }
+     ]
+    },
+    {
+     "id": 271,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "west"
+      }
+     ]
+    },
+    {
+     "id": 272,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      }
+     ]
+    },
+    {
+     "id": 273,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      }
+     ]
+    },
+    {
+     "id": 274,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      }
+     ]
+    },
+    {
+     "id": 275,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      }
+     ]
+    },
+    {
+     "id": 276,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      }
+     ]
+    },
+    {
+     "id": 286,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "lava"
+      }
+     ]
+    },
+    {
+     "id": 287,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "lava"
+      }
+     ]
+    },
+    {
+     "id": 290,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      }
+     ]
+    },
+    {
+     "id": 291,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      }
+     ]
+    },
+    {
+     "id": 292,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "east"
+      }
+     ]
+    },
+    {
+     "id": 293,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "south"
+      }
+     ]
+    },
+    {
+     "id": 312,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "sand"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "southeast"
+      }
+     ]
+    },
+    {
+     "id": 356,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "east"
+      }
+     ]
+    },
+    {
+     "id": 357,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "south"
+      }
+     ]
+    },
+    {
+     "id": 358,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "north"
+      }
+     ]
+    },
+    {
+     "id": 359,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "west"
+      }
+     ]
+    },
+    {
+     "id": 360,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 361,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 362,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 363,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 364,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 378,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 379,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 380,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "east"
+      }
+     ]
+    },
+    {
+     "id": 381,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "south"
+      }
+     ]
+    },
+    {
+     "id": 400,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      },
+      {
+       "name": "slope",
+       "type": "string",
+       "value": "southeast"
+      }
+     ]
+    },
+    {
+     "id": 462,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 1
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    },
+    {
+     "id": 463,
+     "properties": [
+      {
+       "name": "height",
+       "type": "float",
+       "value": 0.5
+      },
+      {
+       "name": "terrain",
+       "type": "string",
+       "value": "normal"
+      }
+     ]
+    }
+   ],
+   "tilewidth": 32
+  }
+ ],
+ "tilewidth": 32,
+ "type": "map",
+ "version": "1.10",
+ "width": 12
 }

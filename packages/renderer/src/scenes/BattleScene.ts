@@ -7,14 +7,10 @@ import {
   PlayerController,
   type PokemonDefinition,
 } from "@pokemon-tactic/core";
-import { loadData, pocArena } from "@pokemon-tactic/data";
+import { loadData } from "@pokemon-tactic/data";
 import {
   ARROW_PAN_SPEED,
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
   STATUS_ICON_KEYS,
-  TILE_HEIGHT,
-  TILE_WIDTH,
   TILESET_KEY,
   TYPE_NAMES,
   ZOOM_DEFAULT_INDEX,
@@ -27,6 +23,7 @@ import { DummyAiController } from "../game/DummyAiController";
 import { GameController, type PlacementConfig } from "../game/GameController";
 import { createSandboxBattle } from "../game/SandboxSetup";
 import { IsometricGrid } from "../grid/IsometricGrid";
+import { loadTiledMap } from "../maps/load-tiled-map";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import { createPokemonAnimations, preloadPokemonAssets } from "../sprites/SpriteLoader";
 import { DEFAULT_SANDBOX_CONFIG, type SandboxConfig } from "../types/SandboxConfig";
@@ -34,6 +31,7 @@ import { DirectionPicker } from "../ui/DirectionPicker";
 import { LanguageToggle } from "../ui/LanguageToggle";
 import { SandboxPanel } from "../ui/SandboxPanel";
 import type { BattleUIScene } from "./BattleUIScene";
+import { computeCameraBounds } from "./camera-bounds";
 import type { TeamSelectResult } from "./TeamSelectScene";
 
 export class BattleScene extends Phaser.Scene {
@@ -118,12 +116,12 @@ export class BattleScene extends Phaser.Scene {
         | undefined;
       if (sceneData?.sandboxMode) {
         const config = sceneData.sandboxConfig ?? DEFAULT_SANDBOX_CONFIG;
-        this.startSandboxMode(uiScene, config);
+        void this.startSandboxMode(uiScene, config);
       } else {
         if (!sceneData?.teamSelectResult) {
           throw new Error("BattleScene requires teamSelectResult from TeamSelectScene");
         }
-        this.startPlacementPhase(
+        void this.startPlacementPhase(
           uiScene,
           sceneData.teamSelectResult,
           sceneData.teamSelectResult.autoPlacement,
@@ -134,20 +132,29 @@ export class BattleScene extends Phaser.Scene {
     this.scene.launch("BattleUIScene");
   }
 
-  private startSandboxMode(uiScene: BattleUIScene, config: SandboxConfig): void {
+  private async startSandboxMode(uiScene: BattleUIScene, config: SandboxConfig): Promise<void> {
     this.sandboxUiScene = uiScene;
-    this.setupCameraBounds(6, 6);
 
     this.sandboxPanel = new SandboxPanel(config, (newConfig: SandboxConfig) => {
-      this.resetSandbox(newConfig);
+      void this.resetSandbox(newConfig);
     });
 
-    this.initSandboxBattle(uiScene, config);
+    await this.initSandboxBattle(uiScene, config);
   }
 
-  private initSandboxBattle(uiScene: BattleUIScene, config: SandboxConfig): void {
-    const isometricGrid = new IsometricGrid(this, 6);
-    isometricGrid.drawGrid();
+  private async initSandboxBattle(uiScene: BattleUIScene, config: SandboxConfig): Promise<void> {
+    const mapUrl = config.mapUrl ?? "assets/maps/sandbox-flat.tmj";
+    const loaded = await loadTiledMap(mapUrl);
+    const tiledMap = loaded.map;
+    const maxHeight = loaded.heightData.length > 0 ? Math.max(...loaded.heightData) : 0;
+    this.setupCameraBounds(loaded.map.width, loaded.map.height, maxHeight);
+    const isometricGrid = new IsometricGrid(this, loaded.map.width, loaded.map.height);
+    isometricGrid.drawGridFromTileData(
+      loaded.elevationLayers,
+      loaded.firstgid,
+      loaded.heightData,
+      loaded.slopeData,
+    );
 
     const sprites = new Map<string, PokemonSprite>();
     const directionPicker = new DirectionPicker(this);
@@ -167,7 +174,7 @@ export class BattleScene extends Phaser.Scene {
     this.controller = controller;
     this.setupInput(controller, isometricGrid, uiScene);
 
-    const battleSetup = createSandboxBattle(config);
+    const battleSetup = createSandboxBattle(config, tiledMap);
     controller.setSetup(battleSetup);
     controller.setupBattleLogClickHandler();
 
@@ -199,7 +206,7 @@ export class BattleScene extends Phaser.Scene {
     controller.refreshUI();
   }
 
-  private resetSandbox(config: SandboxConfig): void {
+  private async resetSandbox(config: SandboxConfig): Promise<void> {
     if (!this.sandboxUiScene) {
       return;
     }
@@ -213,20 +220,20 @@ export class BattleScene extends Phaser.Scene {
     this.sandboxUiScene.actionMenu.hide();
 
     this.cameras.main.setZoom(ZOOM_LEVELS[this.zoomIndex]);
-    this.setupCameraBounds(6, 6);
-    this.initSandboxBattle(this.sandboxUiScene, config);
+    await this.initSandboxBattle(this.sandboxUiScene, config);
   }
 
-  private startPlacementPhase(
+  private async startPlacementPhase(
     uiScene: BattleUIScene,
     teamSelectResult: TeamSelectResult,
     autoPlacement: boolean,
-  ): void {
-    const map = pocArena;
+  ): Promise<void> {
+    const loaded = await loadTiledMap("assets/maps/test-arena.tmj");
+    const map = loaded.map;
     const teamCount = teamSelectResult.teams.length;
     const format = map.formats.find((f) => f.teamCount === teamCount);
     if (!format) {
-      throw new Error(`POC arena has no format for ${teamCount} teams`);
+      throw new Error(`Map "${map.name}" has no format for ${teamCount} teams`);
     }
 
     const teams: import("@pokemon-tactic/core").PlacementTeam[] = teamSelectResult.teams.map(
@@ -237,10 +244,16 @@ export class BattleScene extends Phaser.Scene {
       }),
     );
 
-    this.setupCameraBounds(map.width, map.height);
+    const battleMaxHeight = loaded.heightData.length > 0 ? Math.max(...loaded.heightData) : 0;
+    this.setupCameraBounds(map.width, map.height, battleMaxHeight);
 
     const isometricGrid = new IsometricGrid(this, map.width, map.height);
-    isometricGrid.drawGrid();
+    isometricGrid.drawGridFromTileData(
+      loaded.elevationLayers,
+      loaded.firstgid,
+      loaded.heightData,
+      loaded.slopeData,
+    );
 
     const sprites = new Map<string, PokemonSprite>();
     const directionPicker = new DirectionPicker(this);
@@ -471,21 +484,9 @@ export class BattleScene extends Phaser.Scene {
     this.cameras.main.pan(screenPos.x, screenPos.y, 400, "Sine.easeInOut");
   }
 
-  private setupCameraBounds(gridWidth: number, gridHeight: number): void {
-    const offsetX = CANVAS_WIDTH / 2;
-    const isoTotalWidth = ((gridWidth + gridHeight) * TILE_WIDTH) / 2;
-    const isoTotalHeight = ((gridWidth + gridHeight) * TILE_HEIGHT) / 2;
-    const offsetY = CANVAS_HEIGHT / 2 - isoTotalHeight / 2;
-
-    const marginX = isoTotalWidth / 2;
-    const marginY = isoTotalHeight / 2;
-
-    const boundsX = offsetX - isoTotalWidth / 2 - marginX;
-    const boundsY = offsetY - marginY;
-    const boundsWidth = isoTotalWidth + marginX * 2;
-    const boundsHeight = isoTotalHeight + marginY * 2;
-
-    this.cameras.main.setBounds(boundsX, boundsY, boundsWidth, boundsHeight);
+  private setupCameraBounds(gridWidth: number, gridHeight: number, maxTileHeight = 0): void {
+    const bounds = computeCameraBounds(gridWidth, gridHeight, maxTileHeight);
+    this.cameras.main.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
   }
 
   private changeZoom(direction: number): void {

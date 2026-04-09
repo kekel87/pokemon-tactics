@@ -14,6 +14,7 @@ import {
   DAMAGE_FLASH_DURATION_MS,
   DAMAGE_FLASH_REPEAT,
   DEPTH_POKEMON_BASE,
+  DEPTH_TILE_MAX_ELEVATION,
   FONT_FAMILY,
   getTeamColorByPlayerId,
   HP_BAR_BG_ALPHA,
@@ -137,11 +138,14 @@ export class PokemonSprite {
     return this._gridPosition;
   }
 
-  updatePosition(gridX: number, gridY: number): void {
+  updatePosition(gridX: number, gridY: number, height?: number): void {
     this._gridPosition = { x: gridX, y: gridY };
-    const screen = this.isometricGrid.gridToScreen(gridX, gridY);
+    const tileHeight = height ?? this.isometricGrid.getTileHeight(gridX, gridY);
+    const screen = this.isometricGrid.gridToScreen(gridX, gridY, tileHeight);
     this.container.setPosition(screen.x, screen.y + POKEMON_SPRITE_GROUND_OFFSET_Y);
-    this.container.setDepth(DEPTH_POKEMON_BASE + gridX + gridY);
+    this.container.setDepth(
+      DEPTH_POKEMON_BASE + (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + tileHeight + 0.5,
+    );
   }
 
   getContainer(): Phaser.GameObjects.Container {
@@ -263,9 +267,41 @@ export class PokemonSprite {
     }
     this.currentAnimation = animation;
     const key = getAnimationKey(this.definitionId, animation, this.currentDirection);
-    if (this.scene.anims.exists(key)) {
-      this.sprite.play(key);
+    if (!this.scene.anims.exists(key)) {
+      return;
     }
+    // Never interrupt a looping animation of the same key — that would
+    // reset Walk to frame 0 on every tile step. One-shot animations (Hop,
+    // Attack, Hurt, …) must always restart so each step on a staircase
+    // gets its own full playthrough instead of inheriting the tail end of
+    // the previous one.
+    const currentAnim = this.sprite.anims.currentAnim;
+    const isSameLoopingAnim =
+      currentAnim?.key === key && this.sprite.anims.isPlaying && currentAnim.repeat === -1;
+    if (isSameLoopingAnim) {
+      return;
+    }
+    this.sprite.play(key);
+  }
+
+  /**
+   * Plays the first animation in `candidates` that is registered for this
+   * sprite + current direction. Returns the animation name that was played,
+   * or `null` if no candidate is available. Useful for feature-detecting
+   * optional animations like "FlapAround" on flying Pokemon.
+   */
+  playFirstAvailableAnimation(candidates: readonly string[]): string | null {
+    if (!this.sprite || !this.usesAtlas) {
+      return null;
+    }
+    for (const candidate of candidates) {
+      const key = getAnimationKey(this.definitionId, candidate, this.currentDirection);
+      if (this.scene.anims.exists(key)) {
+        this.playAnimation(candidate);
+        return candidate;
+      }
+    }
+    return null;
   }
 
   playAnimationOnce(animation: string, fallback?: string): Promise<void> {
@@ -355,19 +391,79 @@ export class PokemonSprite {
     this.hpBarFill.setVisible(false);
   }
 
-  animateMoveTo(gridX: number, gridY: number): Promise<void> {
-    const screen = this.isometricGrid.gridToScreen(gridX, gridY);
+  async animateMoveTo(
+    gridX: number,
+    gridY: number,
+    height = 0,
+    duration = MOVE_TWEEN_DURATION_MS,
+    options: { isJump?: boolean } = {},
+  ): Promise<void> {
+    const sourceGridX = this._gridPosition.x;
+    const sourceGridY = this._gridPosition.y;
+    const sourceHeight = this.isometricGrid.getTileHeight(sourceGridX, sourceGridY);
+    const sourceDepth = this.container.depth;
+    const targetDepth =
+      DEPTH_POKEMON_BASE + (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + height + 0.5;
+    // Keep the sprite on top of both the source and the target column during
+    // the whole tween so it is never hidden by tile faces it passes over.
+    // Snap to the exact target depth once the movement completes.
+    this.container.setDepth(Math.max(sourceDepth, targetDepth));
+
+    const heightDelta = height - sourceHeight;
+    const isJump = options.isJump === true && Math.abs(heightDelta) > 0.001;
+
+    if (!isJump) {
+      // Flat movement or ramp traversal → single linear tween.
+      const finalScreen = this.isometricGrid.gridToScreen(gridX, gridY, height);
+      await this.tweenContainer(
+        { x: finalScreen.x, y: finalScreen.y + POKEMON_SPRITE_GROUND_OFFSET_Y },
+        duration,
+      );
+      this._gridPosition = { x: gridX, y: gridY };
+      this.container.setDepth(targetDepth);
+      return;
+    }
+
+    // Jump: one Hop animation per tile step. Single diagonal tween with
+    // per-axis easing so the sprite is always moving forward in X while the
+    // Y axis "lands" asymmetrically — fast rise on ascent, late drop on
+    // descent. The Hop sprite animation provides the visual lift on top of
+    // this; adding an extra vertical hop on the container would stack two
+    // rises and make the jump look twice as high.
+    const isAscent = heightDelta > 0;
+    const endScreen = this.isometricGrid.gridToScreen(gridX, gridY, height);
+    await new Promise<void>((resolve) => {
+      this.scene.tweens.add({
+        targets: this.container,
+        duration,
+        props: {
+          x: { value: endScreen.x, ease: "Linear" },
+          y: {
+            value: endScreen.y + POKEMON_SPRITE_GROUND_OFFSET_Y,
+            ease: isAscent ? "Quad.easeOut" : "Quad.easeIn",
+          },
+        },
+        onComplete: () => resolve(),
+      });
+    });
+
+    this._gridPosition = { x: gridX, y: gridY };
+    this.container.setDepth(targetDepth);
+  }
+
+  private tweenContainer(
+    to: { x: number; y: number },
+    duration: number,
+    ease?: string,
+  ): Promise<void> {
     return new Promise((resolve) => {
       this.scene.tweens.add({
         targets: this.container,
-        x: screen.x,
-        y: screen.y + POKEMON_SPRITE_GROUND_OFFSET_Y,
-        duration: MOVE_TWEEN_DURATION_MS,
-        onComplete: () => {
-          this._gridPosition = { x: gridX, y: gridY };
-          this.container.setDepth(DEPTH_POKEMON_BASE + gridX + gridY);
-          resolve();
-        },
+        x: to.x,
+        y: to.y,
+        duration,
+        ease,
+        onComplete: () => resolve(),
       });
     });
   }
