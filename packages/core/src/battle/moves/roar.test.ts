@@ -4,7 +4,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatName } from "../../enums/stat-name";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, MockBattle, MockPokemon } from "../../testing";
 
 describe("roar", () => {
   it("lowers Attack by 1 stage for enemies in cone", () => {
@@ -36,6 +36,39 @@ describe("roar", () => {
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.StatChanged);
     expect(state.pokemon.get(foe.id)?.statStages[StatName.Attack]).toBe(-1);
+    vi.restoreAllMocks();
+  });
+
+  it("is a sound move and passes through a pillar (height 2)", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const user = MockPokemon.fresh(MockPokemon.base, {
+      id: "user",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      orientation: Direction.East,
+      moveIds: ["roar"],
+      currentPp: { roar: 20 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const foeBehindPillar = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe-behind",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 0 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    const { engine, state } = buildMoveTestEngine([user, foeBehindPillar], 6);
+    MockBattle.setTile(state, 1, 0, { height: 2 });
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: user.id,
+      moveId: "roar",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get(foeBehindPillar.id)?.statStages[StatName.Attack]).toBe(-1);
     vi.restoreAllMocks();
   });
 });

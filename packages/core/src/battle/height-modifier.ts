@@ -35,3 +35,11 @@ export function isMeleeBlockedByHeight(
 
   return Math.abs(attackerHeight - defenderHeight) >= MELEE_HEIGHT_LIMIT;
 }
+
+export function heightBlocks(obstacleHeight: number, referenceHeight: number): boolean {
+  return obstacleHeight > referenceHeight + 1;
+}
+
+export function withinHeightReach(attackerHeight: number, targetHeight: number): boolean {
+  return Math.abs(attackerHeight - targetHeight) < MELEE_HEIGHT_LIMIT;
+}

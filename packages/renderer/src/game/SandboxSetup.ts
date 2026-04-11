@@ -1,9 +1,4 @@
-import type {
-  BaseStats,
-  MapDefinition,
-  PlacementEntry,
-  PlacementTeam,
-} from "@pokemon-tactic/core";
+import type { BaseStats, MapDefinition, PlacementEntry, PlacementTeam } from "@pokemon-tactic/core";
 import {
   computeCombatStats,
   Direction,

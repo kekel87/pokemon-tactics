@@ -4,7 +4,10 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Bugs
 
-*(rien d'ouvert)*
+### Rendu de profondeur pendant les animations d'attaque
+- Même type de bug que celui corrigé pour le déplacement : la `depth` du sprite attaquant n'est pas recalculée pendant l'animation d'attaque, ce qui provoque des z-order incorrects (sprite derrière une tile qui devrait passer devant, ou inverse).
+- Observé lors du playtest du plan 047 (sandbox-los).
+- À investiguer dans `packages/renderer/src/sprites/PokemonSprite.ts` et `packages/renderer/src/game/GameController.ts` — chercher comment la `depth` est gérée pendant `animateAttack` vs `animateMoveTo`.
 
 ## Feedback visuel
 
@@ -12,15 +15,10 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Tâches futures identifiées (hors backlog actif)
 
-### Mécaniques d'attaque en terrain 3D (champ de vision, collisions)
-- Avec les dénivelés, les attaques traversent les blocs (Tranch, Draco-souffle, Brouillard touchent à travers un pilier)
-- Les Dash permettent de monter tous les blocs sans respecter le saut max
-- Le pathfinding et l'affichage des tiles cibles sont OK, mais la **résolution des cibles effectives** d'un move ne prend pas la hauteur en compte
-- À planifier : un plan dédié "Champ de vision tactique et collisions 3D"
-  - Line-of-sight pour les moves à distance
-  - Blocage des moves au sol sur tile basse par un bloc haut
-  - Dash : si on fonce dans un mur (tile infranchissable ou hauteur trop grande), on prend des dégâts (équivalent chute) et on s'arrête
-  - Pattern types qui respectent / ignorent la hauteur
+### Portée dynamique selon la hauteur (dénivelé)
+- Idée : un attaquant en hauteur voit plus loin et peut tirer plus loin. Bonus de portée +N cases selon la différence de hauteur caster - cible (par ex : +1 case par niveau au-dessus, cap +2).
+- Pour l'instant, le plan 046/047 n'ajoute que le modificateur de **dégâts** (`getHeightModifier`, ±10%/niveau, cap +50%/-30%). Aucun bonus de portée.
+- À planifier : décider de la formule (flat +N, multiplicatif, avec cap), adapter `getValidTargetPositions` dans BattleEngine pour calculer une portée effective par caster, affecter la preview renderer.
 
 ### Marquages d'arène → tiles Tiled
 - Les overlay Graphics (pokeball centrale, lignes latérales) devraient être des tiles Tiled dans le layer `decorations`, pas des Graphics Phaser dessinés au runtime
@@ -41,6 +39,12 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 - **Extraire le tileset dans un fichier `.tsj` externe** (tileset Tiled séparé) avec les propriétés `height`, `terrain`, `slope` définies une seule fois. Actuellement chaque map embarque 76 tile definitions redondantes. Le parser supporte déjà les tilesets externes via `resolveExternalTilesets` dans `load-tiled-map.ts`.
 
 ## Résolus
+
+### ~~Mécaniques d'attaque en terrain 3D (champ de vision, collisions)~~ (plan 047)
+- LoS raycast Bresenham 2D intégrée dans les 9 resolvers de targeting (`hasLineOfSight`, `heightBlocks`)
+- Dash contre mur : arrêt + dégâts de chute équivalents
+- Moves sonores et zones telluriques ignorent naturellement la LoS (`ignoresLineOfSight` dérivé des flags)
+- Preview AoE filtrée par LoS dans le renderer ; blast intercepté affiché en couleur distincte
 
 ### ~~Texte flottant trop rapide et illisible~~ (plan 046 playtest)
 - Après le passage à la police PokemonEmeraldPro (plan 044), les `BattleText` (dégâts, Miss, Chute…) étaient trop petits et disparaissaient trop vite pour être lus en combat.

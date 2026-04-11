@@ -73,6 +73,7 @@ export interface Translations {
   "battle.miss": string;
   "battle.immune": string;
   "battle.fall": string;
+  "battle.impact": string;
   "battle.extremelyEffective": string;
   "battle.superEffective": string;
   "battle.notVeryEffective": string;

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, MockBattle, MockPokemon } from "../../testing";
 
 describe("psybeam", () => {
   it("hits single target in line", () => {
@@ -116,6 +116,37 @@ describe("psybeam", () => {
     const hitIds = damageEvents.map((e) => e.targetId);
     expect(hitIds).toContain("foe-on-line");
     expect(hitIds).not.toContain("foe-off-line");
+    vi.restoreAllMocks();
+  });
+
+  it("is stopped by a pillar (height 2) and does not hit target behind it", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["psybeam"],
+      currentPp: { psybeam: 20 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const foeBehind = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe-behind",
+      playerId: PlayerId.Player2,
+      position: { x: 4, y: 2 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    const { engine, state } = buildMoveTestEngine([attacker, foeBehind], 6);
+    MockBattle.setTile(state, 2, 2, { height: 2 });
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "psybeam",
+      targetPosition: { x: 4, y: 2 },
+    });
+
+    expect(result.events.map((e) => e.type)).not.toContain(BattleEventType.DamageDealt);
     vi.restoreAllMocks();
   });
 });

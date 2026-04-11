@@ -58,4 +58,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 043 | [Tileset arène Pokemon + intégration renderer](./043-arena-tileset-renderer.md) | done | 2026-04-07 |
 | 044 | [Mode pixelArt global + police Pokemon Emerald Pro](./044-pixelart-mode-font.md) | done | 2026-04-08 |
 | 045 | [Format de carte Tiled + parser + validation + preview](./045-tiled-map-format-parser-validation-preview.md) | done | 2026-04-08 |
-| 046 | [Dénivelés, hauteur des tiles et dégâts de chute](./046-height-elevation-fall-damage.md) | draft | 2026-04-09 |
+| 046 | [Dénivelés, hauteur des tiles et dégâts de chute](./046-height-elevation-fall-damage.md) | done | 2026-04-09 |
+| 047 | [Ligne de vue 3D et collisions terrain](./047-line-of-sight-3d-collisions.md) | done | 2026-04-11 |

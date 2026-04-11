@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, MockBattle, MockPokemon } from "../../testing";
 
 describe("thunderbolt", () => {
   it("deals damage to target in line", () => {
@@ -182,6 +182,84 @@ describe("thunderbolt", () => {
     const hitIds = damageEvents.map((e) => e.targetId);
     expect(hitIds).toContain("foe-on-line");
     expect(hitIds).not.toContain("foe-off-line");
+    vi.restoreAllMocks();
+  });
+
+  it("passes over a low block (height 1, threshold +1) from a ground shooter", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["thunderbolt"],
+      currentPp: { thunderbolt: 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    const { engine, state } = buildMoveTestEngine([attacker, foe], 6);
+    MockBattle.setTile(state, 1, 2, { height: 1 });
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "thunderbolt",
+      targetPosition: { x: 3, y: 2 },
+    });
+
+    const damageEvents = result.events.filter(
+      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+        e.type === BattleEventType.DamageDealt,
+    );
+    expect(damageEvents.map((e) => e.targetId)).toContain("foe");
+    vi.restoreAllMocks();
+  });
+
+  it("is stopped by a wall (height 2) and does not hit targets beyond", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["thunderbolt"],
+      currentPp: { thunderbolt: 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const foeBefore = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe-before",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const foeBehind = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe-behind",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      derivedStats: { movement: 3, jump: 1, initiative: 9 },
+    });
+
+    const { engine, state } = buildMoveTestEngine([attacker, foeBefore, foeBehind], 6);
+    MockBattle.setTile(state, 2, 2, { height: 2 });
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "thunderbolt",
+      targetPosition: { x: 3, y: 2 },
+    });
+
+    const damageEvents = result.events.filter(
+      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+        e.type === BattleEventType.DamageDealt,
+    );
+    const hitIds = damageEvents.map((e) => e.targetId);
+    expect(hitIds).toContain("foe-before");
+    expect(hitIds).not.toContain("foe-behind");
     vi.restoreAllMocks();
   });
 });

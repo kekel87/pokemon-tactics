@@ -82,4 +82,10 @@ export type BattleEvent =
       pokemonId: string;
       amount: number;
       heightDiff: number;
+    }
+  | {
+      type: typeof BattleEventType.WallImpactDealt;
+      pokemonId: string;
+      amount: number;
+      heightDiff: number;
     };

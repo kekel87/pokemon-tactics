@@ -1,4 +1,5 @@
 import type { MoveDefinition, PokemonDefinition } from "@pokemon-tactic/core";
+import { moveFlags } from "./base/move-flags";
 import { baseMoves } from "./base/moves";
 import { basePokemon } from "./base/pokemon";
 import { deepMerge } from "./merge";
@@ -24,6 +25,7 @@ export function loadData(): GameData {
     const balance = balanceOverrides[base.id] ?? {};
     const baseWithTactical = { ...base, ...tactical };
     const merged = deepMerge(baseWithTactical, balance);
+    const flags = moveFlags[base.id];
     const moveDefinition: MoveDefinition = {
       id: merged.id,
       name: merged.name,
@@ -36,6 +38,7 @@ export function loadData(): GameData {
       effects: merged.effects,
       ...(merged.recharge ? { recharge: true } : {}),
       ...(merged.ignoresHeight ? { ignoresHeight: true } : {}),
+      ...(flags ? { flags } : {}),
     };
     return moveDefinition;
   });

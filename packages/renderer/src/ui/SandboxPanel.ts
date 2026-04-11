@@ -88,6 +88,7 @@ const SANDBOX_MAPS: { value: string; label: string }[] = [
   { value: "assets/maps/sandbox-fall-2.tmj", label: "Sandbox Fall 2 (33%)" },
   { value: "assets/maps/sandbox-fall-3.tmj", label: "Sandbox Fall 3 (66%)" },
   { value: "assets/maps/sandbox-fall-4.tmj", label: "Sandbox Fall 4 (lethal)" },
+  { value: "assets/maps/sandbox-los.tmj", label: "Sandbox LoS (2 pillars)" },
 ];
 
 const PANEL_STYLE = `
@@ -179,7 +180,7 @@ export class SandboxPanel {
 
   private buildToolbar(): HTMLDivElement {
     const toolbar = document.createElement("div");
-    toolbar.style.cssText = `display: flex; gap: 6px; flex-shrink: 0;`;
+    toolbar.style.cssText = "display: flex; gap: 6px; flex-shrink: 0;";
 
     const resetButton = this.createButton(t("sandbox.reset"), () => this.emit());
     resetButton.style.width = "auto";
@@ -612,15 +613,11 @@ export class SandboxPanel {
     const playerX = this.playerXInput.value;
     const playerY = this.playerYInput.value;
     const playerPosition =
-      playerX !== "" && playerY !== ""
-        ? { x: Number(playerX), y: Number(playerY) }
-        : undefined;
+      playerX !== "" && playerY !== "" ? { x: Number(playerX), y: Number(playerY) } : undefined;
     const dummyX = this.dummyXInput.value;
     const dummyY = this.dummyYInput.value;
     const dummyPosition =
-      dummyX !== "" && dummyY !== ""
-        ? { x: Number(dummyX), y: Number(dummyY) }
-        : undefined;
+      dummyX !== "" && dummyY !== "" ? { x: Number(dummyX), y: Number(dummyY) } : undefined;
     const playerDirection = this.playerDirectionSelect.value as Direction;
 
     return {
@@ -870,7 +867,7 @@ export class SandboxPanel {
     input.type = "number";
     input.min = String(min);
     input.max = String(max);
-    input.value = value !== undefined ? String(value) : "";
+    input.value = value === undefined ? "" : String(value);
     input.placeholder = placeholder;
     input.style.cssText =
       "width: 50px; background: #222; color: #ddd; border: 1px solid #444; border-radius: 3px; padding: 1px 3px; font-size: 10px; font-family: monospace; text-align: center;";
