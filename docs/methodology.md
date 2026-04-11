@@ -111,7 +111,36 @@ L'humain peut aussi simplement ouvrir `localhost` après `pnpm dev`.
 
 ---
 
-## 7. Comment gérer les décisions
+## 7. Boucles de feedback temps réel
+
+Claude Code dispose d'un tool **Monitor** qui lance un process long en arrière-plan et émet une notification dans la conversation à chaque ligne stdout du script. Pratique pour surveiller les tests (ou n'importe quel autre process long) pendant qu'on continue à coder, sans avoir à relancer la commande manuellement entre deux edits.
+
+### Quand l'utiliser
+- Refacto sur `packages/core/` qui risque de casser des tests en cascade
+- Modif transversale où on veut savoir immédiatement si un edit casse quelque chose
+- En général, toute session où "relancer les tests après chaque changement" serait utile mais fastidieux
+
+### Recette validée : vitest unit en watch
+
+```bash
+pnpm exec vitest --watch --project unit 2>&1 \
+  | grep --line-buffered -E "(FAIL |failed|❯|Error: )"
+```
+
+**Important** :
+- Lancer depuis la **racine du monorepo**, pas depuis un package (`pnpm --filter` ne marche pas ici : vitest résout le glob `packages/*/src/**` relativement au CWD, et depuis un sous-package ça donne "No test files found")
+- Le `--line-buffered` sur `grep` est critique — sans lui, les events sont bufferisés par paquets et arrivent avec plusieurs minutes de retard
+- Le filtre n'émet que les échecs, pas les passes silencieux : pas de bruit quand tout va bien
+
+À la fin de la session, stopper le Monitor (TaskStop).
+
+### Règle
+
+**Ne pas documenter de recettes non testées.** Si une nouvelle situation appelle un Monitor (vite dev, `tsc --watch`, surveillance d'un process externe, etc.), la valider à chaud dans une vraie session avant de l'ajouter ici. Une recette qui ne marche pas pollue ce fichier plus qu'elle ne sert.
+
+---
+
+## 8. Comment gérer les décisions
 
 - Toute décision importante va dans `docs/decisions.md`
 - Les questions ouvertes y sont listées avec leur priorité
