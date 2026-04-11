@@ -11,6 +11,7 @@ export type * from "./effect";
 export type * from "./map-definition";
 export type * from "./map-format";
 export type * from "./move-definition";
+export type * from "./move-flags";
 export type * from "./placement-entry";
 export type * from "./placement-team";
 export type * from "./pokemon-definition";

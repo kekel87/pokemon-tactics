@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CANVAS_HEIGHT, CANVAS_WIDTH, TILE_HEIGHT, TILE_WIDTH } from "../constants";
+import { CANVAS_HEIGHT, CANVAS_WIDTH, TILE_HEIGHT } from "../constants";
 import {
   gridToScreen,
   type IsoProjectionContext,
@@ -181,9 +181,15 @@ describe("screenToGridWithHeight — diamond hit test", () => {
   it("resolves iso overlap by choosing the visually front cell", () => {
     const ctx = makeContext(3, 3);
     const heights = [
-      0, 0, 0, //
-      0, 0, 0, //
-      0, 0, 2, //
+      0,
+      0,
+      0, //
+      0,
+      0,
+      0, //
+      0,
+      0,
+      2, //
     ];
     // (0, 0) h=0 center and (2, 2) h=2 center are the same screen position
     const center = gridToScreen(0, 0, 0, ctx);
@@ -211,8 +217,10 @@ describe("screenToGridWithHeight — diamond hit test", () => {
   it("picks the tall column over neighboring flat cells", () => {
     const ctx = makeContext(2, 2);
     const heights = [
-      3, 0, //
-      0, 0, //
+      3,
+      0, //
+      0,
+      0, //
     ];
     const center = gridToScreen(0, 0, 3, ctx);
     const result = screenToGridWithHeight(center.x, center.y, heights, ctx);
@@ -226,16 +234,13 @@ describe("screenToGridWithHeight — diamond hit test", () => {
     // cell (1, 1) flat, cell (0, 0) at height 2: their screen positions differ but
     // we craft a click point where depth sorting matters
     const heights = [
-      0, 0, //
-      0, 2, //
+      0,
+      0, //
+      0,
+      2, //
     ];
     const centerFarCorner = gridToScreen(1, 1, 2, ctx);
-    const result = screenToGridWithHeight(
-      centerFarCorner.x,
-      centerFarCorner.y,
-      heights,
-      ctx,
-    );
+    const result = screenToGridWithHeight(centerFarCorner.x, centerFarCorner.y, heights, ctx);
     expect(result).toEqual({ x: 1, y: 1 });
   });
 });

@@ -1,6 +1,7 @@
 import type { Category } from "../enums/category";
 import type { PokemonType } from "../enums/pokemon-type";
 import type { Effect } from "./effect";
+import type { MoveFlags } from "./move-flags";
 import type { TargetingPattern } from "./targeting-pattern";
 
 export interface MoveDefinition {
@@ -15,4 +16,5 @@ export interface MoveDefinition {
   effects: Effect[];
   recharge?: boolean;
   ignoresHeight?: boolean;
+  flags?: MoveFlags;
 }

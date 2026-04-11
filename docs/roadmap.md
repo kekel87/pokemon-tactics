@@ -117,7 +117,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Dénivelés (hauteur tiles) + dégâts de chute (plan 046 — canTraverse, getHeightModifier, isMeleeBlockedByHeight, calculateFallDamage, renderer surélevé, highlands.tmj, 45 tests)
 - [ ] Tileset custom (remplacer/améliorer les tiles JAO) — après dénivelés
 - [ ] Marquages d'arène en tiles Tiled (layer decorations) au lieu d'overlay Graphics — après tileset custom
-- [ ] Obstacles + line of sight (trajectoires de tir visibles)
+- [x] Obstacles + line of sight (trajectoires de tir visibles) — plan 047
 - [ ] Types de terrain (lave, eau, herbe) + modificateurs
 - [ ] Interactions type/terrain + modification terrain par attaques
 - [ ] Orientation tactique (bonus dos/face FFTA)
@@ -143,6 +143,10 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 
 - [ ] Talents (capacités passives)
 - [ ] Objets tenus
+- [ ] Natures (boost +10% / malus -10% sur une stat) — renommé "Stat Alignment" dans Pokemon Champions, à discuter
+- [ ] EV / IV — simplification Pokemon Champions :
+  - **IV supprimés** : tous les Pokemon ont 31 IVs fixes (pas de randomisation à la capture)
+  - **EV → Stat Points (SP)** : 66 points max à distribuer, 32 max par stat, 1 SP = +1 point de stat directement (au lieu du système 4 EV = +1 stat)
 - [ ] Méga-évolutions
 - [ ] Roster élargi (~30-40 Pokemon) + attaques
 - [ ] Team Builder (import/export Showdown)

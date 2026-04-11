@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getHeightModifier, isMeleeBlockedByHeight } from "./height-modifier";
+import { getHeightModifier, heightBlocks, isMeleeBlockedByHeight } from "./height-modifier";
 
 describe("getHeightModifier", () => {
   it("returns 1.0 for same height", () => {
@@ -74,5 +74,33 @@ describe("isMeleeBlockedByHeight", () => {
 
   it("blocks melee when attacker is higher by 2", () => {
     expect(isMeleeBlockedByHeight(3, 1, 1)).toBe(true);
+  });
+});
+
+describe("heightBlocks", () => {
+  it("returns false when obstacle and reference are at same height", () => {
+    expect(heightBlocks(0, 0)).toBe(false);
+    expect(heightBlocks(1, 1)).toBe(false);
+  });
+
+  it("returns false when obstacle is exactly reference + 1 (threshold passes)", () => {
+    expect(heightBlocks(1, 0)).toBe(false);
+    expect(heightBlocks(3, 2)).toBe(false);
+  });
+
+  it("returns true when obstacle exceeds reference + 1", () => {
+    expect(heightBlocks(2, 0)).toBe(true);
+    expect(heightBlocks(3, 1)).toBe(true);
+    expect(heightBlocks(4, 2)).toBe(true);
+  });
+
+  it("returns false when obstacle is below the reference", () => {
+    expect(heightBlocks(0, 2)).toBe(false);
+    expect(heightBlocks(1, 5)).toBe(false);
+  });
+
+  it("handles fractional heights on the strict >= threshold", () => {
+    expect(heightBlocks(1.5, 0.5)).toBe(false);
+    expect(heightBlocks(1.6, 0.5)).toBe(true);
   });
 });

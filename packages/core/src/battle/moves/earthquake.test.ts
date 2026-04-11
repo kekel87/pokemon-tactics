@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, MockBattle, MockPokemon } from "../../testing";
 
 describe("earthquake", () => {
   it("deals damage in a zone r2 around the user", () => {
@@ -74,6 +74,42 @@ describe("earthquake", () => {
     expect(result.success).toBe(true);
     const damageEvents = result.events.filter((e) => e.type === BattleEventType.DamageDealt);
     expect(damageEvents).toHaveLength(2);
+    vi.restoreAllMocks();
+  });
+
+  it("ignores a pillar (height 2) because it is a ground-type zone move", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const user = MockPokemon.fresh(MockPokemon.base, {
+      id: "user",
+      playerId: PlayerId.Player1,
+      position: { x: 2, y: 2 },
+      orientation: Direction.East,
+      moveIds: ["earthquake"],
+      currentPp: { earthquake: 10 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const foeBehindPillar = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe-behind",
+      playerId: PlayerId.Player2,
+      position: { x: 4, y: 2 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    const { engine, state } = buildMoveTestEngine([user, foeBehindPillar], 6);
+    MockBattle.setTile(state, 3, 2, { height: 2 });
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: user.id,
+      moveId: "earthquake",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    const damageEvents = result.events.filter(
+      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+        e.type === BattleEventType.DamageDealt,
+    );
+    expect(damageEvents.map((e) => e.targetId)).toContain("foe-behind");
     vi.restoreAllMocks();
   });
 });

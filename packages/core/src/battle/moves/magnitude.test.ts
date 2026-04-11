@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, MockBattle, MockPokemon } from "../../testing";
 
 describe("magnitude", () => {
   it("hits two targets within radius 2", () => {
@@ -70,5 +70,35 @@ describe("magnitude", () => {
     });
 
     expect(state.pokemon.get(farTarget.id)?.currentHp).toBe(hpBefore);
+  });
+
+  it("ignores a pillar (height 2) because it is a ground-type zone move", () => {
+    const caster = MockPokemon.fresh(MockPokemon.base, {
+      id: "caster",
+      playerId: PlayerId.Player1,
+      position: { x: 2, y: 2 },
+      moveIds: ["magnitude"],
+      currentPp: { magnitude: 30 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const foeBehindPillar = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe-behind",
+      playerId: PlayerId.Player2,
+      position: { x: 4, y: 2 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    const { engine, state } = buildMoveTestEngine([caster, foeBehindPillar], 6);
+    MockBattle.setTile(state, 3, 2, { height: 2 });
+    const hpBefore = state.pokemon.get(foeBehindPillar.id)?.currentHp ?? 0;
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: caster.id,
+      moveId: "magnitude",
+      targetPosition: caster.position,
+    });
+
+    expect(state.pokemon.get(foeBehindPillar.id)?.currentHp).toBeLessThan(hpBefore);
   });
 });

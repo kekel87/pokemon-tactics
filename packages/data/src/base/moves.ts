@@ -1,3 +1,4 @@
+import type { MoveFlags } from "@pokemon-tactic/core";
 import { Category, PokemonType } from "@pokemon-tactic/core";
 
 export interface BaseMoveData {
@@ -9,6 +10,7 @@ export interface BaseMoveData {
   accuracy: number;
   pp: number;
   ignoresHeight?: boolean;
+  flags?: MoveFlags;
 }
 
 export const baseMoves: BaseMoveData[] = [

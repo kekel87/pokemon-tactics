@@ -21,6 +21,12 @@ export { validateBattleData } from "./battle/validate";
 export { validateMapDefinition } from "./battle/validate-map";
 export * from "./enums/index";
 export { Grid } from "./grid/Grid";
-export { resolveTargeting } from "./grid/targeting";
+export { hasLineOfSight } from "./grid/line-of-sight";
+export type { TargetingMoveContext } from "./grid/targeting";
+export {
+  resolveBlastEpicenter,
+  resolveBlastImpactTile,
+  resolveTargeting,
+} from "./grid/targeting";
 export type * from "./types/index";
 export * from "./utils/index";

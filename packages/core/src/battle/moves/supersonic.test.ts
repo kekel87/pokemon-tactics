@@ -4,7 +4,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, MockBattle, MockPokemon } from "../../testing";
 
 describe("supersonic", () => {
   function makeCaster() {
@@ -107,6 +107,33 @@ describe("supersonic", () => {
     expect(targetPokemon.statusEffects).toHaveLength(1);
     expect(targetPokemon.statusEffects[0]?.type).toBe(StatusType.Burned);
     expect(targetPokemon.volatileStatuses).toContainEqual(
+      expect.objectContaining({ type: StatusType.Confused }),
+    );
+    vi.restoreAllMocks();
+  });
+
+  it("is a sound move and passes through a pillar (height 2)", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const caster = makeCaster();
+    const targetBehindPillar = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 0 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    const { engine, state } = buildMoveTestEngine([caster, targetBehindPillar], 6);
+    MockBattle.setTile(state, 1, 0, { height: 2 });
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: caster.id,
+      moveId: "supersonic",
+      targetPosition: { x: 2, y: 0 },
+    });
+
+    const updated = state.pokemon.get(targetBehindPillar.id)!;
+    expect(updated.volatileStatuses).toContainEqual(
       expect.objectContaining({ type: StatusType.Confused }),
     );
     vi.restoreAllMocks();

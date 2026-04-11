@@ -1,6 +1,7 @@
 import { PlayerController } from "../enums/player-controller";
 import { PlayerId } from "../enums/player-id";
 import { TerrainType } from "../enums/terrain-type";
+import { Grid } from "../grid/Grid";
 import type { MapDefinition } from "../types/map-definition";
 import type { MapFormat } from "../types/map-format";
 import type { PlacementTeam } from "../types/placement-team";
@@ -147,5 +148,29 @@ export abstract class MockMap {
 
   static buildFlatTiles(width: number, height: number): TileState[][] {
     return buildFlatTiles(width, height);
+  }
+
+  static buildTilesWithHeights(heights: number[][]): TileState[][] {
+    const tiles: TileState[][] = [];
+    for (let y = 0; y < heights.length; y++) {
+      const row: TileState[] = [];
+      const heightsRow = heights[y] ?? [];
+      for (let x = 0; x < heightsRow.length; x++) {
+        row.push({
+          position: { x, y },
+          height: heightsRow[x] ?? 0,
+          terrain: TerrainType.Normal,
+          occupantId: null,
+        });
+      }
+      tiles.push(row);
+    }
+    return tiles;
+  }
+
+  static buildGridWithHeights(heights: number[][]): Grid {
+    const height = heights.length;
+    const width = heights[0]?.length ?? 0;
+    return new Grid(width, height, MockMap.buildTilesWithHeights(heights));
   }
 }

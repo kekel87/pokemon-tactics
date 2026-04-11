@@ -99,3 +99,22 @@ describe("test-arena.tmj", () => {
     expect(validation.errors).toHaveLength(0);
   });
 });
+
+const mapsDir = resolve(__dirname, "../../../renderer/public/assets/maps");
+
+function loadMap(name: string): TiledMap {
+  return JSON.parse(readFileSync(resolve(mapsDir, name), "utf-8")) as TiledMap;
+}
+
+describe("LoS sandbox map (plan 047)", () => {
+  it("sandbox-los has two aligned pillars h3 at (3,3) and (5,3)", () => {
+    const result = parseTiledMap(loadMap("sandbox-los.tmj"));
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.map.tiles[3]?.[3]?.height).toBe(3);
+    expect(result.map.tiles[3]?.[5]?.height).toBe(3);
+    expect(result.map.tiles[3]?.[1]?.height).toBe(1);
+  });
+});

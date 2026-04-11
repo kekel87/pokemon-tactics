@@ -26,6 +26,7 @@ export const BattleEventType = {
   RechargeStarted: "recharge_started",
   RechargeEnded: "recharge_ended",
   FallDamageDealt: "fall_damage_dealt",
+  WallImpactDealt: "wall_impact_dealt",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

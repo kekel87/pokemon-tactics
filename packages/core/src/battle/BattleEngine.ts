@@ -31,7 +31,7 @@ import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { seededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
-import { getHeightModifier, isMeleeBlockedByHeight } from "./height-modifier";
+import { getHeightModifier } from "./height-modifier";
 import { canTraverse } from "./height-traversal";
 import { getEffectiveInitiative } from "./initiative-calculator";
 import { TurnManager } from "./TurnManager";
@@ -176,6 +176,14 @@ export class BattleEngine {
     }
 
     if (!this.turnState.hasActed && !currentPokemon.recharging) {
+      const allyIds = new Set<string>();
+      for (const [id, p] of this.state.pokemon) {
+        if (p.playerId === currentPokemon.playerId && id !== currentPokemonId) {
+          allyIds.add(id);
+        }
+      }
+      const traversalContext: TraversalContext = { allyIds, canTraverseEnemies: false };
+
       for (const moveId of currentPokemon.moveIds) {
         const currentPp = currentPokemon.currentPp[moveId];
         if (currentPp === undefined || currentPp <= 0) {
@@ -191,16 +199,17 @@ export class BattleEngine {
         }
 
         const targetPositions = this.getValidTargetPositions(currentPokemon, move);
-        const attackerHeight = this.grid.getTile(currentPokemon.position)?.height ?? 0;
-        const moveRange =
-          move.targeting.kind === TargetingKind.Single
-            ? move.targeting.range.max
-            : move.targeting.kind === TargetingKind.Dash
-              ? 1
-              : 99;
+        const moveContext = { type: move.type, flags: move.flags };
         for (const targetPosition of targetPositions) {
-          const targetHeight = this.grid.getTile(targetPosition)?.height ?? 0;
-          if (isMeleeBlockedByHeight(attackerHeight, targetHeight, moveRange)) {
+          const affectedTiles = resolveTargeting(
+            move.targeting,
+            currentPokemon,
+            targetPosition,
+            this.grid,
+            traversalContext,
+            moveContext,
+          );
+          if (affectedTiles.length === 0) {
             continue;
           }
           actions.push({
@@ -395,6 +404,7 @@ export class BattleEngine {
       targetPosition,
       this.grid,
       traversalContext,
+      { type: move.type, flags: move.flags },
     );
 
     if (affectedTiles.length === 0) {
@@ -685,10 +695,22 @@ export class BattleEngine {
   ): void {
     const direction = directionFromTo(pokemon.position, targetPosition);
     let destination: Position | null = null;
+    let wallHeightDiff = 0;
     const distance = manhattanDistance(pokemon.position, targetPosition);
+    const dasherTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const isFlying = dasherTypes.includes(PokemonType.Flying);
+    let previousHeight = this.grid.getTile(pokemon.position)?.height ?? 0;
 
     for (let step = 1; step <= distance; step++) {
       const position = stepInDirection(pokemon.position, direction, step);
+      if (!this.grid.isInBounds(position)) {
+        break;
+      }
+      const tileHeight = this.grid.getTile(position)?.height ?? 0;
+      if (!isFlying && tileHeight - previousHeight > 0.5) {
+        wallHeightDiff = tileHeight - previousHeight;
+        break;
+      }
       const occupant = this.grid.getOccupant(position);
       if (occupant !== null && occupant !== pokemon.id) {
         const occupantPokemon = this.state.pokemon.get(occupant);
@@ -698,9 +720,13 @@ export class BattleEngine {
         continue;
       }
       destination = position;
+      previousHeight = tileHeight;
     }
 
     if (destination === null) {
+      if (wallHeightDiff > 0 && !isFlying) {
+        this.applyDashWallFallDamage(pokemon, wallHeightDiff, events);
+      }
       return;
     }
 
@@ -720,10 +746,12 @@ export class BattleEngine {
     this.emit(moveEvent);
     events.push(moveEvent);
 
+    if (wallHeightDiff > 0 && !isFlying) {
+      this.applyDashWallFallDamage(pokemon, wallHeightDiff, events);
+    }
+
     const dashHeightDiff = originHeight - destHeight;
     if (dashHeightDiff > 0) {
-      const dasherTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
-      const isFlying = dasherTypes.includes(PokemonType.Flying);
       if (!isFlying) {
         const fallDamage = calculateFallDamage(dashHeightDiff, pokemon.maxHp);
         if (fallDamage > 0) {
@@ -747,6 +775,35 @@ export class BattleEngine {
           }
         }
       }
+    }
+  }
+
+  private applyDashWallFallDamage(
+    pokemon: PokemonInstance,
+    heightDiff: number,
+    events: BattleEvent[],
+  ): void {
+    const damage = calculateFallDamage(heightDiff, pokemon.maxHp);
+    if (damage <= 0) {
+      return;
+    }
+    pokemon.currentHp = Math.max(0, pokemon.currentHp - damage);
+    const impactEvent: BattleEvent = {
+      type: BattleEventType.WallImpactDealt,
+      pokemonId: pokemon.id,
+      amount: damage,
+      heightDiff,
+    };
+    this.emit(impactEvent);
+    events.push(impactEvent);
+    if (pokemon.currentHp <= 0) {
+      const koEvent: BattleEvent = {
+        type: BattleEventType.PokemonKo,
+        pokemonId: pokemon.id,
+        countdownStart: 0,
+      };
+      this.emit(koEvent);
+      events.push(koEvent);
     }
   }
 

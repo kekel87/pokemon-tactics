@@ -160,6 +160,7 @@ export const UI_BUTTON_CORNER_RADIUS = 4;
 
 export const TILE_PREVIEW_ATTACK_COLOR = 0xcc4444;
 export const TILE_PREVIEW_BUFF_COLOR = 0x4488cc;
+export const TILE_PREVIEW_BLAST_INTERCEPT_COLOR = 0xffaa33;
 export const TILE_PREVIEW_ALPHA = 0.5;
 export const TILE_RANGE_OUTLINE_COLOR = 0xcc4444;
 export const TILE_RANGE_OUTLINE_ALPHA = 0.6;
@@ -332,9 +333,7 @@ export const TILE_ORIGIN_Y = 1.0;
 export const ARENA_TILE_FRAME_GRASS = 22;
 export const ARENA_TILE_FRAME_GRASS_VARIANTS = [22, 4, 5, 6, 7, 8] as const;
 export const ARENA_TILE_FRAME_FLOOR = 202;
-export const ARENA_TILE_FRAME_FLOOR_VARIANTS = [
-  202, 184, 185, 186, 187, 188,
-] as const;
+export const ARENA_TILE_FRAME_FLOOR_VARIANTS = [202, 184, 185, 186, 187, 188] as const;
 export const ARENA_TILE_VARIANT_RATIO = 0.15;
 
 export const TILESET_KEY = "icon-tileset";

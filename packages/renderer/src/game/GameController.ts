@@ -9,8 +9,10 @@ import {
   directionFromTo,
   EffectKind,
   EffectTarget,
+  type Grid,
   type MapDefinition,
   type MoveDefinition,
+  type MoveFlags,
   type PlacementEntry,
   type PlacementPhase,
   type PlacementTeam,
@@ -20,6 +22,7 @@ import {
   type PokemonInstance,
   PokemonType,
   type Position,
+  resolveBlastImpactTile,
   resolveTargeting,
   type SpawnZone,
   StatName,
@@ -59,6 +62,7 @@ import {
   TEAM_COLORS,
   TILE_PREVIEW_ALPHA,
   TILE_PREVIEW_ATTACK_COLOR,
+  TILE_PREVIEW_BLAST_INTERCEPT_COLOR,
   TILE_PREVIEW_BUFF_COLOR,
   TILE_SPAWN_ZONE_ALPHA,
   TILE_SPAWN_ZONE_INACTIVE_COLOR,
@@ -376,7 +380,10 @@ export class GameController {
 
       this.currentPreviewDirection = direction;
       const targetPosition = stepInDirection(activePokemon.position, direction, 1);
-      affectedTiles = resolveTargeting(targeting, activePokemon, targetPosition, grid);
+      affectedTiles = resolveTargeting(targeting, activePokemon, targetPosition, grid, undefined, {
+        type: moveDefinition.type,
+        flags: moveDefinition.flags,
+      });
     } else {
       const isValidTarget = this.legalActions.some(
         (action) =>
@@ -392,11 +399,40 @@ export class GameController {
         return;
       }
 
-      affectedTiles = resolveTargeting(targeting, activePokemon, gridPosition, grid);
+      affectedTiles = resolveTargeting(targeting, activePokemon, gridPosition, grid, undefined, {
+        type: moveDefinition.type,
+        flags: moveDefinition.flags,
+      });
     }
 
     this.currentPreviewTiles = affectedTiles;
-    this.renderPreview(affectedTiles, this.isBuff(moveDefinition));
+    const blastImpact = this.computeBlastImpactTile(
+      targeting.kind,
+      activePokemon.position,
+      gridPosition,
+      grid,
+      moveDefinition.type,
+      moveDefinition.flags,
+    );
+    this.renderPreview(affectedTiles, this.isBuff(moveDefinition), blastImpact);
+  }
+
+  private computeBlastImpactTile(
+    kind: TargetingKind,
+    origin: Position,
+    target: Position,
+    grid: Grid,
+    moveType: PokemonType,
+    moveFlags: MoveFlags | undefined,
+  ): Position | undefined {
+    if (kind !== TargetingKind.Blast) {
+      return undefined;
+    }
+    const impact = resolveBlastImpactTile(origin, target, grid, {
+      type: moveType,
+      flags: moveFlags,
+    });
+    return impact ?? undefined;
   }
 
   handleEnemyRangeHover(hoveredPokemon: PokemonInstance | null): void {
@@ -604,6 +640,8 @@ export class GameController {
           activePokemon,
           activePokemon.position,
           grid,
+          undefined,
+          { type: moveDefinition.type, flags: moveDefinition.flags },
         );
         this.currentPreviewTiles = affectedTiles;
         this.renderPreview(affectedTiles, this.isBuff(moveDefinition));
@@ -1069,6 +1107,24 @@ export class GameController {
         break;
       }
 
+      case BattleEventType.WallImpactDealt: {
+        const impactSprite = this.sprites.get(event.pokemonId);
+        const impactPokemon = this.state.pokemon.get(event.pokemonId);
+        if (impactSprite && impactPokemon) {
+          impactSprite.updateHp(impactPokemon.currentHp, impactPokemon.maxHp);
+          await impactSprite.flashDamage();
+          const impactPos = impactSprite.getTextPosition();
+          showBattleText(
+            this.scene,
+            impactPos.x,
+            impactPos.y,
+            `${t("battle.impact")} -${event.amount}`,
+            { color: BATTLE_TEXT_COLOR_FALL_DAMAGE },
+          );
+        }
+        break;
+      }
+
       default:
         break;
     }
@@ -1104,15 +1160,29 @@ export class GameController {
     );
   }
 
-  private renderPreview(affectedTiles: Position[], isBuff: boolean): void {
+  private renderPreview(
+    affectedTiles: Position[],
+    isBuff: boolean,
+    impactTile?: Position,
+  ): void {
     this.isometricGrid.clearPreview();
 
-    if (affectedTiles.length === 0) {
+    if (affectedTiles.length === 0 && !impactTile) {
       return;
     }
 
     const color = isBuff ? TILE_PREVIEW_BUFF_COLOR : TILE_PREVIEW_ATTACK_COLOR;
-    this.isometricGrid.showPreview(affectedTiles, color, TILE_PREVIEW_ALPHA);
+    if (affectedTiles.length > 0) {
+      this.isometricGrid.showPreview(affectedTiles, color, TILE_PREVIEW_ALPHA);
+    }
+
+    if (impactTile) {
+      this.isometricGrid.showPreview(
+        [impactTile],
+        TILE_PREVIEW_BLAST_INTERCEPT_COLOR,
+        TILE_PREVIEW_ALPHA,
+      );
+    }
   }
 
   private resolveAttackAction(moveId: string, gridX: number, gridY: number): Action | null {

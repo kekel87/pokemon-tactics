@@ -204,6 +204,35 @@ Calcul par palier : `Math.floor(diff)` → index dans `[0, 0, 33, 66, 100]`.
 - Le Pokemon atterrit sur la tile de destination si passable ; si hors-grille ou impassable, knockback bloqué, pas de chute
 - Émet `BattleEventType.FallDamageDealt { pokemonId, amount, heightDiff }`
 
+### Ligne de vue et obstacles (implémenté — plan 047)
+
+La **ligne de vue (LoS)** détermine si une attaque à distance peut atteindre sa cible. Elle est calculée par un raycast Bresenham 2D entre l'origine et la cible, filtré par la hauteur des tiles traversées.
+
+**Règle de blocage** : une tile obstacle bloque la LoS si `obstacleHeight > referenceHeight + 1`, où `referenceHeight = min(hauteur attaquant, hauteur cible)`. Autrement dit, une tile h3 bloque un tir entre un attaquant h0 et une cible h1 (`min=0`, seuil=1), mais pas entre h1 et h2 (`min=1`, seuil=2). Corrige le cas "tireur sur plateau → cible en contrebas à travers le bord du plateau".
+
+**Portée en hauteur (`withinHeightReach`)** : pour les moves qui ignorent la LoS (sonores et zones telluriques), une règle de portée verticale s'applique : `|hauteur attaquant - hauteur cible| < 2`. Une cible à plus de 1 niveau d'écart ne peut pas être atteinte, même par un move traversant les murs.
+
+**Comportement par type de move :**
+
+| Pattern | Comportement LoS |
+|---------|-----------------|
+| `single` (distance) | Bloqué si un obstacle coupe la ligne directe. |
+| `cone` / `cross` | Chaque case de la zone est vérifiée individuellement par raycast depuis l'origine. |
+| `line` | S'arrête sur le premier obstacle qui bloque — les cases derrière sont épargnées. |
+| `zone` | Chaque case filtrée : `heightBlocks(tileHeight, epicenterHeight)` + raycast depuis l'épicentre. |
+| `blast` (projectile + explosion) | Phase 1 : raycast tireur→cible. Si intercepté, l'explosion se recentre sur la case d'avant le pilier (dernière case libre). Phase 2 : propagation depuis le nouvel épicentre. Tile d'impact affichée en orange dans la preview. |
+| `slash` (arc frontal mêlée) | Règle mêlée (`isMeleeBlockedByHeight`) — pas de raycast. |
+| `dash` | S'arrête si `heightDiff > 0.5` — le Pokemon fonce dans le mur et subit des dégâts de chute. |
+| `self` | Jamais bloqué. |
+
+**Moves qui ignorent la LoS (`ignoresLineOfSight`)** : dérivé des flags, pas d'un flag maison.
+- **Moves sonores** (`flags.sound = true`) : Hurlement, Rugissement, Ultrason, Chant — traversent les murs car le son se propage sans ligne de vue.
+- **Zones telluriques** (pattern `zone` + type `ground`) : Séisme, Ampleur — attaques qui se propagent par le sol, insensibles aux obstacles verticaux.
+
+**Dash contre mur :** si la trajectoire d'un Dash rencontre une tile infranchissable ou une hauteur trop grande (`heightDiff > 0.5`), le Pokemon s'arrête sur la case devant l'obstacle et émet `BattleEventType.WallImpactDealt` (distinct de `FallDamageDealt`) avec des dégâts proportionnels à la différence de hauteur (`calculateFallDamage(wallHeightDiff)`). KO possible. Types Vol immunisés.
+
+**Preview AoE :** dans l'interface, les cases bloquées par un obstacle n'apparaissent plus dans la zone de preview. Pour les blasts interceptés, l'épicentre décalé est affiché dans une couleur distincte (orange).
+
 ### Types de terrain
 
 11 types de terrain définis dans `TerrainType` (implémentés en plan 045 — effets gameplay à implémenter dans un plan séparé) :

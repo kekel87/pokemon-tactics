@@ -1,4 +1,9 @@
-import { DEPTH_TILE_MAX_ELEVATION, TILE_ELEVATION_STEP, TILE_HEIGHT, TILE_WIDTH } from "../constants";
+import {
+  DEPTH_TILE_MAX_ELEVATION,
+  TILE_ELEVATION_STEP,
+  TILE_HEIGHT,
+  TILE_WIDTH,
+} from "../constants";
 
 export interface IsoProjectionContext {
   readonly gridWidth: number;

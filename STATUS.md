@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-11 (plan 046 post-playtest)
+> Dernière mise à jour : 2026-04-11 (plan 047 terminé + hotfixes post-playtest — LoS 3D + collisions)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -9,7 +9,7 @@
 ## Phase actuelle : Phase 3 — Terrain & Tactics
 
 ### Ce qui est fait
-- Documentation complète : game-design, architecture, decisions (229 décisions), roadmap, references, methodology, roster POC, glossaire
+- Documentation complète : game-design, architecture, decisions (240 décisions), roadmap, references, methodology, roster POC, glossaire
 - 21 agents + 7 skills Claude Code en place (`.claude/`)
 - **Plan 001 terminé** : monorepo setup (pnpm workspaces, TypeScript bundler, Vite, Vitest, Biome)
 - **Plan 002 terminé** :
@@ -655,10 +655,46 @@
   - Typecheck clean, lint clean (warnings nursery pré-existants uniquement)
   - Changements non encore commités (`docs/backlog.md` modifié) — voir `git diff --stat`
 
+- **Plan 047 terminé** — Ligne de vue 3D et collisions terrain :
+  - **Core : `heightBlocks`** — fonction pure unifiée `obstacleHeight > referenceHeight + 1` (`packages/core/src/battle/height-modifier.ts`), 5 tests unitaires. `isMeleeBlockedByHeight` préservée (sémantique `abs(diff) >= 2`) pour rétrocompatibilité mêlée.
+  - **Core : `MoveFlags`** — interface alignée Showdown (`contact`, `sound`, `bullet`, `wind`, `powder`, `pulse`, `punch`, `bite`, `slicing`, `dance`, + flags mécaniques `protect`, `mirror`, `snatch`, etc.). Stockée sur `MoveDefinition.flags`.
+  - **Core : `hasLineOfSight`** — raycast Bresenham 2D filtré par `heightBlocks` (`packages/core/src/grid/line-of-sight.ts`), 8 tests unitaires.
+  - **Core : LoS dans les 9 resolvers de `targeting.ts`** :
+    - `single distance` → `hasLineOfSight(origin, target, min(hOrigin, hTarget))`
+    - `cone` / `cross` → raycast par case depuis l'origine
+    - `line` → s'arrête sur le premier obstacle qui bloque, cases suivantes épargnées
+    - `zone` → filtre chaque case par `heightBlocks(tileHeight, epicenterHeight)` + raycast
+    - `blast` → 2 phases : phase 1 raycast tireur→cible, si intercepté l'explosion se recentre sur le pilier ; phase 2 propagation depuis le nouvel épicentre
+    - `slash` → mêlée frontale avec `isMeleeBlockedByHeight`
+    - `single mêlée` → règle mêlée
+    - `dash` → arrêt si `heightDiff > 0.5`, `wallHeightDiff` remonté
+    - `self` → inchangé
+  - **Règle dérivée `ignoresLineOfSight`** : `flags.sound === true || (pattern === 'zone' && type === 'ground')`. Séisme et Ampleur ignorent donc naturellement la LoS (type Sol + zone), Hurlement/Rugissement/Ultrason/Chant traversent les murs (flag sonore).
+  - **Core : dash contre mur** (`BattleEngine.dashMoveCaster`) — si la trajectoire rencontre un mur infranchissable, arrêt sur la case devant + `BattleEventType.WallImpactDealt` (distinct de `FallDamageDealt`) via `calculateFallDamage`. Vol immunisé. KO possible.
+  - **Core : `resolveBlastEpicenter`** exportée pour permettre au renderer de calculer l'épicentre intercepté (preview distincte).
+  - **Data : peuplement `moveFlags`** sur ~74 moves du roster (`packages/data/src/base/move-flags.ts`, mapping séparé, appliqué dans `load-data.ts`). Flags de nature physique (contact, sound, bullet, punch, bite, slicing, wind, powder, dance, recharge) renseignés ; flags mécaniques Phase 4 laissés vides.
+  - **Renderer : preview AoE filtrée par LoS** — `GameController.handleTileHover` passe `moveContext` à `resolveTargeting`, les cases bloquées par un obstacle n'apparaissent plus. Pour les blasts, l'épicentre intercepté est dessiné en `TILE_PREVIEW_BLAST_INTERCEPT_COLOR` (orange) distinct du rayon rouge.
+  - **Data : 5 maps sandbox LoS initiales** dans `packages/renderer/public/assets/maps/` — `sandbox-los-shots.tmj`, `sandbox-los-line.tmj`, `sandbox-los-zone.tmj`, `sandbox-los-blast.tmj`, `sandbox-los-dash.tmj`. Chacune testable via `pnpm dev:map <fichier>` pour playtest manuel. 5 tests d'intégration valident le parsing et les hauteurs attendues. (Consolidées en `sandbox-los.tmj` dans les hotfixes post-playtest.)
+  - **Tests d'intégration moves (étape 8b)** — 13 nouveaux cas LoS répartis sur 11 fichiers moves : `psybeam`, `thunderbolt` (x2 cas : seuil +1 + line stoppée), `hyper-beam`, `earthquake`, `magnitude`, `sludge-bomb`, `growl`, `roar`, `supersonic`, `sing`, `quick-attack`. Testent que la LoS fonctionne bout-en-bout via `BattleEngine.submitAction` + `MockBattle.setTile`.
+  - **840 tests unit** verts (+ 13 nouveaux moves LoS + 5 maps sandbox + 8 line-of-sight + 5 heightBlocks) — avant hotfixes.
+  - **97/98 intégration** (1 échec pré-existant `PlacementPhase > manual placement`, sans lien).
+  - **Typecheck clean**, lint clean côté modifications (warnings nursery pré-existants uniquement).
+  - **Build propre** — `pnpm build` OK.
+
+- **Plan 047 — hotfixes post-playtest (session 2026-04-11)** :
+  - **`heightBlocks` : `max` → `min`** — `ref = min(origin, target)` corrige le cas tireur sur plateau → cible en contrebas à travers le bord du plateau (avec `max`, le bord du plateau ne bloquait pas si le tireur était haut).
+  - **`withinHeightReach(|c-t| < 2)`** — règle de portée verticale ajoutée pour les moves bypass-LoS (sound, zone+ground) uniquement. Empêche un Chant de toucher une cible h5 depuis h0 sans ligne de vue.
+  - **`BattleEventType.WallImpactDealt`** — distinct de `FallDamageDealt` pour le dash contre mur. Traduction i18n "Impact" séparée de "Chute".
+  - **Blast : épicentre = case d'avant le pilier** — l'explosion se recentre sur la dernière case libre avant l'interception, pas sur le pilier lui-même. Tile d'impact affichée en orange dans la preview.
+  - **`getLegalActions` utilise `resolveTargeting`** pour filtrer — la preview et l'IA ne proposent plus de cibles non-atteignables derrière les piliers. `isMeleeBlockedByHeight` retiré du check dash dans `getLegalActions`.
+  - **Map unique `sandbox-los.tmj`** (10×7, 2 piliers h3 en (3,3) et (5,3)) — remplace les 5 maps séparées.
+  - **`LosGuard.ignoresLoS`** (anciennement `enabled` inversé) — sémantique plus claire.
+  - **`findBlastInterception`** — nouveau helper qui déduplique le raycast Bresenham du blast (partagé entre core et renderer).
+  - **839/839 tests unit**, typecheck clean, lint propre hors pré-existants.
+
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
 - **Tileset custom** pour remplacer/améliorer les tiles JAO (décision à prendre)
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
-- Obstacles + line of sight
 - Règles de déplacement par terrain/type Pokemon (effets gameplay des 11 terrains)
 - Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
 

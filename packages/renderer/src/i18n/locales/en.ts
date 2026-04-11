@@ -68,6 +68,7 @@ const en: Translations = {
   "battle.miss": "Miss!",
   "battle.immune": "No effect",
   "battle.fall": "Fall",
+  "battle.impact": "Impact",
   "battle.extremelyEffective": "Extremely effective!",
   "battle.superEffective": "Super effective!",
   "battle.notVeryEffective": "Not very effective...",
