@@ -1,0 +1,223 @@
+{
+  "spd-1": [
+    "acid",
+    "apple-acid",
+    "bug-buzz",
+    "earth-power",
+    "energy-ball",
+    "flash-cannon",
+    "focus-blast",
+    "luster-purge",
+    "psychic",
+    "shadow-ball",
+    "shell-smash"
+  ],
+  "def+2": [
+    "acid-armor",
+    "barrier",
+    "iron-defense",
+    "shelter"
+  ],
+  "spd-2": [
+    "acid-spray",
+    "fake-tears",
+    "lumina-crash",
+    "metal-sound",
+    "seed-flare"
+  ],
+  "spe+2": [
+    "agility",
+    "autotomize",
+    "fillet-away",
+    "geomancy",
+    "rock-polish",
+    "shell-smash",
+    "shift-gear"
+  ],
+  "spd+2": [
+    "amnesia",
+    "geomancy"
+  ],
+  "spd+1": [
+    "aromatic-mist",
+    "calm-mind",
+    "charge",
+    "clangorous-soul",
+    "cosmic-power",
+    "defend-order",
+    "no-retreat",
+    "quiver-dance"
+  ],
+  "atk-1": [
+    "aurora-beam",
+    "baby-doll-eyes",
+    "bitter-malice",
+    "breaking-swipe",
+    "chilling-water",
+    "growl",
+    "lunge",
+    "noble-roar",
+    "play-nice",
+    "play-rough",
+    "springtide-storm",
+    "tearful-look",
+    "tickle",
+    "trop-kick"
+  ],
+  "spe-1": [
+    "bleakwind-storm",
+    "bubble",
+    "bubble-beam",
+    "bulldoze",
+    "constrict",
+    "drum-beating",
+    "electroweb",
+    "glaciate",
+    "icy-wind",
+    "low-sweep",
+    "mud-shot",
+    "pounce",
+    "rock-tomb",
+    "tar-shot",
+    "toxic-thread"
+  ],
+  "atk+1": [
+    "bulk-up",
+    "clangorous-soul",
+    "coaching",
+    "coil",
+    "dragon-dance",
+    "growth",
+    "hone-claws",
+    "howl",
+    "meditate",
+    "no-retreat",
+    "sharpen",
+    "shift-gear",
+    "victory-dance",
+    "work-up"
+  ],
+  "def+1": [
+    "bulk-up",
+    "clangorous-soul",
+    "coaching",
+    "coil",
+    "cosmic-power",
+    "defend-order",
+    "defense-curl",
+    "harden",
+    "no-retreat",
+    "victory-dance",
+    "withdraw"
+  ],
+  "spa+1": [
+    "calm-mind",
+    "clangorous-soul",
+    "flatter",
+    "growth",
+    "no-retreat",
+    "quiver-dance",
+    "work-up"
+  ],
+  "spa-2": [
+    "captivate",
+    "eerie-impulse",
+    "memento"
+  ],
+  "atk-2": [
+    "charm",
+    "feather-dance",
+    "memento"
+  ],
+  "spe+1": [
+    "clangorous-soul",
+    "dragon-dance",
+    "no-retreat",
+    "quiver-dance",
+    "victory-dance"
+  ],
+  "accuracy+1": [
+    "coil",
+    "hone-claws"
+  ],
+  "spa-1": [
+    "confide",
+    "mist-ball",
+    "moonblast",
+    "mystical-fire",
+    "noble-roar",
+    "skitter-smack",
+    "snarl",
+    "spirit-break",
+    "struggle-bug",
+    "tearful-look"
+  ],
+  "def+3": [
+    "cotton-guard"
+  ],
+  "spe-2": [
+    "cotton-spore",
+    "scary-face",
+    "string-shot"
+  ],
+  "def-1": [
+    "crunch",
+    "crush-claw",
+    "fire-lash",
+    "grav-apple",
+    "iron-tail",
+    "leer",
+    "liquidation",
+    "razor-shell",
+    "rock-smash",
+    "shadow-bone",
+    "shell-smash",
+    "tail-whip",
+    "thunderous-kick",
+    "tickle"
+  ],
+  "atk+2": [
+    "decorate",
+    "fillet-away",
+    "shell-smash",
+    "spicy-extract",
+    "swagger",
+    "swords-dance"
+  ],
+  "spa+2": [
+    "decorate",
+    "fillet-away",
+    "geomancy",
+    "nasty-plot",
+    "shell-smash"
+  ],
+  "evasion+1": [
+    "double-team"
+  ],
+  "accuracy-1": [
+    "flash",
+    "kinesis",
+    "leaf-tornado",
+    "mirror-shot",
+    "mud-bomb",
+    "mud-slap",
+    "muddy-water",
+    "night-daze",
+    "octazooka",
+    "sand-attack",
+    "smokescreen"
+  ],
+  "evasion+2": [
+    "minimize"
+  ],
+  "def-2": [
+    "screech",
+    "spicy-extract"
+  ],
+  "evasion-2": [
+    "sweet-scent"
+  ],
+  "spa+3": [
+    "tail-glow"
+  ]
+}
