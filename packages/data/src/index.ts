@@ -1,5 +1,4 @@
 export { AnimationCategory, moveAnimationCategory } from "./base/animation-category";
-export { typeChart } from "./base/type-chart";
 export { getMoveName, getPokemonName } from "./i18n/index";
 export type { GameData } from "./load-data";
 export { loadData } from "./load-data";
@@ -12,3 +11,4 @@ export type {
   TiledTileset,
 } from "./tiled/index";
 export { parseTiledMap, validateTiledMap } from "./tiled/index";
+export { typeChart } from "./type-chart";

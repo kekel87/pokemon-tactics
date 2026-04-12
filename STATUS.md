@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-12 (plan 048 terminé — Pokedex Reference Knowledge Base)
+> Dernière mise à jour : 2026-04-12 (plan 049 terminé — Migration données jeu vers référence JSON)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -691,6 +691,13 @@
   - **`LosGuard.ignoresLoS`** (anciennement `enabled` inversé) — sémantique plus claire.
   - **`findBlastInterception`** — nouveau helper qui déduplique le raycast Bresenham du blast (partagé entre core et renderer).
   - **839/839 tests unit**, typecheck clean, lint propre hors pré-existants.
+
+- **Plan 049 terminé** — Migration données jeu vers référence JSON :
+  - **`packages/data/src/roster/`** : `roster-poc.ts` — 21 Pokemon avec movepool curation (remplace `base/pokemon.ts`)
+  - **`packages/data/src/loaders/`** : 3 loaders séparés — `load-pokemon.ts`, `load-moves.ts`, `load-type-chart.ts`
+  - **`load-data.ts`** refactoré : utilise les loaders au lieu d'imports hardcodés
+  - Suppression de `base/pokemon.ts`, `base/moves.ts`, `base/move-flags.ts`, `base/type-chart.ts`
+  - Balance overrides ajoutés : `seismic-toss`/`night-shade`/`magnitude` (power) et `roar` (accuracy)
 
 - **Plan 048 terminé** — Pokedex Reference Knowledge Base :
   - **`packages/data/reference/`** : base de connaissance JSON offline couvrant toutes les générations (Gen 1 → Gen 9)
