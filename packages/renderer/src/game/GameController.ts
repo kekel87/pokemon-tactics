@@ -853,7 +853,7 @@ export class GameController {
               : category === AnimationCategory.Charge
                 ? "Charge"
                 : "Attack";
-          await sprite.playAnimationOnce(animationName, "Attack");
+          await sprite.playAttackAnimation(animationName, "Attack");
         }
         break;
       }
@@ -1160,11 +1160,7 @@ export class GameController {
     );
   }
 
-  private renderPreview(
-    affectedTiles: Position[],
-    isBuff: boolean,
-    impactTile?: Position,
-  ): void {
+  private renderPreview(affectedTiles: Position[], isBuff: boolean, impactTile?: Position): void {
     this.isometricGrid.clearPreview();
 
     if (affectedTiles.length === 0 && !impactTile) {

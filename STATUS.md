@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-12 (plan 049 terminé — Migration données jeu vers référence JSON)
+> Dernière mise à jour : 2026-04-12 (bugfix depth animations hors plan)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -709,15 +709,22 @@
   - `docs/decisions.md` : décision #241 ajoutée (format, exclusions Gmax/Z/Téra, learnsets latest-only)
   - Référence sert de **source de connaissance pour Claude** (phase 1) — migration code jeu prévue en plan 049
 
+- **Session 2026-04-12 (suite) — Bugfix depth animations (hors plan)** :
+  - Fix clipping des frames PMDCollab d'attaque et de déplacement sur cartes avec dénivelés (`sandbox-los.tmj`)
+  - Nouvelle méthode `PokemonSprite.playAttackAnimation` : bump de depth à `max(originalDepth, maxTileDepthInRadius(r=3))` le temps de l'animation
+  - `animateMoveTo` étendu avec le même principe (`r=1`)
+  - Helper privé `maxTileDepthInRadius(cx, cy, r)` dans `PokemonSprite.ts`
+  - Constantes `ATTACK_DEPTH_ENVELOPE_RADIUS=3` et `MOVEMENT_DEPTH_ENVELOPE_RADIUS=1` dans `constants.ts`
+  - Fichiers : `PokemonSprite.ts`, `GameController.ts`, `constants.ts`
+
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
-- **Tileset custom** pour remplacer/améliorer les tiles JAO (décision à prendre)
+- **Types de terrain** : règles de déplacement par terrain/type Pokemon (effets gameplay des 11 terrains) — tileset custom skippé pour l'instant
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
-- Règles de déplacement par terrain/type Pokemon (effets gameplay des 11 terrains)
 - Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
 
 ### Bugs connus non corrigés
 
-*(rien d'ouvert — confusion wobble post-KO résolu, voir backlog.md)*
+*(rien d'ouvert — depth animations et confusion wobble post-KO résolus, voir backlog.md)*
 
 ### Points à adresser (renderer)
 - Représentation visuelle des moves défensifs : animation/feedback quand Protect bloque, Counter renvoie, etc.

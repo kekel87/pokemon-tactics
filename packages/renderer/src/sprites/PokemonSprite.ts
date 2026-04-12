@@ -1,5 +1,6 @@
 import { type DamageEstimate, Direction, type PokemonInstance } from "@pokemon-tactic/core";
 import {
+  ATTACK_DEPTH_ENVELOPE_RADIUS,
   CONFUSION_WOBBLE_ANGLE,
   CONFUSION_WOBBLE_DURATION_MS,
   DAMAGE_ESTIMATE_ALPHA_GUARANTEED,
@@ -24,6 +25,7 @@ import {
   HP_BAR_WIDTH,
   KO_TINT_COLOR,
   MOVE_TWEEN_DURATION_MS,
+  MOVEMENT_DEPTH_ENVELOPE_RADIUS,
   POKEMON_SPRITE_BORDER_ALPHA,
   POKEMON_SPRITE_BORDER_WIDTH,
   POKEMON_SPRITE_GROUND_OFFSET_Y,
@@ -304,6 +306,42 @@ export class PokemonSprite {
     return null;
   }
 
+  async playAttackAnimation(animation: string, fallback?: string): Promise<void> {
+    const originalDepth = this.container.depth;
+    const envelopeDepth = this.maxTileDepthInRadius(
+      this._gridPosition.x,
+      this._gridPosition.y,
+      ATTACK_DEPTH_ENVELOPE_RADIUS,
+    );
+    this.container.setDepth(Math.max(originalDepth, envelopeDepth));
+    try {
+      await this.playAnimationOnce(animation, fallback);
+    } finally {
+      this.container.setDepth(originalDepth);
+    }
+  }
+
+  private tileDepthAt(gridX: number, gridY: number): number {
+    const height = this.isometricGrid.getTileHeight(gridX, gridY);
+    return DEPTH_POKEMON_BASE + (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + height + 0.5;
+  }
+
+  private maxTileDepthInRadius(centerX: number, centerY: number, radius: number): number {
+    let max = 0;
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        if (dx === 0 && dy === 0) {
+          continue;
+        }
+        const depth = this.tileDepthAt(centerX + dx, centerY + dy);
+        if (depth > max) {
+          max = depth;
+        }
+      }
+    }
+    return max;
+  }
+
   playAnimationOnce(animation: string, fallback?: string): Promise<void> {
     if (!this.sprite || !this.usesAtlas) {
       return Promise.resolve();
@@ -404,10 +442,13 @@ export class PokemonSprite {
     const sourceDepth = this.container.depth;
     const targetDepth =
       DEPTH_POKEMON_BASE + (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + height + 0.5;
-    // Keep the sprite on top of both the source and the target column during
-    // the whole tween so it is never hidden by tile faces it passes over.
-    // Snap to the exact target depth once the movement completes.
-    this.container.setDepth(Math.max(sourceDepth, targetDepth));
+    const envelopeSource = this.maxTileDepthInRadius(
+      sourceGridX,
+      sourceGridY,
+      MOVEMENT_DEPTH_ENVELOPE_RADIUS,
+    );
+    const envelopeTarget = this.maxTileDepthInRadius(gridX, gridY, MOVEMENT_DEPTH_ENVELOPE_RADIUS);
+    this.container.setDepth(Math.max(sourceDepth, targetDepth, envelopeSource, envelopeTarget));
 
     const heightDelta = height - sourceHeight;
     const isJump = options.isJump === true && Math.abs(heightDelta) > 0.001;
