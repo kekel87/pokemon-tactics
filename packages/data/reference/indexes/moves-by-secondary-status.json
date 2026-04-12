@@ -1,0 +1,326 @@
+{
+  "flinch": [
+    "air-slash",
+    "astonish",
+    "bite",
+    "bone-club",
+    "dark-pulse",
+    "double-iron-bash",
+    "dragon-rush",
+    "extrasensory",
+    "fake-out",
+    "fiery-wrath",
+    "headbutt",
+    "heart-stamp",
+    "hyper-fang",
+    "icicle-crash",
+    "iron-head",
+    "mountain-gale",
+    "needle-arm",
+    "rock-slide",
+    "rolling-kick",
+    "sky-attack",
+    "snore",
+    "steamroller",
+    "stomp",
+    "twister",
+    "upper-hand",
+    "waterfall",
+    "zen-headbutt",
+    "zing-zap"
+  ],
+  "aquaring": [
+    "aqua-ring"
+  ],
+  "attract": [
+    "attract"
+  ],
+  "confusion": [
+    "axe-kick",
+    "chatter",
+    "confuse-ray",
+    "confusion",
+    "dizzy-punch",
+    "dynamic-punch",
+    "flatter",
+    "hurricane",
+    "magical-torque",
+    "psybeam",
+    "rock-climb",
+    "signal-beam",
+    "strange-steam",
+    "supersonic",
+    "swagger",
+    "sweet-kiss",
+    "teeter-dance",
+    "water-pulse"
+  ],
+  "banefulbunker": [
+    "baneful-bunker"
+  ],
+  "poison": [
+    "barb-barrage",
+    "cross-poison",
+    "gunk-shot",
+    "mortal-spin",
+    "noxious-torque",
+    "poison-gas",
+    "poison-jab",
+    "poison-powder",
+    "poison-sting",
+    "poison-tail",
+    "shell-side-arm",
+    "sludge",
+    "sludge-bomb",
+    "sludge-wave",
+    "smog",
+    "toxic-thread",
+    "twineedle"
+  ],
+  "bide": [
+    "bide"
+  ],
+  "partiallytrapped": [
+    "bind",
+    "clamp",
+    "fire-spin",
+    "infestation",
+    "magma-storm",
+    "sand-tomb",
+    "snap-trap",
+    "thunder-cage",
+    "whirlpool",
+    "wrap"
+  ],
+  "burn": [
+    "blaze-kick",
+    "blazing-torque",
+    "blue-flare",
+    "ember",
+    "fire-blast",
+    "fire-punch",
+    "flame-wheel",
+    "flamethrower",
+    "flare-blitz",
+    "heat-wave",
+    "ice-burn",
+    "infernal-parade",
+    "inferno",
+    "lava-plume",
+    "matcha-gotcha",
+    "pyro-ball",
+    "sacred-fire",
+    "sandsear-storm",
+    "scald",
+    "scorching-sands",
+    "searing-shot",
+    "steam-eruption",
+    "will-o-wisp"
+  ],
+  "freeze": [
+    "blizzard",
+    "freeze-dry",
+    "freezing-glare",
+    "ice-beam",
+    "ice-punch",
+    "powder-snow"
+  ],
+  "paralysis": [
+    "body-slam",
+    "bolt-strike",
+    "bounce",
+    "combat-torque",
+    "discharge",
+    "dragon-breath",
+    "force-palm",
+    "freeze-shock",
+    "glare",
+    "lick",
+    "nuzzle",
+    "secret-power",
+    "spark",
+    "stun-spore",
+    "thunder",
+    "thunder-punch",
+    "thunder-shock",
+    "thunder-wave",
+    "thunderbolt",
+    "volt-tackle",
+    "wildbolt-storm",
+    "zap-cannon"
+  ],
+  "burningbulwark": [
+    "burning-bulwark"
+  ],
+  "charge": [
+    "charge"
+  ],
+  "curse": [
+    "curse"
+  ],
+  "sleep": [
+    "dark-void",
+    "grass-whistle",
+    "hypnosis",
+    "lovely-kiss",
+    "relic-song",
+    "sing",
+    "sleep-powder",
+    "spore",
+    "wicked-torque"
+  ],
+  "defensecurl": [
+    "defense-curl"
+  ],
+  "destinybond": [
+    "destiny-bond"
+  ],
+  "protect": [
+    "detect",
+    "protect"
+  ],
+  "disable": [
+    "disable"
+  ],
+  "dragoncheer": [
+    "dragon-cheer"
+  ],
+  "electrify": [
+    "electrify"
+  ],
+  "embargo": [
+    "embargo"
+  ],
+  "encore": [
+    "encore"
+  ],
+  "endure": [
+    "endure"
+  ],
+  "focusenergy": [
+    "focus-energy"
+  ],
+  "followme": [
+    "follow-me"
+  ],
+  "foresight": [
+    "foresight",
+    "odor-sleuth"
+  ],
+  "gastroacid": [
+    "gastro-acid"
+  ],
+  "grudge": [
+    "grudge"
+  ],
+  "healblock": [
+    "heal-block",
+    "psychic-noise"
+  ],
+  "helpinghand": [
+    "helping-hand"
+  ],
+  "imprison": [
+    "imprison"
+  ],
+  "ingrain": [
+    "ingrain"
+  ],
+  "kingsshield": [
+    "kings-shield"
+  ],
+  "laserfocus": [
+    "laser-focus"
+  ],
+  "leechseed": [
+    "leech-seed"
+  ],
+  "magiccoat": [
+    "magic-coat"
+  ],
+  "magnetrise": [
+    "magnet-rise"
+  ],
+  "toxic": [
+    "malignant-chain",
+    "poison-fang",
+    "toxic"
+  ],
+  "minimize": [
+    "minimize"
+  ],
+  "miracleeye": [
+    "miracle-eye"
+  ],
+  "nightmare": [
+    "nightmare"
+  ],
+  "noretreat": [
+    "no-retreat"
+  ],
+  "obstruct": [
+    "obstruct"
+  ],
+  "octolock": [
+    "octolock"
+  ],
+  "powder": [
+    "powder"
+  ],
+  "powershift": [
+    "power-shift"
+  ],
+  "powertrick": [
+    "power-trick"
+  ],
+  "ragepowder": [
+    "rage-powder"
+  ],
+  "saltcure": [
+    "salt-cure"
+  ],
+  "substitute": [
+    "shed-tail",
+    "substitute"
+  ],
+  "silktrap": [
+    "silk-trap"
+  ],
+  "smackdown": [
+    "smack-down",
+    "thousand-arrows"
+  ],
+  "snatch": [
+    "snatch"
+  ],
+  "sparklingaria": [
+    "sparkling-aria"
+  ],
+  "spikyshield": [
+    "spiky-shield"
+  ],
+  "spotlight": [
+    "spotlight"
+  ],
+  "stockpile": [
+    "stockpile"
+  ],
+  "syrupbomb": [
+    "syrup-bomb"
+  ],
+  "tarshot": [
+    "tar-shot"
+  ],
+  "taunt": [
+    "taunt"
+  ],
+  "telekinesis": [
+    "telekinesis"
+  ],
+  "torment": [
+    "torment"
+  ],
+  "yawn": [
+    "yawn"
+  ]
+}

@@ -131,6 +131,17 @@ pokemon-tactics/
 │       │   │   └── index.ts                # Barrel export
 │       │   ├── i18n/            # Noms localisés : moves.fr.json, moves.en.json, pokemon-names.fr.json, pokemon-names.en.json
 │       │   └── index.ts         # Exporte getMoveName(id, lang), getPokemonName(id, lang), parseTiledMap, loadTiledMap...
+│       ├── reference/           # Base de connaissance JSON offline (plan 048) — pour Claude, pas compilée
+│       │   ├── README.md        # Schéma, sources, instructions de régénération
+│       │   ├── pokemon.json     # 1025 espèces (formes imbriquées, learnsets latest-only, exclusions Gmax)
+│       │   ├── moves.json       # 850 moves (sans Z-moves ni Max moves)
+│       │   ├── abilities.json   # 311 abilities
+│       │   ├── items.json       # 948 items (sans Z-crystals, Tera shards, Dynamax)
+│       │   ├── type-chart.json  # Table 18×18 + variantes par génération
+│       │   ├── indexes/         # 19 index inversés regénérés depuis les JSON bruts (jamais édités à la main)
+│       │   └── schema/          # 4 JSON Schemas (pokemon, move, ability, item)
+│       ├── scripts/             # Scripts de génération one-shot (non compilés dans src/)
+│       │   └── build-reference.ts  # Génère reference/ depuis Showdown + PokeAPI (pnpm --filter @pokemon-tactic/data run build-reference)
 │       ├── tsconfig.json        # extends ../../tsconfig.base.json
 │       └── package.json
 │

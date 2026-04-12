@@ -33,6 +33,9 @@ Thumbs.db
 .claude/settings.local.json
 .claude/*.lock
 
+# Reference data build cache (regeneratable)
+packages/data/.cache/
+
 # Reference screenshots (local only)
 docs/references/
 

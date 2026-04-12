@@ -9,7 +9,7 @@
   },
 
   "files": {
-    "includes": ["**/*.{ts,js,mjs,json,jsonc}"],
+    "includes": ["**/*.{ts,js,mjs,json,jsonc}", "!packages/data/reference"],
     "ignoreUnknown": true,
     "maxSize": 2097152
   },

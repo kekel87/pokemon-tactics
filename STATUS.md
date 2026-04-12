@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-11 (plan 047 terminé + hotfixes post-playtest — LoS 3D + collisions)
+> Dernière mise à jour : 2026-04-12 (plan 048 terminé — Pokedex Reference Knowledge Base)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -691,6 +691,16 @@
   - **`LosGuard.ignoresLoS`** (anciennement `enabled` inversé) — sémantique plus claire.
   - **`findBlastInterception`** — nouveau helper qui déduplique le raycast Bresenham du blast (partagé entre core et renderer).
   - **839/839 tests unit**, typecheck clean, lint propre hors pré-existants.
+
+- **Plan 048 terminé** — Pokedex Reference Knowledge Base :
+  - **`packages/data/reference/`** : base de connaissance JSON offline couvrant toutes les générations (Gen 1 → Gen 9)
+  - 5 fichiers JSON bruts : `pokemon.json` (1025 espèces), `moves.json` (850 moves), `abilities.json` (311 abilities), `items.json` (948 items), `type-chart.json`
+  - 19 index inversés dans `reference/indexes/` : 9 par moves (type, catégorie, flags, target, status secondaire, stat change, power bracket, priorité, génération), 8 par Pokemon (type, ability, move, génération, flags, top-stat, BST bracket, avec-mega), 1 items, 1 abilities
+  - `packages/data/scripts/build-reference.ts` : script de génération one-shot (`pnpm --filter @pokemon-tactic/data run build-reference`)
+  - `packages/data/reference/README.md` : schéma, sources, instructions de régénération
+  - `.claude/rules/data.md` mis à jour : règle de consulter `reference/` avant d'aller chercher sur Showdown/Bulbapedia/PokeAPI
+  - `docs/decisions.md` : décision #241 ajoutée (format, exclusions Gmax/Z/Téra, learnsets latest-only)
+  - Référence sert de **source de connaissance pour Claude** (phase 1) — migration code jeu prévue en plan 049
 
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
 - **Tileset custom** pour remplacer/améliorer les tiles JAO (décision à prendre)
