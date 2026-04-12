@@ -4,10 +4,7 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Bugs
 
-### Rendu de profondeur pendant les animations d'attaque
-- Même type de bug que celui corrigé pour le déplacement : la `depth` du sprite attaquant n'est pas recalculée pendant l'animation d'attaque, ce qui provoque des z-order incorrects (sprite derrière une tile qui devrait passer devant, ou inverse).
-- Observé lors du playtest du plan 047 (sandbox-los).
-- À investiguer dans `packages/renderer/src/sprites/PokemonSprite.ts` et `packages/renderer/src/game/GameController.ts` — chercher comment la `depth` est gérée pendant `animateAttack` vs `animateMoveTo`.
+*(rien d'ouvert)*
 
 ## Feedback visuel
 
@@ -39,6 +36,11 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 - **Extraire le tileset dans un fichier `.tsj` externe** (tileset Tiled séparé) avec les propriétés `height`, `terrain`, `slope` définies une seule fois. Actuellement chaque map embarque 76 tile definitions redondantes. Le parser supporte déjà les tilesets externes via `resolveExternalTilesets` dans `load-tiled-map.ts`.
 
 ## Résolus
+
+### ~~Rendu de profondeur pendant les animations d'attaque~~ (bugfix hors plan 2026-04-12)
+- Les frames PMDCollab d'attaque (lunges jusqu'à 2 cases forward, windup 1 case backward) et de déplacement (Walk/Hop qui débordent) étaient clippées par les tiles élevées voisines sur les cartes avec dénivelés (`sandbox-los.tmj`).
+- Fix : nouvelle méthode `PokemonSprite.playAttackAnimation` qui bump la depth du container à `max(originalDepth, maxTileDepthInRadius(r=3))` le temps de l'animation. `animateMoveTo` étendue avec le même principe (`r=1`). Helper privé `maxTileDepthInRadius(cx, cy, r)`. Constantes `ATTACK_DEPTH_ENVELOPE_RADIUS=3` et `MOVEMENT_DEPTH_ENVELOPE_RADIUS=1` dans `constants.ts`.
+- Fichiers modifiés : `PokemonSprite.ts`, `GameController.ts`, `constants.ts`.
 
 ### ~~Mécaniques d'attaque en terrain 3D (champ de vision, collisions)~~ (plan 047)
 - LoS raycast Bresenham 2D intégrée dans les 9 resolvers de targeting (`hasLineOfSight`, `heightBlocks`)
