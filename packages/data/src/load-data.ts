@@ -1,10 +1,13 @@
 import type { MoveDefinition, PokemonDefinition } from "@pokemon-tactic/core";
-import { moveFlags } from "./base/move-flags";
-import { baseMoves } from "./base/moves";
-import { basePokemon } from "./base/pokemon";
+import movesReference from "../reference/moves.json";
+import pokemonReference from "../reference/pokemon.json";
+import { loadMovesFromReference } from "./loaders/load-moves";
+import { loadPokemonFromReference } from "./loaders/load-pokemon";
+import type { ReferenceMove, ReferencePokemon } from "./loaders/reference-types";
 import { deepMerge } from "./merge";
 import { balanceOverrides } from "./overrides/balance-v1";
 import { tacticalOverrides } from "./overrides/tactical";
+import { rosterPoc } from "./roster/roster-poc";
 
 export interface GameData {
   pokemon: PokemonDefinition[];
@@ -12,10 +15,27 @@ export interface GameData {
 }
 
 export function loadData(): GameData {
-  const pokemon: PokemonDefinition[] = basePokemon.map((base) => ({
-    ...base,
-    id: base.name.toLowerCase(),
-  }));
+  const roster = rosterPoc;
+
+  const pokemon: PokemonDefinition[] = loadPokemonFromReference(
+    pokemonReference as unknown as ReferencePokemon[],
+    roster,
+  );
+
+  const allMoveIds = new Set<string>();
+  for (const entry of roster) {
+    for (const moveId of entry.movepool) {
+      allMoveIds.add(moveId);
+    }
+  }
+  for (const moveId of Object.keys(tacticalOverrides)) {
+    allMoveIds.add(moveId);
+  }
+
+  const baseMoves = loadMovesFromReference(
+    movesReference as unknown as ReferenceMove[],
+    allMoveIds,
+  );
 
   const moves: MoveDefinition[] = baseMoves.map((base) => {
     const tactical = tacticalOverrides[base.id];
@@ -25,7 +45,6 @@ export function loadData(): GameData {
     const balance = balanceOverrides[base.id] ?? {};
     const baseWithTactical = { ...base, ...tactical };
     const merged = deepMerge(baseWithTactical, balance);
-    const flags = moveFlags[base.id];
     const moveDefinition: MoveDefinition = {
       id: merged.id,
       name: merged.name,
@@ -38,7 +57,7 @@ export function loadData(): GameData {
       effects: merged.effects,
       ...(merged.recharge ? { recharge: true } : {}),
       ...(merged.ignoresHeight ? { ignoresHeight: true } : {}),
-      ...(flags ? { flags } : {}),
+      ...(merged.flags ? { flags: merged.flags } : {}),
     };
     return moveDefinition;
   });

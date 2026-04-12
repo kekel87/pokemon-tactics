@@ -117,7 +117,8 @@ pokemon-tactics/
 │   │
 │   └── data/                    # Données Pokemon (partagées)
 │       ├── src/
-│       │   ├── base/            # Données officielles (Showdown/PokeAPI) — inclut Pokemon "Dummy" (Normal, stats 100/50x5, movepool défensif)
+│       │   ├── roster/          # Roster POC : roster-poc.ts — 21 Pokemon avec movepool curation (plan 049)
+│       │   ├── loaders/         # Loaders séparés : load-pokemon.ts, load-moves.ts, load-type-chart.ts (plan 049)
 │       │   ├── overrides/       # Surcharges tactiques + balance
 │       │   ├── maps/            # Cartes statiques TS (poc-arena 12×20, sandbox-arena 6×6)
 │       │   ├── tiled/           # Parser Tiled JSON → MapDefinition (plan 045)
