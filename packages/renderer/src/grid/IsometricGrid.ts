@@ -1,13 +1,5 @@
+import { decodeTiledGid } from "@pokemon-tactic/data";
 import {
-  ARENA_GRASS_BORDER_SIZE,
-  ARENA_MARKING_ALPHA,
-  ARENA_MARKING_COLOR,
-  ARENA_MARKING_LINE_WIDTH,
-  ARENA_TILE_FRAME_FLOOR,
-  ARENA_TILE_FRAME_FLOOR_VARIANTS,
-  ARENA_TILE_FRAME_GRASS,
-  ARENA_TILE_FRAME_GRASS_VARIANTS,
-  ARENA_TILE_VARIANT_RATIO,
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   CURSOR_COLOR,
@@ -18,7 +10,6 @@ import {
   DEPTH_GRID_CURSOR,
   DEPTH_GRID_ENEMY_RANGE,
   DEPTH_GRID_HIGHLIGHT,
-  DEPTH_GRID_MARKINGS,
   DEPTH_GRID_PREVIEW,
   DEPTH_GRID_TILES,
   DEPTH_TILE_MAX_ELEVATION,
@@ -51,7 +42,6 @@ export class IsometricGrid {
   private readonly scene: Phaser.Scene;
   private readonly tileGraphics: Phaser.GameObjects.Graphics;
   private readonly tileSprites: Phaser.GameObjects.Image[] = [];
-  private readonly markingsGraphics: Phaser.GameObjects.Graphics;
   private readonly highlightGraphics: Phaser.GameObjects.Graphics;
   private readonly enemyRangeGraphics: Phaser.GameObjects.Graphics;
   private readonly previewGraphics: Phaser.GameObjects.Graphics;
@@ -71,8 +61,6 @@ export class IsometricGrid {
     this.gridHeight = gridHeight;
     this.useTexturedTiles = scene.textures.exists(TILESET_KEY);
     this.tileGraphics = scene.add.graphics();
-    this.markingsGraphics = scene.add.graphics();
-    this.markingsGraphics.setDepth(DEPTH_GRID_MARKINGS);
     this.highlightGraphics = scene.add.graphics();
     this.highlightGraphics.setDepth(DEPTH_GRID_HIGHLIGHT);
     this.enemyRangeGraphics = scene.add.graphics();
@@ -108,15 +96,6 @@ export class IsometricGrid {
     return isoScreenToGridFlat(screenX, screenY, this.projectionContext);
   }
 
-  drawGrid(): void {
-    if (this.useTexturedTiles) {
-      this.drawTexturedGrid();
-      this.drawArenaMarkings();
-    } else {
-      this.drawFallbackGrid();
-    }
-  }
-
   drawGridFromTileData(
     elevationLayers: readonly { elevation: number; tileData: readonly number[] }[],
     firstgid: number,
@@ -142,14 +121,17 @@ export class IsometricGrid {
       for (let y = 0; y < this.gridHeight; y++) {
         for (let x = 0; x < this.gridWidth; x++) {
           const index = y * this.gridWidth + x;
-          const gid = layer.tileData[index] ?? 0;
-          if (gid === 0) {
+          const rawGid = layer.tileData[index] ?? 0;
+          if (rawGid === 0) {
             continue;
           }
-          const frameIndex = gid - firstgid;
+          const { tileId, flipH, flipV } = decodeTiledGid(rawGid);
+          const frameIndex = tileId - firstgid;
           const center = this.gridToScreen(x, y, layer.elevation);
           const spriteY = center.y + TILE_HEIGHT / 2;
           const sprite = this.scene.add.sprite(center.x, spriteY, TILESET_KEY, frameIndex);
+          sprite.setFlipX(flipH);
+          sprite.setFlipY(flipV);
           sprite.setScale(TILE_SPRITE_SCALE);
           sprite.setOrigin(0.5, TILE_ORIGIN_Y);
           sprite.setDepth(DEPTH_GRID_TILES + (x + y) * DEPTH_TILE_MAX_ELEVATION + layer.elevation);
@@ -181,101 +163,6 @@ export class IsometricGrid {
         this.drawTile(this.tileGraphics, x, y, TILE_FILL_COLOR, TILE_STROKE_COLOR);
       }
     }
-  }
-
-  private drawTexturedGrid(): void {
-    for (const sprite of this.tileSprites) {
-      sprite.destroy();
-    }
-    this.tileSprites.length = 0;
-
-    const border = ARENA_GRASS_BORDER_SIZE;
-
-    for (let y = 0; y < this.gridHeight; y++) {
-      for (let x = 0; x < this.gridWidth; x++) {
-        const center = this.gridToScreen(x, y);
-        const isGrass =
-          x < border || x >= this.gridWidth - border || y < border || y >= this.gridHeight - border;
-
-        const variants = isGrass
-          ? ARENA_TILE_FRAME_GRASS_VARIANTS
-          : ARENA_TILE_FRAME_FLOOR_VARIANTS;
-        const baseFrame = isGrass ? ARENA_TILE_FRAME_GRASS : ARENA_TILE_FRAME_FLOOR;
-
-        const hash = ((x * 7 + y * 13 + x * y * 3) % 100) / 100;
-        let frameIndex: number;
-        if (hash < ARENA_TILE_VARIANT_RATIO) {
-          const variantIdx = ((x * 3 + y * 7) % (variants.length - 1)) + 1;
-          frameIndex = variants[variantIdx] ?? baseFrame;
-        } else {
-          frameIndex = baseFrame;
-        }
-
-        const spriteY = center.y + TILE_HEIGHT;
-        const sprite = this.scene.add.sprite(center.x, spriteY, TILESET_KEY, frameIndex);
-        sprite.setScale(TILE_SPRITE_SCALE);
-        sprite.setOrigin(0.5, TILE_ORIGIN_Y);
-        sprite.setDepth(DEPTH_GRID_TILES + y);
-        this.tileSprites.push(sprite);
-      }
-    }
-  }
-
-  private drawArenaMarkings(): void {
-    this.markingsGraphics.clear();
-    const border = ARENA_GRASS_BORDER_SIZE;
-    const left = border;
-    const right = this.gridWidth - border - 1;
-    const top = border;
-    const bottom = this.gridHeight - border - 1;
-    const centerX = (left + right) / 2;
-    const centerY = (top + bottom) / 2;
-
-    this.markingsGraphics.lineStyle(
-      ARENA_MARKING_LINE_WIDTH,
-      ARENA_MARKING_COLOR,
-      ARENA_MARKING_ALPHA,
-    );
-
-    const tl = this.gridToScreen(left, top);
-    const tr = this.gridToScreen(right, top);
-    const bl = this.gridToScreen(left, bottom);
-    const br = this.gridToScreen(right, bottom);
-
-    this.markingsGraphics.beginPath();
-    this.markingsGraphics.moveTo(tl.x, tl.y);
-    this.markingsGraphics.lineTo(tr.x, tr.y);
-    this.markingsGraphics.lineTo(br.x, br.y);
-    this.markingsGraphics.lineTo(bl.x, bl.y);
-    this.markingsGraphics.closePath();
-    this.markingsGraphics.strokePath();
-
-    const ml = this.gridToScreen(left, centerY);
-    const mr = this.gridToScreen(right, centerY);
-    this.markingsGraphics.beginPath();
-    this.markingsGraphics.moveTo(ml.x, ml.y);
-    this.markingsGraphics.lineTo(mr.x, mr.y);
-    this.markingsGraphics.strokePath();
-
-    this.drawIsoEllipse(centerX, centerY, 2.5);
-    this.drawIsoEllipse(centerX, centerY, 0.6);
-  }
-
-  private drawIsoEllipse(centerX: number, centerY: number, radius: number): void {
-    const steps = 64;
-    this.markingsGraphics.beginPath();
-    for (let i = 0; i <= steps; i++) {
-      const angle = (i / steps) * Math.PI * 2;
-      const gx = centerX + Math.cos(angle) * radius;
-      const gy = centerY + Math.sin(angle) * radius;
-      const screen = this.gridToScreen(gx, gy);
-      if (i === 0) {
-        this.markingsGraphics.moveTo(screen.x, screen.y);
-      } else {
-        this.markingsGraphics.lineTo(screen.x, screen.y);
-      }
-    }
-    this.markingsGraphics.strokePath();
   }
 
   clearHighlights(): void {

@@ -6,9 +6,10 @@ export { pocArena, sandboxArena } from "./maps/index";
 export type {
   ElevationLayer,
   ParseResult,
+  TiledGidDecoded,
   TiledMap,
   TiledMapValidation,
   TiledTileset,
 } from "./tiled/index";
-export { parseTiledMap, validateTiledMap } from "./tiled/index";
+export { decodeTiledGid, parseTiledMap, validateTiledMap } from "./tiled/index";
 export { typeChart } from "./type-chart";

@@ -60,3 +60,6 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 045 | [Format de carte Tiled + parser + validation + preview](./045-tiled-map-format-parser-validation-preview.md) | done | 2026-04-08 |
 | 046 | [Dénivelés, hauteur des tiles et dégâts de chute](./046-height-elevation-fall-damage.md) | done | 2026-04-09 |
 | 047 | [Ligne de vue 3D et collisions terrain](./047-line-of-sight-3d-collisions.md) | done | 2026-04-11 |
+| 048 | [Pokedex reference knowledge base](./048-pokedex-reference-knowledge-base.md) | done | 2026-04-12 |
+| 049 | [Migrer les donnees de jeu vers la reference JSON](./049-migrate-game-data-to-reference.md) | done | 2026-04-12 |
+| 050 | [Tileset custom (remplacer JAO)](./050-custom-tileset.md) | ready-for-visual-test | 2026-04-12 |

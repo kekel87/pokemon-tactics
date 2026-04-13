@@ -76,7 +76,7 @@ export class BattleScene extends Phaser.Scene {
       this.load.image(`status-label-${key}`, `assets/ui/statuses/label-${key}.png`);
     }
 
-    this.load.spritesheet(TILESET_KEY, "assets/tilesets/terrain/icon-tileset.png", {
+    this.load.spritesheet(TILESET_KEY, "assets/tilesets/terrain/tileset.png", {
       frameWidth: 32,
       frameHeight: 32,
     });

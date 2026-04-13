@@ -1,0 +1,1012 @@
+{
+  "columns": 1,
+  "image": "tileset.png",
+  "imageheight": 2368,
+  "imagewidth": 32,
+  "margin": 0,
+  "name": "terrain",
+  "spacing": 0,
+  "tilecount": 74,
+  "tiledversion": "1.10.2",
+  "tileheight": 32,
+  "tilewidth": 32,
+  "type": "tileset",
+  "version": "1.10",
+  "tiles": [
+    {
+      "id": 0,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "tall_grass"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "tall_grass"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "tall_grass"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "tall_grass"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "tall_grass"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "sand"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "sand"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "sand"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "sand"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "sand"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "normal"
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "snow"
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "snow"
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "snow"
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "snow"
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "snow"
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "ice"
+        }
+      ]
+    },
+    {
+      "id": 55,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "ice"
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "ice"
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "ice"
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "ice"
+        }
+      ]
+    },
+    {
+      "id": 60,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "magma"
+        }
+      ]
+    },
+    {
+      "id": 61,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "magma"
+        }
+      ]
+    },
+    {
+      "id": 62,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "magma"
+        }
+      ]
+    },
+    {
+      "id": 63,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "magma"
+        }
+      ]
+    },
+    {
+      "id": 64,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "slope",
+          "type": "string",
+          "value": "south"
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "magma"
+        }
+      ]
+    },
+    {
+      "id": 66,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "water"
+        }
+      ]
+    },
+    {
+      "id": 68,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "deep_water"
+        }
+      ]
+    },
+    {
+      "id": 70,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "lava"
+        }
+      ]
+    },
+    {
+      "id": 72,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "swamp"
+        }
+      ]
+    }
+  ]
+}

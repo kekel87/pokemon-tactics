@@ -1,6 +1,6 @@
 import { TerrainType } from "@pokemon-tactic/core";
 import type { TiledTileset } from "./tiled-types";
-import { findProperty } from "./tiled-utils";
+import { decodeTiledGid, findProperty } from "./tiled-utils";
 
 export interface ResolvedTileProperties {
   readonly terrain: TerrainType;
@@ -15,12 +15,34 @@ export interface ResolvedTileProperties {
 
 const TERRAIN_VALUES: ReadonlySet<string> = new Set(Object.values(TerrainType));
 
+const SLOPE_DIAGONAL: Record<string, string> = {
+  north: "west",
+  west: "north",
+  south: "east",
+  east: "south",
+};
+
+const SLOPE_HORIZONTAL: Record<string, string> = {
+  east: "west",
+  west: "east",
+  north: "north",
+  south: "south",
+};
+
+const SLOPE_VERTICAL: Record<string, string> = {
+  north: "south",
+  south: "north",
+  east: "east",
+  west: "west",
+};
+
 export function resolveTileProperties(gid: number, tileset: TiledTileset): ResolvedTileProperties {
   if (gid === 0) {
     return { terrain: TerrainType.Obstacle, height: 0, slope: null };
   }
 
-  const localId = gid - tileset.firstgid;
+  const { tileId, flipH, flipV, flipD } = decodeTiledGid(gid);
+  const localId = tileId - tileset.firstgid;
   const tileDefinition = tileset.tiles?.find((t) => t.id === localId);
 
   const terrainProp = findProperty(tileDefinition?.properties, "terrain");
@@ -39,7 +61,28 @@ export function resolveTileProperties(gid: number, tileset: TiledTileset): Resol
   }
 
   const height = heightProp === undefined ? 0 : Number(heightProp.value);
-  const slope = slopeProp === undefined ? null : String(slopeProp.value);
+  const baseSlope = slopeProp === undefined ? null : String(slopeProp.value);
+  const slope = baseSlope === null ? null : transformSlopeForFlip(baseSlope, flipH, flipV, flipD);
 
   return { terrain, height, slope };
+}
+
+// Tiled applies flip bits in a fixed order: diagonal, then horizontal, then vertical.
+function transformSlopeForFlip(
+  slope: string,
+  flipH: boolean,
+  flipV: boolean,
+  flipD: boolean,
+): string {
+  let current = slope;
+  if (flipD) {
+    current = SLOPE_DIAGONAL[current] ?? current;
+  }
+  if (flipH) {
+    current = SLOPE_HORIZONTAL[current] ?? current;
+  }
+  if (flipV) {
+    current = SLOPE_VERTICAL[current] ?? current;
+  }
+  return current;
 }
