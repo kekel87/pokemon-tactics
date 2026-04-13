@@ -4,11 +4,26 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Bugs
 
-*(rien d'ouvert)*
+### Profondeur du sélecteur/highlight vs sprites Pokemon
+- Le curseur de sélection et les zones de highlight (move, attack, enemy range) passent **par-dessus** les sprites Pokemon au lieu de passer derrière quand le Pokemon est plus proche de la caméra (iso depth plus grande).
+- Probable : les `Graphics` de highlight utilisent une depth fixe (`DEPTH_GRID_HIGHLIGHT`, `DEPTH_GRID_CURSOR`, `DEPTH_GRID_ENEMY_RANGE` dans `constants.ts`) alors qu'il faudrait qu'elle soit interpolée par tile (comme les sprites de terrain).
+- Cf. `packages/renderer/src/grid/IsometricGrid.ts` (highlights en Graphics plein écran).
+- À corriger : soit une depth par tile highlightée, soit dessiner les highlights **sous** les sprites et ajouter un overlay de contour par-dessus.
+
+### Flanc différent sur flip pente/escalier (raccord visible)
+- Les variantes E de pente et escalier sont obtenues au rendu via `sprite.setFlipX(true)` (cf. `decodeTiledGid` + `IsometricGrid.drawGridFromTileData`).
+- Problème : le flip horizontal inverse aussi la répartition d'ombrage sur les flancs. La convention de rendu dans `scripts/make-iso-tile.py` (LEFT_BRIGHTNESS=0.75, RIGHT_BRIGHTNESS=0.55) suppose un éclairage depuis le sud-est. Quand la tile est flipée, la face lumineuse se retrouve du "mauvais" côté → raccord visible avec les tiles non-flipées adjacentes.
+- Options :
+  - Dessiner des variantes E explicites dans le tileset (4 tiles au lieu de 2 par orientation, pas de flip).
+  - Uniformiser l'ombrage des flancs gauche/droit (même brightness) — plus simple mais plus plat visuellement.
 
 ## Feedback visuel
 
-*(rien d'ouvert)*
+### Transparence / silhouette des Pokemon derrière un obstacle
+- Quand un Pokemon passe derrière une tile haute ou une décoration, il disparaît complètement.
+- Idée : afficher le sprite en transparence ou en contour de couleur (effet **silhouette X-ray** / "occlusion outline", courant dans les jeux iso).
+- Impl possible : détecter côté renderer si un sprite est occlu par une tile de depth supérieure, appliquer `sprite.setAlpha(0.4)` + un outline avec shader/PostFX Phaser, ou basculer sur une version silhouette du sprite.
+- À planifier comme tâche renderer dédiée (après le fix de depth highlights ci-dessus, probablement partagera la détection d'occlusion).
 
 ## Tâches futures identifiées (hors backlog actif)
 
@@ -30,10 +45,6 @@ Centralise les bugs connus et les retours de playtest non encore traités.
   - Les constantes à ajuster : `JUMP_TWEEN_DURATION_MS` peut rester, mais les Flying pourraient avoir leur propre durée + courbe (ex: `Sine.easeInOut`).
 - À traiter en même temps que l'ajout des assets flying.
 
-### Tileset custom pour remplacer les tiles JAO
-- Les tiles ICON Isometric Pack (Jao) sont libres mais limitées — un tileset custom permettrait d'améliorer la lisibilité tactique
-- À planifier après implémentation du rendu des dénivelés (height rendering)
-- **Extraire le tileset dans un fichier `.tsj` externe** (tileset Tiled séparé) avec les propriétés `height`, `terrain`, `slope` définies une seule fois. Actuellement chaque map embarque 76 tile definitions redondantes. Le parser supporte déjà les tilesets externes via `resolveExternalTilesets` dans `load-tiled-map.ts`.
 
 ## Résolus
 

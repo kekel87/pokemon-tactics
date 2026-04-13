@@ -148,7 +148,7 @@ const en: Translations = {
   "credits.sprites":
     "Sprites: PMDCollab SpriteCollab — CC-BY-NC 4.0\nhttps://sprites.pmdcollab.org",
   "credits.tileset":
-    "Tileset: ICON Isometric Pack by Jao\nhttps://jaofazjogos.itch.io/iconisometricpack",
+    "Tileset: custom isometric tiles built from Pokemon Mystery Dungeon\ntextures (same source as the sprites above)",
   "credits.font":
     'Font: "Pokémon Emerald Pro" by crystalwalrein — CC-BY-SA 3.0\nhttps://fontstruct.com/fontstructions/show/832818',
   "credits.code": "Code: developed with the assistance of Claude (Anthropic)",

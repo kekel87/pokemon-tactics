@@ -35,7 +35,7 @@ export class MapPreviewScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.spritesheet(TILESET_KEY, "assets/tilesets/terrain/icon-tileset.png", {
+    this.load.spritesheet(TILESET_KEY, "assets/tilesets/terrain/tileset.png", {
       frameWidth: 32,
       frameHeight: 32,
     });

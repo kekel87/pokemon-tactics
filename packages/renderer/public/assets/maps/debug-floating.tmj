@@ -1,134 +1,139 @@
 {
- "compressionlevel": -1,
- "height": 1,
- "infinite": false,
- "layers": [
-  {
-   "data": [0],
-   "height": 1,
-   "id": 1,
-   "name": "terrain",
-   "opacity": 1,
-   "type": "tilelayer",
-   "visible": true,
-   "width": 1,
-   "x": 0,
-   "y": 0
-  },
-  {
-   "data": [23],
-   "height": 1,
-   "id": 2,
-   "name": "terrain_2",
-   "offsetx": 0,
-   "offsety": -16,
-   "opacity": 1,
-   "type": "tilelayer",
-   "visible": true,
-   "width": 1,
-   "x": 0,
-   "y": 0
-  },
-  {
-   "data": [0],
-   "height": 1,
-   "id": 3,
-   "name": "decorations",
-   "opacity": 1,
-   "type": "tilelayer",
-   "visible": true,
-   "width": 1,
-   "x": 0,
-   "y": 0
-  },
-  {
-   "draworder": "topdown",
-   "id": 4,
-   "name": "spawns",
-   "objects": [
+  "compressionlevel": -1,
+  "height": 1,
+  "infinite": false,
+  "layers": [
     {
-     "height": 0,
-     "id": 1,
-     "name": "spawn",
-     "point": true,
-     "properties": [
-      { "name": "formatTeamCount", "type": "int", "value": 2 },
-      { "name": "teamIndex", "type": "int", "value": 0 }
-     ],
-     "rotation": 0,
-     "type": "",
-     "visible": true,
-     "width": 0,
-     "x": 0,
-     "y": 8
+      "data": [
+        0
+      ],
+      "height": 1,
+      "id": 1,
+      "name": "terrain",
+      "opacity": 1,
+      "type": "tilelayer",
+      "visible": true,
+      "width": 1,
+      "x": 0,
+      "y": 0
     },
     {
-     "height": 0,
-     "id": 2,
-     "name": "spawn",
-     "point": true,
-     "properties": [
-      { "name": "formatTeamCount", "type": "int", "value": 2 },
-      { "name": "teamIndex", "type": "int", "value": 1 }
-     ],
-     "rotation": 0,
-     "type": "",
-     "visible": true,
-     "width": 0,
-     "x": 0,
-     "y": 8
-    }
-   ],
-   "opacity": 1,
-   "type": "objectgroup",
-   "visible": true,
-   "x": 0,
-   "y": 0
-  }
- ],
- "nextlayerid": 5,
- "nextobjectid": 3,
- "orientation": "isometric",
- "properties": [
-  { "name": "id", "type": "string", "value": "debug-floating" },
-  { "name": "name", "type": "string", "value": "Debug Floating Tile" }
- ],
- "renderorder": "right-down",
- "tiledversion": "1.12.1",
- "tileheight": 16,
- "tilesets": [
-  {
-   "columns": 22,
-   "firstgid": 1,
-   "image": "../tilesets/terrain/icon-tileset.png",
-   "imageheight": 768,
-   "imagewidth": 704,
-   "margin": 0,
-   "name": "icon-tileset",
-   "spacing": 0,
-   "tilecount": 528,
-   "tileheight": 32,
-   "tiles": [
-    {
-     "id": 22,
-     "properties": [
-      { "name": "height", "type": "float", "value": 1 },
-      { "name": "terrain", "type": "string", "value": "normal" }
-     ]
+      "data": [
+        1
+      ],
+      "height": 1,
+      "id": 2,
+      "name": "terrain_2",
+      "offsetx": 0,
+      "offsety": -16,
+      "opacity": 1,
+      "type": "tilelayer",
+      "visible": true,
+      "width": 1,
+      "x": 0,
+      "y": 0
     },
     {
-     "id": 23,
-     "properties": [
-      { "name": "height", "type": "float", "value": 0.5 },
-      { "name": "terrain", "type": "string", "value": "normal" }
-     ]
+      "data": [
+        0
+      ],
+      "height": 1,
+      "id": 3,
+      "name": "decorations",
+      "opacity": 1,
+      "type": "tilelayer",
+      "visible": true,
+      "width": 1,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "draworder": "topdown",
+      "id": 4,
+      "name": "spawns",
+      "objects": [
+        {
+          "height": 0,
+          "id": 1,
+          "name": "spawn",
+          "point": true,
+          "properties": [
+            {
+              "name": "formatTeamCount",
+              "type": "int",
+              "value": 2
+            },
+            {
+              "name": "teamIndex",
+              "type": "int",
+              "value": 0
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 0,
+          "x": 0,
+          "y": 8
+        },
+        {
+          "height": 0,
+          "id": 2,
+          "name": "spawn",
+          "point": true,
+          "properties": [
+            {
+              "name": "formatTeamCount",
+              "type": "int",
+              "value": 2
+            },
+            {
+              "name": "teamIndex",
+              "type": "int",
+              "value": 1
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 0,
+          "x": 0,
+          "y": 8
+        }
+      ],
+      "opacity": 1,
+      "type": "objectgroup",
+      "visible": true,
+      "x": 0,
+      "y": 0
     }
-   ],
-   "tilewidth": 32
-  }
- ],
- "tilewidth": 32,
- "type": "map",
- "version": "1.10",
- "width": 1
+  ],
+  "nextlayerid": 5,
+  "nextobjectid": 3,
+  "orientation": "isometric",
+  "properties": [
+    {
+      "name": "id",
+      "type": "string",
+      "value": "debug-floating"
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "value": "Debug Floating Tile"
+    }
+  ],
+  "renderorder": "right-down",
+  "tiledversion": "1.12.1",
+  "tileheight": 16,
+  "tilesets": [
+    {
+      "firstgid": 1,
+      "source": "../tilesets/terrain/tileset.tsj"
+    }
+  ],
+  "tilewidth": 32,
+  "type": "map",
+  "version": "1.10",
+  "width": 1
 }

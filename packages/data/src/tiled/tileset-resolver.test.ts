@@ -113,6 +113,49 @@ describe("resolveTileProperties", () => {
     expect(result.height).toBe(0.5);
   });
 
+  it("resolves correct tile when horizontal flip bit is set", () => {
+    const rawGid = 0x80000001;
+    const result = resolveTileProperties(rawGid, baseTileset);
+    expect(result.terrain).toBe(TerrainType.Normal);
+    expect(result.height).toBe(0);
+  });
+
+  it("mirrors slope direction across horizontal flip (east ↔ west, N/S unchanged)", () => {
+    const tileset: TiledTileset = {
+      ...baseTileset,
+      tiles: [
+        { id: 0, properties: [{ name: "slope", type: "string", value: "east" }] },
+        { id: 1, properties: [{ name: "slope", type: "string", value: "south" }] },
+      ],
+    };
+    const flipH = 0x80000000;
+    expect(resolveTileProperties(1 | flipH, tileset).slope).toBe("west");
+    expect(resolveTileProperties(2 | flipH, tileset).slope).toBe("south");
+  });
+
+  it("mirrors slope direction across vertical flip (north ↔ south, E/W unchanged)", () => {
+    const tileset: TiledTileset = {
+      ...baseTileset,
+      tiles: [
+        { id: 0, properties: [{ name: "slope", type: "string", value: "south" }] },
+        { id: 1, properties: [{ name: "slope", type: "string", value: "east" }] },
+      ],
+    };
+    const flipV = 0x40000000;
+    expect(resolveTileProperties(1 | flipV, tileset).slope).toBe("north");
+    expect(resolveTileProperties(2 | flipV, tileset).slope).toBe("east");
+  });
+
+  it("rotates slope direction across Tiled 90° rotation (flipD + flipH)", () => {
+    const tileset: TiledTileset = {
+      ...baseTileset,
+      tiles: [{ id: 0, properties: [{ name: "slope", type: "string", value: "south" }] }],
+    };
+    // Tiled "rotate 90° clockwise" = flipD + flipH
+    const rotate90 = 0x80000000 | 0x20000000;
+    expect(resolveTileProperties(1 | rotate90, tileset).slope).toBe("west");
+  });
+
   it("resolves all 11 terrain types", () => {
     for (const terrainValue of Object.values(TerrainType)) {
       const tileset: TiledTileset = {

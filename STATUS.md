@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-12 (bugfix depth animations hors plan)
+> Dernière mise à jour : 2026-04-13 (plan 050 quasi-terminé — tileset custom PMD livré, reste validation visuelle humaine)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -709,6 +709,18 @@
   - `docs/decisions.md` : décision #241 ajoutée (format, exclusions Gmax/Z/Téra, learnsets latest-only)
   - Référence sert de **source de connaissance pour Claude** (phase 1) — migration code jeu prévue en plan 049
 
+- **Session 2026-04-13 (après-midi) — Plan 050 tileset custom PMD** :
+  - **Tileset complet livré** : `packages/renderer/public/assets/tilesets/terrain/tileset.png` (32×2368 px, 74 tiles) + `tileset.tsj` (external tileset Tiled partagé). 11 terrains solides (herbe, tall_grass, roche, brique, sable, pavé, path, wood, snow, ice, magma) + 4 liquides (water, deep_water, lava, swamp). Toutes les textures issues des sheets PMD (Red Rescue Team / Explorers of Sky).
+  - **Pipeline Python** dans `scripts/` : `extract-pmd-tile.py` (auto-détection X0/Y0), `make-iso-tile.py` (4 shapes : full/half/ramp-s/stairs-s), `build-terrain.py`, `assemble-tileset.py`. Documentés dans `scripts/README.md`.
+  - **24 `.tmj` migrés** : inline tileset JAO → référence externe `tileset.tsj`. Parser `resolveExternalTilesets` déjà supporté depuis plan 045.
+  - **Slope flip transform** : `resolveTileProperties` dans `tileset-resolver.ts` transforme la direction selon les bits flipD/H/V Tiled (ordre D→H→V). 3 tests dans `tileset-resolver.test.ts`.
+  - **Helper test** : `loadTiledMapSync` dans `packages/data/src/testing/load-tiled-map-sync.ts` — version Node sync pour les tests `parseTiledMap`.
+  - **Dead code renderer supprimé** (~100 lignes) : méthodes `drawGrid`, `drawTexturedGrid`, `drawArenaMarkings`, `drawIsoEllipse`, constantes `ARENA_TILE_FRAME_*`, `ARENA_MARKING_*`, `ARENA_GRASS_BORDER_SIZE`, `DEPTH_GRID_MARKINGS`, field `markingsGraphics`. `TILESET_KEY` renommé "icon-tileset" → "terrain".
+  - **Scripts one-shot supprimés** : `migrate-tmj-to-custom-tileset.py`, `remap-tmj-mvp-to-15.py`, `externalize-tmj-tileset.py`.
+  - **3 nouveaux items backlog** : profondeur sélecteur/highlight vs Pokemon, flanc inversé sur flip pente/escalier, silhouette X-ray pour Pokemon derrière obstacle.
+  - **849/849 tests verts**, typecheck clean, build clean.
+  - Décisions #242–244 ajoutées (magma=solide, .tsj partagé, auto-détection X0).
+
 - **Session 2026-04-12 (suite) — Bugfix depth animations (hors plan)** :
   - Fix clipping des frames PMDCollab d'attaque et de déplacement sur cartes avec dénivelés (`sandbox-los.tmj`)
   - Nouvelle méthode `PokemonSprite.playAttackAnimation` : bump de depth à `max(originalDepth, maxTileDepthInRadius(r=3))` le temps de l'animation
@@ -718,7 +730,8 @@
   - Fichiers : `PokemonSprite.ts`, `GameController.ts`, `constants.ts`
 
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
-- **Types de terrain** : règles de déplacement par terrain/type Pokemon (effets gameplay des 11 terrains) — tileset custom skippé pour l'instant
+- **Validation visuelle plan 050** : tester le rendu en jeu (empilement, pentes/escaliers, toutes les maps). Si OK, plan 050 → done.
+- **Types de terrain** : règles de déplacement par terrain/type Pokemon (effets gameplay des 11 terrains) — maintenant que le tileset est en place
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
 - Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
 

@@ -115,7 +115,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Mode pixel art Phaser (roundPixels:true, NEAREST manuel par texture, police adaptée) — plan 044
 - [x] Format de carte compatible Tiled + pipeline de chargement (parseTiledMap, validateTiledMap, loadTiledMap, MapPreviewScene, test-arena.tmj — plan 045)
 - [x] Dénivelés (hauteur tiles) + dégâts de chute (plan 046 — canTraverse, getHeightModifier, isMeleeBlockedByHeight, calculateFallDamage, renderer surélevé, highlands.tmj, 45 tests)
-- [ ] Tileset custom (remplacer/améliorer les tiles JAO) — après dénivelés
+- [x] Tileset custom PMD-based (remplacer les tiles JAO) — plan 050 (11 solides + 4 liquides, pipeline Python, 24 maps migrées vers tileset.tsj externe, dead code renderer nettoyé — validation visuelle humaine en cours)
 - [ ] Marquages d'arène en tiles Tiled (layer decorations) au lieu d'overlay Graphics — après tileset custom
 - [x] Obstacles + line of sight (trajectoires de tir visibles) — plan 047
 - [ ] Types de terrain (lave, eau, herbe) + modificateurs

@@ -103,7 +103,7 @@ pokemon-tactics/
 │   │   ├── public/
 │   │   │   └── assets/
 │   │   │       ├── sprites/pokemon/{name}/  # atlas.json, atlas.png, portrait-normal.png, credits.txt, offsets.json (générés)
-│   │   │       ├── tilesets/terrain/        # Tiles isométriques : ICON Isometric Pack (Jao), 32×32px, filtre NEAREST ; icon-tileset.tsj (tileset externe Tiled)
+│   │   │       ├── tilesets/terrain/        # tileset.png (custom PMD-based, 32×32px, 74 tiles, 11 terrains solides + 4 liquides) + tileset.tsj (tileset Tiled externe partagé par tous les .tmj)
 │   │   │       ├── maps/                    # Cartes Tiled (.tmj) servies au runtime (ex: test-arena.tmj)
 │   │   │       └── ui/
 │   │   │           ├── arrows.png           # Spritesheet flèches DirectionPicker
