@@ -11,6 +11,15 @@ Centralise les bugs connus et les retours de playtest non encore traités.
   - Dessiner des variantes E explicites dans le tileset (4 tiles au lieu de 2 par orientation, pas de flip).
   - Uniformiser l'ombrage des flancs gauche/droit (même brightness) — plus simple mais plus plat visuellement.
 
+### Textes flottants superposés (multi-hit, DOT simultanés)
+- Quand plusieurs `showBattleText` sont appelés au même moment pour le même Pokemon (ex: Double-Pied 2 coups, ou burn tick + magma DOT), les textes s'affichent à la même position Y et se chevauchent.
+- `BATTLE_TEXT_STAGGER_Y` (-10) existe dans les constantes mais n'est pas utilisé automatiquement.
+- Fix : compteur par Pokemon pour décaler les textes successifs en Y, ou file d'attente avec délai.
+
+### Afficher les modificateurs terrain actifs dans l'InfoPanel
+- Quand on retravaille l'InfoPanel, afficher les effets terrain en cours sur la tile du Pokemon sélectionné/survolé (ex: "Évasion +1 (herbe haute)", "Brûlure au passage (magma)", "Malus déplacement +2 (marécage)").
+- Lié à l'étape 22 du plan 051 (terrain dans tooltip).
+
 ## Feedback visuel
 
 ### Transparence / silhouette des Pokemon derrière un obstacle + cursor FFTA

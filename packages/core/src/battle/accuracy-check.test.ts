@@ -89,4 +89,27 @@ describe("checkAccuracy", () => {
 
     vi.restoreAllMocks();
   });
+
+  it("terrainEvasionBonus reduces hit rate like +1 evasion stage", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.6);
+
+    const defender = fresh(MockBattle.player2Slow);
+    const resultWithout = checkAccuracy(move75, fresh(MockBattle.player1Fast), defender, () => 0.6);
+    const resultWith = checkAccuracy(move75, fresh(MockBattle.player1Fast), defender, () => 0.6, 1);
+
+    expect(resultWithout).toBe(true);
+    expect(resultWith).toBe(false);
+
+    vi.restoreAllMocks();
+  });
+
+  it("terrainEvasionBonus stacks with existing evasion stages", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+
+    const defender = fresh(MockBattle.player2Slow, { [StatName.Evasion]: 1 });
+    const result = checkAccuracy(move75, fresh(MockBattle.player1Fast), defender, () => 0.5, 1);
+    expect(result).toBe(false);
+
+    vi.restoreAllMocks();
+  });
 });

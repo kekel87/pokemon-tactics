@@ -147,7 +147,8 @@ Dégâts = ((2 × Level / 5 + 2) × Power × (Atk / Def) / 50 + 2)
 - `effectiveness = 0` → affiche "Immune" en gris dans l'UI
 
 > **Modificateur hauteur** (implémenté — plan 046) : ±10%/niveau, plafonds +50%/-30%. Voir section 6.
-> Autres modificateurs prévus : orientation (dos/face), terrain. Tout est surchargeable via le système d'override.
+> **Modificateur terrain** (implémenté — plan 051) : +15% dégâts si type du move correspond au terrain de l'attaquant.
+> Autre modificateur prévu : orientation (dos/face, Phase 3). Tout est surchargeable via le système d'override.
 
 ---
 
@@ -235,40 +236,50 @@ La **ligne de vue (LoS)** détermine si une attaque à distance peut atteindre s
 
 ### Types de terrain
 
-11 types de terrain définis dans `TerrainType` (implémentés en plan 045 — effets gameplay à implémenter dans un plan séparé) :
+11 types de terrain définis dans `TerrainType`. Les effets gameplay sont implémentés dans le plan 051 :
 
-| Terrain | Effet gameplay (futur) | Immunité terrain |
-|---------|----------------------|-----------------|
+| Terrain | Effet gameplay | Immunité terrain |
+|---------|---------------|-----------------|
 | `normal` | Rien | — |
-| `tall_grass` | +évasion | — |
+| `tall_grass` | +1 bonus d'évasion virtuel dans `checkAccuracy` (pas de modification de statStages, aucune cumulation) | — |
 | `obstacle` | Bloque mouvement + LOS. Vol : traverse + arrêt. Spectre : traverse, pas d'arrêt. | Vol, Spectre (traverse seul) |
-| `water` | Malus déplacement | Eau/Vol/Lévitation |
-| `deep_water` | Intraversable + bonus Eau | Eau/Vol/Lévitation |
-| `magma` | Brûlure au passage, brûlure aggravée à l'arrêt | Feu/Vol/Lévitation |
-| `lava` | Intraversable + bonus Feu | Feu/Vol/Lévitation |
-| `ice` | Knockback augmenté + bonus Glace | Glace/Vol/Lévitation |
-| `sand` | Malus déplacement + bonus Sol | Sol/Vol/Lévitation |
-| `snow` | Malus déplacement + bonus Glace | Glace/Vol/Lévitation |
-| `swamp` | Malus déplacement fort + risque Poison | Poison/Vol/Lévitation |
+| `water` | Malus déplacement -1 | Eau/Vol (Lévitation Phase 4) |
+| `deep_water` | Intraversable + **KO létal** si atterrissage non-immun + bonus dégâts +15% pour moves Eau | Eau/Vol |
+| `magma` | Brûlure au passage (traversée) + DOT 1/16 HP/tour (arrêt) + bonus dégâts +15% pour moves Feu | Feu/Vol |
+| `lava` | Intraversable + **KO létal** si atterrissage non-immun + bonus dégâts +15% pour moves Feu | Feu/Vol |
+| `ice` | Glissade après knockback (slide dans la direction jusqu'à obstacle/mur/Pokemon/bord) + bonus dégâts +15% pour moves Glace | Glace/Vol |
+| `sand` | Malus déplacement -1 + bonus dégâts +15% pour moves Sol | Sol/Vol |
+| `snow` | Malus déplacement -1 + bonus dégâts +15% pour moves Glace | Glace/Vol |
+| `swamp` | Malus déplacement -2 + Poison en EndTurn + bonus dégâts +15% pour moves Poison | Poison/Vol |
 
 > La passabilité est déterminée directement par le terrain (`isTerrainPassable(terrain)`). Le flag `isPassable` a été supprimé de `TileState` (plan 045).
 >
-> **Règle globale Vol/Lévitation** : pas affectés par les terrains, sauf `obstacle` où Spectre ne peut pas s'arrêter. Implémentation dans un plan séparé (règles de déplacement par terrain).
+> **Règle globale Vol** : pas affecté par les terrains, sauf `obstacle` où Spectre ne peut pas s'arrêter. La Lévitation (talent) sera ajoutée en Phase 4 (décision #245).
+>
+> **Bonus type/terrain** : +15% dégâts si le type du move correspond au terrain de la tile occupée par l'attaquant. Calculé dans `damage-calculator.ts` via `getTerrainTypeBonusFactor`. Propagé via `terrainModifier` dans `EffectContext` → `ProcessContext`.
+>
+> **Ice slide** : après un knockback, un Pokemon non-Glace/Vol atterrissant sur `ice` continue à glisser dans la direction du knockback. Collision mur → `WallImpactDealt`. Collision Pokemon → `IceSlideCollision` (dégâts aux deux, la cible ne glisse pas). Handler dans `handle-knockback.ts`.
+>
+> **KO létal terrain** : atterrir sur `lava` ou `deep_water` est mortel (KO immédiat, event `LethalTerrainKo`). Immunités : type Feu sur `lava`, type Eau sur `deep_water`, type Vol sur tous les terrains létaux. Renderer : texte "Fondu!" pour lava, "Noyé!" pour deep_water.
+>
+> **Règle un seul statut majeur** : les effets terrain (brûlure passage magma, poison swamp EndTurn) respectent la règle `isMajorStatus` — un Pokemon avec un statut majeur existant n'en reçoit pas un second via un terrain.
 
 ### Influence du terrain sur la précision
-Le système de précision Pokemon (précision attaque × évasion cible) est conservé, avec des **modificateurs terrain** en plus :
-- **Herbe haute** : bonus évasion au défenseur
-- **Glace** : malus précision à l'attaquant (terrain instable) ?
-- **Hauteur supérieure** : bonus précision à l'attaquant (avantage du surplomb) ?
-- **Eau profonde** : malus évasion aux non-Eau ?
+Le système de précision Pokemon (précision attaque × évasion cible) est conservé, avec des **modificateurs terrain** :
+- **Herbe haute** : +1 bonus d'évasion virtuel appliqué dans `checkAccuracy` uniquement si le défenseur est sur `tall_grass` au moment du calcul (implémenté plan 051 — aucune modification de `statStages`, aucune cumulation)
+- **Glace** : malus précision à l'attaquant (terrain instable) ? — à définir Phase 3
+- **Hauteur supérieure** : bonus précision à l'attaquant (avantage du surplomb) ? — à définir Phase 3
+- **Eau profonde** : malus évasion aux non-Eau ? — à définir Phase 3
 
-> Détails et valeurs à définir en Phase 1-2. Tout est surchargeable via le système d'override.
+> Tout est surchargeable via le système d'override.
 
 ### Interactions terrain / type
-- Les Pokemon **Vol** peuvent survoler obstacles et dénivelés
-- Les Pokemon **Feu** sont immunisés à la lave
-- Les Pokemon **Eau** nagent dans l'eau
-- Les attaques peuvent **modifier le terrain** (Champ Herbeux, Champ Électrifié, etc.)
+- Les Pokemon **Vol** peuvent survoler obstacles et dénivelés, et sont immunisés à tous les effets terrain (implémenté plan 051)
+- Les Pokemon **Feu** sont immunisés à magma/lava (implémenté plan 051)
+- Les Pokemon **Eau** nagent dans l'eau sans malus (implémenté plan 051)
+- Les Pokemon **Glace** ne glissent pas sur ice après knockback (implémenté plan 051)
+- Les Pokemon **Poison** ne sont pas empoisonnés par swamp (implémenté plan 051)
+- Les attaques peuvent **modifier le terrain** (Champ Herbeux, Champ Électrifié, etc.) — Phase 3+
 
 ---
 

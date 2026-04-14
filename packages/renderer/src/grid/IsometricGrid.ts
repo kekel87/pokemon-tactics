@@ -14,6 +14,8 @@ import {
   DEPTH_GRID_TILES,
   DEPTH_TILE_MAX_ELEVATION,
   GRID_SIZE,
+  TERRAIN_TINT,
+  TERRAIN_TINT_ALPHA,
   TILE_FILL_COLOR,
   TILE_HEIGHT,
   TILE_HIGHLIGHT_ATTACK_COLOR,
@@ -53,6 +55,7 @@ export class IsometricGrid {
   readonly gridHeight: number;
   private readonly useTexturedTiles: boolean;
   private heightData: readonly number[] = [];
+  private terrainData: readonly string[] = [];
   private slopeData: readonly (string | null)[] = [];
 
   constructor(scene: Phaser.Scene, gridWidth: number = GRID_SIZE, gridHeight: number = gridWidth) {
@@ -101,6 +104,7 @@ export class IsometricGrid {
     firstgid: number,
     heightData?: readonly number[],
     slopeData?: readonly (string | null)[],
+    terrainData?: readonly string[],
   ): void {
     for (const sprite of this.tileSprites) {
       sprite.destroy();
@@ -108,6 +112,7 @@ export class IsometricGrid {
     this.tileSprites.length = 0;
 
     this.heightData = heightData ?? [];
+    this.terrainData = terrainData ?? [];
     this.slopeData = slopeData ?? [];
 
     if (!this.useTexturedTiles) {
@@ -139,6 +144,29 @@ export class IsometricGrid {
         }
       }
     }
+
+    this.drawTerrainTints();
+  }
+
+  private drawTerrainTints(): void {
+    this.tileGraphics.clear();
+    for (let y = 0; y < this.gridHeight; y++) {
+      for (let x = 0; x < this.gridWidth; x++) {
+        const index = y * this.gridWidth + x;
+        const terrain = this.terrainData[index];
+        if (!terrain) {
+          continue;
+        }
+        const tintColor = TERRAIN_TINT[terrain];
+        if (tintColor === undefined) {
+          continue;
+        }
+        this.drawTile(this.tileGraphics, x, y, tintColor, tintColor, TERRAIN_TINT_ALPHA);
+      }
+    }
+    this.tileGraphics.setDepth(
+      DEPTH_GRID_TILES + this.gridWidth * this.gridHeight * DEPTH_TILE_MAX_ELEVATION + 1,
+    );
   }
 
   getTileHeight(gridX: number, gridY: number): number {

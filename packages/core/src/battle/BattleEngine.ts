@@ -7,7 +7,7 @@ import { EffectTarget } from "../enums/effect-target";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
-import { isTerrainPassable } from "../enums/terrain-type";
+import { isTerrainPassable, TerrainType } from "../enums/terrain-type";
 import { Grid } from "../grid/Grid";
 import { resolveTargeting } from "../grid/targeting";
 import type { Action, ActionResult } from "../types/action";
@@ -24,17 +24,21 @@ import { directionFromTo, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
 import type { RandomFn } from "../utils/prng";
 import { checkAccuracy } from "./accuracy-check";
+import { applyImpactDamage } from "./apply-impact-damage";
 import { estimateDamage } from "./damage-calculator";
 import { processEffects } from "./effect-processor";
 import { calculateFallDamage } from "./fall-damage";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { seededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
+import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
 import { getHeightModifier } from "./height-modifier";
 import { canTraverse } from "./height-traversal";
 import { getEffectiveInitiative } from "./initiative-calculator";
+import { isMajorStatus } from "./stat-modifier";
 import { TurnManager } from "./TurnManager";
+import { getMovementPenalty, getTerrainTypeBonusFactor, isTerrainImmune } from "./terrain-effects";
 import { TurnPipeline } from "./turn-pipeline";
 
 type EventHandler = (event: BattleEvent) => void;
@@ -91,6 +95,7 @@ export class BattleEngine {
     this.turnPipeline.registerStartTurn(createStatusTickHandler(this.random), 100);
     this.turnPipeline.registerEndTurn(seededTickHandler, 200);
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
+    this.turnPipeline.registerEndTurn(createTerrainTickHandler(this.pokemonTypesMap), 400);
     this.syncTurnState();
   }
 
@@ -122,6 +127,10 @@ export class BattleEngine {
       defenderHeight,
       move.ignoresHeight ?? false,
     );
+    const attackerTerrain = this.grid.getTile(attacker.position)?.terrain;
+    const terrainMod = attackerTerrain
+      ? getTerrainTypeBonusFactor(attackerTerrain, move.type, attackerTypes)
+      : 1.0;
     return estimateDamage(
       attacker,
       defender,
@@ -130,6 +139,7 @@ export class BattleEngine {
       attackerTypes,
       defenderTypes,
       heightMod,
+      terrainMod,
     );
   }
 
@@ -442,7 +452,14 @@ export class BattleEngine {
         continue;
       }
 
-      if (checkAccuracy(move, pokemon, target, this.random)) {
+      const defenderTile = this.grid.getTile(target.position);
+      const defenderTypes = this.pokemonTypesMap.get(target.definitionId) ?? [];
+      const tallGrassBonus =
+        defenderTile?.terrain === TerrainType.TallGrass &&
+        !isTerrainImmune(TerrainType.TallGrass, defenderTypes)
+          ? 1
+          : 0;
+      if (checkAccuracy(move, pokemon, target, this.random, tallGrassBonus)) {
         targets.push(target);
       } else {
         const missEvent: BattleEvent = {
@@ -468,6 +485,11 @@ export class BattleEngine {
       move.ignoresHeight ?? false,
     );
 
+    const attackerTile = this.grid.getTile(pokemon.position);
+    const terrainMod = attackerTile
+      ? getTerrainTypeBonusFactor(attackerTile.terrain, move.type, attackerTypes)
+      : 1.0;
+
     const effectEvents = processEffects({
       attacker: pokemon,
       targets,
@@ -479,6 +501,7 @@ export class BattleEngine {
       targetPosition,
       random: this.random,
       heightModifier: heightMod,
+      terrainModifier: terrainMod,
     });
 
     for (const event of effectEvents) {
@@ -725,7 +748,10 @@ export class BattleEngine {
 
     if (destination === null) {
       if (wallHeightDiff > 0 && !isFlying) {
-        this.applyDashWallFallDamage(pokemon, wallHeightDiff, events);
+        for (const event of applyImpactDamage(pokemon, wallHeightDiff)) {
+          this.emit(event);
+          events.push(event);
+        }
       }
       return;
     }
@@ -747,7 +773,10 @@ export class BattleEngine {
     events.push(moveEvent);
 
     if (wallHeightDiff > 0 && !isFlying) {
-      this.applyDashWallFallDamage(pokemon, wallHeightDiff, events);
+      for (const event of applyImpactDamage(pokemon, wallHeightDiff)) {
+        this.emit(event);
+        events.push(event);
+      }
     }
 
     const dashHeightDiff = originHeight - destHeight;
@@ -778,45 +807,15 @@ export class BattleEngine {
     }
   }
 
-  private applyDashWallFallDamage(
-    pokemon: PokemonInstance,
-    heightDiff: number,
-    events: BattleEvent[],
-  ): void {
-    const damage = calculateFallDamage(heightDiff, pokemon.maxHp);
-    if (damage <= 0) {
-      return;
-    }
-    pokemon.currentHp = Math.max(0, pokemon.currentHp - damage);
-    const impactEvent: BattleEvent = {
-      type: BattleEventType.WallImpactDealt,
-      pokemonId: pokemon.id,
-      amount: damage,
-      heightDiff,
-    };
-    this.emit(impactEvent);
-    events.push(impactEvent);
-    if (pokemon.currentHp <= 0) {
-      const koEvent: BattleEvent = {
-        type: BattleEventType.PokemonKo,
-        pokemonId: pokemon.id,
-        countdownStart: 0,
-      };
-      this.emit(koEvent);
-      events.push(koEvent);
-    }
-  }
-
   private getReachableTiles(pokemon: PokemonInstance): ReachableTile[] {
     const result: ReachableTile[] = [];
-    const visited = new Set<string>();
+    const visited = new Map<string, number>();
     const posKey = (p: Position): string => `${p.x},${p.y}`;
-    const isFlying = (this.pokemonTypesMap.get(pokemon.definitionId) ?? []).includes(
-      PokemonType.Flying,
-    );
+    const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const isFlying = pokemonTypes.includes(PokemonType.Flying);
 
     const queue: BfsNode[] = [{ position: pokemon.position, path: [], distance: 0 }];
-    visited.add(posKey(pokemon.position));
+    visited.set(posKey(pokemon.position), 0);
 
     while (queue.length > 0) {
       const current = queue.shift();
@@ -831,16 +830,9 @@ export class BattleEngine {
         }
       }
 
-      if (current.distance >= pokemon.derivedStats.movement) {
-        continue;
-      }
-
       const neighbors = this.grid.getNeighbors(current.position);
       for (const neighbor of neighbors) {
         const key = posKey(neighbor.position);
-        if (visited.has(key)) {
-          continue;
-        }
 
         if (!isTerrainPassable(neighbor.terrain)) {
           continue;
@@ -863,11 +855,23 @@ export class BattleEngine {
           }
         }
 
-        visited.add(key);
+        const penalty = getMovementPenalty(neighbor.terrain, pokemonTypes);
+        const newDistance = current.distance + 1 + penalty;
+
+        if (newDistance > pokemon.derivedStats.movement) {
+          continue;
+        }
+
+        const existingDistance = visited.get(key);
+        if (existingDistance !== undefined && existingDistance <= newDistance) {
+          continue;
+        }
+
+        visited.set(key, newDistance);
         queue.push({
           position: neighbor.position,
           path: [...current.path, neighbor.position],
-          distance: current.distance + 1,
+          distance: newDistance,
         });
       }
     }
@@ -887,6 +891,7 @@ export class BattleEngine {
     }
 
     const events: BattleEvent[] = [];
+    const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
 
     this.grid.setOccupant(origin, null);
     const destination = path[path.length - 1] as Position;
@@ -904,6 +909,29 @@ export class BattleEngine {
     this.emit(moveEvent);
     events.push(moveEvent);
 
+    const hasMajor = pokemon.statusEffects.some((s) => isMajorStatus(s.type));
+    if (!hasMajor) {
+      for (const step of path) {
+        const tile = this.grid.getTile(step);
+        if (tile?.terrain !== TerrainType.Magma) {
+          continue;
+        }
+        if (isTerrainImmune(TerrainType.Magma, pokemonTypes)) {
+          break;
+        }
+        pokemon.statusEffects.push({ type: StatusType.Burned, remainingTurns: null });
+        const statusEvent: BattleEvent = {
+          type: BattleEventType.TerrainStatusApplied,
+          pokemonId: pokemon.id,
+          terrain: TerrainType.Magma,
+          status: StatusType.Burned,
+        };
+        this.emit(statusEvent);
+        events.push(statusEvent);
+        break;
+      }
+    }
+
     this.turnState.hasMoved = true;
 
     return { success: true, events };
@@ -914,10 +942,10 @@ export class BattleEngine {
       return ActionError.EmptyPath;
     }
 
-    if (path.length > pokemon.derivedStats.movement) {
-      return ActionError.PathTooLong;
-    }
+    const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const isFlying = pokemonTypes.includes(PokemonType.Flying);
 
+    let totalCost = 0;
     let currentPosition = pokemon.position;
     for (const step of path) {
       if (manhattanDistance(currentPosition, step) !== 1) {
@@ -935,11 +963,13 @@ export class BattleEngine {
 
       const currentTile = this.grid.getTile(currentPosition);
       const fromHeight = currentTile?.height ?? 0;
-      const isFlying = (this.pokemonTypesMap.get(pokemon.definitionId) ?? []).includes(
-        PokemonType.Flying,
-      );
       if (!canTraverse(fromHeight, tile.height, isFlying)) {
         return ActionError.JumpTooHigh;
+      }
+
+      totalCost += 1 + getMovementPenalty(tile.terrain, pokemonTypes);
+      if (totalCost > pokemon.derivedStats.movement) {
+        return ActionError.PathTooLong;
       }
 
       const isLastStep = step === path[path.length - 1];

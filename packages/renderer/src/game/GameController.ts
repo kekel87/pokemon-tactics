@@ -29,6 +29,7 @@ import {
   StatusType,
   stepInDirection,
   TargetingKind,
+  TerrainType,
 } from "@pokemon-tactic/core";
 import {
   AnimationCategory,
@@ -51,12 +52,12 @@ import {
   BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE,
   BATTLE_TEXT_COLOR_SUPER_EFFECTIVE,
   BATTLE_TEXT_STAGGER_Y,
+  DEPTH_POKEMON_BASE,
+  DEPTH_TILE_MAX_ELEVATION,
   getTeamColorByPlayerId,
   KNOCKBACK_SHAKE_DURATION_MS,
   KNOCKBACK_SHAKE_OFFSET_X,
   KNOCKBACK_SHAKE_REPEAT,
-  DEPTH_POKEMON_BASE,
-  DEPTH_TILE_MAX_ELEVATION,
   MOVE_TWEEN_DURATION_MS,
   POKEMON_SPRITE_GROUND_OFFSET_Y,
   PREVIEW_FLASH_ALPHA,
@@ -1061,12 +1062,14 @@ export class GameController {
               y: target.y + POKEMON_SPRITE_GROUND_OFFSET_Y,
               duration: MOVE_TWEEN_DURATION_MS,
               onComplete: () => {
-                kbSprite.getContainer().setDepth(
-                  DEPTH_POKEMON_BASE +
-                    (event.to.x + event.to.y) * DEPTH_TILE_MAX_ELEVATION +
-                    kbHeight +
-                    0.5,
-                );
+                kbSprite
+                  .getContainer()
+                  .setDepth(
+                    DEPTH_POKEMON_BASE +
+                      (event.to.x + event.to.y) * DEPTH_TILE_MAX_ELEVATION +
+                      kbHeight +
+                      0.5,
+                  );
                 kbSprite.playAnimation("Idle");
                 resolve();
               },
@@ -1128,6 +1131,66 @@ export class GameController {
             `${t("battle.impact")} -${event.amount}`,
             { color: BATTLE_TEXT_COLOR_FALL_DAMAGE },
           );
+        }
+        break;
+      }
+
+      case BattleEventType.TerrainDamageDealt: {
+        const tdSprite = this.sprites.get(event.pokemonId);
+        const tdPokemon = this.state.pokemon.get(event.pokemonId);
+        if (tdSprite && tdPokemon) {
+          tdSprite.updateHp(tdPokemon.currentHp, tdPokemon.maxHp);
+          await tdSprite.flashDamage();
+          const tdPos = tdSprite.getTextPosition();
+          showBattleText(
+            this.scene,
+            tdPos.x,
+            tdPos.y,
+            `${t("battle.terrainDamage")} -${event.amount}`,
+            { color: BATTLE_TEXT_COLOR_FALL_DAMAGE },
+          );
+        }
+        break;
+      }
+
+      case BattleEventType.IceSlideApplied: {
+        const slideSprite = this.sprites.get(event.pokemonId);
+        if (slideSprite) {
+          const slideHeight = this.isometricGrid.getTileHeight(event.to.x, event.to.y);
+          const slideTarget = this.isometricGrid.gridToScreen(event.to.x, event.to.y, slideHeight);
+          await new Promise<void>((resolve) => {
+            this.scene.tweens.add({
+              targets: slideSprite.getContainer(),
+              x: slideTarget.x,
+              y: slideTarget.y + POKEMON_SPRITE_GROUND_OFFSET_Y,
+              duration: MOVE_TWEEN_DURATION_MS,
+              ease: "Linear",
+              onComplete: () => {
+                slideSprite
+                  .getContainer()
+                  .setDepth(
+                    DEPTH_POKEMON_BASE +
+                      (event.to.x + event.to.y) * DEPTH_TILE_MAX_ELEVATION +
+                      slideHeight +
+                      0.5,
+                  );
+                resolve();
+              },
+            });
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.LethalTerrainKo: {
+        const ltSprite = this.sprites.get(event.pokemonId);
+        if (ltSprite) {
+          const ltPos = ltSprite.getTextPosition();
+          const text =
+            event.terrain === TerrainType.Lava ? t("battle.melted") : t("battle.drowned");
+          showBattleText(this.scene, ltPos.x, ltPos.y, text, {
+            color: BATTLE_TEXT_COLOR_FALL_DAMAGE,
+          });
         }
         break;
       }

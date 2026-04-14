@@ -84,6 +84,9 @@ export interface Translations {
   "battle.recharge": string;
   "battle.statUp": string;
   "battle.statDown": string;
+  "battle.terrainDamage": string;
+  "battle.melted": string;
+  "battle.drowned": string;
   "teamSelect.title": string;
   "teamSelect.player1": string;
   "teamSelect.player2": string;

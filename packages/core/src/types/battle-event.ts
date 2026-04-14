@@ -3,6 +3,7 @@ import type { DefensiveKind } from "../enums/defensive-kind";
 import type { Direction } from "../enums/direction";
 import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
+import type { TerrainType } from "../enums/terrain-type";
 import type { Position } from "./position";
 
 export type BattleEvent =
@@ -88,4 +89,9 @@ export type BattleEvent =
       pokemonId: string;
       amount: number;
       heightDiff: number;
-    };
+    }
+  | { type: typeof BattleEventType.TerrainDamageDealt; pokemonId: string; terrain: TerrainType; amount: number }
+  | { type: typeof BattleEventType.TerrainStatusApplied; pokemonId: string; terrain: TerrainType; status: StatusType }
+  | { type: typeof BattleEventType.IceSlideApplied; pokemonId: string; from: Position; to: Position }
+  | { type: typeof BattleEventType.IceSlideCollision; sliderId: string; targetId: string; damage: number }
+  | { type: typeof BattleEventType.LethalTerrainKo; pokemonId: string; terrain: TerrainType };

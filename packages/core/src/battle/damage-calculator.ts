@@ -21,6 +21,7 @@ export function calculateDamage(
   rollFactor?: number,
   random: RandomFn = () => Math.random(),
   heightModifier = 1.0,
+  terrainModifier = 1.0,
 ): number {
   if (move.category === Category.Status || move.power === 0) {
     return 0;
@@ -54,7 +55,10 @@ export function calculateDamage(
 
   const roll = rollFactor ?? random() * 0.15 + 0.85;
 
-  return Math.max(1, Math.floor(baseDamage * stab * effectiveness * roll * heightModifier));
+  return Math.max(
+    1,
+    Math.floor(baseDamage * stab * effectiveness * roll * heightModifier * terrainModifier),
+  );
 }
 
 export function getTypeEffectiveness(
@@ -91,6 +95,7 @@ export function estimateDamage(
   attackerTypes: PokemonType[],
   defenderTypes: PokemonType[],
   heightModifier = 1.0,
+  terrainModifier = 1.0,
 ): DamageEstimate {
   const effectiveness = getTypeEffectiveness(move.type, defenderTypes, typeChart);
   const min = calculateDamage(
@@ -103,6 +108,7 @@ export function estimateDamage(
     ROLL_MIN,
     undefined,
     heightModifier,
+    terrainModifier,
   );
   const max = calculateDamage(
     attacker,
@@ -114,6 +120,7 @@ export function estimateDamage(
     ROLL_MAX,
     undefined,
     heightModifier,
+    terrainModifier,
   );
   return { min, max, effectiveness };
 }
