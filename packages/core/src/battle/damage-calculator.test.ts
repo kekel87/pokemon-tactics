@@ -372,3 +372,58 @@ describe("estimateDamage", () => {
     expect(withStab.max).toBeGreaterThan(withoutStab.max);
   });
 });
+
+describe("terrain modifier", () => {
+  it("terrain bonus +15% applies when terrainModifier=1.15", () => {
+    const base = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+      undefined,
+      1.0,
+      1.0,
+    );
+    const withTerrain = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+      undefined,
+      1.0,
+      1.15,
+    );
+    expect(withTerrain).toBeGreaterThan(base);
+    expect(withTerrain).toBe(Math.max(1, Math.floor(base * 1.15)));
+  });
+
+  it("estimateDamage propagates terrainModifier", () => {
+    const base = estimateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+      1.0,
+    );
+    const withTerrain = estimateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+      1.15,
+    );
+    expect(withTerrain.max).toBeGreaterThan(base.max);
+  });
+});

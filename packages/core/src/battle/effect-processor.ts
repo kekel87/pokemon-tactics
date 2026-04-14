@@ -27,6 +27,7 @@ interface ProcessContext {
   targetPosition: Position;
   random: RandomFn;
   heightModifier: number;
+  terrainModifier: number;
 }
 
 export function createDefaultEffectRegistry(): EffectHandlerRegistry {

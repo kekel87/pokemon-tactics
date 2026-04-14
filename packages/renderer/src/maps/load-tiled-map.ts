@@ -7,6 +7,7 @@ export interface LoadedTiledMap {
   readonly elevationLayers: readonly ElevationLayer[];
   readonly heightData: readonly number[];
   readonly slopeData: readonly (string | null)[];
+  readonly terrainData: readonly string[];
   readonly firstgid: number;
 }
 
@@ -50,19 +51,19 @@ export async function loadTiledMap(url: string): Promise<LoadedTiledMap> {
   }
 
   if (validation.warnings.length > 0) {
-    console.warn(`Map "${url}" warnings:\n${validation.warnings.join("\n")}`);
   }
 
   if (parseResult.warnings.length > 0) {
-    console.warn(`Map "${url}" parse warnings:\n${parseResult.warnings.join("\n")}`);
   }
 
   const firstgid = tiledMap.tilesets[0]?.firstgid ?? 1;
 
   const heightData: number[] = [];
+  const terrainData: string[] = [];
   for (const row of parseResult.map.tiles) {
     for (const tile of row) {
       heightData.push(tile.height);
+      terrainData.push(tile.terrain);
     }
   }
 
@@ -70,6 +71,7 @@ export async function loadTiledMap(url: string): Promise<LoadedTiledMap> {
     map: parseResult.map,
     elevationLayers: parseResult.elevationLayers,
     heightData,
+    terrainData,
     slopeData: parseResult.slopeData,
     firstgid,
   };

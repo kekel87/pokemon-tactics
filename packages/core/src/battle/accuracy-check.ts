@@ -9,9 +9,10 @@ export function checkAccuracy(
   attacker: PokemonInstance,
   defender: PokemonInstance,
   random: RandomFn = () => Math.random(),
+  terrainEvasionBonus = 0,
 ): boolean {
   const accuracyStages = attacker.statStages[StatName.Accuracy];
-  const evasionStages = defender.statStages[StatName.Evasion];
+  const evasionStages = defender.statStages[StatName.Evasion] + terrainEvasionBonus;
 
   const accuracyMultiplier = getStatMultiplier(accuracyStages);
   const evasionMultiplier = getStatMultiplier(evasionStages);

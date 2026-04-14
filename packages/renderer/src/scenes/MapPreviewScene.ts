@@ -72,19 +72,24 @@ export class MapPreviewScene extends Phaser.Scene {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       this.uiScene?.setError(message);
-      console.error("Map load error:", error);
     }
   }
 
   private renderMap(loaded: LoadedTiledMap): void {
-    const { map, elevationLayers, heightData, slopeData, firstgid } = loaded;
+    const { map, elevationLayers, heightData, slopeData, terrainData, firstgid } = loaded;
     this.currentMap = map;
     this.formatIndex = 0;
 
     this.uiScene?.setMapInfo(map.name, map.width, map.height);
 
     this.isometricGrid = new IsometricGrid(this, map.width, map.height);
-    this.isometricGrid.drawGridFromTileData(elevationLayers, firstgid, heightData, slopeData);
+    this.isometricGrid.drawGridFromTileData(
+      elevationLayers,
+      firstgid,
+      heightData,
+      slopeData,
+      terrainData,
+    );
 
     this.renderCurrentFormat();
     this.setupCameraBounds(map.width, map.height);

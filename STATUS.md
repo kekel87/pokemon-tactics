@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-14 (bugfix renderer hors plan : depth highlights/cursor vs Pokemon)
+> Dernière mise à jour : 2026-04-14 (plan 051 terminé : terrain effects core + tests + maps sandbox + renderer tint + bugfixes)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -733,11 +733,32 @@
   - Nouveau layering dans `constants.ts` — tiles (1–125) → highlights (500–510) → Pokemon (520+) → curseur (900) → UI (1000+). `DEPTH_POKEMON_BASE` remonté de 1 à 520. Formule depth knockback corrigée avec `DEPTH_POKEMON_BASE`.
   - Fichiers modifiés : `constants.ts`, `IsometricGrid.ts`, `PokemonSprite.ts`, `GameController.ts`
 
+- **Plan 051 terminé** — Types de terrain + modificateurs (toutes étapes) :
+  - **Nouveaux `BattleEventType`** : `TerrainDamageDealt`, `TerrainStatusApplied`, `TerrainEvasionApplied`, `IceSlideApplied`, `IceSlideCollision`, `LethalTerrainKo`
+  - **`terrain-effects.ts`** : fonctions pures — `isTerrainImmune`, `getMovementPenalty`, `getTerrainTypeBonusFactor` (+15%), `getTerrainStatusOnStop`, `getTerrainDotFraction`
+  - **BFS Dijkstra** : malus de coût par terrain (water/sand/snow +1, swamp +2), immunités de type respectées
+  - **Bonus type/terrain** : +15% dégâts si type du move correspond au terrain de l'attaquant (Feu sur magma, Eau sur water, etc.)
+  - **Brûlure au passage** : Pokemon non-Feu/Vol traversant magma reçoit Burned pendant le déplacement
+  - **`terrain-tick-handler`** : handler EndTurn priorité 400 — swamp → Poison, magma → 1/16 HP DOT ; tall_grass → évasion virtuelle dans checkAccuracy (aucun statStage)
+  - **`applyImpactDamage`** : helper extrait de BattleEngine, partagé avec `handle-knockback.ts`
+  - **Ice slide** : après knockback sur ice, le Pokemon glisse jusqu'à obstacle/mur/Pokemon/bord. Collision mur → WallImpactDealt, collision Pokemon → IceSlideCollision (dégâts aux deux). Immunité : Glace, Vol
+  - **`terrainModifier`** propagé via `EffectContext` → `ProcessContext` → `damage-calculator`
+  - **KO létal terrain** : atterrir sur lava/deep_water sans immunité = KO immédiat (`LethalTerrainKo`). Renderer : "Fondu!" / "Noyé!"
+  - **Règle un seul statut majeur** : handlers terrain respectent `isMajorStatus`
+  - **Évasion tall_grass** redesignée : bonus virtuel dans `checkAccuracy` (pas de statStage, pas de cumul)
+  - **Maps sandbox** mises à jour par l'humain : `sandbox-flat` avec tous les terrains, `sandbox-fall-1` à `-4` avec ice en bordure de falaise
+  - **Renderer tint** : overlay `TERRAIN_TINT_*` semi-transparent par terrain dans `IsometricGrid`
+  - **3 nouveaux event handlers renderer** : `TerrainDamageDealt`, `IceSlideApplied`, `LethalTerrainKo`
+  - Étape 22 (tooltip terrain InfoPanel) déplacée au backlog
+
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
-- **Validation visuelle plan 050** : tester le rendu en jeu (empilement, pentes/escaliers, toutes les maps). Si OK, plan 050 → done.
-- **Types de terrain** : règles de déplacement par terrain/type Pokemon (effets gameplay des 11 terrains) — maintenant que le tileset est en place
+- **Plan 051 terminé** — prochain plan : "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)
+- **Orientation tactique** (bonus dos/face FFTA) — Phase 3
+- **Système CT** (remplacement round-robin) — Phase 3
+- **Undo déplacement** — Phase 3
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
 - Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
+- Validation visuelle plan 050 toujours souhaitable (empilement, pentes/escaliers sur toutes les maps)
 
 ### Bugs connus non corrigés
 

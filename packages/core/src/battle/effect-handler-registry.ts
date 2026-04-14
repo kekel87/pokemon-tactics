@@ -23,6 +23,7 @@ export interface EffectContext {
   targetPosition: Position;
   random: RandomFn;
   heightModifier: number;
+  terrainModifier: number;
 }
 
 export type EffectHandler = (context: EffectContext) => BattleEvent[];

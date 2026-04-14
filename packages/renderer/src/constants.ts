@@ -329,3 +329,16 @@ export const TILE_SPRITE_SCALE = 1;
 export const TILE_ORIGIN_Y = 1.0;
 
 export const TILESET_KEY = "terrain";
+
+export const TERRAIN_TINT_ALPHA = 0.25;
+export const TERRAIN_TINT: Record<string, number> = {
+  water: 0x2244cc,
+  deep_water: 0x1122aa,
+  magma: 0xcc4422,
+  lava: 0xdd3311,
+  ice: 0x88ccff,
+  sand: 0xccaa44,
+  snow: 0xddddff,
+  swamp: 0x556622,
+  tall_grass: 0x44aa44,
+};

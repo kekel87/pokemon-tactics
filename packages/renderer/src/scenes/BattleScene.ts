@@ -154,6 +154,7 @@ export class BattleScene extends Phaser.Scene {
       loaded.firstgid,
       loaded.heightData,
       loaded.slopeData,
+      loaded.terrainData,
     );
 
     const sprites = new Map<string, PokemonSprite>();
@@ -253,6 +254,7 @@ export class BattleScene extends Phaser.Scene {
       loaded.firstgid,
       loaded.heightData,
       loaded.slopeData,
+      loaded.terrainData,
     );
 
     const sprites = new Map<string, PokemonSprite>();

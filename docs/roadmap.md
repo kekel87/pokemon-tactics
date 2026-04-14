@@ -117,7 +117,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Dénivelés (hauteur tiles) + dégâts de chute (plan 046 — canTraverse, getHeightModifier, isMeleeBlockedByHeight, calculateFallDamage, renderer surélevé, highlands.tmj, 45 tests)
 - [x] Tileset custom PMD-based (remplacer les tiles JAO) — plan 050 (11 solides + 4 liquides, pipeline Python, 24 maps migrées vers tileset.tsj externe, dead code renderer nettoyé — validation visuelle humaine en cours)
 - [x] Obstacles + line of sight (trajectoires de tir visibles) — plan 047
-- [ ] Types de terrain (lave, eau, herbe) + modificateurs
+- [x] Types de terrain (lave, eau, herbe) + modificateurs — plan 051 terminé (core + tests + maps sandbox + renderer tint). Tooltip InfoPanel déplacé au backlog.
 - [ ] Interactions type/terrain + modification terrain par attaques
 - [ ] Orientation tactique (bonus dos/face FFTA)
 - [ ] Système CT (remplacement round-robin)

@@ -1,0 +1,99 @@
+import { BattleEventType } from "../../enums/battle-event-type";
+import type { PokemonType } from "../../enums/pokemon-type";
+import type { TerrainType } from "../../enums/terrain-type";
+import type { BattleEvent } from "../../types/battle-event";
+import type { BattleState } from "../../types/battle-state";
+import type { PokemonInstance } from "../../types/pokemon-instance";
+import { isMajorStatus } from "../stat-modifier";
+import { getTerrainDotFraction, getTerrainStatusOnStop, isTerrainImmune } from "../terrain-effects";
+import type { PhaseHandler, PhaseResult } from "../turn-pipeline";
+
+const EMPTY_RESULT: PhaseResult = {
+  events: [],
+  skipAction: false,
+  restrictActions: false,
+  pokemonFainted: false,
+};
+
+function applyTerrainStatus(
+  pokemon: PokemonInstance,
+  terrain: TerrainType,
+  types: PokemonType[],
+  events: BattleEvent[],
+): void {
+  const status = getTerrainStatusOnStop(terrain, types);
+  if (!status) {
+    return;
+  }
+
+  if (pokemon.statusEffects.some((s) => isMajorStatus(s.type))) {
+    return;
+  }
+
+  pokemon.statusEffects.push({ type: status, remainingTurns: null });
+  events.push({
+    type: BattleEventType.TerrainStatusApplied,
+    pokemonId: pokemon.id,
+    terrain,
+    status,
+  });
+}
+
+function applyTerrainDot(
+  pokemon: PokemonInstance,
+  terrain: TerrainType,
+  types: PokemonType[],
+  events: BattleEvent[],
+): boolean {
+  if (isTerrainImmune(terrain, types)) {
+    return false;
+  }
+
+  const fraction = getTerrainDotFraction(terrain);
+  if (!fraction) {
+    return false;
+  }
+
+  const damage = Math.max(1, Math.floor(pokemon.maxHp / fraction));
+  pokemon.currentHp = Math.max(0, pokemon.currentHp - damage);
+  events.push({
+    type: BattleEventType.TerrainDamageDealt,
+    pokemonId: pokemon.id,
+    terrain,
+    amount: damage,
+  });
+
+  if (pokemon.currentHp <= 0) {
+    events.push({ type: BattleEventType.PokemonKo, pokemonId: pokemon.id, countdownStart: 0 });
+    return true;
+  }
+  return false;
+}
+
+export function createTerrainTickHandler(
+  pokemonTypesMap: Map<string, PokemonType[]>,
+): PhaseHandler {
+  return (pokemonId: string, state: BattleState): PhaseResult => {
+    const pokemon = state.pokemon.get(pokemonId);
+    if (!pokemon || pokemon.currentHp <= 0) {
+      return EMPTY_RESULT;
+    }
+
+    const tile = state.grid[pokemon.position.y]?.[pokemon.position.x];
+    if (!tile) {
+      return EMPTY_RESULT;
+    }
+
+    const terrain = tile.terrain;
+    const types = pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const events: BattleEvent[] = [];
+
+    applyTerrainStatus(pokemon, terrain, types, events);
+    if (pokemon.currentHp <= 0) {
+      return { events, skipAction: false, restrictActions: false, pokemonFainted: true };
+    }
+
+    const fainted = applyTerrainDot(pokemon, terrain, types, events);
+    return { events, skipAction: false, restrictActions: false, pokemonFainted: fainted };
+  };
+}
