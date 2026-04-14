@@ -55,6 +55,8 @@ import {
   KNOCKBACK_SHAKE_DURATION_MS,
   KNOCKBACK_SHAKE_OFFSET_X,
   KNOCKBACK_SHAKE_REPEAT,
+  DEPTH_POKEMON_BASE,
+  DEPTH_TILE_MAX_ELEVATION,
   MOVE_TWEEN_DURATION_MS,
   POKEMON_SPRITE_GROUND_OFFSET_Y,
   PREVIEW_FLASH_ALPHA,
@@ -1059,7 +1061,12 @@ export class GameController {
               y: target.y + POKEMON_SPRITE_GROUND_OFFSET_Y,
               duration: MOVE_TWEEN_DURATION_MS,
               onComplete: () => {
-                kbSprite.getContainer().setDepth(200 + event.to.x + event.to.y - kbHeight * 0.01);
+                kbSprite.getContainer().setDepth(
+                  DEPTH_POKEMON_BASE +
+                    (event.to.x + event.to.y) * DEPTH_TILE_MAX_ELEVATION +
+                    kbHeight +
+                    0.5,
+                );
                 kbSprite.playAnimation("Idle");
                 resolve();
               },

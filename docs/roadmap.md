@@ -116,13 +116,13 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Format de carte compatible Tiled + pipeline de chargement (parseTiledMap, validateTiledMap, loadTiledMap, MapPreviewScene, test-arena.tmj — plan 045)
 - [x] Dénivelés (hauteur tiles) + dégâts de chute (plan 046 — canTraverse, getHeightModifier, isMeleeBlockedByHeight, calculateFallDamage, renderer surélevé, highlands.tmj, 45 tests)
 - [x] Tileset custom PMD-based (remplacer les tiles JAO) — plan 050 (11 solides + 4 liquides, pipeline Python, 24 maps migrées vers tileset.tsj externe, dead code renderer nettoyé — validation visuelle humaine en cours)
-- [ ] Marquages d'arène en tiles Tiled (layer decorations) au lieu d'overlay Graphics — après tileset custom
 - [x] Obstacles + line of sight (trajectoires de tir visibles) — plan 047
 - [ ] Types de terrain (lave, eau, herbe) + modificateurs
 - [ ] Interactions type/terrain + modification terrain par attaques
 - [ ] Orientation tactique (bonus dos/face FFTA)
 - [ ] Système CT (remplacement round-robin)
 - [ ] Undo déplacement (annulable tant qu'on n'a pas attaqué)
+- [ ] Système de décorations Tiled — tileset `decorations.tsj` dédié (pipeline séparée du terrain) : marquages d'arène (lignes ~12 tiles + pokeball ~6-8 tiles) + décos environnement (herbe haute overlay, arbres, rochers PMD-based)
 - [ ] Éditeur de terrain / génération IA
 - [ ] Maps variées + roster d'attaques terrain/dénivelé
 

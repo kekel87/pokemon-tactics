@@ -1,7 +1,7 @@
 ---
-status: ready-for-visual-test
+status: done
 created: 2026-04-12
-updated: 2026-04-13 (11 solides + 4 liquides livrés, 24 maps migrées, dead code nettoyé — reste validation visuelle humaine)
+updated: 2026-04-14 (validé visuellement par l'humain)
 ---
 
 # Plan 050 — Tileset custom (remplacer JAO)

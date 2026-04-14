@@ -4,12 +4,6 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Bugs
 
-### Profondeur du sélecteur/highlight vs sprites Pokemon
-- Le curseur de sélection et les zones de highlight (move, attack, enemy range) passent **par-dessus** les sprites Pokemon au lieu de passer derrière quand le Pokemon est plus proche de la caméra (iso depth plus grande).
-- Probable : les `Graphics` de highlight utilisent une depth fixe (`DEPTH_GRID_HIGHLIGHT`, `DEPTH_GRID_CURSOR`, `DEPTH_GRID_ENEMY_RANGE` dans `constants.ts`) alors qu'il faudrait qu'elle soit interpolée par tile (comme les sprites de terrain).
-- Cf. `packages/renderer/src/grid/IsometricGrid.ts` (highlights en Graphics plein écran).
-- À corriger : soit une depth par tile highlightée, soit dessiner les highlights **sous** les sprites et ajouter un overlay de contour par-dessus.
-
 ### Flanc différent sur flip pente/escalier (raccord visible)
 - Les variantes E de pente et escalier sont obtenues au rendu via `sprite.setFlipX(true)` (cf. `decodeTiledGid` + `IsometricGrid.drawGridFromTileData`).
 - Problème : le flip horizontal inverse aussi la répartition d'ombrage sur les flancs. La convention de rendu dans `scripts/make-iso-tile.py` (LEFT_BRIGHTNESS=0.75, RIGHT_BRIGHTNESS=0.55) suppose un éclairage depuis le sud-est. Quand la tile est flipée, la face lumineuse se retrouve du "mauvais" côté → raccord visible avec les tiles non-flipées adjacentes.
@@ -19,11 +13,12 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Feedback visuel
 
-### Transparence / silhouette des Pokemon derrière un obstacle
+### Transparence / silhouette des Pokemon derrière un obstacle + cursor FFTA
 - Quand un Pokemon passe derrière une tile haute ou une décoration, il disparaît complètement.
 - Idée : afficher le sprite en transparence ou en contour de couleur (effet **silhouette X-ray** / "occlusion outline", courant dans les jeux iso).
 - Impl possible : détecter côté renderer si un sprite est occlu par une tile de depth supérieure, appliquer `sprite.setAlpha(0.4)` + un outline avec shader/PostFX Phaser, ou basculer sur une version silhouette du sprite.
-- À planifier comme tâche renderer dédiée (après le fix de depth highlights ci-dessus, probablement partagera la détection d'occlusion).
+- **Lié au cursor FFTA** : le curseur de sélection doit être revu dans le style FFTA (au-dessus des sprites Pokemon). Cette tâche partage probablement la détection d'occlusion avec l'effet de transparence — à traiter dans le même plan renderer.
+- **Note** : le bug "Pokemon passe devant les piliers pendant le déplacement" (suppression du `maxTileDepthInRadius` dans `animateMoveTo`) n'est pas résolu par le layering de depths — c'est un comportement iso correct (Pokemon derrière un pilier plus proche de la caméra). La solution passe par la transparence/silhouette ci-dessus.
 
 ## Tâches futures identifiées (hors backlog actif)
 
@@ -32,9 +27,11 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 - Pour l'instant, le plan 046/047 n'ajoute que le modificateur de **dégâts** (`getHeightModifier`, ±10%/niveau, cap +50%/-30%). Aucun bonus de portée.
 - À planifier : décider de la formule (flat +N, multiplicatif, avec cap), adapter `getValidTargetPositions` dans BattleEngine pour calculer une portée effective par caster, affecter la preview renderer.
 
-### Marquages d'arène → tiles Tiled
-- Les overlay Graphics (pokeball centrale, lignes latérales) devraient être des tiles Tiled dans le layer `decorations`, pas des Graphics Phaser dessinés au runtime
-- À traiter dans un plan dédié (après tileset custom)
+### Système de décorations Tiled
+- Créer `decorations.tsj` + `decorations.png` — tileset dédié, pipeline séparée du terrain
+- Marquages d'arène : lignes (~12 tiles : segments, coins, T, croisement) + pokeball centrale (~6-8 tiles)
+- Décos environnement : herbe haute overlay, arbres, rochers (sources PMD)
+- Remplir layer `decorations` de `test-arena.tmj` + maps futures
 
 ### Animations de vol + trajectoire des Flying Pokemon
 - Actuellement aucun sprite du roster n'a les animations `FlapAround` / `Hover` / `Special10`. Le fallback (`FLYING_JUMP_ANIMATION_CANDIDATES` dans `packages/renderer/src/game/movement-animation.ts`) retombe sur `Hop` / `Walk`, et `animateMoveTo` utilise un tween diagonal avec easing asymétrique sur Y — ça marche parce que le Hop sprite anim fournit déjà le lift vertical visuel.
@@ -47,6 +44,10 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 
 ## Résolus
+
+### ~~Profondeur du sélecteur/highlight vs sprites Pokemon~~ (bugfix hors plan 2026-04-14)
+- Les highlights (déplacement, attaque, portée ennemie) et le curseur passaient par-dessus les sprites Pokemon.
+- Fix : nouveau layering de depths dans `constants.ts` — tiles (1–125) → highlights (500–510) → Pokemon (520+) → curseur (900) → UI (1000+). `DEPTH_POKEMON_BASE` remonté de 200 à 520. Formule knockback `200 + x + y` corrigée avec `DEPTH_POKEMON_BASE`.
 
 ### ~~Rendu de profondeur pendant les animations d'attaque~~ (bugfix hors plan 2026-04-12)
 - Les frames PMDCollab d'attaque (lunges jusqu'à 2 cases forward, windup 1 case backward) et de déplacement (Walk/Hop qui débordent) étaient clippées par les tiles élevées voisines sur les cartes avec dénivelés (`sandbox-los.tmj`).

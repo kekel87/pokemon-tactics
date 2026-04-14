@@ -25,7 +25,6 @@ import {
   HP_BAR_WIDTH,
   KO_TINT_COLOR,
   MOVE_TWEEN_DURATION_MS,
-  MOVEMENT_DEPTH_ENVELOPE_RADIUS,
   POKEMON_SPRITE_BORDER_ALPHA,
   POKEMON_SPRITE_BORDER_WIDTH,
   POKEMON_SPRITE_GROUND_OFFSET_Y,
@@ -442,13 +441,7 @@ export class PokemonSprite {
     const sourceDepth = this.container.depth;
     const targetDepth =
       DEPTH_POKEMON_BASE + (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + height + 0.5;
-    const envelopeSource = this.maxTileDepthInRadius(
-      sourceGridX,
-      sourceGridY,
-      MOVEMENT_DEPTH_ENVELOPE_RADIUS,
-    );
-    const envelopeTarget = this.maxTileDepthInRadius(gridX, gridY, MOVEMENT_DEPTH_ENVELOPE_RADIUS);
-    this.container.setDepth(Math.max(sourceDepth, targetDepth, envelopeSource, envelopeTarget));
+    this.container.setDepth(Math.max(sourceDepth, targetDepth));
 
     const heightDelta = height - sourceHeight;
     const isJump = options.isJump === true && Math.abs(heightDelta) > 0.001;
