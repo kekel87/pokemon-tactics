@@ -22,12 +22,14 @@ import type { MoveTooltip } from "./MoveTooltip";
 
 interface ActionMenuCallbacks {
   onMove: () => void;
+  onUndoMove: () => void;
   onAttack: () => void;
   onWait: () => void;
 }
 
 interface ActionMenuOptions {
   canMove: boolean;
+  canUndoMove: boolean;
   canAct: boolean;
   callbacks: ActionMenuCallbacks;
 }
@@ -55,23 +57,23 @@ export class ActionMenu {
   show(options: ActionMenuOptions): void {
     this.clearItems();
 
+    const moveEntry = options.canUndoMove
+      ? { label: t("action.undoMove"), enabled: true, callback: options.callbacks.onUndoMove }
+      : { label: t("action.move"), enabled: options.canMove, callback: options.callbacks.onMove };
+
     const entries = [
-      { label: t("action.move"), enabled: options.canMove, callback: options.callbacks.onMove },
+      moveEntry,
       { label: t("action.attack"), enabled: options.canAct, callback: options.callbacks.onAttack },
       {
         label: t("action.item"),
         enabled: false,
-        callback: (): void => {
-          /* not implemented */
-        },
+        callback: (): void => {},
       },
       { label: t("action.wait"), enabled: true, callback: options.callbacks.onWait },
       {
         label: t("action.status"),
         enabled: false,
-        callback: (): void => {
-          /* not implemented */
-        },
+        callback: (): void => {},
       },
     ];
 

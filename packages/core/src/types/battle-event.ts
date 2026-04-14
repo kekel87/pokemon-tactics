@@ -90,8 +90,29 @@ export type BattleEvent =
       amount: number;
       heightDiff: number;
     }
-  | { type: typeof BattleEventType.TerrainDamageDealt; pokemonId: string; terrain: TerrainType; amount: number }
-  | { type: typeof BattleEventType.TerrainStatusApplied; pokemonId: string; terrain: TerrainType; status: StatusType }
-  | { type: typeof BattleEventType.IceSlideApplied; pokemonId: string; from: Position; to: Position }
-  | { type: typeof BattleEventType.IceSlideCollision; sliderId: string; targetId: string; damage: number }
-  | { type: typeof BattleEventType.LethalTerrainKo; pokemonId: string; terrain: TerrainType };
+  | {
+      type: typeof BattleEventType.TerrainDamageDealt;
+      pokemonId: string;
+      terrain: TerrainType;
+      amount: number;
+    }
+  | {
+      type: typeof BattleEventType.TerrainStatusApplied;
+      pokemonId: string;
+      terrain: TerrainType;
+      status: StatusType;
+    }
+  | {
+      type: typeof BattleEventType.IceSlideApplied;
+      pokemonId: string;
+      from: Position;
+      to: Position;
+    }
+  | {
+      type: typeof BattleEventType.IceSlideCollision;
+      sliderId: string;
+      targetId: string;
+      damage: number;
+    }
+  | { type: typeof BattleEventType.LethalTerrainKo; pokemonId: string; terrain: TerrainType }
+  | { type: typeof BattleEventType.MoveCancelled; pokemonId: string; position: Position };

@@ -69,6 +69,8 @@ export class BattleEngine {
   private readonly seed: number;
   private readonly recordedActions: Action[] = [];
   private turnState = { hasMoved: false, hasActed: false };
+  private preMoveSnapshot: { position: Position; orientation: Direction; hadBurn: boolean } | null =
+    null;
   private restrictActions = false;
   private confusedThisTurn = false;
   private confusionChecked = false;
@@ -195,6 +197,10 @@ export class BattleEngine {
       }
     }
 
+    if (this.turnState.hasMoved && this.preMoveSnapshot !== null) {
+      actions.push({ kind: ActionKind.UndoMove, pokemonId: currentPokemonId });
+    }
+
     if (!this.turnState.hasActed && !currentPokemon.recharging) {
       const allyIds = new Set<string>();
       for (const [id, p] of this.state.pokemon) {
@@ -301,6 +307,9 @@ export class BattleEngine {
         }
         break;
       }
+      case ActionKind.UndoMove:
+        result = this.executeUndoMove(currentPokemon);
+        break;
     }
 
     if (result.success) {
@@ -540,6 +549,7 @@ export class BattleEngine {
     }
 
     this.turnState.hasActed = true;
+    this.preMoveSnapshot = null;
 
     if (move.recharge && pokemon.currentHp > 0) {
       pokemon.recharging = true;
@@ -702,12 +712,14 @@ export class BattleEngine {
       this.emit(failEvent);
       events.push(failEvent);
       this.turnState.hasActed = true;
+      this.preMoveSnapshot = null;
       return { success: true, events };
     }
 
     const randomAlly = allies[Math.floor(this.random() * allies.length)];
     if (!randomAlly) {
       this.turnState.hasActed = true;
+      this.preMoveSnapshot = null;
       return { success: true, events: [] };
     }
     const events: BattleEvent[] = [];
@@ -907,6 +919,13 @@ export class BattleEngine {
       return { success: false, events: [], error: validationError };
     }
 
+    const hadBurn = pokemon.statusEffects.some((s) => s.type === StatusType.Burned);
+    this.preMoveSnapshot = {
+      position: { ...origin },
+      orientation: pokemon.orientation,
+      hadBurn,
+    };
+
     const events: BattleEvent[] = [];
     const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
 
@@ -950,6 +969,38 @@ export class BattleEngine {
     }
 
     this.turnState.hasMoved = true;
+
+    return { success: true, events };
+  }
+
+  private executeUndoMove(pokemon: PokemonInstance): ActionResult {
+    if (!this.preMoveSnapshot) {
+      return { success: false, events: [], error: ActionError.InvalidAction };
+    }
+
+    const events: BattleEvent[] = [];
+    const currentPosition = { ...pokemon.position };
+
+    this.grid.setOccupant(currentPosition, null);
+    this.grid.setOccupant(this.preMoveSnapshot.position, pokemon.id);
+    pokemon.position = { ...this.preMoveSnapshot.position };
+    pokemon.orientation = this.preMoveSnapshot.orientation;
+
+    if (!this.preMoveSnapshot.hadBurn) {
+      pokemon.statusEffects = pokemon.statusEffects.filter((s) => s.type !== StatusType.Burned);
+    }
+
+    this.turnState.hasMoved = false;
+
+    const cancelEvent: BattleEvent = {
+      type: BattleEventType.MoveCancelled,
+      pokemonId: pokemon.id,
+      position: this.preMoveSnapshot.position,
+    };
+    this.emit(cancelEvent);
+    events.push(cancelEvent);
+
+    this.preMoveSnapshot = null;
 
     return { success: true, events };
   }
@@ -1078,6 +1129,7 @@ export class BattleEngine {
       const nextPokemonId = this.turnManager.getCurrentPokemonId();
 
       this.turnState = { hasMoved: false, hasActed: false };
+      this.preMoveSnapshot = null;
       this.restrictActions = false;
       this.confusedThisTurn = false;
       this.confusionChecked = false;

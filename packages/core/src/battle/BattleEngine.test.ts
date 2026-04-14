@@ -1552,4 +1552,242 @@ describe("BattleEngine KO body blocking", () => {
       expect(tiles.find((t) => t.x === 1 && t.y === 0)).toBeUndefined();
     });
   });
+
+  describe("undo_move", () => {
+    it("getLegalActions contains undo_move after Move", () => {
+      const mover = fresh(P1, { id: "mover", position: { x: 0, y: 0 } });
+      const other = fresh(P2, { position: { x: 4, y: 4 } });
+      const state = MockBattle.stateFrom([mover, other]);
+      const engine = new BattleEngine(state, new Map());
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.Move,
+        pokemonId: "mover",
+        path: [{ x: 1, y: 0 }],
+      });
+
+      const actions = engine.getLegalActions(PlayerId.Player1);
+      expect(actions.filter((a) => a.kind === ActionKind.UndoMove)).toHaveLength(1);
+    });
+
+    it("getLegalActions does not contain undo_move after UseMove", () => {
+      const singleMove: MoveDefinition = {
+        ...MockValidation.validMove,
+        id: "tackle",
+        targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+      };
+      const attacker = fresh(P1, {
+        id: "attacker",
+        position: { x: 0, y: 0 },
+        moveIds: ["tackle"],
+        currentPp: { tackle: 35 },
+      });
+      const target = fresh(P2, { position: { x: 2, y: 0 } });
+      const state = MockBattle.stateFrom([attacker, target], 5, 1);
+      const engine = new BattleEngine(state, new Map([["tackle", singleMove]]));
+
+      vi.spyOn(Math, "random").mockReturnValue(0);
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.Move,
+        pokemonId: "attacker",
+        path: [{ x: 1, y: 0 }],
+      });
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UseMove,
+        pokemonId: "attacker",
+        moveId: "tackle",
+        targetPosition: { x: 2, y: 0 },
+      });
+
+      const actions = engine.getLegalActions(PlayerId.Player1);
+      expect(actions.filter((a) => a.kind === ActionKind.UndoMove)).toHaveLength(0);
+
+      vi.restoreAllMocks();
+    });
+
+    it("getLegalActions contains undo_move after UseMove then Move (act-first order)", () => {
+      const singleMove: MoveDefinition = {
+        ...MockValidation.validMove,
+        id: "tackle",
+        targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+      };
+      const attacker = fresh(P1, {
+        id: "attacker",
+        position: { x: 0, y: 0 },
+        moveIds: ["tackle"],
+        currentPp: { tackle: 35 },
+      });
+      const target = fresh(P2, { position: { x: 1, y: 0 } });
+      const state = MockBattle.stateFrom([attacker, target]);
+      const engine = new BattleEngine(state, new Map([["tackle", singleMove]]));
+
+      vi.spyOn(Math, "random").mockReturnValue(0);
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UseMove,
+        pokemonId: "attacker",
+        moveId: "tackle",
+        targetPosition: { x: 1, y: 0 },
+      });
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.Move,
+        pokemonId: "attacker",
+        path: [{ x: 0, y: 1 }],
+      });
+
+      const actions = engine.getLegalActions(PlayerId.Player1);
+      expect(actions.filter((a) => a.kind === ActionKind.UndoMove)).toHaveLength(1);
+
+      vi.restoreAllMocks();
+    });
+
+    it("undo_move restores position, orientation and hasMoved", () => {
+      const mover = fresh(P1, {
+        id: "mover",
+        position: { x: 0, y: 0 },
+        orientation: Direction.South,
+      });
+      const other = fresh(P2, { position: { x: 4, y: 4 } });
+      const state = MockBattle.stateFrom([mover, other]);
+      const engine = new BattleEngine(state, new Map());
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.Move,
+        pokemonId: "mover",
+        path: [{ x: 1, y: 0 }],
+      });
+
+      const result = engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UndoMove,
+        pokemonId: "mover",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.events).toHaveLength(1);
+      expect(result.events[0]?.type).toBe(BattleEventType.MoveCancelled);
+
+      const gameState = engine.getGameState(PlayerId.Player1);
+      const pokemon = gameState.pokemon.get("mover");
+      expect(pokemon?.position).toEqual({ x: 0, y: 0 });
+      expect(pokemon?.orientation).toBe(Direction.South);
+    });
+
+    it("after undo_move, getLegalActions contains Move again", () => {
+      const mover = fresh(P1, { id: "mover", position: { x: 0, y: 0 } });
+      const other = fresh(P2, { position: { x: 4, y: 4 } });
+      const state = MockBattle.stateFrom([mover, other]);
+      const engine = new BattleEngine(state, new Map());
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.Move,
+        pokemonId: "mover",
+        path: [{ x: 1, y: 0 }],
+      });
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UndoMove,
+        pokemonId: "mover",
+      });
+
+      const actions = engine.getLegalActions(PlayerId.Player1);
+      expect(actions.filter((a) => a.kind === ActionKind.Move).length).toBeGreaterThan(0);
+      expect(actions.filter((a) => a.kind === ActionKind.UndoMove)).toHaveLength(0);
+    });
+
+    it("after re-move following undo, undo_move is available again", () => {
+      const mover = fresh(P1, { id: "mover", position: { x: 0, y: 0 } });
+      const other = fresh(P2, { position: { x: 4, y: 4 } });
+      const state = MockBattle.stateFrom([mover, other]);
+      const engine = new BattleEngine(state, new Map());
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.Move,
+        pokemonId: "mover",
+        path: [{ x: 1, y: 0 }],
+      });
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UndoMove,
+        pokemonId: "mover",
+      });
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.Move,
+        pokemonId: "mover",
+        path: [{ x: 0, y: 1 }],
+      });
+
+      const actions = engine.getLegalActions(PlayerId.Player1);
+      expect(actions.filter((a) => a.kind === ActionKind.UndoMove)).toHaveLength(1);
+    });
+
+    it("getLegalActions does not contain undo_move without prior Move", () => {
+      const mover = fresh(P1, { id: "mover", position: { x: 0, y: 0 } });
+      const other = fresh(P2, { position: { x: 4, y: 4 } });
+      const state = MockBattle.stateFrom([mover, other]);
+      const engine = new BattleEngine(state, new Map());
+
+      const actions = engine.getLegalActions(PlayerId.Player1);
+      expect(actions.filter((a) => a.kind === ActionKind.UndoMove)).toHaveLength(0);
+    });
+
+    it("undo_move removes magma burn acquired during the move", () => {
+      const mover = fresh(P1, { id: "mover", position: { x: 0, y: 0 } });
+      const other = fresh(P2, { position: { x: 4, y: 4 } });
+      const state = MockBattle.stateFrom([mover, other]);
+      MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Magma });
+      const engine = new BattleEngine(state, new Map());
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.Move,
+        pokemonId: "mover",
+        path: [
+          { x: 1, y: 0 },
+          { x: 2, y: 0 },
+        ],
+      });
+
+      const midState = engine.getGameState(PlayerId.Player1);
+      expect(
+        midState.pokemon.get("mover")?.statusEffects.some((s) => s.type === StatusType.Burned),
+      ).toBe(true);
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UndoMove,
+        pokemonId: "mover",
+      });
+
+      const pokemon = engine.getGameState(PlayerId.Player1).pokemon.get("mover");
+      expect(pokemon?.statusEffects.some((s) => s.type === StatusType.Burned)).toBe(false);
+      expect(pokemon?.position).toEqual({ x: 0, y: 0 });
+    });
+
+    it("undo_move keeps pre-existing burn when Pokemon was already burned", () => {
+      const mover = fresh(P1, {
+        id: "mover",
+        position: { x: 0, y: 0 },
+        statusEffects: [{ type: StatusType.Burned, remainingTurns: null }],
+      });
+      const other = fresh(P2, { position: { x: 4, y: 4 } });
+      const state = MockBattle.stateFrom([mover, other]);
+      const engine = new BattleEngine(state, new Map());
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.Move,
+        pokemonId: "mover",
+        path: [{ x: 1, y: 0 }],
+      });
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UndoMove,
+        pokemonId: "mover",
+      });
+
+      const pokemon = engine.getGameState(PlayerId.Player1).pokemon.get("mover");
+      expect(pokemon?.statusEffects.some((s) => s.type === StatusType.Burned)).toBe(true);
+    });
+  });
 });

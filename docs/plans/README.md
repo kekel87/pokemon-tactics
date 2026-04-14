@@ -64,4 +64,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 049 | [Migrer les donnees de jeu vers la reference JSON](./049-migrate-game-data-to-reference.md) | done | 2026-04-12 |
 | 050 | [Tileset custom (remplacer JAO)](./050-custom-tileset.md) | done | 2026-04-12 |
 | 051 | [Types de terrain + modificateurs](./051-terrain-types-modifiers.md) | done | 2026-04-14 |
-| 052 | [Orientation tactique (bonus/malus dégâts face/flanc/dos)](./052-orientation-tactique.md) | ready | 2026-04-14 |
+| 052 | [Orientation tactique (bonus/malus dégâts face/flanc/dos)](./052-orientation-tactique.md) | done | 2026-04-14 |
+| 053 | [Undo déplacement](./053-undo-movement.md) | done | 2026-04-14 |

@@ -36,6 +36,8 @@ export function scoreAction(
       return scoreMove(action, currentPokemon, enemies, moveRegistry, engine, profile);
     case ActionKind.EndTurn:
       return scoreEndTurn(action, currentPokemon, enemies);
+    case ActionKind.UndoMove:
+      return 0;
   }
 }
 

@@ -7,6 +7,7 @@ export type Language = (typeof Language)[keyof typeof Language];
 
 export interface Translations {
   "action.move": string;
+  "action.undoMove": string;
   "action.attack": string;
   "action.item": string;
   "action.wait": string;
