@@ -427,3 +427,120 @@ describe("terrain modifier", () => {
     expect(withTerrain.max).toBeGreaterThan(base.max);
   });
 });
+
+describe("facing modifier", () => {
+  it("back attack (+15%) increases damage", () => {
+    const base = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+      undefined,
+      1.0,
+      1.0,
+      1.0,
+    );
+    const backAttack = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+      undefined,
+      1.0,
+      1.0,
+      1.15,
+    );
+    expect(backAttack).toBeGreaterThan(base);
+    expect(backAttack).toBe(Math.max(1, Math.floor(base * 1.15)));
+  });
+
+  it("front attack (-15%) reduces damage", () => {
+    const base = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+      undefined,
+      1.0,
+      1.0,
+      1.0,
+    );
+    const frontAttack = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+      undefined,
+      1.0,
+      1.0,
+      0.85,
+    );
+    expect(frontAttack).toBeLessThan(base);
+  });
+
+  it("flank (1.0) does not change damage vs default", () => {
+    const withoutFacing = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+    );
+    const withFlank = calculateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+      undefined,
+      1.0,
+      1.0,
+      1.0,
+    );
+    expect(withFlank).toBe(withoutFacing);
+  });
+
+  it("estimateDamage propagates facingModifier and includes it in result", () => {
+    const base = estimateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+      1.0,
+      1.0,
+    );
+    const backAttack = estimateDamage(
+      attacker(),
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+      1.0,
+      1.15,
+    );
+    expect(backAttack.max).toBeGreaterThan(base.max);
+    expect(backAttack.facingModifier).toBe(1.15);
+    expect(base.facingModifier).toBe(1.0);
+  });
+});

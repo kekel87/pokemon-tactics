@@ -16,6 +16,12 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 - `BATTLE_TEXT_STAGGER_Y` (-10) existe dans les constantes mais n'est pas utilisé automatiquement.
 - Fix : compteur par Pokemon pour décaler les textes successifs en Y, ou file d'attente avec délai.
 
+### Overlay noir/gris de preview dégâts sur la HP bar ne s'affiche plus
+- `showDamageEstimate` dans `PokemonSprite.ts` dessine un rectangle noir semi-transparent sur la HP bar pour prévisualiser les dégâts (garanti = 50% alpha, possible = 30% alpha).
+- L'overlay ne semble plus visible. Les constantes sont intactes (`DAMAGE_ESTIMATE_COLOR = 0x000000`, `DAMAGE_ESTIMATE_ALPHA_GUARANTEED = 0.5`).
+- Piste : vérifier si le `Graphics` object est bien positionné/visible (depth, position relative au container, taille de la HP bar).
+- Le texte de preview (chiffres min-max) fonctionne — seul l'overlay graphique est absent.
+
 ### Afficher les modificateurs terrain actifs dans l'InfoPanel
 - Quand on retravaille l'InfoPanel, afficher les effets terrain en cours sur la tile du Pokemon sélectionné/survolé (ex: "Évasion +1 (herbe haute)", "Brûlure au passage (magma)", "Malus déplacement +2 (marécage)").
 - Lié à l'étape 22 du plan 051 (terrain dans tooltip).

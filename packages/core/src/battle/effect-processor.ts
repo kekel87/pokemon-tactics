@@ -28,6 +28,7 @@ interface ProcessContext {
   random: RandomFn;
   heightModifier: number;
   terrainModifier: number;
+  facingModifierMap: Map<string, number>;
 }
 
 export function createDefaultEffectRegistry(): EffectHandlerRegistry {

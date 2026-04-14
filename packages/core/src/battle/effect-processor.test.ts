@@ -97,6 +97,8 @@ function makeContext(
     targetTypesMap: new Map(targets.map((t) => [t.id, [PokemonType.Normal] as PokemonType[]])),
     random: () => Math.random(),
     heightModifier: 1.0,
+    terrainModifier: 1.0,
+    facingModifierMap: new Map<string, number>(),
   };
 }
 
@@ -233,6 +235,8 @@ describe("processEffects — status", () => {
       targetTypesMap: new Map([[target.id, [PokemonType.Ground] as PokemonType[]]]),
       random: () => Math.random(),
       heightModifier: 1.0,
+      terrainModifier: 1.0,
+      facingModifierMap: new Map<string, number>(),
     };
 
     const events = processEffects(context);

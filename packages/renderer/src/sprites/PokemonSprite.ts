@@ -601,8 +601,15 @@ export class PokemonSprite {
       return;
     }
 
-    const text =
+    const damageRange =
       estimate.min === estimate.max ? `${estimate.min}` : `${estimate.min}-${estimate.max}`;
+    const facingSuffix =
+      estimate.facingModifier > 1.0
+        ? ` (+${Math.round((estimate.facingModifier - 1) * 100)}%)`
+        : estimate.facingModifier < 1.0
+          ? ` (-${Math.round((1 - estimate.facingModifier) * 100)}%)`
+          : "";
+    const text = `${damageRange}${facingSuffix}`;
     this.damageEstimateText = this.scene.add.text(
       this.container.x,
       this.container.y + this.uiOffsetY - 5,

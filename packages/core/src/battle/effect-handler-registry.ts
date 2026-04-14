@@ -24,6 +24,7 @@ export interface EffectContext {
   random: RandomFn;
   heightModifier: number;
   terrainModifier: number;
+  facingModifierMap: Map<string, number>;
 }
 
 export type EffectHandler = (context: EffectContext) => BattleEvent[];

@@ -1288,7 +1288,8 @@ export class GameController {
     this.actionMenu.updateInstruction(t("attack.confirm"));
     this.startPreviewFlash(affectedTiles);
     if (getSettings().damagePreview) {
-      this.showDamageEstimates(moveId, affectedTiles);
+      const targetPos = "targetPosition" in action ? action.targetPosition : undefined;
+      this.showDamageEstimates(moveId, affectedTiles, targetPos);
     }
   }
 
@@ -1336,7 +1337,11 @@ export class GameController {
     this.currentPreviewTiles = [];
   }
 
-  private showDamageEstimates(moveId: string, affectedTiles: Position[]): void {
+  private showDamageEstimates(
+    moveId: string,
+    affectedTiles: Position[],
+    targetPosition?: Position,
+  ): void {
     const activePokemon = this.getActivePokemon();
     if (!activePokemon) {
       return;
@@ -1354,7 +1359,12 @@ export class GameController {
         ) {
           continue;
         }
-        const estimate = this.engine.estimateDamage(activePokemon.id, moveId, pokemon.id);
+        const estimate = this.engine.estimateDamage(
+          activePokemon.id,
+          moveId,
+          pokemon.id,
+          targetPosition,
+        );
         if (estimate) {
           sprite.showDamageEstimate(estimate);
           sprite.showDamageText(estimate);
