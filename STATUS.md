@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-14 (plan 051 terminé : terrain effects core + tests + maps sandbox + renderer tint + bugfixes)
+> Dernière mise à jour : 2026-04-14 (plan 052 terminé : orientation tactique — facing modifier face/flanc/dos sur les dégâts)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -733,6 +733,15 @@
   - Nouveau layering dans `constants.ts` — tiles (1–125) → highlights (500–510) → Pokemon (520+) → curseur (900) → UI (1000+). `DEPTH_POKEMON_BASE` remonté de 1 à 520. Formule depth knockback corrigée avec `DEPTH_POKEMON_BASE`.
   - Fichiers modifiés : `constants.ts`, `IsometricGrid.ts`, `PokemonSprite.ts`, `GameController.ts`
 
+- **Plan 052 terminé** — Orientation tactique (bonus/malus dégâts face/flanc/dos) :
+  - `facing-modifier.ts` : `FacingZone` (Front/Flank/Back), `getFacingZone`, `getFacingModifier` (0.85/1.0/1.15)
+  - Intégré dans `calculateDamage`, `estimateDamage`, `processEffects` via `facingModifierMap` par cible
+  - `BattleEngine.estimateDamage` accepte `targetPosition` optionnel (fix Blast)
+  - `getAttackOrigin` exporté depuis `defense-check.ts`
+  - Preview renderer : suffixe "(+15%)" / "(-15%)" dans le texte de preview dégâts
+  - 28 nouveaux tests (19 unit + 5 damage calc + 3 intégration + 1 estimateDamage)
+  - Décisions #248–250 ajoutées
+
 - **Plan 051 terminé** — Types de terrain + modificateurs (toutes étapes) :
   - **Nouveaux `BattleEventType`** : `TerrainDamageDealt`, `TerrainStatusApplied`, `TerrainEvasionApplied`, `IceSlideApplied`, `IceSlideCollision`, `LethalTerrainKo`
   - **`terrain-effects.ts`** : fonctions pures — `isTerrainImmune`, `getMovementPenalty`, `getTerrainTypeBonusFactor` (+15%), `getTerrainStatusOnStop`, `getTerrainDotFraction`
@@ -752,10 +761,10 @@
   - Étape 22 (tooltip terrain InfoPanel) déplacée au backlog
 
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
-- **Plan 051 terminé** — prochain plan : "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)
-- **Orientation tactique** (bonus dos/face FFTA) — Phase 3
-- **Système CT** (remplacement round-robin) — Phase 3
-- **Undo déplacement** — Phase 3
+- **Plan 052 terminé** — prochains candidats :
+  - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)
+  - **Système CT** (remplacement round-robin) — Phase 3
+  - **Undo déplacement** — Phase 3
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
 - Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
 - Validation visuelle plan 050 toujours souhaitable (empilement, pentes/escaliers sur toutes les maps)

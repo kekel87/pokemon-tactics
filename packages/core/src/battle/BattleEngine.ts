@@ -26,7 +26,9 @@ import type { RandomFn } from "../utils/prng";
 import { checkAccuracy } from "./accuracy-check";
 import { applyImpactDamage } from "./apply-impact-damage";
 import { estimateDamage } from "./damage-calculator";
+import { getAttackOrigin } from "./defense-check";
 import { processEffects } from "./effect-processor";
+import { getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { seededTickHandler } from "./handlers/seeded-tick-handler";
@@ -111,7 +113,12 @@ export class BattleEngine {
     return { seed: this.seed, actions: [...this.recordedActions] };
   }
 
-  estimateDamage(attackerId: string, moveId: string, defenderId: string): DamageEstimate | null {
+  estimateDamage(
+    attackerId: string,
+    moveId: string,
+    defenderId: string,
+    targetPosition?: Position,
+  ): DamageEstimate | null {
     const attacker = this.state.pokemon.get(attackerId);
     const defender = this.state.pokemon.get(defenderId);
     const move = this.moveRegistry.get(moveId);
@@ -131,6 +138,8 @@ export class BattleEngine {
     const terrainMod = attackerTerrain
       ? getTerrainTypeBonusFactor(attackerTerrain, move.type, attackerTypes)
       : 1.0;
+    const attackOrigin = getAttackOrigin(attacker, move, targetPosition ?? defender.position);
+    const facingMod = getFacingModifier(getFacingZone(attackOrigin, defender));
     return estimateDamage(
       attacker,
       defender,
@@ -140,6 +149,7 @@ export class BattleEngine {
       defenderTypes,
       heightMod,
       terrainMod,
+      facingMod,
     );
   }
 
@@ -490,6 +500,12 @@ export class BattleEngine {
       ? getTerrainTypeBonusFactor(attackerTile.terrain, move.type, attackerTypes)
       : 1.0;
 
+    const attackOrigin = getAttackOrigin(pokemon, move, targetPosition);
+    const facingModifierMap = new Map<string, number>();
+    for (const target of targets) {
+      facingModifierMap.set(target.id, getFacingModifier(getFacingZone(attackOrigin, target)));
+    }
+
     const effectEvents = processEffects({
       attacker: pokemon,
       targets,
@@ -502,6 +518,7 @@ export class BattleEngine {
       random: this.random,
       heightModifier: heightMod,
       terrainModifier: terrainMod,
+      facingModifierMap,
     });
 
     for (const event of effectEvents) {

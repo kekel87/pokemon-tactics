@@ -31,7 +31,7 @@ function isAttackFromFront(attackOrigin: Position, defender: PokemonInstance): b
   return attackDirection !== facingDirection;
 }
 
-function getAttackOrigin(
+export function getAttackOrigin(
   attacker: PokemonInstance,
   move: MoveDefinition,
   targetPosition: Position,

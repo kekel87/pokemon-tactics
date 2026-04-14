@@ -148,7 +148,7 @@ Dégâts = ((2 × Level / 5 + 2) × Power × (Atk / Def) / 50 + 2)
 
 > **Modificateur hauteur** (implémenté — plan 046) : ±10%/niveau, plafonds +50%/-30%. Voir section 6.
 > **Modificateur terrain** (implémenté — plan 051) : +15% dégâts si type du move correspond au terrain de l'attaquant.
-> Autre modificateur prévu : orientation (dos/face, Phase 3). Tout est surchargeable via le système d'override.
+> Autre modificateur : orientation (dos/face — implémenté plan 052, voir section 8). Tout est surchargeable via le système d'override.
 
 ---
 
@@ -588,9 +588,6 @@ Dure 2-5 tours. Chaque tour : 50% de chance que l'action déraille.
 ## 8. Orientation & positionnement (style FFTA)
 
 Chaque Pokemon a une **orientation** (la direction dans laquelle il regarde).
-- **Attaque de dos** : bonus de dégâts (le défenseur ne voit pas venir le coup)
-- **Attaque de côté** : dégâts normaux
-- **Attaque de face** : possibilité de réduction de dégâts ?
 - L'orientation se met à jour quand le Pokemon se déplace ou attaque
 - Ajoute une couche tactique : tourner le dos à l'ennemi est dangereux, le positionnement autour d'une cible compte
 
@@ -603,7 +600,23 @@ Chaque Pokemon a une **orientation** (la direction dans laquelle il regarde).
 - **Détection quadrants** : la direction est déterminée par la position de la souris dans les 4 quadrants cardinaux écran (croix horizontale/verticale)
 - **Barre PV masquée** pendant le choix de direction pour améliorer la lisibilité
 
-> Les bonus/malus d'attaque selon l'orientation (dos, face, côté) restent à implémenter (Phase 2).
+### Modificateur d'orientation sur les dégâts (implémenté — plan 052)
+
+Le modificateur d'orientation affecte **uniquement les dégâts** (pas l'évasion, pas la résistance aux statuts). Il est calculé depuis la **zone de frappe** relative à l'orientation du défenseur :
+
+| Zone | Modificateur | Condition |
+|------|-------------|-----------|
+| **Dos** | +15% (×1.15) | L'attaque arrive dans la même direction que l'orientation du défenseur |
+| **Flanc** | neutre (×1.0) | L'attaque arrive perpendiculairement |
+| **Face** | -15% (×0.85) | L'attaque arrive en direction opposée à l'orientation du défenseur |
+
+- Implémenté dans `packages/core/src/battle/facing-modifier.ts` : `FacingZone`, `getFacingZone(attackOrigin, defender)`, `getFacingModifier(zone)`
+- `getFacingZone` utilise `directionFromTo(attackOrigin, defender.position)` et compare avec `defender.orientation`
+- Intégré dans `calculateDamage()`, `estimateDamage()`, `processEffects()` via `facingModifierMap` par cible
+- Pour les moves **Blast** : l'origine de l'attaque est l'**épicentre** (position d'impact), pas la position du lanceur
+- `BattleEngine.estimateDamage()` accepte un `targetPosition` optionnel pour le calcul Blast
+- **Preview renderer** : suffixe `(+15%)` ou `(-15%)` dans le texte de preview dégâts, aucun suffixe si neutre
+- Les moves sans puissance (statuts) retournent `facingModifier: 1.0` sans calcul
 
 ---
 

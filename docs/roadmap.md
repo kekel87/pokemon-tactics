@@ -119,7 +119,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Obstacles + line of sight (trajectoires de tir visibles) — plan 047
 - [x] Types de terrain (lave, eau, herbe) + modificateurs — plan 051 terminé (core + tests + maps sandbox + renderer tint). Tooltip InfoPanel déplacé au backlog.
 - [ ] Interactions type/terrain + modification terrain par attaques
-- [ ] Orientation tactique (bonus dos/face FFTA)
+- [x] Orientation tactique (bonus dos/face FFTA) — plan 052 (face -15%, flanc neutre, dos +15% sur les dégâts, preview "(+15%)" / "(-15%)", 28 tests)
 - [ ] Système CT (remplacement round-robin)
 - [ ] Undo déplacement (annulable tant qu'on n'a pas attaqué)
 - [ ] Système de décorations Tiled — tileset `decorations.tsj` dédié (pipeline séparée du terrain) : marquages d'arène (lignes ~12 tiles + pokeball ~6-8 tiles) + décos environnement (herbe haute overlay, arbres, rochers PMD-based)

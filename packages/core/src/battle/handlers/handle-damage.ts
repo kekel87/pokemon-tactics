@@ -43,6 +43,7 @@ function dealSingleHit(
   defenderTypes: PokemonType[],
 ): BattleEvent[] {
   const events: BattleEvent[] = [];
+  const facingMod = context.facingModifierMap.get(target.id) ?? 1.0;
   const damage = calculateDamage(
     context.attacker,
     target,
@@ -54,6 +55,7 @@ function dealSingleHit(
     context.random,
     context.heightModifier,
     context.terrainModifier,
+    facingMod,
   );
 
   const defenseResult = checkDefense(
