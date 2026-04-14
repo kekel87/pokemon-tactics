@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-13 (plan 050 quasi-terminé — tileset custom PMD livré, reste validation visuelle humaine)
+> Dernière mise à jour : 2026-04-14 (bugfix renderer hors plan : depth highlights/cursor vs Pokemon)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -728,6 +728,10 @@
   - Helper privé `maxTileDepthInRadius(cx, cy, r)` dans `PokemonSprite.ts`
   - Constantes `ATTACK_DEPTH_ENVELOPE_RADIUS=3` et `MOVEMENT_DEPTH_ENVELOPE_RADIUS=1` dans `constants.ts`
   - Fichiers : `PokemonSprite.ts`, `GameController.ts`, `constants.ts`
+
+- **Bugfix renderer (hors plan, 2026-04-14)** — highlights/curseur passaient devant les sprites Pokemon :
+  - Nouveau layering dans `constants.ts` — tiles (1–125) → highlights (500–510) → Pokemon (520+) → curseur (900) → UI (1000+). `DEPTH_POKEMON_BASE` remonté de 1 à 520. Formule depth knockback corrigée avec `DEPTH_POKEMON_BASE`.
+  - Fichiers modifiés : `constants.ts`, `IsometricGrid.ts`, `PokemonSprite.ts`, `GameController.ts`
 
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
 - **Validation visuelle plan 050** : tester le rendu en jeu (empilement, pentes/escaliers, toutes les maps). Si OK, plan 050 → done.

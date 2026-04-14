@@ -356,22 +356,28 @@ La depth du container est portée à `max(originalDepth, maxTileDepthInRadius(cx
 
 ## Profondeur des layers (depth)
 
+Le layering garantit que les highlights passent **derrière** les sprites Pokemon (qui sont plus proches de la caméra en iso), et que le curseur reste toujours au-dessus des sprites.
+
 | Layer | Depth | Usage |
 |-------|-------|-------|
-| Highlights grille | 100 | Bleu déplacement, rouge attaque |
-| Enemy range | 110 | Overlay portée ennemie (orange) |
-| Preview AoE | 120 | Preview d'attaque |
-| Curseur | 150 | Curseur jaune sur la grille |
-| Pokemon (base) | 200 | Sprites Pokemon (triés par Y) |
+| Tiles (base) | 1 | Tiles de terrain (triées par Y, offset par hauteur) |
+| Tiles (max) | ~125 | Tiles les plus hautes (piliers h3 + offset Y max) |
+| Highlights grille | 500 | Bleu déplacement, rouge attaque |
+| Enemy range | 505 | Overlay portée ennemie (orange) |
+| Preview AoE | 510 | Preview d'attaque |
+| Pokemon (base) | 520 | Sprites Pokemon (triés par Y, `DEPTH_POKEMON_BASE`) |
+| Curseur | 900 | Curseur jaune sur la grille |
 | UI base | 1000 | Éléments UI de fond |
 | Timeline | 1050 | Turn order |
 | Info Panel | 1100 | Panel d'info Pokemon |
 | Action Menu | 1200 | Menu d'actions |
+| Tooltip | 1250 | Tooltip move |
 | Battle Log | 1300 | Panel de log |
 | Battle Text | 1500 | Texte flottant (dégâts, miss, etc.) |
-| Tooltip | 1250 | Tooltip move |
 | Victory overlay | 2000 | Écran de victoire (fond) |
 | Victory content | 2001 | Écran de victoire (texte) |
+
+> Historique : avant le bugfix du 2026-04-14, highlights (100–150) et Pokemon (200+) étaient inversés — les highlights passaient devant les sprites. `DEPTH_POKEMON_BASE` était à 200.
 
 ---
 

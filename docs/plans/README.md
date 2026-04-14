@@ -62,4 +62,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 047 | [Ligne de vue 3D et collisions terrain](./047-line-of-sight-3d-collisions.md) | done | 2026-04-11 |
 | 048 | [Pokedex reference knowledge base](./048-pokedex-reference-knowledge-base.md) | done | 2026-04-12 |
 | 049 | [Migrer les donnees de jeu vers la reference JSON](./049-migrate-game-data-to-reference.md) | done | 2026-04-12 |
-| 050 | [Tileset custom (remplacer JAO)](./050-custom-tileset.md) | ready-for-visual-test | 2026-04-12 |
+| 050 | [Tileset custom (remplacer JAO)](./050-custom-tileset.md) | done | 2026-04-12 |

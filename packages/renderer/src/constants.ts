@@ -182,13 +182,14 @@ export const PLACEMENT_PORTRAIT_SPACING = 12;
 
 export const DEPTH_GRID_TILES = 1;
 export const DEPTH_TILE_MAX_ELEVATION = 5;
-export const DEPTH_POKEMON_BASE = 1;
+// Layering order (bottom → top):
+//   tiles (1–125)  →  highlights (500–510)  →  Pokemon (520+)  →  cursor (900)  →  UI (1000+)
+export const DEPTH_GRID_HIGHLIGHT = 500;
+export const DEPTH_GRID_ENEMY_RANGE = 505;
+export const DEPTH_GRID_PREVIEW = 510;
+export const DEPTH_POKEMON_BASE = 520;
 export const ATTACK_DEPTH_ENVELOPE_RADIUS = 3;
-export const MOVEMENT_DEPTH_ENVELOPE_RADIUS = 1;
-export const DEPTH_GRID_HIGHLIGHT = 820;
-export const DEPTH_GRID_ENEMY_RANGE = 830;
-export const DEPTH_GRID_PREVIEW = 840;
-export const DEPTH_GRID_CURSOR = 850;
+export const DEPTH_GRID_CURSOR = 900;
 export const DEPTH_UI_BASE = 1000;
 export const DEPTH_TIMELINE = 1050;
 export const DEPTH_INFO_PANEL = 1100;
