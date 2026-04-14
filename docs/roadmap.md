@@ -121,7 +121,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [ ] Interactions type/terrain + modification terrain par attaques
 - [x] Orientation tactique (bonus dos/face FFTA) — plan 052 (face -15%, flanc neutre, dos +15% sur les dégâts, preview "(+15%)" / "(-15%)", 28 tests)
 - [ ] Système CT (remplacement round-robin)
-- [ ] Undo déplacement (annulable tant qu'on n'a pas attaqué)
+- [x] Undo déplacement (annulable tant qu'on n'a pas attaqué) — plan 053 (action `undo_move`, bouton "Annuler déplacement" en menu, annulation brûlure magma, 8 tests)
 - [ ] Système de décorations Tiled — tileset `decorations.tsj` dédié (pipeline séparée du terrain) : marquages d'arène (lignes ~12 tiles + pokeball ~6-8 tiles) + décos environnement (herbe haute overlay, arbres, rochers PMD-based)
 - [ ] Éditeur de terrain / génération IA
 - [ ] Maps variées + roster d'attaques terrain/dénivelé

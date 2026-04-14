@@ -32,6 +32,7 @@ export const BattleEventType = {
   IceSlideApplied: "ice_slide_applied",
   IceSlideCollision: "ice_slide_collision",
   LethalTerrainKo: "lethal_terrain_ko",
+  MoveCancelled: "move_cancelled",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

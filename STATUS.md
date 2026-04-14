@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-14 (plan 052 terminé : orientation tactique — facing modifier face/flanc/dos sur les dégâts)
+> Dernière mise à jour : 2026-04-14 (plan 053 terminé : undo déplacement — annulation du déplacement avant d'attaquer)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -742,6 +742,12 @@
   - 28 nouveaux tests (19 unit + 5 damage calc + 3 intégration + 1 estimateDamage)
   - Décisions #248–250 ajoutées
 
+- **Plan 053 terminé** — Undo déplacement :
+  - **Core** : nouvelle action `undo_move` dans `BattleEngine` — restaure la position d'origine, remet `hasMoved` à `false`, annule la brûlure magma acquise pendant le mouvement
+  - **Condition d'undo** : `hasMoved && preMoveSnapshot !== null` — le snapshot est vidé dès qu'une attaque est exécutée (Move→Attack = undo impossible, Attack→Move = undo disponible)
+  - **Renderer** : le bouton "Annuler déplacement" remplace "Déplacement" dans le menu d'action quand `canUndoMove` est `true`
+  - 8 nouveaux tests — **958 tests au total**
+
 - **Plan 051 terminé** — Types de terrain + modificateurs (toutes étapes) :
   - **Nouveaux `BattleEventType`** : `TerrainDamageDealt`, `TerrainStatusApplied`, `TerrainEvasionApplied`, `IceSlideApplied`, `IceSlideCollision`, `LethalTerrainKo`
   - **`terrain-effects.ts`** : fonctions pures — `isTerrainImmune`, `getMovementPenalty`, `getTerrainTypeBonusFactor` (+15%), `getTerrainStatusOnStop`, `getTerrainDotFraction`
@@ -761,10 +767,9 @@
   - Étape 22 (tooltip terrain InfoPanel) déplacée au backlog
 
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
-- **Plan 052 terminé** — prochains candidats :
+- **Plan 053 terminé** — prochains candidats :
   - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)
   - **Système CT** (remplacement round-robin) — Phase 3
-  - **Undo déplacement** — Phase 3
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
 - Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
 - Validation visuelle plan 050 toujours souhaitable (empilement, pentes/escaliers sur toutes les maps)

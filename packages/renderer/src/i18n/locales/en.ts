@@ -2,6 +2,7 @@ import type { Translations } from "../types";
 
 const en: Translations = {
   "action.move": "Move",
+  "action.undoMove": "Undo Move",
   "action.attack": "Attack",
   "action.item": "Item",
   "action.wait": "Wait",

@@ -547,13 +547,16 @@ export class GameController {
     this.isometricGrid.clearHighlights();
 
     const canMove = this.legalActions.some((action) => action.kind === ActionKind.Move);
+    const canUndoMove = this.legalActions.some((action) => action.kind === ActionKind.UndoMove);
     const canAct = this.legalActions.some((action) => action.kind === ActionKind.UseMove);
 
     this.actionMenu.show({
       canMove,
+      canUndoMove,
       canAct,
       callbacks: {
         onMove: () => this.enterMoveDestination(),
+        onUndoMove: () => this.handleUndoMove(),
         onAttack: () => this.enterAttackSubmenu(),
         onWait: () => this.handleEndTurn(),
       },
@@ -666,6 +669,22 @@ export class GameController {
     if (targetPositions.length > 0) {
       this.isometricGrid.highlightTilesOutline(targetPositions);
     }
+  }
+
+  private handleUndoMove(): void {
+    const activePokemon = this.getActivePokemon();
+    if (!activePokemon) {
+      return;
+    }
+
+    const undoAction = this.legalActions.find(
+      (action) => action.kind === ActionKind.UndoMove,
+    );
+    if (!undoAction) {
+      return;
+    }
+
+    this.executeAction(activePokemon.playerId, undoAction);
   }
 
   private handleEndTurn(): void {
@@ -863,6 +882,21 @@ export class GameController {
 
       case BattleEventType.PokemonMoved: {
         await this.animateAlongPath(event.pokemonId, event.path);
+        break;
+      }
+
+      case BattleEventType.MoveCancelled: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          const height = this.isometricGrid.getTileHeight(event.position.x, event.position.y);
+          sprite.updatePosition(event.position.x, event.position.y, height);
+          const pokemon = this.state.pokemon.get(event.pokemonId);
+          if (pokemon) {
+            sprite.setDirection(pokemon.orientation);
+            sprite.updateStatus(pokemon.statusEffects);
+          }
+          sprite.playAnimation("Idle");
+        }
         break;
       }
 

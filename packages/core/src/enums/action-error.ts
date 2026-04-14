@@ -17,6 +17,7 @@ export const ActionError = {
   AlreadyMoved: "already_moved",
   AlreadyActed: "already_acted",
   BattleOver: "battle_over",
+  InvalidAction: "invalid_action",
 } as const;
 
 export type ActionError = (typeof ActionError)[keyof typeof ActionError];

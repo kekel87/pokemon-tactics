@@ -620,6 +620,21 @@ Le modificateur d'orientation affecte **uniquement les dégâts** (pas l'évasio
 
 ---
 
+## 8b. Undo déplacement (implémenté — plan 053)
+
+Après s'être déplacé, le joueur peut **annuler son déplacement** — que ce soit avant ou après avoir attaqué.
+
+- **Condition** : `hasMoved === true && preMoveSnapshot !== null` (le snapshot est vidé quand on attaque après avoir bougé, mais pas quand on bouge après avoir attaqué)
+- **Move → Attack** : l'attaque verrouille le déplacement (le snapshot est vidé), pas d'undo possible
+- **Attack → Move** : l'undo reste disponible car l'attaque a été lancée depuis la position d'origine
+- **Action core** : `undo_move` — restaure la position d'origine, remet `hasMoved` à `false`
+- **Effets annulés** : la brûlure magma acquise pendant le mouvement est retirée si elle n'existait pas avant le déplacement
+- **Menu renderer** : le bouton "Annuler déplacement" remplace "Déplacement" dans le menu d'action quand `canUndoMove` est `true`
+
+> Aligné sur FFTA et Fire Emblem Engage : l'undo de déplacement est un filet de sécurité standard dans les tactical RPGs. Il réduit la frustration sans supprimer la tension tactique puisque l'attaque, elle, est irréversible.
+
+---
+
 ## 9. KO & élimination
 
 Un Pokemon à **0 PV** est **KO définitif** :
