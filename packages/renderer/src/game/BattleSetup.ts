@@ -20,6 +20,7 @@ import {
   type PokemonType,
   StatName,
   TurnPipeline,
+  type TurnSystemKind,
   validateBattleData,
   validateMapDefinition,
 } from "@pokemon-tactic/core";
@@ -92,6 +93,7 @@ export interface BattleSetupConfig {
   map: MapDefinition;
   teams: PlacementTeam[];
   placements: PlacementEntry[];
+  turnSystemKind?: TurnSystemKind;
 }
 
 function loadGameData() {
@@ -174,7 +176,16 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
   };
 
   const turnPipeline = new TurnPipeline();
-  const engine = new BattleEngine(state, moveDefinitions, typeChart, pokemonTypesMap, turnPipeline);
+  const engine = new BattleEngine(
+    state,
+    moveDefinitions,
+    typeChart,
+    pokemonTypesMap,
+    turnPipeline,
+    undefined,
+    0,
+    config.turnSystemKind,
+  );
 
   return {
     engine,

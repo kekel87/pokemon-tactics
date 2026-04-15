@@ -12,7 +12,7 @@ Pokemon Tactics brings Pokemon battles to a tactical grid inspired by FFTA:
 
 - **Isometric grid** with areas of effect and positioning that matters
 - **Pokemon system** — official stats, 18 types, STAB, status conditions, 4 moves per Pokemon
-- **Individual initiative** — each Pokemon acts based on its Speed (no team turns)
+- **Charge Time system** — Speed determines action frequency (FFX/FFTA-style CT), switchable to classic round-robin
 - **Friendly fire** — AoE hits allies too, think before you blast
 - **Up to 12 players** in hot-seat (teams or free-for-all)
 - **AI opponents** with difficulty levels (easy / medium / hard)

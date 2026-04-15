@@ -148,6 +148,10 @@ export const TIMELINE_SEPARATOR_LINE_HEIGHT = 2;
 export const TIMELINE_SEPARATOR_COLOR = 0x888888;
 export const TIMELINE_SEPARATOR_ALPHA = 0.6;
 export const TIMELINE_PAST_ENTRY_ALPHA = 0.55;
+export const TIMELINE_CT_BAR_THICKNESS = 5;
+export const TIMELINE_CT_BAR_GAP = 3;
+export const TIMELINE_CT_BAR_COLOR = 0x44aaff;
+export const TIMELINE_CT_BAR_BG_COLOR = 0x223344;
 
 export const PULSE_MIN_SCALE = 1.0;
 export const PULSE_MAX_SCALE = 1.1;

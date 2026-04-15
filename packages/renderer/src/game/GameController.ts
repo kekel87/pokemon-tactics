@@ -30,6 +30,7 @@ import {
   stepInDirection,
   TargetingKind,
   TerrainType,
+  TurnSystemKind,
 } from "@pokemon-tactic/core";
 import {
   AnimationCategory,
@@ -615,6 +616,7 @@ export class GameController {
       moves,
       onSelect: (moveId: string) => this.enterAttackTarget(moveId),
       onCancel: () => this.enterActionMenu(),
+      turnSystemKind: this.state.turnSystemKind ?? TurnSystemKind.RoundRobin,
     });
   }
 
@@ -633,6 +635,7 @@ export class GameController {
     this.actionMenu.showSelectedMove(
       { definition: moveDefinition, currentPp },
       t("attack.selectTarget"),
+      this.state.turnSystemKind ?? TurnSystemKind.RoundRobin,
     );
 
     const targeting = moveDefinition.targeting;

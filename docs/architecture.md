@@ -154,7 +154,7 @@ pokemon-tactics/
 │   └── map-preview.js           # Script Vite helper pour pnpm dev:map (injecte le chemin .tmj via env)
 ├── docs/
 │   ├── images/                  # Screenshots pour le README
-│   ├── plans/                   # Plans d'exécution numérotés (40 plans)
+│   ├── plans/                   # Plans d'exécution numérotés (54 plans)
 │   ├── architecture.md
 │   ├── game-design.md
 │   ├── decisions.md
@@ -186,7 +186,7 @@ Structure flat par responsabilité. On restructurera par domaine quand la comple
 | `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `ActiveDefense`, `TeamSelection`, `TeamValidationResult` | Non testé (compilation = validation) |
 | `utils/` | Fonctions pures réutilisables (math, direction, géométrie) | Oui |
 | `grid/` | Classe Grid, targeting resolvers | Oui |
-| `battle/` | BattleEngine, TurnManager, PlacementPhase, validate, validate-map, team-validator, defense-check, handle-defensive, defensive-clear-handler, replay-runner, **height-traversal** (canTraverse, calculateFallDamage), **height-modifier** (getHeightModifier, isMeleeBlockedByHeight) | Oui |
+| `battle/` | BattleEngine (dual-mode RR/CT via branchement interne), TurnManager (RR), **ChargeTimeTurnSystem** (CT rotation, getCtSnapshot), **ct-costs** (computeCtGain, ppCost, powerFloor, effectFloor, computeMoveCost, computeCtActionCost), PlacementPhase, validate, validate-map, team-validator, defense-check, handle-defensive, defensive-clear-handler, replay-runner, **height-traversal** (canTraverse, calculateFallDamage), **height-modifier** (getHeightModifier, isMeleeBlockedByHeight) | Oui |
 | `ai/` | IA scriptées headless : `random-ai.ts` (action légale aléatoire), `aggressive-ai.ts` (fonce + tape le plus puissant) | Oui |
 | `testing/` | Mocks centralisés (`abstract class MockX`) — dont `MockTeamSelection`, `build-height-test-engine`, `build-fall-test-engine` | Exclu du coverage et du build |
 
@@ -194,11 +194,11 @@ Structure flat par responsabilité. On restructurera par domaine quand la comple
 
 ```mermaid
 graph TD
-    enums["enums/<br/>TargetingKind, Direction,<br/>PokemonType, ActionError,<br/>PlacementMode, PlayerController,<br/>DefensiveKind..."]
+    enums["enums/<br/>TargetingKind, Direction,<br/>PokemonType, ActionError,<br/>PlacementMode, PlayerController,<br/>DefensiveKind, TurnSystemKind,<br/>EffectTier..."]
     types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance,<br/>MapDefinition, MapFormat, SpawnZone,<br/>PlacementTeam, PlacementEntry,<br/>ActiveDefense, BattleReplay,<br/>TeamSelection, TeamValidationResult..."]
     utils["utils/<br/>manhattanDistance, directionFromTo,<br/>stepInDirection, getPerpendicularOffsets,<br/>prng (RandomFn, createPrng)"]
     grid["grid/<br/>Grid, targeting resolvers<br/>(single, cone, cross, line, dash, zone)"]
-    battle["battle/<br/>TurnManager, BattleEngine, PlacementPhase,<br/>validate, validate-map, team-validator,<br/>defense-check, handle-defensive,<br/>defensive-clear-handler, replay-runner"]
+    battle["battle/<br/>BattleEngine (dual-mode RR/CT),<br/>ChargeTimeTurnSystem, ct-costs,<br/>TurnManager, PlacementPhase,<br/>validate, validate-map, team-validator,<br/>defense-check, handle-defensive,<br/>defensive-clear-handler, replay-runner"]
     ai["ai/<br/>random-ai, aggressive-ai"]
     testing["testing/<br/>MockBattle, MockPokemon"]
 
@@ -445,7 +445,7 @@ packages/data/
     type-chart.ts          # 18x18 efficacités
 
   overrides/
-    tactical.ts            # Ajoute targeting + effects (n'existe pas dans Pokemon)
+    tactical.ts            # Ajoute targeting + effects + effectTier (n'existe pas dans Pokemon)
     balance-v1.ts          # Ajustements numériques (PP, chances, portées...)
 
   maps/                    # Définitions de cartes (MapDefinition)

@@ -66,7 +66,8 @@ Avant la phase de placement, les joueurs construisent leur équipe dans `TeamSel
 - **Bouton Vider** : réinitialise l'équipe à 0 Pokemon
 - **Bouton Remplir IA** : dans la bottom bar, remplit toutes les équipes manquantes avec des équipes IA aléatoires pour lancer rapidement
 - **Bouton Valider** : valide l'équipe via `validateTeamSelection()` (core), affiche les erreurs i18n si invalide
-- **Toggle Placement auto / Placement manuel** : à côté du bouton "Lancer le combat" — contrôle le `PlacementMode` transmis à `BattleScene`
+- **Toggle Placement auto / Placement manuel** : à côté du bouton "Lancer le combat" — contrôle le `PlacementMode` transmis à `BattleScene`. **Placement auto activé par défaut** (depuis plan 054).
+- **Toggle CT / Round-Robin** : sélecteur du système de tour transmis à `BattleConfig.turnSystem`. **CT activé par défaut** (depuis plan 054).
 - **Lancer le combat** : actif seulement si toutes les équipes sont validées
 - **Noms des Pokemon** : affichés en FR ou EN selon la langue active (i18n depuis `@pokemon-tactic/data`)
 - **Zones de spawn** sur la carte poc-arena colorées selon les équipes via `TEAM_COLORS` (décision #189)
@@ -90,13 +91,66 @@ Avant la phase de placement, les joueurs construisent leur équipe dans `TeamSel
 
 ---
 
-## 4. Système de tour — Initiative individuelle (FFTA-like)
+## 4. Système de tour — Dual-mode RR/CT (implémenté — plan 054)
 
-Chaque Pokemon a son propre tour basé sur une **initiative calculée depuis Vitesse et Poids**.
-Barre de temps type ATB/CT (Clock Tick de FFTA).
+Le moteur supporte deux systèmes de tour sélectionnables via `BattleConfig.turnSystem` :
 
-> **Formule à définir plus tard.** Idée de base : Vitesse haute = agit souvent, Poids lourd = malus initiative.
-> Pour le POC : initiative = Vitesse (simple), on affinera ensuite.
+### 4a. Round-Robin (défaut historique, mode `'round-robin'`)
+
+Chaque Pokemon joue une fois par round dans l'ordre d'initiative. L'initiative est recalculée à chaque round. Pas de notion de CT.
+
+### 4b. Charge Time (mode `'charge-time'`, activé par défaut depuis le plan 054)
+
+Inspiré de FFTA et FFX. Chaque Pokemon accumule des CT points à chaque tick. Celui qui atteint le seuil agit en premier.
+
+**Formule `ctGain` :**
+```
+ctGain = floor((30 + floor(20 × ln(baseStat + 1))) × softMult(speedStages × 0.7))
+```
+- CT de départ : 600 / Seuil d'action : 1000
+- 1 seul acteur par tick (le plus haut CT parmi ceux ≥ 1000)
+- Ratio de fréquence Pikachu/Geodude (neutre) ≈ 1.50×, plafonné à 1.5× même aux extrêmes
+
+**Coût CT par action (`computeCtCost`) :**
+
+| Source | Coût |
+|--------|------|
+| Wait | 350 |
+| Move seul | 400 |
+| Move + Attaque | move + atk - 150 |
+| PP 20 | 500, PP 16 → 600, PP 12 → 700, PP 8 → 900 |
+| Power ≥ 70 | 600, ≥ 90 → 700, ≥ 110 → 900 |
+| `effectTier: reactive` | 500 (fixe) |
+| `effectTier: major-status` | floor 700 |
+| `effectTier: major-buff` | floor 600 |
+| `effectTier: double-buff` | floor 550 |
+
+Le coût final = `max(ppCost(pp), powerFloor(power), effectFloor(effectTier))`.
+
+**`effectTier` dans les surcharges tactiques :**
+- `reactive` : protect, detect, wide-guard, quick-guard, counter, mirror-coat, metal-burst, endure
+- `major-status` : thunder-wave, hypnosis, sing, sleep-powder, toxic
+- `major-buff` : swords-dance, agility, iron-defense, minimize
+- `double-buff` : calm-mind, bulk-up, withdraw, stockpile
+
+**Interface TurnSystem :**
+```typescript
+interface TurnSystem {
+  getNextActorId(): string;
+  onActionComplete(pokemonId: string, actionCost: number): void;
+  onPokemonKO(pokemonId: string): void;
+}
+```
+Implémentée par `RoundRobinTurnSystem` et `ChargeTimeTurnSystem`. Le `BattleEngine` crée la bonne implémentation depuis `BattleConfig.turnSystem`.
+
+**`ChargeTimeTurnSystem.getCtSnapshot()`** : expose l'état CT courant pour le renderer (timeline CT).
+
+**UI CT :**
+- `TurnTimeline` : barre verticale à gauche du portrait, progression vers le seuil 1000
+- `ActionMenu` : PP masqués, coût CT affiché à la place
+- `TeamSelectScene` : toggle CT/RR visible, CT activé par défaut
+
+> Pour la vulgarisation joueur, voir `docs/wiki/ct-system.md`.
 
 ---
 

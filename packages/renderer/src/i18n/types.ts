@@ -116,6 +116,8 @@ export interface Translations {
   "teamSelect.clear": string;
   "teamSelect.autoPlacement": string;
   "teamSelect.manualPlacement": string;
+  "teamSelect.turnSystemRr": string;
+  "teamSelect.turnSystemCt": string;
   "pokemon.bulbasaur": string;
   "pokemon.charmander": string;
   "pokemon.squirtle": string;

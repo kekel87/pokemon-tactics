@@ -1,4 +1,5 @@
 import type { BattleState, PokemonDefinition, PokemonInstance } from "@pokemon-tactic/core";
+import { CT_THRESHOLD, TurnSystemKind } from "@pokemon-tactic/core";
 import {
   DEPTH_TIMELINE,
   FONT_FAMILY,
@@ -9,6 +10,10 @@ import {
   TIMELINE_ACTIVE_BORDER_WIDTH,
   TIMELINE_ACTIVE_SIZE,
   TIMELINE_BORDER_WIDTH,
+  TIMELINE_CT_BAR_BG_COLOR,
+  TIMELINE_CT_BAR_COLOR,
+  TIMELINE_CT_BAR_GAP,
+  TIMELINE_CT_BAR_THICKNESS,
   TIMELINE_ENTRY_SIZE,
   TIMELINE_ENTRY_SPACING,
   TIMELINE_PAST_ENTRY_ALPHA,
@@ -33,6 +38,17 @@ export class TurnTimeline {
   update(state: BattleState, pokemonDefinitions: Map<string, PokemonDefinition>): void {
     this.clearEntries();
 
+    if (state.turnSystemKind === TurnSystemKind.ChargeTime && state.ctSnapshot) {
+      this.updateCt(state, pokemonDefinitions);
+    } else {
+      this.updateRoundRobin(state, pokemonDefinitions);
+    }
+  }
+
+  private updateRoundRobin(
+    state: BattleState,
+    pokemonDefinitions: Map<string, PokemonDefinition>,
+  ): void {
     const turnOrder = state.turnOrder;
     const currentIndex = state.currentTurnIndex;
 
@@ -74,8 +90,31 @@ export class TurnTimeline {
         if (!pokemon || pokemon.currentHp <= 0) {
           continue;
         }
-        y = this.renderEntry(y, pokemon, pokemonDefinitions, false, TIMELINE_PAST_ENTRY_ALPHA);
+        this.renderEntry(y, pokemon, pokemonDefinitions, false, TIMELINE_PAST_ENTRY_ALPHA);
       }
+    }
+  }
+
+  private updateCt(state: BattleState, pokemonDefinitions: Map<string, PokemonDefinition>): void {
+    const ctSnapshot = state.ctSnapshot ?? {};
+    const activePokemonId = state.turnOrder[0];
+
+    const sorted = [...state.pokemon.values()]
+      .filter((p) => p.currentHp > 0)
+      .sort((a, b) => {
+        const ctA = ctSnapshot[a.id] ?? 0;
+        const ctB = ctSnapshot[b.id] ?? 0;
+        if (ctB !== ctA) {
+          return ctB - ctA;
+        }
+        return a.id.localeCompare(b.id);
+      });
+
+    let y = 0;
+    for (const pokemon of sorted) {
+      const isActive = pokemon.id === activePokemonId;
+      const ct = ctSnapshot[pokemon.id] ?? 0;
+      y = this.renderEntry(y, pokemon, pokemonDefinitions, isActive, 1.0, ct);
     }
   }
 
@@ -90,10 +129,13 @@ export class TurnTimeline {
     pokemonDefinitions: Map<string, PokemonDefinition>,
     isActive: boolean,
     alpha: number,
+    ctValue?: number,
   ): number {
     const size = isActive ? TIMELINE_ACTIVE_SIZE : TIMELINE_ENTRY_SIZE;
     const half = size / 2;
     const children: Phaser.GameObjects.GameObject[] = [];
+    const hasCtBar = ctValue !== undefined;
+    const ctBarOffset = hasCtBar ? TIMELINE_CT_BAR_THICKNESS + TIMELINE_CT_BAR_GAP : 0;
 
     const definition = pokemonDefinitions.get(pokemon.definitionId);
     const primaryType = definition?.types[0] ?? "normal";
@@ -127,6 +169,23 @@ export class TurnTimeline {
     border.strokeRoundedRect(-half, -half, size, size, 4);
     children.push(border);
 
+    if (hasCtBar) {
+      const barFill = Math.min(1, Math.max(0, ctValue / CT_THRESHOLD));
+      const barX = -half - TIMELINE_CT_BAR_GAP - TIMELINE_CT_BAR_THICKNESS;
+      const barBg = this.scene.add.graphics();
+      barBg.fillStyle(TIMELINE_CT_BAR_BG_COLOR, 1);
+      barBg.fillRect(barX, -half, TIMELINE_CT_BAR_THICKNESS, size);
+      children.push(barBg);
+
+      if (barFill > 0) {
+        const filledHeight = Math.floor(size * barFill);
+        const barFg = this.scene.add.graphics();
+        barFg.fillStyle(TIMELINE_CT_BAR_COLOR, 1);
+        barFg.fillRect(barX, -half + size - filledHeight, TIMELINE_CT_BAR_THICKNESS, filledHeight);
+        children.push(barFg);
+      }
+    }
+
     if (pokemon.statusEffects.length > 0) {
       const statusIcon = this.createStatusIcon(pokemon.statusEffects[0]?.type, half);
       if (statusIcon) {
@@ -134,7 +193,7 @@ export class TurnTimeline {
       }
     }
 
-    const entry = this.scene.add.container(half, y + half, children);
+    const entry = this.scene.add.container(ctBarOffset + half, y + half, children);
     entry.setAlpha(alpha);
     this.container.add(entry);
     this.entries.push(entry);

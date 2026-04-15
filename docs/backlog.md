@@ -26,7 +26,24 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 - Quand on retravaille l'InfoPanel, afficher les effets terrain en cours sur la tile du Pokemon sélectionné/survolé (ex: "Évasion +1 (herbe haute)", "Brûlure au passage (magma)", "Malus déplacement +2 (marécage)").
 - Lié à l'étape 22 du plan 051 (terrain dans tooltip).
 
+### Immunité au poison non respectée (type Poison empoisonné)
+- Observé en playtest CT : Fantominus (type Poison/Ghost) empoisonné alors qu'il devrait être immunisé.
+- Pokemon de type Poison ou Acier doivent être immunisés au statut **poisoned** et **badly_poisoned**.
+- À investiguer dans les handlers de moves poison (`poison-powder`, `toxic`, `sludge-bomb`, etc.) et dans `effect-processor` — vérifier si la vérification d'immunité par type existe et est appliquée.
+- **Indépendant du plan 054 CT** (bug préexistant révélé par le playtest).
+
+### Pokemon KO continuent d'animer idle
+- Observé en playtest CT : Kangourex et Otaria jouent encore leur animation idle alors qu'ils sont KO.
+- Probable cause : l'anim `faint` (fade-out) ne s'est pas déclenchée, ou la boucle idle redémarre après la mort.
+- À vérifier dans `PokemonSprite.ts` / `playFaintAndStay` et l'appel depuis `GameController` lors d'un `PokemonKO`.
+- **Indépendant du plan 054 CT**.
+
 ## Feedback visuel
+
+### TurnTimeline CT — layout et barre de charge
+- **Layout** : en mode Charge Time, la liste verticale des Pokémon passe sous le panel info (overflow). Il faudrait réduire l'espacement entre portraits, ou limiter le nombre d'entrées affichées, ou scroller.
+- **Barre verticale à gauche du portrait** : l'utilisateur préfèrerait voir la barre de CT en barre **verticale sur le côté gauche du portrait** (plutôt que horizontale dessous). À tester visuellement — peut aider à compacter la timeline.
+- Source : playtest plan 054 (2026-04-15).
 
 ### Transparence / silhouette des Pokemon derrière un obstacle + cursor FFTA
 - Quand un Pokemon passe derrière une tile haute ou une décoration, il disparaît complètement.

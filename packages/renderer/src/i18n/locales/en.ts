@@ -111,6 +111,8 @@ const en: Translations = {
   "teamSelect.clear": "Clear",
   "teamSelect.autoPlacement": "Auto placement",
   "teamSelect.manualPlacement": "Manual placement",
+  "teamSelect.turnSystemRr": "Fixed turns",
+  "teamSelect.turnSystemCt": "Charge Time",
   "pokemon.bulbasaur": "Bulbasaur",
   "pokemon.charmander": "Charmander",
   "pokemon.squirtle": "Squirtle",

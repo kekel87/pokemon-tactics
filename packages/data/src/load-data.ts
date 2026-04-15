@@ -58,6 +58,7 @@ export function loadData(): GameData {
       ...(merged.recharge ? { recharge: true } : {}),
       ...(merged.ignoresHeight ? { ignoresHeight: true } : {}),
       ...(merged.flags ? { flags: merged.flags } : {}),
+      ...(merged.effectTier ? { effectTier: merged.effectTier } : {}),
     };
     return moveDefinition;
   });

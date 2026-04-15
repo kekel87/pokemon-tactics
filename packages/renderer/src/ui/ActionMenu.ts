@@ -1,4 +1,5 @@
 import type { MoveDefinition } from "@pokemon-tactic/core";
+import { TurnSystemKind } from "@pokemon-tactic/core";
 import { getMoveName } from "@pokemon-tactic/data";
 import {
   ACTION_MENU_BG_ALPHA,
@@ -38,6 +39,7 @@ interface AttackSubmenuOptions {
   moves: Array<{ definition: MoveDefinition; currentPp: number; hasTargets: boolean }>;
   onSelect: (moveId: string) => void;
   onCancel: () => void;
+  turnSystemKind: TurnSystemKind;
 }
 
 export class ActionMenu {
@@ -113,7 +115,7 @@ export class ActionMenu {
         continue;
       }
       const itemY = menuTopY + i * ACTION_MENU_ITEM_HEIGHT;
-      this.createMoveItem(move, itemY, options.onSelect);
+      this.createMoveItem(move, itemY, options.onSelect, options.turnSystemKind);
     }
 
     const cancelY = menuTopY + options.moves.length * ACTION_MENU_ITEM_HEIGHT;
@@ -126,6 +128,7 @@ export class ActionMenu {
   showSelectedMove(
     move: { definition: MoveDefinition; currentPp: number },
     instruction: string,
+    turnSystemKind: TurnSystemKind,
   ): void {
     this.clearItems();
 
@@ -185,20 +188,22 @@ export class ActionMenu {
       .setDepth(DEPTH_ACTION_MENU + 2);
     this.objects.push(nameText);
 
-    const ppText = this.scene.add
-      .text(
-        ACTION_MENU_X + ACTION_MENU_WIDTH - 8,
-        centerY,
-        `${move.currentPp}/${move.definition.pp}`,
-        {
-          fontSize: "18px",
-          color: "#aaaaaa",
-          fontFamily: FONT_FAMILY,
-        },
-      )
-      .setOrigin(1, 0.5)
-      .setDepth(DEPTH_ACTION_MENU + 2);
-    this.objects.push(ppText);
+    if (turnSystemKind !== TurnSystemKind.ChargeTime) {
+      const ppText = this.scene.add
+        .text(
+          ACTION_MENU_X + ACTION_MENU_WIDTH - 8,
+          centerY,
+          `${move.currentPp}/${move.definition.pp}`,
+          {
+            fontSize: "18px",
+            color: "#aaaaaa",
+            fontFamily: FONT_FAMILY,
+          },
+        )
+        .setOrigin(1, 0.5)
+        .setDepth(DEPTH_ACTION_MENU + 2);
+      this.objects.push(ppText);
+    }
   }
 
   updateInstruction(instruction: string): void {
@@ -307,6 +312,7 @@ export class ActionMenu {
     move: { definition: MoveDefinition; currentPp: number; hasTargets: boolean },
     y: number,
     onSelect: (moveId: string) => void,
+    turnSystemKind: TurnSystemKind,
   ): void {
     const enabled = move.currentPp > 0 && move.hasTargets;
     const alpha = enabled ? 1 : ACTION_MENU_DISABLED_ALPHA;
@@ -342,21 +348,23 @@ export class ActionMenu {
 
     this.objects.push(nameText);
 
-    const ppText = this.scene.add
-      .text(
-        ACTION_MENU_X + ACTION_MENU_WIDTH - 8,
-        centerY,
-        `${move.currentPp}/${move.definition.pp}`,
-        {
-          fontSize: "18px",
-          color: "#aaaaaa",
-          fontFamily: FONT_FAMILY,
-        },
-      )
-      .setOrigin(1, 0.5)
-      .setAlpha(alpha)
-      .setDepth(DEPTH_ACTION_MENU + 2);
-    this.objects.push(ppText);
+    if (turnSystemKind !== TurnSystemKind.ChargeTime) {
+      const ppText = this.scene.add
+        .text(
+          ACTION_MENU_X + ACTION_MENU_WIDTH - 8,
+          centerY,
+          `${move.currentPp}/${move.definition.pp}`,
+          {
+            fontSize: "18px",
+            color: "#aaaaaa",
+            fontFamily: FONT_FAMILY,
+          },
+        )
+        .setOrigin(1, 0.5)
+        .setAlpha(alpha)
+        .setDepth(DEPTH_ACTION_MENU + 2);
+      this.objects.push(ppText);
+    }
 
     const hoverBg = this.scene.add.graphics();
     hoverBg.setDepth(DEPTH_ACTION_MENU + 1);
