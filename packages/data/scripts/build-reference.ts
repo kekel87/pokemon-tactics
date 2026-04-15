@@ -9,15 +9,17 @@
  *          npx tsx packages/data/scripts/build-reference.ts --fetch-only
  *          npx tsx packages/data/scripts/build-reference.ts --skip-fetch
  */
-import { mkdir, writeFile, readFile } from "node:fs/promises";
-import { join, dirname } from "node:path";
+import { readFile, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { ChampionsOverride } from "./champions-override.types";
+import { fetchChampionsData } from "./fetch-champions";
+import { CACHE_DIR, cachedFetch, cachedFetchText, ensureDir, sleep } from "./fetch-utils";
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = join(__dirname, "..");
-const CACHE_DIR = join(PACKAGE_ROOT, ".cache");
 const REFERENCE_DIR = join(PACKAGE_ROOT, "reference");
 const INDEXES_DIR = join(REFERENCE_DIR, "indexes");
 
@@ -25,50 +27,9 @@ const SHOWDOWN_BASE = "https://play.pokemonshowdown.com/data";
 const POKEAPI_BASE = "https://pokeapi.co/api/v2";
 
 const CONCURRENCY = 8;
-const RETRY_DELAY_MS = 1000;
-const MAX_RETRIES = 3;
 
 const FETCH_ONLY = process.argv.includes("--fetch-only");
 const SKIP_FETCH = process.argv.includes("--skip-fetch");
-
-// ─── Utility Functions ───────────────────────────────────────────────────────
-
-async function ensureDir(dir: string): Promise<void> {
-  await mkdir(dir, { recursive: true });
-}
-
-async function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function cachedFetch(url: string, cacheFile: string): Promise<unknown> {
-  const cachePath = join(CACHE_DIR, cacheFile);
-  try {
-    const cached = await readFile(cachePath, "utf-8");
-    return JSON.parse(cached);
-  } catch {
-    await ensureDir(dirname(cachePath));
-    let lastError: Error | undefined;
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      try {
-        const response = await fetch(url);
-        if (response.status === 429) {
-          console.warn(`  Rate limited, waiting ${RETRY_DELAY_MS * (attempt + 1)}ms...`);
-          await sleep(RETRY_DELAY_MS * (attempt + 1));
-          continue;
-        }
-        if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
-        const data = await response.json();
-        await writeFile(cachePath, JSON.stringify(data), "utf-8");
-        return data;
-      } catch (error) {
-        lastError = error as Error;
-        if (attempt < MAX_RETRIES - 1) await sleep(RETRY_DELAY_MS);
-      }
-    }
-    throw lastError;
-  }
-}
 
 async function batchProcess<T, R>(
   items: T[],
@@ -182,29 +143,6 @@ interface ShowdownData {
 }
 
 const SHOWDOWN_GH_RAW = "https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data";
-
-async function cachedFetchText(url: string, cacheFile: string): Promise<string> {
-  const cachePath = join(CACHE_DIR, cacheFile);
-  try {
-    return await readFile(cachePath, "utf-8");
-  } catch {
-    await ensureDir(dirname(cachePath));
-    let lastError: Error | undefined;
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
-        const text = await response.text();
-        await writeFile(cachePath, text, "utf-8");
-        return text;
-      } catch (error) {
-        lastError = error as Error;
-        if (attempt < MAX_RETRIES - 1) await sleep(RETRY_DELAY_MS);
-      }
-    }
-    throw lastError;
-  }
-}
 
 function parseShowdownAbilityFlags(tsSource: string): Map<string, Record<string, boolean>> {
   const result = new Map<string, Record<string, boolean>>();
@@ -519,7 +457,7 @@ interface PokemonForm {
   weight: number;
 }
 
-interface PokemonEntry {
+export interface PokemonEntry {
   dexNumber: number;
   id: string;
   generation: number;
@@ -869,7 +807,7 @@ function transformPokemon(
 
 // --- Moves ---
 
-interface MoveEntry {
+export interface MoveEntry {
   id: string;
   generation: number;
   names: { en: string; fr: string };
@@ -923,7 +861,7 @@ function transformMoves(
     const pp = sdMove.pp as number;
 
     // FR name from PokeAPI
-    const pokeapiData = pokeapiByNum.get(num);
+    const pokeapiData = pokeapiMoves.get(num);
     const frName = pokeapiData
       ? extractFrName(
           pokeapiData.names as Array<{ language: { name: string }; name: string }>,
@@ -1018,7 +956,7 @@ function transformMoves(
 
 // --- Abilities ---
 
-interface AbilityEntry {
+export interface AbilityEntry {
   id: string;
   generation: number;
   names: { en: string; fr: string };
@@ -1093,7 +1031,7 @@ function transformAbilities(
 
 // --- Items ---
 
-interface ItemEntry {
+export interface ItemEntry {
   id: string;
   generation: number;
   names: { en: string; fr: string };
@@ -1491,6 +1429,237 @@ function generateAbilityIndexes(abilities: AbilityEntry[]): Record<string, Index
   return { "abilities-by-flag": byFlag };
 }
 
+// ─── Champions Overrides Application ─────────────────────────────────────────
+
+interface ApplyOverrideSummary {
+  moves: number;
+  abilities: number;
+  items: number;
+  learnsets: number;
+  skippedUnknownIds: string[];
+}
+
+/**
+ * Applique les overrides Champions aux entrées transformées.
+ *
+ * Mutation in-place des entrées. Les champs non overridés sont préservés.
+ * `maxPp` est recalculé automatiquement quand `pp` change.
+ * Lance une erreur si un override cible un ID inexistant dans la base Showdown
+ * (protection contre les typos).
+ */
+/**
+ * Convertit un ID kebab-case ("aurora-beam") vers le format Showdown
+ * lowercase-concatenated ("aurorabeam") utilisé comme clé dans les mods Champions.
+ */
+function toShowdownId(kebabId: string): string {
+  return kebabId.replace(/-/g, "");
+}
+
+export function applyChampionsOverrides(
+  moves: MoveEntry[],
+  abilities: AbilityEntry[],
+  items: ItemEntry[],
+  pokemonEntries: PokemonEntry[],
+  overrides: ChampionsOverride,
+): ApplyOverrideSummary {
+  const summary: ApplyOverrideSummary = {
+    moves: 0,
+    abilities: 0,
+    items: 0,
+    learnsets: 0,
+    skippedUnknownIds: [],
+  };
+
+  // Les overrides Champions utilisent les IDs Showdown (lowercase-concat).
+  // Nos entries utilisent kebab-case. On indexe par le format Showdown pour matcher.
+  const moveById = new Map(moves.map((m) => [toShowdownId(m.id), m]));
+  const abilityById = new Map(abilities.map((a) => [toShowdownId(a.id), a]));
+  const itemById = new Map(items.map((i) => [toShowdownId(i.id), i]));
+  const pokemonById = new Map(pokemonEntries.map((p) => [toShowdownId(p.id), p]));
+
+  // Moves
+  for (const [id, override] of Object.entries(overrides.moves)) {
+    const entry = moveById.get(id);
+    if (entry === undefined) {
+      summary.skippedUnknownIds.push(`move:${id}`);
+      continue;
+    }
+    if (applyMoveOverride(entry, override)) summary.moves++;
+  }
+
+  // Abilities
+  for (const [id, override] of Object.entries(overrides.abilities)) {
+    const entry = abilityById.get(id);
+    if (entry === undefined) {
+      summary.skippedUnknownIds.push(`ability:${id}`);
+      continue;
+    }
+    if (applyAbilityOverride(entry, override)) summary.abilities++;
+  }
+
+  // Items
+  for (const [id, override] of Object.entries(overrides.items)) {
+    const entry = itemById.get(id);
+    if (entry === undefined) {
+      summary.skippedUnknownIds.push(`item:${id}`);
+      continue;
+    }
+    if (applyItemOverride(entry, override)) summary.items++;
+  }
+
+  // Learnsets — remplacement total pour les Pokemon présents dans l'override
+  for (const [id, override] of Object.entries(overrides.learnsets)) {
+    const entry = pokemonById.get(id);
+    if (entry === undefined) {
+      summary.skippedUnknownIds.push(`learnset:${id}`);
+      continue;
+    }
+    applyLearnsetOverride(entry, override);
+    summary.learnsets++;
+  }
+
+  return summary;
+}
+
+function applyMoveOverride(
+  entry: MoveEntry,
+  override: ChampionsOverride["moves"][string],
+): boolean {
+  let mutated = false;
+
+  if (override.basePower !== undefined) {
+    entry.power = override.basePower > 0 ? override.basePower : null;
+    mutated = true;
+  }
+  if (override.pp !== undefined) {
+    entry.pp = override.pp;
+    entry.maxPp = Math.floor(override.pp * 1.6);
+    mutated = true;
+  }
+  if (override.accuracy !== undefined) {
+    entry.accuracy = override.accuracy === true ? null : override.accuracy;
+    mutated = true;
+  }
+  if (override.type !== undefined) {
+    entry.type = override.type.toLowerCase();
+    mutated = true;
+  }
+  if (override.category !== undefined) {
+    entry.category = override.category.toLowerCase();
+    mutated = true;
+  }
+  if (override.priority !== undefined) {
+    entry.priority = override.priority;
+    mutated = true;
+  }
+  if (override.target !== undefined) {
+    entry.target = override.target;
+    mutated = true;
+  }
+  if (override.shortDesc !== undefined) {
+    entry.shortDescription = { en: override.shortDesc, fr: entry.shortDescription.fr };
+    mutated = true;
+  }
+  if (override.desc !== undefined) {
+    entry.longDescription = { en: override.desc, fr: entry.longDescription.fr };
+    mutated = true;
+  }
+  if (override.flags !== undefined) {
+    const newFlags: Record<string, boolean> = {};
+    for (const [flagKey, flagValue] of Object.entries(override.flags)) {
+      newFlags[flagKey] = flagValue === 1;
+    }
+    entry.flags = newFlags;
+    mutated = true;
+  }
+  if (override.secondary === null) {
+    entry.secondary = null;
+    mutated = true;
+  } else if (override.secondary !== undefined) {
+    entry.secondary = {
+      chance: override.secondary.chance,
+      status: override.secondary.status ?? null,
+      boosts: (override.secondary.boosts as Record<string, number> | undefined) ?? null,
+      volatileStatus: override.secondary.volatileStatus ?? null,
+    };
+    mutated = true;
+  }
+
+  return mutated;
+}
+
+function applyAbilityOverride(
+  entry: AbilityEntry,
+  override: ChampionsOverride["abilities"][string],
+): boolean {
+  let mutated = false;
+  if (override.shortDesc !== undefined) {
+    entry.shortDescription = { en: override.shortDesc, fr: entry.shortDescription.fr };
+    mutated = true;
+  }
+  if (override.desc !== undefined) {
+    entry.longDescription = { en: override.desc, fr: entry.longDescription.fr };
+    mutated = true;
+  }
+  // isNonstandard n'est pas stocké dans AbilityEntry — ignoré silencieusement
+  return mutated;
+}
+
+function applyItemOverride(
+  entry: ItemEntry,
+  override: ChampionsOverride["items"][string],
+): boolean {
+  let mutated = false;
+  if (override.shortDesc !== undefined) {
+    entry.shortDescription = { en: override.shortDesc, fr: entry.shortDescription.fr };
+    mutated = true;
+  }
+  if (override.desc !== undefined) {
+    entry.longDescription = { en: override.desc, fr: entry.longDescription.fr };
+    mutated = true;
+  }
+  return mutated;
+}
+
+/**
+ * Remplace entièrement le learnset du Pokemon par celui de Champions.
+ * Convertit les codes Showdown ("9M", "9L15", "9T") vers notre structure
+ * { levelUp, tm, tutor }.
+ */
+function applyLearnsetOverride(
+  entry: PokemonEntry,
+  override: ChampionsOverride["learnsets"][string],
+): void {
+  const levelUp: Array<{ level: number; move: string }> = [];
+  const tm: string[] = [];
+  const tutor: string[] = [];
+
+  for (const [moveId, codes] of Object.entries(override.learnset)) {
+    for (const code of codes) {
+      // Format : "9M" = TM gen 9, "9L15" = level-up at 15, "9T" = tutor
+      // On ignore la génération (toujours 9 pour Champions)
+      const body = code.slice(1); // retire le préfixe gen
+      if (body.startsWith("M")) {
+        tm.push(moveId);
+        break; // un seul M suffit
+      } else if (body.startsWith("L")) {
+        const level = Number(body.slice(1)) || 1;
+        levelUp.push({ level, move: moveId });
+      } else if (body.startsWith("T")) {
+        tutor.push(moveId);
+        break;
+      }
+    }
+  }
+
+  // Dédoublonne TM et tutor
+  entry.learnset = {
+    levelUp: levelUp.sort((a, b) => a.level - b.level),
+    tm: [...new Set(tm)],
+    tutor: [...new Set(tutor)],
+  };
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
@@ -1539,6 +1708,40 @@ async function main(): Promise<void> {
   const itemEntries = transformItems(pokeapi.items);
   const typeChart = transformTypeChart(pokeapi.types);
 
+  // Step 2b: Apply Champions overrides
+  console.log("\n--- Applying Champions overrides ---\n");
+  const championsOverride = await fetchChampionsData();
+  const overrideSummary = applyChampionsOverrides(
+    moveEntries,
+    abilityEntries,
+    itemEntries,
+    pokemonEntries,
+    championsOverride,
+  );
+  console.log(
+    `  Applied: ${overrideSummary.moves} moves, ${overrideSummary.abilities} abilities, ${overrideSummary.items} items, ${overrideSummary.learnsets} learnsets`,
+  );
+  if (overrideSummary.skippedUnknownIds.length > 0) {
+    // Groupe les IDs inconnus par catégorie (move:, ability:, item:, learnset:)
+    const byCategory = new Map<string, string[]>();
+    for (const prefixed of overrideSummary.skippedUnknownIds) {
+      const colonIdx = prefixed.indexOf(":");
+      const category = prefixed.slice(0, colonIdx);
+      const id = prefixed.slice(colonIdx + 1);
+      const existing = byCategory.get(category) ?? [];
+      existing.push(id);
+      byCategory.set(category, existing);
+    }
+    console.log(
+      `  Info: ${overrideSummary.skippedUnknownIds.length} override(s) target IDs not in our base (new to Champions, skipped):`,
+    );
+    for (const [category, ids] of byCategory) {
+      const preview = ids.slice(0, 3).join(", ");
+      const suffix = ids.length > 3 ? `, … (${ids.length} total)` : "";
+      console.log(`    ${category}: ${preview}${suffix}`);
+    }
+  }
+
   // Step 3: Write main files
   console.log("\n--- Writing output files ---\n");
 
@@ -1555,6 +1758,11 @@ async function main(): Promise<void> {
   await writeJson("abilities.json", abilityEntries);
   await writeJson("items.json", itemEntries);
   await writeJson("type-chart.json", typeChart);
+  await writeJson("champions-status.json", {
+    source: championsOverride.source,
+    fetchedAt: championsOverride.fetchedAt,
+    status: championsOverride.status,
+  });
 
   // Step 4: Generate indexes
   console.log("\n--- Generating indexes ---\n");
@@ -1585,7 +1793,11 @@ async function main(): Promise<void> {
   console.log(`  Indexes: ${indexCount} files`);
 }
 
-main().catch((error) => {
-  console.error("Fatal error:", error);
-  process.exit(1);
-});
+// Ne lance main() que quand le fichier est exécuté directement (via tsx build-reference.ts),
+// pas quand il est importé par un test ou un autre module.
+if (process.argv[1]?.endsWith("build-reference.ts")) {
+  main().catch((error) => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+  });
+}

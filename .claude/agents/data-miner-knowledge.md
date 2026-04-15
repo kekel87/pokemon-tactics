@@ -11,6 +11,13 @@
 - Learnsets : `https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/learnsets.ts`
 - Type chart : `https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/typechart.ts`
 
+### Pokemon Showdown mod Champions (override partiel)
+- Base : `https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/mods/champions/`
+- Fichiers : `moves.ts`, `abilities.ts`, `items.ts`, `learnsets.ts`, `formats-data.ts`, `conditions.ts`
+- Format : `{ id: { inherit: true, ...champsModifies } }` - IDs Showdown lowercase-concat
+- Appliqué automatiquement par `pnpm data:update` (voir `docs/process-data-update.md`)
+- Statuts transcrits à la main dans `packages/data/scripts/fetch-champions.ts` -> `CHAMPIONS_STATUS_MANUAL`
+
 ### PokeAPI v2
 - Pokemon : `https://pokeapi.co/api/v2/pokemon/{id-or-name}`
 - Move : `https://pokeapi.co/api/v2/move/{id-or-name}`

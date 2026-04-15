@@ -12,7 +12,7 @@ export default defineConfig({
         },
         test: {
           name: "unit",
-          include: ["packages/*/src/**/*.test.ts"],
+          include: ["packages/*/src/**/*.test.ts", "packages/*/scripts/**/*.test.ts"],
           exclude: ["**/*.integration.test.ts", "**/*.scenario.test.ts"],
           coverage: {
             provider: "v8",

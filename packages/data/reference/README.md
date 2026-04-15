@@ -1,10 +1,17 @@
 # Pokemon Reference Knowledge Base
 
-Base de connaissance Pokemon exhaustive (Gen 1-9, 1025 especes + 308 formes).
-Utilisee comme reference par Claude pour eviter les fetches Showdown/Bulbapedia/PokeAPI a chaque question.
+Base de connaissance Pokemon exhaustive (Gen 1-9, 1025 especes + 308 formes),
+**alignee Pokemon Champions** (valeurs par-dessus Showdown Gen 9).
 
-**Date de generation** : 2026-04-12
-**Sources** : Pokemon Showdown (stats, moves, learnsets) + PokeAPI v2 (noms FR, flavor text, metadata)
+**Source de verite** : Pokemon Champions. Valeurs Gen 9 classiques utilisees comme base.
+
+**Dernière generation** : 2026-04-15
+**Sources** :
+- Pokemon Showdown Gen 9 (base : stats, moves, learnsets, abilities, items)
+- Pokemon Showdown mod `champions` (override : moves, learnsets, abilities)
+- PokeAPI v2 (noms FR, flavor text, metadata)
+
+Voir `docs/process-data-update.md` pour le processus de MAJ.
 
 ## Contenu
 
@@ -15,6 +22,7 @@ Utilisee comme reference par Claude pour eviter les fetches Showdown/Bulbapedia/
 | `abilities.json` | 311 abilities | 0.2 MB | Descriptions EN/FR, generation |
 | `items.json` | 948 items | 0.5 MB | Category, descriptions EN/FR, fling, price |
 | `type-chart.json` | 18 types | 7 KB | Table 18x18 (attacker x defender = multiplier) |
+| `champions-status.json` | 3 statuts | < 1 KB | Règles Champions pour paralysie / gel / sommeil (consommé par le core plan 057) |
 | `indexes/` | 19 fichiers | 1.2 MB | Index inverses pour requetes rapides |
 
 **Total** : ~6.4 MB (reference) + ~1.2 MB (indexes)
@@ -60,12 +68,15 @@ Seule mecanique extra conservee : **Megaevolution**.
 ## Regenerer
 
 ```bash
-npx tsx packages/data/scripts/build-reference.ts
+pnpm data:update              # fetch + apply Champions + write
+pnpm data:diff                # voir le diff humainement reviewable
 ```
 
-Options :
-- `--fetch-only` : telecharger les sources sans transformer
-- `--skip-fetch` : utiliser le cache existant (rapide, ~3s)
+Variantes :
+- `pnpm data:update:fetch-only` : telecharger les sources sans transformer
+- `pnpm data:update:skip-fetch` : utiliser le cache existant (rapide, ~3s)
+
+Voir `docs/process-data-update.md` pour le processus complet.
 
 Le cache est dans `packages/data/.cache/` (gitignored). Premiere execution : ~5 min (fetches PokeAPI). Executions suivantes avec cache : ~3s.
 

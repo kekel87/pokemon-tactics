@@ -4,6 +4,14 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Bugs
 
+### Test d'intégration `PlacementPhase` cassé + CI ne run pas les integration tests
+- `packages/core/src/battle/PlacementPhase.integration.test.ts` cas "manual placement produces a valid engine" échoue : utilise les coordonnées (3,10), (4,11) qui ne sont **pas dans les spawn zones** de `pocArena.formats[0]` (zones à y=18-19 et y=0-1). Les 4 `submitPlacement` retournent `PositionOutOfZone` silencieusement, placements list reste vide.
+- Bug pré-existant (les coordonnées datent du plan 015, mais les zones ont été modifiées ultérieurement sans MAJ du test).
+- **Non détecté car la CI ne lance que `pnpm test` (unit), pas `pnpm test:integration`** — voir `.github/workflows/ci.yml`.
+- À faire :
+  1. Fix le test (utiliser des coords valides comme (5,18), (3,1) etc.) ou le supprimer s'il fait doublon avec le cas `autoPlaceAll` qui passe.
+  2. Ajouter `pnpm test:integration` dans la CI pour ne plus laisser passer ce genre de régression.
+
 ### Régénérer le tileset.png avec les brightness uniformes (plan 055)
 - `scripts/make-iso-tile.py` a été mis à jour : `LEFT_BRIGHTNESS = RIGHT_BRIGHTNESS = 0.65` pour supprimer le raccord visible entre tiles flipées (variantes E) et non-flipées.
 - Le PNG `packages/renderer/public/assets/tilesets/terrain/tileset.png` n'a pas encore été régénéré (plan 055 livré avec le script seul pour éviter de casser l'asset sans validation visuelle). Le raccord reste visible tant que le tileset n'est pas rejoué.
@@ -29,6 +37,15 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 - **Note** : le bug "Pokemon passe devant les piliers pendant le déplacement" (suppression du `maxTileDepthInRadius` dans `animateMoveTo`) n'est pas résolu par le layering de depths — c'est un comportement iso correct (Pokemon derrière un pilier plus proche de la caméra). La solution passe par la transparence/silhouette ci-dessus.
 
 ## Tâches futures identifiées (hors backlog actif)
+
+### Ajouter Pokemon Legends Z-A comme source de données
+- Showdown a un mod ZA disponible : `https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/mods/gen9legends/`
+- Fichiers : `pokedex.ts` (nouveaux Mega ZA — Mega Starmie, Mega Mawile, Mega Medicham), `learnsets.ts`, `formats-data.ts`, `scripts.ts`
+- Format identique à `mods/champions` (`inherit: true` + overrides) → réutiliser tout le pipeline `fetch-champions.ts` / `applyChampionsOverrides`
+- **Question de design** : comment composer ZA et Champions ?
+  - Option : layering `Showdown Gen 9 → ZA → Champions` (ZA apporte le contenu, Champions ajuste l'équilibrage)
+  - Risque : Champions peut overrider du contenu ZA (nouveau Mega) — vérifier qu'il n'y a pas de conflit
+- À planifier dans un plan dédié (057 ou 058 selon ordre choisi), en parallèle ou après le plan 057 (Champions status runtime).
 
 ### Portée dynamique selon la hauteur (dénivelé)
 - Idée : un attaquant en hauteur voit plus loin et peut tirer plus loin. Bonus de portée +N cases selon la différence de hauteur caster - cible (par ex : +1 case par niveau au-dessus, cap +2).

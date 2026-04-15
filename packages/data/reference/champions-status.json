@@ -1,0 +1,23 @@
+{
+  "source": "https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/mods/champions",
+  "fetchedAt": "2026-04-15T20:05:24.333Z",
+  "status": {
+    "paralysis": {
+      "skipRate": 0.125,
+      "speedMult": 0.5
+    },
+    "freeze": {
+      "thawRate": 0.25,
+      "maxTurns": 3
+    },
+    "sleep": {
+      "minTurns": 2,
+      "maxTurns": 3,
+      "sampleTurns": [
+        2,
+        3,
+        3
+      ]
+    }
+  }
+}

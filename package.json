@@ -21,7 +21,11 @@
     "typecheck": "pnpm -r --parallel run typecheck",
     "extract-sprites": "tsx scripts/extract-sprites.ts",
     "download-status-icons": "tsx scripts/download-status-icons.ts",
-    "replay:generate": "tsx scripts/generate-golden-replay.ts"
+    "replay:generate": "tsx scripts/generate-golden-replay.ts",
+    "data:update": "pnpm --filter @pokemon-tactic/data run data:update",
+    "data:update:skip-fetch": "pnpm --filter @pokemon-tactic/data run data:update:skip-fetch",
+    "data:update:fetch-only": "pnpm --filter @pokemon-tactic/data run data:update:fetch-only",
+    "data:diff": "pnpm --filter @pokemon-tactic/data run data:diff"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
