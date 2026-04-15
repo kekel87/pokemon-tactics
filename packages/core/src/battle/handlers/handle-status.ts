@@ -14,6 +14,25 @@ const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([
   StatusTypeEnum.Trapped,
 ]);
 
+const STATUS_TYPE_IMMUNITIES: Partial<Record<StatusType, readonly PokemonType[]>> = {
+  [StatusTypeEnum.Poisoned]: [PokemonType.Poison, PokemonType.Steel],
+  [StatusTypeEnum.BadlyPoisoned]: [PokemonType.Poison, PokemonType.Steel],
+  [StatusTypeEnum.Paralyzed]: [PokemonType.Electric],
+  [StatusTypeEnum.Burned]: [PokemonType.Fire],
+  [StatusTypeEnum.Frozen]: [PokemonType.Ice],
+};
+
+export function isImmuneToStatusByType(
+  targetTypes: readonly PokemonType[],
+  status: StatusType,
+): boolean {
+  const immuneTypes = STATUS_TYPE_IMMUNITIES[status];
+  if (!immuneTypes) {
+    return false;
+  }
+  return targetTypes.some((type) => immuneTypes.includes(type));
+}
+
 export function handleStatus(context: EffectContext): BattleEvent[] {
   const events: BattleEvent[] = [];
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.Status }>;
@@ -24,11 +43,26 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       continue;
     }
 
+    const targetTypes = context.targetTypesMap.get(target.id) ?? [];
+
     if (effect.status === StatusTypeEnum.Seeded) {
-      const targetTypes = context.targetTypesMap.get(target.id) ?? [];
       if (targetTypes.includes(PokemonType.Grass)) {
+        events.push({
+          type: BattleEventType.StatusImmune,
+          targetId: target.id,
+          status: effect.status,
+        });
         continue;
       }
+    }
+
+    if (isImmuneToStatusByType(targetTypes, effect.status)) {
+      events.push({
+        type: BattleEventType.StatusImmune,
+        targetId: target.id,
+        status: effect.status,
+      });
+      continue;
     }
 
     if (isVolatileStatus(effect.status)) {

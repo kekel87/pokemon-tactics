@@ -68,7 +68,7 @@ export class PokemonSprite {
   private pulseTween: Phaser.Tweens.Tween | null = null;
   private statusIcon: Phaser.GameObjects.Image | null = null;
   private currentStatusKey: string = "";
-  private damageEstimateGraphics: Phaser.GameObjects.Graphics | null = null;
+  private readonly damageEstimateGraphics: Phaser.GameObjects.Graphics;
   private damageEstimateText: Phaser.GameObjects.Text | null = null;
   private maxHp = 0;
   private readonly spriteOffsets: SpriteOffsets;
@@ -77,6 +77,7 @@ export class PokemonSprite {
   private confusionTween: Phaser.Tweens.Tween | null = null;
   private _gridPosition: { x: number; y: number } = { x: 0, y: 0 };
   private readonly teamColor: number;
+  private isKnockedOut = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -124,6 +125,9 @@ export class PokemonSprite {
     this.hpBarFill = scene.add.graphics();
     this.drawHpBar();
     children.push(this.hpBarBackground, this.hpBarFill);
+
+    this.damageEstimateGraphics = scene.add.graphics();
+    children.push(this.damageEstimateGraphics);
 
     this.container = scene.add.container(0, 0, children);
     this.updatePosition(pokemon.position.x, pokemon.position.y);
@@ -213,6 +217,9 @@ export class PokemonSprite {
   }
 
   setStatusAnimation(isAsleep: boolean): void {
+    if (this.isKnockedOut) {
+      return;
+    }
     if (isAsleep) {
       const key = getAnimationKey(this.definitionId, "Sleep", this.currentDirection);
       if (this.scene.anims.exists(key)) {
@@ -224,6 +231,9 @@ export class PokemonSprite {
   }
 
   setConfusionWobble(active: boolean): void {
+    if (active && this.isKnockedOut) {
+      return;
+    }
     if (!active) {
       if (this.confusionTween) {
         this.confusionTween.destroy();
@@ -254,6 +264,9 @@ export class PokemonSprite {
   }
 
   setDirection(direction: Direction): void {
+    if (this.isKnockedOut) {
+      return;
+    }
     const pmdDirection = CORE_TO_PMD_DIRECTION[direction] ?? "South";
     if (pmdDirection === this.currentDirection) {
       return;
@@ -263,6 +276,9 @@ export class PokemonSprite {
   }
 
   playAnimation(animation: string): void {
+    if (this.isKnockedOut) {
+      return;
+    }
     if (!this.sprite || !this.usesAtlas) {
       return;
     }
@@ -306,6 +322,9 @@ export class PokemonSprite {
   }
 
   async playAttackAnimation(animation: string, fallback?: string): Promise<void> {
+    if (this.isKnockedOut) {
+      return;
+    }
     const originalDepth = this.container.depth;
     const envelopeDepth = this.maxTileDepthInRadius(
       this._gridPosition.x,
@@ -342,6 +361,9 @@ export class PokemonSprite {
   }
 
   playAnimationOnce(animation: string, fallback?: string): Promise<void> {
+    if (this.isKnockedOut) {
+      return Promise.resolve();
+    }
     if (!this.sprite || !this.usesAtlas) {
       return Promise.resolve();
     }
@@ -376,8 +398,9 @@ export class PokemonSprite {
   }
 
   playFaintAndStay(): Promise<void> {
-    this.setActive(false);
     this.setConfusionWobble(false);
+    this.isKnockedOut = true;
+    this.setActive(false);
     if (this.statusIcon) {
       this.statusIcon.destroy();
       this.statusIcon = null;
@@ -398,6 +421,18 @@ export class PokemonSprite {
       });
     }
 
+    // No Faint animation available — interrupt any in-flight anim (e.g. Hurt
+    // from flashDamage just before KO) and freeze on the first Idle frame to
+    // avoid leaving the sprite stuck on a Hurt pose. The isKnockedOut guard
+    // blocks the Hurt callback's fallback to Idle, so we reset manually here.
+    if (sprite) {
+      sprite.stop();
+      const idleKey = getAnimationKey(this.definitionId, "Idle", this.currentDirection);
+      if (this.scene.anims.exists(idleKey)) {
+        sprite.play(idleKey);
+        sprite.stop();
+      }
+    }
     this.darkenSprite();
     return Promise.resolve();
   }
@@ -503,6 +538,9 @@ export class PokemonSprite {
   }
 
   flashDamage(): Promise<void> {
+    if (this.isKnockedOut) {
+      return Promise.resolve();
+    }
     return new Promise((resolve) => {
       this.playAnimationOnce("Hurt").catch(() => undefined);
       this.scene.tweens.add({
@@ -520,10 +558,7 @@ export class PokemonSprite {
   }
 
   showDamageEstimate(estimate: DamageEstimate | null): void {
-    if (this.damageEstimateGraphics) {
-      this.damageEstimateGraphics.destroy();
-      this.damageEstimateGraphics = null;
-    }
+    this.damageEstimateGraphics.clear();
 
     if (!estimate || (estimate.min === 0 && estimate.max === 0)) {
       return;
@@ -531,39 +566,40 @@ export class PokemonSprite {
 
     const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 2;
     const barX = -HP_BAR_WIDTH / 2;
-    const innerWidth = HP_BAR_WIDTH - 2;
 
     const hpAfterMax = Math.max(0, (this.currentHpRatio * this.maxHp - estimate.max) / this.maxHp);
     const hpAfterMin = Math.max(0, (this.currentHpRatio * this.maxHp - estimate.min) / this.maxHp);
 
-    this.damageEstimateGraphics = this.scene.add.graphics();
-    this.damageEstimateGraphics.setPosition(this.container.x, this.container.y);
-    this.damageEstimateGraphics.setDepth(this.container.depth + 1);
+    // Aligned with drawHpBar() which fills edge-to-edge (no 1px inset). The
+    // previous implementation inset by 1px on all sides, which reduced the
+    // overlay height to 0 on a 2px-tall HP bar and made it invisible.
+    const barAfterMaxDamage = HP_BAR_WIDTH * hpAfterMax;
+    const barAfterMinDamage = HP_BAR_WIDTH * hpAfterMin;
+    const barCurrentHp = HP_BAR_WIDTH * this.currentHpRatio;
 
-    const barAfterMaxDamage = innerWidth * hpAfterMax;
-    const barAfterMinDamage = innerWidth * hpAfterMin;
-    const barCurrentHp = innerWidth * this.currentHpRatio;
+    const possibleWidth = barAfterMinDamage - barAfterMaxDamage;
+    const guaranteedWidth = barCurrentHp - barAfterMinDamage;
 
-    if (barAfterMinDamage - barAfterMaxDamage > 0) {
+    if (possibleWidth > 0) {
       this.damageEstimateGraphics.fillStyle(DAMAGE_ESTIMATE_COLOR, DAMAGE_ESTIMATE_ALPHA_POSSIBLE);
       this.damageEstimateGraphics.fillRect(
-        barX + 1 + barAfterMaxDamage,
-        offsetY + 1,
-        barAfterMinDamage - barAfterMaxDamage,
-        HP_BAR_HEIGHT - 2,
+        barX + barAfterMaxDamage,
+        offsetY,
+        possibleWidth,
+        HP_BAR_HEIGHT,
       );
     }
 
-    if (barCurrentHp - barAfterMinDamage > 0) {
+    if (guaranteedWidth > 0) {
       this.damageEstimateGraphics.fillStyle(
         DAMAGE_ESTIMATE_COLOR,
         DAMAGE_ESTIMATE_ALPHA_GUARANTEED,
       );
       this.damageEstimateGraphics.fillRect(
-        barX + 1 + barAfterMinDamage,
-        offsetY + 1,
-        barCurrentHp - barAfterMinDamage,
-        HP_BAR_HEIGHT - 2,
+        barX + barAfterMinDamage,
+        offsetY,
+        guaranteedWidth,
+        HP_BAR_HEIGHT,
       );
     }
   }

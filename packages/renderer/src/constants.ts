@@ -233,8 +233,12 @@ export const STATUS_SPRITE_ICON_OFFSET_X = 8;
 export const STATUS_SPRITE_ICON_SCALE = 0.175;
 
 export const DAMAGE_ESTIMATE_COLOR = 0x000000;
-export const DAMAGE_ESTIMATE_ALPHA_GUARANTEED = 0.5;
-export const DAMAGE_ESTIMATE_ALPHA_POSSIBLE = 0.3;
+// Alpha values tuned so the overlay is clearly visible on a colored HP bar.
+// 0.5 / 0.3 (the previous values) were lost in the fill color. 0.85 for
+// guaranteed damage gives a near-opaque dark band; 0.55 for the variance
+// makes it clearly distinguishable. Tune together with team colors.
+export const DAMAGE_ESTIMATE_ALPHA_GUARANTEED = 0.85;
+export const DAMAGE_ESTIMATE_ALPHA_POSSIBLE = 0.55;
 export const DAMAGE_ESTIMATE_TEXT_SIZE = 7;
 export const DAMAGE_ESTIMATE_TEXT_COLOR = "#ffffff";
 export const DAMAGE_ESTIMATE_TEXT_STROKE_COLOR = "#000000";
@@ -246,7 +250,15 @@ export const BATTLE_TEXT_DURATION_MS = 3500;
 export const BATTLE_TEXT_DRIFT_Y = -20;
 export const BATTLE_TEXT_STROKE_COLOR = "#000000";
 export const BATTLE_TEXT_STROKE_WIDTH = 2;
+// Vertical offset applied to a "secondary" text that belongs to the same
+// beat as a "primary" text (e.g. the effectiveness label above the damage
+// number). Both texts are spawned with the same computed delay so they drift
+// upward together as a single scroll.
 export const BATTLE_TEXT_STAGGER_Y = -10;
+// Delay between two independent battle-text beats on the same target. The
+// first beat spawns immediately; subsequent beats are queued with this gap so
+// the viewer can read each one. Tune together with BATTLE_TEXT_DURATION_MS.
+export const BATTLE_TEXT_QUEUE_DELAY_MS = 700;
 export const DEPTH_BATTLE_TEXT = 1500;
 
 export const BATTLE_TEXT_COLOR_DAMAGE = "#ffffff";

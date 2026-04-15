@@ -1,5 +1,11 @@
 import type { BattleEvent } from "@pokemon-tactic/core";
-import { BattleEventType, DefensiveKind, StatName, StatusType } from "@pokemon-tactic/core";
+import {
+  BattleEventType,
+  DefensiveKind,
+  StatName,
+  StatusType,
+  TerrainType,
+} from "@pokemon-tactic/core";
 import {
   BATTLE_LOG_COLOR_BATTLE_ENDED,
   BATTLE_LOG_COLOR_DAMAGE,
@@ -99,6 +105,17 @@ const STAT_NAME_KEY: Record<string, { fr: string; en: string }> = {
   [StatName.Evasion]: { fr: "Esquive", en: "Evasion" },
 };
 
+const TERRAIN_STATUS_LOG_KEY: Partial<Record<TerrainType, { fr: string; en: string }>> = {
+  [TerrainType.Swamp]: {
+    fr: "{name} est empoisonné par le marécage !",
+    en: "{name} was poisoned by the swamp!",
+  },
+  [TerrainType.Magma]: {
+    fr: "{name} est brûlé par le magma !",
+    en: "{name} was burned by the magma!",
+  },
+};
+
 const DEFENSE_NAME: Record<string, { fr: string; en: string }> = {
   [DefensiveKind.Protect]: { fr: "Abri", en: "Protect" },
   [DefensiveKind.Detect]: { fr: "Détection", en: "Detect" },
@@ -170,6 +187,28 @@ export function formatBattleEvent(
       }
       const message = resolve(statusEntry.applied[lang], name);
       return { message, color: BattleLogColors.status, pokemonIds: [event.targetId] };
+    }
+
+    case BattleEventType.StatusImmune: {
+      const name = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr" ? `Ça n'affecte pas ${name}...` : `It doesn't affect ${name}...`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.targetId] };
+    }
+
+    case BattleEventType.TerrainStatusApplied: {
+      const name = context.getPokemonName(event.pokemonId);
+      const terrainEntry = TERRAIN_STATUS_LOG_KEY[event.terrain];
+      if (!terrainEntry) {
+        const statusEntry = STATUS_LOG_KEY[event.status];
+        if (!statusEntry) {
+          return null;
+        }
+        const fallback = resolve(statusEntry.applied[lang], name);
+        return { message: fallback, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+      }
+      const message = resolve(terrainEntry[lang], name);
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
     }
 
     case BattleEventType.StatusRemoved: {

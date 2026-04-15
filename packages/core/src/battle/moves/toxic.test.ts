@@ -109,4 +109,35 @@ describe("toxic", () => {
     expect(poisonedTarget.toxicCounter).toBe(0);
     vi.restoreAllMocks();
   });
+
+  it("does not apply badly_poisoned to a Poison-type target (Gastly) and emits StatusImmune", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const caster = makeCaster();
+    const gastly = MockPokemon.fresh(MockPokemon.base, {
+      id: "gastly-1",
+      definitionId: "gastly",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const { engine, state } = buildMoveTestEngine([caster, gastly]);
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: caster.id,
+      moveId: "toxic",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get(gastly.id)?.statusEffects).toHaveLength(0);
+    expect(result.events.map((e) => e.type)).not.toContain(BattleEventType.StatusApplied);
+    const immuneEvent = result.events.find((e) => e.type === BattleEventType.StatusImmune);
+    expect(immuneEvent).toBeDefined();
+    if (immuneEvent?.type === BattleEventType.StatusImmune) {
+      expect(immuneEvent.targetId).toBe(gastly.id);
+      expect(immuneEvent.status).toBe(StatusType.BadlyPoisoned);
+    }
+    vi.restoreAllMocks();
+  });
 });

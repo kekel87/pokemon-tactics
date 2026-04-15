@@ -401,7 +401,7 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
       moveIds: ["sludge-bomb"],
       currentPp: { "sludge-bomb": 10 },
     });
-    const ally = freshPokemon(MockPokemon.bulbasaur, {
+    const ally = freshPokemon(MockPokemon.squirtle, {
       id: "ally",
       playerId: PlayerId.Player1,
       position: { x: 3, y: 1 },

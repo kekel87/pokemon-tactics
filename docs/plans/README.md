@@ -66,3 +66,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 051 | [Types de terrain + modificateurs](./051-terrain-types-modifiers.md) | done | 2026-04-14 |
 | 052 | [Orientation tactique (bonus/malus dégâts face/flanc/dos)](./052-orientation-tactique.md) | done | 2026-04-14 |
 | 053 | [Undo déplacement](./053-undo-movement.md) | done | 2026-04-14 |
+| 054 | [Système CT (Charge Time)](./054-ct-system.md) | done | 2026-04-15 |
+| 055 | [Bug gatling](./055-bug-gatling.md) | done | 2026-04-15 |
