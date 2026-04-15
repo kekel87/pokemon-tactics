@@ -13,6 +13,10 @@
   },
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "data:update": "tsx scripts/build-reference.ts",
+    "data:update:skip-fetch": "tsx scripts/build-reference.ts --skip-fetch",
+    "data:update:fetch-only": "tsx scripts/build-reference.ts --fetch-only",
+    "data:diff": "tsx scripts/data-diff.ts"
   }
 }

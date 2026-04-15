@@ -1960,11 +1960,11 @@
       "fr": "Cœur Soin"
     },
     "shortDescription": {
-      "en": "Has a 30% chance of curing each adjacent ally of any major status ailment after each turn.",
+      "en": "50% chance this Pokemon's ally has its status cured at the end of each turn.",
       "fr": "Soigne parfois une altération de statut d’un allié proche."
     },
     "longDescription": {
-      "en": "Friendly Pokémon next to this Pokémon in double and triple battles each have a 30% chance of being cured of any major status ailment after each turn.",
+      "en": "50% chance this Pokemon's ally has its non-volatile status condition cured at the end of each turn.",
       "fr": "Soigne parfois une altération de statut d’un allié proche."
     },
     "flags": {
@@ -4669,11 +4669,11 @@
       "fr": "Mue"
     },
     "shortDescription": {
-      "en": "Has a 33% chance of curing any major status ailment after each turn.",
+      "en": "This Pokemon has a 30% chance to have its status cured at the end of each turn.",
       "fr": "Le Pokémon soigne parfois ses altérations de statut en muant."
     },
     "longDescription": {
-      "en": "After each turn, this Pokémon has a 33% of being cured of any major status ailment.",
+      "en": "This Pokemon has a 30% chance to have its non-volatile status condition cured at the end of each turn.",
       "fr": "Le Pokémon soigne parfois ses altérations de statut en muant."
     },
     "flags": {
@@ -6118,7 +6118,7 @@
       "fr": "Poing Invisible"
     },
     "shortDescription": {
-      "en": "Contact moves can strike through Protect/Detect.",
+      "en": "This Pokemon's contact moves ignore a target's protection and deal 1/4 the usual damage.",
       "fr": "Si le Pokémon utilise une attaque directe, celle-ci\\npourra toucher la cible même si elle se protège."
     },
     "longDescription": {
