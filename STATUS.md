@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-15 (plan 054 terminé : système CT complet — dual-mode RR/CT, TurnTimeline CT, toggle TeamSelect)
+> Dernière mise à jour : 2026-04-15 (plan 055 terminé : bug gatling — immunité statut par type, icône terrain, KO anim, HP preview, stagger texte)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -781,12 +781,11 @@
   - Étape 22 (tooltip terrain InfoPanel) déplacée au backlog
 
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
-- **Plan 054 terminé** — prochains candidats :
+- **Plan 055 terminé** — bug gatling (immunité statut par type, icône terrain manquante, KO anim, HP preview, stagger texte, ombrage flancs uniformisé)
+- **Prochains candidats** :
   - **Preview timeline FFX-style sur hover** (Option C retenue en roadmap) — afficher les positions prédites des Pokemon sur la timeline CT au survol des actions
   - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)
-- **Bugs CT à corriger** (indépendants du plan 054, voir backlog.md) :
-  - KO idle : un Pokemon qui tombe en dessous du seuil CT juste après son KO peut déclencher une tentative de tour fantôme
-  - Poison immunité : le terrain swamp n'applique pas le Poison sur un Pokemon déjà empoisonné normalement en mode CT (immunité correcte en RR)
+  - Régénération du tileset.png avec les nouvelles brightness uniformes (voir docs/backlog.md)
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
 - Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
 - Validation visuelle plan 050 toujours souhaitable (empilement, pentes/escaliers sur toutes les maps)

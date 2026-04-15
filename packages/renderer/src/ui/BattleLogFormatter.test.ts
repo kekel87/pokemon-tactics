@@ -1,4 +1,10 @@
-import { BattleEventType, DefensiveKind, StatName, StatusType } from "@pokemon-tactic/core";
+import {
+  BattleEventType,
+  DefensiveKind,
+  StatName,
+  StatusType,
+  TerrainType,
+} from "@pokemon-tactic/core";
 import { describe, expect, it } from "vitest";
 import {
   BattleLogColors,
@@ -195,6 +201,56 @@ describe("BattleLogFormatter", () => {
         enContext,
       ) as BattleLogEntry;
       expect(result.message).toBe("Pikachu snapped out of confusion");
+    });
+  });
+
+  describe("StatusImmune", () => {
+    it("formats in French with the target name", () => {
+      const result = formatBattleEvent(
+        { type: BattleEventType.StatusImmune, targetId: "pika", status: StatusType.Paralyzed },
+        frContext,
+      ) as BattleLogEntry;
+      expect(result.message).toBe("Ça n'affecte pas Pikachu...");
+      expect(result.color).toBe(BattleLogColors.status);
+      expect(result.pokemonIds).toEqual(["pika"]);
+    });
+
+    it("formats in English with the target name", () => {
+      const result = formatBattleEvent(
+        { type: BattleEventType.StatusImmune, targetId: "bulba", status: StatusType.Poisoned },
+        enContext,
+      ) as BattleLogEntry;
+      expect(result.message).toBe("It doesn't affect Bulbasaur...");
+    });
+  });
+
+  describe("TerrainStatusApplied", () => {
+    it("formats swamp poison in French", () => {
+      const result = formatBattleEvent(
+        {
+          type: BattleEventType.TerrainStatusApplied,
+          pokemonId: "pika",
+          terrain: TerrainType.Swamp,
+          status: StatusType.Poisoned,
+        },
+        frContext,
+      ) as BattleLogEntry;
+      expect(result.message).toBe("Pikachu est empoisonné par le marécage !");
+      expect(result.color).toBe(BattleLogColors.status);
+      expect(result.pokemonIds).toEqual(["pika"]);
+    });
+
+    it("formats magma burn in English", () => {
+      const result = formatBattleEvent(
+        {
+          type: BattleEventType.TerrainStatusApplied,
+          pokemonId: "bulba",
+          terrain: TerrainType.Magma,
+          status: StatusType.Burned,
+        },
+        enContext,
+      ) as BattleLogEntry;
+      expect(result.message).toBe("Bulbasaur was burned by the magma!");
     });
   });
 

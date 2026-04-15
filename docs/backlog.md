@@ -4,39 +4,15 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Bugs
 
-### Flanc différent sur flip pente/escalier (raccord visible)
-- Les variantes E de pente et escalier sont obtenues au rendu via `sprite.setFlipX(true)` (cf. `decodeTiledGid` + `IsometricGrid.drawGridFromTileData`).
-- Problème : le flip horizontal inverse aussi la répartition d'ombrage sur les flancs. La convention de rendu dans `scripts/make-iso-tile.py` (LEFT_BRIGHTNESS=0.75, RIGHT_BRIGHTNESS=0.55) suppose un éclairage depuis le sud-est. Quand la tile est flipée, la face lumineuse se retrouve du "mauvais" côté → raccord visible avec les tiles non-flipées adjacentes.
-- Options :
-  - Dessiner des variantes E explicites dans le tileset (4 tiles au lieu de 2 par orientation, pas de flip).
-  - Uniformiser l'ombrage des flancs gauche/droit (même brightness) — plus simple mais plus plat visuellement.
-
-### Textes flottants superposés (multi-hit, DOT simultanés)
-- Quand plusieurs `showBattleText` sont appelés au même moment pour le même Pokemon (ex: Double-Pied 2 coups, ou burn tick + magma DOT), les textes s'affichent à la même position Y et se chevauchent.
-- `BATTLE_TEXT_STAGGER_Y` (-10) existe dans les constantes mais n'est pas utilisé automatiquement.
-- Fix : compteur par Pokemon pour décaler les textes successifs en Y, ou file d'attente avec délai.
-
-### Overlay noir/gris de preview dégâts sur la HP bar ne s'affiche plus
-- `showDamageEstimate` dans `PokemonSprite.ts` dessine un rectangle noir semi-transparent sur la HP bar pour prévisualiser les dégâts (garanti = 50% alpha, possible = 30% alpha).
-- L'overlay ne semble plus visible. Les constantes sont intactes (`DAMAGE_ESTIMATE_COLOR = 0x000000`, `DAMAGE_ESTIMATE_ALPHA_GUARANTEED = 0.5`).
-- Piste : vérifier si le `Graphics` object est bien positionné/visible (depth, position relative au container, taille de la HP bar).
-- Le texte de preview (chiffres min-max) fonctionne — seul l'overlay graphique est absent.
+### Régénérer le tileset.png avec les brightness uniformes (plan 055)
+- `scripts/make-iso-tile.py` a été mis à jour : `LEFT_BRIGHTNESS = RIGHT_BRIGHTNESS = 0.65` pour supprimer le raccord visible entre tiles flipées (variantes E) et non-flipées.
+- Le PNG `packages/renderer/public/assets/tilesets/terrain/tileset.png` n'a pas encore été régénéré (plan 055 livré avec le script seul pour éviter de casser l'asset sans validation visuelle). Le raccord reste visible tant que le tileset n'est pas rejoué.
+- Étapes de régénération : 15 `build-terrain.py` (un par terrain solide/liquide, besoin des top/side extractions PMD) + `assemble-tileset.py`. Voir `scripts/README.md` pour la séquence exacte.
+- À planifier avec une session dédiée régénération + validation visuelle sur toutes les maps.
 
 ### Afficher les modificateurs terrain actifs dans l'InfoPanel
 - Quand on retravaille l'InfoPanel, afficher les effets terrain en cours sur la tile du Pokemon sélectionné/survolé (ex: "Évasion +1 (herbe haute)", "Brûlure au passage (magma)", "Malus déplacement +2 (marécage)").
 - Lié à l'étape 22 du plan 051 (terrain dans tooltip).
-
-### Immunité au poison non respectée (type Poison empoisonné)
-- Observé en playtest CT : Fantominus (type Poison/Ghost) empoisonné alors qu'il devrait être immunisé.
-- Pokemon de type Poison ou Acier doivent être immunisés au statut **poisoned** et **badly_poisoned**.
-- À investiguer dans les handlers de moves poison (`poison-powder`, `toxic`, `sludge-bomb`, etc.) et dans `effect-processor` — vérifier si la vérification d'immunité par type existe et est appliquée.
-- **Indépendant du plan 054 CT** (bug préexistant révélé par le playtest).
-
-### Pokemon KO continuent d'animer idle
-- Observé en playtest CT : Kangourex et Otaria jouent encore leur animation idle alors qu'ils sont KO.
-- Probable cause : l'anim `faint` (fade-out) ne s'est pas déclenchée, ou la boucle idle redémarre après la mort.
-- À vérifier dans `PokemonSprite.ts` / `playFaintAndStay` et l'appel depuis `GameController` lors d'un `PokemonKO`.
-- **Indépendant du plan 054 CT**.
 
 ## Feedback visuel
 
@@ -76,6 +52,26 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 
 ## Résolus
+
+### ~~Immunité au poison non respectée (type Poison empoisonné)~~ (plan 055)
+- Fantominus (Poison/Ghost) se faisait empoisonner par Toxic : aucune vérification d'immunité de statut par type dans `handle-status.ts`.
+- Fix : helper `isImmuneToStatusByType` avec la table officielle Pokemon (Poison/Steel → Poisoned/BadlyPoisoned, Electric → Paralyzed, Fire → Burned, Ice → Frozen). Check appliquée avant la règle "un seul statut majeur".
+
+### ~~Pokemon KO continuent d'animer idle~~ (plan 055)
+- Kangourex et Otaria continuaient leur boucle idle après KO : `playFaintAndStay` stoppait l'anim mais ne posait aucun flag, et plusieurs event handlers (`setDirection`, `flashDamage`, `setStatusAnimation`, callback `playAnimationOnce`) relançaient Idle après coup.
+- Fix : flag `isKnockedOut = true` posé dans `playFaintAndStay`, early-return dans les méthodes d'animation. `setConfusionWobble(false)` reste autorisé après KO pour permettre le nettoyage.
+
+### ~~Icône de statut manquante suite à un empoisement par un marais~~ (plan 055)
+- Le core émettait `TerrainStatusApplied` (swamp → Poisoned, magma → Burned) mais le renderer n'avait aucun handler → icône jamais mise à jour en live, BattleLog silencieux.
+- Fix : nouveau case dans `GameController.handleEvent` qui appelle `sprite.updateStatus(pokemon.statusEffects)`, et nouveau cas i18n FR/EN dans `BattleLogFormatter.ts` ("X est empoisonné par le marécage !", "X was burned by the magma!").
+
+### ~~Overlay preview dégâts sur HP bar~~ (plan 055)
+- Root cause : `HP_BAR_HEIGHT = 2` et le code faisait `HP_BAR_HEIGHT - 2 = 0` → fillRect de 0px invisible. Plus les insets `+1` sur barX/offsetY superflus.
+- Fix : edge-to-edge alignement avec `hpBarFill` + `damageEstimateGraphics` persistant enfant du container + alphas bumpés à 0.55/0.85.
+
+### ~~Textes flottants superposés (multi-hit, DOT simultanés)~~ (plan 055)
+- Plusieurs `showBattleText` simultanés sur le même Pokemon se chevauchaient à la même position Y.
+- Fix : queue temporelle par `targetId`. `showBattleText` accepte maintenant `targetId` (auto-queue via `acquireSpawnDelay`) OU `delay` explicite (pour grouper plusieurs texts sur un même "beat" — damage + effectiveness partagent le même délai, le 2e avec `offsetY: BATTLE_TEXT_STAGGER_Y`). Délai entre beats : `BATTLE_TEXT_QUEUE_DELAY_MS = 700` dans `constants.ts`. Spawn différé via `scene.time.delayedCall`. Tests unit sur `acquireSpawnDelay`.
 
 ### ~~Profondeur du sélecteur/highlight vs sprites Pokemon~~ (bugfix hors plan 2026-04-14)
 - Les highlights (déplacement, attaque, portée ennemie) et le curseur passaient par-dessus les sprites Pokemon.

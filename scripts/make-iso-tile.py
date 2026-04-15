@@ -28,8 +28,14 @@ TILE_H  = 32
 TOP_H   = 16   # height of the diamond top face
 DEPTH   = 16   # height of the side faces
 
-LEFT_BRIGHTNESS  = 0.75
-RIGHT_BRIGHTNESS = 0.55
+# Uniform shading on left/right flanks: the renderer obtains the east variant
+# of ramps/stairs by flipping the south variant horizontally (sprite.setFlipX).
+# Any asymmetry between LEFT_BRIGHTNESS and RIGHT_BRIGHTNESS produces a visible
+# seam between flipped and non-flipped neighbours. Using a single mid value
+# trades the illusion of a south-east light source for a clean join. Decision
+# #258 (plan 055).
+LEFT_BRIGHTNESS  = 0.65
+RIGHT_BRIGHTNESS = 0.65
 
 
 def project(src: Image.Image, canvas_size: tuple[int, int], data: tuple, poly: list) -> Image.Image:

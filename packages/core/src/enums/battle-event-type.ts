@@ -7,6 +7,7 @@ export const BattleEventType = {
   DamageDealt: "damage_dealt",
   StatusApplied: "status_applied",
   StatusRemoved: "status_removed",
+  StatusImmune: "status_immune",
   StatChanged: "stat_changed",
   PokemonKo: "pokemon_ko",
   PokemonEliminated: "pokemon_eliminated",

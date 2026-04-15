@@ -79,6 +79,24 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 
 Les agents se déclenchent **automatiquement** après chaque changement significatif. Ne pas attendre qu'on le demande. Ne pas lancer tous les agents — seulement ceux pertinents.
 
+### Exécution — foreground vs background
+
+Certains agents sont longs (navigation web, screenshots, analyse LLM approfondie) et bloqueraient l'humain s'ils tournaient en foreground. Lance-les systématiquement en **background** (`run_in_background: true` sur le Agent tool) :
+
+- `visual-tester` — Playwright prend ≥ 2 min même pour un check simple
+- `best-practices` — WebSearch + WebFetch
+- `debugger` — analyse opus, souvent multi-step
+- `balancer` — lance N combats headless
+
+Les agents courts (< 30s) restent en foreground : `core-guardian`, `commit-message`, `plan-reviewer`, `sandbox-json`.
+
+Quand tu lances un agent en background :
+1. Dis à l'humain que tu l'as lancé et qu'il tourne
+2. Continue à travailler sur d'autres tâches si possible (pas d'attente active)
+3. Quand le résultat arrive, synthétise pour l'humain
+
+Règle d'or : **jamais plus d'un agent long en foreground par turn**. Si tu dois en enchaîner plusieurs (post-plan, session close), lance-les en parallèle en background et synthétise à la fin.
+
 ### Quand lancer quoi
 
 **Après chaque étape intermédiaire d'un plan (code écrit + tests passent) :**

@@ -126,3 +126,23 @@ La vérification est complète quand :
 - Si tu détectes un bug visuel (interaction cassée, élément manquant) : signale-le dans le rapport et recommande `debugger` pour l'analyse
 - Si tu détectes une erreur JavaScript dans la console liée au renderer : recommande `code-reviewer` sur le fichier concerné
 - Si le jeu ne charge pas du tout (canvas noir, erreur fatale) : arrête-toi et signale à l'humain — ne tente pas de diagnostiquer seul
+
+## Budget temps — IMPORTANT
+
+Tu as **3 minutes maximum** par invocation, pas plus. Un agent qui boucle pendant 10 min bloque l'humain.
+
+Règles strictes :
+- **Pas plus de 3 screenshots** par run (objectif, avant/après, et un contexte). Si tu prends le 4e, tu dépasses probablement le budget
+- **Pas plus de 2 tentatives** pour atteindre un état cible (ex: "ouvrir le menu d'action"). Si les 2 échouent, rapporte l'échec avec ce que tu as trouvé et stop
+- **Pas de flow complet A→Z** si l'humain te demande un point précis. Va directement à l'état cible via setup sandbox JSON ou query params, ne passe pas par tous les menus
+- **Rapport partiel OK** : si tu n'as pas tout vérifié mais que tu as un résultat intermédiaire utile, rapporte-le et stop. L'humain préfère un rapport incomplet en 2 min à un rapport complet en 15 min
+
+Si tu sens que tu vas dépasser :
+- **Stop immédiatement**
+- Rapporte ce que tu as vu jusque-là
+- Documente dans `visual-tester-knowledge.md` ce qui a rendu ce test long (pour accélérer la prochaine fois)
+- Propose à l'humain de tester lui-même ce qui reste, avec les étapes exactes
+
+## Shortcut — sandbox JSON direct
+
+Pour tester un état de combat précis (post-attaque, avec terrain spécifique, etc.), utilise `pnpm dev:sandbox '<JSON>'` au lieu de naviguer dans les menus. Voir `SandboxConfig` dans `packages/renderer/src/types/SandboxConfig.ts` et l'agent `sandbox-json` pour générer le JSON à partir d'une description.

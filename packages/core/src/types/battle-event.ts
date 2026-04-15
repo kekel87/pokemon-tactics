@@ -30,6 +30,7 @@ export type BattleEvent =
     }
   | { type: typeof BattleEventType.StatusApplied; targetId: string; status: StatusType }
   | { type: typeof BattleEventType.StatusRemoved; targetId: string; status: StatusType }
+  | { type: typeof BattleEventType.StatusImmune; targetId: string; status: StatusType }
   | { type: typeof BattleEventType.StatChanged; targetId: string; stat: StatName; stages: number }
   | { type: typeof BattleEventType.PokemonKo; pokemonId: string; countdownStart: number }
   | { type: typeof BattleEventType.PokemonEliminated; pokemonId: string }

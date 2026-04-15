@@ -79,7 +79,7 @@ import { PokemonSprite } from "../sprites/PokemonSprite";
 import type { ActionMenu } from "../ui/ActionMenu";
 import { type BattleLogContext, formatBattleEvent } from "../ui/BattleLogFormatter";
 import type { BattleLogPanel } from "../ui/BattleLogPanel";
-import { showBattleText } from "../ui/BattleText";
+import { acquireSpawnDelay, resetStaggerState, showBattleText } from "../ui/BattleText";
 import type { BattleUI } from "../ui/BattleUI";
 import type { DirectionPicker } from "../ui/DirectionPicker";
 import type { InfoPanel } from "../ui/InfoPanel";
@@ -185,6 +185,7 @@ export class GameController {
     this.battleLogPanel = battleLogPanel;
     this.setup = setup ?? null;
     this.battleConfig = battleConfig ?? DEFAULT_BATTLE_CONFIG;
+    resetStaggerState();
   }
 
   setSetup(setup: BattleSetupResult): void {
@@ -680,9 +681,7 @@ export class GameController {
       return;
     }
 
-    const undoAction = this.legalActions.find(
-      (action) => action.kind === ActionKind.UndoMove,
-    );
+    const undoAction = this.legalActions.find((action) => action.kind === ActionKind.UndoMove);
     if (!undoAction) {
       return;
     }
@@ -912,34 +911,45 @@ export class GameController {
             sprite.updateHp(pokemon.currentHp, pokemon.maxHp);
             showBattleText(this.scene, pos.x, pos.y, `+${Math.abs(event.amount)}`, {
               color: BATTLE_TEXT_COLOR_HEAL,
+              targetId: event.targetId,
             });
           } else if (event.effectiveness === 0) {
             showBattleText(this.scene, pos.x, pos.y, t("battle.immune"), {
               color: BATTLE_TEXT_COLOR_IMMUNE,
+              targetId: event.targetId,
             });
           } else {
             sprite.updateHp(pokemon.currentHp, pokemon.maxHp);
+            // Compute the beat delay once so the damage number and the
+            // effectiveness label spawn together as a single scroll. Queued
+            // by targetId — multi-hit beats stack up in the queue.
+            const beatDelay = acquireSpawnDelay(event.targetId, this.scene.time.now);
             showBattleText(this.scene, pos.x, pos.y, `-${event.amount}`, {
               color: BATTLE_TEXT_COLOR_DAMAGE,
+              delay: beatDelay,
             });
             if (event.effectiveness >= 4) {
               showBattleText(this.scene, pos.x, pos.y, t("battle.extremelyEffective"), {
                 color: BATTLE_TEXT_COLOR_EXTREMELY_EFFECTIVE,
+                delay: beatDelay,
                 offsetY: BATTLE_TEXT_STAGGER_Y,
               });
             } else if (event.effectiveness >= 2) {
               showBattleText(this.scene, pos.x, pos.y, t("battle.superEffective"), {
                 color: BATTLE_TEXT_COLOR_SUPER_EFFECTIVE,
+                delay: beatDelay,
                 offsetY: BATTLE_TEXT_STAGGER_Y,
               });
             } else if (event.effectiveness <= 0.25) {
               showBattleText(this.scene, pos.x, pos.y, t("battle.mostlyIneffective"), {
                 color: BATTLE_TEXT_COLOR_MOSTLY_INEFFECTIVE,
+                delay: beatDelay,
                 offsetY: BATTLE_TEXT_STAGGER_Y,
               });
             } else if (event.effectiveness <= 0.5) {
               showBattleText(this.scene, pos.x, pos.y, t("battle.notVeryEffective"), {
                 color: BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE,
+                delay: beatDelay,
                 offsetY: BATTLE_TEXT_STAGGER_Y,
               });
             }
@@ -992,6 +1002,29 @@ export class GameController {
         break;
       }
 
+      case BattleEventType.StatusImmune: {
+        const sprite = this.sprites.get(event.targetId);
+        if (sprite) {
+          const pos = sprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("battle.immune"), {
+            color: BATTLE_TEXT_COLOR_IMMUNE,
+            targetId: event.targetId,
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.TerrainStatusApplied: {
+        const sprite = this.sprites.get(event.pokemonId);
+        const pokemon = this.state.pokemon.get(event.pokemonId);
+        if (sprite && pokemon) {
+          sprite.updateStatus(pokemon.statusEffects);
+          sprite.setStatusAnimation(event.status === StatusType.Asleep);
+        }
+        this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
       case BattleEventType.TurnEnded: {
         const pokemon = this.state.pokemon.get(event.pokemonId);
         const sprite = this.sprites.get(event.pokemonId);
@@ -1007,6 +1040,7 @@ export class GameController {
           const pos = missSprite.getTextPosition();
           showBattleText(this.scene, pos.x, pos.y, t("battle.miss"), {
             color: BATTLE_TEXT_COLOR_MISS,
+            targetId: event.targetId,
           });
         }
         break;
@@ -1024,6 +1058,7 @@ export class GameController {
             : t("battle.statDown", { stat: statLabel, stages: String(event.stages) });
           showBattleText(this.scene, pos.x, pos.y, text, {
             color: isUp ? BATTLE_TEXT_COLOR_BUFF : BATTLE_TEXT_COLOR_DEBUFF,
+            targetId: event.targetId,
           });
         }
         this.updateInfoPanelForActivePokemon();
@@ -1036,6 +1071,7 @@ export class GameController {
           const pos = confSprite.getTextPosition();
           showBattleText(this.scene, pos.x, pos.y, t("battle.confused"), {
             color: BATTLE_TEXT_COLOR_CONFUSED,
+            targetId: event.pokemonId,
           });
         }
         break;
@@ -1052,6 +1088,7 @@ export class GameController {
             const pos = defSprite.getTextPosition();
             showBattleText(this.scene, pos.x, pos.y, t("battle.blocked"), {
               color: BATTLE_TEXT_COLOR_BUFF,
+              targetId: event.defenderId,
             });
           }
         }
@@ -1069,6 +1106,7 @@ export class GameController {
             t("battle.hits", { count: String(event.totalHits) }),
             {
               color: BATTLE_TEXT_COLOR_INFO,
+              targetId: event.targetId,
             },
           );
         }
@@ -1081,6 +1119,7 @@ export class GameController {
           const pos = rcSprite.getTextPosition();
           showBattleText(this.scene, pos.x, pos.y, t("battle.recharge"), {
             color: BATTLE_TEXT_COLOR_INFO,
+            targetId: event.pokemonId,
           });
         }
         break;
@@ -1149,6 +1188,7 @@ export class GameController {
           const fallPos = fallSprite.getTextPosition();
           showBattleText(this.scene, fallPos.x, fallPos.y, `${t("battle.fall")} -${event.amount}`, {
             color: BATTLE_TEXT_COLOR_FALL_DAMAGE,
+            targetId: event.pokemonId,
           });
         }
         break;
@@ -1166,7 +1206,7 @@ export class GameController {
             impactPos.x,
             impactPos.y,
             `${t("battle.impact")} -${event.amount}`,
-            { color: BATTLE_TEXT_COLOR_FALL_DAMAGE },
+            { color: BATTLE_TEXT_COLOR_FALL_DAMAGE, targetId: event.pokemonId },
           );
         }
         break;
@@ -1184,7 +1224,7 @@ export class GameController {
             tdPos.x,
             tdPos.y,
             `${t("battle.terrainDamage")} -${event.amount}`,
-            { color: BATTLE_TEXT_COLOR_FALL_DAMAGE },
+            { color: BATTLE_TEXT_COLOR_FALL_DAMAGE, targetId: event.pokemonId },
           );
         }
         break;
@@ -1227,6 +1267,7 @@ export class GameController {
             event.terrain === TerrainType.Lava ? t("battle.melted") : t("battle.drowned");
           showBattleText(this.scene, ltPos.x, ltPos.y, text, {
             color: BATTLE_TEXT_COLOR_FALL_DAMAGE,
+            targetId: event.pokemonId,
           });
         }
         break;
