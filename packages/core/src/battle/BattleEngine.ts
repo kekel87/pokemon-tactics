@@ -5,9 +5,11 @@ import { Direction } from "../enums/direction";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import { PokemonType } from "../enums/pokemon-type";
+import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { isTerrainPassable, TerrainType } from "../enums/terrain-type";
+import { TurnSystemKind } from "../enums/turn-system-kind";
 import { Grid } from "../grid/Grid";
 import { resolveTargeting } from "../grid/targeting";
 import type { Action, ActionResult } from "../types/action";
@@ -25,6 +27,8 @@ import { manhattanDistance } from "../utils/manhattan-distance";
 import type { RandomFn } from "../utils/prng";
 import { checkAccuracy } from "./accuracy-check";
 import { applyImpactDamage } from "./apply-impact-damage";
+import { ChargeTimeTurnSystem } from "./ChargeTimeTurnSystem";
+import { CT_START, computeCtActionCost, computeCtGain, computeMoveCost } from "./ct-costs";
 import { estimateDamage } from "./damage-calculator";
 import { getAttackOrigin } from "./defense-check";
 import { processEffects } from "./effect-processor";
@@ -61,6 +65,8 @@ export class BattleEngine {
   private readonly moveRegistry: Map<string, MoveDefinition>;
   private readonly typeChart: TypeChart;
   private readonly turnManager: TurnManager;
+  private readonly chargeTimeTurnSystem: ChargeTimeTurnSystem | null;
+  private readonly turnSystemKind: TurnSystemKind;
   private readonly listeners: Map<string, Set<EventHandler>>;
   private readonly grid: Grid;
   private readonly pokemonTypesMap: Map<string, PokemonType[]>;
@@ -68,7 +74,7 @@ export class BattleEngine {
   private readonly random: RandomFn;
   private readonly seed: number;
   private readonly recordedActions: Action[] = [];
-  private turnState = { hasMoved: false, hasActed: false };
+  private turnState = { hasMoved: false, hasActed: false, lastMoveId: null as string | null };
   private preMoveSnapshot: { position: Position; orientation: Direction; hadBurn: boolean } | null =
     null;
   private restrictActions = false;
@@ -84,6 +90,7 @@ export class BattleEngine {
     turnPipeline: TurnPipeline = new TurnPipeline(),
     random?: RandomFn,
     seed = 0,
+    turnSystemKind: TurnSystemKind = TurnSystemKind.RoundRobin,
   ) {
     this.state = state;
     this.moveRegistry = moveRegistry;
@@ -92,6 +99,7 @@ export class BattleEngine {
     this.turnPipeline = turnPipeline;
     this.random = random ?? (() => Math.random());
     this.seed = seed;
+    this.turnSystemKind = turnSystemKind;
     this.listeners = new Map();
     this.grid = new Grid(state.grid[0]?.length ?? 0, state.grid.length, state.grid);
     this.turnManager = new TurnManager([...state.pokemon.values()], getEffectiveInitiative);
@@ -100,7 +108,20 @@ export class BattleEngine {
     this.turnPipeline.registerEndTurn(seededTickHandler, 200);
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
     this.turnPipeline.registerEndTurn(createTerrainTickHandler(this.pokemonTypesMap), 400);
-    this.syncTurnState();
+
+    if (turnSystemKind === TurnSystemKind.ChargeTime) {
+      const pokemonIds = [...state.pokemon.keys()];
+      this.chargeTimeTurnSystem = new ChargeTimeTurnSystem(pokemonIds, (id) =>
+        this.getCtGainForPokemon(id),
+      );
+      this.state.turnSystemKind = TurnSystemKind.ChargeTime;
+      this.syncCtSnapshot();
+      this.advanceTurnCt([]);
+    } else {
+      this.chargeTimeTurnSystem = null;
+      this.state.turnSystemKind = TurnSystemKind.RoundRobin;
+      this.syncTurnState();
+    }
   }
 
   getGrid(): Grid {
@@ -166,12 +187,23 @@ export class BattleEngine {
     return this.getReachableTiles(pokemon).map((tile) => tile.position);
   }
 
+  private getCurrentActorId(): string {
+    if (this.turnSystemKind === TurnSystemKind.ChargeTime) {
+      const id = this.state.turnOrder[0];
+      if (!id) {
+        throw new Error("No current actor in CT mode");
+      }
+      return id;
+    }
+    return this.turnManager.getCurrentPokemonId();
+  }
+
   getLegalActions(playerId: string): Action[] {
     if (this.battleOver) {
       return [];
     }
 
-    const currentPokemonId = this.turnManager.getCurrentPokemonId();
+    const currentPokemonId = this.getCurrentActorId();
     const currentPokemon = this.state.pokemon.get(currentPokemonId);
 
     if (!currentPokemon || currentPokemon.playerId !== playerId) {
@@ -256,7 +288,7 @@ export class BattleEngine {
       return { success: false, events: [], error: ActionError.BattleOver };
     }
 
-    const currentPokemonId = this.turnManager.getCurrentPokemonId();
+    const currentPokemonId = this.getCurrentActorId();
     const currentPokemon = this.state.pokemon.get(currentPokemonId);
 
     if (!currentPokemon || currentPokemon.playerId !== playerId) {
@@ -549,6 +581,7 @@ export class BattleEngine {
     }
 
     this.turnState.hasActed = true;
+    this.turnState.lastMoveId = moveId;
     this.preMoveSnapshot = null;
 
     if (move.recharge && pokemon.currentHp > 0) {
@@ -1106,7 +1139,12 @@ export class BattleEngine {
     }
 
     if (!this.battleOver) {
-      this.advanceTurn(events);
+      if (this.turnSystemKind === TurnSystemKind.ChargeTime) {
+        this.endCurrentTurnCt(pokemonId);
+        this.advanceTurnCt(events);
+      } else {
+        this.advanceTurn(events);
+      }
     }
   }
 
@@ -1128,7 +1166,7 @@ export class BattleEngine {
     while (iterations < totalPokemon) {
       const nextPokemonId = this.turnManager.getCurrentPokemonId();
 
-      this.turnState = { hasMoved: false, hasActed: false };
+      this.turnState = { hasMoved: false, hasActed: false, lastMoveId: null };
       this.preMoveSnapshot = null;
       this.restrictActions = false;
       this.confusedThisTurn = false;
@@ -1269,6 +1307,7 @@ export class BattleEngine {
     }
 
     this.turnManager.removePokemon(pokemonId);
+    this.chargeTimeTurnSystem?.onPokemonKO(pokemonId);
 
     pokemon.activeDefense = null;
 
@@ -1326,6 +1365,141 @@ export class BattleEngine {
       }
     }
     return alive;
+  }
+
+  private getCtGainForPokemon(pokemonId: string): number {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    if (!pokemon) {
+      return 0;
+    }
+    const baseStat = pokemon.baseStats.speed;
+    const stages = pokemon.statStages[StatName.Speed] ?? 0;
+    return computeCtGain(baseStat, stages);
+  }
+
+  private computeCurrentMoveCost(): number {
+    if (!this.turnState.hasActed || !this.turnState.lastMoveId) {
+      return 0;
+    }
+    const move = this.moveRegistry.get(this.turnState.lastMoveId);
+    if (!move) {
+      return 600;
+    }
+    return computeMoveCost(move.pp, move.power, move.effectTier);
+  }
+
+  private syncCtSnapshot(): void {
+    if (this.chargeTimeTurnSystem) {
+      this.state.ctSnapshot = this.chargeTimeTurnSystem.getCtSnapshot();
+    }
+  }
+
+  private advanceTurnCt(events: BattleEvent[]): void {
+    const ctSystem = this.chargeTimeTurnSystem;
+    if (!ctSystem) {
+      return;
+    }
+
+    const MAX_SKIP_ITERATIONS = 50;
+    let iterations = 0;
+
+    while (iterations < MAX_SKIP_ITERATIONS) {
+      const nextPokemonId = ctSystem.getNextActorId();
+
+      this.turnState = { hasMoved: false, hasActed: false, lastMoveId: null };
+      this.preMoveSnapshot = null;
+      this.restrictActions = false;
+      this.confusedThisTurn = false;
+      this.confusionChecked = false;
+
+      this.state.turnOrder = [nextPokemonId];
+      this.state.currentTurnIndex = 0;
+      this.syncCtSnapshot();
+
+      const turnStarted: BattleEvent = {
+        type: BattleEventType.TurnStarted,
+        pokemonId: nextPokemonId,
+        roundNumber: this.state.roundNumber,
+      };
+      this.emit(turnStarted);
+      events.push(turnStarted);
+
+      const startTurnResult = this.turnPipeline.executeStartTurn(nextPokemonId, this.state);
+      for (const event of startTurnResult.events) {
+        this.emit(event);
+        events.push(event);
+      }
+
+      if (startTurnResult.pokemonFainted) {
+        this.handleKo(nextPokemonId, events);
+        if (this.battleOver) {
+          return;
+        }
+        ctSystem.onActionComplete(nextPokemonId, CT_START);
+        this.syncCtSnapshot();
+        iterations++;
+        continue;
+      }
+
+      if (startTurnResult.skipAction) {
+        const skipEnded: BattleEvent = {
+          type: BattleEventType.TurnEnded,
+          pokemonId: nextPokemonId,
+        };
+        this.emit(skipEnded);
+        events.push(skipEnded);
+
+        const endTurnResult = this.turnPipeline.executeEndTurn(nextPokemonId, this.state);
+        for (const event of endTurnResult.events) {
+          this.emit(event);
+          events.push(event);
+        }
+        if (endTurnResult.pokemonFainted) {
+          for (const event of endTurnResult.events) {
+            if (event.type === BattleEventType.PokemonKo) {
+              this.handleKo(event.pokemonId, events);
+              if (this.battleOver) {
+                return;
+              }
+            }
+          }
+        }
+
+        ctSystem.onActionComplete(nextPokemonId, CT_START);
+        this.syncCtSnapshot();
+        iterations++;
+        continue;
+      }
+
+      if (startTurnResult.restrictActions) {
+        this.restrictActions = true;
+      }
+
+      const nextPokemon = this.state.pokemon.get(nextPokemonId);
+      if (nextPokemon) {
+        this.processConfusion(nextPokemon, events);
+        this.confusionChecked = true;
+      }
+
+      break;
+    }
+  }
+
+  private endCurrentTurnCt(pokemonId: string): void {
+    const ctSystem = this.chargeTimeTurnSystem;
+    if (!ctSystem) {
+      return;
+    }
+
+    const moveCost = this.computeCurrentMoveCost();
+    const actionCost = computeCtActionCost(
+      this.turnState.hasMoved,
+      this.turnState.hasActed,
+      moveCost,
+    );
+
+    ctSystem.onActionComplete(pokemonId, actionCost);
+    this.syncCtSnapshot();
   }
 
   private syncTurnState(): void {

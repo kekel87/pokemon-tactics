@@ -111,6 +111,8 @@ const fr: Translations = {
   "teamSelect.clear": "Vider",
   "teamSelect.autoPlacement": "Placement auto",
   "teamSelect.manualPlacement": "Placement manuel",
+  "teamSelect.turnSystemRr": "Tours fixes",
+  "teamSelect.turnSystemCt": "Charge Time",
   "pokemon.bulbasaur": "Bulbizarre",
   "pokemon.charmander": "Salamèche",
   "pokemon.squirtle": "Carapuce",

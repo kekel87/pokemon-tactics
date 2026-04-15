@@ -3,6 +3,7 @@ import {
   PlayerId,
   type PokemonDefinition,
   type TeamSelection,
+  TurnSystemKind,
   validateTeamSelection,
 } from "@pokemon-tactic/core";
 import { loadData } from "@pokemon-tactic/data";
@@ -71,6 +72,7 @@ interface PlayerColumnState {
 export interface TeamSelectResult {
   teams: TeamSelection[];
   autoPlacement: boolean;
+  turnSystemKind: TurnSystemKind;
 }
 
 export class TeamSelectScene extends Phaser.Scene {
@@ -85,10 +87,13 @@ export class TeamSelectScene extends Phaser.Scene {
   private gridContainer: Phaser.GameObjects.Container | null = null;
   private launchBg: Phaser.GameObjects.Rectangle | null = null;
   private launchText: Phaser.GameObjects.Text | null = null;
-  private autoPlacement = false;
+  private autoPlacement = true;
   private placementToggleBg: Phaser.GameObjects.Rectangle | null = null;
   private placementToggleText: Phaser.GameObjects.Text | null = null;
   private teamCountText: Phaser.GameObjects.Text | null = null;
+  private turnSystemKind: TurnSystemKind = TurnSystemKind.ChargeTime;
+  private turnSystemToggleBg: Phaser.GameObjects.Rectangle | null = null;
+  private turnSystemToggleText: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super("TeamSelectScene");
@@ -779,6 +784,26 @@ export class TeamSelectScene extends Phaser.Scene {
     this.refreshTeamCountText();
     curX += btnWidth + btnSpacing;
 
+    this.turnSystemToggleBg = this.add
+      .rectangle(curX + btnWidth / 2, btnY, btnWidth, 28, 0x333344, 0.8)
+      .setInteractive({ useHandCursor: true });
+    this.turnSystemToggleBg.setStrokeStyle(1, 0x555566);
+    this.turnSystemToggleText = this.add
+      .text(curX + btnWidth / 2, btnY, "", {
+        fontSize: "18px",
+        fontFamily: FONT_FAMILY,
+        color: "#cccccc",
+      })
+      .setOrigin(0.5);
+    this.turnSystemToggleBg.on("pointerdown", () => {
+      this.turnSystemKind =
+        this.turnSystemKind === TurnSystemKind.RoundRobin
+          ? TurnSystemKind.ChargeTime
+          : TurnSystemKind.RoundRobin;
+      this.refreshTurnSystemToggle();
+    });
+    curX += btnWidth + btnSpacing;
+
     this.placementToggleBg = this.add
       .rectangle(curX + btnWidth / 2, btnY, btnWidth, 28, 0x333344, 0.8)
       .setInteractive({ useHandCursor: true });
@@ -832,6 +857,7 @@ export class TeamSelectScene extends Phaser.Scene {
     this.launchBg.on("pointerdown", () => this.onLaunch());
 
     this.refreshPlacementToggle();
+    this.refreshTurnSystemToggle();
   }
 
   private cycleTeamCount(): void {
@@ -876,6 +902,17 @@ export class TeamSelectScene extends Phaser.Scene {
     this.teamCountText.setText(`${this.teamCount} ${t("teamSelect.teams")}`);
   }
 
+  private refreshTurnSystemToggle(): void {
+    if (!this.turnSystemToggleBg || !this.turnSystemToggleText) {
+      return;
+    }
+    const isCt = this.turnSystemKind === TurnSystemKind.ChargeTime;
+    this.turnSystemToggleText.setText(
+      isCt ? t("teamSelect.turnSystemCt") : t("teamSelect.turnSystemRr"),
+    );
+    this.turnSystemToggleBg.setFillStyle(isCt ? 0x224466 : 0x333344, 0.8);
+  }
+
   private refreshPlacementToggle(): void {
     if (!this.placementToggleBg || !this.placementToggleText) {
       return;
@@ -910,6 +947,7 @@ export class TeamSelectScene extends Phaser.Scene {
     const result: TeamSelectResult = {
       teams,
       autoPlacement: this.autoPlacement,
+      turnSystemKind: this.turnSystemKind,
     };
 
     this.scene.start("BattleScene", { teamSelectResult: result });

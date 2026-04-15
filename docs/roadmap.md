@@ -120,7 +120,9 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Types de terrain (lave, eau, herbe) + modificateurs — plan 051 terminé (core + tests + maps sandbox + renderer tint). Tooltip InfoPanel déplacé au backlog.
 - [ ] Interactions type/terrain + modification terrain par attaques
 - [x] Orientation tactique (bonus dos/face FFTA) — plan 052 (face -15%, flanc neutre, dos +15% sur les dégâts, preview "(+15%)" / "(-15%)", 28 tests)
-- [ ] Système CT (remplacement round-robin)
+- [x] Système CT (remplacement round-robin) — plan 054 terminé. Interface `TurnSystem`, `ChargeTimeTurnSystem`, `ct-costs`, dual-mode BattleEngine, TurnTimeline CT, ActionMenu CT, toggle TeamSelectScene, i18n, 999 tests. Décisions #254-256.
+- [x] Toggle CT/Round-Robin dans `TeamSelectScene` (bouton "Tours fixes" / "Charge Time", i18n FR/EN) — plan 054
+- [ ] **[UX CT]** Preview de la timeline sur hover d'un move (style FFX / CTB) — quand le joueur survole un move dans le menu d'attaque en mode CT, la turn timeline se met à jour en simulation pour montrer où le Pokémon retombera après l'action. Nécessite : simuler N ticks depuis l'état courant avec le coût CT du move hovered, rendu en "ghost" distinct de la timeline réelle. Source : playtest 2026-04-15 (Option A "rien afficher" appliquée pour l'instant, Option C choisie pour remplacement UX).
 - [x] Undo déplacement (annulable tant qu'on n'a pas attaqué) — plan 053 (action `undo_move`, bouton "Annuler déplacement" en menu, annulation brûlure magma, 8 tests)
 - [ ] Système de décorations Tiled — tileset `decorations.tsj` dédié (pipeline séparée du terrain) : marquages d'arène (lignes ~12 tiles + pokeball ~6-8 tiles) + décos environnement (herbe haute overlay, arbres, rochers PMD-based)
 - [ ] Éditeur de terrain / génération IA

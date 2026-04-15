@@ -3,6 +3,7 @@ import {
   DefensiveKind,
   EffectKind,
   EffectTarget,
+  EffectTier,
   StatName,
   StatusType,
   TargetingKind,
@@ -12,6 +13,7 @@ export interface TacticalOverride {
   targeting: TargetingPattern;
   effects: Effect[];
   recharge?: boolean;
+  effectTier?: EffectTier;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -22,6 +24,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   "sleep-powder": {
     targeting: { kind: TargetingKind.Zone, radius: 1 },
     effects: [{ kind: EffectKind.Status, status: StatusType.Asleep, chance: 75 }],
+    effectTier: EffectTier.MajorStatus,
   },
   "leech-seed": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
@@ -88,6 +91,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
         target: EffectTarget.Self,
       },
     ],
+    effectTier: EffectTier.DoubleBuff,
   },
   "bubble-beam": {
     targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
@@ -127,6 +131,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   "thunder-wave": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
     effects: [{ kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
   },
   "double-team": {
     targeting: { kind: TargetingKind.Self },
@@ -153,6 +158,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
       { kind: EffectKind.StatChange, stat: StatName.Attack, stages: 1, target: EffectTarget.Self },
       { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self },
     ],
+    effectTier: EffectTier.DoubleBuff,
   },
   "rock-smash": {
     targeting: { kind: TargetingKind.Cross, size: 3 },
@@ -202,6 +208,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
         target: EffectTarget.Self,
       },
     ],
+    effectTier: EffectTier.DoubleBuff,
   },
 
   lick: {
@@ -214,6 +221,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   hypnosis: {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
     effects: [{ kind: EffectKind.Status, status: StatusType.Asleep, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
   },
   "night-shade": {
     targeting: { kind: TargetingKind.Cross, size: 3 },
@@ -224,6 +232,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [
       { kind: EffectKind.StatChange, stat: StatName.Evasion, stages: 2, target: EffectTarget.Self },
     ],
+    effectTier: EffectTier.MajorBuff,
   },
 
   "rock-throw": {
@@ -261,6 +270,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [
       { kind: EffectKind.StatChange, stat: StatName.Speed, stages: 2, target: EffectTarget.Self },
     ],
+    effectTier: EffectTier.MajorBuff,
   },
   "flame-wheel": {
     targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
@@ -277,6 +287,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   sing: {
     targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
     effects: [{ kind: EffectKind.Status, status: StatusType.Asleep, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
   },
   "body-slam": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
@@ -296,6 +307,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
         target: EffectTarget.Self,
       },
     ],
+    effectTier: EffectTier.DoubleBuff,
   },
 
   "aurora-beam": {
@@ -337,38 +349,47 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   protect: {
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.Protect }],
+    effectTier: EffectTier.Reactive,
   },
   detect: {
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.Detect }],
+    effectTier: EffectTier.Reactive,
   },
   "wide-guard": {
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.WideGuard }],
+    effectTier: EffectTier.Reactive,
   },
   "quick-guard": {
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.QuickGuard }],
+    effectTier: EffectTier.Reactive,
   },
   counter: {
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.Counter }],
+    effectTier: EffectTier.Reactive,
   },
   "mirror-coat": {
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.MirrorCoat }],
+    effectTier: EffectTier.Reactive,
   },
   "metal-burst": {
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.MetalBurst }],
+    effectTier: EffectTier.Reactive,
   },
   endure: {
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.Endure }],
+    effectTier: EffectTier.Reactive,
   },
   toxic: {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
     effects: [{ kind: EffectKind.Status, status: StatusType.BadlyPoisoned, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
   },
   supersonic: {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
@@ -379,12 +400,14 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [
       { kind: EffectKind.StatChange, stat: StatName.Attack, stages: 2, target: EffectTarget.Self },
     ],
+    effectTier: EffectTier.MajorBuff,
   },
   "iron-defense": {
     targeting: { kind: TargetingKind.Self },
     effects: [
       { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 2, target: EffectTarget.Self },
     ],
+    effectTier: EffectTier.MajorBuff,
   },
   growl: {
     targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },

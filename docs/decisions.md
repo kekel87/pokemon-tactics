@@ -262,6 +262,9 @@
 | 251 | 2026-04-14 | Undo déplacement — condition (plan 053) | **Disponible si `hasMoved === true && preMoveSnapshot !== null`** | Move→Attack : le snapshot est vidé par l'attaque, pas d'undo (l'attaque dépendait de la position). Attack→Move : le snapshot reste, undo possible (l'attaque était depuis la position d'origine). |
 | 252 | 2026-04-14 | Undo déplacement — effets terrain annulés (plan 053) | **La brûlure magma acquise pendant le déplacement est retirée lors de l'undo** | La brûlure est une conséquence du déplacement : si le déplacement est annulé, la conséquence l'est aussi. Règle : seuls les effets directement causés par le déplacement annulé sont retirés (pas les statuts pré-existants). |
 | 253 | 2026-04-14 | Undo déplacement — UI (plan 053) | **Le bouton "Annuler déplacement" remplace "Déplacement" dans le menu d'action quand `canUndoMove` est `true`** | Occupation du même slot dans le menu pour éviter de surcharger l'UI. "Déplacement" redevient disponible après l'undo (le Pokemon n'a plus bougé). |
+| 254 | 2026-04-15 | Adoption du système CT | **ChargeTimeTurnSystem remplace le round-robin** en Phase 3 (plan 054) | Vitesse = fréquence d'action, coût variable par move. Voir `docs/reflexion-systeme-ct.md` pour toute la réflexion de design. |
+| 255 | 2026-04-15 | Coexistence CT / Round-robin | **Les deux systèmes coexistent** via une interface `TurnSystem`. Sélectable par `BattleConfig.turnSystem: 'round-robin' \| 'charge-time'` | Round-robin refactoré derrière l'interface (coût négligeable). Permet l'A/B testing en sandbox pendant le dev. Pas d'UI de switch joueur pour l'instant — décision à prendre plus tard (voir roadmap Phase 3). |
+| 256 | 2026-04-15 | Paramètres CT retenus | **ctGain V3, PP+Power floor, effectTier dans tacticalOverrides** | ctGain = Log(base) × softMult(stages × 0.7). coût CT = max(ppCost, powerFloor, effectFloor(effectTier)). effectTier est une décision de game design stable dans tacticalOverrides, indépendante des MAJ Champions. PP et power suivent Champions automatiquement. |
 
 ---
 
@@ -275,7 +278,7 @@
 | 6 | PP ou Points d'action ? | Les PP fonctionnent-ils dans un contexte tactique ? Sinon passer à un système de points d'action style FFTA. Tests headless : une IA sans filtre de cible gaspille ses PP (bug IA, pas bug PP). Les PP fonctionnent correctement côté core. À évaluer côté équilibrage en Phase 1. | Phase 1 |
 | 7 | ~~Durée des statuts~~ | Résolu décision #65 : 1 statut majeur, durées Pokemon (sleep 1-3, freeze 20%/tour, burn/poison/paralysis permanent). | ~~Phase 1~~ |
 | 8 | ~~Stacking des statuts~~ | Résolu décision #65 : 1 seul à la fois pour le POC. | ~~Phase 1~~ |
-| 10 | Système CT (FFTA) vs Round-robin | Round-robin pour le POC (décision #62). Le CT est plus tactique (vitesse = fréquence d'action, coût CT variable par move), mais risques : vitesse trop forte, petits moves (PP élevés) trop avantageux car coût CT faible. Idée : corrélation PP ↔ coût CT (peu de PP = move puissant = coût CT élevé). Voir aussi Mystery Dungeon Travel Speed (x0.5 à x4). À évaluer en Phase 1 avec les tests headless de balancing. | Phase 1 |
+| ~~10~~ | ~~Système CT (FFTA) vs Round-robin~~ | Résolu décisions #254-256. | ~~Phase 1~~ |
 | 9 | Interaction statut/terrain | Brûlure guérie par eau ? Gel facilité sur glace ? | Phase 2 |
 | 2 | HD-2D avancé | Quand migrer ? **Babylon.js** (built-in DoF/bloom/tilt-shift, écrit en TS, NullEngine) vs **Three.js** (plus léger, plus grande communauté). Spike comparatif prévu. | Phase 4 |
 | 3 | Agents & Skills Claude Code | Quels agents/skills custom créer ? Proposition faite, à valider et affiner au fil du dev. | Phase 0 |

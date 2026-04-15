@@ -1,4 +1,5 @@
 import type { Category } from "../enums/category";
+import type { EffectTier } from "../enums/effect-tier";
 import type { PokemonType } from "../enums/pokemon-type";
 import type { Effect } from "./effect";
 import type { MoveFlags } from "./move-flags";
@@ -17,4 +18,5 @@ export interface MoveDefinition {
   recharge?: boolean;
   ignoresHeight?: boolean;
   flags?: MoveFlags;
+  effectTier?: EffectTier;
 }

@@ -7,6 +7,15 @@
 
 ## Termes de game design
 
+**CT** (Charge Time)
+Points accumulés par un Pokemon à chaque tick. Quand le CT atteint le seuil (1000), le Pokemon agit. Vitesse haute = CT qui monte plus vite = actions plus fréquentes. Voir `ChargeTimeTurnSystem` et `ctGain`. Inspiré de FFTA et FFX.
+
+**ctGain**
+Quantité de CT gagnée par tick par un Pokemon. Formule : `floor((30 + floor(20 × ln(baseStat + 1))) × softMult(speedStages × 0.7))`. Garantit que le ratio de fréquence entre les extrêmes (Shuckle vs Regieleki) reste ≤ 1.5×.
+
+**effectTier**
+Niveau d'impact tactique d'un move non-offensif, utilisé pour calculer son coût CT. Valeurs : `reactive` (protect, counter...) = 500, `major-status` = floor 700, `major-buff` = floor 600, `double-buff` = floor 550. Défini dans `tacticalOverrides`.
+
 **AoE** (Area of Effect)
 Attaque qui touche plusieurs cibles en même temps dans une zone. Exemple : une explosion qui blesse tous les Pokemon dans un rayon de 2 cases autour du point d'impact.
 

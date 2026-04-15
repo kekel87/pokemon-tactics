@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-14 (plan 053 terminé : undo déplacement — annulation du déplacement avant d'attaquer)
+> Dernière mise à jour : 2026-04-15 (plan 054 terminé : système CT complet — dual-mode RR/CT, TurnTimeline CT, toggle TeamSelect)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -9,7 +9,7 @@
 ## Phase actuelle : Phase 3 — Terrain & Tactics
 
 ### Ce qui est fait
-- Documentation complète : game-design, architecture, decisions (240 décisions), roadmap, references, methodology, roster POC, glossaire
+- Documentation complète : game-design, architecture, decisions (256 décisions), roadmap, references, methodology, roster POC, glossaire
 - 21 agents + 7 skills Claude Code en place (`.claude/`)
 - **Plan 001 terminé** : monorepo setup (pnpm workspaces, TypeScript bundler, Vite, Vitest, Biome)
 - **Plan 002 terminé** :
@@ -748,6 +748,20 @@
   - **Renderer** : le bouton "Annuler déplacement" remplace "Déplacement" dans le menu d'action quand `canUndoMove` est `true`
   - 8 nouveaux tests — **958 tests au total**
 
+- **Plan 054 terminé** — Système CT (Charge Time) :
+  - **Interface `TurnSystem`** + enum `TurnSystemKind` (`round-robin` / `charge-time`) dans le core
+  - **`RoundRobinTurnSystem`** : façade mince sur `TurnManager` existant
+  - **`ChargeTimeTurnSystem`** : CT départ 600, seuil 1000, formule `ctGain = floor((30 + floor(20 × ln(baseStat + 1))) × softMult(stages × 0.7))`, 1 acteur par tick, `getCtSnapshot()` pour le renderer
+  - **`ct-costs.ts`** : `ppCost`, `powerFloor`, `effectFloor`, `computeCtCost` — coûts par PP, puissance et `effectTier`
+  - **`EffectTier`** enum (`reactive` / `major-status` / `major-buff` / `double-buff`) dans les `tacticalOverrides`
+  - **`BattleEngine`** dual-mode : factory interne crée `ChargeTimeTurnSystem` ou `RoundRobinTurnSystem` selon `BattleConfig.turnSystem`
+  - **`TurnTimeline`** CT : barre verticale à gauche du portrait (progression vers le seuil 1000) — section basse masquée en CT
+  - **`ActionMenu`** CT : PP masqués en mode CT (coût CT affiché à la place)
+  - **`TeamSelectScene`** : toggle CT/RR, CT activé par défaut ; placement auto activé par défaut
+  - **i18n** FR/EN : clés `ct.*` ajoutées pour les labels de la timeline et du menu
+  - **999 tests**, tests scénario 6v6 CT sans crash, ratio Pikachu/Geodude ≈ 1.50×
+  - **`docs/wiki/ct-system.md`** créé (vulgarisation joueur pour release)
+
 - **Plan 051 terminé** — Types de terrain + modificateurs (toutes étapes) :
   - **Nouveaux `BattleEventType`** : `TerrainDamageDealt`, `TerrainStatusApplied`, `TerrainEvasionApplied`, `IceSlideApplied`, `IceSlideCollision`, `LethalTerrainKo`
   - **`terrain-effects.ts`** : fonctions pures — `isTerrainImmune`, `getMovementPenalty`, `getTerrainTypeBonusFactor` (+15%), `getTerrainStatusOnStop`, `getTerrainDotFraction`
@@ -767,9 +781,12 @@
   - Étape 22 (tooltip terrain InfoPanel) déplacée au backlog
 
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
-- **Plan 053 terminé** — prochains candidats :
+- **Plan 054 terminé** — prochains candidats :
+  - **Preview timeline FFX-style sur hover** (Option C retenue en roadmap) — afficher les positions prédites des Pokemon sur la timeline CT au survol des actions
   - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)
-  - **Système CT** (remplacement round-robin) — Phase 3
+- **Bugs CT à corriger** (indépendants du plan 054, voir backlog.md) :
+  - KO idle : un Pokemon qui tombe en dessous du seuil CT juste après son KO peut déclencher une tentative de tour fantôme
+  - Poison immunité : le terrain swamp n'applique pas le Poison sur un Pokemon déjà empoisonné normalement en mode CT (immunité correcte en RR)
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
 - Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
 - Validation visuelle plan 050 toujours souhaitable (empilement, pentes/escaliers sur toutes les maps)

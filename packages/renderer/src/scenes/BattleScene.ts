@@ -121,11 +121,7 @@ export class BattleScene extends Phaser.Scene {
         if (!sceneData?.teamSelectResult) {
           throw new Error("BattleScene requires teamSelectResult from TeamSelectScene");
         }
-        void this.startPlacementPhase(
-          uiScene,
-          sceneData.teamSelectResult,
-          sceneData.teamSelectResult.autoPlacement,
-        );
+        void this.startPlacementPhase(uiScene, sceneData.teamSelectResult);
       }
     });
 
@@ -227,8 +223,8 @@ export class BattleScene extends Phaser.Scene {
   private async startPlacementPhase(
     uiScene: BattleUIScene,
     teamSelectResult: TeamSelectResult,
-    autoPlacement: boolean,
   ): Promise<void> {
+    const { autoPlacement, turnSystemKind } = teamSelectResult;
     const loaded = await loadTiledMap("assets/maps/test-arena.tmj");
     const map = loaded.map;
     const teamCount = teamSelectResult.teams.length;
@@ -289,6 +285,7 @@ export class BattleScene extends Phaser.Scene {
         map,
         teams,
         placements,
+        turnSystemKind,
       });
       return;
     }
@@ -307,6 +304,7 @@ export class BattleScene extends Phaser.Scene {
           map,
           teams,
           placements,
+          turnSystemKind,
         });
       },
     };
