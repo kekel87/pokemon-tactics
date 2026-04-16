@@ -10,6 +10,14 @@ Tu proposes un message de commit pour les changements en cours.
 
 ## Ce que tu fais
 
+### 0. Gate CI (OBLIGATOIRE — AVANT TOUT)
+
+Lancer `pnpm lint 2>&1 | tail -5` et vérifier le exit code. Si erreurs :
+- **STOP** — ne pas proposer de commit message
+- Lister les erreurs et dire à l'appelant de corriger avant de relancer
+
+Si lint passe (exit 0, warnings OK), continuer.
+
 ### 1. Comprendre le contexte (prioritaire)
 
 Avant de regarder le diff, comprendre **ce qui a été fait et pourquoi** :
