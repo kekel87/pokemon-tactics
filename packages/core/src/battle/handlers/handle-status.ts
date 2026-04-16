@@ -5,6 +5,7 @@ import type { StatusType } from "../../enums/status-type";
 import { StatusType as StatusTypeEnum } from "../../enums/status-type";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
+import { DEFAULT_STATUS_RULES, type StatusRules } from "../../types/status-rules";
 import type { EffectContext } from "../effect-handler-registry";
 import { isMajorStatus } from "../stat-modifier";
 
@@ -37,6 +38,7 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
   const events: BattleEvent[] = [];
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.Status }>;
   const random = context.random;
+  const statusRules = context.statusRules ?? DEFAULT_STATUS_RULES;
 
   for (const target of context.targets) {
     if (random() * 100 >= effect.chance) {
@@ -75,7 +77,7 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       if (alreadyHas) {
         continue;
       }
-      const remainingTurns = getStatusDuration(effect.status, random) ?? 1;
+      const remainingTurns = getStatusDuration(effect.status, random, statusRules) ?? 1;
       target.volatileStatuses.push({
         type: effect.status,
         remainingTurns,
@@ -89,7 +91,7 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       if (targetHasMajor && isMajorStatus(effect.status)) {
         continue;
       }
-      const remainingTurns = getStatusDuration(effect.status, random);
+      const remainingTurns = getStatusDuration(effect.status, random, statusRules);
       target.statusEffects.push({ type: effect.status, remainingTurns });
     }
 
@@ -108,10 +110,17 @@ function isVolatileStatus(status: StatusType): boolean {
   return VOLATILE_STATUSES.has(status);
 }
 
-function getStatusDuration(status: StatusType, random: () => number): number | null {
+function getStatusDuration(
+  status: StatusType,
+  random: () => number,
+  rules: StatusRules = DEFAULT_STATUS_RULES,
+): number | null {
   switch (status) {
-    case StatusTypeEnum.Asleep:
-      return Math.floor(random() * 3) + 1;
+    case StatusTypeEnum.Asleep: {
+      const samples = rules.sleep.sampleTurns;
+      const index = Math.floor(random() * samples.length);
+      return samples[index] ?? samples[0] ?? 1;
+    }
     case StatusTypeEnum.Confused:
       return Math.floor(random() * 4) + 1;
     case StatusTypeEnum.Seeded:

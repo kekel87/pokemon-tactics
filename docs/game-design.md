@@ -470,11 +470,13 @@ Le Pokemon **se déplace en ligne droite** sur X tiles et frappe le premier enne
 | Statut | Effet | Durée |
 |--------|-------|-------|
 | Brûlure | Dégâts 1/16 HP max/tour + -50% Attaque phys | Permanent (jusqu'à guérison) |
-| Paralysie | -50% initiative permanent + 25% proc bloque Move et Dash (pas use_move non-dash) | Permanent |
+| Paralysie | -50% initiative permanent + **12.5% proc** bloque Move et Dash (pas use_move non-dash) | Permanent |
 | Poison | Dégâts 1/8 HP max/tour | Permanent |
 | **Poison grave** | Dégâts croissants : `toxicCounter/16` HP max/tour (1/16 → 15/16, cap 15) | Permanent — `toxicCounter` incrémenté à chaque tick |
-| Gel | Ne peut pas agir, 20% chance de dégel par tour | Variable |
-| Sommeil | Ne peut pas agir, se réveille après 1-3 tours | 1-3 tours |
+| Gel | Ne peut pas agir, **25% chance de dégel par tour**, **max 3 tours** (`turnsApplied` sur `StatusEffect`) | 1-3 tours (max) |
+| Sommeil | Ne peut pas agir, se réveille après un tirage pondéré **sample([2, 3, 3])** (≈ 2-3 tours, 3 tours plus probable) | 2-3 tours |
+
+> Valeurs **Pokemon Champions** (décisions #263–264). `StatusRules` est injecté dans `BattleEngine` ; `DEFAULT_STATUS_RULES` = Champions. Chargeable depuis `champions-status.json` via `loadStatusRulesFromReference` dans `packages/data`.
 
 ### Statuts volatils (coexistent avec un statut majeur, stockés dans `volatileStatuses[]`)
 | Statut | Effet | Durée |
