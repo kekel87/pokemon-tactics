@@ -29,6 +29,7 @@ pnpm lint
 pnpm typecheck
 pnpm build
 pnpm test
+pnpm test:integration
 ```
 
 Si ça échoue, signaler et ne pas publier.

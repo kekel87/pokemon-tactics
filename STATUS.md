@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-16 (plans 056 + 057 terminés : pipeline données Champions + statuts Champions dans le runtime core)
+> Dernière mise à jour : 2026-04-16 (session : fix test PlacementPhase, CI integration tests, tileset brightness uniforme, backlog nettoyé)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -784,10 +784,16 @@
 - **Plan 055 terminé** — bug gatling (immunité statut par type, icône terrain manquante, KO anim, HP preview, stagger texte, ombrage flancs uniformisé)
 - **Plan 056 terminé** — pipeline données Champions : `pnpm data:update` fetch Showdown + Champions overrides → `reference/*.json` alignés Champions (45 moves overridés, 185 learnsets remplacés, 3 abilities modifiées). `champions-status.json` généré. `pnpm data:diff` pour review. `docs/process-data-update.md` créé. Décision #263.
 - **Plan 057 terminé** — statuts Champions dans le runtime core : `StatusRules` type injecté dans `BattleEngine`, `DEFAULT_STATUS_RULES` = Champions. Paralysie 25% → 12.5%, gel 20% → 25% + max 3 tours (`turnsApplied` sur `StatusEffect`), sommeil 1-3 → `sample([2,3,3])`. `loadStatusRulesFromReference` dans data. Décision #264.
+- **Session 2026-04-16 (maintenance & infra)** :
+  - Fix `PlacementPhase.integration.test.ts` : coordonnées spawn corrigées `(3,10)→(3,18)` et `(4,11)→(4,19)` pour correspondre à poc-arena (12×20)
+  - CI `ci.yml` : `pnpm test:integration` ajouté — les tests d'intégration tournent maintenant dans la gate CI
+  - Gate CI mise à jour dans `CLAUDE.md` (3 occurrences), `code-reviewer.md` et `publisher.md` pour inclure `test:integration`
+  - Tileset brightness uniforme : 15 colonnes régénérées (`LEFT_BRIGHTNESS = RIGHT_BRIGHTNESS = 0.65`) via pipeline Python — `tileset.png` (32×2368px) remplacé. Validation visuelle en jeu souhaitée.
+  - Backlog nettoyé : 3 items marqués résolus (PlacementPhase test, tileset brightness, TurnTimeline CT layout)
 - **Prochains candidats** :
-  - **Preview timeline FFX-style sur hover** (Option C retenue en roadmap) — afficher les positions prédites des Pokemon sur la timeline CT au survol des actions
+  - **Preview timeline FFX-style sur hover** (Option C retenue en roadmap) — afficher les positions prédites des Pokemon sur la timeline CT au survol des actions dans le menu d'attaque
   - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)
-  - Régénération du tileset.png avec les nouvelles brightness uniformes (voir docs/backlog.md)
+  - Validation visuelle du tileset.png mis à jour (brightness uniforme — empilement, pentes, escaliers sur toutes les maps)
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
 - Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
 - Validation visuelle plan 050 toujours souhaitable (empilement, pentes/escaliers sur toutes les maps)
