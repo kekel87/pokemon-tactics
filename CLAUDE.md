@@ -108,18 +108,18 @@ Règle d'or : **jamais plus d'un agent long en foreground par turn**. Si tu dois
 3. `/simplify` — review réutilisation, qualité et efficacité du code changé, corrige les problèmes trouvés
 4. `doc-keeper` — met à jour TOUS les docs impactés + roadmap.md + STATUS.md
 5. `visual-tester` — si le plan touche `packages/renderer/` (vérification visuelle via Playwright)
-6. **Gate CI** — `pnpm build && pnpm lint && pnpm typecheck && pnpm test` — **BLOQUANT**, tout doit passer avant de proposer un commit
+6. **Gate CI** — `pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration` — **BLOQUANT**, tout doit passer avant de proposer un commit
 7. `commit-message` — **toujours en dernier**, propose un message de commit à l'humain
 
 **Travail hors plan (bugfix, expérimentation, refacto opportuniste) :**
 - `code-reviewer` — review qualité (si changements significatifs)
 - `/simplify` — après le code-reviewer, review + fix réutilisation/efficacité
 - `doc-keeper` — si la doc est impactée
-- **Gate CI** — `pnpm build && pnpm lint && pnpm typecheck && pnpm test` — BLOQUANT avant tout commit
+- **Gate CI** — `pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration` — BLOQUANT avant tout commit
 
 **En fin de session :**
 1. `session-closer` (ou `/status`) — met à jour STATUS.md et vérifie la doc
-2. **Gate CI** — `pnpm build && pnpm lint && pnpm typecheck && pnpm test` — **BLOQUANT**, si un check échoue, corriger AVANT de proposer un commit. Ne JAMAIS passer à commit-message si la CI ne passe pas.
+2. **Gate CI** — `pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration` — **BLOQUANT**, si un check échoue, corriger AVANT de proposer un commit. Ne JAMAIS passer à commit-message si la CI ne passe pas.
 3. `commit-message` — propose un message de commit à l'humain (seulement si gate CI OK)
 
 **Selon le contexte du changement :**

@@ -4,19 +4,11 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Bugs
 
-### Test d'intégration `PlacementPhase` cassé + CI ne run pas les integration tests
-- `packages/core/src/battle/PlacementPhase.integration.test.ts` cas "manual placement produces a valid engine" échoue : utilise les coordonnées (3,10), (4,11) qui ne sont **pas dans les spawn zones** de `pocArena.formats[0]` (zones à y=18-19 et y=0-1). Les 4 `submitPlacement` retournent `PositionOutOfZone` silencieusement, placements list reste vide.
-- Bug pré-existant (les coordonnées datent du plan 015, mais les zones ont été modifiées ultérieurement sans MAJ du test).
-- **Non détecté car la CI ne lance que `pnpm test` (unit), pas `pnpm test:integration`** — voir `.github/workflows/ci.yml`.
-- À faire :
-  1. Fix le test (utiliser des coords valides comme (5,18), (3,1) etc.) ou le supprimer s'il fait doublon avec le cas `autoPlaceAll` qui passe.
-  2. Ajouter `pnpm test:integration` dans la CI pour ne plus laisser passer ce genre de régression.
+### ~~Test d'intégration `PlacementPhase` cassé + CI ne run pas les integration tests~~
+- Fix : coordonnées corrigées (3,18) et (4,19) dans les spawn zones. `pnpm test:integration` ajouté à la CI.
 
-### Régénérer le tileset.png avec les brightness uniformes (plan 055)
-- `scripts/make-iso-tile.py` a été mis à jour : `LEFT_BRIGHTNESS = RIGHT_BRIGHTNESS = 0.65` pour supprimer le raccord visible entre tiles flipées (variantes E) et non-flipées.
-- Le PNG `packages/renderer/public/assets/tilesets/terrain/tileset.png` n'a pas encore été régénéré (plan 055 livré avec le script seul pour éviter de casser l'asset sans validation visuelle). Le raccord reste visible tant que le tileset n'est pas rejoué.
-- Étapes de régénération : 15 `build-terrain.py` (un par terrain solide/liquide, besoin des top/side extractions PMD) + `assemble-tileset.py`. Voir `scripts/README.md` pour la séquence exacte.
-- À planifier avec une session dédiée régénération + validation visuelle sur toutes les maps.
+### ~~Régénérer le tileset.png avec les brightness uniformes (plan 055)~~
+- Fix : 15 colonnes régénérées avec `LEFT_BRIGHTNESS = RIGHT_BRIGHTNESS = 0.65`, tileset assemblé (32x2368px, 74 tiles). **Validation visuelle en jeu requise.**
 
 ### Afficher les modificateurs terrain actifs dans l'InfoPanel
 - Quand on retravaille l'InfoPanel, afficher les effets terrain en cours sur la tile du Pokemon sélectionné/survolé (ex: "Évasion +1 (herbe haute)", "Brûlure au passage (magma)", "Malus déplacement +2 (marécage)").
@@ -24,10 +16,8 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Feedback visuel
 
-### TurnTimeline CT — layout et barre de charge
-- **Layout** : en mode Charge Time, la liste verticale des Pokémon passe sous le panel info (overflow). Il faudrait réduire l'espacement entre portraits, ou limiter le nombre d'entrées affichées, ou scroller.
-- **Barre verticale à gauche du portrait** : l'utilisateur préfèrerait voir la barre de CT en barre **verticale sur le côté gauche du portrait** (plutôt que horizontale dessous). À tester visuellement — peut aider à compacter la timeline.
-- Source : playtest plan 054 (2026-04-15).
+### ~~TurnTimeline CT — layout et barre de charge~~ (plan 055 — commit 9bc9125)
+- Corrigé dans le bug gatling (plan 055).
 
 ### Transparence / silhouette des Pokemon derrière un obstacle + cursor FFTA
 - Quand un Pokemon passe derrière une tile haute ou une décoration, il disparaît complètement.

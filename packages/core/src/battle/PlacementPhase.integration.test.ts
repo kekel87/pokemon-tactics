@@ -77,17 +77,17 @@ describe("PlacementPhase -> BattleEngine integration", () => {
 
     const phase = new PlacementPhase(map, teams, format, PlacementMode.Alternating);
 
-    phase.submitPlacement("p1-bulbasaur", { x: 3, y: 10 }, Direction.North);
+    phase.submitPlacement("p1-bulbasaur", { x: 3, y: 18 }, Direction.North);
     phase.submitPlacement("p2-charmander", { x: 5, y: 1 }, Direction.South);
     phase.submitPlacement("p2-pidgey", { x: 6, y: 0 }, Direction.South);
-    phase.submitPlacement("p1-squirtle", { x: 4, y: 11 }, Direction.North);
+    phase.submitPlacement("p1-squirtle", { x: 4, y: 19 }, Direction.North);
 
     const placements = phase.getPlacements();
     const { engine, state } = buildTestEngineFromPlacements(placements, teams);
 
     expect(state.pokemon.size).toBe(4);
     const bulbasaur = state.pokemon.get("p1-bulbasaur");
-    expect(bulbasaur?.position).toEqual({ x: 3, y: 10 });
+    expect(bulbasaur?.position).toEqual({ x: 3, y: 18 });
     expect(bulbasaur?.orientation).toBe(Direction.North);
 
     const firstTurnId = state.turnOrder[0];
