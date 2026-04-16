@@ -2,7 +2,7 @@ export { EASY_PROFILE, HARD_PROFILE, MEDIUM_PROFILE } from "./ai/ai-profiles";
 export { pickAggressiveAction, pickRandomAction } from "./ai/index";
 export { pickScoredAction } from "./ai/scored-ai";
 export { BattleEngine } from "./battle/BattleEngine";
-export { CT_THRESHOLD, computeMoveCost } from "./battle/ct-costs";
+export { CT_THRESHOLD, CT_WAIT, computeMoveCost } from "./battle/ct-costs";
 export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
 export { EffectHandlerRegistry } from "./battle/effect-handler-registry";
 export { createDefaultEffectRegistry } from "./battle/effect-processor";

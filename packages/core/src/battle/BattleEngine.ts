@@ -16,6 +16,7 @@ import type { Action, ActionResult } from "../types/action";
 import type { BattleEvent } from "../types/battle-event";
 import type { BattleReplay } from "../types/battle-replay";
 import type { BattleState } from "../types/battle-state";
+import type { CtTimelineEntry } from "../types/ct-timeline-entry";
 import type { DamageEstimate } from "../types/damage-estimate";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
@@ -29,7 +30,14 @@ import type { RandomFn } from "../utils/prng";
 import { checkAccuracy } from "./accuracy-check";
 import { applyImpactDamage } from "./apply-impact-damage";
 import { ChargeTimeTurnSystem } from "./ChargeTimeTurnSystem";
-import { CT_START, computeCtActionCost, computeCtGain, computeMoveCost } from "./ct-costs";
+import {
+  CT_START,
+  CT_THRESHOLD,
+  CT_WAIT,
+  computeCtActionCost,
+  computeCtGain,
+  computeMoveCost,
+} from "./ct-costs";
 import { estimateDamage } from "./damage-calculator";
 import { getAttackOrigin } from "./defense-check";
 import { processEffects } from "./effect-processor";
@@ -1400,6 +1408,69 @@ export class BattleEngine {
     if (this.chargeTimeTurnSystem) {
       this.state.ctSnapshot = this.chargeTimeTurnSystem.getCtSnapshot();
     }
+  }
+
+  predictCtTimeline(count: number, moveId?: string): CtTimelineEntry[] {
+    if (!this.chargeTimeTurnSystem || count <= 0) {
+      return [];
+    }
+
+    const activePokemonId = this.state.turnOrder[0];
+    if (!activePokemonId) {
+      return [];
+    }
+
+    let actionCost: number;
+    if (moveId === undefined) {
+      actionCost = computeCtActionCost(this.turnState.hasMoved, false, 0);
+    } else {
+      const move = this.moveRegistry.get(moveId);
+      const moveCost = move ? computeMoveCost(move.pp, move.power, move.effectTier) : CT_START;
+      actionCost = computeCtActionCost(this.turnState.hasMoved, true, moveCost);
+    }
+
+    const ctMap = new Map<string, number>(
+      Object.entries(this.chargeTimeTurnSystem.getCtSnapshot()),
+    );
+    const activeCt = ctMap.get(activePokemonId) ?? 0;
+    ctMap.set(activePokemonId, activeCt - actionCost);
+
+    const livePokemonIds = new Set(
+      [...this.state.pokemon.values()].filter((p) => p.currentHp > 0).map((p) => p.id),
+    );
+    for (const id of [...ctMap.keys()]) {
+      if (!livePokemonIds.has(id)) {
+        ctMap.delete(id);
+      }
+    }
+
+    const result: CtTimelineEntry[] = [];
+    const MAX_TICKS = 10_000;
+    let ticks = 0;
+
+    while (result.length < count && ticks < MAX_TICKS) {
+      let bestId: string | null = null;
+      let bestCt = CT_THRESHOLD - 1;
+      for (const [id, ct] of ctMap) {
+        if (ct > bestCt || (ct === bestCt && bestId !== null && id < bestId)) {
+          bestId = id;
+          bestCt = ct;
+        }
+      }
+
+      if (bestId === null) {
+        for (const [id, ct] of ctMap) {
+          ctMap.set(id, ct + this.getCtGainForPokemon(id));
+        }
+        ticks++;
+      } else {
+        result.push({ pokemonId: bestId, ct: ctMap.get(bestId) ?? 0 });
+        const current = ctMap.get(bestId) ?? 0;
+        ctMap.set(bestId, current - CT_WAIT);
+      }
+    }
+
+    return result;
   }
 
   private advanceTurnCt(events: BattleEvent[]): void {

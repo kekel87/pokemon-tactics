@@ -354,6 +354,26 @@ La depth du container est portée à `max(originalDepth, maxTileDepthInRadius(cx
 
 ---
 
+## Turn Timeline CT (plan 059)
+
+La TurnTimeline en mode Charge Time affiche une séquence prédictive scrollable. Constantes dans `packages/renderer/src/constants.ts` :
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `TIMELINE_BG_COLOR` | — | Fond de la zone timeline |
+| `TIMELINE_HIGHLIGHT_BORDER_COLOR` | teal-vert | Bordure du Pokemon actif au `confirm_attack` |
+| `TIMELINE_PREDICTION_SLOTS` | `24` | Nombre de slots simulés par `predictCtTimeline` |
+| `TIMELINE_VISIBLE_SLOTS` | `11` | Slots visibles simultanément (scroll à la molette) |
+
+Constantes supprimées depuis plan 059 (remplaçaient le design ghost du plan 058) :
+- `TIMELINE_GHOST_ALPHA`
+- `TIMELINE_PREVIEW_SEPARATOR_COLOR`
+- `TIMELINE_PREVIEW_SEPARATOR_COLOR_CSS`
+
+La clé i18n `timeline.afterAction` (FR "Après action" / EN "After action") a également été supprimée.
+
+---
+
 ## Profondeur des layers (depth)
 
 Le layering garantit que les highlights passent **derrière** les sprites Pokemon (qui sont plus proches de la caméra en iso), et que le curseur reste toujours au-dessus des sprites.

@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-16 (session : fix test PlacementPhase, CI integration tests, tileset brightness uniforme, backlog nettoyé)
+> Dernière mise à jour : 2026-04-16 (plan 059 : CT timeline FFX-style prédicative scrollable)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -790,8 +790,21 @@
   - Gate CI mise à jour dans `CLAUDE.md` (3 occurrences), `code-reviewer.md` et `publisher.md` pour inclure `test:integration`
   - Tileset brightness uniforme : 15 colonnes régénérées (`LEFT_BRIGHTNESS = RIGHT_BRIGHTNESS = 0.65`) via pipeline Python — `tileset.png` (32×2368px) remplacé. Validation visuelle en jeu souhaitée.
   - Backlog nettoyé : 3 items marqués résolus (PlacementPhase test, tileset brightness, TurnTimeline CT layout)
+- **Plan 058 terminé** — Preview CT Timeline au confirm attack (ghost entries) :
+  - **Core** : `BattleEngine.predictCtTimeline(moveId, count)` — méthode publique, simule N entrées de timeline CT après avoir utilisé un move. Retourne `CtTimelineEntry[]` (`{ pokemonId, ct }`). `CT_WAIT` exporté depuis `ct-costs.ts`.
+  - **Renderer** : `TurnTimeline.update()` accepte un `ctPreview?: CtTimelineEntry[]` optionnel — entrées ghost semi-transparentes (alpha 0.45) avec séparateur "Après action / After action" (`timeline.afterAction` i18n FR/EN).
+  - **Renderer** : `GameController.enterConfirmAttack()` appelle `predictCtTimeline(moveId, 6)` et passe le résultat à la timeline en mode CT. `clearPreviewState()` reset la timeline.
+  - **Constantes** ajoutées : `TIMELINE_GHOST_ALPHA`, `TIMELINE_PREVIEW_SEPARATOR_COLOR`, `TIMELINE_PREVIEW_SEPARATOR_COLOR_CSS`.
+- **Plan 059 terminé** — CT Timeline : séquence prédictive scrollable :
+  - Remplace les ghost entries du plan 058 par une timeline prédictive complète style FFX/CTB.
+  - **Core** : `predictCtTimeline(count, moveId?)` — `moveId` devient optionnel. Sans `moveId` : simule `CT_WAIT`. Avec `moveId` : calcule le coût réel du move.
+  - **Renderer** : `TurnTimeline` refonte complète en mode CT — 24 slots prédits (`TIMELINE_PREDICTION_SLOTS`), slot 0 ancré (acteur courant, non-scrollable), 11 slots scrollables (`TIMELINE_VISIBLE_SLOTS`), scroll molette sur la zone timeline.
+  - Au `confirm_attack` : séquence recalculée avec le coût du move, Pokemon actif mis en évidence (bordure teal-vert `TIMELINE_HIGHLIGHT_BORDER_COLOR`), auto-scroll vers son prochain tour.
+  - Entrée tail (portrait semi-transparent + "...") si un Pokemon n'apparaît pas dans les 24 slots prédits.
+  - Espacement réduit 10 → 6 pour loger l'entrée tail sous la zone scrollable.
+  - **Constants** : ajout `TIMELINE_BG_COLOR`, `TIMELINE_HIGHLIGHT_BORDER_COLOR`, `TIMELINE_PREDICTION_SLOTS`, `TIMELINE_VISIBLE_SLOTS`. Suppression `TIMELINE_GHOST_ALPHA`, `TIMELINE_PREVIEW_SEPARATOR_COLOR`, `TIMELINE_PREVIEW_SEPARATOR_COLOR_CSS`.
+  - **i18n** : clé `timeline.afterAction` supprimée (plus utilisée).
 - **Prochains candidats** :
-  - **Preview timeline FFX-style sur hover** (Option C retenue en roadmap) — afficher les positions prédites des Pokemon sur la timeline CT au survol des actions dans le menu d'attaque
   - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)
   - Validation visuelle du tileset.png mis à jour (brightness uniforme — empilement, pentes, escaliers sur toutes les maps)
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)

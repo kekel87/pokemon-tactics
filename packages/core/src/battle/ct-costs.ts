@@ -6,7 +6,7 @@ const CT_WAIT = 350;
 const CT_MOVE_ONLY = 400;
 const CT_COMBO_DISCOUNT = 150;
 
-export { CT_START, CT_THRESHOLD };
+export { CT_START, CT_THRESHOLD, CT_WAIT };
 
 export function computeCtGain(baseStat: number, speedStages: number): number {
   const base = 30 + Math.floor(20 * Math.log(baseStat + 1));
