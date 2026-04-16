@@ -6,6 +6,7 @@ import type { Effect } from "../types/effect";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
+import type { StatusRules } from "../types/status-rules";
 import type { TypeChart } from "../types/type-chart";
 import type { RandomFn } from "../utils/prng";
 
@@ -25,6 +26,7 @@ export interface EffectContext {
   heightModifier: number;
   terrainModifier: number;
   facingModifierMap: Map<string, number>;
+  statusRules?: StatusRules;
 }
 
 export type EffectHandler = (context: EffectContext) => BattleEvent[];

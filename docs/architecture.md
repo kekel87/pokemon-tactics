@@ -132,17 +132,19 @@ pokemon-tactics/
 │       │   │   └── index.ts                # Barrel export
 │       │   ├── i18n/            # Noms localisés : moves.fr.json, moves.en.json, pokemon-names.fr.json, pokemon-names.en.json
 │       │   └── index.ts         # Exporte getMoveName(id, lang), getPokemonName(id, lang), parseTiledMap, loadTiledMap...
-│       ├── reference/           # Base de connaissance JSON offline (plan 048) — pour Claude, pas compilée
+│       ├── reference/           # Base de connaissance JSON offline (plans 048, 056) — contient les valeurs Champions
 │       │   ├── README.md        # Schéma, sources, instructions de régénération
-│       │   ├── pokemon.json     # 1025 espèces (formes imbriquées, learnsets latest-only, exclusions Gmax)
-│       │   ├── moves.json       # 850 moves (sans Z-moves ni Max moves)
-│       │   ├── abilities.json   # 311 abilities
+│       │   ├── pokemon.json     # 1025 espèces (formes imbriquées, learnsets latest-only, exclusions Gmax) — Champions override appliqué
+│       │   ├── moves.json       # 850 moves (sans Z-moves ni Max moves) — 45 moves overridés Champions
+│       │   ├── abilities.json   # 311 abilities — 3 abilities modifiées Champions
 │       │   ├── items.json       # 948 items (sans Z-crystals, Tera shards, Dynamax)
 │       │   ├── type-chart.json  # Table 18×18 + variantes par génération
+│       │   ├── champions-status.json  # Règles de statut Pokemon Champions (paralysie 12.5%, gel 25%/max3t, sommeil sample[2,3,3])
 │       │   ├── indexes/         # 19 index inversés regénérés depuis les JSON bruts (jamais édités à la main)
 │       │   └── schema/          # 4 JSON Schemas (pokemon, move, ability, item)
 │       ├── scripts/             # Scripts de génération one-shot (non compilés dans src/)
-│       │   └── build-reference.ts  # Génère reference/ depuis Showdown + PokeAPI (pnpm --filter @pokemon-tactic/data run build-reference)
+│       │   ├── build-reference.ts   # Génère reference/ depuis Showdown + PokeAPI (pnpm data:update) — applique applyChampionsOverrides
+│       │   └── fetch-champions.ts   # Fetch le mod Showdown Champions (data/mods/champions/) et extrait les overrides par regex
 │       ├── tsconfig.json        # extends ../../tsconfig.base.json
 │       └── package.json
 │
@@ -186,7 +188,7 @@ Structure flat par responsabilité. On restructurera par domaine quand la comple
 | `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `ActiveDefense`, `TeamSelection`, `TeamValidationResult` | Non testé (compilation = validation) |
 | `utils/` | Fonctions pures réutilisables (math, direction, géométrie) | Oui |
 | `grid/` | Classe Grid, targeting resolvers | Oui |
-| `battle/` | BattleEngine (dual-mode RR/CT via branchement interne), TurnManager (RR), **ChargeTimeTurnSystem** (CT rotation, getCtSnapshot), **ct-costs** (computeCtGain, ppCost, powerFloor, effectFloor, computeMoveCost, computeCtActionCost), PlacementPhase, validate, validate-map, team-validator, defense-check, handle-defensive, defensive-clear-handler, replay-runner, **height-traversal** (canTraverse, calculateFallDamage), **height-modifier** (getHeightModifier, isMeleeBlockedByHeight) | Oui |
+| `battle/` | BattleEngine (dual-mode RR/CT, injecte `StatusRules`), TurnManager (RR), **ChargeTimeTurnSystem** (CT rotation, getCtSnapshot), **ct-costs** (computeCtGain, ppCost, powerFloor, effectFloor, computeMoveCost, computeCtActionCost), PlacementPhase, validate, validate-map, team-validator, defense-check, handle-defensive, defensive-clear-handler, replay-runner, **height-traversal** (canTraverse, calculateFallDamage), **height-modifier** (getHeightModifier, isMeleeBlockedByHeight), **handle-status** (`StatusRules`, `DEFAULT_STATUS_RULES` = Champions, taux statuts Champions via `EffectContext.statusRules`) | Oui |
 | `ai/` | IA scriptées headless : `random-ai.ts` (action légale aléatoire), `aggressive-ai.ts` (fonce + tape le plus puissant) | Oui |
 | `testing/` | Mocks centralisés (`abstract class MockX`) — dont `MockTeamSelection`, `build-height-test-engine`, `build-fall-test-engine` | Exclu du coverage et du build |
 
@@ -588,6 +590,8 @@ Le `BattleEngine` accepte un `random?: RandomFn` en dernier paramètre du constr
 | Tests | `pnpm test` (Vitest) |
 | Faire jouer une IA | Script Node.js important le core |
 | Voir un replay | Charger le JSON dans le renderer web |
+| Mettre à jour les données Champions | `pnpm data:update` → fetch Showdown + apply Champions overrides → écrit `reference/*.json` |
+| Reviewer un diff données | `pnpm data:diff` → résumé lisible des changements vs dernier commit |
 
 ---
 

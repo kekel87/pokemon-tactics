@@ -20,6 +20,7 @@ import type { DamageEstimate } from "../types/damage-estimate";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
+import { DEFAULT_STATUS_RULES, type StatusRules } from "../types/status-rules";
 import type { TraversalContext } from "../types/traversal-context";
 import type { TypeChart } from "../types/type-chart";
 import { directionFromTo, stepInDirection } from "../utils/direction";
@@ -73,6 +74,7 @@ export class BattleEngine {
   private readonly turnPipeline: TurnPipeline;
   private readonly random: RandomFn;
   private readonly seed: number;
+  private readonly statusRules: StatusRules;
   private readonly recordedActions: Action[] = [];
   private turnState = { hasMoved: false, hasActed: false, lastMoveId: null as string | null };
   private preMoveSnapshot: { position: Position; orientation: Direction; hadBurn: boolean } | null =
@@ -91,6 +93,7 @@ export class BattleEngine {
     random?: RandomFn,
     seed = 0,
     turnSystemKind: TurnSystemKind = TurnSystemKind.RoundRobin,
+    statusRules: StatusRules = DEFAULT_STATUS_RULES,
   ) {
     this.state = state;
     this.moveRegistry = moveRegistry;
@@ -100,11 +103,15 @@ export class BattleEngine {
     this.random = random ?? (() => Math.random());
     this.seed = seed;
     this.turnSystemKind = turnSystemKind;
+    this.statusRules = statusRules;
     this.listeners = new Map();
     this.grid = new Grid(state.grid[0]?.length ?? 0, state.grid.length, state.grid);
     this.turnManager = new TurnManager([...state.pokemon.values()], getEffectiveInitiative);
     this.turnPipeline.registerStartTurn(defensiveClearHandler, 50);
-    this.turnPipeline.registerStartTurn(createStatusTickHandler(this.random), 100);
+    this.turnPipeline.registerStartTurn(
+      createStatusTickHandler(this.random, this.statusRules),
+      100,
+    );
     this.turnPipeline.registerEndTurn(seededTickHandler, 200);
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
     this.turnPipeline.registerEndTurn(createTerrainTickHandler(this.pokemonTypesMap), 400);
@@ -560,6 +567,7 @@ export class BattleEngine {
       heightModifier: heightMod,
       terrainModifier: terrainMod,
       facingModifierMap,
+      statusRules: this.statusRules,
     });
 
     for (const event of effectEvents) {

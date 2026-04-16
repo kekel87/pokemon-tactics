@@ -221,8 +221,8 @@ describe("statusTickHandler", () => {
   });
 
   describe("frozen", () => {
-    it("thaws at 20% chance", () => {
-      vi.spyOn(Math, "random").mockReturnValue(0.19);
+    it("thaws at 25% chance (Champions)", () => {
+      vi.spyOn(Math, "random").mockReturnValue(0.24);
       const pokemon = MockPokemon.fresh(P1, {
         statusEffects: [{ type: StatusType.Frozen, remainingTurns: null }],
       });
@@ -238,8 +238,8 @@ describe("statusTickHandler", () => {
       vi.restoreAllMocks();
     });
 
-    it("stays frozen at 80% chance", () => {
-      vi.spyOn(Math, "random").mockReturnValue(0.2);
+    it("stays frozen at 75% chance", () => {
+      vi.spyOn(Math, "random").mockReturnValue(0.25);
       const pokemon = MockPokemon.fresh(P1, {
         statusEffects: [{ type: StatusType.Frozen, remainingTurns: null }],
       });
@@ -249,11 +249,43 @@ describe("statusTickHandler", () => {
       expect(result.skipAction).toBe(true);
       vi.restoreAllMocks();
     });
+
+    it("increments turnsApplied each tick", () => {
+      vi.spyOn(Math, "random").mockReturnValue(0.99);
+      const pokemon = MockPokemon.fresh(P1, {
+        statusEffects: [{ type: StatusType.Frozen, remainingTurns: null }],
+      });
+      const state = MockBattle.stateFrom([pokemon]);
+
+      statusTickHandler(pokemon.id, state);
+      expect(pokemon.statusEffects[0]?.turnsApplied).toBe(1);
+
+      statusTickHandler(pokemon.id, state);
+      expect(pokemon.statusEffects[0]?.turnsApplied).toBe(2);
+      vi.restoreAllMocks();
+    });
+
+    it("thaws guaranteed at turn 3 (Champions maxTurns)", () => {
+      vi.spyOn(Math, "random").mockReturnValue(0.99);
+      const pokemon = MockPokemon.fresh(P1, {
+        statusEffects: [{ type: StatusType.Frozen, remainingTurns: null, turnsApplied: 2 }],
+      });
+      const result = statusTickHandler(pokemon.id, MockBattle.stateFrom([pokemon]));
+
+      expect(pokemon.statusEffects).toHaveLength(0);
+      expect(result.skipAction).toBe(false);
+      expect(result.events).toContainEqual({
+        type: BattleEventType.StatusRemoved,
+        targetId: pokemon.id,
+        status: StatusType.Frozen,
+      });
+      vi.restoreAllMocks();
+    });
   });
 
   describe("paralyzed", () => {
-    it("procs at 25% chance — restrictActions true", () => {
-      vi.spyOn(Math, "random").mockReturnValue(0.24);
+    it("procs at 12.5% chance — restrictActions true (Champions)", () => {
+      vi.spyOn(Math, "random").mockReturnValue(0.124);
       const pokemon = MockPokemon.fresh(P1, {
         statusEffects: [{ type: StatusType.Paralyzed, remainingTurns: null }],
       });
@@ -264,8 +296,8 @@ describe("statusTickHandler", () => {
       vi.restoreAllMocks();
     });
 
-    it("does not proc at 75% chance — normal actions", () => {
-      vi.spyOn(Math, "random").mockReturnValue(0.25);
+    it("does not proc at 87.5% chance — normal actions (Champions)", () => {
+      vi.spyOn(Math, "random").mockReturnValue(0.125);
       const pokemon = MockPokemon.fresh(P1, {
         statusEffects: [{ type: StatusType.Paralyzed, remainingTurns: null }],
       });

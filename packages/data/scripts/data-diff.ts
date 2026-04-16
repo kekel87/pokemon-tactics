@@ -16,7 +16,6 @@ import { fileURLToPath } from "node:url";
 const Dirname = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = join(Dirname, "..");
 const REPO_ROOT = join(PACKAGE_ROOT, "..", "..");
-const _REFERENCE_DIR = join(PACKAGE_ROOT, "reference");
 
 /**
  * Lit le contenu d'un fichier tel qu'il était au commit HEAD.

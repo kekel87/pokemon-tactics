@@ -6,6 +6,7 @@ import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
+import type { StatusRules } from "../types/status-rules";
 import type { RandomFn } from "../utils/prng";
 import { getTypeEffectiveness } from "./damage-calculator";
 import type { EffectContext, TypeChart } from "./effect-handler-registry";
@@ -29,6 +30,7 @@ interface ProcessContext {
   heightModifier: number;
   terrainModifier: number;
   facingModifierMap: Map<string, number>;
+  statusRules?: StatusRules;
 }
 
 export function createDefaultEffectRegistry(): EffectHandlerRegistry {

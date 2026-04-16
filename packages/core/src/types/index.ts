@@ -20,6 +20,7 @@ export type * from "./position";
 export type * from "./range-config";
 export type * from "./spawn-zone";
 export type * from "./status-effect";
+export type * from "./status-rules";
 export type * from "./targeting-pattern";
 export type * from "./team-selection";
 export type * from "./team-validation-result";

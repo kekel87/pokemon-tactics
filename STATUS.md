@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-15 (plan 055 terminé : bug gatling — immunité statut par type, icône terrain, KO anim, HP preview, stagger texte)
+> Dernière mise à jour : 2026-04-16 (plans 056 + 057 terminés : pipeline données Champions + statuts Champions dans le runtime core)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -9,7 +9,7 @@
 ## Phase actuelle : Phase 3 — Terrain & Tactics
 
 ### Ce qui est fait
-- Documentation complète : game-design, architecture, decisions (256 décisions), roadmap, references, methodology, roster POC, glossaire
+- Documentation complète : game-design, architecture, decisions (264 décisions), roadmap, references, methodology, roster POC, glossaire
 - 21 agents + 7 skills Claude Code en place (`.claude/`)
 - **Plan 001 terminé** : monorepo setup (pnpm workspaces, TypeScript bundler, Vite, Vitest, Biome)
 - **Plan 002 terminé** :
@@ -782,6 +782,8 @@
 
 ### Prochaine étape (Phase 3 — Terrain & Tactics)
 - **Plan 055 terminé** — bug gatling (immunité statut par type, icône terrain manquante, KO anim, HP preview, stagger texte, ombrage flancs uniformisé)
+- **Plan 056 terminé** — pipeline données Champions : `pnpm data:update` fetch Showdown + Champions overrides → `reference/*.json` alignés Champions (45 moves overridés, 185 learnsets remplacés, 3 abilities modifiées). `champions-status.json` généré. `pnpm data:diff` pour review. `docs/process-data-update.md` créé. Décision #263.
+- **Plan 057 terminé** — statuts Champions dans le runtime core : `StatusRules` type injecté dans `BattleEngine`, `DEFAULT_STATUS_RULES` = Champions. Paralysie 25% → 12.5%, gel 20% → 25% + max 3 tours (`turnsApplied` sur `StatusEffect`), sommeil 1-3 → `sample([2,3,3])`. `loadStatusRulesFromReference` dans data. Décision #264.
 - **Prochains candidats** :
   - **Preview timeline FFX-style sur hover** (Option C retenue en roadmap) — afficher les positions prédites des Pokemon sur la timeline CT au survol des actions
   - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)

@@ -3,6 +3,7 @@ import { StatusType } from "../../enums/status-type";
 import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
 import type { PokemonInstance } from "../../types/pokemon-instance";
+import { DEFAULT_STATUS_RULES, type StatusRules } from "../../types/status-rules";
 import type { RandomFn } from "../../utils/prng";
 import type { PhaseHandler, PhaseResult } from "../turn-pipeline";
 
@@ -23,14 +24,19 @@ function applyDot(pokemon: PokemonInstance, fraction: number, events: BattleEven
   return false;
 }
 
-export function createStatusTickHandler(random: RandomFn = () => Math.random()): PhaseHandler {
-  return (pokemonId: string, state: BattleState) => statusTickHandler(pokemonId, state, random);
+export function createStatusTickHandler(
+  random: RandomFn = () => Math.random(),
+  rules: StatusRules = DEFAULT_STATUS_RULES,
+): PhaseHandler {
+  return (pokemonId: string, state: BattleState) =>
+    statusTickHandler(pokemonId, state, random, rules);
 }
 
 export function statusTickHandler(
   pokemonId: string,
   state: BattleState,
   random: RandomFn = () => Math.random(),
+  rules: StatusRules = DEFAULT_STATUS_RULES,
 ): PhaseResult {
   const pokemon = state.pokemon.get(pokemonId);
   const emptyResult: PhaseResult = {
@@ -96,8 +102,10 @@ export function statusTickHandler(
     }
 
     case StatusType.Frozen: {
+      const turnsFrozen = (status.turnsApplied ?? 0) + 1;
+      status.turnsApplied = turnsFrozen;
       const thawRoll = random();
-      if (thawRoll < 0.2) {
+      if (thawRoll < rules.freeze.thawRate || turnsFrozen >= rules.freeze.maxTurns) {
         pokemon.statusEffects = pokemon.statusEffects.filter((s) => s !== status);
         events.push({
           type: BattleEventType.StatusRemoved,
@@ -111,7 +119,7 @@ export function statusTickHandler(
 
     case StatusType.Paralyzed: {
       const procRoll = random();
-      if (procRoll < 0.25) {
+      if (procRoll < rules.paralysis.skipRate) {
         return { events, skipAction: false, restrictActions: true, pokemonFainted: false };
       }
       return emptyResult;

@@ -30,4 +30,5 @@ export {
   resolveTargeting,
 } from "./grid/targeting";
 export type * from "./types/index";
+export { DEFAULT_STATUS_RULES } from "./types/status-rules";
 export * from "./utils/index";
