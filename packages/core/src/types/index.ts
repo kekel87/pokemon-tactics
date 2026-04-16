@@ -5,6 +5,7 @@ export type * from "./base-stats";
 export type * from "./battle-event";
 export type * from "./battle-replay";
 export type * from "./battle-state";
+export type * from "./ct-timeline-entry";
 export type * from "./damage-estimate";
 export type * from "./derived-stats";
 export type * from "./effect";

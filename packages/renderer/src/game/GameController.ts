@@ -5,6 +5,7 @@ import {
   type BattleEvent,
   BattleEventType,
   type BattleState,
+  type CtTimelineEntry,
   Direction,
   directionFromTo,
   EffectKind,
@@ -70,6 +71,7 @@ import {
   TILE_PREVIEW_BUFF_COLOR,
   TILE_SPAWN_ZONE_ALPHA,
   TILE_SPAWN_ZONE_INACTIVE_COLOR,
+  TIMELINE_PREDICTION_SLOTS,
 } from "../constants";
 import { HighlightKind } from "../enums/highlight-kind";
 import type { IsometricGrid } from "../grid/IsometricGrid";
@@ -254,6 +256,13 @@ export class GameController {
     const turnOrder = this.setup.state.turnOrder;
     const index = this.setup.state.currentTurnIndex;
     return turnOrder[index] ?? null;
+  }
+
+  private computeCtSequence(moveId?: string): CtTimelineEntry[] {
+    if (!this.setup || this.state.turnSystemKind !== TurnSystemKind.ChargeTime) {
+      return [];
+    }
+    return this.engine.predictCtTimeline(TIMELINE_PREDICTION_SLOTS, moveId);
   }
 
   getActivePlayerId(): string | null {
@@ -515,7 +524,9 @@ export class GameController {
       this.scene.cameras.main.pan(screenPos.x, screenPos.y, 400, "Sine.easeInOut");
     }
 
-    this.turnTimeline.update(this.state, this.pokemonDefinitions);
+    this.turnTimeline.update(this.state, this.pokemonDefinitions, {
+      sequence: this.computeCtSequence(),
+    });
 
     if (this.onTurnReady && activePokemonId) {
       const dummyEvents = this.onTurnReady(activePokemonId);
@@ -1369,6 +1380,17 @@ export class GameController {
       const targetPos = "targetPosition" in action ? action.targetPosition : undefined;
       this.showDamageEstimates(moveId, affectedTiles, targetPos);
     }
+    if (this.state.turnSystemKind === TurnSystemKind.ChargeTime) {
+      const activePokemonId = this.getActivePokemonId();
+      const sequence = this.computeCtSequence(moveId);
+      if (activePokemonId) {
+        this.turnTimeline.scrollToHighlight(sequence, activePokemonId);
+      }
+      this.turnTimeline.update(this.state, this.pokemonDefinitions, {
+        sequence,
+        highlightPokemonId: activePokemonId ?? undefined,
+      });
+    }
   }
 
   private startPreviewFlash(affectedTiles: Position[]): void {
@@ -1413,6 +1435,10 @@ export class GameController {
     this.isometricGrid.clearPreview();
     this.currentPreviewDirection = null;
     this.currentPreviewTiles = [];
+    this.turnTimeline.resetScroll();
+    this.turnTimeline.update(this.state, this.pokemonDefinitions, {
+      sequence: this.computeCtSequence(),
+    });
   }
 
   private showDamageEstimates(

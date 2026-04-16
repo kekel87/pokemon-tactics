@@ -68,3 +68,7 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 053 | [Undo déplacement](./053-undo-movement.md) | done | 2026-04-14 |
 | 054 | [Système CT (Charge Time)](./054-ct-system.md) | done | 2026-04-15 |
 | 055 | [Bug gatling](./055-bug-gatling.md) | done | 2026-04-15 |
+| 056 | [Pipeline données Champions](./056-champions-data-pipeline.md) | done | 2026-04-16 |
+| 057 | [Statuts Champions dans le runtime core](./057-champions-status-rules.md) | done | 2026-04-16 |
+| 058 | [Preview CT Timeline au confirm attack](./058-ct-timeline-preview.md) | done | 2026-04-16 |
+| 059 | [CT Timeline : séquence prédictive scrollable](./059-ct-timeline-preview.md) | done | 2026-04-16 |

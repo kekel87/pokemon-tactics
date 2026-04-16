@@ -8,6 +8,7 @@ export const CANVAS_WIDTH = 1280;
 export const CANVAS_HEIGHT = 720;
 
 export const BACKGROUND_COLOR = 0x1a1a2e;
+export const BACKGROUND_COLOR_CSS = "#1a1a2e";
 
 export const TILE_FILL_COLOR = 0x4a7c59;
 export const TILE_STROKE_COLOR = 0x2d5a3f;
@@ -139,7 +140,7 @@ export const ACTION_MENU_CORNER_RADIUS = 4;
 export const TIMELINE_X = 16;
 export const TIMELINE_Y = 20;
 export const TIMELINE_ENTRY_SIZE = 36;
-export const TIMELINE_ENTRY_SPACING = 10;
+export const TIMELINE_ENTRY_SPACING = 6;
 export const TIMELINE_ACTIVE_SIZE = 42;
 export const TIMELINE_ACTIVE_BORDER_COLOR = 0xffdd44;
 export const TIMELINE_BORDER_WIDTH = 2;
@@ -147,11 +148,19 @@ export const TIMELINE_ACTIVE_BORDER_WIDTH = 3;
 export const TIMELINE_SEPARATOR_LINE_HEIGHT = 2;
 export const TIMELINE_SEPARATOR_COLOR = 0x888888;
 export const TIMELINE_SEPARATOR_ALPHA = 0.6;
+export const TIMELINE_SEPARATOR_THICKNESS = 5;
 export const TIMELINE_PAST_ENTRY_ALPHA = 0.55;
 export const TIMELINE_CT_BAR_THICKNESS = 5;
 export const TIMELINE_CT_BAR_GAP = 3;
 export const TIMELINE_CT_BAR_COLOR = 0x44aaff;
 export const TIMELINE_CT_BAR_BG_COLOR = 0x223344;
+export const TIMELINE_BG_COLOR = 0x111122;
+export const TIMELINE_BG_ALPHA = 0.8;
+export const TIMELINE_HIGHLIGHT_BORDER_COLOR = 0x44ffaa;
+export const TIMELINE_HIGHLIGHT_COLOR_CSS = "#44ffaa";
+export const TIMELINE_TAIL_ENTRY_ALPHA = 0.45;
+export const TIMELINE_PREDICTION_SLOTS = 24;
+export const TIMELINE_VISIBLE_SLOTS = 11;
 
 export const PULSE_MIN_SCALE = 1.0;
 export const PULSE_MAX_SCALE = 1.1;

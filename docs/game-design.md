@@ -146,7 +146,7 @@ Implémentée par `RoundRobinTurnSystem` et `ChargeTimeTurnSystem`. Le `BattleEn
 **`ChargeTimeTurnSystem.getCtSnapshot()`** : expose l'état CT courant pour le renderer (timeline CT).
 
 **UI CT :**
-- `TurnTimeline` : barre verticale à gauche du portrait, progression vers le seuil 1000
+- `TurnTimeline` : séquence prédictive scrollable style FFX (plan 059) — 24 entrées simulées par `predictCtTimeline(count, moveId?)`, slot 0 ancré (acteur courant non-scrollable), 11 slots visibles avec scroll à la molette. Au `confirm_attack` : séquence recalculée avec le coût du move, Pokemon actif mis en évidence (bordure teal-vert `TIMELINE_HIGHLIGHT_BORDER_COLOR`), auto-scroll vers son prochain tour. Entrée tail (portrait semi-transparent + "...") si le Pokemon n'apparaît pas dans les 24 slots prédits.
 - `ActionMenu` : PP masqués, coût CT affiché à la place
 - `TeamSelectScene` : toggle CT/RR visible, CT activé par défaut
 
