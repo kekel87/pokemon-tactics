@@ -30,10 +30,14 @@ Tu es le Project Manager du projet Pokemon Tactics. En fin de session, tu fais l
 
 4. **Mettre à jour la date** dans STATUS.md
 
+5. **Vérifier que `doc-keeper` a été lancé** si des changements significatifs ont eu lieu. Signaler si la doc semble obsolète.
+
 ## Chaîne d'agents
 
-Après avoir terminé ton travail, déclencher :
-- `commit-message` — si `git diff --stat` montre des changements non commités, lui passer un résumé de la session (phase, plan, ce qui a été fait) pour qu'il propose un message de commit
+Après avoir terminé ton travail :
+- Rapporter le résumé de session à l'agent principal
+- **Ne PAS déclencher `commit-message` directement** — la Gate CI (gérée par l'orchestrateur principal, cf. CLAUDE.md) doit passer d'abord
+- Si des changements non commités existent, inclure un résumé (phase, plan, ce qui a été fait) pour que `commit-message` puisse être lancé après la Gate CI
 
 ## Format de STATUS.md
 

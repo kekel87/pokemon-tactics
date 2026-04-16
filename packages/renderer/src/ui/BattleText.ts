@@ -69,10 +69,10 @@ export function showBattleText(
   let delay: number;
   if (explicitDelay !== undefined) {
     delay = explicitDelay;
-  } else if (targetId !== undefined) {
-    delay = acquireSpawnDelay(targetId, scene.time.now);
-  } else {
+  } else if (targetId === undefined) {
     delay = 0;
+  } else {
+    delay = acquireSpawnDelay(targetId, scene.time.now);
   }
 
   const spawn = (): void => {

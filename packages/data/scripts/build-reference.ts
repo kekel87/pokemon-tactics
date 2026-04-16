@@ -14,12 +14,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ChampionsOverride } from "./champions-override.types";
 import { fetchChampionsData } from "./fetch-champions";
-import { CACHE_DIR, cachedFetch, cachedFetchText, ensureDir, sleep } from "./fetch-utils";
+import { CACHE_DIR, cachedFetch, cachedFetchText, ensureDir } from "./fetch-utils";
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const PACKAGE_ROOT = join(__dirname, "..");
+const Dirname = dirname(fileURLToPath(import.meta.url));
+const PACKAGE_ROOT = join(Dirname, "..");
 const REFERENCE_DIR = join(PACKAGE_ROOT, "reference");
 const INDEXES_DIR = join(REFERENCE_DIR, "indexes");
 
@@ -93,21 +93,36 @@ function extractFlavorText(
   // Group by generation, take latest version per gen
   const byGen: Record<string, string> = {};
   const genVersionMap: Record<string, number> = {
-    "red-blue": 1, yellow: 1,
-    "gold-silver": 2, crystal: 2,
-    "ruby-sapphire": 3, emerald: 3, "firered-leafgreen": 3,
-    "diamond-pearl": 4, platinum: 4, "heartgold-soulsilver": 4,
-    "black-white": 5, "black-2-white-2": 5,
-    "x-y": 6, "omega-ruby-alpha-sapphire": 6,
-    "sun-moon": 7, "ultra-sun-ultra-moon": 7, "lets-go-pikachu-lets-go-eevee": 7,
-    "sword-shield": 8, "brilliant-diamond-and-shining-pearl": 8, "legends-arceus": 8,
-    "scarlet-violet": 9, "the-teal-mask": 9, "the-indigo-disk": 9,
+    "red-blue": 1,
+    yellow: 1,
+    "gold-silver": 2,
+    crystal: 2,
+    "ruby-sapphire": 3,
+    emerald: 3,
+    "firered-leafgreen": 3,
+    "diamond-pearl": 4,
+    platinum: 4,
+    "heartgold-soulsilver": 4,
+    "black-white": 5,
+    "black-2-white-2": 5,
+    "x-y": 6,
+    "omega-ruby-alpha-sapphire": 6,
+    "sun-moon": 7,
+    "ultra-sun-ultra-moon": 7,
+    "lets-go-pikachu-lets-go-eevee": 7,
+    "sword-shield": 8,
+    "brilliant-diamond-and-shining-pearl": 8,
+    "legends-arceus": 8,
+    "scarlet-violet": 9,
+    "the-teal-mask": 9,
+    "the-indigo-disk": 9,
   };
 
   for (const entry of entries) {
-    if (entry.language.name !== lang) continue;
-    const versionName =
-      entry.version_group?.name ?? entry.version?.name ?? "";
+    if (entry.language.name !== lang) {
+      continue;
+    }
+    const versionName = entry.version_group?.name ?? entry.version?.name ?? "";
     const gen = genVersionMap[versionName];
     if (gen) {
       const key = `gen${gen}`;
@@ -165,7 +180,9 @@ function parseShowdownAbilityFlags(tsSource: string): Map<string, Record<string,
           const flags: Record<string, boolean> = {};
           for (const pair of content.split(",")) {
             const key = pair.split(":")[0].trim();
-            if (key) flags[key] = true;
+            if (key) {
+              flags[key] = true;
+            }
           }
           if (Object.keys(flags).length > 0) {
             result.set(currentAbility, flags);
@@ -197,9 +214,7 @@ async function fetchShowdownData(): Promise<ShowdownData> {
 
 // ─── PokeAPI Data Fetching ───────────────────────────────────────────────────
 
-async function fetchPokeApiSpecies(
-  dexNum: number,
-): Promise<Record<string, unknown> | null> {
+async function fetchPokeApiSpecies(dexNum: number): Promise<Record<string, unknown> | null> {
   try {
     return (await cachedFetch(
       `${POKEAPI_BASE}/pokemon-species/${dexNum}`,
@@ -210,9 +225,7 @@ async function fetchPokeApiSpecies(
   }
 }
 
-async function fetchPokeApiPokemon(
-  dexNum: number,
-): Promise<Record<string, unknown> | null> {
+async function fetchPokeApiPokemon(dexNum: number): Promise<Record<string, unknown> | null> {
   try {
     return (await cachedFetch(
       `${POKEAPI_BASE}/pokemon/${dexNum}`,
@@ -223,9 +236,7 @@ async function fetchPokeApiPokemon(
   }
 }
 
-async function fetchPokeApiMove(
-  moveId: number,
-): Promise<Record<string, unknown> | null> {
+async function fetchPokeApiMove(moveId: number): Promise<Record<string, unknown> | null> {
   try {
     return (await cachedFetch(
       `${POKEAPI_BASE}/move/${moveId}`,
@@ -236,9 +247,7 @@ async function fetchPokeApiMove(
   }
 }
 
-async function fetchPokeApiAbility(
-  abilityId: number,
-): Promise<Record<string, unknown> | null> {
+async function fetchPokeApiAbility(abilityId: number): Promise<Record<string, unknown> | null> {
   try {
     return (await cachedFetch(
       `${POKEAPI_BASE}/ability/${abilityId}`,
@@ -249,9 +258,7 @@ async function fetchPokeApiAbility(
   }
 }
 
-async function fetchPokeApiItem(
-  itemId: number,
-): Promise<Record<string, unknown> | null> {
+async function fetchPokeApiItem(itemId: number): Promise<Record<string, unknown> | null> {
   try {
     return (await cachedFetch(
       `${POKEAPI_BASE}/item/${itemId}`,
@@ -262,9 +269,7 @@ async function fetchPokeApiItem(
   }
 }
 
-async function fetchPokeApiType(
-  typeId: number,
-): Promise<Record<string, unknown> | null> {
+async function fetchPokeApiType(typeId: number): Promise<Record<string, unknown> | null> {
   try {
     return (await cachedFetch(
       `${POKEAPI_BASE}/type/${typeId}`,
@@ -331,7 +336,7 @@ async function fetchAllPokeApiData(showdown: ShowdownData): Promise<{
     CONCURRENCY,
     "Species",
   );
-  const speciesMap = new Map(speciesResults.filter(Boolean) as Array<[number, Record<string, unknown>]>);
+  const speciesMap = new Map(speciesResults.filter(Boolean) as [number, Record<string, unknown>][]);
 
   // Fetch pokemon data (for base_experience, cries, ev_yields)
   console.log("Fetching PokeAPI pokemon data...");
@@ -344,7 +349,7 @@ async function fetchAllPokeApiData(showdown: ShowdownData): Promise<{
     CONCURRENCY,
     "Pokemon",
   );
-  const pokemonMap = new Map(pokemonResults.filter(Boolean) as Array<[number, Record<string, unknown>]>);
+  const pokemonMap = new Map(pokemonResults.filter(Boolean) as [number, Record<string, unknown>][]);
 
   // Fetch move data (for FR names and descriptions)
   console.log("Fetching PokeAPI move data...");
@@ -357,7 +362,7 @@ async function fetchAllPokeApiData(showdown: ShowdownData): Promise<{
     CONCURRENCY,
     "Moves",
   );
-  const moveMap = new Map(moveResults.filter(Boolean) as Array<[number, Record<string, unknown>]>);
+  const moveMap = new Map(moveResults.filter(Boolean) as [number, Record<string, unknown>][]);
 
   // Fetch ability data — need to map ability names to PokeAPI IDs
   // Fetch the full ability list first to get name→ID mapping
@@ -369,7 +374,7 @@ async function fetchAllPokeApiData(showdown: ShowdownData): Promise<{
 
   const abilityNameToId = new Map<string, number>();
   for (const item of abilityList.results) {
-    const id = Number.parseInt(item.url.split("/").filter(Boolean).pop()!);
+    const id = Number.parseInt(item.url.split("/").filter(Boolean).pop()!, 10);
     abilityNameToId.set(item.name, id);
   }
 
@@ -378,7 +383,9 @@ async function fetchAllPokeApiData(showdown: ShowdownData): Promise<{
   for (const name of abilityNames) {
     const kebab = toKebabCase(name);
     const id = abilityNameToId.get(kebab);
-    if (id) abilityIds.add(id);
+    if (id) {
+      abilityIds.add(id);
+    }
   }
 
   console.log("Fetching PokeAPI ability details...");
@@ -391,7 +398,7 @@ async function fetchAllPokeApiData(showdown: ShowdownData): Promise<{
     CONCURRENCY,
     "Abilities",
   );
-  const abilityMap = new Map(abilityResults.filter(Boolean) as Array<[number, Record<string, unknown>]>);
+  const abilityMap = new Map(abilityResults.filter(Boolean) as [number, Record<string, unknown>][]);
 
   // Fetch items — get the full list, filter by category, then fetch details
   console.log("Fetching PokeAPI item list...");
@@ -401,7 +408,7 @@ async function fetchAllPokeApiData(showdown: ShowdownData): Promise<{
   )) as { results: Array<{ name: string; url: string }> };
 
   const allItemIds = itemList.results.map((item) => {
-    return Number.parseInt(item.url.split("/").filter(Boolean).pop()!);
+    return Number.parseInt(item.url.split("/").filter(Boolean).pop()!, 10);
   });
   console.log(`  Total items in PokeAPI: ${allItemIds.length}`);
 
@@ -416,7 +423,7 @@ async function fetchAllPokeApiData(showdown: ShowdownData): Promise<{
     CONCURRENCY,
     "Items",
   );
-  const itemMap = new Map(itemResults.filter(Boolean) as Array<[number, Record<string, unknown>]>);
+  const itemMap = new Map(itemResults.filter(Boolean) as [number, Record<string, unknown>][]);
 
   // Fetch types (18 main types, IDs 1-18; skip "unknown" and "shadow")
   console.log("Fetching PokeAPI type data...");
@@ -430,7 +437,7 @@ async function fetchAllPokeApiData(showdown: ShowdownData): Promise<{
     CONCURRENCY,
     "Types",
   );
-  const typeMap = new Map(typeResults.filter(Boolean) as Array<[number, Record<string, unknown>]>);
+  const typeMap = new Map(typeResults.filter(Boolean) as [number, Record<string, unknown>][]);
 
   return {
     species: speciesMap,
@@ -496,29 +503,48 @@ export interface PokemonEntry {
 }
 
 function deriveGeneration(dexNum: number): number {
-  if (dexNum <= 151) return 1;
-  if (dexNum <= 251) return 2;
-  if (dexNum <= 386) return 3;
-  if (dexNum <= 493) return 4;
-  if (dexNum <= 649) return 5;
-  if (dexNum <= 721) return 6;
-  if (dexNum <= 809) return 7;
-  if (dexNum <= 905) return 8;
+  if (dexNum <= 151) {
+    return 1;
+  }
+  if (dexNum <= 251) {
+    return 2;
+  }
+  if (dexNum <= 386) {
+    return 3;
+  }
+  if (dexNum <= 493) {
+    return 4;
+  }
+  if (dexNum <= 649) {
+    return 5;
+  }
+  if (dexNum <= 721) {
+    return 6;
+  }
+  if (dexNum <= 809) {
+    return 7;
+  }
+  if (dexNum <= 905) {
+    return 8;
+  }
   return 9;
 }
 
-function deriveFormType(forme: string, showdownEntry: Record<string, unknown>): PokemonForm["formType"] {
+function deriveFormType(
+  forme: string,
+  showdownEntry: Record<string, unknown>,
+): PokemonForm["formType"] {
   const f = forme.toLowerCase();
-  if (f.includes("mega")) return "mega";
-  if (
-    f.includes("alola") ||
-    f.includes("galar") ||
-    f.includes("hisui") ||
-    f.includes("paldea")
-  )
+  if (f.includes("mega")) {
+    return "mega";
+  }
+  if (f.includes("alola") || f.includes("galar") || f.includes("hisui") || f.includes("paldea")) {
     return "regional";
+  }
   const tags = showdownEntry.tags as string[] | undefined;
-  if (tags?.includes("Paradox")) return "paradox";
+  if (tags?.includes("Paradox")) {
+    return "paradox";
+  }
   return "other";
 }
 
@@ -526,35 +552,45 @@ function parseLearnset(
   learnsetData: Record<string, string[]> | undefined,
 ): PokemonEntry["learnset"] {
   const result: PokemonEntry["learnset"] = { levelUp: [], tm: [], tutor: [] };
-  if (!learnsetData) return result;
+  if (!learnsetData) {
+    return result;
+  }
 
   // Find the highest generation available
   let maxGen = 0;
   for (const entries of Object.values(learnsetData)) {
     for (const entry of entries) {
-      const gen = Number.parseInt(entry[0]);
-      if (gen > maxGen) maxGen = gen;
+      const gen = Number.parseInt(entry[0], 10);
+      if (gen > maxGen) {
+        maxGen = gen;
+      }
     }
   }
 
   for (const [moveId, entries] of Object.entries(learnsetData)) {
     const kebabMove = toKebabCase(moveId);
     for (const entry of entries) {
-      const gen = Number.parseInt(entry[0]);
-      if (gen !== maxGen) continue;
+      const gen = Number.parseInt(entry[0], 10);
+      if (gen !== maxGen) {
+        continue;
+      }
       const type = entry[1];
       const rest = entry.slice(2);
 
       if (type === "L") {
-        const level = Number.parseInt(rest) || 0;
+        const level = Number.parseInt(rest, 10) || 0;
         // Avoid duplicates
         if (!result.levelUp.some((e) => e.move === kebabMove && e.level === level)) {
           result.levelUp.push({ level, move: kebabMove });
         }
       } else if (type === "M") {
-        if (!result.tm.includes(kebabMove)) result.tm.push(kebabMove);
+        if (!result.tm.includes(kebabMove)) {
+          result.tm.push(kebabMove);
+        }
       } else if (type === "T") {
-        if (!result.tutor.includes(kebabMove)) result.tutor.push(kebabMove);
+        if (!result.tutor.includes(kebabMove)) {
+          result.tutor.push(kebabMove);
+        }
       }
       // Skip E (egg), S (special/event), V (virtual console), R (reminder)
     }
@@ -569,11 +605,13 @@ function parseLearnset(
 function transformShowdownAbilities(
   abilities: Record<string, string> | undefined,
 ): PokemonEntry["abilities"] {
-  if (!abilities) return { ability1: "unknown", ability2: null, hidden: null };
+  if (!abilities) {
+    return { ability1: "unknown", ability2: null, hidden: null };
+  }
   return {
     ability1: toKebabCase(abilities["0"] ?? "unknown"),
     ability2: abilities["1"] ? toKebabCase(abilities["1"]) : null,
-    hidden: abilities["H"] ? toKebabCase(abilities["H"]) : null,
+    hidden: abilities.H ? toKebabCase(abilities.H) : null,
   };
 }
 
@@ -588,21 +626,27 @@ function transformPokemon(
   const entries: PokemonEntry[] = [];
 
   // Group forms by base species
-  const formsByBase = new Map<string, Array<[string, Record<string, unknown>]>>();
+  const formsByBase = new Map<string, [string, Record<string, unknown>][]>();
   for (const [key, entry] of Object.entries(showdown.pokedex)) {
     if (entry.baseSpecies) {
       const baseKey = (entry.baseSpecies as string).toLowerCase().replace(/[^a-z0-9]/g, "");
-      if (!formsByBase.has(baseKey)) formsByBase.set(baseKey, []);
-      formsByBase.get(baseKey)!.push([key, entry]);
+      if (!formsByBase.has(baseKey)) {
+        formsByBase.set(baseKey, []);
+      }
+      formsByBase.get(baseKey)?.push([key, entry]);
     }
   }
 
   for (const [showdownKey, sdEntry] of Object.entries(showdown.pokedex)) {
     // Skip forms (they'll be nested under base species)
-    if (sdEntry.baseSpecies) continue;
+    if (sdEntry.baseSpecies) {
+      continue;
+    }
 
     const dexNum = sdEntry.num as number;
-    if (dexNum <= 0) continue; // Skip CAP, etc.
+    if (dexNum <= 0) {
+      continue; // Skip CAP, etc.
+    }
 
     const enName = sdEntry.name as string;
     const speciesData = pokeapi.species.get(dexNum);
@@ -649,7 +693,9 @@ function transformPokemon(
         for (const s of stats) {
           if (s.effort > 0) {
             const key = statNameMap[s.stat.name];
-            if (key) evYields[key] = s.effort;
+            if (key) {
+              evYields[key] = s.effort;
+            }
           }
         }
       }
@@ -670,9 +716,15 @@ function transformPokemon(
         if (evoEntry) {
           const method = (evoEntry.evoType as string) ?? "levelUp";
           const conditions: string[] = [];
-          if (evoEntry.evoLevel) conditions.push(`level ${evoEntry.evoLevel}`);
-          if (evoEntry.evoItem) conditions.push(`item: ${evoEntry.evoItem}`);
-          if (evoEntry.evoCondition) conditions.push(evoEntry.evoCondition as string);
+          if (evoEntry.evoLevel) {
+            conditions.push(`level ${evoEntry.evoLevel}`);
+          }
+          if (evoEntry.evoItem) {
+            conditions.push(`item: ${evoEntry.evoItem}`);
+          }
+          if (evoEntry.evoCondition) {
+            conditions.push(evoEntry.evoCondition as string);
+          }
           evolutions.push({
             toId: toKebabCase(evo),
             method,
@@ -683,7 +735,7 @@ function transformPokemon(
     }
 
     // Flavor text from PokeAPI species
-    let pokedexEntries: Record<string, { en: string | null; fr: string | null }> = {};
+    const pokedexEntries: Record<string, { en: string | null; fr: string | null }> = {};
     if (speciesData) {
       const flavorEntries = speciesData.flavor_text_entries as
         | Array<{
@@ -710,9 +762,7 @@ function transformPokemon(
     // Flags
     const tags = sdEntry.tags as string[] | undefined;
     const isLegendary =
-      (speciesData?.is_legendary as boolean) ??
-      tags?.some((t) => t.includes("Legendary")) ??
-      false;
+      (speciesData?.is_legendary as boolean) ?? tags?.some((t) => t.includes("Legendary")) ?? false;
     const isMythical = (speciesData?.is_mythical as boolean) ?? false;
     const isUltraBeast = tags?.includes("Ultra Beast") ?? false;
     const isParadox = tags?.includes("Paradox") ?? false;
@@ -722,7 +772,9 @@ function transformPokemon(
     const formEntries = formsByBase.get(showdownKey) ?? [];
     for (const [, formEntry] of formEntries) {
       const forme = formEntry.forme as string;
-      if (!forme) continue;
+      if (!forme) {
+        continue;
+      }
 
       const formeLower = forme.toLowerCase();
       // Exclude Gigantamax, Totem, Eternamax, Starter (Pikachu cosplay forms)
@@ -737,7 +789,9 @@ function transformPokemon(
 
       const formId = toKebabCase(formEntry.name as string);
       const rawFormTypes = formEntry.types as string[] | undefined;
-      if (!rawFormTypes) continue; // Skip forms without type data
+      if (!rawFormTypes) {
+        continue; // Skip forms without type data
+      }
       const formTypes = rawFormTypes.map((t) => t.toLowerCase());
       const formStats = (formEntry.baseStats as Record<string, number>) ?? sdEntry.baseStats;
       const formAbilities = transformShowdownAbilities(
@@ -757,12 +811,8 @@ function transformPokemon(
     }
 
     // Species metadata from PokeAPI
-    const shape = speciesData?.shape
-      ? (speciesData.shape as { name: string }).name
-      : null;
-    const habitat = speciesData?.habitat
-      ? (speciesData.habitat as { name: string }).name
-      : null;
+    const shape = speciesData?.shape ? (speciesData.shape as { name: string }).name : null;
+    const habitat = speciesData?.habitat ? (speciesData.habitat as { name: string }).name : null;
     const growthRate = speciesData?.growth_rate
       ? (speciesData.growth_rate as { name: string }).name
       : null;
@@ -801,7 +851,9 @@ function transformPokemon(
   }
 
   entries.sort((a, b) => a.dexNumber - b.dexNumber);
-  console.log(`  Generated ${entries.length} Pokemon entries with ${entries.reduce((s, e) => s + e.forms.length, 0)} forms`);
+  console.log(
+    `  Generated ${entries.length} Pokemon entries with ${entries.reduce((s, e) => s + e.forms.length, 0)} forms`,
+  );
   return entries;
 }
 
@@ -844,14 +896,20 @@ function transformMoves(
 
   for (const [, sdMove] of Object.entries(showdown.moves)) {
     const num = sdMove.num as number;
-    if (num <= 0) continue;
+    if (num <= 0) {
+      continue;
+    }
 
     // Skip Z-moves and Max moves
-    if (sdMove.isZ || sdMove.isMax) continue;
+    if (sdMove.isZ || sdMove.isMax) {
+      continue;
+    }
 
     // Skip moves marked as non-standard (CAP moves, etc.) except "Past" which are real moves
     const isNonstandard = sdMove.isNonstandard as string | undefined;
-    if (isNonstandard && isNonstandard !== "Past" && isNonstandard !== "Unobtainable") continue;
+    if (isNonstandard && isNonstandard !== "Past" && isNonstandard !== "Unobtainable") {
+      continue;
+    }
 
     const enName = sdMove.name as string;
     const id = toKebabCase(enName);
@@ -863,9 +921,7 @@ function transformMoves(
     // FR name from PokeAPI
     const pokeapiData = pokeapiMoves.get(num);
     const frName = pokeapiData
-      ? extractFrName(
-          pokeapiData.names as Array<{ language: { name: string }; name: string }>,
-        )
+      ? extractFrName(pokeapiData.names as Array<{ language: { name: string }; name: string }>)
       : null;
 
     // FR description from PokeAPI flavor text
@@ -975,8 +1031,18 @@ function transformAbilities(
   for (const [, data] of pokeapiAbilities) {
     const id = (data.name as string) ?? "";
     const gen = (data.generation as { name: string })?.name;
-    const genNum = gen ? Number.parseInt(gen.replace("generation-", "")) : 0;
-    const romanToNum: Record<string, number> = { i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8, ix: 9 };
+    const genNum = gen ? Number.parseInt(gen.replace("generation-", ""), 10) : 0;
+    const romanToNum: Record<string, number> = {
+      i: 1,
+      ii: 2,
+      iii: 3,
+      iv: 4,
+      v: 5,
+      vi: 6,
+      vii: 7,
+      viii: 8,
+      ix: 9,
+    };
     const generation = romanToNum[gen?.replace("generation-", "") ?? ""] ?? genNum;
 
     const names = data.names as Array<{ language: { name: string }; name: string }>;
@@ -995,9 +1061,7 @@ function transformAbilities(
           version_group: { name: string };
         }>
       | undefined;
-    const frFlavor = flavorEntries
-      ? extractLatestFlavorText(flavorEntries, "fr")
-      : null;
+    const frFlavor = flavorEntries ? extractLatestFlavorText(flavorEntries, "fr") : null;
 
     entries.push({
       id,
@@ -1047,22 +1111,27 @@ export interface ItemEntry {
 
 // Categories to exclude
 const EXCLUDED_ITEM_CATEGORIES = new Set([
-  "unused", "loot", "all-mail", "all-machines",
-  "gameplay", "plot-advancement", "species-candies",
-  "dynamax-crystals", "tera-shard", "picnic",
+  "unused",
+  "loot",
+  "all-mail",
+  "all-machines",
+  "gameplay",
+  "plot-advancement",
+  "species-candies",
+  "dynamax-crystals",
+  "tera-shard",
+  "picnic",
 ]);
 
 // Z-crystal and Tera-related item name patterns
 const EXCLUDED_ITEM_PATTERNS = [
-  /z$/i,         // Z-crystals end with "z"
-  /ium-z$/i,     // e.g., normalium-z
+  /z$/i, // Z-crystals end with "z"
+  /ium-z$/i, // e.g., normalium-z
   /tera-shard/i,
   /dynamax/i,
 ];
 
-function transformItems(
-  pokeapiItems: Map<number, Record<string, unknown>>,
-): ItemEntry[] {
+function transformItems(pokeapiItems: Map<number, Record<string, unknown>>): ItemEntry[] {
   console.log("Transforming items data...");
   const entries: ItemEntry[] = [];
 
@@ -1071,13 +1140,19 @@ function transformItems(
     const category = (data.category as { name: string })?.name ?? "unknown";
 
     // Filter by category
-    if (EXCLUDED_ITEM_CATEGORIES.has(category)) continue;
+    if (EXCLUDED_ITEM_CATEGORIES.has(category)) {
+      continue;
+    }
 
     // Filter Z-crystals and Tera items by name pattern
-    if (category === "z-crystals") continue;
+    if (category === "z-crystals") {
+      continue;
+    }
 
     // Skip by name patterns
-    if (EXCLUDED_ITEM_PATTERNS.some((p) => p.test(id))) continue;
+    if (EXCLUDED_ITEM_PATTERNS.some((p) => p.test(id))) {
+      continue;
+    }
 
     const names = data.names as Array<{ language: { name: string }; name: string }>;
     const enName = names?.find((n) => n.language.name === "en")?.name ?? id;
@@ -1095,25 +1170,33 @@ function transformItems(
           version_group: { name: string };
         }>
       | undefined;
-    const frFlavor = flavorEntries
-      ? extractLatestFlavorText(flavorEntries, "fr")
-      : null;
+    const frFlavor = flavorEntries ? extractLatestFlavorText(flavorEntries, "fr") : null;
 
     const flingEffect = data.fling_effect as { name: string } | null;
     const flingPower = data.fling_power as number | null;
     const cost = data.cost as number;
 
     // Determine generation from game_indices
-    const gameIndices = data.game_indices as
-      | Array<{ generation: { name: string } }>
-      | undefined;
+    const gameIndices = data.game_indices as Array<{ generation: { name: string } }> | undefined;
     let generation = 0;
     if (gameIndices && gameIndices.length > 0) {
-      const romanToNum: Record<string, number> = { i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8, ix: 9 };
+      const romanToNum: Record<string, number> = {
+        i: 1,
+        ii: 2,
+        iii: 3,
+        iv: 4,
+        v: 5,
+        vi: 6,
+        vii: 7,
+        viii: 8,
+        ix: 9,
+      };
       for (const gi of gameIndices) {
         const genName = gi.generation.name.replace("generation-", "");
         const num = romanToNum[genName] ?? 0;
-        if (generation === 0 || num < generation) generation = num;
+        if (generation === 0 || num < generation) {
+          generation = num;
+        }
       }
     }
 
@@ -1122,7 +1205,11 @@ function transformItems(
     const consumable = attributes?.some((a) => a.name === "consumable") ?? false;
 
     // Determine if it's a mega stone
-    const isMegaStone = category === "mega-stones" || id.endsWith("ite") || id.endsWith("ite-x") || id.endsWith("ite-y");
+    const isMegaStone =
+      category === "mega-stones" ||
+      id.endsWith("ite") ||
+      id.endsWith("ite-x") ||
+      id.endsWith("ite-y");
 
     // Map PokeAPI category to our simplified categories
     let ourCategory: string;
@@ -1132,9 +1219,24 @@ function transformItems(
       ourCategory = "berry";
     } else if (category === "evolution") {
       ourCategory = "evolution";
-    } else if (category.includes("medicine") || category.includes("healing") || category.includes("revival") || category.includes("status-cures") || category.includes("pp-recovery")) {
+    } else if (
+      category.includes("medicine") ||
+      category.includes("healing") ||
+      category.includes("revival") ||
+      category.includes("status-cures") ||
+      category.includes("pp-recovery")
+    ) {
       ourCategory = "medicine";
-    } else if (category.includes("held") || category.includes("choice") || category.includes("type-enhancement") || category.includes("type-protection") || category.includes("stat-boosts") || category.includes("effort") || category.includes("species-specific") || category.includes("in-a-pinch")) {
+    } else if (
+      category.includes("held") ||
+      category.includes("choice") ||
+      category.includes("type-enhancement") ||
+      category.includes("type-protection") ||
+      category.includes("stat-boosts") ||
+      category.includes("effort") ||
+      category.includes("species-specific") ||
+      category.includes("in-a-pinch")
+    ) {
       ourCategory = "heldItem";
     } else if (category.includes("battle")) {
       ourCategory = "battle";
@@ -1169,9 +1271,7 @@ interface TypeChartEntry {
   effectiveness: Record<string, Record<string, number>>;
 }
 
-function transformTypeChart(
-  pokeapiTypes: Map<number, Record<string, unknown>>,
-): TypeChartEntry {
+function transformTypeChart(pokeapiTypes: Map<number, Record<string, unknown>>): TypeChartEntry {
   console.log("Transforming type chart from PokeAPI...");
 
   const types: string[] = [];
@@ -1223,8 +1323,12 @@ function transformTypeChart(
 type Index = Record<string, string[]>;
 
 function addToIndex(index: Index, key: string, value: string): void {
-  if (!index[key]) index[key] = [];
-  if (!index[key].includes(value)) index[key].push(value);
+  if (!index[key]) {
+    index[key] = [];
+  }
+  if (!index[key].includes(value)) {
+    index[key].push(value);
+  }
 }
 
 function generateMoveIndexes(moves: MoveEntry[]): Record<string, Index> {
@@ -1249,7 +1353,9 @@ function generateMoveIndexes(moves: MoveEntry[]): Record<string, Index> {
 
     // by-flag
     for (const [flag, active] of Object.entries(move.flags)) {
-      if (active) addToIndex(byFlag, flag, move.id);
+      if (active) {
+        addToIndex(byFlag, flag, move.id);
+      }
     }
 
     // by-target
@@ -1258,16 +1364,29 @@ function generateMoveIndexes(moves: MoveEntry[]): Record<string, Index> {
     // by-secondary-status
     if (move.secondary?.status) {
       const statusMap: Record<string, string> = {
-        brn: "burn", par: "paralysis", slp: "sleep", frz: "freeze",
-        psn: "poison", tox: "toxic",
+        brn: "burn",
+        par: "paralysis",
+        slp: "sleep",
+        frz: "freeze",
+        psn: "poison",
+        tox: "toxic",
       };
-      addToIndex(bySecondaryStatus, statusMap[move.secondary.status] ?? move.secondary.status, move.id);
+      addToIndex(
+        bySecondaryStatus,
+        statusMap[move.secondary.status] ?? move.secondary.status,
+        move.id,
+      );
     }
     if (move.secondary?.volatileStatus) {
       const volatileMap: Record<string, string> = {
-        flinch: "flinch", confusion: "confusion",
+        flinch: "flinch",
+        confusion: "confusion",
       };
-      addToIndex(bySecondaryStatus, volatileMap[move.secondary.volatileStatus] ?? move.secondary.volatileStatus, move.id);
+      addToIndex(
+        bySecondaryStatus,
+        volatileMap[move.secondary.volatileStatus] ?? move.secondary.volatileStatus,
+        move.id,
+      );
     }
 
     // by-stat-change
@@ -1343,12 +1462,16 @@ function generatePokemonIndexes(pokemon: PokemonEntry[]): Record<string, Index |
     // by-ability (base + forms)
     const abilities = [pkmn.abilities.ability1, pkmn.abilities.ability2, pkmn.abilities.hidden];
     for (const ability of abilities) {
-      if (ability) addToIndex(byAbility, ability, pkmn.id);
+      if (ability) {
+        addToIndex(byAbility, ability, pkmn.id);
+      }
     }
     for (const form of pkmn.forms) {
       const fAbilities = [form.abilities.ability1, form.abilities.ability2, form.abilities.hidden];
       for (const ability of fAbilities) {
-        if (ability) addToIndex(byAbility, ability, form.id);
+        if (ability) {
+          addToIndex(byAbility, ability, form.id);
+        }
       }
     }
 
@@ -1366,10 +1489,18 @@ function generatePokemonIndexes(pokemon: PokemonEntry[]): Record<string, Index |
     addToIndex(byGeneration, String(pkmn.generation), pkmn.id);
 
     // by-flag
-    if (pkmn.flags.isLegendary) addToIndex(byFlag, "legendary", pkmn.id);
-    if (pkmn.flags.isMythical) addToIndex(byFlag, "mythical", pkmn.id);
-    if (pkmn.flags.isUltraBeast) addToIndex(byFlag, "ultraBeast", pkmn.id);
-    if (pkmn.flags.isParadox) addToIndex(byFlag, "paradox", pkmn.id);
+    if (pkmn.flags.isLegendary) {
+      addToIndex(byFlag, "legendary", pkmn.id);
+    }
+    if (pkmn.flags.isMythical) {
+      addToIndex(byFlag, "mythical", pkmn.id);
+    }
+    if (pkmn.flags.isUltraBeast) {
+      addToIndex(byFlag, "ultraBeast", pkmn.id);
+    }
+    if (pkmn.flags.isParadox) {
+      addToIndex(byFlag, "paradox", pkmn.id);
+    }
 
     // by-top-stat (base form only)
     const stats = pkmn.baseStats;
@@ -1386,11 +1517,17 @@ function generatePokemonIndexes(pokemon: PokemonEntry[]): Record<string, Index |
     // by-bst-bracket
     const bst = Object.values(pkmn.baseStats).reduce((sum, v) => sum + v, 0);
     let bracket: string;
-    if (bst < 350) bracket = "<350";
-    else if (bst <= 450) bracket = "350-450";
-    else if (bst <= 525) bracket = "450-525";
-    else if (bst <= 600) bracket = "525-600";
-    else bracket = "600+";
+    if (bst < 350) {
+      bracket = "<350";
+    } else if (bst <= 450) {
+      bracket = "350-450";
+    } else if (bst <= 525) {
+      bracket = "450-525";
+    } else if (bst <= 600) {
+      bracket = "525-600";
+    } else {
+      bracket = "600+";
+    }
     addToIndex(byBstBracket, bracket, pkmn.id);
 
     // pokemon-with-mega
@@ -1422,9 +1559,15 @@ function generateItemIndexes(items: ItemEntry[]): Record<string, Index> {
 function generateAbilityIndexes(abilities: AbilityEntry[]): Record<string, Index> {
   const byFlag: Index = {};
   for (const ability of abilities) {
-    if (ability.flags.breakable) addToIndex(byFlag, "breakable", ability.id);
-    if (ability.flags.ignorable) addToIndex(byFlag, "ignorable", ability.id);
-    if (ability.flags.unsuppressable) addToIndex(byFlag, "unsuppressable", ability.id);
+    if (ability.flags.breakable) {
+      addToIndex(byFlag, "breakable", ability.id);
+    }
+    if (ability.flags.ignorable) {
+      addToIndex(byFlag, "ignorable", ability.id);
+    }
+    if (ability.flags.unsuppressable) {
+      addToIndex(byFlag, "unsuppressable", ability.id);
+    }
   }
   return { "abilities-by-flag": byFlag };
 }
@@ -1484,7 +1627,9 @@ export function applyChampionsOverrides(
       summary.skippedUnknownIds.push(`move:${id}`);
       continue;
     }
-    if (applyMoveOverride(entry, override)) summary.moves++;
+    if (applyMoveOverride(entry, override)) {
+      summary.moves++;
+    }
   }
 
   // Abilities
@@ -1494,7 +1639,9 @@ export function applyChampionsOverrides(
       summary.skippedUnknownIds.push(`ability:${id}`);
       continue;
     }
-    if (applyAbilityOverride(entry, override)) summary.abilities++;
+    if (applyAbilityOverride(entry, override)) {
+      summary.abilities++;
+    }
   }
 
   // Items
@@ -1504,7 +1651,9 @@ export function applyChampionsOverrides(
       summary.skippedUnknownIds.push(`item:${id}`);
       continue;
     }
-    if (applyItemOverride(entry, override)) summary.items++;
+    if (applyItemOverride(entry, override)) {
+      summary.items++;
+    }
   }
 
   // Learnsets — remplacement total pour les Pokemon présents dans l'override
@@ -1785,7 +1934,9 @@ async function main(): Promise<void> {
   // Summary
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`\n=== Done in ${elapsed}s ===`);
-  console.log(`  Pokemon: ${pokemonEntries.length} species + ${pokemonEntries.reduce((s, e) => s + e.forms.length, 0)} forms`);
+  console.log(
+    `  Pokemon: ${pokemonEntries.length} species + ${pokemonEntries.reduce((s, e) => s + e.forms.length, 0)} forms`,
+  );
   console.log(`  Moves: ${moveEntries.length}`);
   console.log(`  Abilities: ${abilityEntries.length}`);
   console.log(`  Items: ${itemEntries.length}`);

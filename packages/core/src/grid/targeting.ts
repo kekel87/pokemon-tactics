@@ -160,11 +160,7 @@ export function resolveBlastImpactTile(
   return findBlastInterception(origin, target, grid);
 }
 
-function findBlastInterception(
-  origin: Position,
-  target: Position,
-  grid: Grid,
-): Position | null {
+function findBlastInterception(origin: Position, target: Position, grid: Grid): Position | null {
   const originHeight = getTileHeight(grid, origin);
   const targetHeight = getTileHeight(grid, target);
   const reference = Math.min(originHeight, targetHeight);
