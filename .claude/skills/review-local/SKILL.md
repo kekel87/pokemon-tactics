@@ -1,6 +1,6 @@
 ---
-name: review
-description: Lance une review de code sur les changements en cours
+name: review-local
+description: Lance une review de code sur les changements locaux (git diff). Pour reviewer une PR GitHub, utilise le /review built-in.
 user-invocable: true
 ---
 

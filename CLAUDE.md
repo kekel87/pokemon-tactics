@@ -77,99 +77,38 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 
 ## Orchestration des agents
 
-Les agents se déclenchent **automatiquement** après chaque changement significatif. Ne pas attendre qu'on le demande. Ne pas lancer tous les agents — seulement ceux pertinents.
+**L'humain ne demande pas d'agent. C'est toi qui les lances quand nécessaire.** Si tu as besoin d'un asset → `asset-manager`. De données Pokemon → `data-miner`. De tests → `test-writer`. Tu vois le besoin, tu lances.
 
-### Exécution — foreground vs background
+**Deux modes** :
 
-Certains agents sont longs (navigation web, screenshots, analyse LLM approfondie) et bloqueraient l'humain s'ils tournaient en foreground. Lance-les systématiquement en **background** (`run_in_background: true` sur le Agent tool) :
+1. **Auto sans demander** — la majorité. Tu lances direct et tu synthétises le résultat.
+2. **Tu proposes avant de lancer** — uniquement pour les agents coûteux ou aux actions publiques :
+   - `visual-tester` (Playwright long, ≥ 2 min)
+   - `debugger` (opus coûteux)
+   - `best-practices` (WebSearch/Fetch)
+   - `balancer` (N combats headless)
+   - `performance-profiler`
+   - `publisher` (publie une release GitHub)
+   - `wiki-keeper` (modifie le wiki public)
 
-- `visual-tester` — Playwright prend ≥ 2 min même pour un check simple
-- `best-practices` — WebSearch + WebFetch
-- `debugger` — analyse opus, souvent multi-step
-- `balancer` — lance N combats headless
+Détails par agent et table de triggers : **`docs/agent-orchestration.md`**.
 
-Les agents courts (< 30s) restent en foreground : `core-guardian`, `commit-message`, `plan-reviewer`, `sandbox-json`.
+### Chaînes principales
 
-Quand tu lances un agent en background :
-1. Dis à l'humain que tu l'as lancé et qu'il tourne
-2. Continue à travailler sur d'autres tâches si possible (pas d'attente active)
-3. Quand le résultat arrive, synthétise pour l'humain
+- **Rédaction d'un plan** : tu écris → `plan-reviewer` (auto) → `game-designer` (auto si mécaniques/équilibre) → tu présentes à l'humain.
+- **Fin d'un plan** : `core-guardian` (si core touché) → `code-reviewer` → `doc-keeper` → proposer `visual-tester` si renderer touché → gate CI → `commit-message`.
+- **Hors plan** : `code-reviewer` (si significatif) → `doc-keeper` (si doc) → gate CI → `commit-message`.
+- **Fin de session** : `session-closer` → gate CI → `commit-message`.
 
-Règle d'or : **jamais plus d'un agent long en foreground par turn**. Si tu dois en enchaîner plusieurs (post-plan, session close), lance-les en parallèle en background et synthétise à la fin.
+### Règles de fond
 
-### Quand lancer quoi
+- Jamais plus d'un agent long en foreground par turn — les longs en background.
+- Gate CI = `pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration`. **BLOQUANT** avant tout commit.
+- **Ce qui est reporté / skippé va dans `docs/next.md`** — agenda persistant que tu maintiens. L'humain le lit via `/next` pour ne rien oublier.
 
-**Après chaque étape intermédiaire d'un plan (code écrit + tests passent) :**
-- `core-guardian` — si le diff touche `packages/core/`
-
-**Après la dernière étape d'un plan :**
-1. `core-guardian` — si le diff touche `packages/core/`
-2. `code-reviewer` — review qualité (pas de commit message, c'est le rôle de `commit-message`)
-3. `/simplify` — review réutilisation, qualité et efficacité du code changé, corrige les problèmes trouvés
-4. `doc-keeper` — met à jour TOUS les docs impactés + roadmap.md + STATUS.md
-5. `visual-tester` — si le plan touche `packages/renderer/` (vérification visuelle via Playwright)
-6. **Gate CI** — `pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration` — **BLOQUANT**, tout doit passer avant de proposer un commit
-7. `commit-message` — **toujours en dernier**, propose un message de commit à l'humain
-
-**Travail hors plan (bugfix, expérimentation, refacto opportuniste) :**
-- `code-reviewer` — review qualité (si changements significatifs)
-- `/simplify` — après le code-reviewer, review + fix réutilisation/efficacité
-- `doc-keeper` — si la doc est impactée
-- **Gate CI** — `pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration` — BLOQUANT avant tout commit
-
-**En fin de session :**
-1. `session-closer` (ou `/status`) — met à jour STATUS.md et vérifie la doc
-2. **Gate CI** — `pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration` — **BLOQUANT**, si un check échoue, corriger AVANT de proposer un commit. Ne JAMAIS passer à commit-message si la CI ne passe pas.
-3. `commit-message` — propose un message de commit à l'humain (seulement si gate CI OK)
-
-**Selon le contexte du changement :**
-
-| Déclencheur | Agent |
-|-------------|-------|
-| Nouvelle mécanique de jeu | `game-designer` (cohérence + équilibre) |
-| Nouvelle mécanique dans le core | `test-writer` (tests first) |
-| Ajout/suppression/modif d'un move | `test-writer` (audit moves/ + mécanique, crée/supprime/MAJ le fichier de test) |
-| Ajout/modif de données Pokemon | `game-designer` + `data-miner` |
-| Revue/attribution des patterns d'attaque | `move-pattern-designer` (semantique nom → pattern) |
-| Ajout de dépendance | `dependency-manager` (audit avant d'ajouter) |
-| Ajout/modif d'assets | `asset-manager` (conventions) |
-| Nouveau plan ou plan à reviewer | `plan-reviewer` |
-| Hésitation sur une approche | `best-practices` (recherche marché) |
-| Bug complexe | `debugger` (diagnostic opus) |
-| Modif renderer ou UI Phaser | `visual-tester` (vérification visuelle via Playwright) |
-| Bug visuel / rendu cassé | `visual-tester` (screenshot + console + interactions) |
-| Modif pipeline CI ou ajout package | `ci-setup` |
-| Problème de perf ou avant release | `performance-profiler` |
-| Ajout/modif d'un agent ou skill | `agent-manager` (audit cohérence) |
-| Besoin d'une config sandbox | `sandbox-json` (génère une commande CLI à partir d'une description) |
-| Fin de session avec changements non commités | `commit-message` (propose un message de commit) |
-| Nouvelles issues GitHub à trier | `feedback-triager` (classe, dédoublonne, propose labels + réponse) |
-| Ajout Pokemon/move/mécanique ou modif game design | `wiki-keeper` (met à jour le wiki joueur GitHub) |
-| Commit notable avec changement visible joueur | `release-drafter` (alimente la draft release) |
-| Décision de publier une release | `publisher` (vérifie, publie, lance wiki-keeper) |
-
-### Chaînes d'agents
-
-Certains agents en déclenchent d'autres :
-- `code-reviewer` (hors flow principal, ex: via `/review`) → `core-guardian` (si core touché) → `game-designer` (si mécaniques modifiées)
-- `code-reviewer` (hors flow principal) → `visual-tester` (si renderer touché, dev server lancé)
-- `debugger` → `visual-tester` (si le bug a une composante visuelle)
-- `session-closer` → vérifie que `doc-keeper` a bien mis à jour la doc → `commit-message` (si changements non commités)
-- `visual-tester` peut appeler `sandbox-json` pour obtenir une config de test
-- `agent-manager` — à déclencher manuellement après ajout/modif d'agents pour auditer la cohérence
-- `doc-keeper` → `wiki-keeper` (si le game design ou le roster a changé)
-- `commit-message` → `release-drafter` (si le commit contient un changement visible joueur)
-- `publisher` → `wiki-keeper` (synchronise le changelog après publication)
-
-## Skills disponibles
+## Skills
 
 | Commande | Action |
 |----------|--------|
-| `/next` | Propose la prochaine étape de travail |
-| `/review` | Review de code sur les changements en cours |
-| `/simplify` | Review réutilisation, qualité et efficacité du code changé + fix |
-| `/status` | Met à jour STATUS.md en fin de session |
-| `/inspire <jeu ou URL>` | Analyse visuelle pour inspiration |
-| `/plan <titre ou numéro>` | Crée ou review un plan d'exécution |
-| `/debug <description>` | Diagnostic avancé d'un bug (opus) |
-| `/practices <sujet>` | Recherche bonnes pratiques du marché |
+| `/next` | Prochaine étape + agenda (lit `docs/next.md` + STATUS + roadmap + plan en cours) |
+| `/review-local` | Review de code sur les changements locaux |

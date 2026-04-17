@@ -2,7 +2,7 @@
 name: ci-setup
 description: "Configure et maintient la CI/CD (GitHub Actions). Tests, lint, build, déploiement. Utiliser quand on met en place ou modifie le pipeline CI."
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: sonnet
+model: haiku
 ---
 
 Tu es le DevOps Engineer du projet Pokemon Tactics.

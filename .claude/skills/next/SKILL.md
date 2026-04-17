@@ -1,20 +1,28 @@
 ---
 name: next
-description: Lit STATUS.md, roadmap et plan en cours pour proposer la prochaine étape de travail
+description: Lit docs/next.md (agenda persistant), STATUS, roadmap et plan en cours. Propose la prochaine étape et affiche ce qui est reporté / récemment fait.
 user-invocable: true
 ---
 
-Lis les fichiers suivants dans cet ordre :
-1. `STATUS.md` — état actuel du projet
-2. `docs/roadmap.md` — phases et tâches
-3. `docs/backlog.md` — bugs connus et feedback non traités
-4. `docs/plans/README.md` — index des plans
-5. Le plan en cours s'il y en a un (statut `in-progress` ou `ready`)
+Lis dans cet ordre :
 
-Puis propose :
-1. **Ce qu'on devrait faire maintenant** — la prochaine tâche logique
-2. **Pourquoi** — en quoi ça fait avancer le projet
-3. **Comment** — les grandes étapes (pas un plan détaillé, juste la direction)
-4. **Bloquants éventuels** — questions à trancher avant de démarrer
+1. **`docs/next.md`** — agenda persistant (à faire / reporté / fait récemment)
+2. `STATUS.md` — état actuel du projet
+3. `docs/roadmap.md` — phases et tâches
+4. `docs/backlog.md` — bugs connus et feedback non traités
+5. `docs/plans/README.md` — index des plans
+6. Le plan en cours s'il y en a un (statut `in-progress` ou `ready`)
 
-Sois concis. 5-10 lignes max.
+Présente dans cet ordre :
+
+**1. À faire maintenant** — item principal de `docs/next.md`, croisé avec roadmap et plan en cours. Recommande l'action prioritaire.
+
+**2. Reporté / à refaire** — section éponyme de `docs/next.md`. Si vide, le dire.
+
+**3. Fait récemment** — 3-5 derniers items. Croiser avec `git log -5` pour repérer les incohérences.
+
+**4. Bloquants** — questions à trancher avant de démarrer, si applicable.
+
+Sois concis : 10-15 lignes max au total.
+
+Si `docs/next.md` est vide ou obsolète (fait récent ne correspond pas aux commits), propose une MAJ.
