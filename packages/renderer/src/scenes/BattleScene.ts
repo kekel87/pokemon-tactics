@@ -10,6 +10,7 @@ import {
 import { loadData } from "@pokemon-tactic/data";
 import {
   ARROW_PAN_SPEED,
+  HOVER_CURSOR_OPTIONS,
   STATUS_ICON_KEYS,
   TILESET_KEY,
   TYPE_NAMES,
@@ -24,10 +25,12 @@ import { GameController, type PlacementConfig } from "../game/GameController";
 import { createSandboxBattle } from "../game/SandboxSetup";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import { loadTiledMap } from "../maps/load-tiled-map";
+import { getSettings, updateSettings } from "../settings";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import { createPokemonAnimations, preloadPokemonAssets } from "../sprites/SpriteLoader";
 import { DEFAULT_SANDBOX_CONFIG, type SandboxConfig } from "../types/SandboxConfig";
 import { DirectionPicker } from "../ui/DirectionPicker";
+import { HoverCursor, resolveHoverCursorOption } from "../ui/HoverCursor";
 import { LanguageToggle } from "../ui/LanguageToggle";
 import { SandboxPanel } from "../ui/SandboxPanel";
 import type { BattleUIScene } from "./BattleUIScene";
@@ -43,6 +46,7 @@ export class BattleScene extends Phaser.Scene {
   private sandboxPanel: SandboxPanel | null = null;
   private sandboxUiScene: BattleUIScene | null = null;
   private languageToggle: LanguageToggle | null = null;
+  private hoverCursor: HoverCursor | null = null;
 
   constructor() {
     super("BattleScene");
@@ -70,6 +74,10 @@ export class BattleScene extends Phaser.Scene {
     this.load.image("category-physical", "assets/ui/categories/physical.png");
     this.load.image("category-special", "assets/ui/categories/special.png");
     this.load.image("category-status", "assets/ui/categories/status.png");
+
+    for (const option of HOVER_CURSOR_OPTIONS) {
+      this.load.image(option.key, `assets/ui/cursor/${option.key}.png`);
+    }
 
     for (const key of STATUS_ICON_KEYS) {
       this.load.image(`status-icon-${key}`, `assets/ui/statuses/icon-${key}.png`);
@@ -371,6 +379,9 @@ export class BattleScene extends Phaser.Scene {
     isometricGrid: IsometricGrid,
     uiScene: BattleUIScene,
   ): void {
+    const initialCursorOption = resolveHoverCursorOption(getSettings().hoverCursorKey);
+    this.hoverCursor = new HoverCursor(this, isometricGrid, initialCursorOption);
+
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       const grid = isometricGrid.screenToGrid(pointer.worldX, pointer.worldY);
       if (grid) {
@@ -396,6 +407,7 @@ export class BattleScene extends Phaser.Scene {
         ) {
           this.lastHoverGrid = grid;
           isometricGrid.showCursor(grid.x, grid.y);
+          this.hoverCursor?.showAt(grid.x, grid.y);
 
           const hoveredPokemon = controller.getPokemonAtPosition(grid.x, grid.y);
           controller.handleEnemyRangeHover(hoveredPokemon);
@@ -411,6 +423,7 @@ export class BattleScene extends Phaser.Scene {
       } else if (this.lastHoverGrid) {
         this.lastHoverGrid = null;
         isometricGrid.hideCursor();
+        this.hoverCursor?.hide();
         controller.handleEnemyRangeHover(null);
         const activePokemon = controller.getActivePokemon();
         if (activePokemon) {
@@ -443,6 +456,7 @@ export class BattleScene extends Phaser.Scene {
 
     this.input.keyboard?.on("keydown-SPACE", () => controller.handleSpaceKey());
     this.input.keyboard?.on("keydown-C", () => this.recenterOnActivePokemon(isometricGrid));
+    this.input.keyboard?.on("keydown-H", () => this.cycleHoverCursorVariant());
 
     for (const arrow of ["UP", "DOWN", "LEFT", "RIGHT"]) {
       this.input.keyboard?.on(`keydown-${arrow}`, () => this.arrowKeysDown.add(arrow));
@@ -482,6 +496,21 @@ export class BattleScene extends Phaser.Scene {
       activePokemon.position.y,
     );
     this.cameras.main.pan(screenPos.x, screenPos.y, 400, "Sine.easeInOut");
+  }
+
+  private cycleHoverCursorVariant(): void {
+    if (!this.hoverCursor) {
+      return;
+    }
+    const currentKey = getSettings().hoverCursorKey;
+    const currentIndex = Math.max(
+      0,
+      HOVER_CURSOR_OPTIONS.findIndex((option) => option.key === currentKey),
+    );
+    const nextIndex = (currentIndex + 1) % HOVER_CURSOR_OPTIONS.length;
+    const nextOption = HOVER_CURSOR_OPTIONS[nextIndex] ?? HOVER_CURSOR_OPTIONS[0];
+    this.hoverCursor.setOption(nextOption);
+    updateSettings({ hoverCursorKey: nextOption.key });
   }
 
   private setupCameraBounds(gridWidth: number, gridHeight: number, maxTileHeight = 0): void {

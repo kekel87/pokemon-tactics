@@ -145,6 +145,7 @@ const en: Translations = {
   "settings.title": "Settings",
   "settings.language": "Language",
   "settings.damagePreview": "Damage Preview",
+  "settings.cursor": "Cursor",
   "settings.on": "ON",
   "settings.off": "OFF",
   "settings.back": "Back",

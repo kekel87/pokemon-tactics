@@ -44,7 +44,7 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 
 ## Conventions
 
-- **Commits** : conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`)
+- **Commits** : conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`) — **titre seul, jamais de corps**. L'humain ne colle que la première ligne. Tout "pourquoi / détails / contexte de reprise" va dans `STATUS.md` ou le plan en cours (`docs/plans/xxx-*.md`), pas dans le message.
 - **Langue du code** : anglais (variables, fonctions, types, commentaires)
 - **Langue de la doc** : français
 - **Linter/Formatter** : Biome (remplace ESLint + Prettier)

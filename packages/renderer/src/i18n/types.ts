@@ -150,6 +150,7 @@ export interface Translations {
   "settings.title": string;
   "settings.language": string;
   "settings.damagePreview": string;
+  "settings.cursor": string;
   "settings.on": string;
   "settings.off": string;
   "settings.back": string;
