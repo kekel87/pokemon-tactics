@@ -38,9 +38,11 @@ Ce contexte prime sur le diff pour formuler le message. Le diff seul dit "quoi",
 
 - Format conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`)
 - Scope entre parenthèses si applicable : `feat(core):`, `fix(renderer):`
-- **Une seule ligne** (< 72 caractères) — pas de corps de commit
+- **Une seule ligne** (< 72 caractères) — **jamais de corps de commit, jamais de footer, jamais de Co-Authored-By**
 - Si les changements couvrent un plan entier ou des étapes précises, mentionner le numéro du plan
 - Si les changements sont trop variés pour une seule ligne, proposer plusieurs commits logiques avec les fichiers associés
+
+> ⚠️ **L'humain ne commite que le titre**. Tout "why / détails / contexte" que tu serais tenté de mettre dans un body de commit doit être capturé **avant** la proposition du message, dans **STATUS.md** (entrée de session) ou le **plan en cours** (`docs/plans/xxx-*.md`). Vérifie que c'est le cas — sinon, dis-le à l'appelant plutôt que d'enrichir le titre au-delà de 72 caractères.
 
 ### 4. Si aucun changement
 
@@ -58,7 +60,8 @@ refactor(core): extract effect handler registry from BattleEngine
 ## Règles
 
 - Ne jamais commiter toi-même — tu proposes, l'humain décide
-- Pas de corps de commit, juste le titre
+- **Titre seul**, jamais de corps, jamais de footer — l'humain ne colle que la première ligne
 - Anglais uniquement
 - Être précis sur ce qui a changé (pas de "update code" ou "fix stuff")
 - Le contexte (plan, phase) donne le "pourquoi" — le diff donne le "quoi"
+- Toute information longue (raison détaillée, contexte de reprise, état stashé, etc.) doit vivre dans **STATUS.md** ou le **plan en cours** — pas dans le message de commit

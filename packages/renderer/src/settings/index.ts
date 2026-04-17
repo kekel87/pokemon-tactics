@@ -1,11 +1,15 @@
+import { HOVER_CURSOR_OPTIONS } from "../constants";
+
 const STORAGE_KEY = "pt-settings";
 
 export interface GameSettings {
   damagePreview: boolean;
+  hoverCursorKey: string;
 }
 
 const DEFAULT_SETTINGS: GameSettings = {
   damagePreview: true,
+  hoverCursorKey: HOVER_CURSOR_OPTIONS[0].key,
 };
 
 let currentSettings: GameSettings = DEFAULT_SETTINGS;

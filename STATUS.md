@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-16 (plan 059 : CT timeline FFX-style prédicative scrollable)
+> Dernière mise à jour : 2026-04-17 (plan 060 en cours : curseur FFTA + bugfix depth curseur)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -804,6 +804,11 @@
   - Espacement réduit 10 → 6 pour loger l'entrée tail sous la zone scrollable.
   - **Constants** : ajout `TIMELINE_BG_COLOR`, `TIMELINE_HIGHLIGHT_BORDER_COLOR`, `TIMELINE_PREDICTION_SLOTS`, `TIMELINE_VISIBLE_SLOTS`. Suppression `TIMELINE_GHOST_ALPHA`, `TIMELINE_PREVIEW_SEPARATOR_COLOR`, `TIMELINE_PREVIEW_SEPARATOR_COLOR_CSS`.
   - **i18n** : clé `timeline.afterAction` supprimée (plus utilisée).
+- **Plan 060 en cours** — Silhouette d'occlusion iso + curseur FFTA :
+  - **Section A — Curseur FFTA (livré + commité)** : `HOVER_CURSOR_OPTIONS` (4 variantes key/label/scale) dans `constants.ts`. Nouveau `HoverCursor` (`ui/HoverCursor.ts`) prend un `HoverCursorOption` et expose `setOption`. Helper `resolveHoverCursorOption(storedKey)`. Choix persisté via `GameSettings.hoverCursorKey` (store `pt-settings`). Nouvelle ligne "Curseur / Cursor" dans `SettingsScene` avec preview sprite. Touche **H** dans `BattleScene` pour cycler. Clé i18n `settings.cursor` (FR/EN). Assets dans `packages/renderer/public/assets/ui/cursor/`.
+  - **Bugfix depth curseur au sol (livré + commité)** : `DEPTH_CURSOR_ISO_OFFSET` supprimé, remplacé par `DEPTH_CURSOR_GROUND = 500`. Le stroke du diamant débordait sur les tiles voisines iso-sortées (depth ~100–150) ; depth globale 500 passe au-dessus de tous les overlays et sous les Pokemon (520).
+  - **Section B — Silhouette d'occlusion (stashée)** : `occlusion.ts` + `occlusion.test.ts` + modifs `PokemonSprite`/`GameController` dans **`git stash@{0}` "plan-060-full-wip"**. ⚠️ Reprise non triviale : le stash a été pris **avant** le commit de la section A, il contient donc des versions obsolètes de `constants.ts`, `BattleScene.ts`, `IsometricGrid.ts`, `design-system.md`, `roadmap.md`, et du plan 060 lui-même. Procédure détaillée (checkout sélectif recommandé, pas de `stash pop` global) dans **`docs/plans/060-occlusion-silhouette-cursor-ffta.md` → "Reprendre le stash dans une session clean"**.
+
 - **Prochains candidats** :
   - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)
   - Validation visuelle du tileset.png mis à jour (brightness uniforme — empilement, pentes, escaliers sur toutes les maps)

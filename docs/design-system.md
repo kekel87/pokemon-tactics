@@ -112,7 +112,7 @@ L'information la plus importante est toujours la plus visible :
 | Bleu allié | `#4488cc` / `0x4488cc` | 0.4 | Portée de déplacement (allié) + buff preview |
 | Rouge attaque | `#cc4444` / `0xcc4444` | 0.4 | Zone d'attaque + outline de portée |
 | Orange ennemi | `#dd6622` / `0xdd6622` | 0.35 | Portée de déplacement ennemie (hover) |
-| Jaune curseur | `#ffdd44` / `0xffdd44` | pulse 0.7–1.0 | Curseur sur la grille |
+| Jaune curseur | `#ffdd44` / `0xffdd44` | pulse 0.7–1.0 | Curseur de sélection tile (stroke 1px, diamant pulsant) |
 
 ### Zones de spawn (placement)
 
@@ -354,6 +354,27 @@ La depth du container est portée à `max(originalDepth, maxTileDepthInRadius(cx
 
 ---
 
+## Curseur de survol (plan 060)
+
+Le highlight de tile au survol (`showCursor` dans `IsometricGrid`) reste un simple outline diamant jaune pulsant au sol, sous les sprites. En complément, un **HoverCursor** flotte au-dessus de la tile survolée par la souris (style FFTA) : pokéball pixellab avec flèche/cône jaune pointant vers le bas. Il suit le pointeur en même temps que le highlight de tile et disparaît quand la souris quitte la grille.
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `DEPTH_HOVER_CURSOR` | `960` | Depth du curseur flottant (au-dessus des sprites) |
+| `HOVER_CURSOR_OPTIONS` | array | Variantes de curseur (key + label + scale). Choix stocké dans `getSettings().hoverCursorKey` (store `pt-settings`). Touche **H** pour cycler, ou paramètre **Curseur** dans `SettingsScene`. |
+| `HOVER_CURSOR_GAP_Y` | `15` | Écart vertical en px entre la pointe de la flèche et le sommet de la tile |
+| `CURSOR_COLOR` | `0xffdd44` | Jaune doré, réutilisé pour l'outline de tile pulsant |
+| `DEPTH_CURSOR_GROUND` | `500` | Depth globale du curseur-outline au sol (au-dessus de tous les overlays iso, sous tous les Pokemon) |
+
+Asset : `packages/renderer/public/assets/ui/cursor/hover-cursor.png` (32×32, généré via pixellab MCP).
+Classe : `packages/renderer/src/ui/HoverCursor.ts`. API : `showAt(gridX, gridY)` / `hide()`. Appelé depuis `BattleScene.setupInput` sur `pointermove`, en parallèle de `isometricGrid.showCursor/hideCursor`. Pas de bobbing (le pulse est porté par le highlight de tile).
+
+Les overlays au sol (highlights move/attack, enemy range, preview AoE) sont iso-sortés par tile avec un offset croissant sur la base `(x+y)*5 + h` : ils passent sous le sprite du Pokemon qui se tient sur leur tile, et sont cachés entre eux selon la distance à la caméra (comme les tiles elles-mêmes). Le curseur-outline au sol, lui, utilise une depth globale `DEPTH_CURSOR_GROUND = 500` : sinon le stroke de la tile survolée passe sous les tiles/highlights des voisines (le stroke déborde visuellement sur les tiles adjacentes).
+
+Layering (bottom → top) : tile (+0) → highlight move/attack (+0.1) → enemy range (+0.15) → preview AoE (+0.2) → cursor outline (500 global) → Pokemon (520+) → hover cursor (960) → UI 1000+.
+
+---
+
 ## Turn Timeline CT (plan 059)
 
 La TurnTimeline en mode Charge Time affiche une séquence prédictive scrollable. Constantes dans `packages/renderer/src/constants.ts` :
@@ -380,13 +401,13 @@ Le layering garantit que les highlights passent **derrière** les sprites Pokemo
 
 | Layer | Depth | Usage |
 |-------|-------|-------|
-| Tiles (base) | 1 | Tiles de terrain (triées par Y, offset par hauteur) |
-| Tiles (max) | ~125 | Tiles les plus hautes (piliers h3 + offset Y max) |
-| Highlights grille | 500 | Bleu déplacement, rouge attaque |
-| Enemy range | 505 | Overlay portée ennemie (orange) |
-| Preview AoE | 510 | Preview d'attaque |
+| Tiles | `(x+y)*5 + h` (≈ 0–125) | Tiles de terrain (iso-sort, `DEPTH_GRID_TILES = 0`) |
+| Highlight move/attack | `(x+y)*5 + h + 0.1` | Bleu déplacement, rouge attaque, outline de portée (iso-sort per-tile) |
+| Enemy range | `(x+y)*5 + h + 0.15` | Overlay portée ennemie orange (iso-sort per-tile) |
+| Preview AoE | `(x+y)*5 + h + 0.2` | Preview d'attaque (iso-sort per-tile) |
+| Curseur outline | 500 (global) | Outline jaune pulsant de la tile survolée (`DEPTH_CURSOR_GROUND`, au-dessus de tous les overlays iso) |
 | Pokemon (base) | 520 | Sprites Pokemon (triés par Y, `DEPTH_POKEMON_BASE`) |
-| Curseur | 900 | Curseur jaune sur la grille |
+| Hover cursor (pokéball) | 960 | Pokéball + flèche au-dessus de la tile survolée |
 | UI base | 1000 | Éléments UI de fond |
 | Timeline | 1050 | Turn order |
 | Info Panel | 1100 | Panel d'info Pokemon |
@@ -397,7 +418,7 @@ Le layering garantit que les highlights passent **derrière** les sprites Pokemo
 | Victory overlay | 2000 | Écran de victoire (fond) |
 | Victory content | 2001 | Écran de victoire (texte) |
 
-> Historique : avant le bugfix du 2026-04-14, highlights (100–150) et Pokemon (200+) étaient inversés — les highlights passaient devant les sprites. `DEPTH_POKEMON_BASE` était à 200.
+> Historique : avant le bugfix du 2026-04-14, highlights (100–150) et Pokemon (200+) étaient inversés — les highlights passaient devant les sprites. `DEPTH_POKEMON_BASE` était à 200. Depuis plan 060, les overlays au sol (highlights, enemy range, preview) sont iso-sortés par tile et passent sous le Pokemon qui se tient dessus. Le curseur-outline, lui, est repassé en depth globale (`DEPTH_CURSOR_GROUND = 500`) en fin de plan 060 : son stroke déborde visuellement sur les tiles adjacentes, donc il doit dominer tous les voisins iso-sortés.
 
 ---
 

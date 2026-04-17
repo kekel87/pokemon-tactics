@@ -124,6 +124,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Toggle CT/Round-Robin dans `TeamSelectScene` (bouton "Tours fixes" / "Charge Time", i18n FR/EN) — plan 054
 - [x] **[UX CT]** Timeline CT prédictive scrollable style FFX — 24 slots simulés par le core, slot 0 ancré (acteur courant), 11 slots scrollables à la molette, bordure teal-vert sur le Pokemon actif au `confirm_attack`, entrée tail "..." si hors des 24 slots. Remplace les ghost entries du plan 058. — plan 058 + plan 059
 - [x] Undo déplacement (annulable tant qu'on n'a pas attaqué) — plan 053 (action `undo_move`, bouton "Annuler déplacement" en menu, annulation brûlure magma, 8 tests)
+- [ ] **[EN COURS — plan 060]** Curseur FFTA + silhouette d'occlusion — variantes de curseur (settings + touche H), depth bugfix curseur (500 global), silhouette X-ray pour Pokemon masqués par tiles plus hautes (occlusion stashée, à terminer)
 - [ ] Système de décorations Tiled — tileset `decorations.tsj` dédié (pipeline séparée du terrain) : marquages d'arène (lignes ~12 tiles + pokeball ~6-8 tiles) + décos environnement (herbe haute overlay, arbres, rochers PMD-based)
 - [ ] Éditeur de terrain / génération IA
 - [ ] Maps variées + roster d'attaques terrain/dénivelé

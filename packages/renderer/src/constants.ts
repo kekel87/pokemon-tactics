@@ -24,6 +24,17 @@ export const CURSOR_PULSE_MIN_ALPHA = 0.7;
 export const CURSOR_PULSE_MAX_ALPHA = 1.0;
 export const CURSOR_PULSE_DURATION_MS = 600;
 
+export const HOVER_CURSOR_GAP_Y = 15;
+// Each cursor sprite has its own ideal on-screen scale — the baseline reads well
+// at 0.5, but the pokéball-integrated variants need more size to stay legible.
+export const HOVER_CURSOR_OPTIONS = [
+  { key: "hover-cursor", label: "Flèche", scale: 0.5 },
+  { key: "hover-cursor-variant-claw-arrow", label: "Claw", scale: 0.75 },
+  { key: "hover-cursor-variant-teardrop", label: "Goutte", scale: 0.75 },
+  { key: "hover-cursor-variant-v-wings", label: "V-Wings", scale: 0.75 },
+] as const;
+export type HoverCursorOption = (typeof HOVER_CURSOR_OPTIONS)[number];
+
 export const HP_BAR_WIDTH = 18;
 export const HP_BAR_HEIGHT = 2;
 export const HP_BAR_BG_COLOR = 0x222222;
@@ -193,16 +204,15 @@ export const PLACEMENT_PANEL_ALPHA = 0.85;
 export const PLACEMENT_PORTRAIT_SIZE = 48;
 export const PLACEMENT_PORTRAIT_SPACING = 12;
 
-export const DEPTH_GRID_TILES = 1;
+export const DEPTH_GRID_TILES = 0;
 export const DEPTH_TILE_MAX_ELEVATION = 5;
-// Layering order (bottom → top):
-//   tiles (1–125)  →  highlights (500–510)  →  Pokemon (520+)  →  cursor (900)  →  UI (1000+)
-export const DEPTH_GRID_HIGHLIGHT = 500;
-export const DEPTH_GRID_ENEMY_RANGE = 505;
-export const DEPTH_GRID_PREVIEW = 510;
+export const DEPTH_HIGHLIGHT_ISO_OFFSET = 0.1;
+export const DEPTH_ENEMY_RANGE_ISO_OFFSET = 0.15;
+export const DEPTH_PREVIEW_ISO_OFFSET = 0.2;
+export const DEPTH_CURSOR_GROUND = 500;
 export const DEPTH_POKEMON_BASE = 520;
 export const ATTACK_DEPTH_ENVELOPE_RADIUS = 3;
-export const DEPTH_GRID_CURSOR = 900;
+export const DEPTH_HOVER_CURSOR = 960;
 export const DEPTH_UI_BASE = 1000;
 export const DEPTH_TIMELINE = 1050;
 export const DEPTH_INFO_PANEL = 1100;
