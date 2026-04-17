@@ -19,12 +19,8 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 ### ~~TurnTimeline CT — layout et barre de charge~~ (plan 055 — commit 9bc9125)
 - Corrigé dans le bug gatling (plan 055).
 
-### Transparence / silhouette des Pokemon derrière un obstacle + cursor FFTA
-- Quand un Pokemon passe derrière une tile haute ou une décoration, il disparaît complètement.
-- Idée : afficher le sprite en transparence ou en contour de couleur (effet **silhouette X-ray** / "occlusion outline", courant dans les jeux iso).
-- Impl possible : détecter côté renderer si un sprite est occlu par une tile de depth supérieure, appliquer `sprite.setAlpha(0.4)` + un outline avec shader/PostFX Phaser, ou basculer sur une version silhouette du sprite.
-- **Lié au cursor FFTA** : le curseur de sélection doit être revu dans le style FFTA (au-dessus des sprites Pokemon). Cette tâche partage probablement la détection d'occlusion avec l'effet de transparence — à traiter dans le même plan renderer.
-- **Note** : le bug "Pokemon passe devant les piliers pendant le déplacement" (suppression du `maxTileDepthInRadius` dans `animateMoveTo`) n'est pas résolu par le layering de depths — c'est un comportement iso correct (Pokemon derrière un pilier plus proche de la caméra). La solution passe par la transparence/silhouette ci-dessus.
+### ~~Transparence / silhouette des Pokemon derrière un obstacle + cursor FFTA~~
+- Fix : curseur FFTA livré (plan 060 section A, commit d2037e1). Silhouette d'occlusion livrée (plan 061) — détection iso + outline knockout via `FilterList.addGlow` + masque WebGL-compatible via `FilterList.addMask`. Phase 1 : terrain élevé uniquement ; décorations hors scope.
 
 ## Tâches futures identifiées (hors backlog actif)
 

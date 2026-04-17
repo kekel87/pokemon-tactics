@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-17 (plan 060 en cours : curseur FFTA + bugfix depth curseur)
+> Dernière mise à jour : 2026-04-17 (plan 061 livré : silhouette d'occlusion Tactics Ogre style)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -804,10 +804,17 @@
   - Espacement réduit 10 → 6 pour loger l'entrée tail sous la zone scrollable.
   - **Constants** : ajout `TIMELINE_BG_COLOR`, `TIMELINE_HIGHLIGHT_BORDER_COLOR`, `TIMELINE_PREDICTION_SLOTS`, `TIMELINE_VISIBLE_SLOTS`. Suppression `TIMELINE_GHOST_ALPHA`, `TIMELINE_PREVIEW_SEPARATOR_COLOR`, `TIMELINE_PREVIEW_SEPARATOR_COLOR_CSS`.
   - **i18n** : clé `timeline.afterAction` supprimée (plus utilisée).
-- **Plan 060 en cours** — Silhouette d'occlusion iso + curseur FFTA :
+- **Plan 060 partial** — Curseur FFTA (section A livrée, section B abandonnée au profit du plan 061) :
   - **Section A — Curseur FFTA (livré + commité)** : `HOVER_CURSOR_OPTIONS` (4 variantes key/label/scale) dans `constants.ts`. Nouveau `HoverCursor` (`ui/HoverCursor.ts`) prend un `HoverCursorOption` et expose `setOption`. Helper `resolveHoverCursorOption(storedKey)`. Choix persisté via `GameSettings.hoverCursorKey` (store `pt-settings`). Nouvelle ligne "Curseur / Cursor" dans `SettingsScene` avec preview sprite. Touche **H** dans `BattleScene` pour cycler. Clé i18n `settings.cursor` (FR/EN). Assets dans `packages/renderer/public/assets/ui/cursor/`.
   - **Bugfix depth curseur au sol (livré + commité)** : `DEPTH_CURSOR_ISO_OFFSET` supprimé, remplacé par `DEPTH_CURSOR_GROUND = 500`. Le stroke du diamant débordait sur les tiles voisines iso-sortées (depth ~100–150) ; depth globale 500 passe au-dessus de tous les overlays et sous les Pokemon (520).
-  - **Section B — Silhouette d'occlusion (stashée)** : `occlusion.ts` + `occlusion.test.ts` + modifs `PokemonSprite`/`GameController` dans **`git stash@{0}` "plan-060-full-wip"**. ⚠️ Reprise non triviale : le stash a été pris **avant** le commit de la section A, il contient donc des versions obsolètes de `constants.ts`, `BattleScene.ts`, `IsometricGrid.ts`, `design-system.md`, `roadmap.md`, et du plan 060 lui-même. Procédure détaillée (checkout sélectif recommandé, pas de `stash pop` global) dans **`docs/plans/060-occlusion-silhouette-cursor-ffta.md` → "Reprendre le stash dans une session clean"**.
+
+- **Plan 061 livré** — Silhouette d'occlusion (Tactics Ogre style) :
+  - **Détection** : `packages/renderer/src/grid/occlusion.ts` — `isOccludedBy` (iso column, distance ≤ `OCCLUSION_MAX_TILE_DISTANCE=2`, élévation ≥ 1). 7 tests unitaires passants.
+  - **IsometricGrid** : `getOccludingTiles(x, y)` + `getOccluderFacePolygon(tile)` (6 points face-avant). `tilesByPosition` map populée au drawing.
+  - **PokemonSprite** : second sprite cloné (`silhouetteSprite`) teint plein couleur équipe (`setTintFill`) alpha 0.4, outline knockout via Phaser 4 `FilterList.addGlow(..., knockout=true)` (après `enableFilters()` obligatoire — bug du stash 060). Masque WebGL-compatible via `FilterList.addMask(graphics, false, undefined, 'world')` sur `external` (`GeometryMask` Canvas-only banni). Sync frame via `ANIMATION_UPDATE`, sync position/flip via `POST_UPDATE`. API publique `setOccluded(occluders)` idempotente par clé.
+  - **Orchestration** : `GameController.updateOcclusionForAll()` appelé dans `refreshUI`, après chaque step de `animateAlongPath`, après `MoveCancelled`. KO cleanup via `darkenSprite`.
+  - **Constantes** : `OCCLUSION_MAX_TILE_DISTANCE=2`, `OCCLUSION_MIN_TILE_ELEVATION=1`, `OCCLUSION_ALPHA=0.4`, `OCCLUSION_OUTLINE_STRENGTH=4`, `DEPTH_POKEMON_SILHOUETTE_ISO_OFFSET=0.25`.
+  - **Scope phase 1** : terrain élevé uniquement. Décorations et occlusion Pokemon-sur-Pokemon hors scope. Extension future → `OccluderTile.visualHeight` distinct de `elevation`.
 
 - **Prochains candidats** :
   - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)

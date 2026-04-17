@@ -375,6 +375,27 @@ Layering (bottom → top) : tile (+0) → highlight move/attack (+0.1) → enemy
 
 ---
 
+## Silhouette d'occlusion (plan 061)
+
+Quand un Pokemon est partiellement caché par un obstacle (tile élevée devant lui), on rend en parallèle un **sprite silhouette** teinté couleur équipe avec un outline knockout, masqué géométriquement pour n'apparaître QUE sur la face de l'obstacle. La partie visible du sprite principal continue à se rendre normalement. Style cible : Tactics Ogre / FFTA.
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `OCCLUSION_MAX_TILE_DISTANCE` | `2` | Portée iso max (en tiles) où chercher un occluder devant le Pokemon |
+| `OCCLUSION_MIN_TILE_ELEVATION` | `1` | Élévation minimale d'une tile pour être considérée occluante |
+| `OCCLUSION_ALPHA` | `0.4` | Transparence de la silhouette (remplissage) |
+| `OCCLUSION_OUTLINE_STRENGTH` | `4` | Force du `addGlow` en mode knockout (contour seul) |
+| `DEPTH_POKEMON_SILHOUETTE_ISO_OFFSET` | `0.25` | Offset iso-sorté sur la tile occultante, au-dessus des previews mais sous les Pokemon (520) |
+
+Implémentation :
+- Détection iso : `isOccludedBy` dans `packages/renderer/src/grid/occlusion.ts` — tile occluante si devant le Pokemon (depth `x+y` plus grande), à distance ≤ `MAX_TILE_DISTANCE`, même iso-column (`|Δ(x-y)| ≤ 1`), et élévation ≥ `MIN_ELEVATION`.
+- Sprite silhouette : cloné du sprite principal, teint plein couleur équipe via `setTintFill`, alpha `OCCLUSION_ALPHA`. Outline via Phaser 4 `FilterList.addGlow(color, strength, 0, 1, knockout=true)` sur `internal` (après `enableFilters()` obligatoire).
+- Masque WebGL-compatible : `Phaser.GameObjects.Graphics` rempli avec la face avant de chaque occluder (6 points — `IsometricGrid.getOccluderFacePolygon`), appliqué via `FilterList.addMask(graphics, false, undefined, 'world')` sur `external`. **`GeometryMask` est Canvas-only et n'est PAS utilisable ici.**
+- Orchestration : `GameController.updateOcclusionForAll()` appelé à chaque pas de `animateAlongPath`, après `MoveCancelled`, et dans `refreshUI`. Cleanup automatique dans `playFaintAndStay` via `darkenSprite`.
+- Scope phase 1 : terrain élevé uniquement. Décorations et occlusion Pokemon-sur-Pokemon hors scope (extension future → `OccluderTile.visualHeight` distinct de `elevation`).
+
+---
+
 ## Turn Timeline CT (plan 059)
 
 La TurnTimeline en mode Charge Time affiche une séquence prédictive scrollable. Constantes dans `packages/renderer/src/constants.ts` :
@@ -405,6 +426,7 @@ Le layering garantit que les highlights passent **derrière** les sprites Pokemo
 | Highlight move/attack | `(x+y)*5 + h + 0.1` | Bleu déplacement, rouge attaque, outline de portée (iso-sort per-tile) |
 | Enemy range | `(x+y)*5 + h + 0.15` | Overlay portée ennemie orange (iso-sort per-tile) |
 | Preview AoE | `(x+y)*5 + h + 0.2` | Preview d'attaque (iso-sort per-tile) |
+| Silhouette occlusion | `(x+y)*5 + h + 0.25` | Silhouette Pokemon derrière obstacle (`DEPTH_POKEMON_SILHOUETTE_ISO_OFFSET`, iso-sort sur la tile occultante) |
 | Curseur outline | 500 (global) | Outline jaune pulsant de la tile survolée (`DEPTH_CURSOR_GROUND`, au-dessus de tous les overlays iso) |
 | Pokemon (base) | 520 | Sprites Pokemon (triés par Y, `DEPTH_POKEMON_BASE`) |
 | Hover cursor (pokéball) | 960 | Pokéball + flèche au-dessus de la tile survolée |

@@ -14,8 +14,10 @@ import {
   DEPTH_PREVIEW_ISO_OFFSET,
   DEPTH_TILE_MAX_ELEVATION,
   GRID_SIZE,
+  OCCLUSION_MAX_TILE_DISTANCE,
   TERRAIN_TINT,
   TERRAIN_TINT_ALPHA,
+  TILE_ELEVATION_STEP,
   TILE_FILL_COLOR,
   TILE_HEIGHT,
   TILE_HIGHLIGHT_ATTACK_COLOR,
@@ -39,11 +41,22 @@ import {
   screenToGridWithHeight as isoScreenToGridWithHeight,
   type ScreenPosition,
 } from "./iso-math";
+import { isOccludedBy } from "./occlusion";
+
+export interface OccludingTile {
+  x: number;
+  y: number;
+  elevation: number;
+}
 
 export class IsometricGrid {
   private readonly scene: Phaser.Scene;
   private readonly tileGraphics: Phaser.GameObjects.Graphics;
   private readonly tileSprites: Phaser.GameObjects.Image[] = [];
+  private readonly tilesByPosition = new Map<
+    string,
+    { sprite: Phaser.GameObjects.Image; elevation: number }[]
+  >();
   private readonly highlightLayer = new Map<string, Phaser.GameObjects.Graphics>();
   private readonly enemyRangeLayer = new Map<string, Phaser.GameObjects.Graphics>();
   private readonly previewLayer = new Map<string, Phaser.GameObjects.Graphics>();
@@ -103,6 +116,7 @@ export class IsometricGrid {
       sprite.destroy();
     }
     this.tileSprites.length = 0;
+    this.tilesByPosition.clear();
 
     this.heightData = heightData ?? [];
     this.terrainData = terrainData ?? [];
@@ -134,6 +148,14 @@ export class IsometricGrid {
           sprite.setOrigin(0.5, TILE_ORIGIN_Y);
           sprite.setDepth(DEPTH_GRID_TILES + (x + y) * DEPTH_TILE_MAX_ELEVATION + layer.elevation);
           this.tileSprites.push(sprite);
+          const positionKey = `${x},${y}`;
+          const bucket = this.tilesByPosition.get(positionKey);
+          const entry = { sprite, elevation: layer.elevation };
+          if (bucket) {
+            bucket.push(entry);
+          } else {
+            this.tilesByPosition.set(positionKey, [entry]);
+          }
         }
       }
     }
@@ -165,6 +187,63 @@ export class IsometricGrid {
   getTileHeight(gridX: number, gridY: number): number {
     const index = gridY * this.gridWidth + gridX;
     return this.heightData[index] ?? 0;
+  }
+
+  /**
+   * Returns the list of tiles that visually occlude a Pokemon standing on
+   * (pokemonX, pokemonY). An occluder is a tile in front of the subject (iso
+   * depth > subject depth), on the same or adjacent iso column, tall enough,
+   * and within OCCLUSION_MAX_TILE_DISTANCE. See `./occlusion.ts` for the rule.
+   */
+  getOccludingTiles(pokemonX: number, pokemonY: number): OccludingTile[] {
+    const occluders: OccludingTile[] = [];
+    for (let dy = 0; dy <= OCCLUSION_MAX_TILE_DISTANCE; dy++) {
+      for (let dx = 0; dx <= OCCLUSION_MAX_TILE_DISTANCE - dy; dx++) {
+        if (dx === 0 && dy === 0) {
+          continue;
+        }
+        const tileX = pokemonX + dx;
+        const tileY = pokemonY + dy;
+        const bucket = this.tilesByPosition.get(`${tileX},${tileY}`);
+        if (!bucket) {
+          continue;
+        }
+        for (const entry of bucket) {
+          if (
+            isOccludedBy(
+              { x: pokemonX, y: pokemonY },
+              { x: tileX, y: tileY, elevation: entry.elevation },
+            )
+          ) {
+            occluders.push({ x: tileX, y: tileY, elevation: entry.elevation });
+          }
+        }
+      }
+    }
+    return occluders;
+  }
+
+  /**
+   * Returns the visible front-face polygon (SE + SW walls + top diamond edges)
+   * of an occluder tile in world-space screen coordinates. Used as a mask so
+   * that the silhouette of an occluded Pokemon only shows through the part of
+   * the tile that actually hides it.
+   */
+  getOccluderFacePolygon(tile: OccludingTile): { x: number; y: number }[] {
+    const topCenter = this.gridToScreen(tile.x, tile.y, tile.elevation);
+    const halfW = TILE_WIDTH / 2;
+    const halfH = TILE_HEIGHT / 2;
+    const cx = topCenter.x;
+    const cyTop = topCenter.y;
+    const cyBase = cyTop + tile.elevation * TILE_ELEVATION_STEP;
+    return [
+      { x: cx + halfW, y: cyTop },
+      { x: cx + halfW, y: cyBase },
+      { x: cx, y: cyBase + halfH },
+      { x: cx - halfW, y: cyBase },
+      { x: cx - halfW, y: cyTop },
+      { x: cx, y: cyTop + halfH },
+    ];
   }
 
   /**

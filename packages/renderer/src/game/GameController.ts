@@ -511,6 +511,7 @@ export class GameController {
         sprite.setConfusionWobble(isConfused);
       }
     }
+    this.updateOcclusionForAll();
 
     const activePokemon = this.state.pokemon.get(activePokemonId);
     if (activePokemon) {
@@ -862,9 +863,18 @@ export class GameController {
       }
 
       await sprite.animateMoveTo(step.x, step.y, stepHeight, stepDuration, { isJump });
+      this.updateOcclusionForAll();
       previous = step;
     }
     sprite.playAnimation("Idle");
+  }
+
+  private updateOcclusionForAll(): void {
+    for (const sprite of this.sprites.values()) {
+      const { x, y } = sprite.gridPosition;
+      const occluders = this.isometricGrid.getOccludingTiles(x, y);
+      sprite.setOccluded(occluders);
+    }
   }
 
   private async processEvents(events: BattleEvent[]): Promise<void> {
@@ -909,6 +919,7 @@ export class GameController {
             sprite.updateStatus(pokemon.statusEffects);
           }
           sprite.playAnimation("Idle");
+          this.updateOcclusionForAll();
         }
         break;
       }

@@ -1,6 +1,6 @@
 # Plan 060 — Silhouette d'occlusion iso + curseur FFTA
 
-**Statut : EN COURS** (section A livrée + committée, section B stashée)
+**Statut : partial done** — Section A livrée + committée. **Section B abandonnée** (implem stashée bancale, API `filters.external.addMask` Phaser 4 instable). Voir **[plan 061](./061-occlusion-silhouette.md)** qui reprend la silhouette from scratch avec un cadrage propre.
 **Démarré le : 2026-04-17**
 
 ---

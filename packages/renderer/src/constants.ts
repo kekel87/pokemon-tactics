@@ -35,6 +35,11 @@ export const HOVER_CURSOR_OPTIONS = [
 ] as const;
 export type HoverCursorOption = (typeof HOVER_CURSOR_OPTIONS)[number];
 
+export const OCCLUSION_MAX_TILE_DISTANCE = 2;
+export const OCCLUSION_MIN_TILE_ELEVATION = 1;
+export const OCCLUSION_ALPHA = 0.4;
+export const OCCLUSION_OUTLINE_STRENGTH = 4;
+
 export const HP_BAR_WIDTH = 18;
 export const HP_BAR_HEIGHT = 2;
 export const HP_BAR_BG_COLOR = 0x222222;
@@ -209,6 +214,7 @@ export const DEPTH_TILE_MAX_ELEVATION = 5;
 export const DEPTH_HIGHLIGHT_ISO_OFFSET = 0.1;
 export const DEPTH_ENEMY_RANGE_ISO_OFFSET = 0.15;
 export const DEPTH_PREVIEW_ISO_OFFSET = 0.2;
+export const DEPTH_POKEMON_SILHOUETTE_ISO_OFFSET = 0.25;
 export const DEPTH_CURSOR_GROUND = 500;
 export const DEPTH_POKEMON_BASE = 520;
 export const ATTACK_DEPTH_ENVELOPE_RADIUS = 3;

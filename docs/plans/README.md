@@ -72,3 +72,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 057 | [Statuts Champions dans le runtime core](./057-champions-status-rules.md) | done | 2026-04-16 |
 | 058 | [Preview CT Timeline au confirm attack](./058-ct-timeline-preview.md) | done | 2026-04-16 |
 | 059 | [CT Timeline : séquence prédictive scrollable](./059-ct-timeline-preview.md) | done | 2026-04-16 |
+| 060 | [Silhouette d'occlusion iso + curseur FFTA](./060-occlusion-silhouette-cursor-ffta.md) | partial done | 2026-04-17 |
+| 061 | [Silhouette d'occlusion (Tactics Ogre, from scratch)](./061-occlusion-silhouette.md) | done | 2026-04-17 |

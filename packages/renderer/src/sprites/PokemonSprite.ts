@@ -15,6 +15,7 @@ import {
   DAMAGE_FLASH_DURATION_MS,
   DAMAGE_FLASH_REPEAT,
   DEPTH_POKEMON_BASE,
+  DEPTH_POKEMON_SILHOUETTE_ISO_OFFSET,
   DEPTH_TILE_MAX_ELEVATION,
   FONT_FAMILY,
   getTeamColorByPlayerId,
@@ -25,6 +26,8 @@ import {
   HP_BAR_WIDTH,
   KO_TINT_COLOR,
   MOVE_TWEEN_DURATION_MS,
+  OCCLUSION_ALPHA,
+  OCCLUSION_OUTLINE_STRENGTH,
   POKEMON_SPRITE_BORDER_ALPHA,
   POKEMON_SPRITE_BORDER_WIDTH,
   POKEMON_SPRITE_GROUND_OFFSET_Y,
@@ -40,7 +43,7 @@ import {
   TILE_WIDTH,
   TYPE_COLORS,
 } from "../constants";
-import type { IsometricGrid } from "../grid/IsometricGrid";
+import type { IsometricGrid, OccludingTile } from "../grid/IsometricGrid";
 import { t } from "../i18n";
 import { getAnimationKey, getSpriteOffsets, type SpriteOffsets } from "./SpriteLoader";
 
@@ -61,6 +64,10 @@ export class PokemonSprite {
   private readonly definitionId: string;
   private readonly usesAtlas: boolean;
   private sprite: Phaser.GameObjects.Sprite | null = null;
+  private silhouetteSprite: Phaser.GameObjects.Sprite | null = null;
+  private silhouetteMaskGraphics: Phaser.GameObjects.Graphics | null = null;
+  private silhouetteMaskFilter: Phaser.Filters.Mask | null = null;
+  private occluderKey = "";
   private circle: Phaser.GameObjects.Graphics | null = null;
   private currentHpRatio: number;
   private currentDirection: string;
@@ -113,6 +120,30 @@ export class PokemonSprite {
       this.sprite.setScale(POKEMON_SPRITE_SCALE);
       this.sprite.play(animKey);
       children.push(this.sprite);
+
+      this.silhouetteSprite = scene.add.sprite(0, 0, this.definitionId);
+      this.silhouetteSprite.setScale(POKEMON_SPRITE_SCALE);
+      this.silhouetteSprite.play(animKey);
+      this.silhouetteSprite.setTintFill(this.teamColor);
+      this.silhouetteSprite.setAlpha(OCCLUSION_ALPHA);
+      this.silhouetteSprite.setVisible(false);
+      this.silhouetteSprite.enableFilters();
+      if (this.silhouetteSprite.filters) {
+        this.silhouetteSprite.filters.internal.addGlow(
+          this.teamColor,
+          OCCLUSION_OUTLINE_STRENGTH,
+          0,
+          1,
+          true,
+        );
+      }
+      this.sprite.on(
+        Phaser.Animations.Events.ANIMATION_UPDATE,
+        (_anim: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) => {
+          this.silhouetteSprite?.setFrame(frame.textureFrame);
+        },
+      );
+      scene.events.on(Phaser.Scenes.Events.POST_UPDATE, this.syncSilhouette, this);
     } else {
       const primaryType = pokemonTypes[0] ?? "normal";
       const color = TYPE_COLORS[primaryType] ?? TYPE_COLORS.normal ?? 0xa0a0a0;
@@ -151,6 +182,99 @@ export class PokemonSprite {
     this.container.setDepth(
       DEPTH_POKEMON_BASE + (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + tileHeight + 0.5,
     );
+    this.syncSilhouette();
+  }
+
+  setOccluded(occluders: readonly OccludingTile[]): void {
+    if (this.isKnockedOut || !this.silhouetteSprite) {
+      return;
+    }
+    const nextKey = occluders.map((tile) => `${tile.x},${tile.y},${tile.elevation}`).join("|");
+    if (nextKey === this.occluderKey) {
+      return;
+    }
+    this.occluderKey = nextKey;
+
+    if (occluders.length === 0) {
+      this.silhouetteSprite.setVisible(false);
+      this.clearSilhouetteMask();
+      return;
+    }
+
+    const deepest = occluders.reduce((acc, tile) => {
+      const depth = (tile.x + tile.y) * DEPTH_TILE_MAX_ELEVATION + tile.elevation;
+      return depth > acc ? depth : acc;
+    }, Number.NEGATIVE_INFINITY);
+
+    this.silhouetteSprite.setDepth(
+      DEPTH_POKEMON_BASE + deepest + DEPTH_POKEMON_SILHOUETTE_ISO_OFFSET,
+    );
+    this.silhouetteSprite.setVisible(true);
+    this.rebuildSilhouetteMask(occluders);
+    this.syncSilhouette();
+  }
+
+  private rebuildSilhouetteMask(occluders: readonly OccludingTile[]): void {
+    if (!this.silhouetteSprite) {
+      return;
+    }
+    if (!this.silhouetteMaskGraphics) {
+      this.silhouetteMaskGraphics = this.scene.add.graphics();
+      this.silhouetteMaskGraphics.setVisible(false);
+    }
+    const graphics = this.silhouetteMaskGraphics;
+    graphics.clear();
+    graphics.fillStyle(0xffffff, 1);
+    for (const tile of occluders) {
+      const polygon = this.isometricGrid.getOccluderFacePolygon(tile);
+      const [first, ...rest] = polygon;
+      if (!first) {
+        continue;
+      }
+      graphics.beginPath();
+      graphics.moveTo(first.x, first.y);
+      for (const point of rest) {
+        graphics.lineTo(point.x, point.y);
+      }
+      graphics.closePath();
+      graphics.fillPath();
+    }
+
+    if (this.silhouetteMaskFilter && this.silhouetteSprite.filters) {
+      this.silhouetteSprite.filters.external.remove(this.silhouetteMaskFilter);
+      this.silhouetteMaskFilter = null;
+    }
+    if (this.silhouetteSprite.filters) {
+      this.silhouetteMaskFilter = this.silhouetteSprite.filters.external.addMask(
+        graphics,
+        false,
+        undefined,
+        "world",
+      );
+    }
+  }
+
+  private clearSilhouetteMask(): void {
+    if (this.silhouetteMaskFilter && this.silhouetteSprite?.filters) {
+      this.silhouetteSprite.filters.external.remove(this.silhouetteMaskFilter);
+    }
+    this.silhouetteMaskFilter = null;
+    if (this.silhouetteMaskGraphics) {
+      this.silhouetteMaskGraphics.clear();
+    }
+  }
+
+  private syncSilhouette(): void {
+    if (!this.silhouetteSprite || !this.sprite) {
+      return;
+    }
+    this.silhouetteSprite.setPosition(
+      this.container.x + this.sprite.x,
+      this.container.y + this.sprite.y,
+    );
+    this.silhouetteSprite.setFlipX(this.sprite.flipX);
+    this.silhouetteSprite.setFlipY(this.sprite.flipY);
+    this.silhouetteSprite.setAngle(this.sprite.angle);
   }
 
   getContainer(): Phaser.GameObjects.Container {
@@ -459,6 +583,11 @@ export class PokemonSprite {
     if (this.shadowGraphics) {
       this.shadowGraphics.setVisible(false);
     }
+    if (this.silhouetteSprite) {
+      this.silhouetteSprite.setVisible(false);
+    }
+    this.clearSilhouetteMask();
+    this.occluderKey = "";
     this.hpBarBackground.setVisible(false);
     this.hpBarFill.setVisible(false);
   }
@@ -671,6 +800,16 @@ export class PokemonSprite {
   destroy(): void {
     this.stopPulse();
     this.clearDamagePreview();
+    this.scene.events.off(Phaser.Scenes.Events.POST_UPDATE, this.syncSilhouette, this);
+    this.clearSilhouetteMask();
+    if (this.silhouetteMaskGraphics) {
+      this.silhouetteMaskGraphics.destroy();
+      this.silhouetteMaskGraphics = null;
+    }
+    if (this.silhouetteSprite) {
+      this.silhouetteSprite.destroy();
+      this.silhouetteSprite = null;
+    }
     this.container.destroy();
   }
 
