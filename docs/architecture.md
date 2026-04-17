@@ -616,27 +616,36 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour autom
 
 ### Agents actifs
 
+26 agents + 4 knowledge files (`*-knowledge.md` référencés par `debugger`, `visual-tester`, `data-miner`, `move-pattern-designer`). Détails d'orchestration dans `docs/agent-orchestration.md`.
+
 | Agent | Modèle | Rôle |
 |-------|--------|------|
-| `core-guardian` | haiku | Vérifie que core n'a aucune dépendance UI |
-| `doc-keeper` | sonnet | Maintient la documentation à jour (checklist systématique sur tous les fichiers doc) |
+| `ai-player` | sonnet | Joue au core via l'API, teste mécaniques et edge cases |
+| `asset-manager` | sonnet | Gestion des assets (sprites, tilesets, sons) |
+| `balancer` | sonnet | Lance N combats headless, analyse les winrates, propose des overrides |
+| `best-practices` | sonnet | Recherche de bonnes pratiques du marché (WebSearch + WebFetch) |
+| `ci-setup` | haiku | Configuration GitHub Actions |
 | `code-reviewer` | sonnet | Review qualité, TS strict, conventions |
-| `commit-message` | sonnet | Propose un message de commit basé sur le contexte (plan, phase, session) puis valide via `git diff` |
+| `commit-message` | haiku | Propose un message de commit basé sur le contexte (plan, phase, session) puis valide via `git diff` |
+| `core-guardian` | haiku | Vérifie que `packages/core/` n'a aucune dépendance UI |
+| `data-miner` | sonnet | Import données Pokemon (Showdown/PokeAPI) |
+| `debugger` | opus | Diagnostic de bugs complexes |
+| `dependency-manager` | haiku | Gestion des dépendances npm — vérifie aussi les deprecation warnings |
+| `doc-keeper` | sonnet | Maintient la documentation à jour (checklist systématique sur tous les fichiers doc) |
+| `feedback-triager` | haiku | Classe les issues GitHub (bug/feature/feedback/duplicate), détecte les doublons |
 | `game-designer` | sonnet | Cohérence et équilibre des mécaniques |
-| `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |
+| `level-designer` | haiku | Crée des maps (JSON), valide la jouabilité (taille, dénivelés, spawn points) |
+| `move-pattern-designer` | sonnet | Attribue et justifie le pattern tactique de chaque move |
+| `performance-profiler` | sonnet | Analyse performances (FPS, mémoire, bundle) |
+| `plan-reviewer` | haiku | Crée, review et maintient les plans |
+| `publisher` | sonnet | Vérifie la draft release, la publie, orchestre le wiki |
+| `release-drafter` | haiku | Alimente la draft release GitHub avec un changelog joueur |
+| `sandbox-json` | haiku | Génère des configs sandbox JSON à partir de descriptions en langage naturel |
 | `session-closer` | sonnet | Met à jour STATUS.md en fin de session, chaîne vers `commit-message` si changements non commités |
 | `test-writer` | sonnet | Tests Vitest, approche test-first |
-| `data-miner` | sonnet | Import données Pokemon (Showdown/PokeAPI) |
-| `dependency-manager` | sonnet | Gestion des dépendances npm — vérifie aussi les deprecation warnings |
-| `best-practices` | sonnet | Recherche de bonnes pratiques du marché |
-| `asset-manager` | sonnet | Gestion des assets (sprites, tilesets, sons) |
-| `plan-reviewer` | sonnet | Crée, review et maintient les plans |
-| `performance-profiler` | sonnet | Analyse performances (FPS, mémoire, bundle) |
-| `debugger` | opus | Diagnostic de bugs complexes |
+| `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |
 | `visual-tester` | sonnet | Vérification visuelle via Playwright MCP (screenshots, console, interactions) |
-| `ci-setup` | sonnet | Configuration GitHub Actions |
-| `agent-manager` | sonnet | Audite et maintient les agents/skills (format, cohérence, qualité) |
-| `sandbox-json` | sonnet | Génère des configs sandbox JSON à partir de descriptions en langage naturel |
+| `wiki-keeper` | sonnet | Maintient le wiki GitHub (guide joueur, mécaniques, changelog) |
 
 ### Comportements notables
 
@@ -664,22 +673,9 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour autom
 | Nouveau plan ou plan à réviser | `plan-reviewer` |
 | Bug visuel ou modif renderer isolée | `visual-tester` |
 
-### Agents placeholder (à activer plus tard)
-
-| Agent | Rôle | Phase |
-|-------|------|-------|
-| `ai-player` | Playtester automatisé via API core | Phase 1 |
-| `balancer` | Analyse winrates, propose des overrides | Phase 2-3 |
-| `level-designer` | Crée et valide des maps JSON | Phase 1-2 |
-
 ### Skills
 
 | Commande | Action |
 |----------|--------|
-| `/next` | Lit STATUS.md + roadmap, propose la suite |
-| `/review` | Lance code-reviewer sur les changements |
-| `/status` | Met à jour STATUS.md (fin de session) |
-| `/inspire <jeu>` | Analyse visuelle pour inspiration |
-| `/plan <titre>` | Crée ou review un plan d'exécution |
-| `/debug <bug>` | Diagnostic avancé (agent debugger, opus) |
-| `/practices <sujet>` | Recherche bonnes pratiques du marché |
+| `/next` | Lit `docs/next.md` + STATUS + roadmap + plan, propose la suite et affiche reporté/fait récemment |
+| `/review-local` | Lance `code-reviewer` sur les changements locaux (`git diff`). Pour une PR GitHub, utiliser le `/review` built-in. |

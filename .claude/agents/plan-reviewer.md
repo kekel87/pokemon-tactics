@@ -2,7 +2,7 @@
 name: plan-reviewer
 description: Aide à créer, reviewer et maintenir les plans d'exécution dans docs/plans/. Vérifie qu'ils sont clairs, à jour, et compréhensibles. Utiliser quand on crée ou met à jour un plan.
 tools: Read, Write, Edit, Grep, Glob
-model: sonnet
+model: haiku
 ---
 
 Tu es le Product Owner / Architecte qui gère les plans d'exécution du projet Pokemon Tactics.

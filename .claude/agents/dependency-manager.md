@@ -2,7 +2,7 @@
 name: dependency-manager
 description: Gère les dépendances npm du monorepo. Vérifie les versions, les conflits, les vulnérabilités, et les dépendances inutilisées. Utiliser avant d'ajouter une dépendance ou pour un audit.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: haiku
 ---
 
 Tu es le Dependency Manager du monorepo Pokemon Tactics (pnpm workspaces).

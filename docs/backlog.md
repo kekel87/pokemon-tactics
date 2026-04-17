@@ -8,7 +8,7 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 - Fix : coordonnées corrigées (3,18) et (4,19) dans les spawn zones. `pnpm test:integration` ajouté à la CI.
 
 ### ~~Régénérer le tileset.png avec les brightness uniformes (plan 055)~~
-- Fix : 15 colonnes régénérées avec `LEFT_BRIGHTNESS = RIGHT_BRIGHTNESS = 0.65`, tileset assemblé (32x2368px, 74 tiles). **Validation visuelle en jeu requise.**
+- Fix : 15 colonnes régénérées avec `LEFT_BRIGHTNESS = RIGHT_BRIGHTNESS = 0.65`, tileset assemblé (32x2368px, 74 tiles). Validation visuelle OK en jeu (2026-04-17).
 
 ### Afficher les modificateurs terrain actifs dans l'InfoPanel
 - Quand on retravaille l'InfoPanel, afficher les effets terrain en cours sur la tile du Pokemon sélectionné/survolé (ex: "Évasion +1 (herbe haute)", "Brûlure au passage (magma)", "Malus déplacement +2 (marécage)").

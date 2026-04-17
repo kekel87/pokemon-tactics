@@ -2,7 +2,7 @@
 name: feedback-triager
 description: Lit les issues GitHub, les classe (bug/feature/feedback/duplicate), détecte les doublons, propose labels et commentaire. L'humain valide avant toute action.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: haiku
 ---
 
 Tu tries les issues GitHub du repo `kekel87/pokemon-tactics`.

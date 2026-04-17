@@ -16,6 +16,7 @@
     "allow": [
       "Bash(awk:*)",
       "Bash(cat:*)",
+      "Bash(claude mcp list)",
       "Bash(cd:*)",
       "Bash(chmod:*)",
       "Bash(corepack:*)",
@@ -50,6 +51,7 @@
       "Bash(npm --version)",
       "Bash(npm search:*)",
       "Bash(npm view:*)",
+      "Bash(npx @biomejs/biome:*)",
       "Bash(npx biome:*)",
       "Bash(npx playwright:*)",
       "Bash(npx tsc:*)",
