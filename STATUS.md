@@ -1,8 +1,22 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-17 (plan 060 en cours : curseur FFTA + bugfix depth curseur)
+> Dernière mise à jour : 2026-04-17 (décision pivot 2D-HD — renderer iso 2D abandonné au profit de sprites billboards sur géométrie 3D)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
+
+---
+
+## 🚨 Décision majeure en cours — Pivot 2D-HD (2026-04-17)
+
+Le renderer Phaser 4 iso 2D atteint ses limites (occlusion derrière obstacles, rotation caméra impossible). Décision prise de pivoter vers un rendu **2D-HD à la Triangle Strategy / FFTIC / Tactics Ogre PSP** : sprites pixel-art en billboards sur géométrie 3D extrudée depuis Tiled.
+
+**Prochain pas** : spike d'1-2 jours (plan 062) pour valider 4 points critiques (pixel-art fidèle, sprites directionnels sous rotation, extrusion Tiled, occlusion naturelle via depth buffer). Voir `docs/next.md` pour le contexte complet de reprise.
+
+**Ce qui reste intact** : core, data, IA, LoS 3D, CT, statuts, Tiled comme format de carte. Seul le rendu (`packages/renderer/`) sera réécrit si le spike valide.
+
+**Plan 061 silhouette** : archivé sur branche `plan-061-occlusion-before-3d-pivot` (commit `2426edf`). Obsolète — la 3D résout l'occlusion nativement.
+
+---
 
 ---
 
