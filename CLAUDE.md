@@ -29,6 +29,8 @@ Profil : dev web Angular/TS expérimenté, clean code advocate, expérience Godo
 | `docs/design-system.md` | Avant d'ajouter ou modifier des couleurs, depths ou constantes visuelles dans le renderer |
 | `docs/isometric-height-rendering.md` | Avant de toucher au rendu isométrique avec hauteur, au picking ou aux layers Tiled multi-niveaux |
 | `docs/tileset-mapping.md` | Pour comprendre la structure du tileset ICON et les propriétés des tiles |
+| `docs/references/babylon-gotchas.md` | Avant de toucher au renderer Babylon (plan 064+). Pièges GridMaterial, UV, depth, skipLibCheck, tree-shaking. |
+| `docs/references/babylon-mcp-ecosystem.md` | Pour l'état du MCP Babylon (officiel + communautaires), avril 2026. |
 | `docs/backlog.md` | Bugs connus et feedback playtest non traités |
 | `docs/plans/` | Lire le plan en cours avant de coder. Consulter les anciens si besoin de contexte. |
 
