@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pokemon Tactics — 3D Spike (plan 062)</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #1a1a2e;
+        color: #eee;
+        font-family: monospace;
+      }
+      #app {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        image-rendering: pixelated;
+      }
+      #hud {
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 8px 12px;
+        font-size: 12px;
+        line-height: 1.5;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="app"></canvas>
+    <div id="hud">
+      <div id="hud-title">plan 062 — points 1+2+3 (pixel-art, directional billboard, Tiled extrusion)</div>
+      <div id="hud-hint">
+        ← / → rotate camera · ↑ / ↓ or wheel: zoom<br />
+        A / Z : turn Pokemon left / right<br />
+        Debug : <span style="color: #ff6688">●</span> centre face sup tile ·
+        <span style="color: #ffee55">●</span> ancre sprite
+      </div>
+      <div id="hud-debug" style="margin-top: 6px; opacity: 0.8"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

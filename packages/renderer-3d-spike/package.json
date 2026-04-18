@@ -1,0 +1,19 @@
+{
+  "name": "@pokemon-tactic/renderer-3d-spike",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pokemon-tactic/core": "workspace:*",
+    "@pokemon-tactic/data": "workspace:*",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.170.0"
+  }
+}
