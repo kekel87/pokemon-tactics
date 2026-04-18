@@ -1,9 +1,48 @@
 # Plan 063 — Spike renderer 2D-HD Babylon.js (comparatif vs Three.js)
 
-**Statut** : draft
+**Statut** : terminé — verdict **Babylon.js** (décision #269)
 **Créé** : 2026-04-18
+**Terminé** : 2026-04-18
 **Effort estimé** : 1-2 jours (spike exploratoire, même budget que plan 062)
 **Branche** : `plan-063-babylon-spike`
+
+## Verdict (2026-04-18)
+
+**Stack retenue : Babylon.js 8**. Voir décision #269.
+
+### Mesures réelles
+
+| Critère | Three.js (062) | Babylon (063) | Écart |
+|---|---|---|---|
+| Bundle JS gzip initial (preload + main) | 129 kB | 273 kB | Babylon 2.1× |
+| Bundle JS non compressé initial | 519 kB | 1.03 MB | Babylon 2× |
+| `node_modules` runtime (pnpm store) | three 29 MB | core 74 MB + gui 4.3 MB | Babylon 2.7× |
+| Point 1 pixel-art | ✅ `RenderPixelatedPass` natif | ✅ native res + `NEAREST` (approche lisibilité) | neutre |
+| Point 2 billboards 8-dirs PMDCollab | ✅ | ✅ | neutre |
+| Point 3 extrusion Tiled | ✅ | ✅ | neutre |
+| Point 4 occlusion | ✅ depth buffer | ✅ depth buffer + `alphaCutOff = 0.5` | neutre |
+| Point 5 Inspector | stats.js + lil-gui tiers à ajouter | Inspector v2 intégré, 1 touche | **Babylon** |
+| Point 6 GUI Editor WYSIWYG | — | non testé (skipé, HUD codé en API) | n/a |
+| Point 7 MCP communauté | — | `babylon-mcp` utilisé 3× (invertY, shader grid, interface) | **Babylon** |
+| Point 8 TS strict sans `skipLibCheck` | passe (à reverifier) | **7 erreurs** `@babylonjs/inspector` (JSX, Scene, React) | Three.js |
+
+### Bugs/friction découverts pendant le spike
+
+1. **UV invertY** : TexturePacker atlas + Babylon `Texture` par défaut `invertY: true` → formule `vOffset = 1 - (y+h)/atlasH`. Confirmé via MCP lecture `texture.ts`.
+2. **Occlusion cassée initialement** : `renderingGroupId = 1` sur le sprite → Babylon vide le depth buffer entre groupes. Fix : rester dans le groupe 0, ajouter `alphaCutOff = 0.5`, retirer `disableDepthWrite`.
+3. **Grille désalignée** : `GridMaterial` utilise `vPosition = position` (local-space) dans `grid.vertex.fx`. Pour un `CreateBox({size: 1})`, local-space `0` = centre du cube → lignes au centre des tiles (option B). Fix : `gridOffset = new Vector3(0.5, 0, 0.5)`.
+4. **Hardware scaling** : `engine.setHardwareScalingLevel(4)` rend le canvas entier pixelisé, y compris la GUI Babylon. Solution retenue : `setHardwareScalingLevel(1)` + assets/fonts pixel-art natifs (approche "lisibilité" validée par l'humain).
+5. **TS strict** : `skipLibCheck: true` conservé (config du monorepo), Inspector ne compile pas sinon.
+
+### Fichiers livrés
+
+- `packages/renderer-babylon-spike/` (archive) : 654 LOC en 5 fichiers, tous les 4 points critiques validés visuellement via Chrome DevTools MCP.
+- Verdict formalisé dans `docs/decisions.md` #269.
+
+### Suite
+
+- **Plan 064** : rewrite renderer Pokemon Tactics sur Babylon.js 8 (phase post-3).
+- Archive `renderer-3d-spike/` et `renderer-babylon-spike/` gardés pour référence.
 
 ## Contexte
 
