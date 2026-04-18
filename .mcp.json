@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "babylon-mcp": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://babylon-mcp.immersiveidea.com/mcp"]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    }
+  }
+}

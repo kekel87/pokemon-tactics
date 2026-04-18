@@ -1,0 +1,23 @@
+{
+  "name": "@pokemon-tactic/renderer-babylon-spike",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "typecheck:strict": "tsc --noEmit --skipLibCheck false"
+  },
+  "dependencies": {
+    "@babylonjs/core": "^8.0.0",
+    "@babylonjs/gui": "^8.0.0",
+    "@babylonjs/loaders": "^8.0.0",
+    "@babylonjs/materials": "^8.56.2",
+    "@pokemon-tactic/core": "workspace:*",
+    "@pokemon-tactic/data": "workspace:*"
+  },
+  "devDependencies": {
+    "@babylonjs/inspector": "^8.0.0"
+  }
+}

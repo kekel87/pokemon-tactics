@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pokemon Tactics — Babylon Spike (plan 063)</title>
+    <style>
+      @font-face {
+        font-family: "PokemonEmeraldPro";
+        src:
+          url("/assets/fonts/pokemon-emerald-pro.woff2") format("woff2"),
+          url("/assets/fonts/pokemon-emerald-pro.ttf") format("truetype");
+        font-display: swap;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #1a1a2e;
+        color: #eee;
+        font-family: "PokemonEmeraldPro", monospace;
+      }
+      #app {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        image-rendering: pixelated;
+      }
+      #hud {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        background: rgba(0, 0, 0, 0.75);
+        padding: 12px 16px;
+        font-size: 16px;
+        line-height: 1.6;
+        pointer-events: none;
+        z-index: 10;
+        letter-spacing: 0.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="app"></canvas>
+    <div id="hud">
+      <div id="hud-title">plan 063 — Babylon spike</div>
+      <div id="hud-hint">
+        ← / → rotate camera · ↑ / ↓ or wheel: zoom<br />
+        A / Z : turn Pokemon left / right<br />
+        I : toggle Inspector v2
+      </div>
+      <div id="hud-debug" style="margin-top: 6px; opacity: 0.8"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
