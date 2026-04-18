@@ -74,4 +74,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 059 | [CT Timeline : séquence prédictive scrollable](./059-ct-timeline-preview.md) | done | 2026-04-16 |
 | 060 | [Silhouette d'occlusion iso + curseur FFTA](./060-occlusion-silhouette-cursor-ffta.md) | partial done | 2026-04-17 |
 | 061 | Silhouette d'occlusion (Tactics Ogre, from scratch) — archivé sur branche `plan-061-occlusion-before-3d-pivot` | abandoned | 2026-04-17 |
-| 062 | [Spike renderer 2D-HD (3D géométrie + sprites billboards)](./062-3d-renderer-spike.md) | draft | 2026-04-17 |
+| 062 | [Spike renderer 2D-HD Three.js (3D géométrie + sprites billboards)](./062-3d-renderer-spike.md) | done (4/4) | 2026-04-17 |
+| 063 | [Spike renderer 2D-HD Babylon.js (comparatif vs Three.js)](./063-babylon-spike.md) | draft | 2026-04-18 |
