@@ -16,9 +16,12 @@ import {
   TILE_WIDTH,
 } from "../constants";
 import type { IsometricGrid } from "./IsometricGrid";
+import type { OcclusionFader } from "./OcclusionFader";
+import { getSpriteScreenBounds } from "./sprite-bounds";
 
 export interface DecorationsLayerOptions {
   readonly debugFootprintEnabled?: boolean;
+  readonly occlusionFader?: OcclusionFader;
 }
 
 export class DecorationsLayer {
@@ -28,12 +31,14 @@ export class DecorationsLayer {
   private readonly debugShapes: Phaser.GameObjects.Graphics[] = [];
   private readonly obstacleHeightByCell = new Map<string, number>();
   private readonly debugFootprintEnabled: boolean;
+  private readonly occlusionFader: OcclusionFader | null;
   private previewMode = false;
 
   constructor(scene: Phaser.Scene, grid: IsometricGrid, options?: DecorationsLayerOptions) {
     this.scene = scene;
     this.grid = grid;
     this.debugFootprintEnabled = options?.debugFootprintEnabled ?? false;
+    this.occlusionFader = options?.occlusionFader ?? null;
   }
 
   render(map: MapDefinition, objects: readonly DecorationObject[]): void {
@@ -75,6 +80,7 @@ export class DecorationsLayer {
 
   clear(): void {
     for (const sprite of this.sprites) {
+      this.occlusionFader?.unregister(sprite);
       sprite.destroy();
     }
     this.sprites.length = 0;
@@ -94,9 +100,17 @@ export class DecorationsLayer {
       return;
     }
     this.previewMode = enabled;
+    // Preview mode gagne sur le fader : on le désactive d'abord pour que
+    // setAlpha(preview) ne soit pas écrasé au prochain updateAll.
+    if (enabled) {
+      this.occlusionFader?.setEnabled(false);
+    }
     const alpha = enabled ? DECORATIONS_PREVIEW_MODE_ALPHA : 1;
     for (const sprite of this.sprites) {
       sprite.setAlpha(alpha);
+    }
+    if (!enabled) {
+      this.occlusionFader?.setEnabled(true);
     }
   }
 
@@ -116,16 +130,21 @@ export class DecorationsLayer {
     const center = this.grid.gridToScreen(placementX, placementY, groundHeight);
     const sprite = this.scene.add.image(center.x, center.y + TILE_HEIGHT / 2, textureKey);
     sprite.setOrigin(0.5, 1.0);
-    sprite.setDepth(
+    const depth =
       DEPTH_POKEMON_BASE +
-        (placementX + placementY) * DEPTH_TILE_MAX_ELEVATION +
-        object.heightUnits +
-        DEPTH_DECORATIONS_OBSTACLE_OFFSET,
-    );
+      (placementX + placementY) * DEPTH_TILE_MAX_ELEVATION +
+      object.heightUnits +
+      DEPTH_DECORATIONS_OBSTACLE_OFFSET;
+    sprite.setDepth(depth);
     if (this.previewMode) {
       sprite.setAlpha(DECORATIONS_PREVIEW_MODE_ALPHA);
     }
     this.sprites.push(sprite);
+    this.occlusionFader?.register({
+      sprite,
+      depth,
+      screenBounds: getSpriteScreenBounds(sprite),
+    });
 
     if (this.debugFootprintEnabled) {
       for (let dy = 0; dy < object.footprintHeight; dy++) {

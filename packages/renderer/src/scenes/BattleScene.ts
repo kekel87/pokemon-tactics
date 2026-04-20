@@ -27,6 +27,7 @@ import { GameController, type PlacementConfig } from "../game/GameController";
 import { createSandboxBattle } from "../game/SandboxSetup";
 import { DecorationsLayer } from "../grid/DecorationsLayer";
 import { IsometricGrid } from "../grid/IsometricGrid";
+import { OcclusionFader } from "../grid/OcclusionFader";
 import { loadTiledMap } from "../maps/load-tiled-map";
 import { getSettings, updateSettings } from "../settings";
 import { PokemonSprite } from "../sprites/PokemonSprite";
@@ -56,6 +57,7 @@ export class BattleScene extends Phaser.Scene {
   private sandboxUiScene: BattleUIScene | null = null;
   private languageToggle: LanguageToggle | null = null;
   private hoverCursor: HoverCursor | null = null;
+  private occlusionFader: OcclusionFader | null = null;
 
   constructor() {
     super("BattleScene");
@@ -173,7 +175,10 @@ export class BattleScene extends Phaser.Scene {
     const tiledMap = loaded.map;
     const maxHeight = loaded.heightData.length > 0 ? Math.max(...loaded.heightData) : 0;
     this.setupCameraBounds(loaded.map.width, loaded.map.height, maxHeight);
+    const occlusionFader = new OcclusionFader();
+    this.occlusionFader = occlusionFader;
     const isometricGrid = new IsometricGrid(this, loaded.map.width, loaded.map.height);
+    isometricGrid.setOcclusionFader(occlusionFader);
     isometricGrid.drawGridFromTileData(
       loaded.elevationLayers,
       loaded.firstgid,
@@ -184,6 +189,7 @@ export class BattleScene extends Phaser.Scene {
 
     const decorationsLayer = new DecorationsLayer(this, isometricGrid, {
       debugFootprintEnabled: config.debugDecorationsFootprint === true,
+      occlusionFader,
     });
     decorationsLayer.render(loaded.map, loaded.decorationObjects);
     isometricGrid.setDecorationsLayer(decorationsLayer);
@@ -245,6 +251,8 @@ export class BattleScene extends Phaser.Scene {
     }
     this.children.removeAll(true);
     this.controller = null;
+    this.occlusionFader?.unregisterAll();
+    this.occlusionFader = null;
     this.lastHoverGrid = null;
     this.lastHoverAlt = false;
     this.arrowKeysDown.clear();
@@ -281,7 +289,10 @@ export class BattleScene extends Phaser.Scene {
     const battleMaxHeight = loaded.heightData.length > 0 ? Math.max(...loaded.heightData) : 0;
     this.setupCameraBounds(map.width, map.height, battleMaxHeight);
 
+    const occlusionFader = new OcclusionFader();
+    this.occlusionFader = occlusionFader;
     const isometricGrid = new IsometricGrid(this, map.width, map.height);
+    isometricGrid.setOcclusionFader(occlusionFader);
     isometricGrid.drawGridFromTileData(
       loaded.elevationLayers,
       loaded.firstgid,
@@ -290,7 +301,9 @@ export class BattleScene extends Phaser.Scene {
       loaded.terrainData,
     );
 
-    const decorationsLayer = new DecorationsLayer(this, isometricGrid);
+    const decorationsLayer = new DecorationsLayer(this, isometricGrid, {
+      occlusionFader,
+    });
     decorationsLayer.render(loaded.map, loaded.decorationObjects);
     isometricGrid.setDecorationsLayer(decorationsLayer);
 
@@ -508,6 +521,10 @@ export class BattleScene extends Phaser.Scene {
   }
 
   update(): void {
+    if (this.occlusionFader && this.controller) {
+      this.occlusionFader.updateAll(this.controller.collectLiveOcclusionTargets());
+    }
+
     if (this.arrowKeysDown.size === 0) {
       return;
     }
