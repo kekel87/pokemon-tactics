@@ -1,20 +1,20 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-20 (plan 064 done — décorations et obstacles Tiled livrés)
+> Dernière mise à jour : 2026-04-20 (plan 065 done — fix depth + Alt-click picking + OcclusionFader)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
 ---
 
-## Décision majeure actée — Pivot 2D-HD (Babylon.js, Phase 3.5)
+## Décision majeure actée — Pivot 2D-HD (Babylon.js, Phase 3.5) — **repoussé après Phase 7**
 
 Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (sprites billboards sur géométrie 3D extrudée, style Tactics Ogre PSP / Triangle Strategy). Spikes 062 (Three.js) et 063 (Babylon.js) terminés — **Babylon.js retenu** (décision #269).
 
-**Prochaine grande étape** : finir Phase 3 (interactions type/terrain restantes) puis démarrer Phase 3.5 rewrite Babylon. Voir `docs/next.md` pour l'ordre exact.
+**Mise à jour 2026-04-20 (décision #272)** : le plan 065 ayant résolu l'occlusion en iso 2D (fade per-sprite via `OcclusionFader`), Phase 3.5 rewrite Babylon est repoussée **après Phase 7 Multijoueur**. On priorise Phase 4 gameplay → Phase 5 équilibrage → Phase 6 social → Phase 7 multi. Si le résultat visuel se révèle insuffisant à l'usage, Phase 3.5 redevient prioritaire.
 
-**Ce qui reste intact** : core, data, IA, LoS 3D, CT, statuts, Tiled comme format de carte. Seul le rendu (`packages/renderer/`) sera réécrit.
+**Ce qui reste intact** : core, data, IA, LoS 3D, CT, statuts, Tiled comme format de carte. Seul le rendu (`packages/renderer/`) sera réécrit le moment venu.
 
-**Plan 061 silhouette** : archivé sur branche `plan-061-occlusion-before-3d-pivot` (commit `2426edf`). Obsolète — la 3D résout l'occlusion nativement.
+**Plan 061 silhouette** : archivé sur branche `plan-061-occlusion-before-3d-pivot` (commit `2426edf`). Obsolète — l'occlusion est désormais gérée par `OcclusionFader` en iso 2D.
 
 ---
 
@@ -823,6 +823,12 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
   - **Bugfix depth curseur au sol (livré + commité)** : `DEPTH_CURSOR_ISO_OFFSET` supprimé, remplacé par `DEPTH_CURSOR_GROUND = 500`. Le stroke du diamant débordait sur les tiles voisines iso-sortées (depth ~100–150) ; depth globale 500 passe au-dessus de tous les overlays et sous les Pokemon (520).
   - **Section B — Silhouette d'occlusion SKIPPÉE** : résolue nativement par le renderer Babylon (depth buffer 3D).
 
+- **Plan 065 terminé (2026-04-20)** — Fix depth unifié + Alt-click picking + OcclusionFader :
+  - **Partie A — Fix depth tiles surélevées** : `DEPTH_RAISED_TILE_BASE = DEPTH_POKEMON_BASE` — les tiles `elevation > 0` partagent désormais l'espace depth des Pokemon. Un Pokemon derrière un pilier est correctement occulté. Les tiles plates restent à `DEPTH_GRID_TILES = 0`.
+  - **Partie B — Alt-click picking modifier** : maintenir Alt lors du clic iso sélectionne la tile sous un pilier multi-niveaux (hauteur terrain, pas hauteur obstacle). Curseur variante `"alt"` jaune chaud (`COLOR_CURSOR_ALT = 0xffd54f`).
+  - **Partie C — `OcclusionFader`** : nouveau module `packages/renderer/src/grid/OcclusionFader.ts`. Pipeline reset→test→apply : chaque frame, pour chaque obstacle devant un Pokemon (AABB screen-space overlap + depth > pokemon.depth + `OCCLUSION_DEPTH_EPSILON=0.5`), applique `OCCLUSION_FADE_ALPHA=0.4`. Helper `getPokemonScreenBounds` dans `sprite-bounds.ts` fournit l'AABB centré (`POKEMON_OCCLUSION_BBOX_SIZE=24`). Phase 3.5 rewrite Babylon repoussée après Phase 7 suite au succès visuel (décision #272).
+  - Gate CI : 1067 unit / 107 integration / 6 scenario, tout vert.
+
 - **Plan 064 terminé (2026-04-20)** — Décorations et obstacles Tiled :
   - **Core** : `canTraverse` et `canStopOn` étendus pour Ghost (`isGhost: boolean`, `toTerrain: TerrainType`). Ghost traverse tout obstacle sans pouvoir s'y arrêter. Priorité Vol > Ghost si double type. Décision #270.
   - **Data** : parser objectgroup `decorations` dans `parse-tiled-map.ts` — extrait les `DecorationObject[]` (gid, kind, anchorX/Y, footprint, heightUnits). Patch automatique du `MapDefinition` (tiles → `terrain=obstacle` + `height=N`). `parse-decorations-layer.ts` dédié. `DecorationKind` const-object pattern dans `@pokemon-tactic/data` (source unique, consommé par le renderer via import). Tests parser : map avec rocher 2×2 → 4 tiles patchées, rocher hors grille → erreur, map sans layer → OK.
@@ -836,6 +842,7 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
 
 - **Prochains candidats** :
   - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)
+  - Phase 4 : Talents, Objets tenus, Natures
   - Validation visuelle du tileset.png mis à jour (brightness uniforme — empilement, pentes, escaliers sur toutes les maps)
 - Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
 - Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
@@ -843,7 +850,7 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
 
 ### Bugs connus non corrigés
 
-*(rien d'ouvert — depth animations et confusion wobble post-KO résolus, voir backlog.md)*
+*(rien d'ouvert — occlusion Pokemon derrière obstacle, depth animations et confusion wobble post-KO résolus, voir backlog.md)*
 
 ### Points à adresser (renderer)
 - Représentation visuelle des moves défensifs : animation/feedback quand Protect bloque, Counter renvoie, etc.

@@ -223,6 +223,12 @@ export const DEPTH_RAISED_TILE_BASE = DEPTH_POKEMON_BASE;
 // slightly lighter than CURSOR_COLOR so the player perceives "alternative
 // pick" without losing the selection affordance.
 export const COLOR_CURSOR_ALT = 0xffd54f;
+
+export const OCCLUSION_FADE_ALPHA = 0.4;
+// Must stay strictly greater than DEPTH_DECORATIONS_OBSTACLE_OFFSET (0.3):
+// an obstacle on the same cell as a Pokemon must never fade.
+export const OCCLUSION_DEPTH_EPSILON = 0.5;
+export const POKEMON_OCCLUSION_BBOX_SIZE = 24;
 export const ATTACK_DEPTH_ENVELOPE_RADIUS = 3;
 export const DEPTH_HOVER_CURSOR = 960;
 export const DEPTH_UI_BASE = 1000;

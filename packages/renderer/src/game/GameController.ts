@@ -61,6 +61,7 @@ import {
   KNOCKBACK_SHAKE_OFFSET_X,
   KNOCKBACK_SHAKE_REPEAT,
   MOVE_TWEEN_DURATION_MS,
+  POKEMON_OCCLUSION_BBOX_SIZE,
   POKEMON_SPRITE_GROUND_OFFSET_Y,
   PREVIEW_FLASH_ALPHA,
   PREVIEW_FLASH_DURATION_MS,
@@ -76,6 +77,8 @@ import {
 import { HighlightKind } from "../enums/highlight-kind";
 import type { DecorationsLayer } from "../grid/DecorationsLayer";
 import type { IsometricGrid } from "../grid/IsometricGrid";
+import type { ScreenRect } from "../grid/OcclusionFader";
+import { getPokemonScreenBounds } from "../grid/sprite-bounds";
 import { getLanguage, t } from "../i18n";
 import { getSettings } from "../settings";
 import { PokemonSprite } from "../sprites/PokemonSprite";
@@ -253,6 +256,37 @@ export class GameController {
       }
     }
     return null;
+  }
+
+  collectLiveOcclusionTargets(): Array<{
+    depth: number;
+    screenBounds: ScreenRect;
+  }> {
+    if (!this.setup) {
+      return [];
+    }
+    const targets: Array<{ depth: number; screenBounds: ScreenRect }> = [];
+    for (const pokemon of this.setup.state.pokemon.values()) {
+      if (pokemon.currentHp <= 0) {
+        continue;
+      }
+      const sprite = this.sprites.get(pokemon.id);
+      if (!sprite) {
+        continue;
+      }
+      const container = sprite.getContainer();
+      const tileHeight = this.isometricGrid.getTileHeight(pokemon.position.x, pokemon.position.y);
+      const depth =
+        DEPTH_POKEMON_BASE +
+        (pokemon.position.x + pokemon.position.y) * DEPTH_TILE_MAX_ELEVATION +
+        tileHeight +
+        0.5;
+      targets.push({
+        depth,
+        screenBounds: getPokemonScreenBounds(container.x, container.y, POKEMON_OCCLUSION_BBOX_SIZE),
+      });
+    }
+    return targets;
   }
 
   getActivePokemonId(): string | null {

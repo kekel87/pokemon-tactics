@@ -42,6 +42,8 @@ import {
   screenToGridWithHeight as isoScreenToGridWithHeight,
   type ScreenPosition,
 } from "./iso-math";
+import type { OcclusionFader } from "./OcclusionFader";
+import { getSpriteScreenBounds } from "./sprite-bounds";
 
 export class IsometricGrid {
   private readonly scene: Phaser.Scene;
@@ -64,6 +66,7 @@ export class IsometricGrid {
   private decorationsLayer: {
     getDecorationHeightAt(x: number, y: number): number;
   } | null = null;
+  private occlusionFader: OcclusionFader | null = null;
 
   constructor(scene: Phaser.Scene, gridWidth: number = GRID_SIZE, gridHeight: number = gridWidth) {
     this.scene = scene;
@@ -118,8 +121,7 @@ export class IsometricGrid {
     if (this.heightData.length === 0) {
       return false;
     }
-    const heights =
-      this.pickingHeightData.length > 0 ? this.pickingHeightData : this.heightData;
+    const heights = this.pickingHeightData.length > 0 ? this.pickingHeightData : this.heightData;
     const top = isoScreenToGridWithHeight(screenX, screenY, heights, this.projectionContext);
     const below = isoScreenToGridWithHeight(screenX, screenY, heights, this.projectionContext, {
       preferLower: true,
@@ -130,6 +132,10 @@ export class IsometricGrid {
     return top.x !== below.x || top.y !== below.y;
   }
 
+  setOcclusionFader(fader: OcclusionFader | null): void {
+    this.occlusionFader = fader;
+  }
+
   drawGridFromTileData(
     elevationLayers: readonly { elevation: number; tileData: readonly number[] }[],
     firstgid: number,
@@ -138,6 +144,7 @@ export class IsometricGrid {
     terrainData?: readonly string[],
   ): void {
     for (const sprite of this.tileSprites) {
+      this.occlusionFader?.unregister(sprite);
       sprite.destroy();
     }
     this.tileSprites.length = 0;
@@ -176,6 +183,13 @@ export class IsometricGrid {
             layer.elevation > 0 ? DEPTH_RAISED_TILE_BASE + isoLadder : DEPTH_GRID_TILES + isoLadder;
           sprite.setDepth(depth);
           this.tileSprites.push(sprite);
+          if (layer.elevation > 0) {
+            this.occlusionFader?.register({
+              sprite,
+              depth,
+              screenBounds: getSpriteScreenBounds(sprite),
+            });
+          }
         }
       }
     }

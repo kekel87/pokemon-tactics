@@ -19,13 +19,6 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 ### ~~TurnTimeline CT — layout et barre de charge~~ (plan 055 — commit 9bc9125)
 - Corrigé dans le bug gatling (plan 055).
 
-### Transparence / silhouette des Pokemon derrière un obstacle + cursor FFTA
-- Quand un Pokemon passe derrière une tile haute ou une décoration, il disparaît complètement.
-- Idée : afficher le sprite en transparence ou en contour de couleur (effet **silhouette X-ray** / "occlusion outline", courant dans les jeux iso).
-- Impl possible : détecter côté renderer si un sprite est occlu par une tile de depth supérieure, appliquer `sprite.setAlpha(0.4)` + un outline avec shader/PostFX Phaser, ou basculer sur une version silhouette du sprite.
-- **Lié au cursor FFTA** : le curseur de sélection doit être revu dans le style FFTA (au-dessus des sprites Pokemon). Cette tâche partage probablement la détection d'occlusion avec l'effet de transparence — à traiter dans le même plan renderer.
-- **Note** : le bug "Pokemon passe devant les piliers pendant le déplacement" (suppression du `maxTileDepthInRadius` dans `animateMoveTo`) n'est pas résolu par le layering de depths — c'est un comportement iso correct (Pokemon derrière un pilier plus proche de la caméra). La solution passe par la transparence/silhouette ci-dessus.
-
 ## Tâches futures identifiées (hors backlog actif)
 
 ### Ajouter Pokemon Legends Z-A comme source de données
@@ -59,6 +52,9 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 
 ## Résolus
+
+### ~~Transparence / silhouette des Pokemon derrière un obstacle~~ (plan 065)
+- Fix : module `OcclusionFader` — fade alpha 0.4 sur l'obstacle qui occulte un Pokemon (AABB screen-space + comparaison depth). Fix depth tiles surélevées (`DEPTH_RAISED_TILE_BASE = DEPTH_POKEMON_BASE`). Alt-click picking pour cibler la tile sous un pilier. Résolu 2026-04-20.
 
 ### ~~Immunité au poison non respectée (type Poison empoisonné)~~ (plan 055)
 - Fantominus (Poison/Ghost) se faisait empoisonner par Toxic : aucune vérification d'immunité de statut par type dans `handle-status.ts`.

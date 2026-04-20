@@ -419,6 +419,26 @@ curseur sur décoration (+0.8 sur Y grille) →
 hover cursor (960) → UI (1000+)
 ```
 
+### Occlusion fade dynamique (plan 065)
+
+Quand un Pokemon se trouve derrière une tile surélevée ou une décoration obstacle, le sprite obstacle voit son alpha abaissé pour laisser lire le Pokemon. Géré par le module `OcclusionFader` (`packages/renderer/src/grid/OcclusionFader.ts`).
+
+| Constante | Valeur | Description |
+|-----------|--------|-------------|
+| `OCCLUSION_FADE_ALPHA` | `0.4` | Alpha appliqué à l'obstacle qui occulte un Pokemon (valeur tuned pour lire le Pokemon sans effacer la silhouette) |
+| `OCCLUSION_DEPTH_EPSILON` | `0.5` | Epsilon sur la comparaison de depth pour éviter le flicker sur la diagonale iso — strictement supérieur à `DEPTH_DECORATIONS_OBSTACLE_OFFSET (0.3)` : un obstacle sur la même tile qu'un Pokemon ne déclenche jamais le fade |
+| `POKEMON_OCCLUSION_BBOX_SIZE` | `24` | Côté du AABB screen-space centré sur `container.x/y` pour tester l'overlap Pokemon-obstacle (approxime la silhouette visible PMDCollab, frames 32×80 → corps ~24 px de large) |
+
+Pipeline : chaque frame ou event de déplacement, `OcclusionFader.update(pokemons, obstacles)` remet tous les alphas à 1 (reset), teste les overlaps AABB + comparaison depth, applique `OCCLUSION_FADE_ALPHA` aux obstacles occluseurs (apply). Helper `getPokemonScreenBounds` dans `sprite-bounds.ts` fournit l'AABB centré.
+
+### Alt-click picking (plan 065)
+
+| Constante | Valeur | Description |
+|-----------|--------|-------------|
+| `COLOR_CURSOR_ALT` | `0xffd54f` | Jaune chaud — variante du curseur quand Alt est maintenu. Légèrement plus clair que `CURSOR_COLOR` pour signifier "sélection alternative" sans perdre l'affordance de sélection |
+
+Quand la touche Alt est maintenue, le picking iso préfère la tile **sous** un pilier multi-niveaux (hauteur terrain, pas hauteur obstacle). Le curseur s'affiche dans la variante `"alt"` (jaune `COLOR_CURSOR_ALT`).
+
 ---
 
 ## Turn Timeline CT (plan 059)
