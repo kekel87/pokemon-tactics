@@ -2,6 +2,7 @@ import { decodeTiledGid } from "@pokemon-tactic/data";
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
+  COLOR_CURSOR_ALT,
   CURSOR_COLOR,
   CURSOR_PULSE_DURATION_MS,
   CURSOR_PULSE_MAX_ALPHA,
@@ -90,17 +91,43 @@ export class IsometricGrid {
     return isoGridToScreen(gridX, gridY, height, this.projectionContext);
   }
 
-  screenToGrid(screenX: number, screenY: number): { x: number; y: number } | null {
+  screenToGrid(
+    screenX: number,
+    screenY: number,
+    preferLower = false,
+  ): { x: number; y: number } | null {
     if (this.heightData.length > 0) {
       // Picking uses ground heights (decorations subtracted) so the player
       // selects the cell by clicking the base of a decoration, not its top.
       // The visual cursor is still drawn at the top (see showCursor).
       const heightsForPicking =
         this.pickingHeightData.length > 0 ? this.pickingHeightData : this.heightData;
-      return isoScreenToGridWithHeight(screenX, screenY, heightsForPicking, this.projectionContext);
+      return isoScreenToGridWithHeight(
+        screenX,
+        screenY,
+        heightsForPicking,
+        this.projectionContext,
+        { preferLower },
+      );
     }
 
     return isoScreenToGridFlat(screenX, screenY, this.projectionContext);
+  }
+
+  hasPickingAmbiguity(screenX: number, screenY: number): boolean {
+    if (this.heightData.length === 0) {
+      return false;
+    }
+    const heights =
+      this.pickingHeightData.length > 0 ? this.pickingHeightData : this.heightData;
+    const top = isoScreenToGridWithHeight(screenX, screenY, heights, this.projectionContext);
+    const below = isoScreenToGridWithHeight(screenX, screenY, heights, this.projectionContext, {
+      preferLower: true,
+    });
+    if (!top || !below) {
+      return false;
+    }
+    return top.x !== below.x || top.y !== below.y;
   }
 
   drawGridFromTileData(
@@ -391,7 +418,7 @@ export class IsometricGrid {
     layer.clear();
   }
 
-  showCursor(gridX: number, gridY: number): void {
+  showCursor(gridX: number, gridY: number, variant: "default" | "alt" = "default"): void {
     this.cursorGraphics.clear();
     const height = this.getTileHeight(gridX, gridY);
     const center = this.gridToScreen(gridX, gridY, height);
@@ -404,7 +431,8 @@ export class IsometricGrid {
         DEPTH_CURSOR_OVER_DECORATION_OFFSET
       : DEPTH_CURSOR_GROUND;
     this.cursorGraphics.setDepth(cursorDepth);
-    this.drawDiamondStroke(this.cursorGraphics, center, CURSOR_COLOR, CURSOR_STROKE_WIDTH);
+    const color = variant === "alt" ? COLOR_CURSOR_ALT : CURSOR_COLOR;
+    this.drawDiamondStroke(this.cursorGraphics, center, color, CURSOR_STROKE_WIDTH);
 
     if (this.cursorTween) {
       this.cursorTween.destroy();

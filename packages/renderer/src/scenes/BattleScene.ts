@@ -40,8 +40,14 @@ import type { BattleUIScene } from "./BattleUIScene";
 import { computeCameraBounds } from "./camera-bounds";
 import type { TeamSelectResult } from "./TeamSelectScene";
 
+function isAltPressed(pointer: Phaser.Input.Pointer): boolean {
+  const event = pointer.event as { altKey?: boolean } | undefined;
+  return event?.altKey === true;
+}
+
 export class BattleScene extends Phaser.Scene {
   private lastHoverGrid: { x: number; y: number } | null = null;
+  private lastHoverAlt = false;
   private pokemonDefinitions!: Map<string, PokemonDefinition>;
   private zoomIndex = ZOOM_DEFAULT_INDEX;
   private controller: GameController | null = null;
@@ -240,6 +246,7 @@ export class BattleScene extends Phaser.Scene {
     this.children.removeAll(true);
     this.controller = null;
     this.lastHoverGrid = null;
+    this.lastHoverAlt = false;
     this.arrowKeysDown.clear();
     this.input.removeAllListeners();
 
@@ -410,7 +417,8 @@ export class BattleScene extends Phaser.Scene {
     this.hoverCursor = new HoverCursor(this, isometricGrid, initialCursorOption);
 
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-      const grid = isometricGrid.screenToGrid(pointer.worldX, pointer.worldY);
+      const altPressed = isAltPressed(pointer);
+      const grid = isometricGrid.screenToGrid(pointer.worldX, pointer.worldY, altPressed);
       if (grid) {
         controller.handleTileClick(grid.x, grid.y);
       }
@@ -421,7 +429,8 @@ export class BattleScene extends Phaser.Scene {
         return;
       }
 
-      const grid = isometricGrid.screenToGrid(pointer.worldX, pointer.worldY);
+      const altPressed = isAltPressed(pointer);
+      const grid = isometricGrid.screenToGrid(pointer.worldX, pointer.worldY, altPressed);
       const worldPosition = { x: pointer.worldX, y: pointer.worldY };
 
       controller.handleTileHover(grid, worldPosition);
@@ -430,10 +439,16 @@ export class BattleScene extends Phaser.Scene {
         if (
           !this.lastHoverGrid ||
           this.lastHoverGrid.x !== grid.x ||
-          this.lastHoverGrid.y !== grid.y
+          this.lastHoverGrid.y !== grid.y ||
+          this.lastHoverAlt !== altPressed
         ) {
           this.lastHoverGrid = grid;
-          isometricGrid.showCursor(grid.x, grid.y);
+          this.lastHoverAlt = altPressed;
+          const cursorVariant =
+            altPressed && isometricGrid.hasPickingAmbiguity(pointer.worldX, pointer.worldY)
+              ? "alt"
+              : "default";
+          isometricGrid.showCursor(grid.x, grid.y, cursorVariant);
           this.hoverCursor?.showAt(grid.x, grid.y);
 
           const hoveredPokemon = controller.getPokemonAtPosition(grid.x, grid.y);
@@ -449,6 +464,7 @@ export class BattleScene extends Phaser.Scene {
         }
       } else if (this.lastHoverGrid) {
         this.lastHoverGrid = null;
+        this.lastHoverAlt = false;
         isometricGrid.hideCursor();
         this.hoverCursor?.hide();
         controller.handleEnemyRangeHover(null);
