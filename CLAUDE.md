@@ -62,7 +62,8 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 - TypeScript strict, ESM modules
 - Phaser 4 pour le rendu
 - Vitest pour les tests unitaires
-- Playwright pour les tests visuels
+- Playwright pour les tests visuels (agent `visual-tester`)
+- chrome-devtools MCP pour debug runtime et perf (agents `debugger`, `performance-profiler`) — voir `docs/agent-orchestration.md` section "MCP navigateur"
 - Vite pour le bundling
 - Biome pour le linting/formatting
 - pnpm workspaces pour le monorepo
