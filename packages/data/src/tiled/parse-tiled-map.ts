@@ -1,4 +1,9 @@
 import type { MapDefinition } from "@pokemon-tactic/core";
+import {
+  applyDecorationsToMap,
+  type DecorationObject,
+  parseDecorationsLayer,
+} from "./parse-decorations-layer";
 import { parseSpawnsLayer } from "./parse-spawns-layer";
 import { parseTerrainLayer } from "./parse-terrain-layer";
 import type { TiledMap } from "./tiled-types";
@@ -31,6 +36,7 @@ export interface ParseSuccess {
    * property.
    */
   readonly slopeData: readonly (string | null)[];
+  readonly decorationObjects: readonly DecorationObject[];
   readonly warnings: string[];
 }
 
@@ -58,11 +64,18 @@ export function parseTiledMap(tiledJson: TiledMap): ParseResult {
     errors.push('Missing required layer "spawns" (objectgroup)');
   }
 
-  const decorationsLayer = tiledJson.layers.find(
-    (l) => l.name === "decorations" && l.type === "tilelayer",
-  );
+  const decorationsLayer = tiledJson.layers.find((l) => l.name === "decorations");
   if (!decorationsLayer) {
     warnings.push('Optional layer "decorations" not found');
+  } else if (decorationsLayer.type !== "objectgroup") {
+    const hasContent = (decorationsLayer.data ?? []).some((gid) => gid !== 0);
+    if (hasContent) {
+      errors.push(
+        `Layer "decorations" must be an objectgroup (got "${decorationsLayer.type}") when it contains tiles`,
+      );
+    } else {
+      warnings.push('Layer "decorations" is a legacy empty tilelayer — convert to objectgroup');
+    }
   }
 
   const tileset = tiledJson.tilesets[0];
@@ -147,7 +160,28 @@ export function parseTiledMap(tiledJson: TiledMap): ParseResult {
       formats,
     };
 
-    return { ok: true, map, elevationLayers, slopeData, warnings };
+    let decorationObjects: readonly DecorationObject[] = [];
+    if (decorationsLayer && decorationsLayer.type === "objectgroup") {
+      const parsed = parseDecorationsLayer(
+        decorationsLayer,
+        tiledJson.tilesets,
+        tiledJson.width,
+        tiledJson.height,
+        tiledJson.tilewidth,
+        tiledJson.tileheight,
+        tiledJson.orientation,
+      );
+      if (parsed.errors.length > 0) {
+        return { ok: false, errors: [...parsed.errors] };
+      }
+      const applyErrors = applyDecorationsToMap(map, parsed.objects);
+      if (applyErrors.length > 0) {
+        return { ok: false, errors: [...applyErrors] };
+      }
+      decorationObjects = parsed.objects;
+    }
+
+    return { ok: true, map, elevationLayers, slopeData, decorationObjects, warnings };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return { ok: false, errors: [message] };

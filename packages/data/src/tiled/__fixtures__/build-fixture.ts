@@ -32,11 +32,9 @@ export function buildFixture(options: FixtureOptions): TiledMap {
 
   layers.push({
     name: "decorations",
-    type: "tilelayer",
-    width,
-    height,
-    data: new Array(cellCount).fill(0),
+    type: "objectgroup",
     visible: true,
+    objects: [],
   });
 
   layers.push({

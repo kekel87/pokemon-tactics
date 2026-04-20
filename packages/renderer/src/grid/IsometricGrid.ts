@@ -8,9 +8,11 @@ import {
   CURSOR_PULSE_MIN_ALPHA,
   CURSOR_STROKE_WIDTH,
   DEPTH_CURSOR_GROUND,
+  DEPTH_CURSOR_OVER_DECORATION_OFFSET,
   DEPTH_ENEMY_RANGE_ISO_OFFSET,
   DEPTH_GRID_TILES,
   DEPTH_HIGHLIGHT_ISO_OFFSET,
+  DEPTH_POKEMON_BASE,
   DEPTH_PREVIEW_ISO_OFFSET,
   DEPTH_TILE_MAX_ELEVATION,
   GRID_SIZE,
@@ -55,8 +57,12 @@ export class IsometricGrid {
   readonly gridHeight: number;
   private readonly useTexturedTiles: boolean;
   private heightData: readonly number[] = [];
+  private pickingHeightData: readonly number[] = [];
   private terrainData: readonly string[] = [];
   private slopeData: readonly (string | null)[] = [];
+  private decorationsLayer: {
+    getDecorationHeightAt(x: number, y: number): number;
+  } | null = null;
 
   constructor(scene: Phaser.Scene, gridWidth: number = GRID_SIZE, gridHeight: number = gridWidth) {
     this.scene = scene;
@@ -86,7 +92,12 @@ export class IsometricGrid {
 
   screenToGrid(screenX: number, screenY: number): { x: number; y: number } | null {
     if (this.heightData.length > 0) {
-      return isoScreenToGridWithHeight(screenX, screenY, this.heightData, this.projectionContext);
+      // Picking uses ground heights (decorations subtracted) so the player
+      // selects the cell by clicking the base of a decoration, not its top.
+      // The visual cursor is still drawn at the top (see showCursor).
+      const heightsForPicking =
+        this.pickingHeightData.length > 0 ? this.pickingHeightData : this.heightData;
+      return isoScreenToGridWithHeight(screenX, screenY, heightsForPicking, this.projectionContext);
     }
 
     return isoScreenToGridFlat(screenX, screenY, this.projectionContext);
@@ -107,6 +118,7 @@ export class IsometricGrid {
     this.heightData = heightData ?? [];
     this.terrainData = terrainData ?? [];
     this.slopeData = slopeData ?? [];
+    this.rebuildPickingHeightData();
 
     if (!this.useTexturedTiles) {
       this.drawFallbackGrid();
@@ -167,14 +179,38 @@ export class IsometricGrid {
     return this.heightData[index] ?? 0;
   }
 
-  /**
-   * Returns `true` when the cell (x, y) carries a `slope` property in the
-   * Tiled map (any layer). Slope tiles are ramps that let Pokemon walk
-   * smoothly between elevations without the animation switching to "Hop".
-   */
+  getTileTerrain(gridX: number, gridY: number): string | undefined {
+    const index = gridY * this.gridWidth + gridX;
+    return this.terrainData[index];
+  }
+
   isSlopeAt(gridX: number, gridY: number): boolean {
     const index = gridY * this.gridWidth + gridX;
     return this.slopeData[index] != null;
+  }
+
+  setDecorationsLayer(layer: { getDecorationHeightAt(x: number, y: number): number }): void {
+    this.decorationsLayer = layer;
+    this.rebuildPickingHeightData();
+  }
+
+  private rebuildPickingHeightData(): void {
+    if (!this.decorationsLayer || this.heightData.length === 0) {
+      this.pickingHeightData = this.heightData;
+      return;
+    }
+    const layer = this.decorationsLayer;
+    this.pickingHeightData = this.heightData.map((h, i) => {
+      const x = i % this.gridWidth;
+      const y = Math.floor(i / this.gridWidth);
+      return h - layer.getDecorationHeightAt(x, y);
+    });
+  }
+
+  getTileGroundHeight(gridX: number, gridY: number): number {
+    const patchedHeight = this.getTileHeight(gridX, gridY);
+    const decorationHeight = this.decorationsLayer?.getDecorationHeightAt(gridX, gridY) ?? 0;
+    return patchedHeight - decorationHeight;
   }
 
   private drawFallbackGrid(): void {
@@ -198,29 +234,34 @@ export class IsometricGrid {
     const color =
       kind === HighlightKind.Move ? TILE_HIGHLIGHT_MOVE_COLOR : TILE_HIGHLIGHT_ATTACK_COLOR;
     for (const position of positions) {
-      const graphics = this.getOrCreateTileGraphics(
+      const groundHeight = this.getTileGroundHeight(position.x, position.y);
+      const graphics = this.getOrCreateTileGraphicsAtHeight(
         this.highlightLayer,
         position.x,
         position.y,
+        groundHeight,
         DEPTH_HIGHLIGHT_ISO_OFFSET,
       );
-      this.drawTile(graphics, position.x, position.y, color, color, 0.4);
+      this.drawTileAtHeight(graphics, position.x, position.y, groundHeight, color, color, 0.4);
     }
   }
 
   showEnemyRange(positions: Array<{ x: number; y: number }>): void {
     this.clearLayer(this.enemyRangeLayer);
     for (const position of positions) {
-      const graphics = this.getOrCreateTileGraphics(
+      const groundHeight = this.getTileGroundHeight(position.x, position.y);
+      const graphics = this.getOrCreateTileGraphicsAtHeight(
         this.enemyRangeLayer,
         position.x,
         position.y,
+        groundHeight,
         DEPTH_ENEMY_RANGE_ISO_OFFSET,
       );
-      this.drawTile(
+      this.drawTileAtHeight(
         graphics,
         position.x,
         position.y,
+        groundHeight,
         TILE_HIGHLIGHT_ENEMY_RANGE_COLOR,
         TILE_HIGHLIGHT_ENEMY_RANGE_COLOR,
         TILE_HIGHLIGHT_ENEMY_RANGE_ALPHA,
@@ -234,13 +275,15 @@ export class IsometricGrid {
 
   showPreview(positions: Array<{ x: number; y: number }>, color: number, alpha: number): void {
     for (const position of positions) {
-      const graphics = this.getOrCreateTileGraphics(
+      const groundHeight = this.getTileGroundHeight(position.x, position.y);
+      const graphics = this.getOrCreateTileGraphicsAtHeight(
         this.previewLayer,
         position.x,
         position.y,
+        groundHeight,
         DEPTH_PREVIEW_ISO_OFFSET,
       );
-      this.drawTile(graphics, position.x, position.y, color, color, alpha);
+      this.drawTileAtHeight(graphics, position.x, position.y, groundHeight, color, color, alpha);
     }
   }
 
@@ -254,12 +297,13 @@ export class IsometricGrid {
     const halfH = TILE_HEIGHT / 2;
 
     for (const position of positions) {
-      const height = this.getTileHeight(position.x, position.y);
+      const height = this.getTileGroundHeight(position.x, position.y);
       const center = this.gridToScreen(position.x, position.y, height);
-      const graphics = this.getOrCreateTileGraphics(
+      const graphics = this.getOrCreateTileGraphicsAtHeight(
         this.highlightLayer,
         position.x,
         position.y,
+        height,
         DEPTH_HIGHLIGHT_ISO_OFFSET,
       );
       graphics.lineStyle(
@@ -305,20 +349,23 @@ export class IsometricGrid {
     alpha: number,
   ): void {
     for (const position of positions) {
-      const graphics = this.getOrCreateTileGraphics(
+      const groundHeight = this.getTileGroundHeight(position.x, position.y);
+      const graphics = this.getOrCreateTileGraphicsAtHeight(
         this.highlightLayer,
         position.x,
         position.y,
+        groundHeight,
         DEPTH_HIGHLIGHT_ISO_OFFSET,
       );
-      this.drawTile(graphics, position.x, position.y, color, color, alpha);
+      this.drawTileAtHeight(graphics, position.x, position.y, groundHeight, color, color, alpha);
     }
   }
 
-  private getOrCreateTileGraphics(
+  private getOrCreateTileGraphicsAtHeight(
     layer: Map<string, Phaser.GameObjects.Graphics>,
     gridX: number,
     gridY: number,
+    height: number,
     isoOffset: number,
   ): Phaser.GameObjects.Graphics {
     const key = `${gridX},${gridY}`;
@@ -327,7 +374,6 @@ export class IsometricGrid {
       return existing;
     }
     const graphics = this.scene.add.graphics();
-    const height = this.getTileHeight(gridX, gridY);
     graphics.setDepth((gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + height + isoOffset);
     layer.set(key, graphics);
     return graphics;
@@ -344,7 +390,15 @@ export class IsometricGrid {
     this.cursorGraphics.clear();
     const height = this.getTileHeight(gridX, gridY);
     const center = this.gridToScreen(gridX, gridY, height);
-    this.cursorGraphics.setDepth(DEPTH_CURSOR_GROUND);
+    const decorationHeight = this.decorationsLayer?.getDecorationHeightAt(gridX, gridY) ?? 0;
+    const cursorDepth =
+      decorationHeight > 0
+        ? DEPTH_POKEMON_BASE +
+          (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION +
+          height +
+          DEPTH_CURSOR_OVER_DECORATION_OFFSET
+        : DEPTH_CURSOR_GROUND;
+    this.cursorGraphics.setDepth(cursorDepth);
     this.drawDiamondStroke(this.cursorGraphics, center, CURSOR_COLOR, CURSOR_STROKE_WIDTH);
 
     if (this.cursorTween) {
@@ -395,7 +449,26 @@ export class IsometricGrid {
     strokeColor: number,
     alpha: number = 1,
   ): void {
-    const height = this.getTileHeight(gridX, gridY);
+    this.drawTileAtHeight(
+      graphics,
+      gridX,
+      gridY,
+      this.getTileHeight(gridX, gridY),
+      fillColor,
+      strokeColor,
+      alpha,
+    );
+  }
+
+  private drawTileAtHeight(
+    graphics: Phaser.GameObjects.Graphics,
+    gridX: number,
+    gridY: number,
+    height: number,
+    fillColor: number,
+    strokeColor: number,
+    alpha: number = 1,
+  ): void {
     const center = this.gridToScreen(gridX, gridY, height);
     const halfW = TILE_WIDTH / 2;
     const halfH = TILE_HEIGHT / 2;

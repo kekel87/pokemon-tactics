@@ -29,6 +29,8 @@ export interface SandboxConfig {
   dummyPosition?: Position2D;
   /** Optional Tiled map URL (relative to public/), e.g. "assets/maps/sandbox-flat.tmj" */
   mapUrl?: string;
+  /** Toggle the red debug diamonds over decoration footprints. */
+  debugDecorationsFootprint?: boolean;
 }
 
 export const DEFAULT_SANDBOX_CONFIG: SandboxConfig = {

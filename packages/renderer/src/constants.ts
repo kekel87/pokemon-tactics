@@ -1,3 +1,5 @@
+import type { DecorationKind } from "@pokemon-tactic/data";
+
 export const TILE_WIDTH = 32;
 export const TILE_HEIGHT = 16;
 export const TILE_ELEVATION_STEP = 16;
@@ -364,6 +366,39 @@ export const TILE_SPRITE_SCALE = 1;
 export const TILE_ORIGIN_Y = 1.0;
 
 export const TILESET_KEY = "terrain";
+
+export const DECORATIONS_TEXTURE_KEYS = {
+  tall_grass: "decoration-tall-grass",
+  rock_1: "decoration-rock-1x1x1",
+  rock_2x2: "decoration-rock-2x2x2",
+  tree: "decoration-tree-1x1x3",
+} as const satisfies Record<DecorationKind, string>;
+
+export const DECORATIONS_ASSET_PATHS = {
+  tall_grass: "assets/tilesets/decorations/tall-grass.png",
+  rock_1: "assets/tilesets/decorations/rock-1x1x1.png",
+  rock_2x2: "assets/tilesets/decorations/rock-2x2x2.png",
+  tree: "assets/tilesets/decorations/tree-1x1x3.png",
+} as const satisfies Record<DecorationKind, string>;
+
+// Depth offsets added on top of the iso (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION ladder.
+// Shared with Pokemon sprites (DEPTH_POKEMON_BASE) so obstacles and Pokemon inter-sort naturally.
+// Obstacle: slightly above the Pokemon depth on the same tile (no Pokemon ever stops on one).
+// Tall grass: above the Pokemon on the same tile so the body is masked, head still shows.
+export const DEPTH_DECORATIONS_OBSTACLE_OFFSET = 0.3;
+export const DEPTH_DECORATIONS_TALL_GRASS_OFFSET = 0.6;
+// Cursor over a decorated tile must stay visible above the obstacle sprite.
+export const DEPTH_CURSOR_OVER_DECORATION_OFFSET = 0.8;
+
+// Alpha applied to decoration sprites while a Pokemon's move range is
+// previewed, so the player can read reachable tiles hidden behind obstacles.
+export const DECORATIONS_PREVIEW_MODE_ALPHA = 0.45;
+
+export const DECORATIONS_DEBUG_FOOTPRINT_COLOR = 0xff0000;
+export const DECORATIONS_DEBUG_FOOTPRINT_ALPHA = 0.45;
+export const DECORATIONS_DEBUG_FOOTPRINT_STROKE_ALPHA = 0.9;
+export const DECORATIONS_DEBUG_FOOTPRINT_STROKE_WIDTH = 1;
+export const DECORATIONS_DEBUG_FOOTPRINT_DEPTH_OFFSET = 0.25;
 
 export const TERRAIN_TINT_ALPHA = 0.25;
 export const TERRAIN_TINT: Record<string, number> = {

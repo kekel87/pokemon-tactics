@@ -375,6 +375,52 @@ Layering (bottom → top) : tile (+0) → highlight move/attack (+0.1) → enemy
 
 ---
 
+## Décorations et obstacles (plan 064)
+
+### Depth sorting des décorations
+
+Les sprites de décorations s'intègrent dans le même espace de depth que les Pokemon (base `DEPTH_POKEMON_BASE = 520`), triés par Y grille. Des offsets sont ajoutés sur la depth iso `(gridX + gridY) * DEPTH_TILE_MAX_ELEVATION` :
+
+| Constante | Valeur | Description |
+|-----------|--------|-------------|
+| `DEPTH_DECORATIONS_OBSTACLE_OFFSET` | `0.3` | Obstacles (rochers, arbre) — légèrement au-dessus du Pokemon sur la même tile (un Pokemon ne peut pas s'arrêter dessus) |
+| `DEPTH_DECORATIONS_TALL_GRASS_OFFSET` | `0.6` | Herbe haute — au-dessus du Pokemon pour masquer le corps, tête visible |
+| `DEPTH_CURSOR_OVER_DECORATION_OFFSET` | `0.8` | Curseur sur une tile décorée — reste visible au-dessus du sprite obstacle |
+
+**Picking** : sur une tile avec obstacle, la hauteur de picking (`pickingHeightData`) reste au sol (hauteur de la tile de base), tandis que `heightData` utilise `getTileGroundHeight`. Le curseur est affiché au sommet de l'obstacle (`anchorY + heightUnits`). Ce split évite que le picking iso sélectionne la hauteur de l'obstacle au lieu de la tile sol cliquable.
+
+### Preview mode des décorations
+
+| Constante | Valeur | Description |
+|-----------|--------|-------------|
+| `DECORATIONS_PREVIEW_MODE_ALPHA` | `0.45` | Alpha appliqué aux sprites de décoration pendant l'aperçu de déplacement ET le ciblage d'attaque — le joueur peut lire les tiles accessibles derrière les obstacles |
+
+### Debug footprint
+
+Le debug du footprint est un toggle runtime (section "Debug map" du SandboxPanel), propagé via `SandboxConfig.debugDecorationsFootprint` → `DecorationsLayer(..., { debugFootprintEnabled })`. Aucune constante buildtime — pas de `false` à re-basculer pour les releases.
+
+| Constante | Valeur | Description |
+|-----------|--------|-------------|
+| `DECORATIONS_DEBUG_FOOTPRINT_COLOR` | `0xff0000` | Carré rouge translucide sur chaque cellule du footprint |
+| `DECORATIONS_DEBUG_FOOTPRINT_ALPHA` | `0.45` | Alpha du remplissage |
+| `DECORATIONS_DEBUG_FOOTPRINT_STROKE_ALPHA` | `0.9` | Alpha du contour |
+| `DECORATIONS_DEBUG_FOOTPRINT_STROKE_WIDTH` | `1` | Épaisseur du contour |
+| `DECORATIONS_DEBUG_FOOTPRINT_DEPTH_OFFSET` | `0.25` | Depth offset — entre la tile et le Pokemon |
+
+### Layering décorations (bottom → top)
+
+```
+tile (+0) → highlight (+0.1) → enemy range (+0.15) → preview AoE (+0.2) →
+debug footprint (+0.25) → cursor outline (500 global) →
+Pokemon (520+, triés par Y) →
+décoration obstacle (+0.3 sur Y grille) →
+décoration herbe haute (+0.6 sur Y grille) →
+curseur sur décoration (+0.8 sur Y grille) →
+hover cursor (960) → UI (1000+)
+```
+
+---
+
 ## Turn Timeline CT (plan 059)
 
 La TurnTimeline en mode Charge Time affiche une séquence prédictive scrollable. Constantes dans `packages/renderer/src/constants.ts` :

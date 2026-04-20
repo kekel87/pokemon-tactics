@@ -1,5 +1,5 @@
 import type { MapDefinition } from "@pokemon-tactic/core";
-import type { ElevationLayer, TiledTileset } from "@pokemon-tactic/data";
+import type { DecorationObject, ElevationLayer, TiledTileset } from "@pokemon-tactic/data";
 import { parseTiledMap, type TiledMap, validateTiledMap } from "@pokemon-tactic/data";
 
 export interface LoadedTiledMap {
@@ -8,6 +8,7 @@ export interface LoadedTiledMap {
   readonly heightData: readonly number[];
   readonly slopeData: readonly (string | null)[];
   readonly terrainData: readonly string[];
+  readonly decorationObjects: readonly DecorationObject[];
   readonly firstgid: number;
 }
 
@@ -73,6 +74,7 @@ export async function loadTiledMap(url: string): Promise<LoadedTiledMap> {
     heightData,
     terrainData,
     slopeData: parseResult.slopeData,
+    decorationObjects: parseResult.decorationObjects,
     firstgid,
   };
 }

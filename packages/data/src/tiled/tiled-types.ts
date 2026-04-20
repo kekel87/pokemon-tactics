@@ -28,6 +28,7 @@ export interface TiledObject {
   readonly height: number;
   readonly name: string;
   readonly type: string;
+  readonly gid?: number;
   readonly properties?: readonly TiledProperty[];
 }
 

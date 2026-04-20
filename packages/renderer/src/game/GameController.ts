@@ -74,6 +74,7 @@ import {
   TIMELINE_PREDICTION_SLOTS,
 } from "../constants";
 import { HighlightKind } from "../enums/highlight-kind";
+import type { DecorationsLayer } from "../grid/DecorationsLayer";
 import type { IsometricGrid } from "../grid/IsometricGrid";
 import { getLanguage, t } from "../i18n";
 import { getSettings } from "../settings";
@@ -159,6 +160,7 @@ export class GameController {
   private currentPreviewTiles: Position[] = [];
   private previewFlashTweens: Phaser.Tweens.Tween[] = [];
   private hoveredEnemyRangePokemonId: string | null = null;
+  private decorationsLayer: DecorationsLayer | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -192,6 +194,10 @@ export class GameController {
 
   setSetup(setup: BattleSetupResult): void {
     this.setup = setup;
+  }
+
+  setDecorationsLayer(layer: DecorationsLayer): void {
+    this.decorationsLayer = layer;
   }
 
   get engine(): BattleEngine {
@@ -558,6 +564,7 @@ export class GameController {
   private enterActionMenu(): void {
     this.inputState = { phase: "action_menu" };
     this.isometricGrid.clearHighlights();
+    this.decorationsLayer?.setPreviewMode(false);
 
     const canMove = this.legalActions.some((action) => action.kind === ActionKind.Move);
     const canUndoMove = this.legalActions.some((action) => action.kind === ActionKind.UndoMove);
@@ -592,11 +599,13 @@ export class GameController {
     if (movePositions.length > 0) {
       this.isometricGrid.highlightTiles(movePositions, HighlightKind.Move);
     }
+    this.decorationsLayer?.setPreviewMode(true);
   }
 
   private enterAttackSubmenu(): void {
     this.inputState = { phase: "attack_submenu" };
     this.isometricGrid.clearHighlights();
+    this.decorationsLayer?.setPreviewMode(false);
 
     const activePokemon = this.getActivePokemon();
     if (!activePokemon) {
@@ -636,6 +645,7 @@ export class GameController {
     this.inputState = { phase: "select_attack_target", moveId };
     this.isometricGrid.clearHighlights();
     this.clearPreviewState();
+    this.decorationsLayer?.setPreviewMode(true);
 
     const moveDefinition = this.moveDefinitions.get(moveId);
     if (!moveDefinition) {
@@ -803,6 +813,7 @@ export class GameController {
     this.inputState = { phase: "animating" };
     this.clearPreviewState();
     this.isometricGrid.clearHighlights();
+    this.decorationsLayer?.setPreviewMode(false);
     this.actionMenu.hide();
 
     const result = this.engine.submitAction(playerId, action);
@@ -837,13 +848,18 @@ export class GameController {
     const definitionId = pokemon?.definitionId ?? pokemonId.replace(/^p\d+-/, "");
     const definition = this.pokemonDefinitions.get(definitionId);
     const isFlying = definition?.types.includes(PokemonType.Flying) ?? false;
+    const isGhost = definition?.types.includes(PokemonType.Ghost) ?? false;
 
     let previous = sprite.gridPosition;
+    let previousHeight = this.isometricGrid.getTileHeight(previous.x, previous.y);
     for (const step of path) {
       const direction = directionFromTo(previous, step);
       sprite.setDirection(direction);
-      const prevHeight = this.isometricGrid.getTileHeight(previous.x, previous.y);
-      const stepHeight = this.isometricGrid.getTileHeight(step.x, step.y);
+      const prevHeight = previousHeight;
+      const rawStepHeight = this.isometricGrid.getTileHeight(step.x, step.y);
+      const stepTerrain = this.isometricGrid.getTileTerrain(step.x, step.y);
+      const stepHeight =
+        isGhost && stepTerrain === TerrainType.Obstacle ? prevHeight : rawStepHeight;
       const heightDiff = Math.abs(stepHeight - prevHeight);
       const isRamp =
         this.isometricGrid.isSlopeAt(previous.x, previous.y) ||
@@ -863,6 +879,7 @@ export class GameController {
 
       await sprite.animateMoveTo(step.x, step.y, stepHeight, stepDuration, { isJump });
       previous = step;
+      previousHeight = stepHeight;
     }
     sprite.playAnimation("Idle");
   }

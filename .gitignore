@@ -51,3 +51,4 @@ screenshots/
 
 .playwright-mcp/
 wiki/
+.mcp.json
