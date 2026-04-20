@@ -10,6 +10,8 @@ import {
 import { loadData } from "@pokemon-tactic/data";
 import {
   ARROW_PAN_SPEED,
+  DECORATIONS_ASSET_PATHS,
+  DECORATIONS_TEXTURE_KEYS,
   HOVER_CURSOR_OPTIONS,
   STATUS_ICON_KEYS,
   TILESET_KEY,
@@ -23,6 +25,7 @@ import { type BattleSetupConfig, createBattleFromPlacements } from "../game/Batt
 import { DummyAiController } from "../game/DummyAiController";
 import { GameController, type PlacementConfig } from "../game/GameController";
 import { createSandboxBattle } from "../game/SandboxSetup";
+import { DecorationsLayer } from "../grid/DecorationsLayer";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import { loadTiledMap } from "../maps/load-tiled-map";
 import { getSettings, updateSettings } from "../settings";
@@ -88,12 +91,24 @@ export class BattleScene extends Phaser.Scene {
       frameWidth: 32,
       frameHeight: 32,
     });
+
+    for (const kind of Object.keys(DECORATIONS_TEXTURE_KEYS) as Array<
+      keyof typeof DECORATIONS_TEXTURE_KEYS
+    >) {
+      this.load.image(DECORATIONS_TEXTURE_KEYS[kind], DECORATIONS_ASSET_PATHS[kind]);
+    }
   }
 
   create(): void {
     const tilesetTexture = this.textures.get(TILESET_KEY);
     if (tilesetTexture) {
       tilesetTexture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
+
+    for (const textureKey of Object.values(DECORATIONS_TEXTURE_KEYS)) {
+      if (this.textures.exists(textureKey)) {
+        this.textures.get(textureKey).setFilter(Phaser.Textures.FilterMode.NEAREST);
+      }
     }
 
     for (const definitionId of this.pokemonDefinitions.keys()) {
@@ -161,6 +176,12 @@ export class BattleScene extends Phaser.Scene {
       loaded.terrainData,
     );
 
+    const decorationsLayer = new DecorationsLayer(this, isometricGrid, {
+      debugFootprintEnabled: config.debugDecorationsFootprint === true,
+    });
+    decorationsLayer.render(loaded.map, loaded.decorationObjects);
+    isometricGrid.setDecorationsLayer(decorationsLayer);
+
     const sprites = new Map<string, PokemonSprite>();
     const directionPicker = new DirectionPicker(this);
 
@@ -177,6 +198,7 @@ export class BattleScene extends Phaser.Scene {
       uiScene.battleLogPanel,
     );
     this.controller = controller;
+    controller.setDecorationsLayer(decorationsLayer);
     this.setupInput(controller, isometricGrid, uiScene);
 
     const battleSetup = createSandboxBattle(config, tiledMap);
@@ -261,6 +283,10 @@ export class BattleScene extends Phaser.Scene {
       loaded.terrainData,
     );
 
+    const decorationsLayer = new DecorationsLayer(this, isometricGrid);
+    decorationsLayer.render(loaded.map, loaded.decorationObjects);
+    isometricGrid.setDecorationsLayer(decorationsLayer);
+
     const sprites = new Map<string, PokemonSprite>();
     const directionPicker = new DirectionPicker(this);
 
@@ -277,6 +303,7 @@ export class BattleScene extends Phaser.Scene {
       uiScene.battleLogPanel,
     );
     this.controller = controller;
+    controller.setDecorationsLayer(decorationsLayer);
     this.setupInput(controller, isometricGrid, uiScene);
 
     const allAi = teams.every((team) => team.controller === PlayerController.Ai);

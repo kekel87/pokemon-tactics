@@ -49,7 +49,7 @@ import { createStatusTickHandler } from "./handlers/status-tick-handler";
 import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
 import { getHeightModifier } from "./height-modifier";
-import { canTraverse } from "./height-traversal";
+import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import { getEffectiveInitiative } from "./initiative-calculator";
 import { isMajorStatus } from "./stat-modifier";
 import { TurnManager } from "./TurnManager";
@@ -891,6 +891,7 @@ export class BattleEngine {
     const posKey = (p: Position): string => `${p.x},${p.y}`;
     const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
     const isFlying = pokemonTypes.includes(PokemonType.Flying);
+    const isGhost = pokemonTypes.includes(PokemonType.Ghost);
 
     const queue: BfsNode[] = [{ position: pokemon.position, path: [], distance: 0 }];
     visited.set(posKey(pokemon.position), 0);
@@ -903,7 +904,8 @@ export class BattleEngine {
 
       if (current.distance > 0) {
         const occupant = this.grid.getOccupant(current.position);
-        if (occupant === null) {
+        const currentTile = this.grid.getTile(current.position);
+        if (occupant === null && currentTile && canStopOn(currentTile.terrain, isFlying)) {
           result.push({ position: current.position, path: current.path });
         }
       }
@@ -912,12 +914,19 @@ export class BattleEngine {
       for (const neighbor of neighbors) {
         const key = posKey(neighbor.position);
 
-        if (!isTerrainPassable(neighbor.terrain)) {
-          continue;
-        }
-
-        const currentHeight = this.grid.getTile(current.position)?.height ?? 0;
-        if (!canTraverse(currentHeight, neighbor.height, isFlying)) {
+        const currentTileForNeighbor = this.grid.getTile(current.position);
+        const currentHeight = currentTileForNeighbor?.height ?? 0;
+        const currentTerrain = currentTileForNeighbor?.terrain ?? TerrainType.Normal;
+        if (
+          !canTraverse({
+            fromHeight: currentHeight,
+            toHeight: neighbor.height,
+            fromTerrain: currentTerrain,
+            toTerrain: neighbor.terrain,
+            isFlying,
+            isGhost,
+          })
+        ) {
           continue;
         }
 
@@ -1061,6 +1070,7 @@ export class BattleEngine {
 
     const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
     const isFlying = pokemonTypes.includes(PokemonType.Flying);
+    const isGhost = pokemonTypes.includes(PokemonType.Ghost);
 
     let totalCost = 0;
     let currentPosition = pokemon.position;
@@ -1074,14 +1084,33 @@ export class BattleEngine {
       }
 
       const tile = this.grid.getTile(step);
-      if (!tile || !isTerrainPassable(tile.terrain)) {
+      if (!tile) {
+        return ActionError.ImpassableTile;
+      }
+
+      if (!canEnterTerrain(tile.terrain, isFlying, isGhost)) {
         return ActionError.ImpassableTile;
       }
 
       const currentTile = this.grid.getTile(currentPosition);
       const fromHeight = currentTile?.height ?? 0;
-      if (!canTraverse(fromHeight, tile.height, isFlying)) {
+      const fromTerrain = currentTile?.terrain ?? TerrainType.Normal;
+      if (
+        !canTraverse({
+          fromHeight,
+          toHeight: tile.height,
+          fromTerrain,
+          toTerrain: tile.terrain,
+          isFlying,
+          isGhost,
+        })
+      ) {
         return ActionError.JumpTooHigh;
+      }
+
+      const isLastStep = step === path[path.length - 1];
+      if (isLastStep && !canStopOn(tile.terrain, isFlying)) {
+        return ActionError.ImpassableTile;
       }
 
       totalCost += 1 + getMovementPenalty(tile.terrain, pokemonTypes);
@@ -1089,7 +1118,6 @@ export class BattleEngine {
         return ActionError.PathTooLong;
       }
 
-      const isLastStep = step === path[path.length - 1];
       const occupant = tile.occupantId;
       if (occupant !== null && occupant !== pokemon.id) {
         const occupantPokemon = this.state.pokemon.get(occupant);

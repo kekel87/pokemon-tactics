@@ -4,20 +4,18 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## À faire maintenant
 
-- **Spike plan 063 Babylon.js — TERMINÉ** (2026-04-18, verdict décision #269 = Babylon retenu). Voir `docs/plans/063-babylon-spike.md` section Verdict pour tableau mesures.
-- **Plan 064 (rewrite renderer Babylon) — à rédiger** quand l'humain veut attaquer. Pistes à explorer en début de plan :
-  - **Shim type Inspector** pour permettre `skipLibCheck: false` sur notre code : créer `src/types/babylonjs-inspector.d.ts` avec `declare module "@babylonjs/inspector" { export {}; }` — testera si les 4 erreurs hors-JSX (ThinEngine, Scene.reflectionProbes) disparaissent ou si elles viennent vraiment de Scene côté core.
-  - **Audit bundle** avec `rollup-plugin-visualizer` : vérifier si `depthRendererSceneComponent`, lumières, et autres side-effect imports peuvent être retirés (cible 180-220 kB gzip initial vs 273 kB actuel).
-  - **Flat-shaded matériau custom** (style FFTA sans lumière directionnelle) → possible via `ShaderMaterial` minimal, gain bundle + cohérence visuelle pixel-art.
-  - **Grille tactique** : `GridMaterial` validé mais attention `gridOffset = (0.5, 0, 0.5)` pour aligner aux arêtes (shader en local-space, pas world). Cf décision #269.
-- **Phase 3 Terrain & Tactics — items restants à livrer AVANT pivot** (voir `docs/roadmap.md`) :
-  - Interactions type/terrain + modification terrain par attaques
-  - Système de décorations Tiled (tileset `decorations.tsj` — marquages arène + herbes hautes + décos)
-  - Éditeur de terrain / génération IA
-  - Maps variées + roster d'attaques terrain/dénivelé
-  - **Occlusion X-ray plan 060 restant SKIPPÉE** (sera résolue nativement par le renderer 2D-HD)
-- **Finaliser commit spike 062** sur branche `plan-062-3d-renderer-spike` (déjà fait côté code, reste à push).
-- **Drop stash `plan-060-full-wip`** (obsolète post-pivot).
+- **Finir Phase 3 rapidement AVANT pivot Babylon** (décision humain 2026-04-18). Ordre :
+  1. ~~Plan 064 — Décorations / obstacles Tiled~~ — **done 2026-04-19** (gate CI vert, marquages arène différés en bonus).
+  2. Interactions type/terrain + modification terrain par attaques.
+  3. Roster d'attaques tirant parti du terrain/dénivelé (si pertinent).
+  4. **Occlusion X-ray plan 060 SKIPPÉE** (résolue nativement par Babylon).
+- **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches documentées dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles découpé, peinture manuelle Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour une arène propre rapide, ou reporter post-Babylon pour utiliser `DecalMap`. Ne pas oublier.
+- **Éditeur de terrain / génération IA + choix/ajout de maps** → déplacés en **nouvelle Phase 3.6 « Maps & Éditeur »** (post-Babylon). Voir `docs/roadmap.md`.
+- **Rewrite renderer Babylon (Phase 3.5)** → après Phase 3. Plan numéroté au moment de sa rédaction. Pistes à garder sous le coude quand on l'ouvre :
+  - Shim type Inspector (`src/types/babylonjs-inspector.d.ts` → `declare module "@babylonjs/inspector" { export {}; }`) pour tester `skipLibCheck: false`.
+  - Audit bundle `rollup-plugin-visualizer`, cible 180-220 kB gzip vs 273 kB spike.
+  - Flat-shaded `ShaderMaterial` custom (cohérence pixel-art FFTA).
+  - `GridMaterial.gridOffset = (0.5, 0, 0.5)` (shader local-space).
 
 ## Reporté / à refaire
 
@@ -26,7 +24,10 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## Fait récemment
 
-- 2026-04-18 — **Spike plan 063 Babylon démarré**. Package `packages/renderer-babylon-spike/` créé sur main (`@babylonjs/core` ^8 + `@babylonjs/gui` ^8 + `@babylonjs/inspector` devDep, Vite 8). Code port Three.js → Babylon livré (main, directional-billboard, terrain-extruder, load-tiled-map). Build OK (81 kB gzip main chunk). **Point 8 TS strict mesuré** : 7 erreurs **toutes dans `@babylonjs/inspector`** (React/JSX/Fluent UI), 0 dans Babylon core ni notre code. Validation visuelle bloquée par sandbox Claude qui tue les dev servers background — à reprendre en dev server owned par l'humain.
+- 2026-04-19 — **Plan 064 livré (done)**. Décorations Tiled : Ghost traverse tous les obstacles (core `canTraverse`/`canStopOn` étendus), parser objectgroup `decorations` + patch auto `MapDefinition`, tileset Collection of Images `decorations.tsj`, 4 sprites PixelLab (tall-grass, rock 1×1×1, rock 2×2×2, tree 1×1×3), renderer `DecorationsLayer` (auto-placement herbe haute + sprites explicites), map `decorations-demo.tmj`, 6 scénarios Gherkin (`scenarios/ghost-traversal.scenario.test.ts`), subpath export `@pokemon-tactic/core/testing`. Gate CI : 1067 unit / 107 integration / 6 scenario. Marquages arène + pokeball = bonus différé.
+- 2026-04-19 — **Validation humaine des règles gameplay plan 064** : Ghost traverse tous les obstacles (y compris arbre), `|heightDiff| >= 2` bloque la mêlée dans les deux sens. Plan 064 débloqué pour passer `ready`.
+- 2026-04-18 — **Verdict spike 063 = Babylon.js retenu** (décision #269, commit `13eeebb`). Renderer 2D-HD sera Babylon. Rewrite reporté **après Phase 3** (décision humain : finir Phase 3 rapidement d'abord).
+- 2026-04-18 — **Spike plan 063 Babylon livré**. Package `packages/renderer-babylon-spike/` créé sur main (`@babylonjs/core` ^8 + `@babylonjs/gui` ^8 + `@babylonjs/inspector` devDep, Vite 8). Code port Three.js → Babylon livré (main, directional-billboard, terrain-extruder, load-tiled-map). Build OK (81 kB gzip main chunk). **Point 8 TS strict mesuré** : 7 erreurs **toutes dans `@babylonjs/inspector`** (React/JSX/Fluent UI), 0 dans Babylon core ni notre code. Validation visuelle bloquée par sandbox Claude qui tue les dev servers background — à reprendre en dev server owned par l'humain.
 - 2026-04-18 — **Débat stack Three.js vs Babylon.js rouvert**. `best-practices` a mis en évidence des avantages Babylon mal pesés (Inspector v2 officiel maintenu 2026, GUI Editor WYSIWYG, `@babylonjs/gui` intégré, MCP communautaire, Node Particle Editor) + un point contre-intuitif (Babylon a plus de conflits `lib.dom` avec TS 6.0 que Three.js). Décisions #267 et #268 : plan 063 spike Babylon en parallèle, pivot = nouvelle phase après Phase 3.
 - 2026-04-18 — **Spike plan 062 validé 4/4**. Pixel-art, directional billboard sous rotation caméra, extrusion Tiled, occlusion depth buffer natif — tous OK. Ancre sprite calibrée (`footAnchor: 0.34` Bulbasaur Idle). Bundle 131 kB gzip. Statut plan 062 : done, stack pas encore finale.
 - 2026-04-17 — **Spike point 3 : Tiled extrusion** livré. `loadTiledMap` + `extrudeTerrain` chargent `sandbox-los.tmj` (10×7, 3 niveaux d'élévation) et extrudent chaque cell en `BoxGeometry` colorée par terrain. Bundle 131 kB gzip.
@@ -43,11 +44,7 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## Contexte pour la prochaine session
 
-Tout est en ordre. Démarrer direct le spike (pas de worktree, l'humain gère le branching si besoin) :
-
-1. `pnpm init` dans `packages/renderer-3d-spike/`, installer `three` + `vite` + TS strict.
-2. Étudier `chongdashu/threejs-tactics-game` (GitHub) pour la ref billboard directionnel avant d'écrire le point 2.
-3. Attaquer point 1 (pixel-art).
+**Plan 064 terminé (2026-04-20).** Prochain plan : interactions type/terrain + modification terrain par attaques. Ouvrir avec `docs/roadmap.md` Phase 3 pour l'item suivant.
 
 **Référence archive plan 061** : branche `plan-061-occlusion-before-3d-pivot`. À consulter si on veut comprendre ce qui a été tenté en 2D iso avant de pivoter.
 

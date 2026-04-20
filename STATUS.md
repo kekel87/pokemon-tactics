@@ -1,18 +1,18 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-17 (décision pivot 2D-HD — renderer iso 2D abandonné au profit de sprites billboards sur géométrie 3D)
+> Dernière mise à jour : 2026-04-20 (plan 064 done — décorations et obstacles Tiled livrés)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
 ---
 
-## 🚨 Décision majeure en cours — Pivot 2D-HD (2026-04-17)
+## Décision majeure actée — Pivot 2D-HD (Babylon.js, Phase 3.5)
 
-Le renderer Phaser 4 iso 2D atteint ses limites (occlusion derrière obstacles, rotation caméra impossible). Décision prise de pivoter vers un rendu **2D-HD à la Triangle Strategy / FFTIC / Tactics Ogre PSP** : sprites pixel-art en billboards sur géométrie 3D extrudée depuis Tiled.
+Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (sprites billboards sur géométrie 3D extrudée, style Tactics Ogre PSP / Triangle Strategy). Spikes 062 (Three.js) et 063 (Babylon.js) terminés — **Babylon.js retenu** (décision #269).
 
-**Prochain pas** : spike d'1-2 jours (plan 062) pour valider 4 points critiques (pixel-art fidèle, sprites directionnels sous rotation, extrusion Tiled, occlusion naturelle via depth buffer). Voir `docs/next.md` pour le contexte complet de reprise.
+**Prochaine grande étape** : finir Phase 3 (interactions type/terrain restantes) puis démarrer Phase 3.5 rewrite Babylon. Voir `docs/next.md` pour l'ordre exact.
 
-**Ce qui reste intact** : core, data, IA, LoS 3D, CT, statuts, Tiled comme format de carte. Seul le rendu (`packages/renderer/`) sera réécrit si le spike valide.
+**Ce qui reste intact** : core, data, IA, LoS 3D, CT, statuts, Tiled comme format de carte. Seul le rendu (`packages/renderer/`) sera réécrit.
 
 **Plan 061 silhouette** : archivé sur branche `plan-061-occlusion-before-3d-pivot` (commit `2426edf`). Obsolète — la 3D résout l'occlusion nativement.
 
@@ -818,10 +818,21 @@ Le renderer Phaser 4 iso 2D atteint ses limites (occlusion derrière obstacles, 
   - Espacement réduit 10 → 6 pour loger l'entrée tail sous la zone scrollable.
   - **Constants** : ajout `TIMELINE_BG_COLOR`, `TIMELINE_HIGHLIGHT_BORDER_COLOR`, `TIMELINE_PREDICTION_SLOTS`, `TIMELINE_VISIBLE_SLOTS`. Suppression `TIMELINE_GHOST_ALPHA`, `TIMELINE_PREVIEW_SEPARATOR_COLOR`, `TIMELINE_PREVIEW_SEPARATOR_COLOR_CSS`.
   - **i18n** : clé `timeline.afterAction` supprimée (plus utilisée).
-- **Plan 060 en cours** — Silhouette d'occlusion iso + curseur FFTA :
+- **Plan 060 partiel** — Silhouette d'occlusion iso + curseur FFTA :
   - **Section A — Curseur FFTA (livré + commité)** : `HOVER_CURSOR_OPTIONS` (4 variantes key/label/scale) dans `constants.ts`. Nouveau `HoverCursor` (`ui/HoverCursor.ts`) prend un `HoverCursorOption` et expose `setOption`. Helper `resolveHoverCursorOption(storedKey)`. Choix persisté via `GameSettings.hoverCursorKey` (store `pt-settings`). Nouvelle ligne "Curseur / Cursor" dans `SettingsScene` avec preview sprite. Touche **H** dans `BattleScene` pour cycler. Clé i18n `settings.cursor` (FR/EN). Assets dans `packages/renderer/public/assets/ui/cursor/`.
   - **Bugfix depth curseur au sol (livré + commité)** : `DEPTH_CURSOR_ISO_OFFSET` supprimé, remplacé par `DEPTH_CURSOR_GROUND = 500`. Le stroke du diamant débordait sur les tiles voisines iso-sortées (depth ~100–150) ; depth globale 500 passe au-dessus de tous les overlays et sous les Pokemon (520).
-  - **Section B — Silhouette d'occlusion (stashée)** : `occlusion.ts` + `occlusion.test.ts` + modifs `PokemonSprite`/`GameController` dans **`git stash@{0}` "plan-060-full-wip"**. ⚠️ Reprise non triviale : le stash a été pris **avant** le commit de la section A, il contient donc des versions obsolètes de `constants.ts`, `BattleScene.ts`, `IsometricGrid.ts`, `design-system.md`, `roadmap.md`, et du plan 060 lui-même. Procédure détaillée (checkout sélectif recommandé, pas de `stash pop` global) dans **`docs/plans/060-occlusion-silhouette-cursor-ffta.md` → "Reprendre le stash dans une session clean"**.
+  - **Section B — Silhouette d'occlusion SKIPPÉE** : résolue nativement par le renderer Babylon (depth buffer 3D).
+
+- **Plan 064 terminé (2026-04-20)** — Décorations et obstacles Tiled :
+  - **Core** : `canTraverse` et `canStopOn` étendus pour Ghost (`isGhost: boolean`, `toTerrain: TerrainType`). Ghost traverse tout obstacle sans pouvoir s'y arrêter. Priorité Vol > Ghost si double type. Décision #270.
+  - **Data** : parser objectgroup `decorations` dans `parse-tiled-map.ts` — extrait les `DecorationObject[]` (gid, kind, anchorX/Y, footprint, heightUnits). Patch automatique du `MapDefinition` (tiles → `terrain=obstacle` + `height=N`). `parse-decorations-layer.ts` dédié. `DecorationKind` const-object pattern dans `@pokemon-tactic/data` (source unique, consommé par le renderer via import). Tests parser : map avec rocher 2×2 → 4 tiles patchées, rocher hors grille → erreur, map sans layer → OK.
+  - **Tileset** : `decorations.tsj` (Collection of Images Tiled, tailles variables). 4 sprites PixelLab retouchés manuellement : `tall-grass.png` (32×32), `rock-1x1x1.png` (32×32), `rock-2x2x2.png` (64×64), `tree-1x1x3.png` (48×80). Propriétés custom par tile dans le `.tsj` (`kind`, `footprint_width/height`, `height_units`). **Note** : propriétés `anchor_offset_x/y` retirées — les marges ont été corrigées directement dans les PNG.
+  - **Renderer** : `DecorationsLayer.ts` — auto-placement herbe haute sur toutes tiles `TallGrass`, sprites explicites pour obstacles. Depth : `DEPTH_DECORATIONS_OBSTACLE_OFFSET = 0.3`, `DEPTH_DECORATIONS_TALL_GRASS_OFFSET = 0.6`. Highlights dessinés au pied (`getTileGroundHeight`). Preview mode alpha 0.45 pendant déplacement ET ciblage attaque. Picking à la base + curseur au sommet via split `heightData`/`pickingHeightData` et `DEPTH_CURSOR_OVER_DECORATION_OFFSET = 0.8`.
+  - **Debug** : toggle runtime "Footprint" dans SandboxPanel (section Debug map) → `SandboxConfig.debugDecorationsFootprint` → `DecorationsLayer(..., { debugFootprintEnabled })`. Constante `DECORATIONS_DEBUG_FOOTPRINT` supprimée.
+  - **Fix** : Ghost ne saute plus en sortant d'un obstacle — tracker `previousHeight` dans `GameController.animateAlongPath`.
+  - **Map démo** : `decorations-demo.tmj` (10×10, tous les types de déco).
+  - **Scénarios** : 6 scénarios Gherkin dans `scenarios/ghost-traversal.scenario.test.ts`. Gate CI : 1067 unit / 107 integration / 6 scenario, tout vert.
+  - **Bonus différé** : marquages arène + pokéball centrale — 3 approches documentées dans `docs/plans/064-decorations-obstacles.md`. À traiter post-Babylon ou via Aseprite manuel.
 
 - **Prochains candidats** :
   - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)

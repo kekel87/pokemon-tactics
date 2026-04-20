@@ -17,6 +17,7 @@
     "baseUrl": ".",
     "paths": {
       "@pokemon-tactic/core": ["packages/core/src/index.ts"],
+      "@pokemon-tactic/core/testing": ["packages/core/src/testing/scenario-api.ts"],
       "@pokemon-tactic/data": ["packages/data/src/index.ts"],
       "@pokemon-tactic/renderer": ["packages/renderer/src/main.ts"]
     }

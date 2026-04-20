@@ -4,6 +4,8 @@ import {
   ARROW_PAN_SPEED,
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
+  DECORATIONS_ASSET_PATHS,
+  DECORATIONS_TEXTURE_KEYS,
   getTeamColorByPlayerId,
   TILE_HEIGHT,
   TILE_WIDTH,
@@ -12,6 +14,7 @@ import {
   ZOOM_LEVELS,
   ZOOM_TWEEN_DURATION_MS,
 } from "../constants";
+import { DecorationsLayer } from "../grid/DecorationsLayer";
 import { IsometricGrid } from "../grid/IsometricGrid";
 import type { LoadedTiledMap } from "../maps/load-tiled-map";
 import { loadTiledMap } from "../maps/load-tiled-map";
@@ -39,12 +42,24 @@ export class MapPreviewScene extends Phaser.Scene {
       frameWidth: 32,
       frameHeight: 32,
     });
+
+    for (const kind of Object.keys(DECORATIONS_TEXTURE_KEYS) as Array<
+      keyof typeof DECORATIONS_TEXTURE_KEYS
+    >) {
+      this.load.image(DECORATIONS_TEXTURE_KEYS[kind], DECORATIONS_ASSET_PATHS[kind]);
+    }
   }
 
   create(): void {
     const tilesetTexture = this.textures.get(TILESET_KEY);
     if (tilesetTexture) {
       tilesetTexture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
+
+    for (const textureKey of Object.values(DECORATIONS_TEXTURE_KEYS)) {
+      if (this.textures.exists(textureKey)) {
+        this.textures.get(textureKey).setFilter(Phaser.Textures.FilterMode.NEAREST);
+      }
     }
 
     this.cameras.main.setZoom(ZOOM_LEVELS[this.zoomIndex]);
@@ -90,6 +105,9 @@ export class MapPreviewScene extends Phaser.Scene {
       slopeData,
       terrainData,
     );
+
+    const decorationsLayer = new DecorationsLayer(this, this.isometricGrid);
+    decorationsLayer.render(map, loaded.decorationObjects);
 
     this.renderCurrentFormat();
     this.setupCameraBounds(map.width, map.height);

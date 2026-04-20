@@ -289,8 +289,10 @@ Retourné par `loadTiledMap(url)` dans `packages/renderer/src/maps/load-tiled-ma
 interface LoadedTiledMap {
   map: MapDefinition;                         // Pour le core
   elevationLayers: ElevationLayer[];          // Layers bruts pour le rendu
-  heightData: number[];                       // heightmap flat (pour cursor/picking)
+  heightData: number[];                       // heightmap flat — hauteurs visuelles (incluant les obstacles)
+  pickingHeightData: number[];                // heightmap flat — hauteurs de picking (sol uniquement, hors obstacles)
   slopeData: (string | null)[];               // Direction de pente par cellule (null = flat)
+  decorationObjects: readonly DecorationObject[];  // Objets du layer decorations (plan 064)
   firstgid: number;
 }
 ```
@@ -299,6 +301,15 @@ interface LoadedTiledMap {
 avec `slopeData[index] !== null` est considérée comme une rampe et est
 traversée en animation `Walk` même si le `heightDiff` est non nul (voir
 "Animation des déplacements en hauteur" plus haut).
+
+### Split heightData / pickingHeightData (plan 064)
+
+Depuis le plan 064, `LoadedTiledMap` expose deux heightmaps distinctes :
+
+- **`heightData`** : hauteur visuelle de chaque cellule, incluant les obstacles posés par le parser `decorations`. Utilisé par `IsometricGrid` pour placer le curseur et les overlays **au sommet de la tile visible** (y compris au sommet d'un obstacle).
+- **`pickingHeightData`** : hauteur de la tile sol uniquement (`getTileGroundHeight`), sans les obstacles. Utilisé par `screenToGridWithHeight` pour le picking souris — la sélection iso reste ancrée sur la surface du sol, pas sur le top d'un rocher.
+
+**Pourquoi ce split ?** Sans lui, cliquer sur le flanc d'un obstacle (ex : rocher 1×1×1 de `height=1`) provoquerait un picking à `height=1` → le hit-test iso ne trouve aucune tile à cette hauteur et renvoie `null`. Avec `pickingHeightData = 0` (sol sous l'obstacle), le picking réussit et sélectionne la tile correcte. Le curseur visuel est ensuite dessiné à `heightData` (sommet de l'obstacle) via `DEPTH_CURSOR_OVER_DECORATION_OFFSET = 0.8`.
 
 ---
 
@@ -324,16 +335,18 @@ traversée en animation `Walk` même si le `heightDiff` est non nul (voir
 
 | Fichier | Rôle |
 |---------|------|
-| `packages/data/src/tiled/parse-tiled-map.ts` | Parser principal, multi-layers + heightmap |
+| `packages/data/src/tiled/parse-tiled-map.ts` | Parser principal, multi-layers + heightmap + extraction decorationObjects |
+| `packages/data/src/tiled/parse-decorations-layer.ts` | Parse du layer objectgroup `decorations` → `DecorationObject[]` + patch `MapDefinition` (plan 064) |
 | `packages/data/src/tiled/parse-terrain-layer.ts` | Parse du layer base |
 | `packages/data/src/tiled/tileset-resolver.ts` | Résolution GID → propriétés (terrain, height) |
 | `packages/data/src/tiled/tiled-types.ts` | Types TiledMap, TiledLayer, TiledTileset |
-| `packages/renderer/src/maps/load-tiled-map.ts` | Chargement runtime + construction LoadedTiledMap |
-| `packages/renderer/src/grid/IsometricGrid.ts` | gridToScreen, screenToGrid, dessin des tiles/overlays/curseur, `isSlopeAt` |
+| `packages/renderer/src/maps/load-tiled-map.ts` | Chargement runtime + construction LoadedTiledMap (incl. split heightData/pickingHeightData) |
+| `packages/renderer/src/grid/IsometricGrid.ts` | gridToScreen, screenToGrid, dessin des tiles/overlays/curseur, `isSlopeAt`, `getTileGroundHeight` |
+| `packages/renderer/src/grid/DecorationsLayer.ts` | Auto-placement herbe haute + sprites obstacles, preview mode alpha, debug footprint (plan 064) |
 | `packages/renderer/src/sprites/PokemonSprite.ts` | `animateMoveTo` (single diagonal tween + easing Y asymétrique), `playAnimation` |
 | `packages/renderer/src/game/movement-animation.ts` | `MovementStep`, `isJumpStep`, `selectMovementAnimation`, `selectMovementDuration`, `FLYING_JUMP_ANIMATION_CANDIDATES` |
-| `packages/renderer/src/game/GameController.ts` | `animateAlongPath` — construit le `MovementStep` et orchestre anim + trajectoire |
-| `packages/core/src/battle/height-traversal.ts` | `canTraverse` — `MAX_CLIMB = 0.5`, `MAX_DESCENT = 1.0`, volants exemptés |
+| `packages/renderer/src/game/GameController.ts` | `animateAlongPath` — construit le `MovementStep`, tracker `previousHeight` (fix Ghost jump) |
+| `packages/core/src/battle/height-traversal.ts` | `canTraverse` (+ `isGhost` plan 064), `canStopOn`, `MAX_CLIMB = 0.5`, `MAX_DESCENT = 1.0` |
 | `packages/renderer/src/scenes/MapPreviewScene.ts` | Scène de preview des cartes Tiled (dev:map) |
 | `packages/renderer/src/scenes/MapPreviewUIScene.ts` | UI overlay (info cursor) |
 

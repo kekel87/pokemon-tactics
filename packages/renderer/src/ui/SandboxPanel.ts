@@ -89,6 +89,7 @@ const SANDBOX_MAPS: { value: string; label: string }[] = [
   { value: "assets/maps/sandbox-fall-3.tmj", label: "Sandbox Fall 3 (66%)" },
   { value: "assets/maps/sandbox-fall-4.tmj", label: "Sandbox Fall 4 (lethal)" },
   { value: "assets/maps/sandbox-los.tmj", label: "Sandbox LoS (2 pillars)" },
+  { value: "assets/maps/decorations-demo.tmj", label: "Decorations Demo (rocks/tree/grass)" },
 ];
 
 const PANEL_STYLE = `
@@ -118,6 +119,7 @@ export class SandboxPanel {
   private playerDirectionSelect!: HTMLSelectElement;
   private dummyXInput!: HTMLInputElement;
   private dummyYInput!: HTMLInputElement;
+  private debugDecorationsFootprintCheckbox!: HTMLInputElement;
 
   private pokemonSelect!: HTMLSelectElement;
   private moveSelects: HTMLSelectElement[] = [];
@@ -264,6 +266,19 @@ export class SandboxPanel {
     dummyDir.select.addEventListener("change", () => this.emit());
     body.appendChild(dummyDir.row);
     this.dummyDirectionSelect = dummyDir.select;
+
+    const debugLabel = document.createElement("div");
+    debugLabel.textContent = "Debug";
+    debugLabel.style.cssText = "color: #8cf; font-weight: bold; margin-top: 4px;";
+    body.appendChild(debugLabel);
+
+    const debugFootprint = this.createCheckbox(
+      "Footprint",
+      config.debugDecorationsFootprint ?? false,
+    );
+    debugFootprint.input.addEventListener("change", () => this.emit());
+    body.appendChild(debugFootprint.row);
+    this.debugDecorationsFootprintCheckbox = debugFootprint.input;
 
     return panel;
   }
@@ -646,6 +661,7 @@ export class SandboxPanel {
       dummyStatStages,
       dummyPosition,
       mapUrl,
+      debugDecorationsFootprint: this.debugDecorationsFootprintCheckbox.checked,
     };
   }
 
@@ -871,6 +887,27 @@ export class SandboxPanel {
     input.placeholder = placeholder;
     input.style.cssText =
       "width: 50px; background: #222; color: #ddd; border: 1px solid #444; border-radius: 3px; padding: 1px 3px; font-size: 10px; font-family: monospace; text-align: center;";
+    row.appendChild(input);
+    return { row, input };
+  }
+
+  private createCheckbox(
+    label: string,
+    checked: boolean,
+  ): { row: HTMLDivElement; input: HTMLInputElement } {
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display: flex; justify-content: space-between; align-items: center; margin: 1px 0;";
+
+    const labelElement = document.createElement("span");
+    labelElement.textContent = label;
+    labelElement.style.cssText = "flex-shrink: 0; width: 55px;";
+    row.appendChild(labelElement);
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = checked;
+    input.style.cssText = "margin: 0;";
     row.appendChild(input);
     return { row, input };
   }

@@ -1,3 +1,5 @@
+export type { DecorationObject } from "./parse-decorations-layer";
+export { DecorationKind } from "./parse-decorations-layer";
 export type { ElevationLayer, ParseFailure, ParseResult, ParseSuccess } from "./parse-tiled-map";
 export { parseTiledMap } from "./parse-tiled-map";
 export type { TiledMap, TiledTileset } from "./tiled-types";

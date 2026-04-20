@@ -124,10 +124,10 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Toggle CT/Round-Robin dans `TeamSelectScene` (bouton "Tours fixes" / "Charge Time", i18n FR/EN) — plan 054
 - [x] **[UX CT]** Timeline CT prédictive scrollable style FFX — 24 slots simulés par le core, slot 0 ancré (acteur courant), 11 slots scrollables à la molette, bordure teal-vert sur le Pokemon actif au `confirm_attack`, entrée tail "..." si hors des 24 slots. Remplace les ghost entries du plan 058. — plan 058 + plan 059
 - [x] Undo déplacement (annulable tant qu'on n'a pas attaqué) — plan 053 (action `undo_move`, bouton "Annuler déplacement" en menu, annulation brûlure magma, 8 tests)
-- [ ] **[EN COURS — plan 060]** Curseur FFTA + silhouette d'occlusion — variantes de curseur (settings + touche H), depth bugfix curseur (500 global), silhouette X-ray pour Pokemon masqués par tiles plus hautes (occlusion stashée, à terminer)
-- [ ] Système de décorations Tiled — tileset `decorations.tsj` dédié (pipeline séparée du terrain) : marquages d'arène (lignes ~12 tiles + pokeball ~6-8 tiles) + décos environnement (herbe haute overlay, arbres, rochers PMD-based)
-- [ ] Éditeur de terrain / génération IA
-- [ ] Maps variées + roster d'attaques terrain/dénivelé
+- [x] Curseur FFTA — variantes de curseur (settings + touche H), depth bugfix curseur (500 global) — plan 060 Section A
+- [ ] ~~Silhouette X-ray occlusion~~ — **SKIPPÉE** (résolue nativement par le renderer Babylon Phase 3.5, décision humain 2026-04-18)
+- [x] Système de décorations Tiled — tileset `decorations.tsj` dédié, Ghost traverse obstacles, parser objectgroup, sprites PixelLab (herbe haute, rochers, arbre), `DecorationsLayer` renderer — plan 064. Bonus différé : marquages arène + pokéball centrale.
+- [ ] **[PROCHAIN]** Interactions type/terrain + modification terrain par attaques
 
 ### Décisions prises — Format de carte (plan 045)
 
@@ -154,7 +154,7 @@ Prérequis :
 
 ### À décider en début de phase
 
-- [ ] **Découpage en plans** : 1 plan monolithique (064 tout-en-un) vs 4 plans incrémentaux (core / UI / features Phase 3 / perfs). Voir pistes dans `docs/next.md`.
+- [ ] **Découpage en plans** : 1 plan monolithique vs 4 plans incrémentaux (core / UI / features Phase 3 / perfs). Numéros attribués au moment de la rédaction. Voir pistes dans `docs/next.md`.
 - [ ] **Tiled : on garde ou pas ?** Dépend du workflow de maps côté renderer 3D. Option A : garder Tiled, `loadTiledMap` transforme en `MapDefinition` (pipeline déjà validée plan 062/063). Option B : format de map custom orienté 3D (volumes, rotations, props). Option C : éditeur custom in-game (item Phase 3 « Éditeur de terrain / génération IA »).
 - [ ] **UI stack** : `@babylonjs/gui` natif (WYSIWYG GUI Editor, intégré au moteur) vs HTML/CSS overlay au-dessus du canvas (CSS standard, accessible). Mesurer les deux sur un panel représentatif avant de trancher.
 
@@ -172,6 +172,19 @@ Prérequis :
 - Chaque plan sort un renderer fonctionnel sur `main` (pas de branche longue).
 - Parité feature = critère de succès avant de retirer le renderer Phaser.
 - Activation de `.claude/rules/renderer-babylon.md` dès le premier plan.
+
+---
+
+## Phase 3.6 — Maps & Éditeur
+
+> But : donner du contenu varié à jouer. Choix de maps, roster de maps équilibré, et outils pour en créer (à la main ou via IA).
+
+Déplacé de Phase 3 le 2026-04-18 : pertinent après la migration Babylon, car l'éditeur et les props terrain seront repensés pour le renderer 3D.
+
+- [ ] Choix de maps depuis l'UI (écran de sélection, preview, metadata)
+- [ ] Roster de maps variées (dénivelés, types de terrain, décors, tailles)
+- [ ] Éditeur de terrain in-game (placement tiles, hauteurs, spawns, décorations)
+- [ ] Génération de maps par IA (prompt → `MapDefinition` valide, review humain avant intégration)
 
 ---
 
@@ -243,3 +256,4 @@ Prérequis :
 - [ ] Mode histoire / aventure
 - [ ] Conditions de victoire alternatives
 - [ ] Draft/ban phase
+- [ ] **Modèles 3D pour les Pokemon (à voir)** — remplacer les sprites billboards 2D par des modèles 3D (glTF/GLB) style Pokemon Champions / Stadium. À évaluer après stabilisation du renderer Babylon : coût pipeline (sourcing/licence modèles), impact bundle, cohérence stylistique avec terrain pixel-art, animations (rig existant vs recréer).

@@ -4,6 +4,7 @@ export type { GameData } from "./load-data";
 export { loadData } from "./load-data";
 export { pocArena, sandboxArena } from "./maps/index";
 export type {
+  DecorationObject,
   ElevationLayer,
   ParseResult,
   TiledGidDecoded,
@@ -11,5 +12,5 @@ export type {
   TiledMapValidation,
   TiledTileset,
 } from "./tiled/index";
-export { decodeTiledGid, parseTiledMap, validateTiledMap } from "./tiled/index";
+export { DecorationKind, decodeTiledGid, parseTiledMap, validateTiledMap } from "./tiled/index";
 export { typeChart } from "./type-chart";

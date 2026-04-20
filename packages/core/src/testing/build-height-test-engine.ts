@@ -45,6 +45,7 @@ export function buildHeightTestEngine(
   const pokemonTypesMap = new Map<string, PokemonType[]>([
     ["bulbasaur", [PokemonType.Grass, PokemonType.Poison]],
     ["pidgey", [PokemonType.Normal, PokemonType.Flying]],
+    ["gengar", [PokemonType.Ghost, PokemonType.Poison]],
   ]);
 
   const engine = new BattleEngine(state, moveRegistry, typeChart, pokemonTypesMap);
