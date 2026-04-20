@@ -127,7 +127,8 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Curseur FFTA — variantes de curseur (settings + touche H), depth bugfix curseur (500 global) — plan 060 Section A
 - [ ] ~~Silhouette X-ray occlusion~~ — **SKIPPÉE** (résolue nativement par le renderer Babylon Phase 3.5, décision humain 2026-04-18)
 - [x] Système de décorations Tiled — tileset `decorations.tsj` dédié, Ghost traverse obstacles, parser objectgroup, sprites PixelLab (herbe haute, rochers, arbre), `DecorationsLayer` renderer — plan 064. Bonus différé : marquages arène + pokéball centrale.
-- [ ] **[PROCHAIN]** Interactions type/terrain + modification terrain par attaques
+- [ ] **[PROCHAIN] Occlusion dynamique par sprite — fade adaptatif des tiles/décos qui masquent un Pokemon.** Plan 065 (à rédiger). Détection par frame/event : pour chaque déco et tile surélevée, si un Pokemon est "derrière" (screen-space overlap + depth sort devant), abaisser son alpha (≈0.4). Per-sprite, pas de toggle global — réutilise `setAlpha()`. Pattern "fading foliage" (StarCraft/Diablo/Transistor). Couvre aussi les tiles `height > 0` qui masquaient les Pokemon (bug iso 2D historique, tenté en silhouette plan 061 et abandonné). **Si le résultat est convaincant, Phase 3.5 rewrite Babylon peut être repoussée** — la rotation caméra reste un want futur mais plus un prérequis bloquant.
+- [ ] Interactions type/terrain + modification terrain par attaques
 
 ### Décisions prises — Format de carte (plan 045)
 
@@ -140,51 +141,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 
 ---
 
-## Phase 3.5 — Migration renderer 2D-HD (Babylon.js)
-
-> But : remplacer le renderer Phaser 4 isométrique par un renderer Babylon.js 2D-HD (sprites billboards sur terrain 3D extrudé, style Tactics Ogre PSP / Triangle Strategy / FFTIC).
-
-### Contexte
-
-Pivot décidé le 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) validé 4/4. Spike plan 063 (Babylon.js) terminé le 2026-04-18 → **Babylon.js retenu** (décision #269).
-
-Prérequis :
-- Phase 3 livrée (items terrain + décorations + maps + éditeur) — les features Phase 3 restantes sont implémentées en Phaser puis reportées sur Babylon.
-- Occlusion plan 060 silhouette **skippée** (résolue nativement par le depth buffer 3D).
-
-### À décider en début de phase
-
-- [ ] **Découpage en plans** : 1 plan monolithique vs 4 plans incrémentaux (core / UI / features Phase 3 / perfs). Numéros attribués au moment de la rédaction. Voir pistes dans `docs/next.md`.
-- [ ] **Tiled : on garde ou pas ?** Dépend du workflow de maps côté renderer 3D. Option A : garder Tiled, `loadTiledMap` transforme en `MapDefinition` (pipeline déjà validée plan 062/063). Option B : format de map custom orienté 3D (volumes, rotations, props). Option C : éditeur custom in-game (item Phase 3 « Éditeur de terrain / génération IA »).
-- [ ] **UI stack** : `@babylonjs/gui` natif (WYSIWYG GUI Editor, intégré au moteur) vs HTML/CSS overlay au-dessus du canvas (CSS standard, accessible). Mesurer les deux sur un panel représentatif avant de trancher.
-
-### Items techniques (à ventiler dans les plans une fois le découpage décidé)
-
-- [ ] Port du core renderer : terrain extrudé, sprites directional billboards (atlas PMDCollab), caméra orthographique dimetric, curseur FFTA, occlusion native.
-- [ ] Parité feature avec le renderer Phaser actuel sur une map de référence (combat complet jouable).
-- [ ] Port UI : timeline CT, ActionMenu, sous-menu attaque, InfoPanel, battle log, écrans menu/sélection/victoire.
-- [ ] Features Phase 3 repensées pour la 3D : décorations (herbes hautes billboards), rotation caméra 4 angles (remonte de Phase 8).
-- [ ] Bundle & perfs : audit `rollup-plugin-visualizer`, flat-shaded `ShaderMaterial` custom (cohérence pixel-art FFTA), Inspector shim type (tester `skipLibCheck: false`), cible 180-220 kB gzip initial (vs 273 kB spike).
-- [ ] Régler les gotchas spike (voir `docs/references/babylon-gotchas.md`) : `GridMaterial.gridOffset`, UV `invertY`, `renderingGroupId`, `alphaCutOff`/`transparencyMode`, deep imports.
-
-### Gates
-
-- Chaque plan sort un renderer fonctionnel sur `main` (pas de branche longue).
-- Parité feature = critère de succès avant de retirer le renderer Phaser.
-- Activation de `.claude/rules/renderer-babylon.md` dès le premier plan.
-
----
-
-## Phase 3.6 — Maps & Éditeur
-
-> But : donner du contenu varié à jouer. Choix de maps, roster de maps équilibré, et outils pour en créer (à la main ou via IA).
-
-Déplacé de Phase 3 le 2026-04-18 : pertinent après la migration Babylon, car l'éditeur et les props terrain seront repensés pour le renderer 3D.
-
-- [ ] Choix de maps depuis l'UI (écran de sélection, preview, metadata)
-- [ ] Roster de maps variées (dénivelés, types de terrain, décors, tailles)
-- [ ] Éditeur de terrain in-game (placement tiles, hauteurs, spawns, décorations)
-- [ ] Génération de maps par IA (prompt → `MapDefinition` valide, review humain avant intégration)
+> **Note ordre — Phase 3.5 et Phase 3.6 déplacées après Phase 7** (2026-04-20). Les noms restent `3.5` et `3.6` pour préserver les refs historiques (décisions, plans), mais leur **position dans la séquence de livraison** est désormais post-Phase 7. Raison : si le plan 065 (fade per-sprite) résout l'occlusion en iso 2D, le rewrite Babylon n'est plus urgent et on priorise gameplay/core/multi avant. Voir les sections Phase 3.5 et 3.6 plus bas (après Phase 7).
 
 ---
 
@@ -233,6 +190,59 @@ Déplacé de Phase 3 le 2026-04-18 : pertinent après la migration Babylon, car 
 - [ ] Speed controls (skip/accélérer animations)
 - [ ] Tutoriel interactif
 - [ ] Support manette
+
+---
+
+## Phase 3.5 — Migration renderer 2D-HD (Babylon.js)
+
+> **Position actuelle : après Phase 7** (reordonnée 2026-04-20). Numéro conservé pour les refs historiques.
+>
+> But : remplacer le renderer Phaser 4 isométrique par un renderer Babylon.js 2D-HD (sprites billboards sur terrain 3D extrudé, style Tactics Ogre PSP / Triangle Strategy / FFTIC).
+
+### Contexte
+
+Pivot décidé le 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) validé 4/4. Spike plan 063 (Babylon.js) terminé le 2026-04-18 → **Babylon.js retenu** (décision #269). Report post-Phase 7 décidé le 2026-04-20 : le plan 065 (fade per-sprite) résout l'occlusion en iso 2D, la rotation caméra reste un want non-bloquant → on priorise gameplay/équilibrage/multi avant le rewrite renderer.
+
+Prérequis :
+- Phases 3 → 7 livrées. Les features renderer sont implémentées en Phaser puis reportées sur Babylon.
+- Plan 065 (occlusion fade) livré — sinon ce rewrite redevient prioritaire.
+- Occlusion plan 060 silhouette **skippée** (résolue par plan 065 en iso, ou nativement par le depth buffer 3D).
+
+### À décider en début de phase
+
+- [ ] **Découpage en plans** : 1 plan monolithique vs 4 plans incrémentaux (core / UI / features Phase 3 / perfs). Numéros attribués au moment de la rédaction. Voir pistes dans `docs/next.md`.
+- [ ] **Tiled : on garde ou pas ?** Dépend du workflow de maps côté renderer 3D. Option A : garder Tiled, `loadTiledMap` transforme en `MapDefinition` (pipeline déjà validée plan 062/063). Option B : format de map custom orienté 3D (volumes, rotations, props). Option C : éditeur custom in-game (item Phase 3.6 « Éditeur de terrain / génération IA »).
+- [ ] **UI stack** : `@babylonjs/gui` natif (WYSIWYG GUI Editor, intégré au moteur) vs HTML/CSS overlay au-dessus du canvas (CSS standard, accessible). Mesurer les deux sur un panel représentatif avant de trancher.
+
+### Items techniques (à ventiler dans les plans une fois le découpage décidé)
+
+- [ ] Port du core renderer : terrain extrudé, sprites directional billboards (atlas PMDCollab), caméra orthographique dimetric, curseur FFTA, occlusion native.
+- [ ] Parité feature avec le renderer Phaser actuel sur une map de référence (combat complet jouable).
+- [ ] Port UI : timeline CT, ActionMenu, sous-menu attaque, InfoPanel, battle log, écrans menu/sélection/victoire.
+- [ ] Features Phase 3 repensées pour la 3D : décorations (herbes hautes billboards), rotation caméra 4 angles (remonte de Phase 8).
+- [ ] Bundle & perfs : audit `rollup-plugin-visualizer`, flat-shaded `ShaderMaterial` custom (cohérence pixel-art FFTA), Inspector shim type (tester `skipLibCheck: false`), cible 180-220 kB gzip initial (vs 273 kB spike).
+- [ ] Régler les gotchas spike (voir `docs/references/babylon-gotchas.md`) : `GridMaterial.gridOffset`, UV `invertY`, `renderingGroupId`, `alphaCutOff`/`transparencyMode`, deep imports.
+
+### Gates
+
+- Chaque plan sort un renderer fonctionnel sur `main` (pas de branche longue).
+- Parité feature = critère de succès avant de retirer le renderer Phaser.
+- Activation de `.claude/rules/renderer-babylon.md` dès le premier plan.
+
+---
+
+## Phase 3.6 — Maps & Éditeur
+
+> **Position actuelle : après Phase 3.5** (reordonnée 2026-04-20, donc post-Phase 7). Numéro conservé pour les refs historiques.
+>
+> But : donner du contenu varié à jouer. Choix de maps, roster de maps équilibré, et outils pour en créer (à la main ou via IA).
+
+Tie à Babylon : l'éditeur et les props terrain seront repensés pour le renderer 3D, donc cette phase suit la 3.5.
+
+- [ ] Choix de maps depuis l'UI (écran de sélection, preview, metadata)
+- [ ] Roster de maps variées (dénivelés, types de terrain, décors, tailles)
+- [ ] Éditeur de terrain in-game (placement tiles, hauteurs, spawns, décorations)
+- [ ] Génération de maps par IA (prompt → `MapDefinition` valide, review humain avant intégration)
 
 ---
 

@@ -213,6 +213,11 @@ export const DEPTH_ENEMY_RANGE_ISO_OFFSET = 0.15;
 export const DEPTH_PREVIEW_ISO_OFFSET = 0.2;
 export const DEPTH_CURSOR_GROUND = 500;
 export const DEPTH_POKEMON_BASE = 520;
+// Raised tiles (elevation > 0) share the Pokemon depth ladder so a Pokemon
+// physically behind a pillar is correctly occluded by it. Flat tiles stay at
+// DEPTH_GRID_TILES to avoid polluting the Pokemon range with hundreds of
+// background cells. Plan 065 partie A.
+export const DEPTH_RAISED_TILE_BASE = DEPTH_POKEMON_BASE;
 export const ATTACK_DEPTH_ENVELOPE_RADIUS = 3;
 export const DEPTH_HOVER_CURSOR = 960;
 export const DEPTH_UI_BASE = 1000;

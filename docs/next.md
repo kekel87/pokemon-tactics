@@ -4,14 +4,22 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## À faire maintenant
 
-- **Finir Phase 3 rapidement AVANT pivot Babylon** (décision humain 2026-04-18). Ordre :
+- **[PROCHAIN] Plan 065 — Fix depth unifié + picking modifier + occlusion dynamique** (2026-04-20, **draft prêt** : `docs/plans/065-occlusion-fade-depth-fix.md`). Plan en **3 parties** :
+  - **Partie A — Fix depth** : bug structurel identifié — tiles surélevées à depth `[0, 205]`, Pokemon à `[520+]`, donc Pokemon TOUJOURS devant les piliers en tri. Cause du bug "Pokemon par-dessus pilier" sur `sandbox-los.tmj`. Fix : unifier les tiles `elevation > 0` dans `DEPTH_POKEMON_BASE`. Les décos le font déjà.
+  - **Partie B — Picking Alt-click** : résout l'ambiguïté de sélection quand le diamond d'un haut de pilier recouvre pixel-parfait celui d'une tile derrière. `Alt` maintenu → préfère la 2e meilleure candidate (depth inférieure). Liseré jaune en feedback. Indépendante de A et C.
+  - **Partie C — Fade dynamique** : pattern fading foliage per-sprite, détection par frame via footprint grid + screen bbox overlap. Scope : décos + tiles `height > 0`. Alpha 0.4, epsilon 0.5 contre scintillement, pipeline reset→test→apply.
+  - Sans Partie A, Partie C inutile (fade jamais déclenché). Partie A livre déjà une amélioration visible seule. Partie B = QoL autonome.
+  - `best-practices` + `plan-reviewer` consultés, 6 edits appliqués (Partie B ajoutée après review humaine). **Prêt pour exécution dès validation humaine.**
+  - **Condition de report Phase 3.5** : si ce plan réussit visuellement → Babylon repoussé après Phase 7 (décision #272).
+- **Finir Phase 3 AVANT pivot Babylon** (décision humain 2026-04-18). Ordre actualisé 2026-04-20 :
   1. ~~Plan 064 — Décorations / obstacles Tiled~~ — **done 2026-04-19** (gate CI vert, marquages arène différés en bonus).
-  2. Interactions type/terrain + modification terrain par attaques.
-  3. Roster d'attaques tirant parti du terrain/dénivelé (si pertinent).
-  4. **Occlusion X-ray plan 060 SKIPPÉE** (résolue nativement par Babylon).
+  2. **Plan 065 — Occlusion dynamique fade** (nouveau, à rédiger).
+  3. Interactions type/terrain + modification terrain par attaques.
+  4. Roster d'attaques tirant parti du terrain/dénivelé (si pertinent).
+  5. **Occlusion X-ray plan 060 SKIPPÉE** (résolue soit par plan 065 en iso, soit nativement par Babylon).
 - **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches documentées dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles découpé, peinture manuelle Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour une arène propre rapide, ou reporter post-Babylon pour utiliser `DecalMap`. Ne pas oublier.
-- **Éditeur de terrain / génération IA + choix/ajout de maps** → déplacés en **nouvelle Phase 3.6 « Maps & Éditeur »** (post-Babylon). Voir `docs/roadmap.md`.
-- **Rewrite renderer Babylon (Phase 3.5)** → après Phase 3. Plan numéroté au moment de sa rédaction. Pistes à garder sous le coude quand on l'ouvre :
+- **Éditeur de terrain / génération IA + choix/ajout de maps** → **Phase 3.6 « Maps & Éditeur », positionnée après Phase 7** (liée à Babylon). Voir `docs/roadmap.md`.
+- **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20, conditionnée par la réussite du plan 065). Plan numéroté au moment de sa rédaction. Pistes à garder sous le coude quand on l'ouvre :
   - Shim type Inspector (`src/types/babylonjs-inspector.d.ts` → `declare module "@babylonjs/inspector" { export {}; }`) pour tester `skipLibCheck: false`.
   - Audit bundle `rollup-plugin-visualizer`, cible 180-220 kB gzip vs 273 kB spike.
   - Flat-shaded `ShaderMaterial` custom (cohérence pixel-art FFTA).

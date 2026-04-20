@@ -447,12 +447,14 @@ Le layering garantit que les highlights passent **derrière** les sprites Pokemo
 
 | Layer | Depth | Usage |
 |-------|-------|-------|
-| Tiles | `(x+y)*5 + h` (≈ 0–125) | Tiles de terrain (iso-sort, `DEPTH_GRID_TILES = 0`) |
-| Highlight move/attack | `(x+y)*5 + h + 0.1` | Bleu déplacement, rouge attaque, outline de portée (iso-sort per-tile) |
-| Enemy range | `(x+y)*5 + h + 0.15` | Overlay portée ennemie orange (iso-sort per-tile) |
-| Preview AoE | `(x+y)*5 + h + 0.2` | Preview d'attaque (iso-sort per-tile) |
-| Curseur outline | 500 (global) | Outline jaune pulsant de la tile survolée (`DEPTH_CURSOR_GROUND`, au-dessus de tous les overlays iso) |
-| Pokemon (base) | 520 | Sprites Pokemon (triés par Y, `DEPTH_POKEMON_BASE`) |
+| Tiles plates (`elevation=0`) | `(x+y)*5 + h` (≈ 0–125) | Tiles de terrain au sol (iso-sort, `DEPTH_GRID_TILES = 0`) |
+| Highlight move/attack (au sol) | `(x+y)*5 + h + 0.1` | Bleu déplacement, rouge attaque, outline de portée — tile au sol |
+| Enemy range (au sol) | `(x+y)*5 + h + 0.15` | Overlay portée ennemie orange — tile au sol |
+| Preview AoE (au sol) | `(x+y)*5 + h + 0.2` | Preview d'attaque — tile au sol |
+| Curseur outline (au sol) | 500 (global) | Outline jaune pulsant au sol (`DEPTH_CURSOR_GROUND`) |
+| **Tiles surélevées (`elevation>0`)** | **`520 + (x+y)*5 + h`** | `DEPTH_RAISED_TILE_BASE` (alias de `DEPTH_POKEMON_BASE`). Plan 065 — partage la même échelle depth que les Pokemon pour qu'un Pokemon derrière un pilier soit correctement occulté. |
+| Highlight / preview / curseur sur tile surélevée | `520 + (x+y)*5 + h + offset` | Suit la tile (même base) + offsets habituels (`.1`, `.15`, `.2`) ou `+0.8` pour le curseur. |
+| Pokemon (base) | `520 + (x+y)*5 + h + 0.5` | Sprites Pokemon (triés par Y, `DEPTH_POKEMON_BASE`) |
 | Hover cursor (pokéball) | 960 | Pokéball + flèche au-dessus de la tile survolée |
 | UI base | 1000 | Éléments UI de fond |
 | Timeline | 1050 | Turn order |
@@ -465,6 +467,8 @@ Le layering garantit que les highlights passent **derrière** les sprites Pokemo
 | Victory content | 2001 | Écran de victoire (texte) |
 
 > Historique : avant le bugfix du 2026-04-14, highlights (100–150) et Pokemon (200+) étaient inversés — les highlights passaient devant les sprites. `DEPTH_POKEMON_BASE` était à 200. Depuis plan 060, les overlays au sol (highlights, enemy range, preview) sont iso-sortés par tile et passent sous le Pokemon qui se tient dessus. Le curseur-outline, lui, est repassé en depth globale (`DEPTH_CURSOR_GROUND = 500`) en fin de plan 060 : son stroke déborde visuellement sur les tiles adjacentes, donc il doit dominer tous les voisins iso-sortés.
+
+> Plan 065 (2026-04-20) — les **tiles surélevées** (`elevation > 0`) ont été promues dans l'espace depth `DEPTH_POKEMON_BASE` (constante alias `DEPTH_RAISED_TILE_BASE`). Avant ce changement, les tiles étaient dans `[0, 205]` et les Pokemon dans `[520+]` ; un Pokemon derrière un pilier était **toujours** affiché devant. Les tiles plates restent à `DEPTH_GRID_TILES = 0` pour ne pas polluer l'espace Pokemon avec les centaines de cellules de fond — elles passent toujours sous tout le reste, zéro ambiguïté. Les highlights, previews et curseurs sur une tile surélevée suivent la même base pour rester visuellement attachés à leur tile.
 
 ---
 

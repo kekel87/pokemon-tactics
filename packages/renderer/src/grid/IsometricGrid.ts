@@ -12,8 +12,8 @@ import {
   DEPTH_ENEMY_RANGE_ISO_OFFSET,
   DEPTH_GRID_TILES,
   DEPTH_HIGHLIGHT_ISO_OFFSET,
-  DEPTH_POKEMON_BASE,
   DEPTH_PREVIEW_ISO_OFFSET,
+  DEPTH_RAISED_TILE_BASE,
   DEPTH_TILE_MAX_ELEVATION,
   GRID_SIZE,
   TERRAIN_TINT,
@@ -144,7 +144,10 @@ export class IsometricGrid {
           sprite.setFlipY(flipV);
           sprite.setScale(TILE_SPRITE_SCALE);
           sprite.setOrigin(0.5, TILE_ORIGIN_Y);
-          sprite.setDepth(DEPTH_GRID_TILES + (x + y) * DEPTH_TILE_MAX_ELEVATION + layer.elevation);
+          const isoLadder = (x + y) * DEPTH_TILE_MAX_ELEVATION + layer.elevation;
+          const depth =
+            layer.elevation > 0 ? DEPTH_RAISED_TILE_BASE + isoLadder : DEPTH_GRID_TILES + isoLadder;
+          sprite.setDepth(depth);
           this.tileSprites.push(sprite);
         }
       }
@@ -374,7 +377,9 @@ export class IsometricGrid {
       return existing;
     }
     const graphics = this.scene.add.graphics();
-    graphics.setDepth((gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + height + isoOffset);
+    const isoLadder = (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + height;
+    const baseDepth = height > 0 ? DEPTH_RAISED_TILE_BASE + isoLadder : isoLadder;
+    graphics.setDepth(baseDepth + isoOffset);
     layer.set(key, graphics);
     return graphics;
   }
@@ -391,13 +396,13 @@ export class IsometricGrid {
     const height = this.getTileHeight(gridX, gridY);
     const center = this.gridToScreen(gridX, gridY, height);
     const decorationHeight = this.decorationsLayer?.getDecorationHeightAt(gridX, gridY) ?? 0;
-    const cursorDepth =
-      decorationHeight > 0
-        ? DEPTH_POKEMON_BASE +
-          (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION +
-          height +
-          DEPTH_CURSOR_OVER_DECORATION_OFFSET
-        : DEPTH_CURSOR_GROUND;
+    const isOnRaisedCell = decorationHeight > 0 || height > 0;
+    const cursorDepth = isOnRaisedCell
+      ? DEPTH_RAISED_TILE_BASE +
+        (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION +
+        height +
+        DEPTH_CURSOR_OVER_DECORATION_OFFSET
+      : DEPTH_CURSOR_GROUND;
     this.cursorGraphics.setDepth(cursorDepth);
     this.drawDiamondStroke(this.cursorGraphics, center, CURSOR_COLOR, CURSOR_STROKE_WIDTH);
 
