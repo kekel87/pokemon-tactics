@@ -7,6 +7,10 @@
           {
             "type": "command",
             "command": ".claude/hooks/block-forbidden-commands.sh"
+          },
+          {
+            "type": "command",
+            "command": "rtk hook claude"
           }
         ]
       }
@@ -60,6 +64,8 @@
       "Bash(npx vitest:*)",
       "Bash(pnpm:*)",
       "Bash(pwd:*)",
+      "Bash(rtk git:*)",
+      "Bash(rtk:*)",
       "Bash(python3:*)",
       "Bash(python:*)",
       "Bash(rm:*)",

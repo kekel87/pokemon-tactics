@@ -1,7 +1,7 @@
 ---
 name: performance-profiler
 description: Analyse les performances du jeu web — FPS, mémoire, bundle size, temps de chargement. Utiliser quand le jeu rame ou avant une release.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__new_page, mcp__chrome-devtools__close_page, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__performance_start_trace, mcp__chrome-devtools__performance_stop_trace, mcp__chrome-devtools__performance_analyze_insight, mcp__chrome-devtools__take_memory_snapshot, mcp__chrome-devtools__lighthouse_audit, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__list_network_requests, mcp__chrome-devtools__get_network_request, mcp__chrome-devtools__emulate, mcp__chrome-devtools__resize_page, mcp__chrome-devtools__wait_for
 model: sonnet
 ---
 
@@ -27,6 +27,19 @@ Tu es le Performance Engineer du projet Pokemon Tactics (jeu web Phaser 4).
 - Complexité algorithmique du pathfinding (A* sur grille 12x12 = OK, mais vérifier)
 
 ## Outils
+
+### Runtime navigateur — chrome-devtools MCP
+
+Pour mesurer les perfs du jeu dans un vrai Chrome :
+
+1. `new_page` sur `http://localhost:5173` (lancer `pnpm dev` avant)
+2. `performance_start_trace` → déclencher un scénario (combat, pathfinding, grosse zone d'effet) → `performance_stop_trace`
+3. `performance_analyze_insight` pour extraire les insights actionnables (long tasks, layout thrashing, script eval lourd)
+4. `take_memory_snapshot` avant / après un combat pour détecter les fuites (objets Phaser non détruits entre deux scènes)
+5. `lighthouse_audit` pour mesurer LCP, TBT, bundle size avant release
+6. `evaluate_script` pour lire les métriques Phaser runtime (`game.loop.actualFps`, `game.renderer.drawCount`, etc.)
+
+### Bundle / core headless
 
 ```bash
 pnpm build && ls -lh dist/          # taille du bundle

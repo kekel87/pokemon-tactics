@@ -1,7 +1,7 @@
 ---
 name: debugger
 description: Diagnostic avancé de bugs complexes — reproduire, isoler, comprendre la cause racine. Utiliser quand un bug résiste à l'analyse simple.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__new_page, mcp__chrome-devtools__close_page, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__list_console_messages, mcp__chrome-devtools__get_console_message, mcp__chrome-devtools__list_network_requests, mcp__chrome-devtools__get_network_request, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__wait_for, mcp__chrome-devtools__click, mcp__chrome-devtools__type_text, mcp__chrome-devtools__press_key
 model: opus
 ---
 
@@ -51,3 +51,14 @@ Tu es un expert en debugging. On t'appelle quand un bug est complexe et résiste
 - Replay déterministe : reproduire exactement le combat (seed + actions)
 - Events du core : tracer la séquence d'events émis
 - Vitest : écrire un test minimal qui reproduit le bug
+
+### chrome-devtools MCP — pour bugs visuels / runtime
+
+Utilise chrome-devtools **quand le bug a une composante navigateur** (bug visible à l'écran, erreur console, requête réseau, état runtime). Pour tous les bugs purement core, reste sur Vitest.
+
+- `list_console_messages` — erreurs JS avec stack traces **source-mapped** (contrairement à la console brute de Playwright, celle-ci résout les sources TypeScript)
+- `evaluate_script` — lire l'état runtime du jeu (`window.game.scene.keys.BattleScene.battleEngine.getState()` ou équivalent) sans passer par l'UI
+- `list_network_requests` + `get_network_request` — si un asset manquant ou une requête foireuse cause le bug
+- `take_snapshot` — DOM + accessibilité à un instant T (plus riche qu'un screenshot pour comprendre la structure)
+
+**Différence avec visual-tester (Playwright)** : `visual-tester` = interactions de haut niveau (click, screenshot, workflow). `debugger` avec chrome-devtools = introspection bas niveau (console source-mapped, état runtime, réseau détaillé). Si le bug se reproduit par une interaction simple, `visual-tester` suffit. S'il faut creuser dans l'état interne ou une exception, chrome-devtools.

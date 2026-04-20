@@ -106,6 +106,22 @@ Ce qui n'est pas fait (ex: humain refuse visual-tester) → inscrit dans `docs/n
 - `commit-message` → `release-drafter` (si changement visible joueur)
 - `publisher` → `wiki-keeper` (changelog post-publication)
 
+## MCP navigateur — Playwright vs chrome-devtools
+
+Deux MCP complémentaires, jamais en doublon :
+
+| MCP | Agent | Usage |
+|---|---|---|
+| **Playwright** | `visual-tester` | Interactions de haut niveau : naviguer, cliquer, screenshot, valider un workflow joueur |
+| **chrome-devtools** | `debugger`, `performance-profiler` | Introspection bas niveau : console source-mapped, traces CPU, memory snapshots, Lighthouse, réseau détaillé, état runtime via `evaluate_script` |
+
+**Règle de choix** :
+- Bug visuel reproductible par clic → `visual-tester` (Playwright)
+- Bug avec exception JS / état interne suspect → `debugger` (chrome-devtools, console source-mapped)
+- Mesure de perf (FPS, mémoire, bundle runtime) → `performance-profiler` (chrome-devtools traces + Lighthouse)
+
+Ne jamais lancer les deux en parallèle sur la même URL (conflit sur le port Chrome).
+
 ## Agenda persistant — `docs/next.md`
 
 **Toi (Claude) tu le maintiens** après chaque étape :
