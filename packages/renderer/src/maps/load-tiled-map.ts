@@ -46,7 +46,8 @@ export async function loadTiledMap(url: string): Promise<LoadedTiledMap> {
     throw new Error(`Failed to parse map "${url}":\n${parseResult.errors.join("\n")}`);
   }
 
-  const validation = validateTiledMap(parseResult.map);
+  const isDevMap = url.includes("/maps/dev/");
+  const validation = validateTiledMap(parseResult.map, { requireAllFormats: !isDevMap });
   if (!validation.valid) {
     throw new Error(`Map "${url}" validation failed:\n${validation.errors.join("\n")}`);
   }

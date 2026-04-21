@@ -1,167 +1,61 @@
 {
   "compressionlevel": -1,
-  "height": 6,
+  "height": 1,
   "infinite": false,
   "layers": [
     {
       "data": [
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1
+        0
       ],
-      "height": 6,
+      "height": 1,
       "id": 1,
       "name": "terrain",
       "opacity": 1,
       "type": "tilelayer",
       "visible": true,
-      "width": 6,
+      "width": 1,
       "x": 0,
       "y": 0
     },
     {
       "data": [
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        5,
-        0,
-        4,
-        0,
-        0,
-        3,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        3,
-        0
+        1
       ],
-      "height": 6,
-      "id": 3,
+      "height": 1,
+      "id": 2,
       "name": "terrain_2",
       "offsetx": 0,
       "offsety": -16,
       "opacity": 1,
       "type": "tilelayer",
       "visible": true,
-      "width": 6,
+      "width": 1,
       "x": 0,
       "y": 0
     },
     {
       "data": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
         0
       ],
-      "height": 6,
-      "id": 4,
+      "height": 1,
+      "id": 3,
       "name": "decorations",
       "opacity": 1,
       "type": "tilelayer",
-      "visible": false,
-      "width": 6,
+      "visible": true,
+      "width": 1,
       "x": 0,
       "y": 0
     },
     {
       "draworder": "topdown",
-      "id": 5,
+      "id": 4,
       "name": "spawns",
       "objects": [
         {
           "height": 0,
           "id": 1,
-          "name": "spawn-player",
-          "opacity": 1,
+          "name": "spawn",
           "point": true,
           "properties": [
             {
@@ -179,14 +73,13 @@
           "type": "",
           "visible": true,
           "width": 0,
-          "x": 40,
-          "y": 72
+          "x": 0,
+          "y": 8
         },
         {
           "height": 0,
           "id": 2,
-          "name": "spawn-dummy",
-          "opacity": 1,
+          "name": "spawn",
           "point": true,
           "properties": [
             {
@@ -204,8 +97,8 @@
           "type": "",
           "visible": true,
           "width": 0,
-          "x": 40,
-          "y": 24
+          "x": 0,
+          "y": 8
         }
       ],
       "opacity": 1,
@@ -215,19 +108,19 @@
       "y": 0
     }
   ],
-  "nextlayerid": 6,
+  "nextlayerid": 5,
   "nextobjectid": 3,
   "orientation": "isometric",
   "properties": [
     {
       "name": "id",
       "type": "string",
-      "value": "sandbox-slopes"
+      "value": "debug-floating"
     },
     {
       "name": "name",
       "type": "string",
-      "value": "Sandbox Slopes"
+      "value": "Debug Floating Tile"
     }
   ],
   "renderorder": "right-down",
@@ -236,11 +129,11 @@
   "tilesets": [
     {
       "firstgid": 1,
-      "source": "../tilesets/terrain/tileset.tsj"
+      "source": "../../tilesets/terrain/tileset.tsj"
     }
   ],
   "tilewidth": 32,
   "type": "map",
   "version": "1.10",
-  "width": 6
+  "width": 1
 }

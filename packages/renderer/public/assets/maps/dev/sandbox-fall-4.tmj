@@ -60,7 +60,7 @@
         {
          "data":[1, 1, 1, 0, 0, 0,
             1, 1, 1, 0, 0, 0,
-            55, 55, 55, 0, 0, 0,
+            1, 1, 1, 0, 0, 0,
             1, 1, 1, 0, 0, 0,
             1, 1, 1, 0, 0, 0,
             1, 1, 1, 0, 0, 0],
@@ -77,15 +77,17 @@
          "y":0
         }, 
         {
-         "data":[0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0],
+         "data":[1, 1, 1, 0, 0, 0,
+            1, 1, 1, 0, 0, 0,
+            55, 55, 55, 0, 0, 0,
+            1, 1, 1, 0, 0, 0,
+            1, 1, 1, 0, 0, 0,
+            1, 1, 1, 0, 0, 0],
          "height":6,
          "id":5,
-         "name":"decorations",
+         "name":"terrain_8",
+         "offsetx":0,
+         "offsety":-64,
          "opacity":1,
          "type":"tilelayer",
          "visible":true,
@@ -94,8 +96,26 @@
          "y":0
         }, 
         {
-         "draworder":"topdown",
+         "data":[0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0],
+         "height":6,
          "id":6,
+         "name":"decorations",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":6,
+         "x":0,
+         "y":0
+        },
+    
+        {
+         "draworder":"topdown",
+         "id":7,
          "name":"spawns",
          "objects":[
                 {
@@ -152,19 +172,19 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":7,
+ "nextlayerid":8,
  "nextobjectid":3,
  "orientation":"isometric",
  "properties":[
         {
          "name":"id",
          "type":"string",
-         "value":"sandbox-fall-3"
+         "value":"sandbox-fall-4"
         }, 
         {
          "name":"name",
          "type":"string",
-         "value":"Sandbox Fall 3 (drop 3)"
+         "value":"Sandbox Fall 4 (lethal drop)"
         }],
  "renderorder":"right-down",
  "tiledversion":"1.12.1",
@@ -172,7 +192,7 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"..\/tilesets\/terrain\/tileset.tsj"
+         "source":"..\/..\/tilesets\/terrain\/tileset.tsj"
         }],
  "tilewidth":32,
  "type":"map",

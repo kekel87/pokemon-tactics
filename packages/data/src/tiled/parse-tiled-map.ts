@@ -1,10 +1,15 @@
-import type { MapDefinition } from "@pokemon-tactic/core";
+import type { MapDefinition, MapFormat } from "@pokemon-tactic/core";
 import {
   applyDecorationsToMap,
   type DecorationObject,
   parseDecorationsLayer,
 } from "./parse-decorations-layer";
-import { parseSpawnsLayer } from "./parse-spawns-layer";
+import {
+  isSpawnLayerName,
+  parseLegacySpawnsLayer,
+  parseSpawnsLayers,
+  SPAWN_LAYER_NAMES,
+} from "./parse-spawns-layer";
 import { parseTerrainLayer } from "./parse-terrain-layer";
 import type { TiledMap } from "./tiled-types";
 import { findProperty } from "./tiled-utils";
@@ -59,9 +64,16 @@ export function parseTiledMap(tiledJson: TiledMap): ParseResult {
     errors.push('Missing required layer "terrain" (tilelayer)');
   }
 
-  const spawnsLayer = tiledJson.layers.find((l) => l.name === "spawns" && l.type === "objectgroup");
-  if (!spawnsLayer) {
-    errors.push('Missing required layer "spawns" (objectgroup)');
+  const newSpawnLayers = tiledJson.layers.filter(
+    (l) => isSpawnLayerName(l.name) && l.type === "objectgroup",
+  );
+  const legacySpawnsLayer = tiledJson.layers.find(
+    (l) => l.name === "spawns" && l.type === "objectgroup",
+  );
+  if (newSpawnLayers.length === 0 && !legacySpawnsLayer) {
+    errors.push(
+      `Missing spawn layers (expected one of: ${SPAWN_LAYER_NAMES.join(", ")}, or legacy "spawns")`,
+    );
   }
 
   const decorationsLayer = tiledJson.layers.find((l) => l.name === "decorations");
@@ -83,7 +95,7 @@ export function parseTiledMap(tiledJson: TiledMap): ParseResult {
     errors.push("No tileset found (expected embedded tileset)");
   }
 
-  if (errors.length > 0 || !terrainLayer || !spawnsLayer || !tileset) {
+  if (errors.length > 0 || !terrainLayer || !tileset) {
     return { ok: false, errors };
   }
 
@@ -129,14 +141,31 @@ export function parseTiledMap(tiledJson: TiledMap): ParseResult {
       }
     }
 
-    const formats = parseSpawnsLayer(
-      spawnsLayer,
-      tiledJson.tilewidth,
-      tiledJson.tileheight,
-      tiledJson.width,
-      tiledJson.height,
-      tiledJson.orientation,
-    );
+    let formats: MapFormat[];
+    if (newSpawnLayers.length > 0) {
+      formats = parseSpawnsLayers(
+        tiledJson.layers,
+        tiledJson.tilewidth,
+        tiledJson.tileheight,
+        tiledJson.width,
+        tiledJson.height,
+        tiledJson.orientation,
+      );
+    } else if (legacySpawnsLayer) {
+      warnings.push(
+        `Using legacy "spawns" layer. Migrate to per-format layers (${SPAWN_LAYER_NAMES.join(", ")})`,
+      );
+      formats = parseLegacySpawnsLayer(
+        legacySpawnsLayer,
+        tiledJson.tilewidth,
+        tiledJson.tileheight,
+        tiledJson.width,
+        tiledJson.height,
+        tiledJson.orientation,
+      );
+    } else {
+      formats = [];
+    }
 
     const idProp = findProperty(tiledJson.properties, "id");
     const nameProp = findProperty(tiledJson.properties, "name");

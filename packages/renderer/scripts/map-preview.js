@@ -14,7 +14,8 @@ if (!arg) {
   console.error("Examples:");
   console.error("  pnpm dev:map highlands");
   console.error("  pnpm dev:map highlands.tmj");
-  console.error("  pnpm dev:map packages/renderer/public/assets/maps/test-arena.tmj");
+  console.error("  pnpm dev:map packages/renderer/public/assets/maps/simple-arena.tmj");
+  console.error("  pnpm dev:map dev/sandbox-flat.tmj");
   process.exit(1);
 }
 
@@ -24,6 +25,7 @@ function resolveMapPath(input) {
     resolve(callerCwd, input),
     resolve(callerCwd, fileName),
     join(mapsDir, fileName),
+    join(mapsDir, "dev", fileName),
   ];
   return candidates.find((candidate) => existsSync(candidate));
 }
@@ -37,7 +39,10 @@ if (!filePath) {
 
 const relativePath = filePath.includes("/public/")
   ? filePath.split("/public/")[1]
-  : `assets/maps/${filePath.split("/").pop()}`;
+  : (() => {
+      const afterMaps = filePath.split("/assets/maps/")[1] ?? filePath.split("/").pop();
+      return `assets/maps/${afterMaps}`;
+    })();
 
 const env = { ...process.env, VITE_MAP_PREVIEW: relativePath };
 

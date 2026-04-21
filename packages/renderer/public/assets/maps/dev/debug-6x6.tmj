@@ -440,7 +440,7 @@
   "tilesets": [
     {
       "firstgid": 1,
-      "source": "../tilesets/terrain/tileset.tsj"
+      "source": "../../tilesets/terrain/tileset.tsj"
     }
   ],
   "tilewidth": 32,

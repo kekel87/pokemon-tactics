@@ -147,7 +147,9 @@ function selectBelowDepth(
 ): HitCandidate | null {
   let best: HitCandidate | null = null;
   for (const candidate of candidates) {
-    if (candidate.depth >= topDepth) continue;
+    if (candidate.depth >= topDepth) {
+      continue;
+    }
     if (!best || candidate.depth > best.depth) {
       best = candidate;
     }

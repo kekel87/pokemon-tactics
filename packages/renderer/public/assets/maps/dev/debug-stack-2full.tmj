@@ -35,42 +35,10 @@
     },
     {
       "data": [
-        1
-      ],
-      "height": 1,
-      "id": 3,
-      "name": "terrain_4",
-      "offsetx": 0,
-      "offsety": -32,
-      "opacity": 1,
-      "type": "tilelayer",
-      "visible": true,
-      "width": 1,
-      "x": 0,
-      "y": 0
-    },
-    {
-      "data": [
-        1
-      ],
-      "height": 1,
-      "id": 4,
-      "name": "terrain_6",
-      "offsetx": 0,
-      "offsety": -48,
-      "opacity": 1,
-      "type": "tilelayer",
-      "visible": true,
-      "width": 1,
-      "x": 0,
-      "y": 0
-    },
-    {
-      "data": [
         0
       ],
       "height": 1,
-      "id": 5,
+      "id": 3,
       "name": "decorations",
       "opacity": 1,
       "type": "tilelayer",
@@ -81,7 +49,7 @@
     },
     {
       "draworder": "topdown",
-      "id": 6,
+      "id": 4,
       "name": "spawns",
       "objects": [
         {
@@ -140,19 +108,19 @@
       "y": 0
     }
   ],
-  "nextlayerid": 7,
+  "nextlayerid": 5,
   "nextobjectid": 3,
   "orientation": "isometric",
   "properties": [
     {
       "name": "id",
       "type": "string",
-      "value": "debug-stack-4full"
+      "value": "debug-stack-2full"
     },
     {
       "name": "name",
       "type": "string",
-      "value": "Debug 4 Full Tiles Stacked"
+      "value": "Debug 2 Full Tiles Stacked"
     }
   ],
   "renderorder": "right-down",
@@ -161,7 +129,7 @@
   "tilesets": [
     {
       "firstgid": 1,
-      "source": "../tilesets/terrain/tileset.tsj"
+      "source": "../../tilesets/terrain/tileset.tsj"
     }
   ],
   "tilewidth": 32,

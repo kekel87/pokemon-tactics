@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-20 (plan 065 done — fix depth + Alt-click picking + OcclusionFader)
+> Dernière mise à jour : 2026-04-21 soir (plan 066 étape 3 v4 — pivot vers 1 layer Tiled par format, remplissage manuel, Custom Types colorés inlinés dans `.tiled-project`)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -630,15 +630,18 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
     - `tiled-types.ts` : interfaces TiledMap, TiledLayer, TiledObject, TiledTileset, TiledTile, TiledProperty
     - `tileset-resolver.ts` : `resolveTileProperties(gid, tileset)` → `{ terrain, height }` ; GID 0 = obstacle implicite
     - `parse-terrain-layer.ts` : TiledLayer → `TileState[][]`
-    - `parse-spawns-layer.ts` : objets Tiled (teamIndex + formatTeamCount) → `MapFormat[]` avec conversion pixel iso → coords grille
+    - `parse-spawns-layer.ts` : **5 layers nommés** `spawns_1v1/3p/4p/6p/12p` (teamCount déduit du nom, objet porte juste `teamIndex`) via `parseSpawnsLayers` ; fallback `parseLegacySpawnsLayer` pour les maps `dev/` qui utilisent encore le layer `spawns` avec `formatTeamCount` (warning de dépréciation)
     - `parse-tiled-map.ts` : `parseTiledMap(json)` → `ParseResult` (`{ map, warnings }` | `{ errors }`)
     - `validate-tiled-map.ts` : règles bloquantes (spawn sur tiles passables, BFS connectivité) + warnings (hauteurs incohérentes, spawns sur terrains hostiles)
     - `load-tiled-map.ts` : `loadTiledMap(url)` → `Promise<MapDefinition>` (fetch + parse + validate, zéro Phaser)
   - **Tilesets externes `.tsj` supportés** (en plus des tilesets embarqués dans le .tmj)
-  - **3 cartes `.tmj`** dans `packages/renderer/public/assets/maps/` :
-    - `test-arena.tmj` — version iso de `poc-arena` (12×20, 2 équipes, tileset externe `icon-tileset.tsj`)
-    - `river-crossing.tmj` — carte de test avec eau/traversée, valide les terrains non-passables
-    - `tile-palette.tmj` — palette complète des 11 terrains pour vérification visuelle
+  - **Cartes `.tmj`** dans `packages/renderer/public/assets/maps/` (racine = roster joueur, `dev/` = maps de test) :
+    - `simple-arena.tmj` (racine) — 12×20, **gabarit** avec 5 objectgroups de spawns vides (`spawns_1v1/3p/4p/6p/12p`) à remplir manuellement dans Tiled — ex-`test-arena`
+    - `highlands.tmj` (racine) — 12×12 (v0 restaurée, plateau central h2 intact), **gabarit** avec 5 objectgroups de spawns vides à remplir manuellement, parti pris "high-ground à conquérir" préservé (ne pas poser de spawn sur h ≥ 3)
+    - `pokemon-tactics.tiled-project` (dans `assets/maps/`) : 12 Object Classes colorées `spawn_team_0..spawn_team_11` **inlinées** sous `propertyTypes` (Tiled 1.10+ n'honore plus `propertyTypesFile`, vérifié via source `project.cpp` 1.12.1). Chaque classe a `teamIndex` pré-rempli. Ouvrir `pokemon-tactics.tiled-project` via `File > Open File or Project`, le panneau Project (`View > Views and Toolbars > Project`) expose les classes ; assigner via le champ `Class` d'un objet spawn (Point / Rectangle / Polygon)
+    - `dev/tile-palette.tmj` — palette complète des 11 terrains pour vérification visuelle
+    - **Note plan 066 (2026-04-20)** : `river-crossing.tmj` supprimée, regénération prévue en `naval-arena.tmj` étape 4
+    - **Plan 066 étape 2 (2026-04-21)** : `REQUIRED_TEAM_COUNTS = [2,3,4,6,12]` imposé par `validateTiledMap` (décision #274). Option `{ requireAllFormats: boolean }` ; le renderer détecte `/maps/dev/` et la relâche pour les dev maps.
   - **`MapPreviewScene` + `MapPreviewUIScene`** dans `packages/renderer/src/scenes/` — `pnpm dev:map <fichier.tmj>` affiche la carte sans combat ; zoom molette, pan clic+drag, R pour recharger, spawn zones colorées par équipe ; `MapPreviewUIScene` overlay : nom de la carte, cycle de formats (T ou clic) `[n/total]`
   - **`packages/renderer/scripts/map-preview.js`** : Vite plugin Node.js qui résout le chemin .tmj depuis le cwd appelant et injecte `VITE_MAP_FILE` pour le mode preview
   - `packages/data/src/index.ts` exporte le module tiled complet

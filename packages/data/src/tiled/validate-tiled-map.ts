@@ -1,9 +1,15 @@
 import { isTerrainPassable, type MapDefinition, type Position } from "@pokemon-tactic/core";
 
+export const REQUIRED_TEAM_COUNTS = [2, 3, 4, 6, 12] as const;
+
 export interface TiledMapValidation {
   readonly valid: boolean;
   readonly errors: string[];
   readonly warnings: string[];
+}
+
+export interface ValidateTiledMapOptions {
+  readonly requireAllFormats?: boolean;
 }
 
 function posKey(position: Position): string {
@@ -73,9 +79,31 @@ function checkSpawnConnectivity(
   return false;
 }
 
-export function validateTiledMap(map: MapDefinition): TiledMapValidation {
+export function validateTiledMap(
+  map: MapDefinition,
+  options: ValidateTiledMapOptions = {},
+): TiledMapValidation {
+  const { requireAllFormats = true } = options;
   const errors: string[] = [];
   const warnings: string[] = [];
+
+  const declaredTeamCounts = new Set(map.formats.map((f) => f.teamCount));
+  if (requireAllFormats) {
+    for (const required of REQUIRED_TEAM_COUNTS) {
+      if (!declaredTeamCounts.has(required)) {
+        errors.push(
+          `Map does not declare required format teamCount=${required}. Required set: ${REQUIRED_TEAM_COUNTS.join(", ")}`,
+        );
+      }
+    }
+  }
+  for (const declared of declaredTeamCounts) {
+    if (!REQUIRED_TEAM_COUNTS.includes(declared as (typeof REQUIRED_TEAM_COUNTS)[number])) {
+      warnings.push(
+        `Map declares unsupported format teamCount=${declared} (UI only proposes ${REQUIRED_TEAM_COUNTS.join(", ")})`,
+      );
+    }
+  }
 
   for (const format of map.formats) {
     for (let zoneIndex = 0; zoneIndex < format.spawnZones.length; zoneIndex++) {

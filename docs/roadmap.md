@@ -113,12 +113,11 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Tileset isométrique (ICON Isometric Pack / Jao — tiles 32×32 ×2, filtre NEAREST, marquages arène overlay) — plan 043
 - [x] Supprimer POKEMON_SPRITE_SCALE=2 + TILE_SPRITE_SCALE=2, rattraper offsets, ajuster zoom — uniformiser la résolution pixel (plan 044)
 - [x] Mode pixel art Phaser (roundPixels:true, NEAREST manuel par texture, police adaptée) — plan 044
-- [x] Format de carte compatible Tiled + pipeline de chargement (parseTiledMap, validateTiledMap, loadTiledMap, MapPreviewScene, test-arena.tmj — plan 045)
+- [x] Format de carte compatible Tiled + pipeline de chargement (parseTiledMap, validateTiledMap, loadTiledMap, MapPreviewScene, simple-arena.tmj ex-test-arena — plan 045, renommée plan 066)
 - [x] Dénivelés (hauteur tiles) + dégâts de chute (plan 046 — canTraverse, getHeightModifier, isMeleeBlockedByHeight, calculateFallDamage, renderer surélevé, highlands.tmj, 45 tests)
 - [x] Tileset custom PMD-based (remplacer les tiles JAO) — plan 050 (11 solides + 4 liquides, pipeline Python, 24 maps migrées vers tileset.tsj externe, dead code renderer nettoyé — validation visuelle humaine en cours)
 - [x] Obstacles + line of sight (trajectoires de tir visibles) — plan 047
 - [x] Types de terrain (lave, eau, herbe) + modificateurs — plan 051 terminé (core + tests + maps sandbox + renderer tint). Tooltip InfoPanel déplacé au backlog.
-- [ ] Interactions type/terrain + modification terrain par attaques
 - [x] Orientation tactique (bonus dos/face FFTA) — plan 052 (face -15%, flanc neutre, dos +15% sur les dégâts, preview "(+15%)" / "(-15%)", 28 tests)
 - [x] Système CT (remplacement round-robin) — plan 054 terminé. Interface `TurnSystem`, `ChargeTimeTurnSystem`, `ct-costs`, dual-mode BattleEngine, TurnTimeline CT, ActionMenu CT, toggle TeamSelectScene, i18n, 999 tests. Décisions #254-256.
 - [x] Toggle CT/Round-Robin dans `TeamSelectScene` (bouton "Tours fixes" / "Charge Time", i18n FR/EN) — plan 054
@@ -128,13 +127,15 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [ ] ~~Silhouette X-ray occlusion~~ — **SKIPPÉE** (résolue nativement par le renderer Babylon Phase 3.5, décision humain 2026-04-18)
 - [x] Système de décorations Tiled — tileset `decorations.tsj` dédié, Ghost traverse obstacles, parser objectgroup, sprites PixelLab (herbe haute, rochers, arbre), `DecorationsLayer` renderer — plan 064. Bonus différé : marquages arène + pokéball centrale.
 - [x] **Occlusion dynamique par sprite** — fix depth tiles surélevées (`DEPTH_RAISED_TILE_BASE`), Alt-click picking multi-niveaux (`COLOR_CURSOR_ALT`), module `OcclusionFader` (fade alpha 0.4 quand Pokemon derrière obstacle, AABB screen-space, pipeline reset→test→apply). **Phase 3.5 rewrite Babylon repoussée après Phase 7** suite au succès visuel (décision #272). — plan 065
-- [ ] Interactions type/terrain + modification terrain par attaques
+- [ ] Roster de maps variées (dénivelés, types de terrain, décors, tailles) — exploiter tout ce que Phase 3 a posé (Tiled, tileset custom, dénivelé, LoS, terrain types, décorations, occlusion fade). Remonté de Phase 3.6 en 2026-04-20 (faisable en Phaser actuel, indépendant de Babylon).
+- [ ] Génération de maps par IA (prompt → `MapDefinition` ou .tmj valide, review humain avant intégration) — remonté de Phase 3.6 en 2026-04-20. Alimente le roster. Pipeline `parseTiledMap` + `validateTiledMap` déjà en place (plan 045) → l'IA produit un `.tmj` ou directement un `MapDefinition`, on valide, on itère.
+- [ ] Choix de maps depuis l'UI (écran de sélection, preview, metadata) — remonté de Phase 3.6 en 2026-04-20 (idem, indépendant de Babylon).
 
 ### Décisions prises — Format de carte (plan 045)
 
 - **Tiled comme éditeur principal** de maps. Le core ne connaît pas Tiled — il ne voit que `MapDefinition`.
 - **Parser dans `packages/data`** (`packages/data/src/tiled/`) : convertit .tmj → `MapDefinition` au chargement runtime. Zéro dépendance Phaser.
-- **Layers** : `terrain` (tilelayer, GID→TileState via propriétés custom), `decorations` (ignoré par le core), `spawns` (objectgroup, teamIndex + formatTeamCount).
+- **Layers** : `terrain` (tilelayer, GID→TileState via propriétés custom), `decorations` (ignoré par le core), 5 objectgroups de spawns `spawns_1v1/3p/4p/6p/12p` (teamCount déduit du nom, chaque object ne porte que `teamIndex`). Layer legacy unique `spawns` avec `formatTeamCount` conservé pour compat `dev/*.tmj` uniquement.
 - **Propriétés custom** par tile : `terrain` (string → TerrainType), `height` (int). `isPassable` supprimé — le terrain détermine la passabilité.
 - **Chargement dynamique** : `loadTiledMap(url)` fait un fetch runtime + parse + validate. Pas de conversion build-time.
 - **Tilesets externes .tsj supportés** en plus des tilesets embarqués.
@@ -239,10 +240,9 @@ Prérequis :
 
 Tie à Babylon : l'éditeur et les props terrain seront repensés pour le renderer 3D, donc cette phase suit la 3.5.
 
-- [ ] Choix de maps depuis l'UI (écran de sélection, preview, metadata)
-- [ ] Roster de maps variées (dénivelés, types de terrain, décors, tailles)
+> **Note 2026-04-20** : *Choix de maps UI*, *Roster de maps variées* **et génération IA** ont été remontés en Phase 3 — ils ne dépendent pas de Babylon et exploitent directement ce qui a été posé plans 043-065. Seul l'éditeur in-game reste dans cette phase (vrai besoin de renderer 3D pour l'UX placement en volume).
+
 - [ ] Éditeur de terrain in-game (placement tiles, hauteurs, spawns, décorations)
-- [ ] Génération de maps par IA (prompt → `MapDefinition` valide, review humain avant intégration)
 
 ---
 
@@ -266,4 +266,5 @@ Tie à Babylon : l'éditeur et les props terrain seront repensés pour le render
 - [ ] Mode histoire / aventure
 - [ ] Conditions de victoire alternatives
 - [ ] Draft/ban phase
+- [ ] **Modification dynamique du terrain par les attaques** — certaines attaques transforment le terrain pendant le combat : attaques Feu font disparaître (ou coupent) la tall grass, Ébullition / attaques Feu puissantes créent des tiles lave/magma, Force déplace les rochers, attaques Glace gèlent les tiles d'eau, etc. Mutation runtime du `TerrainType` + décoration associée, gestion des effets persistants (tile lave garde ses dégâts). Reporté de Phase 3 en 2026-04-20 : scope trop lourd tant que le roster d'attaques et la palette de terrains ne sont pas figés.
 - [ ] **Modèles 3D pour les Pokemon (à voir)** — remplacer les sprites billboards 2D par des modèles 3D (glTF/GLB) style Pokemon Champions / Stadium. À évaluer après stabilisation du renderer Babylon : coût pipeline (sourcing/licence modèles), impact bundle, cohérence stylistique avec terrain pixel-art, animations (rig existant vs recréer).

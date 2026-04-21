@@ -38,7 +38,7 @@ function buildMinimalTiledMap(overrides?: Partial<TiledMap>): TiledMap {
         data: [1, 1, 1, 1, 2, 1, 1, 1, 1],
       },
       {
-        name: "spawns",
+        name: "spawns_1v1",
         type: "objectgroup",
         visible: true,
         objects: [
@@ -50,10 +50,7 @@ function buildMinimalTiledMap(overrides?: Partial<TiledMap>): TiledMap {
             height: 0,
             name: "s1",
             type: "",
-            properties: [
-              { name: "teamIndex", type: "int", value: 0 },
-              { name: "formatTeamCount", type: "int", value: 2 },
-            ],
+            properties: [{ name: "teamIndex", type: "int", value: 0 }],
           },
           {
             id: 2,
@@ -63,10 +60,7 @@ function buildMinimalTiledMap(overrides?: Partial<TiledMap>): TiledMap {
             height: 0,
             name: "s2",
             type: "",
-            properties: [
-              { name: "teamIndex", type: "int", value: 1 },
-              { name: "formatTeamCount", type: "int", value: 2 },
-            ],
+            properties: [{ name: "teamIndex", type: "int", value: 1 }],
           },
         ],
       },
@@ -100,7 +94,7 @@ describe("parseTiledMap", () => {
     const tiledMap = buildMinimalTiledMap({
       layers: [
         {
-          name: "spawns",
+          name: "spawns_1v1",
           type: "objectgroup",
           visible: true,
           objects: [
@@ -112,10 +106,7 @@ describe("parseTiledMap", () => {
               height: 0,
               name: "",
               type: "",
-              properties: [
-                { name: "teamIndex", type: "int", value: 0 },
-                { name: "formatTeamCount", type: "int", value: 2 },
-              ],
+              properties: [{ name: "teamIndex", type: "int", value: 0 }],
             },
           ],
         },
@@ -130,7 +121,7 @@ describe("parseTiledMap", () => {
     expect(result.errors[0]).toContain("terrain");
   });
 
-  it("reports missing spawns layer", () => {
+  it("reports missing spawn layers", () => {
     const tiledMap = buildMinimalTiledMap({
       layers: [
         {
@@ -149,7 +140,64 @@ describe("parseTiledMap", () => {
     if (result.ok) {
       return;
     }
-    expect(result.errors[0]).toContain("spawns");
+    expect(result.errors[0]).toContain("spawn layers");
+  });
+
+  it("accepts legacy spawns layer with deprecation warning", () => {
+    const tiledMap = buildMinimalTiledMap({
+      layers: [
+        {
+          name: "terrain",
+          type: "tilelayer",
+          width: 3,
+          height: 3,
+          visible: true,
+          data: [1, 1, 1, 1, 2, 1, 1, 1, 1],
+        },
+        {
+          name: "spawns",
+          type: "objectgroup",
+          visible: true,
+          objects: [
+            {
+              id: 1,
+              x: 0,
+              y: 0,
+              width: 0,
+              height: 0,
+              name: "",
+              type: "",
+              properties: [
+                { name: "teamIndex", type: "int", value: 0 },
+                { name: "formatTeamCount", type: "int", value: 2 },
+              ],
+            },
+            {
+              id: 2,
+              x: 64,
+              y: 64,
+              width: 0,
+              height: 0,
+              name: "",
+              type: "",
+              properties: [
+                { name: "teamIndex", type: "int", value: 1 },
+                { name: "formatTeamCount", type: "int", value: 2 },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const result = parseTiledMap(tiledMap);
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.map.formats).toHaveLength(1);
+    expect(result.map.formats[0]!.teamCount).toBe(2);
+    expect(result.warnings.some((w) => w.includes("legacy"))).toBe(true);
   });
 
   it("reports missing tileset", () => {
