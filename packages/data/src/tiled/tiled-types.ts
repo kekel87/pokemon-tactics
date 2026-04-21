@@ -20,6 +20,11 @@ export interface TiledTileset {
   readonly source?: string;
 }
 
+export interface TiledPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
 export interface TiledObject {
   readonly id: number;
   readonly x: number;
@@ -30,6 +35,9 @@ export interface TiledObject {
   readonly type: string;
   readonly gid?: number;
   readonly properties?: readonly TiledProperty[];
+  readonly polygon?: readonly TiledPoint[];
+  readonly ellipse?: boolean;
+  readonly point?: boolean;
 }
 
 export interface TiledLayer {

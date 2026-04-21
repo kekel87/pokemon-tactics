@@ -77,3 +77,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 062 | [Spike renderer 2D-HD Three.js (3D géométrie + sprites billboards)](./062-3d-renderer-spike.md) | done (4/4) | 2026-04-17 |
 | 063 | [Spike renderer 2D-HD Babylon.js (comparatif vs Three.js)](./063-babylon-spike.md) | draft | 2026-04-18 |
 | 064 | [Décorations et obstacles Tiled (herbe haute, rochers, arbre, marquages arène)](./064-decorations-obstacles.md) | done | 2026-04-18 |
+| 065 | [Fix depth unifié + picking modifier + occlusion dynamique](./065-occlusion-fade-depth-fix.md) | done | 2026-04-20 |
+| 066 | [Roster de maps multi-format + générateur IA](./066-maps-multi-format-roster.md) | ready | 2026-04-20 |

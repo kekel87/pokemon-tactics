@@ -52,3 +52,6 @@ screenshots/
 .playwright-mcp/
 wiki/
 .mcp.json
+
+# Tiled editor user state (per-workstation, not shared)
+*.tiled-session

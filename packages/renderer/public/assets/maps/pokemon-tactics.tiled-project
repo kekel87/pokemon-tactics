@@ -1,0 +1,144 @@
+{
+  "automappingRulesFile": "",
+  "commands": [],
+  "compatibilityVersion": 1100,
+  "extensionsPath": "extensions",
+  "folders": [
+    "."
+  ],
+  "properties": [],
+  "propertyTypes": [
+    {
+      "color": "#ffff4444",
+      "drawFill": true,
+      "id": 1,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 0 }
+      ],
+      "name": "spawn_team_0",
+      "type": "class",
+      "useAs": ["object"]
+    },
+    {
+      "color": "#ff4477ff",
+      "drawFill": true,
+      "id": 2,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 1 }
+      ],
+      "name": "spawn_team_1",
+      "type": "class",
+      "useAs": ["object"]
+    },
+    {
+      "color": "#ff44cc44",
+      "drawFill": true,
+      "id": 3,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 2 }
+      ],
+      "name": "spawn_team_2",
+      "type": "class",
+      "useAs": ["object"]
+    },
+    {
+      "color": "#ffffcc44",
+      "drawFill": true,
+      "id": 4,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 3 }
+      ],
+      "name": "spawn_team_3",
+      "type": "class",
+      "useAs": ["object"]
+    },
+    {
+      "color": "#ffff8844",
+      "drawFill": true,
+      "id": 5,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 4 }
+      ],
+      "name": "spawn_team_4",
+      "type": "class",
+      "useAs": ["object"]
+    },
+    {
+      "color": "#ffaa44ff",
+      "drawFill": true,
+      "id": 6,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 5 }
+      ],
+      "name": "spawn_team_5",
+      "type": "class",
+      "useAs": ["object"]
+    },
+    {
+      "color": "#ffff44aa",
+      "drawFill": true,
+      "id": 7,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 6 }
+      ],
+      "name": "spawn_team_6",
+      "type": "class",
+      "useAs": ["object"]
+    },
+    {
+      "color": "#ff44ccff",
+      "drawFill": true,
+      "id": 8,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 7 }
+      ],
+      "name": "spawn_team_7",
+      "type": "class",
+      "useAs": ["object"]
+    },
+    {
+      "color": "#ffaa8844",
+      "drawFill": true,
+      "id": 9,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 8 }
+      ],
+      "name": "spawn_team_8",
+      "type": "class",
+      "useAs": ["object"]
+    },
+    {
+      "color": "#ffaaff44",
+      "drawFill": true,
+      "id": 10,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 9 }
+      ],
+      "name": "spawn_team_9",
+      "type": "class",
+      "useAs": ["object"]
+    },
+    {
+      "color": "#ffff44ff",
+      "drawFill": true,
+      "id": 11,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 10 }
+      ],
+      "name": "spawn_team_10",
+      "type": "class",
+      "useAs": ["object"]
+    },
+    {
+      "color": "#ff44ffaa",
+      "drawFill": true,
+      "id": 12,
+      "members": [
+        { "name": "teamIndex", "type": "int", "value": 11 }
+      ],
+      "name": "spawn_team_11",
+      "type": "class",
+      "useAs": ["object"]
+    }
+  ]
+}

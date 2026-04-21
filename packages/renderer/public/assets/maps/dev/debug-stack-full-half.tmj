@@ -19,7 +19,7 @@
     },
     {
       "data": [
-        1
+        3
       ],
       "height": 1,
       "id": 2,
@@ -115,12 +115,12 @@
     {
       "name": "id",
       "type": "string",
-      "value": "debug-stack-2full"
+      "value": "debug-stack-full-half"
     },
     {
       "name": "name",
       "type": "string",
-      "value": "Debug 2 Full Tiles Stacked"
+      "value": "Debug Full + Half Stacked"
     }
   ],
   "renderorder": "right-down",
@@ -129,7 +129,7 @@
   "tilesets": [
     {
       "firstgid": 1,
-      "source": "../tilesets/terrain/tileset.tsj"
+      "source": "../../tilesets/terrain/tileset.tsj"
     }
   ],
   "tilewidth": 32,

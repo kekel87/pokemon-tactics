@@ -1,4 +1,4 @@
-import type { MapDefinition, TileState } from "@pokemon-tactic/core";
+import type { MapDefinition, MapFormat, Position, TileState } from "@pokemon-tactic/core";
 import { TerrainType } from "@pokemon-tactic/core";
 import { describe, expect, it } from "vitest";
 import { validateTiledMap } from "./validate-tiled-map";
@@ -15,6 +15,58 @@ function buildTiles(width: number, height: number, terrain = TerrainType.Normal)
   return tiles;
 }
 
+function buildAllRequiredFormats(): MapFormat[] {
+  const corners: Position[] = [
+    { x: 0, y: 0 },
+    { x: 3, y: 3 },
+    { x: 3, y: 0 },
+    { x: 0, y: 3 },
+    { x: 1, y: 0 },
+    { x: 2, y: 3 },
+  ];
+  const twelve: Position[] = [
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 2, y: 0 },
+    { x: 3, y: 0 },
+    { x: 3, y: 1 },
+    { x: 3, y: 2 },
+    { x: 3, y: 3 },
+    { x: 2, y: 3 },
+    { x: 1, y: 3 },
+    { x: 0, y: 3 },
+    { x: 0, y: 2 },
+    { x: 0, y: 1 },
+  ];
+  return [
+    {
+      teamCount: 2,
+      maxPokemonPerTeam: 1,
+      spawnZones: [{ positions: [{ x: 0, y: 0 }] }, { positions: [{ x: 3, y: 3 }] }],
+    },
+    {
+      teamCount: 3,
+      maxPokemonPerTeam: 1,
+      spawnZones: corners.slice(0, 3).map((p) => ({ positions: [p] })),
+    },
+    {
+      teamCount: 4,
+      maxPokemonPerTeam: 1,
+      spawnZones: corners.slice(0, 4).map((p) => ({ positions: [p] })),
+    },
+    {
+      teamCount: 6,
+      maxPokemonPerTeam: 1,
+      spawnZones: corners.map((p) => ({ positions: [p] })),
+    },
+    {
+      teamCount: 12,
+      maxPokemonPerTeam: 1,
+      spawnZones: twelve.map((p) => ({ positions: [p] })),
+    },
+  ];
+}
+
 function buildValidMap(): MapDefinition {
   return {
     id: "test",
@@ -22,13 +74,7 @@ function buildValidMap(): MapDefinition {
     width: 4,
     height: 4,
     tiles: buildTiles(4, 4),
-    formats: [
-      {
-        teamCount: 2,
-        maxPokemonPerTeam: 1,
-        spawnZones: [{ positions: [{ x: 0, y: 0 }] }, { positions: [{ x: 3, y: 3 }] }],
-      },
-    ],
+    formats: buildAllRequiredFormats(),
   };
 }
 
@@ -96,5 +142,42 @@ describe("validateTiledMap", () => {
     map.tiles[0]![1]!.height = 2;
     const result = validateTiledMap(map);
     expect(result.warnings).toHaveLength(0);
+  });
+
+  it("rejects map missing a required format", () => {
+    const map = buildValidMap();
+    map.formats = map.formats.filter((f) => f.teamCount !== 6);
+    const result = validateTiledMap(map);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes("required format teamCount=6"))).toBe(true);
+  });
+
+  it("rejects map with no formats", () => {
+    const map = buildValidMap();
+    map.formats = [];
+    const result = validateTiledMap(map);
+    expect(result.valid).toBe(false);
+    expect(result.errors.filter((e) => e.includes("required format teamCount="))).toHaveLength(5);
+  });
+
+  it("warns about unsupported format teamCount", () => {
+    const map = buildValidMap();
+    map.formats = [
+      ...map.formats,
+      {
+        teamCount: 5,
+        maxPokemonPerTeam: 1,
+        spawnZones: [
+          { positions: [{ x: 0, y: 0 }] },
+          { positions: [{ x: 3, y: 3 }] },
+          { positions: [{ x: 3, y: 0 }] },
+          { positions: [{ x: 0, y: 3 }] },
+          { positions: [{ x: 1, y: 0 }] },
+        ],
+      },
+    ];
+    const result = validateTiledMap(map);
+    expect(result.valid).toBe(true);
+    expect(result.warnings.some((w) => w.includes("unsupported format teamCount=5"))).toBe(true);
   });
 });

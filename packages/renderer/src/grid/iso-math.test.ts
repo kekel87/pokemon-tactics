@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  gridToScreen,
-  type IsoProjectionContext,
-  screenToGridWithHeight,
-} from "./iso-math";
+import { gridToScreen, type IsoProjectionContext, screenToGridWithHeight } from "./iso-math";
 
 const context: IsoProjectionContext = {
   gridWidth: 10,

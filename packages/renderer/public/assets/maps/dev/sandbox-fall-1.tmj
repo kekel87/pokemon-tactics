@@ -22,7 +22,7 @@
         {
          "data":[1, 1, 1, 0, 0, 0,
             1, 1, 1, 0, 0, 0,
-            1, 1, 1, 0, 0, 0,
+            55, 55, 55, 0, 0, 0,
             1, 1, 1, 0, 0, 0,
             1, 1, 1, 0, 0, 0,
             1, 1, 1, 0, 0, 0],
@@ -39,25 +39,6 @@
          "y":0
         }, 
         {
-         "data":[1, 1, 1, 0, 0, 0,
-            1, 1, 1, 0, 0, 0,
-            55, 55, 55, 0, 0, 0,
-            1, 1, 1, 0, 0, 0,
-            1, 1, 1, 0, 0, 0,
-            1, 1, 1, 0, 0, 0],
-         "height":6,
-         "id":3,
-         "name":"terrain_4",
-         "offsetx":0,
-         "offsety":-32,
-         "opacity":1,
-         "type":"tilelayer",
-         "visible":true,
-         "width":6,
-         "x":0,
-         "y":0
-        }, 
-        {
          "data":[0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0,
@@ -65,7 +46,7 @@
             0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0],
          "height":6,
-         "id":4,
+         "id":3,
          "name":"decorations",
          "opacity":1,
          "type":"tilelayer",
@@ -76,7 +57,7 @@
         }, 
         {
          "draworder":"topdown",
-         "id":5,
+         "id":4,
          "name":"spawns",
          "objects":[
                 {
@@ -100,8 +81,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":16,
-                 "y":48
+                 "x":8,
+                 "y":56
                 }, 
                 {
                  "height":0,
@@ -124,8 +105,8 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":32,
-                 "y":48
+                 "x":40,
+                 "y":56
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -133,19 +114,19 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":6,
+ "nextlayerid":5,
  "nextobjectid":3,
  "orientation":"isometric",
  "properties":[
         {
          "name":"id",
          "type":"string",
-         "value":"sandbox-fall-2"
+         "value":"sandbox-fall-1"
         }, 
         {
          "name":"name",
          "type":"string",
-         "value":"Sandbox Fall 2 (drop 2)"
+         "value":"Sandbox Fall 1 (drop 1)"
         }],
  "renderorder":"right-down",
  "tiledversion":"1.12.1",
@@ -153,7 +134,7 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"..\/tilesets\/terrain\/tileset.tsj"
+         "source":"..\/..\/tilesets\/terrain\/tileset.tsj"
         }],
  "tilewidth":32,
  "type":"map",

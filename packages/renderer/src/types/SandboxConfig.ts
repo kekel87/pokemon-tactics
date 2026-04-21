@@ -27,7 +27,7 @@ export interface SandboxConfig {
   dummyStatStages: Partial<Record<StatName, number>>;
   /** Optional override for dummy spawn position. */
   dummyPosition?: Position2D;
-  /** Optional Tiled map URL (relative to public/), e.g. "assets/maps/sandbox-flat.tmj" */
+  /** Optional Tiled map URL (relative to public/), e.g. "assets/maps/dev/sandbox-flat.tmj" */
   mapUrl?: string;
   /** Toggle the red debug diamonds over decoration footprints. */
   debugDecorationsFootprint?: boolean;
@@ -49,5 +49,5 @@ export const DEFAULT_SANDBOX_CONFIG: SandboxConfig = {
   dummyStatus: null,
   dummyVolatileStatus: null,
   dummyStatStages: {},
-  mapUrl: "assets/maps/sandbox-flat.tmj",
+  mapUrl: "assets/maps/dev/sandbox-flat.tmj",
 };

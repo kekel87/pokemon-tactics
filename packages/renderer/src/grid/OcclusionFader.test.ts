@@ -19,10 +19,7 @@ function rect(left: number, top: number, size = 10): ScreenRect {
   return { left, top, right: left + size, bottom: top + size };
 }
 
-function obstacle(
-  depth: number,
-  bounds: ScreenRect,
-): OcclusionObstacle & { sprite: FakeSprite } {
+function obstacle(depth: number, bounds: ScreenRect): OcclusionObstacle & { sprite: FakeSprite } {
   return { sprite: new FakeSprite(), depth, screenBounds: bounds };
 }
 

@@ -200,11 +200,11 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"..\/tilesets\/terrain\/tileset.tsj"
+         "source":"..\/..\/tilesets\/terrain\/tileset.tsj"
         }, 
         {
          "firstgid":75,
-         "source":"..\/tilesets\/decorations\/decorations.tsj"
+         "source":"..\/..\/tilesets\/decorations\/decorations.tsj"
         }],
  "tilewidth":32,
  "type":"map",

@@ -39,7 +39,7 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 - Créer `decorations.tsj` + `decorations.png` — tileset dédié, pipeline séparée du terrain
 - Marquages d'arène : lignes (~12 tiles : segments, coins, T, croisement) + pokeball centrale (~6-8 tiles)
 - Décos environnement : herbe haute overlay, arbres, rochers (sources PMD)
-- Remplir layer `decorations` de `test-arena.tmj` + maps futures
+- Remplir layer `decorations` de `simple-arena.tmj` + maps futures
 
 ### Animations de vol + trajectoire des Flying Pokemon
 - Actuellement aucun sprite du roster n'a les animations `FlapAround` / `Hover` / `Special10`. Le fallback (`FLYING_JUMP_ANIMATION_CANDIDATES` dans `packages/renderer/src/game/movement-animation.ts`) retombe sur `Hop` / `Walk`, et `animateMoveTo` utilise un tween diagonal avec easing asymétrique sur Y — ça marche parce que le Hop sprite anim fournit déjà le lift vertical visuel.

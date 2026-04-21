@@ -104,7 +104,7 @@ pokemon-tactics/
 │   │   │   └── assets/
 │   │   │       ├── sprites/pokemon/{name}/  # atlas.json, atlas.png, portrait-normal.png, credits.txt, offsets.json (générés)
 │   │   │       ├── tilesets/terrain/        # tileset.png (custom PMD-based, 32×32px, 74 tiles, 11 terrains solides + 4 liquides) + tileset.tsj (tileset Tiled externe partagé par tous les .tmj)
-│   │   │       ├── maps/                    # Cartes Tiled (.tmj) servies au runtime (ex: test-arena.tmj)
+│   │   │       ├── maps/                    # Cartes Tiled (.tmj) servies au runtime (roster racine : simple-arena, highlands ; dev/ : sandbox-*, debug-*, tile-palette, decorations-demo)
 │   │   │       └── ui/
 │   │   │           ├── arrows.png           # Spritesheet flèches DirectionPicker
 │   │   │           ├── types/               # Type icons Pokepedia ZA (Légendes Pokémon Z-A) : {type}.png, 36x36px sans texte (18 types)

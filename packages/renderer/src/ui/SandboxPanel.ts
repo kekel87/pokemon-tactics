@@ -81,15 +81,15 @@ const DIRECTION_ENTRIES: [Direction, TranslationKey][] = [
 ];
 
 const SANDBOX_MAPS: { value: string; label: string }[] = [
-  { value: "assets/maps/sandbox-flat.tmj", label: "Sandbox Flat" },
-  { value: "assets/maps/sandbox-slopes.tmj", label: "Sandbox Slopes" },
-  { value: "assets/maps/sandbox-melee-block.tmj", label: "Sandbox Melee Block (+2)" },
-  { value: "assets/maps/sandbox-fall-1.tmj", label: "Sandbox Fall 1" },
-  { value: "assets/maps/sandbox-fall-2.tmj", label: "Sandbox Fall 2 (33%)" },
-  { value: "assets/maps/sandbox-fall-3.tmj", label: "Sandbox Fall 3 (66%)" },
-  { value: "assets/maps/sandbox-fall-4.tmj", label: "Sandbox Fall 4 (lethal)" },
-  { value: "assets/maps/sandbox-los.tmj", label: "Sandbox LoS (2 pillars)" },
-  { value: "assets/maps/decorations-demo.tmj", label: "Decorations Demo (rocks/tree/grass)" },
+  { value: "assets/maps/dev/sandbox-flat.tmj", label: "Sandbox Flat" },
+  { value: "assets/maps/dev/sandbox-slopes.tmj", label: "Sandbox Slopes" },
+  { value: "assets/maps/dev/sandbox-melee-block.tmj", label: "Sandbox Melee Block (+2)" },
+  { value: "assets/maps/dev/sandbox-fall-1.tmj", label: "Sandbox Fall 1" },
+  { value: "assets/maps/dev/sandbox-fall-2.tmj", label: "Sandbox Fall 2 (33%)" },
+  { value: "assets/maps/dev/sandbox-fall-3.tmj", label: "Sandbox Fall 3 (66%)" },
+  { value: "assets/maps/dev/sandbox-fall-4.tmj", label: "Sandbox Fall 4 (lethal)" },
+  { value: "assets/maps/dev/sandbox-los.tmj", label: "Sandbox LoS (2 pillars)" },
+  { value: "assets/maps/dev/decorations-demo.tmj", label: "Decorations Demo (rocks/tree/grass)" },
 ];
 
 const PANEL_STYLE = `

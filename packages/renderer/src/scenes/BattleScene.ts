@@ -170,7 +170,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private async initSandboxBattle(uiScene: BattleUIScene, config: SandboxConfig): Promise<void> {
-    const mapUrl = config.mapUrl ?? "assets/maps/sandbox-flat.tmj";
+    const mapUrl = config.mapUrl ?? "assets/maps/dev/sandbox-flat.tmj";
     const loaded = await loadTiledMap(mapUrl);
     const tiledMap = loaded.map;
     const maxHeight = loaded.heightData.length > 0 ? Math.max(...loaded.heightData) : 0;
@@ -270,7 +270,7 @@ export class BattleScene extends Phaser.Scene {
     teamSelectResult: TeamSelectResult,
   ): Promise<void> {
     const { autoPlacement, turnSystemKind } = teamSelectResult;
-    const loaded = await loadTiledMap("assets/maps/test-arena.tmj");
+    const loaded = await loadTiledMap("assets/maps/simple-arena.tmj");
     const map = loaded.map;
     const teamCount = teamSelectResult.teams.length;
     const format = map.formats.find((f) => f.teamCount === teamCount);
