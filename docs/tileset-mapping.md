@@ -44,20 +44,26 @@ Chaque groupe solide contient, dans l'ordre : `full` · `half-a` (flanc homogèn
 
 > **magma = solide** : roche volcanique refroidie, marchable. À ne pas confondre avec `lava` (liquide, coulée en fusion).
 
-### Terrains liquides (4 × 2 lignes chacun)
+### Terrains liquides (4 × 3 lignes chacun)
 
-| tile_id | groupe     | terrain (gameplay) | sheet + top | sheet + flanc |
-|---------|------------|--------------------|-------------|---------------|
-| 66      | water      | water              | `miracle-sea` ground (1,1) | identique au top |
-| 68      | deep_water | deep_water         | `miracle-sea` water (1,1) | identique au top |
-| 70      | lava       | lava               | `magma-cavern-b18f-b23f` lava (1,1) | identique au top |
-| 72      | swamp      | swamp              | `poison-maze` ground (1,1) | identique au top |
+Chaque groupe liquide contient `full` + `half-a` + séparateur.
 
-Chaque groupe liquide ne contient qu'une `full`, suivi d'une ligne vide.
+| tile_id | groupe     | role   | terrain    | sheet + top                      |
+|---------|------------|--------|------------|----------------------------------|
+| 66      | water      | full   | water      | `miracle-sea` shallow water      |
+| 67      | water      | half-a | water      | idem                             |
+| 69      | deep_water | full   | deep_water | `miracle-sea` deep water         |
+| 70      | deep_water | half-a | deep_water | idem                             |
+| 72      | lava       | full   | lava       | `magma-cavern-b18f-b23f` lava    |
+| 73      | lava       | half-a | lava       | idem                             |
+| 75      | swamp      | full   | swamp      | `poison-maze` ground             |
+| 76      | swamp      | half-a | swamp      | idem                             |
+
+Note : water (shallow, turquoise clair) et deep_water (bleu foncé) sont **visuellement distincts** depuis la régénération du tileset 2026-04-23. Avant, les deux GIDs produisaient la même couleur par bug d'extraction.
 
 ### Séparateurs
 
-Lignes 5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 67, 69, 71, 73 — tile transparente sans propriété. Si une map y pointe, le renderer n'affiche rien.
+Lignes 5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 68, 71, 74, 77 — tile transparente sans propriété. Si une map y pointe, le renderer n'affiche rien.
 
 ## Rôles par groupe solide (5 lignes)
 
@@ -73,10 +79,12 @@ Les variantes E (escalier E, pente E) sont obtenues **au rendu** via le flip
 horizontal de Tiled (bit 31 du GID), décodé par `decodeTiledGid` dans
 `packages/data/src/tiled/tiled-utils.ts`.
 
-## Rôles par groupe liquide (1 ligne)
+## Rôles par groupe liquide (2 lignes)
 
-1. **Tile pleine** — unique rôle pour le moment. Pas de demi-tile, pas de pente,
-   pas de cascade (décision plan 050).
+1. **Tile pleine** (`full`) — hauteur complète, height=1.0
+2. **Demi-tile A** (`half-a`) — demi-hauteur, height=0.5 (ajoutée 2026-04-23 pour cratères, cuvettes, marais peu profonds)
+
+Pas de pente ni de cascade sur les liquides (décision plan 050, toujours valable).
 
 ## Génération
 

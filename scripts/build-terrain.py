@@ -47,6 +47,7 @@ TILES_SOLID = [
 
 TILES_LIQUID = [
     ("full",     "full",     "side"),
+    ("half-a",   "half",     "top"),
 ]
 TILE_W, TILE_H = 32, 32
 SCRIPT_DIR = Path(__file__).resolve().parent
