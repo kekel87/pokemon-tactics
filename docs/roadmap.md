@@ -129,7 +129,8 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] **Occlusion dynamique par sprite** — fix depth tiles surélevées (`DEPTH_RAISED_TILE_BASE`), Alt-click picking multi-niveaux (`COLOR_CURSOR_ALT`), module `OcclusionFader` (fade alpha 0.4 quand Pokemon derrière obstacle, AABB screen-space, pipeline reset→test→apply). **Phase 3.5 rewrite Babylon repoussée après Phase 7** suite au succès visuel (décision #272). — plan 065
 - [x] Roster de maps variées (dénivelés, types de terrain, décors, tailles) — 7 maps thématiques livrées : forest (14×14), cramped-cave (12×12), le-mur (16×16), volcano (14×14), swamp (14×14), desert (14×14), naval-arena (14×14). Toutes multi-format (5 objectgroups spawns). Plan 066 terminé 2026-04-23.
 - [ ] Génération de maps par IA (prompt → `MapDefinition` ou .tmj valide, review humain avant intégration) — remonté de Phase 3.6 en 2026-04-20. Alimente le roster. Pipeline `parseTiledMap` + `validateTiledMap` déjà en place (plan 045) → l'IA produit un `.tmj` ou directement un `MapDefinition`, on valide, on itère.
-- [ ] Choix de maps depuis l'UI (écran de sélection, preview, metadata) — remonté de Phase 3.6 en 2026-04-20 (idem, indépendant de Babylon).
+- [x] Choix de maps depuis l'UI (écran de sélection, preview, metadata) — plan 067 terminé 2026-04-23.
+- [ ] Remplacer `le-mur` par une map toundra plate (terrain ouvert, grande carte, mécanique different de l'actuelle).
 
 ### Décisions prises — Format de carte (plan 045)
 
@@ -167,7 +168,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 > But : des outils pour tester et équilibrer avant d'ouvrir le multi
 
 - [ ] IA LLM (Claude adversaire)
-- [ ] Mode headless + outils d'équilibrage
+- [ ] Mode headless + outils d'équilibrage — **prérequis** : déplacer les `.tmj` dans `packages/data/src/maps/tiled/` (source de vérité) et ajouter un `loadMapDefinition(id)` Node-compatible (fs + parseTiledMap). Aujourd'hui les maps sont dans `packages/renderer/public/` et chargées via `fetch()` HTTP — inutilisable sans browser.
 - [ ] Passes d'équilibrage
 
 ---

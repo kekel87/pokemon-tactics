@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-23 (plan 066 terminé — roster 7 maps thématiques : forest, cramped-cave, le-mur, volcano, swamp, desert, naval-arena)
+> Dernière mise à jour : 2026-04-23 (plan 067 terminé — écran de sélection de carte)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -845,6 +845,13 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
   - **Maps disponibles** (roster joueur, racine `maps/`) :
     - `simple-arena.tmj` — arène générique 12×20, gabarit de référence
     - `forest.tmj`, `cramped-cave.tmj`, `le-mur.tmj`, `volcano.tmj`, `swamp.tmj`, `desert.tmj`, `naval-arena.tmj` — 7 maps thématiques
+
+- **Plan 067 terminé (2026-04-23)** — Écran de sélection de carte :
+  - Nouvel écran `MapSelectScene` dans le renderer : grille de cartes avec preview isométrique, metadata (nom, taille, formats disponibles), bouton de sélection
+  - Intégration dans le flow de navigation : `MainMenuScene` → `TeamSelectScene` → `MapSelectScene` → `PlacementScene` → `BattleScene`
+  - Chargement dynamique du roster de maps depuis `packages/renderer/public/assets/maps/` (fetch manifest ou liste statique)
+  - i18n FR/EN des labels (nom des maps, boutons)
+  - Il reste en Phase 3 : génération de maps par IA + remplacement de `le-mur` par une map toundra plate
 
 - **Plan 064 terminé (2026-04-20)** — Décorations et obstacles Tiled :
   - **Core** : `canTraverse` et `canStopOn` étendus pour Ghost (`isGhost: boolean`, `toTerrain: TerrainType`). Ghost traverse tout obstacle sans pouvoir s'y arrêter. Priorité Vol > Ghost si double type. Décision #270.

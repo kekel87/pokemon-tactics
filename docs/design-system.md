@@ -283,6 +283,17 @@ La clé i18n `battle.fall` (FR "Chute", EN "Fall") est utilisée par le handler 
 | Texte normal | `#ffffff` | Options actives |
 | Texte disabled | `#aaaaaa` | Options désactivées (alpha 0.4) |
 
+### Écran de sélection de carte (plan 067)
+
+| Élément | Hex | Constante |
+|---------|-----|-----------|
+| Panneau gauche (fond) | `#14142a` | `MAP_SELECT_LEFT_PANEL_BG_COLOR` |
+| Item liste (normal) | `#222235` | `MAP_SELECT_LIST_ITEM_COLOR` |
+| Item liste (sélectionné) | `#335577` | `MAP_SELECT_LIST_ITEM_SELECTED_COLOR` |
+| Item liste (hover) | `#2a2a45` | `MAP_SELECT_LIST_ITEM_HOVER_COLOR` |
+| Panneau détails (fond) | `#111122` | `MAP_SELECT_DETAILS_BG_COLOR` (alpha 0.75 via `MAP_SELECT_DETAILS_BG_ALPHA`) |
+| Preview iso (fond) | `#0a0a18` | `MAP_SELECT_PREVIEW_BG_COLOR` |
+
 ---
 
 ## Stat Badges (InfoPanel)

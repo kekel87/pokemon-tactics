@@ -10,6 +10,41 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 ### ~~Régénérer le tileset.png avec les brightness uniformes (plan 055)~~
 - Fix : 15 colonnes régénérées avec `LEFT_BRIGHTNESS = RIGHT_BRIGHTNESS = 0.65`, tileset assemblé (32x2368px, 74 tiles). Validation visuelle OK en jeu (2026-04-17).
 
+### Transparence tiles/décos dans le visionneur de maps (2026-04-23)
+- Certaines tiles et décorations s'affichent avec de la transparence dans le visionneur de maps (map viewer du renderer).
+- **Confirmé en jeu normal** (2026-04-23 post plan 067) : présent aussi dans `MapSelectPreviewScene` et en combat. Bug global du renderer iso, pas spécifique au visionneur.
+- **Cas d'étude = Le Mur** : c'est sur cette map que le bug est le plus flagrant (la moitié de la map est invisible). Utiliser `le-mur.tmj` pour reproduire et investiguer. Map retirée du menu de sélection en attendant.
+
+### Le Mur — gameplay cassé (2026-04-23)
+- Map `le-mur.tmj` retirée du menu de sélection (`maps-registry.ts`) — fichier conservé sur disque pour le debug transparence.
+- Problèmes identifiés au playtest :
+  - Transparence défaillante : on ne voit pas la moitié de la map (voir bug transparence ci-dessus).
+  - Pokemon trop lents sur la neige — modifier terrain `slow` excessif pour une map axée traversée du mur, à revoir.
+  - IA perdue sur les chemins verticaux (escaliers), ne comprend pas bien comment monter/descendre.
+- Remplacement prévu : une map de glace plus plate (type **toundra**) dans un plan dédié.
+
+### MapSelectPreviewScene — crash `cameras.main` undefined au retour menu (2026-04-23)
+- Fix appliqué 2026-04-23 : `setLayout` et `create` gardent le layout en propriété, `setLayout` no-op si caméra pas encore prête.
+- Cause : `setLayout` pouvait être appelé depuis `MapSelectScene.create()` avant que `MapSelectPreviewScene.create()` ait tourné (race au 2e passage après SHUTDOWN + relaunch).
+
+### simple-arena non centrée dans le preview (2026-04-23)
+- Fix appliqué 2026-04-23 : `applyCameraFit` prend en compte le décalage horizontal `(gridWidth - gridHeight) * TILE_WIDTH / 4` pour les grilles non carrées (simple-arena est 12×20).
+
+## Notes IA (pour plus tard, à regrouper en un plan d'amélioration IA)
+
+### IA — pathfinding sur dénivelés complexes (2026-04-23)
+- Observé sur `le-mur.tmj` : l'IA a du mal à identifier les chemins verticaux (escaliers d'accès au mur), notamment les chokepoints N/S cols 5-6, 10-11.
+- À retester une fois le remplacement toundra livré pour voir si c'est général ou spécifique au layout du Mur.
+
+### IA — aversion terrains dangereux (2026-04-23)
+- L'IA marche sur les tiles poison (`swamp`) et magma (`volcano`) sans aversion.
+- À ajouter : malus de score sur les tiles dangereuses selon le type du Pokemon (immune/résistant/faible).
+- Scope : `packages/core/src/ai/scoring.ts` (ou équivalent).
+
+### IA — support Charge Time (CT) (2026-04-23)
+- L'IA actuelle (`AiTeamController`) ne tient pas compte du système CT — elle raisonne en tour-par-tour.
+- À vérifier : est-ce que l'IA joue correctement ses tours en mode CT ? Si oui, l'améliorer pour exploiter les coûts CT (moves lents vs rapides, prédiction du prochain tour).
+
 ### Afficher les modificateurs terrain actifs dans l'InfoPanel
 - Quand on retravaille l'InfoPanel, afficher les effets terrain en cours sur la tile du Pokemon sélectionné/survolé (ex: "Évasion +1 (herbe haute)", "Brûlure au passage (magma)", "Malus déplacement +2 (marécage)").
 - Lié à l'étape 22 du plan 051 (terrain dans tooltip).
