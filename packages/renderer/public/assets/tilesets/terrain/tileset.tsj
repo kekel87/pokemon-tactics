@@ -1,12 +1,12 @@
 {
   "columns": 1,
   "image": "tileset.png",
-  "imageheight": 2368,
+  "imageheight": 2496,
   "imagewidth": 32,
   "margin": 0,
   "name": "terrain",
   "spacing": 0,
-  "tilecount": 74,
+  "tilecount": 78,
   "tiledversion": "1.10.2",
   "tileheight": 32,
   "tilewidth": 32,
@@ -964,7 +964,22 @@
       ]
     },
     {
-      "id": 68,
+      "id": 67,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "water"
+        }
+      ]
+    },
+    {
+      "id": 69,
       "properties": [
         {
           "name": "height",
@@ -984,12 +999,12 @@
         {
           "name": "height",
           "type": "float",
-          "value": 1.0
+          "value": 0.5
         },
         {
           "name": "terrain",
           "type": "string",
-          "value": "lava"
+          "value": "deep_water"
         }
       ]
     },
@@ -1000,6 +1015,51 @@
           "name": "height",
           "type": "float",
           "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "lava"
+        }
+      ]
+    },
+    {
+      "id": 73,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "lava"
+        }
+      ]
+    },
+    {
+      "id": 75,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 1.0
+        },
+        {
+          "name": "terrain",
+          "type": "string",
+          "value": "swamp"
+        }
+      ]
+    },
+    {
+      "id": 76,
+      "properties": [
+        {
+          "name": "height",
+          "type": "float",
+          "value": 0.5
         },
         {
           "name": "terrain",

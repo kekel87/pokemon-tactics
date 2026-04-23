@@ -1,124 +1,195 @@
-{ "compressionlevel":-1,
- "height":6,
- "infinite":false,
- "layers":[
-        {
-         "data":[1, 1, 1, 1, 7, 7,
-            1, 1, 1, 1, 1, 1,
-            25, 55, 73, 49, 67, 61,
-            25, 55, 73, 49, 67, 61,
-            1, 1, 1, 1, 1, 1,
-            71, 1, 1, 1, 1, 69],
-         "height":6,
-         "id":1,
-         "name":"terrain",
-         "opacity":1,
-         "type":"tilelayer",
-         "visible":true,
-         "width":6,
-         "x":0,
-         "y":0
-        }, 
-        {
-         "data":[0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0],
-         "height":6,
-         "id":2,
-         "name":"decorations",
-         "opacity":1,
-         "type":"tilelayer",
-         "visible":true,
-         "width":6,
-         "x":0,
-         "y":0
-        }, 
-        {
-         "draworder":"topdown",
-         "id":3,
-         "name":"spawns",
-         "objects":[
-                {
-                 "height":0,
-                 "id":1,
-                 "name":"spawn-player",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":0
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":40,
-                 "y":72
-                }, 
-                {
-                 "height":0,
-                 "id":2,
-                 "name":"spawn-dummy",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"formatTeamCount",
-                         "type":"int",
-                         "value":2
-                        }, 
-                        {
-                         "name":"teamIndex",
-                         "type":"int",
-                         "value":1
-                        }],
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":40,
-                 "y":24
-                }],
-         "opacity":1,
-         "type":"objectgroup",
-         "visible":true,
-         "x":0,
-         "y":0
-        }],
- "nextlayerid":4,
- "nextobjectid":3,
- "orientation":"isometric",
- "properties":[
-        {
-         "name":"id",
-         "type":"string",
-         "value":"sandbox-flat"
-        }, 
-        {
-         "name":"name",
-         "type":"string",
-         "value":"Sandbox Flat"
-        }],
- "renderorder":"right-down",
- "tiledversion":"1.12.1",
- "tileheight":16,
- "tilesets":[
-        {
-         "firstgid":1,
-         "source":"..\/..\/tilesets\/terrain\/tileset.tsj"
-        }],
- "tilewidth":32,
- "type":"map",
- "version":"1.10",
- "width":6
+{
+ "compressionlevel": -1,
+ "height": 6,
+ "infinite": false,
+ "layers": [
+  {
+   "data": [
+    1,
+    1,
+    1,
+    1,
+    7,
+    7,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    25,
+    55,
+    76,
+    49,
+    67,
+    61,
+    25,
+    55,
+    76,
+    49,
+    67,
+    61,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    73,
+    1,
+    1,
+    1,
+    1,
+    70
+   ],
+   "height": 6,
+   "id": 1,
+   "name": "terrain",
+   "opacity": 1,
+   "type": "tilelayer",
+   "visible": true,
+   "width": 6,
+   "x": 0,
+   "y": 0
+  },
+  {
+   "data": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "height": 6,
+   "id": 2,
+   "name": "decorations",
+   "opacity": 1,
+   "type": "tilelayer",
+   "visible": true,
+   "width": 6,
+   "x": 0,
+   "y": 0
+  },
+  {
+   "draworder": "topdown",
+   "id": 3,
+   "name": "spawns",
+   "objects": [
+    {
+     "height": 0,
+     "id": 1,
+     "name": "spawn-player",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 0
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 40,
+     "y": 72
+    },
+    {
+     "height": 0,
+     "id": 2,
+     "name": "spawn-dummy",
+     "opacity": 1,
+     "point": true,
+     "properties": [
+      {
+       "name": "formatTeamCount",
+       "type": "int",
+       "value": 2
+      },
+      {
+       "name": "teamIndex",
+       "type": "int",
+       "value": 1
+      }
+     ],
+     "rotation": 0,
+     "type": "",
+     "visible": true,
+     "width": 0,
+     "x": 40,
+     "y": 24
+    }
+   ],
+   "opacity": 1,
+   "type": "objectgroup",
+   "visible": true,
+   "x": 0,
+   "y": 0
+  }
+ ],
+ "nextlayerid": 4,
+ "nextobjectid": 3,
+ "orientation": "isometric",
+ "properties": [
+  {
+   "name": "id",
+   "type": "string",
+   "value": "sandbox-flat"
+  },
+  {
+   "name": "name",
+   "type": "string",
+   "value": "Sandbox Flat"
+  }
+ ],
+ "renderorder": "right-down",
+ "tiledversion": "1.12.1",
+ "tileheight": 16,
+ "tilesets": [
+  {
+   "firstgid": 1,
+   "source": "../../tilesets/terrain/tileset.tsj"
+  }
+ ],
+ "tilewidth": 32,
+ "type": "map",
+ "version": "1.10",
+ "width": 6
 }

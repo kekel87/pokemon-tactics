@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-21 soir (plan 066 étape 3 v4 — pivot vers 1 layer Tiled par format, remplissage manuel, Custom Types colorés inlinés dans `.tiled-project`)
+> Dernière mise à jour : 2026-04-23 (plan 066 terminé — roster 7 maps thématiques : forest, cramped-cave, le-mur, volcano, swamp, desert, naval-arena)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -831,6 +831,20 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
   - **Partie B — Alt-click picking modifier** : maintenir Alt lors du clic iso sélectionne la tile sous un pilier multi-niveaux (hauteur terrain, pas hauteur obstacle). Curseur variante `"alt"` jaune chaud (`COLOR_CURSOR_ALT = 0xffd54f`).
   - **Partie C — `OcclusionFader`** : nouveau module `packages/renderer/src/grid/OcclusionFader.ts`. Pipeline reset→test→apply : chaque frame, pour chaque obstacle devant un Pokemon (AABB screen-space overlap + depth > pokemon.depth + `OCCLUSION_DEPTH_EPSILON=0.5`), applique `OCCLUSION_FADE_ALPHA=0.4`. Helper `getPokemonScreenBounds` dans `sprite-bounds.ts` fournit l'AABB centré (`POKEMON_OCCLUSION_BBOX_SIZE=24`). Phase 3.5 rewrite Babylon repoussée après Phase 7 suite au succès visuel (décision #272).
   - Gate CI : 1067 unit / 107 integration / 6 scenario, tout vert.
+
+- **Plan 066 terminé (2026-04-23)** — Roster de 7 maps thématiques :
+  - **7 maps livrées** dans `packages/renderer/public/assets/maps/` :
+    - `forest.tmj` (14×14) — forêt dense, herbe haute, obstacles organiques
+    - `cramped-cave.tmj` (12×12) — caverne étroite, couloirs, dénivelés
+    - `le-mur.tmj` (16×16) — grande map, mur central franchissable, asymétrie tactique
+    - `volcano.tmj` (14×14) — lava centrale, magma, hauteurs élevées
+    - `swamp.tmj` (14×14) — marécage, ralentissements, eau profonde
+    - `desert.tmj` (14×14) — sable, obstacles dispersés, lignes de vue longues
+    - `naval-arena.tmj` (14×14) — archipel des pontons, eau/deep_water, sauts tactiques
+  - **Multi-format** : toutes les maps ont 5 objectgroups de spawns (`spawns_1v1`, `spawns_3p`, `spawns_4p`, `spawns_6p`, `spawns_12p`) et passent `validateTiledMap` avec `requireAllFormats`
+  - **Maps disponibles** (roster joueur, racine `maps/`) :
+    - `simple-arena.tmj` — arène générique 12×20, gabarit de référence
+    - `forest.tmj`, `cramped-cave.tmj`, `le-mur.tmj`, `volcano.tmj`, `swamp.tmj`, `desert.tmj`, `naval-arena.tmj` — 7 maps thématiques
 
 - **Plan 064 terminé (2026-04-20)** — Décorations et obstacles Tiled :
   - **Core** : `canTraverse` et `canStopOn` étendus pour Ghost (`isGhost: boolean`, `toTerrain: TerrainType`). Ghost traverse tout obstacle sans pouvoir s'y arrêter. Priorité Vol > Ghost si double type. Décision #270.
