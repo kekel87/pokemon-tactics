@@ -35,7 +35,7 @@ export class BattleModeScene extends Phaser.Scene {
       })
       .setOrigin(0.5, 0.5);
 
-    this.createMenuButton(0, "battleMode.local", () => this.scene.start("TeamSelectScene"));
+    this.createMenuButton(0, "battleMode.local", () => this.scene.start("MapSelectScene"));
     this.createMenuButton(1, "battleMode.online");
     this.createMenuButton(2, "battleMode.tutorial");
 

@@ -147,6 +147,9 @@ export interface Translations {
   "battleMode.online": string;
   "battleMode.tutorial": string;
   "battleMode.back": string;
+  "mapSelect.title": string;
+  "mapSelect.confirm": string;
+  "mapSelect.back": string;
   "settings.title": string;
   "settings.language": string;
   "settings.damagePreview": string;

@@ -269,8 +269,8 @@ export class BattleScene extends Phaser.Scene {
     uiScene: BattleUIScene,
     teamSelectResult: TeamSelectResult,
   ): Promise<void> {
-    const { autoPlacement, turnSystemKind } = teamSelectResult;
-    const loaded = await loadTiledMap("assets/maps/simple-arena.tmj");
+    const { autoPlacement, turnSystemKind, mapUrl } = teamSelectResult;
+    const loaded = await loadTiledMap(mapUrl);
     const map = loaded.map;
     const teamCount = teamSelectResult.teams.length;
     const format = map.formats.find((f) => f.teamCount === teamCount);

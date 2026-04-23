@@ -9,6 +9,8 @@ import { CreditsScene } from "./scenes/CreditsScene";
 import { MainMenuScene } from "./scenes/MainMenuScene";
 import { MapPreviewScene } from "./scenes/MapPreviewScene";
 import { MapPreviewUIScene } from "./scenes/MapPreviewUIScene";
+import { MapSelectPreviewScene } from "./scenes/MapSelectPreviewScene";
+import { MapSelectScene } from "./scenes/MapSelectScene";
 import { SettingsScene } from "./scenes/SettingsScene";
 import { TeamSelectScene } from "./scenes/TeamSelectScene";
 import { initSettings } from "./settings";
@@ -30,6 +32,8 @@ function getScenes(): Phaser.Types.Scenes.SceneType[] {
     BattleModeScene,
     SettingsScene,
     CreditsScene,
+    MapSelectScene,
+    MapSelectPreviewScene,
     TeamSelectScene,
     BattleScene,
     BattleUIScene,

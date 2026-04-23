@@ -73,7 +73,10 @@ export interface TeamSelectResult {
   teams: TeamSelection[];
   autoPlacement: boolean;
   turnSystemKind: TurnSystemKind;
+  mapUrl: string;
 }
+
+const DEFAULT_MAP_URL = "assets/maps/simple-arena.tmj";
 
 export class TeamSelectScene extends Phaser.Scene {
   private pokemonDefinitions: PokemonDefinition[] = [];
@@ -94,9 +97,14 @@ export class TeamSelectScene extends Phaser.Scene {
   private turnSystemKind: TurnSystemKind = TurnSystemKind.ChargeTime;
   private turnSystemToggleBg: Phaser.GameObjects.Rectangle | null = null;
   private turnSystemToggleText: Phaser.GameObjects.Text | null = null;
+  private mapUrl: string = DEFAULT_MAP_URL;
 
   constructor() {
     super("TeamSelectScene");
+  }
+
+  init(data: { mapUrl?: string }): void {
+    this.mapUrl = data.mapUrl ?? DEFAULT_MAP_URL;
   }
 
   preload(): void {
@@ -948,6 +956,7 @@ export class TeamSelectScene extends Phaser.Scene {
       teams,
       autoPlacement: this.autoPlacement,
       turnSystemKind: this.turnSystemKind,
+      mapUrl: this.mapUrl,
     };
 
     this.scene.start("BattleScene", { teamSelectResult: result });
