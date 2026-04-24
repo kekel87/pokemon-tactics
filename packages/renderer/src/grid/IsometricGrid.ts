@@ -17,8 +17,6 @@ import {
   DEPTH_RAISED_TILE_BASE,
   DEPTH_TILE_MAX_ELEVATION,
   GRID_SIZE,
-  TERRAIN_TINT,
-  TERRAIN_TINT_ALPHA,
   TILE_FILL_COLOR,
   TILE_HEIGHT,
   TILE_HIGHLIGHT_ATTACK_COLOR,
@@ -193,29 +191,6 @@ export class IsometricGrid {
         }
       }
     }
-
-    this.drawTerrainTints();
-  }
-
-  private drawTerrainTints(): void {
-    this.tileGraphics.clear();
-    for (let y = 0; y < this.gridHeight; y++) {
-      for (let x = 0; x < this.gridWidth; x++) {
-        const index = y * this.gridWidth + x;
-        const terrain = this.terrainData[index];
-        if (!terrain) {
-          continue;
-        }
-        const tintColor = TERRAIN_TINT[terrain];
-        if (tintColor === undefined) {
-          continue;
-        }
-        this.drawTile(this.tileGraphics, x, y, tintColor, tintColor, TERRAIN_TINT_ALPHA);
-      }
-    }
-    this.tileGraphics.setDepth(
-      DEPTH_GRID_TILES + this.gridWidth * this.gridHeight * DEPTH_TILE_MAX_ELEVATION + 1,
-    );
   }
 
   getTileHeight(gridX: number, gridY: number): number {
