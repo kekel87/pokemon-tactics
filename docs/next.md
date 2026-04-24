@@ -4,11 +4,10 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## À faire maintenant
 
-- **Phase 3 — 2 items ouverts** :
-  - *Génération de maps par IA* — prompt → `.tmj` valide → review humain → intégration roster. Pipeline `parseTiledMap` + `validateTiledMap` en place (plan 045). Agent `level-designer` calibré (one-shot Write). Alimente le roster.
-  - *Remplacer `le-mur` par une map toundra plate* — `le-mur.tmj` actuelle (mur glacé multi-niveaux) potentiellement trop complexe comme arène de référence. Remplacer par une toundra plate ouverte (terrain snow/normal, quelques obstacles dispersés, bonne lisibilité). À discuter avec l'humain.
+- **Phase 3 — 1 item ouvert** :
+  - *Génération de maps par IA* — prompt → `.tmj` valide → review humain → intégration roster. Pipeline `parseTiledMap` + `validateTiledMap` en place (plan 045). Agent `level-designer` calibré (one-shot Write). Alimente le roster. *(Toundra livrée hors plan — remplace l'item "toundra plate".)*
 - **[A CRÉER] Plan de rattrapage warnings lint**. Constat : **85 warnings Biome accumulés depuis le début** sans gate bloquant. Breakdown : 52 `nursery/useExplicitType` (règle nursery, instable), 27 `style/useNamingConvention`, 4 `suspicious/noEmptyBlockStatements`, 2 `style/noNonNullAssertion`. **Décisions à prendre** : (a) désactiver `nursery/useExplicitType` (règle instable, pollue le signal) — supprime 52 warnings ; (b) fixer vraiment les 33 restants (naming + blocks vides + non-null assertions) ; (c) élever le gate CI à `--max-warnings 0` pour ne plus régresser.
-- **Prochaine session — décider entre ces 3 chantiers** : génération maps IA, remplacement `le-mur` par toundra, ou plan lint warnings. Les deux premiers terminent la Phase 3 ; le lint est orthogonal.
+- **Prochaine session — décider entre** : génération maps IA (dernier item Phase 3) ou plan lint warnings (orthogonal).
 - **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches documentées dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles découpé, peinture manuelle Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour une arène propre rapide, ou reporter post-Babylon pour utiliser `DecalMap`. Ne pas oublier.
 - **Éditeur de terrain / génération IA + choix/ajout de maps** → **Phase 3.6 « Maps & Éditeur », positionnée après Phase 7** (liée à Babylon). Voir `docs/roadmap.md`.
 - **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20, conditionnée par la réussite du plan 065). Plan numéroté au moment de sa rédaction. Pistes à garder sous le coude quand on l'ouvre :
@@ -25,6 +24,7 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## Fait récemment
 
+- 2026-04-24 — **Toundra livrée (hors plan)**. Map 12×12 neige/glace : corridor de glace central (rows 5-6, 16 tiles), 2 patches glace NW+SE, 6 rochers, 2 arbres, 5 formats spawn. 1117 unit + 107 intégration verts.
 - 2026-04-23 — **Plan 067 terminé — Écran de sélection de carte**. `MapSelectScene` : grille de maps avec preview, metadata, formats disponibles. Intégration dans le flow TeamSelect → MapSelect → Placement → Battle. i18n FR/EN. Phase 3 quasi-terminée — il reste génération IA + remplacement `le-mur`.
 - 2026-04-23 — **Plan 066 étape 4 — `naval-arena.tmj` livrée (Archipel des Pontons)**. 14×14, deep_water partout (impassable, LethalTerrainKo si knockback), 3 pontons wood (cols 2-3, 6-7, 10-11) qui rejoignent le sable (rows 3-10), 2 cross-bridges larges (rows 6 et 8) connectant les 3 pontons, sable comme rive N (rows 0-2) et S (rows 11-13). Plan 066 complet — 7 maps thématiques livrées. Tests 1113/1113 + intégration 107/107.
 - 2026-04-23 — **Plan 066 étape 4 — `desert.tmj` livrée (Dunes et Ruines)**. 14×14, désert ouvert avec 4 dunes en vagues organiques aux 4 coins (crête h=2.0 entourée de steps h=1.5), 2 petites ruines pave 2×2 (centre N et S) avec 4 piliers cobblestone h=3.0 debout aux cols 6-7 rows 4, 10 (isolés = Pokemon contourne). Sable slow +1 (Ground/Flying immune), ruines normales = fast corridor central. Piliers h=3.0 cassent la LoS verticale. Tests 1223/1223.
