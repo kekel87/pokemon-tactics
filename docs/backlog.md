@@ -10,18 +10,15 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 ### ~~Régénérer le tileset.png avec les brightness uniformes (plan 055)~~
 - Fix : 15 colonnes régénérées avec `LEFT_BRIGHTNESS = RIGHT_BRIGHTNESS = 0.65`, tileset assemblé (32x2368px, 74 tiles). Validation visuelle OK en jeu (2026-04-17).
 
-### Transparence tiles/décos dans le visionneur de maps (2026-04-23)
-- Certaines tiles et décorations s'affichent avec de la transparence dans le visionneur de maps (map viewer du renderer).
-- **Confirmé en jeu normal** (2026-04-23 post plan 067) : présent aussi dans `MapSelectPreviewScene` et en combat. Bug global du renderer iso, pas spécifique au visionneur.
-- **Cas d'étude = Le Mur** : c'est sur cette map que le bug est le plus flagrant (la moitié de la map est invisible). Utiliser `le-mur.tmj` pour reproduire et investiguer. Map retirée du menu de sélection en attendant.
+### ~~Transparence tiles/décos dans le visionneur de maps (2026-04-23)~~
+- Fix 2026-04-24 (commit `59e8b25`) : suppression du système `TERRAIN_TINT` qui forçait un tint alpha sur les tiles water/ice. Bug global renderer iso résolu.
 
 ### Le Mur — gameplay cassé (2026-04-23)
-- Map `le-mur.tmj` retirée du menu de sélection (`maps-registry.ts`) — fichier conservé sur disque pour le debug transparence.
-- Problèmes identifiés au playtest :
-  - Transparence défaillante : on ne voit pas la moitié de la map (voir bug transparence ci-dessus).
-  - Pokemon trop lents sur la neige — modifier terrain `slow` excessif pour une map axée traversée du mur, à revoir.
-  - IA perdue sur les chemins verticaux (escaliers), ne comprend pas bien comment monter/descendre.
-- Remplacement prévu : une map de glace plus plate (type **toundra**) dans un plan dédié.
+- Map `le-mur.tmj` retirée du menu de sélection (`maps-registry.ts`).
+- Bug transparence **résolu** (commit `59e8b25`). Les problèmes restants :
+  - Pokemon trop lents sur la neige — terrain `slow` excessif pour une map axée traversée, à revoir.
+  - IA perdue sur les chemins verticaux (escaliers), ne comprend pas bien monter/descendre.
+- La toundra a été livrée comme alternative. **Le Mur ne peut pas être réintégré sans rotation de caméra** — injouable en vue iso fixe (les escaliers N/S sont aveugles). À reconsidérer quand la rotation sera implémentée (Phase 3.5 Babylon ou plus tard).
 
 ### MapSelectPreviewScene — crash `cameras.main` undefined au retour menu (2026-04-23)
 - Fix appliqué 2026-04-23 : `setLayout` et `create` gardent le layout en propriété, `setLayout` no-op si caméra pas encore prête.

@@ -16,7 +16,6 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 ## Reporté / à refaire
 
 - **UI (menus, panels, timeline, log)** — à décider : rester en Phaser overlay 2D au-dessus du canvas 3D, ou passer en HTML/CSS par-dessus. À trancher après le spike selon la stack retenue.
-- **Bug transparence demi-tiles** — visible sur plusieurs maps avec des tiles `half` (eau, glace, etc.) — problème alpha ou depth dans le renderer iso Phaser. À investiguer avant Phase 4 ou avant le rewrite Babylon.
 
 ## Fait récemment
 

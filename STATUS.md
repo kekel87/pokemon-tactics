@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-23 (plan 067 terminé — écran de sélection de carte)
+> Dernière mise à jour : 2026-04-24 (bugfix transparence naval-arena — suppression TERRAIN_TINT)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -852,6 +852,13 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
   - Chargement dynamique du roster de maps depuis `packages/renderer/public/assets/maps/` (fetch manifest ou liste statique)
   - i18n FR/EN des labels (nom des maps, boutons)
   - Il reste en Phase 3 : génération de maps par IA + remplacement de `le-mur` par une map toundra plate
+
+- **Session 2026-04-24 — Bugfix transparence naval-arena (non commité)** :
+  - **Contexte** : la map `naval-arena` (archipel pontons, eau/deep_water) apparaissait avec des tiles semi-transparentes à cause de l'overlay terrain tint posé à `alpha=0.25` sur chaque tile.
+  - **Fix** : suppression complète du système `TERRAIN_TINT` — constantes `TERRAIN_TINT` et `TERRAIN_TINT_ALPHA` retirées de `constants.ts`, méthode `drawTerrainTints()` supprimée de `IsometricGrid.ts`, appel supprimé dans `BattleScene.ts`.
+  - **OcclusionFader** : désactivé temporairement en diagnostic, réactivé — comportement inchangé.
+  - **Fichiers modifiés** : `packages/renderer/src/constants.ts`, `packages/renderer/src/grid/IsometricGrid.ts`, `packages/renderer/src/scenes/BattleScene.ts`
+  - **CI** : verte (build + lint + typecheck + tests). Changements non encore commités.
 
 - **Plan 064 terminé (2026-04-20)** — Décorations et obstacles Tiled :
   - **Core** : `canTraverse` et `canStopOn` étendus pour Ghost (`isGhost: boolean`, `toTerrain: TerrainType`). Ghost traverse tout obstacle sans pouvoir s'y arrêter. Priorité Vol > Ghost si double type. Décision #270.

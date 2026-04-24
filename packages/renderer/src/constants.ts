@@ -423,16 +423,3 @@ export const DECORATIONS_DEBUG_FOOTPRINT_ALPHA = 0.45;
 export const DECORATIONS_DEBUG_FOOTPRINT_STROKE_ALPHA = 0.9;
 export const DECORATIONS_DEBUG_FOOTPRINT_STROKE_WIDTH = 1;
 export const DECORATIONS_DEBUG_FOOTPRINT_DEPTH_OFFSET = 0.25;
-
-export const TERRAIN_TINT_ALPHA = 0.25;
-export const TERRAIN_TINT: Record<string, number> = {
-  water: 0x2244cc,
-  deep_water: 0x1122aa,
-  magma: 0xcc4422,
-  lava: 0xdd3311,
-  ice: 0x88ccff,
-  sand: 0xccaa44,
-  snow: 0xddddff,
-  swamp: 0x556622,
-  tall_grass: 0x44aa44,
-};
