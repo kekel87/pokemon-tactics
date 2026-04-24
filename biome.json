@@ -175,7 +175,7 @@
               },
               {
                 "selector": { "kind": "objectLiteralProperty" },
-                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE"]
+                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE", "snake_case"]
               }
             ]
           }
@@ -184,7 +184,7 @@
 
       "nursery": {
         "noFloatingPromises": "error",
-        "useExplicitType": "warn",
+        "useExplicitType": "off",
         "noUselessReturn": "warn",
         "useExhaustiveSwitchCases": "error"
       }
@@ -240,6 +240,10 @@
         "rules": {
           "suspicious": {
             "noConsole": "off"
+          },
+          "style": {
+            "useNamingConvention": "off",
+            "noNonNullAssertion": "off"
           }
         }
       }

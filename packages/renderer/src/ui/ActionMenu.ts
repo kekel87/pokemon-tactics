@@ -69,13 +69,13 @@ export class ActionMenu {
       {
         label: t("action.item"),
         enabled: false,
-        callback: (): void => {},
+        callback: () => undefined,
       },
       { label: t("action.wait"), enabled: true, callback: options.callbacks.onWait },
       {
         label: t("action.status"),
         enabled: false,
-        callback: (): void => {},
+        callback: () => undefined,
       },
     ];
 

@@ -56,6 +56,8 @@ Ne pas tout charger d'un coup. Lire le fichier pertinent au moment pertinent.
 - **Code mort** : zéro tolérance. Pas de fonctions/branches/imports inutilisés.
 
 > Les règles détaillées par package (core, renderer, data, tests) sont dans `.claude/rules/` — chargées automatiquement selon les fichiers touchés.
+> Règles transversales (lint, conventions de nommage) : `.claude/rules/quality.md` — toujours applicables.
+> **Lint** : ne jamais désactiver une règle Biome sans l'accord explicite de l'humain. Présenter les options d'abord.
 
 ## Stack
 
