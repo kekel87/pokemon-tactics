@@ -15,6 +15,7 @@ const volcanoPath = resolve(mapsDir, "volcano.tmj");
 const swampPath = resolve(mapsDir, "swamp.tmj");
 const desertPath = resolve(mapsDir, "desert.tmj");
 const navalArenaPath = resolve(mapsDir, "naval-arena.tmj");
+const toundraPath = resolve(mapsDir, "toundra.tmj");
 
 describe("simple-arena.tmj", () => {
   it("parses into a valid MapDefinition", () => {
@@ -271,6 +272,50 @@ describe("naval-arena.tmj", () => {
     }
     const validation = validateTiledMap(parsed.map, { requireAllFormats: true });
     expect(validation.errors).toEqual([]);
+  });
+});
+
+describe("toundra.tmj", () => {
+  it("parses into a valid MapDefinition", () => {
+    const result = parseTiledMap(loadTiledMapSync(toundraPath));
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.map.id).toBe("toundra");
+    expect(result.map.name).toBe("Toundra");
+    expect(result.map.width).toBe(12);
+    expect(result.map.height).toBe(12);
+  });
+
+  it("declares the 5 expected spawn layers", () => {
+    const raw = loadTiledMapSync(toundraPath);
+    const layerNames = raw.layers.map((l) => l.name);
+    for (const expectedLayer of SPAWN_LAYER_NAMES) {
+      expect(layerNames).toContain(expectedLayer);
+    }
+  });
+
+  it("passes validateTiledMap with requireAllFormats", () => {
+    const parsed = parseTiledMap(loadTiledMapSync(toundraPath));
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+    const validation = validateTiledMap(parsed.map, { requireAllFormats: true });
+    expect(validation.errors).toEqual([]);
+  });
+
+  it("has snow and ice terrain tiles", () => {
+    const result = parseTiledMap(loadTiledMapSync(toundraPath));
+    if (!result.ok) {
+      return;
+    }
+    const allTiles = result.map.tiles.flat();
+    const hasSnow = allTiles.some((t) => t?.terrain === TerrainType.Snow);
+    const hasIce = allTiles.some((t) => t?.terrain === TerrainType.Ice);
+    expect(hasSnow).toBe(true);
+    expect(hasIce).toBe(true);
   });
 });
 

@@ -85,4 +85,15 @@ export const MAPS_REGISTRY: MapEntry[] = [
     size: "14×14",
     tags: ["eau profonde", "chutes"],
   },
+  {
+    id: "toundra",
+    url: "assets/maps/toundra.tmj",
+    displayName: { fr: "Toundra", en: "Tundra" },
+    description: {
+      fr: "Plaine enneigée ouverte. Plaques de glace glissantes, rochers dispersés.",
+      en: "Open snowy plain. Slippery ice patches, scattered rocks.",
+    },
+    size: "12×12",
+    tags: ["neige", "glace"],
+  },
 ];
