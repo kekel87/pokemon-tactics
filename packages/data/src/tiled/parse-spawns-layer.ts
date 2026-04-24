@@ -37,10 +37,15 @@ function clampToMap(gridX: number, gridY: number, mapWidth: number, mapHeight: n
 function pointInPolygon(testX: number, testY: number, polygon: readonly TiledPoint[]): boolean {
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const xi = polygon[i]!.x;
-    const yi = polygon[i]!.y;
-    const xj = polygon[j]!.x;
-    const yj = polygon[j]!.y;
+    const pi = polygon[i];
+    const pj = polygon[j];
+    if (!pi || !pj) {
+      continue;
+    }
+    const xi = pi.x;
+    const yi = pi.y;
+    const xj = pj.x;
+    const yj = pj.y;
     const intersect =
       yi > testY !== yj > testY && testX < ((xj - xi) * (testY - yi)) / (yj - yi) + xi;
     if (intersect) {

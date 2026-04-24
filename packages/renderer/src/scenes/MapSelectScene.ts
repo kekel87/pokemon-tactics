@@ -19,7 +19,7 @@ import {
   TEXT_COLOR_TITLE,
 } from "../constants";
 import { getLanguage, t } from "../i18n";
-import { type MapEntry, MAPS_REGISTRY } from "../maps/maps-registry";
+import { MAPS_REGISTRY, type MapEntry } from "../maps/maps-registry";
 import type { MapSelectPreviewScene } from "./MapSelectPreviewScene";
 
 const LEFT_PANEL_WIDTH = 340;
@@ -38,7 +38,6 @@ const DETAILS_PANEL_X: number = LEFT_PANEL_WIDTH + 24;
 const DETAILS_PANEL_Y = CANVAS_HEIGHT - FOOTER_HEIGHT - 132;
 const DETAILS_PANEL_WIDTH: number = CANVAS_WIDTH - DETAILS_PANEL_X - 24;
 const DETAILS_PANEL_HEIGHT = 116;
-
 
 interface ListItemVisual {
   bg: Phaser.GameObjects.Rectangle;
@@ -135,16 +134,11 @@ export class MapSelectScene extends Phaser.Scene {
         .setInteractive({ useHandCursor: true });
 
       const label = this.add
-        .text(
-          LEFT_PANEL_PADDING + 12,
-          y + LIST_ITEM_HEIGHT / 2,
-          entry.displayName[getLanguage()],
-          {
-            fontSize: "18px",
-            fontFamily: FONT_FAMILY,
-            color: TEXT_COLOR_PRIMARY,
-          },
-        )
+        .text(LEFT_PANEL_PADDING + 12, y + LIST_ITEM_HEIGHT / 2, entry.displayName[getLanguage()], {
+          fontSize: "18px",
+          fontFamily: FONT_FAMILY,
+          color: TEXT_COLOR_PRIMARY,
+        })
         .setOrigin(0, 0.5);
 
       const indexCopy = i;

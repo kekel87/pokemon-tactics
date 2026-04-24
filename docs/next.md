@@ -4,10 +4,7 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## À faire maintenant
 
-- **Phase 3 — 1 item ouvert** :
-  - *Génération de maps par IA* — prompt → `.tmj` valide → review humain → intégration roster. Pipeline `parseTiledMap` + `validateTiledMap` en place (plan 045). Agent `level-designer` calibré (one-shot Write). Alimente le roster. *(Toundra livrée hors plan — remplace l'item "toundra plate".)*
-- **[A CRÉER] Plan de rattrapage warnings lint**. Constat : **85 warnings Biome accumulés depuis le début** sans gate bloquant. Breakdown : 52 `nursery/useExplicitType` (règle nursery, instable), 27 `style/useNamingConvention`, 4 `suspicious/noEmptyBlockStatements`, 2 `style/noNonNullAssertion`. **Décisions à prendre** : (a) désactiver `nursery/useExplicitType` (règle instable, pollue le signal) — supprime 52 warnings ; (b) fixer vraiment les 33 restants (naming + blocks vides + non-null assertions) ; (c) élever le gate CI à `--max-warnings 0` pour ne plus régresser.
-- **Prochaine session — décider entre** : génération maps IA (dernier item Phase 3) ou plan lint warnings (orthogonal).
+- **Phase 3 terminée.** La prochaine étape est **Phase 4** (voir roadmap).
 - **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches documentées dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles découpé, peinture manuelle Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour une arène propre rapide, ou reporter post-Babylon pour utiliser `DecalMap`. Ne pas oublier.
 - **Éditeur de terrain / génération IA + choix/ajout de maps** → **Phase 3.6 « Maps & Éditeur », positionnée après Phase 7** (liée à Babylon). Voir `docs/roadmap.md`.
 - **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20, conditionnée par la réussite du plan 065). Plan numéroté au moment de sa rédaction. Pistes à garder sous le coude quand on l'ouvre :
@@ -18,12 +15,12 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## Reporté / à refaire
 
-- **Plan 061 silhouette d'occlusion** — archivé sur branche `plan-061-occlusion-before-3d-pivot` (commit `2426edf`). Bancal visuellement (silhouette blanche transparente au lieu de tintée équipe, détection partielle sur piliers stackés). Obsolète post-pivot : la 3D résout le problème nativement.
 - **UI (menus, panels, timeline, log)** — à décider : rester en Phaser overlay 2D au-dessus du canvas 3D, ou passer en HTML/CSS par-dessus. À trancher après le spike selon la stack retenue.
-- **Bug transparence à investiguer (cas `le-mur`)** — sur la map `le-mur.tmj`, des tiles de glace haute (`ice`, h=3.5–4.5) semblent poser des problèmes de transparence/rendu (alpha ou depth incorrects). À investiguer avant de décider si on remplace la map ou si on corrige le renderer.
+- **Bug transparence demi-tiles** — visible sur plusieurs maps avec des tiles `half` (eau, glace, etc.) — problème alpha ou depth dans le renderer iso Phaser. À investiguer avant Phase 4 ou avant le rewrite Babylon.
 
 ## Fait récemment
 
+- 2026-04-24 — **Lint warnings rattrapés**. 92 warnings Biome → 0. `useExplicitType` off (règle nursery instable), snake_case autorisé pour objectLiteralProperty (noms Tiled/terrain), `useNamingConvention` off pour scripts, blocs vides corrigés, non-null assertions refactorisées. Gate CI `biome ci` passe sans warning.
 - 2026-04-24 — **Toundra livrée (hors plan)**. Map 12×12 neige/glace : corridor de glace central (rows 5-6, 16 tiles), 2 patches glace NW+SE, 6 rochers, 2 arbres, 5 formats spawn. 1117 unit + 107 intégration verts.
 - 2026-04-23 — **Plan 067 terminé — Écran de sélection de carte**. `MapSelectScene` : grille de maps avec preview, metadata, formats disponibles. Intégration dans le flow TeamSelect → MapSelect → Placement → Battle. i18n FR/EN. Phase 3 quasi-terminée — il reste génération IA + remplacement `le-mur`.
 - 2026-04-23 — **Plan 066 étape 4 — `naval-arena.tmj` livrée (Archipel des Pontons)**. 14×14, deep_water partout (impassable, LethalTerrainKo si knockback), 3 pontons wood (cols 2-3, 6-7, 10-11) qui rejoignent le sable (rows 3-10), 2 cross-bridges larges (rows 6 et 8) connectant les 3 pontons, sable comme rive N (rows 0-2) et S (rows 11-13). Plan 066 complet — 7 maps thématiques livrées. Tests 1113/1113 + intégration 107/107.

@@ -52,12 +52,6 @@ export async function loadTiledMap(url: string): Promise<LoadedTiledMap> {
     throw new Error(`Map "${url}" validation failed:\n${validation.errors.join("\n")}`);
   }
 
-  if (validation.warnings.length > 0) {
-  }
-
-  if (parseResult.warnings.length > 0) {
-  }
-
   const firstgid = tiledMap.tilesets[0]?.firstgid ?? 1;
 
   const heightData: number[] = [];
