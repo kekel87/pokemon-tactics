@@ -22,7 +22,7 @@ const BUTTON_START_Y = 300;
 const BUTTON_SPACING = 50;
 const BUTTON_WIDTH = 240;
 const BUTTON_HEIGHT = 40;
-const VERSION_TEXT = "v2026.00";
+const VERSION_TEXT = __APP_VERSION__;
 
 export class MainMenuScene extends Phaser.Scene {
   constructor() {

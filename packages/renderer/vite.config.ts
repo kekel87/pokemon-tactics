@@ -1,5 +1,17 @@
+import { execSync } from "node:child_process";
 import type { IndexHtmlTransformContext, Plugin } from "vite";
 import { defineConfig } from "vite";
+
+function resolveAppVersion(): string {
+  try {
+    return execSync("git describe --tags --always --dirty", {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return "dev";
+  }
+}
 
 function goatcounterPlugin(): Plugin {
   return {
@@ -23,6 +35,9 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   plugins: [goatcounterPlugin()],
+  define: {
+    __APP_VERSION__: JSON.stringify(resolveAppVersion()),
+  },
   build: {
     target: "es2022",
   },
