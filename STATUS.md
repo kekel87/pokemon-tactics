@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-24 (bugfix transparence naval-arena — suppression TERRAIN_TINT)
+> Dernière mise à jour : 2026-04-25 (plan 068 terminé — IA terrain + pathfinding + LoS)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -797,7 +797,7 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
   - **3 nouveaux event handlers renderer** : `TerrainDamageDealt`, `IceSlideApplied`, `LethalTerrainKo`
   - Étape 22 (tooltip terrain InfoPanel) déplacée au backlog
 
-### Prochaine étape (Phase 3 — Terrain & Tactics)
+### Historique des plans Phase 3 terminés
 - **Plan 055 terminé** — bug gatling (immunité statut par type, icône terrain manquante, KO anim, HP preview, stagger texte, ombrage flancs uniformisé)
 - **Plan 056 terminé** — pipeline données Champions : `pnpm data:update` fetch Showdown + Champions overrides → `reference/*.json` alignés Champions (45 moves overridés, 185 learnsets remplacés, 3 abilities modifiées). `champions-status.json` généré. `pnpm data:diff` pour review. `docs/process-data-update.md` créé. Décision #263.
 - **Plan 057 terminé** — statuts Champions dans le runtime core : `StatusRules` type injecté dans `BattleEngine`, `DEFAULT_STATUS_RULES` = Champions. Paralysie 25% → 12.5%, gel 20% → 25% + max 3 tours (`turnsApplied` sur `StatusEffect`), sommeil 1-3 → `sample([2,3,3])`. `loadStatusRulesFromReference` dans data. Décision #264.
@@ -853,12 +853,17 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
   - i18n FR/EN des labels (nom des maps, boutons)
   - Il reste en Phase 3 : génération de maps par IA + remplacement de `le-mur` par une map toundra plate
 
-- **Session 2026-04-24 — Bugfix transparence naval-arena (non commité)** :
-  - **Contexte** : la map `naval-arena` (archipel pontons, eau/deep_water) apparaissait avec des tiles semi-transparentes à cause de l'overlay terrain tint posé à `alpha=0.25` sur chaque tile.
-  - **Fix** : suppression complète du système `TERRAIN_TINT` — constantes `TERRAIN_TINT` et `TERRAIN_TINT_ALPHA` retirées de `constants.ts`, méthode `drawTerrainTints()` supprimée de `IsometricGrid.ts`, appel supprimé dans `BattleScene.ts`.
-  - **OcclusionFader** : désactivé temporairement en diagnostic, réactivé — comportement inchangé.
-  - **Fichiers modifiés** : `packages/renderer/src/constants.ts`, `packages/renderer/src/grid/IsometricGrid.ts`, `packages/renderer/src/scenes/BattleScene.ts`
-  - **CI** : verte (build + lint + typecheck + tests). Changements non encore commités.
+- **Session 2026-04-24 — Bugfix transparence naval-arena** :
+  - **Fix** : suppression complète du système `TERRAIN_TINT` (commit `d37b7d0`) — constantes `TERRAIN_TINT` et `TERRAIN_TINT_ALPHA` retirées de `constants.ts`, méthode `drawTerrainTints()` supprimée de `IsometricGrid.ts`.
+
+- **Plan 068 terminé (2026-04-25)** — Fix IA terrain + pathfinding + LoS (non commité) :
+  - **Terrain dangereux** : `action-scorer.ts` pénalise les destinations Magma/Lava/Swamp avec `DANGEROUS_TERRAIN_PENALTY = 8`. Exception : Pokemon immunisés via `isTerrainImmune`. Constante `DANGEROUS_TERRAINS` centralisée.
+  - **Pathfinding distance réelle** : `scoreMove` utilise `engine.computePathDistance` (BFS sans budget) au lieu de `manhattanDistance`. Un ennemi derrière un obstacle infranchissable score à `Infinity` — l'IA ne gaspille plus ses tours vers des positions sans issue. Fallback Manhattan si cible inaccessible (stalemate évité).
+  - **3 nouvelles méthodes publiques sur `BattleEngine`** : `getTileAt(position)`, `getPokemonTypes(pokemonId)`, `computePathDistance(from, to, pokemonId)`.
+  - **Test LoS non-régression** (`BattleEngine.los-legal-actions.test.ts`) : confirme que les attaques Single-targeting sont bloquées par un pilier h=3, et que les moves sonores contournent la LoS (comportement attendu, pas un bug).
+  - **Fixes hors-plan** : traversal bug Fire/Flying sur Lava + Water/Flying sur DeepWater via `immuneTerrains: ReadonlySet<TerrainType>` dans `TraversalOptions` ; Steel immune à Swamp (Magneton corrigé).
+  - **CT scoring différé** : appliquer un facteur CT dans un scorer greedy pousse l'IA à choisir des moves moins puissants → combats >5000 tours. Nécessite un lookahead multi-tour. Noté dans le backlog.
+  - **Gate CI** : typecheck ✓, 1122 tests ✓, 107 tests intégration ✓, lint ✓. Changements non encore commités.
 
 - **Plan 064 terminé (2026-04-20)** — Décorations et obstacles Tiled :
   - **Core** : `canTraverse` et `canStopOn` étendus pour Ghost (`isGhost: boolean`, `toTerrain: TerrainType`). Ghost traverse tout obstacle sans pouvoir s'y arrêter. Priorité Vol > Ghost si double type. Décision #270.
@@ -871,17 +876,17 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
   - **Scénarios** : 6 scénarios Gherkin dans `scenarios/ghost-traversal.scenario.test.ts`. Gate CI : 1067 unit / 107 integration / 6 scenario, tout vert.
   - **Bonus différé** : marquages arène + pokéball centrale — 3 approches documentées dans `docs/plans/064-decorations-obstacles.md`. À traiter post-Babylon ou via Aseprite manuel.
 
-- **Prochains candidats** :
-  - "Interactions type/terrain + modification terrain par attaques" (Champ Herbeux, Champ Électrifié, etc.)
-  - Phase 4 : Talents, Objets tenus, Natures
-  - Validation visuelle du tileset.png mis à jour (brightness uniforme — empilement, pentes, escaliers sur toutes les maps)
-- Les marquages d'arène (pokeball, lignes) deviendront des tiles Tiled, pas des overlay Graphics (futur)
-- Télécharger et intégrer `public/assets/fonts/pokemon-emerald-pro.ttf` (WOFF2 corrompu — @font-face TTF fallback actif, correction mineure)
-- Validation visuelle plan 050 toujours souhaitable (empilement, pentes/escaliers sur toutes les maps)
+### Prochaine étape
+
+**Phase 3 quasi-terminée.** Les items restants :
+- Génération de maps par IA (prompt → `.tmj` valide, pipeline `parseTiledMap` + `validateTiledMap` en place) — roadmap Phase 3
+- `le-mur` à retirer/remplacer : injouable en iso fixe (escaliers N/S aveugles), toundra livrée en alternative
+
+**Phase 4 à démarrer dès que Phase 3 est close** : Talents, Objets tenus, Natures, EV/IV simplifiés.
 
 ### Bugs connus non corrigés
 
-*(rien d'ouvert — occlusion Pokemon derrière obstacle, depth animations et confusion wobble post-KO résolus, voir backlog.md)*
+*(voir `docs/backlog.md`)* — `le-mur.tmj` désactivée du menu (gameplay cassé), CT scoring IA différé (nécessite lookahead multi-tour)
 
 ### Points à adresser (renderer)
 - Représentation visuelle des moves défensifs : animation/feedback quand Protect bloque, Counter renvoie, etc.
