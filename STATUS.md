@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-25 (plan 068 terminé — IA terrain + pathfinding + LoS)
+> Dernière mise à jour : 2026-04-25 (plan 068 terminé — IA terrain + pathfinding + LoS — release v2026.4.3 publiée)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 

@@ -106,6 +106,17 @@ Ce qui n'est pas fait (ex: humain refuse visual-tester) → inscrit dans `docs/n
 - `commit-message` → `release-drafter` (si changement visible joueur)
 - `publisher` → `wiki-keeper` (changelog post-publication)
 
+## Structure du wiki GitHub
+
+Le wiki `kekel87/pokemon-tactics/wiki` est **bilingue (Option A)** — décision #277.
+
+- Pages EN sans préfixe : `Home`, `How-to-Play`, `Mechanics`, `Maps`, `Changelog`, `Roadmap`
+- Pages FR avec noms français : `Accueil`, `Comment-jouer`, `Mécaniques`, `Cartes`, `Changelog-FR`, `Feuille-de-route`
+- Chaque page commence par un lien de bascule : `🇬🇧 English | 🇫🇷 Français`
+- `_Sidebar.md` liste les deux langues en deux blocs distincts
+- Langue par défaut publique : **anglais** (audience internationale)
+- Langue doc interne projet (docs/, plans/) : **français**
+
 ## MCP navigateur — Playwright vs chrome-devtools
 
 Deux MCP complémentaires, jamais en doublon :
