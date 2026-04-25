@@ -12,7 +12,7 @@ const TERRAIN_IMMUNE_TYPES: Partial<Record<TerrainType, readonly PokemonTypeValu
   [TerrainType.Ice]: [PokemonType.Ice, PokemonType.Flying],
   [TerrainType.Sand]: [PokemonType.Ground, PokemonType.Flying],
   [TerrainType.Snow]: [PokemonType.Ice, PokemonType.Flying],
-  [TerrainType.Swamp]: [PokemonType.Poison, PokemonType.Flying],
+  [TerrainType.Swamp]: [PokemonType.Poison, PokemonType.Steel, PokemonType.Flying],
 };
 
 export function isTerrainImmune(terrain: TerrainType, types: PokemonTypeValue[]): boolean {
@@ -21,6 +21,16 @@ export function isTerrainImmune(terrain: TerrainType, types: PokemonTypeValue[])
     return false;
   }
   return types.some((t) => immuneTypes.includes(t));
+}
+
+export function getImmuneTerrains(types: PokemonTypeValue[]): ReadonlySet<TerrainType> {
+  const result = new Set<TerrainType>();
+  for (const terrain of Object.values(TerrainType) as TerrainType[]) {
+    if (isTerrainImmune(terrain, types)) {
+      result.add(terrain);
+    }
+  }
+  return result;
 }
 
 const MOVEMENT_PENALTY: Partial<Record<TerrainType, number>> = {

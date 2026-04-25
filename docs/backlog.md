@@ -29,18 +29,10 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 ## Notes IA (pour plus tard, à regrouper en un plan d'amélioration IA)
 
-### IA — pathfinding sur dénivelés complexes (2026-04-23)
-- Observé sur `le-mur.tmj` : l'IA a du mal à identifier les chemins verticaux (escaliers d'accès au mur), notamment les chokepoints N/S cols 5-6, 10-11.
-- À retester une fois le remplacement toundra livré pour voir si c'est général ou spécifique au layout du Mur.
-
-### IA — aversion terrains dangereux (2026-04-23)
-- L'IA marche sur les tiles poison (`swamp`) et magma (`volcano`) sans aversion.
-- À ajouter : malus de score sur les tiles dangereuses selon le type du Pokemon (immune/résistant/faible).
-- Scope : `packages/core/src/ai/scoring.ts` (ou équivalent).
-
-### IA — support Charge Time (CT) (2026-04-23)
-- L'IA actuelle (`AiTeamController`) ne tient pas compte du système CT — elle raisonne en tour-par-tour.
-- À vérifier : est-ce que l'IA joue correctement ses tours en mode CT ? Si oui, l'améliorer pour exploiter les coûts CT (moves lents vs rapides, prédiction du prochain tour).
+### IA — CT-aware scoring (2026-04-25)
+- Le scoring CT a été tenté dans le plan 068 mais rejeté : appliquer `CT_REFERENCE_COST / ctCost` dans un scorer greedy monoronde pousse l'IA à choisir des moves moins puissants → combats >5000 tours dans les tests de charge.
+- **Nécessite un lookahead multi-tour** pour être bénéfique. À concevoir dans un plan dédié IA multi-tour (prédiction de l'ordre CT, évaluation sur N tours).
+- L'IA joue ses tours correctement en mode CT (au minimum) — le problème est le scoring stratégique, pas l'exécution.
 
 ### Afficher les modificateurs terrain actifs dans l'InfoPanel
 - Quand on retravaille l'InfoPanel, afficher les effets terrain en cours sur la tile du Pokemon sélectionné/survolé (ex: "Évasion +1 (herbe haute)", "Brûlure au passage (magma)", "Malus déplacement +2 (marécage)").
@@ -84,6 +76,29 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 
 
 ## Résolus
+
+### ~~Traversée DeepWater/Lava bloquée pour les types immuns~~ (hors plan — 2026-04-25)
+- Pokemon de type Water et Flying ne pouvaient pas traverser DeepWater. Fire et Flying ne pouvaient pas traverser Lava.
+- Fix : `TraversalOptions` accepte un champ `immuneTerrains?: ReadonlySet<TerrainType>`. `canEnterTerrain` et `canStopOn` ignorent l'impassabilité pour ces types. Nouvelle fonction `getImmuneTerrains(types)` dans `terrain-effects.ts`. Les 3 call sites de BattleEngine (`getReachableTiles`, `validateMovePath`, `computePathDistance`) calculent et passent le set.
+
+### ~~Steel non immun au marécage (statut + traversée)~~ (hors plan — 2026-04-25)
+- Magneton (Electric/Steel) prenait le statut Poisoned en traversant Swamp et ne pouvait pas traverser le terrain.
+- Fix : `PokemonType.Steel` ajouté à `TERRAIN_IMMUNE_TYPES[Swamp]` dans `terrain-effects.ts`.
+
+### ~~IA figée quand les équipes sont séparées par un terrain infranchissable~~ (hors plan — 2026-04-25)
+- `closestPathDistance` retournait `Infinity` pour tous les ennemis quand aucun chemin n'existait (ex: équipes de part et d'autre d'un mur de Lava). L'IA ne se déplaçait plus.
+- Fix : `closestDistanceToEnemies` dans `action-scorer.ts` utilise Manhattan comme fallback quand `computePathDistance` retourne `Infinity`. L'IA continue de se repositionner même en situation de blocage complet.
+
+### ~~IA — aversion terrains dangereux~~ (plan 068 — 2026-04-25)
+- Fix : `action-scorer.ts` applique `DANGEROUS_TERRAIN_PENALTY = 8` sur les destinations Magma/Lava/Swamp. Exception : Pokemon immuns via `isTerrainImmune`. Constante `DANGEROUS_TERRAINS` centralisée.
+
+### ~~IA — pathfinding aveugle (distance manhattan vs distance réelle)~~ (plan 068 — 2026-04-25)
+- Fix partiel : `scoreMove` utilise désormais `engine.computePathDistance` (BFS sans budget) au lieu de `manhattanDistance`. Un ennemi derrière un obstacle infranchissable score à `Infinity` — l'IA ne se déplace plus vers des positions sans issue.
+- Résidu : la navigation long terme (emprunter les rampes, contourner sur plusieurs tours) reste limitée par le BFS à budget du mouvement — hors scope de ce plan.
+
+### ~~Observation "dégâts à travers le mur" (le-mur.tmj)~~ (plan 068 — 2026-04-25)
+- Investigation : les dégâts observés provenaient de moves avec `ignoresLineOfSight` (soniques/telluriques) — comportement correct par design.
+- Test de non-régression ajouté (`BattleEngine.los-legal-actions.test.ts`) : confirme que les attaques Single-targeting sont bien bloquées par un pilier h=3, et que les moves sonores contournent la LoS (attendu).
 
 ### ~~Transparence / silhouette des Pokemon derrière un obstacle~~ (plan 065)
 - Fix : module `OcclusionFader` — fade alpha 0.4 sur l'obstacle qui occulte un Pokemon (AABB screen-space + comparaison depth). Fix depth tiles surélevées (`DEPTH_RAISED_TILE_BASE = DEPTH_POKEMON_BASE`). Alt-click picking pour cibler la tile sous un pilier. Résolu 2026-04-20.

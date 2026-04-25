@@ -10,23 +10,29 @@ export interface TraversalOptions {
   readonly toTerrain: TerrainType;
   readonly isFlying: boolean;
   readonly isGhost: boolean;
+  readonly immuneTerrains?: ReadonlySet<TerrainType>;
 }
 
 export function canEnterTerrain(
   terrain: TerrainType,
   isFlying: boolean,
   isGhost: boolean,
+  immuneTerrains?: ReadonlySet<TerrainType>,
 ): boolean {
   if (terrain === TerrainType.Obstacle) {
     return isFlying || isGhost;
   }
-  return isTerrainPassable(terrain);
+  if (!isTerrainPassable(terrain)) {
+    return immuneTerrains?.has(terrain) ?? false;
+  }
+  return true;
 }
 
 export function canTraverse(options: TraversalOptions): boolean {
-  const { fromHeight, toHeight, fromTerrain, toTerrain, isFlying, isGhost } = options;
+  const { fromHeight, toHeight, fromTerrain, toTerrain, isFlying, isGhost, immuneTerrains } =
+    options;
 
-  if (!canEnterTerrain(toTerrain, isFlying, isGhost)) {
+  if (!canEnterTerrain(toTerrain, isFlying, isGhost, immuneTerrains)) {
     return false;
   }
 
@@ -45,9 +51,16 @@ export function canTraverse(options: TraversalOptions): boolean {
   return -delta <= MAX_DESCENT;
 }
 
-export function canStopOn(terrain: TerrainType, isFlying: boolean): boolean {
+export function canStopOn(
+  terrain: TerrainType,
+  isFlying: boolean,
+  immuneTerrains?: ReadonlySet<TerrainType>,
+): boolean {
   if (terrain === TerrainType.Obstacle) {
     return isFlying;
   }
-  return isTerrainPassable(terrain);
+  if (!isTerrainPassable(terrain)) {
+    return immuneTerrains?.has(terrain) ?? false;
+  }
+  return true;
 }

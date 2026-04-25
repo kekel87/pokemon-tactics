@@ -54,12 +54,15 @@ Pour chaque action légale, le scorer collecte :
 
 #### Move (déplacement)
 
-1. **Positionnement** : gain de distance vers l'ennemi le plus proche × `positioning`
-2. **Lookahead move+attack** : pour chaque move du Pokemon (avec PP) :
+1. **Positionnement** : gain de distance (réelle, BFS) vers l'ennemi le plus proche × `positioning`
+2. **Distance réelle (BFS)** : `engine.computePathDistance` remplace `manhattanDistance`. Un ennemi derrière un obstacle infranchissable retourne `Infinity` → l'IA ne se déplace plus vers des positions sans issue.
+   **Fallback Manhattan** : quand `computePathDistance` retourne `Infinity` pour *tous* les ennemis (équipes séparées par un terrain infranchissable), `closestDistanceToEnemies` bascule sur la distance Manhattan. L'IA continue de se repositionner au lieu de rester figée.
+3. **Aversion terrain dangereux** : si la tile de destination est Magma, Lava ou Swamp, et que le Pokemon n'est pas immun (`isTerrainImmune`), la destination est pénalisée de `DANGEROUS_TERRAIN_PENALTY = 8`. Les Pokemon immuns (ex: Fire/Flying sur Lava, Water/Flying sur DeepWater, Steel sur Swamp) ne sont pas pénalisés — et peuvent physiquement traverser ces terrains (voir `getImmuneTerrains` dans `terrain-effects.ts`).
+4. **Lookahead move+attack** : pour chaque move du Pokemon (avec PP) :
    - Calcule la portée max (`getMoveMaxReach`)
    - Vérifie si un ennemi serait à portée depuis la destination
    - Score le meilleur dégât possible × 0.8 (facteur d'estimation)
-3. Le lookahead fait que l'IA **se déplace vers des positions d'attaque**, pas juste vers l'ennemi
+5. Le lookahead fait que l'IA **se déplace vers des positions d'attaque**, pas juste vers l'ennemi
 
 #### EndTurn (fin de tour)
 
@@ -143,14 +146,17 @@ interface AiProfile {
 - **estimateDamage approximatif** : le lookahead utilise la portée max, pas le targeting exact
 - **Pas de coordination d'équipe** : chaque Pokemon joue indépendamment
 - **Movement = 3 pour tous** : hardcodé, pas lié aux stats du Pokemon (à corriger)
+- **CT non intégré au scoring** : le scorer est greedy monoronde — appliquer un facteur CT pousse l'IA à choisir des moves moins puissants et allonge les combats au-delà de 5000 tours en charge. Nécessite un lookahead multi-tour pour être bénéfique (plan futur).
+- **Navigation long terme limitée** : `computePathDistance` évalue si une destination est atteignable, mais la navigation sur plusieurs tours (contournement de murs, emprunt de rampes) reste limitée par le BFS à budget du mouvement courant.
 
 ## Fichiers
 
 | Fichier | Rôle |
 |---------|------|
-| `core/src/ai/action-scorer.ts` | Scoring de chaque action |
+| `core/src/ai/action-scorer.ts` | Scoring de chaque action (terrain penalty, path distance) |
 | `core/src/ai/scored-ai.ts` | Sélection pondérée top-N |
 | `core/src/ai/ai-profiles.ts` | Profils Easy / Medium / Hard |
 | `core/src/types/ai-profile.ts` | Interface `AiProfile` + `ScoringWeights` |
 | `core/src/enums/ai-difficulty.ts` | Enum `AiDifficulty` |
+| `core/src/battle/BattleEngine.ts` | `getTileAt`, `getPokemonTypes`, `computePathDistance` (API publique pour le scorer) |
 | `renderer/src/game/AiTeamController.ts` | Orchestration du tour IA |

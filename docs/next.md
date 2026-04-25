@@ -19,6 +19,7 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## Fait récemment
 
+- 2026-04-25 — **Plan 068 terminé — Fix IA terrain + pathfinding + LoS**. `action-scorer.ts` : pénalité `DANGEROUS_TERRAIN_PENALTY=8` sur Magma/Lava/Swamp (sauf immuns), `scoreMove` utilise `computePathDistance` (BFS sans budget) au lieu de `manhattanDistance`. 3 nouvelles méthodes publiques sur `BattleEngine` : `getTileAt`, `getPokemonTypes`, `computePathDistance`. Test LoS non-régression ajouté. CT scoring **différé** : nécessite lookahead multi-tour (scorer greedy → combats >5000 tours en charge). À concevoir dans un plan IA multi-tour futur.
 - 2026-04-24 — **Lint warnings rattrapés**. 92 warnings Biome → 0. `useExplicitType` off (règle nursery instable), snake_case autorisé pour objectLiteralProperty (noms Tiled/terrain), `useNamingConvention` off pour scripts, blocs vides corrigés, non-null assertions refactorisées. Gate CI `biome ci` passe sans warning.
 - 2026-04-24 — **Toundra livrée (hors plan)**. Map 12×12 neige/glace : corridor de glace central (rows 5-6, 16 tiles), 2 patches glace NW+SE, 6 rochers, 2 arbres, 5 formats spawn. 1117 unit + 107 intégration verts.
 - 2026-04-23 — **Plan 067 terminé — Écran de sélection de carte**. `MapSelectScene` : grille de maps avec preview, metadata, formats disponibles. Intégration dans le flow TeamSelect → MapSelect → Placement → Battle. i18n FR/EN. Phase 3 quasi-terminée — il reste génération IA + remplacement `le-mur`.

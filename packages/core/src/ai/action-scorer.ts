@@ -1,8 +1,10 @@
 import type { BattleEngine } from "../battle/BattleEngine";
+import { isTerrainImmune } from "../battle/terrain-effects";
 import { ActionKind } from "../enums/action-kind";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import { TargetingKind } from "../enums/targeting-kind";
+import { TerrainType } from "../enums/terrain-type";
 import type { Action } from "../types/action";
 import type { AiProfile } from "../types/ai-profile";
 import type { BattleState } from "../types/battle-state";
@@ -12,6 +14,13 @@ import type { Position } from "../types/position";
 import type { TargetingPattern } from "../types/targeting-pattern";
 import { directionFromTo, getPerpendicularOffsets, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
+
+const DANGEROUS_TERRAINS: ReadonlySet<TerrainType> = new Set([
+  TerrainType.Magma,
+  TerrainType.Lava,
+  TerrainType.Swamp,
+]);
+const DANGEROUS_TERRAIN_PENALTY = 8;
 
 export function scoreAction(
   action: Action,
@@ -119,7 +128,7 @@ function scoreSelfMove(
     return 0;
   }
 
-  const nearestEnemyDist = closestEnemyDistance(currentPokemon.position, enemies);
+  const nearestEnemyDist = closestEnemyManhattanDistance(currentPokemon.position, enemies);
   return nearestEnemyDist > 2 ? weights.statChanges * 3 : weights.statChanges;
 }
 
@@ -260,11 +269,26 @@ function scoreMove(
 
   const weights = profile.scoringWeights;
   const destination = action.path[action.path.length - 1] ?? currentPokemon.position;
-  const currentDistance = closestEnemyDistance(currentPokemon.position, enemies);
-  const newDistance = closestEnemyDistance(destination, enemies);
+  const currentDistance = closestDistanceToEnemies(
+    currentPokemon.position,
+    enemies,
+    currentPokemon.id,
+    engine,
+  );
+  const newDistance = closestDistanceToEnemies(destination, enemies, currentPokemon.id, engine);
   const improvement = currentDistance - newDistance;
 
   let score = improvement > 0 ? improvement * weights.positioning : 0;
+
+  const pokemonTypes = engine.getPokemonTypes(currentPokemon.id);
+  const destinationTile = action.path.length > 0 ? engine.getTileAt(destination) : null;
+  if (
+    destinationTile &&
+    DANGEROUS_TERRAINS.has(destinationTile.terrain) &&
+    !isTerrainImmune(destinationTile.terrain, pokemonTypes)
+  ) {
+    score -= DANGEROUS_TERRAIN_PENALTY;
+  }
 
   const attackBonus = evaluateAttacksFromPosition(
     currentPokemon,
@@ -400,12 +424,30 @@ function findClosestEnemy(from: Position, enemies: PokemonInstance[]): Position 
   return closest;
 }
 
-function closestEnemyDistance(from: Position, enemies: PokemonInstance[]): number {
+function closestEnemyManhattanDistance(from: Position, enemies: PokemonInstance[]): number {
   let minDistance = Number.POSITIVE_INFINITY;
   for (const enemy of enemies) {
     const distance = manhattanDistance(from, enemy.position);
     if (distance < minDistance) {
       minDistance = distance;
+    }
+  }
+  return minDistance;
+}
+
+function closestDistanceToEnemies(
+  from: Position,
+  enemies: PokemonInstance[],
+  pokemonId: string,
+  engine: BattleEngine,
+): number {
+  let minDistance = Number.POSITIVE_INFINITY;
+  for (const enemy of enemies) {
+    const pathDist = engine.computePathDistance(from, enemy.position, pokemonId);
+    const dist =
+      pathDist === Number.POSITIVE_INFINITY ? manhattanDistance(from, enemy.position) : pathDist;
+    if (dist < minDistance) {
+      minDistance = dist;
     }
   }
   return minDistance;
