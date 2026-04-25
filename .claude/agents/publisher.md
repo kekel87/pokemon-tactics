@@ -66,3 +66,14 @@ Après publication, lancer `wiki-keeper` pour :
 - Vérifier que build + tests passent avant de proposer
 - Le changelog doit être lisible par un joueur, pas un développeur
 - Toujours lancer wiki-keeper après publication
+
+## Version affichée dans le jeu
+
+**La version dans `MainMenuScene` est auto-injectée** (décision #278) — pas de bump manuel.
+
+Vite exécute `git describe --tags --always --dirty` à chaque build et remplace `__APP_VERSION__` dans le code. Concrètement :
+- Build CI déclenché par un tag → affiche le tag clean (ex `v2026.4.3`)
+- Build local entre deux tags → affiche `vX.Y.Z-N-gXXXXXXX` (N commits après dernier tag)
+- Working tree avec changements non commités → suffixe `-dirty`
+
+Ne pas chercher à bumper un numéro de version dans le code. La publication de la release suffit (le tag est créé par GitHub quand `--draft=false`).
