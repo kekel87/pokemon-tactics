@@ -95,7 +95,9 @@ import { getDirectionFromScreenPosition } from "../utils/screen-direction";
 import { AnimationQueue } from "./AnimationQueue";
 import type { BattleSetupResult } from "./BattleSetup";
 import {
-  FLYING_JUMP_ANIMATION_CANDIDATES,
+  FLYING_GLIDE_ANIMATION_CANDIDATES,
+  FLYING_OVERFLY_TERRAINS,
+  getFlyingAnimationMode,
   isJumpStep,
   selectMovementAnimation,
   selectMovementDuration,
@@ -898,13 +900,14 @@ export class GameController {
       const isRamp =
         this.isometricGrid.isSlopeAt(previous.x, previous.y) ||
         this.isometricGrid.isSlopeAt(step.x, step.y);
-      const movementStep = { heightDiff, isRamp, isFlying };
+      const movementStep = { heightDiff, isRamp, isFlying, terrainType: stepTerrain };
       const isJump = isJumpStep(movementStep);
       const stepDuration = selectMovementDuration(movementStep);
 
-      if (isJump && isFlying) {
-        const playedFlying = sprite.playFirstAvailableAnimation(FLYING_JUMP_ANIMATION_CANDIDATES);
-        if (playedFlying === null) {
+      const flyingMode = getFlyingAnimationMode(movementStep);
+      if (flyingMode === "glide") {
+        const played = sprite.playFirstAvailableAnimation(FLYING_GLIDE_ANIMATION_CANDIDATES);
+        if (played === null) {
           sprite.playAnimation(selectMovementAnimation(movementStep));
         }
       } else {
@@ -915,7 +918,14 @@ export class GameController {
       previous = step;
       previousHeight = stepHeight;
     }
-    sprite.playAnimation("Idle");
+
+    const finalStep = path.at(-1);
+    const finalTerrain = finalStep
+      ? this.isometricGrid.getTileTerrain(finalStep.x, finalStep.y)
+      : undefined;
+    const landOnSpecialTerrain =
+      isFlying && finalTerrain !== undefined && FLYING_OVERFLY_TERRAINS.has(finalTerrain);
+    sprite.setRestingAnimation(landOnSpecialTerrain ? FLYING_GLIDE_ANIMATION_CANDIDATES : ["Idle"]);
   }
 
   private async processEvents(events: BattleEvent[]): Promise<void> {
@@ -959,7 +969,7 @@ export class GameController {
             sprite.setDirection(pokemon.orientation);
             sprite.updateStatus(pokemon.statusEffects);
           }
-          sprite.playAnimation("Idle");
+          sprite.playRestingAnimation();
         }
         break;
       }
@@ -1208,7 +1218,7 @@ export class GameController {
                       kbHeight +
                       0.5,
                   );
-                kbSprite.playAnimation("Idle");
+                kbSprite.playRestingAnimation();
                 resolve();
               },
             });
@@ -1232,7 +1242,7 @@ export class GameController {
               repeat: KNOCKBACK_SHAKE_REPEAT,
               onComplete: () => {
                 container.setX(originalX);
-                kbBlockSprite.playAnimation("Idle");
+                kbBlockSprite.playRestingAnimation();
                 resolve();
               },
             });

@@ -106,7 +106,7 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 
 ---
 
-## Phase 3 — Terrain & Tactics
+## Phase 3 — Terrain & Tactics ✅ *Terminé*
 
 > But : la vraie profondeur tactique — le terrain change la façon de jouer
 
@@ -128,9 +128,9 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 - [x] Système de décorations Tiled — tileset `decorations.tsj` dédié, Ghost traverse obstacles, parser objectgroup, sprites PixelLab (herbe haute, rochers, arbre), `DecorationsLayer` renderer — plan 064. Bonus différé : marquages arène + pokéball centrale.
 - [x] **Occlusion dynamique par sprite** — fix depth tiles surélevées (`DEPTH_RAISED_TILE_BASE`), Alt-click picking multi-niveaux (`COLOR_CURSOR_ALT`), module `OcclusionFader` (fade alpha 0.4 quand Pokemon derrière obstacle, AABB screen-space, pipeline reset→test→apply). **Phase 3.5 rewrite Babylon repoussée après Phase 7** suite au succès visuel (décision #272). — plan 065
 - [x] Roster de maps variées (dénivelés, types de terrain, décors, tailles) — 7 maps thématiques livrées : forest (14×14), cramped-cave (12×12), le-mur (16×16), volcano (14×14), swamp (14×14), desert (14×14), naval-arena (14×14). Toutes multi-format (5 objectgroups spawns). Plan 066 terminé 2026-04-23.
-- [ ] Génération de maps par IA (prompt → `MapDefinition` ou .tmj valide, review humain avant intégration) — remonté de Phase 3.6 en 2026-04-20. Alimente le roster. Pipeline `parseTiledMap` + `validateTiledMap` déjà en place (plan 045) → l'IA produit un `.tmj` ou directement un `MapDefinition`, on valide, on itère.
+- [x] Génération de maps par IA (prompt → `MapDefinition` ou .tmj valide, review humain avant intégration) — agent `level-designer` utilisé pour générer les 7 maps thématiques du plan 066. Pipeline `parseTiledMap` + `validateTiledMap` valide chaque map générée.
 - [x] Choix de maps depuis l'UI (écran de sélection, preview, metadata) — plan 067 terminé 2026-04-23.
-- [ ] Remplacer `le-mur` par une map toundra plate (terrain ouvert, grande carte, mécanique different de l'actuelle).
+- [x] Remplacer `le-mur` par une map toundra plate (terrain ouvert, grande carte) — `tundra.tmj` livrée 2026-04-24 (neige/glace, corridor central, 5 formats spawns).
 
 ### Décisions prises — Format de carte (plan 045)
 

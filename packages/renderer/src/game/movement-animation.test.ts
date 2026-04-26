@@ -1,3 +1,4 @@
+import { TerrainType } from "@pokemon-tactic/core";
 import { describe, expect, it } from "vitest";
 import {
   JUMP_TWEEN_DURATION_MS,
@@ -5,7 +6,9 @@ import {
   MOVE_TWEEN_DURATION_MS,
 } from "../constants";
 import {
-  FLYING_JUMP_ANIMATION_CANDIDATES,
+  FLYING_GLIDE_ANIMATION_CANDIDATES,
+  FLYING_OVERFLY_TERRAINS,
+  getFlyingAnimationMode,
   isJumpStep,
   type MovementStep,
   selectMovementAnimation,
@@ -66,16 +69,84 @@ describe("selectMovementAnimation", () => {
   });
 });
 
-describe("FLYING_JUMP_ANIMATION_CANDIDATES", () => {
-  it("prefers dedicated flying animations and ends with Hop", () => {
-    expect(FLYING_JUMP_ANIMATION_CANDIDATES[0]).toBe("FlapAround");
-    expect(FLYING_JUMP_ANIMATION_CANDIDATES).toContain("Hover");
-    expect(FLYING_JUMP_ANIMATION_CANDIDATES).toContain("Special10");
-    expect(FLYING_JUMP_ANIMATION_CANDIDATES.at(-1)).toBe("Hop");
+describe("getFlyingAnimationMode", () => {
+  it("returns null for a ground Pokemon regardless of terrain", () => {
+    expect(getFlyingAnimationMode(step({ isFlying: false, heightDiff: 1 }))).toBe(null);
+    expect(getFlyingAnimationMode(step({ isFlying: false, terrainType: TerrainType.Water }))).toBe(
+      null,
+    );
   });
 
-  it("never falls back to Walk (Walk comes from selectMovementAnimation)", () => {
-    expect(FLYING_JUMP_ANIMATION_CANDIDATES).not.toContain("Walk");
+  it("returns glide for a flying Pokemon on a cliff (same looping anim, no rotation)", () => {
+    expect(getFlyingAnimationMode(step({ isFlying: true, heightDiff: 1, isRamp: false }))).toBe(
+      "glide",
+    );
+  });
+
+  it("returns null for a flying Pokemon on a ramp (still walking)", () => {
+    expect(getFlyingAnimationMode(step({ isFlying: true, heightDiff: 0.5, isRamp: true }))).toBe(
+      null,
+    );
+  });
+
+  it("returns glide on any special terrain tile (no take-off distinction)", () => {
+    for (const terrain of [
+      TerrainType.Water,
+      TerrainType.DeepWater,
+      TerrainType.Lava,
+      TerrainType.Magma,
+      TerrainType.Swamp,
+      TerrainType.Sand,
+      TerrainType.Snow,
+    ]) {
+      expect(getFlyingAnimationMode(step({ isFlying: true, terrainType: terrain }))).toBe("glide");
+    }
+  });
+
+  it("returns null on flat normal terrain", () => {
+    expect(getFlyingAnimationMode(step({ isFlying: true, terrainType: TerrainType.Normal }))).toBe(
+      null,
+    );
+    expect(getFlyingAnimationMode(step({ isFlying: true }))).toBe(null);
+  });
+});
+
+describe("FLYING_OVERFLY_TERRAINS", () => {
+  it("contains obstacle, water, lava, magma, swamp, sand, snow, deep_water", () => {
+    for (const terrain of [
+      TerrainType.Obstacle,
+      TerrainType.Water,
+      TerrainType.DeepWater,
+      TerrainType.Lava,
+      TerrainType.Magma,
+      TerrainType.Swamp,
+      TerrainType.Sand,
+      TerrainType.Snow,
+    ]) {
+      expect(FLYING_OVERFLY_TERRAINS.has(terrain)).toBe(true);
+    }
+  });
+
+  it("does not contain normal, tall_grass, or ice", () => {
+    for (const terrain of [TerrainType.Normal, TerrainType.TallGrass, TerrainType.Ice]) {
+      expect(FLYING_OVERFLY_TERRAINS.has(terrain)).toBe(false);
+    }
+  });
+});
+
+describe("FLYING_GLIDE_ANIMATION_CANDIDATES", () => {
+  it("prefers FlyingIdle (synthetic 2-frame wing flap, no rotation)", () => {
+    expect(FLYING_GLIDE_ANIMATION_CANDIDATES[0]).toBe("FlyingIdle");
+    expect(FLYING_GLIDE_ANIMATION_CANDIDATES).toContain("Hover");
+    expect(FLYING_GLIDE_ANIMATION_CANDIDATES).toContain("Special10");
+  });
+
+  it("does not contain FlapAround (rotates through 8 directions)", () => {
+    expect(FLYING_GLIDE_ANIMATION_CANDIDATES).not.toContain("FlapAround");
+  });
+
+  it("does not contain Hop (one-shot, not a looping glide)", () => {
+    expect(FLYING_GLIDE_ANIMATION_CANDIDATES).not.toContain("Hop");
   });
 });
 

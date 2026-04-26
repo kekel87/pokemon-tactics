@@ -26,7 +26,15 @@ const DEFAULT_SPRITE_OFFSETS: SpriteOffsets = {
 
 const TICK_DURATION_MS = 33;
 
-const LOOPING_ANIMATIONS = new Set(["Idle", "Walk", "Sleep", "FlapAround", "Hover", "Special10"]);
+const LOOPING_ANIMATIONS = new Set([
+  "Idle",
+  "Walk",
+  "Sleep",
+  "FlapAround",
+  "Hover",
+  "Special10",
+  "FlyingIdle",
+]);
 
 export function preloadPortraitsOnly(scene: Phaser.Scene, definitionIds: string[]): void {
   for (const definitionId of definitionIds) {
@@ -94,6 +102,35 @@ export function createPokemonAnimations(scene: Phaser.Scene, definitionId: strin
         frames,
         repeat: looping ? -1 : 0,
       });
+    }
+  }
+
+  // Synthetic FlyingIdle: frames 0–1 of FlapAround (wings neutral → wings up).
+  // FlapAround rotates through all 8 directions over 18 frames, making it
+  // unsuitable as a looping hover. Frames 0 and 1 are the pre-rotation wing
+  // flap; they face the correct direction and loop cleanly.
+  const flapMeta = meta.animations.FlapAround;
+  if (flapMeta) {
+    for (const direction of meta.directions) {
+      const key = `${definitionId}-FlyingIdle-${direction}`;
+      if (scene.anims.exists(key)) {
+        continue;
+      }
+      const frames: Phaser.Types.Animations.AnimationFrame[] = [];
+      for (const i of [0, 1]) {
+        const frameName = `FlapAround-${direction}-${i}`;
+        if (!texture.has(frameName)) {
+          break;
+        }
+        frames.push({
+          key: definitionId,
+          frame: frameName,
+          duration: (flapMeta.durations[i] ?? 4) * TICK_DURATION_MS,
+        });
+      }
+      if (frames.length === 2) {
+        scene.anims.create({ key, frames, repeat: -1 });
+      }
     }
   }
 }

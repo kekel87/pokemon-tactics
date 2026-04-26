@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-25 (plan 068 terminé — IA terrain + pathfinding + LoS — release v2026.4.3 publiée)
+> Dernière mise à jour : 2026-04-26 (Phase 4 — animations vol Pokémon volants terminées)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -20,9 +20,12 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
 
 ---
 
-## Phase actuelle : Phase 3 — Terrain & Tactics
+## Phase actuelle : Phase 4 — Gameplay Pokemon complet
 
-### Ce qui est fait
+### Ce qui est fait en Phase 4
+- **Animations vol (2026-04-26)** : refonte complète du système d'animations de repos pour les Pokémon de type Vol. `PokemonSprite` : `restingAnim` + `setRestingAnimation()` + `playRestingAnimation()` — les Pokémon volants restent en FlyingGlide au repos, après dégâts et après knockback. `getFlyingAnimationMode` simplifié (`"glide" | null`, plus de `"jump"`). `BattleScene` injecte `setRestingAnimation` à la création de chaque sprite selon le type. CI verte : 1130 unit + 107 integration.
+
+### Ce qui était fait avant (Phase 3 et antérieur)
 - Documentation complète : game-design, architecture, decisions (264 décisions), roadmap, references, methodology, roster POC, glossaire
 - 21 agents + 7 skills Claude Code en place (`.claude/`)
 - **Plan 001 terminé** : monorepo setup (pnpm workspaces, TypeScript bundler, Vite, Vitest, Biome)
