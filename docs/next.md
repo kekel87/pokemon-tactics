@@ -4,9 +4,9 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## À faire maintenant
 
-- **Phase 3 terminée.** La prochaine étape est **Phase 4** (voir roadmap).
+- **Phase 4 en cours.** Animations vol terminées. Items restants Phase 4 : Talents (capacités passives), Objets tenus, Natures/Stat Alignment, EV→Stat Points, Méga-évolutions, Roster élargi (~30-40 Pokemon), Team Builder.
+- **Prochain plan à discuter** : Talents d'abord (impact stratégique immédiat, fondation pour l'équilibrage Roster). Discuter le scope avec l'humain avant de rédiger le plan.
 - **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches documentées dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles découpé, peinture manuelle Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour une arène propre rapide, ou reporter post-Babylon pour utiliser `DecalMap`. Ne pas oublier.
-- **Éditeur de terrain / génération IA + choix/ajout de maps** → **Phase 3.6 « Maps & Éditeur », positionnée après Phase 7** (liée à Babylon). Voir `docs/roadmap.md`.
 - **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20, conditionnée par la réussite du plan 065). Plan numéroté au moment de sa rédaction. Pistes à garder sous le coude quand on l'ouvre :
   - Shim type Inspector (`src/types/babylonjs-inspector.d.ts` → `declare module "@babylonjs/inspector" { export {}; }`) pour tester `skipLibCheck: false`.
   - Audit bundle `rollup-plugin-visualizer`, cible 180-220 kB gzip vs 273 kB spike.
@@ -19,6 +19,7 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## Fait récemment
 
+- 2026-04-26 — **Animations vol terminées (hors plan)**. Refonte `PokemonSprite` : `restingAnim` + `setRestingAnimation()` + `playRestingAnimation()`. Les Pokémon de type Vol (Roucoul/Pidgey etc.) restent en FlyingGlide au repos, après dégâts, après knockback et après les sauts en hauteur. `getFlyingAnimationMode` simplifié (plus de `"jump"`). 1130 unit + 107 integration verts.
 - 2026-04-25 — **Plan 068 terminé — Fix IA terrain + pathfinding + LoS**. `action-scorer.ts` : pénalité `DANGEROUS_TERRAIN_PENALTY=8` sur Magma/Lava/Swamp (sauf immuns), `scoreMove` utilise `computePathDistance` (BFS sans budget) au lieu de `manhattanDistance`. 3 nouvelles méthodes publiques sur `BattleEngine` : `getTileAt`, `getPokemonTypes`, `computePathDistance`. Test LoS non-régression ajouté. CT scoring **différé** : nécessite lookahead multi-tour (scorer greedy → combats >5000 tours en charge). À concevoir dans un plan IA multi-tour futur.
 - 2026-04-24 — **Lint warnings rattrapés**. 92 warnings Biome → 0. `useExplicitType` off (règle nursery instable), snake_case autorisé pour objectLiteralProperty (noms Tiled/terrain), `useNamingConvention` off pour scripts, blocs vides corrigés, non-null assertions refactorisées. Gate CI `biome ci` passe sans warning.
 - 2026-04-24 — **Toundra livrée (hors plan)**. Map 12×12 neige/glace : corridor de glace central (rows 5-6, 16 tiles), 2 patches glace NW+SE, 6 rochers, 2 arbres, 5 formats spawn. 1117 unit + 107 intégration verts.
@@ -59,7 +60,7 @@ Maintenu par Claude Code. Lu par l'humain via `/next`.
 
 ## Contexte pour la prochaine session
 
-**Plans 064 + 065 terminés (2026-04-19, 2026-04-20).** Phase 3 quasi-finie : il ne reste que *Roster de maps variées*, *Génération IA de maps* et *Choix de maps UI* (remontés de 3.6). Prochain plan à discuter : générateur IA d'abord (outil réutilisable, alimente le roster) ou maps manuelles + UI d'abord (base minimale jouable). Reco : générateur IA en premier.
+**Phase 3 terminée (2026-04-26).** Tous les items cochés : tileset, terrain, LoS, CT, décorations, occlusion, 9 maps thématiques (forest, cramped-cave, toundra, volcano, swamp, desert, naval-arena + simple-arena + highlands), génération IA maps via agent `level-designer`, sélection de maps UI (plan 067), fix IA BFS pathfinding + terrain (plan 068). Phase actuelle : **Phase 4 — Gameplay Pokemon complet**.
 
 **Référence archive plan 061** : branche `plan-061-occlusion-before-3d-pivot`. À consulter si on veut comprendre ce qui a été tenté en 2D iso avant de pivoter.
 

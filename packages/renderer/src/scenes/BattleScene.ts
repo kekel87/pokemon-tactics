@@ -6,6 +6,7 @@ import {
   PlacementPhase,
   PlayerController,
   type PokemonDefinition,
+  PokemonType,
 } from "@pokemon-tactic/core";
 import { loadData } from "@pokemon-tactic/data";
 import {
@@ -24,6 +25,10 @@ import { AiTeamController } from "../game/AiTeamController";
 import { type BattleSetupConfig, createBattleFromPlacements } from "../game/BattleSetup";
 import { DummyAiController } from "../game/DummyAiController";
 import { GameController, type PlacementConfig } from "../game/GameController";
+import {
+  FLYING_GLIDE_ANIMATION_CANDIDATES,
+  FLYING_OVERFLY_TERRAINS,
+} from "../game/movement-animation";
 import { createSandboxBattle } from "../game/SandboxSetup";
 import { DecorationsLayer } from "../grid/DecorationsLayer";
 import { IsometricGrid } from "../grid/IsometricGrid";
@@ -240,6 +245,14 @@ export class BattleScene extends Phaser.Scene {
       const types = definition?.types ?? ["normal"];
       const sprite = new PokemonSprite(this, isometricGrid, pokemon, types);
       sprites.set(pokemon.id, sprite);
+      const spawnTerrain = isometricGrid.getTileTerrain(pokemon.position.x, pokemon.position.y);
+      if (
+        types.includes(PokemonType.Flying) &&
+        spawnTerrain !== undefined &&
+        FLYING_OVERFLY_TERRAINS.has(spawnTerrain)
+      ) {
+        sprite.setRestingAnimation(FLYING_GLIDE_ANIMATION_CANDIDATES);
+      }
     }
 
     controller.refreshUI();
@@ -416,6 +429,14 @@ export class BattleScene extends Phaser.Scene {
 
       const sprite = new PokemonSprite(this, isometricGrid, pokemon, types);
       sprites.set(pokemon.id, sprite);
+      const spawnTerrain = isometricGrid.getTileTerrain(pokemon.position.x, pokemon.position.y);
+      if (
+        types.includes(PokemonType.Flying) &&
+        spawnTerrain !== undefined &&
+        FLYING_OVERFLY_TERRAINS.has(spawnTerrain)
+      ) {
+        sprite.setRestingAnimation(FLYING_GLIDE_ANIMATION_CANDIDATES);
+      }
     }
 
     controller.refreshUI();

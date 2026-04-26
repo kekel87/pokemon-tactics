@@ -78,6 +78,7 @@ export class PokemonSprite {
   private _gridPosition: { x: number; y: number } = { x: 0, y: 0 };
   private readonly teamColor: number;
   private isKnockedOut = false;
+  private restingAnim = "Idle";
 
   constructor(
     scene: Phaser.Scene,
@@ -226,7 +227,7 @@ export class PokemonSprite {
         this.playAnimation("Sleep");
       }
     } else if (this.currentAnimation === "Sleep") {
-      this.playAnimation("Idle");
+      this.playAnimation(this.restingAnim);
     }
   }
 
@@ -321,6 +322,23 @@ export class PokemonSprite {
     return null;
   }
 
+  /**
+   * Sets the animation to return to after one-shot actions (Hurt, Attack, etc.)
+   * and plays it immediately. Tries candidates in order; if the first available
+   * one is found it becomes the resting animation. If none exist, falls back to Idle.
+   */
+  setRestingAnimation(candidates: readonly string[]): void {
+    const played = this.playFirstAvailableAnimation(candidates);
+    this.restingAnim = played ?? "Idle";
+    if (!played) {
+      this.playAnimation("Idle");
+    }
+  }
+
+  playRestingAnimation(): void {
+    this.playAnimation(this.restingAnim);
+  }
+
   async playAttackAnimation(animation: string, fallback?: string): Promise<void> {
     if (this.isKnockedOut) {
       return;
@@ -383,7 +401,7 @@ export class PokemonSprite {
     return new Promise((resolve) => {
       sprite.play(key);
       sprite.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-        this.playAnimation("Idle");
+        this.playAnimation(this.restingAnim);
         resolve();
       });
     });

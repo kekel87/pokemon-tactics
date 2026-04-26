@@ -65,14 +65,11 @@ Centralise les bugs connus et les retours de playtest non encore traités.
 - Décos environnement : herbe haute overlay, arbres, rochers (sources PMD)
 - Remplir layer `decorations` de `simple-arena.tmj` + maps futures
 
-### Animations de vol + trajectoire des Flying Pokemon
-- Actuellement aucun sprite du roster n'a les animations `FlapAround` / `Hover` / `Special10`. Le fallback (`FLYING_JUMP_ANIMATION_CANDIDATES` dans `packages/renderer/src/game/movement-animation.ts`) retombe sur `Hop` / `Walk`, et `animateMoveTo` utilise un tween diagonal avec easing asymétrique sur Y — ça marche parce que le Hop sprite anim fournit déjà le lift vertical visuel.
-- **Quand on intégrera de vraies animations de vol** (via PMDCollab ou pack custom) :
-  - Ces animations n'ont probablement pas de lift vertical intégré (le pokemon est en vol stationnaire dans ses frames, il n'a pas besoin de "sauter" visuellement).
-  - Il faudra sans doute réintroduire la trajectoire 2-phase pour les Flying uniquement : rise-in-place puis walk horizontal à target height pour les montées, walk horizontal à source height puis drop straight pour les descentes. Le code de la version précédente est dans l'historique git (branche main, avant ce commit).
-  - Ou mieux : une vraie trajectoire en arc parabolique qui fait monter/descendre le container plus nettement, puisque le sprite ne compense plus avec ses frames.
-  - Les constantes à ajuster : `JUMP_TWEEN_DURATION_MS` peut rester, mais les Flying pourraient avoir leur propre durée + courbe (ex: `Sine.easeInOut`).
-- À traiter en même temps que l'ajout des assets flying.
+### Trajectoire de vol (montées/descentes) pour les Flying Pokemon
+- **Animation de repos résolue (2026-04-26)** : les Pokémon de type Vol restent en FlyingGlide au repos (idle, après dégâts, après knockback). `PokemonSprite.setRestingAnimation()` + `playRestingAnimation()` injectés depuis `BattleScene` à la création.
+- **Ce qui reste** : la trajectoire de déplacement sur les dénivelés. Actuellement les Pokémon volants font le même tween de saut (`Hop`) que les autres lors des changements de hauteur. Avec FlyingGlide comme anim de déplacement (sprite vol stationnaire), l'arc parabolique n'est plus compensé par les frames. À traiter quand on aura des assets flying dédiés ou quand la trajectoire semblera trop bizarre visuellement.
+  - Piste : trajectoire 2-phase (rise-in-place → walk horizontal → drop) ou arc parabolique container Y.
+  - Les constantes `JUMP_TWEEN_DURATION_MS` sont déjà séparables par type.
 
 
 ## Résolus

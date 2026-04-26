@@ -56,6 +56,7 @@ function dealSingleHit(
     context.heightModifier,
     context.terrainModifier,
     facingMod,
+    context.abilityRegistry,
   );
 
   const defenseResult = checkDefense(
@@ -77,6 +78,19 @@ function dealSingleHit(
 
   let actualDamage = damage;
   if (defenseResult.endureAtOne) {
+    actualDamage = target.currentHp - 1;
+  }
+
+  const wasAtMaxHp = target.currentHp === target.maxHp;
+
+  // Sturdy: survive a OHKO when at full HP
+  const targetAbility = context.abilityRegistry?.getForPokemon(target);
+  if (
+    targetAbility?.id === "sturdy" &&
+    wasAtMaxHp &&
+    !defenseResult.endureAtOne &&
+    actualDamage >= target.currentHp
+  ) {
     actualDamage = target.currentHp - 1;
   }
 
@@ -121,6 +135,24 @@ function dealSingleHit(
         countdownStart: 0,
       });
     }
+  }
+
+  // onAfterDamageReceived: target's ability reacts to taking damage
+  if (actualDamage > 0 && target.currentHp > 0 && targetAbility?.onAfterDamageReceived) {
+    const attackerTypes = context.attackerTypes;
+    const selfTypes = defenderTypes;
+    const abilityEvents = targetAbility.onAfterDamageReceived({
+      self: target,
+      attacker: context.attacker,
+      move: context.move,
+      damageDealt: actualDamage,
+      wasAtMaxHp,
+      state: context.state,
+      selfTypes,
+      attackerTypes,
+      random: context.random,
+    });
+    events.push(...abilityEvents);
   }
 
   return events;
