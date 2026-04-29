@@ -1,8 +1,10 @@
-import { type PokemonInstance, StatName, StatusType } from "@pokemon-tactic/core";
+import { PokemonGender, type PokemonInstance, StatName, StatusType } from "@pokemon-tactic/core";
 import { getPokemonName } from "@pokemon-tactic/data";
 import {
   DEPTH_INFO_PANEL,
   FONT_FAMILY,
+  GENDER_SYMBOL_FEMALE_COLOR,
+  GENDER_SYMBOL_MALE_COLOR,
   getTeamColorByPlayerId,
   HP_BAR_BG_ALPHA,
   HP_BAR_BG_COLOR,
@@ -61,6 +63,7 @@ export class InfoPanel {
   private readonly container: Phaser.GameObjects.Container;
   private readonly background: Phaser.GameObjects.Graphics;
   private readonly nameText: Phaser.GameObjects.Text;
+  private readonly genderText: Phaser.GameObjects.Text;
   private readonly hpText: Phaser.GameObjects.Text;
   private readonly hpBarBackground: Phaser.GameObjects.Graphics;
   private readonly hpBarFill: Phaser.GameObjects.Graphics;
@@ -81,6 +84,13 @@ export class InfoPanel {
       fontStyle: "bold",
     });
 
+    this.genderText = scene.add.text(0, 10, "", {
+      fontSize: "22px",
+      color: "#ffffff",
+      fontFamily: FONT_FAMILY,
+      fontStyle: "bold",
+    });
+
     this.hpBarBackground = scene.add.graphics();
     this.hpBarFill = scene.add.graphics();
 
@@ -95,6 +105,7 @@ export class InfoPanel {
     this.container = scene.add.container(INFO_PANEL_X, INFO_PANEL_Y, [
       this.background,
       this.nameText,
+      this.genderText,
       this.hpBarBackground,
       this.hpBarFill,
       this.hpText,
@@ -112,6 +123,7 @@ export class InfoPanel {
 
     const name = getPokemonName(pokemon.definitionId, getLanguage());
     this.nameText.setText(`${name}  Lv.${pokemon.level}`);
+    this.updateGenderText(pokemon.gender);
 
     this.updatePortrait(pokemon.definitionId);
 
@@ -122,6 +134,20 @@ export class InfoPanel {
 
     this.updateStatusLabel(pokemon);
     this.updateBadges(pokemon);
+  }
+
+  private updateGenderText(gender: PokemonGender): void {
+    if (gender === PokemonGender.Male) {
+      this.genderText.setText("♂");
+      this.genderText.setColor(GENDER_SYMBOL_MALE_COLOR);
+    } else if (gender === PokemonGender.Female) {
+      this.genderText.setText("♀");
+      this.genderText.setColor(GENDER_SYMBOL_FEMALE_COLOR);
+    } else {
+      this.genderText.setText("");
+      return;
+    }
+    this.genderText.setPosition(this.nameText.x + this.nameText.width + 6, this.nameText.y);
   }
 
   private updateStatusLabel(pokemon: PokemonInstance): void {

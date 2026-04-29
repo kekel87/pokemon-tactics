@@ -5,6 +5,7 @@ import type {
   PlacementEntry,
   PlacementTeam,
   PokemonDefinition,
+  PokemonGender,
   PokemonInstance,
   TileState,
 } from "@pokemon-tactic/core";
@@ -19,6 +20,7 @@ import {
   PlayerController,
   PlayerId,
   type PokemonType,
+  rollGender,
   StatName,
   TurnPipeline,
   type TurnSystemKind,
@@ -47,6 +49,8 @@ function createPokemonInstance(
   position: { x: number; y: number },
   orientation: Direction,
   moveRegistry: Map<string, MoveDefinition>,
+  rng: () => number,
+  genderOverride?: PokemonGender,
 ): PokemonInstance {
   const currentPp: Record<string, number> = {};
   for (const moveId of definition.movepool) {
@@ -54,6 +58,7 @@ function createPokemonInstance(
     currentPp[moveId] = move?.pp ?? 0;
   }
   const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
+  const gender = genderOverride ?? rollGender(definition.genderRatio, rng);
   return {
     id: instanceId,
     definitionId: definition.id,
@@ -79,6 +84,7 @@ function createPokemonInstance(
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
+    gender,
     ...(definition.abilityId ? { abilityId: definition.abilityId } : {}),
   };
 }
@@ -97,6 +103,8 @@ export interface BattleSetupConfig {
   teams: PlacementTeam[];
   placements: PlacementEntry[];
   turnSystemKind?: TurnSystemKind;
+  genderRng?: () => number;
+  genderOverrides?: Record<string, PokemonGender>;
 }
 
 function loadGameData() {
@@ -143,6 +151,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
   );
 
   const pokemonMap = new Map<string, PokemonInstance>();
+  const genderRng = config.genderRng ?? Math.random;
 
   for (const placement of config.placements) {
     const team = config.teams.find((t) => t.pokemonIds.includes(placement.pokemonId));
@@ -163,6 +172,8 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
       placement.position,
       placement.direction,
       moveDefinitions,
+      genderRng,
+      config.genderOverrides?.[placement.pokemonId],
     );
 
     pokemonMap.set(instance.id, instance);

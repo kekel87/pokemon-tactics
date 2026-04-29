@@ -11,6 +11,7 @@ export { EffectTier } from "./effect-tier";
 export { PlacementMode } from "./placement-mode";
 export { PlayerController } from "./player-controller";
 export { PlayerId } from "./player-id";
+export { PokemonGender } from "./pokemon-gender";
 export { PokemonType } from "./pokemon-type";
 export { StatName } from "./stat-name";
 export { StatusType } from "./status-type";

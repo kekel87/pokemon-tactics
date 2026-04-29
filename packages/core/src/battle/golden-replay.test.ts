@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { pickAggressiveAction } from "../ai/aggressive-ai";
 import { Direction } from "../enums/direction";
 import { PlayerId } from "../enums/player-id";
+import { PokemonGender } from "../enums/pokemon-gender";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import type { Action } from "../types/action";
@@ -96,6 +97,7 @@ function buildGoldenEngine(seed: number): BattleEngine {
       toxicCounter: 0,
       volatileStatuses: [],
       recharging: false,
+      gender: PokemonGender.Genderless,
     };
     pokemonMap.set(instance.id, instance);
     const row = grid[pos.y];

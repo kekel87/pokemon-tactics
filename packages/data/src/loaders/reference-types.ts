@@ -6,6 +6,7 @@ export interface ReferencePokemon {
   height: number;
   weight: number;
   baseStats: { hp: number; atk: number; def: number; spa: number; spd: number; spe: number };
+  genderRatio: { male: number; female: number } | "genderless";
 }
 
 export interface ReferenceMove {
