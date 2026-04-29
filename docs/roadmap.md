@@ -1,21 +1,21 @@
 # Roadmap — Pokemon Tactics
 
 > Phases de développement du POC au jeu complet.
-> Limite de roster : 151 premiers Pokemon (Gen 1) — décision #92.
+> Roster limité : 151 premiers Pokemon (Gen 1) — décision #92.
 
 ---
 
 ## Phase 0 — Prototype technique (POC) ✅ *Terminé*
 
-> But : valider la stack et avoir un combat jouable minimaliste
+> But : valider la stack, avoir un combat jouable minimaliste
 
 ### Core
 - [x] Setup monorepo (pnpm workspaces, tsconfig, Vite, Vitest, Biome)
 - [x] Modèles de base (Pokemon, Move, Grid, BattleState)
-- [x] Grille plate (pas de dénivelé), placement de 2 Pokemon
+- [x] Grille plate, placement 2 Pokemon
 - [x] Système de tour simple (round-robin par Vitesse)
-- [x] Déplacement (pathfinding BFS sur grille)
-- [x] Attaque single target + calcul de dégâts (formule Gen 5+, STAB, types)
+- [x] Déplacement (pathfinding BFS)
+- [x] Attaque single target + calcul dégâts (formule Gen 5+, STAB, types)
 - [x] Condition de victoire (dernière équipe debout)
 - [x] Move+Act par tour (FFTA-like)
 - [x] 5 statuts majeurs (brûlure, poison, paralysie, gel, sommeil)
@@ -40,124 +40,123 @@
 
 ## Phase 1 — Combat fonctionnel ✅ *Terminé*
 
-> But : un combat complet et varié, jouable en hot-seat, avec assez de Pokemon pour tester toutes les mécaniques
+> But : combat complet et varié, jouable en hot-seat, avec assez de Pokemon pour tester toutes les mécaniques
 
-### Ce qui est posé (fondations Phase 0)
-Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly fire, Move+Act, stat stages (-6/+6), hot-seat basique, 12 Pokemon avec 48 moves, format 6v6, phase de placement interactive.
+### Fondations (Phase 0)
+Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly fire, Move+Act, stat stages (-6/+6), hot-seat, 12 Pokemon + 48 moves, format 6v6, placement interactif.
 
 ### Core
-- [x] KO définitif : corps reste sur la tile, traversable mais non-stoppable (plan 011)
-- [x] Placement initial configurable : `MapDefinition`, `PlacementPhase`, alternance serpent, mode random (plan 013 — implémenté, non commité)
+- [x] KO définitif : corps reste sur tile, traversable mais non-stoppable (plan 011)
+- [x] Placement initial configurable : `MapDefinition`, `PlacementPhase`, alternance serpent, mode random (plan 013)
 - [x] Direction de fin de tour (orientation choisie avant EndTurn)
-- [x] Nouveaux patterns core : `slash` (arc frontal 3 cases) et `blast` (projectile + explosion circulaire) — voir `docs/reflexion-patterns-attaques.md` et décisions #108-109
-- [x] Mettre à jour `tactical.ts` avec les 7 changements de pattern effectifs (décision #110) — Ball'Ombre absente du roster actuel
-- [x] **Mode Sandbox** : 1 Pokemon joueur vs 1 Dummy configurable sur micro-carte 6x6, 2 panels séparés (Joueur/Dummy), toolbar Réinitialiser + Exporter JSON, accès via `pnpm dev:sandbox [config.json|json]`, Dummy avec preset Pokemon ou custom stats (décisions #138-139) — plan 023 + post-plan + plan 035
-- [x] 8 moves défensifs : Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité (décisions #141-146) + tests d'intégration scénario Gherkin (décision #140) — plan 023
-- [x] Plus de moves stat changes : Épée Danse (+2 Atk), Mur de Fer (+2 Def), Rugissement (-1 Atk cone), Hurlement (-1 Atk cone), Flash (-1 Accuracy zone r2) — plan 026
-- [x] Plus de moves AoE variés : Séisme (zone r2), Acide (cone + SpDef debuff), Tranche (slash), Draco-Queue (slash + knockback) — plan 026
-- [x] Plus de moves avec portées variées : Ultimapoing (mêlée), Dard-Venin (mêlée + poison), Ultralaser (ligne 5 + recharge), Double Pied (multi-hit x2), Combo-Griffe (multi-hit 2-5) — plan 026
+- [x] Nouveaux patterns : `slash` (arc frontal 3 cases) et `blast` (projectile + explosion circulaire) — décisions #108-109
+- [x] `tactical.ts` : 7 changements de pattern (décision #110)
+- [x] **Mode Sandbox** : 1 Pokemon joueur vs 1 Dummy configurable, 2 panels (Joueur/Dummy), toolbar Réinitialiser + Exporter JSON, `pnpm dev:sandbox [config.json|json]`, Dummy preset ou custom stats (décisions #138-139) — plan 023 + plan 035
+- [x] 8 moves défensifs : Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité (décisions #141-146) + tests intégration Gherkin — plan 023
+- [x] Moves stat changes : Épée Danse (+2 Atk), Mur de Fer (+2 Def), Rugissement (-1 Atk cone), Hurlement (-1 Atk cone), Flash (-1 Accuracy zone r2) — plan 026
+- [x] Moves AoE variés : Séisme (zone r2), Acide (cone + SpDef debuff), Tranche (slash), Draco-Queue (slash + knockback) — plan 026
+- [x] Moves portées variées : Ultimapoing (mêlée), Dard-Venin (mêlée + poison), Ultralaser (ligne 5 + recharge), Double Pied (multi-hit x2), Combo-Griffe (multi-hit 2-5) — plan 026
 - [x] Statuts volatils : confusion tactique (redirection allié, direction aléatoire, tour perdu si pas d'allié) — plan 026
 - [x] Poison grave : dégâts croissants via toxicCounter (1/16 à 15/16 HP) — plan 026
-- [x] Plusieurs Pokemon par équipe : format 6v6 implémenté (plan 013)
+- [x] Format 6v6 (plan 013)
 - [x] Tests d'intégration par move : 73 fichiers moves + 14 fichiers mécaniques, helper `buildMoveTestEngine`, **595 tests** (plans 025+026)
-- [x] Roster élargi (~20 Pokemon) — **20 Pokemon jouables** (+1 Dummy) avec 72 moves, sprites PMDCollab, tests d'intégration par move (plan 027)
-- [x] Stats niveau 50 : fonction `computeStatAtLevel` pour calculer HP et stats réelles au niveau 50 (plan 015)
+- [x] Roster élargi (~20 Pokemon) — 20 Pokemon jouables (+1 Dummy), 72 moves, sprites PMDCollab (plan 027)
+- [x] Stats niveau 50 : `computeStatAtLevel` (plan 015)
 - [x] Système de replay (log d'actions déterministe, seed + rejeu)
 
 ### Renderer
-- [x] Placement initial visuel : phase de placement interactive, panel roster, zones de spawn highlight (plan 013 — implémenté, non commité)
-- [x] Choix de direction en fin de tour
-- [x] Corps KO visible sur la grille (sprite Faint persistant, alpha réduit)
-- [x] Stat change indicators (flèches ↑↓ colorées) dans l'info panel
-- [x] Status icons (pastilles colorées) dans la turn timeline
-- [x] Afficher le niveau dans l'UI (`Lv.50` dans l'InfoPanel)
-- [x] Info détaillées des attaques dans le sous-menu (catégorie icon SV + nom + PP courants/max) + tooltip hover (catégorie, puissance, précision, nom pattern FR + portée conditionnelle, grille dynamique) — plan 016
-- [x] Refonte panel info stats : badges colorés Showdown (bleu buff / rouge debuff) pour les stat changes (plan 018)
-- [x] Feedback visuel des statuts sur les sprites (icônes ZA sur sprites + timeline, miniature ZA dans InfoPanel, animation Sleep PMD) (plan 018)
-- [x] Prévisualisation AoE dynamique sur la grille : preview hover, flow 2 étapes FFTA (verrouillage + clignotement + confirmation), `confirmAttack` configurable, couleurs rouge/bleu selon effets, outline périmétrique pour la portée (plan 017)
-- [x] Preview dégâts estimés dans `confirm_attack` : random roll x0.85–1.00, `estimateDamage()` core, zone dégradée HP bar + texte flottant min–max, "Immune" pour les immunités, AoE multi-cibles (plan 019)
+- [x] Placement initial visuel : phase interactive, panel roster, zones spawn highlight (plan 013)
+- [x] Choix direction fin de tour
+- [x] Corps KO visible (sprite Faint persistant, alpha réduit)
+- [x] Stat change indicators (flèches ↑↓ colorées) dans InfoPanel
+- [x] Status icons (pastilles colorées) dans turn timeline
+- [x] Niveau affiché dans UI (`Lv.50` dans InfoPanel)
+- [x] Info détaillées attaques : catégorie icon SV + nom + PP courants/max + tooltip hover — plan 016
+- [x] Refonte panel info stats : badges colorés Showdown (bleu buff / rouge debuff) — plan 018
+- [x] Feedback visuel statuts sur sprites (icônes ZA, miniature ZA InfoPanel, animation Sleep PMD) — plan 018
+- [x] Prévisualisation AoE : preview hover, flow 2 étapes FFTA (verrouillage + clignotement + confirmation), `confirmAttack` configurable, couleurs rouge/bleu, outline périmétrique portée — plan 017
+- [x] Preview dégâts estimés : random roll x0.85–1.00, `estimateDamage()` core, zone dégradée HP bar + texte flottant min–max, "Immune" pour immunités, AoE multi-cibles — plan 019
 - [x] Canvas responsive FIT (Phaser.Scale.FIT, CSS 100vw/100vh) — plan 020
-- [x] Zoom 3 niveaux discrets (close-up 2.0x / medium 1.3x / overview 0.85x), molette + touches +/- — plan 020
-- [x] Pan caméra aux bords de l'écran (50px threshold, 6px/frame) + suivi automatique du Pokemon actif (camera.pan fluide) — plan 020
-- [x] Sprite offsets corrects via Shadow.png PMDCollab + ombres ellipse sous sprites — plan 021
+- [x] Zoom 3 niveaux (close-up 2.0x / medium 1.3x / overview 0.85x), molette + touches +/- — plan 020
+- [x] Pan caméra aux bords (50px threshold, 6px/frame) + suivi Pokemon actif (camera.pan fluide) — plan 020
+- [x] Sprite offsets corrects via Shadow.png PMDCollab + ombres ellipse — plan 021
 - [x] Refonte turn order (timeline) — plan 022
 
 ---
 
 ## Phase 2 — Démo jouable ✅ *Terminé*
 
-> But : un lien partageable où quelqu'un peut jouer seul contre l'IA et s'amuser
+> But : lien partageable, quelqu'un joue seul contre l'IA et s'amuse
 
 - [x] i18n FR/EN (détection auto navigateur, persistance localStorage, bouton bascule) — plan 030
 - [x] Menu principal + Settings (langue, damage preview on/off) — plan 036 (MainMenuScene, BattleModeScene, SettingsScene, CreditsScene, GameSettings localStorage, i18n ~20 clés)
-- [x] Feedbacks visuels des mécaniques (confusion, vampigraine, bind, knockback, etc.) — plan 031 (BattleText, knockback slide, confusion wobble, icônes Seeded/Trapped)
+- [x] Feedbacks visuels mécaniques (confusion, vampigraine, bind, knockback, etc.) — plan 031 (BattleText, knockback slide, confusion wobble, icônes Seeded/Trapped)
 - [x] Refactor core : Vampigraine et Piège en statuts volatils (remplace ActiveLink) — plan 031
-- [x] Indicateur visuel de miss (attaque ratée) — texte flottant "Miss" via BattleText (plan 031)
-- [x] Animations fluides (attaque par catégorie Contact/Shoot/Charge, direction dynamique pendant déplacement et avant attaque, pipeline sprites Shoot/Charge/Hop) — plan 039
+- [x] Indicateur visuel miss — texte flottant "Miss" via BattleText (plan 031)
+- [x] Animations fluides (attaque par catégorie Contact/Shoot/Charge, direction dynamique, pipeline sprites Shoot/Charge/Hop) — plan 039
 - [x] IA jouable avec personnalité (plan 029 — AiDifficulty easy/medium/hard, action-scorer, scored-ai, AiTeamController, smoke test 6v6)
-- [x] IA améliorée : lookahead move+attack (évaluer les attaques possibles après déplacement)
-- [x] Battle log (afficher les moves utilisés par l'IA et les joueurs) — panel haut droite, i18n FR/EN, couleurs par type de message, noms cliquables, pliable, scroll auto (plan 037)
-- [x] Afficher la portée de déplacement des ennemis au hover (overlay orange, layer dédié `enemyRangeGraphics`) — plan 038
-- [x] Revoir l'algo de portée de déplacement (tous les Pokemon semblent avoir la même portée) — plan 032
-- [x] Sélection d'équipe (grille portraits 82px colorés par équipe, bouton Auto re-randomize/Vider, toggle Humain/IA, toggle placement auto/manuel, validation core validateTeamSelection(), support IA vs IA, bypass sandbox, noms Pokemon i18n, bouton Retour au menu en victoire) — plan 033
-- [x] Hot-seat 1v1 + multi-équipes (2 à 12 joueurs, IA ou humain par équipe, carte 12x20, 12 couleurs d'équipe) — plan 040
-- [x] Repo public (README EN, LICENSE MIT, issue templates, wiki joueur, CI GitHub Actions) — hors plan
-- [x] Publication (GitHub Pages, release v2026.4.1, CalVer) — hors plan
+- [x] IA améliorée : lookahead move+attack (évaluer attaques possibles après déplacement)
+- [x] Battle log — panel haut droite, i18n FR/EN, couleurs par type message, noms cliquables, pliable, scroll auto — plan 037
+- [x] Portée déplacement ennemis au hover (overlay orange, layer `enemyRangeGraphics`) — plan 038
+- [x] Algo portée déplacement revu — plan 032
+- [x] Sélection d'équipe (grille portraits 82px colorés, bouton Auto re-randomize/Vider, toggle Humain/IA, toggle placement auto/manuel, validation `validateTeamSelection()`, support IA vs IA, bypass sandbox, noms i18n, bouton Retour) — plan 033
+- [x] Hot-seat 1v1 + multi-équipes (2 à 12 joueurs, IA ou humain, carte 12x20, 12 couleurs) — plan 040
+- [x] Repo public (README EN, LICENSE MIT, issue templates, wiki joueur, CI GitHub Actions)
+- [x] Publication (GitHub Pages, release v2026.4.1, CalVer)
 
 ---
 
 ## Phase 3 — Terrain & Tactics ✅ *Terminé*
 
-> But : la vraie profondeur tactique — le terrain change la façon de jouer
+> But : la vraie profondeur tactique — le terrain change le jeu
 
 - [x] Tileset isométrique (ICON Isometric Pack / Jao — tiles 32×32 ×2, filtre NEAREST, marquages arène overlay) — plan 043
-- [x] Supprimer POKEMON_SPRITE_SCALE=2 + TILE_SPRITE_SCALE=2, rattraper offsets, ajuster zoom — uniformiser la résolution pixel (plan 044)
+- [x] Supprimer POKEMON_SPRITE_SCALE=2 + TILE_SPRITE_SCALE=2, rattraper offsets, ajuster zoom — plan 044
 - [x] Mode pixel art Phaser (roundPixels:true, NEAREST manuel par texture, police adaptée) — plan 044
-- [x] Format de carte compatible Tiled + pipeline de chargement (parseTiledMap, validateTiledMap, loadTiledMap, MapPreviewScene, simple-arena.tmj ex-test-arena — plan 045, renommée plan 066)
+- [x] Format de carte compatible Tiled + pipeline chargement (parseTiledMap, validateTiledMap, loadTiledMap, MapPreviewScene — plan 045)
 - [x] Dénivelés (hauteur tiles) + dégâts de chute (plan 046 — canTraverse, getHeightModifier, isMeleeBlockedByHeight, calculateFallDamage, renderer surélevé, highlands.tmj, 45 tests)
-- [x] Tileset custom PMD-based (remplacer les tiles JAO) — plan 050 (11 solides + 4 liquides, pipeline Python, 24 maps migrées vers tileset.tsj externe, dead code renderer nettoyé — validation visuelle humaine en cours)
-- [x] Obstacles + line of sight (trajectoires de tir visibles) — plan 047
-- [x] Types de terrain (lave, eau, herbe) + modificateurs — plan 051 terminé (core + tests + maps sandbox + renderer tint). Tooltip InfoPanel déplacé au backlog.
-- [x] Orientation tactique (bonus dos/face FFTA) — plan 052 (face -15%, flanc neutre, dos +15% sur les dégâts, preview "(+15%)" / "(-15%)", 28 tests)
-- [x] Système CT (remplacement round-robin) — plan 054 terminé. Interface `TurnSystem`, `ChargeTimeTurnSystem`, `ct-costs`, dual-mode BattleEngine, TurnTimeline CT, ActionMenu CT, toggle TeamSelectScene, i18n, 999 tests. Décisions #254-256.
-- [x] Toggle CT/Round-Robin dans `TeamSelectScene` (bouton "Tours fixes" / "Charge Time", i18n FR/EN) — plan 054
-- [x] **[UX CT]** Timeline CT prédictive scrollable style FFX — 24 slots simulés par le core, slot 0 ancré (acteur courant), 11 slots scrollables à la molette, bordure teal-vert sur le Pokemon actif au `confirm_attack`, entrée tail "..." si hors des 24 slots. Remplace les ghost entries du plan 058. — plan 058 + plan 059
-- [x] Undo déplacement (annulable tant qu'on n'a pas attaqué) — plan 053 (action `undo_move`, bouton "Annuler déplacement" en menu, annulation brûlure magma, 8 tests)
-- [x] Curseur FFTA — variantes de curseur (settings + touche H), depth bugfix curseur (500 global) — plan 060 Section A
-- [ ] ~~Silhouette X-ray occlusion~~ — **SKIPPÉE** (résolue nativement par le renderer Babylon Phase 3.5, décision humain 2026-04-18)
-- [x] Système de décorations Tiled — tileset `decorations.tsj` dédié, Ghost traverse obstacles, parser objectgroup, sprites PixelLab (herbe haute, rochers, arbre), `DecorationsLayer` renderer — plan 064. Bonus différé : marquages arène + pokéball centrale.
-- [x] **Occlusion dynamique par sprite** — fix depth tiles surélevées (`DEPTH_RAISED_TILE_BASE`), Alt-click picking multi-niveaux (`COLOR_CURSOR_ALT`), module `OcclusionFader` (fade alpha 0.4 quand Pokemon derrière obstacle, AABB screen-space, pipeline reset→test→apply). **Phase 3.5 rewrite Babylon repoussée après Phase 7** suite au succès visuel (décision #272). — plan 065
-- [x] Roster de maps variées (dénivelés, types de terrain, décors, tailles) — 7 maps thématiques livrées : forest (14×14), cramped-cave (12×12), le-mur (16×16), volcano (14×14), swamp (14×14), desert (14×14), naval-arena (14×14). Toutes multi-format (5 objectgroups spawns). Plan 066 terminé 2026-04-23.
-- [x] Génération de maps par IA (prompt → `MapDefinition` ou .tmj valide, review humain avant intégration) — agent `level-designer` utilisé pour générer les 7 maps thématiques du plan 066. Pipeline `parseTiledMap` + `validateTiledMap` valide chaque map générée.
-- [x] Choix de maps depuis l'UI (écran de sélection, preview, metadata) — plan 067 terminé 2026-04-23.
-- [x] Remplacer `le-mur` par une map toundra plate (terrain ouvert, grande carte) — `tundra.tmj` livrée 2026-04-24 (neige/glace, corridor central, 5 formats spawns).
+- [x] Tileset custom PMD-based (remplace tiles JAO) — plan 050 (11 solides + 4 liquides, pipeline Python, 24 maps migrées vers tileset.tsj)
+- [x] Obstacles + line of sight — plan 047
+- [x] Types de terrain (lave, eau, herbe) + modificateurs — plan 051 (core + tests + maps sandbox + renderer tint)
+- [x] Orientation tactique (dos/face FFTA) — plan 052 (face -15%, flanc neutre, dos +15% dégâts, preview "(+15%)" / "(-15%)", 28 tests)
+- [x] Système CT (remplacement round-robin) — plan 054 (interface `TurnSystem`, `ChargeTimeTurnSystem`, `ct-costs`, dual-mode BattleEngine, TurnTimeline CT, ActionMenu CT, toggle TeamSelectScene, i18n, 999 tests. Décisions #254-256)
+- [x] **[UX CT]** Timeline CT prédictive scrollable style FFX — 24 slots simulés par core, slot 0 ancré, 11 slots scrollables molette, bordure teal-vert Pokemon actif, entrée tail "..." — plan 058 + plan 059
+- [x] Undo déplacement (annulable avant attaque) — plan 053 (action `undo_move`, bouton "Annuler déplacement", annulation brûlure magma, 8 tests)
+- [x] Curseur FFTA — variantes curseur (settings + touche H), depth bugfix curseur (500 global) — plan 060 Section A
+- [ ] ~~Silhouette X-ray occlusion~~ — **SKIPPÉE** (résolue nativement par renderer Babylon Phase 3.5, décision 2026-04-18)
+- [x] Système décorations Tiled — `decorations.tsj`, Ghost traverse obstacles, parser objectgroup, sprites PixelLab, `DecorationsLayer` renderer — plan 064. Bonus différé : marquages arène + pokéball centrale.
+- [x] **Occlusion dynamique par sprite** — fix depth tiles surélevées (`DEPTH_RAISED_TILE_BASE`), Alt-click picking multi-niveaux (`COLOR_CURSOR_ALT`), module `OcclusionFader` (fade alpha 0.4, AABB screen-space). **Phase 3.5 rewrite Babylon repoussée après Phase 7** (décision #272). — plan 065
+- [x] Roster de maps variées — 7 maps thématiques : forest (14×14), cramped-cave (12×12), le-mur (16×16), volcano (14×14), swamp (14×14), desert (14×14), naval-arena (14×14). Toutes multi-format (5 objectgroups). Plan 066 terminé 2026-04-23.
+- [x] Génération maps par IA (prompt → `MapDefinition` ou .tmj valide) — agent `level-designer` utilisé pour 7 maps du plan 066.
+- [x] Choix maps depuis UI (écran sélection, preview, metadata) — plan 067 terminé 2026-04-23.
+- [x] Remplacer `le-mur` par toundra plate — `tundra.tmj` livrée 2026-04-24 (neige/glace, corridor central, 5 formats).
 
-### Décisions prises — Format de carte (plan 045)
+### Décisions format de carte (plan 045)
 
-- **Tiled comme éditeur principal** de maps. Le core ne connaît pas Tiled — il ne voit que `MapDefinition`.
-- **Parser dans `packages/data`** (`packages/data/src/tiled/`) : convertit .tmj → `MapDefinition` au chargement runtime. Zéro dépendance Phaser.
-- **Layers** : `terrain` (tilelayer, GID→TileState via propriétés custom), `decorations` (ignoré par le core), 5 objectgroups de spawns `spawns_1v1/3p/4p/6p/12p` (teamCount déduit du nom, chaque object ne porte que `teamIndex`). Layer legacy unique `spawns` avec `formatTeamCount` conservé pour compat `dev/*.tmj` uniquement.
-- **Propriétés custom** par tile : `terrain` (string → TerrainType), `height` (int). `isPassable` supprimé — le terrain détermine la passabilité.
-- **Chargement dynamique** : `loadTiledMap(url)` fait un fetch runtime + parse + validate. Pas de conversion build-time.
-- **Tilesets externes .tsj supportés** en plus des tilesets embarqués.
+- **Tiled comme éditeur principal**. Core ne connaît pas Tiled — voit uniquement `MapDefinition`.
+- **Parser dans `packages/data`** (`packages/data/src/tiled/`) : convertit .tmj → `MapDefinition` au runtime. Zéro dépendance Phaser.
+- **Layers** : `terrain` (tilelayer, GID→TileState via propriétés custom), `decorations` (ignoré core), 5 objectgroups spawns `spawns_1v1/3p/4p/6p/12p`. Layer legacy `spawns` avec `formatTeamCount` conservé pour compat `dev/*.tmj` uniquement.
+- **Propriétés custom** par tile : `terrain` (string → TerrainType), `height` (int). `isPassable` supprimé.
+- **Chargement dynamique** : `loadTiledMap(url)` fait fetch runtime + parse + validate. Pas de conversion build-time.
+- **Tilesets externes .tsj supportés**.
 
 ---
 
-> **Note ordre — Phase 3.5 et Phase 3.6 déplacées après Phase 7** (2026-04-20). Les noms restent `3.5` et `3.6` pour préserver les refs historiques (décisions, plans), mais leur **position dans la séquence de livraison** est désormais post-Phase 7. Raison : si le plan 065 (fade per-sprite) résout l'occlusion en iso 2D, le rewrite Babylon n'est plus urgent et on priorise gameplay/core/multi avant. Voir les sections Phase 3.5 et 3.6 plus bas (après Phase 7).
+> **Note — Phase 3.5 et Phase 3.6 déplacées après Phase 7** (2026-04-20). Noms conservés pour les refs historiques.
 
 ---
 
 ## Phase 4 — Gameplay Pokemon complet
 
-> But : couvrir les toutes les mécaniques Pokemon et ajouter de la profondeur stratégique
+> But : couvrir toutes les mécaniques Pokemon, ajouter profondeur stratégique
 
-- [x] Talents (capacités passives) — plans 069 + 070 terminés. 20 abilities, `AbilityHandlerRegistry`, 9 hooks (`onAccuracyModify` supprimé, réouvert Phase 9 météo), 26+ tests d'intégration. Pattern Showdown : hooks blocants retournent `BlockResult { blocked, events }`, modifieur de durée retourne `DurationModifyResult`. Buffer startup events, Lévitation terrain corrigée, Tempo Perso bloque Intimidation, anti-spam seuil 1/3 HP. Voir `docs/abilities-system.md`.
-- [ ] Genres des Pokemon (mâle/femelle/asexué selon ratio officiel) — prérequis pour Charme/Joli Sourire (Attract/Cute Charm) qui exigent des genres opposés
+- [x] Talents (capacités passives) — plans 069 + 070 terminés. 20 abilities, `AbilityHandlerRegistry`, 9 hooks, 26+ tests intégration. Pattern Showdown : hooks blocants retournent `BlockResult { blocked, events }`, modifieur de durée retourne `DurationModifyResult`. Buffer startup events, Lévitation terrain corrigée, Tempo Perso bloque Intimidation, anti-spam seuil 1/3 HP. Voir `docs/abilities-system.md`.
+- [ ] Genres des Pokemon (mâle/femelle/asexué selon ratio officiel) — prérequis Charme/Joli Sourire (genres opposés)
 - [ ] Objets tenus
-- [ ] Natures (boost +10% / malus -10% sur une stat) — renommé "Stat Alignment" dans Pokemon Champions, à discuter
+- [ ] Natures (boost +10% / malus -10% sur une stat) — renommé "Stat Alignment" dans Pokemon Champions
 - [ ] EV / IV — simplification Pokemon Champions :
-  - **IV supprimés** : tous les Pokemon ont 31 IVs fixes (pas de randomisation à la capture)
-  - **EV → Stat Points (SP)** : 66 points max à distribuer, 32 max par stat, 1 SP = +1 point de stat directement (au lieu du système 4 EV = +1 stat)
+  - **IV supprimés** : tous les Pokemon ont 31 IVs fixes
+  - **EV → Stat Points (SP)** : 66 points max, 32 max par stat, 1 SP = +1 point de stat
 - [ ] Méga-évolutions
 - [ ] Roster élargi (~30-40 Pokemon) + attaques
 - [ ] Team Builder (import/export Showdown)
@@ -166,17 +165,17 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 
 ## Phase 5 — Équilibrage
 
-> But : des outils pour tester et équilibrer avant d'ouvrir le multi
+> But : outils pour tester et équilibrer avant d'ouvrir le multi
 
 - [ ] IA LLM (Claude adversaire)
-- [ ] Mode headless + outils d'équilibrage — **prérequis** : déplacer les `.tmj` dans `packages/data/src/maps/tiled/` (source de vérité) et ajouter un `loadMapDefinition(id)` Node-compatible (fs + parseTiledMap). Aujourd'hui les maps sont dans `packages/renderer/public/` et chargées via `fetch()` HTTP — inutilisable sans browser.
+- [ ] Mode headless + outils d'équilibrage — **prérequis** : déplacer `.tmj` dans `packages/data/src/maps/tiled/` et ajouter `loadMapDefinition(id)` Node-compatible. Aujourd'hui maps dans `packages/renderer/public/` chargées via `fetch()` HTTP — inutilisable sans browser.
 - [ ] Passes d'équilibrage
 
 ---
 
 ## Phase 6 — Social & Partage
 
-> But : les features qui donnent envie de partager et revenir
+> But : features qui donnent envie de partager et revenir
 
 - [ ] Share replay via URL + lecteur de replay
 - [ ] Défi du jour (seed quotidienne, même combat pour tous)
@@ -198,51 +197,51 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 
 ## Phase 3.5 — Migration renderer 2D-HD (Babylon.js)
 
-> **Position actuelle : après Phase 7** (reordonnée 2026-04-20). Numéro conservé pour les refs historiques.
+> **Position actuelle : après Phase 7** (reordonné 2026-04-20).
 >
-> But : remplacer le renderer Phaser 4 isométrique par un renderer Babylon.js 2D-HD (sprites billboards sur terrain 3D extrudé, style Tactics Ogre PSP / Triangle Strategy / FFTIC).
+> But : remplacer renderer Phaser 4 isométrique par Babylon.js 2D-HD (sprites billboards sur terrain 3D extrudé, style Tactics Ogre PSP / Triangle Strategy / FFTIC).
 
 ### Contexte
 
-Pivot décidé le 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) validé 4/4. Spike plan 063 (Babylon.js) terminé le 2026-04-18 → **Babylon.js retenu** (décision #269). Report post-Phase 7 décidé le 2026-04-20 : le plan 065 (fade per-sprite) résout l'occlusion en iso 2D, la rotation caméra reste un want non-bloquant → on priorise gameplay/équilibrage/multi avant le rewrite renderer.
+Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) validé 4/4. Spike plan 063 (Babylon.js) terminé 2026-04-18 → **Babylon.js retenu** (décision #269). Report post-Phase 7 décidé 2026-04-20 : plan 065 résout l'occlusion en iso 2D, rotation caméra reste un want non-bloquant.
 
 Prérequis :
-- Phases 3 → 7 livrées. Les features renderer sont implémentées en Phaser puis reportées sur Babylon.
-- Plan 065 (occlusion fade) livré — sinon ce rewrite redevient prioritaire.
-- Occlusion plan 060 silhouette **skippée** (résolue par plan 065 en iso, ou nativement par le depth buffer 3D).
+- Phases 3 → 7 livrées.
+- Plan 065 (occlusion fade) livré.
+- Occlusion plan 060 silhouette **skippée**.
 
 ### À décider en début de phase
 
-- [ ] **Découpage en plans** : 1 plan monolithique vs 4 plans incrémentaux (core / UI / features Phase 3 / perfs). Numéros attribués au moment de la rédaction. Voir pistes dans `docs/next.md`.
-- [ ] **Tiled : on garde ou pas ?** Dépend du workflow de maps côté renderer 3D. Option A : garder Tiled, `loadTiledMap` transforme en `MapDefinition` (pipeline déjà validée plan 062/063). Option B : format de map custom orienté 3D (volumes, rotations, props). Option C : éditeur custom in-game (item Phase 3.6 « Éditeur de terrain / génération IA »).
-- [ ] **UI stack** : `@babylonjs/gui` natif (WYSIWYG GUI Editor, intégré au moteur) vs HTML/CSS overlay au-dessus du canvas (CSS standard, accessible). Mesurer les deux sur un panel représentatif avant de trancher.
+- [ ] **Découpage en plans** : 1 plan monolithique vs 4 plans incrémentaux. Voir pistes dans `docs/next.md`.
+- [ ] **Tiled : conserver ?** Option A : garder Tiled, `loadTiledMap` → `MapDefinition`. Option B : format map custom orienté 3D. Option C : éditeur custom in-game.
+- [ ] **UI stack** : `@babylonjs/gui` natif vs HTML/CSS overlay. Mesurer les deux sur un panel avant de trancher.
 
-### Items techniques (à ventiler dans les plans une fois le découpage décidé)
+### Items techniques
 
-- [ ] Port du core renderer : terrain extrudé, sprites directional billboards (atlas PMDCollab), caméra orthographique dimetric, curseur FFTA, occlusion native.
-- [ ] Parité feature avec le renderer Phaser actuel sur une map de référence (combat complet jouable).
+- [ ] Port core renderer : terrain extrudé, sprites directional billboards (atlas PMDCollab), caméra orthographique dimetric, curseur FFTA, occlusion native.
+- [ ] Parité feature avec renderer Phaser actuel sur map de référence (combat complet jouable).
 - [ ] Port UI : timeline CT, ActionMenu, sous-menu attaque, InfoPanel, battle log, écrans menu/sélection/victoire.
-- [ ] Features Phase 3 repensées pour la 3D : décorations (herbes hautes billboards), rotation caméra 4 angles (remonte de Phase 8).
-- [ ] Bundle & perfs : audit `rollup-plugin-visualizer`, flat-shaded `ShaderMaterial` custom (cohérence pixel-art FFTA), Inspector shim type (tester `skipLibCheck: false`), cible 180-220 kB gzip initial (vs 273 kB spike).
-- [ ] Régler les gotchas spike (voir `docs/references/babylon-gotchas.md`) : `GridMaterial.gridOffset`, UV `invertY`, `renderingGroupId`, `alphaCutOff`/`transparencyMode`, deep imports.
+- [ ] Features Phase 3 pour 3D : décorations (herbes hautes billboards), rotation caméra 4 angles.
+- [ ] Bundle & perfs : audit `rollup-plugin-visualizer`, flat-shaded `ShaderMaterial` custom (cohérence pixel-art FFTA), Inspector shim type (`skipLibCheck: false`), cible 180-220 kB gzip (vs 273 kB spike).
+- [ ] Régler gotchas spike (voir `docs/references/babylon-gotchas.md`) : `GridMaterial.gridOffset`, UV `invertY`, `renderingGroupId`, `alphaCutOff`/`transparencyMode`, deep imports.
 
 ### Gates
 
-- Chaque plan sort un renderer fonctionnel sur `main` (pas de branche longue).
-- Parité feature = critère de succès avant de retirer le renderer Phaser.
-- Activation de `.claude/rules/renderer-babylon.md` dès le premier plan.
+- Chaque plan sort renderer fonctionnel sur `main` (pas de branche longue).
+- Parité feature = critère de succès avant de retirer renderer Phaser.
+- Activation `.claude/rules/renderer-babylon.md` dès premier plan.
 
 ---
 
 ## Phase 3.6 — Maps & Éditeur
 
-> **Position actuelle : après Phase 3.5** (reordonnée 2026-04-20, donc post-Phase 7). Numéro conservé pour les refs historiques.
+> **Position actuelle : après Phase 3.5** (reordonnée 2026-04-20, donc post-Phase 7).
 >
-> But : donner du contenu varié à jouer. Choix de maps, roster de maps équilibré, et outils pour en créer (à la main ou via IA).
+> But : contenu varié, roster de maps équilibré, outils de création.
 
-Tie à Babylon : l'éditeur et les props terrain seront repensés pour le renderer 3D, donc cette phase suit la 3.5.
+Tie à Babylon : éditeur et props terrain repensés pour renderer 3D.
 
-> **Note 2026-04-20** : *Choix de maps UI*, *Roster de maps variées* **et génération IA** ont été remontés en Phase 3 — ils ne dépendent pas de Babylon et exploitent directement ce qui a été posé plans 043-065. Seul l'éditeur in-game reste dans cette phase (vrai besoin de renderer 3D pour l'UX placement en volume).
+> **Note 2026-04-20** : *Choix maps UI*, *Roster maps variées* et *génération IA* remontés en Phase 3 — ne dépendent pas de Babylon. Seul l'éditeur in-game reste ici.
 
 - [ ] Éditeur de terrain in-game (placement tiles, hauteurs, spawns, décorations)
 
@@ -250,7 +249,7 @@ Tie à Babylon : l'éditeur et les props terrain seront repensés pour le render
 
 ## Phase 8 — Polish
 
-> But : le confort et la qualité visuelle
+> But : confort et qualité visuelle
 
 - [ ] Scaling sprites selon taille Pokemon
 - [ ] Son / Musique
@@ -268,7 +267,7 @@ Tie à Babylon : l'éditeur et les props terrain seront repensés pour le render
 - [ ] Mode histoire / aventure
 - [ ] Conditions de victoire alternatives
 - [ ] Draft/ban phase
-- [ ] **Modification dynamique du terrain par les attaques** — certaines attaques transforment le terrain pendant le combat : attaques Feu font disparaître (ou coupent) la tall grass, Ébullition / attaques Feu puissantes créent des tiles lave/magma, Force déplace les rochers, attaques Glace gèlent les tiles d'eau, etc. Mutation runtime du `TerrainType` + décoration associée, gestion des effets persistants (tile lave garde ses dégâts). Reporté de Phase 3 en 2026-04-20 : scope trop lourd tant que le roster d'attaques et la palette de terrains ne sont pas figés.
-- [ ] **Météo (Tempête de Sable, Soleil, Pluie, Grêle) + capacités/talents associés** — sand-veil (Sandshrew) dormant (hook `onAccuracyModify` supprimé en plan 070, à ré-ouvrir ici quand `sandstormActive` sera ajouté à `BattleState`). Déclenche aussi d'autres talents (Swift Swim, Chlorophyll, Forecast…) et capacités (Synthèse, Solarfaisceau, Blizzard…).
-- [ ] **Champs (Herbeux, Psy, Électrique, Brumeux, Distorsion)** — modificateurs de terrain affectant dégâts, statuts et capacités. À concevoir avec la météo pour une cohérence système.
-- [ ] **Modèles 3D pour les Pokemon (à voir)** — remplacer les sprites billboards 2D par des modèles 3D (glTF/GLB) style Pokemon Champions / Stadium. À évaluer après stabilisation du renderer Babylon : coût pipeline (sourcing/licence modèles), impact bundle, cohérence stylistique avec terrain pixel-art, animations (rig existant vs recréer).
+- [ ] **Modification dynamique du terrain par attaques** — certaines attaques transforment terrain pendant combat (Feu → supprime tall grass, Ébullition crée tiles lave/magma, Force déplace rochers, Glace gèle tiles eau). Mutation runtime `TerrainType` + décoration associée. Reporté Phase 3 en 2026-04-20 : scope trop lourd tant que roster attaques et palette terrains pas figés.
+- [ ] **Météo (Tempête de Sable, Soleil, Pluie, Grêle) + capacités/talents associés** — sand-veil (Sandshrew) dormant (hook `onAccuracyModify` supprimé plan 070, à ré-ouvrir ici quand `sandstormActive` ajouté à `BattleState`).
+- [ ] **Champs (Herbeux, Psy, Électrique, Brumeux, Distorsion)** — modificateurs terrain affectant dégâts, statuts et capacités.
+- [ ] **Modèles 3D pour les Pokemon** — remplacer sprites billboards 2D par modèles 3D (glTF/GLB) style Pokemon Champions / Stadium. À évaluer après stabilisation renderer Babylon.
