@@ -2,6 +2,7 @@ import type { PokemonType } from "@pokemon-tactic/core";
 
 export interface RosterEntry {
   id: string;
+  abilityId?: string;
   movepool: string[];
   custom?: {
     name: string;

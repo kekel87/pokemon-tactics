@@ -12,8 +12,22 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.StatChange }>;
   const affectedPokemon =
     effect.target === EffectTarget.Self ? [context.attacker] : context.targets;
+  const isEnemyDebuff = effect.target !== EffectTarget.Self && effect.stages < 0;
 
   for (const pokemon of affectedPokemon) {
+    if (isEnemyDebuff) {
+      const blockResult = context.abilityRegistry?.getForPokemon(pokemon)?.onStatChangeBlocked?.({
+        self: pokemon,
+        stat: effect.stat,
+        stages: effect.stages,
+        source: context.attacker,
+      });
+      if (blockResult?.blocked) {
+        events.push(...blockResult.events);
+        continue;
+      }
+    }
+
     const currentStage = pokemon.statStages[effect.stat];
     const newStage = clampStages(currentStage, effect.stages);
     const actualChange = newStage - currentStage;

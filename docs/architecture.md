@@ -117,6 +117,7 @@ pokemon-tactics/
 │   │
 │   └── data/                    # Données Pokemon (partagées)
 │       ├── src/
+│       │   ├── abilities/       # Définitions des talents : ability-definitions.ts (20 AbilityDefinition), index.ts
 │       │   ├── roster/          # Roster POC : roster-poc.ts — 21 Pokemon avec movepool curation (plan 049)
 │       │   ├── loaders/         # Loaders séparés : load-pokemon.ts, load-moves.ts, load-type-chart.ts (plan 049)
 │       │   ├── overrides/       # Surcharges tactiques + balance
@@ -156,12 +157,13 @@ pokemon-tactics/
 │   └── map-preview.js           # Script Vite helper pour pnpm dev:map (injecte le chemin .tmj via env)
 ├── docs/
 │   ├── images/                  # Screenshots pour le README
-│   ├── plans/                   # Plans d'exécution numérotés (54 plans)
+│   ├── plans/                   # Plans d'exécution numérotés (70 plans)
 │   ├── architecture.md
 │   ├── game-design.md
 │   ├── decisions.md
 │   ├── roadmap.md
 │   ├── references.md
+│   ├── abilities-system.md      # Référence système de talents : hooks, patterns, anti-spam, call sites
 │   └── ...
 ├── .github/
 │   └── ISSUE_TEMPLATE/          # Templates bug report, feature request, feedback
@@ -185,10 +187,10 @@ Structure flat par responsabilité. On restructurera par domaine quand la comple
 | Dossier | Contenu | Tests |
 |---------|---------|-------|
 | `enums/` | Const object enums (pattern `as const` + type dérivé) — dont `PlacementMode`, `PlayerController`, `DefensiveKind`, `TeamValidationError` | Non testé (compilation = validation) |
-| `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `ActiveDefense`, `TeamSelection`, `TeamValidationResult` | Non testé (compilation = validation) |
+| `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `ActiveDefense`, `TeamSelection`, `TeamValidationResult`, `AbilityDefinition` (9 hooks optionnels : `onDamageModify`, `onAfterDamageReceived`, `onAfterStatusReceived`, `onStatusBlocked`, `onStatusDurationModify`, `onStatChangeBlocked`, `onTypeImmunity`, `onBattleStart`, `onAuraCheck`), `BlockResult { blocked, events }`, `DurationModifyResult { duration, events }` | Non testé (compilation = validation) |
 | `utils/` | Fonctions pures réutilisables (math, direction, géométrie) | Oui |
 | `grid/` | Classe Grid, targeting resolvers | Oui |
-| `battle/` | BattleEngine (dual-mode RR/CT, injecte `StatusRules`), TurnManager (RR), **ChargeTimeTurnSystem** (CT rotation, getCtSnapshot), **ct-costs** (computeCtGain, ppCost, powerFloor, effectFloor, computeMoveCost, computeCtActionCost), PlacementPhase, validate, validate-map, team-validator, defense-check, handle-defensive, defensive-clear-handler, replay-runner, **height-traversal** (canTraverse, calculateFallDamage), **height-modifier** (getHeightModifier, isMeleeBlockedByHeight), **handle-status** (`StatusRules`, `DEFAULT_STATUS_RULES` = Champions, taux statuts Champions via `EffectContext.statusRules`) | Oui |
+| `battle/` | BattleEngine (dual-mode RR/CT, injecte `StatusRules` + `abilityRegistry`, `consumeStartupEvents()`, `rerunBattleStartChecks()`), TurnManager (RR), **ChargeTimeTurnSystem** (CT rotation, getCtSnapshot), **ct-costs** (computeCtGain, ppCost, powerFloor, effectFloor, computeMoveCost, computeCtActionCost), PlacementPhase, validate, validate-map, team-validator, defense-check, handle-defensive, defensive-clear-handler, replay-runner, **height-traversal** (canTraverse, calculateFallDamage), **height-modifier** (getHeightModifier, isMeleeBlockedByHeight), **handle-status** (`StatusRules`, `DEFAULT_STATUS_RULES` = Champions, taux statuts Champions via `EffectContext.statusRules`), **ability-handler-registry** (`AbilityHandlerRegistry`, dispatch par hook), **effective-flying** (`isEffectivelyFlying(pokemon, types)` — Levitate ou type Flying, exporté depuis `@pokemon-tactic/core`), **position-linked-statuses** (`checkPositionLinkedStatuses` — retire `Intimidated`/`Infatuated`/`Trapped` quand la source s'éloigne/KO) | Oui |
 | `ai/` | IA scriptées headless : `random-ai.ts` (action légale aléatoire), `aggressive-ai.ts` (fonce + tape le plus puissant) | Oui |
 | `testing/` | Mocks centralisés (`abstract class MockX`) — dont `MockTeamSelection`, `build-height-test-engine`, `build-fall-test-engine` | Exclu du coverage et du build |
 
@@ -196,11 +198,11 @@ Structure flat par responsabilité. On restructurera par domaine quand la comple
 
 ```mermaid
 graph TD
-    enums["enums/<br/>TargetingKind, Direction,<br/>PokemonType, ActionError,<br/>PlacementMode, PlayerController,<br/>DefensiveKind, TurnSystemKind,<br/>EffectTier..."]
-    types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance,<br/>MapDefinition, MapFormat, SpawnZone,<br/>PlacementTeam, PlacementEntry,<br/>ActiveDefense, BattleReplay,<br/>TeamSelection, TeamValidationResult..."]
+    enums["enums/<br/>TargetingKind, Direction,<br/>PokemonType, ActionError,<br/>PlacementMode, PlayerController,<br/>DefensiveKind, TurnSystemKind,<br/>EffectTier, StatusType (+Intimidated, +Infatuated),<br/>BattleEventType (+AbilityActivated)..."]
+    types["types/<br/>BattleState, Action, BattleEvent,<br/>MoveDefinition, PokemonInstance,<br/>AbilityDefinition,<br/>MapDefinition, MapFormat, SpawnZone,<br/>PlacementTeam, PlacementEntry,<br/>ActiveDefense, BattleReplay,<br/>TeamSelection, TeamValidationResult..."]
     utils["utils/<br/>manhattanDistance, directionFromTo,<br/>stepInDirection, getPerpendicularOffsets,<br/>prng (RandomFn, createPrng)"]
     grid["grid/<br/>Grid, targeting resolvers<br/>(single, cone, cross, line, dash, zone)"]
-    battle["battle/<br/>BattleEngine (dual-mode RR/CT),<br/>ChargeTimeTurnSystem, ct-costs,<br/>TurnManager, PlacementPhase,<br/>validate, validate-map, team-validator,<br/>defense-check, handle-defensive,<br/>defensive-clear-handler, replay-runner"]
+    battle["battle/<br/>BattleEngine (dual-mode RR/CT, consumeStartupEvents),<br/>ChargeTimeTurnSystem, ct-costs,<br/>TurnManager, PlacementPhase,<br/>validate, validate-map, team-validator,<br/>defense-check, handle-defensive,<br/>defensive-clear-handler, replay-runner,<br/>ability-handler-registry, effective-flying,<br/>position-linked-statuses"]
     ai["ai/<br/>random-ai, aggressive-ai"]
     testing["testing/<br/>MockBattle, MockPokemon"]
 

@@ -23,7 +23,7 @@ export function canEnterTerrain(
     return isFlying || isGhost;
   }
   if (!isTerrainPassable(terrain)) {
-    return immuneTerrains?.has(terrain) ?? false;
+    return isFlying || (immuneTerrains?.has(terrain) ?? false);
   }
   return true;
 }

@@ -15,7 +15,14 @@ const TERRAIN_IMMUNE_TYPES: Partial<Record<TerrainType, readonly PokemonTypeValu
   [TerrainType.Swamp]: [PokemonType.Poison, PokemonType.Steel, PokemonType.Flying],
 };
 
-export function isTerrainImmune(terrain: TerrainType, types: PokemonTypeValue[]): boolean {
+export function isTerrainImmune(
+  terrain: TerrainType,
+  types: PokemonTypeValue[],
+  isFlying = false,
+): boolean {
+  if (isFlying) {
+    return true;
+  }
   const immuneTypes = TERRAIN_IMMUNE_TYPES[terrain];
   if (!immuneTypes) {
     return false;
@@ -23,10 +30,13 @@ export function isTerrainImmune(terrain: TerrainType, types: PokemonTypeValue[])
   return types.some((t) => immuneTypes.includes(t));
 }
 
-export function getImmuneTerrains(types: PokemonTypeValue[]): ReadonlySet<TerrainType> {
+export function getImmuneTerrains(
+  types: PokemonTypeValue[],
+  isFlying = false,
+): ReadonlySet<TerrainType> {
   const result = new Set<TerrainType>();
   for (const terrain of Object.values(TerrainType) as TerrainType[]) {
-    if (isTerrainImmune(terrain, types)) {
+    if (isTerrainImmune(terrain, types, isFlying)) {
       result.add(terrain);
     }
   }
@@ -40,8 +50,12 @@ const MOVEMENT_PENALTY: Partial<Record<TerrainType, number>> = {
   [TerrainType.Swamp]: 2,
 };
 
-export function getMovementPenalty(terrain: TerrainType, types: PokemonTypeValue[]): number {
-  if (isTerrainImmune(terrain, types)) {
+export function getMovementPenalty(
+  terrain: TerrainType,
+  types: PokemonTypeValue[],
+  isFlying = false,
+): number {
+  if (isTerrainImmune(terrain, types, isFlying)) {
     return 0;
   }
   return MOVEMENT_PENALTY[terrain] ?? 0;
@@ -62,8 +76,9 @@ export function getTerrainTypeBonusFactor(
   terrain: TerrainType,
   moveType: PokemonTypeValue,
   attackerTypes: PokemonTypeValue[],
+  isFlying = false,
 ): number {
-  if (isTerrainImmune(terrain, attackerTypes)) {
+  if (isTerrainImmune(terrain, attackerTypes, isFlying)) {
     return 1.0;
   }
   const bonusType = TERRAIN_TYPE_BONUS[terrain];
@@ -81,8 +96,9 @@ const TERRAIN_STATUS_ON_STOP: Partial<Record<TerrainType, StatusType>> = {
 export function getTerrainStatusOnStop(
   terrain: TerrainType,
   types: PokemonTypeValue[],
+  isFlying = false,
 ): StatusType | null {
-  if (isTerrainImmune(terrain, types)) {
+  if (isTerrainImmune(terrain, types, isFlying)) {
     return null;
   }
   return TERRAIN_STATUS_ON_STOP[terrain] ?? null;

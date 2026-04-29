@@ -20,6 +20,7 @@ export function loadPokemonFromReference(
         baseStats: entry.custom.baseStats,
         weight: entry.custom.weight,
         movepool: entry.movepool,
+        ...(entry.abilityId ? { abilityId: entry.abilityId } : {}),
       };
     }
 
@@ -42,6 +43,7 @@ export function loadPokemonFromReference(
       },
       weight: ref.weight,
       movepool: entry.movepool,
+      ...(entry.abilityId ? { abilityId: entry.abilityId } : {}),
     };
   });
 }

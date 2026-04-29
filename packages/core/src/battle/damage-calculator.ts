@@ -5,6 +5,7 @@ import type { DamageEstimate } from "../types/damage-estimate";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { RandomFn } from "../utils/prng";
+import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { getEffectiveStat } from "./stat-modifier";
 
 const BATTLE_LEVEL = 50;
@@ -23,6 +24,7 @@ export function calculateDamage(
   heightModifier = 1.0,
   terrainModifier = 1.0,
   facingModifier = 1.0,
+  abilityRegistry?: AbilityHandlerRegistry,
 ): number {
   if (move.category === Category.Status || move.power === 0) {
     return 0;
@@ -44,7 +46,9 @@ export function calculateDamage(
   const effectiveDefense = getEffectiveStat(defenseStat, defenseStage);
 
   const isBurned = attacker.statusEffects.some((s) => s.type === StatusTypeEnum.Burned);
-  if (isBurned && isPhysical) {
+  const attackerAbility = abilityRegistry?.getForPokemon(attacker);
+  const gutsIgnoresBurn = attackerAbility?.id === "guts";
+  if (isBurned && isPhysical && !gutsIgnoresBurn) {
     effectiveAttack = Math.floor(effectiveAttack / 2);
   }
 
@@ -52,14 +56,43 @@ export function calculateDamage(
     (((2 * BATTLE_LEVEL) / 5 + 2) * move.power * effectiveAttack) / effectiveDefense / 50 + 2,
   );
 
-  const stab = getStab(move.type, attackerTypes);
+  const stab = getStab(move.type, attackerTypes, attackerAbility?.id);
 
   const roll = rollFactor ?? random() * 0.15 + 0.85;
+
+  const attackerMod =
+    attackerAbility?.onDamageModify?.({
+      self: attacker,
+      opponent: defender,
+      move,
+      isAttacker: true,
+      attackerTypes,
+      defenderTypes,
+    }) ?? 1.0;
+
+  const defenderAbility = abilityRegistry?.getForPokemon(defender);
+  const defenderMod =
+    defenderAbility?.onDamageModify?.({
+      self: defender,
+      opponent: attacker,
+      move,
+      isAttacker: false,
+      attackerTypes,
+      defenderTypes,
+    }) ?? 1.0;
 
   return Math.max(
     1,
     Math.floor(
-      baseDamage * stab * effectiveness * roll * heightModifier * terrainModifier * facingModifier,
+      baseDamage *
+        stab *
+        effectiveness *
+        roll *
+        heightModifier *
+        terrainModifier *
+        facingModifier *
+        attackerMod *
+        defenderMod,
     ),
   );
 }
@@ -83,8 +116,15 @@ export function getTypeEffectiveness(
   return multiplier;
 }
 
-export function getStab(moveType: PokemonType, attackerTypes: PokemonType[]): number {
-  return attackerTypes.includes(moveType) ? 1.5 : 1;
+export function getStab(
+  moveType: PokemonType,
+  attackerTypes: PokemonType[],
+  abilityId?: string,
+): number {
+  if (!attackerTypes.includes(moveType)) {
+    return 1;
+  }
+  return abilityId === "adaptability" ? 2.0 : 1.5;
 }
 
 const ROLL_MIN = 0.85;
@@ -100,6 +140,7 @@ export function estimateDamage(
   heightModifier = 1.0,
   terrainModifier = 1.0,
   facingModifier = 1.0,
+  abilityRegistry?: AbilityHandlerRegistry,
 ): DamageEstimate {
   const effectiveness = getTypeEffectiveness(move.type, defenderTypes, typeChart);
   const min = calculateDamage(
@@ -114,6 +155,7 @@ export function estimateDamage(
     heightModifier,
     terrainModifier,
     facingModifier,
+    abilityRegistry,
   );
   const max = calculateDamage(
     attacker,
@@ -127,6 +169,7 @@ export function estimateDamage(
     heightModifier,
     terrainModifier,
     facingModifier,
+    abilityRegistry,
   );
   return { min, max, effectiveness, facingModifier };
 }

@@ -33,10 +33,26 @@ function applyConfigToInstance(
   }
 
   if (status) {
+    const baseDuration: number | null = status === StatusType.Asleep ? 3 : null;
+    let remainingTurns: number | null = baseDuration;
+    let shortenedByAbilityId: string | undefined;
+    const ability = result.abilityRegistry.getForPokemon(instance);
+    if (baseDuration !== null && ability?.onStatusDurationModify) {
+      const modified = ability.onStatusDurationModify({
+        self: instance,
+        status,
+        duration: baseDuration,
+      });
+      if (modified.duration < baseDuration) {
+        shortenedByAbilityId = ability.id;
+      }
+      remainingTurns = modified.duration;
+    }
     instance.statusEffects = [
       {
         type: status,
-        remainingTurns: status === StatusType.Asleep ? 3 : null,
+        remainingTurns,
+        ...(shortenedByAbilityId ? { shortenedByAbilityId } : {}),
       },
     ];
   }
@@ -167,6 +183,10 @@ export function createSandboxBattle(
     config.dummyVolatileStatus,
     config.dummyStatStages,
   );
+
+  // After HP/status mutations from sandbox config, re-run onBattleStart so
+  // pinch boosters (Engrais/Brasier/Torrent) detect threshold cross.
+  result.engine.rerunBattleStartChecks();
 
   return result;
 }

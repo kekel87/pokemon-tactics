@@ -4,4 +4,5 @@ export interface StatusEffect {
   type: StatusType;
   remainingTurns: number | null;
   turnsApplied?: number;
+  shortenedByAbilityId?: string;
 }

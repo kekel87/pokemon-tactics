@@ -11,6 +11,7 @@ import type { PokemonInstance } from "../../types/pokemon-instance";
 import type { Position } from "../../types/position";
 import { applyImpactDamage } from "../apply-impact-damage";
 import type { EffectContext } from "../effect-handler-registry";
+import { isEffectivelyFlying } from "../effective-flying";
 import { calculateFallDamage } from "../fall-damage";
 import { isTerrainImmune } from "../terrain-effects";
 
@@ -171,7 +172,8 @@ export function handleKnockback(context: EffectContext): BattleEvent[] {
       const candidateTile = grid.getTile(candidate);
       if (candidateTile && !isTerrainPassable(candidateTile.terrain)) {
         const targetTypes = context.targetTypesMap.get(target.id) ?? [];
-        if (isTerrainImmune(candidateTile.terrain, targetTypes)) {
+        const targetIsFlying = isEffectivelyFlying(target, targetTypes);
+        if (isTerrainImmune(candidateTile.terrain, targetTypes, targetIsFlying)) {
           events.push({
             type: BattleEventType.KnockbackBlocked,
             pokemonId: target.id,
@@ -223,7 +225,7 @@ export function handleKnockback(context: EffectContext): BattleEvent[] {
       }
 
       const targetTypes = context.targetTypesMap.get(target.id) ?? [];
-      const isFlying = targetTypes.includes(PokemonType.Flying);
+      const isFlying = isEffectivelyFlying(target, targetTypes);
 
       const fromHeight = fromTile?.height ?? 0;
       const destHeight = destTile?.height ?? 0;

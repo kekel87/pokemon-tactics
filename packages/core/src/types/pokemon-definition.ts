@@ -8,4 +8,5 @@ export interface PokemonDefinition {
   baseStats: BaseStats;
   weight: number;
   movepool: string[];
+  abilityId?: string;
 }

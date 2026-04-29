@@ -1,4 +1,5 @@
 import type { BattleEngine } from "../battle/BattleEngine";
+import { isEffectivelyFlying } from "../battle/effective-flying";
 import { isTerrainImmune } from "../battle/terrain-effects";
 import { ActionKind } from "../enums/action-kind";
 import { EffectKind } from "../enums/effect-kind";
@@ -281,11 +282,12 @@ function scoreMove(
   let score = improvement > 0 ? improvement * weights.positioning : 0;
 
   const pokemonTypes = engine.getPokemonTypes(currentPokemon.id);
+  const isFlying = isEffectivelyFlying(currentPokemon, pokemonTypes);
   const destinationTile = action.path.length > 0 ? engine.getTileAt(destination) : null;
   if (
     destinationTile &&
     DANGEROUS_TERRAINS.has(destinationTile.terrain) &&
-    !isTerrainImmune(destinationTile.terrain, pokemonTypes)
+    !isTerrainImmune(destinationTile.terrain, pokemonTypes, isFlying)
   ) {
     score -= DANGEROUS_TERRAIN_PENALTY;
   }

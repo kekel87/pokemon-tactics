@@ -21,6 +21,8 @@ export const BattleEventType = {
   ConfusionRedirected: "confusion_redirected",
   ConfusionResisted: "confusion_resisted",
   ConfusionFailed: "confusion_failed",
+  InfatuationTriggered: "infatuation_triggered",
+  InfatuationResisted: "infatuation_resisted",
   KnockbackApplied: "knockback_applied",
   KnockbackBlocked: "knockback_blocked",
   MultiHitComplete: "multi_hit_complete",
@@ -34,6 +36,7 @@ export const BattleEventType = {
   IceSlideCollision: "ice_slide_collision",
   LethalTerrainKo: "lethal_terrain_ko",
   MoveCancelled: "move_cancelled",
+  AbilityActivated: "ability_activated",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

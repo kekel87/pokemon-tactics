@@ -83,8 +83,8 @@ function dealSingleHit(
 
   const wasAtMaxHp = target.currentHp === target.maxHp;
 
-  // Sturdy: survive a OHKO when at full HP
   const targetAbility = context.abilityRegistry?.getForPokemon(target);
+  let sturdyTriggered = false;
   if (
     targetAbility?.id === "sturdy" &&
     wasAtMaxHp &&
@@ -92,6 +92,7 @@ function dealSingleHit(
     actualDamage >= target.currentHp
   ) {
     actualDamage = target.currentHp - 1;
+    sturdyTriggered = true;
   }
 
   const effectiveness = getEffectivenessForEvent(
@@ -108,6 +109,15 @@ function dealSingleHit(
     amount: actualDamage,
     effectiveness,
   });
+
+  if (sturdyTriggered) {
+    events.push({
+      type: BattleEventType.AbilityActivated,
+      pokemonId: target.id,
+      abilityId: "sturdy",
+      targetIds: [target.id],
+    });
+  }
 
   if (target.currentHp <= 0) {
     events.push({
@@ -137,7 +147,6 @@ function dealSingleHit(
     }
   }
 
-  // onAfterDamageReceived: target's ability reacts to taking damage
   if (actualDamage > 0 && target.currentHp > 0 && targetAbility?.onAfterDamageReceived) {
     const attackerTypes = context.attackerTypes;
     const selfTypes = defenderTypes;

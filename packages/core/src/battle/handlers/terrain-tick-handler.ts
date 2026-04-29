@@ -4,6 +4,7 @@ import type { TerrainType } from "../../enums/terrain-type";
 import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
 import type { PokemonInstance } from "../../types/pokemon-instance";
+import { isEffectivelyFlying } from "../effective-flying";
 import { isMajorStatus } from "../stat-modifier";
 import { getTerrainDotFraction, getTerrainStatusOnStop, isTerrainImmune } from "../terrain-effects";
 import type { PhaseHandler, PhaseResult } from "../turn-pipeline";
@@ -21,7 +22,7 @@ function applyTerrainStatus(
   types: PokemonType[],
   events: BattleEvent[],
 ): void {
-  const status = getTerrainStatusOnStop(terrain, types);
+  const status = getTerrainStatusOnStop(terrain, types, isEffectivelyFlying(pokemon, types));
   if (!status) {
     return;
   }
@@ -45,7 +46,7 @@ function applyTerrainDot(
   types: PokemonType[],
   events: BattleEvent[],
 ): boolean {
-  if (isTerrainImmune(terrain, types)) {
+  if (isTerrainImmune(terrain, types, isEffectivelyFlying(pokemon, types))) {
     return false;
   }
 

@@ -149,9 +149,10 @@ Formule de dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friend
 
 ## Phase 4 — Gameplay Pokemon complet
 
-> But : couvrir les mécaniques Pokemon qui donnent de la profondeur stratégique
+> But : couvrir les toutes les mécaniques Pokemon et ajouter de la profondeur stratégique
 
-- [ ] Talents (capacités passives)
+- [x] Talents (capacités passives) — plans 069 + 070 terminés. 20 abilities, `AbilityHandlerRegistry`, 9 hooks (`onAccuracyModify` supprimé, réouvert Phase 9 météo), 26+ tests d'intégration. Pattern Showdown : hooks blocants retournent `BlockResult { blocked, events }`, modifieur de durée retourne `DurationModifyResult`. Buffer startup events, Lévitation terrain corrigée, Tempo Perso bloque Intimidation, anti-spam seuil 1/3 HP. Voir `docs/abilities-system.md`.
+- [ ] Genres des Pokemon (mâle/femelle/asexué selon ratio officiel) — prérequis pour Charme/Joli Sourire (Attract/Cute Charm) qui exigent des genres opposés
 - [ ] Objets tenus
 - [ ] Natures (boost +10% / malus -10% sur une stat) — renommé "Stat Alignment" dans Pokemon Champions, à discuter
 - [ ] EV / IV — simplification Pokemon Champions :
@@ -268,4 +269,6 @@ Tie à Babylon : l'éditeur et les props terrain seront repensés pour le render
 - [ ] Conditions de victoire alternatives
 - [ ] Draft/ban phase
 - [ ] **Modification dynamique du terrain par les attaques** — certaines attaques transforment le terrain pendant le combat : attaques Feu font disparaître (ou coupent) la tall grass, Ébullition / attaques Feu puissantes créent des tiles lave/magma, Force déplace les rochers, attaques Glace gèlent les tiles d'eau, etc. Mutation runtime du `TerrainType` + décoration associée, gestion des effets persistants (tile lave garde ses dégâts). Reporté de Phase 3 en 2026-04-20 : scope trop lourd tant que le roster d'attaques et la palette de terrains ne sont pas figés.
+- [ ] **Météo (Tempête de Sable, Soleil, Pluie, Grêle) + capacités/talents associés** — sand-veil (Sandshrew) dormant (hook `onAccuracyModify` supprimé en plan 070, à ré-ouvrir ici quand `sandstormActive` sera ajouté à `BattleState`). Déclenche aussi d'autres talents (Swift Swim, Chlorophyll, Forecast…) et capacités (Synthèse, Solarfaisceau, Blizzard…).
+- [ ] **Champs (Herbeux, Psy, Électrique, Brumeux, Distorsion)** — modificateurs de terrain affectant dégâts, statuts et capacités. À concevoir avec la météo pour une cohérence système.
 - [ ] **Modèles 3D pour les Pokemon (à voir)** — remplacer les sprites billboards 2D par des modèles 3D (glTF/GLB) style Pokemon Champions / Stadium. À évaluer après stabilisation du renderer Babylon : coût pipeline (sourcing/licence modèles), impact bundle, cohérence stylistique avec terrain pixel-art, animations (rig existant vs recréer).

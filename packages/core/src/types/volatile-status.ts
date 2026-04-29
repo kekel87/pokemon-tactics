@@ -5,4 +5,5 @@ export interface VolatileStatus {
   remainingTurns: number;
   sourceId?: string;
   damagePerTurn?: number;
+  statChangeApplied?: boolean;
 }

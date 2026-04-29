@@ -1,3 +1,4 @@
+export type * from "./ability-definition";
 export type * from "./action";
 export type * from "./active-defense";
 export type * from "./ai-profile";

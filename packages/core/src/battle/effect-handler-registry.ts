@@ -9,6 +9,7 @@ import type { Position } from "../types/position";
 import type { StatusRules } from "../types/status-rules";
 import type { TypeChart } from "../types/type-chart";
 import type { RandomFn } from "../utils/prng";
+import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 
 export type { TypeChart };
 
@@ -27,6 +28,7 @@ export interface EffectContext {
   terrainModifier: number;
   facingModifierMap: Map<string, number>;
   statusRules?: StatusRules;
+  abilityRegistry?: AbilityHandlerRegistry;
 }
 
 export type EffectHandler = (context: EffectContext) => BattleEvent[];
