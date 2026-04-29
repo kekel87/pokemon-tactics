@@ -60,6 +60,8 @@ export type BattleEvent =
     }
   | { type: typeof BattleEventType.ConfusionResisted; pokemonId: string }
   | { type: typeof BattleEventType.ConfusionFailed; pokemonId: string; reason: string }
+  | { type: typeof BattleEventType.InfatuationTriggered; pokemonId: string; sourceId: string }
+  | { type: typeof BattleEventType.InfatuationResisted; pokemonId: string; sourceId: string }
   | {
       type: typeof BattleEventType.KnockbackApplied;
       pokemonId: string;
@@ -116,4 +118,10 @@ export type BattleEvent =
       damage: number;
     }
   | { type: typeof BattleEventType.LethalTerrainKo; pokemonId: string; terrain: TerrainType }
-  | { type: typeof BattleEventType.MoveCancelled; pokemonId: string; position: Position };
+  | { type: typeof BattleEventType.MoveCancelled; pokemonId: string; position: Position }
+  | {
+      type: typeof BattleEventType.AbilityActivated;
+      pokemonId: string;
+      abilityId: string;
+      targetIds: string[];
+    };

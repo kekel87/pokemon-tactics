@@ -29,4 +29,6 @@ export interface PokemonInstance {
   toxicCounter: number;
   volatileStatuses: VolatileStatus[];
   recharging: boolean;
+  abilityId?: string;
+  abilityFirstTriggered?: boolean;
 }

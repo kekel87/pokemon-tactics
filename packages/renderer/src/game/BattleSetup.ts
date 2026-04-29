@@ -9,6 +9,7 @@ import type {
   TileState,
 } from "@pokemon-tactic/core";
 import {
+  type AbilityHandlerRegistry,
   BattleEngine,
   type BattleState,
   computeCombatStats,
@@ -78,6 +79,7 @@ function createPokemonInstance(
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
+    ...(definition.abilityId ? { abilityId: definition.abilityId } : {}),
   };
 }
 
@@ -86,6 +88,7 @@ export interface BattleSetupResult {
   state: BattleState;
   pokemonDefinitions: Map<string, PokemonDefinition>;
   moveDefinitions: Map<string, MoveDefinition>;
+  abilityRegistry: AbilityHandlerRegistry;
   map: MapDefinition;
 }
 
@@ -118,11 +121,17 @@ function loadGameData() {
     pokemonTypesMap.set(definition.id, definition.types);
   }
 
-  return { gameData, pokemonDefinitions, moveDefinitions, pokemonTypesMap };
+  return {
+    gameData,
+    pokemonDefinitions,
+    moveDefinitions,
+    pokemonTypesMap,
+    abilityRegistry: gameData.abilityRegistry,
+  };
 }
 
 export function createBattleFromPlacements(config: BattleSetupConfig): BattleSetupResult {
-  const { pokemonDefinitions, moveDefinitions, pokemonTypesMap } = loadGameData();
+  const { pokemonDefinitions, moveDefinitions, pokemonTypesMap, abilityRegistry } = loadGameData();
 
   const mapValidation = validateMapDefinition(config.map);
   if (!mapValidation.valid) {
@@ -185,6 +194,8 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     undefined,
     0,
     config.turnSystemKind,
+    undefined,
+    abilityRegistry,
   );
 
   return {
@@ -192,6 +203,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     state,
     pokemonDefinitions,
     moveDefinitions,
+    abilityRegistry,
     map: config.map,
   };
 }

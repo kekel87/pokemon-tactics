@@ -67,6 +67,8 @@ export interface Translations {
   "status.confused": string;
   "status.seeded": string;
   "status.trapped": string;
+  "status.infatuated": string;
+  "status.intimidated": string;
   "direction.north": string;
   "direction.east": string;
   "direction.south": string;
@@ -80,6 +82,7 @@ export interface Translations {
   "battle.notVeryEffective": string;
   "battle.mostlyIneffective": string;
   "battle.confused": string;
+  "battle.infatuated": string;
   "battle.blocked": string;
   "battle.hits": string;
   "battle.recharge": string;

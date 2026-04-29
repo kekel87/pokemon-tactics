@@ -297,7 +297,7 @@ La **ligne de vue (LoS)** détermine si une attaque à distance peut atteindre s
 | `normal` | Rien | — |
 | `tall_grass` | +1 bonus d'évasion virtuel dans `checkAccuracy` (pas de modification de statStages, aucune cumulation) | — |
 | `obstacle` | Bloque mouvement + LOS. Vol : traverse + arrêt. Spectre : traverse, pas d'arrêt. | Vol, Spectre (traverse seul) |
-| `water` | Malus déplacement -1 | Eau/Vol (Lévitation Phase 4) |
+| `water` | Malus déplacement -1 | Eau/Vol/Lévitation |
 | `deep_water` | Intraversable + **KO létal** si atterrissage non-immun + bonus dégâts +15% pour moves Eau | Eau/Vol |
 | `magma` | Brûlure au passage (traversée) + DOT 1/16 HP/tour (arrêt) + bonus dégâts +15% pour moves Feu | Feu/Vol |
 | `lava` | Intraversable + **KO létal** si atterrissage non-immun + bonus dégâts +15% pour moves Feu | Feu/Vol |
@@ -308,7 +308,7 @@ La **ligne de vue (LoS)** détermine si une attaque à distance peut atteindre s
 
 > La passabilité est déterminée directement par le terrain (`isTerrainPassable(terrain)`). Le flag `isPassable` a été supprimé de `TileState` (plan 045).
 >
-> **Règle globale Vol** : pas affecté par les terrains, sauf `obstacle` où Spectre ne peut pas s'arrêter. La Lévitation (talent) sera ajoutée en Phase 4 (décision #245).
+> **Règle globale Vol** : pas affecté par les terrains, sauf `obstacle` où Spectre ne peut pas s'arrêter. **Lévitation (talent)** confère les mêmes immunités terrain que le type Vol — implémenté plan 069+070. Lévitation ne peut pas atterrir sur lava/deep_water malgré l'immunité de traversée.
 >
 > **Bonus type/terrain** : +15% dégâts si le type du move correspond au terrain de la tile occupée par l'attaquant. Calculé dans `damage-calculator.ts` via `getTerrainTypeBonusFactor`. Propagé via `terrainModifier` dans `EffectContext` → `ProcessContext`.
 >
@@ -688,6 +688,80 @@ Après s'être déplacé, le joueur peut **annuler son déplacement** — que ce
 - **Menu renderer** : le bouton "Annuler déplacement" remplace "Déplacement" dans le menu d'action quand `canUndoMove` est `true`
 
 > Aligné sur FFTA et Fire Emblem Engage : l'undo de déplacement est un filet de sécurité standard dans les tactical RPGs. Il réduit la frustration sans supprimer la tension tactique puisque l'attaque, elle, est irréversible.
+
+---
+
+## 8c. Système de talents/abilities (implémenté — plan 069)
+
+Chaque Pokemon possède **1 talent** (ability) qui modifie passivement le combat via des hooks enregistrés dans `AbilityHandlerRegistry`.
+
+### Architecture
+
+Le registre suit le même pattern que `EffectHandlerRegistry` : chaque talent est une `AbilityDefinition` (objet plat à hooks optionnels). Le `BattleEngine` injecte le registre à la construction et l'appelle aux points d'intégration.
+
+**9 hooks disponibles** (plan 069 + refactor plan 070) :
+
+| Hook | Déclencheur | Return type | Exemples |
+|------|-------------|-------------|---------|
+| `onDamageModify` | Calcul de dégâts (attaquant puis défenseur) | `number` | Brasier, Torrent, Engrais (×1.5 si HP ≤ 1/3), Robustesse (×0.5 Feu/Glace), Adaptabilité (STAB 2.0), Bagarre (×1.5 Atk si statut) |
+| `onAfterDamageReceived` | Après application des dégâts | `BattleEvent[]` | Statik (30% para contact), Point Poison (30% poison contact), Charme (30% Infatué contact), Synchronisme (reflète statut), Fermeté (survive OHKO à HP max) |
+| `onStatusBlocked` | Avant application d'un statut majeur/volatil | `BlockResult { blocked, events }` | Tempo Propre (bloque Confusion + Intimidation) |
+| `onStatusDurationModify` | Calcul de durée d'un statut | `DurationModifyResult { duration, events }` | Alerte (sommeil ÷2) |
+| `onAfterStatusReceived` | Après application d'un statut majeur | `BattleEvent[]` | Synchronisme (réflexe) |
+| `onStatChangeBlocked` | Avant application d'un changement de stat | `BlockResult { blocked, events }` | Regard Vif (bloque baisses Précision ennemies), Corps Sain (bloque toutes baisses ennemies) |
+| `onTypeImmunity` | Avant calcul de dégâts — immunité totale | `BlockResult { blocked, events }` | Lévitation (immunité Sol) |
+| `onBattleStart` | Au démarrage du combat, après placement | `BattleEvent[]` | Intimidation (–1 Atk ennemis adjacents), Magnépiège (piège ennemis Acier adjacents) |
+| `onAuraCheck` | Après chaque action (position-linked update) | `BattleEvent[]` | Intimidation (ré-applique ou retire selon distance) |
+
+> `onAccuracyModify` supprimé en plan 070 — le seul utilisateur (Voile Sable) est dormant. Sera ré-ouvert en Phase 9 quand `sandstormActive` sera implémenté.
+
+### Talents position-linked
+
+Deux talents appliquent des statuts volatils liés à la position de leur porteur :
+
+- **Intimidation** (`intimidate`) : statut `Intimidated` (–1 Atk) sur les ennemis adjacents à l'entrée en combat. Retiré automatiquement quand Growlithe s'éloigne, est knockbacké ou KO.
+- **Magnépiège** (`magnet-pull`) : statut `Trapped` sur les ennemis Acier adjacents. Mêmes règles de retrait.
+
+`checkPositionLinkedStatuses` est appelé après chaque déplacement, knockback et KO pour nettoyer les statuts obsolètes.
+
+### Lévitation = vol mécanique
+
+Le talent **Lévitation** confère les mêmes bénéfices mécaniques que le type Vol : traversée des obstacles, absence de pénalité terrain (passage lava/deep_water sans malus), immunité aux dégâts de chute et aux brûlures magma, et immunité Sol via `onTypeImmunity`. **Le Pokemon ne peut cependant pas atterrir sur lava ou deep_water** (ces tiles sont létales même pour un Pokemon en lévitation). Implémenté via `isEffectivelyFlying(instance, types)` exporté depuis `@pokemon-tactic/core`.
+
+### Les 20 talents du roster POC
+
+| Pokemon | Talent | Effet |
+|---------|--------|-------|
+| Bulbizarre | **Engrais** | ×1.5 Plante si HP ≤ 1/3 |
+| Salamèche | **Brasier** | ×1.5 Feu si HP ≤ 1/3 |
+| Carapuce | **Torrent** | ×1.5 Eau si HP ≤ 1/3 |
+| Roucoul | **Regard Vif** | Bloque baisses de Précision ennemies |
+| Pikachu | **Statik** | 30% paralysie au contact reçu |
+| Machoc | **Bagarre** | ×1.5 Atk si porteur d'un statut majeur (brûlure ignorée pour le calcul) |
+| Abra | **Synchronisme** | Reflète le statut majeur reçu à la source |
+| Fantominus | **Lévitation** | Immunité Sol + vol mécanique complet |
+| Racaillou | **Fermeté** | Survit un OHKO à 1 HP si HP max avant le coup |
+| Caninos | **Intimidation** | Entrée : –1 Atk aux ennemis adjacents (position-linked) |
+| Rondoudou | **Charme** | 30% Infatué au contact reçu (position-linked) |
+| Lamantine | **Robustesse** | ×0.5 dégâts Feu et Glace reçus |
+| Évoli | **Adaptabilité** | STAB 2.0× au lieu de 1.5× |
+| Tentacool | **Corps Sain** | Bloque toutes les baisses de stat ennemies |
+| Nidoran♂ | **Point Poison** | 30% poison au contact reçu |
+| Meowth | **Technician** | ×1.5 si puissance move ≤ 60 |
+| Magnétite | **Magnépiège** | Piège les ennemis Acier adjacents (position-linked) |
+| Sabelette | **Voile Sable** | +1 évasion en tempête de sable (dormant — Phase 9) |
+| Excelangue | **Tempo Propre** | Immunité Confusion + bloque Intimidation |
+| Kangaskhan | **Alerte** | Durée sommeil ÷2 (arrondi supérieur, min 1) |
+
+### Event renderer
+
+`BattleEventType.AbilityActivated { pokemonId, abilityId, targetIds }` est émis à chaque déclenchement de talent visible. Le renderer affiche un floating text jaune doré `"{abilityName}!"` (`BATTLE_TEXT_COLOR_ABILITY = #ffe066`) au-dessus du `pokemonId` (possesseur du talent). Implémenté en plan 069 étape 8 + plan 070.
+
+### Anti-spam seuil 1/3 HP (Engrais, Brasier, Torrent)
+
+`PokemonInstance.abilityFirstTriggered` mémorise si le seuil 1/3 HP a déjà été traversé. L'event `AbilityActivated` n'est émis qu'**une fois par traversée** (pas à chaque dégât reçu sous le seuil). Réinitialisé si le HP repasse au-dessus du seuil. Déclenché aussi au démarrage du combat si le Pokemon est déjà sous le seuil (`onBattleStart`).
+
+> Pattern d'émission complet documenté dans `docs/abilities-system.md`.
 
 ---
 

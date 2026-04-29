@@ -1,9 +1,13 @@
 import type { MoveDefinition, PokemonDefinition } from "@pokemon-tactic/core";
+import { AbilityHandlerRegistry } from "@pokemon-tactic/core";
+import abilitiesReference from "../reference/abilities.json";
 import movesReference from "../reference/moves.json";
 import pokemonReference from "../reference/pokemon.json";
+import { abilityHandlers } from "./abilities/ability-definitions";
+import { loadAbilitiesFromReference } from "./loaders/load-abilities";
 import { loadMovesFromReference } from "./loaders/load-moves";
 import { loadPokemonFromReference } from "./loaders/load-pokemon";
-import type { ReferenceMove, ReferencePokemon } from "./loaders/reference-types";
+import type { ReferenceAbility, ReferenceMove, ReferencePokemon } from "./loaders/reference-types";
 import { deepMerge } from "./merge";
 import { balanceOverrides } from "./overrides/balance-v1";
 import { tacticalOverrides } from "./overrides/tactical";
@@ -12,6 +16,7 @@ import { rosterPoc } from "./roster/roster-poc";
 export interface GameData {
   pokemon: PokemonDefinition[];
   moves: MoveDefinition[];
+  abilityRegistry: AbilityHandlerRegistry;
 }
 
 export function loadData(): GameData {
@@ -63,5 +68,11 @@ export function loadData(): GameData {
     return moveDefinition;
   });
 
-  return { pokemon, moves };
+  const abilities = loadAbilitiesFromReference(
+    abilitiesReference as unknown as ReferenceAbility[],
+    abilityHandlers,
+  );
+  const abilityRegistry = new AbilityHandlerRegistry(abilities);
+
+  return { pokemon, moves, abilityRegistry };
 }

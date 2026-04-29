@@ -26,6 +26,7 @@ Profil : dev web Angular/TS expérimenté, clean code advocate, expérience Godo
 | `docs/references.md` | Quand on cherche comment un problème a été résolu ailleurs |
 | `docs/methodology.md` | Pour le workflow de travail |
 | `docs/ai-system.md` | Avant de modifier l'IA (scoring, profils, AiTeamController) |
+| `docs/abilities-system.md` | Avant d'ajouter ou modifier un talent (hooks, émission `AbilityActivated`, tests) |
 | `docs/design-system.md` | Avant d'ajouter ou modifier des couleurs, depths ou constantes visuelles dans le renderer |
 | `docs/isometric-height-rendering.md` | Avant de toucher au rendu isométrique avec hauteur, au picking ou aux layers Tiled multi-niveaux |
 | `docs/tileset-mapping.md` | Pour comprendre la structure du tileset ICON et les propriétés des tiles |

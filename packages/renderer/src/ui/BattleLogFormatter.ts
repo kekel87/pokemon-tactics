@@ -7,6 +7,7 @@ import {
   TerrainType,
 } from "@pokemon-tactic/core";
 import {
+  BATTLE_LOG_COLOR_ABILITY,
   BATTLE_LOG_COLOR_BATTLE_ENDED,
   BATTLE_LOG_COLOR_DAMAGE,
   BATTLE_LOG_COLOR_DEFENSE,
@@ -33,6 +34,7 @@ export interface BattleLogEntry {
 export interface BattleLogContext {
   readonly getPokemonName: (id: string) => string;
   readonly getMoveName: (moveId: string) => string;
+  readonly getAbilityName: (abilityId: string) => string | null;
   readonly language: Language;
 }
 
@@ -50,6 +52,7 @@ export const BattleLogColors = {
   knockback: BATTLE_LOG_COLOR_KNOCKBACK,
   multiHit: BATTLE_LOG_COLOR_MULTI_HIT,
   recharge: BATTLE_LOG_COLOR_RECHARGE,
+  ability: BATTLE_LOG_COLOR_ABILITY,
   battleEnded: BATTLE_LOG_COLOR_BATTLE_ENDED,
 } as const;
 
@@ -296,6 +299,19 @@ export function formatBattleEvent(
           ? `${event.winnerId} remporte le combat !`
           : `${event.winnerId} wins the battle!`;
       return { message, color: BattleLogColors.battleEnded, pokemonIds: [] };
+    }
+
+    case BattleEventType.AbilityActivated: {
+      const abilityName = context.getAbilityName(event.abilityId);
+      if (!abilityName) {
+        return null;
+      }
+      const pokemonName = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${abilityName} de ${pokemonName} s'active !`
+          : `${pokemonName}'s ${abilityName} activated!`;
+      return { message, color: BattleLogColors.ability, pokemonIds: [event.pokemonId] };
     }
 
     default:

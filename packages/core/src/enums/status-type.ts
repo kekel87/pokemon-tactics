@@ -8,6 +8,8 @@ export const StatusType = {
   Confused: "confused",
   Seeded: "seeded",
   Trapped: "trapped",
+  Intimidated: "intimidated",
+  Infatuated: "infatuated",
 } as const;
 
 export type StatusType = (typeof StatusType)[keyof typeof StatusType];

@@ -56,6 +56,10 @@ import { buildMoveTestEngine } from "../../testing";
 // Charge loadData(), type chart, pokemonTypesMap automatiquement
 ```
 
+## Tests d'intégration de talents (`battle/abilities.integration.test.ts`)
+
+Pour chaque talent : 1 test gameplay + 1 test émission `AbilityActivated`. Voir `docs/abilities-system.md` pour l'architecture des hooks et la liste exhaustive.
+
 ## Tests de mécaniques transversales (`battle/mechanics/`)
 
 | Fichier | Ce qu'il couvre |

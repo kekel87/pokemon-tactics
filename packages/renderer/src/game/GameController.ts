@@ -40,6 +40,7 @@ import {
   moveAnimationCategory,
 } from "@pokemon-tactic/data";
 import {
+  BATTLE_TEXT_COLOR_ABILITY,
   BATTLE_TEXT_COLOR_BUFF,
   BATTLE_TEXT_COLOR_CONFUSED,
   BATTLE_TEXT_COLOR_DAMAGE,
@@ -199,6 +200,18 @@ export class GameController {
 
   setSetup(setup: BattleSetupResult): void {
     this.setup = setup;
+  }
+
+  processStartupEvents(): void {
+    if (!this.setup) {
+      return;
+    }
+    const startupEvents = this.setup.engine.consumeStartupEvents();
+    if (startupEvents.length > 0) {
+      this.animationQueue.enqueue(async () => {
+        await this.processEvents(startupEvents);
+      });
+    }
   }
 
   setDecorationsLayer(layer: DecorationsLayer): void {
@@ -1149,6 +1162,18 @@ export class GameController {
         break;
       }
 
+      case BattleEventType.InfatuationTriggered: {
+        const infatSprite = this.sprites.get(event.pokemonId);
+        if (infatSprite) {
+          const pos = infatSprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("battle.infatuated"), {
+            color: BATTLE_TEXT_COLOR_CONFUSED,
+            targetId: event.pokemonId,
+          });
+        }
+        break;
+      }
+
       case BattleEventType.DefenseActivated:
       case BattleEventType.DefenseCleared:
         break;
@@ -1341,6 +1366,22 @@ export class GameController {
             color: BATTLE_TEXT_COLOR_FALL_DAMAGE,
             targetId: event.pokemonId,
           });
+        }
+        break;
+      }
+
+      case BattleEventType.AbilityActivated: {
+        const abilitySprite = this.sprites.get(event.pokemonId);
+        if (abilitySprite && this.setup) {
+          const abilityDef = this.setup.abilityRegistry.get(event.abilityId);
+          if (abilityDef) {
+            const pos = abilitySprite.getTextPosition();
+            const lang = getLanguage();
+            showBattleText(this.scene, pos.x, pos.y, `${abilityDef.name[lang]}!`, {
+              color: BATTLE_TEXT_COLOR_ABILITY,
+              targetId: event.pokemonId,
+            });
+          }
         }
         break;
       }
@@ -1903,6 +1944,10 @@ export class GameController {
       },
       getMoveName: (moveId) => {
         return getMoveName(moveId, lang);
+      },
+      getAbilityName: (abilityId) => {
+        const ability = setup.abilityRegistry.get(abilityId);
+        return ability ? ability.name[lang] : null;
       },
       language: lang,
     };

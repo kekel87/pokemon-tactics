@@ -256,6 +256,7 @@ export class BattleScene extends Phaser.Scene {
     }
 
     controller.refreshUI();
+    controller.processStartupEvents();
   }
 
   private async resetSandbox(config: SandboxConfig): Promise<void> {
@@ -440,6 +441,7 @@ export class BattleScene extends Phaser.Scene {
     }
 
     controller.refreshUI();
+    controller.processStartupEvents();
   }
 
   private setupInput(

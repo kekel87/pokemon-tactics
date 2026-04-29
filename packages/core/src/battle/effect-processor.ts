@@ -8,6 +8,7 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import type { StatusRules } from "../types/status-rules";
 import type { RandomFn } from "../utils/prng";
+import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { getTypeEffectiveness } from "./damage-calculator";
 import type { EffectContext, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
@@ -31,6 +32,7 @@ interface ProcessContext {
   terrainModifier: number;
   facingModifierMap: Map<string, number>;
   statusRules?: StatusRules;
+  abilityRegistry?: AbilityHandlerRegistry;
 }
 
 export function createDefaultEffectRegistry(): EffectHandlerRegistry {
@@ -53,7 +55,20 @@ export function processEffects(
   const nonImmuneTargets: PokemonInstance[] = [];
   for (const target of context.targets) {
     const defenderTypes = context.targetTypesMap.get(target.id) ?? [];
-    const effectiveness = getTypeEffectiveness(context.move.type, defenderTypes, context.typeChart);
+
+    const immunityResult = context.abilityRegistry?.getForPokemon(target)?.onTypeImmunity?.({
+      self: target,
+      moveType: context.move.type,
+    });
+    const abilityImmune = immunityResult?.blocked ?? false;
+    if (immunityResult?.events) {
+      events.push(...immunityResult.events);
+    }
+
+    const effectiveness = abilityImmune
+      ? 0
+      : getTypeEffectiveness(context.move.type, defenderTypes, context.typeChart);
+
     if (effectiveness === 0) {
       events.push({
         type: BattleEventType.DamageDealt,
@@ -71,6 +86,7 @@ export function processEffects(
       ...context,
       targets: nonImmuneTargets,
       effect,
+      abilityRegistry: context.abilityRegistry,
     };
     events.push(...effectRegistry.process(effectContext));
   }

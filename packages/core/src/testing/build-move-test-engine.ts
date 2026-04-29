@@ -13,6 +13,17 @@ export function buildMoveTestEngine(pokemon: PokemonInstance[], gridSize = 6) {
   }
   const pokemonTypesMap = new Map<string, PokemonType[]>(data.pokemon.map((p) => [p.id, p.types]));
   const state = MockBattle.stateFrom(pokemon, gridSize, gridSize);
-  const engine = new BattleEngine(state, moveRegistry, typeChart, pokemonTypesMap);
+  const engine = new BattleEngine(
+    state,
+    moveRegistry,
+    typeChart,
+    pokemonTypesMap,
+    undefined,
+    undefined,
+    0,
+    undefined,
+    undefined,
+    data.abilityRegistry,
+  );
   return { engine, state };
 }

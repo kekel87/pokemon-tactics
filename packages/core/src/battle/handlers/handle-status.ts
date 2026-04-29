@@ -13,6 +13,8 @@ const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([
   StatusTypeEnum.Confused,
   StatusTypeEnum.Seeded,
   StatusTypeEnum.Trapped,
+  StatusTypeEnum.Intimidated,
+  StatusTypeEnum.Infatuated,
 ]);
 
 const STATUS_TYPE_IMMUNITIES: Partial<Record<StatusType, readonly PokemonType[]>> = {
@@ -46,6 +48,7 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
     }
 
     const targetTypes = context.targetTypesMap.get(target.id) ?? [];
+    const targetAbility = context.abilityRegistry?.getForPokemon(target);
 
     if (effect.status === StatusTypeEnum.Seeded) {
       if (targetTypes.includes(PokemonType.Grass)) {
@@ -67,6 +70,21 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       continue;
     }
 
+    const statusBlockResult = targetAbility?.onStatusBlocked?.({
+      self: target,
+      status: effect.status,
+      source: context.attacker,
+    });
+    if (statusBlockResult?.blocked) {
+      events.push(...statusBlockResult.events);
+      events.push({
+        type: BattleEventType.StatusImmune,
+        targetId: target.id,
+        status: effect.status,
+      });
+      continue;
+    }
+
     if (isVolatileStatus(effect.status)) {
       const alreadyHas =
         effect.status === StatusTypeEnum.Seeded
@@ -77,7 +95,17 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       if (alreadyHas) {
         continue;
       }
-      const remainingTurns = getStatusDuration(effect.status, random, statusRules) ?? 1;
+      const baseDuration = getStatusDuration(effect.status, random, statusRules) ?? 1;
+      let remainingTurns = baseDuration;
+      if (targetAbility?.onStatusDurationModify) {
+        const result = targetAbility.onStatusDurationModify({
+          self: target,
+          status: effect.status,
+          duration: baseDuration,
+        });
+        remainingTurns = result.duration;
+        events.push(...result.events);
+      }
       target.volatileStatuses.push({
         type: effect.status,
         remainingTurns,
@@ -91,8 +119,25 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       if (targetHasMajor && isMajorStatus(effect.status)) {
         continue;
       }
-      const remainingTurns = getStatusDuration(effect.status, random, statusRules);
-      target.statusEffects.push({ type: effect.status, remainingTurns });
+      const baseDuration = getStatusDuration(effect.status, random, statusRules);
+      let remainingTurns: number | null = baseDuration;
+      let shortenedByAbilityId: string | undefined;
+      if (baseDuration !== null && targetAbility?.onStatusDurationModify) {
+        const result = targetAbility.onStatusDurationModify({
+          self: target,
+          status: effect.status,
+          duration: baseDuration,
+        });
+        if (result.duration < baseDuration) {
+          shortenedByAbilityId = targetAbility.id;
+        }
+        remainingTurns = result.duration;
+      }
+      target.statusEffects.push({
+        type: effect.status,
+        remainingTurns,
+        ...(shortenedByAbilityId ? { shortenedByAbilityId } : {}),
+      });
     }
 
     const statusEvent: BattleEvent = {
@@ -101,6 +146,19 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       status: effect.status,
     };
     events.push(statusEvent);
+
+    if (isMajorStatus(effect.status) && targetAbility?.onAfterStatusReceived) {
+      const abilityEvents = targetAbility.onAfterStatusReceived({
+        self: target,
+        source: context.attacker,
+        status: effect.status,
+        state: context.state,
+        selfTypes: targetTypes,
+        sourceTypes: context.attackerTypes,
+        random,
+      });
+      events.push(...abilityEvents);
+    }
   }
 
   return events;

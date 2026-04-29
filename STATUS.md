@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> Dernière mise à jour : 2026-04-26 (Phase 4 — animations vol Pokémon volants terminées)
+> Dernière mise à jour : 2026-04-29 (Phase 4 — polish talents terminé, plan 070)
 > Ce fichier est le point d'entrée pour reprendre le projet après une pause.
 > Dire "on en était où ?" et Claude Code lira ce fichier.
 
@@ -23,6 +23,8 @@ Le renderer Phaser 4 iso 2D sera remplacé par un renderer Babylon.js 2D-HD (spr
 ## Phase actuelle : Phase 4 — Gameplay Pokemon complet
 
 ### Ce qui est fait en Phase 4
+- **Polish talents/abilities (2026-04-29) — plan 070** : finitions sur le système d'abilities initié au plan 069. Lévitation traverse lava/deep_water sans malus. Tempo Perso bloque Confusion et Intimidation. Engrais/Brasier/Torrent émettent au seuil 1/3 HP (première traversée + battle start si déjà sous le seuil). Cran (Guts) émet quand un statut majeur est reçu. Matinal (Early Bird) émet au réveil avec `shortenedByAbilityId` sur `StatusEffect`. Refactor hooks passifs (`onStatusBlocked` / `onStatChangeBlocked` / `onTypeImmunity` / `onStatusDurationModify`) → return type `{ blocked|duration, events: BattleEvent[] }` (pattern Showdown). Buffer startup events dans `BattleEngine` + `consumeStartupEvents()` + `rerunBattleStartChecks()` (sandbox). Helper `isEffectivelyFlying` extrait dans `packages/core/src/battle/effective-flying.ts`. Battle log + i18n FR/EN pour `AbilityActivated`. 6 nouveaux tests d'intégration. Nouveau doc `docs/abilities-system.md`. Suppression de l'API `onAccuracyModify` (sand-veil dormant Phase 9). CI verte : 1130 unit + 134 intégration + typecheck + lint clean.
+- **Système de talents/abilities (2026-04-27) — plan 069** : `AbilityHandlerRegistry`, interface `AbilityDefinition` avec 9 hooks. 20 abilities implémentées pour les 20 Pokemon du roster. Nouveaux statuts volatils `Intimidated` et `Infatuated` (position-linked). Helper `isEffectivelyFlying`. Event `AbilityActivated`. 20 tests d'intégration verts. Floating text jaune doré `"{abilityName}!"` dans le renderer.
 - **Animations vol (2026-04-26)** : refonte complète du système d'animations de repos pour les Pokémon de type Vol. `PokemonSprite` : `restingAnim` + `setRestingAnimation()` + `playRestingAnimation()` — les Pokémon volants restent en FlyingGlide au repos, après dégâts et après knockback. `getFlyingAnimationMode` simplifié (`"glide" | null`, plus de `"jump"`). `BattleScene` injecte `setRestingAnimation` à la création de chaque sprite selon le type. CI verte : 1130 unit + 107 integration.
 
 ### Ce qui était fait avant (Phase 3 et antérieur)

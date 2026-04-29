@@ -28,6 +28,7 @@ import type { TypeChart } from "../types/type-chart";
 import { directionFromTo, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
 import type { RandomFn } from "../utils/prng";
+import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { checkAccuracy } from "./accuracy-check";
 import { applyImpactDamage } from "./apply-impact-damage";
 import { ChargeTimeTurnSystem } from "./ChargeTimeTurnSystem";
@@ -42,9 +43,11 @@ import {
 import { estimateDamage } from "./damage-calculator";
 import { getAttackOrigin } from "./defense-check";
 import { processEffects } from "./effect-processor";
+import { isEffectivelyFlying } from "./effective-flying";
 import { getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
+import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handler";
 import { seededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
 import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
@@ -52,6 +55,7 @@ import { trappedTickHandler } from "./handlers/trapped-tick-handler";
 import { getHeightModifier } from "./height-modifier";
 import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import { getEffectiveInitiative } from "./initiative-calculator";
+import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { isMajorStatus } from "./stat-modifier";
 import { TurnManager } from "./TurnManager";
 import {
@@ -89,6 +93,7 @@ export class BattleEngine {
   private readonly random: RandomFn;
   private readonly seed: number;
   private readonly statusRules: StatusRules;
+  private readonly abilityRegistry: AbilityHandlerRegistry | null;
   private readonly recordedActions: Action[] = [];
   private turnState = { hasMoved: false, hasActed: false, lastMoveId: null as string | null };
   private preMoveSnapshot: { position: Position; orientation: Direction; hadBurn: boolean } | null =
@@ -97,6 +102,7 @@ export class BattleEngine {
   private confusedThisTurn = false;
   private confusionChecked = false;
   private battleOver = false;
+  private startupEvents: BattleEvent[] = [];
 
   constructor(
     state: BattleState,
@@ -108,6 +114,7 @@ export class BattleEngine {
     seed = 0,
     turnSystemKind: TurnSystemKind = TurnSystemKind.RoundRobin,
     statusRules: StatusRules = DEFAULT_STATUS_RULES,
+    abilityRegistry: AbilityHandlerRegistry | null = null,
   ) {
     this.state = state;
     this.moveRegistry = moveRegistry;
@@ -118,6 +125,7 @@ export class BattleEngine {
     this.seed = seed;
     this.turnSystemKind = turnSystemKind;
     this.statusRules = statusRules;
+    this.abilityRegistry = abilityRegistry;
     this.listeners = new Map();
     this.grid = new Grid(state.grid[0]?.length ?? 0, state.grid.length, state.grid);
     this.turnManager = new TurnManager([...state.pokemon.values()], getEffectiveInitiative);
@@ -126,6 +134,7 @@ export class BattleEngine {
       createStatusTickHandler(this.random, this.statusRules),
       100,
     );
+    this.turnPipeline.registerStartTurn(createInfatuationTickHandler(this.random), 150);
     this.turnPipeline.registerEndTurn(seededTickHandler, 200);
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
     this.turnPipeline.registerEndTurn(createTerrainTickHandler(this.pokemonTypesMap), 400);
@@ -143,10 +152,39 @@ export class BattleEngine {
       this.state.turnSystemKind = TurnSystemKind.RoundRobin;
       this.syncTurnState();
     }
+
+    this.triggerBattleStart();
   }
 
   getGrid(): Grid {
     return this.grid;
+  }
+
+  consumeStartupEvents(): BattleEvent[] {
+    const events = this.startupEvents;
+    this.startupEvents = [];
+    return events;
+  }
+
+  rerunBattleStartChecks(): void {
+    if (!this.abilityRegistry) {
+      return;
+    }
+    for (const pokemon of this.state.pokemon.values()) {
+      if (pokemon.currentHp <= 0) {
+        continue;
+      }
+      const ability = this.abilityRegistry.getForPokemon(pokemon);
+      if (!ability?.onBattleStart) {
+        continue;
+      }
+      const events = ability.onBattleStart({
+        self: pokemon,
+        state: this.state,
+        pokemonTypesMap: this.pokemonTypesMap,
+      });
+      this.startupEvents.push(...events);
+    }
   }
 
   getGameState(_playerId: string): BattleState {
@@ -180,7 +218,12 @@ export class BattleEngine {
     );
     const attackerTerrain = this.grid.getTile(attacker.position)?.terrain;
     const terrainMod = attackerTerrain
-      ? getTerrainTypeBonusFactor(attackerTerrain, move.type, attackerTypes)
+      ? getTerrainTypeBonusFactor(
+          attackerTerrain,
+          move.type,
+          attackerTypes,
+          this.isEffectivelyFlying(attacker),
+        )
       : 1.0;
     const attackOrigin = getAttackOrigin(attacker, move, targetPosition ?? defender.position);
     const facingMod = getFacingModifier(getFacingZone(attackOrigin, defender));
@@ -223,9 +266,11 @@ export class BattleEngine {
   computePathDistance(from: Position, to: Position, pokemonId: string): number {
     const pokemon = this.state.pokemon.get(pokemonId);
     const pokemonTypes = pokemon ? (this.pokemonTypesMap.get(pokemon.definitionId) ?? []) : [];
-    const isFlying = pokemonTypes.includes(PokemonType.Flying);
+    const isFlying = pokemon
+      ? this.isEffectivelyFlying(pokemon)
+      : pokemonTypes.includes(PokemonType.Flying);
     const isGhost = pokemonTypes.includes(PokemonType.Ghost);
-    const immuneTerrains = getImmuneTerrains(pokemonTypes);
+    const immuneTerrains = getImmuneTerrains(pokemonTypes, isFlying);
 
     const posKey = (p: Position): string => `${p.x},${p.y}`;
     const visited = new Set<string>();
@@ -461,6 +506,67 @@ export class BattleEngine {
     }
   }
 
+  private isEffectivelyFlying(pokemon: PokemonInstance): boolean {
+    const types = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    return isEffectivelyFlying(pokemon, types);
+  }
+
+  private triggerBattleStart(): void {
+    if (!this.abilityRegistry) {
+      return;
+    }
+    for (const pokemon of this.state.pokemon.values()) {
+      const ability = this.abilityRegistry.getForPokemon(pokemon);
+      if (!ability) {
+        continue;
+      }
+      if (ability.onBattleStart) {
+        const events = ability.onBattleStart({
+          self: pokemon,
+          state: this.state,
+          pokemonTypesMap: this.pokemonTypesMap,
+        });
+        this.startupEvents.push(...events);
+      }
+      if (ability.onAuraCheck) {
+        const auraEvents = ability.onAuraCheck({
+          self: pokemon,
+          state: this.state,
+          pokemonTypesMap: this.pokemonTypesMap,
+        });
+        this.startupEvents.push(...auraEvents);
+      }
+    }
+  }
+
+  private emitPositionLinkedChecks(events: BattleEvent[]): void {
+    const linkedEvents = checkPositionLinkedStatuses(this.state);
+    for (const event of linkedEvents) {
+      this.emit(event);
+      events.push(event);
+    }
+    if (this.abilityRegistry) {
+      for (const pokemon of this.state.pokemon.values()) {
+        if (pokemon.currentHp <= 0) {
+          continue;
+        }
+        const ability = this.abilityRegistry.getForPokemon(pokemon);
+        if (!ability?.onAuraCheck) {
+          continue;
+        }
+        const auraEvents = ability.onAuraCheck({
+          self: pokemon,
+          state: this.state,
+          pokemonTypesMap: this.pokemonTypesMap,
+        });
+        for (const event of auraEvents) {
+          this.emit(event);
+          events.push(event);
+        }
+      }
+    }
+  }
+
   private getValidTargetPositions(pokemon: PokemonInstance, move: MoveDefinition): Position[] {
     const targeting = move.targeting;
     switch (targeting.kind) {
@@ -592,7 +698,7 @@ export class BattleEngine {
       const defenderTypes = this.pokemonTypesMap.get(target.definitionId) ?? [];
       const tallGrassBonus =
         defenderTile?.terrain === TerrainType.TallGrass &&
-        !isTerrainImmune(TerrainType.TallGrass, defenderTypes)
+        !isTerrainImmune(TerrainType.TallGrass, defenderTypes, this.isEffectivelyFlying(target))
           ? 1
           : 0;
       if (checkAccuracy(move, pokemon, target, this.random, tallGrassBonus)) {
@@ -623,7 +729,12 @@ export class BattleEngine {
 
     const attackerTile = this.grid.getTile(pokemon.position);
     const terrainMod = attackerTile
-      ? getTerrainTypeBonusFactor(attackerTile.terrain, move.type, attackerTypes)
+      ? getTerrainTypeBonusFactor(
+          attackerTile.terrain,
+          move.type,
+          attackerTypes,
+          this.isEffectivelyFlying(pokemon),
+        )
       : 1.0;
 
     const attackOrigin = getAttackOrigin(pokemon, move, targetPosition);
@@ -646,6 +757,7 @@ export class BattleEngine {
       terrainModifier: terrainMod,
       facingModifierMap,
       statusRules: this.statusRules,
+      abilityRegistry: this.abilityRegistry ?? undefined,
     });
 
     for (const event of effectEvents) {
@@ -661,6 +773,8 @@ export class BattleEngine {
         }
       }
     }
+
+    this.emitPositionLinkedChecks(events);
 
     if (move.targeting.kind === TargetingKind.Dash) {
       this.dashMoveCaster(pokemon, targetPosition, events);
@@ -737,6 +851,9 @@ export class BattleEngine {
     events.push(moveEvent);
 
     this.turnState.hasMoved = true;
+
+    this.emitPositionLinkedChecks(events);
+
     return { success: true, events };
   }
 
@@ -868,8 +985,7 @@ export class BattleEngine {
     let destination: Position | null = null;
     let wallHeightDiff = 0;
     const distance = manhattanDistance(pokemon.position, targetPosition);
-    const dasherTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
-    const isFlying = dasherTypes.includes(PokemonType.Flying);
+    const isFlying = this.isEffectivelyFlying(pokemon);
     let previousHeight = this.grid.getTile(pokemon.position)?.height ?? 0;
 
     for (let step = 1; step <= distance; step++) {
@@ -960,9 +1076,9 @@ export class BattleEngine {
     const visited = new Map<string, number>();
     const posKey = (p: Position): string => `${p.x},${p.y}`;
     const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
-    const isFlying = pokemonTypes.includes(PokemonType.Flying);
+    const isFlying = this.isEffectivelyFlying(pokemon);
     const isGhost = pokemonTypes.includes(PokemonType.Ghost);
-    const immuneTerrains = getImmuneTerrains(pokemonTypes);
+    const immuneTerrains = getImmuneTerrains(pokemonTypes, isFlying);
 
     const queue: BfsNode[] = [{ position: pokemon.position, path: [], distance: 0 }];
     visited.set(posKey(pokemon.position), 0);
@@ -1018,7 +1134,7 @@ export class BattleEngine {
           }
         }
 
-        const penalty = getMovementPenalty(neighbor.terrain, pokemonTypes);
+        const penalty = getMovementPenalty(neighbor.terrain, pokemonTypes, isFlying);
         const newDistance = current.distance + 1 + penalty;
 
         if (newDistance > pokemon.derivedStats.movement) {
@@ -1086,7 +1202,7 @@ export class BattleEngine {
         if (tile?.terrain !== TerrainType.Magma) {
           continue;
         }
-        if (isTerrainImmune(TerrainType.Magma, pokemonTypes)) {
+        if (isTerrainImmune(TerrainType.Magma, pokemonTypes, this.isEffectivelyFlying(pokemon))) {
           break;
         }
         pokemon.statusEffects.push({ type: StatusType.Burned, remainingTurns: null });
@@ -1103,6 +1219,8 @@ export class BattleEngine {
     }
 
     this.turnState.hasMoved = true;
+
+    this.emitPositionLinkedChecks(events);
 
     return { success: true, events };
   }
@@ -1136,6 +1254,8 @@ export class BattleEngine {
 
     this.preMoveSnapshot = null;
 
+    this.emitPositionLinkedChecks(events);
+
     return { success: true, events };
   }
 
@@ -1145,9 +1265,9 @@ export class BattleEngine {
     }
 
     const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
-    const isFlying = pokemonTypes.includes(PokemonType.Flying);
+    const isFlying = this.isEffectivelyFlying(pokemon);
     const isGhost = pokemonTypes.includes(PokemonType.Ghost);
-    const immuneTerrains = getImmuneTerrains(pokemonTypes);
+    const immuneTerrains = getImmuneTerrains(pokemonTypes, isFlying);
 
     let totalCost = 0;
     let currentPosition = pokemon.position;
@@ -1191,7 +1311,7 @@ export class BattleEngine {
         return ActionError.ImpassableTile;
       }
 
-      totalCost += 1 + getMovementPenalty(tile.terrain, pokemonTypes);
+      totalCost += 1 + getMovementPenalty(tile.terrain, pokemonTypes, isFlying);
       if (totalCost > pokemon.derivedStats.movement) {
         return ActionError.PathTooLong;
       }

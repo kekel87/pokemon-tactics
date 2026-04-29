@@ -91,6 +91,14 @@ export function statusTickHandler(
       }
       if (status.remainingTurns === 0) {
         pokemon.statusEffects = pokemon.statusEffects.filter((s) => s !== status);
+        if (status.shortenedByAbilityId) {
+          events.push({
+            type: BattleEventType.AbilityActivated,
+            pokemonId,
+            abilityId: status.shortenedByAbilityId,
+            targetIds: [pokemonId],
+          });
+        }
         events.push({
           type: BattleEventType.StatusRemoved,
           targetId: pokemonId,

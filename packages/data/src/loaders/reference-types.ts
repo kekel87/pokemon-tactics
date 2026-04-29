@@ -24,3 +24,16 @@ export interface ReferenceTypeChart {
   types: string[];
   effectiveness: Record<string, Record<string, number>>;
 }
+
+export interface ReferenceAbility {
+  id: string;
+  generation: number;
+  names: { en: string; fr: string };
+  shortDescription: { en: string; fr: string };
+  longDescription: { en: string; fr: string };
+  flags: {
+    breakable: boolean;
+    ignorable: boolean;
+    unsuppressable: boolean;
+  };
+}
