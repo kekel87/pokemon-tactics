@@ -4,8 +4,8 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
-- **Phase 4 en cours.** Plans 069 + 070 (Talents) terminés. Restants : Genres Pokemon (prérequis Cute Charm/Charm), Objets tenus, Natures/Stat Alignment, EV→Stat Points, Méga-évolutions, Roster élargi (~30-40), Team Builder.
-- **Prochain plan** : Genres Pokemon (prérequis Cute Charm incomplète sans genre) ou Objets tenus (impact stratégique immédiat). Discuter scope.
+- **Phase 4 en cours.** Plans 069 + 070 + 071 terminés. Restants : Objets tenus, Natures/Stat Alignment, EV→Stat Points, Méga-évolutions, Roster élargi (~30-40), Team Builder.
+- **Prochain plan** : Objets tenus (impact stratégique immédiat) ou Natures/Stat Alignment. Discuter scope.
 - **À valider visuellement** : floating text `AbilityActivated` jaune doré, émission Blaze/Torrent/Overgrow au seuil HP, blocage Confusion par Tempo Perso, Early Bird au réveil. Tester sandbox ou combat IA vs IA.
 - **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles, peinture Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour arène propre rapide, ou reporter post-Babylon via `DecalMap`.
 - **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20). Pistes à garder :
@@ -20,6 +20,7 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## Fait récemment
 
+- 2026-04-29 — **Plan 071 terminé — Genres Pokemon (♂/♀/genderless)**. `genderRatio` exposé via loaders, `PokemonGender` enum, `rollGender(ratio, rng)`. `PokemonInstance.gender` rolled à la création (`createPokemonInstance` accepte `genderRng` + `genderOverride` pour Team Builder futur). Cute Charm vérifie genre opposé non-genderless. Symboles ♂/♀ colorés (`#5fa8ff` / `#ff7fb4`) dans InfoPanel. CI verte : 1135 unit + 137 intégration. Bug data Kangaskhan (50/50 vs 0/100 canon) tracé en backlog.
 - 2026-04-29 — **Plan 070 terminé — Polish talents/abilities**. Lévitation traversée lava/deep_water, Tempo Perso bloque Confusion+Intimidation, Engrais/Brasier/Torrent seuil 1/3, Cran sur statut majeur, Matinal au réveil. Refactor hooks passifs → return `{ ..., events }`. Buffer startup events + `consumeStartupEvents()` + `rerunBattleStartChecks()`. `isEffectivelyFlying` extrait. Battle log i18n `AbilityActivated`. `docs/abilities-system.md` créé. Suppression `onAccuracyModify`. CI : 1130 unit + 134 intégration verts.
 - 2026-04-27 — **Plan 069 terminé — Talents/abilities + floating text**. `AbilityHandlerRegistry`, 20 abilities, `Intimidated`/`Infatuated` position-linked, `AbilityActivated` event, floating text jaune doré `#ffe066`. 20 tests intégration verts.
 - 2026-04-26 — **Animations vol terminées (hors plan)**. `PokemonSprite` : `restingAnim` + `setRestingAnimation()`, FlyingGlide repos/dégâts/knockback. 1130 unit + 107 integration verts.

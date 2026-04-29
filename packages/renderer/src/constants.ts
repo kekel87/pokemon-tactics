@@ -342,6 +342,9 @@ export const STAT_BADGE_SPACING = 3;
 
 export const DIRECTION_INACTIVE_TINT = 0x888888;
 
+export const GENDER_SYMBOL_MALE_COLOR = "#5fa8ff";
+export const GENDER_SYMBOL_FEMALE_COLOR = "#ff7fb4";
+
 export const TOOLTIP_CELL_COLOR_TARGET = 0xff6644;
 export const TOOLTIP_CELL_COLOR_DASH = 0xffdd44;
 export const TOOLTIP_CELL_COLOR_CASTER = 0xffdd44;

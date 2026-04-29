@@ -25,5 +25,6 @@ export abstract class MockValidation {
     baseStats: { hp: 50, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
     weight: 10,
     movepool: ["tackle"],
+    genderRatio: "genderless",
   };
 }

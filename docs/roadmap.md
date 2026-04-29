@@ -151,7 +151,7 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
 > But : couvrir toutes les mécaniques Pokemon, ajouter profondeur stratégique
 
 - [x] Talents (capacités passives) — plans 069 + 070 terminés. 20 abilities, `AbilityHandlerRegistry`, 9 hooks, 26+ tests intégration. Pattern Showdown : hooks blocants retournent `BlockResult { blocked, events }`, modifieur de durée retourne `DurationModifyResult`. Buffer startup events, Lévitation terrain corrigée, Tempo Perso bloque Intimidation, anti-spam seuil 1/3 HP. Voir `docs/abilities-system.md`.
-- [ ] Genres des Pokemon (mâle/femelle/asexué selon ratio officiel) — prérequis Charme/Joli Sourire (genres opposés)
+- [x] Genres des Pokemon (mâle/femelle/asexué selon ratio officiel) — plan 071 terminé. `PokemonGender` enum, `genderRatio` exposé via loaders, roll déterministe via `genderRng` (replay), `genderOverride` prêt pour Team Builder. Cute Charm vérifie genre opposé non-genderless. Symboles ♂/♀ Unicode dans InfoPanel.
 - [ ] Objets tenus
 - [ ] Natures (boost +10% / malus -10% sur une stat) — renommé "Stat Alignment" dans Pokemon Champions
 - [ ] EV / IV — simplification Pokemon Champions :

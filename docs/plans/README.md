@@ -80,3 +80,7 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 065 | [Fix depth unifié + picking modifier + occlusion dynamique](./065-occlusion-fade-depth-fix.md) | done | 2026-04-20 |
 | 066 | [Roster de maps multi-format + générateur IA](./066-maps-multi-format-roster.md) | done | 2026-04-23 |
 | 067 | [Écran de sélection de carte](./067-map-select-screen.md) | done | 2026-04-23 |
+| 068 | [Fix IA terrain + pathfinding](./068-ai-fix-terrain-ct-pathfinding.md) | done | 2026-04-25 |
+| 069 | [Système de talents/abilities](./069-talents-abilities.md) | done | 2026-04-27 |
+| 070 | [Polish des talents](./070-talents-polish.md) | done | 2026-04-29 |
+| 071 | [Genres des Pokemon](./071-pokemon-gender.md) | done | 2026-04-29 |

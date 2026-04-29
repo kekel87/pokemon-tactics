@@ -1,5 +1,6 @@
 import { Direction } from "../enums/direction";
 import { PlayerId } from "../enums/player-id";
+import { PokemonGender } from "../enums/pokemon-gender";
 import type { StatName as StatNameType } from "../enums/stat-name";
 import { StatName } from "../enums/stat-name";
 import { TerrainType } from "../enums/terrain-type";
@@ -71,6 +72,7 @@ export abstract class MockBattle {
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
+    gender: PokemonGender.Genderless,
   };
 
   static readonly player2Slow: PokemonInstance = {
@@ -94,6 +96,7 @@ export abstract class MockBattle {
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
+    gender: PokemonGender.Genderless,
   };
 
   static readonly player1Medium: PokemonInstance = {
@@ -117,6 +120,7 @@ export abstract class MockBattle {
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
+    gender: PokemonGender.Genderless,
   };
 
   static readonly flatGrid5x5: TileState[][] = buildFlatGrid(5, 5);

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { PlayerId } from "../enums/player-id";
+import { PokemonGender } from "../enums/pokemon-gender";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
 import { buildMoveTestEngine, MockPokemon } from "../testing";
@@ -534,8 +535,8 @@ describe("ability system integration", () => {
     expect(enemyAfter?.statStages[StatName.Attack]).toBe(-6);
   });
 
-  it("cute-charm inflates attacker with Infatuated on contact with 30% chance", () => {
-    // Given a Jigglypuff with Cute Charm as the target
+  it("cute-charm inflates male attacker with Infatuated on contact with 30% chance", () => {
+    // Given a female Jigglypuff with Cute Charm and a male attacker
     const attacker = MockPokemon.fresh(MockPokemon.base, {
       id: "attacker",
       playerId: PlayerId.Player1,
@@ -543,6 +544,7 @@ describe("ability system integration", () => {
       moveIds: ["scratch"],
       currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
+      gender: PokemonGender.Male,
     });
     const jigglypuff = MockPokemon.fresh(MockPokemon.base, {
       id: "jigglypuff",
@@ -550,13 +552,13 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 2 },
       abilityId: "cute-charm",
+      gender: PokemonGender.Female,
     });
 
     vi.spyOn(Math, "random").mockReturnValue(0);
 
     const { engine, state } = buildMoveTestEngine([attacker, jigglypuff]);
 
-    // When a contact move hits Jigglypuff
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
@@ -572,6 +574,117 @@ describe("ability system integration", () => {
         (v) => v.type === StatusType.Infatuated && v.sourceId === "jigglypuff",
       ),
     ).toBe(true);
+  });
+
+  it("cute-charm does not trigger when both Pokemon share the same gender", () => {
+    // Given a female Jigglypuff and a female attacker
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+      gender: PokemonGender.Female,
+    });
+    const jigglypuff = MockPokemon.fresh(MockPokemon.base, {
+      id: "jigglypuff",
+      definitionId: "jigglypuff",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      abilityId: "cute-charm",
+      gender: PokemonGender.Female,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, jigglypuff]);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const attackerPokemon = state.pokemon.get("attacker");
+    expect(attackerPokemon?.volatileStatuses.some((v) => v.type === StatusType.Infatuated)).toBe(
+      false,
+    );
+  });
+
+  it("cute-charm does not trigger against a genderless attacker", () => {
+    // Given a female Jigglypuff and a genderless attacker (Magnemite-like)
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+      gender: PokemonGender.Genderless,
+    });
+    const jigglypuff = MockPokemon.fresh(MockPokemon.base, {
+      id: "jigglypuff",
+      definitionId: "jigglypuff",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      abilityId: "cute-charm",
+      gender: PokemonGender.Female,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, jigglypuff]);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const attackerPokemon = state.pokemon.get("attacker");
+    expect(attackerPokemon?.volatileStatuses.some((v) => v.type === StatusType.Infatuated)).toBe(
+      false,
+    );
+  });
+
+  it("cute-charm does not trigger when the carrier is male and the attacker is male", () => {
+    // Given a male Jigglypuff carrier (25% chance per gender ratio) and a male attacker
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+      gender: PokemonGender.Male,
+    });
+    const jigglypuff = MockPokemon.fresh(MockPokemon.base, {
+      id: "jigglypuff",
+      definitionId: "jigglypuff",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      abilityId: "cute-charm",
+      gender: PokemonGender.Male,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, jigglypuff]);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const attackerPokemon = state.pokemon.get("attacker");
+    expect(attackerPokemon?.volatileStatuses.some((v) => v.type === StatusType.Infatuated)).toBe(
+      false,
+    );
   });
 
   it("thick-fat halves damage from Fire and Ice moves", () => {

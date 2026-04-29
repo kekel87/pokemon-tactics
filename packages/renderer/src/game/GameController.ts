@@ -20,6 +20,7 @@ import {
   PlayerController,
   PlayerId,
   type PokemonDefinition,
+  PokemonGender,
   type PokemonInstance,
   PokemonType,
   type Position,
@@ -1843,6 +1844,7 @@ export class GameController {
       toxicCounter: 0,
       volatileStatuses: [],
       recharging: false,
+      gender: PokemonGender.Genderless,
     };
   }
 

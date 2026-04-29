@@ -9,6 +9,7 @@ import {
   Category,
   isImmuneToStatusByType,
   isMajorStatus,
+  PokemonGender,
   PokemonType,
   StatName,
   StatusType,
@@ -282,6 +283,13 @@ const cuteCharm: AbilityHandler = {
   id: "cute-charm",
   onAfterDamageReceived: (context) => {
     if (!context.move.flags?.contact) {
+      return [];
+    }
+    if (
+      context.self.gender === PokemonGender.Genderless ||
+      context.attacker.gender === PokemonGender.Genderless ||
+      context.self.gender === context.attacker.gender
+    ) {
       return [];
     }
     if (context.random() >= 0.3) {

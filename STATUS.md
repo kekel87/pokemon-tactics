@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> MAJ : 2026-04-29 (Phase 4 — polish talents fini, plan 070)
+> MAJ : 2026-04-29 (Phase 4 — genres Pokemon livrés, plan 071)
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
@@ -21,6 +21,7 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 ## Phase actuelle : Phase 4 — Gameplay Pokemon complet
 
 ### Fait en Phase 4
+- **Genres Pokemon (2026-04-29) — plan 071** : `PokemonGender` enum (Male/Female/Genderless), `GenderRatio` type, helper `rollGender(ratio, rng)`. `PokemonInstance.gender` rolled à la création (`createPokemonInstance` accepte `rng` + `genderOverride` pour future Team Builder). Loaders `load-pokemon` et `reference-types` exposent `genderRatio` depuis `reference/pokemon.json`. Cute Charm vérifie genre opposé non-genderless (rule Showdown — fix bug latent plan 069). Symboles ♂/♀ Unicode colorés (`#5fa8ff` / `#ff7fb4`) à droite du nameText `InfoPanel`. Genderless → aucun symbole. 5 tests unitaires `roll-gender.test.ts` + 3 nouveaux scénarios intégration Cute Charm (mirror female, vs genderless, male carrier). Décisions #280-283. Bug data Kangaskhan (50/50 vs 0/100 canon) tracé en backlog. CI verte : 1135 unit + 137 intégration + typecheck + lint 0 error.
 - **Polish talents/abilities (2026-04-29) — plan 070** : finitions système abilities plan 069. Lévitation traverse lava/deep_water sans malus. Tempo Perso bloque Confusion + Intimidation. Engrais/Brasier/Torrent émettent au seuil 1/3 HP (première traversée + battle start si déjà sous seuil). Cran (Guts) émet quand statut majeur reçu. Matinal (Early Bird) émet au réveil avec `shortenedByAbilityId` sur `StatusEffect`. Refactor hooks passifs (`onStatusBlocked` / `onStatChangeBlocked` / `onTypeImmunity` / `onStatusDurationModify`) → return type `{ blocked|duration, events: BattleEvent[] }` (pattern Showdown). Buffer startup events `BattleEngine` + `consumeStartupEvents()` + `rerunBattleStartChecks()` (sandbox). Helper `isEffectivelyFlying` extrait `packages/core/src/battle/effective-flying.ts`. Battle log + i18n FR/EN pour `AbilityActivated`. 6 nouveaux tests intégration. Doc `docs/abilities-system.md`. Suppression API `onAccuracyModify` (sand-veil dormant Phase 9). CI verte : 1130 unit + 134 intégration + typecheck + lint clean.
 - **Système talents/abilities (2026-04-27) — plan 069** : `AbilityHandlerRegistry`, interface `AbilityDefinition` avec 9 hooks. 20 abilities pour 20 Pokemon roster. Statuts volatils `Intimidated` et `Infatuated` (position-linked). Helper `isEffectivelyFlying`. Event `AbilityActivated`. 20 tests intégration verts. Floating text jaune doré `"{abilityName}!"` renderer.
 - **Animations vol (2026-04-26)** : refonte animations repos pour Pokémon Vol. `PokemonSprite` : `restingAnim` + `setRestingAnimation()` + `playRestingAnimation()` — volants restent FlyingGlide au repos, après dégâts et knockback. `getFlyingAnimationMode` simplifié (`"glide" | null`). `BattleScene` injecte `setRestingAnimation` à création sprite selon type. CI verte : 1130 unit + 107 integration.

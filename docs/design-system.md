@@ -306,6 +306,18 @@ La clé i18n `battle.fall` (FR "Chute", EN "Fall") est utilisée par le handler 
 
 ---
 
+## Symboles de genre (InfoPanel)
+
+| Couleur | Hex | Usage |
+|---------|-----|-------|
+| Bleu mâle | `#5fa8ff` (`GENDER_SYMBOL_MALE_COLOR`) | Symbole `♂` à droite du nom |
+| Rose femelle | `#ff7fb4` (`GENDER_SYMBOL_FEMALE_COLOR`) | Symbole `♀` à droite du nom |
+| Genderless | — | Aucun symbole affiché |
+
+Plan 071. Caractères Unicode `♂` / `♀` rendus via Phaser Text dans `InfoPanel`. Couleurs FFTA/PokeRogue-like.
+
+---
+
 ## Sprites et KO
 
 | Couleur | Hex | Usage |

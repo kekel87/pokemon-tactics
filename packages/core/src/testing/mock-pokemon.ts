@@ -1,5 +1,6 @@
 import { Direction } from "../enums/direction";
 import { PlayerId } from "../enums/player-id";
+import { PokemonGender } from "../enums/pokemon-gender";
 import type { StatName as StatNameType } from "../enums/stat-name";
 import { StatName } from "../enums/stat-name";
 import type { PokemonInstance } from "../types/pokemon-instance";
@@ -37,6 +38,7 @@ export abstract class MockPokemon {
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
+    gender: PokemonGender.Genderless,
   };
 
   static readonly bulbasaur: PokemonInstance = {
@@ -60,6 +62,7 @@ export abstract class MockPokemon {
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
+    gender: PokemonGender.Genderless,
   };
 
   static readonly charmander: PokemonInstance = {
@@ -83,6 +86,7 @@ export abstract class MockPokemon {
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
+    gender: PokemonGender.Genderless,
   };
 
   static readonly squirtle: PokemonInstance = {
@@ -106,6 +110,7 @@ export abstract class MockPokemon {
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
+    gender: PokemonGender.Genderless,
   };
 
   static readonly pidgey: PokemonInstance = {
@@ -129,6 +134,7 @@ export abstract class MockPokemon {
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
+    gender: PokemonGender.Genderless,
   };
 
   static fresh(base: PokemonInstance, overrides?: Partial<PokemonInstance>): PokemonInstance {

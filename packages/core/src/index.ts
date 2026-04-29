@@ -14,6 +14,7 @@ export type { PlacementResult } from "./battle/PlacementPhase";
 export { PlacementError, PlacementPhase } from "./battle/PlacementPhase";
 export type { EngineFactory } from "./battle/replay-runner";
 export { runReplay } from "./battle/replay-runner";
+export { rollGender } from "./battle/roll-gender";
 export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator";
 export { computeMovement, isMajorStatus } from "./battle/stat-modifier";
 export { TurnManager } from "./battle/TurnManager";

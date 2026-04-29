@@ -1,5 +1,6 @@
 import type { Direction } from "../enums/direction";
 import type { PlayerId } from "../enums/player-id";
+import type { PokemonGender } from "../enums/pokemon-gender";
 import type { StatName } from "../enums/stat-name";
 import type { ActiveDefense } from "./active-defense";
 import type { BaseStats } from "./base-stats";
@@ -29,6 +30,7 @@ export interface PokemonInstance {
   toxicCounter: number;
   volatileStatuses: VolatileStatus[];
   recharging: boolean;
+  gender: PokemonGender;
   abilityId?: string;
   abilityFirstTriggered?: boolean;
 }
