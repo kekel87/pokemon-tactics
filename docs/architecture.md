@@ -1,7 +1,6 @@
 # Architecture technique — Pokemon Tactics
 
-> Pour le game design, voir [game-design.md](game-design.md).
-> Pour les décisions, voir [decisions.md](decisions.md).
+> Game design : [game-design.md](game-design.md). Décisions : [decisions.md](decisions.md).
 
 ---
 
@@ -30,10 +29,10 @@
 ```
 
 **Avantages :**
-- Changer de renderer sans toucher à la logique (Phaser → Three.js → Godot)
-- Faire jouer des IA sans interface graphique
-- Tests unitaires sur la logique pure
-- Mode headless : 1000 combats en quelques secondes (équilibrage)
+- Changer renderer sans toucher logique (Phaser → Three.js → Godot)
+- Faire jouer des IA sans UI
+- Tests unitaires sur logique pure
+- Mode headless : 1000 combats en secondes (équilibrage)
 - Replays rejouables dans n'importe quel renderer
 
 ### Diagramme des packages
@@ -88,13 +87,13 @@ pokemon-tactics/
 │   ├── renderer/                # Interface graphique (Phaser 4)
 │   │   ├── src/
 │   │   │   ├── scenes/          # Scènes Phaser : MainMenuScene → BattleModeScene → TeamSelectScene → BattleScene + BattleUIScene overlay ; SettingsScene, CreditsScene ; MapPreviewScene (pnpm dev:map)
-│   │   │   ├── maps/            # Chargement de cartes Tiled au runtime (loadTiledMap)
+│   │   │   ├── maps/            # Chargement cartes Tiled au runtime (loadTiledMap)
 │   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue, DummyAiController)
 │   │   │   ├── grid/            # Rendu isométrique (IsometricGrid : highlightGraphics, enemyRangeGraphics layer dédié, curseur animé)
 │   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
 │   │   │   ├── i18n/            # Système i18n maison : types.ts, locales/fr.ts, locales/en.ts, index.ts (t, setLanguage, detectLanguage, onLanguageChange, Language enum)
 │   │   │   ├── settings/        # Paramètres persistants : GameSettings { damagePreview }, getSettings(), updateSettings(), localStorage("pt-settings")
-│   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel, LanguageToggle, TeamSelectPanel — panel Joueur + panel Dummy + toolbar, BattleLogPanel, BattleLogFormatter)
+│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel, LanguageToggle, TeamSelectPanel, BattleLogPanel, BattleLogFormatter)
 │   │   │   ├── utils/           # Utilitaires renderer (screen-direction : getDirectionFromScreenPosition)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind — dont EnemyRange)
 │   │   │   ├── types/           # Types renderer (BattleConfig : confirmAttack)
@@ -107,7 +106,7 @@ pokemon-tactics/
 │   │   │       ├── maps/                    # Cartes Tiled (.tmj) servies au runtime (roster racine : simple-arena, highlands ; dev/ : sandbox-*, debug-*, tile-palette, decorations-demo)
 │   │   │       └── ui/
 │   │   │           ├── arrows.png           # Spritesheet flèches DirectionPicker
-│   │   │           ├── types/               # Type icons Pokepedia ZA (Légendes Pokémon Z-A) : {type}.png, 36x36px sans texte (18 types)
+│   │   │           ├── types/               # Type icons Pokepedia ZA : {type}.png, 36x36px sans texte (18 types)
 │   │   │           ├── categories/          # Category icons Bulbagarden SV : physical.png, special.png, status.png — 50x40px
 │   │   │           └── statuses/            # Status icons Pokepedia ZA : icon-{status}.png (52x36), label-{status}.png (172x36) — 7 statuts majeurs
 │   │   ├── index.html
@@ -117,7 +116,7 @@ pokemon-tactics/
 │   │
 │   └── data/                    # Données Pokemon (partagées)
 │       ├── src/
-│       │   ├── abilities/       # Définitions des talents : ability-definitions.ts (20 AbilityDefinition), index.ts
+│       │   ├── abilities/       # Définitions talents : ability-definitions.ts (20 AbilityDefinition), index.ts
 │       │   ├── roster/          # Roster POC : roster-poc.ts — 21 Pokemon avec movepool curation (plan 049)
 │       │   ├── loaders/         # Loaders séparés : load-pokemon.ts, load-moves.ts, load-type-chart.ts (plan 049)
 │       │   ├── overrides/       # Surcharges tactiques + balance
@@ -133,48 +132,48 @@ pokemon-tactics/
 │       │   │   └── index.ts                # Barrel export
 │       │   ├── i18n/            # Noms localisés : moves.fr.json, moves.en.json, pokemon-names.fr.json, pokemon-names.en.json
 │       │   └── index.ts         # Exporte getMoveName(id, lang), getPokemonName(id, lang), parseTiledMap, loadTiledMap...
-│       ├── reference/           # Base de connaissance JSON offline (plans 048, 056) — contient les valeurs Champions
-│       │   ├── README.md        # Schéma, sources, instructions de régénération
+│       ├── reference/           # Base de connaissance JSON offline (plans 048, 056) — contient valeurs Champions
+│       │   ├── README.md
 │       │   ├── pokemon.json     # 1025 espèces (formes imbriquées, learnsets latest-only, exclusions Gmax) — Champions override appliqué
 │       │   ├── moves.json       # 850 moves (sans Z-moves ni Max moves) — 45 moves overridés Champions
 │       │   ├── abilities.json   # 311 abilities — 3 abilities modifiées Champions
 │       │   ├── items.json       # 948 items (sans Z-crystals, Tera shards, Dynamax)
 │       │   ├── type-chart.json  # Table 18×18 + variantes par génération
-│       │   ├── champions-status.json  # Règles de statut Pokemon Champions (paralysie 12.5%, gel 25%/max3t, sommeil sample[2,3,3])
-│       │   ├── indexes/         # 19 index inversés regénérés depuis les JSON bruts (jamais édités à la main)
+│       │   ├── champions-status.json  # Règles statut Pokemon Champions (paralysie 12.5%, gel 25%/max3t, sommeil sample[2,3,3])
+│       │   ├── indexes/         # 19 index inversés regénérés depuis JSON bruts (jamais édités à la main)
 │       │   └── schema/          # 4 JSON Schemas (pokemon, move, ability, item)
 │       ├── scripts/             # Scripts de génération one-shot (non compilés dans src/)
 │       │   ├── build-reference.ts   # Génère reference/ depuis Showdown + PokeAPI (pnpm data:update) — applique applyChampionsOverrides
-│       │   └── fetch-champions.ts   # Fetch le mod Showdown Champions (data/mods/champions/) et extrait les overrides par regex
-│       ├── tsconfig.json        # extends ../../tsconfig.base.json
+│       │   └── fetch-champions.ts   # Fetch mod Showdown Champions (data/mods/champions/) et extrait overrides par regex
+│       ├── tsconfig.json
 │       └── package.json
 │
 ├── scripts/                     # Outils de build one-shot (non packagés)
 │   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas Phaser (inclut Sleep depuis plan 018)
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
 │   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
-│   ├── sprite-config.json       # Config extensible (Pokemon, animations dont Sleep, portraits)
-│   └── map-preview.js           # Script Vite helper pour pnpm dev:map (injecte le chemin .tmj via env)
+│   ├── sprite-config.json
+│   └── map-preview.js           # Vite helper pour pnpm dev:map
 ├── docs/
-│   ├── images/                  # Screenshots pour le README
+│   ├── images/
 │   ├── plans/                   # Plans d'exécution numérotés (70 plans)
 │   ├── architecture.md
 │   ├── game-design.md
 │   ├── decisions.md
 │   ├── roadmap.md
 │   ├── references.md
-│   ├── abilities-system.md      # Référence système de talents : hooks, patterns, anti-spam, call sites
+│   ├── abilities-system.md      # Référence système talents : hooks, patterns, anti-spam, call sites
 │   └── ...
 ├── .github/
-│   └── ISSUE_TEMPLATE/          # Templates bug report, feature request, feedback
-├── package.json                 # Workspace root (scripts, devDependencies)
+│   └── ISSUE_TEMPLATE/
+├── package.json
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json           # Config TS partagée (strict, bundler, path aliases)
-├── tsconfig.json                # Racine, extends base
+├── tsconfig.json
 ├── biome.json                   # Lint + format (recommended + nursery)
-├── vitest.config.ts             # Tests + coverage
+├── vitest.config.ts
 ├── CLAUDE.md
-├── CREDITS.md                   # Attribution CC BY-NC 4.0 PMDCollab (artistes par Pokemon)
+├── CREDITS.md                   # Attribution CC BY-NC 4.0 PMDCollab
 ├── LICENSE                      # MIT (code) + note CC BY-NC 4.0 (sprites)
 ├── README.md
 └── STATUS.md
@@ -182,16 +181,14 @@ pokemon-tactics/
 
 ### Organisation du core
 
-Structure flat par responsabilité. On restructurera par domaine quand la complexité le justifiera (Phase 1-2).
-
 | Dossier | Contenu | Tests |
 |---------|---------|-------|
 | `enums/` | Const object enums (pattern `as const` + type dérivé) — dont `PlacementMode`, `PlayerController`, `DefensiveKind`, `TeamValidationError` | Non testé (compilation = validation) |
 | `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `ActiveDefense`, `TeamSelection`, `TeamValidationResult`, `AbilityDefinition` (9 hooks optionnels : `onDamageModify`, `onAfterDamageReceived`, `onAfterStatusReceived`, `onStatusBlocked`, `onStatusDurationModify`, `onStatChangeBlocked`, `onTypeImmunity`, `onBattleStart`, `onAuraCheck`), `BlockResult { blocked, events }`, `DurationModifyResult { duration, events }` | Non testé (compilation = validation) |
 | `utils/` | Fonctions pures réutilisables (math, direction, géométrie) | Oui |
 | `grid/` | Classe Grid, targeting resolvers | Oui |
-| `battle/` | BattleEngine (dual-mode RR/CT, injecte `StatusRules` + `abilityRegistry`, `consumeStartupEvents()`, `rerunBattleStartChecks()`), TurnManager (RR), **ChargeTimeTurnSystem** (CT rotation, getCtSnapshot), **ct-costs** (computeCtGain, ppCost, powerFloor, effectFloor, computeMoveCost, computeCtActionCost), PlacementPhase, validate, validate-map, team-validator, defense-check, handle-defensive, defensive-clear-handler, replay-runner, **height-traversal** (canTraverse, calculateFallDamage), **height-modifier** (getHeightModifier, isMeleeBlockedByHeight), **handle-status** (`StatusRules`, `DEFAULT_STATUS_RULES` = Champions, taux statuts Champions via `EffectContext.statusRules`), **ability-handler-registry** (`AbilityHandlerRegistry`, dispatch par hook), **effective-flying** (`isEffectivelyFlying(pokemon, types)` — Levitate ou type Flying, exporté depuis `@pokemon-tactic/core`), **position-linked-statuses** (`checkPositionLinkedStatuses` — retire `Intimidated`/`Infatuated`/`Trapped` quand la source s'éloigne/KO) | Oui |
-| `ai/` | IA scriptées headless : `random-ai.ts` (action légale aléatoire), `aggressive-ai.ts` (fonce + tape le plus puissant) | Oui |
+| `battle/` | BattleEngine (dual-mode RR/CT, injecte `StatusRules` + `abilityRegistry`, `consumeStartupEvents()`, `rerunBattleStartChecks()`), TurnManager (RR), **ChargeTimeTurnSystem** (CT rotation, getCtSnapshot), **ct-costs** (computeCtGain, ppCost, powerFloor, effectFloor, computeMoveCost, computeCtActionCost), PlacementPhase, validate, validate-map, team-validator, defense-check, handle-defensive, defensive-clear-handler, replay-runner, **height-traversal** (canTraverse, calculateFallDamage), **height-modifier** (getHeightModifier, isMeleeBlockedByHeight), **handle-status** (`StatusRules`, `DEFAULT_STATUS_RULES` = Champions, taux statuts Champions via `EffectContext.statusRules`), **ability-handler-registry** (`AbilityHandlerRegistry`, dispatch par hook), **effective-flying** (`isEffectivelyFlying(pokemon, types)` — Levitate ou type Flying, exporté depuis `@pokemon-tactic/core`), **position-linked-statuses** (`checkPositionLinkedStatuses` — retire `Intimidated`/`Infatuated`/`Trapped` quand source s'éloigne/KO) | Oui |
+| `ai/` | IA scriptées headless : `random-ai.ts`, `aggressive-ai.ts` | Oui |
 | `testing/` | Mocks centralisés (`abstract class MockX`) — dont `MockTeamSelection`, `build-height-test-engine`, `build-fall-test-engine` | Exclu du coverage et du build |
 
 ### Diagramme interne du core
@@ -221,13 +218,13 @@ graph TD
 
 ### Configuration TypeScript
 
-Un seul `tsconfig.base.json` à la racine avec `moduleResolution: "bundler"` et les path aliases. Chaque package hérite via `extends`. Pas de project references, pas de `composite`, pas de `dist/` intermédiaires. Pattern identique à un monorepo Nx/Angular.
+Un seul `tsconfig.base.json` racine avec `moduleResolution: "bundler"` et path aliases. Chaque package hérite via `extends`. Pas de project references, pas de `composite`, pas de `dist/` intermédiaires. Pattern identique à monorepo Nx/Angular.
 
 ---
 
 ## 4. Système d'attaques : composition Targeting + Effects
 
-Chaque attaque est **déclarative** (données, pas du code custom). Définie par deux axes :
+Chaque attaque est **déclarative** (données, pas du code custom). Deux axes :
 - **Targeting** : comment on cible (pattern spatial)
 - **Effects** : ce qui arrive aux cibles (dégâts, statut, buff, lien...)
 
@@ -280,7 +277,7 @@ type Effect =
 3. `emit(events)` → liste d'événements
 
 Chaque `kind` de targeting a un **resolver** (pure function). Chaque `kind` d'effect a un **processor**.
-Ajouter une nouvelle mécanique = ajouter un `kind` dans l'union + son resolver/processor. Pas de refactor.
+Ajouter nouvelle mécanique = ajouter `kind` dans l'union + resolver/processor. Pas de refactor.
 
 ### Flux d'un tour de combat
 
@@ -309,7 +306,7 @@ sequenceDiagram
 
 ## 5. Système d'événements : core → renderer
 
-Le core est **synchrone** et émet des événements. Les consommateurs (renderer, replay, IA, CLI) les traitent comme ils veulent.
+Core **synchrone** — émet des événements. Consommateurs (renderer, replay, IA, CLI) les traitent librement.
 
 ```typescript
 type BattleEvent =
@@ -331,13 +328,9 @@ type BattleEvent =
   | ...
 ```
 
-**Le core n'attend jamais le renderer.** Un `submitAction()` est synchrone :
-il mute l'état, émet les events, et retourne. L'IA peut donc jouer des milliers
-de parties par seconde sans aucun overhead visuel.
+**Core n'attend jamais le renderer.** `submitAction()` synchrone : mute l'état, émet les events, retourne. L'IA joue des milliers de parties par seconde sans overhead visuel.
 
-**Le renderer gère sa propre queue d'animations.** Il reçoit les events,
-les empile, et les joue séquentiellement avec des tweens/animations Phaser.
-Le joueur humain attend la fin des animations avant d'agir.
+**Renderer gère sa propre queue d'animations.** Reçoit events, les empile, joue séquentiellement avec tweens/animations Phaser.
 
 ```
 Core (sync)          Renderer (async)         IA (sync)
@@ -351,13 +344,13 @@ Core (sync)          Renderer (async)         IA (sync)
     │                     │                      │
 ```
 
-Les mêmes events alimentent les **replays** (sérialisation JSON).
+Mêmes events alimentent les **replays** (sérialisation JSON).
 
 ---
 
 ## 5b. Mode Sandbox
 
-Accessible uniquement via `pnpm dev:sandbox` (variable d'environnement Vite `VITE_SANDBOX`). Lance un combat 1v1 sur micro-carte 6x6. Les query params URL ont été supprimés (plan 035).
+Accessible uniquement via `pnpm dev:sandbox` (variable Vite `VITE_SANDBOX`). Combat 1v1 sur micro-carte 6x6.
 
 ### Lancement
 
@@ -367,37 +360,33 @@ pnpm dev:sandbox packages/data/sandbox-configs/config.json   # Depuis un fichier
 pnpm dev:sandbox '{"pokemon":"pikachu"}'       # JSON inline
 ```
 
-### Architecture du mode sandbox
+### Architecture sandbox
 
-- **`SandboxConfig.ts`** : type `SandboxConfig` + constante `DEFAULT_SANDBOX_CONFIG` — config par défaut injectée si aucun argument CLI
-- **`BattleSetup.createSandboxBattle(config)`** : crée la carte 6x6, place le joueur en bas et le Dummy en haut, sans phase de placement interactif
-- **`DummyAiController`** : contrôleur IA minimal — soumet l'action du move assigné si légale, sinon `EndTurn`. Le dummy peut être passif ou utiliser un des 8 moves défensifs.
-- **`SandboxPanel`** (HTML overlay) : 2 panneaux côte à côte (Joueur à gauche, Dummy à droite) + toolbar au-dessus
-  - Panel Joueur : dropdown Pokemon, 2 dropdowns moves (filtrés par movepool + dédoublonnage), slider HP %, dropdown statut, stages de stats
-  - Panel Dummy : dropdown "Stats de" (custom ou preset Pokemon), stats éditables, niveau, slider HP %, dropdown move défensif, dropdown direction
-  - Toolbar : bouton Réinitialiser (recrée le combat), bouton **Exporter JSON** (copie la config courante en JSON dans le presse-papier)
-- **Écran de victoire HTML** : overlay HTML au lieu de Phaser Graphics — contourne le bug de hitbox Phaser 4 avec camera zoom
-- **`packages/data/sandbox-configs/`** : fichiers JSON d'exemple (configs prêtes à l'emploi)
+- **`SandboxConfig.ts`** : type `SandboxConfig` + constante `DEFAULT_SANDBOX_CONFIG`
+- **`BattleSetup.createSandboxBattle(config)`** : carte 6x6, joueur en bas, Dummy en haut, sans placement interactif
+- **`DummyAiController`** : soumet move assigné si légal, sinon `EndTurn`
+- **`SandboxPanel`** (HTML overlay) : 2 panneaux (Joueur gauche, Dummy droite) + toolbar
+  - Panel Joueur : dropdown Pokemon, 2 dropdowns moves, slider HP %, dropdown statut, stages de stats
+  - Panel Dummy : dropdown "Stats de" (custom ou preset Pokemon), stats éditables, niveau, slider HP %, dropdown move défensif, direction
+  - Toolbar : bouton Réinitialiser, bouton **Exporter JSON** (copie config en JSON dans presse-papier)
+- **Écran victoire HTML** : overlay HTML au lieu de Phaser Graphics — contourne bug hitbox Phaser 4 avec camera zoom
+- **`packages/data/sandbox-configs/`** : configs JSON d'exemple
 
-> Le sprite du Dummy est le sprite PMDCollab `#0000 form 1` (sprite générique).
+> Sprite Dummy = sprite PMDCollab `#0000 form 1` (sprite générique).
 
 ---
 
 ## 5c. Système i18n
 
-Le renderer supporte FR et EN. Le core est i18n-free : il émet des events avec des IDs, le renderer traduit.
+Renderer supporte FR et EN. Core i18n-free : émet events avec IDs, renderer traduit.
 
-### Principe
-
-- **Pas de lib externe** : ~70 lignes maison pour <300 clés et 2 langues — `i18next` serait surdimensionné
-- **Core i18n-free** : le core manipule des IDs (`pokemon-id`, `move-id`). La traduction est au niveau du renderer
-- **Noms Pokemon/moves dans `@pokemon-tactic/data`** : fichiers JSON localisés séparés du système de traduction UI — pas de dépendance cyclique
+**Pas de lib externe** : ~70 lignes maison pour <300 clés et 2 langues.
 
 ### Fichiers
 
 ```
 packages/renderer/src/i18n/
-  types.ts          # Language const enum ('fr' | 'en'), interface Translations (toutes les clés UI typées)
+  types.ts          # Language const enum ('fr' | 'en'), interface Translations (toutes clés UI typées)
   index.ts          # t(key), setLanguage(lang), detectLanguage(), getLanguage(), onLanguageChange(callback)
                     # Persistance localStorage sous la clé 'pt-lang'
   locales/
@@ -414,26 +403,21 @@ packages/data/src/i18n/
 ### Comportements
 
 - **Détection auto** : `detectLanguage()` lit `navigator.language` → 'fr' si commence par 'fr', sinon 'en'
-- **Persistance** : `setLanguage()` écrit en localStorage ; relecture au démarrage
-- **Changement de langue** : restart de scène Phaser (rebuild complet des UI) — pas de hot-swap des Text Phaser individuels
-- **`Language` type dans le renderer uniquement** : `@pokemon-tactic/data` accepte `string` pour éviter une dépendance cyclique
+- **Persistance** : `setLanguage()` écrit en localStorage
+- **Changement de langue** : restart de scène Phaser (rebuild complet UI) — pas de hot-swap Text Phaser individuels
+- **`Language` type dans renderer uniquement** : `@pokemon-tactic/data` accepte `string` pour éviter dépendance cyclique
 
-### Composant LanguageToggle
+### BattleLogPanel (plan 037)
 
-`packages/renderer/src/ui/LanguageToggle.ts` — bouton bascule FR/EN (coin haut gauche), appelle `setLanguage()` puis `scene.restart()`.
+`packages/renderer/src/ui/BattleLogPanel.ts` — panel de log, haut droite de `BattleUIScene`.
 
-### Composant BattleLogPanel (plan 037)
+- Alimenté par `BattleEvent` existants (TurnStarted, MoveStarted, DamageDealt, MoveMissed, StatusApplied/Removed, StatChanged, PokemonKo, DefenseActivated/Triggered, ConfusionTriggered, KnockbackApplied, MultiHitComplete, RechargeStarted, BattleEnded)
+- Couleurs par type message (dégâts rouge, stat up bleu, stat down rouge, statut orange, défense vert, KO rouge vif, effectiveness jaune)
+- Noms Pokemon cliquables → `camera.pan()`
+- Pliable/dépliable via header toggle
+- Scroll interne (molette) avec auto-scroll bas
 
-`packages/renderer/src/ui/BattleLogPanel.ts` — panel de log de combat affiché en haut à droite de `BattleUIScene`.
-
-- Alimenté par les `BattleEvent` existants (TurnStarted, MoveStarted, DamageDealt, MoveMissed, StatusApplied/Removed, StatChanged, PokemonKo, DefenseActivated/Triggered, ConfusionTriggered, KnockbackApplied, MultiHitComplete, RechargeStarted, BattleEnded)
-- Couleurs par type de message (dégâts rouge, stat up bleu, stat down rouge, statut orange, défense vert, KO rouge vif, effectiveness jaune)
-- Noms de Pokemon cliquables → `camera.pan()` vers le Pokemon ciblé
-- Pliable/dépliable via header toggle (icône ☰ en état replié)
-- Scroll interne (molette) avec auto-scroll bas à chaque nouveau message
-- Barre d'actions replay grisée réservée (⏮ ⏪ ▶ ⏩ ⏭)
-
-`packages/renderer/src/ui/BattleLogFormatter.ts` — traduit chaque `BattleEvent` en message texte i18n. Logique pure, sans dépendance Phaser. Couvert par 41 tests unitaires.
+`packages/renderer/src/ui/BattleLogFormatter.ts` — traduit `BattleEvent` en messages i18n. Logique pure, sans dépendance Phaser. 41 tests unitaires.
 
 ---
 
@@ -443,16 +427,16 @@ packages/data/src/i18n/
 
 ```
 packages/data/
-  base/                    # Données Pokemon officielles (importables de Showdown)
+  base/
     moves.ts               # power, accuracy, pp, type, category...
     pokemon.ts             # stats, types, poids, movepool...
     type-chart.ts          # 18x18 efficacités
 
   overrides/
-    tactical.ts            # Ajoute targeting + effects + effectTier (n'existe pas dans Pokemon)
+    tactical.ts            # Ajoute targeting + effects + effectTier
     balance-v1.ts          # Ajustements numériques (PP, chances, portées...)
 
-  maps/                    # Définitions de cartes (MapDefinition)
+  maps/
     poc-arena.ts           # Carte POC 12x12, format 2 joueurs (plan 013)
 ```
 
@@ -462,12 +446,11 @@ packages/data/
 Données finales = deepMerge(base, tactical, balance)
 ```
 
-- **base** : données Pokemon pures (power, accuracy, pp, type...)
-- **tactical** : ajoute targeting + effects (la couche "grille tactique")
+- **base** : données Pokemon pures
+- **tactical** : ajoute targeting + effects (couche "grille tactique")
 - **balance** : tweaks numériques par-dessus
 
-Les overrides sont **optionnels et additifs**. Changer de balance = changer un fichier.
-Permet de proposer des rulesets/métas différents plus tard.
+Overrides **optionnels et additifs**. Changer balance = changer un fichier.
 
 ### Pipeline de données
 
@@ -491,19 +474,17 @@ flowchart LR
 
 ### Validation au startup
 
-Un validateur vérifie au démarrage que chaque entité finale est complète et cohérente :
+Vérifie au démarrage :
 - Chaque move a un targeting et au moins un effect
 - Chaque pokemon référence des moves qui existent
-- Les ids sont uniques, pas de référence cassée
+- IDs uniques, pas de référence cassée
 - Erreur explicite si une override casse la structure
-
-Léger en coût (ne tourne qu'une fois au boot), gros gain en confiance sur les données.
 
 ---
 
 ## 7. Pipeline sprites PMDCollab
 
-Les sprites sont extraits depuis [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) par un script one-shot (`scripts/extract-sprites.ts`), non packagé dans le jeu.
+Sprites extraits depuis [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) par script one-shot (`scripts/extract-sprites.ts`).
 
 ```
 PMDCollab GitHub (raw)
@@ -525,16 +506,14 @@ packages/renderer/public/assets/sprites/pokemon/{name}/
 
 **SpriteLoader** (`packages/renderer/src/sprites/SpriteLoader.ts`) :
 - `preloadPokemonAssets(scene, pokemonIds[])` — charge atlas + portrait + `offsets.json` au preload
-- `createAnimations(scene, pokemonId)` — enregistre les animations Phaser depuis les metadata d'atlas
-- `getSpriteOffsets(scene, definitionId)` — retourne `SpriteOffsets` depuis le cache JSON, avec fallback sur valeurs par défaut si absent
+- `createAnimations(scene, pokemonId)` — enregistre animations Phaser depuis metadata d'atlas
+- `getSpriteOffsets(scene, definitionId)` — retourne `SpriteOffsets` depuis cache JSON, fallback sur valeurs par défaut
 
-**PokemonSprite** utilise les animations (Idle, Walk, Attack, Hurt, Faint) avec fallback sur cercle coloré si atlas absent.
+**PokemonSprite** utilise animations (Idle, Walk, Attack, Hurt, Faint) avec fallback cercle coloré si atlas absent.
 
 ---
 
 ## 8. API du core
-
-Le core expose une interface simple que tout joueur (humain ou IA) utilise :
 
 ```typescript
 interface BattleEngine {
@@ -563,22 +542,22 @@ interface BattleReplay {
 }
 ```
 
-Le replay est **déterministe** : même seed + mêmes actions = même résultat.
+Replay **déterministe** : même seed + mêmes actions = même résultat.
 
 ### PRNG mulberry32
 
-`packages/core/src/utils/prng.ts` expose :
+`packages/core/src/utils/prng.ts` :
 - `type RandomFn = () => number` — même signature que `Math.random`
-- `createPrng(seed: number): RandomFn` — constructeur du PRNG
+- `createPrng(seed: number): RandomFn`
 
-Le `BattleEngine` accepte un `random?: RandomFn` en dernier paramètre du constructeur (défaut : `Math.random`). La fonction est propagée via `EffectContext` à tous les handlers qui ont besoin d'aléatoire (`accuracy-check`, `damage-calculator`, `handle-status`, `handle-damage`, `status-tick-handler`). Zéro `Math.random()` direct dans `packages/core/src/battle/`.
+`BattleEngine` accepte `random?: RandomFn` en dernier paramètre (défaut : `Math.random`). Propagé via `EffectContext` à tous les handlers. Zéro `Math.random()` direct dans `packages/core/src/battle/`.
 
 ### Enregistrement et rejeu
 
-- `BattleEngine.exportReplay()` retourne `{ seed, actions: [...recordedActions] }`
-- `runReplay(replay, buildEngine)` dans `replay-runner.ts` recrée un engine avec le seed et soumet les actions dans l'ordre
+- `BattleEngine.exportReplay()` → `{ seed, actions: [...recordedActions] }`
+- `runReplay(replay, buildEngine)` dans `replay-runner.ts` recrée engine avec seed et soumet actions dans l'ordre
 - `packages/core/fixtures/replays/golden-replay.json` : replay de référence (3v3 aggressive vs aggressive, seed 12345, Player 1 gagne en 32 rounds / 247 actions)
-- `golden-replay.test.ts` : test de non-régression — si une mécanique aléatoire change, le test pète → relancer `pnpm replay:generate`
+- `golden-replay.test.ts` : test de non-régression — si mécanique aléatoire change, test pète → relancer `pnpm replay:generate`
 
 ---
 
@@ -591,8 +570,8 @@ Le `BattleEngine` accepte un `random?: RandomFn` en dernier paramètre du constr
 | Voir le rendu | MCP Playwright — screenshots, interaction |
 | Tests | `pnpm test` (Vitest) |
 | Faire jouer une IA | Script Node.js important le core |
-| Voir un replay | Charger le JSON dans le renderer web |
-| Mettre à jour les données Champions | `pnpm data:update` → fetch Showdown + apply Champions overrides → écrit `reference/*.json` |
+| Voir un replay | Charger JSON dans renderer web |
+| Mettre à jour données Champions | `pnpm data:update` → fetch Showdown + apply Champions overrides → écrit `reference/*.json` |
 | Reviewer un diff données | `pnpm data:diff` → résumé lisible des changements vs dernier commit |
 
 ---
@@ -602,82 +581,66 @@ Le `BattleEngine` accepte un `random?: RandomFn` en dernier paramètre du constr
 | Phase | Renderer | Style |
 |-------|----------|-------|
 | POC | Phaser 4 (2D isométrique) | Sprites + tiles isométriques |
-| HD-2D | **Babylon.js** ou Three.js (spike comparatif prévu) | Terrain 3D + sprites 2D billboardés + DoF/bloom |
+| HD-2D | **Babylon.js** ou Three.js | Terrain 3D + sprites 2D billboardés + DoF/bloom |
 | Optionnel | Godot (desktop) | HD-2D natif, rendu Vulkan |
 
-Babylon.js = built-in post-processing (DoF, bloom, tilt-shift), écrit en TypeScript, `NullEngine` pour tests headless.
-Three.js = plus léger, plus grande communauté. Spike comparatif quand on atteindra la phase HD-2D.
-
-Le core ne change jamais — seul le renderer est remplacé.
+Core ne change jamais — seul le renderer est remplacé.
 
 ---
 
 ## 12. Agents & Skills Claude Code
 
-Agents custom dans `.claude/agents/` et skills dans `.claude/skills/` pour automatiser le workflow.
+Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 
-### Agents actifs
-
-26 agents + 4 knowledge files (`*-knowledge.md` référencés par `debugger`, `visual-tester`, `data-miner`, `move-pattern-designer`). Détails d'orchestration dans `docs/agent-orchestration.md`.
+26 agents + 4 knowledge files. Détails dans `docs/agent-orchestration.md`.
 
 | Agent | Modèle | Rôle |
 |-------|--------|------|
 | `ai-player` | sonnet | Joue au core via l'API, teste mécaniques et edge cases |
-| `asset-manager` | sonnet | Gestion des assets (sprites, tilesets, sons) |
-| `balancer` | sonnet | Lance N combats headless, analyse les winrates, propose des overrides |
-| `best-practices` | sonnet | Recherche de bonnes pratiques du marché (WebSearch + WebFetch) |
+| `asset-manager` | sonnet | Gestion assets (sprites, tilesets, sons) |
+| `balancer` | sonnet | Lance N combats headless, analyse winrates, propose overrides |
+| `best-practices` | sonnet | Recherche bonnes pratiques (WebSearch + WebFetch) |
 | `ci-setup` | haiku | Configuration GitHub Actions |
 | `code-reviewer` | sonnet | Review qualité, TS strict, conventions |
-| `commit-message` | haiku | Propose un message de commit basé sur le contexte (plan, phase, session) puis valide via `git diff` |
+| `commit-message` | haiku | Propose message de commit basé sur contexte + `git diff` |
 | `core-guardian` | haiku | Vérifie que `packages/core/` n'a aucune dépendance UI |
 | `data-miner` | sonnet | Import données Pokemon (Showdown/PokeAPI) |
-| `debugger` | opus | Diagnostic de bugs complexes |
-| `dependency-manager` | haiku | Gestion des dépendances npm — vérifie aussi les deprecation warnings |
-| `doc-keeper` | sonnet | Maintient la documentation à jour (checklist systématique sur tous les fichiers doc) |
-| `feedback-triager` | haiku | Classe les issues GitHub (bug/feature/feedback/duplicate), détecte les doublons |
+| `debugger` | opus | Diagnostic bugs complexes |
+| `dependency-manager` | haiku | Gestion dépendances npm, deprecation warnings |
+| `doc-keeper` | sonnet | Maintient documentation à jour (checklist systématique) |
+| `feedback-triager` | haiku | Classe issues GitHub (bug/feature/feedback/duplicate) |
 | `game-designer` | sonnet | Cohérence et équilibre des mécaniques |
-| `level-designer` | haiku | Crée des maps (JSON), valide la jouabilité (taille, dénivelés, spawn points) |
-| `move-pattern-designer` | sonnet | Attribue et justifie le pattern tactique de chaque move |
+| `level-designer` | haiku | Crée maps (JSON), valide jouabilité |
+| `move-pattern-designer` | sonnet | Attribue et justifie pattern tactique de chaque move |
 | `performance-profiler` | sonnet | Analyse performances (FPS, mémoire, bundle) |
 | `plan-reviewer` | haiku | Crée, review et maintient les plans |
-| `publisher` | sonnet | Vérifie la draft release, la publie, orchestre le wiki |
-| `release-drafter` | haiku | Alimente la draft release GitHub avec un changelog joueur |
-| `sandbox-json` | haiku | Génère des configs sandbox JSON à partir de descriptions en langage naturel |
-| `session-closer` | sonnet | Met à jour STATUS.md en fin de session, chaîne vers `commit-message` si changements non commités |
+| `publisher` | sonnet | Vérifie draft release, la publie, orchestre wiki |
+| `release-drafter` | haiku | Alimente draft release GitHub avec changelog joueur |
+| `sandbox-json` | haiku | Génère configs sandbox JSON depuis description langage naturel |
+| `session-closer` | sonnet | Met à jour STATUS.md fin de session, chaîne vers `commit-message` |
 | `test-writer` | sonnet | Tests Vitest, approche test-first |
 | `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |
-| `visual-tester` | sonnet | Vérification visuelle via Playwright MCP (screenshots, console, interactions) |
-| `wiki-keeper` | sonnet | Maintient le wiki GitHub (guide joueur, mécaniques, changelog) |
+| `visual-tester` | sonnet | Vérification visuelle via Playwright MCP |
+| `wiki-keeper` | sonnet | Maintient wiki GitHub (guide joueur, mécaniques, changelog) |
 
-### Comportements notables
-
-- **`code-reviewer`** : review qualité, TypeScript strict, conventions. Escalade vers l'humain si diff > 15 fichiers ou pattern intentionnel détecté. Ne propose plus de message de commit (délégué à `commit-message`).
-- **`commit-message`** : part du contexte (numéro de plan, phase, description de session) pour proposer un titre, puis confirme avec `git diff`. Appelé par `session-closer` en fin de session si des changements ne sont pas encore commités.
-- **`sandbox-json`** : traduit une description en langage naturel ("Bulbizarre brûlé face à un Dummy Protect") en config JSON sandbox complète. Connaît tous les champs de `SandboxConfig` et leurs valeurs valides. Génère un JSON prêt à copier-coller ou à passer en argument à `pnpm dev:sandbox`.
-- **`doc-keeper`** : checklist systématique — parcourt tous les fichiers de la table, vérifie la cohérence des termes entre les docs, maintient la section "Sources et crédits" du README.
-- **`dependency-manager`** : en plus de l'audit standard, détecte les plugins remplacés par des fonctionnalités natives du tool (ex: plugin Vite remplacé par une option built-in) en lançant `pnpm build 2>&1` et `pnpm test 2>&1`.
-
-### Chaînes d'agents documentées
+### Chaînes d'agents
 
 | Déclencheur | Chaîne |
 |-------------|--------|
-| Étape intermédiaire d'un plan (core touché) | `core-guardian` + `test-writer` |
-| Étape intermédiaire d'un plan (renderer touché) | rien (seulement en fin de plan) |
-| Fin de plan | `code-reviewer` + `doc-keeper` (+ `core-guardian` si core touché, + `visual-tester` si renderer touché) |
-| Bugfix / refacto / expérimentation hors plan | `code-reviewer` + `doc-keeper` |
+| Étape intermédiaire plan (core touché) | `core-guardian` + `test-writer` |
+| Fin de plan | `code-reviewer` + `doc-keeper` (+ `core-guardian` si core, + `visual-tester` si renderer) |
+| Bugfix / refacto hors plan | `code-reviewer` + `doc-keeper` |
 | Modif mécaniques de jeu | `game-designer` |
 | `code-reviewer` déclenche | `core-guardian` (si core), `game-designer` (si mécaniques), `visual-tester` (si renderer) |
-| `visual-tester` déclenche | `sandbox-json` (si génération de config sandbox nécessaire) |
-| `debugger` déclenche | `visual-tester` (si composante visuelle) |
 | Ajout/modif données Pokemon | `data-miner` + `game-designer` |
-| Fin de session | vérification `pnpm build` + `pnpm test` → `session-closer` → `doc-keeper` + `commit-message` (si non commité) |
-| Ajout de dépendance | `dependency-manager` |
-| Nouveau plan ou plan à réviser | `plan-reviewer` |
-| Bug visuel ou modif renderer isolée | `visual-tester` |
+| Fin de session | `pnpm build` + `pnpm test` → `session-closer` → `doc-keeper` + `commit-message` |
+| Ajout dépendance | `dependency-manager` |
+| Nouveau plan | `plan-reviewer` |
+| Bug visuel | `visual-tester` |
 
 ### Skills
 
 | Commande | Action |
 |----------|--------|
-| `/next` | Lit `docs/next.md` + STATUS + roadmap + plan, propose la suite et affiche reporté/fait récemment |
-| `/review-local` | Lance `code-reviewer` sur les changements locaux (`git diff`). Pour une PR GitHub, utiliser le `/review` built-in. |
+| `/next` | Lit `docs/next.md` + STATUS + roadmap + plan, propose suite et affiche reporté/fait récemment |
+| `/review-local` | Lance `code-reviewer` sur changements locaux (`git diff`) |
