@@ -4,6 +4,7 @@ import { loadData, pocArena, typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
 import { pickAggressiveAction } from "../ai/aggressive-ai";
 import { Direction } from "../enums/direction";
+import { Nature } from "../enums/nature";
 import { PlayerId } from "../enums/player-id";
 import { PokemonGender } from "../enums/pokemon-gender";
 import type { PokemonType } from "../enums/pokemon-type";
@@ -98,6 +99,7 @@ function buildGoldenEngine(seed: number): BattleEngine {
       volatileStatuses: [],
       recharging: false,
       gender: PokemonGender.Genderless,
+      nature: Nature.Hardy,
     };
     pokemonMap.set(instance.id, instance);
     const row = grid[pos.y];

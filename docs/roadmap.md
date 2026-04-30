@@ -152,8 +152,8 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
 
 - [x] Talents (capacités passives) — plans 069 + 070 terminés. 20 abilities, `AbilityHandlerRegistry`, 9 hooks, 26+ tests intégration. Pattern Showdown : hooks blocants retournent `BlockResult { blocked, events }`, modifieur de durée retourne `DurationModifyResult`. Buffer startup events, Lévitation terrain corrigée, Tempo Perso bloque Intimidation, anti-spam seuil 1/3 HP. Voir `docs/abilities-system.md`.
 - [x] Genres des Pokemon (mâle/femelle/asexué selon ratio officiel) — plan 071 terminé. `PokemonGender` enum, `genderRatio` exposé via loaders, roll déterministe via `genderRng` (replay), `genderOverride` prêt pour Team Builder. Cute Charm vérifie genre opposé non-genderless. Symboles ♂/♀ Unicode dans InfoPanel.
+- [x] Natures / Stat Alignment — plan 072 terminé (mécanique core uniquement, affichage UI reporté). `Nature` enum (25), table boost/lowered en dur dans le core, `applyNatureModifier(stats, nature)` + `computeCombatStats(baseStats, level, nature?)`. Roll uniforme via `rollNature(rng)`, déterministe via `creationRng` partagé avec gender. `natureOverrides` prêt pour Team Builder. HP toujours exclu. **Affichage InfoPanel différé** à la refonte UI.
 - [ ] Objets tenus
-- [ ] Natures (boost +10% / malus -10% sur une stat) — renommé "Stat Alignment" dans Pokemon Champions
 - [ ] EV / IV — simplification Pokemon Champions :
   - **IV supprimés** : tous les Pokemon ont 31 IVs fixes
   - **EV → Stat Points (SP)** : 66 points max, 32 max par stat, 1 SP = +1 point de stat

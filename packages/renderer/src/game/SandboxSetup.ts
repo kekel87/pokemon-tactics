@@ -83,7 +83,7 @@ function applyDummyStats(
 
   if (baseStats) {
     instance.baseStats = { ...baseStats };
-    const combat = computeCombatStats(baseStats, level);
+    const combat = computeCombatStats(baseStats, level, instance.nature);
     instance.combatStats = combat;
     instance.level = level;
     instance.maxHp = combat.hp;
@@ -94,7 +94,7 @@ function applyDummyStats(
       initiative: combat.speed,
     };
   } else if (level !== 50) {
-    const combat = computeCombatStats(instance.baseStats, level);
+    const combat = computeCombatStats(instance.baseStats, level, instance.nature);
     instance.combatStats = combat;
     instance.level = level;
     instance.maxHp = combat.hp;

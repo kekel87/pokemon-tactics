@@ -7,6 +7,7 @@ import { computeMovement } from "../battle/stat-modifier";
 import { TurnPipeline } from "../battle/turn-pipeline";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
+import { Nature } from "../enums/nature";
 import { PlacementMode } from "../enums/placement-mode";
 import { PlayerId } from "../enums/player-id";
 import { PokemonGender } from "../enums/pokemon-gender";
@@ -130,6 +131,7 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
         volatileStatuses: [],
         recharging: false,
         gender: PokemonGender.Genderless,
+        nature: Nature.Hardy,
       };
       pokemonMap.set(instance.id, instance);
       const row = grid[placement.position.y];

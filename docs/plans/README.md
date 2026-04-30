@@ -84,3 +84,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 069 | [Système de talents/abilities](./069-talents-abilities.md) | done | 2026-04-27 |
 | 070 | [Polish des talents](./070-talents-polish.md) | done | 2026-04-29 |
 | 071 | [Genres des Pokemon](./071-pokemon-gender.md) | done | 2026-04-29 |
+| 072 | [Natures / Stat Alignment](./072-natures-stat-alignment.md) | done | 2026-04-29 |
