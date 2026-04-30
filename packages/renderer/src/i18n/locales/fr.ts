@@ -86,6 +86,8 @@ const fr: Translations = {
   "battle.terrainDamage": "Terrain",
   "battle.melted": "Fondu !",
   "battle.drowned": "Noyé !",
+  "battle.critical": "Critique !",
+  "battle.itemConsumed": "{name} (utilisé)",
   "teamSelect.title": "Sélection d'équipe",
   "teamSelect.player1": "Joueur 1",
   "teamSelect.player2": "Joueur 2",

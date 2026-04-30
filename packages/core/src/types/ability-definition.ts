@@ -13,6 +13,7 @@ export interface DamageModifyContext {
   isAttacker: boolean;
   attackerTypes: PokemonType[];
   defenderTypes: PokemonType[];
+  effectiveness: number;
 }
 
 export interface AfterDamageContext {

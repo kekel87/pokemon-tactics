@@ -1,14 +1,15 @@
 import { BattleEventType } from "../../enums/battle-event-type";
 import { Category } from "../../enums/category";
 import type { EffectKind } from "../../enums/effect-kind";
+import { HeldItemId } from "../../enums/held-item-id";
 import type { PokemonType } from "../../enums/pokemon-type";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 import type { RandomFn } from "../../utils/prng";
-import { calculateDamage } from "../damage-calculator";
+import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calculator";
 import { checkDefense } from "../defense-check";
-import type { EffectContext, TypeChart } from "../effect-handler-registry";
+import type { EffectContext } from "../effect-handler-registry";
 
 const MULTI_HIT_PROBABILITIES: number[] = [0.35, 0.35, 0.15, 0.15];
 
@@ -44,7 +45,7 @@ function dealSingleHit(
 ): BattleEvent[] {
   const events: BattleEvent[] = [];
   const facingMod = context.facingModifierMap.get(target.id) ?? 1.0;
-  const damage = calculateDamage(
+  const { damage, isCrit } = calculateDamageWithCrit(
     context.attacker,
     target,
     context.move,
@@ -57,6 +58,7 @@ function dealSingleHit(
     context.terrainModifier,
     facingMod,
     context.abilityRegistry,
+    context.itemRegistry,
   );
 
   const defenseResult = checkDefense(
@@ -95,11 +97,28 @@ function dealSingleHit(
     sturdyTriggered = true;
   }
 
-  const effectiveness = getEffectivenessForEvent(
-    context.move.type,
-    defenderTypes,
-    context.typeChart,
-  );
+  const targetItem = context.itemRegistry?.getForPokemon(target);
+  const isSuperEffective =
+    getTypeEffectiveness(context.move.type, defenderTypes, context.typeChart) > 1;
+  const isContact = context.move.flags?.contact === true;
+
+  let focusSashTriggered = false;
+  if (
+    targetItem?.id === HeldItemId.FocusSash &&
+    wasAtMaxHp &&
+    !defenseResult.endureAtOne &&
+    !sturdyTriggered &&
+    actualDamage >= target.currentHp
+  ) {
+    actualDamage = target.currentHp - 1;
+    focusSashTriggered = true;
+  }
+
+  const effectiveness = getTypeEffectiveness(context.move.type, defenderTypes, context.typeChart);
+
+  if (isCrit) {
+    events.push({ type: BattleEventType.CriticalHit, targetId: target.id });
+  }
 
   target.currentHp = Math.max(0, target.currentHp - actualDamage);
 
@@ -117,6 +136,21 @@ function dealSingleHit(
       abilityId: "sturdy",
       targetIds: [target.id],
     });
+  }
+
+  if (focusSashTriggered) {
+    events.push({
+      type: BattleEventType.HeldItemActivated,
+      pokemonId: target.id,
+      itemId: HeldItemId.FocusSash,
+      targetIds: [target.id],
+    });
+    events.push({
+      type: BattleEventType.HeldItemConsumed,
+      pokemonId: target.id,
+      itemId: HeldItemId.FocusSash,
+    });
+    target.heldItemId = undefined;
   }
 
   if (target.currentHp <= 0) {
@@ -164,6 +198,40 @@ function dealSingleHit(
     events.push(...abilityEvents);
   }
 
+  if (actualDamage > 0 && target.currentHp > 0 && targetItem?.onAfterDamageReceived) {
+    const result = targetItem.onAfterDamageReceived({
+      target,
+      attacker: context.attacker,
+      move: context.move,
+      damageDealt: actualDamage,
+      wasAtMaxHp,
+      isSuperEffective,
+      isContact,
+    });
+    events.push(...result.events);
+    if (result.consumeItem) {
+      target.heldItemId = undefined;
+    }
+    if (target.currentHp <= 0) {
+      events.push({
+        type: BattleEventType.PokemonKo,
+        pokemonId: target.id,
+        countdownStart: 0,
+      });
+    }
+  }
+
+  if (actualDamage > 0) {
+    const attackerItem = context.itemRegistry?.getForPokemon(context.attacker);
+    if (attackerItem?.onAfterMoveDamageDealt) {
+      const itemEvents = attackerItem.onAfterMoveDamageDealt({
+        attacker: context.attacker,
+        damageDealt: actualDamage,
+      });
+      events.push(...itemEvents);
+    }
+  }
+
   return events;
 }
 
@@ -207,23 +275,4 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
   }
 
   return events;
-}
-
-function getEffectivenessForEvent(
-  moveType: PokemonType,
-  defenderTypes: PokemonType[],
-  typeChart: TypeChart,
-): number {
-  let multiplier = 1;
-  const attackerRow = typeChart[moveType];
-  if (!attackerRow) {
-    return 1;
-  }
-  for (const defType of defenderTypes) {
-    const value = attackerRow[defType];
-    if (value !== undefined) {
-      multiplier *= value;
-    }
-  }
-  return multiplier;
 }

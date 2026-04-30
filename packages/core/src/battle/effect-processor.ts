@@ -17,6 +17,7 @@ import { handleDefensive } from "./handlers/handle-defensive";
 import { handleKnockback } from "./handlers/handle-knockback";
 import { handleStatChange } from "./handlers/handle-stat-change";
 import { handleStatus } from "./handlers/handle-status";
+import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 
 interface ProcessContext {
   attacker: PokemonInstance;
@@ -33,6 +34,7 @@ interface ProcessContext {
   facingModifierMap: Map<string, number>;
   statusRules?: StatusRules;
   abilityRegistry?: AbilityHandlerRegistry;
+  itemRegistry?: HeldItemHandlerRegistry;
 }
 
 export function createDefaultEffectRegistry(): EffectHandlerRegistry {
@@ -87,6 +89,7 @@ export function processEffects(
       targets: nonImmuneTargets,
       effect,
       abilityRegistry: context.abilityRegistry,
+      itemRegistry: context.itemRegistry,
     };
     events.push(...effectRegistry.process(effectContext));
   }

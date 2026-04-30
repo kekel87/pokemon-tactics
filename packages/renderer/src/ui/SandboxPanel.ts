@@ -2,6 +2,7 @@ import {
   type BaseStats,
   computeStatAtLevel,
   Direction,
+  HeldItemId,
   StatName,
   StatusType,
 } from "@pokemon-tactic/core";
@@ -126,6 +127,7 @@ export class SandboxPanel {
   private hpSlider!: HTMLInputElement;
   private statusSelect!: HTMLSelectElement;
   private volatileStatusSelect!: HTMLSelectElement;
+  private heldItemSelect!: HTMLSelectElement;
   private statSliders: Map<StatName, HTMLInputElement> = new Map();
 
   private dummyPokemonSelect!: HTMLSelectElement;
@@ -135,6 +137,7 @@ export class SandboxPanel {
   private dummyLevelInput!: HTMLInputElement;
   private dummyStatusSelect!: HTMLSelectElement;
   private dummyVolatileStatusSelect!: HTMLSelectElement;
+  private dummyHeldItemSelect!: HTMLSelectElement;
   private dummyStatSliders: Map<StatName, HTMLInputElement> = new Map();
   private dummyBaseStatInputs: Map<string, HTMLInputElement> = new Map();
   private dummyComputedLabels: Map<string, HTMLSpanElement> = new Map();
@@ -356,6 +359,15 @@ export class SandboxPanel {
     body.appendChild(volatileStatusSelect.row);
     this.volatileStatusSelect = volatileStatusSelect.select;
 
+    const heldItemSelect = this.createSelect(
+      "Item",
+      this.buildItemOptions(),
+      config.heldItem ?? "",
+    );
+    heldItemSelect.select.addEventListener("change", () => this.emit());
+    body.appendChild(heldItemSelect.row);
+    this.heldItemSelect = heldItemSelect.select;
+
     for (const stat of STAT_NAMES) {
       const slider = this.createSlider(
         t(STAT_TRANSLATION_KEYS[stat]),
@@ -423,6 +435,15 @@ export class SandboxPanel {
     dummyVolatileStatusSelect.select.addEventListener("change", () => this.emit());
     body.appendChild(dummyVolatileStatusSelect.row);
     this.dummyVolatileStatusSelect = dummyVolatileStatusSelect.select;
+
+    const dummyHeldItemSelect = this.createSelect(
+      "Item",
+      this.buildItemOptions(),
+      config.dummyHeldItem ?? "",
+    );
+    dummyHeldItemSelect.select.addEventListener("change", () => this.emit());
+    body.appendChild(dummyHeldItemSelect.row);
+    this.dummyHeldItemSelect = dummyHeldItemSelect.select;
 
     for (const stat of STAT_NAMES) {
       const slider = this.createSlider(
@@ -643,6 +664,7 @@ export class SandboxPanel {
       volatileStatus: this.volatileStatusSelect.value
         ? (this.volatileStatusSelect.value as StatusType)
         : null,
+      heldItem: this.heldItemSelect.value ? (this.heldItemSelect.value as HeldItemId) : undefined,
       statStages,
       playerPosition,
       playerDirection,
@@ -658,6 +680,9 @@ export class SandboxPanel {
       dummyVolatileStatus: this.dummyVolatileStatusSelect.value
         ? (this.dummyVolatileStatusSelect.value as StatusType)
         : null,
+      dummyHeldItem: this.dummyHeldItemSelect.value
+        ? (this.dummyHeldItemSelect.value as HeldItemId)
+        : undefined,
       dummyStatStages,
       dummyPosition,
       mapUrl,
@@ -697,6 +722,17 @@ export class SandboxPanel {
     const config = this.readConfig();
     const json = JSON.stringify(config, null, 2);
     navigator.clipboard.writeText(json);
+  }
+
+  private buildItemOptions(): { value: string; label: string }[] {
+    const lang = getLanguage();
+    return [
+      { value: "", label: t("sandbox.none") },
+      ...Object.values(HeldItemId).map((id) => ({
+        value: id,
+        label: this.gameData.itemRegistry.get(id)?.name[lang] ?? id,
+      })),
+    ];
   }
 
   private getMovepoolFor(pokemonId: string): string[] {

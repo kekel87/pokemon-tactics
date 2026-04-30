@@ -124,4 +124,13 @@ export type BattleEvent =
       pokemonId: string;
       abilityId: string;
       targetIds: string[];
-    };
+    }
+  | {
+      type: typeof BattleEventType.HeldItemActivated;
+      pokemonId: string;
+      itemId: string;
+      targetIds: string[];
+    }
+  | { type: typeof BattleEventType.HeldItemConsumed; pokemonId: string; itemId: string }
+  | { type: typeof BattleEventType.CriticalHit; targetId: string }
+  | { type: typeof BattleEventType.HpRestored; pokemonId: string; amount: number };

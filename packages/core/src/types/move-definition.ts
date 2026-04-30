@@ -19,4 +19,5 @@ export interface MoveDefinition {
   ignoresHeight?: boolean;
   flags?: MoveFlags;
   effectTier?: EffectTier;
+  critRatio?: number;
 }

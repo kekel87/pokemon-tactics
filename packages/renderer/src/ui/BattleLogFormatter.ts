@@ -9,9 +9,13 @@ import {
 import {
   BATTLE_LOG_COLOR_ABILITY,
   BATTLE_LOG_COLOR_BATTLE_ENDED,
+  BATTLE_LOG_COLOR_CRITICAL,
   BATTLE_LOG_COLOR_DAMAGE,
   BATTLE_LOG_COLOR_DEFENSE,
   BATTLE_LOG_COLOR_EFFECTIVENESS,
+  BATTLE_LOG_COLOR_HEAL,
+  BATTLE_LOG_COLOR_ITEM,
+  BATTLE_LOG_COLOR_ITEM_CONSUMED,
   BATTLE_LOG_COLOR_KNOCKBACK,
   BATTLE_LOG_COLOR_KO,
   BATTLE_LOG_COLOR_MISS,
@@ -35,6 +39,7 @@ export interface BattleLogContext {
   readonly getPokemonName: (id: string) => string;
   readonly getMoveName: (moveId: string) => string;
   readonly getAbilityName: (abilityId: string) => string | null;
+  readonly getItemName: (itemId: string) => string | null;
   readonly language: Language;
 }
 
@@ -53,6 +58,10 @@ export const BattleLogColors = {
   multiHit: BATTLE_LOG_COLOR_MULTI_HIT,
   recharge: BATTLE_LOG_COLOR_RECHARGE,
   ability: BATTLE_LOG_COLOR_ABILITY,
+  item: BATTLE_LOG_COLOR_ITEM,
+  itemConsumed: BATTLE_LOG_COLOR_ITEM_CONSUMED,
+  critical: BATTLE_LOG_COLOR_CRITICAL,
+  heal: BATTLE_LOG_COLOR_HEAL,
   battleEnded: BATTLE_LOG_COLOR_BATTLE_ENDED,
 } as const;
 
@@ -312,6 +321,48 @@ export function formatBattleEvent(
           ? `${abilityName} de ${pokemonName} s'active !`
           : `${pokemonName}'s ${abilityName} activated!`;
       return { message, color: BattleLogColors.ability, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.HeldItemActivated: {
+      const itemName = context.getItemName(event.itemId);
+      if (!itemName) {
+        return null;
+      }
+      const pokemonName = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${itemName} de ${pokemonName} s'active !`
+          : `${pokemonName}'s ${itemName} activated!`;
+      return { message, color: BattleLogColors.item, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.HeldItemConsumed: {
+      const itemName = context.getItemName(event.itemId);
+      if (!itemName) {
+        return null;
+      }
+      const pokemonName = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${pokemonName} a utilisé son ${itemName}`
+          : `${pokemonName} used its ${itemName}`;
+      return { message, color: BattleLogColors.itemConsumed, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.CriticalHit: {
+      const pokemonName = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr" ? `Coup critique sur ${pokemonName} !` : `Critical hit on ${pokemonName}!`;
+      return { message, color: BattleLogColors.critical, pokemonIds: [event.targetId] };
+    }
+
+    case BattleEventType.HpRestored: {
+      const pokemonName = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${pokemonName} récupère ${event.amount} PV`
+          : `${pokemonName} restored ${event.amount} HP`;
+      return { message, color: BattleLogColors.heal, pokemonIds: [event.pokemonId] };
     }
 
     default:

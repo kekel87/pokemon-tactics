@@ -1,9 +1,12 @@
 import type { MoveDefinition, PokemonDefinition } from "@pokemon-tactic/core";
-import { AbilityHandlerRegistry } from "@pokemon-tactic/core";
+import { AbilityHandlerRegistry, type HeldItemHandlerRegistry } from "@pokemon-tactic/core";
 import abilitiesReference from "../reference/abilities.json";
+import itemsReference from "../reference/items.json";
 import movesReference from "../reference/moves.json";
 import pokemonReference from "../reference/pokemon.json";
 import { abilityHandlers } from "./abilities/ability-definitions";
+import { itemHandlers } from "./items/item-definitions";
+import { buildItemRegistry } from "./items/load-items";
 import { loadAbilitiesFromReference } from "./loaders/load-abilities";
 import { loadMovesFromReference } from "./loaders/load-moves";
 import { loadPokemonFromReference } from "./loaders/load-pokemon";
@@ -17,6 +20,7 @@ export interface GameData {
   pokemon: PokemonDefinition[];
   moves: MoveDefinition[];
   abilityRegistry: AbilityHandlerRegistry;
+  itemRegistry: HeldItemHandlerRegistry;
 }
 
 export function loadData(): GameData {
@@ -74,5 +78,14 @@ export function loadData(): GameData {
   );
   const abilityRegistry = new AbilityHandlerRegistry(abilities);
 
-  return { pokemon, moves, abilityRegistry };
+  const itemRegistry = buildItemRegistry(
+    itemsReference as unknown as Array<{
+      id: string;
+      names: { fr: string; en: string };
+      shortDescription: { fr: string; en: string };
+    }>,
+    itemHandlers,
+  );
+
+  return { pokemon, moves, abilityRegistry, itemRegistry };
 }

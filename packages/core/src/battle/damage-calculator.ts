@@ -6,13 +6,26 @@ import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
+import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getEffectiveStat } from "./stat-modifier";
 
 const BATTLE_LEVEL = 50;
 
 type TypeChart = Record<PokemonType, Record<PokemonType, number>>;
 
-export function calculateDamage(
+const CRIT_THRESHOLDS: number[] = [1 / 24, 1 / 8, 0.5, 1.0];
+
+function getCritChance(stage: number): number {
+  const index = Math.min(stage, CRIT_THRESHOLDS.length - 1);
+  return CRIT_THRESHOLDS[Math.max(0, index)] ?? 1.0;
+}
+
+export interface DamageResult {
+  damage: number;
+  isCrit: boolean;
+}
+
+export function calculateDamageWithCrit(
   attacker: PokemonInstance,
   defender: PokemonInstance,
   move: MoveDefinition,
@@ -25,14 +38,15 @@ export function calculateDamage(
   terrainModifier = 1.0,
   facingModifier = 1.0,
   abilityRegistry?: AbilityHandlerRegistry,
-): number {
+  itemRegistry?: HeldItemHandlerRegistry,
+): DamageResult {
   if (move.category === Category.Status || move.power === 0) {
-    return 0;
+    return { damage: 0, isCrit: false };
   }
 
   const effectiveness = getTypeEffectiveness(move.type, defenderTypes, typeChart);
   if (effectiveness === 0) {
-    return 0;
+    return { damage: 0, isCrit: false };
   }
 
   const isPhysical = move.category === Category.Physical;
@@ -43,7 +57,6 @@ export function calculateDamage(
   const defenseStage = isPhysical ? defender.statStages.defense : defender.statStages.spDefense;
 
   let effectiveAttack = getEffectiveStat(attackStat, attackStage);
-  const effectiveDefense = getEffectiveStat(defenseStat, defenseStage);
 
   const isBurned = attacker.statusEffects.some((s) => s.type === StatusTypeEnum.Burned);
   const attackerAbility = abilityRegistry?.getForPokemon(attacker);
@@ -51,6 +64,16 @@ export function calculateDamage(
   if (isBurned && isPhysical && !gutsIgnoresBurn) {
     effectiveAttack = Math.floor(effectiveAttack / 2);
   }
+
+  const attackerItem = itemRegistry?.getForPokemon(attacker);
+
+  const baseCritStage = move.critRatio ?? 0;
+  const itemCritStage = attackerItem?.onCritStageBoost?.({ self: attacker, move }) ?? 0;
+  const totalCritStage = baseCritStage + itemCritStage;
+  const isCrit = random() < getCritChance(totalCritStage);
+
+  const critDefenseStage = isCrit ? Math.max(0, defenseStage) : defenseStage;
+  const effectiveDefense = getEffectiveStat(defenseStat, critDefenseStage);
 
   const baseDamage = Math.floor(
     (((2 * BATTLE_LEVEL) / 5 + 2) * move.power * effectiveAttack) / effectiveDefense / 50 + 2,
@@ -60,7 +83,7 @@ export function calculateDamage(
 
   const roll = rollFactor ?? random() * 0.15 + 0.85;
 
-  const attackerMod =
+  const attackerAbilityMod =
     attackerAbility?.onDamageModify?.({
       self: attacker,
       opponent: defender,
@@ -68,10 +91,11 @@ export function calculateDamage(
       isAttacker: true,
       attackerTypes,
       defenderTypes,
+      effectiveness,
     }) ?? 1.0;
 
   const defenderAbility = abilityRegistry?.getForPokemon(defender);
-  const defenderMod =
+  const defenderAbilityMod =
     defenderAbility?.onDamageModify?.({
       self: defender,
       opponent: attacker,
@@ -79,9 +103,35 @@ export function calculateDamage(
       isAttacker: false,
       attackerTypes,
       defenderTypes,
+      effectiveness,
     }) ?? 1.0;
 
-  return Math.max(
+  const attackerItemMod =
+    attackerItem?.onDamageModify?.({
+      self: attacker,
+      opponent: defender,
+      move,
+      isAttacker: true,
+      attackerTypes,
+      defenderTypes,
+      effectiveness,
+    }) ?? 1.0;
+
+  const defenderItem = itemRegistry?.getForPokemon(defender);
+  const defenderItemMod =
+    defenderItem?.onDamageModify?.({
+      self: defender,
+      opponent: attacker,
+      move,
+      isAttacker: false,
+      attackerTypes,
+      defenderTypes,
+      effectiveness,
+    }) ?? 1.0;
+
+  const critMod = isCrit ? 1.5 : 1.0;
+
+  const damage = Math.max(
     1,
     Math.floor(
       baseDamage *
@@ -91,10 +141,48 @@ export function calculateDamage(
         heightModifier *
         terrainModifier *
         facingModifier *
-        attackerMod *
-        defenderMod,
+        attackerAbilityMod *
+        defenderAbilityMod *
+        attackerItemMod *
+        defenderItemMod *
+        critMod,
     ),
   );
+
+  return { damage, isCrit };
+}
+
+const NO_CRIT: RandomFn = () => 1;
+
+export function calculateDamage(
+  attacker: PokemonInstance,
+  defender: PokemonInstance,
+  move: MoveDefinition,
+  typeChart: TypeChart,
+  attackerTypes: PokemonType[],
+  defenderTypes: PokemonType[],
+  rollFactor?: number,
+  heightModifier = 1.0,
+  terrainModifier = 1.0,
+  facingModifier = 1.0,
+  abilityRegistry?: AbilityHandlerRegistry,
+  itemRegistry?: HeldItemHandlerRegistry,
+): number {
+  return calculateDamageWithCrit(
+    attacker,
+    defender,
+    move,
+    typeChart,
+    attackerTypes,
+    defenderTypes,
+    rollFactor,
+    NO_CRIT,
+    heightModifier,
+    terrainModifier,
+    facingModifier,
+    abilityRegistry,
+    itemRegistry,
+  ).damage;
 }
 
 export function getTypeEffectiveness(
@@ -141,6 +229,7 @@ export function estimateDamage(
   terrainModifier = 1.0,
   facingModifier = 1.0,
   abilityRegistry?: AbilityHandlerRegistry,
+  itemRegistry?: HeldItemHandlerRegistry,
 ): DamageEstimate {
   const effectiveness = getTypeEffectiveness(move.type, defenderTypes, typeChart);
   const min = calculateDamage(
@@ -151,11 +240,11 @@ export function estimateDamage(
     attackerTypes,
     defenderTypes,
     ROLL_MIN,
-    undefined,
     heightModifier,
     terrainModifier,
     facingModifier,
     abilityRegistry,
+    itemRegistry,
   );
   const max = calculateDamage(
     attacker,
@@ -165,11 +254,11 @@ export function estimateDamage(
     attackerTypes,
     defenderTypes,
     ROLL_MAX,
-    undefined,
     heightModifier,
     terrainModifier,
     facingModifier,
     abilityRegistry,
+    itemRegistry,
   );
   return { min, max, effectiveness, facingModifier };
 }

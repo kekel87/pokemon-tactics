@@ -1,4 +1,5 @@
 import type { Direction } from "../enums/direction";
+import type { HeldItemId } from "../enums/held-item-id";
 import type { Nature } from "../enums/nature";
 import type { PlayerId } from "../enums/player-id";
 import type { PokemonGender } from "../enums/pokemon-gender";
@@ -35,4 +36,6 @@ export interface PokemonInstance {
   nature: Nature;
   abilityId?: string;
   abilityFirstTriggered?: boolean;
+  heldItemId?: HeldItemId;
+  lockedMoveId?: string;
 }
