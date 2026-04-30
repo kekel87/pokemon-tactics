@@ -1,4 +1,5 @@
 import type { Direction } from "../enums/direction";
+import type { Nature } from "../enums/nature";
 import type { PlayerId } from "../enums/player-id";
 import type { PokemonGender } from "../enums/pokemon-gender";
 import type { StatName } from "../enums/stat-name";
@@ -31,6 +32,7 @@ export interface PokemonInstance {
   volatileStatuses: VolatileStatus[];
   recharging: boolean;
   gender: PokemonGender;
+  nature: Nature;
   abilityId?: string;
   abilityFirstTriggered?: boolean;
 }

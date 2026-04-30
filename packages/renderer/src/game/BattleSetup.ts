@@ -2,6 +2,7 @@ import type {
   Direction,
   MapDefinition,
   MoveDefinition,
+  Nature,
   PlacementEntry,
   PlacementTeam,
   PokemonDefinition,
@@ -21,6 +22,7 @@ import {
   PlayerId,
   type PokemonType,
   rollGender,
+  rollNature,
   StatName,
   TurnPipeline,
   type TurnSystemKind,
@@ -51,14 +53,16 @@ function createPokemonInstance(
   moveRegistry: Map<string, MoveDefinition>,
   rng: () => number,
   genderOverride?: PokemonGender,
+  natureOverride?: Nature,
 ): PokemonInstance {
   const currentPp: Record<string, number> = {};
   for (const moveId of definition.movepool) {
     const move = moveRegistry.get(moveId);
     currentPp[moveId] = move?.pp ?? 0;
   }
-  const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
   const gender = genderOverride ?? rollGender(definition.genderRatio, rng);
+  const nature = natureOverride ?? rollNature(rng);
+  const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL, nature);
   return {
     id: instanceId,
     definitionId: definition.id,
@@ -85,6 +89,7 @@ function createPokemonInstance(
     volatileStatuses: [],
     recharging: false,
     gender,
+    nature,
     ...(definition.abilityId ? { abilityId: definition.abilityId } : {}),
   };
 }
@@ -103,8 +108,9 @@ export interface BattleSetupConfig {
   teams: PlacementTeam[];
   placements: PlacementEntry[];
   turnSystemKind?: TurnSystemKind;
-  genderRng?: () => number;
+  creationRng?: () => number;
   genderOverrides?: Record<string, PokemonGender>;
+  natureOverrides?: Record<string, Nature>;
 }
 
 function loadGameData() {
@@ -151,7 +157,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
   );
 
   const pokemonMap = new Map<string, PokemonInstance>();
-  const genderRng = config.genderRng ?? Math.random;
+  const creationRng = config.creationRng ?? Math.random;
 
   for (const placement of config.placements) {
     const team = config.teams.find((t) => t.pokemonIds.includes(placement.pokemonId));
@@ -172,8 +178,9 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
       placement.position,
       placement.direction,
       moveDefinitions,
-      genderRng,
+      creationRng,
       config.genderOverrides?.[placement.pokemonId],
+      config.natureOverrides?.[placement.pokemonId],
     );
 
     pokemonMap.set(instance.id, instance);

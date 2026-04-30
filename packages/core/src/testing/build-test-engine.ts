@@ -2,6 +2,7 @@ import { loadData, pocArena } from "@pokemon-tactic/data";
 import { BattleEngine } from "../battle/BattleEngine";
 import { computeCombatStats } from "../battle/stat-calculator";
 import { computeMovement } from "../battle/stat-modifier";
+import { Nature } from "../enums/nature";
 import { PokemonGender } from "../enums/pokemon-gender";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
@@ -91,6 +92,7 @@ export function buildTestEngineFromPlacements(
       volatileStatuses: [],
       recharging: false,
       gender: PokemonGender.Genderless,
+      nature: Nature.Hardy,
     };
 
     pokemonMap.set(instance.id, instance);

@@ -14,6 +14,7 @@ import {
   type MapDefinition,
   type MoveDefinition,
   type MoveFlags,
+  Nature,
   type PlacementEntry,
   type PlacementPhase,
   type PlacementTeam,
@@ -1845,6 +1846,7 @@ export class GameController {
       volatileStatuses: [],
       recharging: false,
       gender: PokemonGender.Genderless,
+      nature: Nature.Hardy,
     };
   }
 

@@ -10,11 +10,17 @@ export { createDefaultEffectRegistry } from "./battle/effect-processor";
 export { isEffectivelyFlying } from "./battle/effective-flying";
 export { isImmuneToStatusByType } from "./battle/handlers/handle-status";
 export { getEffectiveInitiative } from "./battle/initiative-calculator";
+export {
+  applyNatureModifier,
+  NATURE_BOOST_MULTIPLIER,
+  NATURE_LOWER_MULTIPLIER,
+} from "./battle/nature-modifier";
 export type { PlacementResult } from "./battle/PlacementPhase";
 export { PlacementError, PlacementPhase } from "./battle/PlacementPhase";
 export type { EngineFactory } from "./battle/replay-runner";
 export { runReplay } from "./battle/replay-runner";
 export { rollGender } from "./battle/roll-gender";
+export { rollNature } from "./battle/roll-nature";
 export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator";
 export { computeMovement, isMajorStatus } from "./battle/stat-modifier";
 export { TurnManager } from "./battle/TurnManager";
