@@ -312,6 +312,9 @@ export const BATTLE_TEXT_COLOR_DEBUFF = "#ff4444";
 export const BATTLE_TEXT_COLOR_CONFUSED = "#aa44dd";
 export const BATTLE_TEXT_COLOR_INFO = "#dddddd";
 export const BATTLE_TEXT_COLOR_ABILITY = "#ffe066";
+export const BATTLE_TEXT_COLOR_ITEM = "#88ff88";
+export const BATTLE_TEXT_COLOR_ITEM_CONSUMED = "#888888";
+export const BATTLE_TEXT_COLOR_CRITICAL = "#ff8800";
 
 export const CONFUSION_WOBBLE_ANGLE = 5;
 export const CONFUSION_WOBBLE_DURATION_MS = 300;
@@ -364,6 +367,10 @@ export const BATTLE_LOG_COLOR_KNOCKBACK = "#ffffff";
 export const BATTLE_LOG_COLOR_MULTI_HIT = "#ffffff";
 export const BATTLE_LOG_COLOR_RECHARGE = "#aaaaaa";
 export const BATTLE_LOG_COLOR_ABILITY = "#ffe066";
+export const BATTLE_LOG_COLOR_ITEM = "#88ff88";
+export const BATTLE_LOG_COLOR_ITEM_CONSUMED = "#888888";
+export const BATTLE_LOG_COLOR_CRITICAL = "#ff8800";
+export const BATTLE_LOG_COLOR_HEAL = "#44dd44";
 export const BATTLE_LOG_COLOR_BATTLE_ENDED = "#ffee00";
 
 export const BUTTON_COLOR = 0x335577;

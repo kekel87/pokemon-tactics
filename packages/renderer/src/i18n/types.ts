@@ -91,6 +91,8 @@ export interface Translations {
   "battle.terrainDamage": string;
   "battle.melted": string;
   "battle.drowned": string;
+  "battle.critical": string;
+  "battle.itemConsumed": string;
   "teamSelect.title": string;
   "teamSelect.player1": string;
   "teamSelect.player2": string;

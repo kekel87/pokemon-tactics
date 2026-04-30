@@ -1,4 +1,10 @@
-import { type BaseStats, Direction, type StatName, type StatusType } from "@pokemon-tactic/core";
+import {
+  type BaseStats,
+  Direction,
+  type HeldItemId,
+  type StatName,
+  type StatusType,
+} from "@pokemon-tactic/core";
 
 export interface Position2D {
   x: number;
@@ -25,6 +31,8 @@ export interface SandboxConfig {
   dummyStatus: StatusType | null;
   dummyVolatileStatus: StatusType | null;
   dummyStatStages: Partial<Record<StatName, number>>;
+  heldItem?: HeldItemId;
+  dummyHeldItem?: HeldItemId;
   /** Optional override for dummy spawn position. */
   dummyPosition?: Position2D;
   /** Optional Tiled map URL (relative to public/), e.g. "assets/maps/dev/sandbox-flat.tmj" */

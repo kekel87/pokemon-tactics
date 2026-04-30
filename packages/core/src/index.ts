@@ -9,6 +9,7 @@ export { EffectHandlerRegistry } from "./battle/effect-handler-registry";
 export { createDefaultEffectRegistry } from "./battle/effect-processor";
 export { isEffectivelyFlying } from "./battle/effective-flying";
 export { isImmuneToStatusByType } from "./battle/handlers/handle-status";
+export { HeldItemHandlerRegistry } from "./battle/held-item-handler-registry";
 export { getEffectiveInitiative } from "./battle/initiative-calculator";
 export {
   applyNatureModifier,

@@ -54,6 +54,7 @@ import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
 import { getHeightModifier } from "./height-modifier";
 import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
+import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getEffectiveInitiative } from "./initiative-calculator";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { isMajorStatus } from "./stat-modifier";
@@ -94,6 +95,7 @@ export class BattleEngine {
   private readonly seed: number;
   private readonly statusRules: StatusRules;
   private readonly abilityRegistry: AbilityHandlerRegistry | null;
+  private readonly itemRegistry: HeldItemHandlerRegistry | null;
   private readonly recordedActions: Action[] = [];
   private turnState = { hasMoved: false, hasActed: false, lastMoveId: null as string | null };
   private preMoveSnapshot: { position: Position; orientation: Direction; hadBurn: boolean } | null =
@@ -115,6 +117,7 @@ export class BattleEngine {
     turnSystemKind: TurnSystemKind = TurnSystemKind.RoundRobin,
     statusRules: StatusRules = DEFAULT_STATUS_RULES,
     abilityRegistry: AbilityHandlerRegistry | null = null,
+    itemRegistry: HeldItemHandlerRegistry | null = null,
   ) {
     this.state = state;
     this.moveRegistry = moveRegistry;
@@ -126,6 +129,7 @@ export class BattleEngine {
     this.turnSystemKind = turnSystemKind;
     this.statusRules = statusRules;
     this.abilityRegistry = abilityRegistry;
+    this.itemRegistry = itemRegistry;
     this.listeners = new Map();
     this.grid = new Grid(state.grid[0]?.length ?? 0, state.grid.length, state.grid);
     this.turnManager = new TurnManager([...state.pokemon.values()], getEffectiveInitiative);
@@ -137,7 +141,10 @@ export class BattleEngine {
     this.turnPipeline.registerStartTurn(createInfatuationTickHandler(this.random), 150);
     this.turnPipeline.registerEndTurn(seededTickHandler, 200);
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
-    this.turnPipeline.registerEndTurn(createTerrainTickHandler(this.pokemonTypesMap), 400);
+    this.turnPipeline.registerEndTurn(
+      createTerrainTickHandler(this.pokemonTypesMap, this.itemRegistry ?? undefined),
+      400,
+    );
 
     if (turnSystemKind === TurnSystemKind.ChargeTime) {
       const pokemonIds = [...state.pokemon.keys()];
@@ -237,6 +244,8 @@ export class BattleEngine {
       heightMod,
       terrainMod,
       facingMod,
+      this.abilityRegistry ?? undefined,
+      this.itemRegistry ?? undefined,
     );
   }
 
@@ -379,6 +388,10 @@ export class BattleEngine {
         }
         const move = this.moveRegistry.get(moveId);
         if (!move) {
+          continue;
+        }
+
+        if (currentPokemon.lockedMoveId !== undefined && moveId !== currentPokemon.lockedMoveId) {
           continue;
         }
 
@@ -758,6 +771,7 @@ export class BattleEngine {
       facingModifierMap,
       statusRules: this.statusRules,
       abilityRegistry: this.abilityRegistry ?? undefined,
+      itemRegistry: this.itemRegistry ?? undefined,
     });
 
     for (const event of effectEvents) {
@@ -780,6 +794,7 @@ export class BattleEngine {
       this.dashMoveCaster(pokemon, targetPosition, events);
     }
 
+    this.applyChoiceLock(pokemon, moveId);
     this.turnState.hasActed = true;
     this.turnState.lastMoveId = moveId;
     this.preMoveSnapshot = null;
@@ -1205,6 +1220,12 @@ export class BattleEngine {
         if (isTerrainImmune(TerrainType.Magma, pokemonTypes, this.isEffectivelyFlying(pokemon))) {
           break;
         }
+        const item = this.itemRegistry?.getForPokemon(pokemon);
+        const terrainResult = item?.onTerrainTick?.({ pokemon, terrain: TerrainType.Magma });
+        if (terrainResult?.blocked) {
+          events.push(...terrainResult.events);
+          break;
+        }
         pokemon.statusEffects.push({ type: StatusType.Burned, remainingTurns: null });
         const statusEvent: BattleEvent = {
           type: BattleEventType.TerrainStatusApplied,
@@ -1367,6 +1388,28 @@ export class BattleEngine {
     for (const event of endTurnResult.events) {
       this.emit(event);
       events.push(event);
+    }
+
+    const activePokemon = this.state.pokemon.get(pokemonId);
+    if (activePokemon && activePokemon.currentHp > 0) {
+      const item = this.itemRegistry?.getForPokemon(activePokemon);
+      if (item?.onEndTurn) {
+        const itemEvents = item.onEndTurn({ pokemon: activePokemon, state: this.state });
+        for (const event of itemEvents) {
+          this.emit(event);
+          events.push(event);
+        }
+        if (activePokemon.currentHp <= 0) {
+          const koEvent: BattleEvent = {
+            type: BattleEventType.PokemonKo,
+            pokemonId: activePokemon.id,
+            countdownStart: 0,
+          };
+          this.emit(koEvent);
+          events.push(koEvent);
+          this.handleKo(activePokemon.id, events);
+        }
+      }
     }
 
     if (endTurnResult.pokemonFainted) {
@@ -1616,7 +1659,10 @@ export class BattleEngine {
     }
     const baseStat = pokemon.baseStats.speed;
     const stages = pokemon.statStages[StatName.Speed] ?? 0;
-    return computeCtGain(baseStat, stages);
+    const base = computeCtGain(baseStat, stages);
+    const item = this.itemRegistry?.getForPokemon(pokemon);
+    const modifier = item?.onCtGainModify?.({ pokemon }) ?? 1.0;
+    return Math.round(base * modifier);
   }
 
   private computeCurrentMoveCost(): number {
@@ -1805,6 +1851,16 @@ export class BattleEngine {
 
     ctSystem.onActionComplete(pokemonId, actionCost);
     this.syncCtSnapshot();
+  }
+
+  private applyChoiceLock(pokemon: PokemonInstance, moveId: string): void {
+    if (pokemon.lockedMoveId !== undefined) {
+      return;
+    }
+    const item = this.itemRegistry?.getForPokemon(pokemon);
+    if (item?.onMoveLock?.()) {
+      pokemon.lockedMoveId = moveId;
+    }
   }
 
   private syncTurnState(): void {

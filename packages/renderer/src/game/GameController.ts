@@ -45,6 +45,7 @@ import {
   BATTLE_TEXT_COLOR_ABILITY,
   BATTLE_TEXT_COLOR_BUFF,
   BATTLE_TEXT_COLOR_CONFUSED,
+  BATTLE_TEXT_COLOR_CRITICAL,
   BATTLE_TEXT_COLOR_DAMAGE,
   BATTLE_TEXT_COLOR_DEBUFF,
   BATTLE_TEXT_COLOR_EXTREMELY_EFFECTIVE,
@@ -52,6 +53,8 @@ import {
   BATTLE_TEXT_COLOR_HEAL,
   BATTLE_TEXT_COLOR_IMMUNE,
   BATTLE_TEXT_COLOR_INFO,
+  BATTLE_TEXT_COLOR_ITEM,
+  BATTLE_TEXT_COLOR_ITEM_CONSUMED,
   BATTLE_TEXT_COLOR_MISS,
   BATTLE_TEXT_COLOR_MOSTLY_INEFFECTIVE,
   BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE,
@@ -1388,6 +1391,70 @@ export class GameController {
         break;
       }
 
+      case BattleEventType.HeldItemActivated: {
+        const itemSprite = this.sprites.get(event.pokemonId);
+        if (itemSprite && this.setup) {
+          const itemDef = this.setup.itemRegistry.get(event.itemId);
+          if (itemDef) {
+            const pos = itemSprite.getTextPosition();
+            const lang = getLanguage();
+            showBattleText(this.scene, pos.x, pos.y, `${itemDef.name[lang]}!`, {
+              color: BATTLE_TEXT_COLOR_ITEM,
+              targetId: event.pokemonId,
+            });
+          }
+        }
+        break;
+      }
+
+      case BattleEventType.HeldItemConsumed: {
+        const consumedSprite = this.sprites.get(event.pokemonId);
+        if (consumedSprite && this.setup) {
+          const itemDef = this.setup.itemRegistry.get(event.itemId);
+          if (itemDef) {
+            const pos = consumedSprite.getTextPosition();
+            const lang = getLanguage();
+            showBattleText(
+              this.scene,
+              pos.x,
+              pos.y,
+              t("battle.itemConsumed", { name: itemDef.name[lang] }),
+              {
+                color: BATTLE_TEXT_COLOR_ITEM_CONSUMED,
+                targetId: event.pokemonId,
+              },
+            );
+          }
+        }
+        break;
+      }
+
+      case BattleEventType.CriticalHit: {
+        const critSprite = this.sprites.get(event.targetId);
+        if (critSprite) {
+          const pos = critSprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("battle.critical"), {
+            color: BATTLE_TEXT_COLOR_CRITICAL,
+            targetId: event.targetId,
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.HpRestored: {
+        const healedSprite = this.sprites.get(event.pokemonId);
+        const healedPokemon = this.state.pokemon.get(event.pokemonId);
+        if (healedSprite && healedPokemon) {
+          healedSprite.updateHp(healedPokemon.currentHp, healedPokemon.maxHp);
+          const pos = healedSprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, `+${event.amount}`, {
+            color: BATTLE_TEXT_COLOR_HEAL,
+            targetId: event.pokemonId,
+          });
+        }
+        break;
+      }
+
       default:
         break;
     }
@@ -1952,6 +2019,10 @@ export class GameController {
       getAbilityName: (abilityId) => {
         const ability = setup.abilityRegistry.get(abilityId);
         return ability ? ability.name[lang] : null;
+      },
+      getItemName: (itemId) => {
+        const item = setup.itemRegistry.get(itemId);
+        return item ? item.name[lang] : null;
       },
       language: lang,
     };

@@ -558,7 +558,69 @@ Après déplacement, joueur peut **annuler** (avant ou après attaque).
 
 ---
 
-## 8c. Système de talents/abilities (plan 069)
+## 8c. Système d'objets tenus (plan 073)
+
+Chaque Pokemon peut porter **1 objet tenu** enregistré dans `HeldItemHandlerRegistry` (miroir de `AbilityHandlerRegistry`).
+
+**8 hooks disponibles** :
+
+| Hook | Déclencheur | Items concernés |
+|------|-------------|-----------------|
+| `onDamageModify` | Calcul dégâts (attaquant ou défenseur) | Orbe Vie (×1.3), Bandeau Choix (×1.5 Atk phys), Ceinture Pro (×1.2 super-eff), Balle Lumière (×2 Pikachu), Grosses Bottes (-) |
+| `onCritStageBoost` | Calcul stage crit | Lentilscope (+1 stage) |
+| `onAfterMoveDamageDealt` | Après infliction de dégâts (côté attaquant) | Orbe Vie (recoil 1/10 HP max) |
+| `onAfterDamageReceived` | Après réception de dégâts (côté défenseur) | Ceinture Force (survive 1HP si HP max, consumé), Vulné-Assurance (+2 Atk/SpAtk si super-eff, consumé), Casque Brut (1/6 HP contact retour) |
+| `onEndTurn` | Fin de tour, Pokemon vivant | Restes (+1/16 HP max), Baie Sitrus (+1/4 HP max si ≤1/2, consumé) |
+| `onTerrainTick` | Avant DOT et statut terrain | Grosses Bottes (bloque effets terrain) |
+| `onCtGainModify` | Calcul CT gain | Mouchoir Choix (×1.5 vitesse → CT gain) |
+| `onMoveLock` | Après usage d'un move — décide si verrouillage | Bandeau Choix, Mouchoir Choix (verrouillent le move utilisé via hook, plus de check hardcodé dans BattleEngine) |
+
+**Contraintes :**
+- 2 Pokemon d'une même équipe ne peuvent pas porter le même objet (`DuplicateItem` erreur validateur)
+- Choice items (Bandeau / Mouchoir) verrouillent le move utilisé (`lockedMoveId`) jusqu'à fin de combat
+- Items consommables (`focusSash`, `weaknessPolicy`, `sitrusBerry`) sont retirés après usage (`heldItemId = undefined`)
+
+**Les 12 objets du roster POC :**
+
+| ID | Nom FR | Effet |
+|----|--------|-------|
+| `leftovers` | Restes | +1/16 HP max en fin de tour |
+| `life-orb` | Orbe Vie | ×1.3 dégâts infligés + recoil 1/10 HP max |
+| `choice-band` | Bandeau Choix | ×1.5 Atk physique + verrou move |
+| `choice-scarf` | Mouchoir Choix | ×1.5 CT gain + verrou move |
+| `focus-sash` | Ceinture Force | Survit à 1 HP si HP max avant le coup — consumé |
+| `expert-belt` | Ceinture Pro | ×1.2 dégâts si super-efficace |
+| `rocky-helmet` | Casque Brut | 1/6 HP max de l'attaquant si contact reçu |
+| `weakness-policy` | Vulné-Assurance | +2 Atk ET +2 SpAtk si super-efficace reçu — consumé |
+| `scope-lens` | Lentilscope | +1 stage critique |
+| `sitrus-berry` | Baie Sitrus | +1/4 HP max si ≤1/2 HP — consumé |
+| `heavy-duty-boots` | Grosses Bottes | Immunité effets terrain (pas la traversabilité) |
+| `light-ball` | Balle Lumière | ×2 Atk ET ×2 SpAtk — Pikachu uniquement |
+
+**Mini-système critiques (plan 073) :**
+
+Intégré dans `damage-calculator.ts`. Stage critique de base = `move.critRatio ?? 0` (Tranche, Karaté Chop = 1). Lentilscope ajoute +1. Probabilités Gen 6+ simplifiées :
+
+| Stage | Probabilité |
+|-------|-------------|
+| 0 | 1/24 ≈ 4.2% |
+| 1 | 1/8 = 12.5% |
+| 2 | 1/2 = 50% |
+| 3+ | 100% |
+
+Critique = ×1.5 dégâts + ignore stages défensifs négatifs (sans annuler stages positifs). Émet `BattleEventType.CriticalHit`. Renderer affiche "Critique!" en orange (#ff8800).
+
+**UI sélection objet (TeamSelectScene) :** dropdown par Pokemon (12 items + "Aucun"). Validation doublons + message d'erreur.
+
+**Events renderer :**
+- `HeldItemActivated` → floating text vert `#7cf08c` avec nom FR de l'objet
+- `HeldItemConsumed` → floating text gris `#aaaaaa` "[item] épuisé"
+- `CriticalHit` → floating text orange `#ff8800` "Critique!"
+- `HpRestored` → heal affiché dans battle log
+
+---
+
+## 8d. Système de talents/abilities (plan 069)
 
 Chaque Pokemon possède **1 talent** via hooks enregistrés dans `AbilityHandlerRegistry`.
 

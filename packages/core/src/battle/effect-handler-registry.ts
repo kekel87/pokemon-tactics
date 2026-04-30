@@ -10,6 +10,7 @@ import type { StatusRules } from "../types/status-rules";
 import type { TypeChart } from "../types/type-chart";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
+import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 
 export type { TypeChart };
 
@@ -29,6 +30,7 @@ export interface EffectContext {
   facingModifierMap: Map<string, number>;
   statusRules?: StatusRules;
   abilityRegistry?: AbilityHandlerRegistry;
+  itemRegistry?: HeldItemHandlerRegistry;
 }
 
 export type EffectHandler = (context: EffectContext) => BattleEvent[];

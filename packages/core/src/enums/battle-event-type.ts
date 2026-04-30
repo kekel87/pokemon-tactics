@@ -37,6 +37,10 @@ export const BattleEventType = {
   LethalTerrainKo: "lethal_terrain_ko",
   MoveCancelled: "move_cancelled",
   AbilityActivated: "ability_activated",
+  HeldItemActivated: "held_item_activated",
+  HeldItemConsumed: "held_item_consumed",
+  CriticalHit: "critical_hit",
+  HpRestored: "hp_restored",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

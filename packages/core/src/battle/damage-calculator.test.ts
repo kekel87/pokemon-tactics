@@ -438,10 +438,6 @@ describe("facing modifier", () => {
       [PokemonType.Normal],
       [PokemonType.Normal],
       1.0,
-      undefined,
-      1.0,
-      1.0,
-      1.0,
     );
     const backAttack = calculateDamage(
       attacker(),
@@ -451,7 +447,6 @@ describe("facing modifier", () => {
       [PokemonType.Normal],
       [PokemonType.Normal],
       1.0,
-      undefined,
       1.0,
       1.0,
       1.15,
@@ -469,10 +464,6 @@ describe("facing modifier", () => {
       [PokemonType.Normal],
       [PokemonType.Normal],
       1.0,
-      undefined,
-      1.0,
-      1.0,
-      1.0,
     );
     const frontAttack = calculateDamage(
       attacker(),
@@ -482,7 +473,6 @@ describe("facing modifier", () => {
       [PokemonType.Normal],
       [PokemonType.Normal],
       1.0,
-      undefined,
       1.0,
       1.0,
       0.85,
@@ -508,7 +498,6 @@ describe("facing modifier", () => {
       [PokemonType.Normal],
       [PokemonType.Normal],
       1.0,
-      undefined,
       1.0,
       1.0,
       1.0,

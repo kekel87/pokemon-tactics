@@ -1,4 +1,10 @@
-import type { BaseStats, MapDefinition, PlacementEntry, PlacementTeam } from "@pokemon-tactic/core";
+import type {
+  BaseStats,
+  HeldItemId,
+  MapDefinition,
+  PlacementEntry,
+  PlacementTeam,
+} from "@pokemon-tactic/core";
 import {
   computeCombatStats,
   Direction,
@@ -151,7 +157,20 @@ export function createSandboxBattle(
     },
   ];
 
-  const battleConfig: BattleSetupConfig = { map, teams, placements };
+  const heldItemOverrides: Record<string, HeldItemId> = {};
+  if (config.heldItem) {
+    heldItemOverrides[playerPokemonId] = config.heldItem;
+  }
+  if (config.dummyHeldItem) {
+    heldItemOverrides[dummyPokemonId] = config.dummyHeldItem;
+  }
+
+  const battleConfig: BattleSetupConfig = {
+    map,
+    teams,
+    placements,
+    heldItemOverrides,
+  };
   const result = createBattleFromPlacements(battleConfig);
 
   applyDummyStats(result, dummyPokemonId, config.dummyLevel, config.dummyBaseStats);

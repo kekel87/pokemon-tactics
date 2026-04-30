@@ -8,6 +8,7 @@ export { Direction } from "./direction";
 export { EffectKind } from "./effect-kind";
 export { EffectTarget } from "./effect-target";
 export { EffectTier } from "./effect-tier";
+export { HeldItemId } from "./held-item-id";
 export { Nature } from "./nature";
 export { PlacementMode } from "./placement-mode";
 export { PlayerController } from "./player-controller";

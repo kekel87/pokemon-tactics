@@ -33,5 +33,20 @@ export function validateTeamSelection(
     errors.push(TeamValidationError.UnknownPokemon);
   }
 
+  if (selection.heldItems) {
+    const itemsSeen = new Set<string>();
+    let hasDuplicateItem = false;
+    for (const itemId of Object.values(selection.heldItems)) {
+      if (itemsSeen.has(itemId)) {
+        hasDuplicateItem = true;
+        break;
+      }
+      itemsSeen.add(itemId);
+    }
+    if (hasDuplicateItem) {
+      errors.push(TeamValidationError.DuplicateItem);
+    }
+  }
+
   return { valid: errors.length === 0, errors };
 }

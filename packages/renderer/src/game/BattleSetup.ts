@@ -1,5 +1,6 @@
 import type {
   Direction,
+  HeldItemId,
   MapDefinition,
   MoveDefinition,
   Nature,
@@ -16,6 +17,7 @@ import {
   type BattleState,
   computeCombatStats,
   computeMovement,
+  type HeldItemHandlerRegistry,
   PlacementMode,
   PlacementPhase,
   PlayerController,
@@ -54,6 +56,7 @@ function createPokemonInstance(
   rng: () => number,
   genderOverride?: PokemonGender,
   natureOverride?: Nature,
+  heldItemId?: HeldItemId,
 ): PokemonInstance {
   const currentPp: Record<string, number> = {};
   for (const moveId of definition.movepool) {
@@ -91,6 +94,7 @@ function createPokemonInstance(
     gender,
     nature,
     ...(definition.abilityId ? { abilityId: definition.abilityId } : {}),
+    ...(heldItemId ? { heldItemId } : {}),
   };
 }
 
@@ -100,6 +104,7 @@ export interface BattleSetupResult {
   pokemonDefinitions: Map<string, PokemonDefinition>;
   moveDefinitions: Map<string, MoveDefinition>;
   abilityRegistry: AbilityHandlerRegistry;
+  itemRegistry: HeldItemHandlerRegistry;
   map: MapDefinition;
 }
 
@@ -111,6 +116,7 @@ export interface BattleSetupConfig {
   creationRng?: () => number;
   genderOverrides?: Record<string, PokemonGender>;
   natureOverrides?: Record<string, Nature>;
+  heldItemOverrides?: Record<string, HeldItemId>;
 }
 
 function loadGameData() {
@@ -141,11 +147,13 @@ function loadGameData() {
     moveDefinitions,
     pokemonTypesMap,
     abilityRegistry: gameData.abilityRegistry,
+    itemRegistry: gameData.itemRegistry,
   };
 }
 
 export function createBattleFromPlacements(config: BattleSetupConfig): BattleSetupResult {
-  const { pokemonDefinitions, moveDefinitions, pokemonTypesMap, abilityRegistry } = loadGameData();
+  const { pokemonDefinitions, moveDefinitions, pokemonTypesMap, abilityRegistry, itemRegistry } =
+    loadGameData();
 
   const mapValidation = validateMapDefinition(config.map);
   if (!mapValidation.valid) {
@@ -181,6 +189,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
       creationRng,
       config.genderOverrides?.[placement.pokemonId],
       config.natureOverrides?.[placement.pokemonId],
+      config.heldItemOverrides?.[placement.pokemonId],
     );
 
     pokemonMap.set(instance.id, instance);
@@ -214,6 +223,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     config.turnSystemKind,
     undefined,
     abilityRegistry,
+    itemRegistry,
   );
 
   return {
@@ -222,6 +232,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     pokemonDefinitions,
     moveDefinitions,
     abilityRegistry,
+    itemRegistry,
     map: config.map,
   };
 }
