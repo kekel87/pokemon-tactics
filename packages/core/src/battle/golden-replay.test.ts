@@ -161,8 +161,8 @@ describe("golden replay", () => {
 
     expect(team2Alive.length).toBeGreaterThan(0);
     expect(team1Alive.length).toBe(0);
-    expect(finalState.roundNumber).toBe(6);
-    expect(replay.actions.length).toBe(82);
+    expect(finalState.roundNumber).toBe(8);
+    expect(replay.actions.length).toBe(103);
   });
 
   it("produces the same replay when running the battle from scratch", () => {

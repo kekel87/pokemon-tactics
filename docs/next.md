@@ -4,8 +4,8 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
-- **Phase 4 en cours.** Plans 069 + 070 + 071 + 072 terminés. Restants : Objets tenus, EV→Stat Points, Méga-évolutions, Roster élargi (~30-40), Team Builder.
-- **Prochain plan** : Objets tenus (impact stratégique immédiat) ou EV→Stat Points. Discuter scope.
+- **Phase 4 en cours.** Plans 069–074 terminés. Restants : Méga-évolutions, Roster élargi (~30-40), Team Builder.
+- **Prochain plan** : Roster élargi (~30-40 Pokemon) ou Team Builder (UI SP prêt).
 - **À valider visuellement** : floating text `AbilityActivated` jaune doré, émission Blaze/Torrent/Overgrow au seuil HP, blocage Confusion par Tempo Perso, Early Bird au réveil. Tester sandbox ou combat IA vs IA.
 - **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles, peinture Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour arène propre rapide, ou reporter post-Babylon via `DecalMap`.
 - **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20). Pistes à garder :
@@ -21,6 +21,7 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## Fait récemment
 
+- 2026-05-03 — **Plan 074 terminé — EV → Stat Points**. `StatSpread` type + `SP_TOTAL_MAX=66` / `SP_PER_STAT_MAX=32`. `validateStatSpread`. `computeCombatStats` étendu : `statSpread?` + **IV=31 fixe** (alignement Champions, +~15 stats non-HP à niveau 50 vs ancien IV=0). `PokemonInstance.statSpread?`. `BattleSetupConfig.statSpreadOverrides?`. Golden replay régénéré (82 → 103 actions seed=12345). Fix flakiness `DummyAiController.test.ts` (natures aléatoires). 9 nouveaux tests. CI : 1168 unit + 157 intégration verts. Décisions #296–299.
 - 2026-04-29 — **Plan 072 terminé — Natures / Stat Alignment** (mécanique core uniquement). `Nature` enum 25 valeurs, table boost/lowered en dur (Gen 3+ Bulbapedia, 5 neutres + 20 non-neutres). `applyNatureModifier` floor(stat × 1.1 / 0.9), HP exclu. `computeCombatStats(baseStats, level, nature?)`. `rollNature(rng)` uniforme. `PokemonInstance.nature` non-optionnel. `BattleSetupConfig.genderRng` → `creationRng`, ajout `natureOverrides`. **Affichage UI InfoPanel reporté** à la refonte InfoPanel. 13 nouveaux tests. CI verte : 1154 unit + 137 intégration. Décisions #284-287.
 - 2026-04-29 — **Plan 071 terminé — Genres Pokemon (♂/♀/genderless)**. `genderRatio` exposé via loaders, `PokemonGender` enum, `rollGender(ratio, rng)`. `PokemonInstance.gender` rolled à la création (`createPokemonInstance` accepte `genderRng` + `genderOverride` pour Team Builder futur). Cute Charm vérifie genre opposé non-genderless. Symboles ♂/♀ colorés (`#5fa8ff` / `#ff7fb4`) dans InfoPanel. CI verte : 1135 unit + 137 intégration. Bug data Kangaskhan (50/50 vs 0/100 canon) tracé en backlog.
 - 2026-04-29 — **Plan 070 terminé — Polish talents/abilities**. Lévitation traversée lava/deep_water, Tempo Perso bloque Confusion+Intimidation, Engrais/Brasier/Torrent seuil 1/3, Cran sur statut majeur, Matinal au réveil. Refactor hooks passifs → return `{ ..., events }`. Buffer startup events + `consumeStartupEvents()` + `rerunBattleStartChecks()`. `isEffectivelyFlying` extrait. Battle log i18n `AbilityActivated`. `docs/abilities-system.md` créé. Suppression `onAccuracyModify`. CI : 1130 unit + 134 intégration verts.
@@ -36,7 +37,7 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## Contexte prochaine session
 
-**Phase 3 terminée (2026-04-26). Phase 4 en cours (plans 069 + 070 terminés).** 20 abilities + polish. Prochains : Genres, Objets tenus, Natures, EV→SP, Roster élargi. Voir "À faire maintenant" ci-dessus.
+**Phase 3 terminée (2026-04-26). Phase 4 en cours (plans 069–074 terminés).** Abilities, genres, natures, objets tenus, SP livrés. Prochains : Roster élargi, Méga-évolutions, Team Builder. Voir "À faire maintenant" ci-dessus.
 
 **Référence archive plan 061** : branche `plan-061-occlusion-before-3d-pivot`. Consulter si besoin de comprendre ce qui a été tenté en 2D iso avant pivot.
 

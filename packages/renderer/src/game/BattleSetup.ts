@@ -9,6 +9,7 @@ import type {
   PokemonDefinition,
   PokemonGender,
   PokemonInstance,
+  StatSpread,
   TileState,
 } from "@pokemon-tactic/core";
 import {
@@ -57,6 +58,7 @@ function createPokemonInstance(
   genderOverride?: PokemonGender,
   natureOverride?: Nature,
   heldItemId?: HeldItemId,
+  statSpread?: StatSpread,
 ): PokemonInstance {
   const currentPp: Record<string, number> = {};
   for (const moveId of definition.movepool) {
@@ -65,7 +67,7 @@ function createPokemonInstance(
   }
   const gender = genderOverride ?? rollGender(definition.genderRatio, rng);
   const nature = natureOverride ?? rollNature(rng);
-  const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL, nature);
+  const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL, nature, statSpread);
   return {
     id: instanceId,
     definitionId: definition.id,
@@ -93,6 +95,7 @@ function createPokemonInstance(
     recharging: false,
     gender,
     nature,
+    ...(statSpread ? { statSpread } : {}),
     ...(definition.abilityId ? { abilityId: definition.abilityId } : {}),
     ...(heldItemId ? { heldItemId } : {}),
   };
@@ -117,6 +120,7 @@ export interface BattleSetupConfig {
   genderOverrides?: Record<string, PokemonGender>;
   natureOverrides?: Record<string, Nature>;
   heldItemOverrides?: Record<string, HeldItemId>;
+  statSpreadOverrides?: Record<string, StatSpread>;
 }
 
 function loadGameData() {
@@ -190,6 +194,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
       config.genderOverrides?.[placement.pokemonId],
       config.natureOverrides?.[placement.pokemonId],
       config.heldItemOverrides?.[placement.pokemonId],
+      config.statSpreadOverrides?.[placement.pokemonId],
     );
 
     pokemonMap.set(instance.id, instance);

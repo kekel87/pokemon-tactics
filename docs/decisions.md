@@ -305,6 +305,10 @@
 | 293 | 2026-04-30 | Contrainte unicité items | **12 items max, 1 par espèce d'item par équipe** (`DuplicateItem` erreur validateur + `heldItems` champ `TeamSelection`). | Cohérent avec gameplay compétitif. Pas de doublons dans une équipe. Plan 073. |
 | 294 | 2026-04-30 | Fermeté (Sturdy) + Ceinture Force | **Double protection OHKO non résolue**. Si Sturdy activé futur, trancher : les deux se cumulent (1 HP → 1 HP, OK) ou interaction spéciale. | Sturdy implémenté vide plan 069. Tranchera lors du plan qui active Sturdy. Plan 073. |
 | 295 | 2026-04-30 | `critRatio` sur `MoveDefinition` | **`critRatio?: number` exposé dans `MoveDefinition`** — lu par `calculateDamage` comme crit stage natif avant item. Tranche, Karaté Chop = 1 (Gen 6+). | Permet items (Lentilscope) et moves natifs de partager le même pipeline crit. Plan 073. |
+| 296 | 2026-05-03 | SP s'applique après nature | **Ordre : base → level formula → nature → +SP.** Nature ne multiplie pas le bonus SP. Résultat : "+8 SP attack = +8 sur la stat finale" indépendamment de la nature. | Plan 074. Intuitif pour futur Team Builder. |
+| 297 | 2026-05-03 | HP inclus dans SP | **HP reçoit SP comme les autres stats.** Nature n'affecte pas HP — pas d'ambiguïté d'ordre. | Plan 074. Cohérent avec le design Champions. |
+| 298 | 2026-05-03 | Formule IV=31 fixe | **`computeStatAtLevel` utilise désormais `floor((2 × base + 31) × level / 100)`.** Alignement canon Champions. Ancienne formule = IV=0 implicite (écart ~+15 stats non-HP à niveau 50). Golden replay régénéré (82 → 103 actions avec seed 12345). Tests stat-calculator mis à jour. | Plan 074. Option B retenue humain 2026-05-03. |
+| 299 | 2026-05-03 | Pas d'UI SP dans plan 074 | **Team Builder allouera SP via interface dédiée.** Ce plan pose uniquement le modèle de données + pipeline core. Pas de validation `TeamSelection` SP (futur). | Plan 074. Scope tight. |
 
 ---
 
