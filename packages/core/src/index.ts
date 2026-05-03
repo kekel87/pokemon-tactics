@@ -24,6 +24,7 @@ export { rollGender } from "./battle/roll-gender";
 export { rollNature } from "./battle/roll-nature";
 export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator";
 export { computeMovement, isMajorStatus } from "./battle/stat-modifier";
+export { validateStatSpread } from "./battle/stat-spread-validator";
 export { TurnManager } from "./battle/TurnManager";
 export { validateTeamSelection } from "./battle/team-validator";
 export type { PhaseHandler, PhaseResult } from "./battle/turn-pipeline";

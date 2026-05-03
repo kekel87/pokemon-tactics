@@ -739,6 +739,34 @@
     },
     {
       "kind": "use_move",
+      "pokemonId": "p2-bulbasaur",
+      "moveId": "sludge-bomb",
+      "targetPosition": {
+        "x": 7,
+        "y": 4
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p2-bulbasaur",
+      "path": [
+        {
+          "x": 8,
+          "y": 8
+        },
+        {
+          "x": 8,
+          "y": 7
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p2-bulbasaur",
+      "direction": "west"
+    },
+    {
+      "kind": "use_move",
       "pokemonId": "p1-squirtle",
       "moveId": "bubble-beam",
       "targetPosition": {
@@ -752,18 +780,18 @@
       "path": [
         {
           "x": 7,
-          "y": 8
+          "y": 6
         },
         {
-          "x": 6,
-          "y": 8
+          "x": 8,
+          "y": 6
         }
       ]
     },
     {
       "kind": "end_turn",
       "pokemonId": "p1-squirtle",
-      "direction": "north"
+      "direction": "south"
     },
     {
       "kind": "use_move",
@@ -783,8 +811,100 @@
           "y": 6
         },
         {
+          "x": 7,
+          "y": 6
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p2-geodude",
+      "direction": "east"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p2-pikachu",
+      "moveId": "volt-tackle",
+      "targetPosition": {
+        "x": 5,
+        "y": 3
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p2-pikachu",
+      "path": [
+        {
+          "x": 5,
+          "y": 5
+        },
+        {
           "x": 6,
           "y": 5
+        },
+        {
+          "x": 7,
+          "y": 5
+        },
+        {
+          "x": 8,
+          "y": 5
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p2-pikachu",
+      "direction": "south"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p1-squirtle",
+      "moveId": "bubble-beam",
+      "targetPosition": {
+        "x": 8,
+        "y": 5
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p1-squirtle",
+      "path": [
+        {
+          "x": 9,
+          "y": 6
+        },
+        {
+          "x": 9,
+          "y": 5
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p1-squirtle",
+      "direction": "west"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p2-geodude",
+      "moveId": "magnitude",
+      "targetPosition": {
+        "x": 7,
+        "y": 6
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p2-geodude",
+      "path": [
+        {
+          "x": 8,
+          "y": 6
+        },
+        {
+          "x": 9,
+          "y": 6
         }
       ]
     },
@@ -795,11 +915,87 @@
     },
     {
       "kind": "use_move",
-      "pokemonId": "p2-pikachu",
-      "moveId": "volt-tackle",
+      "pokemonId": "p1-squirtle",
+      "moveId": "bubble-beam",
       "targetPosition": {
-        "x": 5,
-        "y": 3
+        "x": 9,
+        "y": 4
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p1-squirtle",
+      "path": [
+        {
+          "x": 8,
+          "y": 5
+        },
+        {
+          "x": 8,
+          "y": 6
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p1-squirtle",
+      "direction": "east"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p2-geodude",
+      "moveId": "magnitude",
+      "targetPosition": {
+        "x": 9,
+        "y": 6
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p2-geodude",
+      "path": [
+        {
+          "x": 9,
+          "y": 5
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p2-geodude",
+      "direction": "west"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p1-squirtle",
+      "moveId": "bubble-beam",
+      "targetPosition": {
+        "x": 8,
+        "y": 5
+      }
+    },
+    {
+      "kind": "move",
+      "pokemonId": "p1-squirtle",
+      "path": [
+        {
+          "x": 9,
+          "y": 6
+        }
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p1-squirtle",
+      "direction": "north"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p2-geodude",
+      "moveId": "magnitude",
+      "targetPosition": {
+        "x": 9,
+        "y": 5
       }
     }
   ]

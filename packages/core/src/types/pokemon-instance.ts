@@ -8,6 +8,7 @@ import type { ActiveDefense } from "./active-defense";
 import type { BaseStats } from "./base-stats";
 import type { DerivedStats } from "./derived-stats";
 import type { Position } from "./position";
+import type { StatSpread } from "./stat-spread";
 import type { StatusEffect } from "./status-effect";
 import type { VolatileStatus } from "./volatile-status";
 
@@ -34,6 +35,7 @@ export interface PokemonInstance {
   recharging: boolean;
   gender: PokemonGender;
   nature: Nature;
+  statSpread?: StatSpread;
   abilityId?: string;
   abilityFirstTriggered?: boolean;
   heldItemId?: HeldItemId;

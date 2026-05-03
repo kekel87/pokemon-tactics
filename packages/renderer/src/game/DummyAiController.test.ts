@@ -19,10 +19,20 @@ describe("DummyAiController", () => {
     const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
     const dummy = new DummyAiController(result.engine, "p2-dummy", null, Direction.South);
 
-    // Dummy (speed 50) is faster than Bulbasaur (speed 45) — dummy plays first
-    const turnIndexBefore = result.state.currentTurnIndex;
+    // Advance to dummy's turn if Bulbasaur goes first (nature is random)
+    if (result.state.turnOrder[result.state.currentTurnIndex] !== "p2-dummy") {
+      const playerId = PlayerId.Player1;
+      const endTurnAction = result.engine
+        .getLegalActions(playerId)
+        .find((a) => a.kind === ActionKind.EndTurn);
+      if (endTurnAction) {
+        result.engine.submitAction(playerId, endTurnAction);
+      }
+    }
+
+    expect(result.state.turnOrder[result.state.currentTurnIndex]).toBe("p2-dummy");
     dummy.playTurn();
-    expect(result.state.currentTurnIndex).not.toBe(turnIndexBefore);
+    expect(result.state.turnOrder[result.state.currentTurnIndex]).not.toBe("p2-dummy");
   });
 
   it("plays assigned move when legal then ends turn", () => {
