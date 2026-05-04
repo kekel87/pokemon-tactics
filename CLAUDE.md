@@ -33,6 +33,7 @@ Profil: dev web Angular/TS expérimenté, clean code advocate, expérience Godot
 | `docs/references/babylon-gotchas.md` | Avant toucher renderer Babylon (plan 064+). Pièges GridMaterial, UV, depth, skipLibCheck, tree-shaking. |
 | `docs/references/babylon-mcp-ecosystem.md` | État MCP Babylon (officiel + communautaires), avril 2026. |
 | `docs/backlog.md` | Bugs connus + feedback playtest non traités |
+| `docs/implementations.md` | Liste vivante Pokemon/Moves/Abilities/Items implémentés — doc-keeper met à jour : ✗→✓ + compteurs en-tête + compteurs README.md#Progression à chaque ajout |
 | `docs/plans/` | Lire plan en cours avant coder. Anciens si besoin contexte. |
 
 Pas tout charger d'un coup. Lire fichier pertinent moment pertinent.

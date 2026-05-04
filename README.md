@@ -6,6 +6,15 @@ A tactical combat game on an isometric grid, fusing **Pokemon** and **Final Fant
 
 ![Pokemon Tactics — Battle screenshot](docs/images/battle-screenshot.png)
 
+## Progression
+
+| | Implemented | Target pool | Details |
+|---|---|---|---|
+| Pokemon | **20 / 151** | 151 Gen 1 | [full list](docs/implementations.md#pokemon-gen-1--151) |
+| Moves | **69** | 481 (Gen 1) | [full list](docs/implementations.md#attaques-69-implémentées) |
+| Abilities | **20** | 114 (Gen 1) | [full list](docs/implementations.md#talents-20-implémentés) |
+| Held items | **12** | ~159 | [full list](docs/implementations.md#objets-tenus-12-implémentés) |
+
 ## The Game
 
 Pokemon Tactics brings Pokemon battles to a tactical grid inspired by FFTA:

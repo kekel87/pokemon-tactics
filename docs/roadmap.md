@@ -154,10 +154,7 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
 - [x] Genres des Pokemon (mâle/femelle/asexué selon ratio officiel) — plan 071 terminé. `PokemonGender` enum, `genderRatio` exposé via loaders, roll déterministe via `genderRng` (replay), `genderOverride` prêt pour Team Builder. Cute Charm vérifie genre opposé non-genderless. Symboles ♂/♀ Unicode dans InfoPanel.
 - [x] Natures / Stat Alignment — plan 072 terminé (mécanique core uniquement, affichage UI reporté). `Nature` enum (25), table boost/lowered en dur dans le core, `applyNatureModifier(stats, nature)` + `computeCombatStats(baseStats, level, nature?)`. Roll uniforme via `rollNature(rng)`, déterministe via `creationRng` partagé avec gender. `natureOverrides` prêt pour Team Builder. HP toujours exclu. **Affichage InfoPanel différé** à la refonte UI.
 - [x] Objets tenus — plan 073 terminé. `HeldItemId` (12 items), `HeldItemHandler` (8 hooks dont `onMoveLock` pour verrou Choice piloté par hook), `HeldItemHandlerRegistry`, mini-système critiques, verrou Choice, validateur `DuplicateItem`, 4 nouveaux `BattleEventType`, fix `HpRestored` HP bar renderer, i18n `battle.itemConsumed`, 12 tests intégration. Décisions #288-295.
-- [ ] EV / IV — simplification Pokemon Champions :
-  - **IV supprimés** : tous les Pokemon ont 31 IVs fixes
-  - **EV → Stat Points (SP)** : 66 points max, 32 max par stat, 1 SP = +1 point de stat
-- [ ] Méga-évolutions
+- [x] EV / IV — plan 074 terminé. IV fixes à 31 pour tous les Pokemon. EV → Stat Points (SP) : 66 max, 32 max par stat, 1 SP = +1 stat. `applyStatPoints(stats, sp)`, `rollStatPoints(rng)`, `statPointsOverrides` prêt pour Team Builder. Formule dégâts alignée IV=31.
 - [ ] Roster élargi (~30-40 Pokemon) + attaques
 - [ ] Team Builder (import/export Showdown)
 
@@ -264,6 +261,8 @@ Tie à Babylon : éditeur et props terrain repensés pour renderer 3D.
 
 ## Phase 9 — Futur / À voir
 
+- [ ] **Générations 2-9** — ajout des 874 Pokemon restants (Gen 2 : 100, Gen 3 : 135, Gen 4 : 107, Gen 5 : 156, Gen 6 : 72, Gen 7 : 88, Gen 8 : 96, Gen 9 : 120). Sprites PMDCollab disponibles pour la majorité. Nécessite pipeline `sprite-config.json` étendu + movesets tactiques par Pokemon.
+- [ ] **Méga-Évolutions** — 21 formes Méga Gen 1 (16 officielles + 5 exclusives Pokémon Champions). Sprites PMDCollab : 6 formes ont des fichiers partiels (pending review), aucune complète en mai 2026. À replanifier quand PMDCollab coverage s'améliore. Voir `docs/implementations.md#méga-évolutions-gen-1`.
 - [ ] Mode histoire / aventure
 - [ ] Conditions de victoire alternatives
 - [ ] Draft/ban phase
