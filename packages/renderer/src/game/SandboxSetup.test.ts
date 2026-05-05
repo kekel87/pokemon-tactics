@@ -6,7 +6,7 @@ import { createSandboxBattle } from "./SandboxSetup";
 describe("createSandboxBattle", () => {
   it("creates a battle with player and dummy on sandbox arena", () => {
     const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
-    const playerPokemon = result.state.pokemon.get("p1-bulbasaur");
+    const playerPokemon = result.state.pokemon.get("p1-venusaur");
     const dummyPokemon = result.state.pokemon.get("p2-dummy");
 
     expect(playerPokemon).toBeDefined();
@@ -22,7 +22,7 @@ describe("createSandboxBattle", () => {
       ...DEFAULT_SANDBOX_CONFIG,
       dummyDirection: Direction.East,
     });
-    const player = result.state.pokemon.get("p1-bulbasaur")!;
+    const player = result.state.pokemon.get("p1-venusaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 
     expect(player.orientation).toBe(Direction.North);
@@ -34,7 +34,7 @@ describe("createSandboxBattle", () => {
       ...DEFAULT_SANDBOX_CONFIG,
       moves: ["razor-leaf", "sleep-powder"],
     });
-    const player = result.state.pokemon.get("p1-bulbasaur")!;
+    const player = result.state.pokemon.get("p1-venusaur")!;
 
     expect(player.moveIds).toEqual(["razor-leaf", "sleep-powder"]);
     expect(Object.keys(player.currentPp)).toEqual(["razor-leaf", "sleep-powder"]);
@@ -42,14 +42,14 @@ describe("createSandboxBattle", () => {
 
   it("uses default movepool when moves is empty", () => {
     const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
-    const player = result.state.pokemon.get("p1-bulbasaur")!;
+    const player = result.state.pokemon.get("p1-venusaur")!;
 
-    expect(player.moveIds).toEqual(["razor-leaf", "sleep-powder", "leech-seed", "sludge-bomb"]);
+    expect(player.moveIds).toEqual(["razor-leaf", "leech-seed", "sleep-powder", "sludge-bomb"]);
   });
 
   it("applies HP percentage", () => {
     const result = createSandboxBattle({ ...DEFAULT_SANDBOX_CONFIG, hp: 50, dummyHp: 25 });
-    const player = result.state.pokemon.get("p1-bulbasaur")!;
+    const player = result.state.pokemon.get("p1-venusaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 
     expect(player.currentHp).toBe(Math.floor(player.maxHp * 0.5));
@@ -62,7 +62,7 @@ describe("createSandboxBattle", () => {
       status: StatusType.Burned,
       dummyStatus: StatusType.Paralyzed,
     });
-    const player = result.state.pokemon.get("p1-bulbasaur")!;
+    const player = result.state.pokemon.get("p1-venusaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 
     expect(player.statusEffects).toEqual([{ type: StatusType.Burned, remainingTurns: null }]);
@@ -71,7 +71,7 @@ describe("createSandboxBattle", () => {
 
   it("applies sleep with remaining turns", () => {
     const result = createSandboxBattle({ ...DEFAULT_SANDBOX_CONFIG, status: StatusType.Asleep });
-    const player = result.state.pokemon.get("p1-bulbasaur")!;
+    const player = result.state.pokemon.get("p1-venusaur")!;
 
     expect(player.statusEffects).toEqual([{ type: StatusType.Asleep, remainingTurns: 3 }]);
   });
@@ -82,7 +82,7 @@ describe("createSandboxBattle", () => {
       statStages: { [StatName.Attack]: 2, [StatName.Defense]: -1 },
       dummyStatStages: { [StatName.Speed]: -3 },
     });
-    const player = result.state.pokemon.get("p1-bulbasaur")!;
+    const player = result.state.pokemon.get("p1-venusaur")!;
     const dummy = result.state.pokemon.get("p2-dummy")!;
 
     expect(player.statStages[StatName.Attack]).toBe(2);

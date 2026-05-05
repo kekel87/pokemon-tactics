@@ -5,6 +5,7 @@ import type { BattleState } from "../../types/battle-state";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 import { DEFAULT_STATUS_RULES, type StatusRules } from "../../types/status-rules";
 import type { RandomFn } from "../../utils/prng";
+import type { AbilityHandlerRegistry } from "../ability-handler-registry";
 import type { PhaseHandler, PhaseResult } from "../turn-pipeline";
 
 function applyDot(pokemon: PokemonInstance, fraction: number, events: BattleEvent[]): boolean {
@@ -27,9 +28,10 @@ function applyDot(pokemon: PokemonInstance, fraction: number, events: BattleEven
 export function createStatusTickHandler(
   random: RandomFn = () => Math.random(),
   rules: StatusRules = DEFAULT_STATUS_RULES,
+  abilityRegistry?: AbilityHandlerRegistry,
 ): PhaseHandler {
   return (pokemonId: string, state: BattleState) =>
-    statusTickHandler(pokemonId, state, random, rules);
+    statusTickHandler(pokemonId, state, random, rules, abilityRegistry);
 }
 
 export function statusTickHandler(
@@ -37,6 +39,7 @@ export function statusTickHandler(
   state: BattleState,
   random: RandomFn = () => Math.random(),
   rules: StatusRules = DEFAULT_STATUS_RULES,
+  abilityRegistry?: AbilityHandlerRegistry,
 ): PhaseResult {
   const pokemon = state.pokemon.get(pokemonId);
   const emptyResult: PhaseResult = {
@@ -56,19 +59,30 @@ export function statusTickHandler(
   }
 
   const events: BattleEvent[] = [];
+  const blocksIndirect = abilityRegistry?.getForPokemon(pokemon)?.blocksIndirectDamage ?? false;
 
   switch (status.type) {
     case StatusType.Burned: {
+      if (blocksIndirect) {
+        return emptyResult;
+      }
       const fainted = applyDot(pokemon, 16, events);
       return { events, skipAction: false, restrictActions: false, pokemonFainted: fainted };
     }
 
     case StatusType.Poisoned: {
+      if (blocksIndirect) {
+        return emptyResult;
+      }
       const fainted = applyDot(pokemon, 8, events);
       return { events, skipAction: false, restrictActions: false, pokemonFainted: fainted };
     }
 
     case StatusType.BadlyPoisoned: {
+      if (blocksIndirect) {
+        pokemon.toxicCounter = Math.min(pokemon.toxicCounter + 1, 15);
+        return emptyResult;
+      }
       pokemon.toxicCounter = Math.min(pokemon.toxicCounter + 1, 15);
       const damage = Math.max(1, Math.floor((pokemon.maxHp * pokemon.toxicCounter) / 16));
       pokemon.currentHp = Math.max(0, pokemon.currentHp - damage);

@@ -42,8 +42,8 @@ function buildGoldenEngine(seed: number): BattleEngine {
   const pokemonDefinitions = new Map(data.pokemon.map((p) => [p.id, p]));
   const pokemonTypesMap = new Map<string, PokemonType[]>(data.pokemon.map((p) => [p.id, p.types]));
 
-  const team1Ids = ["charmander", "squirtle", "pidgey"];
-  const team2Ids = ["bulbasaur", "pikachu", "geodude"];
+  const team1Ids = ["charizard", "blastoise", "dragonite"];
+  const team2Ids = ["venusaur", "raichu", "snorlax"];
 
   const grid = pocArena.tiles.map((row) =>
     row.map((tile) => ({ ...tile, occupantId: null as string | null })),
@@ -159,10 +159,10 @@ describe("golden replay", () => {
       (p) => p.playerId === PlayerId.Player2 && p.currentHp > 0,
     );
 
-    expect(team2Alive.length).toBeGreaterThan(0);
-    expect(team1Alive.length).toBe(0);
-    expect(finalState.roundNumber).toBe(8);
-    expect(replay.actions.length).toBe(103);
+    expect(team1Alive.length).toBeGreaterThan(0);
+    expect(team2Alive.length).toBe(0);
+    expect(finalState.roundNumber).toBe(14);
+    expect(replay.actions.length).toBe(130);
   });
 
   it("produces the same replay when running the battle from scratch", () => {

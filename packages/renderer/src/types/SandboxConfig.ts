@@ -42,7 +42,7 @@ export interface SandboxConfig {
 }
 
 export const DEFAULT_SANDBOX_CONFIG: SandboxConfig = {
-  pokemon: "bulbasaur",
+  pokemon: "venusaur",
   moves: [],
   hp: 100,
   status: null,

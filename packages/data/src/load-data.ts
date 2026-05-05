@@ -1,4 +1,4 @@
-import type { MoveDefinition, PokemonDefinition } from "@pokemon-tactic/core";
+import type { MoveDefinition, PokemonDefinition, PokemonType } from "@pokemon-tactic/core";
 import { AbilityHandlerRegistry, type HeldItemHandlerRegistry } from "@pokemon-tactic/core";
 import abilitiesReference from "../reference/abilities.json";
 import itemsReference from "../reference/items.json";
@@ -88,4 +88,13 @@ export function loadData(): GameData {
   );
 
   return { pokemon, moves, abilityRegistry, itemRegistry };
+}
+
+export function loadAllPokemonTypes(): Map<string, PokemonType[]> {
+  const reference = pokemonReference as unknown as ReferencePokemon[];
+  const result = new Map<string, PokemonType[]>();
+  for (const entry of reference) {
+    result.set(entry.id, entry.types as PokemonType[]);
+  }
+  return result;
 }

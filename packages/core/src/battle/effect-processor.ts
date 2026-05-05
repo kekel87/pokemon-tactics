@@ -14,7 +14,9 @@ import type { EffectContext, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { handleDamage } from "./handlers/handle-damage";
 import { handleDefensive } from "./handlers/handle-defensive";
+import { handleHealSelf } from "./handlers/handle-heal-self";
 import { handleKnockback } from "./handlers/handle-knockback";
+import { handleRecoil } from "./handlers/handle-recoil";
 import { handleStatChange } from "./handlers/handle-stat-change";
 import { handleStatus } from "./handlers/handle-status";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
@@ -44,6 +46,8 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.StatChange, handleStatChange);
   registry.register(EffectKind.Defensive, handleDefensive);
   registry.register(EffectKind.Knockback, handleKnockback);
+  registry.register(EffectKind.HealSelf, handleHealSelf);
+  registry.register(EffectKind.Recoil, handleRecoil);
   return registry;
 }
 

@@ -511,6 +511,184 @@ const earlyBird: AbilityHandler = {
   },
 };
 
+const lightningRod: AbilityHandler = {
+  id: "lightning-rod",
+  onTypeImmunity: (context) => {
+    if (context.moveType !== PokemonType.Electric) {
+      return { blocked: false, events: [] };
+    }
+    const events: BattleEvent[] = [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "lightning-rod",
+        targetIds: [context.self.id],
+      },
+    ];
+    const healAmount = Math.min(
+      context.self.maxHp - context.self.currentHp,
+      Math.floor(context.self.maxHp * 0.25),
+    );
+    if (healAmount > 0) {
+      context.self.currentHp += healAmount;
+      events.push({
+        type: BattleEventType.HpRestored,
+        pokemonId: context.self.id,
+        amount: healAmount,
+      });
+    }
+    const currentStage = context.self.statStages[StatName.SpAttack];
+    const newStage = Math.min(6, currentStage + 1);
+    if (newStage > currentStage) {
+      context.self.statStages[StatName.SpAttack] = newStage;
+      events.push({
+        type: BattleEventType.StatChanged,
+        targetId: context.self.id,
+        stat: StatName.SpAttack,
+        stages: 1,
+      });
+    }
+    return { blocked: true, events };
+  },
+};
+
+const magicGuard: AbilityHandler = {
+  id: "magic-guard",
+  blocksIndirectDamage: true,
+};
+
+const noGuard: AbilityHandler = {
+  id: "no-guard",
+  onAccuracyOverride: () => true,
+};
+
+const moxie: AbilityHandler = {
+  id: "moxie",
+  onAfterKO: (context) => {
+    const currentStage = context.self.statStages[StatName.Attack];
+    const newStage = Math.min(6, currentStage + 1);
+    if (newStage === currentStage) {
+      return [];
+    }
+    context.self.statStages[StatName.Attack] = newStage;
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "moxie",
+        targetIds: [context.self.id],
+      },
+      {
+        type: BattleEventType.StatChanged,
+        targetId: context.self.id,
+        stat: StatName.Attack,
+        stages: 1,
+      },
+    ];
+  },
+};
+
+const multiscale: AbilityHandler = {
+  id: "multiscale",
+  onDamageModify: (context) => {
+    if (!context.isAttacker && context.self.currentHp === context.self.maxHp) {
+      return 0.5;
+    }
+    return 1.0;
+  },
+};
+
+const waterAbsorb: AbilityHandler = {
+  id: "water-absorb",
+  onTypeImmunity: (context) => {
+    if (context.moveType !== PokemonType.Water) {
+      return { blocked: false, events: [] };
+    }
+    const events: BattleEvent[] = [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "water-absorb",
+        targetIds: [context.self.id],
+      },
+    ];
+    const healAmount = Math.min(
+      context.self.maxHp - context.self.currentHp,
+      Math.floor(context.self.maxHp * 0.25),
+    );
+    if (healAmount > 0) {
+      context.self.currentHp += healAmount;
+      events.push({
+        type: BattleEventType.HpRestored,
+        pokemonId: context.self.id,
+        amount: healAmount,
+      });
+    }
+    return { blocked: true, events };
+  },
+};
+
+const flashFire: AbilityHandler = {
+  id: "flash-fire",
+  onTypeImmunity: (context) => {
+    if (context.moveType !== PokemonType.Fire) {
+      return { blocked: false, events: [] };
+    }
+    context.self.abilityFirstTriggered = true;
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "flash-fire",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+  onDamageModify: (context) => {
+    if (
+      context.isAttacker &&
+      context.move.type === PokemonType.Fire &&
+      context.self.abilityFirstTriggered
+    ) {
+      return 1.5;
+    }
+    return 1.0;
+  },
+};
+
+const voltAbsorb: AbilityHandler = {
+  id: "volt-absorb",
+  onTypeImmunity: (context) => {
+    if (context.moveType !== PokemonType.Electric) {
+      return { blocked: false, events: [] };
+    }
+    const events: BattleEvent[] = [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "volt-absorb",
+        targetIds: [context.self.id],
+      },
+    ];
+    const healAmount = Math.min(
+      context.self.maxHp - context.self.currentHp,
+      Math.floor(context.self.maxHp * 0.25),
+    );
+    if (healAmount > 0) {
+      context.self.currentHp += healAmount;
+      events.push({
+        type: BattleEventType.HpRestored,
+        pokemonId: context.self.id,
+        amount: healAmount,
+      });
+    }
+    return { blocked: true, events };
+  },
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -532,4 +710,12 @@ export const abilityHandlers: AbilityHandler[] = [
   sandVeil,
   ownTempo,
   earlyBird,
+  lightningRod,
+  magicGuard,
+  noGuard,
+  moxie,
+  multiscale,
+  waterAbsorb,
+  flashFire,
+  voltAbsorb,
 ];

@@ -1,10 +1,9 @@
-import { loadData, pocArena } from "@pokemon-tactic/data";
+import { loadAllPokemonTypes, loadData, pocArena } from "@pokemon-tactic/data";
 import { BattleEngine } from "../battle/BattleEngine";
 import { computeCombatStats } from "../battle/stat-calculator";
 import { computeMovement } from "../battle/stat-modifier";
 import { Nature } from "../enums/nature";
 import { PokemonGender } from "../enums/pokemon-gender";
-import type { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
@@ -37,7 +36,7 @@ export function buildTestEngineFromPlacements(
   }
 
   const pokemonDefinitions = new Map(data.pokemon.map((p) => [p.id, p]));
-  const pokemonTypesMap = new Map<string, PokemonType[]>(data.pokemon.map((p) => [p.id, p.types]));
+  const pokemonTypesMap = loadAllPokemonTypes();
 
   const map = pocArena;
   const grid: TileState[][] = map.tiles.map((row) =>

@@ -10,6 +10,11 @@ import { clampStages, computeMovement } from "../stat-modifier";
 export function handleStatChange(context: EffectContext): BattleEvent[] {
   const events: BattleEvent[] = [];
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.StatChange }>;
+
+  if (effect.chance !== undefined && context.random() * 100 >= effect.chance) {
+    return events;
+  }
+
   const affectedPokemon =
     effect.target === EffectTarget.Self ? [context.attacker] : context.targets;
   const isEnemyDebuff = effect.target !== EffectTarget.Self && effect.stages < 0;

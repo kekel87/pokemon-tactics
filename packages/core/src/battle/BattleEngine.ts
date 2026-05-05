@@ -48,7 +48,7 @@ import { getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handler";
-import { seededTickHandler } from "./handlers/seeded-tick-handler";
+import { createSeededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
 import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
@@ -135,11 +135,14 @@ export class BattleEngine {
     this.turnManager = new TurnManager([...state.pokemon.values()], getEffectiveInitiative);
     this.turnPipeline.registerStartTurn(defensiveClearHandler, 50);
     this.turnPipeline.registerStartTurn(
-      createStatusTickHandler(this.random, this.statusRules),
+      createStatusTickHandler(this.random, this.statusRules, this.abilityRegistry ?? undefined),
       100,
     );
     this.turnPipeline.registerStartTurn(createInfatuationTickHandler(this.random), 150);
-    this.turnPipeline.registerEndTurn(seededTickHandler, 200);
+    this.turnPipeline.registerEndTurn(
+      createSeededTickHandler(this.abilityRegistry ?? undefined),
+      200,
+    );
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
     this.turnPipeline.registerEndTurn(
       createTerrainTickHandler(this.pokemonTypesMap, this.itemRegistry ?? undefined),
@@ -714,7 +717,10 @@ export class BattleEngine {
         !isTerrainImmune(TerrainType.TallGrass, defenderTypes, this.isEffectivelyFlying(target))
           ? 1
           : 0;
-      if (checkAccuracy(move, pokemon, target, this.random, tallGrassBonus)) {
+      const forceHit =
+        (this.abilityRegistry?.getForPokemon(pokemon)?.onAccuracyOverride?.() ?? false) ||
+        (this.abilityRegistry?.getForPokemon(target)?.onAccuracyOverride?.() ?? false);
+      if (forceHit || checkAccuracy(move, pokemon, target, this.random, tallGrassBonus)) {
         targets.push(target);
       } else {
         const missEvent: BattleEvent = {
@@ -784,6 +790,20 @@ export class BattleEngine {
         this.handleKo(event.pokemonId, events);
         if (this.battleOver) {
           return { success: true, events };
+        }
+        const target = this.state.pokemon.get(event.pokemonId);
+        const attackerAbility = this.abilityRegistry?.getForPokemon(pokemon);
+        if (attackerAbility?.onAfterKO && target) {
+          const koEvents = attackerAbility.onAfterKO({
+            self: pokemon,
+            target,
+            move,
+            state: this.state,
+          });
+          for (const e of koEvents) {
+            this.emit(e);
+            events.push(e);
+          }
         }
       }
     }

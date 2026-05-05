@@ -1,9 +1,8 @@
-import { loadData, typeChart } from "@pokemon-tactic/data";
+import { loadAllPokemonTypes, loadData, typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
 import { BattleEngine } from "../battle/BattleEngine";
 import { ActionKind } from "../enums/action-kind";
 import { PlayerId } from "../enums/player-id";
-import type { PokemonType } from "../enums/pokemon-type";
 import { TerrainType } from "../enums/terrain-type";
 import { MockBattle } from "../testing/mock-battle";
 import { MockPokemon } from "../testing/mock-pokemon";
@@ -22,7 +21,7 @@ function buildEngine(
   for (const move of data.moves) {
     moveRegistry.set(move.id, move);
   }
-  const pokemonTypesMap = new Map<string, PokemonType[]>(data.pokemon.map((p) => [p.id, p.types]));
+  const pokemonTypesMap = loadAllPokemonTypes();
 
   const attacker = MockPokemon.fresh(MockPokemon.charmander, {
     id: "p1-charmander",
@@ -163,9 +162,7 @@ describe("scoreAction", () => {
     for (const move of data.moves) {
       moveRegistry.set(move.id, move);
     }
-    const pokemonTypesMap = new Map<string, PokemonType[]>(
-      data.pokemon.map((p) => [p.id, p.types]),
-    );
+    const pokemonTypesMap = loadAllPokemonTypes();
 
     const attacker = MockPokemon.fresh(MockPokemon.bulbasaur, {
       id: "p1-bulbasaur",
@@ -213,9 +210,7 @@ describe("scoreAction", () => {
     for (const move of data.moves) {
       moveRegistry.set(move.id, move);
     }
-    const pokemonTypesMap = new Map<string, PokemonType[]>(
-      data.pokemon.map((p) => [p.id, p.types]),
-    );
+    const pokemonTypesMap = loadAllPokemonTypes();
 
     const attacker = MockPokemon.fresh(MockPokemon.charmander, {
       id: "p1-charmander",
@@ -264,9 +259,7 @@ describe("scoreAction", () => {
     for (const move of data.moves) {
       moveRegistry.set(move.id, move);
     }
-    const pokemonTypesMap = new Map<string, PokemonType[]>(
-      data.pokemon.map((p) => [p.id, p.types]),
-    );
+    const pokemonTypesMap = loadAllPokemonTypes();
 
     const attacker = MockPokemon.fresh(MockPokemon.charmander, {
       id: "p1-charmander",

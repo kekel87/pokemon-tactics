@@ -62,6 +62,13 @@ export interface TypeImmunityContext {
   moveType: PokemonType;
 }
 
+export interface AfterKOContext {
+  self: PokemonInstance;
+  target: PokemonInstance;
+  move: MoveDefinition;
+  state: BattleState;
+}
+
 export interface BattleStartContext {
   self: PokemonInstance;
   state: BattleState;
@@ -86,6 +93,9 @@ export interface DurationModifyResult {
 
 export interface AbilityHandler {
   id: string;
+  blocksIndirectDamage?: boolean;
+  onAccuracyOverride?: () => boolean;
+  onAfterKO?: (context: AfterKOContext) => BattleEvent[];
   onDamageModify?: (context: DamageModifyContext) => number;
   onAfterDamageReceived?: (context: AfterDamageContext) => BattleEvent[];
   onAfterStatusReceived?: (context: AfterStatusContext) => BattleEvent[];
