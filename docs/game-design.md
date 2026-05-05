@@ -77,7 +77,8 @@ Combat tactique sur grille isométrique :
 | **Niveau de combat** | Fixé à **50**. Stats calculées avec formule Pokemon Gen 5+ au niveau 50 (sans IV/EV pour le POC). |
 | **Stats dérivées** | Mouvement, Saut, Initiative — voir [section 6b](#6b-mouvement--formule-de-portée-de-déplacement) |
 | **Types** | 18 types, faiblesses/résistances |
-| **4 Attaques** | Puissance, précision, PP, type, catégorie (phys/spé/statut), **pattern AoE**, **portée** — surchargeable pour équilibrage |
+| **Movepool** | Réservoir complet des moves apprenables par l'espèce — source pour le futur Team Builder (sélection des 4 actifs) |
+| **4 Attaques actives** | Les 4 moves sélectionnés dans le movepool, portés en combat via `moveIds`. Limité aux 4 premiers du movepool en l'absence de Team Builder. Puissance, précision, PP, type, catégorie (phys/spé/statut), **pattern AoE**, **portée** — surchargeable pour équilibrage |
 | **1 Talent** | Capacité passive (ex: Intimidation, Lévitation...) |
 | **1 Objet tenu** | Effet passif ou consommable |
 
@@ -769,6 +770,7 @@ Chaque combat = séquence d'actions déterministe :
 
 - **Format Showdown** pour import/export
 - Permet d'échanger équipes, utiliser équipes existantes de la communauté
+- **Sélection des 4 moves actifs** : le joueur choisit les 4 attaques parmi le movepool complet de chaque Pokemon. En l'absence de Team Builder, `BattleSetup` prend les 4 premiers du movepool.
 
 ---
 

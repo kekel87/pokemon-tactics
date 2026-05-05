@@ -309,6 +309,7 @@
 | 297 | 2026-05-03 | HP inclus dans SP | **HP reçoit SP comme les autres stats.** Nature n'affecte pas HP — pas d'ambiguïté d'ordre. | Plan 074. Cohérent avec le design Champions. |
 | 298 | 2026-05-03 | Formule IV=31 fixe | **`computeStatAtLevel` utilise désormais `floor((2 × base + 31) × level / 100)`.** Alignement canon Champions. Ancienne formule = IV=0 implicite (écart ~+15 stats non-HP à niveau 50). Golden replay régénéré (82 → 103 actions avec seed 12345). Tests stat-calculator mis à jour. | Plan 074. Option B retenue humain 2026-05-03. |
 | 299 | 2026-05-03 | Pas d'UI SP dans plan 074 | **Team Builder allouera SP via interface dédiée.** Ce plan pose uniquement le modèle de données + pipeline core. Pas de validation `TeamSelection` SP (futur). | Plan 074. Scope tight. |
+| 300 | 2026-05-05 | movepool vs moveIds | **`movepool` = réservoir complet des moves apprenables (données, jamais tronqué). `moveIds` = les 4 moves actifs en combat (4 premiers du movepool en l'absence de Team Builder).** `BattleSetup.ts` limite `moveIds` aux 4 premiers. La Sandbox utilise également les 4 premiers quand aucun move n'est configuré explicitement. | Playtest. Prépare la sélection libre via Team Builder sans modifier la structure de données. |
 
 ---
 

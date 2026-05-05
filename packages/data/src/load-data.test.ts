@@ -54,18 +54,18 @@ describe("loadData", () => {
   it("pokemon have correct ids derived from names", () => {
     const data = loadData();
     const ids = data.pokemon.map((p) => p.id);
-    expect(ids).toContain("bulbasaur");
-    expect(ids).toContain("charmander");
-    expect(ids).toContain("squirtle");
-    expect(ids).toContain("pidgey");
-    expect(ids).toContain("pikachu");
-    expect(ids).toContain("machop");
-    expect(ids).toContain("abra");
-    expect(ids).toContain("gastly");
-    expect(ids).toContain("geodude");
-    expect(ids).toContain("growlithe");
-    expect(ids).toContain("jigglypuff");
-    expect(ids).toContain("seel");
+    expect(ids).toContain("venusaur");
+    expect(ids).toContain("charizard");
+    expect(ids).toContain("blastoise");
+    expect(ids).toContain("raichu");
+    expect(ids).toContain("alakazam");
+    expect(ids).toContain("machamp");
+    expect(ids).toContain("gyarados");
+    expect(ids).toContain("snorlax");
+    expect(ids).toContain("dragonite");
+    expect(ids).toContain("vaporeon");
+    expect(ids).toContain("flareon");
+    expect(ids).toContain("jolteon");
   });
 });
 

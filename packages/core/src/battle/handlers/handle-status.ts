@@ -1,5 +1,6 @@
 import { BattleEventType } from "../../enums/battle-event-type";
 import type { EffectKind } from "../../enums/effect-kind";
+import { EffectTarget } from "../../enums/effect-target";
 import { PokemonType } from "../../enums/pokemon-type";
 import type { StatusType } from "../../enums/status-type";
 import { StatusType as StatusTypeEnum } from "../../enums/status-type";
@@ -42,7 +43,10 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
   const random = context.random;
   const statusRules = context.statusRules ?? DEFAULT_STATUS_RULES;
 
-  for (const target of context.targets) {
+  const resolvedTargets =
+    effect.target === EffectTarget.Self ? [context.attacker] : context.targets;
+
+  for (const target of resolvedTargets) {
     if (random() * 100 >= effect.chance) {
       continue;
     }

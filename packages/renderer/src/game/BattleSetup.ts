@@ -60,8 +60,9 @@ function createPokemonInstance(
   heldItemId?: HeldItemId,
   statSpread?: StatSpread,
 ): PokemonInstance {
+  const activeMoveIds = definition.movepool.slice(0, 4);
   const currentPp: Record<string, number> = {};
-  for (const moveId of definition.movepool) {
+  for (const moveId of activeMoveIds) {
     const move = moveRegistry.get(moveId);
     currentPp[moveId] = move?.pp ?? 0;
   }
@@ -86,7 +87,7 @@ function createPokemonInstance(
     statusEffects: [],
     position,
     orientation,
-    moveIds: [...definition.movepool],
+    moveIds: activeMoveIds,
     currentPp,
     activeDefense: null,
     lastEndureRound: null,
@@ -245,18 +246,25 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
 export const defaultTeams: PlacementTeam[] = [
   {
     playerId: PlayerId.Player1,
-    pokemonIds: ["p1-bulbasaur", "p1-squirtle", "p1-pikachu", "p1-machop", "p1-abra", "p1-geodude"],
+    pokemonIds: [
+      "p1-venusaur",
+      "p1-blastoise",
+      "p1-raichu",
+      "p1-machamp",
+      "p1-alakazam",
+      "p1-snorlax",
+    ],
     controller: PlayerController.Human,
   },
   {
     playerId: PlayerId.Player2,
     pokemonIds: [
-      "p2-charmander",
-      "p2-pidgey",
-      "p2-gastly",
-      "p2-growlithe",
-      "p2-jigglypuff",
-      "p2-seel",
+      "p2-charizard",
+      "p2-gyarados",
+      "p2-dragonite",
+      "p2-vaporeon",
+      "p2-flareon",
+      "p2-jolteon",
     ],
     controller: PlayerController.Ai,
   },

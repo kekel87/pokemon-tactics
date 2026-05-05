@@ -13,9 +13,9 @@
 
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
-| Pokemon | 20 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9 |
-| Attaques | 69 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
-| Talents | 20 | 114 | Talents portés par au moins un des 151 Gen 1 |
+| Pokemon | 15 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. |
+| Attaques | 102 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
+| Talents | 28 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 12 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
 ---
@@ -34,13 +34,13 @@
 |---|---|---|---|---|---|---|---|
 | 001 | bulbasaur | Bulbizarre | Plante/Poison | ✓ | overgrow | ✓ | |
 | 002 | ivysaur | Herbizarre | Plante/Poison | ✗ | | ⚠️ Faint abs. | |
-| 003 | venusaur | Florizarre | Plante/Poison | ✗ | | ⚠️ Faint abs. | Méga disponible |
+| 003 | venusaur | Florizarre | Plante/Poison | ✓ | overgrow | ⚠️ Faint abs. | Méga disponible |
 | 004 | charmander | Salamèche | Feu | ✓ | blaze | ✓ | |
 | 005 | charmeleon | Reptincel | Feu | ✗ | | ✓ | |
-| 006 | charizard | Dracaufeu | Feu/Vol | ✗ | | ✓ mais FlyingIdle abs. (Walk fallback vol) | Méga disponible |
+| 006 | charizard | Dracaufeu | Feu/Vol | ✓ | blaze | ✓ mais FlyingIdle abs. (Walk fallback vol) | Méga disponible |
 | 007 | squirtle | Carapuce | Eau | ✓ | torrent | ✓ | |
 | 008 | wartortle | Carabaffe | Eau | ✗ | | ⚠️ Faint abs. | |
-| 009 | blastoise | Tortank | Eau | ✗ | | ⚠️ Faint abs. | Méga disponible |
+| 009 | blastoise | Tortank | Eau | ✓ | torrent | ⚠️ Faint abs. | Méga disponible |
 | 010 | caterpie | Chenipan | Insecte | ✗ | | ⚠️ Faint abs. | |
 | 011 | metapod | Chrysacier | Insecte | ✗ | | ⚠️ Faint abs. | |
 | 012 | butterfree | Papilusion | Insecte/Vol | ✗ | | ⚠️ Faint abs. (FlyingIdle ✓) | |
@@ -57,7 +57,7 @@
 | 023 | ekans | Abo | Poison | ✗ | | ⚠️ Faint abs. | |
 | 024 | arbok | Arbok | Poison | ✗ | | ⚠️ Faint abs. | |
 | 025 | pikachu | Pikachu | Électrique | ✓ | static | ✓ | |
-| 026 | raichu | Raichu | Électrique | ✗ | | ✓ | Méga disponible |
+| 026 | raichu | Raichu | Électrique | ✓ | lightning-rod | ✓ | Méga disponible |
 | 027 | sandshrew | Sabelette | Sol | ✓ | sand-veil | ✓ | |
 | 028 | sandslash | Sablaireau | Sol | ✗ | | ✓ | |
 | 029 | nidoran-f | Nidoran♀ | Poison | ✗ | | ⚠️ Faint abs. | |
@@ -96,10 +96,10 @@
 | 062 | poliwrath | Tartard | Eau/Combat | ✗ | | ⚠️ Faint abs. | |
 | 063 | abra | Abra | Psy | ✓ | synchronize | ✓ | |
 | 064 | kadabra | Kadabra | Psy | ✗ | | ⚠️ Faint abs. | |
-| 065 | alakazam | Alakazam | Psy | ✗ | | ⚠️ Faint abs. | Méga disponible |
+| 065 | alakazam | Alakazam | Psy | ✓ | magic-guard | ⚠️ Faint abs. | Méga disponible |
 | 066 | machop | Machoc | Combat | ✓ | guts | ✓ | |
 | 067 | machoke | Machopeur | Combat | ✗ | | ⚠️ Faint abs. | |
-| 068 | machamp | Mackogneur | Combat | ✗ | | ⚠️ Faint abs. | |
+| 068 | machamp | Mackogneur | Combat | ✓ | no-guard | ⚠️ Faint abs. | |
 | 069 | bellsprout | Chétiflor | Plante/Poison | ✗ | | ⚠️ Faint abs. | |
 | 070 | weepinbell | Boustiflor | Plante/Poison | ✗ | | ⚠️ Faint abs. | |
 | 071 | victreebel | Empiflor | Plante/Poison | ✗ | | ⚠️ Faint abs. | Méga disponible |
@@ -161,26 +161,26 @@
 | 127 | pinsir | Scarabrute | Insecte | ✗ | | ⚠️ Faint abs. | Méga disponible |
 | 128 | tauros | Tauros | Normal | ✗ | | ⚠️ Faint abs. | |
 | 129 | magikarp | Magicarpe | Eau | ✗ | | ⚠️ Faint abs. | |
-| 130 | gyarados | Léviator | Eau/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
+| 130 | gyarados | Léviator | Eau/Vol | ✓ | moxie | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
 | 131 | lapras | Lokhlass | Eau/Glace | ✗ | | ⚠️ Faint abs. | |
 | 132 | ditto | Métamorph | Normal | ✗ | | ⚠️ Faint abs. | |
 | 133 | eevee | Évoli | Normal | ✓ | adaptability | ✓ | |
-| 134 | vaporeon | Aquali | Eau | ✗ | | ⚠️ Faint abs. | |
-| 135 | jolteon | Voltali | Électrique | ✗ | | ✓ | |
-| 136 | flareon | Pyroli | Feu | ✗ | | ✓ | |
+| 134 | vaporeon | Aquali | Eau | ✓ | water-absorb | ⚠️ Faint abs. | |
+| 135 | jolteon | Voltali | Électrique | ✓ | volt-absorb | ✓ | |
+| 136 | flareon | Pyroli | Feu | ✓ | flash-fire | ✓ | |
 | 137 | porygon | Porygon | Normal | ✗ | | ⚠️ Faint abs. | |
 | 138 | omanyte | Amonita | Roche/Eau | ✗ | | ⚠️ Faint abs. | |
 | 139 | omastar | Amonistar | Roche/Eau | ✗ | | ⚠️ Faint abs. | |
 | 140 | kabuto | Kabuto | Roche/Eau | ✗ | | ✓ | |
 | 141 | kabutops | Kabutops | Roche/Eau | ✗ | | ⚠️ Faint abs. | |
 | 142 | aerodactyl | Ptéra | Roche/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
-| 143 | snorlax | Ronflex | Normal | ✗ | | ⚠️ Faint abs. | |
+| 143 | snorlax | Ronflex | Normal | ✓ | thick-fat | ⚠️ Faint abs. | |
 | 144 | articuno | Artikodin | Glace/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
 | 145 | zapdos | Électhor | Électrique/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
 | 146 | moltres | Sulfura | Feu/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
 | 147 | dratini | Minidraco | Dragon | ✗ | | ⚠️ Faint abs. | |
 | 148 | dragonair | Draco | Dragon | ✗ | | ⚠️ Faint abs. | |
-| 149 | dragonite | Dracolosse | Dragon/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
+| 149 | dragonite | Dracolosse | Dragon/Vol | ✓ | multiscale | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
 | 150 | mewtwo | Mewtwo | Psy | ✗ | | ✓ | Méga disponible, Légendaire |
 | 151 | mew | Mew | Psy | ✗ | | ✓ | Mythique |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (69 implémentées)
+## Attaques (102 implémentées)
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
 
@@ -290,10 +290,39 @@
 | Cru-Ailes | wing-attack | Vol | Phys | 60 | 100 | 35 | slash | |
 | Repli | withdraw | Eau | Statut | — | — | 40 | self | +1 Déf, +1 DéfSpé |
 | Ligotage | wrap | Normal | Phys | 15 | 90 | 20 | mêlée | Piégé + drain PV/tour |
+| Armure Acide | acid-armor | Poison | Statut | — | — | 20 | self | +2 Déf |
+| Tranche-Air | air-slash | Vol | Spé | 75 | 95 | 15 | slash | Flinch 30% |
+| Amnésie | amnesia | Psy | Statut | — | — | 20 | self | +2 DéfSpé |
+| Aqua-Queue | aqua-tail | Eau | Phys | 90 | 90 | 10 | mêlée | |
+| Casse-Brique | brick-break | Combat | Phys | 75 | 100 | 15 | mêlée | |
+| Rayon Chargé | charge-beam | Électrique | Spé | 50 | 90 | 10 | ligne r3 | +1 AtqSpé 70% |
+| Close Combat | close-combat | Combat | Phys | 120 | 100 | 5 | mêlée | −1 Déf, −1 DéfSpé attaquant |
+| Mâchouille | crunch | Ténèbres | Phys | 80 | 100 | 15 | mêlée | −1 Déf 20% |
+| Draco-Griffe | dragon-claw | Dragon | Phys | 80 | 100 | 15 | mêlée | |
+| Danse Draco | dragon-dance | Dragon | Statut | — | — | 20 | self | +1 Atk, +1 Vit |
+| Dynamopoing | dynamic-punch | Combat | Phys | 100 | 50 | 5 | mêlée | Confusion 100% (acc parfaite avec No-Guard) |
+| Vitesse Extrême | extreme-speed | Normal | Phys | 80 | 100 | 5 | dash r2 | |
+| Déflagration | fire-blast | Feu | Spé | 110 | 85 | 5 | blast r3/r1 | Brûlure 10% |
+| Tunnel de Flammes | flare-blitz | Feu | Phys | 120 | 100 | 15 | dash r3 | Brûlure 10%, recul 1/3 PV |
+| Croissance | growth | Plante | Statut | — | — | 20 | self | +1 Atk, +1 AtqSpé |
+| Hydrocanon | hydro-pump | Eau | Spé | 110 | 80 | 5 | ligne r4 | |
+| Lance-Glace | ice-beam | Glace | Spé | 90 | 100 | 10 | ligne r4 | Gel 10% |
+| Queue de Fer | iron-tail | Acier | Phys | 100 | 75 | 15 | mêlée | −1 Déf 30% |
+| Éruption | lava-plume | Feu | Spé | 80 | 100 | 15 | zone r1 | Brûlure 30%, friendly fire |
+| Colère | outrage | Dragon | Phys | 120 | 100 | 10 | mêlée | Confusion attaquant après (100%) |
+| Tempête Florale | petal-blizzard | Plante | Phys | 90 | 100 | 15 | zone r2 | Friendly fire |
+| Psyko | psychic | Psy | Spé | 90 | 100 | 10 | single r4 | −1 DéfSpé 10% |
+| Soin | recover | Normal | Statut | — | — | 5 | self | Soigne 50% PV max |
+| Repos | rest | Psy | Statut | — | — | 5 | self | Soigne 100% PV max + Sommeil 2 tours |
+| Ball'Ombre | shadow-ball | Spectre | Spé | 80 | 100 | 15 | single r4 | −1 DéfSpé 20% |
+| Surf | surf | Eau | Spé | 90 | 100 | 15 | zone r2 | Friendly fire |
+| Synthèse | synthesis | Normal | Statut | — | — | 5 | self | Soigne 50% PV max |
+| Tonnerre Vrai | thunder | Électrique | Spé | 110 | 70 | 10 | single r4 | Para 30% |
+| Cascade | waterfall | Eau | Phys | 80 | 100 | 15 | dash r3 | Flinch 20% |
 
 ---
 
-## Talents (20 implémentés)
+## Talents (28 implémentés)
 
 | Talent | ID | Pokemon (roster) | Effet résumé |
 |---|---|---|---|
@@ -317,6 +346,14 @@
 | Voile Sable | sand-veil | Sabelette | (placeholder — bonus esquive sable) |
 | Tempo Perso | own-tempo | Excelangue | Immunité Confusion et Intimidation |
 | Matinale | early-bird | Kangourex | Durée Sommeil ÷ 2 |
+| Para-Foudre | lightning-rod | Raichu | Immunité Électrique + +1 AtqSpé si Électrique reçu (redirect → plan dédié) |
+| Garde Magique | magic-guard | Alakazam | Bloque tous dégâts indirects (brûlure, poison, vampigraine, recul Life Orb…) |
+| Aucun Garde | no-guard | Mackogneur | Toutes attaques envoyées ET reçues ont 100% précision |
+| Macho | moxie | Léviator | +1 Atk quand le porteur met un ennemi KO |
+| Multiécaille | multiscale | Dracolosse | Divise par 2 les dégâts reçus si PV max |
+| Absorb'Eau | water-absorb | Aquali | Immunité Eau + soigne +25% PV max si touché par move Eau |
+| Torche | flash-fire | Pyroli | Immunité Feu + ×1.5 dégâts Feu après avoir reçu un move Feu |
+| Absorb'Volt | volt-absorb | Voltali | Immunité Électrique + soigne +25% PV max si touché par move Électrique |
 
 ---
 

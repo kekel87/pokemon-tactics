@@ -155,7 +155,12 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
 - [x] Natures / Stat Alignment — plan 072 terminé (mécanique core uniquement, affichage UI reporté). `Nature` enum (25), table boost/lowered en dur dans le core, `applyNatureModifier(stats, nature)` + `computeCombatStats(baseStats, level, nature?)`. Roll uniforme via `rollNature(rng)`, déterministe via `creationRng` partagé avec gender. `natureOverrides` prêt pour Team Builder. HP toujours exclu. **Affichage InfoPanel différé** à la refonte UI.
 - [x] Objets tenus — plan 073 terminé. `HeldItemId` (12 items), `HeldItemHandler` (8 hooks dont `onMoveLock` pour verrou Choice piloté par hook), `HeldItemHandlerRegistry`, mini-système critiques, verrou Choice, validateur `DuplicateItem`, 4 nouveaux `BattleEventType`, fix `HpRestored` HP bar renderer, i18n `battle.itemConsumed`, 12 tests intégration. Décisions #288-295.
 - [x] EV / IV — plan 074 terminé. IV fixes à 31 pour tous les Pokemon. EV → Stat Points (SP) : 66 max, 32 max par stat, 1 SP = +1 stat. `applyStatPoints(stats, sp)`, `rollStatPoints(rng)`, `statPointsOverrides` prêt pour Team Builder. Formule dégâts alignée IV=31.
-- [ ] Roster élargi (~30-40 Pokemon) + attaques
+- [ ] Roster élargi — 70 finales Gen 1 (hors Ditto, starters/intermédiaires hors mini à partir de cette phase)
+  - [x] **Batch A (12)** — Starters finaux + Éévolutions + iconiques — plan 075 terminé 2026-05-04. Venusaur, Dracaufeu, Tortank, Raichu, Alakazam, Mackogneur, Léviator, Ronflex, Dracolosse, Aquali, Pyroli, Voltali. 29 moves ajoutés (102 total). 8 abilities ajoutées (28 total). Formes non-finales retirées du roster mini. 4-move limit en combat (décision #300, 2026-05-05).
+  - [ ] **Batch B (~20)** — Coverage types variés : Arcanin, Flagadoss, Nidoking, Nidoqueen, Colossinge, Tartard, Grolem, Rhydon, Gengar, Hypnomade, Noadkoko, Ossatueur, Kicklee, Tygnon, Starmie, Staross, Scarabrute, Insécateur, Kabutops, Ptéra
+  - [ ] **Batch C (~20)** — Secondaires + spéciaux : Papilusion, Dardargnan, Roucarnage, Rattatac, Rapasdepic, Arbok, Mélodelfe, Grodoudou, Nosferalto, Rafflesia, Parasect, Aéromite, Triopikeur, Persian, Akwakwak, Empiflor, Tentacruel, Galopa, Magnéton, Canarticho
+  - [ ] **Batch D (~15)** — Exotiques + légendaires : Dodrio, Lamantine, Grotadmorv, Crustabri, Onix, Krabboss, Électrode, Smogogo, Leveinard, Saquedeneu, Hypocéan, Poissoroy, M. Mime, Lippoutou, Élektek, Magmar, Tauros, Lokhlass, Porygon, Amonistar, Artikodin, Électhor, Sulfura
+- [ ] Moves & talents restants post-batchs — compléter pool attaques et talents des 70 nouveaux Pokemon. Chaque batch introduit moves + talents ; un plan de finition couvrira les manquants transversaux (moves multi-Pokemon partagés, talents encore absents).
 - [ ] Team Builder (import/export Showdown)
 
 ---
@@ -267,6 +272,6 @@ Tie à Babylon : éditeur et props terrain repensés pour renderer 3D.
 - [ ] Conditions de victoire alternatives
 - [ ] Draft/ban phase
 - [ ] **Modification dynamique du terrain par attaques** — certaines attaques transforment terrain pendant combat (Feu → supprime tall grass, Ébullition crée tiles lave/magma, Force déplace rochers, Glace gèle tiles eau). Mutation runtime `TerrainType` + décoration associée. Reporté Phase 3 en 2026-04-20 : scope trop lourd tant que roster attaques et palette terrains pas figés.
-- [ ] **Météo (Tempête de Sable, Soleil, Pluie, Grêle) + capacités/talents associés** — sand-veil (Sandshrew) dormant (hook `onAccuracyModify` supprimé plan 070, à ré-ouvrir ici quand `sandstormActive` ajouté à `BattleState`).
+- [ ] **Météo (Tempête de Sable, Soleil, Pluie, Grêle) + capacités/talents associés** — sand-veil (Sandshrew) dormant (hook `onAccuracyModify` supprimé plan 070, à ré-ouvrir ici quand `sandstormActive` ajouté à `BattleState`). Synthèse (Florizarre) affectée : soigne 100% sous Soleil, 25% sous Pluie/Grêle.
 - [ ] **Champs (Herbeux, Psy, Électrique, Brumeux, Distorsion)** — modificateurs terrain affectant dégâts, statuts et capacités.
 - [ ] **Modèles 3D pour les Pokemon** — remplacer sprites billboards 2D par modèles 3D (glTF/GLB) style Pokemon Champions / Stadium. À évaluer après stabilisation renderer Babylon.

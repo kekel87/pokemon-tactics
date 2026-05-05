@@ -64,8 +64,9 @@ function buildEngine(seed: number): BattleEngine {
       throw new Error(`Unknown pokemon: ${defId}`);
     }
     const id = `p${playerId === PlayerId.Player1 ? "1" : "2"}-${defId}`;
+    const activeMoveIds = definition.movepool.slice(0, 4);
     const currentPp: Record<string, number> = {};
-    for (const moveId of definition.movepool) {
+    for (const moveId of activeMoveIds) {
       const moveDef = moveRegistry.get(moveId);
       currentPp[moveId] = moveDef?.pp ?? 0;
     }
@@ -88,7 +89,7 @@ function buildEngine(seed: number): BattleEngine {
       statusEffects: [],
       position,
       orientation: playerId === PlayerId.Player1 ? Direction.East : Direction.West,
-      moveIds: [...definition.movepool],
+      moveIds: activeMoveIds,
       currentPp,
       activeDefense: null,
       lastEndureRound: null,

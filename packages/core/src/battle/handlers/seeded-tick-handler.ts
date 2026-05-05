@@ -2,13 +2,27 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { StatusType } from "../../enums/status-type";
 import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
-import type { PhaseResult } from "../turn-pipeline";
+import type { AbilityHandlerRegistry } from "../ability-handler-registry";
+import type { PhaseHandler, PhaseResult } from "../turn-pipeline";
 
-export function seededTickHandler(pokemonId: string, state: BattleState): PhaseResult {
+export function createSeededTickHandler(abilityRegistry?: AbilityHandlerRegistry): PhaseHandler {
+  return (pokemonId: string, state: BattleState) =>
+    seededTickHandler(pokemonId, state, abilityRegistry);
+}
+
+export function seededTickHandler(
+  pokemonId: string,
+  state: BattleState,
+  abilityRegistry?: AbilityHandlerRegistry,
+): PhaseResult {
   const pokemon = state.pokemon.get(pokemonId);
   const events: BattleEvent[] = [];
 
   if (!pokemon) {
+    return { events, skipAction: false, restrictActions: false, pokemonFainted: false };
+  }
+
+  if (abilityRegistry?.getForPokemon(pokemon)?.blocksIndirectDamage) {
     return { events, skipAction: false, restrictActions: false, pokemonFainted: false };
   }
 

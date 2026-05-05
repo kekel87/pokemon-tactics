@@ -4,8 +4,8 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
-- **Phase 4 en cours.** Plans 069–074 terminés. Restants : Méga-évolutions, Roster élargi (~30-40), Team Builder.
-- **Prochain plan** : Roster élargi (~30-40 Pokemon) ou Team Builder (UI SP prêt).
+- **Phase 4 en cours.** Plans 069–075 terminés. Restants : Roster élargi (Batch B-D), Team Builder. Méga-évolutions → Phase 9.
+- **Prochain plan** : **Roster Batch B (~20)** — Coverage types variés : Arcanin, Flagadoss, Nidoking, Nidoqueen, Colossinge, Tartard, Grolem, Rhydon, Gengar, Hypnomade, Noadkoko, Ossatueur, Kicklee, Tygnon, Starmie, Staross, Scarabrute, Insécateur, Kabutops, Ptéra.
 - **À valider visuellement** : floating text `AbilityActivated` jaune doré, émission Blaze/Torrent/Overgrow au seuil HP, blocage Confusion par Tempo Perso, Early Bird au réveil. Tester sandbox ou combat IA vs IA.
 - **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles, peinture Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour arène propre rapide, ou reporter post-Babylon via `DecalMap`.
 - **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20). Pistes à garder :
@@ -21,6 +21,7 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## Fait récemment
 
+- 2026-05-05 — **Fixes post-plan 075 + playtest**. Sprites 12 Pokemon Batch A téléchargés via PMDCollab (extract-sprites). Tests intégration corrigés (pokemonTypesMap, compteurs roster). `BattleSetup.ts` : 4-move limit (4 premiers du movepool). Sandbox cohérente (4 premiers par défaut). i18n : anciens non-finaux retirés, 12 Batch A ajoutés. Biome format sprites JSON. Décision #300. CI : 1168 unit + 157 intégration verts.
 - 2026-05-03 — **Plan 074 terminé — EV → Stat Points**. `StatSpread` type + `SP_TOTAL_MAX=66` / `SP_PER_STAT_MAX=32`. `validateStatSpread`. `computeCombatStats` étendu : `statSpread?` + **IV=31 fixe** (alignement Champions, +~15 stats non-HP à niveau 50 vs ancien IV=0). `PokemonInstance.statSpread?`. `BattleSetupConfig.statSpreadOverrides?`. Golden replay régénéré (82 → 103 actions seed=12345). Fix flakiness `DummyAiController.test.ts` (natures aléatoires). 9 nouveaux tests. CI : 1168 unit + 157 intégration verts. Décisions #296–299.
 - 2026-04-29 — **Plan 072 terminé — Natures / Stat Alignment** (mécanique core uniquement). `Nature` enum 25 valeurs, table boost/lowered en dur (Gen 3+ Bulbapedia, 5 neutres + 20 non-neutres). `applyNatureModifier` floor(stat × 1.1 / 0.9), HP exclu. `computeCombatStats(baseStats, level, nature?)`. `rollNature(rng)` uniforme. `PokemonInstance.nature` non-optionnel. `BattleSetupConfig.genderRng` → `creationRng`, ajout `natureOverrides`. **Affichage UI InfoPanel reporté** à la refonte InfoPanel. 13 nouveaux tests. CI verte : 1154 unit + 137 intégration. Décisions #284-287.
 - 2026-04-29 — **Plan 071 terminé — Genres Pokemon (♂/♀/genderless)**. `genderRatio` exposé via loaders, `PokemonGender` enum, `rollGender(ratio, rng)`. `PokemonInstance.gender` rolled à la création (`createPokemonInstance` accepte `genderRng` + `genderOverride` pour Team Builder futur). Cute Charm vérifie genre opposé non-genderless. Symboles ♂/♀ colorés (`#5fa8ff` / `#ff7fb4`) dans InfoPanel. CI verte : 1135 unit + 137 intégration. Bug data Kangaskhan (50/50 vs 0/100 canon) tracé en backlog.
