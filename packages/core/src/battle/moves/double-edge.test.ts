@@ -1,0 +1,83 @@
+import { describe, expect, it, vi } from "vitest";
+import { ActionKind } from "../../enums/action-kind";
+import { BattleEventType } from "../../enums/battle-event-type";
+import { PlayerId } from "../../enums/player-id";
+import { buildMoveTestEngine, MockPokemon } from "../../testing";
+
+describe("double-edge", () => {
+  it("deals damage to adjacent target", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["double-edge"],
+      currentPp: { "double-edge": 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const defender = MockPokemon.fresh(MockPokemon.base, {
+      id: "defender",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      currentHp: 500,
+      maxHp: 500,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const { engine, state } = buildMoveTestEngine([attacker, defender]);
+    const hpBefore = state.pokemon.get(defender.id)?.currentHp ?? 0;
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "double-edge",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.events.map((e) => e.type)).toContain(BattleEventType.DamageDealt);
+    expect(state.pokemon.get(defender.id)?.currentHp).toBeLessThan(hpBefore);
+    vi.restoreAllMocks();
+  });
+
+  it("attacker takes recoil damage equal to 1/3 of max HP", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const maxHp = 120;
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      currentHp: maxHp,
+      maxHp,
+      moveIds: ["double-edge"],
+      currentPp: { "double-edge": 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const defender = MockPokemon.fresh(MockPokemon.base, {
+      id: "defender",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      currentHp: 500,
+      maxHp: 500,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const { engine, state } = buildMoveTestEngine([attacker, defender]);
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "double-edge",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    const expectedRecoil = Math.floor(maxHp / 3);
+    expect(state.pokemon.get(attacker.id)?.currentHp).toBe(maxHp - expectedRecoil);
+    const damageEvents = result.events.filter(
+      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+        e.type === BattleEventType.DamageDealt,
+    );
+    const recoilEvent = damageEvents.find((e) => e.targetId === attacker.id);
+    expect(recoilEvent).toBeDefined();
+    vi.restoreAllMocks();
+  });
+});

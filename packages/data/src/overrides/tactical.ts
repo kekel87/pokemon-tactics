@@ -749,4 +749,62 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
     effectTier: EffectTier.MajorBuff,
   },
+
+  // Batch B moves
+  "cross-chop": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "rock-slide": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "confuse-ray": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Status, status: StatusType.Confused, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
+  },
+  "energy-ball": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  bonemerang: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage, hits: 2 }],
+  },
+  "blaze-kick": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Burned, chance: 10 },
+    ],
+  },
+  "thunder-punch": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 10 },
+    ],
+  },
+  "ice-punch": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Frozen, chance: 10 },
+    ],
+  },
+  "fire-punch": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Burned, chance: 10 },
+    ],
+  },
+  "double-edge": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Recoil, fraction: 1 / 3 },
+    ],
+  },
 };

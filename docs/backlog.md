@@ -4,6 +4,28 @@ Bugs connus et retours playtest non traités.
 
 ## Bugs
 
+### Icône statut non retirée après natural-cure (2026-05-06)
+- natural-cure retire bien le statut en fin de tour (core OK), mais l'icône à côté de la barre de vie reste affichée.
+- Cause probable : renderer n'écoute pas `AbilityActivated` pour re-sync les icônes statut. `StatusRemoved` event non émis par natural-cure.
+- Fix : émettre `BattleEventType.StatusRemoved` dans `onEndTurn` de natural-cure, ou handler `AbilityActivated` côté renderer rafraîchit les icônes.
+
+### Moves manquants Vaporeon/Flareon/Jolteon en sandbox (2026-05-06)
+- Les évolutions Eevee n'ont pas de moves visibles en sandbox.
+- Probable cause : movepool vide ou moves non dans `tactical.ts` (overrides requis). À vérifier dans `roster-poc.ts` + `tactical.ts`.
+
+### Pokemon avec plus de 4 moves en sandbox (2026-05-06)
+- Déjà signalé Batch A. Sandbox devrait limiter à 4 moves (la limite gameplay). Filtrage ou validation à ajouter.
+- Voir aussi : le sélecteur sandbox doit appliquer la même limite que le team builder.
+
+### Noms Pokemon absents en sandbox — slug uniquement (2026-05-06)
+- En sandbox, seul le slug/key est affiché (ex: `nidoqueen` au lieu de "Nidoqueen" / "Reine Nidoran").
+- Même problème team builder : noms en anglais/slug au lieu du français.
+- Fix : injecter `pokemonNames` (FR/EN) depuis les données dans les composants sandbox + team builder.
+
+### Ordre Pokédex non respecté en team builder et sandbox (2026-05-06)
+- Pokemon triés dans un ordre arbitraire, pas par numéro de Pokédex.
+- Fix : trier par `dexNumber` dans le chargeur ou au rendu.
+
 ### ~~Test d'intégration `PlacementPhase` cassé + CI ne run pas les integration tests~~
 - Fix : coordonnées corrigées (3,18) et (4,19) dans les spawn zones. `pnpm test:integration` ajouté à la CI.
 

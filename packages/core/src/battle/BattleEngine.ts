@@ -1430,6 +1430,15 @@ export class BattleEngine {
           this.handleKo(activePokemon.id, events);
         }
       }
+
+      const ability = this.abilityRegistry?.getForPokemon(activePokemon);
+      if (ability?.onEndTurn && activePokemon.currentHp > 0) {
+        const abilityEvents = ability.onEndTurn({ self: activePokemon, state: this.state });
+        for (const event of abilityEvents) {
+          this.emit(event);
+          events.push(event);
+        }
+      }
     }
 
     if (endTurnResult.pokemonFainted) {
@@ -1528,6 +1537,18 @@ export class BattleEngine {
               if (this.battleOver) {
                 return;
               }
+            }
+          }
+        }
+
+        const skipPokemon = this.state.pokemon.get(nextPokemonId);
+        if (skipPokemon && skipPokemon.currentHp > 0) {
+          const skipAbility = this.abilityRegistry?.getForPokemon(skipPokemon);
+          if (skipAbility?.onEndTurn) {
+            const abilityEvents = skipAbility.onEndTurn({ self: skipPokemon, state: this.state });
+            for (const event of abilityEvents) {
+              this.emit(event);
+              events.push(event);
             }
           }
         }
@@ -1832,6 +1853,18 @@ export class BattleEngine {
               if (this.battleOver) {
                 return;
               }
+            }
+          }
+        }
+
+        const skipPokemonCt = this.state.pokemon.get(nextPokemonId);
+        if (skipPokemonCt && skipPokemonCt.currentHp > 0) {
+          const skipAbilityCt = this.abilityRegistry?.getForPokemon(skipPokemonCt);
+          if (skipAbilityCt?.onEndTurn) {
+            const abilityEvents = skipAbilityCt.onEndTurn({ self: skipPokemonCt, state: this.state });
+            for (const event of abilityEvents) {
+              this.emit(event);
+              events.push(event);
             }
           }
         }

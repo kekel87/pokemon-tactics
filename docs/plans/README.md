@@ -85,4 +85,7 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 070 | [Polish des talents](./070-talents-polish.md) | done | 2026-04-29 |
 | 071 | [Genres des Pokemon](./071-pokemon-gender.md) | done | 2026-04-29 |
 | 072 | [Natures / Stat Alignment](./072-natures-stat-alignment.md) | done | 2026-04-29 |
-| 073 | [Objets Tenus](./073-held-items.md) | ready | 2026-04-30 |
+| 073 | [Objets Tenus](./073-held-items.md) | done | 2026-04-30 |
+| 074 | [Stat Points System](./074-stat-points.md) | done | 2026-05-03 |
+| 075 | [Roster Batch A (12 Pokemon finaux)](./075-roster-batch-a.md) | done | 2026-05-05 |
+| 076 | [Roster Batch B (19 Pokemon)](./076-roster-batch-b.md) | in-progress | 2026-05-05 |

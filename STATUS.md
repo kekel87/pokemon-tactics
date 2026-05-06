@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> MAJ : 2026-05-05 (Phase 4 — 4-move limit en combat + i18n Batch A)
+> MAJ : 2026-05-06 (Phase 4 — Roster Batch B terminé — 34 Pokemon)
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
@@ -21,6 +21,7 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 ## Phase actuelle : Phase 4 — Gameplay Pokemon complet
 
 ### Fait en Phase 4
+- **Roster Batch B (2026-05-06) — plan 076** : 19 Pokemon Gen 1 finaux ajoutés (nidoqueen, nidoking, primeape, arcanine, poliwrath, golem, slowbro, gengar, hypno, exeggutor, marowak, hitmonlee, hitmonchan, rhydon, starmie, scyther, pinsir, kabutops, aerodactyl). Roster 15 → **34 Pokemon jouables**. 10 nouveaux moves (cross-chop, rock-slide, confuse-ray, energy-ball, bonemerang, blaze-kick, thunder-punch, ice-punch, fire-punch, double-edge) — total 112. 8 nouvelles abilities (vital-spirit, insomnia, cursed-body, rock-head, limber, iron-fist, natural-cure, battle-armor) — total 36. 3 nouveaux hooks AbilityHandler : `blocksRecoil` (handle-recoil.ts), `preventsCrit` (damage-calculator.ts), `onEndTurn` (BattleEngine). Scyther + Aerodactyl : FlyingIdle → Walk fallback (décision #304). Exeggutor sans ability (chlorophyll Phase 9, décision #301). CI : 1188 unit + 166 intégration verts.
 - **Fixes post-plan 075 + playtest (2026-05-05 — hors plan)** : Sprites 12 Pokemon Batch A téléchargés via PMDCollab (`pnpm extract-sprites`). Tests intégration corrigés (pokemonTypesMap, compteurs roster). `BattleSetup.ts` limite `moveIds` aux 4 premiers moves du `movepool` (movepool reste réservoir complet pour futur Team Builder). `regenerate-golden-replay.ts` aligné. Sandbox : 4 premiers moves par défaut quand aucun configuré. i18n : anciens non-finaux retirés (bulbasaur, charmander, squirtle, pidgey, pikachu, machop, abra, gastly, geodude, growlithe, jigglypuff, seel, eevee, tentacool, nidoran-m, meowth, magnemite, sandshrew), 12 Pokemon Batch A ajoutés dans `types.ts`, `en.ts`, `fr.ts`. Biome format sprites JSON. Décision #300. CI : 1168 unit + 157 intégration verts.
 - **Roster Batch A (2026-05-04) — plan 075** : 18 formes non-finales retirées du roster (bulbasaur, charmander, squirtle, pidgey, pikachu, sandshrew, nidoran-m, jigglypuff, tentacool, geodude, magnemite, abra, machop, seel, gastly, growlithe, meowth, eevee). 12 Pokemon finaux Gen 1 ajoutés : venusaur, charizard, blastoise, raichu, alakazam, machamp, gyarados, snorlax, dragonite, vaporeon, flareon, jolteon. Roster 21 → 15 Pokemon (formes non-finales restent dans reference/, non exposées dans rosterPoc jusqu'au Team Builder). 29 nouveaux moves (102 total) : petal-blizzard, synthesis, growth, fire-blast, flare-blitz, lava-plume, dragon-claw, dragon-dance, air-slash, surf, hydro-pump, waterfall, aqua-tail, ice-beam, thunder, iron-tail, charge-beam, psychic, recover, rest, amnesia, dynamic-punch, close-combat, brick-break, shadow-ball, crunch, outrage, extreme-speed, acid-armor. 8 nouvelles abilities (28 total) : lightning-rod, magic-guard, no-guard, moxie, multiscale, water-absorb, flash-fire, volt-absorb. Mécaniques core ajoutées : `chance?` sur StatChange effect + `loadAllPokemonTypes()` dans data. Décision : lightning-rod sans redirect Batch A — redirect plan dédié.
 - **Objets tenus / Held Items (2026-04-30) — plan 073** : `HeldItemId` enum (12 items). `HeldItemHandler` interface avec 8 hooks : `onDamageModify`, `onCritStageBoost`, `onAfterMoveDamageDealt`, `onAfterDamageReceived`, `onEndTurn`, `onTerrainTick`, `onCtGainModify`, `onMoveLock` (nouveau — verrou Choice piloté par hook, plus de check hardcodé ChoiceBand/ChoiceScarf). `HeldItemHandlerRegistry` (miroir `AbilityHandlerRegistry`). `PokemonInstance.heldItemId?` + `lockedMoveId?`. Mini-système critiques intégré à `damage-calculator.ts` (×1.5 + ignore stages défensifs négatifs, Gen 6+ simplifié). `BattleEngine` câblé : heal fin de tour, verrou Choice via `onMoveLock`, modificateur CT gain, blocage terrain. Validateur d'équipe : erreur `DuplicateItem` + champ `heldItems` sur `TeamSelection`. `BattleEventType` : `HeldItemActivated`, `HeldItemConsumed`, `HpRestored`, `CriticalHit`. Renderer : `GameController` fix `HpRestored` → mise à jour HP bar + `BattleLogFormatter` gèrent les 4 nouveaux types. i18n : clés `battle.critical` + `battle.itemConsumed` FR/EN. 12 tests intégration (`held-items.integration.test.ts`, 1 par item). Décisions #288-295.
@@ -200,10 +201,9 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 
 ### Prochaine étape
 
-**Phase 3 quasi-finie.** Items restants :
-- `le-mur` retirée du menu (injouable iso fixe, escaliers N/S aveugles) — remplacée par toundra livrée
+**Phase 4 en cours.** Plans 069–076 terminés.
 
-**Phase 4 à démarrer dès que Phase 3 close** : Talents, Objets tenus, Natures, EV/IV simplifiés.
+Prochain : **Roster Batch C** (Pokemon Gen 1 restants) ou **Team Builder** (sélection moves + items + SP). Méga-évolutions → Phase 9.
 
 ### Bugs connus non corrigés
 

@@ -1301,4 +1301,392 @@ describe("ability system integration", () => {
       ),
     ).toBe(true);
   });
+
+  it("vital-spirit blocks Asleep status from hypnosis", () => {
+    // Given Primeape with vital-spirit
+    const primeape = MockPokemon.fresh(MockPokemon.base, {
+      id: "primeape",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "vital-spirit",
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      moveIds: ["hypnosis"],
+      currentPp: { hypnosis: 20 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    // When hypnosis targets Primeape
+    const { engine, state } = buildMoveTestEngine([primeape, attacker]);
+    const result = engine.submitAction(PlayerId.Player2, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "hypnosis",
+      targetPosition: { x: 0, y: 0 },
+    });
+
+    // Then sleep is blocked and AbilityActivated emitted
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get(primeape.id)?.statusEffects).not.toContainEqual(
+      expect.objectContaining({ type: StatusType.Asleep }),
+    );
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "vital-spirit",
+      ),
+    ).toBe(true);
+  });
+
+  it("insomnia blocks Asleep status from sleep-powder", () => {
+    // Given Hypno with insomnia
+    const hypno = MockPokemon.fresh(MockPokemon.base, {
+      id: "hypno",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "insomnia",
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      moveIds: ["sleep-powder"],
+      currentPp: { "sleep-powder": 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    // When sleep-powder targets Hypno
+    const { engine, state } = buildMoveTestEngine([hypno, attacker]);
+    const result = engine.submitAction(PlayerId.Player2, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "sleep-powder",
+      targetPosition: { x: 0, y: 0 },
+    });
+
+    // Then sleep is blocked and AbilityActivated emitted
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get(hypno.id)?.statusEffects).not.toContainEqual(
+      expect.objectContaining({ type: StatusType.Asleep }),
+    );
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "insomnia",
+      ),
+    ).toBe(true);
+  });
+
+  it("cursed-body applies confusion to contact attacker with 30% chance (random=0.1)", () => {
+    // Given Gengar with cursed-body
+    const gengar = MockPokemon.fresh(MockPokemon.base, {
+      id: "gengar",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "cursed-body",
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0.1);
+
+    // When attacker uses a contact move on Gengar
+    const { engine, state } = buildMoveTestEngine([attacker, gengar]);
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then attacker becomes confused (volatile) and AbilityActivated emitted
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get(attacker.id)?.volatileStatuses).toContainEqual(
+      expect.objectContaining({ type: StatusType.Confused }),
+    );
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "cursed-body",
+      ),
+    ).toBe(true);
+  });
+
+  it("cursed-body does not trigger when random >= 0.3", () => {
+    // Given Gengar with cursed-body
+    const gengar = MockPokemon.fresh(MockPokemon.base, {
+      id: "gengar",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "cursed-body",
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+
+    const { engine, state } = buildMoveTestEngine([attacker, gengar]);
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then no confusion
+    expect(state.pokemon.get(attacker.id)?.volatileStatuses).not.toContainEqual(
+      expect.objectContaining({ type: StatusType.Confused }),
+    );
+  });
+
+  it("rock-head blocks recoil damage from double-edge", () => {
+    // Given Marowak with rock-head using double-edge
+    const marowak = MockPokemon.fresh(MockPokemon.base, {
+      id: "marowak",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "rock-head",
+      currentHp: 100,
+      maxHp: 100,
+      moveIds: ["double-edge"],
+      currentPp: { "double-edge": 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const defender = MockPokemon.fresh(MockPokemon.base, {
+      id: "defender",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      currentHp: 500,
+      maxHp: 500,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([marowak, defender]);
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: marowak.id,
+      moveId: "double-edge",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then Marowak takes no recoil — HP unchanged (no self-damage event)
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get(marowak.id)?.currentHp).toBe(100);
+    const recoilEvents = result.events.filter(
+      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+        e.type === BattleEventType.DamageDealt,
+    );
+    expect(recoilEvents.every((e) => e.targetId !== marowak.id)).toBe(true);
+  });
+
+  it("limber blocks Paralyzed status from thunder-wave", () => {
+    // Given Hitmonlee with limber
+    const hitmonlee = MockPokemon.fresh(MockPokemon.base, {
+      id: "hitmonlee",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "limber",
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      moveIds: ["thunder-wave"],
+      currentPp: { "thunder-wave": 20 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    // When thunder-wave targets Hitmonlee
+    const { engine, state } = buildMoveTestEngine([hitmonlee, attacker]);
+    const result = engine.submitAction(PlayerId.Player2, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "thunder-wave",
+      targetPosition: { x: 0, y: 0 },
+    });
+
+    // Then paralysis is blocked and AbilityActivated emitted
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get(hitmonlee.id)?.statusEffects).not.toContainEqual(
+      expect.objectContaining({ type: StatusType.Paralyzed }),
+    );
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "limber",
+      ),
+    ).toBe(true);
+  });
+
+  it("iron-fist boosts punch moves by 1.2x", () => {
+    // Given Hitmonchan with iron-fist using thunder-punch
+    const hitmonchan = MockPokemon.fresh(MockPokemon.base, {
+      id: "hitmonchan",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "iron-fist",
+      moveIds: ["thunder-punch"],
+      currentPp: { "thunder-punch": 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    // Given same attacker without iron-fist using thunder-punch
+    const hitmonchanNoAbility = MockPokemon.fresh(MockPokemon.base, {
+      id: "hitmonchan-no",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["thunder-punch"],
+      currentPp: { "thunder-punch": 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+
+    const target1 = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-1",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      currentHp: 500,
+      maxHp: 500,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const target2 = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-2",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      currentHp: 500,
+      maxHp: 500,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    // When iron-fist hitmonchan uses thunder-punch
+    const { engine: engineWith } = buildMoveTestEngine([hitmonchan, target1]);
+    engineWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: hitmonchan.id,
+      moveId: "thunder-punch",
+      targetPosition: { x: 1, y: 0 },
+    });
+    const damageWith = 500 - (target1.currentHp ?? 500);
+
+    // When no-ability hitmonchan uses thunder-punch
+    const { engine: engineWithout } = buildMoveTestEngine([hitmonchanNoAbility, target2]);
+    engineWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: hitmonchanNoAbility.id,
+      moveId: "thunder-punch",
+      targetPosition: { x: 1, y: 0 },
+    });
+    const damageWithout = 500 - (target2.currentHp ?? 500);
+
+    // Then iron-fist deals more damage
+    expect(damageWith).toBeGreaterThan(damageWithout);
+  });
+
+  it("natural-cure clears burn at end of turn", () => {
+    // Given Starmie with natural-cure and a burn
+    const starmie = MockPokemon.fresh(MockPokemon.base, {
+      id: "starmie",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "natural-cure",
+      statusEffects: [{ type: StatusType.Burned, remainingTurns: null }],
+      moveIds: ["surf"],
+      currentPp: { surf: 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([starmie, foe]);
+
+    // When starmie uses a move then ends its turn
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: starmie.id,
+      moveId: "surf",
+      targetPosition: { x: 1, y: 0 },
+    });
+    const endResult = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: starmie.id,
+      direction: starmie.orientation,
+    });
+
+    // Then burn is cleared and AbilityActivated is emitted
+    expect(state.pokemon.get(starmie.id)?.statusEffects).not.toContainEqual(
+      expect.objectContaining({ type: StatusType.Burned }),
+    );
+    expect(
+      endResult.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "natural-cure",
+      ),
+    ).toBe(true);
+  });
+
+  it("battle-armor prevents critical hits", () => {
+    // Given Kabutops with battle-armor
+    const kabutops = MockPokemon.fresh(MockPokemon.base, {
+      id: "kabutops",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "battle-armor",
+      currentHp: 500,
+      maxHp: 500,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["cross-chop"],
+      currentPp: { "cross-chop": 5 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+
+    // random=0 would normally crit (0 < any crit threshold), but battle-armor prevents it
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine } = buildMoveTestEngine([attacker, kabutops]);
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "cross-chop",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then no CriticalHit event despite roll being below 1/8 threshold
+    expect(result.success).toBe(true);
+    expect(result.events.map((e) => e.type)).not.toContain(BattleEventType.CriticalHit);
+  });
 });

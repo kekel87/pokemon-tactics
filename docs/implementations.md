@@ -13,9 +13,9 @@
 
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
-| Pokemon | 15 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. |
-| Attaques | 102 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
-| Talents | 28 | 114 | Talents portés par au moins un des 151 Gen 1 |
+| Pokemon | 34 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. |
+| Attaques | 112 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
+| Talents | 36 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 12 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
 ---
@@ -62,10 +62,10 @@
 | 028 | sandslash | Sablaireau | Sol | ✗ | | ✓ | |
 | 029 | nidoran-f | Nidoran♀ | Poison | ✗ | | ⚠️ Faint abs. | |
 | 030 | nidorina | Nidorina | Poison | ✗ | | ⚠️ Faint abs. | |
-| 031 | nidoqueen | Nidoqueen | Poison/Sol | ✗ | | ⚠️ Faint abs. | |
+| 031 | nidoqueen | Nidoqueen | Poison/Sol | ✓ | poison-point | ⚠️ Faint abs. | |
 | 032 | nidoran-m | Nidoran♂ | Poison | ✓ | poison-point | ⚠️ Faint abs. | |
 | 033 | nidorino | Nidorino | Poison | ✗ | | ⚠️ Faint abs. | |
-| 034 | nidoking | Nidoking | Poison/Sol | ✗ | | ⚠️ Faint abs. | |
+| 034 | nidoking | Nidoking | Poison/Sol | ✓ | poison-point | ⚠️ Faint abs. | |
 | 035 | clefairy | Mélofée | Fée | ✗ | | ⚠️ Shoot+Faint abs. | |
 | 036 | clefable | Mélodelfe | Fée | ✗ | | ⚠️ Shoot+Faint abs. | Méga disponible |
 | 037 | vulpix | Goupix | Feu | ✗ | | ✓ | |
@@ -88,12 +88,12 @@
 | 054 | psyduck | Psykokwak | Eau | ✗ | | ⚠️ Faint abs. | |
 | 055 | golduck | Akwakwak | Eau | ✗ | | ⚠️ Faint abs. | |
 | 056 | mankey | Férosinge | Combat | ✗ | | ⚠️ Faint abs. | |
-| 057 | primeape | Colossinge | Combat | ✗ | | ⚠️ Faint abs. | |
+| 057 | primeape | Colossinge | Combat | ✓ | vital-spirit | ⚠️ Faint abs. | |
 | 058 | growlithe | Caninos | Feu | ✓ | intimidate | ⚠️ Faint abs. | |
-| 059 | arcanine | Arcanin | Feu | ✗ | | ⚠️ Faint abs. | |
+| 059 | arcanine | Arcanin | Feu | ✓ | intimidate | ⚠️ Faint abs. | |
 | 060 | poliwag | Ptitard | Eau | ✗ | | ⚠️ Faint abs. | |
 | 061 | poliwhirl | Têtarte | Eau | ✗ | | ⚠️ Faint abs. | |
-| 062 | poliwrath | Tartard | Eau/Combat | ✗ | | ⚠️ Faint abs. | |
+| 062 | poliwrath | Tartard | Eau/Combat | ✓ | water-absorb | ⚠️ Faint abs. | |
 | 063 | abra | Abra | Psy | ✓ | synchronize | ✓ | |
 | 064 | kadabra | Kadabra | Psy | ✗ | | ⚠️ Faint abs. | |
 | 065 | alakazam | Alakazam | Psy | ✓ | magic-guard | ⚠️ Faint abs. | Méga disponible |
@@ -107,11 +107,11 @@
 | 073 | tentacruel | Tentacruel | Eau/Poison | ✗ | | ⚠️ Faint abs. | |
 | 074 | geodude | Racaillou | Roche/Sol | ✓ | sturdy | ⚠️ Faint abs. | |
 | 075 | graveler | Gravalanch | Roche/Sol | ✗ | | ⚠️ Faint abs. | |
-| 076 | golem | Grolem | Roche/Sol | ✗ | | ⚠️ Faint abs. | |
+| 076 | golem | Grolem | Roche/Sol | ✓ | sturdy | ⚠️ Faint abs. | |
 | 077 | ponyta | Ponyta | Feu | ✗ | | ✓ | |
 | 078 | rapidash | Galopa | Feu | ✗ | | ⚠️ Faint abs. | |
 | 079 | slowpoke | Ramoloss | Eau/Psy | ✗ | | ⚠️ Faint abs. | |
-| 080 | slowbro | Flagadoss | Eau/Psy | ✗ | | ⚠️ Faint abs. | Méga disponible |
+| 080 | slowbro | Flagadoss | Eau/Psy | ✓ | own-tempo | ⚠️ Faint abs. | Méga disponible |
 | 081 | magnemite | Magnéti | Électrique/Acier | ✓ | magnet-pull | ⚠️ Faint abs. | |
 | 082 | magneton | Magnéton | Électrique/Acier | ✗ | | ⚠️ Faint abs. | |
 | 083 | farfetch-d | Canarticho | Normal/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
@@ -125,25 +125,25 @@
 | 091 | cloyster | Crustabri | Eau/Glace | ✗ | | ⚠️ Faint abs. | |
 | 092 | gastly | Fantominus | Spectre/Poison | ✓ | levitate | ⚠️ Faint abs. | |
 | 093 | haunter | Spectrum | Spectre/Poison | ✗ | | ⚠️ Faint abs. | |
-| 094 | gengar | Ectoplasma | Spectre/Poison | ✗ | | ✓ | Méga disponible |
+| 094 | gengar | Ectoplasma | Spectre/Poison | ✓ | cursed-body | ✓ | Méga disponible |
 | 095 | onix | Onix | Roche/Sol | ✗ | | ⚠️ Faint abs. | |
 | 096 | drowzee | Soporifik | Psy | ✗ | | ⚠️ Faint abs. | |
-| 097 | hypno | Hypnomade | Psy | ✗ | | ⚠️ Faint abs. | |
+| 097 | hypno | Hypnomade | Psy | ✓ | insomnia | ⚠️ Faint abs. | |
 | 098 | krabby | Krabby | Eau | ✗ | | ⚠️ Faint abs. | |
 | 099 | kingler | Krabboss | Eau | ✗ | | ⚠️ Faint abs. | |
 | 100 | voltorb | Voltorbe | Électrique | ✗ | | ✓ | |
 | 101 | electrode | Électrode | Électrique | ✗ | | ⚠️ Faint abs. | |
 | 102 | exeggcute | Noeunoeuf | Plante/Psy | ✗ | | ⚠️ Faint abs. | |
-| 103 | exeggutor | Noadkoko | Plante/Psy | ✗ | | ⚠️ Faint abs. | |
+| 103 | exeggutor | Noadkoko | Plante/Psy | ✓ | — | ⚠️ Faint abs. | chlorophyll reporté Phase 9 (météo) |
 | 104 | cubone | Osselait | Sol | ✗ | | ✓ | |
-| 105 | marowak | Ossatueur | Sol | ✗ | | ⚠️ Faint abs. | |
-| 106 | hitmonlee | Kicklee | Combat | ✗ | | ⚠️ Faint abs. | |
-| 107 | hitmonchan | Tygnon | Combat | ✗ | | ⚠️ Faint abs. | |
+| 105 | marowak | Ossatueur | Sol | ✓ | rock-head | ⚠️ Faint abs. | |
+| 106 | hitmonlee | Kicklee | Combat | ✓ | limber | ⚠️ Faint abs. | |
+| 107 | hitmonchan | Tygnon | Combat | ✓ | iron-fist | ⚠️ Faint abs. | |
 | 108 | lickitung | Excelangue | Normal | ✓ | own-tempo | ⚠️ Faint abs. | |
 | 109 | koffing | Smogo | Poison | ✗ | | ⚠️ Faint abs. | |
 | 110 | weezing | Smogogo | Poison | ✗ | | ⚠️ Faint abs. | |
 | 111 | rhyhorn | Rhinocorne | Sol/Roche | ✗ | | ⚠️ Faint abs. | |
-| 112 | rhydon | Rhinoféros | Sol/Roche | ✗ | | ⚠️ Faint abs. | |
+| 112 | rhydon | Rhinoféros | Sol/Roche | ✓ | lightning-rod | ⚠️ Faint abs. | |
 | 113 | chansey | Leveinard | Normal | ✗ | | ⚠️ Faint abs. | |
 | 114 | tangela | Saquedeneu | Plante | ✗ | | ⚠️ Faint abs. | |
 | 115 | kangaskhan | Kangourex | Normal | ✓ | early-bird | ⚠️ Faint abs. | Méga disponible |
@@ -152,13 +152,13 @@
 | 118 | goldeen | Poissirène | Eau | ✗ | | ⚠️ Faint abs. | |
 | 119 | seaking | Poissoroy | Eau | ✗ | | ⚠️ Faint abs. | |
 | 120 | staryu | Stari | Eau | ✗ | | ⚠️ Faint abs. | |
-| 121 | starmie | Staross | Eau/Psy | ✗ | | ⚠️ Faint abs. | Méga disponible |
+| 121 | starmie | Staross | Eau/Psy | ✓ | natural-cure | ⚠️ Faint abs. | Méga disponible |
 | 122 | mr-mime | M. Mime | Psy/Fée | ✗ | | ⚠️ Faint abs. | |
-| 123 | scyther | Insécateur | Insecte/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
+| 123 | scyther | Insécateur | Insecte/Vol | ✓ | technician | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
 | 124 | jynx | Lippoutou | Glace/Psy | ✗ | | ⚠️ Faint abs. | |
 | 125 | electabuzz | Élektek | Électrique | ✗ | | ⚠️ Faint abs. | |
 | 126 | magmar | Magmar | Feu | ✗ | | ⚠️ Faint abs. | |
-| 127 | pinsir | Scarabrute | Insecte | ✗ | | ⚠️ Faint abs. | Méga disponible |
+| 127 | pinsir | Scarabrute | Insecte | ✓ | moxie | ⚠️ Faint abs. | Méga disponible |
 | 128 | tauros | Tauros | Normal | ✗ | | ⚠️ Faint abs. | |
 | 129 | magikarp | Magicarpe | Eau | ✗ | | ⚠️ Faint abs. | |
 | 130 | gyarados | Léviator | Eau/Vol | ✓ | moxie | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
@@ -172,8 +172,8 @@
 | 138 | omanyte | Amonita | Roche/Eau | ✗ | | ⚠️ Faint abs. | |
 | 139 | omastar | Amonistar | Roche/Eau | ✗ | | ⚠️ Faint abs. | |
 | 140 | kabuto | Kabuto | Roche/Eau | ✗ | | ✓ | |
-| 141 | kabutops | Kabutops | Roche/Eau | ✗ | | ⚠️ Faint abs. | |
-| 142 | aerodactyl | Ptéra | Roche/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
+| 141 | kabutops | Kabutops | Roche/Eau | ✓ | battle-armor | ⚠️ Faint abs. | |
+| 142 | aerodactyl | Ptéra | Roche/Vol | ✓ | rock-head | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
 | 143 | snorlax | Ronflex | Normal | ✓ | thick-fat | ⚠️ Faint abs. | |
 | 144 | articuno | Artikodin | Glace/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
 | 145 | zapdos | Électhor | Électrique/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (102 implémentées)
+## Attaques (112 implémentées)
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
 
@@ -319,10 +319,20 @@
 | Synthèse | synthesis | Normal | Statut | — | — | 5 | self | Soigne 50% PV max |
 | Tonnerre Vrai | thunder | Électrique | Spé | 110 | 70 | 10 | single r4 | Para 30% |
 | Cascade | waterfall | Eau | Phys | 80 | 100 | 15 | dash r3 | Flinch 20% |
+| Coup Croix | cross-chop | Combat | Phys | 100 | 80 | 5 | single r1 | Critique élevé (`critRatio: 1`) |
+| Éboulement | rock-slide | Roche | Phys | 75 | 90 | 10 | cône r1–2 | |
+| Onde Folie | confuse-ray | Spectre | Statut | — | 100 | 10 | single r1–3 | Confusion 100% |
+| Boule Énergie | energy-ball | Plante | Spé | 90 | 100 | 10 | single r1–4 | |
+| Osmerang | bonemerang | Sol | Phys | 50 | 90 | 10 | single r1 | 2 hits fixes |
+| Flammepied | blaze-kick | Feu | Phys | 85 | 90 | 10 | single r1 | Critique élevé, brûlure 10% |
+| Poing Éclair | thunder-punch | Électrique | Phys | 75 | 100 | 15 | single r1 | Paralysie 10%. Flag `punch`. |
+| Poing Glace | ice-punch | Glace | Phys | 75 | 100 | 15 | single r1 | Gel 10%. Flag `punch`. |
+| Poing de Feu | fire-punch | Feu | Phys | 75 | 100 | 15 | single r1 | Brûlure 10%. Flag `punch`. |
+| Damoclès | double-edge | Normal | Phys | 120 | 100 | 15 | single r1 | Recul 1/3 HP max |
 
 ---
 
-## Talents (28 implémentés)
+## Talents (36 implémentés)
 
 | Talent | ID | Pokemon (roster) | Effet résumé |
 |---|---|---|---|
@@ -354,6 +364,14 @@
 | Absorb'Eau | water-absorb | Aquali | Immunité Eau + soigne +25% PV max si touché par move Eau |
 | Torche | flash-fire | Pyroli | Immunité Feu + ×1.5 dégâts Feu après avoir reçu un move Feu |
 | Absorb'Volt | volt-absorb | Voltali | Immunité Électrique + soigne +25% PV max si touché par move Électrique |
+| Esprit Vital | vital-spirit | Colossinge | Immunité au sommeil |
+| Insomnie | insomnia | Hypnomade | Immunité au sommeil |
+| Corps Maudit | cursed-body | Ectoplasma | 30% chance confusion sur attaque contact reçue |
+| Tête de Roc | rock-head | Ossatueur, Ptéra | Annule les dégâts de recul |
+| Souplesse | limber | Kicklee | Immunité à la paralysie |
+| Poing de Fer | iron-fist | Tygnon | ×1.2 dégâts moves avec flag `punch` |
+| Soin Naturel | natural-cure | Staross | Soigne le statut majeur en fin de tour |
+| Armure Dure | battle-armor | Kabutops | Immunité aux coups critiques |
 
 ---
 
