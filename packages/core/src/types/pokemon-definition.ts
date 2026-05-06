@@ -4,6 +4,7 @@ import type { GenderRatio } from "./gender-ratio";
 
 export interface PokemonDefinition {
   id: string;
+  dexNumber?: number;
   name: string;
   types: PokemonType[];
   baseStats: BaseStats;

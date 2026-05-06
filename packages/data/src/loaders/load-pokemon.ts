@@ -32,6 +32,7 @@ export function loadPokemonFromReference(
 
     return {
       id: entry.id,
+      dexNumber: ref.dexNumber,
       name: ref.names.en,
       types: ref.types as PokemonType[],
       baseStats: {

@@ -24,7 +24,7 @@ const MAX_TOTAL_POKEMON = 12;
 
 const TITLE_Y = 30;
 const GRID_TOP_Y = 70;
-const GRID_COLS = 5;
+const GRID_COLS = 7;
 const GRID_CELL_SIZE = 82;
 const GRID_CELL_GAP = 6;
 const GRID_PORTRAIT_SIZE = 56;
@@ -109,7 +109,9 @@ export class TeamSelectScene extends Phaser.Scene {
 
   preload(): void {
     const gameData = loadData();
-    this.pokemonDefinitions = gameData.pokemon.filter((p) => p.id !== "dummy");
+    this.pokemonDefinitions = gameData.pokemon
+      .filter((p) => p.id !== "dummy")
+      .sort((a, b) => (a.dexNumber ?? 0) - (b.dexNumber ?? 0));
     this.allDefinitionIds = this.pokemonDefinitions.map((p) => p.id);
     preloadPortraitsOnly(this, this.allDefinitionIds);
   }

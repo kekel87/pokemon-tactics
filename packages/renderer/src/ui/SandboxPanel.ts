@@ -149,7 +149,9 @@ export class SandboxPanel {
 
   constructor(initialConfig: SandboxConfig, onConfigChanged: (config: SandboxConfig) => void) {
     this.onConfigChanged = onConfigChanged;
-    this.pokemonIds = this.gameData.pokemon.map((p) => p.id);
+    this.pokemonIds = [...this.gameData.pokemon]
+      .sort((a, b) => (a.dexNumber ?? 0) - (b.dexNumber ?? 0))
+      .map((p) => p.id);
 
     this.leftContainer = document.createElement("div");
     this.leftContainer.style.cssText = `
@@ -313,7 +315,7 @@ export class SandboxPanel {
 
     const movepool = this.getMovepoolFor(config.pokemon);
     for (let i = 0; i < 4; i++) {
-      const moveId = config.moves[i] ?? "";
+      const moveId = config.moves[i] ?? movepool[i] ?? "";
       const moveSelect = this.createSelect(
         `${t("sandbox.move")} ${i + 1}`,
         [
@@ -532,19 +534,10 @@ export class SandboxPanel {
 
   private updatePlayerMoves(): void {
     const movepool = this.getMovepoolFor(this.pokemonSelect.value);
-    const pokemonDef = this.gameData.pokemon.find((p) => p.id === this.pokemonSelect.value);
 
-    for (let i = 0; i < this.moveSelects.length; i++) {
-      const select = this.moveSelects[i];
-      if (!select) {
-        continue;
-      }
-
+    for (const select of this.moveSelects) {
       if (!movepool.includes(select.value)) {
         select.value = "";
-      }
-      if (select.value === "" && pokemonDef) {
-        select.value = pokemonDef.movepool[i] ?? "";
       }
     }
     this.rebuildMoveOptions();
@@ -566,7 +559,11 @@ export class SandboxPanel {
   private rebuildMoveOptions(): void {
     const movepool = this.getMovepoolFor(this.pokemonSelect.value);
 
-    for (const select of this.moveSelects) {
+    for (let i = 0; i < this.moveSelects.length; i++) {
+      const select = this.moveSelects[i];
+      if (!select) {
+        continue;
+      }
       const currentValue = select.value;
       select.innerHTML = "";
 
@@ -582,7 +579,10 @@ export class SandboxPanel {
         select.appendChild(opt);
       }
 
-      select.value = movepool.includes(currentValue) ? currentValue : "";
+      select.value =
+        currentValue !== "" && movepool.includes(currentValue)
+          ? currentValue
+          : (movepool[i] ?? "");
     }
   }
 
@@ -658,7 +658,7 @@ export class SandboxPanel {
 
     return {
       pokemon: this.pokemonSelect.value,
-      moves: moves.length > 0 ? moves : this.getMovepoolFor(this.pokemonSelect.value),
+      moves: moves.length > 0 ? moves : this.getMovepoolFor(this.pokemonSelect.value).slice(0, 4),
       hp: Number(this.hpSlider.value),
       status: this.statusSelect.value ? (this.statusSelect.value as StatusType) : null,
       volatileStatus: this.volatileStatusSelect.value
