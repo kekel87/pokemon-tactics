@@ -4,28 +4,6 @@ Bugs connus et retours playtest non traités.
 
 ## Bugs
 
-### Icône statut non retirée après natural-cure (2026-05-06)
-- natural-cure retire bien le statut en fin de tour (core OK), mais l'icône à côté de la barre de vie reste affichée.
-- Cause probable : renderer n'écoute pas `AbilityActivated` pour re-sync les icônes statut. `StatusRemoved` event non émis par natural-cure.
-- Fix : émettre `BattleEventType.StatusRemoved` dans `onEndTurn` de natural-cure, ou handler `AbilityActivated` côté renderer rafraîchit les icônes.
-
-### Moves manquants Vaporeon/Flareon/Jolteon en sandbox (2026-05-06)
-- Les évolutions Eevee n'ont pas de moves visibles en sandbox.
-- Probable cause : movepool vide ou moves non dans `tactical.ts` (overrides requis). À vérifier dans `roster-poc.ts` + `tactical.ts`.
-
-### Pokemon avec plus de 4 moves en sandbox (2026-05-06)
-- Déjà signalé Batch A. Sandbox devrait limiter à 4 moves (la limite gameplay). Filtrage ou validation à ajouter.
-- Voir aussi : le sélecteur sandbox doit appliquer la même limite que le team builder.
-
-### Noms Pokemon absents en sandbox — slug uniquement (2026-05-06)
-- En sandbox, seul le slug/key est affiché (ex: `nidoqueen` au lieu de "Nidoqueen" / "Reine Nidoran").
-- Même problème team builder : noms en anglais/slug au lieu du français.
-- Fix : injecter `pokemonNames` (FR/EN) depuis les données dans les composants sandbox + team builder.
-
-### Ordre Pokédex non respecté en team builder et sandbox (2026-05-06)
-- Pokemon triés dans un ordre arbitraire, pas par numéro de Pokédex.
-- Fix : trier par `dexNumber` dans le chargeur ou au rendu.
-
 ### ~~Test d'intégration `PlacementPhase` cassé + CI ne run pas les integration tests~~
 - Fix : coordonnées corrigées (3,18) et (4,19) dans les spawn zones. `pnpm test:integration` ajouté à la CI.
 
@@ -102,6 +80,27 @@ Bugs connus et retours playtest non traités.
 
 
 ## Résolus
+
+### ~~Icône statut non retirée après natural-cure~~ (hors plan — 2026-05-06)
+- natural-cure retirait bien le statut (core OK) mais l'icône restait affichée — `StatusRemoved` non émis.
+- Fix : `naturalCure.onEndTurn` dans `ability-definitions.ts` émet `BattleEventType.StatusRemoved` (un par statut retiré) avant `AbilityActivated`. Test d'intégration mis à jour pour vérifier l'événement.
+
+### ~~Noms Pokemon slug-only en sandbox et team builder~~ (hors plan — 2026-05-06)
+- Tous les Pokemon Batch B (19) ajoutés à `pokemon-names.en.json` + `pokemon-names.fr.json`.
+- Tous les Pokemon Batch A + B (35 total) ajoutés aux locales renderer `en.ts` + `fr.ts` sous clés `pokemon.*`. Type `Translations` mis à jour.
+
+### ~~Moves sandbox : selects non pré-remplis (init et changement Pokemon)~~ (hors plan — 2026-05-06)
+- Deux bugs distincts avec la même racine (selects initialisés à `""`).
+- Bug 1 (init) : `config.moves[i] ?? movepool[i] ?? ""` à la création des selects dans `SandboxPanel.buildPlayerPanel`. Fallback `readConfig()` limité à `.slice(0, 4)`.
+- Bug 2 (changement Pokemon) : `select.value` lu avant vidage des options → valeur perdue. Fix : lecture avant reconstruction + fallback `movepool[i]` dans `rebuildMoveOptions` après reconstruction.
+- Symptômes couverts : +4 moves affichés, moves Eevee evos non visibles, selects vides au changement de Pokemon.
+
+### ~~Ordre Pokédex non respecté en team builder et sandbox~~ (hors plan — 2026-05-06)
+- Fix : `dexNumber?: number` ajouté à `PokemonDefinition` (core), chargé depuis `ref.dexNumber` dans `loadPokemonFromReference`. `SandboxPanel` et `TeamSelectScene` trient par `dexNumber ?? 0`.
+
+### ~~Team builder 5 colonnes — overflow bouton Launch sur 34 Pokemon~~ (hors plan — 2026-05-06)
+- `GRID_COLS = 5` dans `TeamSelectScene` causait 7 lignes sur 34 Pokemon, le bouton Launch passait hors écran.
+- Fix : `GRID_COLS = 7` → 5 lignes, bouton Launch visible sans scroll.
 
 ### ~~Traversée DeepWater/Lava bloquée pour les types immuns~~ (hors plan — 2026-04-25)
 - Pokemon Water/Flying ne pouvaient pas traverser DeepWater. Fire/Flying ne pouvaient pas traverser Lava.

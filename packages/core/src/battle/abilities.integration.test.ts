@@ -1643,10 +1643,20 @@ describe("ability system integration", () => {
       direction: starmie.orientation,
     });
 
-    // Then burn is cleared and AbilityActivated is emitted
+    // Then burn is cleared, StatusRemoved and AbilityActivated are emitted
     expect(state.pokemon.get(starmie.id)?.statusEffects).not.toContainEqual(
       expect.objectContaining({ type: StatusType.Burned }),
     );
+    expect(
+      endResult.events.some(
+        (e) =>
+          e.type === BattleEventType.StatusRemoved &&
+          "targetId" in e &&
+          e.targetId === starmie.id &&
+          "status" in e &&
+          e.status === StatusType.Burned,
+      ),
+    ).toBe(true);
     expect(
       endResult.events.some(
         (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "natural-cure",

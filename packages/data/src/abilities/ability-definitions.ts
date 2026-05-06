@@ -806,12 +806,19 @@ const MAJOR_STATUSES_FOR_CURE: ReadonlySet<StatusTypeAlias> = new Set<StatusType
 const naturalCure: AbilityHandler = {
   id: "natural-cure",
   onEndTurn: (context) => {
-    const hasMajor = context.self.statusEffects.some((s) => MAJOR_STATUSES_FOR_CURE.has(s.type));
-    if (!hasMajor) return [];
+    const cured = context.self.statusEffects.filter((s) => MAJOR_STATUSES_FOR_CURE.has(s.type));
+    if (cured.length === 0) {
+      return [];
+    }
     context.self.statusEffects = context.self.statusEffects.filter(
       (s) => !MAJOR_STATUSES_FOR_CURE.has(s.type),
     );
     return [
+      ...cured.map((s) => ({
+        type: BattleEventType.StatusRemoved as typeof BattleEventType.StatusRemoved,
+        targetId: context.self.id,
+        status: s.type,
+      })),
       {
         type: BattleEventType.AbilityActivated,
         pokemonId: context.self.id,
