@@ -4,8 +4,8 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
-- **Phase 4 en cours.** Plans 069–075 terminés. Restants : Roster élargi (Batch B-D), Team Builder. Méga-évolutions → Phase 9.
-- **Prochain plan** : **Roster Batch B (~20)** — Coverage types variés : Arcanin, Flagadoss, Nidoking, Nidoqueen, Colossinge, Tartard, Grolem, Rhydon, Gengar, Hypnomade, Noadkoko, Ossatueur, Kicklee, Tygnon, Starmie, Staross, Scarabrute, Insécateur, Kabutops, Ptéra.
+- **Phase 4 en cours.** Plans 069–076 terminés. Restants : Roster Batch C (formes non-finales + Pokemon manquants), Team Builder. Méga-évolutions → Phase 9.
+- **Prochain plan** : **Roster Batch C** — Pokemon Gen 1 restants non couverts (sandslash, ninetales, wigglytuff, vileplume, parasect, golduck, machoke, tentacruel, slowpoke, magneton, dodrio, dewgong, muk, cloyster, haunter, kingler, electrode, omastar, snorlax second slot, kangaskhan, rhydon…) ou **Team Builder** (sélection moves + items + SP par joueur).
 - **À valider visuellement** : floating text `AbilityActivated` jaune doré, émission Blaze/Torrent/Overgrow au seuil HP, blocage Confusion par Tempo Perso, Early Bird au réveil. Tester sandbox ou combat IA vs IA.
 - **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles, peinture Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour arène propre rapide, ou reporter post-Babylon via `DecalMap`.
 - **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20). Pistes à garder :
@@ -21,6 +21,7 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## Fait récemment
 
+- 2026-05-06 — **Roster Batch B terminé — plan 076**. 19 Pokemon ajoutés (nidoqueen, nidoking, primeape, arcanine, poliwrath, golem, slowbro, gengar, hypno, exeggutor, marowak, hitmonlee, hitmonchan, rhydon, starmie, scyther, pinsir, kabutops, aerodactyl). Roster 15 → 34. 10 nouveaux moves (cross-chop, rock-slide, confuse-ray, energy-ball, bonemerang, blaze-kick, thunder-punch, ice-punch, fire-punch, double-edge). 8 nouvelles abilities (vital-spirit, insomnia, cursed-body, rock-head, limber, iron-fist, natural-cure, battle-armor). 3 nouveaux hooks AbilityHandler : `blocksRecoil`, `preventsCrit`, `onEndTurn`. CI : 1188 unit + 166 intégration verts.
 - 2026-05-05 — **Fixes post-plan 075 + playtest**. Sprites 12 Pokemon Batch A téléchargés via PMDCollab (extract-sprites). Tests intégration corrigés (pokemonTypesMap, compteurs roster). `BattleSetup.ts` : 4-move limit (4 premiers du movepool). Sandbox cohérente (4 premiers par défaut). i18n : anciens non-finaux retirés, 12 Batch A ajoutés. Biome format sprites JSON. Décision #300. CI : 1168 unit + 157 intégration verts.
 - 2026-05-03 — **Plan 074 terminé — EV → Stat Points**. `StatSpread` type + `SP_TOTAL_MAX=66` / `SP_PER_STAT_MAX=32`. `validateStatSpread`. `computeCombatStats` étendu : `statSpread?` + **IV=31 fixe** (alignement Champions, +~15 stats non-HP à niveau 50 vs ancien IV=0). `PokemonInstance.statSpread?`. `BattleSetupConfig.statSpreadOverrides?`. Golden replay régénéré (82 → 103 actions seed=12345). Fix flakiness `DummyAiController.test.ts` (natures aléatoires). 9 nouveaux tests. CI : 1168 unit + 157 intégration verts. Décisions #296–299.
 - 2026-04-29 — **Plan 072 terminé — Natures / Stat Alignment** (mécanique core uniquement). `Nature` enum 25 valeurs, table boost/lowered en dur (Gen 3+ Bulbapedia, 5 neutres + 20 non-neutres). `applyNatureModifier` floor(stat × 1.1 / 0.9), HP exclu. `computeCombatStats(baseStats, level, nature?)`. `rollNature(rng)` uniforme. `PokemonInstance.nature` non-optionnel. `BattleSetupConfig.genderRng` → `creationRng`, ajout `natureOverrides`. **Affichage UI InfoPanel reporté** à la refonte InfoPanel. 13 nouveaux tests. CI verte : 1154 unit + 137 intégration. Décisions #284-287.
@@ -38,7 +39,7 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## Contexte prochaine session
 
-**Phase 3 terminée (2026-04-26). Phase 4 en cours (plans 069–074 terminés).** Abilities, genres, natures, objets tenus, SP livrés. Prochains : Roster élargi, Méga-évolutions, Team Builder. Voir "À faire maintenant" ci-dessus.
+**Phase 3 terminée (2026-04-26). Phase 4 en cours (plans 069–076 terminés).** Abilities, genres, natures, objets tenus, SP, Roster Batch A + B livrés. 34 Pokemon jouables. Prochains : Roster Batch C, Team Builder, Méga-évolutions (Phase 9). Voir "À faire maintenant" ci-dessus.
 
 **Référence archive plan 061** : branche `plan-061-occlusion-before-3d-pivot`. Consulter si besoin de comprendre ce qui a été tenté en 2D iso avant pivot.
 

@@ -8,7 +8,8 @@ export function handleRecoil(context: EffectContext): BattleEvent[] {
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.Recoil }>;
   const pokemon = context.attacker;
 
-  if (context.abilityRegistry?.getForPokemon(pokemon)?.blocksIndirectDamage) {
+  const ability = context.abilityRegistry?.getForPokemon(pokemon);
+  if (ability?.blocksIndirectDamage || ability?.blocksRecoil) {
     return [];
   }
 

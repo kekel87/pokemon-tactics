@@ -310,6 +310,10 @@
 | 298 | 2026-05-03 | Formule IV=31 fixe | **`computeStatAtLevel` utilise désormais `floor((2 × base + 31) × level / 100)`.** Alignement canon Champions. Ancienne formule = IV=0 implicite (écart ~+15 stats non-HP à niveau 50). Golden replay régénéré (82 → 103 actions avec seed 12345). Tests stat-calculator mis à jour. | Plan 074. Option B retenue humain 2026-05-03. |
 | 299 | 2026-05-03 | Pas d'UI SP dans plan 074 | **Team Builder allouera SP via interface dédiée.** Ce plan pose uniquement le modèle de données + pipeline core. Pas de validation `TeamSelection` SP (futur). | Plan 074. Scope tight. |
 | 300 | 2026-05-05 | movepool vs moveIds | **`movepool` = réservoir complet des moves apprenables (données, jamais tronqué). `moveIds` = les 4 moves actifs en combat (4 premiers du movepool en l'absence de Team Builder).** `BattleSetup.ts` limite `moveIds` aux 4 premiers. La Sandbox utilise également les 4 premiers quand aucun move n'est configuré explicitement. | Playtest. Prépare la sélection libre via Team Builder sans modifier la structure de données. |
+| 301 | 2026-05-06 | Exeggutor sans ability | **chlorophyll absent pour Batch B** — nécessite le système météo (Phase 9). Exeggutor exposé sans ability dans le roster. | Plan 076. À compléter lors de l'implémentation du système météo. |
+| 302 | 2026-05-06 | cursed-body = confusion (pas disable) | **Corps Maudit applique confusion à l'attaquant au contact (30%)** plutôt que disable canon. Disable réel (`disabledMoveId`) nécessite un champ dédié sur `PokemonInstance` — reporté Phase 9. Confusion réutilise la mécanique existante. | Plan 076. |
+| 303 | 2026-05-06 | rock-slide sans flinch | **Éboulement n'applique pas de flinch** pour Batch B. Flinch nécessite un nouveau `StatusType` volatile — reporté Phase 9. | Plan 076. |
+| 304 | 2026-05-06 | Scyther / Aerodactyl FlyingIdle | **Insécateur et Ptéra n'ont pas de FlapAround dans PMDCollab** → fallback Walk pour FlyingIdle (identique à Léviator/Dracaufeu/Dracolosse Batch A). | Plan 076. Décision #20 : PMDCollab source sprites. |
 
 ---
 

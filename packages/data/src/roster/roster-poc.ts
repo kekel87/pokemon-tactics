@@ -136,6 +136,100 @@ export const rosterPoc: RosterEntry[] = [
     movepool: ["mega-punch", "scratch", "swords-dance", "body-slam"],
   },
   {
+    id: "nidoqueen",
+    abilityId: "poison-point",
+    movepool: ["earthquake", "ice-beam", "toxic", "body-slam"],
+  },
+  {
+    id: "nidoking",
+    abilityId: "poison-point",
+    movepool: ["earthquake", "sludge-bomb", "ice-beam", "thunderbolt"],
+  },
+  {
+    id: "primeape",
+    abilityId: "vital-spirit",
+    movepool: ["close-combat", "seismic-toss", "cross-chop", "bulk-up"],
+  },
+  {
+    id: "arcanine",
+    abilityId: "intimidate",
+    movepool: ["flamethrower", "extreme-speed", "crunch", "close-combat"],
+  },
+  {
+    id: "poliwrath",
+    abilityId: "water-absorb",
+    movepool: ["surf", "dynamic-punch", "bulk-up", "hypnosis"],
+  },
+  {
+    id: "golem",
+    abilityId: "sturdy",
+    movepool: ["earthquake", "rock-slide", "defense-curl", "rollout"],
+  },
+  {
+    id: "slowbro",
+    abilityId: "own-tempo",
+    movepool: ["surf", "psychic", "amnesia", "thunder-wave"],
+  },
+  {
+    id: "gengar",
+    abilityId: "cursed-body",
+    movepool: ["shadow-ball", "sludge-bomb", "hypnosis", "confuse-ray"],
+  },
+  {
+    id: "hypno",
+    abilityId: "insomnia",
+    movepool: ["psychic", "hypnosis", "calm-mind", "thunder-wave"],
+  },
+  {
+    id: "exeggutor",
+    movepool: ["psychic", "hypnosis", "earthquake", "energy-ball"],
+  },
+  {
+    id: "marowak",
+    abilityId: "rock-head",
+    movepool: ["earthquake", "double-edge", "swords-dance", "bonemerang"],
+  },
+  {
+    id: "hitmonlee",
+    abilityId: "limber",
+    movepool: ["close-combat", "double-kick", "bulk-up", "blaze-kick"],
+  },
+  {
+    id: "hitmonchan",
+    abilityId: "iron-fist",
+    movepool: ["counter", "thunder-punch", "ice-punch", "fire-punch"],
+  },
+  {
+    id: "rhydon",
+    abilityId: "lightning-rod",
+    movepool: ["earthquake", "rock-slide", "iron-defense", "crunch"],
+  },
+  {
+    id: "starmie",
+    abilityId: "natural-cure",
+    movepool: ["surf", "psychic", "ice-beam", "recover"],
+  },
+  {
+    id: "scyther",
+    abilityId: "technician",
+    movepool: ["slash", "wing-attack", "swords-dance", "air-slash"],
+  },
+  {
+    id: "pinsir",
+    abilityId: "moxie",
+    movepool: ["close-combat", "earthquake", "swords-dance", "quick-attack"],
+  },
+  {
+    id: "kabutops",
+    abilityId: "battle-armor",
+    movepool: ["waterfall", "slash", "rock-slide", "swords-dance"],
+  },
+  {
+    id: "aerodactyl",
+    abilityId: "rock-head",
+    movepool: ["double-edge", "rock-slide", "agility", "dragon-claw"],
+  },
+  {
     id: "dummy",
     movepool: ["protect", "detect", "counter", "endure"],
     custom: {

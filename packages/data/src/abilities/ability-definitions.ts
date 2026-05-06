@@ -689,6 +689,144 @@ const voltAbsorb: AbilityHandler = {
   },
 };
 
+// Batch B abilities
+
+const vitalSpirit: AbilityHandler = {
+  id: "vital-spirit",
+  onStatusBlocked: (context) => {
+    if (context.status !== StatusType.Asleep) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "vital-spirit",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+const insomnia: AbilityHandler = {
+  id: "insomnia",
+  onStatusBlocked: (context) => {
+    if (context.status !== StatusType.Asleep) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "insomnia",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+const cursedBody: AbilityHandler = {
+  id: "cursed-body",
+  onAfterDamageReceived: (context) => {
+    if (context.self.currentHp <= 0) return [];
+    if (!context.move.flags?.contact) return [];
+    if (context.random() >= 0.3) return [];
+    const alreadyConfused = context.attacker.volatileStatuses.some(
+      (s) => s.type === StatusType.Confused,
+    );
+    if (alreadyConfused) return [];
+    const duration = Math.floor(context.random() * 4) + 1;
+    context.attacker.volatileStatuses.push({ type: StatusType.Confused, remainingTurns: duration });
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "cursed-body",
+        targetIds: [context.attacker.id],
+      },
+      {
+        type: BattleEventType.StatusApplied,
+        targetId: context.attacker.id,
+        status: StatusType.Confused,
+      },
+    ];
+  },
+};
+
+const rockHead: AbilityHandler = {
+  id: "rock-head",
+  blocksRecoil: true,
+};
+
+const limber: AbilityHandler = {
+  id: "limber",
+  onStatusBlocked: (context) => {
+    if (context.status !== StatusType.Paralyzed) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "limber",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+const ironFist: AbilityHandler = {
+  id: "iron-fist",
+  onDamageModify: (context) => {
+    if (context.isAttacker && context.move.flags?.punch) {
+      return 1.2;
+    }
+    return 1.0;
+  },
+};
+
+const MAJOR_STATUSES_FOR_CURE: ReadonlySet<StatusTypeAlias> = new Set<StatusTypeAlias>([
+  StatusType.Burned,
+  StatusType.Frozen,
+  StatusType.Paralyzed,
+  StatusType.Poisoned,
+  StatusType.BadlyPoisoned,
+  StatusType.Asleep,
+]);
+
+const naturalCure: AbilityHandler = {
+  id: "natural-cure",
+  onEndTurn: (context) => {
+    const hasMajor = context.self.statusEffects.some((s) => MAJOR_STATUSES_FOR_CURE.has(s.type));
+    if (!hasMajor) return [];
+    context.self.statusEffects = context.self.statusEffects.filter(
+      (s) => !MAJOR_STATUSES_FOR_CURE.has(s.type),
+    );
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "natural-cure",
+        targetIds: [context.self.id],
+      },
+    ];
+  },
+};
+
+const battleArmor: AbilityHandler = {
+  id: "battle-armor",
+  preventsCrit: true,
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -718,4 +856,12 @@ export const abilityHandlers: AbilityHandler[] = [
   waterAbsorb,
   flashFire,
   voltAbsorb,
+  vitalSpirit,
+  insomnia,
+  cursedBody,
+  rockHead,
+  limber,
+  ironFist,
+  naturalCure,
+  battleArmor,
 ];

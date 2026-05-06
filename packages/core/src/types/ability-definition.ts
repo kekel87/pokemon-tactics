@@ -91,9 +91,16 @@ export interface DurationModifyResult {
   events: BattleEvent[];
 }
 
+export interface AbilityEndTurnContext {
+  self: PokemonInstance;
+  state: BattleState;
+}
+
 export interface AbilityHandler {
   id: string;
   blocksIndirectDamage?: boolean;
+  blocksRecoil?: boolean;
+  preventsCrit?: boolean;
   onAccuracyOverride?: () => boolean;
   onAfterKO?: (context: AfterKOContext) => BattleEvent[];
   onDamageModify?: (context: DamageModifyContext) => number;
@@ -105,6 +112,7 @@ export interface AbilityHandler {
   onTypeImmunity?: (context: TypeImmunityContext) => BlockResult;
   onBattleStart?: (context: BattleStartContext) => BattleEvent[];
   onAuraCheck?: (context: AuraCheckContext) => BattleEvent[];
+  onEndTurn?: (context: AbilityEndTurnContext) => BattleEvent[];
 }
 
 export interface AbilityDefinition extends AbilityHandler {

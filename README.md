@@ -2,7 +2,7 @@
 
 A tactical combat game on an isometric grid, fusing **Pokemon** and **Final Fantasy Tactics**, built in TypeScript.
 
-> **Status: Playable demo** — 15 Pokemon (final evolutions), 102 moves, AI opponents, hot-seat up to 12 players.
+> **Status: Playable demo** — 34 Pokemon (final evolutions), 112 moves, AI opponents, hot-seat up to 12 players.
 
 ![Pokemon Tactics — Battle screenshot](docs/images/battle-screenshot.png)
 
@@ -10,9 +10,9 @@ A tactical combat game on an isometric grid, fusing **Pokemon** and **Final Fant
 
 | | Implemented | Target pool | Details |
 |---|---|---|---|
-| Pokemon | **15 / 151** | 151 Gen 1 | [full list](docs/implementations.md#pokemon-gen-1--151) |
-| Moves | **102** | 481 (Gen 1) | [full list](docs/implementations.md#attaques-102-implémentées) |
-| Abilities | **28** | 114 (Gen 1) | [full list](docs/implementations.md#talents-28-implémentés) |
+| Pokemon | **34 / 151** | 151 Gen 1 | [full list](docs/implementations.md#pokemon-gen-1--151) |
+| Moves | **112** | 481 (Gen 1) | [full list](docs/implementations.md#attaques-112-implémentées) |
+| Abilities | **36** | 114 (Gen 1) | [full list](docs/implementations.md#talents-36-implémentés) |
 | Held items | **12** | ~159 | [full list](docs/implementations.md#objets-tenus-12-implémentés) |
 
 ## The Game
@@ -44,7 +44,7 @@ Open http://localhost:5173 in your browser.
 | Language | TypeScript (strict) |
 | Game engine | Pure TypeScript core (zero UI dependency) |
 | Renderer | Phaser 4 (2D isometric) |
-| Tests | Vitest (700+ tests) |
+| Tests | Vitest (1300+ tests) |
 | Bundler | Vite |
 | Linter | Biome |
 | Monorepo | pnpm workspaces |

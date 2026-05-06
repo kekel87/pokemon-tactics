@@ -67,10 +67,11 @@ export function calculateDamageWithCrit(
 
   const attackerItem = itemRegistry?.getForPokemon(attacker);
 
+  const defenderAbility = abilityRegistry?.getForPokemon(defender);
   const baseCritStage = move.critRatio ?? 0;
   const itemCritStage = attackerItem?.onCritStageBoost?.({ self: attacker, move }) ?? 0;
   const totalCritStage = baseCritStage + itemCritStage;
-  const isCrit = random() < getCritChance(totalCritStage);
+  const isCrit = defenderAbility?.preventsCrit ? false : random() < getCritChance(totalCritStage);
 
   const critDefenseStage = isCrit ? Math.max(0, defenseStage) : defenseStage;
   const effectiveDefense = getEffectiveStat(defenseStat, critDefenseStage);
@@ -94,7 +95,6 @@ export function calculateDamageWithCrit(
       effectiveness,
     }) ?? 1.0;
 
-  const defenderAbility = abilityRegistry?.getForPokemon(defender);
   const defenderAbilityMod =
     defenderAbility?.onDamageModify?.({
       self: defender,
