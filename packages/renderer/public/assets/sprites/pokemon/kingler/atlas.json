@@ -9015,113 +9015,47 @@
       "Walk": {
         "frameWidth": 32,
         "frameHeight": 32,
-        "durations": [
-          8,
-          10,
-          8,
-          10
-        ]
+        "durations": [8, 10, 8, 10]
       },
       "Attack": {
         "frameWidth": 72,
         "frameHeight": 72,
-        "durations": [
-          1,
-          2,
-          3,
-          2,
-          1,
-          3,
-          1,
-          1,
-          1,
-          2,
-          2,
-          2,
-          2,
-          4,
-          2,
-          1
-        ],
+        "durations": [1, 2, 3, 2, 1, 3, 1, 1, 1, 2, 2, 2, 2, 4, 2, 1],
         "hitFrame": 7,
         "returnFrame": 10
       },
       "Shoot": {
         "frameWidth": 48,
         "frameHeight": 56,
-        "durations": [
-          4,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          1,
-          2,
-          4,
-          2,
-          1
-        ],
+        "durations": [4, 2, 2, 2, 2, 2, 2, 1, 2, 4, 2, 1],
         "hitFrame": 1,
         "returnFrame": 5
       },
       "Sleep": {
         "frameWidth": 24,
         "frameHeight": 24,
-        "durations": [
-          30,
-          35
-        ]
+        "durations": [30, 35]
       },
       "Hurt": {
         "frameWidth": 48,
         "frameHeight": 56,
-        "durations": [
-          2,
-          8
-        ]
+        "durations": [2, 8]
       },
       "Idle": {
         "frameWidth": 32,
         "frameHeight": 48,
-        "durations": [
-          30,
-          30
-        ]
+        "durations": [30, 30]
       },
       "Hop": {
         "frameWidth": 40,
         "frameHeight": 88,
-        "durations": [
-          2,
-          1,
-          2,
-          3,
-          4,
-          4,
-          3,
-          2,
-          1,
-          2
-        ],
+        "durations": [2, 1, 2, 3, 4, 4, 3, 2, 1, 2],
         "hitFrame": 9
       },
       "Charge": {
         "frameWidth": 48,
         "frameHeight": 40,
-        "durations": [
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2
-        ],
+        "durations": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
         "hitFrame": 5,
         "returnFrame": 9
       }

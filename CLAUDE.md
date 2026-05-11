@@ -38,6 +38,16 @@ Profil: dev web Angular/TS expérimenté, clean code advocate, expérience Godot
 
 Pas tout charger d'un coup. Lire fichier pertinent moment pertinent.
 
+## Outils d'exploration code
+
+| Outil | Quand l'utiliser |
+|-------|-----------------|
+| **Serena** (appeler `initial_instructions` d'abord) | Exploration code : trouver symboles, références, diagnostics. **Prioritaire sur Read/Grep/Edit** pour fichiers `.ts`. |
+| **`/understand-chat`** (U-A) | Questions architecture : "quels fichiers gèrent X ?", vue d'ensemble relations |
+
+> **Serena first** : avant tout Read/Grep/Edit sur fichier code TypeScript, charger les tools Serena (`ToolSearch select:mcp__serena__*`). Plus token-efficient que lire des fichiers entiers.
+> Graph U-A dans `.understand-anything/knowledge-graph.json` — 1008 nodes, mis à jour à chaque commit si `autoUpdate: true`.
+
 ## Principes de développement
 
 - **Core découplé**: logique pure, zéro dépendance UI (détails dans `.claude/rules/core.md`)
@@ -110,7 +120,7 @@ Détails par agent et table triggers: **`docs/agent-orchestration.md`**.
 ### Règles de fond
 
 - Jamais plus d'un agent long en foreground par turn — longs en background.
-- Gate CI = `pnpm build && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration`. **BLOQUANT** avant tout commit.
+- Gate CI = `pnpm build && pnpm lint:fix && pnpm typecheck && pnpm test && pnpm test:integration`. **BLOQUANT** avant tout commit.
 - **Reporté / skippé va dans `docs/next.md`** — agenda persistant que tu maintiens. Humain lit via `/next` pour rien oublier.
 
 ## Skills

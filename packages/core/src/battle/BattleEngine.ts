@@ -1861,7 +1861,10 @@ export class BattleEngine {
         if (skipPokemonCt && skipPokemonCt.currentHp > 0) {
           const skipAbilityCt = this.abilityRegistry?.getForPokemon(skipPokemonCt);
           if (skipAbilityCt?.onEndTurn) {
-            const abilityEvents = skipAbilityCt.onEndTurn({ self: skipPokemonCt, state: this.state });
+            const abilityEvents = skipAbilityCt.onEndTurn({
+              self: skipPokemonCt,
+              state: this.state,
+            });
             for (const event of abilityEvents) {
               this.emit(event);
               events.push(event);

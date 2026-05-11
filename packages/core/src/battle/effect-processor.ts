@@ -10,7 +10,7 @@ import type { StatusRules } from "../types/status-rules";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { getTypeEffectiveness } from "./damage-calculator";
-import type { EffectContext, TypeChart } from "./effect-handler-registry";
+import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { handleDamage } from "./handlers/handle-damage";
 import { handleDefensive } from "./handlers/handle-defensive";
@@ -87,6 +87,8 @@ export function processEffects(
     }
   }
 
+  const shared: SharedEffectState = { lastDamageDealt: 0 };
+
   const chanceGroupResults = new Map<number, boolean>();
   for (const effect of context.move.effects) {
     if (effect.kind === EffectKind.StatChange && effect.chanceGroup !== undefined) {
@@ -104,7 +106,12 @@ export function processEffects(
       if (!chanceGroupResults.get(effect.chanceGroup)) {
         continue;
       }
-      processedEffect = { kind: effect.kind, stat: effect.stat, stages: effect.stages, target: effect.target };
+      processedEffect = {
+        kind: effect.kind,
+        stat: effect.stat,
+        stages: effect.stages,
+        target: effect.target,
+      };
     }
 
     const effectContext: EffectContext = {
@@ -113,6 +120,7 @@ export function processEffects(
       effect: processedEffect,
       abilityRegistry: context.abilityRegistry,
       itemRegistry: context.itemRegistry,
+      shared,
     };
     events.push(...effectRegistry.process(effectContext));
   }

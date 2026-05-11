@@ -39,7 +39,7 @@ describe("double-edge", () => {
     vi.restoreAllMocks();
   });
 
-  it("attacker takes recoil damage equal to 1/3 of max HP", () => {
+  it("attacker takes recoil damage equal to 1/3 of damage dealt", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const maxHp = 120;
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -70,12 +70,13 @@ describe("double-edge", () => {
     });
 
     expect(result.success).toBe(true);
-    const expectedRecoil = Math.floor(maxHp / 3);
-    expect(state.pokemon.get(attacker.id)?.currentHp).toBe(maxHp - expectedRecoil);
     const damageEvents = result.events.filter(
       (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
         e.type === BattleEventType.DamageDealt,
     );
+    const damageToDefender = damageEvents.find((e) => e.targetId === defender.id)?.amount ?? 0;
+    const expectedRecoil = Math.max(1, Math.floor(damageToDefender / 3));
+    expect(state.pokemon.get(attacker.id)?.currentHp).toBe(maxHp - expectedRecoil);
     const recoilEvent = damageEvents.find((e) => e.targetId === attacker.id);
     expect(recoilEvent).toBeDefined();
     vi.restoreAllMocks();

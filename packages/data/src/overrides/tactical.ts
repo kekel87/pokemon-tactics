@@ -919,11 +919,46 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
     effects: [
       { kind: EffectKind.Damage },
-      { kind: EffectKind.StatChange, stat: StatName.Attack, stages: 1, target: EffectTarget.Self, chance: 10, chanceGroup: 1 },
-      { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self, chance: 10, chanceGroup: 1 },
-      { kind: EffectKind.StatChange, stat: StatName.SpAttack, stages: 1, target: EffectTarget.Self, chance: 10, chanceGroup: 1 },
-      { kind: EffectKind.StatChange, stat: StatName.SpDefense, stages: 1, target: EffectTarget.Self, chance: 10, chanceGroup: 1 },
-      { kind: EffectKind.StatChange, stat: StatName.Speed, stages: 1, target: EffectTarget.Self, chance: 10, chanceGroup: 1 },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: 1,
+        target: EffectTarget.Self,
+        chance: 10,
+        chanceGroup: 1,
+      },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: 1,
+        target: EffectTarget.Self,
+        chance: 10,
+        chanceGroup: 1,
+      },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: 1,
+        target: EffectTarget.Self,
+        chance: 10,
+        chanceGroup: 1,
+      },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: 1,
+        target: EffectTarget.Self,
+        chance: 10,
+        chanceGroup: 1,
+      },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Speed,
+        stages: 1,
+        target: EffectTarget.Self,
+        chance: 10,
+        chanceGroup: 1,
+      },
     ],
   },
   "shell-smash": {
@@ -949,6 +984,67 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
         stages: -1,
         target: EffectTarget.Self,
       },
+    ],
+    effectTier: EffectTier.MajorBuff,
+  },
+
+  // Batch D moves
+  "poison-fang": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.BadlyPoisoned, chance: 50 },
+    ],
+  },
+  coil: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      { kind: EffectKind.StatChange, stat: StatName.Attack, stages: 1, target: EffectTarget.Self },
+      { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Accuracy,
+        stages: 1,
+        target: EffectTarget.Self,
+      },
+    ],
+    effectTier: EffectTier.DoubleBuff,
+  },
+  glare: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
+  },
+  "cosmic-power": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: 1,
+        target: EffectTarget.Self,
+      },
+    ],
+    effectTier: EffectTier.DoubleBuff,
+  },
+  spore: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Status, status: StatusType.Asleep, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
+  },
+  "leaf-blade": {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "drill-peck": {
+    targeting: { kind: TargetingKind.Line, length: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  barrier: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 2, target: EffectTarget.Self },
     ],
     effectTier: EffectTier.MajorBuff,
   },

@@ -13,9 +13,9 @@
 
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
-| Pokemon | 51 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 127 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
-| Talents | 44 | 114 | Talents portés par au moins un des 151 Gen 1 |
+| Pokemon | 67 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
+| Attaques | 135 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
+| Talents | 46 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 12 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
 ---
@@ -55,7 +55,7 @@
 | 021 | spearow | Piafabec | Normal/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
 | 022 | fearow | Rapasdepic | Normal/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
 | 023 | ekans | Abo | Poison | ✗ | | ⚠️ Faint abs. | |
-| 024 | arbok | Arbok | Poison | ✗ | | ⚠️ Faint abs. | |
+| 024 | arbok | Arbok | Poison | ✓ | intimidate | ⚠️ Faint abs. | |
 | 025 | pikachu | Pikachu | Électrique | ✓ | static | ✓ | |
 | 026 | raichu | Raichu | Électrique | ✓ | lightning-rod | ✓ | Méga disponible |
 | 027 | sandshrew | Sabelette | Sol | ✓ | sand-veil | ✓ | |
@@ -67,7 +67,7 @@
 | 033 | nidorino | Nidorino | Poison | ✗ | | ⚠️ Faint abs. | |
 | 034 | nidoking | Nidoking | Poison/Sol | ✓ | poison-point | ⚠️ Faint abs. | |
 | 035 | clefairy | Mélofée | Fée | ✗ | | ⚠️ Shoot+Faint abs. | |
-| 036 | clefable | Mélodelfe | Fée | ✗ | | ⚠️ Shoot+Faint abs. | Méga disponible |
+| 036 | clefable | Mélodelfe | Fée | ✓ | magic-guard | ⚠️ Shoot+Faint abs. | Méga disponible |
 | 037 | vulpix | Goupix | Feu | ✗ | | ✓ | |
 | 038 | ninetales | Feunard | Feu | ✓ | flash-fire | ✓ | |
 | 039 | jigglypuff | Rondoudou | Normal/Fée | ✓ | cute-charm | ✓ | |
@@ -78,13 +78,13 @@
 | 044 | gloom | Ortide | Plante/Poison | ✗ | | ⚠️ Faint abs. | |
 | 045 | vileplume | Rafflesia | Plante/Poison | ✓ | effect-spore | ⚠️ Faint abs. | |
 | 046 | paras | Paras | Insecte/Plante | ✗ | | ⚠️ Faint abs. | |
-| 047 | parasect | Parasect | Insecte/Plante | ✗ | | ⚠️ Faint abs. | |
+| 047 | parasect | Parasect | Insecte/Plante | ✓ | effect-spore | ⚠️ Faint abs. | |
 | 048 | venonat | Mimitoss | Insecte/Poison | ✗ | | ✓ | |
 | 049 | venomoth | Aéromite | Insecte/Poison | ✗ | | ⚠️ Faint abs. | |
 | 050 | diglett | Taupiqueur | Sol | ✗ | | ⚠️ Faint abs. | |
-| 051 | dugtrio | Triopikeur | Sol | ✗ | | ⚠️ Faint abs. | |
+| 051 | dugtrio | Triopikeur | Sol | ✓ | sand-veil | ⚠️ Faint abs. | |
 | 052 | meowth | Miaouss | Normal | ✓ | technician | ✓ | |
-| 053 | persian | Persian | Normal | ✗ | | ⚠️ Faint abs. | |
+| 053 | persian | Persian | Normal | ✓ | technician | ⚠️ Faint abs. | |
 | 054 | psyduck | Psykokwak | Eau | ✗ | | ⚠️ Faint abs. | |
 | 055 | golduck | Akwakwak | Eau | ✓ | cloud-nine | ⚠️ Faint abs. | |
 | 056 | mankey | Férosinge | Combat | ✗ | | ⚠️ Faint abs. | |
@@ -102,31 +102,31 @@
 | 068 | machamp | Mackogneur | Combat | ✓ | no-guard | ⚠️ Faint abs. | |
 | 069 | bellsprout | Chétiflor | Plante/Poison | ✗ | | ⚠️ Faint abs. | |
 | 070 | weepinbell | Boustiflor | Plante/Poison | ✗ | | ⚠️ Faint abs. | |
-| 071 | victreebel | Empiflor | Plante/Poison | ✗ | | ⚠️ Faint abs. | Méga disponible |
+| 071 | victreebel | Empiflor | Plante/Poison | ✓ | chlorophyll | ⚠️ Faint abs. | Méga disponible. chlorophyll stub Phase 9 (météo). |
 | 072 | tentacool | Tentacool | Eau/Poison | ✓ | clear-body | ⚠️ Faint abs. | |
 | 073 | tentacruel | Tentacruel | Eau/Poison | ✓ | clear-body | ⚠️ Faint abs. | |
 | 074 | geodude | Racaillou | Roche/Sol | ✓ | sturdy | ⚠️ Faint abs. | |
 | 075 | graveler | Gravalanch | Roche/Sol | ✗ | | ⚠️ Faint abs. | |
 | 076 | golem | Grolem | Roche/Sol | ✓ | sturdy | ⚠️ Faint abs. | |
 | 077 | ponyta | Ponyta | Feu | ✗ | | ✓ | |
-| 078 | rapidash | Galopa | Feu | ✗ | | ⚠️ Faint abs. | |
+| 078 | rapidash | Galopa | Feu | ✓ | flash-fire | ⚠️ Faint abs. | |
 | 079 | slowpoke | Ramoloss | Eau/Psy | ✗ | | ⚠️ Faint abs. | |
 | 080 | slowbro | Flagadoss | Eau/Psy | ✓ | own-tempo | ⚠️ Faint abs. | Méga disponible |
 | 081 | magnemite | Magnéti | Électrique/Acier | ✓ | magnet-pull | ⚠️ Faint abs. | |
 | 082 | magneton | Magnéton | Électrique/Acier | ✓ | magnet-pull | ⚠️ Faint abs. | |
 | 083 | farfetch-d | Canarticho | Normal/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
 | 084 | doduo | Doduo | Normal/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
-| 085 | dodrio | Dodrio | Normal/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
+| 085 | dodrio | Dodrio | Normal/Vol | ✓ | early-bird | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
 | 086 | seel | Otaria | Eau | ✓ | thick-fat | ⚠️ Faint abs. | |
 | 087 | dewgong | Lamantine | Eau/Glace | ✓ | thick-fat | ⚠️ Faint abs. | |
 | 088 | grimer | Tadmorv | Poison | ✗ | | ⚠️ Faint abs. | |
-| 089 | muk | Grotadmorv | Poison | ✗ | | ⚠️ Faint abs. | |
+| 089 | muk | Grotadmorv | Poison | ✓ | poison-touch | ⚠️ Faint abs. | |
 | 090 | shellder | Kokiyas | Eau | ✗ | | ⚠️ Faint abs. | |
 | 091 | cloyster | Crustabri | Eau/Glace | ✓ | shell-armor | ⚠️ Faint abs. | |
 | 092 | gastly | Fantominus | Spectre/Poison | ✓ | levitate | ⚠️ Faint abs. | |
 | 093 | haunter | Spectrum | Spectre/Poison | ✗ | | ⚠️ Faint abs. | Retiré du roster post-Batch C (sprites conservés sur disque) |
 | 094 | gengar | Ectoplasma | Spectre/Poison | ✓ | cursed-body | ✓ | Méga disponible |
-| 095 | onix | Onix | Roche/Sol | ✗ | | ⚠️ Faint abs. | |
+| 095 | onix | Onix | Roche/Sol | ✓ | sturdy | ⚠️ Faint abs. | |
 | 096 | drowzee | Soporifik | Psy | ✗ | | ⚠️ Faint abs. | |
 | 097 | hypno | Hypnomade | Psy | ✓ | insomnia | ⚠️ Faint abs. | |
 | 098 | krabby | Krabby | Eau | ✗ | | ⚠️ Faint abs. | |
@@ -141,25 +141,25 @@
 | 107 | hitmonchan | Tygnon | Combat | ✓ | iron-fist | ⚠️ Faint abs. | |
 | 108 | lickitung | Excelangue | Normal | ✓ | own-tempo | ⚠️ Faint abs. | |
 | 109 | koffing | Smogo | Poison | ✗ | | ⚠️ Faint abs. | |
-| 110 | weezing | Smogogo | Poison | ✗ | | ⚠️ Faint abs. | |
+| 110 | weezing | Smogogo | Poison | ✓ | levitate | ⚠️ Faint abs. | |
 | 111 | rhyhorn | Rhinocorne | Sol/Roche | ✗ | | ⚠️ Faint abs. | |
 | 112 | rhydon | Rhinoféros | Sol/Roche | ✓ | lightning-rod | ⚠️ Faint abs. | |
-| 113 | chansey | Leveinard | Normal | ✗ | | ⚠️ Faint abs. | |
-| 114 | tangela | Saquedeneu | Plante | ✗ | | ⚠️ Faint abs. | |
+| 113 | chansey | Leveinard | Normal | ✓ | natural-cure | ⚠️ Faint abs. | |
+| 114 | tangela | Saquedeneu | Plante | ✓ | chlorophyll | ⚠️ Faint abs. | chlorophyll stub Phase 9 (météo) |
 | 115 | kangaskhan | Kangourex | Normal | ✓ | early-bird | ⚠️ Faint abs. | Méga disponible |
 | 116 | horsea | Hypotrempe | Eau | ✗ | | ⚠️ Faint abs. | |
-| 117 | seadra | Hypocéan | Eau | ✗ | | ⚠️ Faint abs. | |
+| 117 | seadra | Hypocéan | Eau | ✓ | swift-swim | ⚠️ Faint abs. | swift-swim stub Phase 9 (météo) |
 | 118 | goldeen | Poissirène | Eau | ✗ | | ⚠️ Faint abs. | |
 | 119 | seaking | Poissoroy | Eau | ✗ | | ⚠️ Faint abs. | |
 | 120 | staryu | Stari | Eau | ✗ | | ⚠️ Faint abs. | |
 | 121 | starmie | Staross | Eau/Psy | ✓ | natural-cure | ⚠️ Faint abs. | Méga disponible |
-| 122 | mr-mime | M. Mime | Psy/Fée | ✗ | | ⚠️ Faint abs. | |
+| 122 | mr-mime | M. Mime | Psy/Fée | ✓ | filter | ⚠️ Faint abs. | |
 | 123 | scyther | Insécateur | Insecte/Vol | ✓ | technician | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
 | 124 | jynx | Lippoutou | Glace/Psy | ✓ | oblivious | ⚠️ Faint abs. | |
 | 125 | electabuzz | Élektek | Électrique | ✓ | static | ⚠️ Faint abs. | |
 | 126 | magmar | Magmar | Feu | ✓ | flame-body | ⚠️ Faint abs. | |
 | 127 | pinsir | Scarabrute | Insecte | ✓ | moxie | ⚠️ Faint abs. | Méga disponible |
-| 128 | tauros | Tauros | Normal | ✗ | | ⚠️ Faint abs. | |
+| 128 | tauros | Tauros | Normal | ✓ | intimidate | ⚠️ Faint abs. | |
 | 129 | magikarp | Magicarpe | Eau | ✗ | | ⚠️ Faint abs. | |
 | 130 | gyarados | Léviator | Eau/Vol | ✓ | moxie | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
 | 131 | lapras | Lokhlass | Eau/Glace | ✓ | water-absorb | ⚠️ Faint abs. | |
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (127 implémentées)
+## Attaques (135 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -345,10 +345,18 @@
 | Pouvoir Lunaire | moonblast | Fée | Spé | 95 | 100 | 15 | single r1–4 | −1 AtqSpé cible 30% |
 | Pouvoir Antique | ancient-power | Roche | Spé | 60 | 100 | 5 | single r1–3 | +1 toutes stats attaquant 10% (indépendant) |
 | Exuviation | shell-smash | Normal | Statut | — | — | 15 | self | +2 Atk/AtqSpé/Vit, −1 Déf/DéfSpé |
+| Crocs Venin | poison-fang | Poison | Phys | 50 | 100 | 15 | mêlée | Poison fort 50% (BadlyPoisoned) |
+| Enroulement | coil | Poison | Statut | — | — | 20 | self | +1 Atk, +1 Déf, +1 Préc |
+| Regard Médusant | glare | Normal | Statut | — | 100 | 30 | single r1–3 | Para 100% |
+| Force Cosmique | cosmic-power | Psy | Statut | — | — | 20 | self | +1 Déf, +1 DéfSpé |
+| Spore | spore | Plante | Statut | — | 100 | 15 | single r1 | Sommeil 100% |
+| Lame Feuille | leaf-blade | Plante | Phys | 90 | 100 | 15 | slash | Critique élevé (`critRatio: 1`) |
+| Picpic | drill-peck | Vol | Phys | 80 | 100 | 20 | slash | — |
+| Barrière | barrier | Psy | Statut | — | — | 20 | self | +2 Déf |
 
 ---
 
-## Talents (44 implémentés)
+## Talents (46 implémentés)
 
 | Talent | ID | Pokemon (roster) | Effet résumé |
 |---|---|---|---|
@@ -396,6 +404,8 @@
 | Corps Ardent | flame-body | Magmar | 30% chance Brûlure sur attaque contact reçue (sur l'attaquant) |
 | Calque | trace | Porygon | Au combat : copie l'ability de l'ennemi le plus proche |
 | Glissade | swift-swim | Amonistar | Double la vitesse sous pluie (stub Phase 4) |
+| Contact Poison | poison-touch | Grotadmorv | 30% chance empoisonner ennemi quand move de contact (`onAfterDamageDealt`) |
+| Filtre | filter | M. Mime | Réduit de 25% les dégâts reçus super-efficaces (`onDamageModify`) |
 
 ---
 

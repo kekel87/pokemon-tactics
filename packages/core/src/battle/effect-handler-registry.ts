@@ -14,6 +14,10 @@ import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 
 export type { TypeChart };
 
+export interface SharedEffectState {
+  lastDamageDealt: number;
+}
+
 export interface EffectContext {
   attacker: PokemonInstance;
   targets: PokemonInstance[];
@@ -31,6 +35,7 @@ export interface EffectContext {
   statusRules?: StatusRules;
   abilityRegistry?: AbilityHandlerRegistry;
   itemRegistry?: HeldItemHandlerRegistry;
+  shared: SharedEffectState;
 }
 
 export type EffectHandler = (context: EffectContext) => BattleEvent[];

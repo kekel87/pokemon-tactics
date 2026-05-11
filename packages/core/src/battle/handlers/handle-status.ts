@@ -54,7 +54,7 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
 
     const status: StatusType =
       "statuses" in effect
-        ? (effect.statuses[Math.floor(random() * effect.statuses.length)] ?? effect.statuses[0]!)
+        ? (effect.statuses[Math.floor(random() * effect.statuses.length)] ?? effect.statuses[0])
         : effect.status;
 
     const targetTypes = context.targetTypesMap.get(target.id) ?? [];
@@ -120,7 +120,9 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
         type: status,
         remainingTurns,
         ...(status === StatusTypeEnum.Seeded ? { sourceId: context.attacker.id } : {}),
-        ...("damagePerTurn" in effect && status === StatusTypeEnum.Trapped && effect.damagePerTurn !== undefined
+        ...("damagePerTurn" in effect &&
+        status === StatusTypeEnum.Trapped &&
+        effect.damagePerTurn !== undefined
           ? { damagePerTurn: effect.damagePerTurn }
           : {}),
       });

@@ -28,6 +28,17 @@ export interface AfterDamageContext {
   random: () => number;
 }
 
+export interface AfterDamageDealtContext {
+  self: PokemonInstance;
+  target: PokemonInstance;
+  move: MoveDefinition;
+  damageDealt: number;
+  state: BattleState;
+  selfTypes: PokemonType[];
+  targetTypes: PokemonType[];
+  random: () => number;
+}
+
 export interface AfterStatusContext {
   self: PokemonInstance;
   source: PokemonInstance | null;
@@ -105,6 +116,7 @@ export interface AbilityHandler {
   onAfterKO?: (context: AfterKOContext) => BattleEvent[];
   onDamageModify?: (context: DamageModifyContext) => number;
   onAfterDamageReceived?: (context: AfterDamageContext) => BattleEvent[];
+  onAfterDamageDealt?: (context: AfterDamageDealtContext) => BattleEvent[];
   onAfterStatusReceived?: (context: AfterStatusContext) => BattleEvent[];
   onStatusBlocked?: (context: StatusBlockContext) => BlockResult;
   onStatusDurationModify?: (context: StatusDurationContext) => DurationModifyResult;

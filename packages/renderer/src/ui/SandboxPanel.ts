@@ -580,9 +580,7 @@ export class SandboxPanel {
       }
 
       select.value =
-        currentValue !== "" && movepool.includes(currentValue)
-          ? currentValue
-          : (movepool[i] ?? "");
+        currentValue !== "" && movepool.includes(currentValue) ? currentValue : (movepool[i] ?? "");
     }
   }
 

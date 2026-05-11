@@ -9335,28 +9335,12 @@
       "Walk": {
         "frameWidth": 40,
         "frameHeight": 40,
-        "durations": [
-          8,
-          10,
-          8,
-          10
-        ]
+        "durations": [8, 10, 8, 10]
       },
       "Attack": {
         "frameWidth": 72,
         "frameHeight": 80,
-        "durations": [
-          2,
-          4,
-          1,
-          1,
-          1,
-          2,
-          2,
-          2,
-          2,
-          2
-        ],
+        "durations": [2, 4, 1, 1, 1, 2, 2, 2, 2, 2],
         "rushFrame": 1,
         "hitFrame": 3,
         "returnFrame": 6
@@ -9364,87 +9348,35 @@
       "Shoot": {
         "frameWidth": 56,
         "frameHeight": 48,
-        "durations": [
-          2,
-          2,
-          2,
-          2,
-          2,
-          1,
-          1,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2
-        ],
+        "durations": [2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2],
         "hitFrame": 3,
         "returnFrame": 8
       },
       "Sleep": {
         "frameWidth": 32,
         "frameHeight": 32,
-        "durations": [
-          35,
-          35
-        ]
+        "durations": [35, 35]
       },
       "Hurt": {
         "frameWidth": 48,
         "frameHeight": 56,
-        "durations": [
-          2,
-          8
-        ]
+        "durations": [2, 8]
       },
       "Idle": {
         "frameWidth": 40,
         "frameHeight": 48,
-        "durations": [
-          30,
-          1,
-          2,
-          3,
-          3,
-          3,
-          2,
-          1
-        ]
+        "durations": [30, 1, 2, 3, 3, 3, 2, 1]
       },
       "Hop": {
         "frameWidth": 40,
         "frameHeight": 88,
-        "durations": [
-          2,
-          1,
-          2,
-          3,
-          4,
-          4,
-          3,
-          2,
-          1,
-          2
-        ],
+        "durations": [2, 1, 2, 3, 4, 4, 3, 2, 1, 2],
         "hitFrame": 9
       },
       "Charge": {
         "frameWidth": 40,
         "frameHeight": 40,
-        "durations": [
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2
-        ],
+        "durations": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
         "hitFrame": 5,
         "returnFrame": 9
       }

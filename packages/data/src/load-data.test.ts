@@ -8,10 +8,10 @@ describe("loadData", () => {
     expect(data.pokemon.length).toBeGreaterThanOrEqual(4);
   });
 
-  it("returns at least one move per pokemon slot", () => {
+  it("has a reasonable move pool diversity", () => {
     const data = loadData();
-    const totalMoveSlots = data.pokemon.reduce((sum, p) => sum + p.movepool.length, 0);
-    expect(data.moves.length).toBeGreaterThanOrEqual(totalMoveSlots / 2);
+    const uniqueMoveIds = new Set(data.pokemon.flatMap((p) => p.movepool));
+    expect(data.moves.length).toBeGreaterThanOrEqual(uniqueMoveIds.size);
   });
 
   it("each move has a targeting pattern", () => {

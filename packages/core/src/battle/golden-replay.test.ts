@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { loadData, pocArena, typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
@@ -137,13 +137,61 @@ function buildGoldenEngine(seed: number): BattleEngine {
   return new BattleEngine(state, moveRegistry, typeChart, pokemonTypesMap, undefined, random, seed);
 }
 
+const GOLDEN_PATH = resolve(
+  import.meta.dirname ?? ".",
+  "../../fixtures/replays/golden-replay.json",
+);
+
 function loadGoldenReplay(): BattleReplay {
-  const goldenPath = resolve(
-    import.meta.dirname ?? ".",
-    "../../fixtures/replays/golden-replay.json",
-  );
-  const content = readFileSync(goldenPath, "utf-8");
+  const content = readFileSync(GOLDEN_PATH, "utf-8");
   return JSON.parse(content) as BattleReplay;
+}
+
+function generateGoldenReplay(seed: number): BattleReplay {
+  const engine = buildGoldenEngine(seed);
+  const data = loadData();
+  const moveRegistry = new Map<string, MoveDefinition>();
+  for (const move of data.moves) {
+    moveRegistry.set(move.id, move);
+  }
+  const freshRandom = createPrng(seed);
+  const actions: Action[] = [];
+  let actionCount = 0;
+  while (actionCount < 1000) {
+    const state = engine.getGameState("");
+    const currentPokemonId = state.turnOrder[state.currentTurnIndex];
+    const currentPokemon = currentPokemonId ? state.pokemon.get(currentPokemonId) : undefined;
+    if (!currentPokemon) {
+      break;
+    }
+    const legalActions = engine.getLegalActions(currentPokemon.playerId);
+    if (legalActions.length === 0) {
+      break;
+    }
+    const action = pickAggressiveAction(legalActions, state, moveRegistry, freshRandom);
+    const result = engine.submitAction(currentPokemon.playerId, action);
+    if (result.success) {
+      actions.push(action);
+      actionCount++;
+    }
+    const postState = engine.getGameState("");
+    const team1 = [...postState.pokemon.values()].filter(
+      (p) => p.playerId === PlayerId.Player1 && p.currentHp > 0,
+    );
+    const team2 = [...postState.pokemon.values()].filter(
+      (p) => p.playerId === PlayerId.Player2 && p.currentHp > 0,
+    );
+    if (team1.length === 0 || team2.length === 0) {
+      break;
+    }
+  }
+  return { seed, actions };
+}
+
+if (process.env.UPDATE_GOLDEN === "1") {
+  const replay = generateGoldenReplay(12345);
+  writeFileSync(GOLDEN_PATH, JSON.stringify(replay, null, 2));
+  console.log(`Golden replay regenerated: ${replay.actions.length} actions`);
 }
 
 describe("golden replay", () => {
@@ -161,8 +209,8 @@ describe("golden replay", () => {
 
     expect(team1Alive.length).toBeGreaterThan(0);
     expect(team2Alive.length).toBe(0);
-    expect(finalState.roundNumber).toBe(14);
-    expect(replay.actions.length).toBe(130);
+    expect(finalState.roundNumber).toBe(10);
+    expect(replay.actions.length).toBe(108);
   });
 
   it("produces the same replay when running the battle from scratch", () => {
