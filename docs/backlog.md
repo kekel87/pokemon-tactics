@@ -47,6 +47,10 @@ Bugs connus et retours playtest non traités.
 
 ## Feedback visuel
 
+### Mode normal — overflow grille Pokemon (51+ Pokemon, 2026-05-11)
+- En mode normal (TeamSelectScene), 51 Pokemon remplissent 8 lignes à 7 colonnes = hauteur totale dépasse l'écran, le bouton Launch peut être poussé hors de la zone visible.
+- À traiter quand le roster dépasse ~50 entrées. Piste : scroll vertical ou pagination de la grille.
+
 ### ~~TurnTimeline CT — layout et barre de charge~~ (plan 055 — commit 9bc9125)
 - Corrigé dans le bug gatling (plan 055).
 

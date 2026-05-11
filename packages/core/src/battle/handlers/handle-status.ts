@@ -16,6 +16,7 @@ const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([
   StatusTypeEnum.Trapped,
   StatusTypeEnum.Intimidated,
   StatusTypeEnum.Infatuated,
+  StatusTypeEnum.LockedOn,
 ]);
 
 const STATUS_TYPE_IMMUNITIES: Partial<Record<StatusType, readonly PokemonType[]>> = {
@@ -51,32 +52,37 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       continue;
     }
 
+    const status: StatusType =
+      "statuses" in effect
+        ? (effect.statuses[Math.floor(random() * effect.statuses.length)] ?? effect.statuses[0]!)
+        : effect.status;
+
     const targetTypes = context.targetTypesMap.get(target.id) ?? [];
     const targetAbility = context.abilityRegistry?.getForPokemon(target);
 
-    if (effect.status === StatusTypeEnum.Seeded) {
+    if (status === StatusTypeEnum.Seeded) {
       if (targetTypes.includes(PokemonType.Grass)) {
         events.push({
           type: BattleEventType.StatusImmune,
           targetId: target.id,
-          status: effect.status,
+          status,
         });
         continue;
       }
     }
 
-    if (isImmuneToStatusByType(targetTypes, effect.status)) {
+    if (isImmuneToStatusByType(targetTypes, status)) {
       events.push({
         type: BattleEventType.StatusImmune,
         targetId: target.id,
-        status: effect.status,
+        status,
       });
       continue;
     }
 
     const statusBlockResult = targetAbility?.onStatusBlocked?.({
       self: target,
-      status: effect.status,
+      status,
       source: context.attacker,
     });
     if (statusBlockResult?.blocked) {
@@ -84,52 +90,52 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       events.push({
         type: BattleEventType.StatusImmune,
         targetId: target.id,
-        status: effect.status,
+        status,
       });
       continue;
     }
 
-    if (isVolatileStatus(effect.status)) {
+    if (isVolatileStatus(status)) {
       const alreadyHas =
-        effect.status === StatusTypeEnum.Seeded
+        status === StatusTypeEnum.Seeded
           ? target.volatileStatuses.some(
-              (v) => v.type === effect.status && v.sourceId === context.attacker.id,
+              (v) => v.type === status && v.sourceId === context.attacker.id,
             )
-          : target.volatileStatuses.some((v) => v.type === effect.status);
+          : target.volatileStatuses.some((v) => v.type === status);
       if (alreadyHas) {
         continue;
       }
-      const baseDuration = getStatusDuration(effect.status, random, statusRules) ?? 1;
+      const baseDuration = getStatusDuration(status, random, statusRules) ?? 1;
       let remainingTurns = baseDuration;
       if (targetAbility?.onStatusDurationModify) {
         const result = targetAbility.onStatusDurationModify({
           self: target,
-          status: effect.status,
+          status,
           duration: baseDuration,
         });
         remainingTurns = result.duration;
         events.push(...result.events);
       }
       target.volatileStatuses.push({
-        type: effect.status,
+        type: status,
         remainingTurns,
-        ...(effect.status === StatusTypeEnum.Seeded ? { sourceId: context.attacker.id } : {}),
-        ...(effect.status === StatusTypeEnum.Trapped && effect.damagePerTurn !== undefined
+        ...(status === StatusTypeEnum.Seeded ? { sourceId: context.attacker.id } : {}),
+        ...("damagePerTurn" in effect && status === StatusTypeEnum.Trapped && effect.damagePerTurn !== undefined
           ? { damagePerTurn: effect.damagePerTurn }
           : {}),
       });
     } else {
       const targetHasMajor = target.statusEffects.some((s) => isMajorStatus(s.type));
-      if (targetHasMajor && isMajorStatus(effect.status)) {
+      if (targetHasMajor && isMajorStatus(status)) {
         continue;
       }
-      const baseDuration = getStatusDuration(effect.status, random, statusRules);
+      const baseDuration = getStatusDuration(status, random, statusRules);
       let remainingTurns: number | null = baseDuration;
       let shortenedByAbilityId: string | undefined;
       if (baseDuration !== null && targetAbility?.onStatusDurationModify) {
         const result = targetAbility.onStatusDurationModify({
           self: target,
-          status: effect.status,
+          status,
           duration: baseDuration,
         });
         if (result.duration < baseDuration) {
@@ -138,7 +144,7 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
         remainingTurns = result.duration;
       }
       target.statusEffects.push({
-        type: effect.status,
+        type: status,
         remainingTurns,
         ...(shortenedByAbilityId ? { shortenedByAbilityId } : {}),
       });
@@ -147,15 +153,15 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
     const statusEvent: BattleEvent = {
       type: BattleEventType.StatusApplied,
       targetId: target.id,
-      status: effect.status,
+      status,
     };
     events.push(statusEvent);
 
-    if (isMajorStatus(effect.status) && targetAbility?.onAfterStatusReceived) {
+    if (isMajorStatus(status) && targetAbility?.onAfterStatusReceived) {
       const abilityEvents = targetAbility.onAfterStatusReceived({
         self: target,
         source: context.attacker,
-        status: effect.status,
+        status,
         state: context.state,
         selfTypes: targetTypes,
         sourceTypes: context.attackerTypes,

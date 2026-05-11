@@ -22,6 +22,7 @@ export function handleRecoil(context: EffectContext): BattleEvent[] {
       targetId: pokemon.id,
       amount: damage,
       effectiveness: 1,
+      recoil: true,
     },
   ];
 

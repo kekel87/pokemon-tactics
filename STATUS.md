@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> MAJ : 2026-05-06 (Phase 4 — Roster Batch B plan 076 + 5 bugfixes hors plan)
+> MAJ : 2026-05-11 (Phase 4 — Bugfixes post-Batch C — Haunter retiré, recoil renderer, InfoPanel LockedOn)
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
@@ -21,6 +21,8 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 ## Phase actuelle : Phase 4 — Gameplay Pokemon complet
 
 ### Fait en Phase 4
+- **Bugfixes post-Batch C (2026-05-11 — hors plan)** : Haunter retiré du roster (sprites conservés sur disque) — roster 52 → **51 Pokemon**. `DamageDealt` event : nouveau champ `recoil?: boolean` dans `battle-event.ts`. Renderer : Self-Destruct / Explosion affiche "K.O.!" au lieu du grand nombre négatif quand `recoil === true && pokemon.currentHp === 0`. InfoPanel : badge "Verrouillé" (`status.lockedOn`) ajouté dans `VOLATILE_LABELS` pour Lock-On. Backlog : bug "Mode normal — overflow grille 51+ Pokemon" ajouté.
+- **Roster Batch C (2026-05-07) — plan 077** : 18 Pokemon Gen 1 ajoutés (sandslash, ninetales, wigglytuff, vileplume, golduck, tentacruel, magneton, dewgong, cloyster, haunter, kingler, electrode, jynx, electabuzz, magmar, lapras, porygon, omastar). Roster 34 → 52 (puis 51 après retrait Haunter). 15 nouveaux moves (will-o-wisp, nasty-plot, sludge-wave, flash-cannon, discharge, screech, icicle-spear, lovely-kiss, crabhammer, self-destruct, tri-attack, lock-on, moonblast, ancient-power, shell-smash) — total 127. 8 nouvelles abilities (effect-spore, cloud-nine, shell-armor, hyper-cutter, oblivious, flame-body, trace, swift-swim) — total 44. `StatusType.LockedOn` volatile + hook `accuracy-check.ts` (consomme et auto-hit). Tri-attack Phase 4 = Para 20% fixe (décision simplification). Ancient-power = 5 chances indépendantes à 10%. Abilities cloud-nine et swift-swim = stubs Phase 9 (météo).
 - **Roster Batch B (2026-05-06) — plan 076** : 19 Pokemon Gen 1 finaux ajoutés (nidoqueen, nidoking, primeape, arcanine, poliwrath, golem, slowbro, gengar, hypno, exeggutor, marowak, hitmonlee, hitmonchan, rhydon, starmie, scyther, pinsir, kabutops, aerodactyl). Roster 15 → **34 Pokemon jouables**. 10 nouveaux moves (cross-chop, rock-slide, confuse-ray, energy-ball, bonemerang, blaze-kick, thunder-punch, ice-punch, fire-punch, double-edge) — total 112. 8 nouvelles abilities (vital-spirit, insomnia, cursed-body, rock-head, limber, iron-fist, natural-cure, battle-armor) — total 36. 3 nouveaux hooks AbilityHandler : `blocksRecoil` (handle-recoil.ts), `preventsCrit` (damage-calculator.ts), `onEndTurn` (BattleEngine). Scyther + Aerodactyl : FlyingIdle → Walk fallback (décision #304). Exeggutor sans ability (chlorophyll Phase 9, décision #301). CI : 1188 unit + 166 intégration verts.
 - **Bugfixes hors plan (2026-05-06)** : 5 bugs résolus — (1) natural-cure émet désormais `StatusRemoved` avant `AbilityActivated` → icône statut retirée au renderer ; (2) noms Pokemon Batch B (+19) injectés dans `pokemon-names.*.json` et locales renderer, type `Translations` mis à jour — slug disparu en sandbox/team builder ; (3) selects moves sandbox : double fix init (`movepool[i]` par défaut, slice à 4) + changement Pokemon (`select.value` lu avant vidage options, fallback `movepool[i]` dans `rebuildMoveOptions`) ; (4) `dexNumber` ajouté à `PokemonDefinition` + chargé dans `loadPokemonFromReference`, tri par dex dans `SandboxPanel` et `TeamSelectScene` ; (5) `GRID_COLS = 7` dans `TeamSelectScene` — 5 lignes au lieu de 7 sur 34 Pokemon, bouton Launch visible.
 - **Fixes post-plan 075 + playtest (2026-05-05 — hors plan)** : Sprites 12 Pokemon Batch A téléchargés via PMDCollab (`pnpm extract-sprites`). Tests intégration corrigés (pokemonTypesMap, compteurs roster). `BattleSetup.ts` limite `moveIds` aux 4 premiers moves du `movepool` (movepool reste réservoir complet pour futur Team Builder). `regenerate-golden-replay.ts` aligné. Sandbox : 4 premiers moves par défaut quand aucun configuré. i18n : anciens non-finaux retirés (bulbasaur, charmander, squirtle, pidgey, pikachu, machop, abra, gastly, geodude, growlithe, jigglypuff, seel, eevee, tentacool, nidoran-m, meowth, magnemite, sandshrew), 12 Pokemon Batch A ajoutés dans `types.ts`, `en.ts`, `fr.ts`. Biome format sprites JSON. Décision #300. CI : 1168 unit + 157 intégration verts.
@@ -202,9 +204,9 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 
 ### Prochaine étape
 
-**Phase 4 en cours.** Plans 069–076 terminés.
+**Phase 4 en cours.** Plans 069–077 terminés.
 
-Prochain : **Roster Batch C** (Pokemon Gen 1 restants) ou **Team Builder** (sélection moves + items + SP). Méga-évolutions → Phase 9.
+Prochain : **Team Builder** (sélection moves + items + SP par joueur) ou **Roster Batch D** (Pokemon Gen 1 restants : haunter peut être réintégré, parasect, machoke, slowpoke, dodrio, muk, tauros…). Méga-évolutions → Phase 9.
 
 ### Bugs connus non corrigés
 

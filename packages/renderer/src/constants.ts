@@ -315,6 +315,7 @@ export const BATTLE_TEXT_COLOR_ABILITY = "#ffe066";
 export const BATTLE_TEXT_COLOR_ITEM = "#88ff88";
 export const BATTLE_TEXT_COLOR_ITEM_CONSUMED = "#888888";
 export const BATTLE_TEXT_COLOR_CRITICAL = "#ff8800";
+export const BATTLE_TEXT_COLOR_KO = "#ff2222";
 
 export const CONFUSION_WOBBLE_ANGLE = 5;
 export const CONFUSION_WOBBLE_DURATION_MS = 300;

@@ -2,7 +2,7 @@
 
 A tactical combat game on an isometric grid, fusing **Pokemon** and **Final Fantasy Tactics**, built in TypeScript.
 
-> **Status: Playable demo** — 34 Pokemon (final evolutions), 112 moves, AI opponents, hot-seat up to 12 players.
+> **Status: Playable demo** — 51 Pokemon (final evolutions), 127 moves, AI opponents, hot-seat up to 12 players.
 
 ![Pokemon Tactics — Battle screenshot](docs/images/battle-screenshot.png)
 
@@ -10,9 +10,9 @@ A tactical combat game on an isometric grid, fusing **Pokemon** and **Final Fant
 
 | | Implemented | Target pool | Details |
 |---|---|---|---|
-| Pokemon | **34 / 151** | 151 Gen 1 | [full list](docs/implementations.md#pokemon-gen-1--151) |
-| Moves | **112** | 481 (Gen 1) | [full list](docs/implementations.md#attaques-112-implémentées) |
-| Abilities | **36** | 114 (Gen 1) | [full list](docs/implementations.md#talents-36-implémentés) |
+| Pokemon | **51 / 151** | 151 Gen 1 | [full list](docs/implementations.md#pokemon-gen-1--151) |
+| Moves | **127** | 481 (Gen 1) | [full list](docs/implementations.md#attaques-127-implémentées) |
+| Abilities | **44** | 114 (Gen 1) | [full list](docs/implementations.md#talents-44-implémentés) |
 | Held items | **12** | ~159 | [full list](docs/implementations.md#objets-tenus-12-implémentés) |
 
 ## The Game

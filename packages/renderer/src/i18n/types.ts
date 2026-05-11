@@ -69,6 +69,8 @@ export interface Translations {
   "status.trapped": string;
   "status.infatuated": string;
   "status.intimidated": string;
+  "status.lockedOn": string;
+  "battle.ko": string;
   "direction.north": string;
   "direction.east": string;
   "direction.south": string;

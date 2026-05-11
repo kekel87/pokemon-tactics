@@ -64,6 +64,8 @@ const fr: Translations = {
   "status.trapped": "Piégé",
   "status.infatuated": "Charmé",
   "status.intimidated": "Intimidé",
+  "status.lockedOn": "Verrouillé",
+  "battle.ko": "K.O. !",
   "direction.north": "Nord",
   "direction.east": "Est",
   "direction.south": "Sud",

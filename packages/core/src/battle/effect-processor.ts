@@ -87,11 +87,30 @@ export function processEffects(
     }
   }
 
+  const chanceGroupResults = new Map<number, boolean>();
   for (const effect of context.move.effects) {
+    if (effect.kind === EffectKind.StatChange && effect.chanceGroup !== undefined) {
+      if (!chanceGroupResults.has(effect.chanceGroup)) {
+        const chance = effect.chance ?? 100;
+        chanceGroupResults.set(effect.chanceGroup, context.random() * 100 < chance);
+      }
+    }
+  }
+
+  for (const effect of context.move.effects) {
+    let processedEffect = effect;
+
+    if (effect.kind === EffectKind.StatChange && effect.chanceGroup !== undefined) {
+      if (!chanceGroupResults.get(effect.chanceGroup)) {
+        continue;
+      }
+      processedEffect = { kind: effect.kind, stat: effect.stat, stages: effect.stages, target: effect.target };
+    }
+
     const effectContext: EffectContext = {
       ...context,
       targets: nonImmuneTargets,
-      effect,
+      effect: processedEffect,
       abilityRegistry: context.abilityRegistry,
       itemRegistry: context.itemRegistry,
     };

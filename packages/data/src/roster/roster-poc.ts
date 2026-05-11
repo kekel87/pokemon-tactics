@@ -229,6 +229,92 @@ export const rosterPoc: RosterEntry[] = [
     abilityId: "rock-head",
     movepool: ["double-edge", "rock-slide", "agility", "dragon-claw"],
   },
+  // Batch C
+  {
+    id: "sandslash",
+    abilityId: "sand-veil",
+    movepool: ["earthquake", "slash", "swords-dance", "rock-slide"],
+  },
+  {
+    id: "ninetales",
+    abilityId: "flash-fire",
+    movepool: ["flamethrower", "will-o-wisp", "confuse-ray", "nasty-plot"],
+  },
+  {
+    id: "wigglytuff",
+    abilityId: "cute-charm",
+    movepool: ["body-slam", "sing", "moonblast", "double-edge"],
+  },
+  {
+    id: "vileplume",
+    abilityId: "effect-spore",
+    movepool: ["sleep-powder", "sludge-bomb", "moonblast", "petal-blizzard"],
+  },
+  {
+    id: "golduck",
+    abilityId: "cloud-nine",
+    movepool: ["surf", "psychic", "ice-beam", "nasty-plot"],
+  },
+  {
+    id: "tentacruel",
+    abilityId: "clear-body",
+    movepool: ["surf", "toxic", "sludge-wave", "icy-wind"],
+  },
+  {
+    id: "magneton",
+    abilityId: "magnet-pull",
+    movepool: ["thunderbolt", "flash-cannon", "discharge", "screech"],
+  },
+  {
+    id: "dewgong",
+    abilityId: "thick-fat",
+    movepool: ["ice-beam", "surf", "aurora-beam", "rest"],
+  },
+  {
+    id: "cloyster",
+    abilityId: "shell-armor",
+    movepool: ["icicle-spear", "shell-smash", "iron-defense", "surf"],
+  },
+  {
+    id: "kingler",
+    abilityId: "hyper-cutter",
+    movepool: ["crabhammer", "slash", "screech", "swords-dance"],
+  },
+  {
+    id: "electrode",
+    abilityId: "static",
+    movepool: ["thunderbolt", "discharge", "thunder-wave", "self-destruct"],
+  },
+  {
+    id: "jynx",
+    abilityId: "oblivious",
+    movepool: ["blizzard", "lovely-kiss", "moonblast", "nasty-plot"],
+  },
+  {
+    id: "electabuzz",
+    abilityId: "static",
+    movepool: ["thunderbolt", "thunder-punch", "discharge", "ice-punch"],
+  },
+  {
+    id: "magmar",
+    abilityId: "flame-body",
+    movepool: ["flamethrower", "fire-punch", "lava-plume", "thunder-punch"],
+  },
+  {
+    id: "lapras",
+    abilityId: "water-absorb",
+    movepool: ["ice-beam", "surf", "thunderbolt", "sing"],
+  },
+  {
+    id: "porygon",
+    abilityId: "trace",
+    movepool: ["tri-attack", "lock-on", "recover", "thunder-wave"],
+  },
+  {
+    id: "omastar",
+    abilityId: "swift-swim",
+    movepool: ["ancient-power", "surf", "ice-beam", "shell-smash"],
+  },
   {
     id: "dummy",
     movepool: ["protect", "detect", "counter", "endure"],
