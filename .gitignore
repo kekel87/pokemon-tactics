@@ -55,3 +55,11 @@ wiki/
 
 # Tiled editor user state (per-workstation, not shared)
 *.tiled-session
+
+# Serena MCP (cache et config locale, project.yml est versionné)
+.serena/cache/
+.serena/project.local.yml
+
+# Understand Anything (fichiers intermédiaires — knowledge-graph.json est versionné)
+.understand-anything/intermediate/
+.understand-anything/tmp/

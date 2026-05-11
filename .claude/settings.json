@@ -118,7 +118,10 @@
       "mcp__pixellab__get_isometric_tile",
       "mcp__pixellab__get_map_object",
       "mcp__pixellab__get_tiles_pro",
-      "mcp__playwright"
+      "mcp__playwright",
+      "mcp__serena",
+      "mcp__memory",
+      "mcp__understand_anything"
     ],
     "deny": [
       "Bash(chmod -R 777:*)",

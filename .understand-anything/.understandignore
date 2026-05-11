@@ -1,0 +1,46 @@
+# .understandignore — patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore (globs, # comments, ! negation, trailing / for dirs)
+# Lines below are suggestions — uncomment to activate.
+# Use ! prefix to force-include something excluded by defaults.
+#
+# Built-in defaults (always excluded unless negated):
+#   node_modules/, .git/, dist/, build/, obj/, *.lock, *.min.js, etc.
+#
+# --- From .gitignore (uncomment to exclude) ---
+
+# *.tsbuildinfo
+# .vite/
+# *.swp
+# *.swo
+# .DS_Store
+# Thumbs.db
+# .env
+# .env.local
+# .claude/settings.local.json
+# .claude/*.lock
+# packages/data/.cache/
+# docs/references/
+# tiles/
+# share/
+# screenshots/
+# .screenshots/
+.playwright-mcp/
+# wiki/
+# .mcp.json
+# *.tiled-session
+
+# --- Detected directories (uncomment to exclude) ---
+
+# docs/
+# scripts/
+
+# --- Manually added ---
+
+coverage/
+.serena/
+
+# --- Test file patterns (uncomment to exclude) ---
+
+# *.test.*
+# *.spec.*
+# *.snap
