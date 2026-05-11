@@ -2083,4 +2083,146 @@ describe("ability system integration", () => {
     // Then no crash occurs
     expect(result.success).toBe(true);
   });
+
+  // Batch D abilities
+
+  it("poison-touch badly poisons the target on contact with 30% chance", () => {
+    // Given a Muk with Poison Touch using a contact move
+    const muk = MockPokemon.fresh(MockPokemon.base, {
+      id: "muk",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      abilityId: "poison-touch",
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      currentHp: 200,
+      maxHp: 200,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0.1);
+
+    const { engine, state } = buildMoveTestEngine([muk, target]);
+
+    // When a contact move hits
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "muk",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then target is badly poisoned and AbilityActivated is emitted
+    expect(result.success).toBe(true);
+    expect(
+      state.pokemon.get("target")?.statusEffects.some((s) => s.type === StatusType.BadlyPoisoned),
+    ).toBe(true);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "poison-touch",
+      ),
+    ).toBe(true);
+  });
+
+  it("poison-touch does not trigger when random >= 0.3", () => {
+    // Given a Muk with Poison Touch
+    const muk = MockPokemon.fresh(MockPokemon.base, {
+      id: "muk",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      abilityId: "poison-touch",
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      currentHp: 200,
+      maxHp: 200,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+
+    const { engine, state } = buildMoveTestEngine([muk, target]);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "muk",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    expect(
+      state.pokemon.get("target")?.statusEffects.some((s) => s.type === StatusType.BadlyPoisoned),
+    ).toBe(false);
+  });
+
+  it("filter reduces super-effective damage by 25%", () => {
+    // Mr. Mime is Psychic/Fairy — sludge-bomb (Poison) is 2x vs Fairy = super-effective
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 1, y: 2 },
+      moveIds: ["sludge-bomb"],
+      currentPp: { "sludge-bomb": 10 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const mrMimeWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "mr-mime-with",
+      definitionId: "mr-mime",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+      abilityId: "filter",
+    });
+
+    const attacker2 = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-2",
+      playerId: PlayerId.Player1,
+      position: { x: 1, y: 2 },
+      moveIds: ["sludge-bomb"],
+      currentPp: { "sludge-bomb": 10 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const mrMimeWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "mr-mime-without",
+      definitionId: "mr-mime",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine: engineWith } = buildMoveTestEngine([attacker, mrMimeWith]);
+    engineWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "sludge-bomb",
+      targetPosition: { x: 3, y: 2 },
+    });
+
+    const { engine: engineWithout } = buildMoveTestEngine([attacker2, mrMimeWithout]);
+    engineWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-2",
+      moveId: "sludge-bomb",
+      targetPosition: { x: 3, y: 2 },
+    });
+
+    // Then Filter reduces the super-effective damage
+    const damageWith = 500 - mrMimeWith.currentHp;
+    const damageWithout = 500 - mrMimeWithout.currentHp;
+    expect(damageWith).toBeLessThan(damageWithout);
+    expect(damageWith).toBeCloseTo(damageWithout * 0.75, 0);
+  });
 });

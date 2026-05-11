@@ -990,6 +990,50 @@ const swiftSwim: AbilityHandler = {
   id: "swift-swim",
 };
 
+// Batch D abilities
+
+const poisonTouch: AbilityHandler = {
+  id: "poison-touch",
+  onAfterDamageDealt: (context) => {
+    if (!context.move.flags?.contact) {
+      return [];
+    }
+    if (hasMajorStatus(context.target)) {
+      return [];
+    }
+    if (context.random() >= 0.3) {
+      return [];
+    }
+    context.target.statusEffects.push({ type: StatusType.BadlyPoisoned, remainingTurns: null });
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "poison-touch",
+        targetIds: [context.target.id],
+      },
+      {
+        type: BattleEventType.StatusApplied,
+        targetId: context.target.id,
+        status: StatusType.BadlyPoisoned,
+      },
+    ];
+  },
+};
+
+const filter: AbilityHandler = {
+  id: "filter",
+  onDamageModify: (context) => {
+    if (context.isAttacker) {
+      return 1.0;
+    }
+    if (context.effectiveness <= 1.0) {
+      return 1.0;
+    }
+    return 0.75;
+  },
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -1035,4 +1079,6 @@ export const abilityHandlers: AbilityHandler[] = [
   flameBody,
   trace,
   swiftSwim,
+  poisonTouch,
+  filter,
 ];

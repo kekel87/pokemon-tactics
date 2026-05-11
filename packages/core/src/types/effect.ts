@@ -15,7 +15,7 @@ export type Effect =
     }
   | {
       kind: typeof EffectKind.Status;
-      statuses: StatusType[];
+      statuses: [StatusType, ...StatusType[]];
       chance: number;
       target?: typeof EffectTarget.Self;
     }

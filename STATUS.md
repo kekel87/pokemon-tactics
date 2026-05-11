@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> MAJ : 2026-05-11 (Phase 4 — Bugfixes post-Batch C — Haunter retiré, recoil renderer, InfoPanel LockedOn)
+> MAJ : 2026-05-11 (Phase 4 — Roster Batch D terminé — plan 078 DONE — 16 Pokemon, 8 moves, 2 abilities + bugfix recoil)
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
@@ -21,6 +21,7 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 ## Phase actuelle : Phase 4 — Gameplay Pokemon complet
 
 ### Fait en Phase 4
+- **Roster Batch D (2026-05-11) — plan 078 DONE** : 16 Pokemon Gen 1 ajoutés (arbok, clefable, parasect, dugtrio, persian, victreebel, rapidash, dodrio, muk, onix, weezing, chansey, tangela, seadra, mr-mime, tauros). Roster 51 → **67 Pokemon jouables**. 8 nouveaux moves (poison-fang/Crocs Venin, coil/Enroulement, glare/Regard Médusant, cosmic-power/Pouvoir Cosmique, spore/Spore, leaf-blade/Lame Feuille, drill-peck/Picpic, barrier/Barrière) — total **135 moves**. 2 nouvelles abilities (poison-touch/Contact Venéneux via hook `onAfterDamageDealt`, filter/Filtre via `onDamageModify`) — total **46 abilities**. Nouveau hook core `onAfterDamageDealt` ajouté à `AbilityHandler`. Sprites 15 Pokemon téléchargés via PMDCollab (`pnpm extract-sprites`). **Bugfixes post-Batch C inclus dans cette session** : recoil bug corrigé (`handle-recoil.ts` utilisait `maxHp * fraction` → `lastDamageDealt * fraction`, ajout `SharedEffectState.lastDamageDealt`) ; drill-peck pattern corrigé (`TargetingKind.Slash` → `TargetingKind.Line, length: 2`) ; ordre Pokédex réécrit dans `roster-poc.ts` ; golden replay régénéré (108 actions, round 10).
 - **Bugfixes post-Batch C (2026-05-11 — hors plan)** : Haunter retiré du roster (sprites conservés sur disque) — roster 52 → **51 Pokemon**. `DamageDealt` event : nouveau champ `recoil?: boolean` dans `battle-event.ts`. Renderer : Self-Destruct / Explosion affiche "K.O.!" au lieu du grand nombre négatif quand `recoil === true && pokemon.currentHp === 0`. InfoPanel : badge "Verrouillé" (`status.lockedOn`) ajouté dans `VOLATILE_LABELS` pour Lock-On. Backlog : bug "Mode normal — overflow grille 51+ Pokemon" ajouté.
 - **Roster Batch C (2026-05-07) — plan 077** : 18 Pokemon Gen 1 ajoutés (sandslash, ninetales, wigglytuff, vileplume, golduck, tentacruel, magneton, dewgong, cloyster, haunter, kingler, electrode, jynx, electabuzz, magmar, lapras, porygon, omastar). Roster 34 → 52 (puis 51 après retrait Haunter). 15 nouveaux moves (will-o-wisp, nasty-plot, sludge-wave, flash-cannon, discharge, screech, icicle-spear, lovely-kiss, crabhammer, self-destruct, tri-attack, lock-on, moonblast, ancient-power, shell-smash) — total 127. 8 nouvelles abilities (effect-spore, cloud-nine, shell-armor, hyper-cutter, oblivious, flame-body, trace, swift-swim) — total 44. `StatusType.LockedOn` volatile + hook `accuracy-check.ts` (consomme et auto-hit). Tri-attack Phase 4 = Para 20% fixe (décision simplification). Ancient-power = 5 chances indépendantes à 10%. Abilities cloud-nine et swift-swim = stubs Phase 9 (météo).
 - **Roster Batch B (2026-05-06) — plan 076** : 19 Pokemon Gen 1 finaux ajoutés (nidoqueen, nidoking, primeape, arcanine, poliwrath, golem, slowbro, gengar, hypno, exeggutor, marowak, hitmonlee, hitmonchan, rhydon, starmie, scyther, pinsir, kabutops, aerodactyl). Roster 15 → **34 Pokemon jouables**. 10 nouveaux moves (cross-chop, rock-slide, confuse-ray, energy-ball, bonemerang, blaze-kick, thunder-punch, ice-punch, fire-punch, double-edge) — total 112. 8 nouvelles abilities (vital-spirit, insomnia, cursed-body, rock-head, limber, iron-fist, natural-cure, battle-armor) — total 36. 3 nouveaux hooks AbilityHandler : `blocksRecoil` (handle-recoil.ts), `preventsCrit` (damage-calculator.ts), `onEndTurn` (BattleEngine). Scyther + Aerodactyl : FlyingIdle → Walk fallback (décision #304). Exeggutor sans ability (chlorophyll Phase 9, décision #301). CI : 1188 unit + 166 intégration verts.
@@ -204,9 +205,9 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 
 ### Prochaine étape
 
-**Phase 4 en cours.** Plans 069–077 terminés.
+**Phase 4 en cours.** Plans 069–078 terminés. Non commité — gate CI à passer avant commit.
 
-Prochain : **Team Builder** (sélection moves + items + SP par joueur) ou **Roster Batch D** (Pokemon Gen 1 restants : haunter peut être réintégré, parasect, machoke, slowpoke, dodrio, muk, tauros…). Méga-évolutions → Phase 9.
+Prochain : **Roster Batch E** (~9 Pokemon non-légendaires : butterfree, beedrill, pidgeot, raticate, fearow, golbat, venomoth, farfetch-d, seaking — nécessite `EffectKind.Drain` pour leech-life/mega-drain) ou **Team Builder** (sélection moves + items + SP par joueur). Légendraires (Artikodin, Électhor, Sulfura, Mewtwo, Mew) à inclure dans Batch E ou un Batch F dédié. Méga-évolutions → Phase 9.
 
 ### Bugs connus non corrigés
 

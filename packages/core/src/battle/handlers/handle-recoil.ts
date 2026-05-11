@@ -13,7 +13,7 @@ export function handleRecoil(context: EffectContext): BattleEvent[] {
     return [];
   }
 
-  const damage = Math.max(1, Math.floor(pokemon.maxHp * effect.fraction));
+  const damage = Math.max(1, Math.floor(context.shared.lastDamageDealt * effect.fraction));
   pokemon.currentHp = Math.max(0, pokemon.currentHp - damage);
 
   const events: BattleEvent[] = [

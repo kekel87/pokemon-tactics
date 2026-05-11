@@ -12695,152 +12695,61 @@
       "Walk": {
         "frameWidth": 32,
         "frameHeight": 32,
-        "durations": [
-          6,
-          4,
-          4,
-          4,
-          4
-        ]
+        "durations": [6, 4, 4, 4, 4]
       },
       "Attack": {
         "frameWidth": 64,
         "frameHeight": 72,
-        "durations": [
-          2,
-          2,
-          2,
-          4,
-          1,
-          1,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2
-        ],
+        "durations": [2, 2, 2, 4, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2],
         "hitFrame": 4,
         "returnFrame": 7
       },
       "Shoot": {
         "frameWidth": 24,
         "frameHeight": 48,
-        "durations": [
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          3,
-          2,
-          1
-        ],
+        "durations": [3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 1],
         "hitFrame": 3,
         "returnFrame": 6
       },
       "FlapAround": {
         "frameWidth": 24,
         "frameHeight": 40,
-        "durations": [
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2
-        ],
+        "durations": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
         "hitFrame": 4,
         "returnFrame": 17
       },
       "Sleep": {
         "frameWidth": 24,
         "frameHeight": 16,
-        "durations": [
-          35,
-          30
-        ]
+        "durations": [35, 30]
       },
       "Hurt": {
         "frameWidth": 48,
         "frameHeight": 48,
-        "durations": [
-          2,
-          8
-        ]
+        "durations": [2, 8]
       },
       "Idle": {
         "frameWidth": 24,
         "frameHeight": 40,
-        "durations": [
-          30,
-          4,
-          4,
-          4,
-          4
-        ]
+        "durations": [30, 4, 4, 4, 4]
       },
       "Hop": {
         "frameWidth": 24,
         "frameHeight": 80,
-        "durations": [
-          2,
-          1,
-          2,
-          3,
-          4,
-          4,
-          3,
-          2,
-          1,
-          2
-        ],
+        "durations": [2, 1, 2, 3, 4, 4, 3, 2, 1, 2],
         "hitFrame": 9
       },
       "Charge": {
         "frameWidth": 24,
         "frameHeight": 32,
-        "durations": [
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2,
-          2
-        ],
+        "durations": [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
         "hitFrame": 5,
         "returnFrame": 9
       },
       "Faint": {
         "frameWidth": 32,
         "frameHeight": 24,
-        "durations": [
-          8,
-          12,
-          4,
-          10
-        ]
+        "durations": [8, 12, 4, 10]
       }
     },
     "directions": [

@@ -121,6 +121,7 @@ function dealSingleHit(
   }
 
   target.currentHp = Math.max(0, target.currentHp - actualDamage);
+  context.shared.lastDamageDealt += actualDamage;
 
   events.push({
     type: BattleEventType.DamageDealt,
@@ -193,6 +194,21 @@ function dealSingleHit(
       state: context.state,
       selfTypes,
       attackerTypes,
+      random: context.random,
+    });
+    events.push(...abilityEvents);
+  }
+
+  const attackerAbility = context.abilityRegistry?.getForPokemon(context.attacker);
+  if (actualDamage > 0 && target.currentHp > 0 && attackerAbility?.onAfterDamageDealt) {
+    const abilityEvents = attackerAbility.onAfterDamageDealt({
+      self: context.attacker,
+      target,
+      move: context.move,
+      damageDealt: actualDamage,
+      state: context.state,
+      selfTypes: context.attackerTypes,
+      targetTypes: defenderTypes,
       random: context.random,
     });
     events.push(...abilityEvents);
