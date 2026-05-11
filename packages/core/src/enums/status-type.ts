@@ -10,6 +10,7 @@ export const StatusType = {
   Trapped: "trapped",
   Intimidated: "intimidated",
   Infatuated: "infatuated",
+  LockedOn: "locked-on",
 } as const;
 
 export type StatusType = (typeof StatusType)[keyof typeof StatusType];

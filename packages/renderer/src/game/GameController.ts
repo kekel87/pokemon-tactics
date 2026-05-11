@@ -55,6 +55,7 @@ import {
   BATTLE_TEXT_COLOR_INFO,
   BATTLE_TEXT_COLOR_ITEM,
   BATTLE_TEXT_COLOR_ITEM_CONSUMED,
+  BATTLE_TEXT_COLOR_KO,
   BATTLE_TEXT_COLOR_MISS,
   BATTLE_TEXT_COLOR_MOSTLY_INEFFECTIVE,
   BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE,
@@ -1010,40 +1011,47 @@ export class GameController {
             });
           } else {
             sprite.updateHp(pokemon.currentHp, pokemon.maxHp);
-            // Compute the beat delay once so the damage number and the
-            // effectiveness label spawn together as a single scroll. Queued
-            // by targetId — multi-hit beats stack up in the queue.
-            const beatDelay = acquireSpawnDelay(event.targetId, this.scene.time.now);
-            showBattleText(this.scene, pos.x, pos.y, `-${event.amount}`, {
-              color: BATTLE_TEXT_COLOR_DAMAGE,
-              delay: beatDelay,
-            });
-            if (event.effectiveness >= 4) {
-              showBattleText(this.scene, pos.x, pos.y, t("battle.extremelyEffective"), {
-                color: BATTLE_TEXT_COLOR_EXTREMELY_EFFECTIVE,
-                delay: beatDelay,
-                offsetY: BATTLE_TEXT_STAGGER_Y,
+            if (event.recoil && pokemon.currentHp === 0) {
+              showBattleText(this.scene, pos.x, pos.y, t("battle.ko"), {
+                color: BATTLE_TEXT_COLOR_KO,
+                targetId: event.targetId,
               });
-            } else if (event.effectiveness >= 2) {
-              showBattleText(this.scene, pos.x, pos.y, t("battle.superEffective"), {
-                color: BATTLE_TEXT_COLOR_SUPER_EFFECTIVE,
+            } else {
+              // Compute the beat delay once so the damage number and the
+              // effectiveness label spawn together as a single scroll. Queued
+              // by targetId — multi-hit beats stack up in the queue.
+              const beatDelay = acquireSpawnDelay(event.targetId, this.scene.time.now);
+              showBattleText(this.scene, pos.x, pos.y, `-${event.amount}`, {
+                color: BATTLE_TEXT_COLOR_DAMAGE,
                 delay: beatDelay,
-                offsetY: BATTLE_TEXT_STAGGER_Y,
               });
-            } else if (event.effectiveness <= 0.25) {
-              showBattleText(this.scene, pos.x, pos.y, t("battle.mostlyIneffective"), {
-                color: BATTLE_TEXT_COLOR_MOSTLY_INEFFECTIVE,
-                delay: beatDelay,
-                offsetY: BATTLE_TEXT_STAGGER_Y,
-              });
-            } else if (event.effectiveness <= 0.5) {
-              showBattleText(this.scene, pos.x, pos.y, t("battle.notVeryEffective"), {
-                color: BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE,
-                delay: beatDelay,
-                offsetY: BATTLE_TEXT_STAGGER_Y,
-              });
+              if (event.effectiveness >= 4) {
+                showBattleText(this.scene, pos.x, pos.y, t("battle.extremelyEffective"), {
+                  color: BATTLE_TEXT_COLOR_EXTREMELY_EFFECTIVE,
+                  delay: beatDelay,
+                  offsetY: BATTLE_TEXT_STAGGER_Y,
+                });
+              } else if (event.effectiveness >= 2) {
+                showBattleText(this.scene, pos.x, pos.y, t("battle.superEffective"), {
+                  color: BATTLE_TEXT_COLOR_SUPER_EFFECTIVE,
+                  delay: beatDelay,
+                  offsetY: BATTLE_TEXT_STAGGER_Y,
+                });
+              } else if (event.effectiveness <= 0.25) {
+                showBattleText(this.scene, pos.x, pos.y, t("battle.mostlyIneffective"), {
+                  color: BATTLE_TEXT_COLOR_MOSTLY_INEFFECTIVE,
+                  delay: beatDelay,
+                  offsetY: BATTLE_TEXT_STAGGER_Y,
+                });
+              } else if (event.effectiveness <= 0.5) {
+                showBattleText(this.scene, pos.x, pos.y, t("battle.notVeryEffective"), {
+                  color: BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE,
+                  delay: beatDelay,
+                  offsetY: BATTLE_TEXT_STAGGER_Y,
+                });
+              }
+              sprite.flashDamage();
             }
-            sprite.flashDamage();
           }
         }
         this.updateInfoPanelForActivePokemon();

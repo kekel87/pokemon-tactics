@@ -64,6 +64,8 @@ const en: Translations = {
   "status.trapped": "Trapped",
   "status.infatuated": "Infatuated",
   "status.intimidated": "Intimidated",
+  "status.lockedOn": "Lock-On",
+  "battle.ko": "K.O.!",
   "direction.north": "North",
   "direction.east": "East",
   "direction.south": "South",

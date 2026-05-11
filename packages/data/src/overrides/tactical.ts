@@ -1,4 +1,4 @@
-import type { Effect, TargetingPattern } from "@pokemon-tactic/core";
+import type { Effect, MoveFlags, TargetingPattern } from "@pokemon-tactic/core";
 import {
   DefensiveKind,
   EffectKind,
@@ -14,6 +14,7 @@ export interface TacticalOverride {
   effects: Effect[];
   recharge?: boolean;
   effectTier?: EffectTier;
+  flags?: Partial<MoveFlags>;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -802,9 +803,153 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   },
   "double-edge": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 1 / 3 }],
+  },
+
+  // Batch C moves
+  "will-o-wisp": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Status, status: StatusType.Burned, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
+  },
+  "nasty-plot": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: 2,
+        target: EffectTarget.Self,
+      },
+    ],
+    effectTier: EffectTier.MajorBuff,
+  },
+  "sludge-wave": {
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
     effects: [
       { kind: EffectKind.Damage },
-      { kind: EffectKind.Recoil, fraction: 1 / 3 },
+      { kind: EffectKind.Status, status: StatusType.Poisoned, chance: 10 },
     ],
+  },
+  "flash-cannon": {
+    targeting: { kind: TargetingKind.Line, length: 3 },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 10,
+      },
+    ],
+  },
+  discharge: {
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 30 },
+    ],
+  },
+  screech: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: -2,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  "icicle-spear": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage, hits: { min: 2, max: 5 } }],
+  },
+  "lovely-kiss": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Status, status: StatusType.Asleep, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
+    flags: { contact: true },
+  },
+  crabhammer: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "self-destruct": {
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 999 }],
+  },
+  "tri-attack": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.Status,
+        statuses: [StatusType.Paralyzed, StatusType.Burned, StatusType.Frozen],
+        chance: 20,
+      },
+    ],
+  },
+  "lock-on": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [
+      {
+        kind: EffectKind.Status,
+        status: StatusType.LockedOn,
+        chance: 100,
+        target: EffectTarget.Self,
+      },
+    ],
+  },
+  moonblast: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 30,
+      },
+    ],
+  },
+  "ancient-power": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.StatChange, stat: StatName.Attack, stages: 1, target: EffectTarget.Self, chance: 10, chanceGroup: 1 },
+      { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self, chance: 10, chanceGroup: 1 },
+      { kind: EffectKind.StatChange, stat: StatName.SpAttack, stages: 1, target: EffectTarget.Self, chance: 10, chanceGroup: 1 },
+      { kind: EffectKind.StatChange, stat: StatName.SpDefense, stages: 1, target: EffectTarget.Self, chance: 10, chanceGroup: 1 },
+      { kind: EffectKind.StatChange, stat: StatName.Speed, stages: 1, target: EffectTarget.Self, chance: 10, chanceGroup: 1 },
+    ],
+  },
+  "shell-smash": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      { kind: EffectKind.StatChange, stat: StatName.Attack, stages: 2, target: EffectTarget.Self },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: 2,
+        target: EffectTarget.Self,
+      },
+      { kind: EffectKind.StatChange, stat: StatName.Speed, stages: 2, target: EffectTarget.Self },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: -1,
+        target: EffectTarget.Self,
+      },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: -1,
+        target: EffectTarget.Self,
+      },
+    ],
+    effectTier: EffectTier.MajorBuff,
   },
 };

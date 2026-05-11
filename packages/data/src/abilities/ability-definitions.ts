@@ -734,13 +734,21 @@ const insomnia: AbilityHandler = {
 const cursedBody: AbilityHandler = {
   id: "cursed-body",
   onAfterDamageReceived: (context) => {
-    if (context.self.currentHp <= 0) return [];
-    if (!context.move.flags?.contact) return [];
-    if (context.random() >= 0.3) return [];
+    if (context.self.currentHp <= 0) {
+      return [];
+    }
+    if (!context.move.flags?.contact) {
+      return [];
+    }
+    if (context.random() >= 0.3) {
+      return [];
+    }
     const alreadyConfused = context.attacker.volatileStatuses.some(
       (s) => s.type === StatusType.Confused,
     );
-    if (alreadyConfused) return [];
+    if (alreadyConfused) {
+      return [];
+    }
     const duration = Math.floor(context.random() * 4) + 1;
     context.attacker.volatileStatuses.push({ type: StatusType.Confused, remainingTurns: duration });
     return [
@@ -834,6 +842,154 @@ const battleArmor: AbilityHandler = {
   preventsCrit: true,
 };
 
+// Batch C abilities
+
+const effectSpore: AbilityHandler = {
+  id: "effect-spore",
+  onAfterDamageReceived: (context) => {
+    if (!context.move.flags?.contact) {
+      return [];
+    }
+    if (hasMajorStatus(context.attacker)) {
+      return [];
+    }
+    if (context.random() >= 0.3) {
+      return [];
+    }
+    const roll = context.random();
+    const status =
+      roll < 1 / 3 ? StatusType.Asleep : roll < 2 / 3 ? StatusType.Poisoned : StatusType.Paralyzed;
+    context.attacker.statusEffects.push({ type: status, remainingTurns: null });
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "effect-spore",
+        targetIds: [context.attacker.id],
+      },
+      { type: BattleEventType.StatusApplied, targetId: context.attacker.id, status },
+    ];
+  },
+};
+
+const cloudNine: AbilityHandler = {
+  id: "cloud-nine",
+};
+
+const shellArmor: AbilityHandler = {
+  id: "shell-armor",
+  preventsCrit: true,
+};
+
+const hyperCutter: AbilityHandler = {
+  id: "hyper-cutter",
+  onStatChangeBlocked: (context) => {
+    if (context.stat !== StatName.Attack || context.stages >= 0) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "hyper-cutter",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+const oblivious: AbilityHandler = {
+  id: "oblivious",
+  onStatusBlocked: (context) => {
+    if (context.status !== StatusType.Infatuated) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "oblivious",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+const flameBody: AbilityHandler = {
+  id: "flame-body",
+  onAfterDamageReceived: (context) => {
+    if (!context.move.flags?.contact) {
+      return [];
+    }
+    if (context.random() >= 0.3) {
+      return [];
+    }
+    if (hasMajorStatus(context.attacker)) {
+      return [];
+    }
+    context.attacker.statusEffects.push({ type: StatusType.Burned, remainingTurns: null });
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "flame-body",
+        targetIds: [context.attacker.id],
+      },
+      {
+        type: BattleEventType.StatusApplied,
+        targetId: context.attacker.id,
+        status: StatusType.Burned,
+      },
+    ];
+  },
+};
+
+const trace: AbilityHandler = {
+  id: "trace",
+  onBattleStart: (context) => {
+    const enemies = [...context.state.pokemon.values()].filter(
+      (p) => p.playerId !== context.self.playerId && p.currentHp > 0,
+    );
+    if (enemies.length === 0) {
+      return [];
+    }
+    const nearest = enemies.reduce((a, b) =>
+      chebyshev(context.self.position, a.position) <= chebyshev(context.self.position, b.position)
+        ? a
+        : b,
+    );
+    const copiedId = nearest.abilityId;
+    if (!copiedId) {
+      return [];
+    }
+    context.self.abilityId = copiedId;
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "trace",
+        targetIds: [nearest.id],
+      },
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: copiedId,
+        targetIds: [context.self.id],
+      },
+    ];
+  },
+};
+
+const swiftSwim: AbilityHandler = {
+  id: "swift-swim",
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -871,4 +1027,12 @@ export const abilityHandlers: AbilityHandler[] = [
   ironFist,
   naturalCure,
   battleArmor,
+  effectSpore,
+  cloudNine,
+  shellArmor,
+  hyperCutter,
+  oblivious,
+  flameBody,
+  trace,
+  swiftSwim,
 ];

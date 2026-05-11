@@ -27,6 +27,7 @@ export type BattleEvent =
       targetId: string;
       amount: number;
       effectiveness: number;
+      recoil?: boolean;
     }
   | { type: typeof BattleEventType.StatusApplied; targetId: string; status: StatusType }
   | { type: typeof BattleEventType.StatusRemoved; targetId: string; status: StatusType }

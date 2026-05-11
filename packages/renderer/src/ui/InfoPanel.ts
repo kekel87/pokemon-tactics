@@ -44,6 +44,7 @@ const VOLATILE_LABELS: Partial<Record<string, TranslationKey>> = {
   [StatusType.Trapped]: "status.trapped",
   [StatusType.Infatuated]: "status.infatuated",
   [StatusType.Intimidated]: "status.intimidated",
+  [StatusType.LockedOn]: "status.lockedOn",
 };
 
 import type { TranslationKey } from "../i18n";

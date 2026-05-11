@@ -14,11 +14,18 @@ export type Effect =
       target?: typeof EffectTarget.Self;
     }
   | {
+      kind: typeof EffectKind.Status;
+      statuses: StatusType[];
+      chance: number;
+      target?: typeof EffectTarget.Self;
+    }
+  | {
       kind: typeof EffectKind.StatChange;
       stat: StatName;
       stages: number;
       target: EffectTarget;
       chance?: number;
+      chanceGroup?: number;
     }
   | {
       kind: typeof EffectKind.Defensive;

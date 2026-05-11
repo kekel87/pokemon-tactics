@@ -1,4 +1,5 @@
 import { StatName } from "../enums/stat-name";
+import { StatusType } from "../enums/status-type";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { RandomFn } from "../utils/prng";
@@ -11,6 +12,12 @@ export function checkAccuracy(
   random: RandomFn = () => Math.random(),
   terrainEvasionBonus = 0,
 ): boolean {
+  const lockedOnIndex = attacker.volatileStatuses.findIndex((v) => v.type === StatusType.LockedOn);
+  if (lockedOnIndex !== -1) {
+    attacker.volatileStatuses.splice(lockedOnIndex, 1);
+    return true;
+  }
+
   const accuracyStages = attacker.statStages[StatName.Accuracy];
   const evasionStages = defender.statStages[StatName.Evasion] + terrainEvasionBonus;
 

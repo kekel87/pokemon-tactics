@@ -1699,4 +1699,388 @@ describe("ability system integration", () => {
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).not.toContain(BattleEventType.CriticalHit);
   });
+
+  it("effect-spore inflicts a random major status on contact with 30% chance", () => {
+    // Given a Vileplume with Effect Spore as the target
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const vileplume = MockPokemon.fresh(MockPokemon.base, {
+      id: "vileplume",
+      definitionId: "vileplume",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "effect-spore",
+    });
+
+    // random=0 → under 30% trigger → status roll 0 → Asleep (< 1/3)
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, vileplume]);
+
+    // When a contact move hits Vileplume
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then the attacker receives a major status and AbilityActivated is emitted
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get("attacker")?.statusEffects).toHaveLength(1);
+    expect(result.events.map((e) => e.type)).toContain(BattleEventType.AbilityActivated);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "effect-spore",
+      ),
+    ).toBe(true);
+  });
+
+  it("effect-spore does not trigger when random >= 0.3", () => {
+    // Given a Vileplume with Effect Spore
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const vileplume = MockPokemon.fresh(MockPokemon.base, {
+      id: "vileplume",
+      definitionId: "vileplume",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "effect-spore",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+
+    const { engine, state } = buildMoveTestEngine([attacker, vileplume]);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then no status is applied
+    expect(state.pokemon.get("attacker")?.statusEffects).toHaveLength(0);
+  });
+
+  it("cloud-nine does not crash when active (smoke test)", () => {
+    // Given a Golduck with Cloud Nine being attacked
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const golduck = MockPokemon.fresh(MockPokemon.base, {
+      id: "golduck",
+      definitionId: "golduck",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "cloud-nine",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine } = buildMoveTestEngine([attacker, golduck]);
+
+    // When scratch hits Golduck with Cloud Nine
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then no crash occurs
+    expect(result.success).toBe(true);
+  });
+
+  it("shell-armor prevents critical hits", () => {
+    // Given a Cloyster with Shell Armor
+    const cloyster = MockPokemon.fresh(MockPokemon.base, {
+      id: "cloyster",
+      definitionId: "cloyster",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "shell-armor",
+      currentHp: 500,
+      maxHp: 500,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["cross-chop"],
+      currentPp: { "cross-chop": 5 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+
+    // random=0 would normally crit, but Shell Armor prevents it
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine } = buildMoveTestEngine([attacker, cloyster]);
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "cross-chop",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then no CriticalHit event
+    expect(result.success).toBe(true);
+    expect(result.events.map((e) => e.type)).not.toContain(BattleEventType.CriticalHit);
+  });
+
+  it("hyper-cutter blocks Attack stat drops from opponents", () => {
+    // Given a Kingler with Hyper Cutter as the target
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["growl"],
+      currentPp: { growl: 40 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const kingler = MockPokemon.fresh(MockPokemon.base, {
+      id: "kingler",
+      definitionId: "kingler",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "hyper-cutter",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, kingler]);
+
+    // When growl (Attack -1) is used against Kingler
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "growl",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then Attack is not lowered and AbilityActivated is emitted
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get("kingler")?.statStages[StatName.Attack]).toBe(0);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "hyper-cutter",
+      ),
+    ).toBe(true);
+  });
+
+  it("oblivious does not crash when active (smoke test)", () => {
+    // Given a Jynx with Oblivious being attacked
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const jynx = MockPokemon.fresh(MockPokemon.base, {
+      id: "jynx",
+      definitionId: "jynx",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "oblivious",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine } = buildMoveTestEngine([attacker, jynx]);
+
+    // When scratch hits Jynx with Oblivious
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then no crash occurs
+    expect(result.success).toBe(true);
+  });
+
+  it("flame-body burns the attacker on contact with 30% chance", () => {
+    // Given a Magmar with Flame Body as the target
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const magmar = MockPokemon.fresh(MockPokemon.base, {
+      id: "magmar",
+      definitionId: "magmar",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "flame-body",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, magmar]);
+
+    // When a contact move hits Magmar
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then the attacker is burned and AbilityActivated is emitted
+    expect(result.success).toBe(true);
+    expect(
+      state.pokemon.get("attacker")?.statusEffects.some((s) => s.type === StatusType.Burned),
+    ).toBe(true);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "flame-body",
+      ),
+    ).toBe(true);
+  });
+
+  it("flame-body does not trigger when random >= 0.3", () => {
+    // Given a Magmar with Flame Body
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const magmar = MockPokemon.fresh(MockPokemon.base, {
+      id: "magmar",
+      definitionId: "magmar",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "flame-body",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+
+    const { engine, state } = buildMoveTestEngine([attacker, magmar]);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    expect(state.pokemon.get("attacker")?.statusEffects).toHaveLength(0);
+  });
+
+  it("trace copies the nearest enemy's ability at battle start", () => {
+    // Given a Porygon with Trace adjacent to a Pikachu (Static)
+    const porygon = MockPokemon.fresh(MockPokemon.base, {
+      id: "porygon",
+      definitionId: "porygon",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "trace",
+    });
+    const pikachu = MockPokemon.fresh(MockPokemon.base, {
+      id: "pikachu",
+      definitionId: "pikachu",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "static",
+    });
+
+    // When the engine is created (battle start fires in constructor)
+    const { state } = buildMoveTestEngine([porygon, pikachu]);
+
+    // Then Porygon's ability is now "static" (copied from Pikachu)
+    expect(state.pokemon.get("porygon")?.abilityId).toBe("static");
+  });
+
+  it("trace emits AbilityActivated at battle start when copying an ability", () => {
+    // Given a Porygon with Trace adjacent to a Pikachu (Static)
+    const porygon = MockPokemon.fresh(MockPokemon.base, {
+      id: "porygon",
+      definitionId: "porygon",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "trace",
+    });
+    const pikachu = MockPokemon.fresh(MockPokemon.base, {
+      id: "pikachu",
+      definitionId: "pikachu",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "static",
+    });
+
+    const { engine } = buildMoveTestEngine([porygon, pikachu]);
+    const startupEvents = engine.consumeStartupEvents();
+
+    expect(
+      startupEvents.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "trace",
+      ),
+    ).toBe(true);
+    expect(
+      startupEvents.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "static",
+      ),
+    ).toBe(true);
+  });
+
+  it("swift-swim does not crash when active (smoke test)", () => {
+    // Given an Omastar with Swift Swim being attacked
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const omastar = MockPokemon.fresh(MockPokemon.base, {
+      id: "omastar",
+      definitionId: "omastar",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      abilityId: "swift-swim",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine } = buildMoveTestEngine([attacker, omastar]);
+
+    // When scratch hits Omastar with Swift Swim
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    // Then no crash occurs
+    expect(result.success).toBe(true);
+  });
 });
