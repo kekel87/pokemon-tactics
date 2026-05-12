@@ -1,9 +1,9 @@
 {
-  "gitCommitHash": "6440e3f445de3ad998d7c1a87c99e3ae91bd78d2",
-  "analyzedAt": "2026-05-11T17:30:00.000Z",
+  "gitCommitHash": "ec3853e7a4d7407836a797d4a287460deff48ef2",
+  "analyzedAt": "2026-05-12T11:30:00.000Z",
   "pluginVersion": "2.6.3",
-  "nodeCount": 1008,
-  "edgeCount": 2405,
+  "nodeCount": 1029,
+  "edgeCount": 2462,
   "layerCount": 9,
   "tourSteps": 15
 }

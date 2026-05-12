@@ -1,5 +1,7 @@
 ---
-globs: packages/renderer-babylon*/**, packages/renderer-babylon-spike/**
+paths:
+  - packages/renderer-babylon-spike/**
+  - packages/renderer-babylon/**
 ---
 
 # Règles renderer Babylon.js

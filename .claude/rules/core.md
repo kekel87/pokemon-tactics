@@ -1,5 +1,5 @@
 ---
-globs: packages/core/**
+paths: packages/core/**
 ---
 
 - Aucun import de Phaser, DOM, window, document, setTimeout, requestAnimationFrame
