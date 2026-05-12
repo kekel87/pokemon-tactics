@@ -48,6 +48,20 @@
 Limite du roster : 151 premiers Pokemon (Gen 1) — decision #92.
 20 Pokemon jouables actuellement. Voir `docs/roster-poc.md` pour la liste.
 
+## Smogon competitive sets (pkmn.github.io)
+
+- Smogon dex SPA pages are JS-rendered — WebFetch only gets "Loading..." → use pkmn.github.io instead
+- Sets JSON by tier: `https://pkmn.github.io/smogon/data/sets/{gen}{tier}.json`
+  - Formats: `gen9ou`, `gen9uu`, `gen9ru`, `gen9nu`, `gen9pu`, `gen9ubers`, `gen9lc`
+  - Older gens: `gen1ou`, `gen2ou`, etc.
+- Gen 9 coverage for Gen 1 Pokemon: sparse (only ~43 of 80 have SV sets)
+  - OU: venusaur, clefable, ninetales, arcanine, dragonite
+  - RU/NU: sandslash, weezing, chansey, hitmonlee, venomoth, jolteon, snorlax, articuno, exeggutor, magneton, vileplume, muk, slowbro, tauros, poliwrath
+  - Ubers: mewtwo
+  - Gen 1 OU has sets for most Gen 1 roster members (no items/natures, moves only)
+- EV→SP: floor(ev/8). Common 252/252/4 → 31/31/0. Total ≤66, max 32/stat.
+- Op-sets draft: `packages/data/op-sets/op-sets-draft.json` (160 sets for 80 Pokemon)
+
 ## Formules
 
 - Stats niveau 50 : `computeStatAtLevel(base, level, isHp)` dans `packages/core/src/battle/stat-calculator.ts`

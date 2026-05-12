@@ -162,6 +162,8 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
   - [ ] **Batch D** — Exotiques + légendaires : Haunter (réintégrable), Dodrio, Grotadmorv, Onix, Smogogo, Leveinard, Saquedeneu, Hypocéan, M. Mime, Tauros, Artikodin, Électhor, Sulfura, Roucoul, Staross…
 - [ ] Moves & talents restants post-batchs — compléter pool attaques et talents des 70 nouveaux Pokemon. Chaque batch introduit moves + talents ; un plan de finition couvrira les manquants transversaux (moves multi-Pokemon partagés, talents encore absents).
 - [ ] Team Builder (import/export Showdown)
+  - [x] **OP Sets curation + gap analysis — plan 082 terminé 2026-05-12.** `packages/data/op-sets/op-sets.json` (160 sets Smogon+custom). Script `pnpm op-sets:analyze` → `docs/op-sets-gap-analysis.md`. Résultat : 128/160 sets `full` (80%), gap : 4 moves + 2 items 🟡 + 10 items 🟢 + 0 ability manquant.
+  - [ ] Plans 083-086 restants (UI selection moves/items/SP, import Showdown…)
 
 ---
 

@@ -319,6 +319,8 @@
 | 307 | 2026-05-12 | `AbilityHandler.targetedCtBonus` — Pression | **Bonus CT sur la cible via `targetedCtBonus?: number`** sur `AbilityHandler`. Appliqué dans `BattleEngine` quand un move est dirigé contre un porteur de Pression (+50 CT dépensé). | Plan 079. |
 | 308 | 2026-05-12 | `MoveDefinition.bypassAccuracy` — Aéropique | **Flag `bypassAccuracy?: boolean`** sur `MoveDefinition` : le move ignore les checks de précision/esquive (touche toujours). Distinct de `no-guard` (ability) et de `LockedOn` (statut). Utilisé par Aéropique. | Plan 079. |
 | 309 | 2026-05-12 | `onSecondaryEffectBlocked` — Suintement | **Hook `onSecondaryEffectBlocked`** via `filterShieldDustTargets` dans `effect-processor.ts` : retire les cibles portant Suintement de la liste avant d'appliquer effets secondaires. Attention (inner-focus) livré en stub : pas de mécanique flinch dans le core Phase 4. | Plan 079. |
+| 310 | 2026-05-12 | Source sets compétitifs — OP Sets | **`pkmn.github.io/smogon/data/sets` (JSON généré par `@pkmn/smogon`)** au lieu du Smogon Dex SPA. API programmatique stable, pas de scraping, maintenu par le projet @pkmn. | Plan 082. Alternative écartée : scraper le site Smogon (fragile, anti-TOS). |
+| 311 | 2026-05-12 | Volume sets par Pokemon — OP Sets | **1 à 3 sets par Pokemon** dans `op-sets.json`. Priorité : sets Smogon OU (Smogon + custom) disponibles. Pas de sets génériques auto-générés — qualité > quantité. | Plan 082. 160 sets pour 81 Pokemon, certains mono-set sur Pokemon très spécialisés. |
 
 ---
 
