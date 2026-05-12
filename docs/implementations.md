@@ -13,9 +13,9 @@
 
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
-| Pokemon | 67 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 135 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
-| Talents | 46 | 114 | Talents portés par au moins un des 151 Gen 1 |
+| Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
+| Attaques | 143 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
+| Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 12 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
 ---
@@ -43,17 +43,17 @@
 | 009 | blastoise | Tortank | Eau | ✓ | torrent | ⚠️ Faint abs. | Méga disponible |
 | 010 | caterpie | Chenipan | Insecte | ✗ | | ⚠️ Faint abs. | |
 | 011 | metapod | Chrysacier | Insecte | ✗ | | ⚠️ Faint abs. | |
-| 012 | butterfree | Papilusion | Insecte/Vol | ✗ | | ⚠️ Faint abs. (FlyingIdle ✓) | |
+| 012 | butterfree | Papilusion | Insecte/Vol | ✓ | shield-dust | ⚠️ Faint abs. (FlyingIdle ✓) | |
 | 013 | weedle | Aspicot | Insecte/Poison | ✗ | | ⚠️ Faint abs. | |
 | 014 | kakuna | Coconfort | Insecte/Poison | ✗ | | ⚠️ Faint abs. | |
-| 015 | beedrill | Dardargnan | Insecte/Poison | ✗ | | ⚠️ Faint abs. | Méga disponible |
+| 015 | beedrill | Dardargnan | Insecte/Poison | ✓ | swarm | ⚠️ Faint abs. | Méga disponible |
 | 016 | pidgey | Roucool | Normal/Vol | ✓ | keen-eye | ✓✓ complet | |
 | 017 | pidgeotto | Roucoups | Normal/Vol | ✗ | | ⚠️ Faint abs. (FlyingIdle ✓) | |
-| 018 | pidgeot | Roucarnage | Normal/Vol | ✗ | | ⚠️ Faint abs. (FlyingIdle ✓) | Méga disponible |
+| 018 | pidgeot | Roucarnage | Normal/Vol | ✓ | keen-eye | ⚠️ Faint abs. (FlyingIdle ✓) | Méga disponible |
 | 019 | rattata | Rattata | Normal | ✗ | | ⚠️ Faint abs. | |
-| 020 | raticate | Rattatac | Normal | ✗ | | ⚠️ Faint abs. | |
+| 020 | raticate | Rattatac | Normal | ✓ | — | ⚠️ Faint abs. | inner-focus stub |
 | 021 | spearow | Piafabec | Normal/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
-| 022 | fearow | Rapasdepic | Normal/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
+| 022 | fearow | Rapasdepic | Normal/Vol | ✓ | — | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | inner-focus stub |
 | 023 | ekans | Abo | Poison | ✗ | | ⚠️ Faint abs. | |
 | 024 | arbok | Arbok | Poison | ✓ | intimidate | ⚠️ Faint abs. | |
 | 025 | pikachu | Pikachu | Électrique | ✓ | static | ✓ | |
@@ -73,14 +73,14 @@
 | 039 | jigglypuff | Rondoudou | Normal/Fée | ✓ | cute-charm | ✓ | |
 | 040 | wigglytuff | Grodoudou | Normal/Fée | ✓ | cute-charm | ⚠️ Faint abs. | |
 | 041 | zubat | Nosferapti | Poison/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
-| 042 | golbat | Nosferalto | Poison/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
+| 042 | golbat | Nosferalto | Poison/Vol | ✓ | — | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | inner-focus stub |
 | 043 | oddish | Mystherbe | Plante/Poison | ✗ | | ⚠️ Faint abs. | |
 | 044 | gloom | Ortide | Plante/Poison | ✗ | | ⚠️ Faint abs. | |
 | 045 | vileplume | Rafflesia | Plante/Poison | ✓ | effect-spore | ⚠️ Faint abs. | |
 | 046 | paras | Paras | Insecte/Plante | ✗ | | ⚠️ Faint abs. | |
 | 047 | parasect | Parasect | Insecte/Plante | ✓ | effect-spore | ⚠️ Faint abs. | |
 | 048 | venonat | Mimitoss | Insecte/Poison | ✗ | | ✓ | |
-| 049 | venomoth | Aéromite | Insecte/Poison | ✗ | | ⚠️ Faint abs. | |
+| 049 | venomoth | Aéromite | Insecte/Poison | ✓ | compound-eyes | ⚠️ Faint abs. | |
 | 050 | diglett | Taupiqueur | Sol | ✗ | | ⚠️ Faint abs. | |
 | 051 | dugtrio | Triopikeur | Sol | ✓ | sand-veil | ⚠️ Faint abs. | |
 | 052 | meowth | Miaouss | Normal | ✓ | technician | ✓ | |
@@ -114,7 +114,7 @@
 | 080 | slowbro | Flagadoss | Eau/Psy | ✓ | own-tempo | ⚠️ Faint abs. | Méga disponible |
 | 081 | magnemite | Magnéti | Électrique/Acier | ✓ | magnet-pull | ⚠️ Faint abs. | |
 | 082 | magneton | Magnéton | Électrique/Acier | ✓ | magnet-pull | ⚠️ Faint abs. | |
-| 083 | farfetch-d | Canarticho | Normal/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
+| 083 | farfetch-d | Canarticho | Normal/Vol | ✓ | — | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | inner-focus stub |
 | 084 | doduo | Doduo | Normal/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
 | 085 | dodrio | Dodrio | Normal/Vol | ✓ | early-bird | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
 | 086 | seel | Otaria | Eau | ✓ | thick-fat | ⚠️ Faint abs. | |
@@ -150,7 +150,7 @@
 | 116 | horsea | Hypotrempe | Eau | ✗ | | ⚠️ Faint abs. | |
 | 117 | seadra | Hypocéan | Eau | ✓ | swift-swim | ⚠️ Faint abs. | swift-swim stub Phase 9 (météo) |
 | 118 | goldeen | Poissirène | Eau | ✗ | | ⚠️ Faint abs. | |
-| 119 | seaking | Poissoroy | Eau | ✗ | | ⚠️ Faint abs. | |
+| 119 | seaking | Poissoroy | Eau | ✓ | water-veil | ⚠️ Faint abs. | |
 | 120 | staryu | Stari | Eau | ✗ | | ⚠️ Faint abs. | |
 | 121 | starmie | Staross | Eau/Psy | ✓ | natural-cure | ⚠️ Faint abs. | Méga disponible |
 | 122 | mr-mime | M. Mime | Psy/Fée | ✓ | filter | ⚠️ Faint abs. | |
@@ -175,14 +175,14 @@
 | 141 | kabutops | Kabutops | Roche/Eau | ✓ | battle-armor | ⚠️ Faint abs. | |
 | 142 | aerodactyl | Ptéra | Roche/Vol | ✓ | rock-head | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
 | 143 | snorlax | Ronflex | Normal | ✓ | thick-fat | ⚠️ Faint abs. | |
-| 144 | articuno | Artikodin | Glace/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
-| 145 | zapdos | Électhor | Électrique/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
-| 146 | moltres | Sulfura | Feu/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
+| 144 | articuno | Artikodin | Glace/Vol | ✓ | pressure | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
+| 145 | zapdos | Électhor | Électrique/Vol | ✓ | pressure | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
+| 146 | moltres | Sulfura | Feu/Vol | ✓ | pressure | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
 | 147 | dratini | Minidraco | Dragon | ✗ | | ⚠️ Faint abs. | |
 | 148 | dragonair | Draco | Dragon | ✗ | | ⚠️ Faint abs. | |
 | 149 | dragonite | Dracolosse | Dragon/Vol | ✓ | multiscale | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
-| 150 | mewtwo | Mewtwo | Psy | ✗ | | ✓ | Méga disponible, Légendaire |
-| 151 | mew | Mew | Psy | ✗ | | ✓ | Mythique |
+| 150 | mewtwo | Mewtwo | Psy | ✓ | pressure | ✓ | Méga disponible, Légendaire |
+| 151 | mew | Mew | Psy | ✓ | — | ✓ | Mythique. inner-focus stub. |
 
 ### Méga-Évolutions Gen 1
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (135 implémentées)
+## Attaques (143 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -353,10 +353,18 @@
 | Lame Feuille | leaf-blade | Plante | Phys | 90 | 100 | 15 | slash | Critique élevé (`critRatio: 1`) |
 | Picpic | drill-peck | Vol | Phys | 80 | 100 | 20 | slash | — |
 | Barrière | barrier | Psy | Statut | — | — | 20 | self | +2 Déf |
+| Vampirisme | leech-life | Insecte | Phys | 80 | 100 | 10 | mêlée | Drain : soigne attaquant = 50% dégâts |
+| Méga-Sangsue | mega-drain | Plante | Spé | 40 | 100 | 15 | single r1–3 | Drain : soigne attaquant = 50% dégâts |
+| Double Dard | twineedle | Insecte | Phys | 25×2 | 100 | 20 | mêlée | 2 hits, Poison 20% par hit |
+| Aéropique | aerial-ace | Vol | Phys | 60 | — | 20 | slash | Touche garantie (`bypassAccuracy`) |
+| Danse Plumes | feather-dance | Vol | Statut | — | 100 | 15 | single r1–3 | −2 Atk cible |
+| Croc de Mort | hyper-fang | Normal | Phys | 80 | 90 | 15 | mêlée | |
+| Papillodanse | quiver-dance | Insecte | Statut | — | — | 20 | self | +1 AtqSpé, +1 DéfSpé, +1 Vit |
+| Atterrissage | roost | Vol | Statut | — | — | 5 | self | Soigne 50% PV max |
 
 ---
 
-## Talents (46 implémentés)
+## Talents (52 implémentés)
 
 | Talent | ID | Pokemon (roster) | Effet résumé |
 |---|---|---|---|
@@ -406,6 +414,12 @@
 | Glissade | swift-swim | Amonistar | Double la vitesse sous pluie (stub Phase 4) |
 | Contact Poison | poison-touch | Grotadmorv | 30% chance empoisonner ennemi quand move de contact (`onAfterDamageDealt`) |
 | Filtre | filter | M. Mime | Réduit de 25% les dégâts reçus super-efficaces (`onDamageModify`) |
+| Œil Composé | compound-eyes | Aéromite | ×1.3 précision de tous les moves (`accuracyMultiplier`) |
+| Essaim | swarm | Dardargnan | ×1.5 attaques Insecte si PV ≤ 1/3 |
+| Ignifu-Voile | water-veil | Poissoroy | Immunité Brûlure |
+| Pression | pressure | Artikodin, Électhor, Sulfura, Mewtwo | Cible adverse dépense +50 CT par action utilisée contre le porteur (`targetedCtBonus`) |
+| Suintement | shield-dust | Papilusion | Bloque les effets secondaires des moves ennemis (`onSecondaryEffectBlocked`) |
+| Attention | inner-focus | Rattatac, Rapasdepic, Nosferalto, Canarticho, Mew | Stub — immunité flinch (pas de mécanique flinch dans le core Phase 4) |
 
 ---
 

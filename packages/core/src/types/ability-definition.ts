@@ -112,6 +112,8 @@ export interface AbilityHandler {
   blocksIndirectDamage?: boolean;
   blocksRecoil?: boolean;
   preventsCrit?: boolean;
+  accuracyMultiplier?: number;
+  targetedCtBonus?: number;
   onAccuracyOverride?: () => boolean;
   onAfterKO?: (context: AfterKOContext) => BattleEvent[];
   onDamageModify?: (context: DamageModifyContext) => number;

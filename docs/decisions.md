@@ -314,6 +314,11 @@
 | 302 | 2026-05-06 | cursed-body = confusion (pas disable) | **Corps Maudit applique confusion à l'attaquant au contact (30%)** plutôt que disable canon. Disable réel (`disabledMoveId`) nécessite un champ dédié sur `PokemonInstance` — reporté Phase 9. Confusion réutilise la mécanique existante. | Plan 076. |
 | 303 | 2026-05-06 | rock-slide sans flinch | **Éboulement n'applique pas de flinch** pour Batch B. Flinch nécessite un nouveau `StatusType` volatile — reporté Phase 9. | Plan 076. |
 | 304 | 2026-05-06 | Scyther / Aerodactyl FlyingIdle | **Insécateur et Ptéra n'ont pas de FlapAround dans PMDCollab** → fallback Walk pour FlyingIdle (identique à Léviator/Dracaufeu/Dracolosse Batch A). | Plan 076. Décision #20 : PMDCollab source sprites. |
+| 305 | 2026-05-12 | `EffectKind.Drain` — soigner l'attaquant | **Nouveau `EffectKind.Drain`** avec `handle-drain.ts` : soigne l'attaquant de `fraction × dégâts infligés` (pas `fraction × maxHp`). Mutualisé par Vampirisme et Méga-Sangsue. Cohérent avec le pattern `onAfterDamageDealt`. | Plan 079. |
+| 306 | 2026-05-12 | `AbilityHandler.accuracyMultiplier` — Œil Composé | **Multiplicateur de précision via hook `accuracyMultiplier?: number`** sur `AbilityHandler`. Consulté dans `accuracy-check.ts` avant le roll. Valeur ×1.3 pour Œil Composé. Pattern générique, extensible à d'autres talents. | Plan 079. |
+| 307 | 2026-05-12 | `AbilityHandler.targetedCtBonus` — Pression | **Bonus CT sur la cible via `targetedCtBonus?: number`** sur `AbilityHandler`. Appliqué dans `BattleEngine` quand un move est dirigé contre un porteur de Pression (+50 CT dépensé). | Plan 079. |
+| 308 | 2026-05-12 | `MoveDefinition.bypassAccuracy` — Aéropique | **Flag `bypassAccuracy?: boolean`** sur `MoveDefinition` : le move ignore les checks de précision/esquive (touche toujours). Distinct de `no-guard` (ability) et de `LockedOn` (statut). Utilisé par Aéropique. | Plan 079. |
+| 309 | 2026-05-12 | `onSecondaryEffectBlocked` — Suintement | **Hook `onSecondaryEffectBlocked`** via `filterShieldDustTargets` dans `effect-processor.ts` : retire les cibles portant Suintement de la liste avant d'appliquer effets secondaires. Attention (inner-focus) livré en stub : pas de mécanique flinch dans le core Phase 4. | Plan 079. |
 
 ---
 

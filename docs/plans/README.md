@@ -88,4 +88,7 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 073 | [Objets Tenus](./073-held-items.md) | done | 2026-04-30 |
 | 074 | [Stat Points System](./074-stat-points.md) | done | 2026-05-03 |
 | 075 | [Roster Batch A (12 Pokemon finaux)](./075-roster-batch-a.md) | done | 2026-05-05 |
-| 076 | [Roster Batch B (19 Pokemon)](./076-roster-batch-b.md) | in-progress | 2026-05-05 |
+| 076 | [Roster Batch B (19 Pokemon)](./076-roster-batch-b.md) | done | 2026-05-05 |
+| 077 | [Roster Batch C (17 Pokemon)](./077-roster-batch-c.md) | done | 2026-05-07 |
+| 078 | [Roster Batch D (16 Pokemon)](./078-roster-batch-d.md) | done | 2026-05-11 |
+| 079 | [Roster Batch E (14 Pokemon — final Gen 1)](./079-roster-batch-e.md) | done | 2026-05-12 |

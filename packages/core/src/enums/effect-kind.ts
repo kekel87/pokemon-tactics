@@ -6,6 +6,7 @@ export const EffectKind = {
   Knockback: "knockback",
   HealSelf: "heal_self",
   Recoil: "recoil",
+  Drain: "drain",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

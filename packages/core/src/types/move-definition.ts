@@ -20,4 +20,5 @@ export interface MoveDefinition {
   flags?: MoveFlags;
   effectTier?: EffectTier;
   critRatio?: number;
+  bypassAccuracy?: boolean;
 }

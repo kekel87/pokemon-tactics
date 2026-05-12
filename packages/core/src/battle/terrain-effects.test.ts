@@ -161,8 +161,12 @@ describe("getTerrainDotFraction", () => {
   it("other terrains deal no direct damage", () => {
     expect(getTerrainDotFraction(TerrainType.Normal)).toBeNull();
     expect(getTerrainDotFraction(TerrainType.Water)).toBeNull();
-    expect(getTerrainDotFraction(TerrainType.Lava)).toBeNull();
     expect(getTerrainDotFraction(TerrainType.Swamp)).toBeNull();
     expect(getTerrainDotFraction(TerrainType.Ice)).toBeNull();
+  });
+
+  it("Lava and DeepWater deal OHKO damage (fraction=1)", () => {
+    expect(getTerrainDotFraction(TerrainType.Lava)).toBe(1);
+    expect(getTerrainDotFraction(TerrainType.DeepWater)).toBe(1);
   });
 });
