@@ -1433,7 +1433,12 @@ export class BattleEngine {
     if (activePokemon && activePokemon.currentHp > 0) {
       const item = this.itemRegistry?.getForPokemon(activePokemon);
       if (item?.onEndTurn) {
-        const itemEvents = item.onEndTurn({ pokemon: activePokemon, state: this.state });
+        const selfTypes = this.pokemonTypesMap.get(activePokemon.definitionId) ?? [];
+        const itemEvents = item.onEndTurn({
+          pokemon: activePokemon,
+          state: this.state,
+          selfTypes,
+        });
         for (const event of itemEvents) {
           this.emit(event);
           events.push(event);

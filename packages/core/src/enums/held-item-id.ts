@@ -11,6 +11,15 @@ export const HeldItemId = {
   SitrusBerry: "sitrus-berry",
   HeavyDutyBoots: "heavy-duty-boots",
   LightBall: "light-ball",
+  ChoiceSpecs: "choice-specs",
+  Eviolite: "eviolite",
+  BlackSludge: "black-sludge",
+  Leek: "stick",
+  ThickClub: "thick-club",
+  WhiteHerb: "white-herb",
+  FlameOrb: "flame-orb",
+  SalacBerry: "salac-berry",
+  NormalGem: "normal-gem",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];

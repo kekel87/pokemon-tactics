@@ -1,3 +1,5 @@
+import type { PokemonType } from "../enums/pokemon-type";
+import type { StatName } from "../enums/stat-name";
 import type { TerrainType } from "../enums/terrain-type";
 import type { DamageModifyContext } from "./ability-definition";
 import type { BattleEvent } from "./battle-event";
@@ -22,6 +24,7 @@ export interface CritStageContext {
 
 export interface AfterMoveDamageDealtContext {
   attacker: PokemonInstance;
+  move: MoveDefinition;
   damageDealt: number;
 }
 
@@ -38,6 +41,7 @@ export interface AfterItemDamageContext {
 export interface ItemEndTurnContext {
   pokemon: PokemonInstance;
   state: BattleState;
+  selfTypes: PokemonType[];
 }
 
 export interface ItemTerrainContext {
@@ -47,6 +51,12 @@ export interface ItemTerrainContext {
 
 export interface ItemCtGainContext {
   pokemon: PokemonInstance;
+}
+
+export interface StatLoweredContext {
+  pokemon: PokemonInstance;
+  stat: StatName;
+  stages: number;
 }
 
 export interface HeldItemHandler {
@@ -59,6 +69,7 @@ export interface HeldItemHandler {
   onTerrainTick?: (context: ItemTerrainContext) => ItemBlockResult;
   onCtGainModify?: (context: ItemCtGainContext) => number;
   onMoveLock?: () => boolean;
+  onStatLowered?: (context: StatLoweredContext) => ItemReactionResult;
 }
 
 export interface HeldItemDefinition extends HeldItemHandler {

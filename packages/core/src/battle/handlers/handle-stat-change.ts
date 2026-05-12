@@ -54,6 +54,13 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
       stages: actualChange,
     };
     events.push(statEvent);
+
+    if (actualChange < 0) {
+      if (!context.shared.loweredPokemonIds) {
+        context.shared.loweredPokemonIds = new Set<string>();
+      }
+      context.shared.loweredPokemonIds.add(pokemon.id);
+    }
   }
 
   return events;

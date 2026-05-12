@@ -242,6 +242,7 @@ function dealSingleHit(
     if (attackerItem?.onAfterMoveDamageDealt) {
       const itemEvents = attackerItem.onAfterMoveDamageDealt({
         attacker: context.attacker,
+        move: context.move,
         damageDealt: actualDamage,
       });
       events.push(...itemEvents);
