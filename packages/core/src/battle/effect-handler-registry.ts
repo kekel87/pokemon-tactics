@@ -16,6 +16,7 @@ export type { TypeChart };
 
 export interface SharedEffectState {
   lastDamageDealt: number;
+  loweredPokemonIds?: Set<string>;
 }
 
 export interface EffectContext {

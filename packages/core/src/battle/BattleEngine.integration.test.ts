@@ -19,7 +19,7 @@ describe("BattleEngine integration", () => {
     expect(result.valid).toBe(true);
     expect(result.errors).toEqual([]);
     expect(data.pokemon.length).toBe(81);
-    expect(data.moves.length).toBe(143);
+    expect(data.moves.length).toBe(145);
   });
 
   it("runs a full headless combat cycle", () => {

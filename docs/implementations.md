@@ -14,9 +14,9 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 143 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
+| Attaques | 145 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
-| Objets tenus | 12 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
+| Objets tenus | 21 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
 ---
 
@@ -361,6 +361,8 @@
 | Croc de Mort | hyper-fang | Normal | Phys | 80 | 90 | 15 | mêlée | |
 | Papillodanse | quiver-dance | Insecte | Statut | — | — | 20 | self | +1 AtqSpé, +1 DéfSpé, +1 Vit |
 | Atterrissage | roost | Vol | Statut | — | — | 5 | self | Soigne 50% PV max |
+| Giga-Sangsue | giga-drain | Plante | Spé | 75 | 100 | 10 | single r1–3 | Drain : soigne attaquant = 50% dégâts |
+| Balle Focus | focus-blast | Combat | Spé | 120 | 70 | 5 | single r1–4 | −1 DéfSpé cible 10% |
 
 ---
 
@@ -423,7 +425,7 @@
 
 ---
 
-## Objets Tenus (12 implémentés)
+## Objets Tenus (21 implémentés)
 
 | Nom | ID | Effet résumé |
 |---|---|---|
@@ -439,3 +441,12 @@
 | Baie Sitrus | sitrus-berry | Soigne 1/4 PV max si PV ≤ 50% (consommée) |
 | Bottes Glissantes | heavy-duty-boots | Immunité effets de terrain (pièges, terrain) |
 | Ballon Lumineux | light-ball | ×2 dégâts Pikachu uniquement |
+| Lentilles Choix | choice-specs | ×1.5 AtqSpé, verrouille l'attaque |
+| Éviolite | eviolite | ×1.5 Déf et DéfSpé pour Pokemon NFE Gen 2+ (liste hardcodée) |
+| Boue Noire | black-sludge | +1/16 PV/tour si Poison, −1/8 PV/tour sinon |
+| Poireau | leek | +2 stages critique (Canarticho uniquement) |
+| Os Épais | thick-club | ×2 Attaque (Ossatueur uniquement) |
+| Herbe Blanche | white-herb | Restaure la première stat abaissée (consommée) — `onStatLowered` |
+| Orbe Flamme | flame-orb | Inflige Brûlure au porteur en fin de premier tour |
+| Baie Salace | salac-berry | +1 Vitesse si PV ≤ 25% (consommée) |
+| Gemme Normale | normal-gem | ×1.3 prochain move Normal (consommée) |

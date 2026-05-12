@@ -1118,4 +1118,21 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
     effectTier: EffectTier.MajorBuff,
   },
+  "giga-drain": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Drain, fraction: 0.5 }],
+  },
+  "focus-blast": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 10,
+      },
+    ],
+  },
 };

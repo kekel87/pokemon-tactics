@@ -94,3 +94,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 079 | [Roster Batch E (14 Pokemon — final Gen 1)](./079-roster-batch-e.md) | done | 2026-05-12 |
 | 081 | [Team data model + validator + storage + Showdown io](./081-team-data-model-validator.md) | done | 2026-05-12 |
 | 082 | [OP sets curation + gap analysis](./082-op-sets-curation-gap-analysis.md) | done | 2026-05-12 |
+| 083 | [Content Batch F (gap-fill plan 082)](./083-content-batch-f-gap-fill.md) | done | 2026-05-12 |
+| 084 | [Système Météo](./084-weather-system.md) | draft | 2026-05-12 |

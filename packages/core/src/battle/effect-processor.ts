@@ -141,6 +141,42 @@ export function processEffects(
     events.push(...effectRegistry.process(effectContext));
   }
 
+  if (shared.loweredPokemonIds && context.itemRegistry) {
+    for (const pokemonId of shared.loweredPokemonIds) {
+      const pokemon = context.state.pokemon.get(pokemonId);
+      if (!pokemon || pokemon.currentHp <= 0) {
+        continue;
+      }
+      const itemHandler = context.itemRegistry.getForPokemon(pokemon);
+      if (!itemHandler?.onStatLowered) {
+        continue;
+      }
+      let chosenStat: keyof typeof pokemon.statStages | undefined;
+      let chosenStages = 0;
+      for (const [statName, stageValue] of Object.entries(pokemon.statStages) as [
+        keyof typeof pokemon.statStages,
+        number,
+      ][]) {
+        if (stageValue < chosenStages) {
+          chosenStat = statName;
+          chosenStages = stageValue;
+        }
+      }
+      if (chosenStat === undefined) {
+        continue;
+      }
+      const result = itemHandler.onStatLowered({
+        pokemon,
+        stat: chosenStat,
+        stages: chosenStages,
+      });
+      events.push(...result.events);
+      if (result.consumeItem) {
+        pokemon.heldItemId = undefined;
+      }
+    }
+  }
+
   return events;
 }
 

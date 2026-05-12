@@ -12,6 +12,7 @@ export const rosterPoc: RosterEntry[] = [
       "petal-blizzard",
       "synthesis",
       "growth",
+      "giga-drain",
     ],
   },
   {
@@ -25,6 +26,7 @@ export const rosterPoc: RosterEntry[] = [
       "flare-blitz",
       "air-slash",
       "roost",
+      "focus-blast",
     ],
   },
   {
@@ -166,7 +168,16 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "alakazam",
     abilityId: "magic-guard",
-    movepool: ["confusion", "calm-mind", "kinesis", "psybeam", "psychic", "recover", "shadow-ball"],
+    movepool: [
+      "confusion",
+      "calm-mind",
+      "kinesis",
+      "psybeam",
+      "psychic",
+      "recover",
+      "shadow-ball",
+      "focus-blast",
+    ],
   },
   {
     id: "machamp",
@@ -264,7 +275,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "exeggutor",
     abilityId: "chlorophyll",
-    movepool: ["psychic", "hypnosis", "earthquake", "energy-ball"],
+    movepool: ["psychic", "hypnosis", "earthquake", "energy-ball", "giga-drain"],
   },
   {
     id: "marowak",
@@ -304,7 +315,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "tangela",
     abilityId: "chlorophyll",
-    movepool: ["energy-ball", "mega-drain", "sleep-powder", "growth"],
+    movepool: ["energy-ball", "mega-drain", "sleep-powder", "growth", "giga-drain"],
   },
   {
     id: "kangaskhan",
@@ -458,7 +469,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "mewtwo",
     abilityId: "pressure",
-    movepool: ["psychic", "calm-mind", "ice-beam", "thunderbolt"],
+    movepool: ["psychic", "calm-mind", "ice-beam", "thunderbolt", "focus-blast"],
   },
   {
     id: "mew",

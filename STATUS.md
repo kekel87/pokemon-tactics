@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> MAJ : 2026-05-12 (Phase 4 — OP Sets curation + gap analysis — plan 082 DONE — 160 sets Smogon+custom curés, 128/160 full, script gap analysis)
+> MAJ : 2026-05-12 (Phase 4 — Content Batch F — plan 083 DONE — 2 moves + 9 items + hook onStatLowered — 157/160 sets full, 98%)
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
@@ -21,6 +21,7 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 ## Phase actuelle : Phase 4 — Gameplay Pokemon complet
 
 ### Fait en Phase 4
+- **Content Batch F (2026-05-12) — plan 083 DONE** : 2 moves ajoutés (giga-drain/Giga-Sangsue, focus-blast/Balle Focus) — total **145 moves**. 9 items ajoutés (choice-specs, eviolite, black-sludge, leek, thick-club, white-herb, flame-orb, salac-berry, normal-gem) — total **21 items**. Nouveau hook core `onStatLowered` sur `HeldItemHandler` (White-Herb — restaure une stat baissée, consomme). `op-sets.json` : **157/160 sets `full` (98%)**, 3 partials restants = weather-related (heat-rock, weather-ball, solar-beam) — débloqués plan 084.
 - **Roster Batch E (2026-05-12) — plan 079 DONE** : 14 Pokemon Gen 1 ajoutés (butterfree, beedrill, pidgeot, raticate, fearow, golbat, venomoth, farfetch-d, seaking, articuno, zapdos, moltres, mewtwo, mew). Roster 67 → **81 Pokemon jouables** — roster Gen 1 final complet (hors Ditto). 8 nouveaux moves (leech-life/Vampirisme, mega-drain/Méga-Sangsue, twineedle/Double Dard, aerial-ace/Aéropique, feather-dance/Danse Plumes, hyper-fang/Croc de Mort, quiver-dance/Papillodanse, roost/Atterrissage) — total **143 moves**. 6 nouvelles abilities (compound-eyes/Œil Composé via `accuracyMultiplier`, swarm/Essaim, water-veil/Ignifu-Voile, pressure/Pression via `targetedCtBonus`, shield-dust/Suintement via `onSecondaryEffectBlocked`, inner-focus/Attention stub) — total **52 abilities**. Nouveaux mécanismes core : `EffectKind.Drain` + `handle-drain.ts` (soigne attaquant = fraction × dégâts infligés), `AbilityHandler.accuracyMultiplier`, `AbilityHandler.targetedCtBonus`, `MoveDefinition.bypassAccuracy` (Aéropique touche garantie), `filterShieldDustTargets` dans effect-processor (`onSecondaryEffectBlocked`). Sprites extraits pour les 14 Pokemon.
 - **Roster Batch D (2026-05-11) — plan 078 DONE** : 16 Pokemon Gen 1 ajoutés (arbok, clefable, parasect, dugtrio, persian, victreebel, rapidash, dodrio, muk, onix, weezing, chansey, tangela, seadra, mr-mime, tauros). Roster 51 → **67 Pokemon jouables**. 8 nouveaux moves (poison-fang/Crocs Venin, coil/Enroulement, glare/Regard Médusant, cosmic-power/Pouvoir Cosmique, spore/Spore, leaf-blade/Lame Feuille, drill-peck/Picpic, barrier/Barrière) — total **135 moves**. 2 nouvelles abilities (poison-touch/Contact Venéneux via hook `onAfterDamageDealt`, filter/Filtre via `onDamageModify`) — total **46 abilities**. Nouveau hook core `onAfterDamageDealt` ajouté à `AbilityHandler`. Sprites 15 Pokemon téléchargés via PMDCollab (`pnpm extract-sprites`). **Bugfixes post-Batch C inclus dans cette session** : recoil bug corrigé (`handle-recoil.ts` utilisait `maxHp * fraction` → `lastDamageDealt * fraction`, ajout `SharedEffectState.lastDamageDealt`) ; drill-peck pattern corrigé (`TargetingKind.Slash` → `TargetingKind.Line, length: 2`) ; ordre Pokédex réécrit dans `roster-poc.ts` ; golden replay régénéré (108 actions, round 10).
 - **Bugfixes post-Batch C (2026-05-11 — hors plan)** : Haunter retiré du roster (sprites conservés sur disque) — roster 52 → **51 Pokemon**. `DamageDealt` event : nouveau champ `recoil?: boolean` dans `battle-event.ts`. Renderer : Self-Destruct / Explosion affiche "K.O.!" au lieu du grand nombre négatif quand `recoil === true && pokemon.currentHp === 0`. InfoPanel : badge "Verrouillé" (`status.lockedOn`) ajouté dans `VOLATILE_LABELS` pour Lock-On. Backlog : bug "Mode normal — overflow grille 51+ Pokemon" ajouté.
@@ -206,11 +207,9 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 
 ### Prochaine étape
 
-**Phase 4 en cours.** Plans 069–082 terminés. Roster Gen 1 complet à 81 Pokemon. OP Sets curés (160 sets, 128 full/80%). Gap content : 4 moves + 2 items 🟡 + 10 items 🟢.
+**Phase 4 en cours.** Plans 069–083 terminés. Roster Gen 1 complet à 81 Pokemon. OP Sets : 157/160 `full` (98%), 3 partials weather (heat-rock, weather-ball, solar-beam) — débloqués plan 084.
 
-**Plan 082 DONE** : `packages/data/op-sets/op-sets.json` (160 sets Smogon+custom), script `pnpm op-sets:analyze`, `docs/op-sets-gap-analysis.md`.
-
-Prochain : **Team Builder** (plans 083-086 restants — sélection moves + items + SP par joueur avant le combat). Méga-évolutions → Phase 9.
+Prochain : **Plan 084 — Système Météo** (débloque les 3 sets weather partials), puis **Team Builder UI** (085-086). Méga-évolutions → Phase 9.
 
 ### Bugs connus non corrigés
 
