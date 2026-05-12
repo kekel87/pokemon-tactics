@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> MAJ : 2026-05-12 (Phase 4 — Roster Batch E terminé — plan 079 DONE — 14 Pokemon, 8 moves, 6 abilities — roster Gen 1 complet à 81 Pokemon)
+> MAJ : 2026-05-12 (Phase 4 — OP Sets curation + gap analysis — plan 082 DONE — 160 sets Smogon+custom curés, 128/160 full, script gap analysis)
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
@@ -206,9 +206,11 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 
 ### Prochaine étape
 
-**Phase 4 en cours.** Plans 069–079 terminés. Roster Gen 1 complet à 81 Pokemon.
+**Phase 4 en cours.** Plans 069–082 terminés. Roster Gen 1 complet à 81 Pokemon. OP Sets curés (160 sets, 128 full/80%). Gap content : 4 moves + 2 items 🟡 + 10 items 🟢.
 
-Prochain : **Team Builder** (sélection moves + items + SP par joueur avant le combat). Méga-évolutions → Phase 9.
+**Plan 082 DONE** : `packages/data/op-sets/op-sets.json` (160 sets Smogon+custom), script `pnpm op-sets:analyze`, `docs/op-sets-gap-analysis.md`.
+
+Prochain : **Team Builder** (plans 083-086 restants — sélection moves + items + SP par joueur avant le combat). Méga-évolutions → Phase 9.
 
 ### Bugs connus non corrigés
 

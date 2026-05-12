@@ -78,6 +78,7 @@ This project is an AI-assisted development experiment. The human creator is **cr
 | Source | Usage |
 |--------|-------|
 | [Pokemon Showdown](https://github.com/smogon/pokemon-showdown) | Stats, moves, type chart, damage formulas |
+| [@pkmn/smogon](https://github.com/pkmn/smogon) (`pkmn.github.io/smogon/data/sets`) | Competitive sets (OP Sets curation) |
 | [PokeAPI](https://pokeapi.co/) | Complementary Pokemon data |
 | [Bulbapedia](https://bulbapedia.bulbagarden.net/) | Formula documentation |
 | [pokemon-showdown-fr](https://github.com/Sykless/pokemon-showdown-fr) | French translations |

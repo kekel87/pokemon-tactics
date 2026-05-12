@@ -115,6 +115,10 @@
 
 ---
 
+## Données compétitives Pokemon
+
+- [@pkmn/smogon](https://github.com/pkmn/smogon) — Sets compétitifs Smogon au format JSON, consommables via `https://pkmn.github.io/smogon/data/sets/`. Utilisé pour la curation des 160 OP Sets (plan 082). Alternative programmatique stable vs scraping du site Smogon.
+
 ## Traductions Pokemon
 
 - [pokemon-showdown-fr](https://github.com/Sykless/pokemon-showdown-fr) — Traductions françaises des noms de Pokemon, moves, abilities, statuts. Source prévue pour le système i18n (Phase 2).
