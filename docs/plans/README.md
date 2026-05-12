@@ -92,3 +92,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 077 | [Roster Batch C (17 Pokemon)](./077-roster-batch-c.md) | done | 2026-05-07 |
 | 078 | [Roster Batch D (16 Pokemon)](./078-roster-batch-d.md) | done | 2026-05-11 |
 | 079 | [Roster Batch E (14 Pokemon — final Gen 1)](./079-roster-batch-e.md) | done | 2026-05-12 |
+| 081 | [Team data model + validator + storage + Showdown io](./081-team-data-model-validator.md) | done | 2026-05-12 |

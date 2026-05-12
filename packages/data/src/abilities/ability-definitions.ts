@@ -1074,6 +1074,10 @@ const innerFocus: AbilityHandler = {
   id: "inner-focus",
 };
 
+const chlorophyll: AbilityHandler = {
+  id: "chlorophyll",
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -1127,4 +1131,5 @@ export const abilityHandlers: AbilityHandler[] = [
   pressure,
   shieldDust,
   innerFocus,
+  chlorophyll,
 ];
