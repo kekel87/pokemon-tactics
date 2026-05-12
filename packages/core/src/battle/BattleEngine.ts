@@ -48,6 +48,7 @@ import { getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handler";
+import { roostedClearHandler } from "./handlers/roosted-clear-handler";
 import { createSeededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
 import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
@@ -57,6 +58,7 @@ import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getEffectiveInitiative } from "./initiative-calculator";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
+import { computePressureBonus } from "./pressure";
 import { isMajorStatus } from "./stat-modifier";
 import { TurnManager } from "./TurnManager";
 import {
@@ -97,7 +99,12 @@ export class BattleEngine {
   private readonly abilityRegistry: AbilityHandlerRegistry | null;
   private readonly itemRegistry: HeldItemHandlerRegistry | null;
   private readonly recordedActions: Action[] = [];
-  private turnState = { hasMoved: false, hasActed: false, lastMoveId: null as string | null };
+  private turnState = {
+    hasMoved: false,
+    hasActed: false,
+    lastMoveId: null as string | null,
+    lastTargetIds: [] as string[],
+  };
   private preMoveSnapshot: { position: Position; orientation: Direction; hadBurn: boolean } | null =
     null;
   private restrictActions = false;
@@ -148,6 +155,7 @@ export class BattleEngine {
       createTerrainTickHandler(this.pokemonTypesMap, this.itemRegistry ?? undefined),
       400,
     );
+    this.turnPipeline.registerEndTurn(roostedClearHandler, 500);
 
     if (turnSystemKind === TurnSystemKind.ChargeTime) {
       const pokemonIds = [...state.pokemon.keys()];
@@ -720,7 +728,17 @@ export class BattleEngine {
       const forceHit =
         (this.abilityRegistry?.getForPokemon(pokemon)?.onAccuracyOverride?.() ?? false) ||
         (this.abilityRegistry?.getForPokemon(target)?.onAccuracyOverride?.() ?? false);
-      if (forceHit || checkAccuracy(move, pokemon, target, this.random, tallGrassBonus)) {
+      if (
+        forceHit ||
+        checkAccuracy(
+          move,
+          pokemon,
+          target,
+          this.random,
+          tallGrassBonus,
+          this.abilityRegistry ?? undefined,
+        )
+      ) {
         targets.push(target);
       } else {
         const missEvent: BattleEvent = {
@@ -817,6 +835,7 @@ export class BattleEngine {
     this.applyChoiceLock(pokemon, moveId);
     this.turnState.hasActed = true;
     this.turnState.lastMoveId = moveId;
+    this.turnState.lastTargetIds = targets.map((t) => t.id);
     this.preMoveSnapshot = null;
 
     if (move.recharge && pokemon.currentHp > 0) {
@@ -1480,7 +1499,12 @@ export class BattleEngine {
     while (iterations < totalPokemon) {
       const nextPokemonId = this.turnManager.getCurrentPokemonId();
 
-      this.turnState = { hasMoved: false, hasActed: false, lastMoveId: null };
+      this.turnState = {
+        hasMoved: false,
+        hasActed: false,
+        lastMoveId: null,
+        lastTargetIds: [],
+      };
       this.preMoveSnapshot = null;
       this.restrictActions = false;
       this.confusedThisTurn = false;
@@ -1714,7 +1738,15 @@ export class BattleEngine {
     if (!move) {
       return 600;
     }
-    return computeMoveCost(move.pp, move.power, move.effectTier);
+    const attackerId = this.state.turnOrder[this.state.currentTurnIndex] ?? "";
+    const pressureBonus = computePressureBonus(
+      attackerId,
+      move,
+      this.turnState.lastTargetIds,
+      this.state,
+      this.abilityRegistry,
+    );
+    return computeMoveCost(move.pp, move.power, move.effectTier) + pressureBonus;
   }
 
   private syncCtSnapshot(): void {
@@ -1798,7 +1830,12 @@ export class BattleEngine {
     while (iterations < MAX_SKIP_ITERATIONS) {
       const nextPokemonId = ctSystem.getNextActorId();
 
-      this.turnState = { hasMoved: false, hasActed: false, lastMoveId: null };
+      this.turnState = {
+        hasMoved: false,
+        hasActed: false,
+        lastMoveId: null,
+        lastTargetIds: [],
+      };
       this.preMoveSnapshot = null;
       this.restrictActions = false;
       this.confusedThisTurn = false;

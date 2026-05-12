@@ -15,6 +15,7 @@ export interface TacticalOverride {
   recharge?: boolean;
   effectTier?: EffectTier;
   flags?: Partial<MoveFlags>;
+  bypassAccuracy?: boolean;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -1045,6 +1046,75 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Self },
     effects: [
       { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 2, target: EffectTarget.Self },
+    ],
+    effectTier: EffectTier.MajorBuff,
+  },
+  "leech-life": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Drain, fraction: 0.5 }],
+  },
+  "mega-drain": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Drain, fraction: 0.5 }],
+  },
+  twineedle: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage, hits: 2 },
+      { kind: EffectKind.Status, status: StatusType.Poisoned, chance: 36 },
+    ],
+  },
+  "aerial-ace": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+    flags: { slicing: true },
+    bypassAccuracy: true,
+  },
+  "feather-dance": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: -2,
+        target: EffectTarget.Targets,
+      },
+    ],
+    effectTier: EffectTier.MajorBuff,
+  },
+  "hyper-fang": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "quiver-dance": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: 1,
+        target: EffectTarget.Self,
+      },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: 1,
+        target: EffectTarget.Self,
+      },
+      { kind: EffectKind.StatChange, stat: StatName.Speed, stages: 1, target: EffectTarget.Self },
+    ],
+    effectTier: EffectTier.MajorBuff,
+  },
+  roost: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      { kind: EffectKind.HealSelf, percent: 0.5 },
+      {
+        kind: EffectKind.Status,
+        status: StatusType.Roosted,
+        chance: 100,
+        target: EffectTarget.Self,
+      },
     ],
     effectTier: EffectTier.MajorBuff,
   },

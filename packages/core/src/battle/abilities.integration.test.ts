@@ -2225,4 +2225,223 @@ describe("ability system integration", () => {
     expect(damageWith).toBeLessThan(damageWithout);
     expect(damageWith).toBeCloseTo(damageWithout * 0.75, 0);
   });
+
+  it("water-veil prevents Burn status", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["will-o-wisp"],
+      currentPp: { "will-o-wisp": 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const seakingWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "seaking",
+      definitionId: "seaking",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+      abilityId: "water-veil",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, seakingWith]);
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "will-o-wisp",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const seaking = state.pokemon.get("seaking");
+    expect(seaking?.statusEffects.some((s) => s.type === StatusType.Burned)).toBe(false);
+  });
+
+  it("shield-dust blocks secondary status effects but lets damage through", () => {
+    const attackerWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-with",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["sludge-bomb"],
+      currentPp: { "sludge-bomb": 10 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const venomothWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "venomoth-with",
+      definitionId: "venomoth",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+      abilityId: "shield-dust",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attackerWith, venomothWith]);
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-with",
+      moveId: "sludge-bomb",
+      targetPosition: { x: 3, y: 2 },
+    });
+
+    const venomoth = state.pokemon.get("venomoth-with");
+    expect(venomoth?.statusEffects.some((s) => s.type === StatusType.Poisoned)).toBe(false);
+    expect(venomoth?.currentHp).toBeLessThan(200);
+  });
+
+  it("compound-eyes boosts move accuracy by 30%", () => {
+    const accuracies: number[] = [];
+    const observe = (label: string, withAbility: boolean) => {
+      const attacker = MockPokemon.fresh(MockPokemon.base, {
+        id: `attacker-${label}`,
+        definitionId: "butterfree",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 2 },
+        moveIds: ["sleep-powder"],
+        currentPp: { "sleep-powder": 15 },
+        ...(withAbility ? { abilityId: "compound-eyes" as const } : {}),
+        derivedStats: { movement: 3, jump: 1, initiative: 100 },
+      });
+      const defender = MockPokemon.fresh(MockPokemon.base, {
+        id: `defender-${label}`,
+        definitionId: "test",
+        playerId: PlayerId.Player2,
+        position: { x: 1, y: 2 },
+        currentHp: 200,
+        maxHp: 200,
+      });
+      let hits = 0;
+      const total = 100;
+      for (let i = 0; i < total; i++) {
+        const seq = i / total + 0.001;
+        vi.spyOn(Math, "random").mockReturnValue(seq);
+        const { engine } = buildMoveTestEngine([
+          { ...attacker, currentPp: { "sleep-powder": 15 } },
+          { ...defender, statusEffects: [] },
+        ]);
+        const result = engine.submitAction(PlayerId.Player1, {
+          kind: ActionKind.UseMove,
+          pokemonId: attacker.id,
+          moveId: "sleep-powder",
+          targetPosition: { x: 1, y: 2 },
+        });
+        if (!result.events.some((e) => e.type === BattleEventType.MoveMissed)) {
+          hits++;
+        }
+        vi.restoreAllMocks();
+      }
+      accuracies.push(hits);
+    };
+
+    observe("without", false);
+    observe("with", true);
+    expect(accuracies[1]).toBeGreaterThan(accuracies[0] ?? 0);
+  });
+
+  it("swarm boosts Bug moves when HP is at or below 1/3", () => {
+    const attackerWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-with",
+      definitionId: "beedrill",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["twineedle"],
+      currentPp: { twineedle: 20 },
+      currentHp: 20,
+      maxHp: 100,
+      abilityId: "swarm",
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const targetWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-with",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+    const attackerWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-without",
+      definitionId: "beedrill",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["twineedle"],
+      currentPp: { twineedle: 20 },
+      currentHp: 20,
+      maxHp: 100,
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const targetWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-without",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
+
+    const { engine: engineWith } = buildMoveTestEngine([attackerWith, targetWith]);
+    engineWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-with",
+      moveId: "twineedle",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const { engine: engineWithout } = buildMoveTestEngine([attackerWithout, targetWithout]);
+    engineWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-without",
+      moveId: "twineedle",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const damageWith = 500 - targetWith.currentHp;
+    const damageWithout = 500 - targetWithout.currentHp;
+    expect(damageWith).toBeGreaterThan(damageWithout);
+  });
+
+  it("pressure ability is registered with targetedCtBonus 50", async () => {
+    const { loadData } = await import("@pokemon-tactic/data");
+    const data = loadData();
+    const pressureAbility = data.abilityRegistry.get("pressure");
+    expect(pressureAbility).toBeDefined();
+    expect(pressureAbility?.targetedCtBonus).toBe(50);
+  });
+
+  it("shield-dust does NOT block a primary status (Sleep Powder)", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["sleep-powder"],
+      currentPp: { "sleep-powder": 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const venomothWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "venomoth",
+      definitionId: "venomoth",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+      abilityId: "shield-dust",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, venomothWith]);
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "sleep-powder",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const venomoth = state.pokemon.get("venomoth");
+    expect(venomoth?.statusEffects.some((s) => s.type === StatusType.Asleep)).toBe(true);
+  });
 });

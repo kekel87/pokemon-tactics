@@ -4,8 +4,8 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
-- **Phase 4 en cours.** Plans 069–078 terminés. Restants : Team Builder (sélection moves + items + SP par joueur). Méga-évolutions → Phase 9.
-- **Prochain plan** : **Team Builder** — sélection moves + items + SP par joueur avant le combat. Ou **Roster Batch E** (~14 Pokemon : non-légendaires restants + légendaires). Non-légendaires : butterfree, beedrill, pidgeot, raticate, fearow, golbat, venomoth, farfetch-d, seaking. Légendaires : artikodin (144), électhor (145), sulfura (146), mewtwo (150), mew (151). Batch E nécessite `EffectKind.Drain` (leech-life, mega-drain) — planifier plan dédié ou inclure en Batch E.
+- **Phase 4 en cours.** Plans 069–079 terminés. Roster Gen 1 complet : 81 Pokemon. Restant : Team Builder (sélection moves + items + SP par joueur). Méga-évolutions → Phase 9.
+- **Prochain plan** : **Team Builder** — sélection moves + items + SP par joueur avant le combat.
 - **À valider visuellement** : floating text `AbilityActivated` jaune doré, émission Blaze/Torrent/Overgrow au seuil HP, blocage Confusion par Tempo Perso, Early Bird au réveil. Tester sandbox ou combat IA vs IA.
 - **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles, peinture Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour arène propre rapide, ou reporter post-Babylon via `DecalMap`.
 - **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20). Pistes à garder :
@@ -18,9 +18,11 @@ Maintenu par Claude Code. Lu via `/next`.
 
 - **Affichage nature dans InfoPanel** — reporté à la refonte InfoPanel globale. Mécanique core livrée (plan 072), UI absente. Reprendre étapes 4 + 5 du plan 072 quand InfoPanel revu.
 - **UI (menus, panels, timeline, log)** — à décider : Phaser overlay 2D ou HTML/CSS par-dessus. Trancher après spike selon stack retenue.
+- **Plan 080 — Token optimization** (draft, 2026-05-12). 5 phases : frontmatter rules conditionnel, hooks tuning (caveman+U-A), Serena onboarding, audit MCP+skills+agents (30→15), tests. Cible -40% préambule (~17k → ~10-12k). Décisions pendantes à trancher au moment du plan : doublons agents (`-knowledge` vs base), liste agents à virer, skills à désinstaller, MCP servers à désactiver. Phase 5.1 baseline avant tout changement.
 
 ## Fait récemment
 
+- 2026-05-12 — **Roster Batch E terminé — plan 079**. 14 Pokemon ajoutés (butterfree, beedrill, pidgeot, raticate, fearow, golbat, venomoth, farfetch-d, seaking, articuno, zapdos, moltres, mewtwo, mew). Roster 67 → **81 Pokemon jouables** — roster Gen 1 complet (hors Ditto). 8 nouveaux moves (leech-life, mega-drain, twineedle, aerial-ace, feather-dance, hyper-fang, quiver-dance, roost) — total 143. 6 nouvelles abilities (compound-eyes, swarm, water-veil, pressure, shield-dust, inner-focus stub) — total 52. Nouveaux mécanismes core : `EffectKind.Drain`, `accuracyMultiplier`, `targetedCtBonus`, `bypassAccuracy`, `onSecondaryEffectBlocked`. Sprites extraits pour les 14 Pokemon.
 - 2026-05-11 — **Roster Batch D terminé — plan 078 + bugfixes**. 16 Pokemon Gen 1 ajoutés (arbok, clefable, parasect, dugtrio, persian, victreebel, rapidash, dodrio, muk, onix, weezing, chansey, tangela, seadra, mr-mime, tauros). Roster 51 → **67 Pokemon jouables**. 8 nouveaux moves (poison-fang, coil, glare, cosmic-power, spore, leaf-blade, drill-peck, barrier) — total 135. 2 nouvelles abilities (poison-touch, filter) — total 46. Nouveau hook core `onAfterDamageDealt`. Bugfixes : recoil `lastDamageDealt` (corrige formule `maxHp * fraction`), drill-peck pattern Slash → Line r2, ordre roster rétabli par numéro Pokédex, golden replay régénéré (108 actions, round 10).
 - 2026-05-11 — **Bugfixes post-Batch C (hors plan)**. Haunter retiré du roster (sprites conservés) — roster 52 → 51. `DamageDealt.recoil?: boolean` : Self-Destruct/Explosion affiche "K.O.!" au lieu du nombre négatif quand recoil fatal. InfoPanel : badge "Verrouillé" (LockedOn) dans `VOLATILE_LABELS`. Backlog : bug overflow grille 51+ Pokemon ajouté.
 - 2026-05-07 — **Roster Batch C terminé — plan 077**. 18 Pokemon ajoutés (sandslash, ninetales, wigglytuff, vileplume, golduck, tentacruel, magneton, dewgong, cloyster, haunter, kingler, electrode, jynx, electabuzz, magmar, lapras, porygon, omastar). Roster 34 → 52 (51 après retrait Haunter). 15 nouveaux moves (will-o-wisp, nasty-plot, sludge-wave, flash-cannon, discharge, screech, icicle-spear, lovely-kiss, crabhammer, self-destruct, tri-attack, lock-on, moonblast, ancient-power, shell-smash). 8 nouvelles abilities (effect-spore, cloud-nine, shell-armor, hyper-cutter, oblivious, flame-body, trace, swift-swim). `StatusType.LockedOn` + hook accuracy-check.
@@ -43,7 +45,7 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## Contexte prochaine session
 
-**Phase 3 terminée (2026-04-26). Phase 4 en cours (plans 069–078 terminés + bugfixes).** Abilities, genres, natures, objets tenus, SP, Roster Batch A + B + C + D livrés. 67 Pokemon jouables. Prochains : Team Builder, Roster Batch E (~14 Pokemon dont 5 légendaires), Méga-évolutions (Phase 9). Voir "À faire maintenant" ci-dessus.
+**Phase 3 terminée (2026-04-26). Phase 4 en cours (plans 069–079 terminés + bugfixes).** Abilities, genres, natures, objets tenus, SP, Roster Batch A + B + C + D + E livrés. 81 Pokemon jouables — roster Gen 1 complet (hors Ditto). Prochain : Team Builder. Méga-évolutions (Phase 9). Voir "À faire maintenant" ci-dessus.
 
 **Référence archive plan 061** : branche `plan-061-occlusion-before-3d-pivot`. Consulter si besoin de comprendre ce qui a été tenté en 2D iso avant pivot.
 

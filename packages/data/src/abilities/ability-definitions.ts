@@ -1034,6 +1034,46 @@ const filter: AbilityHandler = {
   },
 };
 
+const compoundEyes: AbilityHandler = {
+  id: "compound-eyes",
+  accuracyMultiplier: 1.3,
+};
+
+const swarm = pinchBooster("swarm", PokemonType.Bug);
+
+const waterVeil: AbilityHandler = {
+  id: "water-veil",
+  onStatusBlocked: (context) => {
+    if (context.status !== StatusType.Burned) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "water-veil",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+const pressure: AbilityHandler = {
+  id: "pressure",
+  targetedCtBonus: 50,
+};
+
+const shieldDust: AbilityHandler = {
+  id: "shield-dust",
+};
+
+const innerFocus: AbilityHandler = {
+  id: "inner-focus",
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -1081,4 +1121,10 @@ export const abilityHandlers: AbilityHandler[] = [
   swiftSwim,
   poisonTouch,
   filter,
+  compoundEyes,
+  swarm,
+  waterVeil,
+  pressure,
+  shieldDust,
+  innerFocus,
 ];

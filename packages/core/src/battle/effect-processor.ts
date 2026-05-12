@@ -1,8 +1,10 @@
 import { BattleEventType } from "../enums/battle-event-type";
 import { EffectKind } from "../enums/effect-kind";
+import { EffectTarget } from "../enums/effect-target";
 import type { PokemonType } from "../enums/pokemon-type";
 import type { BattleEvent } from "../types/battle-event";
 import type { BattleState } from "../types/battle-state";
+import type { Effect } from "../types/effect";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
@@ -14,6 +16,7 @@ import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handl
 import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { handleDamage } from "./handlers/handle-damage";
 import { handleDefensive } from "./handlers/handle-defensive";
+import { handleDrain } from "./handlers/handle-drain";
 import { handleHealSelf } from "./handlers/handle-heal-self";
 import { handleKnockback } from "./handlers/handle-knockback";
 import { handleRecoil } from "./handlers/handle-recoil";
@@ -48,6 +51,7 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.Knockback, handleKnockback);
   registry.register(EffectKind.HealSelf, handleHealSelf);
   registry.register(EffectKind.Recoil, handleRecoil);
+  registry.register(EffectKind.Drain, handleDrain);
   return registry;
 }
 
@@ -99,6 +103,10 @@ export function processEffects(
     }
   }
 
+  const moveHasDamage = context.move.effects.some(
+    (e) => e.kind === EffectKind.Damage || e.kind === EffectKind.Drain,
+  );
+
   for (const effect of context.move.effects) {
     let processedEffect = effect;
 
@@ -114,9 +122,17 @@ export function processEffects(
       };
     }
 
+    const effectTargets = filterShieldDustTargets(
+      processedEffect,
+      moveHasDamage,
+      nonImmuneTargets,
+      context.abilityRegistry,
+      events,
+    );
+
     const effectContext: EffectContext = {
       ...context,
-      targets: nonImmuneTargets,
+      targets: effectTargets,
       effect: processedEffect,
       abilityRegistry: context.abilityRegistry,
       itemRegistry: context.itemRegistry,
@@ -126,4 +142,50 @@ export function processEffects(
   }
 
   return events;
+}
+
+function isSecondaryEffect(effect: Effect, moveHasDamage: boolean): boolean {
+  if (!moveHasDamage) {
+    return false;
+  }
+  if (effect.kind === EffectKind.Status) {
+    if ("target" in effect && effect.target === EffectTarget.Self) {
+      return false;
+    }
+    return effect.chance < 100;
+  }
+  if (effect.kind === EffectKind.StatChange) {
+    if (effect.target === EffectTarget.Self) {
+      return false;
+    }
+    return (effect.chance ?? 100) < 100;
+  }
+  return false;
+}
+
+function filterShieldDustTargets(
+  effect: Effect,
+  moveHasDamage: boolean,
+  targets: PokemonInstance[],
+  abilityRegistry: AbilityHandlerRegistry | undefined,
+  events: BattleEvent[],
+): PokemonInstance[] {
+  if (!abilityRegistry || !isSecondaryEffect(effect, moveHasDamage)) {
+    return targets;
+  }
+  const filtered: PokemonInstance[] = [];
+  for (const target of targets) {
+    const ability = abilityRegistry.getForPokemon(target);
+    if (ability?.id === "shield-dust") {
+      events.push({
+        type: BattleEventType.AbilityActivated,
+        pokemonId: target.id,
+        abilityId: "shield-dust",
+        targetIds: [target.id],
+      });
+      continue;
+    }
+    filtered.push(target);
+  }
+  return filtered;
 }

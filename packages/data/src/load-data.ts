@@ -68,6 +68,7 @@ export function loadData(): GameData {
       ...(merged.ignoresHeight ? { ignoresHeight: true } : {}),
       ...(merged.flags ? { flags: merged.flags } : {}),
       ...(merged.effectTier ? { effectTier: merged.effectTier } : {}),
+      ...(merged.bypassAccuracy ? { bypassAccuracy: true } : {}),
     };
     return moveDefinition;
   });

@@ -17,6 +17,7 @@ const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([
   StatusTypeEnum.Intimidated,
   StatusTypeEnum.Infatuated,
   StatusTypeEnum.LockedOn,
+  StatusTypeEnum.Roosted,
 ]);
 
 const STATUS_TYPE_IMMUNITIES: Partial<Record<StatusType, readonly PokemonType[]>> = {

@@ -106,6 +106,8 @@ export function getTerrainStatusOnStop(
 
 const TERRAIN_DOT_FRACTION: Partial<Record<TerrainType, number>> = {
   [TerrainType.Magma]: 16,
+  [TerrainType.Lava]: 1,
+  [TerrainType.DeepWater]: 1,
 };
 
 export function getTerrainDotFraction(terrain: TerrainType): number | null {
