@@ -6,7 +6,6 @@ Maintenu par Claude Code. Lu via `/next`.
 
 - **Phase 4 en cours.** Plans 069–079 terminés. Roster Gen 1 complet : 81 Pokemon. Restant : Team Builder (sélection moves + items + SP par joueur). Méga-évolutions → Phase 9.
 - **Prochain plan** : **Team Builder** — sélection moves + items + SP par joueur avant le combat.
-- **À valider visuellement** : floating text `AbilityActivated` jaune doré, émission Blaze/Torrent/Overgrow au seuil HP, blocage Confusion par Tempo Perso, Early Bird au réveil. Tester sandbox ou combat IA vs IA.
 - **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles, peinture Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour arène propre rapide, ou reporter post-Babylon via `DecalMap`.
 - **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20). Pistes à garder :
   - Shim type Inspector (`src/types/babylonjs-inspector.d.ts` → `declare module "@babylonjs/inspector" { export {}; }`) pour `skipLibCheck: false`.
@@ -18,7 +17,7 @@ Maintenu par Claude Code. Lu via `/next`.
 
 - **Affichage nature dans InfoPanel** — reporté à la refonte InfoPanel globale. Mécanique core livrée (plan 072), UI absente. Reprendre étapes 4 + 5 du plan 072 quand InfoPanel revu.
 - **UI (menus, panels, timeline, log)** — à décider : Phaser overlay 2D ou HTML/CSS par-dessus. Trancher après spike selon stack retenue.
-- **Plan 080 — Token optimization** (draft, 2026-05-12). 5 phases : frontmatter rules conditionnel, hooks tuning (caveman+U-A), Serena onboarding, audit MCP+skills+agents (30→15), tests. Cible -40% préambule (~17k → ~10-12k). Décisions pendantes à trancher au moment du plan : doublons agents (`-knowledge` vs base), liste agents à virer, skills à désinstaller, MCP servers à désactiver. Phase 5.1 baseline avant tout changement.
+- **Plan 080 — Token optimization** (Phase 1+3 DONE, 2+4 partiel, 5 pending). Faits : rules `globs:` → `paths:` (conditionnel), CLAUDE.md/RTK.md/MEMORY.md compressés, 27 agents (-3), Serena onboarding (6 memory files), **U-A autoUpdate désactivé** (refresh manuel via `/understand-anything:understand-diff`, session-closer rappel auto). Skips : caveman hook (gain réel marginal ~35/tour), MCP audit (schemas deferred OK). Décision restante humain : skills à désinstaller (liste plan), validation `/cost` session fraîche pour mesurer gains.
 
 ## Fait récemment
 

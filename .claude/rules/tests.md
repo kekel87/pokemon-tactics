@@ -1,5 +1,5 @@
 ---
-globs: "**/*.test.ts"
+paths: "**/*.test.ts"
 ---
 
 - Pas de commentaires dans les tests unitaires. Commentaires OK (avec parcimonie) dans les tests d'integration/scenario

@@ -32,6 +32,15 @@ Tu es le Project Manager du projet Pokemon Tactics. En fin de session, tu fais l
 
 5. **Vérifier que `doc-keeper` a été lancé** si des changements significatifs ont eu lieu. Signaler si la doc semble obsolète.
 
+6. **Rappel U-A graph staleness** :
+   - Lire `.understand-anything/meta.json` champ `gitCommitHash`
+   - Comparer à `git rev-parse HEAD`
+   - Si diffère et au moins 1 commit touche du code (`*.ts`, `*.tsx`) :
+     - **Proposer** à l'humain : lancer agent `understand-anything:file-analyzer` en background avec liste des fichiers source TS modifiés (`git diff --name-only <hash>..HEAD | grep '\.ts$' | grep -v test`). Coût ~100-200k tokens selon volume, met à jour graph + meta.json.
+     - **Alternative analyse seule** : `/understand-anything:understand-diff` (produit `diff-overlay.json`, ne maj PAS le graph).
+   - Si écart ≥ 5 commits ou structurels importants : suggérer plutôt `/understand-anything:understand` (full re-scan, plus cher).
+   - Mentionner nb commits derrière + résumé `git log --oneline <hash>..HEAD`.
+
 ## Chaîne d'agents
 
 Après avoir terminé ton travail :

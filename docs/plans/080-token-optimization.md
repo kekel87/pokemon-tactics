@@ -1,8 +1,47 @@
-# Plan 079 — Token Optimization Setup
+# Plan 080 — Token Optimization Setup
 
-**Statut** : Draft
+**Statut** : Phase 1, 3 DONE — Phase 2, 4 partiel — Phase 5 validation pending humain
 **Créé** : 2026-05-12
-**Objectif** : Réduire consommation tokens par tour (~5k économisés) sans perdre capacité.
+**Objectif** : Réduire consommation tokens par tour (~3-5k économisés) sans perdre capacité.
+
+---
+
+## Résultats Phase 1 (DONE)
+
+- ✅ **1.1 Rules frontmatter** : `globs:` → `paths:` (5 fichiers). Découverte clé : syntaxe `globs:` non reconnue par Claude Code → toutes rules chargées tout le temps. Maintenant conditionnel.
+- ✅ **1.2 CLAUDE.md** : 130 → 109 lignes (-16%, compression structure)
+- ✅ **1.3 RTK.md** : 29 → 16 lignes (-45%)
+- ✅ **1.4 MEMORY.md** : descriptions compressées 28 entrées
+
+## Résultats Phase 2 partiel
+
+- ⏭ **2.1 Caveman hook** : skip. Coût per-tour réel ~35 tokens (estimé 800 à tort). Modifier plugin cache risqué.
+- ✅ **2.2 U-A autoUpdate désactivé** : `.understand-anything/config.json` → `{ "autoUpdate": false }`. Raison : humain commit hors session Claude → hook PostToolUse jamais déclenché → graph 3 commits stale. Décision : refresh manuel via `/understand-anything:understand-diff`. Session-closer ajoute rappel auto (compare meta.json hash vs HEAD, propose diff si écart).
+- ⏭ **2.3 Skills audit** : pending décision humain (liste skills à désinstaller).
+- ✅ **2.4 Agents audit** : 30 → 27 agents (supprimé `ci-setup`, `visual-analyst`, `balancer`). **Pas de doublons** -knowledge — ce sont des memory files lus par les agents, pas variantes.
+
+## Résultats Phase 3 (DONE)
+
+- ✅ **Serena onboarding** lancé. 6 memory files créés dans `.serena/memories/` :
+  - `project_overview`
+  - `tech_stack`
+  - `code_style_conventions`
+  - `suggested_commands`
+  - `task_completion_checklist`
+  - `codebase_structure`
+  - `workflow_and_agents`
+
+## Résultats Phase 4 partiel
+
+- ✅ **MCP audit** : 23 servers listés. **Pas de modif** — schemas deferred par défaut, coût bas. Suspects (jetbrain, nx, angular, memory MCP) à désinstaller si voulu via `claude mcp remove <name>`.
+
+## Phase 5 validation (pending toi)
+
+- À vérifier en session fraîche : `/cost` au tour 1 (mesure préambule)
+- Comparer baseline avant changements (non capturé — perdu)
+- Tests scénarios A-D du plan original quand session disponible
+
+---
 
 ---
 

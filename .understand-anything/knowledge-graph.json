@@ -4,9 +4,9 @@
     "name": "Pokemon Tactics",
     "languages": ["TypeScript", "JSON", "Markdown"],
     "frameworks": ["Phaser 4", "Vitest", "Vite", "Biome"],
-    "description": "Tactical combat game on an isometric grid fusing Pokemon and Final Fantasy Tactics. TypeScript monorepo with pure game core, Phaser 4 renderer, 51 Pokemon, 127 moves.",
-    "analyzedAt": "2026-05-11T19:04:19.896Z",
-    "gitCommitHash": "6440e3f445de3ad998d7c1a87c99e3ae91bd78d2"
+    "description": "Tactical combat game on an isometric grid fusing Pokemon and Final Fantasy Tactics. TypeScript monorepo with pure game core, Phaser 4 renderer, ~120 Pokemon, ~158 moves, 50 abilities.",
+    "analyzedAt": "2026-05-12T11:30:00.000Z",
+    "gitCommitHash": "ec3853e7a4d7407836a797d4a287460deff48ef2"
   },
   "nodes": [
     {
@@ -96,7 +96,7 @@
       "type": "file",
       "name": "accuracy-check.ts",
       "filePath": "packages/core/src/battle/accuracy-check.ts",
-      "summary": "Implements move accuracy resolution applying Lock-On bypass, evasion/accuracy stat stage multipliers, terrain bonuses, and PRNG roll to determine hit or miss.",
+      "summary": "Implements move accuracy resolution applying Lock-On (StatusType.LockedOn) auto-hit consumption, MoveDefinition.bypassAccuracy short-circuit, evasion/accuracy stat stage multipliers, the attacker ability's accuracyMultiplier, terrain evasion bonuses, and a PRNG roll to determine hit or miss.",
       "tags": ["utility", "validation", "battle", "tested"],
       "complexity": "simple"
     },
@@ -105,8 +105,8 @@
       "type": "function",
       "name": "checkAccuracy",
       "filePath": "packages/core/src/battle/accuracy-check.ts",
-      "lineRange": [8, 34],
-      "summary": "Determines whether an attack hits by checking Lock-On volatile status, applying stat stage multipliers and terrain evasion, then rolling the PRNG against the final accuracy value.",
+      "lineRange": [9, 42],
+      "summary": "Determines whether an attack hits by consuming Lock-On if present, short-circuiting on move.bypassAccuracy, applying stat stage multipliers, ability accuracyMultiplier, and terrain evasion, then rolling the PRNG against the final accuracy value.",
       "tags": ["utility", "validation"],
       "complexity": "moderate"
     },
@@ -115,7 +115,7 @@
       "type": "file",
       "name": "effect-processor.ts",
       "filePath": "packages/core/src/battle/effect-processor.ts",
-      "summary": "Processes a move's effects against targets by filtering type immunities, computing type effectiveness, and dispatching each effect to its registered handler.",
+      "summary": "Processes a move's effects against targets by filtering type immunities, computing type effectiveness, applying Shield Dust secondary-effect filtering (Batch E), and dispatching each effect to its registered handler.",
       "tags": ["service", "battle", "utility", "tested"],
       "complexity": "moderate"
     },
@@ -124,8 +124,8 @@
       "type": "function",
       "name": "createDefaultEffectRegistry",
       "filePath": "packages/core/src/battle/effect-processor.ts",
-      "lineRange": [42, 52],
-      "summary": "Factory that registers all default effect handlers (damage, stat change, status, heal, knockback, recoil, defensive) into an EffectHandlerRegistry.",
+      "lineRange": [45, 56],
+      "summary": "Factory that registers all default effect handlers (damage, stat change, status, heal, knockback, recoil, defensive, drain) into an EffectHandlerRegistry.",
       "tags": ["factory", "battle"],
       "complexity": "simple"
     },
@@ -134,8 +134,8 @@
       "type": "function",
       "name": "processEffects",
       "filePath": "packages/core/src/battle/effect-processor.ts",
-      "lineRange": [54, 102],
-      "summary": "Iterates a move's effect list, filters immune targets, computes type effectiveness, then dispatches each effect to its handler producing battle events.",
+      "lineRange": [58, 145],
+      "summary": "Iterates a move's effect list, filters immune targets, computes type effectiveness, removes Shield Dust targets from secondary effects, then dispatches each effect to its handler producing battle events.",
       "tags": ["service", "battle"],
       "complexity": "moderate"
     },
@@ -144,7 +144,7 @@
       "type": "file",
       "name": "handle-recoil.ts",
       "filePath": "packages/core/src/battle/handlers/handle-recoil.ts",
-      "summary": "Effect handler for recoil damage: calculates a fractional portion of damage dealt back to the attacker, respects Rock-Head-like ability immunity, and emits the recoil event.",
+      "summary": "Effect handler for recoil damage: calculates a fractional portion of damage dealt back to the attacker, respects Magic-Guard / Rock-Head-style ability immunity through both blocksIndirectDamage and the new blocksRecoil flag (Batch E), and emits the recoil event.",
       "tags": ["api-handler", "event-handler", "battle-engine"],
       "complexity": "simple"
     },
@@ -154,7 +154,7 @@
       "name": "handleRecoil",
       "filePath": "packages/core/src/battle/handlers/handle-recoil.ts",
       "lineRange": [7, 34],
-      "summary": "Applies recoil damage to the attacker as a fraction of max HP, skipping if the attacker's ability blocks recoil, and appends a KO event when HP drops to zero.",
+      "summary": "Applies recoil damage to the attacker as a fraction of damage dealt, skipping if the attacker's ability blocks indirect damage or recoil specifically, and appends a KO event when HP drops to zero.",
       "tags": ["battle-engine", "event-handler", "handlers"],
       "complexity": "simple"
     },
@@ -163,7 +163,7 @@
       "type": "file",
       "name": "handle-status.ts",
       "filePath": "packages/core/src/battle/handlers/handle-status.ts",
-      "summary": "Effect handler for status application: enforces type immunities, ability-based blocks, volatile vs major status rules, computes Champions-spec durations, and emits applied/blocked events.",
+      "summary": "Effect handler for status application: enforces type immunities (Poison/Steel→Poison, Fire→Burn, Electric→Paralysis, etc.), ability-based blocks, multi-status sampling, volatile vs major status rules including LockedOn and Roosted (Batch C), Champions-spec duration sampling, and emits applied/blocked events.",
       "tags": ["api-handler", "event-handler", "battle-engine", "tested"],
       "complexity": "complex"
     },
@@ -172,8 +172,8 @@
       "type": "function",
       "name": "handleStatus",
       "filePath": "packages/core/src/battle/handlers/handle-status.ts",
-      "lineRange": [41, 170],
-      "summary": "Core status application function: evaluates immunity chains, differentiates volatile from major statuses, determines duration, and emits appropriate battle events.",
+      "lineRange": [42, 178],
+      "summary": "Core status application function: evaluates immunity chains, differentiates volatile from major statuses (including the new LockedOn and Roosted volatiles), determines duration via Champions rules, and emits appropriate battle events.",
       "tags": ["api-handler", "event-handler"],
       "complexity": "complex"
     },
@@ -182,8 +182,8 @@
       "type": "function",
       "name": "isImmuneToStatusByType",
       "filePath": "packages/core/src/battle/handlers/handle-status.ts",
-      "lineRange": [30, 39],
-      "summary": "Returns true when any of the target's Pokemon types appears in the type-immunity table for the given status (e.g., Poison/Steel immune to Poisoned, Electric immune to Paralyzed).",
+      "lineRange": [31, 40],
+      "summary": "Returns true when any of the target's Pokemon types appears in the type-immunity table for the given status (e.g., Poison/Steel immune to Poisoned, Electric immune to Paralyzed, Fire immune to Burned, Ice immune to Frozen).",
       "tags": ["battle-engine", "utility", "validation"],
       "complexity": "simple"
     },
@@ -1931,18 +1931,18 @@
       "type": "file",
       "name": "BattleEngine.ts",
       "filePath": "packages/core/src/battle/BattleEngine.ts",
-      "summary": "Central battle orchestrator class managing turn flow, action execution, CT turn system, confusion handling, KO detection, and event emission for the Pokemon Tactics game.",
+      "summary": "Central battle orchestrator class managing turn flow, action execution, the CT turn system, confusion handling, KO detection, ability/item hook dispatch (including onEndTurn and onAfterDamageDealt, Batch D/E), and event emission for the Pokemon Tactics game.",
       "tags": ["service", "battle", "event-handler", "tested"],
       "complexity": "complex",
-      "languageNotes": "Single massive class (1936 lines, 46 methods) coordinating all battle subsystems via composition: TurnManager, ChargeTimeTurnSystem, TurnPipeline, and registries."
+      "languageNotes": "Single massive class (1976 lines, 47 methods) coordinating all battle subsystems via composition: TurnManager, ChargeTimeTurnSystem, TurnPipeline, and ability/item/status registries. Wires the new roosted-clear, drain, and terrain-tick handlers into the pipeline."
     },
     {
       "id": "class:packages/core/src/battle/BattleEngine.ts:BattleEngine",
       "type": "class",
       "name": "BattleEngine",
       "filePath": "packages/core/src/battle/BattleEngine.ts",
-      "lineRange": [83, 1936],
-      "summary": "Core game orchestrator that processes player actions, advances turns, manages the CT timeline, fires ability/item hooks, and emits battle events to subscribers.",
+      "lineRange": [85, 1976],
+      "summary": "Core game orchestrator that processes player actions, advances turns, manages the CT timeline, fires ability/item hooks (onAfterDamageDealt for Moxie-style snowballers, onEndTurn for periodic abilities), emits battle events, and applies the Pressure CT surcharge on offensive moves.",
       "tags": ["service", "battle", "event-handler"],
       "complexity": "complex"
     },
@@ -2151,7 +2151,7 @@
       "type": "file",
       "name": "effect-handler-registry.ts",
       "filePath": "packages/core/src/battle/effect-handler-registry.ts",
-      "summary": "Registry that maps EffectKind values to handler functions, enabling move effects to be processed via a dispatch table rather than switch/case logic.",
+      "summary": "Registry that maps EffectKind values (including Drain added in Batch E) to handler functions, enabling move effects to be processed via a dispatch table rather than switch/case logic.",
       "tags": ["service", "battle", "factory", "tested"],
       "complexity": "simple"
     },
@@ -2160,8 +2160,8 @@
       "type": "class",
       "name": "EffectHandlerRegistry",
       "filePath": "packages/core/src/battle/effect-handler-registry.ts",
-      "lineRange": [38, 56],
-      "summary": "Dispatch table mapping EffectKind to handler functions; supports register, process, and has operations for pluggable effect handling.",
+      "lineRange": [43, 61],
+      "summary": "Dispatch table mapping EffectKind to handler functions; supports register, process, and has operations for pluggable effect handling. Holds handlers for Damage, Status, StatChange, Defensive, Knockback, HealSelf, Recoil, and Drain.",
       "tags": ["service", "battle"],
       "complexity": "simple"
     },
@@ -2179,7 +2179,7 @@
       "type": "file",
       "name": "effective-flying.ts",
       "filePath": "packages/core/src/battle/effective-flying.ts",
-      "summary": "Tiny utility that determines whether a Pokemon is effectively airborne based on its types and volatile statuses.",
+      "summary": "Determines whether a Pokemon is effectively airborne based on its types, the Roosted volatile status (Batch C, suppresses Flying for one turn), and the Levitate ability — feeding terrain damage, Ground-move immunity, and accuracy checks.",
       "tags": ["utility", "battle"],
       "complexity": "simple"
     },
@@ -2300,7 +2300,7 @@
       "type": "file",
       "name": "handle-damage.ts",
       "filePath": "packages/core/src/battle/handlers/handle-damage.ts",
-      "summary": "Implements the damage effect handler, resolving multi-hit counts, dealing individual hits with type effectiveness, crit, held-item callbacks, and KO detection, then registering itself in the effect-handler registry.",
+      "summary": "Implements the Damage effect handler: resolves multi-hit counts, deals each hit with type effectiveness, crit, ability hooks (onAfterDamageDealt added in Batch D for Moxie-style snowballers), held-item callbacks, KO detection, and registers itself in the effect-handler registry.",
       "tags": ["api-handler", "service", "event-handler", "battle-engine"],
       "complexity": "complex"
     },
@@ -2309,8 +2309,8 @@
       "type": "function",
       "name": "dealSingleHit",
       "filePath": "packages/core/src/battle/handlers/handle-damage.ts",
-      "lineRange": [41, 236],
-      "summary": "Core hit-resolution function: computes damage with crit and type multipliers, applies defense check, triggers ability and held-item callbacks, and emits battle events for damage, KO, and item reactions.",
+      "lineRange": [41, 245],
+      "summary": "Core hit-resolution function: computes damage with crit and type multipliers, applies defense check, triggers the attacker's onAfterDamageDealt ability (Batch D), the defender's onAfterDamageReceived ability, and held-item callbacks, and emits battle events for damage, KO, and item reactions.",
       "tags": ["battle-engine", "event-handler", "utility"],
       "complexity": "complex"
     },
@@ -2319,8 +2319,8 @@
       "type": "function",
       "name": "handleDamage",
       "filePath": "packages/core/src/battle/handlers/handle-damage.ts",
-      "lineRange": [238, 278],
-      "summary": "Entry point for the Damage effect kind: determines hit count, resolves each hit via dealSingleHit, and emits a multi-hit summary event.",
+      "lineRange": [247, 294],
+      "summary": "Entry point for the Damage effect kind: determines hit count, resolves each hit via dealSingleHit, applies preventsCrit ability gating, and emits a multi-hit summary event.",
       "tags": ["api-handler", "event-handler", "battle-engine"],
       "complexity": "moderate"
     },
@@ -2496,7 +2496,7 @@
       "type": "file",
       "name": "terrain-tick-handler.ts",
       "filePath": "packages/core/src/battle/handlers/terrain-tick-handler.ts",
-      "summary": "Tick handler factory for terrain effects: each turn applies terrain-specific DoT fractions and status conditions to non-immune, non-flying Pokemon standing on hazardous tiles.",
+      "summary": "Tick handler factory for terrain effects: each turn applies terrain-specific DoT fractions and status conditions to non-immune, non-flying Pokemon standing on hazardous tiles, with held-item modulation and isEffectivelyFlying gating (accounts for Roosted, Batch C).",
       "tags": ["event-handler", "battle-engine", "factory", "tested"],
       "complexity": "moderate"
     },
@@ -2505,8 +2505,8 @@
       "type": "function",
       "name": "createTerrainTickHandler",
       "filePath": "packages/core/src/battle/handlers/terrain-tick-handler.ts",
-      "lineRange": [91, 118],
-      "summary": "Factory that returns a per-Pokemon terrain tick handler closure bound to the given type map and item registry.",
+      "lineRange": [91, 119],
+      "summary": "Factory that returns a per-Pokemon terrain tick handler closure bound to the given type map and item registry; applies status-on-stop and DoT each end-turn.",
       "tags": ["factory", "battle-engine"],
       "complexity": "moderate"
     },
@@ -3827,7 +3827,7 @@
       "type": "file",
       "name": "terrain-effects.ts",
       "filePath": "packages/core/src/battle/terrain-effects.ts",
-      "summary": "Exports terrain query functions used during battle: immunity checks, movement penalties, type damage bonuses, status-on-stop infliction, and damage-over-time fractions per terrain type.",
+      "summary": "Exports terrain query functions used during battle: immunity checks, movement penalties, type damage bonuses, status-on-stop infliction (Seeded, Burned, etc.), and damage-over-time fractions per terrain type — consumed by the terrain tick handler and movement validator.",
       "tags": ["utility", "battle", "terrain", "service", "tested"],
       "complexity": "moderate"
     },
@@ -3837,7 +3837,7 @@
       "name": "isTerrainImmune",
       "filePath": "packages/core/src/battle/terrain-effects.ts",
       "lineRange": [18, 31],
-      "summary": "Determines whether a Pokemon is immune to a terrain's effects based on its types and flying status.",
+      "summary": "Determines whether a Pokemon is immune to a terrain's effects based on its types and effectively-flying status (Roosted Flying types are no longer immune).",
       "tags": ["utility", "terrain", "battle"],
       "complexity": "simple"
     },
@@ -3847,7 +3847,7 @@
       "name": "getTerrainTypeBonusFactor",
       "filePath": "packages/core/src/battle/terrain-effects.ts",
       "lineRange": [75, 89],
-      "summary": "Returns the damage multiplier a terrain provides for a move of a given type used by a same-type attacker standing on that terrain.",
+      "summary": "Returns the damage multiplier a terrain provides for a move of a given type used by a same-type attacker standing on that terrain (e.g. fire moves boosted on lava).",
       "tags": ["utility", "terrain", "damage", "battle"],
       "complexity": "simple"
     },
@@ -4042,7 +4042,7 @@
       "type": "file",
       "name": "effect-kind.ts",
       "filePath": "packages/core/src/enums/effect-kind.ts",
-      "summary": "Defines the EffectKind const enum classifying the category of a move's secondary effect (e.g., stat change, status, recoil).",
+      "summary": "Defines the EffectKind const-object enum classifying the category of a move's secondary effect (Damage, Status, StatChange, Defensive, Knockback, HealSelf, Recoil, Drain) — Drain added in Batch E for leech-life and mega-drain.",
       "tags": ["type-definition", "battle", "enum"],
       "complexity": "simple"
     },
@@ -4484,10 +4484,10 @@
       "type": "file",
       "name": "ability-definition.ts",
       "filePath": "packages/core/src/types/ability-definition.ts",
-      "summary": "Defines the full AbilityDefinition and AbilityHandler interfaces, including all callback contexts (damage modification, status blocking, type immunity, aura, end-turn) that the ability hook system relies on.",
+      "summary": "Defines AbilityDefinition and AbilityHandler interfaces with the full set of callback contexts (damage modification, status blocking, type immunity, aura, end-turn) and the Batch D/E hook flags onAfterDamageDealt, blocksRecoil, preventsCrit, accuracyMultiplier, targetedCtBonus, onEndTurn, onSecondaryEffectBlocked.",
       "tags": ["type-definition", "data-model", "api-handler", "service"],
       "complexity": "moderate",
-      "languageNotes": "Uses interface extension (AbilityDefinition extends AbilityHandler) to separate data (name/description) from behavioral hooks, matching the 1-file-1-type rule."
+      "languageNotes": "Uses interface extension (AbilityDefinition extends AbilityHandler) to separate data (name/description) from behavioral hooks, matching the 1-file-1-type rule. Batch E added five new ability hooks for Pressure, Battle-Armor, No-Guard, Compound-Eyes, and Shield-Dust."
     },
     {
       "id": "file:packages/core/src/types/action.ts",
@@ -4622,7 +4622,7 @@
       "type": "file",
       "name": "move-definition.ts",
       "filePath": "packages/core/src/types/move-definition.ts",
-      "summary": "Defines the MoveDefinition interface — the canonical data contract for a Pokemon move including power, accuracy, PP, targeting, effects, and optional flags.",
+      "summary": "Defines the MoveDefinition interface — the canonical data contract for a Pokemon move including power, accuracy, PP, targeting, effects, optional flags, critRatio, and the bypassAccuracy escape hatch (Batch E) for never-miss moves.",
       "tags": ["type-definition", "data-model"],
       "complexity": "simple"
     },
@@ -5384,7 +5384,7 @@
       "type": "file",
       "name": "load-data.ts",
       "filePath": "packages/data/src/load-data.ts",
-      "summary": "Core data loading entry point that reads all reference JSON files, merges tactical overrides, loads Pokemon/moves/abilities/items via their loaders, and returns the GameData object.",
+      "summary": "Core data loading entry point that reads all reference JSON files, merges tactical overrides, loads Pokemon/moves/abilities/items via their loaders, derives the type map via loadAllPokemonTypes, and returns the GameData object.",
       "tags": ["entry-point", "factory", "data-model", "tested"],
       "complexity": "moderate"
     },
@@ -5393,8 +5393,8 @@
       "type": "function",
       "name": "loadData",
       "filePath": "packages/data/src/load-data.ts",
-      "lineRange": [26, 91],
-      "summary": "Reads all reference JSON files and orchestrates loading of Pokemon, moves, abilities, and items into their runtime registries, returning the assembled GameData object.",
+      "lineRange": [26, 92],
+      "summary": "Reads all reference JSON files and orchestrates loading of Pokemon, moves, abilities, and items into their runtime registries, applying tactical overrides via deep-merge, and returns the assembled GameData object.",
       "tags": ["factory", "data-model", "entry-point"],
       "complexity": "moderate"
     },
@@ -8729,7 +8729,7 @@
       "type": "file",
       "name": "SandboxPanel.ts",
       "filePath": "packages/renderer/src/ui/SandboxPanel.ts",
-      "summary": "Large DOM-based developer sandbox control panel with collapsible sections for map, player, and dummy Pokemon configuration including move slots, stats, status, and held items.",
+      "summary": "Large DOM-based developer sandbox control panel with collapsible sections for map, player, and dummy Pokemon configuration; exposes move slots (deduplicated), stats, status, volatile-status selection (including LockedOn and Roosted), held items, and a copy-config JSON button.",
       "tags": ["component", "ui", "config", "dev-tool"],
       "complexity": "complex"
     },
@@ -8738,8 +8738,8 @@
       "type": "class",
       "name": "SandboxPanel",
       "filePath": "packages/renderer/src/ui/SandboxPanel.ts",
-      "lineRange": [108, 962],
-      "summary": "Builds a three-section collapsible HTML panel (map, player, dummy) with dropdowns, sliders, checkboxes, and a copy-JSON button; fires onConfigChanged with a SandboxConfig on every control change.",
+      "lineRange": [108, 960],
+      "summary": "Builds a three-section collapsible HTML panel (map, player, dummy) with dropdowns, sliders, checkboxes, and a copy-JSON button; sorts the Pokemon select by dex number, deduplicates move slots, and fires onConfigChanged with a SandboxConfig on every control change.",
       "tags": ["component", "ui", "config"],
       "complexity": "complex"
     },
@@ -9150,10 +9150,10 @@
       "type": "file",
       "name": "status-type.ts",
       "filePath": "packages/core/src/enums/status-type.ts",
-      "summary": "Defines the StatusType const-object enum for all major and minor status conditions (burn, paralysis, sleep, freeze, poison, confusion, etc.) used throughout the battle engine.",
+      "summary": "Defines the StatusType const-object enum covering all major (burn, paralysis, sleep, freeze, poison, badly-poison) and volatile (confused, seeded, trapped, intimidated, infatuated, locked-on, roosted) status conditions — LockedOn added in Batch C for lock-on guaranteed-hit, Roosted for the Roost move.",
       "tags": ["type-definition", "enum", "data-model", "utility"],
       "complexity": "simple",
-      "languageNotes": "Uses the const object + derived type pattern mandated by project conventions."
+      "languageNotes": "Uses the const object + derived type pattern mandated by project conventions. Volatile vs major distinction is enforced by handle-status.ts via the VOLATILE_STATUSES set."
     },
     {
       "id": "file:packages/core/src/types/battle-event.ts",
@@ -9170,7 +9170,7 @@
       "type": "file",
       "name": "effect.ts",
       "filePath": "packages/core/src/types/effect.ts",
-      "summary": "Defines the Effect discriminated union covering all move secondary effects: Damage, Status, StatChange, Defensive, Knockback, HealSelf, and Recoil.",
+      "summary": "Defines the Effect discriminated union covering all move secondary effects: Damage, Status, StatChange, Defensive, Knockback, HealSelf, Recoil, and Drain (Batch E, used by leech-life and mega-drain).",
       "tags": ["type-definition", "data-model"],
       "complexity": "simple"
     },
@@ -9179,7 +9179,7 @@
       "type": "file",
       "name": "ability-definitions.ts",
       "filePath": "packages/data/src/abilities/ability-definitions.ts",
-      "summary": "Defines all Pokemon ability handlers as a registry, implementing passive effect logic (damage boosts, status checks, pinch abilities, etc.) used by the battle engine.",
+      "summary": "Defines all 50 Pokemon ability handlers as a single registry, implementing passive logic (damage modifiers, status checks, pinch boosters, post-KO snowballing, terrain reactions, etc.) — extended in Batch C/D/E to include Trace, Effect-Spore, Pressure, Shield-Dust, Inner-Focus, and twelve additional abilities.",
       "tags": ["data-model", "event-handler", "service"],
       "complexity": "complex"
     },
@@ -9235,7 +9235,7 @@
       "type": "file",
       "name": "tactical.ts",
       "filePath": "packages/data/src/overrides/tactical.ts",
-      "summary": "Exports the large tactical override map that patches Pokemon stats, movesets, and abilities across the full Gen-1 roster to fit the tactical game design, overriding base reference values.",
+      "summary": "Exports the large tactical override map (1121 lines) that patches Pokemon stats, movesets, and abilities across the full Gen-1 roster to fit the tactical game design — extended in Batches C/D/E with the 47 new Pokemon, 31 new moves, and 16 new ability assignments.",
       "tags": ["configuration", "data-model", "data-pipeline", "tested"],
       "complexity": "complex"
     },
@@ -9244,7 +9244,7 @@
       "type": "file",
       "name": "roster-poc.ts",
       "filePath": "packages/data/src/roster/roster-poc.ts",
-      "summary": "Defines the full proof-of-concept battle roster as a static array of RosterEntry objects covering the Gen-1 Pokemon used in prototype gameplay sessions.",
+      "summary": "Defines the full proof-of-concept battle roster as a static array of RosterEntry objects covering the Gen-1 Pokemon used in prototype gameplay sessions — expanded across Batches C/D/E to roughly cover the Gen-1 dex.",
       "tags": ["data-model", "configuration"],
       "complexity": "complex"
     },
@@ -9368,6 +9368,214 @@
       "filePath": "packages/data/src/i18n/pokemon-names.fr.json",
       "summary": "French localization data mapping Pokemon IDs to their official French names for display in the UI.",
       "tags": ["configuration", "documentation", "data-model"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/core/src/battle/handlers/handle-drain.ts",
+      "type": "file",
+      "name": "handle-drain.ts",
+      "filePath": "packages/core/src/battle/handlers/handle-drain.ts",
+      "summary": "Effect handler for the Drain effect kind (Batch E): heals the attacker by a fraction of damage dealt, capped at the HP missing, and emits an HpRestored event. Powers moves like leech-life and mega-drain.",
+      "tags": ["api-handler", "event-handler", "battle-engine"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/handlers/handle-drain.ts:handleDrain",
+      "type": "function",
+      "name": "handleDrain",
+      "filePath": "packages/core/src/battle/handlers/handle-drain.ts",
+      "lineRange": [7, 27],
+      "summary": "Reads the Drain effect fraction, multiplies it by the shared lastDamageDealt, clamps the heal to the attacker's missing HP, applies it, and emits HpRestored.",
+      "tags": ["api-handler", "event-handler", "battle-engine"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/core/src/battle/handlers/roosted-clear-handler.ts",
+      "type": "file",
+      "name": "roosted-clear-handler.ts",
+      "filePath": "packages/core/src/battle/handlers/roosted-clear-handler.ts",
+      "summary": "Turn-start phase handler that clears the Roosted volatile status from a Pokemon after one turn so Flying types regain their type and grounded immunities (Batch C, Roost move support).",
+      "tags": ["event-handler", "battle-engine", "utility"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/handlers/roosted-clear-handler.ts:roostedClearHandler",
+      "type": "function",
+      "name": "roostedClearHandler",
+      "filePath": "packages/core/src/battle/handlers/roosted-clear-handler.ts",
+      "lineRange": [12, 26],
+      "summary": "PhaseHandler closure that, given a pokemonId and BattleState, filters out the Roosted volatile status and returns an EMPTY_RESULT regardless of whether anything was cleared.",
+      "tags": ["event-handler", "battle-engine"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:packages/core/src/battle/pressure.ts",
+      "type": "file",
+      "name": "pressure.ts",
+      "filePath": "packages/core/src/battle/pressure.ts",
+      "summary": "Tactical reinterpretation of the Pressure ability (Batch E): when an offensive move targets a Pokemon whose ability exposes a targetedCtBonus, the attacker pays additional CT, slowing them down instead of consuming extra PP as in mainline Pokemon.",
+      "tags": ["utility", "battle", "ability"],
+      "complexity": "simple",
+      "languageNotes": "Plan repurposes Pressure's PP-burn into a CT cost surcharge fitting the tactical CT turn system; exposed via AbilityHandler.targetedCtBonus."
+    },
+    {
+      "id": "function:packages/core/src/battle/pressure.ts:isOffensiveMove",
+      "type": "function",
+      "name": "isOffensiveMove",
+      "filePath": "packages/core/src/battle/pressure.ts",
+      "lineRange": [6, 8],
+      "summary": "Returns true when a move has at least one Damage or Drain effect — the trigger condition for Pressure's CT surcharge.",
+      "tags": ["utility", "battle"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/pressure.ts:computePressureBonus",
+      "type": "function",
+      "name": "computePressureBonus",
+      "filePath": "packages/core/src/battle/pressure.ts",
+      "lineRange": [10, 38],
+      "summary": "Iterates the targets of an offensive move and sums their abilities' targetedCtBonus values to return the total CT surcharge the attacker owes (Pressure ability).",
+      "tags": ["utility", "battle", "ability"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/effective-flying.ts:isRoosted",
+      "type": "function",
+      "name": "isRoosted",
+      "filePath": "packages/core/src/battle/effective-flying.ts",
+      "lineRange": [5, 7],
+      "summary": "Predicate returning true when the Pokemon currently carries the Roosted volatile status (Batch C, used to suppress Flying type during one turn).",
+      "tags": ["utility", "battle"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/effective-flying.ts:getEffectiveTypes",
+      "type": "function",
+      "name": "getEffectiveTypes",
+      "filePath": "packages/core/src/battle/effective-flying.ts",
+      "lineRange": [9, 17],
+      "summary": "Returns the Pokemon's effective type list, stripping Flying when Roosted so Ground moves and terrain damage apply normally for one turn.",
+      "tags": ["utility", "battle"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/effective-flying.ts:isEffectivelyFlying",
+      "type": "function",
+      "name": "isEffectivelyFlying",
+      "filePath": "packages/core/src/battle/effective-flying.ts",
+      "lineRange": [19, 27],
+      "summary": "Determines whether the Pokemon is airborne for terrain and Ground-move resolution, returning false when Roosted and true for Flying types or the Levitate ability.",
+      "tags": ["utility", "battle"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/handlers/handle-status.ts:isVolatileStatus",
+      "type": "function",
+      "name": "isVolatileStatus",
+      "filePath": "packages/core/src/battle/handlers/handle-status.ts",
+      "lineRange": [180, 182],
+      "summary": "Predicate returning true when the given StatusType belongs to the VOLATILE_STATUSES set (Confused, Seeded, Trapped, Intimidated, Infatuated, LockedOn, Roosted).",
+      "tags": ["utility", "battle"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/handlers/handle-status.ts:getStatusDuration",
+      "type": "function",
+      "name": "getStatusDuration",
+      "filePath": "packages/core/src/battle/handlers/handle-status.ts",
+      "lineRange": [184, 204],
+      "summary": "Computes the initial duration for a status based on Champions rules (sleep sample([2,3,3]), freeze 3 turns, etc.) with optional ability-driven adjustments.",
+      "tags": ["utility", "battle"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/core/src/battle/effect-processor.ts:isSecondaryEffect",
+      "type": "function",
+      "name": "isSecondaryEffect",
+      "filePath": "packages/core/src/battle/effect-processor.ts",
+      "lineRange": [147, 164],
+      "summary": "Classifies an Effect as a secondary effect (post-damage chance-based rider) used to determine when the Shield Dust ability suppresses it.",
+      "tags": ["utility", "battle", "ability"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/effect-processor.ts:filterShieldDustTargets",
+      "type": "function",
+      "name": "filterShieldDustTargets",
+      "filePath": "packages/core/src/battle/effect-processor.ts",
+      "lineRange": [166, 191],
+      "summary": "Removes targets whose ability blocks secondary effects (Shield Dust) before the effect handler dispatch, emitting SecondaryEffectBlocked events for each filtered target (Batch E).",
+      "tags": ["utility", "battle", "ability"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/core/src/battle/terrain-effects.ts:getImmuneTerrains",
+      "type": "function",
+      "name": "getImmuneTerrains",
+      "filePath": "packages/core/src/battle/terrain-effects.ts",
+      "lineRange": [33, 44],
+      "summary": "Returns the Set of terrain kinds the given type combination is immune to, used by AI and movement validation to filter walkable tiles.",
+      "tags": ["utility", "terrain", "battle"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/terrain-effects.ts:getMovementPenalty",
+      "type": "function",
+      "name": "getMovementPenalty",
+      "filePath": "packages/core/src/battle/terrain-effects.ts",
+      "lineRange": [53, 62],
+      "summary": "Returns the extra movement cost a Pokemon pays to enter a tile of a given terrain, with type-based bypasses (e.g. Water types ignore deep-water penalty).",
+      "tags": ["utility", "terrain", "battle"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/terrain-effects.ts:getTerrainStatusOnStop",
+      "type": "function",
+      "name": "getTerrainStatusOnStop",
+      "filePath": "packages/core/src/battle/terrain-effects.ts",
+      "lineRange": [96, 105],
+      "summary": "Returns the StatusType inflicted when a non-immune Pokemon ends its move on the given terrain (e.g. tall-grass → Seeded), or null when no status applies.",
+      "tags": ["utility", "terrain", "battle"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/terrain-effects.ts:getTerrainDotFraction",
+      "type": "function",
+      "name": "getTerrainDotFraction",
+      "filePath": "packages/core/src/battle/terrain-effects.ts",
+      "lineRange": [113, 115],
+      "summary": "Returns the fraction of max HP a Pokemon loses each turn while standing on a hazardous terrain (e.g. lava, deep-water for non-Water types).",
+      "tags": ["utility", "terrain", "battle"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:applyTerrainStatus",
+      "type": "function",
+      "name": "applyTerrainStatus",
+      "filePath": "packages/core/src/battle/handlers/terrain-tick-handler.ts",
+      "lineRange": [20, 50],
+      "summary": "Applies the terrain's stop-status (Seeded, Burned, etc.) to a Pokemon if it isn't immune, already statused, or holding a counter item, and pushes the resulting events.",
+      "tags": ["utility", "terrain", "battle-engine", "event-handler"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:applyTerrainDot",
+      "type": "function",
+      "name": "applyTerrainDot",
+      "filePath": "packages/core/src/battle/handlers/terrain-tick-handler.ts",
+      "lineRange": [52, 89],
+      "summary": "Applies per-turn terrain damage (e.g. lava burn, deep-water DoT) accounting for type immunity, Flying/Roost suppression, held items, and KO emission.",
+      "tags": ["utility", "terrain", "battle-engine", "event-handler"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:packages/data/src/load-data.ts:loadAllPokemonTypes",
+      "type": "function",
+      "name": "loadAllPokemonTypes",
+      "filePath": "packages/data/src/load-data.ts",
+      "lineRange": [94, 101],
+      "summary": "Builds the Map<pokemonId, PokemonType[]> from the GameData registry, used to feed type-aware battle handlers (terrain, accuracy, ability hooks).",
+      "tags": ["factory", "data-model", "utility"],
       "complexity": "simple"
     }
   ],
@@ -26276,6 +26484,405 @@
       "type": "tested_by",
       "direction": "forward",
       "weight": 0.5
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/handle-drain.ts",
+      "target": "function:packages/core/src/battle/handlers/handle-drain.ts:handleDrain",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/handle-drain.ts",
+      "target": "function:packages/core/src/battle/handlers/handle-drain.ts:handleDrain",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/handle-drain.ts",
+      "target": "file:packages/core/src/battle/effect-handler-registry.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/handle-drain.ts",
+      "target": "file:packages/core/src/enums/effect-kind.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/handle-drain.ts",
+      "target": "file:packages/core/src/types/effect.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/core/src/battle/effect-processor.ts",
+      "target": "file:packages/core/src/battle/handlers/handle-drain.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/roosted-clear-handler.ts",
+      "target": "function:packages/core/src/battle/handlers/roosted-clear-handler.ts:roostedClearHandler",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/roosted-clear-handler.ts",
+      "target": "function:packages/core/src/battle/handlers/roosted-clear-handler.ts:roostedClearHandler",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/roosted-clear-handler.ts",
+      "target": "file:packages/core/src/enums/status-type.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/core/src/battle/BattleEngine.ts",
+      "target": "file:packages/core/src/battle/handlers/roosted-clear-handler.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/core/src/battle/pressure.ts",
+      "target": "function:packages/core/src/battle/pressure.ts:isOffensiveMove",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/pressure.ts",
+      "target": "function:packages/core/src/battle/pressure.ts:computePressureBonus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/pressure.ts",
+      "target": "function:packages/core/src/battle/pressure.ts:isOffensiveMove",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/pressure.ts",
+      "target": "function:packages/core/src/battle/pressure.ts:computePressureBonus",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/pressure.ts",
+      "target": "file:packages/core/src/enums/effect-kind.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/core/src/battle/pressure.ts",
+      "target": "file:packages/core/src/types/move-definition.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:packages/core/src/battle/pressure.ts:computePressureBonus",
+      "target": "function:packages/core/src/battle/pressure.ts:isOffensiveMove",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/BattleEngine.ts",
+      "target": "file:packages/core/src/battle/pressure.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/core/src/battle/effective-flying.ts",
+      "target": "function:packages/core/src/battle/effective-flying.ts:isRoosted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/effective-flying.ts",
+      "target": "function:packages/core/src/battle/effective-flying.ts:getEffectiveTypes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/effective-flying.ts",
+      "target": "function:packages/core/src/battle/effective-flying.ts:isEffectivelyFlying",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/effective-flying.ts",
+      "target": "function:packages/core/src/battle/effective-flying.ts:isRoosted",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/effective-flying.ts",
+      "target": "function:packages/core/src/battle/effective-flying.ts:getEffectiveTypes",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/effective-flying.ts",
+      "target": "function:packages/core/src/battle/effective-flying.ts:isEffectivelyFlying",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/core/src/battle/effective-flying.ts:getEffectiveTypes",
+      "target": "function:packages/core/src/battle/effective-flying.ts:isRoosted",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/core/src/battle/effective-flying.ts:isEffectivelyFlying",
+      "target": "function:packages/core/src/battle/effective-flying.ts:isRoosted",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/effective-flying.ts",
+      "target": "file:packages/core/src/enums/status-type.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/handle-status.ts",
+      "target": "function:packages/core/src/battle/handlers/handle-status.ts:isVolatileStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/handle-status.ts",
+      "target": "function:packages/core/src/battle/handlers/handle-status.ts:getStatusDuration",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:packages/core/src/battle/handlers/handle-status.ts:handleStatus",
+      "target": "function:packages/core/src/battle/handlers/handle-status.ts:isVolatileStatus",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/core/src/battle/handlers/handle-status.ts:handleStatus",
+      "target": "function:packages/core/src/battle/handlers/handle-status.ts:getStatusDuration",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/effect-processor.ts",
+      "target": "function:packages/core/src/battle/effect-processor.ts:isSecondaryEffect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/effect-processor.ts",
+      "target": "function:packages/core/src/battle/effect-processor.ts:filterShieldDustTargets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:packages/core/src/battle/effect-processor.ts:processEffects",
+      "target": "function:packages/core/src/battle/effect-processor.ts:filterShieldDustTargets",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/core/src/battle/effect-processor.ts:filterShieldDustTargets",
+      "target": "function:packages/core/src/battle/effect-processor.ts:isSecondaryEffect",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/terrain-effects.ts",
+      "target": "function:packages/core/src/battle/terrain-effects.ts:getImmuneTerrains",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/terrain-effects.ts",
+      "target": "function:packages/core/src/battle/terrain-effects.ts:getMovementPenalty",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/terrain-effects.ts",
+      "target": "function:packages/core/src/battle/terrain-effects.ts:getTerrainStatusOnStop",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/terrain-effects.ts",
+      "target": "function:packages/core/src/battle/terrain-effects.ts:getTerrainDotFraction",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/terrain-effects.ts",
+      "target": "function:packages/core/src/battle/terrain-effects.ts:getImmuneTerrains",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/terrain-effects.ts",
+      "target": "function:packages/core/src/battle/terrain-effects.ts:getMovementPenalty",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/terrain-effects.ts",
+      "target": "function:packages/core/src/battle/terrain-effects.ts:getTerrainStatusOnStop",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/terrain-effects.ts",
+      "target": "function:packages/core/src/battle/terrain-effects.ts:getTerrainDotFraction",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/terrain-tick-handler.ts",
+      "target": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:applyTerrainStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/core/src/battle/handlers/terrain-tick-handler.ts",
+      "target": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:applyTerrainDot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:createTerrainTickHandler",
+      "target": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:applyTerrainStatus",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:createTerrainTickHandler",
+      "target": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:applyTerrainDot",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:applyTerrainStatus",
+      "target": "function:packages/core/src/battle/terrain-effects.ts:getTerrainStatusOnStop",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:applyTerrainDot",
+      "target": "function:packages/core/src/battle/terrain-effects.ts:isTerrainImmune",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:applyTerrainDot",
+      "target": "function:packages/core/src/battle/terrain-effects.ts:getTerrainDotFraction",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:applyTerrainStatus",
+      "target": "function:packages/core/src/battle/effective-flying.ts:isEffectivelyFlying",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/core/src/battle/handlers/terrain-tick-handler.ts:applyTerrainDot",
+      "target": "function:packages/core/src/battle/effective-flying.ts:isEffectivelyFlying",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:packages/data/src/load-data.ts",
+      "target": "function:packages/data/src/load-data.ts:loadAllPokemonTypes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:packages/data/src/load-data.ts",
+      "target": "function:packages/data/src/load-data.ts:loadAllPokemonTypes",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:packages/core/src/battle/accuracy-check.ts:checkAccuracy",
+      "target": "file:packages/core/src/enums/status-type.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:packages/data/src/abilities/ability-definitions.ts",
+      "target": "file:packages/core/src/types/ability-definition.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "class:packages/core/src/battle/BattleEngine.ts:BattleEngine",
+      "target": "function:packages/core/src/battle/pressure.ts:computePressureBonus",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
     }
   ],
   "layers": [

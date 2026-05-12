@@ -1,131 +1,109 @@
-# CLAUDE.md — Instructions pour Claude Code
+# CLAUDE.md
 
-## Contexte projet
+## Projet
 
-Pokemon Tactics: jeu combat tactique (Pokemon x FFTA) en TypeScript + Phaser 4.
-Monorepo pnpm workspaces. Core découplé du rendu. AI-playable.
+Pokemon Tactics : combat tactique (Pokemon × FFTA), TypeScript + Phaser 4, monorepo pnpm. Core découplé du rendu. AI-playable.
 
-## Rôle de l'humain
+## Humain
 
-Humain **pas code**. Directeur créatif, architecte, reviewer.
-Claude Code = **dev principal** — autonome implémentation, valide design avec humain.
-Profil: dev web Angular/TS expérimenté, clean code advocate, expérience Godot + Phaser, temps limité.
-**Continuité**: humain peut revenir après 1 mois. Maintenir STATUS.md, docs/plans/ et mémoire à jour pour reprendre sans friction.
+**Pas code**. Directeur créatif, architecte, reviewer. Dev web Angular/TS expérimenté, clean code, Godot+Phaser, temps limité.
+Continuité : peut revenir après 1 mois → maintenir STATUS.md, `docs/plans/`, mémoire à jour.
 
-## Documentation — quoi lire et quand
+Claude = dev principal, autonome implémentation, valide design avec humain.
 
-| Fichier | Quand le lire |
-|---------|---------------|
-| `STATUS.md` | **En premier** — reprise après pause ("on en était où ?") |
-| `docs/game-design.md` | Avant implémenter mécanique jeu |
-| `docs/architecture.md` | Avant créer fichier/package ou changer structure |
-| `docs/decisions.md` | Hésitation sur choix (réponse peut-être déjà là) |
-| `docs/roster-poc.md` | Pokemon et movesets prototype |
-| `docs/reflexion-patterns-attaques.md` | Avant attribuer/implémenter pattern attaque |
+## Docs — quoi lire quand
+
+| Fichier | Trigger |
+|---------|---------|
+| `STATUS.md` | **Reprise** ("on en était où ?") |
+| `docs/game-design.md` | Avant mécanique jeu |
+| `docs/architecture.md` | Avant créer fichier/package, changer structure |
+| `docs/decisions.md` | Hésitation sur choix |
+| `docs/roster-poc.md` | Pokemon + movesets prototype |
+| `docs/reflexion-patterns-attaques.md` | Avant pattern attaque |
 | `docs/roadmap.md` | Quoi faire ensuite |
-| `docs/references.md` | Comment problème résolu ailleurs |
-| `docs/methodology.md` | Workflow travail |
-| `docs/ai-system.md` | Avant modifier IA (scoring, profils, AiTeamController) |
-| `docs/abilities-system.md` | Avant ajouter/modifier talent (hooks, émission `AbilityActivated`, tests) |
-| `docs/design-system.md` | Avant ajouter/modifier couleurs, depths ou constantes visuelles renderer |
-| `docs/isometric-height-rendering.md` | Avant toucher rendu isométrique avec hauteur, picking ou layers Tiled multi-niveaux |
-| `docs/tileset-mapping.md` | Structure tileset ICON et propriétés tiles |
-| `docs/references/babylon-gotchas.md` | Avant toucher renderer Babylon (plan 064+). Pièges GridMaterial, UV, depth, skipLibCheck, tree-shaking. |
-| `docs/references/babylon-mcp-ecosystem.md` | État MCP Babylon (officiel + communautaires), avril 2026. |
-| `docs/backlog.md` | Bugs connus + feedback playtest non traités |
-| `docs/implementations.md` | Liste vivante Pokemon/Moves/Abilities/Items implémentés — doc-keeper met à jour : ✗→✓ + compteurs en-tête + compteurs README.md#Progression à chaque ajout |
-| `docs/plans/` | Lire plan en cours avant coder. Anciens si besoin contexte. |
+| `docs/references.md` | Comment résolu ailleurs |
+| `docs/methodology.md` | Workflow |
+| `docs/ai-system.md` | Avant modifier IA |
+| `docs/abilities-system.md` | Avant ajouter/modifier talent |
+| `docs/design-system.md` | Avant couleurs/depths/constantes visuelles |
+| `docs/isometric-height-rendering.md` | Avant rendu iso hauteur/picking/layers multi-niveaux |
+| `docs/tileset-mapping.md` | Tileset ICON, propriétés tiles |
+| `docs/references/babylon-gotchas.md` | Avant renderer Babylon |
+| `docs/references/babylon-mcp-ecosystem.md` | État MCP Babylon |
+| `docs/backlog.md` | Bugs + feedback playtest non traités |
+| `docs/implementations.md` | Liste Pokemon/Moves/Abilities/Items implémentés |
+| `docs/plans/` | Plan en cours avant coder |
+| `docs/next.md` | Agenda persistant (`/next`) |
 
-Pas tout charger d'un coup. Lire fichier pertinent moment pertinent.
+Pas tout charger. Lire fichier pertinent moment pertinent.
 
-## Outils d'exploration code
+## Exploration code TS
 
-| Outil | Quand l'utiliser |
-|-------|-----------------|
-| **Serena** (appeler `initial_instructions` d'abord) | Exploration code : trouver symboles, références, diagnostics. **Prioritaire sur Read/Grep/Edit** pour fichiers `.ts`. |
-| **`/understand-chat`** (U-A) | Questions architecture : "quels fichiers gèrent X ?", vue d'ensemble relations |
+**Serena prioritaire sur Read/Grep/Edit** pour `.ts` (LSP, plus token-efficient).
+Charger via `ToolSearch select:mcp__serena__*`. Appeler `initial_instructions` au démarrage.
 
-> **Serena first** : avant tout Read/Grep/Edit sur fichier code TypeScript, charger les tools Serena (`ToolSearch select:mcp__serena__*`). Plus token-efficient que lire des fichiers entiers.
-> Graph U-A dans `.understand-anything/knowledge-graph.json` — 1008 nodes, mis à jour à chaque commit si `autoUpdate: true`.
+U-A graph (`.understand-anything/knowledge-graph.json`, 1008 nodes, auto-update post-commit) pour questions architecture → `/understand-chat`.
 
-## Principes de développement
+## Principes
 
-- **Core découplé**: logique pure, zéro dépendance UI (détails dans `.claude/rules/core.md`)
-- **Tests first**: chaque mécanique core a tests avant rendue visuellement
-- **Petit et incrémental**: un changement = une chose
-- **Pas de sur-ingénierie**: commencer simple, refactorer quand nécessaire
-- **TypeScript strict**: `strict: true`, pas de `any` implicite, pas de `as` abusif
+- **Core découplé** : zéro dep UI (détails `.claude/rules/core.md`)
+- **Tests first** : mécanique core → tests avant visuel
+- **Petit, incrémental** : 1 changement = 1 chose
+- **TypeScript strict** : pas de `any` implicite, pas de `as` abusif
+- **Pas de sur-ingénierie** : commencer simple
 
 ## Conventions
 
-- **Commits**: conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`) — **titre seul, jamais corps**. Humain colle que première ligne. Tout "pourquoi / détails / contexte reprise" va dans `STATUS.md` ou plan en cours (`docs/plans/xxx-*.md`), pas dans message.
-- **Langue code**: anglais (variables, fonctions, types, commentaires)
-- **Langue doc**: français
-- **Linter/Formatter**: Biome (remplace ESLint + Prettier)
-- **Plans**: `docs/plans/xxx-name.md` numérotés, statut en en-tête
-- **Nommage**: pas d'abréviations (`traversalContext` pas `ctx`, `pokemonInstance` pas `pkmn`)
-- **Écriture code**: préférer Edit à Write. Construire gros fichiers par petits Edit successifs, pas Write massif
-- **Code mort**: zéro tolérance. Pas de fonctions/branches/imports inutilisés.
+- **Commits** : conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`) — **titre seul, jamais corps**. Détails → STATUS.md ou plan
+- **Langue** : code anglais, doc français
+- **Linter** : Biome
+- **Plans** : `docs/plans/xxx-name.md` numérotés, statut en en-tête
+- **Nommage** : pas d'abréviations (`traversalContext` pas `ctx`)
+- **Écriture code** : Edit > Write. Petits Edit successifs, pas Write massif
+- **Code mort** : zéro tolérance
+- **Lint** : jamais désactiver règle Biome sans accord humain. Présenter options d'abord
 
-> Règles détaillées par package (core, renderer, data, tests) dans `.claude/rules/` — chargées auto selon fichiers touchés.
-> Règles transversales (lint, conventions nommage): `.claude/rules/quality.md` — toujours applicables.
-> **Lint**: jamais désactiver règle Biome sans accord explicite humain. Présenter options d'abord.
+Règles détaillées par package : `.claude/rules/*.md` (chargées via frontmatter `paths:` selon fichier touché).
 
 ## Stack
 
-- TypeScript strict, ESM modules
-- Phaser 4 pour rendu
-- Vitest pour tests unitaires
-- Playwright pour tests visuels (agent `visual-tester`)
-- chrome-devtools MCP pour debug runtime et perf (agents `debugger`, `performance-profiler`) — voir `docs/agent-orchestration.md` section "MCP navigateur"
-- Vite pour bundling
-- Biome pour linting/formatting
-- pnpm workspaces pour monorepo
+TypeScript strict ESM · Phaser 4 · Vitest · Playwright (`visual-tester`) · chrome-devtools MCP (`debugger`, `performance-profiler`) · Vite · Biome · pnpm workspaces.
 
-## Ce qu'il ne faut PAS faire
+## Interdits
 
-- Utiliser `any` sans justification
+- `any` sans justification
 - Commiter assets non libres de droits
-- Charger toute doc en contexte quand un seul fichier suffit
-- **Git**: jamais commit/push/add — humain gère versioning. Lecture seule (status, diff, log). Bloqué par hook PreToolUse.
-- **Infra**: jamais installer globalement ni modifier nvm/npm config. Bloqué par hook PreToolUse.
-- **Changements structurels**: consulter humain AVANT modifier tsconfig, module resolution, structure dossiers, dépendances. Bug fixes simples pas besoin approbation
-- **Mémoire Claude vs doc projet**: recherches, comparatifs, décisions, contexte technique vont dans doc projet (docs/plans/, docs/, decisions.md) — versionnée dans git, accessible partout. Mémoire Claude sert que pour préférences personnelles humain.
+- Charger toute doc en contexte quand 1 fichier suffit
+- **Git** : commit/push/add interdit. Lecture seule (`status`, `diff`, `log`). Bloqué par hook
+- **Infra** : install global, modif nvm/npm config interdit. Bloqué par hook
+- **Structurel** : consulter humain AVANT modifier tsconfig, module resolution, structure, dépendances. Bug fix simple OK
+- **Mémoire vs doc** : recherches/décisions/contexte → doc projet (git), pas mémoire Claude. Mémoire = préférences perso humain seulement
 
-## Orchestration des agents
+## Agents
 
-**Humain demande pas agent. Toi les lances quand nécessaire.** Besoin asset → `asset-manager`. Données Pokemon → `data-miner`. Tests → `test-writer`. Tu vois besoin, tu lances.
+**Tu lances, humain demande pas.** Besoin asset → `asset-manager`. Données → `data-miner`. Tests → `test-writer`.
 
-**Deux modes**:
+**Auto sans demander** : majorité. **Proposer avant** : `visual-tester` (Playwright ≥2 min), `debugger` (opus), `best-practices` (Web*), `balancer`, `performance-profiler`, `publisher`, `wiki-keeper`.
 
-1. **Auto sans demander** — majorité. Tu lances direct et synthétises résultat.
-2. **Tu proposes avant lancer** — uniquement agents coûteux ou actions publiques:
-   - `visual-tester` (Playwright long, ≥ 2 min)
-   - `debugger` (opus coûteux)
-   - `best-practices` (WebSearch/Fetch)
-   - `balancer` (N combats headless)
-   - `performance-profiler`
-   - `publisher` (publie release GitHub)
-   - `wiki-keeper` (modifie wiki public)
+Détails : `docs/agent-orchestration.md`.
 
-Détails par agent et table triggers: **`docs/agent-orchestration.md`**.
+### Chaînes
 
-### Chaînes principales
+- **Plan rédaction** : tu écris → `plan-reviewer` → `game-designer` (si mécaniques) → humain
+- **Plan fin** : `core-guardian` (si core) → `code-reviewer` → `doc-keeper` → propose `visual-tester` (si renderer) → gate CI → `commit-message`
+- **Hors plan** : `code-reviewer` (si significatif) → `doc-keeper` (si doc) → gate CI → `commit-message`
+- **Session fin** : `session-closer` → gate CI → `commit-message`
 
-- **Rédaction plan**: tu écris → `plan-reviewer` (auto) → `game-designer` (auto si mécaniques/équilibre) → tu présentes à humain.
-- **Fin plan**: `core-guardian` (si core touché) → `code-reviewer` → `doc-keeper` → proposer `visual-tester` si renderer touché → gate CI → `commit-message`.
-- **Hors plan**: `code-reviewer` (si significatif) → `doc-keeper` (si doc) → gate CI → `commit-message`.
-- **Fin session**: `session-closer` → gate CI → `commit-message`.
+### Règles fond
 
-### Règles de fond
-
-- Jamais plus d'un agent long en foreground par turn — longs en background.
-- Gate CI = `pnpm build && pnpm lint:fix && pnpm typecheck && pnpm test && pnpm test:integration`. **BLOQUANT** avant tout commit.
-- **Reporté / skippé va dans `docs/next.md`** — agenda persistant que tu maintiens. Humain lit via `/next` pour rien oublier.
+- Jamais > 1 agent long en foreground/turn — longs en background
+- Gate CI = `pnpm build && pnpm lint:fix && pnpm typecheck && pnpm test && pnpm test:integration`. **BLOQUANT** avant commit
+- Reporté → `docs/next.md`
 
 ## Skills
 
-| Commande | Action |
-|----------|--------|
-| `/next` | Prochaine étape + agenda (lit `docs/next.md` + STATUS + roadmap + plan en cours) |
-| `/review-local` | Review code sur changements locaux |
+| Cmd | Action |
+|-----|--------|
+| `/next` | Prochaine étape (lit `docs/next.md` + STATUS + roadmap + plan) |
+| `/review-local` | Review code changements locaux |

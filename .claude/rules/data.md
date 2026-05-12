@@ -1,5 +1,5 @@
 ---
-globs: packages/data/**
+paths: packages/data/**
 ---
 
 - Les IDs sont en kebab-case (`leech-seed`, pas `leechSeed`)
