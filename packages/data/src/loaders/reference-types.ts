@@ -1,12 +1,33 @@
+export interface ReferenceLearnsetEntry {
+  level: number;
+  move: string;
+}
+
+export interface ReferenceLearnset {
+  levelUp: ReferenceLearnsetEntry[];
+  tm: string[];
+  tutor: string[];
+}
+
+export interface ReferenceAbilities {
+  ability1: string | null;
+  ability2: string | null;
+  hidden: string | null;
+}
+
 export interface ReferencePokemon {
   dexNumber: number;
   id: string;
+  generation: number;
   names: { en: string; fr: string };
   types: string[];
   height: number;
   weight: number;
   baseStats: { hp: number; atk: number; def: number; spa: number; spd: number; spe: number };
   genderRatio: { male: number; female: number } | "genderless";
+  abilities: ReferenceAbilities;
+  learnset: ReferenceLearnset;
+  evolvesFrom: string | null;
 }
 
 export interface ReferenceMove {

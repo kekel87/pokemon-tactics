@@ -19,12 +19,12 @@ export const rosterPoc: RosterEntry[] = [
     abilityId: "blaze",
     movepool: [
       "flamethrower",
-      "wing-attack",
-      "dragon-breath",
+      "aerial-ace",
+      "dragon-claw",
       "fire-blast",
       "flare-blitz",
-      "dragon-claw",
       "air-slash",
+      "roost",
     ],
   },
   {
@@ -32,7 +32,7 @@ export const rosterPoc: RosterEntry[] = [
     abilityId: "torrent",
     movepool: [
       "water-gun",
-      "bubble-beam",
+      "waterfall",
       "withdraw",
       "iron-defense",
       "surf",
@@ -48,7 +48,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "beedrill",
     abilityId: "swarm",
-    movepool: ["twineedle", "poison-sting", "swords-dance", "poison-fang"],
+    movepool: ["swords-dance", "sludge-bomb", "brick-break", "toxic"],
   },
   {
     id: "pidgeot",
@@ -101,7 +101,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "clefable",
     abilityId: "magic-guard",
-    movepool: ["moonblast", "cosmic-power", "minimize", "recover"],
+    movepool: ["moonblast", "cosmic-power", "calm-mind", "defense-curl"],
   },
   {
     id: "ninetales",
@@ -111,12 +111,12 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "wigglytuff",
     abilityId: "cute-charm",
-    movepool: ["body-slam", "sing", "moonblast", "double-edge"],
+    movepool: ["body-slam", "sing", "psychic", "double-edge"],
   },
   {
     id: "golbat",
     abilityId: "inner-focus",
-    movepool: ["leech-life", "wing-attack", "confuse-ray", "poison-fang"],
+    movepool: ["leech-life", "air-slash", "confuse-ray", "poison-fang"],
   },
   {
     id: "vileplume",
@@ -136,12 +136,12 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "dugtrio",
     abilityId: "sand-veil",
-    movepool: ["earthquake", "slash", "rock-slide", "magnitude"],
+    movepool: ["earthquake", "slash", "rock-slide", "tri-attack"],
   },
   {
     id: "persian",
     abilityId: "technician",
-    movepool: ["slash", "fury-swipes", "crunch", "nasty-plot"],
+    movepool: ["slash", "fury-swipes", "bite", "nasty-plot"],
   },
   {
     id: "golduck",
@@ -172,10 +172,10 @@ export const rosterPoc: RosterEntry[] = [
     id: "machamp",
     abilityId: "no-guard",
     movepool: [
-      "karate-chop",
+      "cross-chop",
       "seismic-toss",
       "bulk-up",
-      "rock-smash",
+      "earthquake",
       "dynamic-punch",
       "close-combat",
       "brick-break",
@@ -244,7 +244,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "onix",
     abilityId: "sturdy",
-    movepool: ["rock-slide", "earthquake", "iron-tail", "wrap"],
+    movepool: ["rock-slide", "earthquake", "iron-tail", "screech"],
   },
   {
     id: "hypno",
@@ -254,7 +254,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "kingler",
     abilityId: "hyper-cutter",
-    movepool: ["crabhammer", "slash", "screech", "swords-dance"],
+    movepool: ["crabhammer", "brick-break", "bubble-beam", "swords-dance"],
   },
   {
     id: "electrode",
@@ -263,6 +263,7 @@ export const rosterPoc: RosterEntry[] = [
   },
   {
     id: "exeggutor",
+    abilityId: "chlorophyll",
     movepool: ["psychic", "hypnosis", "earthquake", "energy-ball"],
   },
   {
@@ -283,7 +284,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "lickitung",
     abilityId: "own-tempo",
-    movepool: ["lick", "hyper-beam", "growl", "dragon-tail"],
+    movepool: ["lick", "hyper-beam", "defense-curl", "body-slam"],
   },
   {
     id: "weezing",
@@ -298,27 +299,27 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "chansey",
     abilityId: "natural-cure",
-    movepool: ["seismic-toss", "recover", "thunder-wave", "double-edge"],
+    movepool: ["calm-mind", "rest", "thunder-wave", "double-edge"],
   },
   {
     id: "tangela",
     abilityId: "chlorophyll",
-    movepool: ["energy-ball", "wrap", "sleep-powder", "growth"],
+    movepool: ["energy-ball", "mega-drain", "sleep-powder", "growth"],
   },
   {
     id: "kangaskhan",
     abilityId: "early-bird",
-    movepool: ["mega-punch", "scratch", "swords-dance", "body-slam"],
+    movepool: ["fire-punch", "crunch", "earthquake", "body-slam"],
   },
   {
     id: "seadra",
-    abilityId: "swift-swim",
+    abilityId: "poison-point",
     movepool: ["hydro-pump", "dragon-dance", "ice-beam", "smokescreen"],
   },
   {
     id: "seaking",
     abilityId: "water-veil",
-    movepool: ["waterfall", "aqua-tail", "mega-drain", "agility"],
+    movepool: ["waterfall", "surf", "ice-beam", "agility"],
   },
   {
     id: "starmie",
@@ -328,7 +329,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "mr-mime",
     abilityId: "filter",
-    movepool: ["psychic", "barrier", "calm-mind", "thunder-wave"],
+    movepool: ["psychic", "iron-defense", "calm-mind", "thunder-wave"],
   },
   {
     id: "scyther",
@@ -338,7 +339,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "jynx",
     abilityId: "oblivious",
-    movepool: ["blizzard", "lovely-kiss", "moonblast", "nasty-plot"],
+    movepool: ["blizzard", "lovely-kiss", "psychic", "nasty-plot"],
   },
   {
     id: "electabuzz",
@@ -373,7 +374,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "vaporeon",
     abilityId: "water-absorb",
-    movepool: ["water-gun", "bite", "quick-attack", "surf", "hydro-pump", "ice-beam", "acid-armor"],
+    movepool: ["waterfall", "bite", "quick-attack", "surf", "hydro-pump", "ice-beam", "acid-armor"],
   },
   {
     id: "jolteon",
@@ -393,9 +394,9 @@ export const rosterPoc: RosterEntry[] = [
     abilityId: "flash-fire",
     movepool: [
       "flamethrower",
-      "flame-wheel",
+      "tackle",
       "bite",
-      "agility",
+      "quick-attack",
       "fire-blast",
       "flare-blitz",
       "lava-plume",
@@ -419,12 +420,12 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "aerodactyl",
     abilityId: "rock-head",
-    movepool: ["double-edge", "rock-slide", "agility", "dragon-claw"],
+    movepool: ["ancient-power", "rock-slide", "agility", "dragon-claw"],
   },
   {
     id: "snorlax",
     abilityId: "thick-fat",
-    movepool: ["body-slam", "hyper-beam", "headbutt", "rest", "amnesia", "crunch"],
+    movepool: ["body-slam", "hyper-beam", "shadow-ball", "rest", "amnesia", "crunch"],
   },
   {
     id: "articuno",
@@ -439,14 +440,14 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "moltres",
     abilityId: "pressure",
-    movepool: ["flamethrower", "fire-blast", "lava-plume", "wing-attack"],
+    movepool: ["flamethrower", "fire-blast", "aerial-ace", "wing-attack"],
   },
   {
     id: "dragonite",
     abilityId: "multiscale",
     movepool: [
-      "dragon-breath",
-      "wing-attack",
+      "aerial-ace",
+      "dragon-tail",
       "agility",
       "dragon-claw",
       "dragon-dance",
@@ -462,7 +463,7 @@ export const rosterPoc: RosterEntry[] = [
   {
     id: "mew",
     abilityId: "synchronize",
-    movepool: ["psychic", "recover", "ancient-power", "nasty-plot"],
+    movepool: ["psychic", "calm-mind", "ancient-power", "nasty-plot"],
   },
   {
     id: "dummy",

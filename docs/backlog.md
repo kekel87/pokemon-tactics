@@ -40,6 +40,13 @@ Bugs connus et retours playtest non traités.
 
 ## Données
 
+### Reference learnsets vides — Raticate, Fearow, Parasect, Pidgeotto, Rattata, Spearow, Paras, Pidgey, Weedle, Kakuna (2026-05-12)
+- `packages/data/reference/pokemon.json` : 10 Pokemon Gen 1 ont `learnset.levelUp = [], tm = [], tutor = []` vides.
+- Audit `pnpm team:audit-learnsets` emit warning `empty-learnset` non bloquant pour ces Pokemon.
+- Validator Team Builder skipera vérification moves pour ces Pokemon (fallback "tout move accepté") tant que la donnée est manquante.
+- Fix : régénérer via `pnpm data:update` depuis source plus complète (Showdown gen9 + Champions). Si Champions ne contient pas les learnsets pour ces Pokemon, fallback Showdown générique.
+- Non bloquant pour plan 081 ni gameplay actuel.
+
 ### Kangaskhan — genderRatio incorrect (2026-04-29)
 - `packages/data/reference/pokemon.json` indique `genderRatio: { male: 50, female: 50 }`.
 - Canon Bulbapedia : exclusivement femelle (`{ male: 0, female: 100 }`).

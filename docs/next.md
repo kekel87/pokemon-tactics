@@ -4,8 +4,24 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
-- **Phase 4 en cours.** Plans 069–079 terminés. Roster Gen 1 complet : 81 Pokemon. Restant : Team Builder (sélection moves + items + SP par joueur). Méga-évolutions → Phase 9.
-- **Prochain plan** : **Team Builder** — sélection moves + items + SP par joueur avant le combat.
+- **Phase 4 en cours.** Plans 069–079 terminés. Roster Gen 1 complet : 81 Pokemon. **Chantier suivant : Team Builder** — découpé en 6 plans (081–086).
+- **Méta-plan Team Builder** (validé 2026-05-12) :
+  - **081** — Team data model + validator + storage + Showdown io (core, réutilisable multi)
+  - **082** — Curate OP sets list (Smogon + CoupCritique, 1-3 sets/Pokemon roster) + script analyse fréquence content manquant → `docs/op-sets-gap-analysis.md`
+  - **083** — Roster Batch F : impl moves/abilities/items prioritaires selon analyse 082 (suit pattern Batch C/D/E)
+  - **084** — OP sets runtime + random team gen (`full`/`partial` dynamique, random pioche `full` uniquement)
+  - **085** — `TeamEditScene` style Pokemon Champion (6 slots, édition slot active, boutons Set OP / Importer / Exporter Showdown, items non implémentés grisés)
+  - **086** — `TeamSelectScene` refonte (équipes saved + Aléatoire + Nouvelle) + phase placement = sous-sélection N mons depuis 6 selon format
+  - **Post-086 (à planifier)** — Refactor `roster-poc.ts` → `playable-pokemon.ts` (liste implémentés, sans movepool — remplacé par OP sets). Le concept "POC roster" disparaît.
+- **Décisions méta-plan** :
+  - IV=31 fixe (jamais exportés Showdown)
+  - SP↔EV : 1 SP = 8 EV (export `sp×8` clamp 252, import `floor(ev/8)` clamp 32)
+  - Niveau fixé 50 (Champions style)
+  - localStorage illimité (pas de cap pour l'instant)
+  - Équipes 6 Pokemon, format détermine N participants (placement = sous-pick)
+  - Validateur core réutilisable (multijoueur futur)
+  - Learnset = union levelUp+TM+tutor walkée via chaîne `evolvesFrom` (Showdown pattern)
+  - ID normalizer : Showdown compresse sans tiret (`fireblast` vs `fire-blast`)
 - **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles, peinture Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour arène propre rapide, ou reporter post-Babylon via `DecalMap`.
 - **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20). Pistes à garder :
   - Shim type Inspector (`src/types/babylonjs-inspector.d.ts` → `declare module "@babylonjs/inspector" { export {}; }`) pour `skipLibCheck: false`.
@@ -21,6 +37,7 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## Fait récemment
 
+- 2026-05-12 — **Plan 081 terminé — Team data model + validator + Showdown io**. `TeamSet` core (`team-set.ts`, `team-slot.ts`, `team-format.ts`), 16 erreurs validateur (`TeamSetValidationErrorKind`), `validateTeamSet` core réutilisable. SP↔EV ratio 1:8 (`spToEv`/`evToSp`, clamp 252/510). ID normalizer Showdown (`toShowdownId`/`fromShowdownId`). Learnset resolver walk `evolvesFrom` (incluant Gen 2+ pré-évos comme Pichu). Showdown export (IVs jamais exportés, Level 50 fixe, EVs filtrés zéro, genre M/F). Showdown import (parser ligne-par-ligne préfixe, nicknames 4 variantes, IVs/Tera/Happiness/Shiny/Pokeball/Dynamax/Gigantamax ignorés silencieusement, EV>510 warning soft). `TeamStorage` localStorage renderer (CRUD + summaries + schema v1 + reset gracieux). `TeamBuilderRegistry` adapter data→core. **Préparation fix roster-poc inclus** : 23 movepool corrections (charizard wing-attack→aerial-ace, etc.), Exeggutor abilityId chlorophyll + stub, Seadra swift-swim→poison-point, 10 Pokemon Gen 1 learnset vide tracés backlog. Script `pnpm team:audit-learnsets` (CI). Fixture round-trip 6 mons (charizard+snorlax+alakazam+gengar+dragonite+starmie). 1379 unit + 189 intégration verts. Audit Showdown `sim/team-validator.ts` intégré (DuplicatePokemon sur espèce racine, IllegalGender, parser tolérant).
 - 2026-05-12 — **Roster Batch E terminé — plan 079**. 14 Pokemon ajoutés (butterfree, beedrill, pidgeot, raticate, fearow, golbat, venomoth, farfetch-d, seaking, articuno, zapdos, moltres, mewtwo, mew). Roster 67 → **81 Pokemon jouables** — roster Gen 1 complet (hors Ditto). 8 nouveaux moves (leech-life, mega-drain, twineedle, aerial-ace, feather-dance, hyper-fang, quiver-dance, roost) — total 143. 6 nouvelles abilities (compound-eyes, swarm, water-veil, pressure, shield-dust, inner-focus stub) — total 52. Nouveaux mécanismes core : `EffectKind.Drain`, `accuracyMultiplier`, `targetedCtBonus`, `bypassAccuracy`, `onSecondaryEffectBlocked`. Sprites extraits pour les 14 Pokemon.
 - 2026-05-11 — **Roster Batch D terminé — plan 078 + bugfixes**. 16 Pokemon Gen 1 ajoutés (arbok, clefable, parasect, dugtrio, persian, victreebel, rapidash, dodrio, muk, onix, weezing, chansey, tangela, seadra, mr-mime, tauros). Roster 51 → **67 Pokemon jouables**. 8 nouveaux moves (poison-fang, coil, glare, cosmic-power, spore, leaf-blade, drill-peck, barrier) — total 135. 2 nouvelles abilities (poison-touch, filter) — total 46. Nouveau hook core `onAfterDamageDealt`. Bugfixes : recoil `lastDamageDealt` (corrige formule `maxHp * fraction`), drill-peck pattern Slash → Line r2, ordre roster rétabli par numéro Pokédex, golden replay régénéré (108 actions, round 10).
 - 2026-05-11 — **Bugfixes post-Batch C (hors plan)**. Haunter retiré du roster (sprites conservés) — roster 52 → 51. `DamageDealt.recoil?: boolean` : Self-Destruct/Explosion affiche "K.O.!" au lieu du nombre négatif quand recoil fatal. InfoPanel : badge "Verrouillé" (LockedOn) dans `VOLATILE_LABELS`. Backlog : bug overflow grille 51+ Pokemon ajouté.

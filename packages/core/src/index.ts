@@ -41,6 +41,7 @@ export {
   resolveBlastImpactTile,
   resolveTargeting,
 } from "./grid/targeting";
+export * from "./team/index";
 export type * from "./types/index";
 export { DEFAULT_STATUS_RULES } from "./types/status-rules";
 export * from "./utils/index";
