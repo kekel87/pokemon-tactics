@@ -203,6 +203,30 @@ export interface Translations {
   "credits.code": string;
   "credits.back": string;
   "log.title": string;
+  "weather.sun": string;
+  "weather.rain": string;
+  "weather.sandstorm": string;
+  "weather.snow": string;
+  "weather.none": string;
+  "weather.set.sun": string;
+  "weather.set.rain": string;
+  "weather.set.sandstorm": string;
+  "weather.set.snow": string;
+  "weather.cleared.sun": string;
+  "weather.cleared.rain": string;
+  "weather.cleared.sandstorm": string;
+  "weather.cleared.snow": string;
+  "weather.damage": string;
+  "weather.war": string;
+  "weather.charging": string;
+  "weather.turnsLeft": string;
+  "weather.float.freezePrevented": string;
+  "battle.noEffect": string;
+  "move.charging.solar-beam": string;
+  "sandbox.weather": string;
+  "sandbox.weatherTurns": string;
+  "sandbox.weatherApply": string;
+  "sandbox.weatherClear": string;
 }
 
 export type TranslationKey = keyof Translations;

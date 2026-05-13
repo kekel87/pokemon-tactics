@@ -12,6 +12,8 @@ import {
   PlayerId,
   type StatName,
   StatusType,
+  setWeather,
+  Weather,
 } from "@pokemon-tactic/core";
 import { sandboxArena } from "@pokemon-tactic/data";
 import type { SandboxConfig } from "../types/SandboxConfig";
@@ -203,8 +205,11 @@ export function createSandboxBattle(
     config.dummyStatStages,
   );
 
-  // After HP/status mutations from sandbox config, re-run onBattleStart so
-  // pinch boosters (Engrais/Brasier/Torrent) detect threshold cross.
+  if (config.weather && config.weather !== Weather.None) {
+    const weatherEvents = setWeather(result.state, config.weather, config.weatherTurns ?? 5);
+    result.engine.addStartupEvents(weatherEvents);
+  }
+
   result.engine.rerunBattleStartChecks();
 
   return result;

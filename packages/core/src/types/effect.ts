@@ -3,6 +3,7 @@ import type { EffectKind } from "../enums/effect-kind";
 import type { EffectTarget } from "../enums/effect-target";
 import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
+import type { Weather } from "../enums/weather";
 
 export type Effect =
   | { kind: typeof EffectKind.Damage; hits?: number | { min: number; max: number } }
@@ -37,4 +38,5 @@ export type Effect =
     }
   | { kind: typeof EffectKind.HealSelf; percent: number }
   | { kind: typeof EffectKind.Recoil; fraction: number }
-  | { kind: typeof EffectKind.Drain; fraction: number };
+  | { kind: typeof EffectKind.Drain; fraction: number }
+  | { kind: typeof EffectKind.SetWeather; weather: Weather; turns: number };

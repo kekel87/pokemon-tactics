@@ -10,6 +10,7 @@ import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { isTerrainPassable, TerrainType } from "../enums/terrain-type";
 import { TurnSystemKind } from "../enums/turn-system-kind";
+import { Weather } from "../enums/weather";
 import { Grid } from "../grid/Grid";
 import { resolveTargeting } from "../grid/targeting";
 import type { Action, ActionResult } from "../types/action";
@@ -53,6 +54,7 @@ import { createSeededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
 import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
+import { createWeatherTickHandler } from "./handlers/weather-tick-handler";
 import { getHeightModifier } from "./height-modifier";
 import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
@@ -68,6 +70,7 @@ import {
   isTerrainImmune,
 } from "./terrain-effects";
 import { TurnPipeline } from "./turn-pipeline";
+import { effectiveWeather } from "./weather-system";
 
 type EventHandler = (event: BattleEvent) => void;
 
@@ -111,6 +114,11 @@ export class BattleEngine {
   private confusedThisTurn = false;
   private confusionChecked = false;
   private battleOver = false;
+
+  private getInitiativeFn(): (pokemon: PokemonInstance) => number {
+    return (pokemon: PokemonInstance) =>
+      getEffectiveInitiative(pokemon, this.state, this.abilityRegistry ?? undefined);
+  }
   private startupEvents: BattleEvent[] = [];
 
   constructor(
@@ -139,13 +147,20 @@ export class BattleEngine {
     this.itemRegistry = itemRegistry;
     this.listeners = new Map();
     this.grid = new Grid(state.grid[0]?.length ?? 0, state.grid.length, state.grid);
-    this.turnManager = new TurnManager([...state.pokemon.values()], getEffectiveInitiative);
+    this.turnManager = new TurnManager([...state.pokemon.values()], this.getInitiativeFn());
     this.turnPipeline.registerStartTurn(defensiveClearHandler, 50);
     this.turnPipeline.registerStartTurn(
       createStatusTickHandler(this.random, this.statusRules, this.abilityRegistry ?? undefined),
       100,
     );
     this.turnPipeline.registerStartTurn(createInfatuationTickHandler(this.random), 150);
+    this.turnPipeline.registerEndTurn(
+      createWeatherTickHandler({
+        pokemonTypesMap: this.pokemonTypesMap,
+        abilityRegistry: this.abilityRegistry ?? undefined,
+      }),
+      150,
+    );
     this.turnPipeline.registerEndTurn(
       createSeededTickHandler(this.abilityRegistry ?? undefined),
       200,
@@ -182,6 +197,10 @@ export class BattleEngine {
     const events = this.startupEvents;
     this.startupEvents = [];
     return events;
+  }
+
+  addStartupEvents(events: readonly BattleEvent[]): void {
+    this.startupEvents.push(...events);
   }
 
   rerunBattleStartChecks(): void {
@@ -407,6 +426,17 @@ export class BattleEngine {
         }
 
         if (this.restrictActions && move.targeting.kind === TargetingKind.Dash) {
+          continue;
+        }
+
+        const isChargeT1 = move.twoTurnCharge && currentPokemon.chargingMove === undefined;
+        if (isChargeT1 && this.getEffectiveWeather() !== Weather.Sun) {
+          actions.push({
+            kind: ActionKind.UseMove,
+            pokemonId: currentPokemonId,
+            moveId,
+            targetPosition: { ...currentPokemon.position },
+          });
           continue;
         }
 
@@ -666,6 +696,25 @@ export class BattleEngine {
       return { success: false, events: [], error: ActionError.NoPpLeft };
     }
 
+    const isFiringCharged = pokemon.chargingMove?.moveId === moveId;
+    if (move.twoTurnCharge && !isFiringCharged) {
+      const activeWeather = this.getEffectiveWeather();
+      if (activeWeather !== Weather.Sun) {
+        pokemon.currentPp[moveId] = currentPp - 1;
+        pokemon.chargingMove = { moveId, targetPosition: pokemon.position };
+        pokemon.lockedMoveId = moveId;
+        const chargingEvent: BattleEvent = {
+          type: BattleEventType.MoveCharging,
+          pokemonId: pokemon.id,
+          moveId,
+        };
+        this.emit(chargingEvent);
+        this.turnState.hasActed = true;
+        this.turnState.lastMoveId = moveId;
+        return { success: true, events: [chargingEvent] };
+      }
+    }
+
     const allyIds = new Set<string>();
     for (const [id, p] of this.state.pokemon) {
       if (p.playerId === pokemon.playerId && id !== pokemon.id) {
@@ -687,7 +736,12 @@ export class BattleEngine {
       return { success: false, events: [], error: ActionError.InvalidTarget };
     }
 
-    pokemon.currentPp[moveId] = currentPp - 1;
+    if (isFiringCharged) {
+      pokemon.chargingMove = undefined;
+      pokemon.lockedMoveId = undefined;
+    } else {
+      pokemon.currentPp[moveId] = currentPp - 1;
+    }
 
     const events: BattleEvent[] = [];
 
@@ -737,6 +791,7 @@ export class BattleEngine {
           this.random,
           tallGrassBonus,
           this.abilityRegistry ?? undefined,
+          this.state,
         )
       ) {
         targets.push(target);
@@ -1491,7 +1546,7 @@ export class BattleEngine {
 
     if (this.turnManager.isRoundComplete()) {
       const alivePokemon = this.getAlivePokemon();
-      this.turnManager.recalculateOrder(alivePokemon, getEffectiveInitiative);
+      this.turnManager.recalculateOrder(alivePokemon, this.getInitiativeFn());
       this.turnManager.startNewRound();
       this.state.roundNumber++;
     }
@@ -1523,6 +1578,8 @@ export class BattleEngine {
       this.emit(turnStarted);
       events.push(turnStarted);
 
+      this.emitWeatherAbilityActivation(nextPokemonId, events);
+
       const startTurnResult = this.turnPipeline.executeStartTurn(nextPokemonId, this.state);
       for (const event of startTurnResult.events) {
         this.emit(event);
@@ -1537,7 +1594,7 @@ export class BattleEngine {
         this.turnManager.advance();
         if (this.turnManager.isRoundComplete()) {
           const alivePokemon = this.getAlivePokemon();
-          this.turnManager.recalculateOrder(alivePokemon, getEffectiveInitiative);
+          this.turnManager.recalculateOrder(alivePokemon, this.getInitiativeFn());
           this.turnManager.startNewRound();
           this.state.roundNumber++;
         }
@@ -1585,7 +1642,7 @@ export class BattleEngine {
         this.turnManager.advance();
         if (this.turnManager.isRoundComplete()) {
           const alivePokemon = this.getAlivePokemon();
-          this.turnManager.recalculateOrder(alivePokemon, getEffectiveInitiative);
+          this.turnManager.recalculateOrder(alivePokemon, this.getInitiativeFn());
           this.turnManager.startNewRound();
           this.state.roundNumber++;
         }
@@ -1655,6 +1712,44 @@ export class BattleEngine {
     }
   }
 
+  private getEffectiveWeather(): Weather {
+    return effectiveWeather(this.state, (target) => {
+      if (target.currentHp <= 0) {
+        return false;
+      }
+      const handler = this.abilityRegistry?.getForPokemon(target);
+      return handler?.suppressesWeatherEffects === true;
+    });
+  }
+
+  private emitWeatherAbilityActivation(pokemonId: string, events: BattleEvent[]): void {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    if (!pokemon || pokemon.currentHp <= 0) {
+      return;
+    }
+    const activeWeather = this.getEffectiveWeather();
+    if (activeWeather === Weather.None) {
+      return;
+    }
+    const handler = this.abilityRegistry?.getForPokemon(pokemon);
+    if (!handler) {
+      return;
+    }
+    const matchesSpeed = handler.weatherSpeedBoost?.weather === activeWeather;
+    const matchesEvasion = handler.weatherEvasionBoost?.weather === activeWeather;
+    if (!matchesSpeed && !matchesEvasion) {
+      return;
+    }
+    const event: BattleEvent = {
+      type: BattleEventType.AbilityActivated,
+      pokemonId: pokemon.id,
+      abilityId: handler.id,
+      targetIds: [],
+    };
+    this.emit(event);
+    events.push(event);
+  }
+
   private handleKo(pokemonId: string, events: BattleEvent[]): void {
     const pokemon = this.state.pokemon.get(pokemonId);
     if (!pokemon) {
@@ -1665,6 +1760,8 @@ export class BattleEngine {
     this.chargeTimeTurnSystem?.onPokemonKO(pokemonId);
 
     pokemon.activeDefense = null;
+    pokemon.chargingMove = undefined;
+    pokemon.lockedMoveId = undefined;
 
     for (const other of this.state.pokemon.values()) {
       const seededBefore = other.volatileStatuses.length;
@@ -1970,7 +2067,8 @@ export class BattleEngine {
   private computePredictedNextRoundOrder(): string[] {
     const alivePokemon = this.getAlivePokemon();
     const sorted = [...alivePokemon].sort((a, b) => {
-      const initiativeDiff = getEffectiveInitiative(b) - getEffectiveInitiative(a);
+      const initFn = this.getInitiativeFn();
+      const initiativeDiff = initFn(b) - initFn(a);
       if (initiativeDiff !== 0) {
         return initiativeDiff;
       }

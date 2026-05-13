@@ -29,6 +29,7 @@ import {
   resolveTargeting,
   type SpawnZone,
   StatName,
+  StatusImmuneReason,
   StatusType,
   stepInDirection,
   TargetingKind,
@@ -87,6 +88,7 @@ import type { IsometricGrid } from "../grid/IsometricGrid";
 import type { ScreenRect } from "../grid/OcclusionFader";
 import { getPokemonScreenBounds } from "../grid/sprite-bounds";
 import { getLanguage, t } from "../i18n";
+import type { TranslationKey } from "../i18n/types";
 import { getSettings } from "../settings";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import type { ActionMenu } from "../ui/ActionMenu";
@@ -98,6 +100,7 @@ import type { DirectionPicker } from "../ui/DirectionPicker";
 import type { InfoPanel } from "../ui/InfoPanel";
 import type { PlacementRosterPanel } from "../ui/PlacementRosterPanel";
 import type { TurnTimeline } from "../ui/TurnTimeline";
+import type { WeatherHud } from "../ui/WeatherHud";
 import { getDirectionFromScreenPosition } from "../utils/screen-direction";
 import { AnimationQueue } from "./AnimationQueue";
 import type { BattleSetupResult } from "./BattleSetup";
@@ -112,6 +115,18 @@ import {
 
 export interface BattleConfig {
   confirmAttack: boolean;
+}
+
+const CHARGING_FLOAT_LABEL_KEYS: Record<string, TranslationKey> = {
+  "solar-beam": "move.charging.solar-beam",
+};
+
+function getChargingFloatLabel(moveId: string): string {
+  const key = CHARGING_FLOAT_LABEL_KEYS[moveId];
+  if (key) {
+    return t(key);
+  }
+  return getMoveName(moveId, getLanguage());
 }
 
 const DEFAULT_BATTLE_CONFIG: BattleConfig = {
@@ -162,6 +177,7 @@ export class GameController {
   private readonly turnTimeline: TurnTimeline;
   private readonly placementRosterPanel: PlacementRosterPanel | null;
   private readonly battleLogPanel: BattleLogPanel | null;
+  private readonly weatherHud: WeatherHud | null;
   private readonly battleConfig: BattleConfig;
   private inputState: InputState = { phase: "placement", selectedPokemonId: null };
   private legalActions: Action[] = [];
@@ -187,6 +203,7 @@ export class GameController {
     battleLogPanel: BattleLogPanel | null,
     setup?: BattleSetupResult,
     battleConfig?: BattleConfig,
+    weatherHud?: WeatherHud | null,
   ) {
     this.scene = scene;
     this.isometricGrid = isometricGrid;
@@ -199,6 +216,7 @@ export class GameController {
     this.turnTimeline = turnTimeline;
     this.placementRosterPanel = placementRosterPanel;
     this.battleLogPanel = battleLogPanel;
+    this.weatherHud = weatherHud ?? null;
     this.setup = setup ?? null;
     this.battleConfig = battleConfig ?? DEFAULT_BATTLE_CONFIG;
     resetStaggerState();
@@ -588,6 +606,7 @@ export class GameController {
     this.turnTimeline.update(this.state, this.pokemonDefinitions, {
       sequence: this.computeCtSequence(),
     });
+    this.weatherHud?.update(this.state);
 
     if (this.onTurnReady && activePokemonId) {
       const dummyEvents = this.onTurnReady(activePokemonId);
@@ -1058,6 +1077,51 @@ export class GameController {
         break;
       }
 
+      case BattleEventType.WeatherDamage: {
+        const sprite = this.sprites.get(event.pokemonId);
+        const pokemon = this.state.pokemon.get(event.pokemonId);
+        if (sprite && pokemon) {
+          sprite.updateHp(pokemon.currentHp, pokemon.maxHp);
+          const pos = sprite.getTextPosition();
+          const beatDelay = acquireSpawnDelay(event.pokemonId, this.scene.time.now);
+          showBattleText(this.scene, pos.x, pos.y, `-${event.amount}`, {
+            color: BATTLE_TEXT_COLOR_DAMAGE,
+            delay: beatDelay,
+          });
+          sprite.flashDamage();
+        }
+        this.updateInfoPanelForActivePokemon();
+        this.weatherHud?.update(this.state);
+        break;
+      }
+
+      case BattleEventType.WeatherSet: {
+        this.weatherHud?.update(this.state);
+        break;
+      }
+
+      case BattleEventType.WeatherCleared: {
+        this.weatherHud?.update(this.state);
+        break;
+      }
+
+      case BattleEventType.WeatherWar: {
+        this.weatherHud?.update(this.state);
+        break;
+      }
+
+      case BattleEventType.MoveCharging: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          const pos = sprite.getTextPosition();
+          const label = getChargingFloatLabel(event.moveId);
+          showBattleText(this.scene, pos.x, pos.y, label, {
+            color: BATTLE_TEXT_COLOR_INFO,
+          });
+        }
+        break;
+      }
+
       case BattleEventType.PokemonKo:
         break;
 
@@ -1104,7 +1168,11 @@ export class GameController {
         const sprite = this.sprites.get(event.targetId);
         if (sprite) {
           const pos = sprite.getTextPosition();
-          showBattleText(this.scene, pos.x, pos.y, t("battle.immune"), {
+          const label =
+            event.reason === StatusImmuneReason.Weather
+              ? t("weather.float.freezePrevented")
+              : t("battle.noEffect");
+          showBattleText(this.scene, pos.x, pos.y, label, {
             color: BATTLE_TEXT_COLOR_IMMUNE,
             targetId: event.targetId,
           });
@@ -1618,6 +1686,7 @@ export class GameController {
     this.turnTimeline.update(this.state, this.pokemonDefinitions, {
       sequence: this.computeCtSequence(),
     });
+    this.weatherHud?.update(this.state);
   }
 
   private showDamageEstimates(

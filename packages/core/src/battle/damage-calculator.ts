@@ -39,6 +39,8 @@ export function calculateDamageWithCrit(
   facingModifier = 1.0,
   abilityRegistry?: AbilityHandlerRegistry,
   itemRegistry?: HeldItemHandlerRegistry,
+  weatherBpMultiplier = 1.0,
+  defenseWeatherMultiplier = 1.0,
 ): DamageResult {
   if (move.category === Category.Status || move.power === 0) {
     return { damage: 0, isCrit: false };
@@ -74,10 +76,13 @@ export function calculateDamageWithCrit(
   const isCrit = defenderAbility?.preventsCrit ? false : random() < getCritChance(totalCritStage);
 
   const critDefenseStage = isCrit ? Math.max(0, defenseStage) : defenseStage;
-  const effectiveDefense = getEffectiveStat(defenseStat, critDefenseStage);
+  const effectiveDefense = Math.floor(
+    getEffectiveStat(defenseStat, critDefenseStage) * defenseWeatherMultiplier,
+  );
 
+  const adjustedPower = Math.max(1, Math.floor(move.power * weatherBpMultiplier));
   const baseDamage = Math.floor(
-    (((2 * BATTLE_LEVEL) / 5 + 2) * move.power * effectiveAttack) / effectiveDefense / 50 + 2,
+    (((2 * BATTLE_LEVEL) / 5 + 2) * adjustedPower * effectiveAttack) / effectiveDefense / 50 + 2,
   );
 
   const stab = getStab(move.type, attackerTypes, attackerAbility?.id);
@@ -167,6 +172,8 @@ export function calculateDamage(
   facingModifier = 1.0,
   abilityRegistry?: AbilityHandlerRegistry,
   itemRegistry?: HeldItemHandlerRegistry,
+  weatherBpMultiplier = 1.0,
+  defenseWeatherMultiplier = 1.0,
 ): number {
   return calculateDamageWithCrit(
     attacker,
@@ -182,6 +189,8 @@ export function calculateDamage(
     facingModifier,
     abilityRegistry,
     itemRegistry,
+    weatherBpMultiplier,
+    defenseWeatherMultiplier,
   ).damage;
 }
 

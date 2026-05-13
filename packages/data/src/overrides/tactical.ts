@@ -1,4 +1,9 @@
-import type { Effect, MoveFlags, TargetingPattern } from "@pokemon-tactic/core";
+import type {
+  Effect,
+  MoveFlags,
+  TargetingPattern,
+  Weather as WeatherType,
+} from "@pokemon-tactic/core";
 import {
   DefensiveKind,
   EffectKind,
@@ -7,6 +12,7 @@ import {
   StatName,
   StatusType,
   TargetingKind,
+  Weather,
 } from "@pokemon-tactic/core";
 
 export interface TacticalOverride {
@@ -16,6 +22,9 @@ export interface TacticalOverride {
   effectTier?: EffectTier;
   flags?: Partial<MoveFlags>;
   bypassAccuracy?: boolean;
+  weatherSetter?: { type: WeatherType; turns: number };
+  weatherBoostedType?: boolean;
+  twoTurnCharge?: boolean;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -1134,5 +1143,35 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
         chance: 10,
       },
     ],
+  },
+  "sunny-day": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.SetWeather, weather: Weather.Sun, turns: 5 }],
+    weatherSetter: { type: Weather.Sun, turns: 5 },
+  },
+  "rain-dance": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.SetWeather, weather: Weather.Rain, turns: 5 }],
+    weatherSetter: { type: Weather.Rain, turns: 5 },
+  },
+  sandstorm: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.SetWeather, weather: Weather.Sandstorm, turns: 5 }],
+    weatherSetter: { type: Weather.Sandstorm, turns: 5 },
+  },
+  snowscape: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.SetWeather, weather: Weather.Snow, turns: 5 }],
+    weatherSetter: { type: Weather.Snow, turns: 5 },
+  },
+  "weather-ball": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.Damage }],
+    weatherBoostedType: true,
+  },
+  "solar-beam": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.Damage }],
+    twoTurnCharge: true,
   },
 };

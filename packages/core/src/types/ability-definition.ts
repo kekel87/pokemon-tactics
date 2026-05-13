@@ -1,6 +1,7 @@
 import type { PokemonType } from "../enums/pokemon-type";
 import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
+import type { Weather } from "../enums/weather";
 import type { BattleEvent } from "./battle-event";
 import type { BattleState } from "./battle-state";
 import type { MoveDefinition } from "./move-definition";
@@ -114,6 +115,10 @@ export interface AbilityHandler {
   preventsCrit?: boolean;
   accuracyMultiplier?: number;
   targetedCtBonus?: number;
+  weatherSpeedBoost?: { weather: Weather; multiplier: number };
+  weatherEvasionBoost?: { weather: Weather; stages: number };
+  weatherAutoSetter?: { weather: Weather; turns: number };
+  suppressesWeatherEffects?: boolean;
   onAccuracyOverride?: () => boolean;
   onAfterKO?: (context: AfterKOContext) => BattleEvent[];
   onDamageModify?: (context: DamageModifyContext) => number;

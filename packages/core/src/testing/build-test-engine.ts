@@ -5,6 +5,7 @@ import { computeMovement } from "../battle/stat-modifier";
 import { Nature } from "../enums/nature";
 import { PokemonGender } from "../enums/pokemon-gender";
 import { StatName } from "../enums/stat-name";
+import { Weather } from "../enums/weather";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PlacementEntry } from "../types/placement-entry";
@@ -117,5 +118,7 @@ function buildState(grid: TileState[][], pokemonMap: Map<string, PokemonInstance
     currentTurnIndex: 0,
     roundNumber: 1,
     predictedNextRoundOrder: [] as string[],
+    weather: Weather.None,
+    weatherTurnsRemaining: 0,
   };
 }

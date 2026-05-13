@@ -2,8 +2,10 @@ import type { BattleEventType } from "../enums/battle-event-type";
 import type { DefensiveKind } from "../enums/defensive-kind";
 import type { Direction } from "../enums/direction";
 import type { StatName } from "../enums/stat-name";
+import type { StatusImmuneReason } from "../enums/status-immune-reason";
 import type { StatusType } from "../enums/status-type";
 import type { TerrainType } from "../enums/terrain-type";
+import type { Weather } from "../enums/weather";
 import type { Position } from "./position";
 
 export type BattleEvent =
@@ -31,7 +33,12 @@ export type BattleEvent =
     }
   | { type: typeof BattleEventType.StatusApplied; targetId: string; status: StatusType }
   | { type: typeof BattleEventType.StatusRemoved; targetId: string; status: StatusType }
-  | { type: typeof BattleEventType.StatusImmune; targetId: string; status: StatusType }
+  | {
+      type: typeof BattleEventType.StatusImmune;
+      targetId: string;
+      status: StatusType;
+      reason?: StatusImmuneReason;
+    }
   | { type: typeof BattleEventType.StatChanged; targetId: string; stat: StatName; stages: number }
   | { type: typeof BattleEventType.PokemonKo; pokemonId: string; countdownStart: number }
   | { type: typeof BattleEventType.PokemonEliminated; pokemonId: string }
@@ -134,4 +141,24 @@ export type BattleEvent =
     }
   | { type: typeof BattleEventType.HeldItemConsumed; pokemonId: string; itemId: string }
   | { type: typeof BattleEventType.CriticalHit; targetId: string }
-  | { type: typeof BattleEventType.HpRestored; pokemonId: string; amount: number };
+  | { type: typeof BattleEventType.HpRestored; pokemonId: string; amount: number }
+  | {
+      type: typeof BattleEventType.WeatherSet;
+      weather: Weather;
+      turns: number;
+      setterPokemonId?: string;
+    }
+  | { type: typeof BattleEventType.WeatherCleared; weather: Weather }
+  | {
+      type: typeof BattleEventType.WeatherDamage;
+      pokemonId: string;
+      amount: number;
+      weather: Weather;
+    }
+  | {
+      type: typeof BattleEventType.WeatherWar;
+      previousWeather: Weather;
+      newWeather: Weather;
+      winnerPokemonId: string;
+    }
+  | { type: typeof BattleEventType.MoveCharging; pokemonId: string; moveId: string };

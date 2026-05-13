@@ -32,6 +32,26 @@ export { TurnPipeline } from "./battle/turn-pipeline";
 export type { ValidationResult } from "./battle/validate";
 export { validateBattleData } from "./battle/validate";
 export { validateMapDefinition } from "./battle/validate-map";
+export {
+  applyWeatherWar,
+  clearWeather,
+  computeWeatherDamage,
+  decrementWeatherTimer,
+  effectiveWeather,
+  getWeatherAccuracyOverride,
+  getWeatherBallBp,
+  getWeatherBallType,
+  getWeatherBpModifier,
+  getWeatherDefenseStatBoost,
+  hasSuppressWeatherActive,
+  isWeatherDamageImmune,
+  setWeather,
+  shouldBlockFreezeInSun,
+  WEATHER_DAMAGE_FRACTION,
+  WEATHER_DEFAULT_DURATION,
+  WEATHER_EXTENDED_DURATION,
+  weatherDealsDamage,
+} from "./battle/weather-system";
 export * from "./enums/index";
 export { Grid } from "./grid/Grid";
 export { hasLineOfSight } from "./grid/line-of-sight";

@@ -5,8 +5,10 @@ import {
   HeldItemId,
   StatName,
   StatusType,
+  toShowdownId,
+  Weather,
 } from "@pokemon-tactic/core";
-import { getMoveName, getPokemonName, loadData } from "@pokemon-tactic/data";
+import { getLegalMoves, getMoveName, getPokemonName, loadData } from "@pokemon-tactic/data";
 import type { TranslationKey } from "../i18n";
 import { getLanguage, t } from "../i18n";
 import type { SandboxConfig } from "../types/SandboxConfig";
@@ -121,6 +123,8 @@ export class SandboxPanel {
   private dummyXInput!: HTMLInputElement;
   private dummyYInput!: HTMLInputElement;
   private debugDecorationsFootprintCheckbox!: HTMLInputElement;
+  private weatherSelect!: HTMLSelectElement;
+  private weatherTurnsInput!: HTMLInputElement;
 
   private pokemonSelect!: HTMLSelectElement;
   private moveSelects: HTMLSelectElement[] = [];
@@ -284,6 +288,37 @@ export class SandboxPanel {
     debugFootprint.input.addEventListener("change", () => this.emit());
     body.appendChild(debugFootprint.row);
     this.debugDecorationsFootprintCheckbox = debugFootprint.input;
+
+    const weatherLabel = document.createElement("div");
+    weatherLabel.textContent = t("sandbox.weather");
+    weatherLabel.style.cssText = "color: #8cf; font-weight: bold; margin-top: 4px;";
+    body.appendChild(weatherLabel);
+
+    const weatherSelect = this.createSelect(
+      t("sandbox.weather"),
+      [
+        { value: Weather.None, label: t("weather.none") },
+        { value: Weather.Sun, label: t("weather.sun") },
+        { value: Weather.Rain, label: t("weather.rain") },
+        { value: Weather.Sandstorm, label: t("weather.sandstorm") },
+        { value: Weather.Snow, label: t("weather.snow") },
+      ],
+      config.weather ?? Weather.None,
+    );
+    weatherSelect.select.addEventListener("change", () => this.emit());
+    body.appendChild(weatherSelect.row);
+    this.weatherSelect = weatherSelect.select;
+
+    const weatherTurns = this.createOptionalNumberInput(
+      t("sandbox.weatherTurns"),
+      1,
+      8,
+      config.weatherTurns,
+      "5",
+    );
+    weatherTurns.input.addEventListener("change", () => this.emit());
+    body.appendChild(weatherTurns.row);
+    this.weatherTurnsInput = weatherTurns.input;
 
     return panel;
   }
@@ -685,6 +720,8 @@ export class SandboxPanel {
       dummyPosition,
       mapUrl,
       debugDecorationsFootprint: this.debugDecorationsFootprintCheckbox.checked,
+      weather: (this.weatherSelect.value as Weather) || Weather.None,
+      weatherTurns: this.weatherTurnsInput.value ? Number(this.weatherTurnsInput.value) : 5,
     };
   }
 
@@ -734,8 +771,15 @@ export class SandboxPanel {
   }
 
   private getMovepoolFor(pokemonId: string): string[] {
-    const def = this.gameData.pokemon.find((p) => p.id === pokemonId);
-    return def?.movepool ?? [];
+    const legal = getLegalMoves(pokemonId);
+    const result: string[] = [];
+    for (const move of this.gameData.moves) {
+      if (legal.has(toShowdownId(move.id))) {
+        result.push(move.id);
+      }
+    }
+    result.sort((a, b) => this.moveName(a).localeCompare(this.moveName(b)));
+    return result;
   }
 
   private pokemonName(id: string): string {

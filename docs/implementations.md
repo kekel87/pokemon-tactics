@@ -14,9 +14,9 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 145 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
-| Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
-| Objets tenus | 21 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
+| Attaques | 151 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
+| Talents | 56 | 114 | Talents portés par au moins un des 151 Gen 1 |
+| Objets tenus | 22 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
 ---
 
@@ -363,6 +363,12 @@
 | Atterrissage | roost | Vol | Statut | — | — | 5 | self | Soigne 50% PV max |
 | Giga-Sangsue | giga-drain | Plante | Spé | 75 | 100 | 10 | single r1–3 | Drain : soigne attaquant = 50% dégâts |
 | Balle Focus | focus-blast | Combat | Spé | 120 | 70 | 5 | single r1–4 | −1 DéfSpé cible 10% |
+| Zénith | sunny-day | Feu | Statut | — | — | 5 | self | Active Soleil 5 tours (8 avec Pierre Soleil) |
+| Danse-Pluie | rain-dance | Eau | Statut | — | — | 5 | self | Active Pluie 5 tours (8 avec Pierre Pluie) |
+| Tempête de Sable | sandstorm | Roche | Statut | — | — | 10 | self | Active Sable 5 tours (8 avec Roc Chaleur) |
+| Poudreneige | snowscape | Glace | Statut | — | — | 10 | self | Active Neige 5 tours |
+| Météore | weather-ball | Normal | Spé | 50 (100 sous météo) | 100 | 10 | single r1–4 | Type change selon météo active |
+| Lance-Soleil | solar-beam | Plante | Spé | 120 (60 sous Pluie/Sable/Neige) | 100 | 10 | single r1–4 | Charge 1 tour (skip sous Soleil), float "Rayonne!" T1 |
 
 ---
 
@@ -387,7 +393,7 @@
 | Point Poison | poison-point | Nidoran♂ | Contact → Poison adversaire 30% |
 | Technicien | technician | Miaouss | ×1.5 attaques de puissance ≤ 60 |
 | Magnétisme | magnet-pull | Magnéti | Piège les Pokemon Acier adjacents |
-| Voile Sable | sand-veil | Sabelette | (placeholder — bonus esquive sable) |
+| Voile Sable | sand-veil | Sabelette, Sablaireau | +20% esquive sous Tempête de Sable (×0.8 sur accuracy adversaire), `AbilityActivated` au tour start |
 | Tempo Perso | own-tempo | Excelangue | Immunité Confusion et Intimidation |
 | Matinale | early-bird | Kangourex | Durée Sommeil ÷ 2 |
 | Para-Foudre | lightning-rod | Raichu | Immunité Électrique + +1 AtqSpé si Électrique reçu (redirect → plan dédié) |
@@ -407,13 +413,13 @@
 | Soin Naturel | natural-cure | Staross | Soigne le statut majeur en fin de tour |
 | Armure Dure | battle-armor | Kabutops | Immunité aux coups critiques |
 | Pose Spore | effect-spore | Rafflesia | 30% chance sur contact reçu : Sommeil, Poison ou Para (1/3 chacun) |
-| Ciel Gris | cloud-nine | Akwakwak | Supprime bonus/malus météo (stub Phase 4) |
+| Ciel Gris | cloud-nine | Akwakwak | Supprime tous les effets météo via `effectiveWeather` (renvoie None si porteur actif) |
 | Coque Armure | shell-armor | Crustabri | Immunité aux coups critiques |
 | Hyper Cutter | hyper-cutter | Krabboss | Bloque toutes les baisses d'Attaque |
 | Flegmatique | oblivious | Lippoutou | Immunité à Attirance (Infatuation) |
 | Corps Ardent | flame-body | Magmar | 30% chance Brûlure sur attaque contact reçue (sur l'attaquant) |
 | Calque | trace | Porygon | Au combat : copie l'ability de l'ennemi le plus proche |
-| Glissade | swift-swim | Amonistar | Double la vitesse sous pluie (stub Phase 4) |
+| Glissade | swift-swim | Amonistar | ×2 CT gain sous Pluie (double vitesse), `AbilityActivated` au tour start |
 | Contact Poison | poison-touch | Grotadmorv | 30% chance empoisonner ennemi quand move de contact (`onAfterDamageDealt`) |
 | Filtre | filter | M. Mime | Réduit de 25% les dégâts reçus super-efficaces (`onDamageModify`) |
 | Œil Composé | compound-eyes | Aéromite | ×1.3 précision de tous les moves (`accuracyMultiplier`) |
@@ -422,6 +428,7 @@
 | Pression | pressure | Artikodin, Électhor, Sulfura, Mewtwo | Cible adverse dépense +50 CT par action utilisée contre le porteur (`targetedCtBonus`) |
 | Suintement | shield-dust | Papilusion | Bloque les effets secondaires des moves ennemis (`onSecondaryEffectBlocked`) |
 | Attention | inner-focus | Rattatac, Rapasdepic, Nosferalto, Canarticho, Mew | Stub — immunité flinch (pas de mécanique flinch dans le core Phase 4) |
+| Chlorophylle | chlorophyll | Florizarre, Noadkoko | ×2 CT gain sous Soleil (double vitesse), `AbilityActivated` au tour start |
 
 ---
 
@@ -450,3 +457,4 @@
 | Orbe Flamme | flame-orb | Inflige Brûlure au porteur en fin de premier tour |
 | Baie Salace | salac-berry | +1 Vitesse si PV ≤ 25% (consommée) |
 | Gemme Normale | normal-gem | ×1.3 prochain move Normal (consommée) |
+| Roc Chaleur | heat-rock | Étend Soleil (sunny-day) de 5 à 8 tours |

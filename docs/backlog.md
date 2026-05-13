@@ -54,6 +54,21 @@ Bugs connus et retours playtest non traités.
 
 ## Feedback visuel
 
+### SandboxPanel — sélecteur de talent + élargir panels (2026-05-13)
+- Ajouter dropdown talent (ability) dans le hub Player ET le hub Dummy (Pokemon + override).
+- Élargir panels Player/Dummy : scroll bar verticale présente, probablement liée à hauteur cumulée (nom map long peut empirer). Augmenter largeur OU réduire padding sliders/inputs OU répartir en 2 colonnes.
+
+### MoveTooltip — afficher modifiers contextuels (météo, terrain, items) (2026-05-13)
+- Ex : Blizzard "Prec 70 (100 en Neige)", Flamethrower "BP 90 (×1.5 en Soleil)", Thunder "Prec 70 (100 en Pluie, 50 en Soleil)".
+- Étendre MoveTooltip pour calculer effective BP/accuracy selon `state.weather` et types caster/cible.
+- Inclure aussi : effet Heat-Rock (durée étendue), Sun-instant Solar-Beam, etc.
+- Priorité moyenne — qualité de vie UX, pas bloquant.
+
+### Icône sandstorm — symbole tourbillon perfectible (2026-05-13)
+- Régen PixelLab (plan 084) — 3 itérations, dernière acceptée provisoirement.
+- Symbole vent (double spirale) moins reconnaissable que les 3 autres pictogrammes (sun/rain/snow).
+- À retenter ultérieurement avec prompt plus explicite ou retouche manuelle.
+
 ### Mode normal — overflow grille Pokemon (51+ Pokemon, 2026-05-11)
 - En mode normal (TeamSelectScene), 51 Pokemon remplissent 8 lignes à 7 colonnes = hauteur totale dépasse l'écran, le bouton Launch peut être poussé hors de la zone visible.
 - À traiter quand le roster dépasse ~50 entrées. Piste : scroll vertical ou pagination de la grille.

@@ -31,6 +31,7 @@ import {
   type TurnSystemKind,
   validateBattleData,
   validateMapDefinition,
+  Weather,
 } from "@pokemon-tactic/core";
 import { loadData, pocArena, typeChart } from "@pokemon-tactic/data";
 
@@ -215,6 +216,8 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     currentTurnIndex: 0,
     roundNumber: 1,
     predictedNextRoundOrder: [],
+    weather: Weather.None,
+    weatherTurnsRemaining: 0,
   };
 
   const turnPipeline = new TurnPipeline();
