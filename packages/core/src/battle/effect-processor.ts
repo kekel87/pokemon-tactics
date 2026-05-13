@@ -20,6 +20,7 @@ import { handleDrain } from "./handlers/handle-drain";
 import { handleHealSelf } from "./handlers/handle-heal-self";
 import { handleKnockback } from "./handlers/handle-knockback";
 import { handleRecoil } from "./handlers/handle-recoil";
+import { handleSetWeather } from "./handlers/handle-set-weather";
 import { handleStatChange } from "./handlers/handle-stat-change";
 import { handleStatus } from "./handlers/handle-status";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
@@ -52,6 +53,7 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.HealSelf, handleHealSelf);
   registry.register(EffectKind.Recoil, handleRecoil);
   registry.register(EffectKind.Drain, handleDrain);
+  registry.register(EffectKind.SetWeather, handleSetWeather);
   return registry;
 }
 

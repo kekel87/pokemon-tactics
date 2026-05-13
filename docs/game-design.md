@@ -639,7 +639,7 @@ Chaque Pokemon possède **1 talent** via hooks enregistrés dans `AbilityHandler
 | `onBattleStart` | Démarrage combat, après placement | `BattleEvent[]` | Intimidation (–1 Atk ennemis adjacents), Magnépiège (piège ennemis Acier adjacents) |
 | `onAuraCheck` | Après chaque action (position-linked update) | `BattleEvent[]` | Intimidation (ré-applique ou retire selon distance) |
 
-> `onAccuracyModify` supprimé en plan 070 — sera ré-ouvert Phase 9 quand `sandstormActive` implémenté.
+> `onAccuracyModify` supprimé en plan 070. Voile Sable implémenté en plan 084 via `accuracyMultiplier` hook (plan 079) + lecture `effectiveWeather`.
 
 ### Talents position-linked
 
@@ -673,7 +673,7 @@ Chaque Pokemon possède **1 talent** via hooks enregistrés dans `AbilityHandler
 | Nidoran♂ | **Point Poison** | 30% poison au contact reçu |
 | Meowth | **Technician** | ×1.5 si puissance move ≤ 60 |
 | Magnétite | **Magnépiège** | Piège ennemis Acier adjacents (position-linked) |
-| Sabelette | **Voile Sable** | +1 évasion en tempête de sable (dormant — Phase 9) |
+| Sabelette | **Voile Sable** | ×0.8 accuracy ennemie sous Tempête de Sable (`AbilityActivated` au tour start) |
 | Excelangue | **Tempo Propre** | Immunité Confusion + bloque Intimidation |
 | Kangaskhan | **Alerte** | Durée sommeil ÷2 (arrondi supérieur, min 1) |
 
@@ -686,6 +686,83 @@ Chaque Pokemon possède **1 talent** via hooks enregistrés dans `AbilityHandler
 `PokemonInstance.abilityFirstTriggered` mémorise si le seuil a été traversé. `AbilityActivated` émis **une fois par traversée**. Réinitialisé si HP repasse au-dessus. Déclenché aussi au démarrage si Pokemon déjà sous le seuil (`onBattleStart`).
 
 > Pattern d'émission complet : `docs/abilities-system.md`.
+
+---
+
+## 8e. Système météo (plans 084 + 084b)
+
+La météo est un état global du combat (`BattleState.weather`) affectant dégâts, précision, défenses et abilities.
+
+### Météos disponibles
+
+| Météo | ID | Setter moves | Durée (base / Heat-Rock) | Effets |
+|-------|----|-------------|--------------------------|--------|
+| **Soleil** | `Sun` | sunny-day | 5 / 8 tours | Feu ×1.5, Eau ×0.5, Gel bloqué, Synthèse soigne 2/3 HP, Solar-Beam skip charge, Thunder/Hurricane précision 50%, Chlorophylle ×2 vitesse |
+| **Pluie** | `Rain` | rain-dance | 5 / — tours | Eau ×1.5, Feu ×0.5, Thunder/Hurricane précision 100%, Blizzard précision normale, Nage Rapide ×2 vitesse |
+| **Tempête de Sable** | `Sandstorm` | sandstorm | 5 / 8 tours | Roche +50% DéfSpé, dégâts 1/16 HP/tour (sauf Rock/Ground/Steel), Solar-Beam BP ÷2, Blizzard précision normale, Voile Sable +20% esquive |
+| **Neige** | `Snow` | snowscape | 5 / — tours | Glace +50% Déf, Blizzard précision 100%, Solar-Beam BP ÷2 |
+
+### Durée et compteur
+
+- `weatherTurns` décrémenté en `weather-tick` à chaque tour de n'importe quel Pokemon.
+- Quand `weatherTurns` atteint 0 → météo passe à `None`.
+- `HeldItemId.HeatRock` étend Soleil (et Sable) de 5 à **8 tours** via hook `onEndTurn`.
+
+### Weather war
+
+Quand deux Pokemon posent des météos différentes au même round, la règle "le poseur le plus lent gagne" (`applyWeatherWar`) s'applique : le Pokemon avec le plus bas CT gain (= plus lent) écrase la météo de l'autre.
+
+### Modificateurs BP et précision
+
+| Move | Sous Soleil | Sous Pluie | Sous Sable | Sous Neige |
+|------|------------|------------|------------|------------|
+| Moves Feu | ×1.5 | ×0.5 | normal | normal |
+| Moves Eau | ×0.5 | ×1.5 | normal | normal |
+| Tonnerre Vrai (thunder) | précision 50% | précision 100% | normal | normal |
+| Ouragan (hurricane) | précision 50% | précision 100% | normal | normal |
+| Blizzard | normal | normal | normal | précision 100% |
+| Lance-Soleil | skip charge | BP ÷2 | BP ÷2 | BP ÷2 |
+| Météore (weather-ball) | Feu 100 BP | Eau 100 BP | Roche 100 BP | Glace 100 BP |
+
+### Modificateurs défensifs
+
+| Météo | Type bénéficiaire | Modification stat |
+|-------|------------------|-------------------|
+| Tempête de Sable | Roche | +50% DéfSpé (×1.5) |
+| Neige | Glace | +50% Déf (×1.5) |
+
+### Gel et Soleil
+
+Le statut Gel ne peut pas être appliqué sous `Sun`. Si un Pokemon déjà gelé subit le Soleil, le gel se dissipe (compatibilité Showdown).
+
+### Cloud Nine / Ciel Gris
+
+Le talent **Ciel Gris** (Akwakwak) supprime tous les effets météo tant que le porteur est actif sur le terrain. Via `effectiveWeather(state, activeAbilities)` qui retourne `None` si un porteur de Cloud Nine est vivant.
+
+### Solar-Beam — charge en 2 tours
+
+T1 : PP consommé, `chargingMove` activé, `lockedMoveId` posé, mouvement toujours possible, event `MoveCharging` émis, floating text "Rayonne!" affiché.
+
+T2 : retarget automatique, `chargingMove` cleared, KO en T2 = animation propre.
+
+Si Soleil actif en T1 → skip charge, exécution directe.
+
+### Abilities météo
+
+| Talent | Déclencheur | Effet |
+|--------|-------------|-------|
+| **Chlorophylle** | Tour start sous Soleil | ×2 CT gain (double vitesse), `AbilityActivated` émis |
+| **Nage Rapide** | Tour start sous Pluie | ×2 CT gain, `AbilityActivated` émis |
+| **Voile Sable** | Tour start sous Sable | ×0.8 accuracy des moves ennemis (équivalent +20% esquive), `AbilityActivated` émis |
+| **Ciel Gris** | Passif | `effectiveWeather` retourne None si porteur actif |
+
+### HUD Météo (renderer)
+
+`WeatherHud` positionné top-center sous le texte de tour. Icône PixelLab 48×48 + label i18n + compteur tours. Disparaît si `Weather.None`. 4 icônes 64×64 générées via PixelLab (sun/rain/sandstorm/snow). **Note backlog** : icône sandstorm perfectible (symbole spirale moins lisible que les autres).
+
+### i18n
+
+22 clés sous `weather.*` (noms, descriptions, damage flottants) + `sandbox.weather*` (dropdown sandbox). Sandbox : dropdown 5 valeurs (Aucune / Soleil / Pluie / Sable / Neige) + input turns dans panel Map.
 
 ---
 

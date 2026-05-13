@@ -478,4 +478,8 @@ export const itemHandlers: HeldItemHandler[] = [
       ];
     },
   },
+
+  {
+    id: HeldItemId.HeatRock,
+  },
 ];

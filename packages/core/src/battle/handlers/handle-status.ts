@@ -2,6 +2,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import type { EffectKind } from "../../enums/effect-kind";
 import { EffectTarget } from "../../enums/effect-target";
 import { PokemonType } from "../../enums/pokemon-type";
+import { StatusImmuneReason } from "../../enums/status-immune-reason";
 import type { StatusType } from "../../enums/status-type";
 import { StatusType as StatusTypeEnum } from "../../enums/status-type";
 import type { BattleEvent } from "../../types/battle-event";
@@ -9,6 +10,7 @@ import type { Effect } from "../../types/effect";
 import { DEFAULT_STATUS_RULES, type StatusRules } from "../../types/status-rules";
 import type { EffectContext } from "../effect-handler-registry";
 import { isMajorStatus } from "../stat-modifier";
+import { effectiveWeather, shouldBlockFreezeInSun } from "../weather-system";
 
 const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([
   StatusTypeEnum.Confused,
@@ -79,6 +81,25 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
         status,
       });
       continue;
+    }
+
+    if (status === StatusTypeEnum.Frozen) {
+      const activeWeather = effectiveWeather(context.state, (pokemon) => {
+        if (pokemon.currentHp <= 0) {
+          return false;
+        }
+        const handler = context.abilityRegistry?.getForPokemon(pokemon);
+        return handler?.suppressesWeatherEffects === true;
+      });
+      if (shouldBlockFreezeInSun(activeWeather)) {
+        events.push({
+          type: BattleEventType.StatusImmune,
+          targetId: target.id,
+          status,
+          reason: StatusImmuneReason.Weather,
+        });
+        continue;
+      }
     }
 
     const statusBlockResult = targetAbility?.onStatusBlocked?.({

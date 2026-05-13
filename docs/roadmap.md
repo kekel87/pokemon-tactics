@@ -163,7 +163,10 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
 - [ ] Moves & talents restants post-batchs — compléter pool attaques et talents des 70 nouveaux Pokemon. Chaque batch introduit moves + talents ; un plan de finition couvrira les manquants transversaux (moves multi-Pokemon partagés, talents encore absents).
 - [ ] Team Builder (import/export Showdown)
   - [x] **OP Sets curation + gap analysis — plan 082 terminé 2026-05-12.** `packages/data/op-sets/op-sets.json` (160 sets Smogon+custom). Script `pnpm op-sets:analyze` → `docs/op-sets-gap-analysis.md`. Résultat : 128/160 sets `full` (80%), gap : 4 moves + 2 items 🟡 + 10 items 🟢 + 0 ability manquant.
-  - [ ] Plans 083-086 restants (UI selection moves/items/SP, import Showdown…)
+  - [x] **Content Batch F + hook onStatLowered — plan 083 terminé 2026-05-12.** 2 moves (giga-drain, focus-blast), 9 items, hook `onStatLowered`. 157/160 sets `full`.
+  - [x] **Système Météo — plans 084 + 084b terminés 2026-05-13.** Sun/Rain/Sand/Snow, weather war, BP/accuracy/defense modifiers, Synthesis, Solar-Beam 2-turn, weather-ball, 4 abilities, heat-rock, WeatherHud, i18n, sandbox selector. 160/160 full.
+  - [ ] **085** — `TeamEditScene` (6 slots, édition slot active, Set OP / Import / Export Showdown, items grisés) → **prochain**
+  - [ ] Plans 086+ restants (refonte TeamSelectScene, import Showdown…)
 
 ---
 
@@ -274,6 +277,6 @@ Tie à Babylon : éditeur et props terrain repensés pour renderer 3D.
 - [ ] Conditions de victoire alternatives
 - [ ] Draft/ban phase
 - [ ] **Modification dynamique du terrain par attaques** — certaines attaques transforment terrain pendant combat (Feu → supprime tall grass, Ébullition crée tiles lave/magma, Force déplace rochers, Glace gèle tiles eau). Mutation runtime `TerrainType` + décoration associée. Reporté Phase 3 en 2026-04-20 : scope trop lourd tant que roster attaques et palette terrains pas figés.
-- [ ] **Météo (Tempête de Sable, Soleil, Pluie, Grêle) + capacités/talents associés** — sand-veil (Sandshrew) dormant (hook `onAccuracyModify` supprimé plan 070, à ré-ouvrir ici quand `sandstormActive` ajouté à `BattleState`). Synthèse (Florizarre) affectée : soigne 100% sous Soleil, 25% sous Pluie/Grêle.
+- [x] **Météo (Soleil, Pluie, Tempête de Sable, Neige) — plans 084 + 084b terminés 2026-05-13.** Livré en Phase 4 (débloqué par roster Gen 1 complet + OP sets). Sand-veil, swift-swim, chlorophyll activés. Synthèse contextuelle. Solar-Beam 2-turn. Heat-Rock 8 tours. Cloud Nine supprime effets.
 - [ ] **Champs (Herbeux, Psy, Électrique, Brumeux, Distorsion)** — modificateurs terrain affectant dégâts, statuts et capacités.
 - [ ] **Modèles 3D pour les Pokemon** — remplacer sprites billboards 2D par modèles 3D (glTF/GLB) style Pokemon Champions / Stadium. À évaluer après stabilisation renderer Babylon.

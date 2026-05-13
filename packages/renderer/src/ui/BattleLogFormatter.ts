@@ -3,8 +3,10 @@ import {
   BattleEventType,
   DefensiveKind,
   StatName,
+  StatusImmuneReason,
   StatusType,
   TerrainType,
+  Weather,
 } from "@pokemon-tactic/core";
 import {
   BATTLE_LOG_COLOR_ABILITY,
@@ -203,6 +205,13 @@ export function formatBattleEvent(
 
     case BattleEventType.StatusImmune: {
       const name = context.getPokemonName(event.targetId);
+      if (event.reason === StatusImmuneReason.Weather && event.status === StatusType.Frozen) {
+        const message =
+          lang === "fr"
+            ? `Le soleil brillant empêche ${name} d'être gelé.`
+            : `The bright sunlight prevents ${name} from being frozen.`;
+        return { message, color: BattleLogColors.status, pokemonIds: [event.targetId] };
+      }
       const message =
         lang === "fr" ? `Ça n'affecte pas ${name}...` : `It doesn't affect ${name}...`;
       return { message, color: BattleLogColors.status, pokemonIds: [event.targetId] };
@@ -365,6 +374,79 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.heal, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.WeatherSet: {
+      const message = formatWeatherSet(event.weather, lang);
+      if (!message) {
+        return null;
+      }
+      return { message, color: BattleLogColors.turn, pokemonIds: [] };
+    }
+
+    case BattleEventType.WeatherCleared: {
+      const message = formatWeatherCleared(event.weather, lang);
+      if (!message) {
+        return null;
+      }
+      return { message, color: BattleLogColors.turn, pokemonIds: [] };
+    }
+
+    case BattleEventType.WeatherDamage: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${name} est blessé par la tempête de sable ! (-${event.amount} PV)`
+          : `${name} is buffeted by the sandstorm! (-${event.amount} HP)`;
+      return { message, color: BattleLogColors.damage, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.WeatherWar: {
+      const message =
+        lang === "fr"
+          ? "La nouvelle météo écrase la précédente !"
+          : "The new weather overrides the previous one!";
+      return { message, color: BattleLogColors.turn, pokemonIds: [] };
+    }
+
+    case BattleEventType.MoveCharging: {
+      const name = context.getPokemonName(event.pokemonId);
+      const moveName = context.getMoveName(event.moveId);
+      const message =
+        lang === "fr"
+          ? `${name} concentre son énergie pour ${moveName} !`
+          : `${name} is gathering energy for ${moveName}!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
+    default:
+      return null;
+  }
+}
+
+function formatWeatherSet(weather: Weather, lang: "fr" | "en"): string | null {
+  switch (weather) {
+    case Weather.Sun:
+      return lang === "fr" ? "Le soleil brille intensément !" : "The sunlight turned harsh!";
+    case Weather.Rain:
+      return lang === "fr" ? "Il commence à pleuvoir !" : "It started to rain!";
+    case Weather.Sandstorm:
+      return lang === "fr" ? "Une tempête de sable se lève !" : "A sandstorm kicked up!";
+    case Weather.Snow:
+      return lang === "fr" ? "Il commence à neiger !" : "It started to snow!";
+    default:
+      return null;
+  }
+}
+
+function formatWeatherCleared(weather: Weather, lang: "fr" | "en"): string | null {
+  switch (weather) {
+    case Weather.Sun:
+      return lang === "fr" ? "Le soleil s'estompe." : "The sunlight faded.";
+    case Weather.Rain:
+      return lang === "fr" ? "La pluie cesse." : "The rain stopped.";
+    case Weather.Sandstorm:
+      return lang === "fr" ? "La tempête de sable s'apaise." : "The sandstorm subsided.";
+    case Weather.Snow:
+      return lang === "fr" ? "Il cesse de neiger." : "The snow stopped.";
     default:
       return null;
   }

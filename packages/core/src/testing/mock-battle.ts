@@ -5,6 +5,7 @@ import { PokemonGender } from "../enums/pokemon-gender";
 import type { StatName as StatNameType } from "../enums/stat-name";
 import { StatName } from "../enums/stat-name";
 import { TerrainType } from "../enums/terrain-type";
+import { Weather } from "../enums/weather";
 import type { BattleState } from "../types/battle-state";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { TileState } from "../types/tile-state";
@@ -155,6 +156,8 @@ export abstract class MockBattle {
       currentTurnIndex: 0,
       roundNumber: 1,
       predictedNextRoundOrder: [],
+      weather: Weather.None,
+      weatherTurnsRemaining: 0,
     };
   }
 }

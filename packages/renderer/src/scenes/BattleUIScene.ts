@@ -5,6 +5,7 @@ import { InfoPanel } from "../ui/InfoPanel";
 import { MoveTooltip } from "../ui/MoveTooltip";
 import { PlacementRosterPanel } from "../ui/PlacementRosterPanel";
 import { TurnTimeline } from "../ui/TurnTimeline";
+import { WeatherHud } from "../ui/WeatherHud";
 
 export class BattleUIScene extends Phaser.Scene {
   infoPanel!: InfoPanel;
@@ -13,6 +14,7 @@ export class BattleUIScene extends Phaser.Scene {
   turnTimeline!: TurnTimeline;
   placementRosterPanel!: PlacementRosterPanel;
   battleLogPanel!: BattleLogPanel;
+  weatherHud!: WeatherHud;
 
   constructor() {
     super("BattleUIScene");
@@ -25,6 +27,7 @@ export class BattleUIScene extends Phaser.Scene {
     this.turnTimeline = new TurnTimeline(this);
     this.placementRosterPanel = new PlacementRosterPanel(this);
     this.battleLogPanel = new BattleLogPanel(this);
+    this.weatherHud = new WeatherHud(this);
 
     const moveTooltip = new MoveTooltip(this);
     this.actionMenu.setTooltip(moveTooltip);

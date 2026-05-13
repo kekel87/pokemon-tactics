@@ -4,6 +4,7 @@ import {
   type HeldItemId,
   type StatName,
   type StatusType,
+  Weather,
 } from "@pokemon-tactic/core";
 
 export interface Position2D {
@@ -39,6 +40,8 @@ export interface SandboxConfig {
   mapUrl?: string;
   /** Toggle the red debug diamonds over decoration footprints. */
   debugDecorationsFootprint?: boolean;
+  weather?: Weather;
+  weatherTurns?: number;
 }
 
 export const DEFAULT_SANDBOX_CONFIG: SandboxConfig = {
@@ -58,4 +61,6 @@ export const DEFAULT_SANDBOX_CONFIG: SandboxConfig = {
   dummyVolatileStatus: null,
   dummyStatStages: {},
   mapUrl: "assets/maps/dev/sandbox-flat.tmj",
+  weather: Weather.None,
+  weatherTurns: 5,
 };

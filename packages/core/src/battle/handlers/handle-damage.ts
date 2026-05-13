@@ -3,13 +3,34 @@ import { Category } from "../../enums/category";
 import type { EffectKind } from "../../enums/effect-kind";
 import { HeldItemId } from "../../enums/held-item-id";
 import type { PokemonType } from "../../enums/pokemon-type";
+import { StatName } from "../../enums/stat-name";
+import { Weather } from "../../enums/weather";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
+import type { MoveDefinition } from "../../types/move-definition";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 import type { RandomFn } from "../../utils/prng";
 import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calculator";
 import { checkDefense } from "../defense-check";
 import type { EffectContext } from "../effect-handler-registry";
+import {
+  effectiveWeather,
+  getWeatherBallBp,
+  getWeatherBallType,
+  getWeatherBpModifier,
+  getWeatherDefenseStatBoost,
+} from "../weather-system";
+
+function resolveWeatherBallMove(move: MoveDefinition, activeWeather: Weather): MoveDefinition {
+  if (!move.weatherBoostedType) {
+    return move;
+  }
+  return {
+    ...move,
+    type: getWeatherBallType(activeWeather),
+    power: getWeatherBallBp(activeWeather, move.power),
+  };
+}
 
 const MULTI_HIT_PROBABILITIES: number[] = [0.35, 0.35, 0.15, 0.15];
 
@@ -45,10 +66,30 @@ function dealSingleHit(
 ): BattleEvent[] {
   const events: BattleEvent[] = [];
   const facingMod = context.facingModifierMap.get(target.id) ?? 1.0;
+  const activeWeather = effectiveWeather(context.state, (pokemon) => {
+    if (pokemon.currentHp <= 0) {
+      return false;
+    }
+    const handler = context.abilityRegistry?.getForPokemon(pokemon);
+    return handler?.suppressesWeatherEffects === true;
+  });
+  const resolvedMove = resolveWeatherBallMove(context.move, activeWeather);
+  let weatherBp = getWeatherBpModifier(resolvedMove.type, activeWeather);
+  if (
+    resolvedMove.id === "solar-beam" &&
+    (activeWeather === Weather.Rain ||
+      activeWeather === Weather.Sandstorm ||
+      activeWeather === Weather.Snow)
+  ) {
+    weatherBp *= 0.5;
+  }
+  const defenseStat =
+    resolvedMove.category === Category.Physical ? StatName.Defense : StatName.SpDefense;
+  const defenseWeather = getWeatherDefenseStatBoost(defenderTypes, defenseStat, activeWeather);
   const { damage, isCrit } = calculateDamageWithCrit(
     context.attacker,
     target,
-    context.move,
+    resolvedMove,
     context.typeChart,
     context.attackerTypes,
     defenderTypes,
@@ -59,6 +100,8 @@ function dealSingleHit(
     facingMod,
     context.abilityRegistry,
     context.itemRegistry,
+    weatherBp,
+    defenseWeather,
   );
 
   const defenseResult = checkDefense(

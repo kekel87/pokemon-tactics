@@ -100,6 +100,10 @@ export class BattleScene extends Phaser.Scene {
       this.load.image(`status-label-${key}`, `assets/ui/statuses/label-${key}.png`);
     }
 
+    for (const key of ["sun", "rain", "sandstorm", "snow"] as const) {
+      this.load.image(`weather-${key}`, `assets/ui/weather/weather-${key}.png`);
+    }
+
     this.load.spritesheet(TILESET_KEY, "assets/tilesets/terrain/tileset.png", {
       frameWidth: 32,
       frameHeight: 32,
@@ -213,6 +217,9 @@ export class BattleScene extends Phaser.Scene {
       uiScene.turnTimeline,
       uiScene.placementRosterPanel,
       uiScene.battleLogPanel,
+      undefined,
+      undefined,
+      uiScene.weatherHud,
     );
     this.controller = controller;
     controller.setDecorationsLayer(decorationsLayer);
@@ -335,6 +342,9 @@ export class BattleScene extends Phaser.Scene {
       uiScene.turnTimeline,
       uiScene.placementRosterPanel,
       uiScene.battleLogPanel,
+      undefined,
+      undefined,
+      uiScene.weatherHud,
     );
     this.controller = controller;
     controller.setDecorationsLayer(decorationsLayer);

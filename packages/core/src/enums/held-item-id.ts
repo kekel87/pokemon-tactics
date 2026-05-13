@@ -20,6 +20,7 @@ export const HeldItemId = {
   FlameOrb: "flame-orb",
   SalacBerry: "salac-berry",
   NormalGem: "normal-gem",
+  HeatRock: "heat-rock",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];

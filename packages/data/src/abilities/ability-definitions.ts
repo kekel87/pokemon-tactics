@@ -13,6 +13,7 @@ import {
   PokemonType,
   StatName,
   StatusType,
+  Weather,
 } from "@pokemon-tactic/core";
 
 const SYNC_STATUSES: ReadonlySet<StatusTypeAlias> = new Set<StatusTypeAlias>([
@@ -479,6 +480,7 @@ const magnetPull: AbilityHandler = {
 
 const sandVeil: AbilityHandler = {
   id: "sand-veil",
+  weatherEvasionBoost: { weather: Weather.Sandstorm, stages: 1 },
 };
 
 const ownTempo: AbilityHandler = {
@@ -874,6 +876,7 @@ const effectSpore: AbilityHandler = {
 
 const cloudNine: AbilityHandler = {
   id: "cloud-nine",
+  suppressesWeatherEffects: true,
 };
 
 const shellArmor: AbilityHandler = {
@@ -988,6 +991,7 @@ const trace: AbilityHandler = {
 
 const swiftSwim: AbilityHandler = {
   id: "swift-swim",
+  weatherSpeedBoost: { weather: Weather.Rain, multiplier: 2 },
 };
 
 // Batch D abilities
@@ -1076,6 +1080,7 @@ const innerFocus: AbilityHandler = {
 
 const chlorophyll: AbilityHandler = {
   id: "chlorophyll",
+  weatherSpeedBoost: { weather: Weather.Sun, multiplier: 2 },
 };
 
 export const abilityHandlers: AbilityHandler[] = [

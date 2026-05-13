@@ -15,6 +15,7 @@ import { deepMerge } from "./merge";
 import { balanceOverrides } from "./overrides/balance-v1";
 import { tacticalOverrides } from "./overrides/tactical";
 import { rosterPoc } from "./roster/roster-poc";
+import { initializeLearnsetResolver } from "./team/learnset-resolver";
 
 export interface GameData {
   pokemon: PokemonDefinition[];
@@ -24,6 +25,7 @@ export interface GameData {
 }
 
 export function loadData(): GameData {
+  initializeLearnsetResolver(pokemonReference as unknown as ReferencePokemon[]);
   const roster = rosterPoc;
 
   const pokemon: PokemonDefinition[] = loadPokemonFromReference(
@@ -69,6 +71,9 @@ export function loadData(): GameData {
       ...(merged.flags ? { flags: merged.flags } : {}),
       ...(merged.effectTier ? { effectTier: merged.effectTier } : {}),
       ...(merged.bypassAccuracy ? { bypassAccuracy: true } : {}),
+      ...(merged.weatherSetter ? { weatherSetter: merged.weatherSetter } : {}),
+      ...(merged.weatherBoostedType ? { weatherBoostedType: true } : {}),
+      ...(merged.twoTurnCharge ? { twoTurnCharge: true } : {}),
     };
     return moveDefinition;
   });

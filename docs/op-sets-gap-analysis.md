@@ -1,17 +1,16 @@
-# OP Sets Gap Analysis (généré 2026-05-12)
+# OP Sets Gap Analysis (généré 2026-05-13)
 
 ## Stats globales
 - Total sets : 160
-- Sets `full` : 98% (157 / 160)
-- Sets `partial` : 2% (3 / 160)
+- Sets `full` : 100% (160 / 160)
+- Sets `partial` : 0% (0 / 160)
 - Pokemon sans set `full` : 0 / 80
 
 ## Top 20 moves manquants (par fréquence)
 
 | Rank | Move | Sets impactés | Pokemon impactés | Urgence |
 |------|------|---------------|------------------|---------|
-| 1 | `weather-ball` | 2 | 2 | 🟢 Low |
-| 2 | `solar-beam` | 1 | 1 | 🟢 Low |
+| — | — | 0 | 0 | — |
 
 ## Top 10 abilities manquantes
 
@@ -23,7 +22,7 @@
 
 | Rank | Item | Sets impactés | Pokemon impactés | Urgence |
 |------|------|---------------|------------------|---------|
-| 1 | `heat-rock` | 1 | 1 | 🟢 Low |
+| — | — | 0 | 0 | — |
 
 ## Pokemon sans set `full`
 

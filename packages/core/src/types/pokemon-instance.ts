@@ -40,4 +40,5 @@ export interface PokemonInstance {
   abilityFirstTriggered?: boolean;
   heldItemId?: HeldItemId;
   lockedMoveId?: string;
+  chargingMove?: { moveId: string; targetPosition?: Position };
 }

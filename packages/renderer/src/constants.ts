@@ -238,6 +238,28 @@ export const DEPTH_ACTION_MENU = 1200;
 export const DEPTH_VICTORY_OVERLAY = 2000;
 export const DEPTH_VICTORY_CONTENT = 2001;
 
+export const DEPTH_WEATHER_OVERLAY = 900;
+export const DEPTH_WEATHER_HUD = 1080;
+
+export const WEATHER_OVERLAY_ALPHA = 0.15;
+export const WEATHER_OVERLAY_FADE_MS = 500;
+export const WEATHER_TINT_SUN_CSS = "#ffc840";
+export const WEATHER_TINT_RAIN_CSS = "#3060a0";
+export const WEATHER_TINT_SANDSTORM_CSS = "#c8a060";
+export const WEATHER_TINT_SNOW_CSS = "#a0d0f0";
+export const WEATHER_TINT_SUN = 0xffc840;
+export const WEATHER_TINT_RAIN = 0x3060a0;
+export const WEATHER_TINT_SANDSTORM = 0xc8a060;
+export const WEATHER_TINT_SNOW = 0xa0d0f0;
+
+export const WEATHER_HUD_Y = 52;
+export const WEATHER_HUD_ICON_SIZE = 36;
+export const WEATHER_HUD_WIDTH = 220;
+export const WEATHER_HUD_HEIGHT = 48;
+export const WEATHER_HUD_BG_ALPHA = 0.85;
+export const WEATHER_HUD_BG_COLOR = 0x111122;
+export const WEATHER_HUD_PADDING = 6;
+
 const ZOOM_CLOSE = 4.0;
 const ZOOM_MEDIUM = 2.6;
 const ZOOM_OVERVIEW = 1.7;

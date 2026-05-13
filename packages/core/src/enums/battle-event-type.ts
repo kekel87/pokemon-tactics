@@ -41,6 +41,11 @@ export const BattleEventType = {
   HeldItemConsumed: "held_item_consumed",
   CriticalHit: "critical_hit",
   HpRestored: "hp_restored",
+  WeatherSet: "weather_set",
+  WeatherCleared: "weather_cleared",
+  WeatherDamage: "weather_damage",
+  WeatherWar: "weather_war",
+  MoveCharging: "move_charging",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];
