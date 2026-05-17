@@ -5,6 +5,7 @@ Maintenu par Claude Code. Lu via `/next`.
 ## À faire maintenant
 
 - **Phase 4 en cours.** Plans 069–084b terminés. Roster Gen 1 complet : 81 Pokemon. Météo livrée. **Chantier suivant : Team Builder UI** (plans 085–086).
+- **Sessions content fill — à intercaler** entre plans mécaniques. Pool restant Gen 1 : 330 moves manquants / 58 abilities / 137 items. OP sets 160/160 full → finition = couverture exhaustive pour Team Builder libre (joueur compose hors OP sets). Format suggéré : 1 session = batch ciblé (ex: "tous les Poing/Punch", "tous les statuts moves manquants", "items berries", "abilities defensives") plutôt que mass dump. Lancer entre 2 plans mécaniques avancées pour pas s'épuiser. À planifier au fil de l'eau via plans 087+ "Content Batch G/H/I…".
 - **Méta-plan Team Builder** (validé 2026-05-12) :
   - **081** — Team data model + validator + storage + Showdown io (core, réutilisable multi) ✅
   - **082** — Curate OP sets list (Smogon + CoupCritique, 1-3 sets/Pokemon roster) + script analyse fréquence content manquant → `docs/op-sets-gap-analysis.md` ✅

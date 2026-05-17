@@ -155,54 +155,33 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
 - [x] Natures / Stat Alignment — plan 072 terminé (mécanique core uniquement, affichage UI reporté). `Nature` enum (25), table boost/lowered en dur dans le core, `applyNatureModifier(stats, nature)` + `computeCombatStats(baseStats, level, nature?)`. Roll uniforme via `rollNature(rng)`, déterministe via `creationRng` partagé avec gender. `natureOverrides` prêt pour Team Builder. HP toujours exclu. **Affichage InfoPanel différé** à la refonte UI.
 - [x] Objets tenus — plan 073 terminé. `HeldItemId` (12 items), `HeldItemHandler` (8 hooks dont `onMoveLock` pour verrou Choice piloté par hook), `HeldItemHandlerRegistry`, mini-système critiques, verrou Choice, validateur `DuplicateItem`, 4 nouveaux `BattleEventType`, fix `HpRestored` HP bar renderer, i18n `battle.itemConsumed`, 12 tests intégration. Décisions #288-295.
 - [x] EV / IV — plan 074 terminé. IV fixes à 31 pour tous les Pokemon. EV → Stat Points (SP) : 66 max, 32 max par stat, 1 SP = +1 stat. `applyStatPoints(stats, sp)`, `rollStatPoints(rng)`, `statPointsOverrides` prêt pour Team Builder. Formule dégâts alignée IV=31.
-- [ ] Roster élargi — 70 finales Gen 1 (hors Ditto, starters/intermédiaires hors mini à partir de cette phase)
-  - [x] **Batch A (12)** — Starters finaux + Éévolutions + iconiques — plan 075 terminé 2026-05-04. Venusaur, Dracaufeu, Tortank, Raichu, Alakazam, Mackogneur, Léviator, Ronflex, Dracolosse, Aquali, Pyroli, Voltali. 29 moves ajoutés (102 total). 8 abilities ajoutées (28 total). Formes non-finales retirées du roster mini. 4-move limit en combat (décision #300, 2026-05-05).
-  - [x] **Batch B (19)** — Coverage types variés — plan 076 terminé 2026-05-06. Nidoqueen, Nidoking, Colossinge, Arcanin, Flagadoss, Grolem, Tartard, Gengar, Hypnomade, Noadkoko, Ossatueur, Kicklee, Tygnon, Rhydon, Starmie, Insécateur, Scarabrute, Kabutops, Ptéra. 10 moves ajoutés (112 total). 8 abilities ajoutées (36 total). Hooks `blocksRecoil`, `preventsCrit`, `onEndTurn`.
-  - [x] **Batch C (17)** — Secondaires + spéciaux — plan 077 terminé 2026-05-07, Haunter retiré post-playtest (roster 52→51). Sablaireau, Feunard, Grodoudou, Rafflesia, Akwakwak, Tentacruel, Magnéton, Lamantine, Crustabri, Kingler, Électrode, Lippoutou, Élektek, Magmar, Lokhlass, Poissoroy, Amonistar. 15 moves ajoutés (127 total). 8 abilities ajoutées (44 total). `StatusType.LockedOn` + accuracy-check hook.
-  - [ ] **Batch D** — Exotiques + légendaires : Haunter (réintégrable), Dodrio, Grotadmorv, Onix, Smogogo, Leveinard, Saquedeneu, Hypocéan, M. Mime, Tauros, Artikodin, Électhor, Sulfura, Roucoul, Staross…
-- [ ] Moves & talents restants post-batchs — compléter pool attaques et talents des 70 nouveaux Pokemon. Chaque batch introduit moves + talents ; un plan de finition couvrira les manquants transversaux (moves multi-Pokemon partagés, talents encore absents).
+- [x] Roster Gen 1 mini — 81 Pokemon jouables (hors Ditto + Méga). Formes non-finales retirées du roster, conservées en reference pour Team Builder futur.
+  - [x] **Batch A (12)** — Starters finaux + Éévolutions + iconiques — plan 075 terminé 2026-05-04. 29 moves ajoutés. 8 abilities ajoutées. Formes non-finales retirées du roster mini. 4-move limit en combat (décision #300, 2026-05-05).
+  - [x] **Batch B (19)** — Coverage types variés — plan 076 terminé 2026-05-06. 10 moves ajoutés. 8 abilities ajoutées. Hooks `blocksRecoil`, `preventsCrit`, `onEndTurn`.
+  - [x] **Batch C (17)** — Secondaires + spéciaux — plan 077 terminé 2026-05-07, Haunter retiré post-playtest (roster 52→51). 15 moves ajoutés. 8 abilities ajoutées. `StatusType.LockedOn` + accuracy-check hook.
+  - [x] **Batch D (16)** — plan 078 terminé 2026-05-11. arbok, clefable, parasect, dugtrio, persian, victreebel, rapidash, dodrio, muk, onix, weezing, chansey, tangela, seadra, mr-mime, tauros. 8 moves. 2 abilities (poison-touch, filter). Hook `onAfterDamageDealt`.
+  - [x] **Batch E (14)** — plan 079 terminé 2026-05-12. butterfree, beedrill, pidgeot, raticate, fearow, golbat, venomoth, farfetch-d, seaking, articuno, zapdos, moltres, mewtwo, mew. 8 moves. 6 abilities (compound-eyes, swarm, water-veil, pressure, shield-dust, inner-focus). Mécanismes `EffectKind.Drain`, `accuracyMultiplier`, `targetedCtBonus`, `bypassAccuracy`, `onSecondaryEffectBlocked`.
+  - Ditto et Méga-évolutions reportés Phase 9.
+- [x] **OP Sets curation + gap analysis — plan 082 terminé 2026-05-12.** `packages/data/op-sets/op-sets.json` (160 sets Smogon+custom). Script `pnpm op-sets:analyze` → `docs/op-sets-gap-analysis.md`.
+- [x] **Content Batch F + hook onStatLowered — plan 083 terminé 2026-05-12.** 2 moves (giga-drain, focus-blast), 9 items, hook `onStatLowered`.
+- [x] **Système Météo — plans 084 + 084b terminés 2026-05-13.** Sun/Rain/Sand/Snow, weather war, BP/accuracy/defense modifiers, Synthesis, Solar-Beam 2-turn, weather-ball, 4 abilities, heat-rock, WeatherHud, i18n, sandbox selector. **op-sets 160/160 full (100%)**.
 - [ ] Team Builder (import/export Showdown)
-  - [x] **OP Sets curation + gap analysis — plan 082 terminé 2026-05-12.** `packages/data/op-sets/op-sets.json` (160 sets Smogon+custom). Script `pnpm op-sets:analyze` → `docs/op-sets-gap-analysis.md`. Résultat : 128/160 sets `full` (80%), gap : 4 moves + 2 items 🟡 + 10 items 🟢 + 0 ability manquant.
-  - [x] **Content Batch F + hook onStatLowered — plan 083 terminé 2026-05-12.** 2 moves (giga-drain, focus-blast), 9 items, hook `onStatLowered`. 157/160 sets `full`.
-  - [x] **Système Météo — plans 084 + 084b terminés 2026-05-13.** Sun/Rain/Sand/Snow, weather war, BP/accuracy/defense modifiers, Synthesis, Solar-Beam 2-turn, weather-ball, 4 abilities, heat-rock, WeatherHud, i18n, sandbox selector. 160/160 full.
   - [ ] **085** — `TeamEditScene` (6 slots, édition slot active, Set OP / Import / Export Showdown, items grisés) → **prochain**
   - [ ] Plans 086+ restants (refonte TeamSelectScene, import Showdown…)
+- [ ] **Mécaniques avancées restantes** — sous-plans à attaquer après Team Builder. Doc détaillée écrite au moment d'attaquer chaque plan.
+  - [ ] **Champs / Terrains** (Grassy / Electric / Psychic / Misty) — pose AoE r3-4 sur tile cible, ne suit pas le lanceur, 5 tours, single field MVP (un nouveau pose remplace l'ancien — peu importe équipe), persiste si setter KO. Effets : Grassy +1/16 HP/tour si au sol + Plante ×1.3 ; Psychic Psy ×1.5 + bloque priority entrant ; Electric pas de Sommeil + Élec ×1.3 ; Misty pas de statut majeur + Dragon ×0.5. Multi-fields en option future si validé.
+  - [ ] **Barrières** (Light Screen / Reflect / Aurora Veil) — aura suit lanceur r3-4. Light Screen ×0.5 Spé, Reflect ×0.5 Phys, Aurora Veil = combiné (requiert Neige active). Applique alliés + soi, ennemis exclus. **Casse-Brique** : si lanceur barrière dans portée mêlée → cible direct ×2 + casse aura ; sinon target normal ×1.5 si cible dans aura.
+  - [ ] **Distorsion** (Trick Room) — global field-wide, 5 tours, flip `ctGain = BASE - vitesse`. Timeline CT reflète automatiquement nouvel ordre.
+  - [ ] **Charge moves** — plan dédié, move par move. Sous-systèmes : `SemiInvulnerableCharge` (Dig/Fly/Bounce/Phantom Force/Shadow Force — disparu T1, émerge sur case target T2, untargetable sauf moves spécifiques) + extension `MoveCharging` visible (Skull Bash/Sky Attack/Razor Wind — reste sur place T1, frappe T2). Solar-Beam fournit déjà squelette.
+  - [ ] **Substitute** — statut volatile `Substituted { hp: maxHp/4 }`, swap sprite vers Dummy asset existant, bloque dégâts directs + effets contact + statuts + stat changes, cassé quand sub HP ≤ 0, lanceur perd 25% HP au cast, sub bouge avec porteur.
+  - [ ] **Contrôle moves** (Disable / Encore / Taunt / Torment / Heal Block / Imprison / Magic Coat) — statuts volatils modifiant `getLegalActions`. Disable 4 tours (1 move grisé), Encore 3 tours (forcé répéter), Taunt 3 tours (statuts grisés), Torment 5 tours (pas répéter même move), Heal Block 5 tours, Imprison tant que lanceur vivant, Magic Coat single-turn reflect.
+  - [ ] **Delayed / countdown** — Future Sight / Doom Desire : case fixe AoE r1 délayée 2 tours (dégâts calculés au cast). Wish : tile-bound heal T+1 (heal Pokemon sur tile lanceur au moment du trigger, wasted si vide). Perish Song : countdown global 3 tours, applique tous Pokemon présents (immunités Soundproof si ajouté). Pain Split : moyenne HP lanceur+target. Endeavor : cible HP = lanceur HP si supérieur. Helping Hand : ×1.5 prochain move allié adjacent r1, 1 tour.
+  - [ ] **Hazards** (Stealth Rock / Spikes / Toxic Spikes / Sticky Web) — apprenables par roster Gen 1 via learnsets Gen 9 (Tentacruel/Muk/Nidoking Toxic Spikes, Golem/Rhydon/Onix Stealth Rock, Cloyster/Gengar Spikes…). Pose tile-locked zone r2-3 centrée sur tile target (portée r3-4 lanceur), persiste jusqu'à cleanup. Spikes 1/8 HP entrant. Stealth Rock dégâts type-based (×4 Feu/Glace/Vol/Insecte). Sticky Web -1 Vit. Toxic Spikes poison à l'entrée. Cleanup via Rapid Spin (Gen 2) / Defog (Gen 3) — discuter intégration ou move custom.
+- [ ] **Moves & talents & items de finition** — compléter pool transversal une fois mécaniques avancées livrées. Pool restant : moves 151/481, abilities 56/114, items 22/~159 (OP sets déjà à 100% — finition = couverture exhaustive movepools Gen 1 pour Team Builder libre).
 
 ---
 
-## Phase 5 — Équilibrage
-
-> But : outils pour tester et équilibrer avant d'ouvrir le multi
-
-- [ ] IA LLM (Claude adversaire)
-- [ ] Mode headless + outils d'équilibrage — **prérequis** : déplacer `.tmj` dans `packages/data/src/maps/tiled/` et ajouter `loadMapDefinition(id)` Node-compatible. Aujourd'hui maps dans `packages/renderer/public/` chargées via `fetch()` HTTP — inutilisable sans browser.
-- [ ] Passes d'équilibrage
-
----
-
-## Phase 6 — Social & Partage
-
-> But : features qui donnent envie de partager et revenir
-
-- [ ] Share replay via URL + lecteur de replay
-- [ ] Défi du jour (seed quotidienne, même combat pour tous)
-- [ ] Screenshot de fin de combat partageable
-
----
-
-## Phase 7 — Multijoueur
-
-> But : jouer contre de vrais adversaires
-
-- [ ] Multijoueur réseau (WebSocket)
-- [ ] Écran de victoire enrichi (récap, tours, KO, MVP)
-- [ ] Speed controls (skip/accélérer animations)
-- [ ] Tutoriel interactif
-- [ ] Support manette
-
----
-
-## Phase 3.5 — Migration renderer 2D-HD (Babylon.js)
+## Phase 5 — Migration renderer 2D-HD (Babylon.js)
 
 > **Position actuelle : après Phase 7** (reordonné 2026-04-20).
 >
@@ -240,7 +219,7 @@ Prérequis :
 
 ---
 
-## Phase 3.6 — Maps & Éditeur
+## Phase 6 — Maps & Éditeur (3D)
 
 > **Position actuelle : après Phase 3.5** (reordonnée 2026-04-20, donc post-Phase 7).
 >
@@ -254,28 +233,59 @@ Tie à Babylon : éditeur et props terrain repensés pour renderer 3D.
 
 ---
 
-## Phase 8 — Polish
+## Phase 8 — Équilibrage
 
-> But : confort et qualité visuelle
+> But : outils pour tester et équilibrer avant d'ouvrir le multi
 
-- [ ] Scaling sprites selon taille Pokemon
-- [ ] Son / Musique
-- [ ] Effets visuels (particules, ombres, lumières)
-- [ ] Décors sur les maps
-- [ ] Rotation caméra 4 angles
-- [ ] UI revamps
-- [ ] Auto-save localStorage
-- [ ] Tooltips type chart (efficacités au hover)
+- [ ] Mode headless + outils d'équilibrage — **prérequis** : déplacer `.tmj` dans `packages/data/src/maps/tiled/` et ajouter `loadMapDefinition(id)` Node-compatible. Aujourd'hui maps dans `packages/renderer/public/` chargées via `fetch()` HTTP — inutilisable sans browser.
+- [ ] LLM vs LLM (Claude adversaire) (risque d'être cher maintenant)
+- [ ] AI vs IA (+nouveau de difficultés) + reporting équilibrage
+- [ ] Passes d'équilibrage
 
 ---
 
-## Phase 9 — Futur / À voir
+## Phase 7 — Multijoueur
+
+> But : jouer contre de vrais adversaires
+
+- [ ] Multijoueur réseau (WebSocket)
+- [ ] Écran de victoire enrichi (récap, tours, KO, MVP)
+- [ ] Speed controls (skip/accélérer animations)
+- [ ] Tutoriel interactif
+- [ ] Support manette
+
+---
+
+## Phase 9 — Polish
+
+> But : confort et qualité visuelle
+
+- [ ] UI revamps
+- [ ] Son / Musique
+- [ ] Décors sur les maps
+- [ ] Tooltips type chart (efficacités au hover)
+- [ ] Auto-save localStorage
+
+---
+
+## Phase X — Social & Partage
+
+> But : features qui donnent envie de partager et revenir
+
+- [ ] Share replay via URL + lecteur de replay
+- [ ] Défi du jour (seed quotidienne, même combat pour tous)
+- [ ] Screenshot de fin de combat partageable
+
+---
+
+## Phase X — Futur / À voir
 
 - [ ] **Générations 2-9** — ajout des 874 Pokemon restants (Gen 2 : 100, Gen 3 : 135, Gen 4 : 107, Gen 5 : 156, Gen 6 : 72, Gen 7 : 88, Gen 8 : 96, Gen 9 : 120). Sprites PMDCollab disponibles pour la majorité. Nécessite pipeline `sprite-config.json` étendu + movesets tactiques par Pokemon.
 - [ ] **Méga-Évolutions** — 21 formes Méga Gen 1 (16 officielles + 5 exclusives Pokémon Champions). Sprites PMDCollab : 6 formes ont des fichiers partiels (pending review), aucune complète en mai 2026. À replanifier quand PMDCollab coverage s'améliore. Voir `docs/implementations.md#méga-évolutions-gen-1`.
 - [ ] Mode histoire / aventure
 - [ ] Conditions de victoire alternatives
 - [ ] Draft/ban phase
+- [ ] Effets visuels (particules, ombres, lumières, attaques)
 - [ ] **Modification dynamique du terrain par attaques** — certaines attaques transforment terrain pendant combat (Feu → supprime tall grass, Ébullition crée tiles lave/magma, Force déplace rochers, Glace gèle tiles eau). Mutation runtime `TerrainType` + décoration associée. Reporté Phase 3 en 2026-04-20 : scope trop lourd tant que roster attaques et palette terrains pas figés.
 - [x] **Météo (Soleil, Pluie, Tempête de Sable, Neige) — plans 084 + 084b terminés 2026-05-13.** Livré en Phase 4 (débloqué par roster Gen 1 complet + OP sets). Sand-veil, swift-swim, chlorophyll activés. Synthèse contextuelle. Solar-Beam 2-turn. Heat-Rock 8 tours. Cloud Nine supprime effets.
 - [ ] **Champs (Herbeux, Psy, Électrique, Brumeux, Distorsion)** — modificateurs terrain affectant dégâts, statuts et capacités.
