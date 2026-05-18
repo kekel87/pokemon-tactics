@@ -1,0 +1,55 @@
+@layer components {
+  .tb-stat-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 50px;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+    .tb-stat-label { color: var(--color-text-muted); }
+    .tb-stat-bar {
+      height: 12px;
+      background: var(--color-bg-elevated);
+      border: 1px solid var(--color-border-surface);
+      border-radius: 2px;
+      overflow: hidden;
+      .tb-stat-bar-fill {
+        height: 100%;
+        background: var(--color-stat-default);
+        transition: width var(--duration-fast);
+      }
+    }
+    .tb-stat-value { color: var(--color-text-primary); text-align: right; }
+    &[data-stat="hp"] .tb-stat-bar-fill { background: var(--color-stat-hp); }
+    &[data-stat="attack"] .tb-stat-bar-fill { background: var(--color-stat-attack); }
+    &[data-stat="defense"] .tb-stat-bar-fill { background: var(--color-stat-defense); }
+    &[data-stat="spAttack"] .tb-stat-bar-fill { background: var(--color-stat-sp-attack); }
+    &[data-stat="spDefense"] .tb-stat-bar-fill { background: var(--color-stat-sp-defense); }
+    &[data-stat="speed"] .tb-stat-bar-fill { background: var(--color-stat-speed); }
+  }
+
+  .tb-sp-counter {
+    margin: var(--spacing-md) 0 var(--spacing-xs);
+    color: var(--color-text-muted);
+    strong { color: var(--color-accent); }
+  }
+
+  .tb-sp-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 50px auto;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--color-accent);
+    }
+    .tb-sp-value { color: var(--color-text-primary); text-align: right; }
+  }
+
+  .tb-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-md);
+  }
+}

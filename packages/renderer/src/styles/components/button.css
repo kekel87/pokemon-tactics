@@ -1,0 +1,48 @@
+@layer components {
+  .tb-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    min-height: var(--target-min);
+    padding: var(--pad-control-y) var(--pad-control-x);
+    background: var(--color-btn-bg);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-btn-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    &:hover { background: var(--color-btn-hover); }
+    &:disabled, &[disabled] {
+      background: var(--color-btn-disabled-bg);
+      border-color: var(--color-btn-disabled-border);
+      color: var(--color-btn-disabled-text);
+      cursor: not-allowed;
+    }
+    &[data-variant="primary"] {
+      background: var(--color-btn-primary-bg);
+      border-color: var(--color-btn-primary-border);
+      &:hover { background: color-mix(in oklch, var(--color-btn-primary-bg) 80%, white); }
+    }
+    &[data-variant="danger"] {
+      background: var(--color-btn-danger-bg);
+      border-color: var(--color-btn-danger-border);
+      &:hover { background: color-mix(in oklch, var(--color-btn-danger-bg) 80%, white); }
+    }
+    &[data-variant="ghost"] {
+      background: transparent;
+      border-color: var(--gray-700);
+      &:hover { background: var(--color-btn-ghost-hover); }
+    }
+    &[data-variant="icon"] {
+      padding: var(--pad-icon-btn);
+      min-width: var(--target-min);
+      background: transparent;
+      border-color: transparent;
+      color: var(--color-text-muted);
+      &:hover {
+        background: var(--color-bg-elevated-hover);
+        color: var(--color-text-primary);
+      }
+    }
+  }
+}

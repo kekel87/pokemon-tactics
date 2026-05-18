@@ -1,0 +1,21 @@
+/* Entry CSS — Team Builder + composants UI réutilisables.
+ * Voir .claude/rules/css.md.
+ */
+
+@layer reset, base, components, utilities;
+
+@import "./tokens.css";
+@import "./reset.css";
+@import "./base.css";
+@import "./components/button.css";
+@import "./components/modal.css";
+@import "./components/type-badge.css";
+@import "./components/topbar.css";
+@import "./components/team-list.css";
+@import "./components/slot-card.css";
+@import "./components/edit-panels.css";
+@import "./components/stat-bar.css";
+@import "./components/picker.css";
+@import "./components/set-op.css";
+@import "./components/showdown.css";
+@import "./utilities.css";

@@ -515,6 +515,67 @@ Le layering garantit que les highlights passent **derrière** les sprites Pokemo
 
 ---
 
+## CSS vars — Team Builder DOM
+
+Source canonique : `packages/renderer/src/styles/tokens.css`. Ces tokens s'appliquent à l'interface DOM du Team Builder (MyTeamsScene, TeamEditScene). Pour les valeurs Phaser/canvas, `constants.ts` reste la source.
+
+> La distinction est nette : **`tokens.css` = DOM HTML**, **`constants.ts` = Phaser canvas**.
+
+### Couleurs types Pokemon (badges)
+
+Les couleurs de type sont extraites du pixel dominant des icônes `assets/ui/types/*.png` via sharp. Elles sont stockées comme CSS custom properties : `--type-fire`, `--type-water`, `--type-grass`, etc. (18 types). Le badge background = couleur icon → cohérence visuelle garantie.
+
+### Spacing et padding
+
+| Token | Usage |
+|-------|-------|
+| `--pad-control-*` | Padding des contrôles interactifs (inputs, selects, boutons textuels) |
+| `--pad-chip-*` | Padding des chips/badges (badges types, tags items) |
+| `--pad-icon-btn` | Padding uniform des boutons icônes (×, close) |
+| `--target-min: 24px` | Taille tactile minimale WCAG — appliquée à tous les boutons icônes |
+
+### Couleurs stats (barres stats Team Builder)
+
+| Token | Stat |
+|-------|------|
+| `--stat-hp` | HP |
+| `--stat-atk` | Attaque |
+| `--stat-def` | Défense |
+| `--stat-spa` | Attaque Spéciale |
+| `--stat-spd` | Défense Spéciale |
+| `--stat-spe` | Vitesse |
+
+### Feedback
+
+| Token | Usage |
+|-------|-------|
+| `--color-error` | Texte/bordure erreur (import Showdown invalide) |
+| `--color-warn` | Texte/bordure avertissement (item non implémenté) |
+
+### Typographie
+
+| Token | Usage |
+|-------|-------|
+| `--font-size-xs` | Texte très petit (tags, notes) — anciennement `--font-size-min` |
+| `--font-mono` | Pile police monospace (code Showdown, textarea import/export) |
+
+### Variantes boutons
+
+Les variantes de boutons utilisent `color-mix()` plutôt que des hex hardcodés : `--btn-primary-bg`, `--btn-ghost-hover`, `--btn-border`. Conforme `.claude/rules/css.md`.
+
+### Architecture CSS (@layer)
+
+```
+@layer reset      ← html, body uniquement (margin 0, box-sizing)
+@layer base       ← règles de base typographie, focus visible
+@layer components ← composants Team Builder (button, modal, type-badge, topbar...)
+@layer utilities  ← classes utilitaires (display, gap, flex...)
+```
+
+L'ordre des layers garantit que `components` l'emporte sur `base` sans `!important`. Le bug historique (`* { padding:0; margin:0 }` hors layer dans `index.html`) a été corrigé — wrappé dans `@layer reset`, scope réduit à `html, body`.
+
+---
+
 ## Principes de design
 
 1. **Palette sombre** : fond bleu nuit (`#1a1a2e`), panneaux bleu très sombre (`#111122`). Le jeu est dark-mode par défaut.

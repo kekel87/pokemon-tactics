@@ -1,0 +1,82 @@
+@layer components {
+  .tb-slots-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .tb-slot {
+    position: relative;
+  }
+
+  .tb-slot-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    width: 100%;
+    min-height: 110px;
+    padding: var(--spacing-sm);
+    background: var(--color-bg-elevated);
+    border: 1px dashed var(--gray-700);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    color: var(--color-text-primary);
+    &:hover { background: var(--color-bg-elevated-hover); }
+    &[data-state="filled"] {
+      border-style: solid;
+      border-color: var(--color-border-surface);
+    }
+    &[data-state="active"] {
+      border-color: var(--color-accent);
+      background: var(--color-bg-elevated-hover);
+      box-shadow: 0 0 0 1px var(--color-accent);
+    }
+    .tb-slot-card-plus {
+      font-size: var(--font-size-lg);
+      color: var(--color-text-faint);
+    }
+    .tb-slot-card-label {
+      color: var(--color-text-dim);
+    }
+    .tb-slot-card-portrait {
+      width: 56px;
+      height: 56px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      image-rendering: pixelated;
+    }
+    .tb-slot-card-name {
+      color: var(--color-text-primary);
+      text-align: center;
+    }
+    .tb-slot-card-types {
+      display: flex;
+      gap: var(--spacing-xs);
+    }
+  }
+
+  .tb-slot-card-clear {
+    position: absolute;
+    top: var(--spacing-xs);
+    right: var(--spacing-xs);
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    background: rgb(0 0 0 / 0.3);
+    border: none;
+    color: var(--red-400);
+    font-size: 24px;
+    line-height: 1;
+    &[hidden] { display: none; }
+    &:hover { background: rgb(255 0 0 / 0.3); }
+  }
+}

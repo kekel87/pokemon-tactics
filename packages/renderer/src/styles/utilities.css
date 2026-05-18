@@ -1,0 +1,7 @@
+@layer utilities {
+  .tb-text-accent { color: var(--color-accent); }
+  .tb-text-muted { color: var(--color-text-muted); }
+  .tb-text-dim { color: var(--color-text-dim); }
+  .tb-text-faint { color: var(--color-text-faint); }
+  .tb-text-light { color: var(--color-text-primary); }
+}

@@ -93,7 +93,11 @@ pokemon-tactics/
 │   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
 │   │   │   ├── i18n/            # Système i18n maison : types.ts, locales/fr.ts, locales/en.ts, index.ts (t, setLanguage, detectLanguage, onLanguageChange, Language enum)
 │   │   │   ├── settings/        # Paramètres persistants : GameSettings { damagePreview }, getSettings(), updateSettings(), localStorage("pt-settings")
+│   │   │   ├── styles/          # CSS modulaire Team Builder — entry index.css (@layer reset/base/components/utilities), tokens.css (vars primitives+sémantiques : types, stats, feedback, spacing, font), + 10 fichiers composants (button, modal, type-badge, topbar, team-list, slot-card, edit-panels, stat-bar, picker, set-op, showdown). Source canonique couleurs DOM — constants.ts reste source Phaser/canvas.
+│   │   │   ├── team/            # Helpers data Team Builder côté renderer : team-builder-data.ts (agrégateur lang-aware), team-generator.ts, team-helpers.ts, team-builder-catalog.ts, asset-paths.ts, type-colors.ts
 │   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel, LanguageToggle, TeamSelectPanel, BattleLogPanel, BattleLogFormatter, WeatherHud)
+│   │   │   │                    # + ui/dom/ (composants DOM réutilisables : Modal.ts via <dialog showModal()> natif — focus trap/Esc/backdrop natifs, Dropdown.ts)
+│   │   │   │                    # + ui/team/ (composants Team Builder : SlotCardsRow, TeamEditPanel, TeamStatsPanel, SpSlider, StatBar, NatureDropdown, PokemonPickerModal, MovePickerModal, ItemPickerModal, ShowdownIoModal, DeleteConfirmModal, AbilityRadioGroup, TeamCard)
 │   │   │   ├── utils/           # Utilitaires renderer (screen-direction : getDirectionFromScreenPosition)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind — dont EnemyRange)
 │   │   │   ├── types/           # Types renderer (BattleConfig : confirmAttack)

@@ -1,0 +1,40 @@
+@layer base {
+  .tb-root,
+  .tb-dialog {
+    font-family: var(--font-family);
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-base);
+    color: var(--color-text-secondary);
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: grayscale;
+    font-smooth: never;
+  }
+
+  .tb-root input,
+  .tb-root select,
+  .tb-root button,
+  .tb-dialog input,
+  .tb-dialog select,
+  .tb-dialog button,
+  .tb-dialog textarea {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: var(--line-height-tight);
+  }
+
+  .tb-dialog {
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-surface);
+    color: var(--color-text-secondary);
+    max-width: 95vw;
+    max-height: 95vh;
+    overflow: hidden;
+  }
+
+  .tb-dialog::backdrop {
+    background: var(--color-backdrop);
+  }
+}

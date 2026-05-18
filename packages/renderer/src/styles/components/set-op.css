@@ -1,0 +1,37 @@
+@layer components {
+  .tb-set-op-wrapper {
+    position: relative;
+  }
+
+  .tb-set-op-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 240px;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xs);
+    margin-top: var(--spacing-xs);
+    z-index: var(--z-dropdown);
+    display: none;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    list-style: none;
+    &[data-state="open"] { display: flex; }
+  }
+
+  .tb-set-op-row {
+    padding: var(--pad-control-y) var(--pad-control-x);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    &:hover {
+      background: var(--color-bg-elevated-hover);
+      border-color: var(--color-btn-bg);
+    }
+    .name { color: var(--color-text-primary); }
+    .role { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+  }
+}

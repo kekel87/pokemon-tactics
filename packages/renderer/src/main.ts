@@ -11,9 +11,12 @@ import { MapPreviewScene } from "./scenes/MapPreviewScene";
 import { MapPreviewUIScene } from "./scenes/MapPreviewUIScene";
 import { MapSelectPreviewScene } from "./scenes/MapSelectPreviewScene";
 import { MapSelectScene } from "./scenes/MapSelectScene";
+import { MyTeamsScene } from "./scenes/MyTeamsScene";
 import { SettingsScene } from "./scenes/SettingsScene";
+import { TeamEditScene } from "./scenes/TeamEditScene";
 import { TeamSelectScene } from "./scenes/TeamSelectScene";
 import { initSettings } from "./settings";
+import "./styles/index.css";
 
 initLanguage();
 initSettings();
@@ -35,6 +38,8 @@ function getScenes(): Phaser.Types.Scenes.SceneType[] {
     MapSelectScene,
     MapSelectPreviewScene,
     TeamSelectScene,
+    MyTeamsScene,
+    TeamEditScene,
     BattleScene,
     BattleUIScene,
   ];

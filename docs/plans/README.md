@@ -95,4 +95,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 081 | [Team data model + validator + storage + Showdown io](./081-team-data-model-validator.md) | done | 2026-05-12 |
 | 082 | [OP sets curation + gap analysis](./082-op-sets-curation-gap-analysis.md) | done | 2026-05-12 |
 | 083 | [Content Batch F (gap-fill plan 082)](./083-content-batch-f-gap-fill.md) | done | 2026-05-12 |
-| 084 | [Système Météo](./084-weather-system.md) | draft | 2026-05-12 |
+| 084 | [Système Météo](./084-weather-system.md) | done | 2026-05-12 |
+| 085 | [Team Builder UI (MyTeamsScene + TeamEditScene)](./085-team-edit-scene.md) | done | 2026-05-17 |

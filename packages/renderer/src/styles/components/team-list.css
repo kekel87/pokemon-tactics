@@ -1,0 +1,77 @@
+@layer components {
+  .tb-my-teams-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    .tb-my-teams-header-title {
+      flex: 1;
+      margin: 0;
+      color: var(--color-accent);
+      font-size: var(--font-size-lg);
+    }
+  }
+
+  .tb-team-card {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    &:hover {
+      background: var(--color-bg-elevated-hover);
+      border-color: var(--color-btn-bg);
+    }
+    .tb-team-card-name {
+      flex: 1;
+      min-width: 160px;
+      color: var(--color-text-primary);
+    }
+    .tb-team-card-date {
+      color: var(--color-text-dim);
+      font-size: var(--font-size-xs);
+    }
+    .tb-team-card-portraits {
+      display: flex;
+      gap: var(--spacing-xs);
+      flex: 0 0 auto;
+    }
+    .tb-team-card-portrait {
+      width: 40px;
+      height: 40px;
+      background: var(--color-bg-surface);
+      border: 1px solid var(--color-border-surface);
+      border-radius: var(--radius-sm);
+      background-size: cover;
+      background-position: center;
+      image-rendering: pixelated;
+      &[data-empty="true"] {
+        border-style: dashed;
+        border-color: var(--color-btn-disabled-bg);
+      }
+    }
+    .tb-team-card-actions {
+      display: flex;
+      gap: var(--spacing-xs);
+    }
+  }
+
+  .tb-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: 48px var(--spacing-xl);
+    color: var(--color-text-dim);
+    text-align: center;
+    .tb-empty-state-title {
+      margin: 0;
+      color: var(--color-accent);
+      font-size: var(--font-size-lg);
+    }
+  }
+}

@@ -1,0 +1,16 @@
+@layer reset {
+  .tb-root,
+  .tb-dialog,
+  .tb-dialog::backdrop {
+    box-sizing: border-box;
+  }
+
+  .tb-root *,
+  .tb-root *::before,
+  .tb-root *::after,
+  .tb-dialog *,
+  .tb-dialog *::before,
+  .tb-dialog *::after {
+    box-sizing: border-box;
+  }
+}

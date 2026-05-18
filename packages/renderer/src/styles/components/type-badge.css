@@ -1,0 +1,51 @@
+@layer components {
+  .tb-type-badge,
+  .tb-filter-chip {
+    /* Mapping type -> bg + text color partagé entre badges et chips filtre. */
+    &[data-type="normal"] { background: var(--type-normal); color: var(--type-text-normal); }
+    &[data-type="fire"] { background: var(--type-fire); color: var(--type-text-fire); }
+    &[data-type="water"] { background: var(--type-water); color: var(--type-text-water); }
+    &[data-type="grass"] { background: var(--type-grass); color: var(--type-text-grass); }
+    &[data-type="electric"] { background: var(--type-electric); color: var(--type-text-electric); }
+    &[data-type="ice"] { background: var(--type-ice); color: var(--type-text-ice); }
+    &[data-type="fighting"] { background: var(--type-fighting); color: var(--type-text-fighting); }
+    &[data-type="poison"] { background: var(--type-poison); color: var(--type-text-poison); }
+    &[data-type="ground"] { background: var(--type-ground); color: var(--type-text-ground); }
+    &[data-type="flying"] { background: var(--type-flying); color: var(--type-text-flying); }
+    &[data-type="psychic"] { background: var(--type-psychic); color: var(--type-text-psychic); }
+    &[data-type="bug"] { background: var(--type-bug); color: var(--type-text-bug); }
+    &[data-type="rock"] { background: var(--type-rock); color: var(--type-text-rock); }
+    &[data-type="ghost"] { background: var(--type-ghost); color: var(--type-text-ghost); }
+    &[data-type="dragon"] { background: var(--type-dragon); color: var(--type-text-dragon); }
+    &[data-type="dark"] { background: var(--type-dark); color: var(--type-text-dark); }
+    &[data-type="steel"] { background: var(--type-steel); color: var(--type-text-steel); }
+    &[data-type="fairy"] { background: var(--type-fairy); color: var(--type-text-fairy); }
+  }
+
+  .tb-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    line-height: 1;
+    text-transform: capitalize;
+    white-space: nowrap;
+    background: var(--type-fallback);
+  }
+
+  .tb-type-icon {
+    width: 22px;
+    height: 22px;
+    image-rendering: pixelated;
+    flex: 0 0 auto;
+  }
+
+  .tb-category-icon {
+    width: 24px;
+    height: 20px;
+    image-rendering: pixelated;
+    flex: 0 0 auto;
+  }
+}

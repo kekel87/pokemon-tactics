@@ -1,0 +1,162 @@
+/* Design tokens — primitives + sémantiques.
+ * Conventions: .claude/rules/css.md
+ * Source canon couleurs DOM. Phaser/canvas → packages/renderer/src/constants.ts.
+ */
+
+:root {
+  /* Palette — couleurs neutres (réutilisables, multiples sémantiques) */
+  --blue-950: #111122;
+  --blue-900: #14142a;
+  --blue-850: #1a1a2e;
+  --blue-800: #1c1c34;
+  --blue-700: #2a2a45;
+  --blue-600: #335577;
+  --blue-500: #446688;
+  --yellow-400: #ffdd44;
+  --green-700: #225522;
+  --green-600: #44aa44;
+  --green-500: #44dd44;
+  --red-800: #443333;
+  --red-700: #775555;
+  --red-400: #ff6666;
+  --gray-100: #ffffff;
+  --gray-200: #ddd;
+  --gray-300: #ccc;
+  --gray-400: #aaa;
+  --gray-500: #888;
+  --gray-600: #666;
+  --gray-700: #444;
+  --gray-800: #333344;
+
+  /* Couleurs types Pokemon (alignées sur pixel dominant des icons assets/ui/types/*.png). */
+  --type-normal: #98a098;
+  --type-fire: #e02828;
+  --type-water: #2880e8;
+  --type-grass: #38a028;
+  --type-electric: #f8c000;
+  --type-ice: #38d8f8;
+  --type-fighting: #f88000;
+  --type-poison: #9040c8;
+  --type-ground: #905020;
+  --type-flying: #80b8e8;
+  --type-psychic: #e84078;
+  --type-bug: #90a018;
+  --type-rock: #a8a880;
+  --type-ghost: #704070;
+  --type-dragon: #5060e0;
+  --type-dark: #504038;
+  --type-steel: #60a0b8;
+  --type-fairy: #e870e8;
+  --type-fallback: var(--gray-700);
+
+  /* Texte par type — clair par défaut, foncé sur backgrounds clairs (WCAG AA) */
+  --type-text-normal: var(--color-text-primary);
+  --type-text-fire: var(--color-text-primary);
+  --type-text-water: var(--color-text-primary);
+  --type-text-grass: var(--color-text-primary);
+  --type-text-electric: var(--color-text-dark);
+  --type-text-ice: var(--color-text-dark);
+  --type-text-fighting: var(--color-text-dark);
+  --type-text-poison: var(--color-text-primary);
+  --type-text-ground: var(--color-text-primary);
+  --type-text-flying: var(--color-text-dark);
+  --type-text-psychic: var(--color-text-primary);
+  --type-text-bug: var(--color-text-dark);
+  --type-text-rock: var(--color-text-dark);
+  --type-text-ghost: var(--color-text-primary);
+  --type-text-dragon: var(--color-text-primary);
+  --type-text-dark: var(--color-text-primary);
+  --type-text-steel: var(--color-text-primary);
+  --type-text-fairy: var(--color-text-dark);
+
+  /* Sémantiques — fond / texte / accent */
+  --color-bg-base: var(--blue-850);
+  --color-bg-surface: var(--blue-950);
+  --color-bg-elevated: var(--blue-900);
+  --color-bg-elevated-hover: var(--blue-800);
+  --color-border-surface: var(--blue-700);
+  --color-accent: var(--yellow-400);
+  --color-text-primary: var(--gray-100);
+  --color-text-secondary: var(--gray-200);
+  --color-text-muted: var(--gray-400);
+  --color-text-dim: var(--gray-500);
+  --color-text-faint: var(--gray-600);
+  --color-text-dark: #222;
+  --color-backdrop: rgb(0 0 0 / 0.7);
+
+  /* Sémantiques — boutons */
+  --color-btn-bg: var(--blue-600);
+  --color-btn-border: color-mix(in srgb, var(--blue-600) 70%, white);
+  --color-btn-hover: var(--blue-500);
+  --color-btn-disabled-bg: var(--gray-800);
+  --color-btn-disabled-border: color-mix(in srgb, var(--gray-800) 80%, white);
+  --color-btn-disabled-text: var(--gray-600);
+  --color-btn-primary-bg: var(--green-700);
+  --color-btn-primary-border: var(--green-600);
+  --color-btn-danger-bg: var(--red-800);
+  --color-btn-danger-border: var(--red-700);
+  --color-btn-ghost-hover: color-mix(in srgb, var(--blue-900) 85%, white);
+
+  /* Sémantiques — stats (couleurs Bulbapedia, valeurs uniques) */
+  --color-stat-hp: #ee4444;
+  --color-stat-attack: #f0a020;
+  --color-stat-defense: #f0d040;
+  --color-stat-sp-attack: #6488ee;
+  --color-stat-sp-defense: #44aa88;
+  --color-stat-speed: #ee66cc;
+  --color-stat-default: #5577dd;
+
+  /* Sémantiques — feedback (erreur / warning, valeurs uniques) */
+  --color-feedback-error-bg: #2a1414;
+  --color-feedback-error-border: #aa4444;
+  --color-feedback-error-text: #ff8888;
+  --color-feedback-warn-bg: #2a2614;
+  --color-feedback-warn-border: #aa9944;
+  --color-feedback-warn-text: #ffdd88;
+
+  /* Typographie */
+  --font-family: "PokemonEmeraldPro", monospace;
+  --font-family-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-size-xs: 16px;
+  --font-size-sm: 18px;
+  --font-size-md: 22px;
+  --font-size-lg: 28px;
+  --line-height-tight: 1;
+  --line-height-base: 1.3;
+
+  /* Espacement */
+  --spacing-xs: 4px;
+  --spacing-sm: 6px;
+  --spacing-md: 8px;
+  --spacing-lg: 12px;
+  --spacing-xl: 16px;
+
+  /* Padding interactifs — calibré pour cible WCAG 24px minimum, viser 44px sur boutons principaux */
+  --pad-control-y: 8px;
+  --pad-control-x: 14px;
+  --pad-icon-btn: 6px;
+  --pad-chip-y: 6px;
+  --pad-chip-x: 14px;
+
+  /* Tailles cibles tactiles */
+  --target-min: 24px;
+  --target-recommended: 44px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-pill: 16px;
+
+  /* Z-index */
+  --z-overlay: 100;
+  --z-dropdown: 150;
+
+  /* Modales */
+  --modal-width-default: min(80vw, 960px);
+  --modal-width-picker: min(85vw, 1200px);
+  --modal-height-picker: 80vh;
+
+  /* Durées animation */
+  --duration-fast: 0.15s;
+  --duration-base: 0.3s;
+}

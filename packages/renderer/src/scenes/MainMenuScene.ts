@@ -43,8 +43,9 @@ export class MainMenuScene extends Phaser.Scene {
 
     this.createMenuButton(0, "menu.adventure");
     this.createMenuButton(1, "menu.battle", () => this.scene.start("BattleModeScene"));
-    this.createMenuButton(2, "menu.settings", () => this.scene.start("SettingsScene"));
-    this.createMenuButton(3, "menu.credits", () => this.scene.start("CreditsScene"));
+    this.createMenuButton(2, "menu.teamBuilder", () => this.scene.start("MyTeamsScene"));
+    this.createMenuButton(3, "menu.settings", () => this.scene.start("SettingsScene"));
+    this.createMenuButton(4, "menu.credits", () => this.scene.start("CreditsScene"));
 
     this.add
       .text(20, CANVAS_HEIGHT - 24, VERSION_TEXT, {
