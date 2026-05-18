@@ -261,6 +261,7 @@ Tie à Babylon : éditeur et props terrain repensés pour renderer 3D.
 > But : confort et qualité visuelle
 
 - [ ] UI revamps
+- [ ] **Biome HTML/CSS + refactor vanilla** — Biome v2.4 (fev 2026) gère HTML formatter + 15 lint rules a11y + CSS formatter. Étendre `biome.json` : `files.includes` += `**/*.{css,html}`, activer `linter.rules.a11y.recommended: true`. Refactor `packages/renderer/src/styles/team-builder.css` selon `.claude/rules/css.md` : variables CSS dans `:root` (couleurs, spacing, radius, z-index), `@layer reset, base, components, utilities`, imbrication native 2 niveaux max, `data-*` pour états JS, dédup `.tb-input-clickable` + font dupliquée. Cible : zéro hex inline. Refactor `packages/renderer/src/ui/dom/Modal.ts` → `<dialog showModal()>` natif (focus trap, `::backdrop`, Esc gratuits) + `aria-label` close + `<h2>` titre. Refactor `ui/team/TeamCard.ts` + `ui/team/EditLeftPanel.ts` : retirer tous `el.style.X = …` (interdit par rules), passer par classes CSS. Helper `createElement` typé partagé. `AbortController` cleanup listeners. Optionnel : audit Axe + Lighthouse Team Builder. Optionnel : `stylelint-plugin-use-baseline` si Biome CSS lint trop limité pour bloquer features non-universelles.
 - [ ] Son / Musique
 - [ ] Décors sur les maps
 - [ ] Tooltips type chart (efficacités au hover)
