@@ -97,3 +97,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 083 | [Content Batch F (gap-fill plan 082)](./083-content-batch-f-gap-fill.md) | done | 2026-05-12 |
 | 084 | [Système Météo](./084-weather-system.md) | done | 2026-05-12 |
 | 085 | [Team Builder UI (MyTeamsScene + TeamEditScene)](./085-team-edit-scene.md) | done | 2026-05-17 |
+| 086 | [Refonte TeamSelectScene (équipes saved + sous-pick format)](./086-team-select-refonte.md) | done | 2026-05-18 |

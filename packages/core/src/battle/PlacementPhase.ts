@@ -13,8 +13,11 @@ export const PlacementError = {
   PositionOutOfZone: "position_out_of_zone",
   PositionOccupied: "position_occupied",
   PokemonAlreadyPlaced: "pokemon_already_placed",
+  PokemonNotPlaced: "pokemon_not_placed",
   WrongPlayer: "wrong_player",
   PlacementComplete: "placement_complete",
+  PlayerAlreadyDone: "player_already_done",
+  PlayerCannotFinishYet: "player_cannot_finish_yet",
 } as const;
 
 export type PlacementError = (typeof PlacementError)[keyof typeof PlacementError];
@@ -29,10 +32,12 @@ export class PlacementPhase {
   private readonly placedPokemonIds = new Set<string>();
   private readonly occupiedPositionKeys = new Set<string>();
   private readonly turnQueue: PlayerId[];
-  private readonly pokemonByPlayer: Map<string, string[]>;
+  private readonly availableByPlayer: Map<string, readonly string[]>;
+  private readonly placedByPlayer: Map<string, string[]>;
   private readonly zonesByPlayer: Map<string, Set<string>>;
+  private readonly ownerByPokemonId: Map<string, PlayerId>;
+  private readonly donePlayers = new Set<PlayerId>();
   private readonly random: () => number;
-  private turnIndex = 0;
 
   constructor(
     _mapDefinition: MapDefinition,
@@ -44,18 +49,27 @@ export class PlacementPhase {
     this.random = randomSeed == null ? Math.random : createPrng(randomSeed);
     this.turnQueue = this.buildTurnQueue();
     this.zonesByPlayer = this.buildZonesByPlayer();
-    this.pokemonByPlayer = new Map(teams.map((team) => [team.playerId, [...team.pokemonIds]]));
+    this.availableByPlayer = new Map(
+      teams.map((team) => [team.playerId, [...team.availablePokemonIds]]),
+    );
+    this.placedByPlayer = new Map(teams.map((team) => [team.playerId, []]));
+    this.ownerByPokemonId = new Map();
+    for (const team of teams) {
+      for (const pokemonId of team.availablePokemonIds) {
+        this.ownerByPokemonId.set(pokemonId, team.playerId);
+      }
+    }
   }
 
   private buildTurnQueue(): PlayerId[] {
-    const maxTeamSize = Math.max(...this.teams.map((team) => team.pokemonIds.length));
+    const maxPerTeam = this.format.maxPokemonPerTeam;
     const queue: PlayerId[] = [];
 
-    for (let round = 0; round < maxTeamSize; round++) {
+    for (let round = 0; round < maxPerTeam; round++) {
       const teamsInOrder = round % 2 === 0 ? this.teams : [...this.teams].reverse();
 
       for (const team of teamsInOrder) {
-        if (round < team.pokemonIds.length) {
+        if (team.availablePokemonIds.length > 0) {
           queue.push(team.playerId);
         }
       }
@@ -82,11 +96,37 @@ export class PlacementPhase {
     return map;
   }
 
+  private computeTurnIndex(): number {
+    const consumed = new Map<PlayerId, number>();
+    let i = 0;
+    while (i < this.turnQueue.length) {
+      const playerId = this.turnQueue[i];
+      if (!playerId) {
+        i++;
+        continue;
+      }
+      if (this.donePlayers.has(playerId)) {
+        i++;
+        continue;
+      }
+      const placed = this.placedByPlayer.get(playerId)?.length ?? 0;
+      const used = consumed.get(playerId) ?? 0;
+      if (used < placed) {
+        consumed.set(playerId, used + 1);
+        i++;
+        continue;
+      }
+      break;
+    }
+    return i;
+  }
+
   getNextToPlace(): { playerId: PlayerId } | null {
-    if (this.turnIndex >= this.turnQueue.length) {
+    const index = this.computeTurnIndex();
+    if (index >= this.turnQueue.length) {
       return null;
     }
-    const playerId = this.turnQueue[this.turnIndex];
+    const playerId = this.turnQueue[index];
     if (!playerId) {
       return null;
     }
@@ -94,12 +134,54 @@ export class PlacementPhase {
   }
 
   getUnplacedPokemonIds(playerId: PlayerId): string[] {
-    const allIds = this.pokemonByPlayer.get(playerId) ?? [];
+    const allIds = this.availableByPlayer.get(playerId) ?? [];
     return allIds.filter((id) => !this.placedPokemonIds.has(id));
   }
 
+  getPlacedPokemonIds(playerId: PlayerId): readonly string[] {
+    return this.placedByPlayer.get(playerId) ?? [];
+  }
+
+  isPlayerDone(playerId: PlayerId): boolean {
+    if (this.donePlayers.has(playerId)) {
+      return true;
+    }
+    const placed = this.placedByPlayer.get(playerId) ?? [];
+    return placed.length >= this.format.maxPokemonPerTeam;
+  }
+
+  canFinishPlayer(playerId: PlayerId): boolean {
+    if (this.donePlayers.has(playerId)) {
+      return false;
+    }
+    const placed = this.placedByPlayer.get(playerId) ?? [];
+    return placed.length >= 1;
+  }
+
+  finishPlayer(playerId: PlayerId): PlacementResult {
+    if (this.donePlayers.has(playerId)) {
+      return { success: false, error: PlacementError.PlayerAlreadyDone };
+    }
+    if (!this.canFinishPlayer(playerId)) {
+      return { success: false, error: PlacementError.PlayerCannotFinishYet };
+    }
+    this.donePlayers.add(playerId);
+    return { success: true };
+  }
+
   isComplete(): boolean {
-    return this.turnIndex >= this.turnQueue.length;
+    for (const team of this.teams) {
+      const placed = this.placedByPlayer.get(team.playerId) ?? [];
+      const atCap = placed.length >= this.format.maxPokemonPerTeam;
+      const done = this.donePlayers.has(team.playerId);
+      if (!atCap && !done) {
+        return false;
+      }
+      if (placed.length === 0) {
+        return false;
+      }
+    }
+    return true;
   }
 
   getPlacements(): PlacementEntry[] {
@@ -111,16 +193,12 @@ export class PlacementPhase {
   }
 
   submitPlacement(pokemonId: string, position: Position, direction: Direction): PlacementResult {
-    if (this.isComplete()) {
-      return { success: false, error: PlacementError.PlacementComplete };
-    }
-
     const next = this.getNextToPlace();
     if (!next) {
       return { success: false, error: PlacementError.PlacementComplete };
     }
 
-    const playerPokemon = this.pokemonByPlayer.get(next.playerId) ?? [];
+    const playerPokemon = this.availableByPlayer.get(next.playerId) ?? [];
     if (!playerPokemon.includes(pokemonId)) {
       return { success: false, error: PlacementError.WrongPlayer };
     }
@@ -128,6 +206,8 @@ export class PlacementPhase {
     if (this.placedPokemonIds.has(pokemonId)) {
       return { success: false, error: PlacementError.PokemonAlreadyPlaced };
     }
+
+    const placedForPlayer = this.placedByPlayer.get(next.playerId) ?? [];
 
     const positionKey = `${position.x},${position.y}`;
     const playerZone = this.zonesByPlayer.get(next.playerId);
@@ -142,13 +222,42 @@ export class PlacementPhase {
     this.placements.push({ pokemonId, position, direction });
     this.placedPokemonIds.add(pokemonId);
     this.occupiedPositionKeys.add(positionKey);
-    this.turnIndex++;
+    placedForPlayer.push(pokemonId);
 
     return { success: true };
   }
 
+  removePlacement(pokemonId: string): PlacementResult {
+    if (!this.placedPokemonIds.has(pokemonId)) {
+      return { success: false, error: PlacementError.PokemonNotPlaced };
+    }
+    const index = this.placements.findIndex((entry) => entry.pokemonId === pokemonId);
+    if (index < 0) {
+      return { success: false, error: PlacementError.PokemonNotPlaced };
+    }
+    const entry = this.placements[index];
+    if (!entry) {
+      return { success: false, error: PlacementError.PokemonNotPlaced };
+    }
+    this.placements.splice(index, 1);
+    this.placedPokemonIds.delete(pokemonId);
+    this.occupiedPositionKeys.delete(`${entry.position.x},${entry.position.y}`);
+    const ownerId = this.ownerByPokemonId.get(pokemonId);
+    if (ownerId) {
+      const list = this.placedByPlayer.get(ownerId);
+      if (list) {
+        const inListIdx = list.indexOf(pokemonId);
+        if (inListIdx >= 0) {
+          list.splice(inListIdx, 1);
+        }
+      }
+      this.donePlayers.delete(ownerId);
+    }
+    return { success: true };
+  }
+
   undoLastPlacement(): boolean {
-    if (this.placements.length === 0 || this.turnIndex === 0) {
+    if (this.placements.length === 0) {
       return false;
     }
 
@@ -159,7 +268,17 @@ export class PlacementPhase {
 
     this.placedPokemonIds.delete(last.pokemonId);
     this.occupiedPositionKeys.delete(`${last.position.x},${last.position.y}`);
-    this.turnIndex--;
+    const ownerId = this.ownerByPokemonId.get(last.pokemonId);
+    if (ownerId) {
+      const list = this.placedByPlayer.get(ownerId);
+      if (list) {
+        const inListIdx = list.indexOf(last.pokemonId);
+        if (inListIdx >= 0) {
+          list.splice(inListIdx, 1);
+        }
+      }
+      this.donePlayers.delete(ownerId);
+    }
 
     return true;
   }
@@ -173,16 +292,27 @@ export class PlacementPhase {
       const unplaced = this.getUnplacedPokemonIds(next.playerId);
       const firstUnplaced = unplaced[0];
       if (!firstUnplaced) {
+        if (this.canFinishPlayer(next.playerId)) {
+          this.finishPlayer(next.playerId);
+          continue;
+        }
         break;
       }
-      this.autoPlaceOne(next.playerId, firstUnplaced, gridCenter);
+      const entry = this.autoPlaceOne(next.playerId, firstUnplaced, gridCenter);
+      if (!entry) {
+        if (this.canFinishPlayer(next.playerId)) {
+          this.finishPlayer(next.playerId);
+          continue;
+        }
+        break;
+      }
     }
     return this.getPlacements();
   }
 
   autoPlaceForPlayer(playerId: PlayerId, gridCenter: Position): PlacementEntry[] {
     const placed: PlacementEntry[] = [];
-    while (!this.isComplete()) {
+    while (!this.isPlayerDone(playerId)) {
       const next = this.getNextToPlace();
       if (!next || next.playerId !== playerId) {
         break;
@@ -195,6 +325,8 @@ export class PlacementPhase {
       const entry = this.autoPlaceOne(playerId, firstUnplaced, gridCenter);
       if (entry) {
         placed.push(entry);
+      } else {
+        break;
       }
     }
     return placed;

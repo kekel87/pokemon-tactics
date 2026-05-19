@@ -51,7 +51,7 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
     const teams: PlacementTeam[] = [
       {
         playerId: PlayerId.Player1,
-        pokemonIds: [
+        availablePokemonIds: [
           "p1-venusaur",
           "p1-blastoise",
           "p1-raichu",
@@ -63,7 +63,7 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
       },
       {
         playerId: PlayerId.Player2,
-        pokemonIds: [
+        availablePokemonIds: [
           "p2-charizard",
           "p2-gyarados",
           "p2-dragonite",
@@ -95,7 +95,7 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
       if (!definition) {
         throw new Error(`Unknown pokemon: ${definitionId}`);
       }
-      const team = teams.find((t) => t.pokemonIds.includes(placement.pokemonId));
+      const team = teams.find((t) => t.availablePokemonIds.includes(placement.pokemonId));
       if (!team) {
         throw new Error(`No team for: ${placement.pokemonId}`);
       }

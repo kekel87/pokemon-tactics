@@ -6,6 +6,10 @@ import {
   FONT_FAMILY,
   getTeamColorByPlayerId,
   INFO_PANEL_CORNER_RADIUS,
+  PLACEMENT_FINISH_BUTTON_BG,
+  PLACEMENT_FINISH_BUTTON_BORDER,
+  PLACEMENT_FINISH_BUTTON_HEIGHT,
+  PLACEMENT_FINISH_BUTTON_WIDTH,
   PLACEMENT_PANEL_ALPHA,
   PLACEMENT_PANEL_HEIGHT,
   PLACEMENT_PANEL_Y,
@@ -24,13 +28,20 @@ interface RosterEntry {
   placed: boolean;
 }
 
+export interface PlacementRosterCallbacks {
+  onSelect: (pokemonId: string) => void;
+  onFinish?: () => void;
+}
+
 export class PlacementRosterPanel {
   private readonly scene: Phaser.Scene;
   private readonly container: Phaser.GameObjects.Container;
   private readonly background: Phaser.GameObjects.Graphics;
   private readonly turnText: Phaser.GameObjects.Text;
   private readonly portraitContainers: Phaser.GameObjects.Container[] = [];
+  private readonly finishButton: Phaser.GameObjects.Container;
   private onSelectCallback: ((pokemonId: string) => void) | null = null;
+  private onFinishCallback: (() => void) | null = null;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -44,7 +55,14 @@ export class PlacementRosterPanel {
     });
     this.turnText.setOrigin(0.5, 0);
 
-    this.container = scene.add.container(0, PLACEMENT_PANEL_Y, [this.background, this.turnText]);
+    this.finishButton = this.buildFinishButton();
+    this.finishButton.setVisible(false);
+
+    this.container = scene.add.container(0, PLACEMENT_PANEL_Y, [
+      this.background,
+      this.turnText,
+      this.finishButton,
+    ]);
     this.container.setDepth(DEPTH_INFO_PANEL);
     this.container.setScrollFactor(0);
     this.container.setVisible(false);
@@ -54,9 +72,10 @@ export class PlacementRosterPanel {
     playerId: PlayerId,
     roster: RosterEntry[],
     selectedPokemonId: string | null,
-    onSelect: (pokemonId: string) => void,
+    callbacks: PlacementRosterCallbacks,
   ): void {
-    this.onSelectCallback = onSelect;
+    this.onSelectCallback = callbacks.onSelect;
+    this.onFinishCallback = callbacks.onFinish ?? null;
     this.container.setVisible(true);
 
     const teamColor = getTeamColorByPlayerId(playerId);
@@ -94,11 +113,15 @@ export class PlacementRosterPanel {
       this.portraitContainers.push(portraitContainer);
       this.container.add(portraitContainer);
     }
+
+    this.finishButton.setVisible(this.onFinishCallback !== null);
   }
 
   hide(): void {
     this.container.setVisible(false);
     this.clearPortraits();
+    this.finishButton.setVisible(false);
+    this.onFinishCallback = null;
   }
 
   destroy(): void {
@@ -144,7 +167,7 @@ export class PlacementRosterPanel {
     }
 
     if (entry.placed) {
-      const checkmark = this.scene.add.text(0, 0, "\u2713", {
+      const checkmark = this.scene.add.text(0, 0, "✓", {
         fontSize: "24px",
         color: "#44cc44",
         fontFamily: FONT_FAMILY,
@@ -201,5 +224,29 @@ export class PlacementRosterPanel {
       container.destroy();
     }
     this.portraitContainers.length = 0;
+  }
+
+  private buildFinishButton(): Phaser.GameObjects.Container {
+    const width = PLACEMENT_FINISH_BUTTON_WIDTH;
+    const height = PLACEMENT_FINISH_BUTTON_HEIGHT;
+    const container = this.scene.add.container(CANVAS_WIDTH - width - 20, 10);
+    const bg = this.scene.add.graphics();
+    bg.fillStyle(PLACEMENT_FINISH_BUTTON_BG, 0.95);
+    bg.fillRoundedRect(0, 0, width, height, 6);
+    bg.lineStyle(2, PLACEMENT_FINISH_BUTTON_BORDER, 1);
+    bg.strokeRoundedRect(0, 0, width, height, 6);
+    container.add(bg);
+    const label = this.scene.add.text(width / 2, height / 2 + 1, t("placement.done"), {
+      fontSize: "18px",
+      color: "#ffffff",
+      fontFamily: FONT_FAMILY,
+    });
+    label.setOrigin(0.5, 0.5);
+    container.add(label);
+    const hit = this.scene.add.zone(0, 0, width, height).setOrigin(0, 0);
+    hit.setInteractive({ useHandCursor: true });
+    hit.on("pointerdown", () => this.onFinishCallback?.());
+    container.add(hit);
+    return container;
   }
 }

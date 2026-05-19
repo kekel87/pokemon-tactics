@@ -130,12 +130,12 @@ export function createSandboxBattle(
   const teams: PlacementTeam[] = [
     {
       playerId: PlayerId.Player1,
-      pokemonIds: [playerPokemonId],
+      availablePokemonIds: [playerPokemonId],
       controller: PlayerController.Human,
     },
     {
       playerId: PlayerId.Player2,
-      pokemonIds: [dummyPokemonId],
+      availablePokemonIds: [dummyPokemonId],
       controller: PlayerController.Ai,
     },
   ];

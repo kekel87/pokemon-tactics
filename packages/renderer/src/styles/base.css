@@ -1,6 +1,7 @@
 @layer base {
   .tb-root,
-  .tb-dialog {
+  .tb-dialog,
+  .ts-root {
     font-family: var(--font-family);
     font-size: var(--font-size-md);
     line-height: var(--line-height-base);
@@ -16,7 +17,11 @@
   .tb-dialog input,
   .tb-dialog select,
   .tb-dialog button,
-  .tb-dialog textarea {
+  .tb-dialog textarea,
+  .ts-root input,
+  .ts-root select,
+  .ts-root button,
+  .ts-root textarea {
     font-family: inherit;
     font-size: inherit;
     line-height: var(--line-height-tight);

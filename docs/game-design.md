@@ -52,20 +52,22 @@ Combat tactique sur grille isométrique :
 
 - **Grille de portraits** : 5×4, portraits 82px — 20 Pokemon du roster
 - **Sélecteur d'équipes** : bouton cyclique (2→3→4→6→12→2). `maxPokemonPerTeam` = 12 / teamCount
-- **Layout dynamique** : encadrés d'équipe en 2 colonnes. Impair → colonne gauche +1 équipe.
+- **Layout 3 colonnes** : PlayersColumn gauche + TeamList vertical central + PlayersColumn droite (seulement si N > 6, plan 086).
 - **Encadrés d'équipe** : couleur `TEAM_COLORS[index]` — 12 couleurs distinctes (décision #202-204)
-- **Sélection** : clic portrait → ajouté à l'équipe active (max `maxPokemonPerTeam`, 1 exemplaire/espèce/équipe). Mirror match autorisé entre équipes (décision #184)
-- **Toggle Humain/IA** : IA vs IA possible sur toutes les équipes (décision #185)
-- **Bouton Auto** : randomize toute l'équipe
-- **Bouton Vider** : réinitialise à 0 Pokemon
-- **Bouton Remplir IA** : remplit toutes équipes manquantes avec IA aléatoires
-- **Bouton Valider** : valide via `validateTeamSelection()`, affiche erreurs i18n si invalide
+- **Sélection** : liste centrale des équipes saved (localStorage) + ligne "🎲 Aléatoire" en bas. Clic ligne → assignée au joueur actif, badge `[Ji]` ajouté, joueur actif avance. Mirror autorisé (plusieurs joueurs même teamId). Décisions #326-332.
+- **AI default = équipe Aléatoire ephémère** (re-roll à création colonne, plan 086 décision #330).
+- **Toggle Humain/IA** : IA vs IA possible sur toutes les équipes (décision #185). Switch → reset assignment + re-roll random si AI.
+- **Bouton "Remplir IA aléatoire"** : bulk re-roll toutes colonnes AI (plan 086).
+- **Pas d'édition d'équipe** depuis cette scène : empty state → CTA "Crée depuis le menu principal → Constructeur d'équipe" (plan 086 décision #326).
+- **Format picker (dropdown)** : sélection format `{teamCount}v{maxPokemonPerTeam}` (ex: `2v6`, `3v4`). Change format → reset slots.
+- **Sous-pick au placement** (plan 086) : chaque joueur place 1..maxPokemonPerTeam mons depuis ses 6 disponibles. Bouton "Done" (`PlacementRosterPanel`) actif si placedCount ≥ 1. Décision #328.
 - **Toggle Placement auto / manuel** : contrôle `PlacementMode`. **Auto activé par défaut** (depuis plan 054).
 - **Toggle CT / Round-Robin** : `BattleConfig.turnSystem`. **CT activé par défaut** (depuis plan 054).
 - **Noms Pokemon** : FR ou EN selon langue active (`@pokemon-tactic/data`)
+- **Persistance last-selection** : `localStorage` clé `pt:team-select:last-v1` mémorise teamId par slot humain.
 - **Bypass sandbox** : `VITE_SANDBOX` court-circuite `TeamSelectScene` entièrement
 
-**Flow :** `TeamSelectScene` → `BattleScene` (placement) → Combat → Victoire (Rejouer ou Retour menu)
+**Flow :** `MapSelectScene → TeamSelectScene → BattleScene (PlacementPhase sous-pick) → Combat → Victoire`
 
 ---
 

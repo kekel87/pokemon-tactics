@@ -1,52 +1,30 @@
 import {
+  type MapFormat,
   PlayerController,
   PlayerId,
-  type PokemonDefinition,
   type TeamSelection,
+  type TeamSet,
   TurnSystemKind,
-  validateTeamSelection,
 } from "@pokemon-tactic/core";
-import { loadData } from "@pokemon-tactic/data";
-import {
-  BACKGROUND_COLOR,
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-  FONT_FAMILY,
-  TEAM_COLORS,
-} from "../constants";
+import { TEAM_COLORS } from "../constants";
 import { t } from "../i18n";
 import type { TranslationKey } from "../i18n/types";
+import { loadTiledMap } from "../maps/load-tiled-map";
 import { sandboxBootConfig } from "../sandbox-boot";
-import { preloadPortraitsOnly } from "../sprites/SpriteLoader";
-
-const ALLOWED_TEAM_COUNTS = [2, 3, 4, 6, 12] as const;
-const MAX_TOTAL_POKEMON = 12;
-
-const TITLE_Y = 30;
-const GRID_TOP_Y = 70;
-const GRID_COLS = 7;
-const GRID_CELL_SIZE = 82;
-const GRID_CELL_GAP = 6;
-const GRID_PORTRAIT_SIZE = 56;
-
-const COLUMN_WIDTH = 180;
-const COMPACT_COLUMN_WIDTH = 290;
-const COLUMN_LEFT_X = 30;
-const COLUMN_RIGHT_X = CANVAS_WIDTH - COLUMN_WIDTH - 30;
-const COMPACT_COLUMN_RIGHT_X = CANVAS_WIDTH - COMPACT_COLUMN_WIDTH - 20;
-const COLUMN_TOP_Y = 80;
-const SLOT_SIZE = 40;
-const SLOT_GAP = 6;
-
-const BUTTON_GAP = 4;
-const BUTTON_HEIGHT = 24;
-const COMPACT_BUTTON_SIZE = 22;
-
-const COLUMN_PADDING = 8;
-
-const LAUNCH_BUTTON_Y = CANVAS_HEIGHT - 50;
-const LAUNCH_BUTTON_WIDTH = 200;
-const LAUNCH_BUTTON_HEIGHT = 36;
+import { loadLastSelection, saveLastSelectionEntry } from "../team/last-selection";
+import { refreshAllAiSlots } from "../team/refresh-ai-teams";
+import { generateRandomTeam } from "../team/team-generator";
+import { listTeams, loadTeam } from "../team/team-storage";
+import {
+  buildFormatKey,
+  createFormatPickerElement,
+  type FormatOption,
+} from "../ui/team-select/FormatPicker";
+import {
+  createPlayersColumnElement,
+  type PlayerColumnEntry,
+} from "../ui/team-select/PlayersColumn";
+import { createTeamListElement, type TeamListEntry } from "../ui/team-select/TeamList";
 
 const PLAYER_IDS: PlayerId[] = [
   PlayerId.Player1,
@@ -63,10 +41,13 @@ const PLAYER_IDS: PlayerId[] = [
   PlayerId.Player12,
 ];
 
-interface PlayerColumnState {
+const DEFAULT_MAP_URL = "assets/maps/simple-arena.tmj";
+
+interface SlotState {
   controller: PlayerController;
-  selectedIds: string[];
-  validated: boolean;
+  assignedTeam: TeamSet | null;
+  assignedTeamId: string | null;
+  ephemeral: boolean;
 }
 
 export interface TeamSelectResult {
@@ -74,30 +55,37 @@ export interface TeamSelectResult {
   autoPlacement: boolean;
   turnSystemKind: TurnSystemKind;
   mapUrl: string;
+  formatKey: string;
 }
 
-const DEFAULT_MAP_URL = "assets/maps/simple-arena.tmj";
+function teamColorToHex(index: number): string {
+  const value = TEAM_COLORS[index] ?? 0x2255aa;
+  return `#${value.toString(16).padStart(6, "0")}`;
+}
+
+function playerLabel(slotIndex: number): string {
+  const key = `teamSelect.player${slotIndex + 1}` as TranslationKey;
+  return t(key);
+}
+
+function playerShortLabel(slotIndex: number): string {
+  return `J${slotIndex + 1}`;
+}
+
+function ephemeralTeamName(): string {
+  return t("teamSelect.teams.random");
+}
 
 export class TeamSelectScene extends Phaser.Scene {
-  private pokemonDefinitions: PokemonDefinition[] = [];
-  private allDefinitionIds: string[] = [];
-
-  private teamCount = 2;
-  private playerStates: PlayerColumnState[] = [];
-  private activeColumnIndex = 0;
-
-  private dynamicContainer: Phaser.GameObjects.Container | null = null;
-  private gridContainer: Phaser.GameObjects.Container | null = null;
-  private launchBg: Phaser.GameObjects.Rectangle | null = null;
-  private launchText: Phaser.GameObjects.Text | null = null;
-  private autoPlacement = true;
-  private placementToggleBg: Phaser.GameObjects.Rectangle | null = null;
-  private placementToggleText: Phaser.GameObjects.Text | null = null;
-  private teamCountText: Phaser.GameObjects.Text | null = null;
-  private turnSystemKind: TurnSystemKind = TurnSystemKind.ChargeTime;
-  private turnSystemToggleBg: Phaser.GameObjects.Rectangle | null = null;
-  private turnSystemToggleText: Phaser.GameObjects.Text | null = null;
   private mapUrl: string = DEFAULT_MAP_URL;
+  private mapName: string = "";
+  private formatOptions: FormatOption[] = [];
+  private formatKey: string = "";
+  private slots: SlotState[] = [];
+  private activeSlotIndex = 0;
+  private autoPlacement = true;
+  private turnSystemKind: TurnSystemKind = TurnSystemKind.ChargeTime;
+  private root: HTMLDivElement | null = null;
 
   constructor() {
     super("TeamSelectScene");
@@ -107,16 +95,7 @@ export class TeamSelectScene extends Phaser.Scene {
     this.mapUrl = data.mapUrl ?? DEFAULT_MAP_URL;
   }
 
-  preload(): void {
-    const gameData = loadData();
-    this.pokemonDefinitions = gameData.pokemon
-      .filter((p) => p.id !== "dummy")
-      .sort((a, b) => (a.dexNumber ?? 0) - (b.dexNumber ?? 0));
-    this.allDefinitionIds = this.pokemonDefinitions.map((p) => p.id);
-    preloadPortraitsOnly(this, this.allDefinitionIds);
-  }
-
-  create(): void {
+  async create(): Promise<void> {
     if (sandboxBootConfig.enabled) {
       this.scene.start("BattleScene", {
         sandboxMode: true,
@@ -125,914 +104,393 @@ export class TeamSelectScene extends Phaser.Scene {
       return;
     }
 
-    this.cameras.main.setBackgroundColor(BACKGROUND_COLOR);
-
-    this.add
-      .text(CANVAS_WIDTH / 2, TITLE_Y, t("teamSelect.title"), {
-        fontSize: "40px",
-        fontFamily: FONT_FAMILY,
-        color: "#ffffff",
-      })
-      .setOrigin(0.5, 0);
-
-    this.initPlayerStates();
-    this.buildGrid();
-    this.buildBottomBar();
-    this.rebuildColumns();
-    this.refreshAll();
-  }
-
-  private get maxTeamSize(): number {
-    return Math.floor(MAX_TOTAL_POKEMON / this.teamCount);
-  }
-
-  private initPlayerStates(): void {
-    this.playerStates = [];
-    for (let i = 0; i < this.teamCount; i++) {
-      this.playerStates.push({
-        controller: i === 0 ? PlayerController.Human : PlayerController.Ai,
-        selectedIds: [],
-        validated: false,
-      });
+    const loaded = await loadTiledMap(this.mapUrl);
+    this.mapName = loaded.map.name;
+    this.formatOptions = loaded.map.formats.map((format) => ({
+      key: buildFormatKey(format),
+      format,
+      label: this.formatLabel(format),
+    }));
+    const firstOption = this.formatOptions[0];
+    if (!firstOption) {
+      throw new Error(`Map "${this.mapUrl}" has no formats`);
     }
+    this.formatKey = firstOption.key;
+    this.initSlots(firstOption.format);
+    this.mountRoot();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.unmountRoot());
   }
 
-  private getTeamColor(teamIndex: number): number {
-    return TEAM_COLORS[teamIndex] ?? 0xaaaaaa;
+  private formatLabel(format: MapFormat): string {
+    return `${format.teamCount}v${format.maxPokemonPerTeam}`;
   }
 
-  private getPlayerLabel(teamIndex: number): string {
-    const playerKey = `teamSelect.player${teamIndex + 1}` as TranslationKey;
-    return t(playerKey);
-  }
-
-  private getPokemonName(definitionId: string): string {
-    const key = `pokemon.${definitionId}` as TranslationKey;
-    const translated = t(key);
-    if (translated === key) {
-      const definition = this.pokemonDefinitions.find((p) => p.id === definitionId);
-      return definition?.name ?? definitionId;
+  private currentFormat(): MapFormat {
+    const option = this.formatOptions.find((o) => o.key === this.formatKey);
+    if (!option) {
+      throw new Error(`Unknown format key: ${this.formatKey}`);
     }
-    return translated;
+    return option.format;
   }
 
-  private rebuildColumns(): void {
-    if (this.dynamicContainer) {
-      this.dynamicContainer.destroy(true);
-    }
-    this.dynamicContainer = this.add.container(0, 0);
-
-    const leftTeams: number[] = [];
-    const rightTeams: number[] = [];
-    for (let i = 0; i < this.teamCount; i++) {
-      if (i % 2 === 0) {
-        leftTeams.push(i);
+  private initSlots(format: MapFormat): void {
+    const lastSelection = loadLastSelection();
+    this.slots = [];
+    for (let i = 0; i < format.teamCount; i++) {
+      const controller = i === 0 ? PlayerController.Human : PlayerController.Ai;
+      const slot: SlotState = {
+        controller,
+        assignedTeam: null,
+        assignedTeamId: null,
+        ephemeral: false,
+      };
+      if (controller === PlayerController.Ai) {
+        slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
+        slot.assignedTeamId = null;
+        slot.ephemeral = true;
       } else {
-        rightTeams.push(i);
+        const lastId = lastSelection[i];
+        if (lastId !== undefined) {
+          const team = loadTeam(lastId);
+          if (team !== null) {
+            slot.assignedTeam = team;
+            slot.assignedTeamId = lastId;
+            slot.ephemeral = false;
+          }
+        }
       }
+      this.slots.push(slot);
     }
-
-    this.buildColumnStack(leftTeams, COLUMN_LEFT_X);
-    this.buildColumnStack(rightTeams, COLUMN_RIGHT_X);
+    this.activeSlotIndex = 0;
   }
 
-  private get useCompactLayout(): boolean {
-    return this.maxTeamSize <= 2;
+  private mountRoot(): void {
+    this.unmountRoot();
+    const root = document.createElement("div");
+    root.className = "ts-root";
+    root.dataset.scene = "TeamSelectScene";
+    document.body.appendChild(root);
+    this.root = root;
+    this.render();
   }
 
-  private buildColumnStack(teamIndices: number[], columnX: number): void {
-    if (teamIndices.length === 0) {
+  private unmountRoot(): void {
+    if (this.root !== null) {
+      this.root.remove();
+      this.root = null;
+    }
+  }
+
+  private render(): void {
+    if (this.root === null) {
       return;
     }
-
-    if (this.useCompactLayout) {
-      this.buildCompactStack(teamIndices, columnX);
-      return;
-    }
-
-    const maxTeamSize = this.maxTeamSize;
-    const slotCols = maxTeamSize <= 3 ? maxTeamSize : 3;
-    const slotRows = Math.ceil(maxTeamSize / slotCols);
-
-    const teamBlockHeight = this.getTeamBlockHeight(slotRows);
-    const availableHeight = LAUNCH_BUTTON_Y - 60 - COLUMN_TOP_Y;
-    const gap =
-      teamIndices.length > 1
-        ? Math.min(
-            12,
-            (availableHeight - teamIndices.length * teamBlockHeight) / (teamIndices.length - 1),
-          )
-        : 0;
-
-    for (let stackIndex = 0; stackIndex < teamIndices.length; stackIndex++) {
-      const teamIndex = teamIndices[stackIndex];
-      if (teamIndex === undefined) {
-        continue;
-      }
-      const blockY = COLUMN_TOP_Y + stackIndex * (teamBlockHeight + gap);
-      this.buildTeamBlock(teamIndex, columnX, blockY, slotCols, slotRows);
-    }
+    this.root.innerHTML = "";
+    this.root.appendChild(this.buildHeader());
+    this.root.appendChild(this.buildMain());
+    this.root.appendChild(this.buildFooter());
   }
 
-  private buildCompactStack(teamIndices: number[], columnX: number): void {
-    const compactSlotSize = 34;
-    const rowHeight = compactSlotSize + 12;
-    const availableHeight = LAUNCH_BUTTON_Y - 60 - COLUMN_TOP_Y;
-    const totalRowsHeight = teamIndices.length * rowHeight;
-    const gap =
-      teamIndices.length > 1
-        ? Math.min(10, (availableHeight - totalRowsHeight) / (teamIndices.length - 1))
-        : 0;
+  private buildHeader(): HTMLElement {
+    const header = document.createElement("header");
+    header.className = "ts-header";
 
-    const isLeft = columnX < CANVAS_WIDTH / 2;
-    const actualX = isLeft ? COLUMN_LEFT_X : COMPACT_COLUMN_RIGHT_X;
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "tb-btn";
+    back.dataset.variant = "ghost";
+    back.textContent = t("teamSelect.actions.back");
+    back.addEventListener("click", () => this.scene.start("MapSelectScene"));
+    header.appendChild(back);
 
-    for (let stackIndex = 0; stackIndex < teamIndices.length; stackIndex++) {
-      const teamIndex = teamIndices[stackIndex];
-      if (teamIndex === undefined) {
-        continue;
-      }
-      const rowY = COLUMN_TOP_Y + stackIndex * (rowHeight + gap);
-      this.buildCompactRow(teamIndex, actualX, rowY, compactSlotSize);
-    }
-  }
+    const title = document.createElement("h2");
+    title.className = "ts-header-title";
+    title.textContent = `${t("teamSelect.title")} — ${this.mapName}`;
+    header.appendChild(title);
 
-  private buildCompactRow(
-    teamIndex: number,
-    columnX: number,
-    rowY: number,
-    slotSize: number,
-  ): void {
-    const colWidth = COMPACT_COLUMN_WIDTH;
-    const teamColor = this.getTeamColor(teamIndex);
-    const state = this.playerStates[teamIndex];
-    if (!state) {
-      return;
-    }
-    const isActive = teamIndex === this.activeColumnIndex;
-    const centerY = rowY + slotSize / 2 + 6;
-    const rowHeight = slotSize + 12;
-
-    const highlight = this.add.rectangle(
-      columnX + colWidth / 2,
-      centerY,
-      colWidth + 6,
-      rowHeight,
-      teamColor,
-      isActive ? 0.12 : 0.04,
+    const picker = createFormatPickerElement(
+      this.formatOptions,
+      this.formatKey,
+      t("teamSelect.format.label"),
+      { onChange: (key) => this.onFormatChange(key) },
     );
-    highlight.setStrokeStyle(isActive ? 2 : 1, teamColor, isActive ? 0.5 : 0.15);
-    highlight.setDepth(-1);
-    highlight.setInteractive({ useHandCursor: true });
-    highlight.on("pointerdown", () => {
-      if (this.activeColumnIndex !== teamIndex) {
-        this.activeColumnIndex = teamIndex;
-        this.rebuildColumns();
-        this.refreshGrid();
-        this.refreshLaunchButton();
-      }
-    });
-    this.dynamicContainer?.add(highlight);
+    header.appendChild(picker);
 
-    let cursorX = columnX + 6;
-
-    const shortLabel = this.getPlayerLabel(teamIndex);
-    const labelText = this.add
-      .text(cursorX, centerY, shortLabel, {
-        fontSize: "18px",
-        fontFamily: FONT_FAMILY,
-        color: `#${teamColor.toString(16).padStart(6, "0")}`,
-        fontStyle: "bold",
-      })
-      .setOrigin(0, 0.5);
-    this.dynamicContainer?.add(labelText);
-    cursorX += 62;
-
-    const isHuman = state.controller === PlayerController.Human;
-    const toggleW = 28;
-    const toggleBg = this.add
-      .rectangle(cursorX + toggleW / 2, centerY, toggleW, 18, isHuman ? 0x225522 : 0x442255, 0.8)
-      .setInteractive({ useHandCursor: true });
-    const toggleLabel = isHuman ? "H" : "IA";
-    const toggleText = this.add
-      .text(cursorX + toggleW / 2, centerY, toggleLabel, {
-        fontSize: "18px",
-        fontFamily: FONT_FAMILY,
-        color: "#ffffff",
-      })
-      .setOrigin(0.5);
-    toggleBg.on("pointerdown", () => {
-      if (state.validated) {
-        return;
-      }
-      state.controller =
-        state.controller === PlayerController.Human ? PlayerController.Ai : PlayerController.Human;
-      this.rebuildColumns();
-    });
-    this.dynamicContainer?.add([toggleBg, toggleText]);
-    cursorX += toggleW + 6;
-
-    const buttonsRightEdge = columnX + colWidth - 4;
-    const btnSize = COMPACT_BUTTON_SIZE;
-    const btnGap = 3;
-    const totalBtns = 3;
-    const totalBtnWidth = totalBtns * btnSize + (totalBtns - 1) * btnGap;
-    const btnsLeftEdge = buttonsRightEdge - totalBtnWidth;
-
-    const slotsWidth = this.maxTeamSize * (slotSize + 4) - 4;
-    const availableForSlots = btnsLeftEdge - cursorX - 6;
-    const slotsStartX = cursorX + (availableForSlots - slotsWidth) / 2;
-
-    for (let i = 0; i < this.maxTeamSize; i++) {
-      const cx = slotsStartX + i * (slotSize + 4) + slotSize / 2;
-      const slotBg = this.add.rectangle(cx, centerY, slotSize, slotSize, teamColor, 0.15);
-      slotBg.setStrokeStyle(1, teamColor, 0.3);
-      this.dynamicContainer?.add(slotBg);
-
-      if (i < state.selectedIds.length) {
-        const defId = state.selectedIds[i];
-        if (!defId) {
-          continue;
-        }
-        const portrait = this.add.image(cx, centerY, `${defId}-portrait`);
-        portrait.setDisplaySize(slotSize - 4, slotSize - 4);
-        if (!state.validated) {
-          portrait.setInteractive({ useHandCursor: true });
-          portrait.on("pointerdown", () => {
-            state.selectedIds.splice(i, 1);
-            this.rebuildColumns();
-            this.refreshGrid();
-            this.refreshLaunchButton();
-          });
-        }
-        this.dynamicContainer?.add(portrait);
-      }
-    }
-
-    let btnX = btnsLeftEdge;
-
-    const valBg = this.add
-      .rectangle(
-        btnX + btnSize / 2,
-        centerY,
-        btnSize,
-        btnSize,
-        state.validated ? 0x553322 : 0x335533,
-        0.9,
-      )
-      .setInteractive({ useHandCursor: true });
-    valBg.setStrokeStyle(1, state.validated ? 0x775544 : 0x558855);
-    const valLabel = state.validated ? "✎" : "✓";
-    const valText = this.add
-      .text(btnX + btnSize / 2, centerY, valLabel, {
-        fontSize: "20px",
-        fontFamily: FONT_FAMILY,
-        color: "#ffffff",
-      })
-      .setOrigin(0.5);
-    valBg.on("pointerdown", () => this.onValidateClick(teamIndex));
-    this.dynamicContainer?.add([valBg, valText]);
-    btnX += btnSize + btnGap;
-
-    const autoBg = this.add
-      .rectangle(btnX + btnSize / 2, centerY, btnSize, btnSize, 0x333355, 0.9)
-      .setInteractive({ useHandCursor: true });
-    autoBg.setStrokeStyle(1, 0x555577);
-    const autoText = this.add
-      .text(btnX + btnSize / 2, centerY, "⟳", {
-        fontSize: "20px",
-        fontFamily: FONT_FAMILY,
-        color: "#aaaacc",
-      })
-      .setOrigin(0.5);
-    autoBg.on("pointerdown", () => {
-      if (state.validated) {
-        return;
-      }
-      this.autoFillTeam(teamIndex);
-      this.rebuildColumns();
-      this.refreshGrid();
-      this.refreshLaunchButton();
-    });
-    this.dynamicContainer?.add([autoBg, autoText]);
-    btnX += btnSize + btnGap;
-
-    const clearBg = this.add
-      .rectangle(btnX + btnSize / 2, centerY, btnSize, btnSize, 0x443333, 0.9)
-      .setInteractive({ useHandCursor: true });
-    clearBg.setStrokeStyle(1, 0x775555);
-    const clearText = this.add
-      .text(btnX + btnSize / 2, centerY, "✕", {
-        fontSize: "20px",
-        fontFamily: FONT_FAMILY,
-        color: "#ccaaaa",
-      })
-      .setOrigin(0.5);
-    clearBg.on("pointerdown", () => {
-      if (state.validated) {
-        return;
-      }
-      state.selectedIds = [];
-      this.rebuildColumns();
-      this.refreshGrid();
-      this.refreshLaunchButton();
-    });
-    this.dynamicContainer?.add([clearBg, clearText]);
+    return header;
   }
 
-  private getTeamBlockHeight(slotRows: number): number {
-    const headerHeight = 25;
-    const slotsHeight = slotRows * (SLOT_SIZE + SLOT_GAP) - SLOT_GAP;
-    const buttonsHeight = BUTTON_HEIGHT;
-    return headerHeight + slotsHeight + 8 + buttonsHeight + COLUMN_PADDING;
+  private buildMain(): HTMLElement {
+    const main = document.createElement("main");
+    main.className = "ts-main";
+
+    const { left, right } = this.splitColumns();
+    main.appendChild(createPlayersColumnElement(left, "left"));
+    main.appendChild(this.buildCentralList());
+    if (right.length > 0) {
+      main.appendChild(createPlayersColumnElement(right, "right"));
+    }
+
+    return main;
   }
 
-  private buildTeamBlock(
-    teamIndex: number,
-    columnX: number,
-    blockY: number,
-    slotCols: number,
-    slotRows: number,
-  ): void {
-    const teamColor = this.getTeamColor(teamIndex);
-    const state = this.playerStates[teamIndex];
-    if (!state) {
-      return;
-    }
-
-    const headerHeight = 25;
-    const slotsTopY = blockY + headerHeight;
-    const slotsHeight = slotRows * (SLOT_SIZE + SLOT_GAP) - SLOT_GAP;
-    const buttonsY = slotsTopY + slotsHeight + 8;
-    const totalHeight = buttonsY + BUTTON_HEIGHT - blockY + COLUMN_PADDING;
-
-    const isActive = teamIndex === this.activeColumnIndex;
-    const bgAlpha = isActive ? 0.12 : 0.04;
-    const strokeAlpha = isActive ? 0.5 : 0.15;
-
-    const highlight = this.add.rectangle(
-      columnX + COLUMN_WIDTH / 2,
-      blockY + totalHeight / 2 - COLUMN_PADDING / 2,
-      COLUMN_WIDTH + 10,
-      totalHeight,
-      teamColor,
-      bgAlpha,
-    );
-    highlight.setStrokeStyle(isActive ? 2 : 1, teamColor, strokeAlpha);
-    highlight.setDepth(-1);
-    highlight.setInteractive({ useHandCursor: true });
-    highlight.on("pointerdown", () => {
-      if (this.activeColumnIndex !== teamIndex) {
-        this.activeColumnIndex = teamIndex;
-        this.rebuildColumns();
-        this.refreshGrid();
-        this.refreshLaunchButton();
-      }
-    });
-    this.dynamicContainer?.add(highlight);
-
-    const label = this.getPlayerLabel(teamIndex);
-    const headerText = this.add.text(columnX, blockY, label, {
-      fontSize: "20px",
-      fontFamily: FONT_FAMILY,
-      color: `#${teamColor.toString(16).padStart(6, "0")}`,
-      fontStyle: "bold",
-    });
-    this.dynamicContainer?.add(headerText);
-
-    const toggleX = columnX + COLUMN_WIDTH - 40;
-    const toggleY = blockY + 7;
-    const isHuman = state.controller === PlayerController.Human;
-    const toggleBg = this.add
-      .rectangle(toggleX, toggleY, 80, 20, isHuman ? 0x225522 : 0x442255, 0.8)
-      .setInteractive({ useHandCursor: true });
-    const toggleText = this.add
-      .text(toggleX, toggleY, isHuman ? t("teamSelect.human") : t("teamSelect.ai"), {
-        fontSize: "18px",
-        fontFamily: FONT_FAMILY,
-        color: "#ffffff",
-      })
-      .setOrigin(0.5);
-    toggleBg.on("pointerdown", () => {
-      if (state.validated) {
-        return;
-      }
-      state.controller =
-        state.controller === PlayerController.Human ? PlayerController.Ai : PlayerController.Human;
-      this.rebuildColumns();
-    });
-    this.dynamicContainer?.add([toggleBg, toggleText]);
-
-    const slotsGridWidth = slotCols * (SLOT_SIZE + SLOT_GAP) - SLOT_GAP;
-    const slotsStartX = columnX + (COLUMN_WIDTH - slotsGridWidth) / 2;
-
-    for (let i = 0; i < this.maxTeamSize; i++) {
-      const col = i % slotCols;
-      const row = Math.floor(i / slotCols);
-      const slotX = slotsStartX + col * (SLOT_SIZE + SLOT_GAP);
-      const slotY = slotsTopY + row * (SLOT_SIZE + SLOT_GAP);
-      const cx = slotX + SLOT_SIZE / 2;
-      const cy = slotY + SLOT_SIZE / 2;
-
-      const slotBg = this.add.rectangle(cx, cy, SLOT_SIZE, SLOT_SIZE, teamColor, 0.15);
-      slotBg.setStrokeStyle(1, teamColor, 0.3);
-      this.dynamicContainer?.add(slotBg);
-
-      if (i < state.selectedIds.length) {
-        const defId = state.selectedIds[i];
-        if (!defId) {
-          continue;
-        }
-        const portrait = this.add.image(cx, cy, `${defId}-portrait`);
-        portrait.setDisplaySize(SLOT_SIZE - 4, SLOT_SIZE - 4);
-        if (!state.validated) {
-          portrait.setInteractive({ useHandCursor: true });
-          portrait.on("pointerdown", () => {
-            state.selectedIds.splice(i, 1);
-            this.rebuildColumns();
-            this.refreshGrid();
-            this.refreshLaunchButton();
-          });
-        }
-        this.dynamicContainer?.add(portrait);
-      }
-    }
-
-    const buttonCount = 3;
-    const buttonWidth = (COLUMN_WIDTH - BUTTON_GAP * (buttonCount - 1)) / buttonCount;
-    const buttonCenterY = buttonsY + BUTTON_HEIGHT / 2;
-
-    const valBtnX = columnX + buttonWidth / 2;
-    const validateBg = this.add
-      .rectangle(
-        valBtnX,
-        buttonCenterY,
-        buttonWidth,
-        BUTTON_HEIGHT,
-        state.validated ? 0x553322 : 0x335533,
-        0.9,
-      )
-      .setInteractive({ useHandCursor: true });
-    validateBg.setStrokeStyle(1, state.validated ? 0x775544 : 0x558855);
-    const validateText = this.add
-      .text(
-        valBtnX,
-        buttonCenterY,
-        state.validated ? t("teamSelect.modify") : t("teamSelect.validate"),
-        { fontSize: "18px", fontFamily: FONT_FAMILY, color: "#ffffff" },
-      )
-      .setOrigin(0.5);
-    validateBg.on("pointerdown", () => this.onValidateClick(teamIndex));
-    this.dynamicContainer?.add([validateBg, validateText]);
-
-    const autoBtnX = columnX + (buttonWidth + BUTTON_GAP) + buttonWidth / 2;
-    const autoBg = this.add
-      .rectangle(autoBtnX, buttonCenterY, buttonWidth, BUTTON_HEIGHT, 0x333355, 0.9)
-      .setInteractive({ useHandCursor: true });
-    autoBg.setStrokeStyle(1, 0x555577);
-    const autoText = this.add
-      .text(autoBtnX, buttonCenterY, t("teamSelect.autoFill"), {
-        fontSize: "18px",
-        fontFamily: FONT_FAMILY,
-        color: "#aaaacc",
-      })
-      .setOrigin(0.5);
-    autoBg.on("pointerdown", () => {
-      if (state.validated) {
-        return;
-      }
-      this.autoFillTeam(teamIndex);
-      this.rebuildColumns();
-      this.refreshGrid();
-      this.refreshLaunchButton();
-    });
-    this.dynamicContainer?.add([autoBg, autoText]);
-
-    const clearBtnX = columnX + 2 * (buttonWidth + BUTTON_GAP) + buttonWidth / 2;
-    const clearBg = this.add
-      .rectangle(clearBtnX, buttonCenterY, buttonWidth, BUTTON_HEIGHT, 0x443333, 0.9)
-      .setInteractive({ useHandCursor: true });
-    clearBg.setStrokeStyle(1, 0x775555);
-    const clearText = this.add
-      .text(clearBtnX, buttonCenterY, t("teamSelect.clear"), {
-        fontSize: "18px",
-        fontFamily: FONT_FAMILY,
-        color: "#ccaaaa",
-      })
-      .setOrigin(0.5);
-    clearBg.on("pointerdown", () => {
-      if (state.validated) {
-        return;
-      }
-      state.selectedIds = [];
-      this.rebuildColumns();
-      this.refreshGrid();
-      this.refreshLaunchButton();
-    });
-    this.dynamicContainer?.add([clearBg, clearText]);
-  }
-
-  private onValidateClick(teamIndex: number): void {
-    const state = this.playerStates[teamIndex];
-    if (!state) {
-      return;
-    }
-    if (state.validated) {
-      state.validated = false;
-    } else {
-      const playerId = PLAYER_IDS[teamIndex];
-      if (!playerId) {
-        return;
-      }
-      const result = validateTeamSelection(
-        { playerId, pokemonDefinitionIds: state.selectedIds, controller: state.controller },
-        this.allDefinitionIds,
-        this.maxTeamSize,
-      );
-      if (result.valid) {
-        state.validated = true;
+  private splitColumns(): { left: PlayerColumnEntry[]; right: PlayerColumnEntry[] } {
+    const left: PlayerColumnEntry[] = [];
+    const right: PlayerColumnEntry[] = [];
+    const useTwoCols = this.slots.length > 6;
+    const half = Math.ceil(this.slots.length / 2);
+    for (let i = 0; i < this.slots.length; i++) {
+      const entry = this.buildPlayerEntry(i);
+      if (useTwoCols && i >= half) {
+        right.push(entry);
       } else {
-        return;
+        left.push(entry);
       }
     }
-    this.rebuildColumns();
-    this.refreshGrid();
-    this.refreshLaunchButton();
+    return { left, right };
   }
 
-  private autoFillTeam(teamIndex: number): void {
-    const state = this.playerStates[teamIndex];
-    if (!state) {
-      return;
+  private buildPlayerEntry(slotIndex: number): PlayerColumnEntry {
+    const slot = this.slots[slotIndex];
+    if (!slot) {
+      throw new Error(`No slot at ${slotIndex}`);
     }
-    state.selectedIds = [];
-    const shuffled = [...this.allDefinitionIds].sort(() => Math.random() - 0.5);
-    state.selectedIds = shuffled.slice(0, this.maxTeamSize);
+    return {
+      props: {
+        slotIndex,
+        playerLabel: playerLabel(slotIndex),
+        shortLabel: playerShortLabel(slotIndex),
+        colorHex: teamColorToHex(slotIndex),
+        controller: slot.controller,
+        controllerHuman: PlayerController.Human,
+        controllerAi: PlayerController.Ai,
+        assignedTeam: slot.assignedTeam,
+        ephemeral: slot.ephemeral,
+        active: slotIndex === this.activeSlotIndex,
+        labels: {
+          controllerHuman: t("teamSelect.controller.human"),
+          controllerAi: t("teamSelect.controller.ai"),
+          chooseTeam: t("teamSelect.players.choose"),
+        },
+      },
+      callbacks: {
+        onActivate: () => this.setActive(slotIndex),
+        onToggleController: () => this.toggleController(slotIndex),
+      },
+    };
   }
 
-  private buildGrid(): void {
-    const gridWidth = GRID_COLS * (GRID_CELL_SIZE + GRID_CELL_GAP) - GRID_CELL_GAP;
-    const gridStartX = (CANVAS_WIDTH - gridWidth) / 2;
+  private buildCentralList(): HTMLElement {
+    const teams = listTeams().sort((a, b) => b.updatedAt - a.updatedAt);
+    const badgesByTeamId = this.computeBadgesByTeamId();
 
-    this.gridContainer = this.add.container(0, 0);
-
-    for (let i = 0; i < this.pokemonDefinitions.length; i++) {
-      const definition = this.pokemonDefinitions[i];
-      if (!definition) {
-        continue;
-      }
-      const col = i % GRID_COLS;
-      const row = Math.floor(i / GRID_COLS);
-      const cellX = gridStartX + col * (GRID_CELL_SIZE + GRID_CELL_GAP);
-      const cellY = GRID_TOP_Y + row * (GRID_CELL_SIZE + GRID_CELL_GAP);
-      const centerX = cellX + GRID_CELL_SIZE / 2;
-      const centerY = cellY + GRID_CELL_SIZE / 2 - 6;
-
-      const bg = this.add.rectangle(
-        centerX,
-        cellY + GRID_CELL_SIZE / 2,
-        GRID_CELL_SIZE,
-        GRID_CELL_SIZE,
-        0x2a2a3e,
-        0.8,
-      );
-      bg.setStrokeStyle(1, 0x444466);
-      bg.setInteractive({ useHandCursor: true });
-
-      const portrait = this.add.image(centerX, centerY, `${definition.id}-portrait`);
-      portrait.setDisplaySize(GRID_PORTRAIT_SIZE, GRID_PORTRAIT_SIZE);
-
-      this.add
-        .text(centerX, cellY + GRID_CELL_SIZE - 2, this.getPokemonName(definition.id), {
-          fontSize: "16px",
-          fontFamily: FONT_FAMILY,
-          color: "#cccccc",
-        })
-        .setOrigin(0.5, 1);
-
-      bg.on("pointerdown", () => this.onPokemonClicked(definition.id));
-      bg.on("pointerover", () => bg.setFillStyle(0x3a3a5e, 1));
-      bg.on("pointerout", () => this.refreshGridCell(i));
-
-      this.gridContainer.add([bg, portrait]);
-    }
-  }
-
-  private onPokemonClicked(definitionId: string): void {
-    const state = this.playerStates[this.activeColumnIndex];
-    if (!state || state.validated) {
-      return;
-    }
-
-    const existingIndex = state.selectedIds.indexOf(definitionId);
-    if (existingIndex >= 0) {
-      state.selectedIds.splice(existingIndex, 1);
-    } else {
-      if (state.selectedIds.length >= this.maxTeamSize) {
-        return;
-      }
-      state.selectedIds.push(definitionId);
-    }
-
-    this.rebuildColumns();
-    this.refreshGrid();
-    this.refreshLaunchButton();
-  }
-
-  private autoFillAndValidateAi(): void {
-    for (let i = 0; i < this.playerStates.length; i++) {
-      const state = this.playerStates[i];
-      if (!state) {
-        continue;
-      }
-      if (state.controller !== PlayerController.Ai) {
-        continue;
-      }
-      if (state.validated) {
-        continue;
-      }
-      if (state.selectedIds.length < this.maxTeamSize) {
-        this.autoFillTeam(i);
-      }
-      const playerId = PLAYER_IDS[i];
-      if (!playerId) {
-        continue;
-      }
-      const result = validateTeamSelection(
-        { playerId, pokemonDefinitionIds: state.selectedIds, controller: state.controller },
-        this.allDefinitionIds,
-        this.maxTeamSize,
-      );
-      if (result.valid) {
-        state.validated = true;
-      }
-    }
-    this.rebuildColumns();
-    this.refreshGrid();
-    this.refreshLaunchButton();
-  }
-
-  private buildBottomBar(): void {
-    const launchX = CANVAS_WIDTH - 30 - LAUNCH_BUTTON_WIDTH / 2;
-    const btnY = LAUNCH_BUTTON_Y;
-    let curX = 30;
-    const btnWidth = 130;
-    const btnSpacing = 8;
-
-    const teamCountBg = this.add
-      .rectangle(curX + btnWidth / 2, btnY, btnWidth, 28, 0x333344, 0.8)
-      .setInteractive({ useHandCursor: true });
-    teamCountBg.setStrokeStyle(1, 0x555566);
-    this.teamCountText = this.add
-      .text(curX + btnWidth / 2, btnY, "", {
-        fontSize: "18px",
-        fontFamily: FONT_FAMILY,
-        color: "#cccccc",
-      })
-      .setOrigin(0.5);
-    teamCountBg.on("pointerdown", () => this.cycleTeamCount());
-    this.refreshTeamCountText();
-    curX += btnWidth + btnSpacing;
-
-    this.turnSystemToggleBg = this.add
-      .rectangle(curX + btnWidth / 2, btnY, btnWidth, 28, 0x333344, 0.8)
-      .setInteractive({ useHandCursor: true });
-    this.turnSystemToggleBg.setStrokeStyle(1, 0x555566);
-    this.turnSystemToggleText = this.add
-      .text(curX + btnWidth / 2, btnY, "", {
-        fontSize: "18px",
-        fontFamily: FONT_FAMILY,
-        color: "#cccccc",
-      })
-      .setOrigin(0.5);
-    this.turnSystemToggleBg.on("pointerdown", () => {
-      this.turnSystemKind =
-        this.turnSystemKind === TurnSystemKind.RoundRobin
-          ? TurnSystemKind.ChargeTime
-          : TurnSystemKind.RoundRobin;
-      this.refreshTurnSystemToggle();
+    const entries: TeamListEntry[] = teams.map((team) => ({
+      teamId: team.id,
+      team,
+      isRandom: false,
+      badges: badgesByTeamId.get(team.id) ?? [],
+    }));
+    entries.push({
+      teamId: null,
+      team: null,
+      isRandom: true,
+      badges: [],
     });
-    curX += btnWidth + btnSpacing;
 
-    this.placementToggleBg = this.add
-      .rectangle(curX + btnWidth / 2, btnY, btnWidth, 28, 0x333344, 0.8)
-      .setInteractive({ useHandCursor: true });
-    this.placementToggleBg.setStrokeStyle(1, 0x555566);
-    this.placementToggleText = this.add
-      .text(curX + btnWidth / 2, btnY, "", {
-        fontSize: "18px",
-        fontFamily: FONT_FAMILY,
-        color: "#cccccc",
-      })
-      .setOrigin(0.5);
-    this.placementToggleBg.on("pointerdown", () => {
-      this.autoPlacement = !this.autoPlacement;
-      this.refreshPlacementToggle();
-    });
-    curX += btnWidth + btnSpacing;
-
-    const fillAiBg = this.add
-      .rectangle(curX + btnWidth / 2, btnY, btnWidth, 28, 0x333355, 0.8)
-      .setInteractive({ useHandCursor: true });
-    fillAiBg.setStrokeStyle(1, 0x555577);
-    this.add
-      .text(curX + btnWidth / 2, btnY, t("teamSelect.fillAi"), {
-        fontSize: "18px",
-        fontFamily: FONT_FAMILY,
-        color: "#aaaacc",
-      })
-      .setOrigin(0.5);
-    fillAiBg.on("pointerdown", () => this.autoFillAndValidateAi());
-
-    this.launchBg = this.add.rectangle(
-      launchX,
-      btnY,
-      LAUNCH_BUTTON_WIDTH,
-      LAUNCH_BUTTON_HEIGHT,
-      0x225522,
-      0.9,
+    return createTeamListElement(
+      {
+        entries,
+        randomLabel: t("teamSelect.teams.random"),
+        emptyTitle: t("teamSelect.teams.empty.title"),
+        emptyCta: t("teamSelect.teams.empty.cta"),
+      },
+      {
+        onPick: (teamId) => this.assignTeam(this.activeSlotIndex, teamId),
+      },
     );
-    this.launchBg.setStrokeStyle(2, 0x44aa44);
-    this.launchBg.setInteractive({ useHandCursor: true });
-
-    this.launchText = this.add
-      .text(launchX, btnY, t("teamSelect.launch"), {
-        fontSize: "24px",
-        fontFamily: FONT_FAMILY,
-        color: "#ffffff",
-        fontStyle: "bold",
-      })
-      .setOrigin(0.5);
-
-    this.launchBg.on("pointerdown", () => this.onLaunch());
-
-    this.refreshPlacementToggle();
-    this.refreshTurnSystemToggle();
   }
 
-  private cycleTeamCount(): void {
-    const currentIndex = ALLOWED_TEAM_COUNTS.indexOf(
-      this.teamCount as (typeof ALLOWED_TEAM_COUNTS)[number],
-    );
-    const nextIndex = (currentIndex + 1) % ALLOWED_TEAM_COUNTS.length;
-    this.teamCount = ALLOWED_TEAM_COUNTS[nextIndex] ?? 2;
-
-    for (const state of this.playerStates) {
-      state.validated = false;
-      if (state.selectedIds.length > this.maxTeamSize) {
-        state.selectedIds = state.selectedIds.slice(0, this.maxTeamSize);
+  private computeBadgesByTeamId(): Map<
+    string,
+    { slotIndex: number; label: string; colorHex: string }[]
+  > {
+    const map = new Map<string, { slotIndex: number; label: string; colorHex: string }[]>();
+    for (let i = 0; i < this.slots.length; i++) {
+      const slot = this.slots[i];
+      if (!slot || slot.assignedTeamId === null) {
+        continue;
       }
-    }
-
-    while (this.playerStates.length < this.teamCount) {
-      this.playerStates.push({
-        controller: PlayerController.Ai,
-        selectedIds: [],
-        validated: false,
+      const list = map.get(slot.assignedTeamId) ?? [];
+      list.push({
+        slotIndex: i,
+        label: playerShortLabel(i),
+        colorHex: teamColorToHex(i),
       });
+      map.set(slot.assignedTeamId, list);
     }
-    while (this.playerStates.length > this.teamCount) {
-      this.playerStates.pop();
-    }
-
-    if (this.activeColumnIndex >= this.teamCount) {
-      this.activeColumnIndex = 0;
-    }
-
-    this.refreshTeamCountText();
-    this.rebuildColumns();
-    this.refreshGrid();
-    this.refreshLaunchButton();
+    return map;
   }
 
-  private refreshTeamCountText(): void {
-    if (!this.teamCountText) {
-      return;
-    }
-    this.teamCountText.setText(`${this.teamCount} ${t("teamSelect.teams")}`);
+  private buildFooter(): HTMLElement {
+    const footer = document.createElement("footer");
+    footer.className = "ts-footer";
+
+    const autoLabel = document.createElement("label");
+    autoLabel.className = "ts-footer-toggle";
+    const autoInput = document.createElement("input");
+    autoInput.type = "checkbox";
+    autoInput.checked = this.autoPlacement;
+    autoInput.addEventListener("change", () => {
+      this.autoPlacement = autoInput.checked;
+    });
+    autoLabel.appendChild(autoInput);
+    const autoText = document.createElement("span");
+    autoText.textContent = t("teamSelect.autoPlacement.label");
+    autoLabel.appendChild(autoText);
+    footer.appendChild(autoLabel);
+
+    const turnLabel = document.createElement("label");
+    turnLabel.className = "ts-footer-turn";
+    const turnText = document.createElement("span");
+    turnText.textContent = t("teamSelect.turnSystem.label");
+    turnLabel.appendChild(turnText);
+    const turnSelect = document.createElement("select");
+    const ctOption = document.createElement("option");
+    ctOption.value = TurnSystemKind.ChargeTime;
+    ctOption.textContent = t("teamSelect.turnSystemCt");
+    turnSelect.appendChild(ctOption);
+    const rrOption = document.createElement("option");
+    rrOption.value = TurnSystemKind.RoundRobin;
+    rrOption.textContent = t("teamSelect.turnSystemRr");
+    turnSelect.appendChild(rrOption);
+    turnSelect.value = this.turnSystemKind;
+    turnSelect.addEventListener("change", () => {
+      this.turnSystemKind = turnSelect.value as TurnSystemKind;
+    });
+    turnLabel.appendChild(turnSelect);
+    footer.appendChild(turnLabel);
+
+    const refreshAi = document.createElement("button");
+    refreshAi.type = "button";
+    refreshAi.className = "tb-btn";
+    refreshAi.textContent = t("teamSelect.actions.refreshAi");
+    refreshAi.addEventListener("click", () => this.refreshAllAi());
+    footer.appendChild(refreshAi);
+
+    const spacer = document.createElement("div");
+    spacer.className = "ts-footer-spacer";
+    footer.appendChild(spacer);
+
+    const launch = document.createElement("button");
+    launch.type = "button";
+    launch.className = "tb-btn";
+    launch.dataset.variant = "primary";
+    launch.textContent = t("teamSelect.actions.launch");
+    const launchable = this.isLaunchable();
+    launch.disabled = !launchable;
+    launch.addEventListener("click", () => this.onLaunch());
+    footer.appendChild(launch);
+
+    return footer;
   }
 
-  private refreshTurnSystemToggle(): void {
-    if (!this.turnSystemToggleBg || !this.turnSystemToggleText) {
-      return;
-    }
-    const isCt = this.turnSystemKind === TurnSystemKind.ChargeTime;
-    this.turnSystemToggleText.setText(
-      isCt ? t("teamSelect.turnSystemCt") : t("teamSelect.turnSystemRr"),
-    );
-    this.turnSystemToggleBg.setFillStyle(isCt ? 0x224466 : 0x333344, 0.8);
+  private isLaunchable(): boolean {
+    return this.slots.every((s) => s.assignedTeam !== null);
   }
 
-  private refreshPlacementToggle(): void {
-    if (!this.placementToggleBg || !this.placementToggleText) {
+  private setActive(slotIndex: number): void {
+    if (slotIndex === this.activeSlotIndex) {
       return;
     }
-    const label = this.autoPlacement
-      ? t("teamSelect.autoPlacement")
-      : t("teamSelect.manualPlacement");
-    this.placementToggleText.setText(label);
-    this.placementToggleBg.setFillStyle(this.autoPlacement ? 0x442255 : 0x333344, 0.8);
+    this.activeSlotIndex = slotIndex;
+    this.render();
+  }
+
+  private toggleController(slotIndex: number): void {
+    const slot = this.slots[slotIndex];
+    if (!slot) {
+      return;
+    }
+    if (slot.controller === PlayerController.Human) {
+      slot.controller = PlayerController.Ai;
+      slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
+      slot.assignedTeamId = null;
+      slot.ephemeral = true;
+    } else {
+      slot.controller = PlayerController.Human;
+      slot.assignedTeam = null;
+      slot.assignedTeamId = null;
+      slot.ephemeral = false;
+    }
+    this.render();
+  }
+
+  private assignTeam(slotIndex: number, teamId: string | null): void {
+    const slot = this.slots[slotIndex];
+    if (!slot) {
+      return;
+    }
+    if (teamId === null) {
+      slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
+      slot.assignedTeamId = null;
+      slot.ephemeral = true;
+    } else {
+      const team = loadTeam(teamId);
+      if (team === null) {
+        return;
+      }
+      slot.assignedTeam = team;
+      slot.assignedTeamId = teamId;
+      slot.ephemeral = false;
+      if (slot.controller === PlayerController.Human) {
+        saveLastSelectionEntry(slotIndex, teamId);
+      }
+    }
+    if (this.activeSlotIndex < this.slots.length - 1) {
+      this.activeSlotIndex += 1;
+    }
+    this.render();
+  }
+
+  private refreshAllAi(): void {
+    this.slots = refreshAllAiSlots(this.slots, ephemeralTeamName());
+    this.render();
+  }
+
+  private onFormatChange(key: string): void {
+    if (key === this.formatKey) {
+      return;
+    }
+    this.formatKey = key;
+    const format = this.currentFormat();
+    this.initSlots(format);
+    this.render();
   }
 
   private onLaunch(): void {
-    const allValidated = this.playerStates.every((s) => s.validated);
-    if (!allValidated) {
+    if (!this.isLaunchable()) {
       return;
     }
-
-    const teams: TeamSelection[] = this.playerStates
-      .map((state, index) => {
-        const playerId = PLAYER_IDS[index];
-        if (!playerId) {
-          return undefined;
-        }
-        return {
-          playerId,
-          pokemonDefinitionIds: [...state.selectedIds],
-          controller: state.controller,
-        };
-      })
-      .filter((team): team is TeamSelection => team !== undefined);
-
+    const teams: TeamSelection[] = [];
+    for (let i = 0; i < this.slots.length; i++) {
+      const slot = this.slots[i];
+      const playerId = PLAYER_IDS[i];
+      if (!slot || !playerId || slot.assignedTeam === null) {
+        return;
+      }
+      teams.push({
+        playerId,
+        pokemonDefinitionIds: slot.assignedTeam.slots.map((s) => s.pokemonId),
+        controller: slot.controller,
+        slots: [...slot.assignedTeam.slots],
+      });
+    }
     const result: TeamSelectResult = {
       teams,
       autoPlacement: this.autoPlacement,
       turnSystemKind: this.turnSystemKind,
       mapUrl: this.mapUrl,
+      formatKey: this.formatKey,
     };
-
     this.scene.start("BattleScene", { teamSelectResult: result });
-  }
-
-  private refreshAll(): void {
-    this.refreshGrid();
-    this.refreshLaunchButton();
-  }
-
-  private refreshGrid(): void {
-    if (!this.gridContainer) {
-      return;
-    }
-    for (let i = 0; i < this.pokemonDefinitions.length; i++) {
-      this.refreshGridCell(i);
-    }
-  }
-
-  private refreshGridCell(index: number): void {
-    if (!this.gridContainer) {
-      return;
-    }
-    const definition = this.pokemonDefinitions[index];
-    if (!definition) {
-      return;
-    }
-    const bgIndex = index * 2;
-    const bg = this.gridContainer.list[bgIndex] as Phaser.GameObjects.Rectangle;
-    if (!bg) {
-      return;
-    }
-
-    const inActiveTeam = this.playerStates[this.activeColumnIndex]?.selectedIds.includes(
-      definition.id,
-    );
-
-    if (inActiveTeam) {
-      const teamColor = this.getTeamColor(this.activeColumnIndex);
-      bg.setFillStyle(teamColor, 0.4);
-      bg.setStrokeStyle(2, teamColor, 0.8);
-      return;
-    }
-
-    for (let i = 0; i < this.playerStates.length; i++) {
-      if (i === this.activeColumnIndex) {
-        continue;
-      }
-      if (this.playerStates[i]?.selectedIds.includes(definition.id)) {
-        const teamColor = this.getTeamColor(i);
-        bg.setFillStyle(teamColor, 0.2);
-        bg.setStrokeStyle(1, teamColor, 0.4);
-        return;
-      }
-    }
-
-    bg.setFillStyle(0x2a2a3e, 0.8);
-    bg.setStrokeStyle(1, 0x444466);
-  }
-
-  private refreshLaunchButton(): void {
-    if (!this.launchBg || !this.launchText) {
-      return;
-    }
-    const canLaunch = this.playerStates.every((s) => s.validated);
-
-    if (canLaunch) {
-      this.launchBg.setFillStyle(0x225522, 0.9);
-      this.launchBg.setStrokeStyle(2, 0x44aa44);
-      this.launchText.setAlpha(1);
-    } else {
-      this.launchBg.setFillStyle(0x222222, 0.5);
-      this.launchBg.setStrokeStyle(1, 0x444444);
-      this.launchText.setAlpha(0.3);
-    }
   }
 }

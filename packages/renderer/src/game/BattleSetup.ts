@@ -48,6 +48,15 @@ const ZERO_STAT_STAGES = {
 
 const BATTLE_LEVEL = 50;
 
+interface CreateInstanceOverrides {
+  gender?: PokemonGender;
+  nature?: Nature;
+  heldItemId?: HeldItemId;
+  statSpread?: StatSpread;
+  moveIds?: readonly string[];
+  abilityId?: string;
+}
+
 function createPokemonInstance(
   definition: PokemonDefinition,
   playerId: PlayerId,
@@ -56,20 +65,25 @@ function createPokemonInstance(
   orientation: Direction,
   moveRegistry: Map<string, MoveDefinition>,
   rng: () => number,
-  genderOverride?: PokemonGender,
-  natureOverride?: Nature,
-  heldItemId?: HeldItemId,
-  statSpread?: StatSpread,
+  overrides: CreateInstanceOverrides = {},
 ): PokemonInstance {
-  const activeMoveIds = definition.movepool.slice(0, 4);
+  const movepoolHead = definition.movepool.slice(0, 4);
+  const activeMoveIds =
+    overrides.moveIds && overrides.moveIds.length > 0 ? [...overrides.moveIds] : movepoolHead;
   const currentPp: Record<string, number> = {};
   for (const moveId of activeMoveIds) {
     const move = moveRegistry.get(moveId);
     currentPp[moveId] = move?.pp ?? 0;
   }
-  const gender = genderOverride ?? rollGender(definition.genderRatio, rng);
-  const nature = natureOverride ?? rollNature(rng);
-  const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL, nature, statSpread);
+  const gender = overrides.gender ?? rollGender(definition.genderRatio, rng);
+  const nature = overrides.nature ?? rollNature(rng);
+  const combatStats = computeCombatStats(
+    definition.baseStats,
+    BATTLE_LEVEL,
+    nature,
+    overrides.statSpread,
+  );
+  const abilityId = overrides.abilityId ?? definition.abilityId;
   return {
     id: instanceId,
     definitionId: definition.id,
@@ -97,9 +111,9 @@ function createPokemonInstance(
     recharging: false,
     gender,
     nature,
-    ...(statSpread ? { statSpread } : {}),
-    ...(definition.abilityId ? { abilityId: definition.abilityId } : {}),
-    ...(heldItemId ? { heldItemId } : {}),
+    ...(overrides.statSpread ? { statSpread: overrides.statSpread } : {}),
+    ...(abilityId ? { abilityId } : {}),
+    ...(overrides.heldItemId ? { heldItemId: overrides.heldItemId } : {}),
   };
 }
 
@@ -123,6 +137,8 @@ export interface BattleSetupConfig {
   natureOverrides?: Record<string, Nature>;
   heldItemOverrides?: Record<string, HeldItemId>;
   statSpreadOverrides?: Record<string, StatSpread>;
+  moveOverrides?: Record<string, readonly string[]>;
+  abilityOverrides?: Record<string, string>;
 }
 
 function loadGameData() {
@@ -174,7 +190,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
   const creationRng = config.creationRng ?? Math.random;
 
   for (const placement of config.placements) {
-    const team = config.teams.find((t) => t.pokemonIds.includes(placement.pokemonId));
+    const team = config.teams.find((t) => t.availablePokemonIds.includes(placement.pokemonId));
     if (!team) {
       throw new Error(`No team found for Pokemon ${placement.pokemonId}`);
     }
@@ -185,6 +201,31 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
       throw new Error(`Unknown Pokemon definition: ${definitionId}`);
     }
 
+    const overrides: CreateInstanceOverrides = {};
+    const gender = config.genderOverrides?.[placement.pokemonId];
+    if (gender !== undefined) {
+      overrides.gender = gender;
+    }
+    const nature = config.natureOverrides?.[placement.pokemonId];
+    if (nature !== undefined) {
+      overrides.nature = nature;
+    }
+    const heldItemId = config.heldItemOverrides?.[placement.pokemonId];
+    if (heldItemId !== undefined) {
+      overrides.heldItemId = heldItemId;
+    }
+    const statSpread = config.statSpreadOverrides?.[placement.pokemonId];
+    if (statSpread !== undefined) {
+      overrides.statSpread = statSpread;
+    }
+    const moveIds = config.moveOverrides?.[placement.pokemonId];
+    if (moveIds !== undefined) {
+      overrides.moveIds = moveIds;
+    }
+    const abilityId = config.abilityOverrides?.[placement.pokemonId];
+    if (abilityId !== undefined) {
+      overrides.abilityId = abilityId;
+    }
     const instance = createPokemonInstance(
       definition,
       team.playerId,
@@ -193,10 +234,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
       placement.direction,
       moveDefinitions,
       creationRng,
-      config.genderOverrides?.[placement.pokemonId],
-      config.natureOverrides?.[placement.pokemonId],
-      config.heldItemOverrides?.[placement.pokemonId],
-      config.statSpreadOverrides?.[placement.pokemonId],
+      overrides,
     );
 
     pokemonMap.set(instance.id, instance);
@@ -249,7 +287,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
 export const defaultTeams: PlacementTeam[] = [
   {
     playerId: PlayerId.Player1,
-    pokemonIds: [
+    availablePokemonIds: [
       "p1-venusaur",
       "p1-blastoise",
       "p1-raichu",
@@ -261,7 +299,7 @@ export const defaultTeams: PlacementTeam[] = [
   },
   {
     playerId: PlayerId.Player2,
-    pokemonIds: [
+    availablePokemonIds: [
       "p2-charizard",
       "p2-gyarados",
       "p2-dragonite",

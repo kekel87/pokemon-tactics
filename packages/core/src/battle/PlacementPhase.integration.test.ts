@@ -12,12 +12,12 @@ import { PlacementPhase } from "./PlacementPhase";
 const teams: PlacementTeam[] = [
   {
     playerId: PlayerId.Player1,
-    pokemonIds: ["p1-venusaur", "p1-blastoise"],
+    availablePokemonIds: ["p1-venusaur", "p1-blastoise"],
     controller: PlayerController.Human,
   },
   {
     playerId: PlayerId.Player2,
-    pokemonIds: ["p2-charizard", "p2-raichu"],
+    availablePokemonIds: ["p2-charizard", "p2-raichu"],
     controller: PlayerController.Human,
   },
 ];

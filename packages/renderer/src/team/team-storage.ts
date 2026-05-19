@@ -45,6 +45,11 @@ export function listTeamSummaries(): TeamSummary[] {
   }));
 }
 
+export function listTeams(): TeamSet[] {
+  const schema = readStorage();
+  return Object.values(schema.teams);
+}
+
 export function loadTeam(id: string): TeamSet | null {
   const schema = readStorage();
   return schema.teams[id] ?? null;

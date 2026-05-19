@@ -3,6 +3,6 @@ import type { PlayerId } from "../enums/player-id";
 
 export interface PlacementTeam {
   playerId: PlayerId;
-  pokemonIds: string[];
+  availablePokemonIds: readonly string[];
   controller: PlayerController;
 }

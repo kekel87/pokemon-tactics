@@ -4,6 +4,22 @@ Bugs connus et retours playtest non traités.
 
 ## Bugs
 
+### MapSelect — première map noire au retour (2026-05-19, playtest plan 086)
+- Retour sur l'écran de sélection de map (après victoire ou bouton Retour) → la première map de la liste reste noire (preview vide).
+- Workaround : sélectionner une autre map puis revenir → preview correcte.
+- Probable problème de cycle de vie `MapSelectPreviewScene` (preview pas regénérée pour la map active au mount).
+- À investiguer : `MapSelectScene.create` ou `MapSelectPreviewScene.setLayout` sur retour scene.
+
+### Caméra hors-écran 12v1 (2026-05-19, playtest plan 086)
+- Format 12v1 : Pokemon spawné en bord de carte, caméra ne le centre pas → hors écran au début de combat.
+- Probablement lié à `setupCameraBounds` ou centrage initial. Non causé par plan 086 (changement de wiring placement uniquement).
+- À investiguer : `BattleScene.setupCameraBounds`, position initiale caméra vs spawn zones décentrées.
+
+### Disparité UI HTML vs canvas Phaser (2026-05-19, observation playtest)
+- Le projet mélange UI HTML (Team Builder, TeamSelectScene depuis plan 086) et UI Phaser canvas (combat, action menu, info panel, placement roster, timeline).
+- Conséquences : double système de fonts/couleurs/spacing (tokens.css vs constants.ts), UX incohérente (curseur, scaling, raccourcis).
+- À planifier : décision globale renderer 2D vs HTML overlay (cf plan 062/063 Phase 3.5 Babylon différée). Court terme : aligner styles canvas sur tokens design.
+
 ### ~~Test d'intégration `PlacementPhase` cassé + CI ne run pas les integration tests~~
 - Fix : coordonnées corrigées (3,18) et (4,19) dans les spawn zones. `pnpm test:integration` ajouté à la CI.
 

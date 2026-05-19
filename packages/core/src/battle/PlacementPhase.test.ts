@@ -41,7 +41,7 @@ describe("PlacementPhase", () => {
         testMap,
         [MockMap.team1, MockMap.team2, MockMap.team3, MockMap.team4].map((t) => ({
           ...t,
-          pokemonIds: t.pokemonIds.slice(0, 1),
+          availablePokemonIds: t.availablePokemonIds.slice(0, 1),
         })),
         MockMap.format4teams,
         PlacementMode.Alternating,
@@ -285,10 +285,10 @@ describe("PlacementPhase", () => {
   });
 
   describe("uneven teams", () => {
-    it("handles teams of different sizes", () => {
+    it("handles teams of different sizes via finishPlayer", () => {
       const smallTeam: PlacementTeam = {
         playerId: PlayerId.Player1,
-        pokemonIds: ["poke-a"],
+        availablePokemonIds: ["poke-a"],
         controller: PlayerController.Human,
       };
 
@@ -308,6 +308,8 @@ describe("PlacementPhase", () => {
       expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player1 });
       phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
 
+      expect(phase.finishPlayer(PlayerId.Player1).success).toBe(true);
+
       expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player2 });
       phase.submitPlacement("poke-c", { x: 4, y: 4 }, Direction.West);
 
@@ -315,6 +317,219 @@ describe("PlacementPhase", () => {
       phase.submitPlacement("poke-d", { x: 5, y: 4 }, Direction.West);
 
       expect(phase.isComplete()).toBe(true);
+    });
+  });
+
+  describe("sub-pick: flexible placement count", () => {
+    it("allows finishing player with 1 placed when max is 2", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+
+      phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
+      expect(phase.canFinishPlayer(PlayerId.Player1)).toBe(true);
+      expect(phase.finishPlayer(PlayerId.Player1).success).toBe(true);
+
+      expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player2 });
+      phase.submitPlacement("poke-c", { x: 4, y: 4 }, Direction.West);
+      phase.submitPlacement("poke-d", { x: 5, y: 4 }, Direction.West);
+
+      expect(phase.isComplete()).toBe(true);
+    });
+
+    it("rejects finishPlayer when zero placed", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+
+      expect(phase.canFinishPlayer(PlayerId.Player1)).toBe(false);
+      const result = phase.finishPlayer(PlayerId.Player1);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(PlacementError.PlayerCannotFinishYet);
+    });
+
+    it("rejects finishPlayer when already done", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+
+      phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
+      phase.finishPlayer(PlayerId.Player1);
+
+      const result = phase.finishPlayer(PlayerId.Player1);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(PlacementError.PlayerAlreadyDone);
+    });
+
+    it("auto-marks player done when reaching capacity", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+
+      phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
+      phase.submitPlacement("poke-c", { x: 4, y: 4 }, Direction.West);
+      phase.submitPlacement("poke-d", { x: 5, y: 4 }, Direction.West);
+      expect(phase.isPlayerDone(PlayerId.Player2)).toBe(true);
+
+      phase.submitPlacement("poke-b", { x: 1, y: 0 }, Direction.East);
+      expect(phase.isPlayerDone(PlayerId.Player1)).toBe(true);
+      expect(phase.isComplete()).toBe(true);
+    });
+
+    it("auto-skips to next player when current reached capacity (wrong_player on excess attempt)", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [{ ...team1, availablePokemonIds: ["poke-a", "poke-b", "poke-x"] }, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+
+      phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
+      phase.submitPlacement("poke-c", { x: 4, y: 4 }, Direction.West);
+      phase.submitPlacement("poke-b", { x: 1, y: 0 }, Direction.East);
+
+      expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player2 });
+      const result = phase.submitPlacement("poke-x", { x: 0, y: 1 }, Direction.East);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(PlacementError.WrongPlayer);
+    });
+  });
+
+  describe("removePlacement", () => {
+    it("removes a specific placement and lets player re-place", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+
+      phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
+      phase.submitPlacement("poke-c", { x: 4, y: 4 }, Direction.West);
+
+      const removed = phase.removePlacement("poke-a");
+      expect(removed.success).toBe(true);
+
+      expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player1 });
+      phase.submitPlacement("poke-b", { x: 1, y: 0 }, Direction.East);
+    });
+
+    it("clears done flag when removed pokemon belongs to finished player", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+
+      phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
+      phase.finishPlayer(PlayerId.Player1);
+      expect(phase.isPlayerDone(PlayerId.Player1)).toBe(true);
+
+      phase.removePlacement("poke-a");
+      expect(phase.isPlayerDone(PlayerId.Player1)).toBe(false);
+    });
+
+    it("rejects when pokemon was not placed", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+      const result = phase.removePlacement("poke-a");
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(PlacementError.PokemonNotPlaced);
+    });
+  });
+
+  describe("sub-pick from full team of 6 (format 2v3)", () => {
+    it("auto-place fills exactly maxPokemonPerTeam=3 of 6 available", () => {
+      const formatSub: MapFormat = {
+        teamCount: 2,
+        maxPokemonPerTeam: 3,
+        spawnZones: [
+          {
+            positions: [
+              { x: 0, y: 0 },
+              { x: 1, y: 0 },
+              { x: 0, y: 1 },
+              { x: 1, y: 1 },
+            ],
+          },
+          {
+            positions: [
+              { x: 4, y: 4 },
+              { x: 5, y: 4 },
+              { x: 4, y: 5 },
+              { x: 5, y: 5 },
+            ],
+          },
+        ],
+      };
+      const fullTeam1: PlacementTeam = {
+        playerId: PlayerId.Player1,
+        availablePokemonIds: ["p1-a", "p1-b", "p1-c", "p1-d", "p1-e", "p1-f"],
+        controller: PlayerController.Human,
+      };
+      const fullTeam2: PlacementTeam = {
+        playerId: PlayerId.Player2,
+        availablePokemonIds: ["p2-a", "p2-b", "p2-c", "p2-d", "p2-e", "p2-f"],
+        controller: PlayerController.Human,
+      };
+
+      const phase = new PlacementPhase(
+        testMap,
+        [fullTeam1, fullTeam2],
+        formatSub,
+        PlacementMode.Random,
+        42,
+      );
+      const placements = phase.autoPlaceAll(MockMap.gridCenter6x6);
+      expect(placements).toHaveLength(6);
+      expect(phase.isComplete()).toBe(true);
+
+      const p1Placed = placements.filter((p) => p.pokemonId.startsWith("p1-"));
+      const p2Placed = placements.filter((p) => p.pokemonId.startsWith("p2-"));
+      expect(p1Placed).toHaveLength(3);
+      expect(p2Placed).toHaveLength(3);
+    });
+
+    it("mirror IDs between teams do not collide thanks to playerId namespace", () => {
+      const fullTeam1: PlacementTeam = {
+        playerId: PlayerId.Player1,
+        availablePokemonIds: ["p1-venusaur", "p1-blastoise"],
+        controller: PlayerController.Human,
+      };
+      const fullTeam2: PlacementTeam = {
+        playerId: PlayerId.Player2,
+        availablePokemonIds: ["p2-venusaur", "p2-blastoise"],
+        controller: PlayerController.Human,
+      };
+
+      const phase = new PlacementPhase(
+        testMap,
+        [fullTeam1, fullTeam2],
+        testFormat,
+        PlacementMode.Random,
+        42,
+      );
+      const placements = phase.autoPlaceAll(MockMap.gridCenter6x6);
+      expect(placements).toHaveLength(4);
+      const ids = new Set(placements.map((p) => p.pokemonId));
+      expect(ids.size).toBe(4);
     });
   });
 

@@ -47,7 +47,7 @@ export function buildTestEngineFromPlacements(
   const pokemonMap = new Map<string, PokemonInstance>();
 
   for (const placement of placements) {
-    const team = teams.find((t) => t.pokemonIds.includes(placement.pokemonId));
+    const team = teams.find((t) => t.availablePokemonIds.includes(placement.pokemonId));
     if (!team) {
       throw new Error(`No team for ${placement.pokemonId}`);
     }

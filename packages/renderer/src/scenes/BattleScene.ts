@@ -37,6 +37,7 @@ import { loadTiledMap } from "../maps/load-tiled-map";
 import { getSettings, updateSettings } from "../settings";
 import { PokemonSprite } from "../sprites/PokemonSprite";
 import { createPokemonAnimations, preloadPokemonAssets } from "../sprites/SpriteLoader";
+import { buildTeamOverrides } from "../team/build-overrides";
 import { DEFAULT_SANDBOX_CONFIG, type SandboxConfig } from "../types/SandboxConfig";
 import { DirectionPicker } from "../ui/DirectionPicker";
 import { HoverCursor, resolveHoverCursorOption } from "../ui/HoverCursor";
@@ -141,6 +142,10 @@ export class BattleScene extends Phaser.Scene {
       this.languageToggle?.destroy();
       this.languageToggle = null;
       this.scene.restart();
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.languageToggle?.destroy();
+      this.languageToggle = null;
     });
 
     this.scene.stop("BattleUIScene");
@@ -290,11 +295,13 @@ export class BattleScene extends Phaser.Scene {
     uiScene: BattleUIScene,
     teamSelectResult: TeamSelectResult,
   ): Promise<void> {
-    const { autoPlacement, turnSystemKind, mapUrl } = teamSelectResult;
+    const { autoPlacement, turnSystemKind, mapUrl, formatKey } = teamSelectResult;
     const loaded = await loadTiledMap(mapUrl);
     const map = loaded.map;
     const teamCount = teamSelectResult.teams.length;
-    const format = map.formats.find((f) => f.teamCount === teamCount);
+    const format =
+      map.formats.find((f) => `${f.teamCount}v${f.maxPokemonPerTeam}` === formatKey) ??
+      map.formats.find((f) => f.teamCount === teamCount);
     if (!format) {
       throw new Error(`Map "${map.name}" has no format for ${teamCount} teams`);
     }
@@ -302,10 +309,14 @@ export class BattleScene extends Phaser.Scene {
     const teams: import("@pokemon-tactic/core").PlacementTeam[] = teamSelectResult.teams.map(
       (selection, index) => ({
         playerId: selection.playerId,
-        pokemonIds: selection.pokemonDefinitionIds.map((defId) => `p${index + 1}-${defId}`),
+        availablePokemonIds: selection.pokemonDefinitionIds.map(
+          (defId) => `p${index + 1}-${defId}`,
+        ),
         controller: selection.controller,
       }),
     );
+
+    const overrides = buildTeamOverrides(teamSelectResult);
 
     const battleMaxHeight = loaded.heightData.length > 0 ? Math.max(...loaded.heightData) : 0;
     this.setupCameraBounds(map.width, map.height, battleMaxHeight);
@@ -365,6 +376,7 @@ export class BattleScene extends Phaser.Scene {
         teams,
         placements,
         turnSystemKind,
+        ...overrides,
       });
       return;
     }
@@ -384,6 +396,7 @@ export class BattleScene extends Phaser.Scene {
           teams,
           placements,
           turnSystemKind,
+          ...overrides,
         });
       },
     };

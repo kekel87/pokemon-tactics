@@ -91,13 +91,13 @@ export abstract class MockMap {
 
   static readonly team1: PlacementTeam = {
     playerId: PlayerId.Player1,
-    pokemonIds: ["poke-a", "poke-b"],
+    availablePokemonIds: ["poke-a", "poke-b"],
     controller: PlayerController.Human,
   };
 
   static readonly team2: PlacementTeam = {
     playerId: PlayerId.Player2,
-    pokemonIds: ["poke-c", "poke-d"],
+    availablePokemonIds: ["poke-c", "poke-d"],
     controller: PlayerController.Human,
   };
 
@@ -134,13 +134,13 @@ export abstract class MockMap {
 
   static readonly team3: PlacementTeam = {
     playerId: PlayerId.Player3,
-    pokemonIds: ["poke-e"],
+    availablePokemonIds: ["poke-e"],
     controller: PlayerController.Ai,
   };
 
   static readonly team4: PlacementTeam = {
     playerId: PlayerId.Player4,
-    pokemonIds: ["poke-f"],
+    availablePokemonIds: ["poke-f"],
     controller: PlayerController.Ai,
   };
 

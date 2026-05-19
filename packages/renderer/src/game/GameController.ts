@@ -1773,20 +1773,55 @@ export class GameController {
 
     if (this.placementRosterPanel) {
       const roster = team
-        ? team.pokemonIds.map((pokemonId) => ({
+        ? team.availablePokemonIds.map((pokemonId) => ({
             pokemonId,
             definitionId: pokemonId.replace(/^p\d+-/, ""),
             placed: placementPhase.getPlacements().some((p) => p.pokemonId === pokemonId),
           }))
         : [];
 
-      this.placementRosterPanel.show(next.playerId, roster, autoSelectedId, (pokemonId: string) => {
+      this.showRosterPanel(next.playerId, roster, autoSelectedId);
+    }
+  }
+
+  private showRosterPanel(
+    playerId: PlayerId,
+    roster: Array<{ pokemonId: string; definitionId: string; placed: boolean }>,
+    selectedPokemonId: string | null,
+  ): void {
+    if (!this.placementRosterPanel || !this.placementConfig) {
+      return;
+    }
+    const canFinish = this.placementConfig.placementPhase.canFinishPlayer(playerId);
+    this.placementRosterPanel.show(playerId, roster, selectedPokemonId, {
+      onSelect: (pokemonId: string) => {
         if (this.inputState.phase === "placement") {
           this.inputState = { phase: "placement", selectedPokemonId: pokemonId };
-          this.updateRosterSelection(next.playerId, roster, pokemonId);
+          this.showRosterPanel(playerId, roster, pokemonId);
         }
-      });
+      },
+      ...(canFinish ? { onFinish: () => this.finishCurrentPlayerPlacement() } : {}),
+    });
+  }
+
+  private finishCurrentPlayerPlacement(): void {
+    if (!this.placementConfig) {
+      return;
     }
+    const { placementPhase } = this.placementConfig;
+    const next = placementPhase.getNextToPlace();
+    if (!next) {
+      return;
+    }
+    const result = placementPhase.finishPlayer(next.playerId);
+    if (!result.success) {
+      return;
+    }
+    if (placementPhase.isComplete()) {
+      this.finishPlacement();
+      return;
+    }
+    this.enterPlacement();
   }
 
   private handlePlacementTileClick(gridX: number, gridY: number): void {
@@ -1992,22 +2027,6 @@ export class GameController {
       gender: PokemonGender.Genderless,
       nature: Nature.Hardy,
     };
-  }
-
-  private updateRosterSelection(
-    playerId: PlayerId,
-    roster: Array<{ pokemonId: string; definitionId: string; placed: boolean }>,
-    selectedPokemonId: string,
-  ): void {
-    if (!this.placementRosterPanel) {
-      return;
-    }
-    this.placementRosterPanel.show(playerId, roster, selectedPokemonId, (pokemonId: string) => {
-      if (this.inputState.phase === "placement") {
-        this.inputState = { phase: "placement", selectedPokemonId: pokemonId };
-        this.updateRosterSelection(playerId, roster, pokemonId);
-      }
-    });
   }
 
   handleSpaceKey(): void {
