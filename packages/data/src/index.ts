@@ -5,8 +5,11 @@ export { loadAllPokemonTypes, loadData } from "./load-data";
 export { pocArena, sandboxArena } from "./maps/index";
 export type { OpSet } from "./op-sets/load-op-sets";
 export { getAllOpSets, getOpSetsForPokemon } from "./op-sets/load-op-sets";
-export type { RosterEntry } from "./roster/roster-entry";
-export { rosterPoc } from "./roster/roster-poc";
+export { playablePokemon } from "./playable/playable-pokemon";
+export type {
+  PlayablePokemonCustom,
+  PlayablePokemonEntry,
+} from "./playable/playable-pokemon-entry";
 export type {
   CatalogAbility,
   CatalogItem,

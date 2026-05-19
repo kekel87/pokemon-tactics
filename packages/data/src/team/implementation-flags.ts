@@ -1,9 +1,12 @@
 import type { AbilityHandler, HeldItemHandler, HeldItemId } from "@pokemon-tactic/core";
 import type { TacticalOverride } from "../overrides/tactical";
-import type { RosterEntry } from "../roster/roster-entry";
+import type { PlayablePokemonEntry } from "../playable/playable-pokemon-entry";
 
-export function isPokemonImplemented(pokemonId: string, roster: readonly RosterEntry[]): boolean {
-  return roster.some((entry) => entry.id === pokemonId);
+export function isPokemonImplemented(
+  pokemonId: string,
+  entries: readonly PlayablePokemonEntry[],
+): boolean {
+  return entries.some((entry) => entry.id === pokemonId);
 }
 
 export function isMoveImplemented(

@@ -9,12 +9,13 @@ import { itemHandlers } from "./items/item-definitions";
 import { buildItemRegistry } from "./items/load-items";
 import { loadAbilitiesFromReference } from "./loaders/load-abilities";
 import { loadMovesFromReference } from "./loaders/load-moves";
-import { loadPokemonFromReference } from "./loaders/load-pokemon";
+import { buildShowdownToKebabIndex, loadPokemonFromReference } from "./loaders/load-pokemon";
 import type { ReferenceAbility, ReferenceMove, ReferencePokemon } from "./loaders/reference-types";
 import { deepMerge } from "./merge";
+import { getOpSetsForPokemon } from "./op-sets/load-op-sets";
 import { balanceOverrides } from "./overrides/balance-v1";
 import { tacticalOverrides } from "./overrides/tactical";
-import { rosterPoc } from "./roster/roster-poc";
+import { playablePokemon } from "./playable/playable-pokemon";
 import { initializeLearnsetResolver } from "./team/learnset-resolver";
 
 export interface GameData {
@@ -26,22 +27,19 @@ export interface GameData {
 
 export function loadData(): GameData {
   initializeLearnsetResolver(pokemonReference as unknown as ReferencePokemon[]);
-  const roster = rosterPoc;
+
+  const allMoveIds = new Set<string>(Object.keys(tacticalOverrides));
+  const showdownToKebab = buildShowdownToKebabIndex(movesReference as unknown as ReferenceMove[]);
 
   const pokemon: PokemonDefinition[] = loadPokemonFromReference(
     pokemonReference as unknown as ReferencePokemon[],
-    roster,
+    playablePokemon,
+    {
+      implementedMoveIds: allMoveIds,
+      showdownToKebab,
+      getOpSetMoveIds: (pokemonId) => getOpSetsForPokemon(pokemonId).flatMap((set) => set.moveIds),
+    },
   );
-
-  const allMoveIds = new Set<string>();
-  for (const entry of roster) {
-    for (const moveId of entry.movepool) {
-      allMoveIds.add(moveId);
-    }
-  }
-  for (const moveId of Object.keys(tacticalOverrides)) {
-    allMoveIds.add(moveId);
-  }
 
   const baseMoves = loadMovesFromReference(
     movesReference as unknown as ReferenceMove[],

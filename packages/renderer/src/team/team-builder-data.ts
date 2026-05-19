@@ -14,7 +14,7 @@ import {
   getPokemonName,
   loadData,
   type OpSet,
-  rosterPoc,
+  playablePokemon,
   type TeamBuilderRegistry,
 } from "@pokemon-tactic/data";
 import { getLanguage } from "../i18n";
@@ -88,7 +88,7 @@ function build(): TeamBuilderDataCache {
   for (const def of gameData.pokemon) {
     pokemonDefById.set(def.id, def);
   }
-  for (const entry of rosterPoc) {
+  for (const entry of playablePokemon) {
     if (entry.id === "dummy") {
       continue;
     }

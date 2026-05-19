@@ -39,7 +39,7 @@ Champs :
 
 ### Custom (fallback)
 - Quand sourcing externe vide ou incompatible roster
-- Base : movepool actuel `roster-poc.ts`
+- Base : learnset legal ∩ moves implémentés (cf. `loadPokemonFromReference`)
 - `source: "custom"` obligatoire, `sourceUrl` omis
 
 ## Cible volumétrie

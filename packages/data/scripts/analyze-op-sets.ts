@@ -5,7 +5,7 @@ import type { HeldItemId } from "@pokemon-tactic/core";
 import { abilityHandlers } from "../src/abilities/ability-definitions";
 import { itemHandlers } from "../src/items/item-definitions";
 import { tacticalOverrides } from "../src/overrides/tactical";
-import { rosterPoc } from "../src/roster/roster-poc";
+import { playablePokemon } from "../src/playable/playable-pokemon";
 import {
   isAbilityImplemented,
   isItemImplemented,
@@ -170,7 +170,7 @@ function analyze(data: OpSetData): Analysis {
 
   for (const set of data.sets) {
     const missing: string[] = [];
-    if (!isPokemonImplemented(set.pokemonId, rosterPoc)) {
+    if (!isPokemonImplemented(set.pokemonId, playablePokemon)) {
       analysis.unavailable += 1;
       analysis.perSet.push({ id: set.id, availability: "unavailable", missing: ["pokemon"] });
       continue;
@@ -202,7 +202,7 @@ function analyze(data: OpSetData): Analysis {
     }
     analysis.perSet.push({ id: set.id, availability, missing });
   }
-  for (const entry of rosterPoc) {
+  for (const entry of playablePokemon) {
     if (entry.id === "dummy") {
       continue;
     }
@@ -259,7 +259,7 @@ function renderMarkdown(analysis: Analysis, data: OpSetData): string {
   if (analysis.unavailable > 0) {
     lines.push(`- Sets \`unavailable\` : ${analysis.unavailable} (Pokemon non implémentés)`);
   }
-  const rosterCount = rosterPoc.filter((e) => e.id !== "dummy").length;
+  const rosterCount = playablePokemon.filter((e) => e.id !== "dummy").length;
   lines.push(`- Pokemon sans set \`full\` : ${analysis.pokemonWithoutFull.size} / ${rosterCount}`);
   lines.push("");
 

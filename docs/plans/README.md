@@ -98,3 +98,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 084 | [Système Météo](./084-weather-system.md) | done | 2026-05-12 |
 | 085 | [Team Builder UI (MyTeamsScene + TeamEditScene)](./085-team-edit-scene.md) | done | 2026-05-17 |
 | 086 | [Refonte TeamSelectScene (équipes saved + sous-pick format)](./086-team-select-refonte.md) | done | 2026-05-18 |
+| 087 | [Refactor roster-poc → playable-pokemon](./087-playable-pokemon-refactor.md) | done | 2026-05-19 |

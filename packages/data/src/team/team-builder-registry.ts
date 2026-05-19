@@ -15,7 +15,7 @@ import { abilityHandlers } from "../abilities/ability-definitions";
 import { itemHandlers } from "../items/item-definitions";
 import type { ReferencePokemon } from "../loaders/reference-types";
 import { tacticalOverrides } from "../overrides/tactical";
-import { rosterPoc } from "../roster/roster-poc";
+import { playablePokemon } from "../playable/playable-pokemon";
 import {
   getLegalAbilities,
   getLegalMoves,
@@ -68,7 +68,9 @@ export function buildTeamBuilderRegistry(): TeamBuilderRegistry {
   const pokemonRef = pokemonReference as unknown as ReferencePokemon[];
   initializeLearnsetResolver(pokemonRef);
 
-  const rosterIds = new Set(rosterPoc.map((entry) => entry.id).filter((id) => id !== "dummy"));
+  const playableIds = new Set(
+    playablePokemon.map((entry) => entry.id).filter((id) => id !== "dummy"),
+  );
   const moveIds = new Set(Object.keys(tacticalOverrides));
   const abilityIds = new Set(abilityHandlers.map((h) => h.id));
   const itemIds = new Set<HeldItemId>(itemHandlers.map((h) => h.id as HeldItemId));
@@ -115,7 +117,7 @@ export function buildTeamBuilderRegistry(): TeamBuilderRegistry {
   }
   const pokemonByEnglishNameMap = new Map<string, string>();
   for (const pk of pokemonRef) {
-    if (rosterIds.has(pk.id)) {
+    if (playableIds.has(pk.id)) {
       pokemonByEnglishNameMap.set(toShowdownId(pk.names.en), pk.id);
       pokemonByEnglishNameMap.set(toShowdownId(pk.id), pk.id);
     }
@@ -133,7 +135,7 @@ export function buildTeamBuilderRegistry(): TeamBuilderRegistry {
   }
 
   const validator: TeamValidatorRegistry = {
-    pokemonIds: rosterIds,
+    pokemonIds: playableIds,
     moveIds,
     abilityIds,
     itemIds,

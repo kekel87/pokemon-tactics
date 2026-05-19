@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { abilityHandlers } from "../../abilities/ability-definitions";
 import { itemHandlers } from "../../items/item-definitions";
 import { tacticalOverrides } from "../../overrides/tactical";
-import { rosterPoc } from "../../roster/roster-poc";
+import { playablePokemon } from "../../playable/playable-pokemon";
 import {
   isAbilityImplemented,
   isItemImplemented,
@@ -13,11 +13,11 @@ import {
 
 describe("isPokemonImplemented", () => {
   it("returns true for roster Pokemon", () => {
-    expect(isPokemonImplemented("charizard", rosterPoc)).toBe(true);
+    expect(isPokemonImplemented("charizard", playablePokemon)).toBe(true);
   });
 
   it("returns false for absent Pokemon", () => {
-    expect(isPokemonImplemented("missingno", rosterPoc)).toBe(false);
+    expect(isPokemonImplemented("missingno", playablePokemon)).toBe(false);
   });
 });
 

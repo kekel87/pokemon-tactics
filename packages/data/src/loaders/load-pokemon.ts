@@ -1,17 +1,25 @@
 import type { PokemonDefinition, PokemonType } from "@pokemon-tactic/core";
-import type { RosterEntry } from "../roster/roster-entry";
+import type { PlayablePokemonEntry } from "../playable/playable-pokemon-entry";
+import { getLegalMoves } from "../team/learnset-resolver";
 import type { ReferencePokemon } from "./reference-types";
+
+export interface LoadPokemonOptions {
+  implementedMoveIds: ReadonlySet<string>;
+  showdownToKebab: ReadonlyMap<string, string>;
+  getOpSetMoveIds: (pokemonId: string) => string[];
+}
 
 export function loadPokemonFromReference(
   referenceData: ReferencePokemon[],
-  roster: RosterEntry[],
+  entries: PlayablePokemonEntry[],
+  options: LoadPokemonOptions,
 ): PokemonDefinition[] {
   const referenceById = new Map<string, ReferencePokemon>();
   for (const pokemon of referenceData) {
     referenceById.set(pokemon.id, pokemon);
   }
 
-  return roster.map((entry) => {
+  return entries.map((entry) => {
     if (entry.custom) {
       return {
         id: entry.id,
@@ -19,9 +27,9 @@ export function loadPokemonFromReference(
         types: entry.custom.types,
         baseStats: entry.custom.baseStats,
         weight: entry.custom.weight,
-        movepool: entry.movepool,
+        movepool: entry.custom.movepool,
         genderRatio: "genderless",
-        ...(entry.abilityId ? { abilityId: entry.abilityId } : {}),
+        ...(entry.custom.abilityId ? { abilityId: entry.custom.abilityId } : {}),
       };
     }
 
@@ -29,6 +37,9 @@ export function loadPokemonFromReference(
     if (!ref) {
       throw new Error(`Pokemon "${entry.id}" not found in reference data`);
     }
+
+    const movepool = deriveMovepool(entry.id, options);
+    const ability1 = ref.abilities.ability1;
 
     return {
       id: entry.id,
@@ -44,9 +55,44 @@ export function loadPokemonFromReference(
         speed: ref.baseStats.spe,
       },
       weight: ref.weight,
-      movepool: entry.movepool,
+      movepool,
       genderRatio: ref.genderRatio,
-      ...(entry.abilityId ? { abilityId: entry.abilityId } : {}),
+      ...(ability1 ? { abilityId: ability1 } : {}),
     };
   });
+}
+
+function deriveMovepool(pokemonId: string, options: LoadPokemonOptions): string[] {
+  const { implementedMoveIds, showdownToKebab, getOpSetMoveIds } = options;
+
+  const ordered: string[] = [];
+  const seen = new Set<string>();
+  for (const moveId of getOpSetMoveIds(pokemonId)) {
+    if (implementedMoveIds.has(moveId) && !seen.has(moveId)) {
+      ordered.push(moveId);
+      seen.add(moveId);
+    }
+  }
+
+  const legalShowdownIds = getLegalMoves(pokemonId);
+  for (const showdownId of legalShowdownIds) {
+    const kebab = showdownToKebab.get(showdownId);
+    if (kebab !== undefined && implementedMoveIds.has(kebab) && !seen.has(kebab)) {
+      ordered.push(kebab);
+      seen.add(kebab);
+    }
+  }
+
+  return ordered;
+}
+
+export function buildShowdownToKebabIndex(
+  moves: readonly { id: string }[],
+): ReadonlyMap<string, string> {
+  const map = new Map<string, string>();
+  for (const move of moves) {
+    const showdownId = move.id.replace(/-/g, "");
+    map.set(showdownId, move.id);
+  }
+  return map;
 }

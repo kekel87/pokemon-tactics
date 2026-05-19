@@ -100,8 +100,9 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
         throw new Error(`No team for: ${placement.pokemonId}`);
       }
       const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
+      const activeMoveIds = definition.movepool.slice(0, 4);
       const currentPp: Record<string, number> = {};
-      for (const moveId of definition.movepool) {
+      for (const moveId of activeMoveIds) {
         const move = moveRegistry.get(moveId);
         currentPp[moveId] = move?.pp ?? 0;
       }
@@ -123,7 +124,7 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
         statusEffects: [],
         position: placement.position,
         orientation: Direction.South,
-        moveIds: [...definition.movepool],
+        moveIds: activeMoveIds,
         currentPp,
         activeDefense: null,
         lastEndureRound: null,

@@ -44,7 +44,7 @@ describe("createSandboxBattle", () => {
     const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
     const player = result.state.pokemon.get("p1-venusaur")!;
 
-    expect(player.moveIds).toEqual(["razor-leaf", "leech-seed", "sleep-powder", "sludge-bomb"]);
+    expect(player.moveIds).toEqual(["growth", "weather-ball", "giga-drain", "sludge-bomb"]);
   });
 
   it("applies HP percentage", () => {
