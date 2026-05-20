@@ -88,12 +88,17 @@ TypeScript strict ESM · Phaser 4 · Vitest · Playwright (`visual-tester`) · c
 
 Détails : `docs/agent-orchestration.md`.
 
-### Chaînes
+### Chaînes — menu interactif via `/next`
 
-- **Plan rédaction** : tu écris → `plan-reviewer` → `game-designer` (si mécaniques) → humain
-- **Plan fin** : `core-guardian` (si core) → `code-reviewer` → `doc-keeper` → propose `visual-tester` (si renderer) → gate CI → `commit-message`
-- **Hors plan** : `code-reviewer` (si significatif) → `doc-keeper` (si doc) → gate CI → `commit-message`
-- **Session fin** : `session-closer` → gate CI → `commit-message`
+**Plus de cascade auto.** Quand impl finie (build OK), invoque `/next` qui détecte le contexte (`git status` + plan + fichiers touchés) et présente un menu multi-select via `AskUserQuestion`. L'humain coche, tu exécutes en ordre fixe.
+
+Étapes pré-cochées selon contexte (cf `.claude/skills/next/SKILL.md`) :
+
+- **Plan rédaction** (`docs/plans/*.md` draft non commit) : `plan-reviewer` coché, `game-designer` proposé si mécaniques
+- **Plan fin / hors plan** (code modifié non commit) : `core-guardian` (si `packages/core/` touché), `code-reviewer` (si diff significative), `doc-keeper` (si docs impactés), `visual-tester` **jamais auto-coché**, `gate CI`, `commit-message`
+- **Session fin** : `session-closer`, `gate CI`, `commit-message`
+
+Ordre d'exécution fixe : core-guardian → code-reviewer → doc-keeper → visual-tester → gate CI → commit-message. Stop sur fail bloquant. **Jamais commit/push auto** — `commit-message` génère le titre, humain commit.
 
 ### Règles fond
 
@@ -105,5 +110,7 @@ Détails : `docs/agent-orchestration.md`.
 
 | Cmd | Action |
 |-----|--------|
-| `/next` | Prochaine étape (lit `docs/next.md` + STATUS + roadmap + plan) |
+| `/next` | Prochaine étape OU menu post-impl multi-select (selon contexte) |
 | `/review-local` | Review code changements locaux |
+| `/ci-gate [fast\|full\|slow]` | Gate CI local (lint, typecheck, build, test, integration). BLOQUANT avant commit |
+| `/commit` | Génère message commit conventional via agent `commit-message`. Jamais auto-commit |
