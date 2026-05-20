@@ -36,10 +36,36 @@
       flex-direction: column;
       gap: var(--spacing-xs);
     }
+    .tb-edit-name-row {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
     .tb-edit-name {
       margin: 0;
       font-size: var(--font-size-lg);
       color: var(--color-text-primary);
+    }
+    .tb-gender-toggle {
+      min-width: var(--target-min);
+      min-height: var(--target-min);
+      padding: 0 var(--spacing-sm);
+      background: transparent;
+      border: 1px solid var(--color-border-surface);
+      border-radius: var(--radius-md);
+      font-family: var(--font-family);
+      font-size: var(--font-size-lg);
+      line-height: 1;
+      cursor: pointer;
+      &[data-gender="male"] { color: var(--color-gender-male); }
+      &[data-gender="female"] { color: var(--color-gender-female); }
+      &:hover:not(:disabled) {
+        background: var(--color-btn-ghost-hover);
+      }
+      &:disabled {
+        cursor: default;
+        opacity: 0.7;
+      }
     }
     .tb-edit-sub {
       display: inline-flex;

@@ -2042,9 +2042,25 @@
       "hidden": "run-away"
     },
     "learnset": {
-      "levelUp": [],
+      "levelUp": [
+        {
+          "level": 1,
+          "move": "poisonsting"
+        },
+        {
+          "level": 1,
+          "move": "stringshot"
+        },
+        {
+          "level": 9,
+          "move": "bugbite"
+        }
+      ],
       "tm": [],
-      "tutor": []
+      "tutor": [
+        "bugbite",
+        "electroweb"
+      ]
     },
     "evolvesFrom": null,
     "evolutions": [
@@ -2127,9 +2143,18 @@
       "hidden": null
     },
     "learnset": {
-      "levelUp": [],
+      "levelUp": [
+        {
+          "level": 1,
+          "move": "harden"
+        }
+      ],
       "tm": [],
-      "tutor": []
+      "tutor": [
+        "bugbite",
+        "electroweb",
+        "irondefense"
+      ]
     },
     "evolvesFrom": "weedle",
     "evolutions": [
@@ -2371,9 +2396,97 @@
       "hidden": "big-pecks"
     },
     "learnset": {
-      "levelUp": [],
-      "tm": [],
-      "tutor": []
+      "levelUp": [
+        {
+          "level": 1,
+          "move": "tackle"
+        },
+        {
+          "level": 5,
+          "move": "sandattack"
+        },
+        {
+          "level": 9,
+          "move": "gust"
+        },
+        {
+          "level": 13,
+          "move": "quickattack"
+        },
+        {
+          "level": 17,
+          "move": "whirlwind"
+        },
+        {
+          "level": 21,
+          "move": "twister"
+        },
+        {
+          "level": 25,
+          "move": "featherdance"
+        },
+        {
+          "level": 29,
+          "move": "agility"
+        },
+        {
+          "level": 33,
+          "move": "wingattack"
+        },
+        {
+          "level": 37,
+          "move": "roost"
+        },
+        {
+          "level": 41,
+          "move": "tailwind"
+        },
+        {
+          "level": 45,
+          "move": "mirrormove"
+        },
+        {
+          "level": 49,
+          "move": "airslash"
+        },
+        {
+          "level": 53,
+          "move": "hurricane"
+        }
+      ],
+      "tm": [
+        "aerialace",
+        "attract",
+        "confide",
+        "doubleteam",
+        "facade",
+        "fly",
+        "frustration",
+        "hiddenpower",
+        "protect",
+        "raindance",
+        "rest",
+        "return",
+        "roost",
+        "round",
+        "sleeptalk",
+        "steelwing",
+        "substitute",
+        "sunnyday",
+        "swagger",
+        "thief",
+        "toxic",
+        "uturn",
+        "workup"
+      ],
+      "tutor": [
+        "defog",
+        "heatwave",
+        "skyattack",
+        "snore",
+        "tailwind",
+        "uproar"
+      ]
     },
     "evolvesFrom": null,
     "evolutions": [
@@ -2456,9 +2569,97 @@
       "hidden": "big-pecks"
     },
     "learnset": {
-      "levelUp": [],
-      "tm": [],
-      "tutor": []
+      "levelUp": [
+        {
+          "level": 1,
+          "move": "gust"
+        },
+        {
+          "level": 1,
+          "move": "sandattack"
+        },
+        {
+          "level": 1,
+          "move": "tackle"
+        },
+        {
+          "level": 13,
+          "move": "quickattack"
+        },
+        {
+          "level": 17,
+          "move": "whirlwind"
+        },
+        {
+          "level": 22,
+          "move": "twister"
+        },
+        {
+          "level": 27,
+          "move": "featherdance"
+        },
+        {
+          "level": 32,
+          "move": "agility"
+        },
+        {
+          "level": 37,
+          "move": "wingattack"
+        },
+        {
+          "level": 42,
+          "move": "roost"
+        },
+        {
+          "level": 47,
+          "move": "tailwind"
+        },
+        {
+          "level": 52,
+          "move": "mirrormove"
+        },
+        {
+          "level": 57,
+          "move": "airslash"
+        },
+        {
+          "level": 62,
+          "move": "hurricane"
+        }
+      ],
+      "tm": [
+        "aerialace",
+        "attract",
+        "confide",
+        "doubleteam",
+        "facade",
+        "fly",
+        "frustration",
+        "hiddenpower",
+        "protect",
+        "raindance",
+        "rest",
+        "return",
+        "roost",
+        "round",
+        "sleeptalk",
+        "steelwing",
+        "substitute",
+        "sunnyday",
+        "swagger",
+        "thief",
+        "toxic",
+        "uturn",
+        "workup"
+      ],
+      "tutor": [
+        "defog",
+        "heatwave",
+        "skyattack",
+        "snore",
+        "tailwind",
+        "uproar"
+      ]
     },
     "evolvesFrom": "pidgey",
     "evolutions": [
@@ -2676,9 +2877,103 @@
       "hidden": "hustle"
     },
     "learnset": {
-      "levelUp": [],
-      "tm": [],
-      "tutor": []
+      "levelUp": [
+        {
+          "level": 1,
+          "move": "tackle"
+        },
+        {
+          "level": 1,
+          "move": "tailwhip"
+        },
+        {
+          "level": 4,
+          "move": "quickattack"
+        },
+        {
+          "level": 7,
+          "move": "focusenergy"
+        },
+        {
+          "level": 10,
+          "move": "bite"
+        },
+        {
+          "level": 13,
+          "move": "pursuit"
+        },
+        {
+          "level": 16,
+          "move": "hyperfang"
+        },
+        {
+          "level": 19,
+          "move": "assurance"
+        },
+        {
+          "level": 22,
+          "move": "crunch"
+        },
+        {
+          "level": 25,
+          "move": "suckerpunch"
+        },
+        {
+          "level": 28,
+          "move": "superfang"
+        },
+        {
+          "level": 31,
+          "move": "doubleedge"
+        },
+        {
+          "level": 34,
+          "move": "endeavor"
+        }
+      ],
+      "tm": [
+        "attract",
+        "blizzard",
+        "chargebeam",
+        "confide",
+        "doubleteam",
+        "facade",
+        "frustration",
+        "grassknot",
+        "hiddenpower",
+        "icebeam",
+        "protect",
+        "raindance",
+        "rest",
+        "return",
+        "round",
+        "shadowball",
+        "sleeptalk",
+        "substitute",
+        "sunnyday",
+        "swagger",
+        "taunt",
+        "thief",
+        "thunder",
+        "thunderbolt",
+        "thunderwave",
+        "toxic",
+        "uturn",
+        "wildcharge",
+        "workup"
+      ],
+      "tutor": [
+        "covet",
+        "endeavor",
+        "icywind",
+        "irontail",
+        "lastresort",
+        "shockwave",
+        "snore",
+        "superfang",
+        "uproar",
+        "zenheadbutt"
+      ]
     },
     "evolvesFrom": null,
     "evolutions": [
@@ -2785,9 +3080,117 @@
       "hidden": "hustle"
     },
     "learnset": {
-      "levelUp": [],
-      "tm": [],
-      "tutor": []
+      "levelUp": [
+        {
+          "level": 1,
+          "move": "focusenergy"
+        },
+        {
+          "level": 1,
+          "move": "quickattack"
+        },
+        {
+          "level": 1,
+          "move": "scaryface"
+        },
+        {
+          "level": 1,
+          "move": "swordsdance"
+        },
+        {
+          "level": 1,
+          "move": "tackle"
+        },
+        {
+          "level": 1,
+          "move": "tailwhip"
+        },
+        {
+          "level": 10,
+          "move": "bite"
+        },
+        {
+          "level": 13,
+          "move": "pursuit"
+        },
+        {
+          "level": 16,
+          "move": "hyperfang"
+        },
+        {
+          "level": 19,
+          "move": "assurance"
+        },
+        {
+          "level": 24,
+          "move": "crunch"
+        },
+        {
+          "level": 29,
+          "move": "suckerpunch"
+        },
+        {
+          "level": 34,
+          "move": "superfang"
+        },
+        {
+          "level": 39,
+          "move": "doubleedge"
+        },
+        {
+          "level": 44,
+          "move": "endeavor"
+        }
+      ],
+      "tm": [
+        "attract",
+        "blizzard",
+        "chargebeam",
+        "confide",
+        "doubleteam",
+        "facade",
+        "frustration",
+        "gigaimpact",
+        "grassknot",
+        "hiddenpower",
+        "hyperbeam",
+        "icebeam",
+        "protect",
+        "raindance",
+        "rest",
+        "return",
+        "roar",
+        "round",
+        "shadowball",
+        "sleeptalk",
+        "substitute",
+        "sunnyday",
+        "swagger",
+        "swordsdance",
+        "taunt",
+        "thief",
+        "thunder",
+        "thunderbolt",
+        "thunderwave",
+        "toxic",
+        "uturn",
+        "wildcharge",
+        "workup"
+      ],
+      "tutor": [
+        "covet",
+        "endeavor",
+        "icywind",
+        "irontail",
+        "lastresort",
+        "shockwave",
+        "snore",
+        "stompingtantrum",
+        "superfang",
+        "throatchop",
+        "uproar",
+        "zenheadbutt"
+      ]
     },
     "evolvesFrom": "rattata",
     "evolutions": [],
@@ -2889,9 +3292,92 @@
       "hidden": "sniper"
     },
     "learnset": {
-      "levelUp": [],
-      "tm": [],
-      "tutor": []
+      "levelUp": [
+        {
+          "level": 1,
+          "move": "growl"
+        },
+        {
+          "level": 1,
+          "move": "peck"
+        },
+        {
+          "level": 4,
+          "move": "leer"
+        },
+        {
+          "level": 8,
+          "move": "pursuit"
+        },
+        {
+          "level": 11,
+          "move": "furyattack"
+        },
+        {
+          "level": 15,
+          "move": "aerialace"
+        },
+        {
+          "level": 18,
+          "move": "mirrormove"
+        },
+        {
+          "level": 22,
+          "move": "assurance"
+        },
+        {
+          "level": 25,
+          "move": "agility"
+        },
+        {
+          "level": 29,
+          "move": "focusenergy"
+        },
+        {
+          "level": 32,
+          "move": "roost"
+        },
+        {
+          "level": 36,
+          "move": "drillpeck"
+        }
+      ],
+      "tm": [
+        "aerialace",
+        "attract",
+        "confide",
+        "doubleteam",
+        "echoedvoice",
+        "facade",
+        "falseswipe",
+        "fly",
+        "frustration",
+        "hiddenpower",
+        "protect",
+        "raindance",
+        "rest",
+        "return",
+        "roost",
+        "round",
+        "sleeptalk",
+        "steelwing",
+        "substitute",
+        "sunnyday",
+        "swagger",
+        "thief",
+        "toxic",
+        "uturn",
+        "workup"
+      ],
+      "tutor": [
+        "defog",
+        "drillrun",
+        "heatwave",
+        "skyattack",
+        "snore",
+        "tailwind",
+        "uproar"
+      ]
     },
     "evolvesFrom": null,
     "evolutions": [
@@ -2974,9 +3460,104 @@
       "hidden": "sniper"
     },
     "learnset": {
-      "levelUp": [],
-      "tm": [],
-      "tutor": []
+      "levelUp": [
+        {
+          "level": 1,
+          "move": "drillrun"
+        },
+        {
+          "level": 1,
+          "move": "growl"
+        },
+        {
+          "level": 1,
+          "move": "leer"
+        },
+        {
+          "level": 1,
+          "move": "peck"
+        },
+        {
+          "level": 1,
+          "move": "pluck"
+        },
+        {
+          "level": 1,
+          "move": "pursuit"
+        },
+        {
+          "level": 11,
+          "move": "furyattack"
+        },
+        {
+          "level": 15,
+          "move": "aerialace"
+        },
+        {
+          "level": 18,
+          "move": "mirrormove"
+        },
+        {
+          "level": 23,
+          "move": "assurance"
+        },
+        {
+          "level": 27,
+          "move": "agility"
+        },
+        {
+          "level": 32,
+          "move": "focusenergy"
+        },
+        {
+          "level": 36,
+          "move": "roost"
+        },
+        {
+          "level": 41,
+          "move": "drillpeck"
+        }
+      ],
+      "tm": [
+        "aerialace",
+        "attract",
+        "confide",
+        "doubleteam",
+        "echoedvoice",
+        "facade",
+        "falseswipe",
+        "fly",
+        "frustration",
+        "gigaimpact",
+        "hiddenpower",
+        "hyperbeam",
+        "protect",
+        "raindance",
+        "rest",
+        "return",
+        "roost",
+        "round",
+        "sleeptalk",
+        "steelwing",
+        "substitute",
+        "sunnyday",
+        "swagger",
+        "thief",
+        "toxic",
+        "uturn",
+        "workup"
+      ],
+      "tutor": [
+        "defog",
+        "drillrun",
+        "heatwave",
+        "laserfocus",
+        "skyattack",
+        "snore",
+        "tailwind",
+        "throatchop",
+        "uproar"
+      ]
     },
     "evolvesFrom": "spearow",
     "evolutions": [],
@@ -4555,8 +5136,8 @@
     "shape": "quadruped",
     "habitat": "grassland",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 235,
     "baseFriendship": 70,
@@ -4724,8 +5305,8 @@
     "shape": "quadruped",
     "habitat": "grassland",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 120,
     "baseFriendship": 70,
@@ -4895,8 +5476,8 @@
     "shape": "upright",
     "habitat": "grassland",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -5104,8 +5685,8 @@
     "shape": "quadruped",
     "habitat": "grassland",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 235,
     "baseFriendship": 70,
@@ -5274,8 +5855,8 @@
     "shape": "quadruped",
     "habitat": "grassland",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 120,
     "baseFriendship": 70,
@@ -5446,8 +6027,8 @@
     "shape": "upright",
     "habitat": "grassland",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -7894,9 +8475,97 @@
       "hidden": "damp"
     },
     "learnset": {
-      "levelUp": [],
-      "tm": [],
-      "tutor": []
+      "levelUp": [
+        {
+          "level": 1,
+          "move": "scratch"
+        },
+        {
+          "level": 6,
+          "move": "poisonpowder"
+        },
+        {
+          "level": 6,
+          "move": "stunspore"
+        },
+        {
+          "level": 11,
+          "move": "absorb"
+        },
+        {
+          "level": 17,
+          "move": "furycutter"
+        },
+        {
+          "level": 22,
+          "move": "spore"
+        },
+        {
+          "level": 27,
+          "move": "slash"
+        },
+        {
+          "level": 33,
+          "move": "growth"
+        },
+        {
+          "level": 38,
+          "move": "gigadrain"
+        },
+        {
+          "level": 43,
+          "move": "aromatherapy"
+        },
+        {
+          "level": 49,
+          "move": "ragepowder"
+        },
+        {
+          "level": 54,
+          "move": "xscissor"
+        }
+      ],
+      "tm": [
+        "aerialace",
+        "attract",
+        "brickbreak",
+        "confide",
+        "doubleteam",
+        "energyball",
+        "facade",
+        "falseswipe",
+        "frustration",
+        "grassknot",
+        "hiddenpower",
+        "leechlife",
+        "lightscreen",
+        "naturepower",
+        "protect",
+        "rest",
+        "return",
+        "round",
+        "sleeptalk",
+        "sludgebomb",
+        "solarbeam",
+        "substitute",
+        "sunnyday",
+        "swagger",
+        "swordsdance",
+        "thief",
+        "toxic",
+        "venoshock",
+        "xscissor"
+      ],
+      "tutor": [
+        "afteryou",
+        "bugbite",
+        "gigadrain",
+        "knockoff",
+        "seedbomb",
+        "snore",
+        "synthesis",
+        "worryseed"
+      ]
     },
     "evolvesFrom": null,
     "evolutions": [
@@ -7984,9 +8653,104 @@
       "hidden": "damp"
     },
     "learnset": {
-      "levelUp": [],
-      "tm": [],
-      "tutor": []
+      "levelUp": [
+        {
+          "level": 1,
+          "move": "absorb"
+        },
+        {
+          "level": 1,
+          "move": "crosspoison"
+        },
+        {
+          "level": 1,
+          "move": "poisonpowder"
+        },
+        {
+          "level": 1,
+          "move": "scratch"
+        },
+        {
+          "level": 1,
+          "move": "stunspore"
+        },
+        {
+          "level": 17,
+          "move": "furycutter"
+        },
+        {
+          "level": 22,
+          "move": "spore"
+        },
+        {
+          "level": 29,
+          "move": "slash"
+        },
+        {
+          "level": 37,
+          "move": "growth"
+        },
+        {
+          "level": 44,
+          "move": "gigadrain"
+        },
+        {
+          "level": 51,
+          "move": "aromatherapy"
+        },
+        {
+          "level": 59,
+          "move": "ragepowder"
+        },
+        {
+          "level": 66,
+          "move": "xscissor"
+        }
+      ],
+      "tm": [
+        "aerialace",
+        "attract",
+        "brickbreak",
+        "confide",
+        "doubleteam",
+        "energyball",
+        "facade",
+        "falseswipe",
+        "frustration",
+        "gigaimpact",
+        "grassknot",
+        "hiddenpower",
+        "hyperbeam",
+        "leechlife",
+        "lightscreen",
+        "naturepower",
+        "protect",
+        "rest",
+        "return",
+        "round",
+        "sleeptalk",
+        "sludgebomb",
+        "solarbeam",
+        "substitute",
+        "sunnyday",
+        "swagger",
+        "swordsdance",
+        "thief",
+        "toxic",
+        "venoshock",
+        "xscissor"
+      ],
+      "tutor": [
+        "afteryou",
+        "bugbite",
+        "gigadrain",
+        "knockoff",
+        "seedbomb",
+        "snore",
+        "synthesis",
+        "throatchop",
+        "worryseed"
+      ]
     },
     "evolvesFrom": "paras",
     "evolutions": [],
@@ -19406,8 +20170,8 @@
     "shape": "humanoid",
     "habitat": "urban",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -19604,8 +20368,8 @@
     "shape": "humanoid",
     "habitat": "urban",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -20827,8 +21591,8 @@
     "shape": "upright",
     "habitat": "urban",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 30,
     "baseFriendship": 140,
@@ -21242,8 +22006,8 @@
     "shape": "upright",
     "habitat": "grassland",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -22879,8 +23643,8 @@
     "shape": "humanoid",
     "habitat": "urban",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -23627,8 +24391,8 @@
     "shape": "quadruped",
     "habitat": "grassland",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -43140,8 +43904,8 @@
     "shape": "humanoid",
     "habitat": "urban",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 75,
     "baseFriendship": 70,
@@ -43271,8 +44035,8 @@
     "shape": "upright",
     "habitat": "urban",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -43461,8 +44225,8 @@
     "shape": "humanoid",
     "habitat": "urban",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -44003,8 +44767,8 @@
     "shape": "upright",
     "habitat": "grassland",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -44186,8 +44950,8 @@
     "shape": "humanoid",
     "habitat": "urban",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 30,
     "baseFriendship": 140,
@@ -57095,8 +57859,8 @@
     "shape": "upright",
     "habitat": "forest",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 150,
     "baseFriendship": 70,
@@ -57276,8 +58040,8 @@
     "shape": "humanoid",
     "habitat": "forest",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 150,
     "baseFriendship": 70,
@@ -68960,8 +69724,8 @@
     "shape": "wings",
     "habitat": "waters-edge",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 3,
     "baseFriendship": 90,
@@ -69191,8 +69955,8 @@
     "shape": "wings",
     "habitat": "waters-edge",
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 3,
     "baseFriendship": 90,
@@ -74659,8 +75423,8 @@
     "shape": "blob",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -74884,8 +75648,8 @@
     "shape": "bug-wings",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -75162,8 +75926,8 @@
     "shape": "bug-wings",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -79412,8 +80176,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 130,
     "baseFriendship": 140,
@@ -85318,8 +86082,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 45,
     "baseFriendship": 35,
@@ -85932,8 +86696,8 @@
     "shape": "arms",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 75,
     "baseFriendship": 70,
@@ -88017,8 +88781,8 @@
     "shape": "squiggle",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 3,
     "baseFriendship": 100,
@@ -96385,8 +97149,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -96546,8 +97310,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -97926,8 +98690,8 @@
     "shape": "blob",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 190,
     "baseFriendship": 70,
@@ -98091,8 +98855,8 @@
     "shape": "blob",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 75,
     "baseFriendship": 70,
@@ -111002,8 +111766,8 @@
     "shape": "wings",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 190,
     "baseFriendship": 70,
@@ -111172,8 +111936,8 @@
     "shape": "wings",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 60,
     "baseFriendship": 70,
@@ -111365,8 +112129,8 @@
     "shape": "wings",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 190,
     "baseFriendship": 35,
@@ -111530,8 +112294,8 @@
     "shape": "wings",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 60,
     "baseFriendship": 35,
@@ -113309,8 +114073,8 @@
     "shape": "arms",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 3,
     "baseFriendship": 90,
@@ -113518,8 +114282,8 @@
     "shape": "arms",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 3,
     "baseFriendship": 90,
@@ -114099,8 +114863,8 @@
     "shape": "arms",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 3,
     "baseFriendship": 90,
@@ -118161,8 +118925,8 @@
     "shape": "arms",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 225,
     "baseFriendship": 70,
@@ -118320,8 +119084,8 @@
     "shape": "arms",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 120,
     "baseFriendship": 70,
@@ -118529,8 +119293,8 @@
     "shape": "arms",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -119550,8 +120314,8 @@
     "shape": "upright",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 75,
     "baseFriendship": 70,
@@ -132350,8 +133114,8 @@
     "shape": "quadruped",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -132813,8 +133577,8 @@
     "shape": "legs",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 235,
     "baseFriendship": 70,
@@ -132948,8 +133712,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 120,
     "baseFriendship": 70,
@@ -133095,8 +133859,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 70,
@@ -140962,9 +141726,54 @@
       "hidden": null
     },
     "learnset": {
-      "levelUp": [],
-      "tm": [],
-      "tutor": []
+      "levelUp": [
+        {
+          "level": 1,
+          "move": "harden"
+        },
+        {
+          "level": 1,
+          "move": "thundershock"
+        },
+        {
+          "level": 8,
+          "move": "tailwhip"
+        },
+        {
+          "level": 16,
+          "move": "headbutt"
+        },
+        {
+          "level": 24,
+          "move": "thunderwave"
+        },
+        {
+          "level": 32,
+          "move": "acidarmor"
+        },
+        {
+          "level": 40,
+          "move": "flashcannon"
+        }
+      ],
+      "tm": [
+        "endure",
+        "facade",
+        "flashcannon",
+        "gyroball",
+        "irondefense",
+        "protect",
+        "rest",
+        "round",
+        "sleeptalk",
+        "snore",
+        "substitute",
+        "thunderbolt",
+        "thunderwave"
+      ],
+      "tutor": [
+        "steelbeam"
+      ]
     },
     "evolvesFrom": null,
     "evolutions": [],
@@ -147851,8 +148660,8 @@
     "shape": "legs",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 235,
     "baseFriendship": 50,
@@ -148000,8 +148809,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 120,
     "baseFriendship": 50,
@@ -148154,8 +148963,8 @@
     "shape": "blob",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 50,
@@ -148276,8 +149085,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 255,
     "baseFriendship": 50,
@@ -148431,8 +149240,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 120,
     "baseFriendship": 50,
@@ -148592,8 +149401,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 45,
     "baseFriendship": 50,
@@ -149806,8 +150615,8 @@
     "shape": "ball",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 200,
     "baseFriendship": 50,
@@ -149936,8 +150745,8 @@
     "shape": "blob",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 100,
     "baseFriendship": 50,
@@ -150982,8 +151791,8 @@
     "shape": "upright",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 30,
     "baseFriendship": 140,
@@ -155253,8 +156062,8 @@
     "shape": "fish",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 135,
     "baseFriendship": 50,
@@ -155712,8 +156521,8 @@
     "shape": "arms",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 3,
     "baseFriendship": 50,
@@ -157379,8 +158188,8 @@
     "shape": "quadruped",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 100,
     "baseFriendship": 50,
@@ -163834,8 +164643,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 190,
     "baseFriendship": 50,
@@ -164001,8 +164810,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 90,
     "baseFriendship": 50,
@@ -164169,8 +164978,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 45,
     "baseFriendship": 50,
@@ -173376,8 +174185,8 @@
     "shape": "upright",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 3,
     "baseFriendship": 0,
@@ -173546,8 +174355,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 3,
     "baseFriendship": 0,
@@ -173712,8 +174521,8 @@
     "shape": "wings",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 100,
+      "female": 0
     },
     "catchRate": 3,
     "baseFriendship": 0,
@@ -173881,8 +174690,8 @@
     "shape": "humanoid",
     "habitat": null,
     "genderRatio": {
-      "male": 50,
-      "female": 50
+      "male": 0,
+      "female": 100
     },
     "catchRate": 5,
     "baseFriendship": 50,

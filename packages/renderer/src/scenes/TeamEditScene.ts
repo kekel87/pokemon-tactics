@@ -1,5 +1,13 @@
-import type { HeldItemId, Nature, StatSpread, TeamSet, TeamSlot } from "@pokemon-tactic/core";
+import type {
+  HeldItemId,
+  Nature,
+  PokemonGender,
+  StatSpread,
+  TeamSet,
+  TeamSlot,
+} from "@pokemon-tactic/core";
 import { t } from "../i18n";
+import { resolveSlotGender } from "../team/gender-helpers";
 import { getOpSetsByPokemonId } from "../team/team-builder-data";
 import { SaveDebouncer, touchTeam } from "../team/team-helpers";
 import { loadTeam, saveTeam } from "../team/team-storage";
@@ -135,6 +143,7 @@ export class TeamEditScene extends Phaser.Scene {
       onNatureChange: (n) => this.handleNatureChange(n),
       onMoveChange: (idx, id) => this.handleMoveChange(idx, id),
       onSetOpApply: (setId) => this.handleSetOpApply(setId),
+      onGenderChange: (g) => this.handleGenderChange(g),
     });
     this.rightPanel = new EditRightPanel({
       onSpChange: (sp) => this.handleSpChange(sp),
@@ -253,6 +262,10 @@ export class TeamEditScene extends Phaser.Scene {
             moveIds: [],
             statSpread: {},
           };
+          const defaultGender = resolveSlotGender(pokemon.id, undefined);
+          if (defaultGender !== undefined) {
+            newSlot.gender = defaultGender;
+          }
           const slots = [...this.team.slots];
           if (slots.length <= index) {
             slots.push(newSlot);
@@ -305,6 +318,10 @@ export class TeamEditScene extends Phaser.Scene {
       }
       return next;
     });
+  }
+
+  private handleGenderChange(gender: PokemonGender): void {
+    this.updateActiveSlot((slot) => ({ ...slot, gender }));
   }
 
   private handleNatureChange(nature: Nature): void {
@@ -360,6 +377,10 @@ export class TeamEditScene extends Phaser.Scene {
       };
       if (set.heldItemId !== null) {
         next.heldItemId = set.heldItemId;
+      }
+      const gender = resolveSlotGender(slot.pokemonId, slot.gender);
+      if (gender !== undefined) {
+        next.gender = gender;
       }
       return next;
     });

@@ -273,6 +273,8 @@ export interface Translations {
   "teamBuilder.section.item": string;
   "teamBuilder.section.nature": string;
   "teamBuilder.section.moves": string;
+  "teamBuilder.gender.male": string;
+  "teamBuilder.gender.female": string;
   "teamBuilder.section.stats": string;
   "teamBuilder.section.statPoints": string;
   "teamBuilder.section.presets": string;

@@ -1,7 +1,8 @@
-import { type HeldItemId, Nature, type TeamSlot } from "@pokemon-tactic/core";
+import { type HeldItemId, Nature, PokemonGender, type TeamSlot } from "@pokemon-tactic/core";
 import type { TranslationKey } from "../../i18n";
 import { t } from "../../i18n";
 import { getCategoryIconUrl, getTypeIconUrl } from "../../team/asset-paths";
+import { toggleGender } from "../../team/gender-helpers";
 import {
   getAbilityInfo,
   getItemInfo,
@@ -76,6 +77,7 @@ export interface EditLeftPanelCallbacks {
   onNatureChange: (nature: Nature) => void;
   onMoveChange: (slotIndex: number, moveId: string) => void;
   onSetOpApply: (setId: string) => void;
+  onGenderChange: (gender: PokemonGender) => void;
 }
 
 export class EditLeftPanel {
@@ -112,10 +114,17 @@ export class EditLeftPanel {
     header.appendChild(portrait);
     const info = document.createElement("div");
     info.className = "tb-edit-info";
+    const nameRow = document.createElement("div");
+    nameRow.className = "tb-edit-name-row";
     const name = document.createElement("div");
     name.className = "tb-edit-name";
     name.textContent = pokemon.name;
-    info.appendChild(name);
+    nameRow.appendChild(name);
+    const genderToggle = this.renderGenderToggle(pokemon, slot);
+    if (genderToggle !== null) {
+      nameRow.appendChild(genderToggle);
+    }
+    info.appendChild(nameRow);
     const sub = document.createElement("div");
     sub.className = "tb-edit-sub";
     for (const type of pokemon.types) {
@@ -148,6 +157,35 @@ export class EditLeftPanel {
     this.element.appendChild(this.renderItemSection(slot));
     this.element.appendChild(this.renderNatureSection(slot));
     this.element.appendChild(this.renderMovesSection(slot));
+  }
+
+  private renderGenderToggle(pokemon: PlayablePokemon, slot: TeamSlot): HTMLElement | null {
+    const ratio = pokemon.definition.genderRatio;
+    if (ratio === "genderless") {
+      return null;
+    }
+    const maleOnly = ratio.female === 0 && ratio.male > 0;
+    const femaleOnly = ratio.male === 0 && ratio.female > 0;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "tb-gender-toggle";
+
+    const current = slot.gender ?? (femaleOnly ? PokemonGender.Female : PokemonGender.Male);
+    const isFemale = current === PokemonGender.Female;
+    button.dataset.gender = isFemale ? "female" : "male";
+    button.textContent = isFemale ? "♀" : "♂";
+    button.title = t(isFemale ? "teamBuilder.gender.female" : "teamBuilder.gender.male");
+
+    if (maleOnly || femaleOnly) {
+      button.disabled = true;
+    } else {
+      button.addEventListener("click", () => {
+        this.callbacks.onGenderChange(toggleGender(current));
+      });
+    }
+
+    return button;
   }
 
   private renderSetOpButton(pokemonId: string): HTMLElement {

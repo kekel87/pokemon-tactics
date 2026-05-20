@@ -272,6 +272,8 @@ const fr: Translations = {
   "teamBuilder.section.item": "Objet",
   "teamBuilder.section.nature": "Nature",
   "teamBuilder.section.moves": "Capacités",
+  "teamBuilder.gender.male": "Mâle",
+  "teamBuilder.gender.female": "Femelle",
   "teamBuilder.section.stats": "Stats (Niv.50)",
   "teamBuilder.section.statPoints": "Points de stat",
   "teamBuilder.section.presets": "Presets",

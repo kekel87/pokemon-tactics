@@ -1,4 +1,5 @@
 import type { TeamSet, TeamSlot } from "@pokemon-tactic/core";
+import { resolveSlotGender } from "./gender-helpers";
 import { getOpSetsByPokemonId, getPlayablePokemon } from "./team-builder-data";
 import { defaultSlot, generateTeamId } from "./team-helpers";
 
@@ -22,21 +23,27 @@ function pickWithoutReplacement<T>(items: readonly T[], count: number, rng: () =
   return out;
 }
 
-function applyOpSetIfAvailable(pokemonId: string, fallbackAbility: string): TeamSlot {
+function applyOpSetIfAvailable(
+  pokemonId: string,
+  fallbackAbility: string,
+  rng: () => number,
+): TeamSlot {
   const opSets = getOpSetsByPokemonId(pokemonId);
   const set = opSets[0];
-  if (set === undefined) {
-    return defaultSlot(pokemonId, fallbackAbility);
-  }
-  const slot: TeamSlot = {
-    pokemonId,
-    ability: set.ability,
-    nature: set.nature,
-    moveIds: [...set.moveIds].slice(0, 4),
-    statSpread: { ...set.statSpread },
-  };
-  if (set.heldItemId !== null) {
-    slot.heldItemId = set.heldItemId;
+  const slot: TeamSlot =
+    set === undefined
+      ? defaultSlot(pokemonId, fallbackAbility)
+      : {
+          pokemonId,
+          ability: set.ability,
+          nature: set.nature,
+          moveIds: [...set.moveIds].slice(0, 4),
+          statSpread: { ...set.statSpread },
+          ...(set.heldItemId === null ? {} : { heldItemId: set.heldItemId }),
+        };
+  const gender = resolveSlotGender(pokemonId, undefined, rng);
+  if (gender !== undefined) {
+    slot.gender = gender;
   }
   return slot;
 }
@@ -48,7 +55,7 @@ export function generateRandomTeam(options: RandomGeneratorOptions): TeamSet {
   const now = Date.now();
   const slots: TeamSlot[] = picked.map((p) => {
     const fallbackAbility = p.abilities.primary ?? p.definition.abilityId ?? "";
-    return applyOpSetIfAvailable(p.id, fallbackAbility);
+    return applyOpSetIfAvailable(p.id, fallbackAbility, rng);
   });
   return {
     id: generateTeamId(),

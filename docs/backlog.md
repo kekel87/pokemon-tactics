@@ -48,17 +48,7 @@ Bugs connus et retours playtest non traités.
 
 ## Données
 
-### Reference learnsets vides — Raticate, Fearow, Parasect, Pidgeotto, Rattata, Spearow, Paras, Pidgey, Weedle, Kakuna (2026-05-12)
-- `packages/data/reference/pokemon.json` : 10 Pokemon Gen 1 ont `learnset.levelUp = [], tm = [], tutor = []` vides.
-- Audit `pnpm team:audit-learnsets` emit warning `empty-learnset` non bloquant pour ces Pokemon.
-- Validator Team Builder skipera vérification moves pour ces Pokemon (fallback "tout move accepté") tant que la donnée est manquante.
-- Fix : régénérer via `pnpm data:update` depuis source plus complète (Showdown gen9 + Champions). Si Champions ne contient pas les learnsets pour ces Pokemon, fallback Showdown générique.
-- Non bloquant pour plan 081 ni gameplay actuel.
-
-### Kangaskhan — genderRatio incorrect (2026-04-29)
-- `packages/data/reference/pokemon.json` indique `genderRatio: { male: 50, female: 50 }`.
-- Canon Bulbapedia : exclusivement femelle (`{ male: 0, female: 100 }`).
-- Pas dans roster actuel, non bloquant. Corriger via `pnpm data:update` quand Kangaskhan sera ajoutée.
+*(rien)*
 
 ## Feedback visuel
 
@@ -110,6 +100,15 @@ Bugs connus et retours playtest non traités.
 
 
 ## Résolus
+
+### ~~Reference learnsets vides (10 Pokemon Gen 1) + Kangaskhan genderRatio~~ (hors plan — 2026-05-20)
+- 10 Pokemon Gen 1 (Pidgey/Pidgeotto/Rattata/Raticate/Spearow/Fearow/Paras/Parasect/Weedle/Kakuna) avaient `learnset.levelUp/tm/tutor = []`.
+- Kangaskhan `genderRatio: { male: 50, female: 50 }` au lieu de `{ male: 0, female: 100 }` (canon : exclusivement femelle).
+- Cause racine 1 (learnsets) : `parseLearnset` dans `build-reference.ts` calculait `maxGen` global sur **toutes** les entrées du Pokemon (incluant `8V` Virtual Console). Quand l'unique présence Gen 8+ d'un Pokemon était via VC, `maxGen=8` mais V/E/S/R sont skippés → tous les vrais moves L/M/T des gens antérieures filtrés.
+- Cause racine 2 (gender) : `transformPokemon` gérait `gender === "N"` (genderless) mais pas `gender === "F"` / `"M"`. Tombait sur le default 50/50.
+- Fix : `maxGen` restreint aux entrées `L`/`M`/`T` uniquement (set `LEARNABLE_TYPES`). Ajout des branches `gender === "F"` → `{0,100}` et `gender === "M"` → `{100,0}`.
+- Régénération via `pnpm data:update:skip-fetch`. Pidgey 14L+23M+6T, Rattata 13L+29M+10T, etc. Kangaskhan 0/100 correctement détectée. Gate CI verte (1514 unit + 189 intégration + typecheck + lint + build).
+- Note : Kangaskhan learnset Champions = 67 TM uniquement (pas de levelUp/tutor en Gen 9 mod), comportement attendu.
 
 ### ~~Curseur jaune passe au-dessus des Pokemon (tile surélevée)~~ (hors plan — 2026-05-20)
 - Sur tile surélevée, base du curseur dépassait Pokemon sur même tile (`+0.8` > Pokemon `+0.5`).

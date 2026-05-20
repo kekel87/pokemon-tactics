@@ -556,10 +556,17 @@ function parseLearnset(
     return result;
   }
 
-  // Find the highest generation available
+  // Find the highest generation available among learnable sources (L/M/T).
+  // Skip V (virtual console), E (egg), S (event), R (reminder) — they would
+  // otherwise inflate maxGen and discard all real learnable entries for old
+  // Pokemon whose only Gen 8+ presence is via Virtual Console.
+  const LEARNABLE_TYPES = new Set(["L", "M", "T"]);
   let maxGen = 0;
   for (const entries of Object.values(learnsetData)) {
     for (const entry of entries) {
+      if (!LEARNABLE_TYPES.has(entry[1])) {
+        continue;
+      }
       const gen = Number.parseInt(entry[0], 10);
       if (gen > maxGen) {
         maxGen = gen;
@@ -668,10 +675,13 @@ function transformPokemon(
     let genderRatio: PokemonEntry["genderRatio"];
     if (genderField === "N") {
       genderRatio = "genderless";
+    } else if (genderField === "F") {
+      genderRatio = { male: 0, female: 100 };
+    } else if (genderField === "M") {
+      genderRatio = { male: 100, female: 0 };
     } else if (genderRatioRaw) {
       genderRatio = { male: genderRatioRaw.M * 100, female: genderRatioRaw.F * 100 };
     } else {
-      // Default 50/50
       genderRatio = { male: 50, female: 50 };
     }
 

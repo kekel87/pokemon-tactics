@@ -106,6 +106,10 @@
   --color-stat-speed: #ee66cc;
   --color-stat-default: #5577dd;
 
+  /* Sémantiques — symbole genre Pokemon (aligné GENDER_SYMBOL_*_COLOR de constants.ts) */
+  --color-gender-male: #5fa8ff;
+  --color-gender-female: #ff7fb4;
+
   /* Sémantiques — feedback (erreur / warning, valeurs uniques) */
   --color-feedback-error-bg: #2a1414;
   --color-feedback-error-border: #aa4444;
