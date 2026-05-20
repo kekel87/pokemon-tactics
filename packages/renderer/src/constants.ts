@@ -450,8 +450,10 @@ export const DECORATIONS_ASSET_PATHS = {
 // Tall grass: above the Pokemon on the same tile so the body is masked, head still shows.
 export const DEPTH_DECORATIONS_OBSTACLE_OFFSET = 0.3;
 export const DEPTH_DECORATIONS_TALL_GRASS_OFFSET = 0.6;
-// Cursor over a decorated tile must stay visible above the obstacle sprite.
-export const DEPTH_CURSOR_OVER_DECORATION_OFFSET = 0.8;
+// Cursor on a raised tile: above the tile face and the obstacle (+0.3) but
+// below the Pokemon on the same tile (+0.5). FFTA-style "cursor over Pokemon"
+// is deferred to a dedicated refonte (memory project_cursor_ffta).
+export const DEPTH_CURSOR_RAISED_TILE_OFFSET = 0.4;
 
 // Alpha applied to decoration sprites while a Pokemon's move range is
 // previewed, so the player can read reachable tiles hidden behind obstacles.

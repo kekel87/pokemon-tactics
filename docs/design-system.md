@@ -408,7 +408,7 @@ Les sprites de décorations s'intègrent dans le même espace de depth que les P
 |-----------|--------|-------------|
 | `DEPTH_DECORATIONS_OBSTACLE_OFFSET` | `0.3` | Obstacles (rochers, arbre) — légèrement au-dessus du Pokemon sur la même tile (un Pokemon ne peut pas s'arrêter dessus) |
 | `DEPTH_DECORATIONS_TALL_GRASS_OFFSET` | `0.6` | Herbe haute — au-dessus du Pokemon pour masquer le corps, tête visible |
-| `DEPTH_CURSOR_OVER_DECORATION_OFFSET` | `0.8` | Curseur sur une tile décorée — reste visible au-dessus du sprite obstacle |
+| `DEPTH_CURSOR_RAISED_TILE_OFFSET` | `0.4` | Curseur sur tile surélevée — au-dessus de l'obstacle (`0.3`) mais sous le Pokemon (`0.5`). FFTA-style (curseur au-dessus du Pokemon) reporté à une refonte dédiée (`project_cursor_ffta`). |
 
 **Picking** : sur une tile avec obstacle, la hauteur de picking (`pickingHeightData`) reste au sol (hauteur de la tile de base), tandis que `heightData` utilise `getTileGroundHeight`. Le curseur est affiché au sommet de l'obstacle (`anchorY + heightUnits`). Ce split évite que le picking iso sélectionne la hauteur de l'obstacle au lieu de la tile sol cliquable.
 
@@ -434,11 +434,11 @@ Le debug du footprint est un toggle runtime (section "Debug map" du SandboxPanel
 
 ```
 tile (+0) → highlight (+0.1) → enemy range (+0.15) → preview AoE (+0.2) →
-debug footprint (+0.25) → cursor outline (500 global) →
+debug footprint (+0.25) → cursor outline ground (500 global) →
 Pokemon (520+, triés par Y) →
 décoration obstacle (+0.3 sur Y grille) →
+curseur sur tile surélevée (+0.4 sur Y grille) →
 décoration herbe haute (+0.6 sur Y grille) →
-curseur sur décoration (+0.8 sur Y grille) →
 hover cursor (960) → UI (1000+)
 ```
 

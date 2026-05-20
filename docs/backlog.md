@@ -80,11 +80,6 @@ Bugs connus et retours playtest non traités.
 - Symbole vent (double spirale) moins reconnaissable que les 3 autres pictogrammes (sun/rain/snow).
 - À retenter ultérieurement avec prompt plus explicite ou retouche manuelle.
 
-### Curseur (losange jaune) passe au-dessus des Pokemon (2026-05-20)
-- Sur tile surélevée, la base du curseur (`cursorGraphics`) passe devant des Pokemon situés sur d'autres tiles.
-- Cause probable : `IsometricGrid.showCursor` calcule `cursorDepth = DEPTH_RAISED_TILE_BASE (520) + (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + height + DEPTH_CURSOR_OVER_DECORATION_OFFSET`. `DEPTH_RAISED_TILE_BASE` est égal à `DEPTH_POKEMON_BASE` → le curseur sur (x+y) élevé dépasse les Pokemon sur (x+y) plus faible.
-- À investiguer : `packages/renderer/src/grid/IsometricGrid.ts:410-422`. Piste : utiliser un offset plus petit ou découpler depth curseur vs depth tile, ou tester contre depth Pokemon présents.
-
 ### ~~TurnTimeline CT — layout et barre de charge~~ (plan 055 — commit 9bc9125)
 - Corrigé dans le bug gatling (plan 055).
 
@@ -118,6 +113,11 @@ Bugs connus et retours playtest non traités.
 
 
 ## Résolus
+
+### ~~Curseur jaune passe au-dessus des Pokemon (tile surélevée)~~ (hors plan — 2026-05-20)
+- Sur tile surélevée, base du curseur dépassait Pokemon sur même tile (`+0.8` > Pokemon `+0.5`).
+- Fix : `DEPTH_CURSOR_OVER_DECORATION_OFFSET` (0.8) renommé `DEPTH_CURSOR_RAISED_TILE_OFFSET` et abaissé à `0.4`. Cursor passe désormais sous Pokemon même tile (`0.5`), reste au-dessus obstacle (`0.3`), passe sous tall grass (`0.6`).
+- Refonte FFTA-style (curseur au-dessus des Pokemon avec design dédié) reportée à un plan renderer dédié (cf. memory `project_cursor_ffta`).
 
 ### ~~Caméra hors-écran 12v1~~ (hors plan — 2026-05-20)
 - Format 12v1 : Pokemon spawné en bord de carte, caméra ne le centrait pas → hors écran au début et entre les tours.

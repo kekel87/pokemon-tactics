@@ -309,7 +309,7 @@ Depuis le plan 064, `LoadedTiledMap` expose deux heightmaps distinctes :
 - **`heightData`** : hauteur visuelle de chaque cellule, incluant les obstacles posés par le parser `decorations`. Utilisé par `IsometricGrid` pour placer le curseur et les overlays **au sommet de la tile visible** (y compris au sommet d'un obstacle).
 - **`pickingHeightData`** : hauteur de la tile sol uniquement (`getTileGroundHeight`), sans les obstacles. Utilisé par `screenToGridWithHeight` pour le picking souris — la sélection iso reste ancrée sur la surface du sol, pas sur le top d'un rocher.
 
-**Pourquoi ce split ?** Sans lui, cliquer sur le flanc d'un obstacle (ex : rocher 1×1×1 de `height=1`) provoquerait un picking à `height=1` → le hit-test iso ne trouve aucune tile à cette hauteur et renvoie `null`. Avec `pickingHeightData = 0` (sol sous l'obstacle), le picking réussit et sélectionne la tile correcte. Le curseur visuel est ensuite dessiné à `heightData` (sommet de l'obstacle) via `DEPTH_CURSOR_OVER_DECORATION_OFFSET = 0.8`.
+**Pourquoi ce split ?** Sans lui, cliquer sur le flanc d'un obstacle (ex : rocher 1×1×1 de `height=1`) provoquerait un picking à `height=1` → le hit-test iso ne trouve aucune tile à cette hauteur et renvoie `null`. Avec `pickingHeightData = 0` (sol sous l'obstacle), le picking réussit et sélectionne la tile correcte. Le curseur visuel est ensuite dessiné à `heightData` (sommet de l'obstacle) via `DEPTH_CURSOR_RAISED_TILE_OFFSET = 0.4`.
 
 ---
 
