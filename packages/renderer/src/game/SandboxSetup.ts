@@ -167,11 +167,20 @@ export function createSandboxBattle(
     heldItemOverrides[dummyPokemonId] = config.dummyHeldItem;
   }
 
+  const abilityOverrides: Record<string, string> = {};
+  if (config.playerAbility) {
+    abilityOverrides[playerPokemonId] = config.playerAbility;
+  }
+  if (config.dummyAbility) {
+    abilityOverrides[dummyPokemonId] = config.dummyAbility;
+  }
+
   const battleConfig: BattleSetupConfig = {
     map,
     teams,
     placements,
     heldItemOverrides,
+    abilityOverrides,
   };
   const result = createBattleFromPlacements(battleConfig);
 

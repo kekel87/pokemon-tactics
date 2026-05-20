@@ -91,6 +91,19 @@ describe("createSandboxBattle", () => {
     expect(dummy.statStages[StatName.Speed]).toBe(-3);
   });
 
+  it("applies ability overrides for player and dummy", () => {
+    const result = createSandboxBattle({
+      ...DEFAULT_SANDBOX_CONFIG,
+      playerAbility: "chlorophyll",
+      dummyAbility: "swift-swim",
+    });
+    const player = result.state.pokemon.get("p1-venusaur")!;
+    const dummy = result.state.pokemon.get("p2-dummy")!;
+
+    expect(player.abilityId).toBe("chlorophyll");
+    expect(dummy.abilityId).toBe("swift-swim");
+  });
+
   it("returns a functional BattleEngine", () => {
     const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
     const activePlayerId = result.state.turnOrder[result.state.currentTurnIndex]?.startsWith("p1")

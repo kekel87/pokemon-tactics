@@ -34,6 +34,8 @@ export interface SandboxConfig {
   dummyStatStages: Partial<Record<StatName, number>>;
   heldItem?: HeldItemId;
   dummyHeldItem?: HeldItemId;
+  playerAbility?: string;
+  dummyAbility?: string;
   /** Optional override for dummy spawn position. */
   dummyPosition?: Position2D;
   /** Optional Tiled map URL (relative to public/), e.g. "assets/maps/dev/sandbox-flat.tmj" */

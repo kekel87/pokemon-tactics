@@ -8,10 +8,23 @@ import {
   toShowdownId,
   Weather,
 } from "@pokemon-tactic/core";
-import { getLegalMoves, getMoveName, getPokemonName, loadData } from "@pokemon-tactic/data";
+import {
+  getLegalMoves,
+  getMoveName,
+  getPokemonAbilities,
+  getPokemonName,
+  loadData,
+} from "@pokemon-tactic/data";
+import { getAbilityInfo } from "../team/team-builder-data";
 import type { TranslationKey } from "../i18n";
 import { getLanguage, t } from "../i18n";
 import type { SandboxConfig } from "../types/SandboxConfig";
+
+interface SelectOption {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
 
 const DEFENSIVE_MOVE_IDS = [
   "protect",
@@ -132,6 +145,7 @@ export class SandboxPanel {
   private statusSelect!: HTMLSelectElement;
   private volatileStatusSelect!: HTMLSelectElement;
   private heldItemSelect!: HTMLSelectElement;
+  private playerAbilitySelect!: HTMLSelectElement;
   private statSliders: Map<StatName, HTMLInputElement> = new Map();
 
   private dummyPokemonSelect!: HTMLSelectElement;
@@ -142,6 +156,7 @@ export class SandboxPanel {
   private dummyStatusSelect!: HTMLSelectElement;
   private dummyVolatileStatusSelect!: HTMLSelectElement;
   private dummyHeldItemSelect!: HTMLSelectElement;
+  private dummyAbilitySelect!: HTMLSelectElement;
   private dummyStatSliders: Map<StatName, HTMLInputElement> = new Map();
   private dummyBaseStatInputs: Map<string, HTMLInputElement> = new Map();
   private dummyComputedLabels: Map<string, HTMLSpanElement> = new Map();
@@ -159,7 +174,7 @@ export class SandboxPanel {
 
     this.leftContainer = document.createElement("div");
     this.leftContainer.style.cssText = `
-      position: fixed; top: 10px; right: 10px; width: 240px;
+      position: fixed; top: 10px; right: 10px; width: 320px;
       display: flex; flex-direction: column; gap: 6px;
       z-index: 1000;
     `;
@@ -343,10 +358,20 @@ export class SandboxPanel {
     );
     pokemonSelect.select.addEventListener("change", () => {
       this.updatePlayerMoves();
+      this.rebuildPlayerAbilityOptions();
       this.emit();
     });
     body.appendChild(pokemonSelect.row);
     this.pokemonSelect = pokemonSelect.select;
+
+    const playerAbility = this.createSelect(
+      t("sandbox.ability"),
+      this.buildAbilityOptions(config.pokemon),
+      config.playerAbility ?? "",
+    );
+    playerAbility.select.addEventListener("change", () => this.emit());
+    body.appendChild(playerAbility.row);
+    this.playerAbilitySelect = playerAbility.select;
 
     const movepool = this.getMovepoolFor(config.pokemon);
     for (let i = 0; i < 4; i++) {
@@ -506,10 +531,20 @@ export class SandboxPanel {
     );
     presetSelect.select.addEventListener("change", () => {
       this.syncDummyBaseStats();
+      this.rebuildDummyAbilityOptions();
       this.emit();
     });
     body.appendChild(presetSelect.row);
     this.dummyPokemonSelect = presetSelect.select;
+
+    const dummyAbility = this.createSelect(
+      t("sandbox.ability"),
+      this.buildAbilityOptions(config.dummyPokemon),
+      config.dummyAbility ?? "",
+    );
+    dummyAbility.select.addEventListener("change", () => this.emit());
+    body.appendChild(dummyAbility.row);
+    this.dummyAbilitySelect = dummyAbility.select;
 
     const statsHeader = document.createElement("div");
     statsHeader.style.cssText =
@@ -593,29 +628,17 @@ export class SandboxPanel {
 
   private rebuildMoveOptions(): void {
     const movepool = this.getMovepoolFor(this.pokemonSelect.value);
+    const options: SelectOption[] = [
+      { value: "", label: t("sandbox.none") },
+      ...movepool.map((id) => ({ value: id, label: this.moveName(id) })),
+    ];
 
     for (let i = 0; i < this.moveSelects.length; i++) {
       const select = this.moveSelects[i];
       if (!select) {
         continue;
       }
-      const currentValue = select.value;
-      select.innerHTML = "";
-
-      const emptyOpt = document.createElement("option");
-      emptyOpt.value = "";
-      emptyOpt.textContent = t("sandbox.none");
-      select.appendChild(emptyOpt);
-
-      for (const id of movepool) {
-        const opt = document.createElement("option");
-        opt.value = id;
-        opt.textContent = this.moveName(id);
-        select.appendChild(opt);
-      }
-
-      select.value =
-        currentValue !== "" && movepool.includes(currentValue) ? currentValue : (movepool[i] ?? "");
+      this.replaceSelectOptions(select, options, movepool[i] ?? "");
     }
   }
 
@@ -698,6 +721,7 @@ export class SandboxPanel {
         ? (this.volatileStatusSelect.value as StatusType)
         : null,
       heldItem: this.heldItemSelect.value ? (this.heldItemSelect.value as HeldItemId) : undefined,
+      playerAbility: this.playerAbilitySelect.value || undefined,
       statStages,
       playerPosition,
       playerDirection,
@@ -716,6 +740,7 @@ export class SandboxPanel {
       dummyHeldItem: this.dummyHeldItemSelect.value
         ? (this.dummyHeldItemSelect.value as HeldItemId)
         : undefined,
+      dummyAbility: this.dummyAbilitySelect.value || undefined,
       dummyStatStages,
       dummyPosition,
       mapUrl,
@@ -757,6 +782,56 @@ export class SandboxPanel {
     const config = this.readConfig();
     const json = JSON.stringify(config, null, 2);
     navigator.clipboard.writeText(json);
+  }
+
+  private buildAbilityOptions(pokemonId: string): SelectOption[] {
+    const abilities = getPokemonAbilities(pokemonId).all;
+    const options: SelectOption[] = [{ value: "", label: t("sandbox.abilityDefault") }];
+    for (const id of abilities) {
+      const info = getAbilityInfo(id);
+      options.push({
+        value: id,
+        label: info?.name ?? id,
+        disabled: info ? !info.implemented : false,
+      });
+    }
+    return options;
+  }
+
+  private rebuildPlayerAbilityOptions(): void {
+    this.replaceSelectOptions(
+      this.playerAbilitySelect,
+      this.buildAbilityOptions(this.pokemonSelect.value),
+      "",
+    );
+  }
+
+  private rebuildDummyAbilityOptions(): void {
+    this.replaceSelectOptions(
+      this.dummyAbilitySelect,
+      this.buildAbilityOptions(this.dummyPokemonSelect.value || "dummy"),
+      "",
+    );
+  }
+
+  private replaceSelectOptions(
+    select: HTMLSelectElement,
+    options: SelectOption[],
+    fallback: string,
+  ): void {
+    const previous = select.value;
+    select.innerHTML = "";
+    for (const option of options) {
+      const opt = document.createElement("option");
+      opt.value = option.value;
+      opt.textContent = option.label;
+      if (option.disabled) {
+        opt.disabled = true;
+      }
+      select.appendChild(opt);
+    }
+    const stillValid = options.some((o) => o.value === previous && !o.disabled);
+    select.value = stillValid ? previous : fallback;
   }
 
   private buildItemOptions(): { value: string; label: string }[] {

@@ -52,9 +52,8 @@ Bugs connus et retours playtest non traités.
 
 ## Feedback visuel
 
-### SandboxPanel — sélecteur de talent + élargir panels (2026-05-13)
-- Ajouter dropdown talent (ability) dans le hub Player ET le hub Dummy (Pokemon + override).
-- Élargir panels Player/Dummy : scroll bar verticale présente, probablement liée à hauteur cumulée (nom map long peut empirer). Augmenter largeur OU réduire padding sliders/inputs OU répartir en 2 colonnes.
+### ~~SandboxPanel — sélecteur de talent + élargir panels~~ (2026-05-20)
+- Fix 2026-05-20 : ability dropdown ajouté dans hub Player ET hub Dummy (`SandboxPanel.buildAbilityOptions`, rebuild on Pokemon change). Default `(défaut)` = ability primaire de l'espèce ; abilities non implémentées suffixées `(–)`. `SandboxConfig.playerAbility`/`dummyAbility` câblés via `BattleSetupConfig.abilityOverrides`. Largeur container `240px → 320px` (réduit le scroll vertical / le crop des labels). i18n FR/EN `sandbox.ability`/`sandbox.abilityDefault`. Test `SandboxSetup.test.ts` étendu (ability override player+dummy).
 
 ### MoveTooltip — afficher modifiers contextuels (météo, terrain, items) (2026-05-13)
 - Ex : Blizzard "Prec 70 (100 en Neige)", Flamethrower "BP 90 (×1.5 en Soleil)", Thunder "Prec 70 (100 en Pluie, 50 en Soleil)".

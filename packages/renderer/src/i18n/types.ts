@@ -58,6 +58,8 @@ export interface Translations {
   "sandbox.none": string;
   "sandbox.custom": string;
   "sandbox.passive": string;
+  "sandbox.ability": string;
+  "sandbox.abilityDefault": string;
   "status.burned": string;
   "status.poisoned": string;
   "status.badlyPoisoned": string;

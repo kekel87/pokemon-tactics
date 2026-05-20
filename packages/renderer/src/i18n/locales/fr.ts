@@ -53,6 +53,8 @@ const fr: Translations = {
   "sandbox.none": "(aucun)",
   "sandbox.custom": "(custom)",
   "sandbox.passive": "(passif)",
+  "sandbox.ability": "Talent",
+  "sandbox.abilityDefault": "(défaut)",
   "status.burned": "Brûlure",
   "status.poisoned": "Poison",
   "status.badlyPoisoned": "Poison grave",
