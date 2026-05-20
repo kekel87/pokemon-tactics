@@ -122,7 +122,7 @@ describe("supersonic", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, targetBehindPillar], 6);
+    const { engine, state } = buildMoveTestEngine([caster, targetBehindPillar]);
     MockBattle.setTile(state, 1, 0, { height: 2 });
 
     engine.submitAction(PlayerId.Player1, {

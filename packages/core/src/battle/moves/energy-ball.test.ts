@@ -53,7 +53,7 @@ describe("energy-ball", () => {
       position: { x: 4, y: 2 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine, state } = buildMoveTestEngine([attacker, foe], 8);
+    const { engine, state } = buildMoveTestEngine([attacker, foe], { gridSize: 8 });
     const hpBefore = state.pokemon.get(foe.id)?.currentHp ?? 0;
 
     const result = engine.submitAction(PlayerId.Player1, {

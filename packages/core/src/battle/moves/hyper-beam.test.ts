@@ -103,7 +103,7 @@ describe("hyper-beam", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
 
-    const { engine, state } = buildMoveTestEngine([attacker, foe], 6);
+    const { engine, state } = buildMoveTestEngine([attacker, foe]);
     MockBattle.setTile(state, 2, 2, { height: 2 });
 
     const result = engine.submitAction(PlayerId.Player1, {

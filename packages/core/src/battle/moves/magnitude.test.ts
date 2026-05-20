@@ -88,7 +88,7 @@ describe("magnitude", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, foeBehindPillar], 6);
+    const { engine, state } = buildMoveTestEngine([caster, foeBehindPillar]);
     MockBattle.setTile(state, 3, 2, { height: 2 });
     const hpBefore = state.pokemon.get(foeBehindPillar.id)?.currentHp ?? 0;
 

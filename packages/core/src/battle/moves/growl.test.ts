@@ -57,7 +57,7 @@ describe("growl", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
 
-    const { engine, state } = buildMoveTestEngine([user, foeBehindPillar], 6);
+    const { engine, state } = buildMoveTestEngine([user, foeBehindPillar]);
     MockBattle.setTile(state, 1, 0, { height: 2 });
 
     const result = engine.submitAction(PlayerId.Player1, {

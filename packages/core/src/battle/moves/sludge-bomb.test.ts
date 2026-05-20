@@ -109,7 +109,7 @@ describe("sludge-bomb", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, targetBehindPillar], 6);
+    const { engine, state } = buildMoveTestEngine([caster, targetBehindPillar]);
     MockBattle.setTile(state, 2, 0, { height: 2 });
     const hpBefore = state.pokemon.get(targetBehindPillar.id)?.currentHp ?? 0;
 
@@ -146,7 +146,7 @@ describe("sludge-bomb", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 9 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, onEpicenterTile, justBehindPillar], 6);
+    const { engine, state } = buildMoveTestEngine([caster, onEpicenterTile, justBehindPillar]);
     MockBattle.setTile(state, 2, 0, { height: 2 });
     const hpEpicenterBefore = state.pokemon.get(onEpicenterTile.id)?.currentHp ?? 0;
     const hpBehindBefore = state.pokemon.get(justBehindPillar.id)?.currentHp ?? 0;

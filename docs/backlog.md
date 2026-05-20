@@ -25,11 +25,8 @@ Bugs connus et retours playtest non traités.
   - IA perdue sur chemins verticaux (escaliers).
 - **Le Mur ne peut pas être réintégré sans rotation caméra** — injouable en vue iso fixe. À reconsidérer avec rotation (Phase 3.5 Babylon ou plus tard).
 
-### Hyper-Fang test flaky en suite complète (2026-05-17)
-- `packages/core/src/battle/moves/hyper-fang.test.ts > deals damage to adjacent target` fail intermittent en run complet (`pnpm test`), pass isolé (`npx vitest run hyper-fang.test.ts`).
-- Reproductible aussi sur `main` propre — pas lié plan 085.
-- Cause probable : RNG partagé entre tests (accuracy roll ou recoil). Investigation requise.
-- Workaround : `pnpm test` 2 fois suffit, ou seed déterministe dans le test.
+### ~~Hyper-Fang test flaky en suite complète~~ (2026-05-20)
+- Fix : `buildMoveTestEngine` migré en options object `{ gridSize?, random? }` (vs positional `gridSize, random?`). Le test hyper-fang passe `{ random: createPrng(0) }` explicite (accuracy=90 → roll déterministe). Cause racine : helper passait `undefined` comme RNG → `BattleEngine` fallback `Math.random()` non déterministe → 10% miss aléatoire selon ordre des tests. 13 call sites positionnels migrés au passage.
 
 ### MapSelectPreviewScene — crash `cameras.main` undefined au retour menu (2026-04-23)
 - Fix 2026-04-23 : `setLayout` et `create` gardent layout en propriété, `setLayout` no-op si caméra pas prête.
