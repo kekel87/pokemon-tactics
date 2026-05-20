@@ -58,6 +58,13 @@ export class MapSelectScene extends Phaser.Scene {
   }
 
   init(data: { mapUrl?: string }): void {
+    this.selectedIndex = 0;
+    this.listItems = [];
+    this.detailsName = null;
+    this.detailsMeta = null;
+    this.detailsDescription = null;
+    this.previewScene = null;
+
     if (data.mapUrl) {
       const index = MAPS_REGISTRY.findIndex((entry) => entry.url === data.mapUrl);
       if (index >= 0) {

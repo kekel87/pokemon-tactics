@@ -4,12 +4,6 @@ Bugs connus et retours playtest non traités.
 
 ## Bugs
 
-### MapSelect — première map noire au retour (2026-05-19, playtest plan 086)
-- Retour sur l'écran de sélection de map (après victoire ou bouton Retour) → la première map de la liste reste noire (preview vide).
-- Workaround : sélectionner une autre map puis revenir → preview correcte.
-- Probable problème de cycle de vie `MapSelectPreviewScene` (preview pas regénérée pour la map active au mount).
-- À investiguer : `MapSelectScene.create` ou `MapSelectPreviewScene.setLayout` sur retour scene.
-
 ### Caméra hors-écran 12v1 (2026-05-19, playtest plan 086)
 - Format 12v1 : Pokemon spawné en bord de carte, caméra ne le centre pas → hors écran au début de combat.
 - Probablement lié à `setupCameraBounds` ou centrage initial. Non causé par plan 086 (changement de wiring placement uniquement).
@@ -91,9 +85,10 @@ Bugs connus et retours playtest non traités.
 - Symbole vent (double spirale) moins reconnaissable que les 3 autres pictogrammes (sun/rain/snow).
 - À retenter ultérieurement avec prompt plus explicite ou retouche manuelle.
 
-### Mode normal — overflow grille Pokemon (51+ Pokemon, 2026-05-11)
-- En mode normal (TeamSelectScene), 51 Pokemon remplissent 8 lignes à 7 colonnes = hauteur totale dépasse l'écran, le bouton Launch peut être poussé hors de la zone visible.
-- À traiter quand le roster dépasse ~50 entrées. Piste : scroll vertical ou pagination de la grille.
+### Curseur (losange jaune) passe au-dessus des Pokemon (2026-05-20)
+- Sur tile surélevée, la base du curseur (`cursorGraphics`) passe devant des Pokemon situés sur d'autres tiles.
+- Cause probable : `IsometricGrid.showCursor` calcule `cursorDepth = DEPTH_RAISED_TILE_BASE (520) + (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + height + DEPTH_CURSOR_OVER_DECORATION_OFFSET`. `DEPTH_RAISED_TILE_BASE` est égal à `DEPTH_POKEMON_BASE` → le curseur sur (x+y) élevé dépasse les Pokemon sur (x+y) plus faible.
+- À investiguer : `packages/renderer/src/grid/IsometricGrid.ts:410-422`. Piste : utiliser un offset plus petit ou découpler depth curseur vs depth tile, ou tester contre depth Pokemon présents.
 
 ### ~~TurnTimeline CT — layout et barre de charge~~ (plan 055 — commit 9bc9125)
 - Corrigé dans le bug gatling (plan 055).
@@ -128,6 +123,11 @@ Bugs connus et retours playtest non traités.
 
 
 ## Résolus
+
+### ~~MapSelect — première map noire au retour~~ (hors plan — 2026-05-20)
+- Retour sur MapSelectScene (après victoire ou bouton Retour) laissait la première map avec une preview noire.
+- Cause : état de l'instance Phaser persistant entre passages — `currentUrl`/`isometricGrid`/`decorationsLayer` non réinitialisés dans `MapSelectPreviewScene.create()`, et `selectedIndex`/`listItems`/refs non réinitialisés dans `MapSelectScene.init()`.
+- Fix : reset complet de ces propriétés dans `MapSelectPreviewScene.create()` et `MapSelectScene.init()`.
 
 ### ~~Icône statut non retirée après natural-cure~~ (hors plan — 2026-05-06)
 - natural-cure retirait bien le statut (core OK) mais l'icône restait affichée — `StatusRemoved` non émis.

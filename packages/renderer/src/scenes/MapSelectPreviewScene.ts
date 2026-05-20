@@ -51,6 +51,10 @@ export class MapSelectPreviewScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.isometricGrid = null;
+    this.decorationsLayer = null;
+    this.currentUrl = null;
+
     const tilesetTexture = this.textures.get(TILESET_KEY);
     if (tilesetTexture) {
       tilesetTexture.setFilter(Phaser.Textures.FilterMode.NEAREST);
