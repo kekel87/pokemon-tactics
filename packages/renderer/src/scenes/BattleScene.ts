@@ -269,6 +269,7 @@ export class BattleScene extends Phaser.Scene {
 
     controller.refreshUI();
     controller.processStartupEvents();
+    this.recenterOnActivePokemon(isometricGrid, true);
   }
 
   private async resetSandbox(config: SandboxConfig): Promise<void> {
@@ -465,6 +466,7 @@ export class BattleScene extends Phaser.Scene {
 
     controller.refreshUI();
     controller.processStartupEvents();
+    this.recenterOnActivePokemon(isometricGrid, true);
   }
 
   private setupInput(
@@ -592,7 +594,7 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  private recenterOnActivePokemon(isometricGrid: IsometricGrid): void {
+  private recenterOnActivePokemon(isometricGrid: IsometricGrid, instant = false): void {
     const activePokemon = this.controller?.getActivePokemon();
     if (!activePokemon) {
       return;
@@ -601,7 +603,11 @@ export class BattleScene extends Phaser.Scene {
       activePokemon.position.x,
       activePokemon.position.y,
     );
-    this.cameras.main.pan(screenPos.x, screenPos.y, 400, "Sine.easeInOut");
+    if (instant) {
+      this.cameras.main.centerOn(screenPos.x, screenPos.y);
+      return;
+    }
+    this.cameras.main.pan(screenPos.x, screenPos.y, 400, "Sine.easeInOut", true);
   }
 
   private cycleHoverCursorVariant(): void {

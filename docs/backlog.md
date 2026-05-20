@@ -4,11 +4,6 @@ Bugs connus et retours playtest non traités.
 
 ## Bugs
 
-### Caméra hors-écran 12v1 (2026-05-19, playtest plan 086)
-- Format 12v1 : Pokemon spawné en bord de carte, caméra ne le centre pas → hors écran au début de combat.
-- Probablement lié à `setupCameraBounds` ou centrage initial. Non causé par plan 086 (changement de wiring placement uniquement).
-- À investiguer : `BattleScene.setupCameraBounds`, position initiale caméra vs spawn zones décentrées.
-
 ### Disparité UI HTML vs canvas Phaser (2026-05-19, observation playtest)
 - Le projet mélange UI HTML (Team Builder, TeamSelectScene depuis plan 086) et UI Phaser canvas (combat, action menu, info panel, placement roster, timeline).
 - Conséquences : double système de fonts/couleurs/spacing (tokens.css vs constants.ts), UX incohérente (curseur, scaling, raccourcis).
@@ -123,6 +118,11 @@ Bugs connus et retours playtest non traités.
 
 
 ## Résolus
+
+### ~~Caméra hors-écran 12v1~~ (hors plan — 2026-05-20)
+- Format 12v1 : Pokemon spawné en bord de carte, caméra ne le centrait pas → hors écran au début et entre les tours.
+- Cause racine : `Phaser.Cameras.Scene2D.Effects.Pan` ignore silencieusement tout appel si `isRunning=true` (pan manuel ou chaîne de tours rapide encore actif). Les appels `pan()` successifs rataient sans erreur.
+- Fix : `BattleScene.recenterOnActivePokemon` étendu avec param `instant` (center direct, bypasse Pan). Appelé en fin de `transitionToBattle` et `initSandboxBattle`. `GameController.pan()` passe `force=true` dans les handlers `refreshUI` et `battleLogPanel` click.
 
 ### ~~MapSelect — première map noire au retour~~ (hors plan — 2026-05-20)
 - Retour sur MapSelectScene (après victoire ou bouton Retour) laissait la première map avec une preview noire.

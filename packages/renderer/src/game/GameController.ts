@@ -600,7 +600,7 @@ export class GameController {
         activePokemon.position.x,
         activePokemon.position.y,
       );
-      this.scene.cameras.main.pan(screenPos.x, screenPos.y, 400, "Sine.easeInOut");
+      this.scene.cameras.main.pan(screenPos.x, screenPos.y, 400, "Sine.easeInOut", true);
     }
 
     this.turnTimeline.update(this.state, this.pokemonDefinitions, {
@@ -2146,7 +2146,7 @@ export class GameController {
         return;
       }
       const screenPos = this.isometricGrid.gridToScreen(pokemon.position.x, pokemon.position.y);
-      this.scene.cameras.main.pan(screenPos.x, screenPos.y, 300, "Sine.easeInOut");
+      this.scene.cameras.main.pan(screenPos.x, screenPos.y, 300, "Sine.easeInOut", true);
     };
 
     this.battleLogPanel.getTeamColor = (pokemonId: string) => {
