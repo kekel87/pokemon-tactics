@@ -55,6 +55,13 @@ Bugs connus et retours playtest non traités.
 ### ~~SandboxPanel — sélecteur de talent + élargir panels~~ (2026-05-20)
 - Fix 2026-05-20 : ability dropdown ajouté dans hub Player ET hub Dummy (`SandboxPanel.buildAbilityOptions`, rebuild on Pokemon change). Default `(défaut)` = ability primaire de l'espèce ; abilities non implémentées suffixées `(–)`. `SandboxConfig.playerAbility`/`dummyAbility` câblés via `BattleSetupConfig.abilityOverrides`. Largeur container `240px → 320px` (réduit le scroll vertical / le crop des labels). i18n FR/EN `sandbox.ability`/`sandbox.abilityDefault`. Test `SandboxSetup.test.ts` étendu (ability override player+dummy).
 
+### ~~Sandbox refonte — 4 points playtest~~ (plan 090 — 2026-05-21)
+- (1) Divergence learnset teambuilder vs sandbox : `SandboxPanel.getMovepoolFor` faisait `legal.has(toShowdownId(move.id))` — `toShowdownId("vine-whip") = "vinewhip"` cherché dans un Set kebab (`vine-whip`) → tous moves multi-mot filtrés. Fix : comparaison directe `legal.has(move.id)`, source unifiée via team builder. Test parity ajouté.
+- (2) Mutualisation team builder : 4 cartes Move cliquables → `MovePickerModal` (composant team builder réutilisé). Player + Dummy(Player mode).
+- (3) Mode dummy jouable : `SandboxConfig.dummyControl: "ai" | "player"` + `dummyMoves: string[]`. AI mode = `DummyAiController` + 1 move défensif (comportement actuel). Player mode = `PlayerController.Human` + 4 moves picker, `controller.onTurnReady = null`. `GameController` sans notion teamId → tous tours traités comme input humain.
+- (4) Layout "Sandbox Studio" : page plein écran avec header + canvas Phaser flex height + 2 colonnes Player/Dummy + bandeau Battle bas. DOM injecté par `sandbox-boot.ts` (`body[data-sandbox="true"]`), Phaser scale `RESIZE` en sandbox. Toolbar dans header, plus de sidebar fixed.
+- Drops `dummyLevel` + `dummyBaseStats` (toujours level 50, stats espèce). Migration JSON `default.json` + `charmander-test.json`.
+
 ### MoveTooltip — afficher modifiers contextuels (météo, terrain, items) (2026-05-13)
 - Ex : Blizzard "Prec 70 (100 en Neige)", Flamethrower "BP 90 (×1.5 en Soleil)", Thunder "Prec 70 (100 en Pluie, 50 en Soleil)".
 - Étendre MoveTooltip pour calculer effective BP/accuracy selon `state.weather` et types caster/cible.

@@ -19,7 +19,7 @@ export function createInfatuationTickHandler(random: RandomFn = () => Math.rando
       return empty;
     }
     const infatuated = pokemon.volatileStatuses.find((v) => v.type === StatusType.Infatuated);
-    if (!infatuated || !infatuated.sourceId) {
+    if (!infatuated?.sourceId) {
       return empty;
     }
 

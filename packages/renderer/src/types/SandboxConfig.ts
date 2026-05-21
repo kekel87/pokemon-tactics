@@ -1,5 +1,4 @@
 import {
-  type BaseStats,
   Direction,
   type HeldItemId,
   type StatName,
@@ -24,11 +23,14 @@ export interface SandboxConfig {
   /** Optional override for player orientation. */
   playerDirection?: Direction;
   dummyPokemon: string;
+  /** Control mode for dummy team. "ai" = single defensive move + DummyAiController. "player" = human input + 4 moves. */
+  dummyControl: "ai" | "player";
+  /** Single defensive move used when dummyControl === "ai". Ignored in player mode. */
   dummyMove: string | null;
+  /** Up to 4 moves used when dummyControl === "player". Ignored in AI mode. Empty array falls back to movepool[:4]. */
+  dummyMoves: string[];
   dummyDirection: Direction;
   dummyHp: number;
-  dummyLevel: number;
-  dummyBaseStats: BaseStats | null;
   dummyStatus: StatusType | null;
   dummyVolatileStatus: StatusType | null;
   dummyStatStages: Partial<Record<StatName, number>>;
@@ -54,11 +56,11 @@ export const DEFAULT_SANDBOX_CONFIG: SandboxConfig = {
   volatileStatus: null,
   statStages: {},
   dummyPokemon: "dummy",
+  dummyControl: "ai",
   dummyMove: null,
+  dummyMoves: [],
   dummyDirection: Direction.South,
   dummyHp: 100,
-  dummyLevel: 50,
-  dummyBaseStats: null,
   dummyStatus: null,
   dummyVolatileStatus: null,
   dummyStatStages: {},

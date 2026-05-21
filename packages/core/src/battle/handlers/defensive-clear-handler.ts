@@ -12,7 +12,7 @@ export function defensiveClearHandler(pokemonId: string, state: BattleState): Ph
     pokemonFainted: false,
   };
 
-  if (!pokemon || !pokemon.activeDefense) {
+  if (!pokemon?.activeDefense) {
     return emptyResult;
   }
 

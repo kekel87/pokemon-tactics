@@ -43,6 +43,8 @@ export interface Translations {
   "placement.instruction": string;
   "sandbox.reset": string;
   "sandbox.exportJson": string;
+  "sandbox.importJson": string;
+  "sandbox.importJsonError": string;
   "sandbox.player": string;
   "sandbox.dummy": string;
   "sandbox.pokemon": string;
@@ -50,16 +52,16 @@ export interface Translations {
   "sandbox.status": string;
   "sandbox.volatile": string;
   "sandbox.direction": string;
-  "sandbox.level": string;
   "sandbox.statsFrom": string;
   "sandbox.hpPercent": string;
-  "sandbox.base": string;
-  "sandbox.computed": string;
   "sandbox.none": string;
   "sandbox.custom": string;
   "sandbox.passive": string;
   "sandbox.ability": string;
   "sandbox.abilityDefault": string;
+  "sandbox.dummyControl": string;
+  "sandbox.dummyControl.ai": string;
+  "sandbox.dummyControl.player": string;
   "status.burned": string;
   "status.poisoned": string;
   "status.badlyPoisoned": string;

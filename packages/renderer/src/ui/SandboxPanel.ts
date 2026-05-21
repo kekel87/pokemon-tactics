@@ -1,13 +1,4 @@
-import {
-  type BaseStats,
-  computeStatAtLevel,
-  Direction,
-  HeldItemId,
-  StatName,
-  StatusType,
-  toShowdownId,
-  Weather,
-} from "@pokemon-tactic/core";
+import { Direction, type HeldItemId, StatName, StatusType, Weather } from "@pokemon-tactic/core";
 import {
   getLegalMoves,
   getMoveName,
@@ -17,8 +8,12 @@ import {
 } from "@pokemon-tactic/data";
 import type { TranslationKey } from "../i18n";
 import { getLanguage, t } from "../i18n";
-import { getAbilityInfo } from "../team/team-builder-data";
-import type { SandboxConfig } from "../types/SandboxConfig";
+import { getSandboxStudioDom } from "../sandbox-boot";
+import { getAbilityInfo, getMoveInfo } from "../team/team-builder-data";
+import { DEFAULT_SANDBOX_CONFIG, type SandboxConfig } from "../types/SandboxConfig";
+import { openItemPickerModal } from "./team/ItemPickerModal";
+import { openMovePickerModal } from "./team/MovePickerModal";
+import { openPokemonPickerModal } from "./team/PokemonPickerModal";
 
 interface SelectOption {
   value: string;
@@ -56,24 +51,6 @@ const STAT_TRANSLATION_KEYS: Record<StatName, TranslationKey> = {
   [StatName.Evasion]: "stat.eva",
 };
 
-const BASE_STAT_KEYS: (keyof BaseStats)[] = [
-  "hp",
-  "attack",
-  "defense",
-  "spAttack",
-  "spDefense",
-  "speed",
-];
-
-const BASE_STAT_LABELS: Record<string, string> = {
-  hp: "HP",
-  attack: "Atk",
-  defense: "Def",
-  spAttack: "SpA",
-  spDefense: "SpD",
-  speed: "Spd",
-};
-
 const STATUS_ENTRIES: [StatusType, TranslationKey][] = [
   [StatusType.Burned, "status.burned"],
   [StatusType.Poisoned, "status.poisoned"],
@@ -108,12 +85,6 @@ const SANDBOX_MAPS: { value: string; label: string }[] = [
   { value: "assets/maps/dev/decorations-demo.tmj", label: "Decorations Demo (rocks/tree/grass)" },
 ];
 
-const PANEL_STYLE = `
-  background: rgba(10, 10, 30, 0.92); color: #ddd; font-family: monospace;
-  font-size: 11px; border-radius: 6px; border: 1px solid #444;
-  user-select: none; overflow: hidden;
-`;
-
 const HEADER_STYLE = `
   padding: 5px 8px; background: rgba(30,30,60,0.95); cursor: pointer;
   display: flex; justify-content: space-between; align-items: center;
@@ -121,106 +92,81 @@ const HEADER_STYLE = `
 `;
 
 export class SandboxPanel {
-  private toolbarPanel: HTMLDivElement;
-  private mapPanel: HTMLDivElement;
-  private playerPanel: HTMLDivElement;
-  private dummyPanel: HTMLDivElement;
   private readonly onConfigChanged: (config: SandboxConfig) => void;
   private readonly gameData = loadData();
-  private readonly pokemonIds: string[];
 
   private mapSelect!: HTMLSelectElement;
-  private playerXInput!: HTMLInputElement;
-  private playerYInput!: HTMLInputElement;
+  private playerX = 0;
+  private playerY = 0;
+  private dummyX = 0;
+  private dummyY = 0;
+  private setPlayerX?: (v: number) => void;
+  private setPlayerY?: (v: number) => void;
+  private setDummyX?: (v: number) => void;
+  private setDummyY?: (v: number) => void;
   private playerDirectionSelect!: HTMLSelectElement;
-  private dummyXInput!: HTMLInputElement;
-  private dummyYInput!: HTMLInputElement;
+  private dummyDirectionSelect!: HTMLSelectElement;
   private debugDecorationsFootprintCheckbox!: HTMLInputElement;
   private weatherSelect!: HTMLSelectElement;
   private weatherTurnsInput!: HTMLInputElement;
 
-  private pokemonSelect!: HTMLSelectElement;
-  private moveSelects: HTMLSelectElement[] = [];
+  private playerPokemonId = "";
+  private playerPokemonButton!: HTMLButtonElement;
+  private playerMoveCards: HTMLButtonElement[] = [];
+  private playerMoves: string[] = [];
   private hpSlider!: HTMLInputElement;
   private statusSelect!: HTMLSelectElement;
   private volatileStatusSelect!: HTMLSelectElement;
-  private heldItemSelect!: HTMLSelectElement;
+  private playerHeldItemId = "";
+  private playerHeldItemButton!: HTMLButtonElement;
   private playerAbilitySelect!: HTMLSelectElement;
   private statSliders: Map<StatName, HTMLInputElement> = new Map();
 
-  private dummyPokemonSelect!: HTMLSelectElement;
+  private dummyPokemonId = "";
+  private dummyPokemonButton!: HTMLButtonElement;
   private dummyMoveSelect!: HTMLSelectElement;
-  private dummyDirectionSelect!: HTMLSelectElement;
   private dummyHpSlider!: HTMLInputElement;
-  private dummyLevelInput!: HTMLInputElement;
   private dummyStatusSelect!: HTMLSelectElement;
   private dummyVolatileStatusSelect!: HTMLSelectElement;
-  private dummyHeldItemSelect!: HTMLSelectElement;
-  private dummyAbilitySelect!: HTMLSelectElement;
+  private dummyHeldItemId = "";
+  private dummyHeldItemButton!: HTMLButtonElement;
+  private dummyAbility = "";
   private dummyStatSliders: Map<StatName, HTMLInputElement> = new Map();
-  private dummyBaseStatInputs: Map<string, HTMLInputElement> = new Map();
-  private dummyComputedLabels: Map<string, HTMLSpanElement> = new Map();
-
-  private mapCollapsed = true;
-  private playerCollapsed = true;
-  private dummyCollapsed = true;
-  private leftContainer!: HTMLDivElement;
+  private dummyControl: "ai" | "player" = "ai";
+  private dummyMoves: string[] = [];
+  private dummyMoveCards: HTMLButtonElement[] = [];
+  private dummyMovesContainer: HTMLDivElement | null = null;
+  private dummyMoveDefensiveRow: HTMLDivElement | null = null;
 
   constructor(initialConfig: SandboxConfig, onConfigChanged: (config: SandboxConfig) => void) {
     this.onConfigChanged = onConfigChanged;
-    this.pokemonIds = [...this.gameData.pokemon]
-      .sort((a, b) => (a.dexNumber ?? 0) - (b.dexNumber ?? 0))
-      .map((p) => p.id);
+    this.dummyControl = initialConfig.dummyControl;
+    this.dummyMoves = [...initialConfig.dummyMoves];
+    this.playerPokemonId = initialConfig.pokemon;
+    this.dummyPokemonId = initialConfig.dummyPokemon;
+    this.playerHeldItemId = initialConfig.heldItem ?? "";
+    this.dummyHeldItemId = initialConfig.dummyHeldItem ?? "";
+    this.dummyAbility = initialConfig.dummyAbility ?? this.getFirstAbility("dummy");
 
-    this.leftContainer = document.createElement("div");
-    this.leftContainer.style.cssText = `
-      position: fixed; top: 10px; right: 10px; width: 320px;
-      display: flex; flex-direction: column; gap: 6px;
-      z-index: 1000;
-    `;
+    const dom = getSandboxStudioDom();
 
-    this.toolbarPanel = this.buildToolbar();
-    this.leftContainer.appendChild(this.toolbarPanel);
-
-    this.mapPanel = this.buildMapPanel(initialConfig);
-    this.mapPanel.style.cssText = PANEL_STYLE;
-    this.leftContainer.appendChild(this.mapPanel);
-    this.toggleBody(this.mapPanel, true);
-
-    this.playerPanel = this.buildPlayerPanel(initialConfig);
-    this.playerPanel.style.cssText = PANEL_STYLE;
-    this.leftContainer.appendChild(this.playerPanel);
-    this.toggleBody(this.playerPanel, true);
-
-    this.dummyPanel = this.buildDummyPanel(initialConfig);
-    this.dummyPanel.style.cssText = PANEL_STYLE;
-    this.leftContainer.appendChild(this.dummyPanel);
-    this.toggleBody(this.dummyPanel, true);
-
-    document.body.appendChild(this.leftContainer);
+    dom.playerColumn.replaceChildren(this.buildPlayerPanel(initialConfig));
+    dom.dummyColumn.replaceChildren(this.buildDummyPanel(initialConfig));
+    dom.battleStrip.replaceChildren(this.buildMapPanel(initialConfig));
   }
 
   destroy(): void {
-    this.leftContainer.remove();
+    const dom = getSandboxStudioDom();
+    dom.playerColumn.replaceChildren();
+    dom.dummyColumn.replaceChildren();
+    dom.battleStrip.replaceChildren();
   }
 
-  private buildToolbar(): HTMLDivElement {
-    const toolbar = document.createElement("div");
-    toolbar.style.cssText = "display: flex; gap: 6px; flex-shrink: 0;";
-
-    const resetButton = this.createButton(t("sandbox.reset"), () => this.emit());
-    resetButton.style.width = "auto";
-    resetButton.style.flex = "1";
-    resetButton.style.marginTop = "0";
-    toolbar.appendChild(resetButton);
-
-    const exportButton = this.createButton(t("sandbox.exportJson"), () => this.copyJson());
-    exportButton.style.width = "auto";
-    exportButton.style.flex = "1";
-    exportButton.style.marginTop = "0";
-    toolbar.appendChild(exportButton);
-
-    return toolbar;
+  setResolvedPositions(player: { x: number; y: number }, dummy: { x: number; y: number }): void {
+    this.setPlayerX?.(player.x);
+    this.setPlayerY?.(player.y);
+    this.setDummyX?.(dummy.x);
+    this.setDummyY?.(dummy.y);
   }
 
   private emit(): void {
@@ -229,87 +175,19 @@ export class SandboxPanel {
 
   private buildMapPanel(config: SandboxConfig): HTMLDivElement {
     const panel = document.createElement("div");
+    panel.style.cssText =
+      "display: flex; justify-content: space-between; align-items: center; gap: 20px; width: 100%; flex-wrap: wrap;";
 
-    const header = this.createHeader("Map", () => {
-      this.openOnly("map");
-    });
-    panel.appendChild(header);
+    const left = document.createElement("div");
+    left.style.cssText = "display: flex; gap: 12px; align-items: center; flex-wrap: wrap;";
+    panel.appendChild(left);
 
-    const body = this.createBody();
-    panel.appendChild(body);
-
-    const mapSelect = this.createSelect("Map", SANDBOX_MAPS, config.mapUrl ?? "");
+    const mapSelect = this.createInlineSelect("Map", SANDBOX_MAPS, config.mapUrl ?? "");
     mapSelect.select.addEventListener("change", () => this.emit());
-    body.appendChild(mapSelect.row);
+    left.appendChild(mapSelect.row);
     this.mapSelect = mapSelect.select;
 
-    const playerLabel = document.createElement("div");
-    playerLabel.textContent = "Player";
-    playerLabel.style.cssText = "color: #8cf; font-weight: bold; margin-top: 4px;";
-    body.appendChild(playerLabel);
-
-    const playerX = this.createOptionalNumberInput("X", 0, 99, config.playerPosition?.x, "auto");
-    playerX.input.addEventListener("change", () => this.emit());
-    body.appendChild(playerX.row);
-    this.playerXInput = playerX.input;
-
-    const playerY = this.createOptionalNumberInput("Y", 0, 99, config.playerPosition?.y, "auto");
-    playerY.input.addEventListener("change", () => this.emit());
-    body.appendChild(playerY.row);
-    this.playerYInput = playerY.input;
-
-    const playerDir = this.createSelect(
-      "Dir",
-      DIRECTION_ENTRIES.map(([d, key]) => ({ value: d, label: t(key) })),
-      config.playerDirection ?? Direction.North,
-    );
-    playerDir.select.addEventListener("change", () => this.emit());
-    body.appendChild(playerDir.row);
-    this.playerDirectionSelect = playerDir.select;
-
-    const dummyLabel = document.createElement("div");
-    dummyLabel.textContent = "Dummy";
-    dummyLabel.style.cssText = "color: #f88; font-weight: bold; margin-top: 4px;";
-    body.appendChild(dummyLabel);
-
-    const dummyX = this.createOptionalNumberInput("X", 0, 99, config.dummyPosition?.x, "auto");
-    dummyX.input.addEventListener("change", () => this.emit());
-    body.appendChild(dummyX.row);
-    this.dummyXInput = dummyX.input;
-
-    const dummyY = this.createOptionalNumberInput("Y", 0, 99, config.dummyPosition?.y, "auto");
-    dummyY.input.addEventListener("change", () => this.emit());
-    body.appendChild(dummyY.row);
-    this.dummyYInput = dummyY.input;
-
-    const dummyDir = this.createSelect(
-      "Dir",
-      DIRECTION_ENTRIES.map(([d, key]) => ({ value: d, label: t(key) })),
-      config.dummyDirection,
-    );
-    dummyDir.select.addEventListener("change", () => this.emit());
-    body.appendChild(dummyDir.row);
-    this.dummyDirectionSelect = dummyDir.select;
-
-    const debugLabel = document.createElement("div");
-    debugLabel.textContent = "Debug";
-    debugLabel.style.cssText = "color: #8cf; font-weight: bold; margin-top: 4px;";
-    body.appendChild(debugLabel);
-
-    const debugFootprint = this.createCheckbox(
-      "Footprint",
-      config.debugDecorationsFootprint ?? false,
-    );
-    debugFootprint.input.addEventListener("change", () => this.emit());
-    body.appendChild(debugFootprint.row);
-    this.debugDecorationsFootprintCheckbox = debugFootprint.input;
-
-    const weatherLabel = document.createElement("div");
-    weatherLabel.textContent = t("sandbox.weather");
-    weatherLabel.style.cssText = "color: #8cf; font-weight: bold; margin-top: 4px;";
-    body.appendChild(weatherLabel);
-
-    const weatherSelect = this.createSelect(
+    const weatherSelect = this.createInlineSelect(
       t("sandbox.weather"),
       [
         { value: Weather.None, label: t("weather.none") },
@@ -321,7 +199,7 @@ export class SandboxPanel {
       config.weather ?? Weather.None,
     );
     weatherSelect.select.addEventListener("change", () => this.emit());
-    body.appendChild(weatherSelect.row);
+    left.appendChild(weatherSelect.row);
     this.weatherSelect = weatherSelect.select;
 
     const weatherTurns = this.createOptionalNumberInput(
@@ -332,37 +210,115 @@ export class SandboxPanel {
       "5",
     );
     weatherTurns.input.addEventListener("change", () => this.emit());
-    body.appendChild(weatherTurns.row);
+    left.appendChild(weatherTurns.row);
     this.weatherTurnsInput = weatherTurns.input;
 
+    const debugFootprint = this.createCheckbox(
+      "Debug footprint",
+      config.debugDecorationsFootprint ?? false,
+    );
+    debugFootprint.input.addEventListener("change", () => this.emit());
+    left.appendChild(debugFootprint.row);
+    this.debugDecorationsFootprintCheckbox = debugFootprint.input;
+
+    const right = document.createElement("div");
+    right.style.cssText = "display: flex; gap: 8px; align-items: center;";
+    panel.appendChild(right);
+
+    const resetButton = this.createButton(t("sandbox.reset"), () =>
+      this.onConfigChanged({ ...DEFAULT_SANDBOX_CONFIG }),
+    );
+    resetButton.style.width = "auto";
+    resetButton.style.marginTop = "0";
+    right.appendChild(resetButton);
+
+    const exportButton = this.createButton(t("sandbox.exportJson"), () => this.copyJson());
+    exportButton.style.width = "auto";
+    exportButton.style.marginTop = "0";
+    right.appendChild(exportButton);
+
+    const importButton = this.createButton(t("sandbox.importJson"), () => void this.importJson());
+    importButton.style.width = "auto";
+    importButton.style.marginTop = "0";
+    right.appendChild(importButton);
+
     return panel;
+  }
+
+  private createInlineSelect(
+    label: string,
+    options: { value: string; label: string }[],
+    selected: string,
+  ): { row: HTMLDivElement; select: HTMLSelectElement } {
+    const row = document.createElement("div");
+    row.style.cssText = "display: flex; gap: 6px; align-items: center;";
+    const labelEl = document.createElement("span");
+    labelEl.textContent = `${label}:`;
+    labelEl.style.cssText = "color: #aac;";
+    row.appendChild(labelEl);
+    const select = document.createElement("select");
+    select.style.cssText =
+      "background: #222; color: #ddd; border: 1px solid #444; border-radius: 3px; padding: 2px;";
+    for (const option of options) {
+      const opt = document.createElement("option");
+      opt.value = option.value;
+      opt.textContent = option.label;
+      if (option.value === selected) {
+        opt.selected = true;
+      }
+      select.appendChild(opt);
+    }
+    row.appendChild(select);
+    return { row, select };
+  }
+
+  private async importJson(): Promise<void> {
+    try {
+      const text = await navigator.clipboard.readText();
+      const parsed = JSON.parse(text) as Partial<SandboxConfig>;
+      this.onConfigChanged({ ...this.readConfig(), ...parsed });
+    } catch (_err) {
+      window.alert(t("sandbox.importJsonError"));
+    }
   }
 
   private buildPlayerPanel(config: SandboxConfig): HTMLDivElement {
     const panel = document.createElement("div");
 
-    const header = this.createHeader(t("sandbox.player"), () => {
-      this.openOnly("player");
-    });
+    const header = this.createHeader(t("sandbox.player"));
     panel.appendChild(header);
 
     const body = this.createBody();
     panel.appendChild(body);
 
-    const pokemonSelect = this.createSelect(
+    const grid = document.createElement("div");
+    grid.style.cssText = "display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px;";
+    body.appendChild(grid);
+
+    const colLeft = document.createElement("div");
+    colLeft.style.cssText = "display: flex; flex-direction: column; gap: 4px;";
+    const colRight = document.createElement("div");
+    colRight.style.cssText = "display: flex; flex-direction: column; gap: 4px;";
+    grid.appendChild(colLeft);
+    grid.appendChild(colRight);
+
+    const pokemonCard = this.createPickerCard(
       t("sandbox.pokemon"),
-      this.pokemonIds
-        .filter((id) => id !== "dummy")
-        .map((id) => ({ value: id, label: this.pokemonName(id) })),
-      config.pokemon,
+      this.pokemonName(this.playerPokemonId),
+      () => {
+        openPokemonPickerModal({
+          onSelect: (pk) => {
+            this.playerPokemonId = pk.id;
+            this.playerPokemonButton.textContent = this.pokemonName(pk.id);
+            this.updatePlayerMoves();
+            this.rebuildPlayerAbilityOptions();
+            this.emit();
+          },
+        });
+      },
     );
-    pokemonSelect.select.addEventListener("change", () => {
-      this.updatePlayerMoves();
-      this.rebuildPlayerAbilityOptions();
-      this.emit();
-    });
-    body.appendChild(pokemonSelect.row);
-    this.pokemonSelect = pokemonSelect.select;
+    colLeft.appendChild(pokemonCard.row);
+    this.playerPokemonButton = pokemonCard.button;
 
     const playerAbility = this.createSelect(
       t("sandbox.ability"),
@@ -370,31 +326,24 @@ export class SandboxPanel {
       config.playerAbility ?? "",
     );
     playerAbility.select.addEventListener("change", () => this.emit());
-    body.appendChild(playerAbility.row);
+    colLeft.appendChild(playerAbility.row);
     this.playerAbilitySelect = playerAbility.select;
 
-    const movepool = this.getMovepoolFor(config.pokemon);
-    for (let i = 0; i < 4; i++) {
-      const moveId = config.moves[i] ?? movepool[i] ?? "";
-      const moveSelect = this.createSelect(
-        `${t("sandbox.move")} ${i + 1}`,
-        [
-          { value: "", label: t("sandbox.none") },
-          ...movepool.map((id) => ({ value: id, label: this.moveName(id) })),
-        ],
-        moveId,
-      );
-      moveSelect.select.addEventListener("change", (event) => {
-        this.deduplicateMoveSlot(event.target as HTMLSelectElement);
-        this.emit();
+    const itemCard = this.createPickerCard("Item", this.itemName(this.playerHeldItemId), () => {
+      openItemPickerModal({
+        onSelect: (item) => {
+          this.playerHeldItemId = item?.id ?? "";
+          this.playerHeldItemButton.textContent = this.itemName(this.playerHeldItemId);
+          this.emit();
+        },
       });
-      body.appendChild(moveSelect.row);
-      this.moveSelects.push(moveSelect.select);
-    }
+    });
+    colLeft.appendChild(itemCard.row);
+    this.playerHeldItemButton = itemCard.button;
 
     const hpSlider = this.createSlider(t("sandbox.hpPercent"), 1, 100, config.hp);
     hpSlider.input.addEventListener("change", () => this.emit());
-    body.appendChild(hpSlider.row);
+    colLeft.appendChild(hpSlider.row);
     this.hpSlider = hpSlider.input;
 
     const statusSelect = this.createSelect(
@@ -406,7 +355,7 @@ export class SandboxPanel {
       config.status ?? "",
     );
     statusSelect.select.addEventListener("change", () => this.emit());
-    body.appendChild(statusSelect.row);
+    colRight.appendChild(statusSelect.row);
     this.statusSelect = statusSelect.select;
 
     const volatileStatusSelect = this.createSelect(
@@ -418,29 +367,23 @@ export class SandboxPanel {
       config.volatileStatus ?? "",
     );
     volatileStatusSelect.select.addEventListener("change", () => this.emit());
-    body.appendChild(volatileStatusSelect.row);
+    colRight.appendChild(volatileStatusSelect.row);
     this.volatileStatusSelect = volatileStatusSelect.select;
 
-    const heldItemSelect = this.createSelect(
-      "Item",
-      this.buildItemOptions(),
-      config.heldItem ?? "",
+    colRight.appendChild(this.buildStatStagesRow(config.statStages, "player"));
+    colRight.appendChild(
+      this.buildPositionRow(config.playerPosition, config.playerDirection, "player"),
     );
-    heldItemSelect.select.addEventListener("change", () => this.emit());
-    body.appendChild(heldItemSelect.row);
-    this.heldItemSelect = heldItemSelect.select;
 
-    for (const stat of STAT_NAMES) {
-      const slider = this.createSlider(
-        t(STAT_TRANSLATION_KEYS[stat]),
-        -6,
-        6,
-        config.statStages[stat] ?? 0,
-      );
-      slider.input.addEventListener("change", () => this.emit());
-      body.appendChild(slider.row);
-      this.statSliders.set(stat, slider.input);
+    const movepool = this.getMovepoolFor(config.pokemon);
+    this.playerMoves = [];
+    for (let i = 0; i < 4; i++) {
+      const moveId = config.moves[i] ?? movepool[i] ?? "";
+      this.playerMoves.push(moveId);
     }
+    const movesContainer = this.buildMoveCardsRow("player");
+    movesContainer.style.gridColumn = "1 / -1";
+    grid.appendChild(movesContainer);
 
     return panel;
   }
@@ -448,30 +391,55 @@ export class SandboxPanel {
   private buildDummyPanel(config: SandboxConfig): HTMLDivElement {
     const panel = document.createElement("div");
 
-    const header = this.createHeader(t("sandbox.dummy"), () => {
-      this.openOnly("dummy");
-    });
+    const header = this.createHeader(t("sandbox.dummy"));
     panel.appendChild(header);
 
     const body = this.createBody();
     panel.appendChild(body);
 
-    const defensiveMoves = this.gameData.moves.filter((m) => DEFENSIVE_MOVE_IDS.includes(m.id));
-    const dummyMoveSelect = this.createSelect(
-      t("sandbox.move"),
-      [
-        { value: "", label: t("sandbox.passive") },
-        ...defensiveMoves.map((m) => ({ value: m.id, label: this.moveName(m.id) })),
-      ],
-      config.dummyMove ?? "",
+    const grid = document.createElement("div");
+    grid.style.cssText = "display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px;";
+    body.appendChild(grid);
+
+    const colLeft = document.createElement("div");
+    colLeft.style.cssText = "display: flex; flex-direction: column; gap: 4px;";
+    const colRight = document.createElement("div");
+    colRight.style.cssText = "display: flex; flex-direction: column; gap: 4px;";
+    grid.appendChild(colLeft);
+    grid.appendChild(colRight);
+
+    const pokemonCard = this.createPickerCard(
+      t("sandbox.pokemon"),
+      this.pokemonName(this.dummyPokemonId),
+      () => {
+        openPokemonPickerModal({
+          onSelect: (pk) => {
+            this.dummyPokemonId = pk.id;
+            this.dummyPokemonButton.textContent = this.pokemonName(pk.id);
+            this.dummyAbility = this.getFirstAbility(pk.id);
+            this.emit();
+          },
+        });
+      },
     );
-    dummyMoveSelect.select.addEventListener("change", () => this.emit());
-    body.appendChild(dummyMoveSelect.row);
-    this.dummyMoveSelect = dummyMoveSelect.select;
+    colLeft.appendChild(pokemonCard.row);
+    this.dummyPokemonButton = pokemonCard.button;
+
+    const itemCard = this.createPickerCard("Item", this.itemName(this.dummyHeldItemId), () => {
+      openItemPickerModal({
+        onSelect: (item) => {
+          this.dummyHeldItemId = item?.id ?? "";
+          this.dummyHeldItemButton.textContent = this.itemName(this.dummyHeldItemId);
+          this.emit();
+        },
+      });
+    });
+    colLeft.appendChild(itemCard.row);
+    this.dummyHeldItemButton = itemCard.button;
 
     const hpSlider = this.createSlider(t("sandbox.hpPercent"), 1, 100, config.dummyHp);
     hpSlider.input.addEventListener("change", () => this.emit());
-    body.appendChild(hpSlider.row);
+    colLeft.appendChild(hpSlider.row);
     this.dummyHpSlider = hpSlider.input;
 
     const statusSelect = this.createSelect(
@@ -483,7 +451,7 @@ export class SandboxPanel {
       config.dummyStatus ?? "",
     );
     statusSelect.select.addEventListener("change", () => this.emit());
-    body.appendChild(statusSelect.row);
+    colLeft.appendChild(statusSelect.row);
     this.dummyStatusSelect = statusSelect.select;
 
     const dummyVolatileStatusSelect = this.createSelect(
@@ -495,189 +463,296 @@ export class SandboxPanel {
       config.dummyVolatileStatus ?? "",
     );
     dummyVolatileStatusSelect.select.addEventListener("change", () => this.emit());
-    body.appendChild(dummyVolatileStatusSelect.row);
+    colRight.appendChild(dummyVolatileStatusSelect.row);
     this.dummyVolatileStatusSelect = dummyVolatileStatusSelect.select;
 
-    const dummyHeldItemSelect = this.createSelect(
-      "Item",
-      this.buildItemOptions(),
-      config.dummyHeldItem ?? "",
+    colRight.appendChild(this.buildStatStagesRow(config.dummyStatStages, "dummy"));
+    colRight.appendChild(
+      this.buildPositionRow(config.dummyPosition, config.dummyDirection, "dummy"),
     );
-    dummyHeldItemSelect.select.addEventListener("change", () => this.emit());
-    body.appendChild(dummyHeldItemSelect.row);
-    this.dummyHeldItemSelect = dummyHeldItemSelect.select;
 
-    for (const stat of STAT_NAMES) {
-      const slider = this.createSlider(
-        t(STAT_TRANSLATION_KEYS[stat]),
-        -6,
-        6,
-        config.dummyStatStages[stat] ?? 0,
-      );
-      slider.input.addEventListener("change", () => this.emit());
-      body.appendChild(slider.row);
-      this.dummyStatSliders.set(stat, slider.input);
-    }
+    const controlRow = document.createElement("div");
+    controlRow.style.cssText = "display: flex; gap: 8px; align-items: center; margin: 4px 0;";
+    const controlLabel = document.createElement("span");
+    controlLabel.textContent = `${t("sandbox.dummyControl")}:`;
+    controlLabel.style.cssText = "color: #aac;";
+    controlRow.appendChild(controlLabel);
+    const radioAi = this.createControlRadio("ai", t("sandbox.dummyControl.ai"));
+    const radioPlayer = this.createControlRadio("player", t("sandbox.dummyControl.player"));
+    controlRow.appendChild(radioAi);
+    controlRow.appendChild(radioPlayer);
+    colRight.appendChild(controlRow);
 
-    const presetSelect = this.createSelect(
-      t("sandbox.statsFrom"),
+    const defensiveMoves = this.gameData.moves.filter((m) => DEFENSIVE_MOVE_IDS.includes(m.id));
+    const dummyMoveSelect = this.createSelect(
+      t("sandbox.move"),
       [
-        { value: "", label: t("sandbox.custom") },
-        ...this.pokemonIds
-          .filter((id) => id !== "dummy")
-          .map((id) => ({ value: id, label: this.pokemonName(id) })),
+        { value: "", label: t("sandbox.passive") },
+        ...defensiveMoves.map((m) => ({ value: m.id, label: this.moveName(m.id) })),
       ],
-      config.dummyPokemon === "dummy" ? "" : config.dummyPokemon,
+      config.dummyMove ?? "",
     );
-    presetSelect.select.addEventListener("change", () => {
-      this.syncDummyBaseStats();
-      this.rebuildDummyAbilityOptions();
-      this.emit();
-    });
-    body.appendChild(presetSelect.row);
-    this.dummyPokemonSelect = presetSelect.select;
+    dummyMoveSelect.select.addEventListener("change", () => this.emit());
+    dummyMoveSelect.row.style.gridColumn = "1 / -1";
+    grid.appendChild(dummyMoveSelect.row);
+    this.dummyMoveSelect = dummyMoveSelect.select;
+    this.dummyMoveDefensiveRow = dummyMoveSelect.row;
 
-    const dummyAbility = this.createSelect(
-      t("sandbox.ability"),
-      this.buildAbilityOptions(config.dummyPokemon),
-      config.dummyAbility ?? "",
-    );
-    dummyAbility.select.addEventListener("change", () => this.emit());
-    body.appendChild(dummyAbility.row);
-    this.dummyAbilitySelect = dummyAbility.select;
+    this.dummyMovesContainer = this.buildMoveCardsRow("dummy");
+    this.dummyMovesContainer.style.gridColumn = "1 / -1";
+    grid.appendChild(this.dummyMovesContainer);
 
-    const statsHeader = document.createElement("div");
-    statsHeader.style.cssText =
-      "display: flex; justify-content: space-between; font-size: 9px; color: #888; margin-bottom: 2px;";
-    statsHeader.innerHTML = `<span style="width:30px"></span><span style="flex:1;text-align:center">${t("sandbox.base")}</span><span style="width:35px;text-align:right">${t("sandbox.computed")}</span>`;
-    body.appendChild(statsHeader);
-
-    const dummyDef = this.gameData.pokemon.find((p) => p.id === config.dummyPokemon);
-    const dummyLevel = 50;
-
-    const levelRow = this.createNumberInput(t("sandbox.level"), 1, 100, dummyLevel);
-    levelRow.input.addEventListener("change", () => {
-      this.updateComputedStats();
-      this.emit();
-    });
-    body.appendChild(levelRow.row);
-    this.dummyLevelInput = levelRow.input;
-
-    for (const key of BASE_STAT_KEYS) {
-      const baseValue = dummyDef?.baseStats[key] ?? 50;
-      const computedValue = computeStatAtLevel(baseValue, dummyLevel, key === "hp");
-
-      const row = document.createElement("div");
-      row.style.cssText =
-        "display: flex; justify-content: space-between; align-items: center; margin: 1px 0;";
-
-      const label = document.createElement("span");
-      label.textContent = BASE_STAT_LABELS[key] ?? key;
-      label.style.cssText = "width: 30px; flex-shrink: 0;";
-      row.appendChild(label);
-
-      const input = document.createElement("input");
-      input.type = "number";
-      input.min = "1";
-      input.max = "255";
-      input.value = String(baseValue);
-      input.style.cssText =
-        "width: 45px; background: #222; color: #ddd; border: 1px solid #444; border-radius: 3px; padding: 1px 3px; font-size: 10px; font-family: monospace; text-align: center;";
-      input.addEventListener("change", () => {
-        this.updateComputedStats();
-        this.emit();
-      });
-      row.appendChild(input);
-      this.dummyBaseStatInputs.set(key, input);
-
-      const computed = document.createElement("span");
-      computed.textContent = String(computedValue);
-      computed.style.cssText = "width: 35px; text-align: right; color: #8cf; font-size: 10px;";
-      row.appendChild(computed);
-      this.dummyComputedLabels.set(key, computed);
-
-      body.appendChild(row);
-    }
+    this.applyDummyControlVisibility();
 
     return panel;
   }
 
   private updatePlayerMoves(): void {
-    const movepool = this.getMovepoolFor(this.pokemonSelect.value);
-
-    for (const select of this.moveSelects) {
-      if (!movepool.includes(select.value)) {
-        select.value = "";
-      }
+    const movepool = this.getMovepoolFor(this.playerPokemonId);
+    this.playerMoves = this.playerMoves.map((id) => (movepool.includes(id) ? id : ""));
+    for (let i = 0; i < this.playerMoveCards.length; i++) {
+      this.refreshMoveCard("player", i);
     }
-    this.rebuildMoveOptions();
   }
 
-  private deduplicateMoveSlot(changedSelect: HTMLSelectElement): void {
-    const selectedValue = changedSelect.value;
-    if (!selectedValue) {
+  private createStepperButton(
+    initialValue: number,
+    min: number,
+    max: number,
+    format: (v: number) => string,
+    onChange: (v: number) => void,
+  ): { button: HTMLButtonElement; hidden: HTMLInputElement; setValue: (v: number) => void } {
+    const button = document.createElement("button");
+    button.type = "button";
+    const hidden = document.createElement("input");
+    hidden.type = "hidden";
+    hidden.value = String(initialValue);
+    button.textContent = format(initialValue);
+    button.style.cssText =
+      "background: #1a1a2e; color: #ddd; border: 1px solid #335; border-radius: 3px; padding: 2px 6px; cursor: pointer; min-width: 32px;";
+    const setValue = (v: number) => {
+      hidden.value = String(v);
+      button.textContent = format(v);
+    };
+    const step = (delta: number) => (e: MouseEvent) => {
+      e.preventDefault();
+      const current = Number(hidden.value);
+      const next = Math.max(min, Math.min(max, current + delta));
+      if (next === current) {
+        return;
+      }
+      setValue(next);
+      onChange(next);
+    };
+    button.addEventListener("click", step(1));
+    button.addEventListener("contextmenu", step(-1));
+    return { button, hidden, setValue };
+  }
+
+  private buildStatStagesRow(
+    initial: Partial<Record<StatName, number>>,
+    owner: "player" | "dummy",
+  ): HTMLDivElement {
+    const row = document.createElement("div");
+    row.style.cssText = "display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;";
+    const sliderMap = owner === "player" ? this.statSliders : this.dummyStatSliders;
+    for (const stat of STAT_NAMES) {
+      const cell = document.createElement("div");
+      cell.style.cssText = "display: flex; flex-direction: column; align-items: center; gap: 2px;";
+      const label = document.createElement("span");
+      label.textContent = t(STAT_TRANSLATION_KEYS[stat]);
+      label.style.cssText = "color: #aac;";
+      cell.appendChild(label);
+      const stepper = this.createStepperButton(
+        initial[stat] ?? 0,
+        -6,
+        6,
+        (v) => (v >= 0 ? `+${v}` : `${v}`),
+        () => this.emit(),
+      );
+      cell.appendChild(stepper.button);
+      cell.appendChild(stepper.hidden);
+      row.appendChild(cell);
+      sliderMap.set(stat, stepper.hidden);
+    }
+    return row;
+  }
+
+  private buildPositionRow(
+    position: { x: number; y: number } | undefined,
+    direction: Direction | undefined,
+    owner: "player" | "dummy",
+  ): HTMLDivElement {
+    const row = document.createElement("div");
+    row.style.cssText = "display: flex; gap: 6px; align-items: center;";
+    const labelEl = document.createElement("span");
+    labelEl.textContent = "Pos:";
+    labelEl.style.cssText = "color: #aac;";
+    row.appendChild(labelEl);
+
+    const xLabel = document.createElement("span");
+    xLabel.textContent = "X";
+    xLabel.style.cssText = "color: #aac;";
+    row.appendChild(xLabel);
+    const onX = (v: number) => {
+      if (owner === "player") {
+        this.playerX = v;
+      } else {
+        this.dummyX = v;
+      }
+      this.emit();
+    };
+    const xStepper = this.createStepperButton(position?.x ?? 0, 0, 99, (v) => `${v}`, onX);
+    row.appendChild(xStepper.button);
+
+    const yLabel = document.createElement("span");
+    yLabel.textContent = "Y";
+    yLabel.style.cssText = "color: #aac;";
+    row.appendChild(yLabel);
+    const onY = (v: number) => {
+      if (owner === "player") {
+        this.playerY = v;
+      } else {
+        this.dummyY = v;
+      }
+      this.emit();
+    };
+    const yStepper = this.createStepperButton(position?.y ?? 0, 0, 99, (v) => `${v}`, onY);
+    row.appendChild(yStepper.button);
+
+    const dir = this.createSelect(
+      "Dir",
+      DIRECTION_ENTRIES.map(([d, key]) => ({ value: d, label: t(key) })),
+      direction ?? Direction.North,
+    );
+    dir.select.addEventListener("change", () => this.emit());
+    row.appendChild(dir.row);
+
+    if (owner === "player") {
+      this.playerX = position?.x ?? 0;
+      this.playerY = position?.y ?? 0;
+      this.setPlayerX = (v) => {
+        this.playerX = v;
+        xStepper.setValue(v);
+      };
+      this.setPlayerY = (v) => {
+        this.playerY = v;
+        yStepper.setValue(v);
+      };
+      this.playerDirectionSelect = dir.select;
+    } else {
+      this.dummyX = position?.x ?? 0;
+      this.dummyY = position?.y ?? 0;
+      this.setDummyX = (v) => {
+        this.dummyX = v;
+        xStepper.setValue(v);
+      };
+      this.setDummyY = (v) => {
+        this.dummyY = v;
+        yStepper.setValue(v);
+      };
+      this.dummyDirectionSelect = dir.select;
+    }
+    return row;
+  }
+
+  private buildMoveCardsRow(owner: "player" | "dummy"): HTMLDivElement {
+    const row = document.createElement("div");
+    row.style.cssText = "display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 4px 0;";
+
+    const cards = owner === "player" ? this.playerMoveCards : this.dummyMoveCards;
+    cards.length = 0;
+    const moves = owner === "player" ? this.playerMoves : this.dummyMoves;
+    while (moves.length < 4) {
+      moves.push("");
+    }
+
+    for (let i = 0; i < 4; i++) {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.style.cssText =
+        "padding: 4px 6px; background: #1a1a2e; color: #ddd; border: 1px solid #335; border-radius: 3px; font-family: monospace; font-size: 10px; text-align: left; cursor: pointer;";
+      card.addEventListener("click", () => this.openMovePickerForSlot(owner, i));
+      row.appendChild(card);
+      cards.push(card);
+      this.refreshMoveCardFor(card, moves[i] ?? "");
+    }
+    return row;
+  }
+
+  private refreshMoveCard(owner: "player" | "dummy", index: number): void {
+    const cards = owner === "player" ? this.playerMoveCards : this.dummyMoveCards;
+    const moves = owner === "player" ? this.playerMoves : this.dummyMoves;
+    const card = cards[index];
+    if (!card) {
       return;
     }
-
-    for (const other of this.moveSelects) {
-      if (other !== changedSelect && other.value === selectedValue) {
-        other.value = "";
-      }
-    }
+    this.refreshMoveCardFor(card, moves[index] ?? "");
   }
 
-  private rebuildMoveOptions(): void {
-    const movepool = this.getMovepoolFor(this.pokemonSelect.value);
-    const options: SelectOption[] = [
-      { value: "", label: t("sandbox.none") },
-      ...movepool.map((id) => ({ value: id, label: this.moveName(id) })),
-    ];
-
-    for (let i = 0; i < this.moveSelects.length; i++) {
-      const select = this.moveSelects[i];
-      if (!select) {
-        continue;
-      }
-      this.replaceSelectOptions(select, options, movepool[i] ?? "");
+  private refreshMoveCardFor(card: HTMLButtonElement, moveId: string): void {
+    if (moveId === "") {
+      card.textContent = `+ ${t("sandbox.move")}`;
+      card.style.opacity = "0.5";
+      return;
     }
+    card.style.opacity = "1";
+    const info = getMoveInfo(moveId);
+    card.textContent = info?.name ?? this.moveName(moveId);
   }
 
-  private syncDummyBaseStats(): void {
-    const selectedId = this.dummyPokemonSelect.value;
-    const pokemonDef = selectedId ? this.gameData.pokemon.find((p) => p.id === selectedId) : null;
-
-    const defaultStats = {
-      hp: 100,
-      attack: 50,
-      defense: 50,
-      spAttack: 50,
-      spDefense: 50,
-      speed: 50,
-    };
-
-    for (const key of BASE_STAT_KEYS) {
-      const input = this.dummyBaseStatInputs.get(key);
-      if (input) {
-        input.value = String(pokemonDef?.baseStats[key] ?? defaultStats[key]);
-      }
+  private openMovePickerForSlot(owner: "player" | "dummy", slotIndex: number): void {
+    const pokemonId = owner === "player" ? this.playerPokemonId : this.dummyPokemonId;
+    if (!pokemonId) {
+      return;
     }
-    this.updateComputedStats();
+    const moves = owner === "player" ? this.playerMoves : this.dummyMoves;
+    const excludeMoveIds = moves.filter((id, i) => id !== "" && i !== slotIndex);
+    openMovePickerModal({
+      pokemonId,
+      slotIndex,
+      excludeMoveIds,
+      onSelect: (move) => {
+        moves[slotIndex] = move.id;
+        this.refreshMoveCard(owner, slotIndex);
+        this.emit();
+      },
+    });
   }
 
-  private updateComputedStats(): void {
-    const level = Number(this.dummyLevelInput.value) || 50;
-    for (const key of BASE_STAT_KEYS) {
-      const input = this.dummyBaseStatInputs.get(key);
-      const label = this.dummyComputedLabels.get(key);
-      if (input && label) {
-        const base = Number(input.value) || 50;
-        label.textContent = String(computeStatAtLevel(base, level, key === "hp"));
+  private createControlRadio(value: "ai" | "player", label: string): HTMLLabelElement {
+    const wrapper = document.createElement("label");
+    wrapper.style.cssText = "display: inline-flex; gap: 4px; align-items: center; cursor: pointer;";
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "sandbox-dummy-control";
+    input.value = value;
+    input.checked = this.dummyControl === value;
+    input.addEventListener("change", () => {
+      if (input.checked) {
+        this.dummyControl = value;
+        this.applyDummyControlVisibility();
+        this.emit();
       }
+    });
+    wrapper.appendChild(input);
+    const span = document.createElement("span");
+    span.textContent = label;
+    wrapper.appendChild(span);
+    return wrapper;
+  }
+
+  private applyDummyControlVisibility(): void {
+    if (this.dummyMoveDefensiveRow) {
+      this.dummyMoveDefensiveRow.style.display = this.dummyControl === "ai" ? "" : "none";
+    }
+    if (this.dummyMovesContainer) {
+      this.dummyMovesContainer.style.display = this.dummyControl === "player" ? "grid" : "none";
     }
   }
 
   private readConfig(): SandboxConfig {
-    const moves = this.moveSelects.map((s) => s.value).filter((v) => v !== "");
+    const moves = this.playerMoves.filter((v) => v !== "");
 
     const statStages: Partial<Record<StatName, number>> = {};
     for (const stat of STAT_NAMES) {
@@ -702,45 +777,37 @@ export class SandboxPanel {
     }
 
     const mapUrl = this.mapSelect.value || undefined;
-    const playerX = this.playerXInput.value;
-    const playerY = this.playerYInput.value;
-    const playerPosition =
-      playerX !== "" && playerY !== "" ? { x: Number(playerX), y: Number(playerY) } : undefined;
-    const dummyX = this.dummyXInput.value;
-    const dummyY = this.dummyYInput.value;
-    const dummyPosition =
-      dummyX !== "" && dummyY !== "" ? { x: Number(dummyX), y: Number(dummyY) } : undefined;
+    const playerPosition = { x: this.playerX, y: this.playerY };
+    const dummyPosition = { x: this.dummyX, y: this.dummyY };
     const playerDirection = this.playerDirectionSelect.value as Direction;
 
     return {
-      pokemon: this.pokemonSelect.value,
-      moves: moves.length > 0 ? moves : this.getMovepoolFor(this.pokemonSelect.value).slice(0, 4),
+      pokemon: this.playerPokemonId,
+      moves: moves.length > 0 ? moves : this.getMovepoolFor(this.playerPokemonId).slice(0, 4),
       hp: Number(this.hpSlider.value),
       status: this.statusSelect.value ? (this.statusSelect.value as StatusType) : null,
       volatileStatus: this.volatileStatusSelect.value
         ? (this.volatileStatusSelect.value as StatusType)
         : null,
-      heldItem: this.heldItemSelect.value ? (this.heldItemSelect.value as HeldItemId) : undefined,
+      heldItem: this.playerHeldItemId ? (this.playerHeldItemId as HeldItemId) : undefined,
       playerAbility: this.playerAbilitySelect.value || undefined,
       statStages,
       playerPosition,
       playerDirection,
-      dummyPokemon: this.dummyPokemonSelect.value || "dummy",
+      dummyPokemon: this.dummyPokemonId || "dummy",
+      dummyControl: this.dummyControl,
       dummyMove: this.dummyMoveSelect.value || null,
+      dummyMoves: [...this.dummyMoves],
       dummyDirection: this.dummyDirectionSelect.value as Direction,
       dummyHp: Number(this.dummyHpSlider.value),
-      dummyLevel: Number(this.dummyLevelInput.value) || 50,
-      dummyBaseStats: this.readDummyBaseStats(),
       dummyStatus: this.dummyStatusSelect.value
         ? (this.dummyStatusSelect.value as StatusType)
         : null,
       dummyVolatileStatus: this.dummyVolatileStatusSelect.value
         ? (this.dummyVolatileStatusSelect.value as StatusType)
         : null,
-      dummyHeldItem: this.dummyHeldItemSelect.value
-        ? (this.dummyHeldItemSelect.value as HeldItemId)
-        : undefined,
-      dummyAbility: this.dummyAbilitySelect.value || undefined,
+      dummyHeldItem: this.dummyHeldItemId ? (this.dummyHeldItemId as HeldItemId) : undefined,
+      dummyAbility: this.dummyAbility || undefined,
       dummyStatStages,
       dummyPosition,
       mapUrl,
@@ -748,34 +815,6 @@ export class SandboxPanel {
       weather: (this.weatherSelect.value as Weather) || Weather.None,
       weatherTurns: this.weatherTurnsInput.value ? Number(this.weatherTurnsInput.value) : 5,
     };
-  }
-
-  private readDummyBaseStats(): BaseStats | null {
-    const pokemonDef = this.gameData.pokemon.find((p) => p.id === this.dummyPokemonSelect.value);
-    const defaultStats = pokemonDef?.baseStats;
-
-    let hasOverride = false;
-    const stats: BaseStats = {
-      hp: 50,
-      attack: 50,
-      defense: 50,
-      spAttack: 50,
-      spDefense: 50,
-      speed: 50,
-    };
-
-    for (const key of BASE_STAT_KEYS) {
-      const input = this.dummyBaseStatInputs.get(key);
-      if (input) {
-        const value = Number(input.value) || 50;
-        stats[key] = value;
-        if (defaultStats && value !== defaultStats[key]) {
-          hasOverride = true;
-        }
-      }
-    }
-
-    return hasOverride ? stats : null;
   }
 
   private copyJson(): void {
@@ -801,17 +840,20 @@ export class SandboxPanel {
   private rebuildPlayerAbilityOptions(): void {
     this.replaceSelectOptions(
       this.playerAbilitySelect,
-      this.buildAbilityOptions(this.pokemonSelect.value),
+      this.buildAbilityOptions(this.playerPokemonId),
       "",
     );
   }
 
-  private rebuildDummyAbilityOptions(): void {
-    this.replaceSelectOptions(
-      this.dummyAbilitySelect,
-      this.buildAbilityOptions(this.dummyPokemonSelect.value || "dummy"),
-      "",
-    );
+  private getFirstAbility(pokemonId: string): string {
+    const abilities = getPokemonAbilities(pokemonId).all;
+    for (const id of abilities) {
+      const info = getAbilityInfo(id);
+      if (info?.implemented) {
+        return id;
+      }
+    }
+    return abilities[0] ?? "";
   }
 
   private replaceSelectOptions(
@@ -834,22 +876,19 @@ export class SandboxPanel {
     select.value = stillValid ? previous : fallback;
   }
 
-  private buildItemOptions(): { value: string; label: string }[] {
+  private itemName(id: string): string {
+    if (!id) {
+      return t("sandbox.none");
+    }
     const lang = getLanguage();
-    return [
-      { value: "", label: t("sandbox.none") },
-      ...Object.values(HeldItemId).map((id) => ({
-        value: id,
-        label: this.gameData.itemRegistry.get(id)?.name[lang] ?? id,
-      })),
-    ];
+    return this.gameData.itemRegistry.get(id as HeldItemId)?.name[lang] ?? id;
   }
 
   private getMovepoolFor(pokemonId: string): string[] {
     const legal = getLegalMoves(pokemonId);
     const result: string[] = [];
     for (const move of this.gameData.moves) {
-      if (legal.has(toShowdownId(move.id))) {
+      if (legal.has(move.id)) {
         result.push(move.id);
       }
     }
@@ -865,66 +904,41 @@ export class SandboxPanel {
     return getMoveName(id, getLanguage());
   }
 
-  private createHeader(title: string, onClick: () => void): HTMLDivElement {
+  private createPickerCard(
+    label: string,
+    currentText: string,
+    onClick: () => void,
+  ): { row: HTMLDivElement; button: HTMLButtonElement } {
+    const row = document.createElement("div");
+    row.style.cssText = "display: flex; gap: 6px; align-items: center; margin: 1px 0;";
+    const labelEl = document.createElement("span");
+    labelEl.textContent = `${label}:`;
+    labelEl.style.cssText = "flex-shrink: 0; width: 55px; color: #aac;";
+    row.appendChild(labelEl);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = currentText;
+    button.style.cssText =
+      "flex: 1; padding: 4px 8px; background: #1a1a2e; color: #ddd; border: 1px solid #335; border-radius: 3px; cursor: pointer; text-align: left;";
+    button.addEventListener("click", onClick);
+    row.appendChild(button);
+    return { row, button };
+  }
+
+  private createHeader(title: string): HTMLDivElement {
     const header = document.createElement("div");
     header.style.cssText = HEADER_STYLE;
     const titleSpan = document.createElement("span");
     titleSpan.textContent = title;
     header.appendChild(titleSpan);
-    const toggle = document.createElement("span");
-    toggle.textContent = "▼";
-    toggle.className = "sandbox-toggle";
-    header.appendChild(toggle);
-    header.addEventListener("click", onClick);
     return header;
   }
 
   private createBody(): HTMLDivElement {
     const body = document.createElement("div");
     body.className = "sandbox-body";
-    body.style.cssText =
-      "padding: 6px; display: flex; flex-direction: column; gap: 4px; max-height: 80vh; overflow-y: auto;";
+    body.style.cssText = "padding: 6px; display: flex; flex-direction: column; gap: 4px;";
     return body;
-  }
-
-  private toggleBody(panel: HTMLDivElement, collapsed: boolean): void {
-    const body = panel.querySelector(".sandbox-body") as HTMLElement | null;
-    const toggle = panel.querySelector(".sandbox-toggle") as HTMLElement | null;
-    if (body) {
-      body.style.display = collapsed ? "none" : "flex";
-    }
-    if (toggle) {
-      toggle.textContent = collapsed ? "▶" : "▼";
-    }
-  }
-
-  private openOnly(target: "map" | "player" | "dummy"): void {
-    const wasOpen =
-      (target === "map" && !this.mapCollapsed) ||
-      (target === "player" && !this.playerCollapsed) ||
-      (target === "dummy" && !this.dummyCollapsed);
-
-    this.mapCollapsed = true;
-    this.playerCollapsed = true;
-    this.dummyCollapsed = true;
-    this.toggleBody(this.mapPanel, true);
-    this.toggleBody(this.playerPanel, true);
-    this.toggleBody(this.dummyPanel, true);
-
-    if (wasOpen) {
-      return;
-    }
-
-    if (target === "map") {
-      this.mapCollapsed = false;
-      this.toggleBody(this.mapPanel, false);
-    } else if (target === "player") {
-      this.playerCollapsed = false;
-      this.toggleBody(this.playerPanel, false);
-    } else {
-      this.dummyCollapsed = false;
-      this.toggleBody(this.dummyPanel, false);
-    }
   }
 
   private createSelect(
@@ -987,32 +1001,6 @@ export class SandboxPanel {
       valueLabel.textContent = input.value;
     });
     row.appendChild(valueLabel);
-    return { row, input };
-  }
-
-  private createNumberInput(
-    label: string,
-    min: number,
-    max: number,
-    value: number,
-  ): { row: HTMLDivElement; input: HTMLInputElement } {
-    const row = document.createElement("div");
-    row.style.cssText =
-      "display: flex; justify-content: space-between; align-items: center; margin: 1px 0;";
-
-    const labelElement = document.createElement("span");
-    labelElement.textContent = label;
-    labelElement.style.cssText = "flex-shrink: 0; width: 45px;";
-    row.appendChild(labelElement);
-
-    const input = document.createElement("input");
-    input.type = "number";
-    input.min = String(min);
-    input.max = String(max);
-    input.value = String(value);
-    input.style.cssText =
-      "width: 50px; background: #222; color: #ddd; border: 1px solid #444; border-radius: 3px; padding: 1px 3px; font-size: 10px; font-family: monospace; text-align: center;";
-    row.appendChild(input);
     return { row, input };
   }
 

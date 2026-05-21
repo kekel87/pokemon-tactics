@@ -235,19 +235,28 @@ export class BattleScene extends Phaser.Scene {
     controller.setupBattleLogClickHandler();
 
     const dummyPokemonId = `p2-${config.dummyPokemon}`;
-    const dummyAi = new DummyAiController(
-      battleSetup.engine,
-      dummyPokemonId,
-      config.dummyMove,
-      config.dummyDirection,
-    );
+    const playerPokemonId = `p1-${config.pokemon}`;
+    const playerInstance = battleSetup.state.pokemon.get(playerPokemonId);
+    const dummyInstance = battleSetup.state.pokemon.get(dummyPokemonId);
+    if (playerInstance && dummyInstance) {
+      this.sandboxPanel?.setResolvedPositions(playerInstance.position, dummyInstance.position);
+    }
 
-    controller.onTurnReady = (activePokemonId: string) => {
-      if (activePokemonId === dummyPokemonId) {
-        return dummyAi.playTurn();
-      }
-      return false;
-    };
+    if (config.dummyControl === "ai") {
+      const dummyAi = new DummyAiController(
+        battleSetup.engine,
+        dummyPokemonId,
+        config.dummyMove,
+        config.dummyDirection,
+      );
+
+      controller.onTurnReady = (activePokemonId: string) => {
+        if (activePokemonId === dummyPokemonId) {
+          return dummyAi.playTurn();
+        }
+        return false;
+      };
+    }
 
     for (const pokemon of battleSetup.state.pokemon.values()) {
       if (pokemon.currentHp <= 0) {
@@ -287,6 +296,11 @@ export class BattleScene extends Phaser.Scene {
 
     this.sandboxUiScene.battleUI.hideVictory();
     this.sandboxUiScene.actionMenu.hide();
+
+    this.sandboxPanel?.destroy();
+    this.sandboxPanel = new SandboxPanel(config, (newConfig: SandboxConfig) => {
+      void this.resetSandbox(newConfig);
+    });
 
     this.cameras.main.setZoom(ZOOM_LEVELS[this.zoomIndex]);
     await this.initSandboxBattle(this.sandboxUiScene, config);

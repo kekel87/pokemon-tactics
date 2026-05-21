@@ -1,12 +1,10 @@
 import type {
-  BaseStats,
   HeldItemId,
   MapDefinition,
   PlacementEntry,
   PlacementTeam,
 } from "@pokemon-tactic/core";
 import {
-  computeCombatStats,
   Direction,
   PlayerController,
   PlayerId,
@@ -78,43 +76,6 @@ function applyConfigToInstance(
   }
 }
 
-function applyDummyStats(
-  result: BattleSetupResult,
-  dummyPokemonId: string,
-  level: number,
-  baseStats: BaseStats | null,
-): void {
-  const instance = result.state.pokemon.get(dummyPokemonId);
-  if (!instance) {
-    return;
-  }
-
-  if (baseStats) {
-    instance.baseStats = { ...baseStats };
-    const combat = computeCombatStats(baseStats, level, instance.nature);
-    instance.combatStats = combat;
-    instance.level = level;
-    instance.maxHp = combat.hp;
-    instance.currentHp = combat.hp;
-    instance.derivedStats = {
-      movement: 3,
-      jump: 1,
-      initiative: combat.speed,
-    };
-  } else if (level !== 50) {
-    const combat = computeCombatStats(instance.baseStats, level, instance.nature);
-    instance.combatStats = combat;
-    instance.level = level;
-    instance.maxHp = combat.hp;
-    instance.currentHp = combat.hp;
-    instance.derivedStats = {
-      movement: 3,
-      jump: 1,
-      initiative: combat.speed,
-    };
-  }
-}
-
 export function createSandboxBattle(
   config: SandboxConfig,
   map: MapDefinition = sandboxArena,
@@ -127,6 +88,9 @@ export function createSandboxBattle(
   const playerPokemonId = `p1-${config.pokemon}`;
   const dummyPokemonId = `p2-${config.dummyPokemon}`;
 
+  const dummyController =
+    config.dummyControl === "player" ? PlayerController.Human : PlayerController.Ai;
+
   const teams: PlacementTeam[] = [
     {
       playerId: PlayerId.Player1,
@@ -136,7 +100,7 @@ export function createSandboxBattle(
     {
       playerId: PlayerId.Player2,
       availablePokemonIds: [dummyPokemonId],
-      controller: PlayerController.Ai,
+      controller: dummyController,
     },
   ];
 
@@ -184,8 +148,6 @@ export function createSandboxBattle(
   };
   const result = createBattleFromPlacements(battleConfig);
 
-  applyDummyStats(result, dummyPokemonId, config.dummyLevel, config.dummyBaseStats);
-
   const playerInstance = result.state.pokemon.get(playerPokemonId);
   if (playerInstance && config.moves.length > 0) {
     playerInstance.moveIds = [...config.moves];
@@ -195,6 +157,22 @@ export function createSandboxBattle(
       newPp[moveId] = move?.pp ?? 0;
     }
     playerInstance.currentPp = newPp;
+  }
+
+  if (config.dummyControl === "player") {
+    const dummyInstance = result.state.pokemon.get(dummyPokemonId);
+    if (dummyInstance) {
+      const requestedMoves = config.dummyMoves.filter((id) => result.moveDefinitions.has(id));
+      const fallbackMoves =
+        requestedMoves.length > 0 ? requestedMoves.slice(0, 4) : dummyInstance.moveIds.slice(0, 4);
+      dummyInstance.moveIds = [...fallbackMoves];
+      const newPp: Record<string, number> = {};
+      for (const moveId of fallbackMoves) {
+        const move = result.moveDefinitions.get(moveId);
+        newPp[moveId] = move?.pp ?? 0;
+      }
+      dummyInstance.currentPp = newPp;
+    }
   }
 
   applyConfigToInstance(

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { BACKGROUND_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from "./constants";
 import { initLanguage } from "./i18n";
-import { sandboxBootConfig } from "./sandbox-boot";
+import { initSandboxStudioDom, sandboxBootConfig } from "./sandbox-boot";
 import { BattleModeScene } from "./scenes/BattleModeScene";
 import { BattleScene } from "./scenes/BattleScene";
 import { BattleUIScene } from "./scenes/BattleUIScene";
@@ -20,6 +20,10 @@ import "./styles/index.css";
 
 initLanguage();
 initSettings();
+
+if (sandboxBootConfig.enabled) {
+  initSandboxStudioDom();
+}
 
 const mapPreviewUrl = new URLSearchParams(window.location.search).get("map");
 

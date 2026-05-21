@@ -26,7 +26,7 @@ export function buildTeamOverrides(input: { teams: TeamSelection[] }): TeamOverr
   };
   for (let i = 0; i < input.teams.length; i++) {
     const selection = input.teams[i];
-    if (!selection || !selection.slots) {
+    if (!selection?.slots) {
       continue;
     }
     const playerPrefix = `p${i + 1}-`;

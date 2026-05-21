@@ -6,11 +6,11 @@
   "volatileStatus": null,
   "statStages": {},
   "dummyPokemon": "dummy",
+  "dummyControl": "ai",
   "dummyMove": null,
+  "dummyMoves": [],
   "dummyDirection": "south",
   "dummyHp": 100,
-  "dummyLevel": 50,
-  "dummyBaseStats": null,
   "dummyStatus": null,
   "dummyVolatileStatus": null,
   "dummyStatStages": {}

@@ -113,4 +113,41 @@ describe("createSandboxBattle", () => {
 
     expect(actions.length).toBeGreaterThan(0);
   });
+
+  it("dummyControl player mode applies dummyMoves to dummy instance", () => {
+    const result = createSandboxBattle({
+      ...DEFAULT_SANDBOX_CONFIG,
+      dummyPokemon: "charizard",
+      dummyControl: "player",
+      dummyMoves: ["flamethrower", "dragon-claw"],
+    });
+    const dummy = result.state.pokemon.get("p2-charizard")!;
+
+    expect(dummy.moveIds).toEqual(["flamethrower", "dragon-claw"]);
+    expect(Object.keys(dummy.currentPp).sort()).toEqual(["dragon-claw", "flamethrower"]);
+  });
+
+  it("dummyControl player mode falls back to default movepool when dummyMoves empty", () => {
+    const result = createSandboxBattle({
+      ...DEFAULT_SANDBOX_CONFIG,
+      dummyPokemon: "charizard",
+      dummyControl: "player",
+      dummyMoves: [],
+    });
+    const dummy = result.state.pokemon.get("p2-charizard")!;
+
+    expect(dummy.moveIds.length).toBeGreaterThan(0);
+    expect(dummy.moveIds.length).toBeLessThanOrEqual(4);
+  });
+
+  it("dummyControl ai mode keeps single dummyMove + AI controller", () => {
+    const result = createSandboxBattle({
+      ...DEFAULT_SANDBOX_CONFIG,
+      dummyControl: "ai",
+      dummyMove: "protect",
+    });
+    const dummy = result.state.pokemon.get("p2-dummy")!;
+
+    expect(dummy.playerId).toBe(PlayerId.Player2);
+  });
 });
