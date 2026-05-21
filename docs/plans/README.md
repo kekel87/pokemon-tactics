@@ -100,4 +100,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 086 | [Refonte TeamSelectScene (équipes saved + sous-pick format)](./086-team-select-refonte.md) | done | 2026-05-18 |
 | 087 | [Refactor roster-poc → playable-pokemon](./087-playable-pokemon-refactor.md) | done | 2026-05-19 |
 | 088 | [TP moves (`TargetingKind.Teleport`)](./088-teleport-targeting.md) | done | 2026-05-21 |
-| 089 | [Normalisation IDs Showdown → kebab build-time](./089-id-normalization-kebab.md) | draft | 2026-05-21 |
+| 089 | [Normalisation IDs Showdown → kebab build-time](./089-id-normalization-kebab.md) | done | 2026-05-21 |

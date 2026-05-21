@@ -88,17 +88,47 @@ TypeScript strict ESM · Phaser 4 · Vitest · Playwright (`visual-tester`) · c
 
 Détails : `docs/agent-orchestration.md`.
 
-### Chaînes — menu interactif via `/next`
+### Après impl — règle OBLIGATOIRE
 
-**Plus de cascade auto.** Quand impl finie (build OK), invoque `/next` qui détecte le contexte (`git status` + plan + fichiers touchés) et présente un menu multi-select via `AskUserQuestion`. L'humain coche, tu exécutes en ordre fixe.
+**Dès que tu finis d'implémenter** (build OK, code écrit, tests passent), AVANT de dire "fait" / "terminé" / proposer la suite, tu DOIS :
 
-Étapes pré-cochées selon contexte (cf `.claude/skills/next/SKILL.md`) :
+1. Exécuter `git status --porcelain` pour confirmer fichiers modifiés.
+2. Appeler `AskUserQuestion` avec un menu multi-select des étapes de chaîne, pré-cochées selon contexte.
+3. Attendre la sélection humain. Exécuter en ordre fixe. Stop sur fail bloquant.
 
-- **Plan rédaction** (`docs/plans/*.md` draft non commit) : `plan-reviewer` coché, `game-designer` proposé si mécaniques
-- **Plan fin / hors plan** (code modifié non commit) : `core-guardian` (si `packages/core/` touché), `code-reviewer` (si diff significative), `doc-keeper` (si docs impactés), `visual-tester` **jamais auto-coché**, `gate CI`, `commit-message`
-- **Session fin** : `session-closer`, `gate CI`, `commit-message`
+**Pas optionnel. Pas négociable.** Même si tu penses "le changement est petit". Même si tu as confiance. L'humain coche/décoche.
 
-Ordre d'exécution fixe : core-guardian → code-reviewer → doc-keeper → visual-tester → gate CI → commit-message. Stop sur fail bloquant. **Jamais commit/push auto** — `commit-message` génère le titre, humain commit.
+#### Format du menu (AskUserQuestion, multiSelect=true)
+
+Question : `"Impl terminée. Étapes à lancer ?"`
+
+Options (cocher pré-sélection selon règles ci-dessous) :
+
+| Option | Pré-coché si |
+|--------|--------------|
+| `core-guardian` | `git diff --name-only HEAD` matche `packages/core/` |
+| `code-reviewer` | >50 lignes changées OU nouveau fichier source |
+| `doc-keeper` | STATUS/docs/decisions impactés, nouvelle mécanique, nouveau Pokemon/move/ability |
+| `visual-tester` | **JAMAIS auto-coché** (≥2 min Playwright, humain décide) |
+| `gate CI` (`/ci-gate`) | Toujours coché sauf si déjà passé dans le tour |
+| `commit-message` (`/commit`) | Toujours coché |
+
+Spéciaux selon contexte :
+- **Plan en rédaction** (`docs/plans/*.md` draft non commit) : remplace par `[x] plan-reviewer`, `[ ] game-designer` (si mécaniques jeu)
+- **Session fin** (humain dit "fin", "/status") : ajoute `[x] session-closer`
+
+#### Ordre d'exécution fixe
+
+`core-guardian → code-reviewer → doc-keeper → visual-tester → /ci-gate → /commit`
+
+Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, `visual-tester` régression).
+
+**Jamais commit/push auto** — `/commit` génère le titre, humain colle.
+
+#### Exceptions
+
+- Changes purement config (`.claude/`, doc seule) sans code TS → menu réduit (juste `/commit`).
+- Bug fix 1 ligne sans test → menu mais `code-reviewer` décoché par défaut.
 
 ### Règles fond
 

@@ -11,7 +11,6 @@ const caches: ResolverCaches = {
 };
 
 let referenceIndex: Map<string, ReferencePokemon> | null = null;
-let showdownToKebabIndex: ReadonlyMap<string, string> = new Map();
 
 function buildIndex(reference: readonly ReferencePokemon[]): Map<string, ReferencePokemon> {
   const index = new Map<string, ReferencePokemon>();
@@ -21,18 +20,10 @@ function buildIndex(reference: readonly ReferencePokemon[]): Map<string, Referen
   return index;
 }
 
-export function initializeLearnsetResolver(
-  reference: readonly ReferencePokemon[],
-  showdownToKebab: ReadonlyMap<string, string>,
-): void {
+export function initializeLearnsetResolver(reference: readonly ReferencePokemon[]): void {
   referenceIndex = buildIndex(reference);
-  showdownToKebabIndex = showdownToKebab;
   caches.legalMovesByPokemonId.clear();
   caches.speciesRootByPokemonId.clear();
-}
-
-function translateMoveId(rawId: string): string {
-  return showdownToKebabIndex.get(rawId) ?? rawId;
 }
 
 function ensureIndex(): Map<string, ReferencePokemon> {
@@ -60,13 +51,13 @@ export function getLegalMoves(pokemonId: string): ReadonlySet<string> {
       break;
     }
     for (const entry of reference.learnset.levelUp) {
-      result.add(translateMoveId(entry.move));
+      result.add(entry.move);
     }
     for (const move of reference.learnset.tm) {
-      result.add(translateMoveId(move));
+      result.add(move);
     }
     for (const move of reference.learnset.tutor) {
-      result.add(translateMoveId(move));
+      result.add(move);
     }
     current = reference.evolvesFrom;
   }
@@ -120,7 +111,6 @@ export function getLegalAbilities(pokemonId: string): readonly string[] {
 
 export function resetLearnsetResolverForTests(): void {
   referenceIndex = null;
-  showdownToKebabIndex = new Map();
   caches.legalMovesByPokemonId.clear();
   caches.speciesRootByPokemonId.clear();
 }

@@ -70,6 +70,8 @@ packages/data/reference/
 
 **Convention** : `reference/*.json` contient directement les valeurs Champions. Pas de couche supplémentaire côté loaders. Les tests qui assertent sur des valeurs spécifiques (PP, power) doivent utiliser les valeurs Champions.
 
+**IDs kebab (depuis plan 089)** : les learnsets dans `pokemon.json` et les indexes `pokemon-by-move` sont produits en 100% kebab-case (`leech-seed`, `phantom-force`, `close-combat`). La translation Showdown→kebab est effectuée à build-time par `buildRawMoveIdToKebabMap(showdown.moves)` dans `build-reference.ts`. Les abilities, items et le reste de la reference étaient déjà en kebab. Aucune translation runtime n'est nécessaire côté `packages/data/src/`.
+
 ## Cas d'échec
 
 | Symptôme | Cause probable | Solution |

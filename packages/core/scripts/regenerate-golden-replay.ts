@@ -39,8 +39,8 @@ function buildEngine(seed: number): BattleEngine {
   const pokemonDefinitions = new Map(data.pokemon.map((p) => [p.id, p]));
   const pokemonTypesMap = new Map<string, PokemonType[]>(data.pokemon.map((p) => [p.id, p.types]));
 
-  const team1Ids = ["charmander", "squirtle", "pidgey"];
-  const team2Ids = ["bulbasaur", "pikachu", "geodude"];
+  const team1Ids = ["charizard", "blastoise", "dragonite"];
+  const team2Ids = ["venusaur", "raichu", "snorlax"];
 
   const grid = pocArena.tiles.map((row) =>
     row.map((tile) => ({ ...tile, occupantId: null as string | null })),
@@ -64,7 +64,7 @@ function buildEngine(seed: number): BattleEngine {
       throw new Error(`Unknown pokemon: ${defId}`);
     }
     const id = `p${playerId === PlayerId.Player1 ? "1" : "2"}-${defId}`;
-    const activeMoveIds = definition.movepool.slice(0, 4);
+    const activeMoveIds = [...definition.movepool];
     const currentPp: Record<string, number> = {};
     for (const moveId of activeMoveIds) {
       const moveDef = moveRegistry.get(moveId);

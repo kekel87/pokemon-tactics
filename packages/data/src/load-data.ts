@@ -9,7 +9,7 @@ import { itemHandlers } from "./items/item-definitions";
 import { buildItemRegistry } from "./items/load-items";
 import { loadAbilitiesFromReference } from "./loaders/load-abilities";
 import { loadMovesFromReference } from "./loaders/load-moves";
-import { buildShowdownToKebabIndex, loadPokemonFromReference } from "./loaders/load-pokemon";
+import { loadPokemonFromReference } from "./loaders/load-pokemon";
 import type { ReferenceAbility, ReferenceMove, ReferencePokemon } from "./loaders/reference-types";
 import { deepMerge } from "./merge";
 import { getOpSetsForPokemon } from "./op-sets/load-op-sets";
@@ -27,16 +27,14 @@ export interface GameData {
 
 export function loadData(): GameData {
   const allMoveIds = new Set<string>(Object.keys(tacticalOverrides));
-  const showdownToKebab = buildShowdownToKebabIndex(movesReference as unknown as ReferenceMove[]);
 
-  initializeLearnsetResolver(pokemonReference as unknown as ReferencePokemon[], showdownToKebab);
+  initializeLearnsetResolver(pokemonReference as unknown as ReferencePokemon[]);
 
   const pokemon: PokemonDefinition[] = loadPokemonFromReference(
     pokemonReference as unknown as ReferencePokemon[],
     playablePokemon,
     {
       implementedMoveIds: allMoveIds,
-      showdownToKebab,
       getOpSetMoveIds: (pokemonId) => getOpSetsForPokemon(pokemonId).flatMap((set) => set.moveIds),
     },
   );

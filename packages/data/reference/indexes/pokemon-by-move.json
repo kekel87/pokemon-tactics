@@ -413,7 +413,7 @@
     "gimmighoul",
     "gholdengo"
   ],
-  "vinewhip": [
+  "vine-whip": [
     "bulbasaur",
     "ivysaur",
     "bellsprout",
@@ -507,7 +507,7 @@
     "ogerpon",
     "hydrapple"
   ],
-  "leechseed": [
+  "leech-seed": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -573,7 +573,7 @@
     "wo-chien",
     "ogerpon"
   ],
-  "razorleaf": [
+  "razor-leaf": [
     "bulbasaur",
     "ivysaur",
     "bellsprout",
@@ -615,7 +615,7 @@
     "arboliva",
     "capsakid"
   ],
-  "poisonpowder": [
+  "poison-powder": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -651,7 +651,7 @@
     "slither-wing",
     "wo-chien"
   ],
-  "sleeppowder": [
+  "sleep-powder": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -677,7 +677,7 @@
     "morelull",
     "shiinotic"
   ],
-  "seedbomb": [
+  "seed-bomb": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -870,7 +870,7 @@
     "ogerpon",
     "hydrapple"
   ],
-  "takedown": [
+  "take-down": [
     "bulbasaur",
     "ivysaur",
     "charmander",
@@ -1386,7 +1386,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "sweetscent": [
+  "sweet-scent": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -1503,7 +1503,7 @@
     "brute-bonnet",
     "ogerpon"
   ],
-  "worryseed": [
+  "worry-seed": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -1535,7 +1535,7 @@
     "meowscarada",
     "scovillain"
   ],
-  "powerwhip": [
+  "power-whip": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -1572,7 +1572,7 @@
     "ogerpon",
     "hydrapple"
   ],
-  "solarbeam": [
+  "solar-beam": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -1886,7 +1886,7 @@
     "raging-bolt",
     "terapagos"
   ],
-  "acidspray": [
+  "acid-spray": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -1966,7 +1966,7 @@
     "fezandipiti",
     "pecharunt"
   ],
-  "bodyslam": [
+  "body-slam": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -2514,7 +2514,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "bulletseed": [
+  "bullet-seed": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -3133,7 +3133,7 @@
     "hydrapple",
     "pecharunt"
   ],
-  "doubleedge": [
+  "double-edge": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -4532,7 +4532,7 @@
     "terapagos",
     "pecharunt"
   ],
-  "energyball": [
+  "energy-ball": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -5767,7 +5767,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "falseswipe": [
+  "false-swipe": [
     "bulbasaur",
     "ivysaur",
     "charmander",
@@ -5866,7 +5866,7 @@
     "iron-leaves",
     "ogerpon"
   ],
-  "gigadrain": [
+  "giga-drain": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -6089,7 +6089,7 @@
     "ogerpon",
     "hydrapple"
   ],
-  "grassknot": [
+  "grass-knot": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -6416,7 +6416,7 @@
     "ogerpon",
     "hydrapple"
   ],
-  "grasspledge": [
+  "grass-pledge": [
     "bulbasaur",
     "ivysaur",
     "mew",
@@ -6441,7 +6441,7 @@
     "sprigatito",
     "floragato"
   ],
-  "grassyglide": [
+  "grassy-glide": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -6544,7 +6544,7 @@
     "ogerpon",
     "hydrapple"
   ],
-  "grassyterrain": [
+  "grassy-terrain": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -6657,7 +6657,7 @@
     "ogerpon",
     "hydrapple"
   ],
-  "helpinghand": [
+  "helping-hand": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -7221,7 +7221,7 @@
     "munkidori",
     "ogerpon"
   ],
-  "knockoff": [
+  "knock-off": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -7452,7 +7452,7 @@
     "okidogi",
     "ogerpon"
   ],
-  "leafstorm": [
+  "leaf-storm": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -7556,7 +7556,7 @@
     "ogerpon",
     "hydrapple"
   ],
-  "magicalleaf": [
+  "magical-leaf": [
     "bulbasaur",
     "ivysaur",
     "clefairy",
@@ -9670,7 +9670,7 @@
     "terapagos",
     "pecharunt"
   ],
-  "sleeptalk": [
+  "sleep-talk": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -10674,7 +10674,7 @@
     "terapagos",
     "pecharunt"
   ],
-  "sludgebomb": [
+  "sludge-bomb": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -11839,7 +11839,7 @@
     "terapagos",
     "pecharunt"
   ],
-  "sunnyday": [
+  "sunny-day": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -12517,7 +12517,7 @@
     "raging-bolt",
     "terapagos"
   ],
-  "swordsdance": [
+  "swords-dance": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -12793,7 +12793,7 @@
     "iron-boulder",
     "iron-crown"
   ],
-  "terablast": [
+  "tera-blast": [
     "bulbasaur",
     "ivysaur",
     "charmander",
@@ -13929,7 +13929,7 @@
     "fezandipiti",
     "pecharunt"
   ],
-  "weatherball": [
+  "weather-ball": [
     "bulbasaur",
     "ivysaur",
     "venusaur",
@@ -14753,7 +14753,7 @@
     "iron-boulder",
     "iron-crown"
   ],
-  "earthpower": [
+  "earth-power": [
     "venusaur",
     "sandshrew",
     "sandslash",
@@ -15243,7 +15243,7 @@
     "iron-boulder",
     "terapagos"
   ],
-  "frenzyplant": [
+  "frenzy-plant": [
     "venusaur",
     "mew",
     "meganium",
@@ -15255,7 +15255,7 @@
     "rillaboom",
     "meowscarada"
   ],
-  "gigaimpact": [
+  "giga-impact": [
     "venusaur",
     "charizard",
     "blastoise",
@@ -15834,7 +15834,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "hyperbeam": [
+  "hyper-beam": [
     "venusaur",
     "charizard",
     "blastoise",
@@ -16433,7 +16433,7 @@
     "brute-bonnet",
     "wo-chien"
   ],
-  "lightscreen": [
+  "light-screen": [
     "venusaur",
     "pikachu",
     "raichu",
@@ -16891,7 +16891,7 @@
     "gouging-fire",
     "raging-bolt"
   ],
-  "petalblizzard": [
+  "petal-blizzard": [
     "venusaur",
     "gloom",
     "vileplume",
@@ -16926,7 +16926,7 @@
     "meowscarada",
     "arboliva"
   ],
-  "petaldance": [
+  "petal-dance": [
     "venusaur",
     "oddish",
     "gloom",
@@ -16945,7 +16945,7 @@
     "comfey",
     "arboliva"
   ],
-  "poisonjab": [
+  "poison-jab": [
     "venusaur",
     "beedrill",
     "ekans",
@@ -17549,7 +17549,7 @@
     "crocalor",
     "skeledirge"
   ],
-  "scaryface": [
+  "scary-face": [
     "venusaur",
     "charmander",
     "charmeleon",
@@ -17884,7 +17884,7 @@
     "iron-boulder",
     "iron-crown"
   ],
-  "sludgewave": [
+  "sludge-wave": [
     "venusaur",
     "ekans",
     "arbok",
@@ -18389,7 +18389,7 @@
     "dragapult",
     "ursaluna"
   ],
-  "stompingtantrum": [
+  "stomping-tantrum": [
     "venusaur",
     "raticate",
     "arbok",
@@ -18643,7 +18643,7 @@
     "gouging-fire",
     "raging-bolt"
   ],
-  "terrainpulse": [
+  "terrain-pulse": [
     "venusaur",
     "blastoise",
     "lickitung",
@@ -18826,7 +18826,7 @@
     "sizzlipede",
     "centiskorch"
   ],
-  "dragonbreath": [
+  "dragon-breath": [
     "charmander",
     "charmeleon",
     "onix",
@@ -18868,7 +18868,7 @@
     "dipplin",
     "raging-bolt"
   ],
-  "firefang": [
+  "fire-fang": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -19269,7 +19269,7 @@
     "gouging-fire",
     "terapagos"
   ],
-  "firespin": [
+  "fire-spin": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -19387,7 +19387,7 @@
     "centiskorch",
     "chi-yu"
   ],
-  "flareblitz": [
+  "flare-blitz": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -19472,7 +19472,7 @@
     "gouging-fire",
     "terapagos"
   ],
-  "breakingswipe": [
+  "breaking-swipe": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -19550,7 +19550,7 @@
     "gouging-fire",
     "raging-bolt"
   ],
-  "brickbreak": [
+  "brick-break": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -20478,7 +20478,7 @@
     "koraidon",
     "okidogi"
   ],
-  "dragonclaw": [
+  "dragon-claw": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -20561,7 +20561,7 @@
     "archaludon",
     "gouging-fire"
   ],
-  "dragondance": [
+  "dragon-dance": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -20631,7 +20631,7 @@
     "walking-wake",
     "gouging-fire"
   ],
-  "dragonpulse": [
+  "dragon-pulse": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -20754,7 +20754,7 @@
     "raging-bolt",
     "terapagos"
   ],
-  "dragontail": [
+  "dragon-tail": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -20843,7 +20843,7 @@
     "gouging-fire",
     "raging-bolt"
   ],
-  "fireblast": [
+  "fire-blast": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -21027,7 +21027,7 @@
     "koraidon",
     "gouging-fire"
   ],
-  "firepledge": [
+  "fire-pledge": [
     "charmander",
     "charmeleon",
     "mew",
@@ -21051,7 +21051,7 @@
     "fuecoco",
     "crocalor"
   ],
-  "firepunch": [
+  "fire-punch": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -21219,7 +21219,7 @@
     "iron-valiant",
     "okidogi"
   ],
-  "flamecharge": [
+  "flame-charge": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -21684,7 +21684,7 @@
     "munkidori",
     "ogerpon"
   ],
-  "focusblast": [
+  "focus-blast": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -21907,7 +21907,7 @@
     "munkidori",
     "iron-crown"
   ],
-  "focuspunch": [
+  "focus-punch": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -22081,7 +22081,7 @@
     "koraidon",
     "okidogi"
   ],
-  "heatwave": [
+  "heat-wave": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -22234,7 +22234,7 @@
     "fezandipiti",
     "gouging-fire"
   ],
-  "metalclaw": [
+  "metal-claw": [
     "charmander",
     "sandshrew",
     "sandslash",
@@ -22409,7 +22409,7 @@
     "miraidon",
     "gouging-fire"
   ],
-  "rockslide": [
+  "rock-slide": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -22776,7 +22776,7 @@
     "archaludon",
     "terapagos"
   ],
-  "rocktomb": [
+  "rock-tomb": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -23151,7 +23151,7 @@
     "archaludon",
     "iron-boulder"
   ],
-  "shadowclaw": [
+  "shadow-claw": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -23722,7 +23722,7 @@
     "munkidori",
     "fezandipiti"
   ],
-  "temperflare": [
+  "temper-flare": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -23795,7 +23795,7 @@
     "koraidon",
     "gouging-fire"
   ],
-  "thunderpunch": [
+  "thunder-punch": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -24000,7 +24000,7 @@
     "iron-valiant",
     "okidogi"
   ],
-  "willowisp": [
+  "will-o-wisp": [
     "charmander",
     "charmeleon",
     "charizard",
@@ -24310,7 +24310,7 @@
     "miraidon",
     "fezandipiti"
   ],
-  "aerialace": [
+  "aerial-ace": [
     "charizard",
     "beedrill",
     "pidgey",
@@ -24538,7 +24538,7 @@
     "fezandipiti",
     "iron-boulder"
   ],
-  "aircutter": [
+  "air-cutter": [
     "charizard",
     "beedrill",
     "zubat",
@@ -24631,7 +24631,7 @@
     "iron-jugulis",
     "fezandipiti"
   ],
-  "airslash": [
+  "air-slash": [
     "charizard",
     "butterfree",
     "pidgey",
@@ -24772,7 +24772,7 @@
     "iron-boulder",
     "iron-crown"
   ],
-  "ancientpower": [
+  "ancient-power": [
     "charizard",
     "tangela",
     "starmie",
@@ -24871,7 +24871,7 @@
     "raging-bolt",
     "terapagos"
   ],
-  "beatup": [
+  "beat-up": [
     "charizard",
     "arbok",
     "nidoran-f",
@@ -24908,7 +24908,7 @@
     "farigiraf",
     "fezandipiti"
   ],
-  "bellydrum": [
+  "belly-drum": [
     "charizard",
     "poliwag",
     "poliwhirl",
@@ -25134,7 +25134,7 @@
     "okidogi",
     "gouging-fire"
   ],
-  "blastburn": [
+  "blast-burn": [
     "charizard",
     "mew",
     "typhlosion",
@@ -25146,7 +25146,7 @@
     "cinderace",
     "skeledirge"
   ],
-  "brutalswing": [
+  "brutal-swing": [
     "charizard",
     "beedrill",
     "arbok",
@@ -25303,7 +25303,7 @@
     "ogerpon",
     "iron-boulder"
   ],
-  "dragoncheer": [
+  "dragon-cheer": [
     "charizard",
     "gyarados",
     "lapras",
@@ -25363,7 +25363,7 @@
     "gouging-fire",
     "raging-bolt"
   ],
-  "dragonrush": [
+  "dragon-rush": [
     "charizard",
     "gyarados",
     "dratini",
@@ -25507,7 +25507,7 @@
     "roaring-moon",
     "fezandipiti"
   ],
-  "heatcrash": [
+  "heat-crash": [
     "charizard",
     "arcanine",
     "rhydon",
@@ -25627,7 +25627,7 @@
     "walking-wake",
     "fezandipiti"
   ],
-  "irontail": [
+  "iron-tail": [
     "charizard",
     "blastoise",
     "rattata",
@@ -25763,7 +25763,7 @@
     "arctozolt",
     "orthworm"
   ],
-  "megakick": [
+  "mega-kick": [
     "charizard",
     "blastoise",
     "pikachu",
@@ -26162,7 +26162,7 @@
     "ogerpon",
     "iron-boulder"
   ],
-  "scaleshot": [
+  "scale-shot": [
     "charizard",
     "ekans",
     "arbok",
@@ -26242,7 +26242,7 @@
     "koraidon",
     "gouging-fire"
   ],
-  "scorchingsands": [
+  "scorching-sands": [
     "charizard",
     "sandshrew",
     "sandslash",
@@ -26327,7 +26327,7 @@
     "gouging-fire",
     "terapagos"
   ],
-  "steelwing": [
+  "steel-wing": [
     "charizard",
     "pidgey",
     "pidgeotto",
@@ -26379,7 +26379,7 @@
     "sirfetch-d",
     "dragapult"
   ],
-  "tailwhip": [
+  "tail-whip": [
     "squirtle",
     "wartortle",
     "rattata",
@@ -26452,7 +26452,7 @@
     "houndstone",
     "clodsire"
   ],
-  "watergun": [
+  "water-gun": [
     "squirtle",
     "wartortle",
     "psyduck",
@@ -26594,7 +26594,7 @@
     "terapagos",
     "pecharunt"
   ],
-  "rapidspin": [
+  "rapid-spin": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -26636,7 +26636,7 @@
     "iron-treads",
     "terapagos"
   ],
-  "waterpulse": [
+  "water-pulse": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -26831,7 +26831,7 @@
     "walking-wake",
     "terapagos"
   ],
-  "raindance": [
+  "rain-dance": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -27524,7 +27524,7 @@
     "hydrapple",
     "terapagos"
   ],
-  "aquatail": [
+  "aqua-tail": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -27576,7 +27576,7 @@
     "palafin",
     "dondozo"
   ],
-  "shellsmash": [
+  "shell-smash": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -27600,7 +27600,7 @@
     "sinistea",
     "polteageist"
   ],
-  "irondefense": [
+  "iron-defense": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -27835,7 +27835,7 @@
     "iron-boulder",
     "iron-crown"
   ],
-  "hydropump": [
+  "hydro-pump": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -28015,7 +28015,7 @@
     "walking-wake",
     "hydrapple"
   ],
-  "wavecrash": [
+  "wave-crash": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -28286,7 +28286,7 @@
     "baxcalibur",
     "chien-pao"
   ],
-  "chillingwater": [
+  "chilling-water": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -28490,7 +28490,7 @@
     "iron-bundle",
     "walking-wake"
   ],
-  "flipturn": [
+  "flip-turn": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -28561,7 +28561,7 @@
     "iron-bundle",
     "walking-wake"
   ],
-  "gyroball": [
+  "gyro-ball": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -28780,7 +28780,7 @@
     "clodsire",
     "chien-pao"
   ],
-  "icebeam": [
+  "ice-beam": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -29057,7 +29057,7 @@
     "baxcalibur",
     "terapagos"
   ],
-  "icepunch": [
+  "ice-punch": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -29242,7 +29242,7 @@
     "iron-valiant",
     "okidogi"
   ],
-  "icespinner": [
+  "ice-spinner": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -29310,7 +29310,7 @@
     "chien-pao",
     "terapagos"
   ],
-  "icywind": [
+  "icy-wind": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -29757,105 +29757,7 @@
     "iron-valiant",
     "walking-wake"
   ],
-  "muddywater": [
-    "squirtle",
-    "wartortle",
-    "blastoise",
-    "psyduck",
-    "golduck",
-    "poliwag",
-    "poliwhirl",
-    "poliwrath",
-    "tentacool",
-    "tentacruel",
-    "slowbro",
-    "seel",
-    "dewgong",
-    "lickitung",
-    "horsea",
-    "seadra",
-    "goldeen",
-    "seaking",
-    "gyarados",
-    "lapras",
-    "vaporeon",
-    "omanyte",
-    "omastar",
-    "mew",
-    "totodile",
-    "croconaw",
-    "feraligatr",
-    "chinchou",
-    "lanturn",
-    "marill",
-    "azumarill",
-    "politoed",
-    "wooper",
-    "quagsire",
-    "slowking",
-    "kingdra",
-    "tyranitar",
-    "mudkip",
-    "marshtomp",
-    "swampert",
-    "lotad",
-    "lombre",
-    "ludicolo",
-    "wingull",
-    "pelipper",
-    "barboach",
-    "whiscash",
-    "corphish",
-    "crawdaunt",
-    "feebas",
-    "milotic",
-    "relicanth",
-    "kyogre",
-    "floatzel",
-    "shellos",
-    "gastrodon",
-    "hippopotas",
-    "hippowdon",
-    "lickilicky",
-    "tympole",
-    "palpitoad",
-    "seismitoad",
-    "basculin",
-    "tirtouga",
-    "carracosta",
-    "jellicent",
-    "stunfisk",
-    "keldeo",
-    "barbaracle",
-    "skrelp",
-    "dragalge",
-    "clauncher",
-    "clawitzer",
-    "goomy",
-    "sliggoo",
-    "goodra",
-    "wishiwashi",
-    "mareanie",
-    "toxapex",
-    "golisopod",
-    "dhelmise",
-    "tapu-fini",
-    "sobble",
-    "drizzile",
-    "inteleon",
-    "drednaw",
-    "clobbopus",
-    "grapploct",
-    "pincurchin",
-    "basculegion",
-    "tadbulb",
-    "bellibolt",
-    "wiglett",
-    "wugtrio",
-    "tatsugiri",
-    "clodsire"
-  ],
-  "mudshot": [
+  "mud-shot": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -30098,6 +30000,104 @@
     "koraidon",
     "walking-wake"
   ],
+  "muddy-water": [
+    "squirtle",
+    "wartortle",
+    "blastoise",
+    "psyduck",
+    "golduck",
+    "poliwag",
+    "poliwhirl",
+    "poliwrath",
+    "tentacool",
+    "tentacruel",
+    "slowbro",
+    "seel",
+    "dewgong",
+    "lickitung",
+    "horsea",
+    "seadra",
+    "goldeen",
+    "seaking",
+    "gyarados",
+    "lapras",
+    "vaporeon",
+    "omanyte",
+    "omastar",
+    "mew",
+    "totodile",
+    "croconaw",
+    "feraligatr",
+    "chinchou",
+    "lanturn",
+    "marill",
+    "azumarill",
+    "politoed",
+    "wooper",
+    "quagsire",
+    "slowking",
+    "kingdra",
+    "tyranitar",
+    "mudkip",
+    "marshtomp",
+    "swampert",
+    "lotad",
+    "lombre",
+    "ludicolo",
+    "wingull",
+    "pelipper",
+    "barboach",
+    "whiscash",
+    "corphish",
+    "crawdaunt",
+    "feebas",
+    "milotic",
+    "relicanth",
+    "kyogre",
+    "floatzel",
+    "shellos",
+    "gastrodon",
+    "hippopotas",
+    "hippowdon",
+    "lickilicky",
+    "tympole",
+    "palpitoad",
+    "seismitoad",
+    "basculin",
+    "tirtouga",
+    "carracosta",
+    "jellicent",
+    "stunfisk",
+    "keldeo",
+    "barbaracle",
+    "skrelp",
+    "dragalge",
+    "clauncher",
+    "clawitzer",
+    "goomy",
+    "sliggoo",
+    "goodra",
+    "wishiwashi",
+    "mareanie",
+    "toxapex",
+    "golisopod",
+    "dhelmise",
+    "tapu-fini",
+    "sobble",
+    "drizzile",
+    "inteleon",
+    "drednaw",
+    "clobbopus",
+    "grapploct",
+    "pincurchin",
+    "basculegion",
+    "tadbulb",
+    "bellibolt",
+    "wiglett",
+    "wugtrio",
+    "tatsugiri",
+    "clodsire"
+  ],
   "surf": [
     "squirtle",
     "wartortle",
@@ -30329,7 +30329,7 @@
     "walking-wake",
     "terapagos"
   ],
-  "waterpledge": [
+  "water-pledge": [
     "squirtle",
     "wartortle",
     "mew",
@@ -30504,7 +30504,7 @@
     "iron-bundle",
     "walking-wake"
   ],
-  "zenheadbutt": [
+  "zen-headbutt": [
     "squirtle",
     "wartortle",
     "blastoise",
@@ -30821,7 +30821,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "aquajet": [
+  "aqua-jet": [
     "blastoise",
     "golduck",
     "seel",
@@ -30866,7 +30866,7 @@
     "veluza",
     "walking-wake"
   ],
-  "aquaring": [
+  "aqua-ring": [
     "blastoise",
     "seel",
     "dewgong",
@@ -30904,7 +30904,7 @@
     "araquanid",
     "tapu-fini"
   ],
-  "aurasphere": [
+  "aura-sphere": [
     "blastoise",
     "hitmonlee",
     "hitmonchan",
@@ -31044,7 +31044,7 @@
     "baxcalibur",
     "chien-pao"
   ],
-  "bodypress": [
+  "body-press": [
     "blastoise",
     "nidoqueen",
     "nidoking",
@@ -31199,7 +31199,7 @@
     "raging-bolt",
     "terapagos"
   ],
-  "darkpulse": [
+  "dark-pulse": [
     "blastoise",
     "ekans",
     "arbok",
@@ -31440,7 +31440,7 @@
     "palafin",
     "dondozo"
   ],
-  "fakeout": [
+  "fake-out": [
     "blastoise",
     "pikachu",
     "raichu",
@@ -31596,7 +31596,7 @@
     "dondozo",
     "dudunsparce"
   ],
-  "flashcannon": [
+  "flash-cannon": [
     "blastoise",
     "magnemite",
     "magneton",
@@ -31734,7 +31734,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "hydrocannon": [
+  "hydro-cannon": [
     "blastoise",
     "mew",
     "feraligatr",
@@ -31746,7 +31746,7 @@
     "inteleon",
     "quaquaval"
   ],
-  "ironhead": [
+  "iron-head": [
     "blastoise",
     "arcanine",
     "graveler",
@@ -31961,7 +31961,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "lifedew": [
+  "life-dew": [
     "blastoise",
     "clefairy",
     "clefable",
@@ -31994,7 +31994,7 @@
     "poltchageist",
     "sinistcha"
   ],
-  "mirrorcoat": [
+  "mirror-coat": [
     "blastoise",
     "voltorb",
     "electrode",
@@ -32026,7 +32026,7 @@
     "miraidon",
     "archaludon"
   ],
-  "smackdown": [
+  "smack-down": [
     "blastoise",
     "sandshrew",
     "sandslash",
@@ -32141,7 +32141,7 @@
     "iron-thorns",
     "archaludon"
   ],
-  "waterspout": [
+  "water-spout": [
     "blastoise",
     "wailmer",
     "wailord",
@@ -32359,7 +32359,7 @@
     "dudunsparce",
     "hydrapple"
   ],
-  "stringshot": [
+  "string-shot": [
     "caterpie",
     "butterfree",
     "weedle",
@@ -32384,7 +32384,7 @@
     "tarountula",
     "spidops"
   ],
-  "bugbite": [
+  "bug-bite": [
     "caterpie",
     "butterfree",
     "weedle",
@@ -32791,7 +32791,7 @@
     "munkidori",
     "iron-crown"
   ],
-  "stunspore": [
+  "stun-spore": [
     "butterfree",
     "oddish",
     "gloom",
@@ -33097,7 +33097,7 @@
     "arboliva",
     "rabsca"
   ],
-  "bugbuzz": [
+  "bug-buzz": [
     "butterfree",
     "beedrill",
     "venonat",
@@ -33290,7 +33290,7 @@
     "roaring-moon",
     "fezandipiti"
   ],
-  "ragepowder": [
+  "rage-powder": [
     "butterfree",
     "paras",
     "parasect",
@@ -33304,7 +33304,7 @@
     "poltchageist",
     "sinistcha"
   ],
-  "quiverdance": [
+  "quiver-dance": [
     "butterfree",
     "venomoth",
     "bellossom",
@@ -33588,7 +33588,7 @@
     "frosmoth",
     "fezandipiti"
   ],
-  "batonpass": [
+  "baton-pass": [
     "butterfree",
     "beedrill",
     "clefairy",
@@ -33774,7 +33774,7 @@
     "scream-tail",
     "munkidori"
   ],
-  "drainingkiss": [
+  "draining-kiss": [
     "butterfree",
     "pikachu",
     "raichu",
@@ -33865,7 +33865,7 @@
     "palafin",
     "flutter-mane"
   ],
-  "pollenpuff": [
+  "pollen-puff": [
     "butterfree",
     "beedrill",
     "gloom",
@@ -34144,7 +34144,7 @@
     "iron-boulder",
     "iron-crown"
   ],
-  "shadowball": [
+  "shadow-ball": [
     "butterfree",
     "rattata",
     "raticate",
@@ -34455,7 +34455,7 @@
     "fezandipiti",
     "pecharunt"
   ],
-  "skillswap": [
+  "skill-swap": [
     "butterfree",
     "clefairy",
     "clefable",
@@ -35060,7 +35060,7 @@
     "munkidori",
     "fezandipiti"
   ],
-  "uturn": [
+  "u-turn": [
     "butterfree",
     "beedrill",
     "pidgey",
@@ -35271,7 +35271,7 @@
     "fezandipiti",
     "ogerpon"
   ],
-  "dualwingbeat": [
+  "dual-wingbeat": [
     "butterfree",
     "beedrill",
     "pidgeot",
@@ -35379,7 +35379,7 @@
     "koraidon",
     "fezandipiti"
   ],
-  "poisonsting": [
+  "poison-sting": [
     "weedle",
     "ekans",
     "sandshrew",
@@ -35805,7 +35805,7 @@
     "kingambit",
     "iron-jugulis"
   ],
-  "crosspoison": [
+  "cross-poison": [
     "beedrill",
     "parasect",
     "machamp",
@@ -35829,7 +35829,7 @@
     "eternatus",
     "fezandipiti"
   ],
-  "doublehit": [
+  "double-hit": [
     "beedrill",
     "doduo",
     "dodrio",
@@ -35872,7 +35872,7 @@
     "dipplin",
     "hydrapple"
   ],
-  "drillrun": [
+  "drill-run": [
     "beedrill",
     "spearow",
     "fearow",
@@ -36179,7 +36179,7 @@
     "great-tusk",
     "iron-treads"
   ],
-  "fellstinger": [
+  "fell-stinger": [
     "beedrill",
     "ariados",
     "qwilfish",
@@ -36196,7 +36196,7 @@
     "naganadel",
     "overqwil"
   ],
-  "focusenergy": [
+  "focus-energy": [
     "beedrill",
     "rattata",
     "raticate",
@@ -36579,7 +36579,7 @@
     "ting-lu",
     "chi-yu"
   ],
-  "pinmissile": [
+  "pin-missile": [
     "beedrill",
     "jolteon",
     "omastar",
@@ -36875,7 +36875,7 @@
     "iron-thorns",
     "koraidon"
   ],
-  "skittersmack": [
+  "skitter-smack": [
     "beedrill",
     "ekans",
     "arbok",
@@ -37005,7 +37005,7 @@
     "dudunsparce",
     "slither-wing"
   ],
-  "throatchop": [
+  "throat-chop": [
     "beedrill",
     "raticate",
     "fearow",
@@ -37174,7 +37174,7 @@
     "ogerpon",
     "iron-boulder"
   ],
-  "toxicspikes": [
+  "toxic-spikes": [
     "beedrill",
     "ekans",
     "arbok",
@@ -37258,7 +37258,7 @@
     "clodsire",
     "iron-moth"
   ],
-  "xscissor": [
+  "x-scissor": [
     "beedrill",
     "sandshrew",
     "sandslash",
@@ -37377,7 +37377,7 @@
     "iron-boulder",
     "iron-crown"
   ],
-  "sandattack": [
+  "sand-attack": [
     "pidgey",
     "pidgeotto",
     "sandshrew",
@@ -37444,7 +37444,7 @@
     "wugtrio",
     "iron-hands"
   ],
-  "quickattack": [
+  "quick-attack": [
     "pidgey",
     "pidgeotto",
     "pidgeot",
@@ -37592,7 +37592,7 @@
     "walking-wake",
     "raging-bolt"
   ],
-  "featherdance": [
+  "feather-dance": [
     "pidgey",
     "pidgeotto",
     "pidgeot",
@@ -37652,7 +37652,7 @@
     "bombirdier",
     "flamigo"
   ],
-  "wingattack": [
+  "wing-attack": [
     "pidgey",
     "pidgeotto",
     "scyther",
@@ -37681,7 +37681,7 @@
     "flamigo",
     "fezandipiti"
   ],
-  "mirrormove": [
+  "mirror-move": [
     "pidgey",
     "pidgeotto",
     "spearow",
@@ -37726,7 +37726,7 @@
     "morgrem",
     "grimmsnarl"
   ],
-  "doubleteam": [
+  "double-team": [
     "pidgey",
     "pidgeotto",
     "rattata",
@@ -37844,7 +37844,7 @@
     "pansear",
     "panpour"
   ],
-  "hiddenpower": [
+  "hidden-power": [
     "pidgey",
     "pidgeotto",
     "rattata",
@@ -38033,7 +38033,7 @@
     "chi-yu",
     "fezandipiti"
   ],
-  "workup": [
+  "work-up": [
     "pidgey",
     "pidgeotto",
     "rattata",
@@ -38159,7 +38159,7 @@
     "frosmoth",
     "kleavor"
   ],
-  "skyattack": [
+  "sky-attack": [
     "pidgey",
     "pidgeotto",
     "pidgeot",
@@ -38440,7 +38440,7 @@
     "fezandipiti",
     "hydrapple"
   ],
-  "bravebird": [
+  "brave-bird": [
     "pidgeot",
     "zubat",
     "golbat",
@@ -38510,14 +38510,14 @@
     "spearow",
     "fearow"
   ],
-  "hyperfang": [
+  "hyper-fang": [
     "rattata",
     "raticate",
     "bidoof",
     "bibarel",
     "patrat"
   ],
-  "suckerpunch": [
+  "sucker-punch": [
     "rattata",
     "raticate",
     "arbok",
@@ -38611,7 +38611,7 @@
     "chien-pao",
     "hydrapple"
   ],
-  "superfang": [
+  "super-fang": [
     "rattata",
     "raticate",
     "sandshrew",
@@ -38677,7 +38677,7 @@
     "capsakid",
     "scovillain"
   ],
-  "chargebeam": [
+  "charge-beam": [
     "rattata",
     "raticate",
     "pikachu",
@@ -39381,263 +39381,7 @@
     "raging-bolt",
     "terapagos"
   ],
-  "thunderbolt": [
-    "rattata",
-    "raticate",
-    "pikachu",
-    "raichu",
-    "nidoran-f",
-    "nidorina",
-    "nidoqueen",
-    "nidoran-m",
-    "nidorino",
-    "nidoking",
-    "clefairy",
-    "clefable",
-    "jigglypuff",
-    "wigglytuff",
-    "meowth",
-    "persian",
-    "mankey",
-    "primeape",
-    "magnemite",
-    "magneton",
-    "grimer",
-    "muk",
-    "gastly",
-    "haunter",
-    "gengar",
-    "voltorb",
-    "electrode",
-    "lickitung",
-    "koffing",
-    "weezing",
-    "rhyhorn",
-    "rhydon",
-    "chansey",
-    "kangaskhan",
-    "staryu",
-    "starmie",
-    "mr-mime",
-    "electabuzz",
-    "tauros",
-    "gyarados",
-    "lapras",
-    "jolteon",
-    "porygon",
-    "snorlax",
-    "zapdos",
-    "dratini",
-    "dragonair",
-    "dragonite",
-    "mewtwo",
-    "mew",
-    "sentret",
-    "furret",
-    "chinchou",
-    "lanturn",
-    "pichu",
-    "mareep",
-    "flaaffy",
-    "ampharos",
-    "aipom",
-    "misdreavus",
-    "girafarig",
-    "dunsparce",
-    "snubbull",
-    "granbull",
-    "porygon2",
-    "stantler",
-    "elekid",
-    "miltank",
-    "blissey",
-    "raikou",
-    "tyranitar",
-    "lugia",
-    "ho-oh",
-    "zigzagoon",
-    "linoone",
-    "ralts",
-    "kirlia",
-    "gardevoir",
-    "slakoth",
-    "vigoroth",
-    "slaking",
-    "nosepass",
-    "skitty",
-    "delcatty",
-    "aggron",
-    "electrike",
-    "manectric",
-    "plusle",
-    "minun",
-    "illumise",
-    "zangoose",
-    "castform",
-    "kecleon",
-    "shuppet",
-    "banette",
-    "absol",
-    "regirock",
-    "regice",
-    "registeel",
-    "latias",
-    "latios",
-    "kyogre",
-    "groudon",
-    "rayquaza",
-    "jirachi",
-    "deoxys",
-    "bidoof",
-    "bibarel",
-    "shinx",
-    "luxio",
-    "luxray",
-    "cranidos",
-    "rampardos",
-    "shieldon",
-    "bastiodon",
-    "pachirisu",
-    "ambipom",
-    "drifloon",
-    "drifblim",
-    "buneary",
-    "lopunny",
-    "mismagius",
-    "glameow",
-    "purugly",
-    "mime-jr",
-    "munchlax",
-    "magnezone",
-    "lickilicky",
-    "rhyperior",
-    "electivire",
-    "magmortar",
-    "porygon-z",
-    "gallade",
-    "probopass",
-    "froslass",
-    "rotom",
-    "uxie",
-    "mesprit",
-    "azelf",
-    "dialga",
-    "palkia",
-    "regigigas",
-    "giratina",
-    "cresselia",
-    "arceus",
-    "victini",
-    "patrat",
-    "watchog",
-    "lillipup",
-    "herdier",
-    "stoutland",
-    "blitzle",
-    "zebstrika",
-    "audino",
-    "garbodor",
-    "minccino",
-    "cinccino",
-    "gothita",
-    "gothorita",
-    "gothitelle",
-    "emolga",
-    "joltik",
-    "galvantula",
-    "ferroseed",
-    "ferrothorn",
-    "klink",
-    "klang",
-    "klinklang",
-    "eelektrik",
-    "eelektross",
-    "elgyem",
-    "beheeyem",
-    "stunfisk",
-    "golurk",
-    "thundurus",
-    "zekrom",
-    "meloetta",
-    "genesect",
-    "espurr",
-    "meowstic",
-    "spritzee",
-    "aromatisse",
-    "swirlix",
-    "slurpuff",
-    "inkay",
-    "malamar",
-    "skrelp",
-    "dragalge",
-    "helioptile",
-    "heliolisk",
-    "amaura",
-    "aurorus",
-    "dedenne",
-    "goomy",
-    "sliggoo",
-    "goodra",
-    "xerneas",
-    "hoopa",
-    "grubbin",
-    "charjabug",
-    "vikavolt",
-    "oranguru",
-    "silvally",
-    "togedemaru",
-    "mimikyu",
-    "drampa",
-    "tapu-koko",
-    "tapu-lele",
-    "solgaleo",
-    "lunala",
-    "nihilego",
-    "xurkitree",
-    "magearna",
-    "naganadel",
-    "zeraora",
-    "meltan",
-    "melmetal",
-    "yamper",
-    "boltund",
-    "toxtricity",
-    "obstagoon",
-    "perrserker",
-    "mr-rime",
-    "pincurchin",
-    "morpeko",
-    "dracozolt",
-    "arctozolt",
-    "duraludon",
-    "drakloak",
-    "dragapult",
-    "regieleki",
-    "wyrdeer",
-    "pawmi",
-    "pawmo",
-    "pawmot",
-    "tadbulb",
-    "bellibolt",
-    "wattrel",
-    "kilowattrel",
-    "cyclizar",
-    "annihilape",
-    "farigiraf",
-    "dudunsparce",
-    "scream-tail",
-    "flutter-mane",
-    "sandy-shocks",
-    "iron-hands",
-    "iron-thorns",
-    "gholdengo",
-    "iron-valiant",
-    "miraidon",
-    "archaludon",
-    "raging-bolt",
-    "terapagos"
-  ],
-  "thunderwave": [
+  "thunder-wave": [
     "rattata",
     "raticate",
     "pikachu",
@@ -39907,7 +39651,263 @@
     "archaludon",
     "raging-bolt"
   ],
-  "wildcharge": [
+  "thunderbolt": [
+    "rattata",
+    "raticate",
+    "pikachu",
+    "raichu",
+    "nidoran-f",
+    "nidorina",
+    "nidoqueen",
+    "nidoran-m",
+    "nidorino",
+    "nidoking",
+    "clefairy",
+    "clefable",
+    "jigglypuff",
+    "wigglytuff",
+    "meowth",
+    "persian",
+    "mankey",
+    "primeape",
+    "magnemite",
+    "magneton",
+    "grimer",
+    "muk",
+    "gastly",
+    "haunter",
+    "gengar",
+    "voltorb",
+    "electrode",
+    "lickitung",
+    "koffing",
+    "weezing",
+    "rhyhorn",
+    "rhydon",
+    "chansey",
+    "kangaskhan",
+    "staryu",
+    "starmie",
+    "mr-mime",
+    "electabuzz",
+    "tauros",
+    "gyarados",
+    "lapras",
+    "jolteon",
+    "porygon",
+    "snorlax",
+    "zapdos",
+    "dratini",
+    "dragonair",
+    "dragonite",
+    "mewtwo",
+    "mew",
+    "sentret",
+    "furret",
+    "chinchou",
+    "lanturn",
+    "pichu",
+    "mareep",
+    "flaaffy",
+    "ampharos",
+    "aipom",
+    "misdreavus",
+    "girafarig",
+    "dunsparce",
+    "snubbull",
+    "granbull",
+    "porygon2",
+    "stantler",
+    "elekid",
+    "miltank",
+    "blissey",
+    "raikou",
+    "tyranitar",
+    "lugia",
+    "ho-oh",
+    "zigzagoon",
+    "linoone",
+    "ralts",
+    "kirlia",
+    "gardevoir",
+    "slakoth",
+    "vigoroth",
+    "slaking",
+    "nosepass",
+    "skitty",
+    "delcatty",
+    "aggron",
+    "electrike",
+    "manectric",
+    "plusle",
+    "minun",
+    "illumise",
+    "zangoose",
+    "castform",
+    "kecleon",
+    "shuppet",
+    "banette",
+    "absol",
+    "regirock",
+    "regice",
+    "registeel",
+    "latias",
+    "latios",
+    "kyogre",
+    "groudon",
+    "rayquaza",
+    "jirachi",
+    "deoxys",
+    "bidoof",
+    "bibarel",
+    "shinx",
+    "luxio",
+    "luxray",
+    "cranidos",
+    "rampardos",
+    "shieldon",
+    "bastiodon",
+    "pachirisu",
+    "ambipom",
+    "drifloon",
+    "drifblim",
+    "buneary",
+    "lopunny",
+    "mismagius",
+    "glameow",
+    "purugly",
+    "mime-jr",
+    "munchlax",
+    "magnezone",
+    "lickilicky",
+    "rhyperior",
+    "electivire",
+    "magmortar",
+    "porygon-z",
+    "gallade",
+    "probopass",
+    "froslass",
+    "rotom",
+    "uxie",
+    "mesprit",
+    "azelf",
+    "dialga",
+    "palkia",
+    "regigigas",
+    "giratina",
+    "cresselia",
+    "arceus",
+    "victini",
+    "patrat",
+    "watchog",
+    "lillipup",
+    "herdier",
+    "stoutland",
+    "blitzle",
+    "zebstrika",
+    "audino",
+    "garbodor",
+    "minccino",
+    "cinccino",
+    "gothita",
+    "gothorita",
+    "gothitelle",
+    "emolga",
+    "joltik",
+    "galvantula",
+    "ferroseed",
+    "ferrothorn",
+    "klink",
+    "klang",
+    "klinklang",
+    "eelektrik",
+    "eelektross",
+    "elgyem",
+    "beheeyem",
+    "stunfisk",
+    "golurk",
+    "thundurus",
+    "zekrom",
+    "meloetta",
+    "genesect",
+    "espurr",
+    "meowstic",
+    "spritzee",
+    "aromatisse",
+    "swirlix",
+    "slurpuff",
+    "inkay",
+    "malamar",
+    "skrelp",
+    "dragalge",
+    "helioptile",
+    "heliolisk",
+    "amaura",
+    "aurorus",
+    "dedenne",
+    "goomy",
+    "sliggoo",
+    "goodra",
+    "xerneas",
+    "hoopa",
+    "grubbin",
+    "charjabug",
+    "vikavolt",
+    "oranguru",
+    "silvally",
+    "togedemaru",
+    "mimikyu",
+    "drampa",
+    "tapu-koko",
+    "tapu-lele",
+    "solgaleo",
+    "lunala",
+    "nihilego",
+    "xurkitree",
+    "magearna",
+    "naganadel",
+    "zeraora",
+    "meltan",
+    "melmetal",
+    "yamper",
+    "boltund",
+    "toxtricity",
+    "obstagoon",
+    "perrserker",
+    "mr-rime",
+    "pincurchin",
+    "morpeko",
+    "dracozolt",
+    "arctozolt",
+    "duraludon",
+    "drakloak",
+    "dragapult",
+    "regieleki",
+    "wyrdeer",
+    "pawmi",
+    "pawmo",
+    "pawmot",
+    "tadbulb",
+    "bellibolt",
+    "wattrel",
+    "kilowattrel",
+    "cyclizar",
+    "annihilape",
+    "farigiraf",
+    "dudunsparce",
+    "scream-tail",
+    "flutter-mane",
+    "sandy-shocks",
+    "iron-hands",
+    "iron-thorns",
+    "gholdengo",
+    "iron-valiant",
+    "miraidon",
+    "archaludon",
+    "raging-bolt",
+    "terapagos"
+  ],
+  "wild-charge": [
     "rattata",
     "raticate",
     "pikachu",
@@ -40104,7 +40104,7 @@
     "tinkatuff",
     "tinkaton"
   ],
-  "lastresort": [
+  "last-resort": [
     "rattata",
     "raticate",
     "chansey",
@@ -40165,7 +40165,7 @@
     "dachsbun",
     "espathra"
   ],
-  "shockwave": [
+  "shock-wave": [
     "rattata",
     "raticate",
     "electabuzz",
@@ -40417,7 +40417,7 @@
     "iron-boulder",
     "iron-crown"
   ],
-  "furyattack": [
+  "fury-attack": [
     "spearow",
     "fearow",
     "nidoran-m",
@@ -40443,7 +40443,7 @@
     "pincurchin",
     "squawkabilly"
   ],
-  "drillpeck": [
+  "drill-peck": [
     "spearow",
     "fearow",
     "doduo",
@@ -40464,7 +40464,7 @@
     "espathra",
     "iron-bundle"
   ],
-  "echoedvoice": [
+  "echoed-voice": [
     "spearow",
     "fearow",
     "jigglypuff",
@@ -40535,7 +40535,7 @@
     "bombirdier",
     "veluza"
   ],
-  "laserfocus": [
+  "laser-focus": [
     "fearow",
     "beautifly",
     "dustox",
@@ -40627,7 +40627,7 @@
     "toxel",
     "toxtricity"
   ],
-  "spitup": [
+  "spit-up": [
     "ekans",
     "arbok",
     "jigglypuff",
@@ -40721,7 +40721,7 @@
     "greedent",
     "cramorant"
   ],
-  "gastroacid": [
+  "gastro-acid": [
     "ekans",
     "arbok",
     "bellsprout",
@@ -40811,7 +40811,7 @@
     "orthworm",
     "dudunsparce"
   ],
-  "gunkshot": [
+  "gunk-shot": [
     "ekans",
     "arbok",
     "sandslash",
@@ -40931,7 +40931,7 @@
     "fezandipiti",
     "pecharunt"
   ],
-  "lashout": [
+  "lash-out": [
     "ekans",
     "arbok",
     "meowth",
@@ -41058,7 +41058,7 @@
     "fezandipiti",
     "ogerpon"
   ],
-  "leechlife": [
+  "leech-life": [
     "ekans",
     "arbok",
     "sandshrew",
@@ -41133,7 +41133,7 @@
     "rabsca",
     "slither-wing"
   ],
-  "mudslap": [
+  "mud-slap": [
     "ekans",
     "arbok",
     "sandshrew",
@@ -41373,7 +41373,7 @@
     "koraidon",
     "munkidori"
   ],
-  "poisontail": [
+  "poison-tail": [
     "ekans",
     "mew",
     "dunsparce",
@@ -41398,7 +41398,7 @@
     "okidogi",
     "fezandipiti"
   ],
-  "psychicfangs": [
+  "psychic-fangs": [
     "ekans",
     "arbok",
     "growlithe",
@@ -41745,7 +41745,7 @@
     "fezandipiti",
     "pecharunt"
   ],
-  "icefang": [
+  "ice-fang": [
     "arbok",
     "rhyhorn",
     "rhydon",
@@ -41845,7 +41845,7 @@
     "koraidon",
     "okidogi"
   ],
-  "painsplit": [
+  "pain-split": [
     "arbok",
     "vulpix",
     "ninetales",
@@ -41954,7 +41954,7 @@
     "poltchageist",
     "sinistcha"
   ],
-  "poisonfang": [
+  "poison-fang": [
     "arbok",
     "zubat",
     "golbat",
@@ -42003,7 +42003,7 @@
     "shroodle",
     "grafaiai"
   ],
-  "thunderfang": [
+  "thunder-fang": [
     "arbok",
     "growlithe",
     "arcanine",
@@ -42107,7 +42107,7 @@
     "gouging-fire",
     "raging-bolt"
   ],
-  "alluringvoice": [
+  "alluring-voice": [
     "pikachu",
     "raichu",
     "clefairy",
@@ -42318,7 +42318,7 @@
     "miraidon",
     "raging-bolt"
   ],
-  "eerieimpulse": [
+  "eerie-impulse": [
     "pikachu",
     "raichu",
     "magnemite",
@@ -42383,7 +42383,7 @@
     "miraidon",
     "raging-bolt"
   ],
-  "electricterrain": [
+  "electric-terrain": [
     "pikachu",
     "raichu",
     "magnemite",
@@ -42460,7 +42460,7 @@
     "iron-boulder",
     "iron-crown"
   ],
-  "electroball": [
+  "electro-ball": [
     "pikachu",
     "raichu",
     "magnemite",
@@ -42723,7 +42723,7 @@
     "iron-valiant",
     "ogerpon"
   ],
-  "faketears": [
+  "fake-tears": [
     "pikachu",
     "raichu",
     "clefairy",
@@ -42910,7 +42910,7 @@
     "flamigo",
     "iron-valiant"
   ],
-  "nastyplot": [
+  "nasty-plot": [
     "pikachu",
     "raichu",
     "vulpix",
@@ -43090,7 +43090,7 @@
     "pawmo",
     "pawmot"
   ],
-  "playrough": [
+  "play-rough": [
     "pikachu",
     "raichu",
     "clefairy",
@@ -43672,7 +43672,7 @@
     "ogerpon",
     "gouging-fire"
   ],
-  "risingvoltage": [
+  "rising-voltage": [
     "pikachu",
     "raichu",
     "jolteon",
@@ -43698,7 +43698,7 @@
     "arctozolt",
     "raging-bolt"
   ],
-  "sweetkiss": [
+  "sweet-kiss": [
     "pikachu",
     "raichu",
     "clefairy",
@@ -43770,7 +43770,7 @@
     "dondozo",
     "wo-chien"
   ],
-  "upperhand": [
+  "upper-hand": [
     "pikachu",
     "raichu",
     "poliwrath",
@@ -43828,7 +43828,7 @@
     "flamigo",
     "okidogi"
   ],
-  "voltswitch": [
+  "volt-switch": [
     "pikachu",
     "raichu",
     "magnemite",
@@ -43905,7 +43905,7 @@
     "raging-bolt",
     "iron-crown"
   ],
-  "volttackle": [
+  "volt-tackle": [
     "pikachu",
     "raichu"
   ],
@@ -43946,7 +43946,7 @@
     "scream-tail",
     "flutter-mane"
   ],
-  "zapcannon": [
+  "zap-cannon": [
     "pikachu",
     "raichu",
     "magnemite",
@@ -43980,7 +43980,7 @@
     "sandy-shocks",
     "raging-bolt"
   ],
-  "dazzlinggleam": [
+  "dazzling-gleam": [
     "raichu",
     "clefairy",
     "clefable",
@@ -44142,7 +44142,7 @@
     "fezandipiti",
     "terapagos"
   ],
-  "drainpunch": [
+  "drain-punch": [
     "raichu",
     "clefairy",
     "clefable",
@@ -44280,7 +44280,7 @@
     "koraidon",
     "okidogi"
   ],
-  "defensecurl": [
+  "defense-curl": [
     "sandshrew",
     "sandslash",
     "clefairy",
@@ -44387,7 +44387,7 @@
     "iron-treads",
     "pecharunt"
   ],
-  "furycutter": [
+  "fury-cutter": [
     "sandshrew",
     "sandslash",
     "paras",
@@ -44426,7 +44426,7 @@
     "sirfetch-d",
     "iron-valiant"
   ],
-  "furyswipes": [
+  "fury-swipes": [
     "sandshrew",
     "sandslash",
     "nidoran-f",
@@ -44485,7 +44485,7 @@
     "grafaiai",
     "annihilape"
   ],
-  "highhorsepower": [
+  "high-horsepower": [
     "sandshrew",
     "sandslash",
     "nidoqueen",
@@ -44593,7 +44593,7 @@
     "baxcalibur",
     "okidogi"
   ],
-  "lowkick": [
+  "low-kick": [
     "sandshrew",
     "sandslash",
     "psyduck",
@@ -44806,7 +44806,7 @@
     "okidogi",
     "ogerpon"
   ],
-  "sandtomb": [
+  "sand-tomb": [
     "sandshrew",
     "sandslash",
     "nidoqueen",
@@ -44977,7 +44977,7 @@
     "ting-lu",
     "ogerpon"
   ],
-  "stealthrock": [
+  "stealth-rock": [
     "sandshrew",
     "sandslash",
     "nidoqueen",
@@ -45179,7 +45179,7 @@
     "archaludon",
     "terapagos"
   ],
-  "stoneedge": [
+  "stone-edge": [
     "sandshrew",
     "sandslash",
     "nidoqueen",
@@ -45407,7 +45407,7 @@
     "iron-boulder",
     "terapagos"
   ],
-  "crushclaw": [
+  "crush-claw": [
     "sandslash",
     "zangoose",
     "anorith",
@@ -45421,7 +45421,7 @@
     "silvally",
     "gouging-fire"
   ],
-  "doublekick": [
+  "double-kick": [
     "nidoran-f",
     "nidorina",
     "nidoqueen",
@@ -45495,7 +45495,7 @@
     "munkidori",
     "fezandipiti"
   ],
-  "venomdrench": [
+  "venom-drench": [
     "nidoran-f",
     "nidorina",
     "nidoqueen",
@@ -45747,7 +45747,7 @@
     "fezandipiti",
     "pecharunt"
   ],
-  "megapunch": [
+  "mega-punch": [
     "nidoqueen",
     "nidoking",
     "abra",
@@ -45797,7 +45797,7 @@
     "dracozolt",
     "arctozolt"
   ],
-  "payday": [
+  "pay-day": [
     "nidoqueen",
     "nidoking",
     "meowth",
@@ -45807,7 +45807,7 @@
     "zeraora",
     "perrserker"
   ],
-  "rockblast": [
+  "rock-blast": [
     "nidoqueen",
     "nidoking",
     "diglett",
@@ -45921,7 +45921,7 @@
     "iron-thorns",
     "iron-boulder"
   ],
-  "hornattack": [
+  "horn-attack": [
     "nidoran-m",
     "nidorino",
     "nidoking",
@@ -45936,7 +45936,7 @@
     "iron-treads",
     "iron-boulder"
   ],
-  "smartstrike": [
+  "smart-strike": [
     "nidoran-m",
     "nidorino",
     "nidoking",
@@ -46071,7 +46071,7 @@
     "squawkabilly",
     "flamigo"
   ],
-  "disarmingvoice": [
+  "disarming-voice": [
     "clefairy",
     "jigglypuff",
     "wigglytuff",
@@ -46245,7 +46245,7 @@
     "cosmog",
     "tatsugiri"
   ],
-  "storedpower": [
+  "stored-power": [
     "clefairy",
     "clefable",
     "ninetales",
@@ -46384,7 +46384,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "afteryou": [
+  "after-you": [
     "clefairy",
     "clefable",
     "paras",
@@ -46629,7 +46629,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "meteormash": [
+  "meteor-mash": [
     "clefairy",
     "clefable",
     "metang",
@@ -46637,7 +46637,7 @@
     "jirachi",
     "lucario"
   ],
-  "followme": [
+  "follow-me": [
     "clefairy",
     "clefable",
     "sentret",
@@ -46648,7 +46648,7 @@
     "maushold",
     "ogerpon"
   ],
-  "cosmicpower": [
+  "cosmic-power": [
     "clefairy",
     "clefable",
     "staryu",
@@ -46717,7 +46717,7 @@
     "iron-valiant",
     "fezandipiti"
   ],
-  "healingwish": [
+  "healing-wish": [
     "clefairy",
     "clefable",
     "ninetales",
@@ -46741,7 +46741,7 @@
     "indeedee",
     "enamorus"
   ],
-  "calmmind": [
+  "calm-mind": [
     "clefairy",
     "clefable",
     "ninetales",
@@ -46965,7 +46965,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "hypervoice": [
+  "hyper-voice": [
     "clefairy",
     "clefable",
     "jigglypuff",
@@ -47306,7 +47306,7 @@
     "munkidori",
     "pecharunt"
   ],
-  "meteorbeam": [
+  "meteor-beam": [
     "clefairy",
     "clefable",
     "onix",
@@ -47395,7 +47395,7 @@
     "iron-boulder",
     "terapagos"
   ],
-  "mistyexplosion": [
+  "misty-explosion": [
     "clefairy",
     "clefable",
     "jigglypuff",
@@ -47421,7 +47421,7 @@
     "enamorus",
     "scream-tail"
   ],
-  "mistyterrain": [
+  "misty-terrain": [
     "clefairy",
     "clefable",
     "jigglypuff",
@@ -47481,7 +47481,7 @@
     "flutter-mane",
     "iron-valiant"
   ],
-  "nightshade": [
+  "night-shade": [
     "clefairy",
     "clefable",
     "ninetales",
@@ -47576,7 +47576,7 @@
     "munkidori",
     "pecharunt"
   ],
-  "psychup": [
+  "psych-up": [
     "clefairy",
     "clefable",
     "vulpix",
@@ -48148,7 +48148,7 @@
     "cetitan",
     "chi-yu"
   ],
-  "futuresight": [
+  "future-sight": [
     "clefable",
     "golduck",
     "kadabra",
@@ -48246,7 +48246,7 @@
     "munkidori",
     "iron-crown"
   ],
-  "healpulse": [
+  "heal-pulse": [
     "clefable",
     "slowpoke",
     "slowbro",
@@ -48272,7 +48272,7 @@
     "hatterene",
     "calyrex"
   ],
-  "mysticalfire": [
+  "mystical-fire": [
     "clefable",
     "ninetales",
     "ponyta",
@@ -48300,7 +48300,7 @@
     "armarouge",
     "flutter-mane"
   ],
-  "triattack": [
+  "tri-attack": [
     "clefable",
     "dugtrio",
     "abra",
@@ -48335,7 +48335,7 @@
     "iron-jugulis",
     "terapagos"
   ],
-  "wonderroom": [
+  "wonder-room": [
     "clefable",
     "psyduck",
     "golduck",
@@ -48480,7 +48480,7 @@
     "roaring-moon",
     "gouging-fire"
   ],
-  "confuseray": [
+  "confuse-ray": [
     "vulpix",
     "ninetales",
     "zubat",
@@ -48673,7 +48673,7 @@
     "enamorus",
     "rabsca"
   ],
-  "burningjealousy": [
+  "burning-jealousy": [
     "vulpix",
     "ninetales",
     "magmar",
@@ -48729,7 +48729,7 @@
     "scovillain",
     "chi-yu"
   ],
-  "foulplay": [
+  "foul-play": [
     "vulpix",
     "ninetales",
     "diglett",
@@ -48879,7 +48879,7 @@
     "archaludon",
     "pecharunt"
   ],
-  "babydolleyes": [
+  "baby-doll-eyes": [
     "ninetales",
     "eevee",
     "vaporeon",
@@ -49047,7 +49047,7 @@
     "sinistcha",
     "pecharunt"
   ],
-  "powerswap": [
+  "power-swap": [
     "ninetales",
     "abra",
     "kadabra",
@@ -49088,7 +49088,7 @@
     "rabsca",
     "farigiraf"
   ],
-  "tailslap": [
+  "tail-slap": [
     "ninetales",
     "zigzagoon",
     "linoone",
@@ -49110,7 +49110,7 @@
     "chatot",
     "squawkabilly"
   ],
-  "psychicnoise": [
+  "psychic-noise": [
     "jigglypuff",
     "wigglytuff",
     "venonat",
@@ -49177,7 +49177,7 @@
     "munkidori",
     "iron-crown"
   ],
-  "expandingforce": [
+  "expanding-force": [
     "wigglytuff",
     "kadabra",
     "alakazam",
@@ -49424,7 +49424,7 @@
     "poltchageist",
     "pecharunt"
   ],
-  "meanlook": [
+  "mean-look": [
     "zubat",
     "golbat",
     "gastly",
@@ -49464,7 +49464,7 @@
     "chi-yu",
     "pecharunt"
   ],
-  "quickguard": [
+  "quick-guard": [
     "zubat",
     "golbat",
     "machamp",
@@ -49513,7 +49513,7 @@
     "iron-boulder",
     "iron-crown"
   ],
-  "megadrain": [
+  "mega-drain": [
     "oddish",
     "gloom",
     "vileplume",
@@ -49574,7 +49574,7 @@
     "wo-chien",
     "poltchageist"
   ],
-  "solarblade": [
+  "solar-blade": [
     "vileplume",
     "ponyta",
     "rapidash",
@@ -49647,7 +49647,7 @@
     "gossifleur",
     "eldegoss"
   ],
-  "naturepower": [
+  "nature-power": [
     "paras",
     "parasect",
     "carnivine",
@@ -49655,7 +49655,7 @@
     "amaura",
     "xerneas"
   ],
-  "strugglebug": [
+  "struggle-bug": [
     "venonat",
     "venomoth",
     "scyther",
@@ -49743,7 +49743,7 @@
     "garganacl",
     "ting-lu"
   ],
-  "nightslash": [
+  "night-slash": [
     "dugtrio",
     "kabutops",
     "ariados",
@@ -49802,7 +49802,7 @@
     "iron-leaves",
     "archaludon"
   ],
-  "powergem": [
+  "power-gem": [
     "meowth",
     "persian",
     "golduck",
@@ -49909,7 +49909,7 @@
     "dondozo",
     "tatsugiri"
   ],
-  "lowsweep": [
+  "low-sweep": [
     "psyduck",
     "golduck",
     "mankey",
@@ -50048,7 +50048,7 @@
     "okidogi",
     "ogerpon"
   ],
-  "vacuumwave": [
+  "vacuum-wave": [
     "psyduck",
     "golduck",
     "primeape",
@@ -50097,7 +50097,7 @@
     "annihilape",
     "iron-valiant"
   ],
-  "seismictoss": [
+  "seismic-toss": [
     "mankey",
     "primeape",
     "machop",
@@ -50114,7 +50114,7 @@
     "annihilape",
     "iron-hands"
   ],
-  "crosschop": [
+  "cross-chop": [
     "mankey",
     "primeape",
     "machop",
@@ -50206,7 +50206,7 @@
     "slither-wing",
     "ting-lu"
   ],
-  "closecombat": [
+  "close-combat": [
     "mankey",
     "primeape",
     "growlithe",
@@ -50331,7 +50331,7 @@
     "okidogi",
     "iron-boulder"
   ],
-  "finalgambit": [
+  "final-gambit": [
     "mankey",
     "primeape",
     "zangoose",
@@ -50348,7 +50348,7 @@
     "veluza",
     "annihilape"
   ],
-  "bulkup": [
+  "bulk-up": [
     "mankey",
     "primeape",
     "poliwrath",
@@ -50476,11 +50476,11 @@
     "koraidon",
     "okidogi"
   ],
-  "ragefist": [
+  "rage-fist": [
     "primeape",
     "annihilape"
   ],
-  "flamewheel": [
+  "flame-wheel": [
     "growlithe",
     "ponyta",
     "rapidash",
@@ -50545,7 +50545,7 @@
     "iron-leaves",
     "ogerpon"
   ],
-  "burnup": [
+  "burn-up": [
     "arcanine",
     "typhlosion",
     "emboar",
@@ -50555,7 +50555,7 @@
     "armarouge",
     "ceruledge"
   ],
-  "extremespeed": [
+  "extreme-speed": [
     "arcanine",
     "dragonite",
     "raikou",
@@ -50568,7 +50568,7 @@
     "arceus",
     "regieleki"
   ],
-  "morningsun": [
+  "morning-sun": [
     "arcanine",
     "espeon",
     "beautifly",
@@ -50583,12 +50583,12 @@
     "iron-moth",
     "gouging-fire"
   ],
-  "ragingfury": [
+  "raging-fury": [
     "arcanine",
     "infernape",
     "gouging-fire"
   ],
-  "bubblebeam": [
+  "bubble-beam": [
     "poliwag",
     "poliwhirl",
     "poliwrath",
@@ -50630,7 +50630,7 @@
     "dewpider",
     "pincurchin"
   ],
-  "dynamicpunch": [
+  "dynamic-punch": [
     "poliwrath",
     "machop",
     "machoke",
@@ -50653,7 +50653,7 @@
     "urshifu",
     "garganacl"
   ],
-  "circlethrow": [
+  "circle-throw": [
     "poliwrath",
     "kangaskhan",
     "pinsir",
@@ -50749,7 +50749,7 @@
     "solgaleo",
     "lunala"
   ],
-  "allyswitch": [
+  "ally-switch": [
     "abra",
     "kadabra",
     "alakazam",
@@ -50823,7 +50823,7 @@
     "farigiraf",
     "iron-leaves"
   ],
-  "guardswap": [
+  "guard-swap": [
     "abra",
     "kadabra",
     "alakazam",
@@ -50864,7 +50864,7 @@
     "rabsca",
     "farigiraf"
   ],
-  "magicroom": [
+  "magic-room": [
     "abra",
     "kadabra",
     "alakazam",
@@ -50905,7 +50905,7 @@
     "mr-rime",
     "alcremie"
   ],
-  "psychicterrain": [
+  "psychic-terrain": [
     "abra",
     "kadabra",
     "alakazam",
@@ -50975,7 +50975,7 @@
     "iron-leaves",
     "munkidori"
   ],
-  "speedswap": [
+  "speed-swap": [
     "abra",
     "kadabra",
     "alakazam",
@@ -50988,7 +50988,7 @@
     "pheromosa",
     "rabsca"
   ],
-  "trickroom": [
+  "trick-room": [
     "abra",
     "kadabra",
     "alakazam",
@@ -51135,7 +51135,7 @@
   "kinesis": [
     "kadabra"
   ],
-  "psychocut": [
+  "psycho-cut": [
     "kadabra",
     "alakazam",
     "starmie",
@@ -51228,7 +51228,7 @@
     "hydrapple",
     "pecharunt"
   ],
-  "roleplay": [
+  "role-play": [
     "kadabra",
     "alakazam",
     "mr-mime",
@@ -51250,7 +51250,7 @@
     "mr-rime",
     "wyrdeer"
   ],
-  "guardsplit": [
+  "guard-split": [
     "alakazam",
     "shuckle",
     "baltoy",
@@ -51293,7 +51293,7 @@
     "cursola",
     "sirfetch-d"
   ],
-  "vitalthrow": [
+  "vital-throw": [
     "machop",
     "machoke",
     "throh",
@@ -51309,11 +51309,11 @@
     "cufant",
     "copperajah"
   ],
-  "dualchop": [
+  "dual-chop": [
     "machop",
     "machoke"
   ],
-  "heavyslam": [
+  "heavy-slam": [
     "machop",
     "machoke",
     "machamp",
@@ -51437,7 +51437,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "bulletpunch": [
+  "bullet-punch": [
     "machamp",
     "hitmonchan",
     "scizor",
@@ -51448,7 +51448,7 @@
     "toxicroak",
     "pangoro"
   ],
-  "darkestlariat": [
+  "darkest-lariat": [
     "machamp",
     "pangoro",
     "incineroar",
@@ -51512,14 +51512,14 @@
     "flamigo",
     "iron-hands"
   ],
-  "stormthrow": [
+  "storm-throw": [
     "machamp",
     "pinsir",
     "emboar",
     "throh",
     "pangoro"
   ],
-  "wideguard": [
+  "wide-guard": [
     "machamp",
     "kingler",
     "hitmonlee",
@@ -51619,7 +51619,7 @@
     "iron-hands",
     "ogerpon"
   ],
-  "clearsmog": [
+  "clear-smog": [
     "victreebel",
     "gengar",
     "koffing",
@@ -51642,7 +51642,7 @@
     "brute-bonnet",
     "munkidori"
   ],
-  "leafblade": [
+  "leaf-blade": [
     "victreebel",
     "farfetch-d",
     "meganium",
@@ -51670,7 +51670,7 @@
     "iron-valiant",
     "iron-leaves"
   ],
-  "strengthsap": [
+  "strength-sap": [
     "victreebel",
     "drifblim",
     "morelull",
@@ -51679,7 +51679,7 @@
     "cursola",
     "sinistcha"
   ],
-  "acidarmor": [
+  "acid-armor": [
     "tentacool",
     "tentacruel",
     "grimer",
@@ -51705,7 +51705,7 @@
     "glimmet",
     "glimmora"
   ],
-  "reflecttype": [
+  "reflect-type": [
     "tentacruel",
     "gengar",
     "mew",
@@ -51713,7 +51713,7 @@
     "stunfisk",
     "toedscruel"
   ],
-  "rockpolish": [
+  "rock-polish": [
     "geodude",
     "graveler",
     "golem",
@@ -51742,7 +51742,7 @@
     "glimmora",
     "terapagos"
   ],
-  "rockthrow": [
+  "rock-throw": [
     "geodude",
     "graveler",
     "golem",
@@ -51776,7 +51776,7 @@
     "iron-thorns",
     "iron-boulder"
   ],
-  "selfdestruct": [
+  "self-destruct": [
     "geodude",
     "graveler",
     "golem",
@@ -51874,7 +51874,7 @@
     "garganacl",
     "glimmora"
   ],
-  "hardpress": [
+  "hard-press": [
     "graveler",
     "golem",
     "pinsir",
@@ -52048,7 +52048,7 @@
     "roaring-moon",
     "terapagos"
   ],
-  "slackoff": [
+  "slack-off": [
     "slowpoke",
     "slowbro",
     "slowking",
@@ -52176,7 +52176,7 @@
     "spidops",
     "garganacl"
   ],
-  "razorshell": [
+  "razor-shell": [
     "slowbro",
     "shellder",
     "cloyster",
@@ -52268,7 +52268,7 @@
     "poltchageist",
     "sinistcha"
   ],
-  "thundershock": [
+  "thunder-shock": [
     "magnemite",
     "magneton",
     "voltorb",
@@ -52351,7 +52351,7 @@
     "kilowattrel",
     "sandy-shocks"
   ],
-  "magnetrise": [
+  "magnet-rise": [
     "magnemite",
     "magneton",
     "voltorb",
@@ -52375,7 +52375,7 @@
     "regieleki",
     "revavroom"
   ],
-  "metalsound": [
+  "metal-sound": [
     "magnemite",
     "magneton",
     "voltorb",
@@ -52449,7 +52449,7 @@
     "archaludon",
     "iron-crown"
   ],
-  "lockon": [
+  "lock-on": [
     "magnemite",
     "magneton",
     "porygon",
@@ -52472,7 +52472,7 @@
     "dragapult",
     "regieleki"
   ],
-  "steelbeam": [
+  "steel-beam": [
     "magnemite",
     "magneton",
     "mew",
@@ -52562,7 +52562,7 @@
     "pincurchin",
     "overqwil"
   ],
-  "iceshard": [
+  "ice-shard": [
     "seel",
     "dewgong",
     "shellder",
@@ -52587,7 +52587,7 @@
     "baxcalibur",
     "chien-pao"
   ],
-  "aurorabeam": [
+  "aurora-beam": [
     "seel",
     "dewgong",
     "shellder",
@@ -52652,7 +52652,7 @@
     "arctovish",
     "overqwil"
   ],
-  "iciclespear": [
+  "icicle-spear": [
     "seel",
     "dewgong",
     "shellder",
@@ -52702,7 +52702,7 @@
     "arctibax",
     "baxcalibur"
   ],
-  "tripleaxel": [
+  "triple-axel": [
     "seel",
     "dewgong",
     "jynx",
@@ -52743,7 +52743,7 @@
     "quaxwell",
     "quaquaval"
   ],
-  "sheercold": [
+  "sheer-cold": [
     "dewgong",
     "lapras",
     "articuno",
@@ -52765,7 +52765,7 @@
     "mr-rime",
     "chien-pao"
   ],
-  "poisongas": [
+  "poison-gas": [
     "grimer",
     "muk",
     "drowzee",
@@ -52809,7 +52809,7 @@
     "sandaconda",
     "overqwil"
   ],
-  "iciclecrash": [
+  "icicle-crash": [
     "cloyster",
     "glalie",
     "weavile",
@@ -52860,7 +52860,7 @@
     "greavard",
     "houndstone"
   ],
-  "destinybond": [
+  "destiny-bond": [
     "gastly",
     "haunter",
     "gengar",
@@ -52900,7 +52900,7 @@
     "iron-valiant",
     "pecharunt"
   ],
-  "dreameater": [
+  "dream-eater": [
     "gastly",
     "haunter",
     "hoothoot",
@@ -52978,7 +52978,7 @@
     "munkidori",
     "pecharunt"
   ],
-  "shadowpunch": [
+  "shadow-punch": [
     "haunter",
     "gengar",
     "sableye",
@@ -52993,7 +52993,7 @@
     "runerigus",
     "annihilape"
   ],
-  "phantomforce": [
+  "phantom-force": [
     "haunter",
     "gengar",
     "mew",
@@ -53044,7 +53044,7 @@
     "sinistcha",
     "pecharunt"
   ],
-  "corrosivegas": [
+  "corrosive-gas": [
     "gengar",
     "toxicroak",
     "trubbish",
@@ -53053,7 +53053,7 @@
     "nihilego",
     "guzzlord"
   ],
-  "perishsong": [
+  "perish-song": [
     "gengar",
     "jynx",
     "lapras",
@@ -53179,7 +53179,7 @@
     "arctozolt",
     "arctovish"
   ],
-  "hammerarm": [
+  "hammer-arm": [
     "kingler",
     "rhydon",
     "kangaskhan",
@@ -53220,7 +53220,7 @@
     "ursaluna",
     "garganacl"
   ],
-  "magneticflux": [
+  "magnetic-flux": [
     "electrode",
     "zapdos",
     "ampharos",
@@ -53230,7 +53230,7 @@
     "magearna",
     "sandy-shocks"
   ],
-  "supercellslam": [
+  "supercell-slam": [
     "electrode",
     "rhyhorn",
     "rhydon",
@@ -53273,7 +53273,7 @@
     "iron-crown",
     "terapagos"
   ],
-  "woodhammer": [
+  "wood-hammer": [
     "exeggutor",
     "sudowoodo",
     "torterra",
@@ -53293,7 +53293,7 @@
     "tinkaton",
     "ogerpon"
   ],
-  "bonerush": [
+  "bone-rush": [
     "cubone",
     "marowak",
     "lucario",
@@ -53303,7 +53303,7 @@
     "cubone",
     "marowak"
   ],
-  "blazekick": [
+  "blaze-kick": [
     "hitmonlee",
     "combusken",
     "blaziken",
@@ -53318,7 +53318,7 @@
     "marshadow",
     "zeraora"
   ],
-  "highjumpkick": [
+  "high-jump-kick": [
     "hitmonlee",
     "meditite",
     "medicham",
@@ -53332,12 +53332,12 @@
     "tsareena",
     "pheromosa"
   ],
-  "axekick": [
+  "axe-kick": [
     "hitmonlee",
     "medicham",
     "lokix"
   ],
-  "machpunch": [
+  "mach-punch": [
     "hitmonchan",
     "ledyba",
     "ledian",
@@ -53348,7 +53348,7 @@
     "conkeldurr",
     "crabominable"
   ],
-  "steelroller": [
+  "steel-roller": [
     "lickitung",
     "forretress",
     "steelix",
@@ -53402,7 +53402,7 @@
     "revavroom",
     "pecharunt"
   ],
-  "horndrill": [
+  "horn-drill": [
     "rhyhorn",
     "rhydon",
     "goldeen",
@@ -53412,7 +53412,7 @@
     "tyrunt",
     "tyrantrum"
   ],
-  "softboiled": [
+  "soft-boiled": [
     "chansey",
     "blissey"
   ],
@@ -53442,7 +53442,7 @@
     "dipplin",
     "hydrapple"
   ],
-  "teeterdance": [
+  "teeter-dance": [
     "mr-mime",
     "lombre",
     "ludicolo",
@@ -53458,7 +53458,7 @@
     "tsareena",
     "mr-rime"
   ],
-  "powdersnow": [
+  "powder-snow": [
     "jynx",
     "articuno",
     "swinub",
@@ -53482,10 +53482,10 @@
     "iron-bundle",
     "chien-pao"
   ],
-  "lovelykiss": [
+  "lovely-kiss": [
     "jynx"
   ],
-  "lavaplume": [
+  "lava-plume": [
     "magmar",
     "flareon",
     "cyndaquil",
@@ -53507,7 +53507,7 @@
     "chi-yu",
     "gouging-fire"
   ],
-  "ragingbull": [
+  "raging-bull": [
     "tauros"
   ],
   "mist": [
@@ -53553,12 +53553,12 @@
     "porygon2",
     "porygon-z"
   ],
-  "conversion2": [
+  "conversion-2": [
     "porygon",
     "porygon2",
     "porygon-z"
   ],
-  "freezedry": [
+  "freeze-dry": [
     "articuno",
     "glalie",
     "glaceon",
@@ -53574,7 +53574,7 @@
     "arctovish",
     "iron-bundle"
   ],
-  "dracometeor": [
+  "draco-meteor": [
     "dratini",
     "dragonair",
     "dragonite",
@@ -53660,14 +53660,14 @@
     "torkoal",
     "groudon"
   ],
-  "silverwind": [
+  "silver-wind": [
     "ledyba",
     "ledian",
     "beautifly",
     "dustox",
     "mothim"
   ],
-  "cometpunch": [
+  "comet-punch": [
     "ledyba",
     "ledian"
   ],
@@ -53697,7 +53697,7 @@
     "dipplin",
     "hydrapple"
   ],
-  "shadowsneak": [
+  "shadow-sneak": [
     "spinarak",
     "ariados",
     "gardevoir",
@@ -53727,7 +53727,7 @@
     "ceruledge",
     "iron-valiant"
   ],
-  "stickyweb": [
+  "sticky-web": [
     "spinarak",
     "ariados",
     "shuckle",
@@ -53744,11 +53744,11 @@
     "tarountula",
     "spidops"
   ],
-  "toxicthread": [
+  "toxic-thread": [
     "spinarak",
     "ariados"
   ],
-  "firstimpression": [
+  "first-impression": [
     "ariados",
     "golisopod",
     "sirfetch-d",
@@ -53757,7 +53757,7 @@
     "lokix",
     "slither-wing"
   ],
-  "playnice": [
+  "play-nice": [
     "pichu",
     "teddiursa",
     "ursaring",
@@ -53780,7 +53780,7 @@
     "indeedee",
     "ursaluna"
   ],
-  "fairywind": [
+  "fairy-wind": [
     "togetic",
     "hoppip",
     "skiploom",
@@ -53799,11 +53799,11 @@
     "tinkatink",
     "tinkatuff"
   ],
-  "psychoshift": [
+  "psycho-shift": [
     "natu",
     "xatu"
   ],
-  "cottonspore": [
+  "cotton-spore": [
     "mareep",
     "flaaffy",
     "ampharos",
@@ -53820,7 +53820,7 @@
     "slurpuff",
     "eldegoss"
   ],
-  "cottonguard": [
+  "cotton-guard": [
     "mareep",
     "flaaffy",
     "ampharos",
@@ -53837,7 +53837,7 @@
     "wooloo",
     "dubwool"
   ],
-  "paraboliccharge": [
+  "parabolic-charge": [
     "ampharos",
     "helioptile",
     "heliolisk",
@@ -53845,7 +53845,7 @@
     "bellibolt",
     "miraidon"
   ],
-  "tearfullook": [
+  "tearful-look": [
     "sudowoodo",
     "bonsly",
     "florges",
@@ -53858,7 +53858,7 @@
     "toxel",
     "toxtricity"
   ],
-  "headsmash": [
+  "head-smash": [
     "sudowoodo",
     "steelix",
     "aggron",
@@ -53933,14 +53933,14 @@
     "tinkaton",
     "iron-leaves"
   ],
-  "chillyreception": [
+  "chilly-reception": [
     "slowking"
   ],
-  "twinbeam": [
+  "twin-beam": [
     "girafarig",
     "farigiraf"
   ],
-  "powertrick": [
+  "power-trick": [
     "forretress",
     "shuckle",
     "meditite",
@@ -53951,11 +53951,11 @@
     "doublade",
     "aegislash"
   ],
-  "hyperdrill": [
+  "hyper-drill": [
     "dunsparce",
     "dudunsparce"
   ],
-  "powersplit": [
+  "power-split": [
     "shuckle",
     "baltoy",
     "claydol",
@@ -53972,7 +53972,7 @@
     "runerigus",
     "indeedee"
   ],
-  "honeclaws": [
+  "hone-claws": [
     "sneasel",
     "linoone",
     "zangoose",
@@ -54029,22 +54029,22 @@
   "sketch": [
     "smeargle"
   ],
-  "triplekick": [
+  "triple-kick": [
     "hitmontop",
     "pheromosa"
   ],
-  "healbell": [
+  "heal-bell": [
     "miltank",
     "celebi",
     "skitty",
     "delcatty",
     "chimecho"
   ],
-  "milkdrink": [
+  "milk-drink": [
     "miltank",
     "gogoat"
   ],
-  "sacredfire": [
+  "sacred-fire": [
     "entei",
     "ho-oh"
   ],
@@ -54069,13 +54069,13 @@
     "floragato",
     "capsakid"
   ],
-  "shedtail": [
+  "shed-tail": [
     "sceptile",
     "heliolisk",
     "cyclizar",
     "orthworm"
   ],
-  "rocksmash": [
+  "rock-smash": [
     "mudkip",
     "marshtomp",
     "swampert",
@@ -54105,14 +54105,14 @@
   "rage": [
     "beautifly"
   ],
-  "signalbeam": [
+  "signal-beam": [
     "beautifly",
     "dustox",
     "gorebyss",
     "wormadam",
     "mothim"
   ],
-  "forcepalm": [
+  "force-palm": [
     "breloom",
     "makuhita",
     "hariyama",
@@ -54124,7 +54124,7 @@
     "iron-hands",
     "okidogi"
   ],
-  "mindreader": [
+  "mind-reader": [
     "nincada",
     "ninjask",
     "shedinja"
@@ -54148,7 +54148,7 @@
     "dudunsparce",
     "scream-tail"
   ],
-  "armthrust": [
+  "arm-thrust": [
     "makuhita",
     "hariyama",
     "pignite",
@@ -54157,7 +54157,7 @@
     "pawmot",
     "iron-hands"
   ],
-  "headlongrush": [
+  "headlong-rush": [
     "hariyama",
     "torterra",
     "golurk",
@@ -54168,11 +54168,11 @@
   "foresight": [
     "skitty"
   ],
-  "doubleslap": [
+  "double-slap": [
     "skitty",
     "delcatty"
   ],
-  "feintattack": [
+  "feint-attack": [
     "skitty",
     "spinda",
     "kecleon",
@@ -54181,7 +54181,7 @@
     "purugly",
     "carnivine"
   ],
-  "wakeupslap": [
+  "wake-up-slap": [
     "skitty"
   ],
   "assist": [
@@ -54196,7 +54196,7 @@
     "glameow",
     "purugly"
   ],
-  "metalburst": [
+  "metal-burst": [
     "sableye",
     "aron",
     "lairon",
@@ -54252,11 +54252,11 @@
     "pawmo",
     "pawmot"
   ],
-  "tailglow": [
+  "tail-glow": [
     "volbeat",
     "manaphy"
   ],
-  "nobleroar": [
+  "noble-roar": [
     "wailord",
     "reshiram",
     "zekrom",
@@ -54275,7 +54275,7 @@
     "walking-wake",
     "gouging-fire"
   ],
-  "dizzypunch": [
+  "dizzy-punch": [
     "spinda"
   ],
   "snatch": [
@@ -54285,7 +54285,7 @@
     "glameow",
     "purugly"
   ],
-  "powertrip": [
+  "power-trip": [
     "cacnea",
     "cacturne",
     "zangoose",
@@ -54300,7 +54300,7 @@
     "corviknight",
     "morpeko"
   ],
-  "spikyshield": [
+  "spiky-shield": [
     "cacturne",
     "maractus",
     "chesnaught",
@@ -54316,14 +54316,14 @@
     "kecleon",
     "chatot"
   ],
-  "magiccoat": [
+  "magic-coat": [
     "kecleon",
     "munna",
     "musharna",
     "blacephalon",
     "orbeetle"
   ],
-  "frostbreath": [
+  "frost-breath": [
     "snorunt",
     "glalie",
     "abomasnow",
@@ -54338,36 +54338,36 @@
   "clamp": [
     "clamperl"
   ],
-  "watersport": [
+  "water-sport": [
     "gorebyss",
     "panpour"
   ],
-  "mistball": [
+  "mist-ball": [
     "latias"
   ],
-  "lusterpurge": [
+  "luster-purge": [
     "latios"
   ],
-  "simplebeam": [
+  "simple-beam": [
     "latios",
     "woobat",
     "swoobat",
     "audino",
     "genesect"
   ],
-  "originpulse": [
+  "origin-pulse": [
     "kyogre"
   ],
-  "precipiceblades": [
+  "precipice-blades": [
     "groudon"
   ],
-  "dragonascent": [
+  "dragon-ascent": [
     "rayquaza"
   ],
-  "doomdesire": [
+  "doom-desire": [
     "jirachi"
   ],
-  "psychoboost": [
+  "psycho-boost": [
     "deoxys"
   ],
   "rototiller": [
@@ -54376,7 +54376,7 @@
   "telekinesis": [
     "wormadam"
   ],
-  "aromaticmist": [
+  "aromatic-mist": [
     "vespiquen",
     "aromatisse",
     "bounsweet",
@@ -54391,27 +54391,27 @@
     "milcery",
     "alcremie"
   ],
-  "attackorder": [
+  "attack-order": [
     "vespiquen"
   ],
-  "defendorder": [
+  "defend-order": [
     "vespiquen"
   ],
-  "flowershield": [
+  "flower-shield": [
     "cherrim"
   ],
   "chatter": [
     "chatot"
   ],
-  "leaftornado": [
+  "leaf-tornado": [
     "carnivine",
     "gossifleur",
     "eldegoss"
   ],
-  "wringout": [
+  "wring-out": [
     "carnivine"
   ],
-  "auroraveil": [
+  "aurora-veil": [
     "abomasnow",
     "froslass",
     "vanilluxe",
@@ -54422,17 +54422,17 @@
     "arctovish",
     "iron-bundle"
   ],
-  "icehammer": [
+  "ice-hammer": [
     "abomasnow",
     "crabominable",
     "tinkaton"
   ],
-  "rockwrecker": [
+  "rock-wrecker": [
     "rhyperior",
     "dwebble",
     "crustle"
   ],
-  "aquacutter": [
+  "aqua-cutter": [
     "gallade",
     "samurott",
     "quaxly",
@@ -54440,7 +54440,7 @@
     "quaquaval",
     "veluza"
   ],
-  "sacredsword": [
+  "sacred-sword": [
     "gallade",
     "samurott",
     "cobalion",
@@ -54457,81 +54457,81 @@
     "iron-boulder",
     "iron-crown"
   ],
-  "mysticalpower": [
+  "mystical-power": [
     "uxie",
     "mesprit",
     "azelf"
   ],
-  "roaroftime": [
+  "roar-of-time": [
     "dialga"
   ],
-  "spacialrend": [
+  "spacial-rend": [
     "palkia"
   ],
-  "magmastorm": [
+  "magma-storm": [
     "heatran"
   ],
-  "crushgrip": [
+  "crush-grip": [
     "regigigas"
   ],
-  "shadowforce": [
+  "shadow-force": [
     "giratina"
   ],
-  "lunarblessing": [
+  "lunar-blessing": [
     "cresselia"
   ],
-  "lunardance": [
+  "lunar-dance": [
     "cresselia"
   ],
-  "takeheart": [
+  "take-heart": [
     "phione",
     "manaphy"
   ],
-  "heartswap": [
+  "heart-swap": [
     "manaphy"
   ],
-  "darkvoid": [
+  "dark-void": [
     "darkrai"
   ],
-  "seedflare": [
+  "seed-flare": [
     "shaymin"
   ],
   "judgment": [
     "arceus"
   ],
-  "vcreate": [
+  "v-create": [
     "victini"
   ],
-  "searingshot": [
+  "searing-shot": [
     "victini"
   ],
   "bide": [
     "patrat"
   ],
-  "naturalgift": [
+  "natural-gift": [
     "pansage",
     "pansear",
     "panpour"
   ],
-  "stuffcheeks": [
+  "stuff-cheeks": [
     "simisage",
     "simisear",
     "simipour",
     "skwovet",
     "greedent"
   ],
-  "flameburst": [
+  "flame-burst": [
     "pansear"
   ],
-  "craftyshield": [
+  "crafty-shield": [
     "yamask"
   ],
-  "nightdaze": [
+  "night-daze": [
     "zorua",
     "zoroark",
     "lunala"
   ],
-  "hornleech": [
+  "horn-leech": [
     "sawsbuck",
     "skiddo",
     "gogoat",
@@ -54541,7 +54541,7 @@
     "tapu-bulu",
     "ogerpon"
   ],
-  "visegrip": [
+  "vise-grip": [
     "klink",
     "klang",
     "klinklang",
@@ -54554,12 +54554,12 @@
     "regidrago",
     "klawf"
   ],
-  "geargrind": [
+  "gear-grind": [
     "klink",
     "klang",
     "klinklang"
   ],
-  "shiftgear": [
+  "shift-gear": [
     "klink",
     "klang",
     "klinklang",
@@ -54568,60 +54568,60 @@
     "revavroom",
     "cyclizar"
   ],
-  "gearup": [
+  "gear-up": [
     "klinklang"
   ],
-  "watershuriken": [
+  "water-shuriken": [
     "accelgor",
     "greninja"
   ],
-  "headcharge": [
+  "head-charge": [
     "bouffalant"
   ],
-  "firelash": [
+  "fire-lash": [
     "heatmor",
     "salazzle",
     "sizzlipede",
     "centiskorch"
   ],
-  "fierydance": [
+  "fiery-dance": [
     "volcarona",
     "iron-moth"
   ],
-  "bleakwindstorm": [
+  "bleakwind-storm": [
     "tornadus"
   ],
-  "wildboltstorm": [
+  "wildbolt-storm": [
     "thundurus"
   ],
-  "fusionflare": [
+  "fusion-flare": [
     "reshiram"
   ],
-  "blueflare": [
+  "blue-flare": [
     "reshiram"
   ],
-  "fusionbolt": [
+  "fusion-bolt": [
     "zekrom"
   ],
-  "boltstrike": [
+  "bolt-strike": [
     "zekrom"
   ],
-  "sandsearstorm": [
+  "sandsear-storm": [
     "landorus"
   ],
   "glaciate": [
     "kyurem"
   ],
-  "secretsword": [
+  "secret-sword": [
     "keldeo"
   ],
-  "relicsong": [
+  "relic-song": [
     "meloetta"
   ],
-  "technoblast": [
+  "techno-blast": [
     "genesect"
   ],
-  "partingshot": [
+  "parting-shot": [
     "pancham",
     "pangoro",
     "incineroar",
@@ -54632,15 +54632,15 @@
     "munkidori",
     "pecharunt"
   ],
-  "kingsshield": [
+  "kings-shield": [
     "aegislash"
   ],
-  "topsyturvy": [
+  "topsy-turvy": [
     "inkay",
     "malamar",
     "grapploct"
   ],
-  "skullbash": [
+  "skull-bash": [
     "barbaracle",
     "tapu-bulu",
     "celesteela"
@@ -54650,172 +54650,172 @@
     "heliolisk",
     "boltund"
   ],
-  "flyingpress": [
+  "flying-press": [
     "hawlucha"
   ],
-  "fairylock": [
+  "fairy-lock": [
     "klefki"
   ],
-  "branchpoke": [
+  "branch-poke": [
     "phantump",
     "grookey",
     "thwackey",
     "rillaboom"
   ],
-  "forestscurse": [
+  "forests-curse": [
     "phantump",
     "trevenant"
   ],
-  "trickortreat": [
+  "trick-or-treat": [
     "pumpkaboo",
     "gourgeist"
   ],
   "geomancy": [
     "xerneas"
   ],
-  "oblivionwing": [
+  "oblivion-wing": [
     "yveltal"
   ],
-  "coreenforcer": [
+  "core-enforcer": [
     "zygarde"
   ],
-  "thousandarrows": [
+  "thousand-arrows": [
     "zygarde"
   ],
-  "thousandwaves": [
+  "thousand-waves": [
     "zygarde"
   ],
-  "landswrath": [
+  "lands-wrath": [
     "zygarde"
   ],
-  "diamondstorm": [
+  "diamond-storm": [
     "diancie"
   ],
-  "hyperspacefury": [
+  "hyperspace-fury": [
     "hoopa"
   ],
-  "hyperspacehole": [
+  "hyperspace-hole": [
     "hoopa"
   ],
-  "steameruption": [
+  "steam-eruption": [
     "volcanion"
   ],
-  "spiritshackle": [
+  "spirit-shackle": [
     "decidueye"
   ],
-  "sparklingaria": [
+  "sparkling-aria": [
     "primarina"
   ],
-  "beakblast": [
+  "beak-blast": [
     "toucannon"
   ],
-  "revelationdance": [
+  "revelation-dance": [
     "oricorio"
   ],
   "accelerock": [
     "lycanroc"
   ],
-  "banefulbunker": [
+  "baneful-bunker": [
     "toxapex"
   ],
-  "tropkick": [
+  "trop-kick": [
     "tsareena"
   ],
-  "floralhealing": [
+  "floral-healing": [
     "comfey"
   ],
   "instruct": [
     "oranguru"
   ],
-  "shoreup": [
+  "shore-up": [
     "sandygast",
     "palossand"
   ],
   "purify": [
     "pyukumuku"
   ],
-  "multiattack": [
+  "multi-attack": [
     "silvally"
   ],
-  "shelltrap": [
+  "shell-trap": [
     "turtonator"
   ],
-  "zingzap": [
+  "zing-zap": [
     "togedemaru",
     "pincurchin"
   ],
-  "anchorshot": [
+  "anchor-shot": [
     "dhelmise"
   ],
-  "clangingscales": [
+  "clanging-scales": [
     "kommo-o"
   ],
-  "clangoroussoul": [
+  "clangorous-soul": [
     "kommo-o"
   ],
-  "naturesmadness": [
+  "natures-madness": [
     "tapu-koko",
     "tapu-lele",
     "tapu-bulu",
     "tapu-fini"
   ],
-  "sunsteelstrike": [
+  "sunsteel-strike": [
     "solgaleo"
   ],
-  "moongeistbeam": [
+  "moongeist-beam": [
     "lunala"
   ],
-  "poweruppunch": [
+  "power-up-punch": [
     "buzzwole",
     "zeraora"
   ],
-  "photongeyser": [
+  "photon-geyser": [
     "necrozma"
   ],
-  "prismaticlaser": [
+  "prismatic-laser": [
     "necrozma"
   ],
-  "fleurcannon": [
+  "fleur-cannon": [
     "magearna"
   ],
-  "spectralthief": [
+  "spectral-thief": [
     "marshadow"
   ],
-  "mindblown": [
+  "mind-blown": [
     "blacephalon"
   ],
-  "plasmafists": [
+  "plasma-fists": [
     "zeraora"
   ],
-  "doubleironbash": [
+  "double-iron-bash": [
     "melmetal"
   ],
-  "drumbeating": [
+  "drum-beating": [
     "rillaboom"
   ],
-  "pyroball": [
+  "pyro-ball": [
     "cinderace"
   ],
-  "courtchange": [
+  "court-change": [
     "cinderace"
   ],
-  "snipeshot": [
+  "snipe-shot": [
     "inteleon"
   ],
-  "jawlock": [
+  "jaw-lock": [
     "chewtle",
     "drednaw",
     "maschiff",
     "mabosstiff",
     "roaring-moon"
   ],
-  "tarshot": [
+  "tar-shot": [
     "coalossal"
   ],
-  "gravapple": [
+  "grav-apple": [
     "flapple"
   ],
-  "appleacid": [
+  "apple-acid": [
     "appletun"
   ],
   "overdrive": [
@@ -54832,151 +54832,151 @@
   "teatime": [
     "polteageist"
   ],
-  "magicpowder": [
+  "magic-powder": [
     "hatterene"
   ],
-  "falsesurrender": [
+  "false-surrender": [
     "morgrem",
     "grimmsnarl"
   ],
-  "spiritbreak": [
+  "spirit-break": [
     "grimmsnarl",
     "iron-valiant"
   ],
   "obstruct": [
     "obstagoon"
   ],
-  "meteorassault": [
+  "meteor-assault": [
     "sirfetch-d"
   ],
   "decorate": [
     "alcremie"
   ],
-  "noretreat": [
+  "no-retreat": [
     "falinks"
   ],
-  "aurawheel": [
+  "aura-wheel": [
     "morpeko"
   ],
-  "boltbeak": [
+  "bolt-beak": [
     "dracozolt",
     "arctozolt"
   ],
-  "fishiousrend": [
+  "fishious-rend": [
     "dracovish",
     "arctovish"
   ],
-  "dragondarts": [
+  "dragon-darts": [
     "dragapult"
   ],
-  "dynamaxcannon": [
+  "dynamax-cannon": [
     "eternatus"
   ],
-  "wickedblow": [
+  "wicked-blow": [
     "urshifu"
   ],
-  "junglehealing": [
+  "jungle-healing": [
     "zarude"
   ],
-  "thundercage": [
+  "thunder-cage": [
     "regieleki"
   ],
-  "dragonenergy": [
+  "dragon-energy": [
     "regidrago"
   ],
-  "psyshieldbash": [
+  "psyshield-bash": [
     "wyrdeer"
   ],
-  "stoneaxe": [
+  "stone-axe": [
     "kleavor"
   ],
-  "lastrespects": [
+  "last-respects": [
     "basculegion",
     "houndstone"
   ],
-  "direclaw": [
+  "dire-claw": [
     "sneasler"
   ],
-  "barbbarrage": [
+  "barb-barrage": [
     "overqwil"
   ],
-  "springtidestorm": [
+  "springtide-storm": [
     "enamorus"
   ],
-  "flowertrick": [
+  "flower-trick": [
     "meowscarada"
   ],
-  "torchsong": [
+  "torch-song": [
     "skeledirge"
   ],
-  "aquastep": [
+  "aqua-step": [
     "quaquaval"
   ],
-  "silktrap": [
+  "silk-trap": [
     "spidops"
   ],
-  "revivalblessing": [
+  "revival-blessing": [
     "pawmot",
     "rabsca"
   ],
-  "doubleshock": [
+  "double-shock": [
     "pawmot"
   ],
-  "populationbomb": [
+  "population-bomb": [
     "tandemaus",
     "maushold"
   ],
-  "tidyup": [
+  "tidy-up": [
     "maushold"
   ],
-  "saltcure": [
+  "salt-cure": [
     "naclstack",
     "garganacl"
   ],
-  "armorcannon": [
+  "armor-cannon": [
     "armarouge"
   ],
-  "bitterblade": [
+  "bitter-blade": [
     "ceruledge"
   ],
   "doodle": [
     "grafaiai"
   ],
-  "spicyextract": [
+  "spicy-extract": [
     "scovillain"
   ],
-  "luminacrash": [
+  "lumina-crash": [
     "espathra"
   ],
-  "gigatonhammer": [
+  "gigaton-hammer": [
     "tinkaton"
   ],
-  "tripledive": [
+  "triple-dive": [
     "wugtrio"
   ],
-  "jetpunch": [
+  "jet-punch": [
     "palafin"
   ],
-  "spinout": [
+  "spin-out": [
     "varoom",
     "revavroom"
   ],
-  "mortalspin": [
+  "mortal-spin": [
     "glimmora"
   ],
-  "filletaway": [
+  "fillet-away": [
     "veluza"
   ],
-  "orderup": [
+  "order-up": [
     "dondozo"
   ],
-  "kowtowcleave": [
+  "kowtow-cleave": [
     "kingambit"
   ],
-  "glaiverush": [
+  "glaive-rush": [
     "baxcalibur"
   ],
-  "makeitrain": [
+  "make-it-rain": [
     "gholdengo"
   ],
   "ruination": [
@@ -54985,53 +54985,53 @@
     "ting-lu",
     "chi-yu"
   ],
-  "collisioncourse": [
+  "collision-course": [
     "koraidon"
   ],
-  "electrodrift": [
+  "electro-drift": [
     "miraidon"
   ],
-  "hydrosteam": [
+  "hydro-steam": [
     "walking-wake"
   ],
   "psyblade": [
     "iron-leaves"
   ],
-  "syrupbomb": [
+  "syrup-bomb": [
     "dipplin",
     "hydrapple"
   ],
-  "matchagotcha": [
+  "matcha-gotcha": [
     "sinistcha"
   ],
-  "ivycudgel": [
+  "ivy-cudgel": [
     "ogerpon"
   ],
-  "electroshot": [
+  "electro-shot": [
     "archaludon"
   ],
-  "ficklebeam": [
+  "fickle-beam": [
     "hydrapple"
   ],
-  "burningbulwark": [
+  "burning-bulwark": [
     "gouging-fire"
   ],
   "thunderclap": [
     "raging-bolt"
   ],
-  "dragonhammer": [
+  "dragon-hammer": [
     "raging-bolt"
   ],
-  "mightycleave": [
+  "mighty-cleave": [
     "iron-boulder"
   ],
-  "tachyoncutter": [
+  "tachyon-cutter": [
     "iron-crown"
   ],
-  "terastarstorm": [
+  "tera-starstorm": [
     "terapagos"
   ],
-  "malignantchain": [
+  "malignant-chain": [
     "pecharunt"
   ]
 }

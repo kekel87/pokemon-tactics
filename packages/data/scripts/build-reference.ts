@@ -550,6 +550,7 @@ function deriveFormType(
 
 function parseLearnset(
   learnsetData: Record<string, string[]> | undefined,
+  rawMoveIdToKebab: ReadonlyMap<string, string>,
 ): PokemonEntry["learnset"] {
   const result: PokemonEntry["learnset"] = { levelUp: [], tm: [], tutor: [] };
   if (!learnsetData) {
@@ -575,7 +576,10 @@ function parseLearnset(
   }
 
   for (const [moveId, entries] of Object.entries(learnsetData)) {
-    const kebabMove = toKebabCase(moveId);
+    // Source learnset keys are compressed (`leechseed`, `phantomforce`) — map
+    // them to our canonical kebab IDs (`leech-seed`, `phantom-force`) so the
+    // reference is uniformly kebab-case.
+    const kebabMove = rawMoveIdToKebab.get(moveId) ?? toKebabCase(moveId);
     for (const entry of entries) {
       const gen = Number.parseInt(entry[0], 10);
       if (gen !== maxGen) {
@@ -622,12 +626,26 @@ function transformShowdownAbilities(
   };
 }
 
+function buildRawMoveIdToKebabMap(
+  rawMoves: Record<string, Record<string, unknown>>,
+): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const [rawId, move] of Object.entries(rawMoves)) {
+    const name = move.name as string | undefined;
+    if (name) {
+      map.set(rawId, toKebabCase(name));
+    }
+  }
+  return map;
+}
+
 function transformPokemon(
   showdown: ShowdownData,
   pokeapi: {
     species: Map<number, Record<string, unknown>>;
     pokemon: Map<number, Record<string, unknown>>;
   },
+  rawMoveIdToKebab: ReadonlyMap<string, string>,
 ): PokemonEntry[] {
   console.log("Transforming Pokemon data...");
   const entries: PokemonEntry[] = [];
@@ -767,7 +785,7 @@ function transformPokemon(
     // Learnset
     const learnsetKey = showdownKey.toLowerCase().replace(/[^a-z0-9]/g, "");
     const learnsetData = showdown.learnsets[learnsetKey]?.learnset;
-    const learnset = parseLearnset(learnsetData);
+    const learnset = parseLearnset(learnsetData, rawMoveIdToKebab);
 
     // Flags
     const tags = sdEntry.tags as string[] | undefined;
@@ -1614,6 +1632,7 @@ export function applyChampionsOverrides(
   items: ItemEntry[],
   pokemonEntries: PokemonEntry[],
   overrides: ChampionsOverride,
+  rawMoveIdToKebab: ReadonlyMap<string, string> = new Map(),
 ): ApplyOverrideSummary {
   const summary: ApplyOverrideSummary = {
     moves: 0,
@@ -1673,7 +1692,7 @@ export function applyChampionsOverrides(
       summary.skippedUnknownIds.push(`learnset:${id}`);
       continue;
     }
-    applyLearnsetOverride(entry, override);
+    applyLearnsetOverride(entry, override, rawMoveIdToKebab);
     summary.learnsets++;
   }
 
@@ -1788,24 +1807,26 @@ function applyItemOverride(
 function applyLearnsetOverride(
   entry: PokemonEntry,
   override: ChampionsOverride["learnsets"][string],
+  rawMoveIdToKebab: ReadonlyMap<string, string>,
 ): void {
   const levelUp: Array<{ level: number; move: string }> = [];
   const tm: string[] = [];
   const tutor: string[] = [];
 
   for (const [moveId, codes] of Object.entries(override.learnset)) {
+    const kebabMove = rawMoveIdToKebab.get(moveId) ?? toKebabCase(moveId);
     for (const code of codes) {
       // Format : "9M" = TM gen 9, "9L15" = level-up at 15, "9T" = tutor
       // On ignore la génération (toujours 9 pour Champions)
       const body = code.slice(1); // retire le préfixe gen
       if (body.startsWith("M")) {
-        tm.push(moveId);
+        tm.push(kebabMove);
         break; // un seul M suffit
       } else if (body.startsWith("L")) {
         const level = Number(body.slice(1)) || 1;
-        levelUp.push({ level, move: moveId });
+        levelUp.push({ level, move: kebabMove });
       } else if (body.startsWith("T")) {
-        tutor.push(moveId);
+        tutor.push(kebabMove);
         break;
       }
     }
@@ -1861,7 +1882,8 @@ async function main(): Promise<void> {
   // Step 2: Transform
   console.log("\n--- Transforming data ---\n");
 
-  const pokemonEntries = transformPokemon(showdown, pokeapi);
+  const rawMoveIdToKebab = buildRawMoveIdToKebabMap(showdown.moves);
+  const pokemonEntries = transformPokemon(showdown, pokeapi, rawMoveIdToKebab);
   const moveEntries = transformMoves(showdown, pokeapi.moves);
   const abilityEntries = transformAbilities(pokeapi.abilities, showdown.abilityFlags);
   const itemEntries = transformItems(pokeapi.items);
@@ -1876,6 +1898,7 @@ async function main(): Promise<void> {
     itemEntries,
     pokemonEntries,
     championsOverride,
+    rawMoveIdToKebab,
   );
   console.log(
     `  Applied: ${overrideSummary.moves} moves, ${overrideSummary.abilities} abilities, ${overrideSummary.items} items, ${overrideSummary.learnsets} learnsets`,

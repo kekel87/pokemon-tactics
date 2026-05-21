@@ -5,7 +5,6 @@ import type { ReferencePokemon } from "./reference-types";
 
 export interface LoadPokemonOptions {
   implementedMoveIds: ReadonlySet<string>;
-  showdownToKebab: ReadonlyMap<string, string>;
   getOpSetMoveIds: (pokemonId: string) => string[];
 }
 
@@ -63,7 +62,7 @@ export function loadPokemonFromReference(
 }
 
 function deriveMovepool(pokemonId: string, options: LoadPokemonOptions): string[] {
-  const { implementedMoveIds, showdownToKebab, getOpSetMoveIds } = options;
+  const { implementedMoveIds, getOpSetMoveIds } = options;
 
   const ordered: string[] = [];
   const seen = new Set<string>();
@@ -74,25 +73,12 @@ function deriveMovepool(pokemonId: string, options: LoadPokemonOptions): string[
     }
   }
 
-  const legalShowdownIds = getLegalMoves(pokemonId);
-  for (const showdownId of legalShowdownIds) {
-    const kebab = showdownToKebab.get(showdownId);
-    if (kebab !== undefined && implementedMoveIds.has(kebab) && !seen.has(kebab)) {
-      ordered.push(kebab);
-      seen.add(kebab);
+  for (const moveId of getLegalMoves(pokemonId)) {
+    if (implementedMoveIds.has(moveId) && !seen.has(moveId)) {
+      ordered.push(moveId);
+      seen.add(moveId);
     }
   }
 
   return ordered;
-}
-
-export function buildShowdownToKebabIndex(
-  moves: readonly { id: string }[],
-): ReadonlyMap<string, string> {
-  const map = new Map<string, string>();
-  for (const move of moves) {
-    const showdownId = move.id.replace(/-/g, "");
-    map.set(showdownId, move.id);
-  }
-  return map;
 }
