@@ -161,4 +161,11 @@ export type BattleEvent =
       newWeather: Weather;
       winnerPokemonId: string;
     }
-  | { type: typeof BattleEventType.MoveCharging; pokemonId: string; moveId: string };
+  | { type: typeof BattleEventType.MoveCharging; pokemonId: string; moveId: string }
+  | {
+      type: typeof BattleEventType.Teleported;
+      pokemonId: string;
+      fromPosition: Position;
+      toPosition: Position;
+      targetTile: Position;
+    };

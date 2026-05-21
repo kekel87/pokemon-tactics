@@ -27,6 +27,7 @@ import {
   type Position,
   resolveBlastImpactTile,
   resolveTargeting,
+  SemiInvulnerableState,
   type SpawnZone,
   StatName,
   StatusImmuneReason,
@@ -958,9 +959,22 @@ export class GameController {
     }
 
     const finalStep = path.at(-1);
-    const finalTerrain = finalStep
-      ? this.isometricGrid.getTileTerrain(finalStep.x, finalStep.y)
-      : undefined;
+    if (finalStep) {
+      this.applyLandingRestingAnimation(pokemonId, finalStep);
+    } else {
+      sprite.setRestingAnimation(["Idle"]);
+    }
+  }
+
+  private applyLandingRestingAnimation(pokemonId: string, position: Position): void {
+    const sprite = this.sprites.get(pokemonId);
+    if (!sprite) {
+      return;
+    }
+    const pokemon = this.state.pokemon.get(pokemonId);
+    const definition = pokemon ? this.pokemonDefinitions.get(pokemon.definitionId) : undefined;
+    const isFlying = definition?.types.includes(PokemonType.Flying) ?? false;
+    const finalTerrain = this.isometricGrid.getTileTerrain(position.x, position.y);
     const landOnSpecialTerrain =
       isFlying && finalTerrain !== undefined && FLYING_OVERFLY_TERRAINS.has(finalTerrain);
     sprite.setRestingAnimation(landOnSpecialTerrain ? FLYING_GLIDE_ANIMATION_CANDIDATES : ["Idle"]);
@@ -1000,6 +1014,7 @@ export class GameController {
       case BattleEventType.MoveCancelled: {
         const sprite = this.sprites.get(event.pokemonId);
         if (sprite) {
+          sprite.setSemiInvulnerable(null);
           const height = this.isometricGrid.getTileHeight(event.position.x, event.position.y);
           sprite.updatePosition(event.position.x, event.position.y, height);
           const pokemon = this.state.pokemon.get(event.pokemonId);
@@ -1007,7 +1022,7 @@ export class GameController {
             sprite.setDirection(pokemon.orientation);
             sprite.updateStatus(pokemon.statusEffects);
           }
-          sprite.playRestingAnimation();
+          this.applyLandingRestingAnimation(event.pokemonId, event.position);
         }
         break;
       }
@@ -1118,12 +1133,27 @@ export class GameController {
           showBattleText(this.scene, pos.x, pos.y, label, {
             color: BATTLE_TEXT_COLOR_INFO,
           });
+          const move = this.setup?.moveDefinitions.get(event.moveId);
+          if (move?.semiInvulnerableState) {
+            sprite.setSemiInvulnerable(move.semiInvulnerableState);
+            if (move.semiInvulnerableState === SemiInvulnerableState.Flying) {
+              const played = sprite.playFirstAvailableAnimation(FLYING_GLIDE_ANIMATION_CANDIDATES);
+              if (!played) {
+                sprite.playAnimation("Idle");
+              }
+            }
+          }
         }
         break;
       }
 
-      case BattleEventType.PokemonKo:
+      case BattleEventType.PokemonKo: {
+        const koSprite = this.sprites.get(event.pokemonId);
+        if (koSprite?.isSemiInvulnerable()) {
+          koSprite.setSemiInvulnerable(null);
+        }
         break;
+      }
 
       case BattleEventType.PokemonEliminated: {
         const sprite = this.sprites.get(event.pokemonId);
@@ -1135,6 +1165,16 @@ export class GameController {
 
       case BattleEventType.PokemonDashed: {
         await this.animateAlongPath(event.pokemonId, event.path);
+        break;
+      }
+
+      case BattleEventType.Teleported: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          sprite.setSemiInvulnerable(null);
+          sprite.updatePosition(event.toPosition.x, event.toPosition.y);
+          this.applyLandingRestingAnimation(event.pokemonId, event.toPosition);
+        }
         break;
       }
 
@@ -1439,7 +1479,11 @@ export class GameController {
 
       case BattleEventType.LethalTerrainKo: {
         const ltSprite = this.sprites.get(event.pokemonId);
+        const ltPokemon = this.state.pokemon.get(event.pokemonId);
         if (ltSprite) {
+          if (ltPokemon) {
+            ltSprite.updateHp(ltPokemon.currentHp, ltPokemon.maxHp);
+          }
           const ltPos = ltSprite.getTextPosition();
           const text =
             event.terrain === TerrainType.Lava ? t("battle.melted") : t("battle.drowned");
@@ -1672,6 +1716,9 @@ export class GameController {
     this.previewFlashTweens = [];
 
     for (const [, sprite] of this.sprites) {
+      if (sprite.isSemiInvulnerable()) {
+        continue;
+      }
       sprite.getFlashTarget().setAlpha(1);
     }
   }

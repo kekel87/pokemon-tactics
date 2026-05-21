@@ -8,6 +8,7 @@ export const TargetingKind = {
   Zone: "zone",
   Slash: "slash",
   Blast: "blast",
+  Teleport: "teleport",
 } as const;
 
 export type TargetingKind = (typeof TargetingKind)[keyof typeof TargetingKind];

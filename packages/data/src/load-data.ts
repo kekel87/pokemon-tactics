@@ -26,10 +26,10 @@ export interface GameData {
 }
 
 export function loadData(): GameData {
-  initializeLearnsetResolver(pokemonReference as unknown as ReferencePokemon[]);
-
   const allMoveIds = new Set<string>(Object.keys(tacticalOverrides));
   const showdownToKebab = buildShowdownToKebabIndex(movesReference as unknown as ReferenceMove[]);
+
+  initializeLearnsetResolver(pokemonReference as unknown as ReferencePokemon[], showdownToKebab);
 
   const pokemon: PokemonDefinition[] = loadPokemonFromReference(
     pokemonReference as unknown as ReferencePokemon[],
@@ -69,9 +69,14 @@ export function loadData(): GameData {
       ...(merged.flags ? { flags: merged.flags } : {}),
       ...(merged.effectTier ? { effectTier: merged.effectTier } : {}),
       ...(merged.bypassAccuracy ? { bypassAccuracy: true } : {}),
+      ...(merged.bypassProtect ? { bypassProtect: true } : {}),
       ...(merged.weatherSetter ? { weatherSetter: merged.weatherSetter } : {}),
       ...(merged.weatherBoostedType ? { weatherBoostedType: true } : {}),
       ...(merged.twoTurnCharge ? { twoTurnCharge: true } : {}),
+      ...(merged.sunSkipsCharge ? { sunSkipsCharge: true } : {}),
+      ...(merged.semiInvulnerableState
+        ? { semiInvulnerableState: merged.semiInvulnerableState }
+        : {}),
     };
     return moveDefinition;
   });

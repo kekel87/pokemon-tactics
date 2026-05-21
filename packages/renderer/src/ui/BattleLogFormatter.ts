@@ -417,6 +417,12 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.Teleported: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message = lang === "fr" ? `${name} se téléporte !` : `${name} teleports!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
     default:
       return null;
   }

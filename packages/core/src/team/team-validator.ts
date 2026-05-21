@@ -221,8 +221,8 @@ export function validateSlot(
     }
 
     if (legalMoves.size > 0) {
-      const compressed = toShowdownId(moveId);
-      if (!legalMoves.has(compressed)) {
+      // TODO(plan-089): single canonical ID space — drop showdown fallback once reference is normalized kebab.
+      if (!legalMoves.has(moveId) && !legalMoves.has(toShowdownId(moveId))) {
         errors.push({
           kind: TeamSetValidationErrorKind.IllegalMove,
           slotIndex,

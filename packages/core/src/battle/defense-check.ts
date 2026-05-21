@@ -67,6 +67,9 @@ export function checkDefense(
   switch (defense.kind) {
     case DefensiveKind.Protect:
     case DefensiveKind.Detect: {
+      if (move.bypassProtect) {
+        return noEffect;
+      }
       if (!isAttackFromFront(attackOrigin, defender)) {
         return noEffect;
       }

@@ -72,7 +72,35 @@ export function buildPatternPreview(pattern: TargetingPattern): PatternCell[][] 
       return buildZone(pattern.radius);
     case TargetingKind.Blast:
       return buildBlast(pattern.radius);
+    case TargetingKind.Teleport:
+      return buildTeleport(pattern.range.max, pattern.aoeRadius);
   }
+}
+
+function buildTeleport(maxRange: number, aoeRadius?: number): PatternCell[][] {
+  if (aoeRadius === undefined || aoeRadius < 1) {
+    if (maxRange <= 1) {
+      const grid = makeGrid(1, 2);
+      set(grid, 0, 0, PatternCell.Target);
+      set(grid, 0, 1, PatternCell.Caster);
+      return ensureMinSize(grid);
+    }
+    const grid = makeGrid(1, 1);
+    set(grid, 0, 0, PatternCell.Target);
+    return ensureMinSize(grid);
+  }
+  const size = aoeRadius * 2 + 1;
+  const grid = makeGrid(size, size);
+  const center = aoeRadius;
+  set(grid, center, center, PatternCell.Target);
+  for (let dy = -aoeRadius; dy <= aoeRadius; dy++) {
+    for (let dx = -aoeRadius; dx <= aoeRadius; dx++) {
+      if (Math.abs(dx) + Math.abs(dy) <= aoeRadius && (dx !== 0 || dy !== 0)) {
+        set(grid, center + dx, center + dy, PatternCell.Target);
+      }
+    }
+  }
+  return ensureMinSize(grid);
 }
 
 function makeGrid(width: number, height: number): PatternCell[][] {

@@ -10,4 +10,5 @@ export type TargetingPattern =
   | { kind: typeof TargetingKind.Dash; maxDistance: number }
   | { kind: typeof TargetingKind.Zone; radius: number }
   | { kind: typeof TargetingKind.Slash }
-  | { kind: typeof TargetingKind.Blast; range: RangeConfig; radius: number };
+  | { kind: typeof TargetingKind.Blast; range: RangeConfig; radius: number }
+  | { kind: typeof TargetingKind.Teleport; range: RangeConfig; aoeRadius?: number };

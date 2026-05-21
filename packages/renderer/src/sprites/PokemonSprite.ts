@@ -1,4 +1,9 @@
-import { type DamageEstimate, Direction, type PokemonInstance } from "@pokemon-tactic/core";
+import {
+  type DamageEstimate,
+  Direction,
+  type PokemonInstance,
+  SemiInvulnerableState,
+} from "@pokemon-tactic/core";
 import {
   ATTACK_DEPTH_ENVELOPE_RADIUS,
   CONFUSION_WOBBLE_ANGLE,
@@ -36,6 +41,7 @@ import {
   STATUS_ASSET_KEY,
   STATUS_SPRITE_ICON_OFFSET_X,
   STATUS_SPRITE_ICON_SCALE,
+  TILE_ELEVATION_STEP,
   TILE_HEIGHT,
   TILE_WIDTH,
   TYPE_COLORS,
@@ -79,6 +85,8 @@ export class PokemonSprite {
   private readonly teamColor: number;
   private isKnockedOut = false;
   private restingAnim = "Idle";
+  private semiInvulnerableActive: SemiInvulnerableState | null = null;
+  private semiInvulnerableYOffset = 0;
 
   constructor(
     scene: Phaser.Scene,
@@ -148,7 +156,10 @@ export class PokemonSprite {
     this._gridPosition = { x: gridX, y: gridY };
     const tileHeight = height ?? this.isometricGrid.getTileHeight(gridX, gridY);
     const screen = this.isometricGrid.gridToScreen(gridX, gridY, tileHeight);
-    this.container.setPosition(screen.x, screen.y + POKEMON_SPRITE_GROUND_OFFSET_Y);
+    this.container.setPosition(
+      screen.x,
+      screen.y + POKEMON_SPRITE_GROUND_OFFSET_Y + this.semiInvulnerableYOffset,
+    );
     this.container.setDepth(
       DEPTH_POKEMON_BASE + (gridX + gridY) * DEPTH_TILE_MAX_ELEVATION + tileHeight + 0.5,
     );
@@ -308,6 +319,57 @@ export class PokemonSprite {
    * or `null` if no candidate is available. Useful for feature-detecting
    * optional animations like "FlapAround" on flying Pokemon.
    */
+  setSemiInvulnerable(state: SemiInvulnerableState | null): void {
+    const target = this.sprite ?? this.circle;
+    if (!target) {
+      return;
+    }
+    this.semiInvulnerableActive = state;
+    if (state === null) {
+      target.setAlpha(1);
+      target.setVisible(true);
+      this.semiInvulnerableYOffset = 0;
+      if (this.shadowGraphics) {
+        this.shadowGraphics.y = 0;
+      }
+      this.applyContainerPosition();
+      return;
+    }
+    if (state === SemiInvulnerableState.Flying) {
+      target.setAlpha(1);
+      target.setVisible(true);
+      this.semiInvulnerableYOffset = -TILE_ELEVATION_STEP * 2;
+      if (this.shadowGraphics) {
+        this.shadowGraphics.y = TILE_ELEVATION_STEP * 2;
+      }
+      this.applyContainerPosition();
+      return;
+    }
+    target.setVisible(false);
+    target.setAlpha(0);
+    this.semiInvulnerableYOffset = 0;
+    if (this.shadowGraphics) {
+      this.shadowGraphics.y = 0;
+    }
+  }
+
+  isSemiInvulnerable(): boolean {
+    return this.semiInvulnerableActive !== null;
+  }
+
+  private applyContainerPosition(): void {
+    const tileHeight = this.isometricGrid.getTileHeight(this._gridPosition.x, this._gridPosition.y);
+    const screen = this.isometricGrid.gridToScreen(
+      this._gridPosition.x,
+      this._gridPosition.y,
+      tileHeight,
+    );
+    this.container.setPosition(
+      screen.x,
+      screen.y + POKEMON_SPRITE_GROUND_OFFSET_Y + this.semiInvulnerableYOffset,
+    );
+  }
+
   playFirstAvailableAnimation(candidates: readonly string[]): string | null {
     if (!this.sprite || !this.usesAtlas) {
       return null;

@@ -63,6 +63,7 @@ export {
 } from "./grid/targeting";
 export * from "./team/index";
 export type * from "./types/index";
+export { SemiInvulnerableState } from "./types/semi-invulnerable-state";
 export { SP_PER_STAT_MAX, SP_TOTAL_MAX } from "./types/stat-spread";
 export { DEFAULT_STATUS_RULES } from "./types/status-rules";
 export * from "./utils/index";

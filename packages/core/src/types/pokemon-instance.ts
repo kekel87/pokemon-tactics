@@ -8,6 +8,7 @@ import type { ActiveDefense } from "./active-defense";
 import type { BaseStats } from "./base-stats";
 import type { DerivedStats } from "./derived-stats";
 import type { Position } from "./position";
+import type { SemiInvulnerableState } from "./semi-invulnerable-state";
 import type { StatSpread } from "./stat-spread";
 import type { StatusEffect } from "./status-effect";
 import type { VolatileStatus } from "./volatile-status";
@@ -41,4 +42,5 @@ export interface PokemonInstance {
   heldItemId?: HeldItemId;
   lockedMoveId?: string;
   chargingMove?: { moveId: string; targetPosition?: Position };
+  semiInvulnerableState?: SemiInvulnerableState;
 }

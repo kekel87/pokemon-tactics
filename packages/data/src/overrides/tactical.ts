@@ -1,6 +1,7 @@
 import type {
   Effect,
   MoveFlags,
+  SemiInvulnerableState as SemiInvulnerableStateType,
   TargetingPattern,
   Weather as WeatherType,
 } from "@pokemon-tactic/core";
@@ -9,6 +10,7 @@ import {
   EffectKind,
   EffectTarget,
   EffectTier,
+  SemiInvulnerableState,
   StatName,
   StatusType,
   TargetingKind,
@@ -22,9 +24,12 @@ export interface TacticalOverride {
   effectTier?: EffectTier;
   flags?: Partial<MoveFlags>;
   bypassAccuracy?: boolean;
+  bypassProtect?: boolean;
   weatherSetter?: { type: WeatherType; turns: number };
   weatherBoostedType?: boolean;
   twoTurnCharge?: boolean;
+  sunSkipsCharge?: boolean;
+  semiInvulnerableState?: SemiInvulnerableStateType;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -1173,5 +1178,51 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
     effects: [{ kind: EffectKind.Damage }],
     twoTurnCharge: true,
+    sunSkipsCharge: true,
+  },
+  teleport: {
+    targeting: { kind: TargetingKind.Teleport, range: { min: 1, max: 6 } },
+    effects: [],
+  },
+  fly: {
+    targeting: { kind: TargetingKind.Teleport, range: { min: 2, max: 4 }, aoeRadius: 1 },
+    effects: [{ kind: EffectKind.Damage }],
+    twoTurnCharge: true,
+    semiInvulnerableState: SemiInvulnerableState.Flying,
+  },
+  dig: {
+    targeting: { kind: TargetingKind.Teleport, range: { min: 1, max: 3 }, aoeRadius: 1 },
+    effects: [{ kind: EffectKind.Damage }],
+    twoTurnCharge: true,
+    semiInvulnerableState: SemiInvulnerableState.Burrowing,
+  },
+  bounce: {
+    targeting: { kind: TargetingKind.Teleport, range: { min: 1, max: 3 }, aoeRadius: 1 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 30 },
+    ],
+    twoTurnCharge: true,
+    semiInvulnerableState: SemiInvulnerableState.Flying,
+  },
+  "phantom-force": {
+    targeting: { kind: TargetingKind.Teleport, range: { min: 1, max: 4 }, aoeRadius: 1 },
+    effects: [{ kind: EffectKind.Damage }],
+    bypassProtect: true,
+    twoTurnCharge: true,
+    semiInvulnerableState: SemiInvulnerableState.Vanished,
+  },
+  "shadow-force": {
+    targeting: { kind: TargetingKind.Teleport, range: { min: 1, max: 4 }, aoeRadius: 1 },
+    effects: [{ kind: EffectKind.Damage }],
+    bypassProtect: true,
+    twoTurnCharge: true,
+    semiInvulnerableState: SemiInvulnerableState.Vanished,
+  },
+  dive: {
+    targeting: { kind: TargetingKind.Teleport, range: { min: 1, max: 3 }, aoeRadius: 1 },
+    effects: [{ kind: EffectKind.Damage }],
+    twoTurnCharge: true,
+    semiInvulnerableState: SemiInvulnerableState.Diving,
   },
 };

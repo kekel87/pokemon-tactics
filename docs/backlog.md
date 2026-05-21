@@ -98,6 +98,24 @@ Bugs connus et retours playtest non traités.
   - Constantes `JUMP_TWEEN_DURATION_MS` déjà séparables par type.
 
 
+### ~~phantom-force / baton-pass invisibles dans le team builder~~ (hors plan — 2026-05-21)
+- `phantom-force` et `baton-pass` n'apparaissaient pas dans le MovePickerModal du team builder malgré des learnsets valides.
+- Cause : `learnset-resolver.ts` comparait les IDs sans traduire le format Showdown (sans tirets : `phantomforce`) vers kebab (`phantom-force`). `buildShowdownToKebabIndex` existait dans `load-data` mais non utilisé dans le resolver.
+- Fix : `learnset-resolver` utilise `showdownToKebab` pour normaliser les IDs Showdown avant intersection avec les moves implémentés.
+
+### ~~Terrain target lava — mouvement autorisé vers tile lava invalide~~ (hors plan — 2026-05-21)
+- `getValidTargetPositions` ne filtrait pas les tiles terrain dangereux (lava/deep_water) comme cibles de mouvement pour les Pokemon non-immuns.
+- Fix : filtre ajouté dans `getValidTargetPositions`.
+
+### ~~Freeze post-self-KO (terrain létal)~~ (hors plan — 2026-05-21)
+- KO par terrain létal (lava/deep_water) laissait le jeu dans un état figé si le Pokemon attaquant se KO lui-même via terrain au landing.
+- Cause : `handleKo` appelé avant `LethalTerrainKo` event, HP bar non mise à jour.
+- Fix : ordre d'appel corrigé (`handleKo` après `LethalTerrainKo`), HP bar forcée à 0 avant KO handler.
+
+### ~~Ombre Volant au sol / hauteur sprite vol incorrecte~~ (hors plan — 2026-05-21)
+- Sprite Flying identique aux autres au sol. Pas d'ombre distincte.
+- Fix : sprite Flying décalé `h+2` (2 tiles hauteur visuelle), ombre restée au sol via shadow Y offset séparé. Burrowing/Diving/Vanished : sprite rendu invisible.
+
 ## Résolus
 
 ### ~~Reference learnsets vides (10 Pokemon Gen 1) + Kangaskhan genderRatio~~ (hors plan — 2026-05-20)

@@ -522,8 +522,8 @@ describe("solar-beam", () => {
     vi.restoreAllMocks();
   });
 
-  it("T1 charge + move T1 — attacker can still move after committing charge", () => {
-    // Given a Venusaur who commits charge on T1 and also moves
+  it("T1 charge blocks movement T1 — attacker cannot move after committing charge", () => {
+    // Given a Venusaur who commits charge on T1, movement T1 is blocked (no move/no act after charge).
     vi.spyOn(Math, "random").mockReturnValue(0);
     const attacker = MockPokemon.fresh(MockPokemon.base, {
       id: "venusaur",
@@ -539,7 +539,7 @@ describe("solar-beam", () => {
       position: { x: 5, y: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine, state } = buildMoveTestEngine([attacker, foe]);
+    const { engine } = buildMoveTestEngine([attacker, foe]);
 
     // T1: commit charge
     engine.submitAction(PlayerId.Player1, {
@@ -549,10 +549,9 @@ describe("solar-beam", () => {
       targetPosition: { x: 1, y: 0 },
     });
 
-    // T1 move slot is still usable after charge commit
     const legalActions = engine.getLegalActions(PlayerId.Player1);
     const moveActions = legalActions.filter((a) => a.kind === ActionKind.Move);
-    expect(moveActions.length).toBeGreaterThan(0);
+    expect(moveActions.length).toBe(0);
 
     const moveResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
@@ -560,10 +559,7 @@ describe("solar-beam", () => {
       path: [{ x: 1, y: 0 }],
     });
 
-    expect(moveResult.success).toBe(true);
-    expect(state.pokemon.get("venusaur")?.position).toEqual({ x: 1, y: 0 });
-    // chargingMove persists through the movement
-    expect(state.pokemon.get("venusaur")?.chargingMove).toBeDefined();
+    expect(moveResult.success).toBe(false);
     vi.restoreAllMocks();
   });
 

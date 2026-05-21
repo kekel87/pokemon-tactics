@@ -237,6 +237,9 @@ function estimateAffectedTiles(
 
     case TargetingKind.Blast:
       return tilesInRadius(targetPosition, targeting.radius);
+
+    case TargetingKind.Teleport:
+      return [targetPosition];
   }
 }
 
@@ -376,6 +379,8 @@ function getMoveMaxReach(targeting: TargetingPattern): number {
       return targeting.radius;
     case TargetingKind.Self:
       return 0;
+    case TargetingKind.Teleport:
+      return targeting.range.max;
   }
 }
 

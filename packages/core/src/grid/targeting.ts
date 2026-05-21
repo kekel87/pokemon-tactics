@@ -11,6 +11,7 @@ import { directionFromTo, getPerpendicularOffsets, stepInDirection } from "../ut
 import { manhattanDistance } from "../utils/manhattan-distance";
 import type { Grid } from "./Grid";
 import { bresenhamLine, hasLineOfSight } from "./line-of-sight";
+import { resolveTeleport } from "./resolve-teleport";
 
 export interface TargetingMoveContext {
   readonly type: PokemonType;
@@ -67,6 +68,9 @@ function computeIgnoresLoS(
   if (pattern.kind === TargetingKind.Zone && moveContext.type === PokemonType.Ground) {
     return true;
   }
+  if (pattern.kind === TargetingKind.Teleport) {
+    return true;
+  }
   return false;
 }
 
@@ -115,6 +119,15 @@ export function resolveTargeting(
         targetingPattern.radius,
         grid,
         guard,
+      );
+    case TargetingKind.Teleport:
+      return resolveTeleport(
+        caster.position,
+        targetPosition,
+        targetingPattern.range.min,
+        targetingPattern.range.max,
+        grid,
+        targetingPattern.aoeRadius,
       );
   }
 }

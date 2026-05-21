@@ -15,9 +15,9 @@ import {
   getPokemonName,
   loadData,
 } from "@pokemon-tactic/data";
-import { getAbilityInfo } from "../team/team-builder-data";
 import type { TranslationKey } from "../i18n";
 import { getLanguage, t } from "../i18n";
+import { getAbilityInfo } from "../team/team-builder-data";
 import type { SandboxConfig } from "../types/SandboxConfig";
 
 interface SelectOption {

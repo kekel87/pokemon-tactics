@@ -22,6 +22,7 @@ export type * from "./pokemon-definition";
 export type * from "./pokemon-instance";
 export type * from "./position";
 export type * from "./range-config";
+export * from "./semi-invulnerable-state";
 export type * from "./spawn-zone";
 export * from "./stat-spread";
 export type * from "./status-effect";

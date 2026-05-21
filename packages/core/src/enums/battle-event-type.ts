@@ -46,6 +46,7 @@ export const BattleEventType = {
   WeatherDamage: "weather_damage",
   WeatherWar: "weather_war",
   MoveCharging: "move_charging",
+  Teleported: "teleported",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

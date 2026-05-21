@@ -1,3 +1,4 @@
+import { TargetingKind } from "../enums/targeting-kind";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonDefinition } from "../types/pokemon-definition";
 
@@ -23,7 +24,10 @@ export function validateBattleData(data: {
       errors.push(`Move ${move.id} has no targeting pattern`);
     }
 
-    if (!move.effects || move.effects.length === 0) {
+    if (
+      (!move.effects || move.effects.length === 0) &&
+      move.targeting?.kind !== TargetingKind.Teleport
+    ) {
       errors.push(`Move ${move.id} has no effects`);
     }
 

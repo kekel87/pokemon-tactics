@@ -13,6 +13,7 @@ import movesReference from "../../reference/moves.json" with { type: "json" };
 import pokemonReference from "../../reference/pokemon.json" with { type: "json" };
 import { abilityHandlers } from "../abilities/ability-definitions";
 import { itemHandlers } from "../items/item-definitions";
+import { buildShowdownToKebabIndex } from "../loaders/load-pokemon";
 import type { ReferencePokemon } from "../loaders/reference-types";
 import { tacticalOverrides } from "../overrides/tactical";
 import { playablePokemon } from "../playable/playable-pokemon";
@@ -66,7 +67,8 @@ export function buildTeamBuilderRegistry(): TeamBuilderRegistry {
   }
 
   const pokemonRef = pokemonReference as unknown as ReferencePokemon[];
-  initializeLearnsetResolver(pokemonRef);
+  const showdownToKebab = buildShowdownToKebabIndex(movesReference as unknown as ReferenceMove[]);
+  initializeLearnsetResolver(pokemonRef, showdownToKebab);
 
   const playableIds = new Set(
     playablePokemon.map((entry) => entry.id).filter((id) => id !== "dummy"),

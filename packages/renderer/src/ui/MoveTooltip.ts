@@ -126,6 +126,8 @@ export class MoveTooltip {
         return targeting.range.max > 1 ? `${targeting.range.min}-${targeting.range.max}` : null;
       case TargetingKind.Blast:
         return `${targeting.range.min}-${targeting.range.max}`;
+      case TargetingKind.Teleport:
+        return `${targeting.range.min}-${targeting.range.max}`;
       case TargetingKind.Self:
       case TargetingKind.Line:
       case TargetingKind.Cone:

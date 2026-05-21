@@ -4,6 +4,7 @@ import type { PokemonType } from "../enums/pokemon-type";
 import type { Weather } from "../enums/weather";
 import type { Effect } from "./effect";
 import type { MoveFlags } from "./move-flags";
+import type { SemiInvulnerableState } from "./semi-invulnerable-state";
 import type { TargetingPattern } from "./targeting-pattern";
 
 export interface MoveDefinition {
@@ -22,7 +23,10 @@ export interface MoveDefinition {
   effectTier?: EffectTier;
   critRatio?: number;
   bypassAccuracy?: boolean;
+  bypassProtect?: boolean;
   weatherSetter?: { type: Weather; turns: number };
   weatherBoostedType?: boolean;
   twoTurnCharge?: boolean;
+  sunSkipsCharge?: boolean;
+  semiInvulnerableState?: SemiInvulnerableState;
 }

@@ -61,6 +61,10 @@ import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getEffectiveInitiative } from "./initiative-calculator";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { computePressureBonus } from "./pressure";
+import {
+  canMoveHitSemiInvulnerable,
+  getSemiInvulnerableDamageMultiplier,
+} from "./semi-invulnerable";
 import { isMajorStatus } from "./stat-modifier";
 import { TurnManager } from "./TurnManager";
 import {
@@ -386,8 +390,10 @@ export class BattleEngine {
     }
 
     const isTrapped = currentPokemon.volatileStatuses.some((v) => v.type === StatusType.Trapped);
+    const isCharging = currentPokemon.chargingMove !== undefined;
+    const mustActFirst = isCharging && !this.turnState.hasActed;
 
-    if (!this.turnState.hasMoved && !this.restrictActions && !isTrapped) {
+    if (!this.turnState.hasMoved && !this.restrictActions && !isTrapped && !mustActFirst) {
       const reachableTiles = this.getReachableTiles(currentPokemon);
       for (const reachable of reachableTiles) {
         actions.push({
@@ -647,6 +653,31 @@ export class BattleEngine {
           targeting.range.min,
           targeting.range.max,
         );
+      case TargetingKind.Teleport: {
+        const allTiles = this.grid.getTilesInRange(
+          pokemon.position,
+          targeting.range.min,
+          targeting.range.max,
+        );
+        const casterTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+        const casterFlying = this.isEffectivelyFlying(pokemon);
+        return allTiles.filter((position) => {
+          const tile = this.grid.getTile(position);
+          if (!tile) {
+            return false;
+          }
+          if (this.grid.getOccupant(position) !== null) {
+            return false;
+          }
+          if (
+            !isTerrainPassable(tile.terrain) &&
+            !isTerrainImmune(tile.terrain, casterTypes, casterFlying)
+          ) {
+            return false;
+          }
+          return true;
+        });
+      }
     }
   }
 
@@ -699,10 +730,14 @@ export class BattleEngine {
     const isFiringCharged = pokemon.chargingMove?.moveId === moveId;
     if (move.twoTurnCharge && !isFiringCharged) {
       const activeWeather = this.getEffectiveWeather();
-      if (activeWeather !== Weather.Sun) {
+      const skipDueToWeather = move.sunSkipsCharge === true && activeWeather === Weather.Sun;
+      if (!skipDueToWeather) {
         pokemon.currentPp[moveId] = currentPp - 1;
         pokemon.chargingMove = { moveId, targetPosition: pokemon.position };
         pokemon.lockedMoveId = moveId;
+        if (move.semiInvulnerableState !== undefined) {
+          pokemon.semiInvulnerableState = move.semiInvulnerableState;
+        }
         const chargingEvent: BattleEvent = {
           type: BattleEventType.MoveCharging,
           pokemonId: pokemon.id,
@@ -710,6 +745,7 @@ export class BattleEngine {
         };
         this.emit(chargingEvent);
         this.turnState.hasActed = true;
+        this.turnState.hasMoved = true;
         this.turnState.lastMoveId = moveId;
         return { success: true, events: [chargingEvent] };
       }
@@ -739,6 +775,7 @@ export class BattleEngine {
     if (isFiringCharged) {
       pokemon.chargingMove = undefined;
       pokemon.lockedMoveId = undefined;
+      pokemon.semiInvulnerableState = undefined;
     } else {
       pokemon.currentPp[moveId] = currentPp - 1;
     }
@@ -769,6 +806,13 @@ export class BattleEngine {
       }
       const target = this.state.pokemon.get(occupantId);
       if (!target || target.currentHp <= 0) {
+        continue;
+      }
+
+      if (
+        target.semiInvulnerableState !== undefined &&
+        !canMoveHitSemiInvulnerable(move, target.semiInvulnerableState)
+      ) {
         continue;
       }
 
@@ -832,7 +876,11 @@ export class BattleEngine {
     const attackOrigin = getAttackOrigin(pokemon, move, targetPosition);
     const facingModifierMap = new Map<string, number>();
     for (const target of targets) {
-      facingModifierMap.set(target.id, getFacingModifier(getFacingZone(attackOrigin, target)));
+      let modifier = getFacingModifier(getFacingZone(attackOrigin, target));
+      if (target.semiInvulnerableState !== undefined) {
+        modifier *= getSemiInvulnerableDamageMultiplier(move, target.semiInvulnerableState);
+      }
+      facingModifierMap.set(target.id, modifier);
     }
 
     const effectEvents = processEffects({
@@ -885,6 +933,10 @@ export class BattleEngine {
 
     if (move.targeting.kind === TargetingKind.Dash) {
       this.dashMoveCaster(pokemon, targetPosition, events);
+    }
+
+    if (move.targeting.kind === TargetingKind.Teleport) {
+      this.teleportMoveCaster(pokemon, targetPosition, events);
     }
 
     this.applyChoiceLock(pokemon, moveId);
@@ -1180,6 +1232,62 @@ export class BattleEngine {
     }
   }
 
+  private teleportMoveCaster(
+    pokemon: PokemonInstance,
+    targetPosition: Position,
+    events: BattleEvent[],
+  ): void {
+    const origin = { ...pokemon.position };
+
+    if (origin.x === targetPosition.x && origin.y === targetPosition.y) {
+      return;
+    }
+
+    this.grid.setOccupant(origin, null);
+    this.grid.setOccupant(targetPosition, pokemon.id);
+    pokemon.position = { ...targetPosition };
+
+    const teleportedEvent: BattleEvent = {
+      type: BattleEventType.Teleported,
+      pokemonId: pokemon.id,
+      fromPosition: origin,
+      toPosition: { ...targetPosition },
+      targetTile: { ...targetPosition },
+    };
+    this.emit(teleportedEvent);
+    events.push(teleportedEvent);
+
+    const landingTile = this.grid.getTile(targetPosition);
+    if (!landingTile) {
+      return;
+    }
+
+    const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const isFlying = this.isEffectivelyFlying(pokemon);
+
+    if (!isTerrainPassable(landingTile.terrain)) {
+      const isImmune = isTerrainImmune(landingTile.terrain, pokemonTypes, isFlying);
+      if (!isImmune) {
+        pokemon.currentHp = 0;
+        const lethalEvent: BattleEvent = {
+          type: BattleEventType.LethalTerrainKo,
+          pokemonId: pokemon.id,
+          terrain: landingTile.terrain,
+        };
+        this.emit(lethalEvent);
+        events.push(lethalEvent);
+        const koEvent: BattleEvent = {
+          type: BattleEventType.PokemonKo,
+          pokemonId: pokemon.id,
+          countdownStart: 0,
+        };
+        this.emit(koEvent);
+        events.push(koEvent);
+        this.handleKo(pokemon.id, events);
+      }
+    }
+  }
+
   private getReachableTiles(pokemon: PokemonInstance): ReachableTile[] {
     const result: ReachableTile[] = [];
     const visited = new Map<string, number>();
@@ -1467,6 +1575,19 @@ export class BattleEngine {
       };
       this.emit(rechargeEndEvent);
       events.push(rechargeEndEvent);
+    }
+
+    if (pokemon && pokemon.chargingMove !== undefined && !this.turnState.hasActed) {
+      pokemon.chargingMove = undefined;
+      pokemon.lockedMoveId = undefined;
+      pokemon.semiInvulnerableState = undefined;
+      const cancelEvent: BattleEvent = {
+        type: BattleEventType.MoveCancelled,
+        pokemonId,
+        position: { ...pokemon.position },
+      };
+      this.emit(cancelEvent);
+      events.push(cancelEvent);
     }
 
     this.endCurrentTurn(pokemonId, events);

@@ -1,3 +1,4 @@
+import { TargetingKind } from "@pokemon-tactic/core";
 import { describe, expect, it } from "vitest";
 import { loadData } from "./load-data";
 import { deepMerge } from "./merge";
@@ -22,9 +23,12 @@ describe("loadData", () => {
     }
   });
 
-  it("each move has at least one effect", () => {
+  it("each non-teleport move has at least one effect", () => {
     const data = loadData();
     for (const move of data.moves) {
+      if (move.targeting.kind === TargetingKind.Teleport) {
+        continue;
+      }
       expect(move.effects.length).toBeGreaterThan(0);
     }
   });
