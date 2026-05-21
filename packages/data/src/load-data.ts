@@ -25,7 +25,12 @@ export interface GameData {
   itemRegistry: HeldItemHandlerRegistry;
 }
 
+let cachedGameData: GameData | null = null;
+
 export function loadData(): GameData {
+  if (cachedGameData !== null) {
+    return cachedGameData;
+  }
   const allMoveIds = new Set<string>(Object.keys(tacticalOverrides));
 
   initializeLearnsetResolver(pokemonReference as unknown as ReferencePokemon[]);
@@ -94,7 +99,8 @@ export function loadData(): GameData {
     itemHandlers,
   );
 
-  return { pokemon, moves, abilityRegistry, itemRegistry };
+  cachedGameData = { pokemon, moves, abilityRegistry, itemRegistry };
+  return cachedGameData;
 }
 
 export function loadAllPokemonTypes(): Map<string, PokemonType[]> {

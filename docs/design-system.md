@@ -576,6 +576,42 @@ L'ordre des layers garantit que `components` l'emporte sur `base` sans `!importa
 
 ---
 
+## CSS — Sandbox Studio (plan 091)
+
+Source : `packages/renderer/src/styles/sandbox-studio.css` + tokens `tokens.css`.
+
+### Règles de codage
+
+- **Zéro inline style** dans `SandboxPanel.ts` et `LanguageToggle.ts` : toutes les couleurs et propriétés structurelles passent par classes CSS ou tokens. Hex literals hardcodés (`#222`, `#1a1a2e`, etc.) interdits dans les composants TS — décision #347.
+- **Tokens plutôt que valeurs brutes** : les couleurs utilisent les custom properties de `tokens.css` (`--color-bg-elevated`, `--color-bg-surface`, `--color-border-surface`, `--color-text-muted`, `--color-text-secondary`, `--color-btn-*`).
+- **Aucun `!important`** : les surcharges locales passent par la spécificité CSS, pas par `!important`.
+- **Attributs `data-*` pour les variantes** : ex. `data-control-mode="ai|player"` sur `.sb-section` → CSS cible `.sb-section[data-control-mode="ai"] .sb-moves-grid { display: none }`.
+
+### Classes `.sb-*`
+
+| Classe | Usage |
+|--------|-------|
+| `.sb-section` | Section de panneau (accordion / groupe de contrôles) |
+| `.sb-section-title` | En-tête de section |
+| `.sb-grid` | Grid layout de contrôles |
+| `.sb-col` | Colonne dans `.sb-grid` |
+| `.sb-form-row[data-layout]` | Ligne de formulaire (layout `"inline"`, `"stack"`, etc.) |
+| `.sb-form-label[data-width]` | Label avec largeur relative (`"sm"`, `"md"`, `"lg"`) |
+| `.sb-form-input[data-size]` | Input avec taille (`"sm"`, `"md"`, `"lg"`) |
+| `.sb-form-value` | Valeur affichée en lecture seule |
+| `.sb-picker-card` | Carte cliquable (Pokemon picker, move picker) |
+| `.sb-stepper` | Composant stepper (−/valeur/+) — généré par `Stepper.ts` |
+| `.sb-stat-stages` | Grille des modificateurs de stat |
+| `.sb-stat-cell` | Cellule stat dans `.sb-stat-stages` |
+| `.sb-radio-group` | Groupe de radio buttons |
+| `.sb-radio-option` | Option radio individuelle |
+| `.sb-moves-grid` | Grille des 4 moves (partagée via `createMovesList`) |
+| `.sb-strip-left` / `.sb-strip-right` | Bandes colorées gauche/droite (couleur équipe) |
+| `.sb-language-toggle` | Bouton de bascule FR/EN en mode normal |
+| `.lang-toggle-floating` | Variante flottante (position fixe hors sandbox) |
+
+---
+
 ## Principes de design
 
 1. **Palette sombre** : fond bleu nuit (`#1a1a2e`), panneaux bleu très sombre (`#111122`). Le jeu est dark-mode par défaut.

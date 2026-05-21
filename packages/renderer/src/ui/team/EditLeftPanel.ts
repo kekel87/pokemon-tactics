@@ -1,19 +1,18 @@
 import { type HeldItemId, Nature, PokemonGender, type TeamSlot } from "@pokemon-tactic/core";
 import type { TranslationKey } from "../../i18n";
 import { t } from "../../i18n";
-import { getCategoryIconUrl, getTypeIconUrl } from "../../team/asset-paths";
+import { getTypeIconUrl } from "../../team/asset-paths";
 import { toggleGender } from "../../team/gender-helpers";
 import {
   getAbilityInfo,
   getItemInfo,
-  getMoveInfo,
   getOpSetsByPokemonId,
   getPlayablePokemonById,
   getPortraitUrl,
   type PlayablePokemon,
 } from "../../team/team-builder-data";
+import { createMovesList } from "../dom/MovesList";
 import { openItemPickerModal } from "./ItemPickerModal";
-import { openMovePickerModal } from "./MovePickerModal";
 
 const NATURE_ORDER: Nature[] = [
   Nature.Adamant,
@@ -353,68 +352,12 @@ export class EditLeftPanel {
     title.className = "tb-edit-section-title";
     title.textContent = t("teamBuilder.section.moves");
     section.appendChild(title);
-    const list = document.createElement("div");
-    list.className = "tb-moves-list";
-    for (let i = 0; i < 4; i++) {
-      const moveId = slot.moveIds[i];
-      const row = document.createElement("div");
-      row.className = "tb-move-row";
-      if (moveId === undefined) {
-        row.dataset.state = "empty";
-      }
-
-      const meta = moveId === undefined ? null : getMoveInfo(moveId);
-      const typeIcon = document.createElement("img");
-      typeIcon.className = "tb-type-icon";
-      typeIcon.alt = meta?.type ?? "";
-      if (meta === null) {
-        typeIcon.style.visibility = "hidden";
-      } else {
-        typeIcon.src = getTypeIconUrl(meta.type);
-      }
-      row.appendChild(typeIcon);
-
-      const catIcon = document.createElement("img");
-      catIcon.className = "tb-category-icon";
-      catIcon.alt = meta?.category ?? "";
-      if (meta === null) {
-        catIcon.style.visibility = "hidden";
-      } else {
-        catIcon.src = getCategoryIconUrl(meta.category);
-      }
-      row.appendChild(catIcon);
-
-      const name = document.createElement("span");
-      name.className = "tb-move-name";
-      name.textContent = meta?.name ?? t("teamBuilder.moveNone");
-      if (meta !== null) {
-        name.title = meta.shortDescription;
-      }
-      row.appendChild(name);
-
-      const power = document.createElement("span");
-      power.className = "tb-move-power";
-      power.textContent =
-        meta?.power !== undefined && meta?.power !== null ? String(meta.power) : "";
-      row.appendChild(power);
-
-      const acc = document.createElement("span");
-      acc.className = "tb-move-acc";
-      acc.textContent =
-        meta?.accuracy !== undefined && meta?.accuracy !== null ? `${meta.accuracy}%` : "";
-      row.appendChild(acc);
-
-      row.addEventListener("click", () => {
-        openMovePickerModal({
-          pokemonId: slot.pokemonId,
-          slotIndex: i,
-          excludeMoveIds: slot.moveIds.filter((_, idx) => idx !== i),
-          onSelect: (move) => this.callbacks.onMoveChange(i, move.id),
-        });
-      });
-      list.appendChild(row);
-    }
-    section.appendChild(list);
+    const movesList = createMovesList({
+      pokemonId: slot.pokemonId,
+      moves: [...slot.moveIds],
+      onChange: (slotIndex, moveId) => this.callbacks.onMoveChange(slotIndex, moveId),
+    });
+    section.appendChild(movesList.element);
     return section;
   }
 }
