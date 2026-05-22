@@ -37,6 +37,8 @@ export interface Translations {
   "pattern.zone": string;
   "pattern.dash": string;
   "pattern.blast": string;
+  "pattern.teleport": string;
+  "pattern.hit-and-run": string;
   "move.power": string;
   "move.accuracy": string;
   "move.range": string;

@@ -45,6 +45,8 @@ const PATTERN_TRANSLATION_KEYS: Record<string, TranslationKey> = {
   [TargetingKind.Zone]: "pattern.zone",
   [TargetingKind.Dash]: "pattern.dash",
   [TargetingKind.Blast]: "pattern.blast",
+  [TargetingKind.Teleport]: "pattern.teleport",
+  [TargetingKind.HitAndRun]: "pattern.hit-and-run",
 };
 
 export class MoveTooltip {
@@ -128,6 +130,10 @@ export class MoveTooltip {
         return `${targeting.range.min}-${targeting.range.max}`;
       case TargetingKind.Teleport:
         return `${targeting.range.min}-${targeting.range.max}`;
+      case TargetingKind.HitAndRun:
+        return targeting.hitRange.max > 1
+          ? `${targeting.hitRange.min}-${targeting.hitRange.max}`
+          : null;
       case TargetingKind.Self:
       case TargetingKind.Line:
       case TargetingKind.Cone:

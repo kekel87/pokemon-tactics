@@ -33,6 +33,31 @@ export interface TacticalOverride {
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
+  "u-turn": {
+    targeting: {
+      kind: TargetingKind.HitAndRun,
+      hitRange: { min: 1, max: 1 },
+      retreatRange: { min: 1, max: 4 },
+    },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "volt-switch": {
+    targeting: {
+      kind: TargetingKind.HitAndRun,
+      hitRange: { min: 1, max: 2 },
+      retreatRange: { min: 1, max: 4 },
+    },
+    effects: [{ kind: EffectKind.Damage }],
+    flags: { contact: false },
+  },
+  "flip-turn": {
+    targeting: {
+      kind: TargetingKind.HitAndRun,
+      hitRange: { min: 1, max: 1 },
+      retreatRange: { min: 1, max: 4 },
+    },
+    effects: [{ kind: EffectKind.Damage }],
+  },
   "razor-leaf": {
     targeting: { kind: TargetingKind.Slash },
     effects: [{ kind: EffectKind.Damage }],

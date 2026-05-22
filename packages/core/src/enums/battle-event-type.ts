@@ -47,6 +47,8 @@ export const BattleEventType = {
   WeatherWar: "weather_war",
   MoveCharging: "move_charging",
   Teleported: "teleported",
+  HitAndRunRetreat: "hit_and_run_retreat",
+  HitAndRunRetreatFallback: "hit_and_run_retreat_fallback",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

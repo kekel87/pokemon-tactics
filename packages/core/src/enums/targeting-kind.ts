@@ -9,6 +9,7 @@ export const TargetingKind = {
   Slash: "slash",
   Blast: "blast",
   Teleport: "teleport",
+  HitAndRun: "hit-and-run",
 } as const;
 
 export type TargetingKind = (typeof TargetingKind)[keyof typeof TargetingKind];

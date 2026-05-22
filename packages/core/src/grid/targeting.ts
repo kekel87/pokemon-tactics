@@ -129,6 +129,15 @@ export function resolveTargeting(
         grid,
         targetingPattern.aoeRadius,
       );
+    case TargetingKind.HitAndRun:
+      return resolveSingle(
+        caster.position,
+        targetPosition,
+        targetingPattern.hitRange.min,
+        targetingPattern.hitRange.max,
+        grid,
+        guard,
+      );
   }
 }
 

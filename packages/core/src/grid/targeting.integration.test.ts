@@ -522,4 +522,66 @@ describe("resolveTargeting", () => {
       expect(result).toEqual([]);
     });
   });
+
+  describe("hit-and-run", () => {
+    it("should return target when in hitRange r1", () => {
+      const caster = { ...MockPokemon.base, position: { x: 3, y: 3 } };
+      const result = resolveTargeting(
+        {
+          kind: TargetingKind.HitAndRun,
+          hitRange: { min: 1, max: 1 },
+          retreatRange: { min: 1, max: 4 },
+        },
+        caster,
+        { x: 4, y: 3 },
+        grid,
+      );
+      expect(result).toEqual([{ x: 4, y: 3 }]);
+    });
+
+    it("should return empty when target out of hitRange r1", () => {
+      const caster = { ...MockPokemon.base, position: { x: 3, y: 3 } };
+      const result = resolveTargeting(
+        {
+          kind: TargetingKind.HitAndRun,
+          hitRange: { min: 1, max: 1 },
+          retreatRange: { min: 1, max: 4 },
+        },
+        caster,
+        { x: 5, y: 3 },
+        grid,
+      );
+      expect(result).toEqual([]);
+    });
+
+    it("should return target when in hitRange r1-2 (volt-switch pattern)", () => {
+      const caster = { ...MockPokemon.base, position: { x: 3, y: 3 } };
+      const result = resolveTargeting(
+        {
+          kind: TargetingKind.HitAndRun,
+          hitRange: { min: 1, max: 2 },
+          retreatRange: { min: 1, max: 4 },
+        },
+        caster,
+        { x: 5, y: 3 },
+        grid,
+      );
+      expect(result).toEqual([{ x: 5, y: 3 }]);
+    });
+
+    it("should return empty when target out of bounds", () => {
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+      const result = resolveTargeting(
+        {
+          kind: TargetingKind.HitAndRun,
+          hitRange: { min: 1, max: 1 },
+          retreatRange: { min: 1, max: 4 },
+        },
+        caster,
+        { x: -1, y: 0 },
+        grid,
+      );
+      expect(result).toEqual([]);
+    });
+  });
 });

@@ -4,6 +4,7 @@ import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
+import { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
@@ -13,6 +14,7 @@ import { TurnSystemKind } from "../enums/turn-system-kind";
 import { Weather } from "../enums/weather";
 import { Grid } from "../grid/Grid";
 import { resolveTargeting } from "../grid/targeting";
+import { isValidHitAndRunRetreat } from "../grid/validate-hit-and-run-retreat";
 import type { Action, ActionResult } from "../types/action";
 import type { BattleEvent } from "../types/battle-event";
 import type { BattleReplay } from "../types/battle-replay";
@@ -22,6 +24,7 @@ import type { DamageEstimate } from "../types/damage-estimate";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
+import type { RangeConfig } from "../types/range-config";
 import { DEFAULT_STATUS_RULES, type StatusRules } from "../types/status-rules";
 import type { TileState } from "../types/tile-state";
 import type { TraversalContext } from "../types/traversal-context";
@@ -524,6 +527,7 @@ export class BattleEngine {
             currentPokemon,
             action.moveId,
             action.targetPosition,
+            action.retreatPosition,
           );
           result = { ...useMoveResult, events: [...confusionEvents, ...useMoveResult.events] };
         }
@@ -678,6 +682,12 @@ export class BattleEngine {
           return true;
         });
       }
+      case TargetingKind.HitAndRun:
+        return this.grid.getTilesInRange(
+          pokemon.position,
+          targeting.hitRange.min,
+          targeting.hitRange.max,
+        );
     }
   }
 
@@ -708,6 +718,7 @@ export class BattleEngine {
     pokemon: PokemonInstance,
     moveId: string,
     targetPosition: Position,
+    retreatPosition?: Position,
   ): ActionResult {
     if (this.turnState.hasActed) {
       return { success: false, events: [], error: ActionError.AlreadyActed };
@@ -937,6 +948,16 @@ export class BattleEngine {
 
     if (move.targeting.kind === TargetingKind.Teleport) {
       this.teleportMoveCaster(pokemon, targetPosition, events);
+    }
+
+    if (move.targeting.kind === TargetingKind.HitAndRun && pokemon.currentHp > 0) {
+      this.hitAndRunMoveCaster(
+        pokemon,
+        move.targeting.retreatRange,
+        retreatPosition,
+        targets.length > 0,
+        events,
+      );
     }
 
     this.applyChoiceLock(pokemon, moveId);
@@ -1257,35 +1278,99 @@ export class BattleEngine {
     this.emit(teleportedEvent);
     events.push(teleportedEvent);
 
-    const landingTile = this.grid.getTile(targetPosition);
+    this.applyLandingTerrainEffects(pokemon, targetPosition, events);
+  }
+
+  private applyLandingTerrainEffects(
+    pokemon: PokemonInstance,
+    landingPosition: Position,
+    events: BattleEvent[],
+  ): void {
+    const landingTile = this.grid.getTile(landingPosition);
     if (!landingTile) {
+      return;
+    }
+
+    if (isTerrainPassable(landingTile.terrain)) {
       return;
     }
 
     const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
     const isFlying = this.isEffectivelyFlying(pokemon);
-
-    if (!isTerrainPassable(landingTile.terrain)) {
-      const isImmune = isTerrainImmune(landingTile.terrain, pokemonTypes, isFlying);
-      if (!isImmune) {
-        pokemon.currentHp = 0;
-        const lethalEvent: BattleEvent = {
-          type: BattleEventType.LethalTerrainKo,
-          pokemonId: pokemon.id,
-          terrain: landingTile.terrain,
-        };
-        this.emit(lethalEvent);
-        events.push(lethalEvent);
-        const koEvent: BattleEvent = {
-          type: BattleEventType.PokemonKo,
-          pokemonId: pokemon.id,
-          countdownStart: 0,
-        };
-        this.emit(koEvent);
-        events.push(koEvent);
-        this.handleKo(pokemon.id, events);
-      }
+    if (isTerrainImmune(landingTile.terrain, pokemonTypes, isFlying)) {
+      return;
     }
+
+    pokemon.currentHp = 0;
+    const lethalEvent: BattleEvent = {
+      type: BattleEventType.LethalTerrainKo,
+      pokemonId: pokemon.id,
+      terrain: landingTile.terrain,
+    };
+    this.emit(lethalEvent);
+    events.push(lethalEvent);
+
+    const koEvent: BattleEvent = {
+      type: BattleEventType.PokemonKo,
+      pokemonId: pokemon.id,
+      countdownStart: 0,
+    };
+    this.emit(koEvent);
+    events.push(koEvent);
+    this.handleKo(pokemon.id, events);
+  }
+
+  private hitAndRunMoveCaster(
+    pokemon: PokemonInstance,
+    retreatRange: RangeConfig,
+    retreatPosition: Position | undefined,
+    hitLanded: boolean,
+    events: BattleEvent[],
+  ): void {
+    if (!hitLanded) {
+      this.emitHitAndRunFallback(pokemon, HitAndRunRetreatFallbackReason.Miss, events);
+      return;
+    }
+
+    if (retreatPosition === undefined) {
+      this.emitHitAndRunFallback(pokemon, HitAndRunRetreatFallbackReason.Missing, events);
+      return;
+    }
+
+    if (!isValidHitAndRunRetreat(pokemon.position, retreatPosition, retreatRange, this.grid)) {
+      this.emitHitAndRunFallback(pokemon, HitAndRunRetreatFallbackReason.Invalid, events);
+      return;
+    }
+
+    const origin = { ...pokemon.position };
+    this.grid.setOccupant(origin, null);
+    this.grid.setOccupant(retreatPosition, pokemon.id);
+    pokemon.position = { ...retreatPosition };
+
+    const retreatEvent: BattleEvent = {
+      type: BattleEventType.HitAndRunRetreat,
+      pokemonId: pokemon.id,
+      fromPosition: origin,
+      toPosition: { ...retreatPosition },
+    };
+    this.emit(retreatEvent);
+    events.push(retreatEvent);
+
+    this.applyLandingTerrainEffects(pokemon, retreatPosition, events);
+  }
+
+  private emitHitAndRunFallback(
+    pokemon: PokemonInstance,
+    reason: HitAndRunRetreatFallbackReason,
+    events: BattleEvent[],
+  ): void {
+    const fallbackEvent: BattleEvent = {
+      type: BattleEventType.HitAndRunRetreatFallback,
+      pokemonId: pokemon.id,
+      reason,
+    };
+    this.emit(fallbackEvent);
+    events.push(fallbackEvent);
   }
 
   private getReachableTiles(pokemon: PokemonInstance): ReachableTile[] {

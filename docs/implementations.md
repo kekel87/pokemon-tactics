@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 154 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
+| Attaques | 157 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 22 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (154 implémentées)
+## Attaques (157 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -369,6 +369,9 @@
 | Poudreneige | snowscape | Glace | Statut | — | — | 10 | self | Active Neige 5 tours |
 | Météore | weather-ball | Normal | Spé | 50 (100 sous météo) | 100 | 10 | single r1–4 | Type change selon météo active |
 | Lance-Soleil | solar-beam | Plante | Spé | 120 (60 sous Pluie/Sable/Neige) | 100 | 10 | single r1–4 | Charge 1 tour (skip sous Soleil), float "Rayonne!" T1 |
+| Demi-Tour | u-turn | Insecte | Phys | 70 | 100 | 20 | hit-and-run r1 / retreat r1–4 | Frappe puis recul TP joueur. Miss/Protect bloque retreat. |
+| Change Éclair | volt-switch | Électrik | Spé | 70 | 100 | 20 | hit-and-run r1–2 (non-contact) / retreat r1–4 | Non-contact (parité Showdown). |
+| Eau Revoir | flip-turn | Eau | Phys | 60 | 100 | 20 | hit-and-run r1 / retreat r1–4 | Frappe puis recul TP joueur. |
 
 ---
 

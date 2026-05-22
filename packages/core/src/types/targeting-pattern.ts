@@ -11,4 +11,9 @@ export type TargetingPattern =
   | { kind: typeof TargetingKind.Zone; radius: number }
   | { kind: typeof TargetingKind.Slash }
   | { kind: typeof TargetingKind.Blast; range: RangeConfig; radius: number }
-  | { kind: typeof TargetingKind.Teleport; range: RangeConfig; aoeRadius?: number };
+  | { kind: typeof TargetingKind.Teleport; range: RangeConfig; aoeRadius?: number }
+  | {
+      kind: typeof TargetingKind.HitAndRun;
+      hitRange: RangeConfig;
+      retreatRange: RangeConfig;
+    };

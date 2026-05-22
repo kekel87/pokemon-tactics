@@ -61,6 +61,10 @@ export {
   resolveBlastImpactTile,
   resolveTargeting,
 } from "./grid/targeting";
+export {
+  enumerateHitAndRunRetreatTiles,
+  isValidHitAndRunRetreat,
+} from "./grid/validate-hit-and-run-retreat";
 export * from "./team/index";
 export type * from "./types/index";
 export { SemiInvulnerableState } from "./types/semi-invulnerable-state";

@@ -1,6 +1,7 @@
 import type { BattleEventType } from "../enums/battle-event-type";
 import type { DefensiveKind } from "../enums/defensive-kind";
 import type { Direction } from "../enums/direction";
+import type { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
 import type { StatName } from "../enums/stat-name";
 import type { StatusImmuneReason } from "../enums/status-immune-reason";
 import type { StatusType } from "../enums/status-type";
@@ -168,4 +169,15 @@ export type BattleEvent =
       fromPosition: Position;
       toPosition: Position;
       targetTile: Position;
+    }
+  | {
+      type: typeof BattleEventType.HitAndRunRetreat;
+      pokemonId: string;
+      fromPosition: Position;
+      toPosition: Position;
+    }
+  | {
+      type: typeof BattleEventType.HitAndRunRetreatFallback;
+      pokemonId: string;
+      reason: HitAndRunRetreatFallbackReason;
     };

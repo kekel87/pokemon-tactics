@@ -32,6 +32,8 @@ const en: Translations = {
   "pattern.zone": "Zone",
   "pattern.dash": "Dash",
   "pattern.blast": "Blast",
+  "pattern.teleport": "Teleport",
+  "pattern.hit-and-run": "Hit & Run",
   "move.power": "Pow: {value}",
   "move.accuracy": "Acc: {value}",
   "move.range": "Range: {value}",

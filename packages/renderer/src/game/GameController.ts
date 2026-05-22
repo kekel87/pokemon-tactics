@@ -10,6 +10,7 @@ import {
   directionFromTo,
   EffectKind,
   EffectTarget,
+  enumerateHitAndRunRetreatTiles,
   type Grid,
   type MapDefinition,
   type MoveDefinition,
@@ -152,6 +153,12 @@ type InputState =
   | { phase: "attack_submenu" }
   | { phase: "select_attack_target"; moveId: string }
   | { phase: "confirm_attack"; moveId: string; action: Action; affectedTiles: Position[] }
+  | {
+      phase: "select_retreat_target";
+      moveId: string;
+      action: Action;
+      retreatTiles: Position[];
+    }
   | { phase: "select_direction" }
   | { phase: "animating" }
   | { phase: "battle_over"; winnerId: string };
@@ -409,10 +416,51 @@ export class GameController {
     }
 
     if (this.inputState.phase === "confirm_attack") {
-      const { action } = this.inputState;
+      const { action, moveId } = this.inputState;
+      const move = this.moveDefinitions.get(moveId);
+      if (move && move.targeting.kind === TargetingKind.HitAndRun) {
+        this.enterRetreatSelection(moveId, action, move.targeting.retreatRange);
+        return;
+      }
       this.clearPreviewState();
       this.executeAction(activePlayerId, action);
+      return;
     }
+
+    if (this.inputState.phase === "select_retreat_target") {
+      const { retreatTiles, action } = this.inputState;
+      const isValid = retreatTiles.some((tile) => tile.x === gridX && tile.y === gridY);
+      if (!isValid) {
+        return;
+      }
+      if (action.kind !== ActionKind.UseMove) {
+        return;
+      }
+      const filledAction: Action = { ...action, retreatPosition: { x: gridX, y: gridY } };
+      this.isometricGrid.clearHighlights();
+      this.executeAction(activePlayerId, filledAction);
+    }
+  }
+
+  private enterRetreatSelection(
+    moveId: string,
+    action: Action,
+    retreatRange: { min: number; max: number },
+  ): void {
+    const activePokemon = this.getActivePokemon();
+    if (!activePokemon) {
+      return;
+    }
+    const grid = this.engine.getGrid();
+    const retreatTiles = enumerateHitAndRunRetreatTiles(activePokemon.position, retreatRange, grid);
+    if (retreatTiles.length === 0) {
+      this.clearPreviewState();
+      this.executeAction(activePokemon.playerId, action);
+      return;
+    }
+    this.clearPreviewState();
+    this.isometricGrid.highlightTiles(retreatTiles, HighlightKind.Retreat);
+    this.inputState = { phase: "select_retreat_target", moveId, action, retreatTiles };
   }
 
   handleTileHover(
@@ -1175,6 +1223,19 @@ export class GameController {
           sprite.updatePosition(event.toPosition.x, event.toPosition.y);
           this.applyLandingRestingAnimation(event.pokemonId, event.toPosition);
         }
+        break;
+      }
+
+      case BattleEventType.HitAndRunRetreat: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          sprite.updatePosition(event.toPosition.x, event.toPosition.y);
+          this.applyLandingRestingAnimation(event.pokemonId, event.toPosition);
+        }
+        break;
+      }
+
+      case BattleEventType.HitAndRunRetreatFallback: {
         break;
       }
 
@@ -2083,6 +2144,14 @@ export class GameController {
   }
 
   handleEscapeKey(): void {
+    if (this.inputState.phase === "select_retreat_target") {
+      const { moveId } = this.inputState;
+      this.isometricGrid.clearHighlights();
+      this.actionMenu.updateInstruction(t("attack.selectTarget"));
+      this.inputState = { phase: "select_attack_target", moveId };
+      return;
+    }
+
     if (this.inputState.phase === "confirm_attack") {
       const { moveId } = this.inputState;
       this.stopPreviewFlash();

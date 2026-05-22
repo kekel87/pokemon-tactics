@@ -23,6 +23,7 @@ import {
   TILE_HIGHLIGHT_ENEMY_RANGE_ALPHA,
   TILE_HIGHLIGHT_ENEMY_RANGE_COLOR,
   TILE_HIGHLIGHT_MOVE_COLOR,
+  TILE_HIGHLIGHT_RETREAT_COLOR,
   TILE_ORIGIN_Y,
   TILE_RANGE_OUTLINE_ALPHA,
   TILE_RANGE_OUTLINE_COLOR,
@@ -251,7 +252,11 @@ export class IsometricGrid {
       return;
     }
     const color =
-      kind === HighlightKind.Move ? TILE_HIGHLIGHT_MOVE_COLOR : TILE_HIGHLIGHT_ATTACK_COLOR;
+      kind === HighlightKind.Move
+        ? TILE_HIGHLIGHT_MOVE_COLOR
+        : kind === HighlightKind.Retreat
+          ? TILE_HIGHLIGHT_RETREAT_COLOR
+          : TILE_HIGHLIGHT_ATTACK_COLOR;
     for (const position of positions) {
       const groundHeight = this.getTileGroundHeight(position.x, position.y);
       const graphics = this.getOrCreateTileGraphicsAtHeight(

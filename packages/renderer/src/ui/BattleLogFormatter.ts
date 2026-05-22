@@ -2,6 +2,7 @@ import type { BattleEvent } from "@pokemon-tactic/core";
 import {
   BattleEventType,
   DefensiveKind,
+  HitAndRunRetreatFallbackReason,
   StatName,
   StatusImmuneReason,
   StatusType,
@@ -420,6 +421,21 @@ export function formatBattleEvent(
     case BattleEventType.Teleported: {
       const name = context.getPokemonName(event.pokemonId);
       const message = lang === "fr" ? `${name} se téléporte !` : `${name} teleports!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.HitAndRunRetreat: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message = lang === "fr" ? `${name} recule.` : `${name} falls back.`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.HitAndRunRetreatFallback: {
+      if (event.reason === HitAndRunRetreatFallbackReason.Miss) {
+        return null;
+      }
+      const name = context.getPokemonName(event.pokemonId);
+      const message = lang === "fr" ? `${name} ne peut pas reculer.` : `${name} can't fall back.`;
       return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 

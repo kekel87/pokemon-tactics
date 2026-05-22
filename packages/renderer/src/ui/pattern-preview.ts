@@ -74,6 +74,8 @@ export function buildPatternPreview(pattern: TargetingPattern): PatternCell[][] 
       return buildBlast(pattern.radius);
     case TargetingKind.Teleport:
       return buildTeleport(pattern.range.max, pattern.aoeRadius);
+    case TargetingKind.HitAndRun:
+      return buildSingle(pattern.hitRange.max);
   }
 }
 

@@ -240,6 +240,9 @@ function estimateAffectedTiles(
 
     case TargetingKind.Teleport:
       return [targetPosition];
+
+    case TargetingKind.HitAndRun:
+      return [targetPosition];
   }
 }
 
@@ -381,6 +384,8 @@ function getMoveMaxReach(targeting: TargetingPattern): number {
       return 0;
     case TargetingKind.Teleport:
       return targeting.range.max;
+    case TargetingKind.HitAndRun:
+      return targeting.hitRange.max;
   }
 }
 
