@@ -1,4 +1,6 @@
 import type { ReferencePokemon } from "../loaders/reference-types";
+import { getOpSetsForPokemon } from "../op-sets/load-op-sets";
+import { getExtraLearnsetMoves } from "./learnset-extensions";
 
 interface ResolverCaches {
   legalMovesByPokemonId: Map<string, ReadonlySet<string>>;
@@ -60,6 +62,14 @@ export function getLegalMoves(pokemonId: string): ReadonlySet<string> {
       result.add(move);
     }
     current = reference.evolvesFrom;
+  }
+  for (const opSet of getOpSetsForPokemon(pokemonId)) {
+    for (const moveId of opSet.moveIds) {
+      result.add(moveId);
+    }
+  }
+  for (const moveId of getExtraLearnsetMoves(pokemonId)) {
+    result.add(moveId);
   }
   caches.legalMovesByPokemonId.set(pokemonId, result);
   return result;

@@ -29,5 +29,6 @@ export interface MoveDefinition {
   twoTurnCharge?: boolean;
   sunSkipsCharge?: boolean;
   semiInvulnerableState?: SemiInvulnerableState;
+  chargeEffects?: Effect[];
   targetsAlly?: boolean;
 }

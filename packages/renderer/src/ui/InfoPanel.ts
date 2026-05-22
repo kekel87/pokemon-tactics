@@ -1,5 +1,5 @@
 import { PokemonGender, type PokemonInstance, StatName, StatusType } from "@pokemon-tactic/core";
-import { getPokemonName } from "@pokemon-tactic/data";
+import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
 import {
   DEPTH_INFO_PANEL,
   FONT_FAMILY,
@@ -212,6 +212,12 @@ export class InfoPanel {
         continue;
       }
       offsetX = this.addBadge(t(translationKey), STAT_BADGE_VOLATILE_BG, offsetX);
+    }
+
+    if (pokemon.chargingMove) {
+      const moveName = getMoveName(pokemon.chargingMove.moveId, getLanguage());
+      const chargingLabel = t("status.charging", { move: moveName });
+      offsetX = this.addBadge(chargingLabel, STAT_BADGE_VOLATILE_BG, offsetX);
     }
   }
 

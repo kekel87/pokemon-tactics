@@ -1,0 +1,17 @@
+{
+  "pokemon": "pidgeot",
+  "moves": ["sky-attack", "aerial-ace", "quick-attack", "feather-dance"],
+  "hp": 100,
+  "status": null,
+  "volatileStatus": null,
+  "statStages": {},
+  "dummyPokemon": "raticate",
+  "dummyControl": "player",
+  "dummyMove": null,
+  "dummyMoves": ["hyper-fang", "quick-attack", "crunch", "swords-dance"],
+  "dummyDirection": "north",
+  "dummyHp": 100,
+  "dummyStatus": null,
+  "dummyVolatileStatus": null,
+  "dummyStatStages": {}
+}

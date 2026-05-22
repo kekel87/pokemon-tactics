@@ -2296,6 +2296,48 @@
       "source": "smogon",
       "sourceUrl": "https://www.smogon.com/dex/sv/pokemon/mewtwo/",
       "notes": "Choice Specs Mewtwo. Psychic STAB + BoltBeam. Ubers-tier special power."
+    },
+    {
+      "id": "pidgeot-sky-attack",
+      "pokemonId": "pidgeot",
+      "name": "Sky Attack Nuke",
+      "role": "physical-sweeper",
+      "ability": "keen-eye",
+      "heldItemId": "leftovers",
+      "nature": "adamant",
+      "moveIds": ["sky-attack", "aerial-ace", "quick-attack", "feather-dance"],
+      "statSpread": { "attack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 094 — Sky Attack 2-turn nuke. High BP, crit, flinch 30%. Feather Dance support before charge."
+    },
+    {
+      "id": "snorlax-skull-bash",
+      "pokemonId": "snorlax",
+      "name": "Skull Bash Tank",
+      "role": "tank",
+      "ability": "thick-fat",
+      "heldItemId": "leftovers",
+      "nature": "impish",
+      "moveIds": ["skull-bash", "body-slam", "rest", "amnesia"],
+      "statSpread": { "hp": 31, "defense": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 094 — Skull Bash charge boosts Def T1 then hits T2. Synergy with Amnesia + Rest stall."
+    },
+    {
+      "id": "beedrill-razor-wind",
+      "pokemonId": "beedrill",
+      "name": "Razor Wind Caster",
+      "role": "special-sweeper",
+      "ability": "swarm",
+      "heldItemId": "leftovers",
+      "nature": "modest",
+      "moveIds": ["razor-wind", "twineedle", "leech-life", "quiver-dance"],
+      "statSpread": { "spAttack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 094 — Razor Wind Cone r3 AoE 2-turn charge with high-crit. Quiver Dance setup."
     }
   ]
 }

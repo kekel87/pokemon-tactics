@@ -185,4 +185,5 @@ export type BattleEvent =
       type: typeof BattleEventType.BatonPassed;
       casterId: string;
       targetId: string;
-    };
+    }
+  | { type: typeof BattleEventType.Flinched; pokemonId: string };

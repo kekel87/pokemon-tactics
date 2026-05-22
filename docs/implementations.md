@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 158 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
+| Attaques | 160 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 22 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (157 implémentées)
+## Attaques (160 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -372,6 +372,9 @@
 | Demi-Tour | u-turn | Insecte | Phys | 70 | 100 | 20 | hit-and-run r1 / retreat r1–4 | Frappe puis recul TP joueur. Miss/Protect bloque retreat. |
 | Change Éclair | volt-switch | Électrik | Spé | 70 | 100 | 20 | hit-and-run r1–2 (non-contact) / retreat r1–4 | Non-contact (parité Showdown). |
 | Eau Revoir | flip-turn | Eau | Phys | 60 | 100 | 20 | hit-and-run r1 / retreat r1–4 | Frappe puis recul TP joueur. |
+| Bélier | skull-bash | Normal | Phys | 130 | 100 | 10 | dash r3 | Charge 2 tours. T1 : `chargeEffects` +1 Déf, indicateur ⚡. T2 : dash + knockback. |
+| Ciel Attaque | sky-attack | Vol | Spé | 140 | 90 | 5 | single r4 | Charge 2 tours. T1 : indicateur ⚡. T2 : Flinch 30%, critique élevé (`critRatio: 1`). |
+| Rasoir Vent | razor-wind | Normal | Spé | 80 | 100 | 10 | cône r3 | Charge 2 tours. T1 : indicateur ⚡. T2 : critique élevé (`critRatio: 1`). |
 
 ---
 

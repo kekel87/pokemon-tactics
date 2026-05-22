@@ -85,7 +85,8 @@ Bugs connus et retours playtest non traités.
 - **Question de design** : composer ZA et Champions ?
   - Option : layering `Showdown Gen 9 → ZA → Champions` (ZA apporte contenu, Champions ajuste équilibrage)
   - Risque : Champions peut overrider contenu ZA (nouveau Mega) — vérifier conflits
-- Planifier plan dédié (057 ou 058 selon ordre), en parallèle ou après plan 057.
+- **Plan 094** : `learnset-extensions.ts` est un override temporaire (skull-bash + razor-wind) à supprimer quand le pipeline Z-A sera intégré.
+- Planifier plan dédié.
 
 ### Portée dynamique selon hauteur (dénivelé)
 - Attaquant en hauteur voit/tire plus loin. Bonus portée +N cases selon différence hauteur caster-cible (ex: +1 case par niveau au-dessus, cap +2).

@@ -37,6 +37,7 @@ import {
   TargetingKind,
   TerrainType,
   TurnSystemKind,
+  Weather,
 } from "@pokemon-tactic/core";
 import {
   AnimationCategory,
@@ -53,6 +54,7 @@ import {
   BATTLE_TEXT_COLOR_DEBUFF,
   BATTLE_TEXT_COLOR_EXTREMELY_EFFECTIVE,
   BATTLE_TEXT_COLOR_FALL_DAMAGE,
+  BATTLE_TEXT_COLOR_FLINCH,
   BATTLE_TEXT_COLOR_HEAL,
   BATTLE_TEXT_COLOR_IMMUNE,
   BATTLE_TEXT_COLOR_INFO,
@@ -482,6 +484,10 @@ export class GameController {
       return;
     }
 
+    if (this.isChargeT1(moveDefinition, activePokemon)) {
+      return;
+    }
+
     const targeting = moveDefinition.targeting;
 
     if (this.isStaticPattern(targeting.kind)) {
@@ -637,6 +643,7 @@ export class GameController {
       if (pokemon) {
         const isConfused = pokemon.volatileStatuses.some((v) => v.type === StatusType.Confused);
         sprite.setConfusionWobble(isConfused);
+        sprite.setChargingIndicator(pokemon.chargingMove !== undefined);
       }
     }
 
@@ -784,6 +791,15 @@ export class GameController {
     );
 
     const targeting = moveDefinition.targeting;
+
+    if (this.isChargeT1(moveDefinition, activePokemon ?? null)) {
+      if (activePokemon) {
+        this.currentPreviewTiles = [activePokemon.position];
+        this.isometricGrid.highlightTilesOutline([activePokemon.position]);
+        this.renderPreview([activePokemon.position], true);
+      }
+      return;
+    }
 
     if (this.isStaticPattern(targeting.kind)) {
       const activePokemon = this.getActivePokemon();
@@ -1041,6 +1057,7 @@ export class GameController {
       case BattleEventType.MoveStarted: {
         const sprite = this.sprites.get(event.attackerId);
         if (sprite) {
+          sprite.setChargingIndicator(false);
           sprite.setDirection(event.direction);
           const category = moveAnimationCategory[event.moveId] ?? AnimationCategory.Contact;
           const animationName =
@@ -1062,6 +1079,7 @@ export class GameController {
       case BattleEventType.MoveCancelled: {
         const sprite = this.sprites.get(event.pokemonId);
         if (sprite) {
+          sprite.setChargingIndicator(false);
           sprite.setSemiInvulnerable(null);
           const height = this.isometricGrid.getTileHeight(event.position.x, event.position.y);
           sprite.updatePosition(event.position.x, event.position.y, height);
@@ -1181,6 +1199,7 @@ export class GameController {
           showBattleText(this.scene, pos.x, pos.y, label, {
             color: BATTLE_TEXT_COLOR_INFO,
           });
+          sprite.setChargingIndicator(true);
           const move = this.setup?.moveDefinitions.get(event.moveId);
           if (move?.semiInvulnerableState) {
             sprite.setSemiInvulnerable(move.semiInvulnerableState);
@@ -1338,6 +1357,18 @@ export class GameController {
           const pos = confSprite.getTextPosition();
           showBattleText(this.scene, pos.x, pos.y, t("battle.confused"), {
             color: BATTLE_TEXT_COLOR_CONFUSED,
+            targetId: event.pokemonId,
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.Flinched: {
+        const flinchSprite = this.sprites.get(event.pokemonId);
+        if (flinchSprite) {
+          const pos = flinchSprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("status.flinched"), {
+            color: BATTLE_TEXT_COLOR_FLINCH,
             targetId: event.pokemonId,
           });
         }
@@ -1649,6 +1680,19 @@ export class GameController {
     }
   }
 
+  private isChargeT1(move: MoveDefinition, activePokemon: PokemonInstance | null): boolean {
+    if (move.twoTurnCharge !== true || !activePokemon) {
+      return false;
+    }
+    if (activePokemon.chargingMove !== undefined) {
+      return false;
+    }
+    if (move.sunSkipsCharge === true && this.state.weather === Weather.Sun) {
+      return false;
+    }
+    return true;
+  }
+
   private isDirectionalPattern(kind: TargetingKind): boolean {
     return (
       kind === TargetingKind.Cone || kind === TargetingKind.Line || kind === TargetingKind.Slash
@@ -1696,6 +1740,11 @@ export class GameController {
     const moveDefinition = this.moveDefinitions.get(moveId);
     if (!moveDefinition) {
       return null;
+    }
+
+    const activePokemon = this.getActivePokemon();
+    if (this.isChargeT1(moveDefinition, activePokemon ?? null) && activePokemon) {
+      return this.findUseMoveAction(moveId, activePokemon.position.x, activePokemon.position.y);
     }
 
     const targeting = moveDefinition.targeting;

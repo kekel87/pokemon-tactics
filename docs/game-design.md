@@ -749,6 +749,40 @@ T2 : retarget automatique, `chargingMove` cleared, KO en T2 = animation propre.
 
 Si Soleil actif en T1 → skip charge, exécution directe.
 
+---
+
+## 8f. Moves charge en 2 tours — indicateur ⚡ et Flinch (plan 094)
+
+### Moves charge Gen 1
+
+| Move | T1 (charge) | T2 (frappe) |
+|------|-------------|-------------|
+| `skull-bash` | +1 Déf (`chargeEffects`), indicateur ⚡ | Dash r3 + knockback |
+| `sky-attack` | indicateur ⚡ | Single r4 Vol 140 BP, Flinch 30%, critRatio 1 |
+| `razor-wind` | indicateur ⚡ | Cône r3 Normal 80 BP, critRatio 1 |
+| `solar-beam` | floating "Rayonne!", indicateur ⚡ | Single r4 Plante 120 BP (60 sous Pluie/Sable/Neige). Skip T1 sous Soleil. |
+
+### `MoveDefinition.chargeEffects?: Effect[]`
+
+Effets latéraux appliqués **au T1** uniquement, **sur le caster (self-target)**. `applyChargeEffects(caster)` dans `BattleEngine`. Aucun move existant ne cible l'adversaire en T1 — si nécessaire à l'avenir, ajouter champ `chargeEffectTarget`.
+
+### Indicateur ⚡ (renderer)
+
+`PokemonSprite.setChargingIndicator(active: boolean)` — symbole ⚡ affiché au-dessus du sprite de T1 à T2. Retiré en T2 juste avant l'attaque.
+
+`isChargeT1(move, pokemon)` helper renderer : retourne `true` si `pokemon.chargingMove === move.id` ET le move n'est pas skippé (`!move.sunSkipsCharge || weather !== Sun`).
+
+### InfoPanel et MoveTooltip
+
+- Badge volatile **"Charge {moveName}"** dans l'InfoPanel quand `chargingMove` est posé.
+- MoveTooltip : tag **"⏱ 2 tours"** sur tous les moves charge ; variante **"⏱ 1 tour (sous Soleil)"** sur `solar-beam`.
+
+### Flinch
+
+`StatusType.Flinch` = statut volatile consommé au début du tour suivant. Bloque à la fois **Move** (déplacement) et **UseMove** (attaque). `processFlinch` appelé dans `BattleEngine`. `BattleEventType.Flinched` émis. Moves actuels avec Flinch : `sky-attack` (30%), `waterfall` (20%), `air-slash` (30%).
+
+**Note** : l'ability `inner-focus` (Raticate, Fearow, Golbat, Canarticho, Mew) est prévue pour immuniser au Flinch — implémentée en stub Phase 4. Suintement (Shield Dust) bloque via `onSecondaryEffectBlocked` existant.
+
 ### Abilities météo
 
 | Talent | Déclencheur | Effet |

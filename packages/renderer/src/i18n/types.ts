@@ -76,6 +76,10 @@ export interface Translations {
   "status.infatuated": string;
   "status.intimidated": string;
   "status.lockedOn": string;
+  "status.charging": string;
+  "status.flinched": string;
+  "move.tooltip.twoTurnCharge": string;
+  "move.tooltip.twoTurnChargeSunSkip": string;
   "battle.ko": string;
   "direction.north": string;
   "direction.east": string;

@@ -12,6 +12,7 @@ export const StatusType = {
   Infatuated: "infatuated",
   LockedOn: "locked-on",
   Roosted: "roosted",
+  Flinch: "flinch",
 } as const;
 
 export type StatusType = (typeof StatusType)[keyof typeof StatusType];

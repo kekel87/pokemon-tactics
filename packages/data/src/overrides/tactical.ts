@@ -30,6 +30,8 @@ export interface TacticalOverride {
   twoTurnCharge?: boolean;
   sunSkipsCharge?: boolean;
   semiInvulnerableState?: SemiInvulnerableStateType;
+  chargeEffects?: Effect[];
+  critRatio?: number;
   targetsAlly?: boolean;
 }
 
@@ -1201,7 +1203,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     weatherBoostedType: true,
   },
   "solar-beam": {
-    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    targeting: { kind: TargetingKind.Line, length: 5 },
     effects: [{ kind: EffectKind.Damage }],
     twoTurnCharge: true,
     sunSkipsCharge: true,
@@ -1255,5 +1257,31 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.TransferStatStages }],
     targetsAlly: true,
+  },
+  "skull-bash": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Knockback, distance: 1 },
+    ],
+    twoTurnCharge: true,
+    chargeEffects: [
+      { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self },
+    ],
+  },
+  "sky-attack": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 30 },
+    ],
+    twoTurnCharge: true,
+    critRatio: 1,
+  },
+  "razor-wind": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+    twoTurnCharge: true,
+    critRatio: 1,
   },
 };

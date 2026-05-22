@@ -6,6 +6,12 @@ import {
 } from "@pokemon-tactic/core";
 import {
   ATTACK_DEPTH_ENVELOPE_RADIUS,
+  CHARGING_INDICATOR_COLOR,
+  CHARGING_INDICATOR_FONT_SIZE,
+  CHARGING_INDICATOR_OFFSET_X,
+  CHARGING_INDICATOR_STROKE_COLOR,
+  CHARGING_INDICATOR_STROKE_WIDTH,
+  CHARGING_INDICATOR_SYMBOL,
   CONFUSION_WOBBLE_ANGLE,
   CONFUSION_WOBBLE_DURATION_MS,
   DAMAGE_ESTIMATE_ALPHA_GUARANTEED,
@@ -74,6 +80,7 @@ export class PokemonSprite {
   private pulseTween: Phaser.Tweens.Tween | null = null;
   private statusIcon: Phaser.GameObjects.Image | null = null;
   private currentStatusKey: string = "";
+  private chargingIndicator: Phaser.GameObjects.Text | null = null;
   private readonly damageEstimateGraphics: Phaser.GameObjects.Graphics;
   private damageEstimateText: Phaser.GameObjects.Text | null = null;
   private maxHp = 0;
@@ -226,6 +233,34 @@ export class PokemonSprite {
     );
     this.statusIcon.setScale(STATUS_SPRITE_ICON_SCALE);
     this.container.add(this.statusIcon);
+  }
+
+  setChargingIndicator(active: boolean): void {
+    if (active) {
+      if (this.chargingIndicator) {
+        return;
+      }
+      const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 2;
+      this.chargingIndicator = this.scene.add.text(
+        -HP_BAR_WIDTH / 2 + CHARGING_INDICATOR_OFFSET_X,
+        offsetY + HP_BAR_HEIGHT / 2,
+        CHARGING_INDICATOR_SYMBOL,
+        {
+          fontSize: `${CHARGING_INDICATOR_FONT_SIZE}px`,
+          color: CHARGING_INDICATOR_COLOR,
+          fontFamily: FONT_FAMILY,
+          stroke: CHARGING_INDICATOR_STROKE_COLOR,
+          strokeThickness: CHARGING_INDICATOR_STROKE_WIDTH,
+        },
+      );
+      this.chargingIndicator.setOrigin(0.5, 0.5);
+      this.container.add(this.chargingIndicator);
+      return;
+    }
+    if (this.chargingIndicator) {
+      this.chargingIndicator.destroy();
+      this.chargingIndicator = null;
+    }
   }
 
   setStatusAnimation(isAsleep: boolean): void {
@@ -485,6 +520,10 @@ export class PokemonSprite {
       this.statusIcon.destroy();
       this.statusIcon = null;
       this.currentStatusKey = "";
+    }
+    if (this.chargingIndicator) {
+      this.chargingIndicator.destroy();
+      this.chargingIndicator = null;
     }
     const sprite = this.sprite;
     const key = sprite ? getAnimationKey(this.definitionId, "Faint", this.currentDirection) : null;

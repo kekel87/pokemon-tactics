@@ -20,6 +20,7 @@ const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([
   StatusTypeEnum.Infatuated,
   StatusTypeEnum.LockedOn,
   StatusTypeEnum.Roosted,
+  StatusTypeEnum.Flinch,
 ]);
 
 const STATUS_TYPE_IMMUNITIES: Partial<Record<StatusType, readonly PokemonType[]>> = {
@@ -219,6 +220,8 @@ function getStatusDuration(
       return -1;
     case StatusTypeEnum.Trapped:
       return Math.floor(random() * 2) + 4;
+    case StatusTypeEnum.Flinch:
+      return 1;
     default:
       return null;
   }

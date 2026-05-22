@@ -105,3 +105,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 091 | [Sandbox design system migration](./091-sandbox-design-system-migration.md) | done | 2026-05-21 |
 | 092 | [HitAndRun (u-turn / volt-switch / flip-turn)](./092-hit-and-run.md) | done | 2026-05-21 |
 | 093 | [Baton Pass (transfert stat stages allié r1)](./093-baton-pass.md) | done | 2026-05-22 |
+| 094 | [Charge moves visibles (skull-bash / sky-attack / razor-wind)](./094-charge-moves-visible.md) | done | 2026-05-22 |

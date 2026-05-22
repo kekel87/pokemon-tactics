@@ -47,8 +47,8 @@ function buildGoldenEngine(seed: number): {
   const pokemonDefinitions = new Map(data.pokemon.map((p) => [p.id, p]));
   const pokemonTypesMap = new Map<string, PokemonType[]>(data.pokemon.map((p) => [p.id, p.types]));
 
-  const team1Ids = ["charmander", "squirtle", "pidgey"];
-  const team2Ids = ["bulbasaur", "pikachu", "geodude"];
+  const team1Ids = ["charizard", "blastoise", "dragonite"];
+  const team2Ids = ["venusaur", "raichu", "snorlax"];
 
   const map = pocArena;
   const grid = map.tiles.map((row) =>

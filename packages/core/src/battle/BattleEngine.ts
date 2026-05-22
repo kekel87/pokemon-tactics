@@ -120,6 +120,7 @@ export class BattleEngine {
   private restrictActions = false;
   private confusedThisTurn = false;
   private confusionChecked = false;
+  private flinchedThisTurn = false;
   private battleOver = false;
 
   private getInitiativeFn(): (pokemon: PokemonInstance) => number {
@@ -396,7 +397,13 @@ export class BattleEngine {
     const isCharging = currentPokemon.chargingMove !== undefined;
     const mustActFirst = isCharging && !this.turnState.hasActed;
 
-    if (!this.turnState.hasMoved && !this.restrictActions && !isTrapped && !mustActFirst) {
+    if (
+      !this.turnState.hasMoved &&
+      !this.restrictActions &&
+      !isTrapped &&
+      !mustActFirst &&
+      !this.flinchedThisTurn
+    ) {
       const reachableTiles = this.getReachableTiles(currentPokemon);
       for (const reachable of reachableTiles) {
         actions.push({
@@ -407,11 +414,11 @@ export class BattleEngine {
       }
     }
 
-    if (this.turnState.hasMoved && this.preMoveSnapshot !== null) {
+    if (this.turnState.hasMoved && this.preMoveSnapshot !== null && !this.flinchedThisTurn) {
       actions.push({ kind: ActionKind.UndoMove, pokemonId: currentPokemonId });
     }
 
-    if (!this.turnState.hasActed && !currentPokemon.recharging) {
+    if (!this.turnState.hasActed && !currentPokemon.recharging && !this.flinchedThisTurn) {
       const allyIds = new Set<string>();
       for (const [id, p] of this.state.pokemon) {
         if (p.playerId === currentPokemon.playerId && id !== currentPokemonId) {
@@ -495,7 +502,17 @@ export class BattleEngine {
     const confusionEvents: BattleEvent[] = [];
     if (!this.confusionChecked) {
       this.confusionChecked = true;
+      this.processFlinch(currentPokemon, confusionEvents);
       this.processConfusion(currentPokemon, confusionEvents);
+    }
+
+    if (
+      this.flinchedThisTurn &&
+      (action.kind === ActionKind.Move ||
+        action.kind === ActionKind.UseMove ||
+        action.kind === ActionKind.UndoMove)
+    ) {
+      return { success: false, events: confusionEvents, error: ActionError.InvalidAction };
     }
 
     let result: ActionResult;
@@ -506,36 +523,36 @@ export class BattleEngine {
         break;
       case ActionKind.Move: {
         if (this.confusedThisTurn) {
-          const moveResult = this.executeConfusedMove(currentPokemon);
-          result = { ...moveResult, events: [...confusionEvents, ...moveResult.events] };
+          result = this.executeConfusedMove(currentPokemon);
         } else {
-          const moveResult = this.executeMove(currentPokemon, action.path);
-          result = { ...moveResult, events: [...confusionEvents, ...moveResult.events] };
+          result = this.executeMove(currentPokemon, action.path);
         }
         break;
       }
       case ActionKind.UseMove: {
         if (this.confusedThisTurn) {
-          const useMoveResult = this.executeConfusedUseMove(
+          result = this.executeConfusedUseMove(
             currentPokemon,
             action.moveId,
             action.targetPosition,
           );
-          result = { ...useMoveResult, events: [...confusionEvents, ...useMoveResult.events] };
         } else {
-          const useMoveResult = this.executeUseMove(
+          result = this.executeUseMove(
             currentPokemon,
             action.moveId,
             action.targetPosition,
             action.retreatPosition,
           );
-          result = { ...useMoveResult, events: [...confusionEvents, ...useMoveResult.events] };
         }
         break;
       }
       case ActionKind.UndoMove:
         result = this.executeUndoMove(currentPokemon);
         break;
+    }
+
+    if (confusionEvents.length > 0) {
+      result = { ...result, events: [...confusionEvents, ...result.events] };
     }
 
     if (result.success) {
@@ -772,10 +789,17 @@ export class BattleEngine {
           moveId,
         };
         this.emit(chargingEvent);
+        const chargeEventsAccumulator: BattleEvent[] = [chargingEvent];
+
+        for (const event of this.applyChargeEffects(pokemon, move)) {
+          this.emit(event);
+          chargeEventsAccumulator.push(event);
+        }
+
         this.turnState.hasActed = true;
         this.turnState.hasMoved = true;
         this.turnState.lastMoveId = moveId;
-        return { success: true, events: [chargingEvent] };
+        return { success: true, events: chargeEventsAccumulator };
       }
     }
 
@@ -915,6 +939,10 @@ export class BattleEngine {
       facingModifierMap.set(target.id, modifier);
     }
 
+    if (move.targeting.kind === TargetingKind.Dash) {
+      this.dashMoveCaster(pokemon, targetPosition, events);
+    }
+
     const effectEvents = processEffects({
       attacker: pokemon,
       targets,
@@ -962,10 +990,6 @@ export class BattleEngine {
     }
 
     this.emitPositionLinkedChecks(events);
-
-    if (move.targeting.kind === TargetingKind.Dash) {
-      this.dashMoveCaster(pokemon, targetPosition, events);
-    }
 
     if (move.targeting.kind === TargetingKind.Teleport) {
       this.teleportMoveCaster(pokemon, targetPosition, events);
@@ -1796,6 +1820,7 @@ export class BattleEngine {
       this.restrictActions = false;
       this.confusedThisTurn = false;
       this.confusionChecked = false;
+      this.flinchedThisTurn = false;
 
       const turnStarted: BattleEvent = {
         type: BattleEventType.TurnStarted,
@@ -1885,6 +1910,7 @@ export class BattleEngine {
       if (!startTurnResult.skipAction) {
         const nextPokemon = this.state.pokemon.get(nextPokemonId);
         if (nextPokemon) {
+          this.processFlinch(nextPokemon, events);
           this.processConfusion(nextPokemon, events);
           this.confusionChecked = true;
         }
@@ -1892,6 +1918,67 @@ export class BattleEngine {
 
       break;
     }
+  }
+
+  private applyChargeEffects(pokemon: PokemonInstance, move: MoveDefinition): BattleEvent[] {
+    if (!move.chargeEffects || move.chargeEffects.length === 0) {
+      return [];
+    }
+
+    for (const effect of move.chargeEffects) {
+      if ("target" in effect && effect.target !== EffectTarget.Self) {
+        throw new Error(
+          `chargeEffects only support EffectTarget.Self (move "${move.id}", kind "${effect.kind}")`,
+        );
+      }
+    }
+
+    const syntheticMove: MoveDefinition = { ...move, effects: move.chargeEffects };
+    const attackerTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const targetTypesMap = new Map<string, PokemonType[]>();
+    targetTypesMap.set(pokemon.id, attackerTypes);
+
+    return processEffects({
+      attacker: pokemon,
+      targets: [pokemon],
+      move: syntheticMove,
+      state: this.state,
+      typeChart: this.typeChart,
+      attackerTypes,
+      targetTypesMap,
+      targetPosition: pokemon.position,
+      random: this.random,
+      heightModifier: 1,
+      terrainModifier: 1,
+      facingModifierMap: new Map(),
+      statusRules: this.statusRules,
+      abilityRegistry: this.abilityRegistry ?? undefined,
+      itemRegistry: this.itemRegistry ?? undefined,
+    });
+  }
+
+  private processFlinch(pokemon: PokemonInstance, events: BattleEvent[]): void {
+    const flinchIndex = pokemon.volatileStatuses.findIndex((v) => v.type === StatusType.Flinch);
+    if (flinchIndex === -1) {
+      return;
+    }
+    pokemon.volatileStatuses.splice(flinchIndex, 1);
+    this.flinchedThisTurn = true;
+
+    const flinchEvent: BattleEvent = {
+      type: BattleEventType.Flinched,
+      pokemonId: pokemon.id,
+    };
+    this.emit(flinchEvent);
+    events.push(flinchEvent);
+
+    const removedEvent: BattleEvent = {
+      type: BattleEventType.StatusRemoved,
+      targetId: pokemon.id,
+      status: StatusType.Flinch,
+    };
+    this.emit(removedEvent);
+    events.push(removedEvent);
   }
 
   private processConfusion(pokemon: PokemonInstance, events: BattleEvent[]): void {
@@ -2169,6 +2256,7 @@ export class BattleEngine {
       this.restrictActions = false;
       this.confusedThisTurn = false;
       this.confusionChecked = false;
+      this.flinchedThisTurn = false;
 
       this.state.turnOrder = [nextPokemonId];
       this.state.currentTurnIndex = 0;
@@ -2250,6 +2338,7 @@ export class BattleEngine {
 
       const nextPokemon = this.state.pokemon.get(nextPokemonId);
       if (nextPokemon) {
+        this.processFlinch(nextPokemon, events);
         this.processConfusion(nextPokemon, events);
         this.confusionChecked = true;
       }

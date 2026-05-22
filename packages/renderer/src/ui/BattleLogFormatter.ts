@@ -294,6 +294,12 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.Flinched: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message = lang === "fr" ? `${name} a bronché !` : `${name} flinched!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
     case BattleEventType.KnockbackApplied: {
       const name = context.getPokemonName(event.pokemonId);
       const message = lang === "fr" ? `${name} est repoussé !` : `${name} was knocked back!`;

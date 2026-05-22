@@ -967,7 +967,35 @@
     {
       "kind": "use_move",
       "pokemonId": "p1-blastoise",
-      "moveId": "double-edge",
+      "moveId": "skull-bash",
+      "targetPosition": {
+        "x": 6,
+        "y": 4
+      }
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p1-blastoise",
+      "direction": "north"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p2-raichu",
+      "moveId": "skull-bash",
+      "targetPosition": {
+        "x": 6,
+        "y": 3
+      }
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p2-raichu",
+      "direction": "south"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p1-blastoise",
+      "moveId": "skull-bash",
       "targetPosition": {
         "x": 6,
         "y": 3
@@ -978,11 +1006,7 @@
       "pokemonId": "p1-blastoise",
       "path": [
         {
-          "x": 5,
-          "y": 4
-        },
-        {
-          "x": 5,
+          "x": 6,
           "y": 3
         }
       ]
@@ -990,15 +1014,15 @@
     {
       "kind": "end_turn",
       "pokemonId": "p1-blastoise",
-      "direction": "east"
+      "direction": "north"
     },
     {
       "kind": "use_move",
       "pokemonId": "p2-raichu",
-      "moveId": "focus-blast",
+      "moveId": "skull-bash",
       "targetPosition": {
-        "x": 5,
-        "y": 0
+        "x": 6,
+        "y": 1
       }
     },
     {
@@ -1007,10 +1031,6 @@
       "path": [
         {
           "x": 6,
-          "y": 2
-        },
-        {
-          "x": 5,
           "y": 2
         }
       ]
@@ -1023,9 +1043,37 @@
     {
       "kind": "use_move",
       "pokemonId": "p1-blastoise",
-      "moveId": "double-edge",
+      "moveId": "skull-bash",
       "targetPosition": {
-        "x": 5,
+        "x": 6,
+        "y": 3
+      }
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p1-blastoise",
+      "direction": "north"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p2-raichu",
+      "moveId": "skull-bash",
+      "targetPosition": {
+        "x": 6,
+        "y": 2
+      }
+    },
+    {
+      "kind": "end_turn",
+      "pokemonId": "p2-raichu",
+      "direction": "south"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p1-blastoise",
+      "moveId": "skull-bash",
+      "targetPosition": {
+        "x": 6,
         "y": 2
       }
     }

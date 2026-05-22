@@ -67,7 +67,7 @@ export class MoveTooltip {
 
     const padding = 10;
     const lineHeight = 16;
-    const textLines = 3;
+    const textLines = move.twoTurnCharge ? 4 : 3;
     const totalHeight = padding + textLines * lineHeight + 4 + gridHeight + padding;
 
     const x = menuX - TOOLTIP_WIDTH - 8;
@@ -109,6 +109,14 @@ export class MoveTooltip {
       : patternName;
     this.addText(contentX, contentY, thirdLine);
     contentY += lineHeight + 4;
+
+    if (move.twoTurnCharge) {
+      const chargeKey: TranslationKey = move.sunSkipsCharge
+        ? "move.tooltip.twoTurnChargeSunSkip"
+        : "move.tooltip.twoTurnCharge";
+      this.addText(contentX, contentY, t(chargeKey));
+      contentY += lineHeight;
+    }
 
     const gridX = contentX + Math.floor((TOOLTIP_WIDTH - 2 * padding - gridWidth) / 2);
     this.drawPatternGrid(preview, gridX, contentY);

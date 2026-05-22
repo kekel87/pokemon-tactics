@@ -296,6 +296,13 @@ export const STATUS_ICON_KEYS = [
 export const STATUS_SPRITE_ICON_OFFSET_X = 8;
 export const STATUS_SPRITE_ICON_SCALE = 0.175;
 
+export const CHARGING_INDICATOR_OFFSET_X = -8;
+export const CHARGING_INDICATOR_FONT_SIZE = 8;
+export const CHARGING_INDICATOR_COLOR = "#fff36a";
+export const CHARGING_INDICATOR_STROKE_COLOR = "#000000";
+export const CHARGING_INDICATOR_STROKE_WIDTH = 2;
+export const CHARGING_INDICATOR_SYMBOL = "⚡";
+
 export const DAMAGE_ESTIMATE_COLOR = 0x000000;
 // Alpha values tuned so the overlay is clearly visible on a colored HP bar.
 // 0.5 / 0.3 (the previous values) were lost in the fill color. 0.85 for
@@ -337,6 +344,7 @@ export const BATTLE_TEXT_COLOR_FALL_DAMAGE = "#ff8844";
 export const BATTLE_TEXT_COLOR_BUFF = "#4488ff";
 export const BATTLE_TEXT_COLOR_DEBUFF = "#ff4444";
 export const BATTLE_TEXT_COLOR_CONFUSED = "#aa44dd";
+export const BATTLE_TEXT_COLOR_FLINCH = "#cc88ff";
 export const BATTLE_TEXT_COLOR_INFO = "#dddddd";
 export const BATTLE_TEXT_COLOR_ABILITY = "#ffe066";
 export const BATTLE_TEXT_COLOR_ITEM = "#88ff88";
