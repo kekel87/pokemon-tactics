@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 157 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
+| Attaques | 158 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 22 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 

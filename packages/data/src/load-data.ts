@@ -80,6 +80,7 @@ export function loadData(): GameData {
       ...(merged.semiInvulnerableState
         ? { semiInvulnerableState: merged.semiInvulnerableState }
         : {}),
+      ...(merged.targetsAlly ? { targetsAlly: true } : {}),
     };
     return moveDefinition;
   });

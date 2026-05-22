@@ -49,6 +49,7 @@ export const BattleEventType = {
   Teleported: "teleported",
   HitAndRunRetreat: "hit_and_run_retreat",
   HitAndRunRetreatFallback: "hit_and_run_retreat_fallback",
+  BatonPassed: "baton_passed",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

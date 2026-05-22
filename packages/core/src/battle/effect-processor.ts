@@ -23,6 +23,7 @@ import { handleRecoil } from "./handlers/handle-recoil";
 import { handleSetWeather } from "./handlers/handle-set-weather";
 import { handleStatChange } from "./handlers/handle-stat-change";
 import { handleStatus } from "./handlers/handle-status";
+import { handleTransferStatStages } from "./handlers/handle-transfer-stat-stages";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 
 interface ProcessContext {
@@ -54,6 +55,7 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.Recoil, handleRecoil);
   registry.register(EffectKind.Drain, handleDrain);
   registry.register(EffectKind.SetWeather, handleSetWeather);
+  registry.register(EffectKind.TransferStatStages, handleTransferStatStages);
   return registry;
 }
 

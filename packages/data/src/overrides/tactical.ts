@@ -30,6 +30,7 @@ export interface TacticalOverride {
   twoTurnCharge?: boolean;
   sunSkipsCharge?: boolean;
   semiInvulnerableState?: SemiInvulnerableStateType;
+  targetsAlly?: boolean;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -1249,5 +1250,10 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
     twoTurnCharge: true,
     semiInvulnerableState: SemiInvulnerableState.Diving,
+  },
+  "baton-pass": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.TransferStatStages }],
+    targetsAlly: true,
   },
 };

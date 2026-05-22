@@ -639,12 +639,17 @@ export class BattleEngine {
       case TargetingKind.Zone:
       case TargetingKind.Cross:
         return [pokemon.position];
-      case TargetingKind.Single:
-        return this.grid.getTilesInRange(
+      case TargetingKind.Single: {
+        const tiles = this.grid.getTilesInRange(
           pokemon.position,
           targeting.range.min,
           targeting.range.max,
         );
+        if (move.targetsAlly === true) {
+          return tiles.filter((position) => this.isAdjacentAllyTile(pokemon, position));
+        }
+        return tiles;
+      }
       case TargetingKind.Cone:
       case TargetingKind.Line:
       case TargetingKind.Slash:
@@ -689,6 +694,18 @@ export class BattleEngine {
           targeting.hitRange.max,
         );
     }
+  }
+
+  private isAdjacentAllyTile(caster: PokemonInstance, position: Position): boolean {
+    const occupantId = this.grid.getOccupant(position);
+    if (occupantId === null || occupantId === caster.id) {
+      return false;
+    }
+    const occupant = this.state.pokemon.get(occupantId);
+    if (!occupant || occupant.currentHp <= 0) {
+      return false;
+    }
+    return occupant.playerId === caster.playerId;
   }
 
   private getFourDirectionPositions(origin: Position): Position[] {
@@ -780,6 +797,10 @@ export class BattleEngine {
     );
 
     if (affectedTiles.length === 0) {
+      return { success: false, events: [], error: ActionError.InvalidTarget };
+    }
+
+    if (move.targetsAlly === true && !this.isAdjacentAllyTile(pokemon, targetPosition)) {
       return { success: false, events: [], error: ActionError.InvalidTarget };
     }
 

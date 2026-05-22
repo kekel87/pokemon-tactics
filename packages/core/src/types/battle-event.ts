@@ -180,4 +180,9 @@ export type BattleEvent =
       type: typeof BattleEventType.HitAndRunRetreatFallback;
       pokemonId: string;
       reason: HitAndRunRetreatFallbackReason;
+    }
+  | {
+      type: typeof BattleEventType.BatonPassed;
+      casterId: string;
+      targetId: string;
     };

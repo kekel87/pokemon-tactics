@@ -39,4 +39,5 @@ export type Effect =
   | { kind: typeof EffectKind.HealSelf; percent: number }
   | { kind: typeof EffectKind.Recoil; fraction: number }
   | { kind: typeof EffectKind.Drain; fraction: number }
-  | { kind: typeof EffectKind.SetWeather; weather: Weather; turns: number };
+  | { kind: typeof EffectKind.SetWeather; weather: Weather; turns: number }
+  | { kind: typeof EffectKind.TransferStatStages };

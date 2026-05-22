@@ -1,5 +1,6 @@
 import type { BattleEngine } from "../battle/BattleEngine";
 import { isEffectivelyFlying } from "../battle/effective-flying";
+import { TRANSFERABLE_STATS } from "../battle/handlers/baton-pass-stats";
 import { isTerrainImmune } from "../battle/terrain-effects";
 import { ActionKind } from "../enums/action-kind";
 import { EffectKind } from "../enums/effect-kind";
@@ -72,6 +73,10 @@ function scoreUseMove(
     return scoreSelfMove(currentPokemon, enemies, move, weights);
   }
 
+  if (move.targetsAlly === true) {
+    return scoreAllyTargetMove(action, currentPokemon, allies, move, weights);
+  }
+
   const affectedTiles = estimateAffectedTiles(
     move.targeting,
     currentPokemon.position,
@@ -110,6 +115,53 @@ function scoreUseMove(
   }
 
   return score;
+}
+
+function scoreAllyTargetMove(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  currentPokemon: PokemonInstance,
+  allies: PokemonInstance[],
+  move: MoveDefinition,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const target = allies.find(
+    (ally) =>
+      ally.position.x === action.targetPosition.x && ally.position.y === action.targetPosition.y,
+  );
+  if (!target) {
+    return -1;
+  }
+
+  const hasTransfer = move.effects.some((effect) => effect.kind === EffectKind.TransferStatStages);
+  if (!hasTransfer) {
+    return 0;
+  }
+
+  let casterPositive = 0;
+  let casterNegative = 0;
+  let targetPositive = 0;
+  for (const stat of TRANSFERABLE_STATS) {
+    const cs = currentPokemon.statStages[stat];
+    const ts = target.statStages[stat];
+    if (cs > 0) {
+      casterPositive += cs;
+    } else {
+      casterNegative += cs;
+    }
+    if (ts > 0) {
+      targetPositive += ts;
+    }
+  }
+
+  if (casterPositive === 0) {
+    return -20;
+  }
+
+  let score = casterPositive * 4 + casterNegative * 2;
+  if (targetPositive < casterPositive) {
+    score += 8;
+  }
+  return score * (weights.statChanges / 10 + 1);
 }
 
 function scoreSelfMove(

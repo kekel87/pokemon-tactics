@@ -61,6 +61,10 @@ export function checkDefense(
     return noEffect;
   }
 
+  if (move.targetsAlly === true) {
+    return noEffect;
+  }
+
   const defense = defender.activeDefense;
   const attackOrigin = getAttackOrigin(attacker, move, targetPosition);
 

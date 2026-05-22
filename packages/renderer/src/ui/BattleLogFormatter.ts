@@ -439,6 +439,20 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.BatonPassed: {
+      const casterName = context.getPokemonName(event.casterId);
+      const targetName = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `${casterName} passe le relais à ${targetName} !`
+          : `${casterName} passed the baton to ${targetName}!`;
+      return {
+        message,
+        color: BattleLogColors.move,
+        pokemonIds: [event.casterId, event.targetId],
+      };
+    }
+
     default:
       return null;
   }

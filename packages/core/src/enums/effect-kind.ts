@@ -8,6 +8,7 @@ export const EffectKind = {
   Recoil: "recoil",
   Drain: "drain",
   SetWeather: "set_weather",
+  TransferStatStages: "transfer_stat_stages",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];
