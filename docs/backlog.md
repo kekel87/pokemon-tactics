@@ -78,6 +78,12 @@ Bugs connus et retours playtest non traités.
 
 ## Tâches futures (hors backlog actif)
 
+### Sprites originaux — plan B si DMCA Nintendo (plan 096)
+- Vecteur risque IP principal : 502 sprites PNG PMDCollab rippés Showdown/PokeAPI.
+- Décision #382 : risque assumé, profil bas (zéro monétisation, pas de post manuel, niche).
+- Si DMCA un jour → page itch retirée immédiatement, puis remplacer sprites par créatures originales (gros chantier, projet successeur).
+- Hors scope plan 096. À planifier si jamais déclenché.
+
 ### Aurora Veil v2 — post intégration Legends Z-A
 - Dropped v1 (plan 095) : 0 learner Gen 1 roster, tous les 9 learners Gen 7+ hors roster.
 - Reprise quand Alolan Ninetales et Vulpix-Alola sont intégrés via le pipeline Z-A.

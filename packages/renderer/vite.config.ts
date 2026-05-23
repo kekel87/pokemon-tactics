@@ -30,7 +30,7 @@ function goatcounterPlugin(): Plugin {
 }
 
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS ? "/pokemon-tactics/" : "/",
+  base: process.env.ITCH_DEPLOY ? "./" : process.env.GITHUB_ACTIONS ? "/pokemon-tactics/" : "/",
   resolve: {
     tsconfigPaths: true,
   },
