@@ -46,4 +46,4 @@ jobs:
           itch_game: pokemon-tactics
           version: ${{ github.event.release.tag_name || inputs.version }}
           files: |
-            html5:packages/renderer/dist
+            html5 packages/renderer/dist
