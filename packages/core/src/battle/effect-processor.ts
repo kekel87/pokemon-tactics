@@ -19,6 +19,7 @@ import { handleDefensive } from "./handlers/handle-defensive";
 import { handleDrain } from "./handlers/handle-drain";
 import { handleHealSelf } from "./handlers/handle-heal-self";
 import { handleKnockback } from "./handlers/handle-knockback";
+import { handlePostScreen } from "./handlers/handle-post-screen";
 import { handleRecoil } from "./handlers/handle-recoil";
 import { handleSetWeather } from "./handlers/handle-set-weather";
 import { handleStatChange } from "./handlers/handle-stat-change";
@@ -56,6 +57,7 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.Drain, handleDrain);
   registry.register(EffectKind.SetWeather, handleSetWeather);
   registry.register(EffectKind.TransferStatStages, handleTransferStatStages);
+  registry.register(EffectKind.PostScreen, handlePostScreen);
   return registry;
 }
 

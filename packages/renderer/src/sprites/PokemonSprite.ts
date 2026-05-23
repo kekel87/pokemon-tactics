@@ -6,11 +6,7 @@ import {
 } from "@pokemon-tactic/core";
 import {
   ATTACK_DEPTH_ENVELOPE_RADIUS,
-  CHARGING_INDICATOR_COLOR,
-  CHARGING_INDICATOR_FONT_SIZE,
-  CHARGING_INDICATOR_OFFSET_X,
-  CHARGING_INDICATOR_STROKE_COLOR,
-  CHARGING_INDICATOR_STROKE_WIDTH,
+  CHARGING_INDICATOR_ID,
   CHARGING_INDICATOR_SYMBOL,
   CONFUSION_WOBBLE_ANGLE,
   CONFUSION_WOBBLE_DURATION_MS,
@@ -35,6 +31,11 @@ import {
   HP_BAR_HEIGHT,
   HP_BAR_WIDTH,
   KO_TINT_COLOR,
+  LEFT_INDICATOR_FIRST_GAP,
+  LEFT_INDICATOR_ICON_FONT_SIZE,
+  LEFT_INDICATOR_ICON_Y_OFFSET,
+  LEFT_INDICATOR_SLOT_OFFSET,
+  LEFT_INDICATOR_TEXT_RESOLUTION,
   MOVE_TWEEN_DURATION_MS,
   POKEMON_SPRITE_BORDER_ALPHA,
   POKEMON_SPRITE_BORDER_WIDTH,
@@ -55,6 +56,20 @@ import {
 import type { IsometricGrid } from "../grid/IsometricGrid";
 import { t } from "../i18n";
 import { getAnimationKey, getSpriteOffsets, type SpriteOffsets } from "./SpriteLoader";
+
+export interface LeftIndicatorSpec {
+  id: string;
+  symbol: string;
+  counter?: number;
+  alpha?: number;
+  postedRound?: number;
+}
+
+interface IndicatorEntry {
+  spec: LeftIndicatorSpec;
+  seq: number;
+  container: Phaser.GameObjects.Container | null;
+}
 
 const CORE_TO_PMD_DIRECTION: Record<Direction, string> = {
   [Direction.South]: "SouthWest",
@@ -80,7 +95,8 @@ export class PokemonSprite {
   private pulseTween: Phaser.Tweens.Tween | null = null;
   private statusIcon: Phaser.GameObjects.Image | null = null;
   private currentStatusKey: string = "";
-  private chargingIndicator: Phaser.GameObjects.Text | null = null;
+  private readonly indicatorStack = new Map<string, IndicatorEntry>();
+  private nextIndicatorSeq = 0;
   private readonly damageEstimateGraphics: Phaser.GameObjects.Graphics;
   private damageEstimateText: Phaser.GameObjects.Text | null = null;
   private maxHp = 0;
@@ -235,32 +251,116 @@ export class PokemonSprite {
     this.container.add(this.statusIcon);
   }
 
+  private getLeftIndicatorSlotX(slotIndex: number): number {
+    return -HP_BAR_WIDTH / 2 - LEFT_INDICATOR_FIRST_GAP - slotIndex * LEFT_INDICATOR_SLOT_OFFSET;
+  }
+
+  private getLeftIndicatorSlotY(): number {
+    const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 2;
+    return offsetY + HP_BAR_HEIGHT / 2;
+  }
+
   setChargingIndicator(active: boolean): void {
     if (active) {
-      if (this.chargingIndicator) {
+      if (this.indicatorStack.has(CHARGING_INDICATOR_ID)) {
         return;
       }
-      const offsetY = this.usesAtlas ? this.uiOffsetY : -POKEMON_SPRITE_RADIUS - HP_BAR_HEIGHT - 2;
-      this.chargingIndicator = this.scene.add.text(
-        -HP_BAR_WIDTH / 2 + CHARGING_INDICATOR_OFFSET_X,
-        offsetY + HP_BAR_HEIGHT / 2,
-        CHARGING_INDICATOR_SYMBOL,
-        {
-          fontSize: `${CHARGING_INDICATOR_FONT_SIZE}px`,
-          color: CHARGING_INDICATOR_COLOR,
-          fontFamily: FONT_FAMILY,
-          stroke: CHARGING_INDICATOR_STROKE_COLOR,
-          strokeThickness: CHARGING_INDICATOR_STROKE_WIDTH,
-        },
-      );
-      this.chargingIndicator.setOrigin(0.5, 0.5);
-      this.container.add(this.chargingIndicator);
-      return;
+      this.indicatorStack.set(CHARGING_INDICATOR_ID, {
+        spec: { id: CHARGING_INDICATOR_ID, symbol: CHARGING_INDICATOR_SYMBOL, alpha: 1.0 },
+        seq: this.nextIndicatorSeq++,
+        container: null,
+      });
+    } else {
+      const entry = this.indicatorStack.get(CHARGING_INDICATOR_ID);
+      if (!entry) {
+        return;
+      }
+      if (entry.container) {
+        entry.container.destroy();
+        entry.container = null;
+      }
+      this.indicatorStack.delete(CHARGING_INDICATOR_ID);
     }
-    if (this.chargingIndicator) {
-      this.chargingIndicator.destroy();
-      this.chargingIndicator = null;
+    this.relayoutIndicators();
+  }
+
+  setLeftIndicators(specs: LeftIndicatorSpec[]): void {
+    const incomingIds = new Set(specs.map((spec) => spec.id));
+    for (const id of [...this.indicatorStack.keys()]) {
+      if (id === CHARGING_INDICATOR_ID) {
+        continue;
+      }
+      if (!incomingIds.has(id)) {
+        const entry = this.indicatorStack.get(id);
+        if (entry?.container) {
+          entry.container.destroy();
+          entry.container = null;
+        }
+        this.indicatorStack.delete(id);
+      }
     }
+    for (const spec of specs) {
+      const existing = this.indicatorStack.get(spec.id);
+      if (existing) {
+        existing.spec = spec;
+      } else {
+        this.indicatorStack.set(spec.id, {
+          spec,
+          seq: this.nextIndicatorSeq++,
+          container: null,
+        });
+      }
+    }
+    this.relayoutIndicators();
+  }
+
+  private relayoutIndicators(): void {
+    for (const entry of this.indicatorStack.values()) {
+      if (entry.container) {
+        entry.container.destroy();
+        entry.container = null;
+      }
+    }
+    const sorted = [...this.indicatorStack.values()].sort((a, b) => a.seq - b.seq);
+    for (let i = 0; i < sorted.length; i++) {
+      const entry = sorted[i];
+      if (!entry) {
+        continue;
+      }
+      entry.container = this.buildIndicatorContainer(entry.spec, i);
+      this.container.add(entry.container);
+    }
+  }
+
+  private buildIndicatorContainer(
+    spec: LeftIndicatorSpec,
+    slotIndex: number,
+  ): Phaser.GameObjects.Container {
+    const slot = this.scene.add.container(
+      this.getLeftIndicatorSlotX(slotIndex),
+      this.getLeftIndicatorSlotY() + LEFT_INDICATOR_ICON_Y_OFFSET,
+    );
+    const textStyle: Phaser.Types.GameObjects.Text.TextStyle = {
+      fontSize: `${LEFT_INDICATOR_ICON_FONT_SIZE}px`,
+      fontFamily: FONT_FAMILY,
+      resolution: LEFT_INDICATOR_TEXT_RESOLUTION,
+    };
+    const icon = this.scene.add.text(0, 0, spec.symbol, textStyle);
+    icon.setOrigin(0.5, 0.5);
+    slot.add(icon);
+    if (spec.alpha !== undefined) {
+      slot.setAlpha(spec.alpha);
+    }
+    return slot;
+  }
+
+  clearAllIndicators(): void {
+    for (const entry of this.indicatorStack.values()) {
+      if (entry.container) {
+        entry.container.destroy();
+      }
+    }
+    this.indicatorStack.clear();
   }
 
   setStatusAnimation(isAsleep: boolean): void {
@@ -521,10 +621,7 @@ export class PokemonSprite {
       this.statusIcon = null;
       this.currentStatusKey = "";
     }
-    if (this.chargingIndicator) {
-      this.chargingIndicator.destroy();
-      this.chargingIndicator = null;
-    }
+    this.clearAllIndicators();
     const sprite = this.sprite;
     const key = sprite ? getAnimationKey(this.definitionId, "Faint", this.currentDirection) : null;
     const canPlayFaint = sprite && key && this.scene.anims.exists(key);

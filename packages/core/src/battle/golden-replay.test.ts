@@ -9,6 +9,7 @@ import { PlayerId } from "../enums/player-id";
 import { PokemonGender } from "../enums/pokemon-gender";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
+import { Weather } from "../enums/weather";
 import type { Action } from "../types/action";
 import type { BattleReplay } from "../types/battle-replay";
 import type { MoveDefinition } from "../types/move-definition";
@@ -131,6 +132,9 @@ function buildGoldenEngine(seed: number): BattleEngine {
     currentTurnIndex: 0,
     roundNumber: 1,
     predictedNextRoundOrder: [] as string[],
+    weather: Weather.None,
+    weatherTurnsRemaining: 0,
+    screens: [],
   };
 
   const random = createPrng(seed);

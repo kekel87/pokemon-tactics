@@ -93,7 +93,9 @@ describe("Flinch volatile status", () => {
       direction: Direction.East,
     });
 
-    expect(state.pokemon.get("flinched")?.volatileStatuses.some((v) => v.type === StatusType.Flinch)).toBe(false);
+    expect(
+      state.pokemon.get("flinched")?.volatileStatuses.some((v) => v.type === StatusType.Flinch),
+    ).toBe(false);
   });
 
   it("allows EndTurn so the flinched Pokemon can pass and rotate", () => {

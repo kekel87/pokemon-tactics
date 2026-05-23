@@ -16,6 +16,7 @@ export { PlayerController } from "./player-controller";
 export { PlayerId } from "./player-id";
 export { PokemonGender } from "./pokemon-gender";
 export { PokemonType } from "./pokemon-type";
+export { ScreenKind } from "./screen-kind";
 export { StatName } from "./stat-name";
 export { StatusImmuneReason } from "./status-immune-reason";
 export { StatusType } from "./status-type";

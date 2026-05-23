@@ -41,6 +41,8 @@ export function calculateDamageWithCrit(
   itemRegistry?: HeldItemHandlerRegistry,
   weatherBpMultiplier = 1.0,
   defenseWeatherMultiplier = 1.0,
+  screenMultiplier = 1.0,
+  brickBreakMultiplier = 1.0,
 ): DamageResult {
   if (move.category === Category.Status || move.power === 0) {
     return { damage: 0, isCrit: false };
@@ -135,6 +137,7 @@ export function calculateDamageWithCrit(
     }) ?? 1.0;
 
   const critMod = isCrit ? 1.5 : 1.0;
+  const effectiveScreenMultiplier = isCrit ? 1.0 : screenMultiplier;
 
   const damage = Math.max(
     1,
@@ -150,7 +153,9 @@ export function calculateDamageWithCrit(
         defenderAbilityMod *
         attackerItemMod *
         defenderItemMod *
-        critMod,
+        critMod *
+        effectiveScreenMultiplier *
+        brickBreakMultiplier,
     ),
   );
 
@@ -174,6 +179,8 @@ export function calculateDamage(
   itemRegistry?: HeldItemHandlerRegistry,
   weatherBpMultiplier = 1.0,
   defenseWeatherMultiplier = 1.0,
+  screenMultiplier = 1.0,
+  brickBreakMultiplier = 1.0,
 ): number {
   return calculateDamageWithCrit(
     attacker,
@@ -191,6 +198,8 @@ export function calculateDamage(
     itemRegistry,
     weatherBpMultiplier,
     defenseWeatherMultiplier,
+    screenMultiplier,
+    brickBreakMultiplier,
   ).damage;
 }
 

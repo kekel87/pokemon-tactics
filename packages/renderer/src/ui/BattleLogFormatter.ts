@@ -424,6 +424,62 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.ScreenPosted: {
+      const name = context.getPokemonName(event.casterId);
+      const screenLabel =
+        event.kind === "reflect"
+          ? lang === "fr"
+            ? "Protection"
+            : "Reflect"
+          : lang === "fr"
+            ? "Mur Lumière"
+            : "Light Screen";
+      const message =
+        lang === "fr"
+          ? `${name} pose ${screenLabel} (${event.durationRounds} tours)`
+          : `${name} sets up ${screenLabel} (${event.durationRounds} turns)`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.ScreenDissipated: {
+      const name = context.getPokemonName(event.casterId);
+      const screenLabel =
+        event.kind === "reflect"
+          ? lang === "fr"
+            ? "Protection"
+            : "Reflect"
+          : lang === "fr"
+            ? "Mur Lumière"
+            : "Light Screen";
+      const message =
+        lang === "fr"
+          ? `L'aura ${screenLabel} de ${name} se dissipe`
+          : `${name}'s ${screenLabel} aura faded`;
+      return { message, color: BattleLogColors.turn, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.ScreenBroken: {
+      const breakerName = context.getPokemonName(event.breakerId);
+      const casterName = context.getPokemonName(event.casterId);
+      const screenLabel =
+        event.kind === "reflect"
+          ? lang === "fr"
+            ? "Protection"
+            : "Reflect"
+          : lang === "fr"
+            ? "Mur Lumière"
+            : "Light Screen";
+      const message =
+        lang === "fr"
+          ? `${breakerName} brise l'aura ${screenLabel} de ${casterName} !`
+          : `${breakerName} broke ${casterName}'s ${screenLabel} aura!`;
+      return {
+        message,
+        color: BattleLogColors.damage,
+        pokemonIds: [event.breakerId, event.casterId],
+      };
+    }
+
     case BattleEventType.Teleported: {
       const name = context.getPokemonName(event.pokemonId);
       const message = lang === "fr" ? `${name} se téléporte !` : `${name} teleports!`;

@@ -78,6 +78,21 @@ Bugs connus et retours playtest non traités.
 
 ## Tâches futures (hors backlog actif)
 
+### Aurora Veil v2 — post intégration Legends Z-A
+- Dropped v1 (plan 095) : 0 learner Gen 1 roster, tous les 9 learners Gen 7+ hors roster.
+- Reprise quand Alolan Ninetales et Vulpix-Alola sont intégrés via le pipeline Z-A.
+- Réutilise infrastructure `ScreenAura` + `EffectKind.PostScreen` ; ajouter variant `ScreenKind.AuroraVeil` + handler combiné Phys+Spé. Requiert `state.weather === Weather.Snow` à la pose.
+
+### Mist / Safeguard — Team Protections bundle
+- Mist : bloque les baisses de stats sur alliés r3 caster (mirror Reflect côté stat).
+- Safeguard : immunité statuts majeurs sur alliés r3 caster.
+- Bundle "Team Protections" v2, séparé du plan 095 (mécaniques distinctes des screens dégâts).
+
+### Sandbox panel — config screens active au boot
+- Plan 095 étape 14 (optionnelle non livrée v1).
+- UI : panneau "Écrans actifs" avec sélection Kind + caster + tours restants → seed `state.screens` au démarrage sandbox.
+- Utile pour QA/playtest sans devoir poser le move chaque session.
+
 ### Ajouter Pokemon Legends Z-A comme source de données
 - Showdown mod ZA : `https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/mods/gen9legends/`
 - Fichiers : `pokedex.ts` (Mega ZA — Mega Starmie, Mega Mawile, Mega Medicham), `learnsets.ts`, `formats-data.ts`, `scripts.ts`

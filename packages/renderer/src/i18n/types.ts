@@ -244,6 +244,15 @@ export interface Translations {
   "weather.charging": string;
   "weather.turnsLeft": string;
   "weather.float.freezePrevented": string;
+  "screen.posted.reflect": string;
+  "screen.posted.lightScreen": string;
+  "screen.dissipated.reflect": string;
+  "screen.dissipated.lightScreen": string;
+  "screen.broken": string;
+  "screen.kind.reflect": string;
+  "screen.kind.lightScreen": string;
+  "infoPanel.aura.caster": string;
+  "infoPanel.aura.protected": string;
   "battle.noEffect": string;
   "move.charging.solar-beam": string;
   "sandbox.weather": string;

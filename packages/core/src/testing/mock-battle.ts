@@ -158,6 +158,7 @@ export abstract class MockBattle {
       predictedNextRoundOrder: [],
       weather: Weather.None,
       weatherTurnsRemaining: 0,
+      screens: [],
     };
   }
 }

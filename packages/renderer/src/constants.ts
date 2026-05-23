@@ -215,6 +215,7 @@ export const DEPTH_GRID_TILES = 0;
 export const DEPTH_TILE_MAX_ELEVATION = 5;
 export const DEPTH_HIGHLIGHT_ISO_OFFSET = 0.1;
 export const DEPTH_ENEMY_RANGE_ISO_OFFSET = 0.15;
+export const DEPTH_SCREEN_HIGHLIGHT_ISO_OFFSET = 0.17;
 export const DEPTH_PREVIEW_ISO_OFFSET = 0.2;
 export const DEPTH_CURSOR_GROUND = 500;
 export const DEPTH_POKEMON_BASE = 520;
@@ -296,12 +297,25 @@ export const STATUS_ICON_KEYS = [
 export const STATUS_SPRITE_ICON_OFFSET_X = 8;
 export const STATUS_SPRITE_ICON_SCALE = 0.175;
 
-export const CHARGING_INDICATOR_OFFSET_X = -8;
-export const CHARGING_INDICATOR_FONT_SIZE = 8;
-export const CHARGING_INDICATOR_COLOR = "#fff36a";
-export const CHARGING_INDICATOR_STROKE_COLOR = "#000000";
-export const CHARGING_INDICATOR_STROKE_WIDTH = 2;
+export const LEFT_INDICATOR_FIRST_GAP = 3;
+export const LEFT_INDICATOR_SLOT_OFFSET = 5;
+export const LEFT_INDICATOR_ICON_FONT_SIZE = 5;
+export const LEFT_INDICATOR_ICON_Y_OFFSET = -1;
+export const LEFT_INDICATOR_TEXT_RESOLUTION = 3;
+
 export const CHARGING_INDICATOR_SYMBOL = "⚡";
+export const CHARGING_INDICATOR_ID = "charging";
+
+export const SCREEN_REFLECT_SYMBOL = "🛡️";
+export const SCREEN_LIGHT_SCREEN_SYMBOL = "✨";
+export const SCREEN_REFLECT_ID = "reflect";
+export const SCREEN_LIGHT_SCREEN_ID = "light-screen";
+export const SCREEN_PROTECTED_ALPHA = 0.75;
+
+export const SCREEN_HOVER_AURA_FONT_SIZE = 6;
+export const SCREEN_HOVER_AURA_ALPHA = 0.7;
+
+export const SCREEN_HIGHLIGHT_RADIUS_TILES = 3;
 
 export const DAMAGE_ESTIMATE_COLOR = 0x000000;
 // Alpha values tuned so the overlay is clearly visible on a colored HP bar.

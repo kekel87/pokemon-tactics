@@ -2,12 +2,20 @@ import type { BattleEventType } from "../enums/battle-event-type";
 import type { DefensiveKind } from "../enums/defensive-kind";
 import type { Direction } from "../enums/direction";
 import type { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
+import type { ScreenKind } from "../enums/screen-kind";
 import type { StatName } from "../enums/stat-name";
 import type { StatusImmuneReason } from "../enums/status-immune-reason";
 import type { StatusType } from "../enums/status-type";
 import type { TerrainType } from "../enums/terrain-type";
 import type { Weather } from "../enums/weather";
 import type { Position } from "./position";
+
+export const ScreenDissipatedReason = {
+  Expired: "expired",
+  CasterKo: "casterKo",
+} as const;
+export type ScreenDissipatedReason =
+  (typeof ScreenDissipatedReason)[keyof typeof ScreenDissipatedReason];
 
 export type BattleEvent =
   | { type: typeof BattleEventType.TurnStarted; pokemonId: string; roundNumber: number }
@@ -186,4 +194,23 @@ export type BattleEvent =
       casterId: string;
       targetId: string;
     }
-  | { type: typeof BattleEventType.Flinched; pokemonId: string };
+  | { type: typeof BattleEventType.Flinched; pokemonId: string }
+  | {
+      type: typeof BattleEventType.ScreenPosted;
+      casterId: string;
+      kind: ScreenKind;
+      durationRounds: number;
+    }
+  | {
+      type: typeof BattleEventType.ScreenDissipated;
+      casterId: string;
+      kind: ScreenKind;
+      reason: ScreenDissipatedReason;
+    }
+  | {
+      type: typeof BattleEventType.ScreenBroken;
+      casterId: string;
+      kind: ScreenKind;
+      breakerId: string;
+      breakerMoveId: string;
+    };

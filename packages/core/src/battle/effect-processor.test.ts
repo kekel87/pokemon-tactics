@@ -7,6 +7,7 @@ import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
+import { Weather } from "../enums/weather";
 import { MockBattle } from "../testing/mock-battle";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
@@ -85,6 +86,9 @@ function makeContext(
     currentTurnIndex: 0,
     roundNumber: 1,
     predictedNextRoundOrder: [],
+    weather: Weather.None,
+    weatherTurnsRemaining: 0,
+    screens: [],
     ...state,
   };
   return {
@@ -229,6 +233,9 @@ describe("processEffects — status", () => {
         currentTurnIndex: 0,
         roundNumber: 1,
         predictedNextRoundOrder: [],
+        weather: Weather.None,
+        weatherTurnsRemaining: 0,
+        screens: [],
       } as BattleState,
       typeChart: immuneChart,
       attackerTypes: [PokemonType.Electric] as PokemonType[],

@@ -15,8 +15,11 @@ import {
   DEPTH_HIGHLIGHT_ISO_OFFSET,
   DEPTH_PREVIEW_ISO_OFFSET,
   DEPTH_RAISED_TILE_BASE,
+  DEPTH_SCREEN_HIGHLIGHT_ISO_OFFSET,
   DEPTH_TILE_MAX_ELEVATION,
   GRID_SIZE,
+  SCREEN_HOVER_AURA_ALPHA,
+  SCREEN_HOVER_AURA_FONT_SIZE,
   TILE_FILL_COLOR,
   TILE_HEIGHT,
   TILE_HIGHLIGHT_ATTACK_COLOR,
@@ -51,6 +54,7 @@ export class IsometricGrid {
   private readonly highlightLayer = new Map<string, Phaser.GameObjects.Graphics>();
   private readonly enemyRangeLayer = new Map<string, Phaser.GameObjects.Graphics>();
   private readonly previewLayer = new Map<string, Phaser.GameObjects.Graphics>();
+  private screenAuraHoverIcons: Phaser.GameObjects.Text[] = [];
   private readonly cursorGraphics: Phaser.GameObjects.Graphics;
   private cursorTween: Phaser.Tweens.Tween | null = null;
   private readonly offsetX: number;
@@ -295,6 +299,30 @@ export class IsometricGrid {
 
   clearEnemyRange(): void {
     this.clearLayer(this.enemyRangeLayer);
+  }
+
+  showScreenAuraHoverIcons(positions: Array<{ x: number; y: number }>, symbol: string): void {
+    this.hideScreenAuraHoverIcons();
+    for (const position of positions) {
+      const groundHeight = this.getTileGroundHeight(position.x, position.y);
+      const center = this.gridToScreen(position.x, position.y, groundHeight);
+      const isoLadder = (position.x + position.y) * DEPTH_TILE_MAX_ELEVATION + groundHeight;
+      const depth = DEPTH_RAISED_TILE_BASE + isoLadder + DEPTH_SCREEN_HIGHLIGHT_ISO_OFFSET;
+      const text = this.scene.add.text(center.x, center.y, symbol, {
+        fontSize: `${SCREEN_HOVER_AURA_FONT_SIZE}px`,
+      });
+      text.setOrigin(0.5, 0.5);
+      text.setAlpha(SCREEN_HOVER_AURA_ALPHA);
+      text.setDepth(depth);
+      this.screenAuraHoverIcons.push(text);
+    }
+  }
+
+  hideScreenAuraHoverIcons(): void {
+    for (const icon of this.screenAuraHoverIcons) {
+      icon.destroy();
+    }
+    this.screenAuraHoverIcons = [];
   }
 
   showPreview(positions: Array<{ x: number; y: number }>, color: number, alpha: number): void {

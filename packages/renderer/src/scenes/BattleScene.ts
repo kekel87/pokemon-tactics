@@ -529,12 +529,14 @@ export class BattleScene extends Phaser.Scene {
           const hoveredPokemon = controller.getPokemonAtPosition(grid.x, grid.y);
           controller.handleEnemyRangeHover(hoveredPokemon);
           if (hoveredPokemon) {
-            uiScene.infoPanel.update(hoveredPokemon, hoveredPokemon.playerId);
+            uiScene.infoPanel.update(hoveredPokemon, hoveredPokemon.playerId, controller.state);
+            controller.showAuraHoverFor(hoveredPokemon.id);
           } else {
             const activePokemon = controller.getActivePokemon();
             if (activePokemon) {
-              uiScene.infoPanel.update(activePokemon, activePokemon.playerId);
+              uiScene.infoPanel.update(activePokemon, activePokemon.playerId, controller.state);
             }
+            controller.hideAuraHover();
           }
         }
       } else if (this.lastHoverGrid) {
@@ -543,9 +545,10 @@ export class BattleScene extends Phaser.Scene {
         isometricGrid.hideCursor();
         this.hoverCursor?.hide();
         controller.handleEnemyRangeHover(null);
+        controller.hideAuraHover();
         const activePokemon = controller.getActivePokemon();
         if (activePokemon) {
-          uiScene.infoPanel.update(activePokemon, activePokemon.playerId);
+          uiScene.infoPanel.update(activePokemon, activePokemon.playerId, controller.state);
         }
       }
     });

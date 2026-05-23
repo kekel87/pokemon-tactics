@@ -14,6 +14,11 @@ import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calcula
 import { checkDefense } from "../defense-check";
 import type { EffectContext } from "../effect-handler-registry";
 import {
+  computeBrickBreakInteraction,
+  computeScreenMultiplier,
+  removeAurasOfCaster,
+} from "../screens-system";
+import {
   effectiveWeather,
   getWeatherBallBp,
   getWeatherBallType,
@@ -86,6 +91,15 @@ function dealSingleHit(
   const defenseStat =
     resolvedMove.category === Category.Physical ? StatName.Defense : StatName.SpDefense;
   const defenseWeather = getWeatherDefenseStatBoost(defenderTypes, defenseStat, activeWeather);
+  const brickBreakInteraction = computeBrickBreakInteraction(
+    context.state,
+    context.attacker,
+    target,
+    resolvedMove,
+  );
+  const screenMultiplier = brickBreakInteraction.breakAuraCasterId
+    ? 1.0
+    : computeScreenMultiplier(context.state, context.attacker, target, resolvedMove);
   const { damage, isCrit } = calculateDamageWithCrit(
     context.attacker,
     target,
@@ -102,6 +116,8 @@ function dealSingleHit(
     context.itemRegistry,
     weatherBp,
     defenseWeather,
+    screenMultiplier,
+    brickBreakInteraction.multiplier,
   );
 
   const defenseResult = checkDefense(
@@ -172,6 +188,19 @@ function dealSingleHit(
     amount: actualDamage,
     effectiveness,
   });
+
+  if (brickBreakInteraction.breakAuraCasterId) {
+    const brokenAuras = removeAurasOfCaster(context.state, brickBreakInteraction.breakAuraCasterId);
+    for (const brokenAura of brokenAuras) {
+      events.push({
+        type: BattleEventType.ScreenBroken,
+        casterId: brickBreakInteraction.breakAuraCasterId,
+        kind: brokenAura.kind,
+        breakerId: context.attacker.id,
+        breakerMoveId: context.move.id,
+      });
+    }
+  }
 
   if (sturdyTriggered) {
     events.push({

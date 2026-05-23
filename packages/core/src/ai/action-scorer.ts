@@ -42,7 +42,16 @@ export function scoreAction(
 
   switch (action.kind) {
     case ActionKind.UseMove:
-      return scoreUseMove(action, currentPokemon, enemies, allies, moveRegistry, engine, profile);
+      return scoreUseMove(
+        action,
+        currentPokemon,
+        enemies,
+        allies,
+        moveRegistry,
+        engine,
+        profile,
+        state,
+      );
     case ActionKind.Move:
       return scoreMove(action, currentPokemon, enemies, moveRegistry, engine, profile);
     case ActionKind.EndTurn:
@@ -60,6 +69,7 @@ function scoreUseMove(
   moveRegistry: Map<string, MoveDefinition>,
   engine: BattleEngine,
   profile: AiProfile,
+  state: BattleState,
 ): number {
   const move = moveRegistry.get(action.moveId);
   if (!move) {
@@ -70,7 +80,7 @@ function scoreUseMove(
   const isSelfTargeting = move.targeting.kind === TargetingKind.Self;
 
   if (isSelfTargeting && move.power === 0) {
-    return scoreSelfMove(currentPokemon, enemies, move, weights);
+    return scoreSelfMove(currentPokemon, enemies, move, weights, state);
   }
 
   if (move.targetsAlly === true) {
@@ -169,6 +179,7 @@ function scoreSelfMove(
   enemies: PokemonInstance[],
   move: MoveDefinition,
   weights: AiProfile["scoringWeights"],
+  state?: BattleState,
 ): number {
   const hasSelfBuff = move.effects.some(
     (effect) =>
@@ -176,6 +187,38 @@ function scoreSelfMove(
       effect.target === EffectTarget.Self &&
       effect.stages > 0,
   );
+
+  const postScreenEffect = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostScreen }> =>
+      effect.kind === EffectKind.PostScreen,
+  );
+  if (postScreenEffect) {
+    if (!state) {
+      return weights.statChanges;
+    }
+    const alreadyHasSameKind = state.screens.some(
+      (aura) => aura.casterPokemonId === currentPokemon.id && aura.kind === postScreenEffect.screen,
+    );
+    if (alreadyHasSameKind) {
+      return -1;
+    }
+    let alliesInRadius = 0;
+    for (const candidate of state.pokemon.values()) {
+      if (candidate.currentHp <= 0 || candidate.playerId !== currentPokemon.playerId) {
+        continue;
+      }
+      if (candidate.id === currentPokemon.id) {
+        continue;
+      }
+      const dx = Math.abs(candidate.position.x - currentPokemon.position.x);
+      const dy = Math.abs(candidate.position.y - currentPokemon.position.y);
+      if (dx + dy <= 3) {
+        alliesInRadius += 1;
+      }
+    }
+    const earlyMultiplier = state.roundNumber <= 3 ? 2 : 1;
+    return weights.statChanges * earlyMultiplier * (1 + alliesInRadius);
+  }
 
   if (!hasSelfBuff) {
     return 0;

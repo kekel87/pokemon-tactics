@@ -482,4 +482,8 @@ export const itemHandlers: HeldItemHandler[] = [
   {
     id: HeldItemId.HeatRock,
   },
+
+  {
+    id: HeldItemId.LightClay,
+  },
 ];

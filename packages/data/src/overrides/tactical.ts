@@ -10,6 +10,7 @@ import {
   EffectKind,
   EffectTarget,
   EffectTier,
+  ScreenKind,
   SemiInvulnerableState,
   StatName,
   StatusType,
@@ -1197,6 +1198,14 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.SetWeather, weather: Weather.Snow, turns: 5 }],
     weatherSetter: { type: Weather.Snow, turns: 5 },
   },
+  reflect: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostScreen, screen: ScreenKind.Reflect }],
+  },
+  "light-screen": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostScreen, screen: ScreenKind.LightScreen }],
+  },
   "weather-ball": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
     effects: [{ kind: EffectKind.Damage }],
@@ -1260,10 +1269,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   },
   "skull-bash": {
     targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
-    effects: [
-      { kind: EffectKind.Damage },
-      { kind: EffectKind.Knockback, distance: 1 },
-    ],
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Knockback, distance: 1 }],
     twoTurnCharge: true,
     chargeEffects: [
       { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self },

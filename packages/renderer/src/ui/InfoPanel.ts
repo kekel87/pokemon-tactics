@@ -1,4 +1,11 @@
-import { PokemonGender, type PokemonInstance, StatName, StatusType } from "@pokemon-tactic/core";
+import {
+  type BattleState,
+  PokemonGender,
+  type PokemonInstance,
+  type ScreenKind,
+  StatName,
+  StatusType,
+} from "@pokemon-tactic/core";
 import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
 import {
   DEPTH_INFO_PANEL,
@@ -73,6 +80,7 @@ export class InfoPanel {
   private currentPortraitKey: string = "";
   private statusLabel: Phaser.GameObjects.Image | null = null;
   private currentStatusKey: string = "";
+  private lastState: BattleState | null = null;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -116,7 +124,8 @@ export class InfoPanel {
     this.container.setVisible(false);
   }
 
-  update(pokemon: PokemonInstance, playerId: string): void {
+  update(pokemon: PokemonInstance, playerId: string, state?: BattleState): void {
+    this.lastState = state ?? this.lastState ?? null;
     this.container.setVisible(true);
 
     const teamColor = getTeamColorByPlayerId(playerId);
@@ -219,6 +228,53 @@ export class InfoPanel {
       const chargingLabel = t("status.charging", { move: moveName });
       offsetX = this.addBadge(chargingLabel, STAT_BADGE_VOLATILE_BG, offsetX);
     }
+
+    offsetX = this.addAuraBadges(pokemon, offsetX);
+  }
+
+  private addAuraBadges(pokemon: PokemonInstance, startOffsetX: number): number {
+    const state = this.lastState;
+    if (!state) {
+      return startOffsetX;
+    }
+    let nextOffsetX = startOffsetX;
+    const ownAuras = state.screens.filter((aura) => aura.casterPokemonId === pokemon.id);
+    for (const ownAura of ownAuras) {
+      const kindLabel = t(this.screenKindKey(ownAura.kind));
+      const badgeText = t("infoPanel.aura.caster", {
+        kind: kindLabel,
+        turns: String(ownAura.remainingRounds),
+      });
+      nextOffsetX = this.addBadge(badgeText, STAT_BADGE_VOLATILE_BG, nextOffsetX);
+    }
+
+    for (const aura of state.screens) {
+      if (aura.casterPokemonId === pokemon.id) {
+        continue;
+      }
+      const caster = state.pokemon.get(aura.casterPokemonId);
+      if (!caster || caster.currentHp <= 0) {
+        continue;
+      }
+      if (caster.playerId !== pokemon.playerId) {
+        continue;
+      }
+      const distance =
+        Math.abs(caster.position.x - pokemon.position.x) +
+        Math.abs(caster.position.y - pokemon.position.y);
+      if (distance > 3) {
+        continue;
+      }
+      const kindLabel = t(this.screenKindKey(aura.kind));
+      const badgeText = t("infoPanel.aura.protected", { kind: kindLabel });
+      nextOffsetX = this.addBadge(badgeText, STAT_BADGE_VOLATILE_BG, nextOffsetX);
+    }
+
+    return nextOffsetX;
+  }
+
+  private screenKindKey(kind: ScreenKind): "screen.kind.reflect" | "screen.kind.lightScreen" {
+    return kind === "reflect" ? "screen.kind.reflect" : "screen.kind.lightScreen";
   }
 
   private addBadge(label: string, bgColor: number, offsetX: number): number {

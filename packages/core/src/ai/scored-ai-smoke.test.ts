@@ -13,6 +13,7 @@ import { PlayerId } from "../enums/player-id";
 import { PokemonGender } from "../enums/pokemon-gender";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
+import { Weather } from "../enums/weather";
 import type { Action } from "../types/action";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
@@ -151,6 +152,9 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
       currentTurnIndex: 0,
       roundNumber: 1,
       predictedNextRoundOrder: [],
+      weather: Weather.None,
+      weatherTurnsRemaining: 0,
+      screens: [],
     };
 
     const seed = 42;
