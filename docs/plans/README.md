@@ -107,3 +107,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 093 | [Baton Pass (transfert stat stages allié r1)](./093-baton-pass.md) | done | 2026-05-22 |
 | 094 | [Charge moves visibles (skull-bash / sky-attack / razor-wind)](./094-charge-moves-visible.md) | done | 2026-05-22 |
 | 095 | [Barrières aura mobile (reflect / light-screen)](./095-barriers-aura.md) | done | 2026-05-23 |
+| 096 | [Visibilité passive itch.io + GitHub topics](./096-itch-io-visibility.md) | done | 2026-05-23 |

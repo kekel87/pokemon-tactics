@@ -1,8 +1,9 @@
 # Plan 096 — Visibilité passive itch.io + GitHub topics
 
-> Statut : **ready**
+> Statut : **done**
 > Créé : 2026-05-22
 > Validé : 2026-05-23 (humain + best-practices agent)
+> Livré : 2026-05-23 (release v2026.5.2 deploy itch CI run `26342405217` OK)
 > Auteur : Claude
 
 ## Objectif

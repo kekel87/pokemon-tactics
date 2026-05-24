@@ -43,7 +43,7 @@ Pour chaque changement, passer en revue cette checklist :
 - **Nouveau Pokemon/move** → roster-poc.md + game-design.md si nouvelle mécanique
 - **Bug découvert** → backlog.md (ajouter dans la section Bugs)
 - **Feedback playtest reçu** → backlog.md (ajouter dans la section appropriée)
-- **Bug/feedback résolu** → backlog.md (déplacer dans la section Résolus)
+- **Bug/feedback résolu** → déplacer entrée de `backlog.md` vers `backlog-archive.md` (drop strikethrough, garde corps avec date/plan/commit ref). backlog.md = actifs uniquement.
 - **Fin d'un plan** → roadmap.md (cocher) + STATUS.md (ce qui est fait) + architecture.md si changement structurel
 
 ## Maintenance des sources (README.md)

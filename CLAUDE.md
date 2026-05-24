@@ -31,7 +31,8 @@ Claude = dev principal, autonome implémentation, valide design avec humain.
 | `docs/tileset-mapping.md` | Tileset ICON, propriétés tiles |
 | `docs/references/babylon-gotchas.md` | Avant renderer Babylon |
 | `docs/references/babylon-mcp-ecosystem.md` | État MCP Babylon |
-| `docs/backlog.md` | Bugs + feedback playtest non traités |
+| `docs/backlog.md` | Bugs + feedback playtest non traités (actifs uniquement) |
+| `docs/backlog-archive.md` | Items backlog résolus (rare ; audit régression ou contexte fix passé) |
 | `docs/implementations.md` | Liste Pokemon/Moves/Abilities/Items implémentés |
 | `docs/plans/` | Plan en cours avant coder |
 | `docs/next.md` | Agenda persistant (`/next`) |

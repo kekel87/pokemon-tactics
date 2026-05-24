@@ -124,7 +124,7 @@ Le wiki étant un repo séparé, signaler à humain les fichiers modifiés + com
 
 - `STATUS.md` : mentionner la release (header "Dernière release : vYYYY.MM.XX (date)")
 - `docs/roadmap.md` : cocher items terminés si applicable
-- `docs/backlog.md` : marquer comme résolus les bugs fixés (`~~strikethrough~~ + (vYYYY.MM.XX)`)
+- `docs/backlog.md` → `docs/backlog-archive.md` : déplacer entrées des bugs fixés (drop strikethrough, ajoute ref `(vYYYY.MM.XX)` ou commit). backlog.md reste strictement actifs.
 
 ### 9. Synthèse finale
 
