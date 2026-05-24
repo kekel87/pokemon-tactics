@@ -25,6 +25,8 @@ import {
   type PlayerColumnEntry,
 } from "../ui/team-select/PlayersColumn";
 import { createTeamListElement, type TeamListEntry } from "../ui/team-select/TeamList";
+import { extractEngagedPokemonIds } from "./extract-engaged-ids";
+import { buildEngagedSpritesQueue } from "./preload-pokemon";
 
 const PLAYER_IDS: PlayerId[] = [
   PlayerId.Player1,
@@ -96,10 +98,20 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
-    if (sandboxBootConfig.enabled) {
-      this.scene.start("BattleScene", {
-        sandboxMode: true,
-        sandboxConfig: sandboxBootConfig.config,
+    if (sandboxBootConfig.enabled && sandboxBootConfig.config) {
+      const config = sandboxBootConfig.config;
+      const engagedIds = [config.pokemon, config.dummyPokemon].filter(
+        (id, i, arr) => arr.indexOf(id) === i,
+      );
+      this.scene.start("LoadingScene", {
+        queueAssets: buildEngagedSpritesQueue(engagedIds),
+        nextScene: "BattleScene",
+        nextSceneData: {
+          sandboxMode: true,
+          sandboxConfig: config,
+        },
+        showTips: true,
+        labelKey: "loading.battle",
       });
       return;
     }
@@ -491,6 +503,13 @@ export class TeamSelectScene extends Phaser.Scene {
       mapUrl: this.mapUrl,
       formatKey: this.formatKey,
     };
-    this.scene.start("BattleScene", { teamSelectResult: result });
+    const engagedIds = extractEngagedPokemonIds({ teamSelectResult: result });
+    this.scene.start("LoadingScene", {
+      queueAssets: buildEngagedSpritesQueue(engagedIds),
+      nextScene: "BattleScene",
+      nextSceneData: { teamSelectResult: result },
+      showTips: true,
+      labelKey: "loading.battle",
+    });
   }
 }

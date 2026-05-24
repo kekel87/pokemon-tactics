@@ -11,12 +11,9 @@ import {
 import { loadData } from "@pokemon-tactic/data";
 import {
   ARROW_PAN_SPEED,
-  DECORATIONS_ASSET_PATHS,
   DECORATIONS_TEXTURE_KEYS,
   HOVER_CURSOR_OPTIONS,
-  STATUS_ICON_KEYS,
   TILESET_KEY,
-  TYPE_NAMES,
   ZOOM_DEFAULT_INDEX,
   ZOOM_LEVELS,
   ZOOM_TWEEN_DURATION_MS,
@@ -36,7 +33,7 @@ import { OcclusionFader } from "../grid/OcclusionFader";
 import { loadTiledMap } from "../maps/load-tiled-map";
 import { getSettings, updateSettings } from "../settings";
 import { PokemonSprite } from "../sprites/PokemonSprite";
-import { createPokemonAnimations, preloadPokemonAssets } from "../sprites/SpriteLoader";
+import { createPokemonAnimations } from "../sprites/SpriteLoader";
 import { buildTeamOverrides } from "../team/build-overrides";
 import { DEFAULT_SANDBOX_CONFIG, type SandboxConfig } from "../types/SandboxConfig";
 import { DirectionPicker } from "../ui/DirectionPicker";
@@ -45,6 +42,7 @@ import { LanguageToggle } from "../ui/LanguageToggle";
 import { SandboxPanel } from "../ui/SandboxPanel";
 import type { BattleUIScene } from "./BattleUIScene";
 import { computeCameraBounds } from "./camera-bounds";
+import { extractEngagedPokemonIds } from "./extract-engaged-ids";
 import type { TeamSelectResult } from "./TeamSelectScene";
 
 function isAltPressed(pointer: Phaser.Input.Pointer): boolean {
@@ -72,49 +70,6 @@ export class BattleScene extends Phaser.Scene {
   preload(): void {
     const gameData = loadData();
     this.pokemonDefinitions = new Map(gameData.pokemon.map((p) => [p.id, p]));
-
-    const allDefinitionIds = [...this.pokemonDefinitions.keys()];
-    preloadPokemonAssets(
-      this,
-      allDefinitionIds.map((id) => ({ definitionId: id })),
-    );
-
-    this.load.spritesheet("arrows", "assets/ui/arrows.png", {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
-
-    for (const typeName of TYPE_NAMES) {
-      this.load.image(`type-${typeName}`, `assets/ui/types/${typeName}.png`);
-    }
-
-    this.load.image("category-physical", "assets/ui/categories/physical.png");
-    this.load.image("category-special", "assets/ui/categories/special.png");
-    this.load.image("category-status", "assets/ui/categories/status.png");
-
-    for (const option of HOVER_CURSOR_OPTIONS) {
-      this.load.image(option.key, `assets/ui/cursor/${option.key}.png`);
-    }
-
-    for (const key of STATUS_ICON_KEYS) {
-      this.load.image(`status-icon-${key}`, `assets/ui/statuses/icon-${key}.png`);
-      this.load.image(`status-label-${key}`, `assets/ui/statuses/label-${key}.png`);
-    }
-
-    for (const key of ["sun", "rain", "sandstorm", "snow"] as const) {
-      this.load.image(`weather-${key}`, `assets/ui/weather/weather-${key}.png`);
-    }
-
-    this.load.spritesheet(TILESET_KEY, "assets/tilesets/terrain/tileset.png", {
-      frameWidth: 32,
-      frameHeight: 32,
-    });
-
-    for (const kind of Object.keys(DECORATIONS_TEXTURE_KEYS) as Array<
-      keyof typeof DECORATIONS_TEXTURE_KEYS
-    >) {
-      this.load.image(DECORATIONS_TEXTURE_KEYS[kind], DECORATIONS_ASSET_PATHS[kind]);
-    }
   }
 
   create(): void {
@@ -129,7 +84,19 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
-    for (const definitionId of this.pokemonDefinitions.keys()) {
+    const sceneData = this.scene.settings.data as
+      | {
+          teamSelectResult?: TeamSelectResult;
+          sandboxMode?: boolean;
+          sandboxConfig?: SandboxConfig | null;
+        }
+      | undefined;
+    const engagedIds = extractEngagedPokemonIds({
+      sandboxMode: sceneData?.sandboxMode,
+      sandboxConfig: sceneData?.sandboxConfig ?? null,
+      teamSelectResult: sceneData?.teamSelectResult,
+    });
+    for (const definitionId of engagedIds) {
       createPokemonAnimations(this, definitionId);
     }
 
@@ -152,13 +119,6 @@ export class BattleScene extends Phaser.Scene {
 
     this.events.once("uiReady", () => {
       const uiScene = this.scene.get("BattleUIScene") as BattleUIScene;
-      const sceneData = this.scene.settings.data as
-        | {
-            teamSelectResult?: TeamSelectResult;
-            sandboxMode?: boolean;
-            sandboxConfig?: SandboxConfig | null;
-          }
-        | undefined;
       if (sceneData?.sandboxMode) {
         const config = sceneData.sandboxConfig ?? DEFAULT_SANDBOX_CONFIG;
         void this.startSandboxMode(uiScene, config);

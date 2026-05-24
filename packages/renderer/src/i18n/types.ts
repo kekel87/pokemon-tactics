@@ -362,6 +362,16 @@ export interface Translations {
   "teamBuilder.nature.lax": string;
   "teamBuilder.aria.close": string;
   "teamBuilder.aria.clearSlot": string;
+  "loading.boot": string;
+  "loading.battle": string;
+  "loadingTip.facingBonus": string;
+  "loadingTip.terrainEffects": string;
+  "loadingTip.heightDamage": string;
+  "loadingTip.weatherWaterFire": string;
+  "loadingTip.reflectProtection": string;
+  "loadingTip.brickBreak": string;
+  "loadingTip.undoMovement": string;
+  "loadingTip.ctSystem": string;
 }
 
 export type TranslationKey = keyof Translations;

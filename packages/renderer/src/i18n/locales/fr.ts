@@ -361,6 +361,22 @@ const fr: Translations = {
   "teamBuilder.nature.lax": "Lâche (+Déf, -DéfSp)",
   "teamBuilder.aria.close": "Fermer",
   "teamBuilder.aria.clearSlot": "Vider ce slot",
+  "loading.boot": "Chargement…",
+  "loading.battle": "Préparation du combat…",
+  "loadingTip.facingBonus":
+    "💡 Frapper de dos inflige +15% de dégâts. Position-toi derrière l'ennemi.",
+  "loadingTip.terrainEffects":
+    "💡 Le terrain affecte les déplacements : magma brûle, marécage ralentit, glace fait glisser.",
+  "loadingTip.heightDamage":
+    "💡 Frapper en hauteur : +10% de dégâts par niveau d'écart (max +50%).",
+  "loadingTip.weatherWaterFire": "💡 Sous Pluie, les attaques Eau gagnent ×1.5 et les Feu ×0.5.",
+  "loadingTip.reflectProtection":
+    "💡 Protection réduit ×0.5 les dégâts physiques autour du lanceur (rayon 3).",
+  "loadingTip.brickBreak":
+    "💡 Casse-Brique brise les barrières du lanceur et ignore leur protection.",
+  "loadingTip.undoMovement": "💡 Annule ton déplacement tant que tu n'as pas attaqué.",
+  "loadingTip.ctSystem":
+    "💡 Le CT détermine l'ordre des tours. Vitesse haute = tours plus fréquents.",
 };
 
 export default fr;

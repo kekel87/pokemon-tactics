@@ -14,6 +14,11 @@ import { IsometricGrid } from "../grid/IsometricGrid";
 import { loadTiledMap } from "../maps/load-tiled-map";
 
 const PREVIEW_VIEWPORT_PADDING = 0.85;
+const PREVIEW_FADE_IN_MS = 150;
+// Components of MAP_SELECT_PREVIEW_BG_COLOR (0x0a0a18) for camera fade RGB args.
+const PREVIEW_FADE_R = 0x0a;
+const PREVIEW_FADE_G = 0x0a;
+const PREVIEW_FADE_B = 0x18;
 
 export interface MapSelectPreviewLayout {
   x: number;
@@ -94,6 +99,11 @@ export class MapSelectPreviewScene extends Phaser.Scene {
     }
     this.currentUrl = url;
 
+    const camera = this.cameras.main;
+    // Instantly hide whatever is currently drawn so the new map fades in
+    // (plan 097 — kills the brief black flash on selection change).
+    camera?.fadeOut(0, PREVIEW_FADE_R, PREVIEW_FADE_G, PREVIEW_FADE_B);
+
     this.clearCurrentMap();
 
     try {
@@ -117,8 +127,10 @@ export class MapSelectPreviewScene extends Phaser.Scene {
       this.decorationsLayer.render(map, loaded.decorationObjects);
 
       this.applyCameraFit(map.width, map.height);
+      camera?.fadeIn(PREVIEW_FADE_IN_MS, PREVIEW_FADE_R, PREVIEW_FADE_G, PREVIEW_FADE_B);
     } catch {
       this.clearCurrentMap();
+      camera?.fadeIn(PREVIEW_FADE_IN_MS, PREVIEW_FADE_R, PREVIEW_FADE_G, PREVIEW_FADE_B);
     }
   }
 

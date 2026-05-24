@@ -86,7 +86,7 @@ pokemon-tactics/
 │   │
 │   ├── renderer/                # Interface graphique (Phaser 4)
 │   │   ├── src/
-│   │   │   ├── scenes/          # Scènes Phaser : MainMenuScene → BattleModeScene → TeamSelectScene → BattleScene + BattleUIScene overlay ; SettingsScene, CreditsScene ; MapPreviewScene (pnpm dev:map)
+│   │   │   ├── scenes/          # Scènes Phaser : MainMenuScene → BattleModeScene → TeamSelectScene → BattleScene + BattleUIScene overlay ; SettingsScene, CreditsScene ; MapPreviewScene (pnpm dev:map) ; LoadingScene (générique réutilisable — queue assets preload() canonique, supporte sandbox + placement battle)
 │   │   │   ├── maps/            # Chargement cartes Tiled au runtime (loadTiledMap)
 │   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue, DummyAiController)
 │   │   │   ├── grid/            # Rendu isométrique (IsometricGrid : highlightGraphics, enemyRangeGraphics layer dédié, curseur animé)
@@ -95,7 +95,7 @@ pokemon-tactics/
 │   │   │   ├── settings/        # Paramètres persistants : GameSettings { damagePreview }, getSettings(), updateSettings(), localStorage("pt-settings")
 │   │   │   ├── styles/          # CSS modulaire Team Builder — entry index.css (@layer reset/base/components/utilities), tokens.css (vars primitives+sémantiques : types, stats, feedback, spacing, font), + 10 fichiers composants (button, modal, type-badge, topbar, team-list, slot-card, edit-panels, stat-bar, picker, set-op, showdown). Source canonique couleurs DOM — constants.ts reste source Phaser/canvas.
 │   │   │   ├── team/            # Helpers data Team Builder côté renderer : team-builder-data.ts (agrégateur lang-aware), team-generator.ts, team-helpers.ts, team-builder-catalog.ts, asset-paths.ts, type-colors.ts
-│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel, LanguageToggle, TeamSelectPanel, BattleLogPanel, BattleLogFormatter, WeatherHud)
+│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel, LanguageToggle, TeamSelectPanel, BattleLogPanel, BattleLogFormatter, WeatherHud, LoadingOverlay [DOM — progress bar pixel + label X/Y + tips rotatifs 3s + fadeOut])
 │   │   │   │                    # + ui/dom/ (helpers DOM réutilisables ≥2 scènes — décision #346) : Modal.ts (<dialog showModal()> natif), Dropdown.ts, form-controls.ts (createButton, createLabeledSelect, createLabeledCheckbox, createLabeledRange, createOptionalNumberInput, createPickerCard, replaceSelectOptions, types SelectOption/ButtonVariant), Stepper.ts (createStepper, closure getValue/setValue), MovesList.ts (createMovesList — classes .tb-move-row/.tb-moves-list partagées team builder ↔ sandbox)
 │   │   │   │                    # + ui/team/ (composants Team Builder : SlotCardsRow, TeamEditPanel, TeamStatsPanel, SpSlider, StatBar, NatureDropdown, PokemonPickerModal, MovePickerModal, ItemPickerModal, ShowdownIoModal, DeleteConfirmModal, AbilityRadioGroup, TeamCard)
 │   │   │   │                    # + ui/team-select/ (composants TeamSelectScene : FormatPicker, TeamListItem, TeamList, PlayerCell, PlayersColumn)
@@ -518,6 +518,9 @@ packages/renderer/public/assets/sprites/pokemon/{name}/
 - `preloadPokemonAssets(scene, pokemonIds[])` — charge atlas + portrait + `offsets.json` au preload
 - `createAnimations(scene, pokemonId)` — enregistre animations Phaser depuis metadata d'atlas
 - `getSpriteOffsets(scene, definitionId)` — retourne `SpriteOffsets` depuis cache JSON, fallback sur valeurs par défaut
+- `preloadSharedUiAssets(scene)` — charge assets UI partagés (types, catégories, statuts) mutualisé LoadingScene
+- `extractEngagedPokemonIds(setup)` — déduplique les IDs Pokemon cross-teams pour lazy loading
+- `buildEngagedSpritesQueue(ids)` — génère la queue d'assets minimale (~12 vs ~80 en full preload)
 
 **PokemonSprite** utilise animations (Idle, Walk, Attack, Hurt, Faint) avec fallback cercle coloré si atlas absent.
 

@@ -16,15 +16,12 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
   - IA perdue sur chemins verticaux (escaliers).
 - **Le Mur ne peut pas être réintégré sans rotation caméra** — injouable en vue iso fixe. À reconsidérer avec rotation (Phase 3.5 Babylon ou plus tard).
 
-### FOUC font — boutons menu débordent au chargement (2026-05-23, playtest itch.io)
-- À l'ouverture du jeu, la font custom se charge **après** le premier render → texte affiché avec font fallback (plus large) → "Constructeur d'équipe" déborde du bouton, autres labels mal alignés.
-- Disparaît au swap de font (FOUC = Flash of Unstyled Content classique).
-- Fix proposé : loader/splash screen jusqu'à `document.fonts.ready` + `await Promise.all(criticalFonts.load())` avant render initial. Alternative : `font-display: block` (laisse blanc plutôt que fallback) + timeout court.
+<!-- Résolus plan 097 (2026-05-24) :
+- FOUC font menu : index.html preload + font-display block + BootScene document.fonts.ready
+- Écran noir combat : BattleLoadingScene parallèle + lazy strict 12 sprites engaged
+- MapSelect preview noire : camera fadeOut(0)/fadeIn(150ms)
+-->
 
-### Écran noir au démarrage combat — sprites en cours de DL (2026-05-23, playtest itch.io)
-- Au lancement d'un combat, écran noir pendant le téléchargement des sprites Pokemon (réseau lent itch.io / cold cache).
-- UX : utilisateur ne sait pas si crash ou loading.
-- Fix proposé : loader/splash combat avec progress bar (Phaser `LoaderPlugin` events `progress`/`complete`) OU pré-load sprites des deux équipes avant transition scene de combat.
 
 ## Notes IA (à regrouper en plan d'amélioration IA)
 

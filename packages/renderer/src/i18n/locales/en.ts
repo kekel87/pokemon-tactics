@@ -361,6 +361,19 @@ const en: Translations = {
   "teamBuilder.nature.lax": "Lax (+Def, -SpD)",
   "teamBuilder.aria.close": "Close",
   "teamBuilder.aria.clearSlot": "Clear this slot",
+  "loading.boot": "Loading…",
+  "loading.battle": "Preparing the battle…",
+  "loadingTip.facingBonus": "💡 Back attacks deal +15% damage. Position yourself behind the enemy.",
+  "loadingTip.terrainEffects": "💡 Terrain affects movement: magma burns, swamp slows, ice slides.",
+  "loadingTip.heightDamage":
+    "💡 High-ground attacks: +10% damage per level of height difference (max +50%).",
+  "loadingTip.weatherWaterFire": "💡 In Rain, Water moves get ×1.5 and Fire ×0.5.",
+  "loadingTip.reflectProtection": "💡 Reflect halves physical damage around the caster (radius 3).",
+  "loadingTip.brickBreak":
+    "💡 Brick Break shatters the caster's screens and ignores their reduction.",
+  "loadingTip.undoMovement": "💡 Undo your movement as long as you haven't attacked yet.",
+  "loadingTip.ctSystem":
+    "💡 CT (Charge Time) drives turn order. Higher speed = more frequent turns.",
 };
 
 export default en;

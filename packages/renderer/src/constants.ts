@@ -487,3 +487,22 @@ export const DECORATIONS_DEBUG_FOOTPRINT_ALPHA = 0.45;
 export const DECORATIONS_DEBUG_FOOTPRINT_STROKE_ALPHA = 0.9;
 export const DECORATIONS_DEBUG_FOOTPRINT_STROKE_WIDTH = 1;
 export const DECORATIONS_DEBUG_FOOTPRINT_DEPTH_OFFSET = 0.25;
+
+// Loading overlay (plan 097) — splash, boot, BattleLoadingScene parallèle.
+export const DEPTH_LOADING_OVERLAY = 5000;
+export const LOADING_OVERLAY_BG_COLOR = 0x0a0a18;
+export const LOADING_OVERLAY_BG_ALPHA = 1.0;
+export const LOADING_BAR_WIDTH = 240;
+export const LOADING_BAR_HEIGHT = 16;
+export const LOADING_BAR_BORDER_COLOR = 0xffffff;
+export const LOADING_BAR_BORDER_ALPHA = 0.6;
+export const LOADING_BAR_BORDER_WIDTH = 2;
+export const LOADING_BAR_BG_COLOR = 0x222235;
+export const LOADING_BAR_FILL_COLOR = 0x44cc66;
+export const LOADING_LABEL_COLOR = "#ffffff";
+export const LOADING_LABEL_FONT_SIZE = 14;
+export const LOADING_TIP_COLOR = "#cccccc";
+export const LOADING_TIP_FONT_SIZE = 11;
+export const LOADING_TIP_WIDTH = 360;
+export const LOADING_TIP_ROTATION_MS_DEFAULT = 3000;
+export const LOADING_FADE_OUT_MS = 200;

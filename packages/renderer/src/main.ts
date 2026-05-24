@@ -6,6 +6,7 @@ import { BattleModeScene } from "./scenes/BattleModeScene";
 import { BattleScene } from "./scenes/BattleScene";
 import { BattleUIScene } from "./scenes/BattleUIScene";
 import { CreditsScene } from "./scenes/CreditsScene";
+import { LoadingScene } from "./scenes/LoadingScene";
 import { MainMenuScene } from "./scenes/MainMenuScene";
 import { MapPreviewScene } from "./scenes/MapPreviewScene";
 import { MapPreviewUIScene } from "./scenes/MapPreviewUIScene";
@@ -21,6 +22,15 @@ import "./styles/index.css";
 initLanguage();
 initSettings();
 
+// Kick off the custom font fetch explicitly so it lands in document.fonts
+// before any Phaser scene tries to draw text in canvas (which doesn't
+// trigger CSS font-loading on its own). FontFace API replaces the old
+// <link rel="preload"> approach that warned in Firefox for canvas-only
+// usage (plan 097 — recommended pattern for Phaser web games).
+if (document.fonts) {
+  void document.fonts.load('1em "PokemonEmeraldPro"');
+}
+
 if (sandboxBootConfig.enabled) {
   initSandboxStudioDom();
 }
@@ -32,9 +42,10 @@ function getScenes(): Phaser.Types.Scenes.SceneType[] {
     return [MapPreviewScene, MapPreviewUIScene];
   }
   if (sandboxBootConfig.enabled) {
-    return [TeamSelectScene, BattleScene, BattleUIScene];
+    return [LoadingScene, TeamSelectScene, BattleScene, BattleUIScene];
   }
   return [
+    LoadingScene,
     MainMenuScene,
     BattleModeScene,
     SettingsScene,
