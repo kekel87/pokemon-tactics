@@ -624,8 +624,7 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | `move-pattern-designer` | sonnet | Attribue et justifie pattern tactique de chaque move |
 | `performance-profiler` | sonnet | Analyse performances (FPS, mémoire, bundle) |
 | `plan-reviewer` | haiku | Crée, review et maintient les plans |
-| `publisher` | sonnet | Vérifie draft release, la publie, orchestre wiki |
-| `release-drafter` | haiku | Alimente draft release GitHub avec changelog joueur |
+| `publisher` | sonnet | Orchestre release complète : compile changelog, publie, watch itch-deploy, devlog itch, wiki |
 | `sandbox-json` | haiku | Génère configs sandbox JSON depuis description langage naturel |
 | `session-closer` | sonnet | Met à jour STATUS.md fin de session, chaîne vers `commit-message` |
 | `test-writer` | sonnet | Tests Vitest, approche test-first |

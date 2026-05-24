@@ -28,7 +28,6 @@ Résumé dans `CLAUDE.md`. Ce fichier contient le détail par agent.
 | `doc-keeper` | Fin de plan / quand doc impactée |
 | `session-closer` | Fin de session (déclenché par toi ou `/next` si pertinent) |
 | `commit-message` | Après gate CI OK, en fin de chaîne |
-| `release-drafter` | Commit notable avec changement visible joueur |
 
 ### Proposer avant de lancer
 
@@ -103,8 +102,7 @@ Ce qui n'est pas fait (ex: humain refuse visual-tester) → inscrit dans `docs/n
 - `session-closer` → `doc-keeper` → `commit-message`
 - `visual-tester` → `sandbox-json` (pour config de test)
 - `doc-keeper` → `wiki-keeper` (si game design / roster) — à proposer
-- `commit-message` → `release-drafter` (si changement visible joueur)
-- `publisher` → `wiki-keeper` (changelog post-publication)
+- `publisher` → compile changelog from `git log <last_tag>..HEAD` + plans → publish → watch `itch-deploy` workflow → `/itch-devlog` markdown → `wiki-keeper` → update `STATUS.md`/`docs/roadmap.md`/`docs/backlog.md`
 
 ## Structure du wiki GitHub
 

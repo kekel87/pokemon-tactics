@@ -35,6 +35,16 @@ Bugs connus et retours playtest non traités.
 ### simple-arena non centrée dans le preview (2026-04-23)
 - Fix 2026-04-23 : `applyCameraFit` prend en compte décalage horizontal `(gridWidth - gridHeight) * TILE_WIDTH / 4` pour grilles non carrées (simple-arena 12×20).
 
+### FOUC font — boutons menu débordent au chargement (2026-05-23, playtest itch.io)
+- À l'ouverture du jeu, la font custom se charge **après** le premier render → texte affiché avec font fallback (plus large) → "Constructeur d'équipe" déborde du bouton, autres labels mal alignés.
+- Disparaît au swap de font (FOUC = Flash of Unstyled Content classique).
+- Fix proposé : loader/splash screen jusqu'à `document.fonts.ready` + `await Promise.all(criticalFonts.load())` avant render initial. Alternative : `font-display: block` (laisse blanc plutôt que fallback) + timeout court.
+
+### Écran noir au démarrage combat — sprites en cours de DL (2026-05-23, playtest itch.io)
+- Au lancement d'un combat, écran noir pendant le téléchargement des sprites Pokemon (réseau lent itch.io / cold cache).
+- UX : utilisateur ne sait pas si crash ou loading.
+- Fix proposé : loader/splash combat avec progress bar (Phaser `LoaderPlugin` events `progress`/`complete`) OU pré-load sprites des deux équipes avant transition scene de combat.
+
 ## Notes IA (à regrouper en plan d'amélioration IA)
 
 ### IA — CT-aware scoring (2026-04-25)
