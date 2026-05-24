@@ -1,5 +1,5 @@
 {
-  "pokemon": "charmander",
+  "pokemon": "charizard",
   "moves": ["flamethrower", "slash", "dragon-tail"],
   "hp": 100,
   "status": null,

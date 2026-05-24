@@ -33,7 +33,7 @@ import { OcclusionFader } from "../grid/OcclusionFader";
 import { loadTiledMap } from "../maps/load-tiled-map";
 import { getSettings, updateSettings } from "../settings";
 import { PokemonSprite } from "../sprites/PokemonSprite";
-import { createPokemonAnimations } from "../sprites/SpriteLoader";
+import { createPokemonAnimations, preloadPokemonAssets } from "../sprites/SpriteLoader";
 import { buildTeamOverrides } from "../team/build-overrides";
 import { DEFAULT_SANDBOX_CONFIG, type SandboxConfig } from "../types/SandboxConfig";
 import { DirectionPicker } from "../ui/DirectionPicker";
@@ -263,7 +263,26 @@ export class BattleScene extends Phaser.Scene {
     });
 
     this.cameras.main.setZoom(ZOOM_LEVELS[this.zoomIndex]);
+    await this.ensurePokemonAssetsLoaded([config.pokemon, config.dummyPokemon]);
     await this.initSandboxBattle(this.sandboxUiScene, config);
+  }
+
+  private async ensurePokemonAssetsLoaded(definitionIds: readonly string[]): Promise<void> {
+    const missing = definitionIds.filter((id) => !this.textures.exists(id));
+    if (missing.length === 0) {
+      return;
+    }
+    preloadPokemonAssets(
+      this,
+      missing.map((id) => ({ definitionId: id })),
+    );
+    await new Promise<void>((resolve) => {
+      this.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
+      this.load.start();
+    });
+    for (const id of missing) {
+      createPokemonAnimations(this, id);
+    }
   }
 
   private async startPlacementPhase(

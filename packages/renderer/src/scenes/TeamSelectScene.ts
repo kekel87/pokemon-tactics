@@ -15,6 +15,7 @@ import { loadLastSelection, saveLastSelectionEntry } from "../team/last-selectio
 import { refreshAllAiSlots } from "../team/refresh-ai-teams";
 import { generateRandomTeam } from "../team/team-generator";
 import { listTeams, loadTeam } from "../team/team-storage";
+import { DEFAULT_SANDBOX_CONFIG } from "../types/SandboxConfig";
 import {
   buildFormatKey,
   createFormatPickerElement,
@@ -98,8 +99,8 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
-    if (sandboxBootConfig.enabled && sandboxBootConfig.config) {
-      const config = sandboxBootConfig.config;
+    if (sandboxBootConfig.enabled) {
+      const config = sandboxBootConfig.config ?? DEFAULT_SANDBOX_CONFIG;
       const engagedIds = [config.pokemon, config.dummyPokemon].filter(
         (id, i, arr) => arr.indexOf(id) === i,
       );

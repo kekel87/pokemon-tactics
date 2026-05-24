@@ -34,7 +34,7 @@ describe("extractEngagedPokemonIds", () => {
           },
         ],
         autoPlacement: false,
-        turnSystemKind: TurnSystemKind.Charge,
+        turnSystemKind: TurnSystemKind.ChargeTime,
         mapUrl: "assets/maps/simple-arena.tmj",
         formatKey: "2v6",
       },
@@ -52,7 +52,7 @@ describe("extractEngagedPokemonIds", () => {
       teamSelectResult: {
         teams,
         autoPlacement: true,
-        turnSystemKind: TurnSystemKind.Charge,
+        turnSystemKind: TurnSystemKind.ChargeTime,
         mapUrl: "assets/maps/simple-arena.tmj",
         formatKey: "13v1",
       },
