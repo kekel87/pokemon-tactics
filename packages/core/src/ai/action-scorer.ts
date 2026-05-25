@@ -1,8 +1,10 @@
+import { AURA_RADIUS } from "../battle/aura-system";
 import type { BattleEngine } from "../battle/BattleEngine";
 import { isEffectivelyFlying } from "../battle/effective-flying";
 import { TRANSFERABLE_STATS } from "../battle/handlers/baton-pass-stats";
 import { isTerrainImmune } from "../battle/terrain-effects";
 import { ActionKind } from "../enums/action-kind";
+import { AuraKind } from "../enums/aura-kind";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import { TargetingKind } from "../enums/targeting-kind";
@@ -16,6 +18,7 @@ import type { Position } from "../types/position";
 import type { TargetingPattern } from "../types/targeting-pattern";
 import { directionFromTo, getPerpendicularOffsets, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
+import { enemyHasStatDecreaseMoveInRange, enemyHasStatusMoveInRange } from "./threat-detection";
 
 const DANGEROUS_TERRAINS: ReadonlySet<TerrainType> = new Set([
   TerrainType.Magma,
@@ -188,16 +191,16 @@ function scoreSelfMove(
       effect.stages > 0,
   );
 
-  const postScreenEffect = move.effects.find(
-    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostScreen }> =>
-      effect.kind === EffectKind.PostScreen,
+  const postAuraEffect = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostAura }> =>
+      effect.kind === EffectKind.PostAura,
   );
-  if (postScreenEffect) {
+  if (postAuraEffect) {
     if (!state) {
       return weights.statChanges;
     }
-    const alreadyHasSameKind = state.screens.some(
-      (aura) => aura.casterPokemonId === currentPokemon.id && aura.kind === postScreenEffect.screen,
+    const alreadyHasSameKind = state.auras.some(
+      (aura) => aura.casterPokemonId === currentPokemon.id && aura.kind === postAuraEffect.aura,
     );
     if (alreadyHasSameKind) {
       return -1;
@@ -212,12 +215,20 @@ function scoreSelfMove(
       }
       const dx = Math.abs(candidate.position.x - currentPokemon.position.x);
       const dy = Math.abs(candidate.position.y - currentPokemon.position.y);
-      if (dx + dy <= 3) {
+      if (dx + dy <= AURA_RADIUS) {
         alliesInRadius += 1;
       }
     }
     const earlyMultiplier = state.roundNumber <= 3 ? 2 : 1;
-    return weights.statChanges * earlyMultiplier * (1 + alliesInRadius);
+
+    let threatBonus = 1.0;
+    if (postAuraEffect.aura === AuraKind.Mist) {
+      threatBonus = enemyHasStatDecreaseMoveInRange(enemies, currentPokemon, 5) ? 1.5 : 1.0;
+    } else if (postAuraEffect.aura === AuraKind.Safeguard) {
+      threatBonus = enemyHasStatusMoveInRange(enemies, currentPokemon, 5) ? 1.5 : 1.0;
+    }
+
+    return weights.statChanges * earlyMultiplier * (1 + alliesInRadius) * threatBonus;
   }
 
   if (!hasSelfBuff) {

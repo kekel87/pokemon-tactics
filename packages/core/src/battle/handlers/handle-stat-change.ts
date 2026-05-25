@@ -3,7 +3,9 @@ import type { EffectKind } from "../../enums/effect-kind";
 import { EffectTarget } from "../../enums/effect-target";
 import { StatName } from "../../enums/stat-name";
 import type { BattleEvent } from "../../types/battle-event";
+import { ProtectionReason } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
+import { isProtectedFromStatDecrease } from "../aura-system";
 import type { EffectContext } from "../effect-handler-registry";
 import { clampStages, computeMovement } from "../stat-modifier";
 
@@ -29,6 +31,18 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
       });
       if (blockResult?.blocked) {
         events.push(...blockResult.events);
+        continue;
+      }
+
+      const mistProtection = isProtectedFromStatDecrease(context.state, context.attacker, pokemon);
+      if (mistProtection.protected) {
+        events.push({
+          type: BattleEventType.StatChangeBlocked,
+          pokemonId: pokemon.id,
+          stat: effect.stat,
+          reason: ProtectionReason.Mist,
+          protectingCasterId: mistProtection.casterId,
+        });
         continue;
       }
     }

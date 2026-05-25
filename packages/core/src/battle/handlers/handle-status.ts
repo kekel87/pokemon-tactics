@@ -6,8 +6,10 @@ import { StatusImmuneReason } from "../../enums/status-immune-reason";
 import type { StatusType } from "../../enums/status-type";
 import { StatusType as StatusTypeEnum } from "../../enums/status-type";
 import type { BattleEvent } from "../../types/battle-event";
+import { ProtectionReason } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import { DEFAULT_STATUS_RULES, type StatusRules } from "../../types/status-rules";
+import { isProtectedFromStatus } from "../aura-system";
 import type { EffectContext } from "../effect-handler-registry";
 import { isMajorStatus } from "../stat-modifier";
 import { effectiveWeather, shouldBlockFreezeInSun } from "../weather-system";
@@ -114,6 +116,23 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
         type: BattleEventType.StatusImmune,
         targetId: target.id,
         status,
+      });
+      continue;
+    }
+
+    const safeguardProtection = isProtectedFromStatus(
+      context.state,
+      context.attacker,
+      target,
+      status,
+    );
+    if (safeguardProtection.protected) {
+      events.push({
+        type: BattleEventType.StatusBlocked,
+        pokemonId: target.id,
+        status,
+        reason: ProtectionReason.Safeguard,
+        protectingCasterId: safeguardProtection.casterId,
       });
       continue;
     }

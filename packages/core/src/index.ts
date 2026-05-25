@@ -2,6 +2,23 @@ export { EASY_PROFILE, HARD_PROFILE, MEDIUM_PROFILE } from "./ai/ai-profiles";
 export { pickAggressiveAction, pickRandomAction } from "./ai/index";
 export { pickScoredAction } from "./ai/scored-ai";
 export { AbilityHandlerRegistry } from "./battle/ability-handler-registry";
+export {
+  AURA_DEFAULT_DURATION,
+  AURA_EXTENDED_DURATION,
+  AURA_RADIUS,
+  auraDurationForCaster,
+  computeBrickBreakInteraction,
+  computeScreenMultiplier,
+  decrementAurasTimer,
+  findActiveAurasProtectingTarget,
+  findAurasByCaster,
+  isProtectedFromStatDecrease,
+  isProtectedFromStatus,
+  isWithinAuraRadius,
+  manhattanDistance,
+  postAura,
+  removeAurasOfCaster,
+} from "./battle/aura-system";
 export { BattleEngine } from "./battle/BattleEngine";
 export { CT_THRESHOLD, CT_WAIT, computeMoveCost } from "./battle/ct-costs";
 export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
@@ -66,6 +83,7 @@ export {
   isValidHitAndRunRetreat,
 } from "./grid/validate-hit-and-run-retreat";
 export * from "./team/index";
+export { AuraDissipatedReason, ProtectionReason } from "./types/battle-event";
 export type * from "./types/index";
 export { SemiInvulnerableState } from "./types/semi-invulnerable-state";
 export { SP_PER_STAT_MAX, SP_TOTAL_MAX } from "./types/stat-spread";

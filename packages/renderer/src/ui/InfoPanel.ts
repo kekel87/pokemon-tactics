@@ -1,8 +1,9 @@
 import {
+  AURA_RADIUS,
+  type AuraKind,
   type BattleState,
   PokemonGender,
   type PokemonInstance,
-  type ScreenKind,
   StatName,
   StatusType,
 } from "@pokemon-tactic/core";
@@ -238,9 +239,9 @@ export class InfoPanel {
       return startOffsetX;
     }
     let nextOffsetX = startOffsetX;
-    const ownAuras = state.screens.filter((aura) => aura.casterPokemonId === pokemon.id);
+    const ownAuras = state.auras.filter((aura) => aura.casterPokemonId === pokemon.id);
     for (const ownAura of ownAuras) {
-      const kindLabel = t(this.screenKindKey(ownAura.kind));
+      const kindLabel = t(this.auraKindKey(ownAura.kind));
       const badgeText = t("infoPanel.aura.caster", {
         kind: kindLabel,
         turns: String(ownAura.remainingRounds),
@@ -248,7 +249,7 @@ export class InfoPanel {
       nextOffsetX = this.addBadge(badgeText, STAT_BADGE_VOLATILE_BG, nextOffsetX);
     }
 
-    for (const aura of state.screens) {
+    for (const aura of state.auras) {
       if (aura.casterPokemonId === pokemon.id) {
         continue;
       }
@@ -262,10 +263,10 @@ export class InfoPanel {
       const distance =
         Math.abs(caster.position.x - pokemon.position.x) +
         Math.abs(caster.position.y - pokemon.position.y);
-      if (distance > 3) {
+      if (distance > AURA_RADIUS) {
         continue;
       }
-      const kindLabel = t(this.screenKindKey(aura.kind));
+      const kindLabel = t(this.auraKindKey(aura.kind));
       const badgeText = t("infoPanel.aura.protected", { kind: kindLabel });
       nextOffsetX = this.addBadge(badgeText, STAT_BADGE_VOLATILE_BG, nextOffsetX);
     }
@@ -273,8 +274,19 @@ export class InfoPanel {
     return nextOffsetX;
   }
 
-  private screenKindKey(kind: ScreenKind): "screen.kind.reflect" | "screen.kind.lightScreen" {
-    return kind === "reflect" ? "screen.kind.reflect" : "screen.kind.lightScreen";
+  private auraKindKey(
+    kind: AuraKind,
+  ): "aura.kind.reflect" | "aura.kind.lightScreen" | "aura.kind.mist" | "aura.kind.safeguard" {
+    switch (kind) {
+      case "reflect":
+        return "aura.kind.reflect";
+      case "light-screen":
+        return "aura.kind.lightScreen";
+      case "mist":
+        return "aura.kind.mist";
+      case "safeguard":
+        return "aura.kind.safeguard";
+    }
   }
 
   private addBadge(label: string, bgColor: number, offsetX: number): number {

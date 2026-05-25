@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../enums/action-kind";
+import { AuraKind } from "../enums/aura-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { PlayerId } from "../enums/player-id";
-import { ScreenKind } from "../enums/screen-kind";
 import { buildMoveTestEngine, MockPokemon } from "../testing";
-import { postScreen } from "./screens-system";
+import { postAura } from "./aura-system";
 
 const STRONG_PHYS_ATTACK = {
   hp: 100,
@@ -82,7 +82,7 @@ describe("Reflect aura — Physical damage reduction", () => {
       screenTarget,
       screenAttacker,
     ]);
-    postScreen(screenState, screenTarget, ScreenKind.Reflect);
+    postAura(screenState, screenTarget, AuraKind.Reflect);
 
     screenEngine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -156,7 +156,7 @@ describe("Light Screen aura — Special damage reduction", () => {
       screenTarget,
       screenAttacker,
     ]);
-    postScreen(screenState, screenTarget, ScreenKind.LightScreen);
+    postAura(screenState, screenTarget, AuraKind.LightScreen);
 
     screenEngine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -177,7 +177,7 @@ describe("Light Screen aura — Special damage reduction", () => {
 // ---------------------------------------------------------------------------
 
 describe("Brick Break vs caster of aura in melee", () => {
-  it("deals ×2 damage and breaks the caster's aura with ScreenBroken event", () => {
+  it("deals ×2 damage and breaks the caster's aura with AuraBroken event", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.5);
 
     const baselineAttacker = MockPokemon.fresh(MockPokemon.base, {
@@ -230,10 +230,10 @@ describe("Brick Break vs caster of aura in melee", () => {
       auraCaster,
       auraAttacker,
     ]);
-    postScreen(auraState, auraCaster, ScreenKind.Reflect);
+    postAura(auraState, auraCaster, AuraKind.Reflect);
 
     const brokenEvents: unknown[] = [];
-    auraEngine.on(BattleEventType.ScreenBroken, (e) => brokenEvents.push(e));
+    auraEngine.on(BattleEventType.AuraBroken, (e) => brokenEvents.push(e));
 
     auraEngine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -245,11 +245,11 @@ describe("Brick Break vs caster of aura in melee", () => {
 
     expect(boostedDamage).toBeGreaterThan(baselineDamage);
     expect(boostedDamage).toBeCloseTo(baselineDamage * 2, -1);
-    expect(auraState.screens.some((aura) => aura.casterPokemonId === "caster")).toBe(false);
+    expect(auraState.auras.some((aura) => aura.casterPokemonId === "caster")).toBe(false);
     expect(brokenEvents).toHaveLength(1);
     expect(brokenEvents[0]).toMatchObject({
       casterId: "caster",
-      kind: ScreenKind.Reflect,
+      kind: AuraKind.Reflect,
       breakerId: "attacker",
       breakerMoveId: "brick-break",
     });
@@ -329,10 +329,10 @@ describe("Brick Break vs protected ally of aura caster", () => {
       auraTarget,
       auraAttacker,
     ]);
-    postScreen(auraState, auraCaster, ScreenKind.Reflect);
+    postAura(auraState, auraCaster, AuraKind.Reflect);
 
     const brokenEvents: unknown[] = [];
-    auraEngine.on(BattleEventType.ScreenBroken, (e) => brokenEvents.push(e));
+    auraEngine.on(BattleEventType.AuraBroken, (e) => brokenEvents.push(e));
 
     auraEngine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -344,7 +344,7 @@ describe("Brick Break vs protected ally of aura caster", () => {
 
     expect(reducedDamage).toBeLessThan(baselineDamage);
     expect(reducedDamage).toBeCloseTo(baselineDamage * 0.5, -1);
-    expect(auraState.screens.some((aura) => aura.casterPokemonId === "caster")).toBe(true);
+    expect(auraState.auras.some((aura) => aura.casterPokemonId === "caster")).toBe(true);
     expect(brokenEvents).toHaveLength(0);
     vi.restoreAllMocks();
   });
@@ -381,10 +381,10 @@ describe("Brick Break vs unprotected target", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
     const { engine, state } = buildMoveTestEngine([target, attacker, farCaster]);
-    postScreen(state, farCaster, ScreenKind.Reflect);
+    postAura(state, farCaster, AuraKind.Reflect);
 
     const brokenEvents: unknown[] = [];
-    engine.on(BattleEventType.ScreenBroken, (e) => brokenEvents.push(e));
+    engine.on(BattleEventType.AuraBroken, (e) => brokenEvents.push(e));
 
     engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -393,7 +393,7 @@ describe("Brick Break vs unprotected target", () => {
       targetPosition: { x: 0, y: 0 },
     });
 
-    expect(state.screens.some((aura) => aura.casterPokemonId === "caster")).toBe(true);
+    expect(state.auras.some((aura) => aura.casterPokemonId === "caster")).toBe(true);
     expect(brokenEvents).toHaveLength(0);
     vi.restoreAllMocks();
   });
@@ -430,11 +430,11 @@ describe("Brick Break vs double-protected caster in melee", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
     const { engine, state } = buildMoveTestEngine([ally, target, attacker]);
-    postScreen(state, ally, ScreenKind.Reflect);
-    postScreen(state, target, ScreenKind.Reflect);
+    postAura(state, ally, AuraKind.Reflect);
+    postAura(state, target, AuraKind.Reflect);
 
     const brokenEvents: unknown[] = [];
-    engine.on(BattleEventType.ScreenBroken, (e) => brokenEvents.push(e));
+    engine.on(BattleEventType.AuraBroken, (e) => brokenEvents.push(e));
 
     engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -443,8 +443,8 @@ describe("Brick Break vs double-protected caster in melee", () => {
       targetPosition: { x: 2, y: 0 },
     });
 
-    expect(state.screens.some((aura) => aura.casterPokemonId === "target")).toBe(false);
-    expect(state.screens.some((aura) => aura.casterPokemonId === "ally")).toBe(true);
+    expect(state.auras.some((aura) => aura.casterPokemonId === "target")).toBe(false);
+    expect(state.auras.some((aura) => aura.casterPokemonId === "ally")).toBe(true);
     expect(brokenEvents).toHaveLength(1);
     expect(brokenEvents[0]).toMatchObject({ casterId: "target" });
     vi.restoreAllMocks();

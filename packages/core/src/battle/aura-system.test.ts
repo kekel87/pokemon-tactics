@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { AuraKind } from "../enums/aura-kind";
 import { PlayerId } from "../enums/player-id";
-import { ScreenKind } from "../enums/screen-kind";
 import { buildMoveTestEngine, MockMove, MockPokemon } from "../testing";
 import {
   computeBrickBreakInteraction,
   computeScreenMultiplier,
   findActiveAurasProtectingTarget,
-  postScreen,
-} from "./screens-system";
+  postAura,
+} from "./aura-system";
 
 const physicalMove = MockMove.physical;
 const specialMove = MockMove.special;
@@ -30,7 +30,7 @@ describe("computeScreenMultiplier — Reflect reduces Physical only", () => {
       position: { x: 5, y: 2 },
     });
     const { state } = buildMoveTestEngine([caster, enemy]);
-    postScreen(state, caster, ScreenKind.Reflect);
+    postAura(state, caster, AuraKind.Reflect);
 
     expect(computeScreenMultiplier(state, enemy, caster, physicalMove)).toBe(0.5);
   });
@@ -47,7 +47,7 @@ describe("computeScreenMultiplier — Reflect reduces Physical only", () => {
       position: { x: 5, y: 2 },
     });
     const { state } = buildMoveTestEngine([caster, enemy]);
-    postScreen(state, caster, ScreenKind.Reflect);
+    postAura(state, caster, AuraKind.Reflect);
 
     expect(computeScreenMultiplier(state, enemy, caster, specialMove)).toBe(1.0);
   });
@@ -66,7 +66,7 @@ describe("computeScreenMultiplier — Light Screen reduces Special only", () => 
       position: { x: 5, y: 2 },
     });
     const { state } = buildMoveTestEngine([caster, enemy]);
-    postScreen(state, caster, ScreenKind.LightScreen);
+    postAura(state, caster, AuraKind.LightScreen);
 
     expect(computeScreenMultiplier(state, enemy, caster, specialMove)).toBe(0.5);
   });
@@ -83,7 +83,7 @@ describe("computeScreenMultiplier — Light Screen reduces Special only", () => 
       position: { x: 5, y: 2 },
     });
     const { state } = buildMoveTestEngine([caster, enemy]);
-    postScreen(state, caster, ScreenKind.LightScreen);
+    postAura(state, caster, AuraKind.LightScreen);
 
     expect(computeScreenMultiplier(state, enemy, caster, physicalMove)).toBe(1.0);
   });
@@ -107,7 +107,7 @@ describe("computeScreenMultiplier — protected ally within radius", () => {
       position: { x: 8, y: 8 },
     });
     const { state } = buildMoveTestEngine([caster, ally, enemy]);
-    postScreen(state, caster, ScreenKind.Reflect);
+    postAura(state, caster, AuraKind.Reflect);
 
     expect(computeScreenMultiplier(state, enemy, ally, physicalMove)).toBe(0.5);
   });
@@ -131,7 +131,7 @@ describe("computeScreenMultiplier — ally out of range", () => {
       position: { x: 8, y: 8 },
     });
     const { state } = buildMoveTestEngine([caster, farAlly, enemy]);
-    postScreen(state, caster, ScreenKind.Reflect);
+    postAura(state, caster, AuraKind.Reflect);
 
     expect(computeScreenMultiplier(state, enemy, farAlly, physicalMove)).toBe(1.0);
   });
@@ -155,7 +155,7 @@ describe("computeScreenMultiplier — enemy aura excluded", () => {
       position: { x: 1, y: 1 },
     });
     const { state } = buildMoveTestEngine([enemyCaster, target, attacker]);
-    postScreen(state, enemyCaster, ScreenKind.Reflect);
+    postAura(state, enemyCaster, AuraKind.Reflect);
 
     expect(computeScreenMultiplier(state, attacker, target, physicalMove)).toBe(1.0);
   });
@@ -179,7 +179,7 @@ describe("computeScreenMultiplier — caster KO removes protection", () => {
       position: { x: 5, y: 5 },
     });
     const { state } = buildMoveTestEngine([caster, ally, enemy]);
-    postScreen(state, caster, ScreenKind.Reflect);
+    postAura(state, caster, AuraKind.Reflect);
 
     expect(computeScreenMultiplier(state, enemy, ally, physicalMove)).toBe(0.5);
     const liveCaster = state.pokemon.get(caster.id);
@@ -213,8 +213,8 @@ describe("computeScreenMultiplier — multi-aura overlap", () => {
       position: { x: 8, y: 8 },
     });
     const { state } = buildMoveTestEngine([casterA, casterB, ally, enemy]);
-    postScreen(state, casterA, ScreenKind.Reflect);
-    postScreen(state, casterB, ScreenKind.Reflect);
+    postAura(state, casterA, AuraKind.Reflect);
+    postAura(state, casterB, AuraKind.Reflect);
 
     expect(computeScreenMultiplier(state, enemy, ally, physicalMove)).toBe(0.5);
   });
@@ -233,7 +233,7 @@ describe("computeScreenMultiplier — status move bypasses", () => {
       position: { x: 5, y: 2 },
     });
     const { state } = buildMoveTestEngine([caster, enemy]);
-    postScreen(state, caster, ScreenKind.Reflect);
+    postAura(state, caster, AuraKind.Reflect);
 
     expect(computeScreenMultiplier(state, enemy, caster, statusMove)).toBe(1.0);
   });
@@ -252,7 +252,7 @@ describe("computeScreenMultiplier — allied attacker bypasses", () => {
       position: { x: 3, y: 2 },
     });
     const { state } = buildMoveTestEngine([caster, ally]);
-    postScreen(state, caster, ScreenKind.Reflect);
+    postAura(state, caster, AuraKind.Reflect);
 
     expect(computeScreenMultiplier(state, ally, caster, physicalMove)).toBe(1.0);
   });
@@ -266,7 +266,7 @@ describe("findActiveAurasProtectingTarget — caster protects itself", () => {
       position: { x: 2, y: 2 },
     });
     const { state } = buildMoveTestEngine([caster]);
-    postScreen(state, caster, ScreenKind.Reflect);
+    postAura(state, caster, AuraKind.Reflect);
 
     const auras = findActiveAurasProtectingTarget(state, caster);
     expect(auras).toHaveLength(1);
@@ -287,9 +287,9 @@ describe("computeBrickBreakInteraction — vs caster", () => {
       position: { x: 3, y: 2 },
     });
     const { state } = buildMoveTestEngine([caster, attacker]);
-    postScreen(state, caster, ScreenKind.Reflect);
+    postAura(state, caster, AuraKind.Reflect);
 
-    const result = computeBrickBreakInteraction(state, attacker, caster, brickBreakMove);
+    const result = computeBrickBreakInteraction(state, caster, brickBreakMove);
     expect(result.multiplier).toBe(2.0);
     expect(result.breakAuraCasterId).toBe(caster.id);
   });
@@ -313,9 +313,9 @@ describe("computeBrickBreakInteraction — vs protected ally (not caster)", () =
       position: { x: 3, y: 2 },
     });
     const { state } = buildMoveTestEngine([caster, ally, attacker]);
-    postScreen(state, caster, ScreenKind.Reflect);
+    postAura(state, caster, AuraKind.Reflect);
 
-    const result = computeBrickBreakInteraction(state, attacker, ally, brickBreakMove);
+    const result = computeBrickBreakInteraction(state, ally, brickBreakMove);
     expect(result.multiplier).toBe(1.0);
     expect(result.breakAuraCasterId).toBeNull();
   });
@@ -335,7 +335,7 @@ describe("computeBrickBreakInteraction — no aura present", () => {
     });
     const { state } = buildMoveTestEngine([target, attacker]);
 
-    const result = computeBrickBreakInteraction(state, attacker, target, brickBreakMove);
+    const result = computeBrickBreakInteraction(state, target, brickBreakMove);
     expect(result.multiplier).toBe(1.0);
     expect(result.breakAuraCasterId).toBeNull();
   });
@@ -354,9 +354,9 @@ describe("computeBrickBreakInteraction — non brick-break move", () => {
       position: { x: 3, y: 2 },
     });
     const { state } = buildMoveTestEngine([caster, attacker]);
-    postScreen(state, caster, ScreenKind.Reflect);
+    postAura(state, caster, AuraKind.Reflect);
 
-    const result = computeBrickBreakInteraction(state, attacker, caster, physicalMove);
+    const result = computeBrickBreakInteraction(state, caster, physicalMove);
     expect(result.multiplier).toBe(1.0);
     expect(result.breakAuraCasterId).toBeNull();
   });
@@ -380,10 +380,10 @@ describe("computeBrickBreakInteraction — double-protected target", () => {
       position: { x: 3, y: 2 },
     });
     const { state } = buildMoveTestEngine([ally, target, attacker]);
-    postScreen(state, ally, ScreenKind.Reflect);
-    postScreen(state, target, ScreenKind.Reflect);
+    postAura(state, ally, AuraKind.Reflect);
+    postAura(state, target, AuraKind.Reflect);
 
-    const result = computeBrickBreakInteraction(state, attacker, target, brickBreakMove);
+    const result = computeBrickBreakInteraction(state, target, brickBreakMove);
     expect(result.multiplier).toBe(2.0);
     expect(result.breakAuraCasterId).toBe(target.id);
   });

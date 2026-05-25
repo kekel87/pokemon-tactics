@@ -1,7 +1,7 @@
 import type { TurnSystemKind } from "../enums/turn-system-kind";
 import type { Weather } from "../enums/weather";
 import type { PokemonInstance } from "./pokemon-instance";
-import type { ScreenAura } from "./screen-aura";
+import type { TeamAura } from "./team-aura";
 import type { TileState } from "./tile-state";
 
 export interface BattleState {
@@ -17,6 +17,6 @@ export interface BattleState {
   weatherTurnsRemaining: number;
   weatherSetterPokemonId?: string;
   weatherLastTickRound?: number;
-  screens: ScreenAura[];
-  screensLastTickRound?: number;
+  auras: TeamAura[];
+  aurasLastTickRound?: number;
 }

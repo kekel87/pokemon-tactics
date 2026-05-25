@@ -9,8 +9,10 @@ import {
   Category,
   isImmuneToStatusByType,
   isMajorStatus,
+  isProtectedFromStatDecrease,
   PokemonGender,
   PokemonType,
+  ProtectionReason,
   StatName,
   StatusType,
   Weather,
@@ -241,10 +243,31 @@ const intimidate: AbilityHandler = {
         continue;
       }
 
-      const currentStage = pokemon.statStages[StatName.Attack];
-      const newStage = Math.max(-6, currentStage - 1);
-      const statChangeApplied = newStage !== currentStage;
-      pokemon.statStages[StatName.Attack] = newStage;
+      const mistProtection = isProtectedFromStatDecrease(context.state, context.self, pokemon);
+      let statChangeApplied = false;
+
+      if (mistProtection.protected) {
+        events.push({
+          type: BattleEventType.StatChangeBlocked,
+          pokemonId: pokemon.id,
+          stat: StatName.Attack,
+          reason: ProtectionReason.Mist,
+          protectingCasterId: mistProtection.casterId,
+        });
+      } else {
+        const currentStage = pokemon.statStages[StatName.Attack];
+        const newStage = Math.max(-6, currentStage - 1);
+        statChangeApplied = newStage !== currentStage;
+        pokemon.statStages[StatName.Attack] = newStage;
+        if (statChangeApplied) {
+          events.push({
+            type: BattleEventType.StatChanged,
+            targetId: pokemon.id,
+            stat: StatName.Attack,
+            stages: -1,
+          });
+        }
+      }
       pokemon.volatileStatuses.push({
         type: StatusType.Intimidated,
         remainingTurns: -1,
@@ -252,14 +275,6 @@ const intimidate: AbilityHandler = {
         statChangeApplied,
       });
       targetIds.push(pokemon.id);
-      if (statChangeApplied) {
-        events.push({
-          type: BattleEventType.StatChanged,
-          targetId: pokemon.id,
-          stat: StatName.Attack,
-          stages: -1,
-        });
-      }
       events.push({
         type: BattleEventType.StatusApplied,
         targetId: pokemon.id,

@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { ActionKind } from "../enums/action-kind";
+import { AuraKind } from "../enums/aura-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
 import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
-import { ScreenKind } from "../enums/screen-kind";
 import { buildItemTestEngine, buildMoveTestEngine, MockPokemon } from "../testing";
 
 // Scenario coverage for plan 095 step 4 — decrement + caster KO + Light Clay duration.
 
 describe("screens lifecycle — Reflect decrement", () => {
-  it("Given a caster posts Reflect, When 5 rounds elapse, Then aura dissipates and emits ScreenDissipated(expired)", () => {
+  it("Given a caster posts Reflect, When 5 rounds elapse, Then aura dissipates and emits AuraDissipated(expired)", () => {
     const caster = MockPokemon.fresh(MockPokemon.base, {
       id: "caster",
       playerId: PlayerId.Player1,
@@ -34,11 +34,11 @@ describe("screens lifecycle — Reflect decrement", () => {
       moveId: "reflect",
       targetPosition: { x: 0, y: 0 },
     });
-    expect(state.screens[0]?.kind).toBe(ScreenKind.Reflect);
-    expect(state.screens[0]?.remainingRounds).toBe(5);
+    expect(state.auras[0]?.kind).toBe(AuraKind.Reflect);
+    expect(state.auras[0]?.remainingRounds).toBe(5);
 
     const dissipatedEvents: unknown[] = [];
-    engine.on(BattleEventType.ScreenDissipated, (e) => dissipatedEvents.push(e));
+    engine.on(BattleEventType.AuraDissipated, (e) => dissipatedEvents.push(e));
 
     // Then : after 5 rounds of end-turns from both Pokemon, aura disappears
     for (let round = 0; round < 5; round++) {
@@ -54,19 +54,19 @@ describe("screens lifecycle — Reflect decrement", () => {
       });
     }
 
-    expect(state.screens.length).toBe(0);
+    expect(state.auras.length).toBe(0);
     expect(dissipatedEvents.length).toBeGreaterThanOrEqual(1);
     expect(dissipatedEvents[0]).toMatchObject({
-      type: BattleEventType.ScreenDissipated,
+      type: BattleEventType.AuraDissipated,
       casterId: "caster",
-      kind: ScreenKind.Reflect,
+      kind: AuraKind.Reflect,
       reason: "expired",
     });
   });
 });
 
 describe("screens lifecycle — caster KO dissipates aura", () => {
-  it("Given caster has active Light Screen, When caster is KO'd, Then aura is removed and ScreenDissipated(casterKo) emits", () => {
+  it("Given caster has active Light Screen, When caster is KO'd, Then aura is removed and AuraDissipated(casterKo) emits", () => {
     const caster = MockPokemon.fresh(MockPokemon.base, {
       id: "caster",
       playerId: PlayerId.Player1,
@@ -102,7 +102,7 @@ describe("screens lifecycle — caster KO dissipates aura", () => {
       moveId: "light-screen",
       targetPosition: { x: 0, y: 0 },
     });
-    expect(state.screens.some((aura) => aura.casterPokemonId === "caster")).toBe(true);
+    expect(state.auras.some((aura) => aura.casterPokemonId === "caster")).toBe(true);
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
@@ -111,7 +111,7 @@ describe("screens lifecycle — caster KO dissipates aura", () => {
     });
 
     const dissipatedEvents: unknown[] = [];
-    engine.on(BattleEventType.ScreenDissipated, (e) => dissipatedEvents.push(e));
+    engine.on(BattleEventType.AuraDissipated, (e) => dissipatedEvents.push(e));
 
     engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -121,11 +121,11 @@ describe("screens lifecycle — caster KO dissipates aura", () => {
     });
 
     expect(state.pokemon.get("caster")?.currentHp).toBe(0);
-    expect(state.screens.some((aura) => aura.casterPokemonId === "caster")).toBe(false);
+    expect(state.auras.some((aura) => aura.casterPokemonId === "caster")).toBe(false);
     expect(dissipatedEvents).toHaveLength(1);
     expect(dissipatedEvents[0]).toMatchObject({
       casterId: "caster",
-      kind: ScreenKind.LightScreen,
+      kind: AuraKind.LightScreen,
       reason: "casterKo",
     });
   });
@@ -157,7 +157,7 @@ describe("screens lifecycle — Light Clay extends duration", () => {
       targetPosition: { x: 0, y: 0 },
     });
 
-    expect(state.screens[0]?.remainingRounds).toBe(8);
+    expect(state.auras[0]?.remainingRounds).toBe(8);
 
     // 5 rounds elapse — aura still active (would have expired without Light Clay)
     for (let round = 0; round < 5; round++) {
@@ -173,7 +173,7 @@ describe("screens lifecycle — Light Clay extends duration", () => {
       });
     }
 
-    expect(state.screens[0]?.remainingRounds).toBe(3);
+    expect(state.auras[0]?.remainingRounds).toBe(3);
 
     // 3 more rounds → expiration
     for (let round = 0; round < 3; round++) {
@@ -189,6 +189,6 @@ describe("screens lifecycle — Light Clay extends duration", () => {
       });
     }
 
-    expect(state.screens.length).toBe(0);
+    expect(state.auras.length).toBe(0);
   });
 });

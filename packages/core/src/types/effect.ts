@@ -1,7 +1,7 @@
+import type { AuraKind } from "../enums/aura-kind";
 import type { DefensiveKind } from "../enums/defensive-kind";
 import type { EffectKind } from "../enums/effect-kind";
 import type { EffectTarget } from "../enums/effect-target";
-import type { ScreenKind } from "../enums/screen-kind";
 import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
 import type { Weather } from "../enums/weather";
@@ -42,4 +42,4 @@ export type Effect =
   | { kind: typeof EffectKind.Drain; fraction: number }
   | { kind: typeof EffectKind.SetWeather; weather: Weather; turns: number }
   | { kind: typeof EffectKind.TransferStatStages }
-  | { kind: typeof EffectKind.PostScreen; screen: ScreenKind };
+  | { kind: typeof EffectKind.PostAura; aura: AuraKind };

@@ -1,6 +1,7 @@
 export { ActionError } from "./action-error";
 export { ActionKind } from "./action-kind";
 export { AiDifficulty } from "./ai-difficulty";
+export { AuraKind } from "./aura-kind";
 export { BattleEventType } from "./battle-event-type";
 export { Category } from "./category";
 export { DefensiveKind } from "./defensive-kind";
@@ -16,7 +17,6 @@ export { PlayerController } from "./player-controller";
 export { PlayerId } from "./player-id";
 export { PokemonGender } from "./pokemon-gender";
 export { PokemonType } from "./pokemon-type";
-export { ScreenKind } from "./screen-kind";
 export { StatName } from "./stat-name";
 export { StatusImmuneReason } from "./status-immune-reason";
 export { StatusType } from "./status-type";

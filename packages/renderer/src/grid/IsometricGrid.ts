@@ -1,5 +1,7 @@
 import { decodeTiledGid } from "@pokemon-tactic/data";
 import {
+  AURA_HOVER_ICON_OFFSET,
+  AURA_HOVER_MAX_ICONS,
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
   COLOR_CURSOR_ALT,
@@ -46,6 +48,51 @@ import {
 } from "./iso-math";
 import type { OcclusionFader } from "./OcclusionFader";
 import { getSpriteScreenBounds } from "./sprite-bounds";
+
+function getAuraHoverOffsets(count: number): Array<{ x: number; y: number }> {
+  const o = AURA_HOVER_ICON_OFFSET;
+  switch (count) {
+    case 1:
+      return [{ x: 0, y: 0 }];
+    case 2:
+      return [
+        { x: -o, y: 0 },
+        { x: o, y: 0 },
+      ];
+    case 3:
+      return [
+        { x: -o, y: 0 },
+        { x: o, y: 0 },
+        { x: 0, y: o },
+      ];
+    case 4:
+      return [
+        { x: -o, y: 0 },
+        { x: o, y: 0 },
+        { x: 0, y: -o },
+        { x: 0, y: o },
+      ];
+    case 5:
+      return [
+        { x: -o, y: -o },
+        { x: o, y: -o },
+        { x: -o, y: o },
+        { x: o, y: o },
+        { x: 0, y: 0 },
+      ];
+    case 6:
+      return [
+        { x: -o, y: -o },
+        { x: o, y: -o },
+        { x: -o, y: 0 },
+        { x: o, y: 0 },
+        { x: -o, y: o },
+        { x: o, y: o },
+      ];
+    default:
+      return [];
+  }
+}
 
 export class IsometricGrid {
   private readonly scene: Phaser.Scene;
@@ -301,24 +348,39 @@ export class IsometricGrid {
     this.clearLayer(this.enemyRangeLayer);
   }
 
-  showScreenAuraHoverIcons(positions: Array<{ x: number; y: number }>, symbol: string): void {
-    this.hideScreenAuraHoverIcons();
+  showTeamAuraHoverIcons(
+    positions: Array<{ x: number; y: number }>,
+    symbols: readonly string[],
+  ): void {
+    this.hideTeamAuraHoverIcons();
+    if (symbols.length === 0) {
+      return;
+    }
+    const capped = symbols.slice(0, AURA_HOVER_MAX_ICONS);
+    const offsets = getAuraHoverOffsets(capped.length);
     for (const position of positions) {
       const groundHeight = this.getTileGroundHeight(position.x, position.y);
       const center = this.gridToScreen(position.x, position.y, groundHeight);
       const isoLadder = (position.x + position.y) * DEPTH_TILE_MAX_ELEVATION + groundHeight;
       const depth = DEPTH_RAISED_TILE_BASE + isoLadder + DEPTH_SCREEN_HIGHLIGHT_ISO_OFFSET;
-      const text = this.scene.add.text(center.x, center.y, symbol, {
-        fontSize: `${SCREEN_HOVER_AURA_FONT_SIZE}px`,
-      });
-      text.setOrigin(0.5, 0.5);
-      text.setAlpha(SCREEN_HOVER_AURA_ALPHA);
-      text.setDepth(depth);
-      this.screenAuraHoverIcons.push(text);
+      for (let i = 0; i < capped.length; i++) {
+        const offset = offsets[i];
+        const symbol = capped[i];
+        if (!offset || symbol === undefined) {
+          continue;
+        }
+        const text = this.scene.add.text(center.x + offset.x, center.y + offset.y, symbol, {
+          fontSize: `${SCREEN_HOVER_AURA_FONT_SIZE}px`,
+        });
+        text.setOrigin(0.5, 0.5);
+        text.setAlpha(SCREEN_HOVER_AURA_ALPHA);
+        text.setDepth(depth);
+        this.screenAuraHoverIcons.push(text);
+      }
     }
   }
 
-  hideScreenAuraHoverIcons(): void {
+  hideTeamAuraHoverIcons(): void {
     for (const icon of this.screenAuraHoverIcons) {
       icon.destroy();
     }

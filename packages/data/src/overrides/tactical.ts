@@ -6,11 +6,11 @@ import type {
   Weather as WeatherType,
 } from "@pokemon-tactic/core";
 import {
+  AuraKind,
   DefensiveKind,
   EffectKind,
   EffectTarget,
   EffectTier,
-  ScreenKind,
   SemiInvulnerableState,
   StatName,
   StatusType,
@@ -1200,11 +1200,19 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   },
   reflect: {
     targeting: { kind: TargetingKind.Self },
-    effects: [{ kind: EffectKind.PostScreen, screen: ScreenKind.Reflect }],
+    effects: [{ kind: EffectKind.PostAura, aura: AuraKind.Reflect }],
   },
   "light-screen": {
     targeting: { kind: TargetingKind.Self },
-    effects: [{ kind: EffectKind.PostScreen, screen: ScreenKind.LightScreen }],
+    effects: [{ kind: EffectKind.PostAura, aura: AuraKind.LightScreen }],
+  },
+  mist: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostAura, aura: AuraKind.Mist }],
+  },
+  safeguard: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostAura, aura: AuraKind.Safeguard }],
   },
   "weather-ball": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },

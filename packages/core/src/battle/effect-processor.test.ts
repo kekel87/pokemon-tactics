@@ -88,7 +88,7 @@ function makeContext(
     predictedNextRoundOrder: [],
     weather: Weather.None,
     weatherTurnsRemaining: 0,
-    screens: [],
+    auras: [],
     ...state,
   };
   return {
@@ -235,7 +235,7 @@ describe("processEffects — status", () => {
         predictedNextRoundOrder: [],
         weather: Weather.None,
         weatherTurnsRemaining: 0,
-        screens: [],
+        auras: [],
       } as BattleState,
       typeChart: immuneChart,
       attackerTypes: [PokemonType.Electric] as PokemonType[],

@@ -1,8 +1,8 @@
+import type { AuraKind } from "../enums/aura-kind";
 import type { BattleEventType } from "../enums/battle-event-type";
 import type { DefensiveKind } from "../enums/defensive-kind";
 import type { Direction } from "../enums/direction";
 import type { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
-import type { ScreenKind } from "../enums/screen-kind";
 import type { StatName } from "../enums/stat-name";
 import type { StatusImmuneReason } from "../enums/status-immune-reason";
 import type { StatusType } from "../enums/status-type";
@@ -10,12 +10,17 @@ import type { TerrainType } from "../enums/terrain-type";
 import type { Weather } from "../enums/weather";
 import type { Position } from "./position";
 
-export const ScreenDissipatedReason = {
+export const AuraDissipatedReason = {
   Expired: "expired",
   CasterKo: "casterKo",
 } as const;
-export type ScreenDissipatedReason =
-  (typeof ScreenDissipatedReason)[keyof typeof ScreenDissipatedReason];
+export type AuraDissipatedReason = (typeof AuraDissipatedReason)[keyof typeof AuraDissipatedReason];
+
+export const ProtectionReason = {
+  Mist: "mist",
+  Safeguard: "safeguard",
+} as const;
+export type ProtectionReason = (typeof ProtectionReason)[keyof typeof ProtectionReason];
 
 export type BattleEvent =
   | { type: typeof BattleEventType.TurnStarted; pokemonId: string; roundNumber: number }
@@ -196,21 +201,35 @@ export type BattleEvent =
     }
   | { type: typeof BattleEventType.Flinched; pokemonId: string }
   | {
-      type: typeof BattleEventType.ScreenPosted;
+      type: typeof BattleEventType.AuraPosted;
       casterId: string;
-      kind: ScreenKind;
+      kind: AuraKind;
       durationRounds: number;
     }
   | {
-      type: typeof BattleEventType.ScreenDissipated;
+      type: typeof BattleEventType.AuraDissipated;
       casterId: string;
-      kind: ScreenKind;
-      reason: ScreenDissipatedReason;
+      kind: AuraKind;
+      reason: AuraDissipatedReason;
     }
   | {
-      type: typeof BattleEventType.ScreenBroken;
+      type: typeof BattleEventType.AuraBroken;
       casterId: string;
-      kind: ScreenKind;
+      kind: AuraKind;
       breakerId: string;
       breakerMoveId: string;
+    }
+  | {
+      type: typeof BattleEventType.StatChangeBlocked;
+      pokemonId: string;
+      stat: StatName;
+      reason: ProtectionReason;
+      protectingCasterId?: string;
+    }
+  | {
+      type: typeof BattleEventType.StatusBlocked;
+      pokemonId: string;
+      status: StatusType;
+      reason: ProtectionReason;
+      protectingCasterId?: string;
     };

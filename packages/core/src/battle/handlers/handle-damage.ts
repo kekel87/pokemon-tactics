@@ -10,14 +10,14 @@ import type { Effect } from "../../types/effect";
 import type { MoveDefinition } from "../../types/move-definition";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 import type { RandomFn } from "../../utils/prng";
-import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calculator";
-import { checkDefense } from "../defense-check";
-import type { EffectContext } from "../effect-handler-registry";
 import {
   computeBrickBreakInteraction,
   computeScreenMultiplier,
   removeAurasOfCaster,
-} from "../screens-system";
+} from "../aura-system";
+import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calculator";
+import { checkDefense } from "../defense-check";
+import type { EffectContext } from "../effect-handler-registry";
 import {
   effectiveWeather,
   getWeatherBallBp,
@@ -91,12 +91,7 @@ function dealSingleHit(
   const defenseStat =
     resolvedMove.category === Category.Physical ? StatName.Defense : StatName.SpDefense;
   const defenseWeather = getWeatherDefenseStatBoost(defenderTypes, defenseStat, activeWeather);
-  const brickBreakInteraction = computeBrickBreakInteraction(
-    context.state,
-    context.attacker,
-    target,
-    resolvedMove,
-  );
+  const brickBreakInteraction = computeBrickBreakInteraction(context.state, target, resolvedMove);
   const screenMultiplier = brickBreakInteraction.breakAuraCasterId
     ? 1.0
     : computeScreenMultiplier(context.state, context.attacker, target, resolvedMove);
@@ -193,7 +188,7 @@ function dealSingleHit(
     const brokenAuras = removeAurasOfCaster(context.state, brickBreakInteraction.breakAuraCasterId);
     for (const brokenAura of brokenAuras) {
       events.push({
-        type: BattleEventType.ScreenBroken,
+        type: BattleEventType.AuraBroken,
         casterId: brickBreakInteraction.breakAuraCasterId,
         kind: brokenAura.kind,
         breakerId: context.attacker.id,

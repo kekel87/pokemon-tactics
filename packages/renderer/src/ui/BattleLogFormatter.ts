@@ -1,4 +1,4 @@
-import type { BattleEvent } from "@pokemon-tactic/core";
+import type { AuraKind, BattleEvent } from "@pokemon-tactic/core";
 import {
   BattleEventType,
   DefensiveKind,
@@ -9,6 +9,25 @@ import {
   TerrainType,
   Weather,
 } from "@pokemon-tactic/core";
+
+const AURA_LABELS_FR: Record<AuraKind, string> = {
+  reflect: "Protection",
+  "light-screen": "Mur Lumière",
+  mist: "Brume",
+  safeguard: "Rune Protect",
+};
+
+const AURA_LABELS_EN: Record<AuraKind, string> = {
+  reflect: "Reflect",
+  "light-screen": "Light Screen",
+  mist: "Mist",
+  safeguard: "Safeguard",
+};
+
+function auraKindLabel(kind: AuraKind, lang: string): string {
+  return lang === "fr" ? AURA_LABELS_FR[kind] : AURA_LABELS_EN[kind];
+}
+
 import {
   BATTLE_LOG_COLOR_ABILITY,
   BATTLE_LOG_COLOR_BATTLE_ENDED,
@@ -424,60 +443,55 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 
-    case BattleEventType.ScreenPosted: {
+    case BattleEventType.AuraPosted: {
       const name = context.getPokemonName(event.casterId);
-      const screenLabel =
-        event.kind === "reflect"
-          ? lang === "fr"
-            ? "Protection"
-            : "Reflect"
-          : lang === "fr"
-            ? "Mur Lumière"
-            : "Light Screen";
+      const auraLabel = auraKindLabel(event.kind, lang);
       const message =
         lang === "fr"
-          ? `${name} pose ${screenLabel} (${event.durationRounds} tours)`
-          : `${name} sets up ${screenLabel} (${event.durationRounds} turns)`;
+          ? `${name} pose ${auraLabel} (${event.durationRounds} tours)`
+          : `${name} sets up ${auraLabel} (${event.durationRounds} turns)`;
       return { message, color: BattleLogColors.move, pokemonIds: [event.casterId] };
     }
 
-    case BattleEventType.ScreenDissipated: {
+    case BattleEventType.AuraDissipated: {
       const name = context.getPokemonName(event.casterId);
-      const screenLabel =
-        event.kind === "reflect"
-          ? lang === "fr"
-            ? "Protection"
-            : "Reflect"
-          : lang === "fr"
-            ? "Mur Lumière"
-            : "Light Screen";
+      const auraLabel = auraKindLabel(event.kind, lang);
       const message =
         lang === "fr"
-          ? `L'aura ${screenLabel} de ${name} se dissipe`
-          : `${name}'s ${screenLabel} aura faded`;
+          ? `L'aura ${auraLabel} de ${name} se dissipe`
+          : `${name}'s ${auraLabel} aura faded`;
       return { message, color: BattleLogColors.turn, pokemonIds: [event.casterId] };
     }
 
-    case BattleEventType.ScreenBroken: {
+    case BattleEventType.AuraBroken: {
       const breakerName = context.getPokemonName(event.breakerId);
       const casterName = context.getPokemonName(event.casterId);
-      const screenLabel =
-        event.kind === "reflect"
-          ? lang === "fr"
-            ? "Protection"
-            : "Reflect"
-          : lang === "fr"
-            ? "Mur Lumière"
-            : "Light Screen";
+      const auraLabel = auraKindLabel(event.kind, lang);
       const message =
         lang === "fr"
-          ? `${breakerName} brise l'aura ${screenLabel} de ${casterName} !`
-          : `${breakerName} broke ${casterName}'s ${screenLabel} aura!`;
+          ? `${breakerName} brise l'aura ${auraLabel} de ${casterName} !`
+          : `${breakerName} broke ${casterName}'s ${auraLabel} aura!`;
       return {
         message,
         color: BattleLogColors.damage,
         pokemonIds: [event.breakerId, event.casterId],
       };
+    }
+
+    case BattleEventType.StatChangeBlocked: {
+      const targetName = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr" ? `Brume protège ${targetName} !` : `Mist protects ${targetName}!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.StatusBlocked: {
+      const targetName = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `Rune Protect protège ${targetName} !`
+          : `Safeguard protects ${targetName}!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 
     case BattleEventType.Teleported: {

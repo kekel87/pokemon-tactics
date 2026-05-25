@@ -256,7 +256,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     predictedNextRoundOrder: [],
     weather: Weather.None,
     weatherTurnsRemaining: 0,
-    screens: [],
+    auras: [],
   };
 
   const turnPipeline = new TurnPipeline();

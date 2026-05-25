@@ -17,7 +17,7 @@ import { resolveTargeting } from "../grid/targeting";
 import { isValidHitAndRunRetreat } from "../grid/validate-hit-and-run-retreat";
 import type { Action, ActionResult } from "../types/action";
 import type { BattleEvent } from "../types/battle-event";
-import { ScreenDissipatedReason } from "../types/battle-event";
+import { AuraDissipatedReason } from "../types/battle-event";
 import type { BattleReplay } from "../types/battle-replay";
 import type { BattleState } from "../types/battle-state";
 import type { CtTimelineEntry } from "../types/ct-timeline-entry";
@@ -36,6 +36,7 @@ import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { checkAccuracy } from "./accuracy-check";
 import { applyImpactDamage } from "./apply-impact-damage";
+import { removeAurasOfCaster } from "./aura-system";
 import { ChargeTimeTurnSystem } from "./ChargeTimeTurnSystem";
 import {
   CT_START,
@@ -51,10 +52,10 @@ import { processEffects } from "./effect-processor";
 import { isEffectivelyFlying } from "./effective-flying";
 import { getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
+import { createAurasTickHandler } from "./handlers/aura-tick-handler";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handler";
 import { roostedClearHandler } from "./handlers/roosted-clear-handler";
-import { createScreensTickHandler } from "./handlers/screens-tick-handler";
 import { createSeededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
 import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
@@ -66,7 +67,6 @@ import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getEffectiveInitiative } from "./initiative-calculator";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { computePressureBonus } from "./pressure";
-import { removeAurasOfCaster } from "./screens-system";
 import {
   canMoveHitSemiInvulnerable,
   getSemiInvulnerableDamageMultiplier,
@@ -172,7 +172,7 @@ export class BattleEngine {
       }),
       150,
     );
-    this.turnPipeline.registerEndTurn(createScreensTickHandler(), 160);
+    this.turnPipeline.registerEndTurn(createAurasTickHandler(), 160);
     this.turnPipeline.registerEndTurn(
       createSeededTickHandler(this.abilityRegistry ?? undefined),
       200,
@@ -2100,10 +2100,10 @@ export class BattleEngine {
     const removedAuras = removeAurasOfCaster(this.state, pokemonId);
     for (const aura of removedAuras) {
       const dissipatedEvent: BattleEvent = {
-        type: BattleEventType.ScreenDissipated,
+        type: BattleEventType.AuraDissipated,
         casterId: pokemonId,
         kind: aura.kind,
-        reason: ScreenDissipatedReason.CasterKo,
+        reason: AuraDissipatedReason.CasterKo,
       };
       this.emit(dissipatedEvent);
       events.push(dissipatedEvent);

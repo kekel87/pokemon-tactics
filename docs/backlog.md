@@ -58,12 +58,9 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 ### Aurora Veil v2 — post intégration Legends Z-A
 - Dropped v1 (plan 095) : 0 learner Gen 1 roster, tous les 9 learners Gen 7+ hors roster.
 - Reprise quand Alolan Ninetales et Vulpix-Alola sont intégrés via le pipeline Z-A.
-- Réutilise infrastructure `ScreenAura` + `EffectKind.PostScreen` ; ajouter variant `ScreenKind.AuroraVeil` + handler combiné Phys+Spé. Requiert `state.weather === Weather.Snow` à la pose.
+- Réutilise infrastructure `TeamAura` + `EffectKind.PostAura` (plan 098) ; ajouter variant `AuraKind.AuroraVeil` + handler combiné Phys+Spé. Requiert `state.weather === Weather.Snow` à la pose.
 
-### Mist / Safeguard — Team Protections bundle
-- Mist : bloque les baisses de stats sur alliés r3 caster (mirror Reflect côté stat).
-- Safeguard : immunité statuts majeurs sur alliés r3 caster.
-- Bundle "Team Protections" v2, séparé du plan 095 (mécaniques distinctes des screens dégâts).
+<!-- Résolu plan 098 (2026-05-25) : Brume (Mist, Glace) + Rune Protect (Safeguard, Normal) livrés. Refactor infra unifié ScreenAura → TeamAura (4 kinds). Hook handle-stat-change.ts (Mist) + handle-status.ts (Safeguard). Bug fix friendly fire (attacker.id vs attacker.playerId). IA threat-detection + scoring threatBonus ×1.5. Renderer indicateurs 4 kinds. 1618 unit + 236 intégration verts. -->
 
 ### Sandbox panel — config screens active au boot
 - Plan 095 étape 14 (optionnelle non livrée v1).

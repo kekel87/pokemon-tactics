@@ -9,7 +9,7 @@ export const EffectKind = {
   Drain: "drain",
   SetWeather: "set_weather",
   TransferStatStages: "transfer_stat_stages",
-  PostScreen: "post_screen",
+  PostAura: "post_aura",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

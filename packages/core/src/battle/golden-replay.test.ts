@@ -134,7 +134,7 @@ function buildGoldenEngine(seed: number): BattleEngine {
     predictedNextRoundOrder: [] as string[],
     weather: Weather.None,
     weatherTurnsRemaining: 0,
-    screens: [],
+    auras: [],
   };
 
   const random = createPrng(seed);

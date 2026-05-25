@@ -1,6 +1,8 @@
 import {
   type Action,
   ActionKind,
+  AURA_RADIUS,
+  AuraKind,
   type BattleEngine,
   type BattleEvent,
   BattleEventType,
@@ -26,10 +28,9 @@ import {
   type PokemonInstance,
   PokemonType,
   type Position,
+  ProtectionReason,
   resolveBlastImpactTile,
   resolveTargeting,
-  type ScreenAura,
-  ScreenKind,
   SemiInvulnerableState,
   type SpawnZone,
   StatName,
@@ -37,6 +38,7 @@ import {
   StatusType,
   stepInDirection,
   TargetingKind,
+  type TeamAura,
   TerrainType,
   TurnSystemKind,
   Weather,
@@ -48,6 +50,7 @@ import {
   moveAnimationCategory,
 } from "@pokemon-tactic/data";
 import {
+  AURA_INDICATOR_SYMBOL,
   BATTLE_TEXT_COLOR_ABILITY,
   BATTLE_TEXT_COLOR_BUFF,
   BATTLE_TEXT_COLOR_CONFUSED,
@@ -126,6 +129,18 @@ export interface BattleConfig {
 
 const CHARGING_FLOAT_LABEL_KEYS: Record<string, TranslationKey> = {
   "solar-beam": "move.charging.solar-beam",
+};
+
+const AURA_POSTED_KEY: Record<AuraKind, TranslationKey> = {
+  [AuraKind.Reflect]: "aura.posted.reflect",
+  [AuraKind.LightScreen]: "aura.posted.lightScreen",
+  [AuraKind.Mist]: "aura.posted.mist",
+  [AuraKind.Safeguard]: "aura.posted.safeguard",
+};
+
+const AURA_BLOCKED_KEY: Record<ProtectionReason, TranslationKey> = {
+  [ProtectionReason.Mist]: "aura.blocked.mist",
+  [ProtectionReason.Safeguard]: "aura.blocked.safeguard",
 };
 
 function getChargingFloatLabel(moveId: string): string {
@@ -1076,7 +1091,7 @@ export class GameController {
 
       case BattleEventType.PokemonMoved: {
         await this.animateAlongPath(event.pokemonId, event.path);
-        this.refreshScreenVisuals();
+        this.refreshAuraVisuals();
         break;
       }
 
@@ -1321,7 +1336,7 @@ export class GameController {
         if (pokemon && sprite) {
           sprite.setDirection(pokemon.orientation);
         }
-        this.refreshScreenVisuals();
+        this.refreshAuraVisuals();
         break;
       }
 
@@ -1672,15 +1687,12 @@ export class GameController {
         break;
       }
 
-      case BattleEventType.ScreenPosted: {
-        this.refreshScreenVisuals();
+      case BattleEventType.AuraPosted: {
+        this.refreshAuraVisuals();
         const sprite = this.sprites.get(event.casterId);
         if (sprite) {
           const pos = sprite.getTextPosition();
-          const moveKey =
-            event.kind === ScreenKind.Reflect
-              ? "screen.posted.reflect"
-              : "screen.posted.lightScreen";
+          const moveKey: TranslationKey = AURA_POSTED_KEY[event.kind];
           showBattleText(this.scene, pos.x, pos.y, t(moveKey), {
             color: BATTLE_TEXT_COLOR_INFO,
           });
@@ -1689,18 +1701,33 @@ export class GameController {
         break;
       }
 
-      case BattleEventType.ScreenDissipated: {
-        this.refreshScreenVisuals();
+      case BattleEventType.AuraDissipated: {
+        this.refreshAuraVisuals();
         this.updateInfoPanelForActivePokemon();
         break;
       }
 
-      case BattleEventType.ScreenBroken: {
-        this.refreshScreenVisuals();
+      case BattleEventType.StatChangeBlocked:
+      case BattleEventType.StatusBlocked: {
+        const sprite = this.sprites.get(event.pokemonId);
+        const target = this.state.pokemon.get(event.pokemonId);
+        if (sprite && target) {
+          const pos = sprite.getTextPosition();
+          const name = getPokemonName(target.definitionId ?? target.id, getLanguage());
+          showBattleText(this.scene, pos.x, pos.y, t(AURA_BLOCKED_KEY[event.reason], { name }), {
+            color: BATTLE_TEXT_COLOR_INFO,
+            targetId: event.pokemonId,
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.AuraBroken: {
+        this.refreshAuraVisuals();
         const sprite = this.sprites.get(event.casterId);
         if (sprite) {
           const pos = sprite.getTextPosition();
-          showBattleText(this.scene, pos.x, pos.y, t("screen.broken"), {
+          showBattleText(this.scene, pos.x, pos.y, t("aura.broken"), {
             color: BATTLE_TEXT_COLOR_DEBUFF,
             targetId: event.casterId,
           });
@@ -1723,7 +1750,7 @@ export class GameController {
     }
   }
 
-  private getScreenAuraTiles(aura: ScreenAura): Position[] {
+  private getTeamAuraTiles(aura: TeamAura): Position[] {
     const caster = this.state.pokemon.get(aura.casterPokemonId);
     if (!caster) {
       return [];
@@ -1749,16 +1776,16 @@ export class GameController {
     return tiles;
   }
 
-  private refreshScreenVisuals(): void {
+  private refreshAuraVisuals(): void {
     const specsByPokemon = new Map<string, LeftIndicatorSpec[]>();
 
-    for (const aura of this.state.screens) {
+    for (const aura of this.state.auras) {
       const caster = this.state.pokemon.get(aura.casterPokemonId);
       if (!caster || caster.currentHp <= 0) {
         continue;
       }
-      const symbol = aura.kind === ScreenKind.Reflect ? "🛡️" : "✨";
-      const idKey = aura.kind === ScreenKind.Reflect ? "reflect" : "light-screen";
+      const symbol = AURA_INDICATOR_SYMBOL[aura.kind];
+      const idKey = aura.kind;
 
       const casterSpec: LeftIndicatorSpec = {
         id: idKey,
@@ -1781,7 +1808,7 @@ export class GameController {
         const distance =
           Math.abs(candidate.position.x - caster.position.x) +
           Math.abs(candidate.position.y - caster.position.y);
-        if (distance > 3) {
+        if (distance > AURA_RADIUS) {
           continue;
         }
         const protectedSpec: LeftIndicatorSpec = {
@@ -1804,22 +1831,20 @@ export class GameController {
   }
 
   showAuraHoverFor(pokemonId: string): void {
-    const auras = this.state.screens.filter((entry) => entry.casterPokemonId === pokemonId);
+    const auras = this.state.auras.filter((entry) => entry.casterPokemonId === pokemonId);
     const casterAura = auras[0];
     if (!casterAura) {
-      this.isometricGrid.hideScreenAuraHoverIcons();
+      this.isometricGrid.hideTeamAuraHoverIcons();
       return;
     }
-    const tiles = this.getScreenAuraTiles(casterAura);
+    const tiles = this.getTeamAuraTiles(casterAura);
     const sortedKinds = [...auras].sort((a, b) => a.postedRound - b.postedRound);
-    const symbols = sortedKinds
-      .map((aura) => (aura.kind === ScreenKind.Reflect ? "🛡️" : "✨"))
-      .join("");
-    this.isometricGrid.showScreenAuraHoverIcons(tiles, symbols);
+    const symbols = sortedKinds.map((aura) => AURA_INDICATOR_SYMBOL[aura.kind]);
+    this.isometricGrid.showTeamAuraHoverIcons(tiles, symbols);
   }
 
   hideAuraHover(): void {
-    this.isometricGrid.hideScreenAuraHoverIcons();
+    this.isometricGrid.hideTeamAuraHoverIcons();
   }
 
   private isChargeT1(move: MoveDefinition, activePokemon: PokemonInstance | null): boolean {

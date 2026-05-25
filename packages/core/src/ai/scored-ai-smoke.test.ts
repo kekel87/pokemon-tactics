@@ -154,7 +154,7 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
       predictedNextRoundOrder: [],
       weather: Weather.None,
       weatherTurnsRemaining: 0,
-      screens: [],
+      auras: [],
     };
 
     const seed = 42;

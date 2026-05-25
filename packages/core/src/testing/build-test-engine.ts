@@ -120,6 +120,6 @@ function buildState(grid: TileState[][], pokemonMap: Map<string, PokemonInstance
     predictedNextRoundOrder: [] as string[],
     weather: Weather.None,
     weatherTurnsRemaining: 0,
-    screens: [],
+    auras: [],
   };
 }
