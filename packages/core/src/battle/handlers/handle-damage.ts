@@ -18,6 +18,7 @@ import {
 import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calculator";
 import { checkDefense } from "../defense-check";
 import type { EffectContext } from "../effect-handler-registry";
+import { applySubstituteAbsorption, shouldSubstituteBlock } from "../substitute-system";
 import {
   effectiveWeather,
   getWeatherBallBp,
@@ -172,6 +173,40 @@ function dealSingleHit(
 
   if (isCrit) {
     events.push({ type: BattleEventType.CriticalHit, targetId: target.id });
+  }
+
+  const subBlocks = shouldSubstituteBlock(context.attacker, target, context.move);
+  if (subBlocks) {
+    const { absorbed, broken } = applySubstituteAbsorption(target, actualDamage);
+    context.shared.lastDamageDealt += absorbed;
+
+    events.push({
+      type: BattleEventType.DamageDealt,
+      targetId: target.id,
+      amount: absorbed,
+      effectiveness,
+      absorbedBySubstitute: absorbed,
+    });
+
+    if (absorbed > 0) {
+      events.push({
+        type: BattleEventType.SubstituteDamaged,
+        pokemonId: target.id,
+        damage: absorbed,
+        remaining: target.substituteHp ?? 0,
+      });
+    }
+
+    if (broken) {
+      events.push({
+        type: BattleEventType.SubstituteBroken,
+        pokemonId: target.id,
+        breakerId: context.attacker.id,
+        breakerMoveId: context.move.id,
+      });
+    }
+
+    return events;
   }
 
   target.currentHp = Math.max(0, target.currentHp - actualDamage);

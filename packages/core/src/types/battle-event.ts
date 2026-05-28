@@ -19,8 +19,16 @@ export type AuraDissipatedReason = (typeof AuraDissipatedReason)[keyof typeof Au
 export const ProtectionReason = {
   Mist: "mist",
   Safeguard: "safeguard",
+  Substitute: "substitute",
 } as const;
 export type ProtectionReason = (typeof ProtectionReason)[keyof typeof ProtectionReason];
+
+export const SubstituteFailedReason = {
+  AlreadyActive: "already_active",
+  InsufficientHp: "insufficient_hp",
+} as const;
+export type SubstituteFailedReason =
+  (typeof SubstituteFailedReason)[keyof typeof SubstituteFailedReason];
 
 export type BattleEvent =
   | { type: typeof BattleEventType.TurnStarted; pokemonId: string; roundNumber: number }
@@ -44,6 +52,7 @@ export type BattleEvent =
       amount: number;
       effectiveness: number;
       recoil?: boolean;
+      absorbedBySubstitute?: number;
     }
   | { type: typeof BattleEventType.StatusApplied; targetId: string; status: StatusType }
   | { type: typeof BattleEventType.StatusRemoved; targetId: string; status: StatusType }
@@ -232,4 +241,26 @@ export type BattleEvent =
       status: StatusType;
       reason: ProtectionReason;
       protectingCasterId?: string;
+    }
+  | {
+      type: typeof BattleEventType.SubstitutePosted;
+      pokemonId: string;
+      hp: number;
+    }
+  | {
+      type: typeof BattleEventType.SubstituteDamaged;
+      pokemonId: string;
+      damage: number;
+      remaining: number;
+    }
+  | {
+      type: typeof BattleEventType.SubstituteBroken;
+      pokemonId: string;
+      breakerId: string;
+      breakerMoveId: string;
+    }
+  | {
+      type: typeof BattleEventType.SubstituteFailed;
+      pokemonId: string;
+      reason: SubstituteFailedReason;
     };

@@ -8,6 +8,7 @@ import type { Effect } from "../../types/effect";
 import { isProtectedFromStatDecrease } from "../aura-system";
 import type { EffectContext } from "../effect-handler-registry";
 import { clampStages, computeMovement } from "../stat-modifier";
+import { shouldSubstituteBlock } from "../substitute-system";
 
 export function handleStatChange(context: EffectContext): BattleEvent[] {
   const events: BattleEvent[] = [];
@@ -42,6 +43,16 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
           stat: effect.stat,
           reason: ProtectionReason.Mist,
           protectingCasterId: mistProtection.casterId,
+        });
+        continue;
+      }
+
+      if (shouldSubstituteBlock(context.attacker, pokemon, context.move)) {
+        events.push({
+          type: BattleEventType.StatChangeBlocked,
+          pokemonId: pokemon.id,
+          stat: effect.stat,
+          reason: ProtectionReason.Substitute,
         });
         continue;
       }

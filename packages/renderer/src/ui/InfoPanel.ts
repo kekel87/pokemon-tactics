@@ -230,6 +230,13 @@ export class InfoPanel {
       offsetX = this.addBadge(chargingLabel, STAT_BADGE_VOLATILE_BG, offsetX);
     }
 
+    if (pokemon.substituteHp !== undefined && pokemon.substituteHp > 0) {
+      const substituteLabel = t("infoPanel.volatile.substitute", {
+        hp: String(pokemon.substituteHp),
+      });
+      offsetX = this.addBadge(substituteLabel, STAT_BADGE_VOLATILE_BG, offsetX);
+    }
+
     offsetX = this.addAuraBadges(pokemon, offsetX);
   }
 

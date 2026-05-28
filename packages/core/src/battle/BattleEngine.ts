@@ -2080,6 +2080,7 @@ export class BattleEngine {
     pokemon.activeDefense = null;
     pokemon.chargingMove = undefined;
     pokemon.lockedMoveId = undefined;
+    pokemon.substituteHp = undefined;
 
     for (const other of this.state.pokemon.values()) {
       const seededBefore = other.volatileStatuses.length;

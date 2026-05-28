@@ -101,9 +101,10 @@ export class TeamSelectScene extends Phaser.Scene {
   async create(): Promise<void> {
     if (sandboxBootConfig.enabled) {
       const config = sandboxBootConfig.config ?? DEFAULT_SANDBOX_CONFIG;
-      const engagedIds = [config.pokemon, config.dummyPokemon].filter(
-        (id, i, arr) => arr.indexOf(id) === i,
-      );
+      const engagedIds = extractEngagedPokemonIds({
+        sandboxMode: true,
+        sandboxConfig: config,
+      });
       this.scene.start("LoadingScene", {
         queueAssets: buildEngagedSpritesQueue(engagedIds),
         nextScene: "BattleScene",

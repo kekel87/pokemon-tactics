@@ -56,6 +56,10 @@ export const BattleEventType = {
   AuraBroken: "aura_broken",
   StatChangeBlocked: "stat_change_blocked",
   StatusBlocked: "status_blocked",
+  SubstitutePosted: "substitute_posted",
+  SubstituteDamaged: "substitute_damaged",
+  SubstituteBroken: "substitute_broken",
+  SubstituteFailed: "substitute_failed",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

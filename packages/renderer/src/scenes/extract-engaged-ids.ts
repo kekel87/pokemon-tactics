@@ -1,3 +1,4 @@
+import { SUBSTITUTE_SPRITE_ID } from "../constants";
 import type { SandboxConfig } from "../types/SandboxConfig";
 import type { TeamSelectResult } from "./TeamSelectScene";
 
@@ -24,6 +25,10 @@ export function extractEngagedPokemonIds(data: EngagedIdsInput | undefined): str
         ids.add(definitionId);
       }
     }
+  }
+
+  if (ids.size > 0) {
+    ids.add(SUBSTITUTE_SPRITE_ID);
   }
 
   return Array.from(ids);

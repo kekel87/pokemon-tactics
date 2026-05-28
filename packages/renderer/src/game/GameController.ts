@@ -36,6 +36,7 @@ import {
   StatName,
   StatusImmuneReason,
   StatusType,
+  SubstituteFailedReason,
   stepInDirection,
   TargetingKind,
   type TeamAura,
@@ -141,6 +142,7 @@ const AURA_POSTED_KEY: Record<AuraKind, TranslationKey> = {
 const AURA_BLOCKED_KEY: Record<ProtectionReason, TranslationKey> = {
   [ProtectionReason.Mist]: "aura.blocked.mist",
   [ProtectionReason.Safeguard]: "aura.blocked.safeguard",
+  [ProtectionReason.Substitute]: "substitute.blocked",
 };
 
 function getChargingFloatLabel(moveId: string): string {
@@ -1113,6 +1115,10 @@ export class GameController {
       }
 
       case BattleEventType.DamageDealt: {
+        if (event.absorbedBySubstitute !== undefined && event.absorbedBySubstitute > 0) {
+          this.updateInfoPanelForActivePokemon();
+          break;
+        }
         const sprite = this.sprites.get(event.targetId);
         const pokemon = this.state.pokemon.get(event.targetId);
         if (sprite && pokemon) {
@@ -1237,6 +1243,9 @@ export class GameController {
         const koSprite = this.sprites.get(event.pokemonId);
         if (koSprite?.isSemiInvulnerable()) {
           koSprite.setSemiInvulnerable(null);
+        }
+        if (koSprite?.isSubstituteOverlayActive()) {
+          koSprite.setSubstituteOverlay(false);
         }
         break;
       }
@@ -1734,6 +1743,69 @@ export class GameController {
           sprite.flashDamage();
         }
         this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
+      case BattleEventType.SubstitutePosted: {
+        const sprite = this.sprites.get(event.pokemonId);
+        const target = this.state.pokemon.get(event.pokemonId);
+        if (sprite && target) {
+          sprite.updateHp(target.currentHp, target.maxHp);
+          sprite.setSubstituteOverlay(true);
+          const pos = sprite.getTextPosition();
+          const name = getPokemonName(target.definitionId ?? target.id, getLanguage());
+          showBattleText(this.scene, pos.x, pos.y, t("substitute.posted", { name }), {
+            color: BATTLE_TEXT_COLOR_INFO,
+          });
+        }
+        this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
+      case BattleEventType.SubstituteDamaged: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          const pos = sprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, `-${event.damage}`, {
+            color: BATTLE_TEXT_COLOR_DAMAGE,
+            targetId: event.pokemonId,
+          });
+          sprite.flashDamage();
+        }
+        this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
+      case BattleEventType.SubstituteBroken: {
+        const sprite = this.sprites.get(event.pokemonId);
+        const target = this.state.pokemon.get(event.pokemonId);
+        if (sprite && target) {
+          sprite.setSubstituteOverlay(false);
+          const pos = sprite.getTextPosition();
+          const name = getPokemonName(target.definitionId ?? target.id, getLanguage());
+          showBattleText(this.scene, pos.x, pos.y, t("substitute.broken", { name }), {
+            color: BATTLE_TEXT_COLOR_DEBUFF,
+            targetId: event.pokemonId,
+          });
+        }
+        this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
+      case BattleEventType.SubstituteFailed: {
+        const sprite = this.sprites.get(event.pokemonId);
+        const target = this.state.pokemon.get(event.pokemonId);
+        if (sprite && target) {
+          const pos = sprite.getTextPosition();
+          const name = getPokemonName(target.definitionId ?? target.id, getLanguage());
+          const key: TranslationKey =
+            event.reason === SubstituteFailedReason.AlreadyActive
+              ? "substitute.failed.active"
+              : "substitute.failed.lowHp";
+          showBattleText(this.scene, pos.x, pos.y, t(key, { name }), {
+            color: BATTLE_TEXT_COLOR_INFO,
+          });
+        }
         break;
       }
 

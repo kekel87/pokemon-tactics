@@ -1,0 +1,17 @@
+{
+  "pokemon": "mewtwo",
+  "moves": ["substitute", "calm-mind", "psychic", "ice-beam"],
+  "hp": 100,
+  "status": null,
+  "volatileStatus": null,
+  "statStages": {},
+  "dummyPokemon": "alakazam",
+  "dummyControl": "player",
+  "dummyMove": null,
+  "dummyMoves": ["psychic", "growl", "sing", "thunder-wave"],
+  "dummyDirection": "south",
+  "dummyHp": 100,
+  "dummyStatus": null,
+  "dummyVolatileStatus": null,
+  "dummyStatStages": {}
+}

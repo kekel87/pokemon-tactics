@@ -501,14 +501,60 @@ Après move avec `recharge: true`, Pokemon ne peut pas attaquer au tour suivant.
 
 ---
 
-## 7j. Badly Poisoned — poison grave (plan 026)
+## 7j. Impostor / Substitute (plan 099)
+
+**Pose du Substitute :** move statut self-only, type Normal. Coût = `floor(maxHp / 4)` PV, déduits instantanément du lanceur. Échec si HP insuffisants OU si le lanceur a déjà un sub actif (`SubstituteFailed` émis).
+
+**Stockage :** `PokemonInstance.substituteHp?: number` (pure field — pas de nouveau `StatusType`). `undefined` = pas de sub actif.
+
+**Absorption des dommages :** tout dommage entrant sur un Pokemon avec sub actif est intercepté dans `handle-damage.ts` avant écriture sur `currentHp`. Le sub absorbe les dégâts ; si `substituteHp` tombe à 0, `SubstituteBroken` est émis et le sub est effacé.
+
+**Blocage statuts/baisses-stats ennemis :** `handle-status.ts` et `handle-stat-change.ts` consultent `hasSubstitute(target)` — si actif, les statuts et baisses de stats provenant d'un adversaire sont bloqués (même pattern Mist/Safeguard). `ProtectionReason.Substitute` étendu.
+
+### Ce qui bypass le Substitute
+
+| Catégorie | Bypass | Raison |
+|-----------|--------|--------|
+| Move sonore (`flags.sound`) | Oui | Canon Showdown — son traverse le sub |
+| Move avec `flags.bypasssub` | Oui | Flag explicite |
+| Move drain | Oui | Drain (Vampirisme, Méga-Sangsue) perçoit HP réel |
+| Move recoil | Oui | Auto-infligé indépendant du sub |
+| Self-move (targeting `self`) | Toujours libre | Le Pokemon agit sur lui-même |
+| Météo, terrain, statuts propres | Non bloqués | Sub ne protège pas des dégâts indirects propres |
+
+**Multi-hit & sub :** si un move multi-hit brise le sub mid-séquence, les hits restants tombent sur les HP réels (parité Showdown canonique, décision #394).
+
+### Events émis
+
+| Event | Déclencheur |
+|-------|-------------|
+| `SubstitutePosted` | Sub posé avec succès (incluant HP du sub) |
+| `SubstituteDamaged` | Sub absorbe des dégâts (incluant HP restants) |
+| `SubstituteBroken` | Sub tombe à 0 HP |
+| `SubstituteFailed` | Échec : HP insuffisants ou sub déjà actif |
+
+### Renderer
+
+- `PokemonSprite.setSubstituteOverlay(active)` swap l'atlas vers le sprite `"dummy"` (constante `SUBSTITUTE_SPRITE_ID`) pendant que le sub est actif.
+- `InfoPanel` : badge `Clone {hp} PV` quand sub actif.
+- `MoveTooltip` : tags `sound` et `bypasssub` affichés.
+- `BattleLogFormatter` : 4 nouveaux cas + différenciation `ProtectionReason.Substitute`.
+- 17 nouvelles clés i18n FR/EN.
+
+### IA
+
+`scoreSelfMove` dans `action-scorer.ts` étendu pour `EffectKind.PostSubstitute` : prise en compte des menaces adjacentes et garde basse HP (score réduit si HP trop bas pour que le sub ait de la valeur).
+
+---
+
+## 7l. Badly Poisoned — poison grave (plan 026)
 
 - Compteur `toxicCounter`, démarre à 1, +1/tour, plafonne à 15
 - Dégâts/tour = `max(1, floor(maxHp * toxicCounter / 16))`
 
 ---
 
-## 7k. Confusion tactique (plan 026)
+## 7m. Confusion tactique (plan 026)
 
 Statut volatil. Dure 2-5 tours. Chaque tour : 50% de chance de dérailler.
 

@@ -1298,4 +1298,9 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     twoTurnCharge: true,
     critRatio: 1,
   },
+  substitute: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostSubstitute }],
+    effectTier: EffectTier.Reactive,
+  },
 };

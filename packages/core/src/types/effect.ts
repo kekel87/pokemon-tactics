@@ -42,4 +42,5 @@ export type Effect =
   | { kind: typeof EffectKind.Drain; fraction: number }
   | { kind: typeof EffectKind.SetWeather; weather: Weather; turns: number }
   | { kind: typeof EffectKind.TransferStatStages }
-  | { kind: typeof EffectKind.PostAura; aura: AuraKind };
+  | { kind: typeof EffectKind.PostAura; aura: AuraKind }
+  | { kind: typeof EffectKind.PostSubstitute };

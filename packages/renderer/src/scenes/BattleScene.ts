@@ -226,6 +226,9 @@ export class BattleScene extends Phaser.Scene {
       const types = definition?.types ?? ["normal"];
       const sprite = new PokemonSprite(this, isometricGrid, pokemon, types);
       sprites.set(pokemon.id, sprite);
+      if (pokemon.substituteHp !== undefined && pokemon.substituteHp > 0) {
+        sprite.setSubstituteOverlay(true);
+      }
       const spawnTerrain = isometricGrid.getTileTerrain(pokemon.position.x, pokemon.position.y);
       if (
         types.includes(PokemonType.Flying) &&
@@ -447,6 +450,9 @@ export class BattleScene extends Phaser.Scene {
 
       const sprite = new PokemonSprite(this, isometricGrid, pokemon, types);
       sprites.set(pokemon.id, sprite);
+      if (pokemon.substituteHp !== undefined && pokemon.substituteHp > 0) {
+        sprite.setSubstituteOverlay(true);
+      }
       const spawnTerrain = isometricGrid.getTileTerrain(pokemon.position.x, pokemon.position.y);
       if (
         types.includes(PokemonType.Flying) &&

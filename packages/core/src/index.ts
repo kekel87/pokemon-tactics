@@ -83,7 +83,11 @@ export {
   isValidHitAndRunRetreat,
 } from "./grid/validate-hit-and-run-retreat";
 export * from "./team/index";
-export { AuraDissipatedReason, ProtectionReason } from "./types/battle-event";
+export {
+  AuraDissipatedReason,
+  ProtectionReason,
+  SubstituteFailedReason,
+} from "./types/battle-event";
 export type * from "./types/index";
 export { SemiInvulnerableState } from "./types/semi-invulnerable-state";
 export { SP_PER_STAT_MAX, SP_TOTAL_MAX } from "./types/stat-spread";

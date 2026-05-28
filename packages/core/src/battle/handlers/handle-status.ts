@@ -12,6 +12,7 @@ import { DEFAULT_STATUS_RULES, type StatusRules } from "../../types/status-rules
 import { isProtectedFromStatus } from "../aura-system";
 import type { EffectContext } from "../effect-handler-registry";
 import { isMajorStatus } from "../stat-modifier";
+import { shouldSubstituteBlock } from "../substitute-system";
 import { effectiveWeather, shouldBlockFreezeInSun } from "../weather-system";
 
 const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([
@@ -133,6 +134,16 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
         status,
         reason: ProtectionReason.Safeguard,
         protectingCasterId: safeguardProtection.casterId,
+      });
+      continue;
+    }
+
+    if (shouldSubstituteBlock(context.attacker, target, context.move)) {
+      events.push({
+        type: BattleEventType.StatusBlocked,
+        pokemonId: target.id,
+        status,
+        reason: ProtectionReason.Substitute,
       });
       continue;
     }

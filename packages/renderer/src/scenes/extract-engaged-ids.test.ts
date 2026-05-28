@@ -16,6 +16,7 @@ describe("extractEngagedPokemonIds", () => {
     });
     expect(ids).toContain(DEFAULT_SANDBOX_CONFIG.pokemon);
     expect(ids).toContain(DEFAULT_SANDBOX_CONFIG.dummyPokemon);
+    expect(ids).toContain("dummy");
   });
 
   it("deduplicates across teams in placement mode", () => {
@@ -39,7 +40,7 @@ describe("extractEngagedPokemonIds", () => {
         formatKey: "2v6",
       },
     });
-    expect(ids.sort()).toEqual(["alakazam", "charizard", "snorlax"]);
+    expect(ids.sort()).toEqual(["alakazam", "charizard", "dummy", "snorlax"]);
   });
 
   it("scales to a 12v1 hot-seat lineup", () => {
@@ -57,6 +58,6 @@ describe("extractEngagedPokemonIds", () => {
         formatKey: "13v1",
       },
     });
-    expect(ids).toHaveLength(5);
+    expect(ids).toHaveLength(6);
   });
 });

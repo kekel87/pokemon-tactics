@@ -43,4 +43,5 @@ export interface PokemonInstance {
   lockedMoveId?: string;
   chargingMove?: { moveId: string; targetPosition?: Position };
   semiInvulnerableState?: SemiInvulnerableState;
+  substituteHp?: number;
 }

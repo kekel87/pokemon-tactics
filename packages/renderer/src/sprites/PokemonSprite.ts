@@ -48,6 +48,7 @@ import {
   STATUS_ASSET_KEY,
   STATUS_SPRITE_ICON_OFFSET_X,
   STATUS_SPRITE_ICON_SCALE,
+  SUBSTITUTE_SPRITE_ID,
   TILE_ELEVATION_STEP,
   TILE_HEIGHT,
   TILE_WIDTH,
@@ -110,6 +111,7 @@ export class PokemonSprite {
   private restingAnim = "Idle";
   private semiInvulnerableActive: SemiInvulnerableState | null = null;
   private semiInvulnerableYOffset = 0;
+  private substituteOverlay = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -140,7 +142,7 @@ export class PokemonSprite {
 
     if (this.usesAtlas) {
       texture.setFilter(Phaser.Textures.NEAREST);
-      const animKey = getAnimationKey(this.definitionId, "Idle", this.currentDirection);
+      const animKey = getAnimationKey(this.getEffectiveSpriteId(), "Idle", this.currentDirection);
       this.sprite = scene.add.sprite(0, 0, this.definitionId);
       this.sprite.setScale(POKEMON_SPRITE_SCALE);
       this.sprite.play(animKey);
@@ -368,7 +370,7 @@ export class PokemonSprite {
       return;
     }
     if (isAsleep) {
-      const key = getAnimationKey(this.definitionId, "Sleep", this.currentDirection);
+      const key = getAnimationKey(this.getEffectiveSpriteId(), "Sleep", this.currentDirection);
       if (this.scene.anims.exists(key)) {
         this.playAnimation("Sleep");
       }
@@ -430,7 +432,7 @@ export class PokemonSprite {
       return;
     }
     this.currentAnimation = animation;
-    const key = getAnimationKey(this.definitionId, animation, this.currentDirection);
+    const key = getAnimationKey(this.getEffectiveSpriteId(), animation, this.currentDirection);
     if (!this.scene.anims.exists(key)) {
       return;
     }
@@ -448,12 +450,6 @@ export class PokemonSprite {
     this.sprite.play(key);
   }
 
-  /**
-   * Plays the first animation in `candidates` that is registered for this
-   * sprite + current direction. Returns the animation name that was played,
-   * or `null` if no candidate is available. Useful for feature-detecting
-   * optional animations like "FlapAround" on flying Pokemon.
-   */
   setSemiInvulnerable(state: SemiInvulnerableState | null): void {
     const target = this.sprite ?? this.circle;
     if (!target) {
@@ -510,7 +506,7 @@ export class PokemonSprite {
       return null;
     }
     for (const candidate of candidates) {
-      const key = getAnimationKey(this.definitionId, candidate, this.currentDirection);
+      const key = getAnimationKey(this.getEffectiveSpriteId(), candidate, this.currentDirection);
       if (this.scene.anims.exists(key)) {
         this.playAnimation(candidate);
         return candidate;
@@ -519,11 +515,25 @@ export class PokemonSprite {
     return null;
   }
 
-  /**
-   * Sets the animation to return to after one-shot actions (Hurt, Attack, etc.)
-   * and plays it immediately. Tries candidates in order; if the first available
-   * one is found it becomes the resting animation. If none exist, falls back to Idle.
-   */
+  setSubstituteOverlay(active: boolean): void {
+    if (this.substituteOverlay === active) {
+      return;
+    }
+    this.substituteOverlay = active;
+    if (!this.sprite || !this.usesAtlas) {
+      return;
+    }
+    this.playAnimation(this.currentAnimation);
+  }
+
+  isSubstituteOverlayActive(): boolean {
+    return this.substituteOverlay;
+  }
+
+  private getEffectiveSpriteId(): string {
+    return this.substituteOverlay ? SUBSTITUTE_SPRITE_ID : this.definitionId;
+  }
+
   setRestingAnimation(candidates: readonly string[]): void {
     const played = this.playFirstAvailableAnimation(candidates);
     this.restingAnim = played ?? "Idle";
@@ -582,10 +592,10 @@ export class PokemonSprite {
     if (!this.sprite || !this.usesAtlas) {
       return Promise.resolve();
     }
-    let key = getAnimationKey(this.definitionId, animation, this.currentDirection);
+    let key = getAnimationKey(this.getEffectiveSpriteId(), animation, this.currentDirection);
     if (!this.scene.anims.exists(key)) {
       if (fallback) {
-        key = getAnimationKey(this.definitionId, fallback, this.currentDirection);
+        key = getAnimationKey(this.getEffectiveSpriteId(), fallback, this.currentDirection);
         if (!this.scene.anims.exists(key)) {
           return Promise.resolve();
         }
@@ -623,7 +633,9 @@ export class PokemonSprite {
     }
     this.clearAllIndicators();
     const sprite = this.sprite;
-    const key = sprite ? getAnimationKey(this.definitionId, "Faint", this.currentDirection) : null;
+    const key = sprite
+      ? getAnimationKey(this.getEffectiveSpriteId(), "Faint", this.currentDirection)
+      : null;
     const canPlayFaint = sprite && key && this.scene.anims.exists(key);
 
     if (canPlayFaint) {
@@ -643,7 +655,7 @@ export class PokemonSprite {
     // blocks the Hurt callback's fallback to Idle, so we reset manually here.
     if (sprite) {
       sprite.stop();
-      const idleKey = getAnimationKey(this.definitionId, "Idle", this.currentDirection);
+      const idleKey = getAnimationKey(this.getEffectiveSpriteId(), "Idle", this.currentDirection);
       if (this.scene.anims.exists(idleKey)) {
         sprite.play(idleKey);
         sprite.stop();

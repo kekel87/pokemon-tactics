@@ -3,9 +3,11 @@ import {
   BattleEventType,
   DefensiveKind,
   HitAndRunRetreatFallbackReason,
+  ProtectionReason,
   StatName,
   StatusImmuneReason,
   StatusType,
+  SubstituteFailedReason,
   TerrainType,
   Weather,
 } from "@pokemon-tactic/core";
@@ -480,18 +482,71 @@ export function formatBattleEvent(
 
     case BattleEventType.StatChangeBlocked: {
       const targetName = context.getPokemonName(event.pokemonId);
-      const message =
-        lang === "fr" ? `Brume protège ${targetName} !` : `Mist protects ${targetName}!`;
+      let message: string;
+      if (event.reason === ProtectionReason.Substitute) {
+        message =
+          lang === "fr" ? `Le Clone protège ${targetName} !` : `Substitute shields ${targetName}!`;
+      } else {
+        message = lang === "fr" ? `Brume protège ${targetName} !` : `Mist protects ${targetName}!`;
+      }
       return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 
     case BattleEventType.StatusBlocked: {
       const targetName = context.getPokemonName(event.pokemonId);
+      let message: string;
+      if (event.reason === ProtectionReason.Substitute) {
+        message =
+          lang === "fr" ? `Le Clone protège ${targetName} !` : `Substitute shields ${targetName}!`;
+      } else {
+        message =
+          lang === "fr"
+            ? `Rune Protect protège ${targetName} !`
+            : `Safeguard protects ${targetName}!`;
+      }
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.SubstitutePosted: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message = lang === "fr" ? `${name} crée un Clone !` : `${name} created a Substitute!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.SubstituteDamaged: {
+      const name = context.getPokemonName(event.pokemonId);
       const message =
         lang === "fr"
-          ? `Rune Protect protège ${targetName} !`
-          : `Safeguard protects ${targetName}!`;
-      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+          ? `Le Clone de ${name} encaisse ${event.damage} !`
+          : `${name}'s Substitute took ${event.damage} damage!`;
+      return { message, color: BattleLogColors.damage, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.SubstituteBroken: {
+      const name = context.getPokemonName(event.pokemonId);
+      const breakerName = context.getPokemonName(event.breakerId);
+      const message =
+        lang === "fr"
+          ? `${breakerName} brise le Clone de ${name} !`
+          : `${breakerName} broke ${name}'s Substitute!`;
+      return {
+        message,
+        color: BattleLogColors.damage,
+        pokemonIds: [event.pokemonId, event.breakerId],
+      };
+    }
+
+    case BattleEventType.SubstituteFailed: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        event.reason === SubstituteFailedReason.AlreadyActive
+          ? lang === "fr"
+            ? `${name} a déjà un Clone !`
+            : `${name} already has a Substitute!`
+          : lang === "fr"
+            ? `${name} n'a pas assez de PV !`
+            : `${name} doesn't have enough HP!`;
+      return { message, color: BattleLogColors.turn, pokemonIds: [event.pokemonId] };
     }
 
     case BattleEventType.Teleported: {

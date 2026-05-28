@@ -518,3 +518,5 @@ export const LOADING_TIP_FONT_SIZE = 11;
 export const LOADING_TIP_WIDTH = 360;
 export const LOADING_TIP_ROTATION_MS_DEFAULT = 3000;
 export const LOADING_FADE_OUT_MS = 200;
+
+export const SUBSTITUTE_SPRITE_ID = "dummy";

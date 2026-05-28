@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 162 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions) |
+| Attaques | 165 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099). |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (160 implémentées)
+## Attaques (165 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -377,6 +377,9 @@
 | Bélier | skull-bash | Normal | Phys | 130 | 100 | 10 | dash r3 | Charge 2 tours. T1 : `chargeEffects` +1 Déf, indicateur ⚡. T2 : dash + knockback. |
 | Ciel Attaque | sky-attack | Vol | Spé | 140 | 90 | 5 | single r4 | Charge 2 tours. T1 : indicateur ⚡. T2 : Flinch 30%, critique élevé (`critRatio: 1`). |
 | Rasoir Vent | razor-wind | Normal | Spé | 80 | 100 | 10 | cône r3 | Charge 2 tours. T1 : indicateur ⚡. T2 : critique élevé (`critRatio: 1`). |
+| Brume | mist | Glace | Statut | — | — | 30 | self | Aura mobile r3 caster + alliés inclus. Bloque baisses de stats ennemies 5 tours. |
+| Voile | safeguard | Normal | Statut | — | — | 25 | self | Aura mobile r3 caster + alliés inclus. Bloque statuts majeurs ennemis 5 tours. |
+| Impostor | substitute | Normal | Statut | — | — | 10 | self | Crée un clone (sub) à `floor(maxHp/4)` PV. Absorbe dégâts/statuts/baisses-stats ennemis. Bypass : son, `bypasssub`, drain, recoil. |
 
 ---
 

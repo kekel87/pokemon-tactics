@@ -261,6 +261,15 @@ export interface Translations {
   "aura.blocked.safeguard": string;
   "infoPanel.aura.caster": string;
   "infoPanel.aura.protected": string;
+  "substitute.posted": string;
+  "substitute.damaged": string;
+  "substitute.broken": string;
+  "substitute.failed.lowHp": string;
+  "substitute.failed.active": string;
+  "substitute.blocked": string;
+  "infoPanel.volatile.substitute": string;
+  "moveTooltip.tag.sound": string;
+  "moveTooltip.tag.bypasssub": string;
   "battle.noEffect": string;
   "move.charging.solar-beam": string;
   "sandbox.weather": string;

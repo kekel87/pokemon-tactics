@@ -109,3 +109,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 095 | [Barrières aura mobile (reflect / light-screen)](./095-barriers-aura.md) | done | 2026-05-23 |
 | 096 | [Visibilité passive itch.io + GitHub topics](./096-itch-io-visibility.md) | done | 2026-05-23 |
 | 097 | [Loading screens + FOUC fixes](./097-loading-fouc-fixes.md) | done | 2026-05-24 |
+| 098 | [Team Protections aura (Mist / Safeguard)](./098-team-protections-aura.md) | done | 2026-05-24 |
+| 099 | [Substitute](./099-substitute.md) | done | 2026-05-25 |

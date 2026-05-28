@@ -231,6 +231,33 @@ function scoreSelfMove(
     return weights.statChanges * earlyMultiplier * (1 + alliesInRadius) * threatBonus;
   }
 
+  const hasPostSubstitute = move.effects.some(
+    (effect) => effect.kind === EffectKind.PostSubstitute,
+  );
+  if (hasPostSubstitute) {
+    if (currentPokemon.substituteHp !== undefined) {
+      return -1;
+    }
+    const hpRatio = currentPokemon.currentHp / currentPokemon.maxHp;
+    if (hpRatio <= 0.25) {
+      return 0;
+    }
+    let multiplier = 1.0;
+    if (
+      enemyHasStatusMoveInRange(enemies, currentPokemon, 5) ||
+      enemyHasStatDecreaseMoveInRange(enemies, currentPokemon, 5)
+    ) {
+      multiplier *= 1.5;
+    }
+    if (state && state.roundNumber <= 3) {
+      multiplier *= 1.2;
+    }
+    if (hpRatio < 0.4) {
+      multiplier *= 0.5;
+    }
+    return weights.statChanges * 1.5 * multiplier;
+  }
+
   if (!hasSelfBuff) {
     return 0;
   }
