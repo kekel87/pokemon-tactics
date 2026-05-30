@@ -1,3 +1,5 @@
+import { Category } from "../enums/category";
+import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 
 const ENEMY_STAT_DECREASE_MOVES: ReadonlySet<string> = new Set([
@@ -90,4 +92,21 @@ export function enemyHasStatusMoveInRange(
     }
   }
   return false;
+}
+
+export function statusMoveRatio(
+  pokemon: PokemonInstance,
+  moveRegistry: Map<string, MoveDefinition>,
+): number {
+  if (pokemon.moveIds.length === 0) {
+    return 0;
+  }
+  let statusCount = 0;
+  for (const moveId of pokemon.moveIds) {
+    const move = moveRegistry.get(moveId);
+    if (move && move.category === Category.Status) {
+      statusCount++;
+    }
+  }
+  return statusCount / pokemon.moveIds.length;
 }

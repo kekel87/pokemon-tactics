@@ -5,6 +5,7 @@ import {
   ACTION_MENU_CORNER_RADIUS,
   DEPTH_TOOLTIP,
   FONT_FAMILY,
+  MOVE_TOOLTIP_TAG_BLOCKED_COLOR,
   TOOLTIP_BG_ALPHA,
   TOOLTIP_BG_COLOR,
   TOOLTIP_CELL_COLOR_CASTER,
@@ -57,7 +58,7 @@ export class MoveTooltip {
     this.scene = scene;
   }
 
-  show(move: MoveDefinition, menuX: number, menuItemY: number): void {
+  show(move: MoveDefinition, menuX: number, menuItemY: number, isTaunted = false): void {
     this.hide();
 
     const preview = buildPatternPreview(move.targeting);
@@ -68,8 +69,9 @@ export class MoveTooltip {
     const padding = 10;
     const lineHeight = 16;
     const hasSubTag = move.flags?.sound === true || move.flags?.bypasssub === true;
+    const showTauntTag = isTaunted && move.category === Category.Status;
     const baseLines = move.twoTurnCharge ? 4 : 3;
-    const textLines = baseLines + (hasSubTag ? 1 : 0);
+    const textLines = baseLines + (hasSubTag ? 1 : 0) + (showTauntTag ? 1 : 0);
     const totalHeight = padding + textLines * lineHeight + 4 + gridHeight + padding;
 
     const x = menuX - TOOLTIP_WIDTH - 8;
@@ -128,6 +130,16 @@ export class MoveTooltip {
       contentY += lineHeight;
     }
 
+    if (showTauntTag) {
+      this.addText(
+        contentX,
+        contentY,
+        t("moveTooltip.tag.tauntBlocked"),
+        MOVE_TOOLTIP_TAG_BLOCKED_COLOR,
+      );
+      contentY += lineHeight;
+    }
+
     const gridX = contentX + Math.floor((TOOLTIP_WIDTH - 2 * padding - gridWidth) / 2);
     this.drawPatternGrid(preview, gridX, contentY);
   }
@@ -163,11 +175,11 @@ export class MoveTooltip {
     }
   }
 
-  private addText(x: number, y: number, content: string): void {
+  private addText(x: number, y: number, content: string, color = "#cccccc"): void {
     const text = this.scene.add
       .text(x, y, content, {
         fontSize: "14px",
-        color: "#cccccc",
+        color,
         fontFamily: FONT_FAMILY,
       })
       .setDepth(DEPTH_TOOLTIP + 1);

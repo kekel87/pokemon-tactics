@@ -71,6 +71,7 @@ import {
   BATTLE_TEXT_COLOR_MOSTLY_INEFFECTIVE,
   BATTLE_TEXT_COLOR_NOT_VERY_EFFECTIVE,
   BATTLE_TEXT_COLOR_SUPER_EFFECTIVE,
+  BATTLE_TEXT_COLOR_TAUNT,
   BATTLE_TEXT_STAGGER_Y,
   DEPTH_POKEMON_BASE,
   DEPTH_TILE_MAX_ELEVATION,
@@ -783,11 +784,16 @@ export class GameController {
       })
       .filter((move): move is NonNullable<typeof move> => move !== null);
 
+    const isCasterTaunted = activePokemon.volatileStatuses.some(
+      (v) => v.type === StatusType.Taunted,
+    );
+
     this.actionMenu.showAttackSubmenu({
       moves,
       onSelect: (moveId: string) => this.enterAttackTarget(moveId),
       onCancel: () => this.enterActionMenu(),
       turnSystemKind: this.state.turnSystemKind ?? TurnSystemKind.RoundRobin,
+      isCasterTaunted,
     });
   }
 
@@ -1804,6 +1810,18 @@ export class GameController {
               : "substitute.failed.lowHp";
           showBattleText(this.scene, pos.x, pos.y, t(key, { name }), {
             color: BATTLE_TEXT_COLOR_INFO,
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.TauntBlocked: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          const pos = sprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("status.taunted"), {
+            color: BATTLE_TEXT_COLOR_TAUNT,
+            targetId: event.pokemonId,
           });
         }
         break;

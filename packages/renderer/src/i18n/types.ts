@@ -76,6 +76,7 @@ export interface Translations {
   "status.infatuated": string;
   "status.intimidated": string;
   "status.lockedOn": string;
+  "status.taunted": string;
   "status.charging": string;
   "status.flinched": string;
   "move.tooltip.twoTurnCharge": string;
@@ -268,8 +269,10 @@ export interface Translations {
   "substitute.failed.active": string;
   "substitute.blocked": string;
   "infoPanel.volatile.substitute": string;
+  "infoPanel.volatile.taunted": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
+  "moveTooltip.tag.tauntBlocked": string;
   "battle.noEffect": string;
   "move.charging.solar-beam": string;
   "sandbox.weather": string;

@@ -7,6 +7,7 @@ import { ActionKind } from "../enums/action-kind";
 import { AuraKind } from "../enums/aura-kind";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
+import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { TerrainType } from "../enums/terrain-type";
 import type { Action } from "../types/action";
@@ -18,7 +19,11 @@ import type { Position } from "../types/position";
 import type { TargetingPattern } from "../types/targeting-pattern";
 import { directionFromTo, getPerpendicularOffsets, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
-import { enemyHasStatDecreaseMoveInRange, enemyHasStatusMoveInRange } from "./threat-detection";
+import {
+  enemyHasStatDecreaseMoveInRange,
+  enemyHasStatusMoveInRange,
+  statusMoveRatio,
+} from "./threat-detection";
 
 const DANGEROUS_TERRAINS: ReadonlySet<TerrainType> = new Set([
   TerrainType.Magma,
@@ -119,15 +124,47 @@ function scoreUseMove(
       effect.stages < 0,
   );
   const hasStatus = move.effects.some((effect) => effect.kind === EffectKind.Status);
+  const isTauntApplication = move.effects.some(
+    (effect) =>
+      effect.kind === EffectKind.Status &&
+      "status" in effect &&
+      effect.status === StatusType.Taunted,
+  );
 
   if (hasEnemyDebuff) {
     score += weights.statChanges * 1.5;
   }
-  if (hasStatus) {
+  if (isTauntApplication) {
+    score += scoreTauntApplication(targetsHit, moveRegistry, weights);
+  } else if (hasStatus) {
     score += weights.statChanges;
   }
 
   return score;
+}
+
+function scoreTauntApplication(
+  targets: readonly PokemonInstance[],
+  moveRegistry: Map<string, MoveDefinition>,
+  weights: AiProfile["scoringWeights"],
+): number {
+  let total = 0;
+  for (const target of targets) {
+    if (target.volatileStatuses.some((v) => v.type === StatusType.Taunted)) {
+      continue;
+    }
+    let score = weights.statChanges;
+    const ratio = statusMoveRatio(target, moveRegistry);
+    if (ratio >= 0.4) {
+      score *= 1.8;
+    }
+    const hpRatio = target.currentHp / target.maxHp;
+    if (hpRatio < 0.3) {
+      score *= 0.3;
+    }
+    total += score;
+  }
+  return total;
 }
 
 function scoreAllyTargetMove(

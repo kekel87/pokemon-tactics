@@ -1,6 +1,7 @@
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
+import { Category } from "../enums/category";
 import { Direction } from "../enums/direction";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
@@ -58,6 +59,7 @@ import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handle
 import { roostedClearHandler } from "./handlers/roosted-clear-handler";
 import { createSeededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
+import { tauntTickHandler } from "./handlers/taunt-tick-handler";
 import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
 import { createWeatherTickHandler } from "./handlers/weather-tick-handler";
@@ -178,6 +180,7 @@ export class BattleEngine {
       200,
     );
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
+    this.turnPipeline.registerEndTurn(tauntTickHandler, 350);
     this.turnPipeline.registerEndTurn(
       createTerrainTickHandler(this.pokemonTypesMap, this.itemRegistry ?? undefined),
       400,
@@ -430,6 +433,7 @@ export class BattleEngine {
         }
       }
       const traversalContext: TraversalContext = { allyIds, canTraverseEnemies: false };
+      const isTaunted = currentPokemon.volatileStatuses.some((v) => v.type === StatusType.Taunted);
 
       for (const moveId of currentPokemon.moveIds) {
         const currentPp = currentPokemon.currentPp[moveId];
@@ -438,6 +442,10 @@ export class BattleEngine {
         }
         const move = this.moveRegistry.get(moveId);
         if (!move) {
+          continue;
+        }
+
+        if (isTaunted && move.category === Category.Status) {
           continue;
         }
 
@@ -774,6 +782,21 @@ export class BattleEngine {
     const currentPp = pokemon.currentPp[moveId];
     if (currentPp === undefined || currentPp <= 0) {
       return { success: false, events: [], error: ActionError.NoPpLeft };
+    }
+
+    const isTaunted = pokemon.volatileStatuses.some((v) => v.type === StatusType.Taunted);
+    if (isTaunted && move.category === Category.Status) {
+      const tauntBlockedEvent: BattleEvent = {
+        type: BattleEventType.TauntBlocked,
+        pokemonId: pokemon.id,
+        moveId,
+      };
+      this.emit(tauntBlockedEvent);
+      return {
+        success: false,
+        events: [tauntBlockedEvent],
+        error: ActionError.InvalidAction,
+      };
     }
 
     const isFiringCharged = pokemon.chargingMove?.moveId === moveId;

@@ -1,5 +1,5 @@
 import type { MoveDefinition } from "@pokemon-tactic/core";
-import { TurnSystemKind } from "@pokemon-tactic/core";
+import { Category, TurnSystemKind } from "@pokemon-tactic/core";
 import { getMoveName } from "@pokemon-tactic/data";
 import {
   ACTION_MENU_BG_ALPHA,
@@ -40,6 +40,7 @@ interface AttackSubmenuOptions {
   onSelect: (moveId: string) => void;
   onCancel: () => void;
   turnSystemKind: TurnSystemKind;
+  isCasterTaunted?: boolean;
 }
 
 export class ActionMenu {
@@ -115,7 +116,13 @@ export class ActionMenu {
         continue;
       }
       const itemY = menuTopY + i * ACTION_MENU_ITEM_HEIGHT;
-      this.createMoveItem(move, itemY, options.onSelect, options.turnSystemKind);
+      this.createMoveItem(
+        move,
+        itemY,
+        options.onSelect,
+        options.turnSystemKind,
+        options.isCasterTaunted ?? false,
+      );
     }
 
     const cancelY = menuTopY + options.moves.length * ACTION_MENU_ITEM_HEIGHT;
@@ -313,6 +320,7 @@ export class ActionMenu {
     y: number,
     onSelect: (moveId: string) => void,
     turnSystemKind: TurnSystemKind,
+    isCasterTaunted: boolean,
   ): void {
     const enabled = move.currentPp > 0 && move.hasTargets;
     const alpha = enabled ? 1 : ACTION_MENU_DISABLED_ALPHA;
@@ -381,20 +389,27 @@ export class ActionMenu {
     zone.setInteractive({ useHandCursor: enabled });
     this.objects.push(zone);
 
-    if (enabled) {
+    const isBlockedByTaunt = isCasterTaunted && move.definition.category === Category.Status;
+    const showTooltipOnHover = enabled || isBlockedByTaunt;
+
+    if (showTooltipOnHover) {
       zone.on("pointerover", () => {
-        hoverBg.clear();
-        hoverBg.fillStyle(ACTION_MENU_HOVER_COLOR, ACTION_MENU_HOVER_ALPHA);
-        hoverBg.fillRect(ACTION_MENU_X, y, ACTION_MENU_WIDTH, ACTION_MENU_ITEM_HEIGHT);
-        hoverBg.setVisible(true);
-        this.tooltip?.show(move.definition, ACTION_MENU_X, y);
+        if (enabled) {
+          hoverBg.clear();
+          hoverBg.fillStyle(ACTION_MENU_HOVER_COLOR, ACTION_MENU_HOVER_ALPHA);
+          hoverBg.fillRect(ACTION_MENU_X, y, ACTION_MENU_WIDTH, ACTION_MENU_ITEM_HEIGHT);
+          hoverBg.setVisible(true);
+        }
+        this.tooltip?.show(move.definition, ACTION_MENU_X, y, isCasterTaunted);
       });
 
       zone.on("pointerout", () => {
         hoverBg.setVisible(false);
         this.tooltip?.hide();
       });
+    }
 
+    if (enabled) {
       zone.on("pointerdown", () => {
         this.tooltip?.hide();
         onSelect(move.definition.id);

@@ -217,6 +217,13 @@ export class InfoPanel {
     }
 
     for (const volatile of pokemon.volatileStatuses) {
+      if (volatile.type === StatusType.Taunted) {
+        const tauntLabel = t("infoPanel.volatile.taunted", {
+          turns: String(volatile.remainingTurns),
+        });
+        offsetX = this.addBadge(tauntLabel, STAT_BADGE_VOLATILE_BG, offsetX);
+        continue;
+      }
       const translationKey = VOLATILE_LABELS[volatile.type];
       if (!translationKey) {
         continue;

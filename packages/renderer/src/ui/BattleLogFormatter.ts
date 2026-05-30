@@ -129,6 +129,10 @@ const STATUS_LOG_KEY: Record<
     applied: { fr: "{name} est piégé !", en: "{name} was trapped!" },
     removed: { fr: "{name} est libéré du piège", en: "{name} broke free from the trap" },
   },
+  [StatusType.Taunted]: {
+    applied: { fr: "{name} est provoqué !", en: "{name} fell for the taunt!" },
+    removed: { fr: "La provoc de {name} se dissipe.", en: "{name} shook off the taunt." },
+  },
 };
 
 const STAT_NAME_KEY: Record<string, { fr: string; en: string }> = {
@@ -547,6 +551,16 @@ export function formatBattleEvent(
             ? `${name} n'a pas assez de PV !`
             : `${name} doesn't have enough HP!`;
       return { message, color: BattleLogColors.turn, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.TauntBlocked: {
+      const name = context.getPokemonName(event.pokemonId);
+      const moveName = context.getMoveName(event.moveId);
+      const message =
+        lang === "fr"
+          ? `${name} ne peut pas utiliser ${moveName} à cause de Provoc !`
+          : `${name} can't use ${moveName} after the taunt!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
     }
 
     case BattleEventType.Teleported: {

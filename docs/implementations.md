@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 165 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099). |
+| Attaques | 166 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100). |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (165 implémentées)
+## Attaques (166 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -380,6 +380,7 @@
 | Brume | mist | Glace | Statut | — | — | 30 | self | Aura mobile r3 caster + alliés inclus. Bloque baisses de stats ennemies 5 tours. |
 | Voile | safeguard | Normal | Statut | — | — | 25 | self | Aura mobile r3 caster + alliés inclus. Bloque statuts majeurs ennemis 5 tours. |
 | Impostor | substitute | Normal | Statut | — | — | 10 | self | Crée un clone (sub) à `floor(maxHp/4)` PV. Absorbe dégâts/statuts/baisses-stats ennemis. Bypass : son, `bypasssub`, drain, recoil. |
+| Provoc | taunt | Ténèbres | Statut | — | 100 | 20 | single r3 | Volatile `Taunted` 3 tours. Cible ne peut plus utiliser de moves Statut. Bloqué par Substitute (sans bypasssub). Safeguard et Mist ne bloquent pas. |
 
 ---
 

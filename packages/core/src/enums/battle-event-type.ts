@@ -60,6 +60,7 @@ export const BattleEventType = {
   SubstituteDamaged: "substitute_damaged",
   SubstituteBroken: "substitute_broken",
   SubstituteFailed: "substitute_failed",
+  TauntBlocked: "taunt_blocked",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

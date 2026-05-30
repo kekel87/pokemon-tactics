@@ -1303,4 +1303,9 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.PostSubstitute }],
     effectTier: EffectTier.Reactive,
   },
+  taunt: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Status, status: StatusType.Taunted, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
+  },
 };

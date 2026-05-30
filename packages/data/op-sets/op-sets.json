@@ -2422,6 +2422,62 @@
       "gender": null,
       "source": "custom",
       "notes": "Plan 099 — Pressure PP-stall + sub + Roost recovery. Lossless tank cycle."
+    },
+    {
+      "id": "alakazam-taunt",
+      "pokemonId": "alakazam",
+      "name": "Taunt Disruptor",
+      "role": "special-attacker",
+      "ability": "magic-guard",
+      "heldItemId": "life-orb",
+      "nature": "timid",
+      "moveIds": ["taunt", "psychic", "shadow-ball", "recover"],
+      "statSpread": { "spAttack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 100 — Lead anti-setup. Taunt locks down enemy boosters/recovers, then Psychic sweep."
+    },
+    {
+      "id": "gengar-taunt",
+      "pokemonId": "gengar",
+      "name": "Taunt + Sub",
+      "role": "special-sweeper",
+      "ability": "cursed-body",
+      "heldItemId": "black-sludge",
+      "nature": "timid",
+      "moveIds": ["taunt", "shadow-ball", "sludge-wave", "substitute"],
+      "statSpread": { "spAttack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 100 — Lead disruptor. Taunt locks then Sub behind to chip with Sludge-Wave."
+    },
+    {
+      "id": "aerodactyl-taunt",
+      "pokemonId": "aerodactyl",
+      "name": "Taunt Lead",
+      "role": "physical-sweeper",
+      "ability": "pressure",
+      "heldItemId": "focus-sash",
+      "nature": "jolly",
+      "moveIds": ["taunt", "rock-slide", "crunch", "aerial-ace"],
+      "statSpread": { "attack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 100 — Speed control + anti-setup lead. Focus Sash insurance against KO."
+    },
+    {
+      "id": "starmie-taunt",
+      "pokemonId": "starmie",
+      "name": "Taunt Pivot",
+      "role": "special-attacker",
+      "ability": "natural-cure",
+      "heldItemId": "leftovers",
+      "nature": "timid",
+      "moveIds": ["taunt", "hydro-pump", "ice-beam", "recover"],
+      "statSpread": { "spAttack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 100 — Pivot disruptor. Taunt blocks setup, Recover sustains for trade-off war."
     }
   ]
 }

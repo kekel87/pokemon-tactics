@@ -403,6 +403,11 @@ Le Pokemon **se déplace en ligne droite** sur X tiles et frappe le premier enne
 | Statut | Effet | Durée |
 |--------|-------|-------|
 | **Confusion** | 50% chance/tour de dérailler (redirection allié, direction aléatoire AoE, tour perdu si aucun allié) | 2-5 tours |
+| **Flinch** | Bloque Move + UseMove au tour suivant (consommé en début de tour) | 1 tour |
+| **Verrouillé** (LockedOn) | Prochain move garanti (bypass accuracy) — consommé à l'usage | 1 usage |
+| **Charge** | T1 d'un move 2 tours : bloque movement, indique ⚡ en renderer | 1 tour |
+| **Infatué** | Position-linked (genre opposé) : 50% chance de ne pas agir | Jusqu'au KO/sortie portée |
+| **Provoc** (Taunted) | Interdit l'utilisation de moves de catégorie Statut. Bloqué par Substitute. Pas bloqué par Safeguard ni Mist. | 3 tours |
 
 ### Stacking
 - **1 statut majeur max** — nouveau statut ne s'applique pas si déjà actif
@@ -845,6 +850,39 @@ Effets latéraux appliqués **au T1** uniquement, **sur le caster (self-target)*
 ### i18n
 
 22 clés sous `weather.*` (noms, descriptions, damage flottants) + `sandbox.weather*` (dropdown sandbox). Sandbox : dropdown 5 valeurs (Aucune / Soleil / Pluie / Sable / Neige) + input turns dans panel Map.
+
+---
+
+## 8g. Taunt / Provoc — disrupteur anti-setup (plan 100)
+
+Move `taunt` (Ténèbres, Statut, Single r3, acc 100, PP 20). Pendant **3 tours** (canon Gen 5+), la cible ne peut plus utiliser de moves de catégorie `Status`.
+
+### Mécanique core
+
+- `StatusType.Taunted` volatile ajouté à `volatileStatuses[]` (mirror Confused/Flinch).
+- Check dans `BattleEngine.executeUseMove` **avant** dépense PP : si caster taunted + `move.category === Status` → `ActionError.InvalidAction` + `BattleEventType.TauntBlocked`. Les PP ne sont **pas** consommés (parité Showdown).
+- `getLegalActions` omet les moves statut de la liste retournée si le caster est taunted (cohérence UI).
+- `taunt-tick-handler.ts` décrémente le compteur en EndTurn (priorité 350) — expiration via `StatusRemoved` standard.
+- `handleKo` nettoie automatiquement tous les volatiles (déjà câblé, zéro code nouveau).
+
+### Interactions canon
+
+| Interaction | Comportement |
+|-------------|--------------|
+| **Substitute** | Bloque Taunt (pas de flag `bypasssub` sur le move → `shouldSubstituteBlock` = true) |
+| **Safeguard** | Ne bloque PAS (Taunted absent de `SAFEGUARD_BLOCKED_STATUSES`) |
+| **Mist** | Ne bloque PAS (Taunt est un statut, pas une baisse de stat) |
+
+### IA
+
+`scoreTauntApplication` dans `action-scorer.ts` : bonus ×1.8 si la cible a ≥ 40% de moves statut (helper `statusMoveRatio` dans `threat-detection.ts`), pénalité ×0.3 si HP < 30% (KO direct prioritaire), skip si déjà taunted.
+
+### Renderer
+
+- Badge InfoPanel `Provoc {turns}t` (mirror Confus).
+- MoveTooltip tag rouge `Bloqué par Provoc` sur moves statut grisés non-cliquables si caster taunted.
+- Floating text `"Provoc!"` orange sur target à l'application.
+- `BattleLogFormatter` : 3 cas — applied (StatusApplied filtré Taunted), blocked (TauntBlocked), expired (StatusRemoved filtré Taunted).
 
 ---
 

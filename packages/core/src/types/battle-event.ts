@@ -263,4 +263,9 @@ export type BattleEvent =
       type: typeof BattleEventType.SubstituteFailed;
       pokemonId: string;
       reason: SubstituteFailedReason;
+    }
+  | {
+      type: typeof BattleEventType.TauntBlocked;
+      pokemonId: string;
+      moveId: string;
     };

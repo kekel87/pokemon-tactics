@@ -111,3 +111,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 097 | [Loading screens + FOUC fixes](./097-loading-fouc-fixes.md) | done | 2026-05-24 |
 | 098 | [Team Protections aura (Mist / Safeguard)](./098-team-protections-aura.md) | done | 2026-05-24 |
 | 099 | [Substitute](./099-substitute.md) | done | 2026-05-25 |
+| 100 | [Taunt (Provoc)](./100-taunt.md) | done | 2026-05-28 |
