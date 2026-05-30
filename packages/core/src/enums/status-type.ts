@@ -14,6 +14,8 @@ export const StatusType = {
   Roosted: "roosted",
   Flinch: "flinch",
   Taunted: "taunted",
+  Disabled: "disabled",
+  Encored: "encored",
 } as const;
 
 export type StatusType = (typeof StatusType)[keyof typeof StatusType];

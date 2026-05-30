@@ -59,8 +59,8 @@ import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handle
 import { roostedClearHandler } from "./handlers/roosted-clear-handler";
 import { createSeededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
-import { tauntTickHandler } from "./handlers/taunt-tick-handler";
 import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
+import { timedVolatileTickHandler } from "./handlers/timed-volatile-tick-handler";
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
 import { createWeatherTickHandler } from "./handlers/weather-tick-handler";
 import { getHeightModifier } from "./height-modifier";
@@ -180,7 +180,7 @@ export class BattleEngine {
       200,
     );
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
-    this.turnPipeline.registerEndTurn(tauntTickHandler, 350);
+    this.turnPipeline.registerEndTurn(timedVolatileTickHandler, 350);
     this.turnPipeline.registerEndTurn(
       createTerrainTickHandler(this.pokemonTypesMap, this.itemRegistry ?? undefined),
       400,
@@ -434,6 +434,12 @@ export class BattleEngine {
       }
       const traversalContext: TraversalContext = { allyIds, canTraverseEnemies: false };
       const isTaunted = currentPokemon.volatileStatuses.some((v) => v.type === StatusType.Taunted);
+      const disabledMoveId = currentPokemon.volatileStatuses.find(
+        (v) => v.type === StatusType.Disabled,
+      )?.moveId;
+      const encoredMoveId = currentPokemon.volatileStatuses.find(
+        (v) => v.type === StatusType.Encored,
+      )?.moveId;
 
       for (const moveId of currentPokemon.moveIds) {
         const currentPp = currentPokemon.currentPp[moveId];
@@ -446,6 +452,14 @@ export class BattleEngine {
         }
 
         if (isTaunted && move.category === Category.Status) {
+          continue;
+        }
+
+        if (disabledMoveId !== undefined && moveId === disabledMoveId) {
+          continue;
+        }
+
+        if (encoredMoveId !== undefined && moveId !== encoredMoveId) {
           continue;
         }
 
@@ -799,6 +813,32 @@ export class BattleEngine {
       };
     }
 
+    const disabledMoveId = pokemon.volatileStatuses.find(
+      (v) => v.type === StatusType.Disabled,
+    )?.moveId;
+    if (disabledMoveId !== undefined && moveId === disabledMoveId) {
+      const disableBlockedEvent: BattleEvent = {
+        type: BattleEventType.DisableBlocked,
+        pokemonId: pokemon.id,
+        moveId,
+      };
+      this.emit(disableBlockedEvent);
+      return { success: false, events: [disableBlockedEvent], error: ActionError.InvalidAction };
+    }
+
+    const encoredMoveId = pokemon.volatileStatuses.find(
+      (v) => v.type === StatusType.Encored,
+    )?.moveId;
+    if (encoredMoveId !== undefined && moveId !== encoredMoveId) {
+      const encoreBlockedEvent: BattleEvent = {
+        type: BattleEventType.EncoreBlocked,
+        pokemonId: pokemon.id,
+        moveId,
+      };
+      this.emit(encoreBlockedEvent);
+      return { success: false, events: [encoreBlockedEvent], error: ActionError.InvalidAction };
+    }
+
     const isFiringCharged = pokemon.chargingMove?.moveId === moveId;
     if (move.twoTurnCharge && !isFiringCharged) {
       const activeWeather = this.getEffectiveWeather();
@@ -826,6 +866,7 @@ export class BattleEngine {
         this.turnState.hasActed = true;
         this.turnState.hasMoved = true;
         this.turnState.lastMoveId = moveId;
+        pokemon.lastUsedMoveId = moveId;
         return { success: true, events: chargeEventsAccumulator };
       }
     }
@@ -1035,6 +1076,7 @@ export class BattleEngine {
     this.applyChoiceLock(pokemon, moveId);
     this.turnState.hasActed = true;
     this.turnState.lastMoveId = moveId;
+    pokemon.lastUsedMoveId = moveId;
     this.turnState.lastTargetIds = targets.map((t) => t.id);
     this.preMoveSnapshot = null;
 
@@ -2104,6 +2146,7 @@ export class BattleEngine {
     pokemon.chargingMove = undefined;
     pokemon.lockedMoveId = undefined;
     pokemon.substituteHp = undefined;
+    pokemon.volatileStatuses = [];
 
     for (const other of this.state.pokemon.values()) {
       const seededBefore = other.volatileStatuses.length;

@@ -18,6 +18,7 @@ import {
   UI_BORDER_COLOR,
   UI_BORDER_WIDTH,
 } from "../constants";
+import type { TranslationKey } from "../i18n";
 import { getLanguage, t } from "../i18n";
 import type { MoveTooltip } from "./MoveTooltip";
 
@@ -41,6 +42,8 @@ interface AttackSubmenuOptions {
   onCancel: () => void;
   turnSystemKind: TurnSystemKind;
   isCasterTaunted?: boolean;
+  disabledMoveId?: string;
+  encoredMoveId?: string;
 }
 
 export class ActionMenu {
@@ -122,6 +125,8 @@ export class ActionMenu {
         options.onSelect,
         options.turnSystemKind,
         options.isCasterTaunted ?? false,
+        options.disabledMoveId,
+        options.encoredMoveId,
       );
     }
 
@@ -321,6 +326,8 @@ export class ActionMenu {
     onSelect: (moveId: string) => void,
     turnSystemKind: TurnSystemKind,
     isCasterTaunted: boolean,
+    disabledMoveId?: string,
+    encoredMoveId?: string,
   ): void {
     const enabled = move.currentPp > 0 && move.hasTargets;
     const alpha = enabled ? 1 : ACTION_MENU_DISABLED_ALPHA;
@@ -389,8 +396,13 @@ export class ActionMenu {
     zone.setInteractive({ useHandCursor: enabled });
     this.objects.push(zone);
 
-    const isBlockedByTaunt = isCasterTaunted && move.definition.category === Category.Status;
-    const showTooltipOnHover = enabled || isBlockedByTaunt;
+    const blockedTagKey = resolveBlockedTagKey(
+      move.definition,
+      isCasterTaunted,
+      disabledMoveId,
+      encoredMoveId,
+    );
+    const showTooltipOnHover = enabled || blockedTagKey !== undefined;
 
     if (showTooltipOnHover) {
       zone.on("pointerover", () => {
@@ -400,7 +412,7 @@ export class ActionMenu {
           hoverBg.fillRect(ACTION_MENU_X, y, ACTION_MENU_WIDTH, ACTION_MENU_ITEM_HEIGHT);
           hoverBg.setVisible(true);
         }
-        this.tooltip?.show(move.definition, ACTION_MENU_X, y, isCasterTaunted);
+        this.tooltip?.show(move.definition, ACTION_MENU_X, y, blockedTagKey);
       });
 
       zone.on("pointerout", () => {
@@ -425,4 +437,22 @@ export class ActionMenu {
     this.objects = [];
     this.instructionText = null;
   }
+}
+
+function resolveBlockedTagKey(
+  move: MoveDefinition,
+  isCasterTaunted: boolean,
+  disabledMoveId?: string,
+  encoredMoveId?: string,
+): TranslationKey | undefined {
+  if (isCasterTaunted && move.category === Category.Status) {
+    return "moveTooltip.tag.tauntBlocked";
+  }
+  if (disabledMoveId !== undefined && move.id === disabledMoveId) {
+    return "moveTooltip.tag.disableBlocked";
+  }
+  if (encoredMoveId !== undefined && move.id !== encoredMoveId) {
+    return "moveTooltip.tag.encoreBlocked";
+  }
+  return undefined;
 }

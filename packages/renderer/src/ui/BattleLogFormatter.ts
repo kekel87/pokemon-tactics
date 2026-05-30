@@ -133,6 +133,14 @@ const STATUS_LOG_KEY: Record<
     applied: { fr: "{name} est provoqué !", en: "{name} fell for the taunt!" },
     removed: { fr: "La provoc de {name} se dissipe.", en: "{name} shook off the taunt." },
   },
+  [StatusType.Disabled]: {
+    applied: { fr: "{name} est sous Entrave !", en: "{name} was disabled!" },
+    removed: { fr: "{name} n'est plus sous Entrave.", en: "{name} is no longer disabled." },
+  },
+  [StatusType.Encored]: {
+    applied: { fr: "{name} reçoit un Encore !", en: "{name} got an encore!" },
+    removed: { fr: "L'Encore de {name} se dissipe.", en: "{name}'s encore ended." },
+  },
 };
 
 const STAT_NAME_KEY: Record<string, { fr: string; en: string }> = {
@@ -561,6 +569,41 @@ export function formatBattleEvent(
           ? `${name} ne peut pas utiliser ${moveName} à cause de Provoc !`
           : `${name} can't use ${moveName} after the taunt!`;
       return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.MoveDisabled: {
+      const name = context.getPokemonName(event.pokemonId);
+      const moveName = context.getMoveName(event.moveId);
+      const message =
+        lang === "fr"
+          ? `${moveName} de ${name} est sous Entrave !`
+          : `${name}'s ${moveName} was disabled!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.MoveEncored: {
+      const name = context.getPokemonName(event.pokemonId);
+      const moveName = context.getMoveName(event.moveId);
+      const message =
+        lang === "fr" ? `${name} doit répéter ${moveName} !` : `${name} must repeat ${moveName}!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.DisableBlocked:
+    case BattleEventType.EncoreBlocked: {
+      const name = context.getPokemonName(event.pokemonId);
+      const moveName = context.getMoveName(event.moveId);
+      const message =
+        lang === "fr"
+          ? `${name} ne peut pas utiliser ${moveName} !`
+          : `${name} can't use ${moveName}!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.DisableFailed:
+    case BattleEventType.EncoreFailed: {
+      const message = lang === "fr" ? "Mais ça échoue !" : "But it failed!";
+      return { message, color: BattleLogColors.turn, pokemonIds: [event.pokemonId] };
     }
 
     case BattleEventType.Teleported: {

@@ -2478,6 +2478,62 @@
       "gender": null,
       "source": "custom",
       "notes": "Plan 100 — Pivot disruptor. Taunt blocks setup, Recover sustains for trade-off war."
+    },
+    {
+      "id": "alakazam-disable",
+      "pokemonId": "alakazam",
+      "name": "Disable Lead",
+      "role": "special-attacker",
+      "ability": "magic-guard",
+      "heldItemId": "life-orb",
+      "nature": "timid",
+      "moveIds": ["disable", "psychic", "shadow-ball", "recover"],
+      "statSpread": { "spAttack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 101 — Cuts the enemy's key move for 4 turns, then sweeps. Recover sustains."
+    },
+    {
+      "id": "gengar-disable",
+      "pokemonId": "gengar",
+      "name": "Disable Disruptor",
+      "role": "special-attacker",
+      "ability": "cursed-body",
+      "heldItemId": "life-orb",
+      "nature": "timid",
+      "moveIds": ["disable", "shadow-ball", "sludge-wave", "substitute"],
+      "statSpread": { "spAttack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 101 — Disable + Substitute lockdown lead. Removes a threat, then breaks behind a sub."
+    },
+    {
+      "id": "hypno-encore",
+      "pokemonId": "hypno",
+      "name": "Encore Trapper",
+      "role": "support",
+      "ability": "insomnia",
+      "heldItemId": "leftovers",
+      "nature": "calm",
+      "moveIds": ["encore", "hypnosis", "psychic", "reflect"],
+      "statSpread": { "spDefense": 31, "hp": 31, "spAttack": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 101 — Locks an enemy setup move with Encore, then Hypnosis/Reflect for control."
+    },
+    {
+      "id": "mr-mime-encore",
+      "pokemonId": "mr-mime",
+      "name": "Encore Pivot",
+      "role": "special-attacker",
+      "ability": "filter",
+      "heldItemId": "leftovers",
+      "nature": "timid",
+      "moveIds": ["encore", "reflect", "psychic", "shadow-ball"],
+      "statSpread": { "spAttack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 101 — Encore locks a weak enemy move, Reflect + Filter wall while Psychic chips."
     }
   ]
 }

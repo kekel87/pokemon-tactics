@@ -787,6 +787,12 @@ export class GameController {
     const isCasterTaunted = activePokemon.volatileStatuses.some(
       (v) => v.type === StatusType.Taunted,
     );
+    const disabledMoveId = activePokemon.volatileStatuses.find(
+      (v) => v.type === StatusType.Disabled,
+    )?.moveId;
+    const encoredMoveId = activePokemon.volatileStatuses.find(
+      (v) => v.type === StatusType.Encored,
+    )?.moveId;
 
     this.actionMenu.showAttackSubmenu({
       moves,
@@ -794,6 +800,8 @@ export class GameController {
       onCancel: () => this.enterActionMenu(),
       turnSystemKind: this.state.turnSystemKind ?? TurnSystemKind.RoundRobin,
       isCasterTaunted,
+      disabledMoveId,
+      encoredMoveId,
     });
   }
 
@@ -1821,6 +1829,62 @@ export class GameController {
           const pos = sprite.getTextPosition();
           showBattleText(this.scene, pos.x, pos.y, t("status.taunted"), {
             color: BATTLE_TEXT_COLOR_TAUNT,
+            targetId: event.pokemonId,
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.MoveDisabled: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          const pos = sprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("status.disabled"), {
+            color: BATTLE_TEXT_COLOR_TAUNT,
+            targetId: event.pokemonId,
+          });
+        }
+        this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
+      case BattleEventType.MoveEncored: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          const pos = sprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("status.encored"), {
+            color: BATTLE_TEXT_COLOR_TAUNT,
+            targetId: event.pokemonId,
+          });
+        }
+        this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
+      case BattleEventType.DisableBlocked:
+      case BattleEventType.EncoreBlocked: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          const pos = sprite.getTextPosition();
+          const label =
+            event.type === BattleEventType.DisableBlocked
+              ? t("status.disabled")
+              : t("status.encored");
+          showBattleText(this.scene, pos.x, pos.y, label, {
+            color: BATTLE_TEXT_COLOR_TAUNT,
+            targetId: event.pokemonId,
+          });
+        }
+        break;
+      }
+
+      case BattleEventType.DisableFailed:
+      case BattleEventType.EncoreFailed: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          const pos = sprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("battle.noEffect"), {
+            color: BATTLE_TEXT_COLOR_IMMUNE,
             targetId: event.pokemonId,
           });
         }

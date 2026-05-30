@@ -6,4 +6,5 @@ export interface VolatileStatus {
   sourceId?: string;
   damagePerTurn?: number;
   statChangeApplied?: boolean;
+  moveId?: string;
 }

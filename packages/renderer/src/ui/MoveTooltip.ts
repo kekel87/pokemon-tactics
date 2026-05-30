@@ -58,7 +58,12 @@ export class MoveTooltip {
     this.scene = scene;
   }
 
-  show(move: MoveDefinition, menuX: number, menuItemY: number, isTaunted = false): void {
+  show(
+    move: MoveDefinition,
+    menuX: number,
+    menuItemY: number,
+    blockedTagKey?: TranslationKey,
+  ): void {
     this.hide();
 
     const preview = buildPatternPreview(move.targeting);
@@ -69,9 +74,9 @@ export class MoveTooltip {
     const padding = 10;
     const lineHeight = 16;
     const hasSubTag = move.flags?.sound === true || move.flags?.bypasssub === true;
-    const showTauntTag = isTaunted && move.category === Category.Status;
+    const showBlockedTag = blockedTagKey !== undefined;
     const baseLines = move.twoTurnCharge ? 4 : 3;
-    const textLines = baseLines + (hasSubTag ? 1 : 0) + (showTauntTag ? 1 : 0);
+    const textLines = baseLines + (hasSubTag ? 1 : 0) + (showBlockedTag ? 1 : 0);
     const totalHeight = padding + textLines * lineHeight + 4 + gridHeight + padding;
 
     const x = menuX - TOOLTIP_WIDTH - 8;
@@ -130,13 +135,8 @@ export class MoveTooltip {
       contentY += lineHeight;
     }
 
-    if (showTauntTag) {
-      this.addText(
-        contentX,
-        contentY,
-        t("moveTooltip.tag.tauntBlocked"),
-        MOVE_TOOLTIP_TAG_BLOCKED_COLOR,
-      );
+    if (blockedTagKey !== undefined) {
+      this.addText(contentX, contentY, t(blockedTagKey), MOVE_TOOLTIP_TAG_BLOCKED_COLOR);
       contentY += lineHeight;
     }
 

@@ -268,4 +268,34 @@ export type BattleEvent =
       type: typeof BattleEventType.TauntBlocked;
       pokemonId: string;
       moveId: string;
+    }
+  | {
+      type: typeof BattleEventType.MoveDisabled;
+      pokemonId: string;
+      moveId: string;
+      turns: number;
+    }
+  | {
+      type: typeof BattleEventType.MoveEncored;
+      pokemonId: string;
+      moveId: string;
+      turns: number;
+    }
+  | {
+      type: typeof BattleEventType.DisableBlocked;
+      pokemonId: string;
+      moveId: string;
+    }
+  | {
+      type: typeof BattleEventType.EncoreBlocked;
+      pokemonId: string;
+      moveId: string;
+    }
+  | {
+      type: typeof BattleEventType.DisableFailed;
+      pokemonId: string;
+    }
+  | {
+      type: typeof BattleEventType.EncoreFailed;
+      pokemonId: string;
     };

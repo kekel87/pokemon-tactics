@@ -77,6 +77,8 @@ export interface Translations {
   "status.intimidated": string;
   "status.lockedOn": string;
   "status.taunted": string;
+  "status.disabled": string;
+  "status.encored": string;
   "status.charging": string;
   "status.flinched": string;
   "move.tooltip.twoTurnCharge": string;
@@ -270,9 +272,13 @@ export interface Translations {
   "substitute.blocked": string;
   "infoPanel.volatile.substitute": string;
   "infoPanel.volatile.taunted": string;
+  "infoPanel.volatile.disabled": string;
+  "infoPanel.volatile.encored": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
   "moveTooltip.tag.tauntBlocked": string;
+  "moveTooltip.tag.disableBlocked": string;
+  "moveTooltip.tag.encoreBlocked": string;
   "battle.noEffect": string;
   "move.charging.solar-beam": string;
   "sandbox.weather": string;

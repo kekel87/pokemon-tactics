@@ -16,7 +16,9 @@ import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handl
 import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { handleDamage } from "./handlers/handle-damage";
 import { handleDefensive } from "./handlers/handle-defensive";
+import { handleDisable } from "./handlers/handle-disable";
 import { handleDrain } from "./handlers/handle-drain";
+import { handleEncore } from "./handlers/handle-encore";
 import { handleHealSelf } from "./handlers/handle-heal-self";
 import { handleKnockback } from "./handlers/handle-knockback";
 import { handlePostAura } from "./handlers/handle-post-aura";
@@ -60,6 +62,8 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.TransferStatStages, handleTransferStatStages);
   registry.register(EffectKind.PostAura, handlePostAura);
   registry.register(EffectKind.PostSubstitute, handlePostSubstitute);
+  registry.register(EffectKind.Disable, handleDisable);
+  registry.register(EffectKind.Encore, handleEncore);
   return registry;
 }
 

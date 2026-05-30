@@ -1308,4 +1308,14 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Status, status: StatusType.Taunted, chance: 100 }],
     effectTier: EffectTier.MajorStatus,
   },
+  disable: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Disable }],
+    effectTier: EffectTier.MajorStatus,
+  },
+  encore: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Encore }],
+    effectTier: EffectTier.MajorStatus,
+  },
 };

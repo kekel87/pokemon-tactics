@@ -22,6 +22,8 @@ import { manhattanDistance } from "../utils/manhattan-distance";
 import {
   enemyHasStatDecreaseMoveInRange,
   enemyHasStatusMoveInRange,
+  lastMoveIsLowValue,
+  lastMoveIsThreat,
   statusMoveRatio,
 } from "./threat-detection";
 
@@ -130,17 +132,73 @@ function scoreUseMove(
       "status" in effect &&
       effect.status === StatusType.Taunted,
   );
+  const isDisableApplication = move.effects.some((effect) => effect.kind === EffectKind.Disable);
+  const isEncoreApplication = move.effects.some((effect) => effect.kind === EffectKind.Encore);
 
   if (hasEnemyDebuff) {
     score += weights.statChanges * 1.5;
   }
-  if (isTauntApplication) {
+  if (isDisableApplication) {
+    score += scoreDisableApplication(targetsHit, moveRegistry, weights);
+  } else if (isEncoreApplication) {
+    score += scoreEncoreApplication(targetsHit, moveRegistry, weights);
+  } else if (isTauntApplication) {
     score += scoreTauntApplication(targetsHit, moveRegistry, weights);
   } else if (hasStatus) {
     score += weights.statChanges;
   }
 
   return score;
+}
+
+function scoreDisableApplication(
+  targets: readonly PokemonInstance[],
+  moveRegistry: Map<string, MoveDefinition>,
+  weights: AiProfile["scoringWeights"],
+): number {
+  let total = 0;
+  for (const target of targets) {
+    if (
+      target.lastUsedMoveId === undefined ||
+      target.volatileStatuses.some((v) => v.type === StatusType.Disabled)
+    ) {
+      continue;
+    }
+    let score = weights.statChanges;
+    if (lastMoveIsThreat(target, moveRegistry)) {
+      score *= 1.8;
+    }
+    const hpRatio = target.currentHp / target.maxHp;
+    if (hpRatio < 0.3) {
+      score *= 0.3;
+    }
+    total += score;
+  }
+  return total;
+}
+
+function scoreEncoreApplication(
+  targets: readonly PokemonInstance[],
+  moveRegistry: Map<string, MoveDefinition>,
+  weights: AiProfile["scoringWeights"],
+): number {
+  let total = 0;
+  for (const target of targets) {
+    if (
+      target.lastUsedMoveId === undefined ||
+      target.volatileStatuses.some((v) => v.type === StatusType.Encored)
+    ) {
+      continue;
+    }
+    let score = weights.statChanges;
+    if (lastMoveIsLowValue(target, moveRegistry)) {
+      score *= 1.8;
+    } else if (lastMoveIsThreat(target, moveRegistry)) {
+      score *= 0.3;
+    }
+    total += score;
+  }
+  return total;
 }
 
 function scoreTauntApplication(

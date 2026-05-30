@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { PlayerId } from "../enums/player-id";
-import { MockPokemon } from "../testing";
-import { enemyHasStatDecreaseMoveInRange, enemyHasStatusMoveInRange } from "./threat-detection";
+import { buildMoveRegistry, MockPokemon } from "../testing";
+import {
+  enemyHasStatDecreaseMoveInRange,
+  enemyHasStatusMoveInRange,
+  lastMoveIsLowValue,
+  lastMoveIsThreat,
+} from "./threat-detection";
 
 describe("threat-detection — enemy stat decrease moves", () => {
   it("detects an enemy with growl within range", () => {
@@ -110,5 +115,67 @@ describe("threat-detection — enemy status moves", () => {
       moveIds: ["tackle"],
     });
     expect(enemyHasStatusMoveInRange([enemy], caster, 5)).toBe(false);
+  });
+});
+
+describe("threat-detection — last move classification (Disable/Encore scoring)", () => {
+  const registry = buildMoveRegistry();
+
+  it("lastMoveIsThreat: true for an offensive last move", () => {
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 0, y: 0 },
+      lastUsedMoveId: "tackle",
+    });
+    expect(lastMoveIsThreat(target, registry)).toBe(true);
+  });
+
+  it("lastMoveIsThreat: false for a status last move", () => {
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 0, y: 0 },
+      lastUsedMoveId: "recover",
+    });
+    expect(lastMoveIsThreat(target, registry)).toBe(false);
+  });
+
+  it("lastMoveIsThreat: false when no move has been used", () => {
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 0, y: 0 },
+    });
+    expect(lastMoveIsThreat(target, registry)).toBe(false);
+  });
+
+  it("lastMoveIsLowValue: true for a status last move", () => {
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 0, y: 0 },
+      lastUsedMoveId: "recover",
+    });
+    expect(lastMoveIsLowValue(target, registry)).toBe(true);
+  });
+
+  it("lastMoveIsLowValue: false for an offensive last move", () => {
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 0, y: 0 },
+      lastUsedMoveId: "tackle",
+    });
+    expect(lastMoveIsLowValue(target, registry)).toBe(false);
+  });
+
+  it("lastMoveIsLowValue: false when no move has been used", () => {
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 0, y: 0 },
+    });
+    expect(lastMoveIsLowValue(target, registry)).toBe(false);
   });
 });

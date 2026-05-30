@@ -11,6 +11,7 @@ import { TargetingKind } from "../enums/targeting-kind";
 import { TerrainType } from "../enums/terrain-type";
 import { MockBattle, MockPokemon } from "../testing";
 import type { MoveDefinition } from "../types/move-definition";
+import { createPrng } from "../utils/prng";
 import { BattleEngine } from "./BattleEngine";
 
 function buildEndTurnEngine(terrain: TerrainType, actorTypes: PokemonType[], hp = 160) {
@@ -85,7 +86,7 @@ function buildAttackEngine(attackerTerrain: TerrainType) {
   ]);
   const moveRegistry = new Map<string, MoveDefinition>([["test-fire", testFireMove]]);
   return {
-    engine: new BattleEngine(state, moveRegistry, {}, pokemonTypesMap),
+    engine: new BattleEngine(state, moveRegistry, {}, pokemonTypesMap, undefined, createPrng(0)),
     state,
     defender,
   };

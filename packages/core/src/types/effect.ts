@@ -43,4 +43,6 @@ export type Effect =
   | { kind: typeof EffectKind.SetWeather; weather: Weather; turns: number }
   | { kind: typeof EffectKind.TransferStatStages }
   | { kind: typeof EffectKind.PostAura; aura: AuraKind }
-  | { kind: typeof EffectKind.PostSubstitute };
+  | { kind: typeof EffectKind.PostSubstitute }
+  | { kind: typeof EffectKind.Disable }
+  | { kind: typeof EffectKind.Encore };

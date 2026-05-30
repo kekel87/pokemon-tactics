@@ -224,6 +224,20 @@ export class InfoPanel {
         offsetX = this.addBadge(tauntLabel, STAT_BADGE_VOLATILE_BG, offsetX);
         continue;
       }
+      if (volatile.type === StatusType.Disabled) {
+        const disableLabel = t("infoPanel.volatile.disabled", {
+          turns: String(volatile.remainingTurns),
+        });
+        offsetX = this.addBadge(disableLabel, STAT_BADGE_VOLATILE_BG, offsetX);
+        continue;
+      }
+      if (volatile.type === StatusType.Encored) {
+        const encoreLabel = t("infoPanel.volatile.encored", {
+          turns: String(volatile.remainingTurns),
+        });
+        offsetX = this.addBadge(encoreLabel, STAT_BADGE_VOLATILE_BG, offsetX);
+        continue;
+      }
       const translationKey = VOLATILE_LABELS[volatile.type];
       if (!translationKey) {
         continue;

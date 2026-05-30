@@ -11,6 +11,8 @@ export const EffectKind = {
   TransferStatStages: "transfer_stat_stages",
   PostAura: "post_aura",
   PostSubstitute: "post_substitute",
+  Disable: "disable",
+  Encore: "encore",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

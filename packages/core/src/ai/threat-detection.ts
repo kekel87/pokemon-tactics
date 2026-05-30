@@ -94,6 +94,38 @@ export function enemyHasStatusMoveInRange(
   return false;
 }
 
+/**
+ * La derniere move utilisee par la cible est-elle une attaque offensive ?
+ * Sert au scoring Disable (couper une move menacante). Faux si pas de derniere move.
+ */
+export function lastMoveIsThreat(
+  target: PokemonInstance,
+  moveRegistry: Map<string, MoveDefinition>,
+): boolean {
+  const moveId = target.lastUsedMoveId;
+  if (moveId === undefined) {
+    return false;
+  }
+  const move = moveRegistry.get(moveId);
+  return move !== undefined && move.category !== Category.Status && move.power > 0;
+}
+
+/**
+ * La derniere move utilisee par la cible est-elle un move de statut / faible valeur offensive ?
+ * Sert au scoring Encore (verrouiller l'adversaire sur une action faible). Faux si pas de derniere move.
+ */
+export function lastMoveIsLowValue(
+  target: PokemonInstance,
+  moveRegistry: Map<string, MoveDefinition>,
+): boolean {
+  const moveId = target.lastUsedMoveId;
+  if (moveId === undefined) {
+    return false;
+  }
+  const move = moveRegistry.get(moveId);
+  return move !== undefined && move.category === Category.Status;
+}
+
 export function statusMoveRatio(
   pokemon: PokemonInstance,
   moveRegistry: Map<string, MoveDefinition>,
