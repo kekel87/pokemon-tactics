@@ -1318,4 +1318,227 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Encore }],
     effectTier: EffectTier.MajorStatus,
   },
+  // --- Content Batch G1 moves (dégâts pur physique, plan 102) ---
+  // Riders complexes différés (cf. plan 102) : throat-chop sound-lock, lash-out/temper-flare/
+  // fury-cutter power conditionnel, ice-spinner/steel-roller terrain, supercell-slam crash,
+  // fell-stinger KO-boost, psychic-fangs/raging-bull screen-break, poltergeist item-check.
+  "throat-chop": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  trailblaze: {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.StatChange, stat: StatName.Speed, stages: 1, target: EffectTarget.Self },
+    ],
+  },
+  "mega-kick": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "brutal-swing": {
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "high-horsepower": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "seed-bomb": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  superpower: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.StatChange, stat: StatName.Attack, stages: -1, target: EffectTarget.Self },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: -1,
+        target: EffectTarget.Self,
+      },
+    ],
+  },
+  "smart-strike": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+    bypassAccuracy: true,
+  },
+  "x-scissor": {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "lash-out": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "flame-charge": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.StatChange, stat: StatName.Speed, stages: 1, target: EffectTarget.Self },
+    ],
+  },
+  "ice-spinner": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "fire-fang": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Burned, chance: 10 },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 10 },
+    ],
+  },
+  "temper-flare": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "steel-wing": {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: 1,
+        target: EffectTarget.Self,
+        chance: 10,
+      },
+    ],
+  },
+  "supercell-slam": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "thunder-fang": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 10 },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 10 },
+    ],
+  },
+  peck: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "aqua-jet": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  megahorn: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "power-whip": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "ice-fang": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Frozen, chance: 10 },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 10 },
+    ],
+  },
+  "fury-cutter": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "hammer-arm": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.StatChange, stat: StatName.Speed, stages: -1, target: EffectTarget.Self },
+    ],
+  },
+  "ice-shard": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "pay-day": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  slam: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "psychic-fangs": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "metal-claw": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: 1,
+        target: EffectTarget.Self,
+        chance: 10,
+      },
+    ],
+  },
+  "horn-attack": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  poltergeist: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "bullet-punch": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "fell-stinger": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "mach-punch": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "shadow-punch": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    bypassAccuracy: true,
+  },
+  "vine-whip": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  cut: {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "raging-bull": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "meteor-mash": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: 1,
+        target: EffectTarget.Self,
+        chance: 20,
+      },
+    ],
+  },
+  "steel-roller": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
 };

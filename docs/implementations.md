@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 168 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101). |
+| Attaques | 213 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102). |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (168 implémentées)
+## Attaques (213 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -383,6 +383,46 @@
 | Provoc | taunt | Ténèbres | Statut | — | 100 | 20 | single r3 | Volatile `Taunted` 3 tours. Cible ne peut plus utiliser de moves Statut. Bloqué par Substitute (sans bypasssub). Safeguard et Mist ne bloquent pas. |
 | Entrave | disable | Normal | Statut | — | 100 | 20 | single r3 | Volatile `Disabled` 4 tours. Bloque la **dernière move exécutée** par la cible (retirée de `getLegalActions`). Échoue si pas de `lastUsedMoveId`, PP 0, ou déjà disabled. Bloqué par Substitute. |
 | Encore | encore | Normal | Statut | — | 100 | 5 | single r3 | Volatile `Encored` 3 tours. Force la cible à répéter sa **dernière move** (seule move jouable dans `getLegalActions`). Fin anticipée si PP de la move encored tombent à 0. Échoue si pas de `lastUsedMoveId`, PP 0, déjà encored, ou move = encore. Bloqué par Substitute. |
+| Aqua-Jet | aqua-jet | Eau | Phys | 40 | 100 | 20 | dash r2 | Priorité (charge gap-close) |
+| Ailes d'Acier | steel-wing | Vol | Phys | 70 | 90 | 25 | slash | +1 Déf attaquant 10% |
+| Poing Météore | meteor-mash | Acier | Phys | 90 | 90 | 10 | single r1 | +1 Atk attaquant 20% |
+| Pisto-Poing | bullet-punch | Acier | Phys | 40 | 100 | 30 | dash r2 | Priorité (charge gap-close) |
+| Canon Graine | seed-bomb | Plante | Phys | 80 | 100 | 15 | single r1–3 | — |
+| Cent Rancunes | lash-out | Ténèbres | Phys | 75 | 100 | 5 | single r1 | *(rider power conditionnel différé)* |
+| Centrifugifle | brutal-swing | Normal | Phys | 60 | 100 | 20 | zone r1 | Friendly fire |
+| Coupe | cut | Normal | Phys | 50 | 95 | 30 | slash | — |
+| Crocs Éclair | thunder-fang | Électrique | Phys | 65 | 95 | 15 | single r1 | Paralysie 10% + Flinch 10% |
+| Crocs Feu | fire-fang | Feu | Phys | 65 | 95 | 15 | single r1 | Brûlure 10% + Flinch 10% |
+| Crocs Givre | ice-fang | Glace | Phys | 65 | 95 | 15 | single r1 | Gel 10% + Flinch 10% |
+| Cryo-Pirouette | ice-spinner | Glace | Phys | 80 | 100 | 15 | single r1 | *(rider terrain différé)* |
+| Dard Mortel | fell-stinger | Insecte | Phys | 50 | 100 | 25 | single r1 | *(rider KO-boost Atk +3 différé)* |
+| Désherbaffe | trailblaze | Plante | Phys | 50 | 100 | 20 | dash r3 | +1 Vit attaquant (100%) |
+| Esprit Frappeur | poltergeist | Spectre | Phys | 110 | 90 | 5 | single r1–3 | *(rider item-check différé)* |
+| Estocorne | smart-strike | Acier | Phys | 70 | — | 10 | single r1–2 | Touche garantie (`bypassAccuracy`) |
+| Exécu-Son | throat-chop | Ténèbres | Phys | 80 | 100 | 15 | single r1 | *(rider sound-lock différé)* |
+| Fouet Lianes | vine-whip | Plante | Phys | 45 | 100 | 25 | single r1–2 | — |
+| Griffe Acier | metal-claw | Acier | Phys | 50 | 95 | 35 | single r1 | +1 Atk attaquant 10% |
+| Indignition | temper-flare | Feu | Phys | 75 | 100 | 10 | single r1 | *(rider power conditionnel différé)* |
+| Jackpot | pay-day | Normal | Phys | 40 | 100 | 20 | single r1–3 | — |
+| Koud'Korne | horn-attack | Normal | Phys | 65 | 100 | 25 | single r1 | — |
+| Mach Punch | mach-punch | Combat | Phys | 40 | 100 | 30 | dash r2 | Priorité (charge gap-close) |
+| Marto-Poing | hammer-arm | Combat | Phys | 100 | 90 | 10 | single r1 | −1 Vit attaquant (100%) |
+| Cavalerie Lourde | high-horsepower | Sol | Phys | 95 | 95 | 10 | single r1 | — |
+| Mégacorne | megahorn | Insecte | Phys | 120 | 85 | 10 | single r1–2 | — |
+| Mégafouet | power-whip | Plante | Phys | 120 | 85 | 10 | single r1–2 | — |
+| Métalliroue | steel-roller | Acier | Phys | 130 | 100 | 5 | dash r3 | *(rider terrain différé)* |
+| Nitrocharge | flame-charge | Feu | Phys | 50 | 100 | 20 | dash r3 | +1 Vit attaquant (100%) |
+| Picpic | peck | Vol | Phys | 35 | 100 | 35 | single r1–2 | — |
+| Plaie Croix | x-scissor | Insecte | Phys | 80 | 100 | 15 | slash | — |
+| Poing Ombre | shadow-punch | Spectre | Phys | 60 | — | 20 | single r1 | Touche garantie (`bypassAccuracy`) |
+| Psycho-Croc | psychic-fangs | Psy | Phys | 85 | 100 | 10 | single r1 | *(rider screen-break différé)* |
+| Souplesse | slam | Normal | Phys | 80 | 75 | 20 | single r1 | — |
+| Surpuissance | superpower | Combat | Phys | 120 | 100 | 5 | single r1 | −1 Atk, −1 Déf attaquant (100%) |
+| Taillade | fury-cutter | Insecte | Phys | 40 | 95 | 20 | single r1 | *(rider power escalade différé)* |
+| Taurogne | raging-bull | Normal | Phys | 90 | 100 | 10 | dash r2 | *(rider screen-break différé)* |
+| Ultimawashi | mega-kick | Normal | Phys | 120 | 75 | 5 | single r1 | — |
+| Volt Assaut | supercell-slam | Électrique | Phys | 100 | 95 | 15 | dash r3 | *(rider crash on miss différé)* |
+| Éclats Glace | ice-shard | Glace | Phys | 40 | 100 | 30 | dash r2 | Priorité (charge gap-close) |
 
 ---
 

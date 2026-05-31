@@ -4,6 +4,12 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
+### `tacticalOverrides.flags` écrase les flags reference au merge (2026-05-31, review plan 102)
+- `load-data.ts:58` fait `{ ...base, ...tactical }` : un `flags` défini dans tactical **remplace entièrement** `base.flags` (extrait de reference) au lieu de fusionner.
+- Impact : `aerial-ace` (seul move actuel avec `flags` override = `{ slicing: true }`) perd `contact`/`protect`/`mirror` après merge.
+- Aucun move du Batch G1 concerné (aucun n'override `flags`). Préexistant.
+- Fix : deepMerge sur `flags`, ou inclure les flags reference dans l'override.
+
 ### Disparité UI HTML vs canvas Phaser (2026-05-19, observation playtest)
 - Le projet mélange UI HTML (Team Builder, TeamSelectScene depuis plan 086) et UI Phaser canvas (combat, action menu, info panel, placement roster, timeline).
 - Conséquences : double système de fonts/couleurs/spacing (tokens.css vs constants.ts), UX incohérente (curseur, scaling, raccourcis).
@@ -35,6 +41,13 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - Lié à l'étape 22 du plan 051.
 
 ## Feedback visuel
+
+### Autocomplete bilingue — chercher en langue courante ET en anglais (2026-05-31)
+- Les champs de recherche / autocomplete (moves, Pokemon, items, abilities) doivent matcher **les deux langues** : la langue courante (FR) **et** l'anglais, quelle que soit la langue UI active.
+- Cas d'usage : joueur FR qui connaît le nom EN d'une attaque (ou inversement) doit pouvoir le taper et trouver le résultat.
+- Concerne : MovePickerModal, Pokemon picker, Item modal (TeamEditScene), tout futur champ de recherche.
+- Impl : indexer la recherche sur `names.fr` + `names.en` (reference) au lieu du seul `getMoveName(lang)`. Normaliser (lowercase, sans accents, sans tiret) pour tolérance de frappe.
+- Priorité moyenne — QoL Team Builder.
 
 ### MoveTooltip — afficher modifiers contextuels (météo, terrain, items) (2026-05-13)
 - Ex : Blizzard "Prec 70 (100 en Neige)", Flamethrower "BP 90 (×1.5 en Soleil)", Thunder "Prec 70 (100 en Pluie, 50 en Soleil)".
