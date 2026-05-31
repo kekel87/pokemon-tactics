@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> MAJ : 2026-05-30 (Phase 4 — Plan 100 DONE — Taunt / Provoc)
+> MAJ : 2026-05-31 (Phase 4 — Plan 101 DONE — Encore + Disable / planification Batches G)
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
@@ -231,9 +231,9 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 
 ### Prochaine étape
 
-**Phase 4 en cours.** Plans 069–100 terminés. Roster Gen 1 complet à 80 Pokemon jouables + dummy. 173 OP Sets (160 full + 7 sub variants + 4 taunt + 2 plan 094). 171 moves implémentés. Météo complète. Team Builder UI livré. Moves TP + semi-invulnérables livrés. IDs kebab normalisés. HitAndRun + Baton Pass + Charge moves + Reflect/LightScreen + Brume/Safeguard + Substitute + Taunt livrés. Pipeline itch.io live. Loading screens + FOUC fixes. Gate CI : **1618 unit + 254 intégration + lint + typecheck + build verts**.
+**Phase 4 en cours.** Plans 069–101 terminés. Roster Gen 1 complet à 80 Pokemon jouables + dummy. 177 OP Sets (160 full + 7 sub variants + 4 taunt + 4 disable/encore + 2 plan 094). 168 moves implémentés. Météo complète. Team Builder UI livré. Moves TP + semi-invulnérables livrés. IDs kebab normalisés. HitAndRun + Baton Pass + Charge moves + Reflect/LightScreen + Brume/Safeguard + Substitute + Taunt + Encore + Disable livrés. Pipeline itch.io live. Loading screens + FOUC fixes. Gate CI : **1624 unit + 269 intégration + lint + typecheck + build verts**.
 
-Prochains candidats : Content Batch G (moves Gen 1 manquants — ~330 moves restants), Encore / Disable (disruption), pré-Phase 9 pipeline Legends Z-A, Méga-évolutions → Phase 9.
+Prochain : **Content Batch G1** — ~40 moves Gen 1 physiques purs (shape + effet déjà supportés). Roadmap découpée G1–G5 (~160 moves simples) + entrées par type de mécanique pour ~159 moves complexes (voir `docs/roadmap.md` Phase 4). Pré-Phase 9 pipeline Legends Z-A et Méga-évolutions → après Batches G.
 
 ### Bugs connus non corrigés
 
