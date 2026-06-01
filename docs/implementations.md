@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 213 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102). |
+| Attaques | 236 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103). |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (213 implémentées)
+## Attaques (236 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -423,6 +423,29 @@
 | Ultimawashi | mega-kick | Normal | Phys | 120 | 75 | 5 | single r1 | — |
 | Volt Assaut | supercell-slam | Électrique | Phys | 100 | 95 | 15 | dash r3 | *(rider crash on miss différé)* |
 | Éclats Glace | ice-shard | Glace | Phys | 40 | 100 | 30 | dash r2 | Priorité (charge gap-close) |
+| Météo Balle | swift | Normal | Spé | 60 | — | 20 | blast r1 1–5 | Touche garantie (`bypassAccuracy`) |
+| Draco-Souffle | dragon-pulse | Dragon | Spé | 85 | 100 | 10 | ligne r4 | — |
+| Éclat Dazzle | dazzling-gleam | Fée | Spé | 80 | 100 | 10 | zone r2 | Friendly fire |
+| Voix Sonore | hyper-voice | Normal | Spé | 90 | 100 | 10 | cône r1–3 | Son |
+| Surchauffe | overheat | Feu | Spé | 130 | 90 | 5 | zone r2 | −2 AtqSpé attaquant (100%) |
+| Coup Vague | vacuum-wave | Combat | Spé | 40 | 100 | 30 | dash r2 | Priorité |
+| Tempête Verte | leaf-storm | Plante | Spé | 130 | 90 | 5 | cône r1–3 | −2 AtqSpé attaquant (100%) |
+| Sphère Aura | aura-sphere | Combat | Spé | 80 | — | 20 | single r1–4 | Touche garantie (`bypassAccuracy`) |
+| Feuille Magique | magical-leaf | Plante | Spé | 60 | — | 20 | slash | Touche garantie (`bypassAccuracy`) |
+| Joyau Lumière | power-gem | Roche | Spé | 80 | 100 | 20 | ligne r3 | — |
+| Voix Douceur | disarming-voice | Fée | Spé | 40 | — | 15 | cône r1–2 | Touche garantie, son |
+| Météore Draco | draco-meteor | Dragon | Spé | 130 | 90 | 5 | blast r1 1–5 | −2 AtqSpé attaquant (100%) |
+| Électacle Choc | shock-wave | Électrique | Spé | 60 | — | 20 | cône r1–2 | Touche garantie (`bypassAccuracy`) |
+| Double Battue | dual-wingbeat | Vol | Phys | 40×2 | 90 | 10 | single r1 | 2 coups |
+| Éclat Roc | rock-blast | Roche | Phys | 25 | 90 | 10 | single r1–3 | 2–5 coups |
+| Écaille Canon | scale-shot | Dragon | Phys | 25 | 90 | 20 | single r1–3 | 2–5 coups, −1 Déf / +1 Vit attaquant après |
+| Balle Graine | bullet-seed | Plante | Phys | 25 | 100 | 30 | single r1–3 | 2–5 coups |
+| Double Frappe | double-hit | Normal | Phys | 35×2 | 90 | 10 | single r1 | 2 coups |
+| Dard-Aiguille | pin-missile | Insecte | Phys | 25 | 95 | 20 | single r1–2 | 2–5 coups |
+| Combo-Giffe | fury-attack | Normal | Phys | 15 | 85 | 20 | single r1 | 2–5 coups |
+| Ruée d'Os | bone-rush | Sol | Phys | 25 | 90 | 10 | single r1–2 | 2–5 coups |
+| Stalacte Gel | icicle-crash | Glace | Phys | 85 | 90 | 10 | single r1–3 | Flinch 30% |
+| Gifle Fion | tail-slap | Normal | Phys | 25 | 85 | 10 | single r1 | 2–5 coups |
 
 ---
 

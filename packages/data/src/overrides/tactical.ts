@@ -1541,4 +1541,148 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
     effects: [{ kind: EffectKind.Damage }],
   },
+
+  // --- Content Batch G2 moves (dégâts spécial + multi-hit, plan 103) ---
+  // Spéciaux. Flags sound/bullet/pulse fournis par la reference (ne pas les
+  // redéclarer ici : un override flags écrase la reference, cf. backlog aerial-ace).
+  swift: {
+    targeting: { kind: TargetingKind.Blast, range: { min: 1, max: 5 }, radius: 1 },
+    effects: [{ kind: EffectKind.Damage }],
+    bypassAccuracy: true,
+  },
+  "dragon-pulse": {
+    targeting: { kind: TargetingKind.Line, length: 4 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "dazzling-gleam": {
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "hyper-voice": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  overheat: {
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: -2,
+        target: EffectTarget.Self,
+      },
+    ],
+  },
+  "vacuum-wave": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "leaf-storm": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: -2,
+        target: EffectTarget.Self,
+      },
+    ],
+  },
+  "aura-sphere": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.Damage }],
+    bypassAccuracy: true,
+  },
+  "magical-leaf": {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [{ kind: EffectKind.Damage }],
+    bypassAccuracy: true,
+  },
+  "power-gem": {
+    targeting: { kind: TargetingKind.Line, length: 3 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "disarming-voice": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+    bypassAccuracy: true,
+  },
+  "draco-meteor": {
+    targeting: { kind: TargetingKind.Blast, range: { min: 1, max: 5 }, radius: 1 },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: -2,
+        target: EffectTarget.Self,
+      },
+    ],
+  },
+  "shock-wave": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+    bypassAccuracy: true,
+  },
+
+  // Multi-hit (hits déjà supporté : double-kick/fury-swipes).
+  "dual-wingbeat": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage, hits: 2 }],
+  },
+  "rock-blast": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage, hits: { min: 2, max: 5 } }],
+  },
+  "scale-shot": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage, hits: { min: 2, max: 5 } },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: -1,
+        target: EffectTarget.Self,
+      },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Speed,
+        stages: 1,
+        target: EffectTarget.Self,
+      },
+    ],
+  },
+  "bullet-seed": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage, hits: { min: 2, max: 5 } }],
+  },
+  "double-hit": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage, hits: 2 }],
+  },
+  "pin-missile": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage, hits: { min: 2, max: 5 } }],
+  },
+  "fury-attack": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage, hits: { min: 2, max: 5 } }],
+  },
+  "bone-rush": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage, hits: { min: 2, max: 5 } }],
+  },
+  "icicle-crash": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 30 },
+    ],
+  },
+  "tail-slap": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage, hits: { min: 2, max: 5 } }],
+  },
 };
