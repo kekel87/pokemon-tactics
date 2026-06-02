@@ -83,6 +83,12 @@ Voir `CLAUDE.md` pour la table complète des déclencheurs.
 
 Un test d'intégration est utile quand il vérifie un **contrat entre composants** qu'aucun test unitaire ne couvre. S'il peut être testé en unit, c'est un unit test.
 
+### Règle dure — un test positionnel par move
+
+**Tout move implémenté DOIT avoir son fichier `packages/core/src/battle/moves/<id>.test.ts`** (scénario positionnel bout en bout : touche/touche pas selon la position, effet appliqué). Conventions détaillées : `docs/plans/108-move-test-coverage.md`.
+
+Garde-fou : `move-test-coverage.test.ts` énumère `loadData().moves` et **échoue la CI** si un move n'a pas de test. **Sans allowlist de couverture.** Donc tout plan qui ajoute des moves (batch contenu compris) inclut les tests par move dans le même plan — sinon la CI est rouge.
+
 ### Conventions de test
 - **Mocks centralisés** dans `testing/` : `abstract class MockX { static readonly ... }`
 - **Données pures, pas de logique** : pas de helper `createInstance()` avec `Partial<T>`

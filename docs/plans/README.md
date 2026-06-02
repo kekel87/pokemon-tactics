@@ -119,3 +119,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 105 | [Content Batch G4 (36 moves dégâts + stat-drop / high-crit / recoil / drain)](./105-content-batch-g4.md) | done | 2026-06-02 |
 | 106 | [Content Batch G5 (23 moves statut + stat-baisses pures)](./106-content-batch-g5.md) | done | 2026-06-02 |
 | 107 | [Content Batch G6 (11 moves simples ratés G1–G5)](./107-content-batch-g6.md) | done | 2026-06-02 |
+| 108 | [Couverture tests par move (rattrapage 210 + garde-fou CI)](./108-move-test-coverage.md) | done | 2026-06-02 |

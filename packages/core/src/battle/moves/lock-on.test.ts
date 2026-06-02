@@ -71,7 +71,7 @@ describe("lock-on", () => {
     vi.restoreAllMocks();
 
     const statusEvent = result.events.find(
-      (e): e is Extract<typeof e, { type: "status_applied" }> =>
+      (e): e is Extract<typeof e, { type: typeof BattleEventType.StatusApplied }> =>
         e.type === BattleEventType.StatusApplied,
     );
     expect(statusEvent).toBeDefined();

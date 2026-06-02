@@ -176,7 +176,7 @@ describe("thunderbolt", () => {
 
     expect(result.success).toBe(true);
     const damageEvents = result.events.filter(
-      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+      (e): e is Extract<typeof e, { type: typeof BattleEventType.DamageDealt }> =>
         e.type === BattleEventType.DamageDealt,
     );
     const hitIds = damageEvents.map((e) => e.targetId);
@@ -213,7 +213,7 @@ describe("thunderbolt", () => {
     });
 
     const damageEvents = result.events.filter(
-      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+      (e): e is Extract<typeof e, { type: typeof BattleEventType.DamageDealt }> =>
         e.type === BattleEventType.DamageDealt,
     );
     expect(damageEvents.map((e) => e.targetId)).toContain("foe");
@@ -254,7 +254,7 @@ describe("thunderbolt", () => {
     });
 
     const damageEvents = result.events.filter(
-      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+      (e): e is Extract<typeof e, { type: typeof BattleEventType.DamageDealt }> =>
         e.type === BattleEventType.DamageDealt,
     );
     const hitIds = damageEvents.map((e) => e.targetId);

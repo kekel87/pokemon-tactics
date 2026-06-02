@@ -106,7 +106,7 @@ describe("earthquake", () => {
     });
 
     const damageEvents = result.events.filter(
-      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+      (e): e is Extract<typeof e, { type: typeof BattleEventType.DamageDealt }> =>
         e.type === BattleEventType.DamageDealt,
     );
     expect(damageEvents.map((e) => e.targetId)).toContain("foe-behind");

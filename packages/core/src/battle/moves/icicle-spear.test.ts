@@ -74,7 +74,7 @@ describe("icicle-spear", () => {
     });
 
     const multiComplete = result.events.find(
-      (e): e is Extract<typeof e, { type: "multi_hit_complete" }> =>
+      (e): e is Extract<typeof e, { type: typeof BattleEventType.MultiHitComplete }> =>
         e.type === BattleEventType.MultiHitComplete,
     );
     expect(multiComplete).toBeDefined();

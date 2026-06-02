@@ -102,7 +102,7 @@ describe("bubble-beam", () => {
 
     expect(result.success).toBe(true);
     const damageEvents = result.events.filter(
-      (e): e is Extract<typeof e, { type: "damage_dealt" }> =>
+      (e): e is Extract<typeof e, { type: typeof BattleEventType.DamageDealt }> =>
         e.type === BattleEventType.DamageDealt,
     );
     const hitIds = damageEvents.map((e) => e.targetId);
