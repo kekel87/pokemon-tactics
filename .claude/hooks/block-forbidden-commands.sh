@@ -22,22 +22,10 @@ if [[ -z "$COMMAND" ]]; then
   exit 0
 fi
 
-# --- Git versioning (l'humain gere le versioning) ---
-
-if echo "$COMMAND" | grep -qE '\bgit\s+c[o]mmit\b'; then
-  echo "BLOQUE : versioning git interdit (humain only). Action: commit." >&2
-  exit 2
-fi
-
-if echo "$COMMAND" | grep -qE '\bgit\s+p[u]sh\b'; then
-  echo "BLOQUE : versioning git interdit (humain only). Action: push." >&2
-  exit 2
-fi
-
-if echo "$COMMAND" | grep -qE '\bgit\s+a[d]d\b'; then
-  echo "BLOQUE : versioning git interdit (humain only). Action: add." >&2
-  exit 2
-fi
+# --- Git versioning ---
+# commit/add/push/amend autorises (apres validation du message en chat).
+# Les operations destructrices (reset, rebase, checkout, etc.) restent
+# bloquees via la deny-list de .claude/settings.json.
 
 # --- Installation globale (interdit) ---
 

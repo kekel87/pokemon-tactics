@@ -56,7 +56,8 @@ U-A graph (`.understand-anything/knowledge-graph.json`, 1008 nodes, auto-update 
 
 ## Conventions
 
-- **Commits** : conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`) — **titre seul, jamais corps**. Détails → STATUS.md ou plan
+- **Commits** : conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`) — **titre seul, jamais corps**, version courte/concise. Détails → STATUS.md ou plan
+  - **Scope** : 1 seul scope max (`feat(data): ...`). Si plusieurs scopes → **pas de scope du tout** (`feat: ...`), jamais `feat(scope1, scope2): ...`
 - **Langue** : code anglais, doc français
 - **🔴 Noms FR officiels — RÈGLE DURE** : toute communication à l'humain (texte, tableaux, menus `AskUserQuestion`, listes) utilise les **noms FR officiels** des moves/talents/Pokemon (ex: `Lame de Roche`, `Provoc`, `Florizarre`). **JAMAIS l'ID anglais seul.** ID EN entre parenthèses uniquement si précision technique requise. L'humain ne connaît PAS les noms EN. Source : `packages/data/reference/moves.json` (`names.fr`) ou `packages/data/src/i18n/*.fr.json`. Récidive = grosse friction (rappelé >10×)
 - **Linter** : Biome
@@ -77,7 +78,7 @@ TypeScript strict ESM · Phaser 4 · Vitest · Playwright (`visual-tester`) · c
 - `any` sans justification
 - Commiter assets non libres de droits
 - Charger toute doc en contexte quand 1 fichier suffit
-- **Git** : commit/push/add interdit. Lecture seule (`status`, `diff`, `log`). Bloqué par hook
+- **Git** : commit/add/push/amend autorisés APRÈS validation du message en chat. Claude propose le message (titre seul, court), l'humain valide, puis Claude commit + push. Jamais commit sans proposition+validation préalable. Destructeurs interdits (checkout, reset, rebase, merge, restore, clean, rm, branch -d, tag -d) — bloqués par deny-list
 - **Infra** : install global, modif nvm/npm config interdit. Bloqué par hook
 - **Structurel** : consulter humain AVANT modifier tsconfig, module resolution, structure, dépendances. Bug fix simple OK
 - **Mémoire vs doc** : recherches/décisions/contexte → doc projet (git), pas mémoire Claude. Mémoire = préférences perso humain seulement
@@ -98,6 +99,8 @@ Détails : `docs/agent-orchestration.md`.
 1. Exécuter `git status --porcelain` pour confirmer fichiers modifiés.
 2. Appeler `AskUserQuestion` avec un menu multi-select des étapes de chaîne, pré-cochées selon contexte.
 3. Attendre la sélection humain. Exécuter en ordre fixe. Stop sur fail bloquant.
+
+**Raccourci** : l'humain peut afficher ce menu à tout moment (même mid-session, hors fin d'impl) via `/menu` ou en envoyant le mot **`menu`** seul. Traiter "menu" nu comme un appel au skill `/menu`.
 
 **Pas optionnel. Pas négociable.** Même si tu penses "le changement est petit". Même si tu as confiance. L'humain coche/décoche.
 
@@ -126,7 +129,7 @@ Spéciaux selon contexte :
 
 Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, `visual-tester` régression).
 
-**Jamais commit/push auto** — `/commit` génère le titre, humain colle.
+**Commit/push après validation** — `/commit` génère le titre court (1 scope max, sinon aucun), Claude le **propose en chat**, l'humain valide, **puis Claude commit + push**. Jamais commit sans validation préalable du message.
 
 #### Exceptions
 
@@ -144,6 +147,7 @@ Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-g
 | Cmd | Action |
 |-----|--------|
 | `/next` | Prochaine étape OU menu post-impl multi-select (selon contexte) |
+| `/menu` (ou mot `menu`) | Affiche le menu interactif post-impl multi-select à la demande, même mid-session |
 | `/review-local` | Review code changements locaux |
 | `/ci-gate [fast\|full\|slow]` | Gate CI local (lint, typecheck, build, test, integration). BLOQUANT avant commit |
-| `/commit` | Génère message commit conventional via agent `commit-message`. Jamais auto-commit |
+| `/commit` | Génère message commit conventional court via agent `commit-message`, le propose en chat. Après validation humaine → commit + push |

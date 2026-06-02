@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Génère un message de commit conventional (titre seul, ≤72 char) via l'agent commit-message. Ne commit JAMAIS — propose, l'humain colle.
+description: Génère un message de commit conventional court (titre seul, ≤72 char) via l'agent commit-message, le propose en chat. Après validation humaine → commit + push.
 user-invocable: true
 ---
 
@@ -17,14 +17,15 @@ Thin wrapper sur l'agent `commit-message` (haiku, rapide).
    - Rien à commit → signale et stop.
 2. Lance l'agent `commit-message` via `Agent({ subagent_type: "commit-message", ... })`. Passe le contexte de session (plan en cours, résumé) dans le prompt — l'agent prime contexte sur diff.
 3. Affiche le message proposé verbatim.
-4. **STOP**. Pas de `git commit`. L'humain copie le titre.
+4. **Attends validation humaine.** Si OK (ou ajusté) → `git add` + `git commit -m "<message>"` + `git push`. Stop sur fail.
 
 ## Règles
 
-- **Jamais** `git commit`/`git add`/`git push` (bloqué par hook de toute façon).
-- Titre seul, ≤72 char, conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`).
-- Scope entre parenthèses : `feat(core):`, `fix(renderer):`, `feat(core,renderer):`.
+- **Validation obligatoire avant commit** : toujours proposer le message en chat d'abord. Jamais commit sans accord humain.
+- Titre seul, version courte/concise, ≤72 char, conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`).
+- **Scope** : 1 seul scope max (`feat(core):`). Si plusieurs scopes → **aucun scope** (`feat:`), jamais `feat(scope1, scope2):`.
 - Si changements trop variés pour un titre → propose plusieurs commits logiques avec liste de fichiers par commit.
+- Destructeurs (reset, rebase, checkout, etc.) restent interdits (deny-list).
 
 ## Output
 
@@ -32,8 +33,8 @@ Format attendu :
 ```
 Proposed commit message:
 
-  feat(core): implement Move+Act FFTA-like turn system (plan 008)
+  feat(core): implement Move+Act FFTA-like turn system
 
-Files staged: (liste)
-Run: git add <files> && git commit -m "<message>"
+Files: (liste)
 ```
+Puis, après validation : `git add <files> && git commit -m "<message>" && git push`.

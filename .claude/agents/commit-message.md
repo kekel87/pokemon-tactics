@@ -37,7 +37,7 @@ Ce contexte prime sur le diff pour formuler le message. Le diff seul dit "quoi",
 ### 3. Proposer le message
 
 - Format conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`)
-- Scope entre parenthèses si applicable : `feat(core):`, `fix(renderer):`
+- Scope entre parenthèses : **1 seul scope max** (`feat(core):`, `fix(renderer):`). Si plusieurs scopes seraient nécessaires → **pas de scope** (`feat:`), jamais `feat(scope1, scope2):`
 - **Une seule ligne** (< 72 caractères) — **jamais de corps de commit, jamais de footer, jamais de Co-Authored-By**
 - Si les changements couvrent un plan entier ou des étapes précises, mentionner le numéro du plan
 - Si les changements sont trop variés pour une seule ligne, proposer plusieurs commits logiques avec les fichiers associés
@@ -53,7 +53,7 @@ Ce contexte prime sur le diff pour formuler le message. Le diff seul dit "quoi",
 ```
 feat(core): implement Move+Act FFTA-like turn system (plan 008)
 fix(renderer): fix sandbox bugs and relocate action menu to bottom-right (plan 024)
-feat(core,renderer,data): add defensive moves system with sandbox panel (plan 023 steps 6-8)
+feat: add defensive moves system with sandbox panel (plan 023 steps 6-8)
 refactor(core): extract effect handler registry from BattleEngine
 ```
 
