@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 296 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105). |
+| Attaques | 319 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106). |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -506,6 +506,29 @@
 | Survinsecte | struggle-bug | Insecte | Spé | 50 | 100 | 20 | cône r1–2 | −1 AtqSpé cibles 100% |
 | Coud'Boue | mud-slap | Sol | Spé | 20 | 100 | 10 | single r1–2 | −1 Préc cible 100% |
 | Ocroupi | muddy-water | Eau | Spé | 90 | 85 | 10 | zone r2 | −1 Préc cibles 30%, friendly fire |
+| Grimace | scary-face | Normal | Statut | — | 100 | 10 | single r1–3 | −2 Vit cible |
+| Charme | charm | Fée | Statut | — | 100 | 20 | single r1–3 | −2 Atk cible |
+| Croco Larme | fake-tears | Ténèbres | Statut | — | 100 | 20 | single r1–3 | −2 DéfSpé cible |
+| Ondes Étranges | eerie-impulse | Électrique | Statut | — | 100 | 15 | single r1–3 | −2 AtqSpé cible |
+| Strido-Son | metal-sound | Acier | Statut | — | 85 | 40 | single r1–3 | −2 DéfSpé cible |
+| Regard Touchant | baby-doll-eyes | Fée | Statut | — | 100 | 30 | single r1–3 | −1 Atk cible. Priorité +1 |
+| Confidence | confide | Normal | Statut | — | — | 20 | single r1–3 | −1 AtqSpé cible |
+| Chatouille | tickle | Normal | Statut | — | 100 | 20 | single r1–3 | −1 Atk, −1 Déf cible |
+| Gros'Yeux | leer | Normal | Statut | — | 100 | 30 | cône r1–3 | −1 Déf cibles |
+| Mimi-Queue | tail-whip | Normal | Statut | — | 100 | 30 | cône r1–3 | −1 Déf cibles |
+| Doux Parfum | sweet-scent | Normal | Statut | — | 100 | 20 | zone r2 | −1 Esquive cibles |
+| Sécrétion | string-shot | Insecte | Statut | — | 95 | 40 | cône r1–2 | −1 Vit cibles |
+| Armure | harden | Normal | Statut | — | — | 30 | self | +1 Déf |
+| Rengorgement | work-up | Normal | Statut | — | — | 30 | self | +1 Atk, +1 AtqSpé |
+| Poliroche | rock-polish | Roche | Statut | — | — | 20 | self | +2 Vit |
+| Coaching | coaching | Combat | Statut | — | — | 10 | allié r1 | +1 Atk, +1 Déf allié |
+| Poudre Toxik | poison-powder | Poison | Statut | — | 75 | 35 | single r1 | Poison 100% |
+| Para-Spore | stun-spore | Plante | Statut | — | 75 | 30 | single r1 | Para 100% |
+| Gaz Toxik | poison-gas | Poison | Statut | — | 90 | 40 | zone r1 | Poison 100% |
+| Doux Baiser | sweet-kiss | Fée | Statut | — | 75 | 10 | single r1–3 | Confusion 100% |
+| Danse Folle | teeter-dance | Normal | Statut | — | 100 | 20 | zone r2 | Confusion 100% cibles, friendly fire |
+| Vantardise | swagger | Normal | Statut | — | 85 | 15 | single r1–3 | +2 Atk cible + Confusion 100% |
+| Flatterie | flatter | Ténèbres | Statut | — | 100 | 15 | single r1–3 | +1 AtqSpé cible + Confusion 100% |
 
 ---
 

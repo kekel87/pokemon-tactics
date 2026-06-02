@@ -2213,4 +2213,239 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
       },
     ],
   },
+  // --- Content Batch G5 moves (pure stat-change + pure statut, plan 106) ---
+  "scary-face": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Speed,
+        stages: -2,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  charm: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: -2,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  "fake-tears": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: -2,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  "eerie-impulse": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: -2,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  "metal-sound": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: -2,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  "baby-doll-eyes": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: -1,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  confide: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: -1,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  tickle: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: -1,
+        target: EffectTarget.Targets,
+      },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: -1,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  leer: {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: -1,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  "tail-whip": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: -1,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  "sweet-scent": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Evasion,
+        stages: -2,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  "string-shot": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Speed,
+        stages: -2,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  harden: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self },
+    ],
+  },
+  "work-up": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      { kind: EffectKind.StatChange, stat: StatName.Attack, stages: 1, target: EffectTarget.Self },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: 1,
+        target: EffectTarget.Self,
+      },
+    ],
+    effectTier: EffectTier.DoubleBuff,
+  },
+  "rock-polish": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      { kind: EffectKind.StatChange, stat: StatName.Speed, stages: 2, target: EffectTarget.Self },
+    ],
+    effectTier: EffectTier.MajorBuff,
+  },
+  coaching: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    targetsAlly: true,
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: 1,
+        target: EffectTarget.Targets,
+      },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: 1,
+        target: EffectTarget.Targets,
+      },
+    ],
+    effectTier: EffectTier.DoubleBuff,
+  },
+  "poison-powder": {
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    effects: [{ kind: EffectKind.Status, status: StatusType.Poisoned, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
+  },
+  "stun-spore": {
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    effects: [{ kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
+  },
+  "poison-gas": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Status, status: StatusType.Poisoned, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
+  },
+  "sweet-kiss": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Status, status: StatusType.Confused, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
+  },
+  "teeter-dance": {
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    effects: [{ kind: EffectKind.Status, status: StatusType.Confused, chance: 100 }],
+    effectTier: EffectTier.MajorStatus,
+  },
+  swagger: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: 2,
+        target: EffectTarget.Targets,
+      },
+      { kind: EffectKind.Status, status: StatusType.Confused, chance: 100 },
+    ],
+    effectTier: EffectTier.MajorStatus,
+  },
+  flatter: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: 1,
+        target: EffectTarget.Targets,
+      },
+      { kind: EffectKind.Status, status: StatusType.Confused, chance: 100 },
+    ],
+    effectTier: EffectTier.MajorStatus,
+  },
 };
