@@ -26,7 +26,8 @@ export function validateBattleData(data: {
 
     if (
       (!move.effects || move.effects.length === 0) &&
-      move.targeting?.kind !== TargetingKind.Teleport
+      move.targeting?.kind !== TargetingKind.Teleport &&
+      move.targeting?.kind !== TargetingKind.Self
     ) {
       errors.push(`Move ${move.id} has no effects`);
     }

@@ -23,10 +23,13 @@ describe("loadData", () => {
     }
   });
 
-  it("each non-teleport move has at least one effect", () => {
+  it("each non-teleport non-self move has at least one effect", () => {
     const data = loadData();
     for (const move of data.moves) {
-      if (move.targeting.kind === TargetingKind.Teleport) {
+      if (
+        move.targeting.kind === TargetingKind.Teleport ||
+        move.targeting.kind === TargetingKind.Self
+      ) {
         continue;
       }
       expect(move.effects.length).toBeGreaterThan(0);

@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 319 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106). |
+| Attaques | 330 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106), +11 simples G6 (plan 107). **Batches G1–G6 clos.** |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (296 implémentées)
+## Attaques (330 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -529,6 +529,17 @@
 | Danse Folle | teeter-dance | Normal | Statut | — | 100 | 20 | zone r2 | Confusion 100% cibles, friendly fire |
 | Vantardise | swagger | Normal | Statut | — | 85 | 15 | single r1–3 | +2 Atk cible + Confusion 100% |
 | Flatterie | flatter | Ténèbres | Statut | — | 100 | 15 | single r1–3 | +1 AtqSpé cible + Confusion 100% |
+| Force | strength | Normal | Phys | 80 | 100 | 15 | single r1–3 | — |
+| Écrasement | stomp | Normal | Phys | 65 | 100 | 20 | single r1–3 | Flinch 30% |
+| Double Baffe | dual-chop | Dragon | Phys | 40×2 | 90 | 15 | single r1 | 2 coups |
+| Camaraderie | play-nice | Normal | Statut | — | — | 20 | single r1–3 | −1 Atk cible + touche garantie (`bypassAccuracy`) |
+| Rafale Feu | blast-burn | Feu | Spé | 150 | 90 | 5 | ligne r5 | Recharge 1 tour |
+| Végé-Attaque | frenzy-plant | Plante | Spé | 150 | 90 | 5 | ligne r5 | Recharge 1 tour |
+| Hydroblast | hydro-cannon | Eau | Spé | 150 | 90 | 5 | ligne r5 | Recharge 1 tour |
+| Giga Impact | giga-impact | Normal | Phys | 150 | 90 | 5 | dash r3 | Recharge 1 tour (contact → Dash) |
+| Lame Solaire | solar-blade | Plante | Phys | 125 | 100 | 10 | single r1 | Charge 2 tours (skip sous Soleil). Flags `contact`+`slicing`. |
+| Laser Météore | meteor-beam | Roche | Spé | 120 | 90 | 5 | ligne r5 | Charge 2 tours. T1 : `chargeEffects` +1 AtqSpé self. |
+| Trempette | splash | Normal | Statut | — | — | 40 | self | Aucun (no-op canonique) |
 
 ---
 

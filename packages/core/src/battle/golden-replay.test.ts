@@ -33,6 +33,19 @@ const ZERO_STAT_STAGES = {
   [StatName.Evasion]: 0,
 };
 
+// Movesets figés pour rendre le replay golden hermétique aux ajouts de contenu :
+// 4 attaques mono-cible simples par Pokemon (pas de charge / recharge / self-destruct,
+// qui faisaient diverger ou bloquer le générateur naïf). Le golden ne dépend donc plus
+// du movepool dérivé (qui change à chaque batch de moves).
+const GOLDEN_MOVESETS: Record<string, string[]> = {
+  charizard: ["flamethrower", "dragon-claw", "earthquake", "rock-slide"],
+  blastoise: ["surf", "ice-beam", "earthquake", "body-slam"],
+  dragonite: ["dragon-claw", "earthquake", "fire-punch", "extreme-speed"],
+  venusaur: ["giga-drain", "sludge-bomb", "earthquake", "body-slam"],
+  raichu: ["thunderbolt", "brick-break", "iron-tail", "body-slam"],
+  snorlax: ["body-slam", "crunch", "earthquake", "ice-punch"],
+};
+
 function buildGoldenEngine(seed: number): BattleEngine {
   const data = loadData();
   const moveRegistry = new Map<string, MoveDefinition>();
@@ -68,8 +81,9 @@ function buildGoldenEngine(seed: number): BattleEngine {
       throw new Error(`Unknown pokemon: ${defId}`);
     }
     const id = `p${playerId === PlayerId.Player1 ? "1" : "2"}-${defId}`;
+    const moveset = GOLDEN_MOVESETS[defId] ?? definition.movepool;
     const currentPp: Record<string, number> = {};
-    for (const moveId of definition.movepool) {
+    for (const moveId of moveset) {
       const moveDef = moveRegistry.get(moveId);
       currentPp[moveId] = moveDef?.pp ?? 0;
     }
@@ -92,7 +106,7 @@ function buildGoldenEngine(seed: number): BattleEngine {
       statusEffects: [],
       position: pos,
       orientation: playerId === PlayerId.Player1 ? Direction.East : Direction.West,
-      moveIds: [...definition.movepool],
+      moveIds: [...moveset],
       currentPp,
       activeDefense: null,
       lastEndureRound: null,
@@ -213,8 +227,8 @@ describe("golden replay", () => {
 
     expect(team1Alive.length).toBeGreaterThan(0);
     expect(team2Alive.length).toBe(0);
-    expect(finalState.roundNumber).toBe(13);
-    expect(replay.actions.length).toBe(115);
+    expect(finalState.roundNumber).toBe(5);
+    expect(replay.actions.length).toBe(55);
   });
 
   it("produces the same replay when running the battle from scratch", () => {

@@ -41,9 +41,6 @@ Pas tout charger. Lire fichier pertinent moment pertinent.
 
 ## Exploration code TS
 
-**Serena prioritaire sur Read/Grep/Edit** pour `.ts` (LSP, plus token-efficient).
-Charger via `ToolSearch select:mcp__serena__*`. Appeler `initial_instructions` au démarrage.
-
 U-A graph (`.understand-anything/knowledge-graph.json`, 1008 nodes, auto-update post-commit) pour questions architecture → `/understand-chat`.
 
 ## Principes

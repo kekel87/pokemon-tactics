@@ -2448,4 +2448,75 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
     effectTier: EffectTier.MajorStatus,
   },
+  // --- Content Batch G6 moves (simples ratés des batches G : recharge / charge / multi-hit / no-op, plan 107) ---
+  strength: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  stomp: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 30 },
+    ],
+  },
+  "dual-chop": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage, hits: 2 }],
+  },
+  "blast-burn": {
+    targeting: { kind: TargetingKind.Line, length: 5 },
+    effects: [{ kind: EffectKind.Damage }],
+    recharge: true,
+  },
+  "frenzy-plant": {
+    targeting: { kind: TargetingKind.Line, length: 5 },
+    effects: [{ kind: EffectKind.Damage }],
+    recharge: true,
+  },
+  "giga-impact": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    effects: [{ kind: EffectKind.Damage }],
+    recharge: true,
+  },
+  "hydro-cannon": {
+    targeting: { kind: TargetingKind.Line, length: 5 },
+    effects: [{ kind: EffectKind.Damage }],
+    recharge: true,
+  },
+  "solar-blade": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    twoTurnCharge: true,
+    sunSkipsCharge: true,
+  },
+  "meteor-beam": {
+    targeting: { kind: TargetingKind.Line, length: 5 },
+    effects: [{ kind: EffectKind.Damage }],
+    twoTurnCharge: true,
+    chargeEffects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: 1,
+        target: EffectTarget.Self,
+      },
+    ],
+  },
+  "play-nice": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: -1,
+        target: EffectTarget.Targets,
+      },
+    ],
+    bypassAccuracy: true,
+  },
+  splash: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [],
+  },
 };

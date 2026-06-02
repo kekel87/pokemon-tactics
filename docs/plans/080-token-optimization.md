@@ -1,8 +1,10 @@
 # Plan 080 — Token Optimization Setup
 
-**Statut** : Phase 1, 3 DONE — Phase 2, 4 partiel — Phase 5 validation pending humain
+**Statut** : Phase 1 DONE — Phase 3 ABANDONNÉE (Serena désinstallé) — Phase 2, 4 partiel — Phase 5 validation pending humain
 **Créé** : 2026-05-12
 **Objectif** : Réduire consommation tokens par tour (~3-5k économisés) sans perdre capacité.
+
+> **MAJ 2026-06-02** : Serena désinstallé complètement (MCP + cache ~700 Mo + memory files). Phase 3 (Serena) caduque. Refs Serena ci-dessous = historique uniquement, non actionnables.
 
 ---
 
@@ -20,16 +22,9 @@
 - ⏭ **2.3 Skills audit** : pending décision humain (liste skills à désinstaller).
 - ✅ **2.4 Agents audit** : 30 → 27 agents (supprimé `ci-setup`, `visual-analyst`, `balancer`). **Pas de doublons** -knowledge — ce sont des memory files lus par les agents, pas variantes.
 
-## Résultats Phase 3 (DONE)
+## Résultats Phase 3 — CADUQUE
 
-- ✅ **Serena onboarding** lancé. 6 memory files créés dans `.serena/memories/` :
-  - `project_overview`
-  - `tech_stack`
-  - `code_style_conventions`
-  - `suggested_commands`
-  - `task_completion_checklist`
-  - `codebase_structure`
-  - `workflow_and_agents`
+- ❌ **Serena désinstallé** (2026-06-02). Onboarding + memory files supprimés. Phase abandonnée : peu utilisé, reflexe Read/Grep direct l'emportait.
 
 ## Résultats Phase 4 partiel
 
@@ -47,12 +42,11 @@
 
 ## Contexte
 
-Setup actuel : Serena MCP, U-A MCP, RTK, Caveman skill installés. CLAUDE.md projet 130 lignes + 5 rules files + MEMORY.md 28 entrées + hook caveman réinjecté chaque tour = ~17k tokens préambule.
+Setup actuel : U-A MCP, RTK, Caveman skill installés. CLAUDE.md projet 130 lignes + 5 rules files + MEMORY.md 28 entrées + hook caveman réinjecté chaque tour = ~17k tokens préambule.
 
 Sources recherche :
 - [tipsforclaude](https://tipsforclaude.com/tips/rules-directory-conditional/) — rules conditional loading via `paths:` frontmatter
 - [claudefa.st](https://claudefa.st/blog/guide/mechanics/rules-directory) — sans frontmatter, chargé toujours
-- [Serena docs](https://oraios.github.io/serena/02-usage/050_configuration.html) — onboarding obligatoire
 - [MindStudio MCP overhead](https://www.mindstudio.ai/blog/claude-code-mcp-server-token-overhead) — schemas deferred par défaut OK
 - [Caveman GitHub](https://github.com/JuliusBrussee/caveman) — flag file, pas réinjection par tour
 - [bridgers.agency](https://bridgers.agency/en/blog/claude-mem-review-architecture-alternatives) — Memory MCP rentable >50 entrées seulement
@@ -184,31 +178,9 @@ Candidats virage immédiat (si pas utilisé Phase 4 actuelle) : `feedback-triage
 
 ---
 
-## Phase 3 — Setup Serena complet
+## Phase 3 — Setup Serena complet (ABANDONNÉ 2026-06-02)
 
-### 3.1 Onboarding
-
-Lancer `mcp__serena__onboarding` une fois. Génère `.serena/memories/` :
-- Architecture overview
-- Conventions
-- Points d'entrée
-- Stack technique
-
-**Coût upfront** : ~5k tokens.
-**Payback** : symbol lookup direct (LSP) > Read fichier entier. Économies par tour quand exploration code.
-
-### 3.2 Règle Serena obligatoire
-
-Ajouter dans `core.md` (déjà conditionné `paths:`) :
-
-```markdown
-## Exploration code TS
-
-Avant Read/Grep/Edit fichier `.ts` >100 lignes :
-1. `mcp__serena__find_symbol` localisation
-2. `mcp__serena__get_symbols_overview` vue fichier
-3. `mcp__serena__find_referencing_symbols` cross-refs
-```
+Serena désinstallé. Section conservée comme trace historique du plan initial.
 
 ---
 
@@ -222,7 +194,7 @@ Candidats désactivation selon phase projet :
 - `playwright` si pas test visuel
 - `babylon-mcp` si pas renderer Babylon
 
-Garder toujours : `serena`, `understand-anything`, `context7`, `github`.
+Garder toujours : `understand-anything`, `context7`, `github`.
 
 **Gain** : Selon serveurs virés, ~500-1000 tokens/tour.
 
@@ -242,7 +214,7 @@ Garder toujours : `serena`, `understand-anything`, `context7`, `github`.
 3. **Phase 1.2** (compresser CLAUDE.md) — 5 min, backup auto
 4. **Phase 1.4** (compresser MEMORY.md) — 10 min
 5. **Phase 1.3** (compresser RTK.md) — 2 min
-6. **Phase 3** (Serena onboarding) — interactif, à toi de lancer
+6. ~~**Phase 3** (Serena onboarding)~~ — abandonné (Serena désinstallé)
 7. **Phase 2.3** (audit skills) — toi
 8. **Phase 4** (audit MCP) — toi
 9. **Phase 2.2** (U-A SessionStart) — si vérification confirme inutile
@@ -290,11 +262,6 @@ Après **chaque phase**, lancer scénarios identiques et comparer :
 3. Compter tokens injectés par SessionStart hook
 4. Si je lance auto-update → mesurer coût agents
 
-#### Scénario D — Serena vs Read
-1. Tour 1 : "Trouve toutes les références à `BattleEngine`" via Read/Grep
-2. Tour 2 (session fraîche) : même question, forcer Serena `find_referencing_symbols`
-3. Comparer tokens consommés
-
 ### 5.3 Régression fonctionnelle
 
 Vérifier que les changements ne cassent pas les workflows :
@@ -303,7 +270,6 @@ Vérifier que les changements ne cassent pas les workflows :
 - [ ] `/review-local` fonctionne
 - [ ] Caveman reste actif après plusieurs tours
 - [ ] Rules conditionnelles se chargent au bon moment (test Scénario A/B)
-- [ ] Serena `find_symbol` retourne résultats (post-onboarding)
 - [ ] U-A graph requêtable via `/understand-chat`
 - [ ] RTK hook réécrit toujours commandes (`git status` → `rtk git status`)
 
@@ -318,7 +284,6 @@ Document `docs/plans/079-results.md` avec :
 | Tour cross-package | ? | ? | ? |
 | Coût hook U-A (stale) | ~150 | ? | ? |
 | Coût hook U-A (commit batch) | 1-10k | ? | ? |
-| Serena onboarding (one-shot) | N/A | ~5k | upfront |
 
 Si gain < 20% sur tour simple → analyser pourquoi, ajuster.
 

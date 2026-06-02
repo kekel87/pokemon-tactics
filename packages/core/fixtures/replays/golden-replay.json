@@ -4,7 +4,7 @@
     {
       "kind": "use_move",
       "pokemonId": "p2-raichu",
-      "moveId": "hyper-beam",
+      "moveId": "iron-tail",
       "targetPosition": {
         "x": 10,
         "y": 5
@@ -44,10 +44,10 @@
     {
       "kind": "use_move",
       "pokemonId": "p1-charizard",
-      "moveId": "hyper-beam",
+      "moveId": "earthquake",
       "targetPosition": {
         "x": 1,
-        "y": 4
+        "y": 5
       }
     },
     {
@@ -80,10 +80,10 @@
     {
       "kind": "use_move",
       "pokemonId": "p1-dragonite",
-      "moveId": "hyper-beam",
+      "moveId": "earthquake",
       "targetPosition": {
         "x": 1,
-        "y": 6
+        "y": 7
       }
     },
     {
@@ -116,10 +116,10 @@
     {
       "kind": "use_move",
       "pokemonId": "p2-venusaur",
-      "moveId": "hyper-beam",
+      "moveId": "earthquake",
       "targetPosition": {
         "x": 10,
-        "y": 4
+        "y": 5
       }
     },
     {
@@ -152,10 +152,10 @@
     {
       "kind": "use_move",
       "pokemonId": "p1-blastoise",
-      "moveId": "hyper-beam",
+      "moveId": "earthquake",
       "targetPosition": {
         "x": 1,
-        "y": 5
+        "y": 6
       }
     },
     {
@@ -180,7 +180,7 @@
     {
       "kind": "use_move",
       "pokemonId": "p2-snorlax",
-      "moveId": "self-destruct",
+      "moveId": "earthquake",
       "targetPosition": {
         "x": 10,
         "y": 7
@@ -210,6 +210,15 @@
       "direction": "west"
     },
     {
+      "kind": "use_move",
+      "pokemonId": "p2-raichu",
+      "moveId": "iron-tail",
+      "targetPosition": {
+        "x": 5,
+        "y": 5
+      }
+    },
+    {
       "kind": "move",
       "pokemonId": "p2-raichu",
       "path": [
@@ -229,6 +238,15 @@
       "direction": "south"
     },
     {
+      "kind": "use_move",
+      "pokemonId": "p1-charizard",
+      "moveId": "earthquake",
+      "targetPosition": {
+        "x": 4,
+        "y": 6
+      }
+    },
+    {
       "kind": "move",
       "pokemonId": "p1-charizard",
       "path": [
@@ -248,6 +266,15 @@
       "direction": "east"
     },
     {
+      "kind": "use_move",
+      "pokemonId": "p1-dragonite",
+      "moveId": "earthquake",
+      "targetPosition": {
+        "x": 5,
+        "y": 7
+      }
+    },
+    {
       "kind": "move",
       "pokemonId": "p1-dragonite",
       "path": [
@@ -261,6 +288,15 @@
       "kind": "end_turn",
       "pokemonId": "p1-dragonite",
       "direction": "east"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p2-venusaur",
+      "moveId": "earthquake",
+      "targetPosition": {
+        "x": 7,
+        "y": 6
+      }
     },
     {
       "kind": "move",
@@ -278,11 +314,24 @@
       "direction": "south"
     },
     {
+      "kind": "use_move",
+      "pokemonId": "p1-blastoise",
+      "moveId": "earthquake",
+      "targetPosition": {
+        "x": 3,
+        "y": 6
+      }
+    },
+    {
       "kind": "move",
       "pokemonId": "p1-blastoise",
       "path": [
         {
           "x": 4,
+          "y": 6
+        },
+        {
+          "x": 5,
           "y": 6
         }
       ]
@@ -290,12 +339,12 @@
     {
       "kind": "end_turn",
       "pokemonId": "p1-blastoise",
-      "direction": "north"
+      "direction": "east"
     },
     {
       "kind": "use_move",
       "pokemonId": "p2-snorlax",
-      "moveId": "self-destruct",
+      "moveId": "earthquake",
       "targetPosition": {
         "x": 7,
         "y": 7
@@ -303,299 +352,27 @@
     },
     {
       "kind": "move",
-      "pokemonId": "p2-raichu",
-      "path": [
-        {
-          "x": 5,
-          "y": 5
-        },
-        {
-          "x": 5,
-          "y": 6
-        },
-        {
-          "x": 5,
-          "y": 7
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-charizard",
-      "moveId": "hyper-beam",
-      "targetPosition": {
-        "x": 3,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-charizard",
-      "path": [
-        {
-          "x": 3,
-          "y": 6
-        },
-        {
-          "x": 4,
-          "y": 6
-        },
-        {
-          "x": 5,
-          "y": 6
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-charizard",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-dragonite",
-      "moveId": "hyper-beam",
-      "targetPosition": {
-        "x": 6,
-        "y": 6
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-dragonite",
+      "pokemonId": "p2-snorlax",
       "path": [
         {
           "x": 7,
-          "y": 7
+          "y": 8
         },
-        {
-          "x": 7,
-          "y": 6
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-dragonite",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-venusaur",
-      "moveId": "hyper-beam",
-      "targetPosition": {
-        "x": 6,
-        "y": 5
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-venusaur",
-      "path": [
         {
           "x": 6,
-          "y": 5
-        },
-        {
-          "x": 5,
-          "y": 5
+          "y": 8
         }
       ]
     },
     {
       "kind": "end_turn",
-      "pokemonId": "p2-venusaur",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-blastoise",
-      "moveId": "hyper-beam",
-      "targetPosition": {
-        "x": 4,
-        "y": 5
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-blastoise",
-      "path": [
-        {
-          "x": 4,
-          "y": 5
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-blastoise",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-raichu",
-      "moveId": "hyper-beam",
-      "targetPosition": {
-        "x": 5,
-        "y": 6
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-raichu",
-      "path": [
-        {
-          "x": 4,
-          "y": 7
-        },
-        {
-          "x": 4,
-          "y": 6
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "east"
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-charizard",
-      "path": [
-        {
-          "x": 5,
-          "y": 7
-        },
-        {
-          "x": 4,
-          "y": 7
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-charizard",
-      "direction": "north"
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-dragonite",
-      "path": [
-        {
-          "x": 6,
-          "y": 6
-        },
-        {
-          "x": 5,
-          "y": 6
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-dragonite",
-      "direction": "west"
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-blastoise",
-      "path": [
-        {
-          "x": 3,
-          "y": 5
-        },
-        {
-          "x": 3,
-          "y": 6
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-blastoise",
-      "direction": "east"
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-raichu",
-      "path": [
-        {
-          "x": 4,
-          "y": 5
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-charizard",
-      "moveId": "hyper-beam",
-      "targetPosition": {
-        "x": 4,
-        "y": 6
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-charizard",
-      "path": [
-        {
-          "x": 4,
-          "y": 6
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-charizard",
+      "pokemonId": "p2-snorlax",
       "direction": "north"
     },
     {
       "kind": "use_move",
-      "pokemonId": "p1-dragonite",
-      "moveId": "hyper-beam",
-      "targetPosition": {
-        "x": 5,
-        "y": 5
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-dragonite",
-      "path": [
-        {
-          "x": 5,
-          "y": 5
-        },
-        {
-          "x": 5,
-          "y": 4
-        },
-        {
-          "x": 4,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-dragonite",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-blastoise",
-      "moveId": "hyper-beam",
+      "pokemonId": "p1-charizard",
+      "moveId": "earthquake",
       "targetPosition": {
         "x": 3,
         "y": 5
@@ -603,124 +380,19 @@
     },
     {
       "kind": "move",
-      "pokemonId": "p1-blastoise",
+      "pokemonId": "p1-charizard",
       "path": [
         {
-          "x": 3,
+          "x": 4,
           "y": 5
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-blastoise",
-      "direction": "east"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-raichu",
-      "moveId": "hyper-beam",
-      "targetPosition": {
-        "x": 4,
-        "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-raichu",
-      "path": [
+        },
         {
           "x": 5,
           "y": 5
         },
         {
-          "x": 5,
-          "y": 6
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "west"
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-charizard",
-      "path": [
-        {
-          "x": 4,
-          "y": 7
-        },
-        {
-          "x": 5,
-          "y": 7
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-charizard",
-      "direction": "north"
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-blastoise",
-      "path": [
-        {
-          "x": 3,
-          "y": 6
-        },
-        {
-          "x": 4,
-          "y": 6
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-blastoise",
-      "direction": "east"
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-raichu",
-      "path": [
-        {
           "x": 6,
-          "y": 6
-        },
-        {
-          "x": 6,
-          "y": 7
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "west"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-charizard",
-      "moveId": "hyper-beam",
-      "targetPosition": {
-        "x": 5,
-        "y": 6
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-charizard",
-      "path": [
-        {
-          "x": 5,
-          "y": 6
-        },
-        {
-          "x": 6,
-          "y": 6
+          "y": 5
         }
       ]
     },
@@ -731,36 +403,36 @@
     },
     {
       "kind": "use_move",
-      "pokemonId": "p1-blastoise",
-      "moveId": "hyper-beam",
+      "pokemonId": "p1-dragonite",
+      "moveId": "earthquake",
       "targetPosition": {
-        "x": 4,
-        "y": 5
+        "x": 6,
+        "y": 7
       }
     },
     {
       "kind": "move",
-      "pokemonId": "p1-blastoise",
+      "pokemonId": "p1-dragonite",
       "path": [
         {
-          "x": 4,
+          "x": 7,
           "y": 7
         },
         {
-          "x": 5,
-          "y": 7
+          "x": 7,
+          "y": 6
         }
       ]
     },
     {
       "kind": "end_turn",
-      "pokemonId": "p1-blastoise",
-      "direction": "east"
+      "pokemonId": "p1-dragonite",
+      "direction": "west"
     },
     {
       "kind": "use_move",
-      "pokemonId": "p2-raichu",
-      "moveId": "hyper-beam",
+      "pokemonId": "p2-venusaur",
+      "moveId": "earthquake",
       "targetPosition": {
         "x": 6,
         "y": 6
@@ -768,22 +440,31 @@
     },
     {
       "kind": "move",
-      "pokemonId": "p2-raichu",
+      "pokemonId": "p2-venusaur",
       "path": [
         {
-          "x": 7,
-          "y": 7
+          "x": 5,
+          "y": 6
         },
         {
-          "x": 7,
-          "y": 6
+          "x": 5,
+          "y": 5
         }
       ]
     },
     {
       "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "west"
+      "pokemonId": "p2-venusaur",
+      "direction": "east"
+    },
+    {
+      "kind": "use_move",
+      "pokemonId": "p1-charizard",
+      "moveId": "earthquake",
+      "targetPosition": {
+        "x": 6,
+        "y": 5
+      }
     },
     {
       "kind": "move",
@@ -791,11 +472,11 @@
       "path": [
         {
           "x": 6,
-          "y": 5
+          "y": 4
         },
         {
-          "x": 7,
-          "y": 5
+          "x": 5,
+          "y": 4
         }
       ]
     },
@@ -805,276 +486,68 @@
       "direction": "south"
     },
     {
-      "kind": "move",
-      "pokemonId": "p1-blastoise",
-      "path": [
-        {
-          "x": 5,
-          "y": 6
-        },
-        {
-          "x": 6,
-          "y": 6
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-blastoise",
-      "direction": "east"
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-raichu",
-      "path": [
-        {
-          "x": 8,
-          "y": 6
-        },
-        {
-          "x": 8,
-          "y": 5
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "west"
-    },
-    {
       "kind": "use_move",
-      "pokemonId": "p1-charizard",
-      "moveId": "hyper-beam",
+      "pokemonId": "p1-dragonite",
+      "moveId": "earthquake",
       "targetPosition": {
         "x": 7,
-        "y": 4
+        "y": 6
       }
     },
     {
       "kind": "move",
-      "pokemonId": "p1-charizard",
+      "pokemonId": "p1-dragonite",
       "path": [
         {
           "x": 7,
-          "y": 4
+          "y": 5
         },
         {
-          "x": 8,
-          "y": 4
+          "x": 6,
+          "y": 5
         }
       ]
     },
     {
       "kind": "end_turn",
-      "pokemonId": "p1-charizard",
-      "direction": "south"
+      "pokemonId": "p1-dragonite",
+      "direction": "west"
     },
     {
       "kind": "use_move",
-      "pokemonId": "p1-blastoise",
-      "moveId": "hyper-beam",
+      "pokemonId": "p2-venusaur",
+      "moveId": "earthquake",
       "targetPosition": {
-        "x": 6,
+        "x": 5,
         "y": 5
       }
     },
     {
       "kind": "move",
-      "pokemonId": "p1-blastoise",
+      "pokemonId": "p2-venusaur",
       "path": [
         {
-          "x": 6,
+          "x": 4,
           "y": 5
         },
         {
-          "x": 7,
-          "y": 5
+          "x": 4,
+          "y": 4
         }
       ]
     },
     {
       "kind": "end_turn",
-      "pokemonId": "p1-blastoise",
+      "pokemonId": "p2-venusaur",
       "direction": "east"
     },
     {
       "kind": "use_move",
-      "pokemonId": "p2-raichu",
-      "moveId": "hyper-beam",
+      "pokemonId": "p1-charizard",
+      "moveId": "earthquake",
       "targetPosition": {
-        "x": 8,
+        "x": 5,
         "y": 4
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-raichu",
-      "path": [
-        {
-          "x": 8,
-          "y": 4
-        },
-        {
-          "x": 7,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "south"
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-blastoise",
-      "path": [
-        {
-          "x": 6,
-          "y": 5
-        },
-        {
-          "x": 6,
-          "y": 4
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-blastoise",
-      "direction": "east"
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-raichu",
-      "path": [
-        {
-          "x": 7,
-          "y": 3
-        },
-        {
-          "x": 6,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-blastoise",
-      "moveId": "skull-bash",
-      "targetPosition": {
-        "x": 6,
-        "y": 4
-      }
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-blastoise",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-raichu",
-      "moveId": "skull-bash",
-      "targetPosition": {
-        "x": 6,
-        "y": 3
-      }
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-blastoise",
-      "moveId": "skull-bash",
-      "targetPosition": {
-        "x": 6,
-        "y": 3
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p1-blastoise",
-      "path": [
-        {
-          "x": 6,
-          "y": 3
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-blastoise",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-raichu",
-      "moveId": "skull-bash",
-      "targetPosition": {
-        "x": 6,
-        "y": 1
-      }
-    },
-    {
-      "kind": "move",
-      "pokemonId": "p2-raichu",
-      "path": [
-        {
-          "x": 6,
-          "y": 2
-        }
-      ]
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-blastoise",
-      "moveId": "skull-bash",
-      "targetPosition": {
-        "x": 6,
-        "y": 3
-      }
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p1-blastoise",
-      "direction": "north"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p2-raichu",
-      "moveId": "skull-bash",
-      "targetPosition": {
-        "x": 6,
-        "y": 2
-      }
-    },
-    {
-      "kind": "end_turn",
-      "pokemonId": "p2-raichu",
-      "direction": "south"
-    },
-    {
-      "kind": "use_move",
-      "pokemonId": "p1-blastoise",
-      "moveId": "skull-bash",
-      "targetPosition": {
-        "x": 6,
-        "y": 2
       }
     }
   ]
