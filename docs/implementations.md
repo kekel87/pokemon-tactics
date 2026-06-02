@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 260 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104). |
+| Attaques | 296 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105). |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (236 implémentées)
+## Attaques (296 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -470,6 +470,42 @@
 | Étonnement | astonish | Spectre | Phys | 30 | 100 | 15 | single r1 | Flinch 30% |
 | Frotte-Frimousse | nuzzle | Électrique | Phys | 20 | 100 | 20 | single r1 | Para 100% |
 | Queue-Poison | poison-tail | Poison | Phys | 50 | 100 | 25 | single r1 | Poison 10%, critique élevé |
+| Bélier | take-down | Normal | Phys | 90 | 85 | 20 | dash r3 | Recoil 1/4 |
+| Éclair Fou | wild-charge | Électrique | Phys | 90 | 100 | 15 | dash r3 | Recoil 1/4 |
+| Rapace | brave-bird | Vol | Phys | 120 | 100 | 15 | dash r3 | Recoil 1/3 |
+| Aquatacle | wave-crash | Eau | Phys | 120 | 100 | 10 | dash r3 | Recoil 1/3 |
+| Martobois | wood-hammer | Plante | Phys | 120 | 100 | 15 | single r1 | Recoil 1/3 |
+| Vampi-Poing | drain-punch | Combat | Phys | 75 | 100 | 10 | single r1 | Drain 0.5 |
+| Vole-Vie | absorb | Plante | Spé | 20 | 100 | 25 | single r1–2 | Drain 0.5 |
+| Vampibaiser | draining-kiss | Fée | Spé | 50 | 100 | 10 | single r1 | Drain 0.75 |
+| Lame de Roc | stone-edge | Roche | Phys | 100 | 80 | 5 | single r1–2 | Critique élevé (`critRatio: 1`) |
+| Tunnelier | drill-run | Sol | Phys | 80 | 95 | 10 | ligne r2 | Critique élevé (`critRatio: 1`) |
+| Griffe Ombre | shadow-claw | Spectre | Phys | 70 | 100 | 15 | single r1 | Critique élevé (`critRatio: 1`) |
+| Tranch'Air | air-cutter | Vol | Spé | 60 | 95 | 25 | slash | Critique élevé (`critRatio: 1`) |
+| Coupe Psycho | psycho-cut | Psy | Phys | 70 | 100 | 20 | slash | Critique élevé (`critRatio: 1`) |
+| Tranche-Nuit | night-slash | Ténèbres | Phys | 70 | 100 | 15 | slash | Critique élevé (`critRatio: 1`) |
+| Piétisol | bulldoze | Sol | Phys | 60 | 100 | 20 | zone r1 | −1 Vit cibles 100%, friendly fire |
+| Tomberoche | rock-tomb | Roche | Phys | 60 | 95 | 15 | single r1–3 | −1 Vit cible 100% |
+| Balayette | low-sweep | Combat | Phys | 65 | 100 | 20 | single r1 | −1 Vit cible 100% |
+| Bond | pounce | Insecte | Phys | 50 | 100 | 20 | single r1 | −1 Vit cible 100% |
+| Tir de Boue | mud-shot | Sol | Spé | 55 | 95 | 15 | single r1–3 | −1 Vit cible 100% |
+| Toile Élek | electroweb | Électrique | Spé | 55 | 95 | 15 | zone r2 | −1 Vit cibles 100%, friendly fire |
+| Furie-Bond | lunge | Insecte | Phys | 80 | 100 | 15 | single r1 | −1 Atk cible 100% |
+| Abattage | breaking-swipe | Dragon | Phys | 60 | 100 | 15 | slash | −1 Atk cibles 100% |
+| Douche Froide | chilling-water | Eau | Spé | 50 | 100 | 20 | single r1–3 | −1 Atk cible 100% |
+| Câlinerie | play-rough | Fée | Phys | 90 | 90 | 10 | single r1 | −1 Atk cible 10% |
+| Aqua-Brèche | liquidation | Eau | Phys | 85 | 100 | 10 | single r1 | −1 Déf cible 20% |
+| Coqui-Lame | razor-shell | Eau | Phys | 75 | 95 | 10 | slash | −1 Déf cible 50% |
+| Éclate Griffe | crush-claw | Normal | Phys | 75 | 95 | 10 | single r1 | −1 Déf cible 50% |
+| Telluriforce | earth-power | Sol | Spé | 90 | 100 | 10 | single r1–3 | −1 DéfSpé cible 10% |
+| Bourdon | bug-buzz | Insecte | Spé | 90 | 100 | 10 | single r1–3 | −1 DéfSpé cible 10% |
+| Bombe Acide | acid-spray | Poison | Spé | 40 | 100 | 20 | single r1–3 | −2 DéfSpé cible 100% |
+| Ravage Rampant | skitter-smack | Insecte | Phys | 70 | 100 | 10 | single r1 | −1 AtqSpé cible 100% |
+| Aboiement | snarl | Ténèbres | Spé | 55 | 95 | 15 | cône r1–3 | −1 AtqSpé cibles 100% |
+| Feu Ensorcelé | mystical-fire | Feu | Spé | 75 | 100 | 10 | single r1–3 | −1 AtqSpé cible 100% |
+| Survinsecte | struggle-bug | Insecte | Spé | 50 | 100 | 20 | cône r1–2 | −1 AtqSpé cibles 100% |
+| Coud'Boue | mud-slap | Sol | Spé | 20 | 100 | 10 | single r1–2 | −1 Préc cible 100% |
+| Ocroupi | muddy-water | Eau | Spé | 90 | 85 | 10 | zone r2 | −1 Préc cibles 30%, friendly fire |
 
 ---
 

@@ -1862,4 +1862,355 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
       { kind: EffectKind.Status, status: StatusType.Poisoned, chance: 10 },
     ],
   },
+
+  // --- Content Batch G4 moves (dégâts + stat-drop / high-crit / recoil / drain, plan 105) ---
+  // Stat-drop secondaire = modèle crunch (dégâts-first). Recoil/Drain = modèle double-edge/giga-drain.
+  // High-crit : critRatio fourni par la reference → juste Damage (parité poison-tail/cross-poison G3).
+  // Flags (sound/slicing/contact) fournis par la reference — non redéclarés.
+  // Recoil rammers en Dash 3 (cohérence volt-tackle/flare-blitz). Martobois reste Single (coup de masse).
+  "take-down": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 1 / 4 }],
+  },
+  "wild-charge": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 1 / 4 }],
+  },
+  "brave-bird": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 1 / 3 }],
+  },
+  "wave-crash": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 1 / 3 }],
+  },
+  "wood-hammer": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 1 / 3 }],
+  },
+  // Drain (3).
+  "drain-punch": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Drain, fraction: 0.5 }],
+  },
+  absorb: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Drain, fraction: 0.5 }],
+  },
+  "draining-kiss": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Drain, fraction: 0.75 }],
+  },
+  // High-crit (6) : critRatio depuis la reference, pas d'override de crit.
+  "stone-edge": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "drill-run": {
+    targeting: { kind: TargetingKind.Line, length: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "shadow-claw": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "air-cutter": {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "psycho-cut": {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "night-slash": {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  // Stat-drop secondaire (22).
+  bulldoze: {
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Speed,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  "rock-tomb": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Speed,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  "low-sweep": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Speed,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  pounce: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Speed,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  "mud-shot": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Speed,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  electroweb: {
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Speed,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  lunge: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  "breaking-swipe": {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  "chilling-water": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  "play-rough": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 10,
+      },
+    ],
+  },
+  liquidation: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 20,
+      },
+    ],
+  },
+  "razor-shell": {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 50,
+      },
+    ],
+  },
+  "crush-claw": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 50,
+      },
+    ],
+  },
+  "earth-power": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 10,
+      },
+    ],
+  },
+  "bug-buzz": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 10,
+      },
+    ],
+  },
+  "acid-spray": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: -2,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  "skitter-smack": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  snarl: {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  "mystical-fire": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  "struggle-bug": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  "mud-slap": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Accuracy,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 100,
+      },
+    ],
+  },
+  "muddy-water": {
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Accuracy,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 30,
+      },
+    ],
+  },
 };

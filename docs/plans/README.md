@@ -116,3 +116,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 102 | [Content Batch G1 (40 moves dmg physique)](./102-content-batch-g1.md) | done | 2026-05-31 |
 | 103 | [Content Batch G2 (23 moves dmg spécial + multi-hit)](./103-content-batch-g2.md) | done | 2026-06-01 |
 | 104 | [Content Batch G3 (24 moves dégâts + secondaire statut/flinch/confusion)](./104-content-batch-g3.md) | done | 2026-06-02 |
+| 105 | [Content Batch G4 (36 moves dégâts + stat-drop / high-crit / recoil / drain)](./105-content-batch-g4.md) | done | 2026-06-02 |

@@ -1,6 +1,6 @@
 # État du projet — Pokemon Tactics
 
-> MAJ : 2026-06-02 (Phase 4 — Plan 104 DONE — Content Batch G3 / 260 moves)
+> MAJ : 2026-06-02 (Phase 4 — Plan 105 DONE — Content Batch G4 / 296 moves)
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
@@ -21,6 +21,7 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 ## Phase actuelle : Phase 4 — Gameplay Pokemon complet
 
 ### Fait en Phase 4
+- **Content Batch G4 (2026-06-02) — plan 105 DONE** : 36 moves dégâts (stat-drop secondaire / high-crit / recoil / drain) livrés (entrées `tactical.ts` + 36 noms EN dans `i18n/moves.en.json`). Total **296 moves** (260 → 296). Aucune mécanique nouvelle (tous patterns déjà supportés). Count moves `BattleEngine.integration.test.ts` corrigé (260 → 296).
 - **Content Batch G3 (2026-06-02) — plan 104 DONE** : 24 moves dégâts + secondaire statut/flinch/confusion livrés (entrées `tactical.ts` + noms FR/EN). Total **260 moves** (236 → 260). Aucune mécanique nouvelle (statuts secondaires + Knockback déjà supportés). 3 moves sortis vers plans dédiés : Lyophilisation (super-efficace vs Eau, override type-chart), Ronflement (gate sommeil), Talon-Marteau (crash on miss). Enforcement noms FR durci : hook `.claude/hooks/french-names-reminder.sh` (UserPromptSubmit), règle dure dans CLAUDE.md + `.claude/rules/data.md` + agents.
 - **Content Batch G2 (2026-06-01) — plan 103 DONE** : 23 moves dégâts spécial + multi-hit Gen 1 livrés (entrées `tactical.ts` + 23 noms EN dans `i18n/moves.en.json`, FR déjà présents). Total **236 moves** (213 → 236). Aucune mécanique nouvelle (multi-hit `hits` déjà supporté). Test count corrigé `BattleEngine.integration.test.ts` (213 → 236). 5 moves sortis du batch (psyshock/psystrike → batch « dégâts spé sur Déf physique » ; alluring-voice/burning-jealousy → batch « secondaire conditionnel si cible boostée » ; triple-axel → batch « escalade multi-hit »).
 - **Content Batch G1 (2026-05-31) — plan 102 DONE** : 40 moves dégâts physiques Gen 1 livrés (entrées `tacticalOverrides` + noms EN). Total **213 moves** (173 → 213). Shapes validés case-par-case avec le directeur créatif via `move-pattern-designer`. Riders complexes différés : throat-chop (sound-lock), lash-out/temper-flare/fury-cutter (power conditionnel), ice-spinner/steel-roller (terrain), supercell-slam (crash on miss), fell-stinger (KO-boost Atk), psychic-fangs/raging-bull (screen-break), poltergeist (item-check). Bug préexistant ajouté au backlog : `tacticalOverrides.flags` écrase les flags reference (aerial-ace). Aucune mécanique nouvelle, aucun test additionnel.

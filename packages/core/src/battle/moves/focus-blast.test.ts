@@ -4,6 +4,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
 import { StatName } from "../../enums/stat-name";
 import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { createPrng } from "../../utils/prng";
 
 describe("focus-blast", () => {
   it("deals damage to single target in range 1-4 (when hits)", () => {
@@ -75,7 +76,7 @@ describe("focus-blast", () => {
       maxHp: 9999,
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine } = buildMoveTestEngine([attacker, defender]);
+    const { engine } = buildMoveTestEngine([attacker, defender], { random: createPrng(1) });
 
     let secondaryProcs = 0;
     for (let attempt = 0; attempt < 50; attempt++) {
