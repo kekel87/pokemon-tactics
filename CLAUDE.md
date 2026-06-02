@@ -58,6 +58,7 @@ U-A graph (`.understand-anything/knowledge-graph.json`, 1008 nodes, auto-update 
 
 - **Commits** : conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`) — **titre seul, jamais corps**. Détails → STATUS.md ou plan
 - **Langue** : code anglais, doc français
+- **🔴 Noms FR officiels — RÈGLE DURE** : toute communication à l'humain (texte, tableaux, menus `AskUserQuestion`, listes) utilise les **noms FR officiels** des moves/talents/Pokemon (ex: `Lame de Roche`, `Provoc`, `Florizarre`). **JAMAIS l'ID anglais seul.** ID EN entre parenthèses uniquement si précision technique requise. L'humain ne connaît PAS les noms EN. Source : `packages/data/reference/moves.json` (`names.fr`) ou `packages/data/src/i18n/*.fr.json`. Récidive = grosse friction (rappelé >10×)
 - **Linter** : Biome
 - **Plans** : `docs/plans/xxx-name.md` numérotés, statut en en-tête
 - **Nommage** : pas d'abréviations (`traversalContext` pas `ctx`)
@@ -80,6 +81,7 @@ TypeScript strict ESM · Phaser 4 · Vitest · Playwright (`visual-tester`) · c
 - **Infra** : install global, modif nvm/npm config interdit. Bloqué par hook
 - **Structurel** : consulter humain AVANT modifier tsconfig, module resolution, structure, dépendances. Bug fix simple OK
 - **Mémoire vs doc** : recherches/décisions/contexte → doc projet (git), pas mémoire Claude. Mémoire = préférences perso humain seulement
+- **Noms EN seuls** : présenter un move/talent/Pokemon par son ID anglais seul à l'humain est INTERDIT. Voir règle dure Conventions. Hook `french-names-reminder.sh` réinjecte la règle chaque tour
 
 ## Agents
 

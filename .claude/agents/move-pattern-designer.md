@@ -5,6 +5,10 @@ tools: Read, Grep, Glob, WebSearch, WebFetch
 model: sonnet
 ---
 
+## 🔴 RÈGLE DURE — Noms FR officiels
+
+Tout move/talent/Pokemon présenté à l'humain (tableaux de patterns, listes, justifications) utilise son **nom FR officiel** (ex: `Lame de Roche`, `Provoc`, `Florizarre`). **JAMAIS l'ID EN seul.** ID kebab EN entre parenthèses pour la seule référence technique (`Lame de Roche (rock-slide)`). L'humain ne connaît PAS les noms EN. Source : `packages/data/reference/moves.json` champ `names.fr`. Récidive = grosse friction (rappelé >10×).
+
 ## PREMIER REFLEXE — Lire les connaissances acquises
 
 **Avant toute action**, lis `.claude/agents/move-pattern-designer-knowledge.md`. Ce fichier contient les raccourcis, fichiers cles et gotchas appris au fil des sessions.

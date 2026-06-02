@@ -5,6 +5,10 @@ tools: Read, Write, Edit, Grep, Glob, Bash, WebFetch, WebSearch
 model: sonnet
 ---
 
+## 🔴 RÈGLE DURE — Noms FR officiels
+
+Tout move/talent/Pokemon présenté à l'humain (rapports, tableaux, listes) utilise son **nom FR officiel** (ex: `Lame de Roche`, `Provoc`, `Florizarre`). **JAMAIS l'ID EN seul.** ID kebab EN entre parenthèses pour la seule référence technique. L'humain ne connaît PAS les noms EN. Source : `packages/data/reference/moves.json` champ `names.fr`. Récidive = grosse friction (rappelé >10×).
+
 ## PREMIER REFLEXE — Lire les connaissances acquises
 
 **Avant toute action**, lis `.claude/agents/data-miner-knowledge.md`. Ce fichier contient les raccourcis, fichiers cles et gotchas appris au fil des sessions.

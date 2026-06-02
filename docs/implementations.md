@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 236 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103). |
+| Attaques | 260 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104). |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -446,6 +446,30 @@
 | Ruée d'Os | bone-rush | Sol | Phys | 25 | 90 | 10 | single r1–2 | 2–5 coups |
 | Stalacte Gel | icicle-crash | Glace | Phys | 85 | 90 | 10 | single r1–3 | Flinch 30% |
 | Gifle Fion | tail-slap | Normal | Phys | 25 | 85 | 10 | single r1 | 2–5 coups |
+| Vibraqua | water-pulse | Eau | Spé | 60 | 100 | 20 | single r1–3 | Confusion 20% |
+| Canicule | heat-wave | Feu | Spé | 95 | 90 | 10 | cône r1–3 | Brûlure 10% |
+| Sable Ardent | scorching-sands | Sol | Spé | 70 | 100 | 10 | single r1–3 | Brûlure 30% |
+| Vibrobscur | dark-pulse | Ténèbres | Spé | 80 | 100 | 15 | ligne r1–4 | Flinch 20% |
+| Vent Violent | hurricane | Vol | Spé | 110 | 70 | 10 | single r1–4 | Confusion 30% |
+| Ébullition | scald | Eau | Spé | 80 | 100 | 15 | single r1–3 | Brûlure 30% |
+| Éclair | thunder-shock | Électrique | Spé | 40 | 100 | 30 | single r1–3 | Para 10% |
+| Élecanon | zap-cannon | Électrique | Spé | 120 | 50 | 5 | single r1–4 | Para 100% |
+| Feu d'Enfer | inferno | Feu | Spé | 100 | 50 | 5 | single r1–3 | Brûlure 100% |
+| Poudreuse | powder-snow | Glace | Spé | 40 | 100 | 25 | cône r1–2 | Gel 10% |
+| Détritus | sludge | Poison | Spé | 65 | 100 | 20 | single r1–3 | Poison 30% |
+| Purédpois | gunk-shot | Poison | Phys | 120 | 80 | 5 | blast r1–3/r1 | Poison 30% |
+| Extrasenseur | extrasensory | Psy | Spé | 80 | 100 | 20 | single r1–4 | Flinch 10% |
+| Ouragan | twister | Dragon | Spé | 40 | 100 | 20 | zone r1 | Flinch 20%, friendly fire |
+| Psykoud'Boul | zen-headbutt | Psy | Phys | 80 | 90 | 15 | single r1 | Flinch 20% |
+| Direct Toxik | poison-jab | Poison | Phys | 80 | 100 | 20 | single r1 | Poison 30% |
+| Tête de Fer | iron-head | Acier | Phys | 80 | 100 | 15 | single r1 | Flinch 30% |
+| Détricanon | dragon-rush | Dragon | Phys | 100 | 75 | 10 | single r1 | Flinch 20% |
+| Poison Croix | cross-poison | Poison | Phys | 70 | 100 | 20 | slash | Poison 10%, critique élevé |
+| Draco-Charge | dragon-charge | Dragon | Phys | 80 | 100 | 20 | dash r3 | Knockback 1 |
+| Étincelle | spark | Électrique | Phys | 65 | 100 | 20 | single r1 | Para 30% |
+| Étonnement | astonish | Spectre | Phys | 30 | 100 | 15 | single r1 | Flinch 30% |
+| Frotte-Frimousse | nuzzle | Électrique | Phys | 20 | 100 | 20 | single r1 | Para 100% |
+| Queue-Poison | poison-tail | Poison | Phys | 50 | 100 | 25 | single r1 | Poison 10%, critique élevé |
 
 ---
 

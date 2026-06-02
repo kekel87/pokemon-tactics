@@ -1685,4 +1685,181 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.Damage, hits: { min: 2, max: 5 } }],
   },
+
+  // --- Content Batch G3 moves (dégâts + secondaire statut/flinch/confusion, plan 104) ---
+  // Secondaire = modèle body-slam (dégâts-first, pas d'effectTier).
+  // Flags sound/wind/pulse/bullet/slicing/distance/contact + critRatio fournis par
+  // la reference (ne pas les redéclarer : un override flags écrase la reference).
+  // Spéciaux (14).
+  "water-pulse": {
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Confused, chance: 20 },
+    ],
+  },
+  "heat-wave": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Burned, chance: 10 },
+    ],
+  },
+  "scorching-sands": {
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Burned, chance: 30 },
+    ],
+  },
+  "dark-pulse": {
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 20 },
+    ],
+  },
+  hurricane: {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Confused, chance: 30 },
+    ],
+  },
+  scald: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Burned, chance: 30 },
+    ],
+  },
+  "thunder-shock": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 10 },
+    ],
+  },
+  "zap-cannon": {
+    targeting: { kind: TargetingKind.Line, length: 4 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 100 },
+    ],
+  },
+  inferno: {
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Burned, chance: 100 },
+    ],
+  },
+  "powder-snow": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Frozen, chance: 10 },
+    ],
+  },
+  sludge: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Poisoned, chance: 30 },
+    ],
+  },
+  smog: {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Poisoned, chance: 40 },
+    ],
+  },
+  extrasensory: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 10 },
+    ],
+  },
+  twister: {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 20 },
+    ],
+  },
+
+  // Physiques (10).
+  "zen-headbutt": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 20 },
+    ],
+  },
+  "poison-jab": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Poisoned, chance: 30 },
+    ],
+  },
+  "iron-head": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 20 },
+    ],
+  },
+  "gunk-shot": {
+    targeting: { kind: TargetingKind.Blast, range: { min: 2, max: 4 }, radius: 1 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Poisoned, chance: 30 },
+    ],
+  },
+  "cross-poison": {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Poisoned, chance: 10 },
+    ],
+  },
+  "dragon-rush": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Knockback, distance: 1 },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 20 },
+    ],
+  },
+  spark: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 30 },
+    ],
+  },
+  astonish: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 30 },
+    ],
+  },
+  nuzzle: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Paralyzed, chance: 100 },
+    ],
+  },
+  "poison-tail": {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Poisoned, chance: 10 },
+    ],
+  },
 };
