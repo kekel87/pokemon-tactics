@@ -21,6 +21,7 @@ export {
 } from "./battle/aura-system";
 export { BattleEngine } from "./battle/BattleEngine";
 export { CT_THRESHOLD, CT_WAIT, computeMoveCost } from "./battle/ct-costs";
+export { getEffectivePowerFloor, resolveDynamicPower } from "./battle/dynamic-power-system";
 export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
 export { EffectHandlerRegistry } from "./battle/effect-handler-registry";
 export { createDefaultEffectRegistry } from "./battle/effect-processor";

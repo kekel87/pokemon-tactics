@@ -17,6 +17,7 @@ import {
 } from "../aura-system";
 import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calculator";
 import { checkDefense } from "../defense-check";
+import { resolveDynamicPower } from "../dynamic-power-system";
 import type { EffectContext } from "../effect-handler-registry";
 import { applySubstituteAbsorption, shouldSubstituteBlock } from "../substitute-system";
 import {
@@ -79,7 +80,11 @@ function dealSingleHit(
     const handler = context.abilityRegistry?.getForPokemon(pokemon);
     return handler?.suppressesWeatherEffects === true;
   });
-  const resolvedMove = resolveWeatherBallMove(context.move, activeWeather);
+  const resolvedMove = resolveDynamicPower(
+    resolveWeatherBallMove(context.move, activeWeather),
+    context.attacker,
+    target,
+  );
   let weatherBp = getWeatherBpModifier(resolvedMove.type, activeWeather);
   if (
     resolvedMove.id === "solar-beam" &&

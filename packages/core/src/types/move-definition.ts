@@ -2,6 +2,7 @@ import type { Category } from "../enums/category";
 import type { EffectTier } from "../enums/effect-tier";
 import type { PokemonType } from "../enums/pokemon-type";
 import type { Weather } from "../enums/weather";
+import type { DynamicPowerSpec } from "./dynamic-power-spec";
 import type { Effect } from "./effect";
 import type { MoveFlags } from "./move-flags";
 import type { SemiInvulnerableState } from "./semi-invulnerable-state";
@@ -31,4 +32,8 @@ export interface MoveDefinition {
   semiInvulnerableState?: SemiInvulnerableState;
   chargeEffects?: Effect[];
   targetsAlly?: boolean;
+  /** Recompute base power at hit time from battle state (facade, hex, electro-ball, ...). */
+  dynamicPower?: DynamicPowerSpec;
+  /** Skip the burn physical-attack halving (facade). */
+  ignoresBurnAttackDrop?: boolean;
 }

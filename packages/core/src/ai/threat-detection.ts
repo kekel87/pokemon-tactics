@@ -1,3 +1,4 @@
+import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
 import { Category } from "../enums/category";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
@@ -107,7 +108,9 @@ export function lastMoveIsThreat(
     return false;
   }
   const move = moveRegistry.get(moveId);
-  return move !== undefined && move.category !== Category.Status && move.power > 0;
+  return (
+    move !== undefined && move.category !== Category.Status && getEffectivePowerFloor(move) > 0
+  );
 }
 
 /**

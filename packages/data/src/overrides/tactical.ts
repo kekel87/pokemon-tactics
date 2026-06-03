@@ -1,4 +1,5 @@
 import type {
+  DynamicPowerSpec,
   Effect,
   MoveFlags,
   SemiInvulnerableState as SemiInvulnerableStateType,
@@ -8,6 +9,7 @@ import type {
 import {
   AuraKind,
   DefensiveKind,
+  DynamicPowerKind,
   EffectKind,
   EffectTarget,
   EffectTier,
@@ -34,9 +36,73 @@ export interface TacticalOverride {
   chargeEffects?: Effect[];
   critRatio?: number;
   targetsAlly?: boolean;
+  dynamicPower?: DynamicPowerSpec;
+  ignoresBurnAttackDrop?: boolean;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
+  // Power conditionnel — plan 109 (moteur dynamicPower)
+  facade: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.SelfStatusDouble },
+    ignoresBurnAttackDrop: true,
+  },
+  hex: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.TargetStatusDouble },
+  },
+  venoshock: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.TargetPoisonedDouble },
+  },
+  acrobatics: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.NoHeldItemDouble },
+  },
+  "stored-power": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.StoredPower },
+  },
+  "electro-ball": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.SpeedRatio },
+  },
+  "gyro-ball": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.SpeedRatioInverse },
+  },
+  flail: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.LowHpSelf },
+  },
+  reversal: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.LowHpSelf },
+  },
+  brine: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.TargetHpHalfDouble },
+  },
+  "hard-press": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.TargetHpScaled },
+  },
+  "water-spout": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.SelfHpScaled },
+  },
   "u-turn": {
     targeting: {
       kind: TargetingKind.HitAndRun,

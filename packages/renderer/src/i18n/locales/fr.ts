@@ -275,6 +275,7 @@ const fr: Translations = {
   "infoPanel.volatile.encored": "Encore {turns}t",
   "moveTooltip.tag.sound": "Sonore (ignore Clone)",
   "moveTooltip.tag.bypasssub": "Ignore Clone",
+  "moveTooltip.tag.dynamicPower": "⚡ Puissance variable",
   "moveTooltip.tag.tauntBlocked": "Bloqué par Provoc",
   "moveTooltip.tag.disableBlocked": "Bloqué par Entrave",
   "moveTooltip.tag.encoreBlocked": "Bloqué par Encore",

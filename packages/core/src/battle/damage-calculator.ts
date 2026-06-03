@@ -6,6 +6,7 @@ import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
+import { resolveDynamicPower } from "./dynamic-power-system";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getEffectiveStat } from "./stat-modifier";
 
@@ -65,7 +66,7 @@ export function calculateDamageWithCrit(
   const isBurned = attacker.statusEffects.some((s) => s.type === StatusTypeEnum.Burned);
   const attackerAbility = abilityRegistry?.getForPokemon(attacker);
   const gutsIgnoresBurn = attackerAbility?.id === "guts";
-  if (isBurned && isPhysical && !gutsIgnoresBurn) {
+  if (isBurned && isPhysical && !gutsIgnoresBurn && !move.ignoresBurnAttackDrop) {
     effectiveAttack = Math.floor(effectiveAttack / 2);
   }
 
@@ -249,11 +250,12 @@ export function estimateDamage(
   abilityRegistry?: AbilityHandlerRegistry,
   itemRegistry?: HeldItemHandlerRegistry,
 ): DamageEstimate {
-  const effectiveness = getTypeEffectiveness(move.type, defenderTypes, typeChart);
+  const resolvedMove = resolveDynamicPower(move, attacker, defender);
+  const effectiveness = getTypeEffectiveness(resolvedMove.type, defenderTypes, typeChart);
   const min = calculateDamage(
     attacker,
     defender,
-    move,
+    resolvedMove,
     typeChart,
     attackerTypes,
     defenderTypes,
@@ -267,7 +269,7 @@ export function estimateDamage(
   const max = calculateDamage(
     attacker,
     defender,
-    move,
+    resolvedMove,
     typeChart,
     attackerTypes,
     defenderTypes,

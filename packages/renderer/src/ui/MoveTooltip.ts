@@ -75,8 +75,10 @@ export class MoveTooltip {
     const lineHeight = 16;
     const hasSubTag = move.flags?.sound === true || move.flags?.bypasssub === true;
     const showBlockedTag = blockedTagKey !== undefined;
+    const hasDynamicPowerTag = move.dynamicPower !== undefined;
     const baseLines = move.twoTurnCharge ? 4 : 3;
-    const textLines = baseLines + (hasSubTag ? 1 : 0) + (showBlockedTag ? 1 : 0);
+    const textLines =
+      baseLines + (hasSubTag ? 1 : 0) + (showBlockedTag ? 1 : 0) + (hasDynamicPowerTag ? 1 : 0);
     const totalHeight = padding + textLines * lineHeight + 4 + gridHeight + padding;
 
     const x = menuX - TOOLTIP_WIDTH - 8;
@@ -124,6 +126,11 @@ export class MoveTooltip {
         ? "move.tooltip.twoTurnChargeSunSkip"
         : "move.tooltip.twoTurnCharge";
       this.addText(contentX, contentY, t(chargeKey));
+      contentY += lineHeight;
+    }
+
+    if (hasDynamicPowerTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.dynamicPower"));
       contentY += lineHeight;
     }
 

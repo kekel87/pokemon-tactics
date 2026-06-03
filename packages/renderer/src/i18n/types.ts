@@ -276,6 +276,7 @@ export interface Translations {
   "infoPanel.volatile.encored": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
+  "moveTooltip.tag.dynamicPower": string;
   "moveTooltip.tag.tauntBlocked": string;
   "moveTooltip.tag.disableBlocked": string;
   "moveTooltip.tag.encoreBlocked": string;

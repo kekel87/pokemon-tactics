@@ -83,6 +83,8 @@ export function loadData(): GameData {
       ...(merged.chargeEffects ? { chargeEffects: merged.chargeEffects } : {}),
       ...(merged.critRatio === undefined ? {} : { critRatio: merged.critRatio }),
       ...(merged.targetsAlly ? { targetsAlly: true } : {}),
+      ...(merged.dynamicPower ? { dynamicPower: merged.dynamicPower } : {}),
+      ...(merged.ignoresBurnAttackDrop ? { ignoresBurnAttackDrop: true } : {}),
     };
     return moveDefinition;
   });

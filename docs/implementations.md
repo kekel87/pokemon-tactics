@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 330 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106), +11 simples G6 (plan 107). **Batches G1–G6 clos.** |
+| Attaques | 342 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106), +11 simples G6 (plan 107). **Batches G1–G6 clos.** +12 power conditionnel plan 109 (moteur dynamicPower). |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (330 implémentées)
+## Attaques (342 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -540,6 +540,18 @@
 | Lame Solaire | solar-blade | Plante | Phys | 125 | 100 | 10 | single r1 | Charge 2 tours (skip sous Soleil). Flags `contact`+`slicing`. |
 | Laser Météore | meteor-beam | Roche | Spé | 120 | 90 | 5 | ligne r5 | Charge 2 tours. T1 : `chargeEffects` +1 AtqSpé self. |
 | Trempette | splash | Normal | Statut | — | — | 40 | self | Aucun (no-op canonique) |
+| Façade | facade | Normal | Phys | 70 (140 si statut) | 100 | 20 | single r1–3 | `dynamicPower` ×2 si lanceur a un statut majeur. Ignore baisse Atk brûlure (`ignoresBurnAttackDrop`). |
+| Châtiment | hex | Spectre | Spé | 65 (130 si statut cible) | 100 | 10 | single r1–3 | `dynamicPower` ×2 si cible a un statut majeur ou volatile. |
+| Choc Venin | venoshock | Poison | Spé | 65 (130 si cible empoisonnée) | 100 | 10 | single r1–3 | `dynamicPower` ×2 si cible Poisoned ou BadlyPoisoned. |
+| Acrobatie | acrobatics | Vol | Phys | 55 (110 sans objet) | 100 | 15 | slash | `dynamicPower` ×2 si lanceur ne tient aucun objet. |
+| Force Ajoutée | stored-power | Psy | Spé | 20 (+20/stage positif) | 100 | 10 | single r1–3 | `dynamicPower` 20 + 20 par cran de stat positif du lanceur (max 860). |
+| Boule Élek | electro-ball | Électrique | Spé | var | 100 | 10 | single r1–4 | `dynamicPower` ratio vitesse : 40–150 selon spdSoi/spdCible. |
+| Gyroballe | gyro-ball | Acier | Phys | var | 100 | 5 | single r1 | `dynamicPower` `min(150, floor(25 × spdCible/spdSoi + 1))`. |
+| Gigotage | flail | Normal | Phys | var | 100 | 15 | single r1 | `dynamicPower` selon HP% lanceur (20–200 : 200 à ≤4%, 150 ≤9%, 100 ≤16%, 80 ≤32%, 40 ≤48%, 20 sinon). |
+| Contre | reversal | Combat | Phys | var | 100 | 15 | single r1 | `dynamicPower` identique à Gigotage selon HP% lanceur. |
+| Saumure | brine | Eau | Spé | 65 (130 si cible ≤50% HP) | 100 | 10 | single r1–3 | `dynamicPower` ×2 si HP cible ≤ 50% max. |
+| Pression Extrême | hard-press | Acier | Phys | var | 100 | 10 | single r1 | `dynamicPower` `floor(100 × HPcible / HPmax)` (min 1). |
+| Giclédo | water-spout | Eau | Spé | var | 100 | 5 | zone r2 | `dynamicPower` `max(1, floor(150 × HPsoi / HPmax))`. Friendly fire. |
 
 ---
 

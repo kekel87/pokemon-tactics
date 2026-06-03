@@ -1,5 +1,6 @@
 import { AURA_RADIUS } from "../battle/aura-system";
 import type { BattleEngine } from "../battle/BattleEngine";
+import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
 import { isEffectivelyFlying } from "../battle/effective-flying";
 import { TRANSFERABLE_STATS } from "../battle/handlers/baton-pass-stats";
 import { isTerrainImmune } from "../battle/terrain-effects";
@@ -89,7 +90,7 @@ function scoreUseMove(
   const weights = profile.scoringWeights;
   const isSelfTargeting = move.targeting.kind === TargetingKind.Self;
 
-  if (isSelfTargeting && move.power === 0) {
+  if (isSelfTargeting && getEffectivePowerFloor(move) === 0) {
     return scoreSelfMove(currentPokemon, enemies, move, weights, state);
   }
 
@@ -111,7 +112,7 @@ function scoreUseMove(
 
   let score = 0;
 
-  if (move.power > 0) {
+  if (getEffectivePowerFloor(move) > 0) {
     score += scoreDamagingMove(currentPokemon, targetsHit, action.moveId, engine, weights);
   }
 
@@ -551,7 +552,7 @@ function evaluateAttacksFromPosition(
 
   for (const moveId of pokemon.moveIds) {
     const move = moveRegistry.get(moveId);
-    if (!move || move.power === 0) {
+    if (!move || getEffectivePowerFloor(move) === 0) {
       continue;
     }
     if ((pokemon.currentPp[moveId] ?? 0) <= 0) {

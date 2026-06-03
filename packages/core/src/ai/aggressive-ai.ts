@@ -1,3 +1,4 @@
+import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
 import { ActionKind } from "../enums/action-kind";
 import type { Action } from "../types/action";
 import type { BattleState } from "../types/battle-state";
@@ -36,7 +37,7 @@ export function pickAggressiveAction(
     const attackingMoves = useMoveActions
       .map((action) => {
         const move = moveRegistry.get(action.moveId);
-        return { action, power: move?.power ?? 0 };
+        return { action, power: move ? getEffectivePowerFloor(move) : 0 };
       })
       .filter((entry) => entry.power > 0);
 
@@ -50,7 +51,7 @@ export function pickAggressiveAction(
 
     const statusMoves = useMoveActions.filter((action) => {
       const move = moveRegistry.get(action.moveId);
-      return move && move.power === 0;
+      return move && getEffectivePowerFloor(move) === 0;
     });
     const picked = statusMoves[Math.floor(random() * statusMoves.length)];
     if (picked) {

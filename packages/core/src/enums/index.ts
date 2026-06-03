@@ -6,6 +6,7 @@ export { BattleEventType } from "./battle-event-type";
 export { Category } from "./category";
 export { DefensiveKind } from "./defensive-kind";
 export { Direction } from "./direction";
+export { DynamicPowerKind } from "./dynamic-power-kind";
 export { EffectKind } from "./effect-kind";
 export { EffectTarget } from "./effect-target";
 export { EffectTier } from "./effect-tier";
