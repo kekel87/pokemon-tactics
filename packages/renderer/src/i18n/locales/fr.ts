@@ -276,6 +276,8 @@ const fr: Translations = {
   "moveTooltip.tag.sound": "Sonore (ignore Clone)",
   "moveTooltip.tag.bypasssub": "Ignore Clone",
   "moveTooltip.tag.dynamicPower": "⚡ Puissance variable",
+  "moveTooltip.tag.statSourceDefense": "🛡️ Dégâts basés sur la Défense",
+  "moveTooltip.tag.statSourceTargetAttack": "🔄 Dégâts basés sur l'Attaque de la cible",
   "moveTooltip.tag.tauntBlocked": "Bloqué par Provoc",
   "moveTooltip.tag.disableBlocked": "Bloqué par Entrave",
   "moveTooltip.tag.encoreBlocked": "Bloqué par Encore",

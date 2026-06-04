@@ -85,6 +85,7 @@ export function loadData(): GameData {
       ...(merged.targetsAlly ? { targetsAlly: true } : {}),
       ...(merged.dynamicPower ? { dynamicPower: merged.dynamicPower } : {}),
       ...(merged.ignoresBurnAttackDrop ? { ignoresBurnAttackDrop: true } : {}),
+      ...(merged.attackStatSource ? { attackStatSource: merged.attackStatSource } : {}),
     };
     return moveDefinition;
   });

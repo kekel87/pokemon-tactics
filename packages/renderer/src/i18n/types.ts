@@ -277,6 +277,8 @@ export interface Translations {
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
   "moveTooltip.tag.dynamicPower": string;
+  "moveTooltip.tag.statSourceDefense": string;
+  "moveTooltip.tag.statSourceTargetAttack": string;
   "moveTooltip.tag.tauntBlocked": string;
   "moveTooltip.tag.disableBlocked": string;
   "moveTooltip.tag.encoreBlocked": string;

@@ -276,6 +276,8 @@ const en: Translations = {
   "moveTooltip.tag.sound": "Sound (bypasses Substitute)",
   "moveTooltip.tag.bypasssub": "Bypasses Substitute",
   "moveTooltip.tag.dynamicPower": "⚡ Variable power",
+  "moveTooltip.tag.statSourceDefense": "🛡️ Damage based on Defense",
+  "moveTooltip.tag.statSourceTargetAttack": "🔄 Damage based on target's Attack",
   "moveTooltip.tag.tauntBlocked": "Blocked by Taunt",
   "moveTooltip.tag.disableBlocked": "Blocked by Disable",
   "moveTooltip.tag.encoreBlocked": "Blocked by Encore",

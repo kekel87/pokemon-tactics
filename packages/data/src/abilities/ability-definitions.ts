@@ -132,6 +132,9 @@ const guts: AbilityHandler = {
     if (
       context.isAttacker &&
       context.move.category === Category.Physical &&
+      // Guts boosts the user's Attack stat only; moves that draw from another stat
+      // (attackStatSource set) are not affected.
+      context.move.attackStatSource === undefined &&
       hasMajorStatus(context.self)
     ) {
       return 1.5;

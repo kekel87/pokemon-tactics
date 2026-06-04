@@ -1,6 +1,7 @@
 export { ActionError } from "./action-error";
 export { ActionKind } from "./action-kind";
 export { AiDifficulty } from "./ai-difficulty";
+export { AttackStatSource } from "./attack-stat-source";
 export { AuraKind } from "./aura-kind";
 export { BattleEventType } from "./battle-event-type";
 export { Category } from "./category";

@@ -1,3 +1,4 @@
+import { AttackStatSource } from "../enums/attack-stat-source";
 import { Category } from "../enums/category";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatusType as StatusTypeEnum } from "../enums/status-type";
@@ -24,6 +25,29 @@ function getCritChance(stage: number): number {
 export interface DamageResult {
   damage: number;
   isCrit: boolean;
+}
+
+/**
+ * Selects the offensive stat (raw value + stage) for the damage formula.
+ * Default: the user's Attack (physical) or Sp. Atk (special). `attackStatSource` overrides this:
+ * `UserDefense` uses the user's Defense (body-press), `TargetAttack` the target's Attack (foul-play).
+ */
+function resolveAttackStat(
+  move: MoveDefinition,
+  attacker: PokemonInstance,
+  defender: PokemonInstance,
+  isPhysical: boolean,
+): { stat: number; stage: number } {
+  switch (move.attackStatSource) {
+    case AttackStatSource.UserDefense:
+      return { stat: attacker.combatStats.defense, stage: attacker.statStages.defense };
+    case AttackStatSource.TargetAttack:
+      return { stat: defender.combatStats.attack, stage: defender.statStages.attack };
+    default:
+      return isPhysical
+        ? { stat: attacker.combatStats.attack, stage: attacker.statStages.attack }
+        : { stat: attacker.combatStats.spAttack, stage: attacker.statStages.spAttack };
+  }
 }
 
 export function calculateDamageWithCrit(
@@ -55,10 +79,13 @@ export function calculateDamageWithCrit(
   }
 
   const isPhysical = move.category === Category.Physical;
-  const attackStat = isPhysical ? attacker.combatStats.attack : attacker.combatStats.spAttack;
+  const { stat: attackStat, stage: attackStage } = resolveAttackStat(
+    move,
+    attacker,
+    defender,
+    isPhysical,
+  );
   const defenseStat = isPhysical ? defender.combatStats.defense : defender.combatStats.spDefense;
-
-  const attackStage = isPhysical ? attacker.statStages.attack : attacker.statStages.spAttack;
   const defenseStage = isPhysical ? defender.statStages.defense : defender.statStages.spDefense;
 
   let effectiveAttack = getEffectiveStat(attackStat, attackStage);

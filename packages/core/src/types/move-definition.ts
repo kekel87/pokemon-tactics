@@ -1,3 +1,4 @@
+import type { AttackStatSource } from "../enums/attack-stat-source";
 import type { Category } from "../enums/category";
 import type { EffectTier } from "../enums/effect-tier";
 import type { PokemonType } from "../enums/pokemon-type";
@@ -36,4 +37,6 @@ export interface MoveDefinition {
   dynamicPower?: DynamicPowerSpec;
   /** Skip the burn physical-attack halving (facade). */
   ignoresBurnAttackDrop?: boolean;
+  /** Override the offensive stat used in the damage formula (body-press, foul-play). */
+  attackStatSource?: AttackStatSource;
 }

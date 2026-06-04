@@ -1,5 +1,5 @@
 import type { MoveDefinition } from "@pokemon-tactic/core";
-import { Category, TargetingKind } from "@pokemon-tactic/core";
+import { AttackStatSource, Category, TargetingKind } from "@pokemon-tactic/core";
 import {
   ACTION_MENU_BOTTOM_Y,
   ACTION_MENU_CORNER_RADIUS,
@@ -76,9 +76,14 @@ export class MoveTooltip {
     const hasSubTag = move.flags?.sound === true || move.flags?.bypasssub === true;
     const showBlockedTag = blockedTagKey !== undefined;
     const hasDynamicPowerTag = move.dynamicPower !== undefined;
+    const hasStatSourceTag = move.attackStatSource !== undefined;
     const baseLines = move.twoTurnCharge ? 4 : 3;
     const textLines =
-      baseLines + (hasSubTag ? 1 : 0) + (showBlockedTag ? 1 : 0) + (hasDynamicPowerTag ? 1 : 0);
+      baseLines +
+      (hasSubTag ? 1 : 0) +
+      (showBlockedTag ? 1 : 0) +
+      (hasDynamicPowerTag ? 1 : 0) +
+      (hasStatSourceTag ? 1 : 0);
     const totalHeight = padding + textLines * lineHeight + 4 + gridHeight + padding;
 
     const x = menuX - TOOLTIP_WIDTH - 8;
@@ -131,6 +136,15 @@ export class MoveTooltip {
 
     if (hasDynamicPowerTag) {
       this.addText(contentX, contentY, t("moveTooltip.tag.dynamicPower"));
+      contentY += lineHeight;
+    }
+
+    if (move.attackStatSource !== undefined) {
+      const statSourceKey: TranslationKey =
+        move.attackStatSource === AttackStatSource.UserDefense
+          ? "moveTooltip.tag.statSourceDefense"
+          : "moveTooltip.tag.statSourceTargetAttack";
+      this.addText(contentX, contentY, t(statSourceKey));
       contentY += lineHeight;
     }
 

@@ -4,6 +4,11 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
+### Nom FR reference faux : `body-press` = "Big Splash" (2026-06-04, plan 110)
+- `reference/moves.json` et le pipeline `data:update` donnent `names.fr = "Big Splash"` pour `body-press` (faux — nom officiel FR = **Bodypress**).
+- Contourné : override dans `src/i18n/moves.fr.json` (`"body-press": "Bodypress"`). La reference reste fausse → à corriger côté source `build-reference.ts` / mapping Showdown au prochain `data:update`, sinon le fix i18n sera écrasé.
+- Vérifier si d'autres moves ont un `names.fr` anglais résiduel (audit grep mots EN dans moves.fr.json).
+
 ### `tacticalOverrides.flags` écrase les flags reference au merge (2026-05-31, review plan 102)
 - `load-data.ts:58` fait `{ ...base, ...tactical }` : un `flags` défini dans tactical **remplace entièrement** `base.flags` (extrait de reference) au lieu de fusionner.
 - Impact : `aerial-ace` (seul move actuel avec `flags` override = `{ slicing: true }`) perd `contact`/`protect`/`mirror` après merge.

@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 342 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106), +11 simples G6 (plan 107). **Batches G1–G6 clos.** +12 power conditionnel plan 109 (moteur dynamicPower). |
+| Attaques | 344 | 481 | Moves accessibles aux 151 Gen 1 (level-up + TM + tutor, données Gen 9/Champions). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106), +11 simples G6 (plan 107). **Batches G1–G6 clos.** +12 power conditionnel plan 109 (moteur dynamicPower). +2 stat-source plan 110 (Bodypress/Tricherie). |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (342 implémentées)
+## Attaques (344 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -552,6 +552,8 @@
 | Saumure | brine | Eau | Spé | 65 (130 si cible ≤50% HP) | 100 | 10 | single r1–3 | `dynamicPower` ×2 si HP cible ≤ 50% max. |
 | Pression Extrême | hard-press | Acier | Phys | var | 100 | 10 | single r1 | `dynamicPower` `floor(100 × HPcible / HPmax)` (min 1). |
 | Giclédo | water-spout | Eau | Spé | var | 100 | 5 | zone r2 | `dynamicPower` `max(1, floor(150 × HPsoi / HPmax))`. Friendly fire. |
+| Bodypress | body-press | Combat | Phys | 80 | 100 | 10 | single r1 | `attackStatSource: UserDefense` — dégâts calculés depuis la Défense du lanceur (+ crans Déf). Bagarre ne booste pas. |
+| Tricherie | foul-play | Ténèbres | Phys | 95 | 100 | 15 | single r1 | `attackStatSource: TargetAttack` — dégâts calculés depuis l'Attaque de la cible (+ crans Atq cible). Atk lanceur ignorée. |
 
 ---
 

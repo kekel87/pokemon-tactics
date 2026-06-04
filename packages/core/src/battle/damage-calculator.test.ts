@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { AttackStatSource } from "../enums/attack-stat-source";
 import { Category } from "../enums/category";
 import { EffectKind } from "../enums/effect-kind";
 import { PokemonType } from "../enums/pokemon-type";
@@ -531,5 +532,73 @@ describe("facing modifier", () => {
     expect(backAttack.max).toBeGreaterThan(base.max);
     expect(backAttack.facingModifier).toBe(1.15);
     expect(base.facingModifier).toBe(1.0);
+  });
+});
+
+describe("calculateDamage — attackStatSource", () => {
+  const physicalStats = (
+    overrides: Partial<Record<"attack" | "defense", number>>,
+  ): PokemonInstance["combatStats"] => ({
+    hp: 150,
+    attack: 50,
+    defense: 50,
+    spAttack: 50,
+    spDefense: 50,
+    speed: 50,
+    ...overrides,
+  });
+
+  const damage = (move: MoveDefinition, atk: PokemonInstance, def: PokemonInstance): number =>
+    calculateDamage(atk, def, move, simpleChart, [PokemonType.Fire], [PokemonType.Normal], 1.0);
+
+  it("uses the user's Defense for UserDefense moves", () => {
+    const move: MoveDefinition = { ...baseMove, attackStatSource: AttackStatSource.UserDefense };
+    const highDefense = damage(
+      move,
+      attacker({ combatStats: physicalStats({ attack: 20, defense: 200 }) }),
+      defender(),
+    );
+    const highAttack = damage(
+      move,
+      attacker({ combatStats: physicalStats({ attack: 200, defense: 20 }) }),
+      defender(),
+    );
+
+    expect(highDefense).toBeGreaterThan(highAttack);
+  });
+
+  it("uses the target's Attack for TargetAttack moves", () => {
+    const move: MoveDefinition = { ...baseMove, attackStatSource: AttackStatSource.TargetAttack };
+    const strongTarget = damage(
+      move,
+      attacker(),
+      defender({ combatStats: physicalStats({ attack: 200, defense: 50 }) }),
+    );
+    const weakTarget = damage(
+      move,
+      attacker(),
+      defender({ combatStats: physicalStats({ attack: 20, defense: 50 }) }),
+    );
+
+    expect(strongTarget).toBeGreaterThan(weakTarget);
+  });
+
+  it("still halves UserDefense damage when the user is burned", () => {
+    const move: MoveDefinition = { ...baseMove, attackStatSource: AttackStatSource.UserDefense };
+    const healthy = damage(
+      move,
+      attacker({ combatStats: physicalStats({ defense: 200 }) }),
+      defender(),
+    );
+    const burned = damage(
+      move,
+      attacker({
+        combatStats: physicalStats({ defense: 200 }),
+        statusEffects: [{ type: StatusType.Burned, remainingTurns: 5 }],
+      }),
+      defender(),
+    );
+
+    expect(burned).toBeLessThan(healthy);
   });
 });

@@ -7,6 +7,7 @@ import type {
   Weather as WeatherType,
 } from "@pokemon-tactic/core";
 import {
+  AttackStatSource,
   AuraKind,
   DefensiveKind,
   DynamicPowerKind,
@@ -23,6 +24,7 @@ import {
 export interface TacticalOverride {
   targeting: TargetingPattern;
   effects: Effect[];
+  attackStatSource?: AttackStatSource;
   recharge?: boolean;
   effectTier?: EffectTier;
   flags?: Partial<MoveFlags>;
@@ -2513,6 +2515,17 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
       { kind: EffectKind.Status, status: StatusType.Confused, chance: 100 },
     ],
     effectTier: EffectTier.MajorStatus,
+  },
+  // --- Stat-source moves — plan 110 (override de la stat offensive) ---
+  "body-press": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    attackStatSource: AttackStatSource.UserDefense,
+  },
+  "foul-play": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    attackStatSource: AttackStatSource.TargetAttack,
   },
   // --- Content Batch G6 moves (simples ratés des batches G : recharge / charge / multi-hit / no-op, plan 107) ---
   strength: {
