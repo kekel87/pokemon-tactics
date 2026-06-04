@@ -1,25 +1,20 @@
 # Pokemon Tactics
 
-A tactical combat game on an isometric grid, fusing **Pokemon** and **Final Fantasy Tactics**, built in TypeScript.
+As a kid, I sank countless hours into **Final Fantasy Tactics Advance**. And Pokemon? Never let go of it — still playing today. When **Pokemon Conquest** came out, I thought I'd finally get the tactical crossover I'd dreamed of… but it wasn't quite what I'd hoped for.
 
-> **Status: Playable demo** — 81 Pokemon (final evolutions + legendaries, no Ditto), 147 moves, AI opponents, hot-seat up to 12 players.
+So I set out to build my own: a tactics game that stays as close as possible to real Pokemon, with a **Final Fantasy Tactics** twist. I work on it in what little free time I have (new dad — time is tight), with the help of Claude Code.
 
-![Pokemon Tactics — Battle screenshot](docs/images/battle-screenshot.png)
+As for the game: no more menu-versus-menu battling. It's an actual battlefield. You move your team across an isometric grid, play the high ground, and line up area attacks (careful not to torch your own Pokemon in the process). Type, positioning and terrain decide how the fight goes.
+
+> **Playable demo** — runs right in your browser, free, no install.
+
+![Pokemon Tactics — tactical battle](docs/images/demo.gif)
 
 ## Team Builder
 
 Compose your team of 6 Pokemon: pick the species, ability, held item, nature, four moves, and distribute stat points (1 SP = 8 EVs). Import or export to Pokemon Showdown format.
 
 ![Pokemon Tactics — Team Builder](docs/images/team-builder-screenshot.png)
-
-## Progression
-
-| | Implemented | Target pool | Details |
-|---|---|---|---|
-| Pokemon | **81 / 151** | 151 Gen 1 | [full list](docs/implementations.md#pokemon-gen-1--151) |
-| Moves | **147** | 481 (Gen 1) | [full list](docs/implementations.md#attaques-147-implémentées) |
-| Abilities | **52** | 114 (Gen 1) | [full list](docs/implementations.md#talents-52-implémentés) |
-| Held items | **22** | ~159 | [full list](docs/implementations.md#objets-tenus-22-implémentés) |
 
 ## The Game
 
