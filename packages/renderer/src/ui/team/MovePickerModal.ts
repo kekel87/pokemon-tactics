@@ -1,4 +1,5 @@
-import { t } from "../../i18n";
+import { getMoveName } from "@pokemon-tactic/data";
+import { getLanguage, t } from "../../i18n";
 import { getCategoryIconUrl, getTypeIconUrl } from "../../team/asset-paths";
 import {
   type AvailableMove,
@@ -62,8 +63,9 @@ export function openMovePickerModal(options: MovePickerOptions): void {
     if (a.implemented !== b.implemented) {
       return a.implemented ? -1 : 1;
     }
-    const an = a.info?.name ?? a.id;
-    const bn = b.info?.name ?? b.id;
+    const language = getLanguage();
+    const an = getMoveName(a.id, language);
+    const bn = getMoveName(b.id, language);
     return an.localeCompare(bn);
   });
 
@@ -203,7 +205,7 @@ export function openMovePickerModal(options: MovePickerOptions): void {
 
       const name = document.createElement("span");
       name.className = "name";
-      name.textContent = entry.info?.name ?? entry.id;
+      name.textContent = getMoveName(entry.id, getLanguage());
       row.appendChild(name);
 
       const power = document.createElement("span");
