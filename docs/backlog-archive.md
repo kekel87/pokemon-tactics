@@ -17,7 +17,7 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 - Fix : 15 colonnes régénérées avec `LEFT_BRIGHTNESS = RIGHT_BRIGHTNESS = 0.65`, tileset assemblé (32x2368px, 74 tiles). Validation visuelle OK (2026-04-17).
 
 ### Transparence tiles/décos dans le visionneur de maps (2026-04-23)
-- Fix 2026-04-24 (commit `59e8b25`) : suppression système `TERRAIN_TINT`. Bug global renderer iso résolu.
+- Fix 2026-04-24 (commit `082240c`) : suppression système `TERRAIN_TINT`. Bug global renderer iso résolu.
 
 ### Hyper-Fang test flaky en suite complète (2026-05-20)
 - Fix : `buildMoveTestEngine` migré en options object `{ gridSize?, random? }` (vs positional `gridSize, random?`). Le test hyper-fang passe `{ random: createPrng(0) }` explicite (accuracy=90 → roll déterministe). Cause racine : helper passait `undefined` comme RNG → `BattleEngine` fallback `Math.random()` non déterministe → 10% miss aléatoire selon ordre des tests. 13 call sites positionnels migrés au passage.
@@ -39,7 +39,7 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 - (4) Layout "Sandbox Studio" : page plein écran avec header + canvas Phaser flex height + 2 colonnes Player/Dummy + bandeau Battle bas. DOM injecté par `sandbox-boot.ts` (`body[data-sandbox="true"]`), Phaser scale `RESIZE` en sandbox. Toolbar dans header, plus de sidebar fixed.
 - Drops `dummyLevel` + `dummyBaseStats` (toujours level 50, stats espèce). Migration JSON `default.json` + `charmander-test.json`.
 
-### TurnTimeline CT — layout et barre de charge (plan 055 — commit 9bc9125)
+### TurnTimeline CT — layout et barre de charge (plan 055 — commit b728c3a)
 - Corrigé dans le bug gatling (plan 055).
 
 ### phantom-force / baton-pass invisibles dans le team builder (hors plan — 2026-05-21)
@@ -173,7 +173,7 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 ### Police WOFF2 corrompue (plan 045)
 - WOFF2 regénéré proprement, plus d'erreur CFF
 
-### Confusion wobble post-KO (commit a0b0c0a)
+### Confusion wobble post-KO (commit ef3b002)
 - Tween confusion stoppé dans `playFaintAndStay`
 
 ### Distinguer alliés et ennemis sur la grille (plan 042)

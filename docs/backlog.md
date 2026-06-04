@@ -22,7 +22,7 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ### Le Mur — gameplay cassé (2026-04-23)
 - Map `le-mur.tmj` retirée du menu (`maps-registry.ts`).
-- Bug transparence **résolu** (commit `59e8b25`). Problèmes restants :
+- Bug transparence **résolu** (commit `082240c`). Problèmes restants :
   - Pokemon trop lents sur neige — terrain `slow` excessif pour une map traversée, à revoir.
   - IA perdue sur chemins verticaux (escaliers).
 - **Le Mur ne peut pas être réintégré sans rotation caméra** — injouable en vue iso fixe. À reconsidérer avec rotation (Phase 3.5 Babylon ou plus tard).

@@ -109,6 +109,6 @@ Aucune des refs ci-dessus ne montre des **billboards directionnels 8 directions 
 
 ## Notes
 
-- Archive plan 061 : branche `plan-061-occlusion-before-3d-pivot` (commit `2426edf`). Code silhouette Phaser 4 conservé pour référence.
+- Archive plan 061 : branche `plan-061-occlusion-before-3d-pivot` (commit `1107c8a`). Code silhouette Phaser 4 conservé pour référence.
 - Core, data, IA, LoS, CT, statuts : **intacts**, pas de migration nécessaire.
 - Tiled comme éditeur : **garder** (parser existant OK). Éventuellement à ré-évaluer plus tard si besoin d'édition 3D native.
