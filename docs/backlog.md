@@ -69,9 +69,9 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - Priorité moyenne — qualité de vie UX, pas bloquant.
 
 ### Icône sandstorm — symbole tourbillon perfectible (2026-05-13)
-- Régen PixelLab (plan 084) — 3 itérations, dernière acceptée provisoirement.
+- Icône actuelle acceptée provisoirement (plan 084).
 - Symbole vent (double spirale) moins reconnaissable que les 3 autres pictogrammes (sun/rain/snow).
-- À retenter ultérieurement avec prompt plus explicite ou retouche manuelle.
+- À refaire ultérieurement à la main (Aseprite) avec un symbole plus lisible.
 
 ## Tâches futures (hors backlog actif)
 

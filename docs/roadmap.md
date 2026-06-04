@@ -124,7 +124,7 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
 - [x] Undo déplacement (annulable avant attaque) — plan 053 (action `undo_move`, bouton "Annuler déplacement", annulation brûlure magma, 8 tests)
 - [x] Curseur FFTA — variantes curseur (settings + touche H), depth bugfix curseur (500 global) — plan 060 Section A
 - [ ] ~~Silhouette X-ray occlusion~~ — **SKIPPÉE** (résolue nativement par renderer Babylon Phase 3.5, décision 2026-04-18)
-- [x] Système décorations Tiled — `decorations.tsj`, Ghost traverse obstacles, parser objectgroup, sprites PixelLab, `DecorationsLayer` renderer — plan 064. Bonus différé : marquages arène + pokéball centrale.
+- [x] Système décorations Tiled — `decorations.tsj`, Ghost traverse obstacles, parser objectgroup, sprites décorations, `DecorationsLayer` renderer — plan 064. Bonus différé : marquages arène + pokéball centrale.
 - [x] **Occlusion dynamique par sprite** — fix depth tiles surélevées (`DEPTH_RAISED_TILE_BASE`), Alt-click picking multi-niveaux (`COLOR_CURSOR_ALT`), module `OcclusionFader` (fade alpha 0.4, AABB screen-space). **Phase 3.5 rewrite Babylon repoussée après Phase 7** (décision #272). — plan 065
 - [x] Roster de maps variées — 7 maps thématiques : forest (14×14), cramped-cave (12×12), le-mur (16×16), volcano (14×14), swamp (14×14), desert (14×14), naval-arena (14×14). Toutes multi-format (5 objectgroups). Plan 066 terminé 2026-04-23.
 - [x] Génération maps par IA (prompt → `MapDefinition` ou .tmj valide) — agent `level-designer` utilisé pour 7 maps du plan 066.

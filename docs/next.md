@@ -33,7 +33,7 @@ Maintenu par Claude Code. Lu via `/next`.
   - Validateur core réutilisable (multijoueur futur)
   - Learnset = union levelUp+TM+tutor walkée via chaîne `evolvesFrom` (Showdown pattern)
   - ID normalizer : Showdown compresse sans tiret (`fireblast` vs `fire-blast`)
-- **Bonus plan 064 différé — marquages arène + pokéball centrale** : 3 approches dans `docs/plans/064-decorations-obstacles.md` (PixelLab multi-tiles, peinture Aseprite, génération procédurale). Reco : approche 2 (manuelle) pour arène propre rapide, ou reporter post-Babylon via `DecalMap`.
+- **Bonus plan 064 différé — marquages arène + pokéball centrale** : approches dans `docs/plans/064-decorations-obstacles.md` (peinture Aseprite manuelle, génération procédurale). Reco : approche manuelle pour arène propre rapide, ou reporter post-Babylon via `DecalMap`.
 - **Rewrite renderer Babylon (Phase 3.5) → déplacée APRÈS Phase 7** (décision 2026-04-20). Pistes à garder :
   - Shim type Inspector (`src/types/babylonjs-inspector.d.ts` → `declare module "@babylonjs/inspector" { export {}; }`) pour `skipLibCheck: false`.
   - Audit bundle `rollup-plugin-visualizer`, cible 180-220 kB gzip vs 273 kB spike.

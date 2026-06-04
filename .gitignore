@@ -39,8 +39,11 @@ packages/data/.cache/
 # Reference screenshots (local only)
 docs/references/
 
-# Tiles workspace (PixelLab, tests, temporaires)
+# Tiles workspace (tests, temporaires)
 tiles/
+
+# Promo / diffusion notes (local only — stratégie privée, repo public)
+docs/promo-channels.md
 
 # Shared screenshots (échanges humain/Claude)
 share/

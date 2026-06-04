@@ -379,7 +379,7 @@ La depth du container est portée à `max(originalDepth, maxTileDepthInRadius(cx
 
 ## Curseur de survol (plan 060)
 
-Le highlight de tile au survol (`showCursor` dans `IsometricGrid`) reste un simple outline diamant jaune pulsant au sol, sous les sprites. En complément, un **HoverCursor** flotte au-dessus de la tile survolée par la souris (style FFTA) : pokéball pixellab avec flèche/cône jaune pointant vers le bas. Il suit le pointeur en même temps que le highlight de tile et disparaît quand la souris quitte la grille.
+Le highlight de tile au survol (`showCursor` dans `IsometricGrid`) reste un simple outline diamant jaune pulsant au sol, sous les sprites. En complément, un **HoverCursor** flotte au-dessus de la tile survolée par la souris (style FFTA) : pokéball avec flèche/cône jaune pointant vers le bas. Il suit le pointeur en même temps que le highlight de tile et disparaît quand la souris quitte la grille.
 
 | Constante | Valeur | Rôle |
 |-----------|--------|------|
@@ -389,7 +389,7 @@ Le highlight de tile au survol (`showCursor` dans `IsometricGrid`) reste un simp
 | `CURSOR_COLOR` | `0xffdd44` | Jaune doré, réutilisé pour l'outline de tile pulsant |
 | `DEPTH_CURSOR_GROUND` | `500` | Depth globale du curseur-outline au sol (au-dessus de tous les overlays iso, sous tous les Pokemon) |
 
-Asset : `packages/renderer/public/assets/ui/cursor/hover-cursor.png` (32×32, généré via pixellab MCP).
+Asset : `packages/renderer/public/assets/ui/cursor/hover-cursor.png` (32×32).
 Classe : `packages/renderer/src/ui/HoverCursor.ts`. API : `showAt(gridX, gridY)` / `hide()`. Appelé depuis `BattleScene.setupInput` sur `pointermove`, en parallèle de `isometricGrid.showCursor/hideCursor`. Pas de bobbing (le pulse est porté par le highlight de tile).
 
 Les overlays au sol (highlights move/attack, enemy range, preview AoE) sont iso-sortés par tile avec un offset croissant sur la base `(x+y)*5 + h` : ils passent sous le sprite du Pokemon qui se tient sur leur tile, et sont cachés entre eux selon la distance à la caméra (comme les tiles elles-mêmes). Le curseur-outline au sol, lui, utilise une depth globale `DEPTH_CURSOR_GROUND = 500` : sinon le stroke de la tile survolée passe sous les tiles/highlights des voisines (le stroke déborde visuellement sur les tiles adjacentes).

@@ -845,7 +845,7 @@ Effets latéraux appliqués **au T1** uniquement, **sur le caster (self-target)*
 
 ### HUD Météo (renderer)
 
-`WeatherHud` positionné top-center sous le texte de tour. Icône PixelLab 48×48 + label i18n + compteur tours. Disparaît si `Weather.None`. 4 icônes 64×64 générées via PixelLab (sun/rain/sandstorm/snow). **Note backlog** : icône sandstorm perfectible (symbole spirale moins lisible que les autres).
+`WeatherHud` positionné top-center sous le texte de tour. Icône 48×48 + label i18n + compteur tours. Disparaît si `Weather.None`. 4 icônes 64×64 (sun/rain/sandstorm/snow). **Note backlog** : icône sandstorm perfectible (symbole spirale moins lisible que les autres).
 
 ### i18n
 
