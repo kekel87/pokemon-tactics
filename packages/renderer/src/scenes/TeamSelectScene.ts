@@ -6,6 +6,7 @@ import {
   type TeamSet,
   TurnSystemKind,
 } from "@pokemon-tactic/core";
+import { AnalyticsEvent, trackEvent } from "../analytics/analytics";
 import { TEAM_COLORS } from "../constants";
 import { t } from "../i18n";
 import type { TranslationKey } from "../i18n/types";
@@ -99,6 +100,7 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    trackEvent(AnalyticsEvent.TeamBuilder);
     if (sandboxBootConfig.enabled) {
       const config = sandboxBootConfig.config ?? DEFAULT_SANDBOX_CONFIG;
       const engagedIds = extractEngagedPokemonIds({

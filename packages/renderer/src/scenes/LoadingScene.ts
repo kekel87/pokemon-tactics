@@ -1,6 +1,7 @@
 import { createPrng } from "@pokemon-tactic/core";
 import Phaser from "phaser";
 
+import { trackGameLoadedOnce } from "../analytics/analytics";
 import { t } from "../i18n";
 import { createTipProvider } from "../i18n/loading-tips";
 import type { TranslationKey } from "../i18n/types";
@@ -64,6 +65,7 @@ export class LoadingScene extends Phaser.Scene {
     if (!this.config) {
       return;
     }
+    trackGameLoadedOnce();
     const fontsReady = document.fonts?.ready ?? Promise.resolve();
     await fontsReady;
     if (this.overlay) {

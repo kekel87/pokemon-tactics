@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { AnalyticsEvent, trackEvent } from "../analytics/analytics";
 import {
   BACKGROUND_COLOR,
   BUTTON_BORDER_COLOR,
@@ -74,6 +75,7 @@ export class MapSelectScene extends Phaser.Scene {
   }
 
   create(): void {
+    trackEvent(AnalyticsEvent.MapSelect);
     this.cameras.main.setBackgroundColor(BACKGROUND_COLOR);
 
     this.add

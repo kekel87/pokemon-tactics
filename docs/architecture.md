@@ -99,6 +99,7 @@ pokemon-tactics/
 │   │   │   │                    # + ui/dom/ (helpers DOM réutilisables ≥2 scènes — décision #346) : Modal.ts (<dialog showModal()> natif), Dropdown.ts, form-controls.ts (createButton, createLabeledSelect, createLabeledCheckbox, createLabeledRange, createOptionalNumberInput, createPickerCard, replaceSelectOptions, types SelectOption/ButtonVariant), Stepper.ts (createStepper, closure getValue/setValue), MovesList.ts (createMovesList — classes .tb-move-row/.tb-moves-list partagées team builder ↔ sandbox)
 │   │   │   │                    # + ui/team/ (composants Team Builder : SlotCardsRow, TeamEditPanel, TeamStatsPanel, SpSlider, StatBar, NatureDropdown, PokemonPickerModal, MovePickerModal, ItemPickerModal, ShowdownIoModal, DeleteConfirmModal, AbilityRadioGroup, TeamCard)
 │   │   │   │                    # + ui/team-select/ (composants TeamSelectScene : FormatPicker, TeamListItem, TeamList, PlayerCell, PlayersColumn)
+│   │   │   ├── analytics/       # Tracking GoatCounter : AnalyticsEvent (const enum), trackEvent(), trackGameLoadedOnce(). Beacon Image pixel (/count?p=...&e=true) — contourne blocage itch.io sandbox. No-op en dev/hôte inconnu. Path préfixé plateforme (/itch/ vs /ghp/).
 │   │   │   ├── utils/           # Utilitaires renderer (screen-direction : getDirectionFromScreenPosition)
 │   │   │   ├── enums/           # Enums renderer (HighlightKind — dont EnemyRange)
 │   │   │   ├── types/           # Types renderer (BattleConfig : confirmAttack)

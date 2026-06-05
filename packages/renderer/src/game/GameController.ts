@@ -50,6 +50,7 @@ import {
   getPokemonName,
   moveAnimationCategory,
 } from "@pokemon-tactic/data";
+import { AnalyticsEvent, trackEvent } from "../analytics/analytics";
 import {
   AURA_INDICATOR_SYMBOL,
   BATTLE_TEXT_COLOR_ABILITY,
@@ -1088,6 +1089,10 @@ export class GameController {
     this.feedBattleLog(event);
 
     switch (event.type) {
+      case BattleEventType.BattleEnded: {
+        trackEvent(AnalyticsEvent.BattleEnd);
+        break;
+      }
       case BattleEventType.MoveStarted: {
         const sprite = this.sprites.get(event.attackerId);
         if (sprite) {

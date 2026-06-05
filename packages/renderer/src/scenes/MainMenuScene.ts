@@ -1,3 +1,4 @@
+import { AnalyticsEvent, trackEvent } from "../analytics/analytics";
 import {
   BACKGROUND_COLOR,
   BUTTON_BORDER_COLOR,
@@ -30,6 +31,7 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   create(): void {
+    trackEvent(AnalyticsEvent.MainMenu);
     this.cameras.main.setBackgroundColor(BACKGROUND_COLOR);
 
     this.add
