@@ -14,6 +14,7 @@ import {
   EffectKind,
   EffectTarget,
   EffectTier,
+  PokemonType,
   SemiInvulnerableState,
   StatName,
   StatusType,
@@ -40,6 +41,10 @@ export interface TacticalOverride {
   targetsAlly?: boolean;
   dynamicPower?: DynamicPowerSpec;
   ignoresBurnAttackDrop?: boolean;
+  hitsPhysicalDefense?: boolean;
+  typeEffectivenessOverride?: { against: PokemonType; multiplier: number };
+  perHitAccuracy?: boolean;
+  crashOnMiss?: { fraction: number };
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -2547,6 +2552,43 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.Damage }],
     attackStatSource: AttackStatSource.TargetAttack,
+  },
+  // --- B1 « Quasi-prêt » — plan 113 ---
+  psyshock: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.Damage }],
+    hitsPhysicalDefense: true,
+  },
+  psystrike: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.Damage }],
+    hitsPhysicalDefense: true,
+  },
+  "freeze-dry": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Frozen, chance: 10 },
+    ],
+    typeEffectivenessOverride: { against: PokemonType.Water, multiplier: 2 },
+  },
+  "triple-axel": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage, escalatingHitPower: [20, 40, 60] }],
+    perHitAccuracy: true,
+  },
+  "high-jump-kick": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    crashOnMiss: { fraction: 0.5 },
+  },
+  "axe-kick": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Confused, chance: 30 },
+    ],
+    crashOnMiss: { fraction: 0.5 },
   },
   // --- Content Batch G6 moves (simples ratés des batches G : recharge / charge / multi-hit / no-op, plan 107) ---
   strength: {

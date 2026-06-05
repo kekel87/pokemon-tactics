@@ -35,14 +35,14 @@ Classer les **155 moves restants** (accessibles au roster, non implémentés) pa
 
 ### Vague 1 — Quick wins & fondations
 
-#### B1 · Quasi-prêt — 9 moves
-Petite extension du moteur existant (recoil-on-miss, crit-flag, stat-source, friendship fixé).
-> Choc Psy, Frappe Psy, Lyophilisation, Triple Axel, Pied Voltige, Talon-Marteau, Frustration, Retour, Puissance Cachée
-- Choc Psy / Frappe Psy → ext. `attackStatSource` (frappe la Défense) — plan 110.
-- Pied Voltige / Talon-Marteau → recoil-on-miss (crash).
-- Triple Axel → multi-hit puissance croissante.
-- Frustration / Retour → puissance fixe (bonheur figé en tactique).
-- Puissance Cachée → type/puissance fixés.
+#### B1 · Quasi-prêt — 6 livrés (plan 113) + 3 différés
+Petite extension du moteur existant (override Défense, override type-efficacité, multi-hit croissant, crash-on-miss).
+> **Livrés (plan 113)** : Choc Psy, Frappe Psy, Lyophilisation, Triple Axel, Pied Voltige, Talon-Marteau
+- Choc Psy / Frappe Psy → override Déf physique (`hitsPhysicalDefense`).
+- Lyophilisation → override type-efficacité (×2 Eau).
+- Triple Axel → multi-hit puissance croissante + précision par coup.
+- Pied Voltige / Talon-Marteau → crash-on-miss (½ PV max).
+> **Différés (watch Pokémon Champions)** : Frustration, Retour, Puissance Cachée — inutilisables gen 8/9, pas de système de bonheur en tactique. Décision humain 2026-06-05 : revisiter selon maj Champions.
 
 #### B2 · Soin — 11 moves
 → Système de soin (pur % · régén/tour · différé · drain).

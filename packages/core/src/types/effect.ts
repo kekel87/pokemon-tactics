@@ -7,7 +7,12 @@ import type { StatusType } from "../enums/status-type";
 import type { Weather } from "../enums/weather";
 
 export type Effect =
-  | { kind: typeof EffectKind.Damage; hits?: number | { min: number; max: number } }
+  | {
+      kind: typeof EffectKind.Damage;
+      hits?: number | { min: number; max: number };
+      /** Per-hit base power for escalating multi-hit moves (triple-axel: [20, 40, 60]). Length = hit count. */
+      escalatingHitPower?: number[];
+    }
   | {
       kind: typeof EffectKind.Status;
       status: StatusType;

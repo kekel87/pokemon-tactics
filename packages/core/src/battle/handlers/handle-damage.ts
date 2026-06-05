@@ -57,6 +57,9 @@ function getHitCount(
   effect: Extract<Effect, { kind: typeof EffectKind.Damage }>,
   random: RandomFn,
 ): number {
+  if (effect.escalatingHitPower !== undefined) {
+    return effect.escalatingHitPower.length;
+  }
   if (effect.hits === undefined) {
     return 1;
   }
@@ -70,6 +73,7 @@ function dealSingleHit(
   context: EffectContext,
   target: PokemonInstance,
   defenderTypes: PokemonType[],
+  hitPowerOverride?: number,
 ): BattleEvent[] {
   const events: BattleEvent[] = [];
   const facingMod = context.facingModifierMap.get(target.id) ?? 1.0;
@@ -80,11 +84,14 @@ function dealSingleHit(
     const handler = context.abilityRegistry?.getForPokemon(pokemon);
     return handler?.suppressesWeatherEffects === true;
   });
-  const resolvedMove = resolveDynamicPower(
+  let resolvedMove = resolveDynamicPower(
     resolveWeatherBallMove(context.move, activeWeather),
     context.attacker,
     target,
   );
+  if (hitPowerOverride !== undefined) {
+    resolvedMove = { ...resolvedMove, power: hitPowerOverride };
+  }
   let weatherBp = getWeatherBpModifier(resolvedMove.type, activeWeather);
   if (
     resolvedMove.id === "solar-beam" &&
@@ -94,8 +101,9 @@ function dealSingleHit(
   ) {
     weatherBp *= 0.5;
   }
-  const defenseStat =
-    resolvedMove.category === Category.Physical ? StatName.Defense : StatName.SpDefense;
+  const usesPhysicalDefense =
+    resolvedMove.category === Category.Physical || resolvedMove.hitsPhysicalDefense === true;
+  const defenseStat = usesPhysicalDefense ? StatName.Defense : StatName.SpDefense;
   const defenseWeather = getWeatherDefenseStatBoost(defenderTypes, defenseStat, activeWeather);
   const brickBreakInteraction = computeBrickBreakInteraction(context.state, target, resolvedMove);
   const screenMultiplier = brickBreakInteraction.breakAuraCasterId
@@ -159,7 +167,12 @@ function dealSingleHit(
 
   const targetItem = context.itemRegistry?.getForPokemon(target);
   const isSuperEffective =
-    getTypeEffectiveness(context.move.type, defenderTypes, context.typeChart) > 1;
+    getTypeEffectiveness(
+      context.move.type,
+      defenderTypes,
+      context.typeChart,
+      context.move.typeEffectivenessOverride,
+    ) > 1;
   const isContact = context.move.flags?.contact === true;
 
   let focusSashTriggered = false;
@@ -174,7 +187,12 @@ function dealSingleHit(
     focusSashTriggered = true;
   }
 
-  const effectiveness = getTypeEffectiveness(context.move.type, defenderTypes, context.typeChart);
+  const effectiveness = getTypeEffectiveness(
+    context.move.type,
+    defenderTypes,
+    context.typeChart,
+    context.move.typeEffectivenessOverride,
+  );
 
   if (isCrit) {
     events.push({ type: BattleEventType.CriticalHit, targetId: target.id });
@@ -379,7 +397,14 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
         break;
       }
 
-      const hitEvents = dealSingleHit(context, target, defenderTypes);
+      if (hit > 0 && context.move.perHitAccuracy === true) {
+        if (context.random() * 100 >= context.move.accuracy) {
+          break;
+        }
+      }
+
+      const hitPower = effect.escalatingHitPower?.[hit];
+      const hitEvents = dealSingleHit(context, target, defenderTypes, hitPower);
       events.push(...hitEvents);
       actualHits++;
 

@@ -1,5 +1,5 @@
 import type { MoveDefinition } from "@pokemon-tactic/core";
-import { AttackStatSource, Category, TargetingKind } from "@pokemon-tactic/core";
+import { AttackStatSource, Category, EffectKind, TargetingKind } from "@pokemon-tactic/core";
 import {
   ACTION_MENU_BOTTOM_Y,
   ACTION_MENU_CORNER_RADIUS,
@@ -77,13 +77,23 @@ export class MoveTooltip {
     const showBlockedTag = blockedTagKey !== undefined;
     const hasDynamicPowerTag = move.dynamicPower !== undefined;
     const hasStatSourceTag = move.attackStatSource !== undefined;
+    const hasHitsDefenseTag = move.hitsPhysicalDefense === true;
+    const hasTypeOverrideTag = move.typeEffectivenessOverride !== undefined;
+    const hasEscalatingTag = move.effects.some(
+      (effect) => effect.kind === EffectKind.Damage && effect.escalatingHitPower !== undefined,
+    );
+    const hasCrashTag = move.crashOnMiss !== undefined;
     const baseLines = move.twoTurnCharge ? 4 : 3;
     const textLines =
       baseLines +
       (hasSubTag ? 1 : 0) +
       (showBlockedTag ? 1 : 0) +
       (hasDynamicPowerTag ? 1 : 0) +
-      (hasStatSourceTag ? 1 : 0);
+      (hasStatSourceTag ? 1 : 0) +
+      (hasHitsDefenseTag ? 1 : 0) +
+      (hasTypeOverrideTag ? 1 : 0) +
+      (hasEscalatingTag ? 1 : 0) +
+      (hasCrashTag ? 1 : 0);
     const totalHeight = padding + textLines * lineHeight + 4 + gridHeight + padding;
 
     const x = menuX - TOOLTIP_WIDTH - 8;
@@ -145,6 +155,26 @@ export class MoveTooltip {
           ? "moveTooltip.tag.statSourceDefense"
           : "moveTooltip.tag.statSourceTargetAttack";
       this.addText(contentX, contentY, t(statSourceKey));
+      contentY += lineHeight;
+    }
+
+    if (hasHitsDefenseTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.hitsPhysicalDefense"));
+      contentY += lineHeight;
+    }
+
+    if (hasTypeOverrideTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.superVsWater"));
+      contentY += lineHeight;
+    }
+
+    if (hasEscalatingTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.escalatingHits"));
+      contentY += lineHeight;
+    }
+
+    if (hasCrashTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.crashOnMiss"));
       contentY += lineHeight;
     }
 

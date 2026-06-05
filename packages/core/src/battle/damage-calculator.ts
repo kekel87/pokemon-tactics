@@ -73,7 +73,12 @@ export function calculateDamageWithCrit(
     return { damage: 0, isCrit: false };
   }
 
-  const effectiveness = getTypeEffectiveness(move.type, defenderTypes, typeChart);
+  const effectiveness = getTypeEffectiveness(
+    move.type,
+    defenderTypes,
+    typeChart,
+    move.typeEffectivenessOverride,
+  );
   if (effectiveness === 0) {
     return { damage: 0, isCrit: false };
   }
@@ -85,8 +90,13 @@ export function calculateDamageWithCrit(
     defender,
     isPhysical,
   );
-  const defenseStat = isPhysical ? defender.combatStats.defense : defender.combatStats.spDefense;
-  const defenseStage = isPhysical ? defender.statStages.defense : defender.statStages.spDefense;
+  const usesPhysicalDefense = isPhysical || move.hitsPhysicalDefense === true;
+  const defenseStat = usesPhysicalDefense
+    ? defender.combatStats.defense
+    : defender.combatStats.spDefense;
+  const defenseStage = usesPhysicalDefense
+    ? defender.statStages.defense
+    : defender.statStages.spDefense;
 
   let effectiveAttack = getEffectiveStat(attackStat, attackStage);
 
@@ -235,6 +245,7 @@ export function getTypeEffectiveness(
   moveType: PokemonType,
   defenderTypes: PokemonType[],
   typeChart: TypeChart,
+  override?: { against: PokemonType; multiplier: number },
 ): number {
   let multiplier = 1;
   const attackerRow = typeChart[moveType];
@@ -242,6 +253,10 @@ export function getTypeEffectiveness(
     return 1;
   }
   for (const defType of defenderTypes) {
+    if (override && defType === override.against) {
+      multiplier *= override.multiplier;
+      continue;
+    }
     const value = attackerRow[defType];
     if (value !== undefined) {
       multiplier *= value;
@@ -278,7 +293,12 @@ export function estimateDamage(
   itemRegistry?: HeldItemHandlerRegistry,
 ): DamageEstimate {
   const resolvedMove = resolveDynamicPower(move, attacker, defender);
-  const effectiveness = getTypeEffectiveness(resolvedMove.type, defenderTypes, typeChart);
+  const effectiveness = getTypeEffectiveness(
+    resolvedMove.type,
+    defenderTypes,
+    typeChart,
+    resolvedMove.typeEffectivenessOverride,
+  );
   const min = calculateDamage(
     attacker,
     defender,
