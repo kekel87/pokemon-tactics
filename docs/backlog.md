@@ -36,6 +36,13 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Dette technique
 
+### GitHub Actions sur Node 20 — déprécié (2026-06-05, release v2026.6.1)
+- **Contexte** : le run `itch-deploy` v2026.6.1 a émis un warning : `actions/checkout@v4`, `actions/setup-node@v4`, `Ayowel/butler-to-itch@v1.3.0`, `pnpm/action-setup@v4` tournent sur Node.js 20, déprécié.
+- **Deadline** : à partir du **16 juin 2026** GitHub force Node.js 24 par défaut ; Node 20 retiré des runners le **16 septembre 2026**.
+- **Fix recommandé** : bumper les actions vers des versions supportant Node 24 (`actions/checkout@v5`, `actions/setup-node@v5`, vérifier `pnpm/action-setup` et `butler-to-itch`). Workaround temporaire : `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` dans le workflow.
+- **Priorité** : moyenne — non bloquant avant le 16 juin, à traiter avant cette date pour éviter surprise.
+- Ref : https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+
 ### Tag tooltip `superVsWater` hardcodé pour `typeEffectivenessOverride` (2026-06-05, plan 113)
 - **Contexte** : `MoveTooltip.ts` affiche le tag `moveTooltip.tag.superVsWater` ("×2 sur les types Eau") pour tout move ayant `typeEffectivenessOverride !== undefined`. Le champ est générique (`{ against: PokemonType; multiplier: number }`) mais le tag est spécifique à l'Eau.
 - **Risque** : un futur move qui override contre un autre type (ex: ×2 Feu) afficherait un tag faux. Aujourd'hui 1 seul move concerné (Lyophilisation).
