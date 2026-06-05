@@ -290,4 +290,35 @@ describe("resolveDynamicPower", () => {
       ).toBe(75);
     });
   });
+
+  describe("TargetWeight (low-kick / grass-knot)", () => {
+    function weight(kg: number) {
+      return resolvedPower(DynamicPowerKind.TargetWeight, 0, pokemon(), pokemon({ weight: kg }));
+    }
+    it("120 at 200kg or more", () => expect(weight(200)).toBe(120));
+    it("100 from 100kg", () => expect(weight(100)).toBe(100));
+    it("80 from 50kg", () => expect(weight(50)).toBe(80));
+    it("60 from 25kg", () => expect(weight(25)).toBe(60));
+    it("40 from 10kg", () => expect(weight(10)).toBe(40));
+    it("20 below 10kg", () => expect(weight(4)).toBe(20));
+  });
+
+  describe("WeightRatio (heavy-slam / heat-crash)", () => {
+    function ratio(attackerKg: number, targetKg: number) {
+      return resolvedPower(
+        DynamicPowerKind.WeightRatio,
+        0,
+        pokemon({ weight: attackerKg }),
+        pokemon({ weight: targetKg }),
+      );
+    }
+    it("120 when target is below a fifth of the user", () => expect(ratio(500, 50)).toBe(120));
+    it("100 below a quarter", () => expect(ratio(400, 90)).toBe(100));
+    it("80 below a third", () => expect(ratio(300, 90)).toBe(80));
+    it("scores 80 exactly at one third (integer parity)", () => expect(ratio(300, 100)).toBe(80));
+    it("60 below a half", () => expect(ratio(200, 90)).toBe(60));
+    it("40 at half or above", () => expect(ratio(100, 60)).toBe(40));
+    it("40 when the user has no weight", () => expect(ratio(0, 50)).toBe(40));
+    it("120 when the target has no weight", () => expect(ratio(50, 0)).toBe(120));
+  });
 });

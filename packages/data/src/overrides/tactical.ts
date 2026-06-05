@@ -105,6 +105,27 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
     dynamicPower: { kind: DynamicPowerKind.SelfHpScaled },
   },
+  // Power conditionnel — plan 111 (poids)
+  "low-kick": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.TargetWeight },
+  },
+  "grass-knot": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.TargetWeight },
+  },
+  "heavy-slam": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.WeightRatio },
+  },
+  "heat-crash": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.WeightRatio },
+  },
   "u-turn": {
     targeting: {
       kind: TargetingKind.HitAndRun,

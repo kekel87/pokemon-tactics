@@ -99,6 +99,50 @@ function speedRatioInversePower(attacker: PokemonInstance, target: PokemonInstan
   return Math.min(150, Math.floor((25 * effectiveSpeed(target)) / userSpeed + 1));
 }
 
+/** low-kick / grass-knot — power by the target's body weight in kilograms. */
+function targetWeightPower(target: PokemonInstance): number {
+  const weight = target.weight;
+  if (weight >= 200) {
+    return 120;
+  }
+  if (weight >= 100) {
+    return 100;
+  }
+  if (weight >= 50) {
+    return 80;
+  }
+  if (weight >= 25) {
+    return 60;
+  }
+  if (weight >= 10) {
+    return 40;
+  }
+  return 20;
+}
+
+/**
+ * heavy-slam / heat-crash — power by how much the user outweighs the target.
+ * Uses Showdown's multiplicative comparison (`userWeight >= targetWeight * N`) so the
+ * boundaries (e.g. exactly ×3 → 80) match the games exactly.
+ */
+function weightRatioPower(attacker: PokemonInstance, target: PokemonInstance): number {
+  const userWeight = attacker.weight;
+  const targetWeight = target.weight;
+  if (userWeight >= targetWeight * 5) {
+    return 120;
+  }
+  if (userWeight >= targetWeight * 4) {
+    return 100;
+  }
+  if (userWeight >= targetWeight * 3) {
+    return 80;
+  }
+  if (userWeight >= targetWeight * 2) {
+    return 60;
+  }
+  return 40;
+}
+
 const RESOLVERS: ReadonlyMap<DynamicPowerKind, DynamicPowerResolver> = new Map([
   [
     DynamicPowerKind.SelfStatusDouble,
@@ -137,6 +181,8 @@ const RESOLVERS: ReadonlyMap<DynamicPowerKind, DynamicPowerResolver> = new Map([
     ({ attacker }) =>
       attacker.maxHp > 0 ? Math.floor((150 * attacker.currentHp) / attacker.maxHp) : 0,
   ],
+  [DynamicPowerKind.TargetWeight, ({ target }) => targetWeightPower(target)],
+  [DynamicPowerKind.WeightRatio, ({ attacker, target }) => weightRatioPower(attacker, target)],
 ]);
 
 /**

@@ -2490,6 +2490,7 @@ export class GameController {
       maxHp: 1,
       baseStats: { hp: 1, attack: 1, defense: 1, spAttack: 1, spDefense: 1, speed: 1 },
       combatStats: { hp: 1, attack: 1, defense: 1, spAttack: 1, spDefense: 1, speed: 1 },
+      weight: 1,
       derivedStats: { movement: 3, jump: 1, initiative: 1 },
       statStages: zeroStats,
       statusEffects: [],

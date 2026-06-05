@@ -22,6 +22,8 @@ export interface PokemonInstance {
   maxHp: number;
   baseStats: BaseStats;
   combatStats: BaseStats;
+  /** Body weight in kilograms (from the species definition); drives weight-based move power. */
+  weight: number;
   derivedStats: DerivedStats;
   statStages: Record<StatName, number>;
   statusEffects: StatusEffect[];
