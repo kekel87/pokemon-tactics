@@ -86,6 +86,12 @@ export function loadData(): GameData {
       ...(merged.dynamicPower ? { dynamicPower: merged.dynamicPower } : {}),
       ...(merged.ignoresBurnAttackDrop ? { ignoresBurnAttackDrop: true } : {}),
       ...(merged.attackStatSource ? { attackStatSource: merged.attackStatSource } : {}),
+      ...(merged.hitsPhysicalDefense ? { hitsPhysicalDefense: true } : {}),
+      ...(merged.typeEffectivenessOverride
+        ? { typeEffectivenessOverride: merged.typeEffectivenessOverride }
+        : {}),
+      ...(merged.perHitAccuracy ? { perHitAccuracy: true } : {}),
+      ...(merged.crashOnMiss ? { crashOnMiss: merged.crashOnMiss } : {}),
     };
     return moveDefinition;
   });

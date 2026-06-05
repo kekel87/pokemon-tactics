@@ -39,4 +39,12 @@ export interface MoveDefinition {
   ignoresBurnAttackDrop?: boolean;
   /** Override the offensive stat used in the damage formula (body-press, foul-play). */
   attackStatSource?: AttackStatSource;
+  /** Special move that hits the target's physical Defense instead of Sp. Def (psyshock, psystrike). */
+  hitsPhysicalDefense?: boolean;
+  /** Force a type-effectiveness multiplier against one type (freeze-dry: x2 vs Water). */
+  typeEffectivenessOverride?: { against: PokemonType; multiplier: number };
+  /** Re-roll accuracy before each hit after the first; a miss stops the move (triple-axel). */
+  perHitAccuracy?: boolean;
+  /** Self-damage (fraction of max HP) when the move fails to connect (high-jump-kick, axe-kick). */
+  crashOnMiss?: { fraction: number };
 }

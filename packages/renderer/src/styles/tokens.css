@@ -129,6 +129,7 @@
   --line-height-base: 1.3;
 
   /* Espacement */
+  --spacing-xxs: 2px;
   --spacing-xs: 4px;
   --spacing-sm: 6px;
   --spacing-md: 8px;

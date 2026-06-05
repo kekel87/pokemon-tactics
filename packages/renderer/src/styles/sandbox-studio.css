@@ -247,15 +247,23 @@
 
   .sb-stat-stages {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: var(--spacing-xs);
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--spacing-xxs);
   }
 
   .sb-stat-cell {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-xxs);
+    min-width: 0;
+
+    & .sb-stepper {
+      min-width: 0;
+      width: 100%;
+      padding-inline: var(--spacing-xxs);
+      text-align: center;
+    }
   }
 
   .sb-radio-group {

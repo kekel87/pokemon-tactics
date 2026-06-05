@@ -42,6 +42,8 @@ const STAT_NAMES: StatName[] = [
   StatName.SpAttack,
   StatName.SpDefense,
   StatName.Speed,
+  StatName.Accuracy,
+  StatName.Evasion,
 ];
 
 const STAT_TRANSLATION_KEYS: Record<StatName, TranslationKey> = {

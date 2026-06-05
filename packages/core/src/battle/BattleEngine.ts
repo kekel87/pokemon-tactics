@@ -1057,6 +1057,42 @@ export class BattleEngine {
       }
     }
 
+    if (move.crashOnMiss && pokemon.currentHp > 0) {
+      const connected = effectEvents.some(
+        (event) =>
+          event.type === BattleEventType.DamageDealt &&
+          event.targetId !== pokemon.id &&
+          event.recoil !== true &&
+          (event.effectiveness ?? 0) > 0,
+      );
+      if (!connected) {
+        const crashDamage = Math.max(1, Math.floor(pokemon.maxHp * move.crashOnMiss.fraction));
+        pokemon.currentHp = Math.max(0, pokemon.currentHp - crashDamage);
+        const crashEvent: BattleEvent = {
+          type: BattleEventType.DamageDealt,
+          targetId: pokemon.id,
+          amount: crashDamage,
+          effectiveness: 1,
+          recoil: true,
+        };
+        this.emit(crashEvent);
+        events.push(crashEvent);
+        if (pokemon.currentHp <= 0) {
+          const koEvent: BattleEvent = {
+            type: BattleEventType.PokemonKo,
+            pokemonId: pokemon.id,
+            countdownStart: 0,
+          };
+          this.emit(koEvent);
+          events.push(koEvent);
+          this.handleKo(pokemon.id, events);
+          if (this.battleOver) {
+            return { success: true, events };
+          }
+        }
+      }
+    }
+
     this.emitPositionLinkedChecks(events);
 
     if (move.targeting.kind === TargetingKind.Teleport) {

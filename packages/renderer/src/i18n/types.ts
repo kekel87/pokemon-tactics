@@ -279,6 +279,10 @@ export interface Translations {
   "moveTooltip.tag.dynamicPower": string;
   "moveTooltip.tag.statSourceDefense": string;
   "moveTooltip.tag.statSourceTargetAttack": string;
+  "moveTooltip.tag.hitsPhysicalDefense": string;
+  "moveTooltip.tag.superVsWater": string;
+  "moveTooltip.tag.escalatingHits": string;
+  "moveTooltip.tag.crashOnMiss": string;
   "moveTooltip.tag.tauntBlocked": string;
   "moveTooltip.tag.disableBlocked": string;
   "moveTooltip.tag.encoreBlocked": string;

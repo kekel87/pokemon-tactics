@@ -36,6 +36,12 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Dette technique
 
+### Tag tooltip `superVsWater` hardcodé pour `typeEffectivenessOverride` (2026-06-05, plan 113)
+- **Contexte** : `MoveTooltip.ts` affiche le tag `moveTooltip.tag.superVsWater` ("×2 sur les types Eau") pour tout move ayant `typeEffectivenessOverride !== undefined`. Le champ est générique (`{ against: PokemonType; multiplier: number }`) mais le tag est spécifique à l'Eau.
+- **Risque** : un futur move qui override contre un autre type (ex: ×2 Feu) afficherait un tag faux. Aujourd'hui 1 seul move concerné (Lyophilisation).
+- **Fix recommandé** : construire le tag dynamiquement depuis `against`/`multiplier` (avec clés i18n de noms de types). À faire quand un 2e move à override arrive (B2/B3 ou plus tard).
+- **Priorité** : basse — cosmétique, 1 move concerné.
+
 ### Générer automatiquement `moves.{en,fr}.json` depuis `reference/moves.json` dans `data:update` (2026-06-04)
 - **Contexte** : `moves.en.json` s'est retrouvé incomplet (297 clés vs 938 en FR) car il est maintenu à la main. Chaque batch de moves oublie d'ajouter les noms EN. 47 moves implémentés s'affichaient en slug brut (`rock-slide`, `confuse-ray`) dans l'ActionMenu en mode anglais jusqu'au hotfix 2026-06-04.
 - **Fix courant** : régénération manuelle depuis `reference/moves.json` (`names.en`). Clé `vise-grip` corrigée dans `moves.fr.json`.
