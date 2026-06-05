@@ -1,6 +1,7 @@
 # État du projet — Pokemon Tactics
 
 > MAJ : 2026-06-05 (Phase 4 — Plan 113 DONE — B1 Quasi-prêt, 354 moves)
+> Dernière release : **v2026.6.1** (2026-06-05) — ~181 nouveaux moves, Clonage/Provoc/Encore/Entrave, plans 097→114
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
