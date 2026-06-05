@@ -80,6 +80,7 @@ function buildEngine(seed: number): BattleEngine {
       maxHp: combatStats.hp,
       baseStats: { ...definition.baseStats },
       combatStats,
+      weight: definition.weight,
       derivedStats: {
         movement: computeMovement(definition.baseStats.speed, 0),
         jump: 1,

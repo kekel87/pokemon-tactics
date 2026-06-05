@@ -21,6 +21,10 @@ export const DynamicPowerKind = {
   TargetHpScaled: "target_hp_scaled",
   /** Power scales linearly with the user's current HP fraction (water-spout). */
   SelfHpScaled: "self_hp_scaled",
+  /** Power scales with the target's body weight (low-kick, grass-knot). */
+  TargetWeight: "target_weight",
+  /** Power scales with the target/user weight ratio (heavy-slam, heat-crash). */
+  WeightRatio: "weight_ratio",
 } as const;
 
 export type DynamicPowerKind = (typeof DynamicPowerKind)[keyof typeof DynamicPowerKind];
