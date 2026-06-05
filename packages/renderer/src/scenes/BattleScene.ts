@@ -9,6 +9,7 @@ import {
   PokemonType,
 } from "@pokemon-tactic/core";
 import { loadData } from "@pokemon-tactic/data";
+import { AnalyticsEvent, trackEvent } from "../analytics/analytics";
 import {
   ARROW_PAN_SPEED,
   DECORATIONS_TEXTURE_KEYS,
@@ -73,6 +74,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   create(): void {
+    trackEvent(AnalyticsEvent.BattleStart);
     const tilesetTexture = this.textures.get(TILESET_KEY);
     if (tilesetTexture) {
       tilesetTexture.setFilter(Phaser.Textures.FilterMode.NEAREST);
