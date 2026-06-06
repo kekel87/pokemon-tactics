@@ -25,6 +25,20 @@ export const DynamicPowerKind = {
   TargetWeight: "target_weight",
   /** Power scales with the target/user weight ratio (heavy-slam, heat-crash). */
   WeightRatio: "weight_ratio",
+  /** ×2 if the user took enemy damage since its last action (avalanche, revenge). */
+  DamagedByEnemySinceLastAction: "damaged_by_enemy_since_last_action",
+  /** ×2 if the target took any damage since its last action (assurance). */
+  TargetDamagedSinceLastAction: "target_damaged_since_last_action",
+  /** move.power + 50 × min(6, user timesHit) — capped at 350 (rage-fist). */
+  TimesHitScaled: "times_hit_scaled",
+  /** ×2 if an ally fainted since the user's last action (retaliate). */
+  AllyFaintedSinceLastAction: "ally_fainted_since_last_action",
+  /** ×2 if the user's previous resolved move failed (stomping-tantrum). */
+  PreviousMoveFailedDouble: "previous_move_failed_double",
+  /** 40 × echoStreak, capped at 200 — team crescendo (echoed-voice). */
+  EchoCrescendo: "echo_crescendo",
+  /** ×2 if the team's previous action used this same move (round). */
+  TeamPreviousMoveDouble: "team_previous_move_double",
 } as const;
 
 export type DynamicPowerKind = (typeof DynamicPowerKind)[keyof typeof DynamicPowerKind];

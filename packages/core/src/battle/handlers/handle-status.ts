@@ -1,4 +1,5 @@
 import { BattleEventType } from "../../enums/battle-event-type";
+import { ConditionKind } from "../../enums/condition-kind";
 import type { EffectKind } from "../../enums/effect-kind";
 import { EffectTarget } from "../../enums/effect-target";
 import { PokemonType } from "../../enums/pokemon-type";
@@ -8,6 +9,7 @@ import { StatusType as StatusTypeEnum } from "../../enums/status-type";
 import type { BattleEvent } from "../../types/battle-event";
 import { ProtectionReason } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
+import type { PokemonInstance } from "../../types/pokemon-instance";
 import { DEFAULT_STATUS_RULES, type StatusRules } from "../../types/status-rules";
 import { isProtectedFromStatus } from "../aura-system";
 import type { EffectContext } from "../effect-handler-registry";
@@ -25,6 +27,7 @@ const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([
   StatusTypeEnum.Roosted,
   StatusTypeEnum.Flinch,
   StatusTypeEnum.Taunted,
+  StatusTypeEnum.Charged,
 ]);
 
 const STATUS_TYPE_IMMUNITIES: Partial<Record<StatusType, readonly PokemonType[]>> = {
@@ -55,8 +58,16 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
   const resolvedTargets =
     effect.target === EffectTarget.Self ? [context.attacker] : context.targets;
 
+  const appliesIf = "appliesIf" in effect ? effect.appliesIf : undefined;
+
   for (const target of resolvedTargets) {
     if (random() * 100 >= effect.chance) {
+      continue;
+    }
+
+    // Conditional secondary (B3): gate the effect on a battle-state predicate (alluring-voice,
+    // burning-jealousy only apply if the target holds a fresh, un-cashed stat boost).
+    if (appliesIf !== undefined && !conditionHolds(appliesIf, target)) {
       continue;
     }
 
@@ -232,6 +243,15 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
 
 function isVolatileStatus(status: StatusType): boolean {
   return VOLATILE_STATUSES.has(status);
+}
+
+function conditionHolds(condition: ConditionKind, target: PokemonInstance): boolean {
+  switch (condition) {
+    case ConditionKind.TargetBoostedRecently:
+      return target.hasFreshStatBoost === true;
+    default:
+      return false;
+  }
 }
 
 function getStatusDuration(

@@ -75,6 +75,7 @@ const en: Translations = {
   "status.disabled": "Disabled",
   "status.encored": "Encore",
   "status.charging": "Charging {move}",
+  "status.charged": "Charged",
   "status.flinched": "Flinched",
   "move.tooltip.twoTurnCharge": "⏱ 2 turns",
   "move.tooltip.twoTurnChargeSunSkip": "⏱ 2 turns (instant in Sun)",

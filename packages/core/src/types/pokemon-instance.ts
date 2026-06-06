@@ -47,4 +47,27 @@ export interface PokemonInstance {
   semiInvulnerableState?: SemiInvulnerableState;
   substituteHp?: number;
   lastUsedMoveId?: string;
+  /**
+   * Action-clock stamps (B3 conditional-damage moves). Each holds the value of
+   * `BattleState.actionCounter` at the moment the event happened. A stamp older than
+   * `lastActedAtAction` means "not since my last action". Model-agnostic (round & CT).
+   */
+  /** `actionCounter` when this mon last completed an action. */
+  lastActedAtAction?: number;
+  /** `actionCounter` when this mon last took any damage. */
+  lastDamagedAtAction?: number;
+  /** `actionCounter` when this mon last took damage from an enemy. */
+  lastDamagedByEnemyAtAction?: number;
+  /**
+   * True while this mon holds a stat boost it has not yet "cashed in" by acting.
+   * Set on any stat raise; cleared at the start of this mon's next action.
+   * Drives Alluring Voice / Burning Jealousy (the CT-equivalent of "stats raised this turn").
+   */
+  hasFreshStatBoost?: boolean;
+  /** Number of damaging hits taken since entering battle (Rage Fist). Never reset per-turn. */
+  timesHit?: number;
+  /** True when this mon's last resolved move failed (missed / blocked / immune) — Stomping Tantrum. */
+  lastMoveFailed?: boolean;
+  /** Move ids this mon has used at least once (Last Resort gate). */
+  usedMoveIds?: string[];
 }

@@ -47,4 +47,8 @@ export interface MoveDefinition {
   perHitAccuracy?: boolean;
   /** Self-damage (fraction of max HP) when the move fails to connect (high-jump-kick, axe-kick). */
   crashOnMiss?: { fraction: number };
+  /** Only usable while the user is asleep (snore). */
+  requiresAsleep?: boolean;
+  /** Only usable once every other move in the moveset has been used at least once (last-resort). */
+  requiresAllOtherMovesUsed?: boolean;
 }

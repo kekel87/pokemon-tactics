@@ -141,6 +141,10 @@ const STATUS_LOG_KEY: Record<
     applied: { fr: "{name} reçoit un Encore !", en: "{name} got an encore!" },
     removed: { fr: "L'Encore de {name} se dissipe.", en: "{name}'s encore ended." },
   },
+  [StatusType.Charged]: {
+    applied: { fr: "{name} se charge en électricité !", en: "{name} began charging power!" },
+    removed: { fr: "La charge de {name} se dissipe.", en: "{name}'s charge faded." },
+  },
 };
 
 const STAT_NAME_KEY: Record<string, { fr: string; en: string }> = {

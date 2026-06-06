@@ -2,8 +2,9 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { Category } from "../../enums/category";
 import type { EffectKind } from "../../enums/effect-kind";
 import { HeldItemId } from "../../enums/held-item-id";
-import type { PokemonType } from "../../enums/pokemon-type";
+import { PokemonType } from "../../enums/pokemon-type";
 import { StatName } from "../../enums/stat-name";
+import { StatusType } from "../../enums/status-type";
 import { Weather } from "../../enums/weather";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
@@ -19,6 +20,7 @@ import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calcula
 import { checkDefense } from "../defense-check";
 import { resolveDynamicPower } from "../dynamic-power-system";
 import type { EffectContext } from "../effect-handler-registry";
+import { isMajorStatus } from "../stat-modifier";
 import { applySubstituteAbsorption, shouldSubstituteBlock } from "../substitute-system";
 import {
   effectiveWeather,
@@ -69,6 +71,31 @@ function getHitCount(
   return rollMultiHitCount(effect.hits.min, effect.hits.max, random);
 }
 
+/**
+ * Beat Up (B3): one hit per healthy team member, power = 5 + floor(ally base Attack / 10).
+ * The user always participates; other allies are skipped if fainted or holding a major status
+ * (parity with Showdown's `pokemon.side.pokemon.filter(...)`).
+ */
+function computeBeatUpPowers(context: EffectContext): number[] {
+  const powers: number[] = [];
+  for (const mon of context.state.pokemon.values()) {
+    if (mon.playerId !== context.attacker.playerId) {
+      continue;
+    }
+    const isSelf = mon.id === context.attacker.id;
+    if (!isSelf) {
+      if (mon.currentHp <= 0) {
+        continue;
+      }
+      if (mon.statusEffects.some((s) => isMajorStatus(s.type))) {
+        continue;
+      }
+    }
+    powers.push(5 + Math.floor(mon.baseStats.attack / 10));
+  }
+  return powers;
+}
+
 function dealSingleHit(
   context: EffectContext,
   target: PokemonInstance,
@@ -88,9 +115,17 @@ function dealSingleHit(
     resolveWeatherBallMove(context.move, activeWeather),
     context.attacker,
     target,
+    context.state,
   );
   if (hitPowerOverride !== undefined) {
     resolvedMove = { ...resolvedMove, power: hitPowerOverride };
+  }
+  // Charge (B3): the user's next Electric move is doubled while the Charged volatile is held.
+  if (
+    resolvedMove.type === PokemonType.Electric &&
+    context.attacker.volatileStatuses.some((v) => v.type === StatusType.Charged)
+  ) {
+    resolvedMove = { ...resolvedMove, power: resolvedMove.power * 2 };
   }
   let weatherBp = getWeatherBpModifier(resolvedMove.type, activeWeather);
   if (
@@ -234,6 +269,17 @@ function dealSingleHit(
 
   target.currentHp = Math.max(0, target.currentHp - actualDamage);
   context.shared.lastDamageDealt += actualDamage;
+
+  if (actualDamage > 0) {
+    // Action-clock stamps (B3): record that the target took damage this action so
+    // Assurance / Avalanche / Revenge / Rage Fist can read it on later turns.
+    const clock = context.state.actionCounter ?? 0;
+    target.lastDamagedAtAction = clock;
+    target.timesHit = (target.timesHit ?? 0) + 1;
+    if (context.attacker.id !== target.id && context.attacker.playerId !== target.playerId) {
+      target.lastDamagedByEnemyAtAction = clock;
+    }
+  }
 
   events.push({
     type: BattleEventType.DamageDealt,
@@ -385,7 +431,8 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
   }
 
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.Damage }>;
-  const hitCount = getHitCount(effect, context.random);
+  const beatUpPowers = effect.teamBeatUp === true ? computeBeatUpPowers(context) : undefined;
+  const hitCount = beatUpPowers?.length ?? getHitCount(effect, context.random);
   const isMultiHit = hitCount > 1;
 
   for (const target of context.targets) {
@@ -403,7 +450,7 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
         }
       }
 
-      const hitPower = effect.escalatingHitPower?.[hit];
+      const hitPower = beatUpPowers?.[hit] ?? effect.escalatingHitPower?.[hit];
       const hitEvents = dealSingleHit(context, target, defenderTypes, hitPower);
       events.push(...hitEvents);
       actualHits++;

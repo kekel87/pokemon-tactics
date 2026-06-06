@@ -1,4 +1,5 @@
 import type { AuraKind } from "../enums/aura-kind";
+import type { ConditionKind } from "../enums/condition-kind";
 import type { DefensiveKind } from "../enums/defensive-kind";
 import type { EffectKind } from "../enums/effect-kind";
 import type { EffectTarget } from "../enums/effect-target";
@@ -12,6 +13,8 @@ export type Effect =
       hits?: number | { min: number; max: number };
       /** Per-hit base power for escalating multi-hit moves (triple-axel: [20, 40, 60]). Length = hit count. */
       escalatingHitPower?: number[];
+      /** Multi-hit driven by the user's team: one hit per healthy ally, power from each ally's base Attack (beat-up). */
+      teamBeatUp?: boolean;
     }
   | {
       kind: typeof EffectKind.Status;
@@ -19,6 +22,8 @@ export type Effect =
       chance: number;
       damagePerTurn?: number;
       target?: typeof EffectTarget.Self;
+      /** Only apply this effect when the predicate holds (alluring-voice, burning-jealousy). */
+      appliesIf?: ConditionKind;
     }
   | {
       kind: typeof EffectKind.Status;

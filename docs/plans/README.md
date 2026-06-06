@@ -122,3 +122,8 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 108 | [Couverture tests par move (rattrapage 210 + garde-fou CI)](./108-move-test-coverage.md) | done | 2026-06-02 |
 | 109 | [Power conditionnel (moteur dynamicPower + 12 moves state-only)](./109-power-conditionnel.md) | done | 2026-06-03 |
 | 110 | [Moves stat-source (Bodypress + Tricherie)](./110-stat-source-moves.md) | done | 2026-06-04 |
+| 111 | [Moves liés au poids (Balayage / Nœud Herbe / Tacle Lourd / Tacle Feu)](./111-weight-based-moves.md) | done | 2026-06-05 |
+| 112 | [Roadmap maître moves restants par système moteur](./112-moves-mechanics-roadmap.md) | done | 2026-06-05 |
+| 113 | [B1 « Quasi-prêt » (6 moves quick-win)](./113-b1-quasi-ready-moves.md) | done | 2026-06-05 |
+| 114 | [Analytics funnel events (GoatCounter beacon)](./114-analytics-events.md) | done | 2026-06-05 |
+| 115 | [B3 « Dégâts conditionnels » (17 moves + horloge d'actions)](./115-b3-conditional-damage.md) | ready | 2026-06-06 |

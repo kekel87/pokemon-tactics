@@ -1,6 +1,7 @@
 import { DynamicPowerKind } from "../enums/dynamic-power-kind";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
+import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import { getEffectiveStat, isMajorStatus } from "./stat-modifier";
@@ -9,6 +10,19 @@ interface DynamicPowerInput {
   move: MoveDefinition;
   attacker: PokemonInstance;
   target: PokemonInstance;
+  /** Present during real resolution; absent in tooltip previews (state-dependent kinds fall back). */
+  battleState?: BattleState;
+}
+
+/** True if `stamp` is strictly more recent than the mon's last completed action. */
+function happenedSinceLastAction(
+  stamp: number | undefined,
+  lastActed: number | undefined,
+): boolean {
+  if (stamp === undefined) {
+    return false;
+  }
+  return stamp > (lastActed ?? -1);
 }
 
 type DynamicPowerResolver = (input: DynamicPowerInput) => number;
@@ -183,6 +197,48 @@ const RESOLVERS: ReadonlyMap<DynamicPowerKind, DynamicPowerResolver> = new Map([
   ],
   [DynamicPowerKind.TargetWeight, ({ target }) => targetWeightPower(target)],
   [DynamicPowerKind.WeightRatio, ({ attacker, target }) => weightRatioPower(attacker, target)],
+  [
+    DynamicPowerKind.DamagedByEnemySinceLastAction,
+    ({ move, attacker }) =>
+      happenedSinceLastAction(attacker.lastDamagedByEnemyAtAction, attacker.lastActedAtAction)
+        ? move.power * 2
+        : move.power,
+  ],
+  [
+    DynamicPowerKind.TargetDamagedSinceLastAction,
+    ({ move, target }) =>
+      happenedSinceLastAction(target.lastDamagedAtAction, target.lastActedAtAction)
+        ? move.power * 2
+        : move.power,
+  ],
+  [
+    DynamicPowerKind.TimesHitScaled,
+    ({ move, attacker }) => Math.min(350, move.power + 50 * Math.min(6, attacker.timesHit ?? 0)),
+  ],
+  [
+    DynamicPowerKind.AllyFaintedSinceLastAction,
+    ({ move, attacker, battleState }) => {
+      const faintStamp = battleState?.lastAllyFaintAtAction?.[attacker.playerId];
+      return happenedSinceLastAction(faintStamp, attacker.lastActedAtAction)
+        ? move.power * 2
+        : move.power;
+    },
+  ],
+  [
+    DynamicPowerKind.PreviousMoveFailedDouble,
+    ({ move, attacker }) => (attacker.lastMoveFailed === true ? move.power * 2 : move.power),
+  ],
+  [
+    DynamicPowerKind.EchoCrescendo,
+    ({ battleState }) => Math.min(200, 40 * Math.max(1, battleState?.echoStreak ?? 1)),
+  ],
+  [
+    DynamicPowerKind.TeamPreviousMoveDouble,
+    ({ move, attacker, battleState }) =>
+      battleState?.lastTeamActionMoveId?.[attacker.playerId] === move.id
+        ? move.power * 2
+        : move.power,
+  ],
 ]);
 
 /**
@@ -193,6 +249,7 @@ export function resolveDynamicPower(
   move: MoveDefinition,
   attacker: PokemonInstance,
   target: PokemonInstance,
+  battleState?: BattleState,
 ): MoveDefinition {
   if (!move.dynamicPower) {
     return move;
@@ -201,7 +258,7 @@ export function resolveDynamicPower(
   if (!resolver) {
     return move;
   }
-  const power = Math.max(1, resolver({ move, attacker, target }));
+  const power = Math.max(1, resolver({ move, attacker, target, battleState }));
   return { ...move, power };
 }
 

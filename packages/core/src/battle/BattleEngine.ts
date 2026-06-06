@@ -3,6 +3,7 @@ import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Category } from "../enums/category";
 import { Direction } from "../enums/direction";
+import { DynamicPowerKind } from "../enums/dynamic-power-kind";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
@@ -148,6 +149,12 @@ export class BattleEngine {
     itemRegistry: HeldItemHandlerRegistry | null = null,
   ) {
     this.state = state;
+    // Normalize the action clock (B3 conditional-damage moves): always present at runtime
+    // so stamps/streaks can be read and mutated regardless of how the state was built.
+    this.state.actionCounter ??= 0;
+    this.state.lastAllyFaintAtAction ??= {};
+    this.state.lastTeamActionMoveId ??= {};
+    this.state.echoStreak ??= 0;
     this.moveRegistry = moveRegistry;
     this.typeChart = typeChart;
     this.pokemonTypesMap = pokemonTypesMap;
@@ -403,13 +410,17 @@ export class BattleEngine {
     const isTrapped = currentPokemon.volatileStatuses.some((v) => v.type === StatusType.Trapped);
     const isCharging = currentPokemon.chargingMove !== undefined;
     const mustActFirst = isCharging && !this.turnState.hasActed;
+    // Asleep (B3): the only thing a sleeping mon may do is use a requiresAsleep move (snore).
+    // No displacement, and every other move is hidden — it can otherwise only wait (EndTurn).
+    const isAsleep = currentPokemon.statusEffects.some((s) => s.type === StatusType.Asleep);
 
     if (
       !this.turnState.hasMoved &&
       !this.restrictActions &&
       !isTrapped &&
       !mustActFirst &&
-      !this.flinchedThisTurn
+      !this.flinchedThisTurn &&
+      !isAsleep
     ) {
       const reachableTiles = this.getReachableTiles(currentPokemon);
       for (const reachable of reachableTiles) {
@@ -465,6 +476,25 @@ export class BattleEngine {
 
         if (currentPokemon.lockedMoveId !== undefined && moveId !== currentPokemon.lockedMoveId) {
           continue;
+        }
+
+        // Snore (B3): only usable while asleep; conversely a sleeping mon may use nothing else.
+        if (move.requiresAsleep === true && !isAsleep) {
+          continue;
+        }
+        if (isAsleep && move.requiresAsleep !== true) {
+          continue;
+        }
+
+        // Last Resort (B3): only usable once every other move has been used at least once.
+        if (move.requiresAllOtherMovesUsed === true) {
+          const otherMoveIds = currentPokemon.moveIds.filter((id) => id !== moveId);
+          const allOthersUsed =
+            otherMoveIds.length > 0 &&
+            otherMoveIds.every((id) => currentPokemon.usedMoveIds?.includes(id) === true);
+          if (!allOthersUsed) {
+            continue;
+          }
         }
 
         if (this.restrictActions && move.targeting.kind === TargetingKind.Dash) {
@@ -839,6 +869,23 @@ export class BattleEngine {
       return { success: false, events: [encoreBlockedEvent], error: ActionError.InvalidAction };
     }
 
+    // Snore / Last Resort gates (B3) — defensive guards mirroring getLegalActions.
+    if (
+      move.requiresAsleep === true &&
+      !pokemon.statusEffects.some((s) => s.type === StatusType.Asleep)
+    ) {
+      return { success: false, events: [], error: ActionError.InvalidAction };
+    }
+    if (move.requiresAllOtherMovesUsed === true) {
+      const otherMoveIds = pokemon.moveIds.filter((id) => id !== moveId);
+      const allOthersUsed =
+        otherMoveIds.length > 0 &&
+        otherMoveIds.every((id) => pokemon.usedMoveIds?.includes(id) === true);
+      if (!allOthersUsed) {
+        return { success: false, events: [], error: ActionError.InvalidAction };
+      }
+    }
+
     const isFiringCharged = pokemon.chargingMove?.moveId === moveId;
     if (move.twoTurnCharge && !isFiringCharged) {
       const activeWeather = this.getEffectiveWeather();
@@ -1011,6 +1058,14 @@ export class BattleEngine {
       this.dashMoveCaster(pokemon, targetPosition, events);
     }
 
+    // Echoed Voice crescendo (B3): ramp the team streak BEFORE damage resolves so the
+    // dynamic-power resolver reads the up-to-date value for this cast.
+    if (move.dynamicPower?.kind === DynamicPowerKind.EchoCrescendo) {
+      const previousTeamMove = this.state.lastTeamActionMoveId?.[pokemon.playerId];
+      this.state.echoStreak =
+        previousTeamMove === moveId ? Math.min(5, (this.state.echoStreak ?? 0) + 1) : 1;
+    }
+
     const effectEvents = processEffects({
       attacker: pokemon,
       targets,
@@ -1110,9 +1165,36 @@ export class BattleEngine {
     }
 
     this.applyChoiceLock(pokemon, moveId);
+
+    // Charge (B3): a Charge'd Electric move consumes the volatile after dealing its boosted hit.
+    if (move.type === PokemonType.Electric && moveId !== "charge") {
+      this.removeChargedVolatile(pokemon);
+    }
+
     this.turnState.hasActed = true;
     this.turnState.lastMoveId = moveId;
     pokemon.lastUsedMoveId = moveId;
+    if (pokemon.usedMoveIds === undefined) {
+      pokemon.usedMoveIds = [];
+    }
+    if (!pokemon.usedMoveIds.includes(moveId)) {
+      pokemon.usedMoveIds.push(moveId);
+    }
+    // Track move failure for Stomping Tantrum: a damaging move that connected with no target
+    // (missed / immune / fully blocked) counts as failed. Status/self moves never "fail" here.
+    const isDamagingMove = move.effects.some((effect) => effect.kind === EffectKind.Damage);
+    if (isDamagingMove) {
+      const connectedWithTarget = effectEvents.some(
+        (event) =>
+          event.type === BattleEventType.DamageDealt &&
+          event.targetId !== pokemon.id &&
+          event.recoil !== true &&
+          (event.effectiveness ?? 0) > 0,
+      );
+      pokemon.lastMoveFailed = !connectedWithTarget;
+    } else {
+      pokemon.lastMoveFailed = false;
+    }
     this.turnState.lastTargetIds = targets.map((t) => t.id);
     this.preMoveSnapshot = null;
 
@@ -1829,7 +1911,54 @@ export class BattleEngine {
     return { success: true, events };
   }
 
+  /**
+   * Start-of-action bookkeeping for the action clock (B3): tick the monotonic counter and clear
+   * the actor's "fresh stat boost" flag (it cashes in its setup by acting). Runs in both loops.
+   */
+  private beginActorTurn(pokemonId: string): void {
+    this.state.actionCounter = (this.state.actionCounter ?? 0) + 1;
+    const startingPokemon = this.state.pokemon.get(pokemonId);
+    if (startingPokemon !== undefined) {
+      startingPokemon.hasFreshStatBoost = false;
+    }
+  }
+
+  /**
+   * Asleep exception (B3): a sleeping mon normally skips its turn, but if it holds a usable
+   * requiresAsleep move (snore) it gets a restricted turn (that move or wait — no displacement).
+   */
+  private canActWhileAsleep(pokemonId: string): boolean {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    if (pokemon === undefined || !pokemon.statusEffects.some((s) => s.type === StatusType.Asleep)) {
+      return false;
+    }
+    return pokemon.moveIds.some((moveId) => {
+      const move = this.moveRegistry.get(moveId);
+      return move?.requiresAsleep === true && (pokemon.currentPp[moveId] ?? 0) > 0;
+    });
+  }
+
+  /** Remove the Charge volatile after the user fires an Electric move (B3). */
+  private removeChargedVolatile(pokemon: PokemonInstance): void {
+    const index = pokemon.volatileStatuses.findIndex((v) => v.type === StatusType.Charged);
+    if (index !== -1) {
+      pokemon.volatileStatuses.splice(index, 1);
+    }
+  }
+
   private endCurrentTurn(pokemonId: string, events: BattleEvent[]): void {
+    // Action clock (B3): stamp this actor's completed action and record the team's last move so
+    // "since my last action" / "team previous action" conditions resolve on later turns.
+    const actingPokemon = this.state.pokemon.get(pokemonId);
+    if (actingPokemon !== undefined) {
+      actingPokemon.lastActedAtAction = this.state.actionCounter ?? 0;
+      if (this.state.lastTeamActionMoveId === undefined) {
+        this.state.lastTeamActionMoveId = {};
+      }
+      this.state.lastTeamActionMoveId[actingPokemon.playerId] =
+        this.turnState.lastMoveId ?? undefined;
+    }
+
     const turnEnded: BattleEvent = { type: BattleEventType.TurnEnded, pokemonId };
     this.emit(turnEnded);
     events.push(turnEnded);
@@ -1927,6 +2056,8 @@ export class BattleEngine {
       this.confusionChecked = false;
       this.flinchedThisTurn = false;
 
+      this.beginActorTurn(nextPokemonId);
+
       const turnStarted: BattleEvent = {
         type: BattleEventType.TurnStarted,
         pokemonId: nextPokemonId,
@@ -1960,13 +2091,21 @@ export class BattleEngine {
         continue;
       }
 
-      if (startTurnResult.skipAction) {
+      if (startTurnResult.skipAction && !this.canActWhileAsleep(nextPokemonId)) {
         const skipEnded: BattleEvent = {
           type: BattleEventType.TurnEnded,
           pokemonId: nextPokemonId,
         };
         this.emit(skipEnded);
         events.push(skipEnded);
+
+        // Action clock (B3): a skipped turn (flinch / sleep / full paralysis) still consumes the
+        // actor's turn, so stamp lastActedAtAction — otherwise its "since my last action" stamps
+        // would stay stale and falsely trigger Avalanche / Revenge / Assurance later.
+        const skippedPokemon = this.state.pokemon.get(nextPokemonId);
+        if (skippedPokemon !== undefined) {
+          skippedPokemon.lastActedAtAction = this.state.actionCounter ?? 0;
+        }
 
         const endTurnResult = this.turnPipeline.executeEndTurn(nextPokemonId, this.state);
         for (const event of endTurnResult.events) {
@@ -2178,6 +2317,12 @@ export class BattleEngine {
     this.turnManager.removePokemon(pokemonId);
     this.chargeTimeTurnSystem?.onPokemonKO(pokemonId);
 
+    // Action clock (B3): record the faint for Retaliate ("ally fainted since my last action").
+    if (this.state.lastAllyFaintAtAction === undefined) {
+      this.state.lastAllyFaintAtAction = {};
+    }
+    this.state.lastAllyFaintAtAction[pokemon.playerId] = this.state.actionCounter ?? 0;
+
     pokemon.activeDefense = null;
     pokemon.chargingMove = undefined;
     pokemon.lockedMoveId = undefined;
@@ -2381,6 +2526,8 @@ export class BattleEngine {
       this.state.currentTurnIndex = 0;
       this.syncCtSnapshot();
 
+      this.beginActorTurn(nextPokemonId);
+
       const turnStarted: BattleEvent = {
         type: BattleEventType.TurnStarted,
         pokemonId: nextPokemonId,
@@ -2406,13 +2553,21 @@ export class BattleEngine {
         continue;
       }
 
-      if (startTurnResult.skipAction) {
+      if (startTurnResult.skipAction && !this.canActWhileAsleep(nextPokemonId)) {
         const skipEnded: BattleEvent = {
           type: BattleEventType.TurnEnded,
           pokemonId: nextPokemonId,
         };
         this.emit(skipEnded);
         events.push(skipEnded);
+
+        // Action clock (B3): a skipped turn (flinch / sleep / full paralysis) still consumes the
+        // actor's turn, so stamp lastActedAtAction — otherwise its "since my last action" stamps
+        // would stay stale and falsely trigger Avalanche / Revenge / Assurance later.
+        const skippedPokemon = this.state.pokemon.get(nextPokemonId);
+        if (skippedPokemon !== undefined) {
+          skippedPokemon.lastActedAtAction = this.state.actionCounter ?? 0;
+        }
 
         const endTurnResult = this.turnPipeline.executeEndTurn(nextPokemonId, this.state);
         for (const event of endTurnResult.events) {

@@ -80,6 +80,7 @@ export interface Translations {
   "status.disabled": string;
   "status.encored": string;
   "status.charging": string;
+  "status.charged": string;
   "status.flinched": string;
   "move.tooltip.twoTurnCharge": string;
   "move.tooltip.twoTurnChargeSunSkip": string;
