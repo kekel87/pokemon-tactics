@@ -16,6 +16,8 @@ export const StatusType = {
   Taunted: "taunted",
   Disabled: "disabled",
   Encored: "encored",
+  /** Charge volatile: the user's next Electric move is doubled (B3). */
+  Charged: "charged",
 } as const;
 
 export type StatusType = (typeof StatusType)[keyof typeof StatusType];

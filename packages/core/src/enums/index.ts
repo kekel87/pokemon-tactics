@@ -5,6 +5,7 @@ export { AttackStatSource } from "./attack-stat-source";
 export { AuraKind } from "./aura-kind";
 export { BattleEventType } from "./battle-event-type";
 export { Category } from "./category";
+export { ConditionKind } from "./condition-kind";
 export { DefensiveKind } from "./defensive-kind";
 export { Direction } from "./direction";
 export { DynamicPowerKind } from "./dynamic-power-kind";

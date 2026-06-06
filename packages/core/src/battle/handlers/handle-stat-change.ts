@@ -68,6 +68,13 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
 
     pokemon.statStages[effect.stat] = newStage;
 
+    if (actualChange > 0) {
+      // Action clock (B3): mark a fresh, un-cashed stat boost so Alluring Voice / Burning
+      // Jealousy can punish it until this mon next acts. Includes self-boosts (parity with
+      // Showdown's statsRaisedThisTurn).
+      pokemon.hasFreshStatBoost = true;
+    }
+
     if (effect.stat === StatName.Speed) {
       pokemon.derivedStats.movement = computeMovement(pokemon.baseStats.speed, newStage);
     }

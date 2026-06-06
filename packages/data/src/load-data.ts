@@ -92,6 +92,8 @@ export function loadData(): GameData {
         : {}),
       ...(merged.perHitAccuracy ? { perHitAccuracy: true } : {}),
       ...(merged.crashOnMiss ? { crashOnMiss: merged.crashOnMiss } : {}),
+      ...(merged.requiresAsleep ? { requiresAsleep: true } : {}),
+      ...(merged.requiresAllOtherMovesUsed ? { requiresAllOtherMovesUsed: true } : {}),
     };
     return moveDefinition;
   });

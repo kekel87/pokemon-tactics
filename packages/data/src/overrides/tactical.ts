@@ -9,6 +9,7 @@ import type {
 import {
   AttackStatSource,
   AuraKind,
+  ConditionKind,
   DefensiveKind,
   DynamicPowerKind,
   EffectKind,
@@ -45,6 +46,8 @@ export interface TacticalOverride {
   typeEffectivenessOverride?: { against: PokemonType; multiplier: number };
   perHitAccuracy?: boolean;
   crashOnMiss?: { fraction: number };
+  requiresAsleep?: boolean;
+  requiresAllOtherMovesUsed?: boolean;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -130,6 +133,117 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.Damage }],
     dynamicPower: { kind: DynamicPowerKind.WeightRatio },
+  },
+  // Dégâts conditionnels — plan 115 (B3, horloge d'actions)
+  avalanche: {
+    targeting: { kind: TargetingKind.Slash },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.DamagedByEnemySinceLastAction },
+  },
+  revenge: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.DamagedByEnemySinceLastAction },
+  },
+  assurance: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.TargetDamagedSinceLastAction },
+  },
+  "alluring-voice": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.Status,
+        status: StatusType.Confused,
+        chance: 100,
+        appliesIf: ConditionKind.TargetBoostedRecently,
+      },
+    ],
+  },
+  "burning-jealousy": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.Status,
+        status: StatusType.Burned,
+        chance: 100,
+        appliesIf: ConditionKind.TargetBoostedRecently,
+      },
+    ],
+  },
+  "echoed-voice": {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.EchoCrescendo },
+  },
+  round: {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.TeamPreviousMoveDouble },
+  },
+  "rage-fist": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.TimesHitScaled },
+  },
+  retaliate: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.AllyFaintedSinceLastAction },
+  },
+  "stomping-tantrum": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.PreviousMoveFailedDouble },
+  },
+  snore: {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 30 },
+    ],
+    requiresAsleep: true,
+  },
+  "last-resort": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    requiresAllOtherMovesUsed: true,
+  },
+  charge: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: 1,
+        target: EffectTarget.Self,
+      },
+      {
+        kind: EffectKind.Status,
+        status: StatusType.Charged,
+        chance: 100,
+        target: EffectTarget.Self,
+      },
+    ],
+  },
+  "beat-up": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage, teamBeatUp: true }],
+  },
+  "grass-pledge": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "fire-pledge": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+  },
+  "water-pledge": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
   },
   "u-turn": {
     targeting: {

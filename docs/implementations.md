@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 354 | 493 | Pool roster (level-up + TM + tutor + chaîne évo sur 80 jouables ∩ `reference/moves.json`), **Téra-Explosion exclue** (décision #422). **149 restants = tous à mécanique moteur**, classés par système dans **plan 112** (roadmap maître). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106), +11 simples G6 (plan 107). **Batches G1–G6 clos.** +12 power conditionnel plan 109 (moteur dynamicPower). +2 stat-source plan 110 (Bodypress/Tricherie). +4 poids plan 111 (Balayage/Nœud Herbe/Tacle Lourd/Tacle Feu). +6 B1 quasi-prêt plan 113 (Choc Psy/Frappe Psy/Lyophilisation/Triple Axel/Pied Voltige/Talon-Marteau). |
+| Attaques | 371 | 493 | Pool roster (level-up + TM + tutor + chaîne évo sur 80 jouables ∩ `reference/moves.json`), **Téra-Explosion exclue** (décision #422). **132 restants = tous à mécanique moteur**, classés par système dans **plan 112** (roadmap maître). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106), +11 simples G6 (plan 107). **Batches G1–G6 clos.** +12 power conditionnel plan 109 (moteur dynamicPower). +2 stat-source plan 110 (Bodypress/Tricherie). +4 poids plan 111 (Balayage/Nœud Herbe/Tacle Lourd/Tacle Feu). +6 B1 quasi-prêt plan 113 (Choc Psy/Frappe Psy/Lyophilisation/Triple Axel/Pied Voltige/Talon-Marteau). +17 B3 dégâts conditionnels plan 115 (horloge d'actions). |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (348 implémentées)
+## Attaques (371 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -234,6 +234,8 @@
 | Choc Mental | confusion | Psy | Spé | 50 | 100 | 25 | single r4 | |
 | Riposte | counter | Combat | Phys | — | 100 | 20 | self | Défensif : renvoie dégâts physiques ×2 |
 | Boul'Armure | defense-curl | Normal | Statut | — | — | 40 | self | +1 Déf |
+| Chant Canon | round | Normal | Spé | 60 | 100 | 15 | cône r3 | `dynamicPower` ×2 (120) si l'action d'équipe précédente était Chant Canon (`TeamPreviousMoveDouble`). Son. |
+| Chargeur | charge | Électrique | Statut | — | — | 20 | self | +1 DéfSpé self + pose volatile `Charged` : prochain move Électrique ×2 puissance. |
 | Détection | detect | Combat | Statut | — | — | 5 | self | Défensif : immunité dégâts 1 tour |
 | Double Pied | double-kick | Combat | Phys | 30×2 | 100 | 30 | mêlée | 2 coups |
 | Reflet | double-team | Normal | Statut | — | — | 15 | self | +1 Esquive |
@@ -295,6 +297,8 @@
 | Tranche-Air | air-slash | Vol | Spé | 75 | 95 | 15 | slash | Flinch 30% |
 | Amnésie | amnesia | Psy | Statut | — | — | 20 | self | +2 DéfSpé |
 | Aqua-Queue | aqua-tail | Eau | Phys | 90 | 90 | 10 | mêlée | |
+| Assurance | assurance | Ténèbres | Phys | 60 | 100 | 10 | single r1 | `dynamicPower` ×2 si cible a déjà subi des dégâts depuis sa dernière action. |
+| Avalanche | avalanche | Glace | Phys | 60 | 100 | 10 | slash | `dynamicPower` ×2 si le lanceur a été touché par un ennemi depuis sa dernière action. |
 | Casse-Brique | brick-break | Combat | Phys | 75 | 100 | 15 | mêlée | |
 | Rayon Chargé | charge-beam | Électrique | Spé | 50 | 90 | 10 | ligne r3 | +1 AtqSpé 70% |
 | Close Combat | close-combat | Combat | Phys | 120 | 100 | 5 | mêlée | −1 Déf, −1 DéfSpé attaquant |
@@ -315,6 +319,7 @@
 | Psyko | psychic | Psy | Spé | 90 | 100 | 10 | single r4 | −1 DéfSpé 10% |
 | Soin | recover | Normal | Statut | — | — | 5 | self | Soigne 50% PV max |
 | Repos | rest | Psy | Statut | — | — | 5 | self | Soigne 100% PV max + Sommeil 2 tours |
+| Ronflement | snore | Normal | Spé | 50 | 100 | 15 | cône r3 | Utilisable uniquement si le lanceur est endormi (`requiresAsleep`). Flinch 30%. Son. |
 | Ball'Ombre | shadow-ball | Spectre | Spé | 80 | 100 | 15 | single r4 | −1 DéfSpé 20% |
 | Surf | surf | Eau | Spé | 90 | 100 | 15 | zone r2 | Friendly fire |
 | Synthèse | synthesis | Normal | Statut | — | — | 5 | self | Soigne 50% PV max |
@@ -330,6 +335,7 @@
 | Poing Glace | ice-punch | Glace | Phys | 75 | 100 | 15 | single r1 | Gel 10%. Flag `punch`. |
 | Poing de Feu | fire-punch | Feu | Phys | 75 | 100 | 15 | single r1 | Brûlure 10%. Flag `punch`. |
 | Damoclès | double-edge | Normal | Phys | 120 | 100 | 15 | single r1 | Recul 1/3 HP max |
+| Dernier Recours | last-resort | Normal | Phys | 140 | 100 | 5 | single r1 | Échoue si tous les autres moves du lanceur n'ont pas encore été utilisés au moins une fois. |
 | Feu Follet | will-o-wisp | Feu | Statut | — | 85 | 15 | single r1–3 | Brûlure 100% |
 | Machination | nasty-plot | Ténèbres | Statut | — | — | 20 | self | +2 AtqSpé |
 | Cradovague | sludge-wave | Poison | Spé | 95 | 100 | 10 | zone r2 | Friendly fire, Poison 10% |
@@ -414,6 +420,7 @@
 | Nitrocharge | flame-charge | Feu | Phys | 50 | 100 | 20 | dash r3 | +1 Vit attaquant (100%) |
 | Picpic | peck | Vol | Phys | 35 | 100 | 35 | single r1–2 | — |
 | Plaie Croix | x-scissor | Insecte | Phys | 80 | 100 | 15 | slash | — |
+| Poing de Colère | rage-fist | Spectre | Phys | 50 | 100 | 10 | single r1 | `dynamicPower` +50 par fois que le lanceur a été touché par un move offensif depuis le début du combat (max 6 hits → 350). Flag `punch`. |
 | Poing Ombre | shadow-punch | Spectre | Phys | 60 | — | 20 | single r1 | Touche garantie (`bypassAccuracy`) |
 | Psycho-Croc | psychic-fangs | Psy | Phys | 85 | 100 | 10 | single r1 | *(rider screen-break différé)* |
 | Souplesse | slam | Normal | Phys | 80 | 75 | 20 | single r1 | — |
@@ -455,6 +462,7 @@
 | Éclair | thunder-shock | Électrique | Spé | 40 | 100 | 30 | single r1–3 | Para 10% |
 | Élecanon | zap-cannon | Électrique | Spé | 120 | 50 | 5 | single r1–4 | Para 100% |
 | Feu d'Enfer | inferno | Feu | Spé | 100 | 50 | 5 | single r1–3 | Brûlure 100% |
+| Feu Envieux | burning-jealousy | Feu | Spé | 70 | 100 | 5 | cône r2 | Brûlure 100% si la cible a obtenu un boost de stat depuis sa dernière action (`TargetBoostedRecently`). |
 | Poudreuse | powder-snow | Glace | Spé | 40 | 100 | 25 | cône r1–2 | Gel 10% |
 | Détritus | sludge | Poison | Spé | 65 | 100 | 20 | single r1–3 | Poison 30% |
 | Purédpois | gunk-shot | Poison | Phys | 120 | 80 | 5 | blast r1–3/r1 | Poison 30% |
@@ -472,6 +480,7 @@
 | Queue-Poison | poison-tail | Poison | Phys | 50 | 100 | 25 | single r1 | Poison 10%, critique élevé |
 | Bélier | take-down | Normal | Phys | 90 | 85 | 20 | dash r3 | Recoil 1/4 |
 | Éclair Fou | wild-charge | Électrique | Phys | 90 | 100 | 15 | dash r3 | Recoil 1/4 |
+| Écho | echoed-voice | Normal | Spé | 40 | 100 | 15 | cône r3 | `dynamicPower` crescendo : ×1–×5 (40→200) si un allié ou soi a utilisé Écho à l'action précédente (`EchoCrescendo`). Son. |
 | Rapace | brave-bird | Vol | Phys | 120 | 100 | 15 | dash r3 | Recoil 1/3 |
 | Aquatacle | wave-crash | Eau | Phys | 120 | 100 | 10 | dash r3 | Recoil 1/3 |
 | Martobois | wood-hammer | Plante | Phys | 120 | 100 | 15 | single r1 | Recoil 1/3 |
@@ -487,6 +496,7 @@
 | Piétisol | bulldoze | Sol | Phys | 60 | 100 | 20 | zone r1 | −1 Vit cibles 100%, friendly fire |
 | Tomberoche | rock-tomb | Roche | Phys | 60 | 95 | 15 | single r1–3 | −1 Vit cible 100% |
 | Balayette | low-sweep | Combat | Phys | 65 | 100 | 20 | single r1 | −1 Vit cible 100% |
+| Baston | beat-up | Ténèbres | Phys | var | 100 | 10 | single r1 | 1 coup par allié sain (sans statut majeur). Puissance par coup = 5 + floor(AtkBase allié / 10). |
 | Bond | pounce | Insecte | Phys | 50 | 100 | 20 | single r1 | −1 Vit cible 100% |
 | Tir de Boue | mud-shot | Sol | Spé | 55 | 95 | 15 | single r1–3 | −1 Vit cible 100% |
 | Toile Élek | electroweb | Électrique | Spé | 55 | 95 | 15 | zone r2 | −1 Vit cibles 100%, friendly fire |
@@ -540,10 +550,14 @@
 | Lame Solaire | solar-blade | Plante | Phys | 125 | 100 | 10 | single r1 | Charge 2 tours (skip sous Soleil). Flags `contact`+`slicing`. |
 | Laser Météore | meteor-beam | Roche | Spé | 120 | 90 | 5 | ligne r5 | Charge 2 tours. T1 : `chargeEffects` +1 AtqSpé self. |
 | Trempette | splash | Normal | Statut | — | — | 40 | self | Aucun (no-op canonique) |
+| Trépignement | stomping-tantrum | Sol | Phys | 75 | 100 | 10 | single r1 | `dynamicPower` ×2 (150) si le move précédent du lanceur a échoué (`PreviousMoveFailedDouble`). |
 | Façade | facade | Normal | Phys | 70 (140 si statut) | 100 | 20 | single r1–3 | `dynamicPower` ×2 si lanceur a un statut majeur. Ignore baisse Atk brûlure (`ignoresBurnAttackDrop`). |
 | Châtiment | hex | Spectre | Spé | 65 (130 si statut cible) | 100 | 10 | single r1–3 | `dynamicPower` ×2 si cible a un statut majeur ou volatile. |
 | Choc Venin | venoshock | Poison | Spé | 65 (130 si cible empoisonnée) | 100 | 10 | single r1–3 | `dynamicPower` ×2 si cible Poisoned ou BadlyPoisoned. |
 | Acrobatie | acrobatics | Vol | Phys | 55 (110 sans objet) | 100 | 15 | slash | `dynamicPower` ×2 si lanceur ne tient aucun objet. |
+| Aire d'Eau | water-pledge | Eau | Spé | 80 | 100 | 10 | single r3 | Dégâts simples (combo champ différé B4). |
+| Aire de Feu | fire-pledge | Feu | Spé | 80 | 100 | 10 | single r3 | Dégâts simples (combo champ différé B4). |
+| Aire d'Herbe | grass-pledge | Plante | Spé | 80 | 100 | 10 | single r3 | Dégâts simples (combo champ différé B4). |
 | Force Ajoutée | stored-power | Psy | Spé | 20 (+20/stage positif) | 100 | 10 | single r1–3 | `dynamicPower` 20 + 20 par cran de stat positif du lanceur (max 860). |
 | Boule Élek | electro-ball | Électrique | Spé | var | 100 | 10 | single r1–4 | `dynamicPower` ratio vitesse : 40–150 selon spdSoi/spdCible. |
 | Gyroballe | gyro-ball | Acier | Phys | var | 100 | 5 | single r1 | `dynamicPower` `min(150, floor(25 × spdCible/spdSoi + 1))`. |
@@ -558,6 +572,9 @@
 | Nœud Herbe | grass-knot | Plante | Spé | var | 100 | 20 | single r1 | `dynamicPower` `TargetWeight` : identique à Balayage (puissance selon poids cible). |
 | Tacle Lourd | heavy-slam | Acier | Phys | var | 100 | 10 | single r1 | `dynamicPower` `WeightRatio` : puissance selon ratio poids lanceur / poids cible (40–120). Palier ×3 inclusif → 80. |
 | Tacle Feu | heat-crash | Feu | Phys | var | 100 | 10 | single r1 | `dynamicPower` `WeightRatio` : identique à Tacle Lourd. |
+| Vendetta | revenge | Combat | Phys | 60 | 100 | 10 | single r1 | `dynamicPower` ×2 si le lanceur a été touché par un ennemi depuis sa dernière action (`DamagedByEnemySinceLastAction`). Priorité −4. |
+| Vengeance | retaliate | Normal | Phys | 70 | 100 | 5 | single r1 | `dynamicPower` ×2 si un allié est tombé KO depuis la dernière action du lanceur (`AllyFaintedSinceLastAction`). |
+| Voix Envoûtante | alluring-voice | Fée | Spé | 80 | 100 | 10 | cône r2 | Confusion 100% si la cible a obtenu un boost de stat depuis sa dernière action (`TargetBoostedRecently`). |
 
 ---
 
