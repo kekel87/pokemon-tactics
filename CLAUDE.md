@@ -112,7 +112,8 @@ Options (cocher pré-sélection selon règles ci-dessous) :
 | `core-guardian` | `git diff --name-only HEAD` matche `packages/core/` |
 | `code-reviewer` | >50 lignes changées OU nouveau fichier source |
 | `doc-keeper` | STATUS/docs/decisions impactés, nouvelle mécanique, nouveau Pokemon/move/ability |
-| `visual-tester` | **JAMAIS auto-coché** (≥2 min Playwright, humain décide) |
+| `visual-tester` | **JAMAIS auto-coché** (≥2 min Playwright, je teste moi-même) |
+| `human-testing` | **JAMAIS auto-coché** (je prépare checklist + commandes sandbox, l'humain teste) |
 | `gate CI` (`/ci-gate`) | Toujours coché sauf si déjà passé dans le tour |
 | `commit-message` (`/commit`) | Toujours coché |
 
@@ -122,9 +123,11 @@ Spéciaux selon contexte :
 
 #### Ordre d'exécution fixe
 
-`core-guardian → code-reviewer → doc-keeper → visual-tester → /ci-gate → /commit`
+`core-guardian → code-reviewer → doc-keeper → visual-tester → human-testing → /ci-gate → /commit`
 
 Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, `visual-tester` régression).
+
+**`human-testing`** : je ne teste pas — je produis un plan que l'humain exécute. (1) analyse `git diff HEAD` pour ce qui est observable ; (2) checklist numérotée (quoi tester + résultat attendu, noms FR) ; (3) 1 commande `pnpm dev:sandbox '{...}'` pré-remplie et validée (moves/Pokemon existent, sinon agent `sandbox-json`) par scénario ; (4) pause, l'humain teste et revient. Exclusif de `visual-tester` en général.
 
 **Commit/push après validation** — `/commit` génère le titre court (1 scope max, sinon aucun), Claude le **propose en chat**, l'humain valide, **puis Claude commit + push**. Jamais commit sans validation préalable du message.
 
