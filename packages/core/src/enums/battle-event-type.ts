@@ -67,6 +67,9 @@ export const BattleEventType = {
   EncoreBlocked: "encore_blocked",
   DisableFailed: "disable_failed",
   EncoreFailed: "encore_failed",
+  WishPosted: "wish_posted",
+  WishHealed: "wish_healed",
+  MoveFailed: "move_failed",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

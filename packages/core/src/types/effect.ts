@@ -15,6 +15,8 @@ export type Effect =
       escalatingHitPower?: number[];
       /** Multi-hit driven by the user's team: one hit per healthy ally, power from each ally's base Attack (beat-up). */
       teamBeatUp?: boolean;
+      /** Only deal damage when the predicate holds (pollen-puff: target_is_enemy). */
+      appliesIf?: ConditionKind;
     }
   | {
       kind: typeof EffectKind.Status;
@@ -55,4 +57,16 @@ export type Effect =
   | { kind: typeof EffectKind.PostAura; aura: AuraKind }
   | { kind: typeof EffectKind.PostSubstitute }
   | { kind: typeof EffectKind.Disable }
-  | { kind: typeof EffectKind.Encore };
+  | { kind: typeof EffectKind.Encore }
+  | {
+      kind: typeof EffectKind.HealTarget;
+      percent: number;
+      /** Only heal when the predicate holds (pollen-puff: target_is_ally). */
+      appliesIf?: ConditionKind;
+      /** When set, heal all living allies within this Manhattan radius of the caster (life-dew). */
+      radius?: number;
+    }
+  | { kind: typeof EffectKind.CureTeamStatus; radius: number }
+  | { kind: typeof EffectKind.HealByTargetStat; stat: StatName }
+  | { kind: typeof EffectKind.PostHealOverTime; status: StatusType }
+  | { kind: typeof EffectKind.PostWish; percent: number };

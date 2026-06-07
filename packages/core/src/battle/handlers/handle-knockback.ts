@@ -105,6 +105,7 @@ function performIceSlide(
   grid.setOccupant(slideStart, null);
   grid.setOccupant(slideEnd, slider.id);
   slider.position = slideEnd;
+  slider.movedThisTurn = true;
 
   const events: BattleEvent[] = [];
   events.push({
@@ -205,6 +206,7 @@ export function handleKnockback(context: EffectContext): BattleEvent[] {
       grid.setOccupant(from, null);
       grid.setOccupant(destination, target.id);
       target.position = destination;
+      target.movedThisTurn = true;
 
       events.push({
         type: BattleEventType.KnockbackApplied,

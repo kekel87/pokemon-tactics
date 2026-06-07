@@ -40,6 +40,7 @@ export interface TacticalOverride {
   chargeEffects?: Effect[];
   critRatio?: number;
   targetsAlly?: boolean;
+  targetsAllyOrSelf?: boolean;
   dynamicPower?: DynamicPowerSpec;
   ignoresBurnAttackDrop?: boolean;
   hitsPhysicalDefense?: boolean;
@@ -48,6 +49,7 @@ export interface TacticalOverride {
   crashOnMiss?: { fraction: number };
   requiresAsleep?: boolean;
   requiresAllOtherMovesUsed?: boolean;
+  requiresTargetAsleep?: boolean;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -906,6 +908,64 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
         chance: 100,
         target: EffectTarget.Self,
       },
+    ],
+  },
+  // B2 — Healing (plan 116)
+  "soft-boiled": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.HealSelf, percent: 0.5 }],
+  },
+  "slack-off": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.HealSelf, percent: 0.5 }],
+  },
+  ingrain: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostHealOverTime, status: StatusType.Ingrain }],
+  },
+  "aqua-ring": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostHealOverTime, status: StatusType.AquaRing }],
+  },
+  "heal-pulse": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.HealTarget, percent: 0.5 }],
+  },
+  "life-dew": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.HealTarget, percent: 0.25, radius: 2 }],
+  },
+  wish: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.PostWish, percent: 0.5 }],
+    targetsAllyOrSelf: true,
+  },
+  aromatherapy: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.CureTeamStatus, radius: 2 }],
+  },
+  "strength-sap": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.HealByTargetStat, stat: StatName.Attack },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: -1,
+        target: EffectTarget.Targets,
+      },
+    ],
+  },
+  "dream-eater": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Drain, fraction: 0.5 }],
+    requiresTargetAsleep: true,
+  },
+  "pollen-puff": {
+    targeting: { kind: TargetingKind.Blast, range: { min: 1, max: 4 }, radius: 1 },
+    effects: [
+      { kind: EffectKind.Damage, appliesIf: ConditionKind.TargetIsEnemy },
+      { kind: EffectKind.HealTarget, percent: 0.5, appliesIf: ConditionKind.TargetIsAlly },
     ],
   },
   amnesia: {

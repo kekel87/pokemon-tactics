@@ -89,13 +89,23 @@ function scoreUseMove(
 
   const weights = profile.scoringWeights;
   const isSelfTargeting = move.targeting.kind === TargetingKind.Self;
+  const hasDamageFloor = getEffectivePowerFloor(move) > 0;
 
-  if (isSelfTargeting && getEffectivePowerFloor(move) === 0) {
+  if (isSelfTargeting && !hasDamageFloor) {
     return scoreSelfMove(currentPokemon, enemies, move, weights, state);
   }
 
-  if (move.targetsAlly === true) {
+  if (move.targetsAlly === true || move.targetsAllyOrSelf === true) {
     return scoreAllyTargetMove(action, currentPokemon, allies, move, weights);
+  }
+
+  // Targeted heal (heal-pulse): heal a wounded ally; never waste it on a full ally or an enemy.
+  const targetedHeal = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.HealTarget }> =>
+      effect.kind === EffectKind.HealTarget && effect.radius === undefined,
+  );
+  if (!hasDamageFloor && targetedHeal !== undefined) {
+    return scoreTargetedHeal(action, allies, enemies, targetedHeal.percent, weights);
   }
 
   const affectedTiles = estimateAffectedTiles(
@@ -241,6 +251,27 @@ function scoreAllyTargetMove(
     return -1;
   }
 
+  // Wish (delayed heal) and ally-targeted heal: value by the recipient's missing HP.
+  const wishEffect = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostWish }> =>
+      effect.kind === EffectKind.PostWish,
+  );
+  if (wishEffect !== undefined) {
+    const missing = 1 - target.currentHp / target.maxHp;
+    if (missing <= 0.1) {
+      return 0;
+    }
+    return missing * weights.killPotential * 0.7;
+  }
+  const allyHeal = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.HealTarget }> =>
+      effect.kind === EffectKind.HealTarget && effect.radius === undefined,
+  );
+  if (allyHeal !== undefined) {
+    const missing = 1 - target.currentHp / target.maxHp;
+    return missing <= 0.1 ? 0 : missing * weights.killPotential * 0.8;
+  }
+
   const hasTransfer = move.effects.some((effect) => effect.kind === EffectKind.TransferStatStages);
   if (!hasTransfer) {
     return 0;
@@ -271,6 +302,31 @@ function scoreAllyTargetMove(
     score += 8;
   }
   return score * (weights.statChanges / 10 + 1);
+}
+
+function scoreTargetedHeal(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  allies: PokemonInstance[],
+  enemies: PokemonInstance[],
+  percent: number,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const ally = allies.find(
+    (candidate) =>
+      candidate.position.x === action.targetPosition.x &&
+      candidate.position.y === action.targetPosition.y,
+  );
+  if (ally !== undefined) {
+    const missing = 1 - ally.currentHp / ally.maxHp;
+    return missing <= 0.1 ? 0 : Math.min(missing, percent) * weights.killPotential * 0.8;
+  }
+  // Healing an enemy (heal-pulse can reach foes) is always a mistake for the AI.
+  const enemy = enemies.find(
+    (candidate) =>
+      candidate.position.x === action.targetPosition.x &&
+      candidate.position.y === action.targetPosition.y,
+  );
+  return enemy === undefined ? -1 : -weights.killPotential;
 }
 
 function scoreSelfMove(
@@ -352,6 +408,76 @@ function scoreSelfMove(
       multiplier *= 0.5;
     }
     return weights.statChanges * 1.5 * multiplier;
+  }
+
+  // Self-heal (recover, soft-boiled, slack-off): value by missing HP.
+  const healSelf = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.HealSelf }> =>
+      effect.kind === EffectKind.HealSelf,
+  );
+  if (healSelf !== undefined) {
+    const missing = 1 - currentPokemon.currentHp / currentPokemon.maxHp;
+    return missing <= 0.1 ? 0 : Math.min(missing, healSelf.percent) * weights.killPotential * 0.9;
+  }
+
+  // Heal-over-time setup (ingrain, aqua-ring): worthwhile when hurt and not already active.
+  const hotEffect = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostHealOverTime }> =>
+      effect.kind === EffectKind.PostHealOverTime,
+  );
+  if (hotEffect !== undefined) {
+    if (currentPokemon.volatileStatuses.some((v) => v.type === hotEffect.status)) {
+      return -1;
+    }
+    const missing = 1 - currentPokemon.currentHp / currentPokemon.maxHp;
+    return missing < 0.25 ? 0 : missing * weights.killPotential * 0.4;
+  }
+
+  // Life Dew (ally radius heal): sum of allies' missing HP within radius.
+  const radiusHeal = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.HealTarget }> =>
+      effect.kind === EffectKind.HealTarget && effect.radius !== undefined,
+  );
+  if (radiusHeal !== undefined) {
+    if (!state) {
+      return weights.killPotential * 0.5;
+    }
+    const radius = radiusHeal.radius ?? 0;
+    let missingSum = 0;
+    for (const candidate of state.pokemon.values()) {
+      if (candidate.currentHp <= 0 || candidate.playerId !== currentPokemon.playerId) {
+        continue;
+      }
+      const dx = Math.abs(candidate.position.x - currentPokemon.position.x);
+      const dy = Math.abs(candidate.position.y - currentPokemon.position.y);
+      if (dx + dy <= radius) {
+        missingSum += 1 - candidate.currentHp / candidate.maxHp;
+      }
+    }
+    return missingSum <= 0.1 ? 0 : missingSum * weights.killPotential * 0.6;
+  }
+
+  // Aromatherapy (team status cure): value by allies carrying a major status in radius.
+  const cureEffect = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.CureTeamStatus }> =>
+      effect.kind === EffectKind.CureTeamStatus,
+  );
+  if (cureEffect !== undefined) {
+    if (!state) {
+      return weights.statChanges;
+    }
+    let statusedAllies = 0;
+    for (const candidate of state.pokemon.values()) {
+      if (candidate.currentHp <= 0 || candidate.playerId !== currentPokemon.playerId) {
+        continue;
+      }
+      const dx = Math.abs(candidate.position.x - currentPokemon.position.x);
+      const dy = Math.abs(candidate.position.y - currentPokemon.position.y);
+      if (dx + dy <= cureEffect.radius && candidate.statusEffects.length > 0) {
+        statusedAllies += 1;
+      }
+    }
+    return statusedAllies === 0 ? 0 : statusedAllies * weights.statChanges * 2;
   }
 
   if (!hasSelfBuff) {

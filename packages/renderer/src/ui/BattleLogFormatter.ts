@@ -145,6 +145,17 @@ const STATUS_LOG_KEY: Record<
     applied: { fr: "{name} se charge en électricité !", en: "{name} began charging power!" },
     removed: { fr: "La charge de {name} se dissipe.", en: "{name}'s charge faded." },
   },
+  [StatusType.Ingrain]: {
+    applied: { fr: "{name} prend racine !", en: "{name} planted its roots!" },
+    removed: { fr: "Les racines de {name} se rétractent.", en: "{name}'s roots receded." },
+  },
+  [StatusType.AquaRing]: {
+    applied: {
+      fr: "{name} s'entoure d'un voile d'eau !",
+      en: "{name} surrounded itself with a veil of water!",
+    },
+    removed: { fr: "Le voile d'eau de {name} se dissipe.", en: "{name}'s aqua ring faded." },
+  },
 };
 
 const STAT_NAME_KEY: Record<string, { fr: string; en: string }> = {
@@ -416,6 +427,28 @@ export function formatBattleEvent(
           ? `${pokemonName} récupère ${event.amount} PV`
           : `${pokemonName} restored ${event.amount} HP`;
       return { message, color: BattleLogColors.heal, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.WishPosted: {
+      const caster = context.getPokemonName(event.casterId);
+      const message =
+        lang === "fr" ? `${caster} fait un vœu de guérison.` : `${caster} made a wish.`;
+      return { message, color: BattleLogColors.heal, pokemonIds: [event.casterId, event.targetId] };
+    }
+
+    case BattleEventType.WishHealed: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `Le vœu de guérison se réalise, ${name} récupère ${event.amount} PV !`
+          : `${name}'s wish came true, restoring ${event.amount} HP!`;
+      return { message, color: BattleLogColors.heal, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.MoveFailed: {
+      const name = context.getPokemonName(event.attackerId);
+      const message = lang === "fr" ? `Mais cela échoue (${name}) !` : `But it failed (${name})!`;
+      return { message, color: BattleLogColors.miss, pokemonIds: [event.attackerId] };
     }
 
     case BattleEventType.WeatherSet: {

@@ -61,7 +61,7 @@ export function checkDefense(
     return noEffect;
   }
 
-  if (move.targetsAlly === true) {
+  if (move.targetsAlly === true || move.targetsAllyOrSelf === true) {
     return noEffect;
   }
 

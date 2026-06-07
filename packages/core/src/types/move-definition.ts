@@ -33,6 +33,8 @@ export interface MoveDefinition {
   semiInvulnerableState?: SemiInvulnerableState;
   chargeEffects?: Effect[];
   targetsAlly?: boolean;
+  /** Single-target move that may target an ally or the caster itself, within range (wish). */
+  targetsAllyOrSelf?: boolean;
   /** Recompute base power at hit time from battle state (facade, hex, electro-ball, ...). */
   dynamicPower?: DynamicPowerSpec;
   /** Skip the burn physical-attack halving (facade). */
@@ -51,4 +53,6 @@ export interface MoveDefinition {
   requiresAsleep?: boolean;
   /** Only usable once every other move in the moveset has been used at least once (last-resort). */
   requiresAllOtherMovesUsed?: boolean;
+  /** The move fails (no damage / no drain) unless the target is asleep (dream-eater). */
+  requiresTargetAsleep?: boolean;
 }

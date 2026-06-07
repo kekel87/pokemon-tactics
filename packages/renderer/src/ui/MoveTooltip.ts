@@ -83,6 +83,15 @@ export class MoveTooltip {
       (effect) => effect.kind === EffectKind.Damage && effect.escalatingHitPower !== undefined,
     );
     const hasCrashTag = move.crashOnMiss !== undefined;
+    const hasHealOverTimeTag = move.effects.some(
+      (effect) => effect.kind === EffectKind.PostHealOverTime,
+    );
+    const hasWishTag = move.effects.some((effect) => effect.kind === EffectKind.PostWish);
+    const hasCureTag = move.effects.some((effect) => effect.kind === EffectKind.CureTeamStatus);
+    const hasHealByStatTag = move.effects.some(
+      (effect) => effect.kind === EffectKind.HealByTargetStat,
+    );
+    const hasRequiresTargetAsleepTag = move.requiresTargetAsleep === true;
     const baseLines = move.twoTurnCharge ? 4 : 3;
     const textLines =
       baseLines +
@@ -93,7 +102,12 @@ export class MoveTooltip {
       (hasHitsDefenseTag ? 1 : 0) +
       (hasTypeOverrideTag ? 1 : 0) +
       (hasEscalatingTag ? 1 : 0) +
-      (hasCrashTag ? 1 : 0);
+      (hasCrashTag ? 1 : 0) +
+      (hasHealOverTimeTag ? 1 : 0) +
+      (hasWishTag ? 1 : 0) +
+      (hasCureTag ? 1 : 0) +
+      (hasHealByStatTag ? 1 : 0) +
+      (hasRequiresTargetAsleepTag ? 1 : 0);
     const totalHeight = padding + textLines * lineHeight + 4 + gridHeight + padding;
 
     const x = menuX - TOOLTIP_WIDTH - 8;
@@ -175,6 +189,31 @@ export class MoveTooltip {
 
     if (hasCrashTag) {
       this.addText(contentX, contentY, t("moveTooltip.tag.crashOnMiss"));
+      contentY += lineHeight;
+    }
+
+    if (hasHealOverTimeTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.healOverTime"));
+      contentY += lineHeight;
+    }
+
+    if (hasWishTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.wish"));
+      contentY += lineHeight;
+    }
+
+    if (hasCureTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.cureTeamStatus"));
+      contentY += lineHeight;
+    }
+
+    if (hasHealByStatTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.healByTargetAttack"));
+      contentY += lineHeight;
+    }
+
+    if (hasRequiresTargetAsleepTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.requiresTargetAsleep"));
       contentY += lineHeight;
     }
 

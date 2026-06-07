@@ -70,4 +70,15 @@ export interface PokemonInstance {
   lastMoveFailed?: boolean;
   /** Move ids this mon has used at least once (Last Resort gate). */
   usedMoveIds?: string[];
+  /**
+   * True if this mon changed position this turn (own movement, knockback, or ice slide).
+   * Reset at the start of each turn. Gates the Ingrain heal-over-time tick (B2 healing).
+   */
+  movedThisTurn?: boolean;
+  /**
+   * Pending Wish heal (B2 healing). `healAmount` is frozen at cast (50% of the caster's max HP);
+   * `castAtAction` is `BattleState.actionCounter` at cast. Fires on the target's next turn when
+   * `actionCounter > castAtAction`. Follows the mon, not the tile.
+   */
+  pendingWish?: { healAmount: number; castAtAction: number };
 }

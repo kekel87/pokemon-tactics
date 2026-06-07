@@ -81,6 +81,8 @@ export interface Translations {
   "status.encored": string;
   "status.charging": string;
   "status.charged": string;
+  "status.ingrain": string;
+  "status.aquaRing": string;
   "status.flinched": string;
   "move.tooltip.twoTurnCharge": string;
   "move.tooltip.twoTurnChargeSunSkip": string;
@@ -275,6 +277,7 @@ export interface Translations {
   "infoPanel.volatile.taunted": string;
   "infoPanel.volatile.disabled": string;
   "infoPanel.volatile.encored": string;
+  "infoPanel.volatile.wish": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
   "moveTooltip.tag.dynamicPower": string;
@@ -284,6 +287,11 @@ export interface Translations {
   "moveTooltip.tag.superVsWater": string;
   "moveTooltip.tag.escalatingHits": string;
   "moveTooltip.tag.crashOnMiss": string;
+  "moveTooltip.tag.healOverTime": string;
+  "moveTooltip.tag.wish": string;
+  "moveTooltip.tag.cureTeamStatus": string;
+  "moveTooltip.tag.healByTargetAttack": string;
+  "moveTooltip.tag.requiresTargetAsleep": string;
   "moveTooltip.tag.tauntBlocked": string;
   "moveTooltip.tag.disableBlocked": string;
   "moveTooltip.tag.encoreBlocked": string;

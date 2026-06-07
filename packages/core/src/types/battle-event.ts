@@ -298,4 +298,19 @@ export type BattleEvent =
   | {
       type: typeof BattleEventType.EncoreFailed;
       pokemonId: string;
+    }
+  | {
+      type: typeof BattleEventType.WishPosted;
+      casterId: string;
+      targetId: string;
+    }
+  | {
+      type: typeof BattleEventType.WishHealed;
+      pokemonId: string;
+      amount: number;
+    }
+  | {
+      type: typeof BattleEventType.MoveFailed;
+      attackerId: string;
+      moveId: string;
     };

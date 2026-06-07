@@ -13,6 +13,16 @@ export const EffectKind = {
   PostSubstitute: "post_substitute",
   Disable: "disable",
   Encore: "encore",
+  /** Heal the move's resolved target by a percent of its max HP (heal-pulse, life-dew, pollen-puff). */
+  HealTarget: "heal_target",
+  /** Cure major status of allies in radius around the caster (aromatherapy). */
+  CureTeamStatus: "cure_team_status",
+  /** Heal the caster by the target's effective stat value, then a stat drop follows (strength-sap). */
+  HealByTargetStat: "heal_by_target_stat",
+  /** Post a persistent heal-over-time volatile on the caster (ingrain, aqua-ring). */
+  PostHealOverTime: "post_heal_over_time",
+  /** Schedule a delayed heal on an ally that fires on the target's next turn (wish). */
+  PostWish: "post_wish",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

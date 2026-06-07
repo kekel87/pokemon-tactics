@@ -83,6 +83,7 @@ export function loadData(): GameData {
       ...(merged.chargeEffects ? { chargeEffects: merged.chargeEffects } : {}),
       ...(merged.critRatio === undefined ? {} : { critRatio: merged.critRatio }),
       ...(merged.targetsAlly ? { targetsAlly: true } : {}),
+      ...(merged.targetsAllyOrSelf ? { targetsAllyOrSelf: true } : {}),
       ...(merged.dynamicPower ? { dynamicPower: merged.dynamicPower } : {}),
       ...(merged.ignoresBurnAttackDrop ? { ignoresBurnAttackDrop: true } : {}),
       ...(merged.attackStatSource ? { attackStatSource: merged.attackStatSource } : {}),
@@ -94,6 +95,7 @@ export function loadData(): GameData {
       ...(merged.crashOnMiss ? { crashOnMiss: merged.crashOnMiss } : {}),
       ...(merged.requiresAsleep ? { requiresAsleep: true } : {}),
       ...(merged.requiresAllOtherMovesUsed ? { requiresAllOtherMovesUsed: true } : {}),
+      ...(merged.requiresTargetAsleep ? { requiresTargetAsleep: true } : {}),
     };
     return moveDefinition;
   });

@@ -9,6 +9,10 @@ export const ConditionKind = {
    * Burning Jealousy (burn) — the CT-equivalent of Showdown's `statsRaisedThisTurn`.
    */
   TargetBoostedRecently: "target_boosted_recently",
+  /** The target is on the caster's team (pollen-puff heal branch). */
+  TargetIsAlly: "target_is_ally",
+  /** The target is on an opposing team (pollen-puff damage branch). */
+  TargetIsEnemy: "target_is_enemy",
 } as const;
 
 export type ConditionKind = (typeof ConditionKind)[keyof typeof ConditionKind];

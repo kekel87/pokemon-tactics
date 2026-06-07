@@ -54,6 +54,8 @@ const VOLATILE_LABELS: Partial<Record<string, TranslationKey>> = {
   [StatusType.Intimidated]: "status.intimidated",
   [StatusType.LockedOn]: "status.lockedOn",
   [StatusType.Charged]: "status.charged",
+  [StatusType.Ingrain]: "status.ingrain",
+  [StatusType.AquaRing]: "status.aquaRing",
 };
 
 import type { TranslationKey } from "../i18n";
@@ -257,6 +259,10 @@ export class InfoPanel {
         hp: String(pokemon.substituteHp),
       });
       offsetX = this.addBadge(substituteLabel, STAT_BADGE_VOLATILE_BG, offsetX);
+    }
+
+    if (pokemon.pendingWish !== undefined) {
+      offsetX = this.addBadge(t("infoPanel.volatile.wish"), STAT_BADGE_VOLATILE_BG, offsetX);
     }
 
     offsetX = this.addAuraBadges(pokemon, offsetX);

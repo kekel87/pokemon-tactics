@@ -16,6 +16,7 @@ import {
   computeScreenMultiplier,
   removeAurasOfCaster,
 } from "../aura-system";
+import { effectConditionHolds } from "../condition-eval";
 import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calculator";
 import { checkDefense } from "../defense-check";
 import { resolveDynamicPower } from "../dynamic-power-system";
@@ -436,6 +437,15 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
   const isMultiHit = hitCount > 1;
 
   for (const target of context.targets) {
+    // Conditional damage branch (pollen-puff): only damage when the predicate holds (e.g. the
+    // target is an enemy). On an ally, the move's HealTarget branch applies instead.
+    if (
+      effect.appliesIf !== undefined &&
+      !effectConditionHolds(effect.appliesIf, context.attacker, target)
+    ) {
+      continue;
+    }
+
     const defenderTypes = context.targetTypesMap.get(target.id) ?? [];
     let actualHits = 0;
 
