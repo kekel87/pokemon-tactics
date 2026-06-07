@@ -569,10 +569,16 @@ export class GameController {
         return;
       }
 
-      affectedTiles = resolveTargeting(targeting, activePokemon, gridPosition, grid, undefined, {
-        type: moveDefinition.type,
-        flags: moveDefinition.flags,
-      });
+      const isSelfCast =
+        moveDefinition.targetsAllyOrSelf === true &&
+        gridPosition.x === activePokemon.position.x &&
+        gridPosition.y === activePokemon.position.y;
+      affectedTiles = isSelfCast
+        ? [{ ...activePokemon.position }]
+        : resolveTargeting(targeting, activePokemon, gridPosition, grid, undefined, {
+            type: moveDefinition.type,
+            flags: moveDefinition.flags,
+          });
     }
 
     this.currentPreviewTiles = affectedTiles;
@@ -840,14 +846,16 @@ export class GameController {
       const activePokemon = this.getActivePokemon();
       if (activePokemon) {
         const grid = this.engine.getGrid();
-        const affectedTiles = resolveTargeting(
-          targeting,
-          activePokemon,
-          activePokemon.position,
-          grid,
-          undefined,
-          { type: moveDefinition.type, flags: moveDefinition.flags },
-        );
+        // Self-cast radius heals (life-dew, aromatherapy) affect allies in a Manhattan radius
+        // around the caster — preview that diamond, not just the caster tile.
+        const selfRadius = this.getSelfRadiusEffect(moveDefinition);
+        const affectedTiles =
+          selfRadius === undefined
+            ? resolveTargeting(targeting, activePokemon, activePokemon.position, grid, undefined, {
+                type: moveDefinition.type,
+                flags: moveDefinition.flags,
+              })
+            : grid.getTilesInRange(activePokemon.position, 0, selfRadius);
         this.currentPreviewTiles = affectedTiles;
         this.renderPreview(affectedTiles, this.isBuff(moveDefinition));
       }
@@ -855,6 +863,25 @@ export class GameController {
     }
 
     if (this.isDirectionalPattern(targeting.kind)) {
+      return;
+    }
+
+    // Ally/self-targeted moves (wish, heal-pulse on allies, baton-pass) only mark occupied valid
+    // tiles, which looks empty when no ally is around. Outline the whole reach range so the player
+    // sees where the move can land (persistent, unlike the cursor-following fill preview).
+    if (
+      (moveDefinition.targetsAlly === true || moveDefinition.targetsAllyOrSelf === true) &&
+      activePokemon &&
+      "range" in targeting
+    ) {
+      const grid = this.engine.getGrid();
+      const minRange = moveDefinition.targetsAllyOrSelf === true ? 0 : targeting.range.min;
+      const rangeTiles = grid.getTilesInRange(
+        activePokemon.position,
+        minRange,
+        targeting.range.max,
+      );
+      this.isometricGrid.highlightTilesOutline(rangeTiles);
       return;
     }
 
@@ -1715,6 +1742,21 @@ export class GameController {
         break;
       }
 
+      case BattleEventType.WishHealed: {
+        const wishSprite = this.sprites.get(event.pokemonId);
+        const wishPokemon = this.state.pokemon.get(event.pokemonId);
+        if (wishSprite && wishPokemon) {
+          wishSprite.updateHp(wishPokemon.currentHp, wishPokemon.maxHp);
+          const pos = wishSprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, `+${event.amount}`, {
+            color: BATTLE_TEXT_COLOR_HEAL,
+            targetId: event.pokemonId,
+          });
+        }
+        this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
       case BattleEventType.AuraPosted: {
         this.refreshAuraVisuals();
         const sprite = this.sprites.get(event.casterId);
@@ -2033,6 +2075,19 @@ export class GameController {
         effect.kind === EffectKind.Status,
     );
     return !hasDamage && !hasOffensiveEffect;
+  }
+
+  /** Manhattan radius of a self-cast ally-radius effect (life-dew heal, aromatherapy cure), if any. */
+  private getSelfRadiusEffect(move: MoveDefinition): number | undefined {
+    for (const effect of move.effects) {
+      if (effect.kind === EffectKind.HealTarget && effect.radius !== undefined) {
+        return effect.radius;
+      }
+      if (effect.kind === EffectKind.CureTeamStatus) {
+        return effect.radius;
+      }
+    }
+    return undefined;
   }
 
   private isStaticPattern(kind: TargetingKind): boolean {

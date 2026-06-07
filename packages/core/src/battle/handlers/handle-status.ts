@@ -1,5 +1,4 @@
 import { BattleEventType } from "../../enums/battle-event-type";
-import { ConditionKind } from "../../enums/condition-kind";
 import type { EffectKind } from "../../enums/effect-kind";
 import { EffectTarget } from "../../enums/effect-target";
 import { PokemonType } from "../../enums/pokemon-type";
@@ -9,9 +8,9 @@ import { StatusType as StatusTypeEnum } from "../../enums/status-type";
 import type { BattleEvent } from "../../types/battle-event";
 import { ProtectionReason } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
-import type { PokemonInstance } from "../../types/pokemon-instance";
 import { DEFAULT_STATUS_RULES, type StatusRules } from "../../types/status-rules";
 import { isProtectedFromStatus } from "../aura-system";
+import { effectConditionHolds } from "../condition-eval";
 import type { EffectContext } from "../effect-handler-registry";
 import { isMajorStatus } from "../stat-modifier";
 import { shouldSubstituteBlock } from "../substitute-system";
@@ -67,7 +66,7 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
 
     // Conditional secondary (B3): gate the effect on a battle-state predicate (alluring-voice,
     // burning-jealousy only apply if the target holds a fresh, un-cashed stat boost).
-    if (appliesIf !== undefined && !conditionHolds(appliesIf, target)) {
+    if (appliesIf !== undefined && !effectConditionHolds(appliesIf, context.attacker, target)) {
       continue;
     }
 
@@ -243,15 +242,6 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
 
 function isVolatileStatus(status: StatusType): boolean {
   return VOLATILE_STATUSES.has(status);
-}
-
-function conditionHolds(condition: ConditionKind, target: PokemonInstance): boolean {
-  switch (condition) {
-    case ConditionKind.TargetBoostedRecently:
-      return target.hasFreshStatBoost === true;
-    default:
-      return false;
-  }
 }
 
 function getStatusDuration(

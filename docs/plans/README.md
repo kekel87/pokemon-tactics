@@ -127,3 +127,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 113 | [B1 « Quasi-prêt » (6 moves quick-win)](./113-b1-quasi-ready-moves.md) | done | 2026-06-05 |
 | 114 | [Analytics funnel events (GoatCounter beacon)](./114-analytics-events.md) | done | 2026-06-05 |
 | 115 | [B3 « Dégâts conditionnels » (17 moves + horloge d'actions)](./115-b3-conditional-damage.md) | ready | 2026-06-06 |
+| 116 | [B2 « Soin » (11 moves)](./116-b2-healing.md) | done | 2026-06-07 |

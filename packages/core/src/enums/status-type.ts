@@ -18,6 +18,10 @@ export const StatusType = {
   Encored: "encored",
   /** Charge volatile: the user's next Electric move is doubled (B3). */
   Charged: "charged",
+  /** Ingrain volatile (B2): heals 1/8 HP/turn if the mon did not move; grounds it. Persistent. */
+  Ingrain: "ingrain",
+  /** Aqua Ring volatile (B2): heals 1/16 HP/turn unconditionally. Persistent. */
+  AquaRing: "aqua-ring",
 } as const;
 
 export type StatusType = (typeof StatusType)[keyof typeof StatusType];

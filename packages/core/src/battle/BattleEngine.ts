@@ -56,6 +56,7 @@ import { getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
 import { createAurasTickHandler } from "./handlers/aura-tick-handler";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
+import { hotTickHandler } from "./handlers/hot-tick-handler";
 import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handler";
 import { roostedClearHandler } from "./handlers/roosted-clear-handler";
 import { createSeededTickHandler } from "./handlers/seeded-tick-handler";
@@ -64,6 +65,7 @@ import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
 import { timedVolatileTickHandler } from "./handlers/timed-volatile-tick-handler";
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
 import { createWeatherTickHandler } from "./handlers/weather-tick-handler";
+import { wishTickHandler } from "./handlers/wish-tick-handler";
 import { getHeightModifier } from "./height-modifier";
 import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
@@ -174,6 +176,7 @@ export class BattleEngine {
       100,
     );
     this.turnPipeline.registerStartTurn(createInfatuationTickHandler(this.random), 150);
+    this.turnPipeline.registerStartTurn(wishTickHandler, 175);
     this.turnPipeline.registerEndTurn(
       createWeatherTickHandler({
         pokemonTypesMap: this.pokemonTypesMap,
@@ -186,6 +189,7 @@ export class BattleEngine {
       createSeededTickHandler(this.abilityRegistry ?? undefined),
       200,
     );
+    this.turnPipeline.registerEndTurn(hotTickHandler, 250);
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
     this.turnPipeline.registerEndTurn(timedVolatileTickHandler, 350);
     this.turnPipeline.registerEndTurn(
@@ -515,14 +519,17 @@ export class BattleEngine {
         const targetPositions = this.getValidTargetPositions(currentPokemon, move);
         const moveContext = { type: move.type, flags: move.flags };
         for (const targetPosition of targetPositions) {
-          const affectedTiles = resolveTargeting(
-            move.targeting,
-            currentPokemon,
-            targetPosition,
-            this.grid,
-            traversalContext,
-            moveContext,
-          );
+          const affectedTiles =
+            move.targetsAllyOrSelf === true && this.isSelfTile(currentPokemon, targetPosition)
+              ? [{ ...currentPokemon.position }]
+              : resolveTargeting(
+                  move.targeting,
+                  currentPokemon,
+                  targetPosition,
+                  this.grid,
+                  traversalContext,
+                  moveContext,
+                );
           if (affectedTiles.length === 0) {
             continue;
           }
@@ -721,6 +728,10 @@ export class BattleEngine {
         if (move.targetsAlly === true) {
           return tiles.filter((position) => this.isAdjacentAllyTile(pokemon, position));
         }
+        if (move.targetsAllyOrSelf === true) {
+          const allyTiles = tiles.filter((position) => this.isAdjacentAllyTile(pokemon, position));
+          return [{ ...pokemon.position }, ...allyTiles];
+        }
         return tiles;
       }
       case TargetingKind.Cone:
@@ -779,6 +790,10 @@ export class BattleEngine {
       return false;
     }
     return occupant.playerId === caster.playerId;
+  }
+
+  private isSelfTile(caster: PokemonInstance, position: Position): boolean {
+    return caster.position.x === position.x && caster.position.y === position.y;
   }
 
   private getFourDirectionPositions(origin: Position): Position[] {
@@ -926,20 +941,29 @@ export class BattleEngine {
     }
     const traversalContext: TraversalContext = { allyIds, canTraverseEnemies: false };
 
-    const affectedTiles = resolveTargeting(
-      move.targeting,
-      pokemon,
-      targetPosition,
-      this.grid,
-      traversalContext,
-      { type: move.type, flags: move.flags },
-    );
+    // Self-cast of an ally-or-self move (wish on oneself): the Single range excludes distance 0,
+    // so resolve to the caster's own tile explicitly to match getLegalActions.
+    const affectedTiles =
+      move.targetsAllyOrSelf === true && this.isSelfTile(pokemon, targetPosition)
+        ? [{ ...pokemon.position }]
+        : resolveTargeting(move.targeting, pokemon, targetPosition, this.grid, traversalContext, {
+            type: move.type,
+            flags: move.flags,
+          });
 
     if (affectedTiles.length === 0) {
       return { success: false, events: [], error: ActionError.InvalidTarget };
     }
 
     if (move.targetsAlly === true && !this.isAdjacentAllyTile(pokemon, targetPosition)) {
+      return { success: false, events: [], error: ActionError.InvalidTarget };
+    }
+
+    if (
+      move.targetsAllyOrSelf === true &&
+      !this.isAdjacentAllyTile(pokemon, targetPosition) &&
+      !this.isSelfTile(pokemon, targetPosition)
+    ) {
       return { success: false, events: [], error: ActionError.InvalidTarget };
     }
 
@@ -1019,6 +1043,25 @@ export class BattleEngine {
         this.emit(missEvent);
         events.push(missEvent);
       }
+    }
+
+    // Dream Eater (B2): the move fails unless the target is asleep. Drop awake targets; if that
+    // leaves nothing to hit, the move fizzles (no damage / no drain) but still counts as used.
+    if (move.requiresTargetAsleep === true && targets.length > 0) {
+      const asleepTargets = targets.filter((target) =>
+        target.statusEffects.some((status) => status.type === StatusType.Asleep),
+      );
+      if (asleepTargets.length === 0) {
+        const failEvent: BattleEvent = {
+          type: BattleEventType.MoveFailed,
+          attackerId: pokemon.id,
+          moveId,
+        };
+        this.emit(failEvent);
+        events.push(failEvent);
+      }
+      targets.length = 0;
+      targets.push(...asleepTargets);
     }
 
     const attackerTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
@@ -1254,6 +1297,7 @@ export class BattleEngine {
     const destination = path[path.length - 1] as Position;
     this.grid.setOccupant(destination, pokemon.id);
     pokemon.position = destination;
+    pokemon.movedThisTurn = true;
     pokemon.orientation = randomDirection;
 
     const moveEvent: BattleEvent = {
@@ -1440,6 +1484,7 @@ export class BattleEngine {
     this.grid.setOccupant(origin, null);
     this.grid.setOccupant(destination, pokemon.id);
     pokemon.position = destination;
+    pokemon.movedThisTurn = true;
     pokemon.orientation = direction;
 
     const moveEvent: BattleEvent = {
@@ -1499,6 +1544,7 @@ export class BattleEngine {
     this.grid.setOccupant(origin, null);
     this.grid.setOccupant(targetPosition, pokemon.id);
     pokemon.position = { ...targetPosition };
+    pokemon.movedThisTurn = true;
 
     const teleportedEvent: BattleEvent = {
       type: BattleEventType.Teleported,
@@ -1578,6 +1624,7 @@ export class BattleEngine {
     this.grid.setOccupant(origin, null);
     this.grid.setOccupant(retreatPosition, pokemon.id);
     pokemon.position = { ...retreatPosition };
+    pokemon.movedThisTurn = true;
 
     const retreatEvent: BattleEvent = {
       type: BattleEventType.HitAndRunRetreat,
@@ -1717,6 +1764,7 @@ export class BattleEngine {
     const destination = path[path.length - 1] as Position;
     this.grid.setOccupant(destination, pokemon.id);
     pokemon.position = destination;
+    pokemon.movedThisTurn = true;
 
     const from = path.length > 1 ? (path[path.length - 2] as Position) : origin;
     pokemon.orientation = directionFromTo(from, destination);
@@ -2327,6 +2375,7 @@ export class BattleEngine {
     pokemon.chargingMove = undefined;
     pokemon.lockedMoveId = undefined;
     pokemon.substituteHp = undefined;
+    pokemon.pendingWish = undefined;
     pokemon.volatileStatuses = [];
 
     for (const other of this.state.pokemon.values()) {

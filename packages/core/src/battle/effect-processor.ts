@@ -14,15 +14,20 @@ import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { getTypeEffectiveness } from "./damage-calculator";
 import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
+import { handleCureTeamStatus } from "./handlers/handle-cure-team-status";
 import { handleDamage } from "./handlers/handle-damage";
 import { handleDefensive } from "./handlers/handle-defensive";
 import { handleDisable } from "./handlers/handle-disable";
 import { handleDrain } from "./handlers/handle-drain";
 import { handleEncore } from "./handlers/handle-encore";
+import { handleHealByTargetStat } from "./handlers/handle-heal-by-target-stat";
 import { handleHealSelf } from "./handlers/handle-heal-self";
+import { handleHealTarget } from "./handlers/handle-heal-target";
 import { handleKnockback } from "./handlers/handle-knockback";
 import { handlePostAura } from "./handlers/handle-post-aura";
+import { handlePostHealOverTime } from "./handlers/handle-post-heal-over-time";
 import { handlePostSubstitute } from "./handlers/handle-post-substitute";
+import { handlePostWish } from "./handlers/handle-post-wish";
 import { handleRecoil } from "./handlers/handle-recoil";
 import { handleSetWeather } from "./handlers/handle-set-weather";
 import { handleStatChange } from "./handlers/handle-stat-change";
@@ -64,6 +69,11 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.PostSubstitute, handlePostSubstitute);
   registry.register(EffectKind.Disable, handleDisable);
   registry.register(EffectKind.Encore, handleEncore);
+  registry.register(EffectKind.HealTarget, handleHealTarget);
+  registry.register(EffectKind.CureTeamStatus, handleCureTeamStatus);
+  registry.register(EffectKind.HealByTargetStat, handleHealByTargetStat);
+  registry.register(EffectKind.PostHealOverTime, handlePostHealOverTime);
+  registry.register(EffectKind.PostWish, handlePostWish);
   return registry;
 }
 
@@ -74,33 +84,45 @@ export function processEffects(
   const effectRegistry = registry ?? createDefaultEffectRegistry();
   const events: BattleEvent[] = [];
 
-  const nonImmuneTargets: PokemonInstance[] = [];
-  for (const target of context.targets) {
-    const defenderTypes = context.targetTypesMap.get(target.id) ?? [];
+  const moveHasDamage = context.move.effects.some(
+    (e) => e.kind === EffectKind.Damage || e.kind === EffectKind.Drain,
+  );
 
-    const immunityResult = context.abilityRegistry?.getForPokemon(target)?.onTypeImmunity?.({
-      self: target,
-      moveType: context.move.type,
-    });
-    const abilityImmune = immunityResult?.blocked ?? false;
-    if (immunityResult?.events) {
-      events.push(...immunityResult.events);
-    }
+  // Move-type immunity (Normal vs Ghost, ability absorbs, …) only excludes targets of a DAMAGING
+  // move. Status / heal moves (heal-pulse, wish, aromatherapy) ignore type effectiveness, so a
+  // Ghost ally can still receive a Normal-type Wish.
+  let nonImmuneTargets: PokemonInstance[];
+  if (moveHasDamage) {
+    nonImmuneTargets = [];
+    for (const target of context.targets) {
+      const defenderTypes = context.targetTypesMap.get(target.id) ?? [];
 
-    const effectiveness = abilityImmune
-      ? 0
-      : getTypeEffectiveness(context.move.type, defenderTypes, context.typeChart);
-
-    if (effectiveness === 0) {
-      events.push({
-        type: BattleEventType.DamageDealt,
-        targetId: target.id,
-        amount: 0,
-        effectiveness: 0,
+      const immunityResult = context.abilityRegistry?.getForPokemon(target)?.onTypeImmunity?.({
+        self: target,
+        moveType: context.move.type,
       });
-    } else {
-      nonImmuneTargets.push(target);
+      const abilityImmune = immunityResult?.blocked ?? false;
+      if (immunityResult?.events) {
+        events.push(...immunityResult.events);
+      }
+
+      const effectiveness = abilityImmune
+        ? 0
+        : getTypeEffectiveness(context.move.type, defenderTypes, context.typeChart);
+
+      if (effectiveness === 0) {
+        events.push({
+          type: BattleEventType.DamageDealt,
+          targetId: target.id,
+          amount: 0,
+          effectiveness: 0,
+        });
+      } else {
+        nonImmuneTargets.push(target);
+      }
     }
+  } else {
+    nonImmuneTargets = [...context.targets];
   }
 
   const shared: SharedEffectState = { lastDamageDealt: 0 };
@@ -114,10 +136,6 @@ export function processEffects(
       }
     }
   }
-
-  const moveHasDamage = context.move.effects.some(
-    (e) => e.kind === EffectKind.Damage || e.kind === EffectKind.Drain,
-  );
 
   for (const effect of context.move.effects) {
     let processedEffect = effect;

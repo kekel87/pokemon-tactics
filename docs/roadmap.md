@@ -324,6 +324,8 @@ Tie à Babylon : éditeur et props terrain repensés pour renderer 3D.
 
 ## Phase X — Futur / À voir
 
+- [ ] **🔧 Retrait du mode de tours round-based + système de PP** (décidé 2026-06-07) — ne garder que le mode **CT/ATB** (FFTA) comme unique loop de combat. Supprimer `advanceTurn`/round-based, `roundNumber`, et le **système de PP** (compteur d'utilisations par move) devenu inutile sans tours discrets. Impact : simplifie le moteur (1 seule loop), supprime la double maintenance des handlers end-turn round vs CT, et retire les PP comme levier d'équilibrage (remplacé par CT/coût d'action). Pré-requis : auditer tout ce qui lit `roundNumber` (auras, screens, weather durations exprimées en tours) et migrer vers l'horloge d'actions (`actionCounter`, plan 115). **Gros chantier core** — planifier un plan dédié.
+
 - [ ] **Générations 2-9** — ajout des 874 Pokemon restants (Gen 2 : 100, Gen 3 : 135, Gen 4 : 107, Gen 5 : 156, Gen 6 : 72, Gen 7 : 88, Gen 8 : 96, Gen 9 : 120). Sprites PMDCollab disponibles pour la majorité. Nécessite pipeline `sprite-config.json` étendu + movesets tactiques par Pokemon.
 - [ ] **Méga-Évolutions** — 21 formes Méga Gen 1 (16 officielles + 5 exclusives Pokémon Champions). Sprites PMDCollab : 6 formes ont des fichiers partiels (pending review), aucune complète en mai 2026. À replanifier quand PMDCollab coverage s'améliore. Voir `docs/implementations.md#méga-évolutions-gen-1`.
 - [ ] Mode histoire / aventure
