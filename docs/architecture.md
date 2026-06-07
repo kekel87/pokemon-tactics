@@ -161,6 +161,8 @@ pokemon-tactics/
 │   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
 │   ├── sprite-config.json
 │   └── map-preview.js           # Vite helper pour pnpm dev:map
+├── .worktrees/                  # Git worktrees (gitignored) — voir section "Workflow worktrees"
+│   └── <branche-slug>/          # Un répertoire par worktree actif
 ├── docs/
 │   ├── images/
 │   ├── plans/                   # Plans d'exécution numérotés (70 plans)
@@ -183,7 +185,8 @@ pokemon-tactics/
 ├── CREDITS.md                   # Attribution CC BY-NC 4.0 PMDCollab
 ├── LICENSE                      # MIT (code) + note CC BY-NC 4.0 (sprites)
 ├── README.md
-└── STATUS.md
+├── STATUS.md
+└── .worktree-port               # (gitignored) Port Vite déterministe du worktree courant (absent sur main)
 ```
 
 ### Organisation du core
@@ -590,6 +593,45 @@ Replay **déterministe** : même seed + mêmes actions = même résultat.
 
 ---
 
+## 10b. Workflow worktrees — sessions Claude parallèles
+
+Le script `.claude/scripts/worktree.sh` permet de lancer N sessions Claude en parallèle sur des branches séparées, chacune isolée dans `.worktrees/<branche-slug>/`.
+
+Déclenché via le skill `/worktree` (alias dans CLAUDE.md).
+
+### Sous-commandes
+
+| Commande | Action |
+|----------|--------|
+| `add <branche> [base]` | Crée le worktree, copie/install les deps, écrit `.worktree-port` |
+| `list` | Liste les worktrees actifs |
+| `status` | Affiche branche + port de chaque worktree |
+| `relink` | Recopie les `node_modules` si lockfile a changé |
+| `rm <branche>` | Supprime le worktree (git worktree remove) |
+| `clean` | Supprime les worktrees dont la branche est déjà intégrée dans main |
+
+### Isolation des deps
+
+- Si `pnpm-lock.yaml` du worktree == celui de main → **reflink-copy** (`cp -a --reflink=auto`) des `node_modules` (Copy-on-Write, ≈0 disk sur btrfs/APFS). Rapide (~1 s).
+- Sinon → `pnpm install` classique dans le worktree.
+
+### Port Vite déterministe
+
+- Main : port **5173** (pas de fichier `.worktree-port`).
+- Worktree N : port **5173 + index** (5174–5253). Écrit dans `.worktree-port` à la racine du worktree.
+- `packages/renderer/vite.config.ts` résout le port depuis `process.env.PT_PORT` ou en remontant le filesystem depuis `cwd` jusqu'à trouver `.worktree-port`.
+
+### Merge de worktree vers main
+
+- Claude peut faire `git merge --ff-only <branche>` (non destructif — échoue si divergent).
+- Merges divergents (nécessitant un merge commit ou rebase) = humain via GUI (GitKraken).
+- Détection de merge déjà effectué : `git merge-base --is-ancestor <branche> HEAD` (local).
+- `/worktree clean` nettoie les worktrees dont la branche est ancêtre de main.
+
+Décisions archivées : #424 (stratégie deps), #425 (ports), #426 (merge).
+
+---
+
 ## 11. Évolutions prévues du renderer
 
 | Phase | Renderer | Style |
@@ -657,3 +699,4 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 |----------|--------|
 | `/next` | Lit `docs/next.md` + STATUS + roadmap + plan, propose suite et affiche reporté/fait récemment |
 | `/review-local` | Lance `code-reviewer` sur changements locaux (`git diff`) |
+| `/worktree` | Crée/liste/supprime un git worktree (`.worktrees/<branche>/`) pour sessions parallèles |

@@ -26,6 +26,17 @@ fi
 # commit/add/push/amend autorises (apres validation du message en chat).
 # Les operations destructrices (reset, rebase, checkout, etc.) restent
 # bloquees via la deny-list de .claude/settings.json.
+#
+# Merge : seul le fast-forward (--ff-only) est autorise (non destructif, refuse
+# proprement si divergence). Tout autre merge (merge-commit, --no-ff, --squash,
+# merge nu) reste interdit => l'humain le fait dans son GUI. Voir skill /worktree.
+
+if echo "$COMMAND" | grep -qE '\bg[i]t\s+merge\b'; then
+  if ! echo "$COMMAND" | grep -qE '[-][-]ff-only\b'; then
+    echo "BLOQUE : seul 'git merge --ff-only' est autorise (non destructif). Pour un merge divergent, l'humain le fait dans son GUI." >&2
+    exit 2
+  fi
+fi
 
 # --- Installation globale (interdit) ---
 
