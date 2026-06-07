@@ -33,6 +33,10 @@ Thumbs.db
 .claude/settings.local.json
 .claude/*.lock
 
+# Worktrees parallèles (sessions Claude //) + port Vite par worktree
+.worktrees/
+.worktree-port
+
 # Reference data build cache (regeneratable)
 packages/data/.cache/
 

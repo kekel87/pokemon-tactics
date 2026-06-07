@@ -75,7 +75,7 @@ TypeScript strict ESM · Phaser 4 · Vitest · Playwright (`visual-tester`) · c
 - `any` sans justification
 - Commiter assets non libres de droits
 - Charger toute doc en contexte quand 1 fichier suffit
-- **Git** : commit/add/push/amend autorisés APRÈS validation du message en chat. Claude propose le message (titre seul, court), l'humain valide, puis Claude commit + push. Jamais commit sans proposition+validation préalable. Destructeurs interdits (checkout, reset, rebase, merge, restore, clean, rm, branch -d, tag -d) — bloqués par deny-list
+- **Git** : commit/add/push/amend autorisés APRÈS validation du message en chat. Claude propose le message (titre seul, court), l'humain valide, puis Claude commit + push. Jamais commit sans proposition+validation préalable. Destructeurs interdits (checkout, reset, rebase, merge, restore, clean, rm, branch -d, tag -d) — bloqués par deny-list. **Exception : `git merge --ff-only` autorisé** (non destructif, intègre une branche worktree dans main ; autres merges = humain via GUI). Garde dans hook `block-forbidden-commands.sh`
 - **Infra** : install global, modif nvm/npm config interdit. Bloqué par hook
 - **Structurel** : consulter humain AVANT modifier tsconfig, module resolution, structure, dépendances. Bug fix simple OK
 - **Mémoire vs doc** : recherches/décisions/contexte → doc projet (git), pas mémoire Claude. Mémoire = préférences perso humain seulement
@@ -151,3 +151,4 @@ Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-g
 | `/review-local` | Review code changements locaux |
 | `/ci-gate [fast\|full\|slow]` | Gate CI local (lint, typecheck, build, test, integration). BLOQUANT avant commit |
 | `/commit` | Génère message commit conventional court via agent `commit-message`, le propose en chat. Après validation humaine → commit + push |
+| `/worktree` | Crée/liste/supprime un git worktree (`.worktrees/<branche>/`) pour N sessions Claude en // : deps reflink-copiées (CoW, ≈0 disk), port Vite déterministe par worktree. `add <branche> [base] \| list \| status \| relink \| rm` |

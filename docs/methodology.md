@@ -104,6 +104,22 @@ Garde-fou : `move-test-coverage.test.ts` énumère `loadData().moves` et **écho
 - **Un commit = un changement cohérent**
 - **Titre de commit proposé automatiquement** par le code-reviewer après chaque review sans bloquant — une seule ligne, format conventional commits
 
+### Workflow worktrees — sessions parallèles
+
+Pour développer plusieurs features simultanément (N sessions Claude en parallèle) :
+
+```bash
+/worktree add feat/ma-feature   # crée .worktrees/feat-ma-feature/, deps CoW, port auto
+/worktree list                  # état des worktrees actifs
+/worktree clean                 # supprime les worktrees déjà mergés dans main
+```
+
+Chaque worktree est isolé : sa propre branche, ses propres `node_modules` (reflink-copy si lockfile identique, sinon `pnpm install`), son propre port Vite (5174+).
+
+**Merge vers main** : Claude peut faire `git merge --ff-only <branche>` si la branche est en avance linéaire. Sinon, l'humain merge via GUI (GitKraken).
+
+Détails techniques : `docs/architecture.md` section 10b.
+
 ---
 
 ## 6. Comment valider le visuel
