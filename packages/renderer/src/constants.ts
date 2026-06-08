@@ -214,6 +214,7 @@ export const PLACEMENT_FINISH_BUTTON_BORDER = 0x66cc66;
 export const DEPTH_GRID_TILES = 0;
 export const DEPTH_TILE_MAX_ELEVATION = 5;
 export const DEPTH_HIGHLIGHT_ISO_OFFSET = 0.1;
+export const DEPTH_FIELD_TERRAIN_ISO_OFFSET = 0.12;
 export const DEPTH_ENEMY_RANGE_ISO_OFFSET = 0.15;
 export const DEPTH_SCREEN_HIGHLIGHT_ISO_OFFSET = 0.17;
 export const DEPTH_PREVIEW_ISO_OFFSET = 0.2;
@@ -246,6 +247,19 @@ export const DEPTH_VICTORY_CONTENT = 2001;
 
 export const DEPTH_WEATHER_OVERLAY = 900;
 export const DEPTH_WEATHER_HUD = 1080;
+
+// Field terrains ("Champs", B4): painted zone fill (additive) + bright perimeter + timer pill.
+export const FIELD_TERRAIN_FILL_ALPHA = 0.22;
+export const FIELD_TERRAIN_OUTLINE_WIDTH = 3;
+export const FIELD_TERRAIN_OUTLINE_ALPHA = 0.95;
+export const FIELD_TERRAIN_PILL_FONT_SIZE = 9;
+export const FIELD_TERRAIN_PILL_BG_ALPHA = 0.9;
+export const FIELD_TERRAIN_PILL_RADIUS = 6;
+export const FIELD_TERRAIN_PILL_STROKE_WIDTH = 1.5;
+export const FIELD_TERRAIN_COLOR_GRASSY = 0x5fcf6a;
+export const FIELD_TERRAIN_COLOR_ELECTRIC = 0xf2d33b;
+export const FIELD_TERRAIN_COLOR_MISTY = 0xf49ad1;
+export const FIELD_TERRAIN_COLOR_PSYCHIC = 0xb060e0;
 
 export const WEATHER_OVERLAY_ALPHA = 0.15;
 export const WEATHER_OVERLAY_FADE_MS = 500;

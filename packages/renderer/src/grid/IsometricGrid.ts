@@ -13,13 +13,22 @@ import {
   DEPTH_CURSOR_GROUND,
   DEPTH_CURSOR_RAISED_TILE_OFFSET,
   DEPTH_ENEMY_RANGE_ISO_OFFSET,
+  DEPTH_FIELD_TERRAIN_ISO_OFFSET,
   DEPTH_GRID_TILES,
   DEPTH_HIGHLIGHT_ISO_OFFSET,
   DEPTH_PREVIEW_ISO_OFFSET,
   DEPTH_RAISED_TILE_BASE,
   DEPTH_SCREEN_HIGHLIGHT_ISO_OFFSET,
   DEPTH_TILE_MAX_ELEVATION,
+  FIELD_TERRAIN_FILL_ALPHA,
+  FIELD_TERRAIN_OUTLINE_ALPHA,
+  FIELD_TERRAIN_OUTLINE_WIDTH,
+  FIELD_TERRAIN_PILL_BG_ALPHA,
+  FIELD_TERRAIN_PILL_FONT_SIZE,
+  FIELD_TERRAIN_PILL_RADIUS,
+  FIELD_TERRAIN_PILL_STROKE_WIDTH,
   GRID_SIZE,
+  LEFT_INDICATOR_TEXT_RESOLUTION,
   SCREEN_HOVER_AURA_ALPHA,
   SCREEN_HOVER_AURA_FONT_SIZE,
   TILE_FILL_COLOR,
@@ -94,6 +103,16 @@ function getAuraHoverOffsets(count: number): Array<{ x: number; y: number }> {
   }
 }
 
+export interface FieldTerrainRenderSpec {
+  readonly tiles: ReadonlyArray<{ x: number; y: number }>;
+  readonly anchor: { x: number; y: number };
+  /** Zone identity color (Champ kind) — fill + outline. */
+  readonly color: number;
+  /** Owning team color — timer pill background, so the player can tell whose Champ it is. */
+  readonly teamColor: number;
+  readonly remainingTurns: number;
+}
+
 export class IsometricGrid {
   private readonly scene: Phaser.Scene;
   private readonly tileGraphics: Phaser.GameObjects.Graphics;
@@ -101,6 +120,8 @@ export class IsometricGrid {
   private readonly highlightLayer = new Map<string, Phaser.GameObjects.Graphics>();
   private readonly enemyRangeLayer = new Map<string, Phaser.GameObjects.Graphics>();
   private readonly previewLayer = new Map<string, Phaser.GameObjects.Graphics>();
+  private readonly fieldTerrainLayer = new Map<string, Phaser.GameObjects.Graphics>();
+  private fieldTerrainPills: Phaser.GameObjects.GameObject[] = [];
   private screenAuraHoverIcons: Phaser.GameObjects.Text[] = [];
   private readonly cursorGraphics: Phaser.GameObjects.Graphics;
   private cursorTween: Phaser.Tweens.Tween | null = null;
@@ -403,6 +424,97 @@ export class IsometricGrid {
 
   clearPreview(): void {
     this.clearLayer(this.previewLayer);
+  }
+
+  /**
+   * Persistent painting of the active field-terrain ("Champs") zones (B4): an additive fill + a
+   * bright outer perimeter per zone, plus a timer pill at each zone's anchor. Idempotent — call on
+   * any field-terrain change. Overlapping zones blend additively (latest mechanically wins per tile).
+   */
+  renderFieldTerrains(specs: readonly FieldTerrainRenderSpec[]): void {
+    this.clearFieldTerrains();
+    const halfW = TILE_WIDTH / 2;
+    const halfH = TILE_HEIGHT / 2;
+    for (const spec of specs) {
+      const positionSet = new Set(spec.tiles.map((tile) => `${tile.x},${tile.y}`));
+      for (const position of spec.tiles) {
+        const height = this.getTileGroundHeight(position.x, position.y);
+        const graphics = this.getOrCreateTileGraphicsAtHeight(
+          this.fieldTerrainLayer,
+          position.x,
+          position.y,
+          height,
+          DEPTH_FIELD_TERRAIN_ISO_OFFSET,
+        );
+        graphics.setBlendMode(Phaser.BlendModes.ADD);
+        const center = this.gridToScreen(position.x, position.y, height);
+        const top = { x: center.x, y: center.y - halfH };
+        const right = { x: center.x + halfW, y: center.y };
+        const bottom = { x: center.x, y: center.y + halfH };
+        const left = { x: center.x - halfW, y: center.y };
+
+        graphics.fillStyle(spec.color, FIELD_TERRAIN_FILL_ALPHA);
+        graphics.beginPath();
+        graphics.moveTo(top.x, top.y);
+        graphics.lineTo(right.x, right.y);
+        graphics.lineTo(bottom.x, bottom.y);
+        graphics.lineTo(left.x, left.y);
+        graphics.closePath();
+        graphics.fillPath();
+
+        graphics.lineStyle(FIELD_TERRAIN_OUTLINE_WIDTH, spec.color, FIELD_TERRAIN_OUTLINE_ALPHA);
+        if (!positionSet.has(`${position.x},${position.y - 1}`)) {
+          this.drawEdgeOn(graphics, top, right);
+        }
+        if (!positionSet.has(`${position.x + 1},${position.y}`)) {
+          this.drawEdgeOn(graphics, right, bottom);
+        }
+        if (!positionSet.has(`${position.x},${position.y + 1}`)) {
+          this.drawEdgeOn(graphics, bottom, left);
+        }
+        if (!positionSet.has(`${position.x - 1},${position.y}`)) {
+          this.drawEdgeOn(graphics, left, top);
+        }
+      }
+
+      const anchorHeight = this.getTileGroundHeight(spec.anchor.x, spec.anchor.y);
+      const anchorCenter = this.gridToScreen(spec.anchor.x, spec.anchor.y, anchorHeight);
+      const isoLadder = (spec.anchor.x + spec.anchor.y) * DEPTH_TILE_MAX_ELEVATION + anchorHeight;
+      const pillDepth =
+        (anchorHeight > 0 ? DEPTH_RAISED_TILE_BASE + isoLadder : isoLadder) +
+        DEPTH_FIELD_TERRAIN_ISO_OFFSET +
+        0.01;
+      // Round badge: team-color fill (whose Champ), Champ-color ring (which Champ), centered count.
+      const badge = this.scene.add.graphics();
+      badge.fillStyle(spec.teamColor, FIELD_TERRAIN_PILL_BG_ALPHA);
+      badge.fillCircle(anchorCenter.x, anchorCenter.y, FIELD_TERRAIN_PILL_RADIUS);
+      badge.lineStyle(FIELD_TERRAIN_PILL_STROKE_WIDTH, spec.color, 1);
+      badge.strokeCircle(anchorCenter.x, anchorCenter.y, FIELD_TERRAIN_PILL_RADIUS);
+      badge.setDepth(pillDepth);
+      this.fieldTerrainPills.push(badge);
+
+      const count = this.scene.add.text(
+        anchorCenter.x,
+        anchorCenter.y,
+        String(spec.remainingTurns),
+        {
+          fontSize: `${FIELD_TERRAIN_PILL_FONT_SIZE}px`,
+          color: "#ffffff",
+          resolution: LEFT_INDICATOR_TEXT_RESOLUTION,
+        },
+      );
+      count.setOrigin(0.5, 0.5);
+      count.setDepth(pillDepth + 0.01);
+      this.fieldTerrainPills.push(count);
+    }
+  }
+
+  private clearFieldTerrains(): void {
+    this.clearLayer(this.fieldTerrainLayer);
+    for (const pill of this.fieldTerrainPills) {
+      pill.destroy();
+    }
+    this.fieldTerrainPills = [];
   }
 
   highlightTilesOutline(positions: Array<{ x: number; y: number }>): void {

@@ -1,4 +1,4 @@
-import type { AuraKind, BattleEvent } from "@pokemon-tactic/core";
+import type { AuraKind, BattleEvent, FieldTerrain } from "@pokemon-tactic/core";
 import {
   BattleEventType,
   DefensiveKind,
@@ -11,6 +11,24 @@ import {
   TerrainType,
   Weather,
 } from "@pokemon-tactic/core";
+
+const FIELD_TERRAIN_LABELS_FR: Record<FieldTerrain, string> = {
+  grassy: "Champ Herbu",
+  electric: "Champ Électrifié",
+  misty: "Champ Brumeux",
+  psychic: "Champ Psychique",
+};
+
+const FIELD_TERRAIN_LABELS_EN: Record<FieldTerrain, string> = {
+  grassy: "Grassy Terrain",
+  electric: "Electric Terrain",
+  misty: "Misty Terrain",
+  psychic: "Psychic Terrain",
+};
+
+function fieldTerrainLabel(kind: FieldTerrain, lang: string): string {
+  return lang === "fr" ? FIELD_TERRAIN_LABELS_FR[kind] : FIELD_TERRAIN_LABELS_EN[kind];
+}
 
 const AURA_LABELS_FR: Record<AuraKind, string> = {
   reflect: "Protection",
@@ -547,12 +565,47 @@ export function formatBattleEvent(
       if (event.reason === ProtectionReason.Substitute) {
         message =
           lang === "fr" ? `Le Clone protège ${targetName} !` : `Substitute shields ${targetName}!`;
+      } else if (event.reason === ProtectionReason.MistyTerrain) {
+        message =
+          lang === "fr"
+            ? `Le Champ Brumeux protège ${targetName} !`
+            : `Misty Terrain protects ${targetName}!`;
+      } else if (event.reason === ProtectionReason.ElectricTerrain) {
+        message =
+          lang === "fr"
+            ? `Le Champ Électrifié garde ${targetName} éveillé !`
+            : `Electric Terrain keeps ${targetName} awake!`;
       } else {
         message =
           lang === "fr"
             ? `Rune Protect protège ${targetName} !`
             : `Safeguard protects ${targetName}!`;
       }
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.FieldTerrainPosted: {
+      const name = context.getPokemonName(event.casterId);
+      const label = fieldTerrainLabel(event.kind, lang);
+      const message =
+        lang === "fr"
+          ? `${name} déploie le ${label} (${event.durationTurns} tours)`
+          : `${name} sets up ${label} (${event.durationTurns} turns)`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.FieldTerrainExpired: {
+      const label = fieldTerrainLabel(event.kind, lang);
+      const message = lang === "fr" ? `Le ${label} se dissipe` : `The ${label} faded`;
+      return { message, color: BattleLogColors.turn, pokemonIds: [] };
+    }
+
+    case BattleEventType.DashBlockedByPsychicTerrain: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${name} est repoussé par le Champ Psychique !`
+          : `${name} is repelled by Psychic Terrain!`;
       return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 

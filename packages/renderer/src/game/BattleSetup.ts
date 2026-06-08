@@ -258,6 +258,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     weather: Weather.None,
     weatherTurnsRemaining: 0,
     auras: [],
+    fieldTerrains: [],
   };
 
   const turnPipeline = new TurnPipeline();

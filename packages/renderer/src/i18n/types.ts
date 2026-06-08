@@ -265,6 +265,13 @@ export interface Translations {
   "aura.kind.safeguard": string;
   "aura.blocked.mist": string;
   "aura.blocked.safeguard": string;
+  "fieldTerrain.posted.grassy": string;
+  "fieldTerrain.posted.electric": string;
+  "fieldTerrain.posted.misty": string;
+  "fieldTerrain.posted.psychic": string;
+  "fieldTerrain.blocked.misty": string;
+  "fieldTerrain.blocked.electric": string;
+  "fieldTerrain.dashBlocked": string;
   "infoPanel.aura.caster": string;
   "infoPanel.aura.protected": string;
   "substitute.posted": string;
@@ -292,6 +299,10 @@ export interface Translations {
   "moveTooltip.tag.cureTeamStatus": string;
   "moveTooltip.tag.healByTargetAttack": string;
   "moveTooltip.tag.requiresTargetAsleep": string;
+  "moveTooltip.tag.fieldTerrain.grassy": string;
+  "moveTooltip.tag.fieldTerrain.electric": string;
+  "moveTooltip.tag.fieldTerrain.misty": string;
+  "moveTooltip.tag.fieldTerrain.psychic": string;
   "moveTooltip.tag.tauntBlocked": string;
   "moveTooltip.tag.disableBlocked": string;
   "moveTooltip.tag.encoreBlocked": string;

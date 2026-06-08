@@ -1,6 +1,7 @@
 import { BattleEventType } from "../../enums/battle-event-type";
 import type { EffectKind } from "../../enums/effect-kind";
 import { EffectTarget } from "../../enums/effect-target";
+import { FieldTerrain } from "../../enums/field-terrain";
 import { PokemonType } from "../../enums/pokemon-type";
 import { StatusImmuneReason } from "../../enums/status-immune-reason";
 import type { StatusType } from "../../enums/status-type";
@@ -12,6 +13,7 @@ import { DEFAULT_STATUS_RULES, type StatusRules } from "../../types/status-rules
 import { isProtectedFromStatus } from "../aura-system";
 import { effectConditionHolds } from "../condition-eval";
 import type { EffectContext } from "../effect-handler-registry";
+import { isOnFieldTerrain } from "../field-terrain-system";
 import { isMajorStatus } from "../stat-modifier";
 import { shouldSubstituteBlock } from "../substitute-system";
 import { effectiveWeather, shouldBlockFreezeInSun } from "../weather-system";
@@ -155,6 +157,34 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
         pokemonId: target.id,
         status,
         reason: ProtectionReason.Substitute,
+      });
+      continue;
+    }
+
+    // Misty Terrain (B4): grounded mons on the zone are immune to major statuses and confusion.
+    if (
+      (isMajorStatus(status) || status === StatusTypeEnum.Confused) &&
+      isOnFieldTerrain(context.state, target, targetTypes, FieldTerrain.Misty)
+    ) {
+      events.push({
+        type: BattleEventType.StatusBlocked,
+        pokemonId: target.id,
+        status,
+        reason: ProtectionReason.MistyTerrain,
+      });
+      continue;
+    }
+
+    // Electric Terrain (B4): grounded mons on the zone cannot fall asleep.
+    if (
+      status === StatusTypeEnum.Asleep &&
+      isOnFieldTerrain(context.state, target, targetTypes, FieldTerrain.Electric)
+    ) {
+      events.push({
+        type: BattleEventType.StatusBlocked,
+        pokemonId: target.id,
+        status,
+        reason: ProtectionReason.ElectricTerrain,
       });
       continue;
     }

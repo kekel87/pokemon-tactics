@@ -2,6 +2,7 @@ import type { AuraKind } from "../enums/aura-kind";
 import type { BattleEventType } from "../enums/battle-event-type";
 import type { DefensiveKind } from "../enums/defensive-kind";
 import type { Direction } from "../enums/direction";
+import type { FieldTerrain } from "../enums/field-terrain";
 import type { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
 import type { StatName } from "../enums/stat-name";
 import type { StatusImmuneReason } from "../enums/status-immune-reason";
@@ -20,6 +21,8 @@ export const ProtectionReason = {
   Mist: "mist",
   Safeguard: "safeguard",
   Substitute: "substitute",
+  MistyTerrain: "misty_terrain",
+  ElectricTerrain: "electric_terrain",
 } as const;
 export type ProtectionReason = (typeof ProtectionReason)[keyof typeof ProtectionReason];
 
@@ -227,6 +230,24 @@ export type BattleEvent =
       kind: AuraKind;
       breakerId: string;
       breakerMoveId: string;
+    }
+  | {
+      type: typeof BattleEventType.FieldTerrainPosted;
+      casterId: string;
+      kind: FieldTerrain;
+      anchor: Position;
+      tiles: Position[];
+      durationTurns: number;
+    }
+  | {
+      type: typeof BattleEventType.FieldTerrainExpired;
+      casterId: string;
+      kind: FieldTerrain;
+    }
+  | {
+      type: typeof BattleEventType.DashBlockedByPsychicTerrain;
+      pokemonId: string;
+      blockedAt: Position;
     }
   | {
       type: typeof BattleEventType.StatChangeBlocked;

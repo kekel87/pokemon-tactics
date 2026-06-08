@@ -25,6 +25,7 @@ import { handleHealSelf } from "./handlers/handle-heal-self";
 import { handleHealTarget } from "./handlers/handle-heal-target";
 import { handleKnockback } from "./handlers/handle-knockback";
 import { handlePostAura } from "./handlers/handle-post-aura";
+import { handlePostFieldTerrain } from "./handlers/handle-post-field-terrain";
 import { handlePostHealOverTime } from "./handlers/handle-post-heal-over-time";
 import { handlePostSubstitute } from "./handlers/handle-post-substitute";
 import { handlePostWish } from "./handlers/handle-post-wish";
@@ -74,6 +75,7 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.HealByTargetStat, handleHealByTargetStat);
   registry.register(EffectKind.PostHealOverTime, handlePostHealOverTime);
   registry.register(EffectKind.PostWish, handlePostWish);
+  registry.register(EffectKind.PostFieldTerrain, handlePostFieldTerrain);
   return registry;
 }
 

@@ -54,8 +54,13 @@ import { processEffects } from "./effect-processor";
 import { isEffectivelyFlying } from "./effective-flying";
 import { getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
+import { isEnemyPsychicBarrierAt, PSYCHIC_BARRIER_IMPACT_HEIGHT } from "./field-terrain-system";
 import { createAurasTickHandler } from "./handlers/aura-tick-handler";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
+import {
+  createFieldTerrainHealHandler,
+  fieldTerrainDecrementHandler,
+} from "./handlers/field-terrain-tick-handler";
 import { hotTickHandler } from "./handlers/hot-tick-handler";
 import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handler";
 import { roostedClearHandler } from "./handlers/roosted-clear-handler";
@@ -190,6 +195,8 @@ export class BattleEngine {
       200,
     );
     this.turnPipeline.registerEndTurn(hotTickHandler, 250);
+    this.turnPipeline.registerEndTurn(createFieldTerrainHealHandler(this.pokemonTypesMap), 260);
+    this.turnPipeline.registerEndTurn(fieldTerrainDecrementHandler, 265);
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
     this.turnPipeline.registerEndTurn(timedVolatileTickHandler, 350);
     this.turnPipeline.registerEndTurn(
@@ -326,6 +333,12 @@ export class BattleEngine {
       return [];
     }
     return this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+  }
+
+  /** Psychic-terrain barrier predicate for a dasher (B4), fed into the traversal context. */
+  private buildDashBarrierPredicate(dasher: PokemonInstance): (position: Position) => boolean {
+    const dasherTypes = this.getPokemonTypes(dasher.id);
+    return (position) => isEnemyPsychicBarrierAt(this.state, dasher, dasherTypes, position);
   }
 
   computePathDistance(from: Position, to: Position, pokemonId: string): number {
@@ -1445,12 +1458,23 @@ export class BattleEngine {
     const distance = manhattanDistance(pokemon.position, targetPosition);
     const isFlying = this.isEffectivelyFlying(pokemon);
     let previousHeight = this.grid.getTile(pokemon.position)?.height ?? 0;
+    const isBarrierTile = this.buildDashBarrierPredicate(pokemon);
+    let previousIsBarrier = isBarrierTile(pokemon.position);
+    let psychicBarrierAt: Position | null = null;
 
     for (let step = 1; step <= distance; step++) {
       const position = stepInDirection(pokemon.position, direction, step);
       if (!this.grid.isInBounds(position)) {
         break;
       }
+      // Psychic-terrain barrier (B4): stop at the edge when crossing into an enemy zone. Block +
+      // wall-impact damage are applied after the partial move, mirroring the height-wall path below.
+      const isBarrier = isBarrierTile(position);
+      if (isBarrier && !previousIsBarrier) {
+        psychicBarrierAt = { ...position };
+        break;
+      }
+      previousIsBarrier = isBarrier;
       const tileHeight = this.grid.getTile(position)?.height ?? 0;
       if (!isFlying && tileHeight - previousHeight > 0.5) {
         wallHeightDiff = tileHeight - previousHeight;
@@ -1468,6 +1492,25 @@ export class BattleEngine {
       previousHeight = tileHeight;
     }
 
+    // Psychic barrier: announce the repel and deal wall-impact damage via the SAME resolver as a
+    // height wall (applyImpactDamage → calculateFallDamage), with a synthetic impact height.
+    const applyPsychicBarrier = (): void => {
+      if (!psychicBarrierAt) {
+        return;
+      }
+      const blockEvent: BattleEvent = {
+        type: BattleEventType.DashBlockedByPsychicTerrain,
+        pokemonId: pokemon.id,
+        blockedAt: psychicBarrierAt,
+      };
+      this.emit(blockEvent);
+      events.push(blockEvent);
+      for (const event of applyImpactDamage(pokemon, PSYCHIC_BARRIER_IMPACT_HEIGHT)) {
+        this.emit(event);
+        events.push(event);
+      }
+    };
+
     if (destination === null) {
       if (wallHeightDiff > 0 && !isFlying) {
         for (const event of applyImpactDamage(pokemon, wallHeightDiff)) {
@@ -1475,6 +1518,7 @@ export class BattleEngine {
           events.push(event);
         }
       }
+      applyPsychicBarrier();
       return;
     }
 
@@ -1501,6 +1545,8 @@ export class BattleEngine {
         events.push(event);
       }
     }
+
+    applyPsychicBarrier();
 
     const dashHeightDiff = originHeight - destHeight;
     if (dashHeightDiff > 0) {
