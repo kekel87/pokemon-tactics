@@ -21,6 +21,7 @@ export interface Translations {
   "battle.backToMenu": string;
   "attack.selectTarget": string;
   "attack.confirm": string;
+  "attack.selectRetreat": string;
   "stat.atk": string;
   "stat.def": string;
   "stat.spA": string;
@@ -43,6 +44,7 @@ export interface Translations {
   "move.accuracy": string;
   "move.range": string;
   "placement.instruction": string;
+  "placement.counter": string;
   "sandbox.reset": string;
   "sandbox.exportJson": string;
   "sandbox.importJson": string;

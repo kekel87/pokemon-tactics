@@ -33,7 +33,7 @@
     border: 1px solid var(--gray-700);
     border-radius: var(--radius-sm);
     padding: var(--pad-control-y) var(--pad-control-x);
-    width: 320px;
+    width: var(--tb-name-input-w, 320px);
   }
 
   .tb-topbar-count {

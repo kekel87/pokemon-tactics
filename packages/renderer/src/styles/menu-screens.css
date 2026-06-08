@@ -1,0 +1,94 @@
+/* FSM menu screens (plan 120 step 2) — full-viewport DOM screens replacing the
+ * Phaser menu scenes. Responsive via vmin clamps (4K-friendly), tokens from
+ * tokens.css, buttons reuse .tb-btn with the .mn-btn size override. */
+
+@layer components {
+  .mn-screen {
+    --mn-gap: clamp(8px, 1.5vmin, 20px);
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 4vmin, 48px);
+    background: var(--color-bg-base);
+    font-family: var(--font-family);
+    color: var(--color-text-primary);
+  }
+
+  .mn-screen button {
+    font-family: var(--font-family);
+  }
+
+  .mn-title {
+    margin: 0;
+    font-size: clamp(28px, 6vmin, 84px);
+    font-weight: bold;
+    color: var(--color-accent);
+  }
+
+  .mn-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mn-gap);
+  }
+
+  .mn-btn {
+    min-width: clamp(240px, 28vmin, 460px);
+    font-size: clamp(18px, 2.6vmin, 40px);
+  }
+
+  .mn-version {
+    position: absolute;
+    inset-block-end: var(--spacing-xl);
+    inset-inline-start: var(--spacing-xl);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-faint);
+  }
+
+  .mn-lang {
+    position: absolute;
+    inset-block-end: var(--spacing-xl);
+    inset-inline-end: var(--spacing-xl);
+  }
+
+  .mn-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mn-gap);
+  }
+
+  .mn-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(24px, 6vmin, 96px);
+  }
+
+  .mn-row-label {
+    font-size: clamp(18px, 2.2vmin, 34px);
+    color: var(--color-text-secondary);
+  }
+
+  .mn-cursor-preview {
+    block-size: 1.2em;
+    image-rendering: pixelated;
+  }
+
+  .mn-credits {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 2vmin, 24px);
+    max-inline-size: min(80vw, 900px);
+    text-align: center;
+  }
+
+  .mn-credits-text {
+    margin: 0;
+    font-size: clamp(14px, 1.8vmin, 28px);
+    line-height: var(--line-height-base);
+    color: var(--color-text-muted);
+    white-space: pre-line;
+  }
+}

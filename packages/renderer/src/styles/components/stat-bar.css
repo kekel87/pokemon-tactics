@@ -1,13 +1,13 @@
 @layer components {
   .tb-stat-row {
     display: grid;
-    grid-template-columns: 50px 1fr 50px;
+    grid-template-columns: var(--tb-stat-col, 50px) 1fr var(--tb-stat-col, 50px);
     align-items: center;
     gap: var(--spacing-sm);
     margin-bottom: var(--spacing-xs);
     .tb-stat-label { color: var(--color-text-muted); }
     .tb-stat-bar {
-      height: 12px;
+      height: var(--tb-statbar-h, 12px);
       background: var(--color-bg-elevated);
       border: 1px solid var(--color-border-surface);
       border-radius: 2px;
@@ -35,7 +35,7 @@
 
   .tb-sp-row {
     display: grid;
-    grid-template-columns: 50px 1fr 50px auto;
+    grid-template-columns: var(--tb-stat-col, 50px) 1fr var(--tb-stat-col, 50px) auto;
     align-items: center;
     gap: var(--spacing-sm);
     margin-bottom: var(--spacing-xs);

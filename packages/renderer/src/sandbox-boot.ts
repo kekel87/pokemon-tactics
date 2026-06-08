@@ -30,15 +30,21 @@ export interface SandboxStudioDom {
 
 let cachedStudioDom: SandboxStudioDom | null = null;
 
-export function initSandboxStudioDom(): SandboxStudioDom {
+/**
+ * Build the studio chrome (header / player + dummy columns / battle strip) around
+ * the game host. Phaser passes its `#game-container`; the Babylon build passes its
+ * `#game-root` (which `sandbox-studio.css` reflows from fixed-fullscreen to a flex
+ * child via `body[data-sandbox] #game-root`). Defaults to `#game-container`.
+ */
+export function initSandboxStudioDom(host?: HTMLElement): SandboxStudioDom {
   if (cachedStudioDom !== null) {
     return cachedStudioDom;
   }
   document.body.dataset.sandbox = "true";
 
-  const gameContainer = document.getElementById("game-container");
+  const gameContainer = host ?? document.getElementById("game-container");
   if (!gameContainer) {
-    throw new Error("Sandbox studio: #game-container missing from DOM");
+    throw new Error("Sandbox studio: game host (#game-container) missing from DOM");
   }
 
   const header = document.createElement("header");
@@ -88,4 +94,20 @@ export function getSandboxStudioDom(): SandboxStudioDom {
     throw new Error("Sandbox studio DOM not initialized — call initSandboxStudioDom() first.");
   }
   return cachedStudioDom;
+}
+
+/**
+ * Remove the studio chrome (header / columns / battle strip) and the
+ * `body[data-sandbox]` flag, so exiting the sandbox to the FSM main menu leaves a
+ * clean DOM (the menu screen mounts into `#game-root`, a sibling of this chrome).
+ */
+export function teardownSandboxStudioDom(): void {
+  if (cachedStudioDom === null) {
+    return;
+  }
+  cachedStudioDom.header.remove();
+  cachedStudioDom.columns.remove();
+  cachedStudioDom.battleStrip.remove();
+  cachedStudioDom = null;
+  delete document.body.dataset.sandbox;
 }

@@ -283,6 +283,24 @@ export class PlacementPhase {
     return true;
   }
 
+  /**
+   * Whether the current player may undo their last placement. Allowed only when
+   * the most recent placement is theirs — i.e. no opponent has placed since. Once
+   * an opponent has responded, undoing would let the player react to information
+   * they shouldn't have, so it is forbidden.
+   */
+  canUndo(): boolean {
+    const next = this.getNextToPlace();
+    if (!next) {
+      return false;
+    }
+    const last = this.placements.at(-1);
+    if (!last) {
+      return false;
+    }
+    return this.ownerByPokemonId.get(last.pokemonId) === next.playerId;
+  }
+
   autoPlaceAll(gridCenter: Position): PlacementEntry[] {
     while (!this.isComplete()) {
       const next = this.getNextToPlace();

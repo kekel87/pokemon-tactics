@@ -123,7 +123,7 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
 - [x] **[UX CT]** Timeline CT prédictive scrollable style FFX — 24 slots simulés par core, slot 0 ancré, 11 slots scrollables molette, bordure teal-vert Pokemon actif, entrée tail "..." — plan 058 + plan 059
 - [x] Undo déplacement (annulable avant attaque) — plan 053 (action `undo_move`, bouton "Annuler déplacement", annulation brûlure magma, 8 tests)
 - [x] Curseur FFTA — variantes curseur (settings + touche H), depth bugfix curseur (500 global) — plan 060 Section A
-- [ ] ~~Silhouette X-ray occlusion~~ — **SKIPPÉE** (résolue nativement par renderer Babylon Phase 3.5, décision 2026-04-18)
+- [x] **Silhouette X-ray occlusion** — Livré en Phase 5 Jalon 3a (Babylon) : 2e plane couleur d'équipe, `depthFunction=GREATER`, `renderingGroupId 1`, préserve la lisibilité des Pokémon occultés par le relief. Décision #474.
 - [x] Système décorations Tiled — `decorations.tsj`, Ghost traverse obstacles, parser objectgroup, sprites décorations, `DecorationsLayer` renderer — plan 064. Bonus différé : marquages arène + pokéball centrale.
 - [x] **Occlusion dynamique par sprite** — fix depth tiles surélevées (`DEPTH_RAISED_TILE_BASE`), Alt-click picking multi-niveaux (`COLOR_CURSOR_ALT`), module `OcclusionFader` (fade alpha 0.4, AABB screen-space). **Phase 3.5 rewrite Babylon repoussée après Phase 7** (décision #272). — plan 065
 - [x] Roster de maps variées — 7 maps thématiques : forest (14×14), cramped-cave (12×12), le-mur (16×16), volcano (14×14), swamp (14×14), desert (14×14), naval-arena (14×14). Toutes multi-format (5 objectgroups). Plan 066 terminé 2026-04-23.
@@ -225,39 +225,45 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
 
 ## Phase 5 — Migration renderer 2D-HD (Babylon.js)
 
-> **Position actuelle : après Phase 7** (reordonné 2026-04-20).
+> **Repriorisée — EN COURS** (2026-06-08, worktree `phase5-babylon`). Ancienne position "après Phase 7" annulée (décision humaine 2026-06-08).
 >
 > But : remplacer renderer Phaser 4 isométrique par Babylon.js 2D-HD (sprites billboards sur terrain 3D extrudé, style Tactics Ogre PSP / Triangle Strategy / FFTIC).
+>
+> Plan-maître : **plan 119** (`docs/plans/119-phase5-babylon-master.md`). Parité visuelle : **307 items** (`docs/plans/119-parity-checklist.md`).
 
 ### Contexte
 
-Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) validé 4/4. Spike plan 063 (Babylon.js) terminé 2026-04-18 → **Babylon.js retenu** (décision #269). Report post-Phase 7 décidé 2026-04-20 : plan 065 résout l'occlusion en iso 2D, rotation caméra reste un want non-bloquant.
+Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) validé 4/4. Spike plan 063 (Babylon.js) terminé 2026-04-18 → **Babylon.js retenu** (décision #269). Phase 5 repriorisée avant Phase 7 — décision humaine 2026-06-08. Worktree long-lived `phase5-babylon` — pas de merge partiel sur main (décisions #449-450).
 
-Prérequis :
-- Phases 3 → 7 livrées.
-- Plan 065 (occlusion fade) livré.
-- Occlusion plan 060 silhouette **skippée**.
+### Décisions verrouillées (2026-06-08)
 
-### À décider en début de phase
+- **Babylon.js 8.x** — pas de re-spike (décision #269 + #449).
+- **Tiled conservé** — format 3D custom = Phase 6 (décision #451).
+- **UI = HTML/CSS overlay** — pas `@babylonjs/gui` (compat navigateur/mobile) (décision #452).
+- **Résolution design de référence : 1920×1080** (décision #454).
+- **Map de référence parité : volcano** (décision #454).
+- **Échelle sprite = 24px/u (= densité tile, 1:1)** (décision #455). Doc : `docs/babylon/babylon-2d-overlay-scaling.md`.
+- **Hauteurs 2:1** : full = 1, half = 0.5 (décision #456).
+- **Orientation grille→monde transposée** : gridX→worldZ, gridY→worldX (décision #457).
+- **Terrain visuel ≠ terrain gameplay** : `VisualTerrainGroup` via GID/rangée tileset (décision #458).
+- **Ombres par `shadowSize` PMD** (décision #459).
+- **Sprites `renderingGroupId 0`** — partagé avec terrain, occlusion native depth-buffer (décision #473 révise #460).
+- **Jalon 3.5 pixel-art dédié** — RTT + integer scaling (décision #461). Doc : `docs/babylon/babylon-pixel-art-pipeline.md`.
 
-- [ ] **Découpage en plans** : 1 plan monolithique vs 4 plans incrémentaux. Voir pistes dans `docs/next.md`.
-- [ ] **Tiled : conserver ?** Option A : garder Tiled, `loadTiledMap` → `MapDefinition`. Option B : format map custom orienté 3D. Option C : éditeur custom in-game.
-- [ ] **UI stack** : `@babylonjs/gui` natif vs HTML/CSS overlay. Mesurer les deux sur un panel avant de trancher.
+### Jalons
 
-### Items techniques
-
-- [ ] Port core renderer : terrain extrudé, sprites directional billboards (atlas PMDCollab), caméra orthographique dimetric, curseur FFTA, occlusion native.
-- [ ] Parité feature avec renderer Phaser actuel sur map de référence (combat complet jouable).
-- [ ] Port UI : timeline CT, ActionMenu, sous-menu attaque, InfoPanel, battle log, écrans menu/sélection/victoire.
-- [ ] Features Phase 3 pour 3D : décorations (herbes hautes billboards), rotation caméra 4 angles.
-- [ ] Bundle & perfs : audit `rollup-plugin-visualizer`, flat-shaded `ShaderMaterial` custom (cohérence pixel-art FFTA), Inspector shim type (`skipLibCheck: false`), cible 180-220 kB gzip (vs 273 kB spike).
-- [ ] Régler gotchas spike (voir `docs/references/babylon-gotchas.md`) : `GridMaterial.gridOffset`, UV `invertY`, `renderingGroupId`, `alphaCutOff`/`transparencyMode`, deep imports.
+- [x] **Jalon 1** — Spike → production : terrain + 1 billboard + caméra (2026-06-08). Terrain volcano rendu, 15 textures PMD, ombres, orientation, hauteurs, `VisualTerrainGroup`, `renderingGroupId 0`. Docs `babylon-2d-overlay-scaling.md`, `babylon-asset-lifecycle.md`. Plan parité 307 items.
+- [x] **Jalon 2** — Contrat overlay UI + harmonisation design-system (2026-06-08). `game-stage` / `game-overlay` / `ResizeObserver` / `--ui-scale`. Helper projection monde→écran (world-projection.ts). InfoPanel DOM container-query (info-panel.css). Team Builder rapatrié. Canvas plein viewport (décision #472). Validé desktop + mobile + 60fps.
+- [ ] **Jalon 3** — Port core renderer (parité scène combat). **3a DONE (2026-06-09)** : caméra rotative, occlusion native depth-buffer, silhouette X-ray, extrusion multi-niveaux. Reste : picking multi-niveaux (3b), curseur FFTA (3c), animations directionnelles (3d), décorations+terrain complet (3e), tests parité (3f).
+- [ ] **Jalon 3.5** — Pipeline pixel-art. RTT basse résolution + upscale NEAREST + integer scaling. Pixel-snapping overlay DOM. Spec : `docs/babylon/babylon-pixel-art-pipeline.md`.
+- [ ] **Jalon 4** — Port chrome combat + interactions. Timeline CT, ActionMenu, InfoPanel, battle log, animations combat, state machine DOM.
+- [ ] **Jalon 5** — Nettoyage Phaser + parité finale + merge `--ff-only` sur main. `grep -ri phaser packages/` = 0. Bundle ≤ 220 kB gzip.
 
 ### Gates
 
-- Chaque plan sort renderer fonctionnel sur `main` (pas de branche longue).
-- Parité feature = critère de succès avant de retirer renderer Phaser.
-- Activation `.claude/rules/renderer-babylon.md` dès premier plan.
+- Worktree long-lived `phase5-babylon` — aucun jalon ne merge sur main seul.
+- Merge `--ff-only` sur main seulement à DoD complète (plan 119 §2) + validation visuelle humaine.
+- `core-guardian` vert à chaque jalon (zéro dep rendu dans core).
 
 ---
 

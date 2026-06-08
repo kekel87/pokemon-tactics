@@ -3,8 +3,19 @@
  * Source canon couleurs DOM. Phaser/canvas → packages/renderer/src/constants.ts.
  */
 
+/* Police du jeu — déclarée ici pour que tout point d'entrée (index + babylon)
+ * la charge via tokens.css. index.html garde sa copie inline jusqu'au Jalon 5. */
+@font-face {
+  font-family: "PokemonEmeraldPro";
+  src:
+    url("/assets/fonts/pokemon-emerald-pro.woff2") format("woff2"),
+    url("/assets/fonts/pokemon-emerald-pro.ttf") format("truetype");
+  font-display: block;
+}
+
 :root {
   /* Palette — couleurs neutres (réutilisables, multiples sémantiques) */
+  --blue-1000: #0a0a14;
   --blue-950: #111122;
   --blue-900: #14142a;
   --blue-850: #1a1a2e;
@@ -69,13 +80,37 @@
   --type-text-steel: var(--color-text-primary);
   --type-text-fairy: var(--color-text-dark);
 
+  /* Couleurs équipes — canon, miroir de TEAM_COLORS (constants.ts). 1-based. */
+  --team-1: #2255aa; /* bleu */
+  --team-2: #aa2233; /* rouge */
+  --team-3: #22aa44; /* vert */
+  --team-4: #ccaa00; /* jaune */
+  --team-5: #8833aa; /* violet */
+  --team-6: #dd6622; /* orange */
+  --team-7: #22aaaa; /* cyan */
+  --team-8: #dd4488; /* rose */
+  --team-9: #88cc22; /* citron vert */
+  --team-10: #885522; /* marron */
+  --team-11: #4488dd; /* bleu clair */
+  --team-12: #777777; /* gris */
+
+  /* Sémantiques — badges InfoPanel (miroir STAT_BADGE_*_BG de constants.ts) */
+  --color-badge-buff-bg: #1a4a8a;
+  --color-badge-debuff-bg: #8a1a1a;
+  --color-badge-volatile-bg: #6a3a8a;
+
   /* Sémantiques — fond / texte / accent */
+  --color-letterbox: var(--blue-1000);
   --color-bg-base: var(--blue-850);
   --color-bg-surface: var(--blue-950);
   --color-bg-elevated: var(--blue-900);
   --color-bg-elevated-hover: var(--blue-800);
   --color-border-surface: var(--blue-700);
+  --color-border-faint: rgb(255 255 255 / 0.3); /* liseré UI clair (miroir UI_BORDER_*) */
   --color-accent: var(--yellow-400);
+  /* TurnTimeline CT bar (mirror TIMELINE_CT_BAR_COLOR / TIMELINE_CT_BAR_BG_COLOR of constants.ts). */
+  --color-timeline-ct: #44aaff;
+  --color-timeline-ct-bg: #223344;
   --color-text-primary: var(--gray-100);
   --color-text-secondary: var(--gray-200);
   --color-text-muted: var(--gray-400);
@@ -83,6 +118,9 @@
   --color-text-faint: var(--gray-600);
   --color-text-dark: #222;
   --color-backdrop: rgb(0 0 0 / 0.7);
+  /* Preview dégâts (barre PV monde) — assombrit les PV perdus (miroir Phaser DAMAGE_ESTIMATE_ALPHA_*). */
+  --color-damage-band-possible: rgb(0 0 0 / 0.55);
+  --color-damage-band-guaranteed: rgb(0 0 0 / 0.85);
 
   /* Sémantiques — boutons */
   --color-btn-bg: var(--blue-600);

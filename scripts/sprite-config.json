@@ -111,7 +111,10 @@
     "Hurt",
     "Faint",
     "Sleep",
-    "FlapAround"
+    "FlapAround",
+    "Hover",
+    "Special0",
+    "Special10"
   ],
   "portraits": ["Normal"],
   "directions": [

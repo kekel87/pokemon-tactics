@@ -119,8 +119,27 @@ L'information la plus importante est toujours la plus visible :
 | Couleur | Hex | Alpha | Usage |
 |---------|-----|-------|-------|
 | Bleu clair | `#55aaff` / `0x55aaff` | 0.5 | Zone de spawn active |
-| Gris bleuté | `#8888aa` / `0x8888aa` | 0.5 | Zone de spawn inactive |
-| Bleu sombre | `#335577` / `0x335577` | 0.5 | Zone de spawn occupée |
+| Gris bleuté | `#8888aa` / `0x8888aa` | `TILE_SPAWN_ZONE_INACTIVE_ALPHA` | Zone de spawn inactive |
+| Bleu sombre | `#335577` / `0x335577` | `TILE_SPAWN_ZONE_OCCUPIED_ALPHA` | Zone de spawn occupée |
+
+Constantes dans `packages/renderer/src/constants.ts` :
+
+| Constante | Rôle |
+|-----------|------|
+| `TILE_SPAWN_ZONE_INACTIVE_ALPHA` | Alpha des quads de zone de spawn inactive (aucune pose joueur courant) |
+| `TILE_SPAWN_ZONE_OCCUPIED_ALPHA` | Alpha des quads de zone de spawn déjà occupée par un Pokemon placé |
+
+Les anciennes constantes `TILE_SPAWN_ZONE_ACTIVE_COLOR` / `TILE_SPAWN_ZONE_OCCUPIED_COLOR` ont été supprimées (code mort — la couleur est celle de l'équipe injectée à l'appel `setSpawnZones`).
+
+### Direction picker (placement)
+
+Le picker de direction (composant DOM `ui/dom/combat/direction-picker.ts`) place 4 flèches autour du Pokemon à poser. Chaque flèche est positionnée par **projection iso-correcte de la tuile voisine** dans la direction correspondante :
+
+1. Pour chaque direction cardinale (N/S/E/O), calculer la coordonnée grille de la tuile voisine.
+2. Projeter cette coordonnée via `CombatScene.projectTile(x, y)` → coordonnées écran.
+3. Placer la flèche DOM à la position projetée (pas de vecteur fixe en pixels).
+
+Cette approche garantit que les flèches restent alignées quelle que soit la rotation de caméra (snaps 90°). Le picker écoute `ResizeObserver` et recalcule les positions à l'ouverture uniquement (limitation acceptée à l'étape 6 — bug resize mineur reporté). Les flèches ont un état hover (preview de la direction) et confirment la pose au clic. Échap ou clic en dehors annule.
 
 ### Preview d'attaque
 
@@ -515,6 +534,65 @@ Le layering garantit que les highlights passent **derrière** les sprites Pokemo
 
 ---
 
+## Overlay Babylon — UI ancrée écran (cat. B)
+
+> Phase 5 Jalon 2b. Source : `packages/renderer/src/styles/info-panel.css` + `tokens.css`.
+
+### Contrat de couche (rappel)
+
+Deux catégories d'UI sous `#game-overlay` (lui-même aligné pixel-près sur le canvas Babylon via `ResizeObserver`) :
+
+| Catégorie | Classe | Ancrage | Scaling |
+|-----------|--------|---------|---------|
+| Monde (cat. A) | `.ui-world` | `transform: translate()` par frame (projection 3D→écran) | n/a (px directs) |
+| Écran (cat. B) | `.ui-screen` | Bords du root overlay (CSS `position: absolute`) | container-query units |
+
+> Ancien nom `.ui-chrome` → renommé `.ui-screen` (décision #468). `chromeLayer` → `screenLayer` dans `game-stage.ts`.
+
+### Scaling container-query (cat. B)
+
+Les panneaux écran (InfoPanel, timeline, menus) utilisent des **container-query units** plutôt que `--ui-scale` JS :
+
+```css
+#game-stage { container-type: size; container-name: stage; }
+
+/* 1 px design @ 1920px de largeur stage */
+--ip-px: calc(100cqw / 1920);
+```
+
+Usage : `padding: calc(8 * var(--ip-px))` = 8 px design → scale proportionnel à la largeur réelle du stage.
+
+- `--ui-scale` (publié par `ResizeObserver` sur `#game-stage`) reste disponible comme fallback JS pour les cas où les container queries ne suffisent pas.
+- Compat : Safari 2026 + Chrome + Firefox supportent les container queries (`cqw`/`cqi`).
+
+### Reflow mobile
+
+```css
+@container stage (width < 768px) {
+  /* barre bas pleine largeur, scale sur ref 768 */
+}
+```
+
+Panneaux collapsés/stackés sous 768 px (style PokeRogue). Pas de shrink illisible.
+
+### Tokens équipe et badges (tokens.css)
+
+Ajoutés au Jalon 2b — miroir des constantes canvas dans `constants.ts` :
+
+| Token | Valeur de référence | Usage DOM |
+|-------|---------------------|-----------|
+| `--team-1` … `--team-12` | Miroir `TEAM_COLORS[0..11]` | Fond/bordure panneau équipe, barre HP |
+| `--color-badge-buff-bg` | Miroir `STAT_BADGE_BUFF_BG` (`#1a4a8a`) | Badge stat augmentée |
+| `--color-badge-debuff-bg` | Miroir `STAT_BADGE_DEBUFF_BG` (`#8a1a1a`) | Badge stat diminuée |
+| `--color-badge-volatile-bg` | Miroir `STAT_BADGE_VOLATILE_BG` (`#6a3a8a`) | Badge statut volatil |
+| `--color-border-faint` | Semi-transparent blanc feutré | Bordure douce panneaux |
+
+### Police PokemonEmeraldPro — `@font-face` dans tokens.css
+
+Depuis le Jalon 2b, le `@font-face` de PokemonEmeraldPro est déclaré dans `tokens.css` (et non plus uniquement inline dans `index.html`). Cela garantit que `babylon.html` et tout futur point d'entrée chargent la police sans tomber en fallback `monospace`. `index.html` conserve sa propre déclaration jusqu'au Jalon 5 (suppression Phaser).
+
+---
+
 ## CSS vars — Team Builder DOM
 
 Source canonique : `packages/renderer/src/styles/tokens.css`. Ces tokens s'appliquent à l'interface DOM du Team Builder (MyTeamsScene, TeamEditScene). Pour les valeurs Phaser/canvas, `constants.ts` reste la source.
@@ -574,6 +652,16 @@ Les variantes de boutons utilisent `color-mix()` plutôt que des hex hardcodés 
 
 L'ordre des layers garantit que `components` l'emporte sur `base` sans `!important`. Le bug historique (`* { padding:0; margin:0 }` hors layer dans `index.html`) a été corrigé — wrappé dans `@layer reset`, scope réduit à `html, body`.
 
+### Scrollbars fines (convention globale)
+
+Dans `base.css`, règle globale appliquée à tous les éléments scrollables :
+
+```css
+* { scrollbar-width: thin; scrollbar-color: var(--color-border-surface) transparent; }
+```
+
+Résultat : scrollbars discrètes cohérentes sur tout l'écran (Firefox/Chrome). Évite les barres scrollbar native épaisses qui cassent les layouts compacts (ex: `.ts-team-row-portraits` en fenêtre étroite).
+
 ---
 
 ## CSS — Sandbox Studio (plan 091)
@@ -609,6 +697,270 @@ Source : `packages/renderer/src/styles/sandbox-studio.css` + tokens `tokens.css`
 | `.sb-strip-left` / `.sb-strip-right` | Bandes colorées gauche/droite (couleur équipe) |
 | `.sb-language-toggle` | Bouton de bascule FR/EN en mode normal |
 | `.lang-toggle-floating` | Variante flottante (position fixe hors sandbox) |
+
+---
+
+## Overlay UI Babylon (Phase 5 — contrat de couche)
+
+> Renderer Babylon en cours (worktree `phase5-babylon`, plan 119). L'UI est 100% DOM/CSS au-dessus du canvas (décision D4, pas de `@babylonjs/gui`).
+
+- **Canvas plein viewport, pas de letterbox** (décision #472) : `#game-stage` remplit 100% du viewport ; la caméra orthographique dimetric « comble » selon le ratio (montre plus/moins de scène). Zéro bande noire, tout ratio (ultrawide, mobile portrait). Révise les décisions 2a/2b #464-468 (qui partaient d'un stage letterboxé 16:9).
+- **Structure** : `#game-root > #game-stage (container-type:size, container-name:stage) > (canvas + #game-overlay > .ui-world + .ui-screen)`. `.ui-world` = UI ancrée-monde (barres PV, curseur), reprojetée par frame. `.ui-screen` = panneaux ancrés-écran (InfoPanel, menus, Team Builder).
+- **Scaling chrome (cat. B) via container-query units** : chaque métrique = `calc(N * --px)` avec `--px = calc(100cqw / 1920)` (1px design @ ref 1920), résolu contre `#game-stage`. 100% CSS, scale proportionnel à la taille du jeu sans JS. Reflow mobile `@container stage (width < 768px)` → ref 768 (≈2.5× plus gros, style PokeRogue). `--ui-scale` (publié par `ResizeObserver`) reste un fallback.
+- **Adapter Team Builder prod-safe** (décisions #470-471) : overrides cqw cloisonnés dans `@container stage`, raw px wrappés `var(--tb-*, <px-original>)` → l'app Phaser prod (hors stage) garde son rendu d'origine.
+- **Pistes différées best-practices** (validées agent, marché 2026) : plancher font-size `max(calc(N·--px), Xpx)` pour 480-767px ; `--stage-scale` sur `:root` pour les modales `<dialog>` top-layer (qui échappent au container) ; cap ultrawide `min(100cqw/1920, 100cqh/1080)` ; `--ui-scale` barres PV monde pour 4K.
+
+### Constantes Babylon — caméra, depth, silhouette (Jalon 3a)
+
+Source canonique : `packages/renderer/src/babylon/babylon-constants.ts`.
+
+#### Caméra dimetric
+
+| Constante | Rôle |
+|-----------|------|
+| `BABYLON_VIEW_SIZE` | Taille ortho de la caméra (demi-largeur monde visible) |
+| `BABYLON_CAMERA_NEAR` | Plan de clipping near |
+| `BABYLON_CAMERA_FAR` | Plan de clipping far |
+| `BABYLON_DIMETRIC_ELEVATION` | Angle d'élévation de la caméra (vue dimetric) |
+| `BABYLON_AZIMUTH_STEP` | Pas de rotation azimutale pour les snaps 90° (←/→) |
+| `BABYLON_ROTATION_LERP` | Facteur d'interpolation (lerp) pour la rotation caméra animée |
+| `BABYLON_CAMERA_PAN_LERP` | Facteur d'interpolation (lerp) du recentrage caméra (pan smooth sur le Pokemon actif) |
+| `BABYLON_CAMERA_PAN_EPSILON` | Distance monde sous laquelle le pan snap sur sa cible (arrête le lerp) |
+
+#### Sprites
+
+| Constante | Rôle |
+|-----------|------|
+| `BABYLON_SPRITE_PIXELS_PER_UNIT` | Densité sprite en px/unité Babylon (= densité tile = 24 px/u, parité 1:1). Décision #455. |
+| `BABYLON_SPRITE_GROUND_OFFSET_PX` | Offset Y pieds → centre du frame (fallback = 5 si `offsets.json` absent). Décision #462. |
+| `BABYLON_HUD_ANCHOR_MARGIN_PX` | Marge verticale en px écran entre la tête du sprite et la barre de PV (= 20). Décision #463. |
+
+#### Occlusion & silhouette (Jalon 3a)
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BABYLON_SPRITE_DEPTH_BIAS` | `0.0025` | Biais depth appliqué par `SpriteDepthPlugin` pour positionner le `gl_FragDepth` du sprite légèrement devant sa tile d'ancrage, évitant le z-fighting avec le terrain tout en permettant l'occlusion par le relief plus haut. Décision #473. |
+| `BABYLON_SILHOUETTE_ALPHA` | `1` | Opacité de la silhouette X-ray (couleur d'équipe pleine). La silhouette est un 2e plane avec `depthFunction=GREATER` + pas d'écriture depth, rendu en `renderingGroupId 1`. `setRenderingAutoClearDepthStencil(1, false)` préserve le depth buffer du groupe 0. Décision #474. |
+
+#### États sprite intrinsèques (Jalon 3d)
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BABYLON_SEMI_INVULNERABLE_LIFT` | `1.5` | Lift en unités monde appliqué au billboard quand un Pokémon est en état semi-invulnérable de vol (Vol/Bounce/Fly). L'ombre reste au sol. Décision #481. |
+| `BABYLON_PULSE_PERIOD_MS` | `900` | Période en millisecondes du pulse de respiration emissive du sprite actif (`setActive`). |
+| `BABYLON_DAMAGE_FLASH_DIM_EMISSIVE` | `0.25` | Niveau de gris de la valeur emissive pendant un flash de dégâts (`flashDamage`). Le matériau oscille entre emissive nulle et `(0.25, 0.25, 0.25)` pour signaler le coup. |
+
+#### Décorations billboards 2D (Jalon 3e)
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BABYLON_DECORATION_FOOT_DROP` | `0.4` | Décalage vertical (unités monde) du bottom-anchor d'une décoration vers le bas, pour "planter" visuellement le sprite dans le sommet-avant de sa tile (évite l'effet de flottement). |
+| `BABYLON_DECORATION_DEPTH_BIAS` | `0.005` | Biais `footDepth` appliqué par `SpriteDepthPlugin` aux décorations — légèrement plus fort que `BABYLON_SPRITE_DEPTH_BIAS = 0.0025` → une décoration obstacle passe devant un Pokémon situé sur la MÊME tile. |
+| `BABYLON_SHADOW_ALPHA_INDEX` | `0` | `alphaIndex` de l'ombre au sol du Pokémon (plane ALPHABLEND). Valeur basse = dessiné en premier dans la pile alpha. L'herbe de la même tile (`BABYLON_GRASS_ALPHA_INDEX = 1`) est dessinée après et la couvre. |
+| `BABYLON_GRASS_ALPHA_INDEX` | `1` | `alphaIndex` des planes tall-grass (ALPHABLEND + disableDepthWrite). Dessinée après l'ombre → couvre l'ombre au sol. N'occulte pas les sprites (disableDepthWrite). Ne déclenche jamais la silhouette X-ray. |
+
+**Convention ALPHABLEND** : tout objet utilisant le mode de transparence ALPHABLEND **doit** avoir un `alphaIndex` explicite. Sans `alphaIndex`, Babylon ne garantit pas l'ordre de rendu dans la pile alpha → artefacts visuels imprévisibles. Cette convention est commentée dans `babylon-constants.ts`.
+
+**Note perf** : le fragment shader `gl_FragDepth` (utilisé par `SpriteDepthPlugin` pour le foot-depth) désactive l'early-z GPU. À l'échelle du projet (6-20 sprites), l'impact est négligeable.
+
+#### Curseur FFTA hover (Jalon 3c)
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BABYLON_HOVER_CURSOR_GAP` | `0.35` | Décalage vertical en unités monde entre la surface de la tuile et la base du curseur billboard quand aucun Pokémon n'est présent. Quand un Pokémon occupe la tuile, le curseur se lève à `spriteTopOffsetY` (hauteur de la tête, fallback `BABYLON_SPRITE_HEAD_LIFT_FALLBACK` tant que l'atlas charge). Décision #479. |
+
+#### Rendering groups (refonte silhouette terrain-only — plan 120)
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BABYLON_SILHOUETTE_RENDERING_GROUP` | `1` | Meshes silhouette X-ray — testent la depth vs terrain seul (group 0). |
+| `BABYLON_SPRITE_RENDERING_GROUP` | `2` | Sprites Pokémon — s'occluent normalement et ne réalimentent pas le test silhouette (plus de X-ray entre Pokémon). |
+| `BABYLON_HOVER_CURSOR_RENDERING_GROUP` | `3` | Curseur FFTA + flèches direction — toujours visibles, hors test silhouette. (Était `2`.) |
+
+Group 0 = terrain / décor / ombres. `setRenderingAutoClearDepthStencil(2, false)` conserve la depth terrain pour les sprites. Décision #489.
+
+#### Tile highlights & picking (Jalon 3b)
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BABYLON_TILE_HIGHLIGHT_Z_OFFSET` | `-2` | Polygon offset (`material.zOffset`) appliqué aux quads de surbrillance pour les rendre flush sur la face top des tiles extrudées sans lift world-Y (un lift décalait le quad en projection ortho et faisait baver la couleur sur les arêtes des murs). Décision #478. |
+| `BABYLON_TILE_OUTLINE_Y_OFFSET` | `0.02` | Micro-lift world-Y appliqué aux `LineSystem` de contour de portée. Les lignes Babylon ne supportant pas le polygon offset, un léger décalage Y évite le z-fighting avec la tile sans artifact géométrique visible. Décision #478. |
+| `BABYLON_TILE_HIGHLIGHT_ALPHA` | `0.4` | Alpha des fills de surbrillance (move bleu, attack rouge, retreat cyan, enemy orange). |
+| `BABYLON_TILE_CURSOR_WIDTH` | `0.05` | Épaisseur (unités monde) du contour jaune `CURSOR_COLOR` du curseur de survol de tile. Rendu via `GreasedLine` car WebGL n'épaissit pas les lignes 1px (`lineWidth` ignoré). |
+| `BABYLON_TILE_RANGE_OUTLINE_WIDTH` | `0.06` | Épaisseur (unités monde) du contour de portée attaque/déplacement. Rendu via `CreateGreasedLine` (remplace `CreateLineSystem`, qui ne donnait qu'un trait 1px). Recette Phase 5 (décision #498 context). |
+| `BABYLON_PICK_DRAG_THRESHOLD_PX` | `5` | Seuil en pixels de déplacement de la souris entre `pointerdown` et `pointerup` en-dessous duquel l'événement est interprété comme un **clic** (sélection de tile) et non un **pan** caméra. |
+| `BABYLON_TILE_HEIGHT_SCALE` | `0.866` | Aplatissement des faces latérales des tuiles dans `tileBodyHeight` (le diamant du dessus / footprint reste 1×1). Applique le ratio mur:largeur du pipeline 2D (`TILE_ELEVATION_STEP 16 : TILE_WIDTH 32`) à la caméra iso vraie 35.26°. Décision #497. |
+| `BABYLON_ATTACK_DEPTH_BIAS` | `0.012` | Biais foot-depth additionnel pendant une animation d'attaque (`setAttacking`). Une tuile coplanaire ne clippe plus le sprite ; les tuiles plus hautes / piliers occludent encore (biais < un pas de hauteur). Décision #499. |
+
+Constantes **supprimées** en recette Phase 5 : `BABYLON_GRASS_ALPHA_INDEX` (herbe migrée groupe terrain → sprite, décision #496) et `BABYLON_MOVE_JUMP_ARC` (arc de saut remplacé par `BABYLON_JUMP_VERTICAL_LEAD`, décision #492).
+
+#### Placement — zones de spawn (Jalon 4a étape 6)
+
+Source canonique : `packages/renderer/src/constants.ts`.
+
+| Constante | Rôle |
+|-----------|------|
+| `TILE_SPAWN_ZONE_INACTIVE_ALPHA` | Alpha des quads de surbrillance pour une zone de spawn inactive (aucune pose en cours du joueur courant). |
+| `TILE_SPAWN_ZONE_OCCUPIED_ALPHA` | Alpha des quads de surbrillance pour une case de zone déjà occupée par un Pokemon placé. |
+
+La couleur des quads est celle de l'équipe (`TEAM_COLORS[playerIndex]`) injectée à l'appel `setSpawnZones(zones, teamColor, inactiveAlpha, occupiedAlpha)` dans `babylon-tile-highlights.ts`. Les constantes `_ACTIVE_COLOR` / `_OCCUPIED_COLOR` ont été supprimées (code mort).
+
+#### Zones de Champ (field terrains) — Jalon 3e
+
+Source canonique : `packages/renderer/src/babylon/babylon-constants.ts`.
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BABYLON_FIELD_TERRAIN_FILL_ALPHA` | `0.3` | Alpha du fill de zone de Champ. Blend alpha standard retenu (le blend additif 2D était trop agressif sur les textures claires). Décision #483. |
+| `BABYLON_FIELD_TERRAIN_ALPHA_INDEX` | `2` | `alphaIndex` des quads ALPHABLEND de fill — au-dessus de l'ombre (`0`), sous les sprites. Convention alphaIndex obligatoire. Décision #483. (NB : l'herbe n'utilise plus d'alphaIndex depuis sa migration en groupe sprite, décision #496.) |
+| `BABYLON_FIELD_TERRAIN_OUTLINE_WIDTH` | `0.04` | Largeur du contour `GreasedLine` en world units. Insetté d'une demi-largeur vers l'intérieur de la tile pour anti-clip murs voisins plus hauts. Décision #484. |
+
+### Constantes Babylon — chrome combat (Jalon 4b/4c)
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BABYLON_TILE_PREVIEW_ALPHA_INDEX` | `3` | `alphaIndex` (sur le mesh) des quads de preview de ciblage — au-dessus des highlights de portée / herbe (`1`) / Champs (`2`), donc rendus en dernier (focus joueur). Plan 121 4b-5. |
+| `BABYLON_FLOATING_TEXT_LIFT` | `1.0` | Lift world-Y (tiles) appliqué à la tuile avant projection écran, pour que le texte flottant de combat monte au-dessus de la tête du sprite. Passé de 1.5 → 1.0 lors du port moteur (phase retours). Plan 122 4c-1 + retours. |
+| `BABYLON_JUMP_VERTICAL_LEAD` | `0.45` | Décalage de phase de l'axe vertical d'un arc de saut : le sprite atteint l'apex avant le milieu du pas (≤ 0.5), de sorte que la montée s'effectue entièrement au-dessus de la tile de départ et la descente au-dessus de la tile d'arrivée. Évite la pénétration géométrique du flanc d'une falaise, visible via la silhouette X-ray (que Phaser 2D cachait). Remplace `BABYLON_MOVE_JUMP_ARC`. Phase recette. Décision #492. |
+| `BABYLON_ATTACK_ANIMATION_MAX_MS` | `1000` | Cap de sécurité (ms) : resolve la Promise d'attaque même si l'anim est absente ou la scène détruite mid-attaque (anti-hang de la queue). Plan 122 4c-3. |
+| `BABYLON_KNOCKBACK_SHAKE_AMPLITUDE` | `0.12` | Amplitude max (tiles, axe world-X) de la secousse « knockback bloqué ». Plan 123 4d-2. |
+| `BABYLON_KNOCKBACK_SHAKE_DURATION_MS` | `250` | Durée totale (ms) de la secousse « knockback bloqué ». Plan 123 4d-2. |
+| `BABYLON_KNOCKBACK_SHAKE_CYCLES` | `3` | Nombre d'oscillations gauche-droite dans la secousse (sin amorti `× (1 − progress)`). Plan 123 4d-2. |
+| `BABYLON_PREVIEW_FLASH_DIM_EMISSIVE` | `0.35` | Gris émissif le plus sombre du pulse de flash confirm-cible (parité : Phaser fait varier l'alpha). Plan 123 4d-3. |
+| `BABYLON_PREVIEW_FLASH_PERIOD_MS` | `600` | Période complète (ms) du pulse sinus émissif du flash de prévisualisation (= Phaser `PREVIEW_FLASH_DURATION_MS` × 2 yoyo). Plan 123 4d-3. |
+| `BABYLON_CONFUSION_WOBBLE_ANGLE` | `5°` (rad) | Angle de roll max du wobble de confusion (miroir Phaser `CONFUSION_WOBBLE_ANGLE`). Appliqué sur `rotation.z` du plan sprite (enfant non-billboard d'un pivot billboard). Plan 123 4d-6. |
+| `BABYLON_CONFUSION_WOBBLE_PERIOD_MS` | `1200` | Période complète (ms) du sinus de wobble confusion. Plan 123 4d-6. |
+
+### HUD monde moteur — port DOM→moteur (phase retours, commit 9d1f731)
+
+> Décision #487 appliquée : la catégorie A (UI ancrée-monde) est rendue en **moteur Babylon** (quads/DynamicTexture), non plus en DOM-projeté. `babylon-sprite-overlays.ts` (DOM `.ui-world` + `projectAnchors`) remplacé par trois modules moteur + un helper partagé.
+
+#### Modules introduits
+
+| Module | Rôle |
+|--------|------|
+| `babylon-sprite-hud.ts` | Barre PV + icône statut + preview dégâts par sprite. Billboards parentés au root sprite (`BILLBOARDMODE_ALL`). |
+| `babylon-text-plane.ts` | Helper DynamicTexture partagé (texte pixel NEAREST, réutilisé par HUD et texte flottant). |
+| `babylon-champ-pill.ts` | Badge compteur de Champ billboardé, remplace le DOM projeté `.field-terrain-pill`. |
+
+Modules **supprimés** : `babylon-sprite-overlays.ts`. CSS **supprimés** : `sprite-overlay.css`, `floating-text.css`.
+
+Texte flottant et pastille Champ également portés en moteur (même approche quad billboard).
+
+#### Constantes HUD monde (source : `babylon-constants.ts`)
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BABYLON_HUD_RENDERING_GROUP` | `3` | Rendering group des éléments HUD monde — toujours au-dessus du terrain et des sprites (avec le curseur/flèches). |
+| `BABYLON_HP_BAR_WIDTH` | `0.78` | Largeur de la barre PV en unités monde. |
+| `BABYLON_HP_BAR_HEIGHT` | `0.12` | Hauteur de la barre PV en unités monde. |
+| `BABYLON_HUD_STATUS_ICON_SIZE` | `0.26` | Côté du quad icône statut (aspect-correct, en unités monde). |
+| `BABYLON_HUD_STATUS_GAP` | `0.06` | Espacement entre la barre PV et l'icône statut. |
+| `BABYLON_HUD_DAMAGE_TEXT_HEIGHT` | `0.52` | Hauteur du texte de preview dégâts (unités monde). |
+| `BABYLON_HUD_DAMAGE_TEXT_GAP` | `0.0` | Décalage vertical entre la barre et le texte dégâts (0 = aligné sous la barre). |
+| `BABYLON_FLOATING_TEXT_HEIGHT` | `0.62` | Hauteur du plan texte flottant (unités monde). |
+| `BABYLON_FLOATING_TEXT_RISE` | `0.7` | Distance verticale de montée (unités monde) pendant le fade du texte flottant. |
+| `BABYLON_FLOATING_TEXT_SECONDARY_SCALE` | `0.8` | Scale du texte secondaire (efficacité de type sous les dégâts). |
+| `BABYLON_FLOATING_TEXT_LIFT` | `1.0` | Lift appliqué au-dessus de la tête du sprite pour le texte flottant (passé de 1.5 → 1.0 en phase retours). |
+| `BABYLON_CHAMP_PILL_HEIGHT` | `0.5` | Hauteur du badge compteur de Champ (unités monde). |
+| `BABYLON_CHAMP_PILL_LIFT` | `0.6` | Lift vertical de la pastille Champ au-dessus de la tile centrale. |
+| `BABYLON_HUD_TEXT_FONT_PX` | `32` | Taille de fonte (px) dans la DynamicTexture HUD. |
+| `BABYLON_HUD_TEXT_PADDING_PX` | `8` | Padding interne (px) dans la DynamicTexture HUD. |
+
+**Constantes locales module (barre PV, `babylon-sprite-hud.ts`)** — non exportées, valeurs de référence :
+
+| Constante locale | Valeur | Rôle |
+|------------------|--------|------|
+| `BAR_TEXTURE_HEIGHT` | `40` | Hauteur en px de la DynamicTexture barre PV (résolution interne). |
+| `BAR_BORDER_PX` | `6` | Épaisseur de la bordure (px) dans la texture. |
+| `BAR_RADIUS_PX` | — | Rayon de coin arrondi (`roundRect`) de la barre (valeur calculée à partir de `BAR_BORDER_PX`). |
+
+Rendu : `roundRect` canvas NEAREST (pixel art), scaling Babylon → dimensions monde. Le filtre NEAREST garantit un rendu pixel-art cohérent avec les sprites PMDCollab.
+
+#### Constantes texte de combat (source : `packages/renderer/src/constants.ts`)
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BATTLE_TEXT_DURATION_MS` | `1000` | Durée totale (ms) avant disparition du texte flottant. Réduit de 3500 → 1000 en phase retours (textes trop lents à disparaître). |
+| `BATTLE_TEXT_QUEUE_DELAY_FACTOR` | `0.5` | Facteur multiplicateur appliqué à `BATTLE_TEXT_DURATION_MS` pour calculer le délai entre deux textes en file d'attente multi-hit. |
+| `BATTLE_TEXT_QUEUE_DELAY_MS` | dérivé | `= BATTLE_TEXT_QUEUE_DELAY_FACTOR × BATTLE_TEXT_DURATION_MS`. N'est plus une constante fixe indépendante. |
+
+#### Multi-hit HP stepping
+
+Le stepping PV multi-hit (décrément progressif des PV à chaque texte flottant d'une séquence multi-hit) est synchronisé sur le tick du texte flottant dans `battle-orchestrator`. Chaque décrément correspond à un `DamageDealt` dans la queue de la séquence.
+
+#### Centrage caméra
+
+La caméra est centrée sur le milieu géométrique de la map (calculé depuis `MapDefinition.width`/`height`) plutôt que sur la tile (0,0). Garantit que les cartes asymétriques (large ou haute) restent lisibles d'emblée.
+
+#### Police pixel globale
+
+La police `PokemonEmeraldPro` est déclarée sur `body` (CSS global), de sorte que les contrôles natifs (boutons `<button>`, `<select>`, etc.) héritent automatiquement de la police pixel art sans surcharge inline.
+
+**`.field-terrain-pill`** — portée en moteur (phase retours) via `babylon-champ-pill.ts` (billboard DynamicTexture, toujours visible). L'ancienne version DOM projetée (`.field-terrain-pill` dans `game-overlay.css`, `--field-terrain-pill-bg/border`, `opacity:0.5`, limitation depth-buffer — décision #485) est **supprimée**.
+
+#### Picker de direction placement — flèche voxel glTF (plan 120)
+
+Source canonique : `packages/renderer/src/babylon/babylon-constants.ts`.
+
+Le picker est rendu en moteur Babylon via un **modèle voxel** `arrow.gltf` (Goxel), un clone par direction voisine, posé à plat à hauteur de tête. Chargé via `@babylonjs/loaders` + `loadAssetContainerAsync`. Échelle 1 voxel = 1 px sprite (`1/BABYLON_SPRITE_PIXELS_PER_UNIT`). Rendering group 3 (toujours visible, hors silhouette). **Détection de direction par position souris** relative au Pokémon (zone généreuse reprojetée, suit la rotation caméra), pas par picking de mesh. Suit caméra/zoom/resize gratuitement (meshes de scène). Décisions #487, #490.
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BABYLON_DIRECTION_ARROW_Y_OFFSET` | `0.03` | Micro-lift world-Y de la flèche au-dessus de la surface (z-fight guard). |
+| `BABYLON_DIRECTION_ARROW_TILE_FRACTION` | `0.6` | Fraction de la distance vers la tuile voisine où la flèche est posée (<1 = rapprochée du Pokémon). |
+| `BABYLON_DIRECTION_ARROW_ACTIVE_EMISSIVE` | `{r,g,b}` | Couleur émissive (glow) de la flèche sélectionnée ; les autres restent sans émissive (le matériau voxel n'a pas d'alpha à atténuer). |
+| `BABYLON_SPRITE_HEAD_LIFT_FALLBACK` | `1` | Hauteur tête (unités monde) utilisée pour les flèches **et** le curseur avant que l'atlas du sprite ne résolve son vrai `spriteTopOffsetY`. |
+
+Asset : `packages/renderer/public/assets/ui/arrow.gltf`. Constantes **supprimées** (plan 120, flèche 2D texture retirée) : `BABYLON_DIRECTION_ARROW_SIZE`, `BABYLON_DIRECTION_ARROW_Z_OFFSET`, `BABYLON_DIRECTION_ARROW_INACTIVE_ALPHA`.
+
+#### Animations sprites PMD — durée par frame (plan 120)
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `BABYLON_PMD_TICK_DURATION_MS` | `33` | Durée d'un tick PMD en ms — parité avec `SpriteLoader.TICK_DURATION_MS` du renderer Phaser. |
+| `BABYLON_PMD_DEFAULT_FRAME_TICKS` | `4` | Durée par défaut (ticks) d'une frame sans durée dans l'atlas. |
+| `BABYLON_DEFAULT_FRAME_DURATION_MS` | `140` | Fallback ms si l'atlas ne porte aucune durée PMD. |
+
+Chaque frame est jouée pour sa durée PMD réelle (`atlas.meta.animations[nom].durations[i] × 33ms`, clamp ≥1 tick). Avant : fixe 140ms → idle perçu trop rapide (feedback playtest). Décision #488.
+
+#### Phase recette — hauteur curseur sur décorations
+
+Source canonique : `packages/renderer/src/babylon/babylon-decorations.ts` + `combat-scene.ts`.
+
+`decorationHeightAt(x, y)` retourne la hauteur visuelle d'une décoration en unités monde (`worldHeight − BABYLON_DECORATION_FOOT_DROP`), distincte de la hauteur gameplay. `surfaceHeightAt(x, y)` = terrain + déco, utilisé par `tileWorldTop`, highlights et mouvement. Le curseur de survol et les highlights se positionnent désormais sur le dessus de la décoration. Décision #493.
+
+#### Phase recette — auras (Murs) in-engine
+
+Source canonique : `packages/renderer/src/babylon/babylon-sprite-hud.ts` + `babylon-aura-ground-icons.ts`.
+
+| Constante | Rôle |
+|-----------|------|
+| `BABYLON_HUD_AURA_ICON_SIZE` | Côté (unités monde) d'une icône d'aura dans la barre de vie (`setLeftIndicators`). |
+| `BABYLON_HUD_AURA_ICON_GAP` | Espacement entre icônes d'aura consécutives dans la barre de vie. |
+| `BABYLON_AURA_HOVER_ICON_SIZE` | Côté (unités monde) d'une icône d'aura au sol (affiché au survol du lanceur). |
+| `BABYLON_AURA_HOVER_LIFT` | Lift world-Y appliqué aux icônes au sol pour les décaler légèrement de la surface de la tuile. |
+| `BABYLON_AURA_HOVER_ALPHA` | Alpha des icônes d'aura au sol (semi-transparent pour ne pas masquer la carte). |
+
+Les icônes au sol sont rendues via un **groupe sprite** (pivot billboardé par tuile, layout en croix) : les Pokemon les occluent naturellement par le depth-buffer. Les icônes sur les tuiles occupées par un Pokemon sont masquées. Décision #494.
+
+#### Phase recette — Champs dédup + pastille centrée
+
+Source canonique : `packages/renderer/src/babylon/babylon-champ-pill.ts` + `babylon-field-terrains.ts`.
+
+`refreshFieldTerrainVisuals` : chaque tuile est peinte par le Champ le plus récent uniquement (dédup overlap) ; les bordures de périmètre sont recalculées après filtrage → les zones ne se superposent pas visuellement.
+
+`babylon-champ-pill.ts` (pastille compteur de tours) :
+- Centrage du chiffre via métriques texte canvas (`measureText`) — corrige le décalage sur les nombres à 2 chiffres.
+- Rendue en **groupe sprite** (plan dans la scène) pour l'occlusion par les Pokemon.
+- `BABYLON_CHAMP_PILL_LIFT` réduit de `0.6` → `0.25` (pastille centrée sur la tuile, non flottante au-dessus des têtes). Décision #495.
+
+#### Debug terrain
+
+| Constante | Rôle |
+|-----------|------|
+| `BABYLON_TILE_GRID_COLOR` | Couleur wireframe de la grille debug (touche `g`) |
+| `BABYLON_TILE_GRID_Z_OFFSET` | Z-offset pour éviter le z-fighting avec le terrain |
 
 ---
 

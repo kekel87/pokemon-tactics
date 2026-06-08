@@ -25,6 +25,18 @@
     margin: auto;
   }
 
+  /* Babylon build: #game-root is fixed-fullscreen (game-overlay.css). In the studio
+   * it must become a flex child between the header and the editor columns, so the
+   * canvas + overlay shrink to the available band instead of covering the chrome. */
+  body[data-sandbox="true"] #game-root {
+    position: relative;
+    inset: auto;
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+    height: auto;
+  }
+
   .sb-header {
     flex: 0 0 auto;
     display: flex;

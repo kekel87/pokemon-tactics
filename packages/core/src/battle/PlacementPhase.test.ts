@@ -195,6 +195,76 @@ describe("PlacementPhase", () => {
     });
   });
 
+  describe("canUndo", () => {
+    it("returns false when nothing has been placed", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+      expect(phase.canUndo()).toBe(false);
+    });
+
+    it("returns false when the last placement belongs to the previous player", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+      phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
+
+      expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player2 });
+      expect(phase.canUndo()).toBe(false);
+    });
+
+    it("returns true when the current player placed the most recent Pokemon", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+      phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
+      phase.submitPlacement("poke-c", { x: 4, y: 4 }, Direction.West);
+
+      expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player2 });
+      expect(phase.canUndo()).toBe(true);
+    });
+
+    it("returns false when an opponent has placed after the current player", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+      phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
+      phase.submitPlacement("poke-c", { x: 4, y: 4 }, Direction.West);
+      phase.submitPlacement("poke-d", { x: 5, y: 4 }, Direction.West);
+
+      expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player1 });
+      expect(phase.canUndo()).toBe(false);
+    });
+
+    it("becomes consistent again after undoing the last placement", () => {
+      const phase = new PlacementPhase(
+        testMap,
+        [team1, team2],
+        testFormat,
+        PlacementMode.Alternating,
+      );
+      phase.submitPlacement("poke-a", { x: 0, y: 0 }, Direction.East);
+      phase.submitPlacement("poke-c", { x: 4, y: 4 }, Direction.West);
+      expect(phase.canUndo()).toBe(true);
+
+      phase.undoLastPlacement();
+      expect(phase.getNextToPlace()).toEqual({ playerId: PlayerId.Player2 });
+      expect(phase.canUndo()).toBe(false);
+    });
+  });
+
   describe("autoPlaceAll", () => {
     it("fills all positions without duplicates", () => {
       const phase = new PlacementPhase(

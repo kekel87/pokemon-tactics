@@ -1,0 +1,161 @@
+/*
+ * BattleLog (Phase 5 Jalon 4b-4) — DOM port of the Phaser `ui/BattleLogPanel.ts`.
+ * Pairs with `ui/dom/combat/battle-log.ts`. Collapsible panel, top-right.
+ * Tokens from `tokens.css`. Per-line color is set inline (runtime, from the
+ * formatter); the team dot color comes from the `--team-N` tokens.
+ */
+
+@layer components {
+  .bl-panel {
+    pointer-events: auto;
+    position: absolute;
+    inset-block-start: var(--spacing-lg);
+    inset-inline-end: var(--spacing-lg);
+    inline-size: 18rem;
+    max-inline-size: 40vw;
+    /* Fixed header height, reused as the collapsed toggle's square side. */
+    --bl-header-size: 2.2rem;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    background: color-mix(in oklch, var(--color-bg-surface) 85%, transparent);
+    overflow: hidden;
+
+    &[data-collapsed="true"] {
+      inline-size: auto;
+    }
+  }
+
+  .bl-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    block-size: var(--bl-header-size);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font: inherit;
+    cursor: pointer;
+    &:hover {
+      background: var(--color-bg-elevated-hover);
+    }
+  }
+
+  .bl-title {
+    padding-inline-start: var(--spacing-sm);
+    font-size: 1.35rem;
+    font-weight: bold;
+  }
+
+  /* Square box pinned to the right in BOTH states: collapsed it IS the panel,
+     open it sits at the same right edge → the burger never shifts on toggle. */
+  .bl-burger {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--bl-header-size);
+    block-size: var(--bl-header-size);
+    line-height: 1;
+    font-size: 1.35rem;
+  }
+
+  .bl-panel[data-collapsed="true"] .bl-title,
+  .bl-panel[data-collapsed="true"] .bl-list,
+  .bl-panel[data-collapsed="true"] .bl-actions {
+    display: none;
+  }
+
+  .bl-list {
+    list-style: none;
+    margin: 0;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    /* Min so the panel keeps a readable body with few lines; max then scrolls. */
+    min-block-size: 7rem;
+    max-block-size: 30vh;
+    overflow-y: auto;
+    /* Scroll affordance: a visible coloured thumb + an inset top/bottom shadow so
+       it reads as "more content above/below" rather than a flat clipped box. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-accent) transparent;
+    box-shadow:
+      inset 0 7px 6px -7px rgb(0 0 0 / 0.6),
+      inset 0 -7px 6px -7px rgb(0 0 0 / 0.6);
+    font-size: 1.15rem;
+  }
+
+  /* Replay transport bar (disabled placeholders — future replay feature). */
+  .bl-actions {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-block-start: 1px solid var(--color-border-surface);
+    background: color-mix(in oklch, var(--color-bg-base) 40%, transparent);
+  }
+
+  .bl-replay-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    min-inline-size: 2.4rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: 1.4rem;
+    cursor: pointer;
+    &:hover:not(:disabled) {
+      background: var(--color-bg-elevated-hover);
+      color: var(--color-text-primary);
+    }
+    &:disabled {
+      color: var(--gray-700);
+      cursor: not-allowed;
+    }
+  }
+
+  .bl-entry {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-xs);
+    line-height: 1.25;
+  }
+
+  .bl-dot {
+    flex: 0 0 auto;
+    inline-size: 0.4rem;
+    block-size: 0.4rem;
+    border-radius: 50%;
+    align-self: center;
+    background: var(--bl-dot-team, var(--color-border-surface));
+
+    &[data-team="1"] { --bl-dot-team: var(--team-1); }
+    &[data-team="2"] { --bl-dot-team: var(--team-2); }
+    &[data-team="3"] { --bl-dot-team: var(--team-3); }
+    &[data-team="4"] { --bl-dot-team: var(--team-4); }
+    &[data-team="5"] { --bl-dot-team: var(--team-5); }
+    &[data-team="6"] { --bl-dot-team: var(--team-6); }
+    &[data-team="7"] { --bl-dot-team: var(--team-7); }
+    &[data-team="8"] { --bl-dot-team: var(--team-8); }
+    &[data-team="9"] { --bl-dot-team: var(--team-9); }
+    &[data-team="10"] { --bl-dot-team: var(--team-10); }
+    &[data-team="11"] { --bl-dot-team: var(--team-11); }
+    &[data-team="12"] { --bl-dot-team: var(--team-12); }
+  }
+
+  .bl-text {
+    flex: 1 1 auto;
+  }
+}

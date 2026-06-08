@@ -97,7 +97,9 @@ import {
   TILE_PREVIEW_BLAST_INTERCEPT_COLOR,
   TILE_PREVIEW_BUFF_COLOR,
   TILE_SPAWN_ZONE_ALPHA,
+  TILE_SPAWN_ZONE_INACTIVE_ALPHA,
   TILE_SPAWN_ZONE_INACTIVE_COLOR,
+  TILE_SPAWN_ZONE_OCCUPIED_ALPHA,
   TIMELINE_PREDICTION_SLOTS,
 } from "../constants";
 import { HighlightKind } from "../enums/highlight-kind";
@@ -2601,13 +2603,13 @@ export class GameController {
 
         if (occupiedKeys.has(key)) {
           color = baseColor;
-          alpha = 0.2;
+          alpha = TILE_SPAWN_ZONE_OCCUPIED_ALPHA;
         } else if (i === activeTeamIndex) {
           color = baseColor;
           alpha = TILE_SPAWN_ZONE_ALPHA;
         } else {
           color = baseColor;
-          alpha = 0.25;
+          alpha = TILE_SPAWN_ZONE_INACTIVE_ALPHA;
         }
 
         this.isometricGrid.highlightTilesWithColor([position], color, alpha);

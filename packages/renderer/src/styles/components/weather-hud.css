@@ -1,0 +1,55 @@
+/*
+ * WeatherHud (Phase 5 Jalon 4b-1) — category-B chrome, DOM port of the Phaser
+ * `ui/WeatherHud.ts`. Pairs with `ui/dom/combat/weather-hud.ts`. Tokens from
+ * `tokens.css`. Same cqw scaling contract as the info panel: `--wh-px` = one
+ * design pixel at the 1920-wide reference, resolved against `#game-stage`.
+ */
+
+@layer components {
+  .wh-hud {
+    --wh-px: calc(100cqw / 1920);
+
+    /* Flow child of `.bc-top` (centred under the turn banner) — no absolute
+       positioning, so it can never overlap the banner. */
+    display: flex;
+    align-items: center;
+    gap: calc(8 * var(--wh-px));
+    padding: calc(6 * var(--wh-px)) calc(14 * var(--wh-px));
+
+    background: color-mix(in srgb, var(--color-bg-surface) 85%, transparent);
+    border: max(1px, calc(1.5 * var(--wh-px))) solid var(--color-border-faint);
+    border-radius: calc(8 * var(--wh-px));
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+
+    &[hidden] { display: none; }
+  }
+
+  .wh-icon {
+    inline-size: calc(32 * var(--wh-px));
+    block-size: calc(32 * var(--wh-px));
+    image-rendering: pixelated;
+  }
+
+  .wh-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .wh-label {
+    font-size: calc(24 * var(--wh-px));
+    font-weight: bold;
+  }
+
+  .wh-turns {
+    font-size: calc(20 * var(--wh-px));
+    color: var(--color-text-secondary);
+  }
+
+  @container stage (width < 768px) {
+    .wh-hud {
+      --wh-px: calc(100cqw / 768);
+    }
+  }
+}

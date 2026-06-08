@@ -1,21 +1,15 @@
 import {
   type MapFormat,
   PlayerController,
-  PlayerId,
   type TeamSelection,
-  type TeamSet,
   TurnSystemKind,
 } from "@pokemon-tactic/core";
 import { AnalyticsEvent, trackEvent } from "../analytics/analytics";
-import { TEAM_COLORS } from "../constants";
 import { t } from "../i18n";
-import type { TranslationKey } from "../i18n/types";
 import { loadTiledMap } from "../maps/load-tiled-map";
 import { sandboxBootConfig } from "../sandbox-boot";
-import { loadLastSelection, saveLastSelectionEntry } from "../team/last-selection";
 import { refreshAllAiSlots } from "../team/refresh-ai-teams";
-import { generateRandomTeam } from "../team/team-generator";
-import { listTeams, loadTeam } from "../team/team-storage";
+import { listTeams } from "../team/team-storage";
 import { DEFAULT_SANDBOX_CONFIG } from "../types/SandboxConfig";
 import {
   buildFormatKey,
@@ -26,33 +20,22 @@ import {
   createPlayersColumnElement,
   type PlayerColumnEntry,
 } from "../ui/team-select/PlayersColumn";
+import {
+  assignTeamToSlot,
+  buildInitialSlots,
+  buildTeamSelections,
+  ephemeralTeamName,
+  playerLabel,
+  playerShortLabel,
+  type SlotState,
+  teamColorToHex,
+  toggleSlotController,
+} from "../ui/team-select/slot-state";
 import { createTeamListElement, type TeamListEntry } from "../ui/team-select/TeamList";
 import { extractEngagedPokemonIds } from "./extract-engaged-ids";
 import { buildEngagedSpritesQueue } from "./preload-pokemon";
 
-const PLAYER_IDS: PlayerId[] = [
-  PlayerId.Player1,
-  PlayerId.Player2,
-  PlayerId.Player3,
-  PlayerId.Player4,
-  PlayerId.Player5,
-  PlayerId.Player6,
-  PlayerId.Player7,
-  PlayerId.Player8,
-  PlayerId.Player9,
-  PlayerId.Player10,
-  PlayerId.Player11,
-  PlayerId.Player12,
-];
-
 const DEFAULT_MAP_URL = "assets/maps/simple-arena.tmj";
-
-interface SlotState {
-  controller: PlayerController;
-  assignedTeam: TeamSet | null;
-  assignedTeamId: string | null;
-  ephemeral: boolean;
-}
 
 export interface TeamSelectResult {
   teams: TeamSelection[];
@@ -60,24 +43,6 @@ export interface TeamSelectResult {
   turnSystemKind: TurnSystemKind;
   mapUrl: string;
   formatKey: string;
-}
-
-function teamColorToHex(index: number): string {
-  const value = TEAM_COLORS[index] ?? 0x2255aa;
-  return `#${value.toString(16).padStart(6, "0")}`;
-}
-
-function playerLabel(slotIndex: number): string {
-  const key = `teamSelect.player${slotIndex + 1}` as TranslationKey;
-  return t(key);
-}
-
-function playerShortLabel(slotIndex: number): string {
-  return `J${slotIndex + 1}`;
-}
-
-function ephemeralTeamName(): string {
-  return t("teamSelect.teams.random");
 }
 
 export class TeamSelectScene extends Phaser.Scene {
@@ -150,33 +115,7 @@ export class TeamSelectScene extends Phaser.Scene {
   }
 
   private initSlots(format: MapFormat): void {
-    const lastSelection = loadLastSelection();
-    this.slots = [];
-    for (let i = 0; i < format.teamCount; i++) {
-      const controller = i === 0 ? PlayerController.Human : PlayerController.Ai;
-      const slot: SlotState = {
-        controller,
-        assignedTeam: null,
-        assignedTeamId: null,
-        ephemeral: false,
-      };
-      if (controller === PlayerController.Ai) {
-        slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
-        slot.assignedTeamId = null;
-        slot.ephemeral = true;
-      } else {
-        const lastId = lastSelection[i];
-        if (lastId !== undefined) {
-          const team = loadTeam(lastId);
-          if (team !== null) {
-            slot.assignedTeam = team;
-            slot.assignedTeamId = lastId;
-            slot.ephemeral = false;
-          }
-        }
-      }
-      this.slots.push(slot);
-    }
+    this.slots = buildInitialSlots(format);
     this.activeSlotIndex = 0;
   }
 
@@ -426,40 +365,14 @@ export class TeamSelectScene extends Phaser.Scene {
     if (!slot) {
       return;
     }
-    if (slot.controller === PlayerController.Human) {
-      slot.controller = PlayerController.Ai;
-      slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
-      slot.assignedTeamId = null;
-      slot.ephemeral = true;
-    } else {
-      slot.controller = PlayerController.Human;
-      slot.assignedTeam = null;
-      slot.assignedTeamId = null;
-      slot.ephemeral = false;
-    }
+    toggleSlotController(slot);
     this.render();
   }
 
   private assignTeam(slotIndex: number, teamId: string | null): void {
     const slot = this.slots[slotIndex];
-    if (!slot) {
+    if (!slot || !assignTeamToSlot(slot, slotIndex, teamId)) {
       return;
-    }
-    if (teamId === null) {
-      slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
-      slot.assignedTeamId = null;
-      slot.ephemeral = true;
-    } else {
-      const team = loadTeam(teamId);
-      if (team === null) {
-        return;
-      }
-      slot.assignedTeam = team;
-      slot.assignedTeamId = teamId;
-      slot.ephemeral = false;
-      if (slot.controller === PlayerController.Human) {
-        saveLastSelectionEntry(slotIndex, teamId);
-      }
     }
     if (this.activeSlotIndex < this.slots.length - 1) {
       this.activeSlotIndex += 1;
@@ -486,19 +399,9 @@ export class TeamSelectScene extends Phaser.Scene {
     if (!this.isLaunchable()) {
       return;
     }
-    const teams: TeamSelection[] = [];
-    for (let i = 0; i < this.slots.length; i++) {
-      const slot = this.slots[i];
-      const playerId = PLAYER_IDS[i];
-      if (!slot || !playerId || slot.assignedTeam === null) {
-        return;
-      }
-      teams.push({
-        playerId,
-        pokemonDefinitionIds: slot.assignedTeam.slots.map((s) => s.pokemonId),
-        controller: slot.controller,
-        slots: [...slot.assignedTeam.slots],
-      });
+    const teams = buildTeamSelections(this.slots);
+    if (teams === null) {
+      return;
     }
     const result: TeamSelectResult = {
       teams,

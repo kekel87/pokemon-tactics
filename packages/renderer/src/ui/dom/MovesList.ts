@@ -7,6 +7,8 @@ export interface CreateMovesListOptions {
   pokemonId: string;
   moves: string[];
   slotsCount?: number;
+  /** Let the picker offer every implemented move, not just the pokemon's learnset (sandbox dummy). */
+  allMoves?: boolean;
   onChange: (slotIndex: number, moveId: string) => void;
   signal?: AbortSignal;
 }
@@ -96,6 +98,7 @@ export function createMovesList(options: CreateMovesListOptions): MovesList {
       pokemonId: currentPokemonId,
       slotIndex,
       excludeMoveIds,
+      allMoves: options.allMoves,
       onSelect: (move) => {
         currentMoves[slotIndex] = move.id;
         renderRow(slotIndex);

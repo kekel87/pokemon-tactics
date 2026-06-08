@@ -27,8 +27,14 @@
 > Pour les Pokemon de **type Vol** seulement : FlapAround requis pour synthétiser `FlyingIdle` (animation de vol au sol/eau).
 > Fallbacks : Faint → freeze Idle · Shoot → Attack (Clefairy/Clefable) · FlyingIdle absent (type Vol) → Walk.
 > `✓` = ok · `⚠️ Faint abs.` = Faint manquant (freeze Idle au KO) · `⚠️ Shoot+Faint abs.` = 7/9 ok · `⚠️ Vol : FlyingIdle abs.` = type Vol sans FlapAround (Walk en fallback vol)
+>
+> **Anims Babylon extraites (Jalon 3d, 2026-06-09)** : `Hover`, `Special0`, `Special10` ajoutées à `scripts/sprite-config.json` → `pnpm extract-sprites` (~ 208 fichiers atlas/offsets régénérés). Glide volants : chaîne `FLYING_GLIDE_CANDIDATES = [FlyingIdle, Hover, Special0, Special10]`, fallback Walk. Pokemon type Vol bénéficiant de la chaîne glide étendue : golbat/ptéra/rapasdepic/sulfura (Hover) ; dracolosse (Special0).
+>
+> **États sprite Babylon** (Jalon 3d) : pulse actif (`setActive`), flash dégâts (`flashDamage`), teinte KO + freeze (`setKnockedOut`), semi-invulnérable vol/creuse (`setSemiInvulnerable`). Items différés (pass 3D-depth) : wobble confusion, enveloppe profondeur attaque, overlay Substitut.
+>
+> **Décorations Babylon** (Jalon 3e, 2026-06-09) : `babylon-decorations.ts` — billboards `BILLBOARDMODE_Y` pour rochers (`rock_1`, `rock_2x2`) et arbres (`tree`) depuis Tiled `decorations` object-layer ; tall-grass auto sur tuiles `TallGrass` libres. Picking transparent (planes non-pickables). ALPHATEST pour obstacles (occluent sprites) + ALPHABLEND pour herbe (disableDepthWrite, alphaIndex). Décision #482.
 
-**PMDCollab résumé** : 151/151 utilisables avec fallbacks. Faint absent sur 124. Pour les 19 Pokemon de type Vol : FlyingIdle synthétisable uniquement si FlapAround présent — absent sur 14 d'entre eux (Walk en fallback).
+**PMDCollab résumé** : 151/151 utilisables avec fallbacks. Faint absent sur 124. Pour les 19 Pokemon de type Vol : FlyingIdle synthétisable uniquement si FlapAround présent — absent sur 14 d'entre eux (Hover/Special0 utilisés quand disponibles via `FLYING_GLIDE_CANDIDATES`, sinon Walk en dernier recours).
 
 | N° | ID | Nom FR | Types | ✓ | Talent | PMDCollab | Commentaire |
 |---|---|---|---|---|---|---|---|
@@ -53,7 +59,7 @@
 | 019 | rattata | Rattata | Normal | ✗ | | ⚠️ Faint abs. | |
 | 020 | raticate | Rattatac | Normal | ✓ | — | ⚠️ Faint abs. | inner-focus stub |
 | 021 | spearow | Piafabec | Normal/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
-| 022 | fearow | Rapasdepic | Normal/Vol | ✓ | — | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | inner-focus stub |
+| 022 | fearow | Rapasdepic | Normal/Vol | ✓ | — | ⚠️ Faint abs. + FlyingIdle abs. (Hover ✓ glide) | inner-focus stub |
 | 023 | ekans | Abo | Poison | ✗ | | ⚠️ Faint abs. | |
 | 024 | arbok | Arbok | Poison | ✓ | intimidate | ⚠️ Faint abs. | |
 | 025 | pikachu | Pikachu | Électrique | ✓ | static | ✓ | |
@@ -73,7 +79,7 @@
 | 039 | jigglypuff | Rondoudou | Normal/Fée | ✓ | cute-charm | ✓ | |
 | 040 | wigglytuff | Grodoudou | Normal/Fée | ✓ | cute-charm | ⚠️ Faint abs. | |
 | 041 | zubat | Nosferapti | Poison/Vol | ✗ | | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | |
-| 042 | golbat | Nosferalto | Poison/Vol | ✓ | — | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | inner-focus stub |
+| 042 | golbat | Nosferalto | Poison/Vol | ✓ | — | ⚠️ Faint abs. + FlyingIdle abs. (Hover ✓ glide) | inner-focus stub |
 | 043 | oddish | Mystherbe | Plante/Poison | ✗ | | ⚠️ Faint abs. | |
 | 044 | gloom | Ortide | Plante/Poison | ✗ | | ⚠️ Faint abs. | |
 | 045 | vileplume | Rafflesia | Plante/Poison | ✓ | effect-spore | ⚠️ Faint abs. | |
@@ -173,14 +179,14 @@
 | 139 | omastar | Amonistar | Roche/Eau | ✓ | swift-swim | ⚠️ Faint abs. | |
 | 140 | kabuto | Kabuto | Roche/Eau | ✗ | | ✓ | |
 | 141 | kabutops | Kabutops | Roche/Eau | ✓ | battle-armor | ⚠️ Faint abs. | |
-| 142 | aerodactyl | Ptéra | Roche/Vol | ✓ | rock-head | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
+| 142 | aerodactyl | Ptéra | Roche/Vol | ✓ | rock-head | ⚠️ Faint abs. + FlyingIdle abs. (Hover ✓ glide) | Méga disponible |
 | 143 | snorlax | Ronflex | Normal | ✓ | thick-fat | ⚠️ Faint abs. | |
 | 144 | articuno | Artikodin | Glace/Vol | ✓ | pressure | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
 | 145 | zapdos | Électhor | Électrique/Vol | ✓ | pressure | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
-| 146 | moltres | Sulfura | Feu/Vol | ✓ | pressure | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Légendaire |
+| 146 | moltres | Sulfura | Feu/Vol | ✓ | pressure | ⚠️ Faint abs. + FlyingIdle abs. (Hover ✓ glide) | Légendaire |
 | 147 | dratini | Minidraco | Dragon | ✗ | | ⚠️ Faint abs. | |
 | 148 | dragonair | Draco | Dragon | ✗ | | ⚠️ Faint abs. | |
-| 149 | dragonite | Dracolosse | Dragon/Vol | ✓ | multiscale | ⚠️ Faint abs. + FlyingIdle abs. (Walk fallback vol) | Méga disponible |
+| 149 | dragonite | Dracolosse | Dragon/Vol | ✓ | multiscale | ⚠️ Faint abs. + FlyingIdle abs. (Special0 ✓ glide) | Méga disponible |
 | 150 | mewtwo | Mewtwo | Psy | ✓ | pressure | ✓ | Méga disponible, Légendaire |
 | 151 | mew | Mew | Psy | ✓ | — | ✓ | Mythique. inner-focus stub. |
 

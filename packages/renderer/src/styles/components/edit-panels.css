@@ -22,8 +22,8 @@
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
     .tb-edit-portrait {
-      width: 80px;
-      height: 80px;
+      width: var(--tb-portrait-lg, 80px);
+      height: var(--tb-portrait-lg, 80px);
       background-color: var(--color-bg-surface);
       background-size: contain;
       background-repeat: no-repeat;
@@ -127,7 +127,9 @@
 
   .tb-move-row {
     display: grid;
-    grid-template-columns: 24px 28px minmax(0, 1fr) 50px 60px;
+    grid-template-columns:
+      var(--tb-mv-col-num, 24px) var(--tb-mv-col-cat, 28px) minmax(0, 1fr)
+      var(--tb-mv-col-pow, 50px) var(--tb-mv-col-acc, 60px);
     align-items: center;
     gap: var(--spacing-md);
     padding: var(--pad-control-y) var(--pad-control-x);
