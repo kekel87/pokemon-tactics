@@ -1,14 +1,33 @@
 @layer base {
-  .tb-root,
-  .tb-dialog,
-  .ts-root {
+  /* Thin theme-colored scrollbars app-wide — only visible when a panel overflows. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-surface) transparent;
+  }
+
+  /* Pixel font everywhere, crisp (no per-component font-family needed). The canvas
+     is unaffected; DOM overlays (combat HUD, battle log, menus) all inherit it. */
+  body {
     font-family: var(--font-family);
-    font-size: var(--font-size-md);
-    line-height: var(--line-height-base);
-    color: var(--color-text-secondary);
     -webkit-font-smoothing: none;
     -moz-osx-font-smoothing: grayscale;
     font-smooth: never;
+  }
+
+  /* Native form controls don't inherit font by default — make them follow the page. */
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+  }
+
+  .tb-root,
+  .tb-dialog,
+  .ts-root {
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-base);
+    color: var(--color-text-secondary);
   }
 
   .tb-root input,
@@ -22,7 +41,6 @@
   .ts-root select,
   .ts-root button,
   .ts-root textarea {
-    font-family: inherit;
     font-size: inherit;
     line-height: var(--line-height-tight);
   }

@@ -17,7 +17,10 @@
     justify-content: center;
     gap: var(--spacing-xs);
     width: 100%;
-    min-height: 110px;
+    /* Fill the grid cell (stretched to the tallest filled card) so empty + filled
+       slots share one height — min-height is the all-empty floor. */
+    height: 100%;
+    min-height: var(--tb-slot-min-h, 110px);
     padding: var(--spacing-sm);
     background: var(--color-bg-elevated);
     border: 1px dashed var(--gray-700);
@@ -42,8 +45,8 @@
       color: var(--color-text-dim);
     }
     .tb-slot-card-portrait {
-      width: 56px;
-      height: 56px;
+      width: var(--tb-portrait-sm, 56px);
+      height: var(--tb-portrait-sm, 56px);
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
@@ -66,15 +69,15 @@
     display: inline-flex;
     align-items: baseline;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: var(--tb-clear-size, 28px);
+    height: var(--tb-clear-size, 28px);
     padding: 0;
     cursor: pointer;
     border-radius: var(--radius-sm);
     background: rgb(0 0 0 / 0.3);
     border: none;
     color: var(--red-400);
-    font-size: 24px;
+    font-size: var(--tb-clear-font, 24px);
     line-height: 1;
     &[hidden] { display: none; }
     &:hover { background: rgb(255 0 0 / 0.3); }

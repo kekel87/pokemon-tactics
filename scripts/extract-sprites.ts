@@ -36,6 +36,8 @@ interface ParsedAnimation {
   rushFrame?: number;
   hitFrame?: number;
   returnFrame?: number;
+  /** CopyOf alias: name of the animation whose PNG sheet actually exists. */
+  sourceName?: string;
 }
 
 interface AtlasFrame {
@@ -132,7 +134,13 @@ function parseAnimData(xmlContent: string): ParsedAnimation[] {
     if (anim.CopyOf !== undefined && !animMap.has(anim.Name)) {
       const source = animMap.get(anim.CopyOf);
       if (source) {
-        animMap.set(anim.Name, { ...source, name: anim.Name, index: anim.Index });
+        // The alias has no PNG sheet of its own — remember whose sheet to fetch.
+        animMap.set(anim.Name, {
+          ...source,
+          name: anim.Name,
+          index: anim.Index,
+          sourceName: source.sourceName ?? source.name,
+        });
       }
     }
   }
@@ -396,7 +404,9 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
 
   for (const animation of requestedAnimations) {
     try {
-      const sheetBuffer = await fetchBuffer(`${spriteBaseUrl}/${animation.name}-Anim.png`);
+      const sheetBuffer = await fetchBuffer(
+        `${spriteBaseUrl}/${animation.sourceName ?? animation.name}-Anim.png`,
+      );
 
       const frames = await extractFrames(sheetBuffer, animation, directionIndices);
 
@@ -490,7 +500,14 @@ async function main(): Promise<void> {
   const configPath = join(ROOT_DIR, "scripts/sprite-config.json");
   const config: SpriteConfig = JSON.parse(readFileSync(configPath, "utf-8"));
 
-  for (const entry of config.pokedexEntries) {
+  // Optional CLI filter: `pnpm extract-sprites beedrill pikachu` re-extracts only those.
+  const onlyNames = new Set(process.argv.slice(2));
+  const entries =
+    onlyNames.size > 0
+      ? config.pokedexEntries.filter((entry) => onlyNames.has(entry.name))
+      : config.pokedexEntries;
+
+  for (const entry of entries) {
     await extractPokemon(entry, config);
   }
 }

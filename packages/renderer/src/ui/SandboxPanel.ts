@@ -467,6 +467,9 @@ export class SandboxPanel {
     this.dummyMovesList = createMovesList({
       pokemonId: this.dummy.pokemonId,
       moves: this.dummyMoves,
+      // The dummy species has no learnset (it's a test target), so offer every
+      // implemented move — otherwise the picker would be empty.
+      allMoves: true,
       onChange: (slotIndex, moveId) => {
         this.dummyMoves[slotIndex] = moveId;
         this.emit();

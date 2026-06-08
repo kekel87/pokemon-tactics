@@ -4320,7 +4320,7 @@
         "h": 72
       }
     },
-    "Idle-South-0": {
+    "Hover-South-0": {
       "frame": {
         "x": 1472,
         "y": 424,
@@ -4340,7 +4340,7 @@
         "h": 72
       }
     },
-    "Idle-South-1": {
+    "Hover-South-1": {
       "frame": {
         "x": 1512,
         "y": 424,
@@ -4360,7 +4360,7 @@
         "h": 72
       }
     },
-    "Idle-South-2": {
+    "Hover-South-2": {
       "frame": {
         "x": 1552,
         "y": 424,
@@ -4380,7 +4380,7 @@
         "h": 72
       }
     },
-    "Idle-South-3": {
+    "Hover-South-3": {
       "frame": {
         "x": 1592,
         "y": 424,
@@ -4400,7 +4400,7 @@
         "h": 72
       }
     },
-    "Idle-South-4": {
+    "Hover-South-4": {
       "frame": {
         "x": 1632,
         "y": 424,
@@ -4420,7 +4420,7 @@
         "h": 72
       }
     },
-    "Idle-South-5": {
+    "Hover-South-5": {
       "frame": {
         "x": 1672,
         "y": 424,
@@ -4440,7 +4440,7 @@
         "h": 72
       }
     },
-    "Idle-South-6": {
+    "Hover-South-6": {
       "frame": {
         "x": 1712,
         "y": 424,
@@ -4460,7 +4460,7 @@
         "h": 72
       }
     },
-    "Idle-South-7": {
+    "Hover-South-7": {
       "frame": {
         "x": 1752,
         "y": 424,
@@ -4480,7 +4480,7 @@
         "h": 72
       }
     },
-    "Idle-South-8": {
+    "Hover-South-8": {
       "frame": {
         "x": 1792,
         "y": 424,
@@ -4500,7 +4500,7 @@
         "h": 72
       }
     },
-    "Idle-South-9": {
+    "Hover-South-9": {
       "frame": {
         "x": 1832,
         "y": 424,
@@ -4520,7 +4520,7 @@
         "h": 72
       }
     },
-    "Idle-SouthEast-0": {
+    "Hover-South-10": {
       "frame": {
         "x": 1872,
         "y": 424,
@@ -4540,7 +4540,7 @@
         "h": 72
       }
     },
-    "Idle-SouthEast-1": {
+    "Hover-South-11": {
       "frame": {
         "x": 1912,
         "y": 424,
@@ -4560,7 +4560,7 @@
         "h": 72
       }
     },
-    "Idle-SouthEast-2": {
+    "Hover-South-12": {
       "frame": {
         "x": 1952,
         "y": 424,
@@ -4580,7 +4580,7 @@
         "h": 72
       }
     },
-    "Idle-SouthEast-3": {
+    "Hover-South-13": {
       "frame": {
         "x": 1992,
         "y": 424,
@@ -4600,10 +4600,2250 @@
         "h": 72
       }
     },
-    "Idle-SouthEast-4": {
+    "Hover-SouthEast-0": {
       "frame": {
         "x": 0,
         "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-1": {
+      "frame": {
+        "x": 40,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-2": {
+      "frame": {
+        "x": 80,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-3": {
+      "frame": {
+        "x": 120,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-4": {
+      "frame": {
+        "x": 160,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-5": {
+      "frame": {
+        "x": 200,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-6": {
+      "frame": {
+        "x": 240,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-7": {
+      "frame": {
+        "x": 280,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-8": {
+      "frame": {
+        "x": 320,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-9": {
+      "frame": {
+        "x": 360,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-10": {
+      "frame": {
+        "x": 400,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-11": {
+      "frame": {
+        "x": 440,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-12": {
+      "frame": {
+        "x": 480,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthEast-13": {
+      "frame": {
+        "x": 520,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-0": {
+      "frame": {
+        "x": 560,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-1": {
+      "frame": {
+        "x": 600,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-2": {
+      "frame": {
+        "x": 640,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-3": {
+      "frame": {
+        "x": 680,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-4": {
+      "frame": {
+        "x": 720,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-5": {
+      "frame": {
+        "x": 760,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-6": {
+      "frame": {
+        "x": 800,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-7": {
+      "frame": {
+        "x": 840,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-8": {
+      "frame": {
+        "x": 880,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-9": {
+      "frame": {
+        "x": 920,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-10": {
+      "frame": {
+        "x": 960,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-11": {
+      "frame": {
+        "x": 1000,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-12": {
+      "frame": {
+        "x": 1040,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-East-13": {
+      "frame": {
+        "x": 1080,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-0": {
+      "frame": {
+        "x": 1120,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-1": {
+      "frame": {
+        "x": 1160,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-2": {
+      "frame": {
+        "x": 1200,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-3": {
+      "frame": {
+        "x": 1240,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-4": {
+      "frame": {
+        "x": 1280,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-5": {
+      "frame": {
+        "x": 1320,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-6": {
+      "frame": {
+        "x": 1360,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-7": {
+      "frame": {
+        "x": 1400,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-8": {
+      "frame": {
+        "x": 1440,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-9": {
+      "frame": {
+        "x": 1480,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-10": {
+      "frame": {
+        "x": 1520,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-11": {
+      "frame": {
+        "x": 1560,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-12": {
+      "frame": {
+        "x": 1600,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthEast-13": {
+      "frame": {
+        "x": 1640,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-0": {
+      "frame": {
+        "x": 1680,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-1": {
+      "frame": {
+        "x": 1720,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-2": {
+      "frame": {
+        "x": 1760,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-3": {
+      "frame": {
+        "x": 1800,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-4": {
+      "frame": {
+        "x": 1840,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-5": {
+      "frame": {
+        "x": 1880,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-6": {
+      "frame": {
+        "x": 1920,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-7": {
+      "frame": {
+        "x": 1960,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-8": {
+      "frame": {
+        "x": 2000,
+        "y": 496,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-9": {
+      "frame": {
+        "x": 0,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-10": {
+      "frame": {
+        "x": 40,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-11": {
+      "frame": {
+        "x": 80,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-12": {
+      "frame": {
+        "x": 120,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-North-13": {
+      "frame": {
+        "x": 160,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-0": {
+      "frame": {
+        "x": 200,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-1": {
+      "frame": {
+        "x": 240,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-2": {
+      "frame": {
+        "x": 280,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-3": {
+      "frame": {
+        "x": 320,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-4": {
+      "frame": {
+        "x": 360,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-5": {
+      "frame": {
+        "x": 400,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-6": {
+      "frame": {
+        "x": 440,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-7": {
+      "frame": {
+        "x": 480,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-8": {
+      "frame": {
+        "x": 520,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-9": {
+      "frame": {
+        "x": 560,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-10": {
+      "frame": {
+        "x": 600,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-11": {
+      "frame": {
+        "x": 640,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-12": {
+      "frame": {
+        "x": 680,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-NorthWest-13": {
+      "frame": {
+        "x": 720,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-0": {
+      "frame": {
+        "x": 760,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-1": {
+      "frame": {
+        "x": 800,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-2": {
+      "frame": {
+        "x": 840,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-3": {
+      "frame": {
+        "x": 880,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-4": {
+      "frame": {
+        "x": 920,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-5": {
+      "frame": {
+        "x": 960,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-6": {
+      "frame": {
+        "x": 1000,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-7": {
+      "frame": {
+        "x": 1040,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-8": {
+      "frame": {
+        "x": 1080,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-9": {
+      "frame": {
+        "x": 1120,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-10": {
+      "frame": {
+        "x": 1160,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-11": {
+      "frame": {
+        "x": 1200,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-12": {
+      "frame": {
+        "x": 1240,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-West-13": {
+      "frame": {
+        "x": 1280,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-0": {
+      "frame": {
+        "x": 1320,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-1": {
+      "frame": {
+        "x": 1360,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-2": {
+      "frame": {
+        "x": 1400,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-3": {
+      "frame": {
+        "x": 1440,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-4": {
+      "frame": {
+        "x": 1480,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-5": {
+      "frame": {
+        "x": 1520,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-6": {
+      "frame": {
+        "x": 1560,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-7": {
+      "frame": {
+        "x": 1600,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-8": {
+      "frame": {
+        "x": 1640,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-9": {
+      "frame": {
+        "x": 1680,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-10": {
+      "frame": {
+        "x": 1720,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-11": {
+      "frame": {
+        "x": 1760,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-12": {
+      "frame": {
+        "x": 1800,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Hover-SouthWest-13": {
+      "frame": {
+        "x": 1840,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-South-0": {
+      "frame": {
+        "x": 1880,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-South-1": {
+      "frame": {
+        "x": 1920,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-South-2": {
+      "frame": {
+        "x": 1960,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-South-3": {
+      "frame": {
+        "x": 2000,
+        "y": 568,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-South-4": {
+      "frame": {
+        "x": 0,
+        "y": 640,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-South-5": {
+      "frame": {
+        "x": 40,
+        "y": 640,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-South-6": {
+      "frame": {
+        "x": 80,
+        "y": 640,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-South-7": {
+      "frame": {
+        "x": 120,
+        "y": 640,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-South-8": {
+      "frame": {
+        "x": 160,
+        "y": 640,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-South-9": {
+      "frame": {
+        "x": 200,
+        "y": 640,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-SouthEast-0": {
+      "frame": {
+        "x": 240,
+        "y": 640,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-SouthEast-1": {
+      "frame": {
+        "x": 280,
+        "y": 640,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-SouthEast-2": {
+      "frame": {
+        "x": 320,
+        "y": 640,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-SouthEast-3": {
+      "frame": {
+        "x": 360,
+        "y": 640,
+        "w": 40,
+        "h": 72
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 72
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 72
+      }
+    },
+    "Idle-SouthEast-4": {
+      "frame": {
+        "x": 400,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4622,8 +6862,8 @@
     },
     "Idle-SouthEast-5": {
       "frame": {
-        "x": 40,
-        "y": 496,
+        "x": 440,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4642,8 +6882,8 @@
     },
     "Idle-SouthEast-6": {
       "frame": {
-        "x": 80,
-        "y": 496,
+        "x": 480,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4662,8 +6902,8 @@
     },
     "Idle-SouthEast-7": {
       "frame": {
-        "x": 120,
-        "y": 496,
+        "x": 520,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4682,8 +6922,8 @@
     },
     "Idle-SouthEast-8": {
       "frame": {
-        "x": 160,
-        "y": 496,
+        "x": 560,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4702,8 +6942,8 @@
     },
     "Idle-SouthEast-9": {
       "frame": {
-        "x": 200,
-        "y": 496,
+        "x": 600,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4722,8 +6962,8 @@
     },
     "Idle-East-0": {
       "frame": {
-        "x": 240,
-        "y": 496,
+        "x": 640,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4742,8 +6982,8 @@
     },
     "Idle-East-1": {
       "frame": {
-        "x": 280,
-        "y": 496,
+        "x": 680,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4762,8 +7002,8 @@
     },
     "Idle-East-2": {
       "frame": {
-        "x": 320,
-        "y": 496,
+        "x": 720,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4782,8 +7022,8 @@
     },
     "Idle-East-3": {
       "frame": {
-        "x": 360,
-        "y": 496,
+        "x": 760,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4802,8 +7042,8 @@
     },
     "Idle-East-4": {
       "frame": {
-        "x": 400,
-        "y": 496,
+        "x": 800,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4822,8 +7062,8 @@
     },
     "Idle-East-5": {
       "frame": {
-        "x": 440,
-        "y": 496,
+        "x": 840,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4842,8 +7082,8 @@
     },
     "Idle-East-6": {
       "frame": {
-        "x": 480,
-        "y": 496,
+        "x": 880,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4862,8 +7102,8 @@
     },
     "Idle-East-7": {
       "frame": {
-        "x": 520,
-        "y": 496,
+        "x": 920,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4882,8 +7122,8 @@
     },
     "Idle-East-8": {
       "frame": {
-        "x": 560,
-        "y": 496,
+        "x": 960,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4902,8 +7142,8 @@
     },
     "Idle-East-9": {
       "frame": {
-        "x": 600,
-        "y": 496,
+        "x": 1000,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4922,8 +7162,8 @@
     },
     "Idle-NorthEast-0": {
       "frame": {
-        "x": 640,
-        "y": 496,
+        "x": 1040,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4942,8 +7182,8 @@
     },
     "Idle-NorthEast-1": {
       "frame": {
-        "x": 680,
-        "y": 496,
+        "x": 1080,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4962,8 +7202,8 @@
     },
     "Idle-NorthEast-2": {
       "frame": {
-        "x": 720,
-        "y": 496,
+        "x": 1120,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -4982,8 +7222,8 @@
     },
     "Idle-NorthEast-3": {
       "frame": {
-        "x": 760,
-        "y": 496,
+        "x": 1160,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5002,8 +7242,8 @@
     },
     "Idle-NorthEast-4": {
       "frame": {
-        "x": 800,
-        "y": 496,
+        "x": 1200,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5022,8 +7262,8 @@
     },
     "Idle-NorthEast-5": {
       "frame": {
-        "x": 840,
-        "y": 496,
+        "x": 1240,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5042,8 +7282,8 @@
     },
     "Idle-NorthEast-6": {
       "frame": {
-        "x": 880,
-        "y": 496,
+        "x": 1280,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5062,8 +7302,8 @@
     },
     "Idle-NorthEast-7": {
       "frame": {
-        "x": 920,
-        "y": 496,
+        "x": 1320,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5082,8 +7322,8 @@
     },
     "Idle-NorthEast-8": {
       "frame": {
-        "x": 960,
-        "y": 496,
+        "x": 1360,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5102,8 +7342,8 @@
     },
     "Idle-NorthEast-9": {
       "frame": {
-        "x": 1000,
-        "y": 496,
+        "x": 1400,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5122,8 +7362,8 @@
     },
     "Idle-North-0": {
       "frame": {
-        "x": 1040,
-        "y": 496,
+        "x": 1440,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5142,8 +7382,8 @@
     },
     "Idle-North-1": {
       "frame": {
-        "x": 1080,
-        "y": 496,
+        "x": 1480,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5162,8 +7402,8 @@
     },
     "Idle-North-2": {
       "frame": {
-        "x": 1120,
-        "y": 496,
+        "x": 1520,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5182,8 +7422,8 @@
     },
     "Idle-North-3": {
       "frame": {
-        "x": 1160,
-        "y": 496,
+        "x": 1560,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5202,8 +7442,8 @@
     },
     "Idle-North-4": {
       "frame": {
-        "x": 1200,
-        "y": 496,
+        "x": 1600,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5222,8 +7462,8 @@
     },
     "Idle-North-5": {
       "frame": {
-        "x": 1240,
-        "y": 496,
+        "x": 1640,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5242,8 +7482,8 @@
     },
     "Idle-North-6": {
       "frame": {
-        "x": 1280,
-        "y": 496,
+        "x": 1680,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5262,8 +7502,8 @@
     },
     "Idle-North-7": {
       "frame": {
-        "x": 1320,
-        "y": 496,
+        "x": 1720,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5282,8 +7522,8 @@
     },
     "Idle-North-8": {
       "frame": {
-        "x": 1360,
-        "y": 496,
+        "x": 1760,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5302,8 +7542,8 @@
     },
     "Idle-North-9": {
       "frame": {
-        "x": 1400,
-        "y": 496,
+        "x": 1800,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5322,8 +7562,8 @@
     },
     "Idle-NorthWest-0": {
       "frame": {
-        "x": 1440,
-        "y": 496,
+        "x": 1840,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5342,8 +7582,8 @@
     },
     "Idle-NorthWest-1": {
       "frame": {
-        "x": 1480,
-        "y": 496,
+        "x": 1880,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5362,8 +7602,8 @@
     },
     "Idle-NorthWest-2": {
       "frame": {
-        "x": 1520,
-        "y": 496,
+        "x": 1920,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5382,8 +7622,8 @@
     },
     "Idle-NorthWest-3": {
       "frame": {
-        "x": 1560,
-        "y": 496,
+        "x": 1960,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5402,8 +7642,8 @@
     },
     "Idle-NorthWest-4": {
       "frame": {
-        "x": 1600,
-        "y": 496,
+        "x": 2000,
+        "y": 640,
         "w": 40,
         "h": 72
       },
@@ -5422,8 +7662,8 @@
     },
     "Idle-NorthWest-5": {
       "frame": {
-        "x": 1640,
-        "y": 496,
+        "x": 0,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5442,8 +7682,8 @@
     },
     "Idle-NorthWest-6": {
       "frame": {
-        "x": 1680,
-        "y": 496,
+        "x": 40,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5462,8 +7702,8 @@
     },
     "Idle-NorthWest-7": {
       "frame": {
-        "x": 1720,
-        "y": 496,
+        "x": 80,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5482,8 +7722,8 @@
     },
     "Idle-NorthWest-8": {
       "frame": {
-        "x": 1760,
-        "y": 496,
+        "x": 120,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5502,8 +7742,8 @@
     },
     "Idle-NorthWest-9": {
       "frame": {
-        "x": 1800,
-        "y": 496,
+        "x": 160,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5522,8 +7762,8 @@
     },
     "Idle-West-0": {
       "frame": {
-        "x": 1840,
-        "y": 496,
+        "x": 200,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5542,8 +7782,8 @@
     },
     "Idle-West-1": {
       "frame": {
-        "x": 1880,
-        "y": 496,
+        "x": 240,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5562,8 +7802,8 @@
     },
     "Idle-West-2": {
       "frame": {
-        "x": 1920,
-        "y": 496,
+        "x": 280,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5582,8 +7822,8 @@
     },
     "Idle-West-3": {
       "frame": {
-        "x": 1960,
-        "y": 496,
+        "x": 320,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5602,8 +7842,8 @@
     },
     "Idle-West-4": {
       "frame": {
-        "x": 2000,
-        "y": 496,
+        "x": 360,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5622,8 +7862,8 @@
     },
     "Idle-West-5": {
       "frame": {
-        "x": 0,
-        "y": 568,
+        "x": 400,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5642,8 +7882,8 @@
     },
     "Idle-West-6": {
       "frame": {
-        "x": 40,
-        "y": 568,
+        "x": 440,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5662,8 +7902,8 @@
     },
     "Idle-West-7": {
       "frame": {
-        "x": 80,
-        "y": 568,
+        "x": 480,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5682,8 +7922,8 @@
     },
     "Idle-West-8": {
       "frame": {
-        "x": 120,
-        "y": 568,
+        "x": 520,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5702,8 +7942,8 @@
     },
     "Idle-West-9": {
       "frame": {
-        "x": 160,
-        "y": 568,
+        "x": 560,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5722,8 +7962,8 @@
     },
     "Idle-SouthWest-0": {
       "frame": {
-        "x": 200,
-        "y": 568,
+        "x": 600,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5742,8 +7982,8 @@
     },
     "Idle-SouthWest-1": {
       "frame": {
-        "x": 240,
-        "y": 568,
+        "x": 640,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5762,8 +8002,8 @@
     },
     "Idle-SouthWest-2": {
       "frame": {
-        "x": 280,
-        "y": 568,
+        "x": 680,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5782,8 +8022,8 @@
     },
     "Idle-SouthWest-3": {
       "frame": {
-        "x": 320,
-        "y": 568,
+        "x": 720,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5802,8 +8042,8 @@
     },
     "Idle-SouthWest-4": {
       "frame": {
-        "x": 360,
-        "y": 568,
+        "x": 760,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5822,8 +8062,8 @@
     },
     "Idle-SouthWest-5": {
       "frame": {
-        "x": 400,
-        "y": 568,
+        "x": 800,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5842,8 +8082,8 @@
     },
     "Idle-SouthWest-6": {
       "frame": {
-        "x": 440,
-        "y": 568,
+        "x": 840,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5862,8 +8102,8 @@
     },
     "Idle-SouthWest-7": {
       "frame": {
-        "x": 480,
-        "y": 568,
+        "x": 880,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5882,8 +8122,8 @@
     },
     "Idle-SouthWest-8": {
       "frame": {
-        "x": 520,
-        "y": 568,
+        "x": 920,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5902,8 +8142,8 @@
     },
     "Idle-SouthWest-9": {
       "frame": {
-        "x": 560,
-        "y": 568,
+        "x": 960,
+        "y": 712,
         "w": 40,
         "h": 72
       },
@@ -5922,8 +8162,8 @@
     },
     "Shoot-South-0": {
       "frame": {
-        "x": 600,
-        "y": 568,
+        "x": 1000,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -5942,8 +8182,8 @@
     },
     "Shoot-South-1": {
       "frame": {
-        "x": 648,
-        "y": 568,
+        "x": 1048,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -5962,8 +8202,8 @@
     },
     "Shoot-South-2": {
       "frame": {
-        "x": 696,
-        "y": 568,
+        "x": 1096,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -5982,8 +8222,8 @@
     },
     "Shoot-South-3": {
       "frame": {
-        "x": 744,
-        "y": 568,
+        "x": 1144,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6002,8 +8242,8 @@
     },
     "Shoot-South-4": {
       "frame": {
-        "x": 792,
-        "y": 568,
+        "x": 1192,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6022,8 +8262,8 @@
     },
     "Shoot-South-5": {
       "frame": {
-        "x": 840,
-        "y": 568,
+        "x": 1240,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6042,8 +8282,8 @@
     },
     "Shoot-South-6": {
       "frame": {
-        "x": 888,
-        "y": 568,
+        "x": 1288,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6062,8 +8302,8 @@
     },
     "Shoot-South-7": {
       "frame": {
-        "x": 936,
-        "y": 568,
+        "x": 1336,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6082,8 +8322,8 @@
     },
     "Shoot-South-8": {
       "frame": {
-        "x": 984,
-        "y": 568,
+        "x": 1384,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6102,8 +8342,8 @@
     },
     "Shoot-South-9": {
       "frame": {
-        "x": 1032,
-        "y": 568,
+        "x": 1432,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6122,8 +8362,8 @@
     },
     "Shoot-South-10": {
       "frame": {
-        "x": 1080,
-        "y": 568,
+        "x": 1480,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6142,8 +8382,8 @@
     },
     "Shoot-South-11": {
       "frame": {
-        "x": 1128,
-        "y": 568,
+        "x": 1528,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6162,8 +8402,8 @@
     },
     "Shoot-South-12": {
       "frame": {
-        "x": 1176,
-        "y": 568,
+        "x": 1576,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6182,8 +8422,8 @@
     },
     "Shoot-SouthEast-0": {
       "frame": {
-        "x": 1224,
-        "y": 568,
+        "x": 1624,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6202,8 +8442,8 @@
     },
     "Shoot-SouthEast-1": {
       "frame": {
-        "x": 1272,
-        "y": 568,
+        "x": 1672,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6222,8 +8462,8 @@
     },
     "Shoot-SouthEast-2": {
       "frame": {
-        "x": 1320,
-        "y": 568,
+        "x": 1720,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6242,8 +8482,8 @@
     },
     "Shoot-SouthEast-3": {
       "frame": {
-        "x": 1368,
-        "y": 568,
+        "x": 1768,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6262,8 +8502,8 @@
     },
     "Shoot-SouthEast-4": {
       "frame": {
-        "x": 1416,
-        "y": 568,
+        "x": 1816,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6282,8 +8522,8 @@
     },
     "Shoot-SouthEast-5": {
       "frame": {
-        "x": 1464,
-        "y": 568,
+        "x": 1864,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6302,8 +8542,8 @@
     },
     "Shoot-SouthEast-6": {
       "frame": {
-        "x": 1512,
-        "y": 568,
+        "x": 1912,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6322,8 +8562,8 @@
     },
     "Shoot-SouthEast-7": {
       "frame": {
-        "x": 1560,
-        "y": 568,
+        "x": 1960,
+        "y": 712,
         "w": 48,
         "h": 64
       },
@@ -6342,8 +8582,8 @@
     },
     "Shoot-SouthEast-8": {
       "frame": {
-        "x": 1608,
-        "y": 568,
+        "x": 0,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6362,8 +8602,8 @@
     },
     "Shoot-SouthEast-9": {
       "frame": {
-        "x": 1656,
-        "y": 568,
+        "x": 48,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6382,8 +8622,8 @@
     },
     "Shoot-SouthEast-10": {
       "frame": {
-        "x": 1704,
-        "y": 568,
+        "x": 96,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6402,8 +8642,8 @@
     },
     "Shoot-SouthEast-11": {
       "frame": {
-        "x": 1752,
-        "y": 568,
+        "x": 144,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6422,8 +8662,8 @@
     },
     "Shoot-SouthEast-12": {
       "frame": {
-        "x": 1800,
-        "y": 568,
+        "x": 192,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6442,8 +8682,8 @@
     },
     "Shoot-East-0": {
       "frame": {
-        "x": 1848,
-        "y": 568,
+        "x": 240,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6462,8 +8702,8 @@
     },
     "Shoot-East-1": {
       "frame": {
-        "x": 1896,
-        "y": 568,
+        "x": 288,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6482,8 +8722,8 @@
     },
     "Shoot-East-2": {
       "frame": {
-        "x": 1944,
-        "y": 568,
+        "x": 336,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6502,8 +8742,8 @@
     },
     "Shoot-East-3": {
       "frame": {
-        "x": 1992,
-        "y": 568,
+        "x": 384,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6522,8 +8762,8 @@
     },
     "Shoot-East-4": {
       "frame": {
-        "x": 0,
-        "y": 640,
+        "x": 432,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6542,8 +8782,8 @@
     },
     "Shoot-East-5": {
       "frame": {
-        "x": 48,
-        "y": 640,
+        "x": 480,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6562,8 +8802,8 @@
     },
     "Shoot-East-6": {
       "frame": {
-        "x": 96,
-        "y": 640,
+        "x": 528,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6582,8 +8822,8 @@
     },
     "Shoot-East-7": {
       "frame": {
-        "x": 144,
-        "y": 640,
+        "x": 576,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6602,8 +8842,8 @@
     },
     "Shoot-East-8": {
       "frame": {
-        "x": 192,
-        "y": 640,
+        "x": 624,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6622,8 +8862,8 @@
     },
     "Shoot-East-9": {
       "frame": {
-        "x": 240,
-        "y": 640,
+        "x": 672,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6642,8 +8882,8 @@
     },
     "Shoot-East-10": {
       "frame": {
-        "x": 288,
-        "y": 640,
+        "x": 720,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6662,8 +8902,8 @@
     },
     "Shoot-East-11": {
       "frame": {
-        "x": 336,
-        "y": 640,
+        "x": 768,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6682,8 +8922,8 @@
     },
     "Shoot-East-12": {
       "frame": {
-        "x": 384,
-        "y": 640,
+        "x": 816,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6702,8 +8942,8 @@
     },
     "Shoot-NorthEast-0": {
       "frame": {
-        "x": 432,
-        "y": 640,
+        "x": 864,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6722,8 +8962,8 @@
     },
     "Shoot-NorthEast-1": {
       "frame": {
-        "x": 480,
-        "y": 640,
+        "x": 912,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6742,8 +8982,8 @@
     },
     "Shoot-NorthEast-2": {
       "frame": {
-        "x": 528,
-        "y": 640,
+        "x": 960,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6762,8 +9002,8 @@
     },
     "Shoot-NorthEast-3": {
       "frame": {
-        "x": 576,
-        "y": 640,
+        "x": 1008,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6782,8 +9022,8 @@
     },
     "Shoot-NorthEast-4": {
       "frame": {
-        "x": 624,
-        "y": 640,
+        "x": 1056,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6802,8 +9042,8 @@
     },
     "Shoot-NorthEast-5": {
       "frame": {
-        "x": 672,
-        "y": 640,
+        "x": 1104,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6822,8 +9062,8 @@
     },
     "Shoot-NorthEast-6": {
       "frame": {
-        "x": 720,
-        "y": 640,
+        "x": 1152,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6842,8 +9082,8 @@
     },
     "Shoot-NorthEast-7": {
       "frame": {
-        "x": 768,
-        "y": 640,
+        "x": 1200,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6862,8 +9102,8 @@
     },
     "Shoot-NorthEast-8": {
       "frame": {
-        "x": 816,
-        "y": 640,
+        "x": 1248,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6882,8 +9122,8 @@
     },
     "Shoot-NorthEast-9": {
       "frame": {
-        "x": 864,
-        "y": 640,
+        "x": 1296,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6902,8 +9142,8 @@
     },
     "Shoot-NorthEast-10": {
       "frame": {
-        "x": 912,
-        "y": 640,
+        "x": 1344,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6922,8 +9162,8 @@
     },
     "Shoot-NorthEast-11": {
       "frame": {
-        "x": 960,
-        "y": 640,
+        "x": 1392,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6942,8 +9182,8 @@
     },
     "Shoot-NorthEast-12": {
       "frame": {
-        "x": 1008,
-        "y": 640,
+        "x": 1440,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6962,8 +9202,8 @@
     },
     "Shoot-North-0": {
       "frame": {
-        "x": 1056,
-        "y": 640,
+        "x": 1488,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -6982,8 +9222,8 @@
     },
     "Shoot-North-1": {
       "frame": {
-        "x": 1104,
-        "y": 640,
+        "x": 1536,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -7002,8 +9242,8 @@
     },
     "Shoot-North-2": {
       "frame": {
-        "x": 1152,
-        "y": 640,
+        "x": 1584,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -7022,8 +9262,8 @@
     },
     "Shoot-North-3": {
       "frame": {
-        "x": 1200,
-        "y": 640,
+        "x": 1632,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -7042,8 +9282,8 @@
     },
     "Shoot-North-4": {
       "frame": {
-        "x": 1248,
-        "y": 640,
+        "x": 1680,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -7062,8 +9302,8 @@
     },
     "Shoot-North-5": {
       "frame": {
-        "x": 1296,
-        "y": 640,
+        "x": 1728,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -7082,8 +9322,8 @@
     },
     "Shoot-North-6": {
       "frame": {
-        "x": 1344,
-        "y": 640,
+        "x": 1776,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -7102,8 +9342,8 @@
     },
     "Shoot-North-7": {
       "frame": {
-        "x": 1392,
-        "y": 640,
+        "x": 1824,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -7122,8 +9362,8 @@
     },
     "Shoot-North-8": {
       "frame": {
-        "x": 1440,
-        "y": 640,
+        "x": 1872,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -7142,8 +9382,8 @@
     },
     "Shoot-North-9": {
       "frame": {
-        "x": 1488,
-        "y": 640,
+        "x": 1920,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -7162,8 +9402,8 @@
     },
     "Shoot-North-10": {
       "frame": {
-        "x": 1536,
-        "y": 640,
+        "x": 1968,
+        "y": 784,
         "w": 48,
         "h": 64
       },
@@ -7182,8 +9422,8 @@
     },
     "Shoot-North-11": {
       "frame": {
-        "x": 1584,
-        "y": 640,
+        "x": 0,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7202,8 +9442,8 @@
     },
     "Shoot-North-12": {
       "frame": {
-        "x": 1632,
-        "y": 640,
+        "x": 48,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7222,8 +9462,8 @@
     },
     "Shoot-NorthWest-0": {
       "frame": {
-        "x": 1680,
-        "y": 640,
+        "x": 96,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7242,8 +9482,8 @@
     },
     "Shoot-NorthWest-1": {
       "frame": {
-        "x": 1728,
-        "y": 640,
+        "x": 144,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7262,8 +9502,8 @@
     },
     "Shoot-NorthWest-2": {
       "frame": {
-        "x": 1776,
-        "y": 640,
+        "x": 192,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7282,8 +9522,8 @@
     },
     "Shoot-NorthWest-3": {
       "frame": {
-        "x": 1824,
-        "y": 640,
+        "x": 240,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7302,8 +9542,8 @@
     },
     "Shoot-NorthWest-4": {
       "frame": {
-        "x": 1872,
-        "y": 640,
+        "x": 288,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7322,8 +9562,8 @@
     },
     "Shoot-NorthWest-5": {
       "frame": {
-        "x": 1920,
-        "y": 640,
+        "x": 336,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7342,8 +9582,8 @@
     },
     "Shoot-NorthWest-6": {
       "frame": {
-        "x": 1968,
-        "y": 640,
+        "x": 384,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7362,8 +9602,8 @@
     },
     "Shoot-NorthWest-7": {
       "frame": {
-        "x": 0,
-        "y": 704,
+        "x": 432,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7382,8 +9622,8 @@
     },
     "Shoot-NorthWest-8": {
       "frame": {
-        "x": 48,
-        "y": 704,
+        "x": 480,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7402,8 +9642,8 @@
     },
     "Shoot-NorthWest-9": {
       "frame": {
-        "x": 96,
-        "y": 704,
+        "x": 528,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7422,8 +9662,8 @@
     },
     "Shoot-NorthWest-10": {
       "frame": {
-        "x": 144,
-        "y": 704,
+        "x": 576,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7442,8 +9682,8 @@
     },
     "Shoot-NorthWest-11": {
       "frame": {
-        "x": 192,
-        "y": 704,
+        "x": 624,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7462,8 +9702,8 @@
     },
     "Shoot-NorthWest-12": {
       "frame": {
-        "x": 240,
-        "y": 704,
+        "x": 672,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7482,8 +9722,8 @@
     },
     "Shoot-West-0": {
       "frame": {
-        "x": 288,
-        "y": 704,
+        "x": 720,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7502,8 +9742,8 @@
     },
     "Shoot-West-1": {
       "frame": {
-        "x": 336,
-        "y": 704,
+        "x": 768,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7522,8 +9762,8 @@
     },
     "Shoot-West-2": {
       "frame": {
-        "x": 384,
-        "y": 704,
+        "x": 816,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7542,8 +9782,8 @@
     },
     "Shoot-West-3": {
       "frame": {
-        "x": 432,
-        "y": 704,
+        "x": 864,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7562,8 +9802,8 @@
     },
     "Shoot-West-4": {
       "frame": {
-        "x": 480,
-        "y": 704,
+        "x": 912,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7582,8 +9822,8 @@
     },
     "Shoot-West-5": {
       "frame": {
-        "x": 528,
-        "y": 704,
+        "x": 960,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7602,8 +9842,8 @@
     },
     "Shoot-West-6": {
       "frame": {
-        "x": 576,
-        "y": 704,
+        "x": 1008,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7622,8 +9862,8 @@
     },
     "Shoot-West-7": {
       "frame": {
-        "x": 624,
-        "y": 704,
+        "x": 1056,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7642,8 +9882,8 @@
     },
     "Shoot-West-8": {
       "frame": {
-        "x": 672,
-        "y": 704,
+        "x": 1104,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7662,8 +9902,8 @@
     },
     "Shoot-West-9": {
       "frame": {
-        "x": 720,
-        "y": 704,
+        "x": 1152,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7682,8 +9922,8 @@
     },
     "Shoot-West-10": {
       "frame": {
-        "x": 768,
-        "y": 704,
+        "x": 1200,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7702,8 +9942,8 @@
     },
     "Shoot-West-11": {
       "frame": {
-        "x": 816,
-        "y": 704,
+        "x": 1248,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7722,8 +9962,8 @@
     },
     "Shoot-West-12": {
       "frame": {
-        "x": 864,
-        "y": 704,
+        "x": 1296,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7742,8 +9982,8 @@
     },
     "Shoot-SouthWest-0": {
       "frame": {
-        "x": 912,
-        "y": 704,
+        "x": 1344,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7762,8 +10002,8 @@
     },
     "Shoot-SouthWest-1": {
       "frame": {
-        "x": 960,
-        "y": 704,
+        "x": 1392,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7782,8 +10022,8 @@
     },
     "Shoot-SouthWest-2": {
       "frame": {
-        "x": 1008,
-        "y": 704,
+        "x": 1440,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7802,8 +10042,8 @@
     },
     "Shoot-SouthWest-3": {
       "frame": {
-        "x": 1056,
-        "y": 704,
+        "x": 1488,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7822,8 +10062,8 @@
     },
     "Shoot-SouthWest-4": {
       "frame": {
-        "x": 1104,
-        "y": 704,
+        "x": 1536,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7842,8 +10082,8 @@
     },
     "Shoot-SouthWest-5": {
       "frame": {
-        "x": 1152,
-        "y": 704,
+        "x": 1584,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7862,8 +10102,8 @@
     },
     "Shoot-SouthWest-6": {
       "frame": {
-        "x": 1200,
-        "y": 704,
+        "x": 1632,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7882,8 +10122,8 @@
     },
     "Shoot-SouthWest-7": {
       "frame": {
-        "x": 1248,
-        "y": 704,
+        "x": 1680,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7902,8 +10142,8 @@
     },
     "Shoot-SouthWest-8": {
       "frame": {
-        "x": 1296,
-        "y": 704,
+        "x": 1728,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7922,8 +10162,8 @@
     },
     "Shoot-SouthWest-9": {
       "frame": {
-        "x": 1344,
-        "y": 704,
+        "x": 1776,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7942,8 +10182,8 @@
     },
     "Shoot-SouthWest-10": {
       "frame": {
-        "x": 1392,
-        "y": 704,
+        "x": 1824,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7962,8 +10202,8 @@
     },
     "Shoot-SouthWest-11": {
       "frame": {
-        "x": 1440,
-        "y": 704,
+        "x": 1872,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -7982,8 +10222,8 @@
     },
     "Shoot-SouthWest-12": {
       "frame": {
-        "x": 1488,
-        "y": 704,
+        "x": 1920,
+        "y": 848,
         "w": 48,
         "h": 64
       },
@@ -8002,8 +10242,8 @@
     },
     "Walk-South-0": {
       "frame": {
-        "x": 1536,
-        "y": 704,
+        "x": 1968,
+        "y": 848,
         "w": 40,
         "h": 64
       },
@@ -8022,8 +10262,8 @@
     },
     "Walk-South-1": {
       "frame": {
-        "x": 1576,
-        "y": 704,
+        "x": 2008,
+        "y": 848,
         "w": 40,
         "h": 64
       },
@@ -8042,8 +10282,8 @@
     },
     "Walk-South-2": {
       "frame": {
-        "x": 1616,
-        "y": 704,
+        "x": 0,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8062,8 +10302,8 @@
     },
     "Walk-South-3": {
       "frame": {
-        "x": 1656,
-        "y": 704,
+        "x": 40,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8082,8 +10322,8 @@
     },
     "Walk-South-4": {
       "frame": {
-        "x": 1696,
-        "y": 704,
+        "x": 80,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8102,8 +10342,8 @@
     },
     "Walk-South-5": {
       "frame": {
-        "x": 1736,
-        "y": 704,
+        "x": 120,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8122,8 +10362,8 @@
     },
     "Walk-SouthEast-0": {
       "frame": {
-        "x": 1776,
-        "y": 704,
+        "x": 160,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8142,8 +10382,8 @@
     },
     "Walk-SouthEast-1": {
       "frame": {
-        "x": 1816,
-        "y": 704,
+        "x": 200,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8162,8 +10402,8 @@
     },
     "Walk-SouthEast-2": {
       "frame": {
-        "x": 1856,
-        "y": 704,
+        "x": 240,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8182,8 +10422,8 @@
     },
     "Walk-SouthEast-3": {
       "frame": {
-        "x": 1896,
-        "y": 704,
+        "x": 280,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8202,8 +10442,8 @@
     },
     "Walk-SouthEast-4": {
       "frame": {
-        "x": 1936,
-        "y": 704,
+        "x": 320,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8222,8 +10462,8 @@
     },
     "Walk-SouthEast-5": {
       "frame": {
-        "x": 1976,
-        "y": 704,
+        "x": 360,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8242,8 +10482,8 @@
     },
     "Walk-East-0": {
       "frame": {
-        "x": 0,
-        "y": 768,
+        "x": 400,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8262,8 +10502,8 @@
     },
     "Walk-East-1": {
       "frame": {
-        "x": 40,
-        "y": 768,
+        "x": 440,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8282,8 +10522,8 @@
     },
     "Walk-East-2": {
       "frame": {
-        "x": 80,
-        "y": 768,
+        "x": 480,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8302,8 +10542,8 @@
     },
     "Walk-East-3": {
       "frame": {
-        "x": 120,
-        "y": 768,
+        "x": 520,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8322,8 +10562,8 @@
     },
     "Walk-East-4": {
       "frame": {
-        "x": 160,
-        "y": 768,
+        "x": 560,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8342,8 +10582,8 @@
     },
     "Walk-East-5": {
       "frame": {
-        "x": 200,
-        "y": 768,
+        "x": 600,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8362,8 +10602,8 @@
     },
     "Walk-NorthEast-0": {
       "frame": {
-        "x": 240,
-        "y": 768,
+        "x": 640,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8382,8 +10622,8 @@
     },
     "Walk-NorthEast-1": {
       "frame": {
-        "x": 280,
-        "y": 768,
+        "x": 680,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8402,8 +10642,8 @@
     },
     "Walk-NorthEast-2": {
       "frame": {
-        "x": 320,
-        "y": 768,
+        "x": 720,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8422,8 +10662,8 @@
     },
     "Walk-NorthEast-3": {
       "frame": {
-        "x": 360,
-        "y": 768,
+        "x": 760,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8442,8 +10682,8 @@
     },
     "Walk-NorthEast-4": {
       "frame": {
-        "x": 400,
-        "y": 768,
+        "x": 800,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8462,8 +10702,8 @@
     },
     "Walk-NorthEast-5": {
       "frame": {
-        "x": 440,
-        "y": 768,
+        "x": 840,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8482,8 +10722,8 @@
     },
     "Walk-North-0": {
       "frame": {
-        "x": 480,
-        "y": 768,
+        "x": 880,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8502,8 +10742,8 @@
     },
     "Walk-North-1": {
       "frame": {
-        "x": 520,
-        "y": 768,
+        "x": 920,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8522,8 +10762,8 @@
     },
     "Walk-North-2": {
       "frame": {
-        "x": 560,
-        "y": 768,
+        "x": 960,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8542,8 +10782,8 @@
     },
     "Walk-North-3": {
       "frame": {
-        "x": 600,
-        "y": 768,
+        "x": 1000,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8562,8 +10802,8 @@
     },
     "Walk-North-4": {
       "frame": {
-        "x": 640,
-        "y": 768,
+        "x": 1040,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8582,8 +10822,8 @@
     },
     "Walk-North-5": {
       "frame": {
-        "x": 680,
-        "y": 768,
+        "x": 1080,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8602,8 +10842,8 @@
     },
     "Walk-NorthWest-0": {
       "frame": {
-        "x": 720,
-        "y": 768,
+        "x": 1120,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8622,8 +10862,8 @@
     },
     "Walk-NorthWest-1": {
       "frame": {
-        "x": 760,
-        "y": 768,
+        "x": 1160,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8642,8 +10882,8 @@
     },
     "Walk-NorthWest-2": {
       "frame": {
-        "x": 800,
-        "y": 768,
+        "x": 1200,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8662,8 +10902,8 @@
     },
     "Walk-NorthWest-3": {
       "frame": {
-        "x": 840,
-        "y": 768,
+        "x": 1240,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8682,8 +10922,8 @@
     },
     "Walk-NorthWest-4": {
       "frame": {
-        "x": 880,
-        "y": 768,
+        "x": 1280,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8702,8 +10942,8 @@
     },
     "Walk-NorthWest-5": {
       "frame": {
-        "x": 920,
-        "y": 768,
+        "x": 1320,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8722,8 +10962,8 @@
     },
     "Walk-West-0": {
       "frame": {
-        "x": 960,
-        "y": 768,
+        "x": 1360,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8742,8 +10982,8 @@
     },
     "Walk-West-1": {
       "frame": {
-        "x": 1000,
-        "y": 768,
+        "x": 1400,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8762,8 +11002,8 @@
     },
     "Walk-West-2": {
       "frame": {
-        "x": 1040,
-        "y": 768,
+        "x": 1440,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8782,8 +11022,8 @@
     },
     "Walk-West-3": {
       "frame": {
-        "x": 1080,
-        "y": 768,
+        "x": 1480,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8802,8 +11042,8 @@
     },
     "Walk-West-4": {
       "frame": {
-        "x": 1120,
-        "y": 768,
+        "x": 1520,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8822,8 +11062,8 @@
     },
     "Walk-West-5": {
       "frame": {
-        "x": 1160,
-        "y": 768,
+        "x": 1560,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8842,8 +11082,8 @@
     },
     "Walk-SouthWest-0": {
       "frame": {
-        "x": 1200,
-        "y": 768,
+        "x": 1600,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8862,8 +11102,8 @@
     },
     "Walk-SouthWest-1": {
       "frame": {
-        "x": 1240,
-        "y": 768,
+        "x": 1640,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8882,8 +11122,8 @@
     },
     "Walk-SouthWest-2": {
       "frame": {
-        "x": 1280,
-        "y": 768,
+        "x": 1680,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8902,8 +11142,8 @@
     },
     "Walk-SouthWest-3": {
       "frame": {
-        "x": 1320,
-        "y": 768,
+        "x": 1720,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8922,8 +11162,8 @@
     },
     "Walk-SouthWest-4": {
       "frame": {
-        "x": 1360,
-        "y": 768,
+        "x": 1760,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8942,8 +11182,8 @@
     },
     "Walk-SouthWest-5": {
       "frame": {
-        "x": 1400,
-        "y": 768,
+        "x": 1800,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8962,8 +11202,8 @@
     },
     "Charge-South-0": {
       "frame": {
-        "x": 1440,
-        "y": 768,
+        "x": 1840,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -8982,8 +11222,8 @@
     },
     "Charge-South-1": {
       "frame": {
-        "x": 1480,
-        "y": 768,
+        "x": 1880,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -9002,8 +11242,8 @@
     },
     "Charge-South-2": {
       "frame": {
-        "x": 1520,
-        "y": 768,
+        "x": 1920,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -9022,8 +11262,8 @@
     },
     "Charge-South-3": {
       "frame": {
-        "x": 1560,
-        "y": 768,
+        "x": 1960,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -9042,8 +11282,8 @@
     },
     "Charge-South-4": {
       "frame": {
-        "x": 1600,
-        "y": 768,
+        "x": 2000,
+        "y": 912,
         "w": 40,
         "h": 64
       },
@@ -9062,8 +11302,8 @@
     },
     "Charge-South-5": {
       "frame": {
-        "x": 1640,
-        "y": 768,
+        "x": 0,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9082,8 +11322,8 @@
     },
     "Charge-South-6": {
       "frame": {
-        "x": 1680,
-        "y": 768,
+        "x": 40,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9102,8 +11342,8 @@
     },
     "Charge-South-7": {
       "frame": {
-        "x": 1720,
-        "y": 768,
+        "x": 80,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9122,8 +11362,8 @@
     },
     "Charge-South-8": {
       "frame": {
-        "x": 1760,
-        "y": 768,
+        "x": 120,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9142,8 +11382,8 @@
     },
     "Charge-South-9": {
       "frame": {
-        "x": 1800,
-        "y": 768,
+        "x": 160,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9162,8 +11402,8 @@
     },
     "Charge-SouthEast-0": {
       "frame": {
-        "x": 1840,
-        "y": 768,
+        "x": 200,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9182,8 +11422,8 @@
     },
     "Charge-SouthEast-1": {
       "frame": {
-        "x": 1880,
-        "y": 768,
+        "x": 240,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9202,8 +11442,8 @@
     },
     "Charge-SouthEast-2": {
       "frame": {
-        "x": 1920,
-        "y": 768,
+        "x": 280,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9222,8 +11462,8 @@
     },
     "Charge-SouthEast-3": {
       "frame": {
-        "x": 1960,
-        "y": 768,
+        "x": 320,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9242,8 +11482,8 @@
     },
     "Charge-SouthEast-4": {
       "frame": {
-        "x": 2000,
-        "y": 768,
+        "x": 360,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9262,8 +11502,8 @@
     },
     "Charge-SouthEast-5": {
       "frame": {
-        "x": 0,
-        "y": 832,
+        "x": 400,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9282,8 +11522,8 @@
     },
     "Charge-SouthEast-6": {
       "frame": {
-        "x": 40,
-        "y": 832,
+        "x": 440,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9302,8 +11542,8 @@
     },
     "Charge-SouthEast-7": {
       "frame": {
-        "x": 80,
-        "y": 832,
+        "x": 480,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9322,8 +11562,8 @@
     },
     "Charge-SouthEast-8": {
       "frame": {
-        "x": 120,
-        "y": 832,
+        "x": 520,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9342,8 +11582,8 @@
     },
     "Charge-SouthEast-9": {
       "frame": {
-        "x": 160,
-        "y": 832,
+        "x": 560,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9362,8 +11602,8 @@
     },
     "Charge-East-0": {
       "frame": {
-        "x": 200,
-        "y": 832,
+        "x": 600,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9382,8 +11622,8 @@
     },
     "Charge-East-1": {
       "frame": {
-        "x": 240,
-        "y": 832,
+        "x": 640,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9402,8 +11642,8 @@
     },
     "Charge-East-2": {
       "frame": {
-        "x": 280,
-        "y": 832,
+        "x": 680,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9422,8 +11662,8 @@
     },
     "Charge-East-3": {
       "frame": {
-        "x": 320,
-        "y": 832,
+        "x": 720,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9442,8 +11682,8 @@
     },
     "Charge-East-4": {
       "frame": {
-        "x": 360,
-        "y": 832,
+        "x": 760,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9462,8 +11702,8 @@
     },
     "Charge-East-5": {
       "frame": {
-        "x": 400,
-        "y": 832,
+        "x": 800,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9482,8 +11722,8 @@
     },
     "Charge-East-6": {
       "frame": {
-        "x": 440,
-        "y": 832,
+        "x": 840,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9502,8 +11742,8 @@
     },
     "Charge-East-7": {
       "frame": {
-        "x": 480,
-        "y": 832,
+        "x": 880,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9522,8 +11762,8 @@
     },
     "Charge-East-8": {
       "frame": {
-        "x": 520,
-        "y": 832,
+        "x": 920,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9542,8 +11782,8 @@
     },
     "Charge-East-9": {
       "frame": {
-        "x": 560,
-        "y": 832,
+        "x": 960,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9562,8 +11802,8 @@
     },
     "Charge-NorthEast-0": {
       "frame": {
-        "x": 600,
-        "y": 832,
+        "x": 1000,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9582,8 +11822,8 @@
     },
     "Charge-NorthEast-1": {
       "frame": {
-        "x": 640,
-        "y": 832,
+        "x": 1040,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9602,8 +11842,8 @@
     },
     "Charge-NorthEast-2": {
       "frame": {
-        "x": 680,
-        "y": 832,
+        "x": 1080,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9622,8 +11862,8 @@
     },
     "Charge-NorthEast-3": {
       "frame": {
-        "x": 720,
-        "y": 832,
+        "x": 1120,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9642,8 +11882,8 @@
     },
     "Charge-NorthEast-4": {
       "frame": {
-        "x": 760,
-        "y": 832,
+        "x": 1160,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9662,8 +11902,8 @@
     },
     "Charge-NorthEast-5": {
       "frame": {
-        "x": 800,
-        "y": 832,
+        "x": 1200,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9682,8 +11922,8 @@
     },
     "Charge-NorthEast-6": {
       "frame": {
-        "x": 840,
-        "y": 832,
+        "x": 1240,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9702,8 +11942,8 @@
     },
     "Charge-NorthEast-7": {
       "frame": {
-        "x": 880,
-        "y": 832,
+        "x": 1280,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9722,8 +11962,8 @@
     },
     "Charge-NorthEast-8": {
       "frame": {
-        "x": 920,
-        "y": 832,
+        "x": 1320,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9742,8 +11982,8 @@
     },
     "Charge-NorthEast-9": {
       "frame": {
-        "x": 960,
-        "y": 832,
+        "x": 1360,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9762,8 +12002,8 @@
     },
     "Charge-North-0": {
       "frame": {
-        "x": 1000,
-        "y": 832,
+        "x": 1400,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9782,8 +12022,8 @@
     },
     "Charge-North-1": {
       "frame": {
-        "x": 1040,
-        "y": 832,
+        "x": 1440,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9802,8 +12042,8 @@
     },
     "Charge-North-2": {
       "frame": {
-        "x": 1080,
-        "y": 832,
+        "x": 1480,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9822,8 +12062,8 @@
     },
     "Charge-North-3": {
       "frame": {
-        "x": 1120,
-        "y": 832,
+        "x": 1520,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9842,8 +12082,8 @@
     },
     "Charge-North-4": {
       "frame": {
-        "x": 1160,
-        "y": 832,
+        "x": 1560,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9862,8 +12102,8 @@
     },
     "Charge-North-5": {
       "frame": {
-        "x": 1200,
-        "y": 832,
+        "x": 1600,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9882,8 +12122,8 @@
     },
     "Charge-North-6": {
       "frame": {
-        "x": 1240,
-        "y": 832,
+        "x": 1640,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9902,8 +12142,8 @@
     },
     "Charge-North-7": {
       "frame": {
-        "x": 1280,
-        "y": 832,
+        "x": 1680,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9922,8 +12162,8 @@
     },
     "Charge-North-8": {
       "frame": {
-        "x": 1320,
-        "y": 832,
+        "x": 1720,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9942,8 +12182,8 @@
     },
     "Charge-North-9": {
       "frame": {
-        "x": 1360,
-        "y": 832,
+        "x": 1760,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9962,8 +12202,8 @@
     },
     "Charge-NorthWest-0": {
       "frame": {
-        "x": 1400,
-        "y": 832,
+        "x": 1800,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -9982,8 +12222,8 @@
     },
     "Charge-NorthWest-1": {
       "frame": {
-        "x": 1440,
-        "y": 832,
+        "x": 1840,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -10002,8 +12242,8 @@
     },
     "Charge-NorthWest-2": {
       "frame": {
-        "x": 1480,
-        "y": 832,
+        "x": 1880,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -10022,8 +12262,8 @@
     },
     "Charge-NorthWest-3": {
       "frame": {
-        "x": 1520,
-        "y": 832,
+        "x": 1920,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -10042,8 +12282,8 @@
     },
     "Charge-NorthWest-4": {
       "frame": {
-        "x": 1560,
-        "y": 832,
+        "x": 1960,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -10062,8 +12302,8 @@
     },
     "Charge-NorthWest-5": {
       "frame": {
-        "x": 1600,
-        "y": 832,
+        "x": 2000,
+        "y": 976,
         "w": 40,
         "h": 64
       },
@@ -10082,8 +12322,8 @@
     },
     "Charge-NorthWest-6": {
       "frame": {
-        "x": 1640,
-        "y": 832,
+        "x": 0,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10102,8 +12342,8 @@
     },
     "Charge-NorthWest-7": {
       "frame": {
-        "x": 1680,
-        "y": 832,
+        "x": 40,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10122,8 +12362,8 @@
     },
     "Charge-NorthWest-8": {
       "frame": {
-        "x": 1720,
-        "y": 832,
+        "x": 80,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10142,8 +12382,8 @@
     },
     "Charge-NorthWest-9": {
       "frame": {
-        "x": 1760,
-        "y": 832,
+        "x": 120,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10162,8 +12402,8 @@
     },
     "Charge-West-0": {
       "frame": {
-        "x": 1800,
-        "y": 832,
+        "x": 160,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10182,8 +12422,8 @@
     },
     "Charge-West-1": {
       "frame": {
-        "x": 1840,
-        "y": 832,
+        "x": 200,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10202,8 +12442,8 @@
     },
     "Charge-West-2": {
       "frame": {
-        "x": 1880,
-        "y": 832,
+        "x": 240,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10222,8 +12462,8 @@
     },
     "Charge-West-3": {
       "frame": {
-        "x": 1920,
-        "y": 832,
+        "x": 280,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10242,8 +12482,8 @@
     },
     "Charge-West-4": {
       "frame": {
-        "x": 1960,
-        "y": 832,
+        "x": 320,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10262,8 +12502,8 @@
     },
     "Charge-West-5": {
       "frame": {
-        "x": 2000,
-        "y": 832,
+        "x": 360,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10282,8 +12522,8 @@
     },
     "Charge-West-6": {
       "frame": {
-        "x": 0,
-        "y": 896,
+        "x": 400,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10302,8 +12542,8 @@
     },
     "Charge-West-7": {
       "frame": {
-        "x": 40,
-        "y": 896,
+        "x": 440,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10322,8 +12562,8 @@
     },
     "Charge-West-8": {
       "frame": {
-        "x": 80,
-        "y": 896,
+        "x": 480,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10342,8 +12582,8 @@
     },
     "Charge-West-9": {
       "frame": {
-        "x": 120,
-        "y": 896,
+        "x": 520,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10362,8 +12602,8 @@
     },
     "Charge-SouthWest-0": {
       "frame": {
-        "x": 160,
-        "y": 896,
+        "x": 560,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10382,8 +12622,8 @@
     },
     "Charge-SouthWest-1": {
       "frame": {
-        "x": 200,
-        "y": 896,
+        "x": 600,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10402,8 +12642,8 @@
     },
     "Charge-SouthWest-2": {
       "frame": {
-        "x": 240,
-        "y": 896,
+        "x": 640,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10422,8 +12662,8 @@
     },
     "Charge-SouthWest-3": {
       "frame": {
-        "x": 280,
-        "y": 896,
+        "x": 680,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10442,8 +12682,8 @@
     },
     "Charge-SouthWest-4": {
       "frame": {
-        "x": 320,
-        "y": 896,
+        "x": 720,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10462,8 +12702,8 @@
     },
     "Charge-SouthWest-5": {
       "frame": {
-        "x": 360,
-        "y": 896,
+        "x": 760,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10482,8 +12722,8 @@
     },
     "Charge-SouthWest-6": {
       "frame": {
-        "x": 400,
-        "y": 896,
+        "x": 800,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10502,8 +12742,8 @@
     },
     "Charge-SouthWest-7": {
       "frame": {
-        "x": 440,
-        "y": 896,
+        "x": 840,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10522,8 +12762,8 @@
     },
     "Charge-SouthWest-8": {
       "frame": {
-        "x": 480,
-        "y": 896,
+        "x": 880,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10542,8 +12782,8 @@
     },
     "Charge-SouthWest-9": {
       "frame": {
-        "x": 520,
-        "y": 896,
+        "x": 920,
+        "y": 1040,
         "w": 40,
         "h": 64
       },
@@ -10562,8 +12802,8 @@
     },
     "Sleep-South-0": {
       "frame": {
-        "x": 560,
-        "y": 896,
+        "x": 960,
+        "y": 1040,
         "w": 24,
         "h": 24
       },
@@ -10582,8 +12822,8 @@
     },
     "Sleep-South-1": {
       "frame": {
-        "x": 584,
-        "y": 896,
+        "x": 984,
+        "y": 1040,
         "w": 24,
         "h": 24
       },
@@ -10608,7 +12848,7 @@
     "format": "RGBA8888",
     "size": {
       "w": 2048,
-      "h": 960
+      "h": 1104
     },
     "scale": "1",
     "animations": {
@@ -10631,6 +12871,12 @@
         "durations": [3, 3, 3, 3, 1, 2, 2, 2, 2, 2, 2, 2, 1],
         "hitFrame": 3,
         "returnFrame": 7
+      },
+      "Hover": {
+        "frameWidth": 40,
+        "frameHeight": 72,
+        "durations": [2, 3, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+        "hitFrame": 10
       },
       "Sleep": {
         "frameWidth": 24,

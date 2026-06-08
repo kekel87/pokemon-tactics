@@ -1,0 +1,119 @@
+/* Map-select screen (plan 120 step 3) — left list panel + live Babylon preview. */
+
+@layer components {
+  .ms-screen {
+    --ms-gap: clamp(8px, 1.5vmin, 20px);
+    --ms-padding: clamp(12px, 2vmin, 32px);
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: clamp(260px, 24vw, 480px) 1fr;
+    background: var(--color-bg-base);
+    font-family: var(--font-family);
+    color: var(--color-text-primary);
+  }
+
+  .ms-screen button {
+    font-family: var(--font-family);
+  }
+
+  .ms-list-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ms-gap);
+    padding: var(--ms-padding);
+    background: var(--color-bg-surface);
+    overflow-y: auto;
+  }
+
+  .ms-title {
+    margin: 0;
+    text-align: center;
+    font-size: clamp(22px, 3vmin, 48px);
+    color: var(--color-accent);
+  }
+
+  .ms-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .ms-list-item {
+    inline-size: 100%;
+    padding: var(--pad-control-y) var(--pad-control-x);
+    text-align: start;
+    font-size: clamp(16px, 1.8vmin, 30px);
+    background: var(--color-bg-elevated);
+    color: var(--color-text-primary);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-bg-elevated-hover);
+    }
+
+    &[aria-current="true"] {
+      background: var(--color-btn-bg);
+      border-color: var(--color-btn-border);
+    }
+  }
+
+  .ms-list-panel .mn-btn {
+    margin-block-start: auto;
+  }
+
+  .ms-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ms-gap);
+    padding: var(--ms-padding);
+    min-inline-size: 0;
+  }
+
+  .ms-preview {
+    flex: 1;
+    min-block-size: 0;
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .ms-preview-canvas {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  .ms-details {
+    padding: var(--spacing-lg);
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-md);
+  }
+
+  .ms-details-name {
+    margin: 0;
+    font-size: clamp(18px, 2.2vmin, 36px);
+    color: var(--color-accent);
+  }
+
+  .ms-details-meta {
+    margin: var(--spacing-xxs) 0;
+    font-size: clamp(13px, 1.4vmin, 24px);
+    color: var(--color-text-muted);
+  }
+
+  .ms-details-description {
+    margin: 0;
+    font-size: clamp(15px, 1.7vmin, 28px);
+    color: var(--color-text-secondary);
+  }
+
+  .ms-confirm {
+    align-self: center;
+  }
+}

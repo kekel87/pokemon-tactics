@@ -1,0 +1,536 @@
+import {
+  createPrng,
+  EASY_PROFILE,
+  type MapDefinition,
+  PlayerController,
+  PlayerId,
+} from "@pokemon-tactic/core";
+import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
+import type { Navigate, Screen } from "../app/screen-manager.js";
+import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
+import {
+  FIELD_TERRAIN_COLOR_ELECTRIC,
+  FIELD_TERRAIN_COLOR_GRASSY,
+  getTeamColorByPlayerId,
+} from "../constants.js";
+import { HighlightKind } from "../enums/highlight-kind.js";
+import { AiTeamController } from "../game/AiTeamController.js";
+import { type BattleSetupResult, createBattleFromPlacements } from "../game/BattleSetup.js";
+import { type BattleFeedback, BattleOrchestrator } from "../game/battle-orchestrator.js";
+import { DummyAiController } from "../game/DummyAiController.js";
+import { createSandboxBattle } from "../game/SandboxSetup.js";
+import { getLanguage } from "../i18n/index.js";
+import { initSandboxStudioDom } from "../sandbox-boot.js";
+import { buildTeamOverrides } from "../team/build-overrides.js";
+import type { SandboxConfig } from "../types/SandboxConfig.js";
+import { createBattleChrome } from "../ui/dom/combat/battle-chrome.js";
+import { createBattleLog } from "../ui/dom/combat/battle-log.js";
+import { SandboxPanel } from "../ui/SandboxPanel.js";
+import type { FieldTerrainSpec } from "./babylon-field-terrains.js";
+import { createBattleBoardView } from "./battle-board-view.js";
+import { type CombatPokemonHandle, type CombatScene, createCombatScene } from "./combat-scene.js";
+import { createFloatingTextSpawner } from "./floating-text-spawner.js";
+import { type GameStage, mountGameStage } from "./game-stage.js";
+import { loadTiledMap } from "./load-tiled-map.js";
+import { type PlacementFlow, type PlacementResult, startPlacementFlow } from "./placement-flow.js";
+
+// Parity with Phaser (battleConfig.confirmAttack default true, plan 123 4d-3):
+// a target click locks the target into a confirm step (with preview flash + damage
+// preview); a second click confirms, Escape backs out.
+const BATTLE_CONFIRM_ATTACK = true;
+
+/**
+ * Combat FSM screen (plan 120): owns the game-stage scaffold + Babylon combat
+ * scene lifecycle. With a CombatSetup (from team-select) it runs the placement
+ * phase (step 6) — the battle loop takes over at step 7. Without one
+ * (`?combat=1` dev route) it mounts the Jalon 3 demo content (12 Pokemon, click
+ * highlights, two static Champs). The temporary "back to menu" button stands
+ * in for the victory overlay (step 8).
+ */
+
+// 12 sprites = a max 6v6 combat, to stress 60fps. Mixed shadowSizes (0/1/2)
+// keep the grounding comparison; spread across rows to exercise occlusion.
+// Flyers exercise the glide fallback chain (Jalon 3d). Exported for the
+// `?preview=1` tuning harness route.
+export const DEMO_POKEMON = [
+  { pokemonId: "magnemite", spawn: { x: 2, y: 1 }, team: 1 },
+  { pokemonId: "pidgey", spawn: { x: 5, y: 1 }, team: 1 },
+  { pokemonId: "pikachu", spawn: { x: 8, y: 1 }, team: 1 },
+  { pokemonId: "butterfree", spawn: { x: 11, y: 1 }, team: 1 },
+  { pokemonId: "bulbasaur", spawn: { x: 2, y: 6 }, team: 1 },
+  { pokemonId: "charmander", spawn: { x: 11, y: 6 }, team: 1 },
+  { pokemonId: "blastoise", spawn: { x: 2, y: 7 }, team: 2 },
+  { pokemonId: "golbat", spawn: { x: 11, y: 7 }, team: 2 },
+  { pokemonId: "dragonite", spawn: { x: 2, y: 12 }, team: 2 },
+  // Onix stands on the Electric-field anchor to exercise the pill/Pokémon layering.
+  { pokemonId: "onix", spawn: { x: 10, y: 10 }, team: 2 },
+  { pokemonId: "gyarados", spawn: { x: 8, y: 12 }, team: 2 },
+  { pokemonId: "charizard", spawn: { x: 11, y: 12 }, team: 2 },
+];
+
+const DEMO_MOVE_RANGE = 3;
+const FIELD_TERRAIN_DEMO_RADIUS = 3;
+
+function manhattanDisk(
+  centerX: number,
+  centerY: number,
+  min: number,
+  max: number,
+): { x: number; y: number }[] {
+  const tiles: { x: number; y: number }[] = [];
+  for (let y = centerY - max; y <= centerY + max; y++) {
+    for (let x = centerX - max; x <= centerX + max; x++) {
+      const distance = Math.abs(x - centerX) + Math.abs(y - centerY);
+      if (distance >= min && distance <= max && x >= 0 && y >= 0) {
+        tiles.push({ x, y });
+      }
+    }
+  }
+  return tiles;
+}
+
+function mountDemoContent(combat: CombatScene): void {
+  // Jalon 3b demo (battle orchestrator lands at plan 120 step 7): clicking a
+  // tile paints a Manhattan move range + outline, plus an attack ring one step
+  // out — to verify picking and highlights on the extruded terrain.
+  combat.onTileClick((pick) => {
+    const move = manhattanDisk(pick.x, pick.y, 0, DEMO_MOVE_RANGE);
+    combat.setTileHighlights(HighlightKind.Move, move);
+    combat.setTileHighlights(HighlightKind.Attack, manhattanDisk(pick.x, pick.y, 4, 4));
+    combat.setTileOutline(move);
+  });
+
+  // Jalon 3e demo: two static Champs zones to verify fill, perimeter, DOM pill.
+  const champZone = (
+    anchor: { x: number; y: number },
+    color: number,
+    teamColor: number,
+    remainingTurns: number,
+  ): FieldTerrainSpec => ({
+    anchor,
+    color,
+    teamColor,
+    remainingTurns,
+    tiles: manhattanDisk(anchor.x, anchor.y, 0, FIELD_TERRAIN_DEMO_RADIUS),
+  });
+  combat.setFieldTerrains([
+    champZone({ x: 4, y: 4 }, FIELD_TERRAIN_COLOR_GRASSY, getTeamColorByPlayerId("player-1"), 5),
+    champZone(
+      { x: 10, y: 10 },
+      FIELD_TERRAIN_COLOR_ELECTRIC,
+      getTeamColorByPlayerId("player-2"),
+      3,
+    ),
+  ]);
+}
+
+async function mountPlacement(
+  combat: CombatScene,
+  stage: GameStage,
+  mapUrl: string,
+  setup: CombatSetup,
+  onComplete: (result: PlacementResult, map: MapDefinition) => void,
+): Promise<PlacementFlow> {
+  const [loaded] = await Promise.all([loadTiledMap(mapUrl), combat.ready]);
+  const format =
+    loaded.map.formats.find(
+      (candidate) => `${candidate.teamCount}v${candidate.maxPokemonPerTeam}` === setup.formatKey,
+    ) ?? loaded.map.formats[0];
+  if (!format) {
+    throw new Error(`Map "${mapUrl}" has no formats`);
+  }
+  return startPlacementFlow({
+    combat,
+    map: loaded.map,
+    format,
+    teams: setup.teams,
+    autoPlacement: setup.autoPlacement,
+    host: stage.screenLayer,
+    onComplete: (result) => onComplete(result, loaded.map),
+  });
+}
+
+/**
+ * Wire a built battle into the board/chrome/orchestrator and start the loop
+ * (plan 120 step 7b). Shared by the placement path (`startBattleLoop`) and the
+ * sandbox boot path (`startSandboxBattle`); the only difference is how the engine
+ * is built and which AI hook is installed (`wireTurnReady`). Tile clicks +
+ * Escape/Space are routed to the orchestrator (the latter via the AbortController).
+ */
+function runBattle(options: {
+  combat: CombatScene;
+  stage: GameStage;
+  battle: BattleSetupResult;
+  handles: ReadonlyMap<string, CombatPokemonHandle>;
+  onExit: () => void;
+  signal: AbortSignal;
+  onReplay: () => void;
+  wireTurnReady: (battle: BattleSetupResult) => BattleOrchestrator["onTurnReady"];
+}): BattleOrchestrator {
+  const { combat, stage, battle, handles, onExit, signal, onReplay, wireTurnReady } = options;
+  const board = createBattleBoardView(combat, handles);
+  const chrome = createBattleChrome({
+    host: stage.screenLayer,
+    onExit,
+    onReplay,
+  });
+  const language = getLanguage();
+  // Shared name resolvers for the log + floating texts (instance id → localised names).
+  const pokemonNameOf = (id: string): string => {
+    const pokemon = battle.state.pokemon.get(id);
+    return pokemon ? getPokemonName(pokemon.definitionId, language) : id;
+  };
+  const abilityNameOf = (id: string): string | null =>
+    battle.abilityRegistry.get(id)?.name[language] ?? null;
+  const itemNameOf = (id: string): string | null =>
+    battle.itemRegistry.get(id)?.name[language] ?? null;
+
+  const battleLog = createBattleLog({
+    context: {
+      getPokemonName: pokemonNameOf,
+      getMoveName: (moveId) => getMoveName(moveId, language),
+      getAbilityName: abilityNameOf,
+      getItemName: itemNameOf,
+      language,
+    },
+    teamOf: (id) => {
+      const pokemon = battle.state.pokemon.get(id);
+      return pokemon ? Number(pokemon.playerId.match(/(\d+)/)?.[1] ?? "1") : null;
+    },
+  });
+  stage.screenLayer.append(battleLog.element);
+  const spawnFloatingText = createFloatingTextSpawner(combat, battle.state, {
+    getPokemonName: pokemonNameOf,
+    getAbilityName: abilityNameOf,
+    getItemName: itemNameOf,
+    getCurrentHp: (id) => battle.state.pokemon.get(id)?.currentHp ?? 0,
+  });
+  const feedback: BattleFeedback = {
+    report: (event) => {
+      battleLog.report(event);
+      spawnFloatingText(event);
+    },
+  };
+  const orchestrator = new BattleOrchestrator(
+    battle.engine,
+    battle.state,
+    battle.moveDefinitions,
+    board,
+    chrome,
+    feedback,
+    { confirmAttack: BATTLE_CONFIRM_ATTACK },
+  );
+  orchestrator.onTurnReady = wireTurnReady(battle);
+
+  combat.onTileClick((pick) => orchestrator.onTileClick({ x: pick.x, y: pick.y }));
+  combat.onTileHover((pick) => orchestrator.onTileHover(pick ? { x: pick.x, y: pick.y } : null));
+  window.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key === "Escape") {
+        orchestrator.onEscape();
+      } else if (event.key === " " || event.key === "Enter") {
+        event.preventDefault();
+        orchestrator.onConfirmKey();
+      }
+    },
+    { signal },
+  );
+
+  orchestrator.start();
+  return orchestrator;
+}
+
+/** EASY AI (seeded) for the given AI-controlled player ids (placement path). */
+function wireScoredAi(
+  battle: BattleSetupResult,
+  aiPlayerIds: readonly PlayerId[],
+): BattleOrchestrator["onTurnReady"] {
+  if (aiPlayerIds.length === 0) {
+    return null;
+  }
+  const aiControllers = new Map<string, AiTeamController>();
+  for (const playerId of aiPlayerIds) {
+    aiControllers.set(
+      playerId,
+      new AiTeamController(
+        battle.engine,
+        playerId,
+        EASY_PROFILE,
+        createPrng(Date.now()),
+        battle.moveDefinitions,
+      ),
+    );
+  }
+  return (activePokemonId) => {
+    const pokemon = battle.state.pokemon.get(activePokemonId);
+    const ai = pokemon ? aiControllers.get(pokemon.playerId) : undefined;
+    return ai ? ai.playTurn() : false;
+  };
+}
+
+/** Build the engine from the finished placement and run the loop (team-select path). */
+function startBattleLoop(
+  combat: CombatScene,
+  stage: GameStage,
+  map: MapDefinition,
+  setup: CombatSetup,
+  result: PlacementResult,
+  navigate: Navigate,
+  signal: AbortSignal,
+  onReplay: () => void,
+): BattleOrchestrator {
+  const battle = createBattleFromPlacements({
+    map,
+    teams: result.placementTeams,
+    placements: result.placements,
+    turnSystemKind: setup.turnSystemKind,
+    // Carry the team-builder customisation (moves, ability, item, nature, EVs)
+    // into combat — keyed by instance id ("p1-pikachu") like the placements.
+    ...buildTeamOverrides({ teams: setup.teams }),
+  });
+  const aiPlayerIds = result.placementTeams
+    .filter((team) => team.controller === PlayerController.Ai)
+    .map((team) => team.playerId);
+  return runBattle({
+    combat,
+    stage,
+    battle,
+    handles: result.handles,
+    onExit: () => navigate("main-menu", undefined),
+    signal,
+    onReplay,
+    wireTurnReady: (built) => wireScoredAi(built, aiPlayerIds),
+  });
+}
+
+/**
+ * Sandbox boot path (plan 120 step 9): spawn the player + dummy billboards from
+ * the sandbox engine state (no placement phase) and run the loop. The dummy team
+ * uses `DummyAiController` (one defensive move + face a fixed direction) when
+ * `dummyControl === "ai"`; in "player" mode both sides are human-controlled.
+ */
+function startSandboxBattle(options: {
+  combat: CombatScene;
+  stage: GameStage;
+  map: MapDefinition;
+  config: SandboxConfig;
+  onExit: () => void;
+  signal: AbortSignal;
+  onReplay: () => void;
+  /** Report the engine-resolved spawn tiles back to the studio panel (parity Phaser `setResolvedPositions`). */
+  onPositionsResolved?: (player: { x: number; y: number }, dummy: { x: number; y: number }) => void;
+}): BattleOrchestrator {
+  const { combat, stage, map, config, onExit, signal, onReplay, onPositionsResolved } = options;
+  const battle = createSandboxBattle(config, map);
+  const handles = new Map<string, CombatPokemonHandle>();
+  for (const pokemon of battle.state.pokemon.values()) {
+    if (pokemon.currentHp <= 0) {
+      continue;
+    }
+    const handle = combat.addPokemon({
+      pokemonId: pokemon.definitionId,
+      spawn: pokemon.position,
+      team: pokemon.playerId === PlayerId.Player1 ? 1 : 2,
+    });
+    handle.setFacing(pokemon.orientation);
+    handles.set(pokemon.id, handle);
+  }
+  const dummyPokemonId = `p2-${config.dummyPokemon}`;
+  const playerInstance = battle.state.pokemon.get(`p1-${config.pokemon}`);
+  const dummyInstance = battle.state.pokemon.get(dummyPokemonId);
+  if (playerInstance && dummyInstance) {
+    onPositionsResolved?.(playerInstance.position, dummyInstance.position);
+  }
+  return runBattle({
+    combat,
+    stage,
+    battle,
+    handles,
+    onExit,
+    signal,
+    onReplay,
+    wireTurnReady: (built) => {
+      if (config.dummyControl !== "ai") {
+        return null;
+      }
+      const dummyAi = new DummyAiController(
+        built.engine,
+        dummyPokemonId,
+        config.dummyMove,
+        config.dummyDirection,
+      );
+      return (activePokemonId) => (activePokemonId === dummyPokemonId ? dummyAi.playTurn() : false);
+    },
+  });
+}
+
+const SANDBOX_DEFAULT_MAP_URL = "/assets/maps/dev/sandbox-flat.tmj";
+
+/** Normalise a public-relative sandbox map url ("assets/…") to an absolute one. */
+function sandboxMapUrl(config: SandboxConfig): string {
+  if (!config.mapUrl) {
+    return SANDBOX_DEFAULT_MAP_URL;
+  }
+  return config.mapUrl.startsWith("/") ? config.mapUrl : `/${config.mapUrl}`;
+}
+
+/**
+ * Sandbox Studio (plan 123 — parity with the Phaser `pnpm dev:sandbox` studio).
+ * Owns the editor chrome (header / player + dummy columns / battle strip via
+ * `SandboxPanel`) plus the game-stage + combat-scene lifecycle, skipping the menus
+ * and the placement phase. Every config change tears the battle down and re-mounts
+ * it from the new config (mirrors Phaser `BattleScene.resetSandbox`). "Replay"
+ * re-mounts the same config; "Back to menu" tears down then hands off to the FSM.
+ */
+export function mountSandboxStudio(
+  host: HTMLElement,
+  initialConfig: SandboxConfig,
+  navigate: Navigate,
+): { dispose(): void } {
+  initSandboxStudioDom(host);
+  let panel: SandboxPanel | null = null;
+  let stage: GameStage | null = null;
+  let combat: CombatScene | null = null;
+  let orchestrator: BattleOrchestrator | null = null;
+  let abort = new AbortController();
+  let disposed = false;
+
+  function teardownBattle(): void {
+    abort.abort();
+    orchestrator?.dispose();
+    orchestrator = null;
+    combat?.dispose();
+    combat = null;
+    stage?.dispose();
+    stage = null;
+  }
+
+  async function mountContent(config: SandboxConfig): Promise<void> {
+    abort = new AbortController();
+    const localAbort = abort;
+    const mapUrl = sandboxMapUrl(config);
+    const activeStage = mountGameStage(host);
+    stage = activeStage;
+    const activeCombat = createCombatScene({
+      canvas: activeStage.canvas,
+      mapUrl,
+      pokemon: [],
+    });
+    combat = activeCombat;
+    const [loaded] = await Promise.all([loadTiledMap(mapUrl), activeCombat.ready]);
+    if (localAbort.signal.aborted) {
+      return;
+    }
+    orchestrator = startSandboxBattle({
+      combat: activeCombat,
+      stage: activeStage,
+      map: loaded.map,
+      config,
+      onExit: () => {
+        teardownBattle();
+        navigate("main-menu", undefined);
+      },
+      signal: localAbort.signal,
+      onReplay: () => remount(config),
+      onPositionsResolved: (player, dummy) => panel?.setResolvedPositions(player, dummy),
+    });
+  }
+
+  function remount(config: SandboxConfig): void {
+    if (disposed) {
+      return;
+    }
+    teardownBattle();
+    panel?.destroy();
+    panel = new SandboxPanel(config, (next) => remount(next));
+    void mountContent(config);
+  }
+
+  remount(initialConfig);
+
+  return {
+    dispose: () => {
+      disposed = true;
+      teardownBattle();
+      panel?.destroy();
+      panel = null;
+    },
+  };
+}
+
+export function createCombatScreen(navigate: Navigate): Screen<"combat"> {
+  let stage: GameStage | null = null;
+  let combat: CombatScene | null = null;
+  let placement: PlacementFlow | null = null;
+  let orchestrator: BattleOrchestrator | null = null;
+  // Recreated on every (re)mount so a "Replay" tears down the previous keyboard
+  // listeners cleanly (plan 120 step 8 — disposal parity with an FSM transition).
+  let abort = new AbortController();
+
+  function teardown(): void {
+    abort.abort();
+    orchestrator?.dispose();
+    orchestrator = null;
+    placement?.dispose();
+    placement = null;
+    combat?.dispose();
+    combat = null;
+    stage?.dispose();
+    stage = null;
+  }
+
+  async function mountContent(
+    host: HTMLElement,
+    params: ScreenParamsById["combat"],
+  ): Promise<void> {
+    abort = new AbortController();
+    const activeStage = mountGameStage(host);
+    stage = activeStage;
+    const activeCombat = createCombatScene({
+      canvas: activeStage.canvas,
+      mapUrl: params.mapUrl,
+      pokemon: params.setup ? [] : DEMO_POKEMON,
+    });
+    combat = activeCombat;
+
+    const setup = params.setup;
+    if (!setup) {
+      mountDemoContent(activeCombat);
+      return;
+    }
+    // "Replay" re-runs the whole placement→battle flow with the same config — an
+    // internal re-mount, NOT an FSM navigation (plan 120 victory contract).
+    const replay = (): void => {
+      teardown();
+      void mountContent(host, params);
+    };
+    placement = await mountPlacement(
+      activeCombat,
+      activeStage,
+      params.mapUrl,
+      setup,
+      (result, map) => {
+        orchestrator = startBattleLoop(
+          activeCombat,
+          activeStage,
+          map,
+          setup,
+          result,
+          navigate,
+          abort.signal,
+          replay,
+        );
+      },
+    );
+  }
+
+  return {
+    mount(host, params) {
+      return mountContent(host, params);
+    },
+    dispose() {
+      teardown();
+    },
+  };
+}

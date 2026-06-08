@@ -19,4 +19,10 @@
 @import "./components/set-op.css";
 @import "./components/showdown.css";
 @import "./components/team-select.css";
+@import "./components/placement.css";
+@import "./components/battle-chrome.css";
+@import "./components/battle-log.css";
+@import "./components/move-tooltip.css";
+@import "./components/turn-timeline.css";
+@import "./components/weather-hud.css";
 @import "./utilities.css";

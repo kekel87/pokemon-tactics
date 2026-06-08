@@ -1,7 +1,8 @@
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import type { IndexHtmlTransformContext, Plugin } from "vite";
+import { visualizer } from "rollup-plugin-visualizer";
+import type { IndexHtmlTransformContext, Plugin, PluginOption } from "vite";
 import { defineConfig } from "vite";
 
 // Dev server port. Lets N parallel worktree sessions run `pnpm dev` without
@@ -61,12 +62,27 @@ function goatcounterPlugin(): Plugin {
   };
 }
 
+// Bundle audit (Jalon 1 DoD): `BUNDLE_VISUALIZE=1 pnpm build` writes
+// `dist/stats.html` (treemap) to track the Babylon bundle vs the 180-220 kB gzip target.
+function bundleAuditPlugins(): PluginOption[] {
+  if (!process.env.BUNDLE_VISUALIZE) {
+    return [];
+  }
+  return [
+    visualizer({
+      filename: "dist/stats.html",
+      gzipSize: true,
+      brotliSize: true,
+    }) as PluginOption,
+  ];
+}
+
 export default defineConfig({
   base: process.env.ITCH_DEPLOY ? "./" : process.env.GITHUB_ACTIONS ? "/pokemon-tactics/" : "/",
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [goatcounterPlugin()],
+  plugins: [goatcounterPlugin(), ...bundleAuditPlugins()],
   server: {
     port: resolveDevPort(),
   },
@@ -76,5 +92,15 @@ export default defineConfig({
   },
   build: {
     target: "es2022",
+    rollupOptions: {
+      // Multi-page: the production app (index.html) + the Jalon 1 Babylon dev
+      // preview (babylon.html). The preview page is removed at Jalon 5.
+      // Relative to Vite `root` (the renderer package dir) — avoids the bundled-config
+      // dirname unreliability noted in resolveDevPort above.
+      input: {
+        main: resolve(process.cwd(), "index.html"),
+        babylon: resolve(process.cwd(), "babylon.html"),
+      },
+    },
   },
 });

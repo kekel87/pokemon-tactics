@@ -38,6 +38,26 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - MapSelect preview noire : camera fadeOut(0)/fadeIn(150ms)
 -->
 
+### [Babylon] Curseur FFTA ne remonte pas à la tête du Pokémon fraîchement posé (2026-06-11, playtest plan 120)
+- Après confirmation d'un placement, le curseur de survol FFTA reste au niveau du sol sur la tile du Pokémon qui vient d'être posé — il ne se lève pas à hauteur de la tête.
+- Cause probable : le sprite fraîchement placé n'est pas encore dans le lookup `billboardByTile` au moment où le `pointermove` de confirmation déclenche le calcul de lift, **ou** le pointeur n'a pas bougé après la confirmation donc aucun recalcul n'est émis.
+- À investiguer dans `babylon-hover-cursor.ts` (lookup tile→billboard) + `placement-flow.ts` (refresh forcé post-`addPokemon` ou émission `onTileHover` fictif).
+
+### [Babylon] Silhouette X-ray entre Pokémon jugée moche (2026-06-11, playtest plan 120)
+- La silhouette X-ray (couleur d'équipe quand occlus) se déclenche aussi quand un Pokémon en occulte un autre, ce qui est visuellement encombrant.
+- **Comportement cible** : silhouette X-ray **désactivée** pour les occlusions Pokémon↔Pokémon, **conservée** pour Pokémon↔décor ou Pokémon↔relief (tile haute, mur).
+- Piste : dans le plugin depth sprite (`renderingGroupId 1`), ne pas écrire la silhouette quand le fragment occluseur appartient à un autre billboard sprite (discriminant possible via stencil ou masque de groupe de rendu séparé).
+
+### [Babylon] Animations idle/boucles trop rapides vs Phaser (2026-06-11, playtest plan 120)
+- Les animations de boucle (Idle, FlyingIdle, etc.) tournent trop vite par rapport à l'équivalent Phaser — « ça bouge trop ».
+- Probablement un décalage dans le timing de lecture des frames PMD dans `DirectionalBillboard.update` (durée par frame, accumulation delta).
+- **Avant de fixer** : lancer `best-practices` (agent) sur l'implémentation du timing vs Showdown/Phaser pour valider l'approche, puis corriger `DirectionalBillboard.update`.
+
+### [Babylon] Divergence HUD combat : sandbox studio in-canvas vs FSM DOM (2026-06-13, post-recette lot 3)
+- Le *sandbox studio* rend le HUD de combat directement dans le moteur Babylon (in-canvas), tandis que le *combat normal FSM* (plan 120+) utilise le chrome DOM HTML/CSS.
+- Pas de bug fonctionnel immédiat, mais la divergence complique la maintenance (deux chemins de rendu HUD à synchroniser sur chaque nouvelle feature).
+- À investiguer : unifier les deux approches (porter le chrome DOM dans le sandbox, ou inversement exposer le studio via le FSM), ou au moins documenter l'intention.
+- Priorité : basse — bloquant uniquement si une feature HUD doit se comportement identique dans les deux modes.
 
 ## Dette technique
 

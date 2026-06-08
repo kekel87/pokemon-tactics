@@ -3,6 +3,7 @@ import { getLanguage, t } from "../../i18n";
 import { getCategoryIconUrl, getTypeIconUrl } from "../../team/asset-paths";
 import {
   type AvailableMove,
+  getAllMoveInfos,
   getLearnsetForPokemon,
   getMoveInfo,
 } from "../../team/team-builder-data";
@@ -12,6 +13,8 @@ export interface MovePickerOptions {
   pokemonId: string;
   slotIndex: number;
   excludeMoveIds?: readonly string[];
+  /** Offer every implemented move instead of the pokemon's learnset (sandbox dummy). */
+  allMoves?: boolean;
   onSelect: (move: AvailableMove) => void;
 }
 
@@ -53,12 +56,12 @@ export function openMovePickerModal(options: MovePickerOptions): void {
   let query = "";
 
   const excluded = new Set(options.excludeMoveIds ?? []);
-  const learnsetIds = getLearnsetForPokemon(options.pokemonId);
-
-  const entries: MoveEntry[] = learnsetIds.map((id) => {
-    const info = getMoveInfo(id);
-    return { id, info, implemented: info !== null };
-  });
+  const entries: MoveEntry[] = options.allMoves
+    ? getAllMoveInfos().map((info) => ({ id: info.id, info, implemented: true }))
+    : getLearnsetForPokemon(options.pokemonId).map((id) => {
+        const info = getMoveInfo(id);
+        return { id, info, implemented: info !== null };
+      });
   entries.sort((a, b) => {
     if (a.implemented !== b.implemented) {
       return a.implemented ? -1 : 1;

@@ -1,0 +1,114 @@
+/*
+ * Team Builder ↔ overlay-contract adapter (Phase 5 Jalon 2c).
+ *
+ * Brings the existing DOM Team Builder (`tb-*`, mounted full-browser today via
+ * `.tb-root { position: fixed; inset: 0 }`) under the `#game-stage` overlay
+ * contract: the screen fills the (full-viewport, no-letterbox) stage box, and
+ * every metric scales with the stage via container-query units, not the browser.
+ *
+ * Prod-safe by construction: the cqw token/var overrides live inside
+ * `@container stage (...)`, which only matches when an ancestor declares
+ * `container-name: stage` (i.e. `#game-stage`, see `game-overlay.css`). The
+ * Phaser production app mounts `.tb-root` on `document.body` with no such
+ * container → these blocks never apply → it keeps its current `:root` px tokens.
+ *
+ * Pairs with `babylon/team-edit-harness.ts`. See plan 119 §4-B + décision #470.
+ *
+ * Known gap (noted, deferred to Jalon 4): picker/Showdown modals render in the
+ * `<dialog>` top-layer, which escapes the stage container, so they don't scale
+ * with cqw yet. The proof here is the TeamEdit *screen* layout.
+ */
+
+@layer components {
+  /*
+   * Inside the stage overlay the root fills the stage box, not the viewport.
+   * `inset: 0` carries from the base `.tb-root` rule (topbar.css); we only flip
+   * `position: fixed` → `absolute` so it anchors to the positioned overlay.
+   */
+  .ui-screen .tb-root {
+    position: absolute;
+  }
+
+  /*
+   * `.tb-root { display: flex }` (topbar.css, author origin) outranks the UA
+   * `[hidden] { display: none }`, so the `hidden` property alone wouldn't hide
+   * it. Restore it with an author rule of higher specificity so JS can toggle
+   * the overlay via `element.hidden` (harness `t` key, and the Jalon 4 FSM).
+   */
+  .ui-screen .tb-root[hidden] {
+    display: none;
+  }
+
+  /*
+   * `min-width: 1px` = "any stage container, any size" — a sentinel query that
+   * applies the cqw scaling whenever we're inside the stage (and nowhere else).
+   * Kept inside `@layer components` so the token overrides cascade with the base
+   * tb component rules rather than from an unlayered (higher-priority) origin.
+   */
+  @container stage (min-width: 1px) {
+    .tb-root {
+      /* One design px at the 1920-wide reference, in container-query units. */
+      --tb-px: calc(100cqw / 1920);
+
+      /* Spacing/typography/radius tokens re-expressed in stage px (same N as
+       * the :root px values in tokens.css → identical look at the 1920 ref). */
+      --spacing-xxs: calc(2 * var(--tb-px));
+      --spacing-xs: calc(4 * var(--tb-px));
+      --spacing-sm: calc(6 * var(--tb-px));
+      --spacing-md: calc(8 * var(--tb-px));
+      --spacing-lg: calc(12 * var(--tb-px));
+      --spacing-xl: calc(16 * var(--tb-px));
+
+      --font-size-xs: calc(16 * var(--tb-px));
+      --font-size-sm: calc(18 * var(--tb-px));
+      --font-size-md: calc(22 * var(--tb-px));
+      --font-size-lg: calc(28 * var(--tb-px));
+
+      --radius-sm: calc(4 * var(--tb-px));
+      --radius-md: calc(6 * var(--tb-px));
+
+      --pad-control-y: calc(8 * var(--tb-px));
+      --pad-control-x: calc(14 * var(--tb-px));
+      --pad-icon-btn: calc(6 * var(--tb-px));
+
+      --target-min: calc(24 * var(--tb-px));
+      --target-recommended: calc(44 * var(--tb-px));
+
+      /* Raw-px metrics from the tb component CSS, fed back in as stage px. The
+       * base rules read `var(--tb-*, <original-px>)`, so production (no stage
+       * container, vars unset) falls back to the original px untouched. */
+      --tb-portrait-lg: calc(80 * var(--tb-px));
+      --tb-portrait-sm: calc(56 * var(--tb-px));
+      --tb-slot-min-h: calc(110 * var(--tb-px));
+      --tb-clear-size: calc(28 * var(--tb-px));
+      --tb-clear-font: calc(24 * var(--tb-px));
+      --tb-stat-col: calc(50 * var(--tb-px));
+      --tb-statbar-h: calc(12 * var(--tb-px));
+      --tb-name-input-w: calc(320 * var(--tb-px));
+      --tb-setop-min-w: calc(240 * var(--tb-px));
+      --tb-mv-col-num: calc(24 * var(--tb-px));
+      --tb-mv-col-cat: calc(28 * var(--tb-px));
+      --tb-mv-col-pow: calc(50 * var(--tb-px));
+      --tb-mv-col-acc: calc(60 * var(--tb-px));
+    }
+  }
+
+  /*
+   * Mobile reflow (PokeRogue-style): under a narrow *stage* box, scale against
+   * a 768 reference (≈2.5× bigger px) and collapse the two-column edit grid +
+   * the six-across slot row so nothing shrinks to illegible. Like info-panel.css.
+   */
+  @container stage (width < 768px) {
+    .tb-root {
+      --tb-px: calc(100cqw / 768);
+    }
+
+    .tb-edit-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .tb-slots-row {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+}

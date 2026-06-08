@@ -4,6 +4,7 @@
     align-items: center;
     justify-content: center;
     gap: var(--spacing-xs);
+    font-size: inherit;
     min-height: var(--target-min);
     padding: var(--pad-control-y) var(--pad-control-x);
     background: var(--color-btn-bg);

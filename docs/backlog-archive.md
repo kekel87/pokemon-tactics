@@ -10,6 +10,18 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ## Bugs résolus
 
+### Renderer Babylon — animations idle trop rapides (playtest 2026-06-11)
+- Feedback playtest plan 120 : les animations idle des sprites Babylon jouaient à 140ms/frame fixe, trop vite par rapport aux durées PMD réelles.
+- Fix (plan 120) : chaque frame jouée pour sa durée PMD réelle (`atlas.meta.animations[nom].durations[i] × BABYLON_PMD_TICK_DURATION_MS`). Constantes `BABYLON_PMD_TICK_DURATION_MS = 33` + `BABYLON_PMD_DEFAULT_FRAME_TICKS = 4`. Parité avec `SpriteLoader.TICK_DURATION_MS` du renderer Phaser. Décision #488.
+
+### Renderer Babylon — silhouette X-ray visible entre Pokémon (playtest 2026-06-11)
+- Feedback playtest plan 120 : l'effet silhouette (contour X-ray derrière les obstacles) s'appliquait aussi entre Pokémon, rendant la lecture confuse.
+- Fix (plan 120) : refonte rendering groups. Group 1 = silhouettes (testent depth vs terrain group 0 uniquement). Group 2 = sprites avec `setRenderingAutoClearDepthStencil(2, false)` — les sprites ne réalimentent pas le test silhouette. Résultat : silhouette X-ray seulement derrière terrain/décor. Décision #489.
+
+### Renderer Babylon — curseur/flèches direction ne remontent pas à la tête au placement (playtest 2026-06-11)
+- Feedback playtest plan 120 : les flèches de direction au placement s'affichaient au sol et ne suivaient pas la hauteur de tête du Pokémon (pire sur les gros sprites type Léviator).
+- Fix (plan 120) : flèches voxel `arrow.gltf` positionnées à hauteur de tête via l'ancre partagée avec le curseur survol. Fallback `BABYLON_SPRITE_HEAD_LIFT_FALLBACK = 1` le temps du chargement atlas, reposition automatique au chargement (`BillboardEntry.ready`). Décisions #490-491.
+
 ### Test d'intégration `PlacementPhase` cassé + CI ne run pas les integration tests
 - Fix : coordonnées corrigées (3,18) et (4,19) dans les spawn zones. `pnpm test:integration` ajouté à la CI.
 

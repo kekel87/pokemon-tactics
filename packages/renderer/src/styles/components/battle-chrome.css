@@ -1,0 +1,186 @@
+@layer components {
+  /* Left column: turn timeline (top, shrinks + scrolls) over the info panel
+     (pinned bottom via margin-block-start:auto). Click-through wrapper; the
+     timeline re-enables pointer events. */
+  .bc-left-col {
+    position: absolute;
+    inset-block: var(--spacing-lg);
+    inset-inline-start: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    pointer-events: none;
+  }
+
+  /* Battle chrome (plan 121 step 4b) — screen-anchored menus over the Babylon
+     canvas. The root is click-through; only the menus + dialog catch pointer
+     events so tile picking still reaches the canvas. */
+  .bc-root {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-base);
+  }
+
+  /* Top-centre stack: turn banner + weather HUD beneath it. */
+  .bc-top {
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .bc-turn {
+    pointer-events: none;
+    padding: var(--spacing-xs) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    background: color-mix(in oklch, var(--color-bg-surface) 80%, transparent);
+    color: var(--color-text-primary);
+    font-weight: 600;
+  }
+
+  /* Bottom row: tooltip (left) + the menu column, anchored bottom-right (parity
+     with the Phaser ActionMenu pinned near the canvas' bottom-right corner). */
+  .bc-bottom {
+    pointer-events: none;
+    align-self: stretch;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+  }
+
+  .bc-menu-col {
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-xs);
+    min-inline-size: 14rem;
+  }
+
+  .bc-instruction {
+    pointer-events: none;
+    align-self: center;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    background: color-mix(in oklch, var(--color-bg-surface) 80%, transparent);
+    color: var(--color-accent);
+    font-weight: 600;
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  /* The menu itself is a vertical FFTA-style panel. */
+  .bc-menu {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    background: color-mix(in oklch, var(--color-bg-surface) 90%, transparent);
+    &:empty {
+      display: none;
+    }
+  }
+
+  /* Root menu rows reuse .tb-btn but stretch full width, left-aligned. */
+  .bc-menu .bc-btn {
+    inline-size: 100%;
+    justify-content: flex-start;
+    text-align: start;
+  }
+
+  .bc-move-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .bc-move-item,
+  .bc-selected-move {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-primary);
+    font: inherit;
+  }
+
+  .bc-move-item {
+    pointer-events: auto;
+    border: 0;
+    cursor: pointer;
+    &:hover[data-enabled="true"],
+    &:focus-visible {
+      background: var(--color-bg-elevated-hover);
+    }
+    &[data-enabled="false"] {
+      opacity: 0.45;
+      cursor: default;
+    }
+  }
+
+  .bc-move-type {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    flex: 0 0 auto;
+    image-rendering: pixelated;
+  }
+
+  .bc-move-name {
+    flex: 1 1 auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .bc-move-pp {
+    flex: 0 0 auto;
+    color: var(--color-text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bc-selected-move {
+    background: color-mix(in oklch, var(--color-accent) 18%, transparent);
+  }
+
+  .bc-victory {
+    /* Root is click-through (tile picking); the modal must re-enable pointer events. */
+    pointer-events: auto;
+    margin: auto;
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    text-align: center;
+    &::backdrop {
+      background: rgb(0 0 0 / 0.5);
+    }
+  }
+
+  .bc-victory-message {
+    margin-block: var(--spacing-md);
+  }
+
+  .bc-victory-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    justify-content: center;
+  }
+}

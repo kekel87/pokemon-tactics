@@ -1,30 +1,212 @@
 # État du projet — Pokemon Tactics
 
-> MAJ : 2026-06-12 (Phase 4 — Plans 109–118 DONE — 393 moves — B4 clos 10/10 — Vague 2 B4 terminée)
+> MAJ : 2026-06-13 (Phase 5 — **Recette parité lot 3 TERMINÉE** (plan 124) : B1 Clonage ✅, M2 Hurt ✅, M4 outline soutien ✅, M5 preview CT + refonte timeline ✅, M7/M8/M9 events terrain/KO ✅, M10 bob curseur ✅, tier cosmétique K1-K8 ✅, vérifs V1-V10 ✅. Écartés : M1 Sommeil 1-dir, M3 orientation, M6 icône statut timeline, K6/K7/K9. Décisions notables : flux KO/Faint dans `directional-billboard` (Faint joué une fois sur l'edge KO, advance gardé jusqu'au freeze) ; timeline + info panel en colonne flex partagée ; K7/K9 gardés (blend Champs normal, flash émissif) ; `turnSystemKind` ajouté à `SandboxConfig`. Décisions #501-504. **3 correctifs post-recette (combat normal FSM)** : R1 pan caméra libre après déplacement (`cameraTargetGoal` écrasé par drag manuel) ; R2 météo sous le banner de tour (wrapper `.bc-top` flex-column) ; R3 bouton "Retour au menu" placeholder **supprimé** (collision burger BattleLog — sortie mid-combat via victoire/défaite uniquement). **Note archi** : sandbox studio rend le HUD de combat in-canvas, combat normal FSM utilise le chrome DOM — divergence à investiguer (→ backlog). **Suite : J5** — suppression renderer Phaser, merge `--ff-only` sur main.)
+> MAJ : 2026-06-12 (Phase 5 — **Jalon 4b EN COURS** (plan 121) — 4b-1 ✅ InfoPanel+WeatherHud ; 4b-2 ✅ ActionMenu+sous-menu+MoveTooltip ; 4b-3 ✅ TurnTimeline DOM (RR+CT) ; 4b-4 ✅ BattleLog DOM ; 4b-5 ✅ previews ciblage (directionnel/statique/blast, alphaIndex). **Jalons 4b + 4c TERMINÉS**. 4c (plan 122) : 4c-1 ✅ textes flottants DOM, 4c-2 ✅ tweens glide déplacement, 4c-3 ✅ anims attaque (catégorie+facing). Reportés 4c : preview dégâts numérique, flash confirm, tweens impact (knockback/ice/teleport), nuance movement-animation (→ J5 parité). **Jalon 4d EN COURS** : Team Builder + Team Select déjà réels (4a étapes 4-5) ; **4d-1 ✅ barres PV monde + icônes statut par sprite** (`babylon-sprite-overlays.ts`, projetées par frame comme les pills Champs, drain live sur DamageDealt, masquées au KO) ; **4d-2 ✅ tweens d'impact** (knockback = Hurt + glide, glissade glace = glide, knockback bloqué = shake ; teleport/Hit&Run = snap, déjà parité Phaser). **4d-3 ✅ flow confirmer-attaque + flash de prévisualisation** (parité : Phaser `confirmAttack:true` par défaut ; `BATTLE_CONFIRM_ATTACK` on ; pulse émissif sur cibles verrouillées, éteint à toutes les sorties confirm). **4d-4 ✅ preview dégâts numérique** (bandes min-max sur barre PV + nombre en phase confirm via `engine.estimateDamage`, setting `damagePreview`). **4d-5 ✅ nuance movement-animation** (Hop/glide/rampe par pas, port de `animateAlongPath` ; slopeData exposé ; dash ne force plus le Hop ; volant plane) ; **4d-6 ✅ wobble confusion** (best-practices : pivot billboard + roll `rotation.z` sur le plan enfant ; state-based depuis volatileStatuses ; stoppe au KO). **4d-7 ✅ Sandbox Studio** (`mountSandboxStudio` : chrome éditeur `SandboxPanel` DOM + cycle combat, tear-down/re-mount par changement de config façon `resetSandbox` ; `initSandboxStudioDom(host?)` généralisé Phaser `#game-container` / Babylon `#game-root` ; CSS `body[data-sandbox] #game-root` fixed→flex ; ancien `mountSandboxCombat` supprimé). **Jalon 4d TERMINÉ — parité Babylon ↔ Phaser atteinte (combat + Sandbox Studio) → ISO-PHASER.** Plan 123. Suite : **phase test/retours humains**, puis **J5** (suppression Phaser, `grep -ri phaser packages/` = 0, bundle, merge `--ff-only`). Jalon 4a TERMINÉ (plan 120). Run autonome jusqu'à iso-Phaser : 4b→4c→4d) — **Phase retours en cours** : port HUD monde DOM→moteur ✅ (commit 9d1f731, décision #487 appliquée) : `babylon-sprite-overlays.ts` + `sprite-overlay.css` + `floating-text.css` supprimés → `babylon-sprite-hud.ts` (barre PV DynamicTexture roundRect NEAREST, icône statut, preview dégâts), `babylon-text-plane.ts`, `babylon-champ-pill.ts` (pastille Champ billboardée). Textes flottants et pastilles Champ portés en moteur. `BATTLE_TEXT_DURATION_MS` 3500→1000, `BATTLE_TEXT_QUEUE_DELAY_FACTOR` 0.5 (nouveau), `BABYLON_FLOATING_TEXT_LIFT` 1.5→1.0. Centrage caméra sur milieu map. Police `body` globale. **Phase recette (suite)** : saut de falaise/chute ✅ — easing vertical asymétrique par axe (`jumpVerticalProgress` + `BABYLON_JUMP_VERTICAL_LEAD = 0.45`) : le sprite monte/chute dans la moitié sûre du pas pour franchir le bord sans clip (la silhouette X-ray révélait la pénétration que Phaser 2D cachait) ; `impactGlide` (knockback off-cliff) utilise le même arc ; `BABYLON_MOVE_JUMP_ARC` supprimée. Hauteur curseur sur décorations ✅ — `decorationHeightAt` expose la hauteur art rendu (worldHeight − FOOT_DROP) ; `surfaceHeightAt` (terrain + déco) utilisé par tileWorldTop, highlights et mouvement → curseur posé sur le dessus de la déco, volants montent dessus. Self/AoE confirmables partout ✅ — `resolveTargetAction` (battle-orchestrator) : patterns statiques (Self/Cross/Zone) centrés sur le lanceur confirment sur tout clic (parité Phaser `resolveAttackAction`). Auras (Murs) in-engine ✅ — icônes à gauche de la barre de vie (`babylon-sprite-hud.ts setLeftIndicators`, triées par tours restants) + icônes au sol au survol du lanceur (`babylon-aura-ground-icons.ts` NOUVEAU — pivot billboardé par tuile, layout croix, groupe sprite pour occlusion par les Pokemon, masquées sur tuiles occupées) ; câblage orchestrator `refreshAuraVisuals`/`showAuraHoverFor` ; constantes `BABYLON_HUD_AURA_*` et `BABYLON_AURA_HOVER_*`. Champs dédup + pastille centrée ✅ — `refreshFieldTerrainVisuals` peint zones depuis l'état moteur ; dédup overlap (chaque tuile peinte par le champ le plus récent, bordures recalculées, zones non superposées) ; pastille `babylon-champ-pill.ts` centrée via métriques texte ; groupe sprite pour occlusion ; lift 0.6 → 0.25. **Phase recette (lot 2, 2026-06-12)** — 15 corrections de parité (15 fichiers, +274/-114) : move-destination fill seul (plus d'outline rouge) ; occlusion herbes hautes (groupe terrain → sprite, `BABYLON_GRASS_ALPHA_INDEX` supprimée, **#496**) ; enemy-range au survol (`BoardHighlight "enemy"`) ; couleurs preview au sol par type (plus de flood rouge ; outline cibles seules ; footprint buff bleu/attack rouge ; confirm garde la couleur) ; directionnels Cône/Ligne/Slash = clic n'importe où ; Dash exclu de `isDirectionalPattern` (traînée + confirm tile cliquée, **#498**) ; bordure portée épaissie (`CreateGreasedLine`, `BABYLON_TILE_RANGE_OUTLINE_WIDTH`) ; crash FSM "Retour au menu" sandbox corrigé (`manager.start` + `teardownSandboxStudioDom`, **#500**) ; dummy sandbox accède à tous les moves (`allMoves`) ; raccourcis debug retirés (z/x/c/…/i) ; attaques 2-temps portées (⚡ barre HP, texte "charge" `MoveCharging`, preview lanceur, `isChargeT1` confirm anywhere) ; anim dégâts dash/mur/champ (`WallImpactDealt`/`TerrainDamageDealt` flash+HP) ; occlusion pendant attaque (`setAttacking` biais `BABYLON_ATTACK_DEPTH_BIAS = 0.012` ; coplanaire OK, plus haut occlude, **#499**) ; perspective tuiles (caméra 35.26° conservée, hauteur aplatie `BABYLON_TILE_HEIGHT_SCALE = 0.866`, diamant inchangé, **#497**) ; slot Team Builder vide = hauteur slot rempli (CSS). Décisions #496-500.
 > Dernière release : **v2026.6.2** (2026-06-12) — Système Champs (Herbeux/Électrifié/Brumeux/Psychique), 4 moves poseurs + 6 dépendants du Champ, 11 moves soin (rôle support), 17 moves dégâts conditionnels, objet Champ'Duit, plans 115→118
 > v2026.6.1 (2026-06-05) — ~181 nouveaux moves, Clonage/Provoc/Encore/Entrave, plans 097→114
+> Worktree `phase5-babylon` rebasé sur main (2026-06-09) : main a Champs/B4 (plans 117-118, 393 moves). Plan-maître Phase 5 renommé plan 119. Décisions Phase 5 renumérotées #449-481 (3d ajoutées).
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
 ---
 
-## Décision majeure — Pivot 2D-HD (Babylon.js, Phase 3.5) — **repoussé après Phase 7**
+## Phase 5 — Migration renderer Babylon.js 2D-HD — **EN COURS** (worktree `phase5-babylon`)
 
-Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur géométrie 3D extrudée, style Tactics Ogre PSP / Triangle Strategy). Spikes 062 (Three.js) et 063 (Babylon.js) finis — **Babylon.js retenu** (décision #269).
+**MAJ 2026-06-11** : Phase 5 repriorisée avant Phase 7 (décision humaine). Worktree dédié `phase5-babylon` (`.worktrees/phase5-babylon/`, port Vite 5220). Plan-maître : **plan 119**. **Jalon 3 terminé** (1 + 2a-c + 3a→3f, 3d partiel). 3f : 8 maps OK (dont le-mur multi-niveaux), picking + occlusion + Champs sur relief validés, **gate 60fps PASS** (60 fps verrouillé, pire cas rotation+silhouettes 0 frame >20 ms). **Gate parité Phaser reporté** : comparaison quand combat complet fonctionnel (J4+, décision humaine). **Jalon 3.5 pixel-art ABANDONNÉ (2026-06-10)** : 4 approches testées et rejetées le même jour (pipeline plein-écran, liseré tileset, liserés géométriques, spike crénelage contrôlé) — verdict humain « ça rend déjà super bien comme c'était », rendu full-res conservé, zéro code conservé. Détails : décision #486 + `docs/babylon/babylon-pixel-art-pipeline.md`. **Jalon 4a EN COURS (plan 120)** : FSM écrans DOM + menus — **étapes 1-6 livrées**. Étapes 1-3 : ScreenManager 9 états + 9 tests Vitest, écrans DOM réels main-menu/battle-mode/settings/credits, placeholders team-select/my-teams/team-edit, combat-screen wrappant démo J3, map-select avec 8 cartes + preview Babylon live, navigation complète testée. Étape 4 : écran DOM `team-select` minimal (FormatPicker/PlayersColumn/TeamList, toggle Humain/IA, CT/RR, Lancer → combat) ; logique slots extraite dans `slot-state.ts` (partagée Phaser ↔ DOM, TeamSelectScene −100 lignes) ; fix scrollbars fines globales + flex-wrap portraits. Étape 5 : `MyTeamsView`+`TeamEditView` extraites en `ui/team/` (vues DOM partagées Phaser ↔ FSM, scènes Phaser −560 lignes). **Étape 6 (2026-06-11)** : phase de placement jouable — `babylon/placement-flow.ts` pilote le core `PlacementPhase` (mode Alternating) ; tours alternés humain/IA (IA auto-place) ; **picker direction en moteur** (`babylon-direction-picker.ts` — 4 quads sol texturés `arrows.png`, meshes de scène, suit caméra/zoom/resize gratuitement, décision #487) ; undo Échap ; option Placement auto (`autoPlaceAll`) ; bandeau bas `placement-roster.ts` (portraits, compteur placés/max, Terminer, couleur équipe) ; highlights zones de spawn (`setSpawnZones` `babylon-tile-highlights.ts`) ; constantes `TILE_SPAWN_ZONE_INACTIVE_ALPHA`/`OCCUPIED_ALPHA` + `BABYLON_DIRECTION_ARROW_*` (×4) ; i18n `placement.counter` FR/EN ; fix bug Dardargnan (alias `<CopyOf>` → PNG manquant → atlas sans Idle → bruit) via résolution PNG source dans `extract-sprites.ts`. Composant DOM `direction-picker.ts` + CSS `.pl-direction-*` + i18n `placement.direction.*` supprimés. Validé humain (2 montages combat d'affilée sans fuite). **Étape 7 suivante** : boucle combat (`battle-orchestrator`, sous-étapes 7a–7d). Tints terrain, texte chute et barrière Champ Psychique reportés (polish / J4). Idée humaine en exploration : décorations en assets voxel (plus tard).
 
-**MAJ 2026-04-20 (décision #272)** : plan 065 résolu occlusion iso 2D (fade per-sprite via `OcclusionFader`), Phase 3.5 rewrite Babylon repoussée **après Phase 7 Multijoueur**. Priorité Phase 4 gameplay → Phase 5 équilibrage → Phase 6 social → Phase 7 multi. Si visuel insuffisant à l'usage, Phase 3.5 redevient prioritaire.
+**Décisions verrouillées :**
+- Babylon.js 8.x retenu (décision #269, confirmé). Worktree unique long-lived — **pas de merge partiel sur main**, merge `--ff-only` seulement à parité atteinte (décisions #449-450).
+- Tiled conservé (`loadTiledMap` → `MapDefinition` inchangé). UI = **HTML/CSS overlay** (pas `@babylonjs/gui`) — compat navigateur clavier/souris/tactile + mobile (décisions #451-452).
+- Code dans `packages/renderer/src/babylon/`. Résolution design de référence **1920×1080**. Map de référence parité = **volcano** (décisions #453-454).
+- **Échelle sprite = 24px/u (= densité tile, pixel parity ≈1:1)** : le "0.5×" intermédiaire était un artefact d'un `baseScale=2` fantôme (corrigé). Doc : `docs/babylon/babylon-2d-overlay-scaling.md` (décision #455).
+- **Hauteurs tiles** : full = 1 (cube unité), half = 0.5, ratio **2:1** (décision #456).
+- **Orientation grille→monde transposée** : gridX→worldZ, gridY→worldX (décision #457).
+- **Terrain visuel ≠ terrain gameplay** : `parseTiledMap` estampille `obstacle`+hauteur sous décorations ; renderer texture le visuel brut (GID/rangée → `VisualTerrainGroup`) via `loadTiledMap().visualTiles`. 15 textures plates PMD dans `public/assets/tilesets/terrain-3d/` (décision #458).
+- **Ombres** = par `shadowSize` PMD (offsets.json : 0.14/0.2/0.3) (décision #459).
+- **Sprites en `renderingGroupId 0`** depuis Jalon 3a (partagé avec le terrain, occlusion native depth-buffer via `SpriteDepthPlugin`) — décision #473 révise #460.
+- **Jalon 3.5 pipeline pixel-art ABANDONNÉ** (décision #486 révise #461) — 4 essais rejetés 2026-06-10, rendu full-res conservé. Historique : `docs/babylon/babylon-pixel-art-pipeline.md`.
 
-**Intact** : core, data, IA, LoS 3D, CT, statuts, Tiled comme format carte. Seul rendu (`packages/renderer/`) réécrit le moment venu.
-
-**Plan 061 silhouette** : archivé sur branche `plan-061-occlusion-before-3d-pivot` (commit `1107c8a`). Obsolète — occlusion gérée par `OcclusionFader` iso 2D.
+**Intact** : core, data, IA, LoS 3D, CT, statuts, format Tiled, i18n, tokens CSS.
 
 ---
 
-## Phase actuelle : Phase 4 — Gameplay Pokemon complet
+## Jalon 1 (plan 119) — DONE 2026-06-08 (+ fix ancrage post-Jalon 1)
+
+- Spike Babylon 063 porté en production dans `packages/renderer/src/babylon/`.
+- Terrain volcano rendu (extrusion 3D depuis `MapDefinition`). 15 textures tiles PMD copiées dans `public/assets/tilesets/terrain-3d/`.
+- 1 sprite PMDCollab billboard directionnel animé opérationnel.
+- Caméra orthographique dimetric + curseur tile.
+- Paramètres figés : orientation grille→monde transposée, hauteurs 2:1 (full=1/half=0.5), échelle sprite 24px/u (1:1), terrain visuel via `VisualTerrainGroup`, ombres par `shadowSize` PMD.
+- Sprites `renderingGroupId 1` (au-dessus terrain).
+- Docs de référence créées : `babylon-2d-overlay-scaling.md`, `babylon-asset-lifecycle.md`, `babylon-pixel-art-pipeline.md`.
+- Plan parité complet : `docs/plans/119-parity-checklist.md` (307 items).
+
+**Fix ancrage sprite (livré après Jalon 1) :**
+- Cause racine : `footAnchor = 0.34` était une constante inventée non branchée sur les données PMD. Première tentative de correction (lift 1 unité) aggravait le flottement.
+- Resolution : `directional-billboard.ts` lit `footOffsetY` depuis `offsets.json` (`BABYLON_SPRITE_GROUND_OFFSET_PX = 5` fallback). `footOffsetY = 4` px constant sur tous les sprites (pixel BLANC PMD = `centerY + 4`). Ancre HUD = `headOffsetY` + `BABYLON_HUD_ANCHOR_MARGIN_PX = 20`. Décisions #462-463.
+
+## Jalon 2a — Fondation overlay — DONE 2026-06-08
+
+- `game-stage.ts` : `mountGameStage(root)`, letterbox CSS `aspect-ratio`/`min()`, `ResizeObserver` → `--ui-scale` (référence 1920×1080). Décision #465.
+- `world-projection.ts` : `projectAnchors()`, viewport CSS (pas backing-store), batch read→write, `Math.round` pixel-snap, visibilité z∈[0,1]. Décision #464.
+- `game-overlay.css` : layers CSS, `pointer-events`, `contain:layout`, `will-change:transform`. Tokens `--blue-1000` + `--color-letterbox`.
+- Demo HP bars (1 par sprite, ancrée tête) : valide projection + 60fps N éléments DOM. Check bloquant §4 Jalon 2 validé. 0 erreur console.
+- Grille debug touche `g` (`createTileGrid`, wireframe arêtes tiles). Décision #466.
+
+## Jalon 2b — Démonstrateur chrome InfoPanel DOM — DONE 2026-06-08
+
+- `packages/renderer/src/ui/dom/info-panel.ts` : composant DOM InfoPanel, view-model `InfoPanelData` découplé du core. Sémantique HTML (progressbar aria, ul/li badges, textContent). Décision #469.
+- `packages/renderer/src/styles/info-panel.css` : scaling cat. B via container-query units (`--ip-px = calc(100cqw / 1920)`), résolu contre `#game-stage` (`container-type: size`). Reflow mobile `@container stage (width < 768px)`. Badges flex-wrap, panneau ancré bas. Décision #467.
+- `tokens.css` enrichi : tokens équipe `--team-1`..`--team-12`, `--color-badge-{buff,debuff,volatile}-bg`, `--color-border-faint`. `@font-face` PokemonEmeraldPro déplacé ici (babylon.html ne tombait plus en monospace).
+- **Rename** : `.ui-chrome` → `.ui-screen` / `chromeLayer` → `screenLayer` — paire claire `.ui-world` / `.ui-screen`. Décision #468.
+- Wire démo dans `babylon-preview.ts` (InfoPanel Pikachu team 1). Validé : desktop + mobile reflow + 10 badges wrap. 0 erreur console.
+
+**Jalon 2c DONE (2026-06-08) — Team Builder sous contrat + pivot full-canvas :**
+- **Pivot majeur : abandon du letterbox 16:9** (retour humain — pas tous les écrans sont 16:9, surtout mobile portrait). `#game-stage` remplit 100% du viewport, la caméra ortho dimetric comble selon le ratio (zéro bande noire). L'UI DOM utilise tout l'écran, tout ratio. Option `aspectRatio` retirée de `game-stage.ts`. Révise les décisions #464-468 (le contrat cqw reste valide, mais résolu contre le viewport plein). Décision #472.
+- **Team Builder rapatrié** (placeholder, rien câblé) : `team-edit-harness.ts` réutilise les sous-composants prod (`SlotCardsRow`/`EditLeftPanel`/`EditRightPanel`) + `generateRandomTeam`. `team-builder-overlay.css` = adapter prod-safe (override tokens cqw scopé `@container stage`, raw px wrappés `var(--tb-*, <px>)`, reflow mobile <768px). Toggle `t` dans le harness. Décisions #470-471.
+- Best-practices (agent) : approche cqw validée marché 2026. 4 pistes différées (plancher font-size 480-767px, `--stage-scale` pour modales top-layer, cap ultrawide, `--ui-scale` barres PV 4K) → voir `docs/next.md`.
+- Validé visuellement : wide + portrait + reflow mobile + non-régression prod (fallback px hors stage). Gate formel 60fps : à formaliser au Jalon 3.
+
+**Jalon 3b DONE (2026-06-09) — Picking ray-cast multi-niveaux + surbrillances de portée :**
+- **`babylon-picking.ts`** (NOUVEAU) : `pickTile(scene, x, y)` ray-cast → coordonnée grille via `metadata.tile`. En 3D ortho la surface frontale visible est retournée automatiquement ("colonne la plus haute gagne" gratuit). Pas de désambiguïsation Alt — rotation caméra remplace (décision #477).
+- **`babylon-tile-highlights.ts`** (NOUVEAU) : surbrillances de tiles (move bleu / attack rouge / retreat cyan / enemy orange) + contour de portée (arêtes externes) + curseur de survol. Fills flush sur face top via `material.zOffset` (`BABYLON_TILE_HIGHLIGHT_Z_OFFSET = -2`), pas de lift world-Y (décision #478). Contour = lignes avec micro-lift Y (`BABYLON_TILE_OUTLINE_Y_OFFSET = 0.02`). Bornage à la grille.
+- **`terrain-extruder.ts`** : `isPickable = true` + `metadata = { tile: {x,y} }` sur les tuiles.
+- **`combat-scene.ts`** : hover + clic (distinct du pan via seuil `BABYLON_PICK_DRAG_THRESHOLD_PX = 5`), API `setTileHighlights / setTileOutline / clearHighlights / onTileHover / onTileClick`.
+- Démo `babylon-boot.ts` : clic → portée Manhattan r3 + contour + anneau attaque (wiring jetable, réel en J4).
+- Nouvelles constantes `babylon-constants.ts` : `BABYLON_TILE_HIGHLIGHT_Z_OFFSET`, `BABYLON_TILE_OUTLINE_Y_OFFSET`, `BABYLON_TILE_HIGHLIGHT_ALPHA`, `BABYLON_TILE_CURSOR_ALPHA`, `BABYLON_PICK_DRAG_THRESHOLD_PX`.
+
+**Jalon 3a DONE (2026-06-09) — Caméra combat + occlusion native + silhouette X-ray + extrusion multi-niveaux :**
+- **`combat-scene.ts`** (NOUVEAU) : scène combat prod. Caméra dimetric orthographique rotative ←/→ par snaps 90°, zoom molette, pan clic-glisser. Harness dev `babylon-preview` reste accessible via `?preview=1`.
+- **Occlusion native depth-buffer** (`SpriteDepthPlugin`, `MaterialPluginBase`) : terrain + sprites en `renderingGroupId 0`. Le plugin écrit `gl_FragDepth` = profondeur des pieds du sprite (CPU en ortho), biais `BABYLON_SPRITE_DEPTH_BIAS = 0.0025`. Résout l'auto-occultation (le billboard n'enterre plus son bas dans son propre cube de tile). Technique bgolus HD-2D. Décision #473.
+- **Silhouette X-ray** : 2e plane couleur d'équipe, `depthFunction=GREATER`, `renderingGroupId 1`, depth buffer préservé (`setRenderingAutoClearDepthStencil(1, false)`). Unités lisibles derrière relief. `BABYLON_SILHOUETTE_ALPHA = 1`. Décision #474.
+- **Extrusion terrain multi-niveaux** : `load-tiled-map.ts` empile désormais les `elevationLayers` (`terrain_2`/`terrain_4`/…). Les reliefs multi-couches (ex: desert) s'extrudent correctement.
+- **Constantes centralisées** dans `babylon-constants.ts` : `BABYLON_VIEW_SIZE`, `BABYLON_CAMERA_*`, `BABYLON_DIMETRIC_ELEVATION`, `BABYLON_AZIMUTH_STEP`, `BABYLON_ROTATION_LERP`, `BABYLON_SPRITE_PIXELS_PER_UNIT`, `BABYLON_SPRITE_DEPTH_BIAS`, `BABYLON_SILHOUETTE_ALPHA`.
+
+**Jalon 3c DONE (2026-06-09) — Curseur FFTA billboard 2D (curseur seul ; previews de ciblage → J4b) :**
+- **`babylon-hover-cursor.ts`** (NOUVEAU) : curseur FFTA de sélection = billboard 2D `BILLBOARDMODE_ALL` (facing caméra) flottant au-dessus de chaque tuile survolée. Levé à la hauteur de la tête si un Pokémon occupe la tuile (`spriteTopOffsetY`). 4 variantes cyclables touche H, persistées localStorage. Rendering group dédié 2 (au-dessus terrain 0 / silhouettes 1) — toujours lisible. Décision #479.
+- **`combat-scene.ts`** : wiring hover (curseur suit la tuile, lift tête si occupant), touche H cycle, lookup tuile→billboard.
+- **`babylon-constants.ts`** : `BABYLON_HOVER_CURSOR_GAP = 0.35`, `BABYLON_HOVER_CURSOR_RENDERING_GROUP = 2`.
+- **Previews de ciblage repoussées en Jalon 4b** : cône/ligne/slash/dash/blast/self-radius/spawn-zones/flash sprites/auras dépendent du move sélectionné (FSM → J4a).
+
+**Jalon 3d PARTIEL (2026-06-09) — Animations directionnelles + états sprite intrinsèques :**
+- **`directional-billboard.ts`** : système animation complet — `LOOPING_ANIMATIONS` (Idle/Walk/Sleep/FlapAround/Hover/Special0/Special10/FlyingIdle) ; `setAnimation` (looping, pas de reset même clé) ; `playOnce` (one-shot → resting ou freeze Faint/KO) ; `setRestingAnimation` ; `playFirstAvailable` (chaîne glide) ; `advanceFrame` (wrap vs clamp).
+- **Synthèse FlyingIdle** : `synthesizeFlyingIdle` extrait frames 0-1 de FlapAround — portage fidèle SpriteLoader 2D. Décision #480.
+- **Chaîne glide volants** : `FLYING_GLIDE_CANDIDATES = [FlyingIdle, Hover, Special0, Special10]`, fallback **Walk** (décision #480 — annule feedback playtest 2026-04 "Hop").
+- **États sprite** : `setActive` (pulse respiration `BABYLON_PULSE_PERIOD_MS = 900`) ; `flashDamage` (emissive `BABYLON_DAMAGE_FLASH_DIM_EMISSIVE = 0.25`) ; `setKnockedOut` (teinte sombre + freeze) ; `setSemiInvulnerable` (vol = lift `BABYLON_SEMI_INVULNERABLE_LIFT = 1.5` tiles + glide / creuse = caché ombre gardée). `SemiInvulnerableDisplay` renderer distinct du core enum (décision #481).
+- **Ré-extraction sprites** : `Hover` (golbat/aerodactyl/fearow/moltres/mewtwo/beedrill), `Special0` (dragonite/golem), `FlapAround` déjà présent → ~208 fichiers régénérés. Décision #481.
+- **Touches debug** `combat-scene.ts` (z/x/c/b/n/,/u/k/p/o/i) sur Pokémon survolé — à retirer au câblage moteur J4.
+- **Différé (pass 3D-depth)** : wobble confusion (conflit billboard Y-lock), enveloppe profondeur d'attaque, overlay Substitut.
+
+**Jalon 3f DONE (2026-06-10) — tests renderer + gate 60fps (clôt le Jalon 3) :**
+- Sweep chrome-devtools sur la scène démo (12 sprites + 2 Champs + pastilles) : **8 maps OK** (desert, volcano, cramped-cave, forest, swamp, toundra, naval-arena, le-mur), zéro erreur console. `le-mur` (multi-niveaux, écartée du roster en attendant Babylon) rend correctement.
+- Picking multi-niveaux validé sur le-mur (plateau haut + pied de mur). Occlusion validée (rotation 90° → silhouettes équipe derrière falaise). Champs sur relief validés (falaise, eau, lave) — pastilles DOM suivent la rotation.
+- **Gate 60fps PASS** : desert 59.9 fps (p95 18.0 ms), le-mur 60.3 fps, pire cas rotation caméra + silhouettes p95 17.9 ms / 0 frame >20 ms.
+- **Gate parité Phaser reporté** (décision humaine) : comparaison côte-à-côte quand le combat complet sera fonctionnel (J4+) — le visuel est déjà jugé au fil de l'eau, et J3.5 changera le look.
+- Idée humaine en exploration : remplacer les décorations par des assets **voxel** — recherche côté humain, à revoir plus tard.
+
+**Jalon 3.5 ABANDONNÉ (2026-06-10) — pixel-art / crénelage des bords (décision #486) :**
+- Besoin réel clarifié en séance : « contrôler le crénelage des tiles » (gros pixels sur les bords des blocs, textures/sprites intacts).
+- 4 approches implémentées, testées visuellement et rejetées le même jour : pipeline plein-écran RTT+NEAREST+zoom paliers (resample tout), liseré baké tileset + curseur/outline quads texel (grille partout ≠ contours), liserés géométriques sur cassures de relief (trait ajouté ≠ crénelage), spike `edge-pixelate` profondeur basse réso + mosaïque N×N (le plus proche, mais arêtes internes non couvertes sans normales).
+- Verdict humain final : « c'est un détail, ça rend déjà super bien comme c'était ». Rendu full-res conservé, tout le code des essais retiré (zéro code mort).
+- 2 recherches best-practices menées (pipeline HD-2D, contours pixel 3D) — sources + enseignements + piste de reprise dans `docs/babylon/babylon-pixel-art-pipeline.md`. **Ne pas rouvrir sans décision humaine explicite.**
+- Feedback process acté en mémoire : présenter le résultat visuel attendu AVANT d'implémenter un changement de rendu.
+
+**Jalon 4a TERMINÉ** (plan 120 — étapes 1-10 ✅). Gate minimal validé humain (A combat+Rejouer,
+E sandbox en direct ; B/C/D+disposal rapides). Repasse gate complète à l'iso-Phaser (4b/4c).
+Route `?map=` preview retirée (non nécessaire). Suite : **Jalon 4b** (chrome combat complet).
+
+- Étape 10 (2026-06-12) — gate. Fix au passage : `babylon/load-tiled-map.ts` skippe
+  `requireAllFormats` sur maps dev (mirror loader Phaser) → sandbox-flat se charge ;
+  gap ajouté entre boutons Rejouer/Retour menu de l'overlay victoire.
+
+- Étape 9 (2026-06-12) — routes boot (`babylon-boot.ts`) : **sandbox** (`VITE_SANDBOX`,
+  `pnpm dev:sandbox '{...}'` sur `/babylon.html`) → `mountSandboxCombat` : combat
+  player-vs-dummy direct sans placement, engine `createSandboxBattle(config, map)` (map =
+  tmj chargé = source du rendu → positions alignées), billboards spawnés depuis l'état,
+  `DummyAiController` si `dummyControl: "ai"`. Cœur board/chrome/orchestrateur factorisé
+  (`runBattle`) entre chemin placement et sandbox. `onExit` injecté (FSM dispose vs teardown
+  sandbox + nav menu). (Route `?map=` preview retirée à l'étape 10 — non nécessaire.)
+
+- Étape 8 (2026-06-12) — fin de combat : overlay victoire DOM gagne le bouton
+  **« Rejouer »** (re-mount interne de l'état combat, même config — `mountContent`/
+  `teardown` dans `combat-screen.ts`, PAS une transition FSM) à côté de
+  « Retour menu ». `AbortController` recréé à chaque (re)montage → disposal propre
+  des listeners clavier entre deux combats. Vérif fuites (2 combats) = au gate 10.
+
+- Étapes 7c/7d (2026-06-12) — couvertes par l'impl générique 7b. **7c** : IA EASY
+  déjà câblée (`onTurnReady` → `AiTeamController` + `EASY_PROFILE`) ; `DummyAiController`
+  (immobile) reste un construct sandbox → branché au chemin Babylon à l'étape 9.
+  **7d** : moteur pilote `turnOrder`/`currentTurnIndex` pour RR **et** CT, l'orchestrateur
+  lit `state` sans logique spécifique → les deux systèmes marchent ; startup events
+  drainés (`consumeStartupEvents`). TurnTimeline CT différée à 4b (note du plan).
+
+- Étape 7b (2026-06-11) — `BattleOrchestrator` (port découplé du `GameController`
+  Phaser, zéro import moteur) : FSM 9 phases combat, `AnimationQueue` réutilisée,
+  3 ports réels (`BoardView` Babylon, `BattleChrome` DOM minimal, `BattleFeedback`
+  no-op + console.debug). Picker direction voxel, IA EASY, Hit&Run, Échap contextuel,
+  overrides team-builder, dialogue victoire. 7 tests FSM. Boucle jouable bout-en-bout
+  en minimal (snap, faint sur place, re-sync board depuis l'état moteur).
+
+- Étape 7a (2026-06-11) — audit `GameController.ts` (2798 lignes) : 9 phases combat
+  cartographiées (transitions, Échap contextuel, Hit&Run, `onTurnReady`, startup).
+  3 ports figés dans le plan : `BoardView` (moteur, ancré-monde), `BattleChrome`
+  (DOM, ancré-écran), `BattleFeedback` (textes flottants moteur 4c + log DOM) +
+  API `BattleOrchestrator` (séquenceur pur). Écarts #487 tranchés : picker direction
+  = voxel in-engine (DOM `direction-picker.ts` abandonné), textes flottants → moteur.
+
+- Étape 5 (2026-06-10) — `my-teams` / `team-edit` réels : `MyTeamsView` + `TeamEditView`
+  (`ui/team/`) extraites des scènes Phaser (vues DOM partagées Phaser ↔ FSM jusqu'à J5).
+  Scènes Phaser réduites à wrappers ~25 lignes (−560 lignes nettes). Écrans FSM
+  `my-teams-screen.ts` / `team-edit-screen.ts`; `team-edit` avec `teamId: null` crée
+  une équipe vide avant édition. `placeholder-screens.ts` supprimé ; `babylon-boot.ts`
+  branché sur les écrans réels. `bindEscape` guard `dialog[open]` — Échap ferme les
+  modales sans déclencher la navigation retour.
+
+- Étape 6 (2026-06-11) — écran combat : placement. `babylon/placement-flow.ts` drive
+  le core `PlacementPhase` (Alternating) : tours alternés humain/IA (IA auto-place),
+  pose interactive (clic zone spawn → picker direction iso → `submitPlacement`), undo
+  Échap (dernière pose du joueur courant), Placement auto (`autoPlaceAll`). À la
+  complétion billboards restent, la boucle combat prend le relais (étape 7). API
+  `CombatScene` étendue : `ready` Promise, `addPokemon`/`removePokemon`,
+  `setSpawnZoneHighlights`. `babylon-tile-highlights.ts` : `setSpawnZones`
+  (quads par zone, couleur/alpha). Composant DOM `ui/dom/combat/placement-roster.ts`
+  (bandeau bas portraits, compteur placés/max, Terminer, couleur équipe).
+  **Picker de direction en moteur** (`babylon/babylon-direction-picker.ts`) : 4 quads
+  sol texturés `arrows.png`, posés à plat sur les tiles voisines — suit caméra/zoom/
+  resize gratuitement (meshes scène). `CombatScene.showDirectionPicker()`. Composant DOM
+  `direction-picker.ts` + CSS `.pl-direction-*` + i18n `placement.direction.*` supprimés
+  (décision #487). Constantes `TILE_SPAWN_ZONE_INACTIVE_ALPHA`/`TILE_SPAWN_ZONE_OCCUPIED_ALPHA` +
+  `BABYLON_DIRECTION_ARROW_*` (×4). i18n FR/EN `placement.counter`. Fix bug Dardargnan :
+  alias `<CopyOf>Walk</CopyOf>` dans SpriteCollab → `extract-sprites.ts` résout le PNG
+  source des alias CopyOf, atlas ré-extrait. Validé humain (2 montages combat d'affilée
+  sans fuite).
+
+**Jalon 3e-Champs DONE (2026-06-10) — démo statique :**
+- `babylon-field-terrains.ts` (NOUVEAU) : API `createFieldTerrains → { set, update, dispose }`. `FieldTerrainSpec` miroir du spec 2D.
+- Fill : quads `CreateGround` par tile, blend **alpha standard 0.3** (`BABYLON_FIELD_TERRAIN_FILL_ALPHA`). Blend additif 2D écarté (trop agressif sur textures claires). `alphaIndex = BABYLON_FIELD_TERRAIN_ALPHA_INDEX = 2`. Décision #483.
+- Périmètre : `GreasedLine` insetté d'une demi-largeur (`BABYLON_FIELD_TERRAIN_OUTLINE_WIDTH = 0.04`) — anti-clip murs voisins plus hauts. Curseur survol reçoit le même inset. Décision #484.
+- Pastille compteur : DOM projeté `.field-terrain-pill` dans `.ui-world`, positionné par frame via `projectAnchors` (première utilisation réelle de cette infra J2). `opacity: 0.5` (limitation DOM : passe toujours devant les sprites). Décision #485.
+- `babylon-color.ts` (NOUVEAU) : `hexToColor3`/`hexToCss` partagés (extraction duplication tile-highlights/field-terrains).
+- Démo statique `babylon-boot.ts` : 2 zones (Champ Herbu + Champ Électrifié). Wiring moteur = Jalon 4.
+- Reportés : barrière Champ Psychique → J4 ; tints terrain → polish ; texte chute → J4.
+
+**Jalon 3e-décorations DONE (2026-06-09) :**
+- `babylon-decorations.ts` (NOUVEAU) : décorations 2D billboards `BILLBOARDMODE_Y` — rochers (`rock_1`, `rock_2x2`), arbres (`tree`) depuis Tiled `decorations` object-layer ; tall-grass auto sur tuiles `TallGrass` libres.
+- Placement : centré sur footprint, bottom-anchor descendu vers sommet-avant de la tile (`BABYLON_DECORATION_FOOT_DROP = 0.4`).
+- Matériau par instance (obligatoire pour `SpriteDepthPlugin` foot-depth per-billboard). Textures cachées par type.
+- Rochers/arbres : ALPHATEST + depth write + `BABYLON_DECORATION_DEPTH_BIAS = 0.005` → occluent les sprites et passent devant un Pokémon de la même tile.
+- Tall-grass : ALPHABLEND + `disableDepthWrite` + `alphaIndex = BABYLON_GRASS_ALPHA_INDEX = 1` → ne déclenche jamais la silhouette X-ray, dessinée après l'ombre.
+- Ombre Pokémon : `alphaIndex = BABYLON_SHADOW_ALPHA_INDEX = 0` → l'herbe (alphaIndex 1) la couvre. Profondeur géométrique (pas de foot-depth → reste derrière le sprite).
+- Picking : décos `isPickable = false` → le ray tape la tuile de terrain dessous (curseur/picking gratuit sur la bonne tuile).
+- Validation best-practices (agent) : approche idiomatique Babylon. Convention enregistrée : tout ALPHABLEND = `alphaIndex` explicite obligatoire.
+- Reportés : tints terrain → polish ; texte flottant chute → J4 overlay DOM ; curseur au sommet déco pour volant → J4.
+- Décision #482.
+
+---
+
+## Phase actuelle (parallèle) : Phase 4 — Gameplay Pokemon complet
 
 ### Fait en Phase 4
-- **B4 « Terrains dépendants » (2026-06-09) — plan 118 DONE** : **7 moves** livrés (386 → **393**). **B4 clos (10/10).** 6 moves exploitant les Champs du plan 117 + 1 sous-livrable. **Gliss'Herbe** : Dash Plante Phys portée 2→4 si lanceur sur Champ Herbu (`dashRangeBonusOnFieldTerrain`). **Monte-Tension** : Élec Spé ×2 si cible sur Champ Électrifié (`fieldTerrainPowerBonus { who: target }`). **Vaste Pouvoir** : Single 1-4 → Blast rayon **1** autour de la cible + ×1.5 sur Champ Psychique (`fieldTerrainTargetingOverride`) — rayon réduit r2→r1 après test visuel (décision #448). **Explo-Brume** : self-KO + ×1.5 sur Champ Brumeux. **Champlification** : type morph (Normal→type du Champ) + ×2 (`fieldTerrainBoostedType`), exemptée du boost-type terrain (décision #444). **Force Nature** : morph complet Champ-zone > TerrainType tuile > Triplattaque, mapping canon Gen 7/8 (`naturePowerMorph`). **Boue-Bombe** (sous-livrable, Sol Spé 65, requis par mapping marais de Force Nature). Architecture : champ `PlayablePokemonEntry.excludeMoves` (filtré dans `deriveMovepool`) → Vaste Pouvoir exclue de Mewtwo (décision #446 — mécanisme réutilisable). `BattleEngine.resolveEffectiveMove` route les morphs aux 3 sites (légalité/IA, preview, exécution). `estimateDamage` voit les Champs (IA). Event `MoveStarted.resolvedMoveId/resolvedType` pour log morph. 33 tests ajoutés. Gate CI : **2630 unit + 269 intégration**. Décisions #440–#448.
-- **B4 « Terrains » (2026-06-08) — plan 117 DONE** : **4 moves poseurs** livrés (382 → **386**). Nouveau système `FieldTerrain` (orthogonal à `TerrainType` map existant). Data-model `FieldZone` : zone diamant Manhattan r3 figée au cast, anchor = case du lanceur, `remainingTurns`, `postedRound`. `BattleState.fieldTerrains: FieldZone[]`. `field-terrain-system.ts` : `enumerateZoneTiles`, `postFieldTerrain`, `getFieldTerrainAt` (dernier posé gagne sur chevauchement), `isOnFieldTerrain` (double porte : sur zone + non-flyer), `isEnemyPsychicBarrierAt`, `decrementFieldTerrainsTimer`, constante `FIELD_TERRAIN_TICK_PRIORITY = 260`. `EffectKind.PostFieldTerrain { kind }` + handler enregistré. Damage-calc : `getFieldTerrainBpModifier` (×1.3 type Plante/Élec/Psy selon zone attaquant) + `getFieldTerrainDefenseModifier` (×0.5 Dragon vs Brumeux, ×0.5 Séisme/Piétisol/Ampleur vs Herbu sur cible). `handle-status` : blocage statuts majeurs + confusion (Champ Brumeux), blocage Sommeil seul (Champ Électrifié). Barrière Champ Psychique : `TraversalContext.isDashBarrierTile?` (prédicat optionnel), renseigné par `BattleEngine` aux points `:450` et `:942`, `resolveDash` tronque le chemin — couvre validate (`:525`) + exécution (`:949`). `DashBlockedByPsychicTerrain` event. `field-terrain-tick-handler.ts` (priorité 260) : soin Herbu 1/16 + décrément timers (dedup `fieldTerrainsLastTickRound`). `HeldItemId.TerrainExtender` (Champ'Duit) : durée 5→8 tours. Data `tactical.ts` 4 entrées. IA `scoreSelfMove` branche `PostFieldTerrain`. Renderer `FieldTerrainLayer` : fill additif + contour + pastille timer au centre-ancre. Couleurs design-system `FIELD_TERRAIN_COLORS`. Zones survivent au KO du poseur (décision, différent des auras). `ProtectionReason.MistyTerrain`/`ElectricTerrain` ajoutés. Gate CI : **2597 unit + 269 intégration**. Décisions #427–#438.
 - **Workflow worktrees (2026-06-07)** : nouveau tooling pour lancer N sessions Claude en parallèle. Script `.claude/scripts/worktree.sh` (sous-commandes add/list/status/clean/relink/rm) + skill `/worktree`. Deps isolées par reflink-copy CoW (≈0 disk sur btrfs si lockfile identique, sinon pnpm install). Port Vite déterministe par worktree (5174-5253) via fichier `.worktree-port` + `PT_PORT` env. Merge ff-only autorisé pour Claude (hook block-forbidden-commands.sh mis à jour). Décisions #424-426.
 - **B2 « Soin » (2026-06-07) — plan 116 DONE** : **11 moves** livrés (371 → **382**). Nouveaux effets : `HealTarget` (soigne la cible résolue du move — allié ou ennemi), `CureTeamStatus` (Aromathérapie/Fontaine de Vie, rayon Manhattan 2 autour du lanceur), `HealByTargetStat` (Vole-Force = Atq effective cible + Atq cible -1), `PostHealOverTime` (HoT volatile), `PostWish` (Vœu différé). Volatils HoT : Racines (1/8 PV/tour, ancrage — perd immunité Vol/Lévitation, déraciné si déplacement/knockback) + Anneau Hydro (1/16 inconditionnel). Vœu différé model-agnostic (`pendingWish` + `actionCounter`, fire au prochain tour de la cible, soin = 50% PV max du lanceur, `targetsAllyOrSelf`). Dévorêve gate cible endormie (`requiresTargetAsleep`). Boule Pollen = Blast r1 dégâts ennemis + soin alliés via `appliesIf`. Fix filtre immunité-type (moves soin/statut ne sont plus bloqués par efficacité de type). Renderer : preview zone moves alliés/soi + Self-radius, badges Racines/Anneau Hydro/Vœu, tooltips, log, i18n FR/EN. **46 tests ajoutés.** Gate CI : **2546 unit + 269 intégration + build + lint + typecheck verts**. **Vague 1 roadmap maître (plan 112) terminée** : B1 (113) + B2 (116) + B3 (115).
 - **B3 « Dégâts conditionnels » (2026-06-06) — plan 115 DONE** : **17 moves** livrés (354 → **371**). Cœur = **horloge d'actions** (`actionCounter` + stamps par-mon/équipe) model-agnostic round/CT (réutilisable B7/B9/B10). Nouveaux `DynamicPowerKind` : `DamagedByEnemySinceLastAction` (Avalanche/Vendetta ×2 si touché depuis dernière action), `TargetDamagedSinceLastAction` (Assurance ×2), `EchoCrescendo` (Écho 40→200), `TeamPreviousMoveDouble` (Chant Canon ×2), `TimesHitScaled` (Poing de Colère +50/hit max 350), `AllyFaintedSinceLastAction` (Vengeance ×2), `PreviousMoveFailedDouble` (Trépignement ×2). Mécaniques spéciales : `ConditionKind.TargetBoostedRecently` pour Voix Envoûtante (confusion) et Feu Envieux (brûlure), flag `requiresAsleep` pour Ronflement, `requiresAllOtherMovesUsed` pour Dernier Recours, `teamBeatUp: true` pour Baston (multi-coup allié), volatile `Charged` pour Chargeur (×2 prochain Électrique), trois Pledges en dégâts simples (combo champ différé B4). Gate CI : **2500 unit + 269 intégration + build + lint + typecheck verts**.
@@ -251,9 +433,7 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 
 ### Prochaine étape
 
-**Phase 4 en cours.** Plans 069–118 terminés. Roster Gen 1 complet : 80 Pokemon jouables + dummy. 177 OP sets. **393 moves implémentés.** Batches G1–G6 clos. Vague 1 roadmap maître terminée (B1/113 + B2/116 + B3/115). Vague 2 B4 terminée (117 + 118, 10/10). Gate CI : **2630 unit + 269 intégration + lint + typecheck + build verts**.
-
-Prochain : **B5 Interaction objet tenu** (plan 119, ~12 moves : Sabotage, Dégommage, Larcin, etc. — vague 2 roadmap maître plan 112). ~110 moves restants classés par système dans plan 112.
+**Phase 4 en pause (dans main).** Plans 069–118 terminés. Roster Gen 1 complet : 80 Pokemon jouables + dummy. 177 OP sets. **393 moves implémentés.** Batches G1–G6 + B1/B2/B3 clos. **B4 clos** : plans 117 (Champs/field-terrain, 4 setter moves) + 118 (dépendants B4) terminés sur main (2026-06-09). ~121 moves restants (batches B5+). Reprendre après Phase 5 ou en parallèle sur une autre session.
 
 ### Bugs connus non corrigés
 

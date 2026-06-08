@@ -1,0 +1,147 @@
+/*
+ * InfoPanel (Phase 5 Jalon 2b) — category-B chrome panel.
+ * Pairs with `ui/dom/info-panel.ts`. Tokens from `tokens.css`.
+ *
+ * Scaling contract: every metric is expressed in `--ip-px` units, where
+ * `--ip-px = 100cqw / 1920` = one design pixel at the 1920-wide reference.
+ * `cqw` resolves against the `stage` container (#game-stage, container-type:size),
+ * so the panel scales with the *game* box, not the browser. See plan 119 §4-B.
+ */
+
+@layer components {
+  .ip-panel {
+    /* One design px (at 1920 ref) in container-query units. */
+    --ip-px: calc(100cqw / 1920);
+
+    /* Flex child of `.bc-left-col`, pinned to the bottom of the left column; the
+       turn timeline above shrinks to leave it room (was position:absolute). */
+    margin-block-start: auto;
+    flex: 0 0 auto;
+
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    column-gap: calc(12 * var(--ip-px));
+    row-gap: calc(6 * var(--ip-px));
+    inline-size: calc(330 * var(--ip-px));
+    padding: calc(12 * var(--ip-px));
+
+    background: color-mix(in srgb, var(--ip-team) 85%, transparent);
+    border: max(1px, calc(1.5 * var(--ip-px))) solid var(--color-border-faint);
+    border-radius: calc(9 * var(--ip-px));
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+
+    /* data-team → team color token. */
+    &[data-team="1"] { --ip-team: var(--team-1); }
+    &[data-team="2"] { --ip-team: var(--team-2); }
+    &[data-team="3"] { --ip-team: var(--team-3); }
+    &[data-team="4"] { --ip-team: var(--team-4); }
+    &[data-team="5"] { --ip-team: var(--team-5); }
+    &[data-team="6"] { --ip-team: var(--team-6); }
+    &[data-team="7"] { --ip-team: var(--team-7); }
+    &[data-team="8"] { --ip-team: var(--team-8); }
+    &[data-team="9"] { --ip-team: var(--team-9); }
+    &[data-team="10"] { --ip-team: var(--team-10); }
+    &[data-team="11"] { --ip-team: var(--team-11); }
+    &[data-team="12"] { --ip-team: var(--team-12); }
+  }
+
+  .ip-portrait {
+    /* Top-left, aligned to the panel padding (align-items:start on the grid). */
+    inline-size: calc(60 * var(--ip-px));
+    block-size: calc(60 * var(--ip-px));
+    image-rendering: pixelated;
+  }
+
+  .ip-body {
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+    gap: calc(6 * var(--ip-px));
+  }
+
+  .ip-header {
+    display: flex;
+    align-items: baseline;
+    gap: calc(6 * var(--ip-px));
+    white-space: nowrap;
+  }
+
+  .ip-name {
+    font-size: calc(33 * var(--ip-px));
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ip-gender {
+    font-size: calc(30 * var(--ip-px));
+    font-weight: bold;
+    &[data-gender="male"] { color: var(--color-gender-male); }
+    &[data-gender="female"] { color: var(--color-gender-female); }
+  }
+
+  .ip-level {
+    margin-inline-start: auto;
+    font-size: calc(27 * var(--ip-px));
+    color: var(--color-text-secondary);
+  }
+
+  .ip-hpbar {
+    block-size: calc(9 * var(--ip-px));
+    background: var(--blue-950);
+    border: max(1px, calc(1 * var(--ip-px))) solid var(--blue-1000);
+    border-radius: calc(3 * var(--ip-px));
+    overflow: hidden;
+  }
+
+  .ip-hpfill {
+    /* --ip-hp set per-update by info-panel.ts (0..1); fallback 1 covers pre-update. */
+    inline-size: calc(var(--ip-hp, 1) * 100%);
+    block-size: 100%;
+    background: var(--ip-team);
+  }
+
+  .ip-hptext {
+    font-size: calc(24 * var(--ip-px));
+    color: var(--color-text-secondary);
+  }
+
+  .ip-badges {
+    /* Full panel width (row 2, both columns) — not just beside the portrait. */
+    grid-column: 1 / -1;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(4 * var(--ip-px));
+  }
+
+  .ip-badge {
+    padding: calc(2 * var(--ip-px)) calc(7 * var(--ip-px));
+    font-size: calc(22 * var(--ip-px));
+    font-weight: bold;
+    border: max(1px, calc(1 * var(--ip-px))) solid var(--color-border-faint);
+    border-radius: calc(4 * var(--ip-px));
+    white-space: nowrap;
+    &[data-variant="buff"] { background: var(--color-badge-buff-bg); }
+    &[data-variant="debuff"] { background: var(--color-badge-debuff-bg); }
+    &[data-variant="volatile"] { background: var(--color-badge-volatile-bg); }
+  }
+
+  /*
+   * Mobile reflow (plan 119 §4): under a narrow *game* box, scale the panel
+   * against a 768 reference instead of 1920 (≈2.5× bigger px) and stretch it to
+   * a bottom bar — PokeRogue-style, readable, not a shrunk-to-illegible panel.
+   */
+  @container stage (width < 768px) {
+    .ip-panel {
+      --ip-px: calc(100cqw / 768);
+      inset-inline: calc(12 * var(--ip-px));
+      inset-block-end: calc(12 * var(--ip-px));
+      inline-size: auto;
+    }
+  }
+}

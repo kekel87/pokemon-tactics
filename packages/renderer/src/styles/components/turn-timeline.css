@@ -1,0 +1,113 @@
+/*
+ * TurnTimeline (Phase 5 Jalon 4b-3) — DOM port of the Phaser `ui/TurnTimeline.ts`.
+ * Pairs with `ui/dom/combat/turn-timeline.ts`. Vertical strip, top-left: active
+ * Pokémon pinned, upcoming order scrolls below. Tokens from `tokens.css`.
+ */
+
+@layer components {
+  .tt-timeline {
+    /* Flex child of `.bc-left-col`: sits at the top, shrinks to leave room for the
+       info panel pinned below (so the visible card count adapts to the stage
+       height and the strip never overlaps the panel). `.tt-list` scrolls the rest. */
+    pointer-events: auto;
+    min-block-size: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .tt-active {
+    display: flex;
+    flex: 0 0 auto;
+  }
+
+  .tt-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+    /* Takes the timeline's remaining height and scrolls the rest of the predicted
+       order; the count of visible portraits adapts to the available space. */
+    min-block-size: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    /* No visible scrollbar (it read as a stray right-edge border on hover); the
+       list still scrolls by wheel/drag. */
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .tt-entry {
+    --tt-size: 2.25rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    &[data-active="true"] {
+      --tt-size: 3rem;
+    }
+    &[data-dimmed="true"] {
+      opacity: 0.5;
+    }
+
+    /* Team color → portrait border. */
+    &[data-team="1"] { --tt-team: var(--team-1); }
+    &[data-team="2"] { --tt-team: var(--team-2); }
+    &[data-team="3"] { --tt-team: var(--team-3); }
+    &[data-team="4"] { --tt-team: var(--team-4); }
+    &[data-team="5"] { --tt-team: var(--team-5); }
+    &[data-team="6"] { --tt-team: var(--team-6); }
+    &[data-team="7"] { --tt-team: var(--team-7); }
+    &[data-team="8"] { --tt-team: var(--team-8); }
+    &[data-team="9"] { --tt-team: var(--team-9); }
+    &[data-team="10"] { --tt-team: var(--team-10); }
+    &[data-team="11"] { --tt-team: var(--team-11); }
+    &[data-team="12"] { --tt-team: var(--team-12); }
+  }
+
+  .tt-portrait {
+    inline-size: var(--tt-size);
+    block-size: var(--tt-size);
+    border: 2px solid var(--tt-team, var(--color-border-surface));
+    border-radius: var(--radius-sm);
+    image-rendering: pixelated;
+    .tt-entry[data-active="true"] & {
+      border-color: var(--color-accent);
+    }
+  }
+
+  .tt-ctbar {
+    inline-size: 4px;
+    block-size: var(--tt-size);
+    background: var(--color-timeline-ct-bg);
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .tt-ctfill {
+    inline-size: 100%;
+    block-size: calc(var(--tt-ct, 0) * 100%);
+    background: var(--color-timeline-ct);
+  }
+
+  .tt-separator {
+    align-self: stretch;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: var(--color-accent);
+    border-block-start: 1px solid var(--color-border-surface);
+    padding-block-start: 2px;
+  }
+}

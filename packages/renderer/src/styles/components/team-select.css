@@ -179,6 +179,7 @@
 
   .ts-team-row-portraits {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--spacing-xs);
   }
 

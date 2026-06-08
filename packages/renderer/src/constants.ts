@@ -124,6 +124,11 @@ export const TEAM_COLORS: readonly number[] = [
 
 const FALLBACK_TEAM_COLOR = 0x2255aa;
 
+/** Resolve a 1-based team number to its colour (falls back to team 1's blue). */
+export function teamColorByIndex(team: number): number {
+  return TEAM_COLORS[team - 1] ?? FALLBACK_TEAM_COLOR;
+}
+
 export function getTeamColorByPlayerId(playerId: string): number {
   const match = playerId.match(/player-(\d+)/);
   if (!match) {
@@ -196,10 +201,10 @@ export const TILE_RANGE_OUTLINE_WIDTH = 1.5;
 export const PREVIEW_FLASH_ALPHA = 0.3;
 export const PREVIEW_FLASH_DURATION_MS = 300;
 
-export const TILE_SPAWN_ZONE_ACTIVE_COLOR = 0x55aaff;
 export const TILE_SPAWN_ZONE_INACTIVE_COLOR = 0x8888aa;
-export const TILE_SPAWN_ZONE_OCCUPIED_COLOR = 0x335577;
 export const TILE_SPAWN_ZONE_ALPHA = 0.5;
+export const TILE_SPAWN_ZONE_INACTIVE_ALPHA = 0.25;
+export const TILE_SPAWN_ZONE_OCCUPIED_ALPHA = 0.2;
 
 export const PLACEMENT_PANEL_HEIGHT = 110;
 export const PLACEMENT_PANEL_Y = 610;
@@ -344,12 +349,13 @@ export const AURA_INDICATOR_SYMBOL: Record<AuraKindType, string> = {
 export const SCREEN_HIGHLIGHT_RADIUS_TILES = 3;
 
 export const DAMAGE_ESTIMATE_COLOR = 0x000000;
-// Alpha values tuned so the overlay is clearly visible on a colored HP bar.
-// 0.5 / 0.3 (the previous values) were lost in the fill color. 0.85 for
-// guaranteed damage gives a near-opaque dark band; 0.55 for the variance
-// makes it clearly distinguishable. Tune together with team colors.
-export const DAMAGE_ESTIMATE_ALPHA_GUARANTEED = 0.85;
-export const DAMAGE_ESTIMATE_ALPHA_POSSIBLE = 0.55;
+// Black darkening over the team-colour fill marking the HP that would be lost.
+// Kept partly translucent so the team hue still shows through (the darkened slice
+// reads as "dimmed team", distinct from the near-black empty track) instead of a
+// near-opaque band that merges with the empty track. Guaranteed loss darker than
+// the possible-variance slice. Tune together with team colors.
+export const DAMAGE_ESTIMATE_ALPHA_GUARANTEED = 0.4;
+export const DAMAGE_ESTIMATE_ALPHA_POSSIBLE = 0.2;
 export const DAMAGE_ESTIMATE_TEXT_SIZE = 7;
 export const DAMAGE_ESTIMATE_TEXT_COLOR = "#ffffff";
 export const DAMAGE_ESTIMATE_TEXT_STROKE_COLOR = "#000000";
@@ -357,7 +363,7 @@ export const DAMAGE_ESTIMATE_TEXT_STROKE_WIDTH = 2;
 export const DAMAGE_ESTIMATE_IMMUNE_COLOR = "#888888";
 
 export const BATTLE_TEXT_FONT_SIZE = 10;
-export const BATTLE_TEXT_DURATION_MS = 3500;
+export const BATTLE_TEXT_DURATION_MS = 1000;
 export const BATTLE_TEXT_DRIFT_Y = -20;
 export const BATTLE_TEXT_STROKE_COLOR = "#000000";
 export const BATTLE_TEXT_STROKE_WIDTH = 2;
@@ -366,10 +372,15 @@ export const BATTLE_TEXT_STROKE_WIDTH = 2;
 // number). Both texts are spawned with the same computed delay so they drift
 // upward together as a single scroll.
 export const BATTLE_TEXT_STAGGER_Y = -10;
-// Delay between two independent battle-text beats on the same target. The
-// first beat spawns immediately; subsequent beats are queued with this gap so
-// the viewer can read each one. Tune together with BATTLE_TEXT_DURATION_MS.
-export const BATTLE_TEXT_QUEUE_DELAY_MS = 700;
+// Delay between two independent battle-text beats on the same target, as a
+// FRACTION of the lifetime (so the cadence scales automatically when the
+// duration changes — no second hardcoded number to keep in sync). The first
+// beat spawns immediately; subsequent beats queue with this gap so each reads.
+// ~0.5 ⇒ about two labels on screen at once (readable, slight overlap).
+export const BATTLE_TEXT_QUEUE_DELAY_FACTOR = 0.5;
+export const BATTLE_TEXT_QUEUE_DELAY_MS = Math.round(
+  BATTLE_TEXT_DURATION_MS * BATTLE_TEXT_QUEUE_DELAY_FACTOR,
+);
 export const DEPTH_BATTLE_TEXT = 1500;
 
 export const BATTLE_TEXT_COLOR_DAMAGE = "#ffffff";
