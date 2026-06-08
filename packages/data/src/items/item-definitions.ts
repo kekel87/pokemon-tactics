@@ -486,4 +486,8 @@ export const itemHandlers: HeldItemHandler[] = [
   {
     id: HeldItemId.LightClay,
   },
+
+  {
+    id: HeldItemId.TerrainExtender,
+  },
 ];

@@ -13,6 +13,8 @@ import {
   EffectKind,
   EffectTarget,
   enumerateHitAndRunRetreatTiles,
+  FIELD_TERRAIN_RADIUS,
+  FieldTerrain,
   type Grid,
   type MapDefinition,
   type MoveDefinition,
@@ -76,6 +78,10 @@ import {
   BATTLE_TEXT_STAGGER_Y,
   DEPTH_POKEMON_BASE,
   DEPTH_TILE_MAX_ELEVATION,
+  FIELD_TERRAIN_COLOR_ELECTRIC,
+  FIELD_TERRAIN_COLOR_GRASSY,
+  FIELD_TERRAIN_COLOR_MISTY,
+  FIELD_TERRAIN_COLOR_PSYCHIC,
   getTeamColorByPlayerId,
   KNOCKBACK_SHAKE_DURATION_MS,
   KNOCKBACK_SHAKE_OFFSET_X,
@@ -145,6 +151,22 @@ const AURA_BLOCKED_KEY: Record<ProtectionReason, TranslationKey> = {
   [ProtectionReason.Mist]: "aura.blocked.mist",
   [ProtectionReason.Safeguard]: "aura.blocked.safeguard",
   [ProtectionReason.Substitute]: "substitute.blocked",
+  [ProtectionReason.MistyTerrain]: "fieldTerrain.blocked.misty",
+  [ProtectionReason.ElectricTerrain]: "fieldTerrain.blocked.electric",
+};
+
+const FIELD_TERRAIN_POSTED_KEY: Record<FieldTerrain, TranslationKey> = {
+  [FieldTerrain.Grassy]: "fieldTerrain.posted.grassy",
+  [FieldTerrain.Electric]: "fieldTerrain.posted.electric",
+  [FieldTerrain.Misty]: "fieldTerrain.posted.misty",
+  [FieldTerrain.Psychic]: "fieldTerrain.posted.psychic",
+};
+
+const FIELD_TERRAIN_COLOR: Record<FieldTerrain, number> = {
+  [FieldTerrain.Grassy]: FIELD_TERRAIN_COLOR_GRASSY,
+  [FieldTerrain.Electric]: FIELD_TERRAIN_COLOR_ELECTRIC,
+  [FieldTerrain.Misty]: FIELD_TERRAIN_COLOR_MISTY,
+  [FieldTerrain.Psychic]: FIELD_TERRAIN_COLOR_PSYCHIC,
 };
 
 function getChargingFloatLabel(moveId: string): string {
@@ -1140,6 +1162,7 @@ export class GameController {
       case BattleEventType.PokemonMoved: {
         await this.animateAlongPath(event.pokemonId, event.path);
         this.refreshAuraVisuals();
+        this.refreshFieldTerrainVisuals();
         break;
       }
 
@@ -1392,6 +1415,7 @@ export class GameController {
           sprite.setDirection(pokemon.orientation);
         }
         this.refreshAuraVisuals();
+        this.refreshFieldTerrainVisuals();
         break;
       }
 
@@ -1777,6 +1801,37 @@ export class GameController {
         break;
       }
 
+      case BattleEventType.FieldTerrainPosted: {
+        this.refreshFieldTerrainVisuals();
+        const sprite = this.sprites.get(event.casterId);
+        if (sprite) {
+          const pos = sprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t(FIELD_TERRAIN_POSTED_KEY[event.kind]), {
+            color: BATTLE_TEXT_COLOR_INFO,
+          });
+        }
+        this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
+      case BattleEventType.FieldTerrainExpired: {
+        this.refreshFieldTerrainVisuals();
+        this.updateInfoPanelForActivePokemon();
+        break;
+      }
+
+      case BattleEventType.DashBlockedByPsychicTerrain: {
+        const sprite = this.sprites.get(event.pokemonId);
+        if (sprite) {
+          const pos = sprite.getTextPosition();
+          showBattleText(this.scene, pos.x, pos.y, t("fieldTerrain.dashBlocked"), {
+            color: BATTLE_TEXT_COLOR_INFO,
+            targetId: event.pokemonId,
+          });
+        }
+        break;
+      }
+
       case BattleEventType.StatChangeBlocked:
       case BattleEventType.StatusBlocked: {
         const sprite = this.sprites.get(event.pokemonId);
@@ -2031,6 +2086,23 @@ export class GameController {
     }
   }
 
+  private refreshFieldTerrainVisuals(): void {
+    const specs = this.state.fieldTerrains.map((zone) => {
+      const caster = this.state.pokemon.get(zone.casterId);
+      const teamColor = caster
+        ? getTeamColorByPlayerId(caster.playerId)
+        : FIELD_TERRAIN_COLOR[zone.kind];
+      return {
+        tiles: zone.tiles,
+        anchor: zone.anchor,
+        color: FIELD_TERRAIN_COLOR[zone.kind],
+        teamColor,
+        remainingTurns: zone.remainingTurns,
+      };
+    });
+    this.isometricGrid.renderFieldTerrains(specs);
+  }
+
   showAuraHoverFor(pokemonId: string): void {
     const auras = this.state.auras.filter((entry) => entry.casterPokemonId === pokemonId);
     const casterAura = auras[0];
@@ -2077,7 +2149,7 @@ export class GameController {
     return !hasDamage && !hasOffensiveEffect;
   }
 
-  /** Manhattan radius of a self-cast ally-radius effect (life-dew heal, aromatherapy cure), if any. */
+  /** Manhattan radius of a self-cast radius effect (life-dew/aromatherapy, field-terrain zone), if any. */
   private getSelfRadiusEffect(move: MoveDefinition): number | undefined {
     for (const effect of move.effects) {
       if (effect.kind === EffectKind.HealTarget && effect.radius !== undefined) {
@@ -2085,6 +2157,9 @@ export class GameController {
       }
       if (effect.kind === EffectKind.CureTeamStatus) {
         return effect.radius;
+      }
+      if (effect.kind === EffectKind.PostFieldTerrain) {
+        return FIELD_TERRAIN_RADIUS;
       }
     }
     return undefined;

@@ -15,6 +15,7 @@ import {
   EffectKind,
   EffectTarget,
   EffectTier,
+  FieldTerrain,
   PokemonType,
   SemiInvulnerableState,
   StatName,
@@ -1481,6 +1482,22 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   safeguard: {
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.PostAura, aura: AuraKind.Safeguard }],
+  },
+  "grassy-terrain": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostFieldTerrain, terrain: FieldTerrain.Grassy }],
+  },
+  "electric-terrain": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostFieldTerrain, terrain: FieldTerrain.Electric }],
+  },
+  "misty-terrain": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostFieldTerrain, terrain: FieldTerrain.Misty }],
+  },
+  "psychic-terrain": {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostFieldTerrain, terrain: FieldTerrain.Psychic }],
   },
   "weather-ball": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },

@@ -1,4 +1,4 @@
-import type { MoveDefinition } from "@pokemon-tactic/core";
+import type { FieldTerrain, MoveDefinition } from "@pokemon-tactic/core";
 import { AttackStatSource, Category, EffectKind, TargetingKind } from "@pokemon-tactic/core";
 import {
   ACTION_MENU_BOTTOM_Y,
@@ -28,6 +28,13 @@ const CELL_COLORS: Record<PatternCell, number> = {
   [PatternCell.Dash]: TOOLTIP_CELL_COLOR_DASH,
   [PatternCell.Caster]: TOOLTIP_CELL_COLOR_CASTER,
   [PatternCell.Empty]: TOOLTIP_CELL_COLOR_EMPTY,
+};
+
+const FIELD_TERRAIN_TOOLTIP_KEY: Record<FieldTerrain, TranslationKey> = {
+  grassy: "moveTooltip.tag.fieldTerrain.grassy",
+  electric: "moveTooltip.tag.fieldTerrain.electric",
+  misty: "moveTooltip.tag.fieldTerrain.misty",
+  psychic: "moveTooltip.tag.fieldTerrain.psychic",
 };
 
 const CATEGORY_TEXTURE: Record<Category, string> = {
@@ -92,6 +99,10 @@ export class MoveTooltip {
       (effect) => effect.kind === EffectKind.HealByTargetStat,
     );
     const hasRequiresTargetAsleepTag = move.requiresTargetAsleep === true;
+    const fieldTerrainEffect = move.effects.find(
+      (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostFieldTerrain }> =>
+        effect.kind === EffectKind.PostFieldTerrain,
+    );
     const baseLines = move.twoTurnCharge ? 4 : 3;
     const textLines =
       baseLines +
@@ -107,7 +118,8 @@ export class MoveTooltip {
       (hasWishTag ? 1 : 0) +
       (hasCureTag ? 1 : 0) +
       (hasHealByStatTag ? 1 : 0) +
-      (hasRequiresTargetAsleepTag ? 1 : 0);
+      (hasRequiresTargetAsleepTag ? 1 : 0) +
+      (fieldTerrainEffect ? 1 : 0);
     const totalHeight = padding + textLines * lineHeight + 4 + gridHeight + padding;
 
     const x = menuX - TOOLTIP_WIDTH - 8;
@@ -214,6 +226,11 @@ export class MoveTooltip {
 
     if (hasRequiresTargetAsleepTag) {
       this.addText(contentX, contentY, t("moveTooltip.tag.requiresTargetAsleep"));
+      contentY += lineHeight;
+    }
+
+    if (fieldTerrainEffect) {
+      this.addText(contentX, contentY, t(FIELD_TERRAIN_TOOLTIP_KEY[fieldTerrainEffect.terrain]));
       contentY += lineHeight;
     }
 

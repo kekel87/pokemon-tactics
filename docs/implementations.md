@@ -14,9 +14,9 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 382 | 493 | Pool roster (level-up + TM + tutor + chaîne évo sur 80 jouables ∩ `reference/moves.json`), **Téra-Explosion exclue** (décision #422). **121 restants = tous à mécanique moteur**, classés par système dans **plan 112** (roadmap maître). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106), +11 simples G6 (plan 107). **Batches G1–G6 clos.** +12 power conditionnel plan 109 (moteur dynamicPower). +2 stat-source plan 110 (Bodypress/Tricherie). +4 poids plan 111 (Balayage/Nœud Herbe/Tacle Lourd/Tacle Feu). +6 B1 quasi-prêt plan 113 (Choc Psy/Frappe Psy/Lyophilisation/Triple Axel/Pied Voltige/Talon-Marteau). +17 B3 dégâts conditionnels plan 115 (horloge d'actions). +11 B2 soin plan 116 (É-Coque/Paresse/Racines/Anneau Hydro/Vibra Soin/Fontaine de Vie/Vœu/Aromathérapie/Vole-Force/Dévorêve/Boule Pollen). |
+| Attaques | 386 | 493 | Pool roster (level-up + TM + tutor + chaîne évo sur 80 jouables ∩ `reference/moves.json`), **Téra-Explosion exclue** (décision #422). **117 restants = tous à mécanique moteur**, classés par système dans **plan 112** (roadmap maître). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106), +11 simples G6 (plan 107). **Batches G1–G6 clos.** +12 power conditionnel plan 109 (moteur dynamicPower). +2 stat-source plan 110 (Bodypress/Tricherie). +4 poids plan 111 (Balayage/Nœud Herbe/Tacle Lourd/Tacle Feu). +6 B1 quasi-prêt plan 113 (Choc Psy/Frappe Psy/Lyophilisation/Triple Axel/Pied Voltige/Talon-Marteau). +17 B3 dégâts conditionnels plan 115 (horloge d'actions). +11 B2 soin plan 116 (É-Coque/Paresse/Racines/Anneau Hydro/Vibra Soin/Fontaine de Vie/Vœu/Aromathérapie/Vole-Force/Dévorêve/Boule Pollen). +4 B4 terrains plan 117 (Champ Herbu/Électrifié/Brumeux/Psychique). |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
-| Objets tenus | 23 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
+| Objets tenus | 24 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
 ---
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (382 implémentées)
+## Attaques (386 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -423,6 +423,10 @@
 | Poing de Colère | rage-fist | Spectre | Phys | 50 | 100 | 10 | single r1 | `dynamicPower` +50 par fois que le lanceur a été touché par un move offensif depuis le début du combat (max 6 hits → 350). Flag `punch`. |
 | Poing Ombre | shadow-punch | Spectre | Phys | 60 | — | 20 | single r1 | Touche garantie (`bypassAccuracy`) |
 | Psycho-Croc | psychic-fangs | Psy | Phys | 85 | 100 | 10 | single r1 | *(rider screen-break différé)* |
+| Champ Herbu | grassy-terrain | Plante | Statut | — | — | 10 | self (zone r3) | Pose Champ Herbu : soin 1/16 PV/tour au sol, ×1.3 Plante attaquant sur zone, ×0.5 Séisme/Piétisol/Ampleur sur cible sur zone. Durée 5 tours (8 avec Champ'Duit). |
+| Champ Électrifié | electric-terrain | Élec | Statut | — | — | 10 | self (zone r3) | Pose Champ Électrifié : immunité Sommeil au sol, ×1.3 Électrique attaquant sur zone. Durée 5 tours (8 avec Champ'Duit). |
+| Champ Brumeux | misty-terrain | Fée | Statut | — | — | 10 | self (zone r3) | Pose Champ Brumeux : immunité statuts majeurs + confusion au sol, ×0.5 Dragon sur cible sur zone. Durée 5 tours (8 avec Champ'Duit). |
+| Champ Psychique | psychic-terrain | Psy | Statut | — | — | 10 | self (zone r3) | Pose Champ Psychique : barrière anti-dash (ennemis entrant dans la zone stoppés au bord, divergence Showdown #428), ×1.3 Psy attaquant sur zone. Durée 5 tours (8 avec Champ'Duit). |
 | Souplesse | slam | Normal | Phys | 80 | 75 | 20 | single r1 | — |
 | Surpuissance | superpower | Combat | Phys | 120 | 100 | 5 | single r1 | −1 Atk, −1 Déf attaquant (100%) |
 | Taillade | fury-cutter | Insecte | Phys | 40 | 95 | 20 | single r1 | *(rider power escalade différé)* |
@@ -638,7 +642,7 @@
 
 ---
 
-## Objets Tenus (23 implémentés)
+## Objets Tenus (24 implémentés)
 
 | Nom | ID | Effet résumé |
 |---|---|---|
@@ -665,3 +669,4 @@
 | Gemme Normale | normal-gem | ×1.3 prochain move Normal (consommée) |
 | Roc Chaleur | heat-rock | Étend Soleil (sunny-day) de 5 à 8 tours |
 | Lumargile | light-clay | Étend Reflect / Light Screen posés par le porteur de 5 à 8 tours |
+| Champ'Duit | terrain-extender | Étend les Champs (grassy/electric/misty/psychic-terrain) posés par le porteur de 5 à 8 tours (effet passif au cast, miroir Light Clay) |

@@ -2,12 +2,14 @@ import { AURA_RADIUS } from "../battle/aura-system";
 import type { BattleEngine } from "../battle/BattleEngine";
 import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
 import { isEffectivelyFlying } from "../battle/effective-flying";
+import { FIELD_TERRAIN_RADIUS, getFieldTerrainAt } from "../battle/field-terrain-system";
 import { TRANSFERABLE_STATS } from "../battle/handlers/baton-pass-stats";
 import { isTerrainImmune } from "../battle/terrain-effects";
 import { ActionKind } from "../enums/action-kind";
 import { AuraKind } from "../enums/aura-kind";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
+import { FieldTerrain } from "../enums/field-terrain";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { TerrainType } from "../enums/terrain-type";
@@ -381,6 +383,41 @@ function scoreSelfMove(
     }
 
     return weights.statChanges * earlyMultiplier * (1 + alliesInRadius) * threatBonus;
+  }
+
+  const postFieldTerrainEffect = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostFieldTerrain }> =>
+      effect.kind === EffectKind.PostFieldTerrain,
+  );
+  if (postFieldTerrainEffect) {
+    if (!state) {
+      return weights.statChanges;
+    }
+    // Re-posting the same terrain on a tile already covered by it is wasteful.
+    if (getFieldTerrainAt(state, currentPokemon.position) === postFieldTerrainEffect.terrain) {
+      return -1;
+    }
+    let groundedAlliesInRadius = 0;
+    for (const candidate of state.pokemon.values()) {
+      if (candidate.currentHp <= 0 || candidate.playerId !== currentPokemon.playerId) {
+        continue;
+      }
+      const dx = Math.abs(candidate.position.x - currentPokemon.position.x);
+      const dy = Math.abs(candidate.position.y - currentPokemon.position.y);
+      if (dx + dy <= FIELD_TERRAIN_RADIUS) {
+        groundedAlliesInRadius += 1;
+      }
+    }
+    const earlyMultiplier = state.roundNumber <= 3 ? 2 : 1;
+    let threatBonus = 1.0;
+    if (
+      postFieldTerrainEffect.terrain === FieldTerrain.Electric ||
+      postFieldTerrainEffect.terrain === FieldTerrain.Misty
+    ) {
+      // Electric blocks sleep, Misty blocks status: more valuable under an enemy status threat.
+      threatBonus = enemyHasStatusMoveInRange(enemies, currentPokemon, 5) ? 1.5 : 1.0;
+    }
+    return weights.statChanges * earlyMultiplier * groundedAlliesInRadius * threatBonus;
   }
 
   const hasPostSubstitute = move.effects.some(

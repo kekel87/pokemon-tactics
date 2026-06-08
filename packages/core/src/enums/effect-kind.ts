@@ -23,6 +23,8 @@ export const EffectKind = {
   PostHealOverTime: "post_heal_over_time",
   /** Schedule a delayed heal on an ally that fires on the target's next turn (wish). */
   PostWish: "post_wish",
+  /** Paint a field-terrain zone around the caster (B4: grassy/electric/misty/psychic terrain). */
+  PostFieldTerrain: "post_field_terrain",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

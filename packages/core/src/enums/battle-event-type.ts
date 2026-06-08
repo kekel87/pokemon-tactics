@@ -70,6 +70,9 @@ export const BattleEventType = {
   WishPosted: "wish_posted",
   WishHealed: "wish_healed",
   MoveFailed: "move_failed",
+  FieldTerrainPosted: "field_terrain_posted",
+  FieldTerrainExpired: "field_terrain_expired",
+  DashBlockedByPsychicTerrain: "dash_blocked_by_psychic_terrain",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

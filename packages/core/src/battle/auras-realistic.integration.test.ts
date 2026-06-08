@@ -78,6 +78,7 @@ function buildFullEngine(
     weather: Weather.None,
     weatherTurnsRemaining: 0,
     auras: [],
+    fieldTerrains: [],
   };
 
   const engine = new BattleEngine(

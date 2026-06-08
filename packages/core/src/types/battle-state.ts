@@ -1,6 +1,7 @@
 import type { PlayerId } from "../enums/player-id";
 import type { TurnSystemKind } from "../enums/turn-system-kind";
 import type { Weather } from "../enums/weather";
+import type { FieldZone } from "./field-zone";
 import type { PokemonInstance } from "./pokemon-instance";
 import type { TeamAura } from "./team-aura";
 import type { TileState } from "./tile-state";
@@ -20,6 +21,10 @@ export interface BattleState {
   weatherLastTickRound?: number;
   auras: TeamAura[];
   aurasLastTickRound?: number;
+  /** Painted field-terrain zones ("Champs", B4). Multiple coexist; latest wins per tile on overlap. */
+  fieldTerrains: FieldZone[];
+  /** Round dedup guard for the once-per-round zone timer decrement. */
+  fieldTerrainsLastTickRound?: number;
   /**
    * Monotonic action clock (B3 conditional-damage moves). Incremented exactly once per
    * completed action in both turn loops (round-based and Charge Time). Per-mon stamps on

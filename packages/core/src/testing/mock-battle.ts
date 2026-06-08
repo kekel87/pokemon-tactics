@@ -162,6 +162,7 @@ export abstract class MockBattle {
       weather: Weather.None,
       weatherTurnsRemaining: 0,
       auras: [],
+      fieldTerrains: [],
     };
   }
 }

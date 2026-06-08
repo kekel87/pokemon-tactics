@@ -22,6 +22,7 @@ export const HeldItemId = {
   NormalGem: "normal-gem",
   HeatRock: "heat-rock",
   LightClay: "light-clay",
+  TerrainExtender: "terrain-extender",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];

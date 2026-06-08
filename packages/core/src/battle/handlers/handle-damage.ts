@@ -21,6 +21,10 @@ import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calcula
 import { checkDefense } from "../defense-check";
 import { resolveDynamicPower } from "../dynamic-power-system";
 import type { EffectContext } from "../effect-handler-registry";
+import {
+  getFieldTerrainBpMultiplier,
+  getFieldTerrainDamageMultiplier,
+} from "../field-terrain-system";
 import { isMajorStatus } from "../stat-modifier";
 import { applySubstituteAbsorption, shouldSubstituteBlock } from "../substitute-system";
 import {
@@ -145,6 +149,18 @@ function dealSingleHit(
   const screenMultiplier = brickBreakInteraction.breakAuraCasterId
     ? 1.0
     : computeScreenMultiplier(context.state, context.attacker, target, resolvedMove);
+  const fieldTerrainBp = getFieldTerrainBpMultiplier(
+    context.state,
+    context.attacker,
+    context.attackerTypes,
+    resolvedMove,
+  );
+  const fieldTerrainDamage = getFieldTerrainDamageMultiplier(
+    context.state,
+    target,
+    defenderTypes,
+    resolvedMove,
+  );
   const { damage, isCrit } = calculateDamageWithCrit(
     context.attacker,
     target,
@@ -163,6 +179,8 @@ function dealSingleHit(
     defenseWeather,
     screenMultiplier,
     brickBreakInteraction.multiplier,
+    fieldTerrainBp,
+    fieldTerrainDamage,
   );
 
   const defenseResult = checkDefense(

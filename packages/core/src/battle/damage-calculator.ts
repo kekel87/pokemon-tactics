@@ -68,6 +68,8 @@ export function calculateDamageWithCrit(
   defenseWeatherMultiplier = 1.0,
   screenMultiplier = 1.0,
   brickBreakMultiplier = 1.0,
+  fieldTerrainBpMultiplier = 1.0,
+  fieldTerrainDamageMultiplier = 1.0,
 ): DamageResult {
   if (move.category === Category.Status || move.power === 0) {
     return { damage: 0, isCrit: false };
@@ -120,7 +122,10 @@ export function calculateDamageWithCrit(
     getEffectiveStat(defenseStat, critDefenseStage) * defenseWeatherMultiplier,
   );
 
-  const adjustedPower = Math.max(1, Math.floor(move.power * weatherBpMultiplier));
+  const adjustedPower = Math.max(
+    1,
+    Math.floor(move.power * weatherBpMultiplier * fieldTerrainBpMultiplier),
+  );
   const baseDamage = Math.floor(
     (((2 * BATTLE_LEVEL) / 5 + 2) * adjustedPower * effectiveAttack) / effectiveDefense / 50 + 2,
   );
@@ -193,7 +198,8 @@ export function calculateDamageWithCrit(
         defenderItemMod *
         critMod *
         effectiveScreenMultiplier *
-        brickBreakMultiplier,
+        brickBreakMultiplier *
+        fieldTerrainDamageMultiplier,
     ),
   );
 
@@ -219,6 +225,8 @@ export function calculateDamage(
   defenseWeatherMultiplier = 1.0,
   screenMultiplier = 1.0,
   brickBreakMultiplier = 1.0,
+  fieldTerrainBpMultiplier = 1.0,
+  fieldTerrainDamageMultiplier = 1.0,
 ): number {
   return calculateDamageWithCrit(
     attacker,
@@ -238,6 +246,8 @@ export function calculateDamage(
     defenseWeatherMultiplier,
     screenMultiplier,
     brickBreakMultiplier,
+    fieldTerrainBpMultiplier,
+    fieldTerrainDamageMultiplier,
   ).damage;
 }
 

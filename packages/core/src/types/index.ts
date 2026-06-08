@@ -11,6 +11,7 @@ export type * from "./damage-estimate";
 export type * from "./derived-stats";
 export type * from "./dynamic-power-spec";
 export type * from "./effect";
+export type * from "./field-zone";
 export type * from "./gender-ratio";
 export type * from "./held-item-definition";
 export type * from "./map-definition";

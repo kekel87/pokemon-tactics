@@ -149,6 +149,7 @@ function buildGoldenEngine(seed: number): BattleEngine {
     weather: Weather.None,
     weatherTurnsRemaining: 0,
     auras: [],
+    fieldTerrains: [],
   };
 
   const random = createPrng(seed);
