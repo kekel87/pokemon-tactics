@@ -523,7 +523,7 @@ export class GameController {
       return;
     }
 
-    const moveDefinition = this.moveDefinitions.get(moveId);
+    const moveDefinition = this.resolveEffectiveMoveForActive(moveId);
     if (!moveDefinition) {
       return;
     }
@@ -840,7 +840,7 @@ export class GameController {
     this.clearPreviewState();
     this.decorationsLayer?.setPreviewMode(true);
 
-    const moveDefinition = this.moveDefinitions.get(moveId);
+    const moveDefinition = this.resolveEffectiveMoveForActive(moveId);
     if (!moveDefinition) {
       return;
     }
@@ -2149,6 +2149,20 @@ export class GameController {
     return !hasDamage && !hasOffensiveEffect;
   }
 
+  /**
+   * The B4-resolved move for the active caster (Nature Power swap / Expanding Force targeting /
+   * Grassy Glide range), so the preview and tooltip reflect what the move morphs into under the
+   * caster's current tile. Falls back to the static definition.
+   */
+  private resolveEffectiveMoveForActive(moveId: string): MoveDefinition | undefined {
+    const activePokemon = this.getActivePokemon();
+    const staticDefinition = this.moveDefinitions.get(moveId);
+    if (!activePokemon) {
+      return staticDefinition;
+    }
+    return this.engine.getEffectiveMove(activePokemon.id, moveId) ?? staticDefinition;
+  }
+
   /** Manhattan radius of a self-cast radius effect (life-dew/aromatherapy, field-terrain zone), if any. */
   private getSelfRadiusEffect(move: MoveDefinition): number | undefined {
     for (const effect of move.effects) {
@@ -2193,7 +2207,7 @@ export class GameController {
   }
 
   private resolveAttackAction(moveId: string, gridX: number, gridY: number): Action | null {
-    const moveDefinition = this.moveDefinitions.get(moveId);
+    const moveDefinition = this.resolveEffectiveMoveForActive(moveId);
     if (!moveDefinition) {
       return null;
     }

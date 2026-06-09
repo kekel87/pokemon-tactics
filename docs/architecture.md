@@ -124,7 +124,7 @@ pokemon-tactics/
 │       ├── src/
 │       │   ├── abilities/       # Définitions talents : ability-definitions.ts (20 AbilityDefinition), index.ts
 │       │   ├── items/           # Définitions objets tenus : item-definitions.ts (12 HeldItemDefinition), load-items.ts
-│       │   ├── roster/          # Roster POC : roster-poc.ts — 21 Pokemon avec movepool curation (plan 049)
+│       │   ├── playable/        # Roster jouable : playable-pokemon.ts — 80 Pokemon Gen 1 + dummy. `PlayablePokemonEntry { id; custom?; excludeMoves? }` — movepool dérivé (OP sets ∪ learnset ∩ implémenté, filtré par `excludeMoves`). `excludeMoves` = exclusion ciblée d'un move du movepool même si légal+implémenté (ex: Vaste Pouvoir exclu de Mewtwo, décision #446). (plan 087, plan 118)
 │       │   ├── loaders/         # Loaders séparés : load-pokemon.ts, load-moves.ts, load-type-chart.ts (plan 049)
 │       │   ├── overrides/       # Surcharges tactiques + balance
 │       │   ├── maps/            # Cartes statiques TS (poc-arena 12×20, sandbox-arena 6×6)

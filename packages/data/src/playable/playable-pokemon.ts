@@ -79,7 +79,8 @@ export const playablePokemon: PlayablePokemonEntry[] = [
   { id: "zapdos" },
   { id: "moltres" },
   { id: "dragonite" },
-  { id: "mewtwo" },
+  // expanding-force off Mewtwo: 154 SpA + self-posed Psychic Terrain AoE = too dominant (#445).
+  { id: "mewtwo", excludeMoves: ["expanding-force"] },
   { id: "mew" },
   {
     id: "dummy",

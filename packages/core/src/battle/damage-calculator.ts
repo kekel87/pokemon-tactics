@@ -301,6 +301,8 @@ export function estimateDamage(
   facingModifier = 1.0,
   abilityRegistry?: AbilityHandlerRegistry,
   itemRegistry?: HeldItemHandlerRegistry,
+  fieldTerrainBpMultiplier = 1.0,
+  fieldTerrainDamageMultiplier = 1.0,
 ): DamageEstimate {
   const resolvedMove = resolveDynamicPower(move, attacker, defender);
   const effectiveness = getTypeEffectiveness(
@@ -322,6 +324,12 @@ export function estimateDamage(
     facingModifier,
     abilityRegistry,
     itemRegistry,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    fieldTerrainBpMultiplier,
+    fieldTerrainDamageMultiplier,
   );
   const max = calculateDamage(
     attacker,
@@ -336,6 +344,12 @@ export function estimateDamage(
     facingModifier,
     abilityRegistry,
     itemRegistry,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    fieldTerrainBpMultiplier,
+    fieldTerrainDamageMultiplier,
   );
   return { min, max, effectiveness, facingModifier };
 }

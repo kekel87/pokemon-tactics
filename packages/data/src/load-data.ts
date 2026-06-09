@@ -96,6 +96,17 @@ export function loadData(): GameData {
       ...(merged.requiresAsleep ? { requiresAsleep: true } : {}),
       ...(merged.requiresAllOtherMovesUsed ? { requiresAllOtherMovesUsed: true } : {}),
       ...(merged.requiresTargetAsleep ? { requiresTargetAsleep: true } : {}),
+      ...(merged.fieldTerrainPowerBonus
+        ? { fieldTerrainPowerBonus: merged.fieldTerrainPowerBonus }
+        : {}),
+      ...(merged.dashRangeBonusOnFieldTerrain
+        ? { dashRangeBonusOnFieldTerrain: merged.dashRangeBonusOnFieldTerrain }
+        : {}),
+      ...(merged.fieldTerrainTargetingOverride
+        ? { fieldTerrainTargetingOverride: merged.fieldTerrainTargetingOverride }
+        : {}),
+      ...(merged.fieldTerrainBoostedType ? { fieldTerrainBoostedType: true } : {}),
+      ...(merged.naturePowerMorph ? { naturePowerMorph: true } : {}),
     };
     return moveDefinition;
   });

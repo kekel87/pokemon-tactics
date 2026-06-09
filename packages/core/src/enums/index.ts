@@ -13,6 +13,7 @@ export { EffectKind } from "./effect-kind";
 export { EffectTarget } from "./effect-target";
 export { EffectTier } from "./effect-tier";
 export { FieldTerrain } from "./field-terrain";
+export { FieldTerrainBonusWho } from "./field-terrain-bonus-who";
 export { HeldItemId } from "./held-item-id";
 export { HitAndRunRetreatFallbackReason } from "./hit-and-run-retreat-fallback-reason";
 export { Nature } from "./nature";

@@ -54,7 +54,16 @@ import { processEffects } from "./effect-processor";
 import { isEffectivelyFlying } from "./effective-flying";
 import { getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
-import { isEnemyPsychicBarrierAt, PSYCHIC_BARRIER_IMPACT_HEIGHT } from "./field-terrain-system";
+import {
+  getFieldTerrainBpMultiplier,
+  getFieldTerrainDamageMultiplier,
+  getFieldTerrainMovePowerMultiplier,
+  isEnemyPsychicBarrierAt,
+  isOnFieldTerrain,
+  PSYCHIC_BARRIER_IMPACT_HEIGHT,
+  resolveEffectiveTargeting,
+  resolveFieldTerrainPulseMove,
+} from "./field-terrain-system";
 import { createAurasTickHandler } from "./handlers/aura-tick-handler";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import {
@@ -75,6 +84,7 @@ import { getHeightModifier } from "./height-modifier";
 import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getEffectiveInitiative } from "./initiative-calculator";
+import { resolveNaturePowerMove } from "./nature-power-system";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { computePressureBonus } from "./pressure";
 import {
@@ -273,12 +283,37 @@ export class BattleEngine {
   ): DamageEstimate | null {
     const attacker = this.state.pokemon.get(attackerId);
     const defender = this.state.pokemon.get(defenderId);
-    const move = this.moveRegistry.get(moveId);
-    if (!attacker || !defender || !move) {
+    const rawMove = this.moveRegistry.get(moveId);
+    if (!attacker || !defender || !rawMove) {
       return null;
     }
     const attackerTypes = this.pokemonTypesMap.get(attacker.definitionId) ?? [];
     const defenderTypes = this.pokemonTypesMap.get(defender.definitionId) ?? [];
+    // B4 morphs the AI must see for correct scoring: Nature Power full swap, then Terrain Pulse type.
+    const morphedMove = resolveNaturePowerMove(
+      (id) => this.moveRegistry.get(id),
+      this.state,
+      this.grid,
+      attacker,
+      rawMove,
+    );
+    const move = resolveFieldTerrainPulseMove(this.state, attacker, attackerTypes, morphedMove);
+    const fieldTerrainBp =
+      getFieldTerrainBpMultiplier(this.state, attacker, attackerTypes, move) *
+      getFieldTerrainMovePowerMultiplier(
+        this.state,
+        attacker,
+        attackerTypes,
+        defender,
+        defenderTypes,
+        move,
+      );
+    const fieldTerrainDamage = getFieldTerrainDamageMultiplier(
+      this.state,
+      defender,
+      defenderTypes,
+      move,
+    );
     const attackerHeight = this.grid.getTile(attacker.position)?.height ?? 0;
     const defenderHeight = this.grid.getTile(defender.position)?.height ?? 0;
     const heightMod = getHeightModifier(
@@ -309,7 +344,23 @@ export class BattleEngine {
       facingMod,
       this.abilityRegistry ?? undefined,
       this.itemRegistry ?? undefined,
+      fieldTerrainBp,
+      fieldTerrainDamage,
     );
+  }
+
+  /**
+   * The B4-resolved move for a given caster (Nature Power swap / Expanding Force targeting / Grassy
+   * Glide range), from the caster's current tile. Used by the renderer to preview the morphed
+   * targeting and tooltip. Returns the raw move when nothing morphs, or null when unknown.
+   */
+  getEffectiveMove(pokemonId: string, moveId: string): MoveDefinition | null {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    const move = this.moveRegistry.get(moveId);
+    if (!pokemon || !move) {
+      return null;
+    }
+    return this.resolveEffectiveMove(pokemon, move);
   }
 
   getReachableTilesForPokemon(pokemonId: string): Position[] {
@@ -339,6 +390,38 @@ export class BattleEngine {
   private buildDashBarrierPredicate(dasher: PokemonInstance): (position: Position) => boolean {
     const dasherTypes = this.getPokemonTypes(dasher.id);
     return (position) => isEnemyPsychicBarrierAt(this.state, dasher, dasherTypes, position);
+  }
+
+  /**
+   * Single source of truth for B4 move/targeting morphs (decisions D/E/F/G). Resolved from the
+   * caster's CURRENT tile so legality/AI, preview and execution stay aligned:
+   *  - Nature Power → full move swap (energy-ball / hydro-pump / ... / tri-attack);
+   *  - Expanding Force → Single → Zone r2 targeting override on Psychic Terrain;
+   *  - Grassy Glide → Dash maxDistance extended on Grassy Terrain.
+   * The returned MoveDefinition keeps the source `id`/`pp` accounting via the caller (PP is spent on
+   * the original move id), but exposes the resolved type/category/power/effects and the effective
+   * targeting pattern.
+   */
+  private resolveEffectiveMove(pokemon: PokemonInstance, move: MoveDefinition): MoveDefinition {
+    const swapped = resolveNaturePowerMove(
+      (id) => this.moveRegistry.get(id),
+      this.state,
+      this.grid,
+      pokemon,
+      move,
+    );
+    const casterTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    let targeting = resolveEffectiveTargeting(swapped, pokemon, casterTypes, this.state);
+    if (
+      targeting.kind === TargetingKind.Dash &&
+      swapped.dashRangeBonusOnFieldTerrain !== undefined
+    ) {
+      const { terrain, bonus } = swapped.dashRangeBonusOnFieldTerrain;
+      if (isOnFieldTerrain(this.state, pokemon, casterTypes, terrain)) {
+        targeting = { ...targeting, maxDistance: targeting.maxDistance + bonus };
+      }
+    }
+    return targeting === swapped.targeting ? swapped : { ...swapped, targeting };
   }
 
   computePathDistance(from: Position, to: Position, pokemonId: string): number {
@@ -514,7 +597,11 @@ export class BattleEngine {
           }
         }
 
-        if (this.restrictActions && move.targeting.kind === TargetingKind.Dash) {
+        // B4 morphs (Nature Power swap, Expanding Force targeting, Grassy Glide range) resolved from
+        // the caster's current tile so legality matches preview and execution exactly.
+        const effectiveMove = this.resolveEffectiveMove(currentPokemon, move);
+
+        if (this.restrictActions && effectiveMove.targeting.kind === TargetingKind.Dash) {
           continue;
         }
 
@@ -529,14 +616,15 @@ export class BattleEngine {
           continue;
         }
 
-        const targetPositions = this.getValidTargetPositions(currentPokemon, move);
-        const moveContext = { type: move.type, flags: move.flags };
+        const targetPositions = this.getValidTargetPositions(currentPokemon, effectiveMove);
+        const moveContext = { type: effectiveMove.type, flags: effectiveMove.flags };
         for (const targetPosition of targetPositions) {
           const affectedTiles =
-            move.targetsAllyOrSelf === true && this.isSelfTile(currentPokemon, targetPosition)
+            effectiveMove.targetsAllyOrSelf === true &&
+            this.isSelfTile(currentPokemon, targetPosition)
               ? [{ ...currentPokemon.position }]
               : resolveTargeting(
-                  move.targeting,
+                  effectiveMove.targeting,
                   currentPokemon,
                   targetPosition,
                   this.grid,
@@ -954,26 +1042,37 @@ export class BattleEngine {
     }
     const traversalContext: TraversalContext = { allyIds, canTraverseEnemies: false };
 
+    // B4 morphs (Nature Power full swap, Expanding Force targeting override, Grassy Glide range)
+    // resolved from the caster's current tile. PP is still spent on the original move id.
+    const effectiveMove = this.resolveEffectiveMove(pokemon, move);
+
     // Self-cast of an ally-or-self move (wish on oneself): the Single range excludes distance 0,
     // so resolve to the caster's own tile explicitly to match getLegalActions.
     const affectedTiles =
-      move.targetsAllyOrSelf === true && this.isSelfTile(pokemon, targetPosition)
+      effectiveMove.targetsAllyOrSelf === true && this.isSelfTile(pokemon, targetPosition)
         ? [{ ...pokemon.position }]
-        : resolveTargeting(move.targeting, pokemon, targetPosition, this.grid, traversalContext, {
-            type: move.type,
-            flags: move.flags,
-          });
+        : resolveTargeting(
+            effectiveMove.targeting,
+            pokemon,
+            targetPosition,
+            this.grid,
+            traversalContext,
+            {
+              type: effectiveMove.type,
+              flags: effectiveMove.flags,
+            },
+          );
 
     if (affectedTiles.length === 0) {
       return { success: false, events: [], error: ActionError.InvalidTarget };
     }
 
-    if (move.targetsAlly === true && !this.isAdjacentAllyTile(pokemon, targetPosition)) {
+    if (effectiveMove.targetsAlly === true && !this.isAdjacentAllyTile(pokemon, targetPosition)) {
       return { success: false, events: [], error: ActionError.InvalidTarget };
     }
 
     if (
-      move.targetsAllyOrSelf === true &&
+      effectiveMove.targetsAllyOrSelf === true &&
       !this.isAdjacentAllyTile(pokemon, targetPosition) &&
       !this.isSelfTile(pokemon, targetPosition)
     ) {
@@ -996,11 +1095,27 @@ export class BattleEngine {
       pokemon.orientation = directionFromTo(pokemon.position, targetPosition);
     }
 
+    const didMorph = effectiveMove.id !== move.id;
+    // Terrain Pulse type morph (decision D) is applied at hit time in handle-damage; resolve it here
+    // too purely for the "becomes type X" log event.
+    const pulseType =
+      effectiveMove.fieldTerrainBoostedType === true
+        ? resolveFieldTerrainPulseMove(
+            this.state,
+            pokemon,
+            this.pokemonTypesMap.get(pokemon.definitionId) ?? [],
+            effectiveMove,
+          ).type
+        : effectiveMove.type;
     const moveStarted: BattleEvent = {
       type: BattleEventType.MoveStarted,
       attackerId: pokemon.id,
       moveId,
       direction: pokemon.orientation,
+      ...(didMorph ? { resolvedMoveId: effectiveMove.id } : {}),
+      ...(effectiveMove.fieldTerrainBoostedType === true && pulseType !== effectiveMove.type
+        ? { resolvedType: pulseType }
+        : {}),
     };
     this.emit(moveStarted);
     events.push(moveStarted);
@@ -1019,7 +1134,7 @@ export class BattleEngine {
 
       if (
         target.semiInvulnerableState !== undefined &&
-        !canMoveHitSemiInvulnerable(move, target.semiInvulnerableState)
+        !canMoveHitSemiInvulnerable(effectiveMove, target.semiInvulnerableState)
       ) {
         continue;
       }
@@ -1037,7 +1152,7 @@ export class BattleEngine {
       if (
         forceHit ||
         checkAccuracy(
-          move,
+          effectiveMove,
           pokemon,
           target,
           this.random,
@@ -1087,30 +1202,33 @@ export class BattleEngine {
     const heightMod = getHeightModifier(
       attackerHeight,
       this.grid.getTile(targetPosition)?.height ?? 0,
-      move.ignoresHeight ?? false,
+      effectiveMove.ignoresHeight ?? false,
     );
 
     const attackerTile = this.grid.getTile(pokemon.position);
     const terrainMod = attackerTile
       ? getTerrainTypeBonusFactor(
           attackerTile.terrain,
-          move.type,
+          effectiveMove.type,
           attackerTypes,
           this.isEffectivelyFlying(pokemon),
         )
       : 1.0;
 
-    const attackOrigin = getAttackOrigin(pokemon, move, targetPosition);
+    const attackOrigin = getAttackOrigin(pokemon, effectiveMove, targetPosition);
     const facingModifierMap = new Map<string, number>();
     for (const target of targets) {
       let modifier = getFacingModifier(getFacingZone(attackOrigin, target));
       if (target.semiInvulnerableState !== undefined) {
-        modifier *= getSemiInvulnerableDamageMultiplier(move, target.semiInvulnerableState);
+        modifier *= getSemiInvulnerableDamageMultiplier(
+          effectiveMove,
+          target.semiInvulnerableState,
+        );
       }
       facingModifierMap.set(target.id, modifier);
     }
 
-    if (move.targeting.kind === TargetingKind.Dash) {
+    if (effectiveMove.targeting.kind === TargetingKind.Dash) {
       this.dashMoveCaster(pokemon, targetPosition, events);
     }
 
@@ -1125,7 +1243,7 @@ export class BattleEngine {
     const effectEvents = processEffects({
       attacker: pokemon,
       targets,
-      move,
+      move: effectiveMove,
       state: this.state,
       typeChart: this.typeChart,
       attackerTypes,
@@ -1157,7 +1275,7 @@ export class BattleEngine {
           const koEvents = attackerAbility.onAfterKO({
             self: pokemon,
             target,
-            move,
+            move: effectiveMove,
             state: this.state,
           });
           for (const e of koEvents) {
@@ -1168,7 +1286,7 @@ export class BattleEngine {
       }
     }
 
-    if (move.crashOnMiss && pokemon.currentHp > 0) {
+    if (effectiveMove.crashOnMiss && pokemon.currentHp > 0) {
       const connected = effectEvents.some(
         (event) =>
           event.type === BattleEventType.DamageDealt &&
@@ -1177,7 +1295,10 @@ export class BattleEngine {
           (event.effectiveness ?? 0) > 0,
       );
       if (!connected) {
-        const crashDamage = Math.max(1, Math.floor(pokemon.maxHp * move.crashOnMiss.fraction));
+        const crashDamage = Math.max(
+          1,
+          Math.floor(pokemon.maxHp * effectiveMove.crashOnMiss.fraction),
+        );
         pokemon.currentHp = Math.max(0, pokemon.currentHp - crashDamage);
         const crashEvent: BattleEvent = {
           type: BattleEventType.DamageDealt,
@@ -1206,14 +1327,14 @@ export class BattleEngine {
 
     this.emitPositionLinkedChecks(events);
 
-    if (move.targeting.kind === TargetingKind.Teleport) {
+    if (effectiveMove.targeting.kind === TargetingKind.Teleport) {
       this.teleportMoveCaster(pokemon, targetPosition, events);
     }
 
-    if (move.targeting.kind === TargetingKind.HitAndRun && pokemon.currentHp > 0) {
+    if (effectiveMove.targeting.kind === TargetingKind.HitAndRun && pokemon.currentHp > 0) {
       this.hitAndRunMoveCaster(
         pokemon,
-        move.targeting.retreatRange,
+        effectiveMove.targeting.retreatRange,
         retreatPosition,
         targets.length > 0,
         events,
@@ -1223,7 +1344,7 @@ export class BattleEngine {
     this.applyChoiceLock(pokemon, moveId);
 
     // Charge (B3): a Charge'd Electric move consumes the volatile after dealing its boosted hit.
-    if (move.type === PokemonType.Electric && moveId !== "charge") {
+    if (effectiveMove.type === PokemonType.Electric && moveId !== "charge") {
       this.removeChargedVolatile(pokemon);
     }
 
@@ -1238,7 +1359,9 @@ export class BattleEngine {
     }
     // Track move failure for Stomping Tantrum: a damaging move that connected with no target
     // (missed / immune / fully blocked) counts as failed. Status/self moves never "fail" here.
-    const isDamagingMove = move.effects.some((effect) => effect.kind === EffectKind.Damage);
+    const isDamagingMove = effectiveMove.effects.some(
+      (effect) => effect.kind === EffectKind.Damage,
+    );
     if (isDamagingMove) {
       const connectedWithTarget = effectEvents.some(
         (event) =>

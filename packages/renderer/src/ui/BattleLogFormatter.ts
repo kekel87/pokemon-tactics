@@ -1,4 +1,4 @@
-import type { AuraKind, BattleEvent, FieldTerrain } from "@pokemon-tactic/core";
+import type { AuraKind, BattleEvent, FieldTerrain, PokemonType } from "@pokemon-tactic/core";
 import {
   BattleEventType,
   DefensiveKind,
@@ -29,6 +29,14 @@ const FIELD_TERRAIN_LABELS_EN: Record<FieldTerrain, string> = {
 function fieldTerrainLabel(kind: FieldTerrain, lang: string): string {
   return lang === "fr" ? FIELD_TERRAIN_LABELS_FR[kind] : FIELD_TERRAIN_LABELS_EN[kind];
 }
+
+/** Type names for the B4 Terrain Pulse morph log ("becomes type X"). */
+const MORPH_TYPE_NAME: Partial<Record<PokemonType, { fr: string; en: string }>> = {
+  grass: { fr: "Plante", en: "Grass" },
+  electric: { fr: "Électrik", en: "Electric" },
+  fairy: { fr: "Fée", en: "Fairy" },
+  psychic: { fr: "Psy", en: "Psychic" },
+};
 
 const AURA_LABELS_FR: Record<AuraKind, string> = {
   reflect: "Protection",
@@ -229,7 +237,31 @@ export function formatBattleEvent(
       const name = context.getPokemonName(event.attackerId);
       const moveName = context.getMoveName(event.moveId);
       const message = lang === "fr" ? `${name} utilise ${moveName} !` : `${name} used ${moveName}!`;
-      return { message, color: BattleLogColors.move, pokemonIds: [event.attackerId] };
+      const usedEntry: BattleLogEntry = {
+        message,
+        color: BattleLogColors.move,
+        pokemonIds: [event.attackerId],
+      };
+      // B4 morph: Nature Power transforms into another move; Terrain Pulse changes type.
+      const morphEntries: BattleLogEntry[] = [];
+      if (event.resolvedMoveId !== undefined) {
+        const resolvedName = context.getMoveName(event.resolvedMoveId);
+        morphEntries.push({
+          message: `${moveName} → ${resolvedName}`,
+          color: BattleLogColors.move,
+          pokemonIds: [event.attackerId],
+        });
+      }
+      if (event.resolvedType !== undefined) {
+        const typeName = MORPH_TYPE_NAME[event.resolvedType]?.[lang] ?? event.resolvedType;
+        morphEntries.push({
+          message:
+            lang === "fr" ? `${moveName} → type ${typeName}` : `${moveName} → ${typeName}-type`,
+          color: BattleLogColors.move,
+          pokemonIds: [event.attackerId],
+        });
+      }
+      return morphEntries.length === 0 ? usedEntry : [usedEntry, ...morphEntries];
     }
 
     case BattleEventType.DamageDealt: {

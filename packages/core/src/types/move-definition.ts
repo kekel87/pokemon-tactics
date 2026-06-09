@@ -1,6 +1,8 @@
 import type { AttackStatSource } from "../enums/attack-stat-source";
 import type { Category } from "../enums/category";
 import type { EffectTier } from "../enums/effect-tier";
+import type { FieldTerrain } from "../enums/field-terrain";
+import type { FieldTerrainBonusWho } from "../enums/field-terrain-bonus-who";
 import type { PokemonType } from "../enums/pokemon-type";
 import type { Weather } from "../enums/weather";
 import type { DynamicPowerSpec } from "./dynamic-power-spec";
@@ -55,4 +57,31 @@ export interface MoveDefinition {
   requiresAllOtherMovesUsed?: boolean;
   /** The move fails (no damage / no drain) unless the target is asleep (dream-eater). */
   requiresTargetAsleep?: boolean;
+  /**
+   * Field-terrain (B4) power bonus: multiply base power when `who` stands on `terrain`. Folded into
+   * the field-terrain BP multiplier threaded to the damage calc (Rising Voltage, Misty Explosion,
+   * Expanding Force ×1.5). Distinct from `fieldTerrainBoostedType` (type morph).
+   */
+  fieldTerrainPowerBonus?: { who: FieldTerrainBonusWho; terrain: FieldTerrain; multiplier: number };
+  /**
+   * Field-terrain (B4) Dash range bonus: while the caster stands on `terrain` at the start tile,
+   * the Dash `maxDistance` is extended by `bonus` (Grassy Glide: 2 → 4 on Grassy Terrain).
+   */
+  dashRangeBonusOnFieldTerrain?: { terrain: FieldTerrain; bonus: number };
+  /**
+   * Field-terrain (B4) targeting override: while the caster stands on `terrain`, the move's
+   * effective targeting becomes `targeting` (Expanding Force: Single → Zone r2 on Psychic Terrain).
+   * The companion ×1.5 is carried by `fieldTerrainPowerBonus`, resolved separately.
+   */
+  fieldTerrainTargetingOverride?: { terrain: FieldTerrain; targeting: TargetingPattern };
+  /**
+   * Field-terrain (B4) type morph (mirror of `weatherBoostedType`): while the caster stands on a
+   * field terrain, the move's type follows the terrain and power doubles to 100 (Terrain Pulse).
+   */
+  fieldTerrainBoostedType?: boolean;
+  /**
+   * Force Nature (B4): replace the whole move with another, chosen by the field terrain / map tile
+   * under the caster (Nature Power). Resolved to a full MoveDefinition at use time.
+   */
+  naturePowerMorph?: boolean;
 }

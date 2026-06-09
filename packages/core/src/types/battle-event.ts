@@ -4,6 +4,7 @@ import type { DefensiveKind } from "../enums/defensive-kind";
 import type { Direction } from "../enums/direction";
 import type { FieldTerrain } from "../enums/field-terrain";
 import type { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
+import type { PokemonType } from "../enums/pokemon-type";
 import type { StatName } from "../enums/stat-name";
 import type { StatusImmuneReason } from "../enums/status-immune-reason";
 import type { StatusType } from "../enums/status-type";
@@ -41,6 +42,10 @@ export type BattleEvent =
       attackerId: string;
       moveId: string;
       direction: Direction;
+      /** B4 morph: the move actually resolved (Nature Power → psychic, Terrain Pulse type morph). */
+      resolvedMoveId?: string;
+      /** B4 Terrain Pulse: the type the move morphed into (for the "becomes type X" log). */
+      resolvedType?: PokemonType;
     }
   | { type: typeof BattleEventType.PokemonMoved; pokemonId: string; path: Position[] }
   | {

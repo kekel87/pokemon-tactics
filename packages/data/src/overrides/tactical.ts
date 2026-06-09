@@ -16,6 +16,7 @@ import {
   EffectTarget,
   EffectTier,
   FieldTerrain,
+  FieldTerrainBonusWho,
   PokemonType,
   SemiInvulnerableState,
   StatName,
@@ -51,6 +52,15 @@ export interface TacticalOverride {
   requiresAsleep?: boolean;
   requiresAllOtherMovesUsed?: boolean;
   requiresTargetAsleep?: boolean;
+  fieldTerrainPowerBonus?: {
+    who: FieldTerrainBonusWho;
+    terrain: FieldTerrain;
+    multiplier: number;
+  };
+  dashRangeBonusOnFieldTerrain?: { terrain: FieldTerrain; bonus: number };
+  fieldTerrainTargetingOverride?: { terrain: FieldTerrain; targeting: TargetingPattern };
+  fieldTerrainBoostedType?: boolean;
+  naturePowerMorph?: boolean;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -1503,6 +1513,76 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
     effects: [{ kind: EffectKind.Damage }],
     weatherBoostedType: true,
+  },
+
+  // B4 — moves dependent on field terrains (plan 118)
+  "grassy-glide": {
+    // Dash range 2, extended to 4 when the caster starts on Grassy Terrain (decision #439).
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+    dashRangeBonusOnFieldTerrain: { terrain: FieldTerrain.Grassy, bonus: 2 },
+  },
+  "rising-voltage": {
+    // ×2 when the TARGET stands on Electric Terrain (decision A).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.Damage }],
+    fieldTerrainPowerBonus: {
+      who: FieldTerrainBonusWho.Target,
+      terrain: FieldTerrain.Electric,
+      multiplier: 2,
+    },
+  },
+  "expanding-force": {
+    // On Psychic Terrain (caster): Single → AoE radius 1 around the target + ×1.5 (#440, #444, #448).
+    // Blast (range + radius) centers the AoE on the targeted tile, unlike Zone (caster-centered).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.Damage }],
+    fieldTerrainTargetingOverride: {
+      terrain: FieldTerrain.Psychic,
+      targeting: { kind: TargetingKind.Blast, range: { min: 1, max: 4 }, radius: 1 },
+    },
+    fieldTerrainPowerBonus: {
+      who: FieldTerrainBonusWho.Caster,
+      terrain: FieldTerrain.Psychic,
+      multiplier: 1.5,
+    },
+  },
+  "misty-explosion": {
+    // Self-KO AoE (self-destruct model); ×1.5 when the caster stands on Misty Terrain.
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 999 }],
+    fieldTerrainPowerBonus: {
+      who: FieldTerrainBonusWho.Caster,
+      terrain: FieldTerrain.Misty,
+      multiplier: 1.5,
+    },
+  },
+  "terrain-pulse": {
+    // Type morph + ×2 (50 → 100) by the field terrain under the caster (decisions D, #443).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.Damage }],
+    fieldTerrainBoostedType: true,
+  },
+  "nature-power": {
+    // Full move swap by field terrain / map tile under the caster (decision #441). Self is only a
+    // placeholder — the resolved move's targeting drives everything.
+    targeting: { kind: TargetingKind.Self },
+    effects: [],
+    naturePowerMorph: true,
+  },
+  "mud-bomb": {
+    // Sub-deliverable (Nature Power swamp target). Standard Single + 30% Accuracy -1 secondary.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Accuracy,
+        stages: -1,
+        target: EffectTarget.Targets,
+        chance: 30,
+      },
+    ],
   },
   "solar-beam": {
     targeting: { kind: TargetingKind.Line, length: 5 },

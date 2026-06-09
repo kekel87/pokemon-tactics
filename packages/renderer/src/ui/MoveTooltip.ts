@@ -99,6 +99,15 @@ export class MoveTooltip {
       (effect) => effect.kind === EffectKind.HealByTargetStat,
     );
     const hasRequiresTargetAsleepTag = move.requiresTargetAsleep === true;
+    // B4 field-terrain dependent tags (plan 118).
+    const hasDashRangeTerrainTag = move.dashRangeBonusOnFieldTerrain !== undefined;
+    const hasTargetPowerTerrainTag = move.fieldTerrainPowerBonus?.who === "target";
+    const hasTargetingOverrideTag = move.fieldTerrainTargetingOverride !== undefined;
+    const hasSelfKoTag = move.effects.some(
+      (effect) => effect.kind === EffectKind.Recoil && effect.fraction >= 999,
+    );
+    const hasPulseMorphTag = move.fieldTerrainBoostedType === true;
+    const hasNaturePowerTag = move.naturePowerMorph === true;
     const fieldTerrainEffect = move.effects.find(
       (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostFieldTerrain }> =>
         effect.kind === EffectKind.PostFieldTerrain,
@@ -119,6 +128,12 @@ export class MoveTooltip {
       (hasCureTag ? 1 : 0) +
       (hasHealByStatTag ? 1 : 0) +
       (hasRequiresTargetAsleepTag ? 1 : 0) +
+      (hasDashRangeTerrainTag ? 1 : 0) +
+      (hasTargetPowerTerrainTag ? 1 : 0) +
+      (hasTargetingOverrideTag ? 1 : 0) +
+      (hasSelfKoTag ? 1 : 0) +
+      (hasPulseMorphTag ? 1 : 0) +
+      (hasNaturePowerTag ? 1 : 0) +
       (fieldTerrainEffect ? 1 : 0);
     const totalHeight = padding + textLines * lineHeight + 4 + gridHeight + padding;
 
@@ -226,6 +241,36 @@ export class MoveTooltip {
 
     if (hasRequiresTargetAsleepTag) {
       this.addText(contentX, contentY, t("moveTooltip.tag.requiresTargetAsleep"));
+      contentY += lineHeight;
+    }
+
+    if (hasDashRangeTerrainTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.grassyGlideDash"));
+      contentY += lineHeight;
+    }
+
+    if (hasTargetPowerTerrainTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.risingVoltageTerrain"));
+      contentY += lineHeight;
+    }
+
+    if (hasTargetingOverrideTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.expandingForceTerrain"));
+      contentY += lineHeight;
+    }
+
+    if (hasSelfKoTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.mistyExplosionSelfKo"));
+      contentY += lineHeight;
+    }
+
+    if (hasPulseMorphTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.terrainPulseMorph"));
+      contentY += lineHeight;
+    }
+
+    if (hasNaturePowerTag) {
+      this.addText(contentX, contentY, t("moveTooltip.tag.naturePowerMorph"));
       contentY += lineHeight;
     }
 
