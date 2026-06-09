@@ -24,8 +24,9 @@ fi
 
 # --- Git versioning ---
 # commit/add/push/amend autorises (apres validation du message en chat).
-# Les operations destructrices (reset, rebase, checkout, etc.) restent
-# bloquees via la deny-list de .claude/settings.json.
+# rebase autorise (l'humain prefere rebase aux merges, surtout en worktree).
+# Les autres operations destructrices (reset, checkout, restore, clean, etc.)
+# restent bloquees via la deny-list de .claude/settings.json.
 #
 # Merge : seul le fast-forward (--ff-only) est autorise (non destructif, refuse
 # proprement si divergence). Tout autre merge (merge-commit, --no-ff, --squash,

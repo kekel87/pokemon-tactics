@@ -75,7 +75,7 @@ TypeScript strict ESM · Phaser 4 · Vitest · Playwright (`visual-tester`) · c
 - `any` sans justification
 - Commiter assets non libres de droits
 - Charger toute doc en contexte quand 1 fichier suffit
-- **Git** : commit/add/push/amend autorisés APRÈS validation du message en chat. Claude propose le message (titre seul, court), l'humain valide, puis Claude commit + push. Jamais commit sans proposition+validation préalable. Destructeurs interdits (checkout, reset, rebase, merge, restore, clean, rm, branch -d, tag -d) — bloqués par deny-list. **Exception : `git merge --ff-only` autorisé** (non destructif, intègre une branche worktree dans main ; autres merges = humain via GUI). Garde dans hook `block-forbidden-commands.sh`
+- **Git** : commit/add/push/amend autorisés APRÈS validation du message en chat. Claude propose le message (titre seul, court), l'humain valide, puis Claude commit + push. Jamais commit sans proposition+validation préalable. Destructeurs interdits (checkout, reset, merge, restore, clean, rm, branch -d, tag -d) — bloqués par deny-list. **`git rebase` autorisé** (l'humain déteste les merges → intégration worktree → main par rebase, jamais merge). **Exception merge : `git merge --ff-only` autorisé** (non destructif ; autres merges = humain via GUI). Garde dans hook `block-forbidden-commands.sh`
 - **Infra** : install global, modif nvm/npm config interdit. Bloqué par hook
 - **Structurel** : consulter humain AVANT modifier tsconfig, module resolution, structure, dépendances. Bug fix simple OK
 - **Mémoire vs doc** : recherches/décisions/contexte → doc projet (git), pas mémoire Claude. Mémoire = préférences perso humain seulement
@@ -101,33 +101,47 @@ Détails : `docs/agent-orchestration.md`.
 
 **Pas optionnel. Pas négociable.** Même si tu penses "le changement est petit". Même si tu as confiance. L'humain coche/décoche.
 
-#### Format du menu (AskUserQuestion, multiSelect=true)
+#### Format du menu (AskUserQuestion)
 
-Question : `"Impl terminée. Étapes à lancer ?"`
+⚠️ `AskUserQuestion` plafonne à **4 options par question**. Le menu est donc **découpé en 3 questions `multiSelect`** dans **un seul appel** `AskUserQuestion` (3 entrées dans `questions`), groupées par phase et dans l'ordre :
 
-Options (cocher pré-sélection selon règles ci-dessous) :
+**Q1 — `"Tests ?"`** (multiSelect)
+
+| Option | Pré-coché si |
+|--------|--------------|
+| `human-testing` | changement observable (move/ability/mécanique/UI/rendu/IA) — **mode interactif**, voir § dédié |
+| `visual-tester` | **JAMAIS auto-coché** (≥2 min Playwright, je pilote) |
+
+**Q2 — `"Validations locales ?"`** (multiSelect)
 
 | Option | Pré-coché si |
 |--------|--------------|
 | `core-guardian` | `git diff --name-only HEAD` matche `packages/core/` |
 | `code-reviewer` | >50 lignes changées OU nouveau fichier source |
 | `doc-keeper` | STATUS/docs/decisions impactés, nouvelle mécanique, nouveau Pokemon/move/ability |
-| `visual-tester` | **JAMAIS auto-coché** (≥2 min Playwright, je teste moi-même) |
-| `human-testing` | **JAMAIS auto-coché** (je prépare checklist + commandes sandbox, l'humain teste) |
+
+**Q3 — `"Finalisation ?"`** (multiSelect)
+
+| Option | Pré-coché si |
+|--------|--------------|
 | `gate CI` (`/ci-gate`) | Toujours coché sauf si déjà passé dans le tour |
 | `commit-message` (`/commit`) | Toujours coché |
 
 Spéciaux selon contexte :
-- **Plan en rédaction** (`docs/plans/*.md` draft non commit) : remplace par `[x] plan-reviewer`, `[ ] game-designer` (si mécaniques jeu)
+- **Plan en rédaction** (`docs/plans/*.md` draft non commit) : Q2 remplacée par `[x] plan-reviewer`, `[ ] game-designer` (si mécaniques jeu)
 - **Session fin** (humain dit "fin", "/status") : ajoute `[x] session-closer`
 
 #### Ordre d'exécution fixe
 
-`core-guardian → code-reviewer → doc-keeper → visual-tester → human-testing → /ci-gate → /commit`
+`human-testing → visual-tester → core-guardian → code-reviewer → doc-keeper → /ci-gate → /commit`
 
 Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, `visual-tester` régression).
 
-**`human-testing`** : je ne teste pas — je produis un plan que l'humain exécute. (1) analyse `git diff HEAD` pour ce qui est observable ; (2) checklist numérotée (quoi tester + résultat attendu, noms FR) ; (3) 1 commande `pnpm dev:sandbox '{...}'` pré-remplie et validée (moves/Pokemon existent, sinon agent `sandbox-json`) par scénario ; (4) pause, l'humain teste et revient. Exclusif de `visual-tester` en général.
+**`human-testing` — mode interactif (par défaut)** : je ne dump pas tout, je déroule **un scénario à la fois**, je lance, tu regardes, tu valides.
+1. Analyse `git diff HEAD` → scénarios observables (noms FR).
+2. Par scénario : commande `pnpm dev:sandbox '{...}'` pré-remplie, moves/Pokemon validés (`packages/data` ; doute → agent `sandbox-json`).
+3. **Boucle** : (a) je lance la commande du scénario courant ; (b) résumé en chat — **quoi tester** (1-2 lignes) + **résultat attendu** (noms FR) ; (c) **pause**, tu testes ; (d) ta réponse `suivant`/`ok` → scénario suivant ; bug/retour → on traite avant de continuer.
+4. Tous scénarios passés → on enchaîne `/ci-gate`, `/commit`. Exclusif de `visual-tester` en général.
 
 **Commit/push après validation** — `/commit` génère le titre court (1 scope max, sinon aucun), Claude le **propose en chat**, l'humain valide, **puis Claude commit + push**. Jamais commit sans validation préalable du message.
 
