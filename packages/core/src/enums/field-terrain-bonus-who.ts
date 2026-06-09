@@ -7,5 +7,4 @@ export const FieldTerrainBonusWho = {
   Target: "target",
 } as const;
 
-export type FieldTerrainBonusWho =
-  (typeof FieldTerrainBonusWho)[keyof typeof FieldTerrainBonusWho];
+export type FieldTerrainBonusWho = (typeof FieldTerrainBonusWho)[keyof typeof FieldTerrainBonusWho];
