@@ -24,6 +24,8 @@ import type { EffectContext } from "../effect-handler-registry";
 import {
   getFieldTerrainBpMultiplier,
   getFieldTerrainDamageMultiplier,
+  getFieldTerrainMovePowerMultiplier,
+  resolveFieldTerrainPulseMove,
 } from "../field-terrain-system";
 import { isMajorStatus } from "../stat-modifier";
 import { applySubstituteAbsorption, shouldSubstituteBlock } from "../substitute-system";
@@ -117,7 +119,12 @@ function dealSingleHit(
     return handler?.suppressesWeatherEffects === true;
   });
   let resolvedMove = resolveDynamicPower(
-    resolveWeatherBallMove(context.move, activeWeather),
+    resolveFieldTerrainPulseMove(
+      context.state,
+      context.attacker,
+      context.attackerTypes,
+      resolveWeatherBallMove(context.move, activeWeather),
+    ),
     context.attacker,
     target,
     context.state,
@@ -149,12 +156,21 @@ function dealSingleHit(
   const screenMultiplier = brickBreakInteraction.breakAuraCasterId
     ? 1.0
     : computeScreenMultiplier(context.state, context.attacker, target, resolvedMove);
-  const fieldTerrainBp = getFieldTerrainBpMultiplier(
-    context.state,
-    context.attacker,
-    context.attackerTypes,
-    resolvedMove,
-  );
+  const fieldTerrainBp =
+    getFieldTerrainBpMultiplier(
+      context.state,
+      context.attacker,
+      context.attackerTypes,
+      resolvedMove,
+    ) *
+    getFieldTerrainMovePowerMultiplier(
+      context.state,
+      context.attacker,
+      context.attackerTypes,
+      target,
+      defenderTypes,
+      resolvedMove,
+    );
   const fieldTerrainDamage = getFieldTerrainDamageMultiplier(
     context.state,
     target,

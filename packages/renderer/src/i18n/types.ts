@@ -303,6 +303,12 @@ export interface Translations {
   "moveTooltip.tag.fieldTerrain.electric": string;
   "moveTooltip.tag.fieldTerrain.misty": string;
   "moveTooltip.tag.fieldTerrain.psychic": string;
+  "moveTooltip.tag.grassyGlideDash": string;
+  "moveTooltip.tag.risingVoltageTerrain": string;
+  "moveTooltip.tag.expandingForceTerrain": string;
+  "moveTooltip.tag.mistyExplosionSelfKo": string;
+  "moveTooltip.tag.terrainPulseMorph": string;
+  "moveTooltip.tag.naturePowerMorph": string;
   "moveTooltip.tag.tauntBlocked": string;
   "moveTooltip.tag.disableBlocked": string;
   "moveTooltip.tag.encoreBlocked": string;

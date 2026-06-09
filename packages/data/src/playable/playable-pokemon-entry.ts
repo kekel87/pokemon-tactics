@@ -19,4 +19,9 @@ export interface PlayablePokemonCustom {
 export interface PlayablePokemonEntry {
   id: string;
   custom?: PlayablePokemonCustom;
+  /**
+   * Moves removed from the derived movepool for balance, even if legal + implemented
+   * (e.g. expanding-force off Mewtwo — decision #445). Ignored when `custom` sets the movepool.
+   */
+  excludeMoves?: string[];
 }

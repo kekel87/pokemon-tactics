@@ -60,10 +60,10 @@ Petite extension du moteur existant (override Défense, override type-efficacit�
 
 ### Vague 2 — Systèmes de terrain & objet
 
-#### B4 · Terrains (Champs) — 10 moves
+#### B4 · Terrains (Champs) — 10 moves ✅ **10/10 (clos — plans 117 + 118)**
 → Système terrain (pose un champ + scaling de puissance). Synergie forte avec grille tactique.
 > Champ Herbu, Champ Électrifié, Champ Brumeux, Champ Psychique, Gliss'Herbe, Monte-Tension, Vaste Pouvoir, Explo-Brume, Champlification, Force Nature
-- 4 poseurs de champ + 6 moves qui scalent/varient selon le champ actif.
+- 4 poseurs de champ (plan 117) + 6 moves qui scalent/varient selon le champ actif (plan 118, + Boue-Bombe sous-livrable). Moteur de Champs zonés (FFTA), double porte au-sol, barrière anti-dash Psy, Champ'Duit (Étend-Terre).
 
 #### B5 · Objet tenu — 12 moves
 → Système de manipulation d'objet tenu en combat (vol, largage, consommation, destruction).

@@ -37,7 +37,7 @@ export function loadPokemonFromReference(
       throw new Error(`Pokemon "${entry.id}" not found in reference data`);
     }
 
-    const movepool = deriveMovepool(entry.id, options);
+    const movepool = deriveMovepool(entry.id, options, entry.excludeMoves);
     const ability1 = ref.abilities.ability1;
 
     return {
@@ -61,20 +61,25 @@ export function loadPokemonFromReference(
   });
 }
 
-function deriveMovepool(pokemonId: string, options: LoadPokemonOptions): string[] {
+function deriveMovepool(
+  pokemonId: string,
+  options: LoadPokemonOptions,
+  excludeMoves?: string[],
+): string[] {
   const { implementedMoveIds, getOpSetMoveIds } = options;
+  const excluded = new Set(excludeMoves ?? []);
 
   const ordered: string[] = [];
   const seen = new Set<string>();
   for (const moveId of getOpSetMoveIds(pokemonId)) {
-    if (implementedMoveIds.has(moveId) && !seen.has(moveId)) {
+    if (implementedMoveIds.has(moveId) && !seen.has(moveId) && !excluded.has(moveId)) {
       ordered.push(moveId);
       seen.add(moveId);
     }
   }
 
   for (const moveId of getLegalMoves(pokemonId)) {
-    if (implementedMoveIds.has(moveId) && !seen.has(moveId)) {
+    if (implementedMoveIds.has(moveId) && !seen.has(moveId) && !excluded.has(moveId)) {
       ordered.push(moveId);
       seen.add(moveId);
     }

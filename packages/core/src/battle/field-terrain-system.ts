@@ -1,4 +1,5 @@
 import { FieldTerrain } from "../enums/field-terrain";
+import { FieldTerrainBonusWho } from "../enums/field-terrain-bonus-who";
 import { HeldItemId } from "../enums/held-item-id";
 import { PokemonType } from "../enums/pokemon-type";
 import type { BattleState } from "../types/battle-state";
@@ -6,6 +7,7 @@ import type { FieldZone } from "../types/field-zone";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
+import type { TargetingPattern } from "../types/targeting-pattern";
 import { isEffectivelyFlying } from "./effective-flying";
 
 export const FIELD_TERRAIN_DEFAULT_DURATION = 5;
@@ -135,11 +137,92 @@ export function getFieldTerrainBpMultiplier(
   attackerTypes: readonly PokemonType[],
   move: MoveDefinition,
 ): number {
+  // Type-morph and targeting-override moves are exempt from the ×1.3 type boost (decisions #443,
+  // #444): Terrain Pulse's ×2 morph and Expanding Force's ×1.5 zone are already the reward; stacking
+  // ×1.3 on top would be an opaque double multiplication.
+  if (move.fieldTerrainBoostedType === true || move.fieldTerrainTargetingOverride !== undefined) {
+    return 1.0;
+  }
   const terrain = getFieldTerrainAt(state, attacker.position);
   if (terrain === null || isEffectivelyFlying(attacker, attackerTypes)) {
     return 1.0;
   }
   return TERRAIN_BOOST_TYPE[terrain] === move.type ? FIELD_TERRAIN_BOOST : 1.0;
+}
+
+/**
+ * Field-terrain power bonus (B4, decision A): if `move.fieldTerrainPowerBonus` applies — the
+ * relevant mon (caster or target) is grounded on the named terrain — return the multiplier, else
+ * 1.0. Folded into the field-terrain BP multiplier alongside {@link getFieldTerrainBpMultiplier}.
+ * Covers Rising Voltage (target/Electric/×2), Misty Explosion (caster/Misty/×1.5), Expanding Force
+ * (caster/Psychic/×1.5).
+ */
+export function getFieldTerrainMovePowerMultiplier(
+  state: BattleState,
+  attacker: PokemonInstance,
+  attackerTypes: readonly PokemonType[],
+  target: PokemonInstance,
+  targetTypes: readonly PokemonType[],
+  move: MoveDefinition,
+): number {
+  const bonus = move.fieldTerrainPowerBonus;
+  if (!bonus) {
+    return 1.0;
+  }
+  const isCaster = bonus.who === FieldTerrainBonusWho.Caster;
+  const mon = isCaster ? attacker : target;
+  const monTypes = isCaster ? attackerTypes : targetTypes;
+  return isOnFieldTerrain(state, mon, monTypes, bonus.terrain) ? bonus.multiplier : 1.0;
+}
+
+const FIELD_TERRAIN_PULSE_TYPE: Record<string, PokemonType> = {
+  [FieldTerrain.Grassy]: PokemonType.Grass,
+  [FieldTerrain.Electric]: PokemonType.Electric,
+  [FieldTerrain.Misty]: PokemonType.Fairy,
+  [FieldTerrain.Psychic]: PokemonType.Psychic,
+};
+
+/**
+ * Terrain Pulse type morph (B4, decision D — mirror of `resolveWeatherBallMove`): if the move has
+ * `fieldTerrainBoostedType` and the grounded caster stands on a field terrain, return a clone with
+ * the terrain's type and power doubled to 100. Otherwise the move is unchanged (Normal, 50).
+ */
+export function resolveFieldTerrainPulseMove(
+  state: BattleState,
+  attacker: PokemonInstance,
+  attackerTypes: readonly PokemonType[],
+  move: MoveDefinition,
+): MoveDefinition {
+  if (move.fieldTerrainBoostedType !== true) {
+    return move;
+  }
+  if (isEffectivelyFlying(attacker, attackerTypes)) {
+    return move;
+  }
+  const terrain = getFieldTerrainAt(state, attacker.position);
+  if (terrain === null) {
+    return move;
+  }
+  return { ...move, type: FIELD_TERRAIN_PULSE_TYPE[terrain] ?? move.type, power: 100 };
+}
+
+/**
+ * Effective targeting (B4, decision F): if the move has a `fieldTerrainTargetingOverride` and the
+ * grounded caster stands on the named terrain, return the override targeting (Expanding Force:
+ * Single → Zone r2 on Psychic Terrain). Otherwise the move's nominal targeting. Source of truth =
+ * the caster's CURRENT tile, so legality/AI, preview and execution stay aligned.
+ */
+export function resolveEffectiveTargeting(
+  move: MoveDefinition,
+  caster: PokemonInstance,
+  casterTypes: readonly PokemonType[],
+  state: BattleState,
+): TargetingPattern {
+  const override = move.fieldTerrainTargetingOverride;
+  if (override && isOnFieldTerrain(state, caster, casterTypes, override.terrain)) {
+    return override.targeting;
+  }
+  return move.targeting;
 }
 
 /** ×0.5 for Dragon vs Misty / ground-shaking vs Grassy, when the target stands on the zone (B4). */

@@ -14,7 +14,7 @@
 | Catégorie | Implémenté | Pool disponible | Commentaire |
 |---|---|---|---|
 | Pokemon | 81 / 151 | 151 Gen 1 | Contrainte Gen 1 (décision #92) — Gen 2+ en Phase 9. Formes non-finales retirées du roster Batch A. Haunter retiré post-Batch C (sprites conservés). |
-| Attaques | 386 | 493 | Pool roster (level-up + TM + tutor + chaîne évo sur 80 jouables ∩ `reference/moves.json`), **Téra-Explosion exclue** (décision #422). **117 restants = tous à mécanique moteur**, classés par système dans **plan 112** (roadmap maître). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106), +11 simples G6 (plan 107). **Batches G1–G6 clos.** +12 power conditionnel plan 109 (moteur dynamicPower). +2 stat-source plan 110 (Bodypress/Tricherie). +4 poids plan 111 (Balayage/Nœud Herbe/Tacle Lourd/Tacle Feu). +6 B1 quasi-prêt plan 113 (Choc Psy/Frappe Psy/Lyophilisation/Triple Axel/Pied Voltige/Talon-Marteau). +17 B3 dégâts conditionnels plan 115 (horloge d'actions). +11 B2 soin plan 116 (É-Coque/Paresse/Racines/Anneau Hydro/Vibra Soin/Fontaine de Vie/Vœu/Aromathérapie/Vole-Force/Dévorêve/Boule Pollen). +4 B4 terrains plan 117 (Champ Herbu/Électrifié/Brumeux/Psychique). |
+| Attaques | 393 | 493 | Pool roster (level-up + TM + tutor + chaîne évo sur 80 jouables ∩ `reference/moves.json`), **Téra-Explosion exclue** (décision #422). **110 restants = tous à mécanique moteur**, classés par système dans **plan 112** (roadmap maître). +mist/safeguard (plan 098), +substitute (plan 099), +taunt (plan 100), +disable/encore (plan 101), +40 dmg physique G1 (plan 102), +23 dmg spécial + multi-hit G2 (plan 103), +24 dmg + secondaire statut/flinch/confusion G3 (plan 104), +36 dmg stat-drop/high-crit/recoil/drain G4 (plan 105), +23 statut/stat-baisses pures G5 (plan 106), +11 simples G6 (plan 107). **Batches G1–G6 clos.** +12 power conditionnel plan 109 (moteur dynamicPower). +2 stat-source plan 110 (Bodypress/Tricherie). +4 poids plan 111 (Balayage/Nœud Herbe/Tacle Lourd/Tacle Feu). +6 B1 quasi-prêt plan 113 (Choc Psy/Frappe Psy/Lyophilisation/Triple Axel/Pied Voltige/Talon-Marteau). +17 B3 dégâts conditionnels plan 115 (horloge d'actions). +11 B2 soin plan 116 (É-Coque/Paresse/Racines/Anneau Hydro/Vibra Soin/Fontaine de Vie/Vœu/Aromathérapie/Vole-Force/Dévorêve/Boule Pollen). +4 B4 terrains plan 117 (Champ Herbu/Électrifié/Brumeux/Psychique). +7 B4 dépendants des Champs plan 118 (Gliss'Herbe/Monte-Tension/Vaste Pouvoir/Explo-Brume/Champlification/Force Nature + Boue-Bombe). **B4 clos (10/10).** |
 | Talents | 52 | 114 | Talents portés par au moins un des 151 Gen 1 |
 | Objets tenus | 24 | ~159 heldItems | 173 heldItems − ~14 items Pokemon-spécifiques Gen 2-9 (orbes légendaires, drives Genesect, nectars Oricorio…). Méga-pierres (49) → Phase 9. |
 
@@ -215,7 +215,7 @@
 
 ---
 
-## Attaques (386 implémentées)
+## Attaques (393 implémentées)
 
 
 > Pattern = ciblage tactique dans le jeu (custom, pas le comportement original Pokemon).
@@ -427,6 +427,13 @@
 | Champ Électrifié | electric-terrain | Élec | Statut | — | — | 10 | self (zone r3) | Pose Champ Électrifié : immunité Sommeil au sol, ×1.3 Électrique attaquant sur zone. Durée 5 tours (8 avec Champ'Duit). |
 | Champ Brumeux | misty-terrain | Fée | Statut | — | — | 10 | self (zone r3) | Pose Champ Brumeux : immunité statuts majeurs + confusion au sol, ×0.5 Dragon sur cible sur zone. Durée 5 tours (8 avec Champ'Duit). |
 | Champ Psychique | psychic-terrain | Psy | Statut | — | — | 10 | self (zone r3) | Pose Champ Psychique : barrière anti-dash (ennemis entrant dans la zone stoppés au bord, divergence Showdown #428), ×1.3 Psy attaquant sur zone. Durée 5 tours (8 avec Champ'Duit). |
+| Gliss'Herbe | grassy-glide | Plante | Phys | 55 | 100 | 20 | dash r2 | Portée Dash étendue 2 → 4 si le lanceur part d'un Champ Herbu (#439). Soumis à la barrière Psy. |
+| Monte-Tension | rising-voltage | Élec | Spé | 70 | 100 | 20 | single r1–4 | ×2 puissance si la cible est au sol sur un Champ Électrifié (double porte). |
+| Vaste Pouvoir | expanding-force | Psy | Spé | 80 | 100 | 10 | single r1–4 | Sur Champ Psychique (lanceur au sol) : ciblage → AoE r2 autour de la cible (blast) + ×1.5 (#440, #444). Exempté du boost-type terrain. |
+| Explo-Brume | misty-explosion | Fée | Spé | 100 | 100 | 5 | zone r2 | Self-KO (Recoil 999, modèle Explosion). ×1.5 si le lanceur est sur un Champ Brumeux. |
+| Champlification | terrain-pulse | Normal→morph | Spé | 50 | 100 | 10 | single r1–4 | Type morph + ×2 (→100) selon le Champ sous le lanceur (Herbu→Plante, Électrifié→Élec, Brumeux→Fée, Psychique→Psy). Exempté du boost-type terrain (#443). |
+| Force Nature | nature-power | morph | — | — | — | 20 | self→morph | Swap complet selon Champ (§6-A) > tuile de map (§6-B) > Triplattaque. Re-résolu à l'exécution (PP de nature-power). |
+| Boue-Bombe | mud-bomb | Sol | Spé | 65 | 85 | 10 | single r1–4 | Baisse Précision −1 (30%). Cible de morph Force Nature (marais). |
 | Souplesse | slam | Normal | Phys | 80 | 75 | 20 | single r1 | — |
 | Surpuissance | superpower | Combat | Phys | 120 | 100 | 5 | single r1 | −1 Atk, −1 Déf attaquant (100%) |
 | Taillade | fury-cutter | Insecte | Phys | 40 | 95 | 20 | single r1 | *(rider power escalade différé)* |

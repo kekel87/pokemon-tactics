@@ -4,6 +4,11 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
+### `BattleLogPanel` — entrée longue wrappe et déborde sur la ligne suivante (2026-06-09, playtest plan 118)
+- Chaque slot de log a une hauteur fixe (`BATTLE_LOG_LINE_HEIGHT`) mais le `lineText` a `wordWrap` activé → un message qui passe sur 2 lignes occupe 1 seul slot et **chevauche** l'entrée suivante (observé sur le morph « Force Nature se transforme en Triplattaque ! »).
+- Contourné plan 118 : messages morph raccourcis en forme flèche (`X → Y`) pour tenir sur 1 ligne. La limite de fond demeure pour tout futur message long.
+- Fix propre : lignes à hauteur variable (mesurer `lineText.height` réel, empiler par pixels au lieu d'index × hauteur fixe) + scroll au pixel. Refonte modérée du `BattleLogPanel`.
+
 ### Nom FR reference faux : `body-press` = "Big Splash" (2026-06-04, plan 110)
 - `reference/moves.json` et le pipeline `data:update` donnent `names.fr = "Big Splash"` pour `body-press` (faux — nom officiel FR = **Bodypress**).
 - Contourné : override dans `src/i18n/moves.fr.json` (`"body-press": "Bodypress"`). La reference reste fausse → à corriger côté source `build-reference.ts` / mapping Showdown au prochain `data:update`, sinon le fix i18n sera écrasé.
