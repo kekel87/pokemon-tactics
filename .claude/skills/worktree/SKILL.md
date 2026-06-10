@@ -1,7 +1,7 @@
 ---
 name: worktree
 description: Crée / liste / nettoie / supprime un git worktree pour lancer N sessions Claude en parallèle sur des branches différentes, sans dupliquer les node_modules ni se marcher dessus sur le port Vite. Un worktree = le repo entier sur une branche.
-argument-hint: "add <branch> [base] | list | status | clean | merge <branch> | relink <branch> | rm <branch>"
+argument-hint: "add <branch> [base] | list | status | clean | relink <branch> | rm <branch>"
 user-invocable: true
 ---
 
@@ -41,11 +41,11 @@ Le checkout principal garde `main` ; chaque worktree porte une branche feature. 
    git -C <repo-root> merge --ff-only <branch>
    ```
    - ff-only = non destructeur : refuse proprement si `main` a divergé (pas de merge-commit, pas de force).
-   - **Divergence** (main a avancé pendant le travail //) → ff-only échoue. L'humain résout dans son GUI (GitKraken) : rebase/merge la branche, puis re-ff. Claude ne peut ni rebase ni merge non-ff (deny-list).
+   - **Divergence** (main a avancé pendant le travail //) → ff-only échoue. **`git rebase` est autorisé** (l'humain préfère rebase aux merges) : Claude rebase la branche sur `main` **dans son worktree**, puis re-ff depuis le checkout principal. Conflit de rebase insoluble → stop, l'humain résout dans son GUI (GitKraken). Merge non-ff reste interdit (hook).
 2. `bash .claude/scripts/worktree.sh rm <branch>` — retire le worktree (branche conservée).
 3. Suppression de branche = humain (deny-list bloque `branch -d`).
 
-**Ordre en parallèle** : après avoir mergé la branche A, `main` avance → la branche B (basée sur l'ancien main) n'est plus ff. Mettre B à jour (rebase sur main dans son worktree, via GUI) avant de la ff-merger.
+**Ordre en parallèle** : après avoir mergé la branche A, `main` avance → la branche B (basée sur l'ancien main) n'est plus ff. Rebaser B sur main dans son worktree (`git -C .worktrees/<slug> rebase main`) avant de la ff-merger.
 
 ## Nettoyage (`clean`)
 

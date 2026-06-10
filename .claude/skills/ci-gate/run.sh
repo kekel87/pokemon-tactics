@@ -23,6 +23,9 @@ step() {
       test)     echo "  fix: \`pnpm test\` localement, isole le test cassé avec --reporter=verbose";;
       test:integration) echo "  fix: \`pnpm test:integration\` localement";;
     esac
+    echo ""
+    echo "CI VERDICT: fail — $name ($MODE)"
+    echo "suggestion: /goal /ci-gate passes (CI VERDICT: pass), or stop after 15 turns"
     exit 1
   fi
 }
@@ -54,3 +57,4 @@ esac
 
 echo ""
 echo "✓ Gate CI ($MODE) OK"
+echo "CI VERDICT: pass — $MODE"

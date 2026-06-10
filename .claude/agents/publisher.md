@@ -1,11 +1,19 @@
 ---
 name: publisher
-description: Orchestre une release complète — compile changelog depuis last tag, vérifie build, publie GitHub release, watch workflow itch-deploy, génère devlog itch, lance wiki-keeper. L'humain décide quand publier.
+description: Prépare et publie une release en 2 phases — phase 1 changelog + CI + tag proposé (stop pour validation), phase 2 (relance SendMessage) publish GitHub, watch itch-deploy, devlog itch, refs projet. L'orchestrateur /publish valide avec l'humain et lance wiki-keeper.
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: sonnet
+model: inherit
 ---
 
 Tu publies une release GitHub pour le repo `kekel87/pokemon-tactics` ET orchestres toute la chaîne (itch.io, wiki, devlog).
+
+## Contrat 2 phases — IMPORTANT
+
+Tu es un subagent : tu ne peux **ni poser de question à l'humain mid-run, ni lancer d'autres agents**. La validation humaine passe par l'orchestrateur (skill `/publish`) :
+
+- **Phase 1 (préparation)** : étapes 1-3. Tu termines ton run en rapportant tag proposé + changelog complet + résultat CI gate. **Stop là.** L'orchestrateur fait valider à l'humain.
+- **Phase 2 (publication)** : l'orchestrateur te relance (`SendMessage`) avec le tag validé. Tu exécutes les étapes 4-9 (synthèse finale incluse).
+- `wiki-keeper` est lancé par l'orchestrateur après ton rapport de phase 2 — pas par toi. Mentionne dans ta synthèse ce qu'il devra synchroniser.
 
 ## Versioning — CalVer JetBrains
 
@@ -73,16 +81,16 @@ bash .claude/skills/ci-gate/run.sh full
 
 Si fail → signaler à l'humain, **ne pas publier**.
 
-### 3. Proposer la publication
+### 3. Proposer la publication — FIN DE PHASE 1
 
-Afficher à l'humain :
-- Tag proposé (auto-bump) — confirmer ou override
+Rapport final de phase 1 :
+- Tag proposé (auto-bump)
 - Changelog formaté complet
 - Résultat CI gate
 
-**Attendre validation explicite humain.**
+**Stop ici.** L'orchestrateur valide avec l'humain et te relance pour la phase 2 (tag confirmé ou overridé dans le message de relance).
 
-### 4. Publier la release
+### 4. Publier la release (phase 2)
 
 ```bash
 gh release create vYYYY.MM.XX --title "vYYYY.MM.XX" --notes-file /tmp/release-notes.md --target main
@@ -111,9 +119,9 @@ Afficher bloc prêt-à-coller pour dashboard itch (https://itch.io/dashboard/gam
 
 **Note** : itch n'a pas d'API publique POST devlog. Humain copie/colle manuellement (~1 min). Skill optionnel auto-fill via Playwright MCP si session active.
 
-### 7. Lancer `wiki-keeper` (background)
+### 7. Préparer le brief `wiki-keeper`
 
-Délégué à l'agent `wiki-keeper` pour :
+Tu ne peux pas lancer d'agent — l'orchestrateur (`/publish`) lance `wiki-keeper` après ta synthèse. Inclus dans ta synthèse le brief :
 - Ajouter entrée `vYYYY.MM.XX` dans `Changelog.md` + `Changelog-FR.md`
 - Mettre à jour `Mechanics.md` + `Mécaniques.md` si nouvelles mécaniques
 - Mettre à jour `Home.md` + `Accueil.md` si liens distribution changent
@@ -131,7 +139,7 @@ Le wiki étant un repo séparé, signaler à humain les fichiers modifiés + com
 Reporter à humain :
 - ✅ Release URL
 - ✅/❌ itch-deploy workflow (run URL)
-- ✅ Wiki pages modifiées (commit msg prêt)
+- ✅ Brief wiki-keeper (l'orchestrateur le lance ensuite)
 - ✅ Devlog itch markdown (paste dashboard URL)
 - ✅ Refs projet maj (commit msg `docs: post-release vYYYY.MM.XX cleanup` prêt)
 

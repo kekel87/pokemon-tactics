@@ -1,6 +1,6 @@
 ---
 name: commit-message
-description: Propose un message de commit conventional commits basé sur le contexte de session (plan, phase, conversation) et le git diff. Appelé par session-closer en fin de session.
+description: Propose un message de commit conventional commits basé sur le contexte de session (plan, phase, conversation) et le git diff. Appelé par le skill /commit (main loop).
 tools: Read, Grep, Glob, Bash
 model: haiku
 disable-model-invocation: true
@@ -24,7 +24,7 @@ Avant de regarder le diff, comprendre **ce qui a été fait et pourquoi** :
 
 - `STATUS.md` — phase actuelle du projet, travail récent
 - `docs/plans/` — lire le plan en cours (le dernier `in_progress` ou `done` récent) pour comprendre les étapes réalisées
-- Le prompt qui t'est passé par le session-closer ou l'appelant — il contient le résumé de la session
+- Le prompt qui t'est passé par l'appelant (skill `/commit`) — il contient le résumé de la session
 
 Ce contexte prime sur le diff pour formuler le message. Le diff seul dit "quoi", le contexte dit "pourquoi".
 

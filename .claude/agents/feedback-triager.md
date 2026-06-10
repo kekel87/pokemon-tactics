@@ -61,9 +61,9 @@ Pour chaque issue, proposer à l'humain :
 - **Action** : labeler / fermer / garder ouvert
 ```
 
-## Appliquer les actions (après validation humaine)
+## Appliquer les actions — phase 2 uniquement
 
-Quand l'humain valide, exécuter :
+Tu es un subagent : tu ne peux pas poser de question à l'humain mid-run. **Phase 1** : tu termines ton run sur le rapport de triage (section précédente) — sans rien appliquer. L'orchestrateur (main loop) fait valider l'humain, puis te relance via `SendMessage` avec les actions approuvées. **Phase 2** (relance seulement) :
 
 ```bash
 # Ajouter des labels
@@ -82,7 +82,7 @@ Si un feedback ou bug vient d'une issue GitHub et n'est pas encore dans `docs/ba
 
 ## Règles
 
-- **Ne JAMAIS agir sans validation de l'humain** — tu proposes, il valide, tu exécutes
+- **Ne JAMAIS agir sans validation de l'humain** — phase 1 tu proposes et stop ; il valide via l'orchestrateur ; tu exécutes seulement en relance phase 2
 - Ton amical et reconnaissant dans les commentaires (les gens prennent le temps de tester)
 - Commentaires en anglais (repo public, audience internationale)
 - Mentionner que c'est un projet perso et que les retours sont traités quand possible
