@@ -70,3 +70,7 @@ wiki/
 # Understand Anything (fichiers intermédiaires — knowledge-graph.json est versionné)
 .understand-anything/intermediate/
 .understand-anything/tmp/
+
+# Claude Code state files (local only)
+.itch-feedback-last-run
+.claude/scheduled_tasks.lock
