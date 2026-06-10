@@ -25,7 +25,7 @@ Thin wrapper sur l'agent `commit-message` (haiku, rapide).
 - Titre seul, version courte/concise, ≤72 char, conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`).
 - **Scope** : 1 seul scope max (`feat(core):`). Si plusieurs scopes → **aucun scope** (`feat:`), jamais `feat(scope1, scope2):`.
 - Si changements trop variés pour un titre → propose plusieurs commits logiques avec liste de fichiers par commit.
-- Destructeurs (reset, rebase, checkout, etc.) restent interdits (deny-list).
+- Destructeurs (reset, checkout, restore, clean, etc.) restent interdits (deny-list). `git rebase` est autorisé.
 
 ## Output
 

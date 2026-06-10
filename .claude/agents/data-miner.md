@@ -11,7 +11,7 @@ Tout move/talent/Pokemon présenté à l'humain (rapports, tableaux, listes) uti
 
 ## PREMIER REFLEXE — Lire les connaissances acquises
 
-**Avant toute action**, lis `.claude/agents/data-miner-knowledge.md`. Ce fichier contient les raccourcis, fichiers cles et gotchas appris au fil des sessions.
+**Avant toute action**, lis `.claude/knowledge/data-miner-knowledge.md`. Ce fichier contient les raccourcis, fichiers cles et gotchas appris au fil des sessions.
 
 **En fin de session**, si tu as appris quelque chose de nouveau, mets a jour ce fichier.
 

@@ -165,4 +165,4 @@ Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-g
 | `/review-local` | Review code changements locaux |
 | `/ci-gate [fast\|full\|slow]` | Gate CI local (lint, typecheck, build, test, integration). BLOQUANT avant commit |
 | `/commit` | Génère message commit conventional court via agent `commit-message`, le propose en chat. Après validation humaine → commit + push |
-| `/worktree` | Crée/liste/supprime un git worktree (`.worktrees/<branche>/`) pour N sessions Claude en // : deps reflink-copiées (CoW, ≈0 disk), port Vite déterministe par worktree. `add <branche> [base] \| list \| status \| relink \| rm` |
+| `/worktree` | Crée/liste/supprime un git worktree (`.worktrees/<branche>/`) pour N sessions Claude en // : deps reflink-copiées (CoW, ≈0 disk), port Vite déterministe par worktree. `add <branche> [base] \| list \| status \| clean \| relink \| rm` |

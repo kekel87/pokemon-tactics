@@ -83,7 +83,7 @@ La grille est en projection isometrique. Le centre de la grille est ~(640, 360).
 2. **browser_snapshot est quasi inutile** : il ne voit que `<canvas>`
 3. **Ne pas faire browser_snapshot entre chaque action** : screenshot direct
 4. **Les animations bloquent les clics** : attendre ~500ms apres une action
-5. **Le hover Phaser ne fonctionne pas avec browser_hover** : utiliser `browser_run_code` avec `page.mouse.move(x, y)`
+5. **Le hover Phaser ne fonctionne pas avec browser_hover** : utiliser `browser_run_code_unsafe` avec `page.mouse.move(x, y)`
 6. **favicon.ico 404** : erreur reseau normale, ignorer
 7. **Les overlays de grille sont semi-transparents** : couleurs plus ternes sur screenshot
 8. **Le menu d'action disparait apres une action** : normal, reapparait au tour suivant

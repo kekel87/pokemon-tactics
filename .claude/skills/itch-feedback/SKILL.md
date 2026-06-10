@@ -14,7 +14,7 @@ But : récupérer les retours joueurs itch.io sans connexion humain.
 3. **Croiser avec `docs/backlog.md`** pour détecter doublons (bug déjà signalé, feature déjà en backlog)
 4. **Déléguer triage** à l'agent `feedback-triager` (classe bug / feature / feedback / spam / duplicate)
 5. **Rapport sortie** :
-   - Nb commentaires nouveaux depuis dernière exec (timestamp local dans `.itch-feedback-last-run`)
+   - Nb commentaires nouveaux depuis dernière exec (timestamp dans `$(git rev-parse --show-toplevel)/.itch-feedback-last-run` — toujours ancré à la racine repo, gitignored)
    - Tableau par item : type, résumé, action proposée (ignorer / ajouter backlog / fix urgent / répondre)
    - Drafts de réponses optionnelles (humain copie si veut répondre — ne JAMAIS poster auto)
 6. **Proposer ajouts `docs/backlog.md`** : `AskUserQuestion` multi-select avec items pertinents

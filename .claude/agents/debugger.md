@@ -2,12 +2,12 @@
 name: debugger
 description: Diagnostic avancé de bugs complexes — reproduire, isoler, comprendre la cause racine. Utiliser quand un bug résiste à l'analyse simple.
 tools: Read, Grep, Glob, Bash, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__new_page, mcp__chrome-devtools__close_page, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__select_page, mcp__chrome-devtools__list_console_messages, mcp__chrome-devtools__get_console_message, mcp__chrome-devtools__list_network_requests, mcp__chrome-devtools__get_network_request, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__wait_for, mcp__chrome-devtools__click, mcp__chrome-devtools__type_text, mcp__chrome-devtools__press_key
-model: opus
+model: inherit
 ---
 
 ## PREMIER REFLEXE — Lire les connaissances acquises
 
-**Avant toute action**, lis `.claude/agents/debugger-knowledge.md`. Ce fichier contient les raccourcis, fichiers cles et gotchas appris au fil des sessions.
+**Avant toute action**, lis `.claude/knowledge/debugger-knowledge.md`. Ce fichier contient les raccourcis, fichiers cles et gotchas appris au fil des sessions.
 
 **En fin de session**, si tu as appris quelque chose de nouveau, mets a jour ce fichier.
 
