@@ -20,6 +20,7 @@ const GAP_DOC_PATH = resolve(SCRIPT_DIR, "../../../docs/op-sets-gap-analysis.md"
 const ALLOWED_ROLES = new Set([
   "physical-sweeper",
   "special-sweeper",
+  "special-attacker",
   "wallbreaker",
   "tank",
   "support",
