@@ -1,9 +1,9 @@
-# OP Sets Gap Analysis (généré 2026-05-13)
+# OP Sets Gap Analysis (généré 2026-06-12)
 
 ## Stats globales
-- Total sets : 160
-- Sets `full` : 100% (160 / 160)
-- Sets `partial` : 0% (0 / 160)
+- Total sets : 177
+- Sets `full` : 100% (177 / 177)
+- Sets `partial` : 0% (0 / 177)
 - Pokemon sans set `full` : 0 / 80
 
 ## Top 20 moves manquants (par fréquence)
