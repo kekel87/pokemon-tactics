@@ -1,6 +1,6 @@
 # Plan 115 — B3 « Dégâts conditionnels » (17 moves)
 
-> **Statut : ready** (validé humain 2026-06-06)
+> **Statut : done** (livré 2026-06-06)
 > Vague 1 de la roadmap maître **plan 112**. Suite des moteurs `dynamicPower` (109) / stat-source (110) / poids (111) / B1 (113).
 > Total moves visé : 354 → **371** (+17).
 > Décisions de scope + modèle temporel validés humain 2026-06-06 (voir ci-dessous).

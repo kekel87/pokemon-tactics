@@ -1,6 +1,6 @@
 # Plan 091 — Sandbox design system migration (refactor)
 
-> Statut : **livré (visual à valider)**
+> Statut : **done**
 > Créé : 2026-05-21
 > Livré : 2026-05-21
 > Auteur : Claude (suite audit code-review plan 090)
