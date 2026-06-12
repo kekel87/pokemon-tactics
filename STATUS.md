@@ -1,8 +1,8 @@
 # État du projet — Pokemon Tactics
 
 > MAJ : 2026-06-12 (Phase 4 — Plans 109–118 DONE — 393 moves — B4 clos 10/10 — Vague 2 B4 terminée)
-> Dernière release : **v2026.6.1** (2026-06-05) — ~181 nouveaux moves, Clonage/Provoc/Encore/Entrave, plans 097→114
-> 11 commits depuis v2026.6.1 (B2 soin, B3 dégâts conditionnels + horloge d'actions, B4 Champs + moves dépendants, worktrees CLI)
+> Dernière release : **v2026.6.2** (2026-06-12) — Système Champs (Herbeux/Électrifié/Brumeux/Psychique), 4 moves poseurs + 6 dépendants du Champ, 11 moves soin (rôle support), 17 moves dégâts conditionnels, objet Champ'Duit, plans 115→118
+> v2026.6.1 (2026-06-05) — ~181 nouveaux moves, Clonage/Provoc/Encore/Entrave, plans 097→114
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
