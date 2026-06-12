@@ -92,7 +92,7 @@ This project is an AI-assisted development experiment. The human creator is **cr
 | [PokeSprite](https://github.com/msikma/pokesprite) | MIT |
 | [Pokepedia](https://www.pokepedia.fr/) | Type & status icons |
 | [Bulbagarden](https://archives.bulbagarden.net/) | Category icons (Sword & Shield) |
-| [ICON Isometric Pack — Jao](https://jao-itch.itch.io/icon-isometric-pack) | Isometric arena tileset (32×32px) |
+| Custom isometric tileset — generated from PMDCollab textures | CC BY-NC 4.0 |
 
 See [CREDITS.md](CREDITS.md) for detailed per-Pokemon sprite credits.
 

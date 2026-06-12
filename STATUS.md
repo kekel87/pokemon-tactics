@@ -1,7 +1,8 @@
 # État du projet — Pokemon Tactics
 
-> MAJ : 2026-06-09 (Phase 4 — Plan 118 DONE — B4 clos 10/10, 393 moves — Vague 2 B4 terminée)
+> MAJ : 2026-06-12 (Phase 4 — Plans 109–118 DONE — 393 moves — B4 clos 10/10 — Vague 2 B4 terminée)
 > Dernière release : **v2026.6.1** (2026-06-05) — ~181 nouveaux moves, Clonage/Provoc/Encore/Entrave, plans 097→114
+> 11 commits depuis v2026.6.1 (B2 soin, B3 dégâts conditionnels + horloge d'actions, B4 Champs + moves dépendants, worktrees CLI)
 > Point d'entrée pour reprendre projet après pause.
 > Dire "on en était où ?" → Claude Code lit ce fichier.
 
@@ -250,9 +251,9 @@ Renderer Phaser 4 iso 2D remplacé par Babylon.js 2D-HD (sprites billboards sur 
 
 ### Prochaine étape
 
-**Phase 4 en cours.** Plans 069–111 terminés. Roster Gen 1 complet : 80 Pokemon jouables + dummy. 177 OP sets. **348 moves implémentés.** Batches G1–G6 clos. Moteur `dynamicPower` livré (plan 109). Moves stat-source livrés (plan 110). Moves liés au poids livrés (plan 111 — `TargetWeight` + `WeightRatio`). Gate CI : **2402 unit + 269 intégration + lint + typecheck + build verts**.
+**Phase 4 en cours.** Plans 069–118 terminés. Roster Gen 1 complet : 80 Pokemon jouables + dummy. 177 OP sets. **393 moves implémentés.** Batches G1–G6 clos. Vague 1 roadmap maître terminée (B1/113 + B2/116 + B3/115). Vague 2 B4 terminée (117 + 118, 10/10). Gate CI : **2630 unit + 269 intégration + lint + typecheck + build verts**.
 
-Prochain : mécaniques complexes restantes (~158 moves). Familles power conditionnel encore à faire : ~~Poids~~ ✅ **fait (plan 111)**, Timing (Avalanche / Représailles / Vendetta / Bégaiement / Durement), Compteurs (Poing Rageur / Mélodie Écho / Unisson / Dernier Recours), Terrain (Tension Montante / Force Amplifiée / Impulsion Terrain — après plan Champs/Terrains).
+Prochain : **B5 Interaction objet tenu** (plan 119, ~12 moves : Sabotage, Dégommage, Larcin, etc. — vague 2 roadmap maître plan 112). ~110 moves restants classés par système dans plan 112.
 
 ### Bugs connus non corrigés
 

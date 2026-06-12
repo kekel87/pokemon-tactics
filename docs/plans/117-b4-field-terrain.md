@@ -1,6 +1,6 @@
 # Plan 117 — B4 « Terrains » : moteur de Champs zonés + 4 poseurs
 
-> **Statut : ready** (design + reviews plan-reviewer/game-designer intégrés, validé humain 2026-06-08)
+> **Statut : done** (livré 2026-06-08)
 > Vague 2 de la roadmap maître **plan 112** (premier batch terrain & objet).
 > Total moves visé : 382 → **386** (+4 poseurs). Les **6 moves dépendants** sont dans le **plan 118** (suite).
 > Décisions de scope + adaptations tactiques validées humain 2026-06-08 (voir ci-dessous, décisions #424–#434). #435 (signature damage-calc) = à trancher impl-start.

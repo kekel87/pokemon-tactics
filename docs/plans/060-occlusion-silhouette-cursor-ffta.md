@@ -1,6 +1,6 @@
 # Plan 060 — Silhouette d'occlusion iso + curseur FFTA
 
-**Statut : EN COURS** (section A livrée + committée, section B stashée)
+**Statut : partiel** — section A (Curseur FFTA) livrée + committée ; section B (silhouette occlusion) abandonnée (occlusion gérée par `OcclusionFader` iso 2D, décision #272)
 **Démarré le : 2026-04-17**
 
 ---

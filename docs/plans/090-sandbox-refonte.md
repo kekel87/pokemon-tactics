@@ -1,6 +1,6 @@
 # Plan 090 — Sandbox refonte (UI Studio + mutualisation team builder + dummy jouable)
 
-> Statut : **livré (visual à valider)**
+> Statut : **done**
 > Créé : 2026-05-21
 > Livré : 2026-05-21 (en attente validation visuelle humain)
 > Auteur : Claude (dev) / Michael (DC)
