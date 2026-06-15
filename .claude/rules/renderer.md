@@ -1,5 +1,5 @@
 ---
-paths: packages/renderer/**
+paths: packages/app/**
 ---
 
 - Toutes les couleurs doivent etre dans `constants.ts` -- pas de hex inline dans les composants

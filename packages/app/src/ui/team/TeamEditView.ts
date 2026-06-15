@@ -63,6 +63,7 @@ export class TeamEditView {
     const nameInput = document.createElement("input");
     nameInput.type = "text";
     nameInput.className = "tb-topbar-name-input";
+    nameInput.dataset.testid = "team-name-input";
     nameInput.value = this.team?.name ?? t("teamBuilder.untitledTeam");
     nameInput.addEventListener("input", () => {
       if (this.team === null) {

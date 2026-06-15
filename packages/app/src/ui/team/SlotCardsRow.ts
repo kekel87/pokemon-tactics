@@ -28,6 +28,7 @@ export class SlotCardsRow {
       const card = document.createElement("button");
       card.type = "button";
       card.className = "tb-slot-card";
+      card.dataset.testid = "team-slot-card";
       card.addEventListener("click", () => this.callbacks.onSlotClick(i));
       wrapper.appendChild(card);
 

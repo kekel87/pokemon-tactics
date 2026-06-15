@@ -26,9 +26,9 @@ export function createMapSelectScreen(navigate: Navigate): Screen<"map-select"> 
     }
   };
 
-  const detailsName = el("h2", "ms-details-name");
-  const detailsMeta = el("p", "ms-details-meta");
-  const detailsDescription = el("p", "ms-details-description");
+  const detailsName = el("h2", "ms-details-name", "map-detail-name");
+  const detailsMeta = el("p", "ms-details-meta", "map-detail-meta");
+  const detailsDescription = el("p", "ms-details-description", "map-detail-description");
 
   const refreshSelection = (): void => {
     const entry = MAPS_REGISTRY[selectedIndex];
@@ -70,7 +70,7 @@ export function createMapSelectScreen(navigate: Navigate): Screen<"map-select"> 
       const list = el("ul", "ms-list");
       MAPS_REGISTRY.forEach((entry, index) => {
         const item = el("li");
-        const button = el("button", "ms-list-item");
+        const button = el("button", "ms-list-item", "map-list-item");
         button.type = "button";
         button.textContent = entry.displayName[getLanguage()];
         button.addEventListener("click", () => selectIndex(index));

@@ -24,7 +24,7 @@ import { createCombatScreen, DEMO_POKEMON, mountSandboxStudio } from "./babylon/
 import { initLanguage } from "./i18n/index.js";
 import { getRendererBackend } from "./renderer-backend.js";
 import { sandboxBootConfig, teardownSandboxStudioDom } from "./sandbox-boot.js";
-import { DEFAULT_SANDBOX_CONFIG } from "./types/SandboxConfig.js";
+import { DEFAULT_SANDBOX_CONFIG, type SandboxConfig } from "./types/SandboxConfig.js";
 import { createBattleModeScreen } from "./ui/dom/screens/battle-mode-screen.js";
 import { createCreditsScreen } from "./ui/dom/screens/credits-screen.js";
 import { createMainMenuScreen } from "./ui/dom/screens/main-menu-screen.js";
@@ -58,6 +58,35 @@ const mapUrl = `/assets/maps/${mapName}.tmj`;
 // sandbox studio consume the backend. Babylon is currently the sole engine.
 const backend = getRendererBackend();
 
+// E2E / dev: `?sandbox=1[&seed=N]` or `?config=<urlencoded JSON SandboxConfig>` boots a sandbox
+// battle straight from the URL, so Playwright can vary the seeded scenario per navigation. Gated
+// to dev/test builds (stripped from prod) — never a URL-driven battle injector in the shipped app.
+// The env path (`VITE_SANDBOX_CONFIG`) still wins when set.
+const urlSandboxAllowed = import.meta.env.DEV || import.meta.env.VITE_E2E === "true";
+const sandboxConfigParam = urlSandboxAllowed ? query.get("config") : null;
+const hasUrlSeed = query.has("seed");
+const sandboxUrlSeed = Number(query.get("seed"));
+const sandboxEnabled =
+  sandboxBootConfig.enabled ||
+  (urlSandboxAllowed && (query.has("sandbox") || sandboxConfigParam !== null));
+
+function resolveSandboxConfig(): SandboxConfig {
+  if (sandboxBootConfig.config) {
+    return sandboxBootConfig.config;
+  }
+  if (sandboxConfigParam) {
+    return {
+      ...DEFAULT_SANDBOX_CONFIG,
+      ...(JSON.parse(sandboxConfigParam) as Partial<SandboxConfig>),
+    };
+  }
+  if (hasUrlSeed && Number.isFinite(sandboxUrlSeed)) {
+    return { ...DEFAULT_SANDBOX_CONFIG, seed: sandboxUrlSeed };
+  }
+  return DEFAULT_SANDBOX_CONFIG;
+}
+const sandboxConfig: SandboxConfig = resolveSandboxConfig();
+
 if (query.has("preview")) {
   document.getElementById("hint")?.removeAttribute("hidden");
   const stage = mountGameStage(root);
@@ -87,13 +116,13 @@ if (query.has("preview")) {
     credits: () => createCreditsScreen(navigate),
     combat: () => createCombatScreen(navigate, backend),
   });
-  if (sandboxBootConfig.enabled) {
+  if (sandboxEnabled) {
     // The sandbox studio is mounted directly (not via the manager), so "Back to
     // menu" is a boot-level entry, not a guarded in-app navigation: tear down the
     // studio chrome + battle, then `start` (unguarded) the main menu.
     const studio = mountSandboxStudio(
       root,
-      sandboxBootConfig.config ?? DEFAULT_SANDBOX_CONFIG,
+      sandboxConfig,
       (id, params) => {
         studio.dispose();
         teardownSandboxStudioDom();

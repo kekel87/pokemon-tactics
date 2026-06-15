@@ -24,7 +24,7 @@ function entryElement(
   showCtBars: boolean,
   config: UiDomConfig,
 ): HTMLElement {
-  const node = el("li", "tt-entry");
+  const node = el("li", "tt-entry", "timeline-entry");
   node.dataset.team = String(entry.team);
   if (entry.isActive) {
     node.dataset.active = "true";
@@ -42,7 +42,7 @@ function entryElement(
     node.append(bar);
   }
 
-  const portrait = el("img", "tt-portrait");
+  const portrait = el("img", "tt-portrait", "timeline-portrait");
   portrait.alt = "";
   portrait.loading = "lazy";
   portrait.decoding = "async";
@@ -53,7 +53,7 @@ function entryElement(
 }
 
 export function createTurnTimeline(config: UiDomConfig): TurnTimeline {
-  const root = el("div", "tt-timeline");
+  const root = el("div", "tt-timeline", "timeline");
   root.hidden = true;
   const activeSlot = el("div", "tt-active");
   const list = el("ol", "tt-list");

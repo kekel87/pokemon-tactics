@@ -57,6 +57,11 @@ screenshots/
 .screenshots/
 
 .playwright-mcp/
+# Playwright e2e artefacts (plan 127)
+test-results/
+playwright-report/
+blob-report/
+.last-run.json
 wiki/
 .mcp.json
 
@@ -74,3 +79,6 @@ wiki/
 # Claude Code state files (local only)
 .itch-feedback-last-run
 .claude/scheduled_tasks.lock
+
+# Scripts de probe e2e jetables (jamais commités)
+_*.mjs

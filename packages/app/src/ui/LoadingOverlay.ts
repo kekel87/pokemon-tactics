@@ -23,6 +23,7 @@ const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
 export function showLoadingOverlay(host: HTMLElement): LoadingOverlayHandle {
   const overlay = document.createElement("div");
   overlay.className = "loading-overlay";
+  overlay.dataset.testid = "loading-overlay";
 
   const label = document.createElement("div");
   label.className = "loading-overlay__label";

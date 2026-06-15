@@ -1,5 +1,5 @@
 ---
-paths: packages/renderer/src/ui/**
+paths: packages/app/src/ui/**
 ---
 
 # Règles HTML vanilla (2026)

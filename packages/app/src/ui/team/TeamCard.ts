@@ -12,6 +12,7 @@ export interface TeamCardCallbacks {
 export function createTeamCardElement(team: TeamSet, callbacks: TeamCardCallbacks): HTMLElement {
   const card = document.createElement("div");
   card.className = "tb-team-card";
+  card.dataset.testid = "team-card";
 
   const portraits = document.createElement("div");
   portraits.className = "tb-team-card-portraits";

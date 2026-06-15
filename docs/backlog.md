@@ -4,6 +4,13 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
+### Team Builder — « Tout vider » vide sans confirmation (régression Phaser→Babylon, 2026-06-16, e2e)
+- En Phaser, « Tout vider » ouvrait une **modale de confirmation** (« Vider l'équipe » / « Remove all slots from this team? »). La migration Babylon (`TeamEditView.clearAll()`) **vide directement** les slots, sans confirmation.
+- Preuve : les clés i18n `teamBuilder.clearAllConfirmTitle` / `teamBuilder.clearAllConfirmBody` existent toujours (`i18n/locales/{fr,en}.ts`) mais ne sont **plus appelées** (code mort).
+- Impact : vidage accidentel d'une équipe entière en 1 clic, sans filet. Incohérent avec « Supprimer » (qui, lui, confirme).
+- Fix : remettre la modale `<dialog>` de confirmation dans `clearAll()` (réutiliser les clés i18n existantes + le pattern de la modale de suppression).
+- Test e2e prêt et **skippé** : `e2e/tests/dom/team-builder.spec.ts` (« Tout vider » demande confirmation) → retirer le `test.skip` une fois la modale remise.
+
 ### `BattleLogPanel` — entrée longue wrappe et déborde sur la ligne suivante (2026-06-09, playtest plan 118)
 - Chaque slot de log a une hauteur fixe (`BATTLE_LOG_LINE_HEIGHT`) mais le `lineText` a `wordWrap` activé → un message qui passe sur 2 lignes occupe 1 seul slot et **chevauche** l'entrée suivante (observé sur le morph « Force Nature se transforme en Triplattaque ! »).
 - Contourné plan 118 : messages morph raccourcis en forme flèche (`X → Y`) pour tenir sur 1 ligne. La limite de fond demeure pour tout futur message long.
@@ -40,12 +47,7 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Dette technique
 
-### GitHub Actions sur Node 20 — déprécié (2026-06-05, release v2026.6.1)
-- **Contexte** : le run `itch-deploy` v2026.6.1 a émis un warning : `actions/checkout@v4`, `actions/setup-node@v4`, `Ayowel/butler-to-itch@v1.3.0`, `pnpm/action-setup@v4` tournent sur Node.js 20, déprécié.
-- **Deadline** : à partir du **16 juin 2026** GitHub force Node.js 24 par défaut ; Node 20 retiré des runners le **16 septembre 2026**.
-- **Fix recommandé** : bumper les actions vers des versions supportant Node 24 (`actions/checkout@v5`, `actions/setup-node@v5`, vérifier `pnpm/action-setup` et `butler-to-itch`). Workaround temporaire : `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` dans le workflow.
-- **Priorité** : moyenne — non bloquant avant le 16 juin, à traiter avant cette date pour éviter surprise.
-- Ref : https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+<!-- Résolu 2026-06-12 (commit 30be7ee) : actions/checkout@v5, actions/setup-node@v5, pnpm/action-setup@v4, deploy-pages bumpés node24 dans ci.yml / deploy.yml / itch-deploy.yml. butler-to-itch bloqué à v1.3.0 (pas de release node24 dispo) — surveillé dans docs/next.md. -->
 
 ### Tag tooltip `superVsWater` hardcodé pour `typeEffectivenessOverride` (2026-06-05, plan 113)
 - **Contexte** : `MoveTooltip.ts` affiche le tag `moveTooltip.tag.superVsWater` ("×2 sur les types Eau") pour tout move ayant `typeEffectivenessOverride !== undefined`. Le champ est générique (`{ against: PokemonType; multiplier: number }`) mais le tag est spécifique à l'Eau.

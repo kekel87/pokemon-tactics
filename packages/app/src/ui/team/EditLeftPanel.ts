@@ -117,6 +117,7 @@ export class EditLeftPanel {
     nameRow.className = "tb-edit-name-row";
     const name = document.createElement("div");
     name.className = "tb-edit-name";
+    name.dataset.testid = "pokemon-edit-name";
     name.textContent = pokemon.name;
     nameRow.appendChild(name);
     const genderToggle = this.renderGenderToggle(pokemon, slot);
@@ -256,6 +257,7 @@ export class EditLeftPanel {
     const title = document.createElement("div");
     title.className = "tb-edit-section-title";
     title.textContent = t("teamBuilder.section.ability");
+    title.dataset.testid = "pokemon-edit-section-ability";
     section.appendChild(title);
     const group = document.createElement("div");
     group.className = "tb-radio-group";
@@ -301,6 +303,7 @@ export class EditLeftPanel {
     const title = document.createElement("div");
     title.className = "tb-edit-section-title";
     title.textContent = t("teamBuilder.section.item");
+    title.dataset.testid = "pokemon-edit-section-item";
     section.appendChild(title);
     const input = document.createElement("div");
     input.className = "tb-input-clickable";
@@ -326,6 +329,7 @@ export class EditLeftPanel {
     const title = document.createElement("div");
     title.className = "tb-edit-section-title";
     title.textContent = t("teamBuilder.section.nature");
+    title.dataset.testid = "pokemon-edit-section-nature";
     section.appendChild(title);
     const select = document.createElement("select");
     select.className = "tb-select";

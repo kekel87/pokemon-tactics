@@ -31,6 +31,7 @@ export function createSettingsScreen(navigate: Navigate): Screen<"settings"> {
       setLanguage(getLanguage() === Language.French ? Language.English : Language.French);
       render(host);
     });
+    languageToggle.dataset.testid = "setting-language";
 
     const damagePreviewEnabled = getSettings().damagePreview;
     const damagePreviewToggle = menuButton(
@@ -40,6 +41,7 @@ export function createSettingsScreen(navigate: Navigate): Screen<"settings"> {
         render(host);
       },
     );
+    damagePreviewToggle.dataset.testid = "setting-damage-preview";
 
     const cursorIndex = Math.max(
       0,
@@ -51,6 +53,7 @@ export function createSettingsScreen(navigate: Navigate): Screen<"settings"> {
       updateSettings({ hoverCursorKey: (next ?? cursorOption).key });
       render(host);
     });
+    cursorToggle.dataset.testid = "setting-cursor";
     const cursorImage = el("img", "mn-cursor-preview");
     cursorImage.src = `assets/ui/cursor/${cursorOption.key}.png`;
     cursorImage.alt = "";

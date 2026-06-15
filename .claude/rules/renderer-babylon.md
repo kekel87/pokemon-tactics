@@ -1,12 +1,11 @@
 ---
 paths:
-  - packages/renderer-babylon-spike/**
-  - packages/renderer-babylon/**
+  - packages/render-babylon/**
 ---
 
 # Règles renderer Babylon.js
 
-Plan 064 (rewrite renderer). Applique à `packages/renderer-babylon-spike/`.
+Plan 064 (rewrite renderer). Applique à `packages/render-babylon/`.
 
 **Lire `docs/references/babylon-gotchas.md` avant de toucher au rendu 3D.**
 
