@@ -114,6 +114,7 @@ export class EditRightPanel {
     for (const cfg of STAT_ROWS) {
       const row = document.createElement("div");
       row.className = "tb-stat-row";
+      row.dataset.testid = "pokemon-edit-stat-row";
       row.dataset.stat = cfg.key;
       const label = document.createElement("span");
       label.className = "tb-stat-label";
@@ -187,6 +188,7 @@ export class EditRightPanel {
     presetsSection.appendChild(presetsTitle);
     const presets = document.createElement("div");
     presets.className = "tb-presets";
+    presets.dataset.testid = "pokemon-edit-presets";
     for (const preset of PRESETS) {
       const btn = document.createElement("button");
       btn.className = "tb-btn";

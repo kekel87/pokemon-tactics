@@ -257,6 +257,10 @@ pokemon-tactics/
 │       ├── tsconfig.json
 │       └── package.json
 │
+├── e2e/                         # Harness Playwright e2e (plan 127) — `pnpm test:e2e`
+│   ├── fixtures/                # bootSandbox(), catalogue sandbox-configs.ts
+│   ├── pages/                   # POMs : MainMenu, CombatScene, screens, teamBuilder
+│   └── tests/                   # smoke/ + dom/ + combat/ + visual/ — 51 tests (50 passants + 1 fixme)
 ├── scripts/                     # Outils de build one-shot (non packagés)
 │   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas (JSON + PNG, compatible Babylon + Phaser) (inclut Sleep depuis plan 018)
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)

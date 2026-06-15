@@ -171,7 +171,6 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     1,
   );
   let sceneIsReady = false;
-  installE2eSceneHook(scene, () => sceneIsReady);
 
   const cameraTarget = new Vector3(0, 0, 0);
   // Goal the camera centre eases toward (recentering on the active Pokémon); the
@@ -441,6 +440,24 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   };
   let hoverHandler: (pick: TilePick | null) => void = noop;
   let clickHandler: (pick: TilePick) => void = noop;
+
+  // Read-only e2e scene-graph hook (stripped from prod). clickTile drives the same handler a
+  // real canvas pick would, so Playwright can pilot a turn. Installed here so `clickHandler` is
+  // in scope; it reads the current handler at call time (reassigned by `onTileClick`).
+  installE2eSceneHook(
+    scene,
+    () => sceneIsReady,
+    (x, y) => clickHandler({ x, y }),
+    (x, y) => hoverHandler({ x, y }),
+    () => {
+      if (!directionPicker) {
+        return;
+      }
+      const { callbacks, current } = directionPicker;
+      closeDirectionPicker();
+      callbacks.onConfirm(current);
+    },
+  );
 
   // Left press: pan while dragging, or click-select the tile if released without
   // moving past the drag threshold. A cell hidden by a pillar is reached by

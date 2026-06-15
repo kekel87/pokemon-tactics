@@ -146,6 +146,7 @@ export function createSandboxBattle(
     heldItemOverrides,
     abilityOverrides,
     turnSystemKind: config.turnSystemKind,
+    seed: config.seed,
   };
   const result = createBattleFromPlacements(battleConfig);
 

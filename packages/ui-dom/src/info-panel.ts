@@ -34,11 +34,11 @@ const GENDER_SYMBOL: Record<"male" | "female", string> = {
 };
 
 export function createInfoPanel(): InfoPanel {
-  const panel = el("div", "ip-panel");
+  const panel = el("div", "ip-panel", "info-panel");
   panel.dataset.team = "1";
   panel.hidden = true;
 
-  const portrait = el("img", "ip-portrait");
+  const portrait = el("img", "ip-portrait", "info-panel-portrait");
   portrait.alt = ""; // decorative: name is read from text
   portrait.decoding = "async";
   portrait.loading = "lazy";
@@ -46,18 +46,19 @@ export function createInfoPanel(): InfoPanel {
   const body = el("div", "ip-body");
 
   const header = el("div", "ip-header");
-  const nameEl = el("span", "ip-name");
+  const nameEl = el("span", "ip-name", "info-panel-name");
   const genderEl = el("span", "ip-gender");
-  const levelEl = el("span", "ip-level");
+  const levelEl = el("span", "ip-level", "info-panel-level");
   header.append(nameEl, genderEl, levelEl);
 
+  // HP bar exposes role="progressbar" (+ aria-valuenow/max) → e2e locates it by role, no testid.
   const hpBar = el("div", "ip-hpbar");
   hpBar.setAttribute("role", "progressbar");
   hpBar.setAttribute("aria-valuemin", "0");
   const hpFill = el("div", "ip-hpfill");
   hpBar.append(hpFill);
 
-  const hpText = el("span", "ip-hptext");
+  const hpText = el("span", "ip-hptext", "info-panel-hp");
 
   const badges = el("ul", "ip-badges");
 

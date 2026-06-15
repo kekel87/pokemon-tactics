@@ -36,6 +36,8 @@ Claude = dev principal, autonome implémentation, valide design avec humain.
 | `docs/implementations.md` | Liste Pokemon/Moves/Abilities/Items implémentés |
 | `docs/plans/` | Plan en cours avant coder |
 | `docs/next.md` | Agenda persistant (`/next`) |
+| `docs/test-plan.md` | Cahier de recette visuelle — avant valider un changement de rendu, avant release |
+| `.claude/rules/e2e.md` | Conventions harness Playwright e2e (fixtures, POMs, seed, hook scène) |
 
 Pas tout charger. Lire fichier pertinent moment pertinent.
 
@@ -68,7 +70,7 @@ Règles détaillées par package : `.claude/rules/*.md` (chargées via frontmatt
 
 ## Stack
 
-TypeScript strict ESM · Phaser 4 · Vitest · Playwright (`visual-tester`) · chrome-devtools MCP (`debugger`, `performance-profiler`) · Vite · Biome · pnpm workspaces.
+TypeScript strict ESM · Phaser 4 · Vitest · Playwright (`visual-tester` + harness e2e `pnpm test:e2e`) · chrome-devtools MCP (`debugger`, `performance-profiler`) · Vite · Biome · pnpm workspaces.
 
 ## Interdits
 

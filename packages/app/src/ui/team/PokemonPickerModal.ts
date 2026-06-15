@@ -96,6 +96,7 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
       const chip = document.createElement("div");
       chip.className = "tb-filter-chip";
       chip.dataset.type = type;
+      chip.dataset.testid = "pokemon-type-filter";
       if (!availableTypes.has(type)) {
         chip.dataset.state = "disabled";
       } else if (activeTypes.has(type)) {
@@ -180,6 +181,7 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
       const cell = document.createElement("div");
       const isExcluded = excluded.has(pokemon.id);
       cell.className = "tb-pokemon-cell";
+      cell.dataset.testid = "pokemon-cell";
       if (isExcluded) {
         cell.dataset.state = "disabled";
       }

@@ -22,7 +22,7 @@ export interface WeatherHud {
 }
 
 export function createWeatherHud(config: UiDomConfig): WeatherHud {
-  const root = el("div", "wh-hud");
+  const root = el("div", "wh-hud", "weather-hud");
   root.hidden = true;
 
   const icon = el("img", "wh-icon");
@@ -30,8 +30,8 @@ export function createWeatherHud(config: UiDomConfig): WeatherHud {
   icon.decoding = "async";
 
   const text = el("div", "wh-text");
-  const label = el("span", "wh-label");
-  const turns = el("span", "wh-turns");
+  const label = el("span", "wh-label", "weather-label");
+  const turns = el("span", "wh-turns", "weather-turns");
   text.append(label, turns);
   root.append(icon, text);
 

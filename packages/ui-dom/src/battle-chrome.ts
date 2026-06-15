@@ -62,16 +62,16 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   // Top-centre stack: the turn banner with the weather HUD directly beneath it, so
   // the two never overlap (they were both top-centred and collided before).
   const top = el("div", "bc-top");
-  const banner = el("div", "bc-turn");
+  const banner = el("div", "bc-turn", "combat-turn");
   const weatherHud = createWeatherHud(config);
   top.append(banner, weatherHud.element);
 
   const bottom = el("div", "bc-bottom");
   const tooltip = createMoveTooltip(config);
   const menuColumn = el("div", "bc-menu-col");
-  const instruction = el("div", "bc-instruction");
+  const instruction = el("div", "bc-instruction", "combat-instruction");
   instruction.hidden = true;
-  const menu = el("div", "bc-menu");
+  const menu = el("div", "bc-menu", "action-menu");
   menuColumn.append(instruction, menu);
   bottom.append(tooltip.element, menuColumn);
   root.append(top, bottom);
@@ -106,7 +106,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     onSelect: () => void,
   ): HTMLButtonElement {
     const enabled = move.currentPp > 0 && move.hasTargets;
-    const row = el("button", "bc-move-item");
+    const row = el("button", "bc-move-item", "move-item");
     row.type = "button";
     row.dataset.enabled = String(enabled);
     if (!enabled) {
@@ -116,18 +116,18 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       row.dataset.blocked = move.blockedTag;
     }
 
-    const icon = el("img", "bc-move-type");
+    const icon = el("img", "bc-move-type", "move-type-icon");
     icon.alt = move.definition.type;
     icon.loading = "lazy";
     icon.decoding = "async";
     icon.src = config.getTypeIconUrl(move.definition.type);
 
-    const name = el("span", "bc-move-name");
+    const name = el("span", "bc-move-name", "move-name");
     name.textContent = getMoveName(move.definition.id, language);
     row.append(icon, name);
 
     if (turnSystemKind !== TurnSystemKind.ChargeTime) {
-      const pp = el("span", "bc-move-pp");
+      const pp = el("span", "bc-move-pp", "move-pp");
       pp.textContent = `${move.currentPp}/${move.definition.pp}`;
       row.append(pp);
     }

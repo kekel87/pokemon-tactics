@@ -8,6 +8,28 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Bugs UI résolus (2026-06-16, commit `fix: langue au boot sandbox…`)
+
+### HUD de combat ignorait `pt-lang` au boot sandbox `?config` (résolu 2026-06-16)
+- Cause : `initLanguage()` n'était **jamais appelé** — `currentLanguage` restait au défaut, seul le toggle menu (`setLanguage`) le changeait. Boot direct sandbox/combat → langue figée.
+- Fix : appel `initLanguage()` au boot (`babylon-boot.ts`, lit `pt-lang` sur tout chemin). + locale Playwright épinglée `fr-FR` (sinon e2e bootait en EN via la locale machine). Débloque le test EN-combat (`hud.spec`).
+
+### Team Builder — bloc « Commence à construire ton équipe… » non centré (résolu 2026-06-16)
+- Cause : `.tb-edit-empty` centré horizontalement seulement, coincé dans la demi-colonne gauche de `.tb-edit-grid`.
+- Fix : `editGrid.dataset.empty` (TeamEditView) → CSS `[data-empty]` passe la grille en 1 colonne `place-items: center` + `.tb-edit-empty` centré vertical (`justify-content`/`block-size:100%`).
+
+### Map preview — bouton « Retour » débordait du panneau gauche (résolu 2026-06-16)
+- Cause : le `min-width` large de `.mn-btn` (clamp 240px+) dépassait le panneau liste étroit.
+- Fix : `.ms-list-panel .mn-btn { min-inline-size: 0; inline-size: 100%; box-sizing: border-box; }`.
+
+## Dette technique résolue
+
+### GitHub Actions sur Node 20 — déprécié (résolu 2026-06-12, commit `30be7ee`)
+- Actions `actions/checkout`, `actions/setup-node`, `pnpm/action-setup`, `peaceiris/actions-gh-pages` bumpées vers leurs variantes Node 24 dans `ci.yml`, `deploy.yml`, `itch-deploy.yml`.
+- `Ayowel/butler-to-itch` toujours à v1.3.0 (pas de release node24 mainteneur au 2026-06-12) — surveillé dans `docs/next.md`, marche probablement via runtime node24 auto GitHub.
+
+---
+
 ## Bugs résolus
 
 ### Clôture recette migration Babylon (2026-06-14, plan 124/125)

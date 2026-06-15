@@ -110,6 +110,7 @@ export function createMovesList(options: CreateMovesListOptions): MovesList {
   for (let i = 0; i < slotsCount; i++) {
     const row = document.createElement("div");
     row.className = "tb-move-row";
+    row.dataset.testid = "pokemon-edit-move-row";
     row.addEventListener("click", () => openPicker(i), { signal: options.signal });
     rows.push(row);
     list.appendChild(row);

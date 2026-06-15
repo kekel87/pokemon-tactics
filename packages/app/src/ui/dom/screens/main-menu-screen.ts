@@ -26,10 +26,10 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
       menuButton(t("menu.credits"), () => navigate("credits", undefined)),
     );
 
-    const version = el("span", "mn-version");
+    const version = el("span", "mn-version", "app-version");
     version.textContent = VERSION_TEXT;
 
-    const language = el("button", "tb-btn mn-lang");
+    const language = el("button", "tb-btn mn-lang", "language-toggle");
     language.type = "button";
     language.textContent = getLanguage().toUpperCase();
     language.addEventListener("click", () => {

@@ -151,7 +151,7 @@ function renderGrid(cells: PatternCell[][]): HTMLElement {
   grid.style.setProperty("--mt-cols", String(cells[0]?.length ?? 0));
   for (const row of cells) {
     for (const cell of row) {
-      const node = el("span", "mt-cell");
+      const node = el("span", "mt-cell", "move-tooltip-cell");
       node.dataset.cell = cell;
       grid.append(node);
     }
@@ -160,7 +160,7 @@ function renderGrid(cells: PatternCell[][]): HTMLElement {
 }
 
 export function createMoveTooltip(config: UiDomConfig): MoveTooltip {
-  const root = el("div", "mt-tooltip");
+  const root = el("div", "mt-tooltip", "move-tooltip");
   root.hidden = true;
 
   return {
@@ -177,7 +177,7 @@ export function createMoveTooltip(config: UiDomConfig): MoveTooltip {
 
       const power = move.power > 0 ? `${move.power}` : "—";
       const accuracy = move.accuracy > 0 ? `${move.accuracy}` : "—";
-      const stats = el("div", "mt-line");
+      const stats = el("div", "mt-line", "move-tooltip-stats");
       stats.textContent = `${config.translate("move.power", { value: power })}  ${config.translate("move.accuracy", { value: accuracy })}`;
       root.append(stats);
 

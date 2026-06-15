@@ -49,12 +49,12 @@ export interface BattleLog extends BattleFeedback {
 export function createBattleLog(options: BattleLogOptions): BattleLog {
   const { context, teamOf, translate } = options;
 
-  const root = el("div", "bl-panel");
+  const root = el("div", "bl-panel", "battle-log");
   root.dataset.collapsed = "true";
 
-  const header = el("button", "bl-header");
+  const header = el("button", "bl-header", "battle-log-toggle");
   header.type = "button";
-  const title = el("span", "bl-title");
+  const title = el("span", "bl-title", "battle-log-title");
   title.textContent = translate("log.title");
   const burger = el("span", "bl-burger");
   burger.textContent = "☰";
@@ -97,7 +97,7 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
       item.append(dot);
     }
 
-    const text = el("span", "bl-text");
+    const text = el("span", "bl-text", "battle-log-entry");
     text.textContent = entry.message;
     item.append(text);
 

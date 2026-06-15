@@ -13,6 +13,8 @@ export interface Position2D {
 }
 
 export interface SandboxConfig {
+  /** Battle RNG seed → deterministic, replayable run (e2e/recette). Omitted → 0. */
+  seed?: number;
   pokemon: string;
   moves: string[];
   hp: number;

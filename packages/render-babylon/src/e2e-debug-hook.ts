@@ -9,6 +9,15 @@ import type { Scene } from "@babylonjs/core";
 export interface E2eSceneApi {
   /** True once the map + all initial sprite atlases have loaded (deterministic wait signal). */
   isReady(): boolean;
+  /** Drive a tile click (same path as a real canvas pick → orchestrator), to pilot a turn in e2e. */
+  clickTile(x: number, y: number): void;
+  /** Drive a tile hover (same path as a real canvas pointer-move → orchestrator) — lets e2e assert
+   *  hover-only UI (info panel of the hovered Pokemon, aura ground icons, threat preview). */
+  hoverTile(x: number, y: number): void;
+  /** Confirm the open direction picker with its current facing (the "Attendre"/placement flow) —
+   *  lets e2e end a turn to drive end-of-turn effects (status ticks, charge T2, aura/field expiry).
+   *  No-op if no picker is open. */
+  confirmDirection(): void;
   meshNames(): string[];
   countByName(name: string): number;
   meshInfo(name: string): {
@@ -19,7 +28,13 @@ export interface E2eSceneApi {
   } | null;
 }
 
-export function installE2eSceneHook(scene: Scene, isReady: () => boolean): void {
+export function installE2eSceneHook(
+  scene: Scene,
+  isReady: () => boolean,
+  clickTile: (x: number, y: number) => void,
+  hoverTile: (x: number, y: number) => void,
+  confirmDirection: () => void,
+): void {
   // biome-ignore lint/style/useNamingConvention: VITE_E2E is an external Vite env var name.
   const e2eFlag = (import.meta as { env?: { VITE_E2E?: string } }).env?.VITE_E2E;
   if (e2eFlag !== "true") {
@@ -27,6 +42,9 @@ export function installE2eSceneHook(scene: Scene, isReady: () => boolean): void 
   }
   const api: E2eSceneApi = Object.freeze({
     isReady,
+    clickTile,
+    hoverTile,
+    confirmDirection,
     meshNames: (): string[] => scene.meshes.map((mesh) => mesh.name),
     countByName: (name: string): number => scene.meshes.filter((mesh) => mesh.name === name).length,
     meshInfo: (name: string) => {

@@ -1,5 +1,5 @@
 ---
-paths: packages/renderer/src/styles/**
+paths: packages/app/src/styles/**
 ---
 
 # Règles CSS vanilla (2026)
