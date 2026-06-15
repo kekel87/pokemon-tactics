@@ -18,6 +18,7 @@ import {
   type BattleState,
   computeCombatStats,
   computeMovement,
+  createPrng,
   type HeldItemHandlerRegistry,
   PlacementMode,
   PlacementPhase,
@@ -133,6 +134,9 @@ export interface BattleSetupConfig {
   teams: PlacementTeam[];
   placements: PlacementEntry[];
   turnSystemKind?: TurnSystemKind;
+  /** Battle RNG seed → seeded PRNG in the engine (deterministic, replayable). The live edge
+   *  generates one seed; tests/sandbox pass a fixed seed. Omitted → 0 (deterministic). */
+  seed?: number;
   creationRng?: () => number;
   genderOverrides?: Record<string, PokemonGender>;
   natureOverrides?: Record<string, Nature>;
@@ -262,14 +266,18 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
   };
 
   const turnPipeline = new TurnPipeline();
+  // Inject a seeded PRNG so combat RNG is deterministic + replayable, and the shipped app never
+  // touches global Math.random. The seed is recorded by the engine (replay ≡ live). The edge
+  // (app) generates one entropy seed per live battle; tests/sandbox pass a fixed seed.
+  const seed = config.seed ?? 0;
   const engine = new BattleEngine(
     state,
     moveDefinitions,
     typeChart,
     pokemonTypesMap,
     turnPipeline,
-    undefined,
-    0,
+    createPrng(seed),
+    seed,
     config.turnSystemKind,
     undefined,
     abilityRegistry,

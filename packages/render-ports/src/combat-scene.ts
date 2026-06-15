@@ -108,6 +108,9 @@ export interface CombatPokemonHandle {
 export interface CombatScene {
   /** Resolves once the map (terrain, heights) is loaded — required before `addPokemon`. */
   readonly ready: Promise<void>;
+  /** Resolves once the map AND every sprite added so far have loaded — for the loading overlay
+   *  to fade only on a paintable scene (call after the initial spawns are placed). */
+  whenReady(): Promise<void>;
   setTileHighlights(kind: HighlightKind, positions: readonly TileHighlightPosition[]): void;
   setSpawnZoneHighlights(zones: readonly SpawnZoneHighlight[]): void;
   setTileOutline(positions: readonly TileHighlightPosition[], beneficial?: boolean): void;

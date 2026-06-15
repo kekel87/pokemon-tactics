@@ -80,6 +80,7 @@ import {
   teamColorByIndex,
 } from "./constants.js";
 import { DirectionalBillboard } from "./directional-billboard.js";
+import { installE2eSceneHook } from "./e2e-debug-hook.js";
 import { type ExtrudedTerrain, extrudeTerrain, tileTopCenter } from "./terrain-extruder.js";
 
 // The engine-agnostic combat-scene contract (CombatScene, CombatPokemonHandle,
@@ -169,6 +170,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     BABYLON_CLEAR_COLOR.b,
     1,
   );
+  let sceneIsReady = false;
+  installE2eSceneHook(scene, () => sceneIsReady);
 
   const cameraTarget = new Vector3(0, 0, 0);
   // Goal the camera centre eases toward (recentering on the active Pokémon); the
@@ -824,8 +827,22 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     });
   }
 
+  // Full readiness = map built AND every initial sprite atlas loaded, so awaiting it means the
+  // scene is paintable with no FOUC (the loading overlay fades only here). `ready` alone was
+  // map-only, leaving sprites to pop in afterwards.
+  const sceneReady = Promise.all([ready, ...billboards.map((entry) => entry.ready)]).then(
+    () => undefined,
+  );
+  void sceneReady.then(() => {
+    sceneIsReady = true;
+  });
+
   return {
-    ready,
+    ready: sceneReady,
+    // Re-computed over the *current* billboards, so it also covers sprites added after the map
+    // (sandbox auto-spawns) — the overlay awaits this before fading.
+    whenReady: () =>
+      Promise.all([sceneReady, ...billboards.map((entry) => entry.ready)]).then(() => undefined),
     setTileHighlights: (kind, positions) => highlights?.set(kind, positions),
     setSpawnZoneHighlights: (zones) => highlights?.setSpawnZones(zones),
     addPokemon: (entry) => {

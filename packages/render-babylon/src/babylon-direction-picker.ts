@@ -57,6 +57,7 @@ export function createDirectionArrows(scene: Scene): DirectionArrowsPicker {
     neighbors: Readonly<Record<Direction, ArrowWorldPosition>>;
     active: Direction;
   } | null = null;
+  let disposed = false;
 
   const activeEmissive = new Color3(
     BABYLON_DIRECTION_ARROW_ACTIVE_EMISSIVE.r,
@@ -92,6 +93,19 @@ export function createDirectionArrows(scene: Scene): DirectionArrowsPicker {
       node.setEnabled(true);
     }
     setActive(active);
+  }
+
+  /** Swap the imported PBR material for a flat StandardMaterial (preserving vertex colours), so
+   *  no environmentBRDF RGBD texture is ever loaded (see the teardown-crash note at the call). */
+  function replaceWithStandardMaterial(mesh: Mesh): void {
+    const source = mesh.material;
+    const standard = new StandardMaterial("direction_arrow", scene);
+    if (source instanceof PBRMaterial) {
+      standard.diffuseColor = source.albedoColor.clone();
+      standard.diffuseTexture = source.albedoTexture ?? null;
+    }
+    mesh.material = standard;
+    source?.dispose();
   }
 
   function buildArrows(template: Mesh): void {
@@ -143,6 +157,12 @@ export function createDirectionArrows(scene: Scene): DirectionArrowsPicker {
 
   void loadAssetContainerAsync(ARROW_GLTF_URL, scene)
     .then((container) => {
+      // Teardown race: if the combat scene was disposed while the glTF loaded, drop the
+      // container and bail (touching a disposed scene throws).
+      if (disposed || scene.isDisposed) {
+        container.dispose();
+        return;
+      }
       const geometryMeshes = container.meshes.filter(
         (mesh): mesh is Mesh => mesh instanceof Mesh && mesh.getTotalVertices() > 0,
       );
@@ -154,6 +174,12 @@ export function createDirectionArrows(scene: Scene): DirectionArrowsPicker {
         return;
       }
       const template = normalizeTemplate(merged);
+      // The voxel arrow ships PBR materials, which make Babylon lazy-load the built-in
+      // environmentBRDF (an RGBD texture expanded on the GPU). If the scene is disposed before
+      // that async expansion finishes, Babylon throws `postProcessManager of null`. The arrow
+      // only needs flat vertex colours, so swap PBR → StandardMaterial (disposed before it ever
+      // renders) — no environmentBRDF, no RGBD, no teardown crash.
+      replaceWithStandardMaterial(template);
       buildArrows(template);
       // Free the loader's residual nodes (the `__root__` space-conversion node and
       // any leftovers); `normalizeTemplate` already detached the template, so it is
@@ -189,6 +215,7 @@ export function createDirectionArrows(scene: Scene): DirectionArrowsPicker {
       }
     },
     dispose: () => {
+      disposed = true;
       root.dispose(false, true);
     },
   };

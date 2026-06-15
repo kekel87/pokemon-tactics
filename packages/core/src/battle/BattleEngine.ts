@@ -176,6 +176,10 @@ export class BattleEngine {
     this.typeChart = typeChart;
     this.pokemonTypesMap = pokemonTypesMap;
     this.turnPipeline = turnPipeline;
+    // RNG injection: production paths (`BattleSetup`, replay-runner) always inject a seeded
+    // PRNG (`createPrng(seed)`) so combat is deterministic, replayable, and never touches global
+    // Math.random in the shipped app. The Math.random fallback below is a TEST-ONLY seam: unit
+    // tests construct the engine without a `random` and drive outcomes via `vi.spyOn(Math, …)`.
     this.random = random ?? (() => Math.random());
     this.seed = seed;
     this.turnSystemKind = turnSystemKind;

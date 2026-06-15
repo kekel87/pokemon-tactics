@@ -24,6 +24,7 @@ import {
   createSandboxBattle,
   DummyAiController,
   loadTiledMap,
+  preloadCombatSprites,
 } from "@pokemon-tactic/view-core";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
@@ -42,6 +43,7 @@ import { getCategoryIconUrl, getTypeIconUrl, getWeatherIconUrl } from "../team/a
 import { buildTeamOverrides } from "../team/build-overrides.js";
 import { getPortraitUrl } from "../team/team-builder-data.js";
 import type { SandboxConfig } from "../types/SandboxConfig.js";
+import { type LoadingOverlayHandle, showLoadingOverlay } from "../ui/LoadingOverlay.js";
 import { SandboxPanel } from "../ui/SandboxPanel.js";
 import { type PlacementFlow, type PlacementResult, startPlacementFlow } from "./placement-flow.js";
 
@@ -322,6 +324,9 @@ function startBattleLoop(
     teams: result.placementTeams,
     placements: result.placements,
     turnSystemKind: setup.turnSystemKind,
+    // Single entropy source for a live battle: pick one seed here, then the engine's seeded
+    // PRNG drives all combat RNG deterministically (replayable; no scattered Math.random).
+    seed: crypto.getRandomValues(new Uint32Array(1))[0] ?? 0,
     // Carry the team-builder customisation (moves, ability, item, nature, EVs)
     // into combat — keyed by instance id ("p1-pikachu") like the placements.
     ...buildTeamOverrides({ teams: setup.teams }),
@@ -435,11 +440,14 @@ export function mountSandboxStudio(
   let stage: GameStage | null = null;
   let combat: CombatScene | null = null;
   let orchestrator: BattleOrchestrator | null = null;
+  let loading: LoadingOverlayHandle | null = null;
   let abort = new AbortController();
   let disposed = false;
 
   function teardownBattle(): void {
     abort.abort();
+    loading?.cancel();
+    loading = null;
     orchestrator?.dispose();
     orchestrator = null;
     combat?.dispose();
@@ -451,6 +459,8 @@ export function mountSandboxStudio(
   async function mountContent(config: SandboxConfig): Promise<void> {
     abort = new AbortController();
     const localAbort = abort;
+    loading = showLoadingOverlay(host);
+    const overlay = loading;
     const mapUrl = sandboxMapUrl(config);
     const activeStage = mountGameStage(host);
     stage = activeStage;
@@ -460,10 +470,13 @@ export function mountSandboxStudio(
       pokemon: [],
     });
     combat = activeCombat;
+    overlay.setProgress(0.2);
     const [loaded] = await Promise.all([loadTiledMap(mapUrl), activeCombat.ready]);
     if (localAbort.signal.aborted) {
+      overlay.cancel();
       return;
     }
+    overlay.setProgress(0.6);
     orchestrator = startSandboxBattle({
       backend,
       combat: activeCombat,
@@ -478,6 +491,14 @@ export function mountSandboxStudio(
       onReplay: () => remount(config),
       onPositionsResolved: (player, dummy) => panel?.setResolvedPositions(player, dummy),
     });
+    // Sandbox auto-spawns immediately → wait for those sprite atlases too before fading.
+    await activeCombat.whenReady();
+    if (localAbort.signal.aborted) {
+      overlay.cancel();
+      return;
+    }
+    overlay.setProgress(1);
+    await overlay.finish();
   }
 
   function remount(config: SandboxConfig): void {
@@ -507,12 +528,15 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
   let combat: CombatScene | null = null;
   let placement: PlacementFlow | null = null;
   let orchestrator: BattleOrchestrator | null = null;
+  let loading: LoadingOverlayHandle | null = null;
   // Recreated on every (re)mount so a "Replay" tears down the previous keyboard
   // listeners cleanly (plan 120 step 8 — disposal parity with an FSM transition).
   let abort = new AbortController();
 
   function teardown(): void {
     abort.abort();
+    loading?.cancel();
+    loading = null;
     orchestrator?.dispose();
     orchestrator = null;
     placement?.dispose();
@@ -528,6 +552,9 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     params: ScreenParamsById["combat"],
   ): Promise<void> {
     abort = new AbortController();
+    const localAbort = abort;
+    loading = showLoadingOverlay(host);
+    const overlay = loading;
     const activeStage = mountGameStage(host);
     stage = activeStage;
     const activeCombat = backend.createCombatScene({
@@ -536,12 +563,36 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
       pokemon: params.setup ? [] : DEMO_POKEMON,
     });
     combat = activeCombat;
+    overlay.setProgress(0.2);
 
     const setup = params.setup;
     if (!setup) {
       mountDemoContent(activeCombat);
+      await activeCombat.whenReady();
+      if (localAbort.signal.aborted) {
+        overlay.cancel();
+        return;
+      }
+      overlay.setProgress(1);
+      await overlay.finish();
       return;
     }
+    // Placement is interactive, so the overlay fades once the map is paintable (not after the
+    // player finishes placing) — but first warm the team sprite atlases so placed Pokémon appear
+    // textured with no white-plane flash (Phaser LoadingScene parity).
+    await activeCombat.ready;
+    if (localAbort.signal.aborted) {
+      overlay.cancel();
+      return;
+    }
+    overlay.setProgress(0.6);
+    await preloadCombatSprites(setup.teams.flatMap((team) => team.pokemonDefinitionIds));
+    if (localAbort.signal.aborted) {
+      overlay.cancel();
+      return;
+    }
+    overlay.setProgress(1);
+    await overlay.finish();
     // "Replay" re-runs the whole placement→battle flow with the same config — an
     // internal re-mount, NOT an FSM navigation (plan 120 victory contract).
     const replay = (): void => {

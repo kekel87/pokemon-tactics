@@ -184,6 +184,9 @@ export class DirectionalBillboard {
     this.plane = MeshBuilder.CreatePlane("pokemon_plane", { width: 1, height: 1 }, options.scene);
     this.plane.material = this.material;
     this.plane.parent = this.spritePivot;
+    // Hidden until the atlas is bound — otherwise the bare plane flashes its blank white
+    // material before the texture loads (FOUC on each newly-placed sprite).
+    this.plane.isVisible = false;
     // Native occlusion against the terrain depth (group 2). `SpriteDepthPlugin`
     // flattens the whole sprite to its foot-point depth, so taller terrain in front
     // occludes it while its own tile, shadow and equal-height neighbours never clip it.
@@ -237,6 +240,7 @@ export class DirectionalBillboard {
     this.silhouettePlane.parent = this.root;
     this.silhouettePlane.renderingGroupId = BABYLON_SILHOUETTE_RENDERING_GROUP;
     this.silhouettePlane.isPickable = false;
+    this.silhouettePlane.isVisible = false;
   }
 
   async load(): Promise<void> {
@@ -248,6 +252,8 @@ export class DirectionalBillboard {
     this.bindActiveAtlas(this.baseAtlas);
     this.controller.resolveRestingFallback();
     this.applyFrame();
+    this.plane.isVisible = true;
+    this.silhouettePlane.isVisible = true;
   }
 
   /**
