@@ -76,7 +76,7 @@
 | [phaser-tbs](https://github.com/mattbgold/phaser-tbs) | 12 | TS, Phaser | Tactique tour par tour. Architecture models/services/controllers. DI avec Inversify. |
 | [tactical-rpg](https://github.com/sviridoff/tactical-rpg) | 28 | TS, React | Clone Fire Emblem Heroes web. TypeScript, démo jouable. |
 | [TinyWarsClient](https://github.com/Babygogogo/TinyWarsClient) | 40 | TS | Clone Advance Wars navigateur. Multi joueur. |
-| [TicTac (Three.js)](https://github.com/chongdashu/threejs-tactics-game) | ~10 | TS, Three.js, Vite | FFT-like avec menus contextuels, élévation terrain, IA. Référence Three.js pour phase HD-2D future. |
+| [TicTac (Three.js)](https://github.com/chongdashu/threejs-tactics-game) | ~10 | TS, Three.js, Vite | FFT-like avec menus contextuels, élévation terrain, IA. Référence consultée lors du spike Three.js (plan 062) — Babylon.js retenu à la place (décision #269). |
 
 ### Isométrique Phaser
 

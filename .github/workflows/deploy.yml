@@ -35,7 +35,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: packages/renderer/dist
+          path: packages/app/dist
 
   deploy:
     needs: build

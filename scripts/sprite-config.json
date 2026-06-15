@@ -128,5 +128,5 @@
     "SouthWest"
   ],
   "baseUrl": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master",
-  "outputDir": "packages/renderer/public/assets/sprites/pokemon"
+  "outputDir": "packages/app/public/assets/sprites/pokemon"
 }

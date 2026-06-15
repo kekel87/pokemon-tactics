@@ -28,8 +28,8 @@ const CATEGORY_ICONS: Record<string, string> = {
   status: "https://archives.bulbagarden.net/media/upload/e/e0/StatusIC_SV.png",
 };
 
-const TYPES_DIR = resolve("packages/renderer/public/assets/ui/types");
-const CATEGORIES_DIR = resolve("packages/renderer/public/assets/ui/categories");
+const TYPES_DIR = resolve("packages/app/public/assets/ui/types");
+const CATEGORIES_DIR = resolve("packages/app/public/assets/ui/categories");
 
 async function downloadFile(url: string, outputPath: string, label: string): Promise<void> {
   const response = await fetch(url);

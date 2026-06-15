@@ -15,7 +15,7 @@ Requires Python 3.10+ and Pillow (`pip install Pillow`).
 - `tiles/work/` — scratch space for the pipeline. Extracted 24×24 source textures,
   per-shape preview tiles, per-terrain columns, the assembled tileset, debug
   comparisons. Gitignored.
-- `packages/renderer/public/assets/tilesets/terrain/tileset.png` — the
+- `packages/app/public/assets/tilesets/terrain/tileset.png` — the
   final tileset image consumed by the renderer (committed).
 
 ### 1. `extract-pmd-tile.py` — lift tiles out of a PMD Spriters Resource sheet
@@ -139,7 +139,7 @@ python3 scripts/assemble-tileset.py \
   --solid  sable  tiles/work/col-sable.png \
   --solid  path   tiles/work/col-path.png \
   --liquid eau    tiles/work/col-eau.png \
-  --out    packages/renderer/public/assets/tilesets/terrain/custom-tileset.png
+  --out    packages/app/public/assets/tilesets/terrain/custom-tileset.png
 ```
 
 The output is a `32 × (32 × total_rows)` PNG. For N solids + M liquids,
@@ -150,9 +150,9 @@ update `docs/tileset-mapping.md` accordingly.
 ### External tileset reference
 
 The final tileset lives at
-`packages/renderer/public/assets/tilesets/terrain/tileset.png`, paired with
+`packages/app/public/assets/tilesets/terrain/tileset.png`, paired with
 `tileset.tsj` (shared tile properties: terrain, height, slope). Every `.tmj`
-in `packages/renderer/public/assets/maps/` references it via
+in `packages/app/public/assets/maps/` references it via
 `{ "firstgid": 1, "source": "../tilesets/terrain/tileset.tsj" }`. Edit
 `tileset.tsj` once to update properties for all 24 maps at once.
 

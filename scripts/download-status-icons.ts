@@ -21,7 +21,7 @@ const STATUS_LABELS: Record<string, string> = {
   asleep: "https://www.pokepedia.fr/images/e/ec/Miniature_Statut_Somnolence_LPZA.png",
 };
 
-const OUTPUT_DIR = resolve("packages/renderer/public/assets/ui/statuses");
+const OUTPUT_DIR = resolve("packages/app/public/assets/ui/statuses");
 
 async function downloadFile(url: string, outputPath: string, label: string): Promise<void> {
   const response = await fetch(url);

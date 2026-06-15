@@ -99,5 +99,11 @@ Données de test fictives mais réalistes, utilisées pour isoler ce qu'on teste
 **Monorepo**
 Un seul dépôt Git contenant plusieurs packages indépendants. Ici : `packages/core`, `packages/data`, `packages/renderer`. Géré par pnpm workspaces. Permet de partager du code entre packages sans publier sur npm.
 
-**Renderer**
-Le package `@pokemon-tactic/renderer` — la couche d'affichage (Phaser 4). Écoute les events du core et anime les actions à l'écran. Peut être remplacé sans toucher au core.
+**App** (anciennement `renderer`)
+Le package `@pokemon-tactic/app` — composition root / app-shell Vite. Câble les dépendances au boot (DI), contient les écrans FSM, l'i18n, les settings et le team UI. Peut être remplacé sans toucher au core.
+
+**Render-ports** (anciennement `renderer-contract`)
+Le package `@pokemon-tactic/render-ports` — ports hexagonaux du contrat de rendu. Définit les interfaces (`BoardView`, `BattleChrome`, `BattleFeedback`, `RenderBackend`) que tout backend doit implémenter. Dépend uniquement de `core`.
+
+**View-core** (anciennement `presentation`)
+Le package `@pokemon-tactic/view-core` — logique de vue engine-agnostic, headless. Contient l'orchestrateur de combat (FSM 9 phases), les view-builders, l'IA, le setup. N'importe pas de DOM : garantie par `lib: ["ES2022","WebWorker"]` dans son tsconfig. Nom choisi pour lever le faux-ami "presentation" (couche MVC/MVP).

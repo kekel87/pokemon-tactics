@@ -1,0 +1,19 @@
+/* @pokemon-tactic/ui-dom — component styles (plan 125 Phase 4).
+ * Co-located with the reusable DOM components. The host app provides the design
+ * tokens + base layers (tokens.css/reset.css/base.css/button.css); these files
+ * style the ui-dom components themselves (combat chrome + modal). Re-declares the
+ * layer order so the cascade is correct whatever the host import order.
+ */
+/* @import must precede every other rule — Vite-dev serves this package CSS raw and
+ * the browser drops @imports that follow another rule (incl. an @layer statement),
+ * silently unloading every ui-dom component style. The layer ORDER is declared by
+ * the host (renderer `styles/layers.css`, imported first at boot); each component
+ * file self-assigns `@layer components`, so order is preserved without a statement here. */
+@import "./modal.css";
+@import "./info-panel.css";
+@import "./placement.css";
+@import "./battle-chrome.css";
+@import "./battle-log.css";
+@import "./move-tooltip.css";
+@import "./turn-timeline.css";
+@import "./weather-hud.css";
