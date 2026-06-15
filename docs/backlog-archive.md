@@ -10,6 +10,13 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ## Bugs résolus
 
+### Clôture recette migration Babylon (2026-06-14, plan 124/125)
+Recette visuelle humaine de la migration Babylon validée (2026-06-14). Les 4 reliquats du backlog Babylon sont **clos par acceptation humaine** — jugés acceptables / non-bloquants à la recette, **pas un fix code** (à rouvrir si régression réelle). Distincts des fixs plan 120 archivés plus bas (#488-491).
+- **[Babylon] Curseur FFTA ne remonte pas à la tête du Pokémon fraîchement posé** (2026-06-11, plan 120) — accepté tel quel.
+- **[Babylon] Silhouette X-ray entre Pokémon jugée moche** (2026-06-11, plan 120) — accepté tel quel.
+- **[Babylon] Animations idle/boucles trop rapides vs Phaser** (2026-06-11, plan 120) — accepté tel quel.
+- **[Babylon] Divergence HUD combat : sandbox studio in-canvas vs FSM DOM** (2026-06-13) — accepté ; priorité basse, à documenter/unifier seulement si une feature HUD l'exige.
+
 ### Renderer Babylon — animations idle trop rapides (playtest 2026-06-11)
 - Feedback playtest plan 120 : les animations idle des sprites Babylon jouaient à 140ms/frame fixe, trop vite par rapport aux durées PMD réelles.
 - Fix (plan 120) : chaque frame jouée pour sa durée PMD réelle (`atlas.meta.animations[nom].durations[i] × BABYLON_PMD_TICK_DURATION_MS`). Constantes `BABYLON_PMD_TICK_DURATION_MS = 33` + `BABYLON_PMD_DEFAULT_FRAME_TICKS = 4`. Parité avec `SpriteLoader.TICK_DURATION_MS` du renderer Phaser. Décision #488.

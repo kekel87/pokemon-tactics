@@ -1,0 +1,21 @@
+{
+  "name": "@pokemon-tactic/ui-dom",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./styles/*": "./src/styles/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pokemon-tactic/core": "workspace:*",
+    "@pokemon-tactic/data": "workspace:*",
+    "@pokemon-tactic/view-core": "workspace:*",
+    "@pokemon-tactic/render-ports": "workspace:*"
+  }
+}

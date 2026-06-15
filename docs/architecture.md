@@ -29,7 +29,7 @@
 ```
 
 **Avantages :**
-- Changer renderer sans toucher logique (Phaser → Three.js → Godot)
+- Changer renderer sans toucher logique (Phaser → Babylon.js → Godot)
 - Faire jouer des IA sans UI
 - Tests unitaires sur logique pure
 - Mode headless : 1000 combats en secondes (équilibrage)
@@ -37,16 +37,54 @@
 
 ### Diagramme des packages
 
+Découpage en packages (plan 125, noms finalisés plan 126) pour rendre un changement de moteur de rendu **mécanique** : un nouveau backend implémente les ports + réutilise `view-core` et `ui-dom`. Sens des flèches = « dépend de ».
+
+### Schéma de nommage des packages
+
+| Préfixe | Signification | Exemples |
+|---------|---------------|---------|
+| _(aucun)_ | Domaine pur, zéro UI/DOM | `core`, `data` |
+| `view-` | Logique de vue engine-agnostic, headless (jamais DOM direct) | `view-core` |
+| `render-` | Besoin d'un moteur de rendu ou du DOM navigateur | `render-babylon`, `render-canvas2d`, `render-ports` |
+| `ui-` | Widgets DOM purs (HTML/CSS, pas de moteur 3D) | `ui-dom` |
+| `app` (racine) | Composition root / entry-point Vite | `app` |
+
+> **`render-ports`** est le cas particulier : ports hexagonaux du contrat de rendu (interfaces uniquement, DOM-free, dépend de `core` uniquement). Le préfixe `render-` signale qu'il appartient à la frontière rendu.
+
+> **Pourquoi `view-core` et pas `presentation` ?** Le terme "presentation" est un faux-ami (évoque la couche UI/écrans dans les architectures MVC/MVP). Ce package contient la logique de vue headless (orchestrateur, builders, IA, setup) — agnostique du moteur, sans DOM. `view-core` lève l'ambiguïté.
+
+### Architecture : Hexagonal / Ports & Adapters + Humble Object + Dependency Inversion
+
+Le découpage suit le pattern Hexagonal (Ports & Adapters) :
+- **`render-ports`** définit les interfaces (ports) que tout backend de rendu doit implémenter (`BoardView`, `BattleChrome`, `BattleFeedback`, `RenderBackend`).
+- **`render-babylon`** et **`render-canvas2d`** sont des adapters (implémentations concrètes des ports).
+- **`view-core`** orchestre en dépendant uniquement des ports, jamais des adapters.
+- **Humble Object** : `app` est le seul point à connaître les dépendances concrètes (câblage DI au boot).
+- **Dependency Inversion** : les packages de haut niveau (`view-core`) ne dépendent pas des détails (`render-babylon`), les deux dépendent d'abstractions (`render-ports`).
+
 ```mermaid
 graph TD
-    data["@pokemon-tactic/data<br/>(Pokemon, moves, type-chart)"]
     core["@pokemon-tactic/core<br/>(moteur pur, zéro UI)"]
-    renderer["@pokemon-tactic/renderer<br/>(Phaser 4)"]
-    ai["@pokemon-tactic/ai-player<br/>(LLM, MCTS, MCP)"]
+    data["@pokemon-tactic/data<br/>(Pokemon, moves, type-chart)"]
+    renderPorts["@pokemon-tactic/render-ports<br/>(ports BoardView/Chrome/Feedback,<br/>view-models, RenderBackend, TEAM_COLORS, HighlightKind)"]
+    viewCore["@pokemon-tactic/view-core<br/>(orchestrator, view-builders, IA,<br/>setup ; agnostique moteur, DI i18n)"]
+    renderBabylon["@pokemon-tactic/render-babylon<br/>(scène/board Babylon, GameStage lifecycle)"]
+    uiDom["@pokemon-tactic/ui-dom<br/>(combat-chrome HTML réutilisable, DI UiDomConfig)"]
+    app["@pokemon-tactic/app<br/>(composition root : écrans FSM, boot, i18n, settings,<br/>team UI, câblage DI)"]
 
     data --> core
-    core --> renderer
-    core --> ai
+    renderPorts --> core
+    viewCore --> core
+    viewCore --> data
+    viewCore --> renderPorts
+    renderBabylon --> renderPorts
+    renderBabylon --> viewCore
+    uiDom --> renderPorts
+    uiDom --> viewCore
+    app --> viewCore
+    app --> renderBabylon
+    app --> uiDom
+    app --> renderPorts
 ```
 
 ---
@@ -58,7 +96,7 @@ graph TD
 | Langage | TypeScript (strict mode) |
 | Runtime | Node.js (dev/tests/AI) + Navigateur (jeu) |
 | Bundler | Vite |
-| Renderer | Phaser 4 (→ Three.js possible plus tard pour HD-2D avancé) |
+| Renderer | Babylon.js (backend `render-babylon` derrière le contrat ; un second moteur = nouveau package implémentant le contrat) |
 | Tests | Vitest (core) + Playwright (rendu) |
 | Linter/Formatter | Biome (remplace ESLint + Prettier + Stylelint) |
 | Package manager | pnpm |
@@ -84,37 +122,101 @@ pokemon-tactics/
 │   │   ├── tsconfig.json        # extends ../../tsconfig.base.json
 │   │   └── package.json
 │   │
-│   ├── renderer/                # Interface graphique (Phaser 4)
+│   ├── render-ports/            # Ports hexagonaux du contrat de rendu (plan 125, renommé plan 126)
 │   │   ├── src/
-│   │   │   ├── scenes/          # Scènes Phaser : MainMenuScene → BattleModeScene → TeamSelectScene → BattleScene + BattleUIScene overlay ; SettingsScene, CreditsScene ; MapPreviewScene (pnpm dev:map) ; LoadingScene (générique réutilisable — queue assets preload() canonique, supporte sandbox + placement battle)
-│   │   │   ├── maps/            # Chargement cartes Tiled au runtime (loadTiledMap)
-│   │   │   ├── game/            # Orchestration (GameController, BattleSetup, AnimationQueue, DummyAiController)
-│   │   │   ├── grid/            # Rendu isométrique (IsometricGrid : highlightGraphics, enemyRangeGraphics layer dédié, curseur animé)
-│   │   │   ├── sprites/         # Sprites Pokemon (PokemonSprite, SpriteLoader, barres PV)
-│   │   │   ├── i18n/            # Système i18n maison : types.ts, locales/fr.ts, locales/en.ts, index.ts (t, setLanguage, detectLanguage, onLanguageChange, Language enum)
-│   │   │   ├── settings/        # Paramètres persistants : GameSettings { damagePreview }, getSettings(), updateSettings(), localStorage("pt-settings")
-│   │   │   ├── styles/          # CSS modulaire Team Builder — entry index.css (@layer reset/base/components/utilities), tokens.css (vars primitives+sémantiques : types, stats, feedback, spacing, font), + 10 fichiers composants (button, modal, type-badge, topbar, team-list, slot-card, edit-panels, stat-bar, picker, set-op, showdown). Source canonique couleurs DOM — constants.ts reste source Phaser/canvas.
-│   │   │   ├── team/            # Helpers data Team Builder côté renderer : team-builder-data.ts (agrégateur lang-aware), team-generator.ts, team-helpers.ts, team-builder-catalog.ts, asset-paths.ts, type-colors.ts
-│   │   │   ├── ui/              # Interface FFT-like (ActionMenu, InfoPanel, TurnTimeline, BattleUI, DirectionPicker, PlacementRosterPanel, MoveTooltip, pattern-preview, SandboxPanel, LanguageToggle, TeamSelectPanel, BattleLogPanel, BattleLogFormatter, WeatherHud, LoadingOverlay [DOM — progress bar pixel + label X/Y + tips rotatifs 3s + fadeOut])
-│   │   │   │                    # + ui/dom/ (helpers DOM réutilisables ≥2 scènes — décision #346) : Modal.ts (<dialog showModal()> natif), Dropdown.ts, form-controls.ts (createButton, createLabeledSelect, createLabeledCheckbox, createLabeledRange, createOptionalNumberInput, createPickerCard, replaceSelectOptions, types SelectOption/ButtonVariant), Stepper.ts (createStepper, closure getValue/setValue), MovesList.ts (createMovesList — classes .tb-move-row/.tb-moves-list partagées team builder ↔ sandbox)
-│   │   │   │                    # + ui/team/ (composants Team Builder : SlotCardsRow, TeamEditPanel, TeamStatsPanel, SpSlider, StatBar, NatureDropdown, PokemonPickerModal, MovePickerModal, ItemPickerModal, ShowdownIoModal, DeleteConfirmModal, AbilityRadioGroup, TeamCard)
-│   │   │   │                    # + ui/team-select/ (composants TeamSelectScene : FormatPicker, TeamListItem, TeamList, PlayerCell, PlayersColumn)
-│   │   │   ├── analytics/       # Tracking GoatCounter : AnalyticsEvent (const enum), trackEvent(), trackGameLoadedOnce(). Beacon Image pixel (/count?p=...&e=true) — contourne blocage itch.io sandbox. No-op en dev/hôte inconnu. Path préfixé plateforme (/itch/ vs /ghp/).
-│   │   │   ├── utils/           # Utilitaires renderer (screen-direction : getDirectionFromScreenPosition)
-│   │   │   ├── enums/           # Enums renderer (HighlightKind — dont EnemyRange)
-│   │   │   ├── types/           # Types renderer (BattleConfig : confirmAttack)
-│   │   │   ├── constants.ts     # Depth centralisé, couleurs équipe, tailles UI, POKEMON_SPRITE_SCALE, TILE_SPRITE_SCALE, TERRAIN_TEXTURE_MAP, POKEMON_SPRITE_GROUND_OFFSET_Y, DEPTH_GRID_PREVIEW, DEPTH_GRID_ENEMY_RANGE, TILE_PREVIEW_COLOR, TILE_HIGHLIGHT_ENEMY_RANGE_COLOR, STATUS_ICON_KEY, HP_COLOR_MEDIUM, STAT_BADGE_BUFF_COLOR, STAT_BADGE_DEBUFF_COLOR, BattleLogColors, couleurs tooltip/buttons/text centralisées
-│   │   │   └── main.ts
+│   │   │   ├── ports/           # BoardView, BattleChrome, BattleFeedback (interfaces moteur-agnostiques)
+│   │   │   ├── view-models/     # WeatherView, TimelineView, InfoPanelData… (données UI découplées du core)
+│   │   │   ├── presentation-context.ts  # PresentationContext (DI i18n + assets)
+│   │   │   ├── render-backend.ts        # RenderBackend (lifecycle : mount/dispose)
+│   │   │   ├── team-colors.ts           # TEAM_COLORS, teamColorByIndex, teamColorToHex, getTeamColorByPlayerId
+│   │   │   ├── highlight-kind.ts        # HighlightKind enum
+│   │   │   └── index.ts
+│   │   ├── tsconfig.json        # dépend de core uniquement
+│   │   └── package.json
+│   │
+│   ├── view-core/               # Logique de vue engine-agnostic headless (plan 125, renommé plan 126)
+│   │   ├── src/
+│   │   │   ├── battle-orchestrator/     # battle-orchestrator (FSM 9 phases combat)
+│   │   │   ├── battle-views/            # view-builders (WeatherView, TimelineView, InfoPanelData…)
+│   │   │   ├── floating-text-content.ts # contenu textes flottants
+│   │   │   ├── movement-animation.ts    # logique animation déplacement
+│   │   │   ├── animation-queue.ts       # AnimationQueue
+│   │   │   ├── battle-setup.ts          # BattleSetup
+│   │   │   ├── sandbox-setup.ts         # SandboxSetup
+│   │   │   ├── ai/                      # AiTeamController, DummyAiController
+│   │   │   ├── sandbox-config.ts        # SandboxConfig + DEFAULT_SANDBOX_CONFIG
+│   │   │   └── constants.ts             # couleurs Champs, symboles aura/charge, durées tween, cluster BATTLE_TEXT
+│   │   ├── tsconfig.json        # lib ["ES2022","WebWorker"] (timers sans DOM) ; dépend core/data/render-ports
+│   │   └── package.json
+│   │
+│   ├── render-babylon/          # Backend de rendu Babylon.js (plan 125)
+│   │   ├── src/
+│   │   │   ├── babylon-*/       # babylon-picking, babylon-tile-highlights, babylon-decorations,
+│   │   │   │                    # babylon-field-terrains, babylon-hover-cursor, babylon-sprite-hud,
+│   │   │   │                    # babylon-direction-picker, babylon-aura-ground-icons, babylon-color…
+│   │   │   ├── battle-board-view.ts     # implémente BoardView (port render-ports)
+│   │   │   ├── combat-scene.ts          # scène combat Babylon (caméra, picking, highlights)
+│   │   │   ├── game-stage.ts            # implémente RenderBackend (lifecycle mount/dispose)
+│   │   │   ├── load-tiled-map.ts        # chargement carte Tiled → scène Babylon
+│   │   │   ├── map-preview-stage.ts     # preview carte
+│   │   │   ├── sprite-depth-plugin.ts   # SpriteDepthPlugin (occlusion native depth-buffer)
+│   │   │   ├── terrain-extruder.ts      # extrusion 3D du terrain depuis MapDefinition
+│   │   │   ├── world-facing.ts          # orientation billboards
+│   │   │   ├── world-projection.ts      # projection coordonnées monde → CSS viewport
+│   │   │   ├── directional-billboard.ts # sprites PMDCollab directionnels + états
+│   │   │   ├── floating-text-spawner.ts # textes flottants en moteur
+│   │   │   └── constants.ts             # constantes visuelles Babylon (BABYLON_*)
+│   │   ├── tsconfig.json        # dépend core/data/view-core/render-ports + Babylon.js
+│   │   └── package.json
+│   │
+│   ├── ui-dom/                  # Chrome HTML réutilisable (plan 125)
+│   │   ├── src/
+│   │   │   ├── battle-chrome.ts         # chrome combat complet (câble tous les panneaux)
+│   │   │   ├── battle-log.ts            # BattleLogPanel + BattleLogFormatter
+│   │   │   ├── move-tooltip.ts          # MoveTooltip
+│   │   │   ├── placement-roster.ts      # bandeau placement (portraits, compteur, Terminer)
+│   │   │   ├── turn-timeline.ts         # TurnTimeline (RR + CT)
+│   │   │   ├── weather-hud.ts           # WeatherHud
+│   │   │   ├── info-panel.ts            # InfoPanel
+│   │   │   ├── pattern-preview.ts       # previews de ciblage
+│   │   │   ├── Modal.ts                  # primitive modale (<dialog>, closeAriaLabel DI)
+│   │   │   ├── Stepper.ts                # primitive stepper (pure)
+│   │   │   ├── form-controls.ts          # primitives boutons/selects/checkbox (pures)
+│   │   │   ├── config.ts                # UiDomConfig (DI translate/getLanguage/getTypeIconUrl/getPortraitUrl…)
+│   │   │   ├── constants.ts             # BATTLE_LOG_COLOR_*
+│   │   │   └── styles/                  # CSS co-localisé des composants (combat-chrome, modal, info-panel) + index.css
+│   │   ├── tsconfig.json        # dépend core/data/view-core/render-ports
+│   │   └── package.json
+│   │
+│   ├── app/                     # Composition root / app-shell Vite (plan 125, renommé plan 126)
+│   │   ├── src/
+│   │   │   ├── app/             # ScreenManager FSM + écrans DOM (main-menu, battle-mode, team-select,
+│   │   │   │                    # my-teams, team-edit, settings, credits, combat-screen, map-select)
+│   │   │   ├── babylon/         # Écrans qui câblent les backends : combat-screen (boucle combat),
+│   │   │   │                    # placement-flow, team-edit-harness, babylon-preview
+│   │   │   ├── i18n/            # Système i18n maison (t, setLanguage, detectLanguage, Language enum)
+│   │   │   │   └── locales/     # fr.ts, en.ts
+│   │   │   ├── settings/        # Paramètres persistants : GameSettings, getSettings(), updateSettings()
+│   │   │   ├── styles/          # CSS global + tokens.css (vars primitives/sémantiques)
+│   │   │   ├── ui/
+│   │   │   │   ├── dom/         # Modal, Stepper, MovesList, form-controls, SandboxPanel
+│   │   │   │   │   └── screens/ # Écrans DOM supplémentaires
+│   │   │   │   ├── team/        # Composants Team Builder (SlotCardsRow, TeamEditPanel, PokemonPickerModal…)
+│   │   │   │   └── team-select/ # Composants TeamSelectScene (FormatPicker, TeamListItem, PlayersColumn…)
+│   │   │   ├── analytics/       # Tracking GoatCounter (AnalyticsEvent, trackEvent, beacon Image pixel)
+│   │   │   ├── constants.ts     # Constantes visuelles renderer restantes
+│   │   │   └── main.ts          # Câble DI (PresentationContext, UiDomConfig) au boot
 │   │   ├── public/
 │   │   │   └── assets/
 │   │   │       ├── sprites/pokemon/{name}/  # atlas.json, atlas.png, portrait-normal.png, credits.txt, offsets.json (générés)
-│   │   │       ├── tilesets/terrain/        # tileset.png (custom PMD-based, 32×32px, 74 tiles, 11 terrains solides + 4 liquides) + tileset.tsj (tileset Tiled externe partagé par tous les .tmj)
-│   │   │       ├── maps/                    # Cartes Tiled (.tmj) servies au runtime (roster racine : simple-arena, highlands ; dev/ : sandbox-*, debug-*, tile-palette, decorations-demo)
+│   │   │       ├── tilesets/terrain/        # tileset.png + tileset.tsj (Tiled externe partagé)
+│   │   │       ├── tilesets/terrain-3d/     # 15 textures PMD plates pour Babylon
+│   │   │       ├── maps/                    # Cartes Tiled (.tmj) servies au runtime
 │   │   │       └── ui/
-│   │   │           ├── arrows.png           # Spritesheet flèches DirectionPicker
-│   │   │           ├── types/               # Type icons Pokepedia ZA : {type}.png, 36x36px sans texte (18 types)
-│   │   │           ├── categories/          # Category icons Bulbagarden SV : physical.png, special.png, status.png — 50x40px
-│   │   │           └── statuses/            # Status icons Pokepedia ZA : icon-{status}.png (52x36), label-{status}.png (172x36) — 7 statuts majeurs
+│   │   │           ├── arrows.png           # Spritesheet flèches picker direction
+│   │   │           ├── types/               # Type icons Pokepedia ZA (18 types)
+│   │   │           ├── categories/          # Category icons Bulbagarden SV
+│   │   │           └── statuses/            # Status icons Pokepedia ZA (7 statuts majeurs)
 │   │   ├── index.html
 │   │   ├── vite.config.ts
 │   │   ├── tsconfig.json        # extends base + DOM libs
@@ -156,7 +258,7 @@ pokemon-tactics/
 │       └── package.json
 │
 ├── scripts/                     # Outils de build one-shot (non packagés)
-│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas Phaser (inclut Sleep depuis plan 018)
+│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas (JSON + PNG, compatible Babylon + Phaser) (inclut Sleep depuis plan 018)
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
 │   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
 │   ├── sprite-config.json
@@ -194,7 +296,7 @@ pokemon-tactics/
 | Dossier | Contenu | Tests |
 |---------|---------|-------|
 | `enums/` | Const object enums (pattern `as const` + type dérivé) — dont `PlacementMode`, `PlayerController`, `DefensiveKind`, `TeamValidationError`, `HeldItemId` (12 valeurs) | Non testé (compilation = validation) |
-| `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `ActiveDefense`, `TeamSelection`, `TeamValidationResult`, `AbilityDefinition` (9 hooks optionnels : `onDamageModify`, `onAfterDamageReceived`, `onAfterStatusReceived`, `onStatusBlocked`, `onStatusDurationModify`, `onStatChangeBlocked`, `onTypeImmunity`, `onBattleStart`, `onAuraCheck`), `BlockResult { blocked, events }`, `DurationModifyResult { duration, events }`, `HeldItemDefinition` + `HeldItemHandler` (8 hooks : `onDamageModify`, `onCritStageBoost`, `onAfterMoveDamageDealt`, `onAfterDamageReceived`, `onEndTurn`, `onTerrainTick`, `onCtGainModify`, `onMoveLock`), `ItemReactionResult { events, consumeItem }`, `ItemBlockResult { blocked, events }` | Non testé (compilation = validation) |
+| `types/` | Interfaces, 1 fichier = 1 type — dont `MapDefinition`, `MapFormat`, `SpawnZone`, `PlacementTeam`, `PlacementEntry`, `ActiveDefense`, `TeamSelection`, `TeamValidationResult`, `AbilityDefinition` (9 hooks optionnels : `onDamageModify`, `onAfterDamageReceived`, `onAfterStatusReceived`, `onStatusBlocked`, `onStatusDurationModify`, `onStatChangeBlocked`, `onTypeImmunity`, `onBattleStart`, `onAuraCheck`), `BlockResult { blocked, events }`, `DurationModifyResult { duration, events }`, `HeldItemDefinition` + `HeldItemHandler` (8 hooks : `onDamageModify`, `onCritStageBoost`, `onAfterMoveDamageDealt`, `onAfterDamageReceived`, `onEndTurn`, `onTerrainTick`, `onCtGainModify`, `onMoveLock`), `ItemReactionResult { events, consumeItem }`, `ItemBlockResult { blocked, events }`, `SemiInvulnerableDisplay` (bucket display de `SemiInvulnerableState` — localisé dans `core` pour éviter le cycle `render-ports`↔`view-core`, plan 126) | Non testé (compilation = validation) |
 | `utils/` | Fonctions pures réutilisables (math, direction, géométrie) | Oui |
 | `grid/` | Classe Grid, targeting resolvers | Oui |
 | `battle/` | BattleEngine (dual-mode RR/CT, injecte `StatusRules` + `abilityRegistry` + `itemRegistry`, `consumeStartupEvents()`, `rerunBattleStartChecks()`), TurnManager (RR), **ChargeTimeTurnSystem** (CT rotation, getCtSnapshot), **ct-costs** (computeCtGain, ppCost, powerFloor, effectFloor, computeMoveCost, computeCtActionCost), PlacementPhase, validate, validate-map, team-validator, defense-check, handle-defensive, defensive-clear-handler, replay-runner, **height-traversal** (canTraverse, calculateFallDamage), **height-modifier** (getHeightModifier, isMeleeBlockedByHeight), **handle-status** (`StatusRules`, `DEFAULT_STATUS_RULES` = Champions, taux statuts Champions via `EffectContext.statusRules`), **ability-handler-registry** (`AbilityHandlerRegistry`, dispatch par hook), **held-item-handler-registry** (`HeldItemHandlerRegistry`, miroir `AbilityHandlerRegistry`, 8 hooks), **effective-flying** (`isEffectivelyFlying(pokemon, types)` — Levitate ou type Flying, exporté depuis `@pokemon-tactic/core`), **position-linked-statuses** (`checkPositionLinkedStatuses` — retire `Intimidated`/`Infatuated`/`Trapped` quand source s'éloigne/KO), **weather-system** (`Weather` enum, `effectiveWeather(state, activeAbilities)` — Cloud Nine via lookup, `applyWeatherWar` — poseur le plus lent gagne, `weather-tick` end-turn handler) | Oui |
@@ -344,18 +446,18 @@ type BattleEvent =
 
 **Core n'attend jamais le renderer.** `submitAction()` synchrone : mute l'état, émet les events, retourne. L'IA joue des milliers de parties par seconde sans overhead visuel.
 
-**Renderer gère sa propre queue d'animations.** Reçoit events, les empile, joue séquentiellement avec tweens/animations Phaser.
+**Renderer gère sa propre queue d'animations.** Reçoit events, les empile, joue séquentiellement via `AnimationQueue` (package `view-core`).
 
 ```
-Core (sync)          Renderer (async)         IA (sync)
-    │                     │                      │
-    ├── emit(events) ────►│ queue + animate       │
-    │                     │   await tween...      │
-    │                     │   await tween...      │
-    │                     │   done → unlock UI    │
-    │                     │                      │
-    ├── emit(events) ◄───────────────────────────┤ submitAction() → instant
-    │                     │                      │
+Core (sync)          ViewCore (AnimationQueue)        IA (sync)
+    │                     │                               │
+    ├── emit(events) ────►│ queue + animate               │
+    │                     │   await tween...              │
+    │                     │   await tween...              │
+    │                     │   done → unlock UI            │
+    │                     │                              │
+    ├── emit(events) ◄──────────────────────────────────┤ submitAction() → instant
+    │                     │                               │
 ```
 
 Mêmes events alimentent les **replays** (sérialisation JSON).
@@ -399,10 +501,10 @@ Renderer supporte FR et EN. Core i18n-free : émet events avec IDs, renderer tra
 ### Fichiers
 
 ```
-packages/renderer/src/i18n/
+packages/app/src/i18n/
   types.ts          # Language const enum ('fr' | 'en'), interface Translations (toutes clés UI typées)
   index.ts          # t(key), setLanguage(lang), detectLanguage(), getLanguage(), onLanguageChange(callback)
-                    # Persistance localStorage sous la clé 'pt-lang'
+                    # Persistance localStorage sous la clé 'pt-lang'. Câblé via PresentationContext au boot.
   locales/
     fr.ts           # Textes français
     en.ts           # Textes anglais
@@ -418,12 +520,12 @@ packages/data/src/i18n/
 
 - **Détection auto** : `detectLanguage()` lit `navigator.language` → 'fr' si commence par 'fr', sinon 'en'
 - **Persistance** : `setLanguage()` écrit en localStorage
-- **Changement de langue** : restart de scène Phaser (rebuild complet UI) — pas de hot-swap Text Phaser individuels
-- **`Language` type dans renderer uniquement** : `@pokemon-tactic/data` accepte `string` pour éviter dépendance cyclique
+- **Changement de langue** : rebuild complet de l'UI (les vues DOM sont remontées) — pas de hot-swap de textes individuels
+- **`Language` type dans `app` uniquement** : `@pokemon-tactic/data` accepte `string` pour éviter dépendance cyclique
 
 ### BattleLogPanel (plan 037)
 
-`packages/renderer/src/ui/BattleLogPanel.ts` — panel de log, haut droite de `BattleUIScene`.
+`packages/ui-dom/src/battle-log.ts` — panel de log combat.
 
 - Alimenté par `BattleEvent` existants (TurnStarted, MoveStarted, DamageDealt, MoveMissed, StatusApplied/Removed, StatChanged, PokemonKo, DefenseActivated/Triggered, ConfusionTriggered, KnockbackApplied, MultiHitComplete, RechargeStarted, BattleEnded) + nouveaux plan 073 : HeldItemActivated, HeldItemConsumed, HpRestored, CriticalHit
 - Couleurs par type message (dégâts rouge, stat up bleu, stat down rouge, statut orange, défense vert, KO rouge vif, effectiveness jaune)
@@ -431,7 +533,7 @@ packages/data/src/i18n/
 - Pliable/dépliable via header toggle
 - Scroll interne (molette) avec auto-scroll bas
 
-`packages/renderer/src/ui/BattleLogFormatter.ts` — traduit `BattleEvent` en messages i18n. Logique pure, sans dépendance Phaser. 41 tests unitaires.
+`packages/ui-dom/src/battle-log.ts` (BattleLogFormatter) — traduit `BattleEvent` en messages i18n. Logique pure, agnostique moteur. 41 tests unitaires.
 
 ---
 
@@ -508,7 +610,7 @@ PMDCollab GitHub (raw)
 scripts/extract-sprites.ts  ←  scripts/sprite-config.json
         │  (découpe frames via sharp, génère atlas, parse pixels offsets)
         ▼
-packages/renderer/public/assets/sprites/pokemon/{name}/
+packages/app/public/assets/sprites/pokemon/{name}/
   ├── atlas.json          # Phaser atlas descriptor (frames + metadata)
   ├── atlas.png           # Spritesheet combiné (toutes anims + directions)
   ├── portrait-normal.png # Portrait 40x40 (émotion Normal)
@@ -516,17 +618,15 @@ packages/renderer/public/assets/sprites/pokemon/{name}/
   └── credits.txt         # Attribution artiste (CC BY-NC 4.0)
 ```
 
-**Clés d'animation Phaser** : `{pokemonId}-{anim}-{direction}` (ex : `bulbasaur-idle-south`)
+**Clés d'animation atlas** : `{pokemonId}-{anim}-{direction}` (ex : `bulbasaur-idle-south`)
 
-**SpriteLoader** (`packages/renderer/src/sprites/SpriteLoader.ts`) :
-- `preloadPokemonAssets(scene, pokemonIds[])` — charge atlas + portrait + `offsets.json` au preload
-- `createAnimations(scene, pokemonId)` — enregistre animations Phaser depuis metadata d'atlas
-- `getSpriteOffsets(scene, definitionId)` — retourne `SpriteOffsets` depuis cache JSON, fallback sur valeurs par défaut
-- `preloadSharedUiAssets(scene)` — charge assets UI partagés (types, catégories, statuts) mutualisé LoadingScene
-- `extractEngagedPokemonIds(setup)` — déduplique les IDs Pokemon cross-teams pour lazy loading
-- `buildEngagedSpritesQueue(ids)` — génère la queue d'assets minimale (~12 vs ~80 en full preload)
+**DirectionalBillboard** (`packages/render-babylon/src/directional-billboard.ts`) :
+- Charge atlas PMDCollab + `offsets.json` (footOffsetY, headOffsetY) via `BABYLON_SPRITE_GROUND_OFFSET_PX` fallback
+- Animations : LOOPING_ANIMATIONS (Idle/Walk/Sleep/FlapAround/Hover/Special0/Special10/FlyingIdle), `setAnimation` / `playOnce` / `playFirstAvailable`
+- États : `setActive` (pulse respiration), `flashDamage` (flash émissif), `setKnockedOut` (teinte sombre + freeze), `setSemiInvulnerable`
+- Synthèse FlyingIdle depuis FlapAround frames 0-1
 
-**PokemonSprite** utilise animations (Idle, Walk, Attack, Hurt, Faint) avec fallback cercle coloré si atlas absent.
+**PokemonSprite** (Phaser, maintenu pendant la migration) utilise animations (Idle, Walk, Attack, Hurt, Faint) avec fallback cercle coloré si atlas absent.
 
 ---
 
@@ -619,7 +719,7 @@ Déclenché via le skill `/worktree` (alias dans CLAUDE.md).
 
 - Main : port **5173** (pas de fichier `.worktree-port`).
 - Worktree N : port **5173 + index** (5174–5253). Écrit dans `.worktree-port` à la racine du worktree.
-- `packages/renderer/vite.config.ts` résout le port depuis `process.env.PT_PORT` ou en remontant le filesystem depuis `cwd` jusqu'à trouver `.worktree-port`.
+- `packages/app/vite.config.ts` résout le port depuis `process.env.PT_PORT` ou en remontant le filesystem depuis `cwd` jusqu'à trouver `.worktree-port`.
 
 ### Merge de worktree vers main
 
@@ -632,15 +732,17 @@ Décisions archivées : #424 (stratégie deps), #425 (ports), #426 (merge).
 
 ---
 
-## 11. Évolutions prévues du renderer
+## 11. Évolutions du renderer
 
 | Phase | Renderer | Style |
 |-------|----------|-------|
-| POC | Phaser 4 (2D isométrique) | Sprites + tiles isométriques |
-| HD-2D | **Babylon.js** ou Three.js | Terrain 3D + sprites 2D billboardés + DoF/bloom |
+| POC | Phaser 4 (2D isométrique) — **remplacé** | Sprites + tiles isométriques |
+| Actuel | **Babylon.js** (plan 125, worktree `phase5-babylon`) | Terrain 3D + sprites 2D billboardés, occlusion depth-buffer |
 | Optionnel | Godot (desktop) | HD-2D natif, rendu Vulkan |
 
-Core ne change jamais — seul le renderer est remplacé.
+Core ne change jamais — seul le renderer est remplacé. **Babylon.js est le seul moteur actif.** Le découpage en packages (`render-ports` / `view-core` / `render-babylon` / `ui-dom`) rend un éventuel remplacement **mécanique** : un nouveau backend implémente `RenderBackend` + les ports et réutilise `view-core` / `ui-dom`. Le seam est dans `packages/app/src/renderer-backend.ts` (`RendererBackend` + `getRendererBackend()`).
+
+> **POC Three.js (plans 125-126)** : un package `render-three` a été écrit en Three.js pour prouver que le contrat est engine-agnostic — le jeu tournait en entier via `?engine=three` en réutilisant `view-core` + `ui-dom` sans modification. Mission accomplie. Le package a été retiré (plan 126, décision #508) : il était un harnais de test jetable, pas un backend livré.
 
 ---
 

@@ -1,0 +1,7 @@
+/* Cascade layer order for the whole app, declared once before any layered CSS is
+ * imported (plan 125 fix). ui-dom's component styles self-assign `@layer components`
+ * and the team-builder/host styles use reset/base/components/utilities; declaring
+ * the order up front keeps the cascade correct regardless of import order, without
+ * a leading `@layer` statement inside the package CSS (which Vite-dev drops along
+ * with the @imports that follow it). */
+@layer reset, base, components, utilities;

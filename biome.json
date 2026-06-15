@@ -222,7 +222,7 @@
       }
     },
     {
-      "includes": ["packages/renderer/**/*.ts"],
+      "includes": ["packages/app/**/*.ts"],
       "linter": {
         "rules": {
           "correctness": {

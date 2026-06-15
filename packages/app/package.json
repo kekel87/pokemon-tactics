@@ -1,0 +1,25 @@
+{
+  "name": "@pokemon-tactic/app",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:sandbox": "node scripts/sandbox.js",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@babylonjs/core": "^8.56.2",
+    "@babylonjs/loaders": "^8.56.2",
+    "@pokemon-tactic/core": "workspace:*",
+    "@pokemon-tactic/data": "workspace:*",
+    "@pokemon-tactic/view-core": "workspace:*",
+    "@pokemon-tactic/render-babylon": "workspace:*",
+    "@pokemon-tactic/render-ports": "workspace:*",
+    "@pokemon-tactic/ui-dom": "workspace:*"
+  },
+  "devDependencies": {
+    "@babylonjs/inspector": "^8.56.2",
+    "rollup-plugin-visualizer": "^5.14.0"
+  }
+}

@@ -6,7 +6,7 @@ import { SPAWN_LAYER_NAMES } from "./parse-spawns-layer";
 import { parseTiledMap } from "./parse-tiled-map";
 import { validateTiledMap } from "./validate-tiled-map";
 
-const mapsDir = resolve(__dirname, "../../../renderer/public/assets/maps");
+const mapsDir = resolve(__dirname, "../../../app/public/assets/maps");
 const simpleArenaPath = resolve(mapsDir, "simple-arena.tmj");
 const forestPath = resolve(mapsDir, "forest.tmj");
 const crampedCavePath = resolve(mapsDir, "cramped-cave.tmj");

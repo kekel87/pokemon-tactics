@@ -18,7 +18,7 @@ Usage:
     --solid  sable  tiles/work/col-sable.png \
     --solid  path   tiles/work/col-path.png \
     --liquid eau    tiles/work/col-eau.png \
-    --out    packages/renderer/public/assets/tilesets/terrain/custom-tileset.png
+    --out    packages/app/public/assets/tilesets/terrain/custom-tileset.png
 
 The order of --solid / --liquid flags on the command line IS the order in
 which groups appear in the output (top-to-bottom).

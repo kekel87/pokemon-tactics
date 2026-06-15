@@ -96,6 +96,7 @@ export {
   SubstituteFailedReason,
 } from "./types/battle-event";
 export type * from "./types/index";
+export type { SemiInvulnerableDisplay } from "./types/semi-invulnerable-display";
 export { SemiInvulnerableState } from "./types/semi-invulnerable-state";
 export { SP_PER_STAT_MAX, SP_TOTAL_MAX } from "./types/stat-spread";
 export { DEFAULT_STATUS_RULES } from "./types/status-rules";

@@ -33,15 +33,7 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0(@types/node@25.6.0)(vite@8.0.1(@types/node@25.6.0)(esbuild@0.27.4)(tsx@4.21.0))
 
-  packages/core: {}
-
-  packages/data:
-    dependencies:
-      '@pokemon-tactic/core':
-        specifier: workspace:*
-        version: link:../core
-
-  packages/renderer:
+  packages/app:
     dependencies:
       '@babylonjs/core':
         specifier: ^8.56.2
@@ -55,9 +47,18 @@ importers:
       '@pokemon-tactic/data':
         specifier: workspace:*
         version: link:../data
-      phaser:
-        specifier: 4.0.0-rc.6
-        version: 4.0.0-rc.6
+      '@pokemon-tactic/render-babylon':
+        specifier: workspace:*
+        version: link:../render-babylon
+      '@pokemon-tactic/render-ports':
+        specifier: workspace:*
+        version: link:../render-ports
+      '@pokemon-tactic/ui-dom':
+        specifier: workspace:*
+        version: link:../ui-dom
+      '@pokemon-tactic/view-core':
+        specifier: workspace:*
+        version: link:../view-core
     devDependencies:
       '@babylonjs/inspector':
         specifier: ^8.56.2
@@ -65,6 +66,77 @@ importers:
       rollup-plugin-visualizer:
         specifier: ^5.14.0
         version: 5.14.0
+
+  packages/core: {}
+
+  packages/data:
+    dependencies:
+      '@pokemon-tactic/core':
+        specifier: workspace:*
+        version: link:../core
+
+  packages/render-babylon:
+    dependencies:
+      '@babylonjs/core':
+        specifier: ^8.56.2
+        version: 8.56.2
+      '@babylonjs/loaders':
+        specifier: ^8.56.2
+        version: 8.56.2(@babylonjs/core@8.56.2)(babylonjs-gltf2interface@8.56.2)
+      '@pokemon-tactic/core':
+        specifier: workspace:*
+        version: link:../core
+      '@pokemon-tactic/data':
+        specifier: workspace:*
+        version: link:../data
+      '@pokemon-tactic/render-canvas2d':
+        specifier: workspace:*
+        version: link:../render-canvas2d
+      '@pokemon-tactic/render-ports':
+        specifier: workspace:*
+        version: link:../render-ports
+      '@pokemon-tactic/view-core':
+        specifier: workspace:*
+        version: link:../view-core
+    devDependencies:
+      '@babylonjs/inspector':
+        specifier: ^8.56.2
+        version: 8.56.2(1b14185775880aac5b1beaf558d46be4)
+
+  packages/render-canvas2d: {}
+
+  packages/render-ports:
+    dependencies:
+      '@pokemon-tactic/core':
+        specifier: workspace:*
+        version: link:../core
+
+  packages/ui-dom:
+    dependencies:
+      '@pokemon-tactic/core':
+        specifier: workspace:*
+        version: link:../core
+      '@pokemon-tactic/data':
+        specifier: workspace:*
+        version: link:../data
+      '@pokemon-tactic/render-ports':
+        specifier: workspace:*
+        version: link:../render-ports
+      '@pokemon-tactic/view-core':
+        specifier: workspace:*
+        version: link:../view-core
+
+  packages/view-core:
+    dependencies:
+      '@pokemon-tactic/core':
+        specifier: workspace:*
+        version: link:../core
+      '@pokemon-tactic/data':
+        specifier: workspace:*
+        version: link:../data
+      '@pokemon-tactic/render-ports':
+        specifier: workspace:*
+        version: link:../render-ports
 
 packages:
 
@@ -1339,9 +1411,6 @@ packages:
   estree-walker@3.0.3:
     resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
 
-  eventemitter3@5.0.4:
-    resolution: {integrity: sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==}
-
   expect-type@1.3.0:
     resolution: {integrity: sha512-knvyeauYhqjOYvQ66MznSMs83wmHrCycNEN6Ao+2AeYEfxUIkuiVxdEa1qlGEPK+We3n0THiDciYSsCcgW/DoA==}
     engines: {node: '>=12.0.0'}
@@ -1517,9 +1586,6 @@ packages:
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
-
-  phaser@4.0.0-rc.6:
-    resolution: {integrity: sha512-36DRtoZVYyKf4Fmm/IlNEpIyM4NLHjI+W1hbA+nji1e1uKCB9Ojj7XryiReB5+e5367gHT/WJpSuJoEp3LeCQw==}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -3496,8 +3562,6 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.8
 
-  eventemitter3@5.0.4: {}
-
   expect-type@1.3.0: {}
 
   fast-xml-builder@1.1.4:
@@ -3630,10 +3694,6 @@ snapshots:
   path-expression-matcher@1.2.0: {}
 
   pathe@2.0.3: {}
-
-  phaser@4.0.0-rc.6:
-    dependencies:
-      eventemitter3: 5.0.4
 
   picocolors@1.1.1: {}
 

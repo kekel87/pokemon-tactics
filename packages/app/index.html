@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>Pokemon Tactics</title>
+    <style>
+      @font-face {
+        font-family: "PokemonEmeraldPro";
+        src:
+          url("/assets/fonts/pokemon-emerald-pro.woff2") format("woff2"),
+          url("/assets/fonts/pokemon-emerald-pro.ttf") format("truetype");
+        font-display: block;
+      }
+      @layer reset {
+        html, body {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          /* Hex inline car CSS principal pas encore chargé au paint initial.
+             Doit rester aligné sur --color-bg-base (var(--tb-blue-850)) dans tokens.css. */
+          background: #1a1a2e;
+        }
+      }
+      #game-root {
+        width: 100vw;
+        height: 100vh;
+      }
+      #hint {
+        /* Top of screen so it never overlaps the bottom-anchored InfoPanel. Shown
+           only on the ?preview=1 dev tuning harness route (babylon-boot.ts). */
+        position: fixed;
+        left: 12px;
+        top: 12px;
+        right: 12px;
+        color: #f4e4b8;
+        font-family: monospace;
+        font-size: 13px;
+        opacity: 0.7;
+        pointer-events: none;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-root"></div>
+    <div id="hint" hidden>combat · clic-glisser déplacer · molette zoom · ←/→ rotation · ?map=&lt;nom&gt; change la carte · ?preview=1 harnais dev <span id="pixinfo"></span></div>
+    <script type="module" src="/src/babylon-boot.ts"></script>
+  </body>
+</html>
