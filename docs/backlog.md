@@ -4,13 +4,6 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
-### Team Builder — « Tout vider » vide sans confirmation (régression Phaser→Babylon, 2026-06-16, e2e)
-- En Phaser, « Tout vider » ouvrait une **modale de confirmation** (« Vider l'équipe » / « Remove all slots from this team? »). La migration Babylon (`TeamEditView.clearAll()`) **vide directement** les slots, sans confirmation.
-- Preuve : les clés i18n `teamBuilder.clearAllConfirmTitle` / `teamBuilder.clearAllConfirmBody` existent toujours (`i18n/locales/{fr,en}.ts`) mais ne sont **plus appelées** (code mort).
-- Impact : vidage accidentel d'une équipe entière en 1 clic, sans filet. Incohérent avec « Supprimer » (qui, lui, confirme).
-- Fix : remettre la modale `<dialog>` de confirmation dans `clearAll()` (réutiliser les clés i18n existantes + le pattern de la modale de suppression).
-- Test e2e prêt et **skippé** : `e2e/tests/dom/team-builder.spec.ts` (« Tout vider » demande confirmation) → retirer le `test.skip` une fois la modale remise.
-
 ### `BattleLogPanel` — entrée longue wrappe et déborde sur la ligne suivante (2026-06-09, playtest plan 118)
 - Chaque slot de log a une hauteur fixe (`BATTLE_LOG_LINE_HEIGHT`) mais le `lineText` a `wordWrap` activé → un message qui passe sur 2 lignes occupe 1 seul slot et **chevauche** l'entrée suivante (observé sur le morph « Force Nature se transforme en Triplattaque ! »).
 - Contourné plan 118 : messages morph raccourcis en forme flèche (`X → Y`) pour tenir sur 1 ligne. La limite de fond demeure pour tout futur message long.

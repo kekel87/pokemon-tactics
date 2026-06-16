@@ -22,6 +22,10 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 - Cause : le `min-width` large de `.mn-btn` (clamp 240px+) dépassait le panneau liste étroit.
 - Fix : `.ms-list-panel .mn-btn { min-inline-size: 0; inline-size: 100%; box-sizing: border-box; }`.
 
+### Team Builder — « Tout vider » vidait sans confirmation (régression Phaser→Babylon, résolu 2026-06-16)
+- Cause : la migration Babylon avait perdu la modale de confirmation ; `TeamEditView.clearAll()` vidait direct les slots. Clés i18n `clearAllConfirmTitle`/`Body` orphelines (code mort).
+- Fix : `ClearTeamConfirmModal.ts` (`<dialog>`, mirror de `DeleteConfirmModal`) appelé par `clearAll()` ; nouvelles clés `clearAllConfirmYes`/`No` (Vider/Annuler). e2e réactivé : `team-builder.spec.ts` (« Tout vider » demande confirmation).
+
 ## Dette technique résolue
 
 ### GitHub Actions sur Node 20 — déprécié (résolu 2026-06-12, commit `30be7ee`)

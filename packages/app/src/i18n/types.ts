@@ -345,6 +345,8 @@ export interface Translations {
   "teamBuilder.clearAll": string;
   "teamBuilder.clearAllConfirmTitle": string;
   "teamBuilder.clearAllConfirmBody": string;
+  "teamBuilder.clearAllConfirmYes": string;
+  "teamBuilder.clearAllConfirmNo": string;
   "teamBuilder.saved": string;
   "teamBuilder.slot": string;
   "teamBuilder.startTitle": string;
