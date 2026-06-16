@@ -21,6 +21,7 @@ import { mountGameStage } from "@pokemon-tactic/ui-dom";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
 import { createBabylonPreview } from "./babylon/babylon-preview.js";
 import { createCombatScreen, DEMO_POKEMON, mountSandboxStudio } from "./babylon/combat-screen.js";
+import { initLanguage } from "./i18n/index.js";
 import { getRendererBackend } from "./renderer-backend.js";
 import { sandboxBootConfig, teardownSandboxStudioDom } from "./sandbox-boot.js";
 import { DEFAULT_SANDBOX_CONFIG } from "./types/SandboxConfig.js";
@@ -37,6 +38,11 @@ const root = document.getElementById("game-root");
 if (!root) {
   throw new Error("Element #game-root not found");
 }
+
+// Lire `pt-lang` (localStorage) sur TOUT chemin de boot — y compris l'entrée directe sandbox/combat
+// (`?config`/`?combat`) qui ne passe pas par le menu. Sans ça, la langue restait figée au défaut
+// (FR) hors navigation menu → HUD de combat en FR même avec `pt-lang=en` (bug backlog).
+initLanguage();
 
 const query = new URLSearchParams(window.location.search);
 // Routes (plan 120 step 9):

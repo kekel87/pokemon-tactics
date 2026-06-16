@@ -34,6 +34,7 @@ export class TeamEditView {
   private readonly slotsRow: SlotCardsRow;
   private readonly leftPanel: EditLeftPanel;
   private readonly rightPanel: EditRightPanel;
+  private readonly editGrid: HTMLDivElement;
   private readonly savedIndicator: HTMLDivElement;
   private readonly countLabel: HTMLDivElement;
   private readonly saveDebouncer = new SaveDebouncer(300);
@@ -140,11 +141,11 @@ export class TeamEditView {
       onPresetApply: (sp) => this.handleSpChange(sp),
     });
 
-    const editGrid = document.createElement("div");
-    editGrid.className = "tb-edit-grid";
-    editGrid.appendChild(this.leftPanel.element);
-    editGrid.appendChild(this.rightPanel.element);
-    content.appendChild(editGrid);
+    this.editGrid = document.createElement("div");
+    this.editGrid.className = "tb-edit-grid";
+    this.editGrid.appendChild(this.leftPanel.element);
+    this.editGrid.appendChild(this.rightPanel.element);
+    content.appendChild(this.editGrid);
 
     this.element = root;
     this.renderAll();
@@ -170,6 +171,9 @@ export class TeamEditView {
       String(this.team.slots.length),
     );
     const activeSlot: TeamSlot | undefined = this.team.slots[this.activeSlotIndex];
+    // Équipe vide → la grille passe en 1 colonne centrée (l'état « Commence à construire… » occupe
+    // tout l'espace au lieu de flotter dans la demi-colonne gauche).
+    this.editGrid.dataset.empty = activeSlot === undefined ? "true" : "false";
     if (activeSlot === undefined) {
       this.renderEmptyEdit();
     } else {
