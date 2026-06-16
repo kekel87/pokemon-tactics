@@ -65,6 +65,11 @@
 
   .ms-list-panel .mn-btn {
     margin-block-start: auto;
+    /* Le `min-width` large de `.mn-btn` (clamp 240px+) débordait du panneau gauche étroit →
+       on le contient dans la largeur du panneau. */
+    min-inline-size: 0;
+    inline-size: 100%;
+    box-sizing: border-box;
   }
 
   .ms-main {

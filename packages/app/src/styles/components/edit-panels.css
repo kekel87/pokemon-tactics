@@ -3,6 +3,13 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--spacing-xl);
+
+    /* Équipe vide : une seule colonne, l'état d'accueil centré sur toute la zone (pas coincé dans
+       la demi-colonne gauche). */
+    &[data-empty="true"] {
+      grid-template-columns: 1fr;
+      place-items: center;
+    }
   }
 
   .tb-edit-section {
@@ -155,6 +162,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    block-size: 100%;
     gap: var(--spacing-md);
     padding: var(--spacing-xl);
     color: var(--color-text-dim);
