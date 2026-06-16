@@ -26,6 +26,13 @@ export default defineConfig({
     trace: "on-first-retry",
     video: "retain-on-failure",
     screenshot: "only-on-failure",
+    // WebGL en CI headless : le rendu Babylon a besoin de WebGL. Chromium headless moderne désactive
+    // le fallback logiciel par défaut → la scène ne se monte jamais (`waitReady` timeout sur tous les
+    // tests combat). On force SwiftShader (rendu logiciel) : indispensable en CI sans GPU, inoffensif
+    // en local. Voir e2e CI job (ci.yml).
+    launchOptions: {
+      args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
+    },
   },
   expect: {
     toHaveScreenshot: { animations: "disabled", maxDiffPixelRatio: 0.01 },

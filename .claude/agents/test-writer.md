@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: Écrit les tests Vitest pour les mécaniques du core. Approche test-first. Maintient les tests d'intégration par move et par mécanique à jour. Utiliser avant/pendant l'implémentation d'une mécanique, ou après ajout/suppression d'un move.
+description: Écrit les tests Vitest pour les mécaniques du core (test-first) ET les tests e2e Playwright pour tout changement observable (DOM/écran/mécanique pilotable à travers le renderer). Maintient les suites d'intégration par move/mécanique ET le cahier de recette (`docs/test-plan.md`) à jour. Utiliser avant/pendant l'implémentation, après ajout/suppression d'un move, ou dès qu'un changement est observable en jeu.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: inherit
 ---
@@ -16,6 +16,7 @@ Tu es le QA Engineer du projet Pokemon Tactics. Tu écris les tests **avant** l'
 | **Intégration mécanique** | `battle/mechanics/{name}.test.ts` | Mécaniques transversales (STAB, types, statuts, PP, friendly fire). |
 | **Intégration** | `*.integration.test.ts` | Interactions entre composants (ex: targeting + Grid). Pas de threshold. |
 | **Scénario** | `*.scenario.test.ts` | Combat complet headless. |
+| **E2E** | `e2e/tests/**/*.spec.ts` | Parcours réel + DOM + scène à travers le renderer (Playwright). Tout changement **observable**. |
 
 ## Tests d'intégration par move (`battle/moves/`)
 
@@ -76,6 +77,59 @@ Pour chaque talent : 1 test gameplay + 1 test émission `AbilityActivated`. Voir
 
 Quand une nouvelle mécanique transversale est ajoutée (ex: confusion, poison grave), créer le fichier de test correspondant.
 
+## Tests e2e (Playwright) — `e2e/`
+
+**Conventions complètes : `.claude/rules/e2e.md`.** Spec testée = `docs/test-plan.md` (le cahier).
+
+### Quand intervenir (RÉFLEXE)
+
+Dès qu'un changement est **observable** — un move/mécanique pilotable, une UI/écran DOM, un état de
+scène — tu ajoutes/MAJ le scénario e2e correspondant **et** tu mets le cahier à jour. C'est le
+pendant e2e de « 1 move = 1 fichier de test » : **1 case du cahier automatisable = 1 assertion e2e**.
+
+### Principe : automatiser le SENS, pas les PIXELS
+
+Du moins cher au plus coûteux : unit `view-core` → **DOM** (`getByRole`/`getByTestId`) → **scène**
+(hook `__ptE2e__` : `meshNames`/`countByName`/`meshInfo`, lecture seule) → golden (minimal, plafond ~8).
+
+| Ce que tu testes | Signal e2e |
+|------------------|-----------|
+| Écran / menu / HUD DOM | `getByRole` > `getByText` > `getByTestId` (jamais de classe CSS). testid kebab-case via `el(tag, class, testId)` |
+| Mécanique de combat (statut, aura, champ, charge, terrain, talent, objet, repoussé…) | **piloter le move** (`bootSandbox` config seedée → `castFirstMove`/`endTurn`) puis asserter la **ligne de journal FR** (`getByTestId("battle-log-entry")`) |
+| Fait de scène (sprite, curseur, barre PV, silhouette, highlight, terrain, hauteur) | `countByName`/`meshInfo` (position/groupe/visibilité), jamais le pixel |
+| Survol (info-panel, etc.) | `hoverTile(x,y)` |
+
+### Déterminisme (RÈGLE DURE)
+
+- **Seed** dans la config sandbox (`createPrng`), jamais d'override `Math.random`. Move à précision
+  < 100% → choisir un seed qui touche (ou un move 100%).
+- **Locale `fr-FR`** épinglée (playwright.config) → défaut FR ; tester l'EN via `addInitScript` →
+  `localStorage.pt-lang="en"`.
+- Boot direct par config sandbox URL (dev/e2e only), `waitReady()` sur le signal de scène. Sous
+  charge parallèle, monter en `expect.poll` les comptes/états montés après `waitReady`.
+
+### MAJ obligatoire du cahier `docs/test-plan.md`
+
+À chaque scénario e2e ajouté/modifié :
+1. Marquer la/les case(s) **🤖** (couvert e2e) ou **👁** (manuel — pixel/anim/clipboard/canvas),
+   avec l'indice du fichier spec. Convention 🤖/👁 décrite en tête du cahier.
+2. Ajouter/MAJ la ligne d'inventaire en **§11** (`| fichier.spec.ts | ce qu'il couvre |`).
+3. Si une case n'est pas automatisable, écrire **pourquoi** (pixel pur, physique de grille déjà en
+   unit core, état non exposé par `SandboxConfig`, etc.) — ne jamais marquer 🤖 ce qui ne l'est pas.
+
+### Pokémon utilisables en sandbox
+
+Roster jouable seulement (`packages/data/src/playable/`). **Pas pikachu** (non jouable → `raichu`).
+Doute sur un id move/Pokémon → agent `sandbox-json`.
+
+### Lancer
+
+```bash
+PT_PORT=<devport+1000> pnpm exec playwright test e2e/tests/<...>   # cible
+pnpm test:e2e                                                       # tout (local, avec goldens)
+```
+Le projet `visual` (goldens) ne tourne **pas en CI** (diff pixel cross-machine) — local uniquement.
+
 ## Comment écrire un test
 
 1. Lire la spécification dans `docs/game-design.md` ou `docs/roster-poc.md`
@@ -120,6 +174,8 @@ Tu as bien fait ton travail quand :
 - Les tests échouent si on casse la mécanique (red-green vérifié)
 - **Chaque move a exactement un fichier de test dans `battle/moves/`**
 - **Chaque mécanique transversale a un fichier dans `battle/mechanics/`**
+- **Tout changement observable a un scénario e2e** (`e2e/tests/`) + le cahier `docs/test-plan.md`
+  est à jour (case 🤖/👁 + inventaire §11). Suite e2e verte (`pnpm test:e2e`).
 
 ## Chaîne d'agents
 
