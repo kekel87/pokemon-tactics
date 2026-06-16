@@ -344,6 +344,8 @@ const fr: Translations = {
   "teamBuilder.clearAll": "Tout vider",
   "teamBuilder.clearAllConfirmTitle": "Vider l'équipe",
   "teamBuilder.clearAllConfirmBody": "Retirer tous les slots de cette équipe ?",
+  "teamBuilder.clearAllConfirmYes": "Vider",
+  "teamBuilder.clearAllConfirmNo": "Annuler",
   "teamBuilder.saved": "Sauvegardé",
   "teamBuilder.slot": "Slot {n}",
   "teamBuilder.startTitle": "Commence à construire ton équipe",

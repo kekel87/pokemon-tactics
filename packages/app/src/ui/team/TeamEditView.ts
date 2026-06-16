@@ -11,6 +11,7 @@ import { resolveSlotGender } from "../../team/gender-helpers";
 import { getOpSetsByPokemonId } from "../../team/team-builder-data";
 import { SaveDebouncer, touchTeam } from "../../team/team-helpers";
 import { loadTeam, saveTeam } from "../../team/team-storage";
+import { openClearTeamConfirmModal } from "./ClearTeamConfirmModal";
 import { EditLeftPanel } from "./EditLeftPanel";
 import { EditRightPanel } from "./EditRightPanel";
 import { openPokemonPickerModal } from "./PokemonPickerModal";
@@ -365,10 +366,17 @@ export class TeamEditView {
   }
 
   private clearAll(): void {
-    if (this.team === null) {
+    if (this.team === null || this.team.slots.length === 0) {
       return;
     }
-    this.activeSlotIndex = 0;
-    this.commitTeam({ ...this.team, slots: [] });
+    openClearTeamConfirmModal({
+      onConfirm: () => {
+        if (this.team === null) {
+          return;
+        }
+        this.activeSlotIndex = 0;
+        this.commitTeam({ ...this.team, slots: [] });
+      },
+    });
   }
 }

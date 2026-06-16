@@ -344,6 +344,8 @@ const en: Translations = {
   "teamBuilder.clearAll": "Clear All",
   "teamBuilder.clearAllConfirmTitle": "Clear team",
   "teamBuilder.clearAllConfirmBody": "Remove all slots from this team?",
+  "teamBuilder.clearAllConfirmYes": "Clear",
+  "teamBuilder.clearAllConfirmNo": "Cancel",
   "teamBuilder.saved": "Saved",
   "teamBuilder.slot": "Slot {n}",
   "teamBuilder.startTitle": "Start building your team",

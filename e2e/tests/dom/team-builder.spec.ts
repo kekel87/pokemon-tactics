@@ -59,12 +59,7 @@ test("équipe : générer aléatoire crée une équipe persistée", async ({ pag
   await expect(teams.cards).toHaveCount(1);
 });
 
-// FIXME — régression : la migration Phaser → Babylon a perdu la modale de confirmation « Vider
-// l'équipe » (les clés i18n `teamBuilder.clearAllConfirmTitle`/`Body` existent encore mais ne sont
-// plus appelées ; `TeamEditView.clearAll()` vide direct). Le test attend la modale ; à réactiver
-// quand la modale est remise. Cf backlog « Team Builder — « Tout vider » sans confirmation ».
-// biome-ignore lint/suspicious/noSkippedTests: régression modale "Tout vider" (cf backlog) — test prêt, à réactiver post-fix
-test.fixme("équipe : « Tout vider » demande confirmation puis vide les slots", async ({ page }) => {
+test("équipe : « Tout vider » demande confirmation puis vide les slots", async ({ page }) => {
   const menu = new MainMenu(page);
   const teams = new MyTeamsScreen(page);
   const edit = new TeamEditScreen(page);
