@@ -267,6 +267,21 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 
 ---
 
+## Post-Babylon — à faire de suite (après merge Babylon)
+
+> Petits chantiers prioritaires à enchaîner juste après l'intégration de Babylon, avant de repartir sur les grosses phases.
+
+- [ ] **Fixer `doc-keeper` qui ne respecte pas les worktrees** — l'agent écrit/lit hors du worktree courant ; faire respecter l'isolation worktree.
+- [ ] **Optimiser Vitest** — réduire le temps de suite (import lourd observé au gate) : config, parallélisme, isolation.
+- [ ] **Mettre à jour les dépendances** — audit + bumps (agent `dependency-manager`).
+- [ ] **Intégrer le curseur voxel** — remplacer le curseur de sélection par un curseur voxel FFTA au-dessus du Pokemon.
+- [ ] **Drop le mode tour par tour (round-robin)** — ne garder que le Charge Time ; retirer le toggle + le code RR.
+- [ ] **Aligner les couleurs des previews de pattern d'attaque** — cohérence entre la tooltip et les zones au sol (vert, bleu, jaune, rouge).
+- [ ] **Dash — direction seule, portée auto** — on ne choisit plus la portée d'un dash, seulement la direction ; le Pokemon avance au maximum de la portée.
+- [ ] **POC Cobblemon** — explorer Cobblemon comme source (assets / données / sprites ?).
+
+---
+
 ## Phase 6 — Maps & Éditeur (3D)
 
 > **Position actuelle : après Phase 3.5** (reordonnée 2026-04-20, donc post-Phase 7).
