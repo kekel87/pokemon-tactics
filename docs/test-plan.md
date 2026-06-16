@@ -677,7 +677,7 @@ réellement touchées à la résolution.*
 - 👁 Slot vide = « Slot N » avec « + » ; slot rempli = portrait + nom FR + badges de type.
 - 🤖 Bouton « Vider ce slot » (croix) sur un slot rempli.
 - 👁 « **Tout vider** » → **modale de confirmation** « Vider l'équipe » puis vide les slots.
-  ⚠️ **RÉGRESSION** Phaser→Babylon : la modale a été perdue (`clearAll()` vide direct, clés i18n
+  ⚠️ **RÉGRESSION de migration** : la modale avait été perdue (`clearAll()` vide direct, clés i18n
   `clearAllConfirm*` orphelines) → **backlog**. Test e2e prêt mais **skippé** jusqu'au fix.
 - 🤖 **Renommer** l'équipe (input) → persiste en localStorage (`pokemon-tactics:teams`)
   (`team-builder.spec`).

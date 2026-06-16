@@ -3,8 +3,8 @@ import type { UiDomConfig } from "./config.js";
 import { el } from "./dom-helpers.js";
 
 /**
- * WeatherHud — top-centre weather readout, DOM/CSS port of the Phaser
- * `ui/WeatherHud.ts` (plan 121 step 4b-1). Category-B chrome in the `.ui-screen`
+ * WeatherHud — top-centre weather readout, DOM/CSS weather HUD
+ * (plan 121 step 4b-1). Category-B chrome in the `.ui-screen`
  * overlay. Pure view: takes a `WeatherView` (or null to hide) and renders it.
  */
 

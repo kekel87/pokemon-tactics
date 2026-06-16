@@ -154,4 +154,4 @@
 - [Bulbagarden Archives](https://archives.bulbagarden.net/) — Category icons Sword & Shield (Physical/Special/Status). Utilisés dans le MoveTooltip.
 - [ICON Isometric Pack — Jao](https://jao-itch.itch.io/icon-isometric-pack) — Tileset pixel art isométrique testé au plan 043. **Remplacé par un tileset custom généré à partir des textures PMDCollab (plan 050, 2026-04-14)** — plus utilisé dans le jeu.
 - [Spriters Resource HGSS](https://www.spriters-resource.com/ds_dsi/pokemonheartgoldsoulsilver/) — Overworld HGSS 32x32 (écarté : pas d'animation d'attaque).
-- [TexturePacker](https://www.codeandweb.com/texturepacker) — Outil pour générer des atlas Phaser (JSON + PNG). Alternative gratuite : [free-tex-packer.com](https://free-tex-packer.com/app/)
+- [TexturePacker](https://www.codeandweb.com/texturepacker) — Outil pour générer des atlas sprite (JSON + PNG). Alternative gratuite : [free-tex-packer.com](https://free-tex-packer.com/app/)

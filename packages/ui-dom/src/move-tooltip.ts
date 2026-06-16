@@ -6,10 +6,10 @@ import { el } from "./dom-helpers.js";
 import { buildPatternPreview, type PatternCell } from "./pattern-preview.js";
 
 /**
- * MoveTooltip — DOM/CSS port of the Phaser `ui/MoveTooltip.ts` (plan 121 step
+ * MoveTooltip — DOM/CSS move tooltip (plan 121 step
  * 4b-2). Hover over a move in the attack submenu shows its category, power,
  * accuracy, targeting pattern (+ a mini grid preview) and any special tags.
- * Reads the `MoveDefinition` directly (faithful port); pure view, no state.
+ * Reads the `MoveDefinition` directly; pure view, no state.
  */
 
 const FIELD_TERRAIN_TOOLTIP_KEY: Record<FieldTerrain, string> = {
@@ -62,7 +62,7 @@ function rangeLabel(move: MoveDefinition): string | null {
   }
 }
 
-/** All localised tag lines for a move (mirror of the Phaser tooltip's tag block). */
+/** All localised tag lines for a move. */
 function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   const keys: string[] = [];
 

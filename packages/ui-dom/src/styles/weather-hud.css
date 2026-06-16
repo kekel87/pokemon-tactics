@@ -1,6 +1,6 @@
 /*
- * WeatherHud (Phase 5 Jalon 4b-1) — category-B chrome, DOM port of the Phaser
- * `ui/WeatherHud.ts`. Pairs with `ui/dom/combat/weather-hud.ts`. Tokens from
+ * WeatherHud (Phase 5 Jalon 4b-1) — category-B chrome, DOM weather HUD.
+ * Pairs with `ui/dom/combat/weather-hud.ts`. Tokens from
  * `tokens.css`. Same cqw scaling contract as the info panel: `--wh-px` = one
  * design pixel at the 1920-wide reference, resolved against `#game-stage`.
  */

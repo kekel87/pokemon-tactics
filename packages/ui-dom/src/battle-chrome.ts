@@ -51,8 +51,8 @@ export interface BattleChromeOptions {
  * DOM battle chrome (plan 121 step 4b) — the screen-anchored half of the combat
  * UI (décision #487): turn banner, action menu + attack submenu (type icons, PP/
  * CT, Provoc/Entrave/Encore block tags), move tooltip on hover, instruction line,
- * info panel, weather HUD and victory dialog. Ports the Phaser `ActionMenu` /
- * `MoveTooltip`. World-anchored feedback (path tweens, floating text) is 4c.
+ * info panel, weather HUD and victory dialog. World-anchored feedback (path
+ * tweens, floating text) is 4c.
  */
 export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   const { host, onExit, onReplay, config } = options;

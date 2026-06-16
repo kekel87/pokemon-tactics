@@ -14,7 +14,7 @@ import {
 import { HOVER_CURSOR_OPTIONS } from "./constants.js";
 
 const CURSOR_TEXTURE_BASE = "/assets/ui/cursor";
-/** localStorage key for the chosen variant. Babylon-only until the settings store is unified with Phaser. */
+/** localStorage key for the chosen variant. */
 const CURSOR_VARIANT_STORAGE_KEY = "babylon-hover-cursor-variant";
 /** Idle bob (FFTA-style "alive" cursor): vertical oscillation, world units of travel + period. */
 const CURSOR_BOB_AMPLITUDE = 2.5 / BABYLON_SPRITE_PIXELS_PER_UNIT;
@@ -42,8 +42,8 @@ export class BabylonHoverCursor {
     this.root.setEnabled(false);
 
     // Idle bob: oscillate the root's Y around the head point while visible, so the
-    // cursor feels alive (replaces the Phaser cursor's alpha pulse with a motion
-    // better suited to a floating FFTA cursor).
+    // cursor feels alive (an alpha pulse would suit a floating FFTA cursor less
+    // than this motion).
     this.bobObserver = scene.onBeforeRenderObservable.add(() => {
       if (!this.root.isEnabled()) {
         return;

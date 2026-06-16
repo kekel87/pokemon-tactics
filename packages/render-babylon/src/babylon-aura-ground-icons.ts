@@ -80,7 +80,7 @@ export function createAuraGroundIcons(scene: Scene): AuraGroundIcons {
           });
           plane.material.alpha = SCREEN_HOVER_AURA_ALPHA;
           plane.mesh.parent = pivot;
-          // Local Y up = screen up; Phaser offset.y is screen-down, so negate it.
+          // Local Y up = screen up; offset.y is screen-down, so negate it.
           plane.mesh.position.set(offset.x, -offset.y, 0);
           planes.push(plane);
         }

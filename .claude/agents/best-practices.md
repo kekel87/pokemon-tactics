@@ -23,7 +23,7 @@ Quand on te donne un sujet (ex: "structurer un monorepo TS", "ECS pour un jeu ta
    - Monorepo pnpm
    - Core découplé du rendu
    - TypeScript strict
-   - Phaser 4
+   - Babylon.js 8
    - Projet de taille petite/moyenne, 1 dev (Claude Code)
 
 ### Audit de conformité

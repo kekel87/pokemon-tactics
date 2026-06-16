@@ -28,7 +28,8 @@ Tu es le Dependency Manager du monorepo Pokemon Tactics (pnpm workspaces).
 - Dépendances **partagées** (TS, Vitest, Biome) → racine `devDependencies`
 - Dépendances **spécifiques** → dans le workspace concerné
 - `packages/core` : ZERO dépendance UI. Dépendances minimales.
-- `packages/renderer` : Phaser + dépendances UI ici
+- `packages/render-babylon` : Babylon.js (`@babylonjs/core`, `@babylonjs/loaders`, `@babylonjs/inspector`) — rendu de la scène
+- `packages/app` : application web + dépendances UI ici
 - `packages/data` : idéalement zéro dépendance (données pures)
 - Préférer les packages légers et bien maintenus
 - ESM obligatoire (`"type": "module"`)

@@ -36,7 +36,7 @@ Le jeu fusionne l'univers Pokemon avec le gameplay de Final Fantasy Tactics Adva
 
 ### Mode pixel art
 
-Depuis le plan 044, Phaser est configuré avec `roundPixels: true` pour aligner les sprites sur les pixels entiers sans affecter le rendu du texte. Le filtre `NEAREST` est appliqué **manuellement** sur les textures pixel art uniquement : tileset (dans `BattleScene`) et sprites Pokemon (dans `PokemonSprite`).
+Le rendu Babylon applique le filtre `NEAREST` sur les textures pixel art (tileset terrain 3D, sprites Pokemon billboards) pour préserver des pixels nets sans affecter le rendu du texte.
 
 `pixelArt: true` a été **écarté** : il applique NEAREST à toutes les textures, y compris les textures de texte (BitmapText), ce qui les rend flous — décision #220.
 
@@ -333,7 +333,7 @@ La clé i18n `battle.fall` (FR "Chute", EN "Fall") est utilisée par le handler 
 | Rose femelle | `#ff7fb4` (`GENDER_SYMBOL_FEMALE_COLOR`) | Symbole `♀` à droite du nom |
 | Genderless | — | Aucun symbole affiché |
 
-Plan 071. Caractères Unicode `♂` / `♀` rendus via Phaser Text dans `InfoPanel`. Couleurs FFTA/PokeRogue-like.
+Plan 071. Caractères Unicode `♂` / `♀` rendus dans le panneau info (DOM, `ui-dom`). Couleurs FFTA/PokeRogue-like.
 
 ---
 
@@ -362,7 +362,7 @@ Plan 071. Caractères Unicode `♂` / `♀` rendus via Phaser Text dans `InfoPan
 
 ## Typographie
 
-La police est centralisée dans la constante `FONT_FAMILY = "Pokemon Emerald Pro, monospace"` dans `constants.ts`. Tous les textes Phaser utilisent cette constante. Le fichier TTF `public/assets/fonts/pokemon-emerald-pro.ttf` n'est pas encore intégré — la police se rabat sur `monospace` en attendant.
+La police est centralisée dans la constante `FONT_FAMILY = "Pokemon Emerald Pro, monospace"` dans `constants.ts`. Tous les textes rendus dans le moteur (Babylon) utilisent cette constante. Le fichier TTF `public/assets/fonts/pokemon-emerald-pro.ttf` n'est pas encore intégré — la police se rabat sur `monospace` en attendant.
 
 | Usage | Font | Taille | Couleur |
 |-------|------|--------|---------|
@@ -589,15 +589,15 @@ Ajoutés au Jalon 2b — miroir des constantes canvas dans `constants.ts` :
 
 ### Police PokemonEmeraldPro — `@font-face` dans tokens.css
 
-Depuis le Jalon 2b, le `@font-face` de PokemonEmeraldPro est déclaré dans `tokens.css` (et non plus uniquement inline dans `index.html`). Cela garantit que `babylon.html` et tout futur point d'entrée chargent la police sans tomber en fallback `monospace`. `index.html` conserve sa propre déclaration jusqu'au Jalon 5 (suppression Phaser).
+Depuis le Jalon 2b, le `@font-face` de PokemonEmeraldPro est déclaré dans `tokens.css`. Cela garantit que tout point d'entrée charge la police sans tomber en fallback `monospace`.
 
 ---
 
 ## CSS vars — Team Builder DOM
 
-Source canonique : `packages/renderer/src/styles/tokens.css`. Ces tokens s'appliquent à l'interface DOM du Team Builder (MyTeamsScene, TeamEditScene). Pour les valeurs Phaser/canvas, `constants.ts` reste la source.
+Source canonique : `packages/app/src/styles/tokens.css`. Ces tokens s'appliquent à l'interface DOM du Team Builder. Pour les valeurs du rendu moteur (Babylon), `constants.ts` reste la source.
 
-> La distinction est nette : **`tokens.css` = DOM HTML**, **`constants.ts` = Phaser canvas**.
+> La distinction est nette : **`tokens.css` = DOM HTML**, **`constants.ts` = rendu moteur (Babylon)**.
 
 ### Couleurs types Pokemon (badges)
 
@@ -707,7 +707,7 @@ Source : `packages/renderer/src/styles/sandbox-studio.css` + tokens `tokens.css`
 - **Canvas plein viewport, pas de letterbox** (décision #472) : `#game-stage` remplit 100% du viewport ; la caméra orthographique dimetric « comble » selon le ratio (montre plus/moins de scène). Zéro bande noire, tout ratio (ultrawide, mobile portrait). Révise les décisions 2a/2b #464-468 (qui partaient d'un stage letterboxé 16:9).
 - **Structure** : `#game-root > #game-stage (container-type:size, container-name:stage) > (canvas + #game-overlay > .ui-world + .ui-screen)`. `.ui-world` = UI ancrée-monde (barres PV, curseur), reprojetée par frame. `.ui-screen` = panneaux ancrés-écran (InfoPanel, menus, Team Builder).
 - **Scaling chrome (cat. B) via container-query units** : chaque métrique = `calc(N * --px)` avec `--px = calc(100cqw / 1920)` (1px design @ ref 1920), résolu contre `#game-stage`. 100% CSS, scale proportionnel à la taille du jeu sans JS. Reflow mobile `@container stage (width < 768px)` → ref 768 (≈2.5× plus gros, style PokeRogue). `--ui-scale` (publié par `ResizeObserver`) reste un fallback.
-- **Adapter Team Builder prod-safe** (décisions #470-471) : overrides cqw cloisonnés dans `@container stage`, raw px wrappés `var(--tb-*, <px-original>)` → l'app Phaser prod (hors stage) garde son rendu d'origine.
+- **Adapter Team Builder prod-safe** (décisions #470-471) : overrides cqw cloisonnés dans `@container stage`, raw px wrappés `var(--tb-*, <px-original>)` → l'app prod (hors stage) garde son rendu d'origine.
 - **Pistes différées best-practices** (validées agent, marché 2026) : plancher font-size `max(calc(N·--px), Xpx)` pour 480-767px ; `--stage-scale` sur `:root` pour les modales `<dialog>` top-layer (qui échappent au container) ; cap ultrawide `min(100cqw/1920, 100cqh/1080)` ; `--ui-scale` barres PV monde pour 4K.
 
 ### Constantes Babylon — caméra, depth, silhouette (Jalon 3a)
@@ -821,14 +821,14 @@ Source canonique : `packages/renderer/src/babylon/babylon-constants.ts`.
 |-----------|--------|------|
 | `BABYLON_TILE_PREVIEW_ALPHA_INDEX` | `3` | `alphaIndex` (sur le mesh) des quads de preview de ciblage — au-dessus des highlights de portée / herbe (`1`) / Champs (`2`), donc rendus en dernier (focus joueur). Plan 121 4b-5. |
 | `BABYLON_FLOATING_TEXT_LIFT` | `1.0` | Lift world-Y (tiles) appliqué à la tuile avant projection écran, pour que le texte flottant de combat monte au-dessus de la tête du sprite. Passé de 1.5 → 1.0 lors du port moteur (phase retours). Plan 122 4c-1 + retours. |
-| `BABYLON_JUMP_VERTICAL_LEAD` | `0.45` | Décalage de phase de l'axe vertical d'un arc de saut : le sprite atteint l'apex avant le milieu du pas (≤ 0.5), de sorte que la montée s'effectue entièrement au-dessus de la tile de départ et la descente au-dessus de la tile d'arrivée. Évite la pénétration géométrique du flanc d'une falaise, visible via la silhouette X-ray (que Phaser 2D cachait). Remplace `BABYLON_MOVE_JUMP_ARC`. Phase recette. Décision #492. |
+| `BABYLON_JUMP_VERTICAL_LEAD` | `0.45` | Décalage de phase de l'axe vertical d'un arc de saut : le sprite atteint l'apex avant le milieu du pas (≤ 0.5), de sorte que la montée s'effectue entièrement au-dessus de la tile de départ et la descente au-dessus de la tile d'arrivée. Évite la pénétration géométrique du flanc d'une falaise, visible via la silhouette X-ray. Remplace `BABYLON_MOVE_JUMP_ARC`. Phase recette. Décision #492. |
 | `BABYLON_ATTACK_ANIMATION_MAX_MS` | `1000` | Cap de sécurité (ms) : resolve la Promise d'attaque même si l'anim est absente ou la scène détruite mid-attaque (anti-hang de la queue). Plan 122 4c-3. |
 | `BABYLON_KNOCKBACK_SHAKE_AMPLITUDE` | `0.12` | Amplitude max (tiles, axe world-X) de la secousse « knockback bloqué ». Plan 123 4d-2. |
 | `BABYLON_KNOCKBACK_SHAKE_DURATION_MS` | `250` | Durée totale (ms) de la secousse « knockback bloqué ». Plan 123 4d-2. |
 | `BABYLON_KNOCKBACK_SHAKE_CYCLES` | `3` | Nombre d'oscillations gauche-droite dans la secousse (sin amorti `× (1 − progress)`). Plan 123 4d-2. |
-| `BABYLON_PREVIEW_FLASH_DIM_EMISSIVE` | `0.35` | Gris émissif le plus sombre du pulse de flash confirm-cible (parité : Phaser fait varier l'alpha). Plan 123 4d-3. |
-| `BABYLON_PREVIEW_FLASH_PERIOD_MS` | `600` | Période complète (ms) du pulse sinus émissif du flash de prévisualisation (= Phaser `PREVIEW_FLASH_DURATION_MS` × 2 yoyo). Plan 123 4d-3. |
-| `BABYLON_CONFUSION_WOBBLE_ANGLE` | `5°` (rad) | Angle de roll max du wobble de confusion (miroir Phaser `CONFUSION_WOBBLE_ANGLE`). Appliqué sur `rotation.z` du plan sprite (enfant non-billboard d'un pivot billboard). Plan 123 4d-6. |
+| `BABYLON_PREVIEW_FLASH_DIM_EMISSIVE` | `0.35` | Gris émissif le plus sombre du pulse de flash confirm-cible (le pulse fait varier l'émissif). Plan 123 4d-3. |
+| `BABYLON_PREVIEW_FLASH_PERIOD_MS` | `600` | Période complète (ms) du pulse sinus émissif du flash de prévisualisation (aller-retour yoyo : 2 × durée du flash). Plan 123 4d-3. |
+| `BABYLON_CONFUSION_WOBBLE_ANGLE` | `5°` (rad) | Angle de roll max du wobble de confusion. Appliqué sur `rotation.z` du plan sprite (enfant non-billboard d'un pivot billboard). Plan 123 4d-6. |
 | `BABYLON_CONFUSION_WOBBLE_PERIOD_MS` | `1200` | Période complète (ms) du sinus de wobble confusion. Plan 123 4d-6. |
 
 ### HUD monde moteur — port DOM→moteur (phase retours, commit 9d1f731)
@@ -912,13 +912,13 @@ Le picker est rendu en moteur Babylon via un **modèle voxel** `arrow.gltf` (Gox
 | `BABYLON_DIRECTION_ARROW_ACTIVE_EMISSIVE` | `{r,g,b}` | Couleur émissive (glow) de la flèche sélectionnée ; les autres restent sans émissive (le matériau voxel n'a pas d'alpha à atténuer). |
 | `BABYLON_SPRITE_HEAD_LIFT_FALLBACK` | `1` | Hauteur tête (unités monde) utilisée pour les flèches **et** le curseur avant que l'atlas du sprite ne résolve son vrai `spriteTopOffsetY`. |
 
-Asset : `packages/renderer/public/assets/ui/arrow.gltf`. Constantes **supprimées** (plan 120, flèche 2D texture retirée) : `BABYLON_DIRECTION_ARROW_SIZE`, `BABYLON_DIRECTION_ARROW_Z_OFFSET`, `BABYLON_DIRECTION_ARROW_INACTIVE_ALPHA`.
+Asset : `packages/app/public/assets/ui/arrow.gltf`. Constantes **supprimées** (plan 120, flèche 2D texture retirée) : `BABYLON_DIRECTION_ARROW_SIZE`, `BABYLON_DIRECTION_ARROW_Z_OFFSET`, `BABYLON_DIRECTION_ARROW_INACTIVE_ALPHA`.
 
 #### Animations sprites PMD — durée par frame (plan 120)
 
 | Constante | Valeur | Rôle |
 |-----------|--------|------|
-| `BABYLON_PMD_TICK_DURATION_MS` | `33` | Durée d'un tick PMD en ms — parité avec `SpriteLoader.TICK_DURATION_MS` du renderer Phaser. |
+| `BABYLON_PMD_TICK_DURATION_MS` | `33` | Durée d'un tick PMD en ms (cadence d'animation des sprites). |
 | `BABYLON_PMD_DEFAULT_FRAME_TICKS` | `4` | Durée par défaut (ticks) d'une frame sans durée dans l'atlas. |
 | `BABYLON_DEFAULT_FRAME_DURATION_MS` | `140` | Fallback ms si l'atlas ne porte aucune durée PMD. |
 
@@ -972,4 +972,4 @@ Source canonique : `packages/renderer/src/babylon/babylon-champ-pill.ts` + `baby
 4. **Orange = menace ennemie** : overlay spécifique pour distinguer la portée ennemie des zones d'attaque.
 5. **Police `FONT_FAMILY`** : constante centrale, cible Pokemon Emerald Pro avec fallback `monospace`. Cohérent avec l'esthétique pixel/rétro.
 6. **Alphas semi-transparents** : les overlays de grille utilisent des alphas 0.3–0.5 pour rester lisibles sans cacher la carte.
-7. **Pixel art sélectif** : `roundPixels: true` dans Phaser aligne les sprites sur les pixels entiers. Filtre NEAREST appliqué manuellement sur tileset et sprites Pokemon. Texte et portraits restent en filtre LINEAR.
+7. **Pixel art sélectif** : filtre `NEAREST` appliqué sur le tileset et les sprites Pokemon (pixels nets). Texte et portraits restent en filtre `LINEAR`.

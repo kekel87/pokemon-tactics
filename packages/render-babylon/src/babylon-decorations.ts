@@ -41,8 +41,7 @@ export interface Decorations {
   /**
    * Height in tile units a rock/tree adds on top of a footprint cell, so the
    * cursor rests on the decoration's top instead of clipping through it (0 for
-   * free cells and tall-grass, which units stand in). Mirrors the Phaser
-   * `DecorationsLayer.getDecorationHeightAt`.
+   * free cells and tall-grass, which units stand in).
    */
   decorationHeightAt(x: number, y: number): number;
   dispose(): void;
@@ -111,8 +110,7 @@ export function createDecorations(
     const isGrass = kind === DecorationKind.TallGrass;
     // Crisp alpha-tested edges + depth write (they occlude). Grass occludes too —
     // a Pokémon standing in or behind the grass has its lower body hidden by the
-    // nearer blades (foot-depth bias `BABYLON_DECORATION_DEPTH_BIAS` > the sprite's),
-    // mirroring the Phaser draw-order (`DEPTH_DECORATIONS_TALL_GRASS_OFFSET`).
+    // nearer blades (foot-depth bias `BABYLON_DECORATION_DEPTH_BIAS` > the sprite's).
     material.transparencyMode = Material.MATERIAL_ALPHATEST;
     material.alphaCutOff = 0.5;
     materials.push(material);

@@ -75,7 +75,7 @@ Type TypeScript où plusieurs formes d'un même type se distinguent par un champ
 Pattern où un objet publie des événements que d'autres peuvent écouter. Dans ce projet, le `BattleEngine` émet des `BattleEvent` que le renderer, l'IA et le système de replay écoutent. Découple totalement le core de l'affichage.
 
 **Headless**
-Exécution sans interface graphique. Le moteur de jeu peut simuler des centaines de combats complets en quelques secondes via Node.js, sans Phaser, sans fenêtre, sans rendu. Indispensable pour les tests et l'équilibrage automatique.
+Exécution sans interface graphique. Le moteur de jeu peut simuler des centaines de combats complets en quelques secondes via Node.js, sans moteur de rendu, sans fenêtre. Indispensable pour les tests et l'équilibrage automatique.
 
 **Override** (Surcharge)
 Données additionnelles qui s'appliquent par-dessus les données de base sans les modifier directement. Exemple : la couche `tactical` ajoute le `targeting` d'un move, la couche `balance` ajuste son `power`. Changer l'équilibre = modifier un seul fichier.

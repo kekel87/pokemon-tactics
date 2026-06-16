@@ -1,6 +1,6 @@
 /**
- * Warm the browser cache for a battle's sprite atlases before combat starts (Phaser parity:
- * the LoadingScene queued every required sprite, so the scene began with them ready). We only
+ * Warm the browser cache for a battle's sprite atlases before combat starts, so the
+ * scene begins with every required sprite ready. We only
  * prefetch the files (PNG + atlas JSON + offsets) — engine-agnostic, no renderer dependency — so
  * the per-billboard `load()` then resolves from disk cache instead of a cold network round-trip.
  * Combined with the renderer hiding a billboard until its atlas binds, this removes the

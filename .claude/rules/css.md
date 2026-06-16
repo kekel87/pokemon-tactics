@@ -13,7 +13,7 @@ Cible : evergreen browsers, pas de Sass/Tailwind/CSS-in-JS. CSS pur, vars native
 - **`:root` pour le global**, scope sur composant pour l'override local uniquement.
 - **Pas de fallback `var(--x, …)`** si la variable est garantie en `:root`. Fallback réservé aux vars dynamiques injectées par JS.
 - **Tokens obligatoires** dès qu'une valeur (couleur, espacement, radius, z-index, ombre, durée) apparaît 2+ fois. Magic numbers interdits (`z-index: 100` → `var(--z-overlay)`).
-- **Source couleurs DOM** : variables CSS dans `:root`. Coexistent avec `packages/renderer/src/constants.ts` (qui reste source pour Phaser/canvas). Garder noms cohérents entre les deux.
+- **Source couleurs DOM** : variables CSS dans `:root`. Coexistent avec `packages/app/src/constants.ts` (source pour le rendu moteur Babylon). Garder noms cohérents entre les deux.
 - **`@property`** pour animer une variable typée (gradients, opacités).
 - **Dark mode** : variables CSS + `@media (prefers-color-scheme: …)`. Pas de `light-dark()` (moins lisible).
 

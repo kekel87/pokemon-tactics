@@ -44,7 +44,7 @@ Open http://localhost:5173 in your browser.
 |---|---|
 | Language | TypeScript (strict) |
 | Game engine | Pure TypeScript core (zero UI dependency) |
-| Renderer | Phaser 4 (2D isometric) |
+| Renderer | Babylon.js 8 (2D-HD sprites on a 3D terrain) |
 | Tests | Vitest (1300+ tests) |
 | Bundler | Vite |
 | Linter | Biome |
@@ -54,10 +54,15 @@ Open http://localhost:5173 in your browser.
 
 ```
 packages/
-  core/        Pure game engine (logic, calculations, grid)
-  renderer/    Visual interface (Phaser 4)
-  data/        Pokemon data (stats, moves, type chart)
-docs/          Game design, architecture, decisions, roadmap
+  core/            Pure game engine (logic, calculations, grid)
+  data/            Pokemon data (stats, moves, type chart)
+  render-ports/    Renderer contract (ports, view-models) — engine-agnostic
+  view-core/       Presentation logic (orchestrator, AI, setup) — engine-agnostic
+  render-babylon/  Babylon.js scene & board rendering
+  render-canvas2d/ Canvas2D HUD primitives (HP bars, pills, text)
+  ui-dom/          Reusable HTML/CSS battle chrome
+  app/             App shell (boot, i18n, settings, team UI, DI wiring)
+docs/              Game design, architecture, decisions, roadmap
 ```
 
 ## Feedback

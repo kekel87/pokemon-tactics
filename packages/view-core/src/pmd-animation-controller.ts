@@ -367,7 +367,7 @@ export class PmdAnimationController {
 
   /**
    * Trigger a brief damage flash (a few dim/restore half-cycles). Returns true if
-   * the caller should also play the Hurt recoil pose (parity with Phaser): a hit
+   * the caller should also play the Hurt recoil pose: a hit
    * not on a KO'd sprite, when the atlas carries Hurt for this facing.
    */
   flashDamage(): boolean {

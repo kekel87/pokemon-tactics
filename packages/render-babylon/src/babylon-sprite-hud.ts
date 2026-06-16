@@ -106,16 +106,15 @@ interface HudRecord {
 /**
  * World-anchored per-sprite HP bars + status icons + damage-preview overlay for the
  * Babylon combat scene, rendered IN ENGINE (decision #487 — world UI is engine, not
- * DOM-projected). Mirrors the Phaser `PokemonSprite` HP bar (rounded team-colour fill
- * over a dark rounded track + uniform border, width by HP ratio) + status icon +
- * `drawDamagePreview` darkening bands.
+ * DOM-projected). HP bar (rounded team-colour fill over a dark rounded track +
+ * uniform border, width by HP ratio) + status icon + darkening damage-preview bands.
  *
  * Each HUD hangs under a billboarded `TransformNode` parented to the sprite root (so
  * it follows the glide and faces the camera as a unit — best-practice: billboard the
  * anchor, keep children plain, like DirectionalBillboard). The bar is a single NEAREST
  * DynamicTexture drawn with `roundRect` (crisp + rounded + homogeneous border, redrawn
  * only on HP / preview change). Everything sits in the top HUD rendering group so it
- * always draws over the sprites + terrain, like the Phaser high-depth bar.
+ * always draws over the sprites + terrain.
  */
 export function createSpriteHud(scene: Scene): SpriteHud {
   const records = new Set<HudRecord>();
@@ -282,8 +281,8 @@ export function createSpriteHud(scene: Scene): SpriteHud {
             plane.dispose();
           }
           record.leftIndicators = [];
-          // Stack the emoji symbols leftward from the bar's left edge (mirrors the
-          // Phaser left-indicator row: first-gap then tight slot offsets).
+          // Stack the emoji symbols leftward from the bar's left edge
+          // (left-indicator row: first-gap then tight slot offsets).
           const firstX = -BABYLON_HP_BAR_WIDTH / 2 - BABYLON_HUD_AURA_FIRST_GAP;
           const step = BABYLON_HUD_AURA_SLOT_OFFSET;
           for (let i = 0; i < specs.length; i++) {

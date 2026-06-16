@@ -9,20 +9,19 @@ import type { UiDomConfig } from "./config.js";
 import { el } from "./dom-helpers.js";
 
 /**
- * BattleLog — DOM/CSS port of the Phaser `ui/BattleLogPanel.ts` (plan 121 step
+ * BattleLog — DOM/CSS battle log panel (plan 121 step
  * 4b-4). Collapsible panel, top-right, that formats each battle event through
  * the shared `formatBattleEvent` and appends a coloured line (team dot on the
  * first referenced Pokémon). Implements the orchestrator's `BattleFeedback`
  * port (`report`), replacing the 4a no-op. Native scroll, `aria-live` polite.
  */
 
-/** Parity with the Phaser `BATTLE_LOG_MAX_ENTRIES` — cap the DOM line count too. */
+/** Cap the DOM line count. */
 const MAX_LOG_ENTRIES = 50;
 
 /**
- * Replay transport controls (first / rewind / play / forward / last), parity with
- * the Phaser `BattleLogPanel` replay bar. Disabled for now — placeholders for the
- * future battle replay feature (same as the greyed-out Phaser buttons).
+ * Replay transport controls (first / rewind / play / forward / last).
+ * Disabled for now — placeholders for the future battle replay feature.
  */
 const REPLAY_BUTTONS: readonly { label: string; aria: string }[] = [
   { label: "|◁", aria: "Début" },

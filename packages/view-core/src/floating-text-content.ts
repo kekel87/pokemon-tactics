@@ -41,9 +41,7 @@ const CHARGING_FLOAT_LABEL_KEYS: Record<string, string> = {
 /**
  * Core event → combat floating text (plan 122 step 4c-1) — the short, drifting
  * labels that rise off a Pokémon (damage numbers, "Miss!", "Critical!", status…).
- * Pure mapper, ported from the Phaser `GameController` `showBattleText` calls; the
- * DOM/projection lives in `combat-scene.spawnFloatingText`. Mirrors the colours
- * and i18n of the 2D renderer so the two stay at parity.
+ * Pure mapper; the projection lives in `combat-scene.spawnFloatingText`.
  */
 
 /** One floating label. `secondary` shares the primary's beat with a small upward offset. */
@@ -140,7 +138,7 @@ export function floatingTextsFor(
       }
       if (event.recoil === true && context.getCurrentHp(event.targetId) === 0) {
         // A lethal recoil hit (e.g. Bélier killing its user) shows "K.O.!" instead
-        // of the damage number (parity with Phaser GameController DamageDealt).
+        // of the damage number.
         return [
           {
             pokemonId: event.targetId,

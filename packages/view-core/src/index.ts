@@ -3,7 +3,7 @@
  * The battle orchestrator, view-model builders, floating-text mapper, battle/sandbox
  * setup and AI controllers. Depends only on core, data and the renderer contract;
  * receives i18n / settings / asset-paths through `PresentationContext` (DI). No
- * Phaser/Babylon/DOM import lives here — that is what keeps a renderer swap cheap.
+ * renderer-specific import (Babylon/DOM) lives here — that is what keeps a renderer swap cheap.
  */
 
 export * from "./AiTeamController.js";

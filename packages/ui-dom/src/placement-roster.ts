@@ -23,7 +23,7 @@ export interface PlacementRosterState {
 }
 
 /**
- * DOM port of the Phaser PlacementRosterPanel (plan 120 step 6): top bar listing
+ * DOM placement roster panel (plan 120 step 6): top bar listing
  * the current player's Pokemon (click to pick the next one to place), a
  * placed/remaining counter, and the "Done" button. Minimal chrome — restyled 4b.
  */

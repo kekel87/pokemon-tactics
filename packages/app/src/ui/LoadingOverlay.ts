@@ -15,7 +15,7 @@ export interface LoadingOverlayHandle {
 const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
 
 /**
- * Full-screen DOM loading overlay (port of the Phaser LoadingScene, plan 097 → 127). Shown over
+ * Full-screen DOM loading overlay (plan 097 → 127). Shown over
  * the canvas while the combat scene loads its map + sprite atlases, then faded out, so the player
  * never sees a half-loaded scene (FOUC). Rotating gameplay tips + a progress bar. Styling lives in
  * `styles/loading-overlay.css`; only the runtime bar width is set inline.

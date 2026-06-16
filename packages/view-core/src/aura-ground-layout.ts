@@ -3,7 +3,7 @@
  * When a caster's team-aura symbols are floated over each tile of its radius, they
  * fan out in a cross/grid around the tile centre (1 centred, 2 side-by-side, … up
  * to 6). Offsets are screen-relative: `x` horizontal, `y` screen-up (the renderer
- * negates `y` if its local frame points down). Mirrors the Phaser `getAuraHoverOffsets`.
+ * negates `y` if its local frame points down).
  */
 
 export interface AuraIconOffset {
