@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { visualizer } from "rollup-plugin-visualizer";
 import type { IndexHtmlTransformContext, Plugin, PluginOption } from "vite";
@@ -46,6 +46,33 @@ function resolveAppVersion(): string {
   }
 }
 
+// Per-Pokemon `credits.txt` are attribution artefacts emitted by the sprite pipeline,
+// never loaded at runtime. Shipping one per Pokemon bloats the itch.io HTML5 zip (hard
+// 1000-file cap). Strip them from the build — attribution stays in the repo AND in the
+// in-game Credits screen (PMDCollab SpriteCollab — CC BY-NC 4.0, with source link), which
+// satisfies the licence in the distributed work.
+function stripShippedCreditsPlugin(): Plugin {
+  return {
+    name: "strip-shipped-credits",
+    apply: "build",
+    closeBundle() {
+      const spritesDir = resolve(process.cwd(), "dist/assets/sprites/pokemon");
+      if (!existsSync(spritesDir)) {
+        return;
+      }
+      for (const entry of readdirSync(spritesDir, { withFileTypes: true })) {
+        if (!entry.isDirectory()) {
+          continue;
+        }
+        const creditsFile = resolve(spritesDir, entry.name, "credits.txt");
+        if (existsSync(creditsFile)) {
+          rmSync(creditsFile);
+        }
+      }
+    },
+  };
+}
+
 function goatcounterPlugin(): Plugin {
   return {
     name: "goatcounter",
@@ -82,7 +109,7 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [goatcounterPlugin(), ...bundleAuditPlugins()],
+  plugins: [goatcounterPlugin(), stripShippedCreditsPlugin(), ...bundleAuditPlugins()],
   server: {
     port: resolveDevPort(),
   },
@@ -98,6 +125,15 @@ export default defineConfig({
       // dirname unreliability noted in resolveDevPort above.
       input: {
         main: resolve(process.cwd(), "index.html"),
+      },
+      output: {
+        // itch.io HTML5 zips cap at 1000 files. Babylon dynamically imports each
+        // shader (`*.fragment.js` / `*.vertex.js`) as its own chunk → ~1000 tiny JS
+        // files alone. Collapse all of @babylonjs into one vendor chunk so the deploy
+        // stays well under the cap (shaders then load eagerly with the vendor bundle).
+        codeSplitting: {
+          groups: [{ name: "babylon", test: /node_modules[\\/]@babylonjs/ }],
+        },
       },
     },
   },
