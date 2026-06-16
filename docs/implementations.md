@@ -583,7 +583,7 @@
 | Saumure | brine | Eau | Spé | 65 (130 si cible ≤50% HP) | 100 | 10 | single r1–3 | `dynamicPower` ×2 si HP cible ≤ 50% max. |
 | Pression Extrême | hard-press | Acier | Phys | var | 100 | 10 | single r1 | `dynamicPower` `floor(100 × HPcible / HPmax)` (min 1). |
 | Giclédo | water-spout | Eau | Spé | var | 100 | 5 | zone r2 | `dynamicPower` `max(1, floor(150 × HPsoi / HPmax))`. Friendly fire. |
-| Bodypress | body-press | Combat | Phys | 80 | 100 | 10 | single r1 | `attackStatSource: UserDefense` — dégâts calculés depuis la Défense du lanceur (+ crans Déf). Bagarre ne booste pas. |
+| Big Splash | body-press | Combat | Phys | 80 | 100 | 10 | single r1 | `attackStatSource: UserDefense` — dégâts calculés depuis la Défense du lanceur (+ crans Déf). Bagarre ne booste pas. |
 | Tricherie | foul-play | Ténèbres | Phys | 95 | 100 | 15 | single r1 | `attackStatSource: TargetAttack` — dégâts calculés depuis l'Attaque de la cible (+ crans Atq cible). Atk lanceur ignorée. |
 | Balayage | low-kick | Combat | Phys | var | 100 | 20 | single r1 | `dynamicPower` `TargetWeight` : puissance selon poids cible (20 ≤10 kg → 120 ≥200 kg). 6 paliers parité Showdown. |
 | Nœud Herbe | grass-knot | Plante | Spé | var | 100 | 20 | single r1 | `dynamicPower` `TargetWeight` : identique à Balayage (puissance selon poids cible). |
