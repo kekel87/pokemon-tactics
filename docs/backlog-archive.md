@@ -26,6 +26,15 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 - Cause : la migration Babylon avait perdu la modale de confirmation ; `TeamEditView.clearAll()` vidait direct les slots. Clés i18n `clearAllConfirmTitle`/`Body` orphelines (code mort).
 - Fix : `ClearTeamConfirmModal.ts` (`<dialog>`, mirror de `DeleteConfirmModal`) appelé par `clearAll()` ; nouvelles clés `clearAllConfirmYes`/`No` (Vider/Annuler). e2e réactivé : `team-builder.spec.ts` (« Tout vider » demande confirmation).
 
+### `BattleLogPanel` — entrée longue wrappe/déborde (obsolète post-migration, clos 2026-06-16)
+- Bug Phaser (plan 118) : slots à hauteur fixe `BATTLE_LOG_LINE_HEIGHT` + `wordWrap` → message 2 lignes chevauchait le suivant.
+- Caduc : la migration Babylon a remplacé `BattleLogPanel` par `battle-log.ts` (DOM `<ol>`/`<li>`/`<span>`, flux CSS). Chaque entrée grandit pour contenir son texte — chevauchement structurellement impossible. Plus de hauteur fixe ni de `wordWrap`. Rien à corriger.
+
+### Nom FR `body-press` : override i18n faux = "Bodypress" (résolu 2026-06-16)
+- Le plan 110 avait décrété « nom officiel FR = Bodypress » (**erreur**) et posé l'override `moves.fr.json` = "Bodypress". L'ancien item backlog reprenait cette erreur (« reference Big Splash = faux »).
+- Vérité : Poképédia (autorité FR) confirme que **« Big Splash » est le nom français officiel** de Body Press. PokeAPI (donc `reference/moves.json` = "Big Splash") avait raison.
+- Fix : override `moves.fr.json` corrigé "Bodypress" → "Big Splash". `reference/moves.json` laissé tel quel ("Big Splash", correct). Aucune carte de correction dans `build-reference.ts` (PokeAPI est juste). Le jeu affichait "Bodypress" (faux) → affiche désormais "Big Splash".
+
 ## Dette technique résolue
 
 ### GitHub Actions sur Node 20 — déprécié (résolu 2026-06-12, commit `30be7ee`)
