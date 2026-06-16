@@ -223,9 +223,9 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
 
 ---
 
-## Phase 5 — Migration renderer 2D-HD (Babylon.js)
+## Phase 5 — Migration renderer 2D-HD (Babylon.js) ✅ *TERMINÉE — livrée en v2026.6.3 (2026-06-16)*
 
-> **Repriorisée — EN COURS** (2026-06-08, worktree `phase5-babylon`). Ancienne position "après Phase 7" annulée (décision humaine 2026-06-08).
+> ~~Repriorisée — EN COURS~~ Terminée et fusionnée sur main. Worktree `phase5-babylon` clos. Ancienne position "après Phase 7" annulée (décision humaine 2026-06-08).
 >
 > But : porter le rendu vers Babylon.js 2D-HD (sprites billboards sur terrain 3D extrudé, style Tactics Ogre PSP / Triangle Strategy / FFTIC).
 >
@@ -254,10 +254,10 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 
 - [x] **Jalon 1** — Spike → production : terrain + 1 billboard + caméra (2026-06-08). Terrain volcano rendu, 15 textures PMD, ombres, orientation, hauteurs, `VisualTerrainGroup`, `renderingGroupId 0`. Docs `babylon-2d-overlay-scaling.md`, `babylon-asset-lifecycle.md`. Plan parité 307 items.
 - [x] **Jalon 2** — Contrat overlay UI + harmonisation design-system (2026-06-08). `game-stage` / `game-overlay` / `ResizeObserver` / `--ui-scale`. Helper projection monde→écran (world-projection.ts). InfoPanel DOM container-query (info-panel.css). Team Builder rapatrié. Canvas plein viewport (décision #472). Validé desktop + mobile + 60fps.
-- [ ] **Jalon 3** — Port core renderer (parité scène combat). **3a DONE (2026-06-09)** : caméra rotative, occlusion native depth-buffer, silhouette X-ray, extrusion multi-niveaux. Reste : picking multi-niveaux (3b), curseur FFTA (3c), animations directionnelles (3d), décorations+terrain complet (3e), tests parité (3f).
-- [ ] **Jalon 3.5** — Pipeline pixel-art. RTT basse résolution + upscale NEAREST + integer scaling. Pixel-snapping overlay DOM. Spec : `docs/babylon/babylon-pixel-art-pipeline.md`.
-- [ ] **Jalon 4** — Port chrome combat + interactions. Timeline CT, ActionMenu, InfoPanel, battle log, animations combat, state machine DOM.
-- [ ] **Jalon 5** — Nettoyage Phaser + parité finale + merge `--ff-only` sur main. `grep -ri phaser packages/` = 0. Bundle ≤ 220 kB gzip.
+- [x] **Jalon 3** — Port core renderer (parité scène combat). 3a→3f tous DONE : caméra rotative, occlusion native depth-buffer, silhouette X-ray, extrusion multi-niveaux, picking multi-niveaux, curseur FFTA, animations directionnelles, décorations+terrain complet, tests parité + gate 60fps PASS.
+- [x] **Jalon 3.5** — Pipeline pixel-art ABANDONNÉ (décision #486, 2026-06-10) : 4 approches testées et rejetées — rendu full-res conservé, zéro code conservé. Verdict humain « ça rend déjà super bien ». Doc : `docs/babylon/babylon-pixel-art-pipeline.md`.
+- [x] **Jalon 4** — Port chrome combat + interactions. Jalons 4a→4d TERMINÉS : FSM 9 états, placement interactif, boucle combat complète, Timeline CT, ActionMenu, InfoPanel, BattleLog DOM, Sandbox Studio, animations combat, parité Babylon ↔ Phaser atteinte.
+- [x] **Jalon 5** — Nettoyage Phaser + parité finale + merge `--ff-only` sur main. `grep -ri phaser packages/` = 0 (seules mentions légitimes : ban-list core-guardian + `core.md` + `review-local`). Bundle livré. Commit `b039c3d`.
 
 ### Gates
 
