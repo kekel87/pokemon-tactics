@@ -21,14 +21,14 @@ import type { TileHeightLookup } from "./babylon-tile-highlights.js";
 import { SpriteDepthPlugin } from "./sprite-depth-plugin.js";
 import { gridToWorldXZ, tileBodyHeight } from "./terrain-extruder.js";
 
-/** Decoration tile-set PNGs (under `/assets/tilesets/decorations`). */
+/** Decoration tile-set PNGs (under `assets/tilesets/decorations`). */
 const DECORATION_TEXTURE_BY_KIND: Readonly<Record<DecorationKind, string>> = {
   [DecorationKind.TallGrass]: "tall-grass",
   [DecorationKind.Rock1]: "rock-1x1x1",
   [DecorationKind.Rock2x2]: "rock-2x2x2",
   [DecorationKind.Tree]: "tree-1x1x3",
 };
-const DECORATION_TEXTURE_BASE = "/assets/tilesets/decorations";
+const DECORATION_TEXTURE_BASE = "assets/tilesets/decorations";
 
 interface DecorationBillboard {
   readonly root: TransformNode;

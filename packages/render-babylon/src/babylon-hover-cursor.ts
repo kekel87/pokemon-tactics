@@ -13,7 +13,7 @@ import {
 } from "./babylon-constants.js";
 import { HOVER_CURSOR_OPTIONS } from "./constants.js";
 
-const CURSOR_TEXTURE_BASE = "/assets/ui/cursor";
+const CURSOR_TEXTURE_BASE = "assets/ui/cursor";
 /** localStorage key for the chosen variant. */
 const CURSOR_VARIANT_STORAGE_KEY = "babylon-hover-cursor-variant";
 /** Idle bob (FFTA-style "alive" cursor): vertical oscillation, world units of travel + period. */

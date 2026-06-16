@@ -139,9 +139,9 @@ export function createBabylonPreview(options: BabylonPreviewOptions): BabylonPre
   const billboards = pokemonSpawns.map((entry) => {
     const billboard = new DirectionalBillboard({
       scene,
-      atlasJsonUrl: `/assets/sprites/pokemon/${entry.pokemonId}/atlas.json`,
-      atlasPngUrl: `/assets/sprites/pokemon/${entry.pokemonId}/atlas.png`,
-      offsetsJsonUrl: `/assets/sprites/pokemon/${entry.pokemonId}/offsets.json`,
+      atlasJsonUrl: `assets/sprites/pokemon/${entry.pokemonId}/atlas.json`,
+      atlasPngUrl: `assets/sprites/pokemon/${entry.pokemonId}/atlas.png`,
+      offsetsJsonUrl: `assets/sprites/pokemon/${entry.pokemonId}/offsets.json`,
       animation: "Idle",
       worldFacing: 0,
       pixelsPerWorldUnit: BABYLON_SPRITE_PIXELS_PER_UNIT,
@@ -180,7 +180,7 @@ export function createBabylonPreview(options: BabylonPreviewOptions): BabylonPre
     hpCurrent: 98,
     hpMax: 142,
     team: 1,
-    portraitUrl: "/assets/sprites/pokemon/pikachu/portrait-normal.png",
+    portraitUrl: "assets/sprites/pokemon/pikachu/portrait-normal.png",
     badges: [
       { label: "Vit. +1", variant: "buff" },
       { label: "Déf. -1", variant: "debuff" },

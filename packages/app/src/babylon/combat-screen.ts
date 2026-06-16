@@ -411,14 +411,11 @@ function startSandboxBattle(options: {
   });
 }
 
-const SANDBOX_DEFAULT_MAP_URL = "/assets/maps/dev/sandbox-flat.tmj";
+const SANDBOX_DEFAULT_MAP_URL = "assets/maps/dev/sandbox-flat.tmj";
 
-/** Normalise a public-relative sandbox map url ("assets/…") to an absolute one. */
+/** Resolve the sandbox map url (kept document-relative so it works under any deploy base). */
 function sandboxMapUrl(config: SandboxConfig): string {
-  if (!config.mapUrl) {
-    return SANDBOX_DEFAULT_MAP_URL;
-  }
-  return config.mapUrl.startsWith("/") ? config.mapUrl : `/${config.mapUrl}`;
+  return config.mapUrl ?? SANDBOX_DEFAULT_MAP_URL;
 }
 
 /**

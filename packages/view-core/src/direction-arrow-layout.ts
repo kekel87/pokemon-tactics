@@ -15,7 +15,7 @@ export const ALL_PLACEMENT_DIRECTIONS = [
   Direction.West,
 ] as const;
 
-export const ARROW_GLTF_URL = "/assets/ui/arrow.gltf";
+export const ARROW_GLTF_URL = "assets/ui/arrow.gltf";
 
 /**
  * The voxel arrow is modelled upright in the XY plane (goxel Y-up, pointing +Y);

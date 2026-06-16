@@ -43,7 +43,7 @@ import {
 } from "./constants.js";
 
 /** Public path of the status icon PNGs (absolute, like the sprite atlas urls). */
-const STATUS_ICON_BASE = "/assets/ui/statuses";
+const STATUS_ICON_BASE = "assets/ui/statuses";
 
 /** HP-bar canvas resolution (shared painter); width derives from the world ratio. */
 const BAR_TEXTURE_HEIGHT = HP_BAR_TEXTURE_HEIGHT;
