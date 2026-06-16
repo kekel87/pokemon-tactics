@@ -52,7 +52,7 @@ const query = new URLSearchParams(window.location.search);
 //   ?map=<name>    → battlefield map (without `.tmj`) used by the combat/preview routes
 //   ?preview=1     → dev tuning harness (free rotation, sliders, Team Builder toggle)
 const mapName = query.get("map") ?? "desert";
-const mapUrl = `/assets/maps/${mapName}.tmj`;
+const mapUrl = `assets/maps/${mapName}.tmj`;
 // Plan 125/126: the rendering backend is consumed through a seam so it stays
 // swappable. The menus/team UI are engine-agnostic DOM; only the combat screen +
 // sandbox studio consume the backend. Babylon is currently the sole engine.

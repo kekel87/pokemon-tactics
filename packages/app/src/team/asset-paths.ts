@@ -7,5 +7,5 @@ export function getCategoryIconUrl(category: string): string {
 }
 
 export function getWeatherIconUrl(kind: string): string {
-  return `/assets/ui/weather/weather-${kind}.png`;
+  return `assets/ui/weather/weather-${kind}.png`;
 }

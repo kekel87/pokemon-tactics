@@ -10,7 +10,7 @@ export function preloadCombatSprites(pokemonIds: readonly string[]): Promise<voi
   const unique = [...new Set(pokemonIds)];
   return Promise.all(
     unique.flatMap((id) => {
-      const base = `/assets/sprites/pokemon/${id}`;
+      const base = `assets/sprites/pokemon/${id}`;
       return [`${base}/atlas.png`, `${base}/atlas.json`, `${base}/offsets.json`].map((url) =>
         fetch(url)
           .then(() => undefined)

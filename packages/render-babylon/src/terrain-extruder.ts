@@ -24,7 +24,7 @@ import {
 } from "./babylon-constants.js";
 
 /** Base URL of the flat top-down PMD terrain textures (one per visual group). */
-const TERRAIN_TEXTURE_BASE = "/assets/tilesets/terrain-3d";
+const TERRAIN_TEXTURE_BASE = "assets/tilesets/terrain-3d";
 
 /** Visual groups that ship a dedicated side/wall texture; others reuse a darkened top. */
 const DISTINCT_SIDE_GROUPS: ReadonlySet<VisualTerrainGroup> = new Set<VisualTerrainGroup>([
