@@ -22,6 +22,7 @@ step() {
       typecheck) echo "  fix: lis l'erreur tsc, vérifie packages/*/tsconfig.json";;
       test)     echo "  fix: \`pnpm test\` localement, isole le test cassé avec --reporter=verbose";;
       test:integration) echo "  fix: \`pnpm test:integration\` localement";;
+      e2e)      echo "  fix: \`pnpm test:e2e\` localement ; harness Playwright (DOM + scène Babylon). Pas en CI (WebGL headless instable)";;
     esac
     echo ""
     echo "CI VERDICT: fail — $name ($MODE)"
@@ -42,12 +43,14 @@ case "$MODE" in
     step "build"           pnpm build
     step "test"            pnpm test
     step "test:integration" pnpm test:integration
+    step "e2e"             pnpm test:e2e
     ;;
   slow)
     step "lint:fix"        pnpm lint:fix
     step "typecheck"       pnpm typecheck
     step "build"           pnpm build
     step "test:all"        pnpm test:all
+    step "e2e"             pnpm test:e2e
     ;;
   *)
     echo "Usage: $0 [fast|full|slow]"

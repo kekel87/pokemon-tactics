@@ -111,6 +111,7 @@ Détails : `docs/agent-orchestration.md`.
 
 | Option | Pré-coché si |
 |--------|--------------|
+| `e2e (test-writer)` | changement **observable automatisable** (DOM/écran, ou mécanique pilotable via journal/scène) → l'agent `test-writer` ajoute/MAJ le scénario e2e **et** le cahier `docs/test-plan.md` (case 🤖/👁 + §11). Décoché si purement pixel/anim |
 | `human-testing` | changement observable (move/ability/mécanique/UI/rendu/IA) — **mode interactif**, voir § dédié |
 | `visual-tester` | **JAMAIS auto-coché** (≥2 min Playwright, je pilote) |
 
@@ -135,7 +136,7 @@ Spéciaux selon contexte :
 
 #### Ordre d'exécution fixe
 
-`human-testing → visual-tester → core-guardian → code-reviewer → doc-keeper → /ci-gate → /commit`
+`e2e (test-writer) → human-testing → visual-tester → core-guardian → code-reviewer → doc-keeper → /ci-gate → /commit`
 
 Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, `visual-tester` régression).
 
@@ -155,7 +156,7 @@ Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-g
 ### Règles fond
 
 - Jamais > 1 agent long en foreground/turn — longs en background
-- Gate CI = `pnpm build && pnpm lint:fix && pnpm typecheck && pnpm test && pnpm test:integration`. **BLOQUANT** avant commit
+- Gate CI = `pnpm build && pnpm lint:fix && pnpm typecheck && pnpm test && pnpm test:integration && pnpm test:e2e`. **BLOQUANT** avant commit. ⚠️ L'e2e tourne **uniquement au gate local** (pas en CI GitHub : rendu Babylon WebGL instable en headless ubuntu)
 - Reporté → `docs/next.md`
 
 ## Skills

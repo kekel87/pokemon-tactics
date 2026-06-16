@@ -85,12 +85,17 @@ playwright.config.ts
 - **Plafond ~8 screenshots** sur tout le projet. 1 par scénario visuel distinct, pas 1 par test.
 - Régénérer **intentionnellement** (`--update-snapshots`) après un changement visuel voulu.
 
-## CI
+## Où tourne le harness
 
-- Job e2e **séparé du gate** rapide (plus lent). `smoke` bloquant d'abord.
-- `retries: process.env.CI ? 2 : 0` — un retry n'est **pas** un correctif : un test qui ne passe
-  qu'au retry est flaky, on corrige la cause (souvent un déterminisme manquant).
-- Artefacts : `trace: 'on-first-retry'`, `video: 'retain-on-failure'`, `screenshot: 'only-on-failure'`.
+- **Gate local uniquement** (`/ci-gate full` → étape `e2e` = `pnpm test:e2e`). **PAS en CI GitHub** :
+  le rendu Babylon (WebGL) est instable en CI headless ubuntu (même avec SwiftShader → tous les
+  tests combat timeout). La CI garde lint/typecheck/build/test/test:integration ; l'e2e est validé
+  en local avant commit.
+- `retries: process.env.CI ? 2 : 0` — sans effet utile maintenant (e2e hors CI) ; localement 0 retry
+  → un test qui ne passe qu'au retry est flaky, on corrige la cause (déterminisme manquant).
+- WebGL local : `launchOptions.args` force SwiftShader (`--use-gl=angle --use-angle=swiftshader
+  --enable-unsafe-swiftshader`) — rendu logiciel déterministe, inoffensif sur machine avec GPU.
+- Artefacts en échec : `trace: 'on-first-retry'`, `video`/`screenshot` `on-failure`.
 
 ## Anti-patterns bannis
 
