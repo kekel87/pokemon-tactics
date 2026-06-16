@@ -1,7 +1,7 @@
 /**
  * Renderer lifecycle contract (plan 125, Phase 3). Engine-agnostic and DOM-free:
  * it names the one piece that was implicit (and a past source of pain) in the
- * Phaser→Babylon migration — **deterministic teardown**. Any render backend must
+ * renderer migration — **deterministic teardown**. Any render backend must
  * release its engine, scene, GPU resources and observers on `dispose()` so the
  * app-shell can swap screens (and one day swap renderers) without leaks.
  *

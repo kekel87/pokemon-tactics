@@ -1,5 +1,5 @@
 /*
- * MoveTooltip (Phase 5 Jalon 4b-2) — DOM port of the Phaser `ui/MoveTooltip.ts`.
+ * MoveTooltip (Phase 5 Jalon 4b-2) — DOM move tooltip.
  * Pairs with `ui/dom/combat/move-tooltip.ts`. Shown left of the attack submenu
  * on move hover. Tokens from `tokens.css`.
  */

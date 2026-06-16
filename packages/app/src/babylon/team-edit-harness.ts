@@ -11,8 +11,8 @@
  * callbacks are no-ops), inert topbar. Clicking a slot just switches which
  * Pokemon the panels preview, so all six layouts can be checked. Real editing,
  * storage, navigation and the core→view-model wiring arrive with the scene
- * orchestrator at Jalon 4 (which also extracts a shared `TeamEditView` from the
- * Phaser `TeamEditScene`). Disposable like the rest of the harness (gone Jalon 5).
+ * orchestrator at Jalon 4 (which also extracts a shared `TeamEditView`).
+ * Disposable like the rest of the harness.
  */
 
 import type { TeamSet, TeamSlot } from "@pokemon-tactic/core";

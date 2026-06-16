@@ -317,7 +317,7 @@ export class DirectionalBillboard {
 
   /**
    * Loads PMD offsets.json: the per-sprite grounding data (`headOffsetY`,
-   * `footOffsetY`) and `shadowSize`. The same fields the Phaser renderer used.
+   * `footOffsetY`) and `shadowSize`.
    */
   private async loadOffsets(
     offsetsUrl: string,
@@ -449,7 +449,7 @@ export class DirectionalBillboard {
   setKnockedOut(knockedOut: boolean): void {
     const playFaint = this.controller.setKnockedOut(knockedOut);
     this.applyTint();
-    // Hide the ground shadow on KO (parity with Phaser): a fainted Pokémon no longer casts one.
+    // Hide the ground shadow on KO: a fainted Pokémon no longer casts one.
     this.shadow.setEnabled(!knockedOut);
     if (playFaint) {
       this.applyFrame();

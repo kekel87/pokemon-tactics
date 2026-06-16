@@ -3,7 +3,7 @@
 Ce document décrit le système de rendu isométrique avec dénivelés utilisé par le jeu.
 Pour l'historique des tentatives et les pièges évités, voir la section "Journal des décisions" en bas.
 
-Contexte : jeu tactique Pokemon x FFTA en Phaser 4 + Tiled, tileset ICON Isometric (Jao).
+Contexte : jeu tactique Pokemon x FFTA, rendu sur grille isométrique, Tiled + tileset ICON Isometric (Jao).
 
 ---
 

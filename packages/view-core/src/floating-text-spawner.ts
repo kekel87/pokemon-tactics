@@ -21,8 +21,8 @@ export interface FloatingTextSink {
  * 4c-1, hoisted in plan 126). Maps each event to its short texts
  * (`floatingTextsFor`), looks up the target's current tile in the engine state,
  * and spawns them on the scene with a per-target stagger so a beat's labels scroll
- * up one after another (same queue delay as the Phaser BattleText, so stacked
- * floats read sequentially). Engine-agnostic: the scene is injected as a
+ * up one after another (a queue delay so stacked floats read sequentially).
+ * Engine-agnostic: the scene is injected as a
  * `FloatingTextSink`.
  */
 export function createFloatingTextSpawner(

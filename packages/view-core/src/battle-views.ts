@@ -26,8 +26,7 @@ import type {
  * Core → DOM view-model adapters for the combat chrome (plan 121 step 4b-1).
  * The orchestrator owns the engine state, so it builds these plain view-models
  * and hands them to the DOM chrome — keeping the panels dumb renderers. These
- * mirror the Phaser `ui/InfoPanel.ts` (`updateBadges`/`addAuraBadges`) and
- * `ui/WeatherHud.ts` so the two renderers stay at parity.
+ * feed the info panel (`updateBadges`/`addAuraBadges`) and weather HUD.
  *
  * The view-model *types* live in `@pokemon-tactic/render-ports` (plan 125);
  * re-exported here for callers that still import them from this module.

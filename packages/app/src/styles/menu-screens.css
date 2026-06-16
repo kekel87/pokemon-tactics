@@ -1,5 +1,5 @@
-/* FSM menu screens (plan 120 step 2) — full-viewport DOM screens replacing the
- * Phaser menu scenes. Responsive via vmin clamps (4K-friendly), tokens from
+/* FSM menu screens (plan 120 step 2) — full-viewport DOM screens.
+ * Responsive via vmin clamps (4K-friendly), tokens from
  * tokens.css, buttons reuse .tb-btn with the .mn-btn size override. */
 
 @layer components {

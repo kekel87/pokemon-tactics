@@ -47,8 +47,8 @@
     font-weight: 600;
   }
 
-  /* Bottom row: tooltip (left) + the menu column, anchored bottom-right (parity
-     with the Phaser ActionMenu pinned near the canvas' bottom-right corner). */
+  /* Bottom row: tooltip (left) + the menu column, anchored near the
+     canvas' bottom-right corner. */
   .bc-bottom {
     pointer-events: none;
     align-self: stretch;

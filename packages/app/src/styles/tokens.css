@@ -1,6 +1,6 @@
 /* Design tokens — primitives + sémantiques.
  * Conventions: .claude/rules/css.md
- * Source canon couleurs DOM. Phaser/canvas → packages/renderer/src/constants.ts.
+ * Source canon couleurs DOM. Rendu moteur (Babylon) → packages/app/src/constants.ts.
  */
 
 /* Police du jeu — déclarée ici pour que tout point d'entrée (index + babylon)
@@ -118,7 +118,7 @@
   --color-text-faint: var(--gray-600);
   --color-text-dark: #222;
   --color-backdrop: rgb(0 0 0 / 0.7);
-  /* Preview dégâts (barre PV monde) — assombrit les PV perdus (miroir Phaser DAMAGE_ESTIMATE_ALPHA_*). */
+  /* Preview dégâts (barre PV monde) — assombrit les PV perdus. */
   --color-damage-band-possible: rgb(0 0 0 / 0.55);
   --color-damage-band-guaranteed: rgb(0 0 0 / 0.85);
 

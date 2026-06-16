@@ -13,9 +13,8 @@ export interface MyTeamsViewOptions {
 }
 
 /**
- * Team list view (topbar + cards), shared between the Phaser MyTeamsScene and
- * the DOM my-teams screen (plan 120 step 5) until the Phaser path is removed (J5).
- * Navigation stays with the caller via the options callbacks.
+ * Team list view (topbar + cards) used by the DOM my-teams screen
+ * (plan 120 step 5). Navigation stays with the caller via the options callbacks.
  */
 export class MyTeamsView {
   readonly element: HTMLDivElement;

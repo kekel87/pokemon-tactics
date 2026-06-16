@@ -12,9 +12,8 @@ import { generateRandomTeam } from "../../team/team-generator";
 import { loadTeam } from "../../team/team-storage";
 
 /**
- * Team-select slot state and operations, shared between the Phaser
- * TeamSelectScene and the DOM team-select screen (plan 120 step 4) until the
- * Phaser path is removed (J5).
+ * Team-select slot state and operations used by the DOM team-select screen
+ * (plan 120 step 4).
  */
 export interface SlotState {
   controller: PlayerController;

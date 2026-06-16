@@ -262,7 +262,7 @@ pokemon-tactics/
 │   ├── pages/                   # POMs : MainMenu, CombatScene, screens, teamBuilder
 │   └── tests/                   # smoke/ + dom/ + combat/ + visual/ — 51 tests (50 passants + 1 fixme)
 ├── scripts/                     # Outils de build one-shot (non packagés)
-│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas (JSON + PNG, compatible Babylon + Phaser) (inclut Sleep depuis plan 018)
+│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas (JSON + PNG, compatible Babylon) (inclut Sleep depuis plan 018)
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
 │   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
 │   ├── sprite-config.json
@@ -489,7 +489,7 @@ pnpm dev:sandbox '{"pokemon":"pikachu"}'       # JSON inline
   - Panel Joueur : dropdown Pokemon, 2 dropdowns moves, slider HP %, dropdown statut, stages de stats
   - Panel Dummy : dropdown "Stats de" (custom ou preset Pokemon), stats éditables, niveau, slider HP %, dropdown move défensif, direction
   - Toolbar : bouton Réinitialiser, bouton **Exporter JSON** (copie config en JSON dans presse-papier)
-- **Écran victoire HTML** : overlay HTML au lieu de Phaser Graphics — contourne bug hitbox Phaser 4 avec camera zoom
+- **Écran victoire HTML** : overlay HTML (ancré écran), indépendant du rendu moteur — compat navigateur + zoom caméra
 - **`packages/data/sandbox-configs/`** : configs JSON d'exemple
 
 > Sprite Dummy = sprite PMDCollab `#0000 form 1` (sprite générique).
@@ -615,7 +615,7 @@ scripts/extract-sprites.ts  ←  scripts/sprite-config.json
         │  (découpe frames via sharp, génère atlas, parse pixels offsets)
         ▼
 packages/app/public/assets/sprites/pokemon/{name}/
-  ├── atlas.json          # Phaser atlas descriptor (frames + metadata)
+  ├── atlas.json          # Descripteur d'atlas sprite (frames + metadata, compatible Babylon)
   ├── atlas.png           # Spritesheet combiné (toutes anims + directions)
   ├── portrait-normal.png # Portrait 40x40 (émotion Normal)
   ├── offsets.json        # Offsets par Pokemon : shadowOffsetY, bodyOffset, headOffset (générés)
@@ -629,8 +629,6 @@ packages/app/public/assets/sprites/pokemon/{name}/
 - Animations : LOOPING_ANIMATIONS (Idle/Walk/Sleep/FlapAround/Hover/Special0/Special10/FlyingIdle), `setAnimation` / `playOnce` / `playFirstAvailable`
 - États : `setActive` (pulse respiration), `flashDamage` (flash émissif), `setKnockedOut` (teinte sombre + freeze), `setSemiInvulnerable`
 - Synthèse FlyingIdle depuis FlapAround frames 0-1
-
-**PokemonSprite** (Phaser, maintenu pendant la migration) utilise animations (Idle, Walk, Attack, Hurt, Faint) avec fallback cercle coloré si atlas absent.
 
 ---
 

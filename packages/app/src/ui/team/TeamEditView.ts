@@ -24,9 +24,8 @@ export interface TeamEditViewOptions {
 }
 
 /**
- * Team editor view (topbar + slot row + edit grid), shared between the Phaser
- * TeamEditScene and the DOM team-edit screen (plan 120 step 5) until the Phaser
- * path is removed (J5). Owns load/edit/save; navigation stays with the caller.
+ * Team editor view (topbar + slot row + edit grid) used by the DOM team-edit
+ * screen (plan 120 step 5). Owns load/edit/save; navigation stays with the caller.
  */
 export class TeamEditView {
   readonly element: HTMLDivElement;

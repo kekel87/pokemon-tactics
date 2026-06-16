@@ -42,11 +42,11 @@ import {
 } from "./constants.js";
 
 /**
- * Battle loop orchestrator (plan 120 step 7b) — the engine-agnostic port of the
- * Phaser `GameController` input FSM. It owns the nine combat input states, calls
+ * Battle loop orchestrator (plan 120 step 7b) — the engine-agnostic input FSM.
+ * It owns the nine combat input states, calls
  * the core for every rule (legal actions, action submission, retreat tiles) and
  * sequences the resulting events through an `AnimationQueue`. It talks ONLY to
- * the three ports below, so it imports nothing from Phaser or Babylon.
+ * the three ports below, so it imports nothing from any renderer.
  *
  * Scope (décision: minimal loop): the board is re-synced from engine state after
  * each action (sprites snap to their final tile, KO'd Pokémon faint in place),
@@ -96,7 +96,7 @@ export type {
 /** Pacing between board-affecting events in the minimal loop (not a tween — a beat to follow the action). */
 const BATTLE_STEP_DELAY_MS = 180;
 
-/** Zone identity colour per field terrain ("Champs"), mirroring the Phaser FIELD_TERRAIN_COLOR. */
+/** Zone identity colour per field terrain ("Champs"). */
 const FIELD_TERRAIN_COLOR: Record<FieldTerrain, number> = {
   [FieldTerrain.Grassy]: FIELD_TERRAIN_COLOR_GRASSY,
   [FieldTerrain.Electric]: FIELD_TERRAIN_COLOR_ELECTRIC,
@@ -104,7 +104,7 @@ const FIELD_TERRAIN_COLOR: Record<FieldTerrain, number> = {
   [FieldTerrain.Psychic]: FIELD_TERRAIN_COLOR_PSYCHIC,
 };
 
-/** Predicted slots shown in the Charge-Time timeline (parity with the Phaser TurnTimeline). */
+/** Predicted slots shown in the Charge-Time timeline. */
 const CT_TIMELINE_SLOTS = 24;
 
 type InputState =
@@ -242,7 +242,7 @@ export class BattleOrchestrator {
   /** Hover a tile → show that Pokémon in the info panel (off a Pokémon → the active one). */
   onTileHover(tile: Position | null): void {
     // Frozen while a battle animation resolves: hovering shouldn't repaint the info
-    // panel / enemy range mid-action (parity with Phaser's `if (isAnimating) return`).
+    // panel / enemy range mid-action (skip while animating).
     if (this.inputState.phase === "animating") {
       return;
     }
@@ -258,9 +258,8 @@ export class BattleOrchestrator {
   }
 
   /**
-   * Paint a hovered enemy's reachable-tile range (threat preview), mirroring the
-   * Phaser `GameController.handleEnemyRangeHover`: only during the planning phases,
-   * only for a living enemy that isn't the active Pokémon.
+   * Paint a hovered enemy's reachable-tile range (threat preview): only during
+   * the planning phases, only for a living enemy that isn't the active Pokémon.
    */
   private updateEnemyRangeHover(hovered: PokemonInstance | null): void {
     const active = this.activePokemon();
@@ -332,7 +331,7 @@ export class BattleOrchestrator {
   /**
    * Refresh the turn timeline from the current order (Charge-Time predicts ahead).
    * Pass `previewMoveId` while a move is being targeted/confirmed to preview how it
-   * shifts the upcoming order (parity with Phaser computeCtSequence(moveId)).
+   * shifts the upcoming order.
    */
   private refreshTimeline(previewMoveId?: string): void {
     const ctSequence =
@@ -418,8 +417,8 @@ export class BattleOrchestrator {
     if (!active) {
       return;
     }
-    // Parity with the Phaser ActionMenu: show ALL of the actor's moves (greyed
-    // when out of PP or out of range), with the Provoc/Entrave/Encore block tag.
+    // Show ALL of the actor's moves (greyed when out of PP or out of range),
+    // with the Provoc/Entrave/Encore block tag.
     const targetableMoveIds = new Set(this.useMoveActions().map((action) => action.moveId));
     const isTaunted = active.volatileStatuses.some((v) => v.type === StatusType.Taunted);
     const disabledMoveId = active.volatileStatuses.find(
@@ -460,7 +459,7 @@ export class BattleOrchestrator {
     // flood them with the red "attack" fill (a buff/heal move keeps its blue footprint),
     // and never outline static (Self/Cross/Zone — showEntryPreview fills the footprint)
     // nor directional (Cone/Line/Slash/Dash — orientation only) moves: outlining their
-    // adjacent target tiles drew stray red borders. Mirrors Phaser GameController.
+    // adjacent target tiles drew stray red borders.
     const move = this.effectiveMove(moveId);
     const active = this.activePokemon();
     let targets: readonly Position[] = [];
@@ -527,7 +526,7 @@ export class BattleOrchestrator {
 
   /**
    * Cone/Line/Slash: orientation-only moves whose action targets the adjacent tile.
-   * Dash is deliberately excluded (mirrors Phaser GameController.isDirectionalPattern):
+   * Dash is deliberately excluded:
    * it lands on a variable-distance tile, so it's outlined + confirmed like a ranged
    * move on its landing tiles, and only its HOVER trail is drawn directionally.
    */
@@ -571,13 +570,12 @@ export class BattleOrchestrator {
     if (!active || !move) {
       return;
     }
-    // Charge turn of a two-turn move: highlight the caster's own tile (the wind-up),
-    // matching Phaser renderPreview([caster], true).
+    // Charge turn of a two-turn move: highlight the caster's own tile (the wind-up).
     if (move.twoTurnCharge === true && active.chargingMove === undefined) {
       this.previewTiles = [{ x: active.position.x, y: active.position.y }];
       this.board.showPreview("buff", this.previewTiles);
-      // Outline the wind-up tile too (Phaser highlightTilesOutline([caster])); blue
-      // since it's the caster's own charge tile, not an attack target.
+      // Outline the wind-up tile too; blue since it's the caster's own charge
+      // tile, not an attack target.
       this.board.setOutline(this.previewTiles, true);
       return;
     }
@@ -614,7 +612,7 @@ export class BattleOrchestrator {
     let affected: readonly Position[];
 
     // Dash isn't a directional pattern for targeting, but its hover preview IS drawn
-    // directionally (the dash trail toward the cursor), like Phaser handleTileHover.
+    // directionally (the dash trail toward the cursor).
     const previewsDirectionally =
       this.isDirectionalPattern(move.targeting.kind) || move.targeting.kind === TargetingKind.Dash;
     if (previewsDirectionally) {
@@ -665,7 +663,7 @@ export class BattleOrchestrator {
     }
     if (this.config.confirmAttack) {
       // Keep the buff/attack-coloured footprint preview from updateAttackPreview —
-      // do NOT repaint the tile red (Phaser enterConfirmAttack only adds the flash +
+      // do NOT repaint the tile red (the confirm step only adds the flash +
       // damage estimates), so a buff/heal move stays blue through confirmation.
       this.chrome.updateInstruction("confirm");
       this.inputState = { phase: "confirm_attack", moveId, action };
@@ -719,7 +717,7 @@ export class BattleOrchestrator {
         continue;
       }
       const immune = estimate.effectiveness === 0;
-      // Nothing to show for a non-immune zero-damage hit (parity with Phaser).
+      // Nothing to show for a non-immune zero-damage hit.
       if (!immune && estimate.min === 0 && estimate.max === 0) {
         continue;
       }
@@ -782,7 +780,7 @@ export class BattleOrchestrator {
     this.board.clearHighlights();
     this.inputState = { phase: "select_direction" };
     // Hide the active's HUD while the direction arrows are up so the HP bar doesn't
-    // clutter the choice (parity with Phaser setHpBarVisible(false)); restore on
+    // clutter the choice; restore on
     // confirm/cancel (syncBoard never re-shows a hidden HUD on its own).
     this.board.setHudVisible(active.id, false);
     this.picker = this.board.showDirectionPicker(active.position, active.orientation, {
@@ -880,7 +878,7 @@ export class BattleOrchestrator {
           this.board.updateHp(event.targetId, running, target.maxHp);
           await delay(BATTLE_TEXT_QUEUE_DELAY_MS);
         } else if (target) {
-          // Single hit: drain the world HP bar in step with the flash (parity Phaser).
+          // Single hit: drain the world HP bar in step with the flash.
           this.board.updateHp(event.targetId, target.currentHp, target.maxHp);
         }
       }
@@ -927,8 +925,8 @@ export class BattleOrchestrator {
           return;
         }
       } else if (event.type === BattleEventType.SubstitutePosted) {
-        // Clonage posted: swap the sprite to the dummy doll (parity with Phaser
-        // setSubstituteOverlay). The HP bar keeps showing the holder's own HP.
+        // Clonage posted: swap the sprite to the dummy doll. The HP bar keeps
+        // showing the holder's own HP.
         this.board.setSubstitute(event.pokemonId, true);
         const holder = this.state.pokemon.get(event.pokemonId);
         if (holder) {
@@ -948,7 +946,7 @@ export class BattleOrchestrator {
         // Dash-into-wall recoil / psychic-barrier impact / terrain tick / fall (cliff
         // or knockback into lava/deep water): drain the bar + flash the victim before
         // any following PokemonKo, so a lethal terrain push visibly empties the bar to
-        // 0 instead of jumping straight to the hidden KO state (parity with Phaser; the
+        // 0 instead of jumping straight to the hidden KO state (the
         // floating "-N" comes from feedback.report). Victim is `pokemonId`, not `targetId`.
         const victim = this.state.pokemon.get(event.pokemonId);
         if (victim) {
@@ -960,8 +958,8 @@ export class BattleOrchestrator {
         event.type === BattleEventType.PokemonEliminated
       ) {
         // syncBoard plays the Faint pose (freeze on the last frame); wait its real
-        // length so the fall plays out fully before the next beat (parity with
-        // Phaser's awaited playFaintAndStay), falling back to the fixed step delay.
+        // length so the fall plays out fully before the next beat, falling back
+        // to the fixed step delay.
         this.syncBoard();
         await delay(this.board.koAnimationDurationMs(event.pokemonId) || BATTLE_STEP_DELAY_MS);
       } else if (BOARD_EVENT_TYPES.has(event.type)) {
@@ -997,7 +995,7 @@ export class BattleOrchestrator {
     }
     this.board.setActive(this.activePokemon()?.id ?? null);
     // A re-sync rebuilds every highlight layer, dropping the enemy-range fill too,
-    // so forget the tracked enemy (Phaser refreshUI clears it the same way).
+    // so forget the tracked enemy.
     this.hoveredEnemyRangePokemonId = null;
     this.refreshAuraVisuals();
     this.refreshFieldTerrainVisuals();
@@ -1060,7 +1058,7 @@ export class BattleOrchestrator {
       }
     }
     // Order by remaining rounds (soonest-expiring closest to the bar) so the icon
-    // row reads as a turns-left gauge — parity with the Phaser left-indicator stack.
+    // row reads as a turns-left gauge.
     const orderedAuras = [...this.state.auras].sort(
       (a, b) => a.remainingRounds - b.remainingRounds,
     );
@@ -1143,7 +1141,7 @@ export class BattleOrchestrator {
 
   /**
    * The UseMove action a click confirms. Static patterns (Self/Cross/Zone) are
-   * centred on the caster, so — like Phaser's `resolveAttackAction` — they confirm
+   * centred on the caster, so they confirm
    * on ANY click, not just on the caster's own tile. Other patterns require the
    * click to land on a legal target tile.
    */
@@ -1155,8 +1153,8 @@ export class BattleOrchestrator {
     const move = this.effectiveMove(moveId);
     const active = this.activePokemon();
     // Charge turn of a two-turn move: the engine offers a single action centred on the
-    // caster (the wind-up has no target yet), so it confirms on ANY click (Phaser
-    // resolveAttackAction handles isChargeT1 first).
+    // caster (the wind-up has no target yet), so it confirms on ANY click (the
+    // charge-turn-1 case is handled first).
     if (move?.twoTurnCharge === true && active && active.chargingMove === undefined) {
       return (
         actions.find((action) => positionEquals(action.targetPosition, active.position)) ??
@@ -1170,8 +1168,8 @@ export class BattleOrchestrator {
       );
     }
     // Directional patterns (cone/line/slash/dash) only pick an orientation — clicking
-    // anywhere validates in the hovered direction (Phaser resolveAttackAction uses
-    // currentPreviewDirection), falling back to the direction toward the clicked tile.
+    // anywhere validates in the hovered direction (the current preview direction),
+    // falling back to the direction toward the clicked tile.
     if (move && active && this.isDirectionalPattern(move.targeting.kind)) {
       const direction = this.previewDirection ?? directionFromTo(active.position, tile);
       const target = stepInDirection(active.position, direction, 1);
@@ -1193,7 +1191,7 @@ function attackAnimationName(moveId: string): string {
   return "Attack";
 }
 
-/** Mirror of the Phaser ActionMenu `resolveBlockedTagKey`, but semantic (no i18n key). */
+/** Resolve a move's blocked tag, semantic (no i18n key). */
 function resolveBlockedTag(
   move: MoveDefinition,
   isCasterTaunted: boolean,

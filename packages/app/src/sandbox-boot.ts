@@ -32,9 +32,9 @@ let cachedStudioDom: SandboxStudioDom | null = null;
 
 /**
  * Build the studio chrome (header / player + dummy columns / battle strip) around
- * the game host. Phaser passes its `#game-container`; the Babylon build passes its
- * `#game-root` (which `sandbox-studio.css` reflows from fixed-fullscreen to a flex
- * child via `body[data-sandbox] #game-root`). Defaults to `#game-container`.
+ * the game host. The Babylon build passes its `#game-root` (which
+ * `sandbox-studio.css` reflows from fixed-fullscreen to a flex child via
+ * `body[data-sandbox] #game-root`). Defaults to `#game-container`.
  */
 export function initSandboxStudioDom(host?: HTMLElement): SandboxStudioDom {
   if (cachedStudioDom !== null) {

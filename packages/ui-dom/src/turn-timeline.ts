@@ -3,14 +3,14 @@ import type { UiDomConfig } from "./config.js";
 import { el } from "./dom-helpers.js";
 
 /**
- * TurnTimeline — DOM/CSS port of the Phaser `ui/TurnTimeline.ts` (plan 121 step
+ * TurnTimeline — DOM/CSS turn timeline (plan 121 step
  * 4b-3). Vertical strip on the left: the active Pokémon pinned on top, then the
  * upcoming order (predicted Charge-Time sequence, or the round order in
  * Round-Robin with a next-round separator). Scrolls natively (overflow). Pure
  * view: takes a `TimelineView` and renders it.
  *
  * Deferred to 4b-5: the move-CT preview highlight/scroll shown while picking a
- * target (Phaser's `scrollToHighlight`), which depends on the selected move.
+ * target (`scrollToHighlight`), which depends on the selected move.
  */
 
 export interface TurnTimeline {

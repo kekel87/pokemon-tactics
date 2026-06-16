@@ -203,7 +203,7 @@ export async function loadTiledMap(url: string): Promise<LoadedTiledMap> {
   }
 
   // Dev maps (sandbox-flat…) declare a single format on purpose — skip the
-  // "all standard formats" check for them, like the Phaser loader (maps/load-tiled-map.ts).
+  // "all standard formats" check for them.
   const isDevMap = url.includes("/maps/dev/");
   const validation = validateTiledMap(parseResult.map, { requireAllFormats: !isDevMap });
   if (!validation.valid) {

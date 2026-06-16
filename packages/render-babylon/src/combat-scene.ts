@@ -118,8 +118,8 @@ function easeInQuad(t: number): number {
 /**
  * Vertical progress of a jump step, decoupled from the linear horizontal one so
  * the sprite tops the cliff *before* it slides over the edge — the Babylon X-ray
- * silhouette pass (renderingGroup 1) exposes any mid-step penetration that the
- * Phaser 2D draw order hid. The whole vertical move is confined to the safe half
+ * silhouette pass (renderingGroup 1) exposes any mid-step penetration that a
+ * flat 2D draw order would hide. The whole vertical move is confined to the safe half
  * of the step (`BABYLON_JUMP_VERTICAL_LEAD`): ascent rises within the first
  * fraction, descent holds high then drops within the last fraction. So at the
  * horizontal midpoint (the cliff edge) the sprite already sits at the higher of
@@ -174,7 +174,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
 
   const cameraTarget = new Vector3(0, 0, 0);
   // Goal the camera centre eases toward (recentering on the active Pokémon); the
-  // first placement snaps, later turns slide smoothly (parity with Phaser pan).
+  // first placement snaps, later turns slide smoothly.
   const cameraTargetGoal = new Vector3(0, 0, 0);
   let cameraCentered = false;
   const zoom = { value: 1 };
@@ -342,8 +342,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   let pendingFieldTerrains: readonly FieldTerrainSpec[] = [];
   // World top-face centre of a tile, lifted onto any rock/tree top, set once the
   // map loads. Used for the cursor, sprite standing and flyer movement so they
-  // rest on a decoration instead of clipping into it (parity with Phaser's
-  // decoration-patched height). Decoration foot placement keeps the raw `heightAt`.
+  // rest on a decoration instead of clipping into it (decoration-patched
+  // height). Decoration foot placement keeps the raw `heightAt`.
   let tileWorldTop: ((x: number, y: number) => { x: number; y: number; z: number }) | null = null;
   // Per-tile terrain/height/slope lookups for per-step movement animation (plan 123 4d-5).
   let movementMap: {
@@ -703,9 +703,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     const { isFlying, isGhost } = options;
     // `path` is the list of destination steps only — it does NOT include the
     // current tile (a one-tile move emits a single-element path). Start from the
-    // billboard's standing tile and animate every step, mirroring Phaser's
-    // GameController.animateAlongPath (else the first leg is skipped → the sprite
-    // pops off its start tile).
+    // billboard's standing tile and animate every step (else the first leg is
+    // skipped → the sprite pops off its start tile).
     let previous: { x: number; y: number } = entry.spawn;
     let previousHeight = map.heightAt(previous.x, previous.y);
     for (const to of path) {
@@ -915,7 +914,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
           // The billboard now plays the Faint once on the KO edge (so a repeated
           // setKnockedOut from syncBoard doesn't restart it).
           created.billboard.setKnockedOut(knockedOut);
-          // KO removes the HP bar + status icon (parity with Phaser markKnockedOut).
+          // KO removes the HP bar + status icon.
           created.overlay.setVisible(!knockedOut);
         },
         setSemiInvulnerable: (state) => created.billboard.setSemiInvulnerable(state),
@@ -1056,7 +1055,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       });
       label.mesh.position.set(top.x, baseY, top.z);
       // Rise (cubic ease-out) + fade then dispose — driven by the render loop so a
-      // scene dispose mid-flight frees it (parity with the Phaser BattleText tween).
+      // scene dispose mid-flight frees it.
       let elapsed = -(floatOptions.delayMs ?? 0);
       label.mesh.setEnabled(elapsed >= 0);
       let renderObserver: ReturnType<typeof scene.onBeforeRenderObservable.add> = null;

@@ -1,5 +1,5 @@
 /*
- * BattleLog (Phase 5 Jalon 4b-4) — DOM port of the Phaser `ui/BattleLogPanel.ts`.
+ * BattleLog (Phase 5 Jalon 4b-4) — DOM battle log panel.
  * Pairs with `ui/dom/combat/battle-log.ts`. Collapsible panel, top-right.
  * Tokens from `tokens.css`. Per-line color is set inline (runtime, from the
  * formatter); the team dot color comes from the `--team-N` tokens.

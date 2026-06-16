@@ -18,8 +18,8 @@ export type ScreenRegistry = {
 export type Navigate = <Id extends ScreenId>(id: Id, params: ScreenParamsById[Id]) => void;
 
 /**
- * Replaces Phaser scene.launch/sleep/stop: one active screen at a time,
- * dispose-then-mount on every transition. Navigations are serialized so a
+ * One active screen at a time, dispose-then-mount on every transition.
+ * Navigations are serialized so a
  * click landing during an async mount cannot interleave two transitions.
  */
 export class ScreenManager {

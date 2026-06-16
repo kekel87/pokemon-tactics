@@ -227,7 +227,7 @@ Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly 
 
 > **Repriorisée — EN COURS** (2026-06-08, worktree `phase5-babylon`). Ancienne position "après Phase 7" annulée (décision humaine 2026-06-08).
 >
-> But : remplacer renderer Phaser 4 isométrique par Babylon.js 2D-HD (sprites billboards sur terrain 3D extrudé, style Tactics Ogre PSP / Triangle Strategy / FFTIC).
+> But : porter le rendu vers Babylon.js 2D-HD (sprites billboards sur terrain 3D extrudé, style Tactics Ogre PSP / Triangle Strategy / FFTIC).
 >
 > Plan-maître : **plan 119** (`docs/plans/119-phase5-babylon-master.md`). Parité visuelle : **307 items** (`docs/plans/119-parity-checklist.md`).
 

@@ -8,16 +8,16 @@
 
 ## Architecture de la page
 
-- Le jeu est un canvas Phaser 4 WebGL plein écran (1280x720, CSS 100vw/100vh)
-- **Pas de DOM interactif** : tous les boutons/menus sont dessinés dans le canvas Phaser
-- `browser_snapshot` retourne très peu d'info utile (juste un canvas) — les screenshots sont la source principale
-- Les coordonnées de clic doivent être en **pixels écran** relatifs au canvas
+- Le **board de combat** (terrain + sprites) est un canvas Babylon WebGL (1280x720, CSS 100vw/100vh)
+- **Le reste est du vrai DOM** : menus, team builder, settings, et le HUD/chrome de combat sont des éléments HTML/CSS en overlay → privilégier les sélecteurs `getByRole`/`getByText`/`getByTestId` (cf. `.claude/rules/e2e.md`)
+- `browser_snapshot` voit le DOM (menus, HUD) mais pas le contenu du canvas Babylon — pour le board, les screenshots restent la source principale
+- Les clics sur les **tiles du board** doivent être en **pixels écran** relatifs au canvas ; les clics sur les menus/HUD passent par les sélecteurs DOM
 
 ## IMPORTANT : Viewport et coordonnées
 
 **Toujours redimensionner la fenêtre à 1280x720 avant de naviguer/cliquer.**
 Sans ça, le canvas est affiché en CSS plus grand (ex: 1477x831) et les coordonnées ne correspondent pas.
-Avec viewport 1280x720, les coordonnées CSS pixel = coordonnées du jeu Phaser directement.
+Avec viewport 1280x720, les coordonnées CSS pixel = coordonnées du canvas Babylon directement (utile pour viser une tile du board).
 
 ## Flow de navigation (menu → combat)
 
@@ -26,25 +26,23 @@ Avec viewport 1280x720, les coordonnées CSS pixel = coordonnées du jeu Phaser 
 1. `browser_resize(1280, 720)` — PREMIER REFLEXE avant tout
 2. `browser_navigate` vers l'URL (port peut varier : 5173, 5174, 5175...)
 3. **Menu principal** : cliquer "Combat" (~x=640, y=349)
-4. **Mode de combat** : cliquer "Local" (~x=640, y=299)
-5. **Team Select** :
-   - Cliquer "Auto" pour Joueur 1 (~x=120, y=210)
-   - Cliquer "Auto" pour Joueur 2 (~x=1160, y=210)
-   - Cliquer "Valider" pour Joueur 1 (~x=58, y=210)
-   - Cliquer "Valider" pour Joueur 2 (~x=1098, y=210)
-   - "Lancer le combat" s'active (vert) -> cliquer (~x=1150, y=669)
-6. **Placement** : phase de placement des Pokemon sur la grille
-7. **Combat** : on est sur la grille isométrique
+4. **Mode de combat** : cliquer "Local" (DOM)
+5. **Choix de carte** : liste DOM -> cliquer une carte -> attendre 2s rendu 3D -> `button "Choisir cette carte"`
+6. **Sélection d'équipe** : tout DOM (pas de coordonnées)
+   - Cliquer une team dans la liste droite pour l'assigner au joueur actif (surligné)
+   - Bascule Humain/IA : bouton badge inline dans colonne gauche (`button "Humain"` / `button "IA"`)
+   - Pour IA vs IA rapide : `button "🎲 Remplir IA"` (bas de page) assigne Aléatoire aux deux
+   - `button "Lancer ▶"` s'active quand les deux joueurs sont configurés
+7. **Combat** : démarrage direct ("Placement auto" coché par défaut)
 
-### Positions des boutons Team Select (1280x720)
+### Sélection d'équipe (DOM-only — maj 2026-06)
 
-| Bouton | Position |
-|--------|----------|
-| Auto Joueur 1 | x=120, y=210 |
-| Valider Joueur 1 | x=58, y=210 |
-| Auto Joueur 2 | x=1160, y=210 |
-| Valider Joueur 2 | x=1098, y=210 |
-| Lancer le combat | x=1150, y=669 (actif seulement apres les deux Valider) |
+- Tous les éléments sont DOM (pas coordonnées)
+- Joueur 1 / Joueur 2 : colonne gauche, chacun avec badge Humain/IA cliquable
+- Teams disponibles : liste droite (une team sauvegardée + "Aléatoire")
+- Clic sur une team dans la liste l'assigne au joueur courant (celui surligné)
+- "Remplir IA" (bottom-left) : assigne Aléatoire à tous les joueurs en mode IA d'un coup
+- "Placement auto" checkbox (bottom) : coché par défaut, skip la phase placement manuelle
 
 ### Positions approximatives des éléments en combat (1280x720)
 
@@ -83,14 +81,17 @@ La grille est en projection isometrique. Le centre de la grille est ~(640, 360).
 2. **browser_snapshot est quasi inutile** : il ne voit que `<canvas>`
 3. **Ne pas faire browser_snapshot entre chaque action** : screenshot direct
 4. **Les animations bloquent les clics** : attendre ~500ms apres une action
-5. **Le hover Phaser ne fonctionne pas avec browser_hover** : utiliser `browser_run_code_unsafe` avec `page.mouse.move(x, y)`
+5. **Le hover d'une tile du board (canvas Babylon) ne fonctionne pas avec browser_hover** : utiliser `browser_run_code_unsafe` avec `page.mouse.move(x, y)`. Pour le DOM (menus/HUD), `browser_hover` sur le sélecteur marche normalement
 6. **favicon.ico 404** : erreur reseau normale, ignorer
 7. **Les overlays de grille sont semi-transparents** : couleurs plus ternes sur screenshot
 8. **Le menu d'action disparait apres une action** : normal, reapparait au tour suivant
 9. **VIEWPORT CRITIQUE** : Sans `browser_resize(1280, 720)`, coordonnees decalees. Toujours resize en premier.
 10. **Dev server port variable** : peut etre 5173, 5174, 5175... Verifier avec curl avant de naviguer.
-11. **Lancer le combat grise** : necessite "Valider" (pas seulement "Auto") pour chaque equipe.
-12. **Phase placement** : clic portrait d'abord, puis clic tile surlignee. Clic direct ne fonctionne pas.
+11. **Sélection d'équipe entièrement DOM** : ne plus utiliser coordonnées pour les boutons Joueur/Auto/Valider. Tout passe par DOM selectors (boutons texte, refs snapshot).
+12. **Carte sélectionnée avant team selection** : le flow est maintenant Menu->Combat->Mode->Carte->Teams->Battle (pas Teams avant Carte).
+13. **page.screenshot({path:...}) dans browser_run_code_unsafe** : fonctionne UNIQUEMENT si le path est relatif au CWD du MCP server (ex: `screenshots/gifframes/frame-000.png`). Les paths absolus vers /home/... ne fonctionnent pas (fichier non créé silencieusement).
+14. **ls /tmp** peut sembler vide même si des fichiers existent** : utiliser `find /tmp/ptgif -type f` pour vérifier. C'est un bug de shell dans le contexte sandboxé.
+15. **Rejouer** après fin de combat : dialog DOM avec bouton `button "Rejouer"` relance immédiatement le même combat.
 
 ## Stratégie d'optimisation
 
@@ -126,3 +127,40 @@ Depuis une mise a jour, les tiles de la grille sont texturees :
 - **Bordures** : tiles gazon vert avec texture herbe (herbes hautes pixel art)
 - **Marquages d'arene** : cercles concentriques bleu/gris par-dessus les tiles (style terrain sport Pokemon)
 - Les anciennes losanges colores ont ete remplace par ces tiles PNG isometriques
+
+## Capture GIF (ajout 2026-06)
+
+### Workflow GIF pour marketing/README
+
+**But** : capturer ~50 frames d'un combat IA vs IA sur Forêt Dense avec rotation caméra.
+
+```javascript
+// Dans browser_run_code_unsafe — save frames au CWD du MCP
+async (page) => {
+  const baseDir = 'screenshots/gifframes';  // relatif au CWD MCP (projet)
+  for (let i = 0; i < 55; i++) {
+    await page.screenshot({
+      path: `${baseDir}/frame-${String(i).padStart(3, '0')}.png`,
+      scale: 'css',
+      type: 'png'
+    });
+    if (i === 18) await page.keyboard.press('ArrowRight');  // rotation camera
+    if (i === 36) await page.keyboard.press('ArrowRight');  // 2eme rotation
+    await page.waitForTimeout(130);
+  }
+  return 'done';
+}
+```
+
+**Assemblage ffmpeg** (sous ~4MB) :
+```bash
+ffmpeg -y -framerate 8 -i screenshots/gifframes/frame-%03d.png   -vf "fps=10,scale=580:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=200[p];[s1][p]paletteuse=dither=sierra2_4a"   docs/images/demo.gif
+```
+
+**Résultats obtenus** : 55 frames, 580x377px, ~3.8MB.
+
+**Notes** :
+- Le battle log toggle est `data-testid="battle-log-toggle"` (bouton ☰ en haut-droite)
+- ArrowRight = rotation camera Babylon 90° (feature unique Babylon vs Phaser)
+- "Rejouer" après fin de combat relance le même combat (pratique pour re-capturer)
+- Forêt Dense (14x14, arbres) = carte la plus visuellement impressionnante pour marketing

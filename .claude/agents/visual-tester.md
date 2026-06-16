@@ -54,12 +54,12 @@ sleep 3
 - Utilise les coordonnées documentées dans `visual-tester-knowledge.md` plutôt que de les deviner
 - **Ne PAS faire de `browser_snapshot`** entre les interactions — ça ralentit sans rien apporter sur un canvas WebGL
 - Prends un screenshot **seulement aux étapes clés** (pas entre chaque clic de navigation)
-- Pour le hover Phaser, utilise `browser_run_code_unsafe` avec `page.mouse.move(x, y)` (browser_hover ne fonctionne pas sur canvas)
+- Pour le hover d'une tile sur le board (canvas Babylon WebGL), utilise `browser_run_code_unsafe` avec `page.mouse.move(x, y)` (browser_hover ne fonctionne pas sur canvas). Les menus/HUD sont du vrai DOM → sélecteurs role/text/testid (voir `.claude/rules/e2e.md`)
 
 ## Ce que tu vérifies
 
 ### Rendu de base
-- Le canvas Phaser se charge correctement
+- Le canvas Babylon (board de combat) se charge correctement
 - La grille isométrique s'affiche
 - Les Pokemon sont visibles sur la map
 
@@ -87,7 +87,7 @@ sleep 3
 **Screenshots** : screenshots/{fichiers}
 
 ### État
-- ✅ Canvas Phaser chargé
+- ✅ Canvas Babylon chargé
 - ✅ Grille visible (NxM)
 - ❌ Menu d'action ne s'ouvre pas au clic
 

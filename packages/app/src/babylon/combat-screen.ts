@@ -47,9 +47,9 @@ import { type LoadingOverlayHandle, showLoadingOverlay } from "../ui/LoadingOver
 import { SandboxPanel } from "../ui/SandboxPanel.js";
 import { type PlacementFlow, type PlacementResult, startPlacementFlow } from "./placement-flow.js";
 
-// Parity with Phaser (battleConfig.confirmAttack default true, plan 123 4d-3):
-// a target click locks the target into a confirm step (with preview flash + damage
-// preview); a second click confirms, Escape backs out.
+// confirmAttack defaults to true (plan 123 4d-3): a target click locks the
+// target into a confirm step (with preview flash + damage preview); a second
+// click confirms, Escape backs out.
 const BATTLE_CONFIRM_ATTACK = true;
 
 /**
@@ -362,7 +362,7 @@ function startSandboxBattle(options: {
   onExit: () => void;
   signal: AbortSignal;
   onReplay: () => void;
-  /** Report the engine-resolved spawn tiles back to the studio panel (parity Phaser `setResolvedPositions`). */
+  /** Report the engine-resolved spawn tiles back to the studio panel. */
   onPositionsResolved?: (player: { x: number; y: number }, dummy: { x: number; y: number }) => void;
 }): BattleOrchestrator {
   const { backend, combat, stage, map, config, onExit, signal, onReplay, onPositionsResolved } =
@@ -422,12 +422,12 @@ function sandboxMapUrl(config: SandboxConfig): string {
 }
 
 /**
- * Sandbox Studio (plan 123 — parity with the Phaser `pnpm dev:sandbox` studio).
+ * Sandbox Studio (plan 123 — the `pnpm dev:sandbox` studio).
  * Owns the editor chrome (header / player + dummy columns / battle strip via
  * `SandboxPanel`) plus the game-stage + combat-scene lifecycle, skipping the menus
  * and the placement phase. Every config change tears the battle down and re-mounts
- * it from the new config (mirrors Phaser `BattleScene.resetSandbox`). "Replay"
- * re-mounts the same config; "Back to menu" tears down then hands off to the FSM.
+ * it from the new config. "Replay" re-mounts the same config; "Back to menu" tears
+ * down then hands off to the FSM.
  */
 export function mountSandboxStudio(
   host: HTMLElement,
@@ -579,7 +579,7 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     }
     // Placement is interactive, so the overlay fades once the map is paintable (not after the
     // player finishes placing) — but first warm the team sprite atlases so placed Pokémon appear
-    // textured with no white-plane flash (Phaser LoadingScene parity).
+    // textured with no white-plane flash.
     await activeCombat.ready;
     if (localAbort.signal.aborted) {
       overlay.cancel();

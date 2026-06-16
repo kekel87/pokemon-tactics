@@ -1,5 +1,5 @@
 /*
- * TurnTimeline (Phase 5 Jalon 4b-3) — DOM port of the Phaser `ui/TurnTimeline.ts`.
+ * TurnTimeline (Phase 5 Jalon 4b-3) — DOM turn timeline.
  * Pairs with `ui/dom/combat/turn-timeline.ts`. Vertical strip, top-left: active
  * Pokémon pinned, upcoming order scrolls below. Tokens from `tokens.css`.
  */

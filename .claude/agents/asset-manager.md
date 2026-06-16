@@ -14,7 +14,7 @@ packages/renderer/public/assets/
 ├── sprites/
 │   ├── pokemon/           # Sprites Pokemon (PMDCollab)
 │   │   ├── bulbasaur/     # Un dossier par Pokemon
-│   │   │   ├── atlas.json # Phaser texture atlas
+│   │   │   ├── atlas.json # Sprite atlas (consommé par Babylon)
 │   │   │   └── atlas.png  # Spritesheet
 │   │   └── ...
 │   └── effects/           # Effets visuels (particules, auras)
@@ -32,17 +32,17 @@ packages/renderer/public/assets/
 
 ## Ce que tu fais
 
-### Pipeline sprites Pokemon (PMDCollab → Phaser)
+### Pipeline sprites Pokemon (PMDCollab → Babylon)
 1. Télécharger le sprite depuis PMDCollab/SpriteCollab
 2. Parser `AnimData.xml` pour les animations (Walk, Idle, Attack, Hurt, Sleep...)
-3. Générer un Phaser texture atlas (JSON + PNG)
+3. Générer un sprite atlas (JSON + PNG), engine-agnostic, consommé par Babylon
 4. Nommer : `kebab-case` du nom anglais (`bulbasaur`, `charmander`)
 5. Placer dans `packages/renderer/public/assets/sprites/pokemon/<name>/`
 
 ### Conventions de nommage
 - Fichiers : `kebab-case` (`fire-tile.png`, `hp-bar.png`)
 - Dossiers : `kebab-case`
-- Atlas JSON : format Phaser (`atlas.json` + `atlas.png`)
+- Atlas JSON : sprite atlas engine-agnostic (`atlas.json` + `atlas.png`)
 - Pas d'espaces, pas de majuscules, pas de caractères spéciaux
 
 ### Optimisation
@@ -90,7 +90,7 @@ Les tiles ICON utilisent ces proportions (à respecter pour tout nouveau tile) :
 ### Bonnes pratiques
 
 - **Cohérence** : matcher la géométrie ICON (32x32, losange 32x16, épaisseur 16px)
-- **Filtre NEAREST** : toujours appliquer `setFilter(Phaser.Textures.FilterMode.NEAREST)` sur les textures tiles
+- **Filtre NEAREST** : toujours appliquer le mode `Texture.NEAREST_SAMPLINGMODE` (Babylon) sur les textures tiles (pixels nets)
 - **Vérifier avant d'ajouter** : pas de doublon, pas d'asset inutilisé qui alourdit le repo
 
 ## Droits et licences

@@ -1,5 +1,5 @@
 /**
- * InfoPanel — combat info readout, DOM/CSS port of the Phaser `ui/InfoPanel.ts`
+ * InfoPanel — combat info readout, DOM/CSS info panel
  * (Phase 5 Jalon 2b). Category-B chrome: lives in the `.ui-screen` overlay
  * layer, anchored to the stage corner, scaled by container-query units so it
  * tracks the *game* size, not the browser. See plan 119 §4-B.

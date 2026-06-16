@@ -8,9 +8,9 @@
  *
  * Prod-safe by construction: the cqw token/var overrides live inside
  * `@container stage (...)`, which only matches when an ancestor declares
- * `container-name: stage` (i.e. `#game-stage`, see `game-overlay.css`). The
- * Phaser production app mounts `.tb-root` on `document.body` with no such
- * container → these blocks never apply → it keeps its current `:root` px tokens.
+ * `container-name: stage` (i.e. `#game-stage`, see `game-overlay.css`). When
+ * `.tb-root` is mounted on `document.body` with no such container → these
+ * blocks never apply → it keeps its current `:root` px tokens.
  *
  * Pairs with `babylon/team-edit-harness.ts`. See plan 119 §4-B + décision #470.
  *
