@@ -12,17 +12,16 @@
     "isolatedModules": true,
     "noUncheckedIndexedAccess": true,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
-      "@pokemon-tactic/core": ["packages/core/src/index.ts"],
-      "@pokemon-tactic/core/testing": ["packages/core/src/testing/scenario-api.ts"],
-      "@pokemon-tactic/data": ["packages/data/src/index.ts"],
-      "@pokemon-tactic/render-ports": ["packages/render-ports/src/index.ts"],
-      "@pokemon-tactic/view-core": ["packages/view-core/src/index.ts"],
-      "@pokemon-tactic/render-babylon": ["packages/render-babylon/src/index.ts"],
-      "@pokemon-tactic/render-canvas2d": ["packages/render-canvas2d/src/index.ts"],
-      "@pokemon-tactic/ui-dom": ["packages/ui-dom/src/index.ts"],
-      "@pokemon-tactic/app": ["packages/app/src/babylon-boot.ts"]
+      "@pokemon-tactic/core": ["./packages/core/src/index.ts"],
+      "@pokemon-tactic/core/testing": ["./packages/core/src/testing/scenario-api.ts"],
+      "@pokemon-tactic/data": ["./packages/data/src/index.ts"],
+      "@pokemon-tactic/render-ports": ["./packages/render-ports/src/index.ts"],
+      "@pokemon-tactic/view-core": ["./packages/view-core/src/index.ts"],
+      "@pokemon-tactic/render-babylon": ["./packages/render-babylon/src/index.ts"],
+      "@pokemon-tactic/render-canvas2d": ["./packages/render-canvas2d/src/index.ts"],
+      "@pokemon-tactic/ui-dom": ["./packages/ui-dom/src/index.ts"],
+      "@pokemon-tactic/app": ["./packages/app/src/babylon-boot.ts"]
     }
   }
 }

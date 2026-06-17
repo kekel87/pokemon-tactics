@@ -272,8 +272,8 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 > Petits chantiers prioritaires à enchaîner juste après l'intégration de Babylon, avant de repartir sur les grosses phases.
 
 - [x] **Fixer `doc-keeper` qui ne respecte pas les worktrees** — règle dure « chemins relatifs uniquement, jamais absolu » ajoutée en tête du prompt (l'agent n'a pas Bash → ne peut résoudre la racine ; chemin absolu codé en dur = fuite vers repo principal).
-- [ ] **Optimiser Vitest** — réduire le temps de suite (import lourd observé au gate) : config, parallélisme, isolation.
-- [ ] **Mettre à jour les dépendances** — audit + bumps (agent `dependency-manager`).
+- [ ] **Optimiser Vitest** — réduire le temps de suite (import lourd observé au gate : ~665s transform cumulé) : config, parallélisme, isolation. **Piste concrète (Vitest 4.1)** : `experimental.viteModuleRunner: false` (exécution Node native, "faster startup" — requiert Node ≥22.15, on est en 24 → OK ; tester en worktree). Aussi `--detect-async-leaks` pour traquer les tests qui traînent.
+- [x] **Mettre à jour les dépendances** (2026-06-17) — Vite 8.0.16 (2 RCE dev-server + XML fast-xml-parser fermés), Vitest 4.1.9, Playwright 1.61, sharp 0.35.1, tsx 4.22.4, Biome 2.5.0 (config migrée `recommended`→`preset`), visualizer v7 + `engines node >=24`, **TypeScript 6.0** (retrait `baseUrl`, paths `./`), **Babylon.js 9.12.1** (validé visuel : placement glTF + rendu combat). 4 commits par phase, gate complet entre chaque.
 - [ ] **Intégrer le curseur voxel** — remplacer le curseur de sélection par un curseur voxel FFTA au-dessus du Pokemon.
 - [ ] **Drop le mode tour par tour (round-robin)** — ne garder que le Charge Time ; retirer le toggle + le code RR.
 - [ ] **Aligner les couleurs des previews de pattern d'attaque** — cohérence entre la tooltip et les zones au sol (vert, bleu, jaune, rouge).
