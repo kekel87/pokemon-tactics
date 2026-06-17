@@ -32,16 +32,6 @@ export {
 
 export const CURSOR_COLOR = 0xffdd44;
 
-// Each cursor sprite has its own ideal on-screen scale — the baseline reads well
-// at 0.5, but the pokéball-integrated variants need more size to stay legible.
-export const HOVER_CURSOR_OPTIONS = [
-  { key: "hover-cursor", label: "Flèche", scale: 0.5 },
-  { key: "hover-cursor-variant-claw-arrow", label: "Claw", scale: 0.75 },
-  { key: "hover-cursor-variant-teardrop", label: "Goutte", scale: 0.75 },
-  { key: "hover-cursor-variant-v-wings", label: "V-Wings", scale: 0.75 },
-] as const;
-export type HoverCursorOption = (typeof HOVER_CURSOR_OPTIONS)[number];
-
 export const AURA_HOVER_MAX_ICONS = 6;
 export const SCREEN_HOVER_AURA_ALPHA = 0.7;
 export const FIELD_TERRAIN_OUTLINE_ALPHA = 0.95;

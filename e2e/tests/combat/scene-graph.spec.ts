@@ -16,7 +16,9 @@ test("sandbox boote : sprites occultables, curseur en overlay, terrain, overlay 
   const sprite = await scene.meshInfo("pokemon_plane");
   expect(sprite?.renderingGroupId).toBe(2);
 
-  // Curseur de survol : groupe overlay 3 = jamais occulté.
+  // Curseur de survol : UN seul modèle voxel (`cursor.glb`), pas de variantes cyclables — le
+  // compte exact garde contre toute régression réintroduisant plusieurs curseurs. Groupe overlay
+  // 3 = jamais occulté. (Aspect voxel opaque + bob = 👁, non exposé par le hook scène.)
   expect(await scene.countByName("hover_cursor")).toBe(1);
   const cursor = await scene.meshInfo("hover_cursor");
   expect(cursor?.renderingGroupId).toBe(3);

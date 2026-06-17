@@ -38,9 +38,10 @@ export const ARROW_ROTATION_Y: Readonly<Record<Direction, number>> = {
 };
 
 /**
- * 1 voxel = 1 sprite pixel = 1/pixelsPerWorldUnit world units (goxel exports one
- * voxel per glTF unit), so the arrow shares the exact pixel density of the sprites.
+ * 1 voxel = 1 sprite pixel = 1/pixelsPerWorldUnit world units (goxel/voxigen export
+ * one voxel per glTF unit), so any voxel model (placement arrow, hover cursor) shares
+ * the exact pixel density of the sprites.
  */
-export function arrowVoxelWorldSize(pixelsPerWorldUnit: number): number {
+export function voxelWorldSize(pixelsPerWorldUnit: number): number {
   return 1 / pixelsPerWorldUnit;
 }

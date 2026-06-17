@@ -418,8 +418,6 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       cameraAngle.target -= BABYLON_AZIMUTH_STEP;
     } else if (event.key === "ArrowRight") {
       cameraAngle.target += BABYLON_AZIMUTH_STEP;
-    } else if (event.key === "h" || event.key === "H") {
-      hoverCursor?.cycleVariant();
     }
   };
 

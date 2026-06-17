@@ -12,7 +12,7 @@ import {
   ARROW_LAY_FLAT_X,
   ARROW_ROTATION_Y,
   ARROW_YAW_OFFSET,
-  arrowVoxelWorldSize,
+  voxelWorldSize,
 } from "@pokemon-tactic/view-core";
 // Side-effect: registers the glTF 2.0 loader used by loadAssetContainerAsync.
 import "@babylonjs/loaders/glTF/2.0";
@@ -144,7 +144,7 @@ export function createDirectionArrows(scene: Scene): DirectionArrowsPicker {
     mesh.bakeCurrentTransformIntoVertices();
     mesh.rotation.x = ARROW_LAY_FLAT_X;
     // 1 voxel → 1 sprite pixel (goxel = 1 voxel per gltf unit), not a fit-to-size scale.
-    mesh.scaling.setAll(arrowVoxelWorldSize(BABYLON_SPRITE_PIXELS_PER_UNIT));
+    mesh.scaling.setAll(voxelWorldSize(BABYLON_SPRITE_PIXELS_PER_UNIT));
     mesh.bakeCurrentTransformIntoVertices();
     mesh.refreshBoundingInfo();
     const center = mesh.getBoundingInfo().boundingBox.center;

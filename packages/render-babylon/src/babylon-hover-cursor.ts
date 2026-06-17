@@ -1,49 +1,50 @@
+import { loadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
+import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import { Color3 } from "@babylonjs/core/Maths/math.color";
 import type { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Observer } from "@babylonjs/core/Misc/observable";
 import type { Scene } from "@babylonjs/core/scene";
+import { voxelWorldSize } from "@pokemon-tactic/view-core";
+// Side-effect: registers the glTF 2.0 loader used by loadAssetContainerAsync.
+import "@babylonjs/loaders/glTF/2.0";
 import {
   BABYLON_HOVER_CURSOR_RENDERING_GROUP,
   BABYLON_SPRITE_PIXELS_PER_UNIT,
 } from "./babylon-constants.js";
-import { HOVER_CURSOR_OPTIONS } from "./constants.js";
 
-const CURSOR_TEXTURE_BASE = "assets/ui/cursor";
-/** localStorage key for the chosen variant. */
-const CURSOR_VARIANT_STORAGE_KEY = "babylon-hover-cursor-variant";
+/** Voxel cursor authored in voxigen.io, exported as glb (1 voxel per glTF unit). */
+const CURSOR_GLTF_URL = "assets/ui/cursor.glb";
 /** Idle bob (FFTA-style "alive" cursor): vertical oscillation, world units of travel + period. */
 const CURSOR_BOB_AMPLITUDE = 2.5 / BABYLON_SPRITE_PIXELS_PER_UNIT;
 const CURSOR_BOB_PERIOD_MS = 1000;
 
 /**
- * FFTA selection cursor: a camera-facing 2D billboard floating above the hovered
- * tile, lifted to the Pokémon head when one stands there. 4 cyclable variants
- * (H key), drawn on a dedicated rendering group so it always reads on top.
+ * FFTA selection cursor: a voxel model (`cursor.glb`) floating above the hovered
+ * tile, lifted to the Pokémon head when one stands there. A real scene mesh (not a
+ * billboard) so the voxels rotate with the camera like the placement arrows, scaled
+ * at 1 voxel = 1 sprite pixel for pixel parity. Drawn on a dedicated rendering group
+ * so it always reads on top. The glb loads asynchronously; a `showAt` issued before
+ * the load completes is replayed once the mesh is built.
  */
 export class BabylonHoverCursor {
   private readonly root: TransformNode;
-  private readonly plane: Mesh;
-  private readonly material: StandardMaterial;
-  /** Sparse: one cached texture per visited variant index, swapped into the shared material on cycle. */
-  private readonly textures: (Texture | undefined)[] = [];
-  private variantIndex = 0;
+  private mesh: Mesh | null = null;
   /** Base head Y (set on showAt); the bob oscillates the root around it. */
   private bobBaseY = 0;
   private bobElapsedMs = 0;
   private readonly bobObserver: Observer<Scene>;
+  /** showAt requested before the glb finished loading (replayed on build). */
+  private pendingHead: Vector3 | null = null;
+  private disposed = false;
 
   constructor(scene: Scene) {
     this.root = new TransformNode("hover_cursor_root", scene);
     this.root.setEnabled(false);
 
     // Idle bob: oscillate the root's Y around the head point while visible, so the
-    // cursor feels alive (an alpha pulse would suit a floating FFTA cursor less
-    // than this motion).
+    // cursor feels alive.
     this.bobObserver = scene.onBeforeRenderObservable.add(() => {
       if (!this.root.isEnabled()) {
         return;
@@ -54,105 +55,106 @@ export class BabylonHoverCursor {
       this.root.position.y = this.bobBaseY + CURSOR_BOB_AMPLITUDE * Math.sin(phase);
     });
 
-    this.plane = MeshBuilder.CreatePlane("hover_cursor", { size: 1 }, scene);
-    this.plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
-    this.plane.parent = this.root;
-    this.plane.isPickable = false;
-    this.plane.renderingGroupId = BABYLON_HOVER_CURSOR_RENDERING_GROUP;
-
-    this.material = new StandardMaterial("hover_cursor_mat", scene);
-    this.material.emissiveColor = new Color3(1, 1, 1);
-    this.material.disableLighting = true;
-    this.material.specularColor = new Color3(0, 0, 0);
-    this.material.useAlphaFromDiffuseTexture = true;
-    this.plane.material = this.material;
-
-    this.variantIndex = this.readStoredVariant();
-    this.applyVariant();
+    void loadAssetContainerAsync(CURSOR_GLTF_URL, scene)
+      .then((container) => {
+        // Teardown race: scene disposed while the glb loaded → drop and bail.
+        if (this.disposed || scene.isDisposed) {
+          container.dispose();
+          return;
+        }
+        // loadAssetContainerAsync leaves meshes detached from the scene; add them so the
+        // single-mesh path (used directly, not cloned like the arrows) actually renders.
+        container.addAllToScene();
+        const geometryMeshes = container.meshes.filter(
+          (mesh): mesh is Mesh => mesh instanceof Mesh && mesh.getTotalVertices() > 0,
+        );
+        const merged =
+          geometryMeshes.length === 1
+            ? geometryMeshes[0]
+            : Mesh.MergeMeshes(geometryMeshes, true, true);
+        if (!merged) {
+          return;
+        }
+        merged.name = "hover_cursor";
+        this.normalizeMesh(merged);
+        this.replaceWithStandardMaterial(merged, scene);
+        // The voxel ships VEC4 vertex colours (RGBA), so Babylon auto-enables vertex alpha and
+        // renders the mesh in the transparent pass — its own back faces show through. The model is
+        // fully opaque (material alphaMode OPAQUE), so drop vertex alpha to render it solid.
+        merged.hasVertexAlpha = false;
+        merged.parent = this.root;
+        merged.isPickable = false;
+        merged.renderingGroupId = BABYLON_HOVER_CURSOR_RENDERING_GROUP;
+        this.mesh = merged;
+        // Free the loader's residual nodes (the `__root__` space-conversion node and
+        // any leftovers); normalizeMesh already detached the mesh, so it survives.
+        for (const node of container.rootNodes) {
+          if (node !== merged) {
+            node.dispose();
+          }
+        }
+        if (this.pendingHead) {
+          this.showAt(this.pendingHead);
+          this.pendingHead = null;
+        }
+      })
+      .catch((error) => {
+        // biome-ignore lint/suspicious/noConsole: surfacing a fatal cursor-asset load failure
+        console.error("Failed to load hover cursor", CURSOR_GLTF_URL, error);
+      });
   }
 
   /** Float the cursor at a world point (the hovered Pokémon's head + gap). */
   showAt(headWorld: Vector3): void {
+    if (!this.mesh) {
+      this.pendingHead = headWorld.clone();
+      return;
+    }
     this.root.position.copyFrom(headWorld);
     this.bobBaseY = headWorld.y;
     this.root.setEnabled(true);
   }
 
   hide(): void {
+    this.pendingHead = null;
     this.root.setEnabled(false);
   }
 
-  /** Cycle to the next cursor variant (H key) and persist the choice. */
-  cycleVariant(): void {
-    this.variantIndex = (this.variantIndex + 1) % HOVER_CURSOR_OPTIONS.length;
-    this.applyVariant();
-    this.storeVariant();
-  }
-
   dispose(): void {
+    this.disposed = true;
     this.root.getScene().onBeforeRenderObservable.remove(this.bobObserver);
-    this.material.dispose();
-    for (const texture of this.textures) {
-      texture?.dispose();
-    }
-    this.plane.dispose();
-    this.root.dispose();
+    this.root.dispose(false, true);
   }
 
-  private texture(index: number): Texture {
-    const cached = this.textures[index];
-    if (cached) {
-      return cached;
-    }
-    const option = HOVER_CURSOR_OPTIONS[index];
-    if (!option) {
-      throw new Error(`No hover cursor variant at index ${index}`);
-    }
-    const texture = new Texture(
-      `${CURSOR_TEXTURE_BASE}/${option.key}.png`,
-      this.root.getScene(),
-      true,
-      true,
-      Texture.NEAREST_SAMPLINGMODE,
-    );
-    texture.hasAlpha = true;
-    this.textures[index] = texture;
-    return texture;
+  /**
+   * Normalises the imported voxel cursor into a mesh at the origin: bakes the glTF
+   * coordinate conversion, scales it to 1 voxel = 1 sprite pixel, recentres it on
+   * X/Z and lifts it so its bottom sits at the root (hanging above the head).
+   */
+  private normalizeMesh(mesh: Mesh): void {
+    mesh.setParent(null);
+    mesh.bakeCurrentTransformIntoVertices();
+    // 1 voxel → 1 sprite pixel (voxigen = 1 voxel per glTF unit), not a fit-to-size scale.
+    mesh.scaling.setAll(voxelWorldSize(BABYLON_SPRITE_PIXELS_PER_UNIT));
+    mesh.bakeCurrentTransformIntoVertices();
+    mesh.refreshBoundingInfo();
+    const box = mesh.getBoundingInfo().boundingBox;
+    // Recentre X/Z on the tile; lift so the bottom of the model rests at the root.
+    mesh.position.set(-box.center.x, box.extendSize.y - box.center.y, -box.center.z);
+    mesh.bakeCurrentTransformIntoVertices();
+    mesh.position.setAll(0);
   }
 
-  /** Swap to the active variant's texture and size the plane to its pixels (scaled). */
-  private applyVariant(): void {
-    const option = HOVER_CURSOR_OPTIONS[this.variantIndex];
-    if (!option) {
-      return;
+  /** Swap the imported PBR material for a flat StandardMaterial (preserving vertex colours), so no
+   *  environmentBRDF RGBD texture is loaded (avoids the teardown crash; see direction-picker). */
+  private replaceWithStandardMaterial(mesh: Mesh, scene: Scene): void {
+    const source = mesh.material;
+    const standard = new StandardMaterial("hover_cursor", scene);
+    if (source instanceof PBRMaterial) {
+      standard.diffuseColor = source.albedoColor.clone();
+      standard.diffuseTexture = source.albedoTexture ?? null;
     }
-    const texture = this.texture(this.variantIndex);
-    this.material.diffuseTexture = texture;
-    const resize = (): void => {
-      const size = texture.getBaseSize();
-      if (size.height === 0) {
-        return;
-      }
-      const worldHeight = (size.height * option.scale) / BABYLON_SPRITE_PIXELS_PER_UNIT;
-      const worldWidth = worldHeight * (size.width / size.height);
-      this.plane.scaling.set(worldWidth, worldHeight, 1);
-      // Anchor the cursor tip (bottom of the PNG) at the root: lift the centred
-      // plane by half its height so it hangs above the head, pointing down.
-      this.plane.position.y = worldHeight / 2;
-    };
-    if (texture.isReady()) {
-      resize();
-    } else {
-      texture.onLoadObservable.addOnce(resize);
-    }
-  }
-
-  private readStoredVariant(): number {
-    const raw = Number.parseInt(localStorage.getItem(CURSOR_VARIANT_STORAGE_KEY) ?? "", 10);
-    return Number.isInteger(raw) && raw >= 0 && raw < HOVER_CURSOR_OPTIONS.length ? raw : 0;
-  }
-
-  private storeVariant(): void {
-    localStorage.setItem(CURSOR_VARIANT_STORAGE_KEY, String(this.variantIndex));
+    mesh.material = standard;
+    source?.dispose();
   }
 }
