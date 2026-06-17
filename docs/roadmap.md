@@ -271,7 +271,7 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 
 > Petits chantiers prioritaires à enchaîner juste après l'intégration de Babylon, avant de repartir sur les grosses phases.
 
-- [ ] **Fixer `doc-keeper` qui ne respecte pas les worktrees** — l'agent écrit/lit hors du worktree courant ; faire respecter l'isolation worktree.
+- [x] **Fixer `doc-keeper` qui ne respecte pas les worktrees** — règle dure « chemins relatifs uniquement, jamais absolu » ajoutée en tête du prompt (l'agent n'a pas Bash → ne peut résoudre la racine ; chemin absolu codé en dur = fuite vers repo principal).
 - [ ] **Optimiser Vitest** — réduire le temps de suite (import lourd observé au gate) : config, parallélisme, isolation.
 - [ ] **Mettre à jour les dépendances** — audit + bumps (agent `dependency-manager`).
 - [ ] **Intégrer le curseur voxel** — remplacer le curseur de sélection par un curseur voxel FFTA au-dessus du Pokemon.
