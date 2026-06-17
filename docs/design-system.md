@@ -111,6 +111,8 @@ L'information la plus importante est toujours la plus visible :
 |---------|-----|-------|-------|
 | Bleu allié | `#4488cc` / `0x4488cc` | 0.4 | Portée de déplacement (allié) + buff preview |
 | Rouge attaque | `#cc4444` / `0xcc4444` | 0.4 | Zone d'attaque + outline de portée |
+| Vert soin | `#44dd44` / `0x44dd44` | 0.5 | Preview AoE soin (`TILE_PREVIEW_HEAL_COLOR`, `HighlightKind.PreviewHeal`) |
+| Jaune dash | `#ffdd44` / `0xffdd44` | 0.5 | Traînée de dash (`TILE_PREVIEW_DASH_COLOR`, `HighlightKind.PreviewDash`) — token CSS `--color-preview-dash` réutilise `--color-accent` |
 | Orange ennemi | `#dd6622` / `0xdd6622` | 0.35 | Portée de déplacement ennemie (hover) |
 | Jaune curseur | `#ffdd44` / `0xffdd44` | pulse 0.7–1.0 | Curseur de sélection tile (stroke 1px, diamant pulsant) |
 
@@ -145,9 +147,13 @@ Cette approche garantit que les flèches restent alignées quelle que soit la ro
 
 | Couleur | Hex | Alpha | Usage |
 |---------|-----|-------|-------|
-| Rouge preview | `#cc4444` / `0xcc4444` | 0.5 | Preview AoE attaque |
-| Bleu preview | `#4488cc` / `0x4488cc` | 0.5 | Preview AoE buff |
-| Rouge outline | `#cc4444` / `0xcc4444` | 0.6 | Contour périmétrique de portée |
+| Rouge preview | `#cc4444` / `0xcc4444` | 0.5 | Preview AoE attaque (`TILE_PREVIEW_ATTACK_COLOR`, `--color-preview-attack`) |
+| Bleu preview | `#4488cc` / `0x4488cc` | 0.5 | Preview AoE buff (`TILE_PREVIEW_BUFF_COLOR`, `--color-preview-buff`) |
+| Vert preview | `#44dd44` / `0x44dd44` | 0.5 | Preview AoE soin (`TILE_PREVIEW_HEAL_COLOR`, `--color-preview-heal`) |
+| Jaune dash | `#ffdd44` / `0xffdd44` | 0.5 | Traînée de dash (`TILE_PREVIEW_DASH_COLOR`, `--color-preview-dash` = `--color-accent`) |
+| Rouge outline | `#cc4444` / `0xcc4444` | 0.6 | Contour périmétrique de portée attaque |
+
+> Les tokens CSS dans `tokens.css` (`--color-preview-attack`, `--color-preview-buff`, `--color-preview-heal`, `--color-preview-dash`) reflètent les constantes renderer (`TILE_PREVIEW_*_COLOR`) pour que la grille du MoveTooltip parle le même langage couleur que les surbrillances au sol. `--color-preview-dash` réutilise `--color-accent` (`#ffdd44`). Les anciennes constantes `TOOLTIP_CELL_COLOR_*` ont été supprimées (code mort).
 
 ---
 
@@ -352,11 +358,31 @@ Plan 071. Caractères Unicode `♂` / `♀` rendus dans le panneau info (DOM, `u
 
 ## Move Tooltip (grille pattern)
 
-| Cellule | Hex | Usage |
-|---------|-----|-------|
-| Target | `#ff6644` / `0xff6644` | Case cible |
-| Dash/Caster | `#ffdd44` / `0xffdd44` | Case dash / caster |
-| Empty | `#333333` / `0x333333` | Case vide |
+La grille est pilotée par l'**intention** du move via `data-intent` sur `.mt-grid` (valeurs : `attack` / `buff` / `heal`) : tout l'ensemble affecté reçoit la couleur de son intention (rouge attaque / bleu buff / vert soin), exactement comme le sol. Les helpers partagés `moveIntent` / `selfPreviewRadius` dans `packages/view-core/src/move-intent.ts` fournissent l'intention et le rayon de self-preview.
+
+**Cellules `data-cell`** (valeurs possibles) :
+
+| Valeur `data-cell` | Signification | Rendu |
+|--------------------|---------------|-------|
+| `empty` | Case hors zone | fond neutre (`color-mix`) |
+| `target` | Case cible de la zone | colorée selon `data-intent` |
+| `dash` | Case sur le chemin de dash (avant l'arrivée) | jaune `#ffdd44` (`--color-accent`) |
+| `caster` | Position du lanceur — non affecté par la zone (ex: centre Séisme, lanceur exclus de la AoE) | fond vide + croix ✖ |
+| `caster-target` | Position du lanceur — affecté (self buff/soin/champ, ou move Self avec rayon) | colorée selon `data-intent` + croix ✖ |
+
+**Règles** :
+- La croix ✖ est le marqueur de la position du lanceur dans la grille. Elle n'apparaît que sur `caster` et `caster-target`.
+- AoE Zone/Croix : la tile du lanceur est exclue (`caster` non coloré) — parité avec le sol où le lanceur est exclu des AoE.
+- Dash : le chemin est peint en jaune (`dash`), la case d'arrivée reçoit la couleur d'intention de la cible (`target`).
+- Move Self avec rayon (soin/cure/champ) : dessine une zone complète (`caster-target` au centre + cellules `target` autour).
+
+| Cellule | Move attaque/statut | Move buff | Move soin | Usage |
+|---------|---------------------|-----------|-----------|-------|
+| `target` | `#cc4444` (`--color-preview-attack`) | `#4488cc` (`--color-preview-buff`) | `#44dd44` (`--color-preview-heal`) | Case cible |
+| `caster` | fond vide + ✖ | fond vide + ✖ | fond vide + ✖ | Lanceur non affecté |
+| `caster-target` | `#cc4444` + ✖ | `#4488cc` + ✖ | `#44dd44` + ✖ | Lanceur affecté (self buff/soin/champ) |
+| `dash` | `#ffdd44` (`--color-accent`) | `#ffdd44` | `#ffdd44` | Chemin de charge |
+| `empty` | `color-mix` fond | idem | idem | Case vide |
 
 ---
 

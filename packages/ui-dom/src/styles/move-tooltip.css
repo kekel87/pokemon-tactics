@@ -41,29 +41,54 @@
   }
 
   .mt-grid {
+    /* Couleur de remplissage de l'ensemble affecté, pilotée par l'intention du move
+       (même langage couleur que les surbrillances au sol). Défaut = attaque. */
+    --mt-fill: var(--color-preview-attack);
     --mt-cols: 3;
     display: grid;
     grid-template-columns: repeat(var(--mt-cols), 0.75rem);
     gap: 2px;
     margin-block-start: var(--spacing-xs);
     align-self: center;
+
+    &[data-intent="buff"] {
+      --mt-fill: var(--color-preview-buff);
+    }
+    &[data-intent="heal"] {
+      --mt-fill: var(--color-preview-heal);
+    }
   }
 
   .mt-cell {
     --mt-empty: color-mix(in oklch, var(--color-bg-surface) 60%, transparent);
+    position: relative;
     inline-size: 0.75rem;
     block-size: 0.75rem;
     border-radius: 1px;
     background: var(--mt-empty);
 
-    &[data-cell="target"] {
-      background: var(--red-400);
+    /* Tiles affectées (cibles + lanceur-cible) : couleur d'intention. Dash : jaune. */
+    &[data-cell="target"],
+    &[data-cell="caster-target"] {
+      background: var(--mt-fill);
     }
     &[data-cell="dash"] {
       background: var(--color-accent);
     }
-    &[data-cell="caster"] {
-      background: var(--green-500);
+
+    /* Croix marquant la position du lanceur (vide si non affecté, sinon par-dessus le fill). */
+    &[data-cell="caster"]::after,
+    &[data-cell="caster-target"]::after {
+      content: "✖";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 0.72rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--color-text-primary);
+      text-shadow: 0 0 1px #000, 0 0 2px #000;
     }
   }
 }

@@ -44,6 +44,8 @@ export const TILE_HIGHLIGHT_RETREAT_COLOR = 0x55ccff;
 
 export const TILE_PREVIEW_ATTACK_COLOR = 0xcc4444;
 export const TILE_PREVIEW_BUFF_COLOR = 0x4488cc;
+export const TILE_PREVIEW_HEAL_COLOR = 0x44dd44;
+export const TILE_PREVIEW_DASH_COLOR = 0xffdd44;
 export const TILE_PREVIEW_BLAST_INTERCEPT_COLOR = 0xffaa33;
 export const TILE_PREVIEW_ALPHA = 0.5;
 export const TILE_RANGE_OUTLINE_COLOR = 0xcc4444;

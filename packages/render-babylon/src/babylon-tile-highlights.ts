@@ -32,6 +32,8 @@ import {
   TILE_PREVIEW_ATTACK_COLOR,
   TILE_PREVIEW_BLAST_INTERCEPT_COLOR,
   TILE_PREVIEW_BUFF_COLOR,
+  TILE_PREVIEW_DASH_COLOR,
+  TILE_PREVIEW_HEAL_COLOR,
   TILE_RANGE_OUTLINE_ALPHA,
   TILE_RANGE_OUTLINE_COLOR,
 } from "./constants.js";
@@ -40,6 +42,8 @@ import {
 const PREVIEW_KINDS: ReadonlySet<HighlightKind> = new Set([
   HighlightKind.PreviewBuff,
   HighlightKind.PreviewAttack,
+  HighlightKind.PreviewHeal,
+  HighlightKind.PreviewDash,
   HighlightKind.PreviewBlast,
 ]);
 
@@ -66,6 +70,8 @@ const FILL_STYLE_BY_KIND: Readonly<Record<HighlightKind, { color: number; alpha:
   },
   [HighlightKind.PreviewBuff]: { color: TILE_PREVIEW_BUFF_COLOR, alpha: TILE_PREVIEW_ALPHA },
   [HighlightKind.PreviewAttack]: { color: TILE_PREVIEW_ATTACK_COLOR, alpha: TILE_PREVIEW_ALPHA },
+  [HighlightKind.PreviewHeal]: { color: TILE_PREVIEW_HEAL_COLOR, alpha: TILE_PREVIEW_ALPHA },
+  [HighlightKind.PreviewDash]: { color: TILE_PREVIEW_DASH_COLOR, alpha: TILE_PREVIEW_ALPHA },
   [HighlightKind.PreviewBlast]: {
     color: TILE_PREVIEW_BLAST_INTERCEPT_COLOR,
     alpha: TILE_PREVIEW_ALPHA,

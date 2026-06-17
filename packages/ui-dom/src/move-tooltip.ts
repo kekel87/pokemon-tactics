@@ -1,6 +1,11 @@
 import type { FieldTerrain, MoveDefinition } from "@pokemon-tactic/core";
 import { AttackStatSource, EffectKind, TargetingKind } from "@pokemon-tactic/core";
-import type { BlockedMoveTag } from "@pokemon-tactic/view-core";
+import {
+  type BlockedMoveTag,
+  type MoveIntent,
+  moveIntent,
+  selfPreviewRadius,
+} from "@pokemon-tactic/view-core";
 import type { UiDomConfig } from "./config.js";
 import { el } from "./dom-helpers.js";
 import { buildPatternPreview, type PatternCell } from "./pattern-preview.js";
@@ -146,8 +151,9 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   return keys.map((key) => config.translate(key));
 }
 
-function renderGrid(cells: PatternCell[][]): HTMLElement {
-  const grid = el("div", "mt-grid");
+function renderGrid(cells: PatternCell[][], intent: MoveIntent): HTMLElement {
+  const grid = el("div", "mt-grid", "move-tooltip-grid");
+  grid.dataset.intent = intent;
   grid.style.setProperty("--mt-cols", String(cells[0]?.length ?? 0));
   for (const row of cells) {
     for (const cell of row) {
@@ -202,7 +208,9 @@ export function createMoveTooltip(config: UiDomConfig): MoveTooltip {
         root.append(blocked);
       }
 
-      root.append(renderGrid(buildPatternPreview(move.targeting)));
+      root.append(
+        renderGrid(buildPatternPreview(move.targeting, selfPreviewRadius(move)), moveIntent(move)),
+      );
       root.hidden = false;
     },
     hide: () => {

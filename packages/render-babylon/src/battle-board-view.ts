@@ -20,6 +20,8 @@ const HIGHLIGHT_KIND: Readonly<Record<BoardHighlight, HighlightKind>> = {
 const PREVIEW_KIND: Readonly<Record<AttackPreviewKind, HighlightKind>> = {
   buff: HighlightKind.PreviewBuff,
   attack: HighlightKind.PreviewAttack,
+  heal: HighlightKind.PreviewHeal,
+  dash: HighlightKind.PreviewDash,
   blast: HighlightKind.PreviewBlast,
 };
 

@@ -17,8 +17,8 @@ import type { InfoPanelData, TimelineView, WeatherView } from "./view-models.js"
 /** Which highlight layer the board should paint (mapped to the renderer's HighlightKind by the adapter). */
 export type BoardHighlight = "move" | "attack" | "retreat" | "enemy";
 
-/** Attack-target preview layer: buff (blue), attack (red), or blast intercept (orange). */
-export type AttackPreviewKind = "buff" | "attack" | "blast";
+/** Attack-target preview layer: buff (blue), attack (red), heal (green), dash trail (yellow), or blast intercept (orange). */
+export type AttackPreviewKind = "buff" | "attack" | "heal" | "dash" | "blast";
 
 /** Semi-invulnerable display lives in core; re-exported so port consumers keep importing it here. */
 export type { SemiInvulnerableDisplay };

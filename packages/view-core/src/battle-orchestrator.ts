@@ -9,10 +9,7 @@ import {
   Category,
   type Direction,
   directionFromTo,
-  EffectKind,
-  EffectTarget,
   enumerateHitAndRunRetreatTiles,
-  FIELD_TERRAIN_RADIUS,
   FieldTerrain,
   type MoveDefinition,
   moveCtTempo,
@@ -40,6 +37,7 @@ import {
   FIELD_TERRAIN_COLOR_MISTY,
   FIELD_TERRAIN_COLOR_PSYCHIC,
 } from "./constants.js";
+import { moveIntent, selfPreviewRadius } from "./move-intent.js";
 
 /**
  * Battle loop orchestrator (plan 120 step 7b) — the engine-agnostic input FSM.
@@ -522,33 +520,6 @@ export class BattleOrchestrator {
     );
   }
 
-  /** A move with no damage and no offensive effect previews blue (buff), else red (attack). */
-  private isBuffMove(move: MoveDefinition): boolean {
-    const hasDamage = move.effects.some((effect) => effect.kind === EffectKind.Damage);
-    const hasOffensive = move.effects.some(
-      (effect) =>
-        (effect.kind === EffectKind.StatChange && effect.target === EffectTarget.Targets) ||
-        effect.kind === EffectKind.Status,
-    );
-    return !hasDamage && !hasOffensive;
-  }
-
-  /** Manhattan radius of a self-cast radius effect (life-dew, aromatherapy, field terrain). */
-  private selfRadiusOf(move: MoveDefinition): number | undefined {
-    for (const effect of move.effects) {
-      if (effect.kind === EffectKind.HealTarget && effect.radius !== undefined) {
-        return effect.radius;
-      }
-      if (effect.kind === EffectKind.CureTeamStatus) {
-        return effect.radius;
-      }
-      if (effect.kind === EffectKind.PostFieldTerrain) {
-        return FIELD_TERRAIN_RADIUS;
-      }
-    }
-    return undefined;
-  }
-
   /** Static patterns (Self/Cross/Zone) preview their footprint immediately, centred on the caster. */
   private showEntryPreview(moveId: string): void {
     const active = this.activePokemon();
@@ -569,16 +540,26 @@ export class BattleOrchestrator {
       return;
     }
     const grid = this.engine.getGrid();
-    const selfRadius = this.selfRadiusOf(move);
-    const tiles =
-      selfRadius === undefined
-        ? resolveTargeting(move.targeting, active, active.position, grid, undefined, {
-            type: move.type,
-            flags: move.flags,
-          })
-        : grid.getTilesInRange(active.position, 0, selfRadius);
+    const selfRadius = selfPreviewRadius(move);
+    let tiles: readonly Position[];
+    if (selfRadius === undefined) {
+      const resolved = resolveTargeting(move.targeting, active, active.position, grid, undefined, {
+        type: move.type,
+        flags: move.flags,
+      });
+      // Zone/Cross radiate damage from the caster and do NOT hit its own tile (e.g. Séisme):
+      // drop the caster tile so the preview matches the tooltip (centre = croix, not coloured).
+      // A bare Self move (no radius) keeps its single caster tile (self buff).
+      tiles =
+        move.targeting.kind === TargetingKind.Self
+          ? resolved
+          : resolved.filter((position) => !positionEquals(position, active.position));
+    } else {
+      // Self-centred AoE (heal / cure / field "champ"): the caster's own tile IS affected.
+      tiles = grid.getTilesInRange(active.position, 0, selfRadius);
+    }
     this.previewTiles = tiles;
-    this.board.showPreview(this.isBuffMove(move) ? "buff" : "attack", tiles);
+    this.board.showPreview(moveIntent(move), tiles);
   }
 
   /** Cursor-following preview while picking a target: directional fan or single-tile footprint. */
@@ -633,13 +614,51 @@ export class BattleOrchestrator {
 
     this.previewTiles = affected;
     this.board.clearPreview();
-    this.board.showPreview(this.isBuffMove(move) ? "buff" : "attack", affected);
+    if (move.targeting.kind === TargetingKind.Dash) {
+      // Dash trail in yellow + landing/impact tile in the move's intent colour, so the
+      // run-up reads apart from the hit (mirrors the tooltip's yellow dash cells).
+      this.showDashPreview(move, active.position, affected);
+    } else {
+      this.board.showPreview(moveIntent(move), affected);
+    }
     if (move.targeting.kind === TargetingKind.Blast && tile) {
       const impact = resolveBlastImpactTile(active.position, tile, grid, moveContext);
       if (impact) {
         this.board.showPreview("blast", [impact]);
       }
     }
+  }
+
+  /**
+   * Paint a dash footprint: trail tiles yellow, the landing tile in the move's intent
+   * colour. `resolveDash` only returns the landing tile, so the straight run-up between
+   * the caster and the landing is reconstructed here (step by step in the dash direction).
+   */
+  private showDashPreview(
+    move: MoveDefinition,
+    casterPosition: Position,
+    footprint: readonly Position[],
+  ): void {
+    const landing = footprint.find((position) => !positionEquals(position, casterPosition));
+    if (!landing) {
+      return;
+    }
+    // Dash is axis-aligned by design; a diagonal landing would make the straight-line
+    // reconstruction wrong, so fail safe to the landing tile only.
+    if (casterPosition.x !== landing.x && casterPosition.y !== landing.y) {
+      this.board.showPreview(moveIntent(move), [landing]);
+      return;
+    }
+    const direction = directionFromTo(casterPosition, landing);
+    const steps = Math.abs(landing.x - casterPosition.x) + Math.abs(landing.y - casterPosition.y);
+    const trail: Position[] = [];
+    for (let step = 1; step < steps; step++) {
+      trail.push(stepInDirection(casterPosition, direction, step));
+    }
+    if (trail.length > 0) {
+      this.board.showPreview("dash", trail);
+    }
+    this.board.showPreview(moveIntent(move), [landing]);
   }
 
   private tryPickTarget(moveId: string, tile: Position): void {
