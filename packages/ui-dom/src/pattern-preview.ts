@@ -3,9 +3,13 @@ import { TargetingKind } from "@pokemon-tactic/core";
 
 export const PatternCell = {
   Empty: "empty",
+  /** A tile in the affected set — coloured by move intent (attack/buff/heal). */
   Target: "target",
   Dash: "dash",
+  /** Caster position, NOT in the affected set — empty fill + cross marker (e.g. Séisme centre). */
   Caster: "caster",
+  /** Caster position that IS affected (self buff/heal, self-centred field) — intent colour + cross. */
+  CasterTarget: "caster-target",
 } as const;
 
 export type PatternCell = (typeof PatternCell)[keyof typeof PatternCell];
@@ -52,10 +56,14 @@ function set(cells: PatternCell[][], x: number, y: number, cell: PatternCell): v
   }
 }
 
-export function buildPatternPreview(pattern: TargetingPattern): PatternCell[][] {
+export function buildPatternPreview(
+  pattern: TargetingPattern,
+  selfRadius?: number,
+): PatternCell[][] {
   switch (pattern.kind) {
     case TargetingKind.Self:
-      return buildSelf();
+      // Self-centred AoE (heal / cure / field "champ"): draw the full zone, caster included.
+      return selfRadius !== undefined && selfRadius >= 1 ? buildSelfZone(selfRadius) : buildSelf();
     case TargetingKind.Single:
       return buildSingle(pattern.range.max);
     case TargetingKind.Line:
@@ -111,7 +119,23 @@ function makeGrid(width: number, height: number): PatternCell[][] {
 
 function buildSelf(): PatternCell[][] {
   const grid = makeGrid(1, 1);
-  set(grid, 0, 0, PatternCell.Caster);
+  set(grid, 0, 0, PatternCell.CasterTarget);
+  return ensureMinSize(grid);
+}
+
+/** Self-centred AoE: caster tile affected (centre coloured + cross), ring affected. */
+function buildSelfZone(radius: number): PatternCell[][] {
+  const size = radius * 2 + 1;
+  const grid = makeGrid(size, size);
+  const center = radius;
+  set(grid, center, center, PatternCell.CasterTarget);
+  for (let dy = -radius; dy <= radius; dy++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      if (Math.abs(dx) + Math.abs(dy) <= radius && (dx !== 0 || dy !== 0)) {
+        set(grid, center + dx, center + dy, PatternCell.Target);
+      }
+    }
+  }
   return ensureMinSize(grid);
 }
 

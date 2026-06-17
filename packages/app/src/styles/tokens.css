@@ -126,6 +126,11 @@
   /* Preview dégâts (barre PV monde) — assombrit les PV perdus. */
   --color-damage-band-possible: rgb(0 0 0 / 0.55);
   --color-damage-band-guaranteed: rgb(0 0 0 / 0.85);
+  /* Preview attaque/buff/soin — miroir TILE_PREVIEW_*_COLOR (render-babylon/constants.ts).
+     Aligne la grille du MoveTooltip sur les surbrillances de tiles au sol. */
+  --color-preview-attack: #cc4444;
+  --color-preview-buff: #4488cc;
+  --color-preview-heal: #44dd44;
 
   /* Sémantiques — boutons */
   --color-btn-bg: var(--blue-600);

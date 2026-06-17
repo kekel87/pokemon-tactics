@@ -152,6 +152,8 @@ export const UI_BUTTON_CORNER_RADIUS = 4;
 
 export const TILE_PREVIEW_ATTACK_COLOR = 0xcc4444;
 export const TILE_PREVIEW_BUFF_COLOR = 0x4488cc;
+export const TILE_PREVIEW_HEAL_COLOR = 0x44dd44;
+export const TILE_PREVIEW_DASH_COLOR = 0xffdd44;
 export const TILE_PREVIEW_BLAST_INTERCEPT_COLOR = 0xffaa33;
 export const TILE_PREVIEW_ALPHA = 0.5;
 export const TILE_RANGE_OUTLINE_COLOR = 0xcc4444;
@@ -340,11 +342,6 @@ export const DIRECTION_INACTIVE_TINT = 0x888888;
 
 export const GENDER_SYMBOL_MALE_COLOR = "#5fa8ff";
 export const GENDER_SYMBOL_FEMALE_COLOR = "#ff7fb4";
-
-export const TOOLTIP_CELL_COLOR_TARGET = 0xff6644;
-export const TOOLTIP_CELL_COLOR_DASH = 0xffdd44;
-export const TOOLTIP_CELL_COLOR_CASTER = 0xffdd44;
-export const TOOLTIP_CELL_COLOR_EMPTY = 0x333333;
 
 export const BUTTON_COLOR = 0x335577;
 export const BUTTON_BORDER_COLOR = 0x5577aa;

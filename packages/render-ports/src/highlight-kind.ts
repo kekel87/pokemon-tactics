@@ -11,6 +11,8 @@ export const HighlightKind = {
   /** Attack-target previews (affected tiles for the hovered/locked target). */
   PreviewBuff: "preview_buff",
   PreviewAttack: "preview_attack",
+  PreviewHeal: "preview_heal",
+  PreviewDash: "preview_dash",
   PreviewBlast: "preview_blast",
 } as const;
 

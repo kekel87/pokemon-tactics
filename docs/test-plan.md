@@ -284,9 +284,18 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
 - 🤖 **Survol** (ou focus) d'un move → la tooltip apparaît ; **quitter** → elle disparaît.
 - 👁 Contenu : icône de **catégorie** (Phys/Spé/Statut) + ligne **Puis / Préc** (« — » si nul) +
   ligne **Pattern + Portée** (noms FR).
-- 👁 **Grille de pattern** (`.mt-cell` : `target` / `caster` / `dash` / `empty`) cohérente avec le
-  ciblage : Cible (1 cell), Ligne, Cône, Zone (diamant), Bombe (carré), Dash (tirets + cible au
-  bout), Croix, Slash, Téléport (cible + aura).
+- 👁 **Grille de pattern** (`.mt-cell` : `target` / `caster` / `caster-target` / `dash` / `empty`)
+  cohérente avec le ciblage : Cible (1 cell), Ligne, Cône, Zone (diamant), Bombe (carré), Dash
+  (tirets + cible au bout), Croix, Slash, Téléport (cible + aura).
+- 🤖 **Couleurs de preview pilotées par l'intention** (`preview-colours.spec`, chantier f) — la
+  grille porte `data-intent` et les cellules `data-cell` : **attaque** (Griffe, Séisme, Bélier) →
+  `data-intent="attack"` ; **buff** (Danse Lames) → `data-intent="buff"` ; **soin** (Fontaine de
+  Vie) → `data-intent="heal"`. Croix lanceur : `caster` (non affecté, ex. centre Séisme = vide) /
+  `caster-target` (affecté, ex. centre Fontaine de Vie + Danse Lames). Dash → cellules `dash`
+  (traînée) + cible d'arrivée + lanceur. *Les **couleurs exactes** (rouge/bleu/vert/jaune) = 👁.*
+- 👁 **Couleurs au sol** (highlights de tiles, `battle-orchestrator`) cohérentes avec la grille
+  tooltip : rouge attaque, bleu buff, vert soin, jaune traînée de dash, croix/centre vide pour
+  Séisme. Contrôle pixel humain (cf §3.7).
 - 🤖 **Tags spéciaux** listés selon le move : « ⏱ 2 tours », « ⏱ 2 tours (Soleil = instant) »,
   « 🛡️ basé sur la Défense », « ⚡ puissance variable », « 🔊 Sonore (ignore Clone) », blocages
   (« Bloqué par Provoc/Entrave/Bis »).
@@ -828,6 +837,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/hud.spec.ts` | §4 — sous-menu (type/nom), tooltip + grille de pattern (survol), timeline, §4.11 combat EN (`pt-lang=en`) |
 | `combat/hud-menu.spec.ts` | §4.1 bannière, §4.2 timeline (active/team), §4.4 menu (5 boutons, Objet/Statut off), §4.5 move-item (type/nom/PP), §4.9 journal (titre + repli) |
 | `combat/hud-state.spec.ts` | §4.6 tooltip (apparaît/disparaît + tag 2 tours), §4.2 timeline CT (`data-ct`), §4.7 badge statut, §4.5 nom EN |
+| `combat/preview-colours.spec.ts` | §4.6 couleurs de preview pilotées par l'intention : `data-intent` attack/buff/heal (Griffe/Danse Lames/Fontaine de Vie), cellules `data-cell` target/dash/caster/caster-target, croix lanceur, centre Séisme vide |
 | `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire |
 | `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (8 + détail + ↑/↓ aria-current), §6.4 format + Lancer gating |
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset) |
