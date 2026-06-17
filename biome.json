@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/latest/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
 
   "vcs": {
     "enabled": true,
@@ -54,14 +54,14 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
 
       "a11y": {
-        "recommended": false
+        "preset": "none"
       },
 
       "correctness": {
-        "recommended": true,
+        "preset": "recommended",
         "noConstAssign": "error",
         "noGlobalObjectCalls": "error",
         "noInvalidConstructorSuper": "error",
@@ -82,7 +82,7 @@
       },
 
       "suspicious": {
-        "recommended": true,
+        "preset": "recommended",
         "noAssignInExpressions": "error",
         "noAsyncPromiseExecutor": "error",
         "noCatchAssign": "error",
@@ -112,7 +112,7 @@
       },
 
       "complexity": {
-        "recommended": true,
+        "preset": "recommended",
         "noExtraBooleanCast": "error",
         "noUselessCatch": "error",
         "noUselessConstructor": "error",
@@ -120,22 +120,23 @@
         "noUselessTypeConstraint": "error",
         "noForEach": "off",
         "useArrowFunction": "warn",
-        "useFlatMap": "warn"
+        "useFlatMap": "warn",
+        "noUselessReturn": "warn"
       },
 
       "performance": {
-        "recommended": true,
+        "preset": "recommended",
         "noAccumulatingSpread": "warn",
         "noDelete": "error"
       },
 
       "security": {
-        "recommended": true,
+        "preset": "recommended",
         "noGlobalEval": "error"
       },
 
       "style": {
-        "recommended": true,
+        "preset": "recommended",
         "noNegationElse": "warn",
         "noParameterAssign": "warn",
         "noShoutyConstants": "off",
@@ -185,7 +186,6 @@
       "nursery": {
         "noFloatingPromises": "error",
         "useExplicitType": "off",
-        "noUselessReturn": "warn",
         "useExhaustiveSwitchCases": "error"
       }
     }

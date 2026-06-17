@@ -299,7 +299,7 @@ describe("parseDecorationsLayer", () => {
   it("rejects an obstacle overlapping impassable terrain", () => {
     const map = buildMap([makeDecoObject(1, 100, 2, 2)]);
     const terrainLayer = map.layers.find((l) => l.name === "terrain");
-    if (!terrainLayer || terrainLayer.type !== "tilelayer") {
+    if (terrainLayer?.type !== "tilelayer") {
       throw new Error("missing terrain layer in fixture");
     }
     const data = [...(terrainLayer.data ?? [])];
