@@ -21,6 +21,19 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Cache du transform Vitest (experimental.fsModuleCache). Restauré après l'install pour
+      # que pnpm ne le purge pas ; sauvé en post-job. Adressé par contenu → vitest revalide par
+      # hash, un cache un peu périmé reste correct (les restore-keys retombent sur le plus récent).
+      - uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.experimental-vitest-cache
+            node_modules/.vite
+          key: vitest-cache-${{ runner.os }}-node24-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            vitest-cache-${{ runner.os }}-node24-${{ hashFiles('pnpm-lock.yaml') }}-
+            vitest-cache-${{ runner.os }}-node24-
+
       - run: pnpm lint
 
       - run: pnpm typecheck
