@@ -28,15 +28,6 @@ export const CURSOR_PULSE_MAX_ALPHA = 1.0;
 export const CURSOR_PULSE_DURATION_MS = 600;
 
 export const HOVER_CURSOR_GAP_Y = 15;
-// Each cursor sprite has its own ideal on-screen scale — the baseline reads well
-// at 0.5, but the pokéball-integrated variants need more size to stay legible.
-export const HOVER_CURSOR_OPTIONS = [
-  { key: "hover-cursor", label: "Flèche", scale: 0.5 },
-  { key: "hover-cursor-variant-claw-arrow", label: "Claw", scale: 0.75 },
-  { key: "hover-cursor-variant-teardrop", label: "Goutte", scale: 0.75 },
-  { key: "hover-cursor-variant-v-wings", label: "V-Wings", scale: 0.75 },
-] as const;
-export type HoverCursorOption = (typeof HOVER_CURSOR_OPTIONS)[number];
 
 export const HP_BAR_WIDTH = 18;
 export const HP_BAR_HEIGHT = 2;

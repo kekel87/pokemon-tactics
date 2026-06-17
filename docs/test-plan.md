@@ -179,11 +179,11 @@ actives (Reflet/Mur Lumière posés). Bloqué tant que `SandboxConfig` n'expose 
 ### 3.8 Curseur de survol
 *src : `hover-cursor.ts`*
 
-- 🤖 Curseur monté en **groupe 3 = jamais occulté** (`hover_cursor`, `scene-graph.spec`). *Le
-  placement « sommet de la tête/décor » + le bob = 👁 (pixel/anim).*
-- 👁 Repose sur le **sommet de la tête** du Pokemon survolé, ou le **sommet du décor** sinon ; face
-  caméra, léger bob vertical.
-- 👁 Touche `H` : cycle les variantes (persisté).
+- 🤖 Curseur monté en **un seul exemplaire** (`hover_cursor`, modèle voxel `cursor.glb`), en
+  **groupe 3 = jamais occulté** (`scene-graph.spec`). *Le placement « sommet de la tête/décor », le
+  bob et l'aspect voxel opaque = 👁 (pixel/anim).*
+- 👁 Modèle voxel unique (non configurable) ; repose sur le **sommet de la tête** du Pokemon
+  survolé, ou le **sommet du décor** sinon ; face caméra, léger bob vertical.
 
 ### 3.9 Sélecteur de direction (placement)
 *src : `direction-picker.ts`, `view-core/direction-arrow-layout.ts`*
@@ -651,11 +651,11 @@ réellement touchées à la résolution.*
 ### 6.7 Paramètres
 *libellés : `settings.*` ; storage `pt-lang`, `pt-settings`*
 - 🤖 Accès depuis le menu ; titre « Paramètres » ; Retour → menu.
-- 🤖 **3 entrées** : **Langue** (FR/EN), **Prévisualisation dégâts** (Oui/Non), **Curseur**
-  (cycle + aperçu). Valider chaque libellé en FR **et** EN.
-- 🤖 Changer une option **persiste en localStorage** : langue → `pt-lang` ; prévisualisation &
-  curseur → `pt-settings` (JSON).
-- 🤖 Aperçu du curseur (image) change à chaque cycle.
+- 🤖 **2 entrées** : **Langue** (FR/EN), **Prévisualisation dégâts** (Oui/Non). Valider chaque
+  libellé en FR **et** EN. *(L'option « Curseur » a été retirée : le curseur de survol est désormais
+  un modèle voxel unique non configurable — cf §3.8.)*
+- 🤖 Changer une option **persiste en localStorage** : langue → `pt-lang` ; prévisualisation →
+  `pt-settings` (JSON).
 
 ### 6.8 Crédits
 *libellés : `credits.*`*
@@ -802,7 +802,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `smoke/boot.spec.ts` | boot → menu principal |
 | `dom/navigation.spec.ts` | menu → mode de combat → choix carte → retour |
 | `dom/main-menu.spec.ts` | §6.1 — titre, 5 entrées, Aventure disabled, version, switch FR→EN + `pt-lang` |
-| `dom/settings.spec.ts` | §6.7 — 3 options, persistance `pt-lang`/`pt-settings` |
+| `dom/settings.spec.ts` | §6.7 — 2 options (Langue + Prévisualisation dégâts), persistance `pt-lang`/`pt-settings` |
 | `dom/credits.spec.ts` | §6.8 — titre + contenu + EN |
 | `dom/picker.spec.ts` | §7.2 — ouverture/liste/recherche, filtres type (union/toggle/reset), choisir/grisé/fermer |
 | `dom/team-builder.spec.ts` | §6.5 — créer+nommer+persist, générer aléatoire, supprimer (« tout vider » skippé : régression modale, cf backlog) |
@@ -860,8 +860,8 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
       ses infos (Dracaufeu/team), tile vide → repli sur l'actif (`info-panel.spec`).
 - [x] **§4 / §6 / §7 (DOM) — couverture poussée au maximum automatisable** : timeline CT, tooltip
       (apparaît/disparaît/tag), badge statut, nom EN (`hud-state`) ; Échap/hors-portée/modale victoire
-      (`combat-flow`) ; Échap retour, ↑/↓ aria-current, format (`screens`) ; curseur cycle
-      (`settings`) ; état vide (`team-builder`) ; compteur/vider-slot/natures/move-picker/preset
+      (`combat-flow`) ; Échap retour, ↑/↓ aria-current, format (`screens`) ; Paramètres 2 options +
+      persistance (`settings`) ; état vide (`team-builder`) ; compteur/vider-slot/natures/move-picker/preset
       (`pokemon-edit`).
 - [ ] **Reste 👁 DOM (irréductible — vérifié non reproductible, pas par flemme)** :
       - **§4.5 move grisé** (0 PP / sans cible / bloqué Provoc-Entrave-Bis) : en pratique les moves

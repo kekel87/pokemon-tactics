@@ -1,11 +1,10 @@
 import type { Navigate, Screen } from "../../../app/screen-manager";
-import { HOVER_CURSOR_OPTIONS } from "../../../constants";
 import { getLanguage, setLanguage, t } from "../../../i18n";
 import { Language } from "../../../i18n/types";
 import { getSettings, updateSettings } from "../../../settings";
 import { bindEscape, el, menuButton } from "./elements";
 
-/** DOM port of SettingsScene: language, damage preview and hover-cursor rows. */
+/** DOM port of SettingsScene: language and damage-preview rows. */
 export function createSettingsScreen(navigate: Navigate): Screen<"settings"> {
   let root: HTMLElement | null = null;
   let unbindEscape: (() => void) | null = null;
@@ -43,29 +42,10 @@ export function createSettingsScreen(navigate: Navigate): Screen<"settings"> {
     );
     damagePreviewToggle.dataset.testid = "setting-damage-preview";
 
-    const cursorIndex = Math.max(
-      0,
-      HOVER_CURSOR_OPTIONS.findIndex((option) => option.key === getSettings().hoverCursorKey),
-    );
-    const cursorOption = HOVER_CURSOR_OPTIONS[cursorIndex] ?? HOVER_CURSOR_OPTIONS[0];
-    const cursorToggle = menuButton(cursorOption.label, () => {
-      const next = HOVER_CURSOR_OPTIONS[(cursorIndex + 1) % HOVER_CURSOR_OPTIONS.length];
-      updateSettings({ hoverCursorKey: (next ?? cursorOption).key });
-      render(host);
-    });
-    cursorToggle.dataset.testid = "setting-cursor";
-    const cursorImage = el("img", "mn-cursor-preview");
-    cursorImage.src = `assets/ui/cursor/${cursorOption.key}.png`;
-    cursorImage.alt = "";
-    cursorImage.loading = "lazy";
-    cursorImage.decoding = "async";
-    cursorToggle.prepend(cursorImage);
-
     const rows = el("div", "mn-rows");
     rows.append(
       row(t("settings.language"), languageToggle),
       row(t("settings.damagePreview"), damagePreviewToggle),
-      row(t("settings.cursor"), cursorToggle),
     );
 
     const back = menuButton(t("settings.back"), goBack);

@@ -71,11 +71,6 @@
     color: var(--color-text-secondary);
   }
 
-  .mn-cursor-preview {
-    block-size: 1.2em;
-    image-rendering: pixelated;
-  }
-
   .mn-credits {
     display: flex;
     flex-direction: column;

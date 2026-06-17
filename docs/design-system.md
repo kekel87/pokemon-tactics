@@ -398,6 +398,8 @@ La depth du container est portée à `max(originalDepth, maxTileDepthInRadius(cx
 
 ## Curseur de survol (plan 060)
 
+> **Note (chantier Post-Babylon d, 2026-06-17)** : la section ci-dessous décrit l'implémentation Phaser legacy (`packages/renderer`, hors-workspace). Dans le renderer Babylon actuel, le curseur est un **mesh voxel 3D** (voir § "Curseur FFTA hover" dans la section Babylon ci-dessous). La mécanique de switch de variantes (touche H, `HOVER_CURSOR_OPTIONS`, 4 PNG, setting Curseur) est supprimée — décisions #514-515.
+
 Le highlight de tile au survol (`showCursor` dans `IsometricGrid`) reste un simple outline diamant jaune pulsant au sol, sous les sprites. En complément, un **HoverCursor** flotte au-dessus de la tile survolée par la souris (style FFTA) : pokéball avec flèche/cône jaune pointant vers le bas. Il suit le pointeur en même temps que le highlight de tile et disparaît quand la souris quitte la grille.
 
 | Constante | Valeur | Rôle |
@@ -763,11 +765,13 @@ Source canonique : `packages/renderer/src/babylon/babylon-constants.ts`.
 
 **Note perf** : le fragment shader `gl_FragDepth` (utilisé par `SpriteDepthPlugin` pour le foot-depth) désactive l'early-z GPU. À l'échelle du projet (6-20 sprites), l'impact est négligeable.
 
-#### Curseur FFTA hover (Jalon 3c)
+#### Curseur FFTA hover (chantier Post-Babylon d — révise Jalon 3c)
+
+Le curseur de survol est désormais un **mesh voxel 3D unique** (`cursor.glb`, modélisé sur voxigen.io), chargé via GLTF. Il tourne avec la caméra (vrai objet 3D), est opaque (`hasVertexAlpha=false`), et n'est **pas configurable** (aucun switch de variantes — décision #514). La mécanique de switch (touche H, `HOVER_CURSOR_OPTIONS`, 4 PNG) est retirée. Source éditable : `assets-src/voxel/cursor.vxb`.
 
 | Constante | Valeur | Rôle |
 |-----------|--------|------|
-| `BABYLON_HOVER_CURSOR_GAP` | `0.35` | Décalage vertical en unités monde entre la surface de la tuile et la base du curseur billboard quand aucun Pokémon n'est présent. Quand un Pokémon occupe la tuile, le curseur se lève à `spriteTopOffsetY` (hauteur de la tête, fallback `BABYLON_SPRITE_HEAD_LIFT_FALLBACK` tant que l'atlas charge). Décision #479. |
+| `BABYLON_HOVER_CURSOR_GAP` | `0.35` | Décalage vertical en unités monde entre la surface de la tuile et la base du curseur quand aucun Pokémon n'est présent. Quand un Pokémon occupe la tuile, le curseur se lève à `spriteTopOffsetY` (fallback `BABYLON_SPRITE_HEAD_LIFT_FALLBACK`). Décision #479 / #515. |
 
 #### Rendering groups (refonte silhouette terrain-only — plan 120)
 

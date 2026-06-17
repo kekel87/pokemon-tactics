@@ -58,13 +58,11 @@ export class SettingsScreen {
   /** Each setting's control carries a dedicated `data-testid` (resilient to label/i18n changes). */
   readonly languageToggle: Locator;
   readonly damagePreviewToggle: Locator;
-  readonly cursorToggle: Locator;
   constructor(page: Page) {
     this.title = page.getByRole("heading", { name: "Paramètres" });
     this.back = page.getByRole("button", { name: "Retour" });
     this.languageToggle = page.getByTestId("setting-language");
     this.damagePreviewToggle = page.getByTestId("setting-damage-preview");
-    this.cursorToggle = page.getByTestId("setting-cursor");
   }
 }
 
