@@ -153,44 +153,6 @@ describe("Disable — blocks the target's last used move for 4 turns", () => {
     vi.restoreAllMocks();
   });
 
-  it("fails when the target's last move has no PP left", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0.1);
-
-    const attacker = MockPokemon.fresh(MockPokemon.base, {
-      id: "attacker",
-      playerId: PlayerId.Player1,
-      position: { x: 0, y: 0 },
-      moveIds: ["disable"],
-      currentPp: { disable: 20 },
-      derivedStats: { movement: 3, jump: 1, initiative: 100 },
-    });
-    const target = MockPokemon.fresh(MockPokemon.base, {
-      id: "target",
-      playerId: PlayerId.Player2,
-      position: { x: 1, y: 0 },
-      moveIds: ["tackle"],
-      currentPp: { tackle: 0 },
-      derivedStats: { movement: 3, jump: 1, initiative: 5 },
-      lastUsedMoveId: "tackle",
-    });
-
-    const { engine, state } = buildMoveTestEngine([attacker, target]);
-
-    const result = engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.UseMove,
-      pokemonId: "attacker",
-      moveId: "disable",
-      targetPosition: { x: 1, y: 0 },
-    });
-
-    expect(result.events.some((e) => e.type === BattleEventType.DisableFailed)).toBe(true);
-    expect(
-      state.pokemon.get("target")?.volatileStatuses.some((v) => v.type === StatusType.Disabled),
-    ).toBe(false);
-
-    vi.restoreAllMocks();
-  });
-
   it("fails when the target already has a disabled move", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.1);
 
@@ -331,37 +293,6 @@ describe("Encore — forces the target to repeat its last move for 3 turns", () 
 
     expect(result.success).toBe(false);
     expect(result.events.some((e) => e.type === BattleEventType.EncoreBlocked)).toBe(true);
-  });
-
-  it("ends early when the encored move runs out of PP", () => {
-    const caster = MockPokemon.fresh(MockPokemon.base, {
-      id: "caster",
-      playerId: PlayerId.Player1,
-      position: { x: 0, y: 0 },
-      moveIds: ["tackle", "ember"],
-      currentPp: { tackle: 0, ember: 25 },
-      derivedStats: { movement: 3, jump: 1, initiative: 100 },
-      volatileStatuses: [{ type: StatusType.Encored, remainingTurns: 3, moveId: "tackle" }],
-    });
-    const dummy = MockPokemon.fresh(MockPokemon.base, {
-      id: "dummy",
-      playerId: PlayerId.Player2,
-      position: { x: 4, y: 0 },
-      derivedStats: { movement: 3, jump: 1, initiative: 1 },
-    });
-
-    const { engine, state } = buildMoveTestEngine([caster, dummy]);
-
-    engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.EndTurn,
-      pokemonId: "caster",
-      direction: caster.orientation,
-    });
-
-    const stillEncored = state.pokemon
-      .get("caster")
-      ?.volatileStatuses.some((v) => v.type === StatusType.Encored);
-    expect(stillEncored).toBe(false);
   });
 
   it("fails when the target has not used a move yet", () => {

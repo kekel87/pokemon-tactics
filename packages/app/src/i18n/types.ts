@@ -15,7 +15,6 @@ export interface Translations {
   "action.cancel": string;
   "battle.player1": string;
   "battle.player2": string;
-  "battle.round": string;
   "battle.wins": string;
   "battle.restart": string;
   "battle.backToMenu": string;
@@ -141,8 +140,6 @@ export interface Translations {
   "teamSelect.clear": string;
   "teamSelect.autoPlacement": string;
   "teamSelect.manualPlacement": string;
-  "teamSelect.turnSystemRr": string;
-  "teamSelect.turnSystemCt": string;
   "teamSelect.format.label": string;
   "teamSelect.players.choose": string;
   "teamSelect.controller.human": string;
@@ -154,7 +151,6 @@ export interface Translations {
   "teamSelect.actions.launch": string;
   "teamSelect.actions.back": string;
   "teamSelect.autoPlacement.label": string;
-  "teamSelect.turnSystem.label": string;
   "placement.done": string;
   "pokemon.bulbasaur": string;
   "pokemon.venusaur": string;

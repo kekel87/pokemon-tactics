@@ -284,15 +284,24 @@ export interface ExpiredFieldZone {
   kind: FieldTerrain;
 }
 
-/** Decrement every zone's timer once; remove (and report) the zones that reached zero. */
-export function decrementFieldTerrainsTimer(state: BattleState): ExpiredFieldZone[] {
+/**
+ * Decrement the timers of the zones posted by `casterId` (CT "tours du lanceur" model: a zone
+ * counts down on its caster's own turns — or, after the caster's KO, on its ghost turns). Remove
+ * and report the zones that reached zero.
+ */
+export function decrementFieldTerrainsTimer(
+  state: BattleState,
+  casterId: string,
+): ExpiredFieldZone[] {
   const expired: ExpiredFieldZone[] = [];
   for (const zone of state.fieldTerrains) {
-    zone.remainingTurns -= 1;
+    if (zone.casterId === casterId) {
+      zone.remainingTurns -= 1;
+    }
   }
   for (let i = state.fieldTerrains.length - 1; i >= 0; i--) {
     const zone = state.fieldTerrains[i];
-    if (zone && zone.remainingTurns <= 0) {
+    if (zone && zone.casterId === casterId && zone.remainingTurns <= 0) {
       expired.unshift({ casterId: zone.casterId, kind: zone.kind });
       state.fieldTerrains.splice(i, 1);
     }

@@ -36,6 +36,16 @@ export class ChargeTimeTurnSystem {
     this.ctMap.delete(pokemonId);
   }
 
+  /**
+   * Make `pokemonId` the immediate next actor (deterministic test setup): it crosses the threshold
+   * while everyone else resets to the start value, so the natural cadence resumes afterwards.
+   */
+  forceActor(pokemonId: string): void {
+    for (const id of this.ctMap.keys()) {
+      this.ctMap.set(id, id === pokemonId ? CT_THRESHOLD : CT_START);
+    }
+  }
+
   getCtSnapshot(): Record<string, number> {
     return Object.fromEntries(this.ctMap);
   }

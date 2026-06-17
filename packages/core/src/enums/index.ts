@@ -28,5 +28,4 @@ export { StatusType } from "./status-type";
 export { TargetingKind } from "./targeting-kind";
 export { TeamValidationError } from "./team-validation-error";
 export { isTerrainPassable, TerrainType } from "./terrain-type";
-export { TurnSystemKind } from "./turn-system-kind";
 export { Weather } from "./weather";

@@ -64,7 +64,7 @@
     flex-direction: column;
     align-items: stretch;
     gap: var(--spacing-xs);
-    min-inline-size: 14rem;
+    min-inline-size: 16rem;
   }
 
   .bc-instruction {
@@ -148,10 +148,19 @@
     text-overflow: ellipsis;
   }
 
-  .bc-move-pp {
+  .bc-move-tempo {
     flex: 0 0 auto;
-    color: var(--color-text-secondary);
-    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+    /* Colour the cost weight: light = green, moderate = amber, heavy = red. */
+    color: var(--color-tempo-medium);
+    &[data-tempo="1"],
+    &[data-tempo="2"] {
+      color: var(--color-tempo-light);
+    }
+    &[data-tempo="4"],
+    &[data-tempo="5"] {
+      color: var(--color-tempo-heavy);
+    }
   }
 
   .bc-selected-move {

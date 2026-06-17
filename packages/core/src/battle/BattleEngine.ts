@@ -12,7 +12,6 @@ import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { isTerrainPassable, TerrainType } from "../enums/terrain-type";
-import { TurnSystemKind } from "../enums/turn-system-kind";
 import { Weather } from "../enums/weather";
 import { Grid } from "../grid/Grid";
 import { resolveTargeting } from "../grid/targeting";
@@ -55,6 +54,7 @@ import { isEffectivelyFlying } from "./effective-flying";
 import { getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
 import {
+  decrementFieldTerrainsTimer,
   getFieldTerrainBpMultiplier,
   getFieldTerrainDamageMultiplier,
   getFieldTerrainMovePowerMultiplier,
@@ -83,7 +83,6 @@ import { wishTickHandler } from "./handlers/wish-tick-handler";
 import { getHeightModifier } from "./height-modifier";
 import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
-import { getEffectiveInitiative } from "./initiative-calculator";
 import { resolveNaturePowerMove } from "./nature-power-system";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { computePressureBonus } from "./pressure";
@@ -92,7 +91,6 @@ import {
   getSemiInvulnerableDamageMultiplier,
 } from "./semi-invulnerable";
 import { isMajorStatus } from "./stat-modifier";
-import { TurnManager } from "./TurnManager";
 import {
   getImmuneTerrains,
   getMovementPenalty,
@@ -100,7 +98,7 @@ import {
   isTerrainImmune,
 } from "./terrain-effects";
 import { TurnPipeline } from "./turn-pipeline";
-import { effectiveWeather } from "./weather-system";
+import { decrementWeatherTimer, effectiveWeather } from "./weather-system";
 
 type EventHandler = (event: BattleEvent) => void;
 
@@ -119,9 +117,7 @@ export class BattleEngine {
   private readonly state: BattleState;
   private readonly moveRegistry: Map<string, MoveDefinition>;
   private readonly typeChart: TypeChart;
-  private readonly turnManager: TurnManager;
-  private readonly chargeTimeTurnSystem: ChargeTimeTurnSystem | null;
-  private readonly turnSystemKind: TurnSystemKind;
+  private readonly chargeTimeTurnSystem: ChargeTimeTurnSystem;
   private readonly listeners: Map<string, Set<EventHandler>>;
   private readonly grid: Grid;
   private readonly pokemonTypesMap: Map<string, PokemonType[]>;
@@ -146,10 +142,6 @@ export class BattleEngine {
   private flinchedThisTurn = false;
   private battleOver = false;
 
-  private getInitiativeFn(): (pokemon: PokemonInstance) => number {
-    return (pokemon: PokemonInstance) =>
-      getEffectiveInitiative(pokemon, this.state, this.abilityRegistry ?? undefined);
-  }
   private startupEvents: BattleEvent[] = [];
 
   constructor(
@@ -160,7 +152,6 @@ export class BattleEngine {
     turnPipeline: TurnPipeline = new TurnPipeline(),
     random?: RandomFn,
     seed = 0,
-    turnSystemKind: TurnSystemKind = TurnSystemKind.RoundRobin,
     statusRules: StatusRules = DEFAULT_STATUS_RULES,
     abilityRegistry: AbilityHandlerRegistry | null = null,
     itemRegistry: HeldItemHandlerRegistry | null = null,
@@ -182,13 +173,11 @@ export class BattleEngine {
     // tests construct the engine without a `random` and drive outcomes via `vi.spyOn(Math, …)`.
     this.random = random ?? (() => Math.random());
     this.seed = seed;
-    this.turnSystemKind = turnSystemKind;
     this.statusRules = statusRules;
     this.abilityRegistry = abilityRegistry;
     this.itemRegistry = itemRegistry;
     this.listeners = new Map();
     this.grid = new Grid(state.grid[0]?.length ?? 0, state.grid.length, state.grid);
-    this.turnManager = new TurnManager([...state.pokemon.values()], this.getInitiativeFn());
     this.turnPipeline.registerStartTurn(defensiveClearHandler, 50);
     this.turnPipeline.registerStartTurn(
       createStatusTickHandler(this.random, this.statusRules, this.abilityRegistry ?? undefined),
@@ -219,19 +208,12 @@ export class BattleEngine {
     );
     this.turnPipeline.registerEndTurn(roostedClearHandler, 500);
 
-    if (turnSystemKind === TurnSystemKind.ChargeTime) {
-      const pokemonIds = [...state.pokemon.keys()];
-      this.chargeTimeTurnSystem = new ChargeTimeTurnSystem(pokemonIds, (id) =>
-        this.getCtGainForPokemon(id),
-      );
-      this.state.turnSystemKind = TurnSystemKind.ChargeTime;
-      this.syncCtSnapshot();
-      this.advanceTurnCt([]);
-    } else {
-      this.chargeTimeTurnSystem = null;
-      this.state.turnSystemKind = TurnSystemKind.RoundRobin;
-      this.syncTurnState();
-    }
+    const pokemonIds = [...state.pokemon.keys()];
+    this.chargeTimeTurnSystem = new ChargeTimeTurnSystem(pokemonIds, (id) =>
+      this.getCtGainForPokemon(id),
+    );
+    this.syncCtSnapshot();
+    this.advanceTurn([]);
 
     this.triggerBattleStart();
   }
@@ -244,6 +226,21 @@ export class BattleEngine {
     const events = this.startupEvents;
     this.startupEvents = [];
     return events;
+  }
+
+  /**
+   * TEST SEAM: pin which mon takes the next turn, coherently with the Charge Time scheduler. The
+   * Charge Time system picks the fastest mon at construction; isolated move/item tests use this to
+   * make a chosen mon the actor so the result is independent of relative Speed.
+   */
+  pinActiveForTest(pokemonId: string): void {
+    // Already this mon's freshly-started turn (it was the natural Charge Time first actor): do not
+    // re-run advanceTurn, which would tick its start-of-turn pipeline twice (e.g. sleep counter).
+    if (this.state.activePokemonId === pokemonId) {
+      return;
+    }
+    this.chargeTimeTurnSystem.forceActor(pokemonId);
+    this.advanceTurn([]);
   }
 
   addStartupEvents(events: readonly BattleEvent[]): void {
@@ -483,14 +480,11 @@ export class BattleEngine {
   }
 
   private getCurrentActorId(): string {
-    if (this.turnSystemKind === TurnSystemKind.ChargeTime) {
-      const id = this.state.turnOrder[0];
-      if (!id) {
-        throw new Error("No current actor in CT mode");
-      }
-      return id;
+    const id = this.state.activePokemonId;
+    if (!id) {
+      throw new Error("No current actor");
     }
-    return this.turnManager.getCurrentPokemonId();
+    return id;
   }
 
   getLegalActions(playerId: string): Action[] {
@@ -557,10 +551,6 @@ export class BattleEngine {
       )?.moveId;
 
       for (const moveId of currentPokemon.moveIds) {
-        const currentPp = currentPokemon.currentPp[moveId];
-        if (currentPp === undefined || currentPp <= 0) {
-          continue;
-        }
         const move = this.moveRegistry.get(moveId);
         if (!move) {
           continue;
@@ -943,11 +933,6 @@ export class BattleEngine {
       return { success: false, events: [], error: ActionError.MoveNotInMoveset };
     }
 
-    const currentPp = pokemon.currentPp[moveId];
-    if (currentPp === undefined || currentPp <= 0) {
-      return { success: false, events: [], error: ActionError.NoPpLeft };
-    }
-
     const isTaunted = pokemon.volatileStatuses.some((v) => v.type === StatusType.Taunted);
     if (isTaunted && move.category === Category.Status) {
       const tauntBlockedEvent: BattleEvent = {
@@ -1011,7 +996,6 @@ export class BattleEngine {
       const activeWeather = this.getEffectiveWeather();
       const skipDueToWeather = move.sunSkipsCharge === true && activeWeather === Weather.Sun;
       if (!skipDueToWeather) {
-        pokemon.currentPp[moveId] = currentPp - 1;
         pokemon.chargingMove = { moveId, targetPosition: pokemon.position };
         pokemon.lockedMoveId = moveId;
         if (move.semiInvulnerableState !== undefined) {
@@ -1087,8 +1071,6 @@ export class BattleEngine {
       pokemon.chargingMove = undefined;
       pokemon.lockedMoveId = undefined;
       pokemon.semiInvulnerableState = undefined;
-    } else {
-      pokemon.currentPp[moveId] = currentPp - 1;
     }
 
     const events: BattleEvent[] = [];
@@ -2155,7 +2137,7 @@ export class BattleEngine {
     }
     return pokemon.moveIds.some((moveId) => {
       const move = this.moveRegistry.get(moveId);
-      return move?.requiresAsleep === true && (pokemon.currentPp[moveId] ?? 0) > 0;
+      return move?.requiresAsleep === true;
     });
   }
 
@@ -2238,150 +2220,8 @@ export class BattleEngine {
     }
 
     if (!this.battleOver) {
-      if (this.turnSystemKind === TurnSystemKind.ChargeTime) {
-        this.endCurrentTurnCt(pokemonId);
-        this.advanceTurnCt(events);
-      } else {
-        this.advanceTurn(events);
-      }
-    }
-  }
-
-  private advanceTurn(events: BattleEvent[]): void {
-    this.turnManager.advance();
-
-    if (this.turnManager.isRoundComplete()) {
-      const alivePokemon = this.getAlivePokemon();
-      this.turnManager.recalculateOrder(alivePokemon, this.getInitiativeFn());
-      this.turnManager.startNewRound();
-      this.state.roundNumber++;
-    }
-
-    this.syncTurnState();
-
-    const totalPokemon = this.turnManager.getTurnOrder().length;
-    let iterations = 0;
-
-    while (iterations < totalPokemon) {
-      const nextPokemonId = this.turnManager.getCurrentPokemonId();
-
-      this.turnState = {
-        hasMoved: false,
-        hasActed: false,
-        lastMoveId: null,
-        lastTargetIds: [],
-      };
-      this.preMoveSnapshot = null;
-      this.restrictActions = false;
-      this.confusedThisTurn = false;
-      this.confusionChecked = false;
-      this.flinchedThisTurn = false;
-
-      this.beginActorTurn(nextPokemonId);
-
-      const turnStarted: BattleEvent = {
-        type: BattleEventType.TurnStarted,
-        pokemonId: nextPokemonId,
-        roundNumber: this.state.roundNumber,
-      };
-      this.emit(turnStarted);
-      events.push(turnStarted);
-
-      this.emitWeatherAbilityActivation(nextPokemonId, events);
-
-      const startTurnResult = this.turnPipeline.executeStartTurn(nextPokemonId, this.state);
-      for (const event of startTurnResult.events) {
-        this.emit(event);
-        events.push(event);
-      }
-
-      if (startTurnResult.pokemonFainted) {
-        this.handleKo(nextPokemonId, events);
-        if (this.battleOver) {
-          return;
-        }
-        this.turnManager.advance();
-        if (this.turnManager.isRoundComplete()) {
-          const alivePokemon = this.getAlivePokemon();
-          this.turnManager.recalculateOrder(alivePokemon, this.getInitiativeFn());
-          this.turnManager.startNewRound();
-          this.state.roundNumber++;
-        }
-        this.syncTurnState();
-        iterations++;
-        continue;
-      }
-
-      if (startTurnResult.skipAction && !this.canActWhileAsleep(nextPokemonId)) {
-        const skipEnded: BattleEvent = {
-          type: BattleEventType.TurnEnded,
-          pokemonId: nextPokemonId,
-        };
-        this.emit(skipEnded);
-        events.push(skipEnded);
-
-        // Action clock (B3): a skipped turn (flinch / sleep / full paralysis) still consumes the
-        // actor's turn, so stamp lastActedAtAction — otherwise its "since my last action" stamps
-        // would stay stale and falsely trigger Avalanche / Revenge / Assurance later.
-        const skippedPokemon = this.state.pokemon.get(nextPokemonId);
-        if (skippedPokemon !== undefined) {
-          skippedPokemon.lastActedAtAction = this.state.actionCounter ?? 0;
-        }
-
-        const endTurnResult = this.turnPipeline.executeEndTurn(nextPokemonId, this.state);
-        for (const event of endTurnResult.events) {
-          this.emit(event);
-          events.push(event);
-        }
-        if (endTurnResult.pokemonFainted) {
-          for (const event of endTurnResult.events) {
-            if (event.type === BattleEventType.PokemonKo) {
-              this.handleKo(event.pokemonId, events);
-              if (this.battleOver) {
-                return;
-              }
-            }
-          }
-        }
-
-        const skipPokemon = this.state.pokemon.get(nextPokemonId);
-        if (skipPokemon && skipPokemon.currentHp > 0) {
-          const skipAbility = this.abilityRegistry?.getForPokemon(skipPokemon);
-          if (skipAbility?.onEndTurn) {
-            const abilityEvents = skipAbility.onEndTurn({ self: skipPokemon, state: this.state });
-            for (const event of abilityEvents) {
-              this.emit(event);
-              events.push(event);
-            }
-          }
-        }
-
-        this.turnManager.advance();
-        if (this.turnManager.isRoundComplete()) {
-          const alivePokemon = this.getAlivePokemon();
-          this.turnManager.recalculateOrder(alivePokemon, this.getInitiativeFn());
-          this.turnManager.startNewRound();
-          this.state.roundNumber++;
-        }
-        this.syncTurnState();
-        iterations++;
-        continue;
-      }
-
-      if (startTurnResult.restrictActions) {
-        this.restrictActions = true;
-      }
-
-      if (!startTurnResult.skipAction) {
-        const nextPokemon = this.state.pokemon.get(nextPokemonId);
-        if (nextPokemon) {
-          this.processFlinch(nextPokemon, events);
-          this.processConfusion(nextPokemon, events);
-          this.confusionChecked = true;
-        }
-      }
-
-      break;
+      this.payCtActionCost(pokemonId);
+      this.advanceTurn(events);
     }
   }
 
@@ -2535,8 +2375,12 @@ export class BattleEngine {
       return;
     }
 
-    this.turnManager.removePokemon(pokemonId);
-    this.chargeTimeTurnSystem?.onPokemonKO(pokemonId);
+    // Ghost clock: a KO'd mon that set environmental effects (weather / field zones) stays in the
+    // CT scheduler so those durations keep counting down on its would-be turns (advanceTurn). Auras
+    // (team barriers) die with their caster — removeAurasOfCaster below — so they grant no ghost.
+    if (!this.hasEnvironmentalEffectSetBy(pokemonId)) {
+      this.chargeTimeTurnSystem.onPokemonKO(pokemonId);
+    }
 
     // Action clock (B3): record the faint for Retaliate ("ally fainted since my last action").
     if (this.state.lastAllyFaintAtAction === undefined) {
@@ -2609,16 +2453,6 @@ export class BattleEngine {
     }
   }
 
-  private getAlivePokemon(): PokemonInstance[] {
-    const alive: PokemonInstance[] = [];
-    for (const pokemon of this.state.pokemon.values()) {
-      if (pokemon.currentHp > 0) {
-        alive.push(pokemon);
-      }
-    }
-    return alive;
-  }
-
   private getCtGainForPokemon(pokemonId: string): number {
     const pokemon = this.state.pokemon.get(pokemonId);
     if (!pokemon) {
@@ -2640,7 +2474,7 @@ export class BattleEngine {
     if (!move) {
       return 600;
     }
-    const attackerId = this.state.turnOrder[this.state.currentTurnIndex] ?? "";
+    const attackerId = this.state.activePokemonId;
     const pressureBonus = computePressureBonus(
       attackerId,
       move,
@@ -2658,11 +2492,11 @@ export class BattleEngine {
   }
 
   predictCtTimeline(count: number, moveId?: string): CtTimelineEntry[] {
-    if (!this.chargeTimeTurnSystem || count <= 0) {
+    if (count <= 0) {
       return [];
     }
 
-    const activePokemonId = this.state.turnOrder[0];
+    const activePokemonId = this.state.activePokemonId;
     if (!activePokemonId) {
       return [];
     }
@@ -2720,17 +2554,29 @@ export class BattleEngine {
     return result;
   }
 
-  private advanceTurnCt(events: BattleEvent[]): void {
+  private advanceTurn(events: BattleEvent[]): void {
     const ctSystem = this.chargeTimeTurnSystem;
-    if (!ctSystem) {
-      return;
-    }
 
     const MAX_SKIP_ITERATIONS = 50;
     let iterations = 0;
 
     while (iterations < MAX_SKIP_ITERATIONS) {
       const nextPokemonId = ctSystem.getNextActorId();
+
+      // Ghost clock: a KO'd mon still in the scheduler set persistent environmental effects
+      // (weather / field zones). It never takes a turn — on its would-be turn we count its
+      // durations down, pay a wait-sized CT cost, and drop it once nothing of its remains.
+      const candidate = this.state.pokemon.get(nextPokemonId);
+      if (candidate && candidate.currentHp <= 0) {
+        this.tickGhostTurn(nextPokemonId, events);
+        ctSystem.onActionComplete(nextPokemonId, CT_WAIT);
+        if (!this.hasEnvironmentalEffectSetBy(nextPokemonId)) {
+          ctSystem.onPokemonKO(nextPokemonId);
+        }
+        this.syncCtSnapshot();
+        iterations++;
+        continue;
+      }
 
       this.turnState = {
         hasMoved: false,
@@ -2744,8 +2590,7 @@ export class BattleEngine {
       this.confusionChecked = false;
       this.flinchedThisTurn = false;
 
-      this.state.turnOrder = [nextPokemonId];
-      this.state.currentTurnIndex = 0;
+      this.state.activePokemonId = nextPokemonId;
       this.syncCtSnapshot();
 
       this.beginActorTurn(nextPokemonId);
@@ -2753,10 +2598,11 @@ export class BattleEngine {
       const turnStarted: BattleEvent = {
         type: BattleEventType.TurnStarted,
         pokemonId: nextPokemonId,
-        roundNumber: this.state.roundNumber,
       };
       this.emit(turnStarted);
       events.push(turnStarted);
+
+      this.emitWeatherAbilityActivation(nextPokemonId, events);
 
       const startTurnResult = this.turnPipeline.executeStartTurn(nextPokemonId, this.state);
       for (const event of startTurnResult.events) {
@@ -2843,12 +2689,8 @@ export class BattleEngine {
     }
   }
 
-  private endCurrentTurnCt(pokemonId: string): void {
-    const ctSystem = this.chargeTimeTurnSystem;
-    if (!ctSystem) {
-      return;
-    }
-
+  /** Charge the acting mon's CT for the action it just completed (move / move-only / wait). */
+  private payCtActionCost(pokemonId: string): void {
     const moveCost = this.computeCurrentMoveCost();
     const actionCost = computeCtActionCost(
       this.turnState.hasMoved,
@@ -2856,8 +2698,40 @@ export class BattleEngine {
       moveCost,
     );
 
-    ctSystem.onActionComplete(pokemonId, actionCost);
+    this.chargeTimeTurnSystem.onActionComplete(pokemonId, actionCost);
     this.syncCtSnapshot();
+  }
+
+  /** True when this mon set an environmental effect still alive (weather it set, or a field zone). */
+  private hasEnvironmentalEffectSetBy(pokemonId: string): boolean {
+    const ownsWeather =
+      this.state.weather !== Weather.None &&
+      this.state.weatherTurnsRemaining > 0 &&
+      this.state.weatherSetterPokemonId === pokemonId;
+    const ownsField = this.state.fieldTerrains.some((zone) => zone.casterId === pokemonId);
+    return ownsWeather || ownsField;
+  }
+
+  /**
+   * Ghost turn (post-KO setter): count down the weather it set and the field zones it owns, emitting
+   * the same expiry events the live pipeline would. Auras are never ghosted — they died at KO.
+   */
+  private tickGhostTurn(pokemonId: string, events: BattleEvent[]): void {
+    if (this.state.weather !== Weather.None && this.state.weatherSetterPokemonId === pokemonId) {
+      for (const event of decrementWeatherTimer(this.state)) {
+        this.emit(event);
+        events.push(event);
+      }
+    }
+    for (const entry of decrementFieldTerrainsTimer(this.state, pokemonId)) {
+      const event: BattleEvent = {
+        type: BattleEventType.FieldTerrainExpired,
+        casterId: entry.casterId,
+        kind: entry.kind,
+      };
+      this.emit(event);
+      events.push(event);
+    }
   }
 
   private applyChoiceLock(pokemon: PokemonInstance, moveId: string): void {
@@ -2868,24 +2742,5 @@ export class BattleEngine {
     if (item?.onMoveLock?.()) {
       pokemon.lockedMoveId = moveId;
     }
-  }
-
-  private syncTurnState(): void {
-    this.state.turnOrder = this.turnManager.getTurnOrder();
-    this.state.currentTurnIndex = this.turnManager.getCurrentIndex();
-    this.state.predictedNextRoundOrder = this.computePredictedNextRoundOrder();
-  }
-
-  private computePredictedNextRoundOrder(): string[] {
-    const alivePokemon = this.getAlivePokemon();
-    const sorted = [...alivePokemon].sort((a, b) => {
-      const initFn = this.getInitiativeFn();
-      const initiativeDiff = initFn(b) - initFn(a);
-      if (initiativeDiff !== 0) {
-        return initiativeDiff;
-      }
-      return a.id.localeCompare(b.id);
-    });
-    return sorted.map((pokemon) => pokemon.id);
   }
 }

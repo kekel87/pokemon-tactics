@@ -29,6 +29,10 @@ function entryElement(
   if (entry.isActive) {
     node.dataset.active = "true";
   }
+  if (entry.isSelf) {
+    // Move-cost preview: highlight where the deciding mon slots back in after acting.
+    node.dataset.self = "true";
+  }
   if (entry.dimmed) {
     node.dataset.dimmed = "true";
   }
@@ -74,11 +78,6 @@ export function createTurnTimeline(config: UiDomConfig): TurnTimeline {
 
       const fragment = document.createDocumentFragment();
       for (const entry of view.entries) {
-        if (entry.separatorRound !== null) {
-          const separator = el("li", "tt-separator");
-          separator.textContent = String(entry.separatorRound);
-          fragment.append(separator);
-        }
         if (entry.isActive) {
           activeSlot.append(entryElement(entry, view.showCtBars, config));
         } else {

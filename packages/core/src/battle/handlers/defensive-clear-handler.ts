@@ -17,10 +17,9 @@ export function defensiveClearHandler(pokemonId: string, state: BattleState): Ph
   }
 
   const defense = pokemon.activeDefense;
-  const wasAppliedInPreviousTurn =
-    defense.roundApplied < state.roundNumber ||
-    (defense.roundApplied === state.roundNumber &&
-      defense.turnIndexApplied < state.currentTurnIndex);
+  // Protection lasts until the owner's next turn: this handler runs at the start of that turn,
+  // after the action clock ticked, so a defense applied on a previous action clears now.
+  const wasAppliedInPreviousTurn = defense.appliedAtAction < (state.actionCounter ?? 0);
 
   if (!wasAppliedInPreviousTurn) {
     return emptyResult;

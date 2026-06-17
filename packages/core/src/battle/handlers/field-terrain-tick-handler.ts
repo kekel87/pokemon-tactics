@@ -51,18 +51,15 @@ export function createFieldTerrainHealHandler(
 }
 
 /**
- * Decrement every field-terrain zone timer once per round (round-dedup, mirrors aura-tick-handler)
- * and emit a FieldTerrainExpired event for each zone that reached zero.
+ * Decrement the field-terrain zones posted by the acting mon (duration model "tours du lanceur":
+ * a zone counts down on its caster's own turn) and emit a FieldTerrainExpired event for each zone
+ * that reached zero.
  */
-export function fieldTerrainDecrementHandler(_pokemonId: string, state: BattleState): PhaseResult {
+export function fieldTerrainDecrementHandler(pokemonId: string, state: BattleState): PhaseResult {
   if (state.fieldTerrains.length === 0) {
     return EMPTY_RESULT;
   }
-  if (state.fieldTerrainsLastTickRound === state.roundNumber) {
-    return EMPTY_RESULT;
-  }
-  state.fieldTerrainsLastTickRound = state.roundNumber;
-  const expired = decrementFieldTerrainsTimer(state);
+  const expired = decrementFieldTerrainsTimer(state, pokemonId);
   if (expired.length === 0) {
     return EMPTY_RESULT;
   }

@@ -34,7 +34,7 @@ export class AiTeamController {
 
   isAiTurn(): boolean {
     const state = this.engine.getGameState(this.playerId);
-    const activePokemonId = state.turnOrder[state.currentTurnIndex];
+    const activePokemonId = state.activePokemonId;
     if (!activePokemonId) {
       return false;
     }

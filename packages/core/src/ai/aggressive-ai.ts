@@ -19,7 +19,7 @@ export function pickAggressiveAction(
     throw new Error("No legal actions available");
   }
 
-  const currentPokemonId = state.turnOrder[state.currentTurnIndex];
+  const currentPokemonId = state.activePokemonId;
   const currentPokemon = currentPokemonId ? state.pokemon.get(currentPokemonId) : undefined;
   if (!currentPokemon) {
     return first;

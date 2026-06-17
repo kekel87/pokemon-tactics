@@ -8,10 +8,10 @@ const FOUR_MOVES = {
   moves: ["scratch", "vine-whip", "razor-leaf", "sleep-powder"],
 } as const;
 
-test("§4.1 bannière de tour : « <Pokemon FR> — Round N »", async ({ page, bootSandbox }) => {
+test("§4.1 bannière de tour : nom FR du Pokemon actif", async ({ page, bootSandbox }) => {
   await bootSandbox(DUEL);
-  // Nom FR officiel (Florizarre) + numéro de round.
-  await expect(page.getByTestId("combat-turn")).toHaveText(/Florizarre — Round \d+/);
+  // Charge Time seul : plus de notion de round → la bannière n'affiche que le nom FR officiel.
+  await expect(page.getByTestId("combat-turn")).toHaveText("Florizarre");
 });
 
 test("§4.2 timeline : entrée active surlignée, couleur d'équipe, portrait", async ({
@@ -43,7 +43,7 @@ test("§4.4 menu d'action : 5 boutons FR, Objet et Statut désactivés", async (
   await expect(menu.getByRole("button", { name: "Attaque", exact: true })).toBeEnabled();
 });
 
-test("§4.5 sous-menu d'attaque : icône de type + nom FR + PP par move", async ({
+test("§4.5 sous-menu d'attaque : icône de type + nom FR par move", async ({
   page,
   bootSandbox,
 }) => {
@@ -56,7 +56,8 @@ test("§4.5 sous-menu d'attaque : icône de type + nom FR + PP par move", async 
   const first = items.first();
   await expect(first.getByTestId("move-type-icon")).toBeVisible(); // icône de type
   await expect(first.getByTestId("move-name")).toHaveText("Griffe"); // nom FR
-  await expect(first.getByTestId("move-pp")).toHaveText(/\d+\/\d+/); // PP x/max
+  // Plus d'affichage de PP : le mécanisme d'usage des PP est retiré (Charge Time régule le rythme).
+  await expect(first.getByTestId("move-pp")).toHaveCount(0);
 });
 
 test("§4.9 journal de combat : titre + en-tête repliable présents", async ({

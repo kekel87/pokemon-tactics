@@ -34,7 +34,9 @@ describe("misty-terrain — major status blocked for grounded mon on zone", () =
       currentPp: { "thunder-wave": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
-    const { engine, state } = buildMoveTestEngine([caster, target, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, target, enemy], {
+      activePokemonId: "enemy",
+    });
     postFieldTerrain(state, caster, FieldTerrain.Misty);
 
     const result = engine.submitAction(PlayerId.Player2, {
@@ -82,7 +84,9 @@ describe("misty-terrain — major status blocked for grounded mon on zone", () =
       currentPp: { "confuse-ray": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
-    const { engine, state } = buildMoveTestEngine([caster, target, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, target, enemy], {
+      activePokemonId: "enemy",
+    });
     postFieldTerrain(state, caster, FieldTerrain.Misty);
 
     const result = engine.submitAction(PlayerId.Player2, {
@@ -130,7 +134,9 @@ describe("misty-terrain — major status blocked for grounded mon on zone", () =
       currentPp: { "thunder-wave": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
-    const { engine, state } = buildMoveTestEngine([caster, flyer, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, flyer, enemy], {
+      activePokemonId: "enemy",
+    });
     postFieldTerrain(state, caster, FieldTerrain.Misty);
 
     const result = engine.submitAction(PlayerId.Player2, {

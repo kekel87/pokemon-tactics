@@ -4,5 +4,6 @@ export interface TeamAura {
   kind: AuraKind;
   casterPokemonId: string;
   remainingRounds: number;
-  postedRound: number;
+  /** `actionCounter` at post time — stable ordering for badge rendering. */
+  postedAtAction: number;
 }

@@ -35,7 +35,7 @@ export type SubstituteFailedReason =
   (typeof SubstituteFailedReason)[keyof typeof SubstituteFailedReason];
 
 export type BattleEvent =
-  | { type: typeof BattleEventType.TurnStarted; pokemonId: string; roundNumber: number }
+  | { type: typeof BattleEventType.TurnStarted; pokemonId: string }
   | { type: typeof BattleEventType.TurnEnded; pokemonId: string }
   | {
       type: typeof BattleEventType.MoveStarted;

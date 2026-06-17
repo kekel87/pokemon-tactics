@@ -24,13 +24,13 @@ function buildEngine(pokemonTypes: PokemonType[], movement = 4) {
     position: { x: 9, y: 9 },
   };
   const state = MockBattle.stateFrom([pokemon, dummy], 10, 10);
-  state.turnOrder = ["mover", "dummy"];
-  state.currentTurnIndex = 0;
   const pokemonTypesMap = new Map<string, PokemonType[]>([
     ["test-pokemon", pokemonTypes],
     ["test", [PokemonType.Normal]],
   ]);
-  return { engine: new BattleEngine(state, new Map(), {}, pokemonTypesMap), state };
+  const engine = new BattleEngine(state, new Map(), {}, pokemonTypesMap);
+  engine.pinActiveForTest("mover");
+  return { engine, state };
 }
 
 describe("BFS terrain movement penalty", () => {

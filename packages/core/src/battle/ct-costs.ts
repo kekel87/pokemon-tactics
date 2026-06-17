@@ -62,6 +62,30 @@ export function computeMoveCost(pp: number, power: number, tier: EffectTier | un
   return Math.max(ppCost(pp), powerFloor(power), effectFloor(tier));
 }
 
+/** Number of pips on the move "tempo" gauge (UI): how heavy this move's Charge Time cost is. */
+export const CT_TEMPO_MAX = 5;
+
+/**
+ * Map a move's Charge Time cost to a 1..5 "tempo" rating for display. Higher = heavier = the user
+ * waits longer before its next turn. Lets players read the CT economy without raw cost numbers.
+ */
+export function moveCtTempo(pp: number, power: number, tier: EffectTier | undefined): number {
+  const cost = computeMoveCost(pp, power, tier);
+  if (cost <= 500) {
+    return 1;
+  }
+  if (cost <= 600) {
+    return 2;
+  }
+  if (cost <= 700) {
+    return 3;
+  }
+  if (cost <= 800) {
+    return 4;
+  }
+  return CT_TEMPO_MAX;
+}
+
 export function computeCtActionCost(
   hasMoved: boolean,
   hasActed: boolean,

@@ -15,7 +15,12 @@ import { PlayerId } from "../enums/player-id";
 import { PokemonType } from "../enums/pokemon-type";
 // TODO(plan-084-étape-2): créer packages/core/src/enums/weather.ts
 import { Weather } from "../enums/weather";
-import { buildItemTestEngine, buildMoveTestEngine, MockPokemon } from "../testing";
+import {
+  buildItemTestEngine,
+  buildMoveTestEngine,
+  endTurnUntilActor,
+  MockPokemon,
+} from "../testing";
 // TODO(plan-084-étape-2): créer packages/core/src/battle/weather-system.ts
 import {
   getWeatherAccuracyOverride,
@@ -90,22 +95,18 @@ describe("weather tick — Sun expires after 5 turns", () => {
     });
     const { engine, state } = buildMoveTestEngine([fast, slow]);
 
-    // Set Sun for 5 turns directly on state (simulating a setter move effect)
-    setWeather(state, Weather.Sun, 5);
+    // Set Sun for 5 turns; "fast" is the setter, so the timer counts down on its own turns (CT model).
+    setWeather(state, Weather.Sun, 5, "fast");
 
     const clearedEvents: unknown[] = [];
     engine.on(BattleEventType.WeatherCleared, (e) => clearedEvents.push(e));
 
-    // Each round both Pokemon end turn → 1 tick per round
-    for (let round = 0; round < 5; round++) {
+    // The weather counts down once per setter turn → drive 5 of the setter's turns.
+    for (let tick = 0; tick < 5; tick++) {
+      endTurnUntilActor(engine, state, "fast");
       engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.EndTurn,
         pokemonId: "fast",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "slow",
         direction: Direction.South,
       });
     }

@@ -1,4 +1,4 @@
-import type { TeamSelection, TurnSystemKind } from "@pokemon-tactic/core";
+import type { TeamSelection } from "@pokemon-tactic/core";
 
 /**
  * Screen FSM (plan 120) — screen IDs and legal transition table.
@@ -20,7 +20,6 @@ export interface CombatSetup {
   teams: TeamSelection[];
   formatKey: string;
   autoPlacement: boolean;
-  turnSystemKind: TurnSystemKind;
 }
 
 /** Params passed to each screen's mount(). Extended as plan 120 steps land. */

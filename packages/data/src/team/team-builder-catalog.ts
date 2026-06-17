@@ -1,4 +1,4 @@
-import type { HeldItemId } from "@pokemon-tactic/core";
+import { type HeldItemId, moveCtTempo } from "@pokemon-tactic/core";
 import abilitiesReference from "../../reference/abilities.json" with { type: "json" };
 import itemsReference from "../../reference/items.json" with { type: "json" };
 import movesReference from "../../reference/moves.json" with { type: "json" };
@@ -23,6 +23,8 @@ export interface CatalogMove {
   power: number | null;
   accuracy: number | null;
   pp: number | null;
+  /** Charge Time "tempo" rating 1..5 (heavier cost → the user acts again later). */
+  costTempo: number;
   names: { en: string; fr: string };
   shortDescription: { en: string; fr: string };
 }
@@ -137,6 +139,7 @@ export function getCatalogMoves(): readonly CatalogMove[] {
       power: raw.power ?? null,
       accuracy: raw.accuracy ?? null,
       pp: raw.pp ?? null,
+      costTempo: moveCtTempo(raw.pp ?? 0, raw.power ?? 0, tacticalOverrides[raw.id]?.effectTier),
       names: raw.names,
       shortDescription: raw.shortDescription ?? EMPTY_DESC,
     });

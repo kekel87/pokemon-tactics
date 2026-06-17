@@ -49,10 +49,10 @@ describe("Reflect aura — Physical damage reduction", () => {
       maxHp: 1000,
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine: baselineEngine, state: baselineState } = buildMoveTestEngine([
-      baselineTarget,
-      baselineAttacker,
-    ]);
+    const { engine: baselineEngine, state: baselineState } = buildMoveTestEngine(
+      [baselineTarget, baselineAttacker],
+      { activePokemonId: "attacker" },
+    );
     baselineEngine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
@@ -78,10 +78,10 @@ describe("Reflect aura — Physical damage reduction", () => {
       maxHp: 1000,
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine: screenEngine, state: screenState } = buildMoveTestEngine([
-      screenTarget,
-      screenAttacker,
-    ]);
+    const { engine: screenEngine, state: screenState } = buildMoveTestEngine(
+      [screenTarget, screenAttacker],
+      { activePokemonId: "attacker" },
+    );
     postAura(screenState, screenTarget, AuraKind.Reflect);
 
     screenEngine.submitAction(PlayerId.Player2, {
@@ -123,10 +123,10 @@ describe("Light Screen aura — Special damage reduction", () => {
       maxHp: 1000,
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine: baselineEngine, state: baselineState } = buildMoveTestEngine([
-      baselineTarget,
-      baselineAttacker,
-    ]);
+    const { engine: baselineEngine, state: baselineState } = buildMoveTestEngine(
+      [baselineTarget, baselineAttacker],
+      { activePokemonId: "attacker" },
+    );
     baselineEngine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
@@ -152,10 +152,10 @@ describe("Light Screen aura — Special damage reduction", () => {
       maxHp: 1000,
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine: screenEngine, state: screenState } = buildMoveTestEngine([
-      screenTarget,
-      screenAttacker,
-    ]);
+    const { engine: screenEngine, state: screenState } = buildMoveTestEngine(
+      [screenTarget, screenAttacker],
+      { activePokemonId: "attacker" },
+    );
     postAura(screenState, screenTarget, AuraKind.LightScreen);
 
     screenEngine.submitAction(PlayerId.Player2, {
@@ -197,10 +197,10 @@ describe("Brick Break vs caster of aura in melee", () => {
       maxHp: 1000,
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine: baselineEngine, state: baselineState } = buildMoveTestEngine([
-      baselineTarget,
-      baselineAttacker,
-    ]);
+    const { engine: baselineEngine, state: baselineState } = buildMoveTestEngine(
+      [baselineTarget, baselineAttacker],
+      { activePokemonId: "attacker" },
+    );
     baselineEngine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
@@ -226,10 +226,10 @@ describe("Brick Break vs caster of aura in melee", () => {
       maxHp: 1000,
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine: auraEngine, state: auraState } = buildMoveTestEngine([
-      auraCaster,
-      auraAttacker,
-    ]);
+    const { engine: auraEngine, state: auraState } = buildMoveTestEngine(
+      [auraCaster, auraAttacker],
+      { activePokemonId: "attacker" },
+    );
     postAura(auraState, auraCaster, AuraKind.Reflect);
 
     const brokenEvents: unknown[] = [];
@@ -288,11 +288,10 @@ describe("Brick Break vs protected ally of aura caster", () => {
       position: { x: 0, y: 0 },
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
-    const { engine: baselineEngine, state: baselineState } = buildMoveTestEngine([
-      baselineCaster,
-      baselineTarget,
-      baselineAttacker,
-    ]);
+    const { engine: baselineEngine, state: baselineState } = buildMoveTestEngine(
+      [baselineCaster, baselineTarget, baselineAttacker],
+      { activePokemonId: "attacker" },
+    );
     baselineEngine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
       pokemonId: "attacker",
@@ -324,11 +323,10 @@ describe("Brick Break vs protected ally of aura caster", () => {
       position: { x: 0, y: 0 },
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
-    const { engine: auraEngine, state: auraState } = buildMoveTestEngine([
-      auraCaster,
-      auraTarget,
-      auraAttacker,
-    ]);
+    const { engine: auraEngine, state: auraState } = buildMoveTestEngine(
+      [auraCaster, auraTarget, auraAttacker],
+      { activePokemonId: "attacker" },
+    );
     postAura(auraState, auraCaster, AuraKind.Reflect);
 
     const brokenEvents: unknown[] = [];
@@ -380,7 +378,9 @@ describe("Brick Break vs unprotected target", () => {
       position: { x: 11, y: 11 },
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
-    const { engine, state } = buildMoveTestEngine([target, attacker, farCaster]);
+    const { engine, state } = buildMoveTestEngine([target, attacker, farCaster], {
+      activePokemonId: "attacker",
+    });
     postAura(state, farCaster, AuraKind.Reflect);
 
     const brokenEvents: unknown[] = [];
@@ -429,7 +429,9 @@ describe("Brick Break vs double-protected caster in melee", () => {
       position: { x: 0, y: 0 },
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
-    const { engine, state } = buildMoveTestEngine([ally, target, attacker]);
+    const { engine, state } = buildMoveTestEngine([ally, target, attacker], {
+      activePokemonId: "attacker",
+    });
     postAura(state, ally, AuraKind.Reflect);
     postAura(state, target, AuraKind.Reflect);
 

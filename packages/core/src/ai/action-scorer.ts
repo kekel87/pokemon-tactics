@@ -37,6 +37,16 @@ const DANGEROUS_TERRAINS: ReadonlySet<TerrainType> = new Set([
 ]);
 const DANGEROUS_TERRAIN_PENALTY = 8;
 
+/**
+ * CT "tours du lanceur": weather / field / barrier durations count down on the setter's OWN turns,
+ * so a slower setter makes its effect last longer in wall-clock — its setup is worth more. Maps base
+ * Speed (~30..130) to a multiplier of 2.0 (very slow) .. 1.0 (very fast), clamped at the ends.
+ */
+function setterDurabilityMultiplier(setter: PokemonInstance): number {
+  const t = Math.max(0, Math.min(1, (setter.baseStats.speed - 30) / 100));
+  return 2 - t;
+}
+
 export function scoreAction(
   action: Action,
   state: BattleState,
@@ -44,7 +54,7 @@ export function scoreAction(
   engine: BattleEngine,
   profile: AiProfile,
 ): number {
-  const currentPokemonId = state.turnOrder[state.currentTurnIndex];
+  const currentPokemonId = state.activePokemonId;
   const currentPokemon = currentPokemonId ? state.pokemon.get(currentPokemonId) : undefined;
   if (!currentPokemon) {
     return 0;
@@ -373,7 +383,7 @@ function scoreSelfMove(
         alliesInRadius += 1;
       }
     }
-    const earlyMultiplier = state.roundNumber <= 3 ? 2 : 1;
+    const earlyMultiplier = setterDurabilityMultiplier(currentPokemon);
 
     let threatBonus = 1.0;
     if (postAuraEffect.aura === AuraKind.Mist) {
@@ -408,7 +418,7 @@ function scoreSelfMove(
         groundedAlliesInRadius += 1;
       }
     }
-    const earlyMultiplier = state.roundNumber <= 3 ? 2 : 1;
+    const earlyMultiplier = setterDurabilityMultiplier(currentPokemon);
     let threatBonus = 1.0;
     if (
       postFieldTerrainEffect.terrain === FieldTerrain.Electric ||
@@ -438,7 +448,7 @@ function scoreSelfMove(
     ) {
       multiplier *= 1.5;
     }
-    if (state && state.roundNumber <= 3) {
+    if (state && (state.actionCounter ?? 0) <= 6) {
       multiplier *= 1.2;
     }
     if (hpRatio < 0.4) {
@@ -716,9 +726,6 @@ function evaluateAttacksFromPosition(
   for (const moveId of pokemon.moveIds) {
     const move = moveRegistry.get(moveId);
     if (!move || getEffectivePowerFloor(move) === 0) {
-      continue;
-    }
-    if ((pokemon.currentPp[moveId] ?? 0) <= 0) {
       continue;
     }
 

@@ -4,7 +4,11 @@ import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import { MockBattle } from "./mock-battle";
 
-export function buildItemTestEngine(pokemon: PokemonInstance[], gridSize = 6) {
+export function buildItemTestEngine(
+  pokemon: PokemonInstance[],
+  gridSize = 6,
+  activePokemonId?: string,
+) {
   const data = loadData();
   const moveRegistry = new Map<string, MoveDefinition>();
   for (const move of data.moves) {
@@ -21,9 +25,13 @@ export function buildItemTestEngine(pokemon: PokemonInstance[], gridSize = 6) {
     undefined,
     0,
     undefined,
-    undefined,
     data.abilityRegistry,
     data.itemRegistry,
   );
+  // Pin the acting mon for isolated item tests (CT picks the fastest at construction).
+  const pinnedActor = activePokemonId ?? pokemon[0]?.id;
+  if (pinnedActor !== undefined) {
+    engine.pinActiveForTest(pinnedActor);
+  }
   return { engine, state };
 }

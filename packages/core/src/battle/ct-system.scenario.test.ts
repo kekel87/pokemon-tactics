@@ -2,16 +2,15 @@ import { describe, expect, it } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { Direction } from "../enums/direction";
 import { PlayerId } from "../enums/player-id";
-import { TurnSystemKind } from "../enums/turn-system-kind";
 import { buildCtTestEngine } from "../testing/build-ct-test-engine";
 
 describe("CT system — scenario", () => {
-  it("state has turnSystemKind=charge-time and ctSnapshot after init", () => {
+  it("has an active pokemon and a ctSnapshot after init", () => {
     // Given
     const { state } = buildCtTestEngine({ fastSpeed: 90, slowSpeed: 20 });
 
     // Then
-    expect(state.turnSystemKind).toBe(TurnSystemKind.ChargeTime);
+    expect(state.activePokemonId).toBeTruthy();
     expect(state.ctSnapshot).toBeDefined();
     expect(Object.keys(state.ctSnapshot ?? {})).toHaveLength(2);
   });
@@ -21,7 +20,7 @@ describe("CT system — scenario", () => {
     const { engine, state } = buildCtTestEngine({ fastSpeed: 90, slowSpeed: 20 });
 
     // When
-    const actorId = state.turnOrder[0];
+    const actorId = state.activePokemonId;
     const playerId = actorId === "fast" ? PlayerId.Player1 : PlayerId.Player2;
     const actions = engine.getLegalActions(playerId);
 
@@ -34,7 +33,7 @@ describe("CT system — scenario", () => {
   it("EndTurn advances to next actor", () => {
     // Given
     const { engine, state } = buildCtTestEngine({ fastSpeed: 90, slowSpeed: 20 });
-    const firstActorId = state.turnOrder[0] ?? "";
+    const firstActorId = state.activePokemonId ?? "";
     const firstPlayerId = firstActorId === "fast" ? PlayerId.Player1 : PlayerId.Player2;
 
     // When
@@ -46,7 +45,7 @@ describe("CT system — scenario", () => {
 
     // Then
     expect(result.success).toBe(true);
-    const secondActorId = state.turnOrder[0];
+    const secondActorId = state.activePokemonId;
     expect(secondActorId).toBeDefined();
   });
 
@@ -60,7 +59,7 @@ describe("CT system — scenario", () => {
 
     // When
     for (let i = 0; i < total; i++) {
-      const actorId = state.turnOrder[0] ?? "";
+      const actorId = state.activePokemonId ?? "";
       if (actorId === "fast") {
         fastCount++;
       } else {
@@ -88,7 +87,7 @@ describe("CT system — scenario", () => {
     const before = { ...(state.ctSnapshot ?? {}) };
 
     // When
-    const actorId = state.turnOrder[0] ?? "";
+    const actorId = state.activePokemonId ?? "";
     const playerId = actorId === "fast" ? PlayerId.Player1 : PlayerId.Player2;
     engine.submitAction(playerId, {
       kind: ActionKind.EndTurn,
@@ -110,7 +109,7 @@ describe("CT system — scenario", () => {
     });
 
     // When — slow Pokemon acts
-    const actorId = state.turnOrder[0] ?? "slow";
+    const actorId = state.activePokemonId ?? "slow";
     engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.EndTurn,
       pokemonId: actorId,

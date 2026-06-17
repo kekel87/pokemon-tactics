@@ -5,7 +5,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, endTurnUntilActor, MockPokemon } from "../../testing";
 
 describe("lock-on", () => {
   it("applies LockedOn volatile status on the user", () => {
@@ -110,11 +110,7 @@ describe("lock-on", () => {
       pokemonId: user.id,
       direction: Direction.East,
     });
-    engine.submitAction(PlayerId.Player2, {
-      kind: ActionKind.EndTurn,
-      pokemonId: foe.id,
-      direction: Direction.West,
-    });
+    endTurnUntilActor(engine, state, user.id);
 
     vi.restoreAllMocks();
     vi.spyOn(Math, "random").mockReturnValue(0.99);

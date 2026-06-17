@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, endTurnUntilActor, MockPokemon } from "../../testing";
 
 describe("recharge", () => {
   function makeAttacker() {
@@ -52,11 +52,7 @@ describe("recharge", () => {
       direction: Direction.East,
     });
 
-    engine.submitAction(PlayerId.Player2, {
-      kind: ActionKind.EndTurn,
-      pokemonId: foe.id,
-      direction: Direction.West,
-    });
+    endTurnUntilActor(engine, state, attacker.id);
 
     const legalActions = engine.getLegalActions(PlayerId.Player1);
     const useMoveActions = legalActions.filter((a) => a.kind === ActionKind.UseMove);
@@ -68,8 +64,8 @@ describe("recharge", () => {
   it("allows move (movement) during recharge turn", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const attacker = makeAttacker();
-    const foe = makeFoe({ position: { x: 5, y: 0 } });
-    const { engine } = buildMoveTestEngine([attacker, foe]);
+    const foe = makeFoe();
+    const { engine, state } = buildMoveTestEngine([attacker, foe]);
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -82,11 +78,7 @@ describe("recharge", () => {
       pokemonId: attacker.id,
       direction: Direction.East,
     });
-    engine.submitAction(PlayerId.Player2, {
-      kind: ActionKind.EndTurn,
-      pokemonId: foe.id,
-      direction: Direction.West,
-    });
+    endTurnUntilActor(engine, state, attacker.id);
 
     const legalActions = engine.getLegalActions(PlayerId.Player1);
     const moveActions = legalActions.filter((a) => a.kind === ActionKind.Move);
@@ -112,11 +104,7 @@ describe("recharge", () => {
       pokemonId: attacker.id,
       direction: Direction.East,
     });
-    engine.submitAction(PlayerId.Player2, {
-      kind: ActionKind.EndTurn,
-      pokemonId: foe.id,
-      direction: Direction.West,
-    });
+    endTurnUntilActor(engine, state, attacker.id);
 
     const endTurnResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,

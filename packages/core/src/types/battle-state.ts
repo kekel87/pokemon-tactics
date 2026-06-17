@@ -1,5 +1,4 @@
 import type { PlayerId } from "../enums/player-id";
-import type { TurnSystemKind } from "../enums/turn-system-kind";
 import type { Weather } from "../enums/weather";
 import type { FieldZone } from "./field-zone";
 import type { PokemonInstance } from "./pokemon-instance";
@@ -9,27 +8,19 @@ import type { TileState } from "./tile-state";
 export interface BattleState {
   grid: TileState[][];
   pokemon: Map<string, PokemonInstance>;
-  turnOrder: string[];
-  currentTurnIndex: number;
-  roundNumber: number;
-  predictedNextRoundOrder: string[];
-  turnSystemKind?: TurnSystemKind;
+  /** Id of the Pokemon whose turn it currently is (Charge Time scheduler). */
+  activePokemonId: string;
   ctSnapshot?: Record<string, number>;
   weather: Weather;
   weatherTurnsRemaining: number;
   weatherSetterPokemonId?: string;
-  weatherLastTickRound?: number;
   auras: TeamAura[];
-  aurasLastTickRound?: number;
   /** Painted field-terrain zones ("Champs", B4). Multiple coexist; latest wins per tile on overlap. */
   fieldTerrains: FieldZone[];
-  /** Round dedup guard for the once-per-round zone timer decrement. */
-  fieldTerrainsLastTickRound?: number;
   /**
-   * Monotonic action clock (B3 conditional-damage moves). Incremented exactly once per
-   * completed action in both turn loops (round-based and Charge Time). Per-mon stamps on
-   * `PokemonInstance` reference this value so "this turn"-style conditions become integer
-   * comparisons that work identically regardless of the turn system.
+   * Monotonic action clock. Incremented exactly once per completed action by the Charge Time turn
+   * loop. Per-mon stamps on `PokemonInstance` reference this value so "this turn"-style conditions
+   * (and effect durations counted on the setter's own turns) become integer comparisons.
    */
   actionCounter?: number;
   /** Per-team `actionCounter` of the last time one of the team's mons fainted (Retaliate). */

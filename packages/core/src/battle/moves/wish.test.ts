@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, endTurnUntilActor, MockPokemon } from "../../testing";
 
 describe("wish", () => {
   it("posts a WishPosted event and stores pendingWish on the target ally", () => {
@@ -213,11 +213,7 @@ describe("wish", () => {
       pokemonId: caster.id,
       direction: Direction.South,
     });
-    engine.submitAction(PlayerId.Player2, {
-      kind: ActionKind.EndTurn,
-      pokemonId: foe.id,
-      direction: Direction.South,
-    });
+    endTurnUntilActor(engine, state, caster.id);
 
     expect(state.pokemon.get(caster.id)?.currentHp).toBe(180);
     expect(state.pokemon.get(caster.id)?.pendingWish).toBeUndefined();
@@ -267,23 +263,8 @@ describe("wish", () => {
       direction: Direction.South,
     });
 
-    engine.submitAction(PlayerId.Player2, {
-      kind: ActionKind.EndTurn,
-      pokemonId: foe.id,
-      direction: Direction.South,
-    });
+    endTurnUntilActor(engine, state, caster.id);
 
-    engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.EndTurn,
-      pokemonId: ally.id,
-      direction: Direction.South,
-    });
-
-    engine.submitAction(PlayerId.Player2, {
-      kind: ActionKind.EndTurn,
-      pokemonId: foe.id,
-      direction: Direction.South,
-    });
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: caster.id,

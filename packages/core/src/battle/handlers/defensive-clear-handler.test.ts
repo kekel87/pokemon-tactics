@@ -16,13 +16,12 @@ describe("defensiveClearHandler", () => {
     expect(result.pokemonFainted).toBe(false);
   });
 
-  it("clears defense applied in a previous round", () => {
+  it("clears defense applied on a previous turn", () => {
     const pokemon = MockPokemon.fresh(MockBattle.player1Fast, {
-      activeDefense: { kind: DefensiveKind.Protect, roundApplied: 1, turnIndexApplied: 0 },
+      activeDefense: { kind: DefensiveKind.Protect, appliedAtAction: 1 },
     });
     const state = MockBattle.stateFrom([pokemon]);
-    state.roundNumber = 2;
-    state.currentTurnIndex = 0;
+    state.actionCounter = 2;
 
     const result = defensiveClearHandler(pokemon.id, state);
 
@@ -35,13 +34,12 @@ describe("defensiveClearHandler", () => {
     });
   });
 
-  it("clears defense applied earlier in the same round", () => {
+  it("clears a defense applied several actions ago", () => {
     const pokemon = MockPokemon.fresh(MockBattle.player1Fast, {
-      activeDefense: { kind: DefensiveKind.Detect, roundApplied: 1, turnIndexApplied: 0 },
+      activeDefense: { kind: DefensiveKind.Detect, appliedAtAction: 1 },
     });
     const state = MockBattle.stateFrom([pokemon]);
-    state.roundNumber = 1;
-    state.currentTurnIndex = 2;
+    state.actionCounter = 4;
 
     const result = defensiveClearHandler(pokemon.id, state);
 
@@ -51,11 +49,10 @@ describe("defensiveClearHandler", () => {
 
   it("does NOT clear defense applied on the current turn", () => {
     const pokemon = MockPokemon.fresh(MockBattle.player1Fast, {
-      activeDefense: { kind: DefensiveKind.Counter, roundApplied: 1, turnIndexApplied: 0 },
+      activeDefense: { kind: DefensiveKind.Counter, appliedAtAction: 1 },
     });
     const state = MockBattle.stateFrom([pokemon]);
-    state.roundNumber = 1;
-    state.currentTurnIndex = 0;
+    state.actionCounter = 1;
 
     const result = defensiveClearHandler(pokemon.id, state);
 
@@ -73,10 +70,10 @@ describe("defensiveClearHandler", () => {
 
   it("does not affect other PhaseResult flags", () => {
     const pokemon = MockPokemon.fresh(MockBattle.player1Fast, {
-      activeDefense: { kind: DefensiveKind.Endure, roundApplied: 1, turnIndexApplied: 0 },
+      activeDefense: { kind: DefensiveKind.Endure, appliedAtAction: 1 },
     });
     const state = MockBattle.stateFrom([pokemon]);
-    state.roundNumber = 2;
+    state.actionCounter = 2;
 
     const result = defensiveClearHandler(pokemon.id, state);
 

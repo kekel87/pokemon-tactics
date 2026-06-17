@@ -35,7 +35,9 @@ describe("electric-terrain — sleep blocked for grounded mon on zone", () => {
       currentPp: { "sleep-powder": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
-    const { engine, state } = buildMoveTestEngine([caster, target, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, target, enemy], {
+      activePokemonId: "enemy",
+    });
     postFieldTerrain(state, caster, FieldTerrain.Electric);
 
     const result = engine.submitAction(PlayerId.Player2, {
@@ -83,7 +85,9 @@ describe("electric-terrain — sleep blocked for grounded mon on zone", () => {
       currentPp: { "confuse-ray": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
-    const { engine, state } = buildMoveTestEngine([caster, target, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, target, enemy], {
+      activePokemonId: "enemy",
+    });
     postFieldTerrain(state, caster, FieldTerrain.Electric);
 
     engine.submitAction(PlayerId.Player2, {
@@ -124,7 +128,9 @@ describe("electric-terrain — sleep blocked for grounded mon on zone", () => {
       currentPp: { "sleep-powder": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
-    const { engine, state } = buildMoveTestEngine([caster, flyer, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, flyer, enemy], {
+      activePokemonId: "enemy",
+    });
     postFieldTerrain(state, caster, FieldTerrain.Electric);
 
     const result = engine.submitAction(PlayerId.Player2, {

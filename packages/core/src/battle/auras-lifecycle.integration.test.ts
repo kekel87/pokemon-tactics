@@ -5,7 +5,12 @@ import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
 import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
-import { buildItemTestEngine, buildMoveTestEngine, MockPokemon } from "../testing";
+import {
+  buildItemTestEngine,
+  buildMoveTestEngine,
+  endTurnUntilActor,
+  MockPokemon,
+} from "../testing";
 
 // Scenario coverage for plan 095 step 4 — decrement + caster KO + Light Clay duration.
 
@@ -40,16 +45,13 @@ describe("screens lifecycle — Reflect decrement", () => {
     const dissipatedEvents: unknown[] = [];
     engine.on(BattleEventType.AuraDissipated, (e) => dissipatedEvents.push(e));
 
-    // Then : after 5 rounds of end-turns from both Pokemon, aura disappears
-    for (let round = 0; round < 5; round++) {
+    // Then : the aura decrements only on the caster's own turns; after 5 caster
+    // turns it dissipates (durations are counted in "caster turns").
+    for (let casterTurn = 0; casterTurn < 5; casterTurn++) {
+      endTurnUntilActor(engine, state, "caster");
       engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.EndTurn,
         pokemonId: "caster",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "foe",
         direction: Direction.South,
       });
     }
@@ -159,32 +161,24 @@ describe("screens lifecycle — Light Clay extends duration", () => {
 
     expect(state.auras[0]?.remainingRounds).toBe(8);
 
-    // 5 rounds elapse — aura still active (would have expired without Light Clay)
-    for (let round = 0; round < 5; round++) {
+    // 5 caster turns elapse — aura still active (would have expired without Light Clay)
+    for (let casterTurn = 0; casterTurn < 5; casterTurn++) {
+      endTurnUntilActor(engine, state, "caster");
       engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.EndTurn,
         pokemonId: "caster",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "foe",
         direction: Direction.South,
       });
     }
 
     expect(state.auras[0]?.remainingRounds).toBe(3);
 
-    // 3 more rounds → expiration
-    for (let round = 0; round < 3; round++) {
+    // 3 more caster turns → expiration
+    for (let casterTurn = 0; casterTurn < 3; casterTurn++) {
+      endTurnUntilActor(engine, state, "caster");
       engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.EndTurn,
         pokemonId: "caster",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "foe",
         direction: Direction.South,
       });
     }

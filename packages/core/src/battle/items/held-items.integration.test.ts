@@ -9,7 +9,6 @@ import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
 import { TeamValidationError } from "../../enums/team-validation-error";
 import { TerrainType } from "../../enums/terrain-type";
-import { TurnSystemKind } from "../../enums/turn-system-kind";
 import { buildItemTestEngine, MockBattle, MockPokemon } from "../../testing";
 import { BattleEngine } from "../BattleEngine";
 import { validateTeamSelection } from "../team-validator";
@@ -404,6 +403,7 @@ describe("Critical hit", () => {
       alwaysCrit,
       0,
     );
+    engine.pinActiveForTest(p1.id);
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -687,13 +687,12 @@ describe("Choice Scarf", () => {
       undefined,
       undefined,
       0,
-      TurnSystemKind.ChargeTime,
       undefined,
       null,
       data.itemRegistry,
     );
 
-    expect(engine.getGameState(PlayerId.Player1).turnOrder[0]).toBe("slow-with-scarf");
+    expect(engine.getGameState(PlayerId.Player1).activePokemonId).toBe("slow-with-scarf");
   });
 });
 

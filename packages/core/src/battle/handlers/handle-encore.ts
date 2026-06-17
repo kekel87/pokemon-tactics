@@ -24,10 +24,9 @@ export function handleEncore(context: EffectContext): BattleEvent[] {
 
     const moveId = target.lastUsedMoveId;
     const knowsMove = moveId !== undefined && target.moveIds.includes(moveId);
-    const hasPp = moveId !== undefined && (target.currentPp[moveId] ?? 0) > 0;
     const alreadyEncored = target.volatileStatuses.some((v) => v.type === StatusType.Encored);
 
-    if (moveId === undefined || !knowsMove || !hasPp || moveId === "encore" || alreadyEncored) {
+    if (moveId === undefined || !knowsMove || moveId === "encore" || alreadyEncored) {
       events.push({ type: BattleEventType.EncoreFailed, pokemonId: target.id });
       continue;
     }

@@ -1323,7 +1323,9 @@ describe("ability system integration", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 
     // When hypnosis targets Primeape
-    const { engine, state } = buildMoveTestEngine([primeape, attacker]);
+    const { engine, state } = buildMoveTestEngine([primeape, attacker], {
+      activePokemonId: attacker.id,
+    });
     const result = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
       pokemonId: attacker.id,
@@ -1364,7 +1366,9 @@ describe("ability system integration", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 
     // When sleep-powder targets Hypno
-    const { engine, state } = buildMoveTestEngine([hypno, attacker]);
+    const { engine, state } = buildMoveTestEngine([hypno, attacker], {
+      activePokemonId: attacker.id,
+    });
     const result = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
       pokemonId: attacker.id,
@@ -1523,7 +1527,9 @@ describe("ability system integration", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 
     // When thunder-wave targets Hitmonlee
-    const { engine, state } = buildMoveTestEngine([hitmonlee, attacker]);
+    const { engine, state } = buildMoveTestEngine([hitmonlee, attacker], {
+      activePokemonId: attacker.id,
+    });
     const result = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
       pokemonId: attacker.id,

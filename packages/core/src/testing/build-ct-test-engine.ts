@@ -1,5 +1,4 @@
 import { BattleEngine } from "../battle/BattleEngine";
-import { TurnSystemKind } from "../enums/turn-system-kind";
 import type { BattleState } from "../types/battle-state";
 import { MockBattle } from "./mock-battle";
 import { MockMove } from "./mock-move";
@@ -33,15 +32,6 @@ export function buildCtTestEngine(options: CtTestEngineOptions): {
   };
   const state = MockBattle.stateFrom([fast, slow]);
   const moveRegistry = new Map([[MockMove.physical.id, MockMove.physical]]);
-  const engine = new BattleEngine(
-    state,
-    moveRegistry,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    0,
-    TurnSystemKind.ChargeTime,
-  );
+  const engine = new BattleEngine(state, moveRegistry);
   return { engine, state };
 }

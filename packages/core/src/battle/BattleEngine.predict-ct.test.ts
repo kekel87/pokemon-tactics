@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { TurnSystemKind } from "../enums/turn-system-kind";
 import { buildCtTestEngine } from "../testing/build-ct-test-engine";
 import { MockBattle } from "../testing/mock-battle";
 import { MockMove } from "../testing/mock-move";
@@ -8,22 +7,6 @@ import { BattleEngine } from "./BattleEngine";
 const TACKLE_ID = MockMove.physical.id;
 
 describe("BattleEngine.predictCtTimeline", () => {
-  it("returns [] if not in CT mode", () => {
-    const state = MockBattle.stateFrom([MockBattle.player1Fast, MockBattle.player2Slow]);
-    const moveRegistry = new Map([[TACKLE_ID, MockMove.physical]]);
-    const engine = new BattleEngine(
-      state,
-      moveRegistry,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      0,
-      TurnSystemKind.RoundRobin,
-    );
-    expect(engine.predictCtTimeline(3, TACKLE_ID)).toEqual([]);
-  });
-
   it("returns [] if count is 0", () => {
     const { engine } = buildCtTestEngine({ fastSpeed: 90, slowSpeed: 20 });
     expect(engine.predictCtTimeline(0, TACKLE_ID)).toEqual([]);
@@ -69,31 +52,16 @@ describe("BattleEngine.predictCtTimeline", () => {
     };
 
     const stateForCheap = MockBattle.stateFrom([pokemon1, pokemon2]);
-    const cheapEngine = new BattleEngine(
-      stateForCheap,
-      new Map([[TACKLE_ID, MockMove.physical]]),
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      0,
-      TurnSystemKind.ChargeTime,
-    );
+    const cheapEngine = new BattleEngine(stateForCheap, new Map([[TACKLE_ID, MockMove.physical]]));
 
     const stateForExpensive = MockBattle.stateFrom([pokemon1, pokemon2]);
     const expensiveEngine = new BattleEngine(
       stateForExpensive,
       new Map([[expensiveMove.id, expensiveMove]]),
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      0,
-      TurnSystemKind.ChargeTime,
     );
 
-    const activeIdCheap = stateForCheap.turnOrder[0] ?? "";
-    const activeIdExpensive = stateForExpensive.turnOrder[0] ?? "";
+    const activeIdCheap = stateForCheap.activePokemonId;
+    const activeIdExpensive = stateForExpensive.activePokemonId;
 
     const cheapTimeline = cheapEngine.predictCtTimeline(6, TACKLE_ID);
     const expensiveTimeline = expensiveEngine.predictCtTimeline(6, expensiveMove.id);

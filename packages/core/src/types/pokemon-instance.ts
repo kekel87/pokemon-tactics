@@ -30,9 +30,9 @@ export interface PokemonInstance {
   position: Position;
   orientation: Direction;
   moveIds: string[];
-  currentPp: Record<string, number>;
   activeDefense: ActiveDefense | null;
-  lastEndureRound: number | null;
+  /** `actionCounter` of the last turn this mon used Endure/Detect-style defense (anti-spam gate). */
+  lastEndureAtAction: number | null;
   toxicCounter: number;
   volatileStatuses: VolatileStatus[];
   recharging: boolean;

@@ -33,7 +33,9 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, ally, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, ally, enemy], {
+      activePokemonId: "enemy",
+    });
     postAura(state, caster, AuraKind.Mist);
 
     const result = engine.submitAction(PlayerId.Player2, {
@@ -87,7 +89,10 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, ally1, ally2, enemy], { gridSize: 8 });
+    const { engine, state } = buildMoveTestEngine([caster, ally1, ally2, enemy], {
+      gridSize: 8,
+      activePokemonId: "enemy",
+    });
     postAura(state, caster, AuraKind.Mist);
 
     const result = engine.submitAction(PlayerId.Player2, {
@@ -139,7 +144,9 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, ally, allyAttacker]);
+    const { engine, state } = buildMoveTestEngine([caster, ally, allyAttacker], {
+      activePokemonId: "ally-attacker",
+    });
     postAura(state, caster, AuraKind.Mist);
 
     const result = engine.submitAction(PlayerId.Player1, {
@@ -182,7 +189,10 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, farAlly, enemy], { gridSize: 10 });
+    const { engine, state } = buildMoveTestEngine([caster, farAlly, enemy], {
+      gridSize: 10,
+      activePokemonId: "enemy",
+    });
     postAura(state, caster, AuraKind.Mist);
 
     engine.submitAction(PlayerId.Player2, {
@@ -224,7 +234,9 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, ally, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, ally, enemy], {
+      activePokemonId: "enemy",
+    });
     postAura(state, caster, AuraKind.Mist);
 
     // KO caster directly
@@ -275,7 +287,9 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, ally, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, ally, enemy], {
+      activePokemonId: "enemy",
+    });
     postAura(state, caster, AuraKind.Mist);
 
     const result = engine.submitAction(PlayerId.Player2, {

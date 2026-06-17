@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
 import { StatName } from "../../enums/stat-name";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, endTurnUntilActor, MockPokemon } from "../../testing";
 import { createPrng } from "../../utils/prng";
 
 describe("focus-blast", () => {
@@ -47,11 +47,7 @@ describe("focus-blast", () => {
         pokemonId: attacker.id,
         direction: attacker.orientation,
       });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "defender",
-        direction: defender.orientation,
-      });
+      endTurnUntilActor(engine, state, attacker.id);
     }
 
     expect(hits).toBeGreaterThan(0);
@@ -76,7 +72,7 @@ describe("focus-blast", () => {
       maxHp: 9999,
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine } = buildMoveTestEngine([attacker, defender], { random: createPrng(1) });
+    const { engine, state } = buildMoveTestEngine([attacker, defender], { random: createPrng(1) });
 
     let secondaryProcs = 0;
     for (let attempt = 0; attempt < 50; attempt++) {
@@ -106,11 +102,7 @@ describe("focus-blast", () => {
         pokemonId: attacker.id,
         direction: attacker.orientation,
       });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "defender",
-        direction: defender.orientation,
-      });
+      endTurnUntilActor(engine, state, attacker.id);
     }
 
     expect(secondaryProcs).toBeGreaterThanOrEqual(1);

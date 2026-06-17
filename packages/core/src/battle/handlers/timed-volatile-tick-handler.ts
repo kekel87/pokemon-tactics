@@ -27,16 +27,6 @@ export const timedVolatileTickHandler: PhaseHandler = (
       continue;
     }
 
-    if (
-      type === StatusType.Encored &&
-      volatileStatus.moveId !== undefined &&
-      (pokemon.currentPp[volatileStatus.moveId] ?? 0) <= 0
-    ) {
-      pokemon.volatileStatuses.splice(index, 1);
-      events.push({ type: BattleEventType.StatusRemoved, targetId: pokemonId, status: type });
-      continue;
-    }
-
     volatileStatus.remainingTurns--;
     if (volatileStatus.remainingTurns <= 0) {
       pokemon.volatileStatuses.splice(index, 1);

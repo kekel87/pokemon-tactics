@@ -4,7 +4,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatName } from "../../enums/stat-name";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, endTurnUntilActor, MockPokemon } from "../../testing";
 
 describe("minimize", () => {
   it("raises Evasion by 2", () => {
@@ -93,11 +93,7 @@ describe("minimize", () => {
       pokemonId: user.id,
       direction: Direction.South,
     });
-    engine.submitAction(PlayerId.Player2, {
-      kind: ActionKind.EndTurn,
-      pokemonId: foe.id,
-      direction: Direction.South,
-    });
+    endTurnUntilActor(engine, state, user.id);
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

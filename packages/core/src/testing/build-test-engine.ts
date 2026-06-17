@@ -58,12 +58,6 @@ export function buildTestEngineFromPlacements(
       throw new Error(`Unknown definition: ${definitionId}`);
     }
 
-    const currentPp: Record<string, number> = {};
-    for (const moveId of definition.movepool) {
-      const move = moveRegistry.get(moveId);
-      currentPp[moveId] = move?.pp ?? 0;
-    }
-
     const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
 
     const instance: PokemonInstance = {
@@ -86,9 +80,8 @@ export function buildTestEngineFromPlacements(
       position: placement.position,
       orientation: placement.direction,
       moveIds: [...definition.movepool],
-      currentPp,
       activeDefense: null,
-      lastEndureRound: null,
+      lastEndureAtAction: null,
       toxicCounter: 0,
       volatileStatuses: [],
       recharging: false,
@@ -115,10 +108,7 @@ function buildState(grid: TileState[][], pokemonMap: Map<string, PokemonInstance
   return {
     grid,
     pokemon: pokemonMap,
-    turnOrder: [] as string[],
-    currentTurnIndex: 0,
-    roundNumber: 1,
-    predictedNextRoundOrder: [] as string[],
+    activePokemonId: "",
     weather: Weather.None,
     weatherTurnsRemaining: 0,
     auras: [],

@@ -50,7 +50,7 @@ function buildMoveRegistry(moves: MoveDefinition[]): Map<string, MoveDefinition>
 }
 
 describe("BattleEngine.executeUseMove — valid move hits and deals damage", () => {
-  it("applies damage to the target, deducts PP, and emits MoveStarted, DamageDealt, TurnEnded, TurnStarted", () => {
+  it("applies damage to the target and emits MoveStarted, DamageDealt, no TurnEnded, no TurnStarted", () => {
     const { moves } = loadData();
     const registry = buildMoveRegistry(moves);
 
@@ -75,9 +75,9 @@ describe("BattleEngine.executeUseMove — valid move hits and deals damage", () 
       ["charmander", [PokemonType.Fire]],
     ]);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
+    engine.pinActiveForTest("attacker");
 
     const hpBefore = state.pokemon.get("defender")?.currentHp ?? 0;
-    const ppBefore = state.pokemon.get("attacker")?.currentPp["razor-leaf"] ?? 0;
 
     vi.spyOn(Math, "random").mockReturnValue(0);
 
@@ -95,53 +95,11 @@ describe("BattleEngine.executeUseMove — valid move hits and deals damage", () 
     const hpAfter = state.pokemon.get("defender")?.currentHp ?? 0;
     expect(hpAfter).toBeLessThan(hpBefore);
 
-    const ppAfter = state.pokemon.get("attacker")?.currentPp["razor-leaf"] ?? 0;
-    expect(ppAfter).toBe(ppBefore - 1);
-
     const eventTypes = result.events.map((e) => e.type);
     expect(eventTypes).toContain(BattleEventType.MoveStarted);
     expect(eventTypes).toContain(BattleEventType.DamageDealt);
     expect(eventTypes).not.toContain(BattleEventType.TurnEnded);
     expect(eventTypes).not.toContain(BattleEventType.TurnStarted);
-  });
-});
-
-describe("BattleEngine.executeUseMove — no PP left", () => {
-  it("rejects the action with NoPpLeft when the move has 0 PP remaining", () => {
-    const scratchMove: MoveDefinition = {
-      ...MockValidation.validMove,
-      id: "scratch",
-      targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
-    };
-    const registry = new Map([["scratch", scratchMove]]);
-
-    const attacker = freshPokemon(MockPokemon.charmander, {
-      id: "attacker",
-      playerId: PlayerId.Player1,
-      position: { x: 0, y: 0 },
-      derivedStats: HIGH_INIT,
-      moveIds: ["scratch"],
-      currentPp: { scratch: 0 },
-    });
-    const defender = freshPokemon(MockPokemon.bulbasaur, {
-      id: "defender",
-      playerId: PlayerId.Player2,
-      position: { x: 1, y: 0 },
-      derivedStats: LOW_INIT,
-    });
-
-    const state = MockBattle.stateFrom([attacker, defender]);
-    const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
-
-    const result = engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.UseMove,
-      pokemonId: "attacker",
-      moveId: "scratch",
-      targetPosition: { x: 1, y: 0 },
-    });
-
-    expect(result.success).toBe(false);
-    expect(result.error).toBe(ActionError.NoPpLeft);
   });
 });
 
@@ -162,6 +120,7 @@ describe("BattleEngine.executeUseMove — unknown move", () => {
 
     const state = MockBattle.stateFrom([attacker, defender]);
     const engine = new BattleEngine(state, new Map(), typeChart, pokemonTypes);
+    engine.pinActiveForTest("attacker");
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -199,6 +158,7 @@ describe("BattleEngine.executeUseMove — target out of range", () => {
 
     const state = MockBattle.stateFrom([attacker, defender]);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
+    engine.pinActiveForTest("attacker");
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -234,6 +194,7 @@ describe("BattleEngine.executeUseMove — status move hits", () => {
 
     const state = MockBattle.stateFrom([attacker, defender]);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
+    engine.pinActiveForTest("attacker");
 
     vi.spyOn(Math, "random").mockReturnValue(0);
 
@@ -299,6 +260,7 @@ describe("BattleEngine.executeUseMove — AoE cross hits multiple targets", () =
 
     const state = MockBattle.stateFrom([attacker, targetNorth, targetSouth], 5, 5);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
+    engine.pinActiveForTest("attacker");
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -357,6 +319,7 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
 
     const state = MockBattle.stateFrom([attacker, ally, enemy], 5, 5);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
+    engine.pinActiveForTest("attacker");
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -410,6 +373,7 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
 
     const state = MockBattle.stateFrom([attacker, ally], 5, 5);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
+    engine.pinActiveForTest("attacker");
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -457,6 +421,7 @@ describe("BattleEngine.executeUseMove — miss", () => {
       ["charmander", [PokemonType.Fire]],
     ]);
     const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
+    engine.pinActiveForTest("attacker");
 
     vi.spyOn(Math, "random").mockReturnValue(0.99);
 

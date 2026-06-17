@@ -29,7 +29,6 @@ import {
   rollNature,
   StatName,
   TurnPipeline,
-  type TurnSystemKind,
   validateBattleData,
   validateMapDefinition,
   Weather,
@@ -64,18 +63,12 @@ function createPokemonInstance(
   instanceId: string,
   position: { x: number; y: number },
   orientation: Direction,
-  moveRegistry: Map<string, MoveDefinition>,
   rng: () => number,
   overrides: CreateInstanceOverrides = {},
 ): PokemonInstance {
   const movepoolHead = definition.movepool.slice(0, 4);
   const activeMoveIds =
     overrides.moveIds && overrides.moveIds.length > 0 ? [...overrides.moveIds] : movepoolHead;
-  const currentPp: Record<string, number> = {};
-  for (const moveId of activeMoveIds) {
-    const move = moveRegistry.get(moveId);
-    currentPp[moveId] = move?.pp ?? 0;
-  }
   const gender = overrides.gender ?? rollGender(definition.genderRatio, rng);
   const nature = overrides.nature ?? rollNature(rng);
   const combatStats = computeCombatStats(
@@ -105,9 +98,8 @@ function createPokemonInstance(
     position,
     orientation,
     moveIds: activeMoveIds,
-    currentPp,
     activeDefense: null,
-    lastEndureRound: null,
+    lastEndureAtAction: null,
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
@@ -133,7 +125,6 @@ export interface BattleSetupConfig {
   map: MapDefinition;
   teams: PlacementTeam[];
   placements: PlacementEntry[];
-  turnSystemKind?: TurnSystemKind;
   /** Battle RNG seed → seeded PRNG in the engine (deterministic, replayable). The live edge
    *  generates one seed; tests/sandbox pass a fixed seed. Omitted → 0 (deterministic). */
   seed?: number;
@@ -237,7 +228,6 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
       placement.pokemonId,
       placement.position,
       placement.direction,
-      moveDefinitions,
       creationRng,
       overrides,
     );
@@ -255,10 +245,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
   const state: BattleState = {
     grid,
     pokemon: pokemonMap,
-    turnOrder: [],
-    currentTurnIndex: 0,
-    roundNumber: 1,
-    predictedNextRoundOrder: [],
+    activePokemonId: "",
     weather: Weather.None,
     weatherTurnsRemaining: 0,
     auras: [],
@@ -278,7 +265,6 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     turnPipeline,
     createPrng(seed),
     seed,
-    config.turnSystemKind,
     undefined,
     abilityRegistry,
     itemRegistry,

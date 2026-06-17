@@ -38,7 +38,6 @@ function activePokemon(): PokemonInstance {
     currentHp: 30,
     maxHp: 35,
     moveIds: ["tackle"],
-    currentPp: { tackle: 10, quickattack: 15 },
     statusEffects: [],
     statStages: {},
     volatileStatuses: [],
@@ -48,10 +47,7 @@ function activePokemon(): PokemonInstance {
 function fakeState(): BattleState {
   return {
     pokemon: new Map([[ACTIVE_ID, activePokemon()]]),
-    turnOrder: [ACTIVE_ID],
-    currentTurnIndex: 0,
-    roundNumber: 1,
-    predictedNextRoundOrder: [],
+    activePokemonId: ACTIVE_ID,
     auras: [],
     fieldTerrains: [],
     weather: Weather.None,
@@ -96,6 +92,7 @@ function setup(
     getGrid: () => Grid.createFlat(9, 9),
     estimateDamage: () => null,
     getPokemonTypes: () => [],
+    predictCtTimeline: () => [],
   } as unknown as BattleEngine;
 
   const board: BoardView = {

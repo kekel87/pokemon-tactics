@@ -179,7 +179,7 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
 
     while (totalActions < maxActions) {
       const gameState = engine.getGameState(PlayerId.Player1);
-      const activePokemonId = gameState.turnOrder[gameState.currentTurnIndex];
+      const activePokemonId = gameState.activePokemonId;
       if (!activePokemonId) {
         break;
       }

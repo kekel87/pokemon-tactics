@@ -20,7 +20,13 @@ export {
   removeAurasOfCaster,
 } from "./battle/aura-system";
 export { BattleEngine } from "./battle/BattleEngine";
-export { CT_THRESHOLD, CT_WAIT, computeMoveCost } from "./battle/ct-costs";
+export {
+  CT_TEMPO_MAX,
+  CT_THRESHOLD,
+  CT_WAIT,
+  computeMoveCost,
+  moveCtTempo,
+} from "./battle/ct-costs";
 export { getEffectivePowerFloor, resolveDynamicPower } from "./battle/dynamic-power-system";
 export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
 export { EffectHandlerRegistry } from "./battle/effect-handler-registry";
@@ -49,7 +55,6 @@ export { rollNature } from "./battle/roll-nature";
 export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator";
 export { computeMovement, isMajorStatus } from "./battle/stat-modifier";
 export { validateStatSpread } from "./battle/stat-spread-validator";
-export { TurnManager } from "./battle/TurnManager";
 export { validateTeamSelection } from "./battle/team-validator";
 export type { PhaseHandler, PhaseResult } from "./battle/turn-pipeline";
 export { TurnPipeline } from "./battle/turn-pipeline";

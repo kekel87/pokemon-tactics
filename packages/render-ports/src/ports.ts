@@ -4,7 +4,6 @@ import type {
   MoveDefinition,
   Position,
   SemiInvulnerableDisplay,
-  TurnSystemKind,
 } from "@pokemon-tactic/core";
 import type { InfoPanelData, TimelineView, WeatherView } from "./view-models.js";
 
@@ -144,14 +143,14 @@ export type BlockedMoveTag = "taunt" | "disable" | "encore";
 /** One move row in the attack submenu (all of the actor's moves, greyed when unusable). */
 export interface AttackSubmenuMoveView {
   definition: MoveDefinition;
-  currentPp: number;
   hasTargets: boolean;
+  /** Charge Time "tempo" rating 1..CT_TEMPO_MAX (heavier = the user waits longer before acting again). */
+  costTempo: number;
   blockedTag?: BlockedMoveTag;
 }
 
 export interface AttackSubmenuView {
   moves: readonly AttackSubmenuMoveView[];
-  turnSystemKind: TurnSystemKind;
   onSelect: (moveId: string) => void;
   onCancel: () => void;
 }
@@ -159,14 +158,11 @@ export interface AttackSubmenuView {
 /** The locked-in move shown while picking a target/retreat tile. */
 export interface SelectedMoveView {
   definition: MoveDefinition;
-  currentPp: number;
-  turnSystemKind: TurnSystemKind;
 }
 
 export interface TurnInfoView {
   activePokemonId: string;
   playerId: string;
-  roundNumber: number;
 }
 
 /** Semantic instruction the chrome localises (keeps the FSM free of i18n key strings). */

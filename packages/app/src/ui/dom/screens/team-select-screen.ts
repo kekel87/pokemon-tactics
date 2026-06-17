@@ -1,4 +1,4 @@
-import { type MapFormat, PlayerController, TurnSystemKind } from "@pokemon-tactic/core";
+import { type MapFormat, PlayerController } from "@pokemon-tactic/core";
 import { AnalyticsEvent, trackEvent } from "../../../analytics/analytics";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { t } from "../../../i18n";
@@ -44,7 +44,6 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   let slots: SlotState[] = [];
   let activeSlotIndex = 0;
   let autoPlacement = true;
-  let turnSystemKind: TurnSystemKind = TurnSystemKind.ChargeTime;
 
   const goBack = (): void => navigate("map-select", undefined);
 
@@ -68,7 +67,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     }
     navigate("combat", {
       mapUrl,
-      setup: { teams, formatKey, autoPlacement, turnSystemKind },
+      setup: { teams, formatKey, autoPlacement },
     });
   };
 
@@ -240,23 +239,6 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     autoText.textContent = t("teamSelect.autoPlacement.label");
     autoLabel.append(autoInput, autoText);
 
-    const turnLabel = el("label", "ts-footer-turn");
-    const turnText = document.createElement("span");
-    turnText.textContent = t("teamSelect.turnSystem.label");
-    const turnSelect = document.createElement("select");
-    const ctOption = document.createElement("option");
-    ctOption.value = TurnSystemKind.ChargeTime;
-    ctOption.textContent = t("teamSelect.turnSystemCt");
-    const rrOption = document.createElement("option");
-    rrOption.value = TurnSystemKind.RoundRobin;
-    rrOption.textContent = t("teamSelect.turnSystemRr");
-    turnSelect.append(ctOption, rrOption);
-    turnSelect.value = turnSystemKind;
-    turnSelect.addEventListener("change", () => {
-      turnSystemKind = turnSelect.value as TurnSystemKind;
-    });
-    turnLabel.append(turnText, turnSelect);
-
     const refreshAi = el("button", "tb-btn");
     refreshAi.type = "button";
     refreshAi.textContent = t("teamSelect.actions.refreshAi");
@@ -271,7 +253,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     launch.disabled = !isLaunchable();
     launch.addEventListener("click", onLaunch);
 
-    footer.append(autoLabel, turnLabel, refreshAi, spacer, launch);
+    footer.append(autoLabel, refreshAi, spacer, launch);
     return footer;
   };
 

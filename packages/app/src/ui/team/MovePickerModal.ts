@@ -1,3 +1,4 @@
+import { CT_TEMPO_MAX } from "@pokemon-tactic/core";
 import { getMoveName } from "@pokemon-tactic/data";
 import { Modal } from "@pokemon-tactic/ui-dom";
 import { getLanguage, t } from "../../i18n";
@@ -228,12 +229,17 @@ export function openMovePickerModal(options: MovePickerOptions): void {
           : "—";
       row.appendChild(acc);
 
+      // PP usage was removed (Charge Time regulates move frequency). Show the CT "tempo" instead:
+      // filled pips = how heavy the move's cost is (heavier → acts again later).
       if (entry.implemented) {
-        const pp = document.createElement("span");
-        pp.className = "meta";
-        pp.textContent =
-          entry.info?.pp !== undefined && entry.info?.pp !== null ? `${entry.info.pp}PP` : "—";
-        row.appendChild(pp);
+        const tempo = document.createElement("span");
+        tempo.className = "meta tb-move-tempo";
+        const pips = entry.info?.costTempo ?? 0;
+        tempo.dataset.tempo = String(pips);
+        tempo.textContent = "●".repeat(pips) + "○".repeat(Math.max(0, CT_TEMPO_MAX - pips));
+        tempo.setAttribute("role", "img");
+        tempo.setAttribute("aria-label", `Tempo ${pips}/${CT_TEMPO_MAX}`);
+        row.appendChild(tempo);
       } else {
         const tag = document.createElement("span");
         tag.className = "meta";

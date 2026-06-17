@@ -31,8 +31,7 @@ describe("handleDefensive", () => {
 
     expect(context.attacker.activeDefense).toEqual({
       kind: DefensiveKind.Protect,
-      roundApplied: 1,
-      turnIndexApplied: 0,
+      appliedAtAction: 0,
     });
   });
 
@@ -52,8 +51,7 @@ describe("handleDefensive", () => {
     const context = contextFor(DefensiveKind.Counter);
     context.attacker.activeDefense = {
       kind: DefensiveKind.Protect,
-      roundApplied: 1,
-      turnIndexApplied: 0,
+      appliedAtAction: 0,
     };
 
     handleDefensive(context);
@@ -61,34 +59,34 @@ describe("handleDefensive", () => {
     expect(context.attacker.activeDefense?.kind).toBe(DefensiveKind.Counter);
   });
 
-  it("records correct round and turnIndex from state", () => {
+  it("stamps appliedAtAction from the action clock", () => {
     const context = contextFor(DefensiveKind.Endure);
-    context.state.roundNumber = 3;
-    context.state.currentTurnIndex = 2;
+    context.state.actionCounter = 3;
 
     handleDefensive(context);
 
     expect(context.attacker.activeDefense).toEqual({
       kind: DefensiveKind.Endure,
-      roundApplied: 3,
-      turnIndexApplied: 2,
+      appliedAtAction: 3,
     });
   });
 
   describe("Endure spam check", () => {
-    it("sets lastEndureRound on Endure", () => {
+    it("sets lastEndureAtAction on Endure", () => {
       const context = contextFor(DefensiveKind.Endure);
-      context.state.roundNumber = 2;
+      context.state.actionCounter = 2;
 
       handleDefensive(context);
 
-      expect(context.attacker.lastEndureRound).toBe(2);
+      expect(context.attacker.lastEndureAtAction).toBe(2);
     });
 
-    it("blocks Endure if used on consecutive round", () => {
+    it("blocks Endure when used on the immediately consecutive turn", () => {
       const context = contextFor(DefensiveKind.Endure);
-      context.state.roundNumber = 3;
-      context.attacker.lastEndureRound = 2;
+      context.state.actionCounter = 3;
+      // lastEndureAtAction matching the previous-turn stamp means it was used last turn.
+      context.attacker.lastActedAtAction = 2;
+      context.attacker.lastEndureAtAction = 2;
 
       const events = handleDefensive(context);
 
@@ -96,10 +94,11 @@ describe("handleDefensive", () => {
       expect(context.attacker.activeDefense).toBeNull();
     });
 
-    it("allows Endure if gap of 2+ rounds", () => {
+    it("allows Endure again once the user has acted on another turn since", () => {
       const context = contextFor(DefensiveKind.Endure);
-      context.state.roundNumber = 4;
-      context.attacker.lastEndureRound = 2;
+      context.state.actionCounter = 5;
+      context.attacker.lastActedAtAction = 4;
+      context.attacker.lastEndureAtAction = 2;
 
       const events = handleDefensive(context);
 
@@ -107,11 +106,11 @@ describe("handleDefensive", () => {
       expect(context.attacker.activeDefense?.kind).toBe(DefensiveKind.Endure);
     });
 
-    it("does not set lastEndureRound for non-Endure moves", () => {
+    it("does not set lastEndureAtAction for non-Endure moves", () => {
       const context = contextFor(DefensiveKind.Protect);
       handleDefensive(context);
 
-      expect(context.attacker.lastEndureRound).toBeNull();
+      expect(context.attacker.lastEndureAtAction).toBeNull();
     });
   });
 });

@@ -11,6 +11,7 @@ import { PlayerId } from "../src/enums/player-id";
 import { PokemonGender } from "../src/enums/pokemon-gender";
 import type { PokemonType } from "../src/enums/pokemon-type";
 import { StatName } from "../src/enums/stat-name";
+import { Weather } from "../src/enums/weather";
 import type { Action } from "../src/types/action";
 import type { MoveDefinition } from "../src/types/move-definition";
 import type { PokemonInstance } from "../src/types/pokemon-instance";
@@ -65,11 +66,6 @@ function buildEngine(seed: number): BattleEngine {
     }
     const id = `p${playerId === PlayerId.Player1 ? "1" : "2"}-${defId}`;
     const activeMoveIds = [...definition.movepool];
-    const currentPp: Record<string, number> = {};
-    for (const moveId of activeMoveIds) {
-      const moveDef = moveRegistry.get(moveId);
-      currentPp[moveId] = moveDef?.pp ?? 0;
-    }
     const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
     const instance: PokemonInstance = {
       id,
@@ -91,9 +87,8 @@ function buildEngine(seed: number): BattleEngine {
       position,
       orientation: playerId === PlayerId.Player1 ? Direction.East : Direction.West,
       moveIds: activeMoveIds,
-      currentPp,
       activeDefense: null,
-      lastEndureRound: null,
+      lastEndureAtAction: null,
       toxicCounter: 0,
       volatileStatuses: [],
       recharging: false,
@@ -126,10 +121,11 @@ function buildEngine(seed: number): BattleEngine {
   const state = {
     grid,
     pokemon: pokemonMap,
-    turnOrder: [] as string[],
-    currentTurnIndex: 0,
-    roundNumber: 1,
-    predictedNextRoundOrder: [] as string[],
+    activePokemonId: "",
+    weather: Weather.None,
+    weatherTurnsRemaining: 0,
+    auras: [],
+    fieldTerrains: [],
   };
 
   const random = createPrng(seed);
@@ -150,7 +146,7 @@ function run(): void {
 
   while (actionCount < 2000) {
     const state = engine.getGameState("");
-    const currentPokemonId = state.turnOrder[state.currentTurnIndex];
+    const currentPokemonId = state.activePokemonId;
     const currentPokemon = currentPokemonId ? state.pokemon.get(currentPokemonId) : undefined;
     if (!currentPokemon) {
       break;
@@ -189,7 +185,7 @@ function run(): void {
   );
 
   console.log(`Generated ${actions.length} actions`);
-  console.log(`Round: ${finalState.roundNumber}`);
+  console.log(`Actions clock: ${finalState.actionCounter ?? 0}`);
   console.log(`Team1 alive: ${team1Alive.length}, Team2 alive: ${team2Alive.length}`);
 
   const replay = { seed: SEED, actions };

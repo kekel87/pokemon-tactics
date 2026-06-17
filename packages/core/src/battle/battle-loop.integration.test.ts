@@ -6,7 +6,7 @@ import { Direction } from "../enums/direction";
 import { PlayerId } from "../enums/player-id";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
-import { MockBattle, MockPokemon } from "../testing";
+import { endTurnUntilActor, MockBattle, MockPokemon } from "../testing";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import { BattleEngine } from "./BattleEngine";
@@ -65,9 +65,10 @@ describe("Battle loop integration", () => {
     });
 
     const { engine, state } = buildEngine([bulbasaur, charmander]);
+    engine.pinActiveForTest("bulbasaur-1");
 
     // Round 1: Bulbasaur uses Sleep Powder on Charmander
-    expect(state.turnOrder[0]).toBe("bulbasaur-1");
+    expect(state.activePokemonId).toBe("bulbasaur-1");
     const sleepResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "bulbasaur-1",
@@ -78,14 +79,15 @@ describe("Battle loop integration", () => {
     expect(charmander.statusEffects.some((s) => s.type === StatusType.Asleep)).toBe(true);
 
     // EndTurn for Bulbasaur → Charmander's turn is auto-skipped (sleep)
-    // Round 2 starts — Bulbasaur's turn again
+    // Charge Time scheduler advances back to Bulbasaur
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "bulbasaur-1",
       direction: Direction.South,
     });
+    endTurnUntilActor(engine, state, "bulbasaur-1");
 
-    // Round 2: Bulbasaur uses Leech Seed
+    // Bulbasaur uses Leech Seed
     const leechResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "bulbasaur-1",

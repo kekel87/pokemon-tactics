@@ -27,34 +27,16 @@ describe("BattleEngine", () => {
 
     const gameState = engine.getGameState(PlayerId.Player1);
     expect(gameState.pokemon.size).toBe(2);
-    expect(gameState.roundNumber).toBe(1);
+    expect(gameState.activePokemonId).toBeTruthy();
   });
 
-  it("synchronizes turnOrder in BattleState from TurnManager", () => {
+  it("sets the active pokemon to the Charge Time first actor", () => {
     const state = MockBattle.stateFrom([fresh(P2), fresh(P1)]);
     const engine = new BattleEngine(state, new Map());
 
     const gameState = engine.getGameState(PlayerId.Player1);
-    expect(gameState.turnOrder).toEqual(["fast", "slow"]);
-    expect(gameState.currentTurnIndex).toBe(0);
-  });
-
-  it("computes predictedNextRoundOrder sorted by effective initiative", () => {
-    const state = MockBattle.stateFrom([fresh(P2), fresh(P1)]);
-    const engine = new BattleEngine(state, new Map());
-
-    const gameState = engine.getGameState(PlayerId.Player1);
-    expect(gameState.predictedNextRoundOrder).toEqual(["fast", "slow"]);
-  });
-
-  it("excludes KO pokemon from predictedNextRoundOrder", () => {
-    const p1 = fresh(P1);
-    const p2 = fresh(P2, { currentHp: 0 });
-    const state = MockBattle.stateFrom([p1, p2]);
-    const engine = new BattleEngine(state, new Map());
-
-    const gameState = engine.getGameState(PlayerId.Player1);
-    expect(gameState.predictedNextRoundOrder).toEqual(["fast"]);
+    // Equal base Speed → lowest id breaks the tie ("fast" < "slow").
+    expect(gameState.activePokemonId).toBe("fast");
   });
 
   it("notifies event handlers via on()", () => {
@@ -121,6 +103,7 @@ describe("BattleEngine.getLegalActions", () => {
     const enemy = fresh(P2, { id: "enemy", position: { x: 2, y: 0 } });
     const state = MockBattle.stateFrom([mover, enemy], 5, 1);
     const engine = new BattleEngine(state, new Map());
+    engine.pinActiveForTest("mover");
 
     const destinations = engine
       .getLegalActions(PlayerId.Player1)
@@ -368,24 +351,6 @@ describe("BattleEngine.submitAction move", () => {
     expect((events[0] as { pokemonId: string }).pokemonId).toBe("slow");
   });
 
-  it("increments roundNumber after a full round", () => {
-    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
-    const engine = new BattleEngine(state, new Map());
-
-    expect(state.roundNumber).toBe(1);
-    engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.EndTurn,
-      pokemonId: "fast",
-      direction: Direction.South,
-    });
-    engine.submitAction(PlayerId.Player2, {
-      kind: ActionKind.EndTurn,
-      pokemonId: "slow",
-      direction: Direction.South,
-    });
-    expect(state.roundNumber).toBe(2);
-  });
-
   it("rejects move to a tile occupied by an ally", () => {
     const mover = fresh(P1, { id: "mover", position: { x: 0, y: 0 } });
     const ally = fresh(P1, {
@@ -396,6 +361,7 @@ describe("BattleEngine.submitAction move", () => {
     const enemy = fresh(P2, { id: "enemy" });
     const state = MockBattle.stateFrom([mover, ally, enemy]);
     const engine = new BattleEngine(state, new Map());
+    engine.pinActiveForTest("mover");
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
@@ -466,25 +432,6 @@ describe("BattleEngine.submitAction move", () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe(ActionError.JumpTooHigh);
   });
-
-  it("completes 3 full rounds with 2 pokemon", () => {
-    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
-    const engine = new BattleEngine(state, new Map());
-
-    for (let round = 0; round < 3; round++) {
-      engine.submitAction(PlayerId.Player1, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "fast",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "slow",
-        direction: Direction.South,
-      });
-    }
-    expect(state.roundNumber).toBe(4);
-  });
 });
 
 describe("BattleEngine.getLegalActions — use_move", () => {
@@ -536,24 +483,6 @@ describe("BattleEngine.getLegalActions — use_move", () => {
     expect(
       useMoveActions.every((a) => a.kind === ActionKind.UseMove && a.moveId === "tackle"),
     ).toBe(true);
-  });
-
-  it("excludes moves with 0 PP", () => {
-    const registry = new Map([["tackle", singleMove]]);
-    const mover = fresh(P1, {
-      id: "mover",
-      position: { x: 2, y: 2 },
-      moveIds: ["tackle"],
-      currentPp: { tackle: 0 },
-    });
-    const state = MockBattle.stateFrom([mover, fresh(P2)]);
-    const engine = new BattleEngine(state, registry);
-
-    const useMoveActions = engine
-      .getLegalActions(PlayerId.Player1)
-      .filter((a) => a.kind === ActionKind.UseMove);
-
-    expect(useMoveActions.length).toBe(0);
   });
 
   it("returns single-target positions within range 1 to 3", () => {
@@ -663,12 +592,15 @@ describe("BattleEngine.getLegalActions — use_move", () => {
   });
 
   describe("handleKo", () => {
-    it("KO removes pokemon from turn order but body stays on tile", () => {
+    it("KO from a start-of-turn poison tick eliminates the mon but keeps its body on the tile", () => {
+      // The poisoned mon must NOT be the Charge Time first actor, otherwise its turn-start tick
+      // would KO it during construction — before the listeners below are attached. Give the foe a
+      // higher base Speed so it acts first; then drive turns until the poison tick lands.
       const p1 = fresh(P1, {
         currentHp: 1,
         statusEffects: [{ type: StatusType.Poisoned, remainingTurns: null }],
       });
-      const p2 = fresh(P2);
+      const p2 = fresh(P2, { baseStats: { ...P2.baseStats, speed: 255 } });
       const state = MockBattle.stateFrom([p1, p2]);
       const engine = new BattleEngine(state, new Map());
 
@@ -676,17 +608,17 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.PokemonEliminated, (e) => events.push(e));
       engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
 
-      // P1 (fast) skips → P2 (slow) skips → round 2 → P1 turn starts → poison KO
-      engine.submitAction(PlayerId.Player1, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "fast",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "slow",
-        direction: Direction.South,
-      });
+      for (let i = 0; i < 10 && (state.pokemon.get("fast")?.currentHp ?? 0) > 0; i++) {
+        const current = state.pokemon.get(state.activePokemonId);
+        if (!current) {
+          break;
+        }
+        engine.submitAction(current.playerId, {
+          kind: ActionKind.EndTurn,
+          pokemonId: current.id,
+          direction: Direction.South,
+        });
+      }
 
       expect(p1.currentHp).toBe(0);
       expect(state.grid[0]?.[0]?.occupantId).toBe("fast");
@@ -699,17 +631,15 @@ describe("BattleEngine.getLegalActions — use_move", () => {
         id: "p1-fast",
         currentHp: 1,
         statusEffects: [{ type: StatusType.Poisoned, remainingTurns: null }],
-        derivedStats: { movement: 3, jump: 1, initiative: 90 },
       });
       const p1b = fresh(P1, {
         id: "p1-medium",
         playerId: PlayerId.Player1,
         position: { x: 2, y: 0 },
-        derivedStats: { movement: 3, jump: 1, initiative: 50 },
       });
-      const p2 = fresh(P2, {
-        derivedStats: { movement: 3, jump: 1, initiative: 30 },
-      });
+      // Foe acts first (higher base Speed) so the poisoned mon's turn — and its KO — happens after
+      // the listeners are attached.
+      const p2 = fresh(P2, { baseStats: { ...P2.baseStats, speed: 255 } });
       const state = MockBattle.stateFrom([p1, p1b, p2]);
       const engine = new BattleEngine(state, new Map());
 
@@ -717,24 +647,18 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       engine.on(BattleEventType.PokemonEliminated, (e) => events.push(e));
       engine.on(BattleEventType.BattleEnded, (e) => events.push(e));
 
-      // Round 1: p1-fast skips, p1-medium skips, p2 skips
-      engine.submitAction(PlayerId.Player1, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "p1-fast",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player1, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "p1-medium",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "slow",
-        direction: Direction.South,
-      });
+      for (let i = 0; i < 10 && (state.pokemon.get("p1-fast")?.currentHp ?? 0) > 0; i++) {
+        const current = state.pokemon.get(state.activePokemonId);
+        if (!current) {
+          break;
+        }
+        engine.submitAction(current.playerId, {
+          kind: ActionKind.EndTurn,
+          pokemonId: current.id,
+          direction: Direction.South,
+        });
+      }
 
-      // Round 2: p1-fast starts → poison KO → battle continues (p1-medium alive)
       expect(p1.currentHp).toBe(0);
       expect(events.some((e) => e.type === BattleEventType.PokemonEliminated)).toBe(true);
       expect(events.some((e) => e.type === BattleEventType.BattleEnded)).toBe(false);
