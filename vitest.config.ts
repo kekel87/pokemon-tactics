@@ -12,6 +12,9 @@ export default defineConfig({
         },
         test: {
           name: "unit",
+          isolate: false,
+          pool: "threads",
+          experimental: { fsModuleCache: true },
           include: ["packages/*/src/**/*.test.ts", "packages/*/scripts/**/*.test.ts"],
           exclude: ["**/*.integration.test.ts", "**/*.scenario.test.ts"],
           coverage: {
