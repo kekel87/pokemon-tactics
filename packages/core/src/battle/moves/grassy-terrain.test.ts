@@ -5,7 +5,12 @@ import { Direction } from "../../enums/direction";
 import { FieldTerrain } from "../../enums/field-terrain";
 import { HeldItemId } from "../../enums/held-item-id";
 import { PlayerId } from "../../enums/player-id";
-import { buildItemTestEngine, buildMoveTestEngine, MockPokemon } from "../../testing";
+import {
+  buildItemTestEngine,
+  buildMoveTestEngine,
+  endTurnUntilActor,
+  MockPokemon,
+} from "../../testing";
 import { postFieldTerrain } from "../field-terrain-system";
 
 // Champ Herbu (grassy-terrain) — move integration tests
@@ -437,14 +442,10 @@ describe("grassy-terrain — zone expiration", () => {
     engine.on(BattleEventType.FieldTerrainExpired, (e) => expiredEvents.push(e));
 
     for (let round = 0; round < 5; round++) {
+      endTurnUntilActor(engine, state, "caster");
       engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.EndTurn,
         pokemonId: "caster",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "foe",
         direction: Direction.South,
       });
     }
@@ -485,32 +486,24 @@ describe("grassy-terrain — zone expiration", () => {
 
     expect(state.fieldTerrains[0]?.remainingTurns).toBe(8);
 
-    // After 5 rounds zone must still be alive
+    // After 5 caster turns zone must still be alive
     for (let round = 0; round < 5; round++) {
+      endTurnUntilActor(engine, state, "caster");
       engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.EndTurn,
         pokemonId: "caster",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "foe",
         direction: Direction.South,
       });
     }
     expect(state.fieldTerrains).toHaveLength(1);
     expect(state.fieldTerrains[0]?.remainingTurns).toBe(3);
 
-    // 3 more rounds → expiration
+    // 3 more caster turns → expiration
     for (let round = 0; round < 3; round++) {
+      endTurnUntilActor(engine, state, "caster");
       engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.EndTurn,
         pokemonId: "caster",
-        direction: Direction.South,
-      });
-      engine.submitAction(PlayerId.Player2, {
-        kind: ActionKind.EndTurn,
-        pokemonId: "foe",
         direction: Direction.South,
       });
     }

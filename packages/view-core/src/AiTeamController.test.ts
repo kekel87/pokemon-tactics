@@ -18,7 +18,7 @@ function buildAiController() {
 function skipToAiTurn(engine: ReturnType<typeof createBattle>["engine"]) {
   for (let i = 0; i < 20; i++) {
     const state = engine.getGameState(PlayerId.Player1);
-    const activePokemonId = state.turnOrder[state.currentTurnIndex];
+    const activePokemonId = state.activePokemonId;
     const activePokemon = activePokemonId ? state.pokemon.get(activePokemonId) : undefined;
     if (activePokemon?.playerId === PlayerId.Player2) {
       return;
@@ -36,7 +36,7 @@ describe("AiTeamController", () => {
   it("returns empty events when it is not the AI's turn", () => {
     const { battleSetup, aiController } = buildAiController();
     const state = battleSetup.engine.getGameState(PlayerId.Player1);
-    const activePokemonId = state.turnOrder[state.currentTurnIndex];
+    const activePokemonId = state.activePokemonId;
     const activePokemon = activePokemonId ? state.pokemon.get(activePokemonId) : undefined;
 
     if (activePokemon?.playerId === PlayerId.Player1) {

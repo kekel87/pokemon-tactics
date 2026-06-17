@@ -11,7 +11,6 @@ export const ActionError = {
   BlockedByEnemy: "blocked_by_enemy",
   DestinationOccupied: "destination_occupied",
   UnknownMove: "unknown_move",
-  NoPpLeft: "no_pp_left",
   InvalidTarget: "invalid_target",
   MoveNotInMoveset: "move_not_in_moveset",
   AlreadyMoved: "already_moved",

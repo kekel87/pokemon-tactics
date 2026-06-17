@@ -5,7 +5,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, endTurnUntilActor, MockPokemon } from "../../testing";
 
 describe("leech-seed", () => {
   it("applies Seeded volatile status on target in range", () => {
@@ -261,6 +261,8 @@ describe("leech-seed", () => {
       pokemonId: caster1.id,
       direction: Direction.South,
     });
+
+    endTurnUntilActor(engine, state, caster2.id);
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

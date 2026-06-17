@@ -395,7 +395,8 @@ describe("cloud-nine ability (Golduck)", () => {
       maxHp: 100,
     });
     const { engine, state } = buildMoveTestEngine([golduck, foe]);
-    setWeather(state, Weather.Sandstorm, 5);
+    // Golduck is the setter, so the duration counts down on its own turn (CT model).
+    setWeather(state, Weather.Sandstorm, 5, "golduck");
 
     // Golduck (Water type) would normally take Sandstorm damage but cloud-nine suppresses it
     const hpBefore = state.pokemon.get("golduck")!.currentHp;

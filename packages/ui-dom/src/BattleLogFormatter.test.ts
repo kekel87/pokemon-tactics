@@ -30,7 +30,7 @@ describe("BattleLogFormatter", () => {
   describe("TurnStarted", () => {
     it("formats in French", () => {
       const result = formatBattleEvent(
-        { type: BattleEventType.TurnStarted, pokemonId: "pika", roundNumber: 1 },
+        { type: BattleEventType.TurnStarted, pokemonId: "pika" },
         frContext,
       ) as BattleLogEntry;
       expect(result.message).toBe("Tour de Pikachu");
@@ -40,7 +40,7 @@ describe("BattleLogFormatter", () => {
 
     it("formats in English", () => {
       const result = formatBattleEvent(
-        { type: BattleEventType.TurnStarted, pokemonId: "pika", roundNumber: 1 },
+        { type: BattleEventType.TurnStarted, pokemonId: "pika" },
         enContext,
       ) as BattleLogEntry;
       expect(result.message).toBe("Pikachu's turn");

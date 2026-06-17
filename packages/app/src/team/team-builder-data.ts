@@ -35,7 +35,8 @@ export interface AvailableMove {
   category: string;
   power: number | null;
   accuracy: number | null;
-  pp: number | null;
+  /** Charge Time tempo rating 1..5 (heavier move cost → acts again later). */
+  costTempo: number;
   shortDescription: string;
 }
 
@@ -119,7 +120,7 @@ function build(): TeamBuilderDataCache {
       category: m.category,
       power: m.power,
       accuracy: m.accuracy,
-      pp: m.pp,
+      costTempo: m.costTempo,
       shortDescription: pickLocalized(m.shortDescription),
     };
     moveById.set(m.id, move);

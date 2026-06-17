@@ -1,10 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
-import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, endTurnUntilActor, MockPokemon } from "../../testing";
 import type { BattleEvent } from "../../types/battle-event";
 
 describe("poison status", () => {
@@ -26,11 +24,7 @@ describe("poison status", () => {
     const hpBefore = pokemon.currentHp;
     const expectedDamage = Math.max(1, Math.floor(pokemon.maxHp / 8));
 
-    engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.EndTurn,
-      pokemonId: "charmander-1",
-      direction: Direction.South,
-    });
+    endTurnUntilActor(engine, state, "bulbasaur-1");
 
     expect(pokemon.currentHp).toBe(hpBefore - expectedDamage);
   });
@@ -51,16 +45,12 @@ describe("poison status", () => {
       statusEffects: [{ type: StatusType.Poisoned, remainingTurns: null }],
     });
 
-    const { engine } = buildMoveTestEngine([charmander, bulbasaur]);
+    const { engine, state } = buildMoveTestEngine([charmander, bulbasaur]);
     const allEvents: BattleEvent[] = [];
     engine.on(BattleEventType.BattleEnded, (e) => allEvents.push(e));
     engine.on(BattleEventType.PokemonKo, (e) => allEvents.push(e));
 
-    engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.EndTurn,
-      pokemonId: "charmander-1",
-      direction: Direction.South,
-    });
+    endTurnUntilActor(engine, state, "bulbasaur-1");
 
     expect(allEvents.some((e) => e.type === BattleEventType.PokemonKo)).toBe(true);
     expect(allEvents.some((e) => e.type === BattleEventType.BattleEnded)).toBe(true);

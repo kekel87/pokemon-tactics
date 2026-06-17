@@ -4,7 +4,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, endTurnUntilActor, MockPokemon } from "../../testing";
 import type { BattleEvent } from "../../types/battle-event";
 
 describe("sleep status", () => {
@@ -33,8 +33,7 @@ describe("sleep status", () => {
       direction: Direction.South,
     });
 
-    expect(state.roundNumber).toBe(2);
-    expect(state.turnOrder[0]).toBe("charmander-1");
+    expect(state.activePokemonId).toBe("charmander-1");
 
     const legalActions = engine.getLegalActions(PlayerId.Player2);
     expect(legalActions).toHaveLength(0);
@@ -59,11 +58,7 @@ describe("sleep status", () => {
     const statusRemovedEvents: BattleEvent[] = [];
     engine.on(BattleEventType.StatusRemoved, (e) => statusRemovedEvents.push(e));
 
-    engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.EndTurn,
-      pokemonId: "charmander-1",
-      direction: Direction.South,
-    });
+    endTurnUntilActor(engine, state, "bulbasaur-1");
 
     expect(pokemon.statusEffects.some((s) => s.type === StatusType.Asleep)).toBe(false);
     expect(

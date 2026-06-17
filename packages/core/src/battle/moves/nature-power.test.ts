@@ -105,8 +105,6 @@ describe("nature-power — move resolution", () => {
     expect(moveStarted?.type === BattleEventType.MoveStarted && moveStarted.resolvedMoveId).toBe(
       "psychic",
     );
-    // PP spent on nature-power, not the morphed move.
-    expect(state.pokemon.get(caster.id)?.currentPp["nature-power"]).toBe(19);
   });
 
   it("re-resolves to Tri Attack at execution if the field terrain expired", () => {
@@ -115,8 +113,9 @@ describe("nature-power — move resolution", () => {
     const zone = postFieldTerrain(state, caster, FieldTerrain.Psychic);
     zone.remainingTurns = 1;
     expect(resolveNaturePowerMoveId(state, engine.getGrid(), caster)).toBe("psychic");
-    // Field terrain decrements to 0 and is removed → Force Nature falls back to Tri Attack.
-    decrementFieldTerrainsTimer(state);
+    // Field terrain decrements to 0 on its caster's turn and is removed → Force Nature falls back
+    // to Tri Attack.
+    decrementFieldTerrainsTimer(state, caster.id);
     expect(resolveNaturePowerMoveId(state, engine.getGrid(), caster)).toBe("tri-attack");
   });
 });

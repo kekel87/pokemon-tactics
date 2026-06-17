@@ -8,7 +8,6 @@ import {
   type PokemonInstance,
   StatName,
   StatusType,
-  TurnSystemKind,
   Weather,
 } from "@pokemon-tactic/core";
 import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
@@ -233,72 +232,75 @@ export function buildWeatherView(state: BattleState): WeatherView | null {
 
 function timelineEntry(
   pokemon: PokemonInstance,
-  isActive: boolean,
-  ct: number | null,
-  dimmed: boolean,
-  separatorRound: number | null,
+  opts: { isActive?: boolean; isSelf?: boolean; ct?: number | null; dimmed?: boolean },
 ): TimelineEntryView {
+  const ct = opts.ct ?? null;
   return {
     definitionId: pokemon.definitionId,
     team: teamNumberOf(pokemon.playerId),
-    isActive,
+    isActive: opts.isActive ?? false,
+    isSelf: opts.isSelf ?? false,
     ctRatio: ct === null ? null : Math.max(0, Math.min(1, ct / CT_THRESHOLD)),
-    dimmed,
-    separatorRound,
+    dimmed: opts.dimmed ?? false,
   };
 }
 
 /**
- * Build the TurnTimeline view-model (mirror of `ui/TurnTimeline.ts`). In
- * Charge-Time it lists the active Pokémon then the predicted `ctSequence`; in
- * Round-Robin it lists the current round's remaining order then next round's
- * already-acted mons behind a round separator.
+ * Build the TurnTimeline view-model (Charge Time).
+ *
+ * Live (`preview=false`): the active mon is pinned on top with no bar (a full bar would read as
+ * "almost ready" rather than "acting now"); upcoming mons show their CURRENT charge bar; a mon's
+ * later turns are dimmed (their future charge isn't reliably known).
+ *
+ * Move-cost preview (`preview=true`): show the EXACT resulting order — the deciding mon is no longer
+ * pinned on top but appears where it will slot back in after paying the move's cost (marked
+ * `isSelf`), so "what you see is what happens". No bars (these are future projections).
  */
 export function buildTimelineView(
   state: BattleState,
   ctSequence: readonly CtTimelineEntry[],
+  preview = false,
 ): TimelineView {
   const alive = (id: string | undefined): PokemonInstance | null => {
     const pokemon = id ? state.pokemon.get(id) : undefined;
     return pokemon && pokemon.currentHp > 0 ? pokemon : null;
   };
   const entries: TimelineEntryView[] = [];
+  const seen = new Set<string>();
 
-  if (state.turnSystemKind === TurnSystemKind.ChargeTime) {
-    const active = alive(state.turnOrder[0]);
-    if (active) {
-      entries.push(timelineEntry(active, true, state.ctSnapshot?.[active.id] ?? 0, false, null));
-    }
+  if (preview) {
     for (const entry of ctSequence) {
       const pokemon = alive(entry.pokemonId);
-      if (pokemon) {
-        entries.push(timelineEntry(pokemon, false, entry.ct, false, null));
+      if (!pokemon) {
+        continue;
       }
+      if (seen.has(pokemon.id)) {
+        entries.push(timelineEntry(pokemon, { dimmed: true }));
+        continue;
+      }
+      seen.add(pokemon.id);
+      // The deciding mon's first slot in the resulting order = where "you" land after this move.
+      entries.push(timelineEntry(pokemon, { isSelf: pokemon.id === state.activePokemonId }));
     }
-    return { showCtBars: true, entries };
+    return { showCtBars: false, entries };
   }
 
-  const active = alive(state.turnOrder[state.currentTurnIndex]);
+  const active = alive(state.activePokemonId);
   if (active) {
-    entries.push(timelineEntry(active, true, null, false, null));
+    entries.push(timelineEntry(active, { isActive: true }));
+    seen.add(active.id);
   }
-  for (const id of state.turnOrder.slice(state.currentTurnIndex + 1)) {
-    const pokemon = alive(id);
-    if (pokemon) {
-      entries.push(timelineEntry(pokemon, false, null, false, null));
-    }
-  }
-  const actedIds = new Set(state.turnOrder.slice(0, state.currentTurnIndex));
-  let isFirstNextRound = true;
-  for (const id of state.predictedNextRoundOrder.filter((acted) => actedIds.has(acted))) {
-    const pokemon = alive(id);
+  for (const entry of ctSequence) {
+    const pokemon = alive(entry.pokemonId);
     if (!pokemon) {
       continue;
     }
-    entries.push(
-      timelineEntry(pokemon, false, null, true, isFirstNextRound ? state.roundNumber + 1 : null),
-    );
-    isFirstNextRound = false;
+    if (seen.has(pokemon.id)) {
+      entries.push(timelineEntry(pokemon, { dimmed: true }));
+      continue;
+    }
+    seen.add(pokemon.id);
+    entries.push(timelineEntry(pokemon, { ct: state.ctSnapshot?.[pokemon.id] ?? 0 }));
   }
-  return { showCtBars: false, entries };
+  return { showCtBars: true, entries };
 }

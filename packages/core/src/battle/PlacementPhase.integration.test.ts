@@ -53,9 +53,9 @@ describe("PlacementPhase -> BattleEngine integration", () => {
       expect(tile?.occupantId).toBe(placement.pokemonId);
     }
 
-    const firstTurnId = state.turnOrder[0];
+    const firstTurnId = state.activePokemonId;
     if (!firstTurnId) {
-      throw new Error("No turn order");
+      throw new Error("No active actor");
     }
     const activePlayerId = state.pokemon.get(firstTurnId)?.playerId;
     if (!activePlayerId) {
@@ -90,9 +90,9 @@ describe("PlacementPhase -> BattleEngine integration", () => {
     expect(venusaur?.position).toEqual({ x: 3, y: 18 });
     expect(venusaur?.orientation).toBe(Direction.North);
 
-    const firstTurnId = state.turnOrder[0];
+    const firstTurnId = state.activePokemonId;
     if (!firstTurnId) {
-      throw new Error("No turn order");
+      throw new Error("No active actor");
     }
     const activePlayerId = state.pokemon.get(firstTurnId)?.playerId;
     if (!activePlayerId) {

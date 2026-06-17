@@ -82,11 +82,6 @@ function buildGoldenEngine(seed: number): BattleEngine {
     }
     const id = `p${playerId === PlayerId.Player1 ? "1" : "2"}-${defId}`;
     const moveset = GOLDEN_MOVESETS[defId] ?? definition.movepool;
-    const currentPp: Record<string, number> = {};
-    for (const moveId of moveset) {
-      const moveDef = moveRegistry.get(moveId);
-      currentPp[moveId] = moveDef?.pp ?? 0;
-    }
     const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
     const instance: PokemonInstance = {
       id,
@@ -107,9 +102,8 @@ function buildGoldenEngine(seed: number): BattleEngine {
       position: pos,
       orientation: playerId === PlayerId.Player1 ? Direction.East : Direction.West,
       moveIds: [...moveset],
-      currentPp,
       activeDefense: null,
-      lastEndureRound: null,
+      lastEndureAtAction: null,
       toxicCounter: 0,
       volatileStatuses: [],
       recharging: false,
@@ -142,10 +136,7 @@ function buildGoldenEngine(seed: number): BattleEngine {
   const state = {
     grid,
     pokemon: pokemonMap,
-    turnOrder: [] as string[],
-    currentTurnIndex: 0,
-    roundNumber: 1,
-    predictedNextRoundOrder: [] as string[],
+    activePokemonId: "",
     weather: Weather.None,
     weatherTurnsRemaining: 0,
     auras: [],
@@ -160,6 +151,9 @@ const GOLDEN_PATH = resolve(
   import.meta.dirname ?? ".",
   "../../fixtures/replays/golden-replay.json",
 );
+
+// Action count of the regenerated Charge-Time golden replay (kept in sync with the fixture).
+const GOLDEN_ACTION_COUNT = 52;
 
 function loadGoldenReplay(): BattleReplay {
   const content = readFileSync(GOLDEN_PATH, "utf-8");
@@ -178,7 +172,7 @@ function generateGoldenReplay(seed: number): BattleReplay {
   let actionCount = 0;
   while (actionCount < 1000) {
     const state = engine.getGameState("");
-    const currentPokemonId = state.turnOrder[state.currentTurnIndex];
+    const currentPokemonId = state.activePokemonId;
     const currentPokemon = currentPokemonId ? state.pokemon.get(currentPokemonId) : undefined;
     if (!currentPokemon) {
       break;
@@ -228,8 +222,7 @@ describe("golden replay", () => {
 
     expect(team1Alive.length).toBeGreaterThan(0);
     expect(team2Alive.length).toBe(0);
-    expect(finalState.roundNumber).toBe(5);
-    expect(replay.actions.length).toBe(55);
+    expect(replay.actions.length).toBe(GOLDEN_ACTION_COUNT);
   });
 
   it("produces the same replay when running the battle from scratch", () => {
@@ -247,7 +240,7 @@ describe("golden replay", () => {
 
     while (actionCount < 1000) {
       const state = freshEngine.getGameState("");
-      const currentPokemonId = state.turnOrder[state.currentTurnIndex];
+      const currentPokemonId = state.activePokemonId;
       const currentPokemon = currentPokemonId ? state.pokemon.get(currentPokemonId) : undefined;
       if (!currentPokemon) {
         break;

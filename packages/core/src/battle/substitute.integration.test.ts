@@ -137,7 +137,7 @@ describe("Substitute — damage absorption", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, enemy], { activePokemonId: "enemy" });
 
     const result = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -178,7 +178,7 @@ describe("Substitute — damage absorption", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, enemy], { activePokemonId: "enemy" });
 
     const result = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -220,7 +220,7 @@ describe("Substitute — status block", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, enemy], { activePokemonId: "enemy" });
 
     const result = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -264,7 +264,7 @@ describe("Substitute — stat change block", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, enemy], { activePokemonId: "enemy" });
 
     const result = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -308,7 +308,7 @@ describe("Substitute — sound bypass", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, enemy], { activePokemonId: "enemy" });
 
     const result = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,
@@ -350,7 +350,7 @@ describe("Substitute — sound bypass", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
-    const { engine, state } = buildMoveTestEngine([caster, enemy]);
+    const { engine, state } = buildMoveTestEngine([caster, enemy], { activePokemonId: "enemy" });
 
     engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.UseMove,

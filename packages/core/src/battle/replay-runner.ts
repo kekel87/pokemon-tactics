@@ -8,7 +8,7 @@ export function runReplay(replay: BattleReplay, createEngine: EngineFactory): Ba
 
   for (const action of replay.actions) {
     const state = engine.getGameState("");
-    const currentPokemonId = state.turnOrder[state.currentTurnIndex];
+    const currentPokemonId = state.activePokemonId;
     const pokemon = currentPokemonId ? state.pokemon.get(currentPokemonId) : undefined;
     if (!pokemon) {
       throw new Error("Replay failed: no active pokemon at action index");

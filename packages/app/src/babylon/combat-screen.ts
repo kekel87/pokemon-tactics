@@ -323,7 +323,6 @@ function startBattleLoop(
     map,
     teams: result.placementTeams,
     placements: result.placements,
-    turnSystemKind: setup.turnSystemKind,
     // Single entropy source for a live battle: pick one seed here, then the engine's seeded
     // PRNG drives all combat RNG deterministically (replayable; no scattered Math.random).
     seed: crypto.getRandomValues(new Uint32Array(1))[0] ?? 0,

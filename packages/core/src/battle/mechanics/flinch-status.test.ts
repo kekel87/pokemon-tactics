@@ -4,8 +4,8 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
-import { MockPokemon } from "../../testing";
-import { buildMoveTestEngine } from "../../testing/build-move-test-engine";
+import { buildMoveTestEngine, endTurnUntilActor, MockPokemon } from "../../testing";
+import type { BattleEvent } from "../../types/battle-event";
 
 describe("Flinch volatile status", () => {
   it("blocks Move and UseMove actions for the flinched Pokemon", () => {
@@ -25,17 +25,18 @@ describe("Flinch volatile status", () => {
       position: { x: 4, y: 2 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine } = buildMoveTestEngine([flinched, enemy]);
+    const { engine, state } = buildMoveTestEngine([flinched, enemy], { activePokemonId: "enemy" });
 
-    const result = engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.UseMove,
-      pokemonId: "flinched",
-      moveId: "tackle",
-      targetPosition: { x: 3, y: 2 },
-    });
+    const flinchedEvents: BattleEvent[] = [];
+    engine.on(BattleEventType.Flinched, (e) => flinchedEvents.push(e));
 
-    expect(result.success).toBe(false);
-    expect(result.events.some((e) => e.type === BattleEventType.Flinched)).toBe(true);
+    endTurnUntilActor(engine, state, "flinched");
+
+    expect(flinchedEvents.some((e) => e.type === BattleEventType.Flinched)).toBe(true);
+
+    const legalActions = engine.getLegalActions(PlayerId.Player1);
+    expect(legalActions.some((a) => a.kind === ActionKind.Move)).toBe(false);
+    expect(legalActions.some((a) => a.kind === ActionKind.UseMove)).toBe(false);
   });
 
   it("emits Flinched and StatusRemoved events on first submit", () => {
@@ -55,15 +56,14 @@ describe("Flinch volatile status", () => {
       position: { x: 4, y: 2 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine } = buildMoveTestEngine([flinched, enemy]);
+    const { engine, state } = buildMoveTestEngine([flinched, enemy], { activePokemonId: "enemy" });
 
-    const result = engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.EndTurn,
-      pokemonId: "flinched",
-      direction: Direction.East,
-    });
+    const eventTypes: string[] = [];
+    engine.on(BattleEventType.Flinched, (e) => eventTypes.push(e.type));
+    engine.on(BattleEventType.StatusRemoved, (e) => eventTypes.push(e.type));
 
-    const eventTypes = result.events.map((e) => e.type);
+    endTurnUntilActor(engine, state, "flinched");
+
     expect(eventTypes).toContain(BattleEventType.Flinched);
     expect(eventTypes).toContain(BattleEventType.StatusRemoved);
   });

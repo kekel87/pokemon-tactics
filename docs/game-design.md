@@ -62,7 +62,6 @@ Combat tactique sur grille isométrique :
 - **Format picker (dropdown)** : sélection format `{teamCount}v{maxPokemonPerTeam}` (ex: `2v6`, `3v4`). Change format → reset slots.
 - **Sous-pick au placement** (plan 086) : chaque joueur place 1..maxPokemonPerTeam mons depuis ses 6 disponibles. Bouton "Done" (`PlacementRosterPanel`) actif si placedCount ≥ 1. Décision #328.
 - **Toggle Placement auto / manuel** : contrôle `PlacementMode`. **Auto activé par défaut** (depuis plan 054).
-- **Toggle CT / Round-Robin** : `BattleConfig.turnSystem`. **CT activé par défaut** (depuis plan 054).
 - **Noms Pokemon** : FR ou EN selon langue active (`@pokemon-tactic/data`)
 - **Persistance last-selection** : `localStorage` clé `pt:team-select:last-v1` mémorise teamId par slot humain.
 - **Bypass sandbox** : `VITE_SANDBOX` court-circuite `TeamSelectScene` entièrement
@@ -80,23 +79,21 @@ Combat tactique sur grille isométrique :
 | **Stats dérivées** | Mouvement, Saut, Initiative — voir [section 6b](#6b-mouvement--formule-de-portée-de-déplacement) |
 | **Types** | 18 types, faiblesses/résistances |
 | **Movepool** | Réservoir complet des moves apprenables par l'espèce — source pour le futur Team Builder (sélection des 4 actifs) |
-| **4 Attaques actives** | Les 4 moves sélectionnés dans le movepool, portés en combat via `moveIds`. Limité aux 4 premiers du movepool en l'absence de Team Builder. Puissance, précision, PP, type, catégorie (phys/spé/statut), **pattern AoE**, **portée** — surchargeable pour équilibrage |
+| **4 Attaques actives** | Les 4 moves sélectionnés dans le movepool, portés en combat via `moveIds`. Limité aux 4 premiers du movepool en l'absence de Team Builder. Puissance, précision, PP (poids coût CT uniquement — pas de compteur d'usage), type, catégorie (phys/spé/statut), **pattern AoE**, **portée** — surchargeable pour équilibrage |
 | **1 Talent** | Capacité passive (ex: Intimidation, Lévitation...) |
 | **1 Objet tenu** | Effet passif ou consommable |
 
 ---
 
-## 4. Système de tour — Dual-mode RR/CT (plan 054)
+## 4. Système de tour — Charge Time (plan 054 + plan 128)
 
-Le moteur supporte deux systèmes via `BattleConfig.turnSystem` :
+Le moteur n'utilise qu'un seul système : **Charge Time (CT)**. Le mode Round-Robin a été retiré en plan 128 (2026-06-17 — décision #517).
 
-### 4a. Round-Robin (mode `'round-robin'`)
-
-Chaque Pokemon joue une fois par round dans l'ordre d'initiative. Initiative recalculée à chaque round. Pas de CT.
-
-### 4b. Charge Time (mode `'charge-time'`, activé par défaut depuis plan 054)
+### Charge Time
 
 Inspiré de FFTA et FFX. Chaque Pokemon accumule des CT points à chaque tick. Celui qui atteint le seuil agit en premier.
+
+`BattleState.activePokemonId: string` désigne le Pokemon actif (remplace l'ancien `turnOrder[]` + `currentTurnIndex`).
 
 **Formule `ctGain` :**
 ```
@@ -106,7 +103,7 @@ ctGain = floor((30 + floor(20 × ln(baseStat + 1))) × softMult(speedStages × 0
 - 1 seul acteur par tick (le plus haut CT parmi ceux ≥ 1000)
 - Ratio fréquence Pikachu/Geodude (neutre) ≈ 1.50×, plafonné à 1.5×
 
-**Coût CT par action (`computeCtCost`) :**
+**Coût CT par action (`computeMoveCost`) :**
 
 | Source | Coût |
 |--------|------|
@@ -122,30 +119,38 @@ ctGain = floor((30 + floor(20 × ln(baseStat + 1))) × softMult(speedStages × 0
 
 Coût final = `max(ppCost(pp), powerFloor(power), effectFloor(effectTier))`.
 
+> **PP comme poids CT uniquement.** `MoveDefinition.pp` reste présent et sert de poids dans `computeMoveCost`. Il n'existe plus de compteur d'utilisations (`currentPp`) — un move peut être utilisé indéfiniment. L'équilibrage passe par le coût CT, pas par un quota de PP.
+
 **`effectTier` dans les surcharges tactiques :**
 - `reactive` : protect, detect, wide-guard, quick-guard, counter, mirror-coat, metal-burst, endure
 - `major-status` : thunder-wave, hypnosis, sing, sleep-powder, toxic
 - `major-buff` : swords-dance, agility, iron-defense, minimize
 - `double-buff` : calm-mind, bulk-up, withdraw, stockpile
 
-**Interface TurnSystem :**
-```typescript
-interface TurnSystem {
-  getNextActorId(): string;
-  onActionComplete(pokemonId: string, actionCost: number): void;
-  onPokemonKO(pokemonId: string): void;
-}
-```
-Implémentée par `RoundRobinTurnSystem` et `ChargeTimeTurnSystem`.
-
-**`ChargeTimeTurnSystem.getCtSnapshot()`** : expose état CT courant pour renderer (timeline CT).
+**`getCtSnapshot()`** : expose état CT courant pour renderer (timeline CT).
 
 **UI CT :**
 - `TurnTimeline` : séquence prédictive scrollable style FFX (plan 059) — 24 entrées simulées par `predictCtTimeline(count, moveId?)`, slot 0 ancré, 11 slots scrollables molette. Au `confirm_attack` : séquence recalculée avec coût move, Pokemon actif mis en évidence (bordure teal-vert `TIMELINE_HIGHLIGHT_BORDER_COLOR`). Entrée tail (portrait semi-transparent + "...") si Pokemon absent des 24 slots.
-- `ActionMenu` : PP masqués, coût CT affiché
-- `TeamSelectScene` : toggle CT/RR, CT par défaut
+- `ActionMenu` : coût CT affiché (PP non affichés)
 
 > Vulgarisation joueur : `docs/wiki/ct-system.md`.
+
+### 4b. Modèle de durée « tours du lanceur » (plan 128)
+
+Les effets environnementaux (météo, barrières, champs, Protection) décomptent sur les **tours propres du lanceur**, et non plus sur un compteur de rounds global (qui était gelé en CT de toute façon).
+
+**Conséquence tactique :** un lanceur lent (faible `ctGain`) accumule du CT lentement → ses tours s'étalent sur une longue fenêtre réelle → ses effets persistent longtemps. Récompense les Pokemon lents pour les rôles de support. Divergence assumée par rapport au canon Pokemon (où la durée est fixe, indépendante de la Vitesse).
+
+### 4c. Horloge fantôme (ghost clock) (plan 128)
+
+Quand le lanceur d'un effet **environnemental** (météo ou champ de terrain) meurt, il reste dans le scheduler CT comme **ghost** :
+- Ne peut pas être ciblé ni agir.
+- Continue d'accumuler du CT à sa Vitesse.
+- À chaque tour fantôme, décrémente ses effets actifs.
+- Quitte le scheduler dès que ses effets sont tous expirés.
+- Pas de plafond de durée fantôme (voulu — un Pokemon lent très rapide au décès peut faire durer longtemps).
+
+**Barrières (Reflet, Mur Lumière, Brume, Rune Protect) :** meurent avec leur lanceur — pas de ghost. `removeAurasOfCaster` est conservé dans `handleKo`.
 
 ---
 
@@ -160,8 +165,6 @@ Exemples :
 - **Par talent** : effet adapté pour contexte grille
 - **Formule dégâts** : multiplicateurs tactiques (hauteur, orientation, terrain)
 - **Par Pokemon** : stats dérivées (mouvement, saut, initiative)
-
-> Si les PP ne fonctionnent pas, remplaçables par points d'action style FFTA via le même système de surcharge.
 
 ---
 
@@ -794,7 +797,7 @@ Le talent **Ciel Gris** (Akwakwak) supprime tous les effets météo tant que le 
 
 ### Solar-Beam — charge en 2 tours
 
-T1 : PP consommé, `chargingMove` activé, `lockedMoveId` posé, mouvement toujours possible, event `MoveCharging` émis, floating text "Rayonne!" affiché.
+T1 : `chargingMove` activé, `lockedMoveId` posé, mouvement toujours possible, event `MoveCharging` émis, floating text "Rayonne!" affiché.
 
 T2 : retarget automatique, `chargingMove` cleared, KO en T2 = animation propre.
 

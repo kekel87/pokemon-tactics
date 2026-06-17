@@ -26,8 +26,7 @@ export class DummyAiController {
 
   private isDummyTurn(): boolean {
     const state = this.engine.getGameState(PlayerId.Player2);
-    const activePokemonId = state.turnOrder[state.currentTurnIndex];
-    return activePokemonId === this.dummyPokemonId;
+    return state.activePokemonId === this.dummyPokemonId;
   }
 
   playTurn(): BattleEvent[] {

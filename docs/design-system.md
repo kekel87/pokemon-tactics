@@ -587,7 +587,13 @@ Ajoutés au Jalon 2b — miroir des constantes canvas dans `constants.ts` :
 | `--color-badge-buff-bg` | Miroir `STAT_BADGE_BUFF_BG` (`#1a4a8a`) | Badge stat augmentée |
 | `--color-badge-debuff-bg` | Miroir `STAT_BADGE_DEBUFF_BG` (`#8a1a1a`) | Badge stat diminuée |
 | `--color-badge-volatile-bg` | Miroir `STAT_BADGE_VOLATILE_BG` (`#6a3a8a`) | Badge statut volatil |
+| `--color-tempo-light` | `var(--green-500)` | Pastilles tempo CT léger (move bon marché) |
+| `--color-tempo-medium` | `var(--yellow-400)` | Pastilles tempo CT modéré |
+| `--color-tempo-heavy` | `var(--red-400)` | Pastilles tempo CT lourd (rejoue plus tard) |
 | `--color-border-faint` | Semi-transparent blanc feutré | Bordure douce panneaux |
+
+Pastilles « tempo » (`.bc-move-tempo`, `.tb-move-tempo`) : `●`/`○` 1–5 indiquant le poids du coût CT
+d'un move (vert léger → ambre → rouge lourd), via `data-tempo`. Remplace l'ancienne colonne PP.
 
 ### Police PokemonEmeraldPro — `@font-face` dans tokens.css
 

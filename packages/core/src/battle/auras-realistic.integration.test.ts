@@ -71,10 +71,7 @@ function buildFullEngine(
   const state: BattleState = {
     grid,
     pokemon: pokemonMap,
-    turnOrder: [],
-    currentTurnIndex: 0,
-    roundNumber: 1,
-    predictedNextRoundOrder: [],
+    activePokemonId: "",
     weather: Weather.None,
     weatherTurnsRemaining: 0,
     auras: [],
@@ -138,7 +135,7 @@ function makePokemon(opts: {
     moveIds: opts.moveIds,
     currentPp,
     activeDefense: null,
-    lastEndureRound: null,
+    lastEndureAtAction: null,
     toxicCounter: 0,
     volatileStatuses: [],
     recharging: false,
@@ -177,6 +174,7 @@ describe("Realistic 2v2 aura protection (full BattleEngine + registries)", () =>
     });
 
     const { engine, state } = buildFullEngine([articuno, lapras, charizard]);
+    engine.pinActiveForTest("p2-charizard");
 
     postAura(state, articuno, AuraKind.Mist);
 
@@ -230,6 +228,7 @@ describe("Realistic 2v2 aura protection (full BattleEngine + registries)", () =>
     });
 
     const { engine, state } = buildFullEngine([alakazam, venusaur, raichu]);
+    engine.pinActiveForTest("p2-raichu");
 
     postAura(state, alakazam, AuraKind.Safeguard);
 

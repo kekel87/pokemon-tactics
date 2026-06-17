@@ -66,7 +66,7 @@ export function postAura(state: BattleState, caster: PokemonInstance, kind: Aura
     kind,
     casterPokemonId: caster.id,
     remainingRounds: auraDurationForCaster(caster, kind),
-    postedRound: state.roundNumber,
+    postedAtAction: state.actionCounter ?? 0,
   };
   if (existingIndex >= 0) {
     state.auras[existingIndex] = aura;
@@ -93,14 +93,20 @@ export interface ExpiredAuraEntry {
   kind: AuraKind;
 }
 
-export function decrementAurasTimer(state: BattleState): ExpiredAuraEntry[] {
+/**
+ * Decrement the timers of the auras posted by `casterId` (CT "tours du lanceur" model: an aura
+ * counts down on its caster's own turns). Remove and report the ones that reached zero.
+ */
+export function decrementAurasTimer(state: BattleState, casterId: string): ExpiredAuraEntry[] {
   const expired: ExpiredAuraEntry[] = [];
   for (const aura of state.auras) {
-    aura.remainingRounds -= 1;
+    if (aura.casterPokemonId === casterId) {
+      aura.remainingRounds -= 1;
+    }
   }
   for (let i = state.auras.length - 1; i >= 0; i--) {
     const aura = state.auras[i];
-    if (aura && aura.remainingRounds <= 0) {
+    if (aura && aura.casterPokemonId === casterId && aura.remainingRounds <= 0) {
       expired.unshift({ casterId: aura.casterPokemonId, kind: aura.kind });
       state.auras.splice(i, 1);
     }

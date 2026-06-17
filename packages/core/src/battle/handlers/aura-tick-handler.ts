@@ -12,16 +12,13 @@ const EMPTY_RESULT: PhaseResult = {
   pokemonFainted: false,
 };
 
-export function aurasTickHandler(_pokemonId: string, state: BattleState): PhaseResult {
+export function aurasTickHandler(pokemonId: string, state: BattleState): PhaseResult {
   if (state.auras.length === 0) {
     return EMPTY_RESULT;
   }
-  if (state.aurasLastTickRound === state.roundNumber) {
-    return EMPTY_RESULT;
-  }
 
-  state.aurasLastTickRound = state.roundNumber;
-  const expired = decrementAurasTimer(state);
+  // Duration model "tours du lanceur": each aura counts down only on its caster's own turn.
+  const expired = decrementAurasTimer(state, pokemonId);
   if (expired.length === 0) {
     return EMPTY_RESULT;
   }

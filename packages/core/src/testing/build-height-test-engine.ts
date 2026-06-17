@@ -18,7 +18,6 @@ export function buildHeightTestEngine(
     definitionId,
     position: pokemonPos,
     moveIds: [],
-    currentPp: {},
     orientation: Direction.South,
   };
   const dummy = {
@@ -38,9 +37,6 @@ export function buildHeightTestEngine(
     MockBattle.setTile(state, x, y, { height });
   }
 
-  state.turnOrder = ["mover", "dummy"];
-  state.currentTurnIndex = 0;
-
   const moveRegistry = new Map<string, MoveDefinition>();
   const pokemonTypesMap = new Map<string, PokemonType[]>([
     ["bulbasaur", [PokemonType.Grass, PokemonType.Poison]],
@@ -49,5 +45,7 @@ export function buildHeightTestEngine(
   ]);
 
   const engine = new BattleEngine(state, moveRegistry, typeChart, pokemonTypesMap);
+  // Pin the acting mon for this isolated mechanic test (CT picked an actor at construction).
+  state.activePokemonId = "mover";
   return { engine, state, pokemon };
 }

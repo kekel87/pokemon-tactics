@@ -99,6 +99,11 @@
   --color-badge-debuff-bg: #8a1a1a;
   --color-badge-volatile-bg: #6a3a8a;
 
+  /* Sémantiques — pastilles de "tempo" CT d'un move (poids du coût : léger→lourd). */
+  --color-tempo-light: var(--green-500);
+  --color-tempo-medium: var(--yellow-400);
+  --color-tempo-heavy: var(--red-400);
+
   /* Sémantiques — fond / texte / accent */
   --color-letterbox: var(--blue-1000);
   --color-bg-base: var(--blue-850);

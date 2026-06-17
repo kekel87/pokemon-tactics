@@ -15,6 +15,7 @@ import {
   FIELD_TERRAIN_RADIUS,
   FieldTerrain,
   type MoveDefinition,
+  moveCtTempo,
   type PokemonInstance,
   PokemonType,
   type Position,
@@ -24,7 +25,6 @@ import {
   StatusType,
   stepInDirection,
   TargetingKind,
-  TurnSystemKind,
 } from "@pokemon-tactic/core";
 import { AnimationCategory, moveAnimationCategory } from "@pokemon-tactic/data";
 import { getTeamColorByPlayerId } from "@pokemon-tactic/render-ports";
@@ -104,8 +104,8 @@ const FIELD_TERRAIN_COLOR: Record<FieldTerrain, number> = {
   [FieldTerrain.Psychic]: FIELD_TERRAIN_COLOR_PSYCHIC,
 };
 
-/** Predicted slots shown in the Charge-Time timeline. */
-const CT_TIMELINE_SLOTS = 24;
+/** Predicted slots shown in the Charge-Time timeline (deep enough to see a mon's repeated turns). */
+const CT_TIMELINE_SLOTS = 48;
 
 type InputState =
   | { phase: "action_menu" }
@@ -297,12 +297,8 @@ export class BattleOrchestrator {
   // --- FSM ---
 
   private activePokemon(): PokemonInstance | null {
-    const id = this.state.turnOrder[this.state.currentTurnIndex];
+    const id = this.state.activePokemonId;
     return id ? (this.state.pokemon.get(id) ?? null) : null;
-  }
-
-  private turnSystemKind(): TurnSystemKind {
-    return this.state.turnSystemKind ?? TurnSystemKind.RoundRobin;
   }
 
   /** The living Pokémon on `tile`, if any (for hover-to-inspect). */
@@ -334,11 +330,10 @@ export class BattleOrchestrator {
    * shifts the upcoming order.
    */
   private refreshTimeline(previewMoveId?: string): void {
-    const ctSequence =
-      this.turnSystemKind() === TurnSystemKind.ChargeTime
-        ? this.engine.predictCtTimeline(CT_TIMELINE_SLOTS, previewMoveId)
-        : [];
-    this.chrome.updateTimeline(buildTimelineView(this.state, ctSequence));
+    const ctSequence = this.engine.predictCtTimeline(CT_TIMELINE_SLOTS, previewMoveId);
+    this.chrome.updateTimeline(
+      buildTimelineView(this.state, ctSequence, previewMoveId !== undefined),
+    );
   }
 
   private refreshUI(): void {
@@ -353,7 +348,6 @@ export class BattleOrchestrator {
     this.chrome.updateTurnInfo({
       activePokemonId: active.id,
       playerId: active.playerId,
-      roundNumber: this.state.roundNumber,
     });
     this.syncBoard();
     this.refreshInfoPanel();
@@ -436,14 +430,13 @@ export class BattleOrchestrator {
       }
       moves.push({
         definition,
-        currentPp: active.currentPp[moveId] ?? 0,
         hasTargets: targetableMoveIds.has(moveId),
+        costTempo: moveCtTempo(definition.pp, definition.power, definition.effectTier),
         blockedTag: resolveBlockedTag(definition, isTaunted, disabledMoveId, encoredMoveId),
       });
     }
     this.chrome.showAttackSubmenu({
       moves,
-      turnSystemKind: this.turnSystemKind(),
       onSelect: (moveId) => this.enterAttackTarget(moveId),
       onCancel: () => this.enterActionMenu(),
     });
@@ -489,14 +482,7 @@ export class BattleOrchestrator {
     this.board.setOutline(targets, beneficialOutline);
     const definition = this.moveDefinitions.get(moveId);
     if (definition) {
-      this.chrome.showSelectedMove(
-        {
-          definition,
-          currentPp: active?.currentPp[moveId] ?? 0,
-          turnSystemKind: this.turnSystemKind(),
-        },
-        "selectTarget",
-      );
+      this.chrome.showSelectedMove({ definition }, "selectTarget");
     }
     this.inputState = { phase: "select_attack_target", moveId };
     this.previewDirection = null;
@@ -1107,7 +1093,7 @@ export class BattleOrchestrator {
       .getTilesInRange(caster.position, 0, AURA_RADIUS)
       .filter((tile) => this.pokemonAt(tile) === null);
     const symbols = [...auras]
-      .sort((a, b) => a.postedRound - b.postedRound)
+      .sort((a, b) => a.postedAtAction - b.postedAtAction)
       .map((aura) => AURA_INDICATOR_SYMBOL[aura.kind]);
     this.board.setAuraGroundIcons(tiles, symbols);
   }

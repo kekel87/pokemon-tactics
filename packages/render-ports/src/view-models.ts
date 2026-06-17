@@ -24,16 +24,16 @@ export interface TimelineEntryView {
   /** 1-based team index → `--team-N` color token. */
   team: number;
   isActive: boolean;
-  /** CT fill ratio 0..1 (Charge-Time), or null in Round-Robin (no bar). */
+  /** Move-cost preview: this is where the deciding mon ("you") will slot back in after acting. */
+  isSelf: boolean;
+  /** CT fill ratio 0..1 (Charge Time), or null when no bar is shown. */
   ctRatio: number | null;
-  /** Already-acted / next-round entries are rendered faded. */
+  /** Upcoming (not-yet-acting) entries are rendered faded. */
   dimmed: boolean;
-  /** Round label shown as a separator BEFORE this entry (Round-Robin next round). */
-  separatorRound: number | null;
 }
 
 export interface TimelineView {
-  /** Charge-Time shows a CT bar per entry; Round-Robin doesn't. */
+  /** Charge Time shows a CT bar per entry. */
   showCtBars: boolean;
   entries: readonly TimelineEntryView[];
 }

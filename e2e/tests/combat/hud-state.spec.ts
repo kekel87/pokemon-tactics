@@ -31,9 +31,9 @@ test("§4.6 tooltip : tag « 2 tours » sur un move à charge (Lance-Soleil)", a
   await expect(page.getByTestId("move-tooltip")).toContainText("2 tours");
 });
 
-// §4.2 — Charge Time : la timeline porte data-ct (barres de charge) ; Round-Robin ne l'a pas.
+// §4.2 — Charge Time : la timeline porte data-ct (barres de charge).
 test("§4.2 timeline : data-ct en système Charge Time", async ({ bootSandbox, page }) => {
-  await bootSandbox({ ...DUEL, turnSystemKind: "charge-time" });
+  await bootSandbox({ ...DUEL });
   await expect(page.getByTestId("timeline")).toHaveAttribute("data-ct", "true");
 });
 

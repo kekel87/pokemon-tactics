@@ -6,7 +6,7 @@ import { FieldTerrain } from "../enums/field-terrain";
 import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
 import { PokemonType } from "../enums/pokemon-type";
-import { buildMoveTestEngine, MockPokemon } from "../testing";
+import { buildMoveTestEngine, endTurnUntilActor, MockPokemon } from "../testing";
 import {
   decrementFieldTerrainsTimer,
   enumerateZoneTiles,
@@ -312,7 +312,7 @@ describe("decrementFieldTerrainsTimer", () => {
     postFieldTerrain(state, caster, FieldTerrain.Grassy);
     expect(state.fieldTerrains[0]?.remainingTurns).toBe(5);
 
-    decrementFieldTerrainsTimer(state);
+    decrementFieldTerrainsTimer(state, "c");
 
     expect(state.fieldTerrains[0]?.remainingTurns).toBe(4);
   });
@@ -328,7 +328,7 @@ describe("decrementFieldTerrainsTimer", () => {
     postFieldTerrain(state, caster, FieldTerrain.Electric);
     state.fieldTerrains[0]!.remainingTurns = 1;
 
-    const expired = decrementFieldTerrainsTimer(state);
+    const expired = decrementFieldTerrainsTimer(state, "c");
 
     expect(state.fieldTerrains).toHaveLength(0);
     expect(expired).toHaveLength(1);
@@ -336,7 +336,7 @@ describe("decrementFieldTerrainsTimer", () => {
     expect(expired[0]?.casterId).toBe("c");
   });
 
-  it("decrements each zone independently — zones with different timers expire independently", () => {
+  it("decrements each zone on its own caster's turn — zones expire independently", () => {
     const casterA = MockPokemon.fresh(MockPokemon.base, { id: "a", position: { x: 1, y: 1 } });
     const casterB = MockPokemon.fresh(MockPokemon.base, {
       id: "b",
@@ -351,13 +351,16 @@ describe("decrementFieldTerrainsTimer", () => {
     state.fieldTerrains[0]!.remainingTurns = 1;
     state.fieldTerrains[1]!.remainingTurns = 3;
 
-    const expired = decrementFieldTerrainsTimer(state);
+    // Each zone counts down only on its own caster's turn.
+    const expiredA = decrementFieldTerrainsTimer(state, "a");
+    const expiredB = decrementFieldTerrainsTimer(state, "b");
 
     expect(state.fieldTerrains).toHaveLength(1);
     expect(state.fieldTerrains[0]?.kind).toBe(FieldTerrain.Misty);
     expect(state.fieldTerrains[0]?.remainingTurns).toBe(2);
-    expect(expired).toHaveLength(1);
-    expect(expired[0]?.kind).toBe(FieldTerrain.Grassy);
+    expect(expiredA).toHaveLength(1);
+    expect(expiredA[0]?.kind).toBe(FieldTerrain.Grassy);
+    expect(expiredB).toHaveLength(0);
   });
 });
 
@@ -407,7 +410,8 @@ describe("multi-zones — two different zones coexist independently", () => {
     postFieldTerrain(state, casterB, FieldTerrain.Electric);
     state.fieldTerrains[1]!.remainingTurns = 5;
 
-    decrementFieldTerrainsTimer(state);
+    decrementFieldTerrainsTimer(state, "a");
+    decrementFieldTerrainsTimer(state, "b");
 
     expect(state.fieldTerrains).toHaveLength(2);
     expect(state.fieldTerrains[0]?.remainingTurns).toBe(2);
@@ -500,14 +504,13 @@ describe("multi-zones — zone survives caster KO (decision #426 / #89)", () => 
 // Tick handler — heal + decrement, in integration
 // ---------------------------------------------------------------------------
 
-describe("field-terrain-tick-handler — Grassy heal fires end-of-turn (round-based)", () => {
-  it("heals grounded mon on zone at end of each round (round-based loop)", () => {
+describe("field-terrain-tick-handler — Grassy heal fires end-of-turn (per CT turn)", () => {
+  it("heals a grounded mon standing on the zone at the end of each of its turns", () => {
     const caster = MockPokemon.fresh(MockPokemon.base, {
       id: "caster",
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["grassy-terrain"],
-      currentPp: { "grassy-terrain": 10 },
       currentHp: 80,
       maxHp: 160,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -534,31 +537,20 @@ describe("field-terrain-tick-handler — Grassy heal fires end-of-turn (round-ba
       pokemonId: "caster",
       direction: Direction.South,
     });
-    engine.submitAction(PlayerId.Player2, {
-      kind: ActionKind.EndTurn,
-      pokemonId: "foe",
-      direction: Direction.South,
-    });
 
     expect(state.pokemon.get("caster")?.currentHp).toBe(80 + expectedHeal);
 
+    endTurnUntilActor(engine, state, "caster");
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "caster",
-      direction: Direction.South,
-    });
-    engine.submitAction(PlayerId.Player2, {
-      kind: ActionKind.EndTurn,
-      pokemonId: "foe",
       direction: Direction.South,
     });
 
     expect(state.pokemon.get("caster")?.currentHp).toBe(80 + expectedHeal * 2);
   });
 
-  it("decrement happens once per round — dedup guard prevents double-decrement in CT mode", () => {
-    // Direct handler unit test: calling fieldTerrainDecrementHandler twice in same round
-    // should only decrement once.
+  it("decrements only the zones posted by the acting mon (setter-scoped, no round dedup)", () => {
     const caster = MockPokemon.fresh(MockPokemon.base, { id: "c", position: { x: 2, y: 2 } });
     const foe = MockPokemon.fresh(MockPokemon.base, {
       id: "f",
@@ -569,13 +561,12 @@ describe("field-terrain-tick-handler — Grassy heal fires end-of-turn (round-ba
     postFieldTerrain(state, caster, FieldTerrain.Grassy);
     const handler = fieldTerrainDecrementHandler;
 
-    // First call — round 1, not yet ticked
+    // The caster's own turn counts its zone down.
     handler("c", state);
     expect(state.fieldTerrains[0]?.remainingTurns).toBe(4);
-    expect(state.fieldTerrainsLastTickRound).toBe(1);
 
-    // Second call — same round → dedup, no further decrement
-    handler("c", state);
+    // Another mon's turn does not touch the caster's zone.
+    handler("f", state);
     expect(state.fieldTerrains[0]?.remainingTurns).toBe(4);
   });
 

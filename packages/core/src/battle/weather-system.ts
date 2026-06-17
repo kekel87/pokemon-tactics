@@ -19,7 +19,6 @@ export function setWeather(
   state.weather = weather;
   state.weatherTurnsRemaining = weather === Weather.None ? 0 : turns;
   state.weatherSetterPokemonId = setterPokemonId;
-  state.weatherLastTickRound = undefined;
   if (weather === Weather.None) {
     return [];
   }

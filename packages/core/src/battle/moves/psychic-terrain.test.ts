@@ -32,7 +32,10 @@ describe("psychic-terrain — anti-dash barrier", () => {
       currentPp: { "extreme-speed": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
-    const { engine, state } = buildMoveTestEngine([caster, dasher], { gridSize: 9 });
+    const { engine, state } = buildMoveTestEngine([caster, dasher], {
+      gridSize: 9,
+      activePokemonId: "dasher",
+    });
     postFieldTerrain(state, caster, FieldTerrain.Psychic);
 
     const result = engine.submitAction(PlayerId.Player2, {
@@ -79,7 +82,10 @@ describe("psychic-terrain — anti-dash barrier", () => {
       position: { x: 8, y: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
-    const { engine, state } = buildMoveTestEngine([caster, ally, foe], { gridSize: 9 });
+    const { engine, state } = buildMoveTestEngine([caster, ally, foe], {
+      gridSize: 9,
+      activePokemonId: "ally",
+    });
     postFieldTerrain(state, caster, FieldTerrain.Psychic);
 
     const result = engine.submitAction(PlayerId.Player1, {
@@ -113,7 +119,10 @@ describe("psychic-terrain — anti-dash barrier", () => {
       currentPp: { "quick-attack": 30 },
       derivedStats: { movement: 4, jump: 2, initiative: 100 },
     });
-    const { engine, state } = buildMoveTestEngine([caster, flyer], { gridSize: 9 });
+    const { engine, state } = buildMoveTestEngine([caster, flyer], {
+      gridSize: 9,
+      activePokemonId: "pidgey-1",
+    });
     postFieldTerrain(state, caster, FieldTerrain.Psychic);
 
     const result = engine.submitAction(PlayerId.Player2, {
@@ -149,7 +158,10 @@ describe("psychic-terrain — anti-dash barrier", () => {
       currentPp: { "extreme-speed": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
-    const { engine, state } = buildMoveTestEngine([caster, dasher], { gridSize: 9 });
+    const { engine, state } = buildMoveTestEngine([caster, dasher], {
+      gridSize: 9,
+      activePokemonId: "dasher",
+    });
     postFieldTerrain(state, caster, FieldTerrain.Psychic);
 
     // Dasher at (4,4) moves to (4,2) — both tiles are inside the r3 zone centered at (4,4)

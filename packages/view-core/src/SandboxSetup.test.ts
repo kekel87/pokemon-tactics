@@ -37,7 +37,6 @@ describe("createSandboxBattle", () => {
     const player = result.state.pokemon.get("p1-venusaur")!;
 
     expect(player.moveIds).toEqual(["razor-leaf", "sleep-powder"]);
-    expect(Object.keys(player.currentPp)).toEqual(["razor-leaf", "sleep-powder"]);
   });
 
   it("uses default movepool when moves is empty", () => {
@@ -106,7 +105,7 @@ describe("createSandboxBattle", () => {
 
   it("returns a functional BattleEngine", () => {
     const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
-    const activePlayerId = result.state.turnOrder[result.state.currentTurnIndex]?.startsWith("p1")
+    const activePlayerId = result.state.activePokemonId.startsWith("p1")
       ? PlayerId.Player1
       : PlayerId.Player2;
     const actions = result.engine.getLegalActions(activePlayerId);
@@ -124,7 +123,6 @@ describe("createSandboxBattle", () => {
     const dummy = result.state.pokemon.get("p2-charizard")!;
 
     expect(dummy.moveIds).toEqual(["flamethrower", "dragon-claw"]);
-    expect(Object.keys(dummy.currentPp).sort()).toEqual(["dragon-claw", "flamethrower"]);
   });
 
   it("dummyControl player mode falls back to default movepool when dummyMoves empty", () => {

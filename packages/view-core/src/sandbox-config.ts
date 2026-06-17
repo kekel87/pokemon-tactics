@@ -3,7 +3,6 @@ import {
   type HeldItemId,
   type StatName,
   type StatusType,
-  type TurnSystemKind,
   Weather,
 } from "@pokemon-tactic/core";
 
@@ -49,8 +48,6 @@ export interface SandboxConfig {
   debugDecorationsFootprint?: boolean;
   weather?: Weather;
   weatherTurns?: number;
-  /** Turn system for the sandbox battle (defaults to the engine default = Round-Robin). */
-  turnSystemKind?: TurnSystemKind;
 }
 
 export const DEFAULT_SANDBOX_CONFIG: SandboxConfig = {

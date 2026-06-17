@@ -145,7 +145,6 @@ export function createSandboxBattle(
     placements,
     heldItemOverrides,
     abilityOverrides,
-    turnSystemKind: config.turnSystemKind,
     seed: config.seed,
   };
   const result = createBattleFromPlacements(battleConfig);
@@ -153,12 +152,6 @@ export function createSandboxBattle(
   const playerInstance = result.state.pokemon.get(playerPokemonId);
   if (playerInstance && config.moves.length > 0) {
     playerInstance.moveIds = [...config.moves];
-    const newPp: Record<string, number> = {};
-    for (const moveId of config.moves) {
-      const move = result.moveDefinitions.get(moveId);
-      newPp[moveId] = move?.pp ?? 0;
-    }
-    playerInstance.currentPp = newPp;
   }
 
   if (config.dummyControl === "player") {
@@ -168,12 +161,6 @@ export function createSandboxBattle(
       const fallbackMoves =
         requestedMoves.length > 0 ? requestedMoves.slice(0, 4) : dummyInstance.moveIds.slice(0, 4);
       dummyInstance.moveIds = [...fallbackMoves];
-      const newPp: Record<string, number> = {};
-      for (const moveId of fallbackMoves) {
-        const move = result.moveDefinitions.get(moveId);
-        newPp[moveId] = move?.pp ?? 0;
-      }
-      dummyInstance.currentPp = newPp;
     }
   }
 

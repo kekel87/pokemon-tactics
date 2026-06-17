@@ -4,6 +4,7 @@ import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
 import { PlayerId } from "../enums/player-id";
+import { endTurnUntilActor } from "../testing";
 import { MockBattle } from "../testing/mock-battle";
 import { MockPokemon } from "../testing/mock-pokemon";
 import type { BattleEvent } from "../types/battle-event";
@@ -45,9 +46,9 @@ describe("BattleEngine integration", () => {
     const state = MockBattle.stateFrom([bulbasaur, charmander], 8, 8);
     const engine = new BattleEngine(state, moveRegistry);
 
-    // Charmander has higher initiative (65 > 45)
+    // Charmander has higher base speed (65 > 45) → CT picks it as first actor
     const gameState = engine.getGameState(PlayerId.Player2);
-    expect(gameState.turnOrder[0]).toBe("charmander-1");
+    expect(gameState.activePokemonId).toBe("charmander-1");
 
     const events: BattleEvent[] = [];
     engine.on(BattleEventType.PokemonMoved, (e) => events.push(e));
@@ -76,15 +77,14 @@ describe("BattleEngine integration", () => {
       direction: Direction.South,
     });
 
-    // Bulbasaur EndTurn
+    // Advance the Charge Time scheduler until Bulbasaur is the active actor, then end its turn
+    endTurnUntilActor(engine, state, "bulbasaur-1");
     const endTurnResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "bulbasaur-1",
       direction: Direction.South,
     });
     expect(endTurnResult.success).toBe(true);
-
-    expect(state.roundNumber).toBe(2);
 
     const movedEvents = events.filter((e) => e.type === BattleEventType.PokemonMoved);
     expect(movedEvents.length).toBe(1);

@@ -44,8 +44,9 @@ export function weatherTickHandler(
 
   const events: BattleEvent[] = [];
 
-  if (state.weatherLastTickRound !== state.roundNumber) {
-    state.weatherLastTickRound = state.roundNumber;
+  // Duration model "tours du lanceur": the weather counts down only on its setter's own turn
+  // (or, after the setter's KO, on its ghost turns — driven from advanceTurn).
+  if (state.weatherSetterPokemonId === pokemonId) {
     const decrementEvents = decrementWeatherTimer(state);
     events.push(...decrementEvents);
   }

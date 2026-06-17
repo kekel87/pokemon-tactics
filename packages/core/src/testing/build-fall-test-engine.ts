@@ -32,7 +32,6 @@ export function buildFallTestEngine(
     definitionId: "machop",
     position: attackerPos,
     moveIds: ["test-knockback"],
-    currentPp: { "test-knockback": 10 },
     orientation: Direction.East,
   };
   const target = {
@@ -54,9 +53,6 @@ export function buildFallTestEngine(
     MockBattle.setTile(state, x, y, { height });
   }
 
-  state.turnOrder = ["attacker", "target"];
-  state.currentTurnIndex = 0;
-
   const moveRegistry = new Map<string, MoveDefinition>([["test-knockback", knockbackMove]]);
   const pokemonTypesMap = new Map<string, PokemonType[]>([
     ["machop", [PokemonType.Fighting]],
@@ -65,5 +61,7 @@ export function buildFallTestEngine(
   ]);
 
   const engine = new BattleEngine(state, moveRegistry, typeChart, pokemonTypesMap);
+  // Pin the acting mon for this isolated mechanic test (CT picked an actor at construction).
+  state.activePokemonId = "attacker";
   return { engine, state, target };
 }

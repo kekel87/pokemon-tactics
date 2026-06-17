@@ -1,4 +1,4 @@
-import { TurnSystemKind } from "@pokemon-tactic/core";
+import { CT_TEMPO_MAX } from "@pokemon-tactic/core";
 import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
 import type {
   ActionMenuView,
@@ -87,9 +87,6 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   leftColumn.append(timeline.element, infoPanel.element);
   host.append(leftColumn);
 
-  // Last round seen (for the victory message, which only gets the winner id).
-  let lastRound = 1;
-
   function button(label: string, onClick: () => void, disabled = false): HTMLButtonElement {
     const node = el("button", "tb-btn bc-btn");
     node.type = "button";
@@ -99,13 +96,9 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     return node;
   }
 
-  /** A move row in the attack submenu: type icon + name + PP (Round-Robin only). */
-  function moveRow(
-    move: AttackSubmenuMoveView,
-    turnSystemKind: TurnSystemKind,
-    onSelect: () => void,
-  ): HTMLButtonElement {
-    const enabled = move.currentPp > 0 && move.hasTargets;
+  /** A move row in the attack submenu: type icon + name. */
+  function moveRow(move: AttackSubmenuMoveView, onSelect: () => void): HTMLButtonElement {
+    const enabled = move.hasTargets;
     const row = el("button", "bc-move-item", "move-item");
     row.type = "button";
     row.dataset.enabled = String(enabled);
@@ -124,13 +117,15 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
 
     const name = el("span", "bc-move-name", "move-name");
     name.textContent = getMoveName(move.definition.id, language);
-    row.append(icon, name);
 
-    if (turnSystemKind !== TurnSystemKind.ChargeTime) {
-      const pp = el("span", "bc-move-pp", "move-pp");
-      pp.textContent = `${move.currentPp}/${move.definition.pp}`;
-      row.append(pp);
-    }
+    // Charge Time "tempo": filled pips = how heavy this move's CT cost is (heavier → act again later).
+    const tempo = el("span", "bc-move-tempo", "move-tempo");
+    tempo.dataset.tempo = String(move.costTempo);
+    tempo.textContent =
+      "●".repeat(move.costTempo) + "○".repeat(Math.max(0, CT_TEMPO_MAX - move.costTempo));
+    tempo.setAttribute("role", "img");
+    tempo.setAttribute("aria-label", `Tempo ${move.costTempo}/${CT_TEMPO_MAX}`);
+    row.append(icon, name, tempo);
 
     // Tooltip on hover/focus — shown for usable moves AND blocked ones (to explain why).
     if (enabled || move.blockedTag !== undefined) {
@@ -151,9 +146,8 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
 
   return {
     updateTurnInfo: (info: TurnInfoView) => {
-      lastRound = info.roundNumber;
       const name = getPokemonName(definitionIdOf(info.activePokemonId), language);
-      banner.textContent = `${name} — ${config.translate("battle.round", { round: info.roundNumber })}`;
+      banner.textContent = name;
     },
 
     showActionMenu: (view: ActionMenuView) => {
@@ -176,7 +170,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       instruction.hidden = true;
       const list = el("div", "bc-move-list");
       for (const move of view.moves) {
-        list.append(moveRow(move, view.turnSystemKind, () => view.onSelect(move.definition.id)));
+        list.append(moveRow(move, () => view.onSelect(move.definition.id)));
       }
       menu.replaceChildren(list, button(config.translate("action.cancel"), view.onCancel));
     },
@@ -192,11 +186,6 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       const name = el("span", "bc-move-name");
       name.textContent = getMoveName(move.definition.id, language);
       header.append(icon, name);
-      if (move.turnSystemKind !== TurnSystemKind.ChargeTime) {
-        const pp = el("span", "bc-move-pp");
-        pp.textContent = `${move.currentPp}/${move.definition.pp}`;
-        header.append(pp);
-      }
       menu.replaceChildren(header);
       instruction.hidden = false;
       instruction.textContent = config.translate(INSTRUCTION_KEY[key]);
@@ -232,7 +221,6 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       const message = el("p", "bc-victory-message");
       message.textContent = config.translate("battle.wins", {
         player: playerLabel(winnerId, config),
-        round: lastRound,
       });
       const replay = button(config.translate("battle.restart"), () => {
         dialog.close();

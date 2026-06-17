@@ -4,7 +4,6 @@ import {
   PokemonGender,
   type PokemonInstance,
   StatusType,
-  TurnSystemKind,
   Weather,
 } from "@pokemon-tactic/core";
 import type { PresentationContext } from "@pokemon-tactic/render-ports";
@@ -131,40 +130,61 @@ describe("buildWeatherView", () => {
 });
 
 describe("buildTimelineView", () => {
-  it("lists the round order then a separator for already-acted mons (Round-Robin)", () => {
-    const a = makePokemon({ id: "p1-a", position: { x: 0, y: 0 } });
-    const b = makePokemon({ id: "p2-b", playerId: "player-2", position: { x: 1, y: 0 } });
-    const c = makePokemon({ id: "p1-c", position: { x: 2, y: 0 } });
-    const state = makeState([a, b, c], {
-      turnSystemKind: TurnSystemKind.RoundRobin,
-      turnOrder: ["p1-a", "p2-b", "p1-c"],
-      currentTurnIndex: 1,
-      roundNumber: 3,
-      predictedNextRoundOrder: ["p1-a"],
-    } as unknown as Partial<BattleState>);
-
-    const view = buildTimelineView(state, []);
-    expect(view.showCtBars).toBe(false);
-    expect(view.entries.map((e) => e.definitionId)).toEqual(["pikachu", "pikachu", "pikachu"]);
-    expect(view.entries[0]?.isActive).toBe(true);
-    expect(view.entries[0]?.ctRatio).toBeNull();
-    expect(view.entries[2]).toMatchObject({ dimmed: true, separatorRound: 4 });
-  });
-
-  it("lists the active mon then the predicted CT sequence (Charge-Time)", () => {
+  it("lists the active mon (no bar) then upcoming mons by current charge (Charge-Time)", () => {
     const a = makePokemon({ id: "p1-a", position: { x: 0, y: 0 } });
     const b = makePokemon({ id: "p2-b", playerId: "player-2", position: { x: 1, y: 0 } });
     const state = makeState([a, b], {
-      turnSystemKind: TurnSystemKind.ChargeTime,
-      turnOrder: ["p1-a"],
-      currentTurnIndex: 0,
-      ctSnapshot: { "p1-a": 999999 },
+      activePokemonId: "p1-a",
+      // p1-a has crossed the threshold (active); p2-b is half-charged.
+      ctSnapshot: { "p1-a": 1200, "p2-b": 500 },
     } as unknown as Partial<BattleState>);
 
-    const view = buildTimelineView(state, [{ pokemonId: "p2-b", ct: 0 }]);
+    const view = buildTimelineView(state, [{ pokemonId: "p2-b", ct: 9999 }]);
     expect(view.showCtBars).toBe(true);
-    expect(view.entries[0]).toMatchObject({ isActive: true });
-    expect(view.entries[0]?.ctRatio).toBe(1);
-    expect(view.entries[1]).toMatchObject({ isActive: false, ctRatio: 0 });
+    // Active entry: no bar (a full bar would read as "almost ready" instead of "acting now").
+    expect(view.entries[0]).toMatchObject({ isActive: true, ctRatio: null });
+    // Upcoming entry: its CURRENT charge (500 / 1000), not the predicted cross value.
+    expect(view.entries[1]).toMatchObject({ isActive: false, ctRatio: 0.5 });
+  });
+
+  it("shows a later turn of an already-listed mon dimmed with no bar", () => {
+    const a = makePokemon({ id: "p1-a", position: { x: 0, y: 0 } });
+    const b = makePokemon({ id: "p2-b", playerId: "player-2", position: { x: 1, y: 0 } });
+    const state = makeState([a, b], {
+      activePokemonId: "p1-a",
+      ctSnapshot: { "p1-a": 1200, "p2-b": 500 },
+    } as unknown as Partial<BattleState>);
+
+    // p2-b appears twice in the prediction; its second occurrence is a future projection.
+    const view = buildTimelineView(state, [
+      { pokemonId: "p2-b", ct: 9999 },
+      { pokemonId: "p2-b", ct: 9999 },
+    ]);
+    expect(view.entries[2]).toMatchObject({ isActive: false, dimmed: true, ctRatio: null });
+  });
+
+  it("preview mode shows the resulting order with the deciding mon marked (no top pin, no bars)", () => {
+    const a = makePokemon({ id: "p1-a", position: { x: 0, y: 0 } });
+    const b = makePokemon({ id: "p2-b", playerId: "player-2", position: { x: 1, y: 0 } });
+    const state = makeState([a, b], {
+      activePokemonId: "p1-a",
+      ctSnapshot: { "p1-a": 1200, "p2-b": 500 },
+    } as unknown as Partial<BattleState>);
+
+    // After committing the move, p2-b acts, then the deciding mon (p1-a) slots back in.
+    const view = buildTimelineView(
+      state,
+      [
+        { pokemonId: "p2-b", ct: 9999 },
+        { pokemonId: "p1-a", ct: 9999 },
+      ],
+      true,
+    );
+    expect(view.showCtBars).toBe(false);
+    // No entry is pinned as "active" during preview.
+    expect(view.entries.every((e) => !e.isActive)).toBe(true);
+    // The deciding mon is marked isSelf at its resulting position (2nd), not pinned on top.
+    expect(view.entries[0]).toMatchObject({ isSelf: false });
+    expect(view.entries[1]).toMatchObject({ isSelf: true });
   });
 });

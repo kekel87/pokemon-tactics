@@ -5,7 +5,8 @@ import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
 import { TargetingKind } from "../../enums/targeting-kind";
-import { MockBattle, MockPokemon } from "../../testing";
+import { endTurnUntilActor, MockBattle, MockPokemon } from "../../testing";
+import type { BattleEvent } from "../../types/battle-event";
 import { BattleEngine } from "../BattleEngine";
 
 function makeConfusedEngine(options?: {
@@ -27,6 +28,7 @@ function makeConfusedEngine(options?: {
     id: "enemy",
     playerId: PlayerId.Player2,
     position: { x: 4, y: 2 },
+    baseStats: { ...MockPokemon.base.baseStats, speed: 200 },
     derivedStats: { movement: 3, jump: 1, initiative: 10 },
   });
 
@@ -56,7 +58,20 @@ function makeConfusedEngine(options?: {
     effects: [{ kind: "damage" }],
   });
   const engine = new BattleEngine(state, moveRegistry);
-  return { engine, state, attacker, enemy };
+  engine.pinActiveForTest("enemy");
+
+  const confusionEvents: BattleEvent[] = [];
+  for (const type of [
+    BattleEventType.ConfusionTriggered,
+    BattleEventType.ConfusionRedirected,
+    BattleEventType.ConfusionResisted,
+    BattleEventType.ConfusionFailed,
+    BattleEventType.StatusRemoved,
+  ]) {
+    engine.on(type, (event) => confusionEvents.push(event));
+  }
+
+  return { engine, state, attacker, enemy, confusionEvents };
 }
 
 describe("confusion status", () => {
@@ -67,7 +82,9 @@ describe("confusion status", () => {
       let callIndex = 0;
       vi.spyOn(Math, "random").mockImplementation(() => calls[callIndex++] ?? 0.5);
 
-      const { engine, state } = makeConfusedEngine();
+      const { engine, state, confusionEvents } = makeConfusedEngine();
+
+      endTurnUntilActor(engine, state, "attacker");
 
       const result = engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.UseMove,
@@ -77,8 +94,8 @@ describe("confusion status", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.events.map((e) => e.type)).toContain(BattleEventType.ConfusionTriggered);
-      expect(result.events.map((e) => e.type)).toContain(BattleEventType.ConfusionRedirected);
+      expect(confusionEvents.map((e) => e.type)).toContain(BattleEventType.ConfusionTriggered);
+      expect(confusionEvents.map((e) => e.type)).toContain(BattleEventType.ConfusionRedirected);
       // Ally should have taken damage, not the enemy
       expect(state.pokemon.get("ally")?.currentHp).toBeLessThan(100);
       expect(state.pokemon.get("enemy")?.currentHp).toBe(100);
@@ -91,7 +108,9 @@ describe("confusion status", () => {
       let callIndex = 0;
       vi.spyOn(Math, "random").mockImplementation(() => calls[callIndex++] ?? 0.5);
 
-      const { engine } = makeConfusedEngine({ hasAlly: false });
+      const { engine, state, confusionEvents } = makeConfusedEngine({ hasAlly: false });
+
+      endTurnUntilActor(engine, state, "attacker");
 
       const result = engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.UseMove,
@@ -101,8 +120,8 @@ describe("confusion status", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.events.map((e) => e.type)).toContain(BattleEventType.ConfusionTriggered);
-      expect(result.events.map((e) => e.type)).toContain(BattleEventType.ConfusionFailed);
+      expect(confusionEvents.map((e) => e.type)).toContain(BattleEventType.ConfusionTriggered);
+      expect(confusionEvents.map((e) => e.type)).toContain(BattleEventType.ConfusionFailed);
 
       vi.restoreAllMocks();
     });
@@ -113,7 +132,9 @@ describe("confusion status", () => {
       // Math.random: 0.6 for confusion check (>= 0.5 = resists)
       vi.spyOn(Math, "random").mockReturnValue(0.6);
 
-      const { engine, state } = makeConfusedEngine();
+      const { engine, state, confusionEvents } = makeConfusedEngine();
+
+      endTurnUntilActor(engine, state, "attacker");
 
       const result = engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.UseMove,
@@ -123,7 +144,7 @@ describe("confusion status", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.events.map((e) => e.type)).toContain(BattleEventType.ConfusionResisted);
+      expect(confusionEvents.map((e) => e.type)).toContain(BattleEventType.ConfusionResisted);
       expect(state.pokemon.get("enemy")?.currentHp).toBeLessThan(100);
 
       vi.restoreAllMocks();
@@ -145,6 +166,7 @@ describe("confusion status", () => {
         id: "p2",
         playerId: PlayerId.Player2,
         position: { x: 4, y: 4 },
+        baseStats: { ...MockPokemon.base.baseStats, speed: 200 },
         derivedStats: { movement: 3, jump: 1, initiative: 10 },
       });
 
@@ -162,15 +184,21 @@ describe("confusion status", () => {
         effects: [{ kind: "damage" }],
       });
       const engine = new BattleEngine(state, moveRegistry);
+      engine.pinActiveForTest("p2");
 
-      // Submit a move action — lazy confusion check runs, remainingTurns 1 → 0, confusion removed
-      const result = engine.submitAction(PlayerId.Player1, {
+      const statusRemovedEvents: BattleEvent[] = [];
+      engine.on(BattleEventType.StatusRemoved, (event) => statusRemovedEvents.push(event));
+
+      // p1's turn start runs the confusion check, remainingTurns 1 → 0, confusion removed
+      endTurnUntilActor(engine, state, "p1");
+
+      engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.Move,
         pokemonId: "p1",
         path: [{ x: 1, y: 0 }],
       });
 
-      expect(result.events.map((e) => e.type)).toContain(BattleEventType.StatusRemoved);
+      expect(statusRemovedEvents.map((e) => e.type)).toContain(BattleEventType.StatusRemoved);
       expect(attacker.volatileStatuses).toHaveLength(0);
       // Should have moved normally (no confusion, it expired)
       expect(attacker.position).toEqual({ x: 1, y: 0 });
@@ -211,6 +239,8 @@ describe("confusion status", () => {
       vi.spyOn(Math, "random").mockImplementation(() => calls[callIndex++] ?? 0.5);
 
       const { engine, state } = makeConfusedEngine();
+
+      endTurnUntilActor(engine, state, "attacker");
 
       const result = engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.Move,

@@ -24,10 +24,9 @@ export function handleDisable(context: EffectContext): BattleEvent[] {
 
     const moveId = target.lastUsedMoveId;
     const knowsMove = moveId !== undefined && target.moveIds.includes(moveId);
-    const hasPp = moveId !== undefined && (target.currentPp[moveId] ?? 0) > 0;
     const alreadyDisabled = target.volatileStatuses.some((v) => v.type === StatusType.Disabled);
 
-    if (moveId === undefined || !knowsMove || !hasPp || alreadyDisabled) {
+    if (moveId === undefined || !knowsMove || alreadyDisabled) {
       events.push({ type: BattleEventType.DisableFailed, pokemonId: target.id });
       continue;
     }

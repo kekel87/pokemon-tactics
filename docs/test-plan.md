@@ -240,14 +240,16 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
 `localStorage.pt-lang = "en"` avant boot pour tester l'anglais*
 
 ### 4.1 Bannière de tour
-- 🤖 Haut-centre : « <Pokemon FR> — Round N » (`.bc-turn` — `hud-menu.spec`), MAJ à chaque tour.
+- 🤖 Haut-centre : **nom FR du Pokemon actif** (`.bc-turn` — `hud-menu.spec`), MAJ à chaque tour.
+  *Plus de notion de round (Charge Time seul).*
 
 ### 4.2 Timeline / ordre des tours (`.tt-timeline`)
 - 🤖 Gauche-haut : **portraits** + couleur d'équipe (`data-team`), entrée **active** surlignée
   (`data-active="true"`) — `hud-menu.spec`.
-- 👁 Entrées passées **atténuées** (`data-dimmed`).
-- 🤖 **Charge Time** : barres de charge (`data-ct="true"`, remplissage `--tt-ct` proportionnel).
-- 👁 **Round Robin** : séparateurs de round (numéro), pas de barre de charge.
+- 👁 Entrées **atténuées** (`data-dimmed`) : passage répété d'un mon déjà listé (tour futur).
+- 🤖 **Charge Time** (unique système) : barres de charge (`data-ct="true"`).
+- 👁 Barre = **charge actuelle** du mon (`--tt-ct` = ct/seuil) : plus pleine = bientôt son tour.
+  L'entrée **active n'a pas de barre** (marqueur d'état distinct, pas une barre pleine).
 - 👁 **MAJ temps réel** après chaque action (l'ordre se recalcule).
 - 👁 Un Pokemon **K.O.** disparaît de la timeline.
 - 👁 Masquée si aucune entrée.
@@ -268,10 +270,11 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
 
 ### 4.5 Sous-menu d'attaque (`.bc-move-item`) — liste des moves
 - 🤖 Clic « Attaque » → liste des moves du Pokemon actif + bouton « Annuler ».
-- 🤖 Chaque item : **icône de type** (`img.bc-move-type`) + **nom FR** (`.bc-move-name`) + **PP**
-  (`.bc-move-pp` `x/max`) — `hud-menu.spec`.
-- 👁 Move à **0 PP** → grisé (`data-enabled="false"`, `aria-disabled`).
-- 👁 Move **sans cible à portée** → grisé.
+- 🤖 Chaque item : **icône de type** (`img.bc-move-type`) + **nom FR** (`.bc-move-name`) —
+  `hud-menu.spec`. *Plus de PP (usage retiré).*
+- 👁 **Tempo CT** par move (`.bc-move-tempo`, pastilles ●○ 1–5) : poids du coût CT (lourd = rejoue
+  plus tard). Idem picker du constructeur d'équipe (remplace l'ancienne colonne PP).
+- 👁 Move **sans cible à portée** → grisé (`data-enabled="false"`, `aria-disabled`).
 - 👁 Move **bloqué** (`data-blocked`) → grisé + indice : **Provoc** (taunt), **Entrave** (disable),
   **Bis** (encore).
 - 🤖 Clic « Annuler » → revient au menu d'action, sous-menu vidé (`combat-flow.spec`).
@@ -630,8 +633,8 @@ réellement touchées à la résolution.*
 - 🤖 « Lancer ▶ » **désactivé tant que les slots ne sont pas tous assignés** ; bascule Humain→IA
   l'active (`screens.spec`).
 - 👁 Format (dropdown) → nb de slots ; chaque slot toggle **Humain/IA**, couleur joueur.
-- 👁 Liste des équipes + « 🎲 Aléatoire » ; « 🎲 Remplir IA » ; toggle Placement auto ; système de
-  tours (Charge Time / Round Robin).
+- 👁 Liste des équipes + « 🎲 Aléatoire » ; « 🎲 Remplir IA » ; toggle Placement auto.
+  *Plus de sélecteur de système de tours (Charge Time seul).*
 - 👁 i18n FR/EN.
 
 ### 6.5 Mes équipes (liste — constructeur d'équipe) → détails picker §7.2
@@ -851,7 +854,7 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
       backlog). Reste : exporter, renommer depuis la liste.*
 - [x] **Écrans hors combat** : §6.2 modes (En ligne/Tutoriel off), §6.3 carte (8 cartes, détail,
       sélection, retour), §6.4 « Lancer » gating (`screens.spec`).
-- [x] **Combat DOM** : sous-menu (type/nom/PP), tooltip + pattern preview (`hud.spec`, `hud-menu`) ;
+- [x] **Combat DOM** : sous-menu (type/nom), tooltip + pattern preview (`hud.spec`, `hud-menu`) ;
       **bannière de tour**, **timeline** (active/team), **menu d'action** (5 boutons, Objet/Statut
       off), **journal** (titre + repli) (`hud-menu.spec`) ; **panneau d'info** (`info-panel.spec`) ;
       **météo HUD** (`weather.spec`) ; **multi-hit** (`multi-hit.spec`) ; **texte flottant**

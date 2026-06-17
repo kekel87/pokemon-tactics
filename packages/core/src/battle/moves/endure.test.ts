@@ -66,7 +66,10 @@ describe("endure", () => {
       position: { x: 2, y: 2 },
       currentHp: 5,
       maxHp: 100,
-      lastEndureRound: 0,
+      // Simulate "used Endure on my immediately previous turn": the spam gate blocks when the last
+      // Endure stamp equals the last-acted stamp.
+      lastEndureAtAction: 0,
+      lastActedAtAction: 0,
       orientation: Direction.South,
       moveIds: ["endure"],
       currentPp: { endure: 10 },
