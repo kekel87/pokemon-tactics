@@ -18,7 +18,7 @@ describe("trailblaze", () => {
     const target = MockPokemon.fresh(MockPokemon.base, {
       id: "target-1",
       playerId: PlayerId.Player2,
-      position: { x: 3, y: 0 },
+      position: { x: 2, y: 0 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const hpBefore = target.currentHp;
@@ -28,13 +28,13 @@ describe("trailblaze", () => {
       kind: ActionKind.UseMove,
       pokemonId: caster.id,
       moveId: "trailblaze",
-      targetPosition: { x: 3, y: 0 },
+      targetPosition: { x: 2, y: 0 },
     });
 
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.DamageDealt);
     expect(state.pokemon.get(target.id)?.currentHp).toBeLessThan(hpBefore);
-    expect(state.pokemon.get(caster.id)?.position).toEqual({ x: 2, y: 0 });
+    expect(state.pokemon.get(caster.id)?.position).toEqual({ x: 1, y: 0 });
   });
 
   it("raises caster Speed by 1 on hit", () => {
@@ -87,12 +87,12 @@ describe("trailblaze", () => {
       kind: ActionKind.UseMove,
       pokemonId: caster.id,
       moveId: "trailblaze",
-      targetPosition: { x: 2, y: 5 },
+      targetPosition: { x: 2, y: 4 },
     });
 
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).not.toContain(BattleEventType.DamageDealt);
-    expect(state.pokemon.get(caster.id)?.position).toEqual({ x: 2, y: 5 });
+    expect(state.pokemon.get(caster.id)?.position).toEqual({ x: 2, y: 4 });
     expect(state.pokemon.get(foe.id)?.currentHp).toBe(foeHpBefore);
   });
 
@@ -117,13 +117,13 @@ describe("trailblaze", () => {
       kind: ActionKind.UseMove,
       pokemonId: caster.id,
       moveId: "trailblaze",
-      targetPosition: { x: 2, y: 5 },
+      targetPosition: { x: 2, y: 4 },
     });
 
     const moveResult = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.Move,
       pokemonId: caster.id,
-      path: [{ x: 2, y: 4 }],
+      path: [{ x: 2, y: 3 }],
     });
 
     expect(moveResult.success).toBe(true);

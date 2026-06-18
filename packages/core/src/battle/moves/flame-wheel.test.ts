@@ -18,7 +18,7 @@ describe("flame-wheel", () => {
     const target = MockPokemon.fresh(MockPokemon.base, {
       id: "target-1",
       playerId: PlayerId.Player2,
-      position: { x: 3, y: 0 },
+      position: { x: 2, y: 0 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const hpBefore = target.currentHp;
@@ -28,13 +28,13 @@ describe("flame-wheel", () => {
       kind: ActionKind.UseMove,
       pokemonId: caster.id,
       moveId: "flame-wheel",
-      targetPosition: { x: 3, y: 0 },
+      targetPosition: { x: 2, y: 0 },
     });
 
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.DamageDealt);
     expect(state.pokemon.get(target.id)?.currentHp).toBeLessThan(hpBefore);
-    expect(state.pokemon.get(caster.id)?.position).toEqual({ x: 2, y: 0 });
+    expect(state.pokemon.get(caster.id)?.position).toEqual({ x: 1, y: 0 });
   });
 
   it("applies burn when random favors it", () => {
@@ -51,7 +51,7 @@ describe("flame-wheel", () => {
     const target = MockPokemon.fresh(MockPokemon.base, {
       id: "target-1",
       playerId: PlayerId.Player2,
-      position: { x: 3, y: 0 },
+      position: { x: 2, y: 0 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([caster, target]);
@@ -60,7 +60,7 @@ describe("flame-wheel", () => {
       kind: ActionKind.UseMove,
       pokemonId: caster.id,
       moveId: "flame-wheel",
-      targetPosition: { x: 3, y: 0 },
+      targetPosition: { x: 2, y: 0 },
     });
 
     expect(state.pokemon.get(target.id)?.statusEffects).toContainEqual(

@@ -47,6 +47,8 @@ export interface PokemonInstance {
   semiInvulnerableState?: SemiInvulnerableState;
   substituteHp?: number;
   lastUsedMoveId?: string;
+  /** Consecutive-cast count for Rollout (Roulade) — snowballs Dash range + power. Reset to 0 on any other move. */
+  rolloutStreak?: number;
   /**
    * Action-clock stamps (B3 conditional-damage moves). Each holds the value of
    * `BattleState.actionCounter` at the moment the event happened. A stamp older than

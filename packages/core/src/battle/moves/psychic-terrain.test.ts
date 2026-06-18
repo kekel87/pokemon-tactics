@@ -10,20 +10,18 @@ import { postFieldTerrain } from "../field-terrain-system";
 
 describe("psychic-terrain — anti-dash barrier", () => {
   it("stops an enemy dasher entering the zone from outside — stops before zone boundary", () => {
-    // Use a bigger grid so we can place the caster center and attacker far outside
+    // Caster anchors the Psychic zone (r3) off the dasher's straight line so the dash targeting
+    // (resolveDash, bounded by maxDistance, direction-only) finds no enemy on the row — the barrier
+    // is what stops the dasher, not a collision with the caster.
     const caster = MockPokemon.fresh(MockPokemon.base, {
       id: "caster",
       playerId: PlayerId.Player1,
-      position: { x: 5, y: 5 },
+      position: { x: 4, y: 6 },
       derivedStats: { movement: 3, jump: 1, initiative: 5 },
     });
-    // Dasher at (1,5): manhattan(1,5, 5,5) = 4 > 3 → outside zone
-    // extreme-speed has maxDistance=2 so it can't reach the zone from (1,5) to (5,5).
-    // Use a closer position: dasher at (2,5), zone starts at (5-3)=2 → tile (2,5) has manhattan=3 ≤ 3 → INSIDE zone.
-    // Dasher at (0,5): manhattan=5 → outside. Dash with maxDistance 2 → can reach (2,5) which enters zone.
-    // Actually extreme-speed maxDistance=2: from (0,5) can reach at most (2,5).
-    // (2,5) is inside zone (manhattan=3). Path: (0,5)→(1,5)→(2,5). First tile inside zone = (2,5).
-    // Dasher should stop at (1,5).
+    // Zone r3 around (4,6): tile (2,5) has manhattan = 2+1 = 3 ≤ 3 → INSIDE zone; tile (1,5) has
+    // manhattan = 3+1 = 4 > 3 → outside. Dasher at (0,5) heading +x toward (2,5):
+    // path (0,5)→(1,5)→(2,5), first tile inside zone = (2,5) → dasher stops at (1,5).
     const dasher = MockPokemon.fresh(MockPokemon.base, {
       id: "dasher",
       playerId: PlayerId.Player2,

@@ -495,6 +495,11 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
 
 ### 5.13 Déplacement / retraite / Baton Pass / hit-and-run
 - 🤖 Interaction : Téléport + hit-and-run (Demi-Tour) pilotés (journal) — `mechanics-movement.spec`. Baton Pass 👁 (pas d'allié en 1v1).
+- 🤖 **Dash directionnel (chantier g)** : un Dash se confirme par **direction** (comme Cône/Ligne/
+  Tranche), plus par la tuile d'atterrissage variable — cliquer n'importe quelle tuile de l'axe valide
+  la direction, portée auto. Piloté (journal) avec Vive-Attaque (`quick-attack`, Dash 2) : survol + clic
+  d'une tuile de l'axe ≠ atterrissage → le dash se résout — `mechanics-movement.spec`. *La traînée jaune
+  + l'anim de glissade/saut restent 👁.*
 - 👁 **Déplacement** lissé (Walk / Hop selon terrain ; volants en glide).
 - 👁 **Repli (Endurance/retreat)** : le Pokemon glisse vers sa tile de repli.
 - 👁 **Baton Pass** → « <X> passe le relais à <Y> ! » + transfert des changements de stats.
@@ -530,6 +535,8 @@ réellement touchées à la résolution.*
 - 👁 **Zone** (zone diamant autour d'une tile, rayon) — ex. **Poudre Dodo** (`sleep-powder`).
 - 👁 **Blast** (explosion au sol à distance, rayon) — ex. **Bombe Beurk** (`sludge-bomb`).
 - 👁 **Dash** (ruée : se déplace jusqu'à la cible, tiles traversées) — ex. **Bélier** (`take-down`).
+  *Depuis chantier g le Dash est ciblé par **direction** : la confirmation directionnelle est pilotée
+  en e2e (§5.13, `mechanics-movement.spec`) ; la traînée jaune + glissade = 👁.*
 - 👁 **Cross** (croix centrée) — ex. **Éclate-Roc** (`rock-smash`).
 - 👁 **Slash** (balayage diagonal/large devant) — ex. **Tranche** (`slash`).
 - 👁 **Teleport** (déplacement direct vers une tile) — ex. **Téléport** (`teleport`).
@@ -826,7 +833,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-status.spec.ts` | §5.3 icône/statut + Spore, §5.4 stat ±, §5.5 confusion/Provoc (journal) |
 | `combat/mechanics-field.spec.ts` | §5.9 auras (Reflet/Mur/Brume/Rune), §5.10 4 champs déployés (journal) |
 | `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) |
-| `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour, §5.18 repoussé (Draconnerie) |
+| `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
 | `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) journalisés |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |

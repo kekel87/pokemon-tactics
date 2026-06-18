@@ -406,7 +406,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   "volt-tackle": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 4 },
     effects: [{ kind: EffectKind.Damage }],
   },
 
@@ -516,8 +516,11 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   rollout: {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 4 },
+    // Snowball : base 2, +1 par cast consécutif (cap 5) via resolveEffectiveMove ; puissance
+    // 30 → 480 (×2/cast) via DynamicPowerKind.RolloutStreak. Streak suivi par lanceur (rolloutStreak).
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
     effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.RolloutStreak },
   },
 
   bite: {
@@ -539,7 +542,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effectTier: EffectTier.MajorBuff,
   },
   "flame-wheel": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
     effects: [
       { kind: EffectKind.Damage },
       { kind: EffectKind.Status, status: StatusType.Burned, chance: 10 },
@@ -801,7 +804,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   "flare-blitz": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 4 },
     effects: [
       { kind: EffectKind.Damage },
       { kind: EffectKind.Status, status: StatusType.Burned, chance: 10 },
@@ -1063,7 +1066,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   },
 
   "extreme-speed": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 5 },
     effects: [{ kind: EffectKind.Damage }],
   },
   "acid-armor": {
@@ -1641,7 +1644,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targetsAlly: true,
   },
   "skull-bash": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 4 },
     effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Knockback, distance: 1 }],
     twoTurnCharge: true,
     chargeEffects: [
@@ -1692,7 +1695,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
   },
   trailblaze: {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
     effects: [
       { kind: EffectKind.Damage },
       { kind: EffectKind.StatChange, stat: StatName.Speed, stages: 1, target: EffectTarget.Self },
@@ -1741,7 +1744,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
   },
   "flame-charge": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
     effects: [
       { kind: EffectKind.Damage },
       { kind: EffectKind.StatChange, stat: StatName.Speed, stages: 1, target: EffectTarget.Self },
@@ -1886,7 +1889,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
   },
   "raging-bull": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
     effects: [{ kind: EffectKind.Damage }],
   },
   "meteor-mash": {
@@ -1903,7 +1906,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   "steel-roller": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 4 },
     effects: [{ kind: EffectKind.Damage }],
   },
 
@@ -2242,11 +2245,11 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 1 / 4 }],
   },
   "brave-bird": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 4 },
     effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 1 / 3 }],
   },
   "wave-crash": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 4 },
     effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 1 / 3 }],
   },
   "wood-hammer": {
@@ -2888,7 +2891,7 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     recharge: true,
   },
   "giga-impact": {
-    targeting: { kind: TargetingKind.Dash, maxDistance: 3 },
+    targeting: { kind: TargetingKind.Dash, maxDistance: 4 },
     effects: [{ kind: EffectKind.Damage }],
     recharge: true,
   },

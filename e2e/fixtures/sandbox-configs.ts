@@ -36,6 +36,19 @@ export const PREVIEW_HEAL = { ...DUEL, moves: ["life-dew"] } as const;
  *  draws the dash-trail cells. */
 export const PREVIEW_DASH = { ...DUEL, moves: ["take-down"] } as const;
 
+/** Directional dash (chantier g) : Raichu en bas de la colonne (2,5), face nord, Vive-Attaque
+ *  (quick-attack, Dash 2). Le dummy est HORS de l'axe (4,4) → la colonne nord est libre, le dash
+ *  glisse aussi loin qu'il peut (portée auto). Confirmer par DIRECTION : cliquer n'importe quelle
+ *  tuile de l'axe nord (≠ tuile d'atterrissage) valide le dash — c'est tout l'objet du test. */
+export const DASH_DIRECTIONAL = {
+  ...DUEL,
+  pokemon: "raichu",
+  moves: ["quick-attack"],
+  playerPosition: { x: 2, y: 5 },
+  playerDirection: "north",
+  dummyPosition: { x: 4, y: 4 },
+} as const;
+
 /** Duel where the player's only move is Séisme (earthquake), a self-centred Zone AoE that does NOT
  *  affect the caster tile → the centre cell is an empty "caster" (cross, no fill). */
 export const PREVIEW_QUAKE = { ...DUEL, moves: ["earthquake"] } as const;

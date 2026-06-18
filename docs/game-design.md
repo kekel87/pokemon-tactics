@@ -386,6 +386,23 @@ Le Pokemon **se déplace en ligne droite** sur X tiles et frappe le premier enne
 - Ne consomme **pas** `hasMoved` — peut encore se déplacer après
 - **Traverse les alliés**, bloqué par ennemis et obstacles
 
+### Input — confirmation par direction survolée (décision #518)
+
+Les moves Dash se confirment comme Cône/Ligne/Tranche : la direction est déterminée par le survol de la souris par rapport au caster. `resolveTargetAction` sélectionne automatiquement la tuile la plus loin dans la direction (portée auto — moteur s'arrête au premier obstacle). L'outline des tuiles d'atterrissage n'est pas affichée.
+
+### Couleurs preview (décision #519)
+
+La traînée est entièrement **jaune** (`#ffdd44`). La couleur d'intention (rouge dégâts, vert soin…) n'apparaît **que sous une tuile occupée par un Pokemon** (allié ou ennemi) sur le trajet. Dash dans le vide = tout jaune, aucune fausse tuile rouge d'impact.
+
+### Barème de portées (décision #520)
+
+| Portée | Moves |
+|--------|-------|
+| **5** | Vitesse Extrême (priorité +2, le meilleur) |
+| **4** | Giga Impact, Coud'Krâne, Métalliroue, Électacle, Boutefeu, Rapace, Aquatacle |
+| **3** | Volt Assaut, Draco-Charge, Bélier, Éclair Fou, Cascade, Taurogne |
+| **2** | Roue de Feu, Désherbaffe, Nitrocharge, Gliss'Herbe (→ 4 sur Champ Herbu), Vive-Attaque, Aqua-Jet, Éclats Glace, Pisto-Poing, Mach Punch, Onde Vide |
+
 ---
 
 ## 7c. Effets de statut
@@ -886,6 +903,30 @@ Move `taunt` (Ténèbres, Statut, Single r3, acc 100, PP 20). Pendant **3 tours*
 - MoveTooltip tag rouge `Bloqué par Provoc` sur moves statut grisés non-cliquables si caster taunted.
 - Floating text `"Provoc!"` orange sur target à l'application.
 - `BattleLogFormatter` : 3 cas — applied (StatusApplied filtré Taunted), blocked (TauntBlocked), expired (StatusRemoved filtré Taunted).
+
+---
+
+## 8h. Roulade — mécanisme snowball (décision #521)
+
+**Portée ET puissance montent à chaque cast consécutif** du même lanceur. Reset si le lanceur utilise un autre move.
+
+| Cast | Portée | Puissance |
+|------|--------|-----------|
+| 1er  | 2      | 30        |
+| 2e   | 3      | 60        |
+| 3e   | 4      | 120       |
+| 4e   | 5      | 240       |
+| 5e+  | 5 (cap) | 480 (cap) |
+
+### Implémentation
+
+- `DynamicPowerKind.RolloutStreak` résolu dans `dynamic-power-system`.
+- `PokemonInstance.rolloutStreak?: number` (index 0–4).
+- Helper `packages/core/src/battle/rollout-streak.ts` : `pendingRolloutIndex` / `rolloutPowerForIndex` / `rolloutRangeForIndex` / `recordLastUsedMove`.
+- Streak suivi via `lastUsedMoveId` (déjà posé par Encore/Disable — réutilisé).
+- Détection générique (`dynamicPower.kind === RolloutStreak`), pas l'ID `rollout` en dur.
+- Portée rampée s'affiche en live dans la preview Dash.
+- Tooltip : tag « Puissance variable » existant couvre Roulade.
 
 ---
 
