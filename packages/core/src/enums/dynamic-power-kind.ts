@@ -39,6 +39,8 @@ export const DynamicPowerKind = {
   EchoCrescendo: "echo_crescendo",
   /** ×2 if the team's previous action used this same move (round). */
   TeamPreviousMoveDouble: "team_previous_move_double",
+  /** 30 × 2^(streak-1), capped at 480 — rolls harder each consecutive cast (rollout). */
+  RolloutStreak: "rollout_streak",
 } as const;
 
 export type DynamicPowerKind = (typeof DynamicPowerKind)[keyof typeof DynamicPowerKind];

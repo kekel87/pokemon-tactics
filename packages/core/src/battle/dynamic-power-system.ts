@@ -4,6 +4,7 @@ import { StatusType } from "../enums/status-type";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { pendingRolloutIndex, rolloutPowerForIndex } from "./rollout-streak";
 import { getEffectiveStat, isMajorStatus } from "./stat-modifier";
 
 interface DynamicPowerInput {
@@ -238,6 +239,10 @@ const RESOLVERS: ReadonlyMap<DynamicPowerKind, DynamicPowerResolver> = new Map([
       battleState?.lastTeamActionMoveId?.[attacker.playerId] === move.id
         ? move.power * 2
         : move.power,
+  ],
+  [
+    DynamicPowerKind.RolloutStreak,
+    ({ move, attacker }) => rolloutPowerForIndex(pendingRolloutIndex(attacker, move.id)),
   ],
 ]);
 

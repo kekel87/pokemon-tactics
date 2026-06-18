@@ -12,6 +12,7 @@ import {
   enumerateHitAndRunRetreatTiles,
   FieldTerrain,
   type MoveDefinition,
+  manhattanDistance,
   moveCtTempo,
   type PokemonInstance,
   PokemonType,
@@ -509,14 +510,17 @@ export class BattleOrchestrator {
   }
 
   /**
-   * Cone/Line/Slash: orientation-only moves whose action targets the adjacent tile.
-   * Dash is deliberately excluded:
-   * it lands on a variable-distance tile, so it's outlined + confirmed like a ranged
-   * move on its landing tiles, and only its HOVER trail is drawn directionally.
+   * Cone/Line/Slash/Dash: orientation-only moves. The player picks a direction, not a
+   * precise target tile — clicking anywhere confirms in the hovered direction. Dash lands
+   * automatically as far as it can travel (portée auto), so it's never outlined on landing
+   * tiles; only its HOVER trail is drawn directionally.
    */
   private isDirectionalPattern(kind: TargetingKind): boolean {
     return (
-      kind === TargetingKind.Cone || kind === TargetingKind.Line || kind === TargetingKind.Slash
+      kind === TargetingKind.Cone ||
+      kind === TargetingKind.Line ||
+      kind === TargetingKind.Slash ||
+      kind === TargetingKind.Dash
     );
   }
 
@@ -578,11 +582,8 @@ export class BattleOrchestrator {
     const moveContext = { type: move.type, flags: move.flags };
     let affected: readonly Position[];
 
-    // Dash isn't a directional pattern for targeting, but its hover preview IS drawn
-    // directionally (the dash trail toward the cursor).
-    const previewsDirectionally =
-      this.isDirectionalPattern(move.targeting.kind) || move.targeting.kind === TargetingKind.Dash;
-    if (previewsDirectionally) {
+    // Cone/Line/Slash/Dash all preview directionally (the fan/trail toward the cursor).
+    if (this.isDirectionalPattern(move.targeting.kind)) {
       if (!tile) {
         this.previewDirection = null;
         this.previewTiles = [];
@@ -630,9 +631,11 @@ export class BattleOrchestrator {
   }
 
   /**
-   * Paint a dash footprint: trail tiles yellow, the landing tile in the move's intent
-   * colour. `resolveDash` only returns the landing tile, so the straight run-up between
-   * the caster and the landing is reconstructed here (step by step in the dash direction).
+   * Paint a dash footprint: the whole run-up is movement (yellow), and ONLY the tiles a
+   * living Pokémon stands on (ally or enemy, anywhere along the path) get the move's intent
+   * colour. Dashing into the void stays fully yellow — no misleading red "impact".
+   * `resolveDash` only returns the landing tile, so the straight run-up between the caster
+   * and the landing is reconstructed here (step by step in the dash direction).
    */
   private showDashPreview(
     move: MoveDefinition,
@@ -646,19 +649,25 @@ export class BattleOrchestrator {
     // Dash is axis-aligned by design; a diagonal landing would make the straight-line
     // reconstruction wrong, so fail safe to the landing tile only.
     if (casterPosition.x !== landing.x && casterPosition.y !== landing.y) {
-      this.board.showPreview(moveIntent(move), [landing]);
+      this.board.showPreview(this.pokemonAt(landing) === null ? "dash" : moveIntent(move), [
+        landing,
+      ]);
       return;
     }
     const direction = directionFromTo(casterPosition, landing);
     const steps = Math.abs(landing.x - casterPosition.x) + Math.abs(landing.y - casterPosition.y);
-    const trail: Position[] = [];
-    for (let step = 1; step < steps; step++) {
-      trail.push(stepInDirection(casterPosition, direction, step));
+    const movementTiles: Position[] = [];
+    const impactTiles: Position[] = [];
+    for (let step = 1; step <= steps; step++) {
+      const tile = stepInDirection(casterPosition, direction, step);
+      (this.pokemonAt(tile) === null ? movementTiles : impactTiles).push(tile);
     }
-    if (trail.length > 0) {
-      this.board.showPreview("dash", trail);
+    if (movementTiles.length > 0) {
+      this.board.showPreview("dash", movementTiles);
     }
-    this.board.showPreview(moveIntent(move), [landing]);
+    if (impactTiles.length > 0) {
+      this.board.showPreview(moveIntent(move), impactTiles);
+    }
   }
 
   private tryPickTarget(moveId: string, tile: Position): void {
@@ -1172,7 +1181,27 @@ export class BattleOrchestrator {
         actions[0]
       );
     }
-    // Directional patterns (cone/line/slash/dash) only pick an orientation — clicking
+    // Dash picks a DIRECTION; the engine then runs as far as it can (portée auto). The legal
+    // actions enumerate every tile of each axis, so confirm on the FARTHEST tile in the hovered
+    // direction — the engine still stops at the first wall/occupant within that reach.
+    if (move && active && move.targeting.kind === TargetingKind.Dash) {
+      const direction = this.previewDirection ?? directionFromTo(active.position, tile);
+      let farthest: Extract<Action, { kind: typeof ActionKind.UseMove }> | undefined;
+      for (const action of actions) {
+        if (directionFromTo(active.position, action.targetPosition) !== direction) {
+          continue;
+        }
+        if (
+          farthest === undefined ||
+          manhattanDistance(active.position, action.targetPosition) >
+            manhattanDistance(active.position, farthest.targetPosition)
+        ) {
+          farthest = action;
+        }
+      }
+      return farthest;
+    }
+    // Directional patterns (cone/line/slash) only pick an orientation — clicking
     // anywhere validates in the hovered direction (the current preview direction),
     // falling back to the direction toward the clicked tile.
     if (move && active && this.isDirectionalPattern(move.targeting.kind)) {

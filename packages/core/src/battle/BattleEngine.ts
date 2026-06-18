@@ -86,6 +86,7 @@ import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { resolveNaturePowerMove } from "./nature-power-system";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { computePressureBonus } from "./pressure";
+import { pendingRolloutIndex, recordLastUsedMove, rolloutRangeForIndex } from "./rollout-streak";
 import {
   canMoveHitSemiInvulnerable,
   getSemiInvulnerableDamageMultiplier,
@@ -421,6 +422,15 @@ export class BattleEngine {
       if (isOnFieldTerrain(this.state, pokemon, casterTypes, terrain)) {
         targeting = { ...targeting, maxDistance: targeting.maxDistance + bonus };
       }
+    }
+    if (
+      targeting.kind === TargetingKind.Dash &&
+      swapped.dynamicPower?.kind === DynamicPowerKind.RolloutStreak
+    ) {
+      // Rollout snowball: range grows with the consecutive-cast streak (capped), same index the
+      // power resolver reads, so preview / legality / execution all agree.
+      const maxDistance = rolloutRangeForIndex(pendingRolloutIndex(pokemon, swapped.id));
+      targeting = { ...targeting, maxDistance };
     }
     return targeting === swapped.targeting ? swapped : { ...swapped, targeting };
   }
@@ -1017,7 +1027,7 @@ export class BattleEngine {
         this.turnState.hasActed = true;
         this.turnState.hasMoved = true;
         this.turnState.lastMoveId = moveId;
-        pokemon.lastUsedMoveId = moveId;
+        recordLastUsedMove(pokemon, move);
         return { success: true, events: chargeEventsAccumulator };
       }
     }
@@ -1336,7 +1346,7 @@ export class BattleEngine {
 
     this.turnState.hasActed = true;
     this.turnState.lastMoveId = moveId;
-    pokemon.lastUsedMoveId = moveId;
+    recordLastUsedMove(pokemon, move);
     if (pokemon.usedMoveIds === undefined) {
       pokemon.usedMoveIds = [];
     }
