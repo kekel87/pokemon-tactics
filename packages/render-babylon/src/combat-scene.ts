@@ -82,6 +82,7 @@ import {
 import { DirectionalBillboard } from "./directional-billboard.js";
 import { installE2eSceneHook } from "./e2e-debug-hook.js";
 import { type ExtrudedTerrain, extrudeTerrain, tileTopCenter } from "./terrain-extruder.js";
+import { grassTintForMap } from "./voxel-textures.js";
 
 // The engine-agnostic combat-scene contract (CombatScene, CombatPokemonHandle,
 // CombatSceneSpawn, DirectionPicker*) lives in render-ports (plan 126 F1);
@@ -359,7 +360,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       if (loadCancelled) {
         return;
       }
-      terrain = extrudeTerrain(scene, loaded);
+      terrain = extrudeTerrain(scene, loaded, grassTintForMap(mapUrl));
       const { width, height } = loaded.map;
       const heightAt = (x: number, y: number): number => loaded.visualTiles[y]?.[x]?.height ?? 0;
       // Raw terrain top + any rock/tree rendered height on that cell. Pokémon
