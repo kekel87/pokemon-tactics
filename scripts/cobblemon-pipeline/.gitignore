@@ -1,0 +1,3 @@
+# Cobblemon source assets (Pokémon IP) + build output — local-only, never committed.
+.cobblemon-src/
+out/
