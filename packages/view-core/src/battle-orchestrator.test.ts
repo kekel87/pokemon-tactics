@@ -50,6 +50,7 @@ function fakeState(): BattleState {
     activePokemonId: ACTIVE_ID,
     auras: [],
     fieldTerrains: [],
+    distortionZones: [],
     weather: Weather.None,
     weatherTurnsRemaining: 0,
   } as unknown as BattleState;
@@ -123,6 +124,7 @@ function setup(
     koAnimationDurationMs: () => 0,
     hurtAnimationDurationMs: () => 0,
     setFieldTerrains: () => undefined,
+    setDistortionZones: () => undefined,
     setAuraIndicators: () => undefined,
     setAuraGroundIcons: () => undefined,
     panCameraTo: () => undefined,

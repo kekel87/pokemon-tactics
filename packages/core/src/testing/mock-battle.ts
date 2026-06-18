@@ -157,6 +157,7 @@ export abstract class MockBattle {
       weatherTurnsRemaining: 0,
       auras: [],
       fieldTerrains: [],
+      distortionZones: [],
     };
   }
 }

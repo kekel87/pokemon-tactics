@@ -52,3 +52,18 @@ export const DASH_DIRECTIONAL = {
 /** Duel where the player's only move is Séisme (earthquake), a self-centred Zone AoE that does NOT
  *  affect the caster tile → the centre cell is an empty "caster" (cross, no fill). */
 export const PREVIEW_QUAKE = { ...DUEL, moves: ["earthquake"] } as const;
+
+/** Distorsion (trick-room) — slow caster, fast foe, both inside the r3 zone (decision 2026-06-18).
+ *  Player = Flagadoss (slowbro, base Vit 30) at (2,3) casting Distorsion ; dummy = Électrode
+ *  (electrode, base Vit 150) at (2,2), distance 1 → both in the diamond. Once the zone is posted the
+ *  CT tempo inverts inside it (slow plays first), so the predicted timeline must list the slow
+ *  Flagadoss BEFORE the fast Électrode — the opposite of the no-Distorsion order. Seed fixed for a
+ *  replayable run; Distorsion is a Self status move (no accuracy roll), so the cast is deterministic. */
+export const DISTORTION_INVERSION = {
+  ...DUEL,
+  pokemon: "slowbro",
+  moves: ["trick-room"],
+  playerPosition: { x: 2, y: 3 },
+  dummyPokemon: "electrode",
+  dummyPosition: { x: 2, y: 2 },
+} as const;

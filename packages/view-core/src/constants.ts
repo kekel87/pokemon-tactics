@@ -166,6 +166,8 @@ export const FIELD_TERRAIN_COLOR_GRASSY = 0x5fcf6a;
 export const FIELD_TERRAIN_COLOR_ELECTRIC = 0xf2d33b;
 export const FIELD_TERRAIN_COLOR_MISTY = 0xf49ad1;
 export const FIELD_TERRAIN_COLOR_PSYCHIC = 0xb060e0;
+/** Distorsion (Trick Room) zone — vivid indigo, distinct from the magenta Psychic terrain. */
+export const DISTORTION_ZONE_COLOR = 0x7a5cff;
 
 // --- Charging / aura indicators --------------------------------------------
 export const CHARGING_INDICATOR_SYMBOL = "⚡";

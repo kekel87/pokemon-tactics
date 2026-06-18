@@ -71,4 +71,5 @@ export type Effect =
   | { kind: typeof EffectKind.HealByTargetStat; stat: StatName }
   | { kind: typeof EffectKind.PostHealOverTime; status: StatusType }
   | { kind: typeof EffectKind.PostWish; percent: number }
-  | { kind: typeof EffectKind.PostFieldTerrain; terrain: FieldTerrain };
+  | { kind: typeof EffectKind.PostFieldTerrain; terrain: FieldTerrain }
+  | { kind: typeof EffectKind.PostDistortion };

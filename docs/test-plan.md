@@ -605,6 +605,23 @@ réellement touchées à la résolution.*
   Volant ; Magma/Lave→Feu, Volant ; Glace/Neige→Glace/Volant ; Sable→Sol, Volant ;
   Marais→Poison, Acier, Volant.
 
+### 5.21 Distorsion (Trick Room) — zone statique + inversion du Charge Time
+*src : core `battle/distortion-system.ts`, `BattleEngine.getCtGainForPokemon` ; rendu zone réutilise
+les Champs (indigo). e2e : `mechanics-distortion.spec`.*
+- 🤖 Interaction : **Distorsion** (`trick-room`, Self) posée → journal « Distorsion ! » + la **zone
+  indigo** est peinte au sol (quads `field_terrain_8019199_*`, ancrée sur le lanceur) —
+  `mechanics-distortion.spec`. *La couleur indigo, la pastille compteur et la preview r3 = 👁.*
+- 🤖 **Inversion du Charge Time** dans la zone : un lanceur **lent** (Flagadoss, Vit 30) joue **avant**
+  un foe **rapide** (Électrode, Vit 150) quand les deux sont dans le diamant — vérifié sur l'ordre
+  des portraits de la **timeline** (`predictCtTimeline`), l'opposé de l'ordre hors zone —
+  `mechanics-distortion.spec`. *La courbe CT exacte (pivot 160, inversion de la vitesse en entrée) =
+  SENS unit core (`distortion-system`).*
+- 👁 **Zone diamant Manhattan r3** : preview au cast (sol + grille tooltip) comme les Champs ; re-cast
+  même case = remplace/rafraîchit, ailleurs = 2ᵉ zone coexiste (pas de toggle, comportement Champs).
+- 👁 **Pastille compteur** in-world au-dessus de l'ancre (5 tours du lanceur, **survit au KO** =
+  horloge fantôme) ; **expiration** → la zone disparaît (`DistortionExpired`).
+- 👁 **Hors zone** = tempo normal : entrer/sortir de la zone est un choix tactique.
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -832,6 +849,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/targeting.spec.ts` | §3.7/§4.8/§4.12 — highlights `highlight_move_*` au déplacement, instruction « Sélectionne la cible »→« Confirmer ? » en attaque |
 | `combat/mechanics-status.spec.ts` | §5.3 icône/statut + Spore, §5.4 stat ±, §5.5 confusion/Provoc (journal) |
 | `combat/mechanics-field.spec.ts` | §5.9 auras (Reflet/Mur/Brume/Rune), §5.10 4 champs déployés (journal) |
+| `combat/mechanics-distortion.spec.ts` | §5.21 Distorsion : zone posée (journal « Distorsion ! » + quads indigo en scène) + inversion CT dans la timeline (lent avant rapide) |
 | `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) |
 | `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |

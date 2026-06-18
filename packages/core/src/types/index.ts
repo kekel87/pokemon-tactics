@@ -9,6 +9,7 @@ export type * from "./battle-state";
 export type * from "./ct-timeline-entry";
 export type * from "./damage-estimate";
 export type * from "./derived-stats";
+export type * from "./distortion-zone";
 export type * from "./dynamic-power-spec";
 export type * from "./effect";
 export type * from "./field-zone";

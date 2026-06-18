@@ -25,6 +25,8 @@ export const EffectKind = {
   PostWish: "post_wish",
   /** Paint a field-terrain zone around the caster (B4: grassy/electric/misty/psychic terrain). */
   PostFieldTerrain: "post_field_terrain",
+  /** Post a Trick Room ("Distorsion") zone around the caster: inverts CT tempo inside it. */
+  PostDistortion: "post_distortion",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

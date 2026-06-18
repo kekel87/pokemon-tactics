@@ -1,5 +1,6 @@
 import type { PlayerId } from "../enums/player-id";
 import type { Weather } from "../enums/weather";
+import type { DistortionZone } from "./distortion-zone";
 import type { FieldZone } from "./field-zone";
 import type { PokemonInstance } from "./pokemon-instance";
 import type { TeamAura } from "./team-aura";
@@ -17,6 +18,8 @@ export interface BattleState {
   auras: TeamAura[];
   /** Painted field-terrain zones ("Champs", B4). Multiple coexist; latest wins per tile on overlap. */
   fieldTerrains: FieldZone[];
+  /** Trick Room ("Distorsion") zones: inside one, CT tempo is inverted (slow acts first). */
+  distortionZones: DistortionZone[];
   /**
    * Monotonic action clock. Incremented exactly once per completed action by the Charge Time turn
    * loop. Per-mon stamps on `PokemonInstance` reference this value so "this turn"-style conditions

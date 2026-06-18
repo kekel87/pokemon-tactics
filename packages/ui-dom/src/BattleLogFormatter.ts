@@ -642,6 +642,21 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.DistortionPosted: {
+      const name = context.getPokemonName(event.casterId);
+      const message =
+        lang === "fr"
+          ? `${name} déforme l'espace — Distorsion ! (${event.durationTurns} tours)`
+          : `${name} twisted the dimensions — Trick Room! (${event.durationTurns} turns)`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.DistortionExpired: {
+      const message =
+        lang === "fr" ? "La Distorsion se dissipe" : "The twisted dimensions returned to normal";
+      return { message, color: BattleLogColors.turn, pokemonIds: [] };
+    }
+
     case BattleEventType.SubstitutePosted: {
       const name = context.getPokemonName(event.pokemonId);
       const message = lang === "fr" ? `${name} crée un Clone !` : `${name} created a Substitute!`;

@@ -1,5 +1,10 @@
 import type { MoveDefinition } from "@pokemon-tactic/core";
-import { EffectKind, EffectTarget, FIELD_TERRAIN_RADIUS } from "@pokemon-tactic/core";
+import {
+  DISTORTION_RADIUS,
+  EffectKind,
+  EffectTarget,
+  FIELD_TERRAIN_RADIUS,
+} from "@pokemon-tactic/core";
 
 /** Preview intent of a move, driving the target/AoE colour on both the ground and the tooltip grid. */
 export type MoveIntent = "attack" | "buff" | "heal";
@@ -54,6 +59,9 @@ export function selfPreviewRadius(move: MoveDefinition): number | undefined {
     }
     if (effect.kind === EffectKind.PostFieldTerrain) {
       return FIELD_TERRAIN_RADIUS;
+    }
+    if (effect.kind === EffectKind.PostDistortion) {
+      return DISTORTION_RADIUS;
     }
   }
   return undefined;

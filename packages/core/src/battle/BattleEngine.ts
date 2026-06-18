@@ -49,6 +49,11 @@ import {
 } from "./ct-costs";
 import { estimateDamage } from "./damage-calculator";
 import { getAttackOrigin } from "./defense-check";
+import {
+  decrementDistortionTimer,
+  invertedDistortionSpeed,
+  isInDistortionZone,
+} from "./distortion-system";
 import { processEffects } from "./effect-processor";
 import { isEffectivelyFlying } from "./effective-flying";
 import { getFacingModifier, getFacingZone } from "./facing-modifier";
@@ -66,6 +71,7 @@ import {
 } from "./field-terrain-system";
 import { createAurasTickHandler } from "./handlers/aura-tick-handler";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
+import { distortionDecrementHandler } from "./handlers/distortion-tick-handler";
 import {
   createFieldTerrainHealHandler,
   fieldTerrainDecrementHandler,
@@ -201,6 +207,7 @@ export class BattleEngine {
     this.turnPipeline.registerEndTurn(hotTickHandler, 250);
     this.turnPipeline.registerEndTurn(createFieldTerrainHealHandler(this.pokemonTypesMap), 260);
     this.turnPipeline.registerEndTurn(fieldTerrainDecrementHandler, 265);
+    this.turnPipeline.registerEndTurn(distortionDecrementHandler, 268);
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
     this.turnPipeline.registerEndTurn(timedVolatileTickHandler, 350);
     this.turnPipeline.registerEndTurn(
@@ -2470,7 +2477,13 @@ export class BattleEngine {
     }
     const baseStat = pokemon.baseStats.speed;
     const stages = pokemon.statStages[StatName.Speed] ?? 0;
-    const base = computeCtGain(baseStat, stages);
+    // Trick Room ("Distorsion"): inside a zone the tempo is reflected — feed an inverted base Speed
+    // (and inverted Speed stages) through the usual curve so slow mons act first while the gain stays
+    // in the normal magnitude band (no zone-wide speed-up).
+    const inDistortion = isInDistortionZone(this.state, pokemon.position);
+    const base = inDistortion
+      ? computeCtGain(invertedDistortionSpeed(baseStat), -stages)
+      : computeCtGain(baseStat, stages);
     const item = this.itemRegistry?.getForPokemon(pokemon);
     const modifier = item?.onCtGainModify?.({ pokemon }) ?? 1.0;
     return Math.round(base * modifier);
@@ -2719,7 +2732,8 @@ export class BattleEngine {
       this.state.weatherTurnsRemaining > 0 &&
       this.state.weatherSetterPokemonId === pokemonId;
     const ownsField = this.state.fieldTerrains.some((zone) => zone.casterId === pokemonId);
-    return ownsWeather || ownsField;
+    const ownsDistortion = this.state.distortionZones.some((zone) => zone.casterId === pokemonId);
+    return ownsWeather || ownsField || ownsDistortion;
   }
 
   /**
@@ -2738,6 +2752,14 @@ export class BattleEngine {
         type: BattleEventType.FieldTerrainExpired,
         casterId: entry.casterId,
         kind: entry.kind,
+      };
+      this.emit(event);
+      events.push(event);
+    }
+    for (const entry of decrementDistortionTimer(this.state, pokemonId)) {
+      const event: BattleEvent = {
+        type: BattleEventType.DistortionExpired,
+        casterId: entry.casterId,
       };
       this.emit(event);
       events.push(event);

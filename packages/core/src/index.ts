@@ -27,6 +27,14 @@ export {
   computeMoveCost,
   moveCtTempo,
 } from "./battle/ct-costs";
+export {
+  DISTORTION_DEFAULT_DURATION,
+  DISTORTION_RADIUS,
+  DISTORTION_SPEED_PIVOT,
+  invertedDistortionSpeed,
+  isInDistortionZone,
+  postDistortion,
+} from "./battle/distortion-system";
 export { getEffectivePowerFloor, resolveDynamicPower } from "./battle/dynamic-power-system";
 export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
 export { EffectHandlerRegistry } from "./battle/effect-handler-registry";

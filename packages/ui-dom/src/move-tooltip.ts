@@ -108,6 +108,9 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   if (move.effects.some((effect) => effect.kind === EffectKind.PostWish)) {
     keys.push("moveTooltip.tag.wish");
   }
+  if (move.effects.some((effect) => effect.kind === EffectKind.PostDistortion)) {
+    keys.push("moveTooltip.tag.distortion");
+  }
   if (move.effects.some((effect) => effect.kind === EffectKind.CureTeamStatus)) {
     keys.push("moveTooltip.tag.cureTeamStatus");
   }

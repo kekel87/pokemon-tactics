@@ -250,6 +250,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     weatherTurnsRemaining: 0,
     auras: [],
     fieldTerrains: [],
+    distortionZones: [],
   };
 
   const turnPipeline = new TurnPipeline();

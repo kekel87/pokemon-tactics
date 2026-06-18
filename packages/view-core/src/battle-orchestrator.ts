@@ -34,6 +34,7 @@ import {
   CHARGING_INDICATOR_ID,
   CHARGING_INDICATOR_SYMBOL,
   DAMAGE_FLASH_TOTAL_MS,
+  DISTORTION_ZONE_COLOR,
   FIELD_TERRAIN_COLOR_ELECTRIC,
   FIELD_TERRAIN_COLOR_GRASSY,
   FIELD_TERRAIN_COLOR_MISTY,
@@ -1026,6 +1027,22 @@ export class BattleOrchestrator {
     this.hoveredEnemyRangePokemonId = null;
     this.refreshAuraVisuals();
     this.refreshFieldTerrainVisuals();
+    this.refreshDistortionVisuals();
+  }
+
+  /** Repaint the active Distorsion (Trick Room) zones + timer pills from engine state. */
+  private refreshDistortionVisuals(): void {
+    const specs = this.state.distortionZones.map((zone) => {
+      const caster = this.state.pokemon.get(zone.casterId);
+      return {
+        tiles: zone.tiles,
+        anchor: zone.anchor,
+        color: DISTORTION_ZONE_COLOR,
+        teamColor: caster ? getTeamColorByPlayerId(caster.playerId) : DISTORTION_ZONE_COLOR,
+        remainingTurns: zone.remainingTurns,
+      };
+    });
+    this.board.setDistortionZones(specs);
   }
 
   /** Repaint the active field-terrain ("Champs") zones + timer pills from engine state. */
