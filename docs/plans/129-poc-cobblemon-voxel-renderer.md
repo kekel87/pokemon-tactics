@@ -50,10 +50,40 @@ Origine : `docs/next.md` § Post-Babylon, chantier **h**. Prompt POC fourni par 
 
 ### Temps 3 — Convertisseur Bedrock → GLB (offline)
 
-- Script `.geo.json` + `.animation.json` + texture → GLB (mesh + bones + clips glTF).
-- Sous-ensemble **pragmatique** de Molang (analyser un échantillon avant de coder).
-- Sources : repo open-source Cobblemon (cable-mc). Tester sur 3–5 mons non Phase 1.
-- `PIPELINE_LIMITATIONS.md`.
+**Recherche faite (`best-practices`, 2026-06-18) : aucune lib Node clé-en-main, aucun loader runtime Bedrock pour Babylon/Three. On ne réinvente PAS Molang.** Pipeline retenu = Blender headless + `mcblend` pour la reconstruction, + un **baker Molang** maison (le seul vrai code) qui pré-évalue les expressions via `@bridge-editor/molang` (npm, MIT). Draft humain validé, raffiné ci-dessous.
+
+**Source — Cobblemon GitLab `cable-mc/cobblemon`** (sparse-checkout de `common/src/main/resources/assets/cobblemon/`) :
+- `bedrock/pokemon/models/NNNN_nom/…geo.json` — géométrie (bones, cubes, pivots, UV)
+- `bedrock/pokemon/animations/NNNN_nom/…animation.json` — keyframes + expressions Molang
+- `bedrock/pokemon/posers/NNNN_nom/…` — **machine d'états** (idle↔walk↔faint) — NON convertible GLB → à réimplémenter en logique Babylon (étape ultérieure, hors convertisseur)
+- `textures/pokemon/NNNN_nom/…png` — atlas
+(NB : structure par sous-dossiers `models/`,`animations/`,`posers/`,`textures/` + dossier `NNNN_nom` par espèce — PAS `{nom}/{nom}.geo.json` à plat.)
+
+**Étapes :**
+1. **Récupération** : sparse-checkout git des 4 sous-arbres ci-dessus (assets copyrightés → local, gitignored).
+2. **Baker Molang (le code maison)** : parser `animation.json` ; pour chaque canal bone avec expression Molang procédurale (`math.sin(q.anim_time*…)`, `q.life_time`…), **échantillonner à 30 fps sur un cycle** via `@bridge-editor/molang` → réécrire en keyframes purs. Les anims déjà keyframe passent telles quelles. **Sortie : un `animation.json` 100 % keyframe.**
+3. **Reconstruction Blender headless + mcblend** : `blender --background --python convert.py -- <geo> <anim_baked> <png> <out.glb>` → import `.geo.json` (mesh+armature+UV), injecte les keyframes, applique la texture.
+4. **Export GLB** : `bpy.ops.export_scene.gltf` — 1 `.glb`/Pokémon, clips nommés (idle/walk/faint/physical…).
+5. **Babylon** : `SceneLoader.ImportMeshAsync` → `AnimationGroups` par nom ; jouer selon l'état de jeu. (La machine d'états des `posers` = logique appli, pas dans le GLB.)
+
+**Dépendances (accord humain requis — structurel) :**
+- **Blender** (système, ~200 Mo) — **installé par l'humain** (install global interdit à Claude). + addon **`mcblend`**.
+- npm **`@bridge-editor/molang`** (baker).
+- Nouveau dossier pipeline : `scripts/cobblemon-pipeline/` (clone + baker TS + `convert.py` Blender + orchestrateur).
+
+**Prototype d'abord (1 Pokémon = Bulbizarre `0001_bulbasaur`)** : valider la chaîne bout-en-bout (au moins idle + marche affichés dans le combat Babylon) AVANT de batcher. Puis 3–5 mons (dont volant + aquatique).
+
+**Risques / limites (→ `PIPELINE_LIMITATIONS.md`) :** dép Blender ; Molang procédural baké approximé (durée/fps choisis) ; `posers` (machine d'états) à refaire côté appli ; pivots/échelle Bedrock (Y-up, 1/16 bloc — géré par mcblend) ; pas de mipmaps atlas.
+
+**Stretch (hors POC)** : extraire en plugin/loader Babylon réutilisable (voire contribution upstream). Pour le jeu, **GLB offline** reste le bon choix (zéro conversion runtime).
+
+**Avancement (2026-06-18) :**
+- ✅ Récupération assets (sparse GitLab + curl raw, local gitignored). License Cobblemon = **CC BY-NC** (commitable avec attribution comme les sprites PMD — à trancher productization).
+- ✅ **Baker Molang** `scripts/cobblemon-pipeline/bake-molang.ts` (`@bridge-editor/molang`, degrés Bedrock, cache+optimizers OFF sinon `q.anim_time` foldé à 0). Bulbizarre → 9 clips keyframés, oscillations correctes (patte -47°→+7°).
+- ✅ **`convert.py` v1** (Blender 5.1.1 + mcblend) : `.geo.json` → GLB **statique texturé** (skin:1, PNG embarquée, 57 meshes). À corriger : `alphaMode` BLEND → MASK (cutout pixel-art).
+- ⏳ **v2** : injecter keyframes bakés dans `convert.py` (caler convention rotation Bedrock→Blender).
+- ⏳ **Affichage temps 2** : charger le GLB en combat — **utiliser Florizarre `0003_venusaur`** (roster jouable ; Bulbizarre n'est pas câblé).
+- Décision techno confirmée (humain) : **Blender+Python** d'abord pour le résultat final ; version **pur TS** (`gltf-transform`) plus tard pour comparer.
 
 ## Livrables
 

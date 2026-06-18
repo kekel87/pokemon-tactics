@@ -11,6 +11,9 @@ importers:
       '@biomejs/biome':
         specifier: ^2.5.0
         version: 2.5.0
+      '@bridge-editor/molang':
+        specifier: ^2.0.2
+        version: 2.0.2
       '@playwright/test':
         specifier: ^1.61.0
         version: 1.61.0
@@ -281,6 +284,9 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
+
+  '@bridge-editor/molang@2.0.2':
+    resolution: {integrity: sha512-GmATfUFAIoc90/KnkF/4nFI3rwjBWltgpyTD3Kh50Pabq89o3H++NIZa93Fat5bie1zFsiHcG9RbooDvofgc1Q==}
 
   '@ctrl/tinycolor@3.6.1':
     resolution: {integrity: sha512-SITSV6aIXsuVNV3f3O0f2n/cgyEDWoSqtZMYiAmcsYHydcKrOz3gUxB/iXd/Qf08+IZX4KpgNbvUdMBmWz+kcA==}
@@ -2024,6 +2030,8 @@ snapshots:
 
   '@biomejs/cli-win32-x64@2.5.0':
     optional: true
+
+  '@bridge-editor/molang@2.0.2': {}
 
   '@ctrl/tinycolor@3.6.1': {}
 
