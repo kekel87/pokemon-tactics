@@ -35,7 +35,37 @@ const ANIMATION_ALIASES: Record<string, readonly string[]> = {
   Hurt: ["recoil", "hurt"],
   Faint: ["faint"],
   Sleep: ["sleep"],
+  // Move animations: the orchestrator emits the PMD vocabulary (Attack/Shoot/Charge), not
+  // the Cobblemon clip names — map them to Cobblemon's physical (melee) / special (ranged).
+  Attack: ["physical", "attack"],
+  Shoot: ["special", "shoot"],
+  Charge: ["physical", "charge"],
+  // The sprite renderer's flying vocabulary (FLYING_GLIDE_CANDIDATES) → Cobblemon air
+  // clips, so a flyer rests/moves with its airborne animation instead of ground_idle.
+  FlyingIdle: ["air_idle", "air_fly", "fly", "hover"],
+  Hover: ["air_idle", "air_fly", "hover"],
 };
+
+/**
+ * While airborne, these *category* actions (which carry no air/ground intent of their
+ * own) try the air variant before the ground alias. Idle/Walk/FlyingIdle are deliberately
+ * NOT here: the combat loop already picks `FlyingIdle` vs `Idle` to mean air vs ground, so
+ * biasing them by the current state would trap the model airborne (an `Idle` request would
+ * re-resolve to `air_idle` and never land). Falls through to {@link ANIMATION_ALIASES}.
+ */
+const FLYING_OVERRIDES: Record<string, readonly string[]> = {
+  Attack: ["air_physical"],
+  Shoot: ["air_special"],
+  Charge: ["air_physical"],
+  Hurt: ["air_recoil"],
+};
+
+/**
+ * Hover height (world units = blocks) a flying model floats above its tile top — so a
+ * flyer reads as airborne (and clears the water/lava it overflies) rather than standing
+ * on the surface. Calibrated visually (plan 129 POC).
+ */
+const GLB_HOVER_HEIGHT = 0.8;
 
 export interface GlbPokemonActorOptions {
   scene: Scene;
@@ -64,6 +94,10 @@ export class GlbPokemonActor implements PokemonActor {
   private restingAnimation = "Idle";
   private topOffsetY = 0;
   private disposed = false;
+  /** True while the active clip is airborne (`air_*`) → model hovers + attacks use air_*. */
+  private airborne = false;
+  /** model.position.y with no hover (grounded), captured after centring. */
+  private modelBaseY = 0;
 
   constructor(options: GlbPokemonActorOptions) {
     this.scene = options.scene;
@@ -100,9 +134,6 @@ export class GlbPokemonActor implements PokemonActor {
         // transparent (see-through paws / vanished face). ALPHATEST writes depth →
         // correct occlusion + crisp edges (mirrors the sprite renderer rule).
         applyPixelCutout(mesh.material);
-        // Bedrock cubes export with inconsistent winding/normals, so backface culling
-        // punches holes (you see into the head). Render both sides to fill them.
-        mesh.material.backFaceCulling = false;
       }
     }
     // Cobblemon stops every clip on a held frame at load; capture them by name, then
@@ -134,6 +165,7 @@ export class GlbPokemonActor implements PokemonActor {
     if (bounds) {
       this.topOffsetY = bounds.maxY;
     }
+    this.modelBaseY = model.position.y;
     this.root.rotation.y = savedYaw;
     this.root.position.copyFrom(savedPosition);
     this.root.computeWorldMatrix(true);
@@ -164,7 +196,12 @@ export class GlbPokemonActor implements PokemonActor {
     if (direct) {
       return direct;
     }
-    const fragments = ANIMATION_ALIASES[animation] ?? [animation.toLowerCase()];
+    // While airborne, try the air variant (air_physical, air_idle…) before the ground one.
+    const base = ANIMATION_ALIASES[animation] ?? [animation.toLowerCase()];
+    const fragments =
+      this.airborne && FLYING_OVERRIDES[animation]
+        ? [...FLYING_OVERRIDES[animation], ...base]
+        : base;
     for (const fragment of fragments) {
       for (const [name, group] of this.animationsByName) {
         if (name.toLowerCase().includes(fragment)) {
@@ -188,18 +225,49 @@ export class GlbPokemonActor implements PokemonActor {
     return ((group.to - group.from) / fps) * 1000;
   }
 
+  /**
+   * Make `group` the active clip. Derives the airborne state from its name (`air_*`):
+   * an airborne clip floats the model (hover) and biases later attacks to air variants;
+   * a ground clip drops it back down. This is what makes flying dynamic — it follows the
+   * clip the combat loop chose (FlyingIdle over water, ground_idle on land), not a flag.
+   */
+  private activate(group: AnimationGroup, loop: boolean): void {
+    this.currentAnimation?.stop();
+    group.start(loop);
+    this.currentAnimation = group;
+    this.airborne = group.name.toLowerCase().includes("air_");
+    this.applyHover();
+  }
+
+  private applyHover(): void {
+    if (this.model) {
+      this.model.position.y = this.modelBaseY + (this.airborne ? GLB_HOVER_HEIGHT : 0);
+    }
+  }
+
   setAnimation(animation: string): void {
     const group = this.resolve(animation);
     if (!group || group === this.currentAnimation) {
       return;
     }
-    this.currentAnimation?.stop();
-    group.start(true);
-    this.currentAnimation = group;
+    this.activate(group, true);
   }
 
   setRestingAnimation(animation: string): void {
     this.restingAnimation = animation;
+  }
+
+  /** Debug (plan 129 POC): every loaded clip name, sorted — populates the dev dropdown. */
+  animationNames(): string[] {
+    return [...this.animationsByName.keys()].sort();
+  }
+
+  /** Debug (plan 129 POC): play one clip by its exact name, looping (dev dropdown pick). */
+  playClip(name: string): void {
+    const group = this.animationsByName.get(name);
+    if (group) {
+      this.activate(group, true);
+    }
   }
 
   playOnce(animation: string, options: { freeze?: boolean; onComplete?: () => void } = {}): void {
@@ -208,9 +276,7 @@ export class GlbPokemonActor implements PokemonActor {
       options.onComplete?.();
       return;
     }
-    this.currentAnimation?.stop();
-    group.start(false);
-    this.currentAnimation = group;
+    this.activate(group, false);
     group.onAnimationGroupEndObservable.addOnce(() => {
       options.onComplete?.();
       if (!options.freeze) {

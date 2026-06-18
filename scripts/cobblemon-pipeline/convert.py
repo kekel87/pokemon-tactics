@@ -43,6 +43,93 @@ def parse_args():
     return geo, texture, out_glb, baked, fps
 
 
+# Depth nudge (Bedrock px, 1px = 1/16 block) between *overlapping* coplanar membranes.
+# Enough to beat depth precision, tiny in world (≈0.5px × scale); applied only within a
+# cluster of cubes that actually overlap, so the spread stays a few tenths of a pixel.
+COPLANAR_NUDGE_PX = 0.5
+
+
+def _intervals_overlap(a_min, a_size, b_min, b_size):
+    return a_min < b_min + b_size and b_min < a_min + a_size
+
+
+def _stagger_coplanar(flat_cubes):
+    """flat_cubes: list of (origin, size, flat_axis) all on one (axis, plane). Cluster the
+    ones that overlap in the plane and push each cluster member off the shared plane by a
+    growing epsilon, so z-fighting membranes get distinct depths. Returns count nudged."""
+    plane_axes = [(1, 2), (0, 2), (0, 1)]
+    nudged = 0
+    handled = [False] * len(flat_cubes)
+    for i, (origin_i, size_i, axis) in enumerate(flat_cubes):
+        if handled[i]:
+            continue
+        ax_a, ax_b = plane_axes[axis]
+        cluster = [i]
+        for j in range(i + 1, len(flat_cubes)):
+            origin_j, size_j, _ = flat_cubes[j]
+            if handled[j] or not (
+                _intervals_overlap(origin_i[ax_a], size_i[ax_a], origin_j[ax_a], size_j[ax_a])
+                and _intervals_overlap(origin_i[ax_b], size_i[ax_b], origin_j[ax_b], size_j[ax_b])
+            ):
+                continue
+            cluster.append(j)
+            handled[j] = True
+        handled[i] = True
+        for depth, index in enumerate(cluster):
+            if depth > 0:
+                flat_cubes[index][0][axis] += COPLANAR_NUDGE_PX * depth
+                nudged += 1
+    return nudged
+
+
+def preprocess_geo(geo_path):
+    """Stop Cobblemon wing/fin membranes z-fighting in a plain renderer, two ways that
+    mirror how Minecraft avoids it natively:
+
+    1. Drop cubes of `*_hidden` bones — alternate membranes Cobblemon swaps in for other
+       states (folded vs spread wing). They sit on the exact plane of their visible twin;
+       MC never shows both at once (a render controller toggles visibility) while our
+       converter renders every cube. The bone stays (hierarchy + animation targets); only
+       its geometry goes.
+    2. Stagger flat (zero-thickness) cubes that share a plane AND overlap (the membrane tiled
+       across several wing-segment bones, all at the same local z because Bedrock bones are
+       pivot-only) — push overlapping ones off the plane by a tiny epsilon. MC separates these
+       via per-segment `inflate` + draw order; the nudge is the same idea, scoped to actually-
+       overlapping clusters so nothing visibly detaches.
+
+    Returns a filtered geo path, or the original when nothing matched.
+    """
+    with open(geo_path, encoding="utf8") as handle:
+        data = json.load(handle)
+    stripped = 0
+    nudged = 0
+    for geometry in data.get("minecraft:geometry", []):
+        planes: dict = {}
+        for bone in geometry.get("bones", []):
+            if "hidden" in bone.get("name", "").lower() and bone.get("cubes"):
+                bone["cubes"] = []
+                stripped += 1
+                continue
+            for cube in bone.get("cubes", []):
+                size = cube.get("size", [0, 0, 0])
+                origin = cube.get("origin")
+                if origin is None or all(dimension != 0 for dimension in size):
+                    continue
+                flat_axis = size.index(0)
+                planes.setdefault((flat_axis, round(origin[flat_axis], 2)), []).append(
+                    (origin, size, flat_axis)
+                )
+        for flat_cubes in planes.values():
+            nudged += _stagger_coplanar(flat_cubes)
+    if stripped == 0 and nudged == 0:
+        return geo_path
+    out_path = geo_path + ".filtered.json"
+    with open(out_path, "w", encoding="utf8") as handle:
+        json.dump(data, handle)
+    print(f"preprocess: stripped {stripped} hidden bone(s), nudged {nudged} coplanar membrane(s)")
+    return out_path
+
+
 def clear_scene():
     for obj in list(bpy.data.objects):
         bpy.data.objects.remove(obj, do_unlink=True)
@@ -133,7 +220,7 @@ def main():
     addon_utils.enable("mcblend", default_set=True)
     clear_scene()
 
-    bpy.ops.mcblend.import_model(filepath=geo)
+    bpy.ops.mcblend.import_model(filepath=preprocess_geo(geo))
 
     material = make_pixel_material(texture)
     for obj in bpy.data.objects:

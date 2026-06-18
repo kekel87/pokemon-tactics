@@ -17,7 +17,8 @@ const SAMPLE_FPS_DEFAULT = 30;
 const DEFAULT_ANIMATION_LENGTH = 4;
 /** Period detection (looping procedural clips): how far to look for a repeat, and tolerance. */
 const MAX_LOOP_WINDOW_SECONDS = 16;
-const LOOP_MATCH_EPSILON = 0.5;
+/** Seam error (deg/units) treated as an exact loop → short-circuit period search. */
+const LOOP_MATCH_EPSILON = 0.05;
 
 type Vec3Expr = (number | string)[];
 type ChannelValue = number | string | Vec3Expr | Record<string, unknown>;
@@ -168,9 +169,15 @@ function detectLoopPeriod(vecs: Vec3Expr[], fps: number, fallback: number): numb
     grid.push(row);
   }
   // Compare the signal against itself shifted by W at a few phases (catches components
-  // that happen to align at one phase but not another).
-  const testIndices = [0, Math.round(fps * 0.33), Math.round(fps * 0.66)];
+  // that happen to align at one phase but not another), and keep the window with the
+  // SMALLEST seam — not the first under a fixed tolerance. A loose tolerance used to accept
+  // a near-match (e.g. 4s) while a slow component (period 5.7s) was still mid-cycle, leaving
+  // a small jump; the true period can exceed the search budget, so the least-error window is
+  // the smoothest loop we can bake. An exact match short-circuits.
+  const testIndices = [0, Math.round(fps * 0.25), Math.round(fps * 0.5), Math.round(fps * 0.75)];
   const minFrames = Math.round(fps * 0.3);
+  let bestWindow = maxFrames;
+  let bestError = Number.POSITIVE_INFINITY;
   for (let window = minFrames; window <= maxFrames; window++) {
     let error = 0;
     for (const index of testIndices) {
@@ -180,11 +187,15 @@ function detectLoopPeriod(vecs: Vec3Expr[], fps: number, fallback: number): numb
         error = Math.max(error, Math.abs(a[component] - b[component]));
       }
     }
+    if (error < bestError) {
+      bestError = error;
+      bestWindow = window;
+    }
     if (error < LOOP_MATCH_EPSILON) {
       return window / fps;
     }
   }
-  return fallback;
+  return bestWindow / fps;
 }
 
 /** Collect the procedural (expression) channel vectors of a clip — the loopable signal. */
