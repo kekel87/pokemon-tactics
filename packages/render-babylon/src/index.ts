@@ -23,4 +23,5 @@ export * from "./directional-billboard.js";
 export * from "./map-preview-stage.js";
 export * from "./sprite-depth-plugin.js";
 export * from "./terrain-extruder.js";
+export * from "./voxel-textures.js";
 export * from "./world-projection.js";
