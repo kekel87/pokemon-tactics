@@ -464,6 +464,7 @@ export function mountSandboxStudio(
       canvas: activeStage.canvas,
       mapUrl,
       pokemon: [],
+      use3dModels: config.use3dModels,
     });
     combat = activeCombat;
     overlay.setProgress(0.2);

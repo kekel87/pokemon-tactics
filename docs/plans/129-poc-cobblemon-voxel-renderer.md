@@ -81,9 +81,25 @@ Origine : `docs/next.md` § Post-Babylon, chantier **h**. Prompt POC fourni par 
 - ✅ Récupération assets (sparse GitLab + curl raw, local gitignored). License Cobblemon = **CC BY-NC** (commitable avec attribution comme les sprites PMD — à trancher productization).
 - ✅ **Baker Molang** `scripts/cobblemon-pipeline/bake-molang.ts` (`@bridge-editor/molang`, degrés Bedrock, cache+optimizers OFF sinon `q.anim_time` foldé à 0). Bulbizarre → 9 clips keyframés, oscillations correctes (patte -47°→+7°).
 - ✅ **`convert.py` v1** (Blender 5.1.1 + mcblend) : `.geo.json` → GLB **statique texturé** (skin:1, PNG embarquée, 57 meshes). À corriger : `alphaMode` BLEND → MASK (cutout pixel-art).
-- ⏳ **v2** : injecter keyframes bakés dans `convert.py` (caler convention rotation Bedrock→Blender).
-- ⏳ **Affichage temps 2** : charger le GLB en combat — **utiliser Florizarre `0003_venusaur`** (roster jouable ; Bulbizarre n'est pas câblé).
+- ✅ **Temps 2 — Affichage statique Florizarre en combat réel** (détails ci-dessous).
+- ⏳ **Temps 3 v2** : baker Molang à fiabiliser (crashe sur `animation.json` Florizarre) + injecter keyframes dans `convert.py` (calibrage convention rotation Bedrock→Blender) → GLB animé.
 - Décision techno confirmée (humain) : **Blender+Python** d'abord pour le résultat final ; version **pur TS** (`gltf-transform`) plus tard pour comparer.
+
+### Temps 2 — Affichage statique ✅ (2026-06-18)
+
+**Contrat `PokemonActor`** (`packages/render-babylon/src/pokemon-actor.ts`) : interface seam commun entre le billboard sprite PMD (`DirectionalBillboard`) et le nouveau rendu 3D GLB. Permet de switcher la source de rendu sans toucher à l'orchestrateur.
+
+**`GlbPokemonActor`** (`packages/render-babylon/src/glb-pokemon-actor.ts`) : charge le GLB Cobblemon via `loadAssetContainerAsync` et rend Florizarre (`venusaur.glb`) en combat réel.
+
+Décisions d'implémentation :
+- **Échelle** : facteur unique ×0.45, calé sur la hitbox Cobblemon (géo native 2.31 blocs × baseScale 1.2 ≈ 2.8 blocs → trop gros) pour tenir dans ~1 tuile. À affiner par espèce plus tard.
+- **Centrage tuile** : via les **locators de pieds Cobblemon** (`locator_foot_*`, métadonnée embarquée dans la géo) — centroïde XZ = point d'aplomb sur la grille. Fallback `locator_middle` puis bbox. La bbox seule est biaisée (fleur/lianes/pivot sur le visage faussent le centrage).
+- **Matériaux** : forcés en `ALPHATEST` cutout (`alphaCutOff 0.5`) + filtre `NEAREST` + `backFaceCulling off` — le GLB exporte `alphaMode BLEND` par défaut, ce qui produit des faces transparentes ou manquantes sans ce correctif.
+- **Invariant grille respecté** : 1 Florizarre = 1 tuile occupée (footprint gameplay inchangé ; le modèle déborde visuellement mais n'occupe qu'une case).
+
+**Toggle opt-in `use3dModels`** (défaut `false`) : `SandboxConfig.use3dModels` → `CombatSceneOptions.use3dModels` → factory `createPokemonActor` gated sur `GLB_POKEMON_IDS` (= `{venusaur}` pour l'instant). La suite sprite existante est intacte ; activer le GLB ne requiert que le flag.
+
+**Validé visuellement par l'humain** : Florizarre (`venusaur.glb`) s'affiche correctement en combat avec `use3dModels: true` en sandbox.
 
 ## Livrables
 
