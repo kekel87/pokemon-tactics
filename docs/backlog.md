@@ -4,6 +4,16 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
+### Anim KO déclenchée trop tôt (2026-06-18, retour playtest)
+- L'animation de KO part **avant la fin de l'animation de dégât**.
+- Attendu : KO ne se déclenche qu'**après** la fin de l'anim de dégât (séquencer dégât → KO).
+- Renderer : `GameController` / séquence d'events `DamageDealt` → `PokemonKo`. Chaîner sur la fin de l'anim de dégât plutôt que jouer en parallèle.
+
+### Multi-coup vs Peau Dure (Rough Skin) — à tester (2026-06-18, retour playtest)
+- Tester un move multi-coup (ex: Furie/`fury-attack`, Charge-Os/`bone-rush`) contre un Pokemon avec **Peau Dure** (`rough-skin`).
+- Vérifier : le recul Peau Dure se déclenche-t-il **par coup** (canon) ou une seule fois ? Y a-t-il un bug d'ordre / de KO en plein multi-hit ?
+- QA d'abord (sandbox), puis bug + fix si comportement faux.
+
 ### `tacticalOverrides.flags` écrase les flags reference au merge (2026-05-31, review plan 102)
 - `load-data.ts:58` fait `{ ...base, ...tactical }` : un `flags` défini dans tactical **remplace entièrement** `base.flags` (extrait de reference) au lieu de fusionner.
 - Impact : `aerial-ace` (seul move actuel avec `flags` override = `{ slicing: true }`) perd `contact`/`protect`/`mirror` après merge.
@@ -15,12 +25,13 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - Conséquences : double système de fonts/couleurs/spacing (tokens.css vs constants.ts), UX incohérente (curseur, scaling, raccourcis).
 - À planifier : décision globale renderer 2D vs HTML overlay (cf plan 062/063 Phase 3.5 Babylon différée). Court terme : aligner styles canvas sur tokens design.
 
-### Le Mur — gameplay cassé (2026-04-23)
+### Le Mur — réintégrer + fixer IA (2026-04-23, relancé 2026-06-18)
 - Map `le-mur.tmj` retirée du menu (`maps-registry.ts`).
-- Bug transparence **résolu** (commit `082240c`). Problèmes restants :
-  - Pokemon trop lents sur neige — terrain `slow` excessif pour une map traversée, à revoir.
+- **Blocage rotation caméra levé** : Babylon (Phase 5) a la rotation caméra → la map est de nouveau jouable. Objectif : **la rendre disponible** dans le menu.
+- Bug transparence **résolu** (commit `082240c`). Problèmes restants à fixer avant réintégration :
+  - **IA ne tente pas de monter sur le mur** — elle essaie de **tirer à travers** au lieu de prendre la hauteur. À fixer (pathfinding vertical + scoring qui valorise la prise de hauteur).
   - IA perdue sur chemins verticaux (escaliers).
-- **Le Mur ne peut pas être réintégré sans rotation caméra** — injouable en vue iso fixe. À reconsidérer avec rotation (Phase 3.5 Babylon ou plus tard).
+  - Pokemon trop lents sur neige — terrain `slow` excessif pour une map traversée, à revoir.
 
 <!-- Résolus plan 097 (2026-05-24) :
 - FOUC font menu : index.html preload + font-display block + BootScene document.fonts.ready
@@ -76,6 +87,17 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - À refaire ultérieurement à la main (Aseprite) avec un symbole plus lisible.
 
 ## Tâches futures (hors backlog actif)
+
+### Scénario de combat piloté Joueur vs Joueur (QA + captures) (2026-06-18)
+- Pouvoir piloter un combat **JcJ** (les deux camps humains), via l'UI si possible — sinon harness sandbox.
+- Objectifs : (1) tester plein de mécaniques d'un coup en jouant les deux côtés ; (2) **voir les tooltips d'attaque** en conditions réelles ; (3) servir de base aux **screenshots / gif** (README, wiki, devlog itch).
+- Piste : mode/flag sandbox `humanVsHuman` (les deux `controller: human`), ou écran de setup où les 2 colonnes sont en Humain (TeamSelect le permet déjà — vérifier que le combat suit).
+- Priorité moyenne — gros multiplicateur pour la QA et la com.
+
+### Boussole / girouette d'orientation caméra (2026-06-18)
+- La caméra Babylon tourne par snaps 90° → on perd vite le Nord.
+- Ajouter un indicateur d'orientation (boussole / girouette) montrant la direction courante de la caméra.
+- DOM (chrome écran, coin) ou monde — à trancher. Suivre la rotation caméra.
 
 ### Sprites originaux — plan B si DMCA Nintendo (plan 096)
 - Vecteur risque IP principal : 502 sprites PNG PMDCollab rippés Showdown/PokeAPI.
