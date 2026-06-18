@@ -81,6 +81,8 @@ import {
 } from "./constants.js";
 import { DirectionalBillboard } from "./directional-billboard.js";
 import { installE2eSceneHook } from "./e2e-debug-hook.js";
+import { GlbPokemonActor } from "./glb-pokemon-actor.js";
+import type { PokemonActor } from "./pokemon-actor.js";
 import { type ExtrudedTerrain, extrudeTerrain, tileTopCenter } from "./terrain-extruder.js";
 import { grassTintForMap } from "./voxel-textures.js";
 
@@ -102,9 +104,21 @@ export interface CombatSceneOptions {
   pokemon: readonly CombatSceneSpawn[];
   /** Floating FFTA tile cursor on hover (default true; off for the map-select preview). */
   showHoverCursor?: boolean;
+  /**
+   * Opt-in to the Cobblemon 3D-model renderer (plan 129 POC, temps 2) for Pokémon in
+   * {@link GLB_POKEMON_IDS}. Off by default → everything stays a PMD billboard.
+   */
+  use3dModels?: boolean;
 }
 
 const ALL_DIRECTIONS = [Direction.North, Direction.South, Direction.East, Direction.West] as const;
+
+/**
+ * Pokémon (by id) that render as a Cobblemon 3D model instead of a PMD billboard
+ * (plan 129 POC, temps 2). Gated to ids whose GLB has actually been converted and
+ * dropped into `public/assets/pokemon/` (gitignored). A missing GLB throws on load.
+ */
+const GLB_POKEMON_IDS = new Set<string>(["venusaur"]);
 
 /** Quadratic ease-out — fast start, slow finish (jump ascent: top the cliff early). */
 function easeOutQuad(t: number): number {
@@ -156,7 +170,13 @@ const DIRECTION_NEIGHBOR: Readonly<Record<Direction, { dx: number; dy: number }>
  * harness (reachable via `?preview=1`).
  */
 export function createCombatScene(options: CombatSceneOptions): CombatScene {
-  const { canvas, mapUrl, pokemon: pokemonSpawns, showHoverCursor = true } = options;
+  const {
+    canvas,
+    mapUrl,
+    pokemon: pokemonSpawns,
+    showHoverCursor = true,
+    use3dModels = false,
+  } = options;
 
   const engine = new Engine(canvas, false, {
     preserveDrawingBuffer: false,
@@ -227,7 +247,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   const auraGroundIcons = createAuraGroundIcons(scene);
 
   interface BillboardEntry {
-    billboard: DirectionalBillboard;
+    billboard: PokemonActor;
     spawn: { x: number; y: number };
     /** Resolves once the atlas (and thus the real head offset) is loaded. */
     ready: Promise<void>;
@@ -237,7 +257,30 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
 
   function createBillboard(entry: CombatSceneSpawn): BillboardEntry {
     const teamColor = teamColorByIndex(entry.team ?? 1);
-    const billboard = new DirectionalBillboard({
+    const billboard = createPokemonActor(entry, teamColor);
+    const ready = billboard.load();
+    // HUD parented to the sprite root (follows the glide); the head lift is re-read
+    // each frame (0 until the atlas loads, then the real head offset).
+    const overlay = spriteHud.add(
+      billboard.root,
+      () => billboard.spriteTopOffsetY || BABYLON_SPRITE_HEAD_LIFT_FALLBACK,
+      teamColor,
+    );
+    return { billboard, spawn: entry.spawn, ready, overlay };
+  }
+
+  function createPokemonActor(entry: CombatSceneSpawn, teamColor: number): PokemonActor {
+    // POC (plan 129, temps 2): Pokémon with a converted Cobblemon GLB render as a 3D
+    // model; everything else keeps the PMD billboard. The GLB asset is gitignored, so
+    // this list only grows once a model is converted + dropped in public/assets.
+    if (use3dModels && GLB_POKEMON_IDS.has(entry.pokemonId)) {
+      return new GlbPokemonActor({
+        scene,
+        glbUrl: `assets/pokemon/${entry.pokemonId}.glb`,
+        worldFacing: entry.facing ?? 0,
+      });
+    }
+    return new DirectionalBillboard({
       scene,
       atlasJsonUrl: `assets/sprites/pokemon/${entry.pokemonId}/atlas.json`,
       atlasPngUrl: `assets/sprites/pokemon/${entry.pokemonId}/atlas.png`,
@@ -250,15 +293,6 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       pixelsPerWorldUnit: BABYLON_SPRITE_PIXELS_PER_UNIT,
       teamColor,
     });
-    const ready = billboard.load();
-    // HUD parented to the sprite root (follows the glide); the head lift is re-read
-    // each frame (0 until the atlas loads, then the real head offset).
-    const overlay = spriteHud.add(
-      billboard.root,
-      () => billboard.spriteTopOffsetY || BABYLON_SPRITE_HEAD_LIFT_FALLBACK,
-      teamColor,
-    );
-    return { billboard, spawn: entry.spawn, ready, overlay };
   }
 
   const billboards = pokemonSpawns.map(createBillboard);

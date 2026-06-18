@@ -46,6 +46,11 @@ export interface SandboxConfig {
   mapUrl?: string;
   /** Toggle the red debug diamonds over decoration footprints. */
   debugDecorationsFootprint?: boolean;
+  /**
+   * Opt-in to the Cobblemon 3D-model renderer (plan 129 POC, temps 2) for Pokémon
+   * that have a converted GLB. Off by default so the sprite suite stays untouched.
+   */
+  use3dModels?: boolean;
   weather?: Weather;
   weatherTurns?: number;
 }
