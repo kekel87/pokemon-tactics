@@ -13,13 +13,6 @@ import "@babylonjs/loaders/glTF/2.0";
 import type { PokemonActor } from "./pokemon-actor.js";
 
 /**
- * Baseline yaw correction (radians) applied on top of `worldFacing`. Cobblemon models
- * are authored facing one canonical direction; this rotates the GLB so its front lines
- * up with the sprite facing convention. Calibrated visually (plan 129, temps 2).
- */
-const GLB_FACING_OFFSET = Math.PI;
-
-/**
  * Uniform scale applied to the GLB. Cobblemon authors models at real Pokédex scale
  * (1 block ≈ 1 m) with a per-species `baseScale` (Venusaur 1.2) → ~2.8 blocks tall and
  * a 2.2-block-wide hitbox in-game. Our grid is one tile per Pokémon (a hard core
@@ -158,7 +151,11 @@ export class GlbPokemonActor implements PokemonActor {
   }
 
   private applyFacing(): void {
-    this.root.rotation.y = this.worldFacing.value + GLB_FACING_OFFSET;
+    // worldFacing is an XZ angle whose direction vector is (cos θ, sin θ) in (x, z)
+    // (sprite-facing.ts: South=+X, East=+Z, North=-X, West=-Z). The imported model faces
+    // local +Z, and a Babylon Y-yaw φ sends +Z to (sin φ, cos φ) — so aligning the two
+    // gives φ = π/2 - θ (the model yaws opposite to the facing angle, not a flat offset).
+    this.root.rotation.y = Math.PI / 2 - this.worldFacing.value;
   }
 
   /** Resolve a sprite-vocabulary animation name to a loaded Cobblemon clip. */

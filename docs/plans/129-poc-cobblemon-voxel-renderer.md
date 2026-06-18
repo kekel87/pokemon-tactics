@@ -82,8 +82,30 @@ Origine : `docs/next.md` § Post-Babylon, chantier **h**. Prompt POC fourni par 
 - ✅ **Baker Molang** `scripts/cobblemon-pipeline/bake-molang.ts` (`@bridge-editor/molang`, degrés Bedrock, cache+optimizers OFF sinon `q.anim_time` foldé à 0). Bulbizarre → 9 clips keyframés, oscillations correctes (patte -47°→+7°).
 - ✅ **`convert.py` v1** (Blender 5.1.1 + mcblend) : `.geo.json` → GLB **statique texturé** (skin:1, PNG embarquée, 57 meshes). À corriger : `alphaMode` BLEND → MASK (cutout pixel-art).
 - ✅ **Temps 2 — Affichage statique Florizarre en combat réel** (détails ci-dessous).
-- ⏳ **Temps 3 v2** : baker Molang à fiabiliser (crashe sur `animation.json` Florizarre) + injecter keyframes dans `convert.py` (calibrage convention rotation Bedrock→Blender) → GLB animé.
+- ✅ **Temps 3 v2 — Animations Florizarre** (détails ci-dessous).
 - Décision techno confirmée (humain) : **Blender+Python** d'abord pour le résultat final ; version **pur TS** (`gltf-transform`) plus tard pour comparer.
+
+**Prochaine étape : décision DA** — le POC (terrain voxel + affichage statique + animations) est fonctionnel. Valider avec l'humain : continuer dans cette direction artistique (batcher d'autres espèces, affiner pipeline, intégrer machine d'états posers) ou pivoter (low-poly custom, retour sprites).
+
+### Temps 3 v2 — Animations Florizarre ✅ (2026-06-18)
+
+**Baker Molang robuste** (`scripts/cobblemon-pipeline/bake-molang.ts`) :
+- try/catch par expression → fallback 0 + rapport des échecs. Les seuls échecs sur Florizarre sont des `q.r.velocity_y(...)` dans les clips monture (`ride_*`) — hors sujet POC, non bloquants.
+- Gère les keyframes Bedrock au format objet `{pre, post, lerp_mode}` (catmullrom) — valeur extraite = `post ?? pre`.
+- **Détection de période de boucle** : les clips idle/walk Cobblemon omettent `animation_length` et reposent sur un `query.anim_time` continu (défaut Bedrock `anim_time_update`). Ils ne bouclent proprement que sur leur vraie période mathématique (LCM des composantes trig ; ex. idle Florizarre = 8 s car mix `cos(t×90×1)` [4 s] + `cos(t×90×1/2)` [8 s]). Détection numérique : échantillonnage du signal, recherche du plus petit W où la pose se répète. Sans ça, un `animation_length` arbitraire (4 s) produisait un saut visible au wrap.
+- Fin exclusive pour les boucles (pas de keyframe dupliquée t=0 / t=length).
+
+**`convert.py` v2** (`scripts/cobblemon-pipeline/convert.py`) : injecte les keyframes bakés sur l'armature mcblend → 1 NLA track nommé par clip → 1 animation glTF par clip (= `AnimationGroups` Babylon). Convention de conversion repère **Bedrock → Blender inversée depuis la source mcblend** (`common.py get_mcrotation` / `animation.py load_poses`) : rotation euler XZY `(bx, bz, −by)`, position `(lx, lz, ly)/16`, scale `(sx, sz, sy)`. Exacte pour les bones à pivot sans rotation au repos.
+
+**Facing** (`packages/render-babylon/src/glb-pokemon-actor.ts`) : le modèle 3D s'oriente selon la convention `worldFacing` du jeu (`sprite-facing.ts` : angle XZ, South=+X / East=+Z / North=−X / West=−Z). Le modèle face +Z local → yaw φ = π/2 − worldFacing (le modèle tourne en sens inverse de l'angle, pas un offset constant).
+
+**Résultat validé humain** : Florizarre animé (idle qui boucle sans saut visible) et orienté correctement dans le combat.
+
+**Limites connues (→ `PIPELINE_LIMITATIONS.md`) :**
+- Clips monture (`ride_*` / `rider_*`) non bakés correctement — queries vélocité non fournies au baker, échecs silencieux.
+- Pas de clip `faint` chez Florizarre (KO non animé pour cette espèce).
+- Le GLB Florizarre reste gitignored (asset CC BY-NC).
+- Machine d'états `posers` (idle ↔ walk ↔ faint) à réimplémenter côté Babylon (hors convertisseur).
 
 ### Temps 2 — Affichage statique ✅ (2026-06-18)
 
