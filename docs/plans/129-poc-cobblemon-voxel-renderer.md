@@ -1,6 +1,20 @@
 # Plan 129 — POC Cobblemon : renderer voxel + modèles GLB (in-place `render-babylon`)
 
-**Statut : in-progress** — branche/worktree `poc-cobblemon`. Démarré 2026-06-18.
+**Statut : CLÔTURÉ — pivot (DA rejetée)** — branche/worktree `poc-cobblemon`. 2026-06-18.
+
+## Verdict (2026-06-18)
+
+**On ne retient PAS cette direction. Retour / maintien du rendu 2D-HD sprites.** Le POC a
+atteint son but : trancher la DA sur pièces. Techniquement la chaîne fonctionne bout-en-bout
+(terrain voxel, pipeline Bedrock→GLB, 3 mons animés en combat, vol dynamique). **Raison du
+rejet : esthétique** — jugé pas assez beau ; préférence assumée pour le 2D-HD sprites (avis
+partagé par un tiers). Les limites de productisation (layering poser additif, multi-texture
+render controller, strip root locomotion, posture vol/nage, flicker membranes — voir
+§ Limites) renforcent que le coût ne valait pas le gain esthétique.
+
+`main` n'a jamais été touché (le worktree était l'isolation). **La branche reste comme archive
+documentée** de l'expérience (réutilisable si la question 3D revient). Worktree supprimable :
+`bash .claude/scripts/worktree.sh rm poc-cobblemon` (la branche est conservée).
 
 ## Objectif
 
@@ -83,9 +97,33 @@ Origine : `docs/next.md` § Post-Babylon, chantier **h**. Prompt POC fourni par 
 - ✅ **`convert.py` v1** (Blender 5.1.1 + mcblend) : `.geo.json` → GLB **statique texturé** (skin:1, PNG embarquée, 57 meshes). À corriger : `alphaMode` BLEND → MASK (cutout pixel-art).
 - ✅ **Temps 2 — Affichage statique Florizarre en combat réel** (détails ci-dessous).
 - ✅ **Temps 3 v2 — Animations Florizarre** (détails ci-dessous).
+- ✅ **Conversion + intégration Dracaufeu** (`charizard.glb`, volant) et **Léviator** (`gyarados.glb`, nageur). `GLB_POKEMON_IDS` = `{venusaur, charizard, gyarados}`. GLBs gitignored.
+- ✅ **Menu déroulant debug** (dev-only) dans `combat-scene` : `<select>` overlay listant tous les clips du/des modèles 3D présents ; sélection → joue le clip en boucle. Remplace l'ancien cycleur clavier. Méthodes `animationNames()` / `playClip(name)` sur `GlbPokemonActor`.
+- ✅ **Validation humaine des clips** : le cœur des anims corps (`idle`, `ground_walk`, `air_idle`/`air_fly`/`air_glide`, `physical`, `special`, `idle_quirk`) est propre et jouable.
+- ✅ **Vol dynamique** (`glb-pokemon-actor.ts`) : l'état volant est désormais dérivé du **clip actif** (pas d'un flag statique). Un clip `air_*` → le modèle plane (lift +0.8 bloc) et ses attaques sont classées `air_physical`/`air_special`/`air_status` ; un clip sol → posé + catégories sol. L'intention sol/air est portée explicitement par `Idle`/`Walk` du jeu : `FlyingIdle` est choisi au-dessus de l'eau via `FLYING_GLIDE_CANDIDATES`, `Idle` sinon — Dracaufeu vole donc uniquement quand il vole réellement, et reste au sol en idle/fallback. Démo : sélectionner un clip `air_*` dans le menu debug → décollage immédiat.
+- ✅ **Détection de période de boucle — argmin** (`bake-molang.ts`) : au lieu de prendre le premier raccord sous tolérance (qui acceptait un faux positif à 4 s sur le `ground_idle` de Dracaufeu → petit saut visible), on sélectionne désormais la fenêtre qui **minimise** l'erreur de raccord (argmin) dans un budget de 16 s. Quand la vraie période dépasse ce budget (ex. `ground_idle` Dracaufeu ≈ 40 s, dû à un composant lent à fréquence 0.7), on bake le meilleur loop disponible (11.67 s) sans erreur fatale.
+- ✅ **Préprocessing géométrique** (`convert.py`) : (a) **strip des cubes `*_hidden`** — les bones `*_hidden` portent des membranes alternatives que le render controller Cobblemon masque ; ils n'apparaissent jamais simultanément avec leur jumelle → les garder provoque du z-fighting ; ils sont supprimés avant l'export GLB. (b) **Décalage de profondeur des membranes coplanaires** — les membranes plates (épaisseur 0) qui se chevauchent réellement dans le même plan sont détectées par clustering de chevauchement et reçoivent un léger décalage (~0.5 px borné) pour éviter le z-fighting résiduel dans ce sous-ensemble.
 - Décision techno confirmée (humain) : **Blender+Python** d'abord pour le résultat final ; version **pur TS** (`gltf-transform`) plus tard pour comparer.
 
-**Prochaine étape : décision DA** — le POC (terrain voxel + affichage statique + animations) est fonctionnel. Valider avec l'humain : continuer dans cette direction artistique (batcher d'autres espèces, affiner pipeline, intégrer machine d'états posers) ou pivoter (low-poly custom, retour sprites).
+**Prochaine étape : décision DA** — le POC (terrain voxel + 3 Pokemon animés + menu debug clips) est fonctionnel. Valider avec l'humain : continuer dans cette direction artistique (batcher d'autres espèces, affiner pipeline, intégrer machine d'états posers) ou pivoter (low-poly custom, retour sprites). Les limites ci-dessous sont les éléments à peser pour cette décision.
+
+### Limites connues (productisation)
+
+Ces catégories de clips sont **non jouables seules dans l'état actuel du POC** — pas des bugs, mais des chantiers identifiés pour la productisation.
+
+1. **Layering additif — poser Cobblemon non réimplémenté** : les clips additifs (`*_quirk`, `blink`, `cry`) sont conçus pour être superposés à l'idle par la machine d'états Cobblemon (poser). Joués seuls, ils n'animent que le visage ou une partie du corps — le reste est au repos. Résoudre : réimplémenter le layering additif côté Babylon (blending par masque d'os).
+
+2. **Strip root locomotion** : les clips de locomotion (`runspeed`, variantes `run`) embarquent une translation de la racine (root motion) — le modèle sort de l'écran lorsqu'on les joue seuls. En jeu, le déplacement est géré séparément par le moteur. Résoudre : stripper la translation du root de ces clips lors de la conversion (post-traitement `gltf-transform` ou option `convert.py`).
+
+3. **Multi-texture render controller (feu de Dracaufeu absent)** : Cobblemon utilise un render controller pour animer des textures séparées (`charizard_flame1-4.png`) simulant les flammes de la queue. Le convertisseur actuel n'applique qu'une seule texture → le feu est absent du GLB. Résoudre : support multi-texture dans le pipeline de conversion.
+
+4. **Posture vol/nage** : Dracaufeu (volant) et Léviator (nageur) affichent l'idle au sol, car leurs squelettes/anims ne sont pas conçus pour reposer sur le sol. Résoudre : hauteur de vol/nage configurable + posture aérienne/aquatique correcte (chantier rendu + machine d'états posers).
+
+5. **Poses partielles** (`recoil`, `air_recoil`, `hold_item`) : n'animent que peu d'os (corps au repos). Destinées à être combinées avec d'autres clips. Jouables seules uniquement à titre de débogage.
+
+6. **Clips monture** (`ride_*`) : nécessitent un cavalier et des queries de vélocité non fournies au baker. Non bakés correctement → résultat vide ou incorrect. Hors périmètre POC (aucun cavalier dans le jeu).
+
+7. **Flicker résiduel de membranes** : un z-fighting léger persiste sur certaines petites membranes internes d'aile (visible sur Dracaufeu). Cause : Minecraft sépare les surfaces coplanaires via un ordre de rendu par cube, des valeurs `inflate` par segment, et une visibilité par render controller — le pipeline réplique partiellement ces mécanismes (strip des bones `*_hidden` + nudge des chevauchements coplanaires) mais pas le layering/ordre de rendu complet. Éliminer entièrement le flicker résiduel exigerait de reproduire le pipeline de rendu d'entités Minecraft, ce qui constitue un vrai chantier moteur, hors scope POC.
 
 ### Temps 3 v2 — Animations Florizarre ✅ (2026-06-18)
 

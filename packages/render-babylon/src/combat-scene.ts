@@ -118,7 +118,7 @@ const ALL_DIRECTIONS = [Direction.North, Direction.South, Direction.East, Direct
  * (plan 129 POC, temps 2). Gated to ids whose GLB has actually been converted and
  * dropped into `public/assets/pokemon/` (gitignored). A missing GLB throws on load.
  */
-const GLB_POKEMON_IDS = new Set<string>(["venusaur"]);
+const GLB_POKEMON_IDS = new Set<string>(["venusaur", "charizard", "gyarados"]);
 
 /** Quadratic ease-out — fast start, slow finish (jump ascent: top the cliff early). */
 function easeOutQuad(t: number): number {
@@ -455,6 +455,50 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       cameraAngle.target += BABYLON_AZIMUTH_STEP;
     }
   };
+
+  // POC debug (plan 129): a dev-only dropdown to play any converted Cobblemon clip on the
+  // 3D models, so every animation can be eyeballed in-combat. Built only when a GLB actor
+  // is present; repopulated each time it opens (spawns load async / are added dynamically).
+  const debugAnimationMenu = createDebugAnimationMenu();
+  function glbActors(): GlbPokemonActor[] {
+    const actors: GlbPokemonActor[] = [];
+    for (const entry of new Set([...billboards, ...entryByHandle.values()])) {
+      if (entry.billboard instanceof GlbPokemonActor) {
+        actors.push(entry.billboard);
+      }
+    }
+    return actors;
+  }
+  function createDebugAnimationMenu(): HTMLSelectElement | null {
+    const parent = canvas.parentElement;
+    if (!parent) {
+      return null;
+    }
+    const select = document.createElement("select");
+    select.style.cssText =
+      "position:absolute;top:8px;left:8px;z-index:10;font:12px monospace;opacity:0.85";
+    select.title = "POC: play a Cobblemon clip";
+    const populate = (): void => {
+      const names = [...new Set(glbActors().flatMap((actor) => actor.animationNames()))].sort();
+      if (names.length === select.options.length - 1) {
+        return;
+      }
+      select.replaceChildren(new Option("— animation —", ""));
+      for (const name of names) {
+        select.add(new Option(name, name));
+      }
+    };
+    select.addEventListener("pointerdown", populate);
+    select.addEventListener("change", () => {
+      if (select.value) {
+        for (const actor of glbActors()) {
+          actor.playClip(select.value);
+        }
+      }
+    });
+    parent.appendChild(select);
+    return select;
+  }
 
   const onWheel = (event: WheelEvent): void => {
     event.preventDefault();
@@ -1127,6 +1171,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       canvas.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("pointermove", onPointerMove);
+      debugAnimationMenu?.remove();
       directionArrows.dispose();
       hoverCursor?.dispose();
       highlights?.dispose();
