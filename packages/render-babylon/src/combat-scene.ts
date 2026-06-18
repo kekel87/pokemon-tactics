@@ -922,6 +922,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         },
         setHudVisible: (visible) => created.overlay.setVisible(visible),
         koAnimationDurationMs: () => created.billboard.animationDurationMs("Faint"),
+        hurtAnimationDurationMs: () => created.billboard.animationDurationMs("Hurt"),
       };
       entryByHandle.set(handle, created);
       return handle;

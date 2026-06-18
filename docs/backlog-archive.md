@@ -45,6 +45,10 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ## Bugs résolus
 
+### Anim KO déclenchée trop tôt (résolu 2026-06-18)
+- Retour playtest 2026-06-18 : l'animation de KO (`Faint`) se déclenchait avant la fin de l'animation de dégât (Hurt + flash rouge), coupant la réaction de dégât.
+- Fix : `packages/view-core/src/battle-orchestrator.ts` — sur les events `PokemonKo`/`PokemonEliminated`, on attend désormais `max(durée Hurt, DAMAGE_FLASH_TOTAL_MS)` avant de jouer le Faint. Ajout d'un accessor port `hurtAnimationDurationMs` (interface `BoardView` + handler `CombatScene`), implémenté côté Babylon. Constante dérivée `DAMAGE_FLASH_TOTAL_MS` dans `view-core/constants.ts`.
+
 ### Clôture recette migration Babylon (2026-06-14, plan 124/125)
 Recette visuelle humaine de la migration Babylon validée (2026-06-14). Les 4 reliquats du backlog Babylon sont **clos par acceptation humaine** — jugés acceptables / non-bloquants à la recette, **pas un fix code** (à rouvrir si régression réelle). Distincts des fixs plan 120 archivés plus bas (#488-491).
 - **[Babylon] Curseur FFTA ne remonte pas à la tête du Pokémon fraîchement posé** (2026-06-11, plan 120) — accepté tel quel.

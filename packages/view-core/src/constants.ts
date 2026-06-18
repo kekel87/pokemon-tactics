@@ -65,6 +65,12 @@ export const PULSE_MIN_SCALE = 1.0;
 export const PULSE_MAX_SCALE = 1.1;
 export const DAMAGE_FLASH_DURATION_MS = 100;
 export const DAMAGE_FLASH_REPEAT = 2;
+/**
+ * Real time (ms) the damage flash takes to play out: each repeat is a bright +
+ * a dark half-cycle, so `repeat * 2` half-cycles of `DAMAGE_FLASH_DURATION_MS`.
+ * Used to let the damage reaction finish before a lethal hit's Faint cuts in.
+ */
+export const DAMAGE_FLASH_TOTAL_MS = DAMAGE_FLASH_DURATION_MS * DAMAGE_FLASH_REPEAT * 2;
 /** Grey level a sprite dims to on a damage-flash dark half-cycle (0..1). */
 export const DAMAGE_FLASH_DIM = 0.25;
 /** Dimmest grey of the confirm-attack preview pulse (0..1). */
