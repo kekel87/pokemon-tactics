@@ -156,6 +156,7 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
       weatherTurnsRemaining: 0,
       auras: [],
       fieldTerrains: [],
+      distortionZones: [],
     };
 
     const seed = 42;

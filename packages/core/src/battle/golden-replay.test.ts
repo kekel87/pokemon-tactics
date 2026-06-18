@@ -141,6 +141,7 @@ function buildGoldenEngine(seed: number): BattleEngine {
     weatherTurnsRemaining: 0,
     auras: [],
     fieldTerrains: [],
+    distortionZones: [],
   };
 
   const random = createPrng(seed);

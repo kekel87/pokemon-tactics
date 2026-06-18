@@ -269,6 +269,7 @@ export interface Translations {
   "fieldTerrain.blocked.misty": string;
   "fieldTerrain.blocked.electric": string;
   "fieldTerrain.dashBlocked": string;
+  "distortion.posted": string;
   "infoPanel.aura.caster": string;
   "infoPanel.aura.protected": string;
   "substitute.posted": string;
@@ -293,6 +294,7 @@ export interface Translations {
   "moveTooltip.tag.crashOnMiss": string;
   "moveTooltip.tag.healOverTime": string;
   "moveTooltip.tag.wish": string;
+  "moveTooltip.tag.distortion": string;
   "moveTooltip.tag.cureTeamStatus": string;
   "moveTooltip.tag.healByTargetAttack": string;
   "moveTooltip.tag.requiresTargetAsleep": string;

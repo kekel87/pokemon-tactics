@@ -117,6 +117,8 @@ export interface CombatScene {
   setSpawnZoneHighlights(zones: readonly SpawnZoneHighlight[]): void;
   setTileOutline(positions: readonly TileHighlightPosition[], beneficial?: boolean): void;
   setFieldTerrains(specs: readonly FieldTerrainSpec[]): void;
+  /** Distorsion (Trick Room) zones — same spec shape as field terrains, distinct colour. */
+  setDistortionZones(specs: readonly FieldTerrainSpec[]): void;
   setAuraGroundIcons(cells: readonly { x: number; y: number }[], symbols: readonly string[]): void;
   clearHighlights(): void;
   addPokemon(entry: CombatSceneSpawn): CombatPokemonHandle;

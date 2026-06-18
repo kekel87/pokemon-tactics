@@ -340,6 +340,9 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   let fieldTerrains: FieldTerrains | null = null;
   // Field-terrain zones requested before the map finished loading (replayed on load).
   let pendingFieldTerrains: readonly FieldTerrainSpec[] = [];
+  // Distorsion (Trick Room) zones — same zone renderer, distinct colour.
+  let distortionZones: FieldTerrains | null = null;
+  let pendingDistortionZones: readonly FieldTerrainSpec[] = [];
   // World top-face centre of a tile, lifted onto any rock/tree top, set once the
   // map loads. Used for the cursor, sprite standing and flyer movement so they
   // rest on a decoration instead of clipping into it (decoration-patched
@@ -379,6 +382,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       highlights = createTileHighlights(scene, surfaceHeightAt, width, height);
       fieldTerrains = createFieldTerrains(scene, heightAt, width, height);
       fieldTerrains.set(pendingFieldTerrains);
+      distortionZones = createFieldTerrains(scene, heightAt, width, height);
+      distortionZones.set(pendingDistortionZones);
       for (const { billboard, spawn } of billboards) {
         const standOn = tileTopCenter(spawn.x, spawn.y, heightAt(spawn.x, spawn.y), width, height);
         billboard.root.position.set(standOn.x, standOn.y, standOn.z);
@@ -1000,6 +1005,10 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       pendingFieldTerrains = specs;
       fieldTerrains?.set(specs);
     },
+    setDistortionZones: (specs) => {
+      pendingDistortionZones = specs;
+      distortionZones?.set(specs);
+    },
     setAuraGroundIcons: (cells, symbols) => {
       if (!tileWorldTop || cells.length === 0 || symbols.length === 0) {
         auraGroundIcons.set([], []);
@@ -1097,6 +1106,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       hoverCursor?.dispose();
       highlights?.dispose();
       fieldTerrains?.dispose();
+      distortionZones?.dispose();
       spriteHud.dispose();
       auraGroundIcons.dispose();
       for (const { billboard } of billboards) {

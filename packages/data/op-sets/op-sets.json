@@ -1875,6 +1875,34 @@
       "notes": "Gen 1 Sleeper. High HP/SpAtk. Earthquake for Electric/Rock/Steel coverage."
     },
     {
+      "id": "exeggutor-trick-room",
+      "pokemonId": "exeggutor",
+      "name": "Distorsion",
+      "role": "support",
+      "ability": "chlorophyll",
+      "heldItemId": "leftovers",
+      "nature": "quiet",
+      "moveIds": ["trick-room", "psychic", "energy-ball", "earthquake"],
+      "statSpread": { "hp": 31, "spAttack": 31, "speed": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Distorsion setter — slow + bulky. Quiet nature lowers Speed so it acts first under its own zone."
+    },
+    {
+      "id": "slowbro-trick-room",
+      "pokemonId": "slowbro",
+      "name": "Distorsion",
+      "role": "support",
+      "ability": "own-tempo",
+      "heldItemId": "leftovers",
+      "nature": "quiet",
+      "moveIds": ["trick-room", "psychic", "surf", "amnesia"],
+      "statSpread": { "hp": 31, "spAttack": 31, "speed": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Slow bulky Distorsion setter. Amnesia + Slack tempo make it a tanky inverter that hits under its own zone."
+    },
+    {
       "id": "marowak-thick-club-attacker",
       "pokemonId": "marowak",
       "name": "Thick Club Wallbreaker",

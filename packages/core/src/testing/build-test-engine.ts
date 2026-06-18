@@ -113,5 +113,6 @@ function buildState(grid: TileState[][], pokemonMap: Map<string, PokemonInstance
     weatherTurnsRemaining: 0,
     auras: [],
     fieldTerrains: [],
+    distortionZones: [],
   };
 }

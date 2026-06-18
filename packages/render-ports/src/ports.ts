@@ -117,6 +117,8 @@ export interface BoardView {
   hurtAnimationDurationMs(pokemonId: string): number;
   /** Replace the painted field-terrain ("Champs") zones (empty clears). */
   setFieldTerrains(zones: readonly BoardFieldTerrain[]): void;
+  /** Replace the painted Distorsion (Trick Room) zones (empty clears). */
+  setDistortionZones(zones: readonly BoardFieldTerrain[]): void;
   /** Replace a Pokémon's team-aura icons (left of its HP bar; empty clears). */
   setAuraIndicators(pokemonId: string, indicators: readonly BoardAuraIndicator[]): void;
   /** Float aura symbols over a caster's aura-radius tiles on hover (empty clears). */

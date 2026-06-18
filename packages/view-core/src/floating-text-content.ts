@@ -374,6 +374,15 @@ export function floatingTextsFor(
         },
       ];
 
+    case BattleEventType.DistortionPosted:
+      return [
+        {
+          pokemonId: event.casterId,
+          text: context.translate("distortion.posted"),
+          color: BATTLE_TEXT_COLOR_INFO,
+        },
+      ];
+
     case BattleEventType.DashBlockedByPsychicTerrain:
       return [
         {

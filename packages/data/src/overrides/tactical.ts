@@ -1512,6 +1512,11 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.PostFieldTerrain, terrain: FieldTerrain.Psychic }],
   },
+  "trick-room": {
+    // Distorsion: localized as a static zone (decision 2026-06-18) — inverts CT tempo inside it.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostDistortion }],
+  },
   "weather-ball": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
     effects: [{ kind: EffectKind.Damage }],

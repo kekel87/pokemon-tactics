@@ -255,6 +255,17 @@ export type BattleEvent =
       blockedAt: Position;
     }
   | {
+      type: typeof BattleEventType.DistortionPosted;
+      casterId: string;
+      anchor: Position;
+      tiles: Position[];
+      durationTurns: number;
+    }
+  | {
+      type: typeof BattleEventType.DistortionExpired;
+      casterId: string;
+    }
+  | {
       type: typeof BattleEventType.StatChangeBlocked;
       pokemonId: string;
       stat: StatName;

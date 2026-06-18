@@ -1,5 +1,6 @@
 import { AURA_RADIUS } from "../battle/aura-system";
 import type { BattleEngine } from "../battle/BattleEngine";
+import { DISTORTION_RADIUS, isInDistortionZone } from "../battle/distortion-system";
 import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
 import { isEffectivelyFlying } from "../battle/effective-flying";
 import { FIELD_TERRAIN_RADIUS, getFieldTerrainAt } from "../battle/field-terrain-system";
@@ -428,6 +429,45 @@ function scoreSelfMove(
       threatBonus = enemyHasStatusMoveInRange(enemies, currentPokemon, 5) ? 1.5 : 1.0;
     }
     return weights.statChanges * earlyMultiplier * groundedAlliesInRadius * threatBonus;
+  }
+
+  const hasPostDistortion = move.effects.some(
+    (effect) => effect.kind === EffectKind.PostDistortion,
+  );
+  if (hasPostDistortion) {
+    if (!state) {
+      return weights.statChanges;
+    }
+    // Re-posting where the caster already stands inside a zone is wasteful (mirror field terrains).
+    if (isInDistortionZone(state, currentPokemon.position)) {
+      return -1;
+    }
+    // Distorsion pays off when our SLOW mons share the zone with faster enemies. Estimate the
+    // benefit as the count of allies (incl. self) inside the zone radius that are slower than the
+    // median enemy speed; no slow beneficiaries → no value.
+    const enemySpeeds = enemies
+      .filter((enemy) => enemy.currentHp > 0)
+      .map((enemy) => enemy.baseStats.speed)
+      .sort((a, b) => a - b);
+    if (enemySpeeds.length === 0) {
+      return 0;
+    }
+    const medianEnemySpeed = enemySpeeds[Math.floor(enemySpeeds.length / 2)] ?? 0;
+    let slowBeneficiaries = 0;
+    for (const candidate of state.pokemon.values()) {
+      if (candidate.currentHp <= 0 || candidate.playerId !== currentPokemon.playerId) {
+        continue;
+      }
+      const dx = Math.abs(candidate.position.x - currentPokemon.position.x);
+      const dy = Math.abs(candidate.position.y - currentPokemon.position.y);
+      if (dx + dy <= DISTORTION_RADIUS && candidate.baseStats.speed < medianEnemySpeed) {
+        slowBeneficiaries += 1;
+      }
+    }
+    if (slowBeneficiaries === 0) {
+      return 0;
+    }
+    return weights.statChanges * setterDurabilityMultiplier(currentPokemon) * slowBeneficiaries;
   }
 
   const hasPostSubstitute = move.effects.some(
