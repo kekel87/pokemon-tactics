@@ -4,10 +4,6 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
-### Anim KO déclenchée trop tôt (2026-06-18, retour playtest)
-- L'animation de KO part **avant la fin de l'animation de dégât**.
-- Attendu : KO ne se déclenche qu'**après** la fin de l'anim de dégât (séquencer dégât → KO).
-- Renderer : `GameController` / séquence d'events `DamageDealt` → `PokemonKo`. Chaîner sur la fin de l'anim de dégât plutôt que jouer en parallèle.
 
 ### Multi-coup vs Peau Dure (Rough Skin) — à tester (2026-06-18, retour playtest)
 - Tester un move multi-coup (ex: Furie/`fury-attack`, Charge-Os/`bone-rush`) contre un Pokemon avec **Peau Dure** (`rough-skin`).
@@ -87,6 +83,13 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - À refaire ultérieurement à la main (Aseprite) avec un symbole plus lisible.
 
 ## Tâches futures (hors backlog actif)
+
+### Animation Faint absente pour la majorité du roster (2026-06-18, observé lors du fix anim KO)
+- Seulement ~21 des Pokemon jouables du roster ont une animation `Faint` dans leur atlas (abra, bulbasaur, charizard, charmander, dummy, eevee, flareon, gengar, jigglypuff, jolteon, machop, meowth, mew, mewtwo, ninetales, pidgey, pikachu, raichu, sandshrew, sandslash, et quelques autres).
+- Les Pokemon sans `Faint` ne jouent aucune animation d'effondrement au KO (tint sombre + masquage HUD uniquement — le comportement de fallback actuel).
+- Exemples sans Faint : Florizarre (seulement 8 animations dans l'atlas), et la majorité du roster.
+- **Cause supposée** : asset gap côté ripping PMDCollab/extract-sprites, pas un bug code. À investiguer : pourquoi `extract-sprites` ne récupère pas `Faint` pour tous les Pokemon ?
+- Priorité basse — l'effondrement visuel fonctionne via fallback, mais manque de polish.
 
 ### Scénario de combat piloté Joueur vs Joueur (QA + captures) (2026-06-18)
 - Pouvoir piloter un combat **JcJ** (les deux camps humains), via l'UI si possible — sinon harness sandbox.

@@ -109,6 +109,7 @@ export function createBattleBoardView(
     setSubstitute: (pokemonId, active) => handles.get(pokemonId)?.setSubstitute(active),
     setHudVisible: (pokemonId, visible) => handles.get(pokemonId)?.setHudVisible(visible),
     koAnimationDurationMs: (pokemonId) => handles.get(pokemonId)?.koAnimationDurationMs() ?? 0,
+    hurtAnimationDurationMs: (pokemonId) => handles.get(pokemonId)?.hurtAnimationDurationMs() ?? 0,
     setFieldTerrains: (zones) => combat.setFieldTerrains(zones),
     setAuraIndicators: (pokemonId, indicators) =>
       handles.get(pokemonId)?.setLeftIndicators(indicators),

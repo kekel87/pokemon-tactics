@@ -113,6 +113,8 @@ export interface BoardView {
   setHudVisible(pokemonId: string, visible: boolean): void;
   /** Real ms of a Pokémon's Faint animation, to pace the KO beat on its full length. */
   koAnimationDurationMs(pokemonId: string): number;
+  /** Real ms of a Pokémon's Hurt reaction pose, to let it finish before a lethal Faint. */
+  hurtAnimationDurationMs(pokemonId: string): number;
   /** Replace the painted field-terrain ("Champs") zones (empty clears). */
   setFieldTerrains(zones: readonly BoardFieldTerrain[]): void;
   /** Replace a Pokémon's team-aura icons (left of its HP bar; empty clears). */

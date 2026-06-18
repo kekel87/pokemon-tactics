@@ -33,6 +33,7 @@ import {
   BATTLE_TEXT_QUEUE_DELAY_MS,
   CHARGING_INDICATOR_ID,
   CHARGING_INDICATOR_SYMBOL,
+  DAMAGE_FLASH_TOTAL_MS,
   FIELD_TERRAIN_COLOR_ELECTRIC,
   FIELD_TERRAIN_COLOR_GRASSY,
   FIELD_TERRAIN_COLOR_MISTY,
@@ -971,6 +972,18 @@ export class BattleOrchestrator {
         event.type === BattleEventType.PokemonKo ||
         event.type === BattleEventType.PokemonEliminated
       ) {
+        // Let the victim's damage reaction (Hurt pose + red flash) finish before the
+        // Faint collapse: the preceding DamageDealt kicked the Hurt one-shot without
+        // awaiting, so without this the KO cuts in the instant the hit lands. Wait the
+        // longer of the Hurt pose and the flash (the flash covers atlases lacking Hurt).
+        const hurtMs = Math.max(
+          this.board.hurtAnimationDurationMs(event.pokemonId),
+          DAMAGE_FLASH_TOTAL_MS,
+        );
+        await delay(hurtMs);
+        if (this.disposed) {
+          return;
+        }
         // syncBoard plays the Faint pose (freeze on the last frame); wait its real
         // length so the fall plays out fully before the next beat, falling back
         // to the fixed step delay.

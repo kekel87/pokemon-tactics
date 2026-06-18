@@ -102,6 +102,8 @@ export interface CombatPokemonHandle {
   setSubstitute(active: boolean): void;
   setHudVisible(visible: boolean): void;
   koAnimationDurationMs(): number;
+  /** Real ms of a Pokémon's Hurt reaction pose, to let it finish before a lethal Faint. */
+  hurtAnimationDurationMs(): number;
 }
 
 /** The in-engine combat board: terrain, highlights, sprites, picking, camera. */

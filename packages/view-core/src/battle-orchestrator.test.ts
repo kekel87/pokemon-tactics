@@ -121,6 +121,7 @@ function setup(
     setSubstitute: () => undefined,
     setHudVisible: () => undefined,
     koAnimationDurationMs: () => 0,
+    hurtAnimationDurationMs: () => 0,
     setFieldTerrains: () => undefined,
     setAuraIndicators: () => undefined,
     setAuraGroundIcons: () => undefined,
