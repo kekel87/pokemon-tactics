@@ -281,6 +281,21 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 - [ ] **POC Cobblemon** — explorer Cobblemon comme source (assets / données / sprites ?).
 - [ ] **Ombres / lumière dynamiques (voxel + Pokemon)** — chantier rendu lié au **2D-HD**. Aujourd'hui tout est flat unlit (StandardMaterial sans lumière) + ombres bakées (`Shadow.png` PMD pour les sprites, rien pour les props voxel comme Pièges de Roc / futures décos). À décider : (a) **ombres blob/decal** stylisées sous chaque voxel (cohérent FFTA, coût ~0, voie recommandée) **vs** (b) **`ShadowGenerator` réel** (1 `DirectionalLight`, casters voxel, terrain receiver — vrai dynamique mais perf + clash avec le flat + sprites ALPHATEST capricieux comme casters). **Regarder comment font les refs 2D-HD** (Octopath, Triangle Strategy, FFTA…) au moment d'attaquer ce point. `best-practices` d'abord. Voir `docs/references/voxel-tile-placement.md`.
 
+### Polish visuel 2D-HD — idées en vrac (2026-06-19)
+
+> Lot d'idées rendu notées d'un coup. Voxelisation des props + retravail textures/eau/auras. Pas priorisé, à attaquer 1 par 1. `best-practices` + refs 2D-HD avant chaque chantier non trivial.
+
+- [ ] **Herbe haute en voxel** — remplacer la déco herbe haute plate par un voxel `.glb` (cf. `docs/references/voxel-tile-placement.md`).
+- [ ] **Rochers en voxel** — passer les rochers en props voxel.
+- [ ] **Arbres en voxel** — passer les arbres en props voxel.
+- [ ] **Mouvement herbe haute + arbres** — animation (vent / oscillation) sur herbe haute et arbres.
+- [ ] **Auras — un « rond » par aura qui se stack** — revoir l'affichage des auras (cf. backlog « affichage des modificateurs terrain ») : un anneau au sol par aura active, empilables visuellement.
+- [ ] **Eau & liquides** — réfléchir au comportement : comportement des Pokemon dans/sur l'eau, transparence, demi-tile (half-height).
+- [ ] **Textures terrain — retravail** :
+  - transitions entre types de terrain (blend / bords).
+  - variations de texture sur un même type (casser la répétition).
+  - animation (eau, lave, magma, marais…).
+
 ---
 
 ## Phase 6 — Maps & Éditeur (3D)
@@ -348,9 +363,15 @@ Tie à Babylon : éditeur et props terrain repensés pour renderer 3D.
 
 - [x] **🔧 Retrait du mode de tours round-based + système de PP** — livré plan 128 (2026-06-17). CT seul (`TurnSystemKind`/`TurnManager` supprimés, `activePokemonId` remplace `turnOrder[]`+`currentTurnIndex`). `roundNumber` supprimé (event + HUD + dédups `weatherLastTickRound`/…). PP usage retiré (`currentPp`, `NoPpLeft`, décrément) — `MoveDefinition.pp` conservé pour le coût CT. Modèle de durée « tours du lanceur » + horloge fantôme. Décision #517.
 
+- [ ] **Roster Gen 1 complet (idée 2026-06-19)** — passer du roster mini (81 jouables) à **tous les Pokemon Gen 1 sauf Métamorph** (reporté Phase 9 avec Imposter/Transform). Devrait être facile maintenant : pipeline moves/abilities/sprites rodé, formes non-finales déjà en reference. Reste à faire les movesets tactiques + sprites `sprite-config.json` des mons manquants.
 - [ ] **Générations 2-9** — ajout des 874 Pokemon restants (Gen 2 : 100, Gen 3 : 135, Gen 4 : 107, Gen 5 : 156, Gen 6 : 72, Gen 7 : 88, Gen 8 : 96, Gen 9 : 120). Sprites PMDCollab disponibles pour la majorité. Nécessite pipeline `sprite-config.json` étendu + movesets tactiques par Pokemon.
 - [ ] **Méga-Évolutions** — 21 formes Méga Gen 1 (16 officielles + 5 exclusives Pokémon Champions). Sprites PMDCollab : 6 formes ont des fichiers partiels (pending review), aucune complète en mai 2026. À replanifier quand PMDCollab coverage s'améliore. Voir `docs/implementations.md#méga-évolutions-gen-1`.
-- [ ] Mode histoire / aventure
+- [ ] **Mode aventure / overworld FFTA (vision — idée 2026-06-19)** — carte d'exploration façon Final Fantasy Tactics / FFTA, distincte du combat tactique. Garde-fou : pas d'écriture d'un scénario complet ni d'un monde sur-mesure (temps/énergie limités) — on s'appuie sur l'univers Pokemon existant.
+  - **Déplacement overworld** : on déplace son perso sur la carte exactement comme FFT/FFTA (sprites Pokemon en mouvement overworld FFTA, pas le rendu combat).
+  - **Rivals** : les rivaux se baladent sur la carte (entités mobiles overworld).
+  - **Rencontres aléatoires** : dresseurs & Pokemon sauvages aléatoires sur les « tick/sections » de route entre deux points.
+  - **Villes** : champions d'arène, boutiques, events.
+  - **Périmètre de départ** : une région — **Kanto** pour commencer. Pas fermé à l'idée d'une **méga-carte mondiale** reliant toutes les régions Pokemon à terme.
 - [ ] Conditions de victoire alternatives
 - [ ] Draft/ban phase
 - [ ] Effets visuels (particules, ombres, lumières, attaques)
