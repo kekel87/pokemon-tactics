@@ -53,6 +53,22 @@ export const DASH_DIRECTIONAL = {
  *  affect the caster tile → the centre cell is an empty "caster" (cross, no fill). */
 export const PREVIEW_QUAKE = { ...DUEL, moves: ["earthquake"] } as const;
 
+/** Entry hazards (plan 131) — Cloyster apprend Picots (`spikes`), un poseur `GroundTarget` (vise
+ *  une case au sol ≤4 Manhattan). Le joueur est à (2,3), le dummy inerte à (2,4). On vise une case
+ *  libre et traversable à portée — (2,1), distance 2 — pour poser les Picots. La pose émet
+ *  `EntryHazardPosted` (journal « Des Picots sont posés au sol ») + peint un mesh au sol
+ *  (`hazard_hazards_spikes_1_2_1`). Le DÉCLENCHEMENT à l'entrée n'est PAS pilotable ici (le joueur
+ *  ne déclenche pas SES propres pièges — owner-immunity — et le dummy AI ne se déplace jamais) → le
+ *  sens du déclenchement reste couvert par les unit/integration du core (`entry-hazard-system`,
+ *  `resolve-hazard-traversal`). Picots est un move statut sans jet de précision → cast déterministe. */
+export const ENTRY_HAZARD_SPIKES = {
+  ...DUEL,
+  pokemon: "cloyster",
+  moves: ["spikes"],
+  playerPosition: { x: 2, y: 3 },
+  dummyPosition: { x: 2, y: 4 },
+} as const;
+
 /** Distorsion (trick-room) — slow caster, fast foe, both inside the r3 zone (decision 2026-06-18).
  *  Player = Flagadoss (slowbro, base Vit 30) at (2,3) casting Distorsion ; dummy = Électrode
  *  (electrode, base Vit 150) at (2,2), distance 1 → both in the diamond. Once the zone is posted the

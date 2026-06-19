@@ -77,6 +77,7 @@ function buildFullEngine(
     auras: [],
     fieldTerrains: [],
     distortionZones: [],
+    entryHazards: [],
   };
 
   const engine = new BattleEngine(

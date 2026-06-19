@@ -91,6 +91,7 @@ function makeContext(
     auras: [],
     fieldTerrains: [],
     distortionZones: [],
+    entryHazards: [],
     ...state,
   };
   return {
@@ -240,6 +241,7 @@ describe("processEffects — status", () => {
         auras: [],
         fieldTerrains: [],
         distortionZones: [],
+        entryHazards: [],
       } as BattleState,
       typeChart: immuneChart,
       attackerTypes: [PokemonType.Electric] as PokemonType[],

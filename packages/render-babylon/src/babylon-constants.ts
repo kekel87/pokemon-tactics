@@ -119,6 +119,8 @@ export const BABYLON_TILE_HIGHLIGHT_Z_OFFSET = -2;
  *  0 = terrain + decorations + ground shadows · 1 = X-ray silhouettes · 2 = sprite
  *  billboards · 3 = hover cursor + world-anchored HUD.
  */
+/** Entry-hazard voxel props sit on the ground (group 0) so terrain occludes them and sprites draw over. */
+export const BABYLON_ENTRY_HAZARD_RENDERING_GROUP = 0;
 export const BABYLON_SILHOUETTE_RENDERING_GROUP = 1;
 export const BABYLON_SPRITE_RENDERING_GROUP = 2;
 export const BABYLON_HOVER_CURSOR_RENDERING_GROUP = 3;

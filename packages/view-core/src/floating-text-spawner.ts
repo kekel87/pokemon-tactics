@@ -40,6 +40,10 @@ export function createFloatingTextSpawner(
   };
 
   return (event: BattleEvent) => {
+    // Entry hazards (plan 131) fire mid-walk via the per-tile callback: anchor the label to the
+    // trapped tile being entered (`event.tile`), not the mover's final logical tile, so it pops
+    // where the sprite currently is instead of jumping to its destination.
+    const eventTile = "tile" in event ? event.tile : undefined;
     let primaryDelay = 0;
     for (const spec of floatingTextsFor(event, context)) {
       const pokemon = state.pokemon.get(spec.pokemonId);
@@ -50,10 +54,12 @@ export function createFloatingTextSpawner(
       if (spec.secondary) {
         delayMs = primaryDelay;
       } else {
+        // acquireDelay staggers a burst (several hazard kinds on one tile) so their labels scroll up
+        // one after another; tiles reached seconds apart during a walk each resolve to ~0 delay.
         delayMs = acquireDelay(spec.pokemonId);
         primaryDelay = delayMs;
       }
-      combat.spawnFloatingText(pokemon.position, spec.text, spec.color, {
+      combat.spawnFloatingText(eventTile ?? pokemon.position, spec.text, spec.color, {
         delayMs,
         secondary: spec.secondary,
       });

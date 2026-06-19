@@ -251,6 +251,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     auras: [],
     fieldTerrains: [],
     distortionZones: [],
+    entryHazards: [],
   };
 
   const turnPipeline = new TurnPipeline();

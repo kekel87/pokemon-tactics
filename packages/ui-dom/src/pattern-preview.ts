@@ -84,6 +84,8 @@ export function buildPatternPreview(
       return buildTeleport(pattern.range.max, pattern.aoeRadius);
     case TargetingKind.HitAndRun:
       return buildSingle(pattern.hitRange.max);
+    case TargetingKind.GroundTarget:
+      return buildSingle(pattern.range.max);
   }
 }
 

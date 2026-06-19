@@ -63,6 +63,9 @@ export function selfPreviewRadius(move: MoveDefinition): number | undefined {
     if (effect.kind === EffectKind.PostDistortion) {
       return DISTORTION_RADIUS;
     }
+    if (effect.kind === EffectKind.RemoveEntryHazards) {
+      return effect.radius;
+    }
   }
   return undefined;
 }

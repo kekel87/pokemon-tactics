@@ -39,6 +39,7 @@ export interface Translations {
   "pattern.blast": string;
   "pattern.teleport": string;
   "pattern.hit-and-run": string;
+  "pattern.ground-target": string;
   "move.power": string;
   "move.accuracy": string;
   "move.range": string;
@@ -270,6 +271,10 @@ export interface Translations {
   "fieldTerrain.blocked.electric": string;
   "fieldTerrain.dashBlocked": string;
   "distortion.posted": string;
+  "entryHazard.poisoned": string;
+  "entryHazard.badlyPoisoned": string;
+  "entryHazard.speedDrop": string;
+  "entryHazard.absorbed": string;
   "infoPanel.aura.caster": string;
   "infoPanel.aura.protected": string;
   "substitute.posted": string;
@@ -295,6 +300,8 @@ export interface Translations {
   "moveTooltip.tag.healOverTime": string;
   "moveTooltip.tag.wish": string;
   "moveTooltip.tag.distortion": string;
+  "moveTooltip.tag.hazardSetter": string;
+  "moveTooltip.tag.hazardRemover": string;
   "moveTooltip.tag.cureTeamStatus": string;
   "moveTooltip.tag.healByTargetAttack": string;
   "moveTooltip.tag.requiresTargetAsleep": string;

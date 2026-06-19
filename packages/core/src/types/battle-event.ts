@@ -2,6 +2,7 @@ import type { AuraKind } from "../enums/aura-kind";
 import type { BattleEventType } from "../enums/battle-event-type";
 import type { DefensiveKind } from "../enums/defensive-kind";
 import type { Direction } from "../enums/direction";
+import type { EntryHazardKind } from "../enums/entry-hazard-kind";
 import type { FieldTerrain } from "../enums/field-terrain";
 import type { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
 import type { PokemonType } from "../enums/pokemon-type";
@@ -264,6 +265,33 @@ export type BattleEvent =
   | {
       type: typeof BattleEventType.DistortionExpired;
       casterId: string;
+    }
+  | {
+      type: typeof BattleEventType.EntryHazardPosted;
+      kind: EntryHazardKind;
+      tile: Position;
+      layers: number;
+    }
+  | {
+      type: typeof BattleEventType.EntryHazardTriggered;
+      pokemonId: string;
+      kind: EntryHazardKind;
+      tile: Position;
+      /** HP lost (Picots / Pièges de Roc). */
+      damage?: number;
+      /** Status inflicted (Pics Toxik → Poisoned / BadlyPoisoned). */
+      status?: StatusType;
+      /** Speed stages dropped (Toile Gluante, negative). */
+      speedStages?: number;
+    }
+  | {
+      type: typeof BattleEventType.EntryHazardRemoved;
+      tiles: Position[];
+    }
+  | {
+      type: typeof BattleEventType.EntryHazardAbsorbed;
+      pokemonId: string;
+      tile: Position;
     }
   | {
       type: typeof BattleEventType.StatChangeBlocked;

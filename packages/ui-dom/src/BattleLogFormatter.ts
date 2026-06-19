@@ -1,4 +1,10 @@
-import type { AuraKind, BattleEvent, FieldTerrain, PokemonType } from "@pokemon-tactic/core";
+import type {
+  AuraKind,
+  BattleEvent,
+  EntryHazardKind,
+  FieldTerrain,
+  PokemonType,
+} from "@pokemon-tactic/core";
 import {
   BattleEventType,
   DefensiveKind,
@@ -49,6 +55,24 @@ const FIELD_TERRAIN_LABELS_EN: Record<FieldTerrain, string> = {
 
 function fieldTerrainLabel(kind: FieldTerrain, lang: string): string {
   return lang === "fr" ? FIELD_TERRAIN_LABELS_FR[kind] : FIELD_TERRAIN_LABELS_EN[kind];
+}
+
+const ENTRY_HAZARD_LABELS_FR: Record<EntryHazardKind, string> = {
+  spikes: "Picots",
+  "stealth-rock": "Pièges de Roc",
+  "toxic-spikes": "Pics Toxik",
+  "sticky-web": "Toile Gluante",
+};
+
+const ENTRY_HAZARD_LABELS_EN: Record<EntryHazardKind, string> = {
+  spikes: "Spikes",
+  "stealth-rock": "Stealth Rock",
+  "toxic-spikes": "Toxic Spikes",
+  "sticky-web": "Sticky Web",
+};
+
+function entryHazardLabel(kind: EntryHazardKind, lang: string): string {
+  return lang === "fr" ? ENTRY_HAZARD_LABELS_FR[kind] : ENTRY_HAZARD_LABELS_EN[kind];
 }
 
 /** Type names for the B4 Terrain Pulse morph log ("becomes type X"). */
@@ -654,6 +678,54 @@ export function formatBattleEvent(
     case BattleEventType.DistortionExpired: {
       const message =
         lang === "fr" ? "La Distorsion se dissipe" : "The twisted dimensions returned to normal";
+      return { message, color: BattleLogColors.turn, pokemonIds: [] };
+    }
+
+    case BattleEventType.EntryHazardPosted: {
+      const label = entryHazardLabel(event.kind, lang);
+      const layerSuffix = event.layers > 1 ? ` ×${event.layers}` : "";
+      const message =
+        lang === "fr"
+          ? `Des ${label}${layerSuffix} sont posés au sol`
+          : `${label}${layerSuffix} were set on the ground`;
+      return { message, color: BattleLogColors.move, pokemonIds: [] };
+    }
+
+    case BattleEventType.EntryHazardTriggered: {
+      const name = context.getPokemonName(event.pokemonId);
+      const label = entryHazardLabel(event.kind, lang);
+      if (event.damage !== undefined) {
+        const message =
+          lang === "fr"
+            ? `${name} est blessé par les ${label} (${event.damage})`
+            : `${name} is hurt by ${label} (${event.damage})`;
+        return { message, color: BattleLogColors.damage, pokemonIds: [event.pokemonId] };
+      }
+      if (event.status !== undefined) {
+        const badly = event.status === StatusType.BadlyPoisoned;
+        const message =
+          lang === "fr"
+            ? `${name} est ${badly ? "gravement empoisonné" : "empoisonné"} par les ${label}`
+            : `${name} is ${badly ? "badly poisoned" : "poisoned"} by ${label}`;
+        return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+      }
+      const message =
+        lang === "fr"
+          ? `${name} est ralenti par la ${label} (Vitesse -1)`
+          : `${name} is slowed by ${label} (Speed -1)`;
+      return { message, color: BattleLogColors.statDown, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.EntryHazardAbsorbed: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr" ? `${name} absorbe les Pics Toxik` : `${name} absorbed the Toxic Spikes`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.EntryHazardRemoved: {
+      const message =
+        lang === "fr" ? "Les pièges au sol sont balayés" : "The hazards were cleared away";
       return { message, color: BattleLogColors.turn, pokemonIds: [] };
     }
 

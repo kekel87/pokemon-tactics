@@ -158,6 +158,7 @@ export abstract class MockBattle {
       auras: [],
       fieldTerrains: [],
       distortionZones: [],
+      entryHazards: [],
     };
   }
 }

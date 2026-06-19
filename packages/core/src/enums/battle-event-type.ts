@@ -75,6 +75,10 @@ export const BattleEventType = {
   DashBlockedByPsychicTerrain: "dash_blocked_by_psychic_terrain",
   DistortionPosted: "distortion_posted",
   DistortionExpired: "distortion_expired",
+  EntryHazardPosted: "entry_hazard_posted",
+  EntryHazardTriggered: "entry_hazard_triggered",
+  EntryHazardRemoved: "entry_hazard_removed",
+  EntryHazardAbsorbed: "entry_hazard_absorbed",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

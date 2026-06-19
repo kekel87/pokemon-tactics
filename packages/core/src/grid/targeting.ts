@@ -11,6 +11,7 @@ import { directionFromTo, getPerpendicularOffsets, stepInDirection } from "../ut
 import { manhattanDistance } from "../utils/manhattan-distance";
 import type { Grid } from "./Grid";
 import { bresenhamLine, hasLineOfSight } from "./line-of-sight";
+import { resolveGroundTarget } from "./resolve-ground-target";
 import { resolveTeleport } from "./resolve-teleport";
 
 export interface TargetingMoveContext {
@@ -69,6 +70,9 @@ function computeIgnoresLoS(
     return true;
   }
   if (pattern.kind === TargetingKind.Teleport) {
+    return true;
+  }
+  if (pattern.kind === TargetingKind.GroundTarget) {
     return true;
   }
   return false;
@@ -137,6 +141,14 @@ export function resolveTargeting(
         targetingPattern.hitRange.max,
         grid,
         guard,
+      );
+    case TargetingKind.GroundTarget:
+      return resolveGroundTarget(
+        caster.position,
+        targetPosition,
+        targetingPattern.range.min,
+        targetingPattern.range.max,
+        grid,
       );
   }
 }

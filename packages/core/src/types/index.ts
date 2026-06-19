@@ -12,6 +12,7 @@ export type * from "./derived-stats";
 export type * from "./distortion-zone";
 export type * from "./dynamic-power-spec";
 export type * from "./effect";
+export type * from "./entry-hazard-cell";
 export type * from "./field-zone";
 export type * from "./gender-ratio";
 export type * from "./held-item-definition";

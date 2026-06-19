@@ -4,6 +4,12 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
+### Toile Gluante absente du roster Gen 1 — invisible en Team Builder (2026-06-19, plan 131)
+- `sticky-web` n'est apprise par aucun Pokemon du roster Gen 1 actuel (learnset vérification data-miner plan 131).
+- Conséquence : Toile Gluante n'apparaît dans aucun movepool de Team Builder — le joueur ne peut pas la poser sans passer par le sandbox (`pnpm dev:sandbox '{...}'`).
+- Ce n'est pas un bug code : la mécanique fonctionne correctement en sandbox. C'est un gap de données.
+- Fix naturel : étendre le roster à des Pokemon Gen 2+ qui apprennent `sticky-web` (Arachno, Galvaran…) — Phase 9.
+- Priorité basse — testable en sandbox, non bloquant.
 
 ### Multi-coup vs Peau Dure (Rough Skin) — à tester (2026-06-18, retour playtest)
 - Tester un move multi-coup (ex: Furie/`fury-attack`, Charge-Os/`bone-rush`) contre un Pokemon avec **Peau Dure** (`rough-skin`).

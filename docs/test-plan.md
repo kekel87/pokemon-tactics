@@ -622,6 +622,32 @@ les Champs (indigo). e2e : `mechanics-distortion.spec`.*
   horloge fantôme) ; **expiration** → la zone disparaît (`DistortionExpired`).
 - 👁 **Hors zone** = tempo normal : entrer/sortir de la zone est un choix tactique.
 
+### 5.22 Pièges au sol (entry hazards) — pose à distance + déclenchement à l'entrée
+*src : core `battle/entry-hazard-system.ts`, `handlers/handle-post-entry-hazard.ts`,
+`handlers/handle-remove-entry-hazards.ts` ; rendu `render-babylon/babylon-entry-hazards.ts` ;
+journal `ui-dom/BattleLogFormatter.ts`. e2e : `mechanics-hazards.spec.ts`. Plan 131.*
+
+- 🤖 **Pose** (Picots/Pièges de Roc/Pics Toxik/Toile Gluante) : poseur `GroundTarget` (vise **une**
+  case au sol ≤4 Manhattan) → journal « Des **Picots** sont posés au sol » + **mesh peint sur la
+  case visée seulement** (`hazard_hazards_spikes_1_x_y`, pas de diamant) — `mechanics-hazards.spec`
+  (Picots via Cloyster). *La couleur équipe owner, les pips de couches (Picots ×2/×3, Pics Toxik ×2)
+  et l'icône par kind (🔻/🪨/☠️/🕸) restent 👁.*
+- 🤖 **Déclenchement à l'entrée** (dégâts cumulatifs par case, Pics Toxik idempotent, Toile Gluante
+  Vitesse −1 cumulative, Vol immunisé sauf Pièges de Roc, type Poison absorbe Pics Toxik, KO
+  mid-path) — **SENS couvert par les unit/integration du core** (`entry-hazard-system`,
+  `resolve-hazard-traversal`). *Non pilotable proprement en e2e : le joueur ne déclenche pas SES
+  propres pièges (owner-immunity) et le dummy AI ne se déplace jamais → le déclenchement n'est pas
+  reproductible via le harness.*
+- 👁 **Journal de déclenchement** : « <X> est blessé par les Picots (N) » (dégât), « <X> est
+  empoisonné/gravement empoisonné par les Pics Toxik » (statut), « <X> est ralenti par la Toile
+  Gluante (Vitesse −1) » (stat), « <X> absorbe les Pics Toxik » (absorption Poison).
+- 👁 **Stacking** : re-poser le même piège sur la même case empile une couche (mesh densifié) ;
+  au cap (Picots 3, Pics Toxik 2) la pose est un no-op.
+- 👁 **Retrait** : **Tour Rapide** (`rapid-spin`, garde ses dégâts) et **Anti-Brume** (`defog`)
+  nettoient les pièges ≤ r2 autour de l'utilisateur → journal « Les pièges au sol sont balayés » +
+  meshes disparus.
+- 👁 **Permanence** : un piège posé reste jusqu'au retrait (pas de compteur de tours).
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -850,6 +876,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-status.spec.ts` | §5.3 icône/statut + Spore, §5.4 stat ±, §5.5 confusion/Provoc (journal) |
 | `combat/mechanics-field.spec.ts` | §5.9 auras (Reflet/Mur/Brume/Rune), §5.10 4 champs déployés (journal) |
 | `combat/mechanics-distortion.spec.ts` | §5.21 Distorsion : zone posée (journal « Distorsion ! » + quads indigo en scène) + inversion CT dans la timeline (lent avant rapide) |
+| `combat/mechanics-hazards.spec.ts` | §5.22 Pièges au sol : Picots posés via le picker GroundTarget (journal « Des Picots sont posés au sol » + mesh `hazard_hazards_spikes_1_x_y` sur la case visée seule). Déclenchement = SENS unit core (non pilotable : owner-immunity + dummy AI immobile) |
 | `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) |
 | `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
@@ -918,6 +945,10 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
       - **Tout ce qui est pixel/anim/couleur** : flottants (couleur par type), anims sprite (idle/
         walk/attaque/KO/glide vol/wobble confusion), highlights/curseur (couleur, contour), overlay
         de champ + pastille, occlusion fine, caméra/zoom, responsive 4K, aperçu Babylon des cartes.
+      - **Déclenchement des pièges au sol (§5.22)** : non pilotable via le harness — le joueur ne
+        déclenche pas SES propres pièges (owner-immunity) et le dummy AI ne se déplace jamais. Le
+        **SENS est 🤖 via les unit/integration du core** (`entry-hazard-system`,
+        `resolve-hazard-traversal`) ; seule la **pose** est automatisée en e2e (`mechanics-hazards`).
       - **Mécaniques de combat (§5, §3.3, §3.12, §5.17–5.20)** : le **SENS est déjà 🤖 via les unit/
         integration du core** ; seul le **rendu** reste 👁. Les piloter en e2e serait redondant +
         fragile (seed-dépendant à travers le renderer).

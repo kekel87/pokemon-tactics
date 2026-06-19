@@ -3,6 +3,7 @@ import type { ConditionKind } from "../enums/condition-kind";
 import type { DefensiveKind } from "../enums/defensive-kind";
 import type { EffectKind } from "../enums/effect-kind";
 import type { EffectTarget } from "../enums/effect-target";
+import type { EntryHazardKind } from "../enums/entry-hazard-kind";
 import type { FieldTerrain } from "../enums/field-terrain";
 import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
@@ -72,4 +73,6 @@ export type Effect =
   | { kind: typeof EffectKind.PostHealOverTime; status: StatusType }
   | { kind: typeof EffectKind.PostWish; percent: number }
   | { kind: typeof EffectKind.PostFieldTerrain; terrain: FieldTerrain }
-  | { kind: typeof EffectKind.PostDistortion };
+  | { kind: typeof EffectKind.PostDistortion }
+  | { kind: typeof EffectKind.PostEntryHazard; hazardKind: EntryHazardKind }
+  | { kind: typeof EffectKind.RemoveEntryHazards; radius: number };

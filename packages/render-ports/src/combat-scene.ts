@@ -47,6 +47,13 @@ export interface FieldTerrainSpec {
   readonly remainingTurns: number;
 }
 
+/** An entry-hazard voxel prop on a tile (plan 131): cumulative GLB models per kind + layer count. */
+export interface EntryHazardSpec {
+  readonly kind: string;
+  readonly tile: { x: number; y: number };
+  readonly layers: number;
+}
+
 /** A team-aura icon stacked to the left of the HP bar. */
 export interface AuraIndicatorSpec {
   readonly id: string;
@@ -83,7 +90,11 @@ export interface CombatPokemonHandle {
   moveTo(tile: { x: number; y: number }): void;
   moveAlongPath(
     path: readonly { x: number; y: number }[],
-    options?: { isFlying?: boolean; isGhost?: boolean },
+    options?: {
+      isFlying?: boolean;
+      isGhost?: boolean;
+      onTileReached?: (tile: { x: number; y: number }) => void;
+    },
   ): Promise<void>;
   playAttack(direction: Direction, animationName: string): Promise<void>;
   impactGlide(tile: { x: number; y: number }, options?: { hurt?: boolean }): Promise<void>;
@@ -119,6 +130,8 @@ export interface CombatScene {
   setFieldTerrains(specs: readonly FieldTerrainSpec[]): void;
   /** Distorsion (Trick Room) zones — same spec shape as field terrains, distinct colour. */
   setDistortionZones(specs: readonly FieldTerrainSpec[]): void;
+  /** Entry-hazard voxel props (plan 131): stacked GLB models per kind + layer count (empty clears). */
+  setEntryHazards(specs: readonly EntryHazardSpec[]): void;
   setAuraGroundIcons(cells: readonly { x: number; y: number }[], symbols: readonly string[]): void;
   clearHighlights(): void;
   addPokemon(entry: CombatSceneSpawn): CombatPokemonHandle;

@@ -874,9 +874,30 @@ export class BattleOrchestrator {
     }
     const steppedHpByTarget = new Map<string, number>();
 
+    // Entry hazards (plan 131): the engine resolves every trapped tile up front, but the player
+    // should see each tick AS the sprite steps onto that tile. Collect the triggers per mover so
+    // the PokemonMoved handler can replay them through moveAlongPath's per-tile callback, and skip
+    // them in the main loop (they fire from the callback instead).
+    const hazardTriggersByMover = new Map<string, BattleEvent[]>();
+    const consumedHazardEvents = new Set<BattleEvent>();
+    for (const event of events) {
+      if (
+        event.type === BattleEventType.EntryHazardTriggered ||
+        event.type === BattleEventType.EntryHazardAbsorbed
+      ) {
+        const list = hazardTriggersByMover.get(event.pokemonId) ?? [];
+        list.push(event);
+        hazardTriggersByMover.set(event.pokemonId, list);
+        consumedHazardEvents.add(event);
+      }
+    }
+
     for (const event of events) {
       if (this.disposed) {
         return;
+      }
+      if (consumedHazardEvents.has(event)) {
+        continue;
       }
       this.feedback.report(event);
       if (event.type === BattleEventType.DamageDealt && "targetId" in event) {
@@ -917,6 +938,7 @@ export class BattleOrchestrator {
         await this.board.moveAlongPath(event.pokemonId, event.path, {
           isFlying: moverTypes.includes(PokemonType.Flying),
           isGhost: moverTypes.includes(PokemonType.Ghost),
+          onTileReached: this.entryHazardTickFor(event.pokemonId, hazardTriggersByMover),
         });
         if (this.disposed) {
           return;
@@ -1028,6 +1050,74 @@ export class BattleOrchestrator {
     this.refreshAuraVisuals();
     this.refreshFieldTerrainVisuals();
     this.refreshDistortionVisuals();
+    this.refreshEntryHazardVisuals();
+  }
+
+  /**
+   * Build a per-tile callback that replays a mover's entry-hazard triggers (plan 131) as the sprite
+   * steps onto each trapped tile: the floating text/log fires there, and damage drains the HP bar
+   * tick-by-tick (reconstructed from the already-final HP + total hazard damage). Returns undefined
+   * when this mover hit no hazards.
+   */
+  private entryHazardTickFor(
+    pokemonId: string,
+    triggersByMover: Map<string, BattleEvent[]>,
+  ): ((tile: Position) => void) | undefined {
+    const triggers = triggersByMover.get(pokemonId);
+    if (!triggers || triggers.length === 0) {
+      return undefined;
+    }
+    const mover = this.state.pokemon.get(pokemonId);
+    const totalDamage = triggers.reduce(
+      (sum, event) =>
+        sum + (event.type === BattleEventType.EntryHazardTriggered ? (event.damage ?? 0) : 0),
+      0,
+    );
+    let runningHp = mover ? mover.currentHp + totalDamage : 0;
+    const queueByTile = new Map<string, BattleEvent[]>();
+    for (const event of triggers) {
+      if (!("tile" in event)) {
+        continue;
+      }
+      const key = `${event.tile.x},${event.tile.y}`;
+      const list = queueByTile.get(key) ?? [];
+      list.push(event);
+      queueByTile.set(key, list);
+    }
+    return (tile: Position): void => {
+      const list = queueByTile.get(`${tile.x},${tile.y}`);
+      if (!list) {
+        return;
+      }
+      // Drain EVERY trigger on this tile (a tile can hold several hazard kinds at once), so the log
+      // and floating text show them all instead of just the first.
+      while (list.length > 0) {
+        const event = list.shift();
+        if (!event) {
+          break;
+        }
+        this.feedback.report(event);
+        if (
+          event.type === BattleEventType.EntryHazardTriggered &&
+          event.damage !== undefined &&
+          mover
+        ) {
+          runningHp = Math.max(0, runningHp - event.damage);
+          this.board.updateHp(mover.id, runningHp, mover.maxHp);
+          this.board.flashDamage(mover.id);
+        }
+      }
+    };
+  }
+
+  /** Refresh the entry-hazard voxel props (plan 131): one stacked model set per trapped cell. */
+  private refreshEntryHazardVisuals(): void {
+    const specs = this.state.entryHazards.map((cell) => ({
+      kind: cell.kind,
+      tile: cell.tile,
+      layers: cell.layers,
+    }));
+    this.board.setEntryHazards(specs);
   }
 
   /** Repaint the active Distorsion (Trick Room) zones + timer pills from engine state. */

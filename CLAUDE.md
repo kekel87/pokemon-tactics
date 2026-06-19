@@ -30,6 +30,7 @@ Claude = dev principal, autonome implémentation, valide design avec humain.
 | `docs/isometric-height-rendering.md` | Avant rendu iso hauteur/picking/layers multi-niveaux |
 | `docs/tileset-mapping.md` | Tileset ICON, propriétés tiles |
 | `docs/references/babylon-gotchas.md` | Avant renderer Babylon |
+| `docs/references/voxel-tile-placement.md` | Avant poser un asset voxel `.glb` sur une tuile (déco, effet, hazard) |
 | `docs/references/babylon-mcp-ecosystem.md` | État MCP Babylon |
 | `docs/backlog.md` | Bugs + feedback playtest non traités (actifs uniquement) |
 | `docs/backlog-archive.md` | Items backlog résolus (rare ; audit régression ou contexte fix passé) |

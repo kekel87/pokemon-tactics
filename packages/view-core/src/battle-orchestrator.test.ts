@@ -51,6 +51,7 @@ function fakeState(): BattleState {
     auras: [],
     fieldTerrains: [],
     distortionZones: [],
+    entryHazards: [],
     weather: Weather.None,
     weatherTurnsRemaining: 0,
   } as unknown as BattleState;
@@ -125,6 +126,7 @@ function setup(
     hurtAnimationDurationMs: () => 0,
     setFieldTerrains: () => undefined,
     setDistortionZones: () => undefined,
+    setEntryHazards: () => undefined,
     setAuraIndicators: () => undefined,
     setAuraGroundIcons: () => undefined,
     panCameraTo: () => undefined,

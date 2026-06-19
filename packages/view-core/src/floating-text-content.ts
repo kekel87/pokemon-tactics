@@ -6,6 +6,7 @@ import {
   type ProtectionReason,
   type StatName,
   StatusImmuneReason,
+  StatusType,
   SubstituteFailedReason,
   TerrainType,
 } from "@pokemon-tactic/core";
@@ -388,6 +389,50 @@ export function floatingTextsFor(
         {
           pokemonId: event.pokemonId,
           text: context.translate("fieldTerrain.dashBlocked"),
+          color: BATTLE_TEXT_COLOR_INFO,
+        },
+      ];
+
+    case BattleEventType.EntryHazardTriggered: {
+      if (event.damage !== undefined) {
+        return [
+          {
+            pokemonId: event.pokemonId,
+            text: `-${event.damage}`,
+            color: BATTLE_TEXT_COLOR_DAMAGE,
+          },
+        ];
+      }
+      if (event.status !== undefined) {
+        return [
+          {
+            pokemonId: event.pokemonId,
+            text: context.translate(
+              event.status === StatusType.BadlyPoisoned
+                ? "entryHazard.badlyPoisoned"
+                : "entryHazard.poisoned",
+            ),
+            color: BATTLE_TEXT_COLOR_DEBUFF,
+          },
+        ];
+      }
+      if (event.speedStages !== undefined) {
+        return [
+          {
+            pokemonId: event.pokemonId,
+            text: context.translate("entryHazard.speedDrop"),
+            color: BATTLE_TEXT_COLOR_DEBUFF,
+          },
+        ];
+      }
+      return [];
+    }
+
+    case BattleEventType.EntryHazardAbsorbed:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("entryHazard.absorbed"),
           color: BATTLE_TEXT_COLOR_INFO,
         },
       ];

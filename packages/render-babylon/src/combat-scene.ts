@@ -62,6 +62,11 @@ import {
 import { createDecorations, type Decorations } from "./babylon-decorations.js";
 import { createDirectionArrows } from "./babylon-direction-picker.js";
 import {
+  createEntryHazardProps,
+  type EntryHazardSpec,
+  type EntryHazards,
+} from "./babylon-entry-hazards.js";
+import {
   createFieldTerrains,
   type FieldTerrainSpec,
   type FieldTerrains,
@@ -343,6 +348,9 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   // Distorsion (Trick Room) zones — same zone renderer, distinct colour.
   let distortionZones: FieldTerrains | null = null;
   let pendingDistortionZones: readonly FieldTerrainSpec[] = [];
+  // Entry-hazard traps (plan 131) — stacked voxel GLB props per kind + layer count.
+  let entryHazards: EntryHazards | null = null;
+  let pendingEntryHazards: readonly EntryHazardSpec[] = [];
   // World top-face centre of a tile, lifted onto any rock/tree top, set once the
   // map loads. Used for the cursor, sprite standing and flyer movement so they
   // rest on a decoration instead of clipping into it (decoration-patched
@@ -384,6 +392,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       fieldTerrains.set(pendingFieldTerrains);
       distortionZones = createFieldTerrains(scene, heightAt, width, height);
       distortionZones.set(pendingDistortionZones);
+      entryHazards = createEntryHazardProps(scene, heightAt, width, height);
+      entryHazards.set(pendingEntryHazards);
       for (const { billboard, spawn } of billboards) {
         const standOn = tileTopCenter(spawn.x, spawn.y, heightAt(spawn.x, spawn.y), width, height);
         billboard.root.position.set(standOn.x, standOn.y, standOn.z);
@@ -693,7 +703,11 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   async function moveBillboardAlongPath(
     entry: BillboardEntry,
     path: readonly { x: number; y: number }[],
-    options: { isFlying: boolean; isGhost: boolean },
+    options: {
+      isFlying: boolean;
+      isGhost: boolean;
+      onTileReached?: (tile: { x: number; y: number }) => void;
+    },
   ): Promise<void> {
     const last = path.at(-1);
     const map = movementMap;
@@ -748,6 +762,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       );
       previous = to;
       previousHeight = stepHeight;
+      options.onTileReached?.({ x: to.x, y: to.y });
     }
     applyLandingRestingAnimation(entry, isFlying, last);
     moveEntryToTile(entry, last.x, last.y);
@@ -877,6 +892,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
           moveBillboardAlongPath(created, path, {
             isFlying: moveOptions?.isFlying ?? false,
             isGhost: moveOptions?.isGhost ?? false,
+            onTileReached: moveOptions?.onTileReached,
           }),
         impactGlide: (tile, impactOptions) =>
           impactGlide(created, tile, impactOptions?.hurt ?? false),
@@ -1009,6 +1025,10 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       pendingDistortionZones = specs;
       distortionZones?.set(specs);
     },
+    setEntryHazards: (specs) => {
+      pendingEntryHazards = specs;
+      entryHazards?.set(specs);
+    },
     setAuraGroundIcons: (cells, symbols) => {
       if (!tileWorldTop || cells.length === 0 || symbols.length === 0) {
         auraGroundIcons.set([], []);
@@ -1107,6 +1127,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       highlights?.dispose();
       fieldTerrains?.dispose();
       distortionZones?.dispose();
+      entryHazards?.dispose();
       spriteHud.dispose();
       auraGroundIcons.dispose();
       for (const { billboard } of billboards) {
