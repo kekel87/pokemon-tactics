@@ -148,6 +148,22 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
     dynamicPower: { kind: DynamicPowerKind.WeightRatio },
   },
+  // Power conditionnel — familles restantes (hors-pool signatures)
+  "last-respects": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.AllyFaintCountScaled },
+  },
+  "fishious-rend": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.TargetIdleSinceLastAction },
+  },
+  "bolt-beak": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.TargetIdleSinceLastAction },
+  },
   // Dégâts conditionnels — plan 115 (B3, horloge d'actions)
   avalanche: {
     targeting: { kind: TargetingKind.Slash },

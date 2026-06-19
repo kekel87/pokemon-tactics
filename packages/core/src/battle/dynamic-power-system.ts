@@ -158,6 +158,24 @@ function weightRatioPower(attacker: PokemonInstance, target: PokemonInstance): n
   return 40;
 }
 
+/** last-respects — number of the user's teammates that are currently fainted. */
+function faintedAllyCount(attacker: PokemonInstance, battleState?: BattleState): number {
+  if (!battleState) {
+    return 0;
+  }
+  let count = 0;
+  for (const pokemon of battleState.pokemon.values()) {
+    if (
+      pokemon.id !== attacker.id &&
+      pokemon.playerId === attacker.playerId &&
+      pokemon.currentHp <= 0
+    ) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
 const RESOLVERS: ReadonlyMap<DynamicPowerKind, DynamicPowerResolver> = new Map([
   [
     DynamicPowerKind.SelfStatusDouble,
@@ -243,6 +261,17 @@ const RESOLVERS: ReadonlyMap<DynamicPowerKind, DynamicPowerResolver> = new Map([
   [
     DynamicPowerKind.RolloutStreak,
     ({ move, attacker }) => rolloutPowerForIndex(pendingRolloutIndex(attacker, move.id)),
+  ],
+  [
+    DynamicPowerKind.AllyFaintCountScaled,
+    ({ move, attacker, battleState }) => move.power * (1 + faintedAllyCount(attacker, battleState)),
+  ],
+  [
+    DynamicPowerKind.TargetIdleSinceLastAction,
+    ({ move, attacker, target }) =>
+      (target.lastActedAtAction ?? -1) <= (attacker.lastActedAtAction ?? -1)
+        ? move.power * 2
+        : move.power,
   ],
 ]);
 

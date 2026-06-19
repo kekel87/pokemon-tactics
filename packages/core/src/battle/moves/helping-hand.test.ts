@@ -55,7 +55,9 @@ describe("helping-hand", () => {
   });
 
   it("boosts the ally's next offensive move and consumes the buff", () => {
-    const buffed = buildMoveTestEngine([makeCaster(), makeAlly(), makeFoe()]);
+    const buffed = buildMoveTestEngine([makeCaster(), makeAlly(), makeFoe()], {
+      random: () => 0.5,
+    });
     buffed.engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
       pokemonId: "caster",
@@ -76,7 +78,9 @@ describe("helping-hand", () => {
       direction: Direction.South,
     });
 
-    const plain = buildMoveTestEngine([makeCaster(), makeAlly(), makeFoe()]);
+    const plain = buildMoveTestEngine([makeCaster(), makeAlly(), makeFoe()], {
+      random: () => 0.5,
+    });
     endTurnUntilActor(plain.engine, plain.state, "ally");
     plain.engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

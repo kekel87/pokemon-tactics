@@ -648,6 +648,25 @@ journal `ui-dom/BattleLogFormatter.ts`. e2e : `mechanics-hazards.spec.ts`. Plan 
   meshes disparus.
 - 👁 **Permanence** : un piège posé reste jusqu'au retrait (pas de compteur de tours).
 
+### 5.23 Moves à puissance conditionnelle (dynamic power)
+*src : core `battle/dynamic-power-system.ts`, `enums/dynamic-power-kind.ts`, `data/overrides/tactical.ts` ;
+e2e : `mechanics-dynamic-power.spec.ts`. Plan 134. Ces 3 moves sont **hors-pool** (aucun Pokémon Gen 1
+ne les apprend) → forcés via `moves` (SandboxSetup écrase `moveIds`).*
+
+- 🤖 **Branchicrok** (`fishious-rend`, Eau Phys 80) / **Prise de Bec** (`bolt-beak`, Électrik Phys 80) :
+  ×2 si la cible n'a pas agi depuis la dernière action du lanceur. Au **tour 1** personne n'a agi → la
+  condition ×2 est ACTIVE ; le move (hors-pool) est ciblable, résout via l'orchestrateur et descend les
+  PV de la cible (journal « perd N PV ») — `mechanics-dynamic-power.spec`. *La VALEUR exacte du ×2 (et
+  le cas SANS ×2, où la cible a déjà agi) = SENS unit core (`dynamic-power-system.test.ts`,
+  `moves/{fishious-rend,bolt-beak}.test.ts`) : le toggle de tempo dépend de l'horloge d'actions, non
+  rejouable proprement à travers le harness 1v1 (le dummy AI n'agit pas de façon déterministe).*
+- 👁 **Hommage Posthume** (`last-respects`, Spectre Phys 50, puissance ×(1 + alliés K.O. du lanceur)) :
+  le SCALING n'est **pas observable en e2e** — la sandbox est un **1v1** (le lanceur n'a aucun allié) et
+  n'expose ni équipe de 2+ ni amorçage d'allié K.O. via `SandboxConfig`, donc le facteur vaut toujours 1
+  (puissance de base). De plus le Dummy est **Normal-type** → un move Spectre fait 0 dégât (pas de ligne
+  de journal). Le sens (`faintedAllyCount`/`AllyFaintCountScaled`) reste couvert par les unit/integration
+  du core (`dynamic-power-system.test.ts`, `moves/last-respects.test.ts`).
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -877,6 +896,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-field.spec.ts` | §5.9 auras (Reflet/Mur/Brume/Rune), §5.10 4 champs déployés (journal) |
 | `combat/mechanics-distortion.spec.ts` | §5.21 Distorsion : zone posée (journal « Distorsion ! » + quads indigo en scène) + inversion CT dans la timeline (lent avant rapide) |
 | `combat/mechanics-hazards.spec.ts` | §5.22 Pièges au sol : Picots posés via le picker GroundTarget (journal « Des Picots sont posés au sol » + mesh `hazard_hazards_spikes_1_x_y` sur la case visée seule). Déclenchement = SENS unit core (non pilotable : owner-immunity + dummy AI immobile) |
+| `combat/mechanics-dynamic-power.spec.ts` | §5.23 puissance conditionnelle : Branchicrok & Prise de Bec (hors-pool, ×2 cible fraîche tour 1) résolvent et infligent des dégâts (journal « perd N PV »). Hommage Posthume non couvert (scaling non observable en 1v1 + Dummy Normal immunisé Spectre) → 👁 |
 | `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) |
 | `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
