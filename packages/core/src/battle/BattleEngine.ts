@@ -79,6 +79,7 @@ import {
   resolveEffectiveTargeting,
   resolveFieldTerrainPulseMove,
 } from "./field-terrain-system";
+import { tickFutureSightStrikesForCaster } from "./future-sight-system";
 import { createAurasTickHandler } from "./handlers/aura-tick-handler";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { distortionDecrementHandler } from "./handlers/distortion-tick-handler";
@@ -89,6 +90,7 @@ import {
 import { isImmuneToStatusByType } from "./handlers/handle-status";
 import { hotTickHandler } from "./handlers/hot-tick-handler";
 import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handler";
+import { perishTickHandler } from "./handlers/perish-tick-handler";
 import { roostedClearHandler } from "./handlers/roosted-clear-handler";
 import { createSeededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
@@ -221,6 +223,7 @@ export class BattleEngine {
     this.turnPipeline.registerEndTurn(createFieldTerrainHealHandler(this.pokemonTypesMap), 260);
     this.turnPipeline.registerEndTurn(fieldTerrainDecrementHandler, 265);
     this.turnPipeline.registerEndTurn(distortionDecrementHandler, 268);
+    this.turnPipeline.registerEndTurn(perishTickHandler, 280);
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
     this.turnPipeline.registerEndTurn(timedVolatileTickHandler, 350);
     this.turnPipeline.registerEndTurn(
@@ -2378,6 +2381,24 @@ export class BattleEngine {
       events.push(event);
     }
 
+    // Coup d'Main (helping-hand): the buff lasts until the end of the buffed mon's turn. Whatever it
+    // did (offensive move already boosted in handle-damage, or wasted on a status move), clear it now.
+    if (actingPokemon !== undefined && actingPokemon.helpingHand === true) {
+      actingPokemon.helpingHand = undefined;
+      const consumed: BattleEvent = {
+        type: BattleEventType.HelpingHandConsumed,
+        pokemonId: actingPokemon.id,
+      };
+      this.emit(consumed);
+      events.push(consumed);
+    }
+
+    // Prescience (future-sight): the strike counts down on its caster's own turns; resolve here.
+    this.resolveFutureSightStrikes(pokemonId, events);
+    if (this.battleOver) {
+      return;
+    }
+
     const activePokemon = this.state.pokemon.get(pokemonId);
     if (activePokemon && activePokemon.currentHp > 0) {
       const item = this.itemRegistry?.getForPokemon(activePokemon);
@@ -2600,6 +2621,8 @@ export class BattleEngine {
     pokemon.substituteHp = undefined;
     pokemon.pendingWish = undefined;
     pokemon.pendingCtPenalty = undefined;
+    pokemon.perishAura = undefined;
+    pokemon.helpingHand = undefined;
     pokemon.volatileStatuses = [];
 
     for (const other of this.state.pokemon.values()) {
@@ -2641,6 +2664,9 @@ export class BattleEngine {
   }
 
   private checkVictory(events: BattleEvent[]): void {
+    if (this.battleOver) {
+      return;
+    }
     const playersAlive = new Set<string>();
     for (const pokemon of this.state.pokemon.values()) {
       if (pokemon.currentHp > 0) {
@@ -2648,8 +2674,10 @@ export class BattleEngine {
       }
     }
 
-    if (playersAlive.size === 1) {
-      const winnerId = [...playersAlive][0] as string;
+    // size 1 → that player wins; size 0 → a mutual KO (e.g. a Requiem detonation wiping every
+    // remaining mon of both sides) ends the battle as a draw (winnerId null).
+    if (playersAlive.size <= 1) {
+      const winnerId = playersAlive.size === 1 ? ([...playersAlive][0] as string) : null;
       this.battleOver = true;
       const endEvent: BattleEvent = {
         type: BattleEventType.BattleEnded,
@@ -2782,6 +2810,9 @@ export class BattleEngine {
       const candidate = this.state.pokemon.get(nextPokemonId);
       if (candidate && candidate.currentHp <= 0) {
         this.tickGhostTurn(nextPokemonId, events);
+        if (this.battleOver) {
+          return;
+        }
         ctSystem.onActionComplete(nextPokemonId, CT_WAIT);
         if (!this.hasEnvironmentalEffectSetBy(nextPokemonId)) {
           ctSystem.onPokemonKO(nextPokemonId);
@@ -2930,7 +2961,54 @@ export class BattleEngine {
       this.state.weatherSetterPokemonId === pokemonId;
     const ownsField = this.state.fieldTerrains.some((zone) => zone.casterId === pokemonId);
     const ownsDistortion = this.state.distortionZones.some((zone) => zone.casterId === pokemonId);
-    return ownsWeather || ownsField || ownsDistortion;
+    const ownsPendingStrike = this.state.pendingStrikes.some(
+      (strike) => strike.casterId === pokemonId,
+    );
+    return ownsWeather || ownsField || ownsDistortion || ownsPendingStrike;
+  }
+
+  /**
+   * Resolves Prescience (future-sight) strikes owned by `pokemonId` on its turn (live or ghost):
+   * counts each down by one and lands those reaching 0 as an AoE around the locked tile. Mutates HP
+   * (done in the system), emits the strike + KO events, and runs KO cleanup. Returns early if the
+   * battle ends from a landing KO.
+   */
+  private resolveFutureSightStrikes(pokemonId: string, events: BattleEvent[]): void {
+    const landings = tickFutureSightStrikesForCaster(this.state, pokemonId, {
+      typeChart: this.typeChart,
+      pokemonTypesMap: this.pokemonTypesMap,
+      random: this.random,
+    });
+    for (const landing of landings) {
+      const struck: BattleEvent = {
+        type: BattleEventType.FutureSightStruck,
+        casterId: landing.strike.casterId,
+        tile: landing.strike.centerPosition,
+        hits: landing.hits.map((hit) => ({
+          pokemonId: hit.pokemonId,
+          damage: hit.damage,
+          fainted: hit.fainted,
+        })),
+      };
+      this.emit(struck);
+      events.push(struck);
+      for (const hit of landing.hits) {
+        if (!hit.fainted) {
+          continue;
+        }
+        const koEvent: BattleEvent = {
+          type: BattleEventType.PokemonKo,
+          pokemonId: hit.pokemonId,
+          countdownStart: 0,
+        };
+        this.emit(koEvent);
+        events.push(koEvent);
+        this.handleKo(hit.pokemonId, events);
+        if (this.battleOver) {
+          return;
+        }
+      }
+    }
   }
 
   /**
@@ -2961,6 +3039,8 @@ export class BattleEngine {
       this.emit(event);
       events.push(event);
     }
+    // Prescience strikes owned by a KO'd caster keep landing on the caster's ghost turns.
+    this.resolveFutureSightStrikes(pokemonId, events);
   }
 
   private applyChoiceLock(pokemon: PokemonInstance, moveId: string): void {

@@ -77,4 +77,23 @@ export type Effect =
   | { kind: typeof EffectKind.PostEntryHazard; hazardKind: EntryHazardKind }
   | { kind: typeof EffectKind.RemoveEntryHazards; radius: number }
   | { kind: typeof EffectKind.PostImprison }
-  | { kind: typeof EffectKind.SpiteCtTax };
+  | { kind: typeof EffectKind.SpiteCtTax }
+  | {
+      kind: typeof EffectKind.PostFutureSight;
+      /** Manhattan radius of the area struck when the delayed move lands. */
+      radius: number;
+      /** Number of the caster's own turns before the strike lands. */
+      delayTurns: number;
+      /** Base power frozen at cast and used to compute damage at landing. */
+      power: number;
+    }
+  | {
+      kind: typeof EffectKind.PostPerishSong;
+      /** Number of the caster's own turns before the death aura detonates. */
+      turns: number;
+      /** Manhattan radius of the mobile death aura centred on the caster. */
+      radius: number;
+    }
+  | { kind: typeof EffectKind.PainSplit }
+  | { kind: typeof EffectKind.Endeavor }
+  | { kind: typeof EffectKind.HelpingHand; multiplier: number };

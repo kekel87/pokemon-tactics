@@ -39,6 +39,7 @@ import {
   FIELD_TERRAIN_COLOR_GRASSY,
   FIELD_TERRAIN_COLOR_MISTY,
   FIELD_TERRAIN_COLOR_PSYCHIC,
+  PERISH_AURA_INDICATOR_SYMBOL,
 } from "./constants.js";
 import { moveIntent, selfPreviewRadius } from "./move-intent.js";
 
@@ -117,7 +118,7 @@ type InputState =
   | { phase: "select_retreat_target"; moveId: string; action: Action; retreatTiles: Position[] }
   | { phase: "select_direction" }
   | { phase: "animating" }
-  | { phase: "battle_over"; winnerId: string };
+  | { phase: "battle_over"; winnerId: string | null };
 
 const BOARD_EVENT_TYPES = new Set<string>([
   BattleEventType.PokemonMoved,
@@ -847,7 +848,7 @@ export class BattleOrchestrator {
     this.queue.enqueue(async () => {
       await this.applyEvents(events);
       const ended = events.find((event) => event.type === BattleEventType.BattleEnded);
-      if (ended && "winnerId" in ended && typeof ended.winnerId === "string") {
+      if (ended && ended.type === BattleEventType.BattleEnded) {
         this.enterBattleOver(ended.winnerId);
         return;
       }
@@ -990,6 +991,31 @@ export class BattleOrchestrator {
         if (victim) {
           this.board.updateHp(event.pokemonId, victim.currentHp, victim.maxHp);
           this.board.flashDamage(event.pokemonId);
+        }
+      } else if (event.type === BattleEventType.PainSplitApplied) {
+        // Balance: both mons settle at the pooled HP. Refresh both bars (one heals, one is chipped).
+        for (const id of [event.casterId, event.targetId]) {
+          const mon = this.state.pokemon.get(id);
+          if (mon) {
+            this.board.updateHp(id, mon.currentHp, mon.maxHp);
+          }
+        }
+        this.board.flashDamage(event.targetId);
+      } else if (event.type === BattleEventType.EndeavorApplied) {
+        // Effort: target HP set down to the caster's. Drain its bar + flash.
+        const target = this.state.pokemon.get(event.targetId);
+        if (target) {
+          this.board.updateHp(event.targetId, target.currentHp, target.maxHp);
+          this.board.flashDamage(event.targetId);
+        }
+      } else if (event.type === BattleEventType.FutureSightStruck) {
+        // Prescience landing: drain + flash every occupant of the AoE (KO handled separately).
+        for (const hit of event.hits) {
+          const mon = this.state.pokemon.get(hit.pokemonId);
+          if (mon) {
+            this.board.updateHp(hit.pokemonId, mon.currentHp, mon.maxHp);
+            this.board.flashDamage(hit.pokemonId);
+          }
         }
       } else if (
         event.type === BattleEventType.PokemonKo ||
@@ -1190,6 +1216,14 @@ export class BattleOrchestrator {
           alpha: 1,
         });
       }
+      // Requiem (perish-song) death aura: a ☠ badge on the caster while it counts down.
+      if (pokemon.currentHp > 0 && pokemon.perishAura !== undefined) {
+        pushSpec(pokemon.id, {
+          id: "perish-aura",
+          symbol: PERISH_AURA_INDICATOR_SYMBOL,
+          alpha: 1,
+        });
+      }
     }
     // Order by remaining rounds (soonest-expiring closest to the bar) so the icon
     // row reads as a turns-left gauge.
@@ -1230,6 +1264,15 @@ export class BattleOrchestrator {
     const auras = pokemonId
       ? this.state.auras.filter((aura) => aura.casterPokemonId === pokemonId)
       : [];
+    // Requiem (perish-song): the death zone is shown only on hover of its caster (r-radius around it).
+    if (caster && caster.perishAura !== undefined) {
+      const zone = this.engine
+        .getGrid()
+        .getTilesInRange(caster.position, 0, caster.perishAura.radius)
+        .filter((tile) => this.pokemonAt(tile) === null);
+      this.board.setAuraGroundIcons(zone, [PERISH_AURA_INDICATOR_SYMBOL]);
+      return;
+    }
     if (!caster || auras.length === 0) {
       this.board.setAuraGroundIcons([], []);
       return;
@@ -1246,7 +1289,7 @@ export class BattleOrchestrator {
     this.board.setAuraGroundIcons(tiles, symbols);
   }
 
-  private enterBattleOver(winnerId: string): void {
+  private enterBattleOver(winnerId: string | null): void {
     this.inputState = { phase: "battle_over", winnerId };
     this.board.clearHighlights();
     this.board.setActive(null);

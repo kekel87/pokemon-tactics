@@ -571,6 +571,46 @@ export function floatingTextsFor(
         },
       ];
 
+    case BattleEventType.FutureSightStruck:
+      return event.hits.map((hit) => ({
+        pokemonId: hit.pokemonId,
+        text: `-${hit.damage}`,
+        color: BATTLE_TEXT_COLOR_DAMAGE,
+      }));
+
+    case BattleEventType.EndeavorApplied:
+      return [
+        { pokemonId: event.targetId, text: `-${event.damage}`, color: BATTLE_TEXT_COLOR_DAMAGE },
+      ];
+
+    case BattleEventType.PainSplitApplied:
+      return [
+        {
+          pokemonId: event.casterId,
+          text: context.translate("painSplit.applied"),
+          color: BATTLE_TEXT_COLOR_INFO,
+        },
+      ];
+
+    case BattleEventType.PerishAuraPosted:
+    case BattleEventType.PerishAuraTick:
+      return [
+        {
+          pokemonId: event.casterId,
+          text: context.translate("perish.count", { turns: event.turns }),
+          color: BATTLE_TEXT_COLOR_DEBUFF,
+        },
+      ];
+
+    case BattleEventType.HelpingHandPosted:
+      return [
+        {
+          pokemonId: event.targetId,
+          text: context.translate("helpingHand.posted"),
+          color: BATTLE_TEXT_COLOR_BUFF,
+        },
+      ];
+
     default:
       return [];
   }

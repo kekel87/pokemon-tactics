@@ -36,6 +36,7 @@ import {
   getWeatherBpModifier,
   getWeatherDefenseStatBoost,
 } from "../weather-system";
+import { HELPING_HAND_MULTIPLIER } from "./handle-helping-hand";
 
 function resolveWeatherBallMove(move: MoveDefinition, activeWeather: Weather): MoveDefinition {
   if (!move.weatherBoostedType) {
@@ -177,7 +178,7 @@ function dealSingleHit(
     defenderTypes,
     resolvedMove,
   );
-  const { damage, isCrit } = calculateDamageWithCrit(
+  const { damage: baseDamage, isCrit } = calculateDamageWithCrit(
     context.attacker,
     target,
     resolvedMove,
@@ -198,6 +199,13 @@ function dealSingleHit(
     fieldTerrainBp,
     fieldTerrainDamage,
   );
+
+  // Coup d'Main (helping-hand): the ally's offensive move is boosted while the flag is set. Applied
+  // to every hit; the flag is consumed at the end of the buffed mon's turn (engine), not here.
+  let damage = baseDamage;
+  if (context.attacker.helpingHand === true && resolvedMove.power > 0) {
+    damage = Math.floor(damage * HELPING_HAND_MULTIPLIER);
+  }
 
   const defenseResult = checkDefense(
     context.attacker,

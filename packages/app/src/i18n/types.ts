@@ -16,6 +16,8 @@ export interface Translations {
   "battle.player1": string;
   "battle.player2": string;
   "battle.wins": string;
+  "battle.draw": string;
+  "battle.drawMessage": string;
   "battle.restart": string;
   "battle.backToMenu": string;
   "attack.selectTarget": string;
@@ -278,6 +280,9 @@ export interface Translations {
   "entryHazard.badlyPoisoned": string;
   "entryHazard.speedDrop": string;
   "entryHazard.absorbed": string;
+  "perish.count": string;
+  "painSplit.applied": string;
+  "helpingHand.posted": string;
   "infoPanel.aura.caster": string;
   "infoPanel.aura.protected": string;
   "substitute.posted": string;

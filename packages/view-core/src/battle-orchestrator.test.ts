@@ -52,6 +52,7 @@ function fakeState(): BattleState {
     fieldTerrains: [],
     distortionZones: [],
     entryHazards: [],
+    pendingStrikes: [],
     weather: Weather.None,
     weatherTurnsRemaining: 0,
   } as unknown as BattleState;

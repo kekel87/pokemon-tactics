@@ -88,7 +88,7 @@ export type BattleEvent =
       defenseKind: DefensiveKind;
       blocked: boolean;
     }
-  | { type: typeof BattleEventType.BattleEnded; winnerId: string }
+  | { type: typeof BattleEventType.BattleEnded; winnerId: string | null }
   | { type: typeof BattleEventType.ConfusionTriggered; pokemonId: string }
   | {
       type: typeof BattleEventType.ConfusionRedirected;
@@ -383,4 +383,40 @@ export type BattleEvent =
   | { type: typeof BattleEventType.ImprisonFailed; pokemonId: string }
   | { type: typeof BattleEventType.HealPrevented; pokemonId: string }
   | { type: typeof BattleEventType.SpiteApplied; pokemonId: string; ctPenalty: number }
-  | { type: typeof BattleEventType.SpiteFailed; pokemonId: string };
+  | { type: typeof BattleEventType.SpiteFailed; pokemonId: string }
+  | {
+      type: typeof BattleEventType.FutureSightPosted;
+      casterId: string;
+      tile: Position;
+    }
+  | { type: typeof BattleEventType.FutureSightFailed; attackerId: string }
+  | {
+      type: typeof BattleEventType.FutureSightStruck;
+      casterId: string;
+      tile: Position;
+      /** Per-occupant hits of the landing AoE (empty if the locked area was vacated). */
+      hits: { pokemonId: string; damage: number; fainted: boolean }[];
+    }
+  | {
+      type: typeof BattleEventType.PerishAuraPosted;
+      casterId: string;
+      radius: number;
+      turns: number;
+    }
+  | { type: typeof BattleEventType.PerishAuraTick; casterId: string; turns: number }
+  | { type: typeof BattleEventType.PerishKo; pokemonId: string }
+  | {
+      type: typeof BattleEventType.PainSplitApplied;
+      casterId: string;
+      targetId: string;
+      pooledHp: number;
+    }
+  | {
+      type: typeof BattleEventType.EndeavorApplied;
+      attackerId: string;
+      targetId: string;
+      damage: number;
+    }
+  | { type: typeof BattleEventType.EndeavorFailed; attackerId: string }
+  | { type: typeof BattleEventType.HelpingHandPosted; casterId: string; targetId: string }
+  | { type: typeof BattleEventType.HelpingHandConsumed; pokemonId: string };

@@ -20,14 +20,19 @@ import { handleDefensive } from "./handlers/handle-defensive";
 import { handleDisable } from "./handlers/handle-disable";
 import { handleDrain } from "./handlers/handle-drain";
 import { handleEncore } from "./handlers/handle-encore";
+import { handleEndeavor } from "./handlers/handle-endeavor";
 import { handleHealByTargetStat } from "./handlers/handle-heal-by-target-stat";
 import { handleHealSelf } from "./handlers/handle-heal-self";
 import { handleHealTarget } from "./handlers/handle-heal-target";
+import { handleHelpingHand } from "./handlers/handle-helping-hand";
 import { handleKnockback } from "./handlers/handle-knockback";
+import { handlePainSplit } from "./handlers/handle-pain-split";
+import { handlePerishSong } from "./handlers/handle-perish-song";
 import { handlePostAura } from "./handlers/handle-post-aura";
 import { handlePostDistortion } from "./handlers/handle-post-distortion";
 import { handlePostEntryHazard } from "./handlers/handle-post-entry-hazard";
 import { handlePostFieldTerrain } from "./handlers/handle-post-field-terrain";
+import { handlePostFutureSight } from "./handlers/handle-post-future-sight";
 import { handlePostHealOverTime } from "./handlers/handle-post-heal-over-time";
 import { handlePostImprison } from "./handlers/handle-post-imprison";
 import { handlePostSubstitute } from "./handlers/handle-post-substitute";
@@ -86,6 +91,11 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.RemoveEntryHazards, handleRemoveEntryHazards);
   registry.register(EffectKind.PostImprison, handlePostImprison);
   registry.register(EffectKind.SpiteCtTax, handleSpiteCtTax);
+  registry.register(EffectKind.PostFutureSight, handlePostFutureSight);
+  registry.register(EffectKind.PostPerishSong, handlePerishSong);
+  registry.register(EffectKind.PainSplit, handlePainSplit);
+  registry.register(EffectKind.Endeavor, handleEndeavor);
+  registry.register(EffectKind.HelpingHand, handleHelpingHand);
   return registry;
 }
 

@@ -447,9 +447,13 @@ export function formatBattleEvent(
 
     case BattleEventType.BattleEnded: {
       const message =
-        lang === "fr"
-          ? `${event.winnerId} remporte le combat !`
-          : `${event.winnerId} wins the battle!`;
+        event.winnerId === null
+          ? lang === "fr"
+            ? "Double K.O. — match nul !"
+            : "Double KO — it's a draw!"
+          : lang === "fr"
+            ? `${event.winnerId} remporte le combat !`
+            : `${event.winnerId} wins the battle!`;
       return { message, color: BattleLogColors.battleEnded, pokemonIds: [] };
     }
 
@@ -553,6 +557,98 @@ export function formatBattleEvent(
           ? `${name} subit le Dépit : son prochain tour est retardé !`
           : `${name} is spited: its next turn is delayed!`;
       return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.FutureSightPosted: {
+      const caster = context.getPokemonName(event.casterId);
+      const message =
+        lang === "fr"
+          ? `${caster} concentre une énergie psychique pour plus tard.`
+          : `${caster} foresaw a psychic attack.`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.FutureSightFailed: {
+      const name = context.getPokemonName(event.attackerId);
+      const message =
+        lang === "fr"
+          ? `Mais une Prescience vise déjà cette zone (${name}) !`
+          : `But a Future Sight already targets that spot (${name})!`;
+      return { message, color: BattleLogColors.miss, pokemonIds: [event.attackerId] };
+    }
+
+    case BattleEventType.FutureSightStruck: {
+      const total = event.hits.reduce((sum, hit) => sum + hit.damage, 0);
+      const message =
+        lang === "fr"
+          ? event.hits.length === 0
+            ? "La Prescience s'abat dans le vide."
+            : `La Prescience s'abat (${total} dégâts) !`
+          : event.hits.length === 0
+            ? "Future Sight struck nothing."
+            : `Future Sight struck for ${total} damage!`;
+      return {
+        message,
+        color: BattleLogColors.damage,
+        pokemonIds: event.hits.map((hit) => hit.pokemonId),
+      };
+    }
+
+    case BattleEventType.PerishAuraPosted: {
+      const name = context.getPokemonName(event.casterId);
+      const message =
+        lang === "fr"
+          ? `${name} entonne le Requiem : une aura mortelle l'entoure (${event.turns} tours) !`
+          : `${name} sings the Perish Song: a deadly aura surrounds it (${event.turns} turns)!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.PerishKo: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr" ? `${name} succombe au Requiem !` : `${name} succumbs to the Perish Song!`;
+      return { message, color: BattleLogColors.ko, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.PainSplitApplied: {
+      const caster = context.getPokemonName(event.casterId);
+      const target = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `${caster} et ${target} se partagent leurs PV (${event.pooledHp} chacun).`
+          : `${caster} and ${target} split their HP (${event.pooledHp} each).`;
+      return {
+        message,
+        color: BattleLogColors.heal,
+        pokemonIds: [event.casterId, event.targetId],
+      };
+    }
+
+    case BattleEventType.EndeavorApplied: {
+      const target = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `${target} voit ses PV ramenés au niveau de l'attaquant (-${event.damage}).`
+          : `${target}'s HP was cut down to the attacker's (-${event.damage}).`;
+      return { message, color: BattleLogColors.damage, pokemonIds: [event.targetId] };
+    }
+
+    case BattleEventType.EndeavorFailed: {
+      const name = context.getPokemonName(event.attackerId);
+      const message = lang === "fr" ? `Mais cela échoue (${name}) !` : `But it failed (${name})!`;
+      return { message, color: BattleLogColors.miss, pokemonIds: [event.attackerId] };
+    }
+
+    case BattleEventType.HelpingHandPosted: {
+      const caster = context.getPokemonName(event.casterId);
+      const target = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr" ? `${caster} encourage ${target} !` : `${caster} is ready to help ${target}!`;
+      return {
+        message,
+        color: BattleLogColors.status,
+        pokemonIds: [event.casterId, event.targetId],
+      };
     }
 
     case BattleEventType.WeatherSet: {

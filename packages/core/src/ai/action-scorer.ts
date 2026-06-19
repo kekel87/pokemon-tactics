@@ -131,6 +131,15 @@ function scoreUseMove(
     return scoreEntryHazardSetter(action, enemies, allies, hazardSetter.hazardKind, weights, state);
   }
 
+  // Balance (pain-split) / Effort (endeavor): HP manipulation, no power floor. Both shine when the
+  // caster is low and the target is high — Balance steals HP, Effort chips the target down hard.
+  const isHpManipulation = move.effects.some(
+    (effect) => effect.kind === EffectKind.PainSplit || effect.kind === EffectKind.Endeavor,
+  );
+  if (isHpManipulation) {
+    return scoreHpManipulation(action, currentPokemon, enemies, weights);
+  }
+
   const affectedTiles = estimateAffectedTiles(
     move.targeting,
     currentPokemon.position,
@@ -186,6 +195,31 @@ function scoreUseMove(
   }
 
   return score;
+}
+
+/**
+ * Balance (pain-split) / Effort (endeavor): both want a low-HP caster and a high-HP target. Score by
+ * the HP gap (target fraction − caster fraction); negative or tiny gaps return ~0 so the AI does not
+ * waste the move when it has nothing to gain.
+ */
+function scoreHpManipulation(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  currentPokemon: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  weights: AiProfile["scoringWeights"],
+): number {
+  const target = enemies.find(
+    (enemy) =>
+      enemy.position.x === action.targetPosition.x && enemy.position.y === action.targetPosition.y,
+  );
+  if (!target) {
+    return -1;
+  }
+  const gap = target.currentHp / target.maxHp - currentPokemon.currentHp / currentPokemon.maxHp;
+  if (gap <= 0.1) {
+    return 0;
+  }
+  return gap * weights.killPotential;
 }
 
 /**
@@ -352,6 +386,13 @@ function scoreAllyTargetMove(
     return -1;
   }
 
+  // Coup d'Main (helping-hand): buff an adjacent ally. Modest flat value; the payoff depends on the
+  // ally landing an offensive move next, which the scorer cannot foresee, so keep it conservative.
+  const hasHelpingHand = move.effects.some((effect) => effect.kind === EffectKind.HelpingHand);
+  if (hasHelpingHand) {
+    return weights.statChanges * 0.8;
+  }
+
   // Wish (delayed heal) and ally-targeted heal: value by the recipient's missing HP.
   const wishEffect = move.effects.find(
     (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostWish }> =>
@@ -455,6 +496,21 @@ function scoreSelfMove(
       (cell) => manhattanDistance(cell.tile, currentPokemon.position) <= HAZARD_REMOVAL_RADIUS,
     );
     return hazardNearby ? weights.statChanges * 1.5 : -1;
+  }
+
+  // Requiem (perish-song): hits the caster too, so it is a desperation / mutual-KO tool. Value it only
+  // when the caster is hurt and there are healthy enemies to drag down; skip if already counting down.
+  const hasPerishSong = move.effects.some((effect) => effect.kind === EffectKind.PostPerishSong);
+  if (hasPerishSong) {
+    if (currentPokemon.perishAura !== undefined) {
+      return -1;
+    }
+    const healthyEnemies = enemies.filter((enemy) => enemy.currentHp / enemy.maxHp > 0.6).length;
+    if (healthyEnemies === 0) {
+      return 0;
+    }
+    const desperation = 1 - currentPokemon.currentHp / currentPokemon.maxHp;
+    return desperation * healthyEnemies * weights.killPotential * 0.5;
   }
 
   const postAuraEffect = move.effects.find(

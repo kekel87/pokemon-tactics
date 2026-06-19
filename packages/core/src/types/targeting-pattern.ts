@@ -17,4 +17,4 @@ export type TargetingPattern =
       hitRange: RangeConfig;
       retreatRange: RangeConfig;
     }
-  | { kind: typeof TargetingKind.GroundTarget; range: RangeConfig };
+  | { kind: typeof TargetingKind.GroundTarget; range: RangeConfig; radius?: number };
