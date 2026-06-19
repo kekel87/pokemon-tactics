@@ -214,14 +214,18 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
 
     updateTimeline: (view: TimelineView) => timeline.update(view),
 
-    showVictory: (winnerId: string) => {
+    showVictory: (winnerId: string | null) => {
       const dialog = el("dialog", "bc-victory");
       const heading = document.createElement("h2");
-      heading.textContent = playerLabel(winnerId, config);
+      heading.textContent =
+        winnerId === null ? config.translate("battle.draw") : playerLabel(winnerId, config);
       const message = el("p", "bc-victory-message");
-      message.textContent = config.translate("battle.wins", {
-        player: playerLabel(winnerId, config),
-      });
+      message.textContent =
+        winnerId === null
+          ? config.translate("battle.drawMessage")
+          : config.translate("battle.wins", {
+              player: playerLabel(winnerId, config),
+            });
       const replay = button(config.translate("battle.restart"), () => {
         dialog.close();
         onReplay();

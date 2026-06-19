@@ -3,6 +3,7 @@ import type { Weather } from "../enums/weather";
 import type { DistortionZone } from "./distortion-zone";
 import type { EntryHazardCell } from "./entry-hazard-cell";
 import type { FieldZone } from "./field-zone";
+import type { PendingStrike } from "./pending-strike";
 import type { PokemonInstance } from "./pokemon-instance";
 import type { TeamAura } from "./team-aura";
 import type { TileState } from "./tile-state";
@@ -23,6 +24,8 @@ export interface BattleState {
   distortionZones: DistortionZone[];
   /** Entry-hazard traps (Picots / Pièges de Roc / Pics Toxik / Toile Gluante). Permanent until removed. */
   entryHazards: EntryHazardCell[];
+  /** Tile-bound delayed strikes scheduled by future-moves (Prescience). Resolve after a caster-turn delay. */
+  pendingStrikes: PendingStrike[];
   /**
    * Monotonic action clock. Incremented exactly once per completed action by the Charge Time turn
    * loop. Per-mon stamps on `PokemonInstance` reference this value so "this turn"-style conditions

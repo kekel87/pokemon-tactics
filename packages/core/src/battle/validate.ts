@@ -51,7 +51,7 @@ export function validateBattleData(data: {
       }
     }
 
-    if (move.targeting && "radius" in move.targeting) {
+    if (move.targeting && "radius" in move.targeting && move.targeting.radius !== undefined) {
       if (move.targeting.radius < 0) {
         errors.push(`Move ${move.id} has negative radius: ${move.targeting.radius}`);
       }

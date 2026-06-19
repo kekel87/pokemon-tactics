@@ -115,5 +115,6 @@ function buildState(grid: TileState[][], pokemonMap: Map<string, PokemonInstance
     fieldTerrains: [],
     distortionZones: [],
     entryHazards: [],
+    pendingStrikes: [],
   };
 }

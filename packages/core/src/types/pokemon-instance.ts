@@ -88,4 +88,18 @@ export interface PokemonInstance {
    * completed action, then cleared — delaying its following turn. Cleared on KO.
    */
   pendingCtPenalty?: number;
+  /**
+   * Requiem (perish-song) death aura, owned by the caster. A mobile zone of Manhattan `radius`
+   * centred on the caster (recomputed from its live position, so it follows the caster). Decremented
+   * on the caster's own turn; when `turnsRemaining` reaches 0 every living mon inside the zone faints
+   * — allies, enemies and the caster itself (always at the centre → a true sacrifice). Cleared on KO
+   * (the aura dies with its caster, no ghost clock).
+   */
+  perishAura?: { turnsRemaining: number; radius: number };
+  /**
+   * Helping Hand buff (Coup d'Main): set on an adjacent ally. On the ally's NEXT completed action it
+   * is consumed: an offensive move (`power > 0`) is multiplied by `HELPING_HAND_MULTIPLIER`; a
+   * status/heal move wastes it. Either way it clears after that action. Cleared on KO.
+   */
+  helpingHand?: boolean;
 }

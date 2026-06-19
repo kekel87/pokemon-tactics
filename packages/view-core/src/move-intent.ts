@@ -39,7 +39,12 @@ export function moveIntent(move: MoveDefinition): MoveIntent {
   const hasOffensive = move.effects.some(
     (effect) =>
       (effect.kind === EffectKind.StatChange && effect.target === EffectTarget.Targets) ||
-      effect.kind === EffectKind.Status,
+      effect.kind === EffectKind.Status ||
+      // Prescience (future-sight): a delayed damaging strike — reads as an attack (red zone).
+      effect.kind === EffectKind.PostFutureSight ||
+      // Effort (endeavor) / Balance (pain-split): hostile HP manipulation on an enemy.
+      effect.kind === EffectKind.Endeavor ||
+      effect.kind === EffectKind.PainSplit,
   );
   return hasOffensive ? "attack" : "buff";
 }

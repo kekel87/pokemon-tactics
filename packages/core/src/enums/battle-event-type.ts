@@ -84,6 +84,17 @@ export const BattleEventType = {
   HealPrevented: "heal_prevented",
   SpiteApplied: "spite_applied",
   SpiteFailed: "spite_failed",
+  FutureSightPosted: "future_sight_posted",
+  FutureSightFailed: "future_sight_failed",
+  FutureSightStruck: "future_sight_struck",
+  PerishAuraPosted: "perish_aura_posted",
+  PerishAuraTick: "perish_aura_tick",
+  PerishKo: "perish_ko",
+  PainSplitApplied: "pain_split_applied",
+  EndeavorApplied: "endeavor_applied",
+  EndeavorFailed: "endeavor_failed",
+  HelpingHandPosted: "helping_hand_posted",
+  HelpingHandConsumed: "helping_hand_consumed",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

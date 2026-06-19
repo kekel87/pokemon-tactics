@@ -252,6 +252,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     fieldTerrains: [],
     distortionZones: [],
     entryHazards: [],
+    pendingStrikes: [],
   };
 
   const turnPipeline = new TurnPipeline();

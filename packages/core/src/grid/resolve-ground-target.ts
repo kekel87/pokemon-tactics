@@ -3,9 +3,10 @@ import { manhattanDistance } from "../utils/manhattan-distance";
 import type { Grid } from "./Grid";
 
 /**
- * Resolve a ground-target aim (entry-hazard setters): a single in-bounds tile within Manhattan range,
- * occupant indifferent (unlike Teleport, which requires an empty destination). Returns [target] when
- * valid, else [].
+ * Resolve a ground-target aim (entry-hazard setters, Prescience): a single in-bounds tile within
+ * Manhattan range, occupant indifferent (unlike Teleport, which requires an empty destination). When
+ * `radius` > 0 (Prescience AoE), returns the aimed tile plus every in-bounds tile within that
+ * Manhattan radius around it, so the preview shows the splash zone. Returns [] if the aim is invalid.
  */
 export function resolveGroundTarget(
   origin: Position,
@@ -13,6 +14,7 @@ export function resolveGroundTarget(
   minRange: number,
   maxRange: number,
   grid: Grid,
+  radius = 0,
 ): Position[] {
   if (!grid.isInBounds(target)) {
     return [];
@@ -24,5 +26,17 @@ export function resolveGroundTarget(
   if (!grid.getTile(target)) {
     return [];
   }
-  return [target];
+  if (radius <= 0) {
+    return [target];
+  }
+  const tiles: Position[] = [];
+  for (let dy = -radius; dy <= radius; dy++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      const tile = { x: target.x + dx, y: target.y + dy };
+      if (Math.abs(dx) + Math.abs(dy) <= radius && grid.isInBounds(tile) && grid.getTile(tile)) {
+        tiles.push(tile);
+      }
+    }
+  }
+  return tiles;
 }

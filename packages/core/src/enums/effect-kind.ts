@@ -35,6 +35,16 @@ export const EffectKind = {
   PostImprison: "post_imprison",
   /** Apply a one-shot Charge-Time tax on the target's next action (Dépit / spite). */
   SpiteCtTax: "spite_ct_tax",
+  /** Schedule a tile-bound delayed strike that lands after a delay (Prescience / future-sight). */
+  PostFutureSight: "post_future_sight",
+  /** Set a perish countdown on every Pokemon on the field (Requiem / perish-song). */
+  PostPerishSong: "post_perish_song",
+  /** Average the caster's and target's current HP (Balance / pain-split). */
+  PainSplit: "pain_split",
+  /** Set the target's HP to the caster's HP when the target's is higher (Effort / endeavor). */
+  Endeavor: "endeavor",
+  /** Buff an adjacent ally's next offensive move by ×1.5 (Coup d'Main / helping-hand). */
+  HelpingHand: "helping_hand",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

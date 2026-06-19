@@ -1745,6 +1745,37 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
     effects: [{ kind: EffectKind.SpiteCtTax }],
   },
+  // --- Famille Delayed / countdown (plan 133) ---
+  "future-sight": {
+    // Prescience: ground-targeted delayed strike. Locks a tile (GroundTarget range 4); 2 of the
+    // caster's turns later it lands as an r1 Manhattan AoE (friendly fire included). Offense frozen
+    // at cast; defence recomputed at landing. Heavy natural CT (120 BP / 10 PP → 900) = the slow
+    // caster lengthens the telegraph, so the threat is fair.
+    targeting: { kind: TargetingKind.GroundTarget, range: { min: 1, max: 4 }, radius: 1 },
+    effects: [{ kind: EffectKind.PostFutureSight, radius: 1, delayTurns: 2, power: 120 }],
+  },
+  "perish-song": {
+    // Requiem: self-cast, field-wide perish countdown (3 turns) on EVERY living mon, caster included.
+    // Sound move (reference flags sound + bypasssub). Heavy natural CT (5 PP → 900) = a committal move.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostPerishSong, turns: 3, radius: 2 }],
+  },
+  "pain-split": {
+    // Balance: average the caster's and target's current HP. Single 1-3, blocked by Protection.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.PainSplit }],
+  },
+  endeavor: {
+    // Effort: set the target's HP to the caster's when higher. Melee contact, blocked by Protection.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Endeavor }],
+  },
+  "helping-hand": {
+    // Coup d'Main: buff an adjacent ally's next offensive move ×1.5 (consumed at end of its turn).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.HelpingHand, multiplier: 1.5 }],
+    targetsAlly: true,
+  },
   // --- Content Batch G1 moves (dégâts pur physique, plan 102) ---
   // Riders complexes différés (cf. plan 102) : throat-chop sound-lock, lash-out/temper-flare/
   // fury-cutter power conditionnel, ice-spinner/steel-roller terrain, supercell-slam crash,

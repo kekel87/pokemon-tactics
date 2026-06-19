@@ -201,7 +201,7 @@ export interface BattleChrome {
   updateWeather(view: WeatherView | null): void;
   /** Refresh the turn timeline (active + predicted order). */
   updateTimeline(view: TimelineView): void;
-  showVictory(winnerId: string): void;
+  showVictory(winnerId: string | null): void;
 }
 
 /** Feedback port. 7b: no-op + console.debug; engine billboards (text) + DOM log land at 4c. */

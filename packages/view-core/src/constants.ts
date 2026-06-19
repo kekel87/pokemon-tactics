@@ -168,6 +168,8 @@ export const FIELD_TERRAIN_COLOR_MISTY = 0xf49ad1;
 export const FIELD_TERRAIN_COLOR_PSYCHIC = 0xb060e0;
 /** Distorsion (Trick Room) zone — vivid indigo, distinct from the magenta Psychic terrain. */
 export const DISTORTION_ZONE_COLOR = 0x7a5cff;
+/** Requiem (perish-song) death-aura indicator (left of the HP bar + hover-zone ground marker). */
+export const PERISH_AURA_INDICATOR_SYMBOL = "🎵";
 
 // --- Charging / aura indicators --------------------------------------------
 export const CHARGING_INDICATOR_SYMBOL = "⚡";

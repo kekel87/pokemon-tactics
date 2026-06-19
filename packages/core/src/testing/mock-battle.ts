@@ -159,6 +159,7 @@ export abstract class MockBattle {
       fieldTerrains: [],
       distortionZones: [],
       entryHazards: [],
+      pendingStrikes: [],
     };
   }
 }

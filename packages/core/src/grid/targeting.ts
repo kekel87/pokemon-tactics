@@ -149,6 +149,7 @@ export function resolveTargeting(
         targetingPattern.range.min,
         targetingPattern.range.max,
         grid,
+        targetingPattern.radius,
       );
   }
 }

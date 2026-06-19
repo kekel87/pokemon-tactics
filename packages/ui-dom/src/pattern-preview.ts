@@ -85,7 +85,9 @@ export function buildPatternPreview(
     case TargetingKind.HitAndRun:
       return buildSingle(pattern.hitRange.max);
     case TargetingKind.GroundTarget:
-      return buildSingle(pattern.range.max);
+      return pattern.radius !== undefined && pattern.radius > 0
+        ? buildBlast(pattern.radius)
+        : buildSingle(pattern.range.max);
   }
 }
 
