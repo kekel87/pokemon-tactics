@@ -132,3 +132,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 119 | [Phase 5 — Migration renderer Babylon.js 2D-HD (plan-maître)](./119-phase5-babylon-master.md) | in-progress | 2026-06-08 |
 | 131 | [Entry Hazards (Pièges au sol)](./131-entry-hazards.md) | done | 2026-06-18 |
 | 132 | [Contrôle (Possessif / Dissonance Psy / Dépit)](./132-controle.md) | done | 2026-06-19 |
+| 133 | [Delayed / countdown (Prescience / Requiem / Balance / Effort / Coup d'Main)](./133-delayed-countdown.md) | done | 2026-06-19 |
+| 134 | [Power conditionnel : familles restantes (Hommage Posthume / Branchicrok / Prise de Bec)](./134-power-conditional-rest.md) | done | 2026-06-19 |

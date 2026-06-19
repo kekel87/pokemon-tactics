@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import type { DynamicPowerKind as DynamicPowerKindT } from "../enums/dynamic-power-kind";
 import { DynamicPowerKind } from "../enums/dynamic-power-kind";
 import { HeldItemId } from "../enums/held-item-id";
+import { PlayerId } from "../enums/player-id";
 import { StatName } from "../enums/stat-name";
 import type { StatusType as StatusTypeT } from "../enums/status-type";
 import { StatusType } from "../enums/status-type";
+import { MockBattle } from "../testing/mock-battle";
 import { MockMove } from "../testing/mock-move";
 import { MockPokemon } from "../testing/mock-pokemon";
 import type { PokemonInstance } from "../types/pokemon-instance";
@@ -320,5 +322,69 @@ describe("resolveDynamicPower", () => {
     it("40 at half or above", () => expect(ratio(100, 60)).toBe(40));
     it("40 when the user has no weight", () => expect(ratio(0, 50)).toBe(40));
     it("120 when the target has no weight", () => expect(ratio(50, 0)).toBe(120));
+  });
+
+  describe("AllyFaintCountScaled (last-respects)", () => {
+    function scaledPower(attacker: PokemonInstance, others: PokemonInstance[]): number {
+      const state = MockBattle.stateFrom([attacker, ...others]);
+      return resolveDynamicPower(
+        move(DynamicPowerKind.AllyFaintCountScaled, 50),
+        attacker,
+        attacker,
+        state,
+      ).power;
+    }
+
+    it("returns the base power with no fainted allies", () => {
+      const attacker = pokemon({ id: "a", playerId: PlayerId.Player1 });
+      const ally = pokemon({ id: "b", playerId: PlayerId.Player1, currentHp: 50 });
+      expect(scaledPower(attacker, [ally])).toBe(50);
+    });
+
+    it("scales by 50 per fainted ally", () => {
+      const attacker = pokemon({ id: "a", playerId: PlayerId.Player1 });
+      const ally1 = pokemon({ id: "b", playerId: PlayerId.Player1, currentHp: 0 });
+      const ally2 = pokemon({ id: "c", playerId: PlayerId.Player1, currentHp: 0 });
+      expect(scaledPower(attacker, [ally1, ally2])).toBe(150);
+    });
+
+    it("ignores fainted foes and the user's own faint", () => {
+      const attacker = pokemon({ id: "a", playerId: PlayerId.Player1, currentHp: 0 });
+      const foe = pokemon({ id: "b", playerId: PlayerId.Player2, currentHp: 0 });
+      expect(scaledPower(attacker, [foe])).toBe(50);
+    });
+
+    it("falls back to base power without battle state (preview)", () => {
+      expect(resolvedPower(DynamicPowerKind.AllyFaintCountScaled, 50, pokemon(), pokemon())).toBe(
+        50,
+      );
+    });
+  });
+
+  describe("TargetIdleSinceLastAction (fishious-rend / bolt-beak)", () => {
+    function idle(attackerStamp: number | undefined, targetStamp: number | undefined) {
+      return resolvedPower(
+        DynamicPowerKind.TargetIdleSinceLastAction,
+        80,
+        pokemon({ lastActedAtAction: attackerStamp }),
+        pokemon({ lastActedAtAction: targetStamp }),
+      );
+    }
+
+    it("doubles when the target has not acted since the user's last action", () => {
+      expect(idle(5, 3)).toBe(160);
+    });
+
+    it("doubles when the target has never acted", () => {
+      expect(idle(5, undefined)).toBe(160);
+    });
+
+    it("doubles when both are fresh", () => {
+      expect(idle(undefined, undefined)).toBe(160);
+    });
+
+    it("stays base when the target acted after the user", () => {
+      expect(idle(3, 5)).toBe(80);
+    });
   });
 });

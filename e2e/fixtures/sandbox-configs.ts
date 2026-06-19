@@ -69,6 +69,24 @@ export const ENTRY_HAZARD_SPIKES = {
   dummyPosition: { x: 2, y: 4 },
 } as const;
 
+/** Puissance conditionnelle — Branchicrok (`fishious-rend`, Eau Phys 80, ×2 si la cible n'a pas agi
+ *  depuis la dernière action du lanceur). Move hors-pool forcé via `moves` (SandboxSetup écrase
+ *  `moveIds` sans regarder le learnset). Au tour 1 personne n'a agi (`lastActedAtAction` des deux =
+ *  -1, donc cible ≤ lanceur) → la condition ×2 est ACTIVE et le move résout. Portée 1 (Single 1-1),
+ *  donc le lanceur (2,3) et la cible (2,2) sont adjacents : aucun jet de portée. Précision 100 % →
+ *  cast déterministe quel que soit le seed. On assert la ligne « perd N PV » (la résolution passe
+ *  par l'orchestrateur avec la condition ×2 active) ; la valeur exacte du ×2 reste couverte unit. */
+export const DYNAMIC_FISHIOUS_REND = { ...DUEL, moves: ["fishious-rend"] } as const;
+
+/** Idem mais Prise de Bec (`bolt-beak`, Électrik Phys 80) — même condition « cible fraîche → ×2 ». */
+export const DYNAMIC_BOLT_BEAK = { ...DUEL, moves: ["bolt-beak"] } as const;
+
+// Hommage Posthume (`last-respects`, Spectre Phys 50, puissance ×(1 + alliés K.O.)) n'a PAS de config
+// ici à dessein : la sandbox est un 1v1 (le lanceur n'a aucun allié) et n'expose ni équipe à 2+ ni
+// amorçage d'allié K.O. → le facteur d'échelle vaut toujours 1, le SCALING est donc non observable.
+// Le sens (`faintedAllyCount`/`AllyFaintCountScaled`) reste couvert par les unit/integration du core
+// (`dynamic-power-system.test.ts`, `moves/last-respects.test.ts`). Cf. test-plan §5.23 (case 👁).
+
 /** Distorsion (trick-room) — slow caster, fast foe, both inside the r3 zone (decision 2026-06-18).
  *  Player = Flagadoss (slowbro, base Vit 30) at (2,3) casting Distorsion ; dummy = Électrode
  *  (electrode, base Vit 150) at (2,2), distance 1 → both in the diamond. Once the zone is posted the

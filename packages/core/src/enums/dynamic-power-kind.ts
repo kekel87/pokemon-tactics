@@ -41,6 +41,10 @@ export const DynamicPowerKind = {
   TeamPreviousMoveDouble: "team_previous_move_double",
   /** 30 × 2^(streak-1), capped at 480 — rolls harder each consecutive cast (rollout). */
   RolloutStreak: "rollout_streak",
+  /** move.power × (1 + number of fainted allies) — grows as the team falls (last-respects). */
+  AllyFaintCountScaled: "ally_faint_count_scaled",
+  /** ×2 if the target has not acted since the user's last action (fishious-rend, bolt-beak). */
+  TargetIdleSinceLastAction: "target_idle_since_last_action",
 } as const;
 
 export type DynamicPowerKind = (typeof DynamicPowerKind)[keyof typeof DynamicPowerKind];
