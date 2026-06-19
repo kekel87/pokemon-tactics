@@ -41,6 +41,14 @@ export { EffectHandlerRegistry } from "./battle/effect-handler-registry";
 export { createDefaultEffectRegistry } from "./battle/effect-processor";
 export { isEffectivelyFlying } from "./battle/effective-flying";
 export {
+  getEntryHazardsAt,
+  HAZARD_REMOVAL_RADIUS,
+  isGroundedOnlyHazard,
+  maxLayersFor,
+  postEntryHazard,
+  removeEntryHazardsNear,
+} from "./battle/entry-hazard-system";
+export {
   FIELD_TERRAIN_RADIUS,
   getActiveZonesOfKind,
   getFieldTerrainAt,

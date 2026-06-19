@@ -6,6 +6,7 @@ import { Direction } from "../enums/direction";
 import { DynamicPowerKind } from "../enums/dynamic-power-kind";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
+import { EntryHazardKind } from "../enums/entry-hazard-kind";
 import { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
@@ -23,6 +24,7 @@ import type { BattleReplay } from "../types/battle-replay";
 import type { BattleState } from "../types/battle-state";
 import type { CtTimelineEntry } from "../types/ct-timeline-entry";
 import type { DamageEstimate } from "../types/damage-estimate";
+import type { EntryHazardCell } from "../types/entry-hazard-cell";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
@@ -47,7 +49,7 @@ import {
   computeCtGain,
   computeMoveCost,
 } from "./ct-costs";
-import { estimateDamage } from "./damage-calculator";
+import { estimateDamage, getTypeEffectiveness } from "./damage-calculator";
 import { getAttackOrigin } from "./defense-check";
 import {
   decrementDistortionTimer,
@@ -56,6 +58,14 @@ import {
 } from "./distortion-system";
 import { processEffects } from "./effect-processor";
 import { isEffectivelyFlying } from "./effective-flying";
+import {
+  absorbsToxicSpikes,
+  getEntryHazardsAt,
+  isGroundedOnlyHazard,
+  removeEntryHazardCell,
+  spikesDamage,
+  stealthRockDamage,
+} from "./entry-hazard-system";
 import { getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
 import {
@@ -76,6 +86,7 @@ import {
   createFieldTerrainHealHandler,
   fieldTerrainDecrementHandler,
 } from "./handlers/field-terrain-tick-handler";
+import { isImmuneToStatusByType } from "./handlers/handle-status";
 import { hotTickHandler } from "./handlers/hot-tick-handler";
 import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handler";
 import { roostedClearHandler } from "./handlers/roosted-clear-handler";
@@ -97,7 +108,7 @@ import {
   canMoveHitSemiInvulnerable,
   getSemiInvulnerableDamageMultiplier,
 } from "./semi-invulnerable";
-import { isMajorStatus } from "./stat-modifier";
+import { clampStages, computeMovement, isMajorStatus } from "./stat-modifier";
 import {
   getImmuneTerrains,
   getMovementPenalty,
@@ -888,6 +899,12 @@ export class BattleEngine {
           pokemon.position,
           targeting.hitRange.min,
           targeting.hitRange.max,
+        );
+      case TargetingKind.GroundTarget:
+        return this.grid.getTilesInRange(
+          pokemon.position,
+          targeting.range.min,
+          targeting.range.max,
         );
     }
   }
@@ -1700,6 +1717,10 @@ export class BattleEngine {
         }
       }
     }
+
+    if (pokemon.currentHp > 0) {
+      this.applyEntryHazardsOnPath(pokemon, [destination], events);
+    }
   }
 
   private teleportMoveCaster(
@@ -1729,6 +1750,9 @@ export class BattleEngine {
     events.push(teleportedEvent);
 
     this.applyLandingTerrainEffects(pokemon, targetPosition, events);
+    if (pokemon.currentHp > 0) {
+      this.applyEntryHazardsOnPath(pokemon, [{ ...targetPosition }], events);
+    }
   }
 
   private applyLandingTerrainEffects(
@@ -1770,6 +1794,142 @@ export class BattleEngine {
     this.handleKo(pokemon.id, events);
   }
 
+  /**
+   * Trigger entry hazards for every trapped tile a Pokemon ENTERS along `path` (plan 131). The path
+   * never includes the start tile, so a hazard posted under a stationary mon doesn't fire. Damage
+   * (Picots / Pièges de Roc) and Speed drops (Toile Gluante) stack per distinct trapped tile; poison
+   * (Pics Toxik) is idempotent. Team-agnostic — any mon entering a trapped tile is affected. KO
+   * mid-path stops the traversal (mirror of the Magma loop).
+   */
+  private applyEntryHazardsOnPath(
+    pokemon: PokemonInstance,
+    path: Position[],
+    events: BattleEvent[],
+  ): void {
+    if (this.state.entryHazards.length === 0) {
+      return;
+    }
+    const types = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const isFlying = this.isEffectivelyFlying(pokemon);
+    for (const step of path) {
+      if (pokemon.currentHp <= 0) {
+        return;
+      }
+      for (const cell of getEntryHazardsAt(this.state, step)) {
+        if (isGroundedOnlyHazard(cell.kind) && isFlying) {
+          continue;
+        }
+        this.triggerEntryHazardCell(pokemon, cell, types, events);
+        if (pokemon.currentHp <= 0) {
+          const koEvent: BattleEvent = {
+            type: BattleEventType.PokemonKo,
+            pokemonId: pokemon.id,
+            countdownStart: 0,
+          };
+          this.emit(koEvent);
+          events.push(koEvent);
+          this.handleKo(pokemon.id, events);
+          return;
+        }
+      }
+    }
+  }
+
+  private triggerEntryHazardCell(
+    pokemon: PokemonInstance,
+    cell: EntryHazardCell,
+    types: PokemonType[],
+    events: BattleEvent[],
+  ): void {
+    switch (cell.kind) {
+      case EntryHazardKind.Spikes: {
+        const damage = spikesDamage(pokemon.maxHp, cell.layers);
+        this.dealEntryHazardDamage(pokemon, cell, damage, events);
+        return;
+      }
+      case EntryHazardKind.StealthRock: {
+        const multiplier = getTypeEffectiveness(PokemonType.Rock, types, this.typeChart);
+        const damage = stealthRockDamage(pokemon.maxHp, multiplier);
+        if (damage <= 0) {
+          return;
+        }
+        this.dealEntryHazardDamage(pokemon, cell, damage, events);
+        return;
+      }
+      case EntryHazardKind.ToxicSpikes: {
+        if (absorbsToxicSpikes(cell.kind, types)) {
+          removeEntryHazardCell(this.state, cell);
+          const absorbedEvent: BattleEvent = {
+            type: BattleEventType.EntryHazardAbsorbed,
+            pokemonId: pokemon.id,
+            tile: { ...cell.tile },
+          };
+          this.emit(absorbedEvent);
+          events.push(absorbedEvent);
+          return;
+        }
+        const status = cell.layers >= 2 ? StatusType.BadlyPoisoned : StatusType.Poisoned;
+        if (isImmuneToStatusByType(types, status)) {
+          return;
+        }
+        if (pokemon.statusEffects.some((s) => isMajorStatus(s.type))) {
+          return;
+        }
+        pokemon.statusEffects.push({ type: status, remainingTurns: null });
+        if (status === StatusType.BadlyPoisoned) {
+          pokemon.toxicCounter = 0;
+        }
+        const statusEvent: BattleEvent = {
+          type: BattleEventType.EntryHazardTriggered,
+          pokemonId: pokemon.id,
+          kind: cell.kind,
+          tile: { ...cell.tile },
+          status,
+        };
+        this.emit(statusEvent);
+        events.push(statusEvent);
+        return;
+      }
+      case EntryHazardKind.StickyWeb: {
+        const currentStage = pokemon.statStages[StatName.Speed];
+        const newStage = clampStages(currentStage, -1);
+        if (newStage === currentStage) {
+          return;
+        }
+        pokemon.statStages[StatName.Speed] = newStage;
+        pokemon.derivedStats.movement = computeMovement(pokemon.baseStats.speed, newStage);
+        const webEvent: BattleEvent = {
+          type: BattleEventType.EntryHazardTriggered,
+          pokemonId: pokemon.id,
+          kind: cell.kind,
+          tile: { ...cell.tile },
+          speedStages: newStage - currentStage,
+        };
+        this.emit(webEvent);
+        events.push(webEvent);
+        return;
+      }
+    }
+  }
+
+  private dealEntryHazardDamage(
+    pokemon: PokemonInstance,
+    cell: EntryHazardCell,
+    damage: number,
+    events: BattleEvent[],
+  ): void {
+    pokemon.currentHp = Math.max(0, pokemon.currentHp - damage);
+    const event: BattleEvent = {
+      type: BattleEventType.EntryHazardTriggered,
+      pokemonId: pokemon.id,
+      kind: cell.kind,
+      tile: { ...cell.tile },
+      damage,
+    };
+    this.emit(event);
+    events.push(event);
+  }
+
   private hitAndRunMoveCaster(
     pokemon: PokemonInstance,
     retreatRange: RangeConfig,
@@ -1808,6 +1968,9 @@ export class BattleEngine {
     events.push(retreatEvent);
 
     this.applyLandingTerrainEffects(pokemon, retreatPosition, events);
+    if (pokemon.currentHp > 0) {
+      this.applyEntryHazardsOnPath(pokemon, [{ ...retreatPosition }], events);
+    }
   }
 
   private emitHitAndRunFallback(
@@ -1977,6 +2140,8 @@ export class BattleEngine {
         break;
       }
     }
+
+    this.applyEntryHazardsOnPath(pokemon, path, events);
 
     this.turnState.hasMoved = true;
 

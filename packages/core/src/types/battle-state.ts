@@ -1,6 +1,7 @@
 import type { PlayerId } from "../enums/player-id";
 import type { Weather } from "../enums/weather";
 import type { DistortionZone } from "./distortion-zone";
+import type { EntryHazardCell } from "./entry-hazard-cell";
 import type { FieldZone } from "./field-zone";
 import type { PokemonInstance } from "./pokemon-instance";
 import type { TeamAura } from "./team-aura";
@@ -20,6 +21,8 @@ export interface BattleState {
   fieldTerrains: FieldZone[];
   /** Trick Room ("Distorsion") zones: inside one, CT tempo is inverted (slow acts first). */
   distortionZones: DistortionZone[];
+  /** Entry-hazard traps (Picots / Pièges de Roc / Pics Toxik / Toile Gluante). Permanent until removed. */
+  entryHazards: EntryHazardCell[];
   /**
    * Monotonic action clock. Incremented exactly once per completed action by the Charge Time turn
    * loop. Per-mon stamps on `PokemonInstance` reference this value so "this turn"-style conditions

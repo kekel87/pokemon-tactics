@@ -279,6 +279,7 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 - [ ] **Aligner les couleurs des previews de pattern d'attaque** — cohérence entre la tooltip et les zones au sol (vert, bleu, jaune, rouge).
 - [ ] **Dash — direction seule, portée auto** — on ne choisit plus la portée d'un dash, seulement la direction ; le Pokemon avance au maximum de la portée.
 - [ ] **POC Cobblemon** — explorer Cobblemon comme source (assets / données / sprites ?).
+- [ ] **Ombres / lumière dynamiques (voxel + Pokemon)** — chantier rendu lié au **2D-HD**. Aujourd'hui tout est flat unlit (StandardMaterial sans lumière) + ombres bakées (`Shadow.png` PMD pour les sprites, rien pour les props voxel comme Pièges de Roc / futures décos). À décider : (a) **ombres blob/decal** stylisées sous chaque voxel (cohérent FFTA, coût ~0, voie recommandée) **vs** (b) **`ShadowGenerator` réel** (1 `DirectionalLight`, casters voxel, terrain receiver — vrai dynamique mais perf + clash avec le flat + sprites ALPHATEST capricieux comme casters). **Regarder comment font les refs 2D-HD** (Octopath, Triangle Strategy, FFTA…) au moment d'attaquer ce point. `best-practices` d'abord. Voir `docs/references/voxel-tile-placement.md`.
 
 ---
 

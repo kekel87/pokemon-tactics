@@ -12,6 +12,7 @@ export { DynamicPowerKind } from "./dynamic-power-kind";
 export { EffectKind } from "./effect-kind";
 export { EffectTarget } from "./effect-target";
 export { EffectTier } from "./effect-tier";
+export { EntryHazardKind } from "./entry-hazard-kind";
 export { FieldTerrain } from "./field-terrain";
 export { FieldTerrainBonusWho } from "./field-terrain-bonus-who";
 export { HeldItemId } from "./held-item-id";

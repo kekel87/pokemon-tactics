@@ -27,6 +27,10 @@ export const EffectKind = {
   PostFieldTerrain: "post_field_terrain",
   /** Post a Trick Room ("Distorsion") zone around the caster: inverts CT tempo inside it. */
   PostDistortion: "post_distortion",
+  /** Place an entry-hazard trap on the move's target tile (Picots / Pièges de Roc / Pics Toxik / Toile Gluante). */
+  PostEntryHazard: "post_entry_hazard",
+  /** Clear entry-hazard traps within a radius of the user (Tour Rapide / Anti-Brume). */
+  RemoveEntryHazards: "remove_entry_hazards",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

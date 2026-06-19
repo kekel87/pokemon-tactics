@@ -36,6 +36,7 @@ const PATTERN_TRANSLATION_KEY: Record<string, string> = {
   [TargetingKind.Blast]: "pattern.blast",
   [TargetingKind.Teleport]: "pattern.teleport",
   [TargetingKind.HitAndRun]: "pattern.hit-and-run",
+  [TargetingKind.GroundTarget]: "pattern.ground-target",
 };
 
 const BLOCKED_TAG_KEY: Record<BlockedMoveTag, string> = {
@@ -57,6 +58,7 @@ function rangeLabel(move: MoveDefinition): string | null {
       return targeting.range.max > 1 ? `${targeting.range.min}-${targeting.range.max}` : null;
     case TargetingKind.Blast:
     case TargetingKind.Teleport:
+    case TargetingKind.GroundTarget:
       return `${targeting.range.min}-${targeting.range.max}`;
     case TargetingKind.HitAndRun:
       return targeting.hitRange.max > 1
@@ -110,6 +112,12 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   }
   if (move.effects.some((effect) => effect.kind === EffectKind.PostDistortion)) {
     keys.push("moveTooltip.tag.distortion");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.PostEntryHazard)) {
+    keys.push("moveTooltip.tag.hazardSetter");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.RemoveEntryHazards)) {
+    keys.push("moveTooltip.tag.hazardRemover");
   }
   if (move.effects.some((effect) => effect.kind === EffectKind.CureTeamStatus)) {
     keys.push("moveTooltip.tag.cureTeamStatus");

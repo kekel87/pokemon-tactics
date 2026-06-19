@@ -59,6 +59,14 @@ export interface BoardFieldTerrain {
   readonly remainingTurns: number;
 }
 
+/** An entry-hazard voxel prop on a tile (plan 131): one stacked model set per kind + layer count. */
+export interface BoardEntryHazard {
+  readonly kind: string;
+  readonly tile: Position;
+  /** Stacked layers (drives how many cumulative voxel models to show). */
+  readonly layers: number;
+}
+
 /** A team-aura icon shown left of a Pokémon's HP bar (caster + protected allies). */
 export interface BoardAuraIndicator {
   readonly id: string;
@@ -83,7 +91,12 @@ export interface BoardView {
   moveAlongPath(
     pokemonId: string,
     path: readonly Position[],
-    options: { isFlying: boolean; isGhost: boolean },
+    options: {
+      isFlying: boolean;
+      isGhost: boolean;
+      /** Fired as the sprite arrives on each path tile — used to tick entry hazards per tile. */
+      onTileReached?: (tile: Position) => void;
+    },
   ): Promise<void>;
   setFacing(pokemonId: string, direction: Direction): void;
   /** Face a direction and play a one-shot attack animation, resolving when it ends. */
@@ -119,6 +132,8 @@ export interface BoardView {
   setFieldTerrains(zones: readonly BoardFieldTerrain[]): void;
   /** Replace the painted Distorsion (Trick Room) zones (empty clears). */
   setDistortionZones(zones: readonly BoardFieldTerrain[]): void;
+  /** Replace the entry-hazard voxel props (empty clears). */
+  setEntryHazards(hazards: readonly BoardEntryHazard[]): void;
   /** Replace a Pokémon's team-aura icons (left of its HP bar; empty clears). */
   setAuraIndicators(pokemonId: string, indicators: readonly BoardAuraIndicator[]): void;
   /** Float aura symbols over a caster's aura-radius tiles on hover (empty clears). */

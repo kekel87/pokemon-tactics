@@ -15,6 +15,7 @@ import {
   EffectKind,
   EffectTarget,
   EffectTier,
+  EntryHazardKind,
   FieldTerrain,
   FieldTerrainBonusWho,
   PokemonType,
@@ -1516,6 +1517,35 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     // Distorsion: localized as a static zone (decision 2026-06-18) — inverts CT tempo inside it.
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.PostDistortion }],
+  },
+
+  // Entry hazards (plan 131): aimed at a ground tile within range 4, place a single trapped tile;
+  // building a minefield is a multi-turn investment. Trigger on enemy ENTRY, permanent until removed.
+  spikes: {
+    targeting: { kind: TargetingKind.GroundTarget, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.PostEntryHazard, hazardKind: EntryHazardKind.Spikes }],
+  },
+  "stealth-rock": {
+    targeting: { kind: TargetingKind.GroundTarget, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.PostEntryHazard, hazardKind: EntryHazardKind.StealthRock }],
+  },
+  "toxic-spikes": {
+    targeting: { kind: TargetingKind.GroundTarget, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.PostEntryHazard, hazardKind: EntryHazardKind.ToxicSpikes }],
+  },
+  "sticky-web": {
+    targeting: { kind: TargetingKind.GroundTarget, range: { min: 1, max: 4 } },
+    effects: [{ kind: EffectKind.PostEntryHazard, hazardKind: EntryHazardKind.StickyWeb }],
+  },
+  // Removers (plan 131). Tour Rapide = an r1 spin: damages adjacent enemies AND sweeps hazards
+  // around itself (r1). Anti-Brume = a wider r2 gust that only clears hazards.
+  "rapid-spin": {
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.RemoveEntryHazards, radius: 1 }],
+  },
+  defog: {
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.RemoveEntryHazards, radius: 2 }],
   },
   "weather-ball": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },

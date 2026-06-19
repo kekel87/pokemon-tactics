@@ -2562,6 +2562,62 @@
       "gender": null,
       "source": "custom",
       "notes": "Plan 101 — Encore locks a weak enemy move, Reflect + Filter wall while Psychic chips."
+    },
+    {
+      "id": "cloyster-hazard-lead",
+      "pokemonId": "cloyster",
+      "name": "Hazard Lead",
+      "role": "support",
+      "ability": "skill-link",
+      "heldItemId": "focus-sash",
+      "nature": "jolly",
+      "moveIds": ["spikes", "toxic-spikes", "icicle-spear", "shell-smash"],
+      "statSpread": { "attack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 131 — Lead poseur de Picots + Pics Toxik. Focus Sash garantit la survie sur le premier tour pour placer les pièges. Shell Smash en wincon si les pièges sont posés."
+    },
+    {
+      "id": "aerodactyl-stealth-rock-lead",
+      "pokemonId": "aerodactyl",
+      "name": "Stealth Rock Lead",
+      "role": "support",
+      "ability": "pressure",
+      "heldItemId": "focus-sash",
+      "nature": "jolly",
+      "moveIds": ["stealth-rock", "taunt", "aerial-ace", "earthquake"],
+      "statSpread": { "attack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 131 — Lead Pièges de Roc ultra rapide (base 130 Vit). Taunt bloque les pièges adverses et les soins. Focus Sash assure la pose même face à un adversaire plus fort."
+    },
+    {
+      "id": "starmie-rapid-spin",
+      "pokemonId": "starmie",
+      "name": "Rapid Spin",
+      "role": "support",
+      "ability": "natural-cure",
+      "heldItemId": "leftovers",
+      "nature": "timid",
+      "moveIds": ["rapid-spin", "surf", "ice-beam", "recover"],
+      "statSpread": { "spAttack": 31, "speed": 31, "spDefense": 0 },
+      "gender": "genderless",
+      "source": "custom",
+      "notes": "Plan 131 — Spinner défensif avec recovery. Natural Cure efface les statuts au switch. Tour Rapide retire les pièges alliés tout en menaçant offensivement."
+    },
+    {
+      "id": "fearow-defog",
+      "pokemonId": "fearow",
+      "name": "Defog Pivot",
+      "role": "support",
+      "ability": "keen-eye",
+      "heldItemId": "heavy-duty-boots",
+      "nature": "jolly",
+      "moveIds": ["defog", "drill-peck", "aerial-ace", "roost"],
+      "statSpread": { "attack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 131 — Seul Pokémon du roster Gen 1 à apprendre Anti-Brume. Heavy-Duty Boots l'immunise aux pièges qu'il vient retirer. Roost pour la durabilité."
     }
   ]
 }

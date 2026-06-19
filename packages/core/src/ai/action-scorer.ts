@@ -3,6 +3,7 @@ import type { BattleEngine } from "../battle/BattleEngine";
 import { DISTORTION_RADIUS, isInDistortionZone } from "../battle/distortion-system";
 import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
 import { isEffectivelyFlying } from "../battle/effective-flying";
+import { HAZARD_REMOVAL_RADIUS, maxLayersFor } from "../battle/entry-hazard-system";
 import { FIELD_TERRAIN_RADIUS, getFieldTerrainAt } from "../battle/field-terrain-system";
 import { TRANSFERABLE_STATS } from "../battle/handlers/baton-pass-stats";
 import { isTerrainImmune } from "../battle/terrain-effects";
@@ -10,6 +11,7 @@ import { ActionKind } from "../enums/action-kind";
 import { AuraKind } from "../enums/aura-kind";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
+import type { EntryHazardKind } from "../enums/entry-hazard-kind";
 import { FieldTerrain } from "../enums/field-terrain";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
@@ -121,6 +123,14 @@ function scoreUseMove(
     return scoreTargetedHeal(action, allies, enemies, targetedHeal.percent, weights);
   }
 
+  const hazardSetter = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostEntryHazard }> =>
+      effect.kind === EffectKind.PostEntryHazard,
+  );
+  if (hazardSetter !== undefined) {
+    return scoreEntryHazardSetter(action, enemies, allies, hazardSetter.hazardKind, weights, state);
+  }
+
   const affectedTiles = estimateAffectedTiles(
     move.targeting,
     currentPokemon.position,
@@ -172,6 +182,56 @@ function scoreUseMove(
     score += weights.statChanges;
   }
 
+  return score;
+}
+
+/**
+ * Score placing an entry-hazard trap on the aimed tile (plan 131). The AI enumerates every tile in
+ * range, so we reward tiles near enemies (likely to be traversed) and reject useless placements: on
+ * an enemy's current tile (entry-only, no trigger), too far from any enemy, or stacking at cap. Since
+ * traps are team-agnostic, a tile adjacent to one of our OWN mons is penalised (self-sabotage risk).
+ */
+function scoreEntryHazardSetter(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  enemies: readonly PokemonInstance[],
+  allies: readonly PokemonInstance[],
+  kind: EntryHazardKind,
+  weights: AiProfile["scoringWeights"],
+  state: BattleState,
+): number {
+  const livingEnemies = enemies.filter((enemy) => enemy.currentHp > 0);
+  if (livingEnemies.length === 0) {
+    return -1;
+  }
+  const tile = action.targetPosition;
+  const nearest = Math.min(
+    ...livingEnemies.map((enemy) => manhattanDistance(tile, enemy.position)),
+  );
+  // On an enemy = no entry trigger; beyond 3 tiles = unlikely to be walked over soon.
+  const proximityScore = nearest === 0 ? 0 : Math.max(0, 4 - nearest);
+  if (proximityScore === 0) {
+    return -1;
+  }
+  // Team-agnostic traps also bite our own mons: don't lay one right next to an ally.
+  const nearestAlly = allies
+    .filter((ally) => ally.currentHp > 0)
+    .reduce(
+      (min, ally) => Math.min(min, manhattanDistance(tile, ally.position)),
+      Number.POSITIVE_INFINITY,
+    );
+  if (nearestAlly <= 1) {
+    return -1;
+  }
+  const existing = state.entryHazards.find(
+    (cell) => cell.kind === kind && cell.tile.x === tile.x && cell.tile.y === tile.y,
+  );
+  if (existing && existing.layers >= maxLayersFor(kind)) {
+    return -1;
+  }
+  let score = weights.statChanges * 0.6 * proximityScore;
+  if (existing) {
+    score *= 0.7;
+  }
   return score;
 }
 
@@ -355,6 +415,19 @@ function scoreSelfMove(
       effect.target === EffectTarget.Self &&
       effect.stages > 0,
   );
+
+  const hasRemoveHazards = move.effects.some(
+    (effect) => effect.kind === EffectKind.RemoveEntryHazards,
+  );
+  if (hasRemoveHazards) {
+    if (!state) {
+      return weights.statChanges;
+    }
+    const hazardNearby = state.entryHazards.some(
+      (cell) => manhattanDistance(cell.tile, currentPokemon.position) <= HAZARD_REMOVAL_RADIUS,
+    );
+    return hazardNearby ? weights.statChanges * 1.5 : -1;
+  }
 
   const postAuraEffect = move.effects.find(
     (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostAura }> =>
@@ -685,6 +758,9 @@ function estimateAffectedTiles(
 
     case TargetingKind.HitAndRun:
       return [targetPosition];
+
+    case TargetingKind.GroundTarget:
+      return [targetPosition];
   }
 }
 
@@ -825,6 +901,8 @@ function getMoveMaxReach(targeting: TargetingPattern): number {
       return targeting.range.max;
     case TargetingKind.HitAndRun:
       return targeting.hitRange.max;
+    case TargetingKind.GroundTarget:
+      return targeting.range.max;
   }
 }
 
