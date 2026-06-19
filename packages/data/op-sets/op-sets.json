@@ -2618,6 +2618,48 @@
       "gender": null,
       "source": "custom",
       "notes": "Plan 131 — Seul Pokémon du roster Gen 1 à apprendre Anti-Brume. Heavy-Duty Boots l'immunise aux pièges qu'il vient retirer. Roost pour la durabilité."
+    },
+    {
+      "id": "gengar-imprison-spite",
+      "pokemonId": "gengar",
+      "name": "Imprison + Spite Disruptor",
+      "role": "support",
+      "ability": "cursed-body",
+      "heldItemId": "focus-sash",
+      "nature": "timid",
+      "moveIds": ["imprison", "spite", "hypnosis", "shadow-ball"],
+      "statSpread": { "spAttack": 16, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 132 — Disrupteur contrôle triple : Possessif scelle les moves communs, Dépit retarde la cible d'un tour, Hypnose endort pour setup. Ombre Portée en finisher. Focus Sash garantit le premier tour de disruption."
+    },
+    {
+      "id": "mewtwo-imprison-psychic-noise",
+      "pokemonId": "mewtwo",
+      "name": "Imprison + Psychic Noise",
+      "role": "wallbreaker",
+      "ability": "pressure",
+      "heldItemId": "life-orb",
+      "nature": "timid",
+      "moveIds": ["imprison", "psychic-noise", "psychic", "recover"],
+      "statSpread": { "spAttack": 31, "speed": 31, "spDefense": 0 },
+      "gender": "genderless",
+      "source": "custom",
+      "notes": "Plan 132 — Possessif bloque les moves Psy partagés, Dissonance Psy 75 BP + Anti-Soin 2 tours coupe la régénération adverse. Recover compense Life Orb. Polyvalent : punit les tanks à soin."
+    },
+    {
+      "id": "alakazam-imprison-lockdown",
+      "pokemonId": "alakazam",
+      "name": "Imprison Lockdown",
+      "role": "support",
+      "ability": "magic-guard",
+      "heldItemId": "focus-sash",
+      "nature": "timid",
+      "moveIds": ["imprison", "disable", "psychic", "recover"],
+      "statSpread": { "spAttack": 31, "speed": 31, "spDefense": 0 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 132 — Double verrou : Possessif scelle les moves partagés (Psyko, Bouclier…), Désactivation coupe ensuite un move restant. Recover + Magic Guard assure la durabilité. Punit durement les compos Psy miroir."
     }
   ]
 }

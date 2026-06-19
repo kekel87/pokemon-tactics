@@ -534,10 +534,39 @@ export function floatingTextsFor(
 
     case BattleEventType.DisableFailed:
     case BattleEventType.EncoreFailed:
+    case BattleEventType.ImprisonFailed:
+    case BattleEventType.SpiteFailed:
       return [
         {
           pokemonId: event.pokemonId,
           text: context.translate("battle.noEffect"),
+          color: BATTLE_TEXT_COLOR_IMMUNE,
+        },
+      ];
+
+    case BattleEventType.Imprisoned:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("status.imprison"),
+          color: BATTLE_TEXT_COLOR_INFO,
+        },
+      ];
+
+    case BattleEventType.SpiteApplied:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("status.spite"),
+          color: BATTLE_TEXT_COLOR_TAUNT,
+        },
+      ];
+
+    case BattleEventType.HealPrevented:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("status.healBlocked"),
           color: BATTLE_TEXT_COLOR_IMMUNE,
         },
       ];

@@ -4,7 +4,12 @@ import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
 import type { PhaseHandler, PhaseResult } from "../turn-pipeline";
 
-const TIMED_VOLATILES = [StatusType.Taunted, StatusType.Disabled, StatusType.Encored] as const;
+const TIMED_VOLATILES = [
+  StatusType.Taunted,
+  StatusType.Disabled,
+  StatusType.Encored,
+  StatusType.HealBlocked,
+] as const;
 
 export const timedVolatileTickHandler: PhaseHandler = (
   pokemonId: string,

@@ -22,6 +22,13 @@ export const StatusType = {
   Ingrain: "ingrain",
   /** Aqua Ring volatile (B2): heals 1/16 HP/turn unconditionally. Persistent. */
   AquaRing: "aqua-ring",
+  /**
+   * Imprison ("Possessif") volatile: persistent on the caster (no timer). While alive, enemies
+   * cannot use any move the caster also knows. Dies with the caster (handleKo clears volatiles).
+   */
+  Imprisoning: "imprisoning",
+  /** Heal Block ("Anti-Soin") volatile: 2 turns, blocks using heal moves and receiving any heal. */
+  HealBlocked: "heal-blocked",
 } as const;
 
 export type StatusType = (typeof StatusType)[keyof typeof StatusType];

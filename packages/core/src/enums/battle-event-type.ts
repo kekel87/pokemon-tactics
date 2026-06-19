@@ -79,6 +79,11 @@ export const BattleEventType = {
   EntryHazardTriggered: "entry_hazard_triggered",
   EntryHazardRemoved: "entry_hazard_removed",
   EntryHazardAbsorbed: "entry_hazard_absorbed",
+  Imprisoned: "imprisoned",
+  ImprisonFailed: "imprison_failed",
+  HealPrevented: "heal_prevented",
+  SpiteApplied: "spite_applied",
+  SpiteFailed: "spite_failed",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

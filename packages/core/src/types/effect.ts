@@ -75,4 +75,6 @@ export type Effect =
   | { kind: typeof EffectKind.PostFieldTerrain; terrain: FieldTerrain }
   | { kind: typeof EffectKind.PostDistortion }
   | { kind: typeof EffectKind.PostEntryHazard; hazardKind: EntryHazardKind }
-  | { kind: typeof EffectKind.RemoveEntryHazards; radius: number };
+  | { kind: typeof EffectKind.RemoveEntryHazards; radius: number }
+  | { kind: typeof EffectKind.PostImprison }
+  | { kind: typeof EffectKind.SpiteCtTax };

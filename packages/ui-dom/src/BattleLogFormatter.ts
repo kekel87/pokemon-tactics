@@ -196,6 +196,10 @@ const STATUS_LOG_KEY: Record<
     applied: { fr: "{name} se charge en électricité !", en: "{name} began charging power!" },
     removed: { fr: "La charge de {name} se dissipe.", en: "{name}'s charge faded." },
   },
+  [StatusType.HealBlocked]: {
+    applied: { fr: "{name} ne peut plus être soigné !", en: "{name} was prevented from healing!" },
+    removed: { fr: "{name} peut à nouveau être soigné.", en: "{name} can heal again." },
+  },
   [StatusType.Ingrain]: {
     applied: { fr: "{name} prend racine !", en: "{name} planted its roots!" },
     removed: { fr: "Les racines de {name} se rétractent.", en: "{name}'s roots receded." },
@@ -526,6 +530,31 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.miss, pokemonIds: [event.attackerId] };
     }
 
+    case BattleEventType.Imprisoned: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${name} scelle les capacités communes !`
+          : `${name} sealed any shared moves!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.HealPrevented: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr" ? `Le soin de ${name} est bloqué !` : `${name}'s healing was blocked!`;
+      return { message, color: BattleLogColors.miss, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.SpiteApplied: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${name} subit le Dépit : son prochain tour est retardé !`
+          : `${name} is spited: its next turn is delayed!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
     case BattleEventType.WeatherSet: {
       const message = formatWeatherSet(event.weather, lang);
       if (!message) {
@@ -811,7 +840,9 @@ export function formatBattleEvent(
     }
 
     case BattleEventType.DisableFailed:
-    case BattleEventType.EncoreFailed: {
+    case BattleEventType.EncoreFailed:
+    case BattleEventType.ImprisonFailed:
+    case BattleEventType.SpiteFailed: {
       const message = lang === "fr" ? "Mais ça échoue !" : "But it failed!";
       return { message, color: BattleLogColors.turn, pokemonIds: [event.pokemonId] };
     }

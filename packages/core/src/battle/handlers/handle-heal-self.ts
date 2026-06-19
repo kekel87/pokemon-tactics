@@ -4,6 +4,7 @@ import { Weather } from "../../enums/weather";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import type { EffectContext } from "../effect-handler-registry";
+import { isHealBlocked } from "../heal-block-system";
 import { effectiveWeather } from "../weather-system";
 
 const WEATHER_HEAL_MOVE_IDS: ReadonlySet<string> = new Set([
@@ -28,6 +29,10 @@ function getWeatherHealPercent(weather: Weather, defaultPercent: number): number
 export function handleHealSelf(context: EffectContext): BattleEvent[] {
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.HealSelf }>;
   const pokemon = context.attacker;
+
+  if (isHealBlocked(pokemon)) {
+    return [{ type: BattleEventType.HealPrevented, pokemonId: pokemon.id }];
+  }
 
   let percent = effect.percent;
   if (WEATHER_HEAL_MOVE_IDS.has(context.move.id)) {

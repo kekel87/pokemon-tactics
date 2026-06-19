@@ -81,6 +81,9 @@ export interface Translations {
   "status.taunted": string;
   "status.disabled": string;
   "status.encored": string;
+  "status.imprison": string;
+  "status.spite": string;
+  "status.healBlocked": string;
   "status.charging": string;
   "status.charged": string;
   "status.ingrain": string;
@@ -287,6 +290,8 @@ export interface Translations {
   "infoPanel.volatile.taunted": string;
   "infoPanel.volatile.disabled": string;
   "infoPanel.volatile.encored": string;
+  "infoPanel.volatile.imprison": string;
+  "infoPanel.volatile.healBlock": string;
   "infoPanel.volatile.wish": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
@@ -302,6 +307,9 @@ export interface Translations {
   "moveTooltip.tag.distortion": string;
   "moveTooltip.tag.hazardSetter": string;
   "moveTooltip.tag.hazardRemover": string;
+  "moveTooltip.tag.imprison": string;
+  "moveTooltip.tag.healBlock": string;
+  "moveTooltip.tag.spite": string;
   "moveTooltip.tag.cureTeamStatus": string;
   "moveTooltip.tag.healByTargetAttack": string;
   "moveTooltip.tag.requiresTargetAsleep": string;

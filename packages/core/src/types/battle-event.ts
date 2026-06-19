@@ -378,4 +378,9 @@ export type BattleEvent =
       type: typeof BattleEventType.MoveFailed;
       attackerId: string;
       moveId: string;
-    };
+    }
+  | { type: typeof BattleEventType.Imprisoned; pokemonId: string }
+  | { type: typeof BattleEventType.ImprisonFailed; pokemonId: string }
+  | { type: typeof BattleEventType.HealPrevented; pokemonId: string }
+  | { type: typeof BattleEventType.SpiteApplied; pokemonId: string; ctPenalty: number }
+  | { type: typeof BattleEventType.SpiteFailed; pokemonId: string };

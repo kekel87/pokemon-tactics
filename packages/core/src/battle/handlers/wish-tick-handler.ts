@@ -1,6 +1,7 @@
 import { BattleEventType } from "../../enums/battle-event-type";
 import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
+import { isHealBlocked } from "../heal-block-system";
 import type { PhaseHandler, PhaseResult } from "../turn-pipeline";
 
 /**
@@ -24,6 +25,11 @@ export const wishTickHandler: PhaseHandler = (
   }
 
   pokemon.pendingWish = undefined;
+  // Anti-Soin (Heal Block): the Wish still fires on schedule but is wasted (no heal).
+  if (isHealBlocked(pokemon)) {
+    events.push({ type: BattleEventType.HealPrevented, pokemonId });
+    return { events, skipAction: false, restrictActions: false, pokemonFainted: false };
+  }
   const healed = Math.min(pokemon.maxHp - pokemon.currentHp, healAmount);
   if (healed > 0) {
     pokemon.currentHp += healed;

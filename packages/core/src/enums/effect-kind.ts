@@ -31,6 +31,10 @@ export const EffectKind = {
   PostEntryHazard: "post_entry_hazard",
   /** Clear entry-hazard traps within a radius of the user (Tour Rapide / Anti-Brume). */
   RemoveEntryHazards: "remove_entry_hazards",
+  /** Post the persistent Imprison ("Possessif") volatile on the caster. */
+  PostImprison: "post_imprison",
+  /** Apply a one-shot Charge-Time tax on the target's next action (Dépit / spite). */
+  SpiteCtTax: "spite_ct_tax",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];
