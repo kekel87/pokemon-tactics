@@ -297,6 +297,8 @@ const fr: Translations = {
   "infoPanel.volatile.imprison": "Possessif",
   "infoPanel.volatile.healBlock": "Anti-Soin {turns}t",
   "infoPanel.volatile.wish": "Vœu",
+  "infoPanel.volatile.helpingHand": "Coup d'Main",
+  "infoPanel.volatile.perish": "Requiem {turns}t",
   "moveTooltip.tag.sound": "Sonore (ignore Clone)",
   "moveTooltip.tag.bypasssub": "Ignore Clone",
   "moveTooltip.tag.dynamicPower": "⚡ Puissance variable",

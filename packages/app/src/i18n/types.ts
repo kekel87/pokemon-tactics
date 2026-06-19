@@ -298,6 +298,8 @@ export interface Translations {
   "infoPanel.volatile.imprison": string;
   "infoPanel.volatile.healBlock": string;
   "infoPanel.volatile.wish": string;
+  "infoPanel.volatile.helpingHand": string;
+  "infoPanel.volatile.perish": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
   "moveTooltip.tag.dynamicPower": string;
