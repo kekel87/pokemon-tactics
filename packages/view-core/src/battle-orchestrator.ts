@@ -1216,7 +1216,7 @@ export class BattleOrchestrator {
           alpha: 1,
         });
       }
-      // Requiem (perish-song) death aura: a ☠ badge on the caster while it counts down.
+      // Requiem (perish-song) death aura: a 🎵 badge on the caster while it counts down.
       if (pokemon.currentHp > 0 && pokemon.perishAura !== undefined) {
         pushSpec(pokemon.id, {
           id: "perish-aura",

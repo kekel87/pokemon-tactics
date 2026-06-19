@@ -207,6 +207,19 @@ export function buildInfoPanelView(
     badges.push({ label: context.translate("infoPanel.volatile.wish"), variant: "volatile" });
   }
 
+  if (pokemon.helpingHand === true) {
+    badges.push({ label: context.translate("infoPanel.volatile.helpingHand"), variant: "buff" });
+  }
+
+  if (pokemon.perishAura !== undefined) {
+    badges.push({
+      label: context.translate("infoPanel.volatile.perish", {
+        turns: String(pokemon.perishAura.turnsRemaining),
+      }),
+      variant: "debuff",
+    });
+  }
+
   pushAuraBadges(context, badges, pokemon, state);
 
   return {

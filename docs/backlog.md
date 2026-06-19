@@ -4,6 +4,11 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
+### Orbe de vie qui « tick » plusieurs fois sur un move de zone (2026-06-19, playtest plan 133)
+- Observé pendant le playtest Delayed/countdown : sur un move de zone, l'orbe de PV semble se décrémenter en plusieurs paliers. Non reproduit/diagnostiqué (move exact + un-orbe-multi-paliers vs plusieurs-orbes non confirmés par l'humain).
+- Piste : `battle-orchestrator.applyEvents` — chemin multi-hit (`hitsByTarget > 1` → step pacé) vs AoE multi-cibles (1 `DamageDealt` par cible). Vérifier qu'un move de zone mono-coup ne déclenche pas le stepping multi-hit, et que le `syncBoard` final ne re-anime pas l'orbe.
+- Probablement pré-existant (hors plan 133 : le chemin dégâts de zone n'a pas été touché). À reproduire et trancher (bug vs comportement multi-coups normal).
+
 ### Toile Gluante absente du roster Gen 1 — invisible en Team Builder (2026-06-19, plan 131)
 - `sticky-web` n'est apprise par aucun Pokemon du roster Gen 1 actuel (learnset vérification data-miner plan 131).
 - Conséquence : Toile Gluante n'apparaît dans aucun movepool de Team Builder — le joueur ne peut pas la poser sans passer par le sandbox (`pnpm dev:sandbox '{...}'`).

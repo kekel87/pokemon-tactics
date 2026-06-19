@@ -297,6 +297,8 @@ const en: Translations = {
   "infoPanel.volatile.imprison": "Imprison",
   "infoPanel.volatile.healBlock": "Heal Block {turns}t",
   "infoPanel.volatile.wish": "Wish",
+  "infoPanel.volatile.helpingHand": "Helping Hand",
+  "infoPanel.volatile.perish": "Perish {turns}t",
   "moveTooltip.tag.sound": "Sound (bypasses Substitute)",
   "moveTooltip.tag.bypasssub": "Bypasses Substitute",
   "moveTooltip.tag.dynamicPower": "⚡ Variable power",
