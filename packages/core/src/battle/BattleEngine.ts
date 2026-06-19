@@ -97,9 +97,11 @@ import { timedVolatileTickHandler } from "./handlers/timed-volatile-tick-handler
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
 import { createWeatherTickHandler } from "./handlers/weather-tick-handler";
 import { wishTickHandler } from "./handlers/wish-tick-handler";
+import { isHealBlocked, isHealingMove } from "./heal-block-system";
 import { getHeightModifier } from "./height-modifier";
 import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
+import { collectImprisonedMoveIds } from "./imprison-system";
 import { resolveNaturePowerMove } from "./nature-power-system";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { computePressureBonus } from "./pressure";
@@ -577,6 +579,9 @@ export class BattleEngine {
       const encoredMoveId = currentPokemon.volatileStatuses.find(
         (v) => v.type === StatusType.Encored,
       )?.moveId;
+      // Possessif: aggregate the imprisoned move ids once (not per move).
+      const imprisonedMoveIds = collectImprisonedMoveIds(this.state, currentPokemon.playerId);
+      const healBlocked = isHealBlocked(currentPokemon);
 
       for (const moveId of currentPokemon.moveIds) {
         const move = this.moveRegistry.get(moveId);
@@ -585,6 +590,16 @@ export class BattleEngine {
         }
 
         if (isTaunted && move.category === Category.Status) {
+          continue;
+        }
+
+        // Possessif (imprison): a move shared with a living enemy that holds Imprisoning is sealed.
+        if (imprisonedMoveIds.has(moveId)) {
+          continue;
+        }
+
+        // Anti-Soin (Heal Block): a Heal-Blocked mon cannot select HP-restoring moves.
+        if (healBlocked && isHealingMove(move)) {
           continue;
         }
 
@@ -1006,6 +1021,15 @@ export class BattleEngine {
       };
       this.emit(encoreBlockedEvent);
       return { success: false, events: [encoreBlockedEvent], error: ActionError.InvalidAction };
+    }
+
+    // Possessif (imprison) + Anti-Soin (Heal Block) gates — defensive guards mirroring
+    // getLegalActions. The move simply isn't legal; no dedicated "blocked" event (like Snore).
+    if (collectImprisonedMoveIds(this.state, pokemon.playerId).has(moveId)) {
+      return { success: false, events: [], error: ActionError.InvalidAction };
+    }
+    if (isHealBlocked(pokemon) && isHealingMove(move)) {
+      return { success: false, events: [], error: ActionError.InvalidAction };
     }
 
     // Snore / Last Resort gates (B3) — defensive guards mirroring getLegalActions.
@@ -2575,6 +2599,7 @@ export class BattleEngine {
     pokemon.lockedMoveId = undefined;
     pokemon.substituteHp = undefined;
     pokemon.pendingWish = undefined;
+    pokemon.pendingCtPenalty = undefined;
     pokemon.volatileStatuses = [];
 
     for (const other of this.state.pokemon.values()) {
@@ -2880,11 +2905,18 @@ export class BattleEngine {
   /** Charge the acting mon's CT for the action it just completed (move / move-only / wait). */
   private payCtActionCost(pokemonId: string): void {
     const moveCost = this.computeCurrentMoveCost();
-    const actionCost = computeCtActionCost(
+    let actionCost = computeCtActionCost(
       this.turnState.hasMoved,
       this.turnState.hasActed,
       moveCost,
     );
+
+    // Dépit (spite): consume the one-shot CT tax on this mon's next completed action.
+    const pokemon = this.state.pokemon.get(pokemonId);
+    if (pokemon?.pendingCtPenalty !== undefined) {
+      actionCost += pokemon.pendingCtPenalty;
+      pokemon.pendingCtPenalty = undefined;
+    }
 
     this.chargeTimeTurnSystem.onActionComplete(pokemonId, actionCost);
     this.syncCtSnapshot();

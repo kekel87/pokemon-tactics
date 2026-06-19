@@ -5,6 +5,7 @@ import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 import type { EffectContext } from "../effect-handler-registry";
+import { isHealBlocked } from "../heal-block-system";
 import { getEffectiveStat } from "../stat-modifier";
 
 const BASE_STAT_KEYS = new Set<string>([
@@ -36,6 +37,10 @@ export function handleHealByTargetStat(context: EffectContext): BattleEvent[] {
     return [];
   }
   const caster = context.attacker;
+  // Anti-Soin (Heal Block): the caster gets no heal (the separate Attack-drop still applies).
+  if (isHealBlocked(caster)) {
+    return [{ type: BattleEventType.HealPrevented, pokemonId: caster.id }];
+  }
   const healed = Math.min(caster.maxHp - caster.currentHp, effectiveStatValue(target, effect.stat));
   if (healed <= 0) {
     return [];

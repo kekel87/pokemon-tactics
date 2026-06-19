@@ -1721,6 +1721,30 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Encore }],
     effectTier: EffectTier.MajorStatus,
   },
+  // --- Contrôle restant (plan 132) ---
+  imprison: {
+    // Possessif: persistent volatile on the caster — enemies cannot use any move the caster knows.
+    // MajorStatus cost: persistent, no timer, multi-target reach.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostImprison }],
+    effectTier: EffectTier.MajorStatus,
+  },
+  "psychic-noise": {
+    // Dissonance Psy: special damage + guaranteed Heal Block 2t. Sound move (reference flags
+    // sound + bypasssub) → bypasses Substitute, secondary applies through it. Cone like the other
+    // sound moves (Hyper Voix / Grondement / Murmure).
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.HealBlocked, chance: 100 },
+    ],
+  },
+  spite: {
+    // Dépit: PP removed (plan 128) → reinterpreted as a one-shot CT tax (tempo punishment).
+    // Single 1-3 like its control siblings (Provoc / Entrave / Encore). Standard status-move cost.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.SpiteCtTax }],
+  },
   // --- Content Batch G1 moves (dégâts pur physique, plan 102) ---
   // Riders complexes différés (cf. plan 102) : throat-chop sound-lock, lash-out/temper-flare/
   // fury-cutter power conditionnel, ice-spinner/steel-roller terrain, supercell-slam crash,

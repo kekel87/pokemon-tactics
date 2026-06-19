@@ -2,6 +2,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { StatusType } from "../../enums/status-type";
 import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
+import { isHealBlocked } from "../heal-block-system";
 import type { PhaseHandler, PhaseResult } from "../turn-pipeline";
 
 const AQUA_RING_FRACTION = 16;
@@ -43,8 +44,10 @@ export const hotTickHandler: PhaseHandler = (
 
   const hasAquaRing = pokemon.volatileStatuses.some((v) => v.type === StatusType.AquaRing);
   const ingrainIndex = pokemon.volatileStatuses.findIndex((v) => v.type === StatusType.Ingrain);
+  // Anti-Soin (Heal Block): the HoT volatiles persist but their ticks are suspended.
+  const blocked = isHealBlocked(pokemon);
 
-  if (hasAquaRing) {
+  if (hasAquaRing && !blocked) {
     const event = applyHeal(pokemon, AQUA_RING_FRACTION);
     if (event) {
       events.push(event);
@@ -60,7 +63,7 @@ export const hotTickHandler: PhaseHandler = (
         targetId: pokemon.id,
         status: StatusType.Ingrain,
       });
-    } else {
+    } else if (!blocked) {
       const event = applyHeal(pokemon, INGRAIN_FRACTION);
       if (event) {
         events.push(event);

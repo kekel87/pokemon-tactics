@@ -83,4 +83,9 @@ export interface PokemonInstance {
    * `actionCounter > castAtAction`. Follows the mon, not the tile.
    */
   pendingWish?: { healAmount: number; castAtAction: number };
+  /**
+   * One-shot Charge-Time tax from Dépit (spite). Added to this mon's `actionCost` on its next
+   * completed action, then cleared — delaying its following turn. Cleared on KO.
+   */
+  pendingCtPenalty?: number;
 }

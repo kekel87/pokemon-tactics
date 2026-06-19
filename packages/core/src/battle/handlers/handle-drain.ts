@@ -3,6 +3,7 @@ import type { EffectKind } from "../../enums/effect-kind";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import type { EffectContext } from "../effect-handler-registry";
+import { isHealBlocked } from "../heal-block-system";
 
 export function handleDrain(context: EffectContext): BattleEvent[] {
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.Drain }>;
@@ -10,6 +11,11 @@ export function handleDrain(context: EffectContext): BattleEvent[] {
 
   if (context.shared.lastDamageDealt <= 0) {
     return [];
+  }
+
+  // Anti-Soin (Heal Block): the damage already landed; only the heal portion is suppressed.
+  if (isHealBlocked(pokemon)) {
+    return [{ type: BattleEventType.HealPrevented, pokemonId: pokemon.id }];
   }
 
   const missing = pokemon.maxHp - pokemon.currentHp;

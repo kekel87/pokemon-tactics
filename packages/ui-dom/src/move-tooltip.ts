@@ -1,5 +1,5 @@
 import type { FieldTerrain, MoveDefinition } from "@pokemon-tactic/core";
-import { AttackStatSource, EffectKind, TargetingKind } from "@pokemon-tactic/core";
+import { AttackStatSource, EffectKind, StatusType, TargetingKind } from "@pokemon-tactic/core";
 import {
   type BlockedMoveTag,
   type MoveIntent,
@@ -118,6 +118,22 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   }
   if (move.effects.some((effect) => effect.kind === EffectKind.RemoveEntryHazards)) {
     keys.push("moveTooltip.tag.hazardRemover");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.PostImprison)) {
+    keys.push("moveTooltip.tag.imprison");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.SpiteCtTax)) {
+    keys.push("moveTooltip.tag.spite");
+  }
+  if (
+    move.effects.some(
+      (effect) =>
+        effect.kind === EffectKind.Status &&
+        (("status" in effect && effect.status === StatusType.HealBlocked) ||
+          ("statuses" in effect && effect.statuses.includes(StatusType.HealBlocked))),
+    )
+  ) {
+    keys.push("moveTooltip.tag.healBlock");
   }
   if (move.effects.some((effect) => effect.kind === EffectKind.CureTeamStatus)) {
     keys.push("moveTooltip.tag.cureTeamStatus");

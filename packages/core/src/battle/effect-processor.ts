@@ -29,11 +29,13 @@ import { handlePostDistortion } from "./handlers/handle-post-distortion";
 import { handlePostEntryHazard } from "./handlers/handle-post-entry-hazard";
 import { handlePostFieldTerrain } from "./handlers/handle-post-field-terrain";
 import { handlePostHealOverTime } from "./handlers/handle-post-heal-over-time";
+import { handlePostImprison } from "./handlers/handle-post-imprison";
 import { handlePostSubstitute } from "./handlers/handle-post-substitute";
 import { handlePostWish } from "./handlers/handle-post-wish";
 import { handleRecoil } from "./handlers/handle-recoil";
 import { handleRemoveEntryHazards } from "./handlers/handle-remove-entry-hazards";
 import { handleSetWeather } from "./handlers/handle-set-weather";
+import { handleSpiteCtTax } from "./handlers/handle-spite-ct-tax";
 import { handleStatChange } from "./handlers/handle-stat-change";
 import { handleStatus } from "./handlers/handle-status";
 import { handleTransferStatStages } from "./handlers/handle-transfer-stat-stages";
@@ -82,6 +84,8 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.PostDistortion, handlePostDistortion);
   registry.register(EffectKind.PostEntryHazard, handlePostEntryHazard);
   registry.register(EffectKind.RemoveEntryHazards, handleRemoveEntryHazards);
+  registry.register(EffectKind.PostImprison, handlePostImprison);
+  registry.register(EffectKind.SpiteCtTax, handleSpiteCtTax);
   return registry;
 }
 

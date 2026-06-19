@@ -6,6 +6,7 @@ import type { PokemonInstance } from "../../types/pokemon-instance";
 import { manhattanDistance } from "../../utils/manhattan-distance";
 import { effectConditionHolds } from "../condition-eval";
 import type { EffectContext } from "../effect-handler-registry";
+import { isHealBlocked } from "../heal-block-system";
 
 /**
  * Heals the move's resolved target(s) by a percent of each target's max HP (heal-pulse, pollen-puff
@@ -32,6 +33,11 @@ export function handleHealTarget(context: EffectContext): BattleEvent[] {
       effect.appliesIf !== undefined &&
       !effectConditionHolds(effect.appliesIf, context.attacker, recipient)
     ) {
+      continue;
+    }
+    // Anti-Soin (Heal Block): a blocked recipient receives nothing.
+    if (isHealBlocked(recipient)) {
+      events.push({ type: BattleEventType.HealPrevented, pokemonId: recipient.id });
       continue;
     }
     const healed = Math.min(

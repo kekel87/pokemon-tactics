@@ -68,12 +68,14 @@ const VOLATILE_LABEL: Partial<Record<StatusType, string>> = {
   [StatusType.Charged]: "status.charged",
   [StatusType.Ingrain]: "status.ingrain",
   [StatusType.AquaRing]: "status.aquaRing",
+  [StatusType.Imprisoning]: "infoPanel.volatile.imprison",
 };
 
 const TIMED_VOLATILE_LABEL: Partial<Record<StatusType, string>> = {
   [StatusType.Taunted]: "infoPanel.volatile.taunted",
   [StatusType.Disabled]: "infoPanel.volatile.disabled",
   [StatusType.Encored]: "infoPanel.volatile.encored",
+  [StatusType.HealBlocked]: "infoPanel.volatile.healBlock",
 };
 
 const AURA_KIND_LABEL: Record<AuraKind, string> = {

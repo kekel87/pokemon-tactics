@@ -168,6 +168,7 @@ function scoreUseMove(
   );
   const isDisableApplication = move.effects.some((effect) => effect.kind === EffectKind.Disable);
   const isEncoreApplication = move.effects.some((effect) => effect.kind === EffectKind.Encore);
+  const isSpiteApplication = move.effects.some((effect) => effect.kind === EffectKind.SpiteCtTax);
 
   if (hasEnemyDebuff) {
     score += weights.statChanges * 1.5;
@@ -178,11 +179,38 @@ function scoreUseMove(
     score += scoreEncoreApplication(targetsHit, moveRegistry, weights);
   } else if (isTauntApplication) {
     score += scoreTauntApplication(targetsHit, moveRegistry, weights);
+  } else if (isSpiteApplication) {
+    score += scoreSpiteApplication(targetsHit, weights, state);
   } else if (hasStatus) {
     score += weights.statChanges;
   }
 
   return score;
+}
+
+/**
+ * Dépit (spite): a CT tempo tax. Worth more on a target about to act (high CT), wasted on a mon
+ * behind a Substitute. Flat statChanges baseline, ×1.5 when the target's CT is near its threshold.
+ */
+const SPITE_HIGH_CT = 800;
+function scoreSpiteApplication(
+  targets: readonly PokemonInstance[],
+  weights: AiProfile["scoringWeights"],
+  state?: BattleState,
+): number {
+  let total = 0;
+  for (const target of targets) {
+    if (target.substituteHp !== undefined) {
+      continue;
+    }
+    let score = weights.statChanges;
+    const targetCt = state?.ctSnapshot?.[target.id];
+    if (targetCt !== undefined && targetCt >= SPITE_HIGH_CT) {
+      score *= 1.5;
+    }
+    total += score;
+  }
+  return total;
 }
 
 /**
@@ -638,6 +666,31 @@ function scoreSelfMove(
       }
     }
     return statusedAllies === 0 ? 0 : statusedAllies * weights.statChanges * 2;
+  }
+
+  // Possessif (imprison): worth it only when an enemy shares moves with us; best when it seals
+  // several. -1 if already active or nothing to seal.
+  const hasImprison = move.effects.some((effect) => effect.kind === EffectKind.PostImprison);
+  if (hasImprison) {
+    if (currentPokemon.volatileStatuses.some((v) => v.type === StatusType.Imprisoning)) {
+      return -1;
+    }
+    const myMoves = new Set(currentPokemon.moveIds);
+    let maxShared = 0;
+    for (const enemy of enemies) {
+      if (enemy.currentHp <= 0) {
+        continue;
+      }
+      const shared = enemy.moveIds.filter((id) => myMoves.has(id)).length;
+      if (shared > maxShared) {
+        maxShared = shared;
+      }
+    }
+    if (maxShared === 0) {
+      return -1;
+    }
+    const base = weights.statChanges * maxShared;
+    return maxShared >= 2 ? base * 1.5 : base;
   }
 
   if (!hasSelfBuff) {
