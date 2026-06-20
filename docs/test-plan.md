@@ -526,6 +526,15 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   <X> s'active ! » + « <X> est gravement empoisonné ! »). *Bandeau Muscle (`muscle-band`, ×1.1 phys) /
   Lunettes Sages (`wise-glasses`, ×1.1 spé) = simples multiplicateurs sans event → couverts unit
   (`battle/items/simple-held-items.test.ts`), non pilotés e2e → 👁.*
+- 🤖 **Objets de réaction au coup reçu** — une famille, pilotée de bout en bout
+  (`mechanics-abilities.spec`) : **Bulbe** (`absorb-bulb`, touché par un coup Eau → Atq. Spé. +1 puis
+  consommé). Le dummy Ronflex (Normal, neutre à l'Eau et endurant → survit au coup, requis car le hook
+  ne fire que si la cible est encore en vie) porte le Bulbe (`dummyHeldItem`), le joueur Tortank lance
+  Pistolet à O (Eau, 100 %) → « Bulbe de <X> s'active ! » + « Atq. Spé. de <X> augmente ! » (StatChanged) + « <X> a
+  utilisé son Bulbe » (HeldItemConsumed). *Pile (`cell-battery`, Élek → Atq +1), Boule de Neige
+  (`snowball`, Glace → Atq +1), Lichen Lumineux (`luminous-moss`, Eau → Déf. Spé. +1) partagent la
+  même factory (autre type/stat, même hook `onAfterDamageReceived`) → couverts unit
+  (`battle/items/type-reaction-items.test.ts`), non dupliqués e2e → 👁.*
 - 🤖 **Baies** — une par famille de mécanique, pilotées de bout en bout (`mechanics-abilities.spec`) :
   **Baie Pocpoc** (`passho-berry`, anti-type : ÷2 un coup Eau super-efficace, déclenché par un
   Pistolet à O sur l'Onix porteur) ; **Baie Lichii** (`liechi-berry`, pincement : +1 Atq à ≤25 % PV
@@ -938,7 +947,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) |
 | `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
-| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit |
+| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |

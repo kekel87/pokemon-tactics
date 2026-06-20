@@ -109,9 +109,9 @@ function typeResistBerry(id: HeldItemId, resistType: PokemonType): HeldItemHandl
   };
 }
 
-function applyPinchStatBoost(pokemon: PokemonInstance, stat: StatName): number {
+function raiseStatStage(pokemon: PokemonInstance, stat: StatName, stages = 1): number {
   const current = pokemon.statStages[stat] ?? 0;
-  const next = Math.min(6, current + PINCH_BERRY_STAGES);
+  const next = Math.min(6, current + stages);
   const applied = next - current;
   if (applied > 0) {
     pokemon.statStages[stat] = next;
@@ -128,7 +128,7 @@ function pinchStatBerry(id: HeldItemId, stat: StatName): HeldItemHandler {
       if (!isInPinch(target)) {
         return { events: [], consumeItem: false };
       }
-      const applied = applyPinchStatBoost(target, stat);
+      const applied = raiseStatStage(target, stat, PINCH_BERRY_STAGES);
       if (applied === 0) {
         return { events: [], consumeItem: false };
       }
@@ -145,7 +145,7 @@ function pinchStatBerry(id: HeldItemId, stat: StatName): HeldItemHandler {
       if (!isInPinch(pokemon)) {
         return [];
       }
-      const applied = applyPinchStatBoost(pokemon, stat);
+      const applied = raiseStatStage(pokemon, stat, PINCH_BERRY_STAGES);
       if (applied === 0) {
         return [];
       }
@@ -155,6 +155,33 @@ function pinchStatBerry(id: HeldItemId, stat: StatName): HeldItemHandler {
         { type: BattleEventType.StatChanged, targetId: pokemon.id, stat, stages: applied },
         { type: BattleEventType.HeldItemConsumed, pokemonId: pokemon.id, itemId: id },
       ];
+    },
+  };
+}
+
+function typeReactionItem(
+  id: HeldItemId,
+  triggerType: PokemonType,
+  stat: StatName,
+): HeldItemHandler {
+  return {
+    id,
+    onAfterDamageReceived: ({ target, move }) => {
+      if (move.type !== triggerType) {
+        return { events: [], consumeItem: false };
+      }
+      const applied = raiseStatStage(target, stat);
+      if (applied === 0) {
+        return { events: [], consumeItem: false };
+      }
+      return {
+        events: [
+          emitItemActivated(target, id),
+          { type: BattleEventType.StatChanged, targetId: target.id, stat, stages: applied },
+          { type: BattleEventType.HeldItemConsumed, pokemonId: target.id, itemId: id },
+        ],
+        consumeItem: true,
+      };
     },
   };
 }
@@ -642,6 +669,11 @@ export const itemHandlers: HeldItemHandler[] = [
   ),
 
   selfStatusOrb(HeldItemId.ToxicOrb, StatusType.BadlyPoisoned),
+
+  typeReactionItem(HeldItemId.AbsorbBulb, PokemonType.Water, StatName.SpAttack),
+  typeReactionItem(HeldItemId.CellBattery, PokemonType.Electric, StatName.Attack),
+  typeReactionItem(HeldItemId.Snowball, PokemonType.Ice, StatName.Attack),
+  typeReactionItem(HeldItemId.LuminousMoss, PokemonType.Water, StatName.SpDefense),
 
   {
     id: HeldItemId.MuscleBand,
