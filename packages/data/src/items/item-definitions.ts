@@ -26,8 +26,6 @@ const BLACK_SLUDGE_HEAL_FRACTION = 16;
 const BLACK_SLUDGE_DAMAGE_FRACTION = 8;
 const LEEK_CRIT_STAGES = 2;
 const THICK_CLUB_MOD = 2.0;
-const SALAC_THRESHOLD = 0.25;
-const SALAC_SPEED_STAGES = 1;
 const NORMAL_GEM_MOD = 1.3;
 const FARFETCH_D_DEFINITION_ID = "farfetch-d";
 const MAROWAK_DEFINITION_ID = "marowak";
@@ -46,6 +44,9 @@ const EVIOLITE_NFE_POKEMON_IDS = new Set<string>([
 ]);
 
 const TYPE_BOOST_MOD = 1.2;
+const TYPE_RESIST_MOD = 0.5;
+const PINCH_BERRY_THRESHOLD = 0.25;
+const PINCH_BERRY_STAGES = 1;
 
 function typeBoostItem(id: HeldItemId, boostType: PokemonType): HeldItemHandler {
   return {
@@ -55,6 +56,140 @@ function typeBoostItem(id: HeldItemId, boostType: PokemonType): HeldItemHandler 
         return 1.0;
       }
       return TYPE_BOOST_MOD;
+    },
+  };
+}
+
+function typeResistBerryTriggers(
+  moveType: PokemonType,
+  resistType: PokemonType,
+  superEffective: boolean,
+): boolean {
+  if (moveType !== resistType) {
+    return false;
+  }
+  return resistType === PokemonType.Normal || superEffective;
+}
+
+function typeResistBerry(id: HeldItemId, resistType: PokemonType): HeldItemHandler {
+  return {
+    id,
+    onDamageModify: (context) => {
+      if (context.isAttacker) {
+        return 1.0;
+      }
+      return typeResistBerryTriggers(context.move.type, resistType, context.effectiveness > 1)
+        ? TYPE_RESIST_MOD
+        : 1.0;
+    },
+    onAfterDamageReceived: ({ target, move, isSuperEffective }) => {
+      if (!typeResistBerryTriggers(move.type, resistType, isSuperEffective)) {
+        return { events: [], consumeItem: false };
+      }
+      return {
+        events: [
+          emitItemActivated(target, id),
+          { type: BattleEventType.HeldItemConsumed, pokemonId: target.id, itemId: id },
+        ],
+        consumeItem: true,
+      };
+    },
+  };
+}
+
+function applyPinchStatBoost(pokemon: PokemonInstance, stat: StatName): number {
+  const current = pokemon.statStages[stat] ?? 0;
+  const next = Math.min(6, current + PINCH_BERRY_STAGES);
+  const applied = next - current;
+  if (applied > 0) {
+    pokemon.statStages[stat] = next;
+  }
+  return applied;
+}
+
+function pinchStatBerry(id: HeldItemId, stat: StatName): HeldItemHandler {
+  const isInPinch = (pokemon: PokemonInstance): boolean =>
+    pokemon.currentHp > 0 && pokemon.currentHp / pokemon.maxHp <= PINCH_BERRY_THRESHOLD;
+  return {
+    id,
+    onAfterDamageReceived: ({ target }) => {
+      if (!isInPinch(target)) {
+        return { events: [], consumeItem: false };
+      }
+      const applied = applyPinchStatBoost(target, stat);
+      if (applied === 0) {
+        return { events: [], consumeItem: false };
+      }
+      return {
+        events: [
+          emitItemActivated(target, id),
+          { type: BattleEventType.StatChanged, targetId: target.id, stat, stages: applied },
+          { type: BattleEventType.HeldItemConsumed, pokemonId: target.id, itemId: id },
+        ],
+        consumeItem: true,
+      };
+    },
+    onEndTurn: ({ pokemon }) => {
+      if (!isInPinch(pokemon)) {
+        return [];
+      }
+      const applied = applyPinchStatBoost(pokemon, stat);
+      if (applied === 0) {
+        return [];
+      }
+      pokemon.heldItemId = undefined;
+      return [
+        emitItemActivated(pokemon, id),
+        { type: BattleEventType.StatChanged, targetId: pokemon.id, stat, stages: applied },
+        { type: BattleEventType.HeldItemConsumed, pokemonId: pokemon.id, itemId: id },
+      ];
+    },
+  };
+}
+
+function cureBerry(
+  id: HeldItemId,
+  statuses: StatusType[],
+  curesConfusion: boolean,
+): HeldItemHandler {
+  const cureSet = new Set<StatusType>(statuses);
+  return {
+    id,
+    onEndTurn: ({ pokemon }) => {
+      if (pokemon.currentHp <= 0) {
+        return [];
+      }
+      const removed: StatusType[] = [];
+      for (let i = pokemon.statusEffects.length - 1; i >= 0; i--) {
+        const status = pokemon.statusEffects[i];
+        if (status && cureSet.has(status.type)) {
+          removed.push(status.type);
+          pokemon.statusEffects.splice(i, 1);
+        }
+      }
+      if (curesConfusion) {
+        const confusionIndex = pokemon.volatileStatuses.findIndex(
+          (v) => v.type === StatusType.Confused,
+        );
+        if (confusionIndex !== -1) {
+          pokemon.volatileStatuses.splice(confusionIndex, 1);
+          removed.push(StatusType.Confused);
+        }
+      }
+      if (removed.length === 0) {
+        return [];
+      }
+      pokemon.heldItemId = undefined;
+      const events: BattleEvent[] = [emitItemActivated(pokemon, id)];
+      for (const status of removed) {
+        events.push({ type: BattleEventType.StatusRemoved, targetId: pokemon.id, status });
+      }
+      events.push({
+        type: BattleEventType.HeldItemConsumed,
+        pokemonId: pokemon.id,
+        itemId: id,
+      });
+      return events;
     },
   };
 }
@@ -403,71 +538,7 @@ export const itemHandlers: HeldItemHandler[] = [
     },
   },
 
-  {
-    id: HeldItemId.SalacBerry,
-    onAfterDamageReceived: ({ target }) => {
-      if (target.currentHp <= 0) {
-        return { events: [], consumeItem: false };
-      }
-      if (target.currentHp / target.maxHp > SALAC_THRESHOLD) {
-        return { events: [], consumeItem: false };
-      }
-      const currentSpeedStage = target.statStages[StatName.Speed] ?? 0;
-      const newSpeedStage = Math.min(6, currentSpeedStage + SALAC_SPEED_STAGES);
-      const actualBoost = newSpeedStage - currentSpeedStage;
-      if (actualBoost === 0) {
-        return { events: [], consumeItem: false };
-      }
-      target.statStages[StatName.Speed] = newSpeedStage;
-      return {
-        events: [
-          emitItemActivated(target, HeldItemId.SalacBerry),
-          {
-            type: BattleEventType.StatChanged,
-            targetId: target.id,
-            stat: StatName.Speed,
-            stages: actualBoost,
-          },
-          {
-            type: BattleEventType.HeldItemConsumed,
-            pokemonId: target.id,
-            itemId: HeldItemId.SalacBerry,
-          },
-        ],
-        consumeItem: true,
-      };
-    },
-    onEndTurn: ({ pokemon }) => {
-      if (pokemon.currentHp <= 0) {
-        return [];
-      }
-      if (pokemon.currentHp / pokemon.maxHp > SALAC_THRESHOLD) {
-        return [];
-      }
-      const currentSpeedStage = pokemon.statStages[StatName.Speed] ?? 0;
-      const newSpeedStage = Math.min(6, currentSpeedStage + SALAC_SPEED_STAGES);
-      const actualBoost = newSpeedStage - currentSpeedStage;
-      if (actualBoost === 0) {
-        return [];
-      }
-      pokemon.statStages[StatName.Speed] = newSpeedStage;
-      pokemon.heldItemId = undefined;
-      return [
-        emitItemActivated(pokemon, HeldItemId.SalacBerry),
-        {
-          type: BattleEventType.StatChanged,
-          targetId: pokemon.id,
-          stat: StatName.Speed,
-          stages: actualBoost,
-        },
-        {
-          type: BattleEventType.HeldItemConsumed,
-          pokemonId: pokemon.id,
-          itemId: HeldItemId.SalacBerry,
-        },
-      ];
-    },
-  },
+  pinchStatBerry(HeldItemId.SalacBerry, StatName.Speed),
 
   {
     id: HeldItemId.NormalGem,
@@ -523,4 +594,47 @@ export const itemHandlers: HeldItemHandler[] = [
   typeBoostItem(HeldItemId.BlackGlasses, PokemonType.Dark),
   typeBoostItem(HeldItemId.MetalCoat, PokemonType.Steel),
   typeBoostItem(HeldItemId.FairyFeather, PokemonType.Fairy),
+
+  typeResistBerry(HeldItemId.OccaBerry, PokemonType.Fire),
+  typeResistBerry(HeldItemId.PasshoBerry, PokemonType.Water),
+  typeResistBerry(HeldItemId.WacanBerry, PokemonType.Electric),
+  typeResistBerry(HeldItemId.RindoBerry, PokemonType.Grass),
+  typeResistBerry(HeldItemId.YacheBerry, PokemonType.Ice),
+  typeResistBerry(HeldItemId.ChopleBerry, PokemonType.Fighting),
+  typeResistBerry(HeldItemId.KebiaBerry, PokemonType.Poison),
+  typeResistBerry(HeldItemId.ShucaBerry, PokemonType.Ground),
+  typeResistBerry(HeldItemId.CobaBerry, PokemonType.Flying),
+  typeResistBerry(HeldItemId.PayapaBerry, PokemonType.Psychic),
+  typeResistBerry(HeldItemId.TangaBerry, PokemonType.Bug),
+  typeResistBerry(HeldItemId.ChartiBerry, PokemonType.Rock),
+  typeResistBerry(HeldItemId.KasibBerry, PokemonType.Ghost),
+  typeResistBerry(HeldItemId.HabanBerry, PokemonType.Dragon),
+  typeResistBerry(HeldItemId.ColburBerry, PokemonType.Dark),
+  typeResistBerry(HeldItemId.BabiriBerry, PokemonType.Steel),
+  typeResistBerry(HeldItemId.ChilanBerry, PokemonType.Normal),
+  typeResistBerry(HeldItemId.RoseliBerry, PokemonType.Fairy),
+
+  pinchStatBerry(HeldItemId.LiechiBerry, StatName.Attack),
+  pinchStatBerry(HeldItemId.GanlonBerry, StatName.Defense),
+  pinchStatBerry(HeldItemId.PetayaBerry, StatName.SpAttack),
+  pinchStatBerry(HeldItemId.ApicotBerry, StatName.SpDefense),
+
+  cureBerry(HeldItemId.CheriBerry, [StatusType.Paralyzed], false),
+  cureBerry(HeldItemId.ChestoBerry, [StatusType.Asleep], false),
+  cureBerry(HeldItemId.PechaBerry, [StatusType.Poisoned, StatusType.BadlyPoisoned], false),
+  cureBerry(HeldItemId.RawstBerry, [StatusType.Burned], false),
+  cureBerry(HeldItemId.AspearBerry, [StatusType.Frozen], false),
+  cureBerry(HeldItemId.PersimBerry, [], true),
+  cureBerry(
+    HeldItemId.LumBerry,
+    [
+      StatusType.Burned,
+      StatusType.Paralyzed,
+      StatusType.Poisoned,
+      StatusType.BadlyPoisoned,
+      StatusType.Frozen,
+      StatusType.Asleep,
+    ],
+    true,
+  ),
 ];
