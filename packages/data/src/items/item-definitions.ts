@@ -2,7 +2,9 @@ import type { BattleEvent, HeldItemHandler, PokemonInstance } from "@pokemon-tac
 import {
   BattleEventType,
   Category,
+  FieldTerrain,
   HeldItemId,
+  isOnFieldTerrain,
   PokemonType,
   StatName,
   StatusType,
@@ -182,6 +184,27 @@ function typeReactionItem(
         ],
         consumeItem: true,
       };
+    },
+  };
+}
+
+function terrainSeedItem(id: HeldItemId, terrain: FieldTerrain, stat: StatName): HeldItemHandler {
+  return {
+    id,
+    onEndTurn: ({ pokemon, state, selfTypes }) => {
+      if (!isOnFieldTerrain(state, pokemon, selfTypes, terrain)) {
+        return [];
+      }
+      const applied = raiseStatStage(pokemon, stat);
+      if (applied === 0) {
+        return [];
+      }
+      pokemon.heldItemId = undefined;
+      return [
+        emitItemActivated(pokemon, id),
+        { type: BattleEventType.StatChanged, targetId: pokemon.id, stat, stages: applied },
+        { type: BattleEventType.HeldItemConsumed, pokemonId: pokemon.id, itemId: id },
+      ];
     },
   };
 }
@@ -686,6 +709,11 @@ export const itemHandlers: HeldItemHandler[] = [
   typeReactionItem(HeldItemId.CellBattery, PokemonType.Electric, StatName.Attack),
   typeReactionItem(HeldItemId.Snowball, PokemonType.Ice, StatName.Attack),
   typeReactionItem(HeldItemId.LuminousMoss, PokemonType.Water, StatName.SpDefense),
+
+  terrainSeedItem(HeldItemId.ElectricSeed, FieldTerrain.Electric, StatName.Defense),
+  terrainSeedItem(HeldItemId.GrassySeed, FieldTerrain.Grassy, StatName.Defense),
+  terrainSeedItem(HeldItemId.PsychicSeed, FieldTerrain.Psychic, StatName.SpDefense),
+  terrainSeedItem(HeldItemId.MistySeed, FieldTerrain.Misty, StatName.SpDefense),
 
   {
     id: HeldItemId.MuscleBand,
