@@ -235,9 +235,9 @@ export function getLegalAbilitiesForPokemon(pokemonId: string): readonly string[
   return Array.from(data.registry.validator.getLegalAbilities(pokemonId));
 }
 
-export function getPortraitUrl(pokemonId: string): string {
-  return `assets/sprites/pokemon/${pokemonId}/portrait-normal.png`;
-}
+// Portrait URLs are cropped from the bundled portrait sheet (plan 135) — see
+// `portrait-sheet.ts`. Re-exported here so existing consumers' import path is unchanged.
+export { getPortraitUrl } from "./portrait-sheet.js";
 
 export function getTeamBuilderRegistry(): TeamBuilderRegistry {
   return getCache().registry;

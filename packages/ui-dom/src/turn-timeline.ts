@@ -50,6 +50,10 @@ function entryElement(
   portrait.alt = "";
   portrait.loading = "lazy";
   portrait.decoding = "async";
+  // Species id as a stable data attribute: portraits are now cropped data URLs from the
+  // bundle sheet (plan 135), so the src no longer carries the id. Tests + any consumer that
+  // needs to identify a timeline slot key off this, not the URL.
+  portrait.dataset.pokemonId = entry.definitionId;
   portrait.src = config.getPortraitUrl(entry.definitionId);
   node.append(portrait);
 

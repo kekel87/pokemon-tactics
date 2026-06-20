@@ -33,6 +33,7 @@ import { createMyTeamsScreen } from "./ui/dom/screens/my-teams-screen.js";
 import { createSettingsScreen } from "./ui/dom/screens/settings-screen.js";
 import { createTeamEditScreen } from "./ui/dom/screens/team-edit-screen.js";
 import { createTeamSelectScreen } from "./ui/dom/screens/team-select-screen.js";
+import { runSplash } from "./ui/SplashScreen.js";
 
 const root = document.getElementById("game-root");
 if (!root) {
@@ -87,52 +88,60 @@ function resolveSandboxConfig(): SandboxConfig {
 }
 const sandboxConfig: SandboxConfig = resolveSandboxConfig();
 
-if (query.has("preview")) {
-  document.getElementById("hint")?.removeAttribute("hidden");
-  const stage = mountGameStage(root);
-  createBabylonPreview({
-    canvas: stage.canvas,
-    worldLayer: stage.worldLayer,
-    screenLayer: stage.screenLayer,
-    mapUrl,
-    pokemon: DEMO_POKEMON,
-  });
-} else {
-  const reportScreenError = (error: unknown): void => {
-    // biome-ignore lint/suspicious/noConsole: surfacing a failed screen transition (otherwise swallowed by the FSM chain)
-    console.error(error);
-  };
-  const navigate: Navigate = (id, params) => {
-    manager.navigate(id, params).catch(reportScreenError);
-  };
-  const manager = new ScreenManager(root, {
-    "main-menu": () => createMainMenuScreen(navigate),
-    "battle-mode": () => createBattleModeScreen(navigate),
-    "map-select": () => createMapSelectScreen(navigate),
-    "team-select": () => createTeamSelectScreen(navigate),
-    "my-teams": () => createMyTeamsScreen(navigate),
-    "team-edit": () => createTeamEditScreen(navigate),
-    settings: () => createSettingsScreen(navigate),
-    credits: () => createCreditsScreen(navigate),
-    combat: () => createCombatScreen(navigate, backend),
-  });
-  if (sandboxEnabled) {
-    // The sandbox studio is mounted directly (not via the manager), so "Back to
-    // menu" is a boot-level entry, not a guarded in-app navigation: tear down the
-    // studio chrome + battle, then `start` (unguarded) the main menu.
-    const studio = mountSandboxStudio(
-      root,
-      sandboxConfig,
-      (id, params) => {
-        studio.dispose();
-        teardownSandboxStudioDom();
-        manager.start(id, params).catch(reportScreenError);
-      },
-      backend,
-    );
-  } else if (query.has("combat")) {
-    manager.start("combat", { mapUrl }).catch(reportScreenError);
+async function boot(root: HTMLElement): Promise<void> {
+  // Splash gate (plan 135): download the sprite bundle + decode the portrait sheet before
+  // any screen renders a Pokemon. One gate covers every boot path (menu/combat/preview/sandbox).
+  await runSplash(root);
+
+  if (query.has("preview")) {
+    document.getElementById("hint")?.removeAttribute("hidden");
+    const stage = mountGameStage(root);
+    createBabylonPreview({
+      canvas: stage.canvas,
+      worldLayer: stage.worldLayer,
+      screenLayer: stage.screenLayer,
+      mapUrl,
+      pokemon: DEMO_POKEMON,
+    });
   } else {
-    manager.start("main-menu", undefined).catch(reportScreenError);
+    const reportScreenError = (error: unknown): void => {
+      // biome-ignore lint/suspicious/noConsole: surfacing a failed screen transition (otherwise swallowed by the FSM chain)
+      console.error(error);
+    };
+    const navigate: Navigate = (id, params) => {
+      manager.navigate(id, params).catch(reportScreenError);
+    };
+    const manager = new ScreenManager(root, {
+      "main-menu": () => createMainMenuScreen(navigate),
+      "battle-mode": () => createBattleModeScreen(navigate),
+      "map-select": () => createMapSelectScreen(navigate),
+      "team-select": () => createTeamSelectScreen(navigate),
+      "my-teams": () => createMyTeamsScreen(navigate),
+      "team-edit": () => createTeamEditScreen(navigate),
+      settings: () => createSettingsScreen(navigate),
+      credits: () => createCreditsScreen(navigate),
+      combat: () => createCombatScreen(navigate, backend),
+    });
+    if (sandboxEnabled) {
+      // The sandbox studio is mounted directly (not via the manager), so "Back to
+      // menu" is a boot-level entry, not a guarded in-app navigation: tear down the
+      // studio chrome + battle, then `start` (unguarded) the main menu.
+      const studio = mountSandboxStudio(
+        root,
+        sandboxConfig,
+        (id, params) => {
+          studio.dispose();
+          teardownSandboxStudioDom();
+          manager.start(id, params).catch(reportScreenError);
+        },
+        backend,
+      );
+    } else if (query.has("combat")) {
+      manager.start("combat", { mapUrl }).catch(reportScreenError);
+    } else {
+      manager.start("main-menu", undefined).catch(reportScreenError);
+    }
   }
 }
+
+void boot(root);

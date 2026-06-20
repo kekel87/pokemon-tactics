@@ -25,5 +25,9 @@ export class MainMenu {
 
   async goto(): Promise<void> {
     await this.page.goto("/");
+    // Boot now shows a splash that downloads the sprite bundle before the menu mounts
+    // (plan 135). Wait for it to dismiss so menu locators resolve instead of racing the
+    // download. Resolves immediately when the splash is already gone.
+    await this.page.getByTestId("splash").waitFor({ state: "detached" });
   }
 }

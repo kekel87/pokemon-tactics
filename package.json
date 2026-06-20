@@ -22,6 +22,7 @@
     "lint:fix": "biome check --write .",
     "typecheck": "pnpm -r --parallel run typecheck",
     "extract-sprites": "tsx scripts/extract-sprites.ts",
+    "pack-sprites": "tsx scripts/pack-sprites.ts",
     "download-status-icons": "tsx scripts/download-status-icons.ts",
     "replay:generate": "tsx scripts/generate-golden-replay.ts",
     "data:update": "pnpm --filter @pokemon-tactic/data run data:update",

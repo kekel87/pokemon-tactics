@@ -208,7 +208,11 @@ pokemon-tactics/
 │   │   │   └── main.ts          # Câble DI (PresentationContext, UiDomConfig) au boot
 │   │   ├── public/
 │   │   │   └── assets/
-│   │   │       ├── sprites/pokemon/{name}/  # atlas.json, atlas.png, portrait-normal.png, credits.txt, offsets.json (générés)
+│   │   │       ├── sprites/                 # Bundle sprites (plan 135, décisions #539–#543)
+│   │   │       │   ├── sprites.bin          # Atlas PNG+JSON de tous les Pokemon concaténés (commité, shippé)
+│   │   │       │   ├── sprites-manifest.json # Index léger : byte-ranges, offsets PMD, index portraits (commité, shippé)
+│   │   │       │   ├── portraits.png        # Sheet unique portraits 40×40 grille 32 cols (commité, shippé)
+│   │   │       │   └── pokemon/*/           # Dossiers per-Pokemon GITIGNORÉS (source/cache dev, non shippés)
 │   │   │       ├── tilesets/terrain/        # tileset.png + tileset.tsj (Tiled externe partagé)
 │   │   │       ├── tilesets/terrain-3d/     # 15 textures PMD plates pour Babylon
 │   │   │       ├── maps/                    # Cartes Tiled (.tmj) servies au runtime
@@ -226,7 +230,7 @@ pokemon-tactics/
 │       ├── src/
 │       │   ├── abilities/       # Définitions talents : ability-definitions.ts (20 AbilityDefinition), index.ts
 │       │   ├── items/           # Définitions objets tenus : item-definitions.ts (12 HeldItemDefinition), load-items.ts
-│       │   ├── playable/        # Roster jouable : playable-pokemon.ts — 80 Pokemon Gen 1 + dummy. `PlayablePokemonEntry { id; custom?; excludeMoves? }` — movepool dérivé (OP sets ∪ learnset ∩ implémenté, filtré par `excludeMoves`). `excludeMoves` = exclusion ciblée d'un move du movepool même si légal+implémenté (ex: Vaste Pouvoir exclu de Mewtwo, décision #446). (plan 087, plan 118)
+│       │   ├── playable/        # Roster jouable : playable-pokemon.ts — **150 Pokemon Gen 1** + dummy (plan 135, décision #542). `PlayablePokemonEntry { id; custom?; excludeMoves? }` — movepool dérivé (OP sets ∪ learnset ∩ implémenté, filtré par `excludeMoves`). `excludeMoves` = exclusion ciblée d'un move du movepool même si légal+implémenté (ex: Vaste Pouvoir exclu de Mewtwo, décision #446). (plan 087, plan 118, plan 135)
 │       │   ├── loaders/         # Loaders séparés : load-pokemon.ts, load-moves.ts, load-type-chart.ts (plan 049)
 │       │   ├── overrides/       # Surcharges tactiques + balance
 │       │   ├── maps/            # Cartes statiques TS (poc-arena 12×20, sandbox-arena 6×6)
@@ -262,10 +266,11 @@ pokemon-tactics/
 │   ├── pages/                   # POMs : MainMenu, CombatScene, screens, teamBuilder
 │   └── tests/                   # smoke/ + dom/ + combat/ + visual/ — 51 tests (50 passants + 1 fixme)
 ├── scripts/                     # Outils de build one-shot (non packagés)
-│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → atlas (JSON + PNG, compatible Babylon) (inclut Sleep depuis plan 018)
+│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → dossiers per-Pokemon (atlas JSON+PNG, offsets) — source/cache dev, gitignorés (plan 135)
+│   ├── pack-sprites.ts          # NOUVEAU (plan 135) : lit les dossiers per-Pokemon → émet sprites.bin + sprites-manifest.json + portraits.png dans public/assets/sprites/
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
 │   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
-│   ├── sprite-config.json
+│   ├── sprite-config.json       # +51 entrées (plan 135) → couvre les 150 Pokemon Gen 1
 │   └── map-preview.js           # Vite helper pour pnpm dev:map
 ├── .worktrees/                  # Git worktrees (gitignored) — voir section "Workflow worktrees"
 │   └── <branche-slug>/          # Un répertoire par worktree actif
@@ -604,28 +609,48 @@ Vérifie au démarrage :
 
 ## 7. Pipeline sprites PMDCollab
 
-Sprites extraits depuis [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) par script one-shot (`scripts/extract-sprites.ts`).
+Sprites extraits depuis [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) par script one-shot (`scripts/extract-sprites.ts`), puis packés par `scripts/pack-sprites.ts` (plan 135, décisions #539–#543).
+
+### Pipeline build (2 passes)
 
 ```
 PMDCollab GitHub (raw)
   └── AnimData.xml + {Anim}-Anim.png + Idle-Offsets.png + PortraitSheet.png + credits.txt
         │  (téléchargement + parse fast-xml-parser)
         ▼
-scripts/extract-sprites.ts  ←  scripts/sprite-config.json
+[pnpm extract-sprites]
+scripts/extract-sprites.ts  ←  scripts/sprite-config.json (150 entrées Gen 1)
         │  (découpe frames via sharp, génère atlas, parse pixels offsets)
         ▼
-packages/app/public/assets/sprites/pokemon/{name}/
+packages/app/public/assets/sprites/pokemon/{name}/  ← GITIGNORÉS (source/cache dev)
   ├── atlas.json          # Descripteur d'atlas sprite (frames + metadata, compatible Babylon)
   ├── atlas.png           # Spritesheet combiné (toutes anims + directions)
   ├── portrait-normal.png # Portrait 40x40 (émotion Normal)
-  ├── offsets.json        # Offsets par Pokemon : shadowOffsetY, bodyOffset, headOffset (générés)
-  └── credits.txt         # Attribution artiste (CC BY-NC 4.0)
+  ├── offsets.json        # Offsets par Pokemon : footOffsetY, headOffsetY, shadowSize
+  └── credits.txt         # Attribution artiste (CC BY-NC 4.0) — strippé du bundle dist
+
+        │
+        ▼ [pnpm pack-sprites]
+scripts/pack-sprites.ts
+        │  (concatène atlas, compose sheet portraits, émet manifeste)
+        ▼
+packages/app/public/assets/sprites/  ← commités/shippés (3 fichiers)
+  ├── sprites.bin              # Tous les atlas PNG+JSON concaténés (Gen 1 ≈ 33 Mo)
+  ├── sprites-manifest.json    # Index léger : byte-ranges, offsets PMD, index portraits
+  └── portraits.png            # Sheet unique 40×40, grille 32 cols
 ```
+
+### Flux runtime
+
+- **Boot (SplashScreen)** : `loadSpriteBundle()` dans `packages/view-core/src/sprite-bundle.ts` — `fetch('sprites.bin')` complet + manifeste + portraits, barre de progression, octets gardés en RAM. Cache navigateur → reloads instantanés, offline OK après 1er load.
+- **Par combattant (lazy)** : `getAtlasBlobUrl(id)` slice le `.bin` aux offsets du manifeste → `Blob` → `URL.createObjectURL` → `new Texture(blobUrl, scene)`. Upload GPU seulement pour les ~12 combattants actifs — VRAM identique à l'ancien pipeline.
+- **Cache applicatif** : `Map<pokemonId, blobUrl>` permanent par session (décision #541 — pas de révocation). Combat suivant réutilise les URLs sans refetch.
+- **Portraits** : `getPortraitStyle(id)` retourne `{backgroundImage, backgroundPosition, backgroundSize}` pointant vers `portraits.png` à l'index du manifeste — remplace les anciennes URLs `portrait-normal.png` individuelles.
 
 **Clés d'animation atlas** : `{pokemonId}-{anim}-{direction}` (ex : `bulbasaur-idle-south`)
 
 **DirectionalBillboard** (`packages/render-babylon/src/directional-billboard.ts`) :
-- Charge atlas PMDCollab + `offsets.json` (footOffsetY, headOffsetY) via `BABYLON_SPRITE_GROUND_OFFSET_PX` fallback
+- Reçoit désormais un **bundle pré-résolu** `{ atlasBlobUrl, atlasJson, offsets }` au lieu d'URLs de fichiers (plan 135)
 - Animations : LOOPING_ANIMATIONS (Idle/Walk/Sleep/FlapAround/Hover/Special0/Special10/FlyingIdle), `setAnimation` / `playOnce` / `playFirstAvailable`
 - États : `setActive` (pulse respiration), `flashDamage` (flash émissif), `setKnockedOut` (teinte sombre + freeze), `setSemiInvulnerable`
 - Synthèse FlyingIdle depuis FlapAround frames 0-1
