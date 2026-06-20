@@ -510,6 +510,13 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
 
 ### 5.14 Talents & objets
 - 🤖 Interaction : **Intimidation** (talent, baisse l'Atq adverse à l'entrée) + **Restes** (objet, soin de fin de tour) journalisés — `mechanics-abilities.spec` (config `dummyAbility`/`heldItem`).
+- 🤖 **Objets tenus simples à event** — un par mécanique, pilotés de bout en bout (`mechanics-abilities.spec`) :
+  **Grelot Coque** (`shell-bell`, soin post-coup : porteur blessé qui attaque → 1/8 des dégâts rendus,
+  « Grelot Coque de <X> s'active ! » + « <X> récupère N PV ») ; **Orbe Toxique** (`toxic-orb`,
+  auto-statut : empoisonne gravement le porteur en fin de tour sans statut majeur, « Orbe Toxique de
+  <X> s'active ! » + « <X> est gravement empoisonné ! »). *Bandeau Muscle (`muscle-band`, ×1.1 phys) /
+  Lunettes Sages (`wise-glasses`, ×1.1 spé) = simples multiplicateurs sans event → couverts unit
+  (`battle/items/simple-held-items.test.ts`), non pilotés e2e → 👁.*
 - 🤖 **Baies** — une par famille de mécanique, pilotées de bout en bout (`mechanics-abilities.spec`) :
   **Baie Pocpoc** (`passho-berry`, anti-type : ÷2 un coup Eau super-efficace, déclenché par un
   Pistolet à O sur l'Onix porteur) ; **Baie Lichii** (`liechi-berry`, pincement : +1 Atq à ≤25 % PV
@@ -912,7 +919,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) |
 | `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
-| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) journalisés |
+| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |

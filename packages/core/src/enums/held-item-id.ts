@@ -70,6 +70,10 @@ export const HeldItemId = {
   AspearBerry: "aspear-berry",
   PersimBerry: "persim-berry",
   LumBerry: "lum-berry",
+  ToxicOrb: "toxic-orb",
+  MuscleBand: "muscle-band",
+  WiseGlasses: "wise-glasses",
+  ShellBell: "shell-bell",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];

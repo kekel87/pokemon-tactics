@@ -27,6 +27,18 @@ const BLACK_SLUDGE_DAMAGE_FRACTION = 8;
 const LEEK_CRIT_STAGES = 2;
 const THICK_CLUB_MOD = 2.0;
 const NORMAL_GEM_MOD = 1.3;
+const MUSCLE_BAND_MOD = 1.1;
+const WISE_GLASSES_MOD = 1.1;
+const SHELL_BELL_HEAL_FRACTION = 8;
+
+const MAJOR_STATUSES: readonly StatusType[] = [
+  StatusType.Burned,
+  StatusType.Frozen,
+  StatusType.Paralyzed,
+  StatusType.Poisoned,
+  StatusType.BadlyPoisoned,
+  StatusType.Asleep,
+];
 const FARFETCH_D_DEFINITION_ID = "farfetch-d";
 const MAROWAK_DEFINITION_ID = "marowak";
 
@@ -142,6 +154,25 @@ function pinchStatBerry(id: HeldItemId, stat: StatName): HeldItemHandler {
         emitItemActivated(pokemon, id),
         { type: BattleEventType.StatChanged, targetId: pokemon.id, stat, stages: applied },
         { type: BattleEventType.HeldItemConsumed, pokemonId: pokemon.id, itemId: id },
+      ];
+    },
+  };
+}
+
+function selfStatusOrb(id: HeldItemId, status: StatusType): HeldItemHandler {
+  return {
+    id,
+    onEndTurn: ({ pokemon }) => {
+      if (pokemon.statusEffects.some((s) => MAJOR_STATUSES.includes(s.type))) {
+        return [];
+      }
+      pokemon.statusEffects.push({ type: status, remainingTurns: null });
+      if (status === StatusType.BadlyPoisoned) {
+        pokemon.toxicCounter = 0;
+      }
+      return [
+        emitItemActivated(pokemon, id),
+        { type: BattleEventType.StatusApplied, targetId: pokemon.id, status },
       ];
     },
   };
@@ -508,35 +539,7 @@ export const itemHandlers: HeldItemHandler[] = [
     },
   },
 
-  {
-    id: HeldItemId.FlameOrb,
-    onEndTurn: ({ pokemon }) => {
-      if (pokemon.statusEffects.some((s) => s.type === StatusType.Burned)) {
-        return [];
-      }
-      if (
-        pokemon.statusEffects.some(
-          (s) =>
-            s.type === StatusType.Frozen ||
-            s.type === StatusType.Paralyzed ||
-            s.type === StatusType.Poisoned ||
-            s.type === StatusType.BadlyPoisoned ||
-            s.type === StatusType.Asleep,
-        )
-      ) {
-        return [];
-      }
-      pokemon.statusEffects.push({ type: StatusType.Burned, remainingTurns: null });
-      return [
-        emitItemActivated(pokemon, HeldItemId.FlameOrb),
-        {
-          type: BattleEventType.StatusApplied,
-          targetId: pokemon.id,
-          status: StatusType.Burned,
-        },
-      ];
-    },
-  },
+  selfStatusOrb(HeldItemId.FlameOrb, StatusType.Burned),
 
   pinchStatBerry(HeldItemId.SalacBerry, StatName.Speed),
 
@@ -637,4 +640,45 @@ export const itemHandlers: HeldItemHandler[] = [
     ],
     true,
   ),
+
+  selfStatusOrb(HeldItemId.ToxicOrb, StatusType.BadlyPoisoned),
+
+  {
+    id: HeldItemId.MuscleBand,
+    onDamageModify: (context) => {
+      if (!context.isAttacker || context.move.category !== Category.Physical) {
+        return 1.0;
+      }
+      return MUSCLE_BAND_MOD;
+    },
+  },
+
+  {
+    id: HeldItemId.WiseGlasses,
+    onDamageModify: (context) => {
+      if (!context.isAttacker || context.move.category !== Category.Special) {
+        return 1.0;
+      }
+      return WISE_GLASSES_MOD;
+    },
+  },
+
+  {
+    id: HeldItemId.ShellBell,
+    onAfterMoveDamageDealt: ({ attacker, damageDealt }) => {
+      if (damageDealt <= 0 || attacker.currentHp >= attacker.maxHp) {
+        return [];
+      }
+      const heal = Math.max(1, Math.floor(damageDealt / SHELL_BELL_HEAL_FRACTION));
+      attacker.currentHp = Math.min(attacker.maxHp, attacker.currentHp + heal);
+      return [
+        emitItemActivated(attacker, HeldItemId.ShellBell),
+        {
+          type: BattleEventType.HpRestored,
+          pokemonId: attacker.id,
+          amount: heal,
+        },
+      ];
+    },
+  },
 ];
