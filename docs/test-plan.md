@@ -535,6 +535,15 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   (`snowball`, Glace → Atq +1), Lichen Lumineux (`luminous-moss`, Eau → Déf. Spé. +1) partagent la
   même factory (autre type/stat, même hook `onAfterDamageReceived`) → couverts unit
   (`battle/items/type-reaction-items.test.ts`), non dupliqués e2e → 👁.*
+- 🤖 **Granules de terrain** — une famille, pilotée de bout en bout (`mechanics-abilities.spec`) :
+  **Graine Électrik** (`electric-seed`, sur le Champ Électrifié → Déf +1 en fin de tour puis consommée,
+  hook `onEndTurn` + `getFieldTerrainAt`). La sandbox ne pré-pose aucun champ → le porteur Florizarre
+  (`heldItem`) lance Champ Électrifié (`electric-terrain`, Self, forcé via `moves`) qui déploie la zone
+  (rayon 3) sous lui, puis `endTurn()` fait jouer le hook → « Graine Électrik de <X> s'active ! » + « Défense de
+  <X> augmente ! » (StatChanged) + « <X> a utilisé son Graine Électrik » (HeldItemConsumed). *Graine Herbe
+  (`grassy-seed`, Champ Herbu → Déf +1), Graine Psychique (`psychic-seed`, Champ Psychique → Déf. Spé. +1),
+  Graine Brume (`misty-seed`, Champ Brumeux → Déf. Spé. +1) partagent la même factory (autre champ/stat,
+  même hook) → couvertes unit (`battle/items/terrain-seed-items.test.ts`), non dupliquées e2e → 👁.*
 - 🤖 **Baies** — une par famille de mécanique, pilotées de bout en bout (`mechanics-abilities.spec`) :
   **Baie Pocpoc** (`passho-berry`, anti-type : ÷2 un coup Eau super-efficace, déclenché par un
   Pistolet à O sur l'Onix porteur) ; **Baie Lichii** (`liechi-berry`, pincement : +1 Atq à ≤25 % PV
@@ -956,7 +965,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) |
 | `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
-| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit |
+| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) + Graine Électrik (granule de terrain : pose Champ Électrifié sous soi → fin de tour Déf +1 + consommée, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit ; Graine Herbe / Graine Psychique / Graine Brume (même factory) = unit |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |

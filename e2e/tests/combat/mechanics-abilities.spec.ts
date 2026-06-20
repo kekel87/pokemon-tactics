@@ -136,3 +136,30 @@ test("§5.14 objet tenu : Orbe Toxique empoisonne gravement en fin de tour (jour
   await expect(log(page, /Orbe Toxique de .* s'active/)).toBeAttached({ timeout: 10_000 });
   await expect(log(page, /est gravement empoisonné/)).toBeAttached();
 });
+
+// Granule de terrain (terrain-seed) : Graine Électrik (electric-seed) — quand le porteur est sur le
+// Champ Électrifié, en fin de tour il gagne +1 Défense puis la graine est consommée (hook onEndTurn
+// + getFieldTerrainAt). La sandbox ne pré-pose AUCUN champ → le porteur doit le poser lui-même :
+// Florizarre tient la Graine Électrik (`heldItem`) et lance Champ Électrifié (`electric-terrain`,
+// Self, status sans jet → forcé hors-pool via `moves`), qui déploie la zone (rayon 3) centrée sous
+// lui → sa propre tuile est sur le champ. Le cast ne déclenche pas encore la fin de tour (cf.
+// weather.spec : le tick de fin de tour est distinct du cast) → l'`endTurn()` qui suit fait jouer le
+// hook : « Graine Électrik de <X> s'active ! » + « Défense de <X> augmente ! » (StatChanged) + « <X> a
+// utilisé son Graine Électrik » (HeldItemConsumed). Cast déterministe (Self, aucun jet). *Graine
+// Herbe / Graine Psychique / Graine Brume partagent la même factory (autre champ/stat, même hook) →
+// couvertes unit (`battle/items/terrain-seed-items.test.ts`), non dupliquées e2e → 👁.*
+test("§5.14 granule de terrain : Graine Électrik monte la Défense sur le Champ Électrifié (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({
+    ...DUEL,
+    moves: ["electric-terrain"],
+    heldItem: "electric-seed",
+  });
+  await scene.castFirstMove(2, 3); // Self/champ — posé sous le porteur (rayon 3)
+  await scene.endTurn();
+  await expect(log(page, /Graine Électrik de .* s'active/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /Défense de .* augmente/)).toBeAttached();
+  await expect(log(page, /a utilisé son Graine Électrik/)).toBeAttached();
+});

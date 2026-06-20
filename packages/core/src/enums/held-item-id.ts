@@ -81,6 +81,10 @@ export const HeldItemId = {
   DampRock: "damp-rock",
   SmoothRock: "smooth-rock",
   IcyRock: "icy-rock",
+  ElectricSeed: "electric-seed",
+  GrassySeed: "grassy-seed",
+  PsychicSeed: "psychic-seed",
+  MistySeed: "misty-seed",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];
