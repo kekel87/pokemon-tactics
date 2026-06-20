@@ -10,7 +10,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
-import type { HeldItemId } from "../enums/held-item-id";
+import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
 import { PokemonType } from "../enums/pokemon-type";
 // TODO(plan-084-étape-2): créer packages/core/src/enums/weather.ts
@@ -152,6 +152,48 @@ describe("heat-rock item", () => {
     expect(state.weather).toBe(Weather.Sun);
     expect(state.weatherTurnsRemaining).toBe(8);
   });
+});
+
+describe("weather duration rocks", () => {
+  const ROCKS: ReadonlyArray<{
+    rock: HeldItemId;
+    moveId: string;
+    weather: Weather;
+  }> = [
+    { rock: HeldItemId.DampRock, moveId: "rain-dance", weather: Weather.Rain },
+    { rock: HeldItemId.SmoothRock, moveId: "sandstorm", weather: Weather.Sandstorm },
+    { rock: HeldItemId.IcyRock, moveId: "snowscape", weather: Weather.Snow },
+  ];
+
+  for (const { rock, moveId, weather } of ROCKS) {
+    it(`Given a setter holding ${rock}, When it sets the weather, Then duration is 8 turns`, () => {
+      const setter = MockPokemon.fresh(MockPokemon.base, {
+        id: "setter",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 0 },
+        moveIds: [moveId],
+        derivedStats: { movement: 3, jump: 1, initiative: 100 },
+        heldItemId: rock,
+      });
+      const foe = MockPokemon.fresh(MockPokemon.base, {
+        id: "foe",
+        playerId: PlayerId.Player2,
+        position: { x: 4, y: 4 },
+        derivedStats: { movement: 3, jump: 1, initiative: 10 },
+      });
+      const { engine, state } = buildItemTestEngine([setter, foe]);
+
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UseMove,
+        pokemonId: "setter",
+        moveId,
+        targetPosition: { x: 0, y: 0 },
+      });
+
+      expect(state.weather).toBe(weather);
+      expect(state.weatherTurnsRemaining).toBe(8);
+    });
+  }
 });
 
 // ---------------------------------------------------------------------------

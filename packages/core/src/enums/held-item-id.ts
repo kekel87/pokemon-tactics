@@ -78,6 +78,9 @@ export const HeldItemId = {
   CellBattery: "cell-battery",
   Snowball: "snowball",
   LuminousMoss: "luminous-moss",
+  DampRock: "damp-rock",
+  SmoothRock: "smooth-rock",
+  IcyRock: "icy-rock",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];

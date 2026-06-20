@@ -599,6 +599,18 @@ export const itemHandlers: HeldItemHandler[] = [
   },
 
   {
+    id: HeldItemId.DampRock,
+  },
+
+  {
+    id: HeldItemId.SmoothRock,
+  },
+
+  {
+    id: HeldItemId.IcyRock,
+  },
+
+  {
     id: HeldItemId.LightClay,
   },
 
