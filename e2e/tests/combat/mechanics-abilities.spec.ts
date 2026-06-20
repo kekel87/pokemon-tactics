@@ -78,3 +78,33 @@ test("§5.14 baie de soin : Baie Fraive guérit la brûlure (journal)", async ({
   await expect(log(page, /Baie Fraive de .* s'active/)).toBeAttached({ timeout: 10_000 });
   await expect(log(page, /a utilisé son Baie Fraive/)).toBeAttached();
 });
+
+// §5.14 objets tenus simples à event observable — un par mécanique (soin post-coup / auto-statut de
+// fin de tour). Bandeau Muscle / Lunettes Sages (×1.1 dégâts, sans event) restent couverts unit.
+
+// Grelot Coque (shell-bell) : soigne 1/8 des dégâts infligés après une attaque, non consommé. Le
+// porteur Florizarre démarre blessé (hp 50, sous son max) et lance Griffe (portée 1) sur le dummy
+// adjacent (100% précision → cast déterministe). Le coup inflige des dégâts → l'objet rend des PV et
+// journalise « Grelot Coque de <X> s'active » + « <X> récupère N PV » (HpRestored).
+test("§5.14 objet tenu : Grelot Coque soigne après une attaque (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({ ...DUEL, heldItem: "shell-bell", hp: 50 });
+  await scene.castFirstMove(2, 2); // le dummy adjacent au nord
+  await expect(log(page, /Grelot Coque de .* s'active/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /récupère \d+ PV/)).toBeAttached();
+});
+
+// Orbe Toxique (toxic-orb) : empoisonne gravement le porteur en fin de tour s'il n'a aucun statut
+// majeur. Le porteur Florizarre démarre sans statut → la fin de tour applique le Poison Grave et
+// journalise « Orbe Toxique de <X> s'active » + « <X> est gravement empoisonné ! » (aucun jet).
+test("§5.14 objet tenu : Orbe Toxique empoisonne gravement en fin de tour (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({ ...DUEL, heldItem: "toxic-orb" });
+  await scene.endTurn();
+  await expect(log(page, /Orbe Toxique de .* s'active/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /est gravement empoisonné/)).toBeAttached();
+});
