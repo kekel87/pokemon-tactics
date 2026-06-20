@@ -788,7 +788,12 @@ ne les apprend) → forcés via `moves` (SandboxSetup écrase `moveIds`).*
 - 🤖 En-tête : nom FR (Florizarre), toggle genre (♂/♀), bouton **Build** (`pokemon-edit.spec`).
   *Portrait/badges de type = 👁.*
 - 🤖 Sections **Talent / Objet / Nature** présentes (`pokemon-edit.spec`). *Le contenu des pickers
-  (radios talent, select 25 natures, 4 move-pickers) = 👁.*
+  (radios talent, 4 move-pickers) = 👁.*
+- 🤖 **Picker d'objet** (modale « Choisir un objet ») : un objet **boost-de-type** (ex. **Charbon**,
+  Feu ×1.2) y est listé, non grisé (implémenté) et **sélectionnable** → le champ « Objet » du slot
+  affiche son nom FR (`pokemon-edit.spec`, lignes `item-picker-row` par `data-item-id`).
+  *Le **gain numérique** ×1.2 en combat reste 👁 (couvert en unit `type-boost-items.test.ts` ;
+  l'effet de dégâts n'est pas un signal DOM/journal déterministe exploitable en e2e).*
 - 🤖 Stats en **barres** (≥ 6 lignes) + **Presets** présents (`pokemon-edit.spec`). *Sliders de
   points de stat + total ≤ max = 👁.*
 - 🤖 **4 capacités** listées (`.tb-move-row` ×4 — `pokemon-edit.spec`). *« Build » qui applique un
@@ -912,7 +917,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/preview-colours.spec.ts` | §4.6 couleurs de preview pilotées par l'intention : `data-intent` attack/buff/heal (Griffe/Danse Lames/Fontaine de Vie), cellules `data-cell` target/dash/caster/caster-target, croix lanceur, centre Séisme vide |
 | `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire |
 | `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (8 + détail + ↑/↓ aria-current), §6.4 format + Lancer gating |
-| `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset) |
+| `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |
 | `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` |
 | `combat/weather.spec.ts` | §5 météo : HUD « Plein soleil » + tours restants |
 | `combat/multi-hit.spec.ts` | §5 multi-hit : Balle Graine → récap « Touché N fois » |

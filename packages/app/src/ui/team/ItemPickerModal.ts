@@ -42,6 +42,7 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
 
   const list = document.createElement("div");
   list.className = "tb-list";
+  list.dataset.testid = "item-picker-list";
   body.appendChild(list);
 
   let category: CategoryFilter = "all";
@@ -97,6 +98,8 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
     for (const item of filtered) {
       const row = document.createElement("div");
       row.className = "tb-list-row";
+      row.dataset.testid = "item-picker-row";
+      row.dataset.itemId = item.id;
       row.style.gridTemplateColumns = "minmax(0,1fr) auto";
       if (!item.implemented) {
         row.dataset.state = "disabled";

@@ -45,6 +45,20 @@ const EVIOLITE_NFE_POKEMON_IDS = new Set<string>([
   "tangela",
 ]);
 
+const TYPE_BOOST_MOD = 1.2;
+
+function typeBoostItem(id: HeldItemId, boostType: PokemonType): HeldItemHandler {
+  return {
+    id,
+    onDamageModify: (context) => {
+      if (!context.isAttacker || context.move.type !== boostType) {
+        return 1.0;
+      }
+      return TYPE_BOOST_MOD;
+    },
+  };
+}
+
 function emitItemActivated(pokemon: PokemonInstance, itemId: string): BattleEvent {
   return {
     type: BattleEventType.HeldItemActivated,
@@ -490,4 +504,23 @@ export const itemHandlers: HeldItemHandler[] = [
   {
     id: HeldItemId.TerrainExtender,
   },
+
+  typeBoostItem(HeldItemId.SilkScarf, PokemonType.Normal),
+  typeBoostItem(HeldItemId.Charcoal, PokemonType.Fire),
+  typeBoostItem(HeldItemId.MysticWater, PokemonType.Water),
+  typeBoostItem(HeldItemId.MiracleSeed, PokemonType.Grass),
+  typeBoostItem(HeldItemId.Magnet, PokemonType.Electric),
+  typeBoostItem(HeldItemId.NeverMeltIce, PokemonType.Ice),
+  typeBoostItem(HeldItemId.BlackBelt, PokemonType.Fighting),
+  typeBoostItem(HeldItemId.PoisonBarb, PokemonType.Poison),
+  typeBoostItem(HeldItemId.SoftSand, PokemonType.Ground),
+  typeBoostItem(HeldItemId.SharpBeak, PokemonType.Flying),
+  typeBoostItem(HeldItemId.TwistedSpoon, PokemonType.Psychic),
+  typeBoostItem(HeldItemId.SilverPowder, PokemonType.Bug),
+  typeBoostItem(HeldItemId.HardStone, PokemonType.Rock),
+  typeBoostItem(HeldItemId.SpellTag, PokemonType.Ghost),
+  typeBoostItem(HeldItemId.DragonFang, PokemonType.Dragon),
+  typeBoostItem(HeldItemId.BlackGlasses, PokemonType.Dark),
+  typeBoostItem(HeldItemId.MetalCoat, PokemonType.Steel),
+  typeBoostItem(HeldItemId.FairyFeather, PokemonType.Fairy),
 ];
