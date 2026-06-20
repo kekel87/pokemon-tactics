@@ -96,6 +96,34 @@ test("§5.14 objet tenu : Grelot Coque soigne après une attaque (journal)", asy
   await expect(log(page, /récupère \d+ PV/)).toBeAttached();
 });
 
+// Bulbe (absorb-bulb) : objet « réaction au coup reçu » — touché par un coup Eau, monte d'un cran
+// l'Atq. Spé. du porteur puis se consomme (hook onAfterDamageReceived). Le dummy Ronflex (Normal,
+// neutre à l'Eau et très endurant) porte le Bulbe (dummyHeldItem) et SURVIT au coup — indispensable,
+// car le hook ne se déclenche que si la cible est encore en vie (`target.currentHp > 0`) ; un porteur
+// faible/résistant K.O. (ex. Onix Roche/Sol ×4) court-circuiterait la réaction. Le joueur Tortank
+// lance Pistolet à O (Eau, 100 % précision, portée 1-3, hors-pool forcé via `moves`) sur le Ronflex
+// adjacent → le coup Eau déclenche la réaction : « Bulbe de <X> s'active ! » + « Atq. Spé. de <X>
+// augmente ! » (StatChanged) + « <X> a utilisé son Bulbe » (consommation). Cast déterministe
+// (précision 100 %, cible adjacente → aucun jet de portée). Pile / Boule de Neige / Lichen Lumineux
+// partagent la même factory (autre type → autre stat) → couverts unit
+// (`battle/items/type-reaction-items.test.ts`), non dupliqués e2e.
+test("§5.14 objet de réaction : Bulbe monte l'Atq. Spé. quand touché par un coup Eau (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({
+    ...DUEL,
+    pokemon: "blastoise",
+    moves: ["water-gun"],
+    dummyPokemon: "snorlax",
+    dummyHeldItem: "absorb-bulb",
+  });
+  await scene.castFirstMove(2, 2); // le Ronflex adjacent au nord
+  await expect(log(page, /Bulbe de .* s'active/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /Atq\. Spé\. de .* augmente/)).toBeAttached();
+  await expect(log(page, /a utilisé son Bulbe/)).toBeAttached();
+});
+
 // Orbe Toxique (toxic-orb) : empoisonne gravement le porteur en fin de tour s'il n'a aucun statut
 // majeur. Le porteur Florizarre démarre sans statut → la fin de tour applique le Poison Grave et
 // journalise « Orbe Toxique de <X> s'active » + « <X> est gravement empoisonné ! » (aucun jet).

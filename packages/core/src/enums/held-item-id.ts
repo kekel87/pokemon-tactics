@@ -74,6 +74,10 @@ export const HeldItemId = {
   MuscleBand: "muscle-band",
   WiseGlasses: "wise-glasses",
   ShellBell: "shell-bell",
+  AbsorbBulb: "absorb-bulb",
+  CellBattery: "cell-battery",
+  Snowball: "snowball",
+  LuminousMoss: "luminous-moss",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];
