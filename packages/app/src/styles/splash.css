@@ -1,0 +1,75 @@
+/* Initial boot splash (plan 135). Shown over #game-root while the sprite bundle
+   downloads, then fades out. Game title + progress bar; entrance + exit fade. Distinct
+   from .loading-overlay (combat transitions). */
+
+.splash {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: var(--color-bg-base, #1a1a2e);
+  z-index: 6000;
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+
+.splash--visible {
+  opacity: 1;
+}
+
+.splash__title {
+  margin: 0;
+  font-family: "PokemonEmeraldPro", sans-serif;
+  font-size: clamp(28px, 6vw, 72px);
+  letter-spacing: 0.04em;
+  color: var(--color-accent, #ffd34d);
+  text-shadow: 0 3px 0 rgb(0 0 0 / 45%);
+  text-align: center;
+}
+
+.splash__bar {
+  inline-size: clamp(200px, 40vw, 420px);
+  block-size: 18px;
+  background: rgb(0 0 0 / 35%);
+  border: 2px solid rgb(255 255 255 / 55%);
+  border-radius: 3px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.splash__bar-fill {
+  inline-size: 0%;
+  block-size: 100%;
+  background: var(--color-accent, #ffd34d);
+  transition: inline-size 120ms linear;
+}
+
+.splash__status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-block-size: 1.5em;
+  color: var(--color-text-primary, #f0f0f0);
+  font-family: "PokemonEmeraldPro", sans-serif;
+  font-size: 14px;
+  text-align: center;
+}
+
+.splash__retry {
+  font-family: "PokemonEmeraldPro", sans-serif;
+  font-size: 14px;
+  padding: 8px 20px;
+  color: var(--color-bg-base, #1a1a2e);
+  background: var(--color-accent, #ffd34d);
+  border: 2px solid rgb(0 0 0 / 35%);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.splash__retry:hover {
+  filter: brightness(1.08);
+}

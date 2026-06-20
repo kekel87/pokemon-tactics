@@ -45,18 +45,16 @@ test("§5.21 Distorsion : ordre CT inversé dans la timeline (lent avant rapide)
   await expect(log(page, /Distorsion !/)).toBeAttached({ timeout: 10_000 });
 
   // La timeline DOM reflète l'ordre CT prédit (`predictCtTimeline`). Chaque entrée porte un portrait
-  // dont l'URL contient l'id d'espèce (`.../<species>/portrait-normal.png`). Sous Distorsion, le
-  // lanceur LENT (Flagadoss, Vit 30 → effective 130) joue AVANT le foe RAPIDE (Électrode, Vit 150 →
-  // effective 10) : l'inversion de la vitesse en entrée fait passer le lent devant. Hors zone l'ordre
-  // serait l'inverse → l'assertion casse si l'inversion CT régresse.
+  // identifié par `data-pokemon-id` (l'espèce ; l'URL est désormais une data URL croppée du sheet,
+  // plan 135). Sous Distorsion, le lanceur LENT (Flagadoss, Vit 30 → effective 130) joue AVANT le
+  // foe RAPIDE (Électrode, Vit 150 → effective 10) : l'inversion de la vitesse en entrée fait passer
+  // le lent devant. Hors zone l'ordre serait l'inverse → l'assertion casse si l'inversion CT régresse.
   const orderOf = (species: string) =>
     page
       .getByTestId("timeline-portrait")
       .evaluateAll(
         (imgs, target) =>
-          (imgs as HTMLImageElement[]).findIndex((img) =>
-            img.src.includes(`/${target}/portrait-normal.png`),
-          ),
+          (imgs as HTMLImageElement[]).findIndex((img) => img.dataset.pokemonId === target),
         species,
       );
 

@@ -66,19 +66,24 @@ interface AtlasBundle {
   shadowRadius: number;
 }
 
+/** Pre-resolved sprite data from the in-memory bundle (plan 135) — no per-sprite fetch. */
+export interface ResolvedAtlas {
+  /** Object URL minted from the `.bin` slice (PNG). Shared per Pokemon id by the bundle. */
+  atlasBlobUrl: string;
+  atlasJson: AtlasJson;
+  /** PMD grounding offsets (foot/head in px, raw shadow size index). */
+  offsets: { footOffsetY: number; headOffsetY: number; shadowSize: number };
+}
+
 export interface DirectionalBillboardOptions {
   scene: Scene;
-  atlasJsonUrl: string;
-  atlasPngUrl: string;
-  /** Sprite offsets JSON (carries the PMD shadowSize). */
-  offsetsJsonUrl: string;
+  /** The real sprite, resolved from the sprite bundle. */
+  atlas: ResolvedAtlas;
   /**
-   * Clonage (substitute) doll atlas — lazily loaded the first time the overlay
-   * shows. Optional: the placement-preview billboard never holds a substitute.
+   * Clonage (substitute) doll atlas — bound the first time the overlay shows.
+   * Optional: the placement-preview billboard never holds a substitute.
    */
-  substituteAtlasJsonUrl?: string;
-  substituteAtlasPngUrl?: string;
-  substituteOffsetsJsonUrl?: string;
+  substituteAtlas?: ResolvedAtlas;
   animation: string;
   worldFacing: number;
   frameDurationMs?: number;
@@ -244,11 +249,7 @@ export class DirectionalBillboard {
   }
 
   async load(): Promise<void> {
-    this.baseAtlas = await this.loadAtlas({
-      jsonUrl: this.options.atlasJsonUrl,
-      pngUrl: this.options.atlasPngUrl,
-      offsetsUrl: this.options.offsetsJsonUrl,
-    });
+    this.baseAtlas = await this.loadAtlas(this.options.atlas);
     this.bindActiveAtlas(this.baseAtlas);
     this.controller.resolveRestingFallback();
     this.applyFrame();
@@ -257,45 +258,38 @@ export class DirectionalBillboard {
   }
 
   /**
-   * Loads one PMD atlas (texture + indexed frames + offsets) into a self-contained
-   * bundle. Used for both the real sprite (on `load`) and the lazily-loaded Clonage
-   * doll, so each can be displayed by swapping the active bundle.
+   * Builds one PMD atlas bundle (texture + indexed frames + offsets) from pre-resolved
+   * bundle data — the PNG is an object URL sliced from the in-memory `sprites.bin`, the
+   * frames + offsets come inline (no per-sprite fetch, plan 135). The blob URL carries no
+   * file extension, so `forcedExtension: ".png"` tells Babylon which image loader to use.
+   * Used for both the real sprite (on `load`) and the Clonage doll (swapped on demand).
    */
-  private async loadAtlas(urls: {
-    jsonUrl: string;
-    pngUrl: string;
-    offsetsUrl: string;
-  }): Promise<AtlasBundle> {
-    const texture = new Texture(
-      urls.pngUrl,
-      this.options.scene,
-      true,
-      true,
-      Texture.NEAREST_SAMPLINGMODE,
-    );
+  private async loadAtlas(atlas: ResolvedAtlas): Promise<AtlasBundle> {
+    const texture = new Texture(atlas.atlasBlobUrl, this.options.scene, {
+      noMipmap: true,
+      invertY: true,
+      samplingMode: Texture.NEAREST_SAMPLINGMODE,
+      forcedExtension: ".png",
+    });
     texture.hasAlpha = true;
     texture.wrapU = Texture.CLAMP_ADDRESSMODE;
     texture.wrapV = Texture.CLAMP_ADDRESSMODE;
-    const [jsonResponse] = await Promise.all([
-      fetch(urls.jsonUrl),
-      new Promise<void>((resolve) => {
-        texture.onLoadObservable.addOnce(() => resolve());
-      }),
-    ]);
-    const json = (await jsonResponse.json()) as AtlasJson;
+    await new Promise<void>((resolve) => {
+      texture.onLoadObservable.addOnce(() => resolve());
+    });
     const size = texture.getSize();
-    const framesByKey = indexFramesByDirection(json);
+    const framesByKey = indexFramesByDirection(atlas.atlasJson);
     synthesizeFlyingIdle(framesByKey);
-    const offsets = await this.loadOffsets(urls.offsetsUrl);
     return {
       texture,
       framesByKey,
-      durationsByAnimation: indexAtlasDurations(json.meta.animations),
+      durationsByAnimation: indexAtlasDurations(atlas.atlasJson.meta.animations),
       atlasWidth: size.width,
       atlasHeight: size.height,
-      footOffsetY: offsets.footOffsetY,
-      headOffsetY: offsets.headOffsetY,
-      shadowRadius: offsets.shadowRadius,
+      footOffsetY: atlas.offsets.footOffsetY,
+      headOffsetY: atlas.offsets.headOffsetY,
+      shadowRadius:
+        BABYLON_SHADOW_RADIUS_BY_SIZE[atlas.offsets.shadowSize] ?? BABYLON_SHADOW_RADIUS_DEFAULT,
     };
   }
 
@@ -313,43 +307,6 @@ export class DirectionalBillboard {
       footOffsetY: bundle.footOffsetY,
       headOffsetY: bundle.headOffsetY,
     });
-  }
-
-  /**
-   * Loads PMD offsets.json: the per-sprite grounding data (`headOffsetY`,
-   * `footOffsetY`) and `shadowSize`.
-   */
-  private async loadOffsets(
-    offsetsUrl: string,
-  ): Promise<{ footOffsetY: number; headOffsetY: number; shadowRadius: number }> {
-    const defaults = {
-      footOffsetY: BABYLON_SPRITE_GROUND_OFFSET_PX,
-      headOffsetY: 0,
-      shadowRadius: BABYLON_SHADOW_RADIUS_DEFAULT,
-    };
-    try {
-      const response = await fetch(offsetsUrl);
-      if (!response.ok) {
-        return defaults;
-      }
-      const parsed: unknown = await response.json();
-      if (typeof parsed !== "object" || parsed === null) {
-        return defaults;
-      }
-      const offsets = parsed as {
-        shadowSize?: number;
-        headOffsetY?: number;
-        footOffsetY?: number;
-      };
-      return {
-        headOffsetY: offsets.headOffsetY ?? 0,
-        footOffsetY: offsets.footOffsetY ?? BABYLON_SPRITE_GROUND_OFFSET_PX,
-        shadowRadius:
-          BABYLON_SHADOW_RADIUS_BY_SIZE[offsets.shadowSize ?? 1] ?? BABYLON_SHADOW_RADIUS_DEFAULT,
-      };
-    } catch {
-      return defaults;
-    }
   }
 
   hasAnimation(animation: string): boolean {
@@ -370,17 +327,11 @@ export class DirectionalBillboard {
       return;
     }
     this.substituteActive = active;
-    const { substituteAtlasJsonUrl, substituteAtlasPngUrl, substituteOffsetsJsonUrl } =
-      this.options;
     if (active && !this.substituteAtlas) {
-      if (!(substituteAtlasJsonUrl && substituteAtlasPngUrl && substituteOffsetsJsonUrl)) {
+      if (!this.options.substituteAtlas) {
         return;
       }
-      this.substituteAtlas = await this.loadAtlas({
-        jsonUrl: substituteAtlasJsonUrl,
-        pngUrl: substituteAtlasPngUrl,
-        offsetsUrl: substituteOffsetsJsonUrl,
-      });
+      this.substituteAtlas = await this.loadAtlas(this.options.substituteAtlas);
     }
     const target = this.substituteActive ? this.substituteAtlas : this.baseAtlas;
     if (!target) {
