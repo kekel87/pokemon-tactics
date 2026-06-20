@@ -542,6 +542,15 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   asserte « <Baie> de <X> s'active ! » + « <X> a utilisé son <Baie> » (consommation). *Les 18/4/7
   baies au complet = couvertes unit/integration core (`battle/items/*-berries.test.ts`) ; la table
   par baie n'est pas re-pilotée e2e (même mécanique, IDs différents) → reste 👁 par baie.*
+- 🤖 **Roches de durée météo** — une représentante, pilotée de bout en bout
+  (`weather.spec`) : **Roche Humide** (`damp-rock`, Pluie 5→8 tours). Le poseur tenant la roche
+  (`heldItem`) lance Danse Pluie (`rain-dance`, forcé via `moves`) → le compteur du HUD
+  (`weather-turns`) affiche **8 tours** au lieu de 5. Déterministe : setters météo sans jet de
+  précision, timer décrémenté seulement au tick de fin de tour. *Les 3 autres roches — Roche Lisse
+  (`smooth-rock`, Tempête de Sable), Roche Glace (`icy-rock`, Neige), Roche Chaude (`heat-rock`,
+  Soleil) — partagent la même logique (table `WEATHER_EXTENDER_ITEM` → 8 tours) et sont couvertes
+  unit core (`battle/weather-system.test.ts`) ; non re-pilotées e2e (même mécanique, IDs/météos
+  différents) → 👁 par roche.*
 - 👁 **Talent** déclenché → « <Talent> de <X> s'active ! » (texte or).
 - 👁 **Objet tenu** activé → « <Objet> de <X> s'active ! » (vert) ; **consommé** → « <X> a utilisé
   son <Objet> ».
@@ -951,7 +960,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
-| `combat/weather.spec.ts` | §4.3/§5.12 — HUD météo (config) + pose via cast (Danse Pluie/Zénith/Tempête de Sable) |
+| `combat/weather.spec.ts` | §4.3/§5.12 — HUD météo (config) + pose via cast (Danse Pluie/Zénith/Tempête de Sable) ; §5.14 Roche Humide prolonge la Pluie à 8 tours (HUD `weather-turns`) |
 | `dom/maps.spec.ts` | §8.1/§8.3 — les 8 cartes montent (tuiles, no crash) + Le Mur multi-niveaux |
 | `combat/hud.spec.ts` | §4 — sous-menu (type/nom), tooltip + grille de pattern (survol), timeline, §4.11 combat EN (`pt-lang=en`) |
 | `combat/hud-menu.spec.ts` | §4.1 bannière, §4.2 timeline (active/team), §4.4 menu (5 boutons, Objet/Statut off), §4.5 move-item (type/nom/PP), §4.9 journal (titre + repli) |

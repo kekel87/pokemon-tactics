@@ -13,12 +13,19 @@ import {
   WEATHER_EXTENDED_DURATION,
 } from "../weather-system";
 
+const WEATHER_EXTENDER_ITEM: Partial<Record<Weather, HeldItemId>> = {
+  [Weather.Sun]: HeldItemId.HeatRock,
+  [Weather.Rain]: HeldItemId.DampRock,
+  [Weather.Sandstorm]: HeldItemId.SmoothRock,
+  [Weather.Snow]: HeldItemId.IcyRock,
+};
+
 function effectiveTurns(
   setterHeldItemId: HeldItemId | undefined,
   weather: Weather,
   baseTurns: number,
 ): number {
-  if (weather === Weather.Sun && setterHeldItemId === HeldItemId.HeatRock) {
+  if (setterHeldItemId !== undefined && WEATHER_EXTENDER_ITEM[weather] === setterHeldItemId) {
     return WEATHER_EXTENDED_DURATION;
   }
   return baseTurns;

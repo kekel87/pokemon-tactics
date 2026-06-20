@@ -33,3 +33,21 @@ for (const [move, fr] of WEATHER_MOVES) {
     ).toBeAttached({ timeout: 10_000 });
   });
 }
+
+// §5.14 — roche de durée météo : le poseur tenant la roche correspondante prolonge la météo de 5 à
+// 8 tours (miroir de la Roche Chaude/Soleil déjà couverte unit core). Damp-rock + Danse Pluie →
+// Pluie 8 tours, lisible au compteur du HUD (`weather-turns`). Déterministe : les setters météo
+// n'ont aucun jet de précision, et le timer ne décrémente qu'au tick de fin de tour (pas après le
+// cast) → le HUD affiche 8 tours dès la résolution du move.
+test("§5.14 roche météo : Roche Humide prolonge la Pluie à 8 tours (HUD)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({ ...DUEL, moves: ["rain-dance"], heldItem: "damp-rock" });
+  const weather = new WeatherHud(page);
+
+  await scene.castFirstMove(2, 3); // self/field
+
+  await expect(weather.label).toHaveText("Pluie", { timeout: 10_000 });
+  await expect(weather.turns).toHaveText(/8\s*tour/);
+});
