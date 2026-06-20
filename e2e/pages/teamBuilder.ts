@@ -56,6 +56,7 @@ export class PokemonEdit {
   readonly statRows: Locator;
   readonly presets: Locator;
   readonly moveRows: Locator;
+  readonly itemValue: Locator;
   constructor(private readonly page: Page) {
     this.name = page.getByTestId("pokemon-edit-name");
     this.genderToggle = page.getByRole("button", { name: /[♂♀]/ });
@@ -63,6 +64,7 @@ export class PokemonEdit {
     this.statRows = page.getByTestId("pokemon-edit-stat-row");
     this.presets = page.getByTestId("pokemon-edit-presets");
     this.moveRows = page.getByTestId("pokemon-edit-move-row");
+    this.itemValue = page.getByTestId("pokemon-edit-item-value");
   }
 
   /** A section title by key — "ability" | "item" | "nature" (the label is CSS-uppercased, so we
@@ -100,5 +102,26 @@ export class PokemonPicker {
     return this.page
       .getByTestId("pokemon-type-filter")
       .and(this.page.locator(`[data-type="${type}"]`));
+  }
+}
+
+/** Item Picker modale (`<dialog>` → rôle `dialog`, titre « Choisir un objet »). Les lignes d'objet
+ *  sont des divs cliquables sans rôle → `data-testid` (data row) ; le nom de l'objet reste le texte
+ *  user-facing de la ligne, ciblé via `data-item-id` (id EN stable, indépendant de l'i18n). */
+export class ItemPicker {
+  readonly dialog: Locator;
+  readonly title: Locator;
+  readonly close: Locator;
+  readonly rows: Locator;
+  constructor(private readonly page: Page) {
+    this.dialog = page.getByRole("dialog");
+    this.title = page.getByRole("heading", { name: "Choisir un objet" });
+    this.close = page.getByRole("button", { name: "Fermer" });
+    this.rows = page.getByTestId("item-picker-row");
+  }
+
+  /** An item row by its (stable EN) held-item id, e.g. "charcoal". */
+  row(itemId: string): Locator {
+    return this.rows.and(this.page.locator(`[data-item-id="${itemId}"]`));
   }
 }

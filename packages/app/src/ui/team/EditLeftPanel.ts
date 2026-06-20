@@ -307,6 +307,7 @@ export class EditLeftPanel {
     section.appendChild(title);
     const input = document.createElement("div");
     input.className = "tb-input-clickable";
+    input.dataset.testid = "pokemon-edit-item-value";
     if (slot.heldItemId === undefined) {
       input.dataset.state = "empty";
       input.textContent = t("teamBuilder.itemNone");

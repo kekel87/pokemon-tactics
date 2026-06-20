@@ -1,7 +1,13 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "../../fixtures";
 import { MainMenu } from "../../pages/MainMenu";
-import { MyTeamsScreen, PokemonEdit, PokemonPicker, TeamEditScreen } from "../../pages/teamBuilder";
+import {
+  ItemPicker,
+  MyTeamsScreen,
+  PokemonEdit,
+  PokemonPicker,
+  TeamEditScreen,
+} from "../../pages/teamBuilder";
 
 // Cahier §7.1 / §7.3 — édition d'équipe + fiche d'un Pokemon.
 
@@ -67,6 +73,33 @@ test("§7.3 fiche : un preset de stats modifie la répartition", async ({ page }
   await page.getByRole("button", { name: "Sweeper Phys", exact: true }).click();
   // La répartition de points change → au moins une valeur de stat diffère.
   await expect.poll(async () => (await statsText()).join("|")).not.toBe(before);
+});
+
+test("§7.3 fiche : le picker d'objet liste un objet boost-de-type et l'assigne au slot", async ({
+  page,
+}) => {
+  const edit = new PokemonEdit(page);
+  const picker = new ItemPicker(page);
+  await openFlorizarreEdit(page);
+
+  // Slot sans objet par défaut.
+  await expect(edit.itemValue).toHaveText("(aucun objet)");
+
+  // Ouvre le picker via le champ « Objet » de la fiche.
+  await edit.itemValue.click();
+  await expect(picker.title).toBeVisible();
+
+  // Un objet boost-de-type récent (Charbon = charcoal) apparaît et est sélectionnable
+  // (implémenté → non grisé).
+  const charcoal = picker.row("charcoal");
+  await expect(charcoal).toBeVisible();
+  await expect(charcoal).not.toHaveAttribute("data-state", "disabled");
+  await expect(charcoal).toContainText("Charbon");
+
+  // Sélection → modale fermée, champ « Objet » du slot mis à jour avec le nom FR.
+  await charcoal.click();
+  await expect(picker.dialog).toBeHidden();
+  await expect(edit.itemValue).toHaveText("Charbon");
 });
 
 test("§7.1 édition : compteur N/6 + « Vider ce slot » remet le slot à vide", async ({ page }) => {
