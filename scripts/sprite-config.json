@@ -1,105 +1,610 @@
 {
   "pokedexEntries": [
-    { "number": "0001", "name": "bulbasaur" },
-    { "number": "0003", "name": "venusaur" },
-    { "number": "0004", "name": "charmander" },
-    { "number": "0006", "name": "charizard" },
-    { "number": "0007", "name": "squirtle" },
-    { "number": "0009", "name": "blastoise" },
-    { "number": "0016", "name": "pidgey" },
-    { "number": "0025", "name": "pikachu" },
-    { "number": "0026", "name": "raichu" },
-    { "number": "0027", "name": "sandshrew" },
-    { "number": "0032", "name": "nidoran-m" },
-    { "number": "0039", "name": "jigglypuff" },
-    { "number": "0052", "name": "meowth" },
-    { "number": "0063", "name": "abra" },
-    { "number": "0065", "name": "alakazam" },
-    { "number": "0066", "name": "machop" },
-    { "number": "0068", "name": "machamp" },
-    { "number": "0072", "name": "tentacool" },
-    { "number": "0074", "name": "geodude" },
-    { "number": "0058", "name": "growlithe" },
-    { "number": "0081", "name": "magnemite" },
-    { "number": "0086", "name": "seel" },
-    { "number": "0092", "name": "gastly" },
-    { "number": "0108", "name": "lickitung" },
-    { "number": "0115", "name": "kangaskhan" },
-    { "number": "0130", "name": "gyarados" },
-    { "number": "0133", "name": "eevee" },
-    { "number": "0134", "name": "vaporeon" },
-    { "number": "0136", "name": "flareon" },
-    { "number": "0135", "name": "jolteon" },
-    { "number": "0143", "name": "snorlax" },
-    { "number": "0149", "name": "dragonite" },
-    { "number": "0031", "name": "nidoqueen" },
-    { "number": "0034", "name": "nidoking" },
-    { "number": "0057", "name": "primeape" },
-    { "number": "0059", "name": "arcanine" },
-    { "number": "0062", "name": "poliwrath" },
-    { "number": "0076", "name": "golem" },
-    { "number": "0080", "name": "slowbro" },
-    { "number": "0094", "name": "gengar" },
-    { "number": "0097", "name": "hypno" },
-    { "number": "0103", "name": "exeggutor" },
-    { "number": "0105", "name": "marowak" },
-    { "number": "0106", "name": "hitmonlee" },
-    { "number": "0107", "name": "hitmonchan" },
-    { "number": "0112", "name": "rhydon" },
-    { "number": "0121", "name": "starmie" },
-    { "number": "0123", "name": "scyther" },
-    { "number": "0127", "name": "pinsir" },
-    { "number": "0141", "name": "kabutops" },
-    { "number": "0142", "name": "aerodactyl" },
-    { "number": "0028", "name": "sandslash" },
-    { "number": "0038", "name": "ninetales" },
-    { "number": "0040", "name": "wigglytuff" },
-    { "number": "0045", "name": "vileplume" },
-    { "number": "0055", "name": "golduck" },
-    { "number": "0073", "name": "tentacruel" },
-    { "number": "0082", "name": "magneton" },
-    { "number": "0087", "name": "dewgong" },
-    { "number": "0091", "name": "cloyster" },
-    { "number": "0093", "name": "haunter" },
-    { "number": "0099", "name": "kingler" },
-    { "number": "0101", "name": "electrode" },
-    { "number": "0124", "name": "jynx" },
-    { "number": "0125", "name": "electabuzz" },
-    { "number": "0126", "name": "magmar" },
-    { "number": "0131", "name": "lapras" },
-    { "number": "0137", "name": "porygon" },
-    { "number": "0139", "name": "omastar" },
-    { "number": "0024", "name": "arbok" },
-    { "number": "0036", "name": "clefable" },
-    { "number": "0047", "name": "parasect" },
-    { "number": "0051", "name": "dugtrio" },
-    { "number": "0053", "name": "persian" },
-    { "number": "0071", "name": "victreebel" },
-    { "number": "0078", "name": "rapidash" },
-    { "number": "0085", "name": "dodrio" },
-    { "number": "0089", "name": "muk" },
-    { "number": "0095", "name": "onix" },
-    { "number": "0110", "name": "weezing" },
-    { "number": "0113", "name": "chansey" },
-    { "number": "0114", "name": "tangela" },
-    { "number": "0117", "name": "seadra" },
-    { "number": "0122", "name": "mr-mime" },
-    { "number": "0128", "name": "tauros" },
-    { "number": "0012", "name": "butterfree" },
-    { "number": "0015", "name": "beedrill" },
-    { "number": "0018", "name": "pidgeot" },
-    { "number": "0020", "name": "raticate" },
-    { "number": "0022", "name": "fearow" },
-    { "number": "0042", "name": "golbat" },
-    { "number": "0049", "name": "venomoth" },
-    { "number": "0083", "name": "farfetch-d" },
-    { "number": "0119", "name": "seaking" },
-    { "number": "0144", "name": "articuno" },
-    { "number": "0145", "name": "zapdos" },
-    { "number": "0146", "name": "moltres" },
-    { "number": "0150", "name": "mewtwo" },
-    { "number": "0151", "name": "mew" },
-    { "number": "0000", "name": "dummy", "form": "0001" }
+    {
+      "number": "0001",
+      "name": "bulbasaur"
+    },
+    {
+      "number": "0003",
+      "name": "venusaur"
+    },
+    {
+      "number": "0004",
+      "name": "charmander"
+    },
+    {
+      "number": "0006",
+      "name": "charizard"
+    },
+    {
+      "number": "0007",
+      "name": "squirtle"
+    },
+    {
+      "number": "0009",
+      "name": "blastoise"
+    },
+    {
+      "number": "0016",
+      "name": "pidgey"
+    },
+    {
+      "number": "0025",
+      "name": "pikachu"
+    },
+    {
+      "number": "0026",
+      "name": "raichu"
+    },
+    {
+      "number": "0027",
+      "name": "sandshrew"
+    },
+    {
+      "number": "0032",
+      "name": "nidoran-m"
+    },
+    {
+      "number": "0039",
+      "name": "jigglypuff"
+    },
+    {
+      "number": "0052",
+      "name": "meowth"
+    },
+    {
+      "number": "0063",
+      "name": "abra"
+    },
+    {
+      "number": "0065",
+      "name": "alakazam"
+    },
+    {
+      "number": "0066",
+      "name": "machop"
+    },
+    {
+      "number": "0068",
+      "name": "machamp"
+    },
+    {
+      "number": "0072",
+      "name": "tentacool"
+    },
+    {
+      "number": "0074",
+      "name": "geodude"
+    },
+    {
+      "number": "0058",
+      "name": "growlithe"
+    },
+    {
+      "number": "0081",
+      "name": "magnemite"
+    },
+    {
+      "number": "0086",
+      "name": "seel"
+    },
+    {
+      "number": "0092",
+      "name": "gastly"
+    },
+    {
+      "number": "0108",
+      "name": "lickitung"
+    },
+    {
+      "number": "0115",
+      "name": "kangaskhan"
+    },
+    {
+      "number": "0130",
+      "name": "gyarados"
+    },
+    {
+      "number": "0133",
+      "name": "eevee"
+    },
+    {
+      "number": "0134",
+      "name": "vaporeon"
+    },
+    {
+      "number": "0136",
+      "name": "flareon"
+    },
+    {
+      "number": "0135",
+      "name": "jolteon"
+    },
+    {
+      "number": "0143",
+      "name": "snorlax"
+    },
+    {
+      "number": "0149",
+      "name": "dragonite"
+    },
+    {
+      "number": "0031",
+      "name": "nidoqueen"
+    },
+    {
+      "number": "0034",
+      "name": "nidoking"
+    },
+    {
+      "number": "0057",
+      "name": "primeape"
+    },
+    {
+      "number": "0059",
+      "name": "arcanine"
+    },
+    {
+      "number": "0062",
+      "name": "poliwrath"
+    },
+    {
+      "number": "0076",
+      "name": "golem"
+    },
+    {
+      "number": "0080",
+      "name": "slowbro"
+    },
+    {
+      "number": "0094",
+      "name": "gengar"
+    },
+    {
+      "number": "0097",
+      "name": "hypno"
+    },
+    {
+      "number": "0103",
+      "name": "exeggutor"
+    },
+    {
+      "number": "0105",
+      "name": "marowak"
+    },
+    {
+      "number": "0106",
+      "name": "hitmonlee"
+    },
+    {
+      "number": "0107",
+      "name": "hitmonchan"
+    },
+    {
+      "number": "0112",
+      "name": "rhydon"
+    },
+    {
+      "number": "0121",
+      "name": "starmie"
+    },
+    {
+      "number": "0123",
+      "name": "scyther"
+    },
+    {
+      "number": "0127",
+      "name": "pinsir"
+    },
+    {
+      "number": "0141",
+      "name": "kabutops"
+    },
+    {
+      "number": "0142",
+      "name": "aerodactyl"
+    },
+    {
+      "number": "0028",
+      "name": "sandslash"
+    },
+    {
+      "number": "0038",
+      "name": "ninetales"
+    },
+    {
+      "number": "0040",
+      "name": "wigglytuff"
+    },
+    {
+      "number": "0045",
+      "name": "vileplume"
+    },
+    {
+      "number": "0055",
+      "name": "golduck"
+    },
+    {
+      "number": "0073",
+      "name": "tentacruel"
+    },
+    {
+      "number": "0082",
+      "name": "magneton"
+    },
+    {
+      "number": "0087",
+      "name": "dewgong"
+    },
+    {
+      "number": "0091",
+      "name": "cloyster"
+    },
+    {
+      "number": "0093",
+      "name": "haunter"
+    },
+    {
+      "number": "0099",
+      "name": "kingler"
+    },
+    {
+      "number": "0101",
+      "name": "electrode"
+    },
+    {
+      "number": "0124",
+      "name": "jynx"
+    },
+    {
+      "number": "0125",
+      "name": "electabuzz"
+    },
+    {
+      "number": "0126",
+      "name": "magmar"
+    },
+    {
+      "number": "0131",
+      "name": "lapras"
+    },
+    {
+      "number": "0137",
+      "name": "porygon"
+    },
+    {
+      "number": "0139",
+      "name": "omastar"
+    },
+    {
+      "number": "0024",
+      "name": "arbok"
+    },
+    {
+      "number": "0036",
+      "name": "clefable"
+    },
+    {
+      "number": "0047",
+      "name": "parasect"
+    },
+    {
+      "number": "0051",
+      "name": "dugtrio"
+    },
+    {
+      "number": "0053",
+      "name": "persian"
+    },
+    {
+      "number": "0071",
+      "name": "victreebel"
+    },
+    {
+      "number": "0078",
+      "name": "rapidash"
+    },
+    {
+      "number": "0085",
+      "name": "dodrio"
+    },
+    {
+      "number": "0089",
+      "name": "muk"
+    },
+    {
+      "number": "0095",
+      "name": "onix"
+    },
+    {
+      "number": "0110",
+      "name": "weezing"
+    },
+    {
+      "number": "0113",
+      "name": "chansey"
+    },
+    {
+      "number": "0114",
+      "name": "tangela"
+    },
+    {
+      "number": "0117",
+      "name": "seadra"
+    },
+    {
+      "number": "0122",
+      "name": "mr-mime"
+    },
+    {
+      "number": "0128",
+      "name": "tauros"
+    },
+    {
+      "number": "0012",
+      "name": "butterfree"
+    },
+    {
+      "number": "0015",
+      "name": "beedrill"
+    },
+    {
+      "number": "0018",
+      "name": "pidgeot"
+    },
+    {
+      "number": "0020",
+      "name": "raticate"
+    },
+    {
+      "number": "0022",
+      "name": "fearow"
+    },
+    {
+      "number": "0042",
+      "name": "golbat"
+    },
+    {
+      "number": "0049",
+      "name": "venomoth"
+    },
+    {
+      "number": "0083",
+      "name": "farfetch-d"
+    },
+    {
+      "number": "0119",
+      "name": "seaking"
+    },
+    {
+      "number": "0144",
+      "name": "articuno"
+    },
+    {
+      "number": "0145",
+      "name": "zapdos"
+    },
+    {
+      "number": "0146",
+      "name": "moltres"
+    },
+    {
+      "number": "0150",
+      "name": "mewtwo"
+    },
+    {
+      "number": "0151",
+      "name": "mew"
+    },
+    {
+      "number": "0000",
+      "name": "dummy",
+      "form": "0001"
+    },
+    {
+      "number": "0069",
+      "name": "bellsprout"
+    },
+    {
+      "number": "0010",
+      "name": "caterpie"
+    },
+    {
+      "number": "0005",
+      "name": "charmeleon"
+    },
+    {
+      "number": "0035",
+      "name": "clefairy"
+    },
+    {
+      "number": "0104",
+      "name": "cubone"
+    },
+    {
+      "number": "0050",
+      "name": "diglett"
+    },
+    {
+      "number": "0084",
+      "name": "doduo"
+    },
+    {
+      "number": "0148",
+      "name": "dragonair"
+    },
+    {
+      "number": "0147",
+      "name": "dratini"
+    },
+    {
+      "number": "0096",
+      "name": "drowzee"
+    },
+    {
+      "number": "0023",
+      "name": "ekans"
+    },
+    {
+      "number": "0102",
+      "name": "exeggcute"
+    },
+    {
+      "number": "0044",
+      "name": "gloom"
+    },
+    {
+      "number": "0118",
+      "name": "goldeen"
+    },
+    {
+      "number": "0075",
+      "name": "graveler"
+    },
+    {
+      "number": "0088",
+      "name": "grimer"
+    },
+    {
+      "number": "0116",
+      "name": "horsea"
+    },
+    {
+      "number": "0002",
+      "name": "ivysaur"
+    },
+    {
+      "number": "0140",
+      "name": "kabuto"
+    },
+    {
+      "number": "0064",
+      "name": "kadabra"
+    },
+    {
+      "number": "0014",
+      "name": "kakuna"
+    },
+    {
+      "number": "0109",
+      "name": "koffing"
+    },
+    {
+      "number": "0098",
+      "name": "krabby"
+    },
+    {
+      "number": "0067",
+      "name": "machoke"
+    },
+    {
+      "number": "0129",
+      "name": "magikarp"
+    },
+    {
+      "number": "0056",
+      "name": "mankey"
+    },
+    {
+      "number": "0011",
+      "name": "metapod"
+    },
+    {
+      "number": "0029",
+      "name": "nidoran-f"
+    },
+    {
+      "number": "0030",
+      "name": "nidorina"
+    },
+    {
+      "number": "0033",
+      "name": "nidorino"
+    },
+    {
+      "number": "0043",
+      "name": "oddish"
+    },
+    {
+      "number": "0138",
+      "name": "omanyte"
+    },
+    {
+      "number": "0046",
+      "name": "paras"
+    },
+    {
+      "number": "0017",
+      "name": "pidgeotto"
+    },
+    {
+      "number": "0060",
+      "name": "poliwag"
+    },
+    {
+      "number": "0061",
+      "name": "poliwhirl"
+    },
+    {
+      "number": "0077",
+      "name": "ponyta"
+    },
+    {
+      "number": "0054",
+      "name": "psyduck"
+    },
+    {
+      "number": "0019",
+      "name": "rattata"
+    },
+    {
+      "number": "0111",
+      "name": "rhyhorn"
+    },
+    {
+      "number": "0090",
+      "name": "shellder"
+    },
+    {
+      "number": "0079",
+      "name": "slowpoke"
+    },
+    {
+      "number": "0021",
+      "name": "spearow"
+    },
+    {
+      "number": "0120",
+      "name": "staryu"
+    },
+    {
+      "number": "0048",
+      "name": "venonat"
+    },
+    {
+      "number": "0100",
+      "name": "voltorb"
+    },
+    {
+      "number": "0037",
+      "name": "vulpix"
+    },
+    {
+      "number": "0008",
+      "name": "wartortle"
+    },
+    {
+      "number": "0013",
+      "name": "weedle"
+    },
+    {
+      "number": "0070",
+      "name": "weepinbell"
+    },
+    {
+      "number": "0041",
+      "name": "zubat"
+    }
   ],
   "animations": [
     "Idle",

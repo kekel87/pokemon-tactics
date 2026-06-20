@@ -40,6 +40,12 @@ Thumbs.db
 # Reference data build cache (regeneratable)
 packages/data/.cache/
 
+# Per-Pokemon sprite source folders (plan 135): editable source/cache emitted by
+# `pnpm extract-sprites`, regeneratable from PMDCollab. Only the 3-file bundle ships
+# + is committed (sprites.bin, sprites-manifest.json, portraits.png). Run once to
+# untrack the legacy folders: `git rm -r --cached packages/app/public/assets/sprites/pokemon`
+packages/app/public/assets/sprites/pokemon/
+
 # Reference screenshots (local only)
 docs/references/
 

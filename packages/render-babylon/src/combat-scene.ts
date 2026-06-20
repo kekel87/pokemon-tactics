@@ -18,6 +18,7 @@ import {
   FLYING_GLIDE_CANDIDATES,
   FLYING_OVERFLY_TERRAINS,
   getFlyingAnimationMode,
+  getResolvedAtlas,
   isJumpStep,
   loadTiledMap,
   type MovementStep,
@@ -243,12 +244,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     const teamColor = teamColorByIndex(entry.team ?? 1);
     const billboard = new DirectionalBillboard({
       scene,
-      atlasJsonUrl: `assets/sprites/pokemon/${entry.pokemonId}/atlas.json`,
-      atlasPngUrl: `assets/sprites/pokemon/${entry.pokemonId}/atlas.png`,
-      offsetsJsonUrl: `assets/sprites/pokemon/${entry.pokemonId}/offsets.json`,
-      substituteAtlasJsonUrl: `assets/sprites/pokemon/${SUBSTITUTE_SPRITE_ID}/atlas.json`,
-      substituteAtlasPngUrl: `assets/sprites/pokemon/${SUBSTITUTE_SPRITE_ID}/atlas.png`,
-      substituteOffsetsJsonUrl: `assets/sprites/pokemon/${SUBSTITUTE_SPRITE_ID}/offsets.json`,
+      atlas: getResolvedAtlas(entry.pokemonId),
+      substituteAtlas: getResolvedAtlas(SUBSTITUTE_SPRITE_ID),
       animation: "Idle",
       worldFacing: entry.facing ?? 0,
       pixelsPerWorldUnit: BABYLON_SPRITE_PIXELS_PER_UNIT,

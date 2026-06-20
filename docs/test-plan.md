@@ -43,6 +43,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Champ / terrain de combat | §3.1, §3.2, §3.3 |
 | Barre PV / statut / aura / dégâts estimés | §3.4, §3.5, §5.3, §5.4, §5.9 |
 | Sprite / animation Pokemon | §3.6, §5.1, §5.6, §5.8, §5.13 |
+| Bundle de sprites / splash de boot / portraits | §6.0, §3.6, §4.7 |
 | Highlights / curseur / picker | §3.7, §3.8, §3.9 |
 | Décor / hauteur / map / terrain type | §3.10, §3.12, §8 |
 | Hauteur en combat (vue/portée/dégâts) | §3.12, §5.17 |
@@ -152,8 +153,13 @@ actives (Reflet/Mur Lumière posés). Bloqué tant que `SandboxConfig` n'expose 
 - 👁 **Occultés par les Pokemon**, semi-transparents.
 
 ### 3.6 Sprite Pokemon (billboard directionnel)
-*src : `directional-billboard.ts`, `view-core/pmd-animation-controller.ts`*
+*src : `directional-billboard.ts`, `view-core/pmd-animation-controller.ts`,
+`view-core/sprite-bundle.ts` (slicing du bundle plan 135)*
 
+- 🤖 **Source bundle** (plan 135) : les billboards (`pokemon_plane` ×2) sont slicés depuis le bundle
+  unique (`sprites.bin`) chargé au boot — atteindre `waitReady` puis les compter prouve que le
+  slicing a alimenté la scène ; un **pré-évo** (Pikachu, roster Gen 1 complété) rend aussi son sprite
+  (`sprite-bundle.spec`). *La couleur/anim du sprite restent 👁.*
 - 👁 **8 directions** cohérentes ; tourner la caméra (←/→) fait pivoter le sprite.
 - 👁 Anims : **idle** (respiration légère), **walk** lissé, **attaque** vers la cible, **KO**
   (chute + teinte grise, ombre disparaît).
@@ -305,6 +311,9 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
 ### 4.7 Panneau d'info (`.ip-panel`)
 - 🤖 Au boot, reflète le **Pokemon actif** : nom FR (Florizarre), niveau (Lv.50), PV plein, portrait
   (`info-panel.spec`).
+- 🤖 **Portrait croppé du bundle** (plan 135) : le `<img>` du portrait porte un `src` data-URL PNG
+  croppé de la feuille `portraits.png` décodée au boot (pas un fichier par-Pokemon, pas le pixel
+  transparent de repli) — `sprite-bundle.spec`.
 - 🤖 **Survol d'une tile** (via le hook `hoverTile`) → infos du Pokemon survolé : survol adversaire
   → nom FR (Dracaufeu) + `data-team="2"` ; survol tile **vide** → repli sur l'actif (`info-panel.spec`).
 - 👁 **Badges** (statut/auras/volatils), preview menace au survol ennemi (§3.7), barre PV qui
@@ -684,11 +693,16 @@ ne les apprend) → forcés via `moves` (SandboxSetup écrase `moveIds`).*
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
-*src : `app/ui/dom/screens/`, `app/app/screen-manager.ts`*
-*e2e : `tests/smoke/boot.spec.ts`, `tests/dom/navigation.spec.ts`, `tests/dom/menus.spec.ts`,
+*src : `app/ui/dom/screens/`, `app/app/screen-manager.ts`, `app/ui/SplashScreen.ts`*
+*e2e : `tests/smoke/boot.spec.ts`, `tests/smoke/splash.spec.ts`, `tests/dom/navigation.spec.ts`,
+`tests/dom/menus.spec.ts`,
 `tests/visual/screens.spec.ts` (golden)*
 
 ### 6.0 Navigation globale
+- 🤖 **Splash de boot** (plan 135) : au démarrage, l'overlay plein écran (`data-testid="splash"`,
+  titre « Pokémon Tactics » + barre de progression `role="progressbar"`) télécharge le bundle de
+  sprites AVANT tout écran, puis se retire du DOM et le menu monte (`splash.spec`). *Le fade
+  d'entrée/sortie = 👁 (pixel/anim).*
 - 🤖 Boot → le menu principal s'affiche (`boot.spec`).
 - 👁 Transition **instantanée** (dispose → mount, pas d'animation).
 - 🤖 `Échap` = retour (sauf menu principal) ; clavier focalise les boutons.
@@ -787,6 +801,9 @@ ne les apprend) → forcés via `moves` (SandboxSetup écrase `moveIds`).*
 - 🤖 Clic sur un **slot vide** → la modale picker s'ouvre (`<dialog>`, titre « Choisir un
   Pokémon ») — `picker.spec`.
 - 🤖 **Liste non filtrée** de tous les Pokemon jouables (portrait + nom FR) — `picker.spec`.
+  *Le portrait du picker est un `background-image` croppé du bundle (plan 135) via le même seam
+  `getPortraitUrl` que l'InfoPanel (couvert 🤖 en §4.7) — la cellule n'a pas de testid propre, donc
+  le visuel du portrait dans le picker reste 👁.*
 - 🤖 Recherche « **flo** » → filtre vers **Florizarre** (nom FR localisé, **monolingue**) —
   `picker.spec`. *Bilingue souhaité plus tard → `docs/next.md` (cible : move picker).*
 - 🤖 Filtre **type Plante** → n'affiche que des Pokemon Plante ; **2e type** → **union** ;
@@ -900,6 +917,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | Fichier | Couvre |
 |---------|--------|
 | `smoke/boot.spec.ts` | boot → menu principal |
+| `smoke/splash.spec.ts` | §6.0 splash de boot (plan 135) : overlay présent + titre + barre de progression pendant le téléchargement du bundle (requête `sprites.bin` retenue), puis retiré du DOM et le menu monte |
 | `dom/navigation.spec.ts` | menu → mode de combat → choix carte → retour |
 | `dom/main-menu.spec.ts` | §6.1 — titre, 5 entrées, Aventure disabled, version, switch FR→EN + `pt-lang` |
 | `dom/settings.spec.ts` | §6.7 — 2 options (Langue + Prévisualisation dégâts), persistance `pt-lang`/`pt-settings` |
@@ -907,6 +925,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `dom/picker.spec.ts` | §7.2 — ouverture/liste/recherche, filtres type (union/toggle/reset), choisir/grisé/fermer |
 | `dom/team-builder.spec.ts` | §6.5 — créer+nommer+persist, générer aléatoire, supprimer (« tout vider » skippé : régression modale, cf backlog) |
 | `combat/scene-graph.spec.ts` | boot scène : sprites (groupe 2), curseur (groupe 3), terrain, FOUC retiré ; **barres PV ×2 + ombres + silhouettes (groupe 1)**, **tiles nommées `tile_x_y` (groupe 0) + décor herbe (groupe 2)** |
+| `combat/sprite-bundle.spec.ts` | §3.6/§4.7 rendu issu du bundle (plan 135) : billboards `pokemon_plane` ×2 slicés du bundle (scène prête), portrait InfoPanel = data-URL PNG croppé de `portraits.png` (pas le pixel de repli), pré-évo Pikachu rend son sprite |
 | `combat/scene-state.spec.ts` | §3.4 icône de statut (empoisonné) |
 | `combat/driving.spec.ts` | piloter : attaque + dégâts (journal), K.O. + fin de combat, déplacement |
 | `combat/normal-game.spec.ts` | parcours réel menu → carte → équipe → combat monte |
@@ -939,11 +958,14 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `visual/screens.spec.ts` | golden : menu, mode combat, paramètres, crédits, scène de combat |
 
 Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.ts` : `DUEL`,
-`DUEL_LETHAL`, `POISONED`, `MULTI_HIT`), `e2e/pages/` (POM : `MainMenu`, `CombatScene`, `screens`,
-`teamBuilder`, `combatHud`).
+`DUEL_LETHAL`, `POISONED`, `MULTI_HIT`), `e2e/pages/` (POM : `MainMenu`, `Splash`, `CombatScene`,
+`screens`, `teamBuilder`, `combatHud`).
 
 ### À étendre (👁 → 🤖, par priorité — DOM d'abord, c'est facile)
 
+- [x] **Splash de boot + bundle de sprites** (plan 135) : overlay présent→retiré + menu monte
+      (`splash.spec`) ; billboards slicés du bundle + portrait InfoPanel croppé de `portraits.png` +
+      pré-évo Pikachu (`sprite-bundle.spec`). *Fade/anim du splash + portrait du picker = 👁.*
 - [x] **Menu principal** : 5 entrées, Aventure disabled, version, switch FR→EN (`main-menu.spec`).
 - [x] **Paramètres** : 3 options, persistance `pt-lang`/`pt-settings` (`settings.spec`).
 - [x] **Crédits** : titre + contenu + EN (`credits.spec`).

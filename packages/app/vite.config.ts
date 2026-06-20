@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { visualizer } from "rollup-plugin-visualizer";
 import type { IndexHtmlTransformContext, Plugin, PluginOption } from "vite";
@@ -46,28 +46,21 @@ function resolveAppVersion(): string {
   }
 }
 
-// Per-Pokemon `credits.txt` are attribution artefacts emitted by the sprite pipeline,
-// never loaded at runtime. Shipping one per Pokemon bloats the itch.io HTML5 zip (hard
-// 1000-file cap). Strip them from the build — attribution stays in the repo AND in the
-// in-game Credits screen (PMDCollab SpriteCollab — CC BY-NC 4.0, with source link), which
-// satisfies the licence in the distributed work.
-function stripShippedCreditsPlugin(): Plugin {
+// Sprites ship as a 3-file bundle (`sprites.bin` + `sprites-manifest.json` +
+// `portraits.png`, plan 135), loaded at boot and sliced per-Pokemon at runtime. The
+// per-Pokemon source folders (`assets/sprites/pokemon/<name>/…`) are kept on disk as
+// editable source/cache but must NOT ship: shipping 4-5 files per Pokemon blows the
+// itch.io HTML5 zip 1000-file cap as the roster grows. Strip the whole folder from the
+// build output. Attribution (the per-folder `credits.txt`) stays in the repo AND in the
+// in-game Credits screen (PMDCollab SpriteCollab — CC BY-NC 4.0, with source link).
+function stripPerPokemonSpriteFoldersPlugin(): Plugin {
   return {
-    name: "strip-shipped-credits",
+    name: "strip-per-pokemon-sprite-folders",
     apply: "build",
     closeBundle() {
-      const spritesDir = resolve(process.cwd(), "dist/assets/sprites/pokemon");
-      if (!existsSync(spritesDir)) {
-        return;
-      }
-      for (const entry of readdirSync(spritesDir, { withFileTypes: true })) {
-        if (!entry.isDirectory()) {
-          continue;
-        }
-        const creditsFile = resolve(spritesDir, entry.name, "credits.txt");
-        if (existsSync(creditsFile)) {
-          rmSync(creditsFile);
-        }
+      const perPokemonDir = resolve(process.cwd(), "dist/assets/sprites/pokemon");
+      if (existsSync(perPokemonDir)) {
+        rmSync(perPokemonDir, { recursive: true, force: true });
       }
     },
   };
@@ -109,7 +102,7 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [goatcounterPlugin(), stripShippedCreditsPlugin(), ...bundleAuditPlugins()],
+  plugins: [goatcounterPlugin(), stripPerPokemonSpriteFoldersPlugin(), ...bundleAuditPlugins()],
   server: {
     port: resolveDevPort(),
   },
