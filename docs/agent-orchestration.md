@@ -63,6 +63,18 @@ Quand tu lances un agent en background :
 
 **Règle d'or** : jamais plus d'un agent long en foreground par turn.
 
+## 🔴 Subagents en session worktree — CWD (RÈGLE DURE)
+
+**Piège confirmé (plan 137, 2026-06-21)** : un subagent hérite du **CWD du checkout principal** (`/home/.../pokemon-tactics`), **PAS** du worktree, même si le prompt mentionne le chemin du worktree. S'il lance `git status`/`git diff`/`git log` ou utilise des chemins relatifs, il lit l'état du **checkout principal** (souvent une autre branche, du travail parallèle de l'humain) → il croit le travail absent et peut conclure n'importe quoi (un agent a wronguement « reverté » son propre travail, croyant le plan non implémenté ; il a accusé `rtk` à tort — `rtk` était exact, c'était le mauvais répertoire).
+
+Quand tu lances un subagent pour du travail **dans un worktree** (`.worktrees/<branche>/`) :
+1. **Première instruction du prompt = `cd <chemin absolu du worktree>`** avant toute commande, et vérifier `git rev-parse --show-toplevel` == le worktree.
+2. Donner **tous les chemins en absolu** (Edit/Read/Grep sur `/home/.../.worktrees/<branche>/...`). Les chemins relatifs résolvent depuis le checkout principal.
+3. Si le subagent n'a pas besoin de git, lui dire **de ne lancer aucune commande git** et de lire les fichiers directement (Read/grep) — supprime la classe de bug entière.
+4. Ne jamais se fier à un `git status/diff` d'un subagent dont on n'a pas garanti le CWD : recouper soi-même depuis le worktree (`cd <worktree> && git ...`).
+
+`rtk` n'est PAS en cause ici (`rtk git status` est frais, vérifié) — la cause est toujours le CWD.
+
 ## Chaînes principales
 
 ### Rédaction d'un plan

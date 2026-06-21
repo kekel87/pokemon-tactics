@@ -60,6 +60,7 @@ Le checkout principal garde `main` ; chaque worktree porte une branche feature. 
 
 ## Notes
 
+- 🔴 **Subagents = CWD du checkout principal, pas du worktree.** Tout subagent lancé pendant une session worktree doit recevoir `cd <chemin absolu worktree>` en 1re instruction + chemins absolus, sinon il lit l'état de `main` (branche/travail parallèle) et conclut faux. Détail + incident plan 137 : `docs/agent-orchestration.md` § « Subagents en session worktree ».
 - Vitest / build n'ont pas de port → tournent en // sans réglage. Caches `.vite/` worktree-local.
 - Un worktree dont la branche a besoin d'autres deps fait son propre `pnpm install` automatiquement — n'affecte pas les autres.
 - `status` utilise `gh` pour l'état PR (optionnel — `NONE` si pas trouvé).
