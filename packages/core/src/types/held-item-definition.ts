@@ -77,6 +77,7 @@ export interface HeldItemHandler {
   onMoveLock?: () => boolean;
   onStatLowered?: (context: StatLoweredContext) => ItemReactionResult;
   onAccuracyModify?: (context: ItemAccuracyContext) => number;
+  onEvasionModify?: (context: ItemAccuracyContext) => number;
 }
 
 export interface HeldItemDefinition extends HeldItemHandler {
