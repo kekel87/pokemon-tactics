@@ -32,6 +32,7 @@ const NORMAL_GEM_MOD = 1.3;
 const MUSCLE_BAND_MOD = 1.1;
 const WISE_GLASSES_MOD = 1.1;
 const SHELL_BELL_HEAL_FRACTION = 8;
+const EVASION_MOD = 0.9;
 
 const MAJOR_STATUSES: readonly StatusType[] = [
   StatusType.Burned,
@@ -213,6 +214,13 @@ function accuracyBoostItem(id: HeldItemId, multiplier: number): HeldItemHandler 
   return {
     id,
     onAccuracyModify: () => multiplier,
+  };
+}
+
+function evasionItem(id: HeldItemId, multiplier: number): HeldItemHandler {
+  return {
+    id,
+    onEvasionModify: () => multiplier,
   };
 }
 
@@ -728,6 +736,9 @@ export const itemHandlers: HeldItemHandler[] = [
     onAccuracyModify: ({ self, target }) =>
       (target.lastActedAtAction ?? -1) > (self.lastActedAtAction ?? -1) ? 1.2 : 1,
   },
+
+  evasionItem(HeldItemId.BrightPowder, EVASION_MOD),
+  evasionItem(HeldItemId.LaxIncense, EVASION_MOD),
 
   {
     id: HeldItemId.MuscleBand,

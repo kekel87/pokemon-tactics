@@ -581,6 +581,14 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   cible) : face à un dummy inerte qui n'agit jamais, la condition est toujours fausse → reste à ×1,0 →
   RATE comme sans objet (test asserte le raté). *Le ×1,2 conditionnel n'est pas pilotable en sandbox
   1v1 (cible inerte) → couvert unit (`battle/items/precision-items.test.ts`) → cette facette reste 👁.*
+- 🤖 **Objets d'évasion** — miroir DÉFENSEUR des objets de précision : le porteur (la cible) réduit la
+  précision des coups entrants de 10 % (×0,9, hook `onEvasionModify`). Modification SILENCIEUSE (aucun
+  event) → l'unique signal est le RÉSULTAT du jet, piloté par « bande de jet » (`mechanics-abilities.spec`) :
+  Raichu lance Jet-Pierres (`rock-throw`, précision 90 %, Single) sur un Ronflex inerte (999 PV → survit),
+  seed **30** dont le tirage tombe dans [81 %, 90 %). Sans objet le coup TOUCHE (« <Y> perd N PV ! »),
+  AVEC **Poudre Claire** (`bright-powder`, ×0,9 → 81 %) il RATE (« <X> rate son attaque ! »), et de même
+  avec **Encens Doux** (`lax-incense`, même ×0,9) — la même graine prouve que le −10 % bascule exactement
+  le résultat (un témoin sans objet + un test par objet ; déterminisme croisé vérifié).
 - 👁 **Talent** déclenché → « <Talent> de <X> s'active ! » (texte or).
 - 👁 **Objet tenu** activé → « <Objet> de <X> s'active ! » (vert) ; **consommé** → « <X> a utilisé
   son <Objet> ».
@@ -986,7 +994,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) |
 | `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
-| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) + Graine Électrik (granule de terrain : pose Champ Électrifié sous soi → fin de tour Déf +1 + consommée, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit ; Graine Herbe / Graine Psychique / Graine Brume (même factory) = unit + objets de précision (bande de jet seed 6, Élecanon 50 % : témoin sans objet rate / Loupe ×1,1 touche / Lentille Zoom ×1,0 inactive face à dummy inerte rate ; ×1,2 conditionnel = unit) |
+| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) + Graine Électrik (granule de terrain : pose Champ Électrifié sous soi → fin de tour Déf +1 + consommée, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit ; Graine Herbe / Graine Psychique / Graine Brume (même factory) = unit + objets de précision (bande de jet seed 6, Élecanon 50 % : témoin sans objet rate / Loupe ×1,1 touche / Lentille Zoom ×1,0 inactive face à dummy inerte rate ; ×1,2 conditionnel = unit) + objets d'évasion (bande de jet seed 30, Jet-Pierres 90 % : témoin sans objet touche / Poudre Claire ×0,9 rate / Encens Doux ×0,9 rate) |
 | `combat/mechanics-talents-tier-a.spec.ts` | §5.14 talents Tier A (plan 136) : Régé-Force (soin de fin de tour), Multi-Coups (Balle Graine → « Touché 5 fois ! »), Querelleur (Griffe touche un Ectoplasma Spectre — dégâts présents, « Ça n'affecte pas » absent — garde le fix handle-damage). Autres talents Tier A (silencieux / dépendants de l'IA) = unit |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |

@@ -213,3 +213,51 @@ test("§5.14 objet de précision : la Lentille Zoom reste inactive sans cible ay
   await scene.castFirstMove(2, 2); // condition « après la cible » jamais vraie → ×1,0 → rate
   await expect(log(page, /rate son attaque/)).toBeAttached({ timeout: 10_000 });
 });
+
+// §5.14 objets d'évasion (Poudre Claire / Encens Doux) — miroir des objets de précision, mais côté
+// DÉFENSEUR : le porteur (la cible) réduit la précision des coups entrants de 10 % (×0,9, hook
+// `onEvasionModify`). La modification est SILENCIEUSE (aucun event) → seul le RÉSULTAT du jet est
+// observable, piloté par la « bande de jet ».
+//
+// Montage : Raichu (2,3) face nord lance Jet-Pierres (rock-throw, précision 90 %, forcé hors-pool
+// via `moves`) sur un Ronflex inerte (2,2, 999 PV → survit, ne court-circuite jamais le log). Au
+// seed 30, le tirage de précision tombe dans [81 %, 90 %) : SANS objet l'attaque TOUCHE (90 %),
+// AVEC un objet d'évasion (×0,9 → 81 %) elle RATE — la même graine prouve que le −10 % bascule
+// exactement le résultat. Poudre Claire et Encens Doux appliquent le même ×0,9 → mêmes deux issues
+// (déterminisme vérifié sur 3 passes croisées). Seed fixe → aucun override de Math.random.
+const EVASION_DUEL = {
+  ...DUEL,
+  seed: 30,
+  pokemon: "raichu",
+  moves: ["rock-throw"],
+  dummyPokemon: "snorlax",
+  dummyHp: 999,
+} as const;
+
+test("§5.14 objet d'évasion : sans objet, Jet-Pierres (90 %) touche au seed 30 (témoin)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(EVASION_DUEL);
+  await scene.castFirstMove(2, 2); // le Ronflex aligné au nord (Touche)
+  await expect(log(page, /perd \d+ PV/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /rate son attaque/)).toHaveCount(0);
+});
+
+test("§5.14 objet d'évasion : la Poudre Claire (×0,9) fait rater Jet-Pierres au même seed", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({ ...EVASION_DUEL, dummyHeldItem: "bright-powder" });
+  await scene.castFirstMove(2, 2); // même montage, même seed : ×0,9 → 81 % → rate
+  await expect(log(page, /rate son attaque/)).toBeAttached({ timeout: 10_000 });
+});
+
+test("§5.14 objet d'évasion : l'Encens Doux (×0,9) fait aussi rater Jet-Pierres au même seed", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({ ...EVASION_DUEL, dummyHeldItem: "lax-incense" });
+  await scene.castFirstMove(2, 2); // même réduction côté défenseur → 81 % → rate
+  await expect(log(page, /rate son attaque/)).toBeAttached({ timeout: 10_000 });
+});
