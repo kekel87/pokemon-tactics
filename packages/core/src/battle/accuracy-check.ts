@@ -6,6 +6,7 @@ import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
+import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getStatMultiplier } from "./stat-modifier";
 import { effectiveWeather, getWeatherAccuracyOverride } from "./weather-system";
 
@@ -17,6 +18,7 @@ export function checkAccuracy(
   terrainEvasionBonus = 0,
   abilityRegistry?: AbilityHandlerRegistry,
   state?: BattleState,
+  itemRegistry?: HeldItemHandlerRegistry,
 ): boolean {
   const lockedOnIndex = attacker.volatileStatuses.findIndex((v) => v.type === StatusType.LockedOn);
   if (lockedOnIndex !== -1) {
@@ -53,6 +55,10 @@ export function checkAccuracy(
   const accuracyMultiplier = getStatMultiplier(accuracyStages);
   const evasionMultiplier = getStatMultiplier(evasionStages);
   const abilityAccBonus = abilityRegistry?.getForPokemon(attacker)?.accuracyMultiplier ?? 1;
+  const itemAccBonus =
+    itemRegistry
+      ?.getForPokemon(attacker)
+      ?.onAccuracyModify?.({ self: attacker, target: defender, move }) ?? 1;
 
   const weatherAccuracyOverride =
     state && activeWeather !== Weather.None
@@ -61,7 +67,7 @@ export function checkAccuracy(
   const baseAccuracy = weatherAccuracyOverride ?? move.accuracy;
 
   const effectiveAccuracy =
-    (baseAccuracy * accuracyMultiplier * abilityAccBonus) / evasionMultiplier;
+    (baseAccuracy * accuracyMultiplier * abilityAccBonus * itemAccBonus) / evasionMultiplier;
 
   if (effectiveAccuracy >= 100) {
     return true;
