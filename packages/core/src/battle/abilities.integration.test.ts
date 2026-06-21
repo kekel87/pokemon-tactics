@@ -2450,4 +2450,774 @@ describe("ability system integration", () => {
     const venomoth = state.pokemon.get("venomoth");
     expect(venomoth?.statusEffects.some((s) => s.type === StatusType.Asleep)).toBe(true);
   });
+
+  // Plan 136 — Tier A abilities
+
+  it("reckless boosts recoil moves by 20% but leaves non-recoil moves untouched", () => {
+    // Given a Tauros with reckless using double-edge (a recoil move)
+    const recklessAttacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "reckless-attacker",
+      definitionId: "tauros",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["double-edge", "body-slam"],
+      currentPp: { "double-edge": 15, "body-slam": 15 },
+      abilityId: "reckless",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const recklessTarget = MockPokemon.fresh(MockPokemon.base, {
+      id: "reckless-target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+
+    // Given the same Tauros without reckless
+    const plainAttacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "plain-attacker",
+      definitionId: "tauros",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["double-edge", "body-slam"],
+      currentPp: { "double-edge": 15, "body-slam": 15 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const plainTarget = MockPokemon.fresh(MockPokemon.base, {
+      id: "plain-target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
+
+    // When double-edge (recoil) is used with reckless
+    const { engine: recoilWith } = buildMoveTestEngine([recklessAttacker, recklessTarget]);
+    recoilWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "reckless-attacker",
+      moveId: "double-edge",
+      targetPosition: { x: 1, y: 2 },
+    });
+    const recoilDamageWith = 500 - recklessTarget.currentHp;
+
+    // When double-edge is used without reckless
+    const { engine: recoilWithout } = buildMoveTestEngine([plainAttacker, plainTarget]);
+    recoilWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "plain-attacker",
+      moveId: "double-edge",
+      targetPosition: { x: 1, y: 2 },
+    });
+    const recoilDamageWithout = 500 - plainTarget.currentHp;
+
+    // Then reckless deals roughly 20% more on the recoil move
+    expect(recoilDamageWith).toBeGreaterThan(recoilDamageWithout);
+    expect(recoilDamageWith).toBeCloseTo(recoilDamageWithout * 1.2, -1);
+
+    // And on a non-recoil move (body-slam), reckless gives no boost
+    const recklessAttacker2 = MockPokemon.fresh(MockPokemon.base, {
+      id: "reckless-attacker-2",
+      definitionId: "tauros",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["body-slam"],
+      currentPp: { "body-slam": 15 },
+      abilityId: "reckless",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const recklessTarget2 = MockPokemon.fresh(MockPokemon.base, {
+      id: "reckless-target-2",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+    const plainAttacker2 = MockPokemon.fresh(MockPokemon.base, {
+      id: "plain-attacker-2",
+      definitionId: "tauros",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["body-slam"],
+      currentPp: { "body-slam": 15 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const plainTarget2 = MockPokemon.fresh(MockPokemon.base, {
+      id: "plain-target-2",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+
+    const { engine: nonRecoilWith } = buildMoveTestEngine([recklessAttacker2, recklessTarget2]);
+    nonRecoilWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "reckless-attacker-2",
+      moveId: "body-slam",
+      targetPosition: { x: 1, y: 2 },
+    });
+    const { engine: nonRecoilWithout } = buildMoveTestEngine([plainAttacker2, plainTarget2]);
+    nonRecoilWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "plain-attacker-2",
+      moveId: "body-slam",
+      targetPosition: { x: 1, y: 2 },
+    });
+    expect(500 - recklessTarget2.currentHp).toBe(500 - plainTarget2.currentHp);
+  });
+
+  it("rivalry boosts same-gender, weakens opposite-gender, and ignores genderless matchups", () => {
+    const runMatchup = (selfGender: PokemonGender, opponentGender: PokemonGender) => {
+      const attacker = MockPokemon.fresh(MockPokemon.base, {
+        id: "rivalry-attacker",
+        definitionId: "tauros",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 2 },
+        moveIds: ["body-slam"],
+        currentPp: { "body-slam": 15 },
+        abilityId: "rivalry",
+        gender: selfGender,
+        derivedStats: { movement: 4, jump: 1, initiative: 100 },
+      });
+      const target = MockPokemon.fresh(MockPokemon.base, {
+        id: "rivalry-target",
+        playerId: PlayerId.Player2,
+        position: { x: 1, y: 2 },
+        currentHp: 500,
+        maxHp: 500,
+        gender: opponentGender,
+      });
+      vi.spyOn(Math, "random").mockReturnValue(0.99);
+      const { engine } = buildMoveTestEngine([attacker, target]);
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UseMove,
+        pokemonId: "rivalry-attacker",
+        moveId: "body-slam",
+        targetPosition: { x: 1, y: 2 },
+      });
+      vi.restoreAllMocks();
+      return 500 - target.currentHp;
+    };
+
+    // Given a Genderless baseline (×1.0)
+    const baseline = runMatchup(PokemonGender.Genderless, PokemonGender.Male);
+    // Then same gender deals more (×1.25) and opposite gender deals less (×0.75)
+    const sameGender = runMatchup(PokemonGender.Male, PokemonGender.Male);
+    const oppositeGender = runMatchup(PokemonGender.Male, PokemonGender.Female);
+
+    expect(sameGender).toBeGreaterThan(baseline);
+    expect(oppositeGender).toBeLessThan(baseline);
+    expect(sameGender).toBeCloseTo(baseline * 1.25, -1);
+    expect(oppositeGender).toBeCloseTo(baseline * 0.75, -1);
+  });
+
+  it("tinted-lens doubles not-very-effective damage but leaves neutral hits unchanged", () => {
+    // Given a Machop using karate-chop (Fighting) — 0.5x vs Abra (Psychic), 1x vs Machop (Fighting)
+    const runHit = (defenderId: string, withAbility: boolean) => {
+      const attacker = MockPokemon.fresh(MockPokemon.base, {
+        id: "tinted-attacker",
+        definitionId: "machop",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 2 },
+        moveIds: ["karate-chop"],
+        currentPp: { "karate-chop": 25 },
+        ...(withAbility ? { abilityId: "tinted-lens" } : {}),
+        derivedStats: { movement: 4, jump: 1, initiative: 100 },
+      });
+      const target = MockPokemon.fresh(MockPokemon.base, {
+        id: "tinted-target",
+        definitionId: defenderId,
+        playerId: PlayerId.Player2,
+        position: { x: 1, y: 2 },
+        currentHp: 500,
+        maxHp: 500,
+      });
+      vi.spyOn(Math, "random").mockReturnValue(0.99);
+      const { engine } = buildMoveTestEngine([attacker, target]);
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UseMove,
+        pokemonId: "tinted-attacker",
+        moveId: "karate-chop",
+        targetPosition: { x: 1, y: 2 },
+      });
+      vi.restoreAllMocks();
+      return 500 - target.currentHp;
+    };
+
+    // Then a not-very-effective hit (vs Abra) is doubled, ending up roughly neutral
+    const resistedWithout = runHit("abra", false);
+    const resistedWith = runHit("abra", true);
+    expect(resistedWith).toBeGreaterThan(resistedWithout);
+    expect(resistedWith).toBeCloseTo(resistedWithout * 2, -1);
+
+    // And a neutral hit (vs Machop) is unchanged
+    const neutralWithout = runHit("machop", false);
+    const neutralWith = runHit("machop", true);
+    expect(neutralWith).toBe(neutralWithout);
+  });
+
+  it("regenerator heals ~1/16 max HP at end of turn and emits AbilityActivated + HpRestored", () => {
+    // Given a damaged Slowbro with regenerator
+    const slowbro = MockPokemon.fresh(MockPokemon.base, {
+      id: "slowbro",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      abilityId: "regenerator",
+      currentHp: 50,
+      maxHp: 160,
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      derivedStats: { movement: 4, jump: 1, initiative: 10 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([slowbro, foe]);
+    const endResult = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "slowbro",
+      direction: slowbro.orientation,
+    });
+
+    // Then Slowbro regains floor(160/16) = 10 HP and both events are emitted
+    expect(state.pokemon.get("slowbro")?.currentHp).toBe(60);
+    expect(
+      endResult.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "regenerator",
+      ),
+    ).toBe(true);
+    expect(
+      endResult.events.some(
+        (e) =>
+          e.type === BattleEventType.HpRestored && "pokemonId" in e && e.pokemonId === "slowbro",
+      ),
+    ).toBe(true);
+  });
+
+  it("regenerator heals nothing and emits no event at full HP", () => {
+    // Given a full-HP regenerator holder
+    const slowbro = MockPokemon.fresh(MockPokemon.base, {
+      id: "slowbro",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      abilityId: "regenerator",
+      currentHp: 160,
+      maxHp: 160,
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      derivedStats: { movement: 4, jump: 1, initiative: 10 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([slowbro, foe]);
+    const endResult = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "slowbro",
+      direction: slowbro.orientation,
+    });
+
+    // Then HP stays full and no regenerator event fires
+    expect(state.pokemon.get("slowbro")?.currentHp).toBe(160);
+    expect(
+      endResult.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "regenerator",
+      ),
+    ).toBe(false);
+  });
+
+  it("sniper deals more on a critical hit than the same crit without it", () => {
+    // Given an attacker with sniper using cross-chop (forced crit via random=0)
+    const sniperAttacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "sniper-attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["cross-chop"],
+      currentPp: { "cross-chop": 5 },
+      abilityId: "sniper",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const sniperTarget = MockPokemon.fresh(MockPokemon.base, {
+      id: "sniper-target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 999,
+      maxHp: 999,
+    });
+
+    // Given the same attacker without sniper
+    const plainAttacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "plain-attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["cross-chop"],
+      currentPp: { "cross-chop": 5 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const plainTarget = MockPokemon.fresh(MockPokemon.base, {
+      id: "plain-target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 999,
+      maxHp: 999,
+    });
+
+    // random=0 → crit (0 < 1/24) in both runs
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine: critWith } = buildMoveTestEngine([sniperAttacker, sniperTarget]);
+    const resultWith = critWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "sniper-attacker",
+      moveId: "cross-chop",
+      targetPosition: { x: 1, y: 2 },
+    });
+    const { engine: critWithout } = buildMoveTestEngine([plainAttacker, plainTarget]);
+    const resultWithout = critWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "plain-attacker",
+      moveId: "cross-chop",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then both hits crit, and sniper does ~1.5x the non-sniper crit
+    expect(resultWith.events.map((e) => e.type)).toContain(BattleEventType.CriticalHit);
+    expect(resultWithout.events.map((e) => e.type)).toContain(BattleEventType.CriticalHit);
+    const damageWith = 999 - sniperTarget.currentHp;
+    const damageWithout = 999 - plainTarget.currentHp;
+    expect(damageWith).toBeGreaterThan(damageWithout);
+    expect(damageWith).toBeCloseTo(damageWithout * 1.5, 0);
+  });
+
+  it("anger-point maxes the holder's Attack on a critical hit and emits StatChanged", () => {
+    // Given a holder with anger-point taking a forced crit
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["cross-chop"],
+      currentPp: { "cross-chop": 5 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      definitionId: "tauros",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 999,
+      maxHp: 999,
+      abilityId: "anger-point",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, holder]);
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "cross-chop",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then Attack is maxed to +6 and AbilityActivated + StatChanged are emitted
+    expect(state.pokemon.get("holder")?.statStages[StatName.Attack]).toBe(6);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "anger-point",
+      ),
+    ).toBe(true);
+    expect(
+      result.events.some(
+        (e) =>
+          e.type === BattleEventType.StatChanged &&
+          "targetId" in e &&
+          e.targetId === "holder" &&
+          e.stat === StatName.Attack &&
+          e.stages === 6,
+      ),
+    ).toBe(true);
+  });
+
+  it("anger-point does not trigger on a non-critical hit", () => {
+    // Given a holder with anger-point taking a non-crit hit (random=0.99)
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      definitionId: "tauros",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 999,
+      maxHp: 999,
+      abilityId: "anger-point",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
+
+    const { engine, state } = buildMoveTestEngine([attacker, holder]);
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then Attack is unchanged
+    expect(state.pokemon.get("holder")?.statStages[StatName.Attack]).toBe(0);
+  });
+
+  it("defiant raises Attack +2 when an opponent lowers a stat, but not on self drops", () => {
+    // Given a holder with defiant hit by growl (Attack -1) from an enemy
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["growl"],
+      currentPp: { growl: 40 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      definitionId: "tauros",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      abilityId: "defiant",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, holder]);
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "growl",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then growl's -1 is overcompensated by defiant's +2 → net +1, with both events emitted
+    expect(state.pokemon.get("holder")?.statStages[StatName.Attack]).toBe(1);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "defiant",
+      ),
+    ).toBe(true);
+    expect(
+      result.events.some(
+        (e) =>
+          e.type === BattleEventType.StatChanged &&
+          "targetId" in e &&
+          e.targetId === "holder" &&
+          e.stat === StatName.Attack &&
+          e.stages === 2,
+      ),
+    ).toBe(true);
+  });
+
+  it("defiant does not trigger on a self-inflicted stat drop", () => {
+    // Given a holder with defiant using leaf-storm (lowers its own Sp. Atk)
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      definitionId: "tauros",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["leaf-storm"],
+      currentPp: { "leaf-storm": 5 },
+      abilityId: "defiant",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([holder, foe]);
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "holder",
+      moveId: "leaf-storm",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then defiant did not fire: Attack stays at 0 (only the self Sp. Atk drop happened)
+    expect(state.pokemon.get("holder")?.statStages[StatName.Attack]).toBe(0);
+  });
+
+  it("competitive raises Sp. Atk +2 when an opponent lowers a stat", () => {
+    // Given a holder with competitive hit by growl (Attack -1) from an enemy
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["growl"],
+      currentPp: { growl: 40 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      definitionId: "tauros",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      abilityId: "competitive",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, holder]);
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "growl",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then Attack is lowered by growl but Sp. Atk rises +2, with both events emitted
+    expect(state.pokemon.get("holder")?.statStages[StatName.Attack]).toBe(-1);
+    expect(state.pokemon.get("holder")?.statStages[StatName.SpAttack]).toBe(2);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "competitive",
+      ),
+    ).toBe(true);
+    expect(
+      result.events.some(
+        (e) =>
+          e.type === BattleEventType.StatChanged &&
+          "targetId" in e &&
+          e.targetId === "holder" &&
+          e.stat === StatName.SpAttack &&
+          e.stages === 2,
+      ),
+    ).toBe(true);
+  });
+
+  it("unaware attacker ignores the defender's defensive stat stages", () => {
+    // Given an unaware attacker vs a defender boosted to +6 Defense, and vs a +0 defender
+    const runHit = (defenseStage: number) => {
+      const attacker = MockPokemon.fresh(MockPokemon.base, {
+        id: "unaware-attacker",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 2 },
+        moveIds: ["body-slam"],
+        currentPp: { "body-slam": 15 },
+        abilityId: "unaware",
+        derivedStats: { movement: 4, jump: 1, initiative: 100 },
+      });
+      const defender = MockPokemon.fresh(MockPokemon.base, {
+        id: "unaware-defender",
+        playerId: PlayerId.Player2,
+        position: { x: 1, y: 2 },
+        currentHp: 500,
+        maxHp: 500,
+        statStages: { ...MockPokemon.base.statStages, [StatName.Defense]: defenseStage },
+      });
+      vi.spyOn(Math, "random").mockReturnValue(0.99);
+      const { engine } = buildMoveTestEngine([attacker, defender]);
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UseMove,
+        pokemonId: "unaware-attacker",
+        moveId: "body-slam",
+        targetPosition: { x: 1, y: 2 },
+      });
+      vi.restoreAllMocks();
+      return 500 - defender.currentHp;
+    };
+
+    // Then the +6 Defense boost is ignored — same damage as a +0 defender
+    expect(runHit(6)).toBe(runHit(0));
+  });
+
+  it("unaware defender ignores the attacker's offensive stat stages", () => {
+    // Given an attacker boosted to +6 Attack vs an unaware defender, and a +0 attacker
+    const runHit = (attackStage: number) => {
+      const attacker = MockPokemon.fresh(MockPokemon.base, {
+        id: "boosted-attacker",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 2 },
+        moveIds: ["body-slam"],
+        currentPp: { "body-slam": 15 },
+        statStages: { ...MockPokemon.base.statStages, [StatName.Attack]: attackStage },
+        derivedStats: { movement: 4, jump: 1, initiative: 100 },
+      });
+      const defender = MockPokemon.fresh(MockPokemon.base, {
+        id: "unaware-defender",
+        playerId: PlayerId.Player2,
+        position: { x: 1, y: 2 },
+        currentHp: 500,
+        maxHp: 500,
+        abilityId: "unaware",
+      });
+      vi.spyOn(Math, "random").mockReturnValue(0.99);
+      const { engine } = buildMoveTestEngine([attacker, defender]);
+      engine.submitAction(PlayerId.Player1, {
+        kind: ActionKind.UseMove,
+        pokemonId: "boosted-attacker",
+        moveId: "body-slam",
+        targetPosition: { x: 1, y: 2 },
+      });
+      vi.restoreAllMocks();
+      return 500 - defender.currentHp;
+    };
+
+    // Then the +6 Attack boost is ignored — same damage as a +0 attacker
+    expect(runHit(6)).toBe(runHit(0));
+  });
+
+  it("scrappy lets a Normal move hit a Ghost type that is otherwise immune", () => {
+    // Given a scrappy attacker using tackle (Normal) vs Gastly (Ghost/Poison)
+    const scrappyAttacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "scrappy-attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["tackle"],
+      currentPp: { tackle: 35 },
+      abilityId: "scrappy",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const ghost = MockPokemon.fresh(MockPokemon.base, {
+      id: "ghost",
+      definitionId: "gastly",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+    });
+
+    // Given the same attacker without scrappy
+    const plainAttacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "plain-attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["tackle"],
+      currentPp: { tackle: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const ghost2 = MockPokemon.fresh(MockPokemon.base, {
+      id: "ghost-2",
+      definitionId: "gastly",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
+
+    const { engine: scrappyEngine } = buildMoveTestEngine([scrappyAttacker, ghost]);
+    const scrappyResult = scrappyEngine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "scrappy-attacker",
+      moveId: "tackle",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const { engine: plainEngine } = buildMoveTestEngine([plainAttacker, ghost2]);
+    plainEngine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "plain-attacker",
+      moveId: "tackle",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then scrappy deals damage while the non-scrappy attacker is fully blocked (immune)
+    expect(200 - ghost.currentHp).toBeGreaterThan(0);
+    expect(ghost2.currentHp).toBe(200);
+
+    // And the emitted DamageDealt reports neutral effectiveness (1), not 0 — otherwise the
+    // UI shows "Aucun effet" despite the hit dealing damage. Guards the handle-damage fix.
+    const damageEvent = scrappyResult.events.find(
+      (e) => e.type === BattleEventType.DamageDealt && "targetId" in e && e.targetId === "ghost",
+    );
+    expect(damageEvent && "effectiveness" in damageEvent ? damageEvent.effectiveness : 0).not.toBe(
+      0,
+    );
+    expect(damageEvent && "effectiveness" in damageEvent ? damageEvent.effectiveness : 0).toBe(1);
+  });
+
+  it("skill-link forces a variable multi-hit move to land the maximum number of hits", () => {
+    // Given a skill-link attacker using fury-attack (2-5 hits)
+    const skillLinkAttacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "skill-link-attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["fury-attack"],
+      currentPp: { "fury-attack": 20 },
+      abilityId: "skill-link",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 999,
+      maxHp: 999,
+    });
+
+    // Given the same attacker without skill-link (random=0 forces the minimum, 2 hits)
+    const plainAttacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "plain-attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["fury-attack"],
+      currentPp: { "fury-attack": 20 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const target2 = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-2",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 999,
+      maxHp: 999,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine: skillLinkEngine } = buildMoveTestEngine([skillLinkAttacker, target]);
+    const skillLinkResult = skillLinkEngine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "skill-link-attacker",
+      moveId: "fury-attack",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const { engine: plainEngine } = buildMoveTestEngine([plainAttacker, target2]);
+    const plainResult = plainEngine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "plain-attacker",
+      moveId: "fury-attack",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const skillLinkHits = skillLinkResult.events.find(
+      (e) => e.type === BattleEventType.MultiHitComplete,
+    );
+    const plainHits = plainResult.events.find((e) => e.type === BattleEventType.MultiHitComplete);
+
+    // Then skill-link always lands the max (5) while the unmodified roll lands fewer
+    expect(skillLinkHits && "totalHits" in skillLinkHits ? skillLinkHits.totalHits : 0).toBe(5);
+    expect(plainHits && "totalHits" in plainHits ? plainHits.totalHits : 0).toBeLessThan(5);
+  });
 });

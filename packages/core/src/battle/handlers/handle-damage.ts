@@ -66,6 +66,7 @@ function rollMultiHitCount(min: number, max: number, random: RandomFn): number {
 function getHitCount(
   effect: Extract<Effect, { kind: typeof EffectKind.Damage }>,
   random: RandomFn,
+  skillLink: boolean,
 ): number {
   if (effect.escalatingHitPower !== undefined) {
     return effect.escalatingHitPower.length;
@@ -75,6 +76,10 @@ function getHitCount(
   }
   if (typeof effect.hits === "number") {
     return effect.hits;
+  }
+  // Multi-Coups (skill-link): variable-hit moves always land the maximum number of hits.
+  if (skillLink) {
+    return effect.hits.max;
   }
   return rollMultiHitCount(effect.hits.min, effect.hits.max, random);
 }
@@ -244,12 +249,17 @@ function dealSingleHit(
   }
 
   const targetItem = context.itemRegistry?.getForPokemon(target);
+  // Querelleur (scrappy): Normal/Fighting moves treat Ghost as neutral, so the reported
+  // effectiveness must match the damage calc (otherwise the hit shows "no effect" yet deals damage).
+  const scrappyGhostBypass =
+    context.abilityRegistry?.getForPokemon(context.attacker)?.id === "scrappy";
   const isSuperEffective =
     getTypeEffectiveness(
       context.move.type,
       defenderTypes,
       context.typeChart,
       context.move.typeEffectivenessOverride,
+      scrappyGhostBypass,
     ) > 1;
   const isContact = context.move.flags?.contact === true;
 
@@ -270,6 +280,7 @@ function dealSingleHit(
     defenderTypes,
     context.typeChart,
     context.move.typeEffectivenessOverride,
+    scrappyGhostBypass,
   );
 
   if (isCrit) {
@@ -405,6 +416,7 @@ function dealSingleHit(
       move: context.move,
       damageDealt: actualDamage,
       wasAtMaxHp,
+      isCrit,
       state: context.state,
       selfTypes,
       attackerTypes,
@@ -475,7 +487,8 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
 
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.Damage }>;
   const beatUpPowers = effect.teamBeatUp === true ? computeBeatUpPowers(context) : undefined;
-  const hitCount = beatUpPowers?.length ?? getHitCount(effect, context.random);
+  const skillLink = context.abilityRegistry?.getForPokemon(context.attacker)?.id === "skill-link";
+  const hitCount = beatUpPowers?.length ?? getHitCount(effect, context.random, skillLink);
   const isMultiHit = hitCount > 1;
 
   for (const target of context.targets) {

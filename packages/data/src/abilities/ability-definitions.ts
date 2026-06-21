@@ -7,6 +7,7 @@ import type {
 import {
   BattleEventType,
   Category,
+  EffectKind,
   isImmuneToStatusByType,
   isMajorStatus,
   isProtectedFromStatDecrease,
@@ -1101,6 +1102,185 @@ const chlorophyll: AbilityHandler = {
   weatherSpeedBoost: { weather: Weather.Sun, multiplier: 2 },
 };
 
+// Téméraire (reckless): +20% damage on moves that inflict recoil. Silent (damage modifier).
+const reckless: AbilityHandler = {
+  id: "reckless",
+  onDamageModify: (context) => {
+    if (!context.isAttacker) {
+      return 1.0;
+    }
+    const hasRecoil = context.move.effects.some((effect) => effect.kind === EffectKind.Recoil);
+    return hasRecoil ? 1.2 : 1.0;
+  },
+};
+
+// Rivalité (rivalry): +25% vs same-gender target, -25% vs opposite gender, neutral if either is
+// genderless. Silent (damage modifier).
+const rivalry: AbilityHandler = {
+  id: "rivalry",
+  onDamageModify: (context) => {
+    if (!context.isAttacker) {
+      return 1.0;
+    }
+    const selfGender = context.self.gender;
+    const opponentGender = context.opponent.gender;
+    if (selfGender === PokemonGender.Genderless || opponentGender === PokemonGender.Genderless) {
+      return 1.0;
+    }
+    return selfGender === opponentGender ? 1.25 : 0.75;
+  },
+};
+
+// Lentiteintée (tinted-lens): "not very effective" hits deal double damage. Silent.
+const tintedLens: AbilityHandler = {
+  id: "tinted-lens",
+  onDamageModify: (context) => {
+    if (context.isAttacker && context.effectiveness < 1) {
+      return 2.0;
+    }
+    return 1.0;
+  },
+};
+
+// Régé-Force (regenerator): no switch mechanic in this tactical game (cf. plan 136), reinterpreted
+// as a small passive heal (1/16 max HP) at end of turn.
+const regenerator: AbilityHandler = {
+  id: "regenerator",
+  onEndTurn: (context) => {
+    if (context.self.currentHp <= 0) {
+      return [];
+    }
+    const healAmount = Math.min(
+      context.self.maxHp - context.self.currentHp,
+      Math.max(1, Math.floor(context.self.maxHp / 16)),
+    );
+    if (healAmount <= 0) {
+      return [];
+    }
+    context.self.currentHp += healAmount;
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "regenerator",
+        targetIds: [context.self.id],
+      },
+      {
+        type: BattleEventType.HpRestored,
+        pokemonId: context.self.id,
+        amount: healAmount,
+      },
+    ];
+  },
+};
+
+// Sniper (sniper): critical hits deal 1.5x more (stacks with the 1.5x crit mod → 2.25x). Silent.
+const sniper: AbilityHandler = {
+  id: "sniper",
+  onDamageModify: (context) => (context.isAttacker && context.isCrit ? 1.5 : 1.0),
+};
+
+// Colérique (anger-point): taking a critical hit maximizes Attack (+6 stages).
+const angerPoint: AbilityHandler = {
+  id: "anger-point",
+  onAfterDamageReceived: (context) => {
+    if (!context.isCrit) {
+      return [];
+    }
+    const currentStage = context.self.statStages[StatName.Attack];
+    if (currentStage >= 6) {
+      return [];
+    }
+    context.self.statStages[StatName.Attack] = 6;
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "anger-point",
+        targetIds: [context.self.id],
+      },
+      {
+        type: BattleEventType.StatChanged,
+        targetId: context.self.id,
+        stat: StatName.Attack,
+        stages: 6 - currentStage,
+      },
+    ];
+  },
+};
+
+// Acharné (defiant): when an opponent lowers one of our stats, raise Attack +2.
+const defiant: AbilityHandler = {
+  id: "defiant",
+  onAfterStatLowered: (context) => {
+    const currentStage = context.self.statStages[StatName.Attack];
+    const newStage = Math.min(6, currentStage + 2);
+    if (newStage === currentStage) {
+      return [];
+    }
+    context.self.statStages[StatName.Attack] = newStage;
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "defiant",
+        targetIds: [context.self.id],
+      },
+      {
+        type: BattleEventType.StatChanged,
+        targetId: context.self.id,
+        stat: StatName.Attack,
+        stages: newStage - currentStage,
+      },
+    ];
+  },
+};
+
+// Battant (competitive): when an opponent lowers one of our stats, raise Sp. Atk +2.
+const competitive: AbilityHandler = {
+  id: "competitive",
+  onAfterStatLowered: (context) => {
+    const currentStage = context.self.statStages[StatName.SpAttack];
+    const newStage = Math.min(6, currentStage + 2);
+    if (newStage === currentStage) {
+      return [];
+    }
+    context.self.statStages[StatName.SpAttack] = newStage;
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "competitive",
+        targetIds: [context.self.id],
+      },
+      {
+        type: BattleEventType.StatChanged,
+        targetId: context.self.id,
+        stat: StatName.SpAttack,
+        stages: newStage - currentStage,
+      },
+    ];
+  },
+};
+
+// Inconscient (unaware): ignores the opponent's stat stages in the damage formula.
+// Implemented by id in damage-calculator.ts (marker handler).
+const unaware: AbilityHandler = {
+  id: "unaware",
+};
+
+// Querelleur (scrappy): Normal/Fighting moves ignore Ghost's type immunity.
+// Implemented by id in damage-calculator.ts + effect-processor.ts (marker handler).
+const scrappy: AbilityHandler = {
+  id: "scrappy",
+};
+
+// Multi-Coups (skill-link): variable-hit moves always land the maximum number of hits.
+// Implemented by id in handle-damage.ts (marker handler).
+const skillLink: AbilityHandler = {
+  id: "skill-link",
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -1155,4 +1335,15 @@ export const abilityHandlers: AbilityHandler[] = [
   shieldDust,
   innerFocus,
   chlorophyll,
+  reckless,
+  rivalry,
+  tintedLens,
+  regenerator,
+  sniper,
+  angerPoint,
+  defiant,
+  competitive,
+  unaware,
+  scrappy,
+  skillLink,
 ];
