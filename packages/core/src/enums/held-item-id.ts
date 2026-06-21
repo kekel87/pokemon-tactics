@@ -85,6 +85,8 @@ export const HeldItemId = {
   GrassySeed: "grassy-seed",
   PsychicSeed: "psychic-seed",
   MistySeed: "misty-seed",
+  WideLens: "wide-lens",
+  ZoomLens: "zoom-lens",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];

@@ -163,3 +163,53 @@ test("§5.14 granule de terrain : Graine Électrik monte la Défense sur le Cham
   await expect(log(page, /Défense de .* augmente/)).toBeAttached();
   await expect(log(page, /a utilisé son Graine Électrik/)).toBeAttached();
 });
+
+// §5.14 objets de précision (Loupe / Lentille Zoom) — la modification de précision est SILENCIEUSE
+// (le hook `onAccuracyModify` ne pousse aucun event) : le seul signal observable est le RÉSULTAT du
+// jet (touche / rate). On le pilote par la « bande de jet » : Élecanon (`zap-cannon`, précision 50 %)
+// sur un dummy aligné, avec un seed dont le tirage tombe dans [50 %, 55 %) au point d'attaque.
+//
+// Montage : Raichu (2,3) face nord lance Élecanon (Ligne, longueur 4, forcé hors-pool via `moves`)
+// sur un Ronflex inerte (2,2, 999 PV → survit pour ne jamais court-circuiter le log). Au seed 6, le
+// tirage de précision vaut ~0,52 : SANS objet l'attaque RATE (50 %), AVEC la Loupe (×1,1 → 55,0 %)
+// elle TOUCHE — la même graine prouve que le +10 % comble exactement l'écart. Lentille Zoom (×1,2)
+// reste à ×1,0 ici (sa condition « agir après la cible » n'est jamais vraie face à un dummy inerte
+// qui n'agit pas) → elle RATE comme sans objet, ce qui prouve que les deux objets diffèrent et que
+// le bonus conditionnel n'est pas pilotable en sandbox 1v1 ; le ×1,2 conditionnel est couvert unit
+// (`battle/items/precision-items.test.ts`). Seed fixe → aucun override de Math.random.
+const PRECISION_DUEL = {
+  ...DUEL,
+  seed: 6,
+  pokemon: "raichu",
+  moves: ["zap-cannon"],
+  dummyPokemon: "snorlax",
+  dummyHp: 999,
+} as const;
+
+test("§5.14 objet de précision : sans objet, Élecanon (50 %) rate au seed 6 (témoin)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(PRECISION_DUEL);
+  await scene.castFirstMove(2, 2); // le Ronflex aligné au nord (Ligne)
+  await expect(log(page, /rate son attaque/)).toBeAttached({ timeout: 10_000 });
+});
+
+test("§5.14 objet de précision : la Loupe (+10 %) fait toucher Élecanon au même seed", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({ ...PRECISION_DUEL, heldItem: "wide-lens" });
+  await scene.castFirstMove(2, 2); // même montage, même seed : ×1,1 → 55 % → touche
+  await expect(log(page, /perd \d+ PV/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /rate son attaque/)).toHaveCount(0);
+});
+
+test("§5.14 objet de précision : la Lentille Zoom reste inactive sans cible ayant agi", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({ ...PRECISION_DUEL, heldItem: "zoom-lens" });
+  await scene.castFirstMove(2, 2); // condition « après la cible » jamais vraie → ×1,0 → rate
+  await expect(log(page, /rate son attaque/)).toBeAttached({ timeout: 10_000 });
+});
