@@ -120,7 +120,7 @@ import {
   isTerrainImmune,
 } from "./terrain-effects";
 import { TurnPipeline } from "./turn-pipeline";
-import { decrementWeatherTimer, effectiveWeather } from "./weather-system";
+import { decrementWeatherTimer, effectiveWeather, setWeather } from "./weather-system";
 
 type EventHandler = (event: BattleEvent) => void;
 
@@ -820,6 +820,11 @@ export class BattleEngine {
           pokemonTypesMap: this.pokemonTypesMap,
         });
         this.startupEvents.push(...auraEvents);
+      }
+      if (ability.weatherAutoSetter && pokemon.currentHp > 0) {
+        const { weather, turns } = ability.weatherAutoSetter;
+        const weatherEvents = setWeather(this.state, weather, turns, pokemon.id);
+        this.startupEvents.push(...weatherEvents);
       }
     }
   }
@@ -2428,7 +2433,12 @@ export class BattleEngine {
 
       const ability = this.abilityRegistry?.getForPokemon(activePokemon);
       if (ability?.onEndTurn && activePokemon.currentHp > 0) {
-        const abilityEvents = ability.onEndTurn({ self: activePokemon, state: this.state });
+        const abilityEvents = ability.onEndTurn({
+          self: activePokemon,
+          state: this.state,
+          random: this.random,
+          weather: this.getEffectiveWeather(),
+        });
         for (const event of abilityEvents) {
           this.emit(event);
           events.push(event);
@@ -2512,6 +2522,15 @@ export class BattleEngine {
     };
     this.emit(removedEvent);
     events.push(removedEvent);
+
+    const ability = this.abilityRegistry?.getForPokemon(pokemon);
+    if (ability?.onFlinch && pokemon.currentHp > 0) {
+      const flinchEvents = ability.onFlinch({ self: pokemon, state: this.state });
+      for (const event of flinchEvents) {
+        this.emit(event);
+        events.push(event);
+      }
+    }
   }
 
   private processConfusion(pokemon: PokemonInstance, events: BattleEvent[]): void {
@@ -2905,6 +2924,8 @@ export class BattleEngine {
             const abilityEvents = skipAbilityCt.onEndTurn({
               self: skipPokemonCt,
               state: this.state,
+              random: this.random,
+              weather: this.getEffectiveWeather(),
             });
             for (const event of abilityEvents) {
               this.emit(event);

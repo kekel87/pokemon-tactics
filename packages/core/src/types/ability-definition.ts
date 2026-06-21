@@ -115,6 +115,14 @@ export interface DurationModifyResult {
 export interface AbilityEndTurnContext {
   self: PokemonInstance;
   state: BattleState;
+  random: () => number;
+  /** Effective weather (None if a weather-suppressing ability like Ciel Gris is active). */
+  weather: Weather;
+}
+
+export interface AbilityFlinchContext {
+  self: PokemonInstance;
+  state: BattleState;
 }
 
 export interface AbilityHandler {
@@ -142,6 +150,7 @@ export interface AbilityHandler {
   onBattleStart?: (context: BattleStartContext) => BattleEvent[];
   onAuraCheck?: (context: AuraCheckContext) => BattleEvent[];
   onEndTurn?: (context: AbilityEndTurnContext) => BattleEvent[];
+  onFlinch?: (context: AbilityFlinchContext) => BattleEvent[];
 }
 
 export interface AbilityDefinition extends AbilityHandler {

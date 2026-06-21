@@ -1281,6 +1281,256 @@ const skillLink: AbilityHandler = {
   id: "skill-link",
 };
 
+// ===== Plan 137 — Tier B =====
+
+/** Raise one stat stage by +1 (clamped at +6), emitting AbilityActivated + StatChanged. */
+function raiseStatByOne(self: PokemonInstance, stat: StatName, abilityId: string): BattleEvent[] {
+  const currentStage = self.statStages[stat];
+  if (currentStage >= 6) {
+    return [];
+  }
+  self.statStages[stat] = currentStage + 1;
+  return [
+    {
+      type: BattleEventType.AbilityActivated,
+      pokemonId: self.id,
+      abilityId,
+      targetIds: [self.id],
+    },
+    {
+      type: BattleEventType.StatChanged,
+      targetId: self.id,
+      stat,
+      stages: 1,
+    },
+  ];
+}
+
+/** End-of-turn heal of max(1, floor(maxHp/16)), gated on the given effective weather. */
+function makeWeatherHeal(abilityId: string, weather: Weather): AbilityHandler {
+  return {
+    id: abilityId,
+    onEndTurn: (context) => {
+      if (context.weather !== weather || context.self.currentHp <= 0) {
+        return [];
+      }
+      const healAmount = Math.min(
+        context.self.maxHp - context.self.currentHp,
+        Math.max(1, Math.floor(context.self.maxHp / 16)),
+      );
+      if (healAmount <= 0) {
+        return [];
+      }
+      context.self.currentHp += healAmount;
+      return [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId,
+          targetIds: [context.self.id],
+        },
+        {
+          type: BattleEventType.HpRestored,
+          pokemonId: context.self.id,
+          amount: healAmount,
+        },
+      ];
+    },
+  };
+}
+
+// Cœur de Coq (big-pecks): blocks Defense drops.
+const bigPecks: AbilityHandler = {
+  id: "big-pecks",
+  onStatChangeBlocked: (context) => {
+    if (context.stat !== StatName.Defense || context.stages >= 0) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "big-pecks",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+// Lumiattirance (illuminate): blocks Accuracy drops (Gen 9 effect).
+const illuminate: AbilityHandler = {
+  id: "illuminate",
+  onStatChangeBlocked: (context) => {
+    if (context.stat !== StatName.Accuracy || context.stages >= 0) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "illuminate",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+// Vaccin (immunity): immune to poison (Poisoned + BadlyPoisoned).
+const immunity: AbilityHandler = {
+  id: "immunity",
+  onStatusBlocked: (context) => {
+    if (context.status !== StatusType.Poisoned && context.status !== StatusType.BadlyPoisoned) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "immunity",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+// Baigne Sable (sand-rush): doubles speed (CT gain) under Sandstorm.
+const sandRush: AbilityHandler = {
+  id: "sand-rush",
+  weatherSpeedBoost: { weather: Weather.Sandstorm, multiplier: 2 },
+};
+
+// Rideau Neige (snow-cloak): +1 evasion under Snow.
+const snowCloak: AbilityHandler = {
+  id: "snow-cloak",
+  weatherEvasionBoost: { weather: Weather.Snow, stages: 1 },
+};
+
+// Phobique (rattled): hit by a Dark/Ghost/Bug move → +1 Speed.
+const RATTLED_TRIGGER_TYPES: ReadonlySet<PokemonType> = new Set<PokemonType>([
+  PokemonType.Dark,
+  PokemonType.Ghost,
+  PokemonType.Bug,
+]);
+const rattled: AbilityHandler = {
+  id: "rattled",
+  onAfterDamageReceived: (context) => {
+    if (!RATTLED_TRIGGER_TYPES.has(context.move.type) || context.damageDealt <= 0) {
+      return [];
+    }
+    return raiseStatByOne(context.self, StatName.Speed, "rattled");
+  },
+};
+
+// Mue (shed-skin): 33% chance to cure a major status at end of turn.
+const shedSkin: AbilityHandler = {
+  id: "shed-skin",
+  onEndTurn: (context) => {
+    const cured = context.self.statusEffects.filter((s) => MAJOR_STATUSES_FOR_CURE.has(s.type));
+    if (cured.length === 0 || context.random() >= 1 / 3) {
+      return [];
+    }
+    context.self.statusEffects = context.self.statusEffects.filter(
+      (s) => !MAJOR_STATUSES_FOR_CURE.has(s.type),
+    );
+    return [
+      ...cured.map((s) => ({
+        type: BattleEventType.StatusRemoved as typeof BattleEventType.StatusRemoved,
+        targetId: context.self.id,
+        status: s.type,
+      })),
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "shed-skin",
+        targetIds: [context.self.id],
+      },
+    ];
+  },
+};
+
+// Hydratation (hydration): cures major status at end of turn under Rain.
+const hydration: AbilityHandler = {
+  id: "hydration",
+  onEndTurn: (context) => {
+    if (context.weather !== Weather.Rain) {
+      return [];
+    }
+    const cured = context.self.statusEffects.filter((s) => MAJOR_STATUSES_FOR_CURE.has(s.type));
+    if (cured.length === 0) {
+      return [];
+    }
+    context.self.statusEffects = context.self.statusEffects.filter(
+      (s) => !MAJOR_STATUSES_FOR_CURE.has(s.type),
+    );
+    return [
+      ...cured.map((s) => ({
+        type: BattleEventType.StatusRemoved as typeof BattleEventType.StatusRemoved,
+        targetId: context.self.id,
+        status: s.type,
+      })),
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "hydration",
+        targetIds: [context.self.id],
+      },
+    ];
+  },
+};
+
+// Cuvette (rain-dish): heals ~1/16 max HP per turn under Rain.
+const rainDish = makeWeatherHeal("rain-dish", Weather.Rain);
+
+// Corps Gel (ice-body): heals ~1/16 max HP per turn under Snow.
+const iceBody = makeWeatherHeal("ice-body", Weather.Snow);
+
+// Écaille Spéciale (marvel-scale): physical damage taken ÷1.5 while a major status is active.
+const marvelScale: AbilityHandler = {
+  id: "marvel-scale",
+  onDamageModify: (context) => {
+    if (
+      context.isAttacker ||
+      context.move.category !== Category.Physical ||
+      !hasMajorStatus(context.self)
+    ) {
+      return 1.0;
+    }
+    return 1 / 1.5;
+  },
+};
+
+// Cœur Noble (justified): hit by a Dark move → +1 Attack.
+const justified: AbilityHandler = {
+  id: "justified",
+  onAfterDamageReceived: (context) => {
+    if (context.move.type !== PokemonType.Dark || context.damageDealt <= 0) {
+      return [];
+    }
+    return raiseStatByOne(context.self, StatName.Attack, "justified");
+  },
+};
+
+// Sécheresse (drought): summons harsh sunlight on entry (5 turns).
+const drought: AbilityHandler = {
+  id: "drought",
+  weatherAutoSetter: { weather: Weather.Sun, turns: 5 },
+};
+
+// Impassible (steadfast): +1 Speed whenever the bearer flinches.
+const steadfast: AbilityHandler = {
+  id: "steadfast",
+  onFlinch: (context) => raiseStatByOne(context.self, StatName.Speed, "steadfast"),
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -1346,4 +1596,18 @@ export const abilityHandlers: AbilityHandler[] = [
   unaware,
   scrappy,
   skillLink,
+  bigPecks,
+  illuminate,
+  immunity,
+  sandRush,
+  snowCloak,
+  rattled,
+  shedSkin,
+  hydration,
+  rainDish,
+  iceBody,
+  marvelScale,
+  justified,
+  drought,
+  steadfast,
 ];

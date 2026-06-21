@@ -530,6 +530,35 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   Inconscient, Téméraire, Rivalité, Lentiteintée = multiplicateurs/réactions silencieux ou dépendants du
   comportement de l'IA dummy (pas de move adverse abaisseur de stat scriptable de façon fiable en sandbox)
   → couverts unit/integration core (`battle/abilities.integration.test.ts`) → 👁.*
+
+#### 5.15 Talents Tier B (plan 137)
+- 🤖 **Sécheresse** (`drought`, météo auto à l'entrée) — porteur Goupix : le Soleil est posé à la création
+  du combat (hook `weatherAutoSetter`) sans action → HUD météo « Plein soleil » dès le boot
+  (`mechanics-talents-tier-b.spec`, config `playerAbility` + `weather: none` pour prouver l'origine talent).
+- 🤖 **Cuvette** (`rain-dish`, soin de fin de tour sous Pluie) — porteur Carapuce blessé (hp 50) sous Pluie :
+  fin de tour → « Cuvette de <X> s'active ! » + « <X> récupère N PV » (`mechanics-talents-tier-b.spec`).
+- 🤖 **Vaccin** (`immunity`, immunité Poison) — le joueur lance Poudre Toxik (100 % Poison) sur le Ronflex
+  adjacent porteur du talent : le statut est bloqué → « Vaccin de Ronflex s'active ! » présent et « est
+  empoisonné » absent (`mechanics-talents-tier-b.spec`, `onStatusBlocked`).
+- 👁 **Cœur de Coq** (`big-pecks`, bloque baisses de Défense) / **Lumiattirance** (`illuminate`, bloque baisses
+  de Précision) — blockers `onStatChangeBlocked` ; aucun move adverse abaisseur de Défense/Précision
+  scriptable de façon fiable en sandbox → couverts unit/integration core (`abilities.integration.test`).
+- 👁 **Baigne Sable** (`sand-rush`, ×2 Vitesse en Tempête de Sable) / **Rideau Neige** (`snow-cloak`, +1 esquive
+  sous Neige) — multiplicateurs CT / boost d'esquive silencieux (`weatherSpeedBoost`/`weatherEvasionBoost`,
+  pas d'event) → couverts unit core.
+- 👁 **Phobique** (`rattled`, +1 Vitesse si touché Ténèbres/Spectre/Insecte) / **Cœur Noble** (`justified`, +1
+  Attaque si touché Ténèbres) — réactions `onAfterDamageReceived` dépendantes d'un coup adverse du bon type
+  (pas de move adverse scriptable en sandbox) → couverts unit core.
+- 👁 **Mue** (`shed-skin`, 33 % soigne le statut en fin de tour) — soin probabiliste gated `random()` ; le seed
+  moteur ne contrôle pas directement ce tirage en sandbox → couvert unit core.
+- 👁 **Hydratation** (`hydration`, soigne le statut sous Pluie) — soin de fin de tour conditionnel ; déjà couvert
+  unit core, sens identique à Cuvette/Mue (statut majeur + météo) → non dupliqué e2e.
+- 👁 **Corps Gel** (`ice-body`, soin de fin de tour sous Neige) — même factory que Cuvette (autre météo) →
+  couvert unit core, non dupliqué e2e.
+- 👁 **Écaille Spéciale** (`marvel-scale`, dégâts physiques reçus ÷1.5 sous statut majeur) — multiplicateur
+  `onDamageModify` silencieux → couvert unit core.
+- 👁 **Impassible** (`steadfast`, +1 Vitesse quand le porteur flinch) — réaction `onFlinch` dépendante d'un
+  move adverse à flinch joué par l'IA dummy (pas scriptable de façon fiable) → couvert unit core.
 - 🤖 **Objets tenus simples à event** — un par mécanique, pilotés de bout en bout (`mechanics-abilities.spec`) :
   **Grelot Coque** (`shell-bell`, soin post-coup : porteur blessé qui attaque → 1/8 des dégâts rendus,
   « Grelot Coque de <X> s'active ! » + « <X> récupère N PV ») ; **Orbe Toxique** (`toxic-orb`,
@@ -996,6 +1025,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
 | `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) + Graine Électrik (granule de terrain : pose Champ Électrifié sous soi → fin de tour Déf +1 + consommée, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit ; Graine Herbe / Graine Psychique / Graine Brume (même factory) = unit + objets de précision (bande de jet seed 6, Élecanon 50 % : témoin sans objet rate / Loupe ×1,1 touche / Lentille Zoom ×1,0 inactive face à dummy inerte rate ; ×1,2 conditionnel = unit) + objets d'évasion (bande de jet seed 30, Jet-Pierres 90 % : témoin sans objet touche / Poudre Claire ×0,9 rate / Encens Doux ×0,9 rate) |
 | `combat/mechanics-talents-tier-a.spec.ts` | §5.14 talents Tier A (plan 136) : Régé-Force (soin de fin de tour), Multi-Coups (Balle Graine → « Touché 5 fois ! »), Querelleur (Griffe touche un Ectoplasma Spectre — dégâts présents, « Ça n'affecte pas » absent — garde le fix handle-damage). Autres talents Tier A (silencieux / dépendants de l'IA) = unit |
+| `combat/mechanics-talents-tier-b.spec.ts` | §5.15 talents Tier B (plan 137) : Sécheresse (Soleil à l'entrée → HUD « Plein soleil »), Cuvette (soin de fin de tour sous Pluie → « Cuvette … s'active ! » + « récupère N PV »), Vaccin (Poudre Toxik bloquée → « Vaccin … s'active ! », « est empoisonné » absent). 11 autres talents Tier B (blockers/multiplicateurs silencieux, soins miroirs, réactions dépendantes du type de coup ou de l'IA) = unit |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |

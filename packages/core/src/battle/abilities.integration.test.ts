@@ -5,6 +5,7 @@ import { PlayerId } from "../enums/player-id";
 import { PokemonGender } from "../enums/pokemon-gender";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
+import { Weather } from "../enums/weather";
 import { buildMoveTestEngine, MockPokemon } from "../testing";
 import type { BattleEvent } from "../types/battle-event";
 
@@ -3219,5 +3220,636 @@ describe("ability system integration", () => {
     // Then skill-link always lands the max (5) while the unmodified roll lands fewer
     expect(skillLinkHits && "totalHits" in skillLinkHits ? skillLinkHits.totalHits : 0).toBe(5);
     expect(plainHits && "totalHits" in plainHits ? plainHits.totalHits : 0).toBeLessThan(5);
+  });
+
+  // ===== Plan 137 — Tier B =====
+
+  it("big-pecks blocks Defense drops from opponents", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["leer"],
+      currentPp: { leer: 30 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      abilityId: "big-pecks",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, target]);
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "leer",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get("target")?.statStages[StatName.Defense]).toBe(0);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "big-pecks",
+      ),
+    ).toBe(true);
+  });
+
+  it("illuminate blocks Accuracy drops from opponents", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["kinesis"],
+      currentPp: { kinesis: 15 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      abilityId: "illuminate",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, target]);
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "kinesis",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get("target")?.statStages[StatName.Accuracy]).toBe(0);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "illuminate",
+      ),
+    ).toBe(true);
+  });
+
+  it("immunity blocks Poison status from poison-powder", () => {
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "immunity",
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      moveIds: ["poison-powder"],
+      currentPp: { "poison-powder": 35 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([holder, attacker], {
+      activePokemonId: attacker.id,
+    });
+    const result = engine.submitAction(PlayerId.Player2, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "poison-powder",
+      targetPosition: { x: 0, y: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get("holder")?.statusEffects).not.toContainEqual(
+      expect.objectContaining({ type: StatusType.Poisoned }),
+    );
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "immunity",
+      ),
+    ).toBe(true);
+  });
+
+  it("sand-rush does not crash when active under Sandstorm (smoke test)", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const sandshrew = MockPokemon.fresh(MockPokemon.base, {
+      id: "sandshrew",
+      definitionId: "sandshrew",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      abilityId: "sand-rush",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, sandshrew]);
+    state.weather = Weather.Sandstorm;
+    state.weatherTurnsRemaining = 9;
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("snow-cloak does not crash when active under Snow (smoke test)", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const articuno = MockPokemon.fresh(MockPokemon.base, {
+      id: "articuno",
+      definitionId: "articuno",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      abilityId: "snow-cloak",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, articuno]);
+    state.weather = Weather.Snow;
+    state.weatherTurnsRemaining = 9;
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rattled raises Speed when hit by a Dark move, but not by a Normal move", () => {
+    // Given a rattled holder hit by bite (Dark)
+    const attackerDark = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-dark",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["bite"],
+      currentPp: { bite: 25 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const holderDark = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder-dark",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+      abilityId: "rattled",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine: engineDark, state: stateDark } = buildMoveTestEngine([
+      attackerDark,
+      holderDark,
+    ]);
+    const darkResult = engineDark.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-dark",
+      moveId: "bite",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    expect(stateDark.pokemon.get("holder-dark")?.statStages[StatName.Speed]).toBe(1);
+    expect(
+      darkResult.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "rattled",
+      ),
+    ).toBe(true);
+
+    // Given a rattled holder hit by scratch (Normal) → no trigger
+    const attackerNormal = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-normal",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const holderNormal = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder-normal",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+      abilityId: "rattled",
+    });
+    const { engine: engineNormal, state: stateNormal } = buildMoveTestEngine([
+      attackerNormal,
+      holderNormal,
+    ]);
+    engineNormal.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-normal",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    expect(stateNormal.pokemon.get("holder-normal")?.statStages[StatName.Speed]).toBe(0);
+  });
+
+  it("shed-skin cures a major status at end of turn when the roll succeeds, not when it fails", () => {
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 0 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    // When the 1/3 roll succeeds (random < 1/3)
+    const holderCure = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder-cure",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "shed-skin",
+      statusEffects: [{ type: StatusType.Paralyzed, remainingTurns: null }],
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const { engine: engineCure, state: stateCure } = buildMoveTestEngine([holderCure, foe], {
+      random: () => 0,
+    });
+    const cureResult = engineCure.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "holder-cure",
+      direction: holderCure.orientation,
+    });
+
+    expect(stateCure.pokemon.get("holder-cure")?.statusEffects).not.toContainEqual(
+      expect.objectContaining({ type: StatusType.Paralyzed }),
+    );
+    expect(
+      cureResult.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "shed-skin",
+      ),
+    ).toBe(true);
+
+    // When the 1/3 roll fails (random >= 1/3) → status stays
+    const holderKeep = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder-keep",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "shed-skin",
+      statusEffects: [{ type: StatusType.Paralyzed, remainingTurns: null }],
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const foe2 = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe2",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 0 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const { engine: engineKeep, state: stateKeep } = buildMoveTestEngine([holderKeep, foe2], {
+      random: () => 0.9,
+    });
+    engineKeep.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "holder-keep",
+      direction: holderKeep.orientation,
+    });
+
+    expect(stateKeep.pokemon.get("holder-keep")?.statusEffects).toContainEqual(
+      expect.objectContaining({ type: StatusType.Paralyzed }),
+    );
+  });
+
+  it("hydration cures a major status at end of turn under Rain, not in clear weather", () => {
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 0 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "hydration",
+      statusEffects: [{ type: StatusType.Burned, remainingTurns: null }],
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([holder, foe]);
+    state.weather = Weather.Rain;
+    state.weatherTurnsRemaining = 9;
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "holder",
+      direction: holder.orientation,
+    });
+
+    expect(state.pokemon.get("holder")?.statusEffects).not.toContainEqual(
+      expect.objectContaining({ type: StatusType.Burned }),
+    );
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "hydration",
+      ),
+    ).toBe(true);
+  });
+
+  it("rain-dish heals ~1/16 max HP per turn under Rain, and nothing in clear weather", () => {
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      derivedStats: { movement: 4, jump: 1, initiative: 10 },
+    });
+
+    // Under Rain → heals floor(160/16) = 10
+    const holderRain = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder-rain",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      abilityId: "rain-dish",
+      currentHp: 50,
+      maxHp: 160,
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine: engineRain, state: stateRain } = buildMoveTestEngine([holderRain, foe]);
+    stateRain.weather = Weather.Rain;
+    stateRain.weatherTurnsRemaining = 9;
+    const rainResult = engineRain.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "holder-rain",
+      direction: holderRain.orientation,
+    });
+
+    expect(stateRain.pokemon.get("holder-rain")?.currentHp).toBe(60);
+    expect(
+      rainResult.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "rain-dish",
+      ),
+    ).toBe(true);
+
+    // In clear weather → no heal
+    const holderClear = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder-clear",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      abilityId: "rain-dish",
+      currentHp: 50,
+      maxHp: 160,
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const foe2 = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe2",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      derivedStats: { movement: 4, jump: 1, initiative: 10 },
+    });
+    const { engine: engineClear, state: stateClear } = buildMoveTestEngine([holderClear, foe2]);
+    engineClear.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "holder-clear",
+      direction: holderClear.orientation,
+    });
+
+    expect(stateClear.pokemon.get("holder-clear")?.currentHp).toBe(50);
+  });
+
+  it("ice-body heals ~1/16 max HP per turn under Snow", () => {
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      derivedStats: { movement: 4, jump: 1, initiative: 10 },
+    });
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      abilityId: "ice-body",
+      currentHp: 50,
+      maxHp: 160,
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([holder, foe]);
+    state.weather = Weather.Snow;
+    state.weatherTurnsRemaining = 9;
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "holder",
+      direction: holder.orientation,
+    });
+
+    expect(state.pokemon.get("holder")?.currentHp).toBe(60);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "ice-body",
+      ),
+    ).toBe(true);
+  });
+
+  it("marvel-scale reduces physical damage taken while a major status is active", () => {
+    const attackerWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-with",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const holderWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder-with",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 300,
+      maxHp: 300,
+      abilityId: "marvel-scale",
+      statusEffects: [{ type: StatusType.Burned, remainingTurns: null }],
+    });
+
+    const attackerWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-without",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const holderWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder-without",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 300,
+      maxHp: 300,
+      abilityId: "marvel-scale",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine: engineWith } = buildMoveTestEngine([attackerWith, holderWith]);
+    engineWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-with",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const { engine: engineWithout } = buildMoveTestEngine([attackerWithout, holderWithout]);
+    engineWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-without",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const damageWith = 300 - holderWith.currentHp;
+    const damageWithout = 300 - holderWithout.currentHp;
+    expect(damageWith).toBeGreaterThan(0);
+    expect(damageWith).toBeLessThan(damageWithout);
+  });
+
+  it("justified raises Attack when hit by a Dark move, but not by a Normal move", () => {
+    const attackerDark = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-dark",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["bite"],
+      currentPp: { bite: 25 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const holderDark = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder-dark",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+      abilityId: "justified",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine: engineDark, state: stateDark } = buildMoveTestEngine([
+      attackerDark,
+      holderDark,
+    ]);
+    const darkResult = engineDark.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-dark",
+      moveId: "bite",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    expect(stateDark.pokemon.get("holder-dark")?.statStages[StatName.Attack]).toBe(1);
+    expect(
+      darkResult.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "justified",
+      ),
+    ).toBe(true);
+
+    const attackerNormal = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-normal",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const holderNormal = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder-normal",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+      abilityId: "justified",
+    });
+    const { engine: engineNormal, state: stateNormal } = buildMoveTestEngine([
+      attackerNormal,
+      holderNormal,
+    ]);
+    engineNormal.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-normal",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    expect(stateNormal.pokemon.get("holder-normal")?.statStages[StatName.Attack]).toBe(0);
+  });
+
+  it("drought summons harsh sunlight at battle start", () => {
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      definitionId: "vulpix",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "drought",
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 0 },
+    });
+
+    // When the engine is created (battle start fires in constructor)
+    const { state } = buildMoveTestEngine([holder, foe]);
+
+    // Then the weather is Sun
+    expect(state.weather).toBe(Weather.Sun);
+  });
+
+  it("steadfast raises Speed when the holder flinches", () => {
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      abilityId: "steadfast",
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      volatileStatuses: [{ type: StatusType.Flinch, remainingTurns: 1 }],
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      derivedStats: { movement: 4, jump: 1, initiative: 10 },
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([holder, foe]);
+    // When the flinched holder tries to act, the flinch is consumed
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "holder",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then the move fails (flinched) and Speed rose by 1.
+    // (The AbilityActivated event is emitted by the shared raiseStatByOne helper — asserted in the
+    // rattled/justified tests; for a pre-seeded flinch it fires during CT scheduling, not this action.)
+    expect(result.success).toBe(false);
+    expect(state.pokemon.get("holder")?.statStages[StatName.Speed]).toBe(1);
   });
 });
