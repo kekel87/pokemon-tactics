@@ -69,7 +69,7 @@ Maintenu par Claude Code. Lu via `/next`.
 - **`MultiMaterial` non disposées au reload de map** — acceptable tant que la scène entière est détruite au reload. À auditer Jalon 3. Plan 119.
 - **Harness dev Babylon jetable** (`babylon-preview.ts`/`babylon-boot.ts`/`babylon.html`, touches k/l/o/p/v/c/i) — à supprimer Jalon 5 ; extraire `updateCamera` → `IsometricCamera`, pan → système input, `createBabylonPreview` → scene manager (Jalon 4). Plan 119.
 - **Occlusion fine per-sprite, décorations** (rochers/herbes/arbres objectgroup), **curseur FFTA** — Jalon 3. Plan 119.
-- **Plan 080 — Token optimization** (Phase 1+3 DONE, 2+4 partiel, 5 pending). Faits : rules `globs:` → `paths:` (conditionnel), CLAUDE.md/RTK.md/MEMORY.md compressés, 27 agents (-3), **U-A autoUpdate désactivé** (refresh manuel via `/understand-anything:understand-diff`, session-closer rappel auto). Skips : caveman hook (gain réel marginal ~35/tour), MCP audit (schemas deferred OK). Décision restante humain : skills à désinstaller (liste plan), validation `/cost` session fraîche pour mesurer gains.
+- **Plan 080 — Token optimization** (Phase 1+3 DONE, 2+4 partiel, 5 pending). Faits : rules `globs:` → `paths:` (conditionnel), CLAUDE.md/RTK.md/MEMORY.md compressés, 27 agents (-3), **outil understand-anything retiré du projet** (doc/mémoire purgées). Skips : caveman hook (gain réel marginal ~35/tour), MCP audit (schemas deferred OK). Décision restante humain : skills à désinstaller (liste plan), validation `/cost` session fraîche pour mesurer gains.
 
 ## Fait récemment
 

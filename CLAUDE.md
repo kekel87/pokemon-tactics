@@ -42,10 +42,6 @@ Claude = dev principal, autonome implémentation, valide design avec humain.
 
 Pas tout charger. Lire fichier pertinent moment pertinent.
 
-## Exploration code TS
-
-U-A graph (`.understand-anything/knowledge-graph.json`, 1008 nodes, auto-update post-commit) pour questions architecture → `/understand-chat`.
-
 ## Principes
 
 - **Core découplé** : zéro dep UI (détails `.claude/rules/core.md`)
@@ -143,8 +139,8 @@ Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-g
 
 **`human-testing` — mode interactif (par défaut)** : je ne dump pas tout, je déroule **un scénario à la fois**, je lance, tu regardes, tu valides.
 1. Analyse `git diff HEAD` → scénarios observables (noms FR).
-2. Par scénario : commande `pnpm dev:sandbox '{...}'` pré-remplie, moves/Pokemon validés (`packages/data` ; doute → agent `sandbox-json`).
-3. **Boucle** : (a) je lance la commande du scénario courant ; (b) résumé en chat — **quoi tester** (1-2 lignes) + **résultat attendu** (noms FR) ; (c) **pause**, tu testes ; (d) ta réponse `suivant`/`ok` → scénario suivant ; bug/retour → on traite avant de continuer.
+2. Par scénario : construis la config JSON **minimale** (seuls les champs nécessaires au scénario, le reste = défauts), moves/Pokemon validés (`packages/data` ; doute → agent `sandbox-json`). **Jamais coller la commande à l'humain.** Si le scénario demande à l'humain d'agir/déplacer/attaquer **avec la cible (Dummy)** → mettre `"dummyControl": "player"` (+ `dummyMoves`), **jamais laisser le défaut `"ai"`** (l'humain ne pourrait pas la contrôler).
+3. **Boucle** : (a) **je lance moi-même** le serveur via `Bash run_in_background` (`pnpm dev:sandbox '{...}'` ; HMR ne suffit pas — config bakée à l'env au boot, donc relancer le process à chaque scénario). Port du checkout : `PT_PORT` env → `.worktree-port` à la racine → sinon `5173` (cf `vite.config.ts`) ; **en worktree c'est PAS 5173**. **Avant chaque relance : j'arrête d'abord MON process sandbox précédent** (`TaskStop` du background task — sûr et indépendant du port ; en dernier recours kill le PID du vite/node de CE checkout) pour **réutiliser le même port — jamais laisser vite incrémenter** (5174, 5175…). Je cible **uniquement mon process sandbox** : jamais kill Firefox (ni aucun navigateur de l'humain), jamais le serveur dev global de l'humain. (b) résumé en chat — **URL** (`http://localhost:<port résolu>`) + **quoi tester** (1-2 lignes) + **résultat attendu** (noms FR) ; (c) **pause**, tu testes ; (d) ta réponse `suivant`/`ok` → scénario suivant ; bug/retour → on traite avant de continuer.
 4. Tous scénarios passés → on enchaîne `/ci-gate`, `/commit`. Exclusif de `visual-tester` en général.
 
 **Commit/push après validation** — `/commit` génère le titre court (1 scope max, sinon aucun), Claude le **propose en chat**, l'humain valide, **puis Claude commit + push**. Jamais commit sans validation préalable du message.
