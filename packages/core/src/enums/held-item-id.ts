@@ -89,6 +89,8 @@ export const HeldItemId = {
   ZoomLens: "zoom-lens",
   BrightPowder: "bright-powder",
   LaxIncense: "lax-incense",
+  KingsRock: "kings-rock",
+  RazorFang: "razor-fang",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];

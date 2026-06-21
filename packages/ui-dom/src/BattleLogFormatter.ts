@@ -172,6 +172,10 @@ const STATUS_LOG_KEY: Record<
     applied: { fr: "{name} est confus !", en: "{name} became confused!" },
     removed: { fr: "{name} n'est plus confus", en: "{name} snapped out of confusion" },
   },
+  [StatusType.Flinch]: {
+    applied: { fr: "{name} est apeuré !", en: "{name} flinched!" },
+    removed: { fr: "{name} n'est plus apeuré", en: "{name} is no longer flinching" },
+  },
   [StatusType.Seeded]: {
     applied: { fr: "{name} est infecté par Vampigraine !", en: "{name} was seeded!" },
     removed: { fr: "{name} est libéré de Vampigraine", en: "{name} was freed from Leech Seed" },

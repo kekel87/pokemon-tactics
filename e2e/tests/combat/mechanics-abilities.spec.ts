@@ -261,3 +261,53 @@ test("§5.14 objet d'évasion : l'Encens Doux (×0,9) fait aussi rater Jet-Pierr
   await scene.castFirstMove(2, 2); // même réduction côté défenseur → 81 % → rate
   await expect(log(page, /rate son attaque/)).toBeAttached({ timeout: 10_000 });
 });
+
+// §5.15 objets « flinch » (Roche Royale / Croc Rasoir) — côté ATTAQUANT : le porteur qui touche avec
+// un move offensif (sans flinch propre) a +10 % de chance d'APEURER la cible (hook `onFlinchChance`).
+// Le déclenchement est un jet de 10 % → on l'isole par la « bande de jet », comme l'évasion.
+//
+// Montage : Raichu (2,3) face nord tient l'objet (`heldItem` → porteur attaquant) et lance Jet-Pierres
+// (rock-throw, 90 % précision, forcé hors-pool via `moves`) sur un Ronflex inerte (2,2, 999 PV → il
+// survit, donc la cible reste éligible au flinch et le log n'est jamais court-circuité par un K.O.).
+// Au seed 3, Jet-Pierres TOUCHE (90 %) puis le jet de flinch tombe sous 10 % → SANS objet la cible
+// n'est jamais apeurée (aucune source de flinch), AVEC un objet flinch elle l'est. Roche Royale et
+// Croc Rasoir appliquent les mêmes 10 % → mêmes deux issues (déterminisme vérifié sur 3 passes
+// croisées : témoin = jamais de flinch, objet = flinch). Seed fixe → aucun override de Math.random.
+const FLINCH_DUEL = {
+  ...DUEL,
+  seed: 3,
+  pokemon: "raichu",
+  moves: ["rock-throw"],
+  dummyPokemon: "snorlax",
+  dummyHp: 999,
+} as const;
+
+test("§5.15 objet flinch : sans objet, Jet-Pierres touche mais n'apeure pas au seed 3 (témoin)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(FLINCH_DUEL);
+  await scene.castFirstMove(2, 2); // le Ronflex aligné au nord (Touche)
+  await expect(log(page, /perd \d+ PV/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /est apeuré/)).toHaveCount(0);
+});
+
+test("§5.15 objet flinch : la Roche Royale (+10 %) apeure la cible au même seed", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({ ...FLINCH_DUEL, heldItem: "kings-rock" });
+  await scene.castFirstMove(2, 2); // même montage, même seed : le jet de flinch passe
+  await expect(log(page, /perd \d+ PV/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /est apeuré/)).toBeAttached();
+});
+
+test("§5.15 objet flinch : le Croc Rasoir (+10 %) apeure aussi la cible au même seed", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({ ...FLINCH_DUEL, heldItem: "razor-fang" });
+  await scene.castFirstMove(2, 2); // même chance côté attaquant → même flinch
+  await expect(log(page, /perd \d+ PV/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /est apeuré/)).toBeAttached();
+});
