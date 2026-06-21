@@ -59,6 +59,12 @@ export interface StatLoweredContext {
   stages: number;
 }
 
+export interface ItemAccuracyContext {
+  self: PokemonInstance;
+  target: PokemonInstance;
+  move: MoveDefinition;
+}
+
 export interface HeldItemHandler {
   id: string;
   onDamageModify?: (context: DamageModifyContext) => number;
@@ -70,6 +76,7 @@ export interface HeldItemHandler {
   onCtGainModify?: (context: ItemCtGainContext) => number;
   onMoveLock?: () => boolean;
   onStatLowered?: (context: StatLoweredContext) => ItemReactionResult;
+  onAccuracyModify?: (context: ItemAccuracyContext) => number;
 }
 
 export interface HeldItemDefinition extends HeldItemHandler {

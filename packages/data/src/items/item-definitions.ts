@@ -209,6 +209,13 @@ function terrainSeedItem(id: HeldItemId, terrain: FieldTerrain, stat: StatName):
   };
 }
 
+function accuracyBoostItem(id: HeldItemId, multiplier: number): HeldItemHandler {
+  return {
+    id,
+    onAccuracyModify: () => multiplier,
+  };
+}
+
 function selfStatusOrb(id: HeldItemId, status: StatusType): HeldItemHandler {
   return {
     id,
@@ -714,6 +721,13 @@ export const itemHandlers: HeldItemHandler[] = [
   terrainSeedItem(HeldItemId.GrassySeed, FieldTerrain.Grassy, StatName.Defense),
   terrainSeedItem(HeldItemId.PsychicSeed, FieldTerrain.Psychic, StatName.SpDefense),
   terrainSeedItem(HeldItemId.MistySeed, FieldTerrain.Misty, StatName.SpDefense),
+
+  accuracyBoostItem(HeldItemId.WideLens, 1.1),
+  {
+    id: HeldItemId.ZoomLens,
+    onAccuracyModify: ({ self, target }) =>
+      (target.lastActedAtAction ?? -1) > (self.lastActedAtAction ?? -1) ? 1.2 : 1,
+  },
 
   {
     id: HeldItemId.MuscleBand,

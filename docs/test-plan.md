@@ -560,6 +560,16 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   Soleil) — partagent la même logique (table `WEATHER_EXTENDER_ITEM` → 8 tours) et sont couvertes
   unit core (`battle/weather-system.test.ts`) ; non re-pilotées e2e (même mécanique, IDs/météos
   différents) → 👁 par roche.*
+- 🤖 **Objets de précision** — la modification de précision est SILENCIEUSE (hook `onAccuracyModify`,
+  aucun event) → l'unique signal est le RÉSULTAT du jet (touche/rate), piloté par « bande de jet »
+  (`mechanics-abilities.spec`) : Raichu lance Élecanon (`zap-cannon`, précision 50 %, Ligne) sur un
+  Ronflex inerte aligné (999 PV → survit), seed **6** dont le tirage tombe dans [50 %, 55 %). **Loupe**
+  (`wide-lens`, ×1,1 → 55 %) : sans objet le coup RATE (« <X> rate son attaque ! »), AVEC la Loupe il
+  TOUCHE (« <Y> perd N PV ! ») — la même graine prouve que le +10 % comble exactement l'écart (un test
+  témoin sans objet + un test Loupe). **Lentille Zoom** (`zoom-lens`, ×1,2 si le porteur agit APRÈS la
+  cible) : face à un dummy inerte qui n'agit jamais, la condition est toujours fausse → reste à ×1,0 →
+  RATE comme sans objet (test asserte le raté). *Le ×1,2 conditionnel n'est pas pilotable en sandbox
+  1v1 (cible inerte) → couvert unit (`battle/items/precision-items.test.ts`) → cette facette reste 👁.*
 - 👁 **Talent** déclenché → « <Talent> de <X> s'active ! » (texte or).
 - 👁 **Objet tenu** activé → « <Objet> de <X> s'active ! » (vert) ; **consommé** → « <X> a utilisé
   son <Objet> ».
@@ -965,7 +975,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) |
 | `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
-| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) + Graine Électrik (granule de terrain : pose Champ Électrifié sous soi → fin de tour Déf +1 + consommée, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit ; Graine Herbe / Graine Psychique / Graine Brume (même factory) = unit |
+| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) + Graine Électrik (granule de terrain : pose Champ Électrifié sous soi → fin de tour Déf +1 + consommée, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit ; Graine Herbe / Graine Psychique / Graine Brume (même factory) = unit + objets de précision (bande de jet seed 6, Élecanon 50 % : témoin sans objet rate / Loupe ×1,1 touche / Lentille Zoom ×1,0 inactive face à dummy inerte rate ; ×1,2 conditionnel = unit) |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |

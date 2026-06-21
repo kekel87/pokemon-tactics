@@ -1206,6 +1206,7 @@ export class BattleEngine {
           tallGrassBonus,
           this.abilityRegistry ?? undefined,
           this.state,
+          this.itemRegistry ?? undefined,
         )
       ) {
         targets.push(target);
