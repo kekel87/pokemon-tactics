@@ -4,6 +4,12 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
+### Talent « par défaut » silencieux (ability1) — sandbox + jeu normal (2026-06-21, plan 136)
+- Quand aucun talent n'est précisé, le Pokemon prend silencieusement `ability1` : sandbox (`playerAbility`/`dummyAbility` optionnels → fallback `ability1`) et jeu normal (`load-pokemon.ts` choisit `ability1` par défaut).
+- Demande humain : **enlever cette notion de défaut**. Le talent devrait être explicite (sélection requise / pas de fallback caché qui masque quel talent tourne réellement).
+- À trancher : rendre `playerAbility`/`dummyAbility` obligatoires en sandbox ? Vérifier le chemin jeu normal + Team Builder (slots déjà explicites ?) + impact IA.
+- Priorité moyenne — confusion QA (on ne sait pas quel talent est actif).
+
 ### Orbe de vie qui « tick » plusieurs fois sur un move de zone (2026-06-19, playtest plan 133)
 - Observé pendant le playtest Delayed/countdown : sur un move de zone, l'orbe de PV semble se décrémenter en plusieurs paliers. Non reproduit/diagnostiqué (move exact + un-orbe-multi-paliers vs plusieurs-orbes non confirmés par l'humain).
 - Piste : `battle-orchestrator.applyEvents` — chemin multi-hit (`hitsByTarget > 1` → step pacé) vs AoE multi-cibles (1 `DamageDealt` par cible). Vérifier qu'un move de zone mono-coup ne déclenche pas le stepping multi-hit, et que le `syncBoard` final ne re-anime pas l'orbe.
