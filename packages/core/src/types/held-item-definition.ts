@@ -78,6 +78,7 @@ export interface HeldItemHandler {
   onStatLowered?: (context: StatLoweredContext) => ItemReactionResult;
   onAccuracyModify?: (context: ItemAccuracyContext) => number;
   onEvasionModify?: (context: ItemAccuracyContext) => number;
+  onFlinchChance?: (context: ItemAccuracyContext) => number;
 }
 
 export interface HeldItemDefinition extends HeldItemHandler {

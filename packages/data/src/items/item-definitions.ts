@@ -33,6 +33,7 @@ const MUSCLE_BAND_MOD = 1.1;
 const WISE_GLASSES_MOD = 1.1;
 const SHELL_BELL_HEAL_FRACTION = 8;
 const EVASION_MOD = 0.9;
+const FLINCH_CHANCE = 10;
 
 const MAJOR_STATUSES: readonly StatusType[] = [
   StatusType.Burned,
@@ -221,6 +222,13 @@ function evasionItem(id: HeldItemId, multiplier: number): HeldItemHandler {
   return {
     id,
     onEvasionModify: () => multiplier,
+  };
+}
+
+function flinchItem(id: HeldItemId, chance: number): HeldItemHandler {
+  return {
+    id,
+    onFlinchChance: () => chance,
   };
 }
 
@@ -739,6 +747,8 @@ export const itemHandlers: HeldItemHandler[] = [
 
   evasionItem(HeldItemId.BrightPowder, EVASION_MOD),
   evasionItem(HeldItemId.LaxIncense, EVASION_MOD),
+  flinchItem(HeldItemId.KingsRock, FLINCH_CHANCE),
+  flinchItem(HeldItemId.RazorFang, FLINCH_CHANCE),
 
   {
     id: HeldItemId.MuscleBand,

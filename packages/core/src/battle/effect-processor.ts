@@ -2,6 +2,7 @@ import { BattleEventType } from "../enums/battle-event-type";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import type { PokemonType } from "../enums/pokemon-type";
+import { StatusType } from "../enums/status-type";
 import type { BattleEvent } from "../types/battle-event";
 import type { BattleState } from "../types/battle-state";
 import type { Effect } from "../types/effect";
@@ -235,6 +236,45 @@ export function processEffects(
       events.push(...result.events);
       if (result.consumeItem) {
         pokemon.heldItemId = undefined;
+      }
+    }
+  }
+
+  // Flinch-on-hit items (Roche Royale / Croc Rasoir): a damaging move gains a flat flinch chance
+  // against surviving targets — but only when the move does not already inflict flinch itself
+  // (faithful to King's Rock / Razor Fang, which never stack with a move's own flinch).
+  if (moveHasDamage && context.itemRegistry && nonImmuneTargets.length > 0) {
+    const attackerItem = context.itemRegistry.getForPokemon(context.attacker);
+    if (attackerItem?.onFlinchChance) {
+      const moveInflictsFlinch = context.move.effects.some(
+        (effect) =>
+          effect.kind === EffectKind.Status &&
+          (("status" in effect && effect.status === StatusType.Flinch) ||
+            ("statuses" in effect && effect.statuses.includes(StatusType.Flinch))),
+      );
+      if (!moveInflictsFlinch) {
+        for (const target of nonImmuneTargets) {
+          if (target.currentHp <= 0) {
+            continue;
+          }
+          if (target.volatileStatuses.some((status) => status.type === StatusType.Flinch)) {
+            continue;
+          }
+          const chance = attackerItem.onFlinchChance({
+            self: context.attacker,
+            target,
+            move: context.move,
+          });
+          if (context.random() * 100 >= chance) {
+            continue;
+          }
+          target.volatileStatuses.push({ type: StatusType.Flinch, remainingTurns: 1 });
+          events.push({
+            type: BattleEventType.StatusApplied,
+            targetId: target.id,
+            status: StatusType.Flinch,
+          });
+        }
       }
     }
   }
