@@ -52,22 +52,21 @@ Pop le menu post-implémentation **maintenant**, sans attendre la fin d'une impl
 Quand `human-testing` coché : déroulé **interactif, un scénario à la fois**. Je lance, tu regardes, tu valides. Je ne dump **pas** toute la checklist d'un bloc.
 
 1. Analyse `git diff HEAD` → liste les scénarios **observables** par l'humain (nouveau move/ability/mécanique, changement UI, rendu, IA). Noms FR officiels (ex: `Lame de Roche`), ID EN entre parenthèses si besoin technique.
-2. Par scénario, construit une commande sandbox prête :
-   ```
-   pnpm dev:sandbox '{...}'
-   ```
+2. Par scénario, construit la config sandbox JSON **minimale** (seuls les champs utiles au scénario, le reste = défauts) :
    - Config pré-remplie (Pokemon, moves, terrain) — **jamais** "puis clique sur X pour configurer".
    - **Valide que moves/Pokemon existent** avant (source `packages/data`). Doute → agent `sandbox-json`.
+   - **Jamais coller la commande à l'humain pour qu'il la lance.**
+   - Si le scénario demande à l'humain d'agir/déplacer/attaquer **avec la cible (Dummy)** → `"dummyControl": "player"` (+ `dummyMoves`). **Jamais laisser le défaut `"ai"`** sinon l'humain ne contrôle pas la cible.
 3. **Boucle interactive** :
-   - **(a)** Je lance moi-même la commande du scénario courant.
-   - **(b)** Résumé en chat : **quoi tester** (1-2 lignes) + **résultat attendu** (noms FR).
+   - **(a)** **Je lance moi-même** le serveur via `Bash run_in_background` : `pnpm dev:sandbox '{...}'`. Port du checkout : `PT_PORT` → `.worktree-port` → sinon `5173` (`vite.config.ts`) ; **en worktree ≠ 5173**. Config bakée à l'env au boot → HMR ne suffit pas, je relance mon process bg sandbox à chaque scénario. **Avant chaque relance : j'arrête MON process sandbox précédent** (`TaskStop` — indépendant du port ; en dernier recours kill PID du vite/node de CE checkout) → réutilise le même port, **jamais** laisser vite incrémenter (5174…). Cible **uniquement mon process sandbox** : jamais kill Firefox/navigateur, jamais le serveur dev global de l'humain.
+   - **(b)** Résumé en chat : **URL** `http://localhost:<port résolu>` + **quoi tester** (1-2 lignes) + **résultat attendu** (noms FR).
    - **(c)** **Pause.** Tu testes dans le navigateur.
    - **(d)** Ta réponse :
      - `suivant` / `ok` / `next` → scénario suivant.
      - bug / retour → on traite **avant** de continuer la boucle.
 4. Tous les scénarios passés → on enchaîne le reste de la chaîne (`/ci-gate`, `/commit`).
 
-`visual-tester` vs `human-testing` : exclusifs en général. `visual-tester` = je pilote Playwright moi-même. `human-testing` = je lance les commandes, tu testes en interactif. L'humain coche l'un, l'autre, ou aucun.
+`visual-tester` vs `human-testing` : exclusifs en général. `visual-tester` = je pilote Playwright moi-même. `human-testing` = je lance moi-même le serveur sandbox (background), tu testes en interactif dans le navigateur. L'humain coche l'un, l'autre, ou aucun.
 
 ## Règles
 
