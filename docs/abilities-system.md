@@ -38,9 +38,16 @@ interface AbilityHandler {
   onAfterStatusReceived?: (ctx: AfterStatusContext) => BattleEvent[];
   // StatLoweredContext { self, stat, stages, source } — ajouté plan 136 pour Acharné/Battant
   onAfterStatLowered?: (ctx: StatLoweredContext) => BattleEvent[];
-  onEndTurn?: (ctx: EndTurnContext) => BattleEvent[];
+  // AbilityEndTurnContext expose random: () => number (pour Mue 33%) et weather: Weather
+  // (météo effective via getEffectiveWeather — honore Ciel Gris) — ajouté plan 137
+  onEndTurn?: (ctx: AbilityEndTurnContext) => BattleEvent[];
   onBattleStart?: (ctx: BattleStartContext) => BattleEvent[];
   onAuraCheck?: (ctx: AuraCheckContext) => BattleEvent[];
+  // Hook flinch — ajouté plan 137 pour Impassible (steadfast)
+  // AbilityFlinchContext { self, state } — invoqué dans processFlinch après pose de flinchedThisTurn
+  // NOTE : le flinch EST câblé dans le core (StatusType.Flinch) — le stub inner-focus
+  // ("pas de mécanique flinch") est désormais obsolète.
+  onFlinch?: (ctx: AbilityFlinchContext) => BattleEvent[];
 }
 ```
 
@@ -106,9 +113,10 @@ Les statuts `Intimidated`, `Infatuated`, `Trapped` (avec `remainingTurns === -1`
 | `onStatChangeBlocked` | `handle-stat-change.ts` (avant application) |
 | `onAfterStatLowered` | `handle-stat-change.ts` (après application d'une baisse adverse réussie) — ajouté plan 136 |
 | `onTypeImmunity` | `effect-processor.ts` (avant tout effet) |
-| `onEndTurn` | `BattleEngine` tick de fin de tour |
-| `onBattleStart` | `BattleEngine.triggerBattleStart()` |
+| `onEndTurn` | `BattleEngine` tick de fin de tour — contexte enrichi plan 137 : `random: () => number` (threadé depuis `this.random`) + `weather: Weather` (météo effective via `getEffectiveWeather`, honore Ciel Gris) |
+| `onBattleStart` | `BattleEngine.triggerBattleStart()` — plan 137 : câble aussi `weatherAutoSetter` (pour Sécheresse/drought : `setWeather(state, weather, turns, pokemonId)` + push events) |
 | `onAuraCheck` | `BattleEngine.triggerBattleStart()` + `emitPositionLinkedChecks` |
+| `onFlinch` | `processFlinch` (après pose de `flinchedThisTurn`) — ajouté plan 137 pour Impassible |
 
 ## Sandbox
 
@@ -166,6 +174,12 @@ Les noms (FR/EN) viennent de `abilities.json` (Showdown), pas hardcodés.
 | **Inconscient (Unaware)** | Deux sens : (1) attaquant = ignore Déf/DéfSpé de la cible ; (2) défenseur = ignore Atq/AtqSpé de l'attaquant. Géré par param `ignoreOpponentStatStages` dans `damage-calculator`. |
 | **Querelleur (Scrappy)** | Bypass Normal/Combat vs Spectre côté attaquant uniquement. Bug résolu lors du plan 136 : l'effectivité retournée au call-site doit correspondre au type sans l'immunité Ghost (fix `effect-processor.ts`). |
 | **Multi-Coups (Skill Link)** | Garantit toujours le maximum de coups pour les moves multi-frappes (2–5 ou 2–3). Marker vérifié dans `handle-damage.ts → rollMultiHitCount`. Moves concernés : Combo-Griffe, Éclat Roc, Balle Graine, Stalactite, Dard-Aiguille, Gifle Fion, Ruée d'Os, Écaille Canon, Double Battue. |
+| **Mue (Shed Skin)** | 33% de chance de soigner le statut majeur en fin de tour. Requiert `random: () => number` dans `AbilityEndTurnContext` (plan 137). |
+| **Hydratation (Hydration)** | Soigne le statut majeur en fin de tour si météo Pluie active. Requiert `weather: Weather` dans `AbilityEndTurnContext` (plan 137). |
+| **Cuvette (Rain Dish) / Corps Gel (Ice Body)** | Soin passif `max(1, ceil(maxHp/16))` par tour sous la météo correspondante. Pattern miroir Régé-Force. |
+| **Écaille Spéciale (Marvel Scale)** | ×0.667 dégâts physiques reçus (÷1.5) si le porteur a un statut majeur. `onDamageModify` défenseur. Silencieux. |
+| **Sécheresse (Drought)** | Active le Soleil (5 tours) à l'entrée. Champ déclaratif `weatherAutoSetter` désormais câblé dans `triggerBattleStart` (était présent mais inopérant avant le plan 137). |
+| **Impassible (Steadfast)** | +1 Vitesse quand le porteur subit un flinch. Requiert le hook `onFlinch` (plan 137). Le flinch est câblé dans le core (`StatusType.Flinch`, `processFlinch`) — le commentaire obsolète sur `inner-focus` a été corrigé. |
 
 ## Tests d'intégration existants
 

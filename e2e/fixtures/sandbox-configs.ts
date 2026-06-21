@@ -118,6 +118,48 @@ export const SCRAPPY_HITS_GHOST = {
   dummyHp: 999,
 } as const;
 
+// Talents Tier B (plan 137) — observables pilotables via journal/HUD FR, déterministes.
+
+/** Sécheresse (drought) — invoque le Soleil 5 tours à l'ENTRÉE (hook `weatherAutoSetter` câblé dans
+ *  `triggerBattleStart`). Le joueur Goupix (vulpix) porte le talent ; aucune action n'est requise : la
+ *  météo est posée à la création du combat, donc le HUD météo affiche « Plein soleil » dès le boot.
+ *  Pas de jet → déterministe (seed hérité de DUEL). On part SANS météo explicite (`weather: none`)
+ *  pour prouver que c'est bien Sécheresse — et non la config — qui pose le Soleil. */
+export const DROUGHT_SETS_SUN = {
+  ...DUEL,
+  pokemon: "vulpix",
+  playerAbility: "drought",
+  weather: "none",
+} as const;
+
+/** Cuvette (rain-dish) — soin passif de fin de tour SOUS PLUIE (`ceil(maxHp/16)`). Le joueur Carapuce
+ *  (squirtle) porte le talent, démarre blessé (hp 50, sous son max) et le combat est sous Pluie
+ *  (`weather: rain`). La fin de tour applique le soin et journalise « Cuvette de <X> s'active ! » +
+ *  « <X> récupère N PV » (HpRestored). Aucun jet (le hook `onEndTurn` est inconditionnel dès lors que
+ *  la météo est Pluie et que le porteur n'est pas au max) → déterministe. */
+export const RAIN_DISH_HEAL = {
+  ...DUEL,
+  pokemon: "squirtle",
+  playerAbility: "rain-dish",
+  hp: 50,
+  weather: "rain",
+} as const;
+
+/** Vaccin (immunity) — immunité au Poison. Le joueur Mackogneur lance Poudre Toxik (`poison-powder`,
+ *  Zone r1, 75 % de base) sur le dummy Ronflex (snorlax) adjacent porteur de Vaccin. Le caster porte
+ *  Aucun Garde (`no-guard`, dans ses slots) → précision forcée à 100 % : le coup touche TOUJOURS sous
+ *  seed fixe (sinon Poudre Toxik à 75 % peut rater et le blocage ne se déclenche pas). Sans Vaccin le
+ *  dummy serait empoisonné ; avec, le statut est bloqué → le journal lit « Vaccin de Ronflex s'active ! »
+ *  et JAMAIS « est empoisonné ». Move statut piloté par le joueur (pas d'AI) → cast déterministe. */
+export const IMMUNITY_BLOCKS_POISON = {
+  ...DUEL,
+  pokemon: "machamp",
+  playerAbility: "no-guard",
+  moves: ["poison-powder"],
+  dummyPokemon: "snorlax",
+  dummyAbility: "immunity",
+} as const;
+
 /** Distorsion (trick-room) — slow caster, fast foe, both inside the r3 zone (decision 2026-06-18).
  *  Player = Flagadoss (slowbro, base Vit 30) at (2,3) casting Distorsion ; dummy = Électrode
  *  (electrode, base Vit 150) at (2,2), distance 1 → both in the diamond. Once the zone is posted the

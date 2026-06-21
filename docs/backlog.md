@@ -10,6 +10,12 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - À trancher : rendre `playerAbility`/`dummyAbility` obligatoires en sandbox ? Vérifier le chemin jeu normal + Team Builder (slots déjà explicites ?) + impact IA.
 - Priorité moyenne — confusion QA (on ne sait pas quel talent est actif).
 
+### Setters météo à l'entrée — pas de « guerre météo » (2026-06-21, plan 137)
+- `weatherAutoSetter` (Sécheresse) est appliqué séquentiellement à l'entrée : si plusieurs Pokemon posent une météo, **le dernier dans l'ordre d'itération écrase** (pas de résolution par vitesse/initiative).
+- **Non-problème en Gen 1** : seul Sécheresse (Soleil) existe comme talent météo-à-l'entrée du roster 151 (Drizzle/Crachin Sable/Alerte Neige = Gen 2+). Conflit impossible (Soleil vs Soleil = idempotent).
+- À traiter **uniquement** quand on ajoutera des setters opposés (Gen 2+) : brancher `applyWeatherWar` (déjà existant) dans `triggerBattleStart` pour départager. Émet aussi 2 events `WeatherChanged` cosmétiques si 2 setters.
+- Priorité basse — dormant tant que roster = Gen 1.
+
 ### Orbe de vie qui « tick » plusieurs fois sur un move de zone (2026-06-19, playtest plan 133)
 - Observé pendant le playtest Delayed/countdown : sur un move de zone, l'orbe de PV semble se décrémenter en plusieurs paliers. Non reproduit/diagnostiqué (move exact + un-orbe-multi-paliers vs plusieurs-orbes non confirmés par l'humain).
 - Piste : `battle-orchestrator.applyEvents` — chemin multi-hit (`hitsByTarget > 1` → step pacé) vs AoE multi-cibles (1 `DamageDealt` par cible). Vérifier qu'un move de zone mono-coup ne déclenche pas le stepping multi-hit, et que le `syncBoard` final ne re-anime pas l'orbe.
