@@ -15,6 +15,7 @@ export interface DamageModifyContext {
   attackerTypes: PokemonType[];
   defenderTypes: PokemonType[];
   effectiveness: number;
+  isCrit: boolean;
 }
 
 export interface AfterDamageContext {
@@ -23,6 +24,7 @@ export interface AfterDamageContext {
   move: MoveDefinition;
   damageDealt: number;
   wasAtMaxHp: boolean;
+  isCrit: boolean;
   state: BattleState;
   selfTypes: PokemonType[];
   attackerTypes: PokemonType[];
@@ -63,6 +65,13 @@ export interface StatusDurationContext {
 }
 
 export interface StatChangeBlockContext {
+  self: PokemonInstance;
+  stat: StatName;
+  stages: number;
+  source: PokemonInstance | null;
+}
+
+export interface AbilityStatLoweredContext {
   self: PokemonInstance;
   stat: StatName;
   stages: number;
@@ -128,6 +137,7 @@ export interface AbilityHandler {
   onStatusBlocked?: (context: StatusBlockContext) => BlockResult;
   onStatusDurationModify?: (context: StatusDurationContext) => DurationModifyResult;
   onStatChangeBlocked?: (context: StatChangeBlockContext) => BlockResult;
+  onAfterStatLowered?: (context: AbilityStatLoweredContext) => BattleEvent[];
   onTypeImmunity?: (context: TypeImmunityContext) => BlockResult;
   onBattleStart?: (context: BattleStartContext) => BattleEvent[];
   onAuraCheck?: (context: AuraCheckContext) => BattleEvent[];

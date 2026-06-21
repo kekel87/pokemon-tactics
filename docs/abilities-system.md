@@ -29,11 +29,16 @@ interface AbilityHandler {
   onStatusDurationModify?: (ctx: StatusDurationContext) => DurationModifyResult;
 
   // Hook multiplier de dégâts : retourne un number (silencieux par convention)
+  // DamageModifyContext expose isCrit: boolean (ajouté plan 136 pour Sniper)
   onDamageModify?: (ctx: DamageModifyContext) => number;
 
   // Hooks "réactifs" : retournent BattleEvent[]
+  // AfterDamageContext expose isCrit: boolean (ajouté plan 136 pour Colérique)
   onAfterDamageReceived?: (ctx: AfterDamageContext) => BattleEvent[];
   onAfterStatusReceived?: (ctx: AfterStatusContext) => BattleEvent[];
+  // StatLoweredContext { self, stat, stages, source } — ajouté plan 136 pour Acharné/Battant
+  onAfterStatLowered?: (ctx: StatLoweredContext) => BattleEvent[];
+  onEndTurn?: (ctx: EndTurnContext) => BattleEvent[];
   onBattleStart?: (ctx: BattleStartContext) => BattleEvent[];
   onAuraCheck?: (ctx: AuraCheckContext) => BattleEvent[];
 }
@@ -99,7 +104,9 @@ Les statuts `Intimidated`, `Infatuated`, `Trapped` (avec `remainingTurns === -1`
 | `onStatusBlocked` | `handle-status.ts` (avant application) |
 | `onStatusDurationModify` | `handle-status.ts` (sur volatile et major) |
 | `onStatChangeBlocked` | `handle-stat-change.ts` (avant application) |
+| `onAfterStatLowered` | `handle-stat-change.ts` (après application d'une baisse adverse réussie) — ajouté plan 136 |
 | `onTypeImmunity` | `effect-processor.ts` (avant tout effet) |
+| `onEndTurn` | `BattleEngine` tick de fin de tour |
 | `onBattleStart` | `BattleEngine.triggerBattleStart()` |
 | `onAuraCheck` | `BattleEngine.triggerBattleStart()` + `emitPositionLinkedChecks` |
 
@@ -152,6 +159,13 @@ Les noms (FR/EN) viennent de `abilities.json` (Showdown), pas hardcodés.
 | **Charmé (Infatuation)** | 50% chance de ne pas pouvoir attaquer chaque tour. Permanent tant que la source est sur le terrain (**pas de compteur de tours**, retiré quand la source faint). |
 | **Intimidation** | -1 Atk + statut volatile en aura permanente (1 case Chebyshev). Notre design diverge de VGC où c'est un one-shot à l'entrée — chez nous c'est permanent tant que Caninos est adjacent. |
 | **Matinal (Early Bird)** | Sommeil halve : `Math.ceil(duration / 2)`. Sample Champions [2,3,3] → [1,2,2] avec Early Bird. **Émission au réveil** (pas à l'application) — `StatusEffect.shortenedByAbilityId` mémorise l'ability qui a halve, le tick handler émet `AbilityActivated` quand `remainingTurns === 0`. |
+| **Régé-Force (Regenerator)** | Canon VGC = soin 1/3 PV **à l'échange**. Inapplicable ici (pas de banc/switch en combat tactique). **Divergence intentionnelle** : réinterprété en soin passif `ceil(maxHp/16)` à chaque fin de tour via `onEndTurn`. Décidé lors du plan 136. |
+| **Sniper** | ×1.5 additionnel si coup critique. Multiplicatif avec le bonus crit standard (×1.5) → total ×2.25 sur un crit. Requiert `isCrit: boolean` exposé dans `DamageModifyContext`. |
+| **Colérique (Anger Point)** | Déclenché par `isCrit` dans `AfterDamageContext`. Monte l'Attaque à +6 (plafond de stages — pas +6 depuis la valeur courante, mais fixé à +6). |
+| **Acharné (Defiant) / Battant (Competitive)** | Déclenchés via `onAfterStatLowered`. Le hook ne se déclenche que si `source.playerId !== self.playerId` (pas sur auto-baisses comme Close Combat, pas sur baisses alliées). |
+| **Inconscient (Unaware)** | Deux sens : (1) attaquant = ignore Déf/DéfSpé de la cible ; (2) défenseur = ignore Atq/AtqSpé de l'attaquant. Géré par param `ignoreOpponentStatStages` dans `damage-calculator`. |
+| **Querelleur (Scrappy)** | Bypass Normal/Combat vs Spectre côté attaquant uniquement. Bug résolu lors du plan 136 : l'effectivité retournée au call-site doit correspondre au type sans l'immunité Ghost (fix `effect-processor.ts`). |
+| **Multi-Coups (Skill Link)** | Garantit toujours le maximum de coups pour les moves multi-frappes (2–5 ou 2–3). Marker vérifié dans `handle-damage.ts → rollMultiHitCount`. Moves concernés : Combo-Griffe, Éclat Roc, Balle Graine, Stalactite, Dard-Aiguille, Gifle Fion, Ruée d'Os, Écaille Canon, Double Battue. |
 
 ## Tests d'intégration existants
 
@@ -179,11 +193,23 @@ Voir `packages/core/src/battle/abilities.integration.test.ts`. Couverture par ta
 | Voile Sable | (dormant — Phase 9 météo) | smoke test no-crash |
 | Tempo Perso | Bloque Confusion + Intimidation | Émission via blocage Intimidate aura |
 | Matinal | Halve durée sommeil (ceil) | Émission `early-bird` |
+| Téméraire | Boost ×1.2 sur moves à recul (Rapace, Aquatacle…) | (silencieux, pas de test d'émission) |
+| Rivalité | ×1.25 même genre / ×0.75 genre opposé / ×1 genderless | (silencieux, pas de test d'émission) |
+| Lentiteintée | Effectivité < 1 → ×2 (0.5→1.0) | (silencieux, pas de test d'émission) |
+| Régé-Force | Soin `ceil(maxHp/16)` en fin de tour | ✅ émission `AbilityActivated` + `HpRestored` |
+| Sniper | Coup critique → ×1.5 multiplicatif (total ×2.25). Flag `isCrit` dans `DamageModifyContext`. | (silencieux, pas de test d'émission) |
+| Colérique | Reçoit un coup critique → Attaque +6 stages. Flag `isCrit` dans `AfterDamageContext`. | ✅ émission `AbilityActivated` |
+| Acharné | Stat abaissée par adversaire → +2 Attaque. Hook `onAfterStatLowered`. | ✅ émission `AbilityActivated` |
+| Battant | Stat abaissée par adversaire → +2 Atq. Spé. Hook `onAfterStatLowered`. | ✅ émission `AbilityActivated` |
+| Inconscient | Ignore stages Déf/DéfSpé adverses (attaque) + stages Atq/AtqSpé adverses (défense). | (silencieux, marker inline `damage-calculator`) |
+| Querelleur | Normal/Combat ignorent immunité Spectre. Fix inclus : effectivité retournée correcte. | ✅ test bypass + effectivité |
+| Multi-Coups | Moves multi-frappes = toujours le maximum de coups (`rollMultiHitCount`). | (silencieux, marker inline `handle-damage`) |
 
 ## Talents non visibles (par design)
 
 - **Adaptabilité, Technicien** : multiplicateurs always-on. Silencieux par design — pas de message in-battle (cohérent avec Showdown).
 - **Isograisse** : émet quand dégâts Feu/Glace effectivement reçus.
+- **Téméraire, Rivalité, Lentiteintée, Sniper, Inconscient** : modificateurs de dégâts silencieux par design (cohérent avec Adaptabilité/Technicien).
 
 ## Buffer des events au démarrage
 

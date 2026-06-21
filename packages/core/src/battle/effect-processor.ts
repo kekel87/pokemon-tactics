@@ -113,6 +113,10 @@ export function processEffects(
   // Move-type immunity (Normal vs Ghost, ability absorbs, …) only excludes targets of a DAMAGING
   // move. Status / heal moves (heal-pulse, wish, aromatherapy) ignore type effectiveness, so a
   // Ghost ally can still receive a Normal-type Wish.
+  // Querelleur (scrappy): Normal/Fighting moves ignore Ghost's type immunity (attacker-side).
+  const scrappyGhostBypass =
+    context.abilityRegistry?.getForPokemon(context.attacker)?.id === "scrappy";
+
   let nonImmuneTargets: PokemonInstance[];
   if (moveHasDamage) {
     nonImmuneTargets = [];
@@ -130,7 +134,13 @@ export function processEffects(
 
       const effectiveness = abilityImmune
         ? 0
-        : getTypeEffectiveness(context.move.type, defenderTypes, context.typeChart);
+        : getTypeEffectiveness(
+            context.move.type,
+            defenderTypes,
+            context.typeChart,
+            undefined,
+            scrappyGhostBypass,
+          );
 
       if (effectiveness === 0) {
         events.push({

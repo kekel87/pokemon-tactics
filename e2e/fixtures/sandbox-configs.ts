@@ -87,6 +87,37 @@ export const DYNAMIC_BOLT_BEAK = { ...DUEL, moves: ["bolt-beak"] } as const;
 // Le sens (`faintedAllyCount`/`AllyFaintCountScaled`) reste couvert par les unit/integration du core
 // (`dynamic-power-system.test.ts`, `moves/last-respects.test.ts`). Cf. test-plan §5.23 (case 👁).
 
+// Talents Tier A (plan 136) — observables pilotables via journal FR, déterministes (aucun jet).
+
+/** Régé-Force (regenerator) — soin passif de fin de tour (réinterprétation tactique, ~1/16 PV max).
+ *  Le joueur Florizarre démarre blessé (hp 50, sous son max) avec le talent ; la fin de tour applique
+ *  le soin et journalise « Régé-Force de <X> s'active ! » + « <X> récupère N PV » (HpRestored). Aucun
+ *  jet : le hook `onEndTurn` est inconditionnel dès lors que le porteur n'est pas au max → déterministe. */
+export const REGENERATOR_HEAL = { ...DUEL, playerAbility: "regenerator", hp: 50 } as const;
+
+/** Multi-Coups (skill-link) — un move à frappes variables (Balle Graine, 2-5) touche TOUJOURS le max
+ *  (5). Le joueur porte le talent et lance Balle Graine (100 % précision, force-pool via `moves`) sur
+ *  le dummy adjacent endurant (hp 999, survit aux 5 coups) → le récap journal lit « Touché 5 fois ! »
+ *  quel que soit le seed (le talent court-circuite le tirage aléatoire du nombre de coups). */
+export const SKILL_LINK_MAX_HITS = {
+  ...DUEL,
+  moves: ["bullet-seed"],
+  playerAbility: "skill-link",
+  dummyHp: 999,
+} as const;
+
+/** Querelleur (scrappy) — un coup Normal touche un Spectre normalement immunisé. Le joueur porte le
+ *  talent et lance Griffe (Normal, 100 % précision, portée 1) sur l'Ectoplasma (gengar, Spectre/Poison)
+ *  adjacent. Sans Querelleur le coup serait totalement bloqué (« Ça n'affecte pas… », aucun dégât) ;
+ *  avec, l'efficacité est ramenée à neutre (1) → le journal lit « <X> perd N PV » (et PAS « Ça n'affecte
+ *  pas »). Garde la régression du fix handle-damage (effectiveness 0 → 1). Cast déterministe. */
+export const SCRAPPY_HITS_GHOST = {
+  ...DUEL,
+  playerAbility: "scrappy",
+  dummyPokemon: "gengar",
+  dummyHp: 999,
+} as const;
+
 /** Distorsion (trick-room) — slow caster, fast foe, both inside the r3 zone (decision 2026-06-18).
  *  Player = Flagadoss (slowbro, base Vit 30) at (2,3) casting Distorsion ; dummy = Électrode
  *  (electrode, base Vit 150) at (2,2), distance 1 → both in the diamond. Once the zone is posted the

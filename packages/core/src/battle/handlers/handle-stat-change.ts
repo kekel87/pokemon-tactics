@@ -92,6 +92,21 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
         context.shared.loweredPokemonIds = new Set<string>();
       }
       context.shared.loweredPokemonIds.add(pokemon.id);
+
+      // Acharné / Battant (defiant / competitive): retaliate when an opponent lowers a stat.
+      if (isEnemyDebuff) {
+        const loweredAbility = context.abilityRegistry?.getForPokemon(pokemon);
+        if (loweredAbility?.onAfterStatLowered) {
+          events.push(
+            ...loweredAbility.onAfterStatLowered({
+              self: pokemon,
+              stat: effect.stat,
+              stages: actualChange,
+              source: context.attacker,
+            }),
+          );
+        }
+      }
     }
   }
 

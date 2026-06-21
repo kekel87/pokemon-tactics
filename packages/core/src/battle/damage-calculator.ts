@@ -1,6 +1,6 @@
 import { AttackStatSource } from "../enums/attack-stat-source";
 import { Category } from "../enums/category";
-import type { PokemonType } from "../enums/pokemon-type";
+import { PokemonType } from "../enums/pokemon-type";
 import { StatusType as StatusTypeEnum } from "../enums/status-type";
 import type { DamageEstimate } from "../types/damage-estimate";
 import type { MoveDefinition } from "../types/move-definition";
@@ -75,11 +75,18 @@ export function calculateDamageWithCrit(
     return { damage: 0, isCrit: false };
   }
 
+  const attackerAbility = abilityRegistry?.getForPokemon(attacker);
+  const defenderAbility = abilityRegistry?.getForPokemon(defender);
+
+  // Querelleur (scrappy): Normal- and Fighting-type moves ignore Ghost's type immunity.
+  const scrappyGhostBypass = attackerAbility?.id === "scrappy";
+
   const effectiveness = getTypeEffectiveness(
     move.type,
     defenderTypes,
     typeChart,
     move.typeEffectivenessOverride,
+    scrappyGhostBypass,
   );
   if (effectiveness === 0) {
     return { damage: 0, isCrit: false };
@@ -100,10 +107,15 @@ export function calculateDamageWithCrit(
     ? defender.statStages.defense
     : defender.statStages.spDefense;
 
-  let effectiveAttack = getEffectiveStat(attackStat, attackStage);
+  // Inconscient (unaware): the holder ignores the opponent's stat stages when computing damage.
+  // Attacker's unaware ignores the defender's defensive stages; defender's unaware ignores the
+  // attacker's offensive stages.
+  const attackStageForCalc = defenderAbility?.id === "unaware" ? 0 : attackStage;
+  const defenseStageForCalc = attackerAbility?.id === "unaware" ? 0 : defenseStage;
+
+  let effectiveAttack = getEffectiveStat(attackStat, attackStageForCalc);
 
   const isBurned = attacker.statusEffects.some((s) => s.type === StatusTypeEnum.Burned);
-  const attackerAbility = abilityRegistry?.getForPokemon(attacker);
   const gutsIgnoresBurn = attackerAbility?.id === "guts";
   if (isBurned && isPhysical && !gutsIgnoresBurn && !move.ignoresBurnAttackDrop) {
     effectiveAttack = Math.floor(effectiveAttack / 2);
@@ -111,13 +123,12 @@ export function calculateDamageWithCrit(
 
   const attackerItem = itemRegistry?.getForPokemon(attacker);
 
-  const defenderAbility = abilityRegistry?.getForPokemon(defender);
   const baseCritStage = move.critRatio ?? 0;
   const itemCritStage = attackerItem?.onCritStageBoost?.({ self: attacker, move }) ?? 0;
   const totalCritStage = baseCritStage + itemCritStage;
   const isCrit = defenderAbility?.preventsCrit ? false : random() < getCritChance(totalCritStage);
 
-  const critDefenseStage = isCrit ? Math.max(0, defenseStage) : defenseStage;
+  const critDefenseStage = isCrit ? Math.max(0, defenseStageForCalc) : defenseStageForCalc;
   const effectiveDefense = Math.floor(
     getEffectiveStat(defenseStat, critDefenseStage) * defenseWeatherMultiplier,
   );
@@ -143,6 +154,7 @@ export function calculateDamageWithCrit(
       attackerTypes,
       defenderTypes,
       effectiveness,
+      isCrit,
     }) ?? 1.0;
 
   const defenderAbilityMod =
@@ -154,6 +166,7 @@ export function calculateDamageWithCrit(
       attackerTypes,
       defenderTypes,
       effectiveness,
+      isCrit,
     }) ?? 1.0;
 
   const attackerItemMod =
@@ -165,6 +178,7 @@ export function calculateDamageWithCrit(
       attackerTypes,
       defenderTypes,
       effectiveness,
+      isCrit,
     }) ?? 1.0;
 
   const defenderItem = itemRegistry?.getForPokemon(defender);
@@ -177,6 +191,7 @@ export function calculateDamageWithCrit(
       attackerTypes,
       defenderTypes,
       effectiveness,
+      isCrit,
     }) ?? 1.0;
 
   const critMod = isCrit ? 1.5 : 1.0;
@@ -256,6 +271,7 @@ export function getTypeEffectiveness(
   defenderTypes: PokemonType[],
   typeChart: TypeChart,
   override?: { against: PokemonType; multiplier: number },
+  scrappyGhostBypass = false,
 ): number {
   let multiplier = 1;
   const attackerRow = typeChart[moveType];
@@ -263,6 +279,14 @@ export function getTypeEffectiveness(
     return 1;
   }
   for (const defType of defenderTypes) {
+    // Querelleur (scrappy): treat Ghost as neutral for Normal/Fighting moves (no immunity).
+    if (
+      scrappyGhostBypass &&
+      defType === PokemonType.Ghost &&
+      (moveType === PokemonType.Normal || moveType === PokemonType.Fighting)
+    ) {
+      continue;
+    }
     if (override && defType === override.against) {
       multiplier *= override.multiplier;
       continue;
