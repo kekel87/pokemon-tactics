@@ -111,6 +111,20 @@ export function processEffects(
     (e) => e.kind === EffectKind.Damage || e.kind === EffectKind.Drain,
   );
 
+  // Move-property immunity (Anti-Bruit vs sound, Envelocape vs powder) — applies whatever the move
+  // does (damage OR status), so it gates targets before the type-immunity pass below.
+  const moveImmuneIds = new Set<string>();
+  for (const target of context.targets) {
+    const immunityResult = context.abilityRegistry?.getForPokemon(target)?.onMoveImmunity?.({
+      self: target,
+      move: context.move,
+    });
+    if (immunityResult?.blocked) {
+      moveImmuneIds.add(target.id);
+      events.push(...immunityResult.events);
+    }
+  }
+
   // Move-type immunity (Normal vs Ghost, ability absorbs, …) only excludes targets of a DAMAGING
   // move. Status / heal moves (heal-pulse, wish, aromatherapy) ignore type effectiveness, so a
   // Ghost ally can still receive a Normal-type Wish.
@@ -122,6 +136,9 @@ export function processEffects(
   if (moveHasDamage) {
     nonImmuneTargets = [];
     for (const target of context.targets) {
+      if (moveImmuneIds.has(target.id)) {
+        continue;
+      }
       const defenderTypes = context.targetTypesMap.get(target.id) ?? [];
 
       const immunityResult = context.abilityRegistry?.getForPokemon(target)?.onTypeImmunity?.({
@@ -155,7 +172,7 @@ export function processEffects(
       }
     }
   } else {
-    nonImmuneTargets = [...context.targets];
+    nonImmuneTargets = context.targets.filter((target) => !moveImmuneIds.has(target.id));
   }
 
   const shared: SharedEffectState = { lastDamageDealt: 0 };

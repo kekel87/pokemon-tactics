@@ -354,6 +354,9 @@ const thickFat: AbilityHandler = {
     return 1.0;
   },
   onAfterDamageReceived: (context) => {
+    if (context.self.currentHp <= 0) {
+      return [];
+    }
     if (context.move.type !== PokemonType.Fire && context.move.type !== PokemonType.Ice) {
       return [];
     }
@@ -1184,7 +1187,7 @@ const sniper: AbilityHandler = {
 const angerPoint: AbilityHandler = {
   id: "anger-point",
   onAfterDamageReceived: (context) => {
-    if (!context.isCrit) {
+    if (context.self.currentHp <= 0 || !context.isCrit) {
       return [];
     }
     const currentStage = context.self.statStages[StatName.Attack];
@@ -1423,7 +1426,11 @@ const RATTLED_TRIGGER_TYPES: ReadonlySet<PokemonType> = new Set<PokemonType>([
 const rattled: AbilityHandler = {
   id: "rattled",
   onAfterDamageReceived: (context) => {
-    if (!RATTLED_TRIGGER_TYPES.has(context.move.type) || context.damageDealt <= 0) {
+    if (
+      context.self.currentHp <= 0 ||
+      !RATTLED_TRIGGER_TYPES.has(context.move.type) ||
+      context.damageDealt <= 0
+    ) {
       return [];
     }
     return raiseStatByOne(context.self, StatName.Speed, "rattled");
@@ -1512,7 +1519,11 @@ const marvelScale: AbilityHandler = {
 const justified: AbilityHandler = {
   id: "justified",
   onAfterDamageReceived: (context) => {
-    if (context.move.type !== PokemonType.Dark || context.damageDealt <= 0) {
+    if (
+      context.self.currentHp <= 0 ||
+      context.move.type !== PokemonType.Dark ||
+      context.damageDealt <= 0
+    ) {
       return [];
     }
     return raiseStatByOne(context.self, StatName.Attack, "justified");
@@ -1529,6 +1540,399 @@ const drought: AbilityHandler = {
 const steadfast: AbilityHandler = {
   id: "steadfast",
   onFlinch: (context) => raiseStatByOne(context.self, StatName.Speed, "steadfast"),
+};
+
+// ===== Plan 138 — Tier C =====
+// (Groupe A — Engrais/Brasier/Torrent/Essaim — déjà implémenté via `pinchBooster`.)
+
+/** End-of-turn HP loss of max(1, floor(maxHp * fraction)); may KO (indirect-damage model). */
+function weatherEndTurnLoss(
+  self: PokemonInstance,
+  abilityId: string,
+  fraction: number,
+): BattleEvent[] {
+  if (self.currentHp <= 0) {
+    return [];
+  }
+  const loss = Math.min(self.currentHp, Math.max(1, Math.floor(self.maxHp * fraction)));
+  self.currentHp -= loss;
+  const events: BattleEvent[] = [
+    { type: BattleEventType.AbilityActivated, pokemonId: self.id, abilityId, targetIds: [self.id] },
+    { type: BattleEventType.DamageDealt, targetId: self.id, amount: loss, effectiveness: 1 },
+  ];
+  if (self.currentHp <= 0) {
+    events.push({ type: BattleEventType.PokemonKo, pokemonId: self.id, countdownStart: 0 });
+  }
+  return events;
+}
+
+/** Apply several signed stat-stage changes with a single AbilityActivated, clamped to [-6, 6]. */
+function applyStatChanges(
+  self: PokemonInstance,
+  abilityId: string,
+  changes: { stat: StatName; delta: number }[],
+): BattleEvent[] {
+  const events: BattleEvent[] = [
+    { type: BattleEventType.AbilityActivated, pokemonId: self.id, abilityId, targetIds: [self.id] },
+  ];
+  let anyApplied = false;
+  for (const { stat, delta } of changes) {
+    const current = self.statStages[stat];
+    const next = Math.max(-6, Math.min(6, current + delta));
+    if (next !== current) {
+      self.statStages[stat] = next;
+      anyApplied = true;
+      events.push({
+        type: BattleEventType.StatChanged,
+        targetId: self.id,
+        stat,
+        stages: next - current,
+      });
+    }
+  }
+  return anyApplied ? events : [];
+}
+
+// --- B : météo-dégâts ---
+
+// Force Soleil (solar-power): ×1.5 special damage in harsh sunlight; loses 1/8 max HP each sunny turn.
+const solarPower: AbilityHandler = {
+  id: "solar-power",
+  onDamageModify: (context) => {
+    if (
+      context.isAttacker &&
+      context.weather === Weather.Sun &&
+      context.move.category === Category.Special
+    ) {
+      return 1.5;
+    }
+    return 1.0;
+  },
+  onEndTurn: (context) =>
+    context.weather === Weather.Sun ? weatherEndTurnLoss(context.self, "solar-power", 1 / 8) : [],
+};
+
+// Force Sable (sand-force): ×1.3 to Rock/Ground/Steel moves during a Sandstorm.
+const SAND_FORCE_TYPES: ReadonlySet<PokemonType> = new Set<PokemonType>([
+  PokemonType.Rock,
+  PokemonType.Ground,
+  PokemonType.Steel,
+]);
+const sandForce: AbilityHandler = {
+  id: "sand-force",
+  onDamageModify: (context) => {
+    if (
+      context.isAttacker &&
+      context.weather === Weather.Sandstorm &&
+      SAND_FORCE_TYPES.has(context.move.type)
+    ) {
+      return 1.3;
+    }
+    return 1.0;
+  },
+};
+
+// Peau Sèche (dry-skin): Rain heals 1/8, Sun burns 1/8; Fire hits ×1.25; Water is absorbed as heal.
+const drySkin: AbilityHandler = {
+  id: "dry-skin",
+  onTypeImmunity: (context) => {
+    if (context.moveType !== PokemonType.Water) {
+      return { blocked: false, events: [] };
+    }
+    const events: BattleEvent[] = [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "dry-skin",
+        targetIds: [context.self.id],
+      },
+    ];
+    const heal = Math.min(
+      context.self.maxHp - context.self.currentHp,
+      Math.floor(context.self.maxHp * 0.25),
+    );
+    if (heal > 0) {
+      context.self.currentHp += heal;
+      events.push({
+        type: BattleEventType.HpRestored,
+        pokemonId: context.self.id,
+        amount: heal,
+      });
+    }
+    return { blocked: true, events };
+  },
+  onDamageModify: (context) => {
+    if (!context.isAttacker && context.move.type === PokemonType.Fire) {
+      return 1.25;
+    }
+    return 1.0;
+  },
+  onEndTurn: (context) => {
+    if (context.self.currentHp <= 0) {
+      return [];
+    }
+    if (context.weather === Weather.Rain) {
+      const heal = Math.min(
+        context.self.maxHp - context.self.currentHp,
+        Math.max(1, Math.floor(context.self.maxHp / 8)),
+      );
+      if (heal <= 0) {
+        return [];
+      }
+      context.self.currentHp += heal;
+      return [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "dry-skin",
+          targetIds: [context.self.id],
+        },
+        { type: BattleEventType.HpRestored, pokemonId: context.self.id, amount: heal },
+      ];
+    }
+    if (context.weather === Weather.Sun) {
+      return weatherEndTurnLoss(context.self, "dry-skin", 1 / 8);
+    }
+    return [];
+  },
+};
+
+// Feuille Garde (leaf-guard): blocks major-status infliction in harsh sunlight.
+const leafGuard: AbilityHandler = {
+  id: "leaf-guard",
+  onStatusBlocked: (context) => {
+    if (context.weather !== Weather.Sun || !MAJOR_STATUSES_FOR_CURE.has(context.status)) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "leaf-guard",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+// Envelocape (overcoat): immune to powder moves.
+const overcoat: AbilityHandler = {
+  id: "overcoat",
+  onMoveImmunity: (context) => {
+    if (context.move.flags?.powder !== true) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "overcoat",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+// --- C : réactif / stat ---
+
+// Armurouillée (weak-armor): hit by a physical move → Defense -1, Speed +2.
+const weakArmor: AbilityHandler = {
+  id: "weak-armor",
+  onAfterDamageReceived: (context) => {
+    if (
+      context.self.currentHp <= 0 ||
+      context.move.category !== Category.Physical ||
+      context.damageDealt <= 0
+    ) {
+      return [];
+    }
+    return applyStatChanges(context.self, "weak-armor", [
+      { stat: StatName.Defense, delta: -1 },
+      { stat: StatName.Speed, delta: 2 },
+    ]);
+  },
+};
+
+// Pieds Confus (tangled-feet): incoming accuracy halved while the holder is confused.
+const tangledFeet: AbilityHandler = {
+  id: "tangled-feet",
+  onEvasionModify: (context) =>
+    context.self.volatileStatuses.some((v) => v.type === StatusType.Confused) ? 0.5 : 1.0,
+};
+
+// Pied Véloce (quick-feet): ×1.5 Speed (and ignores the paralysis cut) while a major status is active.
+const quickFeet: AbilityHandler = {
+  id: "quick-feet",
+  statusSpeedBoost: { multiplier: 1.5 },
+};
+
+// Anti-Bruit (soundproof): immune to sound-based moves.
+const soundproof: AbilityHandler = {
+  id: "soundproof",
+  onMoveImmunity: (context) => {
+    if (context.move.flags?.sound !== true) {
+      return { blocked: false, events: [] };
+    }
+    return {
+      blocked: true,
+      events: [
+        {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: context.self.id,
+          abilityId: "soundproof",
+          targetIds: [context.self.id],
+        },
+      ],
+    };
+  },
+};
+
+// Télécharge (download): on entry, +1 Attack or +1 Sp. Atk vs the nearest foe's lower defense.
+const download: AbilityHandler = {
+  id: "download",
+  onBattleStart: (context) => {
+    let nearest: PokemonInstance | undefined;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+    for (const pokemon of context.state.pokemon.values()) {
+      if (pokemon.playerId === context.self.playerId || pokemon.currentHp <= 0) {
+        continue;
+      }
+      const distance = chebyshev(context.self.position, pokemon.position);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = pokemon;
+      }
+    }
+    if (nearest === undefined) {
+      return [];
+    }
+    const boostedStat =
+      nearest.combatStats.defense <= nearest.combatStats.spDefense
+        ? StatName.Attack
+        : StatName.SpAttack;
+    return raiseStatByOne(context.self, boostedStat, "download");
+  },
+};
+
+// Peau Miracle (wonder-skin): incoming status moves have their accuracy halved.
+const wonderSkin: AbilityHandler = {
+  id: "wonder-skin",
+  onEvasionModify: (context) => (context.move.category === Category.Status ? 0.5 : 1.0),
+};
+
+// --- D : medium ---
+
+// Agitation (hustle): +50% physical damage, -20% physical accuracy.
+const hustle: AbilityHandler = {
+  id: "hustle",
+  onDamageModify: (context) => {
+    if (context.isAttacker && context.move.category === Category.Physical) {
+      return 1.5;
+    }
+    return 1.0;
+  },
+  onAccuracyModify: (context) => (context.move.category === Category.Physical ? 0.8 : 1.0),
+};
+
+// Analyste (analytic): ×1.3 damage when the holder acts after the target.
+const analytic: AbilityHandler = {
+  id: "analytic",
+  onDamageModify: (context) => (context.isAttacker && context.targetAlreadyActed ? 1.3 : 1.0),
+};
+
+// Puanteur (stench): 10% chance to flinch the target on a damaging hit.
+const stench: AbilityHandler = {
+  id: "stench",
+  onAfterDamageDealt: (context) => {
+    if (context.damageDealt <= 0 || context.random() >= 0.1) {
+      return [];
+    }
+    if (context.target.volatileStatuses.some((v) => v.type === StatusType.Flinch)) {
+      return [];
+    }
+    context.target.volatileStatuses.push({ type: StatusType.Flinch, remainingTurns: 1 });
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "stench",
+        targetIds: [context.target.id],
+      },
+      {
+        type: BattleEventType.StatusApplied,
+        targetId: context.target.id,
+        status: StatusType.Flinch,
+      },
+    ];
+  },
+};
+
+// Suintement (liquid-ooze): draining the holder backfires — the drainer takes the heal as damage.
+const liquidOoze: AbilityHandler = {
+  id: "liquid-ooze",
+  onDrainAttempt: (context) => ({
+    redirect: true,
+    events: [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "liquid-ooze",
+        targetIds: [context.attacker.id],
+      },
+    ],
+  }),
+};
+
+// Boom Final (aftermath): KO'd by a contact move → the attacker loses 1/4 of its max HP.
+const aftermath: AbilityHandler = {
+  id: "aftermath",
+  onAfterDamageReceived: (context) => {
+    if (context.self.currentHp > 0 || context.move.flags?.contact !== true) {
+      return [];
+    }
+    if (context.attacker.currentHp <= 0) {
+      return [];
+    }
+    const loss = Math.min(
+      context.attacker.currentHp,
+      Math.max(1, Math.floor(context.attacker.maxHp / 4)),
+    );
+    context.attacker.currentHp -= loss;
+    const events: BattleEvent[] = [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "aftermath",
+        targetIds: [context.attacker.id],
+      },
+      {
+        type: BattleEventType.DamageDealt,
+        targetId: context.attacker.id,
+        amount: loss,
+        effectiveness: 1,
+      },
+    ];
+    if (context.attacker.currentHp <= 0) {
+      events.push({
+        type: BattleEventType.PokemonKo,
+        pokemonId: context.attacker.id,
+        countdownStart: 0,
+      });
+    }
+    return events;
+  },
+};
+
+// Infiltration (infiltrator): handled engine-side via `abilityId` checks (substitute / screens /
+// Voile Sacré / Brume bypass). The data entry only needs to register the id for the team builder.
+const infiltrator: AbilityHandler = {
+  id: "infiltrator",
 };
 
 export const abilityHandlers: AbilityHandler[] = [
@@ -1610,4 +2014,21 @@ export const abilityHandlers: AbilityHandler[] = [
   justified,
   drought,
   steadfast,
+  solarPower,
+  sandForce,
+  drySkin,
+  leafGuard,
+  overcoat,
+  weakArmor,
+  tangledFeet,
+  quickFeet,
+  soundproof,
+  download,
+  wonderSkin,
+  hustle,
+  analytic,
+  stench,
+  liquidOoze,
+  aftermath,
+  infiltrator,
 ];

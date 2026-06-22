@@ -1,3 +1,4 @@
+import { loadData } from "@pokemon-tactic/data";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Category } from "../enums/category";
@@ -16,6 +17,7 @@ import { processEffects } from "./effect-processor";
 
 const P1 = MockBattle.player1Fast;
 const P2 = MockBattle.player2Slow;
+const { abilityRegistry } = loadData();
 
 function fresh(base: PokemonInstance, overrides?: Partial<PokemonInstance>): PokemonInstance {
   return {
@@ -263,6 +265,53 @@ describe("processEffects — status", () => {
     expect(damageEvents[0]).toMatchObject({ amount: 0, effectiveness: 0 });
     const statusEvents = events.filter((e) => e.type === BattleEventType.StatusApplied);
     expect(statusEvents.length).toBe(0);
+  });
+});
+
+describe("processEffects — onMoveImmunity", () => {
+  const soundDamageMove: MoveDefinition = {
+    ...damageMove,
+    id: "hyper-voice",
+    category: Category.Special,
+    flags: { sound: true },
+  };
+  const powderStatusMove: MoveDefinition = {
+    ...statusMove,
+    id: "sleep-powder",
+    flags: { powder: true },
+  };
+
+  it("soundproof blocks a damaging sound move and emits AbilityActivated", () => {
+    const target = fresh(P2, { currentHp: 100, maxHp: 100, abilityId: "soundproof" });
+    const context = { ...makeContext(fresh(P1), [target], soundDamageMove), abilityRegistry };
+
+    const events = processEffects(context);
+
+    expect(target.currentHp).toBe(100);
+    expect(events.filter((e) => e.type === BattleEventType.DamageDealt).length).toBe(0);
+    expect(events.some((e) => e.type === BattleEventType.AbilityActivated)).toBe(true);
+  });
+
+  it("overcoat blocks a status powder move and emits AbilityActivated", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.01);
+    const target = fresh(P2, { abilityId: "overcoat" });
+    const context = { ...makeContext(fresh(P1), [target], powderStatusMove), abilityRegistry };
+
+    const events = processEffects(context);
+
+    expect(target.statusEffects.length).toBe(0);
+    expect(events.filter((e) => e.type === BattleEventType.StatusApplied).length).toBe(0);
+    expect(events.some((e) => e.type === BattleEventType.AbilityActivated)).toBe(true);
+  });
+
+  it("does not block a sound move against a holder without the immunity ability", () => {
+    const target = fresh(P2, { currentHp: 100, maxHp: 100 });
+    const context = { ...makeContext(fresh(P1), [target], soundDamageMove), abilityRegistry };
+
+    const events = processEffects(context);
+
+    expect(target.currentHp).toBeLessThan(100);
+    expect(events.filter((e) => e.type === BattleEventType.DamageDealt).length).toBe(1);
   });
 });
 

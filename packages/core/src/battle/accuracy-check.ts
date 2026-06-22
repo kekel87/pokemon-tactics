@@ -54,7 +54,14 @@ export function checkAccuracy(
 
   const accuracyMultiplier = getStatMultiplier(accuracyStages);
   const evasionMultiplier = getStatMultiplier(evasionStages);
-  const abilityAccBonus = abilityRegistry?.getForPokemon(attacker)?.accuracyMultiplier ?? 1;
+  const attackerAbility = abilityRegistry?.getForPokemon(attacker);
+  const abilityAccBonus = attackerAbility?.accuracyMultiplier ?? 1;
+  const abilityAccModifier =
+    attackerAbility?.onAccuracyModify?.({ self: attacker, target: defender, move }) ?? 1;
+  const abilityEvasionModifier =
+    abilityRegistry
+      ?.getForPokemon(defender)
+      ?.onEvasionModify?.({ self: defender, target: attacker, move }) ?? 1;
   const itemAccBonus =
     itemRegistry
       ?.getForPokemon(attacker)
@@ -71,7 +78,13 @@ export function checkAccuracy(
   const baseAccuracy = weatherAccuracyOverride ?? move.accuracy;
 
   const effectiveAccuracy =
-    (baseAccuracy * accuracyMultiplier * abilityAccBonus * itemAccBonus * itemEvasionBonus) /
+    (baseAccuracy *
+      accuracyMultiplier *
+      abilityAccBonus *
+      abilityAccModifier *
+      abilityEvasionModifier *
+      itemAccBonus *
+      itemEvasionBonus) /
     evasionMultiplier;
 
   if (effectiveAccuracy >= 100) {

@@ -48,5 +48,9 @@ export function shouldSubstituteBlock(
   if (bypassesSubstitute(move)) {
     return false;
   }
+  // Infiltration (infiltrator): the holder's moves bypass the target's substitute.
+  if (attacker.abilityId === "infiltrator") {
+    return false;
+  }
   return true;
 }

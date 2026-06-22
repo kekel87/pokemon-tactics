@@ -1,3 +1,4 @@
+import { loadData } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { EffectKind } from "../../enums/effect-kind";
@@ -5,12 +6,19 @@ import { MockBattle, MockMove, MockPokemon } from "../../testing";
 import type { EffectContext, SharedEffectState, TypeChart } from "../effect-handler-registry";
 import { handleDrain } from "./handle-drain";
 
-function contextWith(lastDamageDealt: number, currentHp: number, maxHp: number): EffectContext {
+const { abilityRegistry } = loadData();
+
+function contextWith(
+  lastDamageDealt: number,
+  currentHp: number,
+  maxHp: number,
+  targetAbilityId?: string,
+): EffectContext {
   const attacker = MockPokemon.fresh(MockBattle.player1Fast);
   attacker.maxHp = maxHp;
   attacker.currentHp = currentHp;
 
-  const target = MockPokemon.fresh(MockBattle.player2Slow);
+  const target = MockPokemon.fresh(MockBattle.player2Slow, { abilityId: targetAbilityId });
   const state = MockBattle.stateFrom([attacker, target]);
   const move = MockMove.fresh(MockMove.physical, {
     effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Drain, fraction: 0.5 }],
@@ -26,6 +34,7 @@ function contextWith(lastDamageDealt: number, currentHp: number, maxHp: number):
     typeChart: {} as TypeChart,
     attackerTypes: [],
     targetTypesMap: new Map(),
+    abilityRegistry,
     shared,
   } as unknown as EffectContext;
 }
@@ -80,5 +89,34 @@ describe("handleDrain", () => {
 
     expect(context.attacker.currentHp).toBe(51);
     expect(events[0]).toMatchObject({ amount: 1 });
+  });
+
+  it("liquid-ooze redirects the drain as backlash damage instead of healing the drainer", () => {
+    const context = contextWith(80, 100, 200, "liquid-ooze");
+
+    const events = handleDrain(context);
+
+    expect(context.attacker.currentHp).toBe(60);
+    expect(events.some((event) => event.type === BattleEventType.AbilityActivated)).toBe(true);
+    expect(events).toContainEqual({
+      type: BattleEventType.DamageDealt,
+      targetId: context.attacker.id,
+      amount: 40,
+      effectiveness: 1,
+    });
+    expect(events.some((event) => event.type === BattleEventType.HpRestored)).toBe(false);
+  });
+
+  it("liquid-ooze backlash can KO the drainer", () => {
+    const context = contextWith(80, 30, 200, "liquid-ooze");
+
+    const events = handleDrain(context);
+
+    expect(context.attacker.currentHp).toBe(0);
+    expect(events).toContainEqual({
+      type: BattleEventType.PokemonKo,
+      pokemonId: context.attacker.id,
+      countdownStart: 0,
+    });
   });
 });

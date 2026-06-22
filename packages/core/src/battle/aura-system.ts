@@ -136,6 +136,10 @@ export function computeScreenMultiplier(
   if (attacker.playerId === target.playerId) {
     return 1.0;
   }
+  // Infiltration (infiltrator): the holder's moves pierce Mur Lumière / Protection.
+  if (attacker.abilityId === "infiltrator") {
+    return 1.0;
+  }
   const protectingAuras = findActiveAurasProtectingTarget(state, target);
   for (const aura of protectingAuras) {
     if (damageScreenMatchesCategory(aura.kind, move.category)) {
@@ -193,6 +197,10 @@ function resolveAuraProtection(
   kind: AuraKind,
 ): AuraProtectionResult {
   if (attacker.id === target.id) {
+    return { protected: false };
+  }
+  // Infiltration (infiltrator): the holder's moves pierce Voile Sacré (Safeguard) and Brume (Mist).
+  if (attacker.abilityId === "infiltrator") {
     return { protected: false };
   }
   const auras = findActiveAurasProtectingTarget(state, target, kind);
