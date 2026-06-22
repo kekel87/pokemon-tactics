@@ -11,6 +11,7 @@ import {
   isImmuneToStatusByType,
   isMajorStatus,
   isProtectedFromStatDecrease,
+  moveHasSecondaryEffect,
   PokemonGender,
   PokemonType,
   ProtectionReason,
@@ -1935,6 +1936,26 @@ const infiltrator: AbilityHandler = {
   id: "infiltrator",
 };
 
+// ===== Plan 139 — Modèle effet secondaire =====
+
+// Sérénité (serene-grace): doubles the chance of a move's secondary effects (capped at 100%).
+// Implemented by id in effect-processor.ts (marker handler).
+const sereneGrace: AbilityHandler = {
+  id: "serene-grace",
+};
+
+// Sans Limite (sheer-force): a move carrying secondary effects loses them but gains ×1.3 power.
+// Suppression is handled by id in effect-processor.ts; the boost is the onDamageModify below.
+const sheerForce: AbilityHandler = {
+  id: "sheer-force",
+  onDamageModify: (context) => {
+    if (context.isAttacker && moveHasSecondaryEffect(context.move)) {
+      return 1.3;
+    }
+    return 1.0;
+  },
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -2031,4 +2052,6 @@ export const abilityHandlers: AbilityHandler[] = [
   liquidOoze,
   aftermath,
   infiltrator,
+  sereneGrace,
+  sheerForce,
 ];

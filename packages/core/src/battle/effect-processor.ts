@@ -1,6 +1,5 @@
 import { BattleEventType } from "../enums/battle-event-type";
 import { EffectKind } from "../enums/effect-kind";
-import { EffectTarget } from "../enums/effect-target";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
 import type { BattleEvent } from "../types/battle-event";
@@ -46,6 +45,7 @@ import { handleStatChange } from "./handlers/handle-stat-change";
 import { handleStatus } from "./handlers/handle-status";
 import { handleTransferStatStages } from "./handlers/handle-transfer-stat-stages";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
+import { isSecondaryEffect } from "./secondary-effect";
 
 interface ProcessContext {
   attacker: PokemonInstance;
@@ -177,28 +177,61 @@ export function processEffects(
 
   const shared: SharedEffectState = { lastDamageDealt: 0 };
 
+  // Attacker-side abilities that bend secondary effects (mirror scrappy/shield-dust id-checks).
+  const attackerAbilityId = context.abilityRegistry?.getForPokemon(context.attacker)?.id;
+  const hasSheerForce = attackerAbilityId === "sheer-force";
+  const hasSereneGrace = attackerAbilityId === "serene-grace";
+
+  // Sans Limite (sheer-force): suppress every secondary effect, announced once up front. The
+  // matching ×1.3 power boost is applied in the damage calculator via onDamageModify.
+  if (hasSheerForce && context.move.effects.some((e) => isSecondaryEffect(e, moveHasDamage))) {
+    events.push({
+      type: BattleEventType.AbilityActivated,
+      pokemonId: context.attacker.id,
+      abilityId: "sheer-force",
+      targetIds: [context.attacker.id],
+    });
+  }
+
   const chanceGroupResults = new Map<number, boolean>();
   for (const effect of context.move.effects) {
     if (effect.kind === EffectKind.StatChange && effect.chanceGroup !== undefined) {
+      if (hasSheerForce && isSecondaryEffect(effect, moveHasDamage)) {
+        continue;
+      }
       if (!chanceGroupResults.has(effect.chanceGroup)) {
-        const chance = effect.chance ?? 100;
+        let chance = effect.chance ?? 100;
+        // Sérénité (serene-grace): double the secondary effect's chance (capped at 100%).
+        if (hasSereneGrace && isSecondaryEffect(effect, moveHasDamage)) {
+          chance = Math.min(100, chance * 2);
+        }
         chanceGroupResults.set(effect.chanceGroup, context.random() * 100 < chance);
       }
     }
   }
 
   for (const effect of context.move.effects) {
-    let processedEffect = effect;
+    if (hasSheerForce && isSecondaryEffect(effect, moveHasDamage)) {
+      continue;
+    }
 
-    if (effect.kind === EffectKind.StatChange && effect.chanceGroup !== undefined) {
-      if (!chanceGroupResults.get(effect.chanceGroup)) {
+    let processedEffect =
+      hasSereneGrace && isSecondaryEffect(effect, moveHasDamage)
+        ? withDoubledSecondaryChance(effect)
+        : effect;
+
+    if (
+      processedEffect.kind === EffectKind.StatChange &&
+      processedEffect.chanceGroup !== undefined
+    ) {
+      if (!chanceGroupResults.get(processedEffect.chanceGroup)) {
         continue;
       }
       processedEffect = {
-        kind: effect.kind,
-        stat: effect.stat,
-        stages: effect.stages,
-        target: effect.target,
+        kind: processedEffect.kind,
+        stat: processedEffect.stat,
+        stages: processedEffect.stages,
+        target: processedEffect.target,
       };
     }
 
@@ -299,23 +332,15 @@ export function processEffects(
   return events;
 }
 
-function isSecondaryEffect(effect: Effect, moveHasDamage: boolean): boolean {
-  if (!moveHasDamage) {
-    return false;
-  }
+/** Sérénité (serene-grace): return a copy of a secondary effect with its chance doubled (cap 100%). */
+function withDoubledSecondaryChance(effect: Effect): Effect {
   if (effect.kind === EffectKind.Status) {
-    if ("target" in effect && effect.target === EffectTarget.Self) {
-      return false;
-    }
-    return effect.chance < 100;
+    return { ...effect, chance: Math.min(100, effect.chance * 2) };
   }
   if (effect.kind === EffectKind.StatChange) {
-    if (effect.target === EffectTarget.Self) {
-      return false;
-    }
-    return (effect.chance ?? 100) < 100;
+    return { ...effect, chance: Math.min(100, (effect.chance ?? 100) * 2) };
   }
-  return false;
+  return effect;
 }
 
 function filterShieldDustTargets(
