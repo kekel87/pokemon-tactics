@@ -8,6 +8,12 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Talent Anti-Bruit (`soundproof`) — RÉSOLU (plan 138, v2026.6.4)
+- **Contexte** : aucun move sonore (Requiem, Dissonance Psy, Bruit Blanc, Berceuse…) n'était bloqué par Anti-Bruit. Electrode (roster) a ce talent → n'était pas immunisé à Requiem & co.
+- **Résolution** : Anti-Bruit (`soundproof`) implémenté dans le batch talents Tier C (plan 138). Immunité gérée par le hook `onMoveImmunity` (`effect-processor.ts`, gate générique sur le flag `sound`). Couvert par tests (`abilities.integration.test.ts`, `effect-processor.test.ts`).
+
+---
+
 ## Bugs UI résolus (2026-06-16, commit `fix: langue au boot sandbox…`)
 
 ### HUD de combat ignorait `pt-lang` au boot sandbox `?config` (résolu 2026-06-16)

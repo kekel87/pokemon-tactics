@@ -62,11 +62,6 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 <!-- Résolu 2026-06-12 (commit 30be7ee) : actions/checkout@v5, actions/setup-node@v5, pnpm/action-setup@v4, deploy-pages bumpés node24 dans ci.yml / deploy.yml / itch-deploy.yml. butler-to-itch bloqué à v1.3.0 (pas de release node24 dispo) — surveillé dans docs/next.md. -->
 
-### Talent Anti-Bruit (`soundproof`) non implémenté — moves sonores ignorent l'immunité (plan 133)
-- **Contexte** : aucun move sonore (Requiem, Dissonance Psy, Bruit Blanc, Berceuse…) n'est bloqué par Anti-Bruit. Electrode (roster) a ce talent → devrait être immunisé à Requiem & co, ne l'est pas.
-- **Fix recommandé** : ajouter un check `isSoundproof(target)` dans le pipeline des moves portant le flag `sound`. Gate générique → tous les moves sonores en bénéficient d'un coup.
-- **Priorité** : basse — 1 talent, partagé par toute la famille sonore depuis plan 099.
-
 ### Tag tooltip `superVsWater` hardcodé pour `typeEffectivenessOverride` (2026-06-05, plan 113)
 - **Contexte** : `MoveTooltip.ts` affiche le tag `moveTooltip.tag.superVsWater` ("×2 sur les types Eau") pour tout move ayant `typeEffectivenessOverride !== undefined`. Le champ est générique (`{ against: PokemonType; multiplier: number }`) mais le tag est spécifique à l'Eau.
 - **Risque** : un futur move qui override contre un autre type (ex: ×2 Feu) afficherait un tag faux. Aujourd'hui 1 seul move concerné (Lyophilisation).
