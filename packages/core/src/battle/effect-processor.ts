@@ -314,6 +314,23 @@ export function processEffects(
     }
   }
 
+  // After-move-use items (Spray Gorge): fired once per move use, whatever the move does (damage or
+  // status) — so it lives outside the damage-gated flinch block above. The handler self-filters on
+  // the move flag (e.g. Son) and is consumed on activation.
+  if (context.itemRegistry && context.attacker.currentHp > 0) {
+    const attackerItem = context.itemRegistry.getForPokemon(context.attacker);
+    if (attackerItem?.onAfterMoveUse) {
+      const result = attackerItem.onAfterMoveUse({
+        self: context.attacker,
+        move: context.move,
+      });
+      events.push(...result.events);
+      if (result.consumeItem) {
+        context.attacker.heldItemId = undefined;
+      }
+    }
+  }
+
   return events;
 }
 

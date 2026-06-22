@@ -1,7 +1,7 @@
 import { expect, test } from "../../fixtures";
 import { DUEL } from "../../fixtures/sandbox-configs";
 
-// Cahier §5.17 — objets tenus du lot 95→99, pilotés de bout en bout à travers le renderer
+// Cahier §5.17 (lot 95→99) et §5.18 (lot 99→101) — objets tenus pilotés de bout en bout à travers le renderer
 // (journal FR). Configurables en sandbox (`heldItem`/`dummyHeldItem`/`dummyMove`) → déterministes,
 // sans override Math.random. Les facettes silencieuses (immunité Sol/poudre/météo, immunité aux
 // hazards/terrains) n'émettent aucune ligne de journal → couvertes unit/integration core et marquées
@@ -81,4 +81,48 @@ test("§5.17 Talisman Sain : bloque une baisse de stat adverse (journal)", async
   const scene = await bootSandbox({ ...DUEL, moves: ["leer"], dummyHeldItem: "clear-amulet" });
   await scene.castFirstMove(2, 2); // Groz'Yeux sur le dummy porteur adjacent
   await expect(log(page, /Talisman Sain de .* s'active/)).toBeAttached({ timeout: 10_000 });
+});
+
+// Gant de Boxe (punching-glove) : comme le Pare-Effet, les moves Poing du PORTEUR ignorent les
+// réactions de contact de la cible (signal observable = ABSENCE de la réaction). Le joueur tient le
+// Gant (`heldItem`) et lance Mach Punch (contact, Poing, 100 %) sur un dummy au Casque Brut
+// (`dummyHeldItem`) → le Casque NE se déclenche PAS. Témoin sans Gant ci-dessous → le Casque s'active.
+// Le boost de dégâts ×1.1 est silencieux (pas de ligne dédiée) → couvert unit
+// (`battle/items/punching-glove.test.ts`).
+test("§5.18 Gant de Boxe : annule la réaction de contact d'un move Poing — Casque Brut muet (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({
+    ...DUEL,
+    heldItem: "punching-glove",
+    moves: ["mach-punch"],
+    dummyHeldItem: "rocky-helmet",
+  });
+  await scene.castFirstMove(2, 2); // Mach Punch (Poing, contact) sur le dummy au Casque Brut
+  await expect(log(page, /Casque Brut de .* s'active/)).not.toBeAttached();
+});
+
+test("§5.18 Gant de Boxe : témoin sans objet, le Casque Brut s'active sur un move Poing (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({
+    ...DUEL,
+    moves: ["mach-punch"],
+    dummyHeldItem: "rocky-helmet",
+  });
+  await scene.castFirstMove(2, 2);
+  await expect(log(page, /Casque Brut de .* s'active/)).toBeAttached({ timeout: 10_000 });
+});
+
+// Spray Gorge (throat-spray) : après que le PORTEUR utilise un move Son, +1 AtqSpé puis consommation
+// (hook onAfterMoveUse). Le joueur tient le Spray (`heldItem`) et lance Aboiement (snarl, Son) sur le
+// dummy → « Spray Gorge de <X> s'active ! ». Déclenché à l'usage du move, indépendamment du toucher,
+// donc déterministe. Le boost +1 AtqSpé et la consommation sont couverts unit
+// (`battle/items/throat-spray.test.ts`).
+test("§5.18 Spray Gorge : s'active après un move Son (journal)", async ({ page, bootSandbox }) => {
+  const scene = await bootSandbox({ ...DUEL, heldItem: "throat-spray", moves: ["snarl"] });
+  await scene.castFirstMove(2, 2); // Aboiement (Son) sur le dummy adjacent
+  await expect(log(page, /Spray Gorge de .* s'active/)).toBeAttached({ timeout: 10_000 });
 });

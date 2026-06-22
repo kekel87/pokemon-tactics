@@ -82,6 +82,11 @@ export interface ItemStatChangeBlockContext {
   source: PokemonInstance | null;
 }
 
+export interface ItemAfterMoveUseContext {
+  self: PokemonInstance;
+  move: MoveDefinition;
+}
+
 export interface HeldItemHandler {
   id: string;
   onDamageModify?: (context: DamageModifyContext) => number;
@@ -112,6 +117,10 @@ export interface HeldItemHandler {
   immuneToWeatherDamage?: boolean;
   /** When true, the holder's contact moves ignore the target's contact-triggered effects (Pare-Effet). */
   protectsFromContactEffects?: boolean;
+  /** When set, the holder's matching moves lose contact, muting the target's reactions (Gant de Boxe = moves Poing). */
+  nullifiesContactForMove?: (move: MoveDefinition) => boolean;
+  /** Fired once after the holder uses a move, whatever the move does (Spray Gorge vs moves Son). */
+  onAfterMoveUse?: (context: ItemAfterMoveUseContext) => ItemReactionResult;
 }
 
 export interface HeldItemDefinition extends HeldItemHandler {
