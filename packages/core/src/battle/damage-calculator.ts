@@ -8,6 +8,7 @@ import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
+import { resolveDefensiveAbility } from "./ability-suppression";
 import { resolveDynamicPower } from "./dynamic-power-system";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getEffectiveStat } from "./stat-modifier";
@@ -79,7 +80,9 @@ export function calculateDamageWithCrit(
   }
 
   const attackerAbility = abilityRegistry?.getForPokemon(attacker);
-  const defenderAbility = abilityRegistry?.getForPokemon(defender);
+  // Brise Moule (attacker) ignores the defender's breakable abilities (Isograisse, Filtre,
+  // Multiécaille, Armurbaston/Coque Armure crit-block, …) during this hit.
+  const defenderAbility = resolveDefensiveAbility(abilityRegistry, defender, attacker);
 
   // Querelleur (scrappy): Normal- and Fighting-type moves ignore Ghost's type immunity.
   const scrappyGhostBypass = attackerAbility?.id === "scrappy";

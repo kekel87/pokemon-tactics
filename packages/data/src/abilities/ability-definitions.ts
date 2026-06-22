@@ -1956,6 +1956,15 @@ const sheerForce: AbilityHandler = {
   },
 };
 
+// ===== Plan 140 — Brise Moule =====
+
+// Brise Moule (mold-breaker): while attacking, the target's breakable abilities are ignored.
+// Handled engine-side in `resolveDefensiveAbility` (id-check + `breakable` flag); the data entry
+// only registers the id for the team builder. Silent (no AbilityActivated).
+const moldBreaker: AbilityHandler = {
+  id: "mold-breaker",
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -2054,4 +2063,5 @@ export const abilityHandlers: AbilityHandler[] = [
   infiltrator,
   sereneGrace,
   sheerForce,
+  moldBreaker,
 ];

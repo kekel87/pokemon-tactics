@@ -6,6 +6,7 @@ import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
+import { resolveDefensiveAbility } from "./ability-suppression";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getStatMultiplier } from "./stat-modifier";
 import { effectiveWeather, getWeatherAccuracyOverride } from "./weather-system";
@@ -42,7 +43,8 @@ export function checkAccuracy(
       const handler = abilityRegistry?.getForPokemon(target);
       return handler?.suppressesWeatherEffects === true;
     });
-    const defenderAbility = abilityRegistry?.getForPokemon(defender);
+    // Brise Moule ignores the defender's breakable weather evasion (Voile Sable, Rideau Neige).
+    const defenderAbility = resolveDefensiveAbility(abilityRegistry, defender, attacker);
     if (
       defenderAbility?.weatherEvasionBoost &&
       defenderAbility.weatherEvasionBoost.weather === activeWeather &&
@@ -58,10 +60,13 @@ export function checkAccuracy(
   const abilityAccBonus = attackerAbility?.accuracyMultiplier ?? 1;
   const abilityAccModifier =
     attackerAbility?.onAccuracyModify?.({ self: attacker, target: defender, move }) ?? 1;
+  // Brise Moule ignores the defender's breakable evasion modifiers (Pieds Confus, Peau Miracle).
   const abilityEvasionModifier =
-    abilityRegistry
-      ?.getForPokemon(defender)
-      ?.onEvasionModify?.({ self: defender, target: attacker, move }) ?? 1;
+    resolveDefensiveAbility(abilityRegistry, defender, attacker)?.onEvasionModify?.({
+      self: defender,
+      target: attacker,
+      move,
+    }) ?? 1;
   const itemAccBonus =
     itemRegistry
       ?.getForPokemon(attacker)

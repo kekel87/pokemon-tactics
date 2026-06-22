@@ -123,6 +123,56 @@ Pour Intimidation, le statut volatile `Intimidated` mémorise `statChangeApplied
 
 Les statuts `Intimidated`, `Infatuated`, `Trapped` (avec `remainingTurns === -1`) ont un `sourceId`. Ils sont retirés quand la source meurt ou s'éloigne (Chebyshev > 1). `checkPositionLinkedStatuses` est appelé après chaque action, mouvement annulé, ou mouvement de confusion.
 
+## Suppression de talent (Brise Moule)
+
+### Principe
+
+Brise Moule (`mold-breaker`) est un talent **relationnel** : pendant l'attaque du porteur, les talents `breakable` de la **cible** sont ignorés. La suppression ne s'applique qu'au moment de l'exécution de l'attaque (pas en dehors du tour du porteur).
+
+### Mécanisme : `resolveDefensiveAbility`
+
+Module `packages/core/src/battle/ability-suppression.ts` :
+
+```ts
+export function resolveDefensiveAbility(
+  registry: AbilityHandlerRegistry | undefined,
+  target: PokemonInstance,
+  attacker: PokemonInstance,
+): AbilityDefinition | undefined {
+  const ability = registry?.getForPokemon(target);
+  if (!ability) return undefined;
+  if (attacker.abilityId === "mold-breaker" && ability.breakable) return undefined;
+  return ability;
+}
+```
+
+Tous les **sites défensifs** (lecture du talent de la cible pendant l'attaque) utilisent ce helper au lieu d'appeler directement `registry.getForPokemon(target)`. Miroir du pattern `scrappy` (id-check sans wrapper global).
+
+### Flag `breakable`
+
+Champ `breakable?: boolean` ajouté à `AbilityHandler`/`AbilityDefinition`. Injecté par `load-abilities.ts` depuis `packages/data/reference/abilities.json` (champ `entry.flags.breakable`). 80 talents sont `breakable: true` dans la référence Showdown (Lévitation, Fermeté, Isograisse, Écran Poudre, Filtre, Multiécaille, Corps Sain, Vaccin, Voile Sable, Pieds Confus…).
+
+### Sites migrés (8)
+
+| Site | Talents cassables couverts |
+|------|---------------------------|
+| `effect-processor.ts` `onMoveImmunity` | Anti-Bruit, Envelocape |
+| `effect-processor.ts` `onTypeImmunity` | Lévitation, Absorbe-Eau/Volt, Torche, Peau Sèche (Eau), Paratonnerre |
+| `effect-processor.ts` shield-dust filtre secondaires | Écran Poudre (décision #554) |
+| `damage-calculator.ts` `defenderAbility` | Isograisse, Filtre, Multiécaille, Écaille Spéciale, Peau Sèche (Feu), Armurbaston/Coque Armure (crit) |
+| `handle-damage.ts` `targetAbility` | Fermeté, Multiécaille (survie OHKO) |
+| `handle-status.ts` `targetAbility` | Vaccin, Échauffement, Ignifu-Voile, Esprit Vital, Insomnia, Feuille Garde, Benêt |
+| `handle-stat-change.ts` `onStatChangeBlocked` | Corps Sain, Regard Vif, Hyper Cutter, Cœur de Coq, Tempo Perso |
+| `accuracy-check.ts` `onEvasionModify` déf + weatherEvasionBoost | Voile Sable, Rideau Neige, Pieds Confus, Peau Miracle |
+
+### Non-cassables (par design)
+
+Les talents réactifs `breakable: false` continuent de se déclencher même quand Brise Moule est actif : Statik, Corps Ardent, Synchro, Boom Final. Canonique : Mold Breaker n'empêche que les talents qui gênent l'exécution du move, pas les ripostes au contact.
+
+### Silencieux
+
+Brise Moule ne génère aucun `AbilityActivated`. Cohérent avec Querelleur et Infiltration. Décision #555.
+
 ## Branchements (call sites)
 
 | Hook | Call site |
@@ -226,6 +276,7 @@ Les noms (FR/EN) viennent de `abilities.json` (Showdown), pas hardcodés.
 | **Suintement (Liquid Ooze)** (plan 138) | `onDrainAttempt` défenseur : redirige le drain — l'attaquant subit `lastDamageDealt × fraction` au lieu de soigner. Émet `AbilityActivated` + event dégâts sur l'attaquant. |
 | **Boom Final (Aftermath)** (plan 138) | `onAfterDamageReceived` : si le porteur est mis K.O. par un move contact → l'attaquant perd 1/4 PV max. Émet `AbilityActivated` + event dégâts. |
 | **Infiltration (Infiltrator)** (plan 138) | Bypass via flag `abilityId === "infiltrator"` câblé point par point : Abri-Substitut (`substitute-system.ts`), Mur Lumière/Protection Lumière (`screenMultiplier`), Voile Sacré/Brume (`handle-status.ts`). Pas de hook unique — le plus dispersé du batch. |
+| **Brise Moule (Mold Breaker)** (plan 140) | Pendant l'attaque du porteur, les talents `breakable` de la cible sont ignorés. Implémenté via `resolveDefensiveAbility(registry, target, attacker)` (voir § Suppression de talent). 8 sites défensifs migrés. Silencieux (pas d'`AbilityActivated`). Talents non-cassables (Statik, Corps Ardent, Synchro, Boom Final) toujours actifs. Porteur Gen 1 : Scarabrute (`pinsir`). |
 
 ## Tests d'intégration existants
 
@@ -282,6 +333,7 @@ Voir `packages/core/src/battle/abilities.integration.test.ts`. Couverture par ta
 | Suintement | Drain retourné en dégâts sur l'attaquant | ✅ émission `AbilityActivated` + dégâts attaquant |
 | Boom Final | K.O. par contact → attaquant −1/4 PV | ✅ émission `AbilityActivated` + dégâts attaquant |
 | Infiltration | Bypass Substitut/écrans/Voile Sacré/Brume | (silencieux — bypass technique) |
+| Brise Moule | (a) Lévitation ignorée → Séisme touche un porteur Lévitation ennemi ; (b) Fermeté ignorée → OHKO passe ; (c) Corps Sain ignoré → baisse stat appliquée ; (d) talent non-cassable (Statik) toujours actif → paralysie au contact malgré Brise Moule ; (e) attaquant sans Brise Moule → Lévitation bloque (témoin). Unit `ability-suppression.test.ts` : `resolveDefensiveAbility` (4 cas). | (silencieux — suppression technique) |
 
 ## Talents non visibles (par design)
 

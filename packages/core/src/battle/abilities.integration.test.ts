@@ -4854,4 +4854,191 @@ describe("ability system integration", () => {
     expect(sheerActivated).toBe(false);
     expect(500 - targetWith.currentHp).toBe(500 - targetWithout.currentHp);
   });
+
+  it("mold-breaker ignores Levitate so a Ground move connects", () => {
+    // Given a Pinsir with Brise Moule facing a Levitate Gastly
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["earthquake"],
+      currentPp: { earthquake: 10 },
+      abilityId: "mold-breaker",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const gastly = MockPokemon.fresh(MockPokemon.base, {
+      id: "gastly",
+      definitionId: "gastly",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      abilityId: "levitate",
+      currentHp: 100,
+      maxHp: 100,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, gastly]);
+
+    // When earthquake (Ground) is used against the Levitate target
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "earthquake",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // Then Gastly takes damage despite Levitate
+    expect(state.pokemon.get("gastly")?.currentHp).toBeLessThan(100);
+  });
+
+  it("mold-breaker ignores Sturdy so a one-hit KO goes through", () => {
+    // Given a mold-breaker attacker overwhelming a full-HP Sturdy Geodude
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["karate-chop"],
+      currentPp: { "karate-chop": 25 },
+      abilityId: "mold-breaker",
+      combatStats: { hp: 100, attack: 999, defense: 55, spAttack: 55, spDefense: 55, speed: 55 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const geodude = MockPokemon.fresh(MockPokemon.base, {
+      id: "geodude",
+      definitionId: "geodude",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 50,
+      maxHp: 50,
+      abilityId: "sturdy",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, geodude]);
+
+    // When the overwhelming attack hits full-HP Geodude
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "karate-chop",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then Sturdy does not save it
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get("geodude")?.currentHp).toBe(0);
+    expect(result.events.map((e) => e.type)).toContain(BattleEventType.PokemonKo);
+  });
+
+  it("mold-breaker ignores Clear Body so an enemy stat drop lands", () => {
+    // Given a mold-breaker attacker against a Clear Body Tentacool
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["kinesis"],
+      currentPp: { kinesis: 15 },
+      abilityId: "mold-breaker",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const tentacool = MockPokemon.fresh(MockPokemon.base, {
+      id: "tentacool",
+      definitionId: "tentacool",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      abilityId: "clear-body",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, tentacool]);
+
+    // When kinesis (Accuracy -1) is used against Clear Body
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "kinesis",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // Then the Accuracy drop is applied despite Clear Body
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get("tentacool")?.statStages[StatName.Accuracy]).toBe(-1);
+  });
+
+  it("mold-breaker does not stop a non-breakable reactive ability (Static)", () => {
+    // Given a mold-breaker attacker making contact with a Static Pikachu
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      abilityId: "mold-breaker",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const pikachu = MockPokemon.fresh(MockPokemon.base, {
+      id: "pikachu",
+      definitionId: "pikachu",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      abilityId: "static",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, pikachu]);
+
+    // When a contact move hits Pikachu
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then Static still paralyzes the attacker (not breakable)
+    expect(result.success).toBe(true);
+    expect(
+      state.pokemon.get("attacker")?.statusEffects.some((s) => s.type === StatusType.Paralyzed),
+    ).toBe(true);
+  });
+
+  it("Levitate still blocks a Ground move from an attacker without mold-breaker", () => {
+    // Given a plain attacker (no mold-breaker) facing a Levitate Gastly
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["earthquake"],
+      currentPp: { earthquake: 10 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const gastly = MockPokemon.fresh(MockPokemon.base, {
+      id: "gastly",
+      definitionId: "gastly",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      abilityId: "levitate",
+      currentHp: 100,
+      maxHp: 100,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, gastly]);
+
+    // When earthquake is used without mold-breaker
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "earthquake",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // Then Levitate blocks all damage
+    expect(state.pokemon.get("gastly")?.currentHp).toBe(100);
+  });
 });
