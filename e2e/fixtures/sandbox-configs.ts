@@ -229,6 +229,36 @@ export const WEAK_ARMOR_PHYSICAL_HIT = {
   dummyHp: 999,
 } as const;
 
+// Talents soutien & couplage objet (plan 141) — observables pilotables via journal FR, déterministes.
+
+/** Moiteur (damp) — bloque les moves d'explosion (Destruction) depuis n'importe quelle position d'un
+ *  Pokémon vivant porteur. Le joueur Électrode force Destruction (`self-destruct`, `isExplosion`,
+ *  portée 1) sur le Psykokwak (psyduck, slot Moiteur) adjacent. Le talent fait échouer le move AVANT
+ *  les dégâts (et avant l'auto-K.O. de l'Électrode) → le journal lit « Moiteur de <X> s'active ! » +
+ *  « Mais cela échoue (Électrode) ! », et le Psykokwak ne perd JAMAIS de PV. Move statut sans jet de
+ *  précision, cast piloté par le joueur → déterministe (seed hérité de DUEL). */
+export const DAMP_FIZZLES_SELF_DESTRUCT = {
+  ...DUEL,
+  pokemon: "electrode",
+  moves: ["self-destruct"],
+  dummyPokemon: "psyduck",
+  dummyAbility: "damp",
+} as const;
+
+/** Gloutonnerie (gluttony) — la baie de pincement se mange à 50 % PV (au lieu de 25 %). Le joueur
+ *  Ronflex porte Gloutonnerie ET une Baie Lichii (`liechi-berry`, Attaque +1 en pincement) et démarre
+ *  à 40 % PV (`hp: 40` = pourcentage du max). 40 % est SOUS le seuil 50 % de Gloutonnerie mais AU-DESSUS
+ *  du seuil canon 25 % → la baie ne se déclenche QUE grâce au talent. « Attendre » résout la fin de tour :
+ *  le journal lit « Baie Lichii de <X> s'active ! » + « Attaque de <X> augmente ! » + « <X> a utilisé son
+ *  Baie Lichii ». Pas de jet (le hook `onEndTurn` baie est inconditionnel en pincement) → déterministe. */
+export const GLUTTONY_PINCH_BERRY = {
+  ...DUEL,
+  pokemon: "snorlax",
+  playerAbility: "gluttony",
+  heldItem: "liechi-berry",
+  hp: 40,
+} as const;
+
 // Talents attaquant Tier C (plan 139) — manipulent l'effet SECONDAIRE d'un move offensif. Bombe Beurk
 // (`sludge-bomb`, Poison, Blast portée 2-4) porte un secondaire 30 % poison. Le dummy endurant est posé
 // à (2,1), distance 2 du lanceur (2,3) → dans la portée du Blast, et survit (hp 999) pour qu'on observe

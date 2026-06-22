@@ -66,6 +66,7 @@ const EVIOLITE_NFE_POKEMON_IDS = new Set<string>([
 const TYPE_BOOST_MOD = 1.2;
 const TYPE_RESIST_MOD = 0.5;
 const PINCH_BERRY_THRESHOLD = 0.25;
+const GLUTTONY_BERRY_THRESHOLD = 0.5;
 const PINCH_BERRY_STAGES = 1;
 
 function typeBoostItem(id: HeldItemId, boostType: PokemonType): HeldItemHandler {
@@ -94,6 +95,7 @@ function typeResistBerryTriggers(
 function typeResistBerry(id: HeldItemId, resistType: PokemonType): HeldItemHandler {
   return {
     id,
+    isBerry: true,
     onDamageModify: (context) => {
       if (context.isAttacker) {
         return 1.0;
@@ -128,10 +130,15 @@ function raiseStatStage(pokemon: PokemonInstance, stat: StatName, stages = 1): n
 }
 
 function pinchStatBerry(id: HeldItemId, stat: StatName): HeldItemHandler {
-  const isInPinch = (pokemon: PokemonInstance): boolean =>
-    pokemon.currentHp > 0 && pokemon.currentHp / pokemon.maxHp <= PINCH_BERRY_THRESHOLD;
+  // Gloutonnerie (gluttony): the holder eats its pinch berry at 50% HP instead of 25%.
+  const isInPinch = (pokemon: PokemonInstance): boolean => {
+    const threshold =
+      pokemon.abilityId === "gluttony" ? GLUTTONY_BERRY_THRESHOLD : PINCH_BERRY_THRESHOLD;
+    return pokemon.currentHp > 0 && pokemon.currentHp / pokemon.maxHp <= threshold;
+  };
   return {
     id,
+    isBerry: true,
     onAfterDamageReceived: ({ target }) => {
       if (!isInPinch(target)) {
         return { events: [], consumeItem: false };
@@ -263,6 +270,7 @@ function cureBerry(
   const cureSet = new Set<StatusType>(statuses);
   return {
     id,
+    isBerry: true,
     onEndTurn: ({ pokemon }) => {
       if (pokemon.currentHp <= 0) {
         return [];

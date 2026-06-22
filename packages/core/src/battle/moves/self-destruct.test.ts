@@ -119,6 +119,41 @@ describe("self-destruct", () => {
     vi.restoreAllMocks();
   });
 
+  it("user faints even when no target is in range", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const user = MockPokemon.fresh(MockPokemon.base, {
+      id: "user",
+      playerId: PlayerId.Player1,
+      position: { x: 2, y: 2 },
+      currentHp: 100,
+      maxHp: 100,
+      moveIds: ["self-destruct"],
+      currentPp: { "self-destruct": 5 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const farFoe = MockPokemon.fresh(MockPokemon.base, {
+      id: "far-foe",
+      playerId: PlayerId.Player2,
+      position: { x: 5, y: 5 },
+      currentHp: 500,
+      maxHp: 500,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const { engine, state } = buildMoveTestEngine([user, farFoe]);
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: user.id,
+      moveId: "self-destruct",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get(user.id)?.currentHp).toBe(0);
+    expect(state.pokemon.get(farFoe.id)?.currentHp).toBe(500);
+    vi.restoreAllMocks();
+  });
+
   it("does not hit target outside radius 2", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const user = MockPokemon.fresh(MockPokemon.base, {

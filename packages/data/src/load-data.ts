@@ -68,6 +68,7 @@ export function loadData(): GameData {
       targeting: merged.targeting,
       effects: merged.effects,
       ...(merged.recharge ? { recharge: true } : {}),
+      ...(merged.isExplosion ? { isExplosion: true } : {}),
       ...(merged.ignoresHeight ? { ignoresHeight: true } : {}),
       ...(merged.flags ? { flags: merged.flags } : {}),
       ...(merged.effectTier ? { effectTier: merged.effectTier } : {}),

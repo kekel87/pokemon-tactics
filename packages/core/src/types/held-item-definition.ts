@@ -89,6 +89,8 @@ export interface ItemAfterMoveUseContext {
 
 export interface HeldItemHandler {
   id: string;
+  /** True for berries. Tension (unnerve) suppresses berry consumption while a living enemy carries it. */
+  isBerry?: boolean;
   onDamageModify?: (context: DamageModifyContext) => number;
   onCritStageBoost?: (context: CritStageContext) => number;
   onAfterMoveDamageDealt?: (context: AfterMoveDamageDealtContext) => BattleEvent[];

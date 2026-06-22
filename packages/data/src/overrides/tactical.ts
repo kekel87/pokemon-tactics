@@ -31,6 +31,7 @@ export interface TacticalOverride {
   effects: Effect[];
   attackStatSource?: AttackStatSource;
   recharge?: boolean;
+  isExplosion?: boolean;
   effectTier?: EffectTier;
   flags?: Partial<MoveFlags>;
   bypassAccuracy?: boolean;
@@ -1220,8 +1221,10 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
   },
   "self-destruct": {
+    // Self-KO AoE; the user always faints (handled engine-side via isExplosion), so no Recoil effect.
     targeting: { kind: TargetingKind.Zone, radius: 2 },
-    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 999 }],
+    effects: [{ kind: EffectKind.Damage }],
+    isExplosion: true,
   },
   "tri-attack": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
@@ -1602,9 +1605,10 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     },
   },
   "misty-explosion": {
-    // Self-KO AoE (self-destruct model); ×1.5 when the caster stands on Misty Terrain.
+    // Self-KO AoE (self-destruct model, user always faints via isExplosion); ×1.5 on Misty Terrain.
     targeting: { kind: TargetingKind.Zone, radius: 2 },
-    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Recoil, fraction: 999 }],
+    effects: [{ kind: EffectKind.Damage }],
+    isExplosion: true,
     fieldTerrainPowerBonus: {
       who: FieldTerrainBonusWho.Caster,
       terrain: FieldTerrain.Misty,
