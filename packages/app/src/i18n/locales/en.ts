@@ -59,7 +59,6 @@ const en: Translations = {
   "sandbox.custom": "(custom)",
   "sandbox.passive": "(passive)",
   "sandbox.ability": "Ability",
-  "sandbox.abilityDefault": "(default)",
   "sandbox.dummyControl": "Control",
   "sandbox.dummyControl.ai": "AI",
   "sandbox.dummyControl.player": "Player",
