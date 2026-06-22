@@ -613,6 +613,31 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   c'est le doublement (et non le seed) qui pose le poison (`mechanics-talents-secondary.spec`, doublement
   id-check `effect-processor`). Le cap à 100 % et l'exclusion des secondaires Self/100 %/objets-flinch
   restent couverts unit/integration core.
+
+#### 5.24 Talents soutien & couplage objet (plan 141)
+- 🤖 **Moiteur** (`damp`, bloque les moves d'explosion) — le joueur Électrode force Destruction
+  (`self-destruct`, `isExplosion`) sur le Psykokwak (slot Moiteur) adjacent : le move échoue AVANT les
+  dégâts → « Moiteur de <X> s'active ! » présent, « Mais cela échoue (Électrode) ! » présent, « Psykokwak
+  perd N PV » absent (la cible n'encaisse rien) (`mechanics-talents-support.spec`, gate `isExplosion` +
+  `findFieldDamp` dans `executeUseMove`). Le blocage du recul de Boom Final reste couvert integration core.
+- 🤖 **Gloutonnerie** (`gluttony`, baie de pincement déclenchée à 50 % PV au lieu de 25 %) — le Ronflex
+  porteur, à 40 % PV avec une Baie Lichii, n'a pas de cible : « Attendre » → fin de tour → le hook baie
+  voit le pincement (40 % ≤ 50 %) → « Baie Lichii de <X> s'active ! » + « Attaque de <X> augmente ! »
+  (`mechanics-talents-support.spec`, seuil `GLUTTONY_BERRY_THRESHOLD` dans `pinchStatBerry`). Sans le
+  talent, 40 % > 25 % → rien (témoin négatif couvert integration core `talents-soutien.integration.test`).
+- 👁 **Cœur Soin** (`healer`, 30 % de chance par fin de tour de guérir le statut majeur d'un allié à r2)
+  et **Garde-Ami** (`friend-guard`, ÷ dégâts ×0,75 sur un allié à r2) — talents **de soutien d'équipe** :
+  ils n'ont d'effet qu'avec un ALLIÉ vivant dans le rayon r2. La sandbox e2e est un 1v1 strict (joueur +
+  dummy adverse, pas d'équipe ni d'allié pilotable) → non observables ici. Sens couvert unit
+  (`battle/friend-guard-system.test`) + integration core (`talents-soutien.integration.test` : allié
+  paralysé soigné à r2 seed fixe / non soigné à r3 ; dégâts ×0,75 sur allié r2).
+- 👁 **Tension** (`unnerve`, empêche l'ennemi de manger ses baies tant que le porteur est vivant) —
+  talent SILENCIEUX : son effet est l'ABSENCE de déclenchement d'une baie adverse (pas d'`AbilityActivated`,
+  pas de ligne de journal). Un e2e « rien ne s'est passé » serait fragile (la baie côté dummy ne se
+  déclencherait de toute façon que sur un événement précis) → couvert integration core
+  (`talents-soutien.integration.test` : baie non mangée face à un ennemi Tension vivant) + unit
+  (`battle/berry-suppression.test`).
+
 - 🤖 **Objets tenus simples à event** — un par mécanique, pilotés de bout en bout (`mechanics-abilities.spec`) :
   **Grelot Coque** (`shell-bell`, soin post-coup : porteur blessé qui attaque → 1/8 des dégâts rendus,
   « Grelot Coque de <X> s'active ! » + « <X> récupère N PV ») ; **Orbe Toxique** (`toxic-orb`,
@@ -1090,6 +1115,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-talents-tier-b.spec.ts` | §5.15 talents Tier B (plan 137) : Sécheresse (Soleil à l'entrée → HUD « Plein soleil »), Cuvette (soin de fin de tour sous Pluie → « Cuvette … s'active ! » + « récupère N PV »), Vaccin (Poudre Toxik bloquée → « Vaccin … s'active ! », « est empoisonné » absent). 11 autres talents Tier B (blockers/multiplicateurs silencieux, soins miroirs, réactions dépendantes du type de coup ou de l'IA) = unit |
 | `combat/mechanics-talents-tier-c.spec.ts` | §5.16 talents Tier C (plan 138) : Force Soleil (perte 1/8 PV en fin de tour sous Soleil → « Force Soleil … s'active ! » + « perd N PV »), Anti-Bruit (Mégaphone sonore bloqué → « Anti-Bruit … s'active ! », « perd N PV » absent), Boom Final (K.O. au contact → recul « Dracaufeu perd N PV »), Armurouillée (coup physique → « Défense … baisse ! » + « Vitesse … augmente ! »). 13 autres talents Tier C (multiplicateurs/immunités/réactions silencieux ou probabilistes) = unit/integration |
 | `combat/mechanics-talents-secondary.spec.ts` | §5.17 talents attaquant — effet secondaire (plan 139) : Sans Limite (Nidoking + Bombe Beurk → « Sans Limite … s'active ! », dégâts présents, « est empoisonné » absent — secondaire supprimé, tout seed) ; Sérénité (Leveinard + Bombe Beurk, FLIP au seed 1 : poison absent sans le talent, présent avec — le 30 % doublé en 60 % réussit). Le ×1.3 de Sans Limite, le cap 100 % et les exclusions de Sérénité = unit/integration core |
+| `combat/mechanics-talents-support.spec.ts` | §5.24 talents soutien & couplage objet (plan 141) : Moiteur (Électrode + Destruction sur Psykokwak porteur → « Moiteur … s'active ! » + « Mais cela échoue … ! », « Psykokwak perd N PV » absent), Gloutonnerie (Ronflex à 40 % PV + Baie Lichii → fin de tour → « Baie Lichii … s'active ! » + « Attaque … augmente ! » au seuil 50 %). Cœur Soin / Garde-Ami (soutien d'équipe, requièrent un allié à r2 → non pilotables en 1v1) et Tension (silencieux, effet = absence de baie) = unit/integration core → 👁 |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |

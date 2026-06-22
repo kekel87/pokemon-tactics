@@ -11,6 +11,7 @@ import {
   isImmuneToStatusByType,
   isMajorStatus,
   isProtectedFromStatDecrease,
+  manhattanDistance,
   moveHasSecondaryEffect,
   PokemonGender,
   PokemonType,
@@ -1900,6 +1901,11 @@ const aftermath: AbilityHandler = {
     if (context.attacker.currentHp <= 0) {
       return [];
     }
+    // Moiteur (damp) on the attacker cancels the Boom Final recoil it would otherwise take (Gen 4+,
+    // relational: the recoil recipient carries Moiteur — mirrors the explosion gate, not field-wide).
+    if (context.attacker.abilityId === "damp") {
+      return [];
+    }
     const loss = Math.min(
       context.attacker.currentHp,
       Math.max(1, Math.floor(context.attacker.maxHp / 4)),
@@ -1963,6 +1969,76 @@ const sheerForce: AbilityHandler = {
 // only registers the id for the team builder. Silent (no AbilityActivated).
 const moldBreaker: AbilityHandler = {
   id: "mold-breaker",
+};
+
+// ===== Plan 141 — Talents soutien & couplage objet =====
+
+const HEALER_RADIUS = 2;
+const HEALER_CURE_CHANCE = 0.3;
+
+// Gloutonnerie (gluttony): pinch berries trigger at 50% HP instead of 25%. Handled in the
+// `pinchStatBerry` item factory via `pokemon.abilityId`; the data entry only registers the id.
+const gluttony: AbilityHandler = {
+  id: "gluttony",
+};
+
+// Tension (unnerve): while this holder is alive, enemies cannot eat their berries. Enforced
+// engine-side (berry-suppression) at each berry-consumption site; marker handler only.
+const unnerve: AbilityHandler = {
+  id: "unnerve",
+};
+
+// Moiteur (damp): blocks explosion moves (Destruction) and Boom Final (aftermath) recoil from any
+// field position. Enforced engine-side (damp-system); marker handler only.
+const damp: AbilityHandler = {
+  id: "damp",
+};
+
+// Cœur Soin (healer): each end of turn, 30% chance (independent per ally) to cure the major
+// statuses of each living ally within Manhattan r2. Volatile statuses are never cured.
+const healer: AbilityHandler = {
+  id: "healer",
+  onEndTurn: (context) => {
+    if (context.self.currentHp <= 0) {
+      return [];
+    }
+    const events: BattleEvent[] = [];
+    for (const ally of context.state.pokemon.values()) {
+      if (
+        ally.id === context.self.id ||
+        ally.currentHp <= 0 ||
+        ally.playerId !== context.self.playerId ||
+        manhattanDistance(context.self.position, ally.position) > HEALER_RADIUS
+      ) {
+        continue;
+      }
+      const cured = ally.statusEffects.filter((s) => MAJOR_STATUSES_FOR_CURE.has(s.type));
+      if (cured.length === 0 || context.random() >= HEALER_CURE_CHANCE) {
+        continue;
+      }
+      ally.statusEffects = ally.statusEffects.filter((s) => !MAJOR_STATUSES_FOR_CURE.has(s.type));
+      for (const status of cured) {
+        events.push({
+          type: BattleEventType.StatusRemoved,
+          targetId: ally.id,
+          status: status.type,
+        });
+      }
+      events.push({
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "healer",
+        targetIds: [ally.id],
+      });
+    }
+    return events;
+  },
+};
+
+// Garde Amie (friend-guard): allies within Manhattan r2 take ×0.75 damage. Applied engine-side in
+// handle-damage (friend-guard-system); marker handler only.
+const friendGuard: AbilityHandler = {
+  id: "friend-guard",
 };
 
 export const abilityHandlers: AbilityHandler[] = [
@@ -2064,4 +2140,9 @@ export const abilityHandlers: AbilityHandler[] = [
   sereneGrace,
   sheerForce,
   moldBreaker,
+  gluttony,
+  unnerve,
+  damp,
+  healer,
+  friendGuard,
 ];

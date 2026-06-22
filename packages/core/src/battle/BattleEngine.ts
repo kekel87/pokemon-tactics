@@ -40,6 +40,7 @@ import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { checkAccuracy } from "./accuracy-check";
 import { applyImpactDamage } from "./apply-impact-damage";
 import { removeAurasOfCaster } from "./aura-system";
+import { areBerriesSuppressed } from "./berry-suppression";
 import { ChargeTimeTurnSystem } from "./ChargeTimeTurnSystem";
 import {
   CT_START,
@@ -50,6 +51,7 @@ import {
   computeMoveCost,
 } from "./ct-costs";
 import { estimateDamage, getTypeEffectiveness } from "./damage-calculator";
+import { findDampInTargets } from "./damp-system";
 import { getAttackOrigin } from "./defense-check";
 import {
   decrementDistortionTimer,
@@ -1226,6 +1228,34 @@ export class BattleEngine {
       }
     }
 
+    // Moiteur (damp): relational, not field-wide. An explosion move (Destruction) fizzles entirely
+    // when a living Moiteur holder is among its targets. The move still counts as used (CT paid) but
+    // ALL its effects are skipped — including the self-KO Recoil (a self-effect that would otherwise
+    // still cost the caster ~1 HP even with the damage zeroed out).
+    let dampFizzled = false;
+    if (move.isExplosion === true) {
+      const dampHolder = findDampInTargets(targets);
+      if (dampHolder) {
+        dampFizzled = true;
+        const failEvent: BattleEvent = {
+          type: BattleEventType.MoveFailed,
+          attackerId: pokemon.id,
+          moveId,
+        };
+        this.emit(failEvent);
+        events.push(failEvent);
+        const dampEvent: BattleEvent = {
+          type: BattleEventType.AbilityActivated,
+          pokemonId: dampHolder.id,
+          abilityId: "damp",
+          targetIds: [pokemon.id],
+        };
+        this.emit(dampEvent);
+        events.push(dampEvent);
+        targets.length = 0;
+      }
+    }
+
     // Dream Eater (B2): the move fails unless the target is asleep. Drop awake targets; if that
     // leaves nothing to hit, the move fizzles (no damage / no drain) but still counts as used.
     if (move.requiresTargetAsleep === true && targets.length > 0) {
@@ -1293,23 +1323,25 @@ export class BattleEngine {
         previousTeamMove === moveId ? Math.min(5, (this.state.echoStreak ?? 0) + 1) : 1;
     }
 
-    const effectEvents = processEffects({
-      attacker: pokemon,
-      targets,
-      move: effectiveMove,
-      state: this.state,
-      typeChart: this.typeChart,
-      attackerTypes,
-      targetTypesMap,
-      targetPosition,
-      random: this.random,
-      heightModifier: heightMod,
-      terrainModifier: terrainMod,
-      facingModifierMap,
-      statusRules: this.statusRules,
-      abilityRegistry: this.abilityRegistry ?? undefined,
-      itemRegistry: this.itemRegistry ?? undefined,
-    });
+    const effectEvents = dampFizzled
+      ? []
+      : processEffects({
+          attacker: pokemon,
+          targets,
+          move: effectiveMove,
+          state: this.state,
+          typeChart: this.typeChart,
+          attackerTypes,
+          targetTypesMap,
+          targetPosition,
+          random: this.random,
+          heightModifier: heightMod,
+          terrainModifier: terrainMod,
+          facingModifierMap,
+          statusRules: this.statusRules,
+          abilityRegistry: this.abilityRegistry ?? undefined,
+          itemRegistry: this.itemRegistry ?? undefined,
+        });
 
     for (const event of effectEvents) {
       this.emit(event);
@@ -1336,6 +1368,34 @@ export class BattleEngine {
             events.push(e);
           }
         }
+      }
+    }
+
+    // Explosion moves (Destruction, Boom Mystérieux): the user faints once the blast resolves, even
+    // when no target was in range (canon self-KO). Skipped when Moiteur fizzled the move entirely.
+    // Emit the self-damage (recoil) first so the renderer animates the HP bar down before the KO.
+    if (move.isExplosion === true && !dampFizzled && pokemon.currentHp > 0) {
+      const selfDamage = pokemon.currentHp;
+      pokemon.currentHp = 0;
+      const selfDamageEvent: BattleEvent = {
+        type: BattleEventType.DamageDealt,
+        targetId: pokemon.id,
+        amount: selfDamage,
+        effectiveness: 1,
+        recoil: true,
+      };
+      this.emit(selfDamageEvent);
+      events.push(selfDamageEvent);
+      const selfKoEvent: BattleEvent = {
+        type: BattleEventType.PokemonKo,
+        pokemonId: pokemon.id,
+        countdownStart: 0,
+      };
+      this.emit(selfKoEvent);
+      events.push(selfKoEvent);
+      this.handleKo(pokemon.id, events);
+      if (this.battleOver) {
+        return { success: true, events };
       }
     }
 
@@ -2408,7 +2468,10 @@ export class BattleEngine {
     const activePokemon = this.state.pokemon.get(pokemonId);
     if (activePokemon && activePokemon.currentHp > 0) {
       const item = this.itemRegistry?.getForPokemon(activePokemon);
-      if (item?.onEndTurn) {
+      // Tension (unnerve): a living enemy with Tension blocks end-of-turn berry consumption.
+      const berryBlocked =
+        item?.isBerry === true && areBerriesSuppressed(this.state, activePokemon);
+      if (item?.onEndTurn && !berryBlocked) {
         const selfTypes = this.pokemonTypesMap.get(activePokemon.definitionId) ?? [];
         const itemEvents = item.onEndTurn({
           pokemon: activePokemon,
