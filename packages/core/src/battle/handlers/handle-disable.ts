@@ -3,6 +3,7 @@ import { StatusType } from "../../enums/status-type";
 import type { BattleEvent } from "../../types/battle-event";
 import { ProtectionReason } from "../../types/battle-event";
 import type { EffectContext } from "../effect-handler-registry";
+import { tryMentalHerbCure } from "../mental-herb";
 import { hasSubstitute } from "../substitute-system";
 
 const DISABLE_TURNS = 4;
@@ -43,6 +44,8 @@ export function handleDisable(context: EffectContext): BattleEvent[] {
       moveId,
       turns: DISABLE_TURNS,
     });
+    // Herbe Mentale (mental-herb): cures Disable the instant it lands.
+    events.push(...tryMentalHerbCure(target, StatusType.Disabled, context.itemRegistry));
   }
 
   return events;

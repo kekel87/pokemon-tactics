@@ -48,7 +48,14 @@ export function handleDrain(context: EffectContext): BattleEvent[] {
     return [];
   }
 
-  const healed = Math.min(missing, drainAmount);
+  // Grosse Racine (big-root): boosts HP recovered from draining moves. The redirected backlash
+  // (Suintement) and the Heal Block suppression above are unaffected — only the heal portion grows.
+  const drainHealMultiplier =
+    context.itemRegistry?.getForPokemon(pokemon)?.onDrainHealModify?.() ?? 1;
+  const boostedDrain =
+    drainHealMultiplier === 1 ? drainAmount : Math.floor(drainAmount * drainHealMultiplier);
+
+  const healed = Math.min(missing, boostedDrain);
   pokemon.currentHp += healed;
 
   return [{ type: BattleEventType.HpRestored, pokemonId: pokemon.id, amount: healed }];

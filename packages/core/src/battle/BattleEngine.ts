@@ -576,6 +576,9 @@ export class BattleEngine {
       }
       const traversalContext: TraversalContext = { allyIds, canTraverseEnemies: false };
       const isTaunted = currentPokemon.volatileStatuses.some((v) => v.type === StatusType.Taunted);
+      // Veste de Combat (assault-vest): the holder may not select status-category moves.
+      const forbidsStatusMoves =
+        this.itemRegistry?.getForPokemon(currentPokemon)?.forbidsStatusMoves === true;
       const disabledMoveId = currentPokemon.volatileStatuses.find(
         (v) => v.type === StatusType.Disabled,
       )?.moveId;
@@ -592,7 +595,7 @@ export class BattleEngine {
           continue;
         }
 
-        if (isTaunted && move.category === Category.Status) {
+        if ((isTaunted || forbidsStatusMoves) && move.category === Category.Status) {
           continue;
         }
 
@@ -988,6 +991,15 @@ export class BattleEngine {
 
     if (!pokemon.moveIds.includes(moveId)) {
       return { success: false, events: [], error: ActionError.MoveNotInMoveset };
+    }
+
+    // Veste de Combat (assault-vest): status moves are illegal for the holder — defensive guard
+    // mirroring getLegalActions (no dedicated event, like the imprison / Heal Block gates).
+    if (
+      move.category === Category.Status &&
+      this.itemRegistry?.getForPokemon(pokemon)?.forbidsStatusMoves === true
+    ) {
+      return { success: false, events: [], error: ActionError.InvalidAction };
     }
 
     const isTaunted = pokemon.volatileStatuses.some((v) => v.type === StatusType.Taunted);

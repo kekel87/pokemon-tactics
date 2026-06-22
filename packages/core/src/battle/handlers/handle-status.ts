@@ -14,6 +14,7 @@ import { isProtectedFromStatus } from "../aura-system";
 import { effectConditionHolds } from "../condition-eval";
 import type { EffectContext } from "../effect-handler-registry";
 import { isOnFieldTerrain } from "../field-terrain-system";
+import { tryMentalHerbCure } from "../mental-herb";
 import { isMajorStatus } from "../stat-modifier";
 import { shouldSubstituteBlock } from "../substitute-system";
 import { effectiveWeather, shouldBlockFreezeInSun } from "../weather-system";
@@ -261,6 +262,10 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       status,
     };
     events.push(statusEvent);
+
+    // Herbe Mentale (mental-herb): a move-restricting volatile (Provoc, Attraction, Anti-Soin…) is
+    // cured the instant it lands, consuming the herb.
+    events.push(...tryMentalHerbCure(target, status, context.itemRegistry));
 
     if (isMajorStatus(status) && targetAbility?.onAfterStatusReceived) {
       const abilityEvents = targetAbility.onAfterStatusReceived({
