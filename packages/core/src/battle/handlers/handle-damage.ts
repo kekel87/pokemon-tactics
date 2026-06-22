@@ -17,6 +17,7 @@ import {
   computeScreenMultiplier,
   removeAurasOfCaster,
 } from "../aura-system";
+import { areBerriesSuppressed } from "../berry-suppression";
 import { effectConditionHolds } from "../condition-eval";
 import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calculator";
 import { checkDefense } from "../defense-check";
@@ -28,6 +29,7 @@ import {
   getFieldTerrainMovePowerMultiplier,
   resolveFieldTerrainPulseMove,
 } from "../field-terrain-system";
+import { friendGuardMultiplier } from "../friend-guard-system";
 import { isMajorStatus } from "../stat-modifier";
 import { applySubstituteAbsorption, shouldSubstituteBlock } from "../substitute-system";
 import {
@@ -218,6 +220,13 @@ function dealSingleHit(
   let damage = baseDamage;
   if (context.attacker.helpingHand === true && resolvedMove.power > 0) {
     damage = Math.floor(damage * HELPING_HAND_MULTIPLIER);
+  }
+
+  // Garde Amie (friend-guard): a living ally of the target within Manhattan r2 cuts incoming damage
+  // to ×0.75. Applied here (not in the damage calc, which lacks `state`); multiplicative with screens.
+  const friendGuard = friendGuardMultiplier(context.state, target);
+  if (friendGuard !== 1 && damage > 0) {
+    damage = Math.max(1, Math.floor(damage * friendGuard));
   }
 
   const defenseResult = checkDefense(
@@ -463,7 +472,15 @@ function dealSingleHit(
     events.push(...abilityEvents);
   }
 
-  if (actualDamage > 0 && target.currentHp > 0 && targetItem?.onAfterDamageReceived) {
+  // Tension (unnerve): a living enemy with Tension keeps the target from eating its berry.
+  const berrySuppressed =
+    targetItem?.isBerry === true && areBerriesSuppressed(context.state, target);
+  if (
+    actualDamage > 0 &&
+    target.currentHp > 0 &&
+    targetItem?.onAfterDamageReceived &&
+    !berrySuppressed
+  ) {
     const result = targetItem.onAfterDamageReceived({
       target,
       attacker: context.attacker,

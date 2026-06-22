@@ -22,6 +22,8 @@ export interface MoveDefinition {
   targeting: TargetingPattern;
   effects: Effect[];
   recharge?: boolean;
+  /** Explosion move (Destruction): fizzles entirely while a Pokémon with Moiteur (damp) is on the field. */
+  isExplosion?: boolean;
   ignoresHeight?: boolean;
   flags?: MoveFlags;
   effectTier?: EffectTier;
