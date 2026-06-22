@@ -665,6 +665,24 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   Sans objet la cible touche mais n'est jamais apeurée (« est apeuré » absent), AVEC **Roche Royale**
   (`kings-rock`) elle l'est (« <Y> est apeuré ! »), de même avec **Croc Rasoir** (`razor-fang`, même
   +10 %) — un témoin sans objet + un test par objet ; déterminisme croisé vérifié sur 3 passes.
+- 🤖 **Herbe Mental** (`mental-herb`) — soigne un volatile restrictif (Provoc/Encore/Entrave/
+  Attraction/Anti-Soin) dès qu'il tombe sur le porteur, puis se consomme (helper `tryMentalHerbCure`,
+  appelé dans `handle-status`/`handle-encore`/`handle-disable`). Piloté de bout en bout
+  (`mechanics-abilities.spec`) : le joueur lance **Provoc** (`taunt`, 100 %, Single) sur le dummy
+  porteur (`dummyHeldItem`) → « Herbe Mental de <X> s'active ! » + « <X> a utilisé son Herbe Mental ».
+  Les autres volatiles (Encore/Entrave/Attraction/Anti-Soin) partagent le helper → couverts unit
+  (`battle/mental-herb.test.ts`), non dupliqués e2e.
+- 🤖 **Veste de Combat** (`assault-vest`) — interdit la sélection des moves de catégorie statut
+  (`forbidsStatusMoves`, filtre `getLegalActions`). Signal DOM pur (`mechanics-abilities.spec`) : au
+  menu Attaque le move statut (Repli) reste affiché mais non sélectionnable (`data-enabled="false"`),
+  alors qu'un move offensif (Griffe) reste sélectionnable ; témoin sans objet → Repli sélectionnable.
+  La réduction des dégâts spéciaux ×1,5 (hook `onDamageModify` défenseur) est couverte unit
+  (`battle/items/assault-vest.test.ts`).
+- 👁 **Grosse Racine** (`big-root`, +30 % au soin des moves drain, hook `onDrainHealModify`) — l'écart
+  de PV soignés n'est pas exposé proprement par le journal 1v1 (le drain n'émet qu'une ligne de PV
+  rendus, non comparable d'une run à l'autre dans l'UI) → couvert unit avec assertion chiffrée
+  déterministe (`battle/items/big-root.test.ts` : soin ×1,3, backlash Suintement non affecté,
+  Anti-Soin supprime le soin).
 - 👁 **Talent** déclenché → « <Talent> de <X> s'active ! » (texte or).
 - 👁 **Objet tenu** activé → « <Objet> de <X> s'active ! » (vert) ; **consommé** → « <X> a utilisé
   son <Objet> ».
@@ -1070,7 +1088,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) |
 | `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
-| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) + Graine Électrik (granule de terrain : pose Champ Électrifié sous soi → fin de tour Déf +1 + consommée, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit ; Graine Herbe / Graine Psychique / Graine Brume (même factory) = unit + objets de précision (bande de jet seed 6, Élecanon 50 % : témoin sans objet rate / Loupe ×1,1 touche / Lentille Zoom ×1,0 inactive face à dummy inerte rate ; ×1,2 conditionnel = unit) + objets d'évasion (bande de jet seed 30, Jet-Pierres 90 % : témoin sans objet touche / Poudre Claire ×0,9 rate / Encens Doux ×0,9 rate) + §5.15 objets flinch (bande de jet seed 3, Jet-Pierres 90 % côté attaquant porteur : témoin sans objet touche sans apeurer / Roche Royale +10 % apeure / Croc Rasoir +10 % apeure) |
+| `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) + Graine Électrik (granule de terrain : pose Champ Électrifié sous soi → fin de tour Déf +1 + consommée, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit ; Graine Herbe / Graine Psychique / Graine Brume (même factory) = unit + objets de précision (bande de jet seed 6, Élecanon 50 % : témoin sans objet rate / Loupe ×1,1 touche / Lentille Zoom ×1,0 inactive face à dummy inerte rate ; ×1,2 conditionnel = unit) + objets d'évasion (bande de jet seed 30, Jet-Pierres 90 % : témoin sans objet touche / Poudre Claire ×0,9 rate / Encens Doux ×0,9 rate) + §5.15 objets flinch (bande de jet seed 3, Jet-Pierres 90 % côté attaquant porteur : témoin sans objet touche sans apeurer / Roche Royale +10 % apeure / Croc Rasoir +10 % apeure) + §5.16 nouveaux objets (Herbe Mental : le joueur lance Provoc sur le dummy porteur → « Herbe Mental … s'active ! » + « a utilisé son Herbe Mental » ; Veste de Combat : au menu Attaque le move statut Repli reste affiché mais `data-enabled="false"`, Griffe sélectionnable, témoin sans objet → Repli sélectionnable). Grosse Racine (×1,3 soin drain) + Déf. Spé ×1,5 de la Veste + autres volatiles soignés par l'Herbe Mental = unit |
 | `combat/mechanics-talents-tier-a.spec.ts` | §5.14 talents Tier A (plan 136) : Régé-Force (soin de fin de tour), Multi-Coups (Balle Graine → « Touché 5 fois ! »), Querelleur (Griffe touche un Ectoplasma Spectre — dégâts présents, « Ça n'affecte pas » absent — garde le fix handle-damage). Autres talents Tier A (silencieux / dépendants de l'IA) = unit |
 | `combat/mechanics-talents-tier-b.spec.ts` | §5.15 talents Tier B (plan 137) : Sécheresse (Soleil à l'entrée → HUD « Plein soleil »), Cuvette (soin de fin de tour sous Pluie → « Cuvette … s'active ! » + « récupère N PV »), Vaccin (Poudre Toxik bloquée → « Vaccin … s'active ! », « est empoisonné » absent). 11 autres talents Tier B (blockers/multiplicateurs silencieux, soins miroirs, réactions dépendantes du type de coup ou de l'IA) = unit |
 | `combat/mechanics-talents-tier-c.spec.ts` | §5.16 talents Tier C (plan 138) : Force Soleil (perte 1/8 PV en fin de tour sous Soleil → « Force Soleil … s'active ! » + « perd N PV »), Anti-Bruit (Mégaphone sonore bloqué → « Anti-Bruit … s'active ! », « perd N PV » absent), Boom Final (K.O. au contact → recul « Dracaufeu perd N PV »), Armurouillée (coup physique → « Défense … baisse ! » + « Vitesse … augmente ! »). 13 autres talents Tier C (multiplicateurs/immunités/réactions silencieux ou probabilistes) = unit/integration |

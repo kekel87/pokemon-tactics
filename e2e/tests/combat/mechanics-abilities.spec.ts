@@ -311,3 +311,61 @@ test("§5.15 objet flinch : le Croc Rasoir (+10 %) apeure aussi la cible au mêm
   await expect(log(page, /perd \d+ PV/)).toBeAttached({ timeout: 10_000 });
   await expect(log(page, /est apeuré/)).toBeAttached();
 });
+
+// §5.16 nouveaux objets tenus (Veste de Combat / Grosse Racine / Herbe Mental) — déterministes :
+// l'Herbe Mental se déclenche dès qu'un volatile restrictif tombe (Provoc, ici 100 % précision) ;
+// la Veste de Combat retire les moves de catégorie statut de la liste d'attaque (signal DOM, aucun
+// jet). Grosse Racine (+30 % au soin drain) reste couverte unit (`battle/items/big-root.test.ts`) :
+// l'écart de PV soignés n'est pas exposé proprement par le journal 1v1 → 👁.
+
+// Herbe Mental : le joueur lance Provoc (taunt, 100 %, portée 1-3, forcé hors-pool via `moves`) sur
+// le dummy porteur de l'Herbe Mental (`dummyHeldItem`) ; le volatile Provoc est soigné À L'INSTANT où
+// il tombe puis l'objet est consommé (helper tryMentalHerbCure, appelé dans handle-status). Cible
+// pilotée par le joueur (`castFirstMove(2,2)` → la tuile du dummy adjacent) → 100 % précision →
+// déterministe. Journal : « Herbe Mental de <X> s'active ! » + « <X> a utilisé son Herbe Mental »
+// (HeldItemActivated + HeldItemConsumed). Encore / Entrave / Attraction / Anti-Soin partagent le même
+// helper → couverts unit (`battle/mental-herb.test.ts`), non dupliqués e2e.
+test("§5.16 Herbe Mental : guérit la Provoc dès qu'elle tombe puis se consomme (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox({
+    ...DUEL,
+    moves: ["taunt"],
+    dummyHeldItem: "mental-herb",
+  });
+  await scene.castFirstMove(2, 2); // Provoc sur le dummy adjacent → l'Herbe Mental réagit aussitôt
+  await expect(log(page, /Herbe Mental de .* s'active/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /a utilisé son Herbe Mental/)).toBeAttached();
+});
+
+// Veste de Combat : interdit la sélection des moves de catégorie statut (`forbidsStatusMoves`) — le
+// move statut sort de `getLegalActions`, donc la rangée reste affichée mais NON sélectionnable
+// (`data-enabled="false"`, à la manière des moves bloqués). Le porteur connaît Griffe (physique,
+// sélectionnable) + Repli (statut Self → toujours « à portée » sans la Veste, donc grisé seulement à
+// cause d'elle). Témoin sans objet : Repli est sélectionnable (`data-enabled="true"`). Signal DOM
+// pur, aucun jet → déterministe.
+const VEST_DUEL = { ...DUEL, moves: ["scratch", "withdraw"] } as const;
+
+test("§5.16 Veste de Combat : rend les moves statut non sélectionnables (DOM)", async ({
+  page,
+  bootSandbox,
+}) => {
+  await bootSandbox({ ...VEST_DUEL, heldItem: "assault-vest" });
+  await page.getByRole("button", { name: "Attaque", exact: true }).click();
+  const moveItems = page.getByTestId("move-item");
+  await expect(moveItems.filter({ hasText: "Griffe" })).toHaveAttribute("data-enabled", "true");
+  await expect(moveItems.filter({ hasText: "Repli" })).toHaveAttribute("data-enabled", "false");
+});
+
+test("§5.16 Veste de Combat : témoin sans objet, le move statut reste sélectionnable (DOM)", async ({
+  page,
+  bootSandbox,
+}) => {
+  await bootSandbox(VEST_DUEL);
+  await page.getByRole("button", { name: "Attaque", exact: true }).click();
+  await expect(page.getByTestId("move-item").filter({ hasText: "Repli" })).toHaveAttribute(
+    "data-enabled",
+    "true",
+  );
+});

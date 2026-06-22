@@ -79,6 +79,12 @@ export interface HeldItemHandler {
   onAccuracyModify?: (context: ItemAccuracyContext) => number;
   onEvasionModify?: (context: ItemAccuracyContext) => number;
   onFlinchChance?: (context: ItemAccuracyContext) => number;
+  /** Multiplier applied to HP recovered by the holder's draining moves (Big Root). */
+  onDrainHealModify?: () => number;
+  /** When true, the holder cannot select status-category moves (Assault Vest). */
+  forbidsStatusMoves?: boolean;
+  /** When true, a move-restricting volatile inflicted on the holder is cured at once (Mental Herb). */
+  curesMoveRestriction?: boolean;
 }
 
 export interface HeldItemDefinition extends HeldItemHandler {

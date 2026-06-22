@@ -34,6 +34,8 @@ const WISE_GLASSES_MOD = 1.1;
 const SHELL_BELL_HEAL_FRACTION = 8;
 const EVASION_MOD = 0.9;
 const FLINCH_CHANCE = 10;
+const ASSAULT_VEST_SPDEF_MOD = 1 / 1.5;
+const BIG_ROOT_DRAIN_MOD = 1.3;
 
 const MAJOR_STATUSES: readonly StatusType[] = [
   StatusType.Burned,
@@ -749,6 +751,31 @@ export const itemHandlers: HeldItemHandler[] = [
   evasionItem(HeldItemId.LaxIncense, EVASION_MOD),
   flinchItem(HeldItemId.KingsRock, FLINCH_CHANCE),
   flinchItem(HeldItemId.RazorFang, FLINCH_CHANCE),
+
+  {
+    id: HeldItemId.AssaultVest,
+    // Sp. Def ×1.5 — equivalent to reducing incoming special damage by the same factor. Physical
+    // moves and special moves that target Defense (hitsPhysicalDefense) are unaffected.
+    forbidsStatusMoves: true,
+    onDamageModify: (context) => {
+      if (context.isAttacker) {
+        return 1.0;
+      }
+      const usesSpecialDefense =
+        context.move.category === Category.Special && context.move.hitsPhysicalDefense !== true;
+      return usesSpecialDefense ? ASSAULT_VEST_SPDEF_MOD : 1.0;
+    },
+  },
+
+  {
+    id: HeldItemId.BigRoot,
+    onDrainHealModify: () => BIG_ROOT_DRAIN_MOD,
+  },
+
+  {
+    id: HeldItemId.MentalHerb,
+    curesMoveRestriction: true,
+  },
 
   {
     id: HeldItemId.MuscleBand,

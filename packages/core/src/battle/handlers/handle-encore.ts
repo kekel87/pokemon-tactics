@@ -3,6 +3,7 @@ import { StatusType } from "../../enums/status-type";
 import type { BattleEvent } from "../../types/battle-event";
 import { ProtectionReason } from "../../types/battle-event";
 import type { EffectContext } from "../effect-handler-registry";
+import { tryMentalHerbCure } from "../mental-herb";
 import { hasSubstitute } from "../substitute-system";
 
 const ENCORE_TURNS = 3;
@@ -43,6 +44,8 @@ export function handleEncore(context: EffectContext): BattleEvent[] {
       moveId,
       turns: ENCORE_TURNS,
     });
+    // Herbe Mentale (mental-herb): cures Encore the instant it lands.
+    events.push(...tryMentalHerbCure(target, StatusType.Encored, context.itemRegistry));
   }
 
   return events;
