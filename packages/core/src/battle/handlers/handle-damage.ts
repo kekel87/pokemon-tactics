@@ -269,12 +269,15 @@ function dealSingleHit(
       scrappyGhostBypass,
     ) > 1;
   const isContact = context.move.flags?.contact === true;
-  // Pare-Effet (protective-pads): the holder's contact moves ignore the target's contact-triggered
-  // reactions (Casque Brut recoil, Statik, Peau Dure, Boom Final…). The move still counts as contact
-  // for the attacker's own effects (Poing de Fer, Toxitouche) — only the target's reactions are muted.
+  // Pare-Effet (protective-pads) / Gant de Boxe (punching-glove): the holder's contact moves ignore
+  // the target's contact-triggered reactions (Casque Brut recoil, Statik, Peau Dure, Boom Final…).
+  // Pare-Effet covers every contact move; Gant de Boxe only its Poing moves. The move still counts as
+  // contact for the attacker's own effects (Poing de Fer, Toxitouche) — only the target's reactions are muted.
+  const attackerHeldItem = context.itemRegistry?.getForPokemon(context.attacker);
   const contactNullified =
     isContact &&
-    context.itemRegistry?.getForPokemon(context.attacker)?.protectsFromContactEffects === true;
+    (attackerHeldItem?.protectsFromContactEffects === true ||
+      attackerHeldItem?.nullifiesContactForMove?.(context.move) === true);
 
   let focusSashTriggered = false;
   if (
@@ -481,9 +484,8 @@ function dealSingleHit(
   }
 
   if (actualDamage > 0) {
-    const attackerItem = context.itemRegistry?.getForPokemon(context.attacker);
-    if (attackerItem?.onAfterMoveDamageDealt) {
-      const itemEvents = attackerItem.onAfterMoveDamageDealt({
+    if (attackerHeldItem?.onAfterMoveDamageDealt) {
+      const itemEvents = attackerHeldItem.onAfterMoveDamageDealt({
         attacker: context.attacker,
         move: context.move,
         damageDealt: actualDamage,

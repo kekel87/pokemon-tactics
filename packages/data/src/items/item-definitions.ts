@@ -37,6 +37,7 @@ const EVASION_MOD = 0.9;
 const FLINCH_CHANCE = 10;
 const ASSAULT_VEST_SPDEF_MOD = 1 / 1.5;
 const BIG_ROOT_DRAIN_MOD = 1.3;
+const PUNCHING_GLOVE_MOD = 1.1;
 
 const MAJOR_STATUSES: readonly StatusType[] = [
   StatusType.Burned,
@@ -834,6 +835,48 @@ export const itemHandlers: HeldItemHandler[] = [
         },
       ],
     }),
+  },
+
+  {
+    // Gant de Boxe (punching-glove): the holder's Poing moves hit ×1.1 and lose contact, so the
+    // target's contact reactions (Casque Brut, Statik, Peau Dure…) are muted. Contact removal is
+    // wired in handle-damage via nullifiesContactForMove.
+    id: HeldItemId.PunchingGlove,
+    onDamageModify: (context) => {
+      if (!context.isAttacker || context.move.flags?.punch !== true) {
+        return 1.0;
+      }
+      return PUNCHING_GLOVE_MOD;
+    },
+    nullifiesContactForMove: (move) => move.flags?.punch === true,
+  },
+
+  {
+    // Spray Gorge (throat-spray): raises the holder's Sp. Atk by 1 stage after it uses a Son move
+    // (damaging or status), then is consumed. Consumed on any Son-move use, faithful to Showdown's
+    // useItem-on-sound trigger; the stat event is emitted only when the boost actually applies.
+    id: HeldItemId.ThroatSpray,
+    onAfterMoveUse: ({ self, move }) => {
+      if (move.flags?.sound !== true) {
+        return { events: [], consumeItem: false };
+      }
+      const applied = raiseStatStage(self, StatName.SpAttack);
+      const events: BattleEvent[] = [emitItemActivated(self, HeldItemId.ThroatSpray)];
+      if (applied > 0) {
+        events.push({
+          type: BattleEventType.StatChanged,
+          targetId: self.id,
+          stat: StatName.SpAttack,
+          stages: applied,
+        });
+      }
+      events.push({
+        type: BattleEventType.HeldItemConsumed,
+        pokemonId: self.id,
+        itemId: HeldItemId.ThroatSpray,
+      });
+      return { events, consumeItem: true };
+    },
   },
 
   {

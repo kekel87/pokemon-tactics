@@ -707,6 +707,20 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
     Groz'Yeux (`dummyMove: "leer"`). Le joueur passe son tour → le dummy lance Groz'Yeux sur lui →
     « Talisman Sain de <X> s'active ! ». *Les baisses AUTO-infligées (Draco-Météore/Surchauffe Sp.Atk
     -2) ne sont PAS bloquées → couvert unit (`battle/items/clear-amulet.test.ts`).*
+- 🤖 **§5.18 nouveaux objets (lot 99→101)** — pilotés de bout en bout (`mechanics-items.spec`) :
+  - **Gant de Boxe** (`punching-glove`) — les moves Poing du PORTEUR perdent le contact (réactions de
+    la cible nullifiées, comme le Pare-Effet mais restreint aux moves Poing) et frappent ×1,1. Réaction
+    nullifiée = SILENCIEUSE → signal = ABSENCE. Le joueur tient le Gant (`heldItem`) + Mach Punch
+    (`moves`, Poing, contact, 100 %) sur un dummy au Casque Brut (`dummyHeldItem`) → « Casque Brut …
+    s'active » ABSENT ; témoin sans Gant → le Casque Brut s'active. *Le boost ×1,1 et le contact
+    conservé sur un move NON-Poing (Charge → Casque Brut s'active) → couverts unit
+    (`battle/items/punching-glove.test.ts`).*
+  - **Spray Gorge** (`throat-spray`) — après que le PORTEUR utilise un move Son (dégât OU statut), +1
+    AtqSpé puis consommation (hook `onAfterMoveUse`, déclenché à l'usage, indépendant du toucher). Le
+    joueur tient le Spray (`heldItem`) + Aboiement (`snarl`, Son) → « Spray Gorge de <X> s'active ! ».
+    *Le +1 AtqSpé, la consommation (HeldItemConsumed), le déclenchement sur move Son STATUT
+    (Rugissement) et l'absence d'effet sur un move NON-Son (Charge) → couverts unit
+    (`battle/items/throat-spray.test.ts`).*
 - 👁 **Talent** déclenché → « <Talent> de <X> s'active ! » (texte or).
 - 👁 **Objet tenu** activé → « <Objet> de <X> s'active ! » (vert) ; **consommé** → « <X> a utilisé
   son <Objet> ».
@@ -1120,7 +1134,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
 | `combat/weather.spec.ts` | §4.3/§5.12 — HUD météo (config) + pose via cast (Danse Pluie/Zénith/Tempête de Sable) ; §5.14 Roche Humide prolonge la Pluie à 8 tours (HUD `weather-turns`) |
-| `combat/mechanics-items.spec.ts` | §5.17 objets tenus du lot 95→99 : Ballon (éclate au 1er coup offensif → « Ballon … s'active ! » + « a utilisé son Ballon »), Lunettes Filtre (Spore bloqué → « Lunettes Filtre … s'active ! », « s'est endormi » absent), Pare-Effet (Griffe contact → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Talisman Sain (Groz'Yeux IA bloqué → « Talisman Sain … s'active ! »). Immunités silencieuses (Sol/poudre/météo, hazards/terrains au sol, baisse auto-infligée) = unit/integration |
+| `combat/mechanics-items.spec.ts` | §5.17 objets tenus du lot 95→99 : Ballon (éclate au 1er coup offensif → « Ballon … s'active ! » + « a utilisé son Ballon »), Lunettes Filtre (Spore bloqué → « Lunettes Filtre … s'active ! », « s'est endormi » absent), Pare-Effet (Griffe contact → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Talisman Sain (Groz'Yeux IA bloqué → « Talisman Sain … s'active ! »). Immunités silencieuses (Sol/poudre/météo, hazards/terrains au sol, baisse auto-infligée) = unit/integration. §5.18 lot 99→101 : Gant de Boxe (Mach Punch Poing → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Spray Gorge (Aboiement Son → « Spray Gorge … s'active ! »). Boost ×1,1, +1 AtqSpé, consommation, move Son statut = unit |
 | `dom/maps.spec.ts` | §8.1/§8.3 — les 8 cartes montent (tuiles, no crash) + Le Mur multi-niveaux |
 | `combat/hud.spec.ts` | §4 — sous-menu (type/nom), tooltip + grille de pattern (survol), timeline, §4.11 combat EN (`pt-lang=en`) |
 | `combat/hud-menu.spec.ts` | §4.1 bannière, §4.2 timeline (active/team), §4.4 menu (5 boutons, Objet/Statut off), §4.5 move-item (type/nom/PP), §4.9 journal (titre + repli) |
