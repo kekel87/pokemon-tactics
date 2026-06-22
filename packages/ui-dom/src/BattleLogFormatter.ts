@@ -739,6 +739,11 @@ export function formatBattleEvent(
       if (event.reason === ProtectionReason.Substitute) {
         message =
           lang === "fr" ? `Le Clone protège ${targetName} !` : `Substitute shields ${targetName}!`;
+      } else if (event.reason === ProtectionReason.HeldItem) {
+        message =
+          lang === "fr"
+            ? `L'objet de ${targetName} le protège !`
+            : `${targetName}'s item protects it!`;
       } else {
         message = lang === "fr" ? `Brume protège ${targetName} !` : `Mist protects ${targetName}!`;
       }

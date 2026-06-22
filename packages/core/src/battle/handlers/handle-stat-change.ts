@@ -35,6 +35,18 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
         continue;
       }
 
+      // Talisman Sain (clear-amulet): blocks any opponent-inflicted stat drop on the holder.
+      const itemBlock = context.itemRegistry?.getForPokemon(pokemon)?.onStatChangeBlocked?.({
+        self: pokemon,
+        stat: effect.stat,
+        stages: effect.stages,
+        source: context.attacker,
+      });
+      if (itemBlock?.blocked) {
+        events.push(...itemBlock.events);
+        continue;
+      }
+
       const mistProtection = isProtectedFromStatDecrease(context.state, context.attacker, pokemon);
       if (mistProtection.protected) {
         events.push({

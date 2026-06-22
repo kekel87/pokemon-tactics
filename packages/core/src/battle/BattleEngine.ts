@@ -211,6 +211,7 @@ export class BattleEngine {
       createWeatherTickHandler({
         pokemonTypesMap: this.pokemonTypesMap,
         abilityRegistry: this.abilityRegistry ?? undefined,
+        itemRegistry: this.itemRegistry ?? undefined,
       }),
       150,
     );

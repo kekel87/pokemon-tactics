@@ -6,6 +6,7 @@ import {
   HeldItemId,
   isOnFieldTerrain,
   PokemonType,
+  ProtectionReason,
   StatName,
   StatusType,
 } from "@pokemon-tactic/core";
@@ -391,8 +392,9 @@ export const itemHandlers: HeldItemHandler[] = [
 
   {
     id: HeldItemId.RockyHelmet,
-    onAfterDamageReceived: ({ target, attacker, move, damageDealt }) => {
-      if (damageDealt <= 0 || !move.flags?.contact) {
+    onAfterDamageReceived: ({ target, attacker, isContact, damageDealt }) => {
+      // isContact already accounts for Pare-Effet (protective-pads) on the attacker.
+      if (damageDealt <= 0 || !isContact) {
         return { events: [], consumeItem: false };
       }
       const recoil = Math.max(1, Math.floor(attacker.maxHp / ROCKY_HELMET_FRACTION));
@@ -775,6 +777,63 @@ export const itemHandlers: HeldItemHandler[] = [
   {
     id: HeldItemId.MentalHerb,
     curesMoveRestriction: true,
+  },
+
+  {
+    // Ballon (air-balloon): immune to Sol moves while held; pops (consumed) on the first
+    // damaging hit, after which the holder is grounded again.
+    id: HeldItemId.AirBalloon,
+    onTypeImmunity: ({ moveType }) => ({
+      blocked: moveType === PokemonType.Ground,
+      events: [],
+    }),
+    onAfterDamageReceived: ({ target }) => ({
+      events: [
+        emitItemActivated(target, HeldItemId.AirBalloon),
+        {
+          type: BattleEventType.HeldItemConsumed,
+          pokemonId: target.id,
+          itemId: HeldItemId.AirBalloon,
+        },
+      ],
+      consumeItem: true,
+    }),
+  },
+
+  {
+    // Lunettes Filtre (safety-goggles): immune to Poudre moves and to weather chip damage.
+    id: HeldItemId.SafetyGoggles,
+    immuneToWeatherDamage: true,
+    onMoveImmunity: ({ self, move }) => {
+      if (move.flags?.powder !== true) {
+        return { blocked: false, events: [] };
+      }
+      return { blocked: true, events: [emitItemActivated(self, HeldItemId.SafetyGoggles)] };
+    },
+  },
+
+  {
+    // Pare-Effet (protective-pads): the holder's contact moves ignore the target's
+    // contact-triggered reactions. Pure flag — wired in handle-damage.
+    id: HeldItemId.ProtectivePads,
+    protectsFromContactEffects: true,
+  },
+
+  {
+    // Talisman Sain (clear-amulet): blocks any opponent-inflicted stat drop on the holder.
+    id: HeldItemId.ClearAmulet,
+    onStatChangeBlocked: ({ self, stat }) => ({
+      blocked: true,
+      events: [
+        emitItemActivated(self, HeldItemId.ClearAmulet),
+        {
+          type: BattleEventType.StatChangeBlocked,
+          pokemonId: self.id,
+          stat,
+          reason: ProtectionReason.HeldItem,
+        },
+      ],
+    }),
   },
 
   {

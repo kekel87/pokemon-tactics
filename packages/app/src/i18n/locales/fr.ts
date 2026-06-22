@@ -266,6 +266,7 @@ const fr: Translations = {
   "aura.kind.safeguard": "Rune Protect",
   "aura.blocked.mist": "Brume protège {name} !",
   "aura.blocked.safeguard": "Rune Protect protège {name} !",
+  "aura.blocked.held_item": "L'objet de {name} le protège !",
   "fieldTerrain.posted.grassy": "Champ Herbu !",
   "fieldTerrain.posted.electric": "Champ Électrifié !",
   "fieldTerrain.posted.misty": "Champ Brumeux !",

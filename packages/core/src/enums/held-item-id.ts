@@ -94,6 +94,10 @@ export const HeldItemId = {
   AssaultVest: "assault-vest",
   BigRoot: "big-root",
   MentalHerb: "mental-herb",
+  AirBalloon: "air-balloon",
+  SafetyGoggles: "safety-goggles",
+  ProtectivePads: "protective-pads",
+  ClearAmulet: "clear-amulet",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];

@@ -122,6 +122,16 @@ export function processEffects(
     if (immunityResult?.blocked) {
       moveImmuneIds.add(target.id);
       events.push(...immunityResult.events);
+      continue;
+    }
+    // Lunettes Filtre (safety-goggles): immune to Poudre moves, same gate as Envelocape.
+    const itemImmunity = context.itemRegistry?.getForPokemon(target)?.onMoveImmunity?.({
+      self: target,
+      move: context.move,
+    });
+    if (itemImmunity?.blocked) {
+      moveImmuneIds.add(target.id);
+      events.push(...itemImmunity.events);
     }
   }
 
@@ -145,10 +155,18 @@ export function processEffects(
         self: target,
         moveType: context.move.type,
       });
-      const abilityImmune = immunityResult?.blocked ?? false;
       if (immunityResult?.events) {
         events.push(...immunityResult.events);
       }
+      // Ballon (air-balloon): grants Sol immunity while held, same gate as Lévitation.
+      const itemImmunity = context.itemRegistry?.getForPokemon(target)?.onTypeImmunity?.({
+        self: target,
+        moveType: context.move.type,
+      });
+      if (itemImmunity?.events) {
+        events.push(...itemImmunity.events);
+      }
+      const abilityImmune = (immunityResult?.blocked ?? false) || (itemImmunity?.blocked ?? false);
 
       const effectiveness = abilityImmune
         ? 0

@@ -683,6 +683,30 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   rendus, non comparable d'une run à l'autre dans l'UI) → couvert unit avec assertion chiffrée
   déterministe (`battle/items/big-root.test.ts` : soin ×1,3, backlash Suintement non affecté,
   Anti-Soin supprime le soin).
+- 🤖 **§5.17 nouveaux objets (lot 95→99)** — pilotés de bout en bout (`mechanics-items.spec`) :
+  - **Ballon** (`air-balloon`) — éclate (consommé) au PREMIER coup offensif non-Sol reçu
+    (hook `onAfterDamageReceived`). Le joueur lance Griffe (contact, 100 %) sur le dummy porteur
+    (`dummyHeldItem`) adjacent → « Ballon de <X> s'active ! » + « <X> a utilisé son Ballon ».
+    *L'immunité aux moves Sol (0 dégât), le traitement « aérien » (`isEffectivelyFlying` : immunité
+    hazards au sol / DoT terrain / repoussé, court-circuité par Racines/Atterrissage) et le retour
+    au sol après éclatement sont SILENCIEUX → couverts unit (`battle/items/air-balloon.test.ts` +
+    `battle/effective-flying.test.ts`) → 👁.*
+  - **Lunettes Filtre** (`safety-goggles`) — immunité aux moves Poudre (hook `onMoveImmunity`). Le
+    joueur lance Spore (`spore`, 100 %, Poudre, hors-pool forcé via `moves`) sur le dummy porteur
+    adjacent → « Lunettes Filtre de <X> s'active ! », aucun Sommeil (« s'est endormi » absent).
+    *L'immunité aux dégâts de météo (Tempête de Sable) est SILENCIEUSE → couverte unit
+    (`battle/items/safety-goggles.test.ts`) → 👁.*
+  - **Pare-Effet** (`protective-pads`) — les moves contact du PORTEUR ignorent les réactions de
+    contact de la cible (recoil Casque Brut, Statik, etc.). Réaction nullifiée = SILENCIEUSE → signal
+    = ABSENCE. Le joueur tient le Pare-Effet (`heldItem`) + Griffe (contact) sur un dummy au Casque
+    Brut (`dummyHeldItem`) → « Casque Brut … s'active » ABSENT ; témoin sans objet → le Casque Brut
+    s'active. *Statik non paralysé, Boom Final non backfire, et le respect des effets offensifs
+    PROPRES du porteur → couverts unit (`battle/items/protective-pads.test.ts`).*
+  - **Talisman Sain** (`clear-amulet`) — bloque toute baisse de stat infligée par l'adversaire (hook
+    `onStatChangeBlocked`). Le joueur tient le Talisman (`heldItem`) ; le dummy IA est armé de
+    Groz'Yeux (`dummyMove: "leer"`). Le joueur passe son tour → le dummy lance Groz'Yeux sur lui →
+    « Talisman Sain de <X> s'active ! ». *Les baisses AUTO-infligées (Draco-Météore/Surchauffe Sp.Atk
+    -2) ne sont PAS bloquées → couvert unit (`battle/items/clear-amulet.test.ts`).*
 - 👁 **Talent** déclenché → « <Talent> de <X> s'active ! » (texte or).
 - 👁 **Objet tenu** activé → « <Objet> de <X> s'active ! » (vert) ; **consommé** → « <X> a utilisé
   son <Objet> ».
@@ -1096,6 +1120,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
 | `combat/weather.spec.ts` | §4.3/§5.12 — HUD météo (config) + pose via cast (Danse Pluie/Zénith/Tempête de Sable) ; §5.14 Roche Humide prolonge la Pluie à 8 tours (HUD `weather-turns`) |
+| `combat/mechanics-items.spec.ts` | §5.17 objets tenus du lot 95→99 : Ballon (éclate au 1er coup offensif → « Ballon … s'active ! » + « a utilisé son Ballon »), Lunettes Filtre (Spore bloqué → « Lunettes Filtre … s'active ! », « s'est endormi » absent), Pare-Effet (Griffe contact → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Talisman Sain (Groz'Yeux IA bloqué → « Talisman Sain … s'active ! »). Immunités silencieuses (Sol/poudre/météo, hazards/terrains au sol, baisse auto-infligée) = unit/integration |
 | `dom/maps.spec.ts` | §8.1/§8.3 — les 8 cartes montent (tuiles, no crash) + Le Mur multi-niveaux |
 | `combat/hud.spec.ts` | §4 — sous-menu (type/nom), tooltip + grille de pattern (survol), timeline, §4.11 combat EN (`pt-lang=en`) |
 | `combat/hud-menu.spec.ts` | §4.1 bannière, §4.2 timeline (active/team), §4.4 menu (5 boutons, Objet/Statut off), §4.5 move-item (type/nom/PP), §4.9 journal (titre + repli) |

@@ -65,6 +65,23 @@ export interface ItemAccuracyContext {
   move: MoveDefinition;
 }
 
+export interface ItemMoveImmunityContext {
+  self: PokemonInstance;
+  move: MoveDefinition;
+}
+
+export interface ItemTypeImmunityContext {
+  self: PokemonInstance;
+  moveType: PokemonType;
+}
+
+export interface ItemStatChangeBlockContext {
+  self: PokemonInstance;
+  stat: StatName;
+  stages: number;
+  source: PokemonInstance | null;
+}
+
 export interface HeldItemHandler {
   id: string;
   onDamageModify?: (context: DamageModifyContext) => number;
@@ -85,6 +102,16 @@ export interface HeldItemHandler {
   forbidsStatusMoves?: boolean;
   /** When true, a move-restricting volatile inflicted on the holder is cured at once (Mental Herb). */
   curesMoveRestriction?: boolean;
+  /** Blocks an incoming move by a move-property (Lunettes Filtre vs moves Poudre). */
+  onMoveImmunity?: (context: ItemMoveImmunityContext) => ItemBlockResult;
+  /** Grants type immunity to an incoming damaging move (Ballon vs type Sol). */
+  onTypeImmunity?: (context: ItemTypeImmunityContext) => ItemBlockResult;
+  /** Blocks an opponent-inflicted stat drop on the holder (Talisman Sain). */
+  onStatChangeBlocked?: (context: ItemStatChangeBlockContext) => ItemBlockResult;
+  /** When true, the holder ignores weather chip damage (Lunettes Filtre). */
+  immuneToWeatherDamage?: boolean;
+  /** When true, the holder's contact moves ignore the target's contact-triggered effects (Pare-Effet). */
+  protectsFromContactEffects?: boolean;
 }
 
 export interface HeldItemDefinition extends HeldItemHandler {

@@ -92,6 +92,7 @@ const AURA_BLOCKED_KEY: Record<ProtectionReason, string> = {
   substitute: "substitute.blocked",
   misty_terrain: "fieldTerrain.blocked.misty",
   electric_terrain: "fieldTerrain.blocked.electric",
+  held_item: "aura.blocked.held_item",
 };
 
 const FIELD_TERRAIN_POSTED_KEY: Record<FieldTerrain, string> = {
