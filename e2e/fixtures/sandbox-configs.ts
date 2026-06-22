@@ -228,3 +228,47 @@ export const WEAK_ARMOR_PHYSICAL_HIT = {
   dummyAbility: "weak-armor",
   dummyHp: 999,
 } as const;
+
+// Talents attaquant Tier C (plan 139) — manipulent l'effet SECONDAIRE d'un move offensif. Bombe Beurk
+// (`sludge-bomb`, Poison, Blast portée 2-4) porte un secondaire 30 % poison. Le dummy endurant est posé
+// à (2,1), distance 2 du lanceur (2,3) → dans la portée du Blast, et survit (hp 999) pour qu'on observe
+// le STATUT plutôt qu'un K.O. Bombe Beurk hors-pool → forcée via `moves` (SandboxSetup écrase le slot).
+
+/** Sans Limite (sheer-force) — un move à effet secondaire perd son secondaire (et gagne ×1.3 puissance,
+ *  couvert en unit/integration). Le Nidoking porteur lance Bombe Beurk sur le dummy : le secondaire
+ *  poison est SUPPRIMÉ AVANT tout tirage → « Sans Limite de <X> s'active ! » apparaît une fois et le
+ *  dummy n'est JAMAIS empoisonné, quel que soit le seed (la suppression est inconditionnelle). */
+export const SHEER_FORCE_SUPPRESSES_SECONDARY = {
+  ...DUEL,
+  pokemon: "nidoking",
+  moves: ["sludge-bomb"],
+  playerAbility: "sheer-force",
+  playerPosition: { x: 2, y: 3 },
+  dummyPosition: { x: 2, y: 1 },
+  dummyHp: 999,
+} as const;
+
+/** Sérénité (serene-grace) — DOUBLE la chance des effets secondaires (30 % poison → 60 %). Le talent est
+ *  un modificateur silencieux (pas d'`AbilityActivated`), donc on prouve le doublement par un FLIP
+ *  déterministe : au seed 1, le tirage du secondaire de Bombe Beurk échoue à 30 % (config témoin
+ *  ci-dessous) mais réussit à 60 % → le dummy est empoisonné UNIQUEMENT avec Sérénité. Leveinard
+ *  (chansey) est le porteur Gen-1. Move 100 % précision sur cible à portée → seul le tirage du
+ *  secondaire varie, et le seed 1 le fige des deux côtés. */
+export const SERENE_GRACE_FLIPS_SECONDARY = {
+  ...DUEL,
+  seed: 1,
+  pokemon: "chansey",
+  moves: ["sludge-bomb"],
+  playerAbility: "serene-grace",
+  playerPosition: { x: 2, y: 3 },
+  dummyPosition: { x: 2, y: 1 },
+  dummyHp: 999,
+} as const;
+
+/** Témoin du flip Sérénité : MÊME config/seed mais SANS le talent → au seed 1 le secondaire 30 % de
+ *  Bombe Beurk échoue, donc le dummy n'est PAS empoisonné. Comparé à {@link SERENE_GRACE_FLIPS_SECONDARY},
+ *  prouve que c'est bien le doublement (et non le seed) qui pose le poison. */
+export const SERENE_GRACE_BASELINE_NO_ABILITY = {
+  ...SERENE_GRACE_FLIPS_SECONDARY,
+  playerAbility: undefined,
+} as const;

@@ -82,6 +82,18 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Feedback visuel
 
+### Sandbox — pas de sélecteur de talent pour le Dummy dans l'UI (2026-06-22, playtest plan 139)
+- Le `SandboxPanel` expose un sélecteur de talent pour le joueur, mais **aucun pour le Dummy** — seul le champ JSON `dummyAbility` permet de surcharger le talent du Dummy.
+- Conséquence : tester un talent défensif sur le Dummy (ex : Écran Poudre, Sérénité côté cible) impose de passer par la commande `pnpm dev:sandbox '{...}'`, impossible via l'UI.
+- Fix naturel : ajouter un `<select>` talent Dummy dans `SandboxPanel.ts`, miroir du sélecteur joueur.
+- Priorité basse — workaround JSON disponible.
+
+### Sandbox — `seed` absent = seed 0 → bataille entièrement déterministe (2026-06-22, playtest plan 139)
+- Lancer le sandbox sans champ `seed` dans la config utilise `seed: 0` par défaut → toute bataille est **identique** à chaque lancement.
+- Conséquence inattendue lors des tests d'effets probabilistes (flinch, effets secondaires à 30 %) : le résultat semble toujours le même, ce qui peut masquer ou fausser la validation manuelle.
+- Options : (a) générer un seed aléatoire (`Date.now()` ou `crypto.randomUUID()`) quand aucun seed n'est fourni ; (b) afficher le seed actif dans le `SandboxPanel` pour que le testeur sache que la bataille est déterministe.
+- Priorité basse — comportement documenté, mais surprenant en pratique.
+
 ### Autocomplete bilingue — chercher en langue courante ET en anglais (2026-05-31)
 - Les champs de recherche / autocomplete (moves, Pokemon, items, abilities) doivent matcher **les deux langues** : la langue courante (FR) **et** l'anglais, quelle que soit la langue UI active.
 - Cas d'usage : joueur FR qui connaît le nom EN d'une attaque (ou inversement) doit pouvoir le taper et trouver le résultat.

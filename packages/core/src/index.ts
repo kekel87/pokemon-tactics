@@ -68,6 +68,7 @@ export type { EngineFactory } from "./battle/replay-runner";
 export { runReplay } from "./battle/replay-runner";
 export { rollGender } from "./battle/roll-gender";
 export { rollNature } from "./battle/roll-nature";
+export { isSecondaryEffect, moveHasSecondaryEffect } from "./battle/secondary-effect";
 export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator";
 export { computeMovement, isMajorStatus } from "./battle/stat-modifier";
 export { validateStatSpread } from "./battle/stat-spread-validator";

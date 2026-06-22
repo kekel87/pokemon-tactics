@@ -598,6 +598,21 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   (`handle-drain.test`) / integration core.
 - 👁 **Infiltration** (`infiltrator`, bypass substitut/écrans/Voile/Brume) — bypass silencieux (pas d'event
   dédié) → couvert integration core.
+
+#### 5.17 Talents attaquant — effet secondaire (plan 139)
+- 🤖 **Sans Limite** (`sheer-force`, supprime l'effet secondaire d'un move offensif et ×1.3 puissance) — le
+  Nidoking porteur lance Bombe Beurk (`sludge-bomb`, secondaire 30 % poison) sur le dummy endurant (hp 999) :
+  le secondaire est SUPPRIMÉ avant tout tirage → « Sans Limite de <X> s'active ! » présent, dégâts présents,
+  « est empoisonné » absent — déterministe à tout seed (suppression inconditionnelle)
+  (`mechanics-talents-secondary.spec`, suppression id-check `effect-processor`). Le ×1.3 dégâts reste couvert
+  unit/integration core (`abilities.integration.test`).
+- 🤖 **Sérénité** (`serene-grace`, double la chance des effets secondaires) — modificateur SILENCIEUX (pas
+  d'`AbilityActivated`), prouvé par un FLIP déterministe : Leveinard lance Bombe Beurk (secondaire 30 %
+  poison) au seed 1. SANS le talent (témoin) le tirage 30 % échoue → « est empoisonné » absent ; AVEC, le
+  30 % doublé en 60 % réussit → « <X> est empoisonné ! » présent. La même graine des deux côtés prouve que
+  c'est le doublement (et non le seed) qui pose le poison (`mechanics-talents-secondary.spec`, doublement
+  id-check `effect-processor`). Le cap à 100 % et l'exclusion des secondaires Self/100 %/objets-flinch
+  restent couverts unit/integration core.
 - 🤖 **Objets tenus simples à event** — un par mécanique, pilotés de bout en bout (`mechanics-abilities.spec`) :
   **Grelot Coque** (`shell-bell`, soin post-coup : porteur blessé qui attaque → 1/8 des dégâts rendus,
   « Grelot Coque de <X> s'active ! » + « <X> récupère N PV ») ; **Orbe Toxique** (`toxic-orb`,
@@ -1130,6 +1145,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-talents-tier-a.spec.ts` | §5.14 talents Tier A (plan 136) : Régé-Force (soin de fin de tour), Multi-Coups (Balle Graine → « Touché 5 fois ! »), Querelleur (Griffe touche un Ectoplasma Spectre — dégâts présents, « Ça n'affecte pas » absent — garde le fix handle-damage). Autres talents Tier A (silencieux / dépendants de l'IA) = unit |
 | `combat/mechanics-talents-tier-b.spec.ts` | §5.15 talents Tier B (plan 137) : Sécheresse (Soleil à l'entrée → HUD « Plein soleil »), Cuvette (soin de fin de tour sous Pluie → « Cuvette … s'active ! » + « récupère N PV »), Vaccin (Poudre Toxik bloquée → « Vaccin … s'active ! », « est empoisonné » absent). 11 autres talents Tier B (blockers/multiplicateurs silencieux, soins miroirs, réactions dépendantes du type de coup ou de l'IA) = unit |
 | `combat/mechanics-talents-tier-c.spec.ts` | §5.16 talents Tier C (plan 138) : Force Soleil (perte 1/8 PV en fin de tour sous Soleil → « Force Soleil … s'active ! » + « perd N PV »), Anti-Bruit (Mégaphone sonore bloqué → « Anti-Bruit … s'active ! », « perd N PV » absent), Boom Final (K.O. au contact → recul « Dracaufeu perd N PV »), Armurouillée (coup physique → « Défense … baisse ! » + « Vitesse … augmente ! »). 13 autres talents Tier C (multiplicateurs/immunités/réactions silencieux ou probabilistes) = unit/integration |
+| `combat/mechanics-talents-secondary.spec.ts` | §5.17 talents attaquant — effet secondaire (plan 139) : Sans Limite (Nidoking + Bombe Beurk → « Sans Limite … s'active ! », dégâts présents, « est empoisonné » absent — secondaire supprimé, tout seed) ; Sérénité (Leveinard + Bombe Beurk, FLIP au seed 1 : poison absent sans le talent, présent avec — le 30 % doublé en 60 % réussit). Le ×1.3 de Sans Limite, le cap 100 % et les exclusions de Sérénité = unit/integration core |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |

@@ -41,7 +41,7 @@ describe("isAbilityImplemented", () => {
   });
 
   it("returns false for unimplemented ability", () => {
-    expect(isAbilityImplemented("sheer-force", abilityHandlers)).toBe(false);
+    expect(isAbilityImplemented("mold-breaker", abilityHandlers)).toBe(false);
   });
 });
 

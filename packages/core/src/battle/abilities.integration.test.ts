@@ -4626,4 +4626,232 @@ describe("ability system integration", () => {
     // Then the holder behind the Substitute takes damage (bypass)
     expect(state.pokemon.get("target")?.currentHp).toBeLessThan(hpBefore);
   });
+
+  it("serene-grace doubles a secondary's chance (poison lands at a roll that 30% would miss)", () => {
+    // Given a roll of 0.5: a 30% secondary misses (50 >= 30), a 60% secondary lands (50 < 60)
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+
+    const { engine: engineWith } = buildMoveTestEngine([
+      MockPokemon.fresh(MockPokemon.base, {
+        id: "with",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 2 },
+        moveIds: ["sludge-bomb"],
+        currentPp: { "sludge-bomb": 10 },
+        abilityId: "serene-grace",
+        derivedStats: { movement: 3, jump: 1, initiative: 100 },
+      }),
+      MockPokemon.fresh(MockPokemon.base, {
+        id: "target-with",
+        definitionId: "test",
+        playerId: PlayerId.Player2,
+        position: { x: 3, y: 2 },
+        currentHp: 300,
+        maxHp: 300,
+      }),
+    ]);
+    const poisonWith = engineWith
+      .submitAction(PlayerId.Player1, {
+        kind: ActionKind.UseMove,
+        pokemonId: "with",
+        moveId: "sludge-bomb",
+        targetPosition: { x: 3, y: 2 },
+      })
+      .events.some(
+        (e) => e.type === BattleEventType.StatusApplied && e.status === StatusType.Poisoned,
+      );
+
+    const { engine: engineWithout } = buildMoveTestEngine([
+      MockPokemon.fresh(MockPokemon.base, {
+        id: "without",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 2 },
+        moveIds: ["sludge-bomb"],
+        currentPp: { "sludge-bomb": 10 },
+        derivedStats: { movement: 3, jump: 1, initiative: 100 },
+      }),
+      MockPokemon.fresh(MockPokemon.base, {
+        id: "target-without",
+        definitionId: "test",
+        playerId: PlayerId.Player2,
+        position: { x: 3, y: 2 },
+        currentHp: 300,
+        maxHp: 300,
+      }),
+    ]);
+    const poisonWithout = engineWithout
+      .submitAction(PlayerId.Player1, {
+        kind: ActionKind.UseMove,
+        pokemonId: "without",
+        moveId: "sludge-bomb",
+        targetPosition: { x: 3, y: 2 },
+      })
+      .events.some(
+        (e) => e.type === BattleEventType.StatusApplied && e.status === StatusType.Poisoned,
+      );
+
+    expect(poisonWith).toBe(true);
+    expect(poisonWithout).toBe(false);
+  });
+
+  it("sheer-force boosts a secondary move's power by 1.3x", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
+
+    const targetWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-with",
+      definitionId: "test",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+    const { engine: engineWith } = buildMoveTestEngine([
+      MockPokemon.fresh(MockPokemon.base, {
+        id: "with",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 2 },
+        moveIds: ["sludge-bomb"],
+        currentPp: { "sludge-bomb": 10 },
+        abilityId: "sheer-force",
+        derivedStats: { movement: 3, jump: 1, initiative: 100 },
+      }),
+      targetWith,
+    ]);
+    engineWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "with",
+      moveId: "sludge-bomb",
+      targetPosition: { x: 3, y: 2 },
+    });
+
+    const targetWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-without",
+      definitionId: "test",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+    const { engine: engineWithout } = buildMoveTestEngine([
+      MockPokemon.fresh(MockPokemon.base, {
+        id: "without",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 2 },
+        moveIds: ["sludge-bomb"],
+        currentPp: { "sludge-bomb": 10 },
+        derivedStats: { movement: 3, jump: 1, initiative: 100 },
+      }),
+      targetWithout,
+    ]);
+    engineWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "without",
+      moveId: "sludge-bomb",
+      targetPosition: { x: 3, y: 2 },
+    });
+
+    expect(500 - targetWith.currentHp).toBeGreaterThan(500 - targetWithout.currentHp);
+  });
+
+  it("sheer-force suppresses the secondary effect and announces itself once", () => {
+    // Given a roll of 0: the 30% poison would land for a normal attacker
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "sheer",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["sludge-bomb"],
+      currentPp: { "sludge-bomb": 10 },
+      abilityId: "sheer-force",
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      definitionId: "test",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine } = buildMoveTestEngine([attacker, target]);
+    const events = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "sheer",
+      moveId: "sludge-bomb",
+      targetPosition: { x: 3, y: 2 },
+    }).events;
+
+    const poisoned = events.some(
+      (e) => e.type === BattleEventType.StatusApplied && e.status === StatusType.Poisoned,
+    );
+    const sheerActivations = events.filter(
+      (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "sheer-force",
+    );
+
+    expect(poisoned).toBe(false);
+    expect(sheerActivations).toHaveLength(1);
+  });
+
+  it("sheer-force neither boosts nor activates on a move without a secondary", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.99);
+
+    const targetWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-with",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+    const { engine: engineWith } = buildMoveTestEngine([
+      MockPokemon.fresh(MockPokemon.base, {
+        id: "with",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 2 },
+        moveIds: ["scratch"],
+        currentPp: { scratch: 35 },
+        abilityId: "sheer-force",
+        derivedStats: { movement: 3, jump: 1, initiative: 100 },
+      }),
+      targetWith,
+    ]);
+    const eventsWith = engineWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "with",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    }).events;
+
+    const targetWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-without",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 500,
+      maxHp: 500,
+    });
+    const { engine: engineWithout } = buildMoveTestEngine([
+      MockPokemon.fresh(MockPokemon.base, {
+        id: "without",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 2 },
+        moveIds: ["scratch"],
+        currentPp: { scratch: 35 },
+        derivedStats: { movement: 3, jump: 1, initiative: 100 },
+      }),
+      targetWithout,
+    ]);
+    engineWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "without",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const sheerActivated = eventsWith.some(
+      (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "sheer-force",
+    );
+    expect(sheerActivated).toBe(false);
+    expect(500 - targetWith.currentHp).toBe(500 - targetWithout.currentHp);
+  });
 });
