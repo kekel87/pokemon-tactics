@@ -4,6 +4,7 @@ import { Weather } from "../../enums/weather";
 import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
 import type { AbilityHandlerRegistry } from "../ability-handler-registry";
+import type { HeldItemHandlerRegistry } from "../held-item-handler-registry";
 import type { PhaseHandler, PhaseResult } from "../turn-pipeline";
 import {
   computeWeatherDamage,
@@ -23,6 +24,7 @@ const EMPTY_RESULT: PhaseResult = {
 export interface WeatherTickDeps {
   pokemonTypesMap: Map<string, PokemonType[]>;
   abilityRegistry?: AbilityHandlerRegistry;
+  itemRegistry?: HeldItemHandlerRegistry;
 }
 
 export function createWeatherTickHandler(deps: WeatherTickDeps): PhaseHandler {
@@ -64,7 +66,9 @@ export function weatherTickHandler(
 
   if (weatherDealsDamage(activeWeather)) {
     const types = deps.pokemonTypesMap.get(pokemon.definitionId) ?? [];
-    if (!isWeatherDamageImmune(types, activeWeather)) {
+    // Lunettes Filtre (safety-goggles): the holder shrugs off weather chip damage.
+    const itemImmune = deps.itemRegistry?.getForPokemon(pokemon)?.immuneToWeatherDamage === true;
+    if (!itemImmune && !isWeatherDamageImmune(types, activeWeather)) {
       const damage = computeWeatherDamage(pokemon.maxHp);
       pokemon.currentHp = Math.max(0, pokemon.currentHp - damage);
       events.push({

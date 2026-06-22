@@ -101,7 +101,7 @@ const keenEye: AbilityHandler = {
 const staticAbility: AbilityHandler = {
   id: "static",
   onAfterDamageReceived: (context) => {
-    if (!context.move.flags?.contact) {
+    if (!context.move.flags?.contact || context.contactNullified) {
       return [];
     }
     if (context.random() >= 0.3) {
@@ -302,7 +302,7 @@ const intimidate: AbilityHandler = {
 const cuteCharm: AbilityHandler = {
   id: "cute-charm",
   onAfterDamageReceived: (context) => {
-    if (!context.move.flags?.contact) {
+    if (!context.move.flags?.contact || context.contactNullified) {
       return [];
     }
     if (
@@ -401,7 +401,7 @@ const clearBody: AbilityHandler = {
 const poisonPoint: AbilityHandler = {
   id: "poison-point",
   onAfterDamageReceived: (context) => {
-    if (!context.move.flags?.contact) {
+    if (!context.move.flags?.contact || context.contactNullified) {
       return [];
     }
     if (context.random() >= 0.3) {
@@ -761,7 +761,7 @@ const cursedBody: AbilityHandler = {
     if (context.self.currentHp <= 0) {
       return [];
     }
-    if (!context.move.flags?.contact) {
+    if (!context.move.flags?.contact || context.contactNullified) {
       return [];
     }
     if (context.random() >= 0.3) {
@@ -871,7 +871,7 @@ const battleArmor: AbilityHandler = {
 const effectSpore: AbilityHandler = {
   id: "effect-spore",
   onAfterDamageReceived: (context) => {
-    if (!context.move.flags?.contact) {
+    if (!context.move.flags?.contact || context.contactNullified) {
       return [];
     }
     if (hasMajorStatus(context.attacker)) {
@@ -949,7 +949,7 @@ const oblivious: AbilityHandler = {
 const flameBody: AbilityHandler = {
   id: "flame-body",
   onAfterDamageReceived: (context) => {
-    if (!context.move.flags?.contact) {
+    if (!context.move.flags?.contact || context.contactNullified) {
       return [];
     }
     if (context.random() >= 0.3) {
@@ -1893,7 +1893,11 @@ const liquidOoze: AbilityHandler = {
 const aftermath: AbilityHandler = {
   id: "aftermath",
   onAfterDamageReceived: (context) => {
-    if (context.self.currentHp > 0 || context.move.flags?.contact !== true) {
+    if (
+      context.self.currentHp > 0 ||
+      context.move.flags?.contact !== true ||
+      context.contactNullified
+    ) {
       return [];
     }
     if (context.attacker.currentHp <= 0) {

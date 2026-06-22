@@ -269,6 +269,12 @@ function dealSingleHit(
       scrappyGhostBypass,
     ) > 1;
   const isContact = context.move.flags?.contact === true;
+  // Pare-Effet (protective-pads): the holder's contact moves ignore the target's contact-triggered
+  // reactions (Casque Brut recoil, Statik, Peau Dure, Boom Final…). The move still counts as contact
+  // for the attacker's own effects (Poing de Fer, Toxitouche) — only the target's reactions are muted.
+  const contactNullified =
+    isContact &&
+    context.itemRegistry?.getForPokemon(context.attacker)?.protectsFromContactEffects === true;
 
   let focusSashTriggered = false;
   if (
@@ -431,6 +437,7 @@ function dealSingleHit(
       selfTypes,
       attackerTypes,
       random: context.random,
+      contactNullified,
     });
     events.push(...abilityEvents);
   }
@@ -458,7 +465,7 @@ function dealSingleHit(
       damageDealt: actualDamage,
       wasAtMaxHp,
       isSuperEffective,
-      isContact,
+      isContact: isContact && !contactNullified,
     });
     events.push(...result.events);
     if (result.consumeItem) {

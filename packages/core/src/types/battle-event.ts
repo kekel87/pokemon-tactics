@@ -25,6 +25,7 @@ export const ProtectionReason = {
   Substitute: "substitute",
   MistyTerrain: "misty_terrain",
   ElectricTerrain: "electric_terrain",
+  HeldItem: "held_item",
 } as const;
 export type ProtectionReason = (typeof ProtectionReason)[keyof typeof ProtectionReason];
 

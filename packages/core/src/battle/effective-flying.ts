@@ -1,3 +1,4 @@
+import { HeldItemId } from "../enums/held-item-id";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
 import type { PokemonInstance } from "../types/pokemon-instance";
@@ -26,9 +27,15 @@ export function isEffectivelyFlying(
   types: readonly PokemonType[],
 ): boolean {
   // Roost strips the Flying type entirely for the turn; Ingrain only grounds (keeps the type
-  // defensively but removes Ground immunity / Levitate / Magnet Rise while rooted).
+  // defensively but removes Ground immunity / Levitate / Magnet Rise / Ballon while rooted).
   if (isRoosted(pokemon) || isIngrained(pokemon)) {
     return false;
   }
-  return types.includes(PokemonType.Flying) || pokemon.abilityId === "levitate";
+  // Ballon (air-balloon): holder floats — same airborne treatment as Lévitation (terrain, hazards
+  // au sol, knockback). Reverts the instant the balloon pops (heldItemId cleared on the hit).
+  return (
+    types.includes(PokemonType.Flying) ||
+    pokemon.abilityId === "levitate" ||
+    pokemon.heldItemId === HeldItemId.AirBalloon
+  );
 }

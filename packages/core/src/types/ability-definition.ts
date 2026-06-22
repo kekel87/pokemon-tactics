@@ -33,6 +33,8 @@ export interface AfterDamageContext {
   selfTypes: PokemonType[];
   attackerTypes: PokemonType[];
   random: () => number;
+  /** True when the attacker holds Pare-Effet: contact-triggered reactions must not fire. */
+  contactNullified?: boolean;
 }
 
 export interface AfterDamageDealtContext {

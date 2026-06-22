@@ -267,6 +267,7 @@ export interface Translations {
   "aura.kind.safeguard": string;
   "aura.blocked.mist": string;
   "aura.blocked.safeguard": string;
+  "aura.blocked.held_item": string;
   "fieldTerrain.posted.grassy": string;
   "fieldTerrain.posted.electric": string;
   "fieldTerrain.posted.misty": string;

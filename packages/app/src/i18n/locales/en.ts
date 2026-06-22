@@ -266,6 +266,7 @@ const en: Translations = {
   "aura.kind.safeguard": "Safeguard",
   "aura.blocked.mist": "Mist protects {name}!",
   "aura.blocked.safeguard": "Safeguard protects {name}!",
+  "aura.blocked.held_item": "{name}'s item protects it!",
   "fieldTerrain.posted.grassy": "Grassy Terrain!",
   "fieldTerrain.posted.electric": "Electric Terrain!",
   "fieldTerrain.posted.misty": "Misty Terrain!",
