@@ -120,10 +120,18 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       }
     }
 
+    const statusBlockWeather = effectiveWeather(context.state, (pokemon) => {
+      if (pokemon.currentHp <= 0) {
+        return false;
+      }
+      const handler = context.abilityRegistry?.getForPokemon(pokemon);
+      return handler?.suppressesWeatherEffects === true;
+    });
     const statusBlockResult = targetAbility?.onStatusBlocked?.({
       self: target,
       status,
       source: context.attacker,
+      weather: statusBlockWeather,
     });
     if (statusBlockResult?.blocked) {
       events.push(...statusBlockResult.events);

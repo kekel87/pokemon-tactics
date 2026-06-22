@@ -174,3 +174,57 @@ export const DISTORTION_INVERSION = {
   dummyPokemon: "electrode",
   dummyPosition: { x: 2, y: 2 },
 } as const;
+
+// Talents Tier C (plan 138) — observables pilotables via journal/HUD FR, déterministes (aucun jet).
+
+/** Force Soleil (solar-power) — sous Soleil le porteur perd 1/8 de ses PV max EN FIN DE TOUR
+ *  (hook `onEndTurn`, inconditionnel dès lors que la météo est Soleil). Le Dracaufeu (charizard, slot
+ *  Force Soleil) démarre blessé (hp 50) sous Soleil ; aucune cible n'est requise : « Attendre » résout
+ *  la fin de tour qui journalise « Force Soleil de <X> s'active ! » + « <X> perd N PV ! » (DamageDealt).
+ *  Pas de jet → déterministe (seed hérité de DUEL). */
+export const SOLAR_POWER_SUN_BURN = {
+  ...DUEL,
+  pokemon: "charizard",
+  playerAbility: "solar-power",
+  hp: 50,
+  weather: "sun",
+} as const;
+
+/** Anti-Bruit (soundproof) — immunité totale aux moves `flags.sound`. Le joueur Dracaufeu force
+ *  Mégaphone (`hyper-voice`, sonore, Spécial 90, 100 % précision → touche sous tout seed) sur
+ *  l'Électrode (electrode, slot Anti-Bruit) adjacent. Le talent bloque le move AVANT les dégâts : le
+ *  journal lit « Anti-Bruit de <X> s'active ! » et l'Électrode (hp plein) ne perd JAMAIS de PV. Cast
+ *  100 % piloté par le joueur → déterministe. */
+export const SOUNDPROOF_BLOCKS_SOUND = {
+  ...DUEL,
+  pokemon: "charizard",
+  moves: ["hyper-voice"],
+  dummyPokemon: "electrode",
+  dummyAbility: "soundproof",
+} as const;
+
+/** Boom Final (aftermath) — si le porteur est mis K.O. par un move `flags.contact`, l'attaquant perd
+ *  1/4 de SES PV max en recul. Le joueur Dracaufeu lance Griffe (`scratch`, contact, 100 %) sur le
+ *  Smogogo (weezing, slot Boom Final) adjacent à 1 PV → le coup le met K.O. et déclenche le recul :
+ *  le journal lit « Boom Final de <X> s'active ! » + « <le Dracaufeu> perd N PV ! » (DamageDealt sur
+ *  l'attaquant). Cast 100 % piloté par le joueur → déterministe. */
+export const AFTERMATH_CONTACT_RECOIL = {
+  ...DUEL,
+  pokemon: "charizard",
+  dummyPokemon: "weezing",
+  dummyAbility: "aftermath",
+  dummyHp: 1,
+} as const;
+
+/** Armurouillée (weak-armor) — touché par un move PHYSIQUE → Défense -1 et Vitesse +2 sur le porteur.
+ *  Le joueur Dracaufeu lance Griffe (`scratch`, physique, 100 %) sur l'Onix (onix, slot Armurouillée)
+ *  adjacent endurant (hp 999, survit au coup) → le journal lit « Défense de <X> baisse ! » ET
+ *  « Vitesse de <X> augmente ! » en plus de « Armurouillée de <X> s'active ! ». Cast 100 % piloté par
+ *  le joueur → déterministe. */
+export const WEAK_ARMOR_PHYSICAL_HIT = {
+  ...DUEL,
+  pokemon: "charizard",
+  dummyPokemon: "onix",
+  dummyAbility: "weak-armor",
+  dummyHp: 999,
+} as const;

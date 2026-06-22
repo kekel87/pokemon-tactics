@@ -1,12 +1,17 @@
+import { loadData } from "@pokemon-tactic/data";
 import { describe, expect, it, vi } from "vitest";
 import { Category } from "../enums/category";
 import { EffectKind } from "../enums/effect-kind";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
+import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { MockBattle } from "../testing/mock-battle";
+import { MockPokemon } from "../testing/mock-pokemon";
 import type { MoveDefinition } from "../types/move-definition";
 import { checkAccuracy } from "./accuracy-check";
+
+const { abilityRegistry } = loadData();
 
 const move100: MoveDefinition = {
   id: "sure-hit",
@@ -111,5 +116,66 @@ describe("checkAccuracy", () => {
     expect(result).toBe(false);
 
     vi.restoreAllMocks();
+  });
+});
+
+describe("checkAccuracy ability onEvasionModify", () => {
+  const statusMove: MoveDefinition = {
+    ...move100,
+    id: "lull",
+    category: Category.Status,
+    power: 0,
+    accuracy: 80,
+    effects: [],
+  };
+  const damageMove80: MoveDefinition = { ...move100, id: "risky80", accuracy: 80 };
+
+  it("tangled-feet halves incoming accuracy while the holder is confused", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, { id: "attacker" });
+    const confusedHolder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      abilityId: "tangled-feet",
+      volatileStatuses: [{ type: StatusType.Confused, remainingTurns: 3 }],
+    });
+
+    // Roll 0.5: 80% damage move vs confused holder → 80 * 0.5 = 40 < 50 → miss.
+    expect(
+      checkAccuracy(damageMove80, attacker, confusedHolder, () => 0.5, 0, abilityRegistry),
+    ).toBe(false);
+  });
+
+  it("tangled-feet does not reduce accuracy when the holder is not confused", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, { id: "attacker" });
+    const calmHolder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      abilityId: "tangled-feet",
+    });
+
+    // Roll 0.5: 80% damage move at full accuracy → 80 > 50 → hit.
+    expect(checkAccuracy(damageMove80, attacker, calmHolder, () => 0.5, 0, abilityRegistry)).toBe(
+      true,
+    );
+  });
+
+  it("wonder-skin halves the accuracy of an incoming status move", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, { id: "attacker" });
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      abilityId: "wonder-skin",
+    });
+
+    // Roll 0.5: 80% status move vs Wonder Skin → 80 * 0.5 = 40 < 50 → miss.
+    expect(checkAccuracy(statusMove, attacker, holder, () => 0.5, 0, abilityRegistry)).toBe(false);
+  });
+
+  it("wonder-skin does not affect damaging moves", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, { id: "attacker" });
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      abilityId: "wonder-skin",
+    });
+
+    // Roll 0.5: 80% damage move (not status) at full accuracy → 80 > 50 → hit.
+    expect(checkAccuracy(damageMove80, attacker, holder, () => 0.5, 0, abilityRegistry)).toBe(true);
   });
 });

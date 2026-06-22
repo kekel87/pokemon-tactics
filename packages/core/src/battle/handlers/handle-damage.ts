@@ -183,6 +183,11 @@ function dealSingleHit(
     defenderTypes,
     resolvedMove,
   );
+  // Analyste (analytic): the holder acts after the target when the target's last action is more
+  // recent than the holder's — the exact inverse of fishious-rend's "target idle" condition.
+  const targetAlreadyActed =
+    (target.lastActedAtAction ?? -1) > (context.attacker.lastActedAtAction ?? -1);
+
   const { damage: baseDamage, isCrit } = calculateDamageWithCrit(
     context.attacker,
     target,
@@ -203,6 +208,8 @@ function dealSingleHit(
     brickBreakInteraction.multiplier,
     fieldTerrainBp,
     fieldTerrainDamage,
+    activeWeather,
+    targetAlreadyActed,
   );
 
   // Coup d'Main (helping-hand): the ally's offensive move is boosted while the flag is set. Applied
@@ -407,7 +414,10 @@ function dealSingleHit(
     }
   }
 
-  if (actualDamage > 0 && target.currentHp > 0 && targetAbility?.onAfterDamageReceived) {
+  // Called even when the hit KO'd the target: most reactive abilities self-guard on `self.currentHp
+  // > 0` (a buff on a fainted holder is meaningless), but Boom Final (aftermath) needs the KO case
+  // to backfire on the attacker, so the engine must not gate this on the holder surviving.
+  if (actualDamage > 0 && targetAbility?.onAfterDamageReceived) {
     const attackerTypes = context.attackerTypes;
     const selfTypes = defenderTypes;
     const abilityEvents = targetAbility.onAfterDamageReceived({

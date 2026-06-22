@@ -21,15 +21,20 @@ interface AbilityHandler {
 
   // Hooks "blocants" : retournent { blocked, events }
   // L'ability est responsable d'émettre AbilityActivated quand elle bloque réellement.
+  // StatusBlockContext expose weather: Weather (ajouté plan 138 pour Feuille Garde)
   onStatusBlocked?: (ctx: StatusBlockContext) => BlockResult;
   onStatChangeBlocked?: (ctx: StatChangeBlockContext) => BlockResult;
   onTypeImmunity?: (ctx: TypeImmunityContext) => BlockResult;
+  // Nouveau plan 138 : gate d'immunité de move (avant tout effet) — requis pour Anti-Bruit (sonore) et Envelocape (poudre)
+  onMoveImmunity?: (ctx: MoveImmunityContext) => BlockResult;
 
   // Hook modifieur de durée : retourne { duration, events }
   onStatusDurationModify?: (ctx: StatusDurationContext) => DurationModifyResult;
 
   // Hook multiplier de dégâts : retourne un number (silencieux par convention)
   // DamageModifyContext expose isCrit: boolean (ajouté plan 136 pour Sniper)
+  // DamageModifyContext expose weather: Weather (ajouté plan 138 pour Force Soleil/Peau Sèche/Force Sable)
+  // DamageModifyContext expose targetAlreadyActed: boolean (ajouté plan 138 pour Analyste)
   onDamageModify?: (ctx: DamageModifyContext) => number;
 
   // Hooks "réactifs" : retournent BattleEvent[]
@@ -48,6 +53,23 @@ interface AbilityHandler {
   // NOTE : le flinch EST câblé dans le core (StatusType.Flinch) — le stub inner-focus
   // ("pas de mécanique flinch") est désormais obsolète.
   onFlinch?: (ctx: AbilityFlinchContext) => BattleEvent[];
+
+  // Nouveaux hooks plan 138
+  // Modificateur de précision côté ability attaquante (retourne un multiplicateur)
+  // Ajouté pour Agitation (×0.8 sur moves physiques). Câblé dans accuracy-check.ts en parallèle du hook objet.
+  onAccuracyModify?: (ctx: AccuracyModifyContext) => number;
+  // Modificateur d'évasion côté ability défensive (retourne un multiplicateur appliqué sur la précision entrante)
+  // Ajouté pour Pieds Confus (×0.5 si confus) et Peau Miracle (×0.5 si move statut entrant).
+  // Câblé dans accuracy-check.ts côté défenseur, multiplicatif avec les hooks objet.
+  onEvasionModify?: (ctx: EvasionModifyContext) => number;
+  // Hook drain côté défenseur drainé — retourne { redirect: boolean; events }
+  // Si redirect=true, l'attaquant subit lastDamageDealt × fraction au lieu de soigner.
+  // Ajouté pour Suintement (liquid-ooze). Câblé dans handle-drain.ts.
+  onDrainAttempt?: (ctx: DrainAttemptContext) => DrainRedirectResult;
+
+  // Champ déclaratif plan 138 : bonus de vitesse CT quand statut majeur
+  // Miroir de weatherSpeedBoost. Câblé dans initiative-calculator.ts.
+  statusSpeedBoost?: { multiplier: number };
 }
 ```
 
@@ -105,18 +127,24 @@ Les statuts `Intimidated`, `Infatuated`, `Trapped` (avec `remainingTurns === -1`
 
 | Hook | Call site |
 |---|---|
-| `onDamageModify` | `damage-calculator.ts` (attacker + defender) |
+| `onDamageModify` | `damage-calculator.ts` (attacker + defender) — contexte enrichi plan 138 : `weather: Weather` + `targetAlreadyActed: boolean` |
 | `onAfterDamageReceived` | `handle-damage.ts` (après application des dégâts) |
 | `onAfterStatusReceived` | `handle-status.ts` (après application d'un statut majeur) |
-| `onStatusBlocked` | `handle-status.ts` (avant application) |
+| `onStatusBlocked` | `handle-status.ts` (avant application) — contexte enrichi plan 138 : `weather: Weather` |
 | `onStatusDurationModify` | `handle-status.ts` (sur volatile et major) |
 | `onStatChangeBlocked` | `handle-stat-change.ts` (avant application) |
 | `onAfterStatLowered` | `handle-stat-change.ts` (après application d'une baisse adverse réussie) — ajouté plan 136 |
 | `onTypeImmunity` | `effect-processor.ts` (avant tout effet) |
+| `onMoveImmunity` | `effect-processor.ts` (gate d'immunité de move, après `onTypeImmunity`) — **ajouté plan 138** pour Anti-Bruit (flag `sound`) et Envelocape (flag `powder`) |
 | `onEndTurn` | `BattleEngine` tick de fin de tour — contexte enrichi plan 137 : `random: () => number` (threadé depuis `this.random`) + `weather: Weather` (météo effective via `getEffectiveWeather`, honore Ciel Gris) |
 | `onBattleStart` | `BattleEngine.triggerBattleStart()` — plan 137 : câble aussi `weatherAutoSetter` (pour Sécheresse/drought : `setWeather(state, weather, turns, pokemonId)` + push events) |
 | `onAuraCheck` | `BattleEngine.triggerBattleStart()` + `emitPositionLinkedChecks` |
 | `onFlinch` | `processFlinch` (après pose de `flinchedThisTurn`) — ajouté plan 137 pour Impassible |
+| `onAccuracyModify` | `accuracy-check.ts` (côté attaquant porteur) — **ajouté plan 138** pour Agitation (×0.8 phys). Câblé en parallèle du hook objet, multiplicatif |
+| `onEvasionModify` | `accuracy-check.ts` (côté défenseur porteur) — **ajouté plan 138** pour Pieds Confus + Peau Miracle. Miroir du hook objet |
+| `onDrainAttempt` | `handle-drain.ts` (côté défenseur drainé) — **ajouté plan 138** pour Suintement. Si `redirect=true`, l'attaquant subit les dégâts |
+| `statusSpeedBoost` | `initiative-calculator.ts` (champ déclaratif, miroir `weatherSpeedBoost`) — **ajouté plan 138** pour Pied Véloce (×1.5 si statut majeur, ignore malus paralysie) |
+| `infiltratorBypass` | `substitute-system.ts` + `aura-system.ts` (flag `abilityId === "infiltrator"`) — **ajouté plan 138** : bypass Substitut, Mur Lumière, Protection, Voile Sacré, Brume |
 
 ## Sandbox
 
@@ -180,6 +208,24 @@ Les noms (FR/EN) viennent de `abilities.json` (Showdown), pas hardcodés.
 | **Écaille Spéciale (Marvel Scale)** | ×0.667 dégâts physiques reçus (÷1.5) si le porteur a un statut majeur. `onDamageModify` défenseur. Silencieux. |
 | **Sécheresse (Drought)** | Active le Soleil (5 tours) à l'entrée. Champ déclaratif `weatherAutoSetter` désormais câblé dans `triggerBattleStart` (était présent mais inopérant avant le plan 137). |
 | **Impassible (Steadfast)** | +1 Vitesse quand le porteur subit un flinch. Requiert le hook `onFlinch` (plan 137). Le flinch est câblé dans le core (`StatusType.Flinch`, `processFlinch`) — le commentaire obsolète sur `inner-focus` a été corrigé. |
+| **Engrais / Brasier / Torrent / Essaim** (plan 138) | Factory `pinchTypeBoost(abilityId, type)` : ×1.5 sur moves du type concerné quand HP ≤ 1/3. Utilise le flag `abilityFirstTriggered` (anti-spam, même pattern Engrais/Brasier/Torrent, désormais unifiés via factory). |
+| **Force Soleil (Solar Power)** (plan 138) | `onDamageModify` : ×1.5 moves spéciaux si météo Soleil. **Cumul plein assumé** (décision #547) : ×1.5 talent × ×1.5 météo Feu = ×2.25 sur Feu spécial au Soleil. Contrepoids : `onEndTurn` perte 1/8 PV max tant que Soleil actif. |
+| **Force Sable (Sand Force)** (plan 138) | `onDamageModify` : ×1.3 sur moves Roche/Sol/Acier si météo Tempête de Sable. Immunité au chip sable partagée via `blocksIndirectDamage`-like (pattern Envelocape). |
+| **Peau Sèche (Dry Skin)** (plan 138) | `onEndTurn` : Pluie → soin 1/8 ; Soleil → perte 1/8. `onDamageModify` défenseur : move Feu reçu × 1.25. `onTypeImmunity` : move Eau → bloqué + soin 1/4 (miroir `water-absorb`). |
+| **Feuille Garde (Leaf Guard)** (plan 138) | `onStatusBlocked` : bloque tout infliction de statut majeur si météo Soleil (`weather === Weather.Sun`). Requiert `weather: Weather` dans `StatusBlockContext`. |
+| **Envelocape (Overcoat)** (plan 138) | `onMoveImmunity` : bloque les moves avec flag `powder` (Poudre Dodo, Poudre Toxik, etc.). Immunité au chip sable/neige en fin de tour via `onEndTurn`. |
+| **Armurouillée (Weak Armor)** (plan 138) | `onAfterDamageReceived` : si move **physique** → Déf −1, Vitesse +2. Volontairement pénalisant défensivement, fort offensivement (gain CT). |
+| **Pieds Confus (Tangled Feet)** (plan 138) | `onEvasionModify` défenseur : ×0.5 précision entrante si le porteur est confus (`volatileStatuses` contient `Confusion`). Cumulatif avec stages d'évasion. |
+| **Pied Véloce (Quick Feet)** (plan 138) | Champ déclaratif `statusSpeedBoost: { multiplier: 1.5 }` : ×1.5 à l'initiative CT si statut majeur. Ignore le malus −50% de la paralysie (câblé dans `initiative-calculator.ts`). **Surveiller combo « statut auto-induit »** — décision #548. |
+| **Anti-Bruit (Soundproof)** (plan 138) | `onMoveImmunity` : bloque les moves avec flag `sound` (Berceuse, Chant Canon, Dissonance Psy, Ronflement…). |
+| **Télécharge (Download)** (plan 138) | `onBattleStart` : compare Déf/DéfSpé de l'adversaire le plus proche — si Déf ≤ DéfSpé → +1 Atk, sinon → +1 AtqSpé. Pattern miroir `drought`/`onBattleStart`. |
+| **Peau Miracle (Wonder Skin)** (plan 138) | `onEvasionModify` défenseur : ×0.5 précision effective si le move est de catégorie Statut. Réduit à 50% la précision des moves de statut entrants. |
+| **Agitation (Hustle)** (plan 138) | `onDamageModify` : ×1.5 sur moves physiques. `onAccuracyModify` ability : ×0.8 précision sur moves physiques (−20%). Net : +50% dégâts phys, −20% fiabilité. |
+| **Analyste (Analytic)** (plan 138) | `onDamageModify` : ×1.3 si `targetAlreadyActed === true` (porteur agit après la cible). Réutilise `lastActedAtAction` (même logique que Branchicrok). |
+| **Puanteur (Stench)** (plan 138) | `onAfterDamageDealt` : 10% d'apeurer la cible sur tout move offensif. Émet `AbilityActivated` + pose `Flinch` si tirage réussi. |
+| **Suintement (Liquid Ooze)** (plan 138) | `onDrainAttempt` défenseur : redirige le drain — l'attaquant subit `lastDamageDealt × fraction` au lieu de soigner. Émet `AbilityActivated` + event dégâts sur l'attaquant. |
+| **Boom Final (Aftermath)** (plan 138) | `onAfterDamageReceived` : si le porteur est mis K.O. par un move contact → l'attaquant perd 1/4 PV max. Émet `AbilityActivated` + event dégâts. |
+| **Infiltration (Infiltrator)** (plan 138) | Bypass via flag `abilityId === "infiltrator"` câblé point par point : Abri-Substitut (`substitute-system.ts`), Mur Lumière/Protection Lumière (`screenMultiplier`), Voile Sacré/Brume (`handle-status.ts`). Pas de hook unique — le plus dispersé du batch. |
 
 ## Tests d'intégration existants
 
@@ -218,6 +264,24 @@ Voir `packages/core/src/battle/abilities.integration.test.ts`. Couverture par ta
 | Inconscient | Ignore stages Déf/DéfSpé adverses (attaque) + stages Atq/AtqSpé adverses (défense). | (silencieux, marker inline `damage-calculator`) |
 | Querelleur | Normal/Combat ignorent immunité Spectre. Fix inclus : effectivité retournée correcte. | ✅ test bypass + effectivité |
 | Multi-Coups | Moves multi-frappes = toujours le maximum de coups (`rollMultiHitCount`). | (silencieux, marker inline `handle-damage`) |
+| Engrais / Brasier / Torrent / Essaim | ×1.5 boost type sous seuil 1/3 PV. Factory `pinchTypeBoost`. | Premier passage sous seuil (anti-spam `abilityFirstTriggered`) |
+| Force Soleil | ×1.5 AtqSpé au Soleil + perte 1/8 PV/tour | ✅ émission `AbilityActivated` au tick + au boost spé |
+| Force Sable | ×1.3 Roche/Sol/Acier en Tempête de Sable | (silencieux — multiplicateur) |
+| Peau Sèche | Pluie soin / Soleil perte / Feu ×1.25 / Eau immunité+soin | ✅ émission sur immunité Eau |
+| Feuille Garde | Bloque statut majeur au Soleil | ✅ émission `AbilityActivated` quand blocked |
+| Envelocape | Immunité moves poudre | ✅ émission `AbilityActivated` quand blocked |
+| Armurouillée | Touché physique → Déf −1, Vit +2 | ✅ émission via `StatChanged` |
+| Pieds Confus | Confus → précision entrante ×0.5 | (silencieux — évasion modifier) |
+| Pied Véloce | Statut majeur → Vit ×1.5 CT (init-calculator) | (silencieux — champ déclaratif) |
+| Anti-Bruit | Immunité moves sonores | ✅ émission `AbilityActivated` quand blocked |
+| Télécharge | Entrée → +1 Atk ou AtqSpé selon Déf/DéfSpé adversaire | ✅ émission `AbilityActivated` + `StatChanged` |
+| Peau Miracle | Moves statut entrants précision ×0.5 | (silencieux — évasion modifier) |
+| Agitation | ×1.5 Atk phys, −20% précision phys | (silencieux — modificateurs) |
+| Analyste | ×1.3 si agit après la cible | (silencieux — multiplicateur) |
+| Puanteur | 10% apeurer sur coup offensif | ✅ émission `AbilityActivated` si tirage réussi |
+| Suintement | Drain retourné en dégâts sur l'attaquant | ✅ émission `AbilityActivated` + dégâts attaquant |
+| Boom Final | K.O. par contact → attaquant −1/4 PV | ✅ émission `AbilityActivated` + dégâts attaquant |
+| Infiltration | Bypass Substitut/écrans/Voile Sacré/Brume | (silencieux — bypass technique) |
 
 ## Talents non visibles (par design)
 

@@ -16,6 +16,10 @@ export interface DamageModifyContext {
   defenderTypes: PokemonType[];
   effectiveness: number;
   isCrit: boolean;
+  /** Effective weather at resolution time (None if a weather-suppressing ability is active). */
+  weather: Weather;
+  /** True if the opponent has already acted before this move in the current action sequence. */
+  targetAlreadyActed: boolean;
 }
 
 export interface AfterDamageContext {
@@ -56,6 +60,41 @@ export interface StatusBlockContext {
   self: PokemonInstance;
   status: StatusType;
   source: PokemonInstance | null;
+  /** Effective weather at infliction time (None if a weather-suppressing ability is active). */
+  weather: Weather;
+}
+
+export interface MoveImmunityContext {
+  self: PokemonInstance;
+  move: MoveDefinition;
+}
+
+export interface AbilityAccuracyContext {
+  self: PokemonInstance;
+  target: PokemonInstance;
+  move: MoveDefinition;
+}
+
+export interface AbilityEvasionContext {
+  /** The defender (ability holder) being targeted. */
+  self: PokemonInstance;
+  /** The attacker whose move accuracy is being checked. */
+  target: PokemonInstance;
+  move: MoveDefinition;
+}
+
+export interface DrainAttemptContext {
+  /** The drained Pokemon (the ability holder). */
+  self: PokemonInstance;
+  /** The attacker that would heal from the drain. */
+  attacker: PokemonInstance;
+  /** HP the attacker would have recovered. */
+  drainAmount: number;
+}
+
+export interface DrainAttemptResult {
+  redirect: boolean;
+  events: BattleEvent[];
 }
 
 export interface StatusDurationContext {
@@ -135,8 +174,14 @@ export interface AbilityHandler {
   weatherSpeedBoost?: { weather: Weather; multiplier: number };
   weatherEvasionBoost?: { weather: Weather; stages: number };
   weatherAutoSetter?: { weather: Weather; turns: number };
+  /** Speed (CT) multiplier applied while the holder carries a major status (Pied Véloce). */
+  statusSpeedBoost?: { multiplier: number };
   suppressesWeatherEffects?: boolean;
   onAccuracyOverride?: () => boolean;
+  onAccuracyModify?: (context: AbilityAccuracyContext) => number;
+  onEvasionModify?: (context: AbilityEvasionContext) => number;
+  onMoveImmunity?: (context: MoveImmunityContext) => BlockResult;
+  onDrainAttempt?: (context: DrainAttemptContext) => DrainAttemptResult;
   onAfterKO?: (context: AfterKOContext) => BattleEvent[];
   onDamageModify?: (context: DamageModifyContext) => number;
   onAfterDamageReceived?: (context: AfterDamageContext) => BattleEvent[];

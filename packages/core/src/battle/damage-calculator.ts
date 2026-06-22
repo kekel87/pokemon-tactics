@@ -2,6 +2,7 @@ import { AttackStatSource } from "../enums/attack-stat-source";
 import { Category } from "../enums/category";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatusType as StatusTypeEnum } from "../enums/status-type";
+import { Weather } from "../enums/weather";
 import type { DamageEstimate } from "../types/damage-estimate";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
@@ -70,6 +71,8 @@ export function calculateDamageWithCrit(
   brickBreakMultiplier = 1.0,
   fieldTerrainBpMultiplier = 1.0,
   fieldTerrainDamageMultiplier = 1.0,
+  weather: Weather = Weather.None,
+  targetAlreadyActed = false,
 ): DamageResult {
   if (move.category === Category.Status || move.power === 0) {
     return { damage: 0, isCrit: false };
@@ -155,6 +158,8 @@ export function calculateDamageWithCrit(
       defenderTypes,
       effectiveness,
       isCrit,
+      weather,
+      targetAlreadyActed,
     }) ?? 1.0;
 
   const defenderAbilityMod =
@@ -167,6 +172,8 @@ export function calculateDamageWithCrit(
       defenderTypes,
       effectiveness,
       isCrit,
+      weather,
+      targetAlreadyActed,
     }) ?? 1.0;
 
   const attackerItemMod =
@@ -179,6 +186,8 @@ export function calculateDamageWithCrit(
       defenderTypes,
       effectiveness,
       isCrit,
+      weather,
+      targetAlreadyActed,
     }) ?? 1.0;
 
   const defenderItem = itemRegistry?.getForPokemon(defender);
@@ -192,6 +201,8 @@ export function calculateDamageWithCrit(
       defenderTypes,
       effectiveness,
       isCrit,
+      weather,
+      targetAlreadyActed,
     }) ?? 1.0;
 
   const critMod = isCrit ? 1.5 : 1.0;
@@ -242,6 +253,8 @@ export function calculateDamage(
   brickBreakMultiplier = 1.0,
   fieldTerrainBpMultiplier = 1.0,
   fieldTerrainDamageMultiplier = 1.0,
+  weather: Weather = Weather.None,
+  targetAlreadyActed = false,
 ): number {
   return calculateDamageWithCrit(
     attacker,
@@ -263,6 +276,8 @@ export function calculateDamage(
     brickBreakMultiplier,
     fieldTerrainBpMultiplier,
     fieldTerrainDamageMultiplier,
+    weather,
+    targetAlreadyActed,
   ).damage;
 }
 

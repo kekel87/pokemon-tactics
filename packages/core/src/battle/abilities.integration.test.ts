@@ -3852,4 +3852,778 @@ describe("ability system integration", () => {
     expect(result.success).toBe(false);
     expect(state.pokemon.get("holder")?.statStages[StatName.Speed]).toBe(1);
   });
+
+  // ===== Plan 138 — Tier C =====
+
+  it("solar-power boosts special damage and burns 1/8 max HP each turn under Sun", () => {
+    // Given a Charmander with Solar Power under Sun using ember (special)
+    const attackerWith = MockPokemon.fresh(MockPokemon.charmander, {
+      id: "charmander-with",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      abilityId: "solar-power",
+      currentHp: 80,
+      maxHp: 80,
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const targetWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-with",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+    });
+
+    const attackerWithout = MockPokemon.fresh(MockPokemon.charmander, {
+      id: "charmander-without",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      currentHp: 80,
+      maxHp: 80,
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const targetWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-without",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    // When ember is used with Solar Power under Sun
+    const { engine: engineWith, state: stateWith } = buildMoveTestEngine([
+      attackerWith,
+      targetWith,
+    ]);
+    stateWith.weather = Weather.Sun;
+    stateWith.weatherTurnsRemaining = 9;
+    engineWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "charmander-with",
+      moveId: "ember",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // When ember is used without Solar Power under Sun
+    const { engine: engineWithout, state: stateWithout } = buildMoveTestEngine([
+      attackerWithout,
+      targetWithout,
+    ]);
+    stateWithout.weather = Weather.Sun;
+    stateWithout.weatherTurnsRemaining = 9;
+    engineWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "charmander-without",
+      moveId: "ember",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // Then Solar Power deals more special damage
+    expect(200 - targetWith.currentHp).toBeGreaterThan(200 - targetWithout.currentHp);
+
+    // And end of turn under Sun costs the holder 1/8 max HP (80/8 = 10) with AbilityActivated
+    const endResult = engineWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "charmander-with",
+      direction: attackerWith.orientation,
+    });
+    expect(attackerWith.currentHp).toBe(70);
+    expect(
+      endResult.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "solar-power",
+      ),
+    ).toBe(true);
+  });
+
+  it("sand-force boosts Rock/Ground/Steel moves during a Sandstorm, not other types", () => {
+    // Given a Sandslash with Sand Force in a Sandstorm using rock-slide (Rock)
+    const attackerWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-with",
+      definitionId: "sandslash",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["rock-slide"],
+      currentPp: { "rock-slide": 10 },
+      abilityId: "sand-force",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const targetWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-with",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      currentHp: 300,
+      maxHp: 300,
+    });
+
+    const attackerWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker-without",
+      definitionId: "sandslash",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["rock-slide"],
+      currentPp: { "rock-slide": 10 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const targetWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-without",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      currentHp: 300,
+      maxHp: 300,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine: engineWith, state: stateWith } = buildMoveTestEngine([
+      attackerWith,
+      targetWith,
+    ]);
+    stateWith.weather = Weather.Sandstorm;
+    stateWith.weatherTurnsRemaining = 9;
+    engineWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-with",
+      moveId: "rock-slide",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    const { engine: engineWithout, state: stateWithout } = buildMoveTestEngine([
+      attackerWithout,
+      targetWithout,
+    ]);
+    stateWithout.weather = Weather.Sandstorm;
+    stateWithout.weatherTurnsRemaining = 9;
+    engineWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker-without",
+      moveId: "rock-slide",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // Then Sand Force boosts the Rock move
+    expect(300 - targetWith.currentHp).toBeGreaterThan(300 - targetWithout.currentHp);
+  });
+
+  it("dry-skin absorbs Water moves as a heal instead of taking damage", () => {
+    // Given a Paras with Dry Skin hit by a Water move below max HP
+    const attacker = MockPokemon.fresh(MockPokemon.squirtle, {
+      id: "squirtle",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["water-gun"],
+      currentPp: { "water-gun": 25 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const paras = MockPokemon.fresh(MockPokemon.base, {
+      id: "paras",
+      definitionId: "paras",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      abilityId: "dry-skin",
+      currentHp: 100,
+      maxHp: 200,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, paras]);
+
+    // When water-gun hits the Dry Skin holder
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "squirtle",
+      moveId: "water-gun",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // Then it is healed (not damaged) and AbilityActivated is emitted
+    expect(state.pokemon.get("paras")?.currentHp).toBeGreaterThan(100);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "dry-skin",
+      ),
+    ).toBe(true);
+  });
+
+  it("leaf-guard blocks a major status under Sun and emits AbilityActivated", () => {
+    // Given a Tangela with Leaf Guard under Sun targeted by Toxik (poison)
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["toxic"],
+      currentPp: { toxic: 10 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const tangela = MockPokemon.fresh(MockPokemon.base, {
+      id: "tangela",
+      definitionId: "tangela",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      abilityId: "leaf-guard",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, tangela]);
+    state.weather = Weather.Sun;
+    state.weatherTurnsRemaining = 9;
+
+    // When toxic is used against the Leaf Guard holder under Sun
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "toxic",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // Then no major status is applied and AbilityActivated is emitted
+    expect(
+      state.pokemon.get("tangela")?.statusEffects.some((s) => s.type === StatusType.BadlyPoisoned),
+    ).toBe(false);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "leaf-guard",
+      ),
+    ).toBe(true);
+  });
+
+  it("overcoat grants immunity to powder moves", () => {
+    // Given a Cloyster with Overcoat targeted by a powder status move
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 1, y: 2 },
+      moveIds: ["sleep-powder"],
+      currentPp: { "sleep-powder": 15 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const cloyster = MockPokemon.fresh(MockPokemon.base, {
+      id: "cloyster",
+      definitionId: "cloyster",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      abilityId: "overcoat",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, cloyster]);
+
+    // When sleep-powder is used against the Overcoat holder
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "sleep-powder",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // Then sleep is not applied and AbilityActivated is emitted
+    expect(
+      state.pokemon.get("cloyster")?.statusEffects.some((s) => s.type === StatusType.Asleep),
+    ).toBe(false);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "overcoat",
+      ),
+    ).toBe(true);
+  });
+
+  it("weak-armor lowers Defense and raises Speed when hit by a physical move", () => {
+    // Given an Onix with Weak Armor hit by a physical contact move
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const onix = MockPokemon.fresh(MockPokemon.base, {
+      id: "onix",
+      definitionId: "onix",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 300,
+      maxHp: 300,
+      abilityId: "weak-armor",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, onix]);
+
+    // When a physical move hits the Weak Armor holder
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then Defense -1, Speed +2, and AbilityActivated is emitted
+    const onixAfter = state.pokemon.get("onix");
+    expect(onixAfter?.statStages[StatName.Defense]).toBe(-1);
+    expect(onixAfter?.statStages[StatName.Speed]).toBe(2);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "weak-armor",
+      ),
+    ).toBe(true);
+  });
+
+  it("tangled-feet halves incoming accuracy while the holder is confused", () => {
+    // Given a confused Pidgeot with Tangled Feet; a 70%-accuracy hit misses at a roll it would land
+    // against a non-confused holder (0.5 ms confusion → effective 35 < 0.6*100).
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["body-slam"],
+      currentPp: { "body-slam": 15 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const pidgeot = MockPokemon.fresh(MockPokemon.base, {
+      id: "pidgeot",
+      definitionId: "pidgeot",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+      abilityId: "tangled-feet",
+      volatileStatuses: [{ type: StatusType.Confused, remainingTurns: 3 }],
+    });
+
+    // Roll 0.6: body-slam (85%) vs confused holder → 85*0.5 = 42.5 < 60 → miss.
+    const { engine, state } = buildMoveTestEngine([attacker, pidgeot], { random: () => 0.6 });
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "body-slam",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then the confused holder takes no damage (the move missed)
+    expect(state.pokemon.get("pidgeot")?.currentHp).toBe(200);
+  });
+
+  it("soundproof grants immunity to sound moves", () => {
+    // Given an Electrode with Soundproof targeted by a sound move
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["hyper-voice"],
+      currentPp: { "hyper-voice": 10 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const electrode = MockPokemon.fresh(MockPokemon.base, {
+      id: "electrode",
+      definitionId: "electrode",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+      abilityId: "soundproof",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, electrode]);
+
+    // When a sound move hits the Soundproof holder
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "hyper-voice",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then it takes no damage and AbilityActivated is emitted
+    expect(state.pokemon.get("electrode")?.currentHp).toBe(200);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "soundproof",
+      ),
+    ).toBe(true);
+  });
+
+  it("download raises Attack against a foe with lower Defense than Sp. Def", () => {
+    // Given a Porygon with Download facing a foe whose Defense is lower than Sp. Def
+    const porygon = MockPokemon.fresh(MockPokemon.base, {
+      id: "porygon",
+      definitionId: "porygon",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "download",
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      combatStats: { hp: 100, attack: 55, defense: 30, spAttack: 55, spDefense: 90, speed: 55 },
+    });
+
+    // When the engine is created (battle start fires in constructor)
+    const { state } = buildMoveTestEngine([porygon, foe]);
+
+    // Then Download raised Attack (Defense ≤ Sp. Def), not Sp. Atk
+    const porygonAfter = state.pokemon.get("porygon");
+    expect(porygonAfter?.statStages[StatName.Attack]).toBe(1);
+    expect(porygonAfter?.statStages[StatName.SpAttack]).toBe(0);
+  });
+
+  it("download raises Sp. Atk against a foe with lower Sp. Def than Defense", () => {
+    // Given a Porygon with Download facing a foe whose Sp. Def is lower than Defense
+    const porygon = MockPokemon.fresh(MockPokemon.base, {
+      id: "porygon",
+      definitionId: "porygon",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "download",
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      combatStats: { hp: 100, attack: 55, defense: 90, spAttack: 55, spDefense: 30, speed: 55 },
+    });
+
+    const { state } = buildMoveTestEngine([porygon, foe]);
+
+    // Then Download raised Sp. Atk (Sp. Def < Defense), not Attack
+    const porygonAfter = state.pokemon.get("porygon");
+    expect(porygonAfter?.statStages[StatName.SpAttack]).toBe(1);
+    expect(porygonAfter?.statStages[StatName.Attack]).toBe(0);
+  });
+
+  it("wonder-skin halves the accuracy of incoming status moves", () => {
+    // Given a Venomoth with Wonder Skin targeted by Toxik (90% status move). At roll 0.5 the
+    // accuracy halving (90→45) makes it miss; without Wonder Skin it would have landed.
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["toxic"],
+      currentPp: { toxic: 10 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const venomoth = MockPokemon.fresh(MockPokemon.base, {
+      id: "venomoth",
+      definitionId: "venomoth",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      abilityId: "wonder-skin",
+    });
+
+    // Roll 0.5: toxic (90%) vs Wonder Skin → 90*0.5 = 45 < 50 → miss.
+    const { engine, state } = buildMoveTestEngine([attacker, venomoth], { random: () => 0.5 });
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "toxic",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // Then the status move missed → no poison applied
+    expect(
+      state.pokemon.get("venomoth")?.statusEffects.some((s) => s.type === StatusType.BadlyPoisoned),
+    ).toBe(false);
+  });
+
+  it("hustle boosts physical damage at the cost of accuracy", () => {
+    // Given a Raticate with Hustle using a physical move (compare damage on a guaranteed hit)
+    const attackerWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "raticate-with",
+      definitionId: "raticate",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      abilityId: "hustle",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const targetWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-with",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 300,
+      maxHp: 300,
+    });
+
+    const attackerWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "raticate-without",
+      definitionId: "raticate",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const targetWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-without",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 300,
+      maxHp: 300,
+    });
+
+    // scratch is 100% accuracy → 0.8 Hustle penalty still lands; isolate the damage boost.
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine: engineWith } = buildMoveTestEngine([attackerWith, targetWith]);
+    engineWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "raticate-with",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    const { engine: engineWithout } = buildMoveTestEngine([attackerWithout, targetWithout]);
+    engineWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "raticate-without",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then Hustle deals more physical damage
+    expect(300 - targetWith.currentHp).toBeGreaterThan(300 - targetWithout.currentHp);
+  });
+
+  it("analytic boosts damage when the holder acts after the target", () => {
+    // Given a Magneton with Analytic whose target has already acted this round
+    const attackerWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "magneton-with",
+      definitionId: "magneton",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["swift"],
+      currentPp: { swift: 20 },
+      abilityId: "analytic",
+      lastActedAtAction: 0,
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const targetWith = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-with",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      currentHp: 300,
+      maxHp: 300,
+      lastActedAtAction: 5,
+    });
+
+    const attackerWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "magneton-without",
+      definitionId: "magneton",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["swift"],
+      currentPp: { swift: 20 },
+      abilityId: "analytic",
+      lastActedAtAction: 5,
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const targetWithout = MockPokemon.fresh(MockPokemon.base, {
+      id: "target-without",
+      playerId: PlayerId.Player2,
+      position: { x: 2, y: 2 },
+      currentHp: 300,
+      maxHp: 300,
+      lastActedAtAction: 0,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    // When the target acted before the holder (targetAlreadyActed → boost)
+    const { engine: engineWith } = buildMoveTestEngine([attackerWith, targetWith]);
+    engineWith.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "magneton-with",
+      moveId: "swift",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // When the holder acted before the target (no boost)
+    const { engine: engineWithout } = buildMoveTestEngine([attackerWithout, targetWithout]);
+    engineWithout.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "magneton-without",
+      moveId: "swift",
+      targetPosition: { x: 2, y: 2 },
+    });
+
+    // Then Analytic deals more damage when acting last
+    expect(300 - targetWith.currentHp).toBeGreaterThan(300 - targetWithout.currentHp);
+  });
+
+  it("stench flinches the target on a damaging hit when the roll succeeds", () => {
+    // Given a Muk with Stench landing a damaging hit (roll 0 < 0.1 → flinch)
+    const muk = MockPokemon.fresh(MockPokemon.base, {
+      id: "muk",
+      definitionId: "muk",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      abilityId: "stench",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+    });
+
+    const { engine, state } = buildMoveTestEngine([muk, target], { random: () => 0 });
+
+    // When the Stench holder lands a hit
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "muk",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then the target flinches and AbilityActivated is emitted
+    expect(
+      state.pokemon.get("target")?.volatileStatuses.some((v) => v.type === StatusType.Flinch),
+    ).toBe(true);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "stench",
+      ),
+    ).toBe(true);
+  });
+
+  it("liquid-ooze damages the drainer instead of healing it", () => {
+    // Given a Tentacool with Liquid Ooze drained by a draining move
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["mega-drain"],
+      currentPp: { "mega-drain": 10 },
+      currentHp: 100,
+      maxHp: 200,
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const tentacool = MockPokemon.fresh(MockPokemon.base, {
+      id: "tentacool",
+      definitionId: "tentacool",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+      abilityId: "liquid-ooze",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, tentacool]);
+    const attackerHpBefore = state.pokemon.get("attacker")?.currentHp ?? 0;
+
+    // When the attacker drains the Liquid Ooze holder
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "mega-drain",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then the attacker LOSES HP (backlash) instead of healing, and AbilityActivated is emitted
+    expect(state.pokemon.get("attacker")?.currentHp).toBeLessThan(attackerHpBefore);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "liquid-ooze",
+      ),
+    ).toBe(true);
+  });
+
+  it("aftermath damages the attacker for 1/4 max HP when the holder is KO'd by a contact move", () => {
+    // Given a Weezing with Aftermath on its last legs, KO'd by a contact move
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      combatStats: { hp: 100, attack: 999, defense: 55, spAttack: 55, spDefense: 55, speed: 55 },
+      currentHp: 100,
+      maxHp: 100,
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const weezing = MockPokemon.fresh(MockPokemon.base, {
+      id: "weezing",
+      definitionId: "weezing",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 1,
+      maxHp: 200,
+      abilityId: "aftermath",
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([attacker, weezing]);
+
+    // When a contact move KOs the Aftermath holder
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then the attacker loses 1/4 of its max HP (100/4 = 25) and AbilityActivated is emitted
+    expect(state.pokemon.get("weezing")?.currentHp).toBe(0);
+    expect(state.pokemon.get("attacker")?.currentHp).toBe(75);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "aftermath",
+      ),
+    ).toBe(true);
+  });
+
+  it("infiltrator bypasses a Substitute and hits the holder behind it", () => {
+    // Given a Crobat with Infiltrator attacking a foe shielded by a Substitute
+    const crobat = MockPokemon.fresh(MockPokemon.base, {
+      id: "crobat",
+      definitionId: "crobat",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      currentPp: { scratch: 35 },
+      abilityId: "infiltrator",
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      id: "target",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 200,
+      maxHp: 200,
+      substituteHp: 50,
+    });
+
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const { engine, state } = buildMoveTestEngine([crobat, target]);
+    const hpBefore = state.pokemon.get("target")?.currentHp ?? 0;
+
+    // When the Infiltrator holder attacks through the Substitute
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "crobat",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then the holder behind the Substitute takes damage (bypass)
+    expect(state.pokemon.get("target")?.currentHp).toBeLessThan(hpBefore);
+  });
 });

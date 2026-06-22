@@ -13,6 +13,31 @@ export function handleDrain(context: EffectContext): BattleEvent[] {
     return [];
   }
 
+  const drainAmount = Math.max(1, Math.floor(context.shared.lastDamageDealt * effect.fraction));
+
+  // Suintement (liquid-ooze): draining the holder backfires — the drainer takes the would-be heal
+  // as damage instead. Resolves before Heal Block (the backlash lands regardless of heal status).
+  const drainedTarget = context.targets[0];
+  if (drainedTarget !== undefined) {
+    const drainResult = context.abilityRegistry
+      ?.getForPokemon(drainedTarget)
+      ?.onDrainAttempt?.({ self: drainedTarget, attacker: pokemon, drainAmount });
+    if (drainResult?.redirect) {
+      const events: BattleEvent[] = [...drainResult.events];
+      pokemon.currentHp = Math.max(0, pokemon.currentHp - drainAmount);
+      events.push({
+        type: BattleEventType.DamageDealt,
+        targetId: pokemon.id,
+        amount: drainAmount,
+        effectiveness: 1,
+      });
+      if (pokemon.currentHp <= 0) {
+        events.push({ type: BattleEventType.PokemonKo, pokemonId: pokemon.id, countdownStart: 0 });
+      }
+      return events;
+    }
+  }
+
   // Anti-Soin (Heal Block): the damage already landed; only the heal portion is suppressed.
   if (isHealBlocked(pokemon)) {
     return [{ type: BattleEventType.HealPrevented, pokemonId: pokemon.id }];
@@ -23,10 +48,7 @@ export function handleDrain(context: EffectContext): BattleEvent[] {
     return [];
   }
 
-  const healed = Math.min(
-    missing,
-    Math.max(1, Math.floor(context.shared.lastDamageDealt * effect.fraction)),
-  );
+  const healed = Math.min(missing, drainAmount);
   pokemon.currentHp += healed;
 
   return [{ type: BattleEventType.HpRestored, pokemonId: pokemon.id, amount: healed }];

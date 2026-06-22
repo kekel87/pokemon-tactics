@@ -41,7 +41,7 @@ describe("isAbilityImplemented", () => {
   });
 
   it("returns false for unimplemented ability", () => {
-    expect(isAbilityImplemented("solar-power", abilityHandlers)).toBe(false);
+    expect(isAbilityImplemented("sheer-force", abilityHandlers)).toBe(false);
   });
 });
 

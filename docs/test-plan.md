@@ -559,6 +559,45 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   `onDamageModify` silencieux → couvert unit core.
 - 👁 **Impassible** (`steadfast`, +1 Vitesse quand le porteur flinch) — réaction `onFlinch` dépendante d'un
   move adverse à flinch joué par l'IA dummy (pas scriptable de façon fiable) → couvert unit core.
+
+#### 5.16 Talents Tier C (plan 138)
+- 🤖 **Force Soleil** (`solar-power`, perte 1/8 PV max en fin de tour sous Soleil) — porteur Dracaufeu blessé
+  (hp 50) sous Soleil : « Attendre » → fin de tour → « Force Soleil de <X> s'active ! » + « <X> perd N PV ! »
+  (`mechanics-talents-tier-c.spec`, `onEndTurn`). Le ×1.5 dégâts spéciaux reste couvert unit/integration core.
+- 🤖 **Anti-Bruit** (`soundproof`, immunité moves sonores) — le joueur Dracaufeu lance Mégaphone (sonore, 100 %)
+  sur l'Électrode porteur : le move est bloqué avant les dégâts → « Anti-Bruit de <X> s'active ! » présent et
+  « perd N PV » absent (`mechanics-talents-tier-c.spec`, `onMoveImmunity` / `flags.sound`).
+- 🤖 **Boom Final** (`aftermath`, recul 1/4 PV max à l'attaquant sur K.O. au contact) — le joueur met K.O. le
+  Smogogo (1 PV) avec Griffe (contact) → le recul touche l'attaquant : « Boom Final de <X> s'active ! » +
+  « Dracaufeu perd N PV ! » (`mechanics-talents-tier-c.spec`, `onAfterDamageReceived`).
+- 🤖 **Armurouillée** (`weak-armor`, touché physique → Déf -1 / Vit +2) — le joueur frappe l'Onix endurant
+  (hp 999) avec Griffe (physique) → « Armurouillée de <X> s'active ! » + « Défense de <X> baisse ! » +
+  « Vitesse de <X> augmente ! » (`mechanics-talents-tier-c.spec`, `onAfterDamageReceived`).
+- 👁 **Force Sable** (`sand-force`, ×1.3 Roche/Sol/Acier en Tempête de Sable) — multiplicateur `onDamageModify`
+  silencieux (pas d'event) → couvert unit/integration core.
+- 👁 **Peau Sèche** (`dry-skin`, soin/perte météo + immunité Eau soignante + ×1.25 Feu) — multiplicateurs et
+  absorption silencieux ; sens identique aux autres absorptions de type → couvert unit/integration core.
+- 👁 **Feuille Garde** (`leaf-guard`, bloque le statut majeur sous Soleil) — blocage `onStatusBlocked` ; couvert
+  unit/integration core (sens identique à Vaccin/Tier B, non dupliqué e2e).
+- 👁 **Envelocape** (`overcoat`, immunité moves `flags.powder`) — immunité `onMoveImmunity` (sens identique à
+  Anti-Bruit, autre flag) → couvert unit (effect-processor) / integration core.
+- 👁 **Pieds Confus** (`tangled-feet`, précision entrante ×0.5 si confus) / **Peau Miracle** (`wonder-skin`,
+  précision des moves statut entrants ×0.5) — modificateurs `onEvasionModify` (jet de précision) → couverts
+  unit core (`accuracy-check.test`) ; pas d'origine d'event observable.
+- 👁 **Pied Véloce** (`quick-feet`, initiative ×1.5 + ignore le malus paralysie sous statut majeur) —
+  multiplicateur d'initiative silencieux (`statusSpeedBoost`) → couvert unit core (`initiative-calculator.test`).
+- 👁 **Télécharge** (`download`, +1 Atq ou Atq. Spé. à l'entrée selon les défenses adverses) — buff d'entrée
+  conditionnel ; couvert integration core (comparaison Déf/Déf. Spé.) → 👁.
+- 👁 **Agitation** (`hustle`, ×1.5 dégâts physiques / précision ×0.8) / **Analyste** (`analytic`, ×1.3 si le
+  porteur agit après la cible) — multiplicateurs `onDamageModify`/`onAccuracyModify` silencieux → couverts
+  integration core.
+- 👁 **Puanteur** (`stench`, 10 % flinch sur coup) — réaction probabiliste gated `random()` non contrôlée
+  directement par le seed sandbox → couvert integration core.
+- 👁 **Suintement** (`liquid-ooze`, le drain blesse le draineur) — réaction `onDrainAttempt` dépendante d'un
+  move drain adverse (pas scriptable côté joueur en sandbox sans dummy actif fiable) → couvert unit
+  (`handle-drain.test`) / integration core.
+- 👁 **Infiltration** (`infiltrator`, bypass substitut/écrans/Voile/Brume) — bypass silencieux (pas d'event
+  dédié) → couvert integration core.
 - 🤖 **Objets tenus simples à event** — un par mécanique, pilotés de bout en bout (`mechanics-abilities.spec`) :
   **Grelot Coque** (`shell-bell`, soin post-coup : porteur blessé qui attaque → 1/8 des dégâts rendus,
   « Grelot Coque de <X> s'active ! » + « <X> récupère N PV ») ; **Orbe Toxique** (`toxic-orb`,
@@ -1034,6 +1073,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) + Graine Électrik (granule de terrain : pose Champ Électrifié sous soi → fin de tour Déf +1 + consommée, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit ; Graine Herbe / Graine Psychique / Graine Brume (même factory) = unit + objets de précision (bande de jet seed 6, Élecanon 50 % : témoin sans objet rate / Loupe ×1,1 touche / Lentille Zoom ×1,0 inactive face à dummy inerte rate ; ×1,2 conditionnel = unit) + objets d'évasion (bande de jet seed 30, Jet-Pierres 90 % : témoin sans objet touche / Poudre Claire ×0,9 rate / Encens Doux ×0,9 rate) + §5.15 objets flinch (bande de jet seed 3, Jet-Pierres 90 % côté attaquant porteur : témoin sans objet touche sans apeurer / Roche Royale +10 % apeure / Croc Rasoir +10 % apeure) |
 | `combat/mechanics-talents-tier-a.spec.ts` | §5.14 talents Tier A (plan 136) : Régé-Force (soin de fin de tour), Multi-Coups (Balle Graine → « Touché 5 fois ! »), Querelleur (Griffe touche un Ectoplasma Spectre — dégâts présents, « Ça n'affecte pas » absent — garde le fix handle-damage). Autres talents Tier A (silencieux / dépendants de l'IA) = unit |
 | `combat/mechanics-talents-tier-b.spec.ts` | §5.15 talents Tier B (plan 137) : Sécheresse (Soleil à l'entrée → HUD « Plein soleil »), Cuvette (soin de fin de tour sous Pluie → « Cuvette … s'active ! » + « récupère N PV »), Vaccin (Poudre Toxik bloquée → « Vaccin … s'active ! », « est empoisonné » absent). 11 autres talents Tier B (blockers/multiplicateurs silencieux, soins miroirs, réactions dépendantes du type de coup ou de l'IA) = unit |
+| `combat/mechanics-talents-tier-c.spec.ts` | §5.16 talents Tier C (plan 138) : Force Soleil (perte 1/8 PV en fin de tour sous Soleil → « Force Soleil … s'active ! » + « perd N PV »), Anti-Bruit (Mégaphone sonore bloqué → « Anti-Bruit … s'active ! », « perd N PV » absent), Boom Final (K.O. au contact → recul « Dracaufeu perd N PV »), Armurouillée (coup physique → « Défense … baisse ! » + « Vitesse … augmente ! »). 13 autres talents Tier C (multiplicateurs/immunités/réactions silencieux ou probabilistes) = unit/integration |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
