@@ -59,7 +59,6 @@ const fr: Translations = {
   "sandbox.custom": "(custom)",
   "sandbox.passive": "(passif)",
   "sandbox.ability": "Talent",
-  "sandbox.abilityDefault": "(défaut)",
   "sandbox.dummyControl": "Contrôle",
   "sandbox.dummyControl.ai": "IA",
   "sandbox.dummyControl.player": "Joueur",

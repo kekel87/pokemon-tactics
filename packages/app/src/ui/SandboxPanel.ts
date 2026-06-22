@@ -304,7 +304,7 @@ export class SandboxPanel {
       const ability = createLabeledSelect({
         label: t("sandbox.ability"),
         options: this.buildAbilityOptions(initialPokemonId),
-        selected: config.playerAbility ?? "",
+        selected: config.playerAbility ?? this.getFirstAbility(initialPokemonId),
         onChange: () => this.emit(),
         signal: this.abort.signal,
       });
@@ -724,7 +724,7 @@ export class SandboxPanel {
 
   private buildAbilityOptions(pokemonId: string): SelectOption[] {
     const abilities = getPokemonAbilities(pokemonId).all;
-    const options: SelectOption[] = [{ value: "", label: t("sandbox.abilityDefault") }];
+    const options: SelectOption[] = [];
     for (const id of abilities) {
       const info = getAbilityInfo(id);
       options.push({
@@ -740,7 +740,7 @@ export class SandboxPanel {
     replaceSelectOptions(
       this.playerAbilitySelect,
       this.buildAbilityOptions(this.player.pokemonId),
-      "",
+      this.getFirstAbility(this.player.pokemonId),
     );
   }
 

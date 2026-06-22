@@ -4,11 +4,6 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
-### Talent « par défaut » silencieux (ability1) — sandbox + jeu normal (2026-06-21, plan 136)
-- Quand aucun talent n'est précisé, le Pokemon prend silencieusement `ability1` : sandbox (`playerAbility`/`dummyAbility` optionnels → fallback `ability1`) et jeu normal (`load-pokemon.ts` choisit `ability1` par défaut).
-- Demande humain : **enlever cette notion de défaut**. Le talent devrait être explicite (sélection requise / pas de fallback caché qui masque quel talent tourne réellement).
-- À trancher : rendre `playerAbility`/`dummyAbility` obligatoires en sandbox ? Vérifier le chemin jeu normal + Team Builder (slots déjà explicites ?) + impact IA.
-- Priorité moyenne — confusion QA (on ne sait pas quel talent est actif).
 
 ### Setters météo à l'entrée — pas de « guerre météo » (2026-06-21, plan 137)
 - `weatherAutoSetter` (Sécheresse) est appliqué séquentiellement à l'entrée : si plusieurs Pokemon posent une météo, **le dernier dans l'ordre d'itération écrase** (pas de résolution par vitesse/initiative).

@@ -8,6 +8,15 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Talent « par défaut » silencieux — UI sandbox (RÉSOLU 2026-06-22, décision #549)
+
+- **Contexte (2026-06-21, plan 136)** : le `<select>` talent du SandboxPanel proposait une option vide « (défaut) » (valeur `""`) qui activait silencieusement `ability1` sans l'indiquer. Confusion QA : on ne savait pas quel talent tournait réellement.
+- **Résolution** : option vide supprimée. Le `<select>` appelle désormais `getFirstAbility()` et pré-sélectionne toujours un talent concret affiché par son nom FR. Clé i18n `sandbox.abilityDefault` retirée (fr/en/types). Décision #549.
+- **Périmètre traité** : UI sandbox uniquement. Le chemin jeu normal/CLI (`playerAbility`/`dummyAbility` omis dans `SandboxConfig` → engine utilise `ability1` espèce — comportement acceptable, pas de mensonge UI). Les ~30 fixtures e2e qui omettent `playerAbility`/`dummyAbility` continuent de fonctionner (`SandboxConfig` fields gardés OPTIONNELS).
+- **InfoPanel combat** — afficher le talent actif en cours de combat : explicitly hors scope, différé.
+
+---
+
 ## Talent Anti-Bruit (`soundproof`) — RÉSOLU (plan 138, v2026.6.4)
 - **Contexte** : aucun move sonore (Requiem, Dissonance Psy, Bruit Blanc, Berceuse…) n'était bloqué par Anti-Bruit. Electrode (roster) a ce talent → n'était pas immunisé à Requiem & co.
 - **Résolution** : Anti-Bruit (`soundproof`) implémenté dans le batch talents Tier C (plan 138). Immunité gérée par le hook `onMoveImmunity` (`effect-processor.ts`, gate générique sur le flag `sound`). Couvert par tests (`abilities.integration.test.ts`, `effect-processor.test.ts`).

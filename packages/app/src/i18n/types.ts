@@ -64,7 +64,6 @@ export interface Translations {
   "sandbox.custom": string;
   "sandbox.passive": string;
   "sandbox.ability": string;
-  "sandbox.abilityDefault": string;
   "sandbox.dummyControl": string;
   "sandbox.dummyControl.ai": string;
   "sandbox.dummyControl.player": string;
