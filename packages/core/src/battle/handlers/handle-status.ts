@@ -10,6 +10,7 @@ import type { BattleEvent } from "../../types/battle-event";
 import { ProtectionReason } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import { DEFAULT_STATUS_RULES, type StatusRules } from "../../types/status-rules";
+import { resolveDefensiveAbility } from "../ability-suppression";
 import { isProtectedFromStatus } from "../aura-system";
 import { effectConditionHolds } from "../condition-eval";
 import type { EffectContext } from "../effect-handler-registry";
@@ -80,7 +81,13 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
         : effect.status;
 
     const targetTypes = context.targetTypesMap.get(target.id) ?? [];
-    const targetAbility = context.abilityRegistry?.getForPokemon(target);
+    // Brise Moule ignores the target's breakable status-blockers (Vaccin, Échauffement, Feuille
+    // Garde, …). Non-breakable hooks (Matinal duration, Synchro reaction) still resolve.
+    const targetAbility = resolveDefensiveAbility(
+      context.abilityRegistry,
+      target,
+      context.attacker,
+    );
 
     if (status === StatusTypeEnum.Seeded) {
       if (targetTypes.includes(PokemonType.Grass)) {

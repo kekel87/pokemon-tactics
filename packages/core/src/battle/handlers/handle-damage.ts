@@ -11,6 +11,7 @@ import type { Effect } from "../../types/effect";
 import type { MoveDefinition } from "../../types/move-definition";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 import type { RandomFn } from "../../utils/prng";
+import { resolveDefensiveAbility } from "../ability-suppression";
 import {
   computeBrickBreakInteraction,
   computeScreenMultiplier,
@@ -243,7 +244,9 @@ function dealSingleHit(
 
   const wasAtMaxHp = target.currentHp === target.maxHp;
 
-  const targetAbility = context.abilityRegistry?.getForPokemon(target);
+  // Brise Moule ignores the target's breakable abilities (Fermeté survival + breakable reactive
+  // visuals like Isograisse). Non-breakable reactives (Statik, Corps Ardent) still resolve.
+  const targetAbility = resolveDefensiveAbility(context.abilityRegistry, target, context.attacker);
   let sturdyTriggered = false;
   if (
     targetAbility?.id === "sturdy" &&

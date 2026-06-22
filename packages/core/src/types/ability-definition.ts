@@ -168,6 +168,13 @@ export interface AbilityFlinchContext {
 
 export interface AbilityHandler {
   id: string;
+  /**
+   * True if Brise Moule (mold-breaker) ignores this ability while attacking.
+   * Mirrors Showdown's `breakable` ability flag (injected from the reference by load-abilities).
+   * Defensive abilities that hinder a move's execution are breakable; reactive abilities
+   * (Statik, Corps Ardent, …) are not. Read by `resolveDefensiveAbility`.
+   */
+  breakable?: boolean;
   blocksIndirectDamage?: boolean;
   blocksRecoil?: boolean;
   preventsCrit?: boolean;
