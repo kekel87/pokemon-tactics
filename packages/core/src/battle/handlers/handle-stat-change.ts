@@ -5,6 +5,7 @@ import { StatName } from "../../enums/stat-name";
 import type { BattleEvent } from "../../types/battle-event";
 import { ProtectionReason } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
+import { resolveDefensiveAbility } from "../ability-suppression";
 import { isProtectedFromStatDecrease } from "../aura-system";
 import type { EffectContext } from "../effect-handler-registry";
 import { clampStages, computeMovement } from "../stat-modifier";
@@ -24,7 +25,13 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
 
   for (const pokemon of affectedPokemon) {
     if (isEnemyDebuff) {
-      const blockResult = context.abilityRegistry?.getForPokemon(pokemon)?.onStatChangeBlocked?.({
+      // Brise Moule ignores the target's breakable stat-drop blockers (Corps Sain, Regard Vif,
+      // Hyper Cutter, Cœur de Coq, Tempo Perso) → the debuff lands.
+      const blockResult = resolveDefensiveAbility(
+        context.abilityRegistry,
+        pokemon,
+        context.attacker,
+      )?.onStatChangeBlocked?.({
         self: pokemon,
         stat: effect.stat,
         stages: effect.stages,

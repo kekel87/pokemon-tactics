@@ -17,6 +17,7 @@ export function loadAbilitiesFromReference(
     }
     return {
       ...handler,
+      breakable: ref.flags.breakable,
       name: { fr: ref.names.fr, en: ref.names.en },
       shortDescription: {
         fr: ref.shortDescription.fr,

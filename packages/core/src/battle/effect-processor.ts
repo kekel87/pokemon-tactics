@@ -11,6 +11,7 @@ import type { Position } from "../types/position";
 import type { StatusRules } from "../types/status-rules";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
+import { resolveDefensiveAbility } from "./ability-suppression";
 import { getTypeEffectiveness } from "./damage-calculator";
 import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
@@ -115,7 +116,11 @@ export function processEffects(
   // does (damage OR status), so it gates targets before the type-immunity pass below.
   const moveImmuneIds = new Set<string>();
   for (const target of context.targets) {
-    const immunityResult = context.abilityRegistry?.getForPokemon(target)?.onMoveImmunity?.({
+    const immunityResult = resolveDefensiveAbility(
+      context.abilityRegistry,
+      target,
+      context.attacker,
+    )?.onMoveImmunity?.({
       self: target,
       move: context.move,
     });
@@ -151,7 +156,11 @@ export function processEffects(
       }
       const defenderTypes = context.targetTypesMap.get(target.id) ?? [];
 
-      const immunityResult = context.abilityRegistry?.getForPokemon(target)?.onTypeImmunity?.({
+      const immunityResult = resolveDefensiveAbility(
+        context.abilityRegistry,
+        target,
+        context.attacker,
+      )?.onTypeImmunity?.({
         self: target,
         moveType: context.move.type,
       });
@@ -258,6 +267,7 @@ export function processEffects(
       moveHasDamage,
       nonImmuneTargets,
       context.abilityRegistry,
+      context.attacker,
       events,
     );
 
@@ -383,6 +393,7 @@ function filterShieldDustTargets(
   moveHasDamage: boolean,
   targets: PokemonInstance[],
   abilityRegistry: AbilityHandlerRegistry | undefined,
+  attacker: PokemonInstance,
   events: BattleEvent[],
 ): PokemonInstance[] {
   if (!abilityRegistry || !isSecondaryEffect(effect, moveHasDamage)) {
@@ -390,7 +401,8 @@ function filterShieldDustTargets(
   }
   const filtered: PokemonInstance[] = [];
   for (const target of targets) {
-    const ability = abilityRegistry.getForPokemon(target);
+    // Brise Moule ignores Écran Poudre (shield-dust is breakable) → secondaries still land.
+    const ability = resolveDefensiveAbility(abilityRegistry, target, attacker);
     if (ability?.id === "shield-dust") {
       events.push({
         type: BattleEventType.AbilityActivated,
