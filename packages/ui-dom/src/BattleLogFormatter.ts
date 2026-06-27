@@ -500,6 +500,90 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.itemConsumed, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.ItemKnockedOff: {
+      const itemName = context.getItemName(event.itemId) ?? event.itemId;
+      const pokemonName = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${pokemonName} perd son ${itemName} !`
+          : `${pokemonName} lost its ${itemName}!`;
+      return { message, color: BattleLogColors.itemConsumed, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.ItemStolen: {
+      const itemName = context.getItemName(event.itemId) ?? event.itemId;
+      const thiefName = context.getPokemonName(event.thiefId);
+      const victimName = context.getPokemonName(event.victimId);
+      const message =
+        lang === "fr"
+          ? `${thiefName} vole le ${itemName} de ${victimName} !`
+          : `${thiefName} stole ${victimName}'s ${itemName}!`;
+      return {
+        message,
+        color: BattleLogColors.item,
+        pokemonIds: [event.thiefId, event.victimId],
+      };
+    }
+
+    case BattleEventType.ItemsSwapped: {
+      const pokemonName = context.getPokemonName(event.pokemonId);
+      const otherName = context.getPokemonName(event.otherId);
+      const message =
+        lang === "fr"
+          ? `${pokemonName} échange son objet avec ${otherName} !`
+          : `${pokemonName} swapped items with ${otherName}!`;
+      return {
+        message,
+        color: BattleLogColors.item,
+        pokemonIds: [event.pokemonId, event.otherId],
+      };
+    }
+
+    case BattleEventType.ItemBurned: {
+      const itemName = context.getItemName(event.itemId) ?? event.itemId;
+      const pokemonName = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `Le ${itemName} de ${pokemonName} est réduit en cendres !`
+          : `${pokemonName}'s ${itemName} was burned up!`;
+      return { message, color: BattleLogColors.itemConsumed, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.BerryEaten: {
+      const itemName = context.getItemName(event.itemId) ?? event.itemId;
+      const eaterName = context.getPokemonName(event.eaterId);
+      const message =
+        lang === "fr"
+          ? `${eaterName} dévore la ${itemName} !`
+          : `${eaterName} ate the ${itemName}!`;
+      return { message, color: BattleLogColors.item, pokemonIds: [event.eaterId] };
+    }
+
+    case BattleEventType.ItemRecycled: {
+      const itemName = context.getItemName(event.itemId) ?? event.itemId;
+      const pokemonName = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${pokemonName} recycle son ${itemName} !`
+          : `${pokemonName} recycled its ${itemName}!`;
+      return { message, color: BattleLogColors.item, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.ItemFlung: {
+      const itemName = context.getItemName(event.itemId) ?? event.itemId;
+      const pokemonName = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${pokemonName} dégomme son ${itemName} !`
+          : `${pokemonName} flung its ${itemName}!`;
+      return { message, color: BattleLogColors.itemConsumed, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.ItemMoveFailed: {
+      const message = lang === "fr" ? "Mais cela échoue !" : "But it failed!";
+      return { message, color: BattleLogColors.miss, pokemonIds: [event.pokemonId] };
+    }
+
     case BattleEventType.CriticalHit: {
       const pokemonName = context.getPokemonName(event.targetId);
       const message =

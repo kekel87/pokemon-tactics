@@ -612,6 +612,91 @@ export function floatingTextsFor(
         },
       ];
 
+    case BattleEventType.ItemKnockedOff:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("battle.itemKnockedOff"),
+          color: BATTLE_TEXT_COLOR_ITEM_CONSUMED,
+        },
+      ];
+
+    case BattleEventType.ItemStolen:
+      return [
+        {
+          pokemonId: event.victimId,
+          text: context.translate("battle.itemStolen"),
+          color: BATTLE_TEXT_COLOR_ITEM_CONSUMED,
+        },
+        {
+          pokemonId: event.thiefId,
+          text: context.translate("battle.itemGained"),
+          color: BATTLE_TEXT_COLOR_ITEM,
+        },
+      ];
+
+    case BattleEventType.ItemsSwapped:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("battle.itemsSwapped"),
+          color: BATTLE_TEXT_COLOR_ITEM,
+        },
+      ];
+
+    case BattleEventType.ItemBurned:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("battle.itemBurned"),
+          color: BATTLE_TEXT_COLOR_ITEM_CONSUMED,
+        },
+      ];
+
+    case BattleEventType.BerryEaten: {
+      const name = context.getItemName(event.itemId);
+      return [
+        {
+          pokemonId: event.eaterId,
+          text: name
+            ? context.translate("battle.berryEaten", { name })
+            : context.translate("battle.berryEatenGeneric"),
+          color: BATTLE_TEXT_COLOR_ITEM,
+        },
+      ];
+    }
+
+    case BattleEventType.ItemRecycled: {
+      const name = context.getItemName(event.itemId);
+      return name
+        ? [
+            {
+              pokemonId: event.pokemonId,
+              text: context.translate("battle.itemRecycled", { name }),
+              color: BATTLE_TEXT_COLOR_ITEM,
+            },
+          ]
+        : [];
+    }
+
+    case BattleEventType.ItemFlung:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("battle.itemFlung"),
+          color: BATTLE_TEXT_COLOR_ITEM_CONSUMED,
+        },
+      ];
+
+    case BattleEventType.ItemMoveFailed:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("battle.failed"),
+          color: BATTLE_TEXT_COLOR_MISS,
+        },
+      ];
+
     default:
       return [];
   }

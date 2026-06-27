@@ -232,6 +232,7 @@ function runBattle(options: {
     translate: (key, params) => t(key as TranslationKey, params),
     getLanguage,
     getPortraitUrl,
+    getItemName: itemNameOf,
     isDamagePreviewEnabled: () => getSettings().damagePreview,
   };
   const spawnFloatingText = createFloatingTextSpawner(combat, battle.state, {

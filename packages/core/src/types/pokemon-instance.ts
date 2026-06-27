@@ -48,6 +48,22 @@ export interface PokemonInstance {
   abilityId?: string;
   abilityFirstTriggered?: boolean;
   heldItemId?: HeldItemId;
+  /**
+   * Last item this mon consumed by its own effect (berry eaten, gem spent, White Herb…). Set by
+   * `consumeHeldItem`; restored by Recyclage (recycle). NOT set when an item is knocked off, stolen,
+   * burned, corroded or flung — those removals are not recyclable by the loser. Survives KO.
+   */
+  consumedItemId?: HeldItemId;
+  /**
+   * True once this mon has eaten any berry this battle (own consumption, or a berry fed to it via
+   * Picore/Piqûre/Dégommage). Gates Éructation (belch). Never reset. Survives KO.
+   */
+  ateBerryThisBattle?: boolean;
+  /**
+   * Persistent crit-stage boost (Baie Lansat, future Puissance/Affilage). Added to the move's
+   * `critRatio` + item crit boost in the damage calc. Cleared on KO.
+   */
+  critStageBoost?: number;
   lockedMoveId?: string;
   chargingMove?: { moveId: string; targetPosition?: Position };
   semiInvulnerableState?: SemiInvulnerableState;

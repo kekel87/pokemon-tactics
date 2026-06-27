@@ -127,6 +127,17 @@ export interface HeldItemHandler {
   ejectsHolderOnHit?: boolean;
   /** On taking a damaging hit, teleport the ATTACKER back to its spawn zone, then consume (Carton Rouge). */
   ejectsAttackerOnHit?: boolean;
+  /**
+   * Unconditional "eat now" effect, applied to whoever eats this berry — the holder when fed via
+   * Picore/Piqûre, or the target hit by a thrown berry (Dégommage). Bypasses the berry's normal
+   * trigger gate (no HP threshold). Berries with a purely defensive effect (anti-type) leave this
+   * unset → eating them does nothing. Returns the events to emit; mutates `eater` in place.
+   */
+  onEaten?: (eater: PokemonInstance) => BattleEvent[];
+  /** Base power when thrown via Dégommage (fling). Items without a value cannot be flung. */
+  flingPower?: number;
+  /** Secondary effect a thrown non-berry item inflicts on the target (Dégommage): orbs → status… */
+  onFling?: (target: PokemonInstance) => BattleEvent[];
 }
 
 export interface HeldItemDefinition extends HeldItemHandler {

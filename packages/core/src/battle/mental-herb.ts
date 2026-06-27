@@ -4,6 +4,7 @@ import { StatusType as StatusTypeEnum } from "../enums/status-type";
 import type { BattleEvent } from "../types/battle-event";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
+import { consumeHeldItem } from "./held-item-transfer";
 
 /** Move-restricting volatiles that Mental Herb (Herbe Mentale) cures the instant they land. */
 const RESTRICTING_VOLATILES: ReadonlySet<StatusType> = new Set([
@@ -37,7 +38,7 @@ export function tryMentalHerbCure(
     return [];
   }
   target.volatileStatuses.splice(index, 1);
-  target.heldItemId = undefined;
+  consumeHeldItem(target);
   return [
     {
       type: BattleEventType.HeldItemActivated,

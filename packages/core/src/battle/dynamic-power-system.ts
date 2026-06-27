@@ -4,6 +4,7 @@ import { StatusType } from "../enums/status-type";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { pendingRolloutIndex, rolloutPowerForIndex } from "./rollout-streak";
 import { getEffectiveStat, isMajorStatus } from "./stat-modifier";
 
@@ -13,6 +14,8 @@ interface DynamicPowerInput {
   target: PokemonInstance;
   /** Present during real resolution; absent in tooltip previews (state-dependent kinds fall back). */
   battleState?: BattleState;
+  /** Present during real resolution; needed by item-driven kinds (fling). */
+  itemRegistry?: HeldItemHandlerRegistry;
 }
 
 /** True if `stamp` is strictly more recent than the mon's last completed action. */
@@ -273,6 +276,10 @@ const RESOLVERS: ReadonlyMap<DynamicPowerKind, DynamicPowerResolver> = new Map([
         ? move.power * 2
         : move.power,
   ],
+  [
+    DynamicPowerKind.HeldItemFling,
+    ({ attacker, itemRegistry }) => itemRegistry?.get(attacker.heldItemId ?? "")?.flingPower ?? 0,
+  ],
 ]);
 
 /**
@@ -284,6 +291,7 @@ export function resolveDynamicPower(
   attacker: PokemonInstance,
   target: PokemonInstance,
   battleState?: BattleState,
+  itemRegistry?: HeldItemHandlerRegistry,
 ): MoveDefinition {
   if (!move.dynamicPower) {
     return move;
@@ -292,7 +300,7 @@ export function resolveDynamicPower(
   if (!resolver) {
     return move;
   }
-  const power = Math.max(1, resolver({ move, attacker, target, battleState }));
+  const power = Math.max(1, resolver({ move, attacker, target, battleState, itemRegistry }));
   return { ...move, power };
 }
 

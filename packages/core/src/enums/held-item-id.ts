@@ -103,6 +103,8 @@ export const HeldItemId = {
   Metronome: "metronome",
   EjectButton: "eject-button",
   RedCard: "red-card",
+  LansatBerry: "lansat-berry",
+  StarfBerry: "starf-berry",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];

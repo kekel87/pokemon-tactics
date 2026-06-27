@@ -45,6 +45,20 @@ export const EffectKind = {
   Endeavor: "endeavor",
   /** Buff an adjacent ally's next offensive move by ×1.5 (Coup d'Main / helping-hand). */
   HelpingHand: "helping_hand",
+  /** Remove the target's held item without making it recyclable (Sabotage post-hit / Gaz Corrosif). */
+  RemoveItem: "remove_item",
+  /** Steal the target's held item if the user is empty-handed (Larcin / Implore). */
+  StealItem: "steal_item",
+  /** Swap held items with the target (Tour de Magie / Passe-Passe). */
+  SwapItems: "swap_items",
+  /** Throw the user's held item at the target for damage + its fling effect (Dégommage). */
+  FlingItem: "fling_item",
+  /** Eat the target's berry, applying its effect to the user (Picore / Piqûre). */
+  EatTargetBerry: "eat_target_berry",
+  /** Destroy the target's berry or gem with no effect (Calcination). */
+  BurnTargetItem: "burn_target_item",
+  /** Restore the user's last self-consumed item (Recyclage). */
+  RecycleItem: "recycle_item",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

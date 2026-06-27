@@ -63,6 +63,9 @@ export interface TacticalOverride {
   fieldTerrainTargetingOverride?: { terrain: FieldTerrain; targeting: TargetingPattern };
   fieldTerrainBoostedType?: boolean;
   naturePowerMorph?: boolean;
+  knockOffBoost?: boolean;
+  requiresEatenBerry?: boolean;
+  requiresFlingableItem?: boolean;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -3044,5 +3047,72 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   splash: {
     targeting: { kind: TargetingKind.Self },
     effects: [],
+  },
+
+  // --- Famille Item interaction (plan 142) ---
+  "knock-off": {
+    // Sabotage: melee Dark hit, ×1.5 if the target holds a removable item, then removes it.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.RemoveItem }],
+    knockOffBoost: true,
+  },
+  thief: {
+    // Larcin: melee Dark hit; steals the target's item if the user is empty-handed.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.StealItem }],
+  },
+  covet: {
+    // Implore: melee Normal hit; steals the target's item if the user is empty-handed.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.StealItem }],
+  },
+  trick: {
+    // Tour de Magie: status, swaps held items with the target (range 1-3).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.SwapItems }],
+  },
+  switcheroo: {
+    // Passe-Passe: status, swaps held items with the target (range 1-3).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.SwapItems }],
+  },
+  fling: {
+    // Dégommage: throws the user's item (range 1-3). Power = the item's fling power; the item's
+    // fling secondary then lands. Gated to a flingable item at use time.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.FlingItem }],
+    dynamicPower: { kind: DynamicPowerKind.HeldItemFling },
+    requiresFlingableItem: true,
+  },
+  pluck: {
+    // Picore: melee Flying hit; if the target holds a berry, the user eats it.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.EatTargetBerry }],
+  },
+  "bug-bite": {
+    // Piqûre: melee Bug hit; if the target holds a berry, the user eats it.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.EatTargetBerry }],
+  },
+  incinerate: {
+    // Calcination: ranged Fire special; destroys the target's berry or gem (no benefit).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.BurnTargetItem }],
+  },
+  "corrosive-gas": {
+    // Gaz Corrosif: status, removes the target's item (grid-adapted to Single 1-3, no AoE).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.RemoveItem }],
+  },
+  recycle: {
+    // Recyclage: self status, restores the user's last self-consumed item.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.RecycleItem }],
+  },
+  belch: {
+    // Éructation: ranged Poison special 120 BP; usable only after the user has eaten a berry.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+    requiresEatenBerry: true,
   },
 };

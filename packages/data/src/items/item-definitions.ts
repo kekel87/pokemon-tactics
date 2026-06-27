@@ -2,6 +2,7 @@ import type { BattleEvent, HeldItemHandler, PokemonInstance } from "@pokemon-tac
 import {
   BattleEventType,
   Category,
+  consumeHeldItem,
   FieldTerrain,
   HeldItemId,
   isOnFieldTerrain,
@@ -131,16 +132,131 @@ function raiseStatStage(pokemon: PokemonInstance, stat: StatName, stages = 1): n
   return applied;
 }
 
-function pinchStatBerry(id: HeldItemId, stat: StatName): HeldItemHandler {
-  // Gloutonnerie (gluttony): the holder eats its pinch berry at 50% HP instead of 25%.
-  const isInPinch = (pokemon: PokemonInstance): boolean => {
-    const threshold =
-      pokemon.abilityId === "gluttony" ? GLUTTONY_BERRY_THRESHOLD : PINCH_BERRY_THRESHOLD;
-    return pokemon.currentHp > 0 && pokemon.currentHp / pokemon.maxHp <= threshold;
+// Gloutonnerie (gluttony): the holder eats its pinch berry at 50% HP instead of 25%.
+function isInBerryPinch(pokemon: PokemonInstance): boolean {
+  const threshold =
+    pokemon.abilityId === "gluttony" ? GLUTTONY_BERRY_THRESHOLD : PINCH_BERRY_THRESHOLD;
+  return pokemon.currentHp > 0 && pokemon.currentHp / pokemon.maxHp <= threshold;
+}
+
+const PINCH_BERRY_SPECIAL_STAGES = 2;
+const FRISTA_STATS: StatName[] = [
+  StatName.Attack,
+  StatName.Defense,
+  StatName.SpAttack,
+  StatName.SpDefense,
+  StatName.Speed,
+];
+
+function raiseCritStage(pokemon: PokemonInstance, stages = PINCH_BERRY_SPECIAL_STAGES): void {
+  pokemon.critStageBoost = (pokemon.critStageBoost ?? 0) + stages;
+}
+
+/** Baie Lansat: at ≤25% HP (or 50% with Gloutonnerie) the holder gains +2 crit stages. */
+function lansatBerry(): HeldItemHandler {
+  const id = HeldItemId.LansatBerry;
+  return {
+    id,
+    isBerry: true,
+    onEaten: (eater) => {
+      raiseCritStage(eater);
+      return [];
+    },
+    onAfterDamageReceived: ({ target }) => {
+      if (!isInBerryPinch(target)) {
+        return { events: [], consumeItem: false };
+      }
+      raiseCritStage(target);
+      return {
+        events: [
+          emitItemActivated(target, id),
+          { type: BattleEventType.HeldItemConsumed, pokemonId: target.id, itemId: id },
+        ],
+        consumeItem: true,
+      };
+    },
+    onEndTurn: ({ pokemon }) => {
+      if (!isInBerryPinch(pokemon)) {
+        return [];
+      }
+      raiseCritStage(pokemon);
+      consumeHeldItem(pokemon, { isBerry: true });
+      return [
+        emitItemActivated(pokemon, id),
+        { type: BattleEventType.HeldItemConsumed, pokemonId: pokemon.id, itemId: id },
+      ];
+    },
+  };
+}
+
+function pickFristaStat(seed: number): StatName {
+  const index = Math.abs(Math.trunc(seed)) % FRISTA_STATS.length;
+  return FRISTA_STATS[index] ?? StatName.Attack;
+}
+
+/** Baie Frista: at ≤25% HP (or 50% with Gloutonnerie) the holder gains +2 to a deterministic stat. */
+function starfBerry(): HeldItemHandler {
+  const id = HeldItemId.StarfBerry;
+  const boost = (pokemon: PokemonInstance, seed: number) => {
+    const stat = pickFristaStat(seed);
+    const applied = raiseStatStage(pokemon, stat, PINCH_BERRY_SPECIAL_STAGES);
+    return { stat, applied };
   };
   return {
     id,
     isBerry: true,
+    onEaten: (eater) => {
+      const { stat, applied } = boost(eater, eater.currentHp);
+      return applied > 0
+        ? [{ type: BattleEventType.StatChanged, targetId: eater.id, stat, stages: applied }]
+        : [];
+    },
+    onAfterDamageReceived: ({ target }) => {
+      if (!isInBerryPinch(target)) {
+        return { events: [], consumeItem: false };
+      }
+      const { stat, applied } = boost(target, target.currentHp);
+      if (applied === 0) {
+        return { events: [], consumeItem: false };
+      }
+      return {
+        events: [
+          emitItemActivated(target, id),
+          { type: BattleEventType.StatChanged, targetId: target.id, stat, stages: applied },
+          { type: BattleEventType.HeldItemConsumed, pokemonId: target.id, itemId: id },
+        ],
+        consumeItem: true,
+      };
+    },
+    onEndTurn: ({ pokemon, state }) => {
+      if (!isInBerryPinch(pokemon)) {
+        return [];
+      }
+      const { stat, applied } = boost(pokemon, state.actionCounter ?? 0);
+      if (applied === 0) {
+        return [];
+      }
+      consumeHeldItem(pokemon, { isBerry: true });
+      return [
+        emitItemActivated(pokemon, id),
+        { type: BattleEventType.StatChanged, targetId: pokemon.id, stat, stages: applied },
+        { type: BattleEventType.HeldItemConsumed, pokemonId: pokemon.id, itemId: id },
+      ];
+    },
+  };
+}
+
+function pinchStatBerry(id: HeldItemId, stat: StatName): HeldItemHandler {
+  const isInPinch = isInBerryPinch;
+  return {
+    id,
+    isBerry: true,
+    onEaten: (eater) => {
+      const applied = raiseStatStage(eater, stat, PINCH_BERRY_STAGES);
+      return applied > 0
+        ? [{ type: BattleEventType.StatChanged, targetId: eater.id, stat, stages: applied }]
+        : [];
+    },
     onAfterDamageReceived: ({ target }) => {
       if (!isInPinch(target)) {
         return { events: [], consumeItem: false };
@@ -166,7 +282,7 @@ function pinchStatBerry(id: HeldItemId, stat: StatName): HeldItemHandler {
       if (applied === 0) {
         return [];
       }
-      pokemon.heldItemId = undefined;
+      consumeHeldItem(pokemon, { isBerry: true });
       return [
         emitItemActivated(pokemon, id),
         { type: BattleEventType.StatChanged, targetId: pokemon.id, stat, stages: applied },
@@ -214,7 +330,7 @@ function terrainSeedItem(id: HeldItemId, terrain: FieldTerrain, stat: StatName):
       if (applied === 0) {
         return [];
       }
-      pokemon.heldItemId = undefined;
+      consumeHeldItem(pokemon);
       return [
         emitItemActivated(pokemon, id),
         { type: BattleEventType.StatChanged, targetId: pokemon.id, stat, stages: applied },
@@ -270,34 +386,44 @@ function cureBerry(
   curesConfusion: boolean,
 ): HeldItemHandler {
   const cureSet = new Set<StatusType>(statuses);
+  const cureStatuses = (pokemon: PokemonInstance): StatusType[] => {
+    const removed: StatusType[] = [];
+    for (let i = pokemon.statusEffects.length - 1; i >= 0; i--) {
+      const status = pokemon.statusEffects[i];
+      if (status && cureSet.has(status.type)) {
+        removed.push(status.type);
+        pokemon.statusEffects.splice(i, 1);
+      }
+    }
+    if (curesConfusion) {
+      const confusionIndex = pokemon.volatileStatuses.findIndex(
+        (v) => v.type === StatusType.Confused,
+      );
+      if (confusionIndex !== -1) {
+        pokemon.volatileStatuses.splice(confusionIndex, 1);
+        removed.push(StatusType.Confused);
+      }
+    }
+    return removed;
+  };
   return {
     id,
     isBerry: true,
+    onEaten: (eater) =>
+      cureStatuses(eater).map((status) => ({
+        type: BattleEventType.StatusRemoved,
+        targetId: eater.id,
+        status,
+      })),
     onEndTurn: ({ pokemon }) => {
       if (pokemon.currentHp <= 0) {
         return [];
       }
-      const removed: StatusType[] = [];
-      for (let i = pokemon.statusEffects.length - 1; i >= 0; i--) {
-        const status = pokemon.statusEffects[i];
-        if (status && cureSet.has(status.type)) {
-          removed.push(status.type);
-          pokemon.statusEffects.splice(i, 1);
-        }
-      }
-      if (curesConfusion) {
-        const confusionIndex = pokemon.volatileStatuses.findIndex(
-          (v) => v.type === StatusType.Confused,
-        );
-        if (confusionIndex !== -1) {
-          pokemon.volatileStatuses.splice(confusionIndex, 1);
-          removed.push(StatusType.Confused);
-        }
-      }
+      const removed = cureStatuses(pokemon);
       if (removed.length === 0) {
         return [];
       }
-      pokemon.heldItemId = undefined;
+      consumeHeldItem(pokemon, { isBerry: true });
       const events: BattleEvent[] = [emitItemActivated(pokemon, id)];
       for (const status of removed) {
         events.push({ type: BattleEventType.StatusRemoved, targetId: pokemon.id, status });
@@ -321,7 +447,46 @@ function emitItemActivated(pokemon: PokemonInstance, itemId: string): BattleEven
   };
 }
 
-export const itemHandlers: HeldItemHandler[] = [
+function flingStatus(status: StatusType) {
+  return (target: PokemonInstance): BattleEvent[] => {
+    if (target.statusEffects.some((s) => MAJOR_STATUSES.includes(s.type))) {
+      return [];
+    }
+    target.statusEffects.push({ type: status, remainingTurns: null });
+    if (status === StatusType.BadlyPoisoned) {
+      target.toxicCounter = 0;
+    }
+    return [{ type: BattleEventType.StatusApplied, targetId: target.id, status }];
+  };
+}
+
+function flingFlinch(target: PokemonInstance): BattleEvent[] {
+  if (target.volatileStatuses.some((v) => v.type === StatusType.Flinch)) {
+    return [];
+  }
+  target.volatileStatuses.push({ type: StatusType.Flinch, remainingTurns: 1 });
+  return [{ type: BattleEventType.StatusApplied, targetId: target.id, status: StatusType.Flinch }];
+}
+
+/** Secondary effect a thrown non-berry item inflicts on the target (Dégommage). */
+const FLING_EFFECT: Partial<Record<HeldItemId, (target: PokemonInstance) => BattleEvent[]>> = {
+  [HeldItemId.FlameOrb]: flingStatus(StatusType.Burned),
+  [HeldItemId.ToxicOrb]: flingStatus(StatusType.BadlyPoisoned),
+  [HeldItemId.PoisonBarb]: flingStatus(StatusType.Poisoned),
+  [HeldItemId.LightBall]: flingStatus(StatusType.Paralyzed),
+  [HeldItemId.KingsRock]: flingFlinch,
+  [HeldItemId.RazorFang]: flingFlinch,
+};
+
+/** Stamp each held item with its optional fling secondary (Dégommage); fling power comes from the
+ * reference data merge (load-items). */
+function withFlingMetadata(handler: HeldItemHandler): HeldItemHandler {
+  // A handler's id is always a HeldItemId at runtime (the registry is keyed by it).
+  const onFling = FLING_EFFECT[handler.id as HeldItemId];
+  return onFling ? { ...handler, onFling } : handler;
+}
+
+const baseItemHandlers: HeldItemHandler[] = [
   {
     id: HeldItemId.Leftovers,
     onEndTurn: ({ pokemon }) => {
@@ -465,6 +630,17 @@ export const itemHandlers: HeldItemHandler[] = [
 
   {
     id: HeldItemId.SitrusBerry,
+    isBerry: true,
+    onEaten: (eater) => {
+      const heal = Math.max(1, Math.floor(eater.maxHp / SITRUS_BERRY_HEAL_FRACTION));
+      const before = eater.currentHp;
+      eater.currentHp = Math.min(eater.maxHp, eater.currentHp + heal);
+      const restored = eater.currentHp - before;
+      if (restored <= 0) {
+        return [];
+      }
+      return [{ type: BattleEventType.HpRestored, pokemonId: eater.id, amount: restored }];
+    },
     onAfterDamageReceived: ({ target }) => {
       if (target.currentHp / target.maxHp >= SITRUS_BERRY_THRESHOLD) {
         return { events: [], consumeItem: false };
@@ -643,7 +819,7 @@ export const itemHandlers: HeldItemHandler[] = [
       if (damageDealt <= 0 || move.type !== PokemonType.Normal) {
         return [];
       }
-      attacker.heldItemId = undefined;
+      consumeHeldItem(attacker);
       return [
         emitItemActivated(attacker, HeldItemId.NormalGem),
         {
@@ -721,6 +897,8 @@ export const itemHandlers: HeldItemHandler[] = [
   pinchStatBerry(HeldItemId.GanlonBerry, StatName.Defense),
   pinchStatBerry(HeldItemId.PetayaBerry, StatName.SpAttack),
   pinchStatBerry(HeldItemId.ApicotBerry, StatName.SpDefense),
+  lansatBerry(),
+  starfBerry(),
 
   cureBerry(HeldItemId.CheriBerry, [StatusType.Paralyzed], false),
   cureBerry(HeldItemId.ChestoBerry, [StatusType.Asleep], false),
@@ -957,3 +1135,5 @@ export const itemHandlers: HeldItemHandler[] = [
     },
   },
 ];
+
+export const itemHandlers: HeldItemHandler[] = baseItemHandlers.map(withFlingMetadata);
