@@ -1,5 +1,5 @@
 import { expect, test } from "../../fixtures";
-import { DUEL } from "../../fixtures/sandbox-configs";
+import { DUEL, METRONOME_BASELINE_NO_ITEM, METRONOME_BOOST } from "../../fixtures/sandbox-configs";
 
 // Cahier §5.17 (lot 95→99) et §5.18 (lot 99→101) — objets tenus pilotés de bout en bout à travers le renderer
 // (journal FR). Configurables en sandbox (`heldItem`/`dummyHeldItem`/`dummyMove`) → déterministes,
@@ -125,4 +125,100 @@ test("§5.18 Spray Gorge : s'active après un move Son (journal)", async ({ page
   const scene = await bootSandbox({ ...DUEL, heldItem: "throat-spray", moves: ["snarl"] });
   await scene.castFirstMove(2, 2); // Aboiement (Son) sur le dummy adjacent
   await expect(log(page, /Spray Gorge de .* s'active/)).toBeAttached({ timeout: 10_000 });
+});
+
+// Métronome (objet) : +10 % de dégâts par usage CONSÉCUTIF du MÊME move (succès au tour précédent),
+// cumulatif, cap +100 %. La montée des dégâts est SILENCIEUSE (aucune ligne « Métronome … s'active »),
+// donc on la prouve par les valeurs chiffrées des lignes « perd N PV » sur plusieurs Griffe d'affilée :
+// la série monte AVEC l'objet, reste plate SANS.
+
+// Dégâts de chaque coup de Griffe sur le dummy, dans l'ordre du journal. Le journal contient aussi
+// des « Ronflex perd N PV » d'origine NON-attaque (poison de terrain en fin de tour) au libellé
+// identique → on ne peut pas filtrer par le seul texte « perd ». On lit donc le journal ORDONNÉ et
+// on ne retient, pour chaque « Florizarre utilise Griffe ! », que la perte de PV qui le suit
+// immédiatement (le dégât du move) — les ticks de poison intercalés sont ignorés.
+const griffeDamageAmounts = (page: import("@playwright/test").Page): Promise<number[]> =>
+  page
+    .getByTestId("battle-log-entry")
+    .allTextContents()
+    .then((lines) => {
+      const amounts: number[] = [];
+      for (let i = 0; i < lines.length; i++) {
+        if (!/Florizarre utilise Griffe/.test(lines[i] ?? "")) {
+          continue;
+        }
+        const next = lines[i + 1] ?? "";
+        const hit = next.match(/Ronflex perd (\d+) PV/);
+        if (hit) {
+          amounts.push(Number(hit[1]));
+        }
+      }
+      return amounts;
+    });
+
+// Modèle FFTA : agir ne clôt pas le tour (on peut aussi se déplacer), donc après une attaque le
+// bouton « Attaque » est désactivé (`canAct` consommé) jusqu'à ce qu'on close le tour via « Attendre »
+// + confirmation de direction. Cela enchaîne sur le tour du dummy (IA inerte) puis rend la main au
+// joueur → « Attaque » se réactive. On attend cette réactivation (sans `waitForTimeout`, banni).
+const advanceToNextPlayerTurn = async (
+  page: import("@playwright/test").Page,
+  scene: { endTurn(): Promise<void> },
+): Promise<void> => {
+  await scene.endTurn(); // « Attendre » → confirme direction → fin du tour joueur
+  await expect(page.getByRole("button", { name: "Attaque", exact: true })).toBeEnabled({
+    timeout: 15_000,
+  });
+};
+
+// Lance Griffe `count` fois d'affilée sur le dummy endurant (hp 999, survit) et renvoie les dégâts de
+// chaque coup, dans l'ordre. Griffe est à 100 % (touche sous tout seed → aucun raté qui
+// réinitialiserait la série). Entre deux coups on clôt le tour (le dummy joue Groz'Yeux, inerte) pour
+// rendre la main au joueur. Le seed est fixe → run reproductible (0 retry).
+const drivenGriffeHits = async (
+  page: import("@playwright/test").Page,
+  bootSandbox: (config?: Record<string, unknown>) => Promise<{
+    castFirstMove(x: number, y: number): Promise<void>;
+    endTurn(): Promise<void>;
+  }>,
+  config: Record<string, unknown>,
+  count: number,
+): Promise<number[]> => {
+  const scene = await bootSandbox(config);
+  for (let i = 0; i < count; i++) {
+    await scene.castFirstMove(2, 2);
+    await expect.poll(() => griffeDamageAmounts(page)).toHaveLength(i + 1);
+    if (i < count - 1) {
+      await advanceToNextPlayerTurn(page, scene);
+    }
+  }
+  return griffeDamageAmounts(page);
+};
+
+// MÊME enchaînement (4 Griffe consécutives sur le dummy), AVEC vs SANS le Métronome. Avec l'objet,
+// chaque usage consécutif réussi du MÊME move ajoute +10 % de dégâts (série 0→3 sur 4 coups, donc
+// ×1.0 → ×1.3) → la série CROÎT. Sans l'objet, les dégâts restent PLATS (seule la variance de jet
+// ±15 % joue, sans tendance). On asserte uniquement des signaux INTRA-run (robustes : la présence de
+// l'objet décale l'état du PRNG, donc une égalité chiffrée inter-run serait fragile) :
+//   - AVEC objet, le 4e coup (×1.3) dépasse strictement le 1er (×1.0) → l'objet fait monter les dégâts ;
+//   - SANS objet, l'amplitude max−min reste dans la bande de variance (≈ ±15 % + arrondi) → aucune
+//     montée : c'est bien l'objet, et non un effet de tour, qui crée la croissance.
+// Le compteur 0..10, le cap +100 % et la remise à zéro (move différent / usage raté) sont couverts
+// unit (`battle/metronome-streak.test.ts`).
+test("§5.19 Métronome : usages consécutifs du même move montent les dégâts (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  // Deux boots seedés + 8 tours pilotés : le test le plus long de la suite, au bord des 30 s sous
+  // charge parallèle (8 workers). On triple le budget plutôt que de réduire la couverture.
+  test.slow();
+  const boosted = await drivenGriffeHits(page, bootSandbox, METRONOME_BOOST, 4);
+  const baseline = await drivenGriffeHits(page, bootSandbox, METRONOME_BASELINE_NO_ITEM, 4);
+
+  expect(boosted).toHaveLength(4);
+  expect(baseline).toHaveLength(4);
+  // AVEC objet : la série monte → le dernier coup (série 3, ×1.3) dépasse strictement le 1er (×1.0).
+  expect(boosted[3]).toBeGreaterThan(boosted[0]);
+  // SANS objet : pas de montée → l'amplitude reste dans la bande de variance de jet (≈ ±15 % + arrondi).
+  const baselineSpread = Math.max(...baseline) - Math.min(...baseline);
+  expect(baselineSpread).toBeLessThanOrEqual(Math.ceil(Math.min(...baseline) * 0.18));
 });

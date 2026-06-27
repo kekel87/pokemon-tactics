@@ -302,3 +302,33 @@ export const SERENE_GRACE_BASELINE_NO_ABILITY = {
   ...SERENE_GRACE_FLIPS_SECONDARY,
   playerAbility: undefined,
 } as const;
+
+// Métronome (objet, plan 142) — boost +10 % de dégâts par usage CONSÉCUTIF du MÊME move (succès au
+// tour précédent), cumulatif, cap +100 %. Observable de bout en bout : 2× Griffe d'affilée sur la
+// même cible endurante → le 2e coup retire STRICTEMENT plus de PV que le 1er (×1.1 au 2e usage).
+
+/** Le joueur Florizarre tient le Métronome (`heldItem`) et lance Griffe (`scratch`, Normal, 100 %
+ *  précision, portée 1) sur un dummy Ronflex (snorlax) adjacent. Dummy ENDURANT (`dummyHp: 999`) →
+ *  survit à plusieurs coups, donc on lit plusieurs lignes « Ronflex perd N PV » comparables ; et le
+ *  dummy est d'une espèce DIFFÉRENTE du lanceur pour que ses lignes de dégâts soient filtrables par
+ *  nom (le lanceur perdant des PV → « Florizarre perd … » est ainsi exclu du compte). Le dummy reste
+ *  inerte (`dummyMove: "leer"`, Groz'Yeux, aucun dégât) pour ne jamais polluer le journal. Griffe à
+ *  100 % touche sous tout seed → pas de raté qui réinitialiserait la série. À chaque usage consécutif
+ *  réussi du MÊME move, la série monte d'un cran (+10 % de dégâts) → les coups successifs croissent. */
+export const METRONOME_BOOST = {
+  ...DUEL,
+  heldItem: "metronome",
+  dummyPokemon: "snorlax",
+  dummyMove: "leer",
+  dummyHp: 999,
+} as const;
+
+/** Témoin du Métronome : MÊME config/seed mais SANS l'objet → les Griffe consécutives ne montent PAS
+ *  en dégâts (la série n'augmente rien sans l'objet). Comparé à {@link METRONOME_BOOST}, prouve que la
+ *  croissance des dégâts vient bien de l'objet (et non d'un effet de bord de tour ou du seed). */
+export const METRONOME_BASELINE_NO_ITEM = {
+  ...DUEL,
+  dummyPokemon: "snorlax",
+  dummyMove: "leer",
+  dummyHp: 999,
+} as const;
