@@ -5,8 +5,10 @@ import {
   FieldTerrain,
   HeldItemId,
   isOnFieldTerrain,
+  metronomeDamageMultiplier,
   PokemonType,
   ProtectionReason,
+  pendingMetronomeSteps,
   StatName,
   StatusType,
 } from "@pokemon-tactic/core";
@@ -884,6 +886,20 @@ export const itemHandlers: HeldItemHandler[] = [
         itemId: HeldItemId.ThroatSpray,
       });
       return { events, consumeItem: true };
+    },
+  },
+
+  {
+    // Métronome (objet) : chaque usage consécutif du MÊME move (succès au tour précédent) ajoute
+    // +10% de dégâts, cumulatif jusqu'à +100% (×2.0, 10 paliers). Le compteur est tenu sur le
+    // PokemonInstance (metronomeStreak) et lu en pré-update via pendingMetronomeSteps — même source
+    // que le commit dans recordLastUsedMove. Reset si le move change ou si l'usage précédent a échoué.
+    id: HeldItemId.Metronome,
+    onDamageModify: (context) => {
+      if (!context.isAttacker) {
+        return 1.0;
+      }
+      return metronomeDamageMultiplier(pendingMetronomeSteps(context.self, context.move.id));
     },
   },
 

@@ -761,6 +761,20 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
     *Le +1 AtqSpé, la consommation (HeldItemConsumed), le déclenchement sur move Son STATUT
     (Rugissement) et l'absence d'effet sur un move NON-Son (Charge) → couverts unit
     (`battle/items/throat-spray.test.ts`).*
+- 🤖 **§5.19 Métronome (objet)** (`metronome`) — piloté de bout en bout (`mechanics-items.spec`) :
+  +10 % de dégâts par usage CONSÉCUTIF du MÊME move (succès au tour précédent), cumulatif, cap +100 %
+  (×2.0 au 10e usage). La montée est SILENCIEUSE (aucune ligne « Métronome … s'active »), donc prouvée
+  par les valeurs chiffrées des lignes « perd N PV ». Le joueur Florizarre tient le Métronome
+  (`heldItem`) et lance Griffe (`scratch`, Normal, 100 %, portée 1) QUATRE fois d'affilée sur un dummy
+  Ronflex (snorlax) endurant (`dummyHp: 999`, espèce distincte du lanceur → ses dégâts sont filtrables
+  par nom ; `dummyMove: "leer"` inerte → ne pollue pas le journal). Le dégât de chaque Griffe = la perte
+  de PV qui suit immédiatement « Florizarre utilise Griffe ! » (les ticks de poison de terrain au
+  libellé identique sont ignorés). Assertions INTRA-run (robustes : la présence de l'objet décale l'état
+  du PRNG, donc une égalité chiffrée inter-run serait fragile) : AVEC objet le 4e coup (×1.3) dépasse
+  strictement le 1er (×1.0) → l'objet fait monter les dégâts ; SANS objet l'amplitude max−min reste dans
+  la bande de variance de jet (≈ ±15 %) → aucune montée. *Le compteur 0..10, le cap +100 % et la remise
+  à zéro (move différent OU usage précédent raté/bloqué) sont couverts unit
+  (`battle/metronome-streak.test.ts`).*
 - 👁 **Talent** déclenché → « <Talent> de <X> s'active ! » (texte or).
 - 👁 **Objet tenu** activé → « <Objet> de <X> s'active ! » (vert) ; **consommé** → « <X> a utilisé
   son <Objet> ».
@@ -1176,7 +1190,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
 | `combat/weather.spec.ts` | §4.3/§5.12 — HUD météo (config) + pose via cast (Danse Pluie/Zénith/Tempête de Sable) ; §5.14 Roche Humide prolonge la Pluie à 8 tours (HUD `weather-turns`) |
-| `combat/mechanics-items.spec.ts` | §5.17 objets tenus du lot 95→99 : Ballon (éclate au 1er coup offensif → « Ballon … s'active ! » + « a utilisé son Ballon »), Lunettes Filtre (Spore bloqué → « Lunettes Filtre … s'active ! », « s'est endormi » absent), Pare-Effet (Griffe contact → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Talisman Sain (Groz'Yeux IA bloqué → « Talisman Sain … s'active ! »). Immunités silencieuses (Sol/poudre/météo, hazards/terrains au sol, baisse auto-infligée) = unit/integration. §5.18 lot 99→101 : Gant de Boxe (Mach Punch Poing → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Spray Gorge (Aboiement Son → « Spray Gorge … s'active ! »). Boost ×1,1, +1 AtqSpé, consommation, move Son statut = unit |
+| `combat/mechanics-items.spec.ts` | §5.17 objets tenus du lot 95→99 : Ballon (éclate au 1er coup offensif → « Ballon … s'active ! » + « a utilisé son Ballon »), Lunettes Filtre (Spore bloqué → « Lunettes Filtre … s'active ! », « s'est endormi » absent), Pare-Effet (Griffe contact → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Talisman Sain (Groz'Yeux IA bloqué → « Talisman Sain … s'active ! »). Immunités silencieuses (Sol/poudre/météo, hazards/terrains au sol, baisse auto-infligée) = unit/integration. §5.18 lot 99→101 : Gant de Boxe (Mach Punch Poing → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Spray Gorge (Aboiement Son → « Spray Gorge … s'active ! »). Boost ×1,1, +1 AtqSpé, consommation, move Son statut = unit. §5.19 Métronome (objet) : 4 Griffe d'affilée sur dummy Ronflex endurant → AVEC objet le 4e coup (×1,3) > le 1er (×1,0) ; SANS objet série plate (variance seule). Compteur 0..10, cap +100 %, remise à zéro (move différent/raté) = unit |
 | `dom/maps.spec.ts` | §8.1/§8.3 — les 8 cartes montent (tuiles, no crash) + Le Mur multi-niveaux |
 | `combat/hud.spec.ts` | §4 — sous-menu (type/nom), tooltip + grille de pattern (survol), timeline, §4.11 combat EN (`pt-lang=en`) |
 | `combat/hud-menu.spec.ts` | §4.1 bannière, §4.2 timeline (active/team), §4.4 menu (5 boutons, Objet/Statut off), §4.5 move-item (type/nom/PP), §4.9 journal (titre + repli) |

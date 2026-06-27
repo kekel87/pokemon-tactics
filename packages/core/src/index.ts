@@ -57,6 +57,7 @@ export {
 export { isImmuneToStatusByType } from "./battle/handlers/handle-status";
 export { HeldItemHandlerRegistry } from "./battle/held-item-handler-registry";
 export { getEffectiveInitiative } from "./battle/initiative-calculator";
+export { metronomeDamageMultiplier, pendingMetronomeSteps } from "./battle/metronome-streak";
 export {
   applyNatureModifier,
   NATURE_BOOST_MULTIPLIER,

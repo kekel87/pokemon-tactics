@@ -50,6 +50,11 @@ export interface PokemonInstance {
   /** Consecutive-cast count for Rollout (Roulade) — snowballs Dash range + power. Reset to 0 on any other move. */
   rolloutStreak?: number;
   /**
+   * Consecutive successful uses of the same move (Métronome objet) — 0..METRONOME_MAX_STEPS.
+   * Drives the cumulative damage boost. Reset to 0 when the move changes or the previous use failed.
+   */
+  metronomeStreak?: number;
+  /**
    * Action-clock stamps (B3 conditional-damage moves). Each holds the value of
    * `BattleState.actionCounter` at the moment the event happened. A stamp older than
    * `lastActedAtAction` means "not since my last action". Model-agnostic (round & CT).

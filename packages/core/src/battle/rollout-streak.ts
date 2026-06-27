@@ -1,6 +1,7 @@
 import { DynamicPowerKind } from "../enums/dynamic-power-kind";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { pendingMetronomeSteps } from "./metronome-streak";
 
 const ROLLOUT_BASE_RANGE = 2;
 const ROLLOUT_MAX_RANGE = 5;
@@ -37,12 +38,14 @@ export function rolloutRangeForIndex(index: number): number {
 /**
  * Record a completed move on the caster, updating the Rollout streak: bumped when the move snowballs
  * (`DynamicPowerKind.RolloutStreak`) and continues the same move, clamped to the cap; reset to 0
- * otherwise. Computes the bump BEFORE overwriting `lastUsedMoveId`, so it must be the only writer of
- * `lastUsedMoveId`.
+ * otherwise. Also commits the Métronome same-move streak (consecutive successful uses). Both streaks
+ * read the pre-update `lastUsedMoveId`, so they are computed BEFORE overwriting it — making this the
+ * only writer of `lastUsedMoveId`.
  */
 export function recordLastUsedMove(pokemon: PokemonInstance, move: MoveDefinition): void {
   pokemon.rolloutStreak = isRolloutStreakMove(move)
     ? Math.min(ROLLOUT_MAX_INDEX, pendingRolloutIndex(pokemon, move.id))
     : 0;
+  pokemon.metronomeStreak = pendingMetronomeSteps(pokemon, move.id);
   pokemon.lastUsedMoveId = move.id;
 }
