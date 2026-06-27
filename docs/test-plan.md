@@ -775,6 +775,27 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   la bande de variance de jet (≈ ±15 %) → aucune montée. *Le compteur 0..10, le cap +100 % et la remise
   à zéro (move différent OU usage précédent raté/bloqué) sont couverts unit
   (`battle/metronome-streak.test.ts`).*
+- 🤖 **§5.20 objets « eject » (lot 102→104)** — téléportation forcée vers la zone de spawn quand le
+  porteur encaisse un coup de dégâts (`mechanics-items.spec`). « Zone de spawn » = union des cases de
+  spawn de l'équipe (estampillées à la création du combat) ; destination = la case d'origine si sûre,
+  sinon la case de spawn d'équipe la plus loin de la menace ; « sûre » = passable, libre, non létale,
+  hors hazard. Aucune case sûre (hors case courante) → PAS de téléport et objet NON consommé.
+  - 🤖 **Carton Rouge** (`red-card`) — quand le porteur encaisse un coup, c'est l'ATTAQUANT qui est
+    renvoyé sur sa propre zone de spawn, puis l'objet du porteur est consommé. Piloté de bout en bout
+    côté joueur : le Florizarre démarre sur sa case de spawn (2,4), face nord, et dashe en Vive-Attaque
+    (`quick-attack`, Dash 2, 100 %) sur le dummy Ronflex (snorlax, `dummyHp: 999`) porteur du Carton
+    Rouge en (2,2) ; le dash l'éloigne de son spawn (atterrissage en (2,3)), puis le coup déclenche
+    l'objet et téléporte l'attaquant sur sa case de spawn libérée (2,4). Dash confirmé par la DIRECTION
+    (axe nord, cf §5.13) → déterministe. Journal : « Carton Rouge de <X> s'active ! » + « <le
+    Florizarre> se téléporte ! » + « <X> a utilisé son Carton Rouge ».
+  - 👁 **Bouton Fuite** (`eject-button`) — quand le PORTEUR encaisse un coup (et survit), c'est LUI qui
+    est renvoyé sur sa zone de spawn, puis l'objet se consomme. Non automatisable côté joueur : en
+    sandbox 1v1 le seul attaquant fiable est le joueur, et le porteur (le dummy) ne peut être frappé
+    par le joueur QUE depuis sa case de spawn (il n'a pas bougé) → l'eject ramène alors le porteur sur
+    sa propre case (no-op, non journalisé) ; le faire bouger d'abord exigerait de piloter le tour du
+    dummy sur plusieurs tours (fragile, sans précédent dans la suite). Couvert unit/integration core
+    (`battle/forced-teleport.test.ts`, `battle/items/eject-items.test.ts` — le porteur s'éloigne de
+    son spawn, est frappé, se téléporte chez lui et l'objet est consommé).
 - 👁 **Talent** déclenché → « <Talent> de <X> s'active ! » (texte or).
 - 👁 **Objet tenu** activé → « <Objet> de <X> s'active ! » (vert) ; **consommé** → « <X> a utilisé
   son <Objet> ».
@@ -1190,7 +1211,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
 | `combat/weather.spec.ts` | §4.3/§5.12 — HUD météo (config) + pose via cast (Danse Pluie/Zénith/Tempête de Sable) ; §5.14 Roche Humide prolonge la Pluie à 8 tours (HUD `weather-turns`) |
-| `combat/mechanics-items.spec.ts` | §5.17 objets tenus du lot 95→99 : Ballon (éclate au 1er coup offensif → « Ballon … s'active ! » + « a utilisé son Ballon »), Lunettes Filtre (Spore bloqué → « Lunettes Filtre … s'active ! », « s'est endormi » absent), Pare-Effet (Griffe contact → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Talisman Sain (Groz'Yeux IA bloqué → « Talisman Sain … s'active ! »). Immunités silencieuses (Sol/poudre/météo, hazards/terrains au sol, baisse auto-infligée) = unit/integration. §5.18 lot 99→101 : Gant de Boxe (Mach Punch Poing → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Spray Gorge (Aboiement Son → « Spray Gorge … s'active ! »). Boost ×1,1, +1 AtqSpé, consommation, move Son statut = unit. §5.19 Métronome (objet) : 4 Griffe d'affilée sur dummy Ronflex endurant → AVEC objet le 4e coup (×1,3) > le 1er (×1,0) ; SANS objet série plate (variance seule). Compteur 0..10, cap +100 %, remise à zéro (move différent/raté) = unit |
+| `combat/mechanics-items.spec.ts` | §5.17 objets tenus du lot 95→99 : Ballon (éclate au 1er coup offensif → « Ballon … s'active ! » + « a utilisé son Ballon »), Lunettes Filtre (Spore bloqué → « Lunettes Filtre … s'active ! », « s'est endormi » absent), Pare-Effet (Griffe contact → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Talisman Sain (Groz'Yeux IA bloqué → « Talisman Sain … s'active ! »). Immunités silencieuses (Sol/poudre/météo, hazards/terrains au sol, baisse auto-infligée) = unit/integration. §5.18 lot 99→101 : Gant de Boxe (Mach Punch Poing → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Spray Gorge (Aboiement Son → « Spray Gorge … s'active ! »). Boost ×1,1, +1 AtqSpé, consommation, move Son statut = unit. §5.19 Métronome (objet) : 4 Griffe d'affilée sur dummy Ronflex endurant → AVEC objet le 4e coup (×1,3) > le 1er (×1,0) ; SANS objet série plate (variance seule). Compteur 0..10, cap +100 %, remise à zéro (move différent/raté) = unit. §5.20 objets « eject » (lot 102→104) : Carton Rouge (Florizarre dashe en Vive-Attaque depuis son spawn sur le dummy Ronflex porteur → l'ATTAQUANT est renvoyé chez lui → « Carton Rouge … s'active ! » + « … se téléporte ! » + « a utilisé son Carton Rouge »). Bouton Fuite (renvoie le PORTEUR : no-op si le dummy n'a pas bougé → non pilotable côté joueur) = unit/integration core (`forced-teleport.test.ts`, `items/eject-items.test.ts`) → 👁 |
 | `dom/maps.spec.ts` | §8.1/§8.3 — les 8 cartes montent (tuiles, no crash) + Le Mur multi-niveaux |
 | `combat/hud.spec.ts` | §4 — sous-menu (type/nom), tooltip + grille de pattern (survol), timeline, §4.11 combat EN (`pt-lang=en`) |
 | `combat/hud-menu.spec.ts` | §4.1 bannière, §4.2 timeline (active/team), §4.4 menu (5 boutons, Objet/Statut off), §4.5 move-item (type/nom/PP), §4.9 journal (titre + repli) |

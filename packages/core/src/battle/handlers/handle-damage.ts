@@ -6,6 +6,7 @@ import { PokemonType } from "../../enums/pokemon-type";
 import { StatName } from "../../enums/stat-name";
 import { StatusType } from "../../enums/status-type";
 import { Weather } from "../../enums/weather";
+import { Grid } from "../../grid/Grid";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import type { MoveDefinition } from "../../types/move-definition";
@@ -29,6 +30,7 @@ import {
   getFieldTerrainMovePowerMultiplier,
   resolveFieldTerrainPulseMove,
 } from "../field-terrain-system";
+import { ejectToSpawn } from "../forced-teleport";
 import { friendGuardMultiplier } from "../friend-guard-system";
 import { isMajorStatus } from "../stat-modifier";
 import { applySubstituteAbsorption, shouldSubstituteBlock } from "../substitute-system";
@@ -500,6 +502,40 @@ function dealSingleHit(
         pokemonId: target.id,
         countdownStart: 0,
       });
+    }
+  }
+
+  // Eject items (Bouton Fuite / Carton Rouge): on a damaging hit, teleport a mon back to a safe tile
+  // of its spawn zone, then consume. No bench in this tactical game → spawn-zone teleport is the
+  // analogue of the canonical switch-out. Skipped (and not consumed) when no safe tile is free.
+  if (actualDamage > 0 && (targetItem?.ejectsHolderOnHit || targetItem?.ejectsAttackerOnHit)) {
+    const grid = new Grid(
+      context.state.grid[0]?.length ?? 0,
+      context.state.grid.length,
+      context.state.grid,
+    );
+    const ejectsAttacker = targetItem.ejectsAttackerOnHit === true;
+    const teleportee = ejectsAttacker ? context.attacker : target;
+    const teleporteeTypes = ejectsAttacker ? context.attackerTypes : defenderTypes;
+    const threat = ejectsAttacker ? target.position : context.attacker.position;
+    if (teleportee.currentHp > 0) {
+      const teleportEvent = ejectToSpawn(context.state, grid, teleportee, teleporteeTypes, threat);
+      if (teleportEvent !== null) {
+        const itemId = targetItem.id;
+        events.push({
+          type: BattleEventType.HeldItemActivated,
+          pokemonId: target.id,
+          itemId,
+          targetIds: [teleportee.id],
+        });
+        events.push(teleportEvent);
+        events.push({
+          type: BattleEventType.HeldItemConsumed,
+          pokemonId: target.id,
+          itemId,
+        });
+        target.heldItemId = undefined;
+      }
     }
   }
 

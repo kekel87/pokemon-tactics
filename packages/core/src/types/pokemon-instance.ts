@@ -28,6 +28,12 @@ export interface PokemonInstance {
   statStages: Record<StatName, number>;
   statusEffects: StatusEffect[];
   position: Position;
+  /**
+   * Tile this mon started the battle on (stamped once at engine init). The team's spawn zone is the
+   * union of its members' `spawnPosition`s. Drives the eject items (Bouton Fuite / Carton Rouge),
+   * which teleport a mon back to a safe tile of its spawn zone.
+   */
+  spawnPosition?: Position;
   orientation: Direction;
   moveIds: string[];
   activeDefense: ActiveDefense | null;

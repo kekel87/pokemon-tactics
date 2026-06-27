@@ -101,6 +101,8 @@ export const HeldItemId = {
   PunchingGlove: "punching-glove",
   ThroatSpray: "throat-spray",
   Metronome: "metronome",
+  EjectButton: "eject-button",
+  RedCard: "red-card",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];

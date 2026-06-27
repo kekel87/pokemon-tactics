@@ -332,3 +332,32 @@ export const METRONOME_BASELINE_NO_ITEM = {
   dummyMove: "leer",
   dummyHp: 999,
 } as const;
+
+// Objets « eject » (plan 142) — téléportation forcée vers la zone de spawn quand le porteur encaisse
+// un coup de dégâts. Carton Rouge renvoie l'ATTAQUANT chez lui ; il est donc le SEUL des deux à être
+// pilotable de bout en bout côté joueur (le joueur est l'attaquant). Bouton Fuite renvoie le PORTEUR
+// chez lui, ce qui n'est observable que si le porteur s'est d'abord éloigné de son spawn ET reçoit un
+// coup : en sandbox 1v1 le seul attaquant fiable est le joueur, et le porteur (le dummy) ne peut être
+// frappé par le joueur QUE depuis sa case de spawn (il n'a pas bougé) → l'eject ramène alors le
+// porteur sur sa propre case (no-op, non journalisé). Bouton Fuite reste donc couvert unit/integration
+// core (`forced-teleport.test.ts`, `items/eject-items.test.ts`) et marqué 👁 dans le cahier.
+
+/** Carton Rouge (red-card) : quand le porteur encaisse un coup, l'ATTAQUANT est renvoyé sur sa propre
+ *  zone de spawn, puis l'objet du porteur est consommé. Le joueur Florizarre démarre sur sa case de
+ *  spawn (2,4), face nord, et lance Vive-Attaque (`quick-attack`, Dash 2, 100 % précision → touche
+ *  sous tout seed) sur le dummy Ronflex (snorlax) porteur du Carton Rouge en (2,2). Le dash éloigne le
+ *  joueur de son spawn — il atterrit en (2,3), adjacent au dummy — puis le coup déclenche le Carton
+ *  Rouge : l'attaquant (le joueur) est téléporté sur sa case de spawn libérée (2,4). Le dummy est
+ *  endurant (`dummyHp: 999`) pour survivre au coup. Observable de bout en bout via le journal :
+ *  « Carton Rouge de <X> s'active ! » + « <le Florizarre> se téléporte ! » + « <X> a utilisé son
+ *  Carton Rouge ». Dash piloté par la DIRECTION (axe nord), 100 % précision → déterministe. */
+export const RED_CARD_EJECTS_ATTACKER = {
+  ...DUEL,
+  moves: ["quick-attack"],
+  playerPosition: { x: 2, y: 4 },
+  playerDirection: "north",
+  dummyPokemon: "snorlax",
+  dummyPosition: { x: 2, y: 2 },
+  dummyHeldItem: "red-card",
+  dummyHp: 999,
+} as const;

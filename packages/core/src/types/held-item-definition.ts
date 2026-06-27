@@ -123,6 +123,10 @@ export interface HeldItemHandler {
   nullifiesContactForMove?: (move: MoveDefinition) => boolean;
   /** Fired once after the holder uses a move, whatever the move does (Spray Gorge vs moves Son). */
   onAfterMoveUse?: (context: ItemAfterMoveUseContext) => ItemReactionResult;
+  /** On taking a damaging hit, teleport the HOLDER back to its spawn zone, then consume (Bouton Fuite). */
+  ejectsHolderOnHit?: boolean;
+  /** On taking a damaging hit, teleport the ATTACKER back to its spawn zone, then consume (Carton Rouge). */
+  ejectsAttackerOnHit?: boolean;
 }
 
 export interface HeldItemDefinition extends HeldItemHandler {
