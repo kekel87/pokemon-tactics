@@ -60,4 +60,6 @@ export interface InfoPanelData {
   readonly portraitUrl?: string;
   /** Status changes / volatiles / statuses, rendered as chips. */
   readonly badges: readonly InfoPanelBadge[];
+  /** Localised held-item name; omitted when the Pokémon holds nothing. */
+  readonly heldItem?: string;
 }

@@ -222,6 +222,11 @@ export function buildInfoPanelView(
 
   pushAuraBadges(context, badges, pokemon, state);
 
+  const heldItem =
+    pokemon.heldItemId === undefined
+      ? undefined
+      : (context.getItemName(pokemon.heldItemId) ?? undefined);
+
   return {
     name: getPokemonName(pokemon.definitionId, language),
     level: pokemon.level,
@@ -231,6 +236,7 @@ export function buildInfoPanelView(
     team: teamNumberOf(pokemon.playerId),
     portraitUrl: context.getPortraitUrl(pokemon.definitionId),
     badges,
+    ...(heldItem === undefined ? {} : { heldItem }),
   };
 }
 

@@ -10,4 +10,6 @@ import type { I18nContext } from "./i18n-context.js";
 export interface PresentationContext extends I18nContext {
   /** Whether the confirm-phase damage preview is enabled (renderer setting). */
   isDamagePreviewEnabled(): boolean;
+  /** Localised held-item name for an item id (null when unknown). */
+  getItemName(itemId: string): string | null;
 }

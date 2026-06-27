@@ -51,6 +51,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Traversée (Spectre / Volant) | §5.19, §8.4 |
 | Effets de terrain (coût/statut/DOT/bonus) | §5.20, §8.1 |
 | Pattern de ciblage d'un move | §3.7, §4.6, §5.16 |
+| Objet tenu / manipulation d'objet (vol/échange/retrait/recyclage) | §5.14, §5.25 |
 | Move (effet observable) | §5 (famille concernée) |
 | HUD DOM combat (log, timeline, menus, tooltip) | §4 |
 | Écran / menu / navigation | §6 |
@@ -638,7 +639,61 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
   (`talents-soutien.integration.test` : baie non mangée face à un ennemi Tension vivant) + unit
   (`battle/berry-suppression.test`).
 
-- 🤖 **Objets tenus simples à event** — un par mécanique, pilotés de bout en bout (`mechanics-abilities.spec`) :
+#### 5.25 Item interaction — manipulation de l'objet tenu (plan 142)
+Les 12 moves pilotés de bout en bout via le journal FR (`BattleLogFormatter`) + la ligne objet de
+l'InfoPanel (`info-panel-item`, « 🎒 {nom} »). Tous déterministes (aucun override `Math.random`) :
+moves 100 % précision sur cible adjacente (DUEL) → pas de jet ; Éructation (90 %) s'appuie sur le seed
+fixe DUEL. On asserte le SENS (ligne de journal / contenu InfoPanel), jamais le pixel
+(`mechanics-item-interaction.spec`).
+- 🤖 **Sabotage** (`knock-off`, retire l'objet retirable de la cible) — le joueur lance Sabotage sur le
+  dummy porteur des Restes (`dummyHeldItem`) adjacent → « <X> perd son Restes ! » + dégâts. Le ×1.5 si la
+  cible porte un objet est un multiplicateur SILENCIEUX (valeur couverte unit/integration `damage-calculator`
+  + `moves/knock-off.test`) → on prouve le RETRAIT (la ligne de journal), pas le multiplicateur.
+- 🤖 **Larcin** (`thief`, vole l'objet si le lanceur a les mains vides — D2) — le joueur SANS objet lance
+  Larcin sur le dummy porteur des Restes → « <X> vole le Restes de <Y> ! », puis l'InfoPanel du LANCEUR
+  (survol de sa case) affiche « 🎒 Restes ». La condition mains-vides (sinon dégâts seuls) est couverte
+  unit (`moves/thief.test`, `moves/covet.test`). Implore (`covet`) partage l'effet `StealItem` → unit, non
+  re-piloté e2e → 👁.
+- 🤖 **Tour de Magie** (`trick`, échange inconditionnel des objets — D3) — le joueur tient le Bandeau
+  Choix, le dummy les Restes ; l'échange journalise « <X> échange son objet avec <Y> ! » et l'InfoPanel du
+  lanceur montre désormais « 🎒 Restes ». L'échec si les DEUX sont vides = unit (`moves/trick.test`).
+  Passe-Passe (`switcheroo`) partage l'effet `SwapItems` → unit, non re-piloté e2e → 👁.
+- 🤖 **Dégommage** (`fling`, lance l'objet tenu — D6) — le joueur tient l'Orbe Flamme (`flame-orb`, fling
+  power 30) et lance Dégommage au TOUR 1 (avant que l'Orbe ne brûle son propre porteur en fin de tour) sur
+  le dummy endurant (hp 999 → survit, on observe le STATUT) → « <X> dégomme son Orbe Flamme ! » + « <Y> est
+  brûlé ! » (table `FLING_EFFECT`). Injouable sans objet flingable (`requiresFlingableItem`) + table de
+  puissance/secondaires (baies lancées, Orbe Toxique, flinch…) = unit/integration (`moves/fling.test`).
+- 🤖 **Recyclage** (`recycle`, restaure le dernier objet consommé par son effet — D1) — le Ronflex tient
+  une Baie Lichii et démarre à 20 % PV : « Attendre » → fin de tour → la baie se mange (`consumedItemId`) →
+  « … a utilisé son Baie Lichii ». Au tour suivant, Recyclage (Self) → « <X> recycle son Baie Lichii ! » et
+  l'InfoPanel re-montre « 🎒 Baie Lichii ». La non-restauration d'un objet RETIRÉ/volé (vs consommé) = unit
+  (`moves/recycle.test`).
+- 🤖 **Éructation** (`belch`, injouable tant qu'aucune baie n'a été mangée — D7) — le Ronflex tient une
+  Baie Lichii à 20 % PV : « Attendre » → fin de tour → la baie se mange (`ateBerryThisBattle`). Au tour
+  suivant, Éructation (seul move) devient légale et résout sur le dummy endurant (hp 999) → « Dummy perd N
+  PV ». Prouve le gate par baie : c'est l'action de manger qui débloque le move. Le filtrage `getLegalActions`
+  + garde `submitAction` = unit (`moves/belch.test`).
+- 🤖 **Talent Glu** (`sticky-hold`, bloque tout retrait/vol/échange — D12) — le joueur lance Sabotage sur
+  le dummy Grotadmorv (muk, slot Glu via `dummyAbility`) porteur des Restes → le retrait est bloqué : « Glu
+  de <X> s'active ! » présent et « perd son Restes » ABSENT (l'objet reste). Les dégâts frappent
+  normalement (hors sens testé). Le blocage du vol/échange/Larcin/Tour de Magie = unit/integration
+  (`abilities.integration.test`, `held-item-transfer.test`).
+- 👁 **Picore / Piqûre** (`pluck` / `bug-bite`, mange la baie de la cible et applique son effet au lanceur
+  — D8) et **Calcination** (`incinerate`, détruit la baie/gemme de la cible sans bénéfice — D9) et **Gaz
+  Corrosif** (`corrosive-gas`, retire l'objet de la cible — statut) : pilotables mais redondants avec les
+  signaux déjà couverts ci-dessus (manger une baie / retirer un objet) et leur valeur fine (effet de la
+  baie transférée au lanceur, destruction sans effet, équivalence du retrait) tient au CONTENU précis que le
+  journal n'expose pas distinctement → couverts unit/integration core (`moves/pluck.test`, `moves/bug-bite.test`,
+  `moves/incinerate.test`, `moves/corrosive-gas.test`, `held-item-transfer.test`).
+- 👁 **Substitut bloque l'item-manip** (D5) — l'effet objet est silencieusement annulé à travers un Clonage
+  actif (les dégâts frappent le Clone normalement). « Rien ne se passe » côté objet → e2e fragile → couvert
+  integration core (`held-item-manip.integration.test` / `isSubstituteActive`).
+- 👁 **Baies Lansat / Frista** (`lansat-berry` / `starf-berry`, débloquées par l'infra — D11) — pincement
+  ≤25 % PV → Lansat pose un stage de crit volatile (`critStageBoost += 2`), Frista +2 sur une stat
+  aléatoire (PRNG seedé). Le boost de crit n'a pas de ligne de journal distincte (l'effet est statistique
+  sur le calcul de dégâts) → couvert unit (`battle/items/lansat-berry.test`, `starf-berry.test`).
+
+
   **Grelot Coque** (`shell-bell`, soin post-coup : porteur blessé qui attaque → 1/8 des dégâts rendus,
   « Grelot Coque de <X> s'active ! » + « <X> récupère N PV ») ; **Orbe Toxique** (`toxic-orb`,
   auto-statut : empoisonne gravement le porteur en fin de tour sans statut majeur, « Orbe Toxique de
@@ -1172,6 +1227,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-talents-tier-c.spec.ts` | §5.16 talents Tier C (plan 138) : Force Soleil (perte 1/8 PV en fin de tour sous Soleil → « Force Soleil … s'active ! » + « perd N PV »), Anti-Bruit (Mégaphone sonore bloqué → « Anti-Bruit … s'active ! », « perd N PV » absent), Boom Final (K.O. au contact → recul « Dracaufeu perd N PV »), Armurouillée (coup physique → « Défense … baisse ! » + « Vitesse … augmente ! »). 13 autres talents Tier C (multiplicateurs/immunités/réactions silencieux ou probabilistes) = unit/integration |
 | `combat/mechanics-talents-secondary.spec.ts` | §5.17 talents attaquant — effet secondaire (plan 139) : Sans Limite (Nidoking + Bombe Beurk → « Sans Limite … s'active ! », dégâts présents, « est empoisonné » absent — secondaire supprimé, tout seed) ; Sérénité (Leveinard + Bombe Beurk, FLIP au seed 1 : poison absent sans le talent, présent avec — le 30 % doublé en 60 % réussit). Le ×1.3 de Sans Limite, le cap 100 % et les exclusions de Sérénité = unit/integration core |
 | `combat/mechanics-talents-support.spec.ts` | §5.24 talents soutien & couplage objet (plan 141) : Moiteur (Électrode + Destruction sur Psykokwak porteur → « Moiteur … s'active ! » + « Mais cela échoue … ! », « Psykokwak perd N PV » absent), Gloutonnerie (Ronflex à 40 % PV + Baie Lichii → fin de tour → « Baie Lichii … s'active ! » + « Attaque … augmente ! » au seuil 50 %). Cœur Soin / Garde-Ami (soutien d'équipe, requièrent un allié à r2 → non pilotables en 1v1) et Tension (silencieux, effet = absence de baie) = unit/integration core → 👁 |
+| `combat/mechanics-item-interaction.spec.ts` | §5.25 item interaction (plan 142) : Sabotage (retire l'objet → « perd son Restes »), Larcin (vole l'objet → « vole le … » + InfoPanel du lanceur « 🎒 Restes »), Tour de Magie (échange → « échange son objet … » + InfoPanel « 🎒 Restes »), Dégommage (Orbe Flamme lancée → « dégomme son Orbe Flamme » + « est brûlé »), Recyclage (baie mangée en fin de tour puis restaurée → « recycle son Baie Lichii » + InfoPanel), Éructation (jouable seulement après une baie mangée → dégâts au dummy), Glu (Sabotage bloqué sur Grotadmorv → « Glu … s'active », « perd son Restes » absent). Implore/Passe-Passe (effets partagés), Picore/Piqûre/Calcination/Gaz Corrosif (contenu fin non distinct au journal), Substitut (D5), baies Lansat/Frista (boost silencieux), ×1.5 de Sabotage = unit/integration core → 👁 |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |

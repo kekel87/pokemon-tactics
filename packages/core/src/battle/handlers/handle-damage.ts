@@ -30,6 +30,7 @@ import {
   resolveFieldTerrainPulseMove,
 } from "../field-terrain-system";
 import { friendGuardMultiplier } from "../friend-guard-system";
+import { consumeHeldItem } from "../held-item-transfer";
 import { isMajorStatus } from "../stat-modifier";
 import { applySubstituteAbsorption, shouldSubstituteBlock } from "../substitute-system";
 import {
@@ -137,6 +138,7 @@ function dealSingleHit(
     context.attacker,
     target,
     context.state,
+    context.itemRegistry,
   );
   if (hitPowerOverride !== undefined) {
     resolvedMove = { ...resolvedMove, power: hitPowerOverride };
@@ -404,7 +406,7 @@ function dealSingleHit(
       pokemonId: target.id,
       itemId: HeldItemId.FocusSash,
     });
-    target.heldItemId = undefined;
+    consumeHeldItem(target);
   }
 
   if (target.currentHp <= 0) {
@@ -492,7 +494,7 @@ function dealSingleHit(
     });
     events.push(...result.events);
     if (result.consumeItem) {
-      target.heldItemId = undefined;
+      consumeHeldItem(target, { isBerry: targetItem.isBerry });
     }
     if (target.currentHp <= 0) {
       events.push({

@@ -643,6 +643,19 @@ export class BattleEngine {
           }
         }
 
+        // Éructation (belch): only usable after the user has eaten a berry this battle.
+        if (move.requiresEatenBerry === true && currentPokemon.ateBerryThisBattle !== true) {
+          continue;
+        }
+
+        // Dégommage (fling): only usable while the user holds a flingable item.
+        if (
+          move.requiresFlingableItem === true &&
+          (this.itemRegistry?.getForPokemon(currentPokemon)?.flingPower ?? undefined) === undefined
+        ) {
+          continue;
+        }
+
         // B4 morphs (Nature Power swap, Expanding Force targeting, Grassy Glide range) resolved from
         // the caster's current tile so legality matches preview and execution exactly.
         const effectiveMove = this.resolveEffectiveMove(currentPokemon, move);
@@ -1070,6 +1083,15 @@ export class BattleEngine {
       if (!allOthersUsed) {
         return { success: false, events: [], error: ActionError.InvalidAction };
       }
+    }
+    if (move.requiresEatenBerry === true && pokemon.ateBerryThisBattle !== true) {
+      return { success: false, events: [], error: ActionError.InvalidAction };
+    }
+    if (
+      move.requiresFlingableItem === true &&
+      (this.itemRegistry?.getForPokemon(pokemon)?.flingPower ?? undefined) === undefined
+    ) {
+      return { success: false, events: [], error: ActionError.InvalidAction };
     }
 
     const isFiringCharged = pokemon.chargingMove?.moveId === moveId;
@@ -2719,6 +2741,7 @@ export class BattleEngine {
     pokemon.pendingCtPenalty = undefined;
     pokemon.perishAura = undefined;
     pokemon.helpingHand = undefined;
+    pokemon.critStageBoost = undefined;
     pokemon.volatileStatuses = [];
 
     for (const other of this.state.pokemon.values()) {

@@ -537,6 +537,12 @@ const earlyBird: AbilityHandler = {
   },
 };
 
+// Glu (sticky-hold): a marker ability. Its effect — blocking item removal / theft / swap — is read
+// directly by the item-manipulation guard in the core (isItemProtectedByStickyHold); no hook needed.
+const stickyHold: AbilityHandler = {
+  id: "sticky-hold",
+};
+
 const lightningRod: AbilityHandler = {
   id: "lightning-rod",
   onTypeImmunity: (context) => {
@@ -2066,6 +2072,7 @@ export const abilityHandlers: AbilityHandler[] = [
   sandVeil,
   ownTempo,
   earlyBird,
+  stickyHold,
   lightningRod,
   magicGuard,
   noGuard,

@@ -100,6 +100,8 @@ export const HeldItemId = {
   ClearAmulet: "clear-amulet",
   PunchingGlove: "punching-glove",
   ThroatSpray: "throat-spray",
+  LansatBerry: "lansat-berry",
+  StarfBerry: "starf-berry",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];
