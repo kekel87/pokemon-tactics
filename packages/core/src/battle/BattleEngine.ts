@@ -187,6 +187,11 @@ export class BattleEngine {
     this.state.lastAllyFaintAtAction ??= {};
     this.state.lastTeamActionMoveId ??= {};
     this.state.echoStreak ??= 0;
+    // Stamp each mon's spawn tile once (eject items resolve their spawn zone from these). At init the
+    // current position IS the spawn tile; `??=` keeps a value already set by a state-builder/replay.
+    for (const pokemon of this.state.pokemon.values()) {
+      pokemon.spawnPosition ??= { ...pokemon.position };
+    }
     this.moveRegistry = moveRegistry;
     this.typeChart = typeChart;
     this.pokemonTypesMap = pokemonTypesMap;

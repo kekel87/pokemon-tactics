@@ -904,6 +904,21 @@ export const itemHandlers: HeldItemHandler[] = [
   },
 
   {
+    // Bouton Fuite (eject-button) : le porteur touché est téléporté sur une case sûre de sa zone de
+    // spawn, puis l'objet est consommé. Pas de banc dans ce jeu tactique → le téléport au spawn est
+    // l'analogue du switch-out canon. Résolu côté moteur (handle-damage + forced-teleport).
+    id: HeldItemId.EjectButton,
+    ejectsHolderOnHit: true,
+  },
+
+  {
+    // Carton Rouge (red-card) : quand le porteur est touché, c'est l'ATTAQUANT qui est téléporté sur
+    // sa propre zone de spawn, puis l'objet est consommé. Analogue tactique du « force switch ».
+    id: HeldItemId.RedCard,
+    ejectsAttackerOnHit: true,
+  },
+
+  {
     id: HeldItemId.MuscleBand,
     onDamageModify: (context) => {
       if (!context.isAttacker || context.move.category !== Category.Physical) {

@@ -1,5 +1,10 @@
 import { expect, test } from "../../fixtures";
-import { DUEL, METRONOME_BASELINE_NO_ITEM, METRONOME_BOOST } from "../../fixtures/sandbox-configs";
+import {
+  DUEL,
+  METRONOME_BASELINE_NO_ITEM,
+  METRONOME_BOOST,
+  RED_CARD_EJECTS_ATTACKER,
+} from "../../fixtures/sandbox-configs";
 
 // Cahier §5.17 (lot 95→99) et §5.18 (lot 99→101) — objets tenus pilotés de bout en bout à travers le renderer
 // (journal FR). Configurables en sandbox (`heldItem`/`dummyHeldItem`/`dummyMove`) → déterministes,
@@ -221,4 +226,32 @@ test("§5.19 Métronome : usages consécutifs du même move montent les dégâts
   // SANS objet : pas de montée → l'amplitude reste dans la bande de variance de jet (≈ ±15 % + arrondi).
   const baselineSpread = Math.max(...baseline) - Math.min(...baseline);
   expect(baselineSpread).toBeLessThanOrEqual(Math.ceil(Math.min(...baseline) * 0.18));
+});
+
+// Carton Rouge (red-card) : quand le PORTEUR encaisse un coup de dégâts, c'est l'ATTAQUANT qui est
+// renvoyé sur sa propre zone de spawn, puis l'objet du porteur est consommé (hook eject, câblé dans
+// handle-damage → `ejectToSpawn`). Le joueur Florizarre démarre sur sa case de spawn (2,4), face nord,
+// et dashe en Vive-Attaque (Dash 2, 100 % précision) sur le dummy Ronflex porteur du Carton Rouge en
+// (2,2) : le dash l'éloigne de son spawn (atterrissage en (2,3)) puis le coup déclenche le Carton
+// Rouge, qui téléporte l'ATTAQUANT sur sa case de spawn libérée (2,4). On confirme le dash par la
+// DIRECTION (axe nord, cf §5.13) puis on lit la séquence dans le journal : « Carton Rouge … s'active »,
+// « … se téléporte ! » (l'attaquant renvoyé), « … a utilisé son Carton Rouge » (consommation).
+// Bouton Fuite (eject-button) renvoie le PORTEUR chez lui : non pilotable côté joueur (le porteur, le
+// dummy, ne peut être frappé que sur sa case de spawn → eject no-op) → couvert unit/integration core
+// (`forced-teleport.test.ts`, `items/eject-items.test.ts`), marqué 👁 au cahier §5.20.
+test("§5.20 Carton Rouge : renvoie l'attaquant sur sa zone de spawn puis se consomme (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(RED_CARD_EJECTS_ATTACKER);
+  // Sélectionner Vive-Attaque (Attaque → 1er move) puis piloter le Dash par la DIRECTION nord :
+  // survoler une tuile de l'axe nord fixe la direction, deux clics sur l'axe (≠ atterrissage) valident.
+  await page.getByRole("button", { name: "Attaque", exact: true }).click();
+  await page.getByTestId("move-item").first().click();
+  await scene.hoverTile(2, 0);
+  await scene.clickTile(2, 1);
+  await scene.clickTile(2, 1);
+  await expect(log(page, /Carton Rouge de .* s'active/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /se téléporte/)).toBeAttached();
+  await expect(log(page, /a utilisé son Carton Rouge/)).toBeAttached();
 });
