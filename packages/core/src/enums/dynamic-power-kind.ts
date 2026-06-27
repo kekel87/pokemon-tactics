@@ -45,6 +45,8 @@ export const DynamicPowerKind = {
   AllyFaintCountScaled: "ally_faint_count_scaled",
   /** ×2 if the target has not acted since the user's last action (fishious-rend, bolt-beak). */
   TargetIdleSinceLastAction: "target_idle_since_last_action",
+  /** Power = the user's held item's fling power (Dégommage / fling). */
+  HeldItemFling: "held_item_fling",
 } as const;
 
 export type DynamicPowerKind = (typeof DynamicPowerKind)[keyof typeof DynamicPowerKind];

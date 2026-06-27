@@ -125,6 +125,30 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   if (move.effects.some((effect) => effect.kind === EffectKind.SpiteCtTax)) {
     keys.push("moveTooltip.tag.spite");
   }
+  if (move.effects.some((effect) => effect.kind === EffectKind.RemoveItem)) {
+    keys.push("moveTooltip.tag.removesItem");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.StealItem)) {
+    keys.push("moveTooltip.tag.stealsItem");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.SwapItems)) {
+    keys.push("moveTooltip.tag.swapsItem");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.FlingItem)) {
+    keys.push("moveTooltip.tag.fling");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.EatTargetBerry)) {
+    keys.push("moveTooltip.tag.eatsBerry");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.BurnTargetItem)) {
+    keys.push("moveTooltip.tag.burnsItem");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.RecycleItem)) {
+    keys.push("moveTooltip.tag.recycleItem");
+  }
+  if (move.requiresEatenBerry === true) {
+    keys.push("moveTooltip.tag.requiresBerry");
+  }
   if (
     move.effects.some(
       (effect) =>

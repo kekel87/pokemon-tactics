@@ -108,6 +108,9 @@ export function loadData(): GameData {
         : {}),
       ...(merged.fieldTerrainBoostedType ? { fieldTerrainBoostedType: true } : {}),
       ...(merged.naturePowerMorph ? { naturePowerMorph: true } : {}),
+      ...(merged.knockOffBoost ? { knockOffBoost: true } : {}),
+      ...(merged.requiresEatenBerry ? { requiresEatenBerry: true } : {}),
+      ...(merged.requiresFlingableItem ? { requiresFlingableItem: true } : {}),
     };
     return moveDefinition;
   });

@@ -24,6 +24,12 @@ export interface MoveDefinition {
   recharge?: boolean;
   /** Explosion move (Destruction): fizzles entirely while a Pokémon with Moiteur (damp) is on the field. */
   isExplosion?: boolean;
+  /** Sabotage (knock-off): ×1.5 damage when the target carries a removable item. */
+  knockOffBoost?: boolean;
+  /** Éructation (belch): the move fails unless the user has eaten a berry this battle. */
+  requiresEatenBerry?: boolean;
+  /** Dégommage (fling): the move requires the user to hold a flingable item (has a fling power). */
+  requiresFlingableItem?: boolean;
   ignoresHeight?: boolean;
   flags?: MoveFlags;
   effectTier?: EffectTier;

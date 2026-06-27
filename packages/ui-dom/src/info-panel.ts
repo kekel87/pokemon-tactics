@@ -60,11 +60,14 @@ export function createInfoPanel(): InfoPanel {
 
   const hpText = el("span", "ip-hptext", "info-panel-hp");
 
+  // Held item line (🎒 {name}); hidden when the Pokémon holds nothing.
+  const itemEl = el("span", "ip-item", "info-panel-item");
+
   const badges = el("ul", "ip-badges");
 
   // Portrait + body sit side by side (row 1); badges span full width (row 2),
   // so they get the whole panel width, not just the column beside the portrait.
-  body.append(header, hpBar, hpText);
+  body.append(header, hpBar, hpText, itemEl);
   panel.append(portrait, body, badges);
 
   function update(data: InfoPanelData): void {
@@ -94,6 +97,14 @@ export function createInfoPanel(): InfoPanel {
     hpText.textContent = `${data.hpCurrent} / ${data.hpMax}`;
     hpBar.setAttribute("aria-valuemax", String(data.hpMax));
     hpBar.setAttribute("aria-valuenow", String(data.hpCurrent));
+
+    if (data.heldItem) {
+      itemEl.textContent = `🎒 ${data.heldItem}`;
+      itemEl.hidden = false;
+    } else {
+      itemEl.textContent = "";
+      itemEl.hidden = true;
+    }
 
     badges.replaceChildren();
     const fragment = document.createDocumentFragment();

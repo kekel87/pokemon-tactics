@@ -303,7 +303,7 @@ export const SERENE_GRACE_BASELINE_NO_ABILITY = {
   playerAbility: undefined,
 } as const;
 
-// Métronome (objet, plan 142) — boost +10 % de dégâts par usage CONSÉCUTIF du MÊME move (succès au
+// Métronome (objet) — boost +10 % de dégâts par usage CONSÉCUTIF du MÊME move (succès au
 // tour précédent), cumulatif, cap +100 %. Observable de bout en bout : 2× Griffe d'affilée sur la
 // même cible endurante → le 2e coup retire STRICTEMENT plus de PV que le 1er (×1.1 au 2e usage).
 
@@ -360,4 +360,92 @@ export const RED_CARD_EJECTS_ATTACKER = {
   dummyPosition: { x: 2, y: 2 },
   dummyHeldItem: "red-card",
   dummyHp: 999,
+} as const;
+// Item interaction (plan 142) — manipulation de l'objet tenu, pilotée de bout en bout via le journal
+// FR + la ligne objet de l'InfoPanel (`info-panel-item`, « 🎒 {nom} »). Tous déterministes : moves
+// 100 % précision sur cible adjacente (DUEL) → aucun jet (seed DUEL hérité, sauf besoin précis).
+
+/** Sabotage (`knock-off`) — le joueur Florizarre lance Sabotage (Single 1-1) sur le dummy porteur
+ *  des Restes (`dummyHeldItem`) adjacent → l'objet est retiré : « <X> perd son Restes ! » + dégâts.
+ *  Le ×1.5 si la cible porte un objet retirable est silencieux (valeur couverte unit) → on assert le
+ *  RETRAIT (la ligne de journal), pas le multiplicateur. Move 100 % précision → cast déterministe. */
+export const KNOCK_OFF_REMOVES_ITEM = {
+  ...DUEL,
+  moves: ["knock-off"],
+  dummyHeldItem: "leftovers",
+} as const;
+
+/** Larcin (`thief`) — vol si le lanceur a les mains vides (D2). Le joueur (SANS objet : `heldItem`
+ *  omis) lance Larcin sur le dummy porteur des Restes (`dummyHeldItem`) adjacent → « <X> vole le
+ *  Restes de <Y> ! », puis l'InfoPanel du LANCEUR montre « 🎒 Restes » (objet désormais tenu). Move
+ *  100 % précision → cast déterministe. */
+export const THIEF_STEALS_ITEM = {
+  ...DUEL,
+  moves: ["thief"],
+  dummyHeldItem: "leftovers",
+} as const;
+
+/** Tour de Magie (`trick`) — échange inconditionnel des objets tenus (D3). Le joueur tient le Bandeau
+ *  Choix (`heldItem`), le dummy tient les Restes (`dummyHeldItem`) ; Tour de Magie (Single 1-3) sur le
+ *  dummy adjacent → « <X> échange son objet avec <Y> ! ». Après l'échange l'InfoPanel du lanceur montre
+ *  « 🎒 Restes » (il a récupéré l'objet du dummy). Move statut 100 % précision → cast déterministe. */
+export const TRICK_SWAPS_ITEMS = {
+  ...DUEL,
+  moves: ["trick"],
+  heldItem: "choice-band",
+  dummyHeldItem: "leftovers",
+} as const;
+
+/** Dégommage (`fling`) — lance l'objet tenu ; l'Orbe Flamme (`flame-orb`, fling power 30) inflige la
+ *  Brûlure à la cible (table `FLING_EFFECT`, D6). Le joueur tient l'Orbe Flamme (`heldItem`) et lance
+ *  Dégommage (Single 1-3) sur le dummy endurant (hp 999 → survit pour qu'on observe le STATUT et non un
+ *  K.O.) adjacent → « <X> dégomme son Orbe Flamme ! » + « <Y> est brûlé ! ». On caste au TOUR 1 (avant
+ *  toute fin de tour) pour que l'Orbe parte AVANT de brûler son propre porteur. Move 100 % → déterministe. */
+export const FLING_FLAME_ORB_BURNS = {
+  ...DUEL,
+  moves: ["fling"],
+  heldItem: "flame-orb",
+  dummyHp: 999,
+} as const;
+
+/** Recyclage (`recycle`) — restaure le dernier objet consommé par son propre effet (D1). Le joueur
+ *  Ronflex tient une Baie Lichii (`liechi-berry`, pincement ≤25 % PV) et démarre à 20 % PV : « Attendre »
+ *  → fin de tour → la baie se mange (pose `consumedItemId`) → « Baie Lichii … s'active ! » + « a utilisé
+ *  son Baie Lichii ». Au tour suivant, Recyclage (Self) restaure l'objet → « <X> recycle son Baie Lichii ! »
+ *  et l'InfoPanel re-montre « 🎒 Baie Lichii ». Aucun jet (hook baie inconditionnel en pincement) →
+ *  déterministe. Ronflex (snorlax) = porteur Gen-1 endurant (survit à la fin de tour à 20 % PV). */
+export const RECYCLE_RESTORES_BERRY = {
+  ...DUEL,
+  pokemon: "snorlax",
+  moves: ["recycle"],
+  heldItem: "liechi-berry",
+  hp: 20,
+} as const;
+
+/** Éructation (`belch`) — injouable tant qu'aucune baie n'a été mangée (D7, `requiresEatenBerry`). Le
+ *  joueur Ronflex tient une Baie Lichii et démarre à 20 % PV : « Attendre » → fin de tour → la baie se
+ *  mange (pose `ateBerryThisBattle`). Au tour suivant, Éructation devient légale et résout sur le dummy
+ *  endurant (hp 999, survit → on observe les dégâts et non un K.O.) → « <Y> perd N PV ». Éructation est le
+ *  SEUL move : au tour 1 il est filtré (baie pas encore mangée), au tour 2 il est castable. Move 90 %
+ *  précision → seed fixe (DUEL) pour un toucher reproductible. */
+export const BELCH_AFTER_BERRY = {
+  ...DUEL,
+  pokemon: "snorlax",
+  moves: ["belch"],
+  heldItem: "liechi-berry",
+  hp: 20,
+  dummyHp: 999,
+} as const;
+
+/** Talent Glu (`sticky-hold`, D12) — bloque tout retrait/vol/échange d'objet du porteur. Le joueur
+ *  Florizarre lance Sabotage (`knock-off`) sur le dummy Grotadmorv (muk, slot Glu via `dummyAbility`)
+ *  porteur des Restes (`dummyHeldItem`) adjacent → le retrait est bloqué : « Glu de <X> s'active ! »
+ *  apparaît et « perd son Restes » N'apparaît PAS (l'objet reste). Les dégâts de Sabotage frappent
+ *  normalement. Move 100 % précision → cast déterministe. */
+export const STICKY_HOLD_BLOCKS_REMOVAL = {
+  ...DUEL,
+  moves: ["knock-off"],
+  dummyPokemon: "muk",
+  dummyAbility: "sticky-hold",
+  dummyHeldItem: "leftovers",
 } as const;

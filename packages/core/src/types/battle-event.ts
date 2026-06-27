@@ -173,6 +173,25 @@ export type BattleEvent =
       targetIds: string[];
     }
   | { type: typeof BattleEventType.HeldItemConsumed; pokemonId: string; itemId: string }
+  | { type: typeof BattleEventType.ItemKnockedOff; pokemonId: string; itemId: string }
+  | {
+      type: typeof BattleEventType.ItemStolen;
+      thiefId: string;
+      victimId: string;
+      itemId: string;
+    }
+  | {
+      type: typeof BattleEventType.ItemsSwapped;
+      pokemonId: string;
+      otherId: string;
+      itemId?: string;
+      otherItemId?: string;
+    }
+  | { type: typeof BattleEventType.ItemBurned; pokemonId: string; itemId: string }
+  | { type: typeof BattleEventType.BerryEaten; eaterId: string; itemId: string }
+  | { type: typeof BattleEventType.ItemRecycled; pokemonId: string; itemId: string }
+  | { type: typeof BattleEventType.ItemFlung; pokemonId: string; itemId: string }
+  | { type: typeof BattleEventType.ItemMoveFailed; pokemonId: string }
   | { type: typeof BattleEventType.CriticalHit; targetId: string }
   | { type: typeof BattleEventType.HpRestored; pokemonId: string; amount: number }
   | {

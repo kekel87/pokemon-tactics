@@ -108,6 +108,15 @@
     color: var(--color-text-secondary);
   }
 
+  .ip-item {
+    font-size: calc(22 * var(--ip-px));
+    color: var(--color-text-secondary);
+  }
+
+  .ip-item[hidden] {
+    display: none;
+  }
+
   .ip-badges {
     /* Full panel width (row 2, both columns) — not just beside the portrait. */
     grid-column: 1 / -1;

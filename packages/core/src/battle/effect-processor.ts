@@ -15,13 +15,16 @@ import { resolveDefensiveAbility } from "./ability-suppression";
 import { getTypeEffectiveness } from "./damage-calculator";
 import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
+import { handleBurnTargetItem } from "./handlers/handle-burn-target-item";
 import { handleCureTeamStatus } from "./handlers/handle-cure-team-status";
 import { handleDamage } from "./handlers/handle-damage";
 import { handleDefensive } from "./handlers/handle-defensive";
 import { handleDisable } from "./handlers/handle-disable";
 import { handleDrain } from "./handlers/handle-drain";
+import { handleEatTargetBerry } from "./handlers/handle-eat-target-berry";
 import { handleEncore } from "./handlers/handle-encore";
 import { handleEndeavor } from "./handlers/handle-endeavor";
+import { handleFlingItem } from "./handlers/handle-fling-item";
 import { handleHealByTargetStat } from "./handlers/handle-heal-by-target-stat";
 import { handleHealSelf } from "./handlers/handle-heal-self";
 import { handleHealTarget } from "./handlers/handle-heal-target";
@@ -39,13 +42,18 @@ import { handlePostImprison } from "./handlers/handle-post-imprison";
 import { handlePostSubstitute } from "./handlers/handle-post-substitute";
 import { handlePostWish } from "./handlers/handle-post-wish";
 import { handleRecoil } from "./handlers/handle-recoil";
+import { handleRecycleItem } from "./handlers/handle-recycle-item";
 import { handleRemoveEntryHazards } from "./handlers/handle-remove-entry-hazards";
+import { handleRemoveItem } from "./handlers/handle-remove-item";
 import { handleSetWeather } from "./handlers/handle-set-weather";
 import { handleSpiteCtTax } from "./handlers/handle-spite-ct-tax";
 import { handleStatChange } from "./handlers/handle-stat-change";
 import { handleStatus } from "./handlers/handle-status";
+import { handleStealItem } from "./handlers/handle-steal-item";
+import { handleSwapItems } from "./handlers/handle-swap-items";
 import { handleTransferStatStages } from "./handlers/handle-transfer-stat-stages";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
+import { consumeHeldItem } from "./held-item-transfer";
 import { isSecondaryEffect } from "./secondary-effect";
 
 interface ProcessContext {
@@ -98,6 +106,13 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.PainSplit, handlePainSplit);
   registry.register(EffectKind.Endeavor, handleEndeavor);
   registry.register(EffectKind.HelpingHand, handleHelpingHand);
+  registry.register(EffectKind.RemoveItem, handleRemoveItem);
+  registry.register(EffectKind.StealItem, handleStealItem);
+  registry.register(EffectKind.SwapItems, handleSwapItems);
+  registry.register(EffectKind.FlingItem, handleFlingItem);
+  registry.register(EffectKind.EatTargetBerry, handleEatTargetBerry);
+  registry.register(EffectKind.BurnTargetItem, handleBurnTargetItem);
+  registry.register(EffectKind.RecycleItem, handleRecycleItem);
   return registry;
 }
 
@@ -313,7 +328,7 @@ export function processEffects(
       });
       events.push(...result.events);
       if (result.consumeItem) {
-        pokemon.heldItemId = undefined;
+        consumeHeldItem(pokemon, { isBerry: itemHandler.isBerry });
       }
     }
   }
@@ -369,7 +384,7 @@ export function processEffects(
       });
       events.push(...result.events);
       if (result.consumeItem) {
-        context.attacker.heldItemId = undefined;
+        consumeHeldItem(context.attacker, { isBerry: attackerItem.isBerry });
       }
     }
   }

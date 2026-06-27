@@ -10,6 +10,8 @@ export class InfoPanel {
   readonly hpText: Locator;
   readonly hpBar: Locator;
   readonly portrait: Locator;
+  /** Held-item line (« 🎒 {nom} ») — hidden when the Pokémon holds nothing. */
+  readonly item: Locator;
   constructor(page: Page) {
     this.panel = page.getByTestId("info-panel");
     this.name = page.getByTestId("info-panel-name");
@@ -17,6 +19,7 @@ export class InfoPanel {
     this.hpText = page.getByTestId("info-panel-hp");
     this.hpBar = page.getByRole("progressbar");
     this.portrait = page.getByTestId("info-panel-portrait");
+    this.item = page.getByTestId("info-panel-item");
   }
 }
 

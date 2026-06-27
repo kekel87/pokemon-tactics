@@ -96,4 +96,11 @@ export type Effect =
     }
   | { kind: typeof EffectKind.PainSplit }
   | { kind: typeof EffectKind.Endeavor }
-  | { kind: typeof EffectKind.HelpingHand; multiplier: number };
+  | { kind: typeof EffectKind.HelpingHand; multiplier: number }
+  | { kind: typeof EffectKind.RemoveItem }
+  | { kind: typeof EffectKind.StealItem }
+  | { kind: typeof EffectKind.SwapItems }
+  | { kind: typeof EffectKind.FlingItem }
+  | { kind: typeof EffectKind.EatTargetBerry }
+  | { kind: typeof EffectKind.BurnTargetItem }
+  | { kind: typeof EffectKind.RecycleItem };

@@ -5,6 +5,7 @@ interface ReferenceItem {
   id: string;
   names: { fr: string; en: string };
   shortDescription: { fr: string; en: string };
+  flingPower?: number | null;
 }
 
 export function loadItemsFromReference(
@@ -28,6 +29,8 @@ export function loadItemsFromReference(
         fr: ref.shortDescription.fr ?? "",
         en: ref.shortDescription.en ?? "",
       },
+      // Fling power (Dégommage) comes from the reference data.
+      ...(ref.flingPower == null ? {} : { flingPower: ref.flingPower }),
     };
   });
 }

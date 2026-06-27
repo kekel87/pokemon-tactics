@@ -131,7 +131,8 @@ export function calculateDamageWithCrit(
 
   const baseCritStage = move.critRatio ?? 0;
   const itemCritStage = attackerItem?.onCritStageBoost?.({ self: attacker, move }) ?? 0;
-  const totalCritStage = baseCritStage + itemCritStage;
+  const volatileCritStage = attacker.critStageBoost ?? 0;
+  const totalCritStage = baseCritStage + itemCritStage + volatileCritStage;
   const isCrit = defenderAbility?.preventsCrit ? false : random() < getCritChance(totalCritStage);
 
   const critDefenseStage = isCrit ? Math.max(0, defenseStageForCalc) : defenseStageForCalc;
@@ -211,6 +212,14 @@ export function calculateDamageWithCrit(
   const critMod = isCrit ? 1.5 : 1.0;
   const effectiveScreenMultiplier = isCrit ? 1.0 : screenMultiplier;
 
+  // Sabotage (knock-off): ×1.5 when the target carries a removable item (Glu protects it).
+  const knockOffMod =
+    move.knockOffBoost === true &&
+    defender.heldItemId !== undefined &&
+    defenderAbility?.id !== "sticky-hold"
+      ? 1.5
+      : 1.0;
+
   const damage = Math.max(
     1,
     Math.floor(
@@ -228,6 +237,7 @@ export function calculateDamageWithCrit(
         critMod *
         effectiveScreenMultiplier *
         brickBreakMultiplier *
+        knockOffMod *
         fieldTerrainDamageMultiplier,
     ),
   );
