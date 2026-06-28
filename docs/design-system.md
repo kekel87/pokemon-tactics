@@ -253,8 +253,11 @@ Constantes dans `packages/renderer/src/constants.ts` :
 | `BATTLE_TEXT_STROKE_COLOR` | `#000000` | Contour noir pour lisibilité sur fond clair |
 | `BATTLE_TEXT_STROKE_WIDTH` | `2` | Épaisseur du contour |
 | `DEPTH_BATTLE_TEXT` | `1500` | Au-dessus de tout le combat, sous l'UI modale |
+| `FLOATING_TEXT_SECONDARY_LIFT` | `0.38` | Offset vertical world-space appliqué au `baseY` du libellé « secondary » (efficacité de type). Évite le chevauchement entre le libellé secondaire et le chiffre de dégâts primaire émis au même beat. Les deux montent ensemble à partir de positions décalées. Constante dans `packages/view-core/src/constants.ts`, consommée par `packages/render-babylon/src/combat-scene.ts`. Introduit bug fix 2026-06-28 (intention design Phaser non câblée lors de la migration Babylon). |
 
 Ces valeurs ont été retunées après feedback playtest (plan 046) — la police pixel art rendait les anciennes valeurs (`FONT_SIZE = 7`, `DURATION_MS = 2200`) trop petites et trop fugaces pour être lues en combat.
+
+4 constantes Phaser-era retirées lors du même bug fix (code mort, jamais câblées dans Babylon) : les valeurs concernées étaient des offsets et échelles texte secondaire hérités du renderer Phaser, sans équivalent actif dans `combat-scene.ts`.
 
 La clé i18n `battle.fall` (FR "Chute", EN "Fall") est utilisée par le handler `FallDamageDealt` dans `GameController.ts`. Jamais de texte hardcodé côté renderer.
 

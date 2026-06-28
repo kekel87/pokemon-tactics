@@ -405,8 +405,14 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
 - 🤖 **Multi-coups** → récap journal « Touché N fois ! » (`multi-hit.spec`). *Les `-N` en cascade +
   barre PV par coup en moteur = 👁.*
 - 👁 **Recul (recoil)** → `-N` sur le **lanceur**. **Drain** → `+N` vert sur le lanceur.
-- 👁 Texte secondaire (efficacité) **empilé sous** le primaire, plus petit ; un seul primaire par
-  Pokemon par beat, le reste **staggeré**.
+- 👁 Texte secondaire (efficacité) **empilé AU-DESSUS** du primaire (offset world `+0.38`,
+  `FLOATING_TEXT_SECONDARY_LIFT`), plus petit ; un seul primaire par Pokemon par beat, le reste
+  **staggeré**. *Reste 👁 (non automatisable en scene-graph) : primaire et secondaire sont deux
+  meshes du même nom `hud_text_plane`, le hook `__ptE2e__.meshInfo(name)` ne renvoie que le premier
+  → impossible de comparer leurs Y ; de plus les labels sont éphémères (~1 s, montée+fade pilotés
+  par la render-loop) → comparaison de Y race le dispose/fade (flaky, banni). Le flag `secondary`
+  côté view-core est couvert en unit (`floating-text-content.test.ts`) ; l'offset world `0.38` vit
+  uniquement dans le renderer (`combat-scene.spawnFloatingText`).*
 
 ### 5.3 Statuts majeurs (un cas par statut)
 - 🤖 Interaction : icône montée pour chaque statut majeur + application via cast (Spore endort) — `mechanics-status.spec`. Couleur du flottant 👁.

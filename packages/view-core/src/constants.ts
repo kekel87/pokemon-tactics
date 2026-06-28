@@ -5,8 +5,8 @@
  * battle-text cluster (colours + timing). Pure visual constants tied to a single
  * renderer (depths, font sizes, stroke widths) stay in that renderer's package.
  *
- * The Babylon renderer re-imports the few it needs (text duration / drift /
- * stroke / queue delay, tween durations) via `renderer`'s `constants.ts`
+ * The Babylon renderer re-imports the few it needs (text duration / stroke colour /
+ * queue delay, floating-text lifts, tween durations) via `renderer`'s `constants.ts`
  * re-export, so its import sites stay unchanged.
  */
 
@@ -149,6 +149,12 @@ export const FLOATING_TEXT_LIFT = 1.0;
 export const FLOATING_TEXT_HEIGHT = 0.62;
 export const FLOATING_TEXT_SECONDARY_SCALE = 0.8;
 export const FLOATING_TEXT_RISE = 0.7;
+/**
+ * Extra world-space lift for a "secondary" label (e.g. the effectiveness text) so it sits ABOVE
+ * the primary damage number of the same beat instead of overlapping it. Both labels rise together,
+ * so a constant offset keeps them separated for the whole scroll.
+ */
+export const FLOATING_TEXT_SECONDARY_LIFT = 0.38;
 
 // --- Movement tween durations (movement-animation) -------------------------
 export const MOVE_TWEEN_DURATION_MS = 300;
@@ -183,16 +189,8 @@ export const AURA_INDICATOR_SYMBOL: Record<AuraKindType, string> = {
 };
 
 // --- Battle floating-text: timing ------------------------------------------
-export const BATTLE_TEXT_FONT_SIZE = 10;
 export const BATTLE_TEXT_DURATION_MS = 1000;
-export const BATTLE_TEXT_DRIFT_Y = -20;
 export const BATTLE_TEXT_STROKE_COLOR = "#000000";
-export const BATTLE_TEXT_STROKE_WIDTH = 2;
-// Vertical offset applied to a "secondary" text that belongs to the same
-// beat as a "primary" text (e.g. the effectiveness label above the damage
-// number). Both texts are spawned with the same computed delay so they drift
-// upward together as a single scroll.
-export const BATTLE_TEXT_STAGGER_Y = -10;
 // Delay between two independent battle-text beats on the same target, as a
 // FRACTION of the lifetime (so the cadence scales automatically when the
 // duration changes — no second hardcoded number to keep in sync). The first
