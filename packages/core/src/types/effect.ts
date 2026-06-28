@@ -25,6 +25,12 @@ export type Effect =
       status: StatusType;
       chance: number;
       damagePerTurn?: number;
+      /**
+       * Position-linked trap (Trapped only): roots the target with remainingTurns -1 while the
+       * caster stays adjacent — released when the caster faints or moves away (mean-look, block).
+       * Mirrors the Magnépik (magnet-pull) ability state. Mutually exclusive with damagePerTurn.
+       */
+      positionLinked?: boolean;
       target?: typeof EffectTarget.Self;
       /** Only apply this effect when the predicate holds (alluring-voice, burning-jealousy). */
       appliesIf?: ConditionKind;

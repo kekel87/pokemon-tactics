@@ -1008,6 +1008,33 @@ ne les apprend) → forcés via `moves` (SandboxSetup écrase `moveIds`).*
   de journal). Le sens (`faintedAllyCount`/`AllyFaintCountScaled`) reste couvert par les unit/integration
   du core (`dynamic-power-system.test.ts`, `moves/last-respects.test.ts`).
 
+### 5.26 Famille Pièges (trapping)
+*src : core `data/overrides/tactical.ts` (`bind`, `fire-spin`, `whirlpool`, `sand-tomb`, `block`,
+`mean-look`), `battle/handlers/trapped-tick-handler.ts`, `enums/status-type.ts` ; unit
+`battle/moves/{bind,fire-spin,whirlpool,sand-tomb,block,mean-look}.test.ts` ;
+e2e : `mechanics-trapping.spec.ts`.* Deux variantes : pièges **PARTIELS** (Étreinte/Danse
+Flammes/Siphon/Tourbi-Sable : dégâts + statut Piégé 4-5 tours + chip 1/8 PV par tour + immobilisation)
+et pièges **PURS** position-linked (Barrage/Regard Noir : verrou sans dégâts, rompu quand le lanceur
+sort de l'adjacence chebyshev). Pilotés via le journal FR (`BattleLogFormatter` : « <X> est piégé ! »,
+« <X> perd N PV ! », « <X> est libéré du piège »). Déterministes : le dummy Ronflex (espèce ≠ lanceur →
+lignes filtrables par nom) est endurant (`dummyHp: 999`) et inerte (`dummyMove: "leer"`).
+
+- 🤖 **Piège partiel** (`fire-spin`, Danse Flammes, portée 1-2, 85 % → forcé 100 % via Aucun Garde
+  `no-guard` sur le lanceur) : le joueur lance Danse Flammes sur le Ronflex adjacent → « Ronflex est
+  piégé ! », puis une fin de tour applique le chip → « Ronflex perd N PV ! ». *Étreinte (`bind`,
+  contact 1-1), Siphon (`whirlpool`) et Tourbi-Sable (`sand-tomb`) partagent exactement le pattern
+  (Damage + Trapped damagePerTurn 0.125) → couverts unit (`moves/{bind,whirlpool,sand-tomb}.test.ts`),
+  non dupliqués e2e → 👁. La VALEUR exacte du chip et la durée 4-5 tours = unit
+  (`trapped-tick-handler`).*
+- 🤖 **Piège pur** (`block`, Barrage, portée 1, position-linked) : le joueur lance Barrage sur le
+  Ronflex adjacent → « Ronflex est piégé ! » SANS aucun « perd N PV » (pas de dégâts) ; puis le joueur
+  se déplace en (2,5) (distance 3) → le verrou se rompt → « Ronflex est libéré du piège ». *Regard Noir
+  (`mean-look`) partage le pattern (Status Trapped positionLinked sans dégâts) → couvert unit
+  (`moves/mean-look.test.ts`), non dupliqué e2e → 👁.*
+- 👁 **Immobilisation** (la cible piégée ne peut plus se déplacer mais peut toujours attaquer) : l'état
+  `getLegalActions` (0 action Move, attaques OK) n'a pas de ligne de journal distincte → couvert unit
+  (`moves/{wrap,bind,fire-spin,whirlpool,sand-tomb,block,mean-look}.test.ts`).
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -1263,6 +1290,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-talents-secondary.spec.ts` | §5.17 talents attaquant — effet secondaire (plan 139) : Sans Limite (Nidoking + Bombe Beurk → « Sans Limite … s'active ! », dégâts présents, « est empoisonné » absent — secondaire supprimé, tout seed) ; Sérénité (Leveinard + Bombe Beurk, FLIP au seed 1 : poison absent sans le talent, présent avec — le 30 % doublé en 60 % réussit). Le ×1.3 de Sans Limite, le cap 100 % et les exclusions de Sérénité = unit/integration core |
 | `combat/mechanics-talents-support.spec.ts` | §5.24 talents soutien & couplage objet (plan 141) : Moiteur (Électrode + Destruction sur Psykokwak porteur → « Moiteur … s'active ! » + « Mais cela échoue … ! », « Psykokwak perd N PV » absent), Gloutonnerie (Ronflex à 40 % PV + Baie Lichii → fin de tour → « Baie Lichii … s'active ! » + « Attaque … augmente ! » au seuil 50 %). Cœur Soin / Garde-Ami (soutien d'équipe, requièrent un allié à r2 → non pilotables en 1v1) et Tension (silencieux, effet = absence de baie) = unit/integration core → 👁 |
 | `combat/mechanics-item-interaction.spec.ts` | §5.25 item interaction (plan 142) : Sabotage (retire l'objet → « perd son Restes »), Larcin (vole l'objet → « vole le … » + InfoPanel du lanceur « 🎒 Restes »), Tour de Magie (échange → « échange son objet … » + InfoPanel « 🎒 Restes »), Dégommage (Orbe Flamme lancée → « dégomme son Orbe Flamme » + « est brûlé »), Recyclage (baie mangée en fin de tour puis restaurée → « recycle son Baie Lichii » + InfoPanel), Éructation (jouable seulement après une baie mangée → dégâts au dummy), Glu (Sabotage bloqué sur Grotadmorv → « Glu … s'active », « perd son Restes » absent). Implore/Passe-Passe (effets partagés), Picore/Piqûre/Calcination/Gaz Corrosif (contenu fin non distinct au journal), Substitut (D5), baies Lansat/Frista (boost silencieux), ×1.5 de Sabotage = unit/integration core → 👁 |
+| `combat/mechanics-trapping.spec.ts` | §5.26 famille Pièges (trapping) : piège PARTIEL (Danse Flammes + Aucun Garde forçant 100 % → « Ronflex est piégé ! » puis chip de fin de tour « Ronflex perd N PV ! ») ; piège PUR position-linked (Barrage → « Ronflex est piégé ! » sans dégâts, puis le lanceur s'éloigne en (2,5) → « Ronflex est libéré du piège »). Étreinte/Siphon/Tourbi-Sable (même pattern partiel) et Regard Noir (même pattern pur) = unit (`moves/*.test.ts`), non dupliqués e2e → 👁. Immobilisation (0 action Move, attaque OK) = unit (pas de ligne de journal) → 👁 |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |

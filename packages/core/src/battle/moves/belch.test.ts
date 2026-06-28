@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
@@ -29,6 +29,7 @@ describe("belch", () => {
   });
 
   it("deals damage once the user has eaten a berry", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
     const attacker = MockPokemon.fresh(MockPokemon.base, {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
@@ -53,5 +54,7 @@ describe("belch", () => {
     expect(result.success).toBe(true);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.DamageDealt);
     expect(state.pokemon.get(defender.id)?.currentHp).toBeLessThan(hpBefore);
+
+    vi.restoreAllMocks();
   });
 });

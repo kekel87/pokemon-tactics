@@ -793,6 +793,54 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
 
+  // --- Trapping family (mirror wrap/Ligotage) ---
+  // Partial traps: damage + Trapped 4-5 turns + 1/8 HP chip; the target cannot reposition but
+  // may still attack. Contact move range 1, ranged elemental traps reach 2.
+  bind: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Trapped, chance: 100, damagePerTurn: 0.125 },
+    ],
+  },
+  "fire-spin": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Trapped, chance: 100, damagePerTurn: 0.125 },
+    ],
+  },
+  whirlpool: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Trapped, chance: 100, damagePerTurn: 0.125 },
+    ],
+  },
+  "sand-tomb": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Trapped, chance: 100, damagePerTurn: 0.125 },
+    ],
+  },
+  // Pure traps: position-linked root (no damage). The caster must stay adjacent to hold the
+  // target — released when the caster faints or moves away. Range 1 so adjacency is meaningful.
+  block: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Status, status: StatusType.Trapped, chance: 100, positionLinked: true },
+    ],
+    effectTier: EffectTier.MajorStatus,
+  },
+  "mean-look": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Status, status: StatusType.Trapped, chance: 100, positionLinked: true },
+    ],
+    effectTier: EffectTier.MajorStatus,
+  },
+
   // --- Batch A moves ---
 
   "petal-blizzard": {
