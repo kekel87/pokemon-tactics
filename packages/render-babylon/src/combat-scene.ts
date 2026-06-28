@@ -43,6 +43,7 @@ import {
   BABYLON_FLOATING_TEXT_HEIGHT,
   BABYLON_FLOATING_TEXT_LIFT,
   BABYLON_FLOATING_TEXT_RISE,
+  BABYLON_FLOATING_TEXT_SECONDARY_LIFT,
   BABYLON_FLOATING_TEXT_SECONDARY_SCALE,
   BABYLON_HEMI_LIGHT_INTENSITY,
   BABYLON_HOVER_CURSOR_GAP,
@@ -1064,8 +1065,13 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         return;
       }
       const top = tileWorldTop(tile.x, tile.y);
-      // Lift to roughly head height so the label rises off the sprite, not the floor.
-      const baseY = top.y + BABYLON_FLOATING_TEXT_LIFT;
+      // Lift to roughly head height so the label rises off the sprite, not the floor. A secondary
+      // label (effectiveness) gets an extra lift so it stacks ABOVE the primary damage number of the
+      // same beat instead of overlapping it (both rise together, so the gap holds for the scroll).
+      const baseY =
+        top.y +
+        BABYLON_FLOATING_TEXT_LIFT +
+        (floatOptions.secondary ? BABYLON_FLOATING_TEXT_SECONDARY_LIFT : 0);
       const worldHeight =
         BABYLON_FLOATING_TEXT_HEIGHT *
         (floatOptions.secondary ? BABYLON_FLOATING_TEXT_SECONDARY_SCALE : 1);
