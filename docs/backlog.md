@@ -24,16 +24,13 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - Fix naturel : étendre le roster à des Pokemon Gen 2+ qui apprennent `sticky-web` (Arachno, Galvaran…) — Phase 9.
 - Priorité basse — testable en sandbox, non bloquant.
 
-### Multi-coup vs Peau Dure (Rough Skin) — à tester (2026-06-18, retour playtest)
-- Tester un move multi-coup (ex: Furie/`fury-attack`, Charge-Os/`bone-rush`) contre un Pokemon avec **Peau Dure** (`rough-skin`).
-- Vérifier : le recul Peau Dure se déclenche-t-il **par coup** (canon) ou une seule fois ? Y a-t-il un bug d'ordre / de KO en plein multi-hit ?
-- QA d'abord (sandbox), puis bug + fix si comportement faux.
+### Multi-coup vs Peau Dure (Rough Skin) — QA faite : bug moot, garde latent à poser (2026-06-18, QA 2026-06-28)
+- **Verdict QA (2026-06-28)** : non reproductible en l'état.
+  - **Peau Dure (`rough-skin`) PAS implémenté** (absent des talents, aucun Pokemon Gen 1 ne l'a — talent Gen 3+). **Casque Brut (`rocky-helmet`) PAS implémenté** non plus (cité en commentaire seulement).
+  - Les réactions de contact actuelles (`onAfterDamageReceived` : Statik, Pt Poison, Corps Ardent, Effet Spore, Joli Sourire, Corps Maudit, Colère) infligent toutes des **statuts/buffs, zéro recul HP** à l'attaquant.
+  - Déclenchement **par coup** confirmé (canon-correct) : `dealSingleHit` (`handle-damage.ts:118`) est appelé en boucle par coup (`handleDamage` ~ligne 584), réactions de contact incluses.
+- **Garde latent à poser EN MÊME TEMPS que Peau Dure / Casque Brut** : la boucle multi-hit (`handle-damage.ts:584-603`) ne break que sur `target.currentHp <= 0`, **jamais sur l'attaquant**. Quand une source de recul HP par coup existera, un move contact multi-coup pourra continuer après KO de l'attaquant (coups fantômes). Fix prêt : `if (context.attacker.currentHp <= 0) break;` en tête de boucle + test. Inatteignable aujourd'hui → différé (pas de sur-ingénierie).
 
-### `tacticalOverrides.flags` écrase les flags reference au merge (2026-05-31, review plan 102)
-- `load-data.ts:58` fait `{ ...base, ...tactical }` : un `flags` défini dans tactical **remplace entièrement** `base.flags` (extrait de reference) au lieu de fusionner.
-- Impact : `aerial-ace` (seul move actuel avec `flags` override = `{ slicing: true }`) perd `contact`/`protect`/`mirror` après merge.
-- Aucun move du Batch G1 concerné (aucun n'override `flags`). Préexistant.
-- Fix : deepMerge sur `flags`, ou inclure les flags reference dans l'override.
 
 ### Disparité UI HTML vs canvas Phaser (2026-05-19, observation playtest)
 - Le projet mélange UI HTML (Team Builder, TeamSelectScene depuis plan 086) et UI Phaser canvas (combat, action menu, info panel, placement roster, timeline).

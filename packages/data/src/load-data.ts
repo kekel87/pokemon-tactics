@@ -55,7 +55,18 @@ export function loadData(): GameData {
       throw new Error(`Missing tactical override for move: ${base.id}`);
     }
     const balance = balanceOverrides[base.id] ?? {};
-    const baseWithTactical = { ...base, ...tactical };
+    // A tactical override's `flags` must AUGMENT the reference flags, not replace them: a shallow
+    // `{ ...base, ...tactical }` would drop reference flags like contact/protect/mirror whenever the
+    // override declares its own (e.g. aerial-ace adding `slicing`). Merge the two flag sets instead.
+    const mergedFlags =
+      base.flags !== undefined || tactical.flags !== undefined
+        ? { ...base.flags, ...tactical.flags }
+        : undefined;
+    const baseWithTactical = {
+      ...base,
+      ...tactical,
+      ...(mergedFlags === undefined ? {} : { flags: mergedFlags }),
+    };
     const merged = deepMerge(baseWithTactical, balance);
     const moveDefinition: MoveDefinition = {
       id: merged.id,
