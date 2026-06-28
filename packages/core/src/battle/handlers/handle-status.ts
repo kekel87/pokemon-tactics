@@ -216,21 +216,34 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       if (alreadyHas) {
         continue;
       }
-      const baseDuration = getStatusDuration(status, random, statusRules) ?? 1;
-      let remainingTurns = baseDuration;
-      if (targetAbility?.onStatusDurationModify) {
-        const result = targetAbility.onStatusDurationModify({
-          self: target,
-          status,
-          duration: baseDuration,
-        });
-        remainingTurns = result.duration;
-        events.push(...result.events);
+      // Position-linked trap (mean-look, block): root the target with remainingTurns -1 while the
+      // caster stays adjacent. position-linked-statuses.ts releases it when the source faints or
+      // moves away. Same state Magnépik (magnet-pull) produces.
+      const isPositionLinkedTrap =
+        status === StatusTypeEnum.Trapped &&
+        "positionLinked" in effect &&
+        effect.positionLinked === true;
+
+      let remainingTurns = -1;
+      if (!isPositionLinkedTrap) {
+        const baseDuration = getStatusDuration(status, random, statusRules) ?? 1;
+        remainingTurns = baseDuration;
+        if (targetAbility?.onStatusDurationModify) {
+          const result = targetAbility.onStatusDurationModify({
+            self: target,
+            status,
+            duration: baseDuration,
+          });
+          remainingTurns = result.duration;
+          events.push(...result.events);
+        }
       }
       target.volatileStatuses.push({
         type: status,
         remainingTurns,
-        ...(status === StatusTypeEnum.Seeded ? { sourceId: context.attacker.id } : {}),
+        ...(status === StatusTypeEnum.Seeded || isPositionLinkedTrap
+          ? { sourceId: context.attacker.id }
+          : {}),
         ...("damagePerTurn" in effect &&
         status === StatusTypeEnum.Trapped &&
         effect.damagePerTurn !== undefined

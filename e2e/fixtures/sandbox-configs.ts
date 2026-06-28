@@ -437,6 +437,41 @@ export const BELCH_AFTER_BERRY = {
   dummyHp: 999,
 } as const;
 
+// Famille Pièges (trapping) — un piège PARTIEL (dégâts + Piégé 4-5 tours + 1/8 PV par tour +
+// immobilisation) et un piège PUR (verrou position-linked sans dégâts, libéré quand le lanceur
+// s'éloigne). Déterministes : moves 100 % précision sur cible adjacente (DUEL hérité), aucun jet.
+
+/** Danse Flammes (`fire-spin`, piège partiel, portée 1-2) — le joueur Florizarre lance Danse Flammes
+ *  sur le dummy Ronflex (snorlax, espèce DIFFÉRENTE → lignes de dégâts filtrables par nom) adjacent
+ *  endurant (`dummyHp: 999` → survit au coup ET aux ticks, donc on observe le piège et non un K.O.).
+ *  Le dummy reste inerte (`dummyMove: "leer"`, Groz'Yeux, aucun dégât) pour ne jamais polluer le
+ *  journal. Le cast journalise « Ronflex est piégé ! » ; chaque fin de tour applique le chip 1/8 →
+ *  « Ronflex perd N PV ! ». Danse Flammes est à 85 % de précision : le joueur porte Aucun Garde
+ *  (`no-guard`) → précision forcée à 100 %, le coup touche sous TOUT seed (sinon un raté empêcherait
+ *  le piège de se poser) → déterministe (seed DUEL hérité). */
+export const TRAP_PARTIAL_FIRE_SPIN = {
+  ...DUEL,
+  moves: ["fire-spin"],
+  playerAbility: "no-guard",
+  dummyPokemon: "snorlax",
+  dummyMove: "leer",
+  dummyHp: 999,
+} as const;
+
+/** Barrage (`block`, piège PUR position-linked, portée 1) — le joueur Florizarre lance Barrage sur le
+ *  dummy Ronflex (snorlax) adjacent : aucun dégât, juste le verrou → « Ronflex est piégé ! ». Le
+ *  verrou tient tant que le lanceur reste adjacent (chebyshev ≤1) ; dès qu'il s'éloigne il se rompt →
+ *  « Ronflex est libéré du piège ». Le joueur démarre en (2,3), le dummy en (2,2) ; après le cast le
+ *  joueur se DÉPLACE vers (2,5) (distance 3 du dummy) → la rupture est journalisée. Move statut sans
+ *  jet de précision → cast déterministe. */
+export const TRAP_PURE_BLOCK = {
+  ...DUEL,
+  moves: ["block"],
+  dummyPokemon: "snorlax",
+  dummyMove: "leer",
+  dummyHp: 999,
+} as const;
+
 /** Talent Glu (`sticky-hold`, D12) — bloque tout retrait/vol/échange d'objet du porteur. Le joueur
  *  Florizarre lance Sabotage (`knock-off`) sur le dummy Grotadmorv (muk, slot Glu via `dummyAbility`)
  *  porteur des Restes (`dummyHeldItem`) adjacent → le retrait est bloqué : « Glu de <X> s'active ! »
