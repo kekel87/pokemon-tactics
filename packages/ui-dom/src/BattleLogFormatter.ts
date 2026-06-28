@@ -15,8 +15,10 @@ import {
   StatusType,
   SubstituteFailedReason,
   TerrainType,
+  TypeChangeReason,
   Weather,
 } from "@pokemon-tactic/core";
+import { TYPE_LABEL } from "@pokemon-tactic/view-core";
 import {
   BATTLE_LOG_COLOR_ABILITY,
   BATTLE_LOG_COLOR_BATTLE_ENDED,
@@ -737,6 +739,26 @@ export function formatBattleEvent(
         color: BattleLogColors.status,
         pokemonIds: [event.casterId, event.targetId],
       };
+    }
+
+    case BattleEventType.TypeChanged: {
+      const name = context.getPokemonName(event.pokemonId);
+      let message: string;
+      if (event.reason === TypeChangeReason.BurnUp) {
+        message =
+          lang === "fr" ? `${name} perd son type Feu !` : `${name} burned out its Fire type!`;
+      } else if (event.newTypes.length === 0) {
+        message = lang === "fr" ? `${name} n'a plus de type !` : `${name} has no type now!`;
+      } else {
+        const typeLabel = event.newTypes
+          .map((type) => TYPE_LABEL[type]?.[lang] ?? type)
+          .join(lang === "fr" ? " / " : "/");
+        message =
+          lang === "fr"
+            ? `${name} devient de type ${typeLabel} !`
+            : `${name} became ${typeLabel}-type!`;
+      }
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
     }
 
     case BattleEventType.WeatherSet: {

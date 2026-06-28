@@ -19,6 +19,16 @@ export const AuraDissipatedReason = {
 } as const;
 export type AuraDissipatedReason = (typeof AuraDissipatedReason)[keyof typeof AuraDissipatedReason];
 
+/** Why a Pokémon's type changed (type-manip family) — drives the battle-log line. */
+export const TypeChangeReason = {
+  Conversion: "conversion",
+  ConversionResist: "conversion-2",
+  ReflectType: "reflect-type",
+  Soak: "soak",
+  BurnUp: "burn-up",
+} as const;
+export type TypeChangeReason = (typeof TypeChangeReason)[keyof typeof TypeChangeReason];
+
 export const ProtectionReason = {
   Mist: "mist",
   Safeguard: "safeguard",
@@ -439,4 +449,10 @@ export type BattleEvent =
     }
   | { type: typeof BattleEventType.EndeavorFailed; attackerId: string }
   | { type: typeof BattleEventType.HelpingHandPosted; casterId: string; targetId: string }
-  | { type: typeof BattleEventType.HelpingHandConsumed; pokemonId: string };
+  | { type: typeof BattleEventType.HelpingHandConsumed; pokemonId: string }
+  | {
+      type: typeof BattleEventType.TypeChanged;
+      pokemonId: string;
+      newTypes: PokemonType[];
+      reason: TypeChangeReason;
+    };

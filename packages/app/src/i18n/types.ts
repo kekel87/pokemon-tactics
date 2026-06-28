@@ -310,6 +310,8 @@ export interface Translations {
   "infoPanel.volatile.wish": string;
   "infoPanel.volatile.helpingHand": string;
   "infoPanel.volatile.perish": string;
+  "infoPanel.volatile.typeChanged": string;
+  "infoPanel.volatile.noType": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
   "moveTooltip.tag.dynamicPower": string;

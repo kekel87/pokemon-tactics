@@ -5,6 +5,7 @@ import type { EffectKind } from "../enums/effect-kind";
 import type { EffectTarget } from "../enums/effect-target";
 import type { EntryHazardKind } from "../enums/entry-hazard-kind";
 import type { FieldTerrain } from "../enums/field-terrain";
+import type { PokemonType } from "../enums/pokemon-type";
 import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
 import type { Weather } from "../enums/weather";
@@ -109,4 +110,9 @@ export type Effect =
   | { kind: typeof EffectKind.FlingItem }
   | { kind: typeof EffectKind.EatTargetBerry }
   | { kind: typeof EffectKind.BurnTargetItem }
-  | { kind: typeof EffectKind.RecycleItem };
+  | { kind: typeof EffectKind.RecycleItem }
+  | { kind: typeof EffectKind.ConvertSelfType }
+  | { kind: typeof EffectKind.ConvertResistType }
+  | { kind: typeof EffectKind.CopyTargetType }
+  | { kind: typeof EffectKind.SoakType; pureType: PokemonType }
+  | { kind: typeof EffectKind.RemoveType; removedType: PokemonType };

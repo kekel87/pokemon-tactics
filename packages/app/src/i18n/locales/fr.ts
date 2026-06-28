@@ -309,6 +309,8 @@ const fr: Translations = {
   "infoPanel.volatile.wish": "Vœu",
   "infoPanel.volatile.helpingHand": "Coup d'Main",
   "infoPanel.volatile.perish": "Requiem {turns}t",
+  "infoPanel.volatile.typeChanged": "Type {types}",
+  "infoPanel.volatile.noType": "Aucun type",
   "moveTooltip.tag.sound": "Sonore (ignore Clone)",
   "moveTooltip.tag.bypasssub": "Ignore Clone",
   "moveTooltip.tag.dynamicPower": "⚡ Puissance variable",

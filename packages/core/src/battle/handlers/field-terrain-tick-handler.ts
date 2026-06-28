@@ -3,6 +3,7 @@ import { FieldTerrain } from "../../enums/field-terrain";
 import type { PokemonType } from "../../enums/pokemon-type";
 import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
+import { resolveBaseTypes } from "../effective-flying";
 import {
   decrementFieldTerrainsTimer,
   GRASSY_HEAL_FRACTION,
@@ -29,7 +30,7 @@ export function createFieldTerrainHealHandler(
     if (!pokemon || pokemon.currentHp <= 0) {
       return EMPTY_RESULT;
     }
-    const types = pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const types = resolveBaseTypes(pokemon, pokemonTypesMap);
     if (!isOnFieldTerrain(state, pokemon, types, FieldTerrain.Grassy)) {
       return EMPTY_RESULT;
     }

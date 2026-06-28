@@ -309,6 +309,8 @@ const en: Translations = {
   "infoPanel.volatile.wish": "Wish",
   "infoPanel.volatile.helpingHand": "Helping Hand",
   "infoPanel.volatile.perish": "Perish {turns}t",
+  "infoPanel.volatile.typeChanged": "Type {types}",
+  "infoPanel.volatile.noType": "No type",
   "moveTooltip.tag.sound": "Sound (bypasses Substitute)",
   "moveTooltip.tag.bypasssub": "Bypasses Substitute",
   "moveTooltip.tag.dynamicPower": "⚡ Variable power",

@@ -6,6 +6,7 @@ import {
   type CtTimelineEntry,
   PokemonGender,
   type PokemonInstance,
+  type PokemonType,
   StatName,
   StatusType,
   Weather,
@@ -38,6 +39,28 @@ export type {
   WeatherKind,
   WeatherView,
 } from "@pokemon-tactic/render-ports";
+
+/** FR/EN type names — single source for the type-override badge and the battle-log type-manip lines. */
+export const TYPE_LABEL: Record<PokemonType, { fr: string; en: string }> = {
+  normal: { fr: "Normal", en: "Normal" },
+  fire: { fr: "Feu", en: "Fire" },
+  water: { fr: "Eau", en: "Water" },
+  grass: { fr: "Plante", en: "Grass" },
+  electric: { fr: "Électrik", en: "Electric" },
+  ice: { fr: "Glace", en: "Ice" },
+  fighting: { fr: "Combat", en: "Fighting" },
+  poison: { fr: "Poison", en: "Poison" },
+  ground: { fr: "Sol", en: "Ground" },
+  flying: { fr: "Vol", en: "Flying" },
+  psychic: { fr: "Psy", en: "Psychic" },
+  bug: { fr: "Insecte", en: "Bug" },
+  rock: { fr: "Roche", en: "Rock" },
+  ghost: { fr: "Spectre", en: "Ghost" },
+  dragon: { fr: "Dragon", en: "Dragon" },
+  dark: { fr: "Ténèbres", en: "Dark" },
+  steel: { fr: "Acier", en: "Steel" },
+  fairy: { fr: "Fée", en: "Fairy" },
+};
 
 const MAJOR_STATUS_LABEL: Partial<Record<StatusType, string>> = {
   [StatusType.Burned]: "status.burned",
@@ -218,6 +241,20 @@ export function buildInfoPanelView(
       }),
       variant: "debuff",
     });
+  }
+
+  if (pokemon.typeOverride !== undefined) {
+    if (pokemon.typeOverride.length === 0) {
+      badges.push({ label: context.translate("infoPanel.volatile.noType"), variant: "volatile" });
+    } else {
+      const typeLabel = pokemon.typeOverride
+        .map((type) => (language === "fr" ? TYPE_LABEL[type].fr : TYPE_LABEL[type].en))
+        .join(" / ");
+      badges.push({
+        label: context.translate("infoPanel.volatile.typeChanged", { types: typeLabel }),
+        variant: "volatile",
+      });
+    }
   }
 
   pushAuraBadges(context, badges, pokemon, state);
