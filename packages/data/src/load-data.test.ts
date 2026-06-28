@@ -58,6 +58,33 @@ describe("loadData", () => {
     }
   });
 
+  it("merges tactical override flags with reference flags instead of replacing them", () => {
+    const data = loadData();
+    const aerialAce = data.moves.find((m) => m.id === "aerial-ace");
+    expect(aerialAce?.flags).toMatchObject({
+      contact: true,
+      protect: true,
+      mirror: true,
+      slicing: true,
+    });
+  });
+
+  it("keeps reference flags untouched when the tactical override declares no flags", () => {
+    const data = loadData();
+    const facade = data.moves.find((m) => m.id === "facade");
+    expect(facade?.flags).toMatchObject({
+      contact: true,
+      protect: true,
+      mirror: true,
+    });
+  });
+
+  it("leaves a move without reference or override flags undefined", () => {
+    const data = loadData();
+    const protect = data.moves.find((m) => m.id === "protect");
+    expect(protect?.flags).toBeUndefined();
+  });
+
   it("pokemon have correct ids derived from names", () => {
     const data = loadData();
     const ids = data.pokemon.map((p) => p.id);

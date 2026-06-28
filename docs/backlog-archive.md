@@ -17,6 +17,13 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## `tacticalOverrides.flags` écrase les flags reference — RÉSOLU (2026-06-28)
+
+- **Contexte (2026-05-31, review plan 102)** : `load-data.ts` fusionnait les moves via spread shallow `{ ...base, ...tactical }`. Un champ `flags` dans l'override tactique remplaçait entièrement `base.flags` (extrait de Showdown reference) au lieu de fusionner les deux objets. Impact : Aéropique (`aerial-ace`), seul move avec un override `flags: { slicing: true }`, perdait silencieusement `contact`, `protect`, `mirror`, `metronome` après merge. Aucun autre move du Batch G1 concerné (aucun n'overridait `flags`).
+- **Résolution** : fusion des flags dans `load-data.ts` — `flags: { ...base.flags, ...tactical.flags }` au lieu du spread plat. Aéropique retrouve `contact` (déclenche Statik/Pt Poison/Corps Ardent/etc.) et `protect` (bloqué par Abri). Décision design : `contact` conservé même si portée 1-2 (fidélité canon Showdown, décision #581). Régression couverte par `load-data.test.ts`. Décision #582.
+
+---
+
 ## Lance-Soleil sous Soleil — preview mode-charge + latent `getLegalActions` (RÉSOLU 2026-06-28)
 
 - **Contexte (2026-06-28, playtest)** : sous Plein Soleil, Lance-Soleil (`solar-beam`) affichait à tort le ciblage du tour de charge (zone bleue sur la case du lanceur) au lieu du ciblage immédiat. Bug purement côté preview/view. Un bug latent adjacent existait dans `getLegalActions` (`BattleEngine.ts`) : la charge sous soleil était sautée pour TOUT move `twoTurnCharge` sans gate `sunSkipsCharge`, créant une incohérence légalité↔exécution pour les autres moves à charge (Lame d'Air, Piqué, Vol…).

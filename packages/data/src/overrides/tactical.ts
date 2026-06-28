@@ -2104,8 +2104,8 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   },
 
   // --- Content Batch G2 moves (dégâts spécial + multi-hit, plan 103) ---
-  // Spéciaux. Flags sound/bullet/pulse fournis par la reference (ne pas les
-  // redéclarer ici : un override flags écrase la reference, cf. backlog aerial-ace).
+  // Spéciaux. Flags sound/bullet/pulse fournis par la reference (inutile de les
+  // redéclarer ici : un override flags est désormais fusionné avec la reference, cf. load-data.ts).
   swift: {
     targeting: { kind: TargetingKind.Blast, range: { min: 1, max: 5 }, radius: 1 },
     effects: [{ kind: EffectKind.Damage }],
