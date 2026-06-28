@@ -5,12 +5,6 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 ## Bugs
 
 
-### Lance-Soleil sous le soleil — preview mode-charge alors que le tir est instantané (2026-06-28, playtest)
-- **Symptôme** : sous Soleil, Lance-Soleil (`solar-beam`) affiche le ciblage du *tour de charge* (zone bleue sur la case du lanceur) alors que le move se lance immédiatement. Le ciblage ne s'adapte pas au tir instantané.
-- **Core OK** : `solar-beam` a `sunSkipsCharge: true` ; `getLegalActions` (BattleEngine.ts:673) propose bien les cibles ennemies sous soleil, et l'exécution (ligne 1105) tire le tour même. Le bug est **purement côté preview/view**.
-- **Cause racine** : `battle-orchestrator.ts` (lignes 538, 581, 1335) déclenche le preview mode-charge sur la seule condition `move.twoTurnCharge === true && active.chargingMove === undefined`, **sans** gate skip-soleil. Manque : ne pas afficher le preview de charge quand `move.sunSkipsCharge === true && this.engine.getEffectiveWeather() === Weather.Sun` → retomber sur le preview de ciblage normal (Ligne/Beam vers la cible).
-- **Fix** : extraire un helper `isChargingThisTurn(move, active, weather)` partagé par les 3 sites (DRY) qui renvoie `false` quand le skip-soleil s'applique. Concerne aussi le label tooltip `twoTurnChargeSunSkip` (déjà présent, cohérent).
-- **Latent adjacent** (à corriger en même temps) : `getLegalActions` (BattleEngine.ts:673) saute la charge sous soleil pour **tout** move `twoTurnCharge` sans gate `sunSkipsCharge`, alors que l'exécution (ligne 1105) gate sur `sunSkipsCharge`. Conséquence pour les autres moves à charge (Lame d'Air, Piqué, Vol, Coud'Krâne…) : proposés « tir immédiat » sous soleil mais mis en charge ciblant leur propre case à l'exécution. Pas Lance-Soleil (cohérent). Ajouter le gate `&& move.sunSkipsCharge === true` à la ligne 673.
 
 ### Setters météo à l'entrée — pas de « guerre météo » (2026-06-21, plan 137)
 - `weatherAutoSetter` (Sécheresse) est appliqué séquentiellement à l'entrée : si plusieurs Pokemon posent une météo, **le dernier dans l'ordre d'itération écrase** (pas de résolution par vitesse/initiative).
