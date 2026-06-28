@@ -669,8 +669,12 @@ export class BattleEngine {
           continue;
         }
 
+        // The charge turn is skipped ONLY for sun-skip moves under sun (e.g. Lance-Soleil); every
+        // other two-turn move still winds up, so legality must mirror execution (l.1103-1106).
         const isChargeT1 = move.twoTurnCharge && currentPokemon.chargingMove === undefined;
-        if (isChargeT1 && this.getEffectiveWeather() !== Weather.Sun) {
+        const skipsChargeThisTurn =
+          move.sunSkipsCharge === true && this.getEffectiveWeather() === Weather.Sun;
+        if (isChargeT1 && !skipsChargeThisTurn) {
           actions.push({
             kind: ActionKind.UseMove,
             pokemonId: currentPokemonId,
@@ -2681,7 +2685,7 @@ export class BattleEngine {
     }
   }
 
-  private getEffectiveWeather(): Weather {
+  getEffectiveWeather(): Weather {
     return effectiveWeather(this.state, (target) => {
       if (target.currentHp <= 0) {
         return false;

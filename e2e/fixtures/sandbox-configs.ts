@@ -53,6 +53,27 @@ export const DASH_DIRECTIONAL = {
  *  affect the caster tile → the centre cell is an empty "caster" (cross, no fill). */
 export const PREVIEW_QUAKE = { ...DUEL, moves: ["earthquake"] } as const;
 
+/** Lance-Soleil sous Soleil (bug fix charge↔météo) — Florizarre (venusaur), seul move Lance-Soleil
+ *  (`solar-beam`, Ligne longueur 5, `sunSkipsCharge`). SOUS Soleil le tour de charge est SAUTÉ : la
+ *  sélection passe DIRECT en phase de ciblage (aucune preview de charge sur la propre case du
+ *  lanceur), donc AUCUN mesh `highlight_preview_buff` n'est peint. Seed hérité de DUEL, Lance-Soleil
+ *  100 % précision → tir déterministe. */
+export const SOLAR_BEAM_SUN = {
+  ...DUEL,
+  moves: ["solar-beam"],
+  weather: "sun",
+} as const;
+
+/** Contrôle hors Soleil (Pluie) — même Florizarre / Lance-Soleil, mais le tour de charge N'EST PAS
+ *  sauté : la sélection peint la preview de charge sur la propre case du lanceur (mesh
+ *  `highlight_preview_buff` sur (2,3)). Prouve que c'est bien le Soleil — et non Lance-Soleil en soi —
+ *  qui supprime la charge. */
+export const SOLAR_BEAM_RAIN = {
+  ...DUEL,
+  moves: ["solar-beam"],
+  weather: "rain",
+} as const;
+
 /** Entry hazards (plan 131) — Cloyster apprend Picots (`spikes`), un poseur `GroundTarget` (vise
  *  une case au sol ≤4 Manhattan). Le joueur est à (2,3), le dummy inerte à (2,4). On vise une case
  *  libre et traversable à portée — (2,1), distance 2 — pour poser les Picots. La pose émet

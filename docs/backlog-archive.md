@@ -17,6 +17,13 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Lance-Soleil sous Soleil — preview mode-charge + latent `getLegalActions` (RÉSOLU 2026-06-28)
+
+- **Contexte (2026-06-28, playtest)** : sous Plein Soleil, Lance-Soleil (`solar-beam`) affichait à tort le ciblage du tour de charge (zone bleue sur la case du lanceur) au lieu du ciblage immédiat. Bug purement côté preview/view. Un bug latent adjacent existait dans `getLegalActions` (`BattleEngine.ts`) : la charge sous soleil était sautée pour TOUT move `twoTurnCharge` sans gate `sunSkipsCharge`, créant une incohérence légalité↔exécution pour les autres moves à charge (Lame d'Air, Piqué, Vol…).
+- **Résolution** : helper `isChargingThisTurn(move, active, weather)` extrait et partagé par les 3 sites preview de `battle-orchestrator.ts` (DRY). `getLegalActions` corrigé : gate ajouté (`&& move.sunSkipsCharge === true`) pour ne sauter la charge que sur les moves `sunSkipsCharge`. `getEffectiveWeather()` passée `public`. Miroir légalité↔exécution rétabli. Décision #576.
+
+---
+
 ## Talent Anti-Bruit (`soundproof`) — RÉSOLU (plan 138, v2026.6.4)
 - **Contexte** : aucun move sonore (Requiem, Dissonance Psy, Bruit Blanc, Berceuse…) n'était bloqué par Anti-Bruit. Electrode (roster) a ce talent → n'était pas immunisé à Requiem & co.
 - **Résolution** : Anti-Bruit (`soundproof`) implémenté dans le batch talents Tier C (plan 138). Immunité gérée par le hook `onMoveImmunity` (`effect-processor.ts`, gate générique sur le flag `sound`). Couvert par tests (`abilities.integration.test.ts`, `effect-processor.test.ts`).

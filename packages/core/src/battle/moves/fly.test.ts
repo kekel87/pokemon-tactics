@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
+import { Weather } from "../../enums/weather";
 import { buildMoveTestEngine, MockPokemon } from "../../testing";
 import { SemiInvulnerableState } from "../../types/semi-invulnerable-state";
 import { createPrng } from "../../utils/prng";
@@ -92,5 +93,73 @@ describe("fly", () => {
     expect(casterAfter?.semiInvulnerableState).toBeUndefined();
     expect(casterAfter?.position).toEqual({ x: 3, y: 0 });
     expect(state.pokemon.get(defender.id)?.currentHp).toBeLessThan(9999);
+  });
+});
+
+describe("fly — sun does not skip the charge turn", () => {
+  it("legal actions under sun expose only the self-tile charge action", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["fly"],
+      currentPp: { fly: 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const defender = MockPokemon.fresh(MockPokemon.charmander, {
+      id: "defender",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 1 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const { engine, state } = buildMoveTestEngine([attacker, defender], {
+      gridSize: 8,
+      random: createPrng(0),
+    });
+    state.weather = Weather.Sun;
+
+    const moveActions = engine
+      .getLegalActions(PlayerId.Player1)
+      .filter((a) => a.kind === ActionKind.UseMove && a.moveId === "fly");
+
+    expect(moveActions).toHaveLength(1);
+    expect(moveActions[0]?.targetPosition).toEqual(attacker.position);
+  });
+
+  it("executing under sun winds up into a charge instead of striking immediately", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["fly"],
+      currentPp: { fly: 15 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const defender = MockPokemon.fresh(MockPokemon.charmander, {
+      id: "defender",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 1 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const { engine, state } = buildMoveTestEngine([attacker, defender], {
+      gridSize: 8,
+      random: createPrng(0),
+    });
+    state.weather = Weather.Sun;
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "fly",
+      targetPosition: { x: 3, y: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.events.some((e) => e.type === BattleEventType.MoveCharging)).toBe(true);
+    expect(result.events.some((e) => e.type === BattleEventType.DamageDealt)).toBe(false);
+    const casterAfter = state.pokemon.get(attacker.id);
+    expect(casterAfter?.chargingMove?.moveId).toBe("fly");
+    expect(casterAfter?.lockedMoveId).toBe("fly");
+    expect(casterAfter?.semiInvulnerableState).toBe(SemiInvulnerableState.Flying);
   });
 });
