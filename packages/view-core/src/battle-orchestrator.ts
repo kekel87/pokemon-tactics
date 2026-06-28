@@ -23,6 +23,7 @@ import {
   StatusType,
   stepInDirection,
   TargetingKind,
+  Weather,
 } from "@pokemon-tactic/core";
 import { AnimationCategory, moveAnimationCategory } from "@pokemon-tactic/data";
 import { getTeamColorByPlayerId } from "@pokemon-tactic/render-ports";
@@ -506,6 +507,20 @@ export class BattleOrchestrator {
     return this.engine.getEffectiveMove(active.id, moveId) ?? staticDefinition;
   }
 
+  /**
+   * Is this move actually winding up THIS turn? A two-turn move charges on turn 1, EXCEPT a
+   * sun-skip move (Lance-Soleil) under sun, which fires immediately. Mirrors the engine
+   * (BattleEngine getLegalActions / execution), so the preview matches what the click does.
+   */
+  private isChargingThisTurn(move: MoveDefinition, active: PokemonInstance): boolean {
+    if (move.twoTurnCharge !== true || active.chargingMove !== undefined) {
+      return false;
+    }
+    const skipsChargeThisTurn =
+      move.sunSkipsCharge === true && this.engine.getEffectiveWeather() === Weather.Sun;
+    return !skipsChargeThisTurn;
+  }
+
   private isStaticPattern(kind: TargetingKind): boolean {
     return (
       kind === TargetingKind.Self || kind === TargetingKind.Cross || kind === TargetingKind.Zone
@@ -535,7 +550,7 @@ export class BattleOrchestrator {
       return;
     }
     // Charge turn of a two-turn move: highlight the caster's own tile (the wind-up).
-    if (move.twoTurnCharge === true && active.chargingMove === undefined) {
+    if (this.isChargingThisTurn(move, active)) {
       this.previewTiles = [{ x: active.position.x, y: active.position.y }];
       this.board.showPreview("buff", this.previewTiles);
       // Outline the wind-up tile too; blue since it's the caster's own charge
@@ -578,7 +593,7 @@ export class BattleOrchestrator {
     }
     // Charge turn: the preview is fixed on the caster (set by showEntryPreview); a
     // hover must not move/clear it.
-    if (move.twoTurnCharge === true && active.chargingMove === undefined) {
+    if (this.isChargingThisTurn(move, active)) {
       return;
     }
     const grid = this.engine.getGrid();
@@ -1332,7 +1347,7 @@ export class BattleOrchestrator {
     // Charge turn of a two-turn move: the engine offers a single action centred on the
     // caster (the wind-up has no target yet), so it confirms on ANY click (the
     // charge-turn-1 case is handled first).
-    if (move?.twoTurnCharge === true && active && active.chargingMove === undefined) {
+    if (move && active && this.isChargingThisTurn(move, active)) {
       return (
         actions.find((action) => positionEquals(action.targetPosition, active.position)) ??
         actions[0]

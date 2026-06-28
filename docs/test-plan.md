@@ -490,7 +490,13 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
 - 👁 Move à charge (tour 1) → « <X> concentre son énergie pour <Move> ! » + **indicateur ⚡** à
   gauche de la barre PV.
 - 👁 Tour 2 → le move se résout, l'indicateur disparaît.
-- 👁 **Soleil** : moves `sunSkipsCharge` (Lance-Soleil) se résolvent **en un tour** (pas de charge).
+- 🤖 **Soleil + `sunSkipsCharge`** : sous Soleil, sélectionner Lance-Soleil ne peint **aucune** preview
+  de charge (`highlight_preview_buff_*` = 0) → le tour de charge est sauté, tir immédiat — `mechanics-charge.spec`.
+- 🤖 **Hors Soleil (contrôle)** : Lance-Soleil charge normalement → preview de charge peinte sur la
+  propre case du lanceur (`highlight_preview_buff_2_3`) — `mechanics-charge.spec`.
+- 👁 **Soleil** : moves `sunSkipsCharge` (Lance-Soleil) se résolvent **en un tour** (pas de charge) —
+  *l'absence de l'indicateur ⚡ + l'anim de tir reste 👁*. Légalité↔exécution couverte en unit core
+  (`solar-beam.test`, `fly.test` : sous Soleil seul `sunSkipsCharge` saute la charge, Vol charge quand même).
 - 👁 **Recharge** (Giga Impact…) → « <X> doit se recharger » au tour suivant (ne peut agir).
 
 ### 5.12 Météo (un cas par météo)
@@ -1253,7 +1259,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-distortion.spec.ts` | §5.21 Distorsion : zone posée (journal « Distorsion ! » + quads indigo en scène) + inversion CT dans la timeline (lent avant rapide) |
 | `combat/mechanics-hazards.spec.ts` | §5.22 Pièges au sol : Picots posés via le picker GroundTarget (journal « Des Picots sont posés au sol » + mesh `hazard_hazards_spikes_1_x_y` sur la case visée seule). Déclenchement = SENS unit core (non pilotable : owner-immunity + dummy AI immobile) |
 | `combat/mechanics-dynamic-power.spec.ts` | §5.23 puissance conditionnelle : Branchicrok & Prise de Bec (hors-pool, ×2 cible fraîche tour 1) résolvent et infligent des dégâts (journal « perd N PV »). Hommage Posthume non couvert (scaling non observable en 1v1 + Dummy Normal immunisé Spectre) → 👁 |
-| `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) |
+| `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) + preview charge sous/hors Soleil (`sunSkipsCharge`) |
 | `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
 | `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
 | `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) + Graine Électrik (granule de terrain : pose Champ Électrifié sous soi → fin de tour Déf +1 + consommée, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit ; Graine Herbe / Graine Psychique / Graine Brume (même factory) = unit + objets de précision (bande de jet seed 6, Élecanon 50 % : témoin sans objet rate / Loupe ×1,1 touche / Lentille Zoom ×1,0 inactive face à dummy inerte rate ; ×1,2 conditionnel = unit) + objets d'évasion (bande de jet seed 30, Jet-Pierres 90 % : témoin sans objet touche / Poudre Claire ×0,9 rate / Encens Doux ×0,9 rate) + §5.15 objets flinch (bande de jet seed 3, Jet-Pierres 90 % côté attaquant porteur : témoin sans objet touche sans apeurer / Roche Royale +10 % apeure / Croc Rasoir +10 % apeure) + §5.16 nouveaux objets (Herbe Mental : le joueur lance Provoc sur le dummy porteur → « Herbe Mental … s'active ! » + « a utilisé son Herbe Mental » ; Veste de Combat : au menu Attaque le move statut Repli reste affiché mais `data-enabled="false"`, Griffe sélectionnable, témoin sans objet → Repli sélectionnable). Grosse Racine (×1,3 soin drain) + Déf. Spé ×1,5 de la Veste + autres volatiles soignés par l'Herbe Mental = unit |
