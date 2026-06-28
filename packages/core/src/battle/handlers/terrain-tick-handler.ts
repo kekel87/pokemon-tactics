@@ -4,7 +4,7 @@ import type { TerrainType } from "../../enums/terrain-type";
 import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
 import type { PokemonInstance } from "../../types/pokemon-instance";
-import { getEffectiveTypes, isEffectivelyFlying } from "../effective-flying";
+import { getEffectiveTypes, isEffectivelyFlying, resolveBaseTypes } from "../effective-flying";
 import type { HeldItemHandlerRegistry } from "../held-item-handler-registry";
 import { isMajorStatus } from "../stat-modifier";
 import { getTerrainDotFraction, getTerrainStatusOnStop, isTerrainImmune } from "../terrain-effects";
@@ -104,7 +104,7 @@ export function createTerrainTickHandler(
     }
 
     const terrain = tile.terrain;
-    const baseTypes = pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const baseTypes = resolveBaseTypes(pokemon, pokemonTypesMap);
     const types = getEffectiveTypes(pokemon, baseTypes);
     const events: BattleEvent[] = [];
 

@@ -59,7 +59,7 @@ import {
   isInDistortionZone,
 } from "./distortion-system";
 import { processEffects } from "./effect-processor";
-import { isEffectivelyFlying } from "./effective-flying";
+import { isEffectivelyFlying, resolveBaseTypes } from "./effective-flying";
 import {
   absorbsToxicSpikes,
   getEntryHazardsAt,
@@ -320,8 +320,8 @@ export class BattleEngine {
     if (!attacker || !defender || !rawMove) {
       return null;
     }
-    const attackerTypes = this.pokemonTypesMap.get(attacker.definitionId) ?? [];
-    const defenderTypes = this.pokemonTypesMap.get(defender.definitionId) ?? [];
+    const attackerTypes = this.effectiveTypesOf(attacker);
+    const defenderTypes = this.effectiveTypesOf(defender);
     // B4 morphs the AI must see for correct scoring: Nature Power full swap, then Terrain Pulse type.
     const morphedMove = resolveNaturePowerMove(
       (id) => this.moveRegistry.get(id),
@@ -416,7 +416,16 @@ export class BattleEngine {
     if (!pokemon) {
       return [];
     }
-    return this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    return this.effectiveTypesOf(pokemon);
+  }
+
+  /**
+   * Override-aware base types of an instance — the single point every type read in the engine goes
+   * through, so a runtime `typeOverride` (type-manip family) propagates to STAB, effectiveness,
+   * terrain, hazards and status immunity. Roost filtering layers on top separately where needed.
+   */
+  private effectiveTypesOf(pokemon: PokemonInstance): PokemonType[] {
+    return resolveBaseTypes(pokemon, this.pokemonTypesMap);
   }
 
   /** Psychic-terrain barrier predicate for a dasher (B4), fed into the traversal context. */
@@ -443,7 +452,7 @@ export class BattleEngine {
       pokemon,
       move,
     );
-    const casterTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const casterTypes = this.effectiveTypesOf(pokemon);
     let targeting = resolveEffectiveTargeting(swapped, pokemon, casterTypes, this.state);
     if (
       targeting.kind === TargetingKind.Dash &&
@@ -468,7 +477,7 @@ export class BattleEngine {
 
   computePathDistance(from: Position, to: Position, pokemonId: string): number {
     const pokemon = this.state.pokemon.get(pokemonId);
-    const pokemonTypes = pokemon ? (this.pokemonTypesMap.get(pokemon.definitionId) ?? []) : [];
+    const pokemonTypes = pokemon ? this.effectiveTypesOf(pokemon) : [];
     const isFlying = pokemon
       ? this.isEffectivelyFlying(pokemon)
       : pokemonTypes.includes(PokemonType.Flying);
@@ -820,7 +829,7 @@ export class BattleEngine {
   }
 
   private isEffectivelyFlying(pokemon: PokemonInstance): boolean {
-    const types = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const types = this.effectiveTypesOf(pokemon);
     return isEffectivelyFlying(pokemon, types);
   }
 
@@ -926,7 +935,7 @@ export class BattleEngine {
           targeting.range.min,
           targeting.range.max,
         );
-        const casterTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+        const casterTypes = this.effectiveTypesOf(pokemon);
         const casterFlying = this.isEffectivelyFlying(pokemon);
         return allTiles.filter((position) => {
           const tile = this.grid.getTile(position);
@@ -1201,7 +1210,7 @@ export class BattleEngine {
         ? resolveFieldTerrainPulseMove(
             this.state,
             pokemon,
-            this.pokemonTypesMap.get(pokemon.definitionId) ?? [],
+            this.effectiveTypesOf(pokemon),
             effectiveMove,
           ).type
         : effectiveMove.type;
@@ -1238,7 +1247,7 @@ export class BattleEngine {
       }
 
       const defenderTile = this.grid.getTile(target.position);
-      const defenderTypes = this.pokemonTypesMap.get(target.definitionId) ?? [];
+      const defenderTypes = this.effectiveTypesOf(target);
       const tallGrassBonus =
         defenderTile?.terrain === TerrainType.TallGrass &&
         !isTerrainImmune(TerrainType.TallGrass, defenderTypes, this.isEffectivelyFlying(target))
@@ -1319,10 +1328,25 @@ export class BattleEngine {
       targets.push(...asleepTargets);
     }
 
-    const attackerTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    // Flamme Ultime (burn-up): the move fails wholesale (no damage) unless the user currently has the
+    // required type. Gated before damage so a typeless/non-Fire user can't keep firing it.
+    if (move.requiresUserType !== undefined) {
+      if (!this.effectiveTypesOf(pokemon).includes(move.requiresUserType)) {
+        const failEvent: BattleEvent = {
+          type: BattleEventType.MoveFailed,
+          attackerId: pokemon.id,
+          moveId,
+        };
+        this.emit(failEvent);
+        events.push(failEvent);
+        targets.length = 0;
+      }
+    }
+
+    const attackerTypes = this.effectiveTypesOf(pokemon);
     const targetTypesMap = new Map<string, PokemonType[]>();
     for (const target of targets) {
-      targetTypesMap.set(target.id, this.pokemonTypesMap.get(target.definitionId) ?? []);
+      targetTypesMap.set(target.id, this.effectiveTypesOf(target));
     }
 
     const attackerHeight = this.grid.getTile(pokemon.position)?.height ?? 0;
@@ -1377,6 +1401,7 @@ export class BattleEngine {
           typeChart: this.typeChart,
           attackerTypes,
           targetTypesMap,
+          moveTypeOf: (id) => this.moveRegistry.get(id)?.type,
           targetPosition,
           random: this.random,
           heightModifier: heightMod,
@@ -1906,7 +1931,7 @@ export class BattleEngine {
       return;
     }
 
-    const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const pokemonTypes = this.effectiveTypesOf(pokemon);
     const isFlying = this.isEffectivelyFlying(pokemon);
     if (isTerrainImmune(landingTile.terrain, pokemonTypes, isFlying)) {
       return;
@@ -1946,7 +1971,7 @@ export class BattleEngine {
     if (this.state.entryHazards.length === 0) {
       return;
     }
-    const types = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const types = this.effectiveTypesOf(pokemon);
     const isFlying = this.isEffectivelyFlying(pokemon);
     for (const step of path) {
       if (pokemon.currentHp <= 0) {
@@ -2128,7 +2153,7 @@ export class BattleEngine {
     const result: ReachableTile[] = [];
     const visited = new Map<string, number>();
     const posKey = (p: Position): string => `${p.x},${p.y}`;
-    const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const pokemonTypes = this.effectiveTypesOf(pokemon);
     const isFlying = this.isEffectivelyFlying(pokemon);
     const isGhost = pokemonTypes.includes(PokemonType.Ghost);
     const immuneTerrains = getImmuneTerrains(pokemonTypes, isFlying);
@@ -2230,7 +2255,7 @@ export class BattleEngine {
     };
 
     const events: BattleEvent[] = [];
-    const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const pokemonTypes = this.effectiveTypesOf(pokemon);
 
     this.grid.setOccupant(origin, null);
     const destination = path[path.length - 1] as Position;
@@ -2326,7 +2351,7 @@ export class BattleEngine {
       return ActionError.EmptyPath;
     }
 
-    const pokemonTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const pokemonTypes = this.effectiveTypesOf(pokemon);
     const isFlying = this.isEffectivelyFlying(pokemon);
     const isGhost = pokemonTypes.includes(PokemonType.Ghost);
     const immuneTerrains = getImmuneTerrains(pokemonTypes, isFlying);
@@ -2516,7 +2541,7 @@ export class BattleEngine {
       const berryBlocked =
         item?.isBerry === true && areBerriesSuppressed(this.state, activePokemon);
       if (item?.onEndTurn && !berryBlocked) {
-        const selfTypes = this.pokemonTypesMap.get(activePokemon.definitionId) ?? [];
+        const selfTypes = this.effectiveTypesOf(activePokemon);
         const itemEvents = item.onEndTurn({
           pokemon: activePokemon,
           state: this.state,
@@ -2584,7 +2609,7 @@ export class BattleEngine {
     }
 
     const syntheticMove: MoveDefinition = { ...move, effects: move.chargeEffects };
-    const attackerTypes = this.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const attackerTypes = this.effectiveTypesOf(pokemon);
     const targetTypesMap = new Map<string, PokemonType[]>();
     targetTypesMap.set(pokemon.id, attackerTypes);
 
@@ -2596,6 +2621,7 @@ export class BattleEngine {
       typeChart: this.typeChart,
       attackerTypes,
       targetTypesMap,
+      moveTypeOf: (id) => this.moveRegistry.get(id)?.type,
       targetPosition: pokemon.position,
       random: this.random,
       heightModifier: 1,
@@ -2751,6 +2777,7 @@ export class BattleEngine {
     pokemon.perishAura = undefined;
     pokemon.helpingHand = undefined;
     pokemon.critStageBoost = undefined;
+    pokemon.typeOverride = undefined;
     pokemon.volatileStatuses = [];
 
     for (const other of this.state.pokemon.values()) {

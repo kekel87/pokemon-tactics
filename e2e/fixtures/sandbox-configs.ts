@@ -505,3 +505,26 @@ export const STICKY_HOLD_BLOCKS_REMOVAL = {
   dummyAbility: "sticky-hold",
   dummyHeldItem: "leftovers",
 } as const;
+
+// Famille Type manip (plan 143) — moves qui réécrivent le type d'un Pokemon. Le signal le plus net
+// est Détrempage (`soak`) : cible ennemie r1 → Eau pur. Deux feedbacks observables convergent : la
+// ligne de journal FR (« <X> devient de type Eau ! ») et le badge volatile « Type Eau » de
+// l'InfoPanel (au survol de la cible). Les autres moves de la famille (Conversion, Conversion 2,
+// Copie-Type, Flamme Ultime) dépendent d'un historique de move (1er move du lanceur / dernier move
+// ennemi) ou d'un type de lanceur précis → setup moins net en sandbox 1v1, couverts unit core.
+
+/** Détrempage (`soak`, type manip, portée 1-1) — le joueur Florizarre lance Détrempage sur le dummy
+ *  Ronflex (snorlax, Normal pur → le changement vers Eau est sans ambiguïté ; espèce DIFFÉRENTE du
+ *  lanceur → nom filtrable au journal/survol). Le dummy reste inerte (`dummyMove: "leer"`, Groz'Yeux)
+ *  et endurant (`dummyHp: 999`) pour ne pas polluer le journal ni mourir. Détrempage est un move
+ *  STATUT à 100 % de précision → aucun jet, cast déterministe (seed DUEL hérité). Move hors-pool
+ *  forcé via `moves` (SandboxSetup écrase `moveIds` sans regarder le learnset). Après le cast :
+ *  journal « Ronflex devient de type Eau ! » + au survol de la case du dummy l'InfoPanel monte le
+ *  badge volatile « Type Eau » (typeOverride). */
+export const TYPE_MANIP_SOAK = {
+  ...DUEL,
+  moves: ["soak"],
+  dummyPokemon: "snorlax",
+  dummyMove: "leer",
+  dummyHp: 999,
+} as const;

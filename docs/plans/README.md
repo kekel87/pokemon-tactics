@@ -135,3 +135,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 133 | [Delayed / countdown (Prescience / Requiem / Balance / Effort / Coup d'Main)](./133-delayed-countdown.md) | done | 2026-06-19 |
 | 134 | [Power conditionnel : familles restantes (Hommage Posthume / Branchicrok / Prise de Bec)](./134-power-conditional-rest.md) | done | 2026-06-19 |
 | 135 | [Sprite bundle packing (3 fichiers) + roster Gen 1 complet (+70 pré-évos)](./135-sprite-bundle-packing.md) | done | 2026-06-20 |
+| 143 | [Famille Type manip (mutation runtime du type — 429 → 434)](./143-type-manip.md) | done | 2026-06-28 |

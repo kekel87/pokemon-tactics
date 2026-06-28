@@ -103,6 +103,7 @@ export const BattleEventType = {
   EndeavorFailed: "endeavor_failed",
   HelpingHandPosted: "helping_hand_posted",
   HelpingHandConsumed: "helping_hand_consumed",
+  TypeChanged: "type_changed",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

@@ -54,6 +54,7 @@ export interface TacticalOverride {
   requiresAsleep?: boolean;
   requiresAllOtherMovesUsed?: boolean;
   requiresTargetAsleep?: boolean;
+  requiresUserType?: PokemonType;
   fieldTerrainPowerBonus?: {
     who: FieldTerrainBonusWho;
     terrain: FieldTerrain;
@@ -1846,6 +1847,37 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.HelpingHand, multiplier: 1.5 }],
     targetsAlly: true,
+  },
+  // --- Famille Type manip (plan 143) : mutation runtime du type ---
+  conversion: {
+    // Conversion: self → type du 1er move du moveset (canon Gen 4+). Échoue si le type est déjà porté.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.ConvertSelfType }],
+  },
+  "conversion-2": {
+    // Conversion 2: self → type aléatoire résistant au dernier move d'un ennemi adjacent.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.ConvertResistType }],
+  },
+  "reflect-type": {
+    // Copie-Type: self copie les types effectifs de la cible r1 (override inclus).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.CopyTargetType }],
+  },
+  soak: {
+    // Détrempage: cible ennemie r1 → Eau pur. Bloqué par le Clone (Substitut).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.SoakType, pureType: PokemonType.Water }],
+  },
+  "burn-up": {
+    // Flamme Ultime: Feu Spé 130, dégâts puis le lanceur perd son type Feu (sans type si mono-Feu).
+    // Échoue wholesale si le lanceur n'est pas de type Feu (requiresUserType).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.RemoveType, removedType: PokemonType.Fire },
+    ],
+    requiresUserType: PokemonType.Fire,
   },
   // --- Content Batch G1 moves (dégâts pur physique, plan 102) ---
   // Riders complexes différés (cf. plan 102) : throat-chop sound-lock, lash-out/temper-flare/

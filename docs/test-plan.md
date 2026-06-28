@@ -52,6 +52,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Effets de terrain (coût/statut/DOT/bonus) | §5.20, §8.1 |
 | Pattern de ciblage d'un move | §3.7, §4.6, §5.16 |
 | Objet tenu / manipulation d'objet (vol/échange/retrait/recyclage) | §5.14, §5.25 |
+| Réécriture de type (Détrempage/Conversion/Flamme Ultime…) | §5.27, §4.7 |
 | Move (effet observable) | §5 (famille concernée) |
 | HUD DOM combat (log, timeline, menus, tooltip) | §4 |
 | Écran / menu / navigation | §6 |
@@ -1041,6 +1042,32 @@ lignes filtrables par nom) est endurant (`dummyHp: 999`) et inerte (`dummyMove: 
   `getLegalActions` (0 action Move, attaques OK) n'a pas de ligne de journal distincte → couvert unit
   (`moves/{wrap,bind,fire-spin,whirlpool,sand-tomb,block,mean-look}.test.ts`).
 
+### 5.27 Famille Type manip (réécriture de type)
+*src : core `data/overrides/tactical.ts` (`conversion`, `conversion-2`, `reflect-type`, `soak`,
+`burn-up`), `enums/effect-kind.ts` (SoakType/ConvertType/ConvertResistType/CopyTargetType/RemoveType),
+`battle/handlers/handle-type-change.ts` ; journal `ui-dom/BattleLogFormatter.ts` (event TypeChanged) ;
+badge volatile `view-core/battle-views.ts` (`typeOverride` → « Type {types} ») ; unit
+`battle/moves/{conversion,conversion-2,reflect-type,soak,burn-up}.test.ts` ;
+e2e : `mechanics-type-manip.spec.ts`.* Cinq moves réécrivent le type d'un Pokemon : Conversion
+(`conversion`, self → type du 1er move), Conversion 2 (`conversion-2`, self → type résistant au dernier
+move ennemi), Copie-Type (`reflect-type`, self copie les types de la cible), Détrempage (`soak`, cible
+ennemie → Eau pur), Flamme Ultime (`burn-up`, Feu Spé 130, dégâts puis le lanceur perd son type Feu).
+Le SENS (efficacité/STAB recalculés, fail wholesale, historique de move) est couvert unit/integration
+core ; e2e on prouve la résolution via l'orchestrateur + les feedbacks observables (journal + badge).
+
+- 🤖 **Détrempage** (`soak`, portée 1-1, statut 100 % → cast déterministe, hors-pool forcé via `moves`) :
+  le joueur Florizarre lance Détrempage sur le dummy Ronflex (snorlax, Normal pur → changement vers Eau
+  sans ambiguïté, espèce ≠ lanceur → nom filtrable) endurant et inerte (`dummyHp: 999`,
+  `dummyMove: "leer"`). Deux feedbacks convergent : (1) journal FR « Ronflex devient de type Eau ! »
+  (event TypeChanged) ; (2) au survol de la case du dummy, l'InfoPanel monte le badge volatile « Type
+  Eau » (`typeOverride` → `infoPanel.volatile.typeChanged`) (`mechanics-type-manip.spec`).
+- 👁 **Conversion / Conversion 2 / Copie-Type / Flamme Ultime** : dépendent d'un historique de move
+  (Conversion = 1er move du lanceur ; Conversion 2 = dernier move ennemi ; Copie-Type = types de la
+  cible) ou d'un type de lanceur précis (Flamme Ultime échoue wholesale si le lanceur n'est pas Feu) →
+  setup moins net en sandbox 1v1 (le journal FR « X devient de type … » / « X perd son type Feu ! » /
+  « X n'a plus de type ! » et le recalcul d'efficacité/STAB sont identiques) → couverts unit/integration
+  core (`moves/{conversion,conversion-2,reflect-type,burn-up}.test.ts`), non dupliqués e2e.
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -1296,6 +1323,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-talents-secondary.spec.ts` | §5.17 talents attaquant — effet secondaire (plan 139) : Sans Limite (Nidoking + Bombe Beurk → « Sans Limite … s'active ! », dégâts présents, « est empoisonné » absent — secondaire supprimé, tout seed) ; Sérénité (Leveinard + Bombe Beurk, FLIP au seed 1 : poison absent sans le talent, présent avec — le 30 % doublé en 60 % réussit). Le ×1.3 de Sans Limite, le cap 100 % et les exclusions de Sérénité = unit/integration core |
 | `combat/mechanics-talents-support.spec.ts` | §5.24 talents soutien & couplage objet (plan 141) : Moiteur (Électrode + Destruction sur Psykokwak porteur → « Moiteur … s'active ! » + « Mais cela échoue … ! », « Psykokwak perd N PV » absent), Gloutonnerie (Ronflex à 40 % PV + Baie Lichii → fin de tour → « Baie Lichii … s'active ! » + « Attaque … augmente ! » au seuil 50 %). Cœur Soin / Garde-Ami (soutien d'équipe, requièrent un allié à r2 → non pilotables en 1v1) et Tension (silencieux, effet = absence de baie) = unit/integration core → 👁 |
 | `combat/mechanics-item-interaction.spec.ts` | §5.25 item interaction (plan 142) : Sabotage (retire l'objet → « perd son Restes »), Larcin (vole l'objet → « vole le … » + InfoPanel du lanceur « 🎒 Restes »), Tour de Magie (échange → « échange son objet … » + InfoPanel « 🎒 Restes »), Dégommage (Orbe Flamme lancée → « dégomme son Orbe Flamme » + « est brûlé »), Recyclage (baie mangée en fin de tour puis restaurée → « recycle son Baie Lichii » + InfoPanel), Éructation (jouable seulement après une baie mangée → dégâts au dummy), Glu (Sabotage bloqué sur Grotadmorv → « Glu … s'active », « perd son Restes » absent). Implore/Passe-Passe (effets partagés), Picore/Piqûre/Calcination/Gaz Corrosif (contenu fin non distinct au journal), Substitut (D5), baies Lansat/Frista (boost silencieux), ×1.5 de Sabotage = unit/integration core → 👁 |
+| `combat/mechanics-type-manip.spec.ts` | §5.27 famille Type manip (plan 143) : Détrempage (`soak`, hors-pool forcé) sur le dummy Ronflex (Normal) → journal « Ronflex devient de type Eau ! » (event TypeChanged) + badge volatile « Type Eau » de l'InfoPanel au survol de la cible (`typeOverride`). Conversion/Conversion 2/Copie-Type/Flamme Ultime (historique de move ou type de lanceur requis, mêmes lignes de journal « devient de type … »/« perd son type Feu ! » + recalcul efficacité/STAB) = unit/integration core, non dupliqués e2e → 👁 |
 | `combat/mechanics-trapping.spec.ts` | §5.26 famille Pièges (trapping) : piège PARTIEL (Danse Flammes + Aucun Garde forçant 100 % → « Ronflex est piégé ! » puis chip de fin de tour « Ronflex perd N PV ! ») ; piège PUR position-linked (Barrage → « Ronflex est piégé ! » sans dégâts, puis le lanceur s'éloigne en (2,5) → « Ronflex est libéré du piège »). Étreinte/Siphon/Tourbi-Sable (même pattern partiel) et Regard Noir (même pattern pur) = unit (`moves/*.test.ts`), non dupliqués e2e → 👁. Immobilisation (0 action Move, attaque OK) = unit (pas de ligne de journal) → 👁 |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |

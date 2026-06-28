@@ -52,6 +52,11 @@ import { handleStatus } from "./handlers/handle-status";
 import { handleStealItem } from "./handlers/handle-steal-item";
 import { handleSwapItems } from "./handlers/handle-swap-items";
 import { handleTransferStatStages } from "./handlers/handle-transfer-stat-stages";
+import { handleConvertResistType } from "./handlers/type-change/handle-convert-resist-type";
+import { handleConvertSelfType } from "./handlers/type-change/handle-convert-self-type";
+import { handleCopyTargetType } from "./handlers/type-change/handle-copy-target-type";
+import { handleRemoveType } from "./handlers/type-change/handle-remove-type";
+import { handleSoakType } from "./handlers/type-change/handle-soak-type";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { consumeHeldItem } from "./held-item-transfer";
 import { isSecondaryEffect } from "./secondary-effect";
@@ -64,6 +69,7 @@ interface ProcessContext {
   typeChart: TypeChart;
   attackerTypes: PokemonType[];
   targetTypesMap: Map<string, PokemonType[]>;
+  moveTypeOf: (moveId: string) => PokemonType | undefined;
   targetPosition: Position;
   random: RandomFn;
   heightModifier: number;
@@ -113,6 +119,11 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.EatTargetBerry, handleEatTargetBerry);
   registry.register(EffectKind.BurnTargetItem, handleBurnTargetItem);
   registry.register(EffectKind.RecycleItem, handleRecycleItem);
+  registry.register(EffectKind.ConvertSelfType, handleConvertSelfType);
+  registry.register(EffectKind.ConvertResistType, handleConvertResistType);
+  registry.register(EffectKind.CopyTargetType, handleCopyTargetType);
+  registry.register(EffectKind.SoakType, handleSoakType);
+  registry.register(EffectKind.RemoveType, handleRemoveType);
   return registry;
 }
 

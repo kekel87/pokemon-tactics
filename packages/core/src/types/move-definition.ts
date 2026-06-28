@@ -65,6 +65,8 @@ export interface MoveDefinition {
   requiresAllOtherMovesUsed?: boolean;
   /** The move fails (no damage / no drain) unless the target is asleep (dream-eater). */
   requiresTargetAsleep?: boolean;
+  /** The move fails wholesale (no damage) unless the user currently has this type (Flamme Ultime → Fire). */
+  requiresUserType?: PokemonType;
   /**
    * Field-terrain (B4) power bonus: multiply base power when `who` stands on `terrain`. Folded into
    * the field-terrain BP multiplier threaded to the damage calc (Rising Voltage, Misty Explosion,

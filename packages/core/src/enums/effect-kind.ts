@@ -59,6 +59,16 @@ export const EffectKind = {
   BurnTargetItem: "burn_target_item",
   /** Restore the user's last self-consumed item (Recyclage). */
   RecycleItem: "recycle_item",
+  /** Set the caster's type to the type of its first move (Conversion). */
+  ConvertSelfType: "convert_self_type",
+  /** Set the caster's type to one resisting the target's last-used move (Conversion 2). */
+  ConvertResistType: "convert_resist_type",
+  /** Copy the target's effective types onto the caster (Copie-Type / reflect-type). */
+  CopyTargetType: "copy_target_type",
+  /** Set the target's type to a single pure type (Détrempage → Water). */
+  SoakType: "soak_type",
+  /** Remove a type from the caster after dealing damage (Flamme Ultime → drop Fire). */
+  RemoveType: "remove_type",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

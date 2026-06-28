@@ -118,6 +118,7 @@ export {
   AuraDissipatedReason,
   ProtectionReason,
   SubstituteFailedReason,
+  TypeChangeReason,
 } from "./types/battle-event";
 export type * from "./types/index";
 export type { SemiInvulnerableDisplay } from "./types/semi-invulnerable-display";

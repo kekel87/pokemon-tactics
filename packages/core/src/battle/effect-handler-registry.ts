@@ -28,6 +28,8 @@ export interface EffectContext {
   typeChart: TypeChart;
   attackerTypes: PokemonType[];
   targetTypesMap: Map<string, PokemonType[]>;
+  /** Resolve a move id to its type (type-manip moves: Conversion, Conversion 2). */
+  moveTypeOf: (moveId: string) => PokemonType | undefined;
   targetPosition: Position;
   random: RandomFn;
   heightModifier: number;

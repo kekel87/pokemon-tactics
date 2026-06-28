@@ -8,6 +8,7 @@ import type { TypeChart } from "../types/type-chart";
 import { manhattanDistance } from "../utils/manhattan-distance";
 import type { RandomFn } from "../utils/prng";
 import { getStab, getTypeEffectiveness } from "./damage-calculator";
+import { resolveBaseTypes } from "./effective-flying";
 import { getEffectiveStat } from "./stat-modifier";
 
 /** Level is fixed at 50 across the project (Champions style), matching the damage calculator. */
@@ -135,7 +136,7 @@ function resolveLanding(
     if (manhattanDistance(strike.centerPosition, pokemon.position) > strike.radius) {
       continue;
     }
-    const defenderTypes = deps.pokemonTypesMap.get(pokemon.definitionId) ?? [];
+    const defenderTypes = resolveBaseTypes(pokemon, deps.pokemonTypesMap);
     const roll = deps.random() * 0.15 + 0.85;
     const damage = computeStrikeDamage(
       strike.frozenOffense,

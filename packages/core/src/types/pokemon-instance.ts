@@ -3,6 +3,7 @@ import type { HeldItemId } from "../enums/held-item-id";
 import type { Nature } from "../enums/nature";
 import type { PlayerId } from "../enums/player-id";
 import type { PokemonGender } from "../enums/pokemon-gender";
+import type { PokemonType } from "../enums/pokemon-type";
 import type { StatName } from "../enums/stat-name";
 import type { ActiveDefense } from "./active-defense";
 import type { BaseStats } from "./base-stats";
@@ -68,6 +69,15 @@ export interface PokemonInstance {
   chargingMove?: { moveId: string; targetPosition?: Position };
   semiInvulnerableState?: SemiInvulnerableState;
   substituteHp?: number;
+  /**
+   * Runtime type override (type-manip family: Conversion, Conversion 2, Copie-Type, Détrempage,
+   * Flamme Ultime). When set, replaces the species types everywhere (STAB, effectiveness, terrain,
+   * hazards, status immunity) via `resolveBaseTypes`. A single override at a time — a new cast
+   * overwrites the previous one. `[]` means typeless (mono-Fire after Flamme Ultime), distinct from
+   * `undefined` (no override). Persists for the rest of the battle (no switch in this game; forced
+   * teleport keeps the instance). Cleared on KO.
+   */
+  typeOverride?: PokemonType[];
   lastUsedMoveId?: string;
   /** Consecutive-cast count for Rollout (Roulade) — snowballs Dash range + power. Reset to 0 on any other move. */
   rolloutStreak?: number;
