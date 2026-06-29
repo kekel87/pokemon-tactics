@@ -67,6 +67,16 @@ export interface PokemonInstance {
   critStageBoost?: number;
   lockedMoveId?: string;
   chargingMove?: { moveId: string; targetPosition?: Position };
+  /**
+   * Move-copy family (plan 144). Set by `prepareCalledMove` when the caster commits a call-move
+   * (Métronome / Blabla Dodo / Mimique / Photocopie): holds the move rolled/resolved for this turn
+   * so the renderer can reveal its targeting pattern (name masked for the random ones) before the
+   * player places the target. `reveal` = whether the called move's identity is shown (true for the
+   * deterministic copies, false for the random ones). Sticky across a cancelled placement — re-
+   * selecting the source move returns the SAME called move (anti-reroll); the roll only advances the
+   * PRNG once per turn. Consumed when the matching move fires; cleared at end of turn and on KO.
+   */
+  pendingCalledMove?: { sourceMoveId: string; calledMoveId: string; reveal: boolean };
   semiInvulnerableState?: SemiInvulnerableState;
   substituteHp?: number;
   /**

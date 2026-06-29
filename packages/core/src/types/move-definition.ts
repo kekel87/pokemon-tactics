@@ -1,4 +1,5 @@
 import type { AttackStatSource } from "../enums/attack-stat-source";
+import type { CallMoveSourceKind } from "../enums/call-move-source-kind";
 import type { Category } from "../enums/category";
 import type { EffectTier } from "../enums/effect-tier";
 import type { FieldTerrain } from "../enums/field-terrain";
@@ -94,4 +95,11 @@ export interface MoveDefinition {
    * under the caster (Nature Power). Resolved to a full MoveDefinition at use time.
    */
   naturePowerMorph?: boolean;
+  /**
+   * Move-copy family (plan 144): this move executes ANOTHER move resolved at use time (Métronome,
+   * Blabla Dodo, Mimique, Photocopie). `prepareCalledMove` rolls/resolves the called move and stores
+   * it on `PokemonInstance.pendingCalledMove`; `resolveEffectiveMove` then swaps to it. CT cost and
+   * `lastUsedMoveId` stay on this source move; the global-last record gets the called move.
+   */
+  callMove?: CallMoveSourceKind;
 }

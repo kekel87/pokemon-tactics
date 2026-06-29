@@ -455,4 +455,13 @@ export type BattleEvent =
       pokemonId: string;
       newTypes: PokemonType[];
       reason: TypeChangeReason;
-    };
+    }
+  | {
+      type: typeof BattleEventType.MoveCopied;
+      pokemonId: string;
+      /** The source move slot that was overwritten (mimic / sketch). */
+      slotMoveId: string;
+      /** The move id copied into the slot (the target's last used move). */
+      copiedMoveId: string;
+    }
+  | { type: typeof BattleEventType.MoveCopyFailed; pokemonId: string; moveId: string };

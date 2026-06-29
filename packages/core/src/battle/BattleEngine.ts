@@ -1,6 +1,7 @@
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
+import { CallMoveSourceKind } from "../enums/call-move-source-kind";
 import { Category } from "../enums/category";
 import { Direction } from "../enums/direction";
 import { DynamicPowerKind } from "../enums/dynamic-power-kind";
@@ -30,6 +31,7 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import type { RangeConfig } from "../types/range-config";
 import { DEFAULT_STATUS_RULES, type StatusRules } from "../types/status-rules";
+import type { TargetingPattern } from "../types/targeting-pattern";
 import type { TileState } from "../types/tile-state";
 import type { TraversalContext } from "../types/traversal-context";
 import type { TypeChart } from "../types/type-chart";
@@ -106,6 +108,7 @@ import { getHeightModifier } from "./height-modifier";
 import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { collectImprisonedMoveIds } from "./imprison-system";
+import { isMetronomeCallable, isSleepTalkCallable } from "./move-copy/callable-moves";
 import { resolveNaturePowerMove } from "./nature-power-system";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { computePressureBonus } from "./pressure";
@@ -396,6 +399,100 @@ export class BattleEngine {
     return this.resolveEffectiveMove(pokemon, move);
   }
 
+  /**
+   * Move-copy (plan 144): commit a call-move (Métronome / Blabla Dodo / Mimique / Photocopie) and
+   * resolve the move it will execute, WITHOUT consuming the turn. Stores the result on the caster's
+   * `pendingCalledMove` so the final `submitAction(UseMove, sourceMoveId, targetPosition)` swaps to it
+   * (via `resolveEffectiveMove`). Returns the called move id, its effective targeting (to highlight),
+   * and `reveal` (false ⇒ the renderer masks the move's identity — the random callers).
+   *
+   * Idempotent within a turn: a pending resolution for the same source is returned unchanged (the
+   * PRNG only rolls once), so cancelling the placement and re-selecting the source returns the SAME
+   * called move (anti-reroll). `selectedTargetId` feeds the `target-last` source (Mimique).
+   * Returns `{ failed: true }` when there is no move to call (Mimique/Photocopie before any move was
+   * used, or an empty pool).
+   */
+  prepareCalledMove(
+    casterId: string,
+    sourceMoveId: string,
+    selectedTargetId?: string,
+  ): { calledMoveId: string; targeting: TargetingPattern; reveal: boolean } | { failed: true } {
+    const caster = this.state.pokemon.get(casterId);
+    const sourceMove = this.moveRegistry.get(sourceMoveId);
+    if (!caster || !sourceMove || sourceMove.callMove === undefined) {
+      return { failed: true };
+    }
+
+    const existing = caster.pendingCalledMove;
+    const pending =
+      existing !== undefined && existing.sourceMoveId === sourceMoveId
+        ? existing
+        : (() => {
+            const resolved = this.resolveCalledMove(caster, sourceMove.callMove, selectedTargetId);
+            if (resolved === null) {
+              return undefined;
+            }
+            return { sourceMoveId, calledMoveId: resolved.calledMoveId, reveal: resolved.reveal };
+          })();
+    if (pending === undefined) {
+      return { failed: true };
+    }
+    caster.pendingCalledMove = pending;
+
+    const effectiveMove = this.resolveEffectiveMove(caster, sourceMove);
+    return {
+      calledMoveId: pending.calledMoveId,
+      targeting: effectiveMove.targeting,
+      reveal: pending.reveal,
+    };
+  }
+
+  /** Resolve which move a call-move executes. Returns null when nothing can be called. */
+  private resolveCalledMove(
+    caster: PokemonInstance,
+    source: CallMoveSourceKind,
+    selectedTargetId: string | undefined,
+  ): { calledMoveId: string; reveal: boolean } | null {
+    switch (source) {
+      case CallMoveSourceKind.RandomAll: {
+        const pool = [...this.moveRegistry.values()].filter(isMetronomeCallable);
+        if (pool.length === 0) {
+          return null;
+        }
+        const picked = pool[Math.floor(this.random() * pool.length)];
+        return picked ? { calledMoveId: picked.id, reveal: false } : null;
+      }
+      case CallMoveSourceKind.RandomOwnAsleep: {
+        const pool = caster.moveIds
+          .map((id) => this.moveRegistry.get(id))
+          .filter(
+            (move): move is MoveDefinition => move !== undefined && isSleepTalkCallable(move),
+          );
+        if (pool.length === 0) {
+          return null;
+        }
+        const picked = pool[Math.floor(this.random() * pool.length)];
+        return picked ? { calledMoveId: picked.id, reveal: false } : null;
+      }
+      case CallMoveSourceKind.TargetLast: {
+        const target =
+          selectedTargetId === undefined ? undefined : this.state.pokemon.get(selectedTargetId);
+        const lastId = target?.lastUsedMoveId;
+        if (lastId === undefined || this.moveRegistry.get(lastId) === undefined) {
+          return null;
+        }
+        return { calledMoveId: lastId, reveal: true };
+      }
+      case CallMoveSourceKind.GlobalLast: {
+        const lastId = this.state.lastMoveUsedGlobally;
+        if (lastId === undefined || this.moveRegistry.get(lastId) === undefined) {
+          return null;
+        }
+        return { calledMoveId: lastId, reveal: true };
+      }
+    }
+  }
+
   getReachableTilesForPokemon(pokemonId: string): Position[] {
     if (this.battleOver) {
       return [];
@@ -445,12 +542,22 @@ export class BattleEngine {
    * targeting pattern.
    */
   private resolveEffectiveMove(pokemon: PokemonInstance, move: MoveDefinition): MoveDefinition {
+    // Move-copy (plan 144): a call-move with a pending resolution swaps to the called move FIRST, so
+    // the rest of the resolution (Nature Power / Dash terrain bonuses) runs on the called move.
+    let source = move;
+    const pending = pokemon.pendingCalledMove;
+    if (pending !== undefined && pending.sourceMoveId === move.id) {
+      const called = this.moveRegistry.get(pending.calledMoveId);
+      if (called !== undefined) {
+        source = called;
+      }
+    }
     const swapped = resolveNaturePowerMove(
       (id) => this.moveRegistry.get(id),
       this.state,
       this.grid,
       pokemon,
-      move,
+      source,
     );
     const casterTypes = this.effectiveTypesOf(pokemon);
     let targeting = resolveEffectiveTargeting(swapped, pokemon, casterTypes, this.state);
@@ -1151,6 +1258,27 @@ export class BattleEngine {
     }
     const traversalContext: TraversalContext = { allyIds, canTraverseEnemies: false };
 
+    // Move-copy (plan 144): a call-move without a pending resolution (direct submit by AI / tests,
+    // or a renderer that skipped the preview step) resolves the called move here, anchored on the
+    // occupant of the chosen tile for the target-last source (Mimique). A failed resolution (nothing
+    // to copy) fizzles but still consumes the turn.
+    if (move.callMove !== undefined && pokemon.pendingCalledMove?.sourceMoveId !== moveId) {
+      const occupantId = this.grid.getOccupant(targetPosition);
+      const prepared = this.prepareCalledMove(pokemon.id, moveId, occupantId ?? undefined);
+      if ("failed" in prepared) {
+        const failEvent: BattleEvent = {
+          type: BattleEventType.MoveCopyFailed,
+          pokemonId: pokemon.id,
+          moveId,
+        };
+        this.emit(failEvent);
+        this.turnState.hasActed = true;
+        this.turnState.lastMoveId = moveId;
+        recordLastUsedMove(pokemon, move);
+        return { success: true, events: [failEvent] };
+      }
+    }
+
     // B4 morphs (Nature Power full swap, Expanding Force targeting override, Grassy Glide range)
     // resolved from the caster's current tile. PP is still spent on the original move id.
     const effectiveMove = this.resolveEffectiveMove(pokemon, move);
@@ -1533,6 +1661,14 @@ export class BattleEngine {
     this.turnState.hasActed = true;
     this.turnState.lastMoveId = moveId;
     recordLastUsedMove(pokemon, move);
+    // Move-copy (plan 144): `lastUsedMoveId` stays on the source move (recordLastUsedMove above), but
+    // the GLOBAL last move (Photocopie) records the move actually executed — never a metamove.
+    if (effectiveMove.callMove === undefined) {
+      this.state.lastMoveUsedGlobally = effectiveMove.id;
+    }
+    // Consume / release the call-move resolution: the action is done (the matching pending was just
+    // fired, or any abandoned pending from this turn is dropped).
+    pokemon.pendingCalledMove = undefined;
     if (pokemon.usedMoveIds === undefined) {
       pokemon.usedMoveIds = [];
     }
@@ -2454,6 +2590,12 @@ export class BattleEngine {
       events.push(cancelEvent);
     }
 
+    // Move-copy (plan 144): a call-move resolution prepared but never fired (player ended the turn
+    // instead of placing it) is dropped here — no carry-over to the next turn.
+    if (pokemon !== undefined) {
+      pokemon.pendingCalledMove = undefined;
+    }
+
     this.endCurrentTurn(pokemonId, events);
     return { success: true, events };
   }
@@ -2771,6 +2913,7 @@ export class BattleEngine {
     pokemon.activeDefense = null;
     pokemon.chargingMove = undefined;
     pokemon.lockedMoveId = undefined;
+    pokemon.pendingCalledMove = undefined;
     pokemon.substituteHp = undefined;
     pokemon.pendingWish = undefined;
     pokemon.pendingCtPenalty = undefined;

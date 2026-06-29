@@ -126,6 +126,7 @@ export interface Translations {
   "battle.berryEatenGeneric": string;
   "battle.itemRecycled": string;
   "battle.itemFlung": string;
+  "battle.moveCopied": string;
   "battle.failed": string;
   "teamSelect.title": string;
   "teamSelect.player1": string;
@@ -350,6 +351,9 @@ export interface Translations {
   "moveTooltip.tag.mistyExplosionSelfKo": string;
   "moveTooltip.tag.terrainPulseMorph": string;
   "moveTooltip.tag.naturePowerMorph": string;
+  "moveTooltip.tag.callMoveRandom": string;
+  "moveTooltip.tag.callMoveCopy": string;
+  "moveTooltip.tag.copyMoveToSlot": string;
   "moveTooltip.tag.tauntBlocked": string;
   "moveTooltip.tag.disableBlocked": string;
   "moveTooltip.tag.encoreBlocked": string;

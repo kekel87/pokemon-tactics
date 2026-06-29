@@ -27,7 +27,9 @@ export function validateBattleData(data: {
     if (
       (!move.effects || move.effects.length === 0) &&
       move.targeting?.kind !== TargetingKind.Teleport &&
-      move.targeting?.kind !== TargetingKind.Self
+      move.targeting?.kind !== TargetingKind.Self &&
+      // Move-copy callers (Mimique / Photocopie) carry no own effects — the called move does.
+      move.callMove === undefined
     ) {
       errors.push(`Move ${move.id} has no effects`);
     }

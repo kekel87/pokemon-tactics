@@ -115,4 +115,5 @@ export type Effect =
   | { kind: typeof EffectKind.ConvertResistType }
   | { kind: typeof EffectKind.CopyTargetType }
   | { kind: typeof EffectKind.SoakType; pureType: PokemonType }
-  | { kind: typeof EffectKind.RemoveType; removedType: PokemonType };
+  | { kind: typeof EffectKind.RemoveType; removedType: PokemonType }
+  | { kind: typeof EffectKind.CopyMoveToSlot };

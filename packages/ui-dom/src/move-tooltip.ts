@@ -1,5 +1,11 @@
 import type { FieldTerrain, MoveDefinition } from "@pokemon-tactic/core";
-import { AttackStatSource, EffectKind, StatusType, TargetingKind } from "@pokemon-tactic/core";
+import {
+  AttackStatSource,
+  CallMoveSourceKind,
+  EffectKind,
+  StatusType,
+  TargetingKind,
+} from "@pokemon-tactic/core";
 import {
   type BlockedMoveTag,
   type MoveIntent,
@@ -185,6 +191,20 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   }
   if (move.naturePowerMorph === true) {
     keys.push("moveTooltip.tag.naturePowerMorph");
+  }
+  if (
+    move.callMove === CallMoveSourceKind.RandomAll ||
+    move.callMove === CallMoveSourceKind.RandomOwnAsleep
+  ) {
+    keys.push("moveTooltip.tag.callMoveRandom");
+  } else if (
+    move.callMove === CallMoveSourceKind.TargetLast ||
+    move.callMove === CallMoveSourceKind.GlobalLast
+  ) {
+    keys.push("moveTooltip.tag.callMoveCopy");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.CopyMoveToSlot)) {
+    keys.push("moveTooltip.tag.copyMoveToSlot");
   }
   const fieldTerrainEffect = move.effects.find(
     (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostFieldTerrain }> =>

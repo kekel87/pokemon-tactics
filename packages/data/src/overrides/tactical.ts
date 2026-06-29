@@ -9,6 +9,7 @@ import type {
 import {
   AttackStatSource,
   AuraKind,
+  CallMoveSourceKind,
   ConditionKind,
   DefensiveKind,
   DynamicPowerKind,
@@ -67,6 +68,7 @@ export interface TacticalOverride {
   knockOffBoost?: boolean;
   requiresEatenBerry?: boolean;
   requiresFlingableItem?: boolean;
+  callMove?: CallMoveSourceKind;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -3194,5 +3196,44 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
     effects: [{ kind: EffectKind.Damage }],
     requiresEatenBerry: true,
+  },
+
+  // Move-copy — plan 144. Call-moves execute another move resolved at use time; `targeting`/`effects`
+  // here are placeholders — the resolved move drives everything (mirror of Force Nature).
+  metronome: {
+    // Métronome: rolls a random implemented move (minus the exclusion list). 2-step in the renderer.
+    targeting: { kind: TargetingKind.Self },
+    effects: [],
+    callMove: CallMoveSourceKind.RandomAll,
+  },
+  "sleep-talk": {
+    // Blabla Dodo: rolls a random move from the user's OWN moveset; usable only while asleep.
+    targeting: { kind: TargetingKind.Self },
+    effects: [],
+    callMove: CallMoveSourceKind.RandomOwnAsleep,
+    requiresAsleep: true,
+  },
+  "mirror-move": {
+    // Mimique: executes the selected enemy's last used move (the move source targets the enemy whose
+    // move is copied, then the renderer places the called move).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [],
+    callMove: CallMoveSourceKind.TargetLast,
+  },
+  copycat: {
+    // Photocopie: executes the last move used by anyone on the field.
+    targeting: { kind: TargetingKind.Self },
+    effects: [],
+    callMove: CallMoveSourceKind.GlobalLast,
+  },
+  mimic: {
+    // Copie: replaces this slot with the target's last used move for the rest of the battle.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.CopyMoveToSlot }],
+  },
+  sketch: {
+    // Gribouille: like Copie but "permanent" (no cross-battle persistence here → functionally equal).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.CopyMoveToSlot }],
   },
 };

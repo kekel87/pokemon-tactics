@@ -38,4 +38,9 @@ export interface BattleState {
   lastTeamActionMoveId?: Partial<Record<PlayerId, string>>;
   /** Current Echoed Voice crescendo step (1..5); ramps while the team chains Echoed Voice. */
   echoStreak?: number;
+  /**
+   * Move id of the most recently executed move by ANY Pokemon on the field (Photocopie / copycat).
+   * Records the move actually executed — never a metamove (a call-move source is filtered out).
+   */
+  lastMoveUsedGlobally?: string;
 }

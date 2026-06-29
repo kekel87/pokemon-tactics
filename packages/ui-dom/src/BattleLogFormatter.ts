@@ -761,6 +761,22 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.MoveCopied: {
+      const name = context.getPokemonName(event.pokemonId);
+      const copiedName = context.getMoveName(event.copiedMoveId);
+      const message =
+        lang === "fr" ? `${name} apprend ${copiedName} !` : `${name} learned ${copiedName}!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.MoveCopyFailed: {
+      const name = context.getPokemonName(event.pokemonId);
+      const moveName = context.getMoveName(event.moveId);
+      const message =
+        lang === "fr" ? `${moveName} de ${name} échoue !` : `${name}'s ${moveName} failed!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
     case BattleEventType.WeatherSet: {
       const message = formatWeatherSet(event.weather, lang);
       if (!message) {

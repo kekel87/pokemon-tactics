@@ -528,3 +528,46 @@ export const TYPE_MANIP_SOAK = {
   dummyMove: "leer",
   dummyHp: 999,
 } as const;
+
+// Famille Move-copy (plan 144) — moves qui APPELLENT ou COPIENT un autre move résolu au runtime. Deux
+// signaux observables nets et déterministes (sans dépendre d'un golden pixel) : (1) Copie (`mimic`)
+// REMPLACE son slot par le dernier move de la cible → ligne de journal FR « <X> apprend <Y> ! » (event
+// MoveCopied) ET le menu d'attaque montre désormais le move copié à la place de Copie ; (2) Métronome
+// (`metronome`) TIRE un move aléatoire (PRNG seedé) qui s'exécute via l'orchestrateur → ligne de journal
+// FR « <X> utilise <Y> ! » (MoveStarted du move appelé, Y ≠ Métronome). Les autres (Blabla Dodo gate
+// sommeil, Mimique/Photocopie sur historique de move, Gribouille ≡ Copie) = unit core + cahier 👁.
+
+/** Copie (`mimic`, portée 1-3, EffectKind.CopyMoveToSlot) — le joueur Alakazam (très rapide → agit en
+ *  premier) attend un tour pour laisser le dummy Ronflex (snorlax, espèce ≠ lanceur → nom filtrable)
+ *  jouer son `dummyMove` Plaquage (`body-slam`, dans le movepool d'espèce de Ronflex → l'IA le trouve
+ *  dans ses actions légales et le joue, posant `lastUsedMoveId="body-slam"` sur le dummy). ⚠️ En mode
+ *  `dummyControl: "ai"` le moveset du dummy reste son movepool d'espèce (non écrasé) → le `dummyMove`
+ *  DOIT être un move appris par Ronflex, sinon l'IA ne trouve aucune action légale et ne joue rien.
+ *  Au tour suivant, le joueur lance Copie sur le dummy adjacent : déterministe (statut 100 % précision,
+ *  aucun jet) → le slot Copie devient Plaquage. Deux feedbacks convergent : journal « Alakazam apprend
+ *  Plaquage ! » (event MoveCopied) + le sous-menu d'attaque liste désormais « Plaquage » à la place de
+ *  « Copie ». `hp: 999` / `dummyHp: 999` → les deux survivent au Plaquage + au DOT du marécage. */
+export const MOVE_COPY_MIMIC = {
+  ...DUEL,
+  pokemon: "alakazam",
+  moves: ["mimic"],
+  hp: 999,
+  dummyPokemon: "snorlax",
+  dummyControl: "ai",
+  dummyMove: "body-slam",
+  dummyHp: 999,
+} as const;
+
+/** Métronome (`metronome`, callMove RandomAll) — le joueur Alakazam tire un move au hasard via le PRNG
+ *  seedé (seed DUEL=12345), puis le place sur le dummy Ronflex adjacent (snorlax, endurant `dummyHp: 999`,
+ *  inerte `dummyMove: "leer"` Groz'Yeux). Le move appelé s'exécute via l'orchestrateur et émet son propre
+ *  MoveStarted → le journal montre « Alakazam utilise <move tiré> ! » (≠ Métronome). On asserte le SENS
+ *  (un move a bien été appelé et a démarré), pas l'identité exacte du move tiré (dépend du roster). */
+export const MOVE_COPY_METRONOME = {
+  ...DUEL,
+  pokemon: "alakazam",
+  moves: ["metronome"],
+  dummyPokemon: "snorlax",
+  dummyMove: "leer",
+  dummyHp: 999,
+} as const;
