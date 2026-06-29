@@ -4,6 +4,7 @@ export { AiDifficulty } from "./ai-difficulty";
 export { AttackStatSource } from "./attack-stat-source";
 export { AuraKind } from "./aura-kind";
 export { BattleEventType } from "./battle-event-type";
+export { CallMoveSourceKind } from "./call-move-source-kind";
 export { Category } from "./category";
 export { ConditionKind } from "./condition-kind";
 export { DefensiveKind } from "./defensive-kind";

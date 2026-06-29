@@ -69,6 +69,8 @@ export const EffectKind = {
   SoakType: "soak_type",
   /** Remove a type from the caster after dealing damage (Flamme Ultime → drop Fire). */
   RemoveType: "remove_type",
+  /** Replace the source move's slot with the target's last used move (Copie / Gribouille). */
+  CopyMoveToSlot: "copy_move_to_slot",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

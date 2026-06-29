@@ -6,6 +6,7 @@ import {
   type BattleEvent,
   BattleEventType,
   type BattleState,
+  CallMoveSourceKind,
   Category,
   type Direction,
   directionFromTo,
@@ -451,6 +452,29 @@ export class BattleOrchestrator {
   private enterAttackTarget(moveId: string): void {
     this.board.setPreviewFlash([]);
     this.board.setDamageEstimates([]);
+
+    // Move-copy (plan 144): a call-move that resolves WITHOUT a pre-picked target (Métronome /
+    // Blabla Dodo / Photocopie) rolls the called move now, then targets it. Mimique (target-last)
+    // first picks an enemy through the normal flow — its resolution happens in tryPickTarget.
+    const callActive = this.activePokemon();
+    const callBase = this.moveDefinitions.get(moveId);
+    if (
+      callActive &&
+      callBase?.callMove !== undefined &&
+      callBase.callMove !== CallMoveSourceKind.TargetLast &&
+      callActive.pendingCalledMove?.sourceMoveId !== moveId
+    ) {
+      const prepared = this.engine.prepareCalledMove(callActive.id, moveId);
+      if ("failed" in prepared) {
+        // Nothing to call yet (Photocopie/Blabla Dodo with no source move). Don't fizzle instantly:
+        // fall through to the move's OWN targeting (Self) so the player still goes through the normal
+        // target + confirm flow — the engine fizzles (MoveFailed + turn spent) on submit.
+      } else {
+        // Pending is now set → re-fetch legal actions so this move's target tiles reflect the called
+        // move's pattern (the cached snapshot still had the Self placeholder).
+        this.legalActions = this.engine.getLegalActions(callActive.playerId);
+      }
+    }
     // Outline only the valid target tiles of a genuinely ranged/targeted move. Never
     // flood them with the red "attack" fill (a buff/heal move keeps its blue footprint),
     // and never outline static (Self/Cross/Zone — showEntryPreview fills the footprint)
@@ -483,9 +507,17 @@ export class BattleOrchestrator {
       targets = this.targetActions(moveId).map((action) => action.targetPosition);
     }
     this.board.setOutline(targets, beneficialOutline);
-    const definition = this.moveDefinitions.get(moveId);
+    // Move-copy: while a called move is pending, show the SOURCE move (Métronome) with its identity
+    // masked for the random callers (reveal=false → "???"), or the copied move's name for the
+    // deterministic copies (reveal=true). The board pattern is the called move's (pending swap).
+    const pending = active?.pendingCalledMove;
+    const isCalledPending = pending?.sourceMoveId === moveId;
+    const masked = isCalledPending === true && pending?.reveal === false;
+    const displayMoveId =
+      isCalledPending === true && pending?.reveal === true ? pending.calledMoveId : moveId;
+    const definition = this.moveDefinitions.get(displayMoveId);
     if (definition) {
-      this.chrome.showSelectedMove({ definition }, "selectTarget");
+      this.chrome.showSelectedMove({ definition, masked }, "selectTarget");
     }
     this.inputState = { phase: "select_attack_target", moveId };
     this.previewDirection = null;
@@ -772,6 +804,28 @@ export class BattleOrchestrator {
     this.board.setPreviewFlash([]);
     this.board.setDamageEstimates([]);
     const active = this.activePokemon();
+
+    // Move-copy (plan 144): Mimique (target-last). Confirming the ENEMY pick resolves the copy here
+    // (so the flow is: target enemy → confirm → copy/fail → [if copied] target the copied move →
+    // confirm). On success, re-enter targeting to place the copied move; on failure, fall through to
+    // execute (the engine fizzles → MoveFailed + turn spent), so success and failure share the same
+    // first "target + confirm" step.
+    const callBase = this.moveDefinitions.get(moveId);
+    if (
+      active &&
+      callBase?.callMove === CallMoveSourceKind.TargetLast &&
+      active.pendingCalledMove?.sourceMoveId !== moveId &&
+      action.kind === ActionKind.UseMove
+    ) {
+      const enemyId = this.engine.getGrid().getOccupant(action.targetPosition) ?? undefined;
+      const prepared = this.engine.prepareCalledMove(active.id, moveId, enemyId);
+      if (!("failed" in prepared)) {
+        this.legalActions = this.engine.getLegalActions(active.playerId);
+        this.enterAttackTarget(moveId);
+        return;
+      }
+    }
+
     const move = active ? this.engine.getEffectiveMove(active.id, moveId) : null;
     const targeting = (move ?? this.moveDefinitions.get(moveId))?.targeting;
     if (active && targeting?.kind === TargetingKind.HitAndRun) {

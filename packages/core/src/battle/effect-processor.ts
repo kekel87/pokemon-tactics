@@ -52,6 +52,7 @@ import { handleStatus } from "./handlers/handle-status";
 import { handleStealItem } from "./handlers/handle-steal-item";
 import { handleSwapItems } from "./handlers/handle-swap-items";
 import { handleTransferStatStages } from "./handlers/handle-transfer-stat-stages";
+import { handleCopyMoveToSlot } from "./handlers/move-copy/handle-copy-move-to-slot";
 import { handleConvertResistType } from "./handlers/type-change/handle-convert-resist-type";
 import { handleConvertSelfType } from "./handlers/type-change/handle-convert-self-type";
 import { handleCopyTargetType } from "./handlers/type-change/handle-copy-target-type";
@@ -124,6 +125,7 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.CopyTargetType, handleCopyTargetType);
   registry.register(EffectKind.SoakType, handleSoakType);
   registry.register(EffectKind.RemoveType, handleRemoveType);
+  registry.register(EffectKind.CopyMoveToSlot, handleCopyMoveToSlot);
   return registry;
 }
 

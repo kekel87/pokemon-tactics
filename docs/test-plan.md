@@ -53,6 +53,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Pattern de ciblage d'un move | §3.7, §4.6, §5.16 |
 | Objet tenu / manipulation d'objet (vol/échange/retrait/recyclage) | §5.14, §5.25 |
 | Réécriture de type (Détrempage/Conversion/Flamme Ultime…) | §5.27, §4.7 |
+| Appeler / copier un move (Métronome/Copie/Mimique…) | §5.28 |
 | Move (effet observable) | §5 (famille concernée) |
 | HUD DOM combat (log, timeline, menus, tooltip) | §4 |
 | Écran / menu / navigation | §6 |
@@ -1074,6 +1075,44 @@ core ; e2e on prouve la résolution via l'orchestrateur + les feedbacks observab
   « X n'a plus de type ! » et le recalcul d'efficacité/STAB sont identiques) → couverts unit/integration
   core (`moves/{conversion,conversion-2,reflect-type,burn-up}.test.ts`), non dupliqués e2e.
 
+### 5.28 Famille Move-copy (appeler / copier un autre move)
+*src : core `data/overrides/tactical.ts` (`metronome`, `sleep-talk`, `mirror-move`, `copycat`, `mimic`,
+`sketch`), `enums/effect-kind.ts` (`CopyMoveToSlot`), `battle/move-copy/callable-moves.ts`,
+`BattleEngine.prepareCalledMove` (état `pendingCalledMove`, `lastMoveUsedGlobally`) ; events
+`battle-event.ts` (`MoveCopied`/`MoveCopyFailed`) ; renderer `view-core/battle-orchestrator.ts`
+(InputState `select_attack_target` réutilisé via le swap `pendingCalledMove`, nom masqué `???`) ;
+journal `ui-dom/BattleLogFormatter.ts` (MoveCopied « apprend », MoveStarted/révélation « Métronome → X ») ;
+unit `battle/moves/{metronome,sleep-talk,mirror-move,copycat,mimic,sketch}.test.ts` ;
+e2e : `mechanics-move-copy.spec.ts`.* Six moves exécutent ou apprennent un autre move résolu au runtime :
+Métronome (`metronome`, move aléatoire − exclusions, 2-temps nom masqué), Blabla Dodo (`sleep-talk`,
+aléatoire du moveset propre, gate sommeil), Mimique (`mirror-move`, dernier move de la cible), Photocopie
+(`copycat`, dernier move global), Copie (`mimic`) + Gribouille (`sketch`, remplacent leur slot par le
+dernier move de la cible). La résolution pure (tirage seedé, exclusions, verrou anti-reroll, PP du slot
+fixé à 5, échecs sans dernier move, anti-récursion) est couverte unit/integration core ; e2e on prouve les
+deux signaux observables les plus nets et déterministes.
+
+- 🤖 **Copie** (`mimic`, portée 1-3, `CopyMoveToSlot`, statut 100 % → cast déterministe) : l'IA du dummy
+  Ronflex (snorlax, espèce ≠ lanceur → nom filtrable) joue Plaquage (`body-slam`, dans son movepool
+  d'espèce → l'IA le trouve dans ses actions légales) au tour 1 ; au tour 2 le joueur Alakazam lance Copie
+  sur le dummy adjacent. Deux feedbacks convergent : (1) journal FR « Alakazam apprend Plaquage ! » (event
+  MoveCopied) ; (2) après une fin de tour, le sous-menu d'attaque liste « Plaquage » à la place de
+  « Copie » (slot muté, jouable au tour suivant) (`mechanics-move-copy.spec`). *Gribouille (`sketch`) ≡
+  Copie dans notre contexte (pas de switch ni persistance cross-combat) → couvert unit (`moves/sketch.test.ts`),
+  non dupliqué e2e → 👁.*
+- 🤖 **Métronome** (`metronome`, callMove RandomAll, 2-temps) : le joueur Alakazam lance Métronome → l'engine
+  tire un move (PRNG seedé), le renderer entre en ciblage à nom masqué `???`, le joueur place sur le dummy
+  adjacent → le move appelé s'exécute. La réentrance est prouvée par la ligne de révélation du journal
+  « Métronome → <move tiré> » (MoveStarted avec `resolvedMoveId` du move appelé). On assert le SENS (un move
+  a bien été appelé et démarré), pas l'identité exacte du move tiré (dépend du seed + roster)
+  (`mechanics-move-copy.spec`).
+- 👁 **Masquage `???`** (nom/type/catégorie/puissance masqués, seul le pattern révélé pour Métronome/Blabla
+  Dodo) : la valeur exacte des champs masqués dans le chrome relève du rendu/golden → vérification
+  visuelle ; le SENS (`SelectedMoveView.masked`) est couvert unit `view-core`.
+- 👁 **Blabla Dodo / Mimique / Photocopie** : Blabla Dodo n'est légal qu'endormi (gate `requiresAsleep`) ;
+  Mimique/Photocopie échouent au tour 1 (pas de dernier move) et dépendent d'un historique de move précis →
+  setup peu net en sandbox 1v1, mêmes events/lignes de journal que Copie/Métronome → couverts
+  unit/integration core (`moves/{sleep-talk,mirror-move,copycat}.test.ts`), non dupliqués e2e.
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -1330,6 +1369,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-talents-support.spec.ts` | §5.24 talents soutien & couplage objet (plan 141) : Moiteur (Électrode + Destruction sur Psykokwak porteur → « Moiteur … s'active ! » + « Mais cela échoue … ! », « Psykokwak perd N PV » absent), Gloutonnerie (Ronflex à 40 % PV + Baie Lichii → fin de tour → « Baie Lichii … s'active ! » + « Attaque … augmente ! » au seuil 50 %). Cœur Soin / Garde-Ami (soutien d'équipe, requièrent un allié à r2 → non pilotables en 1v1) et Tension (silencieux, effet = absence de baie) = unit/integration core → 👁 |
 | `combat/mechanics-item-interaction.spec.ts` | §5.25 item interaction (plan 142) : Sabotage (retire l'objet → « perd son Restes »), Larcin (vole l'objet → « vole le … » + InfoPanel du lanceur « 🎒 Restes »), Tour de Magie (échange → « échange son objet … » + InfoPanel « 🎒 Restes »), Dégommage (Orbe Flamme lancée → « dégomme son Orbe Flamme » + « est brûlé »), Recyclage (baie mangée en fin de tour puis restaurée → « recycle son Baie Lichii » + InfoPanel), Éructation (jouable seulement après une baie mangée → dégâts au dummy), Glu (Sabotage bloqué sur Grotadmorv → « Glu … s'active », « perd son Restes » absent). Implore/Passe-Passe (effets partagés), Picore/Piqûre/Calcination/Gaz Corrosif (contenu fin non distinct au journal), Substitut (D5), baies Lansat/Frista (boost silencieux), ×1.5 de Sabotage = unit/integration core → 👁 |
 | `combat/mechanics-type-manip.spec.ts` | §5.27 famille Type manip (plan 143) : Détrempage (`soak`, hors-pool forcé) sur le dummy Ronflex (Normal) → journal « Ronflex devient de type Eau ! » (event TypeChanged) + badge volatile « Type Eau » de l'InfoPanel au survol de la cible (`typeOverride`). Conversion/Conversion 2/Copie-Type/Flamme Ultime (historique de move ou type de lanceur requis, mêmes lignes de journal « devient de type … »/« perd son type Feu ! » + recalcul efficacité/STAB) = unit/integration core, non dupliqués e2e → 👁 |
+| `combat/mechanics-move-copy.spec.ts` | §5.28 famille Move-copy (plan 144) : Copie (`mimic`) — l'IA du dummy Ronflex joue Plaquage au tour 1, le joueur Alakazam lance Copie sur lui au tour 2 → journal « Alakazam apprend Plaquage ! » (event MoveCopied) ET, après une fin de tour, le sous-menu d'attaque liste « Plaquage » à la place de « Copie » (slot muté) ; Métronome (`metronome`) — le joueur tire un move (PRNG seedé), le place sur le dummy adjacent → ligne de révélation « Métronome → <move tiré> » (réentrance prouvée, identité du move tiré non assertée). Blabla Dodo (gate sommeil `requiresAsleep`), Mimique (`mirror-move`, dernier move cible) / Photocopie (`copycat`, dernier move global) (dépendent d'un historique de move), Gribouille (`sketch` ≡ Copie) = unit/integration core (`moves/{metronome,sleep-talk,mirror-move,copycat,mimic,sketch}.test.ts`), non dupliqués e2e → 👁 |
 | `combat/mechanics-trapping.spec.ts` | §5.26 famille Pièges (trapping) : piège PARTIEL (Danse Flammes + Aucun Garde forçant 100 % → « Ronflex est piégé ! » puis chip de fin de tour « Ronflex perd N PV ! ») ; piège PUR position-linked (Barrage → « Ronflex est piégé ! » sans dégâts, puis le lanceur s'éloigne en (2,5) → « Ronflex est libéré du piège »). Étreinte/Siphon/Tourbi-Sable (même pattern partiel) et Regard Noir (même pattern pur) = unit (`moves/*.test.ts`), non dupliqués e2e → 👁. Immobilisation (0 action Move, attaque OK) = unit (pas de ligne de journal) → 👁 |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |

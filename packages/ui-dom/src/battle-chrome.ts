@@ -178,14 +178,20 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     showSelectedMove: (move: SelectedMoveView, key: BattleInstruction) => {
       tooltip.hide();
       const header = el("div", "bc-selected-move");
-      const icon = el("img", "bc-move-type");
-      icon.alt = move.definition.type;
-      icon.loading = "lazy";
-      icon.decoding = "async";
-      icon.src = config.getTypeIconUrl(move.definition.type);
       const name = el("span", "bc-move-name");
-      name.textContent = getMoveName(move.definition.id, language);
-      header.append(icon, name);
+      // Move-copy (plan 144): a masked called move hides its identity — "???" and no type icon.
+      if (move.masked === true) {
+        name.textContent = "???";
+        header.append(name);
+      } else {
+        const icon = el("img", "bc-move-type");
+        icon.alt = move.definition.type;
+        icon.loading = "lazy";
+        icon.decoding = "async";
+        icon.src = config.getTypeIconUrl(move.definition.type);
+        name.textContent = getMoveName(move.definition.id, language);
+        header.append(icon, name);
+      }
       menu.replaceChildren(header);
       instruction.hidden = false;
       instruction.textContent = config.translate(INSTRUCTION_KEY[key]);

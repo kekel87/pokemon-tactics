@@ -28,7 +28,8 @@ describe("loadData", () => {
     for (const move of data.moves) {
       if (
         move.targeting.kind === TargetingKind.Teleport ||
-        move.targeting.kind === TargetingKind.Self
+        move.targeting.kind === TargetingKind.Self ||
+        move.callMove !== undefined
       ) {
         continue;
       }

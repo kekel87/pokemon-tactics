@@ -104,6 +104,10 @@ export const BattleEventType = {
   HelpingHandPosted: "helping_hand_posted",
   HelpingHandConsumed: "helping_hand_consumed",
   TypeChanged: "type_changed",
+  /** Copie / Gribouille (mimic / sketch): the caster's slot move was replaced by a copied move. */
+  MoveCopied: "move_copied",
+  /** Copie / Gribouille / Mimique / Photocopie: the move-copy failed (no move to copy). */
+  MoveCopyFailed: "move_copy_failed",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

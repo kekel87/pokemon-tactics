@@ -177,6 +177,11 @@ export interface AttackSubmenuView {
 /** The locked-in move shown while picking a target/retreat tile. */
 export interface SelectedMoveView {
   definition: MoveDefinition;
+  /**
+   * Move-copy (plan 144): hide the move's identity (Métronome / Blabla Dodo rolled a random move).
+   * The chrome shows "???" and no type icon — only the board pattern is revealed.
+   */
+  masked?: boolean;
 }
 
 export interface TurnInfoView {

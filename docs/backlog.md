@@ -5,6 +5,12 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 ## Bugs
 
 
+### ~70 pré-évolutions Gen 1 sans nom FR/EN — affichent l'ID anglais (2026-06-29, human-testing plan 144)
+- `packages/data/src/i18n/pokemon-names.{fr,en}.json` ne contient que **~100 entrées** : les ~70 pré-évolutions ajoutées au plan 135 (ex: `clefairy` → devrait être Mélofée) **n'ont jamais reçu leur nom FR/EN**.
+- Conséquence : ces Pokemon s'affichent par leur **ID anglais** (`clefairy`, etc.) partout (InfoPanel combat, Team Builder, sélection). Repéré en human-testing move-copy (Mélofée affiché « clefairy »).
+- Ce n'est PAS un bug move-copy — gap de données du plan 135. Fix : compléter les 2 fichiers `pokemon-names.*.json` pour les 151 (ou régénérer via la source data). Vérifier aussi qu'aucune autre table i18n (portraits/sprites) ne suppose la liste réduite.
+- Priorité moyenne — visible en jeu normal pour tout joueur utilisant une pré-évo. À traiter via `data-miner` / `doc-keeper`.
+
 
 ### Setters météo à l'entrée — pas de « guerre météo » (2026-06-21, plan 137)
 - `weatherAutoSetter` (Sécheresse) est appliqué séquentiellement à l'entrée : si plusieurs Pokemon posent une météo, **le dernier dans l'ordre d'itération écrase** (pas de résolution par vitesse/initiative).

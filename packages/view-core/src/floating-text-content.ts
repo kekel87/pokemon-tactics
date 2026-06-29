@@ -697,6 +697,26 @@ export function floatingTextsFor(
         },
       ];
 
+    case BattleEventType.MoveCopied:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("battle.moveCopied", {
+            name: getMoveName(event.copiedMoveId, context.getLanguage()),
+          }),
+          color: BATTLE_TEXT_COLOR_ITEM,
+        },
+      ];
+
+    case BattleEventType.MoveCopyFailed:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("battle.failed"),
+          color: BATTLE_TEXT_COLOR_MISS,
+        },
+      ];
+
     default:
       return [];
   }
