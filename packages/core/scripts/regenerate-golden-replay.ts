@@ -127,6 +127,7 @@ function buildEngine(seed: number): BattleEngine {
     auras: [],
     fieldTerrains: [],
     distortionZones: [],
+    fieldGlobalZones: [],
     entryHazards: [],
     pendingStrikes: [],
   };

@@ -3,6 +3,7 @@ import type { BattleEventType } from "../enums/battle-event-type";
 import type { DefensiveKind } from "../enums/defensive-kind";
 import type { Direction } from "../enums/direction";
 import type { EntryHazardKind } from "../enums/entry-hazard-kind";
+import type { FieldGlobalKind } from "../enums/field-global-kind";
 import type { FieldTerrain } from "../enums/field-terrain";
 import type { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
 import type { PokemonType } from "../enums/pokemon-type";
@@ -295,6 +296,31 @@ export type BattleEvent =
   | {
       type: typeof BattleEventType.DistortionExpired;
       casterId: string;
+    }
+  | {
+      type: typeof BattleEventType.FieldGlobalPosted;
+      casterId: string;
+      kind: FieldGlobalKind;
+      anchor: Position;
+      tiles: Position[];
+      durationTurns: number;
+    }
+  | {
+      type: typeof BattleEventType.FieldGlobalExpired;
+      casterId: string;
+      kind: FieldGlobalKind;
+    }
+  | {
+      type: typeof BattleEventType.TailwindSet;
+      casterId: string;
+      direction: Direction;
+      turns: number;
+    }
+  | { type: typeof BattleEventType.TailwindEnded; casterId: string }
+  | {
+      type: typeof BattleEventType.GravityMoveBlocked;
+      pokemonId: string;
+      moveId: string;
     }
   | {
       type: typeof BattleEventType.EntryHazardPosted;

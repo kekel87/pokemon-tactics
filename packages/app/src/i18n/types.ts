@@ -263,6 +263,11 @@ export interface Translations {
   "weather.charging": string;
   "weather.turnsLeft": string;
   "weather.float.freezePrevented": string;
+  "tailwind.label": string;
+  "tailwind.direction.north": string;
+  "tailwind.direction.south": string;
+  "tailwind.direction.east": string;
+  "tailwind.direction.west": string;
   "aura.posted.reflect": string;
   "aura.posted.lightScreen": string;
   "aura.posted.mist": string;

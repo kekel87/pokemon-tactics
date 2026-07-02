@@ -64,6 +64,7 @@ function makeContext(
     auras: [],
     fieldTerrains: [],
     distortionZones: [],
+    fieldGlobalZones: [],
     entryHazards: [],
     pendingStrikes: [],
   };

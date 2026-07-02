@@ -59,6 +59,8 @@ export function createBattleBoardView(
       handles.get(pokemonId)?.impactGlide(tile, options) ?? Promise.resolve(),
     impactShake: (pokemonId) => handles.get(pokemonId)?.impactShake() ?? Promise.resolve(),
     setFacing: (pokemonId, direction) => handles.get(pokemonId)?.setFacing(direction),
+    setGroundedByGravity: (pokemonId, grounded) =>
+      handles.get(pokemonId)?.setGroundedByGravity(grounded),
     setActive: (pokemonId) => {
       if (activePokemonId === pokemonId) {
         return;

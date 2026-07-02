@@ -71,6 +71,10 @@ export const EffectKind = {
   RemoveType: "remove_type",
   /** Replace the source move's slot with the target's last used move (Copie / Gribouille). */
   CopyMoveToSlot: "copy_move_to_slot",
+  /** Post a localized "field global" zone around the caster (Gravité / Zone Étrange / Zone Magique). */
+  PostFieldGlobal: "post_field_global",
+  /** Set the single global directional wind (Vent Arrière / tailwind). */
+  SetTailwind: "set_tailwind",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

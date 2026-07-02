@@ -16,6 +16,12 @@ export interface WeatherView {
   readonly turnsRemaining: number;
 }
 
+/** Active Vent Arrière (tailwind) readout: the direction the wind blows toward + turns left. */
+export interface TailwindView {
+  readonly direction: "north" | "south" | "east" | "west";
+  readonly turnsRemaining: number;
+}
+
 /* ── Turn timeline ────────────────────────────────────────────────────────── */
 
 /** One portrait slot in the turn timeline (active first, then upcoming order). */

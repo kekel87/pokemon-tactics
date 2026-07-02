@@ -1,7 +1,9 @@
 import type {
   AuraKind,
   BattleEvent,
+  Direction,
   EntryHazardKind,
+  FieldGlobalKind,
   FieldTerrain,
   PokemonType,
 } from "@pokemon-tactic/core";
@@ -57,6 +59,40 @@ const FIELD_TERRAIN_LABELS_EN: Record<FieldTerrain, string> = {
 
 function fieldTerrainLabel(kind: FieldTerrain, lang: string): string {
   return lang === "fr" ? FIELD_TERRAIN_LABELS_FR[kind] : FIELD_TERRAIN_LABELS_EN[kind];
+}
+
+const FIELD_GLOBAL_LABELS_FR: Record<FieldGlobalKind, string> = {
+  gravity: "Gravité",
+  "wonder-room": "Zone Étrange",
+  "magic-room": "Zone Magique",
+};
+
+const FIELD_GLOBAL_LABELS_EN: Record<FieldGlobalKind, string> = {
+  gravity: "Gravity",
+  "wonder-room": "Wonder Room",
+  "magic-room": "Magic Room",
+};
+
+function fieldGlobalLabel(kind: FieldGlobalKind, lang: string): string {
+  return lang === "fr" ? FIELD_GLOBAL_LABELS_FR[kind] : FIELD_GLOBAL_LABELS_EN[kind];
+}
+
+const DIRECTION_LABELS_FR: Record<Direction, string> = {
+  north: "Nord",
+  south: "Sud",
+  east: "Est",
+  west: "Ouest",
+};
+
+const DIRECTION_LABELS_EN: Record<Direction, string> = {
+  north: "North",
+  south: "South",
+  east: "East",
+  west: "West",
+};
+
+function directionLabel(direction: Direction, lang: string): string {
+  return lang === "fr" ? DIRECTION_LABELS_FR[direction] : DIRECTION_LABELS_EN[direction];
 }
 
 const ENTRY_HAZARD_LABELS_FR: Record<EntryHazardKind, string> = {
@@ -935,6 +971,47 @@ export function formatBattleEvent(
       const message =
         lang === "fr" ? "La Distorsion se dissipe" : "The twisted dimensions returned to normal";
       return { message, color: BattleLogColors.turn, pokemonIds: [] };
+    }
+
+    case BattleEventType.FieldGlobalPosted: {
+      const name = context.getPokemonName(event.casterId);
+      const label = fieldGlobalLabel(event.kind, lang);
+      const message =
+        lang === "fr"
+          ? `${name} déploie ${label} (${event.durationTurns} tours)`
+          : `${name} sets up ${label} (${event.durationTurns} turns)`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.FieldGlobalExpired: {
+      const label = fieldGlobalLabel(event.kind, lang);
+      const message = lang === "fr" ? `${label} se dissipe` : `${label} faded`;
+      return { message, color: BattleLogColors.turn, pokemonIds: [] };
+    }
+
+    case BattleEventType.TailwindSet: {
+      const name = context.getPokemonName(event.casterId);
+      const direction = directionLabel(event.direction, lang);
+      const message =
+        lang === "fr"
+          ? `${name} lève le Vent Arrière vers le ${direction} (${event.turns} tours)`
+          : `${name} whips up a Tailwind to the ${direction} (${event.turns} turns)`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.TailwindEnded: {
+      const message = lang === "fr" ? "Le Vent Arrière retombe" : "The Tailwind petered out";
+      return { message, color: BattleLogColors.turn, pokemonIds: [] };
+    }
+
+    case BattleEventType.GravityMoveBlocked: {
+      const name = context.getPokemonName(event.pokemonId);
+      const move = context.getMoveName(event.moveId);
+      const message =
+        lang === "fr"
+          ? `${name} ne peut pas utiliser ${move} sous la Gravité !`
+          : `${name} can't use ${move} under Gravity!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 
     case BattleEventType.EntryHazardPosted: {

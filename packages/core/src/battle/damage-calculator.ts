@@ -30,6 +30,18 @@ export interface DamageResult {
 }
 
 /**
+ * Per-hit field-global modifiers resolved by the caller (which holds BattleState): Gravité grounding
+ * (Ground hits a Flying defender), Zone Étrange (swap the defender's Def ↔ Sp.Def), and Zone Magique
+ * (suppress the attacker's / defender's held-item effects). All default off.
+ */
+export interface FieldGlobalDamageContext {
+  defenderGroundedByGravity?: boolean;
+  defenderDefensesSwapped?: boolean;
+  attackerItemSuppressed?: boolean;
+  defenderItemSuppressed?: boolean;
+}
+
+/**
  * Selects the offensive stat (raw value + stage) for the damage formula.
  * Default: the user's Attack (physical) or Sp. Atk (special). `attackStatSource` overrides this:
  * `UserDefense` uses the user's Defense (body-press), `TargetAttack` the target's Attack (foul-play).
@@ -74,6 +86,7 @@ export function calculateDamageWithCrit(
   fieldTerrainDamageMultiplier = 1.0,
   weather: Weather = Weather.None,
   targetAlreadyActed = false,
+  fieldGlobal: FieldGlobalDamageContext = {},
 ): DamageResult {
   if (move.category === Category.Status || move.power === 0) {
     return { damage: 0, isCrit: false };
@@ -93,6 +106,7 @@ export function calculateDamageWithCrit(
     typeChart,
     move.typeEffectivenessOverride,
     scrappyGhostBypass,
+    fieldGlobal.defenderGroundedByGravity === true,
   );
   if (effectiveness === 0) {
     return { damage: 0, isCrit: false };
@@ -105,8 +119,13 @@ export function calculateDamageWithCrit(
     defender,
     isPhysical,
   );
+  // Zone Étrange (wonder-room): a defender inside the zone swaps its Def ↔ Sp.Def bases. The stat
+  // STAGE stays attached to its original slot (Gen 6+), so we flip which base the chosen stage reads
+  // — i.e. flip the physical/special selection for the defensive stat only.
   const usesPhysicalDefense = isPhysical || move.hitsPhysicalDefense === true;
-  const defenseStat = usesPhysicalDefense
+  const readsPhysicalDefenseBase =
+    fieldGlobal.defenderDefensesSwapped === true ? !usesPhysicalDefense : usesPhysicalDefense;
+  const defenseStat = readsPhysicalDefenseBase
     ? defender.combatStats.defense
     : defender.combatStats.spDefense;
   const defenseStage = usesPhysicalDefense
@@ -127,7 +146,10 @@ export function calculateDamageWithCrit(
     effectiveAttack = Math.floor(effectiveAttack / 2);
   }
 
-  const attackerItem = itemRegistry?.getForPokemon(attacker);
+  // Zone Magique (magic-room): a holder inside the zone has its held-item effects suppressed.
+  const attackerItem = fieldGlobal.attackerItemSuppressed
+    ? undefined
+    : itemRegistry?.getForPokemon(attacker);
 
   const baseCritStage = move.critRatio ?? 0;
   const itemCritStage = attackerItem?.onCritStageBoost?.({ self: attacker, move }) ?? 0;
@@ -194,7 +216,9 @@ export function calculateDamageWithCrit(
       targetAlreadyActed,
     }) ?? 1.0;
 
-  const defenderItem = itemRegistry?.getForPokemon(defender);
+  const defenderItem = fieldGlobal.defenderItemSuppressed
+    ? undefined
+    : itemRegistry?.getForPokemon(defender);
   const defenderItemMod =
     defenderItem?.onDamageModify?.({
       self: defender,
@@ -300,6 +324,7 @@ export function getTypeEffectiveness(
   typeChart: TypeChart,
   override?: { against: PokemonType; multiplier: number },
   scrappyGhostBypass = false,
+  gravityGroundBypass = false,
 ): number {
   let multiplier = 1;
   const attackerRow = typeChart[moveType];
@@ -313,6 +338,10 @@ export function getTypeEffectiveness(
       defType === PokemonType.Ghost &&
       (moveType === PokemonType.Normal || moveType === PokemonType.Fighting)
     ) {
+      continue;
+    }
+    // Gravité: a grounded defender loses its Flying-type immunity to Ground moves.
+    if (gravityGroundBypass && defType === PokemonType.Flying && moveType === PokemonType.Ground) {
       continue;
     }
     if (override && defType === override.against) {

@@ -100,6 +100,8 @@ export interface CombatPokemonHandle {
   impactGlide(tile: { x: number; y: number }, options?: { hurt?: boolean }): Promise<void>;
   impactShake(): Promise<void>;
   setActive(active: boolean): void;
+  /** Gravité: land a flyer (grounded → ground idle) or let it float again (Vol/Lévitation). */
+  setGroundedByGravity(grounded: boolean): void;
   flashDamage(): void;
   setPreviewFlash(active: boolean): void;
   setConfusionWobble(active: boolean): void;
@@ -143,6 +145,8 @@ export interface CombatScene {
   ): DirectionPickerHandle;
   onTileHover(handler: (pick: TilePick | null) => void): void;
   onTileClick(handler: (pick: TilePick) => void): void;
+  /** Notified with the camera azimuth (radians) whenever the iso view rotates (←/→ snap + ease). */
+  onCameraRotated(handler: (azimuth: number) => void): void;
   panCameraTo(tile: { x: number; y: number }): void;
   spawnFloatingText(
     tile: { x: number; y: number },

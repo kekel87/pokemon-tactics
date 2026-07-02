@@ -42,6 +42,12 @@ export interface MoveDefinition {
   twoTurnCharge?: boolean;
   sunSkipsCharge?: boolean;
   semiInvulnerableState?: SemiInvulnerableState;
+  /**
+   * Jump/levitation move that cannot be launched from within a Gravité zone (Pied Voltige; future
+   * Saut / Vol Magnétik). Airborne charge moves (Vol, Rebond) are caught implicitly via their
+   * `semiInvulnerableState === Flying` and need not set this flag.
+   */
+  disabledUnderGravity?: boolean;
   chargeEffects?: Effect[];
   targetsAlly?: boolean;
   /** Single-target move that may target an ally or the caster itself, within range (wish). */

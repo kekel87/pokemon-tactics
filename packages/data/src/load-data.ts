@@ -92,6 +92,7 @@ export function loadData(): GameData {
       ...(merged.semiInvulnerableState
         ? { semiInvulnerableState: merged.semiInvulnerableState }
         : {}),
+      ...(merged.disabledUnderGravity ? { disabledUnderGravity: true } : {}),
       ...(merged.chargeEffects ? { chargeEffects: merged.chargeEffects } : {}),
       ...(merged.critRatio === undefined ? {} : { critRatio: merged.critRatio }),
       ...(merged.targetsAlly ? { targetsAlly: true } : {}),

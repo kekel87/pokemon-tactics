@@ -1,6 +1,7 @@
 import { BattleEventType } from "../../enums/battle-event-type";
 import { Category } from "../../enums/category";
 import type { EffectKind } from "../../enums/effect-kind";
+import { FieldGlobalKind } from "../../enums/field-global-kind";
 import { HeldItemId } from "../../enums/held-item-id";
 import { PokemonType } from "../../enums/pokemon-type";
 import { StatName } from "../../enums/stat-name";
@@ -20,10 +21,15 @@ import {
 } from "../aura-system";
 import { areBerriesSuppressed } from "../berry-suppression";
 import { effectConditionHolds } from "../condition-eval";
-import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calculator";
+import {
+  calculateDamageWithCrit,
+  type FieldGlobalDamageContext,
+  getTypeEffectiveness,
+} from "../damage-calculator";
 import { checkDefense } from "../defense-check";
 import { resolveDynamicPower } from "../dynamic-power-system";
 import type { EffectContext } from "../effect-handler-registry";
+import { isHeldItemSuppressed, isInFieldGlobalZone } from "../field-global-system";
 import {
   getFieldTerrainBpMultiplier,
   getFieldTerrainDamageMultiplier,
@@ -195,6 +201,23 @@ function dealSingleHit(
   const targetAlreadyActed =
     (target.lastActedAtAction ?? -1) > (context.attacker.lastActedAtAction ?? -1);
 
+  // Field-global per-hit modifiers (caller holds BattleState): Gravité grounding (Ground hits a
+  // Flying defender), Zone Étrange (swap defender Def↔Sp.Def), Zone Magique (suppress item effects).
+  const fieldGlobalContext: FieldGlobalDamageContext = {
+    defenderGroundedByGravity: isInFieldGlobalZone(
+      context.state,
+      target.position,
+      FieldGlobalKind.Gravity,
+    ),
+    defenderDefensesSwapped: isInFieldGlobalZone(
+      context.state,
+      target.position,
+      FieldGlobalKind.WonderRoom,
+    ),
+    attackerItemSuppressed: isHeldItemSuppressed(context.state, context.attacker),
+    defenderItemSuppressed: isHeldItemSuppressed(context.state, target),
+  };
+
   const { damage: baseDamage, isCrit } = calculateDamageWithCrit(
     context.attacker,
     target,
@@ -217,6 +240,7 @@ function dealSingleHit(
     fieldTerrainDamage,
     activeWeather,
     targetAlreadyActed,
+    fieldGlobalContext,
   );
 
   // Coup d'Main (helping-hand): the ally's offensive move is boosted while the flag is set. Applied
@@ -271,7 +295,11 @@ function dealSingleHit(
     sturdyTriggered = true;
   }
 
-  const targetItem = context.itemRegistry?.getForPokemon(target);
+  // Zone Magique (magic-room): a holder inside the zone has its item inert — no FocusSash survival,
+  // no type-reaction / berry / eject triggers, no Life Orb recoil, no contact-effect protection.
+  const targetItem = fieldGlobalContext.defenderItemSuppressed
+    ? undefined
+    : context.itemRegistry?.getForPokemon(target);
   // Querelleur (scrappy): Normal/Fighting moves treat Ghost as neutral, so the reported
   // effectiveness must match the damage calc (otherwise the hit shows "no effect" yet deals damage).
   const scrappyGhostBypass =
@@ -283,13 +311,16 @@ function dealSingleHit(
       context.typeChart,
       context.move.typeEffectivenessOverride,
       scrappyGhostBypass,
+      fieldGlobalContext.defenderGroundedByGravity === true,
     ) > 1;
   const isContact = context.move.flags?.contact === true;
   // Pare-Effet (protective-pads) / Gant de Boxe (punching-glove): the holder's contact moves ignore
   // the target's contact-triggered reactions (Casque Brut recoil, Statik, Peau Dure, Boom Final…).
   // Pare-Effet covers every contact move; Gant de Boxe only its Poing moves. The move still counts as
   // contact for the attacker's own effects (Poing de Fer, Toxitouche) — only the target's reactions are muted.
-  const attackerHeldItem = context.itemRegistry?.getForPokemon(context.attacker);
+  const attackerHeldItem = fieldGlobalContext.attackerItemSuppressed
+    ? undefined
+    : context.itemRegistry?.getForPokemon(context.attacker);
   const contactNullified =
     isContact &&
     (attackerHeldItem?.protectsFromContactEffects === true ||
@@ -313,6 +344,7 @@ function dealSingleHit(
     context.typeChart,
     context.move.typeEffectivenessOverride,
     scrappyGhostBypass,
+    fieldGlobalContext.defenderGroundedByGravity === true,
   );
 
   if (isCrit) {

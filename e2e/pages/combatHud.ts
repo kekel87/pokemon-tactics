@@ -34,3 +34,15 @@ export class WeatherHud {
     this.turns = page.getByTestId("weather-turns");
   }
 }
+
+/** Vent Arrière HUD (top-center, arrow mode) — shown when a global tailwind is active (plan 145). */
+export class TailwindHud {
+  readonly hud: Locator;
+  readonly label: Locator;
+  readonly turns: Locator;
+  constructor(page: Page) {
+    this.hud = page.getByTestId("tailwind-hud");
+    this.label = page.getByTestId("tailwind-label");
+    this.turns = page.getByTestId("tailwind-turns");
+  }
+}
