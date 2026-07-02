@@ -27,6 +27,7 @@ import {
   worldFacingFromDirection,
 } from "@pokemon-tactic/view-core";
 import { createAuraGroundIcons } from "./babylon-aura-ground-icons.js";
+import { BabylonCompass } from "./babylon-compass.js";
 import {
   BABYLON_ATTACK_ANIMATION_MAX_MS,
   BABYLON_AURA_HOVER_ICON_LIFT,
@@ -211,7 +212,9 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     camera.orthoRight = halfWidth;
     camera.orthoTop = halfHeight;
     camera.orthoBottom = -halfHeight;
+    cameraRotatedHandler(azimuth);
   }
+  let cameraRotatedHandler: (azimuth: number) => void = () => undefined;
   updateCamera();
 
   const hemisphericLight = new HemisphericLight("hemi", new Vector3(0, 1, 0), scene);
@@ -335,6 +338,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   }
 
   const hoverCursor = showHoverCursor ? new BabylonHoverCursor(scene) : null;
+  // Always-on map compass (screen-pinned; turns with the camera to keep pointing world-North).
+  const compass = showHoverCursor ? new BabylonCompass(scene, camera) : null;
   const hoverHead = new Vector3();
 
   let terrain: ExtrudedTerrain | null = null;
@@ -920,6 +925,15 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
             created.billboard.playOnce(chosen, { onComplete: finish });
           }),
         setActive: (active) => created.billboard.setActive(active),
+        setGroundedByGravity: (grounded) => {
+          // Land the flyer (stop flapping → ground idle) or let it float again. Only called for
+          // airborne mons (Vol/Lévitation), so ungrounding safely restores a flying idle.
+          const resting = grounded
+            ? created.billboard.playFirstAvailable(["Idle", "Walk"], "Walk")
+            : created.billboard.playFirstAvailable(["FlyingIdle", "Hover", "Idle"], "Idle");
+          created.billboard.setRestingAnimation(resting);
+          created.billboard.setAnimation(resting);
+        },
         flashDamage: () => created.billboard.flashDamage(),
         setPreviewFlash: (active) => created.billboard.setPreviewFlash(active),
         setConfusionWobble: (active) => created.billboard.setConfusionWobble(active),
@@ -1046,6 +1060,10 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     onTileClick: (handler) => {
       clickHandler = handler;
     },
+    onCameraRotated: (handler) => {
+      cameraRotatedHandler = handler;
+      handler(cameraAngle.azimuth);
+    },
     panCameraTo: (tile) => {
       if (!tileWorldTop) {
         return;
@@ -1127,6 +1145,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       window.removeEventListener("pointermove", onPointerMove);
       directionArrows.dispose();
       hoverCursor?.dispose();
+      compass?.dispose();
       highlights?.dispose();
       fieldTerrains?.dispose();
       distortionZones?.dispose();

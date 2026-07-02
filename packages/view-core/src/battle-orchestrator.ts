@@ -11,7 +11,9 @@ import {
   type Direction,
   directionFromTo,
   enumerateHitAndRunRetreatTiles,
+  FieldGlobalKind,
   FieldTerrain,
+  isInFieldGlobalZone,
   type MoveDefinition,
   manhattanDistance,
   moveCtTempo,
@@ -29,7 +31,12 @@ import {
 import { AnimationCategory, moveAnimationCategory } from "@pokemon-tactic/data";
 import { getTeamColorByPlayerId } from "@pokemon-tactic/render-ports";
 import { AnimationQueue } from "./AnimationQueue.js";
-import { buildInfoPanelView, buildTimelineView, buildWeatherView } from "./battle-views.js";
+import {
+  buildInfoPanelView,
+  buildTailwindView,
+  buildTimelineView,
+  buildWeatherView,
+} from "./battle-views.js";
 import {
   AURA_INDICATOR_SYMBOL,
   BATTLE_TEXT_QUEUE_DELAY_MS,
@@ -37,6 +44,9 @@ import {
   CHARGING_INDICATOR_SYMBOL,
   DAMAGE_FLASH_TOTAL_MS,
   DISTORTION_ZONE_COLOR,
+  FIELD_GLOBAL_COLOR_GRAVITY,
+  FIELD_GLOBAL_COLOR_MAGIC_ROOM,
+  FIELD_GLOBAL_COLOR_WONDER_ROOM,
   FIELD_TERRAIN_COLOR_ELECTRIC,
   FIELD_TERRAIN_COLOR_GRASSY,
   FIELD_TERRAIN_COLOR_MISTY,
@@ -106,6 +116,13 @@ const FIELD_TERRAIN_COLOR: Record<FieldTerrain, number> = {
   [FieldTerrain.Electric]: FIELD_TERRAIN_COLOR_ELECTRIC,
   [FieldTerrain.Misty]: FIELD_TERRAIN_COLOR_MISTY,
   [FieldTerrain.Psychic]: FIELD_TERRAIN_COLOR_PSYCHIC,
+};
+
+/** Zone identity colour per field-global kind (Gravité / Zone Étrange / Zone Magique). */
+const FIELD_GLOBAL_COLOR: Record<FieldGlobalKind, number> = {
+  [FieldGlobalKind.Gravity]: FIELD_GLOBAL_COLOR_GRAVITY,
+  [FieldGlobalKind.WonderRoom]: FIELD_GLOBAL_COLOR_WONDER_ROOM,
+  [FieldGlobalKind.MagicRoom]: FIELD_GLOBAL_COLOR_MAGIC_ROOM,
 };
 
 /** Predicted slots shown in the Charge-Time timeline (deep enough to see a mon's repeated turns). */
@@ -192,6 +209,7 @@ export class BattleOrchestrator {
     this.chrome.hideMenus();
     this.chrome.updateInfoPanel(null);
     this.chrome.updateWeather(null);
+    this.chrome.updateTailwind(null);
   }
 
   // --- Raw input entry points (wired by the combat screen: picking + keyboard) ---
@@ -326,6 +344,7 @@ export class BattleOrchestrator {
     const shown = this.pokemonAt(this.hoveredTile) ?? this.activePokemon();
     this.chrome.updateInfoPanel(shown ? buildInfoPanelView(this.context, shown, this.state) : null);
     this.chrome.updateWeather(buildWeatherView(this.state));
+    this.chrome.updateTailwind(buildTailwindView(this.state));
   }
 
   /**
@@ -970,6 +989,15 @@ export class BattleOrchestrator {
         continue;
       }
       this.feedback.report(event);
+      if (
+        event.type === BattleEventType.FieldGlobalPosted &&
+        event.kind === FieldGlobalKind.Gravity
+      ) {
+        // Land the flyers the zone just caught BEFORE the immediate terrain/hazard damage floats,
+        // so a mon visibly touches down first instead of dying mid-air.
+        this.refreshGravityGrounding();
+        await delay(BATTLE_STEP_DELAY_MS);
+      }
       if (event.type === BattleEventType.DamageDealt && "targetId" in event) {
         this.board.flashDamage(event.targetId);
         const target = this.state.pokemon.get(event.targetId);
@@ -1005,8 +1033,13 @@ export class BattleOrchestrator {
       ) {
         // Glide along the path with per-step Walk/Hop + flyer glide (plan 123 4d-5).
         const moverTypes = this.engine.getPokemonTypes(event.pokemonId);
+        const mover = this.state.pokemon.get(event.pokemonId);
+        // Gravité: a grounded flyer walks like a land mon (no glide/hover) — mirror the core grounding.
+        const moverGrounded =
+          mover !== undefined &&
+          isInFieldGlobalZone(this.state, mover.position, FieldGlobalKind.Gravity);
         await this.board.moveAlongPath(event.pokemonId, event.path, {
-          isFlying: moverTypes.includes(PokemonType.Flying),
+          isFlying: moverTypes.includes(PokemonType.Flying) && !moverGrounded,
           isGhost: moverTypes.includes(PokemonType.Ghost),
           onTileReached: this.entryHazardTickFor(event.pokemonId, hazardTriggersByMover),
         });
@@ -1145,6 +1178,7 @@ export class BattleOrchestrator {
     this.refreshAuraVisuals();
     this.refreshFieldTerrainVisuals();
     this.refreshDistortionVisuals();
+    this.refreshGravityGrounding();
     this.refreshEntryHazardVisuals();
   }
 
@@ -1215,9 +1249,13 @@ export class BattleOrchestrator {
     this.board.setEntryHazards(specs);
   }
 
-  /** Repaint the active Distorsion (Trick Room) zones + timer pills from engine state. */
+  /**
+   * Repaint the active Distorsion (Trick Room) zones AND the field-global zones (Gravité / Zone
+   * Étrange / Zone Magique) + their timer pills. Both share the same diamond+pill rendering channel
+   * (`setDistortionZones`); only the identity colour differs per kind.
+   */
   private refreshDistortionVisuals(): void {
-    const specs = this.state.distortionZones.map((zone) => {
+    const distortionSpecs = this.state.distortionZones.map((zone) => {
       const caster = this.state.pokemon.get(zone.casterId);
       return {
         tiles: zone.tiles,
@@ -1227,7 +1265,33 @@ export class BattleOrchestrator {
         remainingTurns: zone.remainingTurns,
       };
     });
-    this.board.setDistortionZones(specs);
+    const fieldGlobalSpecs = this.state.fieldGlobalZones.map((zone) => {
+      const caster = this.state.pokemon.get(zone.casterId);
+      const color = FIELD_GLOBAL_COLOR[zone.kind];
+      return {
+        tiles: zone.tiles,
+        anchor: zone.anchor,
+        color,
+        teamColor: caster ? getTeamColorByPlayerId(caster.playerId) : color,
+        remainingTurns: zone.remainingTurns,
+      };
+    });
+    this.board.setDistortionZones([...distortionSpecs, ...fieldGlobalSpecs]);
+  }
+
+  /**
+   * Gravité: land every airborne mon (Vol / Lévitation / Ballon) that stands in a Gravity zone, and
+   * let those outside float again. Keeps the sprite pose in sync with the core grounding as zones are
+   * posted, expire, or mons move in and out.
+   */
+  private refreshGravityGrounding(): void {
+    for (const [id, pokemon] of this.state.pokemon) {
+      if (!this.engine.isAirborneIgnoringGravity(id)) {
+        continue;
+      }
+      const grounded = isInFieldGlobalZone(this.state, pokemon.position, FieldGlobalKind.Gravity);
+      this.board.setGroundedByGravity(id, grounded);
+    }
   }
 
   /** Repaint the active field-terrain ("Champs") zones + timer pills from engine state. */

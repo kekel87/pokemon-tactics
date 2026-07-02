@@ -263,6 +263,7 @@ function runBattle(options: {
 
   combat.onTileClick((pick) => orchestrator.onTileClick({ x: pick.x, y: pick.y }));
   combat.onTileHover((pick) => orchestrator.onTileHover(pick ? { x: pick.x, y: pick.y } : null));
+  combat.onCameraRotated((azimuth) => chrome.updateCameraAzimuth(azimuth));
   window.addEventListener(
     "keydown",
     (event) => {

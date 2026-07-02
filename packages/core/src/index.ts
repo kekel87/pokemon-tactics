@@ -49,6 +49,16 @@ export {
   removeEntryHazardsNear,
 } from "./battle/entry-hazard-system";
 export {
+  FIELD_GLOBAL_DEFAULT_DURATION,
+  FIELD_GLOBAL_RADIUS,
+  GRAVITY_ACCURACY_MULTIPLIER,
+  isAirborneMove,
+  isGroundedByGravityZone,
+  isHeldItemSuppressed,
+  isInFieldGlobalZone,
+  postFieldGlobalZone,
+} from "./battle/field-global-system";
+export {
   FIELD_TERRAIN_RADIUS,
   getActiveZonesOfKind,
   getFieldTerrainAt,
@@ -74,6 +84,12 @@ export { isSecondaryEffect, moveHasSecondaryEffect } from "./battle/secondary-ef
 export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator";
 export { computeMovement, isMajorStatus } from "./battle/stat-modifier";
 export { validateStatSpread } from "./battle/stat-spread-validator";
+export {
+  setTailwind,
+  TAILWIND_DEFAULT_DURATION,
+  TAILWIND_SPEED_MULTIPLIER,
+  tailwindSpeedMultiplier,
+} from "./battle/tailwind-system";
 export { validateTeamSelection } from "./battle/team-validator";
 export type { PhaseHandler, PhaseResult } from "./battle/turn-pipeline";
 export { TurnPipeline } from "./battle/turn-pipeline";

@@ -1,3 +1,4 @@
+import { FieldGlobalKind } from "../enums/field-global-kind";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
 import { Weather } from "../enums/weather";
@@ -7,6 +8,11 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { resolveDefensiveAbility } from "./ability-suppression";
+import {
+  GRAVITY_ACCURACY_MULTIPLIER,
+  isHeldItemSuppressed,
+  isInFieldGlobalZone,
+} from "./field-global-system";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getStatMultiplier } from "./stat-modifier";
 import { effectiveWeather, getWeatherAccuracyOverride } from "./weather-system";
@@ -67,14 +73,25 @@ export function checkAccuracy(
       target: attacker,
       move,
     }) ?? 1;
+  // Zone Magique (magic-room): a holder inside the zone has its item accuracy/evasion effects nulled.
   const itemAccBonus =
-    itemRegistry
-      ?.getForPokemon(attacker)
-      ?.onAccuracyModify?.({ self: attacker, target: defender, move }) ?? 1;
+    state && isHeldItemSuppressed(state, attacker)
+      ? 1
+      : (itemRegistry
+          ?.getForPokemon(attacker)
+          ?.onAccuracyModify?.({ self: attacker, target: defender, move }) ?? 1);
   const itemEvasionBonus =
-    itemRegistry
-      ?.getForPokemon(defender)
-      ?.onEvasionModify?.({ self: defender, target: attacker, move }) ?? 1;
+    state && isHeldItemSuppressed(state, defender)
+      ? 1
+      : (itemRegistry
+          ?.getForPokemon(defender)
+          ?.onEvasionModify?.({ self: defender, target: attacker, move }) ?? 1);
+
+  // Gravité: attacks against a target standing in a Gravity zone get ×5/3 accuracy (canon).
+  const gravityAccBonus =
+    state && isInFieldGlobalZone(state, defender.position, FieldGlobalKind.Gravity)
+      ? GRAVITY_ACCURACY_MULTIPLIER
+      : 1;
 
   const weatherAccuracyOverride =
     state && activeWeather !== Weather.None
@@ -89,7 +106,8 @@ export function checkAccuracy(
       abilityAccModifier *
       abilityEvasionModifier *
       itemAccBonus *
-      itemEvasionBonus) /
+      itemEvasionBonus *
+      gravityAccBonus) /
     evasionMultiplier;
 
   if (effectiveAccuracy >= 100) {

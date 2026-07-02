@@ -17,6 +17,7 @@ import {
   EffectTarget,
   EffectTier,
   EntryHazardKind,
+  FieldGlobalKind,
   FieldTerrain,
   FieldTerrainBonusWho,
   PokemonType,
@@ -42,6 +43,7 @@ export interface TacticalOverride {
   twoTurnCharge?: boolean;
   sunSkipsCharge?: boolean;
   semiInvulnerableState?: SemiInvulnerableStateType;
+  disabledUnderGravity?: boolean;
   chargeEffects?: Effect[];
   critRatio?: number;
   targetsAlly?: boolean;
@@ -1591,6 +1593,27 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.PostDistortion }],
   },
+  gravity: {
+    // Gravité (plan 145): zone diamant — cloue les Volants + précision ×5/3 contre une cible dedans.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostFieldGlobal, fieldGlobalKind: FieldGlobalKind.Gravity }],
+  },
+  "wonder-room": {
+    // Zone Étrange (plan 145): zone diamant — échange Déf ↔ Déf Spé d'un défenseur dedans.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostFieldGlobal, fieldGlobalKind: FieldGlobalKind.WonderRoom }],
+  },
+  "magic-room": {
+    // Zone Magique (plan 145): zone diamant — neutralise les objets tenus d'un porteur dedans.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostFieldGlobal, fieldGlobalKind: FieldGlobalKind.MagicRoom }],
+  },
+  tailwind: {
+    // Vent Arrière (plan 145): vent directionnel global — pick une des 4 cases cardinales adjacentes
+    // (GroundTarget portée 1) → direction du vent ; les mons orientés ainsi gagnent ctGain ×1.5.
+    targeting: { kind: TargetingKind.GroundTarget, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.SetTailwind }],
+  },
 
   // Entry hazards (plan 131): aimed at a ground tile within range 4, place a single trapped tile;
   // building a minefield is a multi-turn investment. Trigger on enemy ENTRY, permanent until removed.
@@ -3050,6 +3073,8 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.Damage }],
     crashOnMiss: { fraction: 0.5 },
+    // Pied Voltige est un saut : impossible à lancer depuis une zone Gravité (plan 145).
+    disabledUnderGravity: true,
   },
   "axe-kick": {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },

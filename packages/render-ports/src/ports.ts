@@ -5,7 +5,7 @@ import type {
   Position,
   SemiInvulnerableDisplay,
 } from "@pokemon-tactic/core";
-import type { InfoPanelData, TimelineView, WeatherView } from "./view-models.js";
+import type { InfoPanelData, TailwindView, TimelineView, WeatherView } from "./view-models.js";
 
 /**
  * Render-backend ports (plan 125). The presentation layer (orchestrator) drives
@@ -107,6 +107,8 @@ export interface BoardView {
   impactShake(pokemonId: string): Promise<void>;
   /** Mark the current actor (breathing pulse); null clears it. */
   setActive(pokemonId: string | null): void;
+  /** Gravité: land a flyer (grounded) or restore its float (Vol/Lévitation). */
+  setGroundedByGravity(pokemonId: string, grounded: boolean): void;
   flashDamage(pokemonId: string): void;
   /** Replace the set of Pokémon flashing as locked attack targets (empty clears). */
   setPreviewFlash(pokemonIds: readonly string[]): void;
@@ -204,6 +206,10 @@ export interface BattleChrome {
   updateInfoPanel(view: InfoPanelData | null): void;
   /** Set the weather HUD (null hides it). */
   updateWeather(view: WeatherView | null): void;
+  /** Set the Vent Arrière (tailwind) HUD (null hides it). */
+  updateTailwind(view: TailwindView | null): void;
+  /** Push the live camera azimuth (radians) so direction indicators rotate with the iso view. */
+  updateCameraAzimuth(azimuth: number): void;
   /** Refresh the turn timeline (active + predicted order). */
   updateTimeline(view: TimelineView): void;
   showVictory(winnerId: string | null): void;

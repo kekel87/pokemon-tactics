@@ -4,6 +4,7 @@ import type { DefensiveKind } from "../enums/defensive-kind";
 import type { EffectKind } from "../enums/effect-kind";
 import type { EffectTarget } from "../enums/effect-target";
 import type { EntryHazardKind } from "../enums/entry-hazard-kind";
+import type { FieldGlobalKind } from "../enums/field-global-kind";
 import type { FieldTerrain } from "../enums/field-terrain";
 import type { PokemonType } from "../enums/pokemon-type";
 import type { StatName } from "../enums/stat-name";
@@ -116,4 +117,6 @@ export type Effect =
   | { kind: typeof EffectKind.CopyTargetType }
   | { kind: typeof EffectKind.SoakType; pureType: PokemonType }
   | { kind: typeof EffectKind.RemoveType; removedType: PokemonType }
-  | { kind: typeof EffectKind.CopyMoveToSlot };
+  | { kind: typeof EffectKind.CopyMoveToSlot }
+  | { kind: typeof EffectKind.PostFieldGlobal; fieldGlobalKind: FieldGlobalKind }
+  | { kind: typeof EffectKind.SetTailwind };

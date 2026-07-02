@@ -31,6 +31,21 @@
     image-rendering: pixelated;
   }
 
+  /* Vent Arrière (tailwind) HUD reuses the weather HUD shell; the direction arrow replaces the icon.
+     The glyph is a centred, fixed square so `rotate()` pivots around its visual centre. */
+  .tw-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: calc(32 * var(--wh-px));
+    block-size: calc(32 * var(--wh-px));
+    font-size: calc(30 * var(--wh-px));
+    line-height: 1;
+    font-weight: bold;
+    transform-origin: center center;
+    color: var(--color-accent, var(--color-text-primary));
+  }
+
   .wh-text {
     display: flex;
     flex-direction: column;

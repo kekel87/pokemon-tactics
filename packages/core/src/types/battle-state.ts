@@ -2,9 +2,11 @@ import type { PlayerId } from "../enums/player-id";
 import type { Weather } from "../enums/weather";
 import type { DistortionZone } from "./distortion-zone";
 import type { EntryHazardCell } from "./entry-hazard-cell";
+import type { FieldGlobalZone } from "./field-global-zone";
 import type { FieldZone } from "./field-zone";
 import type { PendingStrike } from "./pending-strike";
 import type { PokemonInstance } from "./pokemon-instance";
+import type { Tailwind } from "./tailwind";
 import type { TeamAura } from "./team-aura";
 import type { TileState } from "./tile-state";
 
@@ -22,6 +24,10 @@ export interface BattleState {
   fieldTerrains: FieldZone[];
   /** Trick Room ("Distorsion") zones: inside one, CT tempo is inverted (slow acts first). */
   distortionZones: DistortionZone[];
+  /** Localized "field global" zones (Gravité / Zone Étrange / Zone Magique). Multiple coexist. */
+  fieldGlobalZones: FieldGlobalZone[];
+  /** The single active directional wind (Vent Arrière / tailwind), if any. */
+  tailwind?: Tailwind;
   /** Entry-hazard traps (Picots / Pièges de Roc / Pics Toxik / Toile Gluante). Permanent until removed. */
   entryHazards: EntryHazardCell[];
   /** Tile-bound delayed strikes scheduled by future-moves (Prescience). Resolve after a caster-turn delay. */

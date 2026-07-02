@@ -3,6 +3,7 @@ import {
   DISTORTION_RADIUS,
   EffectKind,
   EffectTarget,
+  FIELD_GLOBAL_RADIUS,
   FIELD_TERRAIN_RADIUS,
 } from "@pokemon-tactic/core";
 
@@ -67,6 +68,9 @@ export function selfPreviewRadius(move: MoveDefinition): number | undefined {
     }
     if (effect.kind === EffectKind.PostDistortion) {
       return DISTORTION_RADIUS;
+    }
+    if (effect.kind === EffectKind.PostFieldGlobal) {
+      return FIELD_GLOBAL_RADIUS;
     }
     if (effect.kind === EffectKind.RemoveEntryHazards) {
       return effect.radius;

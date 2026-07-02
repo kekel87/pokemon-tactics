@@ -8,6 +8,7 @@ import { DynamicPowerKind } from "../enums/dynamic-power-kind";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import { EntryHazardKind } from "../enums/entry-hazard-kind";
+import { FieldGlobalKind } from "../enums/field-global-kind";
 import { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
@@ -73,6 +74,11 @@ import {
 import { getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
 import {
+  isAirborneMove,
+  isGroundedByGravityZone,
+  isHeldItemSuppressed,
+} from "./field-global-system";
+import {
   decrementFieldTerrainsTimer,
   getFieldTerrainBpMultiplier,
   getFieldTerrainDamageMultiplier,
@@ -87,6 +93,7 @@ import { tickFutureSightStrikesForCaster } from "./future-sight-system";
 import { createAurasTickHandler } from "./handlers/aura-tick-handler";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { distortionDecrementHandler } from "./handlers/distortion-tick-handler";
+import { fieldGlobalDecrementHandler } from "./handlers/field-global-tick-handler";
 import {
   createFieldTerrainHealHandler,
   fieldTerrainDecrementHandler,
@@ -98,6 +105,7 @@ import { perishTickHandler } from "./handlers/perish-tick-handler";
 import { roostedClearHandler } from "./handlers/roosted-clear-handler";
 import { createSeededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
+import { tailwindDecrementHandler } from "./handlers/tailwind-tick-handler";
 import { createTerrainTickHandler } from "./handlers/terrain-tick-handler";
 import { timedVolatileTickHandler } from "./handlers/timed-volatile-tick-handler";
 import { trappedTickHandler } from "./handlers/trapped-tick-handler";
@@ -118,12 +126,14 @@ import {
   getSemiInvulnerableDamageMultiplier,
 } from "./semi-invulnerable";
 import { clampStages, computeMovement, isMajorStatus } from "./stat-modifier";
+import { tailwindSpeedMultiplier } from "./tailwind-system";
 import {
   getImmuneTerrains,
   getMovementPenalty,
   getTerrainTypeBonusFactor,
   isTerrainImmune,
 } from "./terrain-effects";
+import type { PhaseHandler } from "./turn-pipeline";
 import { TurnPipeline } from "./turn-pipeline";
 import { decrementWeatherTimer, effectiveWeather, setWeather } from "./weather-system";
 
@@ -165,6 +175,8 @@ export class BattleEngine {
     null;
   private restrictActions = false;
   private confusedThisTurn = false;
+  /** End-turn terrain tick handler, also reused to apply terrain the instant Gravité grounds a mon. */
+  private readonly terrainTickHandler: PhaseHandler;
   private confusionChecked = false;
   private flinchedThisTurn = false;
   private battleOver = false;
@@ -234,13 +246,16 @@ export class BattleEngine {
     this.turnPipeline.registerEndTurn(createFieldTerrainHealHandler(this.pokemonTypesMap), 260);
     this.turnPipeline.registerEndTurn(fieldTerrainDecrementHandler, 265);
     this.turnPipeline.registerEndTurn(distortionDecrementHandler, 268);
+    this.turnPipeline.registerEndTurn(fieldGlobalDecrementHandler, 269);
+    this.turnPipeline.registerEndTurn(tailwindDecrementHandler, 152);
     this.turnPipeline.registerEndTurn(perishTickHandler, 280);
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
     this.turnPipeline.registerEndTurn(timedVolatileTickHandler, 350);
-    this.turnPipeline.registerEndTurn(
-      createTerrainTickHandler(this.pokemonTypesMap, this.itemRegistry ?? undefined),
-      400,
+    this.terrainTickHandler = createTerrainTickHandler(
+      this.pokemonTypesMap,
+      this.itemRegistry ?? undefined,
     );
+    this.turnPipeline.registerEndTurn(this.terrainTickHandler, 400);
     this.turnPipeline.registerEndTurn(roostedClearHandler, 500);
 
     const pokemonIds = [...state.pokemon.keys()];
@@ -493,6 +508,18 @@ export class BattleEngine {
     }
   }
 
+  /**
+   * True if the mon is airborne by its own nature (Flying type / Lévitation / Ballon), ignoring any
+   * Gravité zone. The renderer uses this to know which mons Gravité should visually land.
+   */
+  isAirborneIgnoringGravity(pokemonId: string): boolean {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    if (!pokemon) {
+      return false;
+    }
+    return isEffectivelyFlying(pokemon, this.effectiveTypesOf(pokemon));
+  }
+
   getReachableTilesForPokemon(pokemonId: string): Position[] {
     if (this.battleOver) {
       return [];
@@ -589,7 +616,10 @@ export class BattleEngine {
       ? this.isEffectivelyFlying(pokemon)
       : pokemonTypes.includes(PokemonType.Flying);
     const isGhost = pokemonTypes.includes(PokemonType.Ghost);
-    const immuneTerrains = getImmuneTerrains(pokemonTypes, isFlying);
+    const immuneTerrains = getImmuneTerrains(
+      pokemon ? this.terrainTypesOf(pokemon) : pokemonTypes,
+      isFlying,
+    );
 
     const posKey = (p: Position): string => `${p.x},${p.y}`;
     const visited = new Set<string>();
@@ -712,6 +742,9 @@ export class BattleEngine {
       // Possessif: aggregate the imprisoned move ids once (not per move).
       const imprisonedMoveIds = collectImprisonedMoveIds(this.state, currentPokemon.playerId);
       const healBlocked = isHealBlocked(currentPokemon);
+      // Gravité: a mon standing in a Gravity zone cannot launch airborne/jump moves (Vol, Rebond,
+      // Pied Voltige…). Underground/underwater charge moves (Tunnel, Plongée) stay legal.
+      const groundedByGravity = isGroundedByGravityZone(this.state, currentPokemon);
 
       for (const moveId of currentPokemon.moveIds) {
         const move = this.moveRegistry.get(moveId);
@@ -720,6 +753,10 @@ export class BattleEngine {
         }
 
         if ((isTaunted || forbidsStatusMoves) && move.category === Category.Status) {
+          continue;
+        }
+
+        if (groundedByGravity && isAirborneMove(move)) {
           continue;
         }
 
@@ -936,8 +973,74 @@ export class BattleEngine {
   }
 
   private isEffectivelyFlying(pokemon: PokemonInstance): boolean {
+    // Gravité: a mon standing in a Gravity zone is grounded — loses its airborne status for terrain,
+    // entry-hazards, knockback and movement traversal (the type-chart Ground immunity is overridden
+    // separately in the damage calc).
+    if (isGroundedByGravityZone(this.state, pokemon)) {
+      return false;
+    }
     const types = this.effectiveTypesOf(pokemon);
     return isEffectivelyFlying(pokemon, types);
+  }
+
+  /**
+   * Types used for TERRAIN immunity (traversal, stopping, terrain effects). A mon grounded by a
+   * Gravité zone loses its Flying-type terrain immunity too — so it can no longer cross/rest on lava
+   * or overfly obstacles, matching the grounded gameplay. Other type resistances are unchanged.
+   */
+  private terrainTypesOf(pokemon: PokemonInstance): PokemonType[] {
+    const types = this.effectiveTypesOf(pokemon);
+    if (isGroundedByGravityZone(this.state, pokemon)) {
+      return types.filter((type) => type !== PokemonType.Flying);
+    }
+    return types;
+  }
+
+  /**
+   * Apply entry-hazards + terrain the instant a Gravité zone lands on a mon, so a formerly-airborne
+   * mon (Flying/Levitate/Balloon) caught over lava or a hazard suffers it immediately rather than
+   * escaping on its next turn. Only mons that would be airborne without the zone are re-evaluated;
+   * grounded mons already take their terrain on the normal end-turn tick.
+   */
+  private applyGravityGroundingOnCast(events: BattleEvent[]): void {
+    for (const zone of this.state.fieldGlobalZones) {
+      if (zone.kind !== FieldGlobalKind.Gravity) {
+        continue;
+      }
+      for (const tile of zone.tiles) {
+        const occupantId = this.grid.getOccupant(tile);
+        if (!occupantId) {
+          continue;
+        }
+        const mon = this.state.pokemon.get(occupantId);
+        if (!mon || mon.currentHp <= 0) {
+          continue;
+        }
+        // Skip mons that were already grounded — their terrain runs on the normal end-turn tick.
+        if (!isEffectivelyFlying(mon, this.effectiveTypesOf(mon))) {
+          continue;
+        }
+        this.applyEntryHazardsOnPath(mon, [{ ...mon.position }], events);
+        if (mon.currentHp <= 0) {
+          this.handleKo(mon.id, events);
+          if (this.battleOver) {
+            return;
+          }
+          continue;
+        }
+        const terrainResult = this.terrainTickHandler(mon.id, this.state);
+        for (const event of terrainResult.events) {
+          this.emit(event);
+          events.push(event);
+        }
+        if (mon.currentHp <= 0) {
+          this.handleKo(mon.id, events);
+          if (this.battleOver) {
+            return;
+          }
+        }
+      }
+    }
   }
 
   private triggerBattleStart(): void {
@@ -1141,6 +1244,18 @@ export class BattleEngine {
       this.itemRegistry?.getForPokemon(pokemon)?.forbidsStatusMoves === true
     ) {
       return { success: false, events: [], error: ActionError.InvalidAction };
+    }
+
+    // Gravité: airborne/jump moves are illegal from within a Gravity zone — defensive guard
+    // mirroring getLegalActions. Emits GravityMoveBlocked for log feedback.
+    if (isGroundedByGravityZone(this.state, pokemon) && isAirborneMove(move)) {
+      const gravityBlockedEvent: BattleEvent = {
+        type: BattleEventType.GravityMoveBlocked,
+        pokemonId: pokemon.id,
+        moveId,
+      };
+      this.emit(gravityBlockedEvent);
+      return { success: false, events: [gravityBlockedEvent], error: ActionError.InvalidAction };
     }
 
     const isTaunted = pokemon.volatileStatuses.some((v) => v.type === StatusType.Taunted);
@@ -1565,6 +1680,22 @@ export class BattleEngine {
             events.push(e);
           }
         }
+      }
+    }
+
+    // Gravité: the instant the zone is posted, mons caught inside it are grounded NOW — apply their
+    // tile's entry-hazards + terrain immediately (a flyer over lava melts at once instead of escaping
+    // on its next turn). Only mons that were airborne (and are now grounded) are re-evaluated.
+    if (
+      effectiveMove.effects.some(
+        (effect) =>
+          effect.kind === EffectKind.PostFieldGlobal &&
+          effect.fieldGlobalKind === FieldGlobalKind.Gravity,
+      )
+    ) {
+      this.applyGravityGroundingOnCast(events);
+      if (this.battleOver) {
+        return { success: true, events };
       }
     }
 
@@ -2292,7 +2423,7 @@ export class BattleEngine {
     const pokemonTypes = this.effectiveTypesOf(pokemon);
     const isFlying = this.isEffectivelyFlying(pokemon);
     const isGhost = pokemonTypes.includes(PokemonType.Ghost);
-    const immuneTerrains = getImmuneTerrains(pokemonTypes, isFlying);
+    const immuneTerrains = getImmuneTerrains(this.terrainTypesOf(pokemon), isFlying);
 
     const queue: BfsNode[] = [{ position: pokemon.position, path: [], distance: 0 }];
     visited.set(posKey(pokemon.position), 0);
@@ -2678,7 +2809,11 @@ export class BattleEngine {
 
     const activePokemon = this.state.pokemon.get(pokemonId);
     if (activePokemon && activePokemon.currentHp > 0) {
-      const item = this.itemRegistry?.getForPokemon(activePokemon);
+      // Zone Magique (magic-room): a holder inside the zone has its end-of-turn item effects (Restes
+      // regen, terrain seeds…) suppressed while it stands inside.
+      const item = isHeldItemSuppressed(this.state, activePokemon)
+        ? undefined
+        : this.itemRegistry?.getForPokemon(activePokemon);
       // Tension (unnerve): a living enemy with Tension blocks end-of-turn berry consumption.
       const berryBlocked =
         item?.isBerry === true && areBerriesSuppressed(this.state, activePokemon);
@@ -3000,9 +3135,16 @@ export class BattleEngine {
     const base = inDistortion
       ? computeCtGain(invertedDistortionSpeed(baseStat), -stages)
       : computeCtGain(baseStat, stages);
-    const item = this.itemRegistry?.getForPokemon(pokemon);
+    // Vent Arrière (tailwind): a mon aligned with the wind gains ×1.5 tempo, applied AFTER the
+    // Distorsion inversion so a mon both in a zone and aligned still gets the wind boost on its
+    // (already inverted) gain.
+    const windMultiplier = tailwindSpeedMultiplier(this.state, pokemon);
+    // Zone Magique (magic-room) suppresses held-item effects while the holder stands inside it.
+    const item = isHeldItemSuppressed(this.state, pokemon)
+      ? undefined
+      : this.itemRegistry?.getForPokemon(pokemon);
     const modifier = item?.onCtGainModify?.({ pokemon }) ?? 1.0;
-    return Math.round(base * modifier);
+    return Math.round(base * windMultiplier * modifier);
   }
 
   private computeCurrentMoveCost(): number {
@@ -3261,10 +3403,19 @@ export class BattleEngine {
       this.state.weatherSetterPokemonId === pokemonId;
     const ownsField = this.state.fieldTerrains.some((zone) => zone.casterId === pokemonId);
     const ownsDistortion = this.state.distortionZones.some((zone) => zone.casterId === pokemonId);
+    const ownsFieldGlobal = this.state.fieldGlobalZones.some((zone) => zone.casterId === pokemonId);
+    const ownsTailwind = this.state.tailwind?.setterPokemonId === pokemonId;
     const ownsPendingStrike = this.state.pendingStrikes.some(
       (strike) => strike.casterId === pokemonId,
     );
-    return ownsWeather || ownsField || ownsDistortion || ownsPendingStrike;
+    return (
+      ownsWeather ||
+      ownsField ||
+      ownsDistortion ||
+      ownsFieldGlobal ||
+      ownsTailwind ||
+      ownsPendingStrike
+    );
   }
 
   /**

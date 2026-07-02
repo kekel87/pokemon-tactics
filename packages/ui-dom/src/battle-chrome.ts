@@ -8,6 +8,7 @@ import type {
   BattleInstruction,
   InfoPanelData,
   SelectedMoveView,
+  TailwindView,
   TimelineView,
   TurnInfoView,
   WeatherView,
@@ -16,6 +17,7 @@ import type { UiDomConfig } from "./config.js";
 import { el } from "./dom-helpers.js";
 import { createInfoPanel } from "./info-panel.js";
 import { createMoveTooltip } from "./move-tooltip.js";
+import { createTailwindHud } from "./tailwind-hud.js";
 import { createTurnTimeline } from "./turn-timeline.js";
 import { createWeatherHud } from "./weather-hud.js";
 
@@ -64,7 +66,8 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   const top = el("div", "bc-top");
   const banner = el("div", "bc-turn", "combat-turn");
   const weatherHud = createWeatherHud(config);
-  top.append(banner, weatherHud.element);
+  const tailwindHud = createTailwindHud(config);
+  top.append(banner, weatherHud.element, tailwindHud.element);
 
   const bottom = el("div", "bc-bottom");
   const tooltip = createMoveTooltip(config);
@@ -217,6 +220,8 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     },
 
     updateWeather: (view: WeatherView | null) => weatherHud.update(view),
+    updateTailwind: (view: TailwindView | null) => tailwindHud.update(view),
+    updateCameraAzimuth: (azimuth: number) => tailwindHud.setAzimuth(azimuth),
 
     updateTimeline: (view: TimelineView) => timeline.update(view),
 

@@ -1113,6 +1113,63 @@ deux signaux observables les plus nets et déterministes.
   setup peu net en sandbox 1v1, mêmes events/lignes de journal que Copie/Métronome → couverts
   unit/integration core (`moves/{sleep-talk,mirror-move,copycat}.test.ts`), non dupliqués e2e.
 
+### 5.29 Famille Field global (Gravité / Vent Arrière / Zone Étrange / Zone Magique)
+*src : core `data/overrides/tactical.ts` (`gravity`, `wonder-room`, `magic-room`, `tailwind`),
+`enums/field-global-kind.ts`, `battle/field-global-system.ts` + `battle/tailwind-system.ts`,
+`handlers/handle-post-field-global.ts` + `handle-set-tailwind.ts` + `field-global-tick-handler.ts` +
+`tailwind-tick-handler.ts`, `battle/{accuracy-check,damage-calculator}.ts` (précision ×5/3, swap
+Déf/DéfSpé, objet neutralisé via `isHeldItemSuppressed`), `BattleEngine` (grounding + ctGain ×1.5
+Vent Arrière + garde `submitAction`/`getLegalActions` moves aériens) ; events `battle-event.ts`
+(`FieldGlobalPosted`/`Expired`, `TailwindSet`/`Ended`, `GravityMoveBlocked`) ; rendu zone réutilise
+les Champs (une couleur par kind), HUD flèche `ui-dom/tailwind-hud.ts` ; journal
+`ui-dom/BattleLogFormatter.ts` ; unit `battle/moves/{gravity,wonder-room,magic-room,tailwind}.test.ts`
++ `field-global-system.test.ts` + `tailwind-system.test.ts` ; e2e :
+`mechanics-field-global.spec.ts`. Plan 145.* Quatre effets « pleine arène » du canon relocalisés
+positionnellement : 3 zones diamant r3 figées au cast (mirror Distorsion) + 1 vent directionnel
+global. La résolution numérique (clouage des Volants + immunité Sol perdue, précision ×5/3, swap
+Déf↔DéfSpé bases seules, neutralisation d'objet, ctGain ×1.5 des mons alignés, décompte
+caster-only/round-based + horloge fantôme) est couverte unit/integration core ; e2e on prouve le
+SENS observable et déterministe.
+
+- 🤖 **Zone posée** (Gravité / Zone Étrange / Zone Magique, `TargetingKind.Self` → cast sur la propre
+  case (2,3), statut 100 % → déterministe) : journal FR « <lanceur> déploie <Gravité|Zone Étrange|Zone
+  Magique> (5 tours) » (event FieldGlobalPosted) + le **quad de la zone** peint au sol l'épicentre
+  (`field_terrain_5996464_2_3` Gravité / `_4175782_` Zone Étrange / `_12605055_` Zone Magique, une
+  couleur par kind, ancrée sur le lanceur) — `mechanics-field-global.spec`. *La couleur propre à
+  chaque kind, la pastille compteur et la preview diamant r3 = 👁.*
+- 🤖 **Vent Arrière levé** (`tailwind`, `GroundTarget` portée 1 → la case cardinale ciblée donne la
+  direction ; (2,2) au nord de (2,3)) : journal FR « <lanceur> lève le Vent Arrière vers le Nord (5
+  tours) » (event TailwindSet) + le **HUD flèche** top-center (`tailwind-hud`) monte avec le libellé
+  « Vent Arrière » — `mechanics-field-global.spec`. *La rotation de la flèche selon la direction et
+  l'azimut caméra = 👁 (pixel).*
+- 🤖 **Move aérien verrouillé sous Gravité** : un lanceur debout dans une zone Gravité ne peut plus
+  lancer un move aérien/saut. Après avoir posé Gravité sur sa case, **Pied Voltige** (`high-jump-kick`,
+  `disabledUnderGravity`) est filtré des actions légales → sa ligne du menu Attaque porte
+  `data-enabled="false"` bien qu'une cible adjacente existe ; le témoin (Gravité non posée) le montre
+  `data-enabled="true"` — `mechanics-field-global.spec`. *Vol/Rebond (détectés via leur état
+  semi-invulnérable Flying) suivent la même règle ; Tunnel/Plongée restent jouables — SENS couvert
+  unit (`field-global-system.test.ts`, `moves/gravity.test.ts`).*
+- 👁 **Gravité — clouage des Volants** : un Pokémon Vol/Lévitation dans la zone perd son immunité Sol
+  (touché par les attaques Sol + hazards + knockback) et son sprite passe en pose au sol
+  (`setGroundedByGravity`, anim only) → SENS numérique couvert unit (`moves/gravity.test.ts`,
+  `damage-calculator`/`entry-hazard-system`), la bascule d'animation = 👁 (pixel/anim).
+- 👁 **Gravité — précision ×5/3** contre un défenseur dans la zone : modificateur multiplicatif
+  d'`accuracy-check` (non déterministement observable sans gymnastique de seed + témoin) → unit
+  (`moves/gravity.test.ts`).
+- 👁 **Zone Étrange — swap Déf↔DéfSpé** d'un défenseur dans la zone (bases échangées, crans collés au
+  slot) : différence de dégâts numérique (nécessite un témoin + positionnement défenseur dans/hors
+  zone) → unit (`moves/wonder-room.test.ts`, `damage-calculator`).
+- 👁 **Zone Magique — objet neutralisé** d'un porteur dans la zone (objet inerte mais NON consommé,
+  redevient actif hors zone) : effet comportemental/numérique (nécessite un témoin) → unit
+  (`moves/magic-room.test.ts`, `isHeldItemSuppressed`).
+- 👁 **Vent Arrière — ctGain ×1.5** des mons (les 2 camps) dont l'orientation == direction du vent :
+  décalage d'ordre dans la timeline `predictCtTimeline` (nécessite un setup d'alignement d'orientation
+  + cumul après Distorsion) → unit (`moves/tailwind.test.ts`, `BattleEngine.getCtGainForPokemon`).
+- 👁 **Décompte + expiration** : zones = « tours du lanceur » avec horloge fantôme (survit au KO,
+  `FieldGlobalExpired`) ; Vent Arrière = décompte round-global (`TailwindEnded`). Re-cast même
+  épicentre+kind = remplace, ailleurs/kind ≠ = coexiste. Non pilotable en e2e court → SENS couvert
+  unit (`field-global-system.test.ts`, `tailwind-system.test.ts`).
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -1370,6 +1427,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-item-interaction.spec.ts` | §5.25 item interaction (plan 142) : Sabotage (retire l'objet → « perd son Restes »), Larcin (vole l'objet → « vole le … » + InfoPanel du lanceur « 🎒 Restes »), Tour de Magie (échange → « échange son objet … » + InfoPanel « 🎒 Restes »), Dégommage (Orbe Flamme lancée → « dégomme son Orbe Flamme » + « est brûlé »), Recyclage (baie mangée en fin de tour puis restaurée → « recycle son Baie Lichii » + InfoPanel), Éructation (jouable seulement après une baie mangée → dégâts au dummy), Glu (Sabotage bloqué sur Grotadmorv → « Glu … s'active », « perd son Restes » absent). Implore/Passe-Passe (effets partagés), Picore/Piqûre/Calcination/Gaz Corrosif (contenu fin non distinct au journal), Substitut (D5), baies Lansat/Frista (boost silencieux), ×1.5 de Sabotage = unit/integration core → 👁 |
 | `combat/mechanics-type-manip.spec.ts` | §5.27 famille Type manip (plan 143) : Détrempage (`soak`, hors-pool forcé) sur le dummy Ronflex (Normal) → journal « Ronflex devient de type Eau ! » (event TypeChanged) + badge volatile « Type Eau » de l'InfoPanel au survol de la cible (`typeOverride`). Conversion/Conversion 2/Copie-Type/Flamme Ultime (historique de move ou type de lanceur requis, mêmes lignes de journal « devient de type … »/« perd son type Feu ! » + recalcul efficacité/STAB) = unit/integration core, non dupliqués e2e → 👁 |
 | `combat/mechanics-move-copy.spec.ts` | §5.28 famille Move-copy (plan 144) : Copie (`mimic`) — l'IA du dummy Ronflex joue Plaquage au tour 1, le joueur Alakazam lance Copie sur lui au tour 2 → journal « Alakazam apprend Plaquage ! » (event MoveCopied) ET, après une fin de tour, le sous-menu d'attaque liste « Plaquage » à la place de « Copie » (slot muté) ; Métronome (`metronome`) — le joueur tire un move (PRNG seedé), le place sur le dummy adjacent → ligne de révélation « Métronome → <move tiré> » (réentrance prouvée, identité du move tiré non assertée). Blabla Dodo (gate sommeil `requiresAsleep`), Mimique (`mirror-move`, dernier move cible) / Photocopie (`copycat`, dernier move global) (dépendent d'un historique de move), Gribouille (`sketch` ≡ Copie) = unit/integration core (`moves/{metronome,sleep-talk,mirror-move,copycat,mimic,sketch}.test.ts`), non dupliqués e2e → 👁 |
+| `combat/mechanics-field-global.spec.ts` | §5.29 famille Field global (plan 145) : les 3 zones diamant Self (Gravité / Zone Étrange / Zone Magique) posées sur la case du lanceur (2,3) → journal « déploie <label> (5 tours) » + quad de scène par kind (`field_terrain_<couleur>_2_3`, une couleur par kind) ; Vent Arrière (`tailwind`, GroundTarget portée 1) ciblé au nord (2,2) → journal « lève le Vent Arrière vers le Nord » + HUD flèche `tailwind-hud` (libellé « Vent Arrière ») ; Gravité verrouille les moves aériens → Pied Voltige (`disabledUnderGravity`) `data-enabled="false"` au menu Attaque une fois la zone posée, `data-enabled="true"` en témoin. Clouage des Volants + immunité Sol, précision ×5/3, swap Déf/DéfSpé, objet neutralisé, ctGain ×1.5 aligné au vent, décompte/expiration/horloge fantôme = unit/integration core (`moves/{gravity,wonder-room,magic-room,tailwind}.test.ts`, `field-global-system.test.ts`, `tailwind-system.test.ts`) → 👁 |
 | `combat/mechanics-trapping.spec.ts` | §5.26 famille Pièges (trapping) : piège PARTIEL (Danse Flammes + Aucun Garde forçant 100 % → « Ronflex est piégé ! » puis chip de fin de tour « Ronflex perd N PV ! ») ; piège PUR position-linked (Barrage → « Ronflex est piégé ! » sans dégâts, puis le lanceur s'éloigne en (2,5) → « Ronflex est libéré du piège »). Étreinte/Siphon/Tourbi-Sable (même pattern partiel) et Regard Noir (même pattern pur) = unit (`moves/*.test.ts`), non dupliqués e2e → 👁. Immobilisation (0 action Move, attaque OK) = unit (pas de ligne de journal) → 👁 |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |

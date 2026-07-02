@@ -51,6 +51,7 @@ function fakeState(): BattleState {
     auras: [],
     fieldTerrains: [],
     distortionZones: [],
+    fieldGlobalZones: [],
     entryHazards: [],
     pendingStrikes: [],
     weather: Weather.None,
@@ -95,6 +96,7 @@ function setup(
     getGrid: () => Grid.createFlat(9, 9),
     estimateDamage: () => null,
     getPokemonTypes: () => [],
+    isAirborneIgnoringGravity: () => false,
     predictCtTimeline: () => [],
   } as unknown as BattleEngine;
 
@@ -150,6 +152,7 @@ function setup(
     updateTurnInfo: () => undefined,
     updateInfoPanel: () => undefined,
     updateWeather: () => undefined,
+    updateTailwind: () => undefined,
     updateTimeline: () => undefined,
     showVictory: () => undefined,
   };

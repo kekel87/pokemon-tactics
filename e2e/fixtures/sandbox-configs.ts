@@ -571,3 +571,53 @@ export const MOVE_COPY_METRONOME = {
   dummyMove: "leer",
   dummyHp: 999,
 } as const;
+
+// Famille Field global (plan 145) — 3 zones diamant r3 posées via un move Self (Gravité / Zone
+// Étrange / Zone Magique, TargetingKind.Self → cast sur sa propre case, exactement comme Distorsion)
+// + Vent Arrière (vent directionnel global : GroundTarget portée 1, la case cardinale ciblée donne
+// la direction). Tous des moves STATUT sans jet de précision → cast déterministe (seed DUEL hérité).
+// L'e2e prouve le SENS observable : zone posée (journal FR + quad de scène par kind), vent levé
+// (journal FR + HUD flèche), move aérien verrouillé sous Gravité (menu `data-enabled="false"`). Les
+// effets NUMÉRIQUES profonds (clouage des Volants + précision ×5/3, swap Déf/DéfSpé, neutralisation
+// d'objet, ctGain ×1.5 des mons alignés au vent) sont couverts unit/integration core
+// (`moves/{gravity,wonder-room,magic-room,tailwind}.test.ts`) et marqués 👁 au cahier §5.29.
+
+/** Gravité (`gravity`, Self) — le joueur Florizarre pose la zone diamant sur sa propre case (2,3). */
+export const FIELD_GLOBAL_GRAVITY = { ...DUEL, moves: ["gravity"] } as const;
+
+/** Zone Étrange (`wonder-room`, Self) — même pose Self, épicentre (2,3). */
+export const FIELD_GLOBAL_WONDER_ROOM = { ...DUEL, moves: ["wonder-room"] } as const;
+
+/** Zone Magique (`magic-room`, Self) — même pose Self, épicentre (2,3). */
+export const FIELD_GLOBAL_MAGIC_ROOM = { ...DUEL, moves: ["magic-room"] } as const;
+
+/** Vent Arrière (`tailwind`, GroundTarget portée 1) — le dummy est écarté en (4,4) pour libérer la
+ *  case cardinale nord (2,2) ; `castFirstMove(2,2)` vise cette case → direction Nord (de (2,3) vers
+ *  (2,2)). La pose journalise « … lève le Vent Arrière vers le Nord (5 tours) » et monte le HUD flèche
+ *  (`tailwind-hud`, libellé « Vent Arrière »). Move statut sans jet → cast déterministe. */
+export const TAILWIND_NORTH = {
+  ...DUEL,
+  moves: ["tailwind"],
+  playerPosition: { x: 2, y: 3 },
+  dummyPosition: { x: 4, y: 4 },
+} as const;
+
+/** Gravité verrouille les moves aériens — le joueur a deux moves : Gravité (Self) puis Pied Voltige
+ *  (`high-jump-kick`, Single portée 1, tagué `disabledUnderGravity`). Le dummy Ronflex reste adjacent
+ *  en (2,2) (défaut DUEL) → Pied Voltige a une cible légale tant que la Gravité n'est pas posée. Le
+ *  test pose Gravité au tour 1 (le lanceur se retrouve DANS sa propre zone), laisse l'IA jouer un tour
+ *  inerte, puis au tour SUIVANT du lanceur rouvre le menu Attaque : Pied Voltige est filtré des actions
+ *  légales (`getLegalActions`) → sa ligne porte `data-enabled="false"` (même convention que la Veste de
+ *  Combat, §5.16). Le témoin (même config, Gravité NON posée) montre Pied Voltige `data-enabled="true"`
+ *  → prouve que c'est la Gravité qui verrouille, et non une portée manquante. Le dummy est en `ai` avec
+ *  Groz'Yeux (`leer`, sans dégât) + `dummyHp`/`hp` à 999 pour que le lanceur revienne jouer sans être
+ *  KO ni KO'er (le combat doit rester ouvert). Moves statut/mêlée → aucun jet, déterministe. */
+export const GRAVITY_BLOCKS_AERIAL = {
+  ...DUEL,
+  moves: ["gravity", "high-jump-kick"],
+  hp: 999,
+  dummyPokemon: "snorlax",
+  dummyControl: "ai",
+  dummyMove: "leer",
+  dummyHp: 999,
+} as const;

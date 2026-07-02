@@ -16,6 +16,7 @@ import type {
   InfoPanelBadge,
   InfoPanelData,
   PresentationContext,
+  TailwindView,
   TimelineEntryView,
   TimelineView,
   WeatherKind,
@@ -34,6 +35,7 @@ import type {
 
 export type {
   InfoPanelData,
+  TailwindView,
   TimelineEntryView,
   TimelineView,
   WeatherKind,
@@ -285,6 +287,16 @@ export function buildWeatherView(state: BattleState): WeatherView | null {
   return {
     kind: state.weather as WeatherKind,
     turnsRemaining: state.weatherTurnsRemaining,
+  };
+}
+
+export function buildTailwindView(state: BattleState): TailwindView | null {
+  if (!state.tailwind) {
+    return null;
+  }
+  return {
+    direction: state.tailwind.direction,
+    turnsRemaining: state.tailwind.remainingTurns,
   };
 }
 
