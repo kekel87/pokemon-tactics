@@ -206,6 +206,21 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   if (move.effects.some((effect) => effect.kind === EffectKind.CopyMoveToSlot)) {
     keys.push("moveTooltip.tag.copyMoveToSlot");
   }
+  if (move.effects.some((effect) => effect.kind === EffectKind.ResetStatStages)) {
+    keys.push("moveTooltip.tag.statManipReset");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.CopyStatStages)) {
+    keys.push("moveTooltip.tag.statManipCopy");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.InvertStatStages)) {
+    keys.push("moveTooltip.tag.statManipInvert");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.SwapStatStages)) {
+    keys.push("moveTooltip.tag.statManipSwap");
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.SwapRawSpeed)) {
+    keys.push("moveTooltip.tag.statManipSpeedSwap");
+  }
   const fieldTerrainEffect = move.effects.find(
     (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostFieldTerrain }> =>
       effect.kind === EffectKind.PostFieldTerrain,

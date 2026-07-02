@@ -1186,6 +1186,68 @@ export function formatBattleEvent(
       };
     }
 
+    case BattleEventType.StatStagesReset: {
+      const message =
+        lang === "fr"
+          ? "Les changements de stats de tous les Pokémon sont annulés !"
+          : "All stat changes were eliminated!";
+      return { message, color: BattleLogColors.status, pokemonIds: event.pokemonIds };
+    }
+
+    case BattleEventType.StatStagesCopied: {
+      const casterName = context.getPokemonName(event.casterId);
+      const targetName = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `${casterName} copie les changements de stats de ${targetName} !`
+          : `${casterName} copied ${targetName}'s stat changes!`;
+      return {
+        message,
+        color: BattleLogColors.status,
+        pokemonIds: [event.casterId, event.targetId],
+      };
+    }
+
+    case BattleEventType.StatStagesInverted: {
+      const name = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `Les changements de stats de ${name} sont inversés !`
+          : `${name}'s stat changes were inverted!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.targetId] };
+    }
+
+    case BattleEventType.StatStagesSwapped: {
+      const casterName = context.getPokemonName(event.casterId);
+      const targetName = context.getPokemonName(event.targetId);
+      const statLabels = event.stats
+        .map((stat) => STAT_NAME_KEY[stat]?.[lang] ?? stat)
+        .join(lang === "fr" ? " et " : " and ");
+      const message =
+        lang === "fr"
+          ? `${casterName} et ${targetName} échangent leur ${statLabels} !`
+          : `${casterName} and ${targetName} swapped their ${statLabels}!`;
+      return {
+        message,
+        color: BattleLogColors.status,
+        pokemonIds: [event.casterId, event.targetId],
+      };
+    }
+
+    case BattleEventType.SpeedSwapped: {
+      const casterName = context.getPokemonName(event.casterId);
+      const targetName = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `${casterName} et ${targetName} échangent leur Vitesse !`
+          : `${casterName} and ${targetName} swapped their Speed!`;
+      return {
+        message,
+        color: BattleLogColors.status,
+        pokemonIds: [event.casterId, event.targetId],
+      };
+    }
+
     default:
       return null;
   }

@@ -113,6 +113,16 @@ export const BattleEventType = {
   MoveCopied: "move_copied",
   /** Copie / Gribouille / Mimique / Photocopie: the move-copy failed (no move to copy). */
   MoveCopyFailed: "move_copy_failed",
+  /** Buée Noire / Bain de Smog: the stat stages of the listed mons were reset to 0. */
+  StatStagesReset: "stat_stages_reset",
+  /** Boost (psych-up): the caster copied the target's stat stages. */
+  StatStagesCopied: "stat_stages_copied",
+  /** Renversement (topsy-turvy): the target's stat stages had their sign inverted. */
+  StatStagesInverted: "stat_stages_inverted",
+  /** Permugarde / Permuforce / Permucœur: caster and target swapped a set of stat stages. */
+  StatStagesSwapped: "stat_stages_swapped",
+  /** Permuvitesse (speed-swap): caster and target swapped their raw Speed stat. */
+  SpeedSwapped: "speed_swapped",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

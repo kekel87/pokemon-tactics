@@ -8,6 +8,7 @@ import type { Effect } from "../../types/effect";
 import { resolveDefensiveAbility } from "../ability-suppression";
 import { isProtectedFromStatDecrease } from "../aura-system";
 import type { EffectContext } from "../effect-handler-registry";
+import { effectiveBaseSpeed } from "../effective-base-speed";
 import { clampStages, computeMovement } from "../stat-modifier";
 import { shouldSubstituteBlock } from "../substitute-system";
 
@@ -95,7 +96,7 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
     }
 
     if (effect.stat === StatName.Speed) {
-      pokemon.derivedStats.movement = computeMovement(pokemon.baseStats.speed, newStage);
+      pokemon.derivedStats.movement = computeMovement(effectiveBaseSpeed(pokemon), newStage);
     }
 
     const statEvent: BattleEvent = {

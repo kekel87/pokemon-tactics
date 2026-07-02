@@ -137,3 +137,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 135 | [Sprite bundle packing (3 fichiers) + roster Gen 1 complet (+70 pré-évos)](./135-sprite-bundle-packing.md) | done | 2026-06-20 |
 | 143 | [Famille Type manip (mutation runtime du type — 429 → 434)](./143-type-manip.md) | done | 2026-06-28 |
 | 144 | [Famille Move-copy (réentrance moteur — 434 → 440)](./144-move-copy.md) | done | 2026-06-29 |
+| 145 | [Famille Field global (zones r3 + vent global — 440 → 444)](./145-field-global.md) | done | 2026-07-02 |
+| 146 | [Famille Stat/state manip (reset/copie/inversion/échange crans — 444 → 452)](./146-stat-state-manip.md) | done | 2026-07-02 |

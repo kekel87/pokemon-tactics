@@ -75,6 +75,16 @@ export const EffectKind = {
   PostFieldGlobal: "post_field_global",
   /** Set the single global directional wind (Vent Arrière / tailwind). */
   SetTailwind: "set_tailwind",
+  /** Reset the stat stages of a target (Bain de Smog) or of every mon in a radius (Buée Noire). */
+  ResetStatStages: "reset_stat_stages",
+  /** Copy the target's stat stages onto the caster (Boost / psych-up). */
+  CopyStatStages: "copy_stat_stages",
+  /** Invert the sign of every stat stage of the target (Renversement / topsy-turvy). */
+  InvertStatStages: "invert_stat_stages",
+  /** Swap a set of stat stages between the caster and the target (Permugarde / Permuforce / Permucœur). */
+  SwapStatStages: "swap_stat_stages",
+  /** Swap the raw Speed stat between the caster and the target (Permuvitesse / speed-swap). */
+  SwapRawSpeed: "swap_raw_speed",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

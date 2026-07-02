@@ -2,6 +2,7 @@ import { AURA_RADIUS } from "../battle/aura-system";
 import type { BattleEngine } from "../battle/BattleEngine";
 import { DISTORTION_RADIUS, isInDistortionZone } from "../battle/distortion-system";
 import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
+import { effectiveBaseSpeed } from "../battle/effective-base-speed";
 import { isEffectivelyFlying } from "../battle/effective-flying";
 import { HAZARD_REMOVAL_RADIUS, maxLayersFor } from "../battle/entry-hazard-system";
 import { FIELD_TERRAIN_RADIUS, getFieldTerrainAt } from "../battle/field-terrain-system";
@@ -13,6 +14,7 @@ import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import type { EntryHazardKind } from "../enums/entry-hazard-kind";
 import { FieldTerrain } from "../enums/field-terrain";
+import type { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { TerrainType } from "../enums/terrain-type";
@@ -140,6 +142,21 @@ function scoreUseMove(
     return scoreHpManipulation(action, currentPokemon, enemies, weights);
   }
 
+  // Stat-manip guard-rail (plan 146): the copy/invert/swap kinds carry no damage floor and no
+  // StatChange effect, so the generic path scores them 0 and the AI could play a visible blunder on
+  // a tie-break (inverting a debuffed target, swapping away its own advantage). Give a small negative
+  // score when the net effect clearly favours the target; positive valuation is deferred.
+  const hasStatManip = move.effects.some(
+    (effect) =>
+      effect.kind === EffectKind.CopyStatStages ||
+      effect.kind === EffectKind.InvertStatStages ||
+      effect.kind === EffectKind.SwapStatStages ||
+      effect.kind === EffectKind.SwapRawSpeed,
+  );
+  if (hasStatManip) {
+    return scoreStatManip(action, currentPokemon, enemies, move, weights);
+  }
+
   const affectedTiles = estimateAffectedTiles(
     move.targeting,
     currentPokemon.position,
@@ -220,6 +237,57 @@ function scoreHpManipulation(
     return 0;
   }
   return gap * weights.killPotential;
+}
+
+function sumStatStages(pokemon: PokemonInstance, stats: readonly StatName[]): number {
+  let total = 0;
+  for (const stat of stats) {
+    total += pokemon.statStages[stat];
+  }
+  return total;
+}
+
+/**
+ * Stat-manip guard-rail (plan 146): return a small negative score when copying / inverting / swapping
+ * clearly benefits the target instead of the caster, else 0 (neutral — the AI treats these as inert).
+ */
+function scoreStatManip(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  move: MoveDefinition,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const target = enemies.find(
+    (enemy) =>
+      enemy.position.x === action.targetPosition.x && enemy.position.y === action.targetPosition.y,
+  );
+  if (!target) {
+    return -1;
+  }
+  const penalty = -weights.statChanges;
+  for (const effect of move.effects) {
+    if (effect.kind === EffectKind.InvertStatStages) {
+      // Inverting a target whose stages sum to ≤ 0 hands it a net buff.
+      return sumStatStages(target, TRANSFERABLE_STATS) <= 0 ? penalty : 0;
+    }
+    if (effect.kind === EffectKind.CopyStatStages) {
+      // Copying a target worse off than us throws away our own boosts.
+      return sumStatStages(target, TRANSFERABLE_STATS) < sumStatStages(caster, TRANSFERABLE_STATS)
+        ? penalty
+        : 0;
+    }
+    if (effect.kind === EffectKind.SwapStatStages) {
+      return sumStatStages(target, effect.stats) < sumStatStages(caster, effect.stats)
+        ? penalty
+        : 0;
+    }
+    if (effect.kind === EffectKind.SwapRawSpeed) {
+      // Swapping raw Speed with a slower target loses us tempo.
+      return effectiveBaseSpeed(caster) > effectiveBaseSpeed(target) ? penalty : 0;
+    }
+  }
+  return 0;
 }
 
 /**

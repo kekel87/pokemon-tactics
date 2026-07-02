@@ -2,6 +2,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { StatName } from "../../enums/stat-name";
 import type { BattleEvent } from "../../types/battle-event";
 import type { EffectContext } from "../effect-handler-registry";
+import { effectiveBaseSpeed } from "../effective-base-speed";
 import { computeMovement } from "../stat-modifier";
 import { TRANSFERABLE_STATS } from "./baton-pass-stats";
 
@@ -57,11 +58,11 @@ export function handleTransferStatStages(context: EffectContext): BattleEvent[] 
 
   if (speedChanged) {
     caster.derivedStats.movement = computeMovement(
-      caster.baseStats.speed,
+      effectiveBaseSpeed(caster),
       caster.statStages[StatName.Speed],
     );
     target.derivedStats.movement = computeMovement(
-      target.baseStats.speed,
+      effectiveBaseSpeed(target),
       target.statStages[StatName.Speed],
     );
   }
