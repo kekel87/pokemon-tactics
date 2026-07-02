@@ -3261,4 +3261,66 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
     effects: [{ kind: EffectKind.CopyMoveToSlot }],
   },
+  // Famille Stat/state manip (plan 146) — reset / copie / inversion / échange de crans.
+  haze: {
+    // Buée Noire: reset zone diamant r3 auto-centrée, team-agnostic (lanceur + alliés + ennemis),
+    // ignore le Clone/Brume (reset de terrain, pas débuff ciblé — décision #596).
+    targeting: { kind: TargetingKind.Zone, radius: 3 },
+    effects: [
+      { kind: EffectKind.ResetStatStages, target: EffectTarget.Targets, area: { radius: 3 } },
+    ],
+  },
+  "clear-smog": {
+    // Bain de Smog: dégâts PUIS reset des crans de la cible (décision #599). Reset bloqué si le
+    // Clone survit aux dégâts.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.ResetStatStages, target: EffectTarget.Targets },
+    ],
+  },
+  "psych-up": {
+    // Boost: le lanceur copie les 7 crans de la cible. Bloqué par le Clone.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.CopyStatStages }],
+  },
+  "topsy-turvy": {
+    // Renversement: inverse le signe des 7 crans de la cible. Bloqué par le Clone.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.InvertStatStages }],
+  },
+  "guard-swap": {
+    // Permugarde: échange les crans Déf + Déf Spé lanceur↔cible. Bloqué par le Clone.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.SwapStatStages, stats: [StatName.Defense, StatName.SpDefense] }],
+  },
+  "power-swap": {
+    // Permuforce: échange les crans Atq + Atq Spé lanceur↔cible. Bloqué par le Clone.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.SwapStatStages, stats: [StatName.Attack, StatName.SpAttack] }],
+  },
+  "speed-swap": {
+    // Permuvitesse: échange la Vitesse BRUTE lanceur↔cible (Gen 7, pas le cran). Ennemi r1, prime au
+    // risque. Bloqué par le Clone.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.SwapRawSpeed }],
+  },
+  "heart-swap": {
+    // Permucœur: échange les 7 crans lanceur↔cible. Ennemi r1, prime au risque. Bloqué par le Clone.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      {
+        kind: EffectKind.SwapStatStages,
+        stats: [
+          StatName.Attack,
+          StatName.Defense,
+          StatName.SpAttack,
+          StatName.SpDefense,
+          StatName.Speed,
+          StatName.Accuracy,
+          StatName.Evasion,
+        ],
+      },
+    ],
+  },
 };

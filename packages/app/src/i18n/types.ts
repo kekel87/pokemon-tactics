@@ -359,6 +359,11 @@ export interface Translations {
   "moveTooltip.tag.callMoveRandom": string;
   "moveTooltip.tag.callMoveCopy": string;
   "moveTooltip.tag.copyMoveToSlot": string;
+  "moveTooltip.tag.statManipReset": string;
+  "moveTooltip.tag.statManipCopy": string;
+  "moveTooltip.tag.statManipInvert": string;
+  "moveTooltip.tag.statManipSwap": string;
+  "moveTooltip.tag.statManipSpeedSwap": string;
   "moveTooltip.tag.tauntBlocked": string;
   "moveTooltip.tag.disableBlocked": string;
   "moveTooltip.tag.encoreBlocked": string;

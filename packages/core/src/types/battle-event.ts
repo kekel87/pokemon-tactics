@@ -490,4 +490,14 @@ export type BattleEvent =
       /** The move id copied into the slot (the target's last used move). */
       copiedMoveId: string;
     }
-  | { type: typeof BattleEventType.MoveCopyFailed; pokemonId: string; moveId: string };
+  | { type: typeof BattleEventType.MoveCopyFailed; pokemonId: string; moveId: string }
+  | { type: typeof BattleEventType.StatStagesReset; pokemonIds: string[] }
+  | { type: typeof BattleEventType.StatStagesCopied; casterId: string; targetId: string }
+  | { type: typeof BattleEventType.StatStagesInverted; targetId: string }
+  | {
+      type: typeof BattleEventType.StatStagesSwapped;
+      casterId: string;
+      targetId: string;
+      stats: StatName[];
+    }
+  | { type: typeof BattleEventType.SpeedSwapped; casterId: string; targetId: string };

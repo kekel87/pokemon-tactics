@@ -119,4 +119,19 @@ export type Effect =
   | { kind: typeof EffectKind.RemoveType; removedType: PokemonType }
   | { kind: typeof EffectKind.CopyMoveToSlot }
   | { kind: typeof EffectKind.PostFieldGlobal; fieldGlobalKind: FieldGlobalKind }
-  | { kind: typeof EffectKind.SetTailwind };
+  | { kind: typeof EffectKind.SetTailwind }
+  | {
+      kind: typeof EffectKind.ResetStatStages;
+      /** Which mon(s) the reset applies to. `Self` is unused; `Targets` = the resolved target(s). */
+      target: EffectTarget;
+      /**
+       * When set, reset every living mon inside the Manhattan diamond of this radius centred on the
+       * caster (Buée Noire) — team-agnostic, caster included, ignoring the Substitute. When absent,
+       * reset the resolved target only (Bain de Smog), which the Substitute blocks.
+       */
+      area?: { radius: number };
+    }
+  | { kind: typeof EffectKind.CopyStatStages }
+  | { kind: typeof EffectKind.InvertStatStages }
+  | { kind: typeof EffectKind.SwapStatStages; stats: StatName[] }
+  | { kind: typeof EffectKind.SwapRawSpeed };

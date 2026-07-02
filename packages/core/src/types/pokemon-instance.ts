@@ -88,6 +88,14 @@ export interface PokemonInstance {
    * teleport keeps the instance). Cleared on KO.
    */
   typeOverride?: PokemonType[];
+  /**
+   * Runtime override of the raw Speed stat (Permuvitesse / speed-swap, plan 146). When set, replaces
+   * `baseStats.speed` on the movement + turn-order (ctGain) paths via `effectiveBaseSpeed` — never on
+   * the InfoPanel base-stat display, which keeps showing the species value (decision #597). Mirrors
+   * `typeOverride`: a single by-instance override, persists for the rest of the battle (no switch in
+   * this game; forced teleport keeps the instance), cleared on KO.
+   */
+  speedStatOverride?: number;
   lastUsedMoveId?: string;
   /** Consecutive-cast count for Rollout (Roulade) — snowballs Dash range + power. Reset to 0 on any other move. */
   rolloutStreak?: number;

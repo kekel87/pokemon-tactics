@@ -34,6 +34,19 @@ export function applySubstituteAbsorption(
   return { absorbed, broken };
 }
 
+/**
+ * Clone gate for the stat-manip family (plan 146, decision #598): the target's Substitute blocks the
+ * manipulation (reset / copy / invert / swap) whatever the move's `bypasssub` flag says — a
+ * deliberate tactical override of canon (these moves are `bypasssub` in the reference), mirroring the
+ * Dépit (spite) precedent. Used by Bain de Smog's reset too (skipped when a Clone survives the hit).
+ */
+export function statManipBlockedBySubstitute(
+  attacker: PokemonInstance,
+  target: PokemonInstance,
+): boolean {
+  return hasSubstitute(target) && attacker.id !== target.id;
+}
+
 export function shouldSubstituteBlock(
   attacker: PokemonInstance,
   target: PokemonInstance,

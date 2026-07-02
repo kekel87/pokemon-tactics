@@ -17,6 +17,7 @@ import { getTypeEffectiveness } from "./damage-calculator";
 import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { isInFieldGlobalZone } from "./field-global-system";
+import { enumerateZoneTiles } from "./field-terrain-system";
 import { handleBurnTargetItem } from "./handlers/handle-burn-target-item";
 import { handleCureTeamStatus } from "./handlers/handle-cure-team-status";
 import { handleDamage } from "./handlers/handle-damage";
@@ -57,6 +58,11 @@ import { handleStealItem } from "./handlers/handle-steal-item";
 import { handleSwapItems } from "./handlers/handle-swap-items";
 import { handleTransferStatStages } from "./handlers/handle-transfer-stat-stages";
 import { handleCopyMoveToSlot } from "./handlers/move-copy/handle-copy-move-to-slot";
+import { handleCopyStatStages } from "./handlers/stat-manip/handle-copy-stat-stages";
+import { handleInvertStatStages } from "./handlers/stat-manip/handle-invert-stat-stages";
+import { handleResetStatStages } from "./handlers/stat-manip/handle-reset-stat-stages";
+import { handleSwapRawSpeed } from "./handlers/stat-manip/handle-swap-raw-speed";
+import { handleSwapStatStages } from "./handlers/stat-manip/handle-swap-stat-stages";
 import { handleConvertResistType } from "./handlers/type-change/handle-convert-resist-type";
 import { handleConvertSelfType } from "./handlers/type-change/handle-convert-self-type";
 import { handleCopyTargetType } from "./handlers/type-change/handle-copy-target-type";
@@ -132,6 +138,11 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.SoakType, handleSoakType);
   registry.register(EffectKind.RemoveType, handleRemoveType);
   registry.register(EffectKind.CopyMoveToSlot, handleCopyMoveToSlot);
+  registry.register(EffectKind.ResetStatStages, handleResetStatStages);
+  registry.register(EffectKind.CopyStatStages, handleCopyStatStages);
+  registry.register(EffectKind.InvertStatStages, handleInvertStatStages);
+  registry.register(EffectKind.SwapStatStages, handleSwapStatStages);
+  registry.register(EffectKind.SwapRawSpeed, handleSwapRawSpeed);
   return registry;
 }
 
@@ -319,6 +330,7 @@ export function processEffects(
       abilityRegistry: context.abilityRegistry,
       itemRegistry: context.itemRegistry,
       shared,
+      pokemonInRadius: (center, radius) => pokemonInRadius(context.state, center, radius),
     };
     events.push(...effectRegistry.process(effectContext));
   }
@@ -416,6 +428,23 @@ export function processEffects(
   }
 
   return events;
+}
+
+/** Living mons standing inside the Manhattan diamond of `radius` centred on `center` (team-agnostic). */
+function pokemonInRadius(state: BattleState, center: Position, radius: number): PokemonInstance[] {
+  const tileKeys = new Set(
+    enumerateZoneTiles(state, center, radius).map((tile) => `${tile.x},${tile.y}`),
+  );
+  const result: PokemonInstance[] = [];
+  for (const pokemon of state.pokemon.values()) {
+    if (pokemon.currentHp <= 0) {
+      continue;
+    }
+    if (tileKeys.has(`${pokemon.position.x},${pokemon.position.y}`)) {
+      result.push(pokemon);
+    }
+  }
+  return result;
 }
 
 /** Sérénité (serene-grace): return a copy of a secondary effect with its chance doubled (cap 100%). */

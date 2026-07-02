@@ -39,6 +39,11 @@ export interface EffectContext {
   abilityRegistry?: AbilityHandlerRegistry;
   itemRegistry?: HeldItemHandlerRegistry;
   shared: SharedEffectState;
+  /**
+   * Living mons (`currentHp > 0`) standing inside the Manhattan diamond of `radius` centred on
+   * `center` — team-agnostic. Backs the area reset (Buée Noire) without a persistent zone system.
+   */
+  pokemonInRadius: (center: Position, radius: number) => PokemonInstance[];
 }
 
 export type EffectHandler = (context: EffectContext) => BattleEvent[];

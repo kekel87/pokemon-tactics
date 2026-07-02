@@ -98,6 +98,13 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - Options : (a) générer un seed aléatoire (`Date.now()` ou `crypto.randomUUID()`) quand aucun seed n'est fourni ; (b) afficher le seed actif dans le `SandboxPanel` pour que le testeur sache que la bataille est déterministe.
 - Priorité basse — comportement documenté, mais surprenant en pratique.
 
+### Boussole 3D — placement/échelle toujours imparfaits (2026-07-02, playtest plan 146)
+- La boussole 3D always-on près du portrait actif (plan 145) a **toujours des problèmes de placement** signalés par l'humain lors du playtest stat-manip.
+- Reliquat déjà noté (plan 145 § reporté : offsets fixes fragiles en changement de résolution, tuning à revoir avec le chantier zoom).
+- Confirmé récurrent → à traiter pour de bon : ancrage dynamique (position relative au portrait/viewport, pas offsets fixes) + échelle indexée sur `--ui-scale` / résolution.
+- À grouper avec le chantier caméra adaptative + zoom (ci-dessous) et le refacto unités CSS chrome.
+- Priorité moyenne — cosmétique mais visible.
+
 ### Autocomplete bilingue — chercher en langue courante ET en anglais (2026-05-31)
 - Les champs de recherche / autocomplete (moves, Pokemon, items, abilities) doivent matcher **les deux langues** : la langue courante (FR) **et** l'anglais, quelle que soit la langue UI active.
 - Cas d'usage : joueur FR qui connaît le nom EN d'une attaque (ou inversement) doit pouvoir le taper et trouver le résultat.

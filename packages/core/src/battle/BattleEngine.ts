@@ -62,6 +62,7 @@ import {
   isInDistortionZone,
 } from "./distortion-system";
 import { processEffects } from "./effect-processor";
+import { effectiveBaseSpeed } from "./effective-base-speed";
 import { isEffectivelyFlying, resolveBaseTypes } from "./effective-flying";
 import {
   absorbsToxicSpikes,
@@ -2326,7 +2327,7 @@ export class BattleEngine {
           return;
         }
         pokemon.statStages[StatName.Speed] = newStage;
-        pokemon.derivedStats.movement = computeMovement(pokemon.baseStats.speed, newStage);
+        pokemon.derivedStats.movement = computeMovement(effectiveBaseSpeed(pokemon), newStage);
         const webEvent: BattleEvent = {
           type: BattleEventType.EntryHazardTriggered,
           pokemonId: pokemon.id,
@@ -3056,6 +3057,7 @@ export class BattleEngine {
     pokemon.helpingHand = undefined;
     pokemon.critStageBoost = undefined;
     pokemon.typeOverride = undefined;
+    pokemon.speedStatOverride = undefined;
     pokemon.volatileStatuses = [];
 
     for (const other of this.state.pokemon.values()) {
@@ -3126,7 +3128,7 @@ export class BattleEngine {
     if (!pokemon) {
       return 0;
     }
-    const baseStat = pokemon.baseStats.speed;
+    const baseStat = effectiveBaseSpeed(pokemon);
     const stages = pokemon.statStages[StatName.Speed] ?? 0;
     // Trick Room ("Distorsion"): inside a zone the tempo is reflected — feed an inverted base Speed
     // (and inverted Speed stages) through the usual curve so slow mons act first while the gain stays
