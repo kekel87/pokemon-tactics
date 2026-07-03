@@ -45,7 +45,9 @@ export function moveIntent(move: MoveDefinition): MoveIntent {
       effect.kind === EffectKind.PostFutureSight ||
       // Effort (endeavor) / Balance (pain-split): hostile HP manipulation on an enemy.
       effect.kind === EffectKind.Endeavor ||
-      effect.kind === EffectKind.PainSplit,
+      effect.kind === EffectKind.PainSplit ||
+      // Phazing (Cyclone / Hurlement / Projection): forcibly ejects an enemy — hostile.
+      effect.kind === EffectKind.PhazeToSpawn,
   );
   return hasOffensive ? "attack" : "buff";
 }

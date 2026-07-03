@@ -363,8 +363,9 @@ Basé sur `baseSpeed` (fixe par espèce), pas `combat speed` (dépend du niveau)
 
 | Propriété | Description | Exemples |
 |-----------|-------------|---------|
-| **knockback** | Repousse N cases | Cyclone, Draco-Queue |
+| **knockback** | Repousse N cases | Draco-Queue |
 | **warp** | Téléporte lanceur sur cible | Tunnel, Vol, Téléport |
+| **phase-to-spawn** | Éjecte la cible vers sa zone de spawn (adaptation grid du switch-out canon, pas de banc dans ce jeu ; réutilise `ejectToSpawn`) | Bouton Fuite, Carton Rouge, Cyclone, Hurlement, Projection |
 | **ground** | Zone persistante au sol (N tours) | Picots, Piège de Roc |
 | **self-damage** | Lanceur subit dégâts | Voltacle, Bélier |
 | **pierce** | Traverse les cibles | Laser traversant |

@@ -715,16 +715,12 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
       },
     ],
   },
+  // Hurlement — phazing cone (sound). The shout radiates and blows every enemy caught in the cone
+  // back to its own spawn zone via EffectKind.PhazeToSpawn (see handle-phaze.ts). Same phazing
+  // family as Cyclone (whirlwind) and Projection (circle-throw).
   roar: {
     targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
-    effects: [
-      {
-        kind: EffectKind.StatChange,
-        stat: StatName.Attack,
-        stages: -1,
-        target: EffectTarget.Targets,
-      },
-    ],
+    effects: [{ kind: EffectKind.PhazeToSpawn }],
   },
   flash: {
     targeting: { kind: TargetingKind.Zone, radius: 2 },
@@ -784,6 +780,18 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   "dragon-tail": {
     targeting: { kind: TargetingKind.Slash },
     effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Knockback, distance: 1 }],
+  },
+  // Phazing family — no bench, so the canon "force switch-out" ejects each enemy back to its own
+  // spawn zone (reuses ejectToSpawn, the forced-teleport reinterpretation from Bouton Fuite/Carton
+  // Rouge). Cyclone = a whirlwind that sweeps every adjacent enemy; Hurlement = a shout radiating in
+  // a cone; Projection = a melee throw that damages then ejects. Stat stages/volatiles are kept.
+  whirlwind: {
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    effects: [{ kind: EffectKind.PhazeToSpawn }],
+  },
+  "circle-throw": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.PhazeToSpawn }],
   },
   wrap: {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },

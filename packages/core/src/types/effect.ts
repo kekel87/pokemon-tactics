@@ -134,4 +134,5 @@ export type Effect =
   | { kind: typeof EffectKind.CopyStatStages }
   | { kind: typeof EffectKind.InvertStatStages }
   | { kind: typeof EffectKind.SwapStatStages; stats: StatName[] }
-  | { kind: typeof EffectKind.SwapRawSpeed };
+  | { kind: typeof EffectKind.SwapRawSpeed }
+  | { kind: typeof EffectKind.PhazeToSpawn };

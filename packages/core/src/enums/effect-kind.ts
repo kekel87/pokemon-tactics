@@ -85,6 +85,11 @@ export const EffectKind = {
   SwapStatStages: "swap_stat_stages",
   /** Swap the raw Speed stat between the caster and the target (Permuvitesse / speed-swap). */
   SwapRawSpeed: "swap_raw_speed",
+  /**
+   * Phazing: eject every enemy target back to its own spawn zone (Cyclone / Hurlement / Projection).
+   * Reuses `ejectToSpawn` — the forced-teleport family reinterpretation of switch-out on the grid.
+   */
+  PhazeToSpawn: "phaze_to_spawn",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];
