@@ -35,6 +35,7 @@ import { handleHelpingHand } from "./handlers/handle-helping-hand";
 import { handleKnockback } from "./handlers/handle-knockback";
 import { handlePainSplit } from "./handlers/handle-pain-split";
 import { handlePerishSong } from "./handlers/handle-perish-song";
+import { handlePhaze } from "./handlers/handle-phaze";
 import { handlePostAura } from "./handlers/handle-post-aura";
 import { handlePostDistortion } from "./handlers/handle-post-distortion";
 import { handlePostEntryHazard } from "./handlers/handle-post-entry-hazard";
@@ -123,6 +124,7 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.PostFutureSight, handlePostFutureSight);
   registry.register(EffectKind.PostPerishSong, handlePerishSong);
   registry.register(EffectKind.PainSplit, handlePainSplit);
+  registry.register(EffectKind.PhazeToSpawn, handlePhaze);
   registry.register(EffectKind.Endeavor, handleEndeavor);
   registry.register(EffectKind.HelpingHand, handleHelpingHand);
   registry.register(EffectKind.RemoveItem, handleRemoveItem);

@@ -54,6 +54,13 @@ describe("moveIntent", () => {
     ).toBe("attack");
   });
 
+  it("classifies a phazing move as attack", () => {
+    expect(moveIntent(move([{ kind: EffectKind.PhazeToSpawn }]))).toBe("attack");
+    expect(moveIntent(move([{ kind: EffectKind.Damage }, { kind: EffectKind.PhazeToSpawn }]))).toBe(
+      "attack",
+    );
+  });
+
   it("classifies a self stat boost as buff", () => {
     expect(
       moveIntent(

@@ -4,6 +4,12 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
+### Anim de vol déclenchée en fin de déplacement sur l'herbe (2026-07-03, human-testing Phazing)
+- Observé avec **Roucarnage** (`pidgeot`, Volant) en sandbox : son animation de vol se déclenche à la **fin d'un déplacement** quand la case d'arrivée est de l'herbe (herbe haute / tall-grass ?).
+- Attendu : un Volant garde son anim de déplacement normale (plane/marche) ; le vol ne devrait pas se rejouer à l'arrêt sur une tuile de terrain.
+- Piste : `selectMovementAnimation` / logique billboard volant dans `render-babylon` — probablement une interaction entre le fallback « volant sans glide » (mémoire `feedback_flying_animation_fallback`) et le type de terrain d'arrivée. Pré-existant (hors périmètre Phazing).
+- Priorité basse — cosmétique. À reproduire (confirmer si spécifique à l'herbe haute).
+
 
 ### ~70 pré-évolutions Gen 1 sans nom FR/EN — affichent l'ID anglais (2026-06-29, human-testing plan 144)
 - `packages/data/src/i18n/pokemon-names.{fr,en}.json` ne contient que **~100 entrées** : les ~70 pré-évolutions ajoutées au plan 135 (ex: `clefairy` → devrait être Mélofée) **n'ont jamais reçu leur nom FR/EN**.
