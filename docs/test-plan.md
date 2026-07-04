@@ -1172,6 +1172,43 @@ SENS observable et déterministe.
 
 ---
 
+### 5.30 Famille K.O. en un coup (OHKO)
+*src : core `data/overrides/tactical.ts` (`guillotine`, `fissure`, `horn-drill`, `sheer-cold` +
+`isOhko`/`ohkoIceAccuracyRule`/`ohkoIceImmunity`), `battle/ohko.ts` (`ohkoAccuracy`/`ohkoImmunityReason`),
+`handlers/handle-damage.ts` (dégâts = PV max, flag `ohko`, event `OneHitKo`), `BattleEngine` (jet de
+précision plat + garde d'immunité), Baie Ceinture / Ténacité (survie à 1 PV via `handle-damage`) ;
+events `battle-event.ts` (`OneHitKo`, `DamageDealt.ohko`, `AbilityActivated`) ; journal
+`ui-dom/BattleLogFormatter.ts` ; tag tooltip `moveTooltip.tag.ohko` ; unit
+`battle/moves/{guillotine,fissure,horn-drill,sheer-cold}.test.ts` + `battle/ohko.test.ts` ; e2e :
+`mechanics-ohko.spec.ts`. Plan 148.* Quatre moves qui, **sur touche**, infligent des dégâts égaux aux
+PV max de la cible → K.O. instantané, à précision **30 % plate**. En sandbox le hasard vient du seed
+moteur → `seed: 0` fait toucher (déterministe, jamais d'override `Math.random`). Les 4 moves partagent
+la même mécanique (patterns différents : Abîme Ligne 3 Sol, Guillotine Single 1-1 contact, Empal'Korne
+Ligne 2 contact, Glaciation Cône 1-2 Glace) → e2e pilote **Guillotine** comme témoin de la famille ;
+les autres patterns/immunités de type sont couverts unit/integration core.
+
+- 🤖 **K.O. direct** (`guillotine`, Single 1-1 contact, hors-pool forcé, `seed: 0` → touche) : le
+  joueur lance Guillotine sur le dummy Normal adjacent (2,2) → dégâts = PV max → journal FR « C'est un
+  K.O. direct ! » (event OneHitKo) puis fin de combat (seul adversaire → modale de victoire « <X>
+  gagne ! ») — `mechanics-ohko.spec`. *Le flottant « K.O.! » (couleur, réutilise `battle.ko`) et le tag
+  tooltip ☠ (`moveTooltip.tag.ohko`) restent 👁 (pixel).*
+- 🤖 **Immunité Fermeté** (`sturdy`) : le dummy porteur de Fermeté, à pleins PV, encaisse la même
+  Guillotine seedée à toucher → laissé à 1 PV → journal FR « Fermeté de <dummy> s'active ! » (event
+  AbilityActivated), **PAS** « raté » ni « K.O. direct », et le combat reste ouvert (aucune modale de
+  victoire) — `mechanics-ohko.spec`.
+- 👁 **Immunités de type** : type Glace immunisé vs Glaciation (`ohkoIceImmunity`), Spectre vs Normal
+  (Guillotine/Empal'Korne, contact Normal), Vol vs Abîme (Sol) — le coup « ne peut toucher » sans jet →
+  SENS couvert unit (`battle/ohko.test.ts`, `moves/{guillotine,fissure,horn-drill,sheer-cold}.test.ts`).
+- 👁 **Survie à 1 PV** : Baie Ceinture (`focus-sash`) / Ténacité (`focus-band`) laissent la cible à 1 PV
+  au lieu du K.O. (pas d'event OneHitKo, messages de survie normaux) → SENS couvert unit
+  (`handle-damage`). *Non dupliqué e2e (déjà pilotable via les specs d'objets).*
+- 👁 **Protection** (`protect`/`detect`) bloque l'OHKO comme tout coup → couvert §5.5 / unit.
+- 👁 **Règle de précision Glace** : Glaciation gagne en précision quand le lanceur est de type Glace
+  (`ohkoIceAccuracyRule`) — modificateur non déterministement observable sans gymnastique de seed →
+  unit (`battle/ohko.test.ts`).
+
+---
+
 ## 6. Recette — écrans DOM (hors combat)
 *src : `app/ui/dom/screens/`, `app/app/screen-manager.ts`, `app/ui/SplashScreen.ts`*
 *e2e : `tests/smoke/boot.spec.ts`, `tests/smoke/splash.spec.ts`, `tests/dom/navigation.spec.ts`,
@@ -1428,6 +1465,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-type-manip.spec.ts` | §5.27 famille Type manip (plan 143) : Détrempage (`soak`, hors-pool forcé) sur le dummy Ronflex (Normal) → journal « Ronflex devient de type Eau ! » (event TypeChanged) + badge volatile « Type Eau » de l'InfoPanel au survol de la cible (`typeOverride`). Conversion/Conversion 2/Copie-Type/Flamme Ultime (historique de move ou type de lanceur requis, mêmes lignes de journal « devient de type … »/« perd son type Feu ! » + recalcul efficacité/STAB) = unit/integration core, non dupliqués e2e → 👁 |
 | `combat/mechanics-move-copy.spec.ts` | §5.28 famille Move-copy (plan 144) : Copie (`mimic`) — l'IA du dummy Ronflex joue Plaquage au tour 1, le joueur Alakazam lance Copie sur lui au tour 2 → journal « Alakazam apprend Plaquage ! » (event MoveCopied) ET, après une fin de tour, le sous-menu d'attaque liste « Plaquage » à la place de « Copie » (slot muté) ; Métronome (`metronome`) — le joueur tire un move (PRNG seedé), le place sur le dummy adjacent → ligne de révélation « Métronome → <move tiré> » (réentrance prouvée, identité du move tiré non assertée). Blabla Dodo (gate sommeil `requiresAsleep`), Mimique (`mirror-move`, dernier move cible) / Photocopie (`copycat`, dernier move global) (dépendent d'un historique de move), Gribouille (`sketch` ≡ Copie) = unit/integration core (`moves/{metronome,sleep-talk,mirror-move,copycat,mimic,sketch}.test.ts`), non dupliqués e2e → 👁 |
 | `combat/mechanics-field-global.spec.ts` | §5.29 famille Field global (plan 145) : les 3 zones diamant Self (Gravité / Zone Étrange / Zone Magique) posées sur la case du lanceur (2,3) → journal « déploie <label> (5 tours) » + quad de scène par kind (`field_terrain_<couleur>_2_3`, une couleur par kind) ; Vent Arrière (`tailwind`, GroundTarget portée 1) ciblé au nord (2,2) → journal « lève le Vent Arrière vers le Nord » + HUD flèche `tailwind-hud` (libellé « Vent Arrière ») ; Gravité verrouille les moves aériens → Pied Voltige (`disabledUnderGravity`) `data-enabled="false"` au menu Attaque une fois la zone posée, `data-enabled="true"` en témoin. Clouage des Volants + immunité Sol, précision ×5/3, swap Déf/DéfSpé, objet neutralisé, ctGain ×1.5 aligné au vent, décompte/expiration/horloge fantôme = unit/integration core (`moves/{gravity,wonder-room,magic-room,tailwind}.test.ts`, `field-global-system.test.ts`, `tailwind-system.test.ts`) → 👁 |
+| `combat/mechanics-ohko.spec.ts` | §5.30 famille K.O. en un coup (OHKO, plan 148) : K.O. direct — Guillotine (`guillotine`, Single 1-1 contact, hors-pool forcé, `seed: 0` → touche) sur le dummy Normal adjacent → journal « C'est un K.O. direct ! » (event OneHitKo) + modale de victoire ; immunité Fermeté — le même coup seedé à toucher, dummy porteur de `sturdy` à pleins PV → « Fermeté de <dummy> s'active ! », « K.O. direct » et modale de victoire absents (survie à 1 PV). Immunités de type (Glace vs Glaciation, Spectre vs Normal, Vol vs Abîme), survie Baie Ceinture/Ténacité, règle précision Glace, les 3 autres patterns (Abîme Ligne 3 / Empal'Korne Ligne 2 / Glaciation Cône) = unit/integration core (`battle/ohko.test.ts`, `moves/{guillotine,fissure,horn-drill,sheer-cold}.test.ts`) → 👁. Le flottant « K.O.! » (couleur) et le tag tooltip ☠ = 👁 (pixel) |
 | `combat/mechanics-trapping.spec.ts` | §5.26 famille Pièges (trapping) : piège PARTIEL (Danse Flammes + Aucun Garde forçant 100 % → « Ronflex est piégé ! » puis chip de fin de tour « Ronflex perd N PV ! ») ; piège PUR position-linked (Barrage → « Ronflex est piégé ! » sans dégâts, puis le lanceur s'éloigne en (2,5) → « Ronflex est libéré du piège »). Étreinte/Siphon/Tourbi-Sable (même pattern partiel) et Regard Noir (même pattern pur) = unit (`moves/*.test.ts`), non dupliqués e2e → 👁. Immobilisation (0 action Move, attaque OK) = unit (pas de ligne de journal) → 👁 |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |

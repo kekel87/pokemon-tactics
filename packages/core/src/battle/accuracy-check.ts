@@ -17,6 +17,20 @@ import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getStatMultiplier } from "./stat-modifier";
 import { effectiveWeather, getWeatherAccuracyOverride } from "./weather-system";
 
+/**
+ * Verrouillage (lock-on): if the attacker holds the LockedOn volatile, its next move is a guaranteed
+ * hit. Consumes the volatile and returns true. Extracted so the OHKO branch (which bypasses
+ * `checkAccuracy`) can honor Verrouillage exactly once, without a double decrement.
+ */
+export function consumeLockedOn(attacker: PokemonInstance): boolean {
+  const lockedOnIndex = attacker.volatileStatuses.findIndex((v) => v.type === StatusType.LockedOn);
+  if (lockedOnIndex !== -1) {
+    attacker.volatileStatuses.splice(lockedOnIndex, 1);
+    return true;
+  }
+  return false;
+}
+
 export function checkAccuracy(
   move: MoveDefinition,
   attacker: PokemonInstance,
@@ -27,9 +41,7 @@ export function checkAccuracy(
   state?: BattleState,
   itemRegistry?: HeldItemHandlerRegistry,
 ): boolean {
-  const lockedOnIndex = attacker.volatileStatuses.findIndex((v) => v.type === StatusType.LockedOn);
-  if (lockedOnIndex !== -1) {
-    attacker.volatileStatuses.splice(lockedOnIndex, 1);
+  if (consumeLockedOn(attacker)) {
     return true;
   }
 

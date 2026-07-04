@@ -135,6 +135,8 @@ export const BattleEventType = {
   GrudgePosted: "grudge_posted",
   /** Rancune (grudge): the move that KO'd the caster was locked on its attacker for the battle. */
   GrudgeTriggered: "grudge_triggered",
+  /** Famille OHKO (K.O. en un coup): the move connected and instantly KO'd the target. */
+  OneHitKo: "one_hit_ko",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

@@ -335,6 +335,7 @@ export interface Translations {
   "moveTooltip.tag.hazardSetter": string;
   "moveTooltip.tag.hazardRemover": string;
   "moveTooltip.tag.imprison": string;
+  "moveTooltip.tag.ohko": string;
   "moveTooltip.tag.healBlock": string;
   "moveTooltip.tag.spite": string;
   "moveTooltip.tag.removesItem": string;

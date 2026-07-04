@@ -73,6 +73,9 @@ export interface TacticalOverride {
   requiresEatenBerry?: boolean;
   requiresFlingableItem?: boolean;
   callMove?: CallMoveSourceKind;
+  isOhko?: boolean;
+  ohkoIceAccuracyRule?: boolean;
+  ohkoIceImmunity?: boolean;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -3385,5 +3388,34 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     // est verrouillé chez l'attaquant pour tout le combat.
     targeting: { kind: TargetingKind.Self },
     effects: [{ kind: EffectKind.PostGrudge }],
+  },
+  // Famille OHKO (K.O. en un coup, plan 148) : sur touche (précision plate dédiée), la cible tombe à
+  // 0 PV. Formes réinterprétées positionnellement ; multi-cible = jet 30 % indépendant par cible.
+  fissure: {
+    // Abîme (Sol) : la crevasse file en ligne droite (longueur 3).
+    targeting: { kind: TargetingKind.Line, length: 3 },
+    effects: [{ kind: EffectKind.Damage }],
+    isOhko: true,
+  },
+  guillotine: {
+    // Guillotine (Normal, contact) : frappe nette au corps à corps.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    isOhko: true,
+  },
+  "horn-drill": {
+    // Empal'Korne (Normal, contact) : la corne en vrille transperce sur une ligne de longueur 2.
+    targeting: { kind: TargetingKind.Line, length: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+    isOhko: true,
+  },
+  "sheer-cold": {
+    // Glaciation (Glace) : vague de froid en cône court (1-2, 4 tuiles). Précision 30 % si lanceur
+    // Glace / 20 % sinon (n'arrive qu'en move-copy). Cible Glace immunisée (hors table de types).
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+    isOhko: true,
+    ohkoIceAccuracyRule: true,
+    ohkoIceImmunity: true,
   },
 };

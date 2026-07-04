@@ -335,6 +335,7 @@ const en: Translations = {
     "🪤 Hazard: set on the ground, hurts/affects on entry (permanent)",
   "moveTooltip.tag.hazardRemover": "🧹 Clears hazards around the user",
   "moveTooltip.tag.imprison": "🔒 Seals the moves you both know",
+  "moveTooltip.tag.ohko": "☠ One-hit KO if it lands (low accuracy)",
   "moveTooltip.tag.healBlock": "🚫 Heal Block (2 turns)",
   "moveTooltip.tag.spite": "⏳ Delays the target's next turn",
   "moveTooltip.tag.removesItem": "🗑️ Removes the target's held item",

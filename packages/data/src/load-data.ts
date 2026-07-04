@@ -127,6 +127,9 @@ export function loadData(): GameData {
       ...(merged.knockOffBoost ? { knockOffBoost: true } : {}),
       ...(merged.requiresEatenBerry ? { requiresEatenBerry: true } : {}),
       ...(merged.requiresFlingableItem ? { requiresFlingableItem: true } : {}),
+      ...(merged.isOhko ? { isOhko: true } : {}),
+      ...(merged.ohkoIceAccuracyRule ? { ohkoIceAccuracyRule: true } : {}),
+      ...(merged.ohkoIceImmunity ? { ohkoIceImmunity: true } : {}),
     };
     return moveDefinition;
   });

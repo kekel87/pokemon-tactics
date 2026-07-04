@@ -152,7 +152,7 @@ Tous les **sites défensifs** (lecture du talent de la cible pendant l'attaque) 
 
 Champ `breakable?: boolean` ajouté à `AbilityHandler`/`AbilityDefinition`. Injecté par `load-abilities.ts` depuis `packages/data/reference/abilities.json` (champ `entry.flags.breakable`). 80 talents sont `breakable: true` dans la référence Showdown (Lévitation, Fermeté, Isograisse, Écran Poudre, Filtre, Multiécaille, Corps Sain, Vaccin, Voile Sable, Pieds Confus…).
 
-### Sites migrés (8)
+### Sites migrés (9)
 
 | Site | Talents cassables couverts |
 |------|---------------------------|
@@ -160,7 +160,8 @@ Champ `breakable?: boolean` ajouté à `AbilityHandler`/`AbilityDefinition`. Inj
 | `effect-processor.ts` `onTypeImmunity` | Lévitation, Absorbe-Eau/Volt, Torche, Peau Sèche (Eau), Paratonnerre |
 | `effect-processor.ts` shield-dust filtre secondaires | Écran Poudre (décision #554) |
 | `damage-calculator.ts` `defenderAbility` | Isograisse, Filtre, Multiécaille, Écaille Spéciale, Peau Sèche (Feu), Armurbaston/Coque Armure (crit) |
-| `handle-damage.ts` `targetAbility` | Fermeté, Multiécaille (survie OHKO) |
+| `handle-damage.ts` `targetAbility` | Fermeté, Multiécaille (survie à un coup fatal à 1 PV) |
+| `battle/ohko.ts` `ohkoImmunityReason` | Fermeté — immunité totale face aux moves `isOhko` (Abîme/Guillotine/Empal'Korne/Glaciation), site distinct du précédent (plan 148, décision #609) |
 | `handle-status.ts` `targetAbility` | Vaccin, Échauffement, Ignifu-Voile, Esprit Vital, Insomnia, Feuille Garde, Benêt |
 | `handle-stat-change.ts` `onStatChangeBlocked` | Corps Sain, Regard Vif, Hyper Cutter, Cœur de Coq, Tempo Perso |
 | `accuracy-check.ts` `onEvasionModify` déf + weatherEvasionBoost | Voile Sable, Rideau Neige, Pieds Confus, Peau Miracle |
@@ -297,7 +298,7 @@ Voir `packages/core/src/battle/abilities.integration.test.ts`. Couverture par ta
 | Cran | Boost ×1.5 brûlé + ignore burn -50% | Émission quand statut majeur reçu |
 | Synchro | Reflète brûlure/poison/paralysie sur la source | ✅ |
 | Lévitation | Immunité Sol | Émission au blocage Earthquake |
-| Fermeté | Survit OHKO à plein PV | Émission dans `handle-damage` |
+| Fermeté | Survit à un coup fatal à plein PV (1 PV) ; **immunité totale** face aux moves de la famille K.O. en un coup (`isOhko` — plan 148), bypassée par Brise Moule | Émission dans `handle-damage` (survie) / `ohko.ts` + `BattleEngine` (immunité totale, décision #609) |
 | Intimidation | -1 Atk à l'arrivée + retrait quand source s'éloigne + cap -6 sans rebound | ✅ |
 | Joli Sourire | Charmé 30% au contact | ✅ |
 | Isograisse | -50% dégâts Feu/Glace | (couverte par `onDamageModify`, hook `onAfterDamageReceived` pour le visuel) |

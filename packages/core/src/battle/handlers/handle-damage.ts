@@ -257,6 +257,27 @@ function dealSingleHit(
     damage = Math.max(1, Math.floor(damage * friendGuard));
   }
 
+  // Querelleur (scrappy): Normal/Fighting moves treat Ghost as neutral, so the reported
+  // effectiveness must match the damage calc (otherwise the hit shows "no effect" yet deals damage).
+  const scrappyGhostBypass =
+    context.abilityRegistry?.getForPokemon(context.attacker)?.id === "scrappy";
+
+  // OHKO family (K.O. en un coup): damage is fixed to the target's max HP, ignoring Helping Hand /
+  // Garde Amie / the damage formula. Type/Ice/Fermeté immunities are pre-filtered engine-side, so this
+  // path is only reached for a non-immune target; the `=== 0 ? 0` is a defensive failsafe. Everything
+  // downstream (Protection/Ténacité via checkDefense, Baie Ceinture, Clone) applies as usual.
+  if (context.move.isOhko) {
+    const ohkoEffectiveness = getTypeEffectiveness(
+      context.move.type,
+      defenderTypes,
+      context.typeChart,
+      context.move.typeEffectivenessOverride,
+      scrappyGhostBypass,
+      fieldGlobalContext.defenderGroundedByGravity === true,
+    );
+    damage = ohkoEffectiveness === 0 ? 0 : target.maxHp;
+  }
+
   const defenseResult = checkDefense(
     context.attacker,
     target,
@@ -300,10 +321,6 @@ function dealSingleHit(
   const targetItem = fieldGlobalContext.defenderItemSuppressed
     ? undefined
     : context.itemRegistry?.getForPokemon(target);
-  // Querelleur (scrappy): Normal/Fighting moves treat Ghost as neutral, so the reported
-  // effectiveness must match the damage calc (otherwise the hit shows "no effect" yet deals damage).
-  const scrappyGhostBypass =
-    context.abilityRegistry?.getForPokemon(context.attacker)?.id === "scrappy";
   const isSuperEffective =
     getTypeEffectiveness(
       context.move.type,
@@ -409,7 +426,15 @@ function dealSingleHit(
     targetId: target.id,
     amount: actualDamage,
     effectiveness,
+    ...(context.move.isOhko === true ? { ohko: true } : {}),
   });
+
+  // OHKO family: a connecting one-hit-KO that reduced the target to 0 HP emits a dedicated event so the
+  // log reads "C'est un K.O. direct !" before the KO animation. A survival (Baie Ceinture / Ténacité)
+  // leaves currentHp > 0 → no OneHitKo (the normal survival messages apply instead).
+  if (context.move.isOhko && target.currentHp <= 0) {
+    events.push({ type: BattleEventType.OneHitKo, targetId: target.id });
+  }
 
   if (brickBreakInteraction.breakAuraCasterId) {
     const brokenAuras = removeAurasOfCaster(context.state, brickBreakInteraction.breakAuraCasterId);
