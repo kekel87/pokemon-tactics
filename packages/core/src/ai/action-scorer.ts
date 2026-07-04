@@ -7,6 +7,7 @@ import { isEffectivelyFlying } from "../battle/effective-flying";
 import { HAZARD_REMOVAL_RADIUS, maxLayersFor } from "../battle/entry-hazard-system";
 import { FIELD_TERRAIN_RADIUS, getFieldTerrainAt } from "../battle/field-terrain-system";
 import { TRANSFERABLE_STATS } from "../battle/handlers/baton-pass-stats";
+import { ohkoAccuracy } from "../battle/ohko";
 import { isTerrainImmune } from "../battle/terrain-effects";
 import { ActionKind } from "../enums/action-kind";
 import { AuraKind } from "../enums/aura-kind";
@@ -157,6 +158,14 @@ function scoreUseMove(
     return scoreStatManip(action, currentPokemon, enemies, move, weights);
   }
 
+  // OHKO guard-rail (plan 148): one-hit-KO moves carry no power floor → the generic damage path scores
+  // them ~0 and the AI would never play them. Give a minimal valuation (accuracy × kill value, favouring
+  // high-HP targets) and a hard negative on immune targets so the AI never plays into Fermeté / a type
+  // or Ice immunity. Fine heuristics (setup denial, threat assessment) are deferred.
+  if (move.isOhko === true) {
+    return scoreOhko(action, currentPokemon, enemies, allies, move, engine, weights);
+  }
+
   const affectedTiles = estimateAffectedTiles(
     move.targeting,
     currentPokemon.position,
@@ -237,6 +246,48 @@ function scoreHpManipulation(
     return 0;
   }
   return gap * weights.killPotential;
+}
+
+/**
+ * OHKO garde-fou (plan 148): minimal valuation for one-hit-KO moves (they carry no power floor, so the
+ * generic damage path would score them ~0). Per enemy actually caught by the move's pattern: accuracy ×
+ * kill value, scaled up for high-HP targets (an OHKO shines when a normal hit wouldn't KO). Immune
+ * targets (Fermeté / type / Ice) subtract kill value so the AI never plays into them. Allies caught by a
+ * Line/Cone subtract kill value (friendly-fire KO risk). Fine heuristics (setup/threat) are deferred.
+ */
+function scoreOhko(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  currentPokemon: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  allies: readonly PokemonInstance[],
+  move: MoveDefinition,
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const affectedTiles = estimateAffectedTiles(
+    move.targeting,
+    currentPokemon.position,
+    action.targetPosition,
+  );
+  const targetsHit = enemies.filter((enemy) => isOnTiles(enemy.position, affectedTiles));
+  if (targetsHit.length === 0) {
+    return -1;
+  }
+
+  const accuracy = ohkoAccuracy(move, engine.getPokemonTypes(currentPokemon.id)) / 100;
+  let score = 0;
+  for (const target of targetsHit) {
+    if (engine.ohkoImmunityAgainst(currentPokemon, move, target) !== null) {
+      score -= weights.killPotential;
+      continue;
+    }
+    const hpFraction = target.currentHp / target.maxHp;
+    score += accuracy * weights.killPotential * (0.5 + hpFraction);
+  }
+
+  const alliesHit = allies.filter((ally) => isOnTiles(ally.position, affectedTiles));
+  score -= alliesHit.length * accuracy * weights.killPotential;
+  return score;
 }
 
 function sumStatStages(pokemon: PokemonInstance, stats: readonly StatName[]): number {

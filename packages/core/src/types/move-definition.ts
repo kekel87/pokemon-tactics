@@ -36,6 +36,18 @@ export interface MoveDefinition {
    * dealt damage to at least one non-self target (a miss / a Ghost immunity leaves the user alive, CT paid).
    */
   selfKoOnConnect?: boolean;
+  /**
+   * OHKO family (K.O. en un coup — Abîme / Guillotine / Empal'Korne / Glaciation): the move rolls a
+   * flat dedicated accuracy (ignoring Accuracy/Evasion stages, precision abilities/items, Gravity)
+   * and, on hit, deals damage equal to the target's max HP. Routed through `handle-damage` so
+   * Protection / Ténacité / Baie Ceinture / Clone all apply; type/Ice/Fermeté immunities are
+   * pre-filtered engine-side (see `battle/ohko.ts`).
+   */
+  isOhko?: boolean;
+  /** Glaciation: OHKO accuracy is 30% if the user is Ice-type, 20% otherwise. */
+  ohkoIceAccuracyRule?: boolean;
+  /** Glaciation: an Ice-type target is immune to the OHKO (special rule, outside the type chart). */
+  ohkoIceImmunity?: boolean;
   /** Sabotage (knock-off): ×1.5 damage when the target carries a removable item. */
   knockOffBoost?: boolean;
   /** Éructation (belch): the move fails unless the user has eaten a berry this battle. */

@@ -40,7 +40,7 @@ import { directionFromTo, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
-import { checkAccuracy } from "./accuracy-check";
+import { checkAccuracy, consumeLockedOn } from "./accuracy-check";
 import { applyImpactDamage } from "./apply-impact-damage";
 import { removeAurasOfCaster } from "./aura-system";
 import { areBerriesSuppressed } from "./berry-suppression";
@@ -120,6 +120,7 @@ import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { collectImprisonedMoveIds } from "./imprison-system";
 import { isMetronomeCallable, isSleepTalkCallable } from "./move-copy/callable-moves";
 import { resolveNaturePowerMove } from "./nature-power-system";
+import { type OhkoImmunity, ohkoAccuracy, ohkoImmunityReason } from "./ohko";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { computePressureBonus } from "./pressure";
 import { pendingRolloutIndex, recordLastUsedMove, rolloutRangeForIndex } from "./rollout-streak";
@@ -544,6 +545,25 @@ export class BattleEngine {
       return [];
     }
     return this.effectiveTypesOf(pokemon);
+  }
+
+  /**
+   * AI helper (plan 148): the OHKO immunity a target has against a move (Fermeté / type / Glace), or
+   * null if the K.O. would connect. Mirrors the engine's pre-roll immunity check so the scorer never
+   * plays an OHKO into an immune target.
+   */
+  ohkoImmunityAgainst(
+    attacker: PokemonInstance,
+    move: MoveDefinition,
+    target: PokemonInstance,
+  ): OhkoImmunity | null {
+    return ohkoImmunityReason(move, attacker, target, {
+      typeChart: this.typeChart,
+      targetTypes: this.effectiveTypesOf(target),
+      abilityRegistry: this.abilityRegistry ?? undefined,
+      scrappyGhostBypass: this.abilityRegistry?.getForPokemon(attacker)?.id === "scrappy",
+      groundedByGravity: isGroundedByGravityZone(this.state, target),
+    });
   }
 
   /**
@@ -1513,6 +1533,59 @@ export class BattleEngine {
       const forceHit =
         (this.abilityRegistry?.getForPokemon(pokemon)?.onAccuracyOverride?.() ?? false) ||
         (this.abilityRegistry?.getForPokemon(target)?.onAccuracyOverride?.() ?? false);
+
+      // OHKO family (K.O. en un coup): special immunities are resolved BEFORE the accuracy roll so an
+      // immune target reports "no effect" / Fermeté (not a random "missed"). On hit, damage = max HP
+      // is injected in handle-damage; everything else (Protection/Ténacité/Baie Ceinture/Clone) flows
+      // through the normal damage path.
+      if (effectiveMove.isOhko) {
+        const immunity = ohkoImmunityReason(effectiveMove, pokemon, target, {
+          typeChart: this.typeChart,
+          targetTypes: defenderTypes,
+          abilityRegistry: this.abilityRegistry ?? undefined,
+          scrappyGhostBypass: this.abilityRegistry?.getForPokemon(pokemon)?.id === "scrappy",
+          groundedByGravity: isGroundedByGravityZone(this.state, target),
+        });
+        if (immunity === "sturdy") {
+          const sturdyEvent: BattleEvent = {
+            type: BattleEventType.AbilityActivated,
+            pokemonId: target.id,
+            abilityId: "sturdy",
+            targetIds: [target.id],
+          };
+          this.emit(sturdyEvent);
+          events.push(sturdyEvent);
+          continue;
+        }
+        if (immunity) {
+          const noEffect: BattleEvent = {
+            type: BattleEventType.DamageDealt,
+            targetId: target.id,
+            amount: 0,
+            effectiveness: 0,
+          };
+          this.emit(noEffect);
+          events.push(noEffect);
+          continue;
+        }
+        const hits =
+          forceHit ||
+          consumeLockedOn(pokemon) ||
+          this.random() * 100 < ohkoAccuracy(effectiveMove, this.effectiveTypesOf(pokemon));
+        if (hits) {
+          targets.push(target);
+        } else {
+          const missEvent: BattleEvent = {
+            type: BattleEventType.MoveMissed,
+            attackerId: pokemon.id,
+            targetId: target.id,
+          };
+          this.emit(missEvent);
+          events.push(missEvent);
+        }
+        continue;
+      }
+
       if (
         forceHit ||
         checkAccuracy(

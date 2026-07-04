@@ -74,6 +74,8 @@ export type BattleEvent =
       effectiveness: number;
       recoil?: boolean;
       absorbedBySubstitute?: number;
+      /** OHKO hit (K.O. en un coup): the floating text shows "K.O.!" instead of the (max-HP) number. */
+      ohko?: boolean;
     }
   | { type: typeof BattleEventType.StatusApplied; targetId: string; status: StatusType }
   | { type: typeof BattleEventType.StatusRemoved; targetId: string; status: StatusType }
@@ -524,4 +526,5 @@ export type BattleEvent =
       casterId: string;
       attackerId: string;
       moveId: string;
-    };
+    }
+  | { type: typeof BattleEventType.OneHitKo; targetId: string };

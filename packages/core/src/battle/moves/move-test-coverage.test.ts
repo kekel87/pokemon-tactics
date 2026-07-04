@@ -10,7 +10,12 @@ const MOVES_DIR = import.meta.dirname ?? ".";
  * Allowed to exist without a matching implemented move (orphan check only — NOT a
  * coverage exemption: every implemented move still requires its own test file).
  */
-const CROSS_MOVE_MECHANIC_TESTS = new Set(["hit-and-run", "teleport-landing", "teleport-pattern"]);
+const CROSS_MOVE_MECHANIC_TESTS = new Set([
+  "hit-and-run",
+  "teleport-landing",
+  "teleport-pattern",
+  "ohko",
+]);
 
 function hasTestFile(moveId: string): boolean {
   return (

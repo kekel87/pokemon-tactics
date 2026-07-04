@@ -936,6 +936,7 @@ Move `taunt` (Ténèbres, Statut, Single r3, acc 100, PP 20). Pendant **3 tours*
 **0 PV = KO définitif :**
 - Corps reste sur tile et **bloque le passage**
 - Revival : **Second Souffle** — livré via Vœu Soin (`healing-wish`, plan 147, décision #604), réinventé en move de revive ciblé (tuile r3) : ressuscite un allié KO à **50% PV max** ou soigne un vivant à **100%**, self-KO du lanceur en échange — premier et seul move de revive du jeu
+- KO instantané (OHKO) : famille **K.O. en un coup** (plan 148, décisions #607–#610) — Abîme/Guillotine/Empal'Korne/Glaciation infligent des dégâts fixes = PV max sur un jet de précision plate dédié (30 %, 20 % pour Glaciation si le lanceur n'est pas de type Glace), ignorant crans/talents/objets/Gravité/météo. Contres canon complets : Fermeté = immunité totale (bypassée par Brise Moule), Baie Ceinture/Ténacité = survie à 1 PV, Protection bloque, Clone absorbe, immunités de type standards (+ type Glace immunisé vs Glaciation).
 - Victoire = tous les Pokemon adverses KO
 
 ---

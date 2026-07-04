@@ -67,6 +67,33 @@ describe("floatingTextsFor", () => {
     expect(texts[0]?.text).not.toMatch(/\d/);
   });
 
+  it("shows K.O. instead of the max-HP number on a lethal OHKO hit", () => {
+    const lethalContext: FloatingTextContext = { ...context, getCurrentHp: () => 0 };
+    const texts = floatingTextsFor(
+      {
+        type: BattleEventType.DamageDealt,
+        targetId: "p1-a",
+        amount: 250,
+        effectiveness: 1,
+        ohko: true,
+      } as BattleEvent,
+      lethalContext,
+    );
+    expect(texts).toHaveLength(1);
+    expect(texts[0]?.text).not.toMatch(/\d/);
+  });
+
+  it("shows the chip number when an OHKO is survived (Baie Ceinture / Ténacité)", () => {
+    const texts = map({
+      type: BattleEventType.DamageDealt,
+      targetId: "p1-a",
+      amount: 249,
+      effectiveness: 1,
+      ohko: true,
+    });
+    expect(texts[0]?.text).toBe("-249");
+  });
+
   it("shows the damage number for a non-lethal recoil hit", () => {
     const texts = map({
       type: BattleEventType.DamageDealt,

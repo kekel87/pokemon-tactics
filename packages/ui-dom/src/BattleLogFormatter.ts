@@ -1324,6 +1324,11 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.status, pokemonIds: [event.attackerId] };
     }
 
+    case BattleEventType.OneHitKo: {
+      const message = lang === "fr" ? "C'est un K.O. direct !" : "It's a one-hit KO!";
+      return { message, color: BattleLogColors.ko, pokemonIds: [event.targetId] };
+    }
+
     default:
       return null;
   }

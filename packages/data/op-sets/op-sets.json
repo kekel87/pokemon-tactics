@@ -2660,6 +2660,48 @@
       "gender": null,
       "source": "custom",
       "notes": "Plan 132 — Double verrou : Possessif scelle les moves partagés (Psyko, Bouclier…), Désactivation coupe ensuite un move restant. Recover + Magic Guard assure la durabilité. Punit durement les compos Psy miroir."
+    },
+    {
+      "id": "pinsir-mold-breaker-guillotine",
+      "pokemonId": "pinsir",
+      "name": "Mold Breaker Guillotine",
+      "role": "physical-sweeper",
+      "ability": "mold-breaker",
+      "heldItemId": "life-orb",
+      "nature": "jolly",
+      "moveIds": ["swords-dance", "close-combat", "earthquake", "guillotine"],
+      "statSpread": { "attack": 31, "spDefense": 0, "speed": 31 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 148 — Cœur Lame de Fatale + Close Combat + Séisme inchangé, pleinement viable sans jamais placer l'OHKO. Brise Moule ignore Fermeté (le meilleur contre de la famille). Guillotine = coup de grâce 30 %, pas la win condition."
+    },
+    {
+      "id": "lapras-glacial-gambit",
+      "pokemonId": "lapras",
+      "name": "Glacial Gambit",
+      "role": "special-sweeper",
+      "ability": "water-absorb",
+      "heldItemId": "leftovers",
+      "nature": "modest",
+      "moveIds": ["surf", "thunderbolt", "ice-beam", "sheer-cold"],
+      "statSpread": { "hp": 31, "spAttack": 31, "speed": 4 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 148 — Cœur BoltBeam + Surf identique au set standard, fonctionnel sans l'OHKO. Type Glace → Glaciation garde 30 % plein (pas la pénalité 20 % des non-Glace). Restes + Absorb Eau pour la longévité ; Glaciation en finisher sur cible affaiblie."
+    },
+    {
+      "id": "rhydon-sky-piercer",
+      "pokemonId": "rhydon",
+      "name": "Sky Piercer",
+      "role": "wallbreaker",
+      "ability": "lightning-rod",
+      "heldItemId": "focus-sash",
+      "nature": "adamant",
+      "moveIds": ["earthquake", "rock-slide", "crunch", "horn-drill"],
+      "statSpread": { "attack": 31, "spDefense": 0, "speed": 4 },
+      "gender": null,
+      "source": "custom",
+      "notes": "Plan 148 — Cœur EdgeQuake (Séisme + Éboulement + Poursuite Malsaine) identique au set Bandeau Choix, viable sans l'OHKO. Empal'Korne répond aux Vol/Lévitation immunisés au Séisme. Ceinture Force garantit une action pour tenter le pari 30 %."
     }
   ]
 }

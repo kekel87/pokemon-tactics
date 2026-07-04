@@ -334,6 +334,7 @@ const fr: Translations = {
   "moveTooltip.tag.hazardSetter": "🪤 Piège : posé au sol, blesse/affecte à l'entrée (permanent)",
   "moveTooltip.tag.hazardRemover": "🧹 Balaie les pièges autour de soi",
   "moveTooltip.tag.imprison": "🔒 Scelle les capacités que vous partagez",
+  "moveTooltip.tag.ohko": "☠ K.O. en un coup si ça touche (précision réduite)",
   "moveTooltip.tag.healBlock": "🚫 Anti-Soin (2 tours)",
   "moveTooltip.tag.spite": "⏳ Retarde le prochain tour de la cible",
   "moveTooltip.tag.removesItem": "🗑️ Retire l'objet de la cible",

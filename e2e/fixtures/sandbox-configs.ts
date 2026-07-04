@@ -621,3 +621,23 @@ export const GRAVITY_BLOCKS_AERIAL = {
   dummyMove: "leer",
   dummyHp: 999,
 } as const;
+
+/** Famille K.O. en un coup (OHKO, plan 148) — Guillotine (`guillotine`, Normal, Single 1-1 contact)
+ *  hors-pool forcée. Précision 30 % PLATE → `seed: 0` fait toucher (déterministe, jamais d'override
+ *  `Math.random`). Le dummy Normal (défaut) n'a aucune immunité de type → sur touche, dégâts = PV max
+ *  → K.O. instantané → journal « C'est un K.O. direct ! » (event OneHitKo) puis fin de combat (seul
+ *  adversaire). Griffe (portée 1) atteint toujours le dummy adjacent en (2,2). */
+export const OHKO_GUILLOTINE = {
+  ...DUEL,
+  seed: 0,
+  moves: ["guillotine"],
+} as const;
+
+/** Immunité Fermeté (`sturdy`) contre l'OHKO — même Guillotine seedée à toucher, mais le dummy porte
+ *  Fermeté et démarre à PLEINS PV (défaut 100) : l'attaque qui devrait le K.O. le laisse à 1 PV. Le
+ *  journal lit « Fermeté de <dummy> s'active ! » (event AbilityActivated), PAS « raté » ni « K.O.
+ *  direct » — le combat reste ouvert (aucune modale de victoire). */
+export const OHKO_STURDY = {
+  ...OHKO_GUILLOTINE,
+  dummyAbility: "sturdy",
+} as const;

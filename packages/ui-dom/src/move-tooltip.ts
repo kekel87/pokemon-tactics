@@ -84,6 +84,9 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
       move.sunSkipsCharge ? "move.tooltip.twoTurnChargeSunSkip" : "move.tooltip.twoTurnCharge",
     );
   }
+  if (move.isOhko === true) {
+    keys.push("moveTooltip.tag.ohko");
+  }
   if (move.dynamicPower !== undefined) {
     keys.push("moveTooltip.tag.dynamicPower");
   }

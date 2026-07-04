@@ -138,9 +138,13 @@ export function floatingTextsFor(
           },
         ];
       }
-      if (event.recoil === true && context.getCurrentHp(event.targetId) === 0) {
-        // A lethal recoil hit (e.g. Bélier killing its user) shows "K.O.!" instead
-        // of the damage number.
+      if (
+        (event.recoil === true || event.ohko === true) &&
+        context.getCurrentHp(event.targetId) === 0
+      ) {
+        // A lethal recoil hit (e.g. Bélier killing its user) or an OHKO hit (K.O. en un coup) shows
+        // "K.O.!" instead of the damage number. A survived OHKO (Baie Ceinture / Ténacité, HP > 0)
+        // falls through and shows the chip number.
         return [
           {
             pokemonId: event.targetId,
