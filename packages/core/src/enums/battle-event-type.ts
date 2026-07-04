@@ -123,6 +123,18 @@ export const BattleEventType = {
   StatStagesSwapped: "stat_stages_swapped",
   /** Permuvitesse (speed-swap): caster and target swapped their raw Speed stat. */
   SpeedSwapped: "speed_swapped",
+  /** Tout ou Rien (final-gambit): fixed damage equal to the caster's current HP was dealt. */
+  FinalGambitApplied: "final_gambit_applied",
+  /** Vœu Soin (healing-wish): the targeted tile had no valid occupant to revive/heal. */
+  ReviveOrHealFailed: "revive_or_heal_failed",
+  /** Lien du Destin (destiny-bond): the volatile was posted on the caster. */
+  DestinyBondPosted: "destiny_bond_posted",
+  /** Lien du Destin (destiny-bond): the caster's killer was dragged down with it. */
+  DestinyBondTriggered: "destiny_bond_triggered",
+  /** Rancune (grudge): the volatile was posted on the caster. */
+  GrudgePosted: "grudge_posted",
+  /** Rancune (grudge): the move that KO'd the caster was locked on its attacker for the battle. */
+  GrudgeTriggered: "grudge_triggered",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

@@ -90,6 +90,17 @@ export const EffectKind = {
    * Reuses `ejectToSpawn` — the forced-teleport family reinterpretation of switch-out on the grid.
    */
   PhazeToSpawn: "phaze_to_spawn",
+  /** Deal fixed damage equal to the caster's current HP, typed (Tout ou Rien / final-gambit). */
+  FinalGambit: "final_gambit",
+  /**
+   * Sacrifice heal (Vœu Soin / healing-wish, reinvented « Second Souffle »): revive a KO'd occupant of
+   * the target tile to 50% max HP, or fully heal a living one to 100%, clearing status either way.
+   */
+  ReviveOrHeal: "revive_or_heal",
+  /** Post the Lien du Destin volatile: if the caster is KO'd before its next turn, the killer faints too. */
+  PostDestinyBond: "post_destiny_bond",
+  /** Post the Rancune volatile: if the caster is KO'd by a move, that move is locked on the killer for the battle. */
+  PostGrudge: "post_grudge",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

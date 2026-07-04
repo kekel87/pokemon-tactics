@@ -157,4 +157,16 @@ export interface PokemonInstance {
    * status/heal move wastes it. Either way it clears after that action. Cleared on KO.
    */
   helpingHand?: boolean;
+  /**
+   * Attribution of the last damaging hit this mon received (plan 147). Stamped in `handle-damage`
+   * on every non-recoil hit that lowers HP; read by `handleKo` to resolve Lien du Destin (KO the
+   * killer) and Rancune (lock the killing move on the killer). Overwritten by each new hit.
+   */
+  lastHitBy?: { attackerId: string; moveId: string };
+  /**
+   * Move ids permanently locked on this mon by an enemy's Rancune (grudge, plan 147): the mon KO'd a
+   * Rancune holder with this move, so it can no longer select it for the rest of the battle. Filtered
+   * in `getLegalActions` + guarded in `submitAction`. Cleared on KO (a fresh corpse holds no grudge-lock).
+   */
+  grudgeLockedMoveIds?: string[];
 }

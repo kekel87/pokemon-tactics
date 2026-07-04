@@ -104,6 +104,10 @@ export type Effect =
     }
   | { kind: typeof EffectKind.PainSplit }
   | { kind: typeof EffectKind.Endeavor }
+  | { kind: typeof EffectKind.FinalGambit }
+  | { kind: typeof EffectKind.ReviveOrHeal; revivePercent: number; healPercent: number }
+  | { kind: typeof EffectKind.PostDestinyBond }
+  | { kind: typeof EffectKind.PostGrudge }
   | { kind: typeof EffectKind.HelpingHand; multiplier: number }
   | { kind: typeof EffectKind.RemoveItem }
   | { kind: typeof EffectKind.StealItem }

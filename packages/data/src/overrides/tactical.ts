@@ -34,6 +34,8 @@ export interface TacticalOverride {
   attackStatSource?: AttackStatSource;
   recharge?: boolean;
   isExplosion?: boolean;
+  selfKo?: boolean;
+  selfKoOnConnect?: boolean;
   effectTier?: EffectTier;
   flags?: Partial<MoveFlags>;
   bypassAccuracy?: boolean;
@@ -3330,5 +3332,58 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
         ],
       },
     ],
+  },
+  // --- Famille Sacrifice / Self-KO (plan 147) : le lanceur meurt en échange d'un effet ---
+  explosion: {
+    // Explosion (Destruction ×forte) : self-KO AoE, mirror self-destruct. Bloqué par Moiteur.
+    targeting: { kind: TargetingKind.Zone, radius: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+    isExplosion: true,
+  },
+  memento: {
+    // Souvenir : self-KO + baisse Atq et Atq.Spé de la cible de 2. NON bloqué par Moiteur (selfKo).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: -2,
+        target: EffectTarget.Targets,
+      },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpAttack,
+        stages: -2,
+        target: EffectTarget.Targets,
+      },
+    ],
+    selfKo: true,
+  },
+  "final-gambit": {
+    // Tout ou Rien : dégâts fixes = PV actuels du lanceur, typés Combat (immunité Spectre). Self-KO
+    // seulement si le coup connecte (selfKoOnConnect). Contact melee (portée 1, canon).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.FinalGambit }],
+    selfKoOnConnect: true,
+  },
+  "healing-wish": {
+    // Vœu Soin (« Second Souffle ») : self-KO + revive un allié KO à 50% / soigne un vivant à 100% +
+    // nettoie les statuts. Cible une tuile r3 (allié/ennemi, mort/vivant). Échoue sur tuile vide,
+    // mais le lanceur meurt quand même (selfKo).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.ReviveOrHeal, revivePercent: 0.5, healPercent: 1 }],
+    selfKo: true,
+  },
+  "destiny-bond": {
+    // Lien du Destin : volatile sur le lanceur jusqu'à son prochain tour ; s'il est KO d'ici là, son
+    // tueur tombe avec lui.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostDestinyBond }],
+  },
+  grudge: {
+    // Rancune : volatile sur le lanceur jusqu'à son prochain tour ; s'il est KO par un move, ce move
+    // est verrouillé chez l'attaquant pour tout le combat.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.PostGrudge }],
   },
 };

@@ -25,6 +25,17 @@ export interface MoveDefinition {
   recharge?: boolean;
   /** Explosion move (Destruction): fizzles entirely while a Pokémon with Moiteur (damp) is on the field. */
   isExplosion?: boolean;
+  /**
+   * Sacrifice / Self-KO family (plan 147): the user faints once the move resolves, unconditionally
+   * (Souvenir, Vœu Soin). Unlike `isExplosion` this is NOT blocked by Moiteur (canon: Damp only stops
+   * explosions). `isExplosion` implies this behaviour on its own — do not set both.
+   */
+  selfKo?: boolean;
+  /**
+   * Self-KO conditional on connecting (Tout ou Rien / final-gambit): the user faints only if the move
+   * dealt damage to at least one non-self target (a miss / a Ghost immunity leaves the user alive, CT paid).
+   */
+  selfKoOnConnect?: boolean;
   /** Sabotage (knock-off): ×1.5 damage when the target carries a removable item. */
   knockOffBoost?: boolean;
   /** Éructation (belch): the move fails unless the user has eaten a berry this battle. */

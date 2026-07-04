@@ -94,6 +94,8 @@ const VOLATILE_LABEL: Partial<Record<StatusType, string>> = {
   [StatusType.Ingrain]: "status.ingrain",
   [StatusType.AquaRing]: "status.aquaRing",
   [StatusType.Imprisoning]: "infoPanel.volatile.imprison",
+  [StatusType.DestinyBond]: "infoPanel.volatile.destinyBond",
+  [StatusType.Grudge]: "infoPanel.volatile.grudge",
 };
 
 const TIMED_VOLATILE_LABEL: Partial<Record<StatusType, string>> = {

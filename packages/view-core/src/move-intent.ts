@@ -17,6 +17,8 @@ const HEAL_EFFECT_KINDS: ReadonlySet<EffectKind> = new Set([
   EffectKind.CureTeamStatus,
   EffectKind.PostHealOverTime,
   EffectKind.PostWish,
+  // Vœu Soin (healing-wish): revives / fully heals the targeted occupant.
+  EffectKind.ReviveOrHeal,
 ]);
 
 /**
@@ -46,6 +48,8 @@ export function moveIntent(move: MoveDefinition): MoveIntent {
       // Effort (endeavor) / Balance (pain-split): hostile HP manipulation on an enemy.
       effect.kind === EffectKind.Endeavor ||
       effect.kind === EffectKind.PainSplit ||
+      // Tout ou Rien (final-gambit): fixed damage equal to the caster's HP — hostile.
+      effect.kind === EffectKind.FinalGambit ||
       // Phazing (Cyclone / Hurlement / Projection): forcibly ejects an enemy — hostile.
       effect.kind === EffectKind.PhazeToSpawn,
   );

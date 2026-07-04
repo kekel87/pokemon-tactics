@@ -935,7 +935,7 @@ Move `taunt` (Ténèbres, Statut, Single r3, acc 100, PP 20). Pendant **3 tours*
 
 **0 PV = KO définitif :**
 - Corps reste sur tile et **bloque le passage**
-- Revival : **Second Souffle** (Revival Blessing, **1 PP**) — rare
+- Revival : **Second Souffle** — livré via Vœu Soin (`healing-wish`, plan 147, décision #604), réinventé en move de revive ciblé (tuile r3) : ressuscite un allié KO à **50% PV max** ou soigne un vivant à **100%**, self-KO du lanceur en échange — premier et seul move de revive du jeu
 - Victoire = tous les Pokemon adverses KO
 
 ---

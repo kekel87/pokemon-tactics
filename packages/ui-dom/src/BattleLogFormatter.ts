@@ -242,6 +242,17 @@ const STATUS_LOG_KEY: Record<
     applied: { fr: "{name} ne peut plus être soigné !", en: "{name} was prevented from healing!" },
     removed: { fr: "{name} peut à nouveau être soigné.", en: "{name} can heal again." },
   },
+  [StatusType.DestinyBond]: {
+    applied: {
+      fr: "{name} tisse un lien du destin !",
+      en: "{name} is taking its foe down with it!",
+    },
+    removed: { fr: "Le lien du destin de {name} se dissipe.", en: "{name}'s destiny bond faded." },
+  },
+  [StatusType.Grudge]: {
+    applied: { fr: "{name} nourrit une rancune !", en: "{name} is bearing a grudge!" },
+    removed: { fr: "La rancune de {name} se dissipe.", en: "{name}'s grudge faded." },
+  },
   [StatusType.Ingrain]: {
     applied: { fr: "{name} prend racine !", en: "{name} planted its roots!" },
     removed: { fr: "Les racines de {name} se rétractent.", en: "{name}'s roots receded." },
@@ -1246,6 +1257,71 @@ export function formatBattleEvent(
         color: BattleLogColors.status,
         pokemonIds: [event.casterId, event.targetId],
       };
+    }
+
+    case BattleEventType.FinalGambitApplied: {
+      const name = context.getPokemonName(event.attackerId);
+      const message =
+        lang === "fr" ? `${name} joue le tout pour le tout !` : `${name} risked it all!`;
+      return { message, color: BattleLogColors.damage, pokemonIds: [event.attackerId] };
+    }
+
+    case BattleEventType.PokemonRevived: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message = event.revived
+        ? lang === "fr"
+          ? `${name} revient au combat !`
+          : `${name} was brought back!`
+        : lang === "fr"
+          ? `${name} est régénéré !`
+          : `${name} was fully restored!`;
+      return { message, color: BattleLogColors.heal, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.ReviveOrHealFailed: {
+      const name = context.getPokemonName(event.casterId);
+      const message =
+        lang === "fr"
+          ? `Le vœu de ${name} est resté sans écho...`
+          : `${name}'s wish went unanswered...`;
+      return { message, color: BattleLogColors.miss, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.DestinyBondPosted: {
+      const name = context.getPokemonName(event.casterId);
+      const message =
+        lang === "fr"
+          ? `${name} tisse un lien du destin...`
+          : `${name} is trying to take its foe down with it!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.DestinyBondTriggered: {
+      const victim = context.getPokemonName(event.victimId);
+      const message =
+        lang === "fr"
+          ? `${victim} est entraîné dans la chute !`
+          : `${victim} was dragged down too!`;
+      return { message, color: BattleLogColors.ko, pokemonIds: [event.casterId, event.victimId] };
+    }
+
+    case BattleEventType.GrudgePosted: {
+      const name = context.getPokemonName(event.casterId);
+      const message =
+        lang === "fr"
+          ? `${name} nourrit une rancune...`
+          : `${name} wants its foe to bear a grudge!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.GrudgeTriggered: {
+      const attacker = context.getPokemonName(event.attackerId);
+      const moveName = context.getMoveName(event.moveId);
+      const message =
+        lang === "fr"
+          ? `La rancune scelle ${moveName} de ${attacker} !`
+          : `${attacker}'s ${moveName} was sealed by the grudge!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.attackerId] };
     }
 
     default:

@@ -104,6 +104,7 @@ import { hotTickHandler } from "./handlers/hot-tick-handler";
 import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handler";
 import { perishTickHandler } from "./handlers/perish-tick-handler";
 import { roostedClearHandler } from "./handlers/roosted-clear-handler";
+import { sacrificeBondExpireHandler } from "./handlers/sacrifice-bond-expire-handler";
 import { createSeededTickHandler } from "./handlers/seeded-tick-handler";
 import { createStatusTickHandler } from "./handlers/status-tick-handler";
 import { tailwindDecrementHandler } from "./handlers/tailwind-tick-handler";
@@ -230,6 +231,7 @@ export class BattleEngine {
     );
     this.turnPipeline.registerStartTurn(createInfatuationTickHandler(this.random), 150);
     this.turnPipeline.registerStartTurn(wishTickHandler, 175);
+    this.turnPipeline.registerStartTurn(sacrificeBondExpireHandler, 180);
     this.turnPipeline.registerEndTurn(
       createWeatherTickHandler({
         pokemonTypesMap: this.pokemonTypesMap,
@@ -775,6 +777,11 @@ export class BattleEngine {
           continue;
         }
 
+        // Rancune (grudge): a move sealed on this mon by an enemy's Rancune stays unusable all battle.
+        if (currentPokemon.grudgeLockedMoveIds?.includes(moveId) === true) {
+          continue;
+        }
+
         if (encoredMoveId !== undefined && moveId !== encoredMoveId) {
           continue;
         }
@@ -1300,6 +1307,12 @@ export class BattleEngine {
       return { success: false, events: [encoreBlockedEvent], error: ActionError.InvalidAction };
     }
 
+    // Rancune (grudge): a move sealed on this mon by an enemy's Rancune is unusable — defensive guard
+    // mirroring getLegalActions (no dedicated blocked event, like the imprison / Snore gates).
+    if (pokemon.grudgeLockedMoveIds?.includes(moveId) === true) {
+      return { success: false, events: [], error: ActionError.InvalidAction };
+    }
+
     // Possessif (imprison) + Anti-Soin (Heal Block) gates — defensive guards mirroring
     // getLegalActions. The move simply isn't legal; no dedicated "blocked" event (like Snore).
     if (collectImprisonedMoveIds(this.state, pokemon.playerId).has(moveId)) {
@@ -1662,6 +1675,12 @@ export class BattleEngine {
     }
 
     for (const event of effectEvents) {
+      // Vœu Soin (healing-wish): a KO'd ally brought back to the field must re-enter the CT scheduler
+      // (a merely-healed living occupant is already scheduled — no-op there).
+      if (event.type === BattleEventType.PokemonRevived && event.revived) {
+        this.chargeTimeTurnSystem.onPokemonRevived(event.pokemonId);
+        continue;
+      }
       if (event.type === BattleEventType.PokemonKo) {
         this.handleKo(event.pokemonId, events);
         if (this.battleOver) {
@@ -1700,10 +1719,25 @@ export class BattleEngine {
       }
     }
 
-    // Explosion moves (Destruction, Boom Mystérieux): the user faints once the blast resolves, even
-    // when no target was in range (canon self-KO). Skipped when Moiteur fizzled the move entirely.
+    // Whether the move landed a real (non-recoil, non-self, super-effective-or-neutral) hit. Shared by
+    // Tout ou Rien's conditional self-KO and the crash-on-miss recoil below (single source of truth).
+    const moveConnected = effectEvents.some(
+      (event) =>
+        event.type === BattleEventType.DamageDealt &&
+        event.targetId !== pokemon.id &&
+        event.recoil !== true &&
+        (event.effectiveness ?? 0) > 0,
+    );
+
+    // Sacrifice / Self-KO family (plan 147). Three flavours converge here:
+    //  - Explosion (Destruction, Explo-Brume): unconditional, but skipped when Moiteur fizzled it.
+    //  - Plain self-KO (Souvenir, Vœu Soin): unconditional, NOT blocked by Moiteur.
+    //  - Conditional self-KO (Tout ou Rien): faints only if the move connected on a non-self target.
     // Emit the self-damage (recoil) first so the renderer animates the HP bar down before the KO.
-    if (move.isExplosion === true && !dampFizzled && pokemon.currentHp > 0) {
+    const explosionSelfKo = move.isExplosion === true && !dampFizzled;
+    const plainSelfKo = move.selfKo === true;
+    const connectSelfKo = move.selfKoOnConnect === true && moveConnected;
+    if ((explosionSelfKo || plainSelfKo || connectSelfKo) && pokemon.currentHp > 0) {
       const selfDamage = pokemon.currentHp;
       pokemon.currentHp = 0;
       const selfDamageEvent: BattleEvent = {
@@ -1729,14 +1763,7 @@ export class BattleEngine {
     }
 
     if (effectiveMove.crashOnMiss && pokemon.currentHp > 0) {
-      const connected = effectEvents.some(
-        (event) =>
-          event.type === BattleEventType.DamageDealt &&
-          event.targetId !== pokemon.id &&
-          event.recoil !== true &&
-          (event.effectiveness ?? 0) > 0,
-      );
-      if (!connected) {
+      if (!moveConnected) {
         const crashDamage = Math.max(
           1,
           Math.floor(pokemon.maxHp * effectiveMove.crashOnMiss.fraction),
@@ -3033,6 +3060,50 @@ export class BattleEngine {
       return;
     }
 
+    // Sacrifice family (plan 147): resolve Lien du Destin / Rancune while the KO'd mon still carries
+    // its volatiles and `lastHitBy` (both cleared below). Read the killing-blow attribution once.
+    const killedBy = pokemon.lastHitBy;
+    const hasDestinyBond = pokemon.volatileStatuses.some((v) => v.type === StatusType.DestinyBond);
+    const hasGrudge = pokemon.volatileStatuses.some((v) => v.type === StatusType.Grudge);
+    if (killedBy) {
+      const killer = this.state.pokemon.get(killedBy.attackerId);
+      // Rancune: permanently seal the killing move on its attacker (the attacker survives).
+      if (hasGrudge && killer && killer.currentHp > 0) {
+        const locked = killer.grudgeLockedMoveIds ?? [];
+        if (!locked.includes(killedBy.moveId)) {
+          killer.grudgeLockedMoveIds = [...locked, killedBy.moveId];
+        }
+        const grudgeEvent: BattleEvent = {
+          type: BattleEventType.GrudgeTriggered,
+          casterId: pokemonId,
+          attackerId: killer.id,
+          moveId: killedBy.moveId,
+        };
+        this.emit(grudgeEvent);
+        events.push(grudgeEvent);
+      }
+      // Lien du Destin: drag the living killer down too (recursive KO). The "killer alive" guard also
+      // prevents A↔B ping-pong: a mon already at 0 HP cannot be dragged again.
+      if (hasDestinyBond && killer && killer.currentHp > 0) {
+        const bondEvent: BattleEvent = {
+          type: BattleEventType.DestinyBondTriggered,
+          casterId: pokemonId,
+          victimId: killer.id,
+        };
+        this.emit(bondEvent);
+        events.push(bondEvent);
+        killer.currentHp = 0;
+        const koEvent: BattleEvent = {
+          type: BattleEventType.PokemonKo,
+          pokemonId: killer.id,
+          countdownStart: 0,
+        };
+        this.emit(koEvent);
+        events.push(koEvent);
+        this.handleKo(killer.id, events);
+      }
+    }
+
     // Ghost clock: a KO'd mon that set environmental effects (weather / field zones) stays in the
     // CT scheduler so those durations keep counting down on its would-be turns (advanceTurn). Auras
     // (team barriers) die with their caster — removeAurasOfCaster below — so they grant no ghost.
@@ -3058,6 +3129,8 @@ export class BattleEngine {
     pokemon.critStageBoost = undefined;
     pokemon.typeOverride = undefined;
     pokemon.speedStatOverride = undefined;
+    pokemon.lastHitBy = undefined;
+    pokemon.grudgeLockedMoveIds = undefined;
     pokemon.volatileStatuses = [];
 
     for (const other of this.state.pokemon.values()) {

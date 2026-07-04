@@ -139,4 +139,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 144 | [Famille Move-copy (réentrance moteur — 434 → 440)](./144-move-copy.md) | done | 2026-06-29 |
 | 145 | [Famille Field global (zones r3 + vent global — 440 → 444)](./145-field-global.md) | done | 2026-07-02 |
 | 146 | [Famille Stat/state manip (reset/copie/inversion/échange crans — 444 → 452)](./146-stat-state-manip.md) | done | 2026-07-02 |
-| 147 | [Famille Sacrifice/Self-KO (self-KO généralisé + revive + KO-trigger — 454 → ~460)](./147-sacrifice-self-ko.md) | ready | 2026-07-03 |
+| 147 | [Famille Sacrifice/Self-KO (self-KO généralisé + revive + KO-trigger — 454 → 460)](./147-sacrifice-self-ko.md) | done | 2026-07-03 |

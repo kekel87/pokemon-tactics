@@ -38,7 +38,7 @@ La carte de combat sous forme de cases (tiles) carrées. Taille par défaut pour
 Statistique dérivée (calculée depuis Vitesse et Poids) qui détermine l'ordre de passage dans un round. Le Pokemon avec la plus haute initiative joue en premier.
 
 **KO**
-Un Pokemon à 0 PV est définitivement KO. Son corps reste sur la tile et bloque le passage. Seule la capacité Second Souffle (Revival Blessing, 1 PP) peut ranimer un allié KO.
+Un Pokemon à 0 PV est définitivement KO. Son corps reste sur la tile et bloque le passage. Seule la capacité Second Souffle (Vœu Soin/`healing-wish` réinventé, plan 147) peut ranimer un allié KO — revive à 50% PV max, en échange du sacrifice du lanceur.
 
 **Pathfinding**
 Calcul des cases qu'un Pokemon peut atteindre depuis sa position, en tenant compte des obstacles, des ennemis, des alliés et des dénivelés. Utilise un BFS dans ce projet.

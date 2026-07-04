@@ -311,6 +311,8 @@ const en: Translations = {
   "infoPanel.volatile.disabled": "Disable {turns}t",
   "infoPanel.volatile.encored": "Encore {turns}t",
   "infoPanel.volatile.imprison": "Imprison",
+  "infoPanel.volatile.destinyBond": "Destiny Bond",
+  "infoPanel.volatile.grudge": "Grudge",
   "infoPanel.volatile.healBlock": "Heal Block {turns}t",
   "infoPanel.volatile.wish": "Wish",
   "infoPanel.volatile.helpingHand": "Helping Hand",

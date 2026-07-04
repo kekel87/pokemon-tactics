@@ -311,6 +311,8 @@ const fr: Translations = {
   "infoPanel.volatile.disabled": "Entrave {turns}t",
   "infoPanel.volatile.encored": "Encore {turns}t",
   "infoPanel.volatile.imprison": "Possessif",
+  "infoPanel.volatile.destinyBond": "Lien du Destin",
+  "infoPanel.volatile.grudge": "Rancune",
   "infoPanel.volatile.healBlock": "Anti-Soin {turns}t",
   "infoPanel.volatile.wish": "Vœu",
   "infoPanel.volatile.helpingHand": "Coup d'Main",

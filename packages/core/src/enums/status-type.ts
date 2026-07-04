@@ -29,6 +29,16 @@ export const StatusType = {
   Imprisoning: "imprisoning",
   /** Heal Block ("Anti-Soin") volatile: 2 turns, blocks using heal moves and receiving any heal. */
   HealBlocked: "heal-blocked",
+  /**
+   * Lien du Destin (destiny-bond) volatile: set on the caster until its next turn. If the caster is
+   * KO'd while it holds, the Pokémon that dealt the killing blow faints too.
+   */
+  DestinyBond: "destiny-bond",
+  /**
+   * Rancune (grudge) volatile: set on the caster until its next turn. If the caster is KO'd by a move,
+   * that move is permanently locked (unusable) on its attacker for the rest of the battle.
+   */
+  Grudge: "grudge",
 } as const;
 
 export type StatusType = (typeof StatusType)[keyof typeof StatusType];
