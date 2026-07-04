@@ -86,7 +86,15 @@ export type BattleEvent =
   | { type: typeof BattleEventType.StatChanged; targetId: string; stat: StatName; stages: number }
   | { type: typeof BattleEventType.PokemonKo; pokemonId: string; countdownStart: number }
   | { type: typeof BattleEventType.PokemonEliminated; pokemonId: string }
-  | { type: typeof BattleEventType.PokemonRevived; pokemonId: string; hp: number }
+  | {
+      type: typeof BattleEventType.PokemonRevived;
+      pokemonId: string;
+      hp: number;
+      /** Vœu Soin (healing-wish, plan 147): the caster that sacrificed itself. */
+      casterId: string;
+      /** True when the target was KO'd (a revive); false when it was a living heal. */
+      revived: boolean;
+    }
   | { type: typeof BattleEventType.MoveMissed; attackerId: string; targetId: string }
   | {
       type: typeof BattleEventType.DefenseActivated;
@@ -500,4 +508,20 @@ export type BattleEvent =
       targetId: string;
       stats: StatName[];
     }
-  | { type: typeof BattleEventType.SpeedSwapped; casterId: string; targetId: string };
+  | { type: typeof BattleEventType.SpeedSwapped; casterId: string; targetId: string }
+  | {
+      type: typeof BattleEventType.FinalGambitApplied;
+      attackerId: string;
+      targetId: string;
+      damage: number;
+    }
+  | { type: typeof BattleEventType.ReviveOrHealFailed; casterId: string }
+  | { type: typeof BattleEventType.DestinyBondPosted; casterId: string }
+  | { type: typeof BattleEventType.DestinyBondTriggered; casterId: string; victimId: string }
+  | { type: typeof BattleEventType.GrudgePosted; casterId: string }
+  | {
+      type: typeof BattleEventType.GrudgeTriggered;
+      casterId: string;
+      attackerId: string;
+      moveId: string;
+    };

@@ -397,6 +397,11 @@ function dealSingleHit(
     if (context.attacker.id !== target.id && context.attacker.playerId !== target.playerId) {
       target.lastDamagedByEnemyAtAction = clock;
     }
+    // Killing-blow attribution (plan 147): stamp who/what dealt this hit so `handleKo` can resolve
+    // Lien du Destin (KO the killer) and Rancune (lock the killing move). Self-recoil never counts.
+    if (context.attacker.id !== target.id) {
+      target.lastHitBy = { attackerId: context.attacker.id, moveId: context.move.id };
+    }
   }
 
   events.push({

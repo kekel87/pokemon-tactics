@@ -1140,6 +1140,10 @@ export class BattleOrchestrator {
         // to the fixed step delay.
         this.syncBoard();
         await delay(this.board.koAnimationDurationMs(event.pokemonId) || BATTLE_STEP_DELAY_MS);
+      } else if (event.type === BattleEventType.PokemonRevived) {
+        // Vœu Soin (healing-wish): bring the target back / top it off, then let the beat breathe.
+        this.syncBoard();
+        await delay(BATTLE_STEP_DELAY_MS);
       } else if (BOARD_EVENT_TYPES.has(event.type)) {
         this.syncBoard();
         await delay(BATTLE_STEP_DELAY_MS);
@@ -1158,6 +1162,9 @@ export class BattleOrchestrator {
         this.board.setKnockedOut(pokemon.id, true);
         continue;
       }
+      // A living mon is never KO — clearing the pose unconditionally also brings back a mon revived by
+      // Vœu Soin (healing-wish), which the KO branch above had collapsed.
+      this.board.setKnockedOut(pokemon.id, false);
       this.board.moveTo(pokemon.id, pokemon.position);
       this.board.setFacing(pokemon.id, pokemon.orientation);
       this.board.updateHp(pokemon.id, pokemon.currentHp, pokemon.maxHp);

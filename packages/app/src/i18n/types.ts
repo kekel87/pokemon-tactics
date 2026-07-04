@@ -312,6 +312,8 @@ export interface Translations {
   "infoPanel.volatile.disabled": string;
   "infoPanel.volatile.encored": string;
   "infoPanel.volatile.imprison": string;
+  "infoPanel.volatile.destinyBond": string;
+  "infoPanel.volatile.grudge": string;
   "infoPanel.volatile.healBlock": string;
   "infoPanel.volatile.wish": string;
   "infoPanel.volatile.helpingHand": string;

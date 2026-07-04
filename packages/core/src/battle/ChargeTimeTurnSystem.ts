@@ -37,6 +37,16 @@ export class ChargeTimeTurnSystem {
   }
 
   /**
+   * Re-inject a revived mon into the scheduler (Vœu Soin / healing-wish, plan 147). It re-enters at
+   * the start value so it takes its natural place in the cadence again. No-op if already scheduled.
+   */
+  onPokemonRevived(pokemonId: string): void {
+    if (!this.ctMap.has(pokemonId)) {
+      this.ctMap.set(pokemonId, CT_START);
+    }
+  }
+
+  /**
    * Make `pokemonId` the immediate next actor (deterministic test setup): it crosses the threshold
    * while everyone else resets to the start value, so the natural cadence resumes afterwards.
    */

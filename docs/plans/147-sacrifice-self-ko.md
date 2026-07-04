@@ -1,9 +1,9 @@
 # Plan 147 — Famille Sacrifice / Self-KO
 
-**Statut** : ready
+**Statut** : done
 **Date** : 2026-07-03
 **Worktree suggéré** : `sacrifice-self-ko`
-**Périmètre** : 7 moves — 454 → ~461 (à ajuster : Explo-Brume peut être déjà livré)
+**Périmètre** : 7 moves — 454 → 460 (Explosion/Souvenir/Tout ou Rien/Vœu Soin/Lien du Destin/Rancune neufs ; Destruction et Explo-Brume préexistaient déjà)
 
 ## Objectif
 
