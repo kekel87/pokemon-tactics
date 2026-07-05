@@ -1,3 +1,4 @@
+import type { ChargeReaction } from "../enums/charge-reaction";
 import type { Direction } from "../enums/direction";
 import type { HeldItemId } from "../enums/held-item-id";
 import type { Nature } from "../enums/nature";
@@ -75,7 +76,17 @@ export interface PokemonInstance {
    */
   lockInMoveId?: string;
   lockInTurnsRemaining?: number;
-  chargingMove?: { moveId: string; targetPosition?: Position };
+  chargingMove?: { moveId: string; targetPosition?: Position; reaction?: ChargeReaction };
+  /**
+   * Reactive-charge state (plan 150). `focusInterrupted` is set when a Mitra-Poing (`focus`) user
+   * takes any direct damage while charging → its T2 strike fails. `shellTrapArmed` is set when a
+   * Carapiège (`shell`) user is hit by a physical move while charging → the T2 strike is enabled
+   * (else it fails). Both are posted by `battle/charge-reaction.ts`, read at the T2 fire gate, and
+   * cleared when the charge resolves / is cancelled / on KO. Bec-Canon (`beak`) needs no flag (its
+   * burn is applied immediately in the hook).
+   */
+  focusInterrupted?: boolean;
+  shellTrapArmed?: boolean;
   /**
    * Move-copy family (plan 144). Set by `prepareCalledMove` when the caster commits a call-move
    * (Métronome / Blabla Dodo / Mimique / Photocopie): holds the move rolled/resolved for this turn
@@ -120,6 +131,13 @@ export interface PokemonInstance {
    */
   /** `actionCounter` when this mon last completed an action. */
   lastActedAtAction?: number;
+  /**
+   * `actionCounter` when this mon last completed an OFFENSIVE action (a damaging move, `power > 0`).
+   * Coup Bas (sucker-punch, plan 150) succeeds only when this equals `lastActedAtAction` — i.e. the
+   * mon's most recent action was an attack, not a status move / displacement / wait. Freshness gate
+   * that avoids the "attacked once, forever aggressive" stickiness of `lastUsedMoveId`.
+   */
+  lastOffensiveActionAtAction?: number;
   /** `actionCounter` when this mon last took any damage. */
   lastDamagedAtAction?: number;
   /** `actionCounter` when this mon last took damage from an enemy. */

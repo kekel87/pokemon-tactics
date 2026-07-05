@@ -3,6 +3,7 @@ import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { CallMoveSourceKind } from "../enums/call-move-source-kind";
 import { Category } from "../enums/category";
+import { ChargeReaction } from "../enums/charge-reaction";
 import { Direction } from "../enums/direction";
 import { DynamicPowerKind } from "../enums/dynamic-power-kind";
 import { EffectKind } from "../enums/effect-kind";
@@ -10,6 +11,7 @@ import { EffectTarget } from "../enums/effect-target";
 import { EntryHazardKind } from "../enums/entry-hazard-kind";
 import { FieldGlobalKind } from "../enums/field-global-kind";
 import { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
+import { MoveFailedReason } from "../enums/move-failed-reason";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
@@ -824,6 +826,11 @@ export class BattleEngine {
           continue;
         }
 
+        // Bluff / Escarmouche (plan 150): usable only on the user's first action of the battle.
+        if (move.firstActionOnly === true && currentPokemon.lastActedAtAction !== undefined) {
+          continue;
+        }
+
         // Last Resort (B3): only usable once every other move has been used at least once.
         if (move.requiresAllOtherMovesUsed === true) {
           const otherMoveIds = currentPokemon.moveIds.filter((id) => id !== moveId);
@@ -1380,13 +1387,27 @@ export class BattleEngine {
       return { success: false, events: [], error: ActionError.InvalidAction };
     }
 
+    // Bluff / Escarmouche (plan 150): defensive guard mirroring getLegalActions — usable only on the
+    // user's first action of the battle.
+    if (move.firstActionOnly === true && pokemon.lastActedAtAction !== undefined) {
+      return { success: false, events: [], error: ActionError.InvalidAction };
+    }
+
     const isFiringCharged = pokemon.chargingMove?.moveId === moveId;
     if (move.twoTurnCharge && !isFiringCharged) {
       const activeWeather = this.getEffectiveWeather();
       const skipDueToWeather = move.sunSkipsCharge === true && activeWeather === Weather.Sun;
       if (!skipDueToWeather) {
-        pokemon.chargingMove = { moveId, targetPosition: pokemon.position };
+        pokemon.chargingMove = {
+          moveId,
+          targetPosition: pokemon.position,
+          ...(move.chargeReaction === undefined ? {} : { reaction: move.chargeReaction }),
+        };
         pokemon.lockedMoveId = moveId;
+        // Reactive-charge family (plan 150): start the wait window with clean reaction flags so a
+        // prior charge can't leak state into this one.
+        pokemon.focusInterrupted = undefined;
+        pokemon.shellTrapArmed = undefined;
         if (move.semiInvulnerableState !== undefined) {
           pokemon.semiInvulnerableState = move.semiInvulnerableState;
         }
@@ -1627,6 +1648,51 @@ export class BattleEngine {
     // when a living Moiteur holder is among its targets. The move still counts as used (CT paid) but
     // ALL its effects are skipped — including the self-KO Recoil (a self-effect that would otherwise
     // still cost the caster ~1 HP even with the damage zeroed out).
+    // Reactive-charge T2 gate (plan 150): a Mitra-Poing whose focus was broken during the charge, or
+    // a Carapiège that was never armed by a physical hit, fizzles on its strike turn (0 damage, CT
+    // paid). Bec-Canon has no gate (it always fires; its burn was applied reactively at charge time).
+    if (isFiringCharged && move.chargeReaction !== undefined) {
+      const focusLost =
+        move.chargeReaction === ChargeReaction.Focus && pokemon.focusInterrupted === true;
+      const trapUnarmed =
+        move.chargeReaction === ChargeReaction.Shell && pokemon.shellTrapArmed !== true;
+      if (focusLost || trapUnarmed) {
+        const failEvent: BattleEvent = {
+          type: BattleEventType.MoveFailed,
+          attackerId: pokemon.id,
+          moveId,
+          reason: focusLost ? MoveFailedReason.Focus : MoveFailedReason.ShellTrap,
+        };
+        this.emit(failEvent);
+        events.push(failEvent);
+        targets.length = 0;
+      }
+      pokemon.focusInterrupted = undefined;
+      pokemon.shellTrapArmed = undefined;
+    }
+
+    // Coup Bas (sucker-punch, plan 150): fizzles unless the target's LAST action was offensive
+    // (`lastOffensiveActionAtAction === lastActedAtAction`). Reinterprets canon "fails if the target
+    // isn't attacking" on the sequential CT timeline, with freshness (avoids the sticky
+    // "attacked once, forever aggressive" of lastUsedMoveId).
+    if (move.failsUnlessTargetAggressive === true && targets.length > 0) {
+      const suckerTarget = targets[0];
+      const targetIsAggressive =
+        suckerTarget !== undefined &&
+        suckerTarget.lastActedAtAction !== undefined &&
+        suckerTarget.lastOffensiveActionAtAction === suckerTarget.lastActedAtAction;
+      if (!targetIsAggressive) {
+        const failEvent: BattleEvent = {
+          type: BattleEventType.MoveFailed,
+          attackerId: pokemon.id,
+          moveId,
+        };
+        this.emit(failEvent);
+        events.push(failEvent);
+        targets.length = 0;
+      }
+    }
+
     let dampFizzled = false;
     if (move.isExplosion === true) {
       const dampHolder = findDampInTargets(targets);
@@ -2840,6 +2906,9 @@ export class BattleEngine {
       pokemon.chargingMove = undefined;
       pokemon.lockedMoveId = undefined;
       pokemon.semiInvulnerableState = undefined;
+      // Reactive-charge family (plan 150): drop the reaction flags with the abandoned charge.
+      pokemon.focusInterrupted = undefined;
+      pokemon.shellTrapArmed = undefined;
       const cancelEvent: BattleEvent = {
         type: BattleEventType.MoveCancelled,
         pokemonId,
@@ -2900,6 +2969,14 @@ export class BattleEngine {
     const actingPokemon = this.state.pokemon.get(pokemonId);
     if (actingPokemon !== undefined) {
       actingPokemon.lastActedAtAction = this.state.actionCounter ?? 0;
+      // Coup Bas fraîcheur (plan 150): stamp this action as offensive when the move used was a
+      // damaging move (`power > 0`). Sucker-punch reads `lastOffensiveActionAtAction === lastActedAtAction`.
+      const lastMoveUsed = this.turnState.lastMoveId
+        ? this.moveRegistry.get(this.turnState.lastMoveId)
+        : undefined;
+      if (lastMoveUsed !== undefined && lastMoveUsed.power > 0) {
+        actingPokemon.lastOffensiveActionAtAction = this.state.actionCounter ?? 0;
+      }
       if (this.state.lastTeamActionMoveId === undefined) {
         this.state.lastTeamActionMoveId = {};
       }
@@ -3220,6 +3297,9 @@ export class BattleEngine {
     pokemon.activeDefense = null;
     pokemon.chargingMove = undefined;
     pokemon.lockedMoveId = undefined;
+    // Reactive-charge family (plan 150): a fresh corpse holds no pending charge reaction.
+    pokemon.focusInterrupted = undefined;
+    pokemon.shellTrapArmed = undefined;
     pokemon.lockInMoveId = undefined;
     pokemon.lockInTurnsRemaining = undefined;
     pokemon.pendingCalledMove = undefined;

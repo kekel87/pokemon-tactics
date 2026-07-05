@@ -1,6 +1,7 @@
 import type { AttackStatSource } from "../enums/attack-stat-source";
 import type { CallMoveSourceKind } from "../enums/call-move-source-kind";
 import type { Category } from "../enums/category";
+import type { ChargeReaction } from "../enums/charge-reaction";
 import type { EffectTier } from "../enums/effect-tier";
 import type { FieldTerrain } from "../enums/field-terrain";
 import type { FieldTerrainBonusWho } from "../enums/field-terrain-bonus-who";
@@ -144,4 +145,25 @@ export interface MoveDefinition {
    * based, ignores line of sight, no grounded gate. See `battle/uproar-aura.ts`.
    */
   uproarAura?: boolean;
+  /**
+   * Priority / timing conditional family (plan 150). The move is selectable ONLY on the user's first
+   * completed action of the battle (Bluff / Escarmouche) — the grid reinterpretation of canon "first
+   * turn out" (no switch-in here). Filtered in `getLegalActions` + guarded in `submitAction` via
+   * `PokemonInstance.lastActedAtAction === undefined`.
+   */
+  firstActionOnly?: boolean;
+  /**
+   * Coup Bas (sucker-punch, plan 150): the move fizzles (0 damage, CT paid) unless the target's LAST
+   * action was offensive. Reinterprets canon "fails if the target isn't attacking" onto the sequential
+   * CT timeline via the action clock, with freshness: `target.lastOffensiveActionAtAction ===
+   * target.lastActedAtAction` (its most recent action was a damaging move — not merely "attacked once").
+   */
+  failsUnlessTargetAggressive?: boolean;
+  /**
+   * Reactive two-turn charge family (plan 150): Mitra-Poing (`focus`) / Bec-Canon (`beak`) /
+   * Carapiège (`shell`). Set alongside `twoTurnCharge` (charge without semi-invulnerability, like
+   * skull-bash). Drives the reaction when the charging user is struck during its wait window
+   * (`battle/charge-reaction.ts`) and the T2 fire gate. The three values are mutually exclusive.
+   */
+  chargeReaction?: ChargeReaction;
 }

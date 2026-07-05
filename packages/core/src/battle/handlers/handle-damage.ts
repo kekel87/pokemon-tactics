@@ -20,6 +20,7 @@ import {
   removeAurasOfCaster,
 } from "../aura-system";
 import { areBerriesSuppressed } from "../berry-suppression";
+import { applyChargeReaction } from "../charge-reaction";
 import { effectConditionHolds } from "../condition-eval";
 import {
   calculateDamageWithCrit,
@@ -418,6 +419,19 @@ function dealSingleHit(
     // Lien du Destin (KO the killer) and Rancune (lock the killing move). Self-recoil never counts.
     if (context.attacker.id !== target.id) {
       target.lastHitBy = { attackerId: context.attacker.id, moveId: context.move.id };
+    }
+    // Reactive-charge family (plan 150): a charging Mitra-Poing / Bec-Canon / Carapiège that is
+    // struck during its wait window reacts here (interrupt focus / burn contact attacker / arm the
+    // trap). Self-recoil never triggers it. Runs after the hit lands, before any KO resolution.
+    if (context.attacker.id !== target.id && target.chargingMove?.reaction !== undefined) {
+      for (const event of applyChargeReaction({
+        victim: target,
+        attacker: context.attacker,
+        attackerMove: context.move,
+        attackerTypes: context.attackerTypes,
+      })) {
+        events.push(event);
+      }
     }
   }
 

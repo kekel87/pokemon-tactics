@@ -178,6 +178,20 @@ function scoreUseMove(
     return -1;
   }
 
+  // Coup Bas guard-rail (sucker-punch, plan 150): the move fizzles (0 damage, CT paid) unless a hit
+  // target's LAST action was offensive. Exclude it when no target satisfies the freshness gate so the
+  // AI never throws the turn away. Fine valuation (punishing an identified attacker) is deferred.
+  if (move.failsUnlessTargetAggressive === true) {
+    const anyAggressive = targetsHit.some(
+      (target) =>
+        target.lastActedAtAction !== undefined &&
+        target.lastOffensiveActionAtAction === target.lastActedAtAction,
+    );
+    if (!anyAggressive) {
+      return -1;
+    }
+  }
+
   let score = 0;
 
   if (getEffectivePowerFloor(move) > 0) {

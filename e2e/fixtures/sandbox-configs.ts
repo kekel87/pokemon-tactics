@@ -641,3 +641,118 @@ export const OHKO_STURDY = {
   ...OHKO_GUILLOTINE,
   dummyAbility: "sturdy",
 } as const;
+
+// Famille Priorité / timing conditionnel (plan 150) — moves dont l'identité repose sur le TIMING
+// (1ʳᵉ action du combat, fraîcheur de la dernière action de la cible, charge interruptible) plutôt
+// que sur une priorité canon (inexistante ici : le CT ordonne, un coût dérivé de la puissance →
+// Bluff léger agit tôt, Mitra-Poing/Bec-Canon/Carapiège lourds agissent tard). Contrairement aux
+// autres configs, celles-ci NE fixent PAS playerPosition/dummyPosition : on part des SPAWNS PAR
+// DÉFAUT de sandbox-flat (joueur (1,4) / dummy (1,1), 3 cases d'écart) et chaque scénario PILOTE
+// d'abord un déplacement du joueur vers (1,2) — adjacent au dummy (1,1) — avant de lancer un move
+// Single 1-1 / Zone r1. Le pas n'ouvre PAS l'horloge d'action (`lastActedAtAction` n'est stampé qu'à
+// la FIN du tour), donc Bluff/Escarmouche restent bien « 1ʳᵉ action » après s'être approchés. Tous
+// les moves à 100 % de précision → cast déterministe (seed hérité, aucun jet). Le tempo LOURD des
+// moves de charge (BP 120-150 → coût CT élevé) garantit que le dummy agit DANS la fenêtre de charge
+// (avant la frappe T2 du joueur), ce qui rend les interruptions/ripostes déterministes.
+
+/** Bluff (`fake-out`, firstActionOnly + Flinch 100 %). Kangaskhan (spe 90) s'approche puis lance
+ *  Bluff sur le dummy inerte adjacent → dégâts + apeurement ; au tour suivant du dummy le moteur
+ *  émet Flinched (« … est apeuré et ne peut pas agir ! »). Deuxième move (Griffe) pour que le menu du
+ *  tour 2 ne soit pas vide et qu'on prouve que Bluff en est FILTRÉ (firstActionOnly, déjà agi). */
+export const PRIORITY_FAKE_OUT = {
+  seed: 12345,
+  pokemon: "kangaskhan",
+  moves: ["fake-out", "scratch"],
+} as const;
+
+/** Escarmouche (`first-impression`, firstActionOnly SANS flinch). Kangaskhan s'approche puis lance
+ *  Escarmouche sur le dummy inerte adjacent → dégâts (pas d'apeurement) ; au tour 2, Escarmouche est
+ *  filtré du menu (comme Bluff) mais Griffe reste jouable. Variante flinchless du même verrou
+ *  « 1ʳᵉ action ». */
+export const PRIORITY_FIRST_IMPRESSION = {
+  seed: 12345,
+  pokemon: "kangaskhan",
+  moves: ["first-impression", "scratch"],
+} as const;
+
+/** Coup Bas — CAS RÉUSSITE (`sucker-punch`, failsUnlessTargetAggressive). Le dummy Ronflex (snorlax)
+ *  est en HOT-SEAT (`dummyControl: "player"`, `dummyMoves: ["tackle"]` — Charge, move physique de
+ *  contact SANS effet secondaire, pilotable directement en mode joueur sans dépendre du movepool ni
+ *  risquer une paralysie qui décalerait les tours). Persian (spe 115 > 30) agit en 1er : il s'approche
+ *  puis TEMPORISE (Attendre) ; le dummy attaque alors avec Charge (sa DERNIÈRE action est offensive) ;
+ *  au tour suivant Persian lance Coup Bas → la fraîcheur est satisfaite (`lastOffensiveActionAtAction
+ *  === lastActedAtAction`) → le coup TOUCHE (« Ronflex perd N PV »). */
+export const PRIORITY_SUCKER_HIT = {
+  seed: 12345,
+  pokemon: "persian",
+  moves: ["sucker-punch"],
+  dummyPokemon: "snorlax",
+  dummyControl: "player",
+  dummyMoves: ["tackle"],
+} as const;
+
+/** Coup Bas — CAS ÉCHEC (`sucker-punch`). Même Persian rapide (agit en 1er) contre un dummy Ronflex
+ *  INERTE (IA sans move assigné → ne fait que temporiser). Persian s'approche puis lance Coup Bas AU
+ *  1ᵉ TOUR, avant que le dummy ait agi (`lastActedAtAction === undefined`) → la cible n'est pas
+ *  offensive → le coup FIZZLE (« Mais cela échoue … ! », 0 dégât, CT payé). L'anti-collant « a attaqué
+ *  puis temporisé » (freshness fine) est couvert unit/integration core. */
+export const PRIORITY_SUCKER_FIZZLE = {
+  seed: 12345,
+  pokemon: "persian",
+  moves: ["sucker-punch"],
+  dummyPokemon: "snorlax",
+} as const;
+
+/** Mitra-Poing — CHARGE tour 1 (`focus-punch`, twoTurnCharge + chargeReaction focus). Machamp
+ *  (Mackogneur) s'approche puis lance Mitra-Poing sur le dummy inerte adjacent → tour de charge :
+ *  journal « … concentre son énergie pour Mitra-Poing ! » (MoveCharging). L'indicateur ⚡ reste 👁. */
+export const PRIORITY_FOCUS_CHARGE = {
+  seed: 12345,
+  pokemon: "machamp",
+  moves: ["focus-punch"],
+} as const;
+
+/** Mitra-Poing — INTERRUPTION (`focus-punch`). Alakazam s'approche puis charge Mitra-Poing ; le dummy
+ *  Ronflex en HOT-SEAT (`dummyMoves: ["tackle"]` — Charge, physique de contact sans secondaire) le
+ *  FRAPPE pendant la charge → journal « … est frappé pendant sa concentration ! » (FocusInterrupted)
+ *  et `focusInterrupted` posé. Au tour 2, Alakazam frappe : concentration brisée → échec « … perd sa
+ *  concentration ! » (MoveFailed reason focus, 0 dégât, CT payé). Alakazam (spe 120, très rapide) est
+ *  choisi à dessein : le tempo lourd de Mitra-Poing (150 BP) le fait rejouer tard, mais sa vitesse
+ *  limite l'écart à UN seul tour adverse intercalé entre la charge et la frappe — le lien
+ *  interruption→échec est le plus net avec un seul tour intercalé (comme le harness unit). */
+export const PRIORITY_FOCUS_INTERRUPT = {
+  seed: 12345,
+  pokemon: "alakazam",
+  moves: ["focus-punch"],
+  dummyPokemon: "snorlax",
+  dummyControl: "player",
+  dummyMoves: ["tackle"],
+} as const;
+
+/** Bec-Canon (`beak-blast`, twoTurnCharge + chargeReaction beak). Roucarnage (pidgeot) s'approche
+ *  puis charge Bec-Canon ; le dummy Ronflex en HOT-SEAT le FRAPPE avec Charge (move de CONTACT)
+ *  pendant la charge → l'attaquant se brûle sur le bec brûlant : journal « Ronflex se brûle sur le bec
+ *  brûlant ! » (BeakBlastBurn). La charge n'est PAS interrompue (Bec-Canon frappe quand même au tour
+ *  2, non asserté ici — l'observable net est la brûlure de contact). Ronflex (Normal) est brûlable. */
+export const PRIORITY_BEAK_BURN = {
+  seed: 12345,
+  pokemon: "pidgeot",
+  moves: ["beak-blast"],
+  dummyPokemon: "snorlax",
+  dummyControl: "player",
+  dummyMoves: ["tackle"],
+} as const;
+
+/** Carapiège (`shell-trap`, twoTurnCharge + chargeReaction shell, Zone r1 centrée lanceur). Dracaufeu
+ *  (charizard) s'approche puis charge Carapiège ; le dummy Ronflex en HOT-SEAT le FRAPPE avec Charge
+ *  (move PHYSIQUE) pendant la charge → le piège s'arme : journal « Le piège de Dracaufeu s'arme ! »
+ *  (ShellTrapArmed). L'armement conditionnel est l'observable net (la frappe T2 armée n'est pas
+ *  assertée ici). Sans coup physique le piège n'aurait pas été armé (couvert unit/integration core). */
+export const PRIORITY_SHELL_ARMED = {
+  seed: 12345,
+  pokemon: "charizard",
+  moves: ["shell-trap"],
+  dummyPokemon: "snorlax",
+  dummyControl: "player",
+  dummyMoves: ["tackle"],
+} as const;

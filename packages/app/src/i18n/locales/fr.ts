@@ -84,7 +84,7 @@ const fr: Translations = {
   "status.charged": "Chargé",
   "status.ingrain": "Racines",
   "status.aquaRing": "Anneau Hydro",
-  "status.flinched": "A bronché",
+  "status.flinched": "Apeuré",
   "move.tooltip.twoTurnCharge": "⏱ 2 tours",
   "move.tooltip.twoTurnChargeSunSkip": "⏱ 2 tours (Soleil = instant)",
   "battle.ko": "K.O. !",
@@ -340,6 +340,13 @@ const fr: Translations = {
   "moveTooltip.tag.lockIn": "🔁 Verrouillé 2-3 tours (répétition forcée)",
   "moveTooltip.tag.lockInConfuse": "🔁 Verrouillé 2-3 tours puis Confusion",
   "moveTooltip.tag.uproarAura": "🔊 Empêche le sommeil autour de soi (rayon 3)",
+  "moveTooltip.tag.firstActionOnly": "⏱ Utilisable seulement à votre 1er tour du combat",
+  "moveTooltip.tag.suckerPunch":
+    "🎯 Échoue si la dernière action de la cible n'était pas une attaque",
+  "moveTooltip.tag.chargeReactionFocus": "⏱ 2 tours · échoue si vous êtes frappé pendant la charge",
+  "moveTooltip.tag.chargeReactionBeak": "⏱ 2 tours · brûle qui vous touche pendant la charge",
+  "moveTooltip.tag.chargeReactionShell":
+    "⏱ 2 tours · riposte seulement si frappé par une capacité physique",
   "moveTooltip.tag.healBlock": "🚫 Anti-Soin (2 tours)",
   "moveTooltip.tag.spite": "⏳ Retarde le prochain tour de la cible",
   "moveTooltip.tag.removesItem": "🗑️ Retire l'objet de la cible",
