@@ -11,6 +11,7 @@ import {
   BattleEventType,
   DefensiveKind,
   HitAndRunRetreatFallbackReason,
+  MoveFailedReason,
   ProtectionReason,
   StatName,
   StatusImmuneReason,
@@ -476,7 +477,8 @@ export function formatBattleEvent(
 
     case BattleEventType.Flinched: {
       const name = context.getPokemonName(event.pokemonId);
-      const message = lang === "fr" ? `${name} a bronché !` : `${name} flinched!`;
+      const message =
+        lang === "fr" ? `${name} est apeuré et ne peut pas agir !` : `${name} flinched!`;
       return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
     }
 
@@ -667,8 +669,42 @@ export function formatBattleEvent(
 
     case BattleEventType.MoveFailed: {
       const name = context.getPokemonName(event.attackerId);
-      const message = lang === "fr" ? `Mais cela échoue (${name}) !` : `But it failed (${name})!`;
+      let message: string;
+      if (event.reason === MoveFailedReason.Focus) {
+        message = lang === "fr" ? `${name} perd sa concentration !` : `${name} lost its focus!`;
+      } else if (event.reason === MoveFailedReason.ShellTrap) {
+        message =
+          lang === "fr"
+            ? `Le piège de ${name} ne s'est pas déclenché !`
+            : `${name}'s trap was not triggered!`;
+      } else {
+        message = lang === "fr" ? `Mais cela échoue (${name}) !` : `But it failed (${name})!`;
+      }
       return { message, color: BattleLogColors.miss, pokemonIds: [event.attackerId] };
+    }
+
+    case BattleEventType.FocusInterrupted: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${name} est frappé pendant sa concentration !`
+          : `${name} is hit while focusing!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.BeakBlastBurn: {
+      const targetName = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `${targetName} se brûle sur le bec brûlant !`
+          : `${targetName} was burned by the blazing beak!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.targetId] };
+    }
+
+    case BattleEventType.ShellTrapArmed: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message = lang === "fr" ? `Le piège de ${name} s'arme !` : `${name}'s trap is set!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
     }
 
     case BattleEventType.Imprisoned: {

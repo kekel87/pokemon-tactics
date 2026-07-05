@@ -142,3 +142,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 147 | [Famille Sacrifice/Self-KO (self-KO généralisé + revive + KO-trigger — 454 → 460)](./147-sacrifice-self-ko.md) | done | 2026-07-03 |
 | 148 | [Famille OHKO (K.O. en un coup — 460 → 464)](./148-ohko.md) | done | 2026-07-04 |
 | 149 | [Famille Lock-in multi-turn (verrou 2-3 tours forcé — 464 → 469)](./149-lock-in-multi-turn.md) | done | 2026-07-04 |
+| 150 | [Famille Priorité / timing conditionnel (1er-tour + charge-interrupt — 469 → 475)](./150-priority-timing-conditional.md) | done | 2026-07-05 |

@@ -54,6 +54,12 @@ export const BattleEventType = {
   WeatherDamage: "weather_damage",
   WeatherWar: "weather_war",
   MoveCharging: "move_charging",
+  /** Reactive-charge family (plan 150): a charging Mitra-Poing lost focus after taking a hit. */
+  FocusInterrupted: "focus_interrupted",
+  /** Reactive-charge family (plan 150): a Bec-Canon burned a contact attacker during its charge. */
+  BeakBlastBurn: "beak_blast_burn",
+  /** Reactive-charge family (plan 150): a Carapiège armed after being hit by a physical move. */
+  ShellTrapArmed: "shell_trap_armed",
   Teleported: "teleported",
   HitAndRunRetreat: "hit_and_run_retreat",
   HitAndRunRetreatFallback: "hit_and_run_retreat_fallback",

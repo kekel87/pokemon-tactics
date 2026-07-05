@@ -6,6 +6,7 @@ import type { EntryHazardKind } from "../enums/entry-hazard-kind";
 import type { FieldGlobalKind } from "../enums/field-global-kind";
 import type { FieldTerrain } from "../enums/field-terrain";
 import type { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
+import type { MoveFailedReason } from "../enums/move-failed-reason";
 import type { PokemonType } from "../enums/pokemon-type";
 import type { StatName } from "../enums/stat-name";
 import type { StatusImmuneReason } from "../enums/status-immune-reason";
@@ -446,6 +447,24 @@ export type BattleEvent =
       type: typeof BattleEventType.MoveFailed;
       attackerId: string;
       moveId: string;
+      /** Reactive-charge family (plan 150): why the move fizzled (Mitra-Poing struck / Carapiège not armed). */
+      reason?: MoveFailedReason;
+    }
+  | {
+      type: typeof BattleEventType.FocusInterrupted;
+      pokemonId: string;
+      moveId: string;
+    }
+  | {
+      type: typeof BattleEventType.BeakBlastBurn;
+      /** The charging Bec-Canon user whose beak burned the attacker. */
+      pokemonId: string;
+      /** The mon that made contact and got burned. */
+      targetId: string;
+    }
+  | {
+      type: typeof BattleEventType.ShellTrapArmed;
+      pokemonId: string;
     }
   | { type: typeof BattleEventType.Imprisoned; pokemonId: string }
   | { type: typeof BattleEventType.ImprisonFailed; pokemonId: string }

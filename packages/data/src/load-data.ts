@@ -132,6 +132,9 @@ export function loadData(): GameData {
       ...(merged.ohkoIceImmunity ? { ohkoIceImmunity: true } : {}),
       ...(merged.lockIn ? { lockIn: merged.lockIn } : {}),
       ...(merged.uproarAura ? { uproarAura: true } : {}),
+      ...(merged.firstActionOnly ? { firstActionOnly: true } : {}),
+      ...(merged.failsUnlessTargetAggressive ? { failsUnlessTargetAggressive: true } : {}),
+      ...(merged.chargeReaction ? { chargeReaction: merged.chargeReaction } : {}),
     };
     return moveDefinition;
   });

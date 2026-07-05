@@ -10,6 +10,7 @@ import {
   AttackStatSource,
   AuraKind,
   CallMoveSourceKind,
+  ChargeReaction,
   ConditionKind,
   DefensiveKind,
   DynamicPowerKind,
@@ -78,6 +79,9 @@ export interface TacticalOverride {
   ohkoIceImmunity?: boolean;
   lockIn?: { minTurns: number; maxTurns: number; confuseOnEnd: boolean };
   uproarAura?: boolean;
+  firstActionOnly?: boolean;
+  failsUnlessTargetAggressive?: boolean;
+  chargeReaction?: ChargeReaction;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -1836,6 +1840,51 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.Damage }],
     twoTurnCharge: true,
     critRatio: 1,
+  },
+  // ── Famille Priorité / timing conditionnel (plan 150) ──
+  // Pas de notion de priorité dans le CT : le coût (dérivé de la puissance) ordonne déjà (Bluff léger,
+  // Mitra-Poing/Carapiège lourds). Voir docs/plans/150-priority-timing-conditional.md.
+  "fake-out": {
+    // Bluff : usable uniquement à la 1re action du combat du lanceur ; flinch garanti.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 100 },
+    ],
+    firstActionOnly: true,
+  },
+  "first-impression": {
+    // Escarmouche : ouverture puissante, 1re action du combat seulement (sans flinch).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    firstActionOnly: true,
+  },
+  "sucker-punch": {
+    // Coup Bas : fizzle sauf si la dernière action de la cible était offensive (fraîcheur).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    failsUnlessTargetAggressive: true,
+  },
+  "focus-punch": {
+    // Mitra-Poing : charge 2-tours sans semi-invuln ; tout dégât direct pendant la charge annule la frappe.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    twoTurnCharge: true,
+    chargeReaction: ChargeReaction.Focus,
+  },
+  "beak-blast": {
+    // Bec-Canon : charge 2-tours ; brûle les attaquants au contact pendant la charge ; frappe quand même.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    twoTurnCharge: true,
+    chargeReaction: ChargeReaction.Beak,
+  },
+  "shell-trap": {
+    // Carapiège : charge 2-tours ; armé seulement si frappé par un move physique ; Zone r1 autour du lanceur.
+    targeting: { kind: TargetingKind.Zone, radius: 1 },
+    effects: [{ kind: EffectKind.Damage }],
+    twoTurnCharge: true,
+    chargeReaction: ChargeReaction.Shell,
   },
   substitute: {
     targeting: { kind: TargetingKind.Self },

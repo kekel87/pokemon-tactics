@@ -2,6 +2,7 @@ import type { FieldTerrain, MoveDefinition } from "@pokemon-tactic/core";
 import {
   AttackStatSource,
   CallMoveSourceKind,
+  ChargeReaction,
   EffectKind,
   StatusType,
   TargetingKind,
@@ -80,9 +81,23 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   const keys: string[] = [];
 
   if (move.twoTurnCharge) {
-    keys.push(
-      move.sunSkipsCharge ? "move.tooltip.twoTurnChargeSunSkip" : "move.tooltip.twoTurnCharge",
-    );
+    if (move.chargeReaction === ChargeReaction.Focus) {
+      keys.push("moveTooltip.tag.chargeReactionFocus");
+    } else if (move.chargeReaction === ChargeReaction.Beak) {
+      keys.push("moveTooltip.tag.chargeReactionBeak");
+    } else if (move.chargeReaction === ChargeReaction.Shell) {
+      keys.push("moveTooltip.tag.chargeReactionShell");
+    } else {
+      keys.push(
+        move.sunSkipsCharge ? "move.tooltip.twoTurnChargeSunSkip" : "move.tooltip.twoTurnCharge",
+      );
+    }
+  }
+  if (move.firstActionOnly === true) {
+    keys.push("moveTooltip.tag.firstActionOnly");
+  }
+  if (move.failsUnlessTargetAggressive === true) {
+    keys.push("moveTooltip.tag.suckerPunch");
   }
   if (move.isOhko === true) {
     keys.push("moveTooltip.tag.ohko");

@@ -341,6 +341,11 @@ export interface Translations {
   "moveTooltip.tag.lockIn": string;
   "moveTooltip.tag.lockInConfuse": string;
   "moveTooltip.tag.uproarAura": string;
+  "moveTooltip.tag.firstActionOnly": string;
+  "moveTooltip.tag.suckerPunch": string;
+  "moveTooltip.tag.chargeReactionFocus": string;
+  "moveTooltip.tag.chargeReactionBeak": string;
+  "moveTooltip.tag.chargeReactionShell": string;
   "moveTooltip.tag.healBlock": string;
   "moveTooltip.tag.spite": string;
   "moveTooltip.tag.removesItem": string;

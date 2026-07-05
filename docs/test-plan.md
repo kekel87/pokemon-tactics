@@ -1207,6 +1207,58 @@ les autres patterns/immunités de type sont couverts unit/integration core.
   (`ohkoIceAccuracyRule`) — modificateur non déterministement observable sans gymnastique de seed →
   unit (`battle/ohko.test.ts`).
 
+### 5.31 Famille Priorité / timing conditionnel
+*src : core `data/overrides/tactical.ts` (`fake-out`, `first-impression`, `sucker-punch`, `focus-punch`,
+`beak-blast`, `shell-trap` + `firstActionOnly` / `failsUnlessTargetAggressive` / `chargeReaction`),
+`battle/charge-reaction.ts` (hook `handle-damage` : focus/beak/shell), `BattleEngine` (gates
+`getLegalActions`/`submitAction`, fraîcheur `lastOffensiveActionAtAction`, gate T2 de charge),
+`PokemonInstance` (`focusInterrupted`/`shellTrapArmed`/`lastOffensiveActionAtAction`) ; events
+`battle-event.ts` (`FocusInterrupted`, `BeakBlastBurn`, `ShellTrapArmed`, `MoveFailed.reason`) ; journal
+`ui-dom/BattleLogFormatter.ts` ; tags tooltip `moveTooltip.tag.{firstActionOnly,chargeReaction*}` ; unit
+`battle/moves/{fake-out,first-impression,sucker-punch,focus-punch,beak-blast,shell-trap}.test.ts` +
+`battle/charge-reaction.test.ts` + `battle/priority-timing.integration.test.ts` ; e2e :
+`mechanics-priority-timing.spec.ts`. Plan 150.* Six moves dont l'identité repose sur le **timing** (1ʳᵉ
+action du combat, fraîcheur de la dernière action de la cible, charge interruptible), pas sur une
+priorité canon (inexistante : le CT ordonne). En sandbox le joueur part des spawns par défaut et
+**s'approche** en (1,1) avant de lancer (les Single 1-1 sont omnidirectionnelles) ; une action ne
+termine pas le tour → `endTurn()` explicite entre les tours ; les cibles pilotées (Coup Bas réussite,
+interruptions/ripostes de charge) sont en **hot-seat** (`dummyControl: "player"` + Charge/`tackle`).
+Déterministe (seed moteur, moves 100 % précision, jamais d'override `Math.random`).
+
+- 🤖 **Bluff frappe + apeure** (`fake-out`, firstActionOnly + Flinch 100 %) : à la 1ʳᵉ action → dégâts,
+  puis le dummy apeuré passe son tour → « … est apeuré et ne peut pas agir ! » (Flinched) —
+  `mechanics-priority-timing.spec`.
+- 🤖 **Bluff filtré au 2e tour** : une fois le tour 1 fini, Bluff reste affiché au menu d'attaque mais
+  `data-enabled="false"` (déjà agi), Griffe `data-enabled="true"` — `mechanics-priority-timing.spec`.
+- 🤖 **Escarmouche** (`first-impression`, firstActionOnly sans flinch) : ouverture puissante (dégâts,
+  pas d'apeurement) puis `data-enabled="false"` au menu du tour 2 — `mechanics-priority-timing.spec`.
+- 🤖 **Coup Bas touche** (`sucker-punch`) : le dummy (hot-seat) attaque d'abord avec Charge → sa
+  dernière action est offensive → Coup Bas touche (« Ronflex perd N PV »), aucun échec —
+  `mechanics-priority-timing.spec`.
+- 🤖 **Coup Bas échoue** : le dummy n'a pas (encore) attaqué → fizzle « Mais cela échoue … ! » (0 dégât)
+  — `mechanics-priority-timing.spec`.
+- 🤖 **Mitra-Poing charge** (`focus-punch`) : tour 1 → « … concentre son énergie pour Mitra-Poing ! »
+  (MoveCharging) — `mechanics-priority-timing.spec`. *L'indicateur ⚡ reste 👁 (§5.11).*
+- 🤖 **Mitra-Poing interrompu** : frappé pendant la charge → « … est frappé pendant sa concentration ! »
+  (FocusInterrupted), puis la frappe T2 échoue → « … perd sa concentration ! » (MoveFailed reason focus).
+  Lanceur rapide (Alakazam) pour n'intercaler qu'UN tour adverse (lien interruption→échec le plus net) —
+  `mechanics-priority-timing.spec`.
+- 🤖 **Bec-Canon brûlure de contact** (`beak-blast`, **0 learner Gen 1** → injouable en team builder,
+  piloté en mode sandbox) : frappé au CONTACT pendant la charge → l'attaquant se brûle « Ronflex se
+  brûle sur le bec brûlant ! » (BeakBlastBurn) — `mechanics-priority-timing.spec`.
+- 🤖 **Carapiège armé** (`shell-trap`, **0 learner Gen 1** → piloté en mode sandbox) : frappé par un
+  move PHYSIQUE pendant la charge → « Le piège de Dracaufeu s'arme ! » (ShellTrapArmed) —
+  `mechanics-priority-timing.spec`.
+- 👁 **Coup Bas — fraîcheur fine** (la cible a attaqué PUIS temporisé → échoue) : anti-collant
+  `lastUsedMoveId`, couvert unit (`sucker-punch.test`, `priority-timing.integration`).
+- 👁 **Mitra-Poing frappe si laissé tranquille** / **un dégât INDIRECT (poison) ne casse pas la
+  concentration** : unit (`focus-punch.test`, `charge-reaction.test`).
+- 👁 **Bec-Canon frappe quand même au tour 2** ; attaquant NON-contact ou cible Feu **non brûlés** ;
+  **Carapiège échoue si non armé** (pas frappé / frappé spécialement) : unit
+  (`beak-blast.test`, `shell-trap.test`, `charge-reaction.test`).
+- 👁 **Tags tooltip** (`⏱ 1er tour seulement`, `🎯 Échoue si la cible n'attaque pas`, `⏱ 2 tours · …`) +
+  flottant/indicateur ⚡ de charge = pixel/unit.
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -1467,6 +1519,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-field-global.spec.ts` | §5.29 famille Field global (plan 145) : les 3 zones diamant Self (Gravité / Zone Étrange / Zone Magique) posées sur la case du lanceur (2,3) → journal « déploie <label> (5 tours) » + quad de scène par kind (`field_terrain_<couleur>_2_3`, une couleur par kind) ; Vent Arrière (`tailwind`, GroundTarget portée 1) ciblé au nord (2,2) → journal « lève le Vent Arrière vers le Nord » + HUD flèche `tailwind-hud` (libellé « Vent Arrière ») ; Gravité verrouille les moves aériens → Pied Voltige (`disabledUnderGravity`) `data-enabled="false"` au menu Attaque une fois la zone posée, `data-enabled="true"` en témoin. Clouage des Volants + immunité Sol, précision ×5/3, swap Déf/DéfSpé, objet neutralisé, ctGain ×1.5 aligné au vent, décompte/expiration/horloge fantôme = unit/integration core (`moves/{gravity,wonder-room,magic-room,tailwind}.test.ts`, `field-global-system.test.ts`, `tailwind-system.test.ts`) → 👁 |
 | `combat/mechanics-ohko.spec.ts` | §5.30 famille K.O. en un coup (OHKO, plan 148) : K.O. direct — Guillotine (`guillotine`, Single 1-1 contact, hors-pool forcé, `seed: 0` → touche) sur le dummy Normal adjacent → journal « C'est un K.O. direct ! » (event OneHitKo) + modale de victoire ; immunité Fermeté — le même coup seedé à toucher, dummy porteur de `sturdy` à pleins PV → « Fermeté de <dummy> s'active ! », « K.O. direct » et modale de victoire absents (survie à 1 PV). Immunités de type (Glace vs Glaciation, Spectre vs Normal, Vol vs Abîme), survie Baie Ceinture/Ténacité, règle précision Glace, les 3 autres patterns (Abîme Ligne 3 / Empal'Korne Ligne 2 / Glaciation Cône) = unit/integration core (`battle/ohko.test.ts`, `moves/{guillotine,fissure,horn-drill,sheer-cold}.test.ts`) → 👁. Le flottant « K.O.! » (couleur) et le tag tooltip ☠ = 👁 (pixel) |
 | `combat/mechanics-trapping.spec.ts` | §5.26 famille Pièges (trapping) : piège PARTIEL (Danse Flammes + Aucun Garde forçant 100 % → « Ronflex est piégé ! » puis chip de fin de tour « Ronflex perd N PV ! ») ; piège PUR position-linked (Barrage → « Ronflex est piégé ! » sans dégâts, puis le lanceur s'éloigne en (2,5) → « Ronflex est libéré du piège »). Étreinte/Siphon/Tourbi-Sable (même pattern partiel) et Regard Noir (même pattern pur) = unit (`moves/*.test.ts`), non dupliqués e2e → 👁. Immobilisation (0 action Move, attaque OK) = unit (pas de ligne de journal) → 👁 |
+| `combat/mechanics-priority-timing.spec.ts` | §5.31 famille Priorité / timing conditionnel (plan 150) : Bluff (`fake-out`) — 1ʳᵉ action → dégâts + « … est apeuré et ne peut pas agir ! », puis `data-enabled="false"` au tour 2 (firstActionOnly, Griffe restant `true`) ; Escarmouche (`first-impression`) — ouverture (dégâts) puis `data-enabled="false"` au tour 2 ; Coup Bas (`sucker-punch`) — TOUCHE si la dernière action de la cible était offensive (dummy hot-seat attaque avec Charge → « Ronflex perd N PV »), ÉCHOUE sinon (« Mais cela échoue … ! ») ; Mitra-Poing (`focus-punch`) — charge tour 1 (« … concentre son énergie … »), interrompu si frappé pendant la charge (« … est frappé pendant sa concentration ! ») → frappe T2 échoue (« … perd sa concentration ! », lanceur rapide Alakazam pour n'intercaler qu'un tour) ; Bec-Canon (`beak-blast`, 0 learner Gen 1 → sandbox) — brûlure de contact pendant la charge (« Ronflex se brûle sur le bec brûlant ! ») ; Carapiège (`shell-trap`, 0 learner Gen 1 → sandbox) — armé par un coup physique (« Le piège de Dracaufeu s'arme ! »). Fraîcheur fine de Coup Bas (a attaqué PUIS temporisé), « frappe si laissé tranquille » / dégât indirect ne casse pas (Mitra-Poing), frappe T2 de Bec-Canon + immunités, échec Carapiège si non armé, tags tooltip = unit/integration core (`moves/*.test.ts`, `charge-reaction.test.ts`, `priority-timing.integration.test.ts`) → 👁 |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
