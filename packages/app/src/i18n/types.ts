@@ -290,6 +290,7 @@ export interface Translations {
   "fieldTerrain.posted.psychic": string;
   "fieldTerrain.blocked.misty": string;
   "fieldTerrain.blocked.electric": string;
+  "uproar.blocked": string;
   "fieldTerrain.dashBlocked": string;
   "distortion.posted": string;
   "entryHazard.poisoned": string;
@@ -318,6 +319,7 @@ export interface Translations {
   "infoPanel.volatile.wish": string;
   "infoPanel.volatile.helpingHand": string;
   "infoPanel.volatile.perish": string;
+  "infoPanel.volatile.lockIn": string;
   "infoPanel.volatile.typeChanged": string;
   "infoPanel.volatile.noType": string;
   "moveTooltip.tag.sound": string;
@@ -336,6 +338,9 @@ export interface Translations {
   "moveTooltip.tag.hazardRemover": string;
   "moveTooltip.tag.imprison": string;
   "moveTooltip.tag.ohko": string;
+  "moveTooltip.tag.lockIn": string;
+  "moveTooltip.tag.lockInConfuse": string;
+  "moveTooltip.tag.uproarAura": string;
   "moveTooltip.tag.healBlock": string;
   "moveTooltip.tag.spite": string;
   "moveTooltip.tag.removesItem": string;

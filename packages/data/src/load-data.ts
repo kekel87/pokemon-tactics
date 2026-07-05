@@ -130,6 +130,8 @@ export function loadData(): GameData {
       ...(merged.isOhko ? { isOhko: true } : {}),
       ...(merged.ohkoIceAccuracyRule ? { ohkoIceAccuracyRule: true } : {}),
       ...(merged.ohkoIceImmunity ? { ohkoIceImmunity: true } : {}),
+      ...(merged.lockIn ? { lockIn: merged.lockIn } : {}),
+      ...(merged.uproarAura ? { uproarAura: true } : {}),
     };
     return moveDefinition;
   });

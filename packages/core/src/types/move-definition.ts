@@ -131,4 +131,17 @@ export interface MoveDefinition {
    * `lastUsedMoveId` stay on this source move; the global-last record gets the called move.
    */
   callMove?: CallMoveSourceKind;
+  /**
+   * Lock-in multi-turn family (plan 149): on use the caster is locked into repeating this move for a
+   * random `minTurns..maxTurns` casts (fixed if min === max). `confuseOnEnd` self-confuses the caster
+   * when the lock expires (Mania / Danse Fleurs / Colère / Grand Courroux — canon rampage downside;
+   * Brouhaha sets it false). Handled by `battle/lock-in.ts` after the move resolves.
+   */
+  lockIn?: { minTurns: number; maxTurns: number; confuseOnEnd: boolean };
+  /**
+   * Brouhaha (uproar): while the caster is locked into this move, it projects a mobile no-sleep aura
+   * over Manhattan radius 3 (blocks new sleep + wakes sleepers in range, on the first cast). Sound-
+   * based, ignores line of sight, no grounded gate. See `battle/uproar-aura.ts`.
+   */
+  uproarAura?: boolean;
 }

@@ -76,6 +76,8 @@ export interface TacticalOverride {
   isOhko?: boolean;
   ohkoIceAccuracyRule?: boolean;
   ohkoIceImmunity?: boolean;
+  lockIn?: { minTurns: number; maxTurns: number; confuseOnEnd: boolean };
+  uproarAura?: boolean;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -1139,17 +1141,41 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
 
+  // Lock-in multi-turn — plan 149. Verrou 2-3 tours forcés puis Confusion (self). Le verrou +
+  // l'expiration → confusion sont gérés par battle/lock-in.ts (l'effet Confused n'est PLUS immédiat).
   outrage: {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
-    effects: [
-      { kind: EffectKind.Damage },
-      {
-        kind: EffectKind.Status,
-        status: StatusType.Confused,
-        chance: 100,
-        target: EffectTarget.Self,
-      },
-    ],
+    effects: [{ kind: EffectKind.Damage }],
+    lockIn: { minTurns: 2, maxTurns: 3, confuseOnEnd: true },
+  },
+  thrash: {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    lockIn: { minTurns: 2, maxTurns: 3, confuseOnEnd: true },
+  },
+  "petal-dance": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+    effects: [{ kind: EffectKind.Damage }],
+    lockIn: { minTurns: 2, maxTurns: 3, confuseOnEnd: true },
+  },
+  "raging-fury": {
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    lockIn: { minTurns: 2, maxTurns: 3, confuseOnEnd: true },
+  },
+  // Brouhaha : onde sonore en cône (directeur créatif) + verrou 3 tours SANS confusion + aura
+  // anti-sommeil mobile r3 (battle/uproar-aura.ts).
+  uproar: {
+    targeting: { kind: TargetingKind.Cone, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }],
+    lockIn: { minTurns: 3, maxTurns: 3, confuseOnEnd: false },
+    uproarAura: true,
+  },
+  // Ball'Glace : clone Glace de Roulade (snowball volontaire, réutilise DynamicPowerKind.RolloutStreak).
+  "ice-ball": {
+    targeting: { kind: TargetingKind.Dash, maxDistance: 2 },
+    effects: [{ kind: EffectKind.Damage }],
+    dynamicPower: { kind: DynamicPowerKind.RolloutStreak },
   },
 
   "extreme-speed": {

@@ -66,6 +66,15 @@ export interface PokemonInstance {
    */
   critStageBoost?: number;
   lockedMoveId?: string;
+  /**
+   * Lock-in multi-turn family (plan 149: Mania / Danse Fleurs / Colère / Grand Courroux / Brouhaha).
+   * While `lockInTurnsRemaining > 0`, the mon is forced to repeat `lockInMoveId` — filtered in
+   * `getLegalActions` + guarded in `submitAction` (own branch, kept distinct from `lockedMoveId` which
+   * two-turn charge / Choice already use). Set + decremented AFTER the move resolves each turn; when it
+   * reaches 0 the lock clears and (for `confuseOnEnd` moves) the caster is confused. Cleared on KO.
+   */
+  lockInMoveId?: string;
+  lockInTurnsRemaining?: number;
   chargingMove?: { moveId: string; targetPosition?: Position };
   /**
    * Move-copy family (plan 144). Set by `prepareCalledMove` when the caster commits a call-move

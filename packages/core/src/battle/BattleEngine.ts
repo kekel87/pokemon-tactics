@@ -118,6 +118,7 @@ import { getHeightModifier } from "./height-modifier";
 import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { collectImprisonedMoveIds } from "./imprison-system";
+import { isLockInMove, resolveLockIn } from "./lock-in";
 import { isMetronomeCallable, isSleepTalkCallable } from "./move-copy/callable-moves";
 import { resolveNaturePowerMove } from "./nature-power-system";
 import { type OhkoImmunity, ohkoAccuracy, ohkoImmunityReason } from "./ohko";
@@ -810,6 +811,11 @@ export class BattleEngine {
           continue;
         }
 
+        // Lock-in multi-turn (plan 149): a mid-rampage mon may only repeat the locked move.
+        if (currentPokemon.lockInMoveId !== undefined && moveId !== currentPokemon.lockInMoveId) {
+          continue;
+        }
+
         // Snore (B3): only usable while asleep; conversely a sleeping mon may use nothing else.
         if (move.requiresAsleep === true && !isAsleep) {
           continue;
@@ -1330,6 +1336,12 @@ export class BattleEngine {
     // Rancune (grudge): a move sealed on this mon by an enemy's Rancune is unusable — defensive guard
     // mirroring getLegalActions (no dedicated blocked event, like the imprison / Snore gates).
     if (pokemon.grudgeLockedMoveIds?.includes(moveId) === true) {
+      return { success: false, events: [], error: ActionError.InvalidAction };
+    }
+
+    // Lock-in multi-turn (plan 149): defensive guard mirroring getLegalActions — a mid-rampage mon
+    // may only repeat its locked move.
+    if (pokemon.lockInMoveId !== undefined && moveId !== pokemon.lockInMoveId) {
       return { success: false, events: [], error: ActionError.InvalidAction };
     }
 
@@ -1893,6 +1905,21 @@ export class BattleEngine {
     this.turnState.hasActed = true;
     this.turnState.lastMoveId = moveId;
     recordLastUsedMove(pokemon, move);
+    // Lock-in multi-turn (plan 149): advance the rampage counter — locks on the first cast, ticks
+    // down each turn, self-confuses (Mania / Danse Fleurs / Colère / Grand Courroux) or wakes/blocks
+    // sleep (Brouhaha) as it resolves. Runs whatever the cast's outcome (a miss still burns a turn).
+    if (isLockInMove(move) && pokemon.currentHp > 0) {
+      for (const event of resolveLockIn(
+        pokemon,
+        move,
+        this.random,
+        this.state,
+        this.effectiveTypesOf(pokemon),
+      )) {
+        events.push(event);
+        this.emit(event);
+      }
+    }
     // Move-copy (plan 144): `lastUsedMoveId` stays on the source move (recordLastUsedMove above), but
     // the GLOBAL last move (Photocopie) records the move actually executed — never a metamove.
     if (effectiveMove.callMove === undefined) {
@@ -3193,6 +3220,8 @@ export class BattleEngine {
     pokemon.activeDefense = null;
     pokemon.chargingMove = undefined;
     pokemon.lockedMoveId = undefined;
+    pokemon.lockInMoveId = undefined;
+    pokemon.lockInTurnsRemaining = undefined;
     pokemon.pendingCalledMove = undefined;
     pokemon.substituteHp = undefined;
     pokemon.pendingWish = undefined;
