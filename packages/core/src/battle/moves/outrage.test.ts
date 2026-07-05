@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { ActionError } from "../../enums/action-error";
 import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
@@ -6,123 +6,86 @@ import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
 import { buildMoveTestEngine, MockPokemon } from "../../testing";
 
+function makeCaster() {
+  return MockPokemon.fresh(MockPokemon.base, {
+    id: "attacker",
+    playerId: PlayerId.Player1,
+    position: { x: 0, y: 0 },
+    moveIds: ["outrage", "tackle"],
+    currentPp: { outrage: 10 },
+    derivedStats: { movement: 3, jump: 1, initiative: 100 },
+  });
+}
+
+function makeFoe(position: { x: number; y: number }) {
+  return MockPokemon.fresh(MockPokemon.base, {
+    id: "defender",
+    playerId: PlayerId.Player2,
+    position,
+    derivedStats: { movement: 3, jump: 1, initiative: 10 },
+  });
+}
+
 describe("outrage", () => {
   it("deals damage to adjacent target", () => {
-    const attacker = MockPokemon.fresh(MockPokemon.base, {
-      id: "attacker",
-      playerId: PlayerId.Player1,
-      position: { x: 0, y: 0 },
-      moveIds: ["outrage"],
-      currentPp: { outrage: 10 },
-      derivedStats: { movement: 3, jump: 1, initiative: 100 },
-    });
-    const defender = MockPokemon.fresh(MockPokemon.base, {
-      id: "defender",
-      playerId: PlayerId.Player2,
-      position: { x: 1, y: 0 },
-      derivedStats: { movement: 3, jump: 1, initiative: 10 },
-    });
-    const { engine, state } = buildMoveTestEngine([attacker, defender]);
-    const hpBefore = state.pokemon.get(defender.id)?.currentHp ?? 0;
+    const { engine, state } = buildMoveTestEngine([makeCaster(), makeFoe({ x: 1, y: 0 })]);
+    const hpBefore = state.pokemon.get("defender")?.currentHp ?? 0;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
-      pokemonId: attacker.id,
+      pokemonId: "attacker",
       moveId: "outrage",
       targetPosition: { x: 1, y: 0 },
     });
 
     expect(result.success).toBe(true);
-    expect(result.events.map((e) => e.type)).toContain(BattleEventType.DamageDealt);
-    expect(state.pokemon.get(defender.id)?.currentHp).toBeLessThan(hpBefore);
+    expect(result.events.map((event) => event.type)).toContain(BattleEventType.DamageDealt);
+    expect(state.pokemon.get("defender")?.currentHp).toBeLessThan(hpBefore);
   });
 
-  it("always confuses the user after use", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0);
-    const attacker = MockPokemon.fresh(MockPokemon.base, {
-      id: "attacker",
-      playerId: PlayerId.Player1,
-      position: { x: 0, y: 0 },
-      moveIds: ["outrage"],
-      currentPp: { outrage: 10 },
-      derivedStats: { movement: 3, jump: 1, initiative: 100 },
-    });
-    const defender = MockPokemon.fresh(MockPokemon.base, {
-      id: "defender",
-      playerId: PlayerId.Player2,
-      position: { x: 1, y: 0 },
-      derivedStats: { movement: 3, jump: 1, initiative: 10 },
-    });
-    const { engine, state } = buildMoveTestEngine([attacker, defender]);
+  it("locks the user into the move without confusing it on the first cast", () => {
+    const { engine, state } = buildMoveTestEngine([makeCaster(), makeFoe({ x: 1, y: 0 })]);
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
-      pokemonId: attacker.id,
+      pokemonId: "attacker",
       moveId: "outrage",
       targetPosition: { x: 1, y: 0 },
     });
 
-    vi.restoreAllMocks();
-
     expect(result.success).toBe(true);
-    expect(result.events.map((e) => e.type)).toContain(BattleEventType.StatusApplied);
-    expect(state.pokemon.get(attacker.id)?.volatileStatuses).toContainEqual(
+    expect(result.events.map((event) => event.type)).toContain(BattleEventType.LockInStarted);
+    expect(state.pokemon.get("attacker")?.lockInMoveId).toBe("outrage");
+    expect(state.pokemon.get("attacker")?.lockInTurnsRemaining ?? 0).toBeGreaterThan(0);
+    expect(state.pokemon.get("attacker")?.volatileStatuses).not.toContainEqual(
       expect.objectContaining({ type: StatusType.Confused }),
     );
   });
 
-  it("does not confuse the defender", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0);
-    const attacker = MockPokemon.fresh(MockPokemon.base, {
-      id: "attacker",
-      playerId: PlayerId.Player1,
-      position: { x: 0, y: 0 },
-      moveIds: ["outrage"],
-      currentPp: { outrage: 10 },
-      derivedStats: { movement: 3, jump: 1, initiative: 100 },
-    });
-    const defender = MockPokemon.fresh(MockPokemon.base, {
-      id: "defender",
-      playerId: PlayerId.Player2,
-      position: { x: 1, y: 0 },
-      derivedStats: { movement: 3, jump: 1, initiative: 10 },
-    });
-    const { engine, state } = buildMoveTestEngine([attacker, defender]);
+  it("restricts a locked user to the rampage move in its legal actions", () => {
+    const { engine, state } = buildMoveTestEngine([makeCaster(), makeFoe({ x: 1, y: 0 })]);
+    const live = state.pokemon.get("attacker");
+    if (!live) {
+      throw new Error("missing attacker");
+    }
+    live.lockInMoveId = "outrage";
+    live.lockInTurnsRemaining = 2;
 
-    engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.UseMove,
-      pokemonId: attacker.id,
-      moveId: "outrage",
-      targetPosition: { x: 1, y: 0 },
-    });
+    const moveIds = engine
+      .getLegalActions(PlayerId.Player1)
+      .filter((action) => action.kind === ActionKind.UseMove)
+      .map((action) => action.moveId);
 
-    vi.restoreAllMocks();
-
-    expect(state.pokemon.get(defender.id)?.volatileStatuses).not.toContainEqual(
-      expect.objectContaining({ type: StatusType.Confused }),
-    );
+    expect(moveIds).toContain("outrage");
+    expect(moveIds).not.toContain("tackle");
   });
 
   it("cannot hit out of range", () => {
-    const attacker = MockPokemon.fresh(MockPokemon.base, {
-      id: "attacker",
-      playerId: PlayerId.Player1,
-      position: { x: 0, y: 0 },
-      moveIds: ["outrage"],
-      currentPp: { outrage: 10 },
-      derivedStats: { movement: 3, jump: 1, initiative: 100 },
-    });
-    const defender = MockPokemon.fresh(MockPokemon.base, {
-      id: "defender",
-      playerId: PlayerId.Player2,
-      position: { x: 3, y: 0 },
-      derivedStats: { movement: 3, jump: 1, initiative: 10 },
-    });
-    const { engine } = buildMoveTestEngine([attacker, defender]);
+    const { engine } = buildMoveTestEngine([makeCaster(), makeFoe({ x: 3, y: 0 })]);
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
-      pokemonId: attacker.id,
+      pokemonId: "attacker",
       moveId: "outrage",
       targetPosition: { x: 3, y: 0 },
     });

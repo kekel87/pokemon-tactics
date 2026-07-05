@@ -18,6 +18,7 @@ import { isOnFieldTerrain } from "../field-terrain-system";
 import { tryMentalHerbCure } from "../mental-herb";
 import { isMajorStatus } from "../stat-modifier";
 import { shouldSubstituteBlock } from "../substitute-system";
+import { isUnderNoSleepAura } from "../uproar-aura";
 import { effectiveWeather, shouldBlockFreezeInSun } from "../weather-system";
 
 const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([
@@ -202,6 +203,17 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
         pokemonId: target.id,
         status,
         reason: ProtectionReason.ElectricTerrain,
+      });
+      continue;
+    }
+
+    // Brouhaha (uproar, plan 149): the din prevents sleep for anyone inside a caster's r3 aura.
+    if (status === StatusTypeEnum.Asleep && isUnderNoSleepAura(context.state, target.position)) {
+      events.push({
+        type: BattleEventType.StatusBlocked,
+        pokemonId: target.id,
+        status,
+        reason: ProtectionReason.UproarNoise,
       });
       continue;
     }

@@ -867,6 +867,16 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.LockInStarted: {
+      const name = context.getPokemonName(event.pokemonId);
+      const moveName = context.getMoveName(event.moveId);
+      const message =
+        lang === "fr"
+          ? `${name} se déchaîne avec ${moveName} !`
+          : `${name} goes on a rampage with ${moveName}!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
     case BattleEventType.AuraPosted: {
       const name = context.getPokemonName(event.casterId);
       const auraLabel = auraKindLabel(event.kind, lang);
@@ -935,6 +945,11 @@ export function formatBattleEvent(
           lang === "fr"
             ? `Le Champ Électrifié garde ${targetName} éveillé !`
             : `Electric Terrain keeps ${targetName} awake!`;
+      } else if (event.reason === ProtectionReason.UproarNoise) {
+        message =
+          lang === "fr"
+            ? `Le Brouhaha garde ${targetName} éveillé !`
+            : `The uproar keeps ${targetName} awake!`;
       } else {
         message =
           lang === "fr"

@@ -221,6 +221,16 @@ export function buildInfoPanelView(
     });
   }
 
+  if (pokemon.lockInMoveId !== undefined && (pokemon.lockInTurnsRemaining ?? 0) > 0) {
+    badges.push({
+      label: context.translate("infoPanel.volatile.lockIn", {
+        move: getMoveName(pokemon.lockInMoveId, language),
+        turns: String(pokemon.lockInTurnsRemaining),
+      }),
+      variant: "volatile",
+    });
+  }
+
   if (pokemon.substituteHp !== undefined && pokemon.substituteHp > 0) {
     badges.push({
       label: context.translate("infoPanel.volatile.substitute", {

@@ -137,6 +137,8 @@ export const BattleEventType = {
   GrudgeTriggered: "grudge_triggered",
   /** Famille OHKO (K.O. en un coup): the move connected and instantly KO'd the target. */
   OneHitKo: "one_hit_ko",
+  /** Lock-in multi-turn (plan 149): the caster got locked into repeating a move (rampage / Brouhaha). */
+  LockInStarted: "lock_in_started",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

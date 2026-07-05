@@ -37,6 +37,8 @@ export const ProtectionReason = {
   MistyTerrain: "misty_terrain",
   ElectricTerrain: "electric_terrain",
   HeldItem: "held_item",
+  /** Brouhaha (uproar): the din of a nearby uproar prevents sleep (plan 149). */
+  UproarNoise: "uproar_noise",
 } as const;
 export type ProtectionReason = (typeof ProtectionReason)[keyof typeof ProtectionReason];
 
@@ -527,4 +529,10 @@ export type BattleEvent =
       attackerId: string;
       moveId: string;
     }
-  | { type: typeof BattleEventType.OneHitKo; targetId: string };
+  | { type: typeof BattleEventType.OneHitKo; targetId: string }
+  | {
+      type: typeof BattleEventType.LockInStarted;
+      pokemonId: string;
+      moveId: string;
+      turns: number;
+    };

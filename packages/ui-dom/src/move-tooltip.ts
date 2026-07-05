@@ -224,6 +224,14 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   if (move.effects.some((effect) => effect.kind === EffectKind.SwapRawSpeed)) {
     keys.push("moveTooltip.tag.statManipSpeedSwap");
   }
+  if (move.lockIn !== undefined) {
+    keys.push(
+      move.lockIn.confuseOnEnd ? "moveTooltip.tag.lockInConfuse" : "moveTooltip.tag.lockIn",
+    );
+  }
+  if (move.uproarAura === true) {
+    keys.push("moveTooltip.tag.uproarAura");
+  }
   const fieldTerrainEffect = move.effects.find(
     (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostFieldTerrain }> =>
       effect.kind === EffectKind.PostFieldTerrain,

@@ -193,6 +193,11 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - Décos environnement : herbe haute overlay, arbres, rochers (sources PMD)
 - Remplir layer `decorations` de `simple-arena.tmj` + maps futures
 
+### Bonus Cabriole ×2 sur Roulade / Ball'Glace (2026-07-04, human-testing plan 149)
+- Canon : Cabriole (`defense-curl`) double la puissance de Roulade (`rollout`) et Ball'Glace (`ice-ball`) si utilisée avant, pour tout le reste du combat.
+- État actuel : **non implémenté** — `defense-curl` ne pose que Défense +1 ; `rollout-streak.ts` / `DynamicPowerKind.RolloutStreak` ignorent Cabriole. Les deux moves sont cohérents entre eux (aucun bonus).
+- À faire (passe dédiée) : flag `PokemonInstance.usedDefenseCurl?` posé par Cabriole (persistant, reset KO), consommé ×2 dans le calcul de puissance RolloutStreak (Roulade + Ball'Glace) + tests + tag tooltip. Hors périmètre plan 149 (famille lock-in).
+
 ### Trajectoire de vol (montées/descentes) pour les Flying Pokemon
 - **Anim repos résolue (2026-04-26)** : Flying Pokemon restent en FlyingGlide au repos (idle, après dégâts, knockback). `PokemonSprite.setRestingAnimation()` + `playRestingAnimation()` injectés depuis `BattleScene` à la création.
 - **Restant** : trajectoire déplacement sur dénivelés. Actuellement tween saut (`Hop`) comme autres. Avec FlyingGlide, arc parabolique plus compensé par frames. À traiter avec assets flying dédiés ou quand trajectoire semblera bizarre.
