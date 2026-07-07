@@ -204,4 +204,11 @@ export interface PokemonInstance {
    * in `getLegalActions` + guarded in `submitAction`. Cleared on KO (a fresh corpse holds no grudge-lock).
    */
   grudgeLockedMoveIds?: string[];
+  /**
+   * Grounded by Anti-Air (smack-down, plan 152): a Flying-type mon hit by Anti-Air loses its Ground-
+   * move immunity and becomes vulnerable to grounded-only entry hazards, mirroring a Gravité zone but
+   * per-instance. Read via `isEffectivelyGrounded`. Persists for the rest of the battle (no switch in
+   * this game); cleared on KO.
+   */
+  smackedDown?: boolean;
 }

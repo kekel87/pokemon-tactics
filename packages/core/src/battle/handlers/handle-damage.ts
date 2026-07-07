@@ -30,7 +30,11 @@ import {
 import { checkDefense } from "../defense-check";
 import { resolveDynamicPower } from "../dynamic-power-system";
 import type { EffectContext } from "../effect-handler-registry";
-import { isHeldItemSuppressed, isInFieldGlobalZone } from "../field-global-system";
+import {
+  isEffectivelyGrounded,
+  isHeldItemSuppressed,
+  isInFieldGlobalZone,
+} from "../field-global-system";
 import {
   getFieldTerrainBpMultiplier,
   getFieldTerrainDamageMultiplier,
@@ -205,11 +209,8 @@ function dealSingleHit(
   // Field-global per-hit modifiers (caller holds BattleState): Gravité grounding (Ground hits a
   // Flying defender), Zone Étrange (swap defender Def↔Sp.Def), Zone Magique (suppress item effects).
   const fieldGlobalContext: FieldGlobalDamageContext = {
-    defenderGroundedByGravity: isInFieldGlobalZone(
-      context.state,
-      target.position,
-      FieldGlobalKind.Gravity,
-    ),
+    // `defenderGroundedByGravity` now means "effectively grounded": Gravité zone OR Anti-Air (smack-down).
+    defenderGroundedByGravity: isEffectivelyGrounded(context.state, target),
     defenderDefensesSwapped: isInFieldGlobalZone(
       context.state,
       target.position,
@@ -401,6 +402,13 @@ function dealSingleHit(
     }
 
     return events;
+  }
+
+  // Faux-Chage (false-swipe): the damage can never KO — cap it so the target keeps ≥1 HP. Placed
+  // after Endure/Sturdy/Focus-Sash survivals (they may already have lowered the damage) and after
+  // the Substitute early-return above (the clone still breaks normally).
+  if (context.move.cannotKo === true && target.currentHp > 0 && actualDamage >= target.currentHp) {
+    actualDamage = target.currentHp - 1;
   }
 
   target.currentHp = Math.max(0, target.currentHp - actualDamage);

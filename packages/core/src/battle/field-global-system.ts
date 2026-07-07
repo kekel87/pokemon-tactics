@@ -99,6 +99,15 @@ export function isGroundedByGravityZone(state: BattleState, pokemon: PokemonInst
 }
 
 /**
+ * True if `pokemon` is grounded by any effect that strips its airborne status: standing in a Gravité
+ * zone, or having been hit by Anti-Air (smack-down). A grounded Flying-type loses its Ground-move
+ * immunity and becomes vulnerable to grounded-only entry hazards.
+ */
+export function isEffectivelyGrounded(state: BattleState, pokemon: PokemonInstance): boolean {
+  return isGroundedByGravityZone(state, pokemon) || pokemon.smackedDown === true;
+}
+
+/**
  * True if a move cannot be launched from within a Gravité zone: airborne charge moves (Vol / Rebond,
  * detected via their Flying semi-invulnerable state) and explicitly tagged jump/levitation moves
  * (Pied Voltige). Underground/underwater moves (Tunnel / Plongée) are NOT airborne and stay legal.

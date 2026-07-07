@@ -5,7 +5,7 @@ import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 import { getEffectiveTypes, isEffectivelyFlying, resolveBaseTypes } from "../effective-flying";
-import { isGroundedByGravityZone } from "../field-global-system";
+import { isEffectivelyGrounded } from "../field-global-system";
 import type { HeldItemHandlerRegistry } from "../held-item-handler-registry";
 import { isMajorStatus } from "../stat-modifier";
 import { getTerrainDotFraction, getTerrainStatusOnStop, isTerrainImmune } from "../terrain-effects";
@@ -109,15 +109,13 @@ export function createTerrainTickHandler(
     const terrain = tile.terrain;
     const baseTypes = resolveBaseTypes(pokemon, pokemonTypesMap);
     const types = getEffectiveTypes(pokemon, baseTypes);
-    // Gravité: a grounded mon walks on the ground and suffers its terrain (swamp poison, lava, ice…).
-    // Grounding negates BOTH the airborne float (Levitate/Balloon) AND the Flying type's terrain
-    // immunity — so a grounded Flying-type burns on lava like any land mon. Other type resistances
-    // (Fire vs Magma, Water vs Water…) are physical and stay.
-    const groundedByGravity = isGroundedByGravityZone(state, pokemon);
-    const isFlying = isEffectivelyFlying(pokemon, types) && !groundedByGravity;
-    const terrainTypes = groundedByGravity
-      ? types.filter((type) => type !== PokemonType.Flying)
-      : types;
+    // Gravité (zone) / Anti-Air (smack-down): a grounded mon walks on the ground and suffers its
+    // terrain (swamp poison, lava, ice…). Grounding negates BOTH the airborne float (Levitate/Balloon)
+    // AND the Flying type's terrain immunity — so a grounded Flying-type burns on lava like any land
+    // mon. Other type resistances (Fire vs Magma, Water vs Water…) are physical and stay.
+    const grounded = isEffectivelyGrounded(state, pokemon);
+    const isFlying = isEffectivelyFlying(pokemon, types) && !grounded;
+    const terrainTypes = grounded ? types.filter((type) => type !== PokemonType.Flying) : types;
     const events: BattleEvent[] = [];
 
     applyTerrainStatus(pokemon, terrain, terrainTypes, isFlying, events, itemRegistry);

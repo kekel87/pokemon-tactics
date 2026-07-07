@@ -1296,6 +1296,46 @@ déterministe (seed hérité, aucun override `Math.random`).
   `alwaysCrit`** : lifecycle multi-tours = unit/integration (`crit-manip.integration.test`,
   `storm-throw.test`). Flottant « Coup critique ! » (couleur) + tags tooltip ☆/⚔ = pixel → 👁.
 
+### 5.33 Famille dégâts utilitaires (Misc Batch B)
+*src : core `data/overrides/tactical.ts` (`false-swipe`+`cannotKo`, `super-fang`+`HalveTargetHp`,
+`feint`+`bypassProtect`, `smack-down`+`SmackDown`, `pursuit`+`pursuitBackstab`, `vital-throw`+
+`bypassAccuracy`), `battle/handlers/{handle-damage(cap cannotKo),handle-super-fang,handle-smack-down}.ts`,
+`battle/field-global-system.ts` (`isEffectivelyGrounded`), `BattleEngine` (facing ×2 Poursuite,
+hazards/tick du cloué, cleanup KO `smackedDown`) ; `PokemonInstance.smackedDown` ; events
+`battle-event.ts` (`SuperFangApplied`, `SmackedDown`) ; journal `ui-dom/BattleLogFormatter.ts` ;
+flottant `view-core/floating-text-content.ts` (`SuperFangApplied` → `-N`) ; badge
+`view-core/battle-views.ts` (`infoPanel.volatile.smackedDown` → « Au sol ») ; unit
+`battle/moves/{false-swipe,super-fang,feint,smack-down,pursuit,vital-throw}.test.ts` +
+`battle/utility-damage.integration.test.ts` ; e2e : `mechanics-utility-damage.spec.ts`. Plan 152.*
+Six moves dont l'identité est un **calcul de dégâts** particulier (plafonné, fixe, conditionnel au
+positionnement). Duel adjacent (joueur (2,3) / dummy (2,2)) ; moves à 100 % précision hors Croc Fatal
+(90 % → `seed: 1` fait toucher) → cast déterministe (seed moteur, aucun override `Math.random`).
+
+- 🤖 **Faux-Chage** (`false-swipe`, `cannotKo`) : sur un dummy à quelques PV, le coup inflige des
+  dégâts mais NE met jamais K.O. — la cible reste à EXACTEMENT 1 PV (survol → InfoPanel « 1 / max »),
+  aucune modale de victoire — `mechanics-utility-damage.spec`.
+- 🤖 **Croc Fatal** (`super-fang`, `HalveTargetHp`) : inflige ⌊PV actuels / 2⌋ → journal « … perd la
+  moitié de ses PV (-N) ! » (SuperFangApplied) + flottant `-N` (mesh `hud_text_plane`) —
+  `mechanics-utility-damage.spec`.
+- 🤖 **Ruse** (`feint`, `bypassProtect`) : le dummy (plus rapide) se protège (Abri) en 1er, puis Ruse
+  TOUCHE à travers la protection active (journal dégâts, aucun blocage) — `mechanics-utility-damage.spec`.
+- 🤖 **Anti-Air — grounding** (`smack-down`) : cloue le Dracolosse (Vol) au sol → journal « … est
+  cloué au sol ! » (SmackedDown) + badge InfoPanel « Au sol » — `mechanics-utility-damage.spec`.
+- 🤖 **Anti-Air — immunité Sol levée** : contrôle négatif (Coud'Boue Sol sur Vol NON cloué → zéro
+  dégât, immunité de type SILENCIEUSE au journal) vs cas cloué (Coud'Boue ajoute une ligne de dégâts
+  sur le Vol cloué) — `mechanics-utility-damage.spec`.
+- 🤖 **Poursuite** (`pursuit`, `pursuitBackstab`) : ×2 dans le dos. Deux boots identiques au seed près
+  de l'orientation du dummy → les dégâts de dos (×2,3) dominent nettement ceux de face (×0,85) —
+  `mechanics-utility-damage.spec`.
+- 🤖 **Corps Perdu** (`vital-throw`, `bypassAccuracy`) : ne rate jamais — touche une cible à Esquive
+  max (+6) sans jamais « rate son attaque ! ». Le contrôle négatif (un coup normal PEUT rater cette
+  cible) reste unit/integration — `mechanics-utility-damage.spec`.
+- 👁 **Faux-Chage vs Substitut cassable / Croc Fatal ignore le typechart (touche un Spectre) & K.O.
+  possible à 1-2 PV / Poursuite ×0,85 face + ×1,0 flanc exacts / grounding : perte immunité +
+  vulnérabilité hazards + atterrissage forcé d'un Vol en cours / cleanup KO `smackedDown`** :
+  lifecycle & valeurs fines = unit/integration (`utility-damage.integration.test`, `*.test.ts` par
+  move). Flottants (couleur) + tags tooltip = pixel → 👁.
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -1558,6 +1598,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-trapping.spec.ts` | §5.26 famille Pièges (trapping) : piège PARTIEL (Danse Flammes + Aucun Garde forçant 100 % → « Ronflex est piégé ! » puis chip de fin de tour « Ronflex perd N PV ! ») ; piège PUR position-linked (Barrage → « Ronflex est piégé ! » sans dégâts, puis le lanceur s'éloigne en (2,5) → « Ronflex est libéré du piège »). Étreinte/Siphon/Tourbi-Sable (même pattern partiel) et Regard Noir (même pattern pur) = unit (`moves/*.test.ts`), non dupliqués e2e → 👁. Immobilisation (0 action Move, attaque OK) = unit (pas de ligne de journal) → 👁 |
 | `combat/mechanics-priority-timing.spec.ts` | §5.31 famille Priorité / timing conditionnel (plan 150) : Bluff (`fake-out`) — 1ʳᵉ action → dégâts + « … est apeuré et ne peut pas agir ! », puis `data-enabled="false"` au tour 2 (firstActionOnly, Griffe restant `true`) ; Escarmouche (`first-impression`) — ouverture (dégâts) puis `data-enabled="false"` au tour 2 ; Coup Bas (`sucker-punch`) — TOUCHE si la dernière action de la cible était offensive (dummy hot-seat attaque avec Charge → « Ronflex perd N PV »), ÉCHOUE sinon (« Mais cela échoue … ! ») ; Mitra-Poing (`focus-punch`) — charge tour 1 (« … concentre son énergie … »), interrompu si frappé pendant la charge (« … est frappé pendant sa concentration ! ») → frappe T2 échoue (« … perd sa concentration ! », lanceur rapide Alakazam pour n'intercaler qu'un tour) ; Bec-Canon (`beak-blast`, 0 learner Gen 1 → sandbox) — brûlure de contact pendant la charge (« Ronflex se brûle sur le bec brûlant ! ») ; Carapiège (`shell-trap`, 0 learner Gen 1 → sandbox) — armé par un coup physique (« Le piège de Dracaufeu s'arme ! »). Fraîcheur fine de Coup Bas (a attaqué PUIS temporisé), « frappe si laissé tranquille » / dégât indirect ne casse pas (Mitra-Poing), frappe T2 de Bec-Canon + immunités, échec Carapiège si non armé, tags tooltip = unit/integration core (`moves/*.test.ts`, `charge-reaction.test.ts`, `priority-timing.integration.test.ts`) → 👁 |
 | `combat/mechanics-crit.spec.ts` | §5.32 famille manipulation de coups critiques (Misc Batch A, plan 151) : Puissance (`focus-energy`, Self) → journal « … est plus enclin aux coups critiques ! » + badge InfoPanel « Puissance +2 » (survol du lanceur) ; Affilage (`laser-focus`, Self, 0 learner Gen 1 → sandbox) → journal « … se concentre : son prochain coup sera critique ! » + badge « Affilage », puis le coup SUIVANT (Griffe au tour 2 après un tour terminé) est forcé critique → « Coup critique sur … ! » ; Yama Arashi (`storm-throw`, `alwaysCrit`, 0 learner Gen 1 → sandbox) → « Coup critique sur … ! » à chaque coup, seed-indépendant. Cri Draconique (`dragon-cheer`, exige un allié JOUEUR — non supporté par le harness) et Dark Lariat (`darkest-lariat`, ignore les crans défensifs — pas de feedback observable) + lifecycle multi-tours (empilement, cleanup KO, `preventsCrit` annule `alwaysCrit`) = unit/integration core (`moves/*.test.ts`, `crit-manip.integration.test.ts`) → 👁 |
+| `combat/mechanics-utility-damage.spec.ts` | §5.33 famille dégâts utilitaires (Misc Batch B, plan 152) : Faux-Chage (`false-swipe`, `cannotKo`) — dégâts sans K.O., cible à quelques PV reste à EXACTEMENT 1 PV (InfoPanel « 1 / max ») + aucune victoire ; Croc Fatal (`super-fang`, `HalveTargetHp`, 90 % → `seed: 1`) — « … perd la moitié de ses PV (-N) ! » (SuperFangApplied) + flottant `-N` ; Ruse (`feint`, `bypassProtect`) — le dummy (plus rapide, Ronflex lent en face) se protège (Abri) puis Ruse touche à travers (journal dégâts) ; Anti-Air (`smack-down`) — cloue le Dracolosse (Vol) au sol → « … est cloué au sol ! » (SmackedDown) + badge InfoPanel « Au sol », puis contrôle immunité Sol (Coud'Boue sur Vol non cloué = zéro dégât, immunité de type silencieuse) vs cas cloué (Coud'Boue ajoute une ligne de dégâts) ; Poursuite (`pursuit`, `pursuitBackstab`) — deux boots au seul dummyDirection près → dégâts de dos (×2,3) > 2× ceux de face (×0,85) ; Corps Perdu (`vital-throw`, `bypassAccuracy`) — touche une cible à Esquive +6 sans « rate son attaque ! ». Substitut cassable (Faux-Chage), typechart ignoré + K.O. 1-2 PV (Croc Fatal), ×0,85 face/×1,0 flanc exacts (Poursuite), vulnérabilité hazards + atterrissage forcé + cleanup KO (grounding), contrôle négatif du never-miss = unit/integration core (`moves/*.test.ts`, `utility-damage.integration.test.ts`) → 👁. Flottants (couleur) + tags tooltip = 👁 (pixel) |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |

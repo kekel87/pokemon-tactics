@@ -53,6 +53,7 @@ export {
   FIELD_GLOBAL_RADIUS,
   GRAVITY_ACCURACY_MULTIPLIER,
   isAirborneMove,
+  isEffectivelyGrounded,
   isGroundedByGravityZone,
   isHeldItemSuppressed,
   isInFieldGlobalZone,

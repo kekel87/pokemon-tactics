@@ -790,3 +790,92 @@ export const CRIT_STORM_THROW = {
   ...DUEL,
   moves: ["storm-throw"],
 } as const;
+
+// Misc Batch B : dégâts utilitaires (plan 152) — moves dont l'identité est un CALCUL de dégâts
+// particulier (plafonné, fixe, conditionnel au positionnement) plutôt qu'un effet secondaire. On
+// pilote chaque move de bout en bout et on assert la ligne de journal FR + le flottant / badge
+// InfoPanel (le SENS lisible), pas le pixel. Duel adjacent standard (Florizarre (2,3) / dummy (2,2)) ;
+// seed hérité, aucun override `Math.random`.
+
+/** Faux-Chage (`false-swipe`, Normal Phys 40 contact, `cannotKo`). Le dummy Normal démarre bas (5 %
+ *  PV, ≈ quelques PV) : Faux-Chage l'écrèterait au K.O. mais le cap le laisse à EXACTEMENT 1 PV —
+ *  aucun K.O., aucune modale de victoire. 100 % précision → touche déterministe (seed hérité). */
+export const FALSE_SWIPE = {
+  ...DUEL,
+  moves: ["false-swipe"],
+  dummyHp: 5,
+} as const;
+
+/** Croc Fatal (`super-fang`, Normal Phys, `HalveTargetHp`). Le dummy Normal plein perd ⌊PV/2⌋ d'un
+ *  coup → journal « … perd la moitié de ses PV (-N) ! » (SuperFangApplied) + flottant `-N`. Précision
+ *  90 % → `seed: 1` fait toucher (le seed hérité 12345 raterait — déterministe, jamais d'override
+ *  `Math.random`). */
+export const SUPER_FANG = {
+  ...DUEL,
+  seed: 1,
+  moves: ["super-fang"],
+} as const;
+
+/** Ruse (`feint`, Normal Phys 30, `bypassProtect`). Le dummy « dummy » (movepool protect/detect,
+ *  Vit. 50) est plus RAPIDE que le joueur Ronflex (Vit. 30) et joue en 1er : il se protège (Abri,
+ *  `dummyMove: "protect"`) ; puis Ronflex lance Ruse → touche À TRAVERS la protection active (journal
+ *  dégâts, aucun blocage). 100 % précision. */
+export const FEINT_THROUGH_PROTECT = {
+  seed: 12345,
+  pokemon: "snorlax",
+  moves: ["feint"],
+  playerPosition: { x: 2, y: 3 },
+  playerDirection: "north",
+  dummyPosition: { x: 2, y: 2 },
+  dummyMove: "protect",
+} as const;
+
+/** Anti-Air (`smack-down`, Roche Phys 50 + `SmackDown`). Rhinoféros cloue le Dracolosse (Vol) au
+ *  sol : journal « … est cloué au sol ! » (SmackedDown) + badge InfoPanel « Au sol ». Au tour 2,
+ *  Coud'Boue (`mud-slap`, Sol) TOUCHE le Vol cloué (immunité Sol→Vol levée) — le contrôle
+ *  `ANTI_AIR_CONTROL` prouve que sans grounding le même Coud'Boue est SANS EFFET. Les deux moves à
+ *  100 % précision → déterministe (seed hérité). */
+export const ANTI_AIR = {
+  seed: 12345,
+  pokemon: "rhydon",
+  moves: ["smack-down", "mud-slap"],
+  playerPosition: { x: 2, y: 3 },
+  playerDirection: "north",
+  dummyPosition: { x: 2, y: 2 },
+  dummyPokemon: "dragonite",
+} as const;
+
+/** Contrôle négatif d'Anti-Air : Coud'Boue (Sol) lancé DIRECTEMENT sur le Dracolosse (Vol) NON cloué
+ *  → l'immunité Sol→Vol le rend SANS EFFET (le journal n'émet aucune ligne de dégâts pour la cible,
+ *  effectiveness 0 = silencieux). Comparé au cas cloué (ANTI_AIR, qui inflige des dégâts Sol), il
+ *  prouve que le grounding lève bien l'immunité. */
+export const ANTI_AIR_CONTROL = {
+  ...ANTI_AIR,
+  moves: ["mud-slap"],
+} as const;
+
+/** Poursuite (`pursuit`, Ténèbres Phys 40, `pursuitBackstab`) — ×2 quand le coup atteint le DOS de la
+ *  cible. Deux configs qui ne diffèrent QUE par l'orientation du dummy : DOS (dummy face nord, dos
+ *  tourné vers le joueur au sud → ×2,3) vs FACE (dummy face sud, vers le joueur → ×0,85). Même seed →
+ *  même jet aléatoire → les dégâts de dos dominent nettement ceux de face. */
+export const PURSUIT_BACKSTAB = {
+  ...DUEL,
+  moves: ["pursuit"],
+  dummyDirection: "north",
+} as const;
+
+export const PURSUIT_FRONTAL = {
+  ...DUEL,
+  moves: ["pursuit"],
+  dummyDirection: "south",
+} as const;
+
+/** Corps Perdu (`vital-throw`, Combat Phys 70, `bypassAccuracy`) — ne rate JAMAIS. Le dummy Normal a
+ *  l'Esquive au max (+6, ≈ 33 % de précision pour un coup normal) ; Corps Perdu ignore la vérif de
+ *  précision et TOUCHE quand même (journal dégâts, jamais « rate son attaque »). Le contrôle négatif
+ *  (un coup normal PEUT rater cette même cible) est couvert unit/integration core. */
+export const VITAL_THROW = {
+  ...DUEL,
+  moves: ["vital-throw"],
+  dummyStatStages: { evasion: 6 },
+} as const;

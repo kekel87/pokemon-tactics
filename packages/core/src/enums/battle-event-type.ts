@@ -112,6 +112,8 @@ export const BattleEventType = {
   PainSplitApplied: "pain_split_applied",
   EndeavorApplied: "endeavor_applied",
   EndeavorFailed: "endeavor_failed",
+  SuperFangApplied: "super_fang_applied",
+  SmackedDown: "smacked_down",
   HelpingHandPosted: "helping_hand_posted",
   HelpingHandConsumed: "helping_hand_consumed",
   TypeChanged: "type_changed",

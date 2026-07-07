@@ -812,6 +812,22 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.miss, pokemonIds: [event.attackerId] };
     }
 
+    case BattleEventType.SuperFangApplied: {
+      const target = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `${target} perd la moitié de ses PV (-${event.damage}) !`
+          : `${target} lost half its HP (-${event.damage})!`;
+      return { message, color: BattleLogColors.damage, pokemonIds: [event.targetId] };
+    }
+
+    case BattleEventType.SmackedDown: {
+      const target = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr" ? `${target} est cloué au sol !` : `${target} was knocked to the ground!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.targetId] };
+    }
+
     case BattleEventType.HelpingHandPosted: {
       const caster = context.getPokemonName(event.casterId);
       const target = context.getPokemonName(event.targetId);

@@ -13,7 +13,7 @@ import {
   enumerateHitAndRunRetreatTiles,
   FieldGlobalKind,
   FieldTerrain,
-  isInFieldGlobalZone,
+  isEffectivelyGrounded,
   type MoveDefinition,
   manhattanDistance,
   moveCtTempo,
@@ -990,11 +990,12 @@ export class BattleOrchestrator {
       }
       this.feedback.report(event);
       if (
-        event.type === BattleEventType.FieldGlobalPosted &&
-        event.kind === FieldGlobalKind.Gravity
+        (event.type === BattleEventType.FieldGlobalPosted &&
+          event.kind === FieldGlobalKind.Gravity) ||
+        event.type === BattleEventType.SmackedDown
       ) {
-        // Land the flyers the zone just caught BEFORE the immediate terrain/hazard damage floats,
-        // so a mon visibly touches down first instead of dying mid-air.
+        // Land the flyer(s) just grounded (Gravité zone / Anti-Air) BEFORE the immediate terrain/hazard
+        // damage floats, so a mon visibly touches down first instead of dying mid-air.
         this.refreshGravityGrounding();
         await delay(BATTLE_STEP_DELAY_MS);
       }
@@ -1017,6 +1018,15 @@ export class BattleOrchestrator {
           this.board.updateHp(event.targetId, target.currentHp, target.maxHp);
         }
       }
+      if (event.type === BattleEventType.SuperFangApplied) {
+        // Croc Fatal deals fixed HP damage without a Damage effect — mirror the single-hit reaction
+        // (red flash + bar drain) so it reads as an attack, not a passive HP tick.
+        this.board.flashDamage(event.targetId);
+        const target = this.state.pokemon.get(event.targetId);
+        if (target) {
+          this.board.updateHp(event.targetId, target.currentHp, target.maxHp);
+        }
+      }
       if (event.type === BattleEventType.MoveStarted) {
         // Face the target and play the move's category animation (plan 122 4c-3).
         await this.board.playAttack(
@@ -1034,10 +1044,8 @@ export class BattleOrchestrator {
         // Glide along the path with per-step Walk/Hop + flyer glide (plan 123 4d-5).
         const moverTypes = this.engine.getPokemonTypes(event.pokemonId);
         const mover = this.state.pokemon.get(event.pokemonId);
-        // Gravité: a grounded flyer walks like a land mon (no glide/hover) — mirror the core grounding.
-        const moverGrounded =
-          mover !== undefined &&
-          isInFieldGlobalZone(this.state, mover.position, FieldGlobalKind.Gravity);
+        // Gravité / Anti-Air: a grounded flyer walks like a land mon (no glide/hover) — mirror the core grounding.
+        const moverGrounded = mover !== undefined && isEffectivelyGrounded(this.state, mover);
         await this.board.moveAlongPath(event.pokemonId, event.path, {
           isFlying: moverTypes.includes(PokemonType.Flying) && !moverGrounded,
           isGhost: moverTypes.includes(PokemonType.Ghost),
@@ -1296,7 +1304,7 @@ export class BattleOrchestrator {
       if (!this.engine.isAirborneIgnoringGravity(id)) {
         continue;
       }
-      const grounded = isInFieldGlobalZone(this.state, pokemon.position, FieldGlobalKind.Gravity);
+      const grounded = isEffectivelyGrounded(this.state, pokemon);
       this.board.setGroundedByGravity(id, grounded);
     }
   }

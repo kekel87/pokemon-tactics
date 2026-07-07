@@ -137,6 +137,8 @@ export function loadData(): GameData {
       ...(merged.firstActionOnly ? { firstActionOnly: true } : {}),
       ...(merged.failsUnlessTargetAggressive ? { failsUnlessTargetAggressive: true } : {}),
       ...(merged.chargeReaction ? { chargeReaction: merged.chargeReaction } : {}),
+      ...(merged.cannotKo ? { cannotKo: true } : {}),
+      ...(merged.pursuitBackstab ? { pursuitBackstab: true } : {}),
     };
     return moveDefinition;
   });

@@ -505,6 +505,13 @@ export type BattleEvent =
       damage: number;
     }
   | { type: typeof BattleEventType.EndeavorFailed; attackerId: string }
+  | {
+      type: typeof BattleEventType.SuperFangApplied;
+      attackerId: string;
+      targetId: string;
+      damage: number;
+    }
+  | { type: typeof BattleEventType.SmackedDown; targetId: string }
   | { type: typeof BattleEventType.HelpingHandPosted; casterId: string; targetId: string }
   | { type: typeof BattleEventType.HelpingHandConsumed; pokemonId: string }
   | {

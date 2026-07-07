@@ -149,4 +149,6 @@ export type Effect =
   | { kind: typeof EffectKind.InvertStatStages }
   | { kind: typeof EffectKind.SwapStatStages; stats: StatName[] }
   | { kind: typeof EffectKind.SwapRawSpeed }
-  | { kind: typeof EffectKind.PhazeToSpawn };
+  | { kind: typeof EffectKind.PhazeToSpawn }
+  | { kind: typeof EffectKind.HalveTargetHp }
+  | { kind: typeof EffectKind.SmackDown };
