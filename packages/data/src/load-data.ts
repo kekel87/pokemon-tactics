@@ -97,6 +97,8 @@ export function loadData(): GameData {
       ...(merged.disabledUnderGravity ? { disabledUnderGravity: true } : {}),
       ...(merged.chargeEffects ? { chargeEffects: merged.chargeEffects } : {}),
       ...(merged.critRatio === undefined ? {} : { critRatio: merged.critRatio }),
+      ...(merged.alwaysCrit ? { alwaysCrit: true } : {}),
+      ...(merged.ignoresDefensiveStages ? { ignoresDefensiveStages: true } : {}),
       ...(merged.targetsAlly ? { targetsAlly: true } : {}),
       ...(merged.targetsAllyOrSelf ? { targetsAllyOrSelf: true } : {}),
       ...(merged.dynamicPower ? { dynamicPower: merged.dynamicPower } : {}),

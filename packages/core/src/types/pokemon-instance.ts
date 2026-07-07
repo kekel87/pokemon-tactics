@@ -66,6 +66,14 @@ export interface PokemonInstance {
    * `critRatio` + item crit boost in the damage calc. Cleared on KO.
    */
   critStageBoost?: number;
+  /**
+   * One-shot guaranteed critical hit (Affilage / laser-focus, plan 151). When set, the caster's next
+   * offensive move is forced to crit in the damage calc, regardless of its crit stage. Armed by the
+   * `ArmGuaranteedCrit` effect; consumed at the end of the caster's NEXT completed action (whether it
+   * attacked or not — the focus lasts one turn, canon). Cleared on KO. Stacks with `critStageBoost`
+   * (Puissance stays posted for later hits).
+   */
+  guaranteedCritArmed?: boolean;
   lockedMoveId?: string;
   /**
    * Lock-in multi-turn family (plan 149: Mania / Danse Fleurs / Colère / Grand Courroux / Brouhaha).

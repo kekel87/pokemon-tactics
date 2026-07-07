@@ -59,6 +59,10 @@ export interface MoveDefinition {
   flags?: MoveFlags;
   effectTier?: EffectTier;
   critRatio?: number;
+  /** Always lands a critical hit (Yama Arashi / storm-throw). `preventsCrit` abilities still block it. */
+  alwaysCrit?: boolean;
+  /** Ignore the target's defensive stat stages (both signs) in the damage calc (Dark Lariat / darkest-lariat). */
+  ignoresDefensiveStages?: boolean;
   bypassAccuracy?: boolean;
   bypassProtect?: boolean;
   weatherSetter?: { type: Weather; turns: number };

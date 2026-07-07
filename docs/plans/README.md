@@ -143,3 +143,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 148 | [Famille OHKO (K.O. en un coup — 460 → 464)](./148-ohko.md) | done | 2026-07-04 |
 | 149 | [Famille Lock-in multi-turn (verrou 2-3 tours forcé — 464 → 469)](./149-lock-in-multi-turn.md) | done | 2026-07-04 |
 | 150 | [Famille Priorité / timing conditionnel (1er-tour + charge-interrupt — 469 → 475)](./150-priority-timing-conditional.md) | done | 2026-07-05 |
+| 151 | [Misc Batch A — manipulation de coups critiques (475 → 480)](./151-misc-crit.md) | done | 2026-07-05 |

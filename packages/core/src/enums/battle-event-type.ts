@@ -145,6 +145,10 @@ export const BattleEventType = {
   OneHitKo: "one_hit_ko",
   /** Lock-in multi-turn (plan 149): the caster got locked into repeating a move (rampage / Brouhaha). */
   LockInStarted: "lock_in_started",
+  /** Puissance / Cri Draconique: the target's crit stage was raised. */
+  CritStageRaised: "crit_stage_raised",
+  /** Affilage (laser-focus): the caster armed a one-shot guaranteed critical hit. */
+  GuaranteedCritArmed: "guaranteed_crit_armed",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

@@ -18,6 +18,7 @@ import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handl
 import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { isInFieldGlobalZone } from "./field-global-system";
 import { enumerateZoneTiles } from "./field-terrain-system";
+import { handleArmGuaranteedCrit } from "./handlers/handle-arm-guaranteed-crit";
 import { handleBurnTargetItem } from "./handlers/handle-burn-target-item";
 import { handleCureTeamStatus } from "./handlers/handle-cure-team-status";
 import { handleDamage } from "./handlers/handle-damage";
@@ -49,6 +50,7 @@ import { handlePostHealOverTime } from "./handlers/handle-post-heal-over-time";
 import { handlePostImprison } from "./handlers/handle-post-imprison";
 import { handlePostSubstitute } from "./handlers/handle-post-substitute";
 import { handlePostWish } from "./handlers/handle-post-wish";
+import { handleRaiseCritStage } from "./handlers/handle-raise-crit-stage";
 import { handleRecoil } from "./handlers/handle-recoil";
 import { handleRecycleItem } from "./handlers/handle-recycle-item";
 import { handleRemoveEntryHazards } from "./handlers/handle-remove-entry-hazards";
@@ -134,6 +136,8 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.ReviveOrHeal, handleReviveOrHeal);
   registry.register(EffectKind.PostDestinyBond, handlePostDestinyBond);
   registry.register(EffectKind.PostGrudge, handlePostGrudge);
+  registry.register(EffectKind.RaiseCritStage, handleRaiseCritStage);
+  registry.register(EffectKind.ArmGuaranteedCrit, handleArmGuaranteedCrit);
   registry.register(EffectKind.HelpingHand, handleHelpingHand);
   registry.register(EffectKind.RemoveItem, handleRemoveItem);
   registry.register(EffectKind.StealItem, handleStealItem);

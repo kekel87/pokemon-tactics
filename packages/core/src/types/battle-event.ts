@@ -554,4 +554,6 @@ export type BattleEvent =
       pokemonId: string;
       moveId: string;
       turns: number;
-    };
+    }
+  | { type: typeof BattleEventType.CritStageRaised; targetId: string; stages: number }
+  | { type: typeof BattleEventType.GuaranteedCritArmed; pokemonId: string };

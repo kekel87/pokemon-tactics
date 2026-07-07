@@ -4,6 +4,7 @@ import {
   CallMoveSourceKind,
   ChargeReaction,
   EffectKind,
+  EffectTarget,
   StatusType,
   TargetingKind,
 } from "@pokemon-tactic/core";
@@ -101,6 +102,23 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   }
   if (move.isOhko === true) {
     keys.push("moveTooltip.tag.ohko");
+  }
+  for (const effect of move.effects) {
+    if (effect.kind === EffectKind.RaiseCritStage) {
+      keys.push(
+        effect.target === EffectTarget.Self
+          ? "moveTooltip.tag.focusEnergy"
+          : "moveTooltip.tag.dragonCheer",
+      );
+    } else if (effect.kind === EffectKind.ArmGuaranteedCrit) {
+      keys.push("moveTooltip.tag.laserFocus");
+    }
+  }
+  if (move.alwaysCrit === true) {
+    keys.push("moveTooltip.tag.alwaysCrit");
+  }
+  if (move.ignoresDefensiveStages === true) {
+    keys.push("moveTooltip.tag.ignoresDefensiveStages");
   }
   if (move.dynamicPower !== undefined) {
     keys.push("moveTooltip.tag.dynamicPower");

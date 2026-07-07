@@ -248,6 +248,19 @@ export function buildInfoPanelView(
     badges.push({ label: context.translate("infoPanel.volatile.helpingHand"), variant: "buff" });
   }
 
+  if ((pokemon.critStageBoost ?? 0) > 0) {
+    badges.push({
+      label: context.translate("infoPanel.volatile.focusEnergy", {
+        stages: String(pokemon.critStageBoost),
+      }),
+      variant: "buff",
+    });
+  }
+
+  if (pokemon.guaranteedCritArmed === true) {
+    badges.push({ label: context.translate("infoPanel.volatile.laserFocus"), variant: "buff" });
+  }
+
   if (pokemon.perishAura !== undefined) {
     badges.push({
       label: context.translate("infoPanel.volatile.perish", {

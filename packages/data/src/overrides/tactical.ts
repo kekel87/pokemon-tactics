@@ -38,6 +38,8 @@ export interface TacticalOverride {
   selfKo?: boolean;
   selfKoOnConnect?: boolean;
   effectTier?: EffectTier;
+  alwaysCrit?: boolean;
+  ignoresDefensiveStages?: boolean;
   flags?: Partial<MoveFlags>;
   bypassAccuracy?: boolean;
   bypassProtect?: boolean;
@@ -1960,6 +1962,44 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.HelpingHand, multiplier: 1.5 }],
     targetsAlly: true,
+  },
+  // --- Misc Batch A : manipulation de coups critiques (plan 151) ---
+  "focus-energy": {
+    // Puissance: buff self, crans de crit +2 (persistant jusqu'au KO).
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.RaiseCritStage, stages: 2, target: EffectTarget.Self }],
+    effectTier: EffectTier.MajorBuff,
+  },
+  "laser-focus": {
+    // Affilage: buff self, prochain coup offensif = crit garanti (one-shot). Hors-pool Gen 1.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.ArmGuaranteedCrit }],
+    effectTier: EffectTier.MajorBuff,
+  },
+  "dragon-cheer": {
+    // Cri Draconique: allié r1, crans de crit +1 (+2 si l'allié est de type Dragon). Hors-pool Gen 1.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      {
+        kind: EffectKind.RaiseCritStage,
+        stages: 1,
+        target: EffectTarget.Targets,
+        dragonBonus: true,
+      },
+    ],
+    targetsAlly: true,
+  },
+  "storm-throw": {
+    // Yama Arashi: Combat Phys, contact mono-cible, crit toujours garanti. Hors-pool Gen 1.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    alwaysCrit: true,
+  },
+  "darkest-lariat": {
+    // Dark Lariat: Ténèbres Phys, contact mono-cible, ignore les crans défensifs cible. Hors-pool Gen 1.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    ignoresDefensiveStages: true,
   },
   // --- Famille Type manip (plan 143) : mutation runtime du type ---
   conversion: {

@@ -1261,6 +1261,43 @@ Déterministe (seed moteur, moves 100 % précision, jamais d'override `Math.rand
 
 ---
 
+### 5.32 Famille manipulation de coups critiques (Misc Batch A)
+*src : core `data/overrides/tactical.ts` (`focus-energy`, `laser-focus`, `dragon-cheer`, `storm-throw`,
+`darkest-lariat` + `RaiseCritStage` / `ArmGuaranteedCrit` / `alwaysCrit` / `ignoresDefensiveStages`),
+`battle/handlers/{handle-raise-crit-stage,handle-arm-guaranteed-crit}.ts`, `battle/damage-calculator.ts`
+(bloc crit : crit forcé + crans défensifs ignorés), `BattleEngine` (consommation Affilage post-move,
+cleanup KO) ; `PokemonInstance` (`critStageBoost`/`guaranteedCritArmed`) ; events `battle-event.ts`
+(`CritStageRaised`, `GuaranteedCritArmed`, `CriticalHit`) ; journal `ui-dom/BattleLogFormatter.ts` ;
+badges `view-core/battle-views.ts` (`infoPanel.volatile.{focusEnergy,laserFocus}`) ; tags tooltip
+`moveTooltip.tag.{focusEnergy,laserFocus,alwaysCrit}` ; unit `battle/moves/{focus-energy,laser-focus,
+dragon-cheer,storm-throw,darkest-lariat}.test.ts` + `battle/crit-manip.integration.test.ts` ; e2e :
+`mechanics-crit.spec.ts`. Plan 151.* Cinq moves dont l'identité repose sur les **critiques**. Duel
+adjacent standard (Florizarre (2,3) / dummy Normal inerte (2,2)) ; moves 100 % précision → cast
+déterministe (seed hérité, aucun override `Math.random`).
+
+- 🤖 **Puissance** (`focus-energy`, Self) : sur sa propre case → journal « … est plus enclin aux coups
+  critiques ! » (CritStageRaised) + badge volatile « Puissance +2 » de l'InfoPanel au survol du lanceur
+  (`critStageBoost > 0`) — `mechanics-crit.spec`.
+- 🤖 **Affilage** (`laser-focus`, Self, **0 learner Gen 1** → piloté en sandbox) : arme le prochain crit
+  → journal « … se concentre : son prochain coup sera critique ! » (GuaranteedCritArmed) + badge volatile
+  « Affilage » (`guaranteedCritArmed`) — `mechanics-crit.spec`.
+- 🤖 **Affilage — coup suivant forcé critique** : armé au tour 1, tour terminé (dummy inerte temporise),
+  puis Griffe au tour 2 sur le dummy → « Coup critique sur … ! » (CriticalHit) — `mechanics-crit.spec`.
+- 🤖 **Yama Arashi** (`storm-throw`, Combat Phys contact, `alwaysCrit`, **0 learner Gen 1** → sandbox) :
+  chaque coup est un critique garanti indépendamment du seed → « Coup critique sur … ! » —
+  `mechanics-crit.spec`.
+- 👁 **Cri Draconique** (`dragon-cheer`, allié r1, +1 crans, +2 si l'allié est Dragon) : exige un allié
+  **JOUEUR**, non supporté par le harness sandbox (joueur + dummy uniquement) → non pilotable e2e ;
+  couvert unit (`dragon-cheer.test`, bonus Dragon).
+- 👁 **Dark Lariat** (`darkest-lariat`, ignore les crans Déf/Déf.Spé de la cible dans les deux sens) :
+  pas de feedback observable propre (annulation d'un cran défensif invisible au journal) ; couvert
+  unit/integration (`darkest-lariat.test`, `crit-manip.integration`).
+- 👁 **Empilement Puissance→garanti / cleanup KO / Affilage one-shot consommé / `preventsCrit` annule
+  `alwaysCrit`** : lifecycle multi-tours = unit/integration (`crit-manip.integration.test`,
+  `storm-throw.test`). Flottant « Coup critique ! » (couleur) + tags tooltip ☆/⚔ = pixel → 👁.
+
+---
+
 ## 6. Recette — écrans DOM (hors combat)
 *src : `app/ui/dom/screens/`, `app/app/screen-manager.ts`, `app/ui/SplashScreen.ts`*
 *e2e : `tests/smoke/boot.spec.ts`, `tests/smoke/splash.spec.ts`, `tests/dom/navigation.spec.ts`,
@@ -1520,6 +1557,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-ohko.spec.ts` | §5.30 famille K.O. en un coup (OHKO, plan 148) : K.O. direct — Guillotine (`guillotine`, Single 1-1 contact, hors-pool forcé, `seed: 0` → touche) sur le dummy Normal adjacent → journal « C'est un K.O. direct ! » (event OneHitKo) + modale de victoire ; immunité Fermeté — le même coup seedé à toucher, dummy porteur de `sturdy` à pleins PV → « Fermeté de <dummy> s'active ! », « K.O. direct » et modale de victoire absents (survie à 1 PV). Immunités de type (Glace vs Glaciation, Spectre vs Normal, Vol vs Abîme), survie Baie Ceinture/Ténacité, règle précision Glace, les 3 autres patterns (Abîme Ligne 3 / Empal'Korne Ligne 2 / Glaciation Cône) = unit/integration core (`battle/ohko.test.ts`, `moves/{guillotine,fissure,horn-drill,sheer-cold}.test.ts`) → 👁. Le flottant « K.O.! » (couleur) et le tag tooltip ☠ = 👁 (pixel) |
 | `combat/mechanics-trapping.spec.ts` | §5.26 famille Pièges (trapping) : piège PARTIEL (Danse Flammes + Aucun Garde forçant 100 % → « Ronflex est piégé ! » puis chip de fin de tour « Ronflex perd N PV ! ») ; piège PUR position-linked (Barrage → « Ronflex est piégé ! » sans dégâts, puis le lanceur s'éloigne en (2,5) → « Ronflex est libéré du piège »). Étreinte/Siphon/Tourbi-Sable (même pattern partiel) et Regard Noir (même pattern pur) = unit (`moves/*.test.ts`), non dupliqués e2e → 👁. Immobilisation (0 action Move, attaque OK) = unit (pas de ligne de journal) → 👁 |
 | `combat/mechanics-priority-timing.spec.ts` | §5.31 famille Priorité / timing conditionnel (plan 150) : Bluff (`fake-out`) — 1ʳᵉ action → dégâts + « … est apeuré et ne peut pas agir ! », puis `data-enabled="false"` au tour 2 (firstActionOnly, Griffe restant `true`) ; Escarmouche (`first-impression`) — ouverture (dégâts) puis `data-enabled="false"` au tour 2 ; Coup Bas (`sucker-punch`) — TOUCHE si la dernière action de la cible était offensive (dummy hot-seat attaque avec Charge → « Ronflex perd N PV »), ÉCHOUE sinon (« Mais cela échoue … ! ») ; Mitra-Poing (`focus-punch`) — charge tour 1 (« … concentre son énergie … »), interrompu si frappé pendant la charge (« … est frappé pendant sa concentration ! ») → frappe T2 échoue (« … perd sa concentration ! », lanceur rapide Alakazam pour n'intercaler qu'un tour) ; Bec-Canon (`beak-blast`, 0 learner Gen 1 → sandbox) — brûlure de contact pendant la charge (« Ronflex se brûle sur le bec brûlant ! ») ; Carapiège (`shell-trap`, 0 learner Gen 1 → sandbox) — armé par un coup physique (« Le piège de Dracaufeu s'arme ! »). Fraîcheur fine de Coup Bas (a attaqué PUIS temporisé), « frappe si laissé tranquille » / dégât indirect ne casse pas (Mitra-Poing), frappe T2 de Bec-Canon + immunités, échec Carapiège si non armé, tags tooltip = unit/integration core (`moves/*.test.ts`, `charge-reaction.test.ts`, `priority-timing.integration.test.ts`) → 👁 |
+| `combat/mechanics-crit.spec.ts` | §5.32 famille manipulation de coups critiques (Misc Batch A, plan 151) : Puissance (`focus-energy`, Self) → journal « … est plus enclin aux coups critiques ! » + badge InfoPanel « Puissance +2 » (survol du lanceur) ; Affilage (`laser-focus`, Self, 0 learner Gen 1 → sandbox) → journal « … se concentre : son prochain coup sera critique ! » + badge « Affilage », puis le coup SUIVANT (Griffe au tour 2 après un tour terminé) est forcé critique → « Coup critique sur … ! » ; Yama Arashi (`storm-throw`, `alwaysCrit`, 0 learner Gen 1 → sandbox) → « Coup critique sur … ! » à chaque coup, seed-indépendant. Cri Draconique (`dragon-cheer`, exige un allié JOUEUR — non supporté par le harness) et Dark Lariat (`darkest-lariat`, ignore les crans défensifs — pas de feedback observable) + lifecycle multi-tours (empilement, cleanup KO, `preventsCrit` annule `alwaysCrit`) = unit/integration core (`moves/*.test.ts`, `crit-manip.integration.test.ts`) → 👁 |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
@@ -1540,8 +1578,8 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `visual/screens.spec.ts` | golden : menu, mode combat, paramètres, crédits, scène de combat |
 
 Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.ts` : `DUEL`,
-`DUEL_LETHAL`, `POISONED`, `MULTI_HIT`), `e2e/pages/` (POM : `MainMenu`, `Splash`, `CombatScene`,
-`screens`, `teamBuilder`, `combatHud`).
+`DUEL_LETHAL`, `POISONED`, `MULTI_HIT`, `CRIT_FOCUS_ENERGY`, `CRIT_LASER_FOCUS`, `CRIT_STORM_THROW`…),
+`e2e/pages/` (POM : `MainMenu`, `Splash`, `CombatScene`, `screens`, `teamBuilder`, `combatHud`).
 
 ### À étendre (👁 → 🤖, par priorité — DOM d'abord, c'est facile)
 

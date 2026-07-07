@@ -756,3 +756,37 @@ export const PRIORITY_SHELL_ARMED = {
   dummyControl: "player",
   dummyMoves: ["tackle"],
 } as const;
+
+// Misc Batch A : manipulation de coups critiques (plan 151) — moves dont l'identité repose sur les
+// coups critiques (booster le taux, garantir un crit). On pilote chaque move de bout en bout et on
+// assert la ligne de journal FR + le badge volatile de l'InfoPanel (le SENS lisible), pas le pixel.
+// Duel adjacent standard (joueur Florizarre (2,3) / dummy Normal inerte (2,2), Griffe portée 1) ;
+// tous les moves testés sont 100 % précision → cast déterministe (seed hérité, aucun jet).
+
+/** Puissance (`focus-energy`, Self, RaiseCritStage +2 persistant). Florizarre lance Puissance sur sa
+ *  propre case → journal « … est plus enclin aux coups critiques ! » (CritStageRaised) + badge
+ *  volatile « Puissance +2 » de l'InfoPanel (`critStageBoost > 0` → `infoPanel.volatile.focusEnergy`). */
+export const CRIT_FOCUS_ENERGY = {
+  ...DUEL,
+  moves: ["focus-energy"],
+} as const;
+
+/** Affilage (`laser-focus`, Self, ArmGuaranteedCrit one-shot). Hors-pool Gen 1 → piloté en sandbox.
+ *  Florizarre lance Affilage (self) → journal « … se concentre : son prochain coup sera critique ! »
+ *  (GuaranteedCritArmed) + badge volatile « Affilage » (`guaranteedCritArmed` →
+ *  `infoPanel.volatile.laserFocus`). Deuxième move Griffe (`scratch`, 100 %) pour PROUVER que le coup
+ *  suivant est forcé critique : une action ne se cumule pas dans un tour → on arme au tour 1, on
+ *  termine le tour (le dummy inerte temporise), puis Griffe au tour 2 → « Coup critique sur … ! ». */
+export const CRIT_LASER_FOCUS = {
+  ...DUEL,
+  moves: ["laser-focus", "scratch"],
+} as const;
+
+/** Yama Arashi (`storm-throw`, Combat Phys contact Single 1-1, `alwaysCrit`). Hors-pool Gen 1 →
+ *  piloté en sandbox. Florizarre frappe le dummy Normal adjacent → crit garanti → journal « Coup
+ *  critique sur … ! » (CriticalHit) à chaque coup, indépendamment du seed (Combat ×2 sur Normal, le
+ *  dummy survit à ses 100 PV). */
+export const CRIT_STORM_THROW = {
+  ...DUEL,
+  moves: ["storm-throw"],
+} as const;
