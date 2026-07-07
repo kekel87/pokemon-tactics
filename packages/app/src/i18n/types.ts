@@ -320,6 +320,8 @@ export interface Translations {
   "infoPanel.volatile.helpingHand": string;
   "infoPanel.volatile.perish": string;
   "infoPanel.volatile.lockIn": string;
+  "infoPanel.volatile.focusEnergy": string;
+  "infoPanel.volatile.laserFocus": string;
   "infoPanel.volatile.typeChanged": string;
   "infoPanel.volatile.noType": string;
   "moveTooltip.tag.sound": string;
@@ -346,6 +348,11 @@ export interface Translations {
   "moveTooltip.tag.chargeReactionFocus": string;
   "moveTooltip.tag.chargeReactionBeak": string;
   "moveTooltip.tag.chargeReactionShell": string;
+  "moveTooltip.tag.focusEnergy": string;
+  "moveTooltip.tag.laserFocus": string;
+  "moveTooltip.tag.dragonCheer": string;
+  "moveTooltip.tag.alwaysCrit": string;
+  "moveTooltip.tag.ignoresDefensiveStages": string;
   "moveTooltip.tag.healBlock": string;
   "moveTooltip.tag.spite": string;
   "moveTooltip.tag.removesItem": string;

@@ -526,6 +526,15 @@ function scoreAllyTargetMove(
     return weights.statChanges * 0.8;
   }
 
+  // Cri Draconique (dragon-cheer): buff an ally's crit rate. Same conservative flat value as Coup
+  // d'Main; wasteful on an ally already sitting at a guaranteed-crit stage.
+  const hasAllyCritBuff = move.effects.some(
+    (effect) => effect.kind === EffectKind.RaiseCritStage && effect.target === EffectTarget.Targets,
+  );
+  if (hasAllyCritBuff) {
+    return (target.critStageBoost ?? 0) >= 3 ? -1 : weights.statChanges * 0.8;
+  }
+
   // Wish (delayed heal) and ally-targeted heal: value by the recipient's missing HP.
   const wishEffect = move.effects.find(
     (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostWish }> =>
@@ -880,6 +889,21 @@ function scoreSelfMove(
     }
     const base = weights.statChanges * maxShared;
     return maxShared >= 2 ? base * 1.5 : base;
+  }
+
+  // Puissance (focus-energy) / Affilage (laser-focus): crit setup. Guard against restacking a
+  // boost that is already maxed / already armed; otherwise value it like a generic self-buff.
+  const hasCritSetup = move.effects.some(
+    (effect) =>
+      (effect.kind === EffectKind.RaiseCritStage && effect.target === EffectTarget.Self) ||
+      effect.kind === EffectKind.ArmGuaranteedCrit,
+  );
+  if (hasCritSetup) {
+    if (currentPokemon.guaranteedCritArmed === true || (currentPokemon.critStageBoost ?? 0) >= 3) {
+      return -1;
+    }
+    const nearestEnemyDist = closestEnemyManhattanDistance(currentPokemon.position, enemies);
+    return nearestEnemyDist > 2 ? weights.statChanges * 3 : weights.statChanges;
   }
 
   if (!hasSelfBuff) {

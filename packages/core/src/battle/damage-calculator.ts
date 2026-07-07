@@ -136,7 +136,9 @@ export function calculateDamageWithCrit(
   // Attacker's unaware ignores the defender's defensive stages; defender's unaware ignores the
   // attacker's offensive stages.
   const attackStageForCalc = defenderAbility?.id === "unaware" ? 0 : attackStage;
-  const defenseStageForCalc = attackerAbility?.id === "unaware" ? 0 : defenseStage;
+  // Dark Lariat (darkest-lariat): ignore the target's defensive stat stages (both signs).
+  const defenseStageForCalc =
+    move.ignoresDefensiveStages === true || attackerAbility?.id === "unaware" ? 0 : defenseStage;
 
   let effectiveAttack = getEffectiveStat(attackStat, attackStageForCalc);
 
@@ -155,7 +157,12 @@ export function calculateDamageWithCrit(
   const itemCritStage = attackerItem?.onCritStageBoost?.({ self: attacker, move }) ?? 0;
   const volatileCritStage = attacker.critStageBoost ?? 0;
   const totalCritStage = baseCritStage + itemCritStage + volatileCritStage;
-  const isCrit = defenderAbility?.preventsCrit ? false : random() < getCritChance(totalCritStage);
+  // Yama Arashi (alwaysCrit) / Affilage (guaranteedCritArmed) force a crit; `preventsCrit` (Coque
+  // Armure / Muscle Coque) still overrides — crit immunity wins.
+  const forcedCrit = move.alwaysCrit === true || attacker.guaranteedCritArmed === true;
+  const isCrit = defenderAbility?.preventsCrit
+    ? false
+    : forcedCrit || random() < getCritChance(totalCritStage);
 
   const critDefenseStage = isCrit ? Math.max(0, defenseStageForCalc) : defenseStageForCalc;
   const effectiveDefense = Math.floor(

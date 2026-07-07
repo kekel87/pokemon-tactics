@@ -108,6 +108,16 @@ export type Effect =
   | { kind: typeof EffectKind.ReviveOrHeal; revivePercent: number; healPercent: number }
   | { kind: typeof EffectKind.PostDestinyBond }
   | { kind: typeof EffectKind.PostGrudge }
+  | {
+      kind: typeof EffectKind.RaiseCritStage;
+      /** Base crit stages granted. */
+      stages: number;
+      /** `Self` (Puissance) or `Targets` = the resolved ally (Cri Draconique). */
+      target: EffectTarget;
+      /** Cri Draconique: +1 extra stage when the buffed ally's effective type includes Dragon. */
+      dragonBonus?: boolean;
+    }
+  | { kind: typeof EffectKind.ArmGuaranteedCrit }
   | { kind: typeof EffectKind.HelpingHand; multiplier: number }
   | { kind: typeof EffectKind.RemoveItem }
   | { kind: typeof EffectKind.StealItem }

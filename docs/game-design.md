@@ -672,7 +672,7 @@ Chaque Pokemon peut porter **1 objet tenu** enregistré dans `HeldItemHandlerReg
 | `heavy-duty-boots` | Grosses Bottes | Immunité effets terrain (pas la traversabilité) |
 | `light-ball` | Balle Lumière | ×2 Atk ET ×2 SpAtk — Pikachu uniquement |
 
-**Mini-système critiques (plan 073) :**
+**Mini-système critiques (plan 073, étendu plan 142 + plan 151) :**
 
 Intégré dans `damage-calculator.ts`. Stage critique de base = `move.critRatio ?? 0` (Tranche, Karaté Chop = 1). Lentilscope ajoute +1. Probabilités Gen 6+ simplifiées :
 
@@ -684,6 +684,13 @@ Intégré dans `damage-calculator.ts`. Stage critique de base = `move.critRatio 
 | 3+ | 100% |
 
 Critique = ×1.5 dégâts + ignore stages défensifs négatifs (sans annuler stages positifs). Émet `BattleEventType.CriticalHit`. Renderer affiche "Critique!" en orange (#ff8800).
+
+**Manipulation de coups critiques (plan 151, batch A « Misc volatile / utility »)** :
+- `PokemonInstance.critStageBoost?: number` (volatile persistant, cleared au KO) — posé par la Baie Lansat (+2 au pincement ≤25% PV, plan 142) et par **Puissance** (`focus-energy`, +2 crans, self, persistant, empilable avec Affilage).
+- `PokemonInstance.guaranteedCritArmed?: boolean` (volatile **one-shot**, distinct des crans) — posé par **Affilage** (`laser-focus`) : garantit le **prochain coup offensif** du lanceur quel que soit son crit stage, consommé après ce coup.
+- **Cri Draconique** (`dragon-cheer`) applique `critStageBoost` à un allié : +1 cran, +2 si l'allié ciblé est de type Dragon (canon Gen 9).
+- `MoveDefinition.alwaysCrit?: boolean` — **Yama Arashi** (`storm-throw`) : crit toujours garanti, mais `preventsCrit` (Coque Armure/Muscle Coque) prime toujours sur tout crit forcé (move ou volatile).
+- `MoveDefinition.ignoresDefensiveStages?: boolean` — **Dark Lariat** (`darkest-lariat`) : ignore les crans Déf/Déf.Spé de la cible dans les deux sens (annule aussi bien un −2 qu'un +2 défensif), implémenté en forçant `defenseStageForCalc = 0`.
 
 **UI sélection objet (TeamSelectScene) :** dropdown par Pokemon (12 items + "Aucun"). Validation doublons + message d'erreur.
 

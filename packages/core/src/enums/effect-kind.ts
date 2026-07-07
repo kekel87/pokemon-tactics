@@ -101,6 +101,10 @@ export const EffectKind = {
   PostDestinyBond: "post_destiny_bond",
   /** Post the Rancune volatile: if the caster is KO'd by a move, that move is locked on the killer for the battle. */
   PostGrudge: "post_grudge",
+  /** Raise the crit stage of the caster (Puissance / focus-energy) or an ally (Cri Draconique / dragon-cheer). */
+  RaiseCritStage: "raise_crit_stage",
+  /** Arm a one-shot guaranteed critical hit on the caster's next offensive move (Affilage / laser-focus). */
+  ArmGuaranteedCrit: "arm_guaranteed_crit",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

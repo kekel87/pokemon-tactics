@@ -913,6 +913,24 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.CritStageRaised: {
+      const name = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `${name} est plus enclin aux coups critiques !`
+          : `${name} is getting pumped for critical hits!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.targetId] };
+    }
+
+    case BattleEventType.GuaranteedCritArmed: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${name} se concentre : son prochain coup sera critique !`
+          : `${name} focuses — its next hit will be a critical!`;
+      return { message, color: BattleLogColors.move, pokemonIds: [event.pokemonId] };
+    }
+
     case BattleEventType.AuraPosted: {
       const name = context.getPokemonName(event.casterId);
       const auraLabel = auraKindLabel(event.kind, lang);

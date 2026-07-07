@@ -181,6 +181,12 @@ export class BattleEngine {
     null;
   private restrictActions = false;
   private confusedThisTurn = false;
+  /**
+   * Affilage (laser-focus): snapshot of the actor's `guaranteedCritArmed` at the start of its action.
+   * Consumed at end of turn only when it was already armed BEFORE this action (so the arming action
+   * itself is not consumed — the crit lands on the NEXT action).
+   */
+  private critArmedAtActionStart = false;
   /** End-turn terrain tick handler, also reused to apply terrain the instant Gravité grounds a mon. */
   private readonly terrainTickHandler: PhaseHandler;
   private confusionChecked = false;
@@ -2938,6 +2944,8 @@ export class BattleEngine {
     if (startingPokemon !== undefined) {
       startingPokemon.hasFreshStatBoost = false;
     }
+    // Affilage: remember whether the crit was already armed before this action (see endCurrentTurn).
+    this.critArmedAtActionStart = startingPokemon?.guaranteedCritArmed === true;
   }
 
   /**
@@ -2976,6 +2984,12 @@ export class BattleEngine {
         : undefined;
       if (lastMoveUsed !== undefined && lastMoveUsed.power > 0) {
         actingPokemon.lastOffensiveActionAtAction = this.state.actionCounter ?? 0;
+      }
+      // Affilage (laser-focus): the one-shot guaranteed crit is spent after the caster's NEXT action
+      // (whether it attacked or wasted the focus on a status move). Only clear when it was armed
+      // BEFORE this action — never on the arming action itself.
+      if (this.critArmedAtActionStart && actingPokemon.guaranteedCritArmed === true) {
+        actingPokemon.guaranteedCritArmed = undefined;
       }
       if (this.state.lastTeamActionMoveId === undefined) {
         this.state.lastTeamActionMoveId = {};
@@ -3309,6 +3323,7 @@ export class BattleEngine {
     pokemon.perishAura = undefined;
     pokemon.helpingHand = undefined;
     pokemon.critStageBoost = undefined;
+    pokemon.guaranteedCritArmed = undefined;
     pokemon.typeOverride = undefined;
     pokemon.speedStatOverride = undefined;
     pokemon.lastHitBy = undefined;
