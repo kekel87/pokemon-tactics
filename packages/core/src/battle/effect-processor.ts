@@ -1,6 +1,5 @@
 import { BattleEventType } from "../enums/battle-event-type";
 import { EffectKind } from "../enums/effect-kind";
-import { FieldGlobalKind } from "../enums/field-global-kind";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
 import type { BattleEvent } from "../types/battle-event";
@@ -16,7 +15,7 @@ import { resolveDefensiveAbility } from "./ability-suppression";
 import { getTypeEffectiveness } from "./damage-calculator";
 import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
-import { isInFieldGlobalZone } from "./field-global-system";
+import { isEffectivelyGrounded } from "./field-global-system";
 import { enumerateZoneTiles } from "./field-terrain-system";
 import { handleArmGuaranteedCrit } from "./handlers/handle-arm-guaranteed-crit";
 import { handleBurnTargetItem } from "./handlers/handle-burn-target-item";
@@ -58,10 +57,12 @@ import { handleRemoveItem } from "./handlers/handle-remove-item";
 import { handleReviveOrHeal } from "./handlers/handle-revive-or-heal";
 import { handleSetTailwind } from "./handlers/handle-set-tailwind";
 import { handleSetWeather } from "./handlers/handle-set-weather";
+import { handleSmackDown } from "./handlers/handle-smack-down";
 import { handleSpiteCtTax } from "./handlers/handle-spite-ct-tax";
 import { handleStatChange } from "./handlers/handle-stat-change";
 import { handleStatus } from "./handlers/handle-status";
 import { handleStealItem } from "./handlers/handle-steal-item";
+import { handleSuperFang } from "./handlers/handle-super-fang";
 import { handleSwapItems } from "./handlers/handle-swap-items";
 import { handleTransferStatStages } from "./handlers/handle-transfer-stat-stages";
 import { handleCopyMoveToSlot } from "./handlers/move-copy/handle-copy-move-to-slot";
@@ -138,6 +139,8 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.PostGrudge, handlePostGrudge);
   registry.register(EffectKind.RaiseCritStage, handleRaiseCritStage);
   registry.register(EffectKind.ArmGuaranteedCrit, handleArmGuaranteedCrit);
+  registry.register(EffectKind.HalveTargetHp, handleSuperFang);
+  registry.register(EffectKind.SmackDown, handleSmackDown);
   registry.register(EffectKind.HelpingHand, handleHelpingHand);
   registry.register(EffectKind.RemoveItem, handleRemoveItem);
   registry.register(EffectKind.StealItem, handleStealItem);
@@ -236,12 +239,8 @@ export function processEffects(
       }
       const abilityImmune = (immunityResult?.blocked ?? false) || (itemImmunity?.blocked ?? false);
 
-      // Gravité: a defender standing in a Gravity zone loses its Flying-type immunity to Ground.
-      const groundedByGravity = isInFieldGlobalZone(
-        context.state,
-        target.position,
-        FieldGlobalKind.Gravity,
-      );
+      // Gravité / Anti-Air: a grounded defender loses its Flying-type immunity to Ground moves.
+      const grounded = isEffectivelyGrounded(context.state, target);
       const effectiveness = abilityImmune
         ? 0
         : getTypeEffectiveness(
@@ -250,7 +249,7 @@ export function processEffects(
             context.typeChart,
             undefined,
             scrappyGhostBypass,
-            groundedByGravity,
+            grounded,
           );
 
       if (effectiveness === 0) {

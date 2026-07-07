@@ -9,6 +9,7 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - Attendu : un Volant garde son anim de déplacement normale (plane/marche) ; le vol ne devrait pas se rejouer à l'arrêt sur une tuile de terrain.
 - Piste : `selectMovementAnimation` / logique billboard volant dans `render-babylon` — probablement une interaction entre le fallback « volant sans glide » (mémoire `feedback_flying_animation_fallback`) et le type de terrain d'arrivée. Pré-existant (hors périmètre Phazing).
 - Priorité basse — cosmétique. À reproduire (confirmer si spécifique à l'herbe haute).
+- **Confirmé à nouveau 2026-07-07 (human-testing plan 152, Anti-Air)** avec **Dracaufeu/Dracolosse** (Volant) : en jeu normal, le Volant **atterrit prématurément** et ne **reste pas en animation de vol** au-dessus d'un terrain / obstacle. Même racine (anim de vol idle cassée selon la tuile survolée). Sans lien avec Anti-Air (le grounding smack-down est correct).
 
 
 ### ~70 pré-évolutions Gen 1 sans nom FR/EN — affichent l'ID anglais (2026-06-29, human-testing plan 144)

@@ -74,13 +74,9 @@ import {
   spikesDamage,
   stealthRockDamage,
 } from "./entry-hazard-system";
-import { getFacingModifier, getFacingZone } from "./facing-modifier";
+import { FacingZone, getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
-import {
-  isAirborneMove,
-  isGroundedByGravityZone,
-  isHeldItemSuppressed,
-} from "./field-global-system";
+import { isAirborneMove, isEffectivelyGrounded, isHeldItemSuppressed } from "./field-global-system";
 import {
   decrementFieldTerrainsTimer,
   getFieldTerrainBpMultiplier,
@@ -571,7 +567,7 @@ export class BattleEngine {
       targetTypes: this.effectiveTypesOf(target),
       abilityRegistry: this.abilityRegistry ?? undefined,
       scrappyGhostBypass: this.abilityRegistry?.getForPokemon(attacker)?.id === "scrappy",
-      groundedByGravity: isGroundedByGravityZone(this.state, target),
+      groundedByGravity: isEffectivelyGrounded(this.state, target),
     });
   }
 
@@ -776,7 +772,7 @@ export class BattleEngine {
       const healBlocked = isHealBlocked(currentPokemon);
       // Gravité: a mon standing in a Gravity zone cannot launch airborne/jump moves (Vol, Rebond,
       // Pied Voltige…). Underground/underwater charge moves (Tunnel, Plongée) stay legal.
-      const groundedByGravity = isGroundedByGravityZone(this.state, currentPokemon);
+      const groundedByGravity = isEffectivelyGrounded(this.state, currentPokemon);
 
       for (const moveId of currentPokemon.moveIds) {
         const move = this.moveRegistry.get(moveId);
@@ -1020,10 +1016,10 @@ export class BattleEngine {
   }
 
   private isEffectivelyFlying(pokemon: PokemonInstance): boolean {
-    // Gravité: a mon standing in a Gravity zone is grounded — loses its airborne status for terrain,
+    // Gravité (zone) / Anti-Air (smack-down): a grounded mon loses its airborne status for terrain,
     // entry-hazards, knockback and movement traversal (the type-chart Ground immunity is overridden
-    // separately in the damage calc).
-    if (isGroundedByGravityZone(this.state, pokemon)) {
+    // separately in the damage calc). Both feed the shared `isEffectivelyGrounded` predicate.
+    if (isEffectivelyGrounded(this.state, pokemon)) {
       return false;
     }
     const types = this.effectiveTypesOf(pokemon);
@@ -1037,7 +1033,7 @@ export class BattleEngine {
    */
   private terrainTypesOf(pokemon: PokemonInstance): PokemonType[] {
     const types = this.effectiveTypesOf(pokemon);
-    if (isGroundedByGravityZone(this.state, pokemon)) {
+    if (isEffectivelyGrounded(this.state, pokemon)) {
       return types.filter((type) => type !== PokemonType.Flying);
     }
     return types;
@@ -1067,26 +1063,32 @@ export class BattleEngine {
         if (!isEffectivelyFlying(mon, this.effectiveTypesOf(mon))) {
           continue;
         }
-        this.applyEntryHazardsOnPath(mon, [{ ...mon.position }], events);
-        if (mon.currentHp <= 0) {
-          this.handleKo(mon.id, events);
-          if (this.battleOver) {
-            return;
-          }
-          continue;
-        }
-        const terrainResult = this.terrainTickHandler(mon.id, this.state);
-        for (const event of terrainResult.events) {
-          this.emit(event);
-          events.push(event);
-        }
-        if (mon.currentHp <= 0) {
-          this.handleKo(mon.id, events);
-          if (this.battleOver) {
-            return;
-          }
+        this.applyGroundingTerrainTick(mon, events);
+        if (this.battleOver) {
+          return;
         }
       }
+    }
+  }
+
+  /**
+   * Apply a freshly-grounded mon's tile hazards + terrain damage immediately (Gravité zone cast /
+   * Anti-Air smack-down), so it can't escape the tick by acting first. Mirrors the end-turn terrain
+   * tick but fired at grounding time.
+   */
+  private applyGroundingTerrainTick(mon: PokemonInstance, events: BattleEvent[]): void {
+    this.applyEntryHazardsOnPath(mon, [{ ...mon.position }], events);
+    if (mon.currentHp <= 0) {
+      this.handleKo(mon.id, events);
+      return;
+    }
+    const terrainResult = this.terrainTickHandler(mon.id, this.state);
+    for (const event of terrainResult.events) {
+      this.emit(event);
+      events.push(event);
+    }
+    if (mon.currentHp <= 0) {
+      this.handleKo(mon.id, events);
     }
   }
 
@@ -1295,7 +1297,7 @@ export class BattleEngine {
 
     // Gravité: airborne/jump moves are illegal from within a Gravity zone — defensive guard
     // mirroring getLegalActions. Emits GravityMoveBlocked for log feedback.
-    if (isGroundedByGravityZone(this.state, pokemon) && isAirborneMove(move)) {
+    if (isEffectivelyGrounded(this.state, pokemon) && isAirborneMove(move)) {
       const gravityBlockedEvent: BattleEvent = {
         type: BattleEventType.GravityMoveBlocked,
         pokemonId: pokemon.id,
@@ -1583,7 +1585,7 @@ export class BattleEngine {
           targetTypes: defenderTypes,
           abilityRegistry: this.abilityRegistry ?? undefined,
           scrappyGhostBypass: this.abilityRegistry?.getForPokemon(pokemon)?.id === "scrappy",
-          groundedByGravity: isGroundedByGravityZone(this.state, target),
+          groundedByGravity: isEffectivelyGrounded(this.state, target),
         });
         if (immunity === "sturdy") {
           const sturdyEvent: BattleEvent = {
@@ -1783,7 +1785,13 @@ export class BattleEngine {
     const attackOrigin = getAttackOrigin(pokemon, effectiveMove, targetPosition);
     const facingModifierMap = new Map<string, number>();
     for (const target of targets) {
-      let modifier = getFacingModifier(getFacingZone(attackOrigin, target));
+      const facingZone = getFacingZone(attackOrigin, target);
+      let modifier = getFacingModifier(facingZone);
+      // Poursuite (pursuit): ×2 when the hit lands in the target's Back zone — stacks with the
+      // universal 1.15 back bonus (→ 2.3× from behind), the grid reinterpretation of "×2 if fleeing".
+      if (effectiveMove.pursuitBackstab === true && facingZone === FacingZone.Back) {
+        modifier *= 2;
+      }
       if (target.semiInvulnerableState !== undefined) {
         modifier *= getSemiInvulnerableDamageMultiplier(
           effectiveMove,
@@ -1873,6 +1881,24 @@ export class BattleEngine {
       this.applyGravityGroundingOnCast(events);
       if (this.battleOver) {
         return { success: true, events };
+      }
+    }
+
+    // Anti-Air (smack-down): the target it just grounded takes its tile's hazards + terrain NOW
+    // (mirror of the Gravité on-cast tick), so it can't escape the tick by acting on its own turn.
+    const smackedTargetIds: string[] = [];
+    for (const event of events) {
+      if (event.type === BattleEventType.SmackedDown) {
+        smackedTargetIds.push(event.targetId);
+      }
+    }
+    for (const targetId of smackedTargetIds) {
+      const smacked = this.state.pokemon.get(targetId);
+      if (smacked && smacked.currentHp > 0) {
+        this.applyGroundingTerrainTick(smacked, events);
+        if (this.battleOver) {
+          return { success: true, events };
+        }
       }
     }
 
@@ -3328,6 +3354,7 @@ export class BattleEngine {
     pokemon.speedStatOverride = undefined;
     pokemon.lastHitBy = undefined;
     pokemon.grudgeLockedMoveIds = undefined;
+    pokemon.smackedDown = undefined;
     pokemon.volatileStatuses = [];
 
     for (const other of this.state.pokemon.values()) {

@@ -45,9 +45,10 @@ export function moveIntent(move: MoveDefinition): MoveIntent {
       effect.kind === EffectKind.Status ||
       // Prescience (future-sight): a delayed damaging strike — reads as an attack (red zone).
       effect.kind === EffectKind.PostFutureSight ||
-      // Effort (endeavor) / Balance (pain-split): hostile HP manipulation on an enemy.
+      // Effort (endeavor) / Balance (pain-split) / Croc Fatal (super-fang): hostile HP manipulation.
       effect.kind === EffectKind.Endeavor ||
       effect.kind === EffectKind.PainSplit ||
+      effect.kind === EffectKind.HalveTargetHp ||
       // Tout ou Rien (final-gambit): fixed damage equal to the caster's HP — hostile.
       effect.kind === EffectKind.FinalGambit ||
       // Phazing (Cyclone / Hurlement / Projection): forcibly ejects an enemy — hostile.

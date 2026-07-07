@@ -322,6 +322,7 @@ export interface Translations {
   "infoPanel.volatile.lockIn": string;
   "infoPanel.volatile.focusEnergy": string;
   "infoPanel.volatile.laserFocus": string;
+  "infoPanel.volatile.smackedDown": string;
   "infoPanel.volatile.typeChanged": string;
   "infoPanel.volatile.noType": string;
   "moveTooltip.tag.sound": string;
@@ -353,6 +354,12 @@ export interface Translations {
   "moveTooltip.tag.dragonCheer": string;
   "moveTooltip.tag.alwaysCrit": string;
   "moveTooltip.tag.ignoresDefensiveStages": string;
+  "moveTooltip.tag.cannotKo": string;
+  "moveTooltip.tag.pursuitBackstab": string;
+  "moveTooltip.tag.bypassProtect": string;
+  "moveTooltip.tag.neverMiss": string;
+  "moveTooltip.tag.superFang": string;
+  "moveTooltip.tag.smackDown": string;
   "moveTooltip.tag.healBlock": string;
   "moveTooltip.tag.spite": string;
   "moveTooltip.tag.removesItem": string;

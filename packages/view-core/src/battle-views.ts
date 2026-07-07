@@ -270,6 +270,10 @@ export function buildInfoPanelView(
     });
   }
 
+  if (pokemon.smackedDown === true) {
+    badges.push({ label: context.translate("infoPanel.volatile.smackedDown"), variant: "debuff" });
+  }
+
   if (pokemon.typeOverride !== undefined) {
     if (pokemon.typeOverride.length === 0) {
       badges.push({ label: context.translate("infoPanel.volatile.noType"), variant: "volatile" });

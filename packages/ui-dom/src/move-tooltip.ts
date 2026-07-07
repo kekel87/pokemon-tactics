@@ -103,6 +103,18 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   if (move.isOhko === true) {
     keys.push("moveTooltip.tag.ohko");
   }
+  if (move.cannotKo === true) {
+    keys.push("moveTooltip.tag.cannotKo");
+  }
+  if (move.pursuitBackstab === true) {
+    keys.push("moveTooltip.tag.pursuitBackstab");
+  }
+  if (move.bypassProtect === true) {
+    keys.push("moveTooltip.tag.bypassProtect");
+  }
+  if (move.bypassAccuracy === true) {
+    keys.push("moveTooltip.tag.neverMiss");
+  }
   for (const effect of move.effects) {
     if (effect.kind === EffectKind.RaiseCritStage) {
       keys.push(
@@ -112,6 +124,10 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
       );
     } else if (effect.kind === EffectKind.ArmGuaranteedCrit) {
       keys.push("moveTooltip.tag.laserFocus");
+    } else if (effect.kind === EffectKind.HalveTargetHp) {
+      keys.push("moveTooltip.tag.superFang");
+    } else if (effect.kind === EffectKind.SmackDown) {
+      keys.push("moveTooltip.tag.smackDown");
     }
   }
   if (move.alwaysCrit === true) {

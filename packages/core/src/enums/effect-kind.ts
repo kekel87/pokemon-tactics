@@ -105,6 +105,10 @@ export const EffectKind = {
   RaiseCritStage: "raise_crit_stage",
   /** Arm a one-shot guaranteed critical hit on the caster's next offensive move (Affilage / laser-focus). */
   ArmGuaranteedCrit: "arm_guaranteed_crit",
+  /** Deal fixed damage equal to half the target's current HP, min 1 (Croc Fatal / super-fang). */
+  HalveTargetHp: "halve_target_hp",
+  /** Ground the target (Anti-Air / smack-down): loses Flying's Ground immunity + becomes hazard-vulnerable. */
+  SmackDown: "smack_down",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

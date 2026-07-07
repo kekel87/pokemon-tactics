@@ -232,6 +232,11 @@ export function floatingTextsFor(
         { pokemonId: event.pokemonId, text: `-${event.damage}`, color: BATTLE_TEXT_COLOR_DAMAGE },
       ];
 
+    case BattleEventType.SuperFangApplied:
+      return [
+        { pokemonId: event.targetId, text: `-${event.damage}`, color: BATTLE_TEXT_COLOR_DAMAGE },
+      ];
+
     case BattleEventType.MoveMissed:
       return [
         {

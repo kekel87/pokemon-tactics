@@ -63,6 +63,10 @@ export interface MoveDefinition {
   alwaysCrit?: boolean;
   /** Ignore the target's defensive stat stages (both signs) in the damage calc (Dark Lariat / darkest-lariat). */
   ignoresDefensiveStages?: boolean;
+  /** Faux-Chage (false-swipe): damage can never KO — the target keeps ≥1 HP. */
+  cannotKo?: boolean;
+  /** Poursuite (pursuit): ×2 damage when the hit lands in the target's Back facing zone (grid reinterpretation of "×2 if the target flees"). */
+  pursuitBackstab?: boolean;
   bypassAccuracy?: boolean;
   bypassProtect?: boolean;
   weatherSetter?: { type: Weather; turns: number };

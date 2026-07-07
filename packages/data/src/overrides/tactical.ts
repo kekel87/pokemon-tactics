@@ -84,6 +84,8 @@ export interface TacticalOverride {
   firstActionOnly?: boolean;
   failsUnlessTargetAggressive?: boolean;
   chargeReaction?: ChargeReaction;
+  cannotKo?: boolean;
+  pursuitBackstab?: boolean;
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -2000,6 +2002,42 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.Damage }],
     ignoresDefensiveStages: true,
+  },
+  // --- Batch B : dégâts utilitaires (plan 152) ---
+  "false-swipe": {
+    // Faux-Chage: Normal Phys 40 contact, ne peut jamais mettre K.O. (cible garde ≥1 PV).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    cannotKo: true,
+  },
+  "super-fang": {
+    // Croc Fatal: dégâts fixes = ⌊PV actuels cible / 2⌋ (min 1), ignore le typechart. Effet non-dégâts → ignore Protection (comme Effort/Balance).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.HalveTargetHp }],
+  },
+  feint: {
+    // Ruse: Normal Phys 30, ignore Protection/Détection (touche à travers).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    bypassProtect: true,
+  },
+  "smack-down": {
+    // Anti-Air: Roche Phys 50 à distance (projectiles, non-contact) + cloue un Volant au sol —
+    // le rend non-volant partout (terrain/Champs/hazards/Sol) et annule Vol/Rebond en cours.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.SmackDown }],
+  },
+  pursuit: {
+    // Poursuite: Ténèbres Phys 40, ×2 si le coup atteint le dos de la cible (fuyard rattrapé).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    pursuitBackstab: true,
+  },
+  "vital-throw": {
+    // Corps Perdu: Combat Phys 70 contact, ne rate jamais. Priorité -1 canon sans objet (CT seul).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Damage }],
+    bypassAccuracy: true,
   },
   // --- Famille Type manip (plan 143) : mutation runtime du type ---
   conversion: {
