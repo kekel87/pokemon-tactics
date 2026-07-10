@@ -579,4 +579,15 @@ export type BattleEvent =
       /** The new effective ability id, or undefined when the ability was suppressed (Suc Digestif). */
       abilityId?: string;
       reason: AbilityChangeReason;
-    };
+    }
+  | { type: typeof BattleEventType.Cursed; casterId: string; targetId: string; hpLost: number }
+  | {
+      type: typeof BattleEventType.CurseDamage;
+      targetId: string;
+      amount: number;
+      sourceId?: string;
+    }
+  | { type: typeof BattleEventType.Drowsy; targetId: string }
+  | { type: typeof BattleEventType.BellyDrumUsed; pokemonId: string; hpLost: number }
+  | { type: typeof BattleEventType.MagnetRisePosted; pokemonId: string; turns: number }
+  | { type: typeof BattleEventType.MagnetRiseEnded; pokemonId: string };

@@ -117,6 +117,21 @@ export const EffectKind = {
   CopyAbility: "copy_ability",
   /** Swap the effective abilities of the caster and the target (Échange / skill-swap). */
   SwapAbility: "swap_ability",
+  /**
+   * Malédiction (curse, plan 154): dual behaviour by the CASTER's effective type. Ghost → sacrifice
+   * 50% max HP + post a 25%/turn Cursed DoT on an enemy; non-Ghost → self −1 Spe / +1 Atk / +1 Def.
+   */
+  Curse: "curse",
+  /** Cognobidon (belly-drum, plan 154): lose 50% max HP, then maximise Attack (stages → +6). */
+  BellyDrum: "belly_drum",
+  /** Bâillement (yawn, plan 154): make the target drowsy → it falls asleep at the end of its next turn. */
+  Yawn: "yawn",
+  /** Acupression (acupressure, plan 154): +2 stages to one random battle stat of the caster or an ally. */
+  RaiseRandomStat: "raise_random_stat",
+  /** Attraction (attract, plan 154): infatuate an opposite-gender target (50% skip, position-linked). */
+  Attract: "attract",
+  /** Vol Magnétik (magnet-rise, plan 154): the caster levitates for 5 turns (temporary effectively-flying). */
+  MagnetRise: "magnet_rise",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

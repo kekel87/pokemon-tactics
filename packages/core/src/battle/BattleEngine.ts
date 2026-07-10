@@ -90,8 +90,10 @@ import {
 } from "./field-terrain-system";
 import { tickFutureSightStrikesForCaster } from "./future-sight-system";
 import { createAurasTickHandler } from "./handlers/aura-tick-handler";
+import { cursedTickHandler } from "./handlers/cursed-tick-handler";
 import { defensiveClearHandler } from "./handlers/defensive-clear-handler";
 import { distortionDecrementHandler } from "./handlers/distortion-tick-handler";
+import { createDrowsyTickHandler } from "./handlers/drowsy-tick-handler";
 import { fieldGlobalDecrementHandler } from "./handlers/field-global-tick-handler";
 import {
   createFieldTerrainHealHandler,
@@ -100,6 +102,7 @@ import {
 import { isImmuneToStatusByType } from "./handlers/handle-status";
 import { hotTickHandler } from "./handlers/hot-tick-handler";
 import { createInfatuationTickHandler } from "./handlers/infatuation-tick-handler";
+import { magnetRiseTickHandler } from "./handlers/magnet-rise-tick-handler";
 import { perishTickHandler } from "./handlers/perish-tick-handler";
 import { roostedClearHandler } from "./handlers/roosted-clear-handler";
 import { sacrificeBondExpireHandler } from "./handlers/sacrifice-bond-expire-handler";
@@ -236,6 +239,8 @@ export class BattleEngine {
       100,
     );
     this.turnPipeline.registerStartTurn(createInfatuationTickHandler(this.random), 150);
+    // Vol Magnétik (plan 154): decrement the levitation counter at the start of the caster's turn.
+    this.turnPipeline.registerStartTurn(magnetRiseTickHandler, 190);
     this.turnPipeline.registerStartTurn(wishTickHandler, 175);
     this.turnPipeline.registerStartTurn(sacrificeBondExpireHandler, 180);
     this.turnPipeline.registerEndTurn(
@@ -259,6 +264,18 @@ export class BattleEngine {
     this.turnPipeline.registerEndTurn(tailwindDecrementHandler, 152);
     this.turnPipeline.registerEndTurn(perishTickHandler, 280);
     this.turnPipeline.registerEndTurn(trappedTickHandler, 300);
+    // Malédiction (plan 154): Cursed DoT ticks alongside the other damagePerTurn volatiles.
+    this.turnPipeline.registerEndTurn(cursedTickHandler, 305);
+    // Bâillement (plan 154): drowsiness → sleep, after the mon has acted this turn (respite window).
+    this.turnPipeline.registerEndTurn(
+      createDrowsyTickHandler({
+        random: this.random,
+        statusRules: this.statusRules,
+        pokemonTypesMap: this.pokemonTypesMap,
+        abilityRegistry: this.abilityRegistry ?? undefined,
+      }),
+      310,
+    );
     this.turnPipeline.registerEndTurn(timedVolatileTickHandler, 350);
     this.terrainTickHandler = createTerrainTickHandler(
       this.pokemonTypesMap,
@@ -1154,6 +1171,8 @@ export class BattleEngine {
   }
 
   private getValidTargetPositions(pokemon: PokemonInstance, move: MoveDefinition): Position[] {
+    // `move` is the already-resolved effective move (see the getLegalActions call site), so its
+    // targeting reflects any caster-type override (Malédiction) via `resolveEffectiveMove`.
     const targeting = move.targeting;
     switch (targeting.kind) {
       case TargetingKind.Self:
@@ -3377,6 +3396,9 @@ export class BattleEngine {
     pokemon.lastHitBy = undefined;
     pokemon.grudgeLockedMoveIds = undefined;
     pokemon.smackedDown = undefined;
+    // Buff/statut family (plan 154): drowsiness + temporary levitation die with the mon.
+    pokemon.drowsyTurns = undefined;
+    pokemon.magnetRiseTurns = undefined;
     pokemon.volatileStatuses = [];
 
     for (const other of this.state.pokemon.values()) {
@@ -3613,6 +3635,21 @@ export class BattleEngine {
       for (const event of startTurnResult.events) {
         this.emit(event);
         events.push(event);
+      }
+
+      // Vol Magnétik (magnet-rise, plan 154): when levitation expires this start-turn, a mon left
+      // standing over lava / deep water / hazards takes its tile's terrain NOW (mirror of Anti-Air),
+      // so it can't use its own turn to walk off scot-free.
+      for (const event of startTurnResult.events) {
+        if (event.type === BattleEventType.MagnetRiseEnded) {
+          const landed = this.state.pokemon.get(event.pokemonId);
+          if (landed && landed.currentHp > 0 && !this.isEffectivelyFlying(landed)) {
+            this.applyGroundingTerrainTick(landed, events);
+            if (this.battleOver) {
+              return;
+            }
+          }
+        }
       }
 
       if (startTurnResult.pokemonFainted) {

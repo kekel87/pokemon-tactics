@@ -139,6 +139,9 @@ export function loadData(): GameData {
       ...(merged.chargeReaction ? { chargeReaction: merged.chargeReaction } : {}),
       ...(merged.cannotKo ? { cannotKo: true } : {}),
       ...(merged.pursuitBackstab ? { pursuitBackstab: true } : {}),
+      ...(merged.targetingByCasterType
+        ? { targetingByCasterType: merged.targetingByCasterType }
+        : {}),
     };
     return moveDefinition;
   });

@@ -218,6 +218,12 @@ export function resolveEffectiveTargeting(
   casterTypes: readonly PokemonType[],
   state: BattleState,
 ): TargetingPattern {
+  // Malédiction (curse, plan 154): targeting depends on the caster's effective type (Ghost → Single r1
+  // enemy DoT ; otherwise the base Self buff). Resolved here so preview / legality / execution agree.
+  const byCasterType = move.targetingByCasterType;
+  if (byCasterType && casterTypes.includes(byCasterType.whenType)) {
+    return byCasterType.targeting;
+  }
   const override = move.fieldTerrainTargetingOverride;
   if (override && isOnFieldTerrain(state, caster, casterTypes, override.terrain)) {
     return override.targeting;

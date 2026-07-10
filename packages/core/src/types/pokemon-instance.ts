@@ -225,4 +225,17 @@ export interface PokemonInstance {
    * this game); cleared on KO.
    */
   smackedDown?: boolean;
+  /**
+   * Bâillement (yawn, plan 154): drowsiness countdown. Set to 1 on cast; the end-turn
+   * `drowsy-tick-handler` decrements it after the target has acted, and at 0 applies Asleep — the
+   * canon "one action of respite, then sleep". Not position-linked. Cleared on KO.
+   */
+  drowsyTurns?: number;
+  /**
+   * Vol Magnétik (magnet-rise, plan 154): remaining turns of temporary levitation. While `> 0` the mon
+   * is effectively flying (Ground immunity + floats over lava/deep-water/hazards) unless a Gravité zone
+   * or Anti-Air (`smackedDown`) grounds it — both dominate via `isEffectivelyGrounded`. Decremented
+   * every start-turn by `magnet-rise-tick-handler`. Cleared on KO.
+   */
+  magnetRiseTurns?: number;
 }

@@ -21,6 +21,12 @@ import { handleCopyAbility } from "./handlers/ability-manip/handle-copy-ability"
 import { handleSetAbility } from "./handlers/ability-manip/handle-set-ability";
 import { handleSuppressAbility } from "./handlers/ability-manip/handle-suppress-ability";
 import { handleSwapAbility } from "./handlers/ability-manip/handle-swap-ability";
+import { handleAcupressure } from "./handlers/buff-status/handle-acupressure";
+import { handleAttract } from "./handlers/buff-status/handle-attract";
+import { handleBellyDrum } from "./handlers/buff-status/handle-belly-drum";
+import { handleCurse } from "./handlers/buff-status/handle-curse";
+import { handleMagnetRise } from "./handlers/buff-status/handle-magnet-rise";
+import { handleYawn } from "./handlers/buff-status/handle-yawn";
 import { handleArmGuaranteedCrit } from "./handlers/handle-arm-guaranteed-crit";
 import { handleBurnTargetItem } from "./handlers/handle-burn-target-item";
 import { handleCureTeamStatus } from "./handlers/handle-cure-team-status";
@@ -149,6 +155,12 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.SuppressAbility, handleSuppressAbility);
   registry.register(EffectKind.CopyAbility, handleCopyAbility);
   registry.register(EffectKind.SwapAbility, handleSwapAbility);
+  registry.register(EffectKind.Curse, handleCurse);
+  registry.register(EffectKind.BellyDrum, handleBellyDrum);
+  registry.register(EffectKind.Yawn, handleYawn);
+  registry.register(EffectKind.RaiseRandomStat, handleAcupressure);
+  registry.register(EffectKind.Attract, handleAttract);
+  registry.register(EffectKind.MagnetRise, handleMagnetRise);
   registry.register(EffectKind.HelpingHand, handleHelpingHand);
   registry.register(EffectKind.RemoveItem, handleRemoveItem);
   registry.register(EffectKind.StealItem, handleStealItem);

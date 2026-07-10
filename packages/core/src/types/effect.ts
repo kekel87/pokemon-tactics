@@ -155,4 +155,18 @@ export type Effect =
   | { kind: typeof EffectKind.SetAbility; abilityId: string }
   | { kind: typeof EffectKind.SuppressAbility }
   | { kind: typeof EffectKind.CopyAbility }
-  | { kind: typeof EffectKind.SwapAbility };
+  | { kind: typeof EffectKind.SwapAbility }
+  | {
+      kind: typeof EffectKind.Curse;
+      /** Ghost branch: fraction of the caster's max HP sacrificed (0.5). */
+      hpCostFraction: number;
+      /** Ghost branch: fraction of the target's max HP inflicted per turn by the Cursed DoT (0.25). */
+      dotFraction: number;
+      /** Non-Ghost branch: self stat changes applied instead (−1 Spe / +1 Atk / +1 Def). */
+      nonGhostStats: { stat: StatName; stages: number }[];
+    }
+  | { kind: typeof EffectKind.BellyDrum; hpCostFraction: number }
+  | { kind: typeof EffectKind.Yawn }
+  | { kind: typeof EffectKind.RaiseRandomStat; stages: number; target: EffectTarget }
+  | { kind: typeof EffectKind.Attract }
+  | { kind: typeof EffectKind.MagnetRise; turns: number };

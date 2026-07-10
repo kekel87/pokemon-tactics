@@ -174,4 +174,12 @@ export interface MoveDefinition {
    * (`battle/charge-reaction.ts`) and the T2 fire gate. The three values are mutually exclusive.
    */
   chargeReaction?: ChargeReaction;
+  /**
+   * Malédiction (curse, plan 154): the move's effective targeting depends on the CASTER's effective
+   * type. When the caster's types include `whenType`, `targeting` overrides the base
+   * `MoveDefinition.targeting` (Ghost → Single r3 enemy DoT); otherwise the base applies (non-Ghost →
+   * Self stat buff). Resolved via `effectiveTargetingFor` in both `getValidTargetPositions` and the
+   * `resolveTargeting` execution paths so candidates and resolution stay in sync.
+   */
+  targetingByCasterType?: { whenType: PokemonType; targeting: TargetingPattern };
 }

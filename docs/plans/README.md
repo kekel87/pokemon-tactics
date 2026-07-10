@@ -144,3 +144,6 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 149 | [Famille Lock-in multi-turn (verrou 2-3 tours forcé — 464 → 469)](./149-lock-in-multi-turn.md) | done | 2026-07-04 |
 | 150 | [Famille Priorité / timing conditionnel (1er-tour + charge-interrupt — 469 → 475)](./150-priority-timing-conditional.md) | done | 2026-07-05 |
 | 151 | [Misc Batch A — manipulation de coups critiques (475 → 480)](./151-misc-crit.md) | done | 2026-07-05 |
+| 152 | [Misc Batch B — dégâts utilitaires (480 → 486)](./152-misc-utility-damage.md) | done | 2026-07-07 |
+| 153 | [Misc Batch C — manipulation de talent (486 → 490)](./153-manip-talent.md) | done | 2026-07-10 |
+| 154 | [Misc Batch D — buff/statut (490 → 496)](./154-misc-buff-status.md) | done | 2026-07-10 |

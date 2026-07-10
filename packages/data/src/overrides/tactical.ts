@@ -86,6 +86,7 @@ export interface TacticalOverride {
   chargeReaction?: ChargeReaction;
   cannotKo?: boolean;
   pursuitBackstab?: boolean;
+  targetingByCasterType?: { whenType: PokemonType; targeting: TargetingPattern };
 }
 
 export const tacticalOverrides: Record<string, TacticalOverride> = {
@@ -2090,6 +2091,58 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     // Échange: échange les talents lanceur ↔ cible ennemie r1 (prime au risque, comme Permucœur).
     targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
     effects: [{ kind: EffectKind.SwapAbility }],
+  },
+  // --- Famille Misc Batch D : buff/statut (plan 154) ---
+  curse: {
+    // Malédiction: double comportement selon le TYPE du lanceur (ciblage conditionnel).
+    // Spectre → Single r3 ennemi : sacrifie 50% PV max + DoT 25%/tour illimité. Non-Spectre → Self :
+    // −1 Vit / +1 Atq / +1 Déf (aucun coût). Base = Self ; override Ghost = Single r3 (validé playtest).
+    targeting: { kind: TargetingKind.Self },
+    targetingByCasterType: {
+      whenType: PokemonType.Ghost,
+      targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    },
+    effects: [
+      {
+        kind: EffectKind.Curse,
+        hpCostFraction: 0.5,
+        dotFraction: 0.25,
+        nonGhostStats: [
+          { stat: StatName.Speed, stages: -1 },
+          { stat: StatName.Attack, stages: 1 },
+          { stat: StatName.Defense, stages: 1 },
+        ],
+      },
+    ],
+  },
+  "belly-drum": {
+    // Cognobidon: sacrifie 50% PV max, maximise l'Attaque (+6). Échoue si PV ≤ 50% ou Atq déjà +6.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.BellyDrum, hpCostFraction: 0.5 }],
+  },
+  yawn: {
+    // Bâillement: la cible ennemie r1 devient somnolente ; elle garde une action puis s'endort en
+    // fin de tour suivant (fenêtre de répit). Échoue si déjà somnolente / statut / immunisée sommeil.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Yawn }],
+  },
+  acupressure: {
+    // Acupression: +2 crans à une stat de combat aléatoire du lanceur OU d'un allié r1.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    targetsAllyOrSelf: true,
+    effects: [{ kind: EffectKind.RaiseRandomStat, stages: 2, target: EffectTarget.Targets }],
+  },
+  attract: {
+    // Attraction: infatue une cible ennemie r1 du sexe opposé (50% de ne pas agir, lien de position).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.Attract }],
+  },
+  "magnet-rise": {
+    // Vol Magnétik: le lanceur lévite 5 tours (immunité Sol + survole lave/eau/pièges). Impossible
+    // sous une zone Gravité ; annulé par Gravité/Anti-Air en cours.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.MagnetRise, turns: 5 }],
+    disabledUnderGravity: true,
   },
   // --- Content Batch G1 moves (dégâts pur physique, plan 102) ---
   // Riders complexes différés (cf. plan 102) : throat-chop sound-lock, lash-out/temper-flare/

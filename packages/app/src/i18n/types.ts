@@ -83,6 +83,9 @@ export interface Translations {
   "status.disabled": string;
   "status.encored": string;
   "status.imprison": string;
+  "status.cursed": string;
+  "status.drowsy": string;
+  "status.magnetRise": string;
   "status.spite": string;
   "status.healBlocked": string;
   "status.charging": string;
@@ -327,6 +330,9 @@ export interface Translations {
   "infoPanel.volatile.noType": string;
   "infoPanel.volatile.abilityChanged": string;
   "infoPanel.volatile.abilitySealed": string;
+  "infoPanel.volatile.cursed": string;
+  "infoPanel.volatile.drowsy": string;
+  "infoPanel.volatile.magnetRise": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
   "moveTooltip.tag.dynamicPower": string;
@@ -366,6 +372,12 @@ export interface Translations {
   "moveTooltip.tag.suppressAbility": string;
   "moveTooltip.tag.copyAbility": string;
   "moveTooltip.tag.swapAbility": string;
+  "moveTooltip.tag.curse": string;
+  "moveTooltip.tag.bellyDrum": string;
+  "moveTooltip.tag.yawn": string;
+  "moveTooltip.tag.acupressure": string;
+  "moveTooltip.tag.attract": string;
+  "moveTooltip.tag.magnetRise": string;
   "moveTooltip.tag.healBlock": string;
   "moveTooltip.tag.spite": string;
   "moveTooltip.tag.removesItem": string;

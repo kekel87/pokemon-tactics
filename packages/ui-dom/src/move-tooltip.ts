@@ -136,6 +136,18 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
       keys.push("moveTooltip.tag.copyAbility");
     } else if (effect.kind === EffectKind.SwapAbility) {
       keys.push("moveTooltip.tag.swapAbility");
+    } else if (effect.kind === EffectKind.Curse) {
+      keys.push("moveTooltip.tag.curse");
+    } else if (effect.kind === EffectKind.BellyDrum) {
+      keys.push("moveTooltip.tag.bellyDrum");
+    } else if (effect.kind === EffectKind.Yawn) {
+      keys.push("moveTooltip.tag.yawn");
+    } else if (effect.kind === EffectKind.RaiseRandomStat) {
+      keys.push("moveTooltip.tag.acupressure");
+    } else if (effect.kind === EffectKind.Attract) {
+      keys.push("moveTooltip.tag.attract");
+    } else if (effect.kind === EffectKind.MagnetRise) {
+      keys.push("moveTooltip.tag.magnetRise");
     }
   }
   if (move.alwaysCrit === true) {

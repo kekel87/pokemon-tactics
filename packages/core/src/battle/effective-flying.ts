@@ -50,6 +50,9 @@ export function isEffectivelyFlying(
   return (
     types.includes(PokemonType.Flying) ||
     effectiveAbilityId(pokemon) === "levitate" ||
-    pokemon.heldItemId === HeldItemId.AirBalloon
+    pokemon.heldItemId === HeldItemId.AirBalloon ||
+    // Vol Magnétik (magnet-rise, plan 154): temporary levitation. A Gravité zone / Anti-Air still
+    // grounds the mon — those dominate through the engine's `isEffectivelyGrounded` precheck.
+    (pokemon.magnetRiseTurns ?? 0) > 0
   );
 }

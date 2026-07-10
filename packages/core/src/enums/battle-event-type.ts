@@ -153,6 +153,18 @@ export const BattleEventType = {
   GuaranteedCritArmed: "guaranteed_crit_armed",
   /** Manip talent (plan 153): a Pokémon's ability was set/copied/swapped, or suppressed (abilityId undefined). */
   AbilityChanged: "ability_changed",
+  /** Malédiction (curse, plan 154): a Ghost caster sacrificed HP and cursed a target. */
+  Cursed: "cursed",
+  /** Malédiction (curse, plan 154): the Cursed DoT ticked on the target at end-turn. */
+  CurseDamage: "curse_damage",
+  /** Bâillement (yawn, plan 154): the target became drowsy and will fall asleep at the end of its next turn. */
+  Drowsy: "drowsy",
+  /** Cognobidon (belly-drum, plan 154): the caster sacrificed HP to maximise its Attack. */
+  BellyDrumUsed: "belly_drum_used",
+  /** Vol Magnétik (magnet-rise, plan 154): the caster began levitating for N turns. */
+  MagnetRisePosted: "magnet_rise_posted",
+  /** Vol Magnétik (magnet-rise, plan 154): the caster's levitation expired. */
+  MagnetRiseEnded: "magnet_rise_ended",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

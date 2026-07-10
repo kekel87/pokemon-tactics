@@ -46,3 +46,23 @@ describe("isEffectivelyFlying — Ballon (air-balloon)", () => {
     expect(isEffectivelyFlying(grounded, [PokemonType.Normal])).toBe(false);
   });
 });
+
+describe("isEffectivelyFlying — Vol Magnétik (magnet-rise)", () => {
+  it("a levitating mon is airborne while the counter is positive", () => {
+    const levitating = MockPokemon.fresh(MockPokemon.base, { magnetRiseTurns: 5 });
+    expect(isEffectivelyFlying(levitating, [PokemonType.Normal])).toBe(true);
+  });
+
+  it("stops being airborne once the counter is cleared", () => {
+    const expired = MockPokemon.fresh(MockPokemon.base, { magnetRiseTurns: undefined });
+    expect(isEffectivelyFlying(expired, [PokemonType.Normal])).toBe(false);
+  });
+
+  it("is grounded by Ingrain even while levitating", () => {
+    const rooted = MockPokemon.fresh(MockPokemon.base, {
+      magnetRiseTurns: 5,
+      volatileStatuses: [{ type: StatusType.Ingrain, remainingTurns: -1 }],
+    });
+    expect(isEffectivelyFlying(rooted, [PokemonType.Normal])).toBe(false);
+  });
+});

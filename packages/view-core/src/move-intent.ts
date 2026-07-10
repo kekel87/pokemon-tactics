@@ -52,7 +52,11 @@ export function moveIntent(move: MoveDefinition): MoveIntent {
       // Tout ou Rien (final-gambit): fixed damage equal to the caster's HP — hostile.
       effect.kind === EffectKind.FinalGambit ||
       // Phazing (Cyclone / Hurlement / Projection): forcibly ejects an enemy — hostile.
-      effect.kind === EffectKind.PhazeToSpawn,
+      effect.kind === EffectKind.PhazeToSpawn ||
+      // Bâillement (yawn): deferred sleep on an enemy — hostile.
+      effect.kind === EffectKind.Yawn ||
+      // Attraction (attract): infatuates an enemy — hostile.
+      effect.kind === EffectKind.Attract,
   );
   return hasOffensive ? "attack" : "buff";
 }
