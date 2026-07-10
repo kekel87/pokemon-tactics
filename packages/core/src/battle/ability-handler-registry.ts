@@ -1,5 +1,6 @@
 import type { AbilityDefinition } from "../types/ability-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { effectiveAbilityId } from "./effective-ability";
 
 export class AbilityHandlerRegistry {
   private readonly abilities: Map<string, AbilityDefinition>;
@@ -13,9 +14,10 @@ export class AbilityHandlerRegistry {
   }
 
   getForPokemon(pokemon: PokemonInstance): AbilityDefinition | undefined {
-    if (!pokemon.abilityId) {
+    const id = effectiveAbilityId(pokemon);
+    if (!id) {
       return undefined;
     }
-    return this.abilities.get(pokemon.abilityId);
+    return this.abilities.get(id);
   }
 }

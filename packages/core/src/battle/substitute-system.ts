@@ -1,5 +1,6 @@
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { effectiveAbilityId } from "./effective-ability";
 
 export function hasSubstitute(pokemon: PokemonInstance): boolean {
   return pokemon.substituteHp !== undefined && pokemon.substituteHp > 0;
@@ -62,7 +63,7 @@ export function shouldSubstituteBlock(
     return false;
   }
   // Infiltration (infiltrator): the holder's moves bypass the target's substitute.
-  if (attacker.abilityId === "infiltrator") {
+  if (effectiveAbilityId(attacker) === "infiltrator") {
     return false;
   }
   return true;

@@ -48,6 +48,20 @@ export interface PokemonInstance {
   nature: Nature;
   statSpread?: StatSpread;
   abilityId?: string;
+  /**
+   * Runtime ability override (ability-manip family, plan 153: Soucigraine → Insomnie, Imitation
+   * copies the target's ability, Échange swaps). Replaces `abilityId` everywhere the effective
+   * ability is read (via `effectiveAbilityId`). A single override at a time — a new cast overwrites
+   * the previous one. Mirrors `typeOverride`: persists for the rest of the battle (no switch in this
+   * game; forced teleport keeps the instance), cleared on KO.
+   */
+  abilityIdOverride?: string;
+  /**
+   * Ability suppressed for the rest of the battle (Suc Digestif / gastro-acid, plan 153). Takes
+   * priority over `abilityIdOverride`: while true, `effectiveAbilityId` returns undefined (the mon
+   * behaves as if it had no ability). Cleared on KO.
+   */
+  abilitySuppressed?: boolean;
   abilityFirstTriggered?: boolean;
   heldItemId?: HeldItemId;
   /**

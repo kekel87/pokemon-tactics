@@ -31,6 +31,15 @@ export const TypeChangeReason = {
 } as const;
 export type TypeChangeReason = (typeof TypeChangeReason)[keyof typeof TypeChangeReason];
 
+/** Why a Pokémon's ability changed (ability-manip family, plan 153) — drives the battle-log line. */
+export const AbilityChangeReason = {
+  SetByMove: "set-by-move",
+  GastroAcid: "gastro-acid",
+  RolePlay: "role-play",
+  SkillSwap: "skill-swap",
+} as const;
+export type AbilityChangeReason = (typeof AbilityChangeReason)[keyof typeof AbilityChangeReason];
+
 export const ProtectionReason = {
   Mist: "mist",
   Safeguard: "safeguard",
@@ -563,4 +572,11 @@ export type BattleEvent =
       turns: number;
     }
   | { type: typeof BattleEventType.CritStageRaised; targetId: string; stages: number }
-  | { type: typeof BattleEventType.GuaranteedCritArmed; pokemonId: string };
+  | { type: typeof BattleEventType.GuaranteedCritArmed; pokemonId: string }
+  | {
+      type: typeof BattleEventType.AbilityChanged;
+      pokemonId: string;
+      /** The new effective ability id, or undefined when the ability was suppressed (Suc Digestif). */
+      abilityId?: string;
+      reason: AbilityChangeReason;
+    };

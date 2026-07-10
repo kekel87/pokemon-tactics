@@ -4,9 +4,24 @@ import { StatusType } from "../enums/status-type";
 import type { BattleEvent } from "../types/battle-event";
 import type { BattleState } from "../types/battle-state";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { effectiveAbilityId } from "./effective-ability";
 
 function chebyshevDistance(a: { x: number; y: number }, b: { x: number; y: number }): number {
   return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+}
+
+/**
+ * True when the aura source no longer carries the ability that produced this position-linked status
+ * (ability-manip family, plan 153: Suc Digestif suppresses it, Soucigraine/Échange replaces it).
+ * Used only for the ability-driven Intimidation aura (`intimidate`); move-sourced volatiles
+ * (Attirance/Infatuation, Barrage/Regard Noir traps) are left alone — they have no backing ability.
+ */
+function sourceLostAbility(sourceId: string, abilityId: string, state: BattleState): boolean {
+  const source = state.pokemon.get(sourceId);
+  if (!source) {
+    return true;
+  }
+  return effectiveAbilityId(source) !== abilityId;
 }
 
 function isSourceGone(sourceId: string, state: BattleState): boolean {
@@ -35,7 +50,10 @@ function processIntimidated(pokemon: PokemonInstance, state: BattleState): Battl
       continue;
     }
 
-    if (!isSourceNoLongerAdjacent(pokemon, status.sourceId, state)) {
+    if (
+      !isSourceNoLongerAdjacent(pokemon, status.sourceId, state) &&
+      !sourceLostAbility(status.sourceId, "intimidate", state)
+    ) {
       continue;
     }
 
@@ -87,7 +105,9 @@ function processPositionLinkedTrapped(pokemon: PokemonInstance, state: BattleSta
 
   for (let i = pokemon.volatileStatuses.length - 1; i >= 0; i--) {
     const status = pokemon.volatileStatuses[i];
-    // Position-linked traps use remainingTurns === -1 and always have a sourceId (magnet-pull source)
+    // Position-linked traps use remainingTurns === -1 and always have a sourceId. In this game they
+    // are move-sourced only (Barrage / Regard Noir); there is no ability-driven Magnépiège trap, so
+    // ability loss on the source does NOT release them (only death / distance does).
     if (
       !status ||
       status.type !== StatusType.Trapped ||

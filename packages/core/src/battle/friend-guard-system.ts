@@ -1,6 +1,7 @@
 import type { BattleState } from "../types/battle-state";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import { manhattanDistance } from "../utils";
+import { effectiveAbilityId } from "./effective-ability";
 
 const FRIEND_GUARD_RADIUS = 2;
 const FRIEND_GUARD_MULTIPLIER = 0.75;
@@ -16,7 +17,7 @@ export function friendGuardMultiplier(state: BattleState, defender: PokemonInsta
       pokemon.id !== defender.id &&
       pokemon.currentHp > 0 &&
       pokemon.playerId === defender.playerId &&
-      pokemon.abilityId === "friend-guard" &&
+      effectiveAbilityId(pokemon) === "friend-guard" &&
       manhattanDistance(pokemon.position, defender.position) <= FRIEND_GUARD_RADIUS
     ) {
       return FRIEND_GUARD_MULTIPLIER;

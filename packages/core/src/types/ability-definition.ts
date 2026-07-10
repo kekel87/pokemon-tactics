@@ -175,6 +175,12 @@ export interface AbilityHandler {
    * (Statik, Corps Ardent, …) are not. Read by `resolveDefensiveAbility`.
    */
   breakable?: boolean;
+  /**
+   * True if this ability cannot be suppressed by Suc Digestif (gastro-acid) — Showdown's
+   * `unsuppressable` flag (injected from the reference by load-abilities). No Gen 1 roster ability is
+   * unsuppressable in practice, but the gate is honoured for correctness. Read by `handleSuppressAbility`.
+   */
+  unsuppressable?: boolean;
   blocksIndirectDamage?: boolean;
   blocksRecoil?: boolean;
   preventsCrit?: boolean;

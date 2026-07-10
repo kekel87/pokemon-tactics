@@ -17,6 +17,10 @@ import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handl
 import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { isEffectivelyGrounded } from "./field-global-system";
 import { enumerateZoneTiles } from "./field-terrain-system";
+import { handleCopyAbility } from "./handlers/ability-manip/handle-copy-ability";
+import { handleSetAbility } from "./handlers/ability-manip/handle-set-ability";
+import { handleSuppressAbility } from "./handlers/ability-manip/handle-suppress-ability";
+import { handleSwapAbility } from "./handlers/ability-manip/handle-swap-ability";
 import { handleArmGuaranteedCrit } from "./handlers/handle-arm-guaranteed-crit";
 import { handleBurnTargetItem } from "./handlers/handle-burn-target-item";
 import { handleCureTeamStatus } from "./handlers/handle-cure-team-status";
@@ -141,6 +145,10 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.ArmGuaranteedCrit, handleArmGuaranteedCrit);
   registry.register(EffectKind.HalveTargetHp, handleSuperFang);
   registry.register(EffectKind.SmackDown, handleSmackDown);
+  registry.register(EffectKind.SetAbility, handleSetAbility);
+  registry.register(EffectKind.SuppressAbility, handleSuppressAbility);
+  registry.register(EffectKind.CopyAbility, handleCopyAbility);
+  registry.register(EffectKind.SwapAbility, handleSwapAbility);
   registry.register(EffectKind.HelpingHand, handleHelpingHand);
   registry.register(EffectKind.RemoveItem, handleRemoveItem);
   registry.register(EffectKind.StealItem, handleStealItem);

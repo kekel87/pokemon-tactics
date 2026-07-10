@@ -174,6 +174,70 @@ Les talents réactifs `breakable: false` continuent de se déclencher même quan
 
 Brise Moule ne génère aucun `AbilityActivated`. Cohérent avec Querelleur et Infiltration. Décision #555.
 
+## Manipulation runtime du talent (ability-manip)
+
+Plan 153 (Misc Batch C) — première mécanique de **mutation** du talent (par opposition à la suppression *relationnelle* de Brise Moule ci-dessus, qui ne change rien à l'état du Pokemon). Miroir conceptuel du `typeOverride` du plan 143.
+
+### Champs `PokemonInstance`
+
+```ts
+/** Talent runtime forcé (Soucigraine/Imitation/Échange). Persiste jusqu'au KO. undefined = talent de base. */
+abilityIdOverride?: string;
+/** Talent supprimé (Suc Digestif). Reste du combat. Prioritaire sur override. */
+abilitySuppressed?: boolean;
+```
+
+Reset au KO à côté de `typeOverride`/`speedStatOverride`.
+
+### Helper central `effectiveAbilityId`
+
+Module `packages/core/src/battle/effective-ability.ts` :
+
+```ts
+export function effectiveAbilityId(pokemon: PokemonInstance): string | undefined {
+  if (pokemon.abilitySuppressed) return undefined;
+  return pokemon.abilityIdOverride ?? pokemon.abilityId;
+}
+```
+
+### Chokepoint : `AbilityHandlerRegistry.getForPokemon`
+
+Route via le helper — couvre d'un coup les **~20 sites** qui passent par `getForPokemon` (dégâts, statut, stat, immunité, drain, initiative, aura, pressure…).
+
+### Sites id-check direct migrés (9)
+
+`pokemon.abilityId === "xxx"` → `effectiveAbilityId(pokemon) === "xxx"` dans : `effective-flying.ts` (Lévitation, `levitate`), `aura-system.ts` + `substitute-system.ts` (Infiltration, `infiltrator`), `damp-system.ts` (Moiteur, `damp`), `friend-guard-system.ts` (Garde-Ami, `friend-guard`), `berry-suppression.ts` (Tension, `unnerve`), `ability-suppression.ts` (Brise Moule, `mold-breaker`), `handle-damage.ts` (Scrappy, `scrappy`), `held-item-transfer.ts` (Glu, `sticky-hold`).
+
+### `EffectKind` + handlers
+
+4 nouveaux `EffectKind` : `SetAbility` (avec `abilityId: string`), `SuppressAbility`, `CopyAbility`, `SwapAbility`. Module `packages/core/src/battle/handlers/ability-manip/` (miroir `type-change/`) :
+
+- **`apply-ability-change.ts`** — helper commun `applyAbilityChange(pokemon, newId | SUPPRESS, reason)` : écrit `abilityIdOverride`/`abilitySuppressed`, émet `AbilityChanged`, déclenche les interactions (voir ci-dessous).
+- **`handle-set-ability.ts`** (Soucigraine) : force Insomnie + réveille la cible si endormie.
+- **`handle-suppress-ability.ts`** (Suc Digestif) : échoue si cible sans talent effectif OU talent `unsuppressable`.
+- **`handle-copy-ability.ts`** (Imitation) : lit `effectiveAbilityId(target)`, copie sur le lanceur.
+- **`handle-swap-ability.ts`** (Échange) : lit les deux talents effectifs, swap via `applyAbilityChange` sur chacun. Un talent supprimé s'échange comme « rien ».
+
+Event `BattleEventType.AbilityChanged { targetId, abilityId?, reason }`. `AbilityChangeReason` = `SetByMove | GastroAcid | RolePlay | SkillSwap`.
+
+### Immunités : flag `unsuppressable`
+
+Flag Showdown `unsuppressable` chargé (mirror `breakable`) pour gater Suc Digestif ; Imitation/Échange échouent seulement si la cible n'a pas de talent (ou déjà supprimé). Aucun talent du roster Gen 1 n'est `unsuppressable` en pratique.
+
+### Interactions complètes
+
+Après **chaque** changement de talent, `applyAbilityChange` déclenche une re-évaluation :
+
+1. **Aura Intimidation** — `processIntimidated` retire le volatile quand `effectiveAbilityId(source) !== "intimidate"` (avant, seule la distance/mort déclenchait le retrait). Un talent **gagné** (ex: Échange donne Intimidation) applique le -1 Atk aux ennemis adjacents via `onAuraCheck`, déjà routé via `getForPokemon`.
+2. **Grounding immédiat sur dé-lévitation** — Suc Digestif supprime Lévitation → `effective-flying.ts` lit `effectiveAbilityId(pokemon) === "levitate"` (immunité terrain/hazards se ré-évalue automatiquement). `BattleEngine.executeUseMove` réagit en plus à l'event `AbilityChanged` (miroir exact du bloc `SmackedDown`/Anti-Air, plan 152) : pour chaque Pokemon devenu non-volant, `applyGroundingTerrainTick` s'exécute **tout de suite**. Un Pokemon Lévitation planant au-dessus de lave/eau profonde (`dotFraction: 1`) se noie/brûle **dès la résolution de Suc Digestif**, pas d'échappatoire jusqu'à son prochain tick.
+3. **Position-linked** : la passe post-action existante (`emitPositionLinkedChecks`) couvre le reste.
+
+**Pas de Magnépiège** : `magnet-pull` n'existe pas comme talent implémenté. Les seuls Trapped position-linked (`remainingTurns === -1`) sont **move-sourcés** (Barrage/Regard Noir) — un garde `magnet-pull` sur `processPositionLinkedTrapped` les casserait (les libérerait au 1ᵉʳ tick).
+
+### Moves
+
+Soucigraine (`worry-seed`), Suc Digestif (`gastro-acid`), Imitation (`role-play`), Échange (`skill-swap`) — tous Statut Single r1 ennemi. Décisions #628–#631.
+
 ## Branchements (call sites)
 
 | Hook | Call site |

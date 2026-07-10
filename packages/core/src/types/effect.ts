@@ -151,4 +151,8 @@ export type Effect =
   | { kind: typeof EffectKind.SwapRawSpeed }
   | { kind: typeof EffectKind.PhazeToSpawn }
   | { kind: typeof EffectKind.HalveTargetHp }
-  | { kind: typeof EffectKind.SmackDown };
+  | { kind: typeof EffectKind.SmackDown }
+  | { kind: typeof EffectKind.SetAbility; abilityId: string }
+  | { kind: typeof EffectKind.SuppressAbility }
+  | { kind: typeof EffectKind.CopyAbility }
+  | { kind: typeof EffectKind.SwapAbility };
