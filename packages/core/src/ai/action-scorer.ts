@@ -15,7 +15,8 @@ import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import type { EntryHazardKind } from "../enums/entry-hazard-kind";
 import { FieldTerrain } from "../enums/field-terrain";
-import type { StatName } from "../enums/stat-name";
+import { PokemonGender } from "../enums/pokemon-gender";
+import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import { TerrainType } from "../enums/terrain-type";
@@ -109,6 +110,13 @@ function scoreUseMove(
   const isSelfTargeting = move.targeting.kind === TargetingKind.Self;
   const hasDamageFloor = getEffectivePowerFloor(move) > 0;
 
+  // Cognobidon guard-rail (belly-drum, plan 154): value it only at high HP with a low Attack stage;
+  // hard negative when it would fail (HP ≤ 50% or Attack maxed) so the AI never suicides. Fine
+  // valuation (win-condition behind a wall) deferred to the grouped AI pass.
+  if (move.effects.some((effect) => effect.kind === EffectKind.BellyDrum)) {
+    return scoreBellyDrum(currentPokemon, weights);
+  }
+
   if (isSelfTargeting && !hasDamageFloor) {
     return scoreSelfMove(currentPokemon, enemies, move, weights, state);
   }
@@ -188,6 +196,22 @@ function scoreUseMove(
         target.lastOffensiveActionAtAction === target.lastActedAtAction,
     );
     if (!anyAggressive) {
+      return -1;
+    }
+  }
+
+  // Attraction guard-rail (attract, plan 154): fails on same-gender / genderless / already-infatuated
+  // targets. Exclude it when no hit target is a valid infatuation candidate so the AI never wastes the
+  // turn. Fine valuation (infatuate an identified sweeper) deferred.
+  if (move.effects.some((effect) => effect.kind === EffectKind.Attract)) {
+    const anyValid = targetsHit.some(
+      (target) =>
+        currentPokemon.gender !== PokemonGender.Genderless &&
+        target.gender !== PokemonGender.Genderless &&
+        target.gender !== currentPokemon.gender &&
+        !target.volatileStatuses.some((volatile) => volatile.type === StatusType.Infatuated),
+    );
+    if (!anyValid) {
       return -1;
     }
   }
@@ -302,6 +326,26 @@ function scoreOhko(
   const alliesHit = allies.filter((ally) => isOnTiles(ally.position, affectedTiles));
   score -= alliesHit.length * accuracy * weights.killPotential;
   return score;
+}
+
+/**
+ * Cognobidon garde-fou (belly-drum, plan 154): the −50% HP cost makes it a potential blunder. Fail
+ * cases (HP ≤ 50% or Attack already maxed) → hard negative; risky (HP ≤ 70%) → neutral; safe → value
+ * the +6 Attack proportionally to the headroom actually gained.
+ */
+function scoreBellyDrum(
+  currentPokemon: PokemonInstance,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const hpRatio = currentPokemon.currentHp / currentPokemon.maxHp;
+  if (hpRatio <= 0.5 || currentPokemon.statStages[StatName.Attack] >= 6) {
+    return -1;
+  }
+  if (hpRatio < 0.7) {
+    return 0;
+  }
+  const headroom = (6 - currentPokemon.statStages[StatName.Attack]) / 6;
+  return weights.killPotential * headroom;
 }
 
 function sumStatStages(pokemon: PokemonInstance, stats: readonly StatName[]): number {

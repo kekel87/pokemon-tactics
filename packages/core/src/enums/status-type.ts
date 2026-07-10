@@ -39,6 +39,12 @@ export const StatusType = {
    * that move is permanently locked (unusable) on its attacker for the rest of the battle.
    */
   Grudge: "grudge",
+  /**
+   * Malédiction (curse, plan 154) DoT volatile posted by a Ghost caster. Persistent (`remainingTurns
+   * -1`), inflicts `damagePerTurn` (25% max HP) each end-turn via `cursed-tick-handler`. Not position-
+   * linked — the source may die/leave without breaking it (fire-and-forget, distinct from Vampigraine).
+   */
+  Cursed: "cursed",
 } as const;
 
 export type StatusType = (typeof StatusType)[keyof typeof StatusType];

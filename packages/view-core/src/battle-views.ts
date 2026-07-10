@@ -96,6 +96,7 @@ const VOLATILE_LABEL: Partial<Record<StatusType, string>> = {
   [StatusType.Imprisoning]: "infoPanel.volatile.imprison",
   [StatusType.DestinyBond]: "infoPanel.volatile.destinyBond",
   [StatusType.Grudge]: "infoPanel.volatile.grudge",
+  [StatusType.Cursed]: "infoPanel.volatile.cursed",
 };
 
 const TIMED_VOLATILE_LABEL: Partial<Record<StatusType, string>> = {
@@ -272,6 +273,19 @@ export function buildInfoPanelView(
 
   if (pokemon.smackedDown === true) {
     badges.push({ label: context.translate("infoPanel.volatile.smackedDown"), variant: "debuff" });
+  }
+
+  if (pokemon.drowsyTurns !== undefined) {
+    badges.push({ label: context.translate("infoPanel.volatile.drowsy"), variant: "debuff" });
+  }
+
+  if ((pokemon.magnetRiseTurns ?? 0) > 0) {
+    badges.push({
+      label: context.translate("infoPanel.volatile.magnetRise", {
+        turns: String(pokemon.magnetRiseTurns),
+      }),
+      variant: "buff",
+    });
   }
 
   if (pokemon.typeOverride !== undefined) {

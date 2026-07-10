@@ -266,6 +266,10 @@ const STATUS_LOG_KEY: Record<
     },
     removed: { fr: "Le voile d'eau de {name} se dissipe.", en: "{name}'s aqua ring faded." },
   },
+  [StatusType.Infatuated]: {
+    applied: { fr: "{name} tombe amoureux !", en: "{name} fell in love!" },
+    removed: { fr: "{name} n'est plus amoureux.", en: "{name} is no longer infatuated." },
+  },
 };
 
 const STAT_NAME_KEY: Record<string, { fr: string; en: string }> = {
@@ -882,6 +886,59 @@ export function formatBattleEvent(
             ? `Le talent de ${name} devient ${abilityName} !`
             : `${name}'s Ability became ${abilityName}!`;
       }
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.Cursed: {
+      const caster = context.getPokemonName(event.casterId);
+      const target = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `${caster} se maudit et jette une malédiction sur ${target} ! (-${event.hpLost} PV)`
+          : `${caster} cut its own HP and laid a curse on ${target}! (-${event.hpLost} HP)`;
+      return {
+        message,
+        color: BattleLogColors.status,
+        pokemonIds: [event.casterId, event.targetId],
+      };
+    }
+
+    case BattleEventType.CurseDamage: {
+      const target = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `${target} souffre de la malédiction ! (-${event.amount} PV)`
+          : `${target} is afflicted by the curse! (-${event.amount} HP)`;
+      return { message, color: BattleLogColors.damage, pokemonIds: [event.targetId] };
+    }
+
+    case BattleEventType.Drowsy: {
+      const target = context.getPokemonName(event.targetId);
+      const message = lang === "fr" ? `${target} commence à somnoler !` : `${target} grew drowsy!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.targetId] };
+    }
+
+    case BattleEventType.BellyDrumUsed: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${name} se tape le bidon et maximise son Attaque ! (-${event.hpLost} PV)`
+          : `${name} cut its HP and maximized its Attack! (-${event.hpLost} HP)`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.MagnetRisePosted: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${name} lévite grâce à un champ magnétique !`
+          : `${name} levitated with electromagnetism!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.MagnetRiseEnded: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message = lang === "fr" ? `${name} arrête de léviter.` : `${name} stopped levitating.`;
       return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
     }
 

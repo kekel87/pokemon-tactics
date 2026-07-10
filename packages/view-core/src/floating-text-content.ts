@@ -727,6 +727,44 @@ export function floatingTextsFor(
         },
       ];
 
+    case BattleEventType.Cursed:
+      return [
+        { pokemonId: event.casterId, text: `-${event.hpLost}`, color: BATTLE_TEXT_COLOR_DAMAGE },
+        {
+          pokemonId: event.targetId,
+          text: context.translate("status.cursed"),
+          color: BATTLE_TEXT_COLOR_DEBUFF,
+        },
+      ];
+
+    case BattleEventType.CurseDamage:
+      return [
+        { pokemonId: event.targetId, text: `-${event.amount}`, color: BATTLE_TEXT_COLOR_DAMAGE },
+      ];
+
+    case BattleEventType.Drowsy:
+      return [
+        {
+          pokemonId: event.targetId,
+          text: context.translate("status.drowsy"),
+          color: BATTLE_TEXT_COLOR_DEBUFF,
+        },
+      ];
+
+    case BattleEventType.MagnetRisePosted:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("status.magnetRise"),
+          color: BATTLE_TEXT_COLOR_BUFF,
+        },
+      ];
+
+    case BattleEventType.BellyDrumUsed:
+      return [
+        { pokemonId: event.pokemonId, text: `-${event.hpLost}`, color: BATTLE_TEXT_COLOR_DAMAGE },
+      ];
+
     default:
       return [];
   }
