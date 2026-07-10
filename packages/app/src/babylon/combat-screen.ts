@@ -233,6 +233,7 @@ function runBattle(options: {
     getLanguage,
     getPortraitUrl,
     getItemName: itemNameOf,
+    getAbilityName: abilityNameOf,
     isDamagePreviewEnabled: () => getSettings().damagePreview,
   };
   const spawnFloatingText = createFloatingTextSpawner(combat, battle.state, {

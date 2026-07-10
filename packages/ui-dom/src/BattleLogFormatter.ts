@@ -8,6 +8,7 @@ import type {
   PokemonType,
 } from "@pokemon-tactic/core";
 import {
+  AbilityChangeReason,
   BattleEventType,
   DefensiveKind,
   HitAndRunRetreatFallbackReason,
@@ -856,6 +857,30 @@ export function formatBattleEvent(
           lang === "fr"
             ? `${name} devient de type ${typeLabel} !`
             : `${name} became ${typeLabel}-type!`;
+      }
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.AbilityChanged: {
+      const name = context.getPokemonName(event.pokemonId);
+      const abilityName = event.abilityId ? context.getAbilityName(event.abilityId) : null;
+      let message: string;
+      if (event.reason === AbilityChangeReason.GastroAcid || abilityName === null) {
+        message =
+          lang === "fr"
+            ? `Le talent de ${name} est neutralisé !`
+            : `${name}'s Ability was suppressed!`;
+      } else if (event.reason === AbilityChangeReason.RolePlay) {
+        message =
+          lang === "fr"
+            ? `${name} copie le talent ${abilityName} !`
+            : `${name} copied ${abilityName}!`;
+      } else {
+        // SetByMove (Soucigraine) + SkillSwap (Échange) : le talent devient un autre.
+        message =
+          lang === "fr"
+            ? `Le talent de ${name} devient ${abilityName} !`
+            : `${name}'s Ability became ${abilityName}!`;
       }
       return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
     }

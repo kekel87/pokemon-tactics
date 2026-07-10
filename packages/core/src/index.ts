@@ -132,6 +132,7 @@ export {
 } from "./grid/validate-hit-and-run-retreat";
 export * from "./team/index";
 export {
+  AbilityChangeReason,
   AuraDissipatedReason,
   ProtectionReason,
   SubstituteFailedReason,

@@ -151,6 +151,8 @@ export const BattleEventType = {
   CritStageRaised: "crit_stage_raised",
   /** Affilage (laser-focus): the caster armed a one-shot guaranteed critical hit. */
   GuaranteedCritArmed: "guaranteed_crit_armed",
+  /** Manip talent (plan 153): a Pokémon's ability was set/copied/swapped, or suppressed (abilityId undefined). */
+  AbilityChanged: "ability_changed",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

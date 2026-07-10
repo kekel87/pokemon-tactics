@@ -2,6 +2,7 @@ import { HeldItemId } from "../enums/held-item-id";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { effectiveAbilityId } from "./effective-ability";
 
 export function isRoosted(pokemon: PokemonInstance): boolean {
   return pokemon.volatileStatuses.some((v) => v.type === StatusType.Roosted);
@@ -48,7 +49,7 @@ export function isEffectivelyFlying(
   // au sol, knockback). Reverts the instant the balloon pops (heldItemId cleared on the hit).
   return (
     types.includes(PokemonType.Flying) ||
-    pokemon.abilityId === "levitate" ||
+    effectiveAbilityId(pokemon) === "levitate" ||
     pokemon.heldItemId === HeldItemId.AirBalloon
   );
 }

@@ -1,5 +1,6 @@
 import type { BattleState } from "../types/battle-state";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { effectiveAbilityId } from "./effective-ability";
 
 /**
  * Tension (unnerve): while a living opponent of the berry holder carries Tension, the holder cannot
@@ -11,7 +12,7 @@ export function areBerriesSuppressed(state: BattleState, holder: PokemonInstance
     if (
       pokemon.currentHp > 0 &&
       pokemon.playerId !== holder.playerId &&
-      pokemon.abilityId === "unnerve"
+      effectiveAbilityId(pokemon) === "unnerve"
     ) {
       return true;
     }

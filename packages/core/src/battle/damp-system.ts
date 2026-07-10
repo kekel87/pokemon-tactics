@@ -1,4 +1,5 @@
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { effectiveAbilityId } from "./effective-ability";
 
 /**
  * Moiteur (damp): relational, not field-wide. An explosion move (Destruction) fizzles entirely when
@@ -11,7 +12,7 @@ export function findDampInTargets(
 ): PokemonInstance | undefined {
   let blocker: PokemonInstance | undefined;
   for (const target of targets) {
-    if (target.currentHp > 0 && target.abilityId === "damp") {
+    if (target.currentHp > 0 && effectiveAbilityId(target) === "damp") {
       if (blocker === undefined || target.id < blocker.id) {
         blocker = target;
       }

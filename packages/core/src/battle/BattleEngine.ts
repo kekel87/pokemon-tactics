@@ -1902,6 +1902,25 @@ export class BattleEngine {
       }
     }
 
+    // Ability manip (plan 153): suppressing/replacing/swapping away Lévitation grounds a floating mon
+    // NOW (mirror of Anti-Air above) — a de-levitated mon standing over lava/deep water drowns/burns
+    // this instant instead of escaping until its next terrain tick.
+    const abilityChangedIds: string[] = [];
+    for (const event of events) {
+      if (event.type === BattleEventType.AbilityChanged) {
+        abilityChangedIds.push(event.pokemonId);
+      }
+    }
+    for (const changedId of abilityChangedIds) {
+      const changed = this.state.pokemon.get(changedId);
+      if (changed && changed.currentHp > 0 && !this.isEffectivelyFlying(changed)) {
+        this.applyGroundingTerrainTick(changed, events);
+        if (this.battleOver) {
+          return { success: true, events };
+        }
+      }
+    }
+
     // Whether the move landed a real (non-recoil, non-self, super-effective-or-neutral) hit. Shared by
     // Tout ou Rien's conditional self-KO and the crash-on-miss recoil below (single source of truth).
     const moveConnected = effectEvents.some(
@@ -3352,6 +3371,9 @@ export class BattleEngine {
     pokemon.guaranteedCritArmed = undefined;
     pokemon.typeOverride = undefined;
     pokemon.speedStatOverride = undefined;
+    // Ability-manip family (plan 153): a fresh corpse reverts to its species ability.
+    pokemon.abilityIdOverride = undefined;
+    pokemon.abilitySuppressed = undefined;
     pokemon.lastHitBy = undefined;
     pokemon.grudgeLockedMoveIds = undefined;
     pokemon.smackedDown = undefined;

@@ -2070,6 +2070,27 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
     requiresUserType: PokemonType.Fire,
   },
+  // --- Famille Misc Batch C : manip talent (plan 153) : mutation runtime du talent ---
+  "worry-seed": {
+    // Soucigraine: remplace le talent de la cible ennemie r1 par Insomnie (réveille si endormie).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.SetAbility, abilityId: "insomnia" }],
+  },
+  "gastro-acid": {
+    // Suc Digestif: supprime le talent de la cible ennemie r1 pour le reste du combat.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.SuppressAbility }],
+  },
+  "role-play": {
+    // Imitation: le lanceur copie le talent effectif de la cible ennemie r1.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.CopyAbility }],
+  },
+  "skill-swap": {
+    // Échange: échange les talents lanceur ↔ cible ennemie r1 (prime au risque, comme Permucœur).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [{ kind: EffectKind.SwapAbility }],
+  },
   // --- Content Batch G1 moves (dégâts pur physique, plan 102) ---
   // Riders complexes différés (cf. plan 102) : throat-chop sound-lock, lash-out/temper-flare/
   // fury-cutter power conditionnel, ice-spinner/steel-roller terrain, supercell-slam crash,

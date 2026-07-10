@@ -325,6 +325,8 @@ export interface Translations {
   "infoPanel.volatile.smackedDown": string;
   "infoPanel.volatile.typeChanged": string;
   "infoPanel.volatile.noType": string;
+  "infoPanel.volatile.abilityChanged": string;
+  "infoPanel.volatile.abilitySealed": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
   "moveTooltip.tag.dynamicPower": string;
@@ -360,6 +362,10 @@ export interface Translations {
   "moveTooltip.tag.neverMiss": string;
   "moveTooltip.tag.superFang": string;
   "moveTooltip.tag.smackDown": string;
+  "moveTooltip.tag.setAbility": string;
+  "moveTooltip.tag.suppressAbility": string;
+  "moveTooltip.tag.copyAbility": string;
+  "moveTooltip.tag.swapAbility": string;
   "moveTooltip.tag.healBlock": string;
   "moveTooltip.tag.spite": string;
   "moveTooltip.tag.removesItem": string;

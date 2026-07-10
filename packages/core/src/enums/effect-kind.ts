@@ -109,6 +109,14 @@ export const EffectKind = {
   HalveTargetHp: "halve_target_hp",
   /** Ground the target (Anti-Air / smack-down): loses Flying's Ground immunity + becomes hazard-vulnerable. */
   SmackDown: "smack_down",
+  /** Set the target's ability to a fixed one (Soucigraine / worry-seed → Insomnie). */
+  SetAbility: "set_ability",
+  /** Suppress the target's ability for the rest of the battle (Suc Digestif / gastro-acid). */
+  SuppressAbility: "suppress_ability",
+  /** Copy the target's effective ability onto the caster (Imitation / role-play). */
+  CopyAbility: "copy_ability",
+  /** Swap the effective abilities of the caster and the target (Échange / skill-swap). */
+  SwapAbility: "swap_ability",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

@@ -128,6 +128,14 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
       keys.push("moveTooltip.tag.superFang");
     } else if (effect.kind === EffectKind.SmackDown) {
       keys.push("moveTooltip.tag.smackDown");
+    } else if (effect.kind === EffectKind.SetAbility) {
+      keys.push("moveTooltip.tag.setAbility");
+    } else if (effect.kind === EffectKind.SuppressAbility) {
+      keys.push("moveTooltip.tag.suppressAbility");
+    } else if (effect.kind === EffectKind.CopyAbility) {
+      keys.push("moveTooltip.tag.copyAbility");
+    } else if (effect.kind === EffectKind.SwapAbility) {
+      keys.push("moveTooltip.tag.swapAbility");
     }
   }
   if (move.alwaysCrit === true) {

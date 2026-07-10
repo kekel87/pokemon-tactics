@@ -288,6 +288,20 @@ export function buildInfoPanelView(
     }
   }
 
+  if (pokemon.abilitySuppressed === true) {
+    badges.push({
+      label: context.translate("infoPanel.volatile.abilitySealed"),
+      variant: "debuff",
+    });
+  } else if (pokemon.abilityIdOverride !== undefined) {
+    const abilityName =
+      context.getAbilityName(pokemon.abilityIdOverride) ?? pokemon.abilityIdOverride;
+    badges.push({
+      label: context.translate("infoPanel.volatile.abilityChanged", { ability: abilityName }),
+      variant: "volatile",
+    });
+  }
+
   pushAuraBadges(context, badges, pokemon, state);
 
   const heldItem =

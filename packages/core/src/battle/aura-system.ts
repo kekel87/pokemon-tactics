@@ -7,6 +7,7 @@ import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import type { TeamAura } from "../types/team-aura";
+import { effectiveAbilityId } from "./effective-ability";
 
 export const AURA_DEFAULT_DURATION = 5;
 export const AURA_EXTENDED_DURATION = 8;
@@ -137,7 +138,7 @@ export function computeScreenMultiplier(
     return 1.0;
   }
   // Infiltration (infiltrator): the holder's moves pierce Mur Lumière / Protection.
-  if (attacker.abilityId === "infiltrator") {
+  if (effectiveAbilityId(attacker) === "infiltrator") {
     return 1.0;
   }
   const protectingAuras = findActiveAurasProtectingTarget(state, target);
@@ -200,7 +201,7 @@ function resolveAuraProtection(
     return { protected: false };
   }
   // Infiltration (infiltrator): the holder's moves pierce Voile Sacré (Safeguard) and Brume (Mist).
-  if (attacker.abilityId === "infiltrator") {
+  if (effectiveAbilityId(attacker) === "infiltrator") {
     return { protected: false };
   }
   const auras = findActiveAurasProtectingTarget(state, target, kind);

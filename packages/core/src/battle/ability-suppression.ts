@@ -1,6 +1,7 @@
 import type { AbilityDefinition } from "../types/ability-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
+import { effectiveAbilityId } from "./effective-ability";
 
 /**
  * Resolves the defensive ability of `target` as seen by `attacker` during an attack.
@@ -21,7 +22,7 @@ export function resolveDefensiveAbility(
   if (!ability) {
     return undefined;
   }
-  if (attacker.abilityId === "mold-breaker" && ability.breakable) {
+  if (effectiveAbilityId(attacker) === "mold-breaker" && ability.breakable) {
     return undefined;
   }
   return ability;
