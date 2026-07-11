@@ -63,12 +63,17 @@ export function moveIntent(move: MoveDefinition): MoveIntent {
 
 /**
  * Manhattan radius of a self-centred AoE effect (life-dew heal, aromatherapy cure,
- * field terrain), or `undefined` for a single-tile self move. Lets both the ground
+ * howl / magnetic-flux ally stat buff, field terrain), or `undefined` for a single-tile
+ * self move. Lets both the ground
  * preview and the tooltip grid draw the full affected zone around the caster.
  */
 export function selfPreviewRadius(move: MoveDefinition): number | undefined {
   for (const effect of move.effects) {
     if (effect.kind === EffectKind.HealTarget && effect.radius !== undefined) {
+      return effect.radius;
+    }
+    // Grondement / Magné-Contrôle: self-centred ally stat buff over a Manhattan radius.
+    if (effect.kind === EffectKind.StatChange && effect.radius !== undefined) {
       return effect.radius;
     }
     if (effect.kind === EffectKind.CureTeamStatus) {

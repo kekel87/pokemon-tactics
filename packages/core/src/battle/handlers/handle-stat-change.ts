@@ -4,10 +4,13 @@ import { EffectTarget } from "../../enums/effect-target";
 import type { BattleEvent } from "../../types/battle-event";
 import { ProtectionReason } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
+import type { PokemonInstance } from "../../types/pokemon-instance";
+import { manhattanDistance } from "../../utils/manhattan-distance";
 import { resolveDefensiveAbility } from "../ability-suppression";
 import { applyStatStage } from "../apply-stat-stage";
 import { isProtectedFromStatDecrease } from "../aura-system";
 import type { EffectContext } from "../effect-handler-registry";
+import { effectiveAbilityId } from "../effective-ability";
 import { shouldSubstituteBlock } from "../substitute-system";
 
 export function handleStatChange(context: EffectContext): BattleEvent[] {
@@ -19,7 +22,11 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
   }
 
   const affectedPokemon =
-    effect.target === EffectTarget.Self ? [context.attacker] : context.targets;
+    effect.radius === undefined
+      ? effect.target === EffectTarget.Self
+        ? [context.attacker]
+        : context.targets
+      : resolveRadiusAllies(context, effect.radius, effect.abilityGate);
   const isEnemyDebuff = effect.target !== EffectTarget.Self && effect.stages < 0;
 
   for (const pokemon of affectedPokemon) {
@@ -112,4 +119,31 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
   }
 
   return events;
+}
+
+/**
+ * Auto-centred ally buff (howl, magnetic-flux): every living mon on the caster's team (including the
+ * caster) inside the Manhattan diamond of `radius`. When `abilityGate` is set, keep only those whose
+ * effective ability is listed (magnetic-flux: Plus/Minus) — yields an empty set, hence a no-op, when
+ * nobody qualifies.
+ */
+function resolveRadiusAllies(
+  context: EffectContext,
+  radius: number,
+  abilityGate: string[] | undefined,
+): PokemonInstance[] {
+  const caster = context.attacker;
+  return [...context.state.pokemon.values()].filter((pokemon) => {
+    if (pokemon.currentHp <= 0 || pokemon.playerId !== caster.playerId) {
+      return false;
+    }
+    if (manhattanDistance(pokemon.position, caster.position) > radius) {
+      return false;
+    }
+    if (abilityGate !== undefined) {
+      const ability = effectiveAbilityId(pokemon);
+      return ability !== undefined && abilityGate.includes(ability);
+    }
+    return true;
+  });
 }

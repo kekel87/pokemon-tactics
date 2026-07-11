@@ -431,6 +431,16 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
 
 ### 5.4 Changements de stats (un cas par sens)
 - 🤖 Interaction : hausse (Danse-Lames, self) / baisse (Rugissement, ennemi) journalisées — `mechanics-status.spec`.
+- 🤖 **Grondement** (`howl`, Normal Statut Self, StatChange Attaque +1 `radius: 2`) : buff
+  multi-allié (lanceur + alliés vivants du diamant Manhattan r2). Le harness sandbox est un 1v1 →
+  seul le **lanceur** (dans son propre rayon) est observable : Arcanin gagne Attaque +1 → journal
+  « Attaque de <X> augmente ! » — `mechanics-status.spec`. *Le volet multi-allié (buff des alliés
+  dans le rayon, exclusion des ennemis / alliés hors r2) n'est pas exposable en 1v1 → couvert unit
+  `battle/moves/howl.test.ts`.*
+- 👁 **Magné-Contrôle** (`magnetic-flux`, Électrik Statut Self, Déf/Déf.Spé +1 `radius: 2` +
+  `abilityGate: ["plus","minus"]`) : **no-op injouable** en Gen 1 — aucun Pokemon du roster n'a le
+  talent Plus/Minus, donc l'effet ne s'applique jamais. Codé par complétude (plan 156), sens couvert
+  unit `battle/moves/magnetic-flux.test.ts`. Non automatisé e2e (rien d'observable).
 - 👁 **Hausse** → texte **bleu** « <Stat> augmente ! » (ex. « Attaque de <X> augmente ! »).
 - 👁 **Baisse** → texte **rouge** « <Stat> baisse ! ».
 - 👁 Abréviations/labels stat FR : Attaque, Défense, Atq. Spé., Déf. Spé., Vitesse, Précision,
@@ -1576,7 +1586,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/driving.spec.ts` | piloter : attaque + dégâts (journal), K.O. + fin de combat, déplacement |
 | `combat/normal-game.spec.ts` | parcours réel menu → carte → équipe → combat monte |
 | `combat/targeting.spec.ts` | §3.7/§4.8/§4.12 — highlights `highlight_move_*` au déplacement, instruction « Sélectionne la cible »→« Confirmer ? » en attaque |
-| `combat/mechanics-status.spec.ts` | §5.3 icône/statut + Spore, §5.4 stat ±, §5.5 confusion/Provoc (journal) |
+| `combat/mechanics-status.spec.ts` | §5.3 icône/statut + Spore, §5.4 stat ± + Grondement (buff self), §5.5 confusion/Provoc (journal) |
 | `combat/mechanics-field.spec.ts` | §5.9 auras (Reflet/Mur/Brume/Rune), §5.10 4 champs déployés (journal) |
 | `combat/mechanics-distortion.spec.ts` | §5.21 Distorsion : zone posée (journal « Distorsion ! » + quads indigo en scène) + inversion CT dans la timeline (lent avant rapide) |
 | `combat/mechanics-hazards.spec.ts` | §5.22 Pièges au sol : Picots posés via le picker GroundTarget (journal « Des Picots sont posés au sol » + mesh `hazard_hazards_spikes_1_x_y` sur la case visée seule). Déclenchement = SENS unit core (non pilotable : owner-immunity + dummy AI immobile) |

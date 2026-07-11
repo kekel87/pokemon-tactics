@@ -879,3 +879,24 @@ export const VITAL_THROW = {
   moves: ["vital-throw"],
   dummyStatStages: { evasion: 6 },
 } as const;
+
+// Famille Misc buff-stat multi-allié (plan 156) — Grondement (`howl`, Normal Statut Self) buffe
+// l'Attaque +1 du LANCEUR ET de tous les alliés vivants du diamant Manhattan r2 auto-centré (champ
+// `radius` sur l'effet StatChange). Le harness sandbox est un 1v1 (joueur + dummy) et n'expose PAS de
+// 2ᵉ Pokemon du même camp → le VOLET multi-allié (buff des alliés dans le rayon) n'est PAS observable
+// ici ; il reste couvert par l'unit `battle/moves/howl.test.ts` (positions Manhattan r2 : ally-near
+// buffé / ally-far non / ennemi non). L'e2e prouve donc le seul volet pilotable en 1v1 : le lanceur,
+// qui est dans son propre rayon, gagne Attaque +1.
+// Magné-Contrôle (`magnetic-flux`) n'a volontairement PAS de config : ses effets sont gatés par le
+// talent Plus/Minus (`abilityGate`), absent du roster Gen 1 → no-op injouable, codé par complétude
+// (décision plan 156). Le sens reste couvert par l'unit `battle/moves/magnetic-flux.test.ts`.
+
+/** Grondement (`howl`, Normal Statut, targeting Self, StatChange Attaque +1 radius 2). Arcanin
+ *  (arcanine — apprend Grondement en Gen 1) lance Grondement sur sa propre case (2,3) : il est DANS
+ *  son propre diamant r2 → Attaque +1 → journal « Attaque de Arcanin augmente ! ». Move statut sans
+ *  jet de précision → cast déterministe (seed DUEL hérité). */
+export const GRONDEMENT = {
+  ...DUEL,
+  pokemon: "arcanine",
+  moves: ["howl"],
+} as const;
