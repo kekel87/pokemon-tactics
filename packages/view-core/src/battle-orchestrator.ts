@@ -153,6 +153,11 @@ const BOARD_EVENT_TYPES = new Set<string>([
   // Terrain-inflicted status (e.g. ending a turn on a marsh → poisoned): re-sync at
   // the event beat so the status icon shows immediately, not only on the final sync.
   BattleEventType.TerrainStatusApplied,
+  // Par Ici / Poudre Fureur (plan 155): re-sync so the enemies pivot to face the caster at the
+  // event beat (syncBoard re-reads each mon's orientation via setFacing).
+  BattleEventType.DrewAttention,
+  // Interversion (plan 155): re-sync so both swapped mons glide to their new tiles at the swap beat.
+  BattleEventType.AlliesSwapped,
 ]);
 
 function semiInvulnerableDisplay(

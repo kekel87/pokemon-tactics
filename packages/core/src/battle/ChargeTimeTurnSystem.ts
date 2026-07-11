@@ -56,6 +56,27 @@ export class ChargeTimeTurnSystem {
     }
   }
 
+  /**
+   * Après Vous (after-you, plan 155): make `pokemonId` the strictly-next actor **without** disturbing
+   * anyone else's gauge (unlike `forceActor`, which resets everyone to `CT_START`). It is set both
+   * above the current maximum AND above the action threshold, so the very next `getNextActorId`
+   * returns it immediately — no ticking happens, so faster mons can't out-accumulate its head start.
+   * Deterministic even on a tie, since no other mon can match `max + 1`. No-op if the mon is not
+   * scheduled (e.g. KO'd).
+   */
+  promoteToImmediateNext(pokemonId: string): void {
+    if (!this.ctMap.has(pokemonId)) {
+      return;
+    }
+    let max = Number.NEGATIVE_INFINITY;
+    for (const ct of this.ctMap.values()) {
+      if (ct > max) {
+        max = ct;
+      }
+    }
+    this.ctMap.set(pokemonId, Math.max(CT_THRESHOLD, max + 1));
+  }
+
   getCtSnapshot(): Record<string, number> {
     return Object.fromEntries(this.ctMap);
   }

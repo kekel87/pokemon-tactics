@@ -148,6 +148,16 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
       keys.push("moveTooltip.tag.attract");
     } else if (effect.kind === EffectKind.MagnetRise) {
       keys.push("moveTooltip.tag.magnetRise");
+    } else if (effect.kind === EffectKind.DrawAttention) {
+      keys.push(
+        move.flags?.powder === true
+          ? "moveTooltip.tag.drawAttentionPowder"
+          : "moveTooltip.tag.drawAttention",
+      );
+    } else if (effect.kind === EffectKind.ActAfterUser) {
+      keys.push("moveTooltip.tag.actAfterUser");
+    } else if (effect.kind === EffectKind.SwapAllyPositions) {
+      keys.push("moveTooltip.tag.swapAllyPositions");
     }
   }
   if (move.alwaysCrit === true) {

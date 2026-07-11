@@ -132,6 +132,19 @@ export const EffectKind = {
   Attract: "attract",
   /** Vol Magnétik (magnet-rise, plan 154): the caster levitates for 5 turns (temporary effectively-flying). */
   MagnetRise: "magnet_rise",
+  /**
+   * Par Ici / Poudre Fureur (follow-me / rage-powder, plan 155): every enemy inside a Manhattan
+   * diamond around the caster pivots to face the caster (one-shot), exposing its back. Poudre Fureur
+   * is a powder move — powder-immune enemies (Grass / Envelocape / Lunettes Filtre) do not turn.
+   */
+  DrawAttention: "draw_attention",
+  /**
+   * Après Vous (after-you, plan 155): the target ally becomes the strictly-next actor in the CT
+   * scheduler, without resetting anyone else's gauge (non-destructive promotion).
+   */
+  ActAfterUser: "act_after_user",
+  /** Interversion (ally-switch, plan 155): the caster swaps grid positions with a target ally. */
+  SwapAllyPositions: "swap_ally_positions",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

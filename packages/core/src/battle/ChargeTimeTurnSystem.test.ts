@@ -95,4 +95,29 @@ describe("ChargeTimeTurnSystem", () => {
     const actor = system.getNextActorId();
     expect(actor).toBe("a");
   });
+
+  it("promoteToImmediateNext makes the target the strictly-next actor", () => {
+    const system = buildChargeTimeSystem({ fast: 90, target: 20 });
+    system.promoteToImmediateNext("target");
+    expect(system.getNextActorId()).toBe("target");
+  });
+
+  it("promoteToImmediateNext preserves every other gauge (non-destructive)", () => {
+    const system = buildChargeTimeSystem({ fast: 90, slow: 20, target: 50 });
+    system.onActionComplete("fast", 123);
+    const before = system.getCtSnapshot();
+    system.promoteToImmediateNext("target");
+    const after = system.getCtSnapshot();
+    expect(after.fast).toBe(before.fast);
+    expect(after.slow).toBe(before.slow);
+    expect(after.target).toBeGreaterThan(Math.max(after.fast, after.slow));
+    expect(after.target).toBeGreaterThanOrEqual(CT_THRESHOLD);
+  });
+
+  it("promoteToImmediateNext is a no-op for an unscheduled (KO'd) mon", () => {
+    const system = buildChargeTimeSystem({ a: 90, b: 20 });
+    system.onPokemonKO("b");
+    system.promoteToImmediateNext("b");
+    expect(Object.keys(system.getCtSnapshot())).not.toContain("b");
+  });
 });
