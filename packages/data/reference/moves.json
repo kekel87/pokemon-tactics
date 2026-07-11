@@ -16728,7 +16728,7 @@
     "priority": 0,
     "target": "allAdjacentFoes",
     "shortDescription": {
-      "en": "Lowers the user's Sp. Atk by 1. Hits foe(s).",
+      "en": "Lowers the user's Sp. Atk by 2. Hits foe(s).",
       "fr": "Le lanceur attaque en lançant de nombreuses pièces, ce qui baisse son Attaque Spéciale. Permet d'obtenir plus d'argent à la fin du combat."
     },
     "longDescription": {
@@ -21877,7 +21877,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "+50 power for each time user was hit. Max 6 hits.",
+      "en": "+50 BP/hit on user. Max 6 hits. Resets on switch-out.",
       "fr": "Le lanceur transforme sa colère en énergie pour attaquer. Plus il a subi d'attaques, plus la puissance de cette capacité augmente."
     },
     "longDescription": {
