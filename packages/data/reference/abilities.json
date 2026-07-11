@@ -4669,11 +4669,11 @@
       "fr": "Mue"
     },
     "shortDescription": {
-      "en": "This Pokemon has a 30% chance to have its status cured at the end of each turn.",
+      "en": "Has a 33% chance of curing any major status ailment after each turn.",
       "fr": "Le Pokémon soigne parfois ses altérations de statut en muant."
     },
     "longDescription": {
-      "en": "This Pokemon has a 30% chance to have its non-volatile status condition cured at the end of each turn.",
+      "en": "After each turn, this Pokémon has a 33% of being cured of any major status ailment.",
       "fr": "Le Pokémon soigne parfois ses altérations de statut en muant."
     },
     "flags": {
