@@ -590,4 +590,18 @@ export type BattleEvent =
   | { type: typeof BattleEventType.Drowsy; targetId: string }
   | { type: typeof BattleEventType.BellyDrumUsed; pokemonId: string; hpLost: number }
   | { type: typeof BattleEventType.MagnetRisePosted; pokemonId: string; turns: number }
-  | { type: typeof BattleEventType.MagnetRiseEnded; pokemonId: string };
+  | { type: typeof BattleEventType.MagnetRiseEnded; pokemonId: string }
+  | {
+      type: typeof BattleEventType.DrewAttention;
+      casterId: string;
+      /** Enemies that actually pivoted (powder-immune ones excluded for Poudre Fureur). */
+      affectedIds: string[];
+    }
+  | { type: typeof BattleEventType.PromotedToActNext; casterId: string; targetId: string }
+  | {
+      type: typeof BattleEventType.AlliesSwapped;
+      casterId: string;
+      allyId: string;
+      casterPosition: Position;
+      allyPosition: Position;
+    };

@@ -2144,6 +2144,33 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     effects: [{ kind: EffectKind.MagnetRise, turns: 5 }],
     disabledUnderGravity: true,
   },
+  // ── Misc Batch E : grille-problématiques (plan 155) ──
+  // Redirection/priorité/switch canon réinterprétés sur la grille + CT. Tous hors-pool Gen 1
+  // (0 learner), codés par complétude. Voir docs/plans/155-misc-grid-targeting.md.
+  "follow-me": {
+    // Par Ici: les ennemis en zone r4 pivotent pour faire face au lanceur (one-shot), exposant leur
+    // dos aux alliés (back-attack ×1.15).
+    targeting: { kind: TargetingKind.Zone, radius: 4 },
+    effects: [{ kind: EffectKind.DrawAttention, radius: 4 }],
+  },
+  "rage-powder": {
+    // Poudre Fureur: idem Par Ici mais move « poudre » — les ennemis Plante / Envelocape / Lunettes
+    // Filtre ne pivotent pas (flag powder hérité de la référence).
+    targeting: { kind: TargetingKind.Zone, radius: 4 },
+    effects: [{ kind: EffectKind.DrawAttention, radius: 4 }],
+  },
+  "after-you": {
+    // Après Vous: la cible alliée r3 passe strictement prochaine au CT (promotion non-destructive).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    targetsAlly: true,
+    effects: [{ kind: EffectKind.ActAfterUser }],
+  },
+  "ally-switch": {
+    // Interversion: le lanceur échange sa position avec un allié r3 (terrain re-déclenché aux 2 cases).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    targetsAlly: true,
+    effects: [{ kind: EffectKind.SwapAllyPositions }],
+  },
   // --- Content Batch G1 moves (dégâts pur physique, plan 102) ---
   // Riders complexes différés (cf. plan 102) : throat-chop sound-lock, lash-out/temper-flare/
   // fury-cutter power conditionnel, ice-spinner/steel-roller terrain, supercell-slam crash,

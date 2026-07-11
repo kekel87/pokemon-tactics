@@ -378,6 +378,10 @@ export interface Translations {
   "moveTooltip.tag.acupressure": string;
   "moveTooltip.tag.attract": string;
   "moveTooltip.tag.magnetRise": string;
+  "moveTooltip.tag.drawAttention": string;
+  "moveTooltip.tag.drawAttentionPowder": string;
+  "moveTooltip.tag.actAfterUser": string;
+  "moveTooltip.tag.swapAllyPositions": string;
   "moveTooltip.tag.healBlock": string;
   "moveTooltip.tag.spite": string;
   "moveTooltip.tag.removesItem": string;

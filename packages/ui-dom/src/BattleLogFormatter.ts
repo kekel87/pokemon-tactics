@@ -942,6 +942,32 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.DrewAttention: {
+      const name = context.getPokemonName(event.casterId);
+      const message =
+        lang === "fr"
+          ? `${name} attire l'attention ! Les ennemis se tournent vers lui.`
+          : `${name} became the center of attention! Foes turned toward it.`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.casterId] };
+    }
+
+    case BattleEventType.PromotedToActNext: {
+      const target = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr" ? `${target} va agir juste après !` : `${target} will act next!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.targetId] };
+    }
+
+    case BattleEventType.AlliesSwapped: {
+      const caster = context.getPokemonName(event.casterId);
+      const ally = context.getPokemonName(event.allyId);
+      const message =
+        lang === "fr"
+          ? `${caster} et ${ally} échangent leur place !`
+          : `${caster} and ${ally} switched places!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.casterId, event.allyId] };
+    }
+
     case BattleEventType.MoveCopied: {
       const name = context.getPokemonName(event.pokemonId);
       const copiedName = context.getMoveName(event.copiedMoveId);

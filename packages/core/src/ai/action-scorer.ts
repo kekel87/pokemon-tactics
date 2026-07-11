@@ -117,6 +117,24 @@ function scoreUseMove(
     return scoreBellyDrum(currentPokemon, weights);
   }
 
+  // Par Ici / Poudre Fureur (draw-attention, plan 155): guard-rail only — worthless with no enemy in
+  // range to pivot, otherwise a small score scaled by the number of enemies exposed. Fine valuation
+  // (setting up an ally's backstab) is deferred to the grouped AI pass.
+  const drawAttention = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.DrawAttention }> =>
+      effect.kind === EffectKind.DrawAttention,
+  );
+  if (drawAttention !== undefined) {
+    const exposed = enemies.filter(
+      (enemy) =>
+        enemy.currentHp > 0 &&
+        Math.abs(enemy.position.x - currentPokemon.position.x) +
+          Math.abs(enemy.position.y - currentPokemon.position.y) <=
+          drawAttention.radius,
+    );
+    return exposed.length === 0 ? -1 : weights.statChanges * 0.5 * exposed.length;
+  }
+
   if (isSelfTargeting && !hasDamageFloor) {
     return scoreSelfMove(currentPokemon, enemies, move, weights, state);
   }

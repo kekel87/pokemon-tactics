@@ -238,4 +238,11 @@ export interface PokemonInstance {
    * every start-turn by `magnet-rise-tick-handler`. Cleared on KO.
    */
   magnetRiseTurns?: number;
+  /**
+   * Après Vous (after-you, plan 155): when set, this mon is promoted to the strictly-next actor in
+   * the CT scheduler at the start of the next `advanceTurn` (via `promoteToImmediateNext`), then the
+   * flag is cleared. Set on an ally by the caster; keeps the effect handler free of engine access.
+   * Cleared on KO.
+   */
+  pendingCtPromotion?: boolean;
 }

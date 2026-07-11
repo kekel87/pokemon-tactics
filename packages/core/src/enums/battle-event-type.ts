@@ -165,6 +165,12 @@ export const BattleEventType = {
   MagnetRisePosted: "magnet_rise_posted",
   /** Vol Magnétik (magnet-rise, plan 154): the caster's levitation expired. */
   MagnetRiseEnded: "magnet_rise_ended",
+  /** Par Ici / Poudre Fureur (plan 155): enemies in range pivoted to face the caster. */
+  DrewAttention: "drew_attention",
+  /** Après Vous (after-you, plan 155): the target ally was promoted to act right after the caster. */
+  PromotedToActNext: "promoted_to_act_next",
+  /** Interversion (ally-switch, plan 155): the caster and a target ally swapped grid positions. */
+  AlliesSwapped: "allies_swapped",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

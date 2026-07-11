@@ -169,4 +169,11 @@ export type Effect =
   | { kind: typeof EffectKind.Yawn }
   | { kind: typeof EffectKind.RaiseRandomStat; stages: number; target: EffectTarget }
   | { kind: typeof EffectKind.Attract }
-  | { kind: typeof EffectKind.MagnetRise; turns: number };
+  | { kind: typeof EffectKind.MagnetRise; turns: number }
+  | {
+      kind: typeof EffectKind.DrawAttention;
+      /** Manhattan radius of the diamond, centred on the caster, whose enemies pivot to face it. */
+      radius: number;
+    }
+  | { kind: typeof EffectKind.ActAfterUser }
+  | { kind: typeof EffectKind.SwapAllyPositions };

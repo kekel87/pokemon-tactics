@@ -1940,6 +1940,25 @@ export class BattleEngine {
       }
     }
 
+    // Interversion (ally-switch, plan 155): both swapped mons take their new tile's terrain NOW
+    // (mirror of Anti-Air / ability-manip grounding tick), so a grounded mon swapped onto lava/deep
+    // water burns/drowns this instant; a levitating mon (Vol Magnétik) floats over it.
+    const swappedIds: string[] = [];
+    for (const event of events) {
+      if (event.type === BattleEventType.AlliesSwapped) {
+        swappedIds.push(event.casterId, event.allyId);
+      }
+    }
+    for (const swappedId of swappedIds) {
+      const swapped = this.state.pokemon.get(swappedId);
+      if (swapped && swapped.currentHp > 0 && !this.isEffectivelyFlying(swapped)) {
+        this.applyGroundingTerrainTick(swapped, events);
+        if (this.battleOver) {
+          return { success: true, events };
+        }
+      }
+    }
+
     // Whether the move landed a real (non-recoil, non-self, super-effective-or-neutral) hit. Shared by
     // Tout ou Rien's conditional self-KO and the crash-on-miss recoil below (single source of truth).
     const moveConnected = effectEvents.some(
@@ -3399,6 +3418,8 @@ export class BattleEngine {
     // Buff/statut family (plan 154): drowsiness + temporary levitation die with the mon.
     pokemon.drowsyTurns = undefined;
     pokemon.magnetRiseTurns = undefined;
+    // Après Vous (plan 155): a pending CT promotion dies with the mon.
+    pokemon.pendingCtPromotion = undefined;
     pokemon.volatileStatuses = [];
 
     for (const other of this.state.pokemon.values()) {
@@ -3580,6 +3601,17 @@ export class BattleEngine {
 
   private advanceTurn(events: BattleEvent[]): void {
     const ctSystem = this.chargeTimeTurnSystem;
+
+    // Après Vous (after-you, plan 155): consume any pending CT promotion before picking the next
+    // actor. The just-acted caster's cost is already applied (onActionComplete ran before this), so
+    // promoting the flagged ally to max+1 makes it strictly the next actor without disturbing anyone
+    // else's gauge.
+    for (const mon of this.state.pokemon.values()) {
+      if (mon.pendingCtPromotion === true) {
+        ctSystem.promoteToImmediateNext(mon.id);
+        mon.pendingCtPromotion = undefined;
+      }
+    }
 
     const MAX_SKIP_ITERATIONS = 50;
     let iterations = 0;
