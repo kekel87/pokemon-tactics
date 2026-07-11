@@ -3250,6 +3250,46 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
     effectTier: EffectTier.DoubleBuff,
   },
+  howl: {
+    // Grondement: Attaque +1 au lanceur + alliés dans le diamant Manhattan r2 auto-centré
+    // (réinterprétation grille du « user and adjacent allies » canon — décision plan 156).
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Attack,
+        stages: 1,
+        target: EffectTarget.Self,
+        radius: 2,
+      },
+    ],
+    effectTier: EffectTier.MajorBuff,
+  },
+  "magnetic-flux": {
+    // Magné-Contrôle: Déf + Déf.Spé +1 au lanceur + alliés en r2 AYANT le talent Plus ou Minus.
+    // Aucun Pokemon Gen 1 n'a Plus/Minus (talents Gen 3) → no-op actuel, codé par complétude
+    // (décision humaine plan 156). Marchera dès l'ajout de Plus/Minus.
+    targeting: { kind: TargetingKind.Self },
+    effects: [
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.Defense,
+        stages: 1,
+        target: EffectTarget.Self,
+        radius: 2,
+        abilityGate: ["plus", "minus"],
+      },
+      {
+        kind: EffectKind.StatChange,
+        stat: StatName.SpDefense,
+        stages: 1,
+        target: EffectTarget.Self,
+        radius: 2,
+        abilityGate: ["plus", "minus"],
+      },
+    ],
+    effectTier: EffectTier.DoubleBuff,
+  },
   "poison-powder": {
     targeting: { kind: TargetingKind.Zone, radius: 1 },
     effects: [{ kind: EffectKind.Status, status: StatusType.Poisoned, chance: 100 }],

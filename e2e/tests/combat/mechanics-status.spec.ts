@@ -1,5 +1,5 @@
 import { expect, test } from "../../fixtures";
-import { DUEL } from "../../fixtures/sandbox-configs";
+import { DUEL, GRONDEMENT } from "../../fixtures/sandbox-configs";
 
 // Cahier §5.3 / §5.4 / §5.5 — INTERACTIONS de mécanique pilotées à travers le renderer (ce que les
 // unit core ne couvrent pas : le move résout-il via l'orchestrateur ? le feedback DOM monte-t-il ?).
@@ -37,6 +37,16 @@ test("§5.4 stat − : Rugissement baisse l'Attaque de l'ennemi", async ({ page,
   const scene = await bootSandbox({ ...DUEL, moves: ["growl"] });
   await scene.castFirstMove(2, 2); // ennemi
   await expect(log(page, /baisse/)).toBeAttached({ timeout: 10_000 });
+});
+
+// §5.4 Grondement (`howl`, Normal Statut Self, StatChange Attaque +1 radius 2) : buff multi-allié
+// (lanceur + alliés vivants du diamant Manhattan r2). Le harness sandbox est un 1v1 → seul le LANCEUR
+// (dans son propre rayon) est observable ici ; le volet alliés reste couvert unit (howl.test.ts). Le
+// lanceur Arcanin gagne Attaque +1 → journal FR. Cast déterministe (statut sans jet, seed DUEL).
+test("§5.4 Grondement : le lanceur gagne Attaque +1 (journal)", async ({ page, bootSandbox }) => {
+  const scene = await bootSandbox(GRONDEMENT);
+  await scene.castFirstMove(2, 3); // self
+  await expect(log(page, /Attaque de .* augmente/)).toBeAttached({ timeout: 10_000 });
 });
 
 // §5.5 — volatiles : confusion, provoc (100% précision, déterministes).

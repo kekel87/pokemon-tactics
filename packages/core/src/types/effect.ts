@@ -50,6 +50,17 @@ export type Effect =
       target: EffectTarget;
       chance?: number;
       chanceGroup?: number;
+      /**
+       * When set, ignore `target` and apply to every living ally (same playerId, including the
+       * caster) within this Manhattan radius of the caster — auto-centred AoE buff (howl,
+       * magnetic-flux). Mirrors `HealTarget.radius` (life-dew).
+       */
+      radius?: number;
+      /**
+       * With `radius`: only affect recipients whose effective ability id is in this list
+       * (magnetic-flux: Plus/Minus). No effect on anyone otherwise.
+       */
+      abilityGate?: string[];
     }
   | {
       kind: typeof EffectKind.Defensive;

@@ -286,4 +286,69 @@ describe("scoreAction", () => {
     );
     expect(scores.some((s) => s > 0)).toBe(true);
   });
+
+  it("scores Grondement positively (allies in radius) and Magné-Contrôle 0 without Plus/Minus", () => {
+    const data = loadData();
+    const moveRegistry = new Map<string, MoveDefinition>();
+    for (const move of data.moves) {
+      moveRegistry.set(move.id, move);
+    }
+    const pokemonTypesMap = loadAllPokemonTypes();
+
+    const caster = MockPokemon.fresh(MockPokemon.charmander, {
+      id: "caster",
+      playerId: PlayerId.Player1,
+      position: { x: 2, y: 2 },
+      moveIds: ["howl", "magnetic-flux"],
+    });
+    const ally = MockPokemon.fresh(MockPokemon.charmander, {
+      id: "ally",
+      playerId: PlayerId.Player1,
+      position: { x: 3, y: 2 },
+    });
+    const enemy = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      id: "enemy",
+      playerId: PlayerId.Player2,
+      position: { x: 0, y: 5 },
+    });
+    const state = MockBattle.stateFrom([caster, ally, enemy], 6, 6);
+    const engine = new BattleEngine(
+      state,
+      moveRegistry,
+      typeChart,
+      pokemonTypesMap,
+      undefined,
+      createPrng(42),
+      42,
+    );
+    const gameState = engine.getGameState(PlayerId.Player1);
+
+    const howlScore = scoreAction(
+      {
+        kind: ActionKind.UseMove,
+        pokemonId: caster.id,
+        moveId: "howl",
+        targetPosition: caster.position,
+      },
+      gameState,
+      moveRegistry,
+      engine,
+      EASY_PROFILE,
+    );
+    const fluxScore = scoreAction(
+      {
+        kind: ActionKind.UseMove,
+        pokemonId: caster.id,
+        moveId: "magnetic-flux",
+        targetPosition: caster.position,
+      },
+      gameState,
+      moveRegistry,
+      engine,
+      EASY_PROFILE,
+    );
+
+    expect(howlScore).toBeGreaterThan(0);
+    expect(fluxScore).toBe(0);
+  });
 });

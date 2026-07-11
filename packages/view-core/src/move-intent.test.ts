@@ -96,6 +96,22 @@ describe("selfPreviewRadius", () => {
     ).toBe(FIELD_TERRAIN_RADIUS);
   });
 
+  it("returns the ally stat-buff radius (howl / magnetic-flux)", () => {
+    expect(
+      selfPreviewRadius(
+        move([
+          {
+            kind: EffectKind.StatChange,
+            stat: StatName.Attack,
+            stages: 1,
+            target: EffectTarget.Self,
+            radius: 2,
+          },
+        ]),
+      ),
+    ).toBe(2);
+  });
+
   it("returns undefined for a single-tile self move", () => {
     expect(
       selfPreviewRadius(

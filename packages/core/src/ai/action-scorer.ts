@@ -2,6 +2,7 @@ import { AURA_RADIUS } from "../battle/aura-system";
 import type { BattleEngine } from "../battle/BattleEngine";
 import { DISTORTION_RADIUS, isInDistortionZone } from "../battle/distortion-system";
 import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
+import { effectiveAbilityId } from "../battle/effective-ability";
 import { effectiveBaseSpeed } from "../battle/effective-base-speed";
 import { isEffectivelyFlying } from "../battle/effective-flying";
 import { HAZARD_REMOVAL_RADIUS, maxLayersFor } from "../battle/entry-hazard-system";
@@ -903,6 +904,37 @@ function scoreSelfMove(
       }
     }
     return missingSum <= 0.1 ? 0 : missingSum * weights.killPotential * 0.6;
+  }
+
+  // Grondement / Magné-Contrôle (radius ally stat buff): value by the count of qualifying allies
+  // (incl. self) inside the radius. An ability-gated buff (magnetic-flux) scores 0 when nobody in
+  // range carries the gated ability — avoids a visible no-op blunder.
+  const radiusBuff = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.StatChange }> =>
+      effect.kind === EffectKind.StatChange && effect.radius !== undefined && effect.stages > 0,
+  );
+  if (radiusBuff !== undefined) {
+    if (!state) {
+      return weights.statChanges;
+    }
+    const radius = radiusBuff.radius ?? 0;
+    let beneficiaries = 0;
+    for (const candidate of state.pokemon.values()) {
+      if (candidate.currentHp <= 0 || candidate.playerId !== currentPokemon.playerId) {
+        continue;
+      }
+      if (manhattanDistance(candidate.position, currentPokemon.position) > radius) {
+        continue;
+      }
+      if (radiusBuff.abilityGate !== undefined) {
+        const ability = effectiveAbilityId(candidate);
+        if (ability === undefined || !radiusBuff.abilityGate.includes(ability)) {
+          continue;
+        }
+      }
+      beneficiaries += 1;
+    }
+    return beneficiaries === 0 ? 0 : beneficiaries * weights.statChanges;
   }
 
   // Aromatherapy (team status cure): value by allies carrying a major status in radius.
