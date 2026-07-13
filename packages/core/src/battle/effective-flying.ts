@@ -14,16 +14,22 @@ export function isIngrained(pokemon: PokemonInstance): boolean {
 }
 
 /**
- * Override-aware base types of an instance: the runtime `typeOverride` (type-manip family) wins over
- * the species types from `pokemonTypesMap`. This is THE single point every type read must go through
- * so a mutated type (Conversion, Détrempage, Flamme Ultime…) propagates to STAB, effectiveness,
+ * Override-aware base types of an instance. Priority (#656): the runtime `typeOverride` (type-manip
+ * family) wins over a Morphing/Imposteur copy (`transformState.types`, plan 157), which wins over the
+ * species types from `pokemonTypesMap`. This is THE single point every type read must go through so a
+ * mutated type (Conversion, Détrempage, Flamme Ultime, Morphing…) propagates to STAB, effectiveness,
  * terrain, hazards and status immunity. Roost filtering is layered separately via `getEffectiveTypes`.
  */
 export function resolveBaseTypes(
   pokemon: PokemonInstance,
   pokemonTypesMap: ReadonlyMap<string, PokemonType[]>,
 ): PokemonType[] {
-  return pokemon.typeOverride ?? pokemonTypesMap.get(pokemon.definitionId) ?? [];
+  return (
+    pokemon.typeOverride ??
+    pokemon.transformState?.types ??
+    pokemonTypesMap.get(pokemon.definitionId) ??
+    []
+  );
 }
 
 export function getEffectiveTypes(

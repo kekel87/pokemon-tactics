@@ -342,6 +342,26 @@ export class DirectionalBillboard {
     this.applyFrame();
   }
 
+  /**
+   * Morphing / Imposteur (plan 157): swap the displayed sprite to another species. The new atlas
+   * becomes the `baseAtlas`, so a Substitute that later breaks restores the MORPHED sprite (not the
+   * original species). If a Substitute doll is currently up we only swap the base underneath it; the
+   * doll stays visible until it breaks. The previous base texture is disposed to avoid a leak.
+   */
+  async setSpecies(atlas: ResolvedAtlas): Promise<void> {
+    const previousBase = this.baseAtlas;
+    const loaded = await this.loadAtlas(atlas);
+    this.baseAtlas = loaded;
+    if (!this.substituteActive) {
+      this.bindActiveAtlas(loaded);
+      this.controller.resolveRestingFallback();
+      this.applyFrame();
+    }
+    if (previousBase && previousBase !== loaded) {
+      previousBase.texture.dispose();
+    }
+  }
+
   setAnimation(animation: string): void {
     if (this.controller.setAnimation(animation)) {
       this.applyFrame();

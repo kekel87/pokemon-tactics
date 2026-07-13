@@ -10,6 +10,7 @@ import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { resolveDefensiveAbility } from "./ability-suppression";
 import { resolveDynamicPower } from "./dynamic-power-system";
+import { effectiveCombatStats } from "./effective-combat-stats";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getEffectiveStat } from "./stat-modifier";
 
@@ -52,15 +53,17 @@ function resolveAttackStat(
   defender: PokemonInstance,
   isPhysical: boolean,
 ): { stat: number; stage: number } {
+  const attackerStats = effectiveCombatStats(attacker);
+  const defenderStats = effectiveCombatStats(defender);
   switch (move.attackStatSource) {
     case AttackStatSource.UserDefense:
-      return { stat: attacker.combatStats.defense, stage: attacker.statStages.defense };
+      return { stat: attackerStats.defense, stage: attacker.statStages.defense };
     case AttackStatSource.TargetAttack:
-      return { stat: defender.combatStats.attack, stage: defender.statStages.attack };
+      return { stat: defenderStats.attack, stage: defender.statStages.attack };
     default:
       return isPhysical
-        ? { stat: attacker.combatStats.attack, stage: attacker.statStages.attack }
-        : { stat: attacker.combatStats.spAttack, stage: attacker.statStages.spAttack };
+        ? { stat: attackerStats.attack, stage: attacker.statStages.attack }
+        : { stat: attackerStats.spAttack, stage: attacker.statStages.spAttack };
   }
 }
 
@@ -125,9 +128,8 @@ export function calculateDamageWithCrit(
   const usesPhysicalDefense = isPhysical || move.hitsPhysicalDefense === true;
   const readsPhysicalDefenseBase =
     fieldGlobal.defenderDefensesSwapped === true ? !usesPhysicalDefense : usesPhysicalDefense;
-  const defenseStat = readsPhysicalDefenseBase
-    ? defender.combatStats.defense
-    : defender.combatStats.spDefense;
+  const defenderStats = effectiveCombatStats(defender);
+  const defenseStat = readsPhysicalDefenseBase ? defenderStats.defense : defenderStats.spDefense;
   const defenseStage = usesPhysicalDefense
     ? defender.statStages.defense
     : defender.statStages.spDefense;

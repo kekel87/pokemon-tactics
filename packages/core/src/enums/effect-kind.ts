@@ -145,6 +145,13 @@ export const EffectKind = {
   ActAfterUser: "act_after_user",
   /** Interversion (ally-switch, plan 155): the caster swaps grid positions with a target ally. */
   SwapAllyPositions: "swap_ally_positions",
+  /**
+   * Morphing (transform, plan 157): the caster becomes a copy of the target — combat stats, stat
+   * stages, types, moves, ability, weight and gender. Level and HP stay the caster's. Also used by
+   * the Imposteur (imposter) ability at battle start. Fails on Substitute / already-transformed
+   * (either side) / a target whose effective ability is Imposteur.
+   */
+  Transform: "transform",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

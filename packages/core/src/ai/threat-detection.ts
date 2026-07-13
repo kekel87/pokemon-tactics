@@ -1,4 +1,5 @@
 import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
+import { effectiveMoveIds } from "../battle/effective-move-ids";
 import { Category } from "../enums/category";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
@@ -63,7 +64,7 @@ export function enemyHasStatDecreaseMoveInRange(
     if (dx + dy > range) {
       continue;
     }
-    for (const moveId of enemy.moveIds) {
+    for (const moveId of effectiveMoveIds(enemy)) {
       if (ENEMY_STAT_DECREASE_MOVES.has(moveId)) {
         return true;
       }
@@ -86,7 +87,7 @@ export function enemyHasStatusMoveInRange(
     if (dx + dy > range) {
       continue;
     }
-    for (const moveId of enemy.moveIds) {
+    for (const moveId of effectiveMoveIds(enemy)) {
       if (ENEMY_STATUS_MOVES.has(moveId)) {
         return true;
       }
@@ -133,15 +134,16 @@ export function statusMoveRatio(
   pokemon: PokemonInstance,
   moveRegistry: Map<string, MoveDefinition>,
 ): number {
-  if (pokemon.moveIds.length === 0) {
+  const moveIds = effectiveMoveIds(pokemon);
+  if (moveIds.length === 0) {
     return 0;
   }
   let statusCount = 0;
-  for (const moveId of pokemon.moveIds) {
+  for (const moveId of moveIds) {
     const move = moveRegistry.get(moveId);
     if (move && move.category === Category.Status) {
       statusCount++;
     }
   }
-  return statusCount / pokemon.moveIds.length;
+  return statusCount / moveIds.length;
 }

@@ -124,6 +124,8 @@ export interface BoardView {
   setSemiInvulnerable(pokemonId: string, state: SemiInvulnerableDisplay): void;
   /** Clonage (substitute): show the dummy doll while the volatile is up, real sprite when broken. */
   setSubstitute(pokemonId: string, active: boolean): void;
+  /** Morphing / Imposteur (plan 157): swap a Pokémon's sprite to another species. */
+  setSpecies(pokemonId: string, definitionId: string): void;
   /** Show/hide a Pokémon's world HUD (HP bar + status), e.g. hidden during direction selection. */
   setHudVisible(pokemonId: string, visible: boolean): void;
   /** Real ms of a Pokémon's Faint animation, to pace the KO beat on its full length. */

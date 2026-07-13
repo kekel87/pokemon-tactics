@@ -41,7 +41,7 @@ describe("isAbilityImplemented", () => {
   });
 
   it("returns false for unimplemented ability", () => {
-    expect(isAbilityImplemented("imposter", abilityHandlers)).toBe(false);
+    expect(isAbilityImplemented("nonexistent-ability", abilityHandlers)).toBe(false);
   });
 });
 

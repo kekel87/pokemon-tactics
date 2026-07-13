@@ -573,6 +573,54 @@ Après move avec `recharge: true`, Pokemon ne peut pas attaquer au tour suivant.
 
 ---
 
+## 7k. Morphing / Imposteur — copie d'identité complète (plan 157)
+
+Première mécanique de mutation runtime **complète** d'un Pokemon (stats, types, moves, talent,
+poids, genre, sprite) — mutuellement, la plus lourde du jeu.
+
+**Morphing** (`transform`, Normal, Statut, cible `normal`, Single **r3**) : le lanceur devient une
+copie de la cible — stats de combat actuelles, crans de stats (snapshot à l'instant du cast, puis
+évolution indépendante), types, 4 moves, talent, poids, genre, sprite. **Niveau et PV du lanceur
+inchangés** (un Métamorph 50 PV qui copie un Léviator garde 50 PV max mais prend son Attaque).
+Appris par **Mew**.
+
+**Imposteur** (`imposter`, talent) : déclenche Morphing à l'entrée en combat sur l'ennemi le plus
+proche (Chebyshev min) — traduction canon-fidèle de « celui d'en face » (le canon copie le slot
+adverse en miroir, déterministe ; ce projet n'a pas de slots de doubles, l'ennemi le plus proche en
+est l'équivalent grille). Porté par **Métamorph** (Ditto).
+
+**Échecs :** cible absente/KO, Clone (Substitut) protège la cible, lanceur ou cible déjà transformé,
+cible dont le talent effectif est `imposter` (anti-boucle Ditto vs Ditto — jamais de talent
+Imposteur copié, quel que soit le porteur).
+
+**Architecture — `PokemonInstance.transformState`** : un seul champ snapshot centralise tout le
+paquet copié (au lieu d'éparpiller sur `typeOverride`/`abilityIdOverride`/`speedStatOverride`),
+reset au KO. Helpers `effectiveCombatStats`/`effectiveMoveIds`/`effectiveWeight`/`effectiveGender` +
+extension `effectiveAbilityId`/`resolveBaseTypes`/`effectiveBaseSpeed`.
+
+**« Manip écrase »** : une manipulation ultérieure (Détrempage, Échange, Soucigraine,
+Permuvitesse…) sur un mon déjà transformé écrase la facette correspondante du morph plutôt que
+d'être masquée — priorité à 4 tiers `abilitySuppressed > override spécifique > transformState >
+espèce`. Au cast, `applyTransform` purge les overrides spécifiques pré-existants du lanceur pour que
+le morph soit la couche active immédiatement après.
+
+**Conséquences tactiques :**
+- La Vitesse copiée pilote le tempo CT **et** la portée de déplacement — un Métamorph lent qui
+  copie un mon rapide gagne d'un coup sa mobilité.
+- Le type copié s'applique **pleinement** au terrain : un morphé en Léviator (Eau/Vol) lévite/nage
+  (lave OK, eau profonde OK, pas de malus marais/sable) — aucune décorrélation, tous les chemins
+  terrain du core sont déjà transform-aware.
+
+**Renderer :** event `Transformed` + port `setSpecies` (swap l'atlas affiché vers celui de la
+cible) ; au break du Substitut, le sprite restauré est celui de l'espèce **morphée**, pas
+l'originale.
+
+**IA :** garde-fou `scoreTransformApplication` — gaté sur l'écart de total de stats (cible vs soi),
+exclut l'action si la cible n'est nettement pas plus forte (évite de gâcher le palier CT le plus
+lourd, 900, pour copier un mon plus faible).
+
+---
+
 ## 7l. Badly Poisoned — poison grave (plan 026)
 
 - Compteur `toxicCounter`, démarre à 1, +1/tour, plafonne à 15

@@ -8,6 +8,7 @@ import type { TypeChart } from "../types/type-chart";
 import { manhattanDistance } from "../utils/manhattan-distance";
 import type { RandomFn } from "../utils/prng";
 import { getStab, getTypeEffectiveness } from "./damage-calculator";
+import { effectiveCombatStats } from "./effective-combat-stats";
 import { resolveBaseTypes } from "./effective-flying";
 import { getEffectiveStat } from "./stat-modifier";
 
@@ -31,7 +32,7 @@ export function freezeOffense(
   snapshot: FutureSightOffenseSnapshot,
 ): PendingStrike["frozenOffense"] {
   const specialAttack = getEffectiveStat(
-    snapshot.attacker.combatStats.spAttack,
+    effectiveCombatStats(snapshot.attacker).spAttack,
     snapshot.attacker.statStages[StatName.SpAttack] ?? 0,
   );
   return {
@@ -66,7 +67,7 @@ export function computeStrikeDamage(
     return 0;
   }
   const effectiveDefense = getEffectiveStat(
-    defender.combatStats.spDefense,
+    effectiveCombatStats(defender).spDefense,
     defender.statStages[StatName.SpDefense] ?? 0,
   );
   const adjustedPower = Math.max(1, frozenOffense.power);

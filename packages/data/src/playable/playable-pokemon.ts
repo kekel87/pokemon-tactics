@@ -82,9 +82,23 @@ export const playablePokemon: PlayablePokemonEntry[] = [
   // expanding-force off Mewtwo: 154 SpA + self-posed Psychic Terrain AoE = too dominant (#445).
   { id: "mewtwo", excludeMoves: ["expanding-force"] },
   { id: "mew" },
-  // Gen 1 complete (plan 135): the 70 pre-evolutions, in national-dex order. Métamorph
-  // (Ditto) stays out. Movepools derive from learnset ∩ implemented moves (plan 087); a
-  // few weak pre-evos (e.g. Magicarpe) keep their tiny canon movepool by design. No OP set.
+  // Métamorph (Ditto, plan 157): playable via a custom entry — the loader can't give `imposter`
+  // (species ability1 = limber) nor a movepool (Ditto's learnset is empty). Custom forces genderless,
+  // movepool = [Morphing], ability = Imposteur. Stats 48 across the board → no OP risk.
+  {
+    id: "ditto",
+    custom: {
+      name: "Métamorph",
+      types: ["normal"],
+      baseStats: { hp: 48, attack: 48, defense: 48, spAttack: 48, spDefense: 48, speed: 48 },
+      weight: 4,
+      movepool: ["transform"],
+      abilityId: "imposter",
+    },
+  },
+  // Gen 1 complete (plan 135): the 70 pre-evolutions, in national-dex order. Movepools derive from
+  // learnset ∩ implemented moves (plan 087); a few weak pre-evos (e.g. Magicarpe) keep their tiny
+  // canon movepool by design. No OP set.
   { id: "bulbasaur" },
   { id: "ivysaur" },
   { id: "charmander" },

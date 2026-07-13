@@ -968,6 +968,12 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.status, pokemonIds: [event.casterId, event.allyId] };
     }
 
+    case BattleEventType.Transformed: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message = lang === "fr" ? `${name} se transforme !` : `${name} transformed!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
     case BattleEventType.MoveCopied: {
       const name = context.getPokemonName(event.pokemonId);
       const copiedName = context.getMoveName(event.copiedMoveId);

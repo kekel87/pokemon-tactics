@@ -4,7 +4,10 @@ import { DISTORTION_RADIUS, isInDistortionZone } from "../battle/distortion-syst
 import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
 import { effectiveAbilityId } from "../battle/effective-ability";
 import { effectiveBaseSpeed } from "../battle/effective-base-speed";
+import { effectiveCombatStats } from "../battle/effective-combat-stats";
 import { isEffectivelyFlying } from "../battle/effective-flying";
+import { effectiveGender } from "../battle/effective-gender";
+import { effectiveMoveIds } from "../battle/effective-move-ids";
 import { HAZARD_REMOVAL_RADIUS, maxLayersFor } from "../battle/entry-hazard-system";
 import { FIELD_TERRAIN_RADIUS, getFieldTerrainAt } from "../battle/field-terrain-system";
 import { TRANSFERABLE_STATS } from "../battle/handlers/baton-pass-stats";
@@ -193,6 +196,16 @@ function scoreUseMove(
     return scoreOhko(action, currentPokemon, enemies, allies, move, engine, weights);
   }
 
+  // Morphing garde-fou (transform, plan 157, #657): the move carries no power floor and matches no
+  // status branch → the generic path scores it 0, so on a tie-break the AI could spend the heaviest
+  // CT tier (900) to copy a WEAKER mon. Value it only when the target's combat-stat total clearly
+  // beats the caster's; otherwise a hard negative excludes it. Fine heuristics (threat/setup denial)
+  // are deferred.
+  const isTransform = move.effects.some((effect) => effect.kind === EffectKind.Transform);
+  if (isTransform) {
+    return scoreTransformApplication(action, currentPokemon, enemies, weights);
+  }
+
   const affectedTiles = estimateAffectedTiles(
     move.targeting,
     currentPokemon.position,
@@ -223,11 +236,12 @@ function scoreUseMove(
   // targets. Exclude it when no hit target is a valid infatuation candidate so the AI never wastes the
   // turn. Fine valuation (infatuate an identified sweeper) deferred.
   if (move.effects.some((effect) => effect.kind === EffectKind.Attract)) {
+    const casterGender = effectiveGender(currentPokemon);
     const anyValid = targetsHit.some(
       (target) =>
-        currentPokemon.gender !== PokemonGender.Genderless &&
-        target.gender !== PokemonGender.Genderless &&
-        target.gender !== currentPokemon.gender &&
+        casterGender !== PokemonGender.Genderless &&
+        effectiveGender(target) !== PokemonGender.Genderless &&
+        effectiveGender(target) !== casterGender &&
         !target.volatileStatuses.some((volatile) => volatile.type === StatusType.Infatuated),
     );
     if (!anyValid) {
@@ -345,6 +359,40 @@ function scoreOhko(
   const alliesHit = allies.filter((ally) => isOnTiles(ally.position, affectedTiles));
   score -= alliesHit.length * accuracy * weights.killPotential;
   return score;
+}
+
+/**
+ * Morphing garde-fou (transform, plan 157, #657): worth a heavy-CT cast only when copying a clearly
+ * stronger mon. Scores by the offensive+defensive stat-total gap (target − caster, HP excluded since
+ * the morph keeps its own HP). A gap of ≤10% returns a hard negative so the AI never wastes 900 CT
+ * copying a weaker / comparable target; otherwise the gap scales `statChanges`.
+ */
+function scoreTransformApplication(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  currentPokemon: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  weights: AiProfile["scoringWeights"],
+): number {
+  const target = enemies.find(
+    (enemy) =>
+      enemy.position.x === action.targetPosition.x && enemy.position.y === action.targetPosition.y,
+  );
+  if (!target || target.transformState) {
+    return -1;
+  }
+  const statTotal = (mon: PokemonInstance): number => {
+    const stats = effectiveCombatStats(mon);
+    return stats.attack + stats.defense + stats.spAttack + stats.spDefense + stats.speed;
+  };
+  const casterTotal = statTotal(currentPokemon);
+  if (casterTotal <= 0) {
+    return -1;
+  }
+  const gap = (statTotal(target) - casterTotal) / casterTotal;
+  if (gap <= 0.1) {
+    return -1;
+  }
+  return gap * weights.statChanges;
 }
 
 /**
@@ -967,7 +1015,7 @@ function scoreSelfMove(
     if (currentPokemon.volatileStatuses.some((v) => v.type === StatusType.Imprisoning)) {
       return -1;
     }
-    const myMoves = new Set(currentPokemon.moveIds);
+    const myMoves = new Set(effectiveMoveIds(currentPokemon));
     let maxShared = 0;
     for (const enemy of enemies) {
       if (enemy.currentHp <= 0) {
@@ -1199,7 +1247,7 @@ function evaluateAttacksFromPosition(
 ): number {
   let bestAttackScore = 0;
 
-  for (const moveId of pokemon.moveIds) {
+  for (const moveId of effectiveMoveIds(pokemon)) {
     const move = moveRegistry.get(moveId);
     if (!move || getEffectivePowerFloor(move) === 0) {
       continue;

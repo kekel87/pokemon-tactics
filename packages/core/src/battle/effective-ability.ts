@@ -4,6 +4,9 @@ import type { PokemonInstance } from "../types/pokemon-instance";
  * The ability id this mon effectively has right now, honouring the ability-manip family (plan 153):
  * - `abilitySuppressed` (Suc Digestif) wins over everything → no ability (undefined).
  * - otherwise `abilityIdOverride` (Soucigraine / Imitation / Échange) replaces the species ability.
+ * - otherwise a Morphing/Imposteur copy (`transformState.abilityId`, plan 157) — note this can be
+ *   `undefined` (morphed into a mon with no ability): the ternary on `transformState` presence avoids
+ *   falling through to the species ability in that case.
  * - otherwise the species ability (`abilityId`).
  *
  * Every ability lookup in combat must read through this. Two paths reach it: the registry chokepoint
@@ -16,5 +19,11 @@ export function effectiveAbilityId(pokemon: PokemonInstance): string | undefined
   if (pokemon.abilitySuppressed) {
     return undefined;
   }
-  return pokemon.abilityIdOverride ?? pokemon.abilityId;
+  if (pokemon.abilityIdOverride) {
+    return pokemon.abilityIdOverride;
+  }
+  if (pokemon.transformState) {
+    return pokemon.transformState.abilityId;
+  }
+  return pokemon.abilityId;
 }

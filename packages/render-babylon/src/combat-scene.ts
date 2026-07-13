@@ -953,6 +953,9 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         setSubstitute: (active) => {
           void created.billboard.setSubstitute(active);
         },
+        setSpecies: (definitionId) => {
+          void created.billboard.setSpecies(getResolvedAtlas(definitionId));
+        },
         setHudVisible: (visible) => created.overlay.setVisible(visible),
         koAnimationDurationMs: () => created.billboard.animationDurationMs("Faint"),
         hurtAnimationDurationMs: () => created.billboard.animationDurationMs("Hurt"),

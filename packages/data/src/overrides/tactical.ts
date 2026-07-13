@@ -3290,6 +3290,15 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
     effectTier: EffectTier.DoubleBuff,
   },
+  // ── Morphing / Imposteur (plan 157) ──
+  transform: {
+    // Morphing: le lanceur devient une copie de la cible ennemie r3 (stats, crans, types, moves,
+    // talent, poids, genre) — PV/niveau conservés. Échoue sur Clone / déjà-transformé / cible
+    // Imposteur. Coût CT lourd hérité de pp=10 (plafond 900, comme Vampigraine). Portée 3 (r1 jugé
+    // trop limitant au playtest, décision #658).
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Transform }],
+  },
   "poison-powder": {
     targeting: { kind: TargetingKind.Zone, radius: 1 },
     effects: [{ kind: EffectKind.Status, status: StatusType.Poisoned, chance: 100 }],

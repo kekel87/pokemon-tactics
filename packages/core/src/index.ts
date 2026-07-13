@@ -39,7 +39,9 @@ export { getEffectivePowerFloor, resolveDynamicPower } from "./battle/dynamic-po
 export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-handler-registry";
 export { EffectHandlerRegistry } from "./battle/effect-handler-registry";
 export { createDefaultEffectRegistry } from "./battle/effect-processor";
-export { isEffectivelyFlying } from "./battle/effective-flying";
+export { effectiveAbilityId } from "./battle/effective-ability";
+export { isEffectivelyFlying, resolveBaseTypes } from "./battle/effective-flying";
+export { effectiveMoveIds } from "./battle/effective-move-ids";
 export {
   getEntryHazardsAt,
   HAZARD_REMOVAL_RADIUS,
@@ -66,6 +68,7 @@ export {
   isOnFieldTerrain,
 } from "./battle/field-terrain-system";
 export { isImmuneToStatusByType } from "./battle/handlers/handle-status";
+export { applyTransform } from "./battle/handlers/transform/apply-transform";
 export { HeldItemHandlerRegistry } from "./battle/held-item-handler-registry";
 export { consumeHeldItem } from "./battle/held-item-transfer";
 export { getEffectiveInitiative } from "./battle/initiative-calculator";

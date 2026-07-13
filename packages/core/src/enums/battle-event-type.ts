@@ -171,6 +171,8 @@ export const BattleEventType = {
   PromotedToActNext: "promoted_to_act_next",
   /** Interversion (ally-switch, plan 155): the caster and a target ally swapped grid positions. */
   AlliesSwapped: "allies_swapped",
+  /** Morphing / Imposteur (plan 157): a Pokémon transformed into a copy of another species. */
+  Transformed: "transformed",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

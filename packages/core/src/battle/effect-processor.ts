@@ -84,6 +84,7 @@ import { handleInvertStatStages } from "./handlers/stat-manip/handle-invert-stat
 import { handleResetStatStages } from "./handlers/stat-manip/handle-reset-stat-stages";
 import { handleSwapRawSpeed } from "./handlers/stat-manip/handle-swap-raw-speed";
 import { handleSwapStatStages } from "./handlers/stat-manip/handle-swap-stat-stages";
+import { handleTransform } from "./handlers/transform/handle-transform";
 import { handleConvertResistType } from "./handlers/type-change/handle-convert-resist-type";
 import { handleConvertSelfType } from "./handlers/type-change/handle-convert-self-type";
 import { handleCopyTargetType } from "./handlers/type-change/handle-copy-target-type";
@@ -167,6 +168,7 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.DrawAttention, handleDrawAttention);
   registry.register(EffectKind.ActAfterUser, handleActAfterUser);
   registry.register(EffectKind.SwapAllyPositions, handleSwapAllyPositions);
+  registry.register(EffectKind.Transform, handleTransform);
   registry.register(EffectKind.HelpingHand, handleHelpingHand);
   registry.register(EffectKind.RemoveItem, handleRemoveItem);
   registry.register(EffectKind.StealItem, handleStealItem);

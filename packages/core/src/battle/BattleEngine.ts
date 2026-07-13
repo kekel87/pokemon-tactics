@@ -66,6 +66,7 @@ import {
 import { processEffects } from "./effect-processor";
 import { effectiveBaseSpeed } from "./effective-base-speed";
 import { isEffectivelyFlying, resolveBaseTypes } from "./effective-flying";
+import { effectiveMoveIds } from "./effective-move-ids";
 import {
   absorbsToxicSpikes,
   getEntryHazardsAt,
@@ -504,7 +505,7 @@ export class BattleEngine {
         return picked ? { calledMoveId: picked.id, reveal: false } : null;
       }
       case CallMoveSourceKind.RandomOwnAsleep: {
-        const pool = caster.moveIds
+        const pool = effectiveMoveIds(caster)
           .map((id) => this.moveRegistry.get(id))
           .filter(
             (move): move is MoveDefinition => move !== undefined && isSleepTalkCallable(move),
@@ -791,7 +792,7 @@ export class BattleEngine {
       // Pied Voltige…). Underground/underwater charge moves (Tunnel, Plongée) stay legal.
       const groundedByGravity = isEffectivelyGrounded(this.state, currentPokemon);
 
-      for (const moveId of currentPokemon.moveIds) {
+      for (const moveId of effectiveMoveIds(currentPokemon)) {
         const move = this.moveRegistry.get(moveId);
         if (!move) {
           continue;
@@ -1301,7 +1302,7 @@ export class BattleEngine {
       return { success: false, events: [], error: ActionError.UnknownMove };
     }
 
-    if (!pokemon.moveIds.includes(moveId)) {
+    if (!effectiveMoveIds(pokemon).includes(moveId)) {
       return { success: false, events: [], error: ActionError.MoveNotInMoveset };
     }
 
@@ -3409,6 +3410,8 @@ export class BattleEngine {
     pokemon.guaranteedCritArmed = undefined;
     pokemon.typeOverride = undefined;
     pokemon.speedStatOverride = undefined;
+    // Morphing / Imposteur (plan 157): a fresh corpse reverts to its own species identity.
+    pokemon.transformState = undefined;
     // Ability-manip family (plan 153): a fresh corpse reverts to its species ability.
     pokemon.abilityIdOverride = undefined;
     pokemon.abilitySuppressed = undefined;

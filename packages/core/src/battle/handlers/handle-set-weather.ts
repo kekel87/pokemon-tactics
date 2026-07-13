@@ -5,6 +5,7 @@ import { Weather } from "../../enums/weather";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import type { EffectContext } from "../effect-handler-registry";
+import { effectiveCombatStats } from "../effective-combat-stats";
 import { getEffectiveStat } from "../stat-modifier";
 import {
   applyWeatherWar,
@@ -44,13 +45,16 @@ export function handleSetWeather(context: EffectContext): BattleEvent[] {
   }
 
   const newSetterSpeed = getEffectiveStat(
-    context.attacker.combatStats.speed,
+    effectiveCombatStats(context.attacker).speed,
     context.attacker.statStages[StatName.Speed],
   );
   const currentSetterId = context.state.weatherSetterPokemonId;
   const currentSetter = currentSetterId ? context.state.pokemon.get(currentSetterId) : undefined;
   const currentSetterSpeed = currentSetter
-    ? getEffectiveStat(currentSetter.combatStats.speed, currentSetter.statStages[StatName.Speed])
+    ? getEffectiveStat(
+        effectiveCombatStats(currentSetter).speed,
+        currentSetter.statStages[StatName.Speed],
+      )
     : Number.POSITIVE_INFINITY;
 
   const result = applyWeatherWar(
