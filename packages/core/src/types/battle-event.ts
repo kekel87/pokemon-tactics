@@ -604,4 +604,13 @@ export type BattleEvent =
       allyId: string;
       casterPosition: Position;
       allyPosition: Position;
+    }
+  | {
+      type: typeof BattleEventType.Transformed;
+      /** The mon that transformed. */
+      pokemonId: string;
+      /** The species it copied — drives the renderer's sprite swap. */
+      intoDefinitionId: string;
+      /** The copied move ids (the new selectable kit). */
+      moveIds: string[];
     };

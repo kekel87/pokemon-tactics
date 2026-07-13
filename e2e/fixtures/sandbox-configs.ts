@@ -900,3 +900,74 @@ export const GRONDEMENT = {
   pokemon: "arcanine",
   moves: ["howl"],
 } as const;
+
+// Famille Transform (plan 157) — Morphing (`transform`), Imposteur (`imposter`), Métamorph (`ditto`).
+// Le lanceur devient une COPIE de la cible : stats, types, 4 moves, talent, poids, genre, sprite ;
+// mais niveau + PV restent ceux du lanceur (#649). Le SWAP D'ATLAS (sprite qui devient celui de la
+// cible) est un fait de TEXTURE non exposé par le hook scène (`meshInfo` ne rend que
+// position/visibilité/groupe, jamais l'atlas lié) → couvert 👁 au cahier §5.34, jamais forcé en golden.
+// Les observables PILOTABLES via le renderer sont : (1) la ligne de journal FR « <nom> se transforme ! »
+// (event Transformed) ; (2) le menu d'attaque qui liste désormais les moves COPIÉS de la cible
+// (`effectiveMoveIds` → getLegalActions) ; (3) l'identité de l'InfoPanel qui reste celle du lanceur
+// (nom + barre de PV via `definitionId` de base, PAS `transformState`) ; (4) l'héritage terrain du
+// type copié (#659). Le dummy est INERTE : `dummyMove: "leer"` n'appartient PAS au movepool de
+// Léviator → le DummyAiController ne trouve aucune action et se contente de terminer son tour, tandis
+// que ses 4 slots (Danse Draco / Cascade / Mâchouille / Hydro-Queue) restent intacts pour la copie.
+// Morphing est un move STATUT (Single r3, aucun jet de précision) → cast déterministe (seed hérité).
+
+/** Morphing — Mew (apprend `transform`) lance Morphing sur le dummy Léviator (gyarados) adjacent. Le
+ *  lanceur a 4 moves (`transform` en 1ᵉ slot → sélectionné par `castFirstMove`) pour prouver que la
+ *  copie REMPLACE tout le moveset par celui de la cible. Positions hors hasard de `sandbox-flat`
+ *  ((3,3)/(3,2) = terrain normal) pour que le journal ne soit pollué par aucun effet de terrain. */
+export const MORPH_MEW = {
+  seed: 12345,
+  pokemon: "mew",
+  moves: ["transform", "psychic", "recover", "barrier"],
+  playerPosition: { x: 3, y: 3 },
+  playerDirection: "north",
+  dummyPokemon: "gyarados",
+  dummyPosition: { x: 3, y: 2 },
+  dummyControl: "ai",
+  dummyMove: "leer",
+} as const;
+
+/** Héritage terrain (#659) — Mew (Psychic, au sol) démarre SUR le marais de `sandbox-flat` (2,2) et
+ *  morphe en Léviator (Eau/Vol) posé à côté sur terrain normal (3,2). Le type Vol copié fait LÉVITER
+ *  le morphé → aucun poison de marais en fin de tour. Le témoin {@link MORPH_TERRAIN_CONTROL} (même
+ *  config, sans morph) prouve qu'un Mew NON transformé sur le marais EST empoisonné → c'est bien le
+ *  morph (et le type copié) qui accorde l'immunité, et non la case. */
+export const MORPH_TERRAIN = {
+  seed: 12345,
+  pokemon: "mew",
+  moves: ["transform"],
+  playerPosition: { x: 2, y: 2 },
+  playerDirection: "north",
+  dummyPokemon: "gyarados",
+  dummyPosition: { x: 3, y: 2 },
+  dummyControl: "ai",
+  dummyMove: "leer",
+} as const;
+
+/** Témoin de {@link MORPH_TERRAIN} : MÊME config, mais le Mew au sol se contente d'ATTENDRE sur le
+ *  marais (aucun morph) → il est empoisonné par le marais en fin de tour (« … est blessé par le
+ *  marécage »). Comparé au cas morphé, prouve que la lévitation vient du type Vol copié. */
+export const MORPH_TERRAIN_CONTROL = MORPH_TERRAIN;
+
+/** Imposteur — Métamorph (ditto, talent `imposter`) se transforme AUTOMATIQUEMENT à l'entrée en
+ *  combat sur l'ennemi le plus proche (Léviator adjacent). Aucune action requise : le morph est posé
+ *  par `onBattleStart` (empilé dans les `startupEvents`), donc le journal affiche « … se transforme ! »
+ *  DÈS le boot et le menu d'attaque du tour 1 liste déjà les moves de Léviator (et plus Morphing, le
+ *  seul move de ditto). `playerAbility: "imposter"` est redondant (talent natif du custom ditto) mais
+ *  explicite l'intention. */
+export const IMPOSTER_DITTO = {
+  seed: 12345,
+  pokemon: "ditto",
+  moves: ["transform"],
+  playerAbility: "imposter",
+  playerPosition: { x: 3, y: 3 },
+  playerDirection: "north",
+  dummyPokemon: "gyarados",
+  dummyPosition: { x: 3, y: 2 },
+  dummyControl: "ai",
+  dummyMove: "leer",
+} as const;

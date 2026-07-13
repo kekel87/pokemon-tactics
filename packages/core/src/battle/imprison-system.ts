@@ -1,6 +1,7 @@
 import type { PlayerId } from "../enums/player-id";
 import { StatusType } from "../enums/status-type";
 import type { BattleState } from "../types/battle-state";
+import { effectiveMoveIds } from "./effective-move-ids";
 
 /**
  * Imprison ("Possessif") inverse filter. Aggregates, in a single pass, the union of move ids known
@@ -17,7 +18,7 @@ export function collectImprisonedMoveIds(state: BattleState, playerId: PlayerId)
     if (!pokemon.volatileStatuses.some((volatile) => volatile.type === StatusType.Imprisoning)) {
       continue;
     }
-    for (const moveId of pokemon.moveIds) {
+    for (const moveId of effectiveMoveIds(pokemon)) {
       moveIds.add(moveId);
     }
   }

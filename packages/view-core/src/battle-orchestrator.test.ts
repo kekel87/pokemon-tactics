@@ -124,6 +124,7 @@ function setup(
     setKnockedOut: () => undefined,
     setSemiInvulnerable: () => undefined,
     setSubstitute: () => undefined,
+    setSpecies: () => undefined,
     setHudVisible: () => undefined,
     koAnimationDurationMs: () => 0,
     hurtAnimationDurationMs: () => 0,

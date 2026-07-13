@@ -10,6 +10,7 @@ import {
   Category,
   type Direction,
   directionFromTo,
+  effectiveMoveIds,
   enumerateHitAndRunRetreatTiles,
   FieldGlobalKind,
   FieldTerrain,
@@ -451,7 +452,7 @@ export class BattleOrchestrator {
     )?.moveId;
 
     const moves: AttackSubmenuMoveView[] = [];
-    for (const moveId of active.moveIds) {
+    for (const moveId of effectiveMoveIds(active)) {
       const definition = this.moveDefinitions.get(moveId);
       if (!definition) {
         continue;
@@ -1092,6 +1093,11 @@ export class BattleOrchestrator {
       } else if (event.type === BattleEventType.SubstituteBroken) {
         // Doll destroyed: reveal the real sprite again.
         this.board.setSubstitute(event.pokemonId, false);
+      } else if (event.type === BattleEventType.Transformed) {
+        // Morphing / Imposteur: swap the sprite to the copied species; syncBoard refreshes
+        // the move menu + HUD from the core state (HP bar stays the morphed mon's own).
+        this.board.setSpecies(event.pokemonId, event.intoDefinitionId);
+        this.syncBoard();
       } else if (
         event.type === BattleEventType.WallImpactDealt ||
         event.type === BattleEventType.TerrainDamageDealt ||

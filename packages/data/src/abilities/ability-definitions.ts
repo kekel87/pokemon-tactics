@@ -5,9 +5,11 @@ import type {
   StatusType as StatusTypeAlias,
 } from "@pokemon-tactic/core";
 import {
+  applyTransform,
   BattleEventType,
   Category,
   EffectKind,
+  effectiveAbilityId,
   isImmuneToStatusByType,
   isMajorStatus,
   isProtectedFromStatDecrease,
@@ -16,6 +18,7 @@ import {
   PokemonGender,
   PokemonType,
   ProtectionReason,
+  resolveBaseTypes,
   StatName,
   StatusType,
   Weather,
@@ -34,6 +37,22 @@ function hasMajorStatus(pokemon: PokemonInstance): boolean {
 
 function chebyshev(a: { x: number; y: number }, b: { x: number; y: number }): number {
   return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+}
+
+/** Nearest living enemy of `self` by Chebyshev distance (ties keep the first) — shared by Copie/Imposteur. */
+function nearestLivingEnemy(
+  self: PokemonInstance,
+  state: { pokemon: Map<string, PokemonInstance> },
+): PokemonInstance | undefined {
+  const enemies = [...state.pokemon.values()].filter(
+    (p) => p.playerId !== self.playerId && p.currentHp > 0,
+  );
+  if (enemies.length === 0) {
+    return undefined;
+  }
+  return enemies.reduce((a, b) =>
+    chebyshev(self.position, a.position) <= chebyshev(self.position, b.position) ? a : b,
+  );
 }
 
 const PINCH_THRESHOLD = 1 / 3;
@@ -986,17 +1005,10 @@ const flameBody: AbilityHandler = {
 const trace: AbilityHandler = {
   id: "trace",
   onBattleStart: (context) => {
-    const enemies = [...context.state.pokemon.values()].filter(
-      (p) => p.playerId !== context.self.playerId && p.currentHp > 0,
-    );
-    if (enemies.length === 0) {
+    const nearest = nearestLivingEnemy(context.self, context.state);
+    if (!nearest) {
       return [];
     }
-    const nearest = enemies.reduce((a, b) =>
-      chebyshev(context.self.position, a.position) <= chebyshev(context.self.position, b.position)
-        ? a
-        : b,
-    );
     const copiedId = nearest.abilityId;
     if (!copiedId) {
       return [];
@@ -1015,6 +1027,42 @@ const trace: AbilityHandler = {
         abilityId: copiedId,
         targetIds: [context.self.id],
       },
+    ];
+  },
+};
+
+// Imposteur (imposter, plan 157): at battle start, the holder Morphs into the nearest enemy —
+// canon-faithful "the one it faces" (deterministic mirror slot → nearest on the grid, decision
+// #652). Mechanically identical to the transform move. Skips a target behind a Substitute, an
+// already-transformed target, or one whose ability is itself Imposteur (anti-loop, #652). The
+// holder's own Imposteur no longer re-triggers once transformed (transformState replaces it as the
+// effective ability, #652).
+const imposter: AbilityHandler = {
+  id: "imposter",
+  onBattleStart: (context) => {
+    if (context.self.transformState) {
+      return [];
+    }
+    const nearest = nearestLivingEnemy(context.self, context.state);
+    if (!nearest) {
+      return [];
+    }
+    if (nearest.transformState || (nearest.substituteHp ?? 0) > 0) {
+      return [];
+    }
+    const targetAbilityId = effectiveAbilityId(nearest);
+    if (targetAbilityId === "imposter") {
+      return [];
+    }
+    const targetTypes = resolveBaseTypes(nearest, context.pokemonTypesMap);
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: context.self.id,
+        abilityId: "imposter",
+        targetIds: [nearest.id],
+      },
+      ...applyTransform(context.self, nearest, targetTypes, targetAbilityId),
     ];
   },
 };
@@ -2156,4 +2204,5 @@ export const abilityHandlers: AbilityHandler[] = [
   damp,
   healer,
   friendGuard,
+  imposter,
 ];

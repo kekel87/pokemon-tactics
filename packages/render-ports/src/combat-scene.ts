@@ -113,6 +113,8 @@ export interface CombatPokemonHandle {
   setSemiInvulnerable(state: SemiInvulnerableDisplay): void;
   playOnce(animation: string): void;
   setSubstitute(active: boolean): void;
+  /** Morphing / Imposteur (plan 157): swap the displayed sprite to another species. */
+  setSpecies(definitionId: string): void;
   setHudVisible(visible: boolean): void;
   koAnimationDurationMs(): number;
   /** Real ms of a Pokémon's Hurt reaction pose, to let it finish before a lethal Faint. */

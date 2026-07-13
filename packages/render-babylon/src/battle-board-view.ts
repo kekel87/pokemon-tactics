@@ -109,6 +109,7 @@ export function createBattleBoardView(
     setSemiInvulnerable: (pokemonId, state: SemiInvulnerableDisplay) =>
       handles.get(pokemonId)?.setSemiInvulnerable(state),
     setSubstitute: (pokemonId, active) => handles.get(pokemonId)?.setSubstitute(active),
+    setSpecies: (pokemonId, definitionId) => handles.get(pokemonId)?.setSpecies(definitionId),
     setHudVisible: (pokemonId, visible) => handles.get(pokemonId)?.setHudVisible(visible),
     koAnimationDurationMs: (pokemonId) => handles.get(pokemonId)?.koAnimationDurationMs() ?? 0,
     hurtAnimationDurationMs: (pokemonId) => handles.get(pokemonId)?.hurtAnimationDurationMs() ?? 0,

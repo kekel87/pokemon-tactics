@@ -5,6 +5,7 @@ import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 import type { EffectContext } from "../effect-handler-registry";
+import { effectiveCombatStats } from "../effective-combat-stats";
 import { isHealBlocked } from "../heal-block-system";
 import { getEffectiveStat } from "../stat-modifier";
 
@@ -21,7 +22,8 @@ function effectiveStatValue(pokemon: PokemonInstance, stat: StatName): number {
   if (!BASE_STAT_KEYS.has(stat)) {
     return 0;
   }
-  const base = pokemon.combatStats[stat as keyof typeof pokemon.combatStats];
+  const stats = effectiveCombatStats(pokemon);
+  const base = stats[stat as keyof typeof stats];
   const stage = pokemon.statStages[stat] ?? 0;
   return getEffectiveStat(base, stage);
 }

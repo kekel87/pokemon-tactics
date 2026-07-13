@@ -4,6 +4,8 @@ import { StatusType } from "../enums/status-type";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { effectiveCombatStats } from "./effective-combat-stats";
+import { effectiveWeight } from "./effective-weight";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { pendingRolloutIndex, rolloutPowerForIndex } from "./rollout-streak";
 import { getEffectiveStat, isMajorStatus } from "./stat-modifier";
@@ -48,7 +50,7 @@ function isParalyzed(pokemon: PokemonInstance): boolean {
 /** In-battle speed including stat stages and the Champions paralysis -50% penalty. */
 function effectiveSpeed(pokemon: PokemonInstance): number {
   const withStages = getEffectiveStat(
-    pokemon.combatStats.speed,
+    effectiveCombatStats(pokemon).speed,
     pokemon.statStages[StatName.Speed],
   );
   return isParalyzed(pokemon) ? Math.floor(withStages * 0.5) : withStages;
@@ -119,7 +121,7 @@ function speedRatioInversePower(attacker: PokemonInstance, target: PokemonInstan
 
 /** low-kick / grass-knot — power by the target's body weight in kilograms. */
 function targetWeightPower(target: PokemonInstance): number {
-  const weight = target.weight;
+  const weight = effectiveWeight(target);
   if (weight >= 200) {
     return 120;
   }
@@ -144,8 +146,8 @@ function targetWeightPower(target: PokemonInstance): number {
  * boundaries (e.g. exactly ×3 → 80) match the games exactly.
  */
 function weightRatioPower(attacker: PokemonInstance, target: PokemonInstance): number {
-  const userWeight = attacker.weight;
-  const targetWeight = target.weight;
+  const userWeight = effectiveWeight(attacker);
+  const targetWeight = effectiveWeight(target);
   if (userWeight >= targetWeight * 5) {
     return 120;
   }

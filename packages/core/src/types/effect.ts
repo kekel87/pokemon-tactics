@@ -187,4 +187,5 @@ export type Effect =
       radius: number;
     }
   | { kind: typeof EffectKind.ActAfterUser }
-  | { kind: typeof EffectKind.SwapAllyPositions };
+  | { kind: typeof EffectKind.SwapAllyPositions }
+  | { kind: typeof EffectKind.Transform };

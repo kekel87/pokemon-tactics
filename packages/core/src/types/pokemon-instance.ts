@@ -245,4 +245,24 @@ export interface PokemonInstance {
    * Cleared on KO.
    */
   pendingCtPromotion?: boolean;
+  /**
+   * Morphing / Imposteur (plan 157): snapshot of the copied identity. When set, the mon fights as a
+   * copy of `definitionId` — combat stats, base speed, types, ability, moves, weight and gender are
+   * read from here (via the `effective*` helpers), while `maxHp`/`currentHp` stay the caster's
+   * (#649) and `statStages` are a plain snapshot taken at cast (#650, mutated in place afterwards).
+   * Priority is `specific override > transformState > species` (#656): a later Détrempage / Échange /
+   * Permuvitesse re-posts its own override which wins; `applyTransform` purges the caster's
+   * pre-existing `typeOverride`/`abilityIdOverride`/`abilitySuppressed`/`speedStatOverride` at cast so
+   * the morph is the active layer immediately. Also the "already transformed" gate. Cleared on KO.
+   */
+  transformState?: {
+    definitionId: string;
+    combatStats: BaseStats;
+    baseSpeed: number;
+    types: PokemonType[];
+    abilityId?: string;
+    moveIds: string[];
+    weight: number;
+    gender: PokemonGender;
+  };
 }

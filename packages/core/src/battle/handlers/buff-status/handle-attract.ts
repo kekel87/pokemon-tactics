@@ -6,6 +6,7 @@ import { ProtectionReason } from "../../../types/battle-event";
 import { resolveDefensiveAbility } from "../../ability-suppression";
 import { isProtectedFromStatus } from "../../aura-system";
 import type { EffectContext } from "../../effect-handler-registry";
+import { effectiveGender } from "../../effective-gender";
 import { tryMentalHerbCure } from "../../mental-herb";
 import { shouldSubstituteBlock } from "../../substitute-system";
 import { effectiveWeather } from "../../weather-system";
@@ -27,10 +28,12 @@ export function handleAttract(context: EffectContext): BattleEvent[] {
     return fail;
   }
 
+  const casterGender = effectiveGender(caster);
+  const targetGender = effectiveGender(target);
   if (
-    caster.gender === PokemonGender.Genderless ||
-    target.gender === PokemonGender.Genderless ||
-    caster.gender === target.gender
+    casterGender === PokemonGender.Genderless ||
+    targetGender === PokemonGender.Genderless ||
+    casterGender === targetGender
   ) {
     return fail;
   }

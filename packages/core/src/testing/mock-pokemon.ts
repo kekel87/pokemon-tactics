@@ -143,6 +143,31 @@ export abstract class MockPokemon {
     nature: Nature.Hardy,
   };
 
+  static readonly gyarados: PokemonInstance = {
+    id: "gyarados-1",
+    definitionId: "gyarados",
+    playerId: PlayerId.Player1,
+    level: 50,
+    currentHp: 200,
+    maxHp: 200,
+    baseStats: { hp: 95, attack: 125, defense: 79, spAttack: 60, spDefense: 100, speed: 81 },
+    combatStats: { hp: 200, attack: 155, defense: 109, spAttack: 90, spDefense: 120, speed: 101 },
+    weight: 235,
+    derivedStats: { movement: 4, jump: 1, initiative: 101 },
+    statStages: { ...ZERO_STAT_STAGES },
+    statusEffects: [],
+    position: { x: 0, y: 0 },
+    orientation: Direction.South,
+    moveIds: ["waterfall", "crunch", "ice-fang", "dragon-dance"],
+    activeDefense: null,
+    lastEndureAtAction: null,
+    toxicCounter: 0,
+    volatileStatuses: [],
+    recharging: false,
+    gender: PokemonGender.Female,
+    nature: Nature.Hardy,
+  };
+
   static fresh(base: PokemonInstance, overrides?: Partial<PokemonInstance>): PokemonInstance {
     return {
       ...base,

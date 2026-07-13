@@ -1,6 +1,7 @@
 import type { BattleEvent } from "../../../types/battle-event";
 import { TypeChangeReason } from "../../../types/battle-event";
 import type { EffectContext } from "../../effect-handler-registry";
+import { effectiveMoveIds } from "../../effective-move-ids";
 import { applyTypeOverride, typeMoveFailed } from "./apply-type-override";
 
 /**
@@ -9,7 +10,7 @@ import { applyTypeOverride, typeMoveFailed } from "./apply-type-override";
  */
 export function handleConvertSelfType(context: EffectContext): BattleEvent[] {
   const caster = context.attacker;
-  const firstMoveId = caster.moveIds[0];
+  const firstMoveId = effectiveMoveIds(caster)[0];
   const newType = firstMoveId ? context.moveTypeOf(firstMoveId) : undefined;
   if (newType === undefined || context.attackerTypes.includes(newType)) {
     return typeMoveFailed(caster.id, context.move);
