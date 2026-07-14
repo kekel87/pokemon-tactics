@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { BattleEngine } from "../battle/BattleEngine";
 import { ActionKind } from "../enums/action-kind";
 import { PlayerId } from "../enums/player-id";
+import { PokemonGender } from "../enums/pokemon-gender";
+import { StatName } from "../enums/stat-name";
 import { TerrainType } from "../enums/terrain-type";
 import { MockBattle } from "../testing/mock-battle";
 import { MockPokemon } from "../testing/mock-pokemon";
@@ -464,5 +466,118 @@ describe("scoreAction — grouped AI pass (plan 160)", () => {
     );
     const without = scoreMoveOn("fire-blast", {}, { currentHp: 10, maxHp: 10 });
     expect(withSash).toBeLessThan(without);
+  });
+});
+
+function scoreManipMove(
+  moveId: string,
+  mutateEnemy?: (enemy: PokemonInstance) => void,
+  mutateCaster?: (caster: PokemonInstance) => void,
+): number {
+  const data = loadData();
+  const moveRegistry = new Map<string, MoveDefinition>();
+  for (const move of data.moves) {
+    moveRegistry.set(move.id, move);
+  }
+  const pokemonTypesMap = loadAllPokemonTypes();
+  const caster = MockPokemon.fresh(MockPokemon.charmander, {
+    id: "p1",
+    playerId: PlayerId.Player1,
+    position: { x: 0, y: 0 },
+  });
+  const enemy = MockPokemon.fresh(MockPokemon.bulbasaur, {
+    id: "p2",
+    playerId: PlayerId.Player2,
+    position: { x: 1, y: 0 },
+  });
+  mutateCaster?.(caster);
+  mutateEnemy?.(enemy);
+  const state = MockBattle.stateFrom([caster, enemy], 6, 6);
+  const engine = new BattleEngine(
+    state,
+    moveRegistry,
+    typeChart,
+    pokemonTypesMap,
+    undefined,
+    createPrng(42),
+    42,
+  );
+  state.activePokemonId = "p1";
+  return scoreAction(
+    {
+      kind: ActionKind.UseMove,
+      pokemonId: "p1",
+      moveId,
+      targetPosition: { x: 1, y: 0 },
+    },
+    engine.getGameState(PlayerId.Player1),
+    moveRegistry,
+    engine,
+    EASY_PROFILE,
+  );
+}
+
+describe("scoreAction — Phase 3 heuristics (plan 161)", () => {
+  it("Boost (psych-up) scores positively on a boosted target, negatively on a debuffed one", () => {
+    expect(
+      scoreManipMove("psych-up", (enemy) => {
+        enemy.statStages[StatName.Attack] = 3;
+      }),
+    ).toBeGreaterThan(0);
+    expect(
+      scoreManipMove("psych-up", (enemy) => {
+        enemy.statStages[StatName.Attack] = -3;
+      }),
+    ).toBeLessThan(0);
+  });
+
+  it("Renversement (topsy-turvy) scores positively on a boosted target, negatively on a debuffed one", () => {
+    expect(
+      scoreManipMove("topsy-turvy", (enemy) => {
+        enemy.statStages[StatName.SpAttack] = 4;
+      }),
+    ).toBeGreaterThan(0);
+    expect(
+      scoreManipMove("topsy-turvy", (enemy) => {
+        enemy.statStages[StatName.SpAttack] = -2;
+      }),
+    ).toBeLessThan(0);
+  });
+
+  it("Permuforce (power-swap) scores positively when the target holds attack boosts we lack", () => {
+    expect(
+      scoreManipMove("power-swap", (enemy) => {
+        enemy.statStages[StatName.Attack] = 2;
+        enemy.statStages[StatName.SpAttack] = 2;
+      }),
+    ).toBeGreaterThan(0);
+  });
+
+  it("Buée Noire (haze) scores positively when a boosted enemy shares the zone", () => {
+    expect(
+      scoreManipMove("haze", (enemy) => {
+        enemy.statStages[StatName.Attack] = 3;
+      }),
+    ).toBeGreaterThan(0);
+    expect(scoreManipMove("haze")).toBeLessThan(0);
+  });
+
+  it("Recyclage (recycle) scores positively only when an item was consumed", () => {
+    expect(scoreMoveOn("recycle", { consumedItemId: "sitrus-berry" })).toBeGreaterThan(0);
+    expect(scoreMoveOn("recycle", {})).toBeLessThan(0);
+  });
+
+  it("Attraction (attract) scores positively on an opposite-gender threat, rejected on same gender", () => {
+    expect(
+      scoreMoveOn("attract", { gender: PokemonGender.Male }, { gender: PokemonGender.Female }),
+    ).toBeGreaterThan(0);
+    expect(
+      scoreMoveOn("attract", { gender: PokemonGender.Male }, { gender: PokemonGender.Male }),
+    ).toBeLessThan(0);
+  });
+
+  it("Cognobidon (belly-drum) is rejected when a foe would KO us, valued when safe", () => {
+    expect(scoreMoveOn("belly-drum", { currentHp: 15, maxHp: 15 })).toBeLessThan(0);
+    expect(scoreMoveOn("belly-drum", { currentHp: 300, maxHp: 300 })).toBeGreaterThan(0);
   });
 });

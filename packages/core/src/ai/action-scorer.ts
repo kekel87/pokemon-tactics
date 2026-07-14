@@ -147,7 +147,7 @@ function scoreUseMove(
   // hard negative when it would fail (HP ≤ 50% or Attack maxed) so the AI never suicides. Fine
   // valuation (win-condition behind a wall) deferred to the grouped AI pass.
   if (move.effects.some((effect) => effect.kind === EffectKind.BellyDrum)) {
-    return scoreBellyDrum(currentPokemon, weights);
+    return scoreBellyDrum(currentPokemon, enemies, engine, weights);
   }
 
   // Par Ici / Poudre Fureur (draw-attention, plan 155): guard-rail only — worthless with no enemy in
@@ -283,6 +283,17 @@ function scoreUseMove(
     );
   }
 
+  // Buée Noire (haze → ResetStatStages zone, plan 146 ; heuristique fine plan 161) : reset team-agnostic
+  // d'un diamant r3. Le chemin générique le voyait comme un move sans effet (0). Rentable quand on
+  // efface plus de crans positifs ennemis (+ nos crans négatifs) qu'on ne perd des nôtres.
+  const resetZone = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.ResetStatStages }> =>
+      effect.kind === EffectKind.ResetStatStages && effect.area !== undefined,
+  );
+  if (resetZone?.area !== undefined) {
+    return scoreHazeReset(currentPokemon, resetZone.area.radius, state, weights);
+  }
+
   if (isSelfTargeting && !hasDamageFloor) {
     return scoreSelfMove(currentPokemon, enemies, move, moveRegistry, weights, state);
   }
@@ -317,10 +328,9 @@ function scoreUseMove(
     return scoreHpManipulation(action, currentPokemon, enemies, weights);
   }
 
-  // Stat-manip guard-rail (plan 146): the copy/invert/swap kinds carry no damage floor and no
-  // StatChange effect, so the generic path scores them 0 and the AI could play a visible blunder on
-  // a tie-break (inverting a debuffed target, swapping away its own advantage). Give a small negative
-  // score when the net effect clearly favours the target; positive valuation is deferred.
+  // Stat-manip (plan 146 ; heuristique fine plan 161) : Boost copie / Renversement inverse / Permu*
+  // échange les crans d'un ennemi. Sans power floor ni StatChange, le chemin générique les scorait 0.
+  // Valoriser le gain net quand la manip favorise le lanceur, malus quand elle avantage la cible.
   const hasStatManip = move.effects.some(
     (effect) =>
       effect.kind === EffectKind.CopyStatStages ||
@@ -329,7 +339,7 @@ function scoreUseMove(
       effect.kind === EffectKind.SwapRawSpeed,
   );
   if (hasStatManip) {
-    return scoreStatManip(action, currentPokemon, enemies, move, weights);
+    return scoreStatManip(action, currentPokemon, enemies, move, engine, weights);
   }
 
   // OHKO guard-rail (plan 148): one-hit-KO moves carry no power floor → the generic damage path scores
@@ -542,11 +552,54 @@ function scoreUseMove(
     (effect) =>
       effect.kind === EffectKind.StealItem ||
       effect.kind === EffectKind.RemoveItem ||
-      effect.kind === EffectKind.SwapItems,
+      effect.kind === EffectKind.SwapItems ||
+      effect.kind === EffectKind.BurnTargetItem,
   );
   if (hasItemManip) {
     for (const target of targetsHit) {
       if (target.heldItemId !== undefined) {
+        score += weights.statChanges;
+      }
+    }
+  }
+
+  // Bain de Smog (clear-smog → ResetStatStages cible, plan 146 ; heuristique fine plan 161) : les dégâts
+  // sont déjà scorés ; bonus si la cible perd des crans positifs. (Buée Noire, ResetStatStages en zone,
+  // est routée en amont.)
+  if (move.effects.some((effect) => effect.kind === EffectKind.ResetStatStages)) {
+    for (const target of targetsHit) {
+      score += positiveStatStageSum(target) * weights.statChanges * 0.3;
+    }
+  }
+
+  // Attraction (attract, plan 154 ; heuristique fine plan 161) : le garde-fou de validité est passé plus
+  // haut. Attract ne porte pas d'effet Status → aucun crédit générique ; on ne valorise que l'infatuation
+  // de la menace n°1 (souvent un sweeper), les autres cibles restent à 0 (valorisation différée).
+  if (move.effects.some((effect) => effect.kind === EffectKind.Attract)) {
+    const threat = highestThreatEnemy(enemies, currentPokemon, engine);
+    if (targetsHit.some((target) => target.id === threat?.id)) {
+      score += weights.statChanges * 0.8;
+    }
+  }
+
+  // Barrage / Regard Noir (block / mean-look → Trapped position-linked, plan trapping ; heuristique fine
+  // plan 161) : le statut générique est déjà crédité ; bonus pour épingler la menace n°1 (l'empêcher de
+  // se repositionner / fuir), inutile sur une cible déjà piégée.
+  const isPureTrap = move.effects.some(
+    (effect) =>
+      effect.kind === EffectKind.Status &&
+      "status" in effect &&
+      effect.status === StatusType.Trapped &&
+      "positionLinked" in effect &&
+      effect.positionLinked === true,
+  );
+  if (isPureTrap) {
+    const threat = highestThreatEnemy(enemies, currentPokemon, engine);
+    for (const target of targetsHit) {
+      if (target.volatileStatuses.some((volatile) => volatile.type === StatusType.Trapped)) {
+        continue;
+      }
+      if (target.id === threat?.id) {
         score += weights.statChanges;
       }
     }
@@ -748,10 +801,17 @@ function scoreTransformApplication(
  */
 function scoreBellyDrum(
   currentPokemon: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
 ): number {
   const hpRatio = currentPokemon.currentHp / currentPokemon.maxHp;
   if (hpRatio <= 0.5 || currentPokemon.statStages[StatName.Attack] >= 6) {
+    return -1;
+  }
+  // Cognobidon sacrifie 50% PV max pour +6 Attaque (plan 161) : ne le jouer que si l'on survit au tour
+  // pour en profiter — sinon on meurt avant d'avoir frappé, le boost est gâché.
+  if (wouldKoUs(enemies, currentPokemon, engine)) {
     return -1;
   }
   if (hpRatio < 0.7) {
@@ -770,14 +830,16 @@ function sumStatStages(pokemon: PokemonInstance, stats: readonly StatName[]): nu
 }
 
 /**
- * Stat-manip guard-rail (plan 146): return a small negative score when copying / inverting / swapping
- * clearly benefits the target instead of the caster, else 0 (neutral — the AI treats these as inert).
+ * Stat-manip (plan 146 ; heuristique fine plan 161) : valorise le gain net de crans pour le lanceur.
+ * Boost (copie) / Renversement (inversion) / Permu* (échange) rapportent quand la cible est mieux lotie
+ * que nous ; malus net quand la manip l'avantage. ×1.5 sur la menace n°1 (on lui vole/casse son setup).
  */
 function scoreStatManip(
   action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
   caster: PokemonInstance,
   enemies: readonly PokemonInstance[],
   move: MoveDefinition,
+  engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
 ): number {
   const target = enemies.find(
@@ -788,28 +850,57 @@ function scoreStatManip(
     return -1;
   }
   const penalty = -weights.statChanges;
+  const threatMult = highestThreatEnemy(enemies, caster, engine)?.id === target.id ? 1.5 : 1;
+  const value = (gain: number): number =>
+    gain <= 0 ? penalty : gain * weights.statChanges * 0.5 * threatMult;
+
   for (const effect of move.effects) {
     if (effect.kind === EffectKind.InvertStatStages) {
-      // Inverting a target whose stages sum to ≤ 0 hands it a net buff.
-      return sumStatStages(target, TRANSFERABLE_STATS) <= 0 ? penalty : 0;
+      // Inverser une cible boostée transforme ses crans positifs en malus ; sur une cible ≤ 0 c'est un
+      // cadeau (on lui rend un buff) → malus.
+      return value(sumStatStages(target, TRANSFERABLE_STATS));
     }
     if (effect.kind === EffectKind.CopyStatStages) {
-      // Copying a target worse off than us throws away our own boosts.
-      return sumStatStages(target, TRANSFERABLE_STATS) < sumStatStages(caster, TRANSFERABLE_STATS)
-        ? penalty
-        : 0;
+      // Copier les crans d'une cible mieux boostée que nous = gain net de setup.
+      return value(
+        sumStatStages(target, TRANSFERABLE_STATS) - sumStatStages(caster, TRANSFERABLE_STATS),
+      );
     }
     if (effect.kind === EffectKind.SwapStatStages) {
-      return sumStatStages(target, effect.stats) < sumStatStages(caster, effect.stats)
-        ? penalty
-        : 0;
+      return value(sumStatStages(target, effect.stats) - sumStatStages(caster, effect.stats));
     }
     if (effect.kind === EffectKind.SwapRawSpeed) {
-      // Swapping raw Speed with a slower target loses us tempo.
-      return effectiveBaseSpeed(caster) > effectiveBaseSpeed(target) ? penalty : 0;
+      // Échanger la Vitesse brute avec une cible plus rapide nous vole son tempo.
+      const gap = effectiveBaseSpeed(target) - effectiveBaseSpeed(caster);
+      return gap <= 0 ? penalty : Math.min(3, gap / 30) * weights.statChanges * threatMult;
     }
   }
   return 0;
+}
+
+/**
+ * Buée Noire (haze → ResetStatStages zone, plan 146 ; heuristique fine plan 161) : reset team-agnostic
+ * d'un diamant r3 centré sur le lanceur. Bilan signé — on gagne à effacer les crans positifs ennemis et
+ * nos propres crans négatifs, on perd à effacer nos crans positifs (et à nettoyer les malus ennemis).
+ */
+function scoreHazeReset(
+  caster: PokemonInstance,
+  radius: number,
+  state: BattleState | undefined,
+  weights: AiProfile["scoringWeights"],
+): number {
+  if (!state) {
+    return 0;
+  }
+  let net = 0;
+  for (const mon of state.pokemon.values()) {
+    if (mon.currentHp <= 0 || manhattanDistance(mon.position, caster.position) > radius) {
+      continue;
+    }
+    const sum = sumStatStages(mon, TRANSFERABLE_STATS);
+    net += mon.playerId === caster.playerId ? -sum : sum;
+  }
+  return net <= 0 ? -1 : net * weights.statChanges * 0.5;
 }
 
 /**
@@ -1084,6 +1175,13 @@ function scoreSelfMove(
       effect.target === EffectTarget.Self &&
       effect.stages > 0,
   );
+
+  // Recyclage (recycle → RecycleItem, plan 142 ; heuristique fine plan 161) : ne récupère un objet que
+  // si le lanceur en a consommé un — sinon c'est un tour perdu.
+  const hasRecycle = move.effects.some((effect) => effect.kind === EffectKind.RecycleItem);
+  if (hasRecycle) {
+    return currentPokemon.consumedItemId === undefined ? -1 : weights.statChanges;
+  }
 
   const hasRemoveHazards = move.effects.some(
     (effect) => effect.kind === EffectKind.RemoveEntryHazards,

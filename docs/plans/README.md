@@ -152,3 +152,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 157 | [Batch B-META — Morphing / Imposteur / Métamorph (502 → 503)](./157-transform-morphing.md) | done | 2026-07-12 |
 | 158 | [Content-fill — objets légers + talents ability1 (106→117 objets, 105→107 talents)](./158-content-fill-objets-talents.md) | ready | 2026-07-13 |
 | 159 | [IA compétente sur « Le Mur » (ring-out par recul) + passe heuristiques haut-impact + carte dispo](./159-ai-grouped-pass-and-le-mur.md) | done | 2026-07-14 |
+| 160 | [Passe IA groupée Phase 2 (toutes les familles restantes)](./160-ai-grouped-pass-phase-2.md) | done | 2026-07-14 |
+| 161 | [Passe IA Phase 3 (dernières familles différées)](./161-ai-phase-3.md) | done | 2026-07-14 |
