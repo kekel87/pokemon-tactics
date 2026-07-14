@@ -55,6 +55,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Réécriture de type (Détrempage/Conversion/Flamme Ultime…) | §5.27, §4.7 |
 | Appeler / copier un move (Métronome/Copie/Mimique…) | §5.28 |
 | Copie d'identité (Morphing / Imposteur / Métamorph) | §5.34 |
+| Heuristiques de scoring IA (choix de move) | §5.35 (unit ; e2e reporté) |
 | Move (effet observable) | §5 (famille concernée) |
 | HUD DOM combat (log, timeline, menus, tooltip) | §4 |
 | Écran / menu / navigation | §6 |
@@ -1414,6 +1415,26 @@ tandis que ses 4 slots restent intacts pour la copie).
   morph)** : valeurs & lifecycle = unit/integration core (`transform.integration.test`, `moves/
   transform.test.ts`, `handlers/transform/transform.test.ts`) → 👁.
 
+### 5.35 Heuristiques de scoring IA (Phase 1→3, plans 159 / 160 / 161)
+*src : core `ai/action-scorer.ts` (scorer pur) + `ai/scored-ai.ts` (`AiTeamController`) ;
+unit : `ai/action-scorer.test.ts`, `ai/scored-ai.test.ts`, `ai/scored-ai-smoke.test.ts`.*
+Toutes les heuristiques de scoring sont **couvertes en unit** (fonction pure `scoreAction` — dégâts,
+efficacité de type, valorisation des buffs/debuffs, Buée Noire, Recyclage, Attraction, Cognobidon,
+épinglage de menace, etc. ; plan 161 : +7 tests dans le describe « Phase 3 heuristics »).
+- 👁 **e2e des heuristiques IA — BLOQUÉ (reporté), prérequis feature `dummyControl: "scored"`.**
+  Le harness sandbox (`bootSandbox` / `SandboxConfig`) n'expose que deux modes de contrôle de la
+  cible : `dummyControl: "ai"` câble `DummyAiController` (un unique move défensif scripté + face à une
+  direction fixe — **il n'appelle JAMAIS `scoreAction`**) et `dummyControl: "player"` (hot-seat
+  humain). Le **vrai scorer** (`AiTeamController`) n'est branché que par `wireScoredAi` sur le chemin
+  team-select (`startBattleLoop`), avec équipes construites par le team-builder et un PRNG
+  `createPrng(Date.now())` **non seedé** — donc **ni pilotable par URL de config, ni déterministe**.
+  Aucune assertion e2e déterministe d'une décision IA n'est possible aujourd'hui sans changement de
+  harness. **Prérequis** : ajouter à `SandboxConfig` un mode `dummyControl: "scored"` qui câble
+  `AiTeamController` sur la Player2 sandbox, alimenté par `config.seed` (`createPrng(seed)`), de sorte
+  qu'un état seedé + un roster fixé rendent le choix de move déterministe et assertable au journal
+  (« l'adversaire utilise X »). Tant que ce mode n'existe pas, le sens reste **couvert unit** et l'e2e
+  est reporté (cf. `docs/next.md`). *Ne pas écrire de spec IA non-déterministe / factice.*
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -1743,6 +1764,13 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
 - [ ] **Reste 👁 (compliqué/impossible en e2e — marqué manuel dans le cahier)** :
       - **Aura ground icons / preview menace au survol** : `hoverTile` dispo, mais besoin d'un état
         avec auras actives au boot (`SandboxConfig` ne l'expose pas) → bloqué, reste 👁.
+      - **Heuristiques de scoring IA (§5.35, plans 159→161)** : **reporté** — le harness ne peut pas
+        piloter le vrai scorer. `dummyControl: "ai"` câble `DummyAiController` (move scripté, ne passe
+        jamais par `scoreAction`) ; le `AiTeamController` réel n'est branché que sur le chemin
+        team-select, avec PRNG `createPrng(Date.now())` non seedé et équipes non configurables par URL
+        → non déterministe, non pilotable. **Prérequis feature** : `dummyControl: "scored"` dans
+        `SandboxConfig` câblant `AiTeamController` sur Player2 avec `createPrng(config.seed)`. Sens
+        **couvert unit** (`ai/action-scorer.test.ts`). *Ne pas écrire de spec IA factice.*
       - ~~**EN en combat**~~ : **CORRIGÉ** (`initLanguage()` au boot + locale Playwright `fr-FR`) →
         couvert par `hud.spec` (`pt-lang=en` → menu en anglais).
       - **Tout ce qui est pixel/anim/couleur** : flottants (couleur par type), anims sprite (idle/
