@@ -351,4 +351,48 @@ describe("scoreAction", () => {
     expect(howlScore).toBeGreaterThan(0);
     expect(fluxScore).toBe(0);
   });
+
+  it("scores a knockback move higher when it rings a foe off a ledge (fall KO) than on flat ground", () => {
+    const data = loadData();
+    const moveRegistry = new Map<string, MoveDefinition>();
+    for (const move of data.moves) {
+      moveRegistry.set(move.id, move);
+    }
+    const pokemonTypesMap = loadAllPokemonTypes();
+
+    function scoreDragonTail(ledge: boolean): number {
+      const attacker = MockPokemon.fresh(MockPokemon.charmander, {
+        id: "p1",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 0 },
+        moveIds: ["dragon-tail"],
+        currentPp: { "dragon-tail": 10 },
+      });
+      const defender = MockPokemon.fresh(MockPokemon.bulbasaur, {
+        id: "p2",
+        playerId: PlayerId.Player2,
+        position: { x: 1, y: 0 },
+      });
+      const state = MockBattle.stateFrom([attacker, defender], 6, 3);
+      MockBattle.setTile(state, 1, 0, { height: 4.5 });
+      MockBattle.setTile(state, 2, 0, { height: ledge ? 0.5 : 4.5 });
+      const engine = new BattleEngine(state, moveRegistry, typeChart, pokemonTypesMap);
+      state.activePokemonId = "p1";
+      const gameState = engine.getGameState(PlayerId.Player1);
+      return scoreAction(
+        {
+          kind: ActionKind.UseMove,
+          pokemonId: "p1",
+          moveId: "dragon-tail",
+          targetPosition: { x: 1, y: 0 },
+        },
+        gameState,
+        moveRegistry,
+        engine,
+        EASY_PROFILE,
+      );
+    }
+
+    expect(scoreDragonTail(true)).toBeGreaterThan(scoreDragonTail(false));
+  });
 });

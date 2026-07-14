@@ -16,7 +16,7 @@ test("§6.2 mode de combat : Local actif, En ligne et Tutoriel désactivés", as
   await expect(mode.tutorial).toBeDisabled();
 });
 
-test("§6.3 choix de carte : liste de 8 cartes + sélection met à jour le détail", async ({
+test("§6.3 choix de carte : liste de 9 cartes + sélection met à jour le détail", async ({
   page,
 }) => {
   const menu = new MainMenu(page);
@@ -28,7 +28,7 @@ test("§6.3 choix de carte : liste de 8 cartes + sélection met à jour le déta
   await mode.local.click();
 
   await expect(maps.title).toBeVisible();
-  await expect(maps.listItems).toHaveCount(8);
+  await expect(maps.listItems).toHaveCount(9);
 
   // Carte 0 présélectionnée : nom + méta (dimensions) + description renseignés.
   await expect(maps.detailName).toHaveText("Arène Simple");

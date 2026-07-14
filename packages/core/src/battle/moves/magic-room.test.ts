@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { FieldGlobalKind } from "../../enums/field-global-kind";
@@ -65,7 +65,14 @@ describe("magic-room — zone posting", () => {
 });
 
 describe("magic-room — suppresses held items", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("nullifies the attacker's Life Orb damage boost inside the zone", () => {
+    // Deterministic roll (no crit, fixed damage factor) so the ×1.3 Life Orb boost is always visible:
+    // an unseeded crit on either hit could otherwise flip the comparison.
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
     const suppressed = buildScenario();
     const suppressedCaster = suppressed.state.pokemon.get("caster");
     if (!suppressedCaster) {

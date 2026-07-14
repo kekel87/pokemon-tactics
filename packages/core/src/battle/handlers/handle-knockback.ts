@@ -13,88 +13,60 @@ import { applyImpactDamage } from "../apply-impact-damage";
 import type { EffectContext } from "../effect-handler-registry";
 import { isEffectivelyFlying } from "../effective-flying";
 import { calculateFallDamage } from "../fall-damage";
-import { isTerrainImmune } from "../terrain-effects";
-
-const ICE_SLIDE_COLLISION_HEIGHT = 2;
-
-function getKnockbackDirection(
-  attackerPos: Position,
-  targetPos: Position,
-): { dx: number; dy: number } {
-  const dx = targetPos.x - attackerPos.x;
-  const dy = targetPos.y - attackerPos.y;
-
-  if (Math.abs(dx) >= Math.abs(dy)) {
-    return { dx: dx >= 0 ? 1 : -1, dy: 0 };
-  }
-  return { dx: 0, dy: dy >= 0 ? 1 : -1 };
-}
+import {
+  getKnockbackDirection,
+  ICE_SLIDE_COLLISION_HEIGHT,
+  type KnockbackDirection,
+  resolveIceSlide,
+  resolveKnockbackDestination,
+} from "../knockback-prediction";
 
 function performIceSlide(
   slider: PokemonInstance,
   slideStart: Position,
-  direction: { dx: number; dy: number },
+  direction: KnockbackDirection,
   grid: Grid,
   state: BattleState,
 ): BattleEvent[] {
-  let current = slideStart;
-  let slideEnd = slideStart;
+  const { slideEnd, wallImpactHeightDiff, collisionId } = resolveIceSlide({
+    slideStart,
+    direction,
+    grid,
+    state,
+  });
+
   const endEvents: BattleEvent[] = [];
 
-  while (true) {
-    const next: Position = { x: current.x + direction.dx, y: current.y + direction.dy };
+  if (wallImpactHeightDiff !== null) {
+    endEvents.push(...applyImpactDamage(slider, wallImpactHeightDiff));
+  }
 
-    if (!grid.isInBounds(next)) {
-      break;
-    }
-
-    const nextTile = grid.getTile(next);
-    if (!nextTile) {
-      break;
-    }
-
-    if (!isTerrainPassable(nextTile.terrain)) {
-      const wallHeightDiff = Math.max(0, nextTile.height - (grid.getTile(current)?.height ?? 0));
-      endEvents.push(...applyImpactDamage(slider, wallHeightDiff));
-      break;
-    }
-
-    const occupantId = grid.getOccupant(next);
-    if (occupantId !== null) {
-      const collidee = state.pokemon.get(occupantId);
-      if (collidee && collidee.currentHp > 0) {
-        const damage = calculateFallDamage(ICE_SLIDE_COLLISION_HEIGHT, slider.maxHp);
-        slider.currentHp = Math.max(0, slider.currentHp - damage);
-        collidee.currentHp = Math.max(0, collidee.currentHp - damage);
+  if (collisionId !== null) {
+    const collidee = state.pokemon.get(collisionId);
+    if (collidee) {
+      const damage = calculateFallDamage(ICE_SLIDE_COLLISION_HEIGHT, slider.maxHp);
+      slider.currentHp = Math.max(0, slider.currentHp - damage);
+      collidee.currentHp = Math.max(0, collidee.currentHp - damage);
+      endEvents.push({
+        type: BattleEventType.IceSlideCollision,
+        sliderId: slider.id,
+        targetId: collidee.id,
+        damage,
+      });
+      if (slider.currentHp <= 0) {
         endEvents.push({
-          type: BattleEventType.IceSlideCollision,
-          sliderId: slider.id,
-          targetId: collidee.id,
-          damage,
+          type: BattleEventType.PokemonKo,
+          pokemonId: slider.id,
+          countdownStart: 0,
         });
-        if (slider.currentHp <= 0) {
-          endEvents.push({
-            type: BattleEventType.PokemonKo,
-            pokemonId: slider.id,
-            countdownStart: 0,
-          });
-        }
-        if (collidee.currentHp <= 0) {
-          endEvents.push({
-            type: BattleEventType.PokemonKo,
-            pokemonId: collidee.id,
-            countdownStart: 0,
-          });
-        }
-        break;
       }
-    }
-
-    slideEnd = next;
-    current = next;
-
-    if (nextTile.terrain !== TerrainType.Ice) {
-      break;
+      if (collidee.currentHp <= 0) {
+        endEvents.push({
+          type: BattleEventType.PokemonKo,
+          pokemonId: collidee.id,
+          countdownStart: 0,
+        });
+      }
     }
   }
 
@@ -152,51 +124,24 @@ export function handleKnockback(context: EffectContext): BattleEvent[] {
       continue;
     }
 
+    const targetTypes = context.targetTypesMap.get(target.id) ?? [];
+    const isFlying = isEffectivelyFlying(target, targetTypes);
     const direction = getKnockbackDirection(context.attacker.position, target.position);
-    let destination: Position | null = null;
+    const { destination, blockedReason } = resolveKnockbackDestination({
+      targetPosition: target.position,
+      direction,
+      distance: effect.distance,
+      grid,
+      targetTypes,
+      targetIsFlying: isFlying,
+    });
 
-    for (let step = 1; step <= effect.distance; step++) {
-      const candidate: Position = {
-        x: target.position.x + direction.dx * step,
-        y: target.position.y + direction.dy * step,
-      };
-
-      if (!grid.isInBounds(candidate)) {
-        events.push({
-          type: BattleEventType.KnockbackBlocked,
-          pokemonId: target.id,
-          reason: "edge",
-        });
-        break;
-      }
-
-      const candidateTile = grid.getTile(candidate);
-      if (candidateTile && !isTerrainPassable(candidateTile.terrain)) {
-        const targetTypes = context.targetTypesMap.get(target.id) ?? [];
-        const targetIsFlying = isEffectivelyFlying(target, targetTypes);
-        if (isTerrainImmune(candidateTile.terrain, targetTypes, targetIsFlying)) {
-          events.push({
-            type: BattleEventType.KnockbackBlocked,
-            pokemonId: target.id,
-            reason: "terrain",
-          });
-          break;
-        }
-        destination = candidate;
-        break;
-      }
-
-      const occupant = grid.getOccupant(candidate);
-      if (occupant !== null) {
-        events.push({
-          type: BattleEventType.KnockbackBlocked,
-          pokemonId: target.id,
-          reason: "occupied",
-        });
-        break;
-      }
-
-      destination = candidate;
+    if (blockedReason !== null) {
+      events.push({
+        type: BattleEventType.KnockbackBlocked,
+        pokemonId: target.id,
+        reason: blockedReason,
+      });
     }
 
     if (destination) {
@@ -225,9 +170,6 @@ export function handleKnockback(context: EffectContext): BattleEvent[] {
         events.push({ type: BattleEventType.PokemonKo, pokemonId: target.id, countdownStart: 0 });
         continue;
       }
-
-      const targetTypes = context.targetTypesMap.get(target.id) ?? [];
-      const isFlying = isEffectivelyFlying(target, targetTypes);
 
       const fromHeight = fromTile?.height ?? 0;
       const destHeight = destTile?.height ?? 0;

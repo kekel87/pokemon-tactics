@@ -1,3 +1,4 @@
+import type { BattleEngine } from "../battle/BattleEngine";
 import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
 import { effectiveMoveIds } from "../battle/effective-move-ids";
 import { Category } from "../enums/category";
@@ -146,4 +147,63 @@ export function statusMoveRatio(
     }
   }
   return statusCount / moveIds.length;
+}
+
+/**
+ * Meilleur dégât estimé de `enemy` sur `self` en bouclant son moveset effectif (proxy de menace,
+ * ignore portée/LoS). O(M) appels `estimateDamage`.
+ */
+export function bestEnemyDamageAgainst(
+  enemy: PokemonInstance,
+  self: PokemonInstance,
+  engine: BattleEngine,
+): number {
+  let best = 0;
+  for (const moveId of effectiveMoveIds(enemy)) {
+    const estimate = engine.estimateDamage(enemy.id, moveId, self.id);
+    if (estimate && estimate.max > best) {
+      best = estimate.max;
+    }
+  }
+  return best;
+}
+
+/**
+ * L'ennemi vivant au plus fort potentiel offensif contre `self` (cible naturelle du « déni »).
+ * O(N×M). N, M ≤ ~24, négligeable par tour.
+ */
+export function highestThreatEnemy(
+  enemies: readonly PokemonInstance[],
+  self: PokemonInstance,
+  engine: BattleEngine,
+): PokemonInstance | null {
+  let best: PokemonInstance | null = null;
+  let bestDamage = -1;
+  for (const enemy of enemies) {
+    if (enemy.currentHp <= 0) {
+      continue;
+    }
+    const damage = bestEnemyDamageAgainst(enemy, self, engine);
+    if (damage > bestDamage) {
+      bestDamage = damage;
+      best = enemy;
+    }
+  }
+  return best;
+}
+
+/** Un ennemi vivant peut-il nous mettre KO d'un de ses moves ? O(N×M). */
+export function wouldKoUs(
+  enemies: readonly PokemonInstance[],
+  self: PokemonInstance,
+  engine: BattleEngine,
+): boolean {
+  return enemies.some(
+    (enemy) => enemy.currentHp > 0 && bestEnemyDamageAgainst(enemy, self, engine) >= self.currentHp,
+  );
+}
+
+/** Cible « en forme » : PV ratio ≥ `ratio` (défaut 0.7). */
+export function isHealthyTarget(mon: PokemonInstance, ratio = 0.7): boolean {
+  return mon.currentHp / mon.maxHp >= ratio;
 }

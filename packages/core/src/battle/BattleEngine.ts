@@ -19,6 +19,7 @@ import { TargetingKind } from "../enums/targeting-kind";
 import { isTerrainPassable, TerrainType } from "../enums/terrain-type";
 import { Weather } from "../enums/weather";
 import { Grid } from "../grid/Grid";
+import { hasLineOfSight } from "../grid/line-of-sight";
 import { resolveTargeting } from "../grid/targeting";
 import { isValidHitAndRunRetreat } from "../grid/validate-hit-and-run-retreat";
 import type { Action, ActionResult } from "../types/action";
@@ -120,6 +121,7 @@ import { getHeightModifier } from "./height-modifier";
 import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { collectImprisonedMoveIds } from "./imprison-system";
+import { type KnockbackOutcome, predictKnockbackOutcome } from "./knockback-prediction";
 import { isLockInMove, resolveLockIn } from "./lock-in";
 import { isMetronomeCallable, isSleepTalkCallable } from "./move-copy/callable-moves";
 import { resolveNaturePowerMove } from "./nature-power-system";
@@ -358,6 +360,7 @@ export class BattleEngine {
     moveId: string,
     defenderId: string,
     targetPosition?: Position,
+    attackerPosition?: Position,
   ): DamageEstimate | null {
     const attacker = this.state.pokemon.get(attackerId);
     const defender = this.state.pokemon.get(defenderId);
@@ -392,14 +395,17 @@ export class BattleEngine {
       defenderTypes,
       move,
     );
-    const attackerHeight = this.grid.getTile(attacker.position)?.height ?? 0;
+    // Lookahead: evaluate the hit as if the attacker stood on `attackerPosition` (a candidate move
+    // destination), so height / terrain / facing reflect where it would actually fire from.
+    const originPosition = attackerPosition ?? attacker.position;
+    const attackerHeight = this.grid.getTile(originPosition)?.height ?? 0;
     const defenderHeight = this.grid.getTile(defender.position)?.height ?? 0;
     const heightMod = getHeightModifier(
       attackerHeight,
       defenderHeight,
       move.ignoresHeight ?? false,
     );
-    const attackerTerrain = this.grid.getTile(attacker.position)?.terrain;
+    const attackerTerrain = this.grid.getTile(originPosition)?.terrain;
     const terrainMod = attackerTerrain
       ? getTerrainTypeBonusFactor(
           attackerTerrain,
@@ -408,7 +414,11 @@ export class BattleEngine {
           this.isEffectivelyFlying(attacker),
         )
       : 1.0;
-    const attackOrigin = getAttackOrigin(attacker, move, targetPosition ?? defender.position);
+    const attackOrigin = getAttackOrigin(
+      originPosition === attacker.position ? attacker : { ...attacker, position: originPosition },
+      move,
+      targetPosition ?? defender.position,
+    );
     const facingMod = getFacingModifier(getFacingZone(attackOrigin, defender));
     return estimateDamage(
       attacker,
@@ -710,6 +720,41 @@ export class BattleEngine {
     }
 
     return Number.POSITIVE_INFINITY;
+  }
+
+  /**
+   * Read-only prediction of a knockback's outcome on `target` if `attackerId` pushed it now (no
+   * mutation). Used by the AI to value ring-out plays (pushing a foe off a ledge / into lethal
+   * terrain). Returns null when the push would not move the target.
+   */
+  predictKnockback(
+    attackerId: string,
+    target: PokemonInstance,
+    distance: number,
+  ): KnockbackOutcome | null {
+    const attacker = this.state.pokemon.get(attackerId);
+    if (!attacker) {
+      return null;
+    }
+    return predictKnockbackOutcome({
+      attackerPosition: attacker.position,
+      target,
+      distance,
+      grid: this.grid,
+      targetTypes: this.effectiveTypesOf(target),
+      state: this.state,
+    });
+  }
+
+  /**
+   * Height-aware line of sight between two tiles (single-target convention: reference = the lower of
+   * the two heights). Used by the AI lookahead to reject « phantom sniper » positions that could not
+   * actually fire over the wall.
+   */
+  hasLineOfSightFrom(from: Position, to: Position): boolean {
+    const fromHeight = this.grid.getTile(from)?.height ?? 0;
+    const toHeight = this.grid.getTile(to)?.height ?? 0;
+    return hasLineOfSight(this.grid, from, to, Math.min(fromHeight, toHeight));
   }
 
   private getCurrentActorId(): string {

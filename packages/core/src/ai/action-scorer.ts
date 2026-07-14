@@ -20,6 +20,7 @@ import { EffectTarget } from "../enums/effect-target";
 import type { EntryHazardKind } from "../enums/entry-hazard-kind";
 import { FieldTerrain } from "../enums/field-terrain";
 import { PokemonGender } from "../enums/pokemon-gender";
+import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
 import { TargetingKind } from "../enums/targeting-kind";
@@ -36,9 +37,12 @@ import { manhattanDistance } from "../utils/manhattan-distance";
 import {
   enemyHasStatDecreaseMoveInRange,
   enemyHasStatusMoveInRange,
+  highestThreatEnemy,
+  isHealthyTarget,
   lastMoveIsLowValue,
   lastMoveIsThreat,
   statusMoveRatio,
+  wouldKoUs,
 } from "./threat-detection";
 
 const DANGEROUS_TERRAINS: ReadonlySet<TerrainType> = new Set([
@@ -139,8 +143,15 @@ function scoreUseMove(
     return exposed.length === 0 ? -1 : weights.statChanges * 0.5 * exposed.length;
   }
 
+  // Malédiction (curse, plan 154 ; heuristique fine plan 159) : ciblage conditionnel par type du
+  // lanceur. Spectre → DoT illimité sur un ennemi (rentable sur cible en forme, dangereux à bas PV) ;
+  // non-Spectre → self-buff sans coût.
+  if (move.effects.some((effect) => effect.kind === EffectKind.Curse)) {
+    return scoreCurse(action, currentPokemon, enemies, engine, weights);
+  }
+
   if (isSelfTargeting && !hasDamageFloor) {
-    return scoreSelfMove(currentPokemon, enemies, move, weights, state);
+    return scoreSelfMove(currentPokemon, enemies, move, moveRegistry, weights, state);
   }
 
   if (move.targetsAlly === true || move.targetsAllyOrSelf === true) {
@@ -203,7 +214,7 @@ function scoreUseMove(
   // are deferred.
   const isTransform = move.effects.some((effect) => effect.kind === EffectKind.Transform);
   if (isTransform) {
-    return scoreTransformApplication(action, currentPokemon, enemies, weights);
+    return scoreTransformApplication(action, currentPokemon, enemies, engine, weights);
   }
 
   const affectedTiles = estimateAffectedTiles(
@@ -291,6 +302,118 @@ function scoreUseMove(
     score += weights.statChanges;
   }
 
+  // Ring-out (plan 159) : un move à recul peut éjecter la cible dans le vide / le terrain létal
+  // (« Le Mur »). On prédit l'issue et on crédite un KO par déplacement même quand les dégâts directs
+  // ne tuent pas ; on pénalise durement l'éjection fatale d'un allié.
+  const knockback = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.Knockback }> =>
+      effect.kind === EffectKind.Knockback,
+  );
+  if (knockback !== undefined) {
+    score += scoreKnockbackRingOut(
+      currentPokemon,
+      targetsHit,
+      alliesHit,
+      action.moveId,
+      knockback.distance,
+      enemies,
+      engine,
+      weights,
+    );
+  }
+
+  // Manipulation d'objet (Sabotage / Larcin / Tour de Magie / Passe-Passe, plan 142 ; heuristique fine
+  // plan 159) : ne vaut le coup que si la cible porte réellement un objet.
+  const hasItemManip = move.effects.some(
+    (effect) =>
+      effect.kind === EffectKind.StealItem ||
+      effect.kind === EffectKind.RemoveItem ||
+      effect.kind === EffectKind.SwapItems,
+  );
+  if (hasItemManip) {
+    for (const target of targetsHit) {
+      if (target.heldItemId !== undefined) {
+        score += weights.statChanges;
+      }
+    }
+  }
+
+  return score;
+}
+
+/**
+ * Malédiction (curse) — heuristique fine (plan 159). Lanceur Spectre : DoT 25%/tour illimité contre un
+ * ennemi, rentable sur une cible en forme (PV élevés), dangereux quand nous sommes bas (sacrifice 50%
+ * PV max). Lanceur non-Spectre : self-buff sans coût (−1 Vit / +1 Atq / +1 Déf), meilleur loin des
+ * ennemis (temps de setup).
+ */
+function scoreCurse(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const isGhost = engine.getPokemonTypes(caster.id).includes(PokemonType.Ghost);
+  if (!isGhost) {
+    const nearest = closestEnemyManhattanDistance(caster.position, enemies as PokemonInstance[]);
+    return nearest > 2 ? weights.statChanges * 2 : weights.statChanges;
+  }
+  const target = enemies.find(
+    (enemy) =>
+      enemy.position.x === action.targetPosition.x && enemy.position.y === action.targetPosition.y,
+  );
+  if (!target) {
+    return -1;
+  }
+  if (caster.currentHp / caster.maxHp <= 0.5) {
+    return -1;
+  }
+  if (!isHealthyTarget(target)) {
+    return 0;
+  }
+  return (target.currentHp / target.maxHp) * weights.killPotential * 0.8;
+}
+
+/**
+ * Ring-out par recul (plan 159). Par ennemi touché, on prédit le déplacement + glissade + chute : un KO
+ * par éjection vaut `killPotential` (× 1.5 si c'est la menace n°1), sinon la chute partielle est
+ * créditée au prorata. On saute les cibles déjà tuées par les dégâts directs (déjà comptées) et on
+ * pénalise l'éjection fatale d'un allié.
+ */
+function scoreKnockbackRingOut(
+  caster: PokemonInstance,
+  targetsHit: readonly PokemonInstance[],
+  alliesHit: readonly PokemonInstance[],
+  moveId: string,
+  distance: number,
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  let score = 0;
+  const threat = highestThreatEnemy(enemies, caster, engine);
+  for (const target of targetsHit) {
+    const outcome = engine.predictKnockback(caster.id, target, distance);
+    if (!outcome) {
+      continue;
+    }
+    const direct = engine.estimateDamage(caster.id, moveId, target.id);
+    if (direct && direct.min >= target.currentHp) {
+      continue;
+    }
+    if (outcome.lethal) {
+      score += weights.killPotential * (threat?.id === target.id ? 1.5 : 1);
+    } else {
+      score += (outcome.damage / target.maxHp) * weights.killPotential * 0.5;
+    }
+  }
+  for (const ally of alliesHit) {
+    const outcome = engine.predictKnockback(caster.id, ally, distance);
+    if (outcome?.lethal) {
+      score -= weights.killPotential;
+    }
+  }
   return score;
 }
 
@@ -346,6 +469,10 @@ function scoreOhko(
   }
 
   const accuracy = ohkoAccuracy(move, engine.getPokemonTypes(currentPokemon.id)) / 100;
+  // Déni de menace (plan 159) : tuer d'un coup la menace n°1 vaut plus que le PV brut ; encore plus si
+  // cette menace peut nous mettre KO.
+  const threat = highestThreatEnemy(enemies, currentPokemon, engine);
+  const threatCanKoUs = threat !== null && wouldKoUs(enemies, currentPokemon, engine);
   let score = 0;
   for (const target of targetsHit) {
     if (engine.ohkoImmunityAgainst(currentPokemon, move, target) !== null) {
@@ -353,7 +480,8 @@ function scoreOhko(
       continue;
     }
     const hpFraction = target.currentHp / target.maxHp;
-    score += accuracy * weights.killPotential * (0.5 + hpFraction);
+    const denialMultiplier = target.id === threat?.id ? (threatCanKoUs ? 2 : 1.5) : 1;
+    score += accuracy * weights.killPotential * (0.5 + hpFraction) * denialMultiplier;
   }
 
   const alliesHit = allies.filter((ally) => isOnTiles(ally.position, affectedTiles));
@@ -371,6 +499,7 @@ function scoreTransformApplication(
   action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
   currentPokemon: PokemonInstance,
   enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
 ): number {
   const target = enemies.find(
@@ -392,7 +521,10 @@ function scoreTransformApplication(
   if (gap <= 0.1) {
     return -1;
   }
-  return gap * weights.statChanges;
+  // À gap comparable, copier la menace n°1 (le sweeper adverse) vaut mieux qu'un tank équivalent.
+  const threatBonus =
+    highestThreatEnemy(enemies, currentPokemon, engine)?.id === target.id ? 1.5 : 1;
+  return gap * weights.statChanges * threatBonus;
 }
 
 /**
@@ -728,6 +860,7 @@ function scoreSelfMove(
   currentPokemon: PokemonInstance,
   enemies: PokemonInstance[],
   move: MoveDefinition,
+  moveRegistry: Map<string, MoveDefinition>,
   weights: AiProfile["scoringWeights"],
   state?: BattleState,
 ): number {
@@ -1044,6 +1177,15 @@ function scoreSelfMove(
     if (currentPokemon.guaranteedCritArmed === true || (currentPokemon.critStageBoost ?? 0) >= 3) {
       return -1;
     }
+    // Le crit ne paie que derrière une vraie frappe : sans move offensif au moveset, c'est du vent
+    // (plan 159).
+    const hasOffensiveMove = effectiveMoveIds(currentPokemon).some((moveId) => {
+      const candidate = moveRegistry.get(moveId);
+      return candidate !== undefined && getEffectivePowerFloor(candidate) > 0;
+    });
+    if (!hasOffensiveMove) {
+      return -1;
+    }
     const nearestEnemyDist = closestEnemyManhattanDistance(currentPokemon.position, enemies);
     return nearestEnemyDist > 2 ? weights.statChanges * 3 : weights.statChanges;
   }
@@ -1261,7 +1403,13 @@ function evaluateAttacksFromPosition(
         continue;
       }
 
-      const estimate = engine.estimateDamage(pokemon.id, moveId, enemy.id);
+      // Reject « phantom sniper » spots the real targeting would deny (LoS blocked by the wall).
+      if (!engine.hasLineOfSightFrom(fromPosition, enemy.position)) {
+        continue;
+      }
+
+      // Estimate damage AS IF the mon stood on `fromPosition` (height / terrain from the destination).
+      const estimate = engine.estimateDamage(pokemon.id, moveId, enemy.id, undefined, fromPosition);
       if (!estimate) {
         continue;
       }
