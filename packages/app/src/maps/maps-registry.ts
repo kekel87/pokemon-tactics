@@ -96,4 +96,15 @@ export const MAPS_REGISTRY: MapEntry[] = [
     size: "12×12",
     tags: ["neige", "glace"],
   },
+  {
+    id: "le-mur",
+    url: "assets/maps/le-mur.tmj",
+    displayName: { fr: "Le Mur", en: "The Wall" },
+    description: {
+      fr: "Un mur de glace pyramidal domine le centre. Poussez vos adversaires dans le vide : sur la glace ils glissent, et du haut du mur la chute est fatale.",
+      en: "A pyramidal ice wall towers over the center. Shove your foes into the void: on ice they slide, and from atop the wall the fall is lethal.",
+    },
+    size: "16×16",
+    tags: ["glace", "dénivelé", "chute"],
+  },
 ];

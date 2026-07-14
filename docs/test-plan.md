@@ -1452,7 +1452,7 @@ tandis que ses 4 slots restent intacts pour la copie).
 ### 6.3 Choix de la carte (map preview)
 - 🤖 Carte 0 présélectionnée ; « Choisir cette carte » → Sélection d'équipe (`normal-game.spec`).
 - 🤖 « Retour » → Mode de combat (`screens.spec`).
-- 🤖 Liste de **8 cartes** ; nom + méta + **description** renseignés ; **sélectionner une autre
+- 🤖 Liste de **9 cartes** ; nom + méta + **description** renseignés ; **sélectionner une autre
   carte met à jour le détail** (`screens.spec`). *L'aperçu Babylon live = 👁.*
 - 👁 **Déplacer** la map (pan) et **tourner** la caméra dans l'aperçu.
 - 🤖 `↑/↓` navigue la liste (sélection surlignée, `aria-current`).
@@ -1573,7 +1573,7 @@ tandis que ses 4 slots restent intacts pour la copie).
 `app/babylon/placement-flow.ts`*
 
 ### 8.1 Types de terrain
-- 🤖 Les 8 cartes du jeu montent leur scène Babylon avec des tuiles (no crash) — `maps.spec`. Couleurs/tileset/eau profonde 👁.
+- 🤖 Les 9 cartes du jeu montent leur scène Babylon avec des tuiles (no crash) — `maps.spec`. Couleurs/tileset/eau profonde 👁.
 - 👁 Rendu et couleur distincts : normal (vert), herbe haute, eau (turquoise) vs **eau profonde**
   (bleu foncé, infranchissable au sol), sable, glace, neige, marais, magma (marchable) vs
   **lave** (impassable, létale), obstacle (impassable).
@@ -1684,7 +1684,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/weather.spec.ts` | §4.3/§5.12 — HUD météo (config) + pose via cast (Danse Pluie/Zénith/Tempête de Sable) ; §5.14 Roche Humide prolonge la Pluie à 8 tours (HUD `weather-turns`) |
 | `combat/mechanics-items.spec.ts` | §5.17 objets tenus du lot 95→99 : Ballon (éclate au 1er coup offensif → « Ballon … s'active ! » + « a utilisé son Ballon »), Lunettes Filtre (Spore bloqué → « Lunettes Filtre … s'active ! », « s'est endormi » absent), Pare-Effet (Griffe contact → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Talisman Sain (Groz'Yeux IA bloqué → « Talisman Sain … s'active ! »). Immunités silencieuses (Sol/poudre/météo, hazards/terrains au sol, baisse auto-infligée) = unit/integration. §5.18 lot 99→101 : Gant de Boxe (Mach Punch Poing → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Spray Gorge (Aboiement Son → « Spray Gorge … s'active ! »). Boost ×1,1, +1 AtqSpé, consommation, move Son statut = unit. §5.19 Métronome (objet) : 4 Griffe d'affilée sur dummy Ronflex endurant → AVEC objet le 4e coup (×1,3) > le 1er (×1,0) ; SANS objet série plate (variance seule). Compteur 0..10, cap +100 %, remise à zéro (move différent/raté) = unit. §5.20 objets « eject » (lot 102→104) : Carton Rouge (Florizarre dashe en Vive-Attaque depuis son spawn sur le dummy Ronflex porteur → l'ATTAQUANT est renvoyé chez lui → « Carton Rouge … s'active ! » + « … se téléporte ! » + « a utilisé son Carton Rouge »). Bouton Fuite (renvoie le PORTEUR : no-op si le dummy n'a pas bougé → non pilotable côté joueur) = unit/integration core (`forced-teleport.test.ts`, `items/eject-items.test.ts`) → 👁 |
 | `combat/mechanics-items-content-fill.spec.ts` | §5.14 objets légers content-fill (plan 158) : Carapace Mue (Étreinte + Aucun Garde forçant 100 % sur le dummy Ronflex porteur → « L'objet de Ronflex le protège ! », « Ronflex est piégé ! » absent), Dé Pipé (Balle Graine → « Touché 5 fois ! » via l'objet). 9 autres objets silencieux (marqueurs poids/vitesse, crit-stage, défense Métamorph, modulateurs de piège, anti-secondaire, survie 10 %) + 2 talents no-op (Fuite/Ramassage) = unit (`battle/items/content-fill-158.test.ts`, `effective-weight.test.ts`, `effective-base-speed.test.ts`) → 👁 |
-| `dom/maps.spec.ts` | §8.1/§8.3 — les 8 cartes montent (tuiles, no crash) + Le Mur multi-niveaux |
+| `dom/maps.spec.ts` | §8.1/§8.3 — les 9 cartes montent (tuiles, no crash) + Le Mur multi-niveaux |
 | `combat/hud.spec.ts` | §4 — sous-menu (type/nom), tooltip + grille de pattern (survol), timeline, §4.11 combat EN (`pt-lang=en`) |
 | `combat/hud-menu.spec.ts` | §4.1 bannière, §4.2 timeline (active/team), §4.4 menu (5 boutons, Objet/Statut off), §4.5 move-item (type/nom/PP), §4.9 journal (titre + repli) |
 | `combat/hud-state.spec.ts` | §4.6 tooltip (apparaît/disparaît + tag 2 tours), §4.2 timeline CT (`data-ct`), §4.7 badge statut, §4.5 nom EN |
@@ -1717,7 +1717,7 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
 - [x] **Mes équipes** : créer/nommer+localStorage, générer aléatoire, supprimer
       (`team-builder.spec`). *« Tout vider » : test prêt mais **skippé** (régression modale →
       backlog). Reste : exporter, renommer depuis la liste.*
-- [x] **Écrans hors combat** : §6.2 modes (En ligne/Tutoriel off), §6.3 carte (8 cartes, détail,
+- [x] **Écrans hors combat** : §6.2 modes (En ligne/Tutoriel off), §6.3 carte (9 cartes, détail,
       sélection, retour), §6.4 « Lancer » gating (`screens.spec`).
 - [x] **Combat DOM** : sous-menu (type/nom), tooltip + pattern preview (`hud.spec`, `hud-menu`) ;
       **bannière de tour**, **timeline** (active/team), **menu d'action** (5 boutons, Objet/Statut

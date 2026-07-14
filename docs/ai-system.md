@@ -51,18 +51,19 @@ Pour chaque action légale, le scorer collecte :
    - **Type advantage** : `effectiveness > 1` → +`typeAdvantage` (3). `< 1` → malus
 5. **Friendly fire** : -30% de `killPotential` par allié dans la zone d'effet
 6. **Effets secondaires** : +`statChanges × 1.5` pour les debuffs ennemis, +`statChanges` pour les statuts
+7. **Ring-out par recul** (`scoreKnockbackRingOut`, moves à `EffectKind.Knockback` — Draco-Queue, Coud'Krâne, Draco-Charge) : pour chaque ennemi touché, `BattleEngine.predictKnockback` calcule l'issue (déplacement, glissade sur glace, chute, terrain létal) depuis la position **actuelle** de l'attaquant. Issue `lethal` (chute mortelle ou terrain létal) → `killPotential` (×1.5 si la cible est `highestThreatEnemy`). Sinon → dégâts directs + bonus `fallDamage / maxHp × killPotential × 0.5`. Un allié qui serait éjecté à mort → **malus dur** `-killPotential`. L'IA ne se repositionne pas encore exprès pour préparer un ring-out (Phase 2, différé)
 
 #### Move (déplacement)
 
 1. **Positionnement** : gain de distance (réelle, BFS) vers l'ennemi le plus proche × `positioning`
 2. **Distance réelle (BFS)** : `engine.computePathDistance` remplace `manhattanDistance`. Un ennemi derrière un obstacle infranchissable retourne `Infinity` → l'IA ne se déplace plus vers des positions sans issue.
    **Fallback Manhattan** : quand `computePathDistance` retourne `Infinity` pour *tous* les ennemis (équipes séparées par un terrain infranchissable), `closestDistanceToEnemies` bascule sur la distance Manhattan. L'IA continue de se repositionner au lieu de rester figée.
-3. **Aversion terrain dangereux** : si la tile de destination est Magma, Lava ou Swamp, et que le Pokemon n'est pas immun (`isTerrainImmune`), la destination est pénalisée de `DANGEROUS_TERRAIN_PENALTY = 8`. Les Pokemon immuns (ex: Fire/Flying sur Lava, Water/Flying sur DeepWater, Steel sur Swamp) ne sont pas pénalisés — et peuvent physiquement traverser ces terrains (voir `getImmuneTerrains` dans `terrain-effects.ts`).
+3. **Aversion terrain dangereux** : si la tile de destination est Magma, Lava ou Swamp, et que le Pokemon n'est pas immun (`isTerrainImmune`), la destination est pénalisée de `DANGEROUS_TERRAIN_PENALTY = 8`. Les Pokemon immuns (ex: Fire/Flying sur Lava, Water/Flying sur DeepWater, Steel sur Swamp) ne sont pas pénalisés — et peuvent physiquement traverser ces terrains (voir `getImmuneTerrains` dans `terrain-effects.ts`). Cette pénalité couvre l'aversion **défensive** (l'IA évite de s'exposer elle-même) ; le pendant **offensif** — pousser un ennemi vers un ring-out (chute du Mur, glissade sur glace, terrain létal) — est couvert séparément par le ring-out par recul (§ Attaques, point 7), pas par cette pénalité de déplacement.
 4. **Lookahead move+attack** : pour chaque move du Pokemon (avec PP) :
    - Calcule la portée max (`getMoveMaxReach`)
-   - Vérifie si un ennemi serait à portée depuis la destination
+   - Vérifie si un ennemi serait à portée depuis la destination — hauteur/terrain/facing et ligne de vue calculés **depuis la position candidate** (`attackerPosition` sur `estimateDamage`, garde `hasLineOfSightFrom` dans `evaluateAttacksFromPosition` — élimine les positions « sniper fantôme » à travers un mur/relief)
    - Score le meilleur dégât possible × 0.8 (facteur d'estimation)
-5. Le lookahead fait que l'IA **se déplace vers des positions d'attaque**, pas juste vers l'ennemi
+5. Le lookahead fait que l'IA **se déplace vers des positions d'attaque**, pas juste vers l'ennemi — y compris **grimper un plateau pour tirer en surplomb** quand ça améliore l'estimation de dégâts
 
 #### EndTurn (fin de tour)
 
@@ -73,6 +74,19 @@ Pour chaque action légale, le scorer collecte :
 
 Les actions à score < 0 (attaques sans cible) sont **filtrées** du pool de sélection.
 L'IA ne gaspille jamais son tour sur une action inutile.
+
+## Primitives de menace partagées (`ai/threat-detection.ts`)
+
+Helpers réutilisés par plusieurs heuristiques (ring-out, OHKO, Malédiction, Transform) pour raisonner sur « qui est dangereux » sans dupliquer la logique :
+
+| Fonction | Rôle |
+|----------|------|
+| `bestEnemyDamageAgainst(enemy, self, engine)` | Meilleur dégât estimé qu'un ennemi peut infliger à `self` (boucle ses moves) |
+| `highestThreatEnemy(enemies, self, engine)` | L'ennemi le plus menaçant = celui qui maximise `bestEnemyDamageAgainst` |
+| `wouldKoUs(enemies, self, engine)` | Vrai si un move d'un ennemi peut mettre `self` KO (`bestEnemyDamageAgainst ≥ currentHp`) |
+| `isHealthyTarget(mon, ratio?)` | Cible « en forme » : `currentHp / maxHp ≥ ratio` (défaut 0.7) |
+
+Utilisées par (plan 159) : **OHKO** (déni de menace ×1.5 si la cible est `highestThreatEnemy` ou `wouldKoUs`), **Malédiction** (branche Spectre valorisée contre `isHealthyTarget`), **Transform** (préfère copier `highestThreatEnemy` à gap stat-total comparable), **ring-out par recul** (bonus ×1.5 si la cible éjectée est `highestThreatEnemy`).
 
 ## Sélection d'action (`pickScoredAction`)
 
@@ -143,8 +157,9 @@ interface AiProfile {
 
 - **Pas de mémoire** : l'IA n'apprend pas des tours précédents (pas de tracking des moves adverses)
 - **Pas de prédiction** : ne prédit pas les actions du joueur au tour suivant
-- **estimateDamage approximatif** : le lookahead utilise la portée max, pas le targeting exact
+- ~~estimateDamage approximatif~~ **résolu (plan 159, 2026-07-14)** : `attackerPosition?` sur `estimateDamage` calcule hauteur/terrain/facing depuis la position candidate (plus depuis `attacker.position`), et `evaluateAttacksFromPosition` vérifie la ligne de vue (`hasLineOfSightFrom`) — plus de « sniper fantôme » à travers un mur. Reste une approximation résiduelle : le lookahead utilise toujours la **portée max** (`getMoveMaxReach`), pas la forme exacte du targeting (cône/ligne/zone).
 - **Pas de coordination d'équipe** : chaque Pokemon joue indépendamment
+- **Pas de positionnement préparatoire pour le ring-out** : l'IA joue un ring-out par recul quand la géométrie fonctionne déjà depuis sa case courante, mais ne se déplace pas exprès pour l'aligner, et ne protège pas sa propre position d'un ring-out adverse (Phase 2, plan 159, différé `docs/next.md`)
 - **Movement = 3 pour tous** : hardcodé, pas lié aux stats du Pokemon (à corriger)
 - **CT non intégré au scoring** : le scorer est greedy monoronde — appliquer un facteur CT pousse l'IA à choisir des moves moins puissants et allonge les combats au-delà de 5000 tours en charge. Nécessite un lookahead multi-tour pour être bénéfique (plan futur).
 - **Navigation long terme limitée** : `computePathDistance` évalue si une destination est atteignable, mais la navigation sur plusieurs tours (contournement de murs, emprunt de rampes) reste limitée par le BFS à budget du mouvement courant.
@@ -153,10 +168,12 @@ interface AiProfile {
 
 | Fichier | Rôle |
 |---------|------|
-| `core/src/ai/action-scorer.ts` | Scoring de chaque action (terrain penalty, path distance) |
+| `core/src/ai/action-scorer.ts` | Scoring de chaque action (terrain penalty, path distance, ring-out, heuristiques haut-impact) |
+| `core/src/ai/threat-detection.ts` | Primitives de menace partagées (`highestThreatEnemy`, `wouldKoUs`, `isHealthyTarget`, `bestEnemyDamageAgainst`) |
 | `core/src/ai/scored-ai.ts` | Sélection pondérée top-N |
 | `core/src/ai/ai-profiles.ts` | Profils Easy / Medium / Hard |
 | `core/src/types/ai-profile.ts` | Interface `AiProfile` + `ScoringWeights` |
 | `core/src/enums/ai-difficulty.ts` | Enum `AiDifficulty` |
-| `core/src/battle/BattleEngine.ts` | `getTileAt`, `getPokemonTypes`, `computePathDistance` (API publique pour le scorer) |
+| `core/src/battle/knockback-prediction.ts` | Prédicteur pur du recul (déplacement/glissade/chute/terrain létal), source unique partagée avec `handle-knockback.ts` |
+| `core/src/battle/BattleEngine.ts` | `getTileAt`, `getPokemonTypes`, `computePathDistance`, `estimateDamage` (param `attackerPosition?`), `hasLineOfSightFrom`, `predictKnockback` (API publique pour le scorer) |
 | `renderer/src/game/AiTeamController.ts` | Orchestration du tour IA |

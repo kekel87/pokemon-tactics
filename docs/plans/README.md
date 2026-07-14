@@ -151,3 +151,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 156 | [Buff de stat multi-allié (500 → 502)](./156-buff-stat-multi-allie.md) | done | 2026-07-11 |
 | 157 | [Batch B-META — Morphing / Imposteur / Métamorph (502 → 503)](./157-transform-morphing.md) | done | 2026-07-12 |
 | 158 | [Content-fill — objets légers + talents ability1 (106→117 objets, 105→107 talents)](./158-content-fill-objets-talents.md) | ready | 2026-07-13 |
+| 159 | [IA compétente sur « Le Mur » (ring-out par recul) + passe heuristiques haut-impact + carte dispo](./159-ai-grouped-pass-and-le-mur.md) | done | 2026-07-14 |
