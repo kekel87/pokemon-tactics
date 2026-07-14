@@ -147,3 +147,7 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 152 | [Misc Batch B — dégâts utilitaires (480 → 486)](./152-misc-utility-damage.md) | done | 2026-07-07 |
 | 153 | [Misc Batch C — manipulation de talent (486 → 490)](./153-manip-talent.md) | done | 2026-07-10 |
 | 154 | [Misc Batch D — buff/statut (490 → 496)](./154-misc-buff-status.md) | done | 2026-07-10 |
+| 155 | [Misc Batch E — grille-problématiques (496 → 500)](./155-misc-grid-targeting.md) | done | 2026-07-11 |
+| 156 | [Buff de stat multi-allié (500 → 502)](./156-buff-stat-multi-allie.md) | done | 2026-07-11 |
+| 157 | [Batch B-META — Morphing / Imposteur / Métamorph (502 → 503)](./157-transform-morphing.md) | done | 2026-07-12 |
+| 158 | [Content-fill — objets légers + talents ability1 (106→117 objets, 105→107 talents)](./158-content-fill-objets-talents.md) | ready | 2026-07-13 |

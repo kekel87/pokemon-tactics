@@ -411,6 +411,23 @@ function dealSingleHit(
     actualDamage = target.currentHp - 1;
   }
 
+  // Bandeau (focus-band): unlike Focus Sash / Solidité (max HP only, guaranteed), it grants a
+  // probabilistic survival at 1 HP from ANY HP. Not consumed → can trigger again later.
+  let focusBandTriggered = false;
+  const focusBandChance = targetItem?.survivesLethalHitChance;
+  if (
+    focusBandChance !== undefined &&
+    !defenseResult.endureAtOne &&
+    !sturdyTriggered &&
+    !focusSashTriggered &&
+    target.currentHp > 0 &&
+    actualDamage >= target.currentHp &&
+    context.random() < focusBandChance
+  ) {
+    actualDamage = target.currentHp - 1;
+    focusBandTriggered = true;
+  }
+
   target.currentHp = Math.max(0, target.currentHp - actualDamage);
   context.shared.lastDamageDealt += actualDamage;
 
@@ -493,6 +510,15 @@ function dealSingleHit(
       itemId: HeldItemId.FocusSash,
     });
     consumeHeldItem(target);
+  }
+
+  if (focusBandTriggered) {
+    events.push({
+      type: BattleEventType.HeldItemActivated,
+      pokemonId: target.id,
+      itemId: HeldItemId.FocusBand,
+      targetIds: [target.id],
+    });
   }
 
   if (target.currentHp <= 0) {
@@ -648,7 +674,10 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
 
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.Damage }>;
   const beatUpPowers = effect.teamBeatUp === true ? computeBeatUpPowers(context) : undefined;
-  const skillLink = context.abilityRegistry?.getForPokemon(context.attacker)?.id === "skill-link";
+  // Multi-Coups (skill-link) OR Dé Pipé (loaded-dice, maximizesMultiHit): variable-hit moves land max hits.
+  const skillLink =
+    context.abilityRegistry?.getForPokemon(context.attacker)?.id === "skill-link" ||
+    context.itemRegistry?.getForPokemon(context.attacker)?.maximizesMultiHit === true;
   const hitCount = beatUpPowers?.length ?? getHitCount(effect, context.random, skillLink);
   const isMultiHit = hitCount > 1;
 

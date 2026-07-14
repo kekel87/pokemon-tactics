@@ -2099,6 +2099,18 @@ const friendGuard: AbilityHandler = {
   id: "friend-guard",
 };
 
+// Fuite (run-away) / Ramassage (pickup): both are no-ops in a tactical fight — Fuite guarantees
+// escape from wild Pokémon (no wild battles here), Ramassage picks up items out of battle (no
+// out-of-battle loot). Marker handlers only, so their carriers (Rattata/Ponyta/Doduo/Évoli line for
+// Fuite, Miaouss for Ramassage) stop resolving to an undefined ability. Precedent: Magné-Contrôle.
+const runAway: AbilityHandler = {
+  id: "run-away",
+};
+
+const pickup: AbilityHandler = {
+  id: "pickup",
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -2205,4 +2217,6 @@ export const abilityHandlers: AbilityHandler[] = [
   healer,
   friendGuard,
   imposter,
+  runAway,
+  pickup,
 ];

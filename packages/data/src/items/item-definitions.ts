@@ -52,6 +52,12 @@ const MAJOR_STATUSES: readonly StatusType[] = [
 ];
 const FARFETCH_D_DEFINITION_ID = "farfetch-d";
 const MAROWAK_DEFINITION_ID = "marowak";
+const CHANSEY_DEFINITION_ID = "chansey";
+const DITTO_DEFINITION_ID = "ditto";
+const RAZOR_CLAW_CRIT_STAGES = 1;
+const LUCKY_PUNCH_CRIT_STAGES = 2;
+const FOCUS_BAND_SURVIVE_CHANCE = 0.1;
+const METAL_POWDER_DEFENSE_MOD = 1 / 1.5;
 
 const EVIOLITE_NFE_POKEMON_IDS = new Set<string>([
   "chansey",
@@ -1133,6 +1139,82 @@ const baseItemHandlers: HeldItemHandler[] = [
         },
       ];
     },
+  },
+
+  // --- Plan 158 : content-fill objets légers ---
+
+  // Griffe Rasoir : +1 cran critique permanent (non consommé), miroir non-espèce de la Longue-Vue.
+  {
+    id: HeldItemId.RazorClaw,
+    onCritStageBoost: () => RAZOR_CLAW_CRIT_STAGES,
+  },
+
+  // Poing Chance : +2 crans critiques, réservé à Leveinard (précédent Poireau/Farfetch'd).
+  {
+    id: HeldItemId.LuckyPunch,
+    onCritStageBoost: ({ self }) =>
+      self.definitionId === CHANSEY_DEFINITION_ID ? LUCKY_PUNCH_CRIT_STAGES : 0,
+  },
+
+  // Dé Pipé : moves multi-frappes toujours au max — flag lu dans handle-damage (miroir Multi-Coups).
+  {
+    id: HeldItemId.LoadedDice,
+    maximizesMultiHit: true,
+  },
+
+  // Cape Obscure : protège le porteur des effets secondaires entrants (miroir objet d'Écran Poudre).
+  {
+    id: HeldItemId.CovertCloak,
+    suppressesIncomingSecondary: true,
+  },
+
+  // Pierrallégée : poids ÷2 — lu par effectiveWeight (core, via heldItemId). Marqueur.
+  {
+    id: HeldItemId.FloatStone,
+  },
+
+  // Bande Étreinte : ×2 dégâts/tour des pièges du porteur — flag lu à l'application dans handle-status.
+  {
+    id: HeldItemId.BindingBand,
+    doublesTrapDamage: true,
+  },
+
+  // Accro Griffe : durée des pièges partiels du porteur forcée au max — flag lu dans handle-status.
+  {
+    id: HeldItemId.GripClaw,
+    maximizesTrapDuration: true,
+  },
+
+  // Carapace Mue : immunité totale au piégeage du porteur — flag lu dans handle-status.
+  {
+    id: HeldItemId.ShedShell,
+    immuneToTrapping: true,
+  },
+
+  // Bandeau : 10 % de survie à 1 PV depuis n'importe quels PV, non consommé — lu dans handle-damage.
+  {
+    id: HeldItemId.FocusBand,
+    survivesLethalHitChance: FOCUS_BAND_SURVIVE_CHANCE,
+  },
+
+  // Poudre Métal : Déf + Déf.Spé ×1.5 pour un Métamorph non transformé (miroir Évoli-tine gaté espèce).
+  {
+    id: HeldItemId.MetalPowder,
+    onDamageModify: (context) => {
+      if (
+        context.isAttacker ||
+        context.self.definitionId !== DITTO_DEFINITION_ID ||
+        context.self.transformState
+      ) {
+        return 1.0;
+      }
+      return METAL_POWDER_DEFENSE_MOD;
+    },
+  },
+
+  // Poudre Vite : ×2 Vitesse pour un Métamorph non transformé — lu par effectiveBaseSpeed (core). Marqueur.
+  {
+    id: HeldItemId.QuickPowder,
   },
 ];
 

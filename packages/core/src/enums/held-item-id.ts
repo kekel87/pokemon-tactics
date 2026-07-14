@@ -105,6 +105,17 @@ export const HeldItemId = {
   RedCard: "red-card",
   LansatBerry: "lansat-berry",
   StarfBerry: "starf-berry",
+  FocusBand: "focus-band",
+  RazorClaw: "razor-claw",
+  LuckyPunch: "lucky-punch",
+  LoadedDice: "loaded-dice",
+  CovertCloak: "covert-cloak",
+  FloatStone: "float-stone",
+  BindingBand: "binding-band",
+  GripClaw: "grip-claw",
+  ShedShell: "shed-shell",
+  MetalPowder: "metal-powder",
+  QuickPowder: "quick-powder",
 } as const;
 
 export type HeldItemId = (typeof HeldItemId)[keyof typeof HeldItemId];

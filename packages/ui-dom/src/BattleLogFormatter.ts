@@ -1134,6 +1134,11 @@ export function formatBattleEvent(
           lang === "fr"
             ? `Le Brouhaha garde ${targetName} éveillé !`
             : `The uproar keeps ${targetName} awake!`;
+      } else if (event.reason === ProtectionReason.HeldItem) {
+        message =
+          lang === "fr"
+            ? `L'objet de ${targetName} le protège !`
+            : `${targetName}'s item protects it!`;
       } else {
         message =
           lang === "fr"

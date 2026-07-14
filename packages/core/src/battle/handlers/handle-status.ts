@@ -21,6 +21,9 @@ import { shouldSubstituteBlock } from "../substitute-system";
 import { isUnderNoSleepAura } from "../uproar-aura";
 import { effectiveWeather, shouldBlockFreezeInSun } from "../weather-system";
 
+/** Longest a partial trap (Étreinte…) can last — matches the 4..5 roll in getStatusDuration. */
+const TRAPPED_MAX_DURATION = 5;
+
 const VOLATILE_STATUSES: ReadonlySet<StatusType> = new Set([
   StatusTypeEnum.Confused,
   StatusTypeEnum.Seeded,
@@ -228,6 +231,20 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       if (alreadyHas) {
         continue;
       }
+      // Carapace Mue (shed-shell): the holder is immune to every trapping status (partial or
+      // position-linked) — the trap simply fails to take hold.
+      if (
+        status === StatusTypeEnum.Trapped &&
+        context.itemRegistry?.getForPokemon(target)?.immuneToTrapping === true
+      ) {
+        events.push({
+          type: BattleEventType.StatusBlocked,
+          pokemonId: target.id,
+          status,
+          reason: ProtectionReason.HeldItem,
+        });
+        continue;
+      }
       // Position-linked trap (mean-look, block): root the target with remainingTurns -1 while the
       // caster stays adjacent. position-linked-statuses.ts releases it when the source faints or
       // moves away. Same state Magnépik (magnet-pull) produces.
@@ -236,19 +253,37 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
         "positionLinked" in effect &&
         effect.positionLinked === true;
 
+      const attackerItem = context.itemRegistry?.getForPokemon(context.attacker);
+
       let remainingTurns = -1;
       if (!isPositionLinkedTrap) {
         const baseDuration = getStatusDuration(status, random, statusRules) ?? 1;
         remainingTurns = baseDuration;
+        // Accro Griffe (grip-claw): the attacker forces a partial trap to its maximum duration.
+        if (status === StatusTypeEnum.Trapped && attackerItem?.maximizesTrapDuration === true) {
+          remainingTurns = TRAPPED_MAX_DURATION;
+        }
         if (targetAbility?.onStatusDurationModify) {
           const result = targetAbility.onStatusDurationModify({
             self: target,
             status,
-            duration: baseDuration,
+            duration: remainingTurns,
           });
           remainingTurns = result.duration;
           events.push(...result.events);
         }
+      }
+      // Bande Étreinte (binding-band): the attacker doubles the trap's per-turn chip damage.
+      let trapDamagePerTurn: number | undefined;
+      if (
+        "damagePerTurn" in effect &&
+        status === StatusTypeEnum.Trapped &&
+        effect.damagePerTurn !== undefined
+      ) {
+        trapDamagePerTurn =
+          attackerItem?.doublesTrapDamage === true
+            ? effect.damagePerTurn * 2
+            : effect.damagePerTurn;
       }
       target.volatileStatuses.push({
         type: status,
@@ -256,11 +291,7 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
         ...(status === StatusTypeEnum.Seeded || isPositionLinkedTrap
           ? { sourceId: context.attacker.id }
           : {}),
-        ...("damagePerTurn" in effect &&
-        status === StatusTypeEnum.Trapped &&
-        effect.damagePerTurn !== undefined
-          ? { damagePerTurn: effect.damagePerTurn }
-          : {}),
+        ...(trapDamagePerTurn === undefined ? {} : { damagePerTurn: trapDamagePerTurn }),
       });
     } else {
       const targetHasMajor = target.statusEffects.some((s) => isMajorStatus(s.type));
