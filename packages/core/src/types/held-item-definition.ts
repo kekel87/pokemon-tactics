@@ -134,6 +134,18 @@ export interface HeldItemHandler {
    * unset → eating them does nothing. Returns the events to emit; mutates `eater` in place.
    */
   onEaten?: (eater: PokemonInstance) => BattleEvent[];
+  /** When true, a trapping status (Étreinte/Danse Flammes…) can never be applied to the holder (Carapace Mue). */
+  immuneToTrapping?: boolean;
+  /** When true, partial-trap statuses the holder inflicts last the maximum number of turns (Accro Griffe). */
+  maximizesTrapDuration?: boolean;
+  /** When true, partial-trap statuses the holder inflicts deal double per-turn damage (Bande Étreinte). */
+  doublesTrapDamage?: boolean;
+  /** When true, the holder's variable-hit moves always land the maximum number of hits (Dé Pipé). */
+  maximizesMultiHit?: boolean;
+  /** Probability (0..1) that the holder survives an otherwise lethal hit at 1 HP, from any HP (Bandeau). Not consumed. */
+  survivesLethalHitChance?: number;
+  /** When true, the holder is shielded from the added (secondary) effects of incoming moves (Cape Obscure, item mirror of Écran Poudre). */
+  suppressesIncomingSecondary?: boolean;
   /** Base power when thrown via Dégommage (fling). Items without a value cannot be flung. */
   flingPower?: number;
   /** Secondary effect a thrown non-berry item inflicts on the target (Dégommage): orbs → status… */

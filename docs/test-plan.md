@@ -876,6 +876,23 @@ fixe DUEL. On asserte le SENS (ligne de journal / contenu InfoPanel), jamais le 
     dummy sur plusieurs tours (fragile, sans précédent dans la suite). Couvert unit/integration core
     (`battle/forced-teleport.test.ts`, `battle/items/eject-items.test.ts` — le porteur s'éloigne de
     son spawn, est frappé, se téléporte chez lui et l'objet est consommé).
+- 🤖 **§5.14 objets légers content-fill (plan 158)** — pilotés de bout en bout
+  (`mechanics-items-content-fill.spec`) :
+  - **Carapace Mue** (`shed-shell`) — le porteur est IMMUNISÉ au piège (hook `immuneToTrapping`). Le
+    joueur lance Étreinte (`bind`, piège partiel, 85 % → forcé 100 % via Aucun Garde `no-guard`) sur le
+    dummy Ronflex porteur (`dummyHeldItem`) adjacent → le statut Piégé est bloqué : « L'objet de Ronflex
+    le protège ! » (StatusBlocked reason HeldItem) et AUCUNE ligne « Ronflex est piégé ! ». *Le badge
+    « Piégé » sur le sprite est un feedback de scène (anim/icône) → 👁.*
+  - **Dé Pipé** (`loaded-dice`) — force un move à frappes variables à son MAXIMUM de coups (hook
+    `maximizesMultiHit`, comme Multi-Coups mais via l'objet). Le joueur TIENT le Dé Pipé (`heldItem`) +
+    Balle Graine (`bullet-seed`, 2-5, 100 %) sur le dummy endurant (`dummyHp: 999`) → récap « Touché 5
+    fois ! », seed-indépendant.
+  - 👁 Les 9 autres objets du lot sont SILENCIEUX (Pierrallégée/Poudre Vite = marqueurs poids/vitesse,
+    Griffe Rasoir/Poing Chance = crit-stage, Poudre Métal = défense Métamorph, Bande Étreinte/Accro
+    Griffe = modulateurs de piège chiffrés, Cape Obscure = anti-secondaire déjà §5.14, Bandeau =
+    survie 10 %) et les 2 talents no-op (Fuite/Ramassage) n'émettent aucun signal observable → couverts
+    unit (`battle/items/content-fill-158.test.ts`, `effective-weight.test.ts`,
+    `effective-base-speed.test.ts`).
 - 👁 **Talent** déclenché → « <Talent> de <X> s'active ! » (texte or).
 - 👁 **Objet tenu** activé → « <Objet> de <X> s'active ! » (vert) ; **consommé** → « <X> a utilisé
   son <Objet> ».
@@ -1666,6 +1683,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
 | `combat/weather.spec.ts` | §4.3/§5.12 — HUD météo (config) + pose via cast (Danse Pluie/Zénith/Tempête de Sable) ; §5.14 Roche Humide prolonge la Pluie à 8 tours (HUD `weather-turns`) |
 | `combat/mechanics-items.spec.ts` | §5.17 objets tenus du lot 95→99 : Ballon (éclate au 1er coup offensif → « Ballon … s'active ! » + « a utilisé son Ballon »), Lunettes Filtre (Spore bloqué → « Lunettes Filtre … s'active ! », « s'est endormi » absent), Pare-Effet (Griffe contact → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Talisman Sain (Groz'Yeux IA bloqué → « Talisman Sain … s'active ! »). Immunités silencieuses (Sol/poudre/météo, hazards/terrains au sol, baisse auto-infligée) = unit/integration. §5.18 lot 99→101 : Gant de Boxe (Mach Punch Poing → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Spray Gorge (Aboiement Son → « Spray Gorge … s'active ! »). Boost ×1,1, +1 AtqSpé, consommation, move Son statut = unit. §5.19 Métronome (objet) : 4 Griffe d'affilée sur dummy Ronflex endurant → AVEC objet le 4e coup (×1,3) > le 1er (×1,0) ; SANS objet série plate (variance seule). Compteur 0..10, cap +100 %, remise à zéro (move différent/raté) = unit. §5.20 objets « eject » (lot 102→104) : Carton Rouge (Florizarre dashe en Vive-Attaque depuis son spawn sur le dummy Ronflex porteur → l'ATTAQUANT est renvoyé chez lui → « Carton Rouge … s'active ! » + « … se téléporte ! » + « a utilisé son Carton Rouge »). Bouton Fuite (renvoie le PORTEUR : no-op si le dummy n'a pas bougé → non pilotable côté joueur) = unit/integration core (`forced-teleport.test.ts`, `items/eject-items.test.ts`) → 👁 |
+| `combat/mechanics-items-content-fill.spec.ts` | §5.14 objets légers content-fill (plan 158) : Carapace Mue (Étreinte + Aucun Garde forçant 100 % sur le dummy Ronflex porteur → « L'objet de Ronflex le protège ! », « Ronflex est piégé ! » absent), Dé Pipé (Balle Graine → « Touché 5 fois ! » via l'objet). 9 autres objets silencieux (marqueurs poids/vitesse, crit-stage, défense Métamorph, modulateurs de piège, anti-secondaire, survie 10 %) + 2 talents no-op (Fuite/Ramassage) = unit (`battle/items/content-fill-158.test.ts`, `effective-weight.test.ts`, `effective-base-speed.test.ts`) → 👁 |
 | `dom/maps.spec.ts` | §8.1/§8.3 — les 8 cartes montent (tuiles, no crash) + Le Mur multi-niveaux |
 | `combat/hud.spec.ts` | §4 — sous-menu (type/nom), tooltip + grille de pattern (survol), timeline, §4.11 combat EN (`pt-lang=en`) |
 | `combat/hud-menu.spec.ts` | §4.1 bannière, §4.2 timeline (active/team), §4.4 menu (5 boutons, Objet/Statut off), §4.5 move-item (type/nom/PP), §4.9 journal (titre + repli) |

@@ -360,6 +360,7 @@ export function processEffects(
       moveHasDamage,
       nonImmuneTargets,
       context.abilityRegistry,
+      context.itemRegistry,
       context.attacker,
       events,
     );
@@ -504,21 +505,36 @@ function filterShieldDustTargets(
   moveHasDamage: boolean,
   targets: PokemonInstance[],
   abilityRegistry: AbilityHandlerRegistry | undefined,
+  itemRegistry: HeldItemHandlerRegistry | undefined,
   attacker: PokemonInstance,
   events: BattleEvent[],
 ): PokemonInstance[] {
-  if (!abilityRegistry || !isSecondaryEffect(effect, moveHasDamage)) {
+  if (!isSecondaryEffect(effect, moveHasDamage)) {
     return targets;
   }
   const filtered: PokemonInstance[] = [];
   for (const target of targets) {
     // Brise Moule ignores Écran Poudre (shield-dust is breakable) → secondaries still land.
-    const ability = resolveDefensiveAbility(abilityRegistry, target, attacker);
+    const ability = abilityRegistry
+      ? resolveDefensiveAbility(abilityRegistry, target, attacker)
+      : undefined;
     if (ability?.id === "shield-dust") {
       events.push({
         type: BattleEventType.AbilityActivated,
         pokemonId: target.id,
         abilityId: "shield-dust",
+        targetIds: [target.id],
+      });
+      continue;
+    }
+    // Cape Obscure (covert-cloak): the item mirror of Écran Poudre — the holder is shielded from
+    // the added effects of incoming moves.
+    const item = itemRegistry?.getForPokemon(target);
+    if (item?.suppressesIncomingSecondary === true) {
+      events.push({
+        type: BattleEventType.HeldItemActivated,
+        pokemonId: target.id,
+        itemId: item.id,
         targetIds: [target.id],
       });
       continue;

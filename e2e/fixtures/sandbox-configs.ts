@@ -493,6 +493,41 @@ export const TRAP_PURE_BLOCK = {
   dummyHp: 999,
 } as const;
 
+// Objets légers content-fill (plan 158) — deux facettes observables via le journal FR ; les 9 autres
+// objets du lot sont silencieux (marqueurs de poids/vitesse, crit-stage, immunité de secondaire déjà
+// couverte par Cape Obscure §5.14…) → couverts unit (`battle/items/content-fill-158.test.ts`) → 👁.
+
+/** Carapace Mue (`shed-shell`) — le porteur est IMMUNISÉ au piège (hook `immuneToTrapping`). Le joueur
+ *  Florizarre lance Étreinte (`bind`, piège partiel, portée 1) sur le dummy Ronflex (snorlax, espèce
+ *  distincte → lignes filtrables par nom) porteur de la Carapace Mue (`dummyHeldItem`) adjacent : le
+ *  statut Piégé N'EST PAS posé → « L'objet de Ronflex le protège ! » (StatusBlocked reason HeldItem) et
+ *  AUCUNE ligne « Ronflex est piégé ! ». Étreinte est à 85 % de précision : le joueur porte Aucun Garde
+ *  (`no-guard`) → précision forcée à 100 %, le coup touche sous TOUT seed (même parti-pris déterministe
+ *  que TRAP_PARTIAL_FIRE_SPIN — un raté empêcherait le blocage d'être observé). Dummy endurant
+ *  (`dummyHp: 999`) → survit aux dégâts d'Étreinte, et inerte (`dummyMove: "leer"`) → ne pollue pas le
+ *  journal. */
+export const SHED_SHELL_TRAP_IMMUNE = {
+  ...DUEL,
+  moves: ["bind"],
+  playerAbility: "no-guard",
+  dummyPokemon: "snorlax",
+  dummyHeldItem: "shed-shell",
+  dummyMove: "leer",
+  dummyHp: 999,
+} as const;
+
+/** Dé Pipé (`loaded-dice`) — force un move à frappes variables à son MAXIMUM de coups (hook
+ *  `maximizesMultiHit`), comme Multi-Coups mais via l'objet. Le joueur Florizarre TIENT le Dé Pipé
+ *  (`heldItem`) et lance Balle Graine (`bullet-seed`, 2-5 coups, 100 % précision, force-pool via
+ *  `moves`) sur le dummy adjacent endurant (`dummyHp: 999`, survit aux 5 coups) → le récap journal lit
+ *  « Touché 5 fois ! » quel que soit le seed (l'objet court-circuite le tirage du nombre de coups). */
+export const LOADED_DICE_MAX_HITS = {
+  ...DUEL,
+  moves: ["bullet-seed"],
+  heldItem: "loaded-dice",
+  dummyHp: 999,
+} as const;
+
 /** Talent Glu (`sticky-hold`, D12) — bloque tout retrait/vol/échange d'objet du porteur. Le joueur
  *  Florizarre lance Sabotage (`knock-off`) sur le dummy Grotadmorv (muk, slot Glu via `dummyAbility`)
  *  porteur des Restes (`dummyHeldItem`) adjacent → le retrait est bloqué : « Glu de <X> s'active ! »
