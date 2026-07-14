@@ -9,15 +9,21 @@ import { isEffectivelyFlying } from "../battle/effective-flying";
 import { effectiveGender } from "../battle/effective-gender";
 import { effectiveMoveIds } from "../battle/effective-move-ids";
 import { HAZARD_REMOVAL_RADIUS, maxLayersFor } from "../battle/entry-hazard-system";
+import { FacingZone, getFacingZone } from "../battle/facing-modifier";
+import { FIELD_GLOBAL_RADIUS, isInFieldGlobalZone } from "../battle/field-global-system";
 import { FIELD_TERRAIN_RADIUS, getFieldTerrainAt } from "../battle/field-terrain-system";
 import { TRANSFERABLE_STATS } from "../battle/handlers/baton-pass-stats";
 import { ohkoAccuracy } from "../battle/ohko";
 import { isTerrainImmune } from "../battle/terrain-effects";
 import { ActionKind } from "../enums/action-kind";
 import { AuraKind } from "../enums/aura-kind";
+import { CallMoveSourceKind } from "../enums/call-move-source-kind";
+import { ChargeReaction } from "../enums/charge-reaction";
+import { DynamicPowerKind } from "../enums/dynamic-power-kind";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import type { EntryHazardKind } from "../enums/entry-hazard-kind";
+import { FieldGlobalKind } from "../enums/field-global-kind";
 import { FieldTerrain } from "../enums/field-terrain";
 import { PokemonGender } from "../enums/pokemon-gender";
 import { PokemonType } from "../enums/pokemon-type";
@@ -34,14 +40,24 @@ import type { Position } from "../types/position";
 import type { TargetingPattern } from "../types/targeting-pattern";
 import { directionFromTo, getPerpendicularOffsets, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
+import { getMoveMaxReach } from "./move-reach";
 import {
+  abilityCopyValue,
+  abilityNeutralizeValue,
+  anyEnemyCanStrike,
+  anyEnemyPhysicalStriker,
+  bestEnemyDamageAgainst,
+  bestGroundThreatFraction,
   enemyHasStatDecreaseMoveInRange,
   enemyHasStatusMoveInRange,
   highestThreatEnemy,
   isHealthyTarget,
+  isImmuneToMoveType,
   lastMoveIsLowValue,
   lastMoveIsThreat,
+  occupantAt,
   statusMoveRatio,
+  survivesLethalHit,
   wouldKoUs,
 } from "./threat-detection";
 
@@ -51,6 +67,15 @@ const DANGEROUS_TERRAINS: ReadonlySet<TerrainType> = new Set([
   TerrainType.Swamp,
 ]);
 const DANGEROUS_TERRAIN_PENALTY = 8;
+
+/** Les 5 crans de stats de combat (hors Précision / Esquive) — base des heuristiques buff/setup. */
+const BATTLE_STAT_STAGES: readonly StatName[] = [
+  StatName.Attack,
+  StatName.Defense,
+  StatName.SpAttack,
+  StatName.SpDefense,
+  StatName.Speed,
+];
 
 /**
  * CT "tours du lanceur": weather / field / barrier durations count down on the setter's OWN turns,
@@ -133,14 +158,14 @@ function scoreUseMove(
       effect.kind === EffectKind.DrawAttention,
   );
   if (drawAttention !== undefined) {
-    const exposed = enemies.filter(
-      (enemy) =>
-        enemy.currentHp > 0 &&
-        Math.abs(enemy.position.x - currentPokemon.position.x) +
-          Math.abs(enemy.position.y - currentPokemon.position.y) <=
-          drawAttention.radius,
+    return scoreDrawAttention(
+      currentPokemon,
+      enemies,
+      allies,
+      drawAttention.radius,
+      moveRegistry,
+      weights,
     );
-    return exposed.length === 0 ? -1 : weights.statChanges * 0.5 * exposed.length;
   }
 
   // Malédiction (curse, plan 154 ; heuristique fine plan 159) : ciblage conditionnel par type du
@@ -148,6 +173,114 @@ function scoreUseMove(
   // non-Spectre → self-buff sans coût.
   if (move.effects.some((effect) => effect.kind === EffectKind.Curse)) {
     return scoreCurse(action, currentPokemon, enemies, engine, weights);
+  }
+
+  // Move-copy (Métronome / Blabla Dodo / Mimique / Photocopie, plan 144) : effects vides → scorés 0.
+  // Valorisation minimale + garde-fous (Blabla Dodo hors sommeil, fizzle sans move-source).
+  if (move.callMove !== undefined) {
+    return scoreCallMove(move, currentPokemon, enemies, weights);
+  }
+
+  // Vent Arrière (tailwind, plan 145) : ciblage GroundTarget → le chemin générique le rejetait (-1).
+  if (move.effects.some((effect) => effect.kind === EffectKind.SetTailwind)) {
+    return scoreTailwind(currentPokemon, allies, state, weights);
+  }
+
+  // Manip talent (Soucigraine / Suc Digestif / Imitation / Échange, plan 153) : Statuts sans branche →
+  // scorés 0. Valoriser selon le talent effectif de la cible.
+  const abilityManip = move.effects.find(
+    (effect) =>
+      effect.kind === EffectKind.SetAbility ||
+      effect.kind === EffectKind.SuppressAbility ||
+      effect.kind === EffectKind.CopyAbility ||
+      effect.kind === EffectKind.SwapAbility,
+  );
+  if (abilityManip !== undefined) {
+    return scoreAbilityManip(action, currentPokemon, enemies, abilityManip.kind, engine, weights);
+  }
+
+  // Bâillement (yawn, plan 154) : sommeil différé sur un ennemi.
+  if (move.effects.some((effect) => effect.kind === EffectKind.Yawn)) {
+    return scoreYawn(action, currentPokemon, enemies, engine, weights);
+  }
+
+  // Acupression (acupressure, plan 154) : +2 stat aléatoire self/allié — intercepter AVANT le routage
+  // targetsAllyOrSelf (le self-cast y était mal scoré -1).
+  if (move.effects.some((effect) => effect.kind === EffectKind.RaiseRandomStat)) {
+    return scoreAcupressure(action, currentPokemon, allies, state, weights);
+  }
+
+  // Après Vous / Interversion (after-you / ally-switch, plan 155) : moves alliés sans branche → scorés 0.
+  // Intercepter AVANT le routage targetsAlly générique.
+  if (move.effects.some((effect) => effect.kind === EffectKind.ActAfterUser)) {
+    return scoreAfterYou(action, currentPokemon, allies, enemies, moveRegistry, engine, weights);
+  }
+  if (move.effects.some((effect) => effect.kind === EffectKind.SwapAllyPositions)) {
+    return scoreAllySwitch(action, currentPokemon, allies, enemies, engine, weights);
+  }
+
+  // Tout ou Rien (final-gambit, plan 147) : dégâts = PV du lanceur × efficacité, self-KO à la connexion.
+  if (move.effects.some((effect) => effect.kind === EffectKind.FinalGambit)) {
+    return scoreFinalGambit(action, currentPokemon, enemies, engine, weights);
+  }
+
+  // Vœu Soin (healing-wish → ReviveOrHeal, plan 147) : cible une tuile alliée (KO → revive, blessé →
+  // soin) + self-KO. Le chemin générique le rejetait (tuile alliée / allié KO invisibles).
+  const reviveOrHeal = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.ReviveOrHeal }> =>
+      effect.kind === EffectKind.ReviveOrHeal,
+  );
+  if (reviveOrHeal !== undefined) {
+    return scoreReviveOrHeal(action, currentPokemon, state, reviveOrHeal.revivePercent, weights);
+  }
+
+  // Souvenir (memento, plan 147) : self-KO + Atq/Atq Spé cible −2. Le générique ignore le coût de suicide.
+  // (Vœu Soin, aussi selfKo, est déjà intercepté ci-dessus.)
+  if (move.selfKo === true) {
+    return scoreMemento(action, currentPokemon, enemies, engine, weights);
+  }
+
+  // Croc Fatal (super-fang → HalveTargetHp, plan 152) : dégâts fixes ⌊PV/2⌋, pas de power floor → 0.
+  if (move.effects.some((effect) => effect.kind === EffectKind.HalveTargetHp)) {
+    return scoreHalveTargetHp(action, currentPokemon, enemies, engine, weights);
+  }
+
+  // Explosion / Destruction / Explo-Brume (isExplosion, plan 147) : le générique compte les KO mais
+  // jamais le suicide du lanceur.
+  if (move.isExplosion === true) {
+    return scoreExplosion(action, currentPokemon, enemies, allies, move, engine, weights);
+  }
+
+  // Vol Magnétik (magnet-rise, plan 154) : lévitation temporaire — ne vaut que face à une menace Sol.
+  if (move.effects.some((effect) => effect.kind === EffectKind.MagnetRise)) {
+    return scoreMagnetRise(currentPokemon, enemies, engine, moveRegistry, weights);
+  }
+
+  // Lien du Destin / Rancune (destiny-bond / grudge, plan 147) : outils de désespoir — ne valent que si
+  // un ennemi peut nous mettre KO ce tour.
+  if (
+    move.effects.some(
+      (effect) =>
+        effect.kind === EffectKind.PostDestinyBond || effect.kind === EffectKind.PostGrudge,
+    )
+  ) {
+    return scoreDestinyBondGrudge(currentPokemon, enemies, engine, weights);
+  }
+
+  // Field global (Gravité / Zone Étrange / Zone Magique → PostFieldGlobal, plan 145) : zone diamant r3.
+  const fieldGlobal = move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.PostFieldGlobal }> =>
+      effect.kind === EffectKind.PostFieldGlobal,
+  );
+  if (fieldGlobal !== undefined) {
+    return scorePostFieldGlobal(
+      currentPokemon,
+      enemies,
+      fieldGlobal.fieldGlobalKind,
+      state,
+      engine,
+      weights,
+    );
   }
 
   if (isSelfTargeting && !hasDamageFloor) {
@@ -262,9 +395,44 @@ function scoreUseMove(
 
   let score = 0;
 
+  let damageScore = 0;
   if (getEffectivePowerFloor(move) > 0) {
-    score += scoreDamagingMove(currentPokemon, targetsHit, action.moveId, engine, weights);
+    damageScore = scoreDamagingMove(currentPokemon, targetsHit, move, engine, weights);
   }
+
+  // Charge-réaction (Mitra-Poing / Bec-Canon / Carapiège, plan 150) : le générique voyait la pleine
+  // puissance sans modéliser le risque d'interruption. Carapiège ne part QUE si un ennemi nous frappe
+  // physiquement pendant la charge → tour gâché sinon (gate dur). Sinon décote/bonus selon l'agresseur.
+  if (
+    move.chargeReaction === ChargeReaction.Shell &&
+    !anyEnemyPhysicalStriker(enemies, currentPokemon, moveRegistry)
+  ) {
+    return -1;
+  }
+  if (move.chargeReaction !== undefined) {
+    damageScore = scoreChargeReaction(
+      move,
+      currentPokemon,
+      enemies,
+      damageScore,
+      moveRegistry,
+      weights,
+    );
+  }
+
+  // Poursuite (pursuit, plan 152) : ×2 dans le dos, invisible pour estimateDamage (1.15 universel seul).
+  if (move.pursuitBackstab === true) {
+    damageScore += scorePursuitBackstab(
+      currentPokemon,
+      targetsHit,
+      enemies,
+      action.moveId,
+      engine,
+      weights,
+    );
+  }
+
+  score += damageScore;
 
   if (alliesHit.length > 0) {
     score -= weights.killPotential * 0.3 * alliesHit.length;
@@ -277,6 +445,12 @@ function scoreUseMove(
       effect.stages < 0,
   );
   const hasStatus = move.effects.some((effect) => effect.kind === EffectKind.Status);
+  const isFlinchApplication = move.effects.some(
+    (effect) =>
+      effect.kind === EffectKind.Status &&
+      "status" in effect &&
+      effect.status === StatusType.Flinch,
+  );
   const isTauntApplication = move.effects.some(
     (effect) =>
       effect.kind === EffectKind.Status &&
@@ -298,8 +472,48 @@ function scoreUseMove(
     score += scoreTauntApplication(targetsHit, moveRegistry, weights);
   } else if (isSpiteApplication) {
     score += scoreSpiteApplication(targetsHit, weights, state);
+  } else if (isFlinchApplication) {
+    // Bluff (fake-out, plan 150) : le flinch ne vaut que s'il prive la menace n°1 de son tour.
+    score += scoreFlinch(targetsHit, enemies, currentPokemon, engine, weights);
   } else if (hasStatus) {
     score += weights.statChanges;
+  }
+
+  // Coup Bas (sucker-punch, plan 150) : après le garde-fou de fraîcheur, frapper préemptivement la
+  // menace n°1 agressive vaut cher (surtout si elle peut nous mettre KO).
+  if (move.failsUnlessTargetAggressive === true) {
+    score += scoreSuckerPunchDenial(targetsHit, enemies, currentPokemon, engine, weights);
+  }
+
+  // Ruse (feint, plan 152) : bypassProtect ne vaut que contre une cible protégée.
+  if (move.bypassProtect === true) {
+    for (const target of targetsHit) {
+      if (target.activeDefense !== null) {
+        score += weights.typeAdvantage;
+      }
+    }
+  }
+
+  // Anti-Air (smack-down, plan 152) : clouer un Volant non encore cloué (retire immunité Sol / annule
+  // une esquive en cours) — non valorisé par le seul calcul de dégâts.
+  if (move.effects.some((effect) => effect.kind === EffectKind.SmackDown)) {
+    score += scoreSmackDown(targetsHit, engine, weights);
+  }
+
+  // Lock-in multi-tour (plan 149) : le verrou retire la flexibilité (+ auto-confusion sauf Brouhaha).
+  if (move.lockIn !== undefined) {
+    score += scoreLockInCommitment(move, targetsHit, enemies, currentPokemon, engine, weights);
+  }
+
+  // Ball'Glace (rollout streak, plan 149) : bonus de continuité quand la boule de neige est lancée.
+  if (move.dynamicPower?.kind === DynamicPowerKind.RolloutStreak) {
+    score += Math.max(0, currentPokemon.rolloutStreak ?? 0) * weights.typeAdvantage * 0.5;
+  }
+
+  // Phazing (Cyclone / Hurlement / Projection → PhazeToSpawn, plans 146-147) : éjection vers le spawn =
+  // board control + déni de setup (on éloigne un mon boosté / la menace n°1).
+  if (move.effects.some((effect) => effect.kind === EffectKind.PhazeToSpawn)) {
+    score += scorePhazing(targetsHit, enemies, currentPokemon, engine, weights);
   }
 
   // Ring-out (plan 159) : un move à recul peut éjecter la cible dans le vide / le terrain létal
@@ -1198,27 +1412,769 @@ function scoreSelfMove(
   return nearestEnemyDist > 2 ? weights.statChanges * 3 : weights.statChanges;
 }
 
+function findAt(list: readonly PokemonInstance[], position: Position): PokemonInstance | undefined {
+  return list.find((mon) => mon.position.x === position.x && mon.position.y === position.y);
+}
+
+/** Coût de sacrifice d'un self-KO : proportionnel à la valeur du lanceur, annulé s'il mourait de toute façon. */
+function sacrificeCost(
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  if (wouldKoUs(enemies, caster, engine)) {
+    return 0;
+  }
+  return weights.killPotential * (caster.currentHp / caster.maxHp);
+}
+
+/** Somme des crans de stats de combat POSITIFS d'un mon (déni de setup). */
+function positiveStatStageSum(mon: PokemonInstance): number {
+  let total = 0;
+  for (const stat of BATTLE_STAT_STAGES) {
+    const stage = mon.statStages[stat];
+    if (stage > 0) {
+      total += stage;
+    }
+  }
+  return total;
+}
+
+/**
+ * Move-copy (plan 144) : valorisation minimale + garde-fous. Blabla Dodo ne vaut que endormi ; Mimique /
+ * Photocopie sont inutiles sans move-source résoluble ; Métronome a une espérance offensive.
+ */
+function scoreCallMove(
+  move: MoveDefinition,
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  weights: AiProfile["scoringWeights"],
+): number {
+  switch (move.callMove) {
+    case CallMoveSourceKind.RandomOwnAsleep:
+      // Blabla Dodo : récupère un tour perdu par le sommeil → toujours bon quand endormi, sinon inutile.
+      return caster.statusEffects.some((status) => status.type === StatusType.Asleep)
+        ? weights.statChanges
+        : -1;
+    case CallMoveSourceKind.TargetLast:
+      // Mimique : besoin d'un ennemi ayant déjà agi.
+      return enemies.some((enemy) => enemy.currentHp > 0 && enemy.lastUsedMoveId !== undefined)
+        ? weights.typeAdvantage * 0.5
+        : -1;
+    case CallMoveSourceKind.GlobalLast:
+      // Photocopie : besoin d'un dernier move global joué (proxy : un ennemi a agi).
+      return enemies.some((enemy) => enemy.lastUsedMoveId !== undefined)
+        ? weights.typeAdvantage * 0.5
+        : -1;
+    default:
+      // Métronome (RandomAll) : roll aléatoire d'espérance offensive.
+      return weights.typeAdvantage * 0.5;
+  }
+}
+
+/**
+ * Vent Arrière (tailwind, plan 145) : le vent global booste le tempo de l'équipe orientée dans sa
+ * direction. Valeur ∝ nb d'alliés vivants (self inclus), × durabilité du lanceur × bonus early ; −1 si
+ * un vent est déjà actif (le recast ne fait que remplacer).
+ */
+function scoreTailwind(
+  caster: PokemonInstance,
+  allies: readonly PokemonInstance[],
+  state: BattleState | undefined,
+  weights: AiProfile["scoringWeights"],
+): number {
+  if (state?.tailwind !== undefined) {
+    return -1;
+  }
+  const beneficiaries = 1 + allies.filter((ally) => ally.currentHp > 0).length;
+  const early = state && (state.actionCounter ?? 0) <= 6 ? 1.3 : 1;
+  return beneficiaries * weights.positioning * setterDurabilityMultiplier(caster) * early;
+}
+
+/**
+ * Manip talent (plan 153) : valoriser selon le talent effectif de la cible. Suc Digestif / Soucigraine
+ * neutralisent un talent défensif ; Imitation copie un talent offensif sur soi ; Échange échange les deux.
+ */
+function scoreAbilityManip(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  kind: (typeof EffectKind)[keyof typeof EffectKind],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const target = findAt(enemies, action.targetPosition);
+  if (!target) {
+    return -1;
+  }
+  const targetAbility = effectiveAbilityId(target);
+  const isThreat = highestThreatEnemy(enemies, caster, engine)?.id === target.id;
+  const threatMult = isThreat ? 1.5 : 1;
+
+  if (kind === EffectKind.SetAbility || kind === EffectKind.SuppressAbility) {
+    // Neutraliser un talent défensif. Soucigraine (SetAbility → insomnia) réveille : ne pas gâcher
+    // notre propre sommeil adverse en cours.
+    if (targetAbility === undefined) {
+      return -1;
+    }
+    if (
+      kind === EffectKind.SetAbility &&
+      target.statusEffects.some((status) => status.type === StatusType.Asleep)
+    ) {
+      return -1;
+    }
+    const value = abilityNeutralizeValue(targetAbility);
+    return value === 0 ? 0 : value * weights.statChanges * threatMult;
+  }
+
+  if (kind === EffectKind.CopyAbility) {
+    const gain = abilityCopyValue(targetAbility) - abilityCopyValue(effectiveAbilityId(caster));
+    return gain <= 0 ? -1 : gain * weights.statChanges;
+  }
+
+  // SwapAbility (Échange) : on prend le talent de la cible, on lui donne le nôtre.
+  const gain = abilityCopyValue(targetAbility) - abilityCopyValue(effectiveAbilityId(caster));
+  if (gain <= 0) {
+    return -1;
+  }
+  return (
+    gain * weights.statChanges + abilityNeutralizeValue(targetAbility) * weights.statChanges * 0.3
+  );
+}
+
+/**
+ * Bâillement (yawn, plan 154) : sommeil différé. Garde-fou (cible déjà endormie/statutée/somnolente),
+ * puis fort contre la menace n°1, faible sur une cible à bas PV (autant la tuer).
+ */
+function scoreYawn(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const target = findAt(enemies, action.targetPosition);
+  if (!target) {
+    return -1;
+  }
+  if (target.drowsyTurns !== undefined && target.drowsyTurns > 0) {
+    return -1;
+  }
+  if (target.statusEffects.length > 0) {
+    return -1;
+  }
+  let score = weights.statChanges;
+  if (highestThreatEnemy(enemies, caster, engine)?.id === target.id) {
+    score *= 1.8;
+  }
+  if (target.currentHp / target.maxHp < 0.3) {
+    score *= 0.3;
+  }
+  return score;
+}
+
+/**
+ * Acupression (acupressure, plan 154) : +2 stat aléatoire self/allié. Corrige le self-cast (mal routé
+ * -1). Buff gratuit → bon tôt sur un mon offensif sain à l'abri ; décroît avec les crans déjà posés.
+ */
+function scoreAcupressure(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  allies: readonly PokemonInstance[],
+  state: BattleState | undefined,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const target =
+    action.targetPosition.x === caster.position.x && action.targetPosition.y === caster.position.y
+      ? caster
+      : findAt(allies, action.targetPosition);
+  if (!target) {
+    return -1;
+  }
+  const stages = sumStatStages(target, BATTLE_STAT_STAGES);
+  if (stages >= 30) {
+    return -1;
+  }
+  let score = weights.statChanges * 0.8 * Math.min(1, Math.max(0.2, 1 - stages / 20));
+  if (state && (state.actionCounter ?? 0) <= 6) {
+    score *= 1.2;
+  }
+  return score;
+}
+
+/**
+ * Après Vous (after-you, plan 155) : promeut un allié en prochain acteur. Ne vaut que si l'allié a une
+ * frappe forte disponible tout de suite.
+ */
+function scoreAfterYou(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  allies: readonly PokemonInstance[],
+  enemies: readonly PokemonInstance[],
+  moveRegistry: Map<string, MoveDefinition>,
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const ally = findAt(allies, action.targetPosition);
+  if (!ally || ally.id === caster.id) {
+    return -1;
+  }
+  const strike = bestAllyStrikeValue(ally, enemies, moveRegistry, engine, weights);
+  return strike <= 0 ? -1 : strike;
+}
+
+/** Meilleure valeur de frappe immédiate d'un allié (miroir de `evaluateAttacksFromPosition`). */
+function bestAllyStrikeValue(
+  ally: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  moveRegistry: Map<string, MoveDefinition>,
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  let best = 0;
+  for (const moveId of effectiveMoveIds(ally)) {
+    const move = moveRegistry.get(moveId);
+    if (!move || getEffectivePowerFloor(move) === 0) {
+      continue;
+    }
+    const reach = getMoveMaxReach(move.targeting);
+    for (const enemy of enemies) {
+      if (enemy.currentHp <= 0 || manhattanDistance(ally.position, enemy.position) > reach) {
+        continue;
+      }
+      if (isImmuneToMoveType(enemy, move, engine)) {
+        continue;
+      }
+      const estimate = engine.estimateDamage(ally.id, moveId, enemy.id);
+      if (!estimate) {
+        continue;
+      }
+      const value =
+        estimate.min >= enemy.currentHp
+          ? weights.killPotential
+          : (estimate.max / enemy.maxHp) * weights.killPotential * 0.5;
+      if (value > best) {
+        best = value;
+      }
+    }
+  }
+  return best;
+}
+
+/**
+ * Interversion (ally-switch, plan 155) : échange les positions lanceur↔allié. Esquive défensive quand
+ * l'un des deux est menacé de KO et que l'échange l'éloigne de la menace n°1 (proxy distance).
+ */
+function scoreAllySwitch(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  allies: readonly PokemonInstance[],
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const ally = findAt(allies, action.targetPosition);
+  if (!ally || ally.id === caster.id) {
+    return -1;
+  }
+  const threat = highestThreatEnemy(enemies, caster, engine);
+  if (!threat) {
+    return 0;
+  }
+  // Le lanceur arrive sur la case de l'allié et vice-versa.
+  if (wouldKoUs(enemies, caster, engine)) {
+    const before = manhattanDistance(caster.position, threat.position);
+    const after = manhattanDistance(ally.position, threat.position);
+    if (after > before) {
+      return weights.killPotential * 0.5;
+    }
+  }
+  if (wouldKoUs(enemies, ally, engine)) {
+    const before = manhattanDistance(ally.position, threat.position);
+    const after = manhattanDistance(caster.position, threat.position);
+    if (after > before) {
+      return weights.killPotential * 0.5;
+    }
+  }
+  return 0;
+}
+
+/**
+ * Tout ou Rien (final-gambit, plan 147) : dégâts fixes = PV du lanceur × efficacité de type (Combat),
+ * self-KO à la connexion, sans effet sur une cible Spectre (immunité → pas de connexion).
+ */
+function scoreFinalGambit(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const target = findAt(enemies, action.targetPosition);
+  if (!target) {
+    return -1;
+  }
+  const estimate = engine.estimateDamage(caster.id, action.moveId, target.id);
+  const effectiveness = estimate?.effectiveness ?? 1;
+  if (effectiveness === 0) {
+    return -1;
+  }
+  const predicted = Math.floor(caster.currentHp * effectiveness);
+  const cost = sacrificeCost(caster, enemies, engine, weights);
+  const threatMult = highestThreatEnemy(enemies, caster, engine)?.id === target.id ? 1.5 : 1;
+  if (predicted >= target.currentHp) {
+    return weights.killPotential * threatMult - cost;
+  }
+  return (predicted / target.maxHp) * weights.killPotential * 0.5 - cost;
+}
+
+/**
+ * Vœu Soin (healing-wish → ReviveOrHeal, plan 147) : cible une tuile (allié KO → revive, allié blessé →
+ * soin), self-KO. Jamais sur une tuile vide / un ennemi / un allié déjà plein.
+ */
+function scoreReviveOrHeal(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  state: BattleState,
+  revivePercent: number,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const occupant = occupantAt(state, action.targetPosition);
+  if (!occupant || occupant.playerId !== caster.playerId || occupant.id === caster.id) {
+    return -weights.killPotential;
+  }
+  if (occupant.currentHp <= 0) {
+    // Allié KO ressuscité : un mon rendu au combat vaut presque un KO.
+    return weights.killPotential * revivePercent + weights.killPotential * 0.3;
+  }
+  const missing = 1 - occupant.currentHp / occupant.maxHp;
+  if (missing <= 0.1) {
+    return -weights.killPotential;
+  }
+  return missing * weights.killPotential * 0.8;
+}
+
+/**
+ * Souvenir (memento, plan 147) : self-KO + Atq/Atq Spé de la cible −2. Vaut d'autant plus que la cible
+ * frappe fort ; inutile si elle est déjà au plancher. Coût de suicide déduit.
+ */
+function scoreMemento(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const target = findAt(enemies, action.targetPosition);
+  if (!target) {
+    return -1;
+  }
+  if (target.statStages[StatName.Attack] <= -6 && target.statStages[StatName.SpAttack] <= -6) {
+    return -weights.killPotential;
+  }
+  const threatFraction = bestEnemyDamageAgainst(target, caster, engine) / Math.max(1, caster.maxHp);
+  const threatMult = highestThreatEnemy(enemies, caster, engine)?.id === target.id ? 1.5 : 1;
+  return (
+    Math.min(1, threatFraction) * weights.killPotential * threatMult -
+    sacrificeCost(caster, enemies, engine, weights)
+  );
+}
+
+/**
+ * Croc Fatal (super-fang → HalveTargetHp, plan 152) : dégâts fixes ⌊PV/2⌋, ne KO jamais. Excellent sur
+ * une cible haute en PV ; ×1.5 sur la menace n°1.
+ */
+function scoreHalveTargetHp(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const target = findAt(enemies, action.targetPosition);
+  if (!target) {
+    return -1;
+  }
+  const predicted = Math.floor(target.currentHp / 2);
+  const threatMult = highestThreatEnemy(enemies, caster, engine)?.id === target.id ? 1.5 : 1;
+  return (predicted / target.maxHp) * weights.killPotential * threatMult;
+}
+
+/**
+ * Explosion / Destruction / Explo-Brume (isExplosion, plan 147) : compter les KO réels dans la zone,
+ * moins le coût de suicide du lanceur. Rejet net si aucun KO ou si un allié serait KO.
+ */
+function scoreExplosion(
+  action: Extract<Action, { kind: typeof ActionKind.UseMove }>,
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  allies: readonly PokemonInstance[],
+  move: MoveDefinition,
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const tiles = estimateAffectedTiles(move.targeting, caster.position, action.targetPosition);
+  const targetsHit = enemies.filter((enemy) => isOnTiles(enemy.position, tiles));
+  const alliesHit = allies.filter((ally) => isOnTiles(ally.position, tiles));
+
+  const threat = highestThreatEnemy(enemies, caster, engine);
+  let koScore = 0;
+  let koCount = 0;
+  for (const target of targetsHit) {
+    const estimate = engine.estimateDamage(caster.id, move.id, target.id);
+    if (estimate && estimate.min >= target.currentHp && !survivesLethalHit(target)) {
+      koCount += 1;
+      koScore += weights.killPotential * (threat?.id === target.id ? 1.5 : 1);
+    }
+  }
+  for (const ally of alliesHit) {
+    const estimate = engine.estimateDamage(caster.id, move.id, ally.id);
+    if (estimate && estimate.min >= ally.currentHp) {
+      return -weights.killPotential;
+    }
+  }
+  if (koCount === 0) {
+    return -weights.killPotential;
+  }
+  return koScore - sacrificeCost(caster, enemies, engine, weights);
+}
+
+/**
+ * Vol Magnétik (magnet-rise, plan 154) : lévitation temporaire — annule les menaces Sol + le terrain
+ * dangereux / pièges au sol. −1 si déjà actif ou cloué.
+ */
+function scoreMagnetRise(
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
+  moveRegistry: Map<string, MoveDefinition>,
+  weights: AiProfile["scoringWeights"],
+): number {
+  if ((caster.magnetRiseTurns ?? 0) > 0 || caster.smackedDown === true) {
+    return -1;
+  }
+  const groundThreat = bestGroundThreatFraction(enemies, caster, engine, moveRegistry);
+  let score = groundThreat * weights.killPotential * 0.6;
+  const tile = engine.getTileAt(caster.position);
+  if (tile && DANGEROUS_TERRAINS.has(tile.terrain)) {
+    score += weights.statChanges;
+  }
+  return score;
+}
+
+/**
+ * Lien du Destin / Rancune (destiny-bond / grudge, plan 147) : outils de désespoir — ne valent que si un
+ * ennemi peut nous mettre KO ce tour. Croît avec notre détresse ; ×1.5 sur une menace n°1 qui frappe fort.
+ */
+function scoreDestinyBondGrudge(
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  if (!wouldKoUs(enemies, caster, engine)) {
+    return 0;
+  }
+  const desperation = 1 - caster.currentHp / caster.maxHp;
+  const threat = highestThreatEnemy(enemies, caster, engine);
+  const threatMult =
+    threat && bestEnemyDamageAgainst(threat, caster, engine) >= caster.currentHp ? 1.5 : 1;
+  return desperation * weights.killPotential * 0.6 * threatMult;
+}
+
+/**
+ * Field global (Gravité / Zone Étrange / Zone Magique, plan 145) : zone diamant r3 centrée sur le
+ * lanceur. Valeur selon le nb d'ennemis en zone que l'effet pénalise ; −1 si déjà dans la zone.
+ */
+function scorePostFieldGlobal(
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  kind: FieldGlobalKind,
+  state: BattleState | undefined,
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  if (state && isInFieldGlobalZone(state, caster.position, kind)) {
+    return -1;
+  }
+  const inZone = enemies.filter(
+    (enemy) =>
+      enemy.currentHp > 0 &&
+      manhattanDistance(enemy.position, caster.position) <= FIELD_GLOBAL_RADIUS,
+  );
+  let beneficiaries = 0;
+  for (const enemy of inZone) {
+    if (kind === FieldGlobalKind.Gravity) {
+      if (engine.isAirborneIgnoringGravity(enemy.id)) {
+        beneficiaries += 1;
+      }
+    } else if (kind === FieldGlobalKind.WonderRoom) {
+      const stats = effectiveCombatStats(enemy);
+      if (Math.abs(stats.defense - stats.spDefense) >= 20) {
+        beneficiaries += 1;
+      }
+    } else if (kind === FieldGlobalKind.MagicRoom) {
+      if (enemy.heldItemId !== undefined) {
+        beneficiaries += 1;
+      }
+    }
+  }
+  return beneficiaries === 0
+    ? 0
+    : beneficiaries * weights.statChanges * setterDurabilityMultiplier(caster);
+}
+
+/**
+ * Par Ici / Poudre Fureur (draw-attention, plan 155) : garde-fou (−1 si personne en zone) + plancher
+ * ×0.5, plus un bonus back-setup quand un allié offensif frappe le dos d'un ennemi réorienté vers nous.
+ */
+function scoreDrawAttention(
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  allies: readonly PokemonInstance[],
+  radius: number,
+  moveRegistry: Map<string, MoveDefinition>,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const exposed = enemies.filter(
+    (enemy) => enemy.currentHp > 0 && manhattanDistance(enemy.position, caster.position) <= radius,
+  );
+  if (exposed.length === 0) {
+    return -1;
+  }
+  let score = weights.statChanges * 0.5 * exposed.length;
+  for (const enemy of exposed) {
+    // Post-cast l'ennemi fait face au lanceur → son dos est à l'opposé.
+    const reoriented: PokemonInstance = {
+      ...enemy,
+      orientation: directionFromTo(enemy.position, caster.position),
+    };
+    const backSetup = allies.some((ally) => {
+      if (ally.currentHp <= 0) {
+        return false;
+      }
+      if (getFacingZone(ally.position, reoriented) !== FacingZone.Back) {
+        return false;
+      }
+      return effectiveMoveIds(ally).some((moveId) => {
+        const move = moveRegistry.get(moveId);
+        return move !== undefined && getEffectivePowerFloor(move) > 0;
+      });
+    });
+    if (backSetup) {
+      score += weights.typeAdvantage * 0.5;
+    }
+  }
+  return score;
+}
+
+/**
+ * Charge-réaction (plan 150). Mitra-Poing (Focus) est annulé si on est frappé pendant la charge → forte
+ * décote quand un ennemi peut nous atteindre. Bec-Canon (Beak) frappe toujours (bonus brûlure au
+ * contact). Carapiège (Shell) ne part QUE si un ennemi nous frappe physiquement → −1 sinon (renvoie ≤ −1
+ * pour signaler le gating au caller).
+ */
+function scoreChargeReaction(
+  move: MoveDefinition,
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  damageScore: number,
+  moveRegistry: Map<string, MoveDefinition>,
+  weights: AiProfile["scoringWeights"],
+): number {
+  switch (move.chargeReaction) {
+    case ChargeReaction.Focus:
+      // Mitra-Poing : annulé si on est frappé pendant la charge → forte décote.
+      return anyEnemyCanStrike(enemies, caster, moveRegistry) ? damageScore * 0.3 : damageScore;
+    case ChargeReaction.Beak:
+      // Bec-Canon : frappe garantie ; bonus brûlure si un attaquant au contact nous frappe.
+      return anyEnemyCanStrike(enemies, caster, moveRegistry)
+        ? damageScore + weights.statChanges
+        : damageScore;
+    default:
+      // Carapiège (Shell) : le gate dur est appliqué en amont ; ici l'armement est acquis.
+      return damageScore;
+  }
+}
+
+/**
+ * Poursuite (pursuit, plan 152) : ×2 dans le dos, non vu par estimateDamage. On crédite le surplus de
+ * dégâts (≈ le crédit de base à nouveau) pour les cibles frappées de dos ; ×1.5 sur la menace n°1.
+ */
+function scorePursuitBackstab(
+  caster: PokemonInstance,
+  targetsHit: readonly PokemonInstance[],
+  enemies: readonly PokemonInstance[],
+  moveId: string,
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  let bonus = 0;
+  const threat = highestThreatEnemy(enemies, caster, engine);
+  for (const target of targetsHit) {
+    if (directionFromTo(caster.position, target.position) !== target.orientation) {
+      continue;
+    }
+    const estimate = engine.estimateDamage(caster.id, moveId, target.id);
+    if (!estimate) {
+      continue;
+    }
+    const doubled = Math.min(estimate.max * 2, target.currentHp);
+    const value = (doubled / target.maxHp) * weights.killPotential * 0.5;
+    bonus += value * (threat?.id === target.id ? 1.5 : 1);
+  }
+  return bonus;
+}
+
+/**
+ * Bluff (fake-out → flinch, plan 150) : le flinch ne vaut que s'il prive un adversaire de son tour ; fort
+ * sur la menace n°1 (×2.5 si elle peut nous mettre KO), sinon générique.
+ */
+function scoreFlinch(
+  targetsHit: readonly PokemonInstance[],
+  enemies: readonly PokemonInstance[],
+  caster: PokemonInstance,
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const threat = highestThreatEnemy(enemies, caster, engine);
+  const hitsThreat = targetsHit.some((target) => target.id === threat?.id);
+  if (hitsThreat) {
+    return weights.statChanges * (wouldKoUs(enemies, caster, engine) ? 2.5 : 1.5);
+  }
+  return weights.statChanges * 0.8;
+}
+
+/**
+ * Coup Bas (sucker-punch, plan 150) : bonus de frappe préemptive sur la menace n°1 agressive (le
+ * garde-fou de fraîcheur a déjà validé la légalité en amont).
+ */
+function scoreSuckerPunchDenial(
+  targetsHit: readonly PokemonInstance[],
+  enemies: readonly PokemonInstance[],
+  caster: PokemonInstance,
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const threat = highestThreatEnemy(enemies, caster, engine);
+  const aggressiveThreat = targetsHit.some(
+    (target) =>
+      target.id === threat?.id &&
+      target.lastActedAtAction !== undefined &&
+      target.lastOffensiveActionAtAction === target.lastActedAtAction,
+  );
+  if (!aggressiveThreat) {
+    return 0;
+  }
+  return weights.killPotential * (wouldKoUs(enemies, caster, engine) ? 0.8 : 0.4);
+}
+
+/**
+ * Anti-Air (smack-down, plan 152) : bonus si la cible est aéroportée et pas encore clouée (retire son
+ * immunité Sol / annule une esquive en cours).
+ */
+function scoreSmackDown(
+  targetsHit: readonly PokemonInstance[],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  let bonus = 0;
+  for (const target of targetsHit) {
+    if (target.smackedDown === true) {
+      continue;
+    }
+    if (engine.isAirborneIgnoringGravity(target.id)) {
+      bonus += weights.statChanges * 1.5;
+      if (target.semiInvulnerableState !== undefined && target.semiInvulnerableState !== null) {
+        bonus += weights.killPotential * 0.3;
+      }
+    }
+  }
+  return bonus;
+}
+
+/**
+ * Lock-in multi-tour (plan 149) : malus d'engagement (le verrou retire la flexibilité ; auto-confusion
+ * sauf Brouhaha). Brouhaha : bonus AoE si ≥2 cibles + bonus anti-sommeil.
+ */
+function scoreLockInCommitment(
+  move: MoveDefinition,
+  targetsHit: readonly PokemonInstance[],
+  enemies: readonly PokemonInstance[],
+  caster: PokemonInstance,
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const confuses = move.lockIn?.confuseOnEnd === true;
+  if (!confuses) {
+    // Brouhaha : pas d'auto-confusion. Bonus AoE + anti-sommeil.
+    let bonus = 0;
+    if (targetsHit.length >= 2) {
+      bonus += weights.typeAdvantage;
+    }
+    if (enemyHasStatusMoveInRange(enemies, caster, 3)) {
+      bonus += weights.statChanges;
+    }
+    return bonus - weights.statChanges * 0.3;
+  }
+  // Familles à auto-confusion : malus d'engagement, aggravé si un ennemi peut nous punir.
+  return wouldKoUs(enemies, caster, engine) ? -weights.statChanges * 2 : -weights.statChanges;
+}
+
+/**
+ * Phazing (Cyclone / Hurlement / Projection → PhazeToSpawn, plans 146-147) : éjecter un ennemi vers son
+ * spawn = board control + déni de setup (crans positifs) ; ×1.5 sur la menace n°1.
+ */
+function scorePhazing(
+  targetsHit: readonly PokemonInstance[],
+  enemies: readonly PokemonInstance[],
+  caster: PokemonInstance,
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  let score = 0;
+  const threat = highestThreatEnemy(enemies, caster, engine);
+  for (const target of targetsHit) {
+    let value = weights.positioning + positiveStatStageSum(target) * weights.statChanges;
+    if (target.id === threat?.id) {
+      value *= 1.5;
+    }
+    score += value;
+  }
+  return score;
+}
+
 function scoreDamagingMove(
   currentPokemon: PokemonInstance,
   targetsHit: PokemonInstance[],
-  moveId: string,
+  move: MoveDefinition,
   engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
 ): number {
   let totalScore = 0;
 
   for (const target of targetsHit) {
-    const estimate = engine.estimateDamage(currentPokemon.id, moveId, target.id);
+    // Immunité de type non vue par estimateDamage (Sol vs aéroporté) → aucun crédit.
+    if (isImmuneToMoveType(target, move, engine)) {
+      continue;
+    }
+    const estimate = engine.estimateDamage(currentPokemon.id, move.id, target.id);
     if (!estimate) {
       continue;
     }
 
     let targetScore = 0;
 
-    if (estimate.min >= target.currentHp) {
+    // Faux-KO : un porteur Ceinture Force / Bandeau / Baie Sitrus / Fermeté survit à 1 PV, et Faux-Chage
+    // (cannotKo) plafonne à 1 PV par conception. Ne pas créditer un KO plein (estimateDamage ignore ces
+    // clamps) — dégât partiel plafonné à currentHp-1.
+    const cannotKo = move.cannotKo === true || survivesLethalHit(target);
+    if (estimate.min >= target.currentHp && !cannotKo) {
       targetScore += weights.killPotential;
     } else {
-      const damageRatio = estimate.max / target.maxHp;
+      const cappedMax = cannotKo ? Math.min(estimate.max, target.currentHp - 1) : estimate.max;
+      const damageRatio = Math.max(0, cappedMax) / target.maxHp;
       targetScore += damageRatio * weights.killPotential * 0.5;
     }
 
@@ -1408,17 +2364,23 @@ function evaluateAttacksFromPosition(
         continue;
       }
 
+      if (isImmuneToMoveType(enemy, move, engine)) {
+        continue;
+      }
+
       // Estimate damage AS IF the mon stood on `fromPosition` (height / terrain from the destination).
       const estimate = engine.estimateDamage(pokemon.id, moveId, enemy.id, undefined, fromPosition);
       if (!estimate) {
         continue;
       }
 
+      const cannotKo = move.cannotKo === true || survivesLethalHit(enemy);
       let attackScore = 0;
-      if (estimate.min >= enemy.currentHp) {
+      if (estimate.min >= enemy.currentHp && !cannotKo) {
         attackScore = weights.killPotential;
       } else {
-        attackScore = (estimate.max / enemy.maxHp) * weights.killPotential * 0.5;
+        const cappedMax = cannotKo ? Math.min(estimate.max, enemy.currentHp - 1) : estimate.max;
+        attackScore = (Math.max(0, cappedMax) / enemy.maxHp) * weights.killPotential * 0.5;
       }
       if (estimate.effectiveness > 1) {
         attackScore += weights.typeAdvantage;
@@ -1431,35 +2393,6 @@ function evaluateAttacksFromPosition(
   }
 
   return bestAttackScore * 0.8;
-}
-
-function getMoveMaxReach(targeting: TargetingPattern): number {
-  switch (targeting.kind) {
-    case TargetingKind.Single:
-      return targeting.range.max;
-    case TargetingKind.Cone:
-      return targeting.range.max;
-    case TargetingKind.Line:
-      return targeting.length;
-    case TargetingKind.Dash:
-      return targeting.maxDistance;
-    case TargetingKind.Blast:
-      return targeting.range.max + targeting.radius;
-    case TargetingKind.Slash:
-      return 1;
-    case TargetingKind.Cross:
-      return Math.floor(targeting.size / 2);
-    case TargetingKind.Zone:
-      return targeting.radius;
-    case TargetingKind.Self:
-      return 0;
-    case TargetingKind.Teleport:
-      return targeting.range.max;
-    case TargetingKind.HitAndRun:
-      return targeting.hitRange.max;
-    case TargetingKind.GroundTarget:
-      return targeting.range.max;
-  }
 }
 
 function scoreEndTurn(

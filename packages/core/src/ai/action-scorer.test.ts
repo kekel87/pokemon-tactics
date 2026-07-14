@@ -396,3 +396,73 @@ describe("scoreAction", () => {
     expect(scoreDragonTail(true)).toBeGreaterThan(scoreDragonTail(false));
   });
 });
+
+function scoreMoveOn(
+  moveId: string,
+  attackerOverrides: Partial<PokemonInstance> = {},
+  defenderOverrides: Partial<PokemonInstance> = {},
+): number {
+  const { engine, moveRegistry } = buildEngine(attackerOverrides, defenderOverrides);
+  const state = engine.getGameState(PlayerId.Player1);
+  return scoreAction(
+    {
+      kind: ActionKind.UseMove,
+      pokemonId: "p1-charmander",
+      moveId,
+      targetPosition: { x: 1, y: 0 },
+    },
+    state,
+    moveRegistry,
+    engine,
+    EASY_PROFILE,
+  );
+}
+
+describe("scoreAction — grouped AI pass (plan 160)", () => {
+  it("Croc Fatal now scores positively on a high-HP target", () => {
+    expect(scoreMoveOn("super-fang", {}, { currentHp: 200, maxHp: 200 })).toBeGreaterThan(0);
+  });
+
+  it("Tout ou Rien scores positively when it secures a KO", () => {
+    expect(
+      scoreMoveOn("final-gambit", { currentHp: 200, maxHp: 200 }, { currentHp: 30, maxHp: 100 }),
+    ).toBeGreaterThan(0);
+  });
+
+  it("Vent Arrière scores positively (was rejected by the generic path)", () => {
+    const { engine, moveRegistry } = buildEngine();
+    const state = engine.getGameState(PlayerId.Player1);
+    const score = scoreAction(
+      {
+        kind: ActionKind.UseMove,
+        pokemonId: "p1-charmander",
+        moveId: "tailwind",
+        targetPosition: { x: 0, y: 1 },
+      },
+      state,
+      moveRegistry,
+      engine,
+      EASY_PROFILE,
+    );
+    expect(score).toBeGreaterThan(0);
+  });
+
+  it("Bâillement scores positively on a healthy enemy, rejected on an already-statused one", () => {
+    expect(scoreMoveOn("yawn", {}, { currentHp: 100, maxHp: 100 })).toBeGreaterThan(0);
+    expect(scoreMoveOn("yawn", {}, { drowsyTurns: 1, currentHp: 100, maxHp: 100 })).toBeLessThan(0);
+  });
+
+  it("Suc Digestif scores positively against a defensive ability", () => {
+    expect(scoreMoveOn("gastro-acid", {}, { abilityId: "levitate" })).toBeGreaterThan(0);
+  });
+
+  it("faux-KO: a lethal hit scores lower against a Ceinture Force holder at full HP", () => {
+    const withSash = scoreMoveOn(
+      "fire-blast",
+      {},
+      { currentHp: 10, maxHp: 10, heldItemId: "focus-sash" },
+    );
+    const without = scoreMoveOn("fire-blast", {}, { currentHp: 10, maxHp: 10 });
+    expect(withSash).toBeLessThan(without);
+  });
+});
