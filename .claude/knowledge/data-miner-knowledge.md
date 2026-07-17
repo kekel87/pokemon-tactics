@@ -62,6 +62,16 @@ Limite du roster : 151 premiers Pokemon (Gen 1) — decision #92.
 - EV→SP: floor(ev/8). Common 252/252/4 → 31/31/0. Total ≤66, max 32/stat.
 - Op-sets draft: `packages/data/op-sets/op-sets-draft.json` (160 sets for 80 Pokemon)
 
+## Vérification légalité learnset pour op-sets
+
+- Vérité learnset = `reference/pokemon.json`, walker la chaîne `evolvesFrom` en cumulant `levelUp`+`tm`+`tutor` de chaque stade (bébé inclus, ex. munchlax→snorlax).
+- Script Python rapide (voir historique plan op-sets Misc A-D) : construire `full_learnset(pokemonId)` en accumulant ces 3 listes en remontant `evolvesFrom` jusqu'à `None`.
+- Ability légale = présente dans `abilities.{ability1,ability2,hidden}` du mon **ET** déjà utilisée dans un set existant du même mon dans `op-sets.json` (garantit qu'elle est supportée par le core, pas juste "légale espèce").
+- Item légal = déjà présent dans un set existant (n'importe quel mon) de `op-sets.json` → garanti implémenté.
+- Move de coverage sûr = déjà présent dans un set existant du même mon (garanti implémenté) — éviter d'introduire un move jamais vu dans le fichier sans confirmation explicite.
+- `op-sets.json` : notes majoritairement en anglais (162/189 sets) mais dérive récente vers du français avec préfixe `"Plan XXX — ..."` (27 sets, ex. plans 131/132/148) et noms de moves FR. Suivre la consigne explicite de la tâche si donnée (peut différer de la convention majoritaire du fichier).
+- `statSpread` : convention informelle "total ≤66, max 31/stat" observée sur la plupart des sets existants (ex `{attack:31, speed:31}` = 62).
+
 ## Formules
 
 - Stats niveau 50 : `computeStatAtLevel(base, level, isHp)` dans `packages/core/src/battle/stat-calculator.ts`
