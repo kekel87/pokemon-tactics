@@ -1,5 +1,7 @@
 # OP Sets Gap Analysis (généré 2026-06-12)
 
+> Note (2026-07-17) : fichier généré par script, non régénéré depuis. Le total réel de `op-sets.json` est passé à **203 sets** (sessions content-fill successives, voir `STATUS.md`/`docs/next.md`). Stats ci-dessous obsolètes, conservées pour référence historique.
+
 ## Stats globales
 - Total sets : 177
 - Sets `full` : 100% (177 / 177)
