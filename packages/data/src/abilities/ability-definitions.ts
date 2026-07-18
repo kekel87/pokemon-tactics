@@ -1,6 +1,7 @@
 import type {
   AbilityHandler,
   BattleEvent,
+  BattleStartContext,
   PokemonInstance,
   StatusType as StatusTypeAlias,
 } from "@pokemon-tactic/core";
@@ -18,6 +19,7 @@ import {
   PokemonGender,
   PokemonType,
   ProtectionReason,
+  recycleConsumedItem,
   resolveBaseTypes,
   StatName,
   StatusType,
@@ -2111,6 +2113,92 @@ const pickup: AbilityHandler = {
   id: "pickup",
 };
 
+// Récolte (harvest, plan 163): at end of turn, if the holder has no item but consumed a berry,
+// restore it — always under Sun, 50% otherwise.
+const harvest: AbilityHandler = {
+  id: "harvest",
+  onEndTurn: (context) => {
+    const self = context.self;
+    if (self.currentHp <= 0 || self.heldItemId !== undefined) {
+      return [];
+    }
+    const consumed = self.consumedItemId;
+    if (consumed === undefined || !consumed.endsWith("-berry")) {
+      return [];
+    }
+    const chance = context.weather === Weather.Sun ? 1 : 0.5;
+    if (context.random() >= chance) {
+      return [];
+    }
+    const restored = recycleConsumedItem(self);
+    if (restored === undefined) {
+      return [];
+    }
+    return [
+      {
+        type: BattleEventType.AbilityActivated,
+        pokemonId: self.id,
+        abilityId: "harvest",
+        targetIds: [self.id],
+      },
+      { type: BattleEventType.ItemRecycled, pokemonId: self.id, itemId: restored },
+    ];
+  },
+};
+
+// Délestage (unburden, plan 163): marker. The Speed×2 is applied in `effectiveBaseSpeed` off the
+// `unburdenActive` flag, which the held-item mutation helpers flip when the holder loses/regains an item.
+const unburden: AbilityHandler = { id: "unburden" };
+
+// Piège Sable (arena-trap, plan 163): marker. The movement lock on adjacent grounded enemies lives in
+// the BattleEngine legal-action gate (`isArenaTrapped`), reading this ability off the neighbours.
+const arenaTrap: AbilityHandler = { id: "arena-trap" };
+
+// Gaz Inhibiteur (neutralizing-gas, plan 163): marker. The r2 ability suppression is applied by
+// `recomputeGasSuppression` (BattleEngine) via the `abilitySuppressedByGas` flag + `effectiveAbilityId`.
+const neutralizingGas: AbilityHandler = { id: "neutralizing-gas" };
+
+// Info-reveal abilities (plan 163): on battle start, flag each living enemy's info as revealed. The
+// InfoPanel renders the matching hover badge. Latent in full-info solo, real scouting once enemy info
+// is hidden (multiplayer).
+function revealEnemyInfo(
+  context: BattleStartContext,
+  reveal: (pokemon: PokemonInstance) => void,
+): BattleEvent[] {
+  for (const pokemon of context.state.pokemon.values()) {
+    if (pokemon.playerId !== context.self.playerId && pokemon.currentHp > 0) {
+      reveal(pokemon);
+    }
+  }
+  return [];
+}
+
+const frisk: AbilityHandler = {
+  id: "frisk",
+  onBattleStart: (context) =>
+    revealEnemyInfo(context, (pokemon) => {
+      if (pokemon.heldItemId !== undefined) {
+        pokemon.revealedItem = true;
+      }
+    }),
+};
+
+const forewarn: AbilityHandler = {
+  id: "forewarn",
+  onBattleStart: (context) =>
+    revealEnemyInfo(context, (pokemon) => {
+      pokemon.revealedTopMove = true;
+    }),
+};
+
+const anticipation: AbilityHandler = {
+  id: "anticipation",
+  onBattleStart: (context) =>
+    revealEnemyInfo(context, (pokemon) => {
+      pokemon.revealedAbility = true;
+    }),
+};
+
 export const abilityHandlers: AbilityHandler[] = [
   overgrow,
   blaze,
@@ -2219,4 +2307,11 @@ export const abilityHandlers: AbilityHandler[] = [
   imposter,
   runAway,
   pickup,
+  harvest,
+  unburden,
+  arenaTrap,
+  neutralizingGas,
+  frisk,
+  forewarn,
+  anticipation,
 ];

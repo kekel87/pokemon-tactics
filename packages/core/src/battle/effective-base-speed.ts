@@ -15,12 +15,17 @@ const QUICK_POWDER_SPEED_MOD = 2;
 export function effectiveBaseSpeed(pokemon: PokemonInstance): number {
   const base =
     pokemon.speedStatOverride ?? pokemon.transformState?.baseSpeed ?? pokemon.baseStats.speed;
+  let speed = base;
   if (
     pokemon.heldItemId === HeldItemId.QuickPowder &&
     pokemon.definitionId === DITTO_DEFINITION_ID &&
     !pokemon.transformState
   ) {
-    return base * QUICK_POWDER_SPEED_MOD;
+    speed = base * QUICK_POWDER_SPEED_MOD;
   }
-  return base;
+  // Délestage (unburden, plan 163): doubles Speed once the holder has lost/consumed its item.
+  if (pokemon.unburdenActive) {
+    speed *= 2;
+  }
+  return speed;
 }

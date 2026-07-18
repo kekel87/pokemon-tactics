@@ -1030,3 +1030,107 @@ export const UPPER_HAND_FIZZLE = {
   moves: ["upper-hand"],
   dummyPokemon: "snorlax",
 } as const;
+
+// Content-fill — 7 derniers talents Gen 1 (plan 163). Pilotables via l'UI sandbox : le joueur contrôle
+// son mon, `playerAbility`/`dummyAbility` sont overridables. Observables déterministes (aucun override
+// `Math.random`, règle dure) : journal FR, badges volatiles de l'InfoPanel (au survol), état désactivé
+// d'un bouton d'action. Délestage (unburden) est le SEUL reporté (cf. docs/next.md) : sa Vitesse ×2 ne
+// se manifeste que par la portée de mouvement / l'ordre CT après une perte d'objet live, non observable
+// proprement dans le 1v1 sandbox → couvert unit/integration core (`effective-base-speed.test.ts`).
+
+/** Récolte (`harvest`) — fin de tour SOUS SOLEIL (chance 1 → déterministe) : la baie de pincement
+ *  consommée est recréée. Le Ronflex (snorlax, endurant, au sol) porte Récolte + une Baie Lichii
+ *  (`liechi-berry`, pincement ≤25 % PV) et démarre à 20 % PV (`hp: 20`). « Attendre » résout la fin de
+ *  tour : l'objet `onEndTurn` mange la baie AVANT l'ability `onEndTurn` (ordre BattleEngine), puis
+ *  Récolte la restaure DANS LA MÊME fin de tour → journal « Baie Lichii de Ronflex s'active ! » +
+ *  « Récolte de Ronflex s'active ! » + « Ronflex recycle son Baie Lichii ! ». Sous Soleil
+ *  (`weather: sun`) la chance de Récolte vaut 1 → aucun jet, aucun override `Math.random`. */
+export const HARVEST_SUN_RESTORE = {
+  ...DUEL,
+  pokemon: "snorlax",
+  playerAbility: "harvest",
+  heldItem: "liechi-berry",
+  hp: 20,
+  weather: "sun",
+} as const;
+
+/** Piège Sable (`arena-trap`) — un ennemi au sol adjacent (Chebyshev r1) ne peut plus se déplacer. ⚠️
+ *  Le mon PIÉGÉ doit porter un talent NON-exempté (Vol/Spectre/Lévitation/Fuite/Carapace Mue/Gaz
+ *  Inhibiteur l'immuniseraient), d'où `playerAbility: "guts"` (Cran, non-exempt) sur le Florizarre
+ *  (Plante/Poison, au sol). Le dummy Ronflex porte Piège Sable et démarre adjacent (2,2). À l'init du
+ *  combat `recomputeGasSuppression` (qui traite aussi Piège Sable) pose `arenaTrapped` sur le joueur →
+ *  le bouton « Deplacement » est DÉSACTIVÉ (aucune action Move dans `getLegalActions` → `canMove`
+ *  false) et l'InfoPanel du joueur monte le badge « Piégé » (status.trapped). Aucun jet → déterministe. */
+export const ARENA_TRAP_PLAYER_TRAPPED = {
+  ...DUEL,
+  playerAbility: "guts",
+  dummyPokemon: "snorlax",
+  dummyAbility: "arena-trap",
+} as const;
+
+/** Piège Sable — RUPTURE (miroir inversé) : le joueur Florizarre porte Piège Sable, le PIÉGÉ est le
+ *  dummy Ronflex (`dummyAbility: "guts"`, non-exempt, au sol) adjacent en (2,2), inerte
+ *  (`dummyMove: "leer"`). À l'init le dummy est piégé → badge « Piégé » à son survol. Puis le joueur se
+ *  déplace en (2,5) (Chebyshev 3 du dummy) → `recomputeGasSuppression` après `PokemonMoved` libère le
+ *  dummy → le badge « Piégé » disparaît (et un flottant « Libéré ! » monte, non asserté : le mesh
+ *  `hud_text_plane` n'est pas discriminable par texte). Déplacement sans jet → déterministe. */
+export const ARENA_TRAP_RELEASE = {
+  ...DUEL,
+  playerAbility: "arena-trap",
+  dummyPokemon: "snorlax",
+  dummyAbility: "guts",
+  dummyMove: "leer",
+} as const;
+
+/** Gaz Inhibiteur (`neutralizing-gas`) — neutralise les talents ennemis dans un rayon Manhattan r2 du
+ *  porteur. Le joueur Florizarre porte Gaz Inhibiteur ; le dummy Ronflex (`dummyAbility: "guts"`, pour
+ *  avoir un talent à neutraliser) est adjacent en (2,2) (Manhattan 1 ≤ 2). À l'init
+ *  `recomputeGasSuppression` pose `abilitySuppressedByGas` sur le dummy → au survol, l'InfoPanel du
+ *  dummy monte le badge « Talent neutralisé » (infoPanel.volatile.gasSuppressed). Le PORTEUR ne
+ *  s'auto-neutralise pas (aucun badge à son survol). Aucun jet → déterministe. */
+export const NEUTRALIZING_GAS_SUPPRESS = {
+  ...DUEL,
+  playerAbility: "neutralizing-gas",
+  dummyPokemon: "snorlax",
+  dummyAbility: "guts",
+} as const;
+
+/** Témoin de portée : MÊME config mais le dummy est écarté à Manhattan 3 (2,0), HORS du rayon r2 → il
+ *  n'est PAS neutralisé (aucun badge « Talent neutralisé » à son survol). Comparé à
+ *  {@link NEUTRALIZING_GAS_SUPPRESS}, prouve que la neutralisation est bornée à r2 (et non field-wide). */
+export const NEUTRALIZING_GAS_FAR = {
+  ...NEUTRALIZING_GAS_SUPPRESS,
+  dummyPosition: { x: 2, y: 0 },
+} as const;
+
+/** Fouille (`frisk`) — révèle l'objet des ennemis à l'entrée. Le joueur Florizarre porte Fouille ; le
+ *  dummy Ronflex tient les Restes (`dummyHeldItem: "leftovers"`). À l'init (`onBattleStart`)
+ *  `revealedItem` est posé sur le dummy → au survol, l'InfoPanel du dummy monte le badge « Objet :
+ *  Restes » (infoPanel.reveal.item). Aucun jet → déterministe. */
+export const FRISK_REVEALS_ITEM = {
+  ...DUEL,
+  playerAbility: "frisk",
+  dummyPokemon: "snorlax",
+  dummyHeldItem: "leftovers",
+} as const;
+
+/** Prédiction (`forewarn`) — révèle la capacité la plus puissante des ennemis. Le joueur Florizarre
+ *  porte Prédiction ; à l'init `revealedTopMove` est posé sur le dummy Ronflex → au survol, badge
+ *  « Menace : {capacité} » (infoPanel.reveal.topMove). La capacité exacte dérive du moveset d'espèce
+ *  du dummy → on assert le PRÉFIXE « Menace : » (robuste, déterministe). */
+export const FOREWARN_REVEALS_MOVE = {
+  ...DUEL,
+  playerAbility: "forewarn",
+  dummyPokemon: "snorlax",
+} as const;
+
+/** Anticipation (`anticipation`) — révèle le TALENT des ennemis (choix non-canon, plan 163). Le joueur
+ *  Florizarre porte Anticipation ; à l'init `revealedAbility` est posé sur le dummy Ronflex
+ *  (`dummyAbility: "levitate"`) → au survol, badge « Talent : Lévitation » (infoPanel.reveal.ability).
+ *  Aucun jet → déterministe. */
+export const ANTICIPATION_REVEALS_ABILITY = {
+  ...DUEL,
+  playerAbility: "anticipation",
+  dummyPokemon: "snorlax",
+  dummyAbility: "levitate",
+} as const;

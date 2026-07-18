@@ -19,11 +19,18 @@ export function effectiveAbilityId(pokemon: PokemonInstance): string | undefined
   if (pokemon.abilitySuppressed) {
     return undefined;
   }
+  let baseId: string | undefined;
   if (pokemon.abilityIdOverride) {
-    return pokemon.abilityIdOverride;
+    baseId = pokemon.abilityIdOverride;
+  } else if (pokemon.transformState) {
+    baseId = pokemon.transformState.abilityId;
+  } else {
+    baseId = pokemon.abilityId;
   }
-  if (pokemon.transformState) {
-    return pokemon.transformState.abilityId;
+  // Gaz Inhibiteur (neutralizing-gas, plan 163): within its r2 aura every ability is neutralized —
+  // except Gaz Inhibiteur itself (a holder never suppresses its own gas).
+  if (pokemon.abilitySuppressedByGas && baseId !== "neutralizing-gas") {
+    return undefined;
   }
-  return pokemon.abilityId;
+  return baseId;
 }

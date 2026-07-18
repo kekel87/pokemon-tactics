@@ -11,7 +11,7 @@ import {
   StatusType,
   Weather,
 } from "@pokemon-tactic/core";
-import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
+import { getMoveName, getPokemonName, strongestMoveId } from "@pokemon-tactic/data";
 import type {
   InfoPanelBadge,
   InfoPanelData,
@@ -321,6 +321,45 @@ export function buildInfoPanelView(
       context.getAbilityName(pokemon.abilityIdOverride) ?? pokemon.abilityIdOverride;
     badges.push({
       label: context.translate("infoPanel.volatile.abilityChanged", { ability: abilityName }),
+      variant: "volatile",
+    });
+  }
+
+  if (pokemon.arenaTrapped === true) {
+    badges.push({ label: context.translate("status.trapped"), variant: "debuff" });
+  }
+
+  if (pokemon.abilitySuppressedByGas === true && pokemon.abilitySuppressed !== true) {
+    badges.push({
+      label: context.translate("infoPanel.volatile.gasSuppressed"),
+      variant: "debuff",
+    });
+  }
+
+  // Info-reveal abilities (plan 163): scouting badges set by Fouille / Prédiction / Anticipation.
+  if (pokemon.revealedItem === true && pokemon.heldItemId !== undefined) {
+    badges.push({
+      label: context.translate("infoPanel.reveal.item", {
+        item: context.getItemName(pokemon.heldItemId) ?? pokemon.heldItemId,
+      }),
+      variant: "volatile",
+    });
+  }
+  if (pokemon.revealedTopMove === true) {
+    const topMoveId = strongestMoveId(pokemon.moveIds);
+    if (topMoveId !== undefined) {
+      badges.push({
+        label: context.translate("infoPanel.reveal.topMove", {
+          move: getMoveName(topMoveId, language),
+        }),
+        variant: "volatile",
+      });
+    }
+  }
+  if (pokemon.revealedAbility === true && pokemon.abilityId !== undefined) {
+    const abilityName = context.getAbilityName(pokemon.abilityId) ?? pokemon.abilityId;
+    badges.push({
+      label: context.translate("infoPanel.reveal.ability", { ability: abilityName }),
       variant: "volatile",
     });
   }

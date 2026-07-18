@@ -1,3 +1,4 @@
+export { abilityHandlers } from "./abilities/ability-definitions";
 export { AnimationCategory, moveAnimationCategory } from "./base/animation-category";
 export { getMoveName, getPokemonName } from "./i18n/index";
 export { itemHandlers } from "./items/item-definitions";
@@ -11,6 +12,7 @@ export type {
   PlayablePokemonCustom,
   PlayablePokemonEntry,
 } from "./playable/playable-pokemon-entry";
+export { strongestMoveId } from "./reveal/strongest-move";
 export type {
   CatalogAbility,
   CatalogItem,

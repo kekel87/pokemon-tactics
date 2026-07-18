@@ -70,7 +70,7 @@ export {
 export { isImmuneToStatusByType } from "./battle/handlers/handle-status";
 export { applyTransform } from "./battle/handlers/transform/apply-transform";
 export { HeldItemHandlerRegistry } from "./battle/held-item-handler-registry";
-export { consumeHeldItem } from "./battle/held-item-transfer";
+export { consumeHeldItem, recycleConsumedItem } from "./battle/held-item-transfer";
 export { getEffectiveInitiative } from "./battle/initiative-calculator";
 export { metronomeDamageMultiplier, pendingMetronomeSteps } from "./battle/metronome-streak";
 export {

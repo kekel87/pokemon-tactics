@@ -55,6 +55,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Réécriture de type (Détrempage/Conversion/Flamme Ultime…) | §5.27, §4.7 |
 | Appeler / copier un move (Métronome/Copie/Mimique…) | §5.28 |
 | Copie d'identité (Morphing / Imposteur / Métamorph) | §5.34 |
+| Talent de révélation / immobilisation / neutralisation (Fouille/Piège Sable/Gaz Inhibiteur…) | §5.14, §5.37 |
 | Heuristiques de scoring IA (choix de move) | §5.35 (unit ; e2e reporté) |
 | Move (effet observable) | §5 (famille concernée) |
 | HUD DOM combat (log, timeline, menus, tooltip) | §4 |
@@ -1482,6 +1483,49 @@ est en contrôle humain), donc exécutés de bout en bout ; déterministe (seed 
   / rien ½ / autre ¼)**, **dégâts exacts de Relâche (100 × paliers)** : valeurs & lifecycle =
   unit/integration core → 👁.
 
+### 5.37 Content-fill — 7 derniers talents Gen 1 (plan 163)
+*src : core `data/abilities/ability-definitions.ts` (`harvest`, `unburden`, `arena-trap`,
+`neutralizing-gas`, `frisk`, `forewarn`, `anticipation`), `battle/effective-base-speed.ts`
+(unburden ×2), `battle/effective-ability.ts` (`abilitySuppressedByGas`), `battle/BattleEngine.ts`
+(`isArenaTrapped` + gate Move de `getLegalActions`, `recomputeGasSuppression` à l'init / après
+`PokemonMoved` / KO) ; `PokemonInstance` (`unburdenActive`, `arenaTrapped`, `abilitySuppressedByGas`,
+`revealedItem`/`revealedTopMove`/`revealedAbility`) ; events `ArenaTrapped`/`ArenaReleased` ;
+badges `view-core/battle-views.ts` (`status.trapped`, `infoPanel.volatile.gasSuppressed`,
+`infoPanel.reveal.{item,topMove,ability}`) ; flottant `view-core/floating-text-content.ts`
+(`battle.trapped`/`battle.released`) ; journal `ui-dom/BattleLogFormatter.ts` ; unit par talent ;
+e2e : `mechanics-content-fill-163.spec.ts`. Tous pilotés via l'UI (le joueur contrôle son mon,
+`playerAbility`/`dummyAbility` overridables) ; déterministe (seed moteur, aucun override
+`Math.random`).*
+
+- 🤖 **Récolte** (`harvest`) : sous Soleil (chance 1 → déterministe), la Baie Lichii mangée en fin de
+  tour (pincement à 20 % PV) est recréée DANS LA MÊME fin de tour (item `onEndTurn` avant ability
+  `onEndTurn`) → journal « Récolte de Ronflex s'active ! » + « Ronflex recycle son Baie Lichii ! » —
+  `mechanics-content-fill-163.spec`.
+- 🤖 **Piège Sable** (`arena-trap`) : un mon au sol adjacent (Chebyshev r1) au porteur ennemi et NON
+  exempté (`guts`) ne peut plus se déplacer → bouton « Deplacement » DÉSACTIVÉ + badge InfoPanel
+  « Piégé » (status.trapped) au survol du piégé (posés à l'init) — `mechanics-content-fill-163.spec`.
+- 🤖 **Piège Sable — rupture** : le porteur s'éloigne (Chebyshev > 1) → le mon libéré perd son badge
+  « Piégé » (recompute après `PokemonMoved`). Le flottant « Libéré ! » (mesh `hud_text_plane` non
+  discriminable par texte) reste 👁 — `mechanics-content-fill-163.spec`.
+- 🤖 **Gaz Inhibiteur** (`neutralizing-gas`) : un ennemi dans le rayon Manhattan r2 du porteur voit son
+  talent neutralisé → badge « Talent neutralisé » (infoPanel.volatile.gasSuppressed) à son survol ; le
+  porteur ne s'auto-neutralise pas (aucun badge) ; témoin à Manhattan 3 → aucun badge (portée bornée à
+  r2, non field-wide) — `mechanics-content-fill-163.spec`.
+- 🤖 **Fouille** (`frisk`) : l'objet du dummy est révélé à l'entrée → badge « Objet : Restes »
+  (infoPanel.reveal.item) à son survol — `mechanics-content-fill-163.spec`.
+- 🤖 **Prédiction** (`forewarn`) : la capacité la plus forte du dummy est révélée → badge « Menace :
+  {capacité} » (infoPanel.reveal.topMove ; préfixe asserté, capacité dérivée du moveset d'espèce) —
+  `mechanics-content-fill-163.spec`.
+- 🤖 **Anticipation** (`anticipation`, révélation non-canon du talent) : le talent du dummy est révélé →
+  badge « Talent : Lévitation » (infoPanel.reveal.ability) à son survol — `mechanics-content-fill-163.spec`.
+- 👁 **Délestage** (`unburden`) : **reporté** (cf. `docs/next.md`). La Vitesse ×2 (posée à la
+  consommation/perte d'objet, sans event ni journal) ne se manifeste que par la portée de mouvement /
+  l'ordre CT, non observable proprement dans le 1v1 sandbox (perte d'objet live + comparaison de
+  compte de tuiles sur la grille 6×6 clippée) → couvert unit/integration core (`effective-base-speed.test.ts`).
+- 👁 **Exemptions Piège Sable fines** (Vol/Spectre/Lévitation/Fuite/Carapace Mue/Gaz Inhibiteur),
+  **fin de neutralisation à la mort/départ du porteur**, **valeur exacte du soin Récolte 50 % hors
+  Soleil**, **flag `unburdenActive` reset KO** : lifecycle & valeurs = unit/integration core → 👁.
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -1747,6 +1791,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-utility-damage.spec.ts` | §5.33 famille dégâts utilitaires (Misc Batch B, plan 152) : Faux-Chage (`false-swipe`, `cannotKo`) — dégâts sans K.O., cible à quelques PV reste à EXACTEMENT 1 PV (InfoPanel « 1 / max ») + aucune victoire ; Croc Fatal (`super-fang`, `HalveTargetHp`, 90 % → `seed: 1`) — « … perd la moitié de ses PV (-N) ! » (SuperFangApplied) + flottant `-N` ; Ruse (`feint`, `bypassProtect`) — le dummy (plus rapide, Ronflex lent en face) se protège (Abri) puis Ruse touche à travers (journal dégâts) ; Anti-Air (`smack-down`) — cloue le Dracolosse (Vol) au sol → « … est cloué au sol ! » (SmackedDown) + badge InfoPanel « Au sol », puis contrôle immunité Sol (Coud'Boue sur Vol non cloué = zéro dégât, immunité de type silencieuse) vs cas cloué (Coud'Boue ajoute une ligne de dégâts) ; Poursuite (`pursuit`, `pursuitBackstab`) — deux boots au seul dummyDirection près → dégâts de dos (×2,3) > 2× ceux de face (×0,85) ; Corps Perdu (`vital-throw`, `bypassAccuracy`) — touche une cible à Esquive +6 sans « rate son attaque ! ». Substitut cassable (Faux-Chage), typechart ignoré + K.O. 1-2 PV (Croc Fatal), ×0,85 face/×1,0 flanc exacts (Poursuite), vulnérabilité hazards + atterrissage forcé + cleanup KO (grounding), contrôle négatif du never-miss = unit/integration core (`moves/*.test.ts`, `utility-damage.integration.test.ts`) → 👁. Flottants (couleur) + tags tooltip = 👁 (pixel) |
 | `combat/mechanics-transform.spec.ts` | §5.34 famille Transform (plan 157) : Morphing (`transform`) — Mew lance Morphing sur le Léviator adjacent → journal « Mew se transforme ! » (event Transformed), le menu d'attaque liste ensuite les moves copiés de la cible (« Cascade », plus « Morphing »), l'InfoPanel garde l'identité + les PV du lanceur (nom « Mew » inchangé, barre de PV stable — PV non copiés #649), et le type Vol copié fait léviter le morphé sur le marais (aucune ligne « marécage » en fin de tour, témoin non transformé empoisonné) ; Imposteur (`imposter`) — Métamorph (ditto) se transforme à l'entrée sur l'ennemi le plus proche → « … se transforme ! » dès le boot + menu du tour 1 déjà celui de la cible. Swap d'atlas du sprite (texture non exposée par le hook scène) + interaction Substitut + nom d'affichage `ditto`/Métamorph + copie fine (stats/crans/tempo/poids/genre), gates d'échec, cleanup KO, garde-fou IA, « manip écrase » = unit/integration core (`transform.integration.test`, `moves/transform.test.ts`, `handlers/transform/transform.test.ts`) → 👁 |
 | `combat/mechanics-content-fill-162.spec.ts` | §5.36 content-fill des 9 derniers moves Gen 1 (plan 162), tous pilotés joueur : Stockage (`stockpile`) accumule un palier (« accumule ! (Stockage 1/3) » + badge InfoPanel « Stockage 1 »), un 2e usage empile « (Stockage 2/3) » ; Relâche (`spit-up`) & Avale (`swallow`) échouent sans réserve (« Mais cela échoue … ! ») ; Prio-Parade (`upper-hand`) touche+apeure une cible agressive (dummy hot-seat à la Charge) sinon fizzle ; Piège de Venin (`venom-drench`) baisse 3 stats d'une cible empoisonnée sinon fizzle ; Rayon Lune (`moonlight`) & Aurore (`morning-sun`) soignent le lanceur (« récupère N PV ») ; Partage Garde (`guard-split`) « partage sa Garde avec … » ; Métalaser (`steel-beam`, 95 % → seed qui touche) inflige dégâts + recul « Florizarre perd N PV » et auto-K.O. un lanceur à bas PV ; Grêle (`hail`) pose la Neige (« utilise Grêle » + HUD « Neige »). Réussite Relâche/Avale + 3e palier/4e-échec Stockage (réserve pré-chargée / multi-tours) + valeurs Partage Garde / soin météo exact / dégâts × paliers = unit/integration core → 👁 (reporté `docs/next.md`) |
+| `combat/mechanics-content-fill-163.spec.ts` | §5.37 content-fill des 7 derniers talents Gen 1 (plan 163), pilotés via l'UI : Récolte (`harvest`) recrée sous Soleil la Baie Lichii mangée en fin de tour (« Récolte … s'active ! » + « recycle son Baie Lichii ») ; Piège Sable (`arena-trap`) désactive le bouton « Deplacement » du piégé non-exempté (Cran) + badge « Piégé », et le libère (badge disparu) quand le porteur s'éloigne ; Gaz Inhibiteur (`neutralizing-gas`) monte le badge « Talent neutralisé » sur un ennemi à Manhattan r2 (pas au-delà, pas d'auto-neutralisation) ; Fouille (`frisk`) → badge « Objet : Restes » ; Prédiction (`forewarn`) → badge « Menace : … » ; Anticipation (`anticipation`) → badge « Talent : Lévitation ». Délestage (`unburden`, Vitesse ×2 non observable proprement en 1v1) = unit/integration core → 👁 (reporté `docs/next.md`) ; exemptions Piège Sable fines / fin de neutralisation à la mort / soin Récolte 50 % hors Soleil / reset KO = unit |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
@@ -1769,7 +1814,9 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 
 Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.ts` : `DUEL`,
 `DUEL_LETHAL`, `POISONED`, `MULTI_HIT`, `CRIT_FOCUS_ENERGY`, `CRIT_LASER_FOCUS`, `CRIT_STORM_THROW`,
-`MORPH_MEW`, `MORPH_TERRAIN`, `IMPOSTER_DITTO`, `UPPER_HAND_HIT`, `UPPER_HAND_FIZZLE`…),
+`MORPH_MEW`, `MORPH_TERRAIN`, `IMPOSTER_DITTO`, `UPPER_HAND_HIT`, `UPPER_HAND_FIZZLE`,
+`HARVEST_SUN_RESTORE`, `ARENA_TRAP_PLAYER_TRAPPED`, `ARENA_TRAP_RELEASE`, `NEUTRALIZING_GAS_SUPPRESS`,
+`NEUTRALIZING_GAS_FAR`, `FRISK_REVEALS_ITEM`, `FOREWARN_REVEALS_MOVE`, `ANTICIPATION_REVEALS_ABILITY`…),
 `e2e/pages/` (POM : `MainMenu`, `Splash`, `CombatScene`, `screens`, `teamBuilder`, `combatHud`).
 
 ### À étendre (👁 → 🤖, par priorité — DOM d'abord, c'est facile)
