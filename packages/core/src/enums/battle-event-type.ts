@@ -179,6 +179,10 @@ export const BattleEventType = {
   StockpileReleased: "stockpile_released",
   /** Partage Garde (guard-split, plan 162): Def & Sp. Def averaged between caster and target. */
   GuardSplit: "guard_split",
+  /** Piège Sable (arena-trap, plan 163): a mon became trapped by an adjacent Arena Trap holder. */
+  ArenaTrapped: "arena_trapped",
+  /** Piège Sable (arena-trap, plan 163): a trapped mon was released (holder gone / no longer adjacent). */
+  ArenaReleased: "arena_released",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

@@ -1,9 +1,35 @@
 import type { HeldItemId } from "../enums/held-item-id";
+import { StatName } from "../enums/stat-name";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
+import { effectiveAbilityId } from "./effective-ability";
+import { effectiveBaseSpeed } from "./effective-base-speed";
+import { computeMovement } from "./stat-modifier";
 
 /** Glu (sticky-hold): the holder's item cannot be removed, stolen or swapped by an opponent. */
 export const STICKY_HOLD_ABILITY_ID = "sticky-hold";
+
+const UNBURDEN_ABILITY_ID = "unburden";
+
+/**
+ * Délestage (unburden, plan 163): flip the holder's speed-doubling flag from its item state — active
+ * once an unburden holder is item-less, cleared when it regains one — and recompute movement. Called
+ * after every held-item mutation so the boost tracks the slot in a single place.
+ */
+function updateUnburdenState(pokemon: PokemonInstance): void {
+  const itemless = pokemon.heldItemId === undefined;
+  if (itemless && !pokemon.unburdenActive && effectiveAbilityId(pokemon) === UNBURDEN_ABILITY_ID) {
+    pokemon.unburdenActive = true;
+  } else if (!itemless && pokemon.unburdenActive) {
+    pokemon.unburdenActive = false;
+  } else {
+    return;
+  }
+  pokemon.derivedStats.movement = computeMovement(
+    effectiveBaseSpeed(pokemon),
+    pokemon.statStages[StatName.Speed],
+  );
+}
 
 /**
  * Mark an item as consumed by its own effect (berry eaten, gem spent, White Herb / Mental Herb used).
@@ -23,6 +49,7 @@ export function consumeHeldItem(
     pokemon.ateBerryThisBattle = true;
   }
   pokemon.heldItemId = undefined;
+  updateUnburdenState(pokemon);
 }
 
 /**
@@ -32,6 +59,7 @@ export function consumeHeldItem(
 export function removeHeldItem(pokemon: PokemonInstance): HeldItemId | undefined {
   const itemId = pokemon.heldItemId;
   pokemon.heldItemId = undefined;
+  updateUnburdenState(pokemon);
   return itemId;
 }
 
@@ -49,6 +77,8 @@ export function stealHeldItem(
   const itemId = victim.heldItemId;
   thief.heldItemId = itemId;
   victim.heldItemId = undefined;
+  updateUnburdenState(thief);
+  updateUnburdenState(victim);
   return itemId;
 }
 
@@ -57,6 +87,8 @@ export function swapHeldItems(a: PokemonInstance, b: PokemonInstance): void {
   const previous = a.heldItemId;
   a.heldItemId = b.heldItemId;
   b.heldItemId = previous;
+  updateUnburdenState(a);
+  updateUnburdenState(b);
 }
 
 /**
@@ -70,6 +102,7 @@ export function recycleConsumedItem(pokemon: PokemonInstance): HeldItemId | unde
   }
   pokemon.heldItemId = itemId;
   pokemon.consumedItemId = undefined;
+  updateUnburdenState(pokemon);
   return itemId;
 }
 

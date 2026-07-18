@@ -716,6 +716,24 @@ export function floatingTextsFor(
         },
       ];
 
+    case BattleEventType.ArenaTrapped:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("battle.trapped"),
+          color: BATTLE_TEXT_COLOR_DEBUFF,
+        },
+      ];
+
+    case BattleEventType.ArenaReleased:
+      return [
+        {
+          pokemonId: event.pokemonId,
+          text: context.translate("battle.released"),
+          color: BATTLE_TEXT_COLOR_BUFF,
+        },
+      ];
+
     case BattleEventType.MoveCopied:
       return [
         {

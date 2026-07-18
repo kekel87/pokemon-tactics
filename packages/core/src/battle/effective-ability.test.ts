@@ -29,4 +29,20 @@ describe("effectiveAbilityId", () => {
     const pokemon = MockPokemon.fresh(MockPokemon.bulbasaur, { abilityId: undefined });
     expect(effectiveAbilityId(pokemon)).toBeUndefined();
   });
+
+  it("is neutralized by Gaz Inhibiteur suppression", () => {
+    const pokemon = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      abilityId: "overgrow",
+      abilitySuppressedByGas: true,
+    });
+    expect(effectiveAbilityId(pokemon)).toBeUndefined();
+  });
+
+  it("keeps neutralizing-gas active despite gas suppression", () => {
+    const pokemon = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      abilityId: "neutralizing-gas",
+      abilitySuppressedByGas: true,
+    });
+    expect(effectiveAbilityId(pokemon)).toBe("neutralizing-gas");
+  });
 });

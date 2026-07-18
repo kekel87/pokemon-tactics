@@ -161,6 +161,32 @@ export interface PokemonInstance {
    */
   stockpileDefBoost?: number;
   stockpileSpDefBoost?: number;
+  /**
+   * Délestage (unburden, plan 163): once the holder consumes or loses its held item, its Speed doubles
+   * (movement + CT tempo, via `effectiveBaseSpeed`) for the rest of the battle. Reset on KO.
+   */
+  unburdenActive?: boolean;
+  /**
+   * Gaz Inhibiteur (neutralizing-gas, plan 163): recomputed each turn — true when this mon stands within
+   * Manhattan r2 of a living Gaz Inhibiteur holder (other than itself). While true, its ability is
+   * neutralized (`effectiveAbilityId` → undefined), except Gaz Inhibiteur itself.
+   */
+  abilitySuppressedByGas?: boolean;
+  /**
+   * Piège Sable (arena-trap, plan 163): recomputed each turn — true when a living enemy with an
+   * effective Arena Trap ability stands adjacent (Chebyshev r1) and this grounded mon isn't exempt.
+   * Blocks its Move action (getLegalActions) and drives the "piégé" InfoPanel badge.
+   */
+  arenaTrapped?: boolean;
+  /**
+   * Info-reveal abilities (plan 163) — set on this mon when an enemy with the matching ability entered
+   * battle: Fouille (frisk) → its held item is revealed, Prédiction (forewarn) → its strongest move,
+   * Anticipation (anticipation) → its ability. Consumed by the InfoPanel as hover badges. Latent in
+   * full-info solo, real scouting once enemy info is hidden (multiplayer).
+   */
+  revealedItem?: boolean;
+  revealedTopMove?: boolean;
+  revealedAbility?: boolean;
   lastUsedMoveId?: string;
   /** Consecutive-cast count for Rollout (Roulade) — snowballs Dash range + power. Reset to 0 on any other move. */
   rolloutStreak?: number;

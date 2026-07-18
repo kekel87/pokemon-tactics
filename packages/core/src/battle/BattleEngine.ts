@@ -65,6 +65,7 @@ import {
   isInDistortionZone,
 } from "./distortion-system";
 import { processEffects } from "./effect-processor";
+import { effectiveAbilityId } from "./effective-ability";
 import { effectiveBaseSpeed } from "./effective-base-speed";
 import { isEffectivelyFlying, resolveBaseTypes } from "./effective-flying";
 import { effectiveMoveIds } from "./effective-move-ids";
@@ -330,6 +331,9 @@ export class BattleEngine {
     if (!this.abilityRegistry) {
       return;
     }
+    // Gaz Inhibiteur (plan 163): establish the r2 suppression before entry auras fire so a gassed
+    // ability (e.g. Intimidation) does not trigger on battle start.
+    this.startupEvents.push(...this.recomputeGasSuppression());
     for (const pokemon of this.state.pokemon.values()) {
       if (pokemon.currentHp <= 0) {
         continue;
@@ -608,6 +612,94 @@ export class BattleEngine {
     return resolveBaseTypes(pokemon, this.pokemonTypesMap);
   }
 
+  /**
+   * Piège Sable (arena-trap, plan 163): true when `pokemon` cannot move because a living enemy with an
+   * effective Arena Trap ability stands on an adjacent tile (Chebyshev r1). Canon exemptions: Ghost
+   * types, non-grounded mons (Flying / Levitate / Vol Magnétik / Ballon), Fuite (Run Away), Gaz
+   * Inhibiteur holders, and our Carapace Mue (`immuneToTrapping`). Grid reinterpretation of canon's
+   * field-wide "cannot flee/switch" (decision, plan 163).
+   */
+  private isArenaTrapped(pokemon: PokemonInstance): boolean {
+    if (!this.abilityRegistry) {
+      return false;
+    }
+    const types = this.effectiveTypesOf(pokemon);
+    if (types.includes(PokemonType.Ghost)) {
+      return false;
+    }
+    // Airborne mons (Flying / Levitate / Vol Magnétik / Ballon) escape — unless force-grounded by
+    // Gravité / Anti-Air, which makes them trappable again.
+    if (isEffectivelyFlying(pokemon, types) && !isEffectivelyGrounded(this.state, pokemon)) {
+      return false;
+    }
+    const ownAbility = effectiveAbilityId(pokemon);
+    if (ownAbility === "run-away" || ownAbility === "neutralizing-gas") {
+      return false;
+    }
+    if (this.itemRegistry?.getForPokemon(pokemon)?.immuneToTrapping === true) {
+      return false;
+    }
+    for (const other of this.state.pokemon.values()) {
+      if (other.id === pokemon.id || other.playerId === pokemon.playerId || other.currentHp <= 0) {
+        continue;
+      }
+      const dx = Math.abs(other.position.x - pokemon.position.x);
+      const dy = Math.abs(other.position.y - pokemon.position.y);
+      if (Math.max(dx, dy) > 1) {
+        continue;
+      }
+      if (this.abilityRegistry.getForPokemon(other)?.id === "arena-trap") {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Gaz Inhibiteur (neutralizing-gas, plan 163): recompute every living mon's `abilitySuppressedByGas`
+   * from proximity to a living gas holder (Manhattan r2, excluding itself). Called at battle start and
+   * before each turn/move so the positional aura tracks movement and KOs. `effectiveAbilityId` then
+   * neutralizes the flagged mon's ability (Gaz Inhibiteur itself excepted).
+   */
+  private recomputeGasSuppression(): BattleEvent[] {
+    if (!this.abilityRegistry) {
+      return [];
+    }
+    const gasHolders: PokemonInstance[] = [];
+    for (const mon of this.state.pokemon.values()) {
+      if (mon.currentHp > 0 && effectiveAbilityId(mon) === "neutralizing-gas") {
+        gasHolders.push(mon);
+      }
+    }
+    for (const mon of this.state.pokemon.values()) {
+      let suppressed = false;
+      if (mon.currentHp > 0) {
+        for (const gas of gasHolders) {
+          if (gas.id !== mon.id && manhattanDistance(mon.position, gas.position) <= 2) {
+            suppressed = true;
+            break;
+          }
+        }
+      }
+      mon.abilitySuppressedByGas = suppressed ? true : undefined;
+    }
+    // Piège Sable (plan 163): recompute the adjacency trap AFTER gas, so a gas-suppressed Arena Trap
+    // no longer traps. Drives the Move gate + the "piégé" badge, and emits a floating text on each
+    // trapped/released transition.
+    const events: BattleEvent[] = [];
+    for (const mon of this.state.pokemon.values()) {
+      const wasTrapped = mon.arenaTrapped === true;
+      const nowTrapped = mon.currentHp > 0 && this.isArenaTrapped(mon);
+      mon.arenaTrapped = nowTrapped ? true : undefined;
+      if (nowTrapped && !wasTrapped) {
+        events.push({ type: BattleEventType.ArenaTrapped, pokemonId: mon.id });
+      } else if (!nowTrapped && wasTrapped) {
+        events.push({ type: BattleEventType.ArenaReleased, pokemonId: mon.id });
+      }
+    }
+    return events;
+  }
+
   /** Psychic-terrain barrier predicate for a dasher (B4), fed into the traversal context. */
   private buildDashBarrierPredicate(dasher: PokemonInstance): (position: Position) => boolean {
     const dasherTypes = this.getPokemonTypes(dasher.id);
@@ -794,6 +886,7 @@ export class BattleEngine {
       !this.turnState.hasMoved &&
       !this.restrictActions &&
       !isTrapped &&
+      !currentPokemon.arenaTrapped &&
       !mustActFirst &&
       !this.flinchedThisTurn &&
       !isAsleep
@@ -2236,6 +2329,12 @@ export class BattleEngine {
 
     this.turnState.hasMoved = true;
 
+    // Piège Sable / Gaz Inhibiteur (plan 163): keep the positional flags fresh after a confused move.
+    for (const trapEvent of this.recomputeGasSuppression()) {
+      this.emit(trapEvent);
+      events.push(trapEvent);
+    }
+
     this.emitPositionLinkedChecks(events);
 
     return { success: true, events };
@@ -2915,6 +3014,13 @@ export class BattleEngine {
 
     this.turnState.hasMoved = true;
 
+    // Piège Sable / Gaz Inhibiteur (plan 163): refresh the positional flags the instant a mon moves,
+    // so the "piégé" badge and the r2 gas suppression track adjacency immediately (not next turn).
+    for (const trapEvent of this.recomputeGasSuppression()) {
+      this.emit(trapEvent);
+      events.push(trapEvent);
+    }
+
     this.emitPositionLinkedChecks(events);
 
     return { success: true, events };
@@ -3478,6 +3584,13 @@ export class BattleEngine {
     // Ability-manip family (plan 153): a fresh corpse reverts to its species ability.
     pokemon.abilityIdOverride = undefined;
     pokemon.abilitySuppressed = undefined;
+    // Plan 163 talents: item-state / gas / reveal flags clear on a fresh corpse.
+    pokemon.unburdenActive = undefined;
+    pokemon.abilitySuppressedByGas = undefined;
+    pokemon.arenaTrapped = undefined;
+    pokemon.revealedItem = undefined;
+    pokemon.revealedTopMove = undefined;
+    pokemon.revealedAbility = undefined;
     pokemon.lastHitBy = undefined;
     pokemon.grudgeLockedMoveIds = undefined;
     pokemon.smackedDown = undefined;
@@ -3667,6 +3780,11 @@ export class BattleEngine {
 
   private advanceTurn(events: BattleEvent[]): void {
     const ctSystem = this.chargeTimeTurnSystem;
+
+    // Gaz Inhibiteur (plan 163): refresh the r2 suppression each turn so it tracks movement and KOs.
+    for (const trapEvent of this.recomputeGasSuppression()) {
+      this.emit(trapEvent);
+    }
 
     // Après Vous (after-you, plan 155): consume any pending CT promotion before picking the next
     // actor. The just-acted caster's cost is already applied (onActionComplete ran before this), so

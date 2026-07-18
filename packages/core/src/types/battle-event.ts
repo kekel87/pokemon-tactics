@@ -622,4 +622,6 @@ export type BattleEvent =
       targetId: string;
       defense: number;
       spDefense: number;
-    };
+    }
+  | { type: typeof BattleEventType.ArenaTrapped; pokemonId: string }
+  | { type: typeof BattleEventType.ArenaReleased; pokemonId: string };

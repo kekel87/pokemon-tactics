@@ -131,6 +131,8 @@ export interface Translations {
   "battle.itemFlung": string;
   "battle.moveCopied": string;
   "battle.failed": string;
+  "battle.trapped": string;
+  "battle.released": string;
   "teamSelect.title": string;
   "teamSelect.player1": string;
   "teamSelect.player2": string;
@@ -334,6 +336,10 @@ export interface Translations {
   "infoPanel.volatile.drowsy": string;
   "infoPanel.volatile.magnetRise": string;
   "infoPanel.volatile.stockpile": string;
+  "infoPanel.volatile.gasSuppressed": string;
+  "infoPanel.reveal.item": string;
+  "infoPanel.reveal.topMove": string;
+  "infoPanel.reveal.ability": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
   "moveTooltip.tag.dynamicPower": string;
