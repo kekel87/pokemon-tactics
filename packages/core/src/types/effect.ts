@@ -71,7 +71,12 @@ export type Effect =
       distance: number;
     }
   | { kind: typeof EffectKind.HealSelf; percent: number }
-  | { kind: typeof EffectKind.Recoil; fraction: number }
+  | {
+      kind: typeof EffectKind.Recoil;
+      fraction: number;
+      /** When true, recoil = ⌊maxHp × fraction⌋ (Métalaser / steel-beam), not a fraction of damage dealt. */
+      ofMaxHp?: boolean;
+    }
   | { kind: typeof EffectKind.Drain; fraction: number }
   | { kind: typeof EffectKind.SetWeather; weather: Weather; turns: number }
   | { kind: typeof EffectKind.TransferStatStages }
@@ -188,4 +193,9 @@ export type Effect =
     }
   | { kind: typeof EffectKind.ActAfterUser }
   | { kind: typeof EffectKind.SwapAllyPositions }
-  | { kind: typeof EffectKind.Transform };
+  | { kind: typeof EffectKind.Transform }
+  | { kind: typeof EffectKind.Stockpile }
+  | { kind: typeof EffectKind.SwallowHeal }
+  | { kind: typeof EffectKind.ConsumeStockpile }
+  | { kind: typeof EffectKind.VenomDrench }
+  | { kind: typeof EffectKind.GuardSplit };

@@ -974,6 +974,38 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
     }
 
+    case BattleEventType.Stockpiled: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${name} accumule ! (Stockage ${event.count}/3)`
+          : `${name} stockpiled! (${event.count}/3)`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.StockpileReleased: {
+      const name = context.getPokemonName(event.pokemonId);
+      const message =
+        lang === "fr"
+          ? `${name} libère sa réserve accumulée !`
+          : `${name} released its stockpiled energy!`;
+      return { message, color: BattleLogColors.status, pokemonIds: [event.pokemonId] };
+    }
+
+    case BattleEventType.GuardSplit: {
+      const casterName = context.getPokemonName(event.casterId);
+      const targetName = context.getPokemonName(event.targetId);
+      const message =
+        lang === "fr"
+          ? `${casterName} partage sa Garde avec ${targetName} !`
+          : `${casterName} shared its Guard with ${targetName}!`;
+      return {
+        message,
+        color: BattleLogColors.status,
+        pokemonIds: [event.casterId, event.targetId],
+      };
+    }
+
     case BattleEventType.MoveCopied: {
       const name = context.getPokemonName(event.pokemonId);
       const copiedName = context.getMoveName(event.copiedMoveId);

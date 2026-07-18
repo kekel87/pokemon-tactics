@@ -707,6 +707,15 @@ export function floatingTextsFor(
         },
       ];
 
+    case BattleEventType.MoveFailed:
+      return [
+        {
+          pokemonId: event.attackerId,
+          text: context.translate("battle.failed"),
+          color: BATTLE_TEXT_COLOR_MISS,
+        },
+      ];
+
     case BattleEventType.MoveCopied:
       return [
         {

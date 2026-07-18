@@ -333,6 +333,7 @@ export interface Translations {
   "infoPanel.volatile.cursed": string;
   "infoPanel.volatile.drowsy": string;
   "infoPanel.volatile.magnetRise": string;
+  "infoPanel.volatile.stockpile": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
   "moveTooltip.tag.dynamicPower": string;

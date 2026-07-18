@@ -288,6 +288,15 @@ export function buildInfoPanelView(
     });
   }
 
+  if ((pokemon.stockpileCount ?? 0) > 0) {
+    badges.push({
+      label: context.translate("infoPanel.volatile.stockpile", {
+        count: String(pokemon.stockpileCount),
+      }),
+      variant: "buff",
+    });
+  }
+
   if (pokemon.typeOverride !== undefined) {
     if (pokemon.typeOverride.length === 0) {
       badges.push({ label: context.translate("infoPanel.volatile.noType"), variant: "volatile" });

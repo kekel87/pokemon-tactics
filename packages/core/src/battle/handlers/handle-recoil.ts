@@ -13,7 +13,9 @@ export function handleRecoil(context: EffectContext): BattleEvent[] {
     return [];
   }
 
-  const damage = Math.max(1, Math.floor(context.shared.lastDamageDealt * effect.fraction));
+  // Métalaser (steel-beam): recoil is a fraction of the user's MAX HP, independent of damage dealt.
+  const base = effect.ofMaxHp === true ? pokemon.maxHp : context.shared.lastDamageDealt;
+  const damage = Math.max(1, Math.floor(base * effect.fraction));
   pokemon.currentHp = Math.max(0, pokemon.currentHp - damage);
 
   const events: BattleEvent[] = [

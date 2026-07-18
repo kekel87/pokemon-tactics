@@ -136,6 +136,7 @@ export function loadData(): GameData {
       ...(merged.uproarAura ? { uproarAura: true } : {}),
       ...(merged.firstActionOnly ? { firstActionOnly: true } : {}),
       ...(merged.failsUnlessTargetAggressive ? { failsUnlessTargetAggressive: true } : {}),
+      ...(merged.failsWithoutStockpile ? { failsWithoutStockpile: true } : {}),
       ...(merged.chargeReaction ? { chargeReaction: merged.chargeReaction } : {}),
       ...(merged.cannotKo ? { cannotKo: true } : {}),
       ...(merged.pursuitBackstab ? { pursuitBackstab: true } : {}),

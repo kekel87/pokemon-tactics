@@ -1766,6 +1766,18 @@ export class BattleEngine {
       }
     }
 
+    // Relâche / Avale (spit-up / swallow, plan 162): fizzle (CT paid) with no stockpile layer.
+    if (move.failsWithoutStockpile === true && (pokemon.stockpileCount ?? 0) <= 0) {
+      const failEvent: BattleEvent = {
+        type: BattleEventType.MoveFailed,
+        attackerId: pokemon.id,
+        moveId,
+      };
+      this.emit(failEvent);
+      events.push(failEvent);
+      targets.length = 0;
+    }
+
     let dampFizzled = false;
     if (move.isExplosion === true) {
       const dampHolder = findDampInTargets(targets);
@@ -3455,6 +3467,12 @@ export class BattleEngine {
     pokemon.guaranteedCritArmed = undefined;
     pokemon.typeOverride = undefined;
     pokemon.speedStatOverride = undefined;
+    // Partage Garde / Stockage family (plan 162): a fresh corpse reverts to its species defenses.
+    pokemon.defenseStatOverride = undefined;
+    pokemon.spDefenseStatOverride = undefined;
+    pokemon.stockpileCount = undefined;
+    pokemon.stockpileDefBoost = undefined;
+    pokemon.stockpileSpDefBoost = undefined;
     // Morphing / Imposteur (plan 157): a fresh corpse reverts to its own species identity.
     pokemon.transformState = undefined;
     // Ability-manip family (plan 153): a fresh corpse reverts to its species ability.

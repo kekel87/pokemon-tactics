@@ -332,6 +332,7 @@ const en: Translations = {
   "infoPanel.volatile.cursed": "Cursed",
   "infoPanel.volatile.drowsy": "Drowsy",
   "infoPanel.volatile.magnetRise": "Levitating {turns}t",
+  "infoPanel.volatile.stockpile": "Stockpile {count}",
   "moveTooltip.tag.sound": "Sound (bypasses Substitute)",
   "moveTooltip.tag.bypasssub": "Bypasses Substitute",
   "moveTooltip.tag.dynamicPower": "⚡ Variable power",

@@ -152,6 +152,32 @@ export const EffectKind = {
    * (either side) / a target whose effective ability is Imposteur.
    */
   Transform: "transform",
+  /**
+   * Stockage (stockpile, plan 162): add one stockpile layer (cap 3) and raise Defense + Sp. Def by
+   * one stage each. Fails at 3 layers. The layers are later spent by Relâche / Avale.
+   */
+  Stockpile: "stockpile",
+  /**
+   * Avale (swallow, plan 162): heal by a fraction scaled to the caster's stockpile layers
+   * (1 → 25%, 2 → 50%, 3 → 100%), reading the count BEFORE `ConsumeStockpile` clears it.
+   */
+  SwallowHeal: "swallow_heal",
+  /**
+   * Consume the caster's stockpile after Relâche / Avale: reset the layer count to 0 and lower
+   * Defense + Sp. Def by the number of layers just spent (undoes the Stockage boosts).
+   */
+  ConsumeStockpile: "consume_stockpile",
+  /**
+   * Piège de Venin (venom-drench, plan 162): lower the target's Attack, Sp. Atk and Speed by one
+   * stage each — but ONLY if the target is poisoned or badly poisoned. Fails otherwise.
+   */
+  VenomDrench: "venom_drench",
+  /**
+   * Partage Garde (guard-split, plan 162): average the caster's and target's effective Defense and
+   * Sp. Def, then pin both mons' raw defensive stats to that average via a by-instance override
+   * (`defenseStatOverride` / `spDefenseStatOverride`). Mirrors the Permuvitesse raw-stat override.
+   */
+  GuardSplit: "guard_split",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

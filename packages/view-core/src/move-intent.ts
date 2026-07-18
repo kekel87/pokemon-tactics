@@ -56,7 +56,9 @@ export function moveIntent(move: MoveDefinition): MoveIntent {
       // Bâillement (yawn): deferred sleep on an enemy — hostile.
       effect.kind === EffectKind.Yawn ||
       // Attraction (attract): infatuates an enemy — hostile.
-      effect.kind === EffectKind.Attract,
+      effect.kind === EffectKind.Attract ||
+      // Piège de Venin (venom-drench): lowers a poisoned enemy's offensive stats — hostile.
+      effect.kind === EffectKind.VenomDrench,
   );
   return hasOffensive ? "attack" : "buff";
 }

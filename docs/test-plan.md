@@ -1435,6 +1435,53 @@ efficacité de type, valorisation des buffs/debuffs, Buée Noire, Recyclage, Att
   (« l'adversaire utilise X »). Tant que ce mode n'existe pas, le sens reste **couvert unit** et l'e2e
   est reporté (cf. `docs/next.md`). *Ne pas écrire de spec IA non-déterministe / factice.*
 
+### 5.36 Content-fill — 9 derniers moves Gen 1 (plan 162)
+*src : core `data/overrides/tactical.ts` (les 9 + `stockpile`), handlers
+`battle/handlers/stockpile/{handle-stockpile,handle-swallow-heal,handle-consume-stockpile}.ts`,
+`battle/handlers/stat-manip/handle-venom-drench.ts`, `battle/handlers/handle-recoil.ts`
+(`ofMaxHp`), `battle/handlers/handle-heal-self.ts` (soin météo par id de move) ;
+`dynamic-power-system.ts` (`StockpileLayers`) ; `PokemonInstance.stockpileCount` +
+`defense/spDefenseStatOverride` ; events `battle-event.ts` (`Stockpiled`, `StockpileReleased`,
+`GuardSplit`) + `MoveFailed`/`StatChanged`/`HpRestored`/`DamageDealt`/`PokemonKo` réutilisés ;
+badge `view-core/battle-views.ts` (`infoPanel.volatile.stockpile`) ; journal
+`ui-dom/BattleLogFormatter.ts` ; unit `battle/moves/{stockpile,spit-up,swallow,upper-hand,
+venom-drench,moonlight,morning-sun,guard-split,steel-beam,hail}.test.ts` + intégration ; e2e :
+`mechanics-content-fill-162.spec.ts`. Tous les moves sont **pilotables par le joueur** (le lanceur
+est en contrôle humain), donc exécutés de bout en bout ; déterministe (seed moteur).*
+
+- 🤖 **Stockage** (`stockpile`, Self) : accumule un palier → journal « accumule ! (Stockage 1/3) »
+  (Stockpiled) + badge InfoPanel « Stockage 1 » (survol du lanceur) ; un 2e usage (2e tour) empile
+  « (Stockage 2/3) » — `mechanics-content-fill-162.spec`.
+- 🤖 **Relâche** (`spit-up`, Single r3) : sans réserve accumulée → « Mais cela échoue … ! » (guard
+  `failsWithoutStockpile`, 0 dégât) — `mechanics-content-fill-162.spec`.
+- 🤖 **Avale** (`swallow`, Self) : sans réserve accumulée → « Mais cela échoue … ! » (même guard) —
+  `mechanics-content-fill-162.spec`.
+- 🤖 **Prio-Parade** (`upper-hand`, Single r1) : TOUCHE une cible agressive (dummy hot-seat ayant
+  attaqué à la Charge) puis l'apeure (« … est apeuré et ne peut pas agir ! ») ; ÉCHOUE sinon (« Mais
+  cela échoue … ! ») — `mechanics-content-fill-162.spec`.
+- 🤖 **Piège de Venin** (`venom-drench`, Single r3) : sur une cible EMPOISONNÉE → 3 lignes « … baisse ! »
+  (Atq/Atq.Spé/Vit) ; sur une cible non empoisonnée → « Mais cela échoue … ! » —
+  `mechanics-content-fill-162.spec`.
+- 🤖 **Rayon Lune** (`moonlight`, Self) / **Aurore** (`morning-sun`, Self) : lanceur à PV réduits →
+  « … récupère N PV » (soin météo-dépendant, même handler) — `mechanics-content-fill-162.spec`.
+- 🤖 **Partage Garde** (`guard-split`, Single r3) : sur le dummy → « … partage sa Garde avec … ! »
+  (GuardSplit) — `mechanics-content-fill-162.spec`.
+- 🤖 **Métalaser** (`steel-beam`, Ligne 3, précision 95 % → seed choisi qui touche) : touche la cible
+  ET s'inflige un recul (« Florizarre perd N PV »), et un lanceur à bas PV s'AUTO-K.O. par le recul
+  50 % PV MAX (« Florizarre est K.O. ! ») — `mechanics-content-fill-162.spec`.
+- 🤖 **Grêle** (`hail`, Self) : pose la Neige → « … utilise Grêle ! » + HUD météo « Neige » —
+  `mechanics-content-fill-162.spec`.
+- 👁 **Relâche / Avale — RÉUSSITE (dégâts × paliers ; soin 25/50/100 % ; réserve consommée + badge
+  disparu)** : **reporté** (cf. `docs/next.md`). Nécessite une réserve pré-chargée que `SandboxConfig`
+  n'expose pas (`stockpileCount`) ; la seule voie e2e serait 3+ tours de Stockage puis Relâche/Avale
+  (multi-tours fragile) → couvert unit core (`spit-up.test.ts`, `swallow.test.ts`).
+- 👁 **Stockage — 3e palier + échec au 4e usage** : reporté (4 tours consécutifs de cast → cyclage de
+  tours fragile) ; le cap et l'échec sont couverts unit (`stockpile.test.ts`).
+- 👁 **Partage Garde — valeurs (moyenne Déf+Déf.Spé effectives), persistance, reset KO, purge par
+  Morphing** + **Piège de Venin — magnitude/ordre des crans**, **soin météo-dépendant exact (Soleil ⅔
+  / rien ½ / autre ¼)**, **dégâts exacts de Relâche (100 × paliers)** : valeurs & lifecycle =
+  unit/integration core → 👁.
+
 ---
 
 ## 6. Recette — écrans DOM (hors combat)
@@ -1699,6 +1746,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-crit.spec.ts` | §5.32 famille manipulation de coups critiques (Misc Batch A, plan 151) : Puissance (`focus-energy`, Self) → journal « … est plus enclin aux coups critiques ! » + badge InfoPanel « Puissance +2 » (survol du lanceur) ; Affilage (`laser-focus`, Self, 0 learner Gen 1 → sandbox) → journal « … se concentre : son prochain coup sera critique ! » + badge « Affilage », puis le coup SUIVANT (Griffe au tour 2 après un tour terminé) est forcé critique → « Coup critique sur … ! » ; Yama Arashi (`storm-throw`, `alwaysCrit`, 0 learner Gen 1 → sandbox) → « Coup critique sur … ! » à chaque coup, seed-indépendant. Cri Draconique (`dragon-cheer`, exige un allié JOUEUR — non supporté par le harness) et Dark Lariat (`darkest-lariat`, ignore les crans défensifs — pas de feedback observable) + lifecycle multi-tours (empilement, cleanup KO, `preventsCrit` annule `alwaysCrit`) = unit/integration core (`moves/*.test.ts`, `crit-manip.integration.test.ts`) → 👁 |
 | `combat/mechanics-utility-damage.spec.ts` | §5.33 famille dégâts utilitaires (Misc Batch B, plan 152) : Faux-Chage (`false-swipe`, `cannotKo`) — dégâts sans K.O., cible à quelques PV reste à EXACTEMENT 1 PV (InfoPanel « 1 / max ») + aucune victoire ; Croc Fatal (`super-fang`, `HalveTargetHp`, 90 % → `seed: 1`) — « … perd la moitié de ses PV (-N) ! » (SuperFangApplied) + flottant `-N` ; Ruse (`feint`, `bypassProtect`) — le dummy (plus rapide, Ronflex lent en face) se protège (Abri) puis Ruse touche à travers (journal dégâts) ; Anti-Air (`smack-down`) — cloue le Dracolosse (Vol) au sol → « … est cloué au sol ! » (SmackedDown) + badge InfoPanel « Au sol », puis contrôle immunité Sol (Coud'Boue sur Vol non cloué = zéro dégât, immunité de type silencieuse) vs cas cloué (Coud'Boue ajoute une ligne de dégâts) ; Poursuite (`pursuit`, `pursuitBackstab`) — deux boots au seul dummyDirection près → dégâts de dos (×2,3) > 2× ceux de face (×0,85) ; Corps Perdu (`vital-throw`, `bypassAccuracy`) — touche une cible à Esquive +6 sans « rate son attaque ! ». Substitut cassable (Faux-Chage), typechart ignoré + K.O. 1-2 PV (Croc Fatal), ×0,85 face/×1,0 flanc exacts (Poursuite), vulnérabilité hazards + atterrissage forcé + cleanup KO (grounding), contrôle négatif du never-miss = unit/integration core (`moves/*.test.ts`, `utility-damage.integration.test.ts`) → 👁. Flottants (couleur) + tags tooltip = 👁 (pixel) |
 | `combat/mechanics-transform.spec.ts` | §5.34 famille Transform (plan 157) : Morphing (`transform`) — Mew lance Morphing sur le Léviator adjacent → journal « Mew se transforme ! » (event Transformed), le menu d'attaque liste ensuite les moves copiés de la cible (« Cascade », plus « Morphing »), l'InfoPanel garde l'identité + les PV du lanceur (nom « Mew » inchangé, barre de PV stable — PV non copiés #649), et le type Vol copié fait léviter le morphé sur le marais (aucune ligne « marécage » en fin de tour, témoin non transformé empoisonné) ; Imposteur (`imposter`) — Métamorph (ditto) se transforme à l'entrée sur l'ennemi le plus proche → « … se transforme ! » dès le boot + menu du tour 1 déjà celui de la cible. Swap d'atlas du sprite (texture non exposée par le hook scène) + interaction Substitut + nom d'affichage `ditto`/Métamorph + copie fine (stats/crans/tempo/poids/genre), gates d'échec, cleanup KO, garde-fou IA, « manip écrase » = unit/integration core (`transform.integration.test`, `moves/transform.test.ts`, `handlers/transform/transform.test.ts`) → 👁 |
+| `combat/mechanics-content-fill-162.spec.ts` | §5.36 content-fill des 9 derniers moves Gen 1 (plan 162), tous pilotés joueur : Stockage (`stockpile`) accumule un palier (« accumule ! (Stockage 1/3) » + badge InfoPanel « Stockage 1 »), un 2e usage empile « (Stockage 2/3) » ; Relâche (`spit-up`) & Avale (`swallow`) échouent sans réserve (« Mais cela échoue … ! ») ; Prio-Parade (`upper-hand`) touche+apeure une cible agressive (dummy hot-seat à la Charge) sinon fizzle ; Piège de Venin (`venom-drench`) baisse 3 stats d'une cible empoisonnée sinon fizzle ; Rayon Lune (`moonlight`) & Aurore (`morning-sun`) soignent le lanceur (« récupère N PV ») ; Partage Garde (`guard-split`) « partage sa Garde avec … » ; Métalaser (`steel-beam`, 95 % → seed qui touche) inflige dégâts + recul « Florizarre perd N PV » et auto-K.O. un lanceur à bas PV ; Grêle (`hail`) pose la Neige (« utilise Grêle » + HUD « Neige »). Réussite Relâche/Avale + 3e palier/4e-échec Stockage (réserve pré-chargée / multi-tours) + valeurs Partage Garde / soin météo exact / dégâts × paliers = unit/integration core → 👁 (reporté `docs/next.md`) |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
@@ -1721,7 +1769,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 
 Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.ts` : `DUEL`,
 `DUEL_LETHAL`, `POISONED`, `MULTI_HIT`, `CRIT_FOCUS_ENERGY`, `CRIT_LASER_FOCUS`, `CRIT_STORM_THROW`,
-`MORPH_MEW`, `MORPH_TERRAIN`, `IMPOSTER_DITTO`…),
+`MORPH_MEW`, `MORPH_TERRAIN`, `IMPOSTER_DITTO`, `UPPER_HAND_HIT`, `UPPER_HAND_FIZZLE`…),
 `e2e/pages/` (POM : `MainMenu`, `Splash`, `CombatScene`, `screens`, `teamBuilder`, `combatHud`).
 
 ### À étendre (👁 → 🤖, par priorité — DOM d'abord, c'est facile)
