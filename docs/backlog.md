@@ -50,13 +50,7 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - Conséquences : double système de fonts/couleurs/spacing (tokens.css vs constants.ts), UX incohérente (curseur, scaling, raccourcis).
 - À planifier : décision globale renderer 2D vs HTML overlay (cf plan 062/063 Phase 3.5 Babylon différée). Court terme : aligner styles canvas sur tokens design.
 
-### Le Mur — réintégrer + fixer IA (2026-04-23, relancé 2026-06-18)
-- Map `le-mur.tmj` retirée du menu (`maps-registry.ts`).
-- **Blocage rotation caméra levé** : Babylon (Phase 5) a la rotation caméra → la map est de nouveau jouable. Objectif : **la rendre disponible** dans le menu.
-- Bug transparence **résolu** (commit `082240c`). Problèmes restants à fixer avant réintégration :
-  - **IA ne tente pas de monter sur le mur** — elle essaie de **tirer à travers** au lieu de prendre la hauteur. À fixer (pathfinding vertical + scoring qui valorise la prise de hauteur).
-  - IA perdue sur chemins verticaux (escaliers).
-  - Pokemon trop lents sur neige — terrain `slow` excessif pour une map traversée, à revoir.
+<!-- Le Mur — réintégrer + fixer IA : RÉSOLU plan 159 (2026-07-14, publié v2026.7.2). Carte dispo au menu + IA maîtrise ring-out/prise de hauteur. Détails → docs/backlog-archive.md. -->
 
 <!-- Résolus plan 097 (2026-05-24) :
 - FOUC font menu : index.html preload + font-display block + BootScene document.fonts.ready
