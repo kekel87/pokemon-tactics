@@ -8,6 +8,13 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Le Mur — réintégrer + fixer IA (RÉSOLU plan 159, 2026-07-14, publié v2026.7.2)
+
+- **Contexte (2026-04-23, relancé 2026-06-18)** : map `le-mur.tmj` retirée du menu. Après la rotation caméra Babylon (Phase 5) et le fix transparence (commit `082240c`), restait à la rendre disponible et à corriger l'IA : elle ne tentait pas de monter sur le mur (tirait à travers au lieu de prendre la hauteur), se perdait sur les chemins verticaux, et les Pokemon étaient jugés trop lents sur neige.
+- **Résolution** : nouvelle carte « Le Mur » (`le-mur.tmj`, 16×16, mur pyramidal central h≈4.5, rampes latérales seules praticables, glace partout ailleurs) ajoutée au `MAPS_REGISTRY` — conçue pour la mécanique de ring-out (recul → glissade sur glace → chute mortelle). L'IA maîtrise désormais la carte : lookahead relief corrigé (`estimateDamage` calcule hauteur/terrain/facing depuis la case candidate + garde ligne de vue `hasLineOfSightFrom` → l'IA grimpe le plateau pour tirer en surplomb, plus de « sniper fantôme » à travers le mur), et `scoreKnockbackRingOut` valorise Draco-Queue/Coud'Krâne/Draco-Charge quand le recul éjecte un ennemi vers une chute ou un terrain létal. Diagnostic agent `ai-player` : combat sain (6/6 vainqueurs, franchissement par les rampes, pas de stall — la lenteur neige n'était plus un blocage). Décisions #660–#665.
+
+---
+
 ## Talent « par défaut » silencieux — UI sandbox (RÉSOLU 2026-06-22, décision #549)
 
 - **Contexte (2026-06-21, plan 136)** : le `<select>` talent du SandboxPanel proposait une option vide « (défaut) » (valeur `""`) qui activait silencieusement `ability1` sans l'indiquer. Confusion QA : on ne savait pas quel talent tournait réellement.
