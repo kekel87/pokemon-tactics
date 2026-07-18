@@ -114,4 +114,15 @@ export const moveAnimationCategory: Record<string, AnimationCategory> = {
   rest: AnimationCategory.Charge,
   amnesia: AnimationCategory.Charge,
   "acid-armor": AnimationCategory.Charge,
+
+  // Plan 162 — 9 derniers moves Gen 1
+  "spit-up": AnimationCategory.Shoot,
+  swallow: AnimationCategory.Charge,
+  "upper-hand": AnimationCategory.Contact,
+  "venom-drench": AnimationCategory.Shoot,
+  moonlight: AnimationCategory.Charge,
+  "morning-sun": AnimationCategory.Charge,
+  "guard-split": AnimationCategory.Shoot,
+  "steel-beam": AnimationCategory.Shoot,
+  hail: AnimationCategory.Charge,
 };

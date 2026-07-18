@@ -36,6 +36,12 @@ export function applyTransform(
   caster.abilityIdOverride = undefined;
   caster.abilitySuppressed = undefined;
   caster.speedStatOverride = undefined;
+  // Plan 162: Partage Garde / Stockage state is dropped so transformState is the active identity layer.
+  caster.defenseStatOverride = undefined;
+  caster.spDefenseStatOverride = undefined;
+  caster.stockpileCount = undefined;
+  caster.stockpileDefBoost = undefined;
+  caster.stockpileSpDefBoost = undefined;
 
   // #650: plain snapshot of the target's stat stages; they diverge in place afterwards.
   caster.statStages = { ...target.statStages };

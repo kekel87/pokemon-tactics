@@ -332,6 +332,7 @@ const fr: Translations = {
   "infoPanel.volatile.cursed": "Maudit",
   "infoPanel.volatile.drowsy": "Somnolent",
   "infoPanel.volatile.magnetRise": "Lévitation {turns}t",
+  "infoPanel.volatile.stockpile": "Stockage {count}",
   "moveTooltip.tag.sound": "Sonore (ignore Clone)",
   "moveTooltip.tag.bypasssub": "Ignore Clone",
   "moveTooltip.tag.dynamicPower": "⚡ Puissance variable",

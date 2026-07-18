@@ -47,6 +47,8 @@ export const DynamicPowerKind = {
   TargetIdleSinceLastAction: "target_idle_since_last_action",
   /** Power = the user's held item's fling power (Dégommage / fling). */
   HeldItemFling: "held_item_fling",
+  /** 100 × the caster's stockpile layers (Relâche / spit-up). 0 layers → 0 (the move fizzles first). */
+  StockpileLayers: "stockpile_layers",
 } as const;
 
 export type DynamicPowerKind = (typeof DynamicPowerKind)[keyof typeof DynamicPowerKind];

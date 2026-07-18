@@ -80,10 +80,15 @@ import { handleSwapItems } from "./handlers/handle-swap-items";
 import { handleTransferStatStages } from "./handlers/handle-transfer-stat-stages";
 import { handleCopyMoveToSlot } from "./handlers/move-copy/handle-copy-move-to-slot";
 import { handleCopyStatStages } from "./handlers/stat-manip/handle-copy-stat-stages";
+import { handleGuardSplit } from "./handlers/stat-manip/handle-guard-split";
 import { handleInvertStatStages } from "./handlers/stat-manip/handle-invert-stat-stages";
 import { handleResetStatStages } from "./handlers/stat-manip/handle-reset-stat-stages";
 import { handleSwapRawSpeed } from "./handlers/stat-manip/handle-swap-raw-speed";
 import { handleSwapStatStages } from "./handlers/stat-manip/handle-swap-stat-stages";
+import { handleVenomDrench } from "./handlers/stat-manip/handle-venom-drench";
+import { handleConsumeStockpile } from "./handlers/stockpile/handle-consume-stockpile";
+import { handleStockpile } from "./handlers/stockpile/handle-stockpile";
+import { handleSwallowHeal } from "./handlers/stockpile/handle-swallow-heal";
 import { handleTransform } from "./handlers/transform/handle-transform";
 import { handleConvertResistType } from "./handlers/type-change/handle-convert-resist-type";
 import { handleConvertSelfType } from "./handlers/type-change/handle-convert-self-type";
@@ -188,6 +193,11 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.InvertStatStages, handleInvertStatStages);
   registry.register(EffectKind.SwapStatStages, handleSwapStatStages);
   registry.register(EffectKind.SwapRawSpeed, handleSwapRawSpeed);
+  registry.register(EffectKind.Stockpile, handleStockpile);
+  registry.register(EffectKind.SwallowHeal, handleSwallowHeal);
+  registry.register(EffectKind.ConsumeStockpile, handleConsumeStockpile);
+  registry.register(EffectKind.VenomDrench, handleVenomDrench);
+  registry.register(EffectKind.GuardSplit, handleGuardSplit);
   return registry;
 }
 

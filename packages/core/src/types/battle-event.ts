@@ -613,4 +613,13 @@ export type BattleEvent =
       intoDefinitionId: string;
       /** The copied move ids (the new selectable kit). */
       moveIds: string[];
+    }
+  | { type: typeof BattleEventType.Stockpiled; pokemonId: string; count: number }
+  | { type: typeof BattleEventType.StockpileReleased; pokemonId: string }
+  | {
+      type: typeof BattleEventType.GuardSplit;
+      casterId: string;
+      targetId: string;
+      defense: number;
+      spDefense: number;
     };

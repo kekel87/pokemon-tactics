@@ -8,5 +8,16 @@ import type { PokemonInstance } from "../types/pokemon-instance";
  * (#649); this only drives the Atk/Def/SpA/SpD/Spe used by the damage calc and stat-based effects.
  */
 export function effectiveCombatStats(pokemon: PokemonInstance): BaseStats {
-  return pokemon.transformState?.combatStats ?? pokemon.combatStats;
+  const base = pokemon.transformState?.combatStats ?? pokemon.combatStats;
+  // Partage Garde (guard-split, plan 162): a by-instance override pins the raw Def / Sp. Def to the
+  // caster↔target average. Return a fresh object so the shared `combatStats`/`transformState` are
+  // never mutated.
+  if (pokemon.defenseStatOverride === undefined && pokemon.spDefenseStatOverride === undefined) {
+    return base;
+  }
+  return {
+    ...base,
+    defense: pokemon.defenseStatOverride ?? base.defense,
+    spDefense: pokemon.spDefenseStatOverride ?? base.spDefense,
+  };
 }

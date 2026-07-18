@@ -140,4 +140,61 @@ describe("stockpile", () => {
     expect(pokemon.statStages[StatName.Defense]).toBe(2);
     expect(pokemon.statStages[StatName.SpDefense]).toBe(2);
   });
+
+  it("tracks the layer count and emits Stockpiled", () => {
+    const user = MockPokemon.fresh(MockPokemon.base, {
+      playerId: PlayerId.Player1,
+      position: { x: 2, y: 2 },
+      moveIds: ["stockpile"],
+      currentPp: { stockpile: 20 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe-1",
+      playerId: PlayerId.Player2,
+      position: { x: 4, y: 4 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    const { engine, state } = buildMoveTestEngine([user, foe]);
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: user.id,
+      moveId: "stockpile",
+      targetPosition: user.position,
+    });
+
+    expect(result.events.map((event) => event.type)).toContain(BattleEventType.Stockpiled);
+    expect(state.pokemon.get(user.id)?.stockpileCount).toBe(1);
+  });
+
+  it("fails once 3 layers are held", () => {
+    const user = MockPokemon.fresh(MockPokemon.base, {
+      playerId: PlayerId.Player1,
+      position: { x: 2, y: 2 },
+      moveIds: ["stockpile"],
+      currentPp: { stockpile: 20 },
+      stockpileCount: 3,
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe-1",
+      playerId: PlayerId.Player2,
+      position: { x: 4, y: 4 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+
+    const { engine, state } = buildMoveTestEngine([user, foe]);
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: user.id,
+      moveId: "stockpile",
+      targetPosition: user.position,
+    });
+
+    expect(result.events.map((event) => event.type)).toContain(BattleEventType.MoveFailed);
+    expect(state.pokemon.get(user.id)?.stockpileCount).toBe(3);
+  });
 });

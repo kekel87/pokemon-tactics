@@ -173,6 +173,12 @@ export const BattleEventType = {
   AlliesSwapped: "allies_swapped",
   /** Morphing / Imposteur (plan 157): a Pokémon transformed into a copy of another species. */
   Transformed: "transformed",
+  /** Stockage (stockpile, plan 162): the caster added a stockpile layer (now at `count`). */
+  Stockpiled: "stockpiled",
+  /** Relâche / Avale (plan 162): the caster spent its stockpile layers. */
+  StockpileReleased: "stockpile_released",
+  /** Partage Garde (guard-split, plan 162): Def & Sp. Def averaged between caster and target. */
+  GuardSplit: "guard_split",
 } as const;
 
 export type BattleEventType = (typeof BattleEventType)[keyof typeof BattleEventType];

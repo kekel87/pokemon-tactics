@@ -1006,3 +1006,27 @@ export const IMPOSTER_DITTO = {
   dummyControl: "ai",
   dummyMove: "leer",
 } as const;
+
+/** Prio-Parade — CAS RÉUSSITE (`upper-hand`, plan 162, réutilise `failsUnlessTargetAggressive` de
+ *  Coup Bas + flinch 100 %). Miroir de {@link PRIORITY_SUCKER_HIT} : le dummy Ronflex en HOT-SEAT
+ *  attaque avec Charge (offensive) → sa dernière action est agressive ; au tour suivant Persian
+ *  (rapide) lance Prio-Parade → fraîcheur satisfaite → le coup TOUCHE, et l'apeurement 100 % skippe
+ *  le tour suivant du dummy (« … est apeuré et ne peut pas agir ! »). */
+export const UPPER_HAND_HIT = {
+  seed: 12345,
+  pokemon: "persian",
+  moves: ["upper-hand"],
+  dummyPokemon: "snorlax",
+  dummyControl: "player",
+  dummyMoves: ["tackle"],
+} as const;
+
+/** Prio-Parade — CAS ÉCHEC (`upper-hand`, plan 162). Miroir de {@link PRIORITY_SUCKER_FIZZLE} :
+ *  Persian rapide lance Prio-Parade AU 1ᵉ tour, avant que le dummy Ronflex inerte ait agi → la cible
+ *  n'est pas agressive → le coup FIZZLE (« Mais cela échoue … ! », 0 dégât, CT payé). */
+export const UPPER_HAND_FIZZLE = {
+  seed: 12345,
+  pokemon: "persian",
+  moves: ["upper-hand"],
+  dummyPokemon: "snorlax",
+} as const;

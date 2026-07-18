@@ -282,6 +282,7 @@ const RESOLVERS: ReadonlyMap<DynamicPowerKind, DynamicPowerResolver> = new Map([
     DynamicPowerKind.HeldItemFling,
     ({ attacker, itemRegistry }) => itemRegistry?.get(attacker.heldItemId ?? "")?.flingPower ?? 0,
   ],
+  [DynamicPowerKind.StockpileLayers, ({ attacker }) => 100 * (attacker.stockpileCount ?? 0)],
 ]);
 
 /**

@@ -138,6 +138,29 @@ export interface PokemonInstance {
    * this game; forced teleport keeps the instance), cleared on KO.
    */
   speedStatOverride?: number;
+  /**
+   * Runtime override of the raw Defense / Sp. Def stat (Partage Garde / guard-split, plan 162). When
+   * set, replaces the species/transform value inside `effectiveCombatStats` (the single chokepoint the
+   * damage calc reads) — never on the InfoPanel base-stat display, mirroring `speedStatOverride`
+   * (decision, plan 162). Set to the caster↔target average by Partage Garde, persists for the rest of
+   * the battle, cleared on KO, purged by Morphing at cast.
+   */
+  defenseStatOverride?: number;
+  spDefenseStatOverride?: number;
+  /**
+   * Stockpile layers accumulated by Stockage (stockpile, plan 162), 0..3. Each layer also granted +1
+   * Defense / +1 Sp. Def stage. Spent (and the stat boosts undone) by Relâche (spit-up) / Avale
+   * (swallow). `undefined` means 0. Reset on KO.
+   */
+  stockpileCount?: number;
+  /**
+   * Actual Defense / Sp. Def stat-stage boost granted so far by Stockage (plan 162) — the real applied
+   * amount, which may be less than `stockpileCount` if a stage was already near +6. Relâche / Avale
+   * undo exactly this (canon: "reset by the number of levels they were raised by Stockpile"), never
+   * more. `undefined` means 0. Reset on KO / cleared when the stockpile is spent.
+   */
+  stockpileDefBoost?: number;
+  stockpileSpDefBoost?: number;
   lastUsedMoveId?: string;
   /** Consecutive-cast count for Rollout (Roulade) — snowballs Dash range + power. Reset to 0 on any other move. */
   rolloutStreak?: number;

@@ -83,6 +83,7 @@ export interface TacticalOverride {
   uproarAura?: boolean;
   firstActionOnly?: boolean;
   failsUnlessTargetAggressive?: boolean;
+  failsWithoutStockpile?: boolean;
   chargeReaction?: ChargeReaction;
   cannotKo?: boolean;
   pursuitBackstab?: boolean;
@@ -608,17 +609,68 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     ],
   },
   stockpile: {
+    // Stockage (plan 162): +1 palier (cap 3), Déf + Déf.Spé +1 chacun. Paliers dépensés par Relâche/Avale.
     targeting: { kind: TargetingKind.Self },
-    effects: [
-      { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self },
-      {
-        kind: EffectKind.StatChange,
-        stat: StatName.SpDefense,
-        stages: 1,
-        target: EffectTarget.Self,
-      },
-    ],
+    effects: [{ kind: EffectKind.Stockpile }],
     effectTier: EffectTier.DoubleBuff,
+  },
+  "spit-up": {
+    // Relâche (plan 162): dégâts spé = 100 × paliers de Stockage, puis consomme les paliers.
+    // Portée r3 (projectile d'énergie stockée, retour humain) — pas r1.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.ConsumeStockpile }],
+    dynamicPower: { kind: DynamicPowerKind.StockpileLayers },
+    failsWithoutStockpile: true,
+  },
+  swallow: {
+    // Avale (plan 162): soin 25/50/100 % selon paliers de Stockage, puis consomme les paliers.
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.SwallowHeal }, { kind: EffectKind.ConsumeStockpile }],
+    failsWithoutStockpile: true,
+  },
+  "upper-hand": {
+    // Prio-Parade (plan 162): fraîcheur d'action (comme Coup Bas, priorité canon abandonnée) + flinch.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Status, status: StatusType.Flinch, chance: 100 },
+    ],
+    failsUnlessTargetAggressive: true,
+  },
+  "venom-drench": {
+    // Piège de Venin (plan 162): baisse Atq/Atq.Spé/Vit de la cible SI empoisonnée, échoue sinon.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.VenomDrench }],
+    effectTier: EffectTier.MajorBuff,
+  },
+  moonlight: {
+    // Rayon Lune (plan 162): soin météo-dépendant (résolu dans handle-heal-self par l'id du move).
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.HealSelf, percent: 0.5 }],
+  },
+  "morning-sun": {
+    // Aurore (plan 162): soin météo-dépendant (résolu dans handle-heal-self par l'id du move).
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.HealSelf, percent: 0.5 }],
+  },
+  "guard-split": {
+    // Partage Garde (plan 162): moyenne Déf+Déf.Spé effectives lanceur↔cible (override brut). Clone bloque.
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 3 } },
+    effects: [{ kind: EffectKind.GuardSplit }],
+  },
+  "steel-beam": {
+    // Métalaser (plan 162): dégâts + recul 50 % des PV MAX du lanceur (peut l'auto-K.O.).
+    // Ligne 3, comme Luminocanon (rayon d'acier concentré, retour humain).
+    targeting: { kind: TargetingKind.Line, length: 3 },
+    effects: [
+      { kind: EffectKind.Damage },
+      { kind: EffectKind.Recoil, fraction: 0.5, ofMaxHp: true },
+    ],
+  },
+  hail: {
+    // Grêle (plan 162): pose la Neige 5 tours (clone snowscape ; notre Neige ne fait pas de dégâts).
+    targeting: { kind: TargetingKind.Self },
+    effects: [{ kind: EffectKind.SetWeather, weather: Weather.Snow, turns: 5 }],
   },
 
   "aurora-beam": {

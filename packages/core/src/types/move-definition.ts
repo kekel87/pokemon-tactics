@@ -168,6 +168,12 @@ export interface MoveDefinition {
    */
   failsUnlessTargetAggressive?: boolean;
   /**
+   * Relâche / Avale (spit-up / swallow, plan 162): the move fizzles (0 effect, CT paid) unless the
+   * caster has at least one stockpile layer (`stockpileCount > 0`). Mirrors the
+   * `failsUnlessTargetAggressive` fizzle gate.
+   */
+  failsWithoutStockpile?: boolean;
+  /**
    * Reactive two-turn charge family (plan 150): Mitra-Poing (`focus`) / Bec-Canon (`beak`) /
    * Carapiège (`shell`). Set alongside `twoTurnCharge` (charge without semi-invulnerability, like
    * skull-bash). Drives the reaction when the charging user is struck during its wait window
