@@ -117,6 +117,9 @@ Suivre la procédure du skill `.claude/skills/itch-devlog/SKILL.md` :
 
 Afficher bloc prêt-à-coller pour dashboard itch (https://itch.io/dashboard/game/4605116/new-devlog).
 
+- **Langue = anglais** (même langue que le changelog GitHub — audience internationale). Jamais de traduction FR de l'artefact.
+- Dans ta synthèse de phase 2, inclus le devlog **verbatim dans un bloc de code** (titre + type + date + visibility + body markdown complet) pour que l'orchestrateur puisse le coller tel quel en chat. Ne le résume pas.
+
 **Note** : itch n'a pas d'API publique POST devlog. Humain copie/colle manuellement (~1 min). Skill optionnel auto-fill via Playwright MCP si session active.
 
 ### 7. Préparer le brief `wiki-keeper`
