@@ -29,6 +29,7 @@ Un subagent ne peut ni poser de question à l'humain ni lancer d'autres agents. 
 3. **Rapporte** tag proposé + changelog + résultat CI, puis s'arrête
 
 **Validation (main loop)** : affiche le rapport, `AskUserQuestion` — l'humain confirme/override tag + changelog. Refus → stop.
+- 🔴 **LANGUE = ANGLAIS.** Le changelog GitHub ET le devlog itch sont **en anglais** (audience internationale itch/GitHub). NE PAS les traduire en FR. La règle « noms FR officiels » ne concerne QUE la communication chat avec l'humain, PAS les artefacts publiés. Quand tu présentes le changelog pour validation, colle-le **verbatim en anglais** — ne le résume/reformule/traduis pas en FR (une présentation FR a déjà induit une sur-correction erronée).
 
 **Phase 2 — relance du même agent via `SendMessage`** (tag validé dans le message) :
 4. **Publish** via `gh release create vYYYY.MM.XX --notes-file ...` (trigger workflow `itch-deploy`)
@@ -37,7 +38,9 @@ Un subagent ne peut ni poser de question à l'humain ni lancer d'autres agents. 
 7. **Update refs projet** : `STATUS.md`, `docs/roadmap.md`, `docs/backlog.md`
 8. **Synthèse finale** : URLs + commit msgs prêts (humain colle) + brief wiki
 
-**Post-publish (main loop)** : lance l'agent `wiki-keeper` en background avec le brief de la synthèse (sync Changelog/Mechanics/Home EN+FR).
+**Post-publish (main loop)** :
+- 🔴 **AFFICHER LE DEVLOG ITCH VERBATIM — OBLIGATOIRE.** Le devlog markdown généré en Phase 2 doit être **collé intégralement en chat dans un bloc de code** (titre, type, date, visibility, puis le body markdown complet). NE JAMAIS le résumer, paraphraser ou renvoyer vers le rapport de l'agent : l'humain doit pouvoir le copier-coller directement dans le dashboard itch.io. Récidive connue (feedback humain répété).
+- Lance l'agent `wiki-keeper` en background avec le brief de la synthèse (sync Changelog/Mechanics/Home EN+FR).
 
 ## Garanties
 
