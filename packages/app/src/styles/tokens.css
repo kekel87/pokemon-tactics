@@ -113,7 +113,7 @@
   --color-border-surface: var(--blue-700);
   --color-border-faint: rgb(255 255 255 / 0.3); /* liseré UI clair (miroir UI_BORDER_*) */
   --color-accent: var(--yellow-400);
-  /* TurnTimeline CT bar (mirror TIMELINE_CT_BAR_COLOR / TIMELINE_CT_BAR_BG_COLOR of constants.ts). */
+  /* TurnTimeline CT bar (barre de charge et son fond). */
   --color-timeline-ct: #44aaff;
   --color-timeline-ct-bg: #223344;
   --color-text-primary: var(--gray-100);

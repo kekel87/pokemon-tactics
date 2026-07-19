@@ -15,6 +15,13 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Tag tooltip `superVsWater` hardcodé pour `typeEffectivenessOverride` — RÉSOLU (2026-07-19)
+
+- **Contexte (2026-06-05, plan 113)** : `MoveTooltip.ts` affichait le tag `moveTooltip.tag.superVsWater` ("×2 sur les types Eau") pour tout move ayant `typeEffectivenessOverride !== undefined`. Le champ est générique (`{ against: PokemonType; multiplier: number }`) mais le tag était codé en dur pour l'Eau. Risque : un futur move overridant un autre type (ex ×2 Feu) afficherait un tag faux. 1 seul move concerné à l'époque (Lyophilisation).
+- **Résolution** : `packages/ui-dom/src/move-tooltip.ts` construit désormais le tag dynamiquement depuis `against`/`multiplier` via la clé i18n paramétrée `moveTooltip.tag.typeEffectivenessOverride` ("×{multiplier} sur les types {type}"), résolvant le nom de type via 18 nouvelles clés i18n `pokemonType.<id>` (FR+EN, une par type Pokemon). Correct pour n'importe quel type/multiplicateur futur, sans limitation à l'Eau.
+
+---
+
 ## Coups fantômes — attaquant K.O. par recul de contact (Casque Brut) continuait un move multi-coups — RÉSOLU (2026-07-19)
 
 - **Contexte** : la boucle multi-coups de `packages/core/src/battle/handlers/handle-damage.ts` ne breakait que sur mort de la **cible** (`target.currentHp <= 0`), jamais de l'**attaquant**. Casque Brut (`rocky-helmet`) retire des PV à l'attaquant par coup de contact reçu ; sur un move contact multi-coups (Double Pied ×2) lancé par un attaquant bas PV, le recul du coup 1 pouvait le mettre K.O. et le coup 2 partait quand même (Pokemon mort qui frappe).
