@@ -9,9 +9,6 @@ export const GRID_SIZE = 12;
 export const CANVAS_WIDTH = 1280;
 export const CANVAS_HEIGHT = 720;
 
-export const BACKGROUND_COLOR = 0x1a1a2e;
-export const BACKGROUND_COLOR_CSS = "#1a1a2e";
-
 export const TILE_FILL_COLOR = 0x4a7c59;
 export const TILE_STROKE_COLOR = 0x2d5a3f;
 export const TILE_HIGHLIGHT_MOVE_COLOR = 0x4488cc;
@@ -42,15 +39,6 @@ export const POKEMON_SPRITE_SCALE = 1;
 export const POKEMON_SPRITE_GROUND_OFFSET_Y = -2;
 export const PORTRAIT_SIZE = 40;
 export const DAMAGE_FLASH_ALPHA = 0.3;
-
-export const TYPE_COLORS: Partial<Record<string, number>> = {
-  fire: 0xe85d3a,
-  water: 0x4a90d9,
-  grass: 0x5dba5d,
-  normal: 0xa0a0a0,
-  flying: 0x9db7f5,
-  poison: 0xa040a0,
-};
 
 export const TYPE_NAMES = [
   "normal",
@@ -295,15 +283,6 @@ export const BUTTON_BORDER_COLOR = 0x5577aa;
 export const BUTTON_HOVER_COLOR = 0x446688;
 export const BUTTON_DISABLED_COLOR = 0x333344;
 export const BUTTON_DISABLED_BORDER_COLOR = 0x444455;
-
-export const FONT_FAMILY = '"PokemonEmeraldPro", monospace';
-
-export const TEXT_COLOR_PRIMARY = "#ffffff";
-export const TEXT_COLOR_SECONDARY = "#cccccc";
-export const TEXT_COLOR_MUTED = "#aaaaaa";
-export const TEXT_COLOR_DISABLED = "#666666";
-export const TEXT_COLOR_TITLE = "#ffcc00";
-export const TEXT_COLOR_ACCENT = "#ffdd44";
 
 export const REPLAY_BUTTON_DISABLED_COLOR = "#555555";
 
