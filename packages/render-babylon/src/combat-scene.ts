@@ -658,16 +658,20 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     positionOnTile(entry);
   }
 
-  /** Lerp a billboard's world position over `durationMs` (optional jump arc), driven by the render loop. */
+  /** Lerp a billboard's world position over `durationMs` (optional jump arc), driven by the render loop.
+   *  `onMidpoint` (if given) fires once as the sprite crosses the tile boundary (progress ≥ 0.5) — used
+   *  to switch a flyer's flat-crossing pose from the source tile's mode to the destination tile's mode. */
   function tweenRootPosition(
     entry: BillboardEntry,
     from: { x: number; y: number; z: number },
     to: { x: number; y: number; z: number },
     durationMs: number,
     jump: boolean,
+    onMidpoint?: () => void,
   ): Promise<void> {
     return new Promise((resolve) => {
       let elapsed = 0;
+      let midpointFired = false;
       // Resolve on scene disposal too: `scene.dispose()` clears onBeforeRender
       // observers WITHOUT firing them, so a glide interrupted by Replay/Exit would
       // otherwise hang the awaiting AnimationQueue forever (and leak the billboard).
@@ -691,6 +695,10 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       renderObserver = scene.onBeforeRenderObservable.add(() => {
         elapsed += scene.getEngine().getDeltaTime();
         const progress = Math.min(1, elapsed / durationMs);
+        if (!midpointFired && progress >= 0.5) {
+          midpointFired = true;
+          onMidpoint?.();
+        }
         const verticalProgress = jump ? jumpVerticalProgress(progress, ascent) : progress;
         entry.billboard.root.position.set(
           from.x + (to.x - from.x) * progress,
@@ -749,13 +757,31 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         isFlying,
         terrainType,
       };
-      if (getFlyingAnimationMode(movementStep) === "glide") {
-        entry.billboard.playFirstAvailable(
-          FLYING_GLIDE_CANDIDATES,
-          selectMovementAnimation(movementStep),
-        );
+      const isJump = isJumpStep(movementStep);
+      // Flat crossing pose for the terrain the sprite is currently over: a flyer glides above a
+      // fly-over tile (no ground), walks on walkable ground. Used at the step start (source tile)
+      // then again at the tile boundary (destination) so the mode switches as the sprite arrives,
+      // not the instant it leaves — matches where the sprite physically is.
+      const playFlatCrossing = (terrain: string | undefined): void => {
+        if (isFlying && isFlyoverTerrain(terrain)) {
+          entry.billboard.playFirstAvailable(FLYING_GLIDE_CANDIDATES, "Walk");
+        } else {
+          entry.billboard.setAnimation("Walk");
+        }
+      };
+      if (isJump) {
+        // Cliff up/down (or a flyer clearing a gap): the height-based pose holds for the whole arc —
+        // Hop on the ground, glide for a flyer. Ascent/descent timing stays exactly as before.
+        if (getFlyingAnimationMode(movementStep) === "glide") {
+          entry.billboard.playFirstAvailable(
+            FLYING_GLIDE_CANDIDATES,
+            selectMovementAnimation(movementStep),
+          );
+        } else {
+          entry.billboard.setAnimation(selectMovementAnimation(movementStep));
+        }
       } else {
-        entry.billboard.setAnimation(selectMovementAnimation(movementStep));
+        playFlatCrossing(map.terrainAt(previous.x, previous.y));
       }
       const fromWorld = tileTopCenter(
         previous.x,
@@ -770,7 +796,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         fromWorld,
         toWorld,
         selectMovementDuration(movementStep),
-        isJumpStep(movementStep),
+        isJump,
+        isJump ? undefined : () => playFlatCrossing(terrainType),
       );
       previous = to;
       previousHeight = stepHeight;
