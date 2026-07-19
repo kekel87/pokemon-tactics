@@ -154,3 +154,6 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 159 | [IA compétente sur « Le Mur » (ring-out par recul) + passe heuristiques haut-impact + carte dispo](./159-ai-grouped-pass-and-le-mur.md) | done | 2026-07-14 |
 | 160 | [Passe IA groupée Phase 2 (toutes les familles restantes)](./160-ai-grouped-pass-phase-2.md) | done | 2026-07-14 |
 | 161 | [Passe IA Phase 3 (dernières familles différées)](./161-ai-phase-3.md) | done | 2026-07-14 |
+| 162 | [Content-fill : derniers moves apprenables Gen 1](./162-content-fill-derniers-moves-gen1.md) | done | 2026-07-18 |
+| 163 | [Content-fill : 7 derniers talents Gen 1](./163-content-fill-derniers-talents-gen1.md) | done | 2026-07-18 |
+| 164 | [Centralisation des design tokens (DOM ↔ 3D)](./164-design-tokens-centralization.md) | abandoned | 2026-07-19 |

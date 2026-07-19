@@ -51,6 +51,14 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Style dupliqué entre couche DOM et couche 3D Babylon — audit : quasi-totalité code mort (RÉSOLU 2026-07-19)
+
+- **Contexte (2026-05-19)** : deux sources de vérité suspectées pour les couleurs/police — DOM lit `packages/app/src/styles/tokens.css` (variables `--…`), le moteur 3D lit des constantes TypeScript en hexa `0x…` séparées (`render-babylon`, `view-core`/`render-ports`). Risque supposé : même valeur déclarée plusieurs fois, incohérence à chaque changement (ex fond `#1a1a2e` écrit 3× : `--blue-850` / `BACKGROUND_COLOR` / `BABYLON_CLEAR_COLOR`).
+- **Audit (2026-07-19, plan 164)** : la prétendue duplication était en quasi-totalité du **code mort** dans `packages/app/src/constants.ts` (`BACKGROUND_COLOR`, `BACKGROUND_COLOR_CSS`, `TYPE_COLORS`, `TEXT_COLOR_*`, `FONT_FAMILY` — 0 usage réel, en plus des constantes de positionnement déjà purgées le même jour `INFO_PANEL_*`/`ACTION_MENU_*`/`TIMELINE_*`/`BATTLE_LOG_*`/`DEPTH_BATTLE_LOG`). Les valeurs réellement vivantes et partagées étaient déjà en source unique dans `packages/view-core` + `packages/render-ports`.
+- **Résolution** : (a) purge du bloc mort de `packages/app/src/constants.ts` ; (b) test de parité `packages/app/src/styles/tokens-parity.test.ts` verrouillant le résidu vivant DOM↔TS (`FONT_FAMILY` ↔ `--font-family`, `TEAM_COLORS` ↔ `--team-N`) ; (c) codegen (génération automatique CSS↔TS) envisagé puis **abandonné** — sur-ingénierie pour ce qu'il reste à synchroniser. Plan `docs/plans/164-design-tokens-centralization.md` clos `abandoned` avec le verdict d'audit. Décision #680.
+
+---
+
 ## 51 pré-évolutions Gen 1 sans nom FR/EN — affichaient l'ID anglais (RÉSOLU 2026-07-19)
 
 - **Contexte (2026-06-29, human-testing plan 144)** : `packages/data/src/i18n/pokemon-names.{fr,en}.json` ne contenait que ~100 entrées (décompte initial approximatif). Les pré-évolutions ajoutées au plan 135 (ex: `clefairy` → devrait être Mélofée) n'avaient jamais reçu leur nom FR/EN, et s'affichaient par leur ID anglais brut (InfoPanel combat, Team Builder, sélection). Repéré en human-testing move-copy (Mélofée affichée « clefairy »).
