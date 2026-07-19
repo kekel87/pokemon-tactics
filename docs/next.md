@@ -64,7 +64,7 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 
 ### Idées en exploration (humain, rien d'engagé)
 
-- **Décorations voxel** — remplacer les décorations billboards (rochers/arbres) par des assets voxel. L'humain cherche des assets de son côté.
+- **Décorations voxel** — remplacer les décorations billboards (rochers/arbres) par des assets voxel. **Assets stagés** (2026-07-19) : `tree.glb`/`tall_grass.glb` dans `packages/app/public/assets/decorations/`, lifts mesurés (tree 31/24, tall_grass 3/24). **Reste à faire : câblage renderer** (chantier séparé, pas fait) — cf `docs/references/voxel-tile-placement.md` §Décorations.
 - **Éditeur de carte voxel in-app** — builder façon Goxel minimal (poser/remplacer/supprimer cube + asset), cartes « voxel based » avec tiles + déco + zones de spawn, vérificateur de conformité live. Abandon Tiled/`.tmj` → format maison JSON versionné. Note complète : `docs/ideas/voxel-map-editor.md`.
 
 ### Polish / dette technique (Jalon 3 rendu, non bloquants)

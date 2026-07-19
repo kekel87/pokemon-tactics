@@ -2,7 +2,7 @@ import { Direction } from "@pokemon-tactic/core";
 
 /**
  * Engine-agnostic layout data for the placement direction picker (plan 126 hoist).
- * Both renderers lay the same voxel `arrow.gltf` flat on the four neighbour tiles
+ * Both renderers lay the same voxel `arrow.glb` flat on the four neighbour tiles
  * and rotate it outward; the angles are pure and handedness-independent because
  * the grid→world axis convention is already normalised upstream (see the renderers'
  * `gridToWorldXZ`), so by the time we reach yaw both engines see the same world axes.
@@ -15,7 +15,7 @@ export const ALL_PLACEMENT_DIRECTIONS = [
   Direction.West,
 ] as const;
 
-export const ARROW_GLTF_URL = "assets/ui/arrow.gltf";
+export const ARROW_GLB_URL = "assets/ui/arrow.glb";
 
 /**
  * The voxel arrow is modelled upright in the XY plane (goxel Y-up, pointing +Y);

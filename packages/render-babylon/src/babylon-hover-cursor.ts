@@ -15,7 +15,7 @@ import {
 } from "./babylon-constants.js";
 
 /** Voxel cursor authored in voxigen.io, exported as glb (1 voxel per glTF unit). */
-const CURSOR_GLTF_URL = "assets/ui/cursor.glb";
+const CURSOR_GLB_URL = "assets/ui/cursor.glb";
 /** Idle bob (FFTA-style "alive" cursor): vertical oscillation, world units of travel + period. */
 const CURSOR_BOB_AMPLITUDE = 2.5 / BABYLON_SPRITE_PIXELS_PER_UNIT;
 const CURSOR_BOB_PERIOD_MS = 1000;
@@ -55,7 +55,7 @@ export class BabylonHoverCursor {
       this.root.position.y = this.bobBaseY + CURSOR_BOB_AMPLITUDE * Math.sin(phase);
     });
 
-    void loadAssetContainerAsync(CURSOR_GLTF_URL, scene)
+    void loadAssetContainerAsync(CURSOR_GLB_URL, scene)
       .then((container) => {
         // Teardown race: scene disposed while the glb loaded → drop and bail.
         if (this.disposed || scene.isDisposed) {
@@ -100,7 +100,7 @@ export class BabylonHoverCursor {
       })
       .catch((error) => {
         // biome-ignore lint/suspicious/noConsole: surfacing a fatal cursor-asset load failure
-        console.error("Failed to load hover cursor", CURSOR_GLTF_URL, error);
+        console.error("Failed to load hover cursor", CURSOR_GLB_URL, error);
       });
   }
 

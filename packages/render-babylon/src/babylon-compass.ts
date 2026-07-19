@@ -16,7 +16,7 @@ import {
 } from "./babylon-constants.js";
 
 /** Voxel compass authored in voxigen.io (assets-src/voxel/compass.vxb), exported as glb. */
-const COMPASS_GLTF_URL = "assets/ui/compass.glb";
+const COMPASS_GLB_URL = "assets/ui/compass.glb";
 /** Left inset as a fraction of the ortho extent (from the left edge). */
 const COMPASS_LEFT_FRACTION = 0.055;
 /** Top inset as a fraction of the ortho extent — small, so it rides at the active-portrait level. */
@@ -52,7 +52,7 @@ export class BabylonCompass {
       this.pinToCorner(camera);
     });
 
-    void loadAssetContainerAsync(COMPASS_GLTF_URL, scene)
+    void loadAssetContainerAsync(COMPASS_GLB_URL, scene)
       .then((container) => {
         if (this.disposed || scene.isDisposed) {
           container.dispose();
@@ -85,7 +85,7 @@ export class BabylonCompass {
       })
       .catch((error) => {
         // biome-ignore lint/suspicious/noConsole: surfacing a fatal compass-asset load failure
-        console.error("Failed to load compass", COMPASS_GLTF_URL, error);
+        console.error("Failed to load compass", COMPASS_GLB_URL, error);
       });
   }
 
