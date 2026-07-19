@@ -1134,3 +1134,27 @@ export const ANTICIPATION_REVEALS_ABILITY = {
   dummyPokemon: "snorlax",
   dummyAbility: "levitate",
 } as const;
+
+// Anim de repos d'un Volant selon le terrain d'atterrissage (§11 ; view-core `isFlyoverTerrain`).
+// Roucarnage (pidgeot, Vol) démarre ADJACENT à la tuile cible → déplacement 1-case déterministe
+// (les moves longue portée ratent souvent). Le dummy est parqué en (4,4), hors chemin. Map
+// `sandbox-flat` : (1,1)/(2,1) `normal`, (1,2) `ice`, (2,2) `swamp`. ⚠️ Au SPAWN le resting
+// terrain-aware n'est PAS encore appliqué (Idle par défaut) → chaque scénario PILOTE un déplacement
+// pour l'exercer, puis lit `spriteStates()`. Pas de jet (déplacement) → seed hérité, déterministe.
+
+/** Départ sur le sol (1,1) — cible la GLACE adjacente (1,2), un terrain fly-over → le Volant reste
+ *  en vol au repos (`restingAnimation` ∈ candidats glide, ici « FlyingIdle »). */
+export const FLYING_REST_FROM_LAND = {
+  seed: 12345,
+  pokemon: "pidgeot",
+  moves: ["gust"],
+  playerPosition: { x: 1, y: 1 },
+  dummyPosition: { x: 4, y: 4 },
+} as const;
+
+/** Départ sur la glace (1,2) — sert deux atterrissages 1-case : (1,1) `normal` (sol → se pose,
+ *  « Idle ») et (2,2) `swamp` (fly-over → reste en vol, « FlyingIdle »). */
+export const FLYING_REST_FROM_ICE = {
+  ...FLYING_REST_FROM_LAND,
+  playerPosition: { x: 1, y: 2 },
+} as const;

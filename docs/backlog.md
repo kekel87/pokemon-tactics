@@ -4,12 +4,14 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
-### Anim de vol déclenchée en fin de déplacement sur l'herbe (2026-07-03, human-testing Phazing)
-- Observé avec **Roucarnage** (`pidgeot`, Volant) en sandbox : son animation de vol se déclenche à la **fin d'un déplacement** quand la case d'arrivée est de l'herbe (herbe haute / tall-grass ?).
-- Attendu : un Volant garde son anim de déplacement normale (plane/marche) ; le vol ne devrait pas se rejouer à l'arrêt sur une tuile de terrain.
-- Piste : `selectMovementAnimation` / logique billboard volant dans `render-babylon` — probablement une interaction entre le fallback « volant sans glide » (mémoire `feedback_flying_animation_fallback`) et le type de terrain d'arrivée. Pré-existant (hors périmètre Phazing).
-- Priorité basse — cosmétique. À reproduire (confirmer si spécifique à l'herbe haute).
-- **Confirmé à nouveau 2026-07-07 (human-testing plan 152, Anti-Air)** avec **Dracaufeu/Dracolosse** (Volant) : en jeu normal, le Volant **atterrit prématurément** et ne **reste pas en animation de vol** au-dessus d'un terrain / obstacle. Même racine (anim de vol idle cassée selon la tuile survolée). Sans lien avec Anti-Air (le grounding smack-down est correct).
+### Anim Volant : transition de mode trop tôt en déplacement (reliquat) (2026-07-03/07, human-testing Phazing/Anti-Air)
+- **Repos terrain-aware + glace RÉSOLUS 2026-07-19** — cause racine identifiée : `refreshGravityGrounding` (battle-orchestrator) → `setGroundedByGravity(id, false)` (combat-scene) forçait `FlyingIdle` sur **tout** Volant aéroporté sans regarder le terrain après chaque `syncBoard`, écrasant le resting terrain-aware de `applyLandingRestingAnimation`.
+  - Fix A : `setGroundedByGravity` et `applyLandingRestingAnimation` terrain-aware via `isFlyoverTerrain` (`packages/view-core/src/movement-animation.ts`) — un Volant se **pose** (`Idle`) sur sol praticable (normal, herbe haute) et **plane** (`FlyingIdle`) sur terrain fly-over (eau, eau profonde, lave, magma, marécage, sable, neige, glace, obstacle). Gravité/Anti-Air force l'atterrissage partout.
+  - Fix B : `TerrainType.Ice` ajouté à `FLYING_OVERFLY_TERRAINS` — un Volant vole au-dessus de la glace (passage + repos) au lieu de marcher.
+  - Validé live (Roucarnage, hook e2e `spriteStates`) + tests unitaires (`movement-animation.test.ts`).
+- **Reliquat ouvert — transition « trop tôt » pendant un déplacement** : l'animation d'un pas (`moveBillboardAlongPath`, `getFlyingAnimationMode`) est choisie sur le terrain de **destination** et jouée pendant tout le tween → le Volant change de mode (vol↔marche) en **quittant** la case, pas en **arrivant**. Signalé par l'humain (« il s'envole/marche trop tôt »).
+  - Fix proposé (non appliqué) : baser l'anim de traversée d'un pas plat sur le terrain **source** (garder le mode courant jusqu'à l'arrivée) ; les sauts (cliff) gardent le glide height-based. À valider visuellement avec l'humain (compromis : demi-tuile d'anim « mauvais terrain » inévitable sans switch mi-tween).
+  - Priorité basse — cosmétique, comportement résiduel après le fix du 2026-07-19.
 
 ### Setters météo à l'entrée — pas de « guerre météo » (2026-06-21, plan 137)
 - `weatherAutoSetter` (Sécheresse) est appliqué séquentiellement à l'entrée : si plusieurs Pokemon posent une météo, **le dernier dans l'ordre d'itération écrase** (pas de résolution par vitesse/initiative).

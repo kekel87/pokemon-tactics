@@ -16,9 +16,9 @@ import type {
 } from "@pokemon-tactic/render-ports";
 import {
   FLYING_GLIDE_CANDIDATES,
-  FLYING_OVERFLY_TERRAINS,
   getFlyingAnimationMode,
   getResolvedAtlas,
+  isFlyoverTerrain,
   isJumpStep,
   loadTiledMap,
   type MovementStep,
@@ -237,6 +237,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
 
   interface BillboardEntry {
     billboard: DirectionalBillboard;
+    pokemonId: string;
     spawn: { x: number; y: number };
     /** Resolves once the atlas (and thus the real head offset) is loaded. */
     ready: Promise<void>;
@@ -263,7 +264,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       () => billboard.spriteTopOffsetY || BABYLON_SPRITE_HEAD_LIFT_FALLBACK,
       teamColor,
     );
-    return { billboard, spawn: entry.spawn, ready, overlay };
+    return { billboard, pokemonId: entry.pokemonId, spawn: entry.spawn, ready, overlay };
   }
 
   const billboards = pokemonSpawns.map(createBillboard);
@@ -473,6 +474,14 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       closeDirectionPicker();
       callbacks.onConfirm(current);
     },
+    () =>
+      billboards.map((entry) => ({
+        pokemonId: entry.pokemonId,
+        animation: entry.billboard.currentAnimation,
+        restingAnimation: entry.billboard.currentRestingAnimation,
+        tile: { x: entry.spawn.x, y: entry.spawn.y },
+        terrain: movementMap?.terrainAt(entry.spawn.x, entry.spawn.y),
+      })),
   );
 
   // Left press: pan while dragging, or click-select the tile if released without
@@ -778,8 +787,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     position: { x: number; y: number },
   ): void {
     const terrainType = movementMap?.terrainAt(position.x, position.y);
-    const landOnSpecialTerrain =
-      isFlying && terrainType !== undefined && FLYING_OVERFLY_TERRAINS.has(terrainType);
+    const landOnSpecialTerrain = isFlying && isFlyoverTerrain(terrainType);
     if (landOnSpecialTerrain) {
       const resting = entry.billboard.playFirstAvailable(FLYING_GLIDE_CANDIDATES, "Idle");
       entry.billboard.setRestingAnimation(resting);
@@ -926,11 +934,18 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
           }),
         setActive: (active) => created.billboard.setActive(active),
         setGroundedByGravity: (grounded) => {
-          // Land the flyer (stop flapping → ground idle) or let it float again. Only called for
-          // airborne mons (Vol/Lévitation), so ungrounding safely restores a flying idle.
-          const resting = grounded
-            ? created.billboard.playFirstAvailable(["Idle", "Walk"], "Walk")
-            : created.billboard.playFirstAvailable(["FlyingIdle", "Hover", "Idle"], "Idle");
+          // Land the flyer (stop flapping → ground idle) or let it float again. Runs on every
+          // board re-sync, so it's the final word on an airborne flyer's resting pose — it must be
+          // terrain-aware or it would clobber the landing pose: a flyer glides only over a fly-over
+          // tile (no ground to stand on); on walkable ground (Normal/TallGrass) it touches down.
+          // Gravité/Anti-Air (`grounded`) forces a landing everywhere.
+          const overFlyover = isFlyoverTerrain(
+            movementMap?.terrainAt(created.spawn.x, created.spawn.y),
+          );
+          const resting =
+            !grounded && overFlyover
+              ? created.billboard.playFirstAvailable(FLYING_GLIDE_CANDIDATES, "Idle")
+              : created.billboard.playFirstAvailable(["Idle", "Walk"], "Walk");
           created.billboard.setRestingAnimation(resting);
           created.billboard.setAnimation(resting);
         },

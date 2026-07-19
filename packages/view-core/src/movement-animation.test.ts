@@ -9,6 +9,7 @@ import {
   FLYING_GLIDE_ANIMATION_CANDIDATES,
   FLYING_OVERFLY_TERRAINS,
   getFlyingAnimationMode,
+  isFlyoverTerrain,
   isJumpStep,
   type MovementStep,
   selectMovementAnimation,
@@ -89,7 +90,7 @@ describe("getFlyingAnimationMode", () => {
     );
   });
 
-  it("returns glide on any special terrain tile (no take-off distinction)", () => {
+  it("returns glide on any fly-over terrain tile (no take-off distinction)", () => {
     for (const terrain of [
       TerrainType.Water,
       TerrainType.DeepWater,
@@ -98,21 +99,25 @@ describe("getFlyingAnimationMode", () => {
       TerrainType.Swamp,
       TerrainType.Sand,
       TerrainType.Snow,
+      TerrainType.Ice,
     ]) {
       expect(getFlyingAnimationMode(step({ isFlying: true, terrainType: terrain }))).toBe("glide");
     }
   });
 
-  it("returns null on flat normal terrain", () => {
+  it("returns null on walkable ground (normal, tall_grass)", () => {
     expect(getFlyingAnimationMode(step({ isFlying: true, terrainType: TerrainType.Normal }))).toBe(
       null,
     );
+    expect(
+      getFlyingAnimationMode(step({ isFlying: true, terrainType: TerrainType.TallGrass })),
+    ).toBe(null);
     expect(getFlyingAnimationMode(step({ isFlying: true }))).toBe(null);
   });
 });
 
 describe("FLYING_OVERFLY_TERRAINS", () => {
-  it("contains obstacle, water, lava, magma, swamp, sand, snow, deep_water", () => {
+  it("contains obstacle, water, lava, magma, swamp, sand, snow, deep_water, ice", () => {
     for (const terrain of [
       TerrainType.Obstacle,
       TerrainType.Water,
@@ -122,15 +127,40 @@ describe("FLYING_OVERFLY_TERRAINS", () => {
       TerrainType.Swamp,
       TerrainType.Sand,
       TerrainType.Snow,
+      TerrainType.Ice,
     ]) {
       expect(FLYING_OVERFLY_TERRAINS.has(terrain)).toBe(true);
     }
   });
 
-  it("does not contain normal, tall_grass, or ice", () => {
-    for (const terrain of [TerrainType.Normal, TerrainType.TallGrass, TerrainType.Ice]) {
+  it("does not contain the walkable-ground terrains (normal, tall_grass)", () => {
+    for (const terrain of [TerrainType.Normal, TerrainType.TallGrass]) {
       expect(FLYING_OVERFLY_TERRAINS.has(terrain)).toBe(false);
     }
+  });
+});
+
+describe("isFlyoverTerrain", () => {
+  it("is true on fly-over terrains (glide at rest), including ice", () => {
+    for (const terrain of [
+      TerrainType.Water,
+      TerrainType.DeepWater,
+      TerrainType.Lava,
+      TerrainType.Magma,
+      TerrainType.Swamp,
+      TerrainType.Sand,
+      TerrainType.Snow,
+      TerrainType.Ice,
+      TerrainType.Obstacle,
+    ]) {
+      expect(isFlyoverTerrain(terrain)).toBe(true);
+    }
+  });
+
+  it("is false on walkable ground (flyer touches down), and on an unknown tile", () => {
+    expect(isFlyoverTerrain(TerrainType.Normal)).toBe(false);
+    expect(isFlyoverTerrain(TerrainType.TallGrass)).toBe(false);
+    expect(isFlyoverTerrain(undefined)).toBe(false);
   });
 });
 

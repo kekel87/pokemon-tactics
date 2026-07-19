@@ -26,6 +26,23 @@ export interface E2eSceneApi {
     renderingGroupId: number;
     position: { x: number; y: number; z: number };
   } | null;
+  /** Per-sprite animation state (§11 flying-anim assertions): the animation playing now, the
+   *  resting animation it reverts to, the occupied tile and its terrain. Serializable primitives. */
+  spriteStates(): {
+    pokemonId: string;
+    animation: string;
+    restingAnimation: string;
+    tile: { x: number; y: number };
+    terrain: string | undefined;
+  }[];
+}
+
+export interface E2eSpriteState {
+  pokemonId: string;
+  animation: string;
+  restingAnimation: string;
+  tile: { x: number; y: number };
+  terrain: string | undefined;
 }
 
 export function installE2eSceneHook(
@@ -34,6 +51,7 @@ export function installE2eSceneHook(
   clickTile: (x: number, y: number) => void,
   hoverTile: (x: number, y: number) => void,
   confirmDirection: () => void,
+  spriteStates: () => E2eSpriteState[],
 ): void {
   // biome-ignore lint/style/useNamingConvention: VITE_E2E is an external Vite env var name.
   const e2eFlag = (import.meta as { env?: { VITE_E2E?: string } }).env?.VITE_E2E;
@@ -59,6 +77,7 @@ export function installE2eSceneHook(
         position: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
       };
     },
+    spriteStates,
   });
   (globalThis as { __ptE2e__?: E2eSceneApi }).__ptE2e__ = api;
 }

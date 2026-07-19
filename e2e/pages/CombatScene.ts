@@ -7,6 +7,16 @@ interface MeshInfo {
   position: { x: number; y: number; z: number };
 }
 
+/** Per-sprite animation/terrain snapshot from the read-only scene hook (§11 flying resting anim):
+ *  the animation playing now, the resting pose it reverts to, its occupied tile and that terrain. */
+interface SpriteState {
+  pokemonId: string;
+  animation: string;
+  restingAnimation: string;
+  tile: { x: number; y: number };
+  terrain: string | undefined;
+}
+
 /** Page Object for the Babylon combat scene — queries the read-only `__ptE2e__` scene-graph
  *  hook (semantic assertions: mesh count / group / position), never pixels. */
 export class CombatScene {
@@ -65,6 +75,28 @@ export class CombatScene {
     await this.page.getByTestId("move-item").first().click();
     await this.clickTile(x, y);
     await this.clickTile(x, y);
+  }
+
+  /** Drive a one-tile move end to end via the real DOM+canvas path: select the mover, open the move
+   *  sub-flow (« Deplacement »), pick the destination tile, then confirm the landing facing so the
+   *  glide tween runs. The landing resting animation is only applied once the tween settles — poll
+   *  {@link spriteStates} on `tile === destination` to read it (see §11 flying resting anim). */
+  async moveTo(fromX: number, fromY: number, toX: number, toY: number): Promise<void> {
+    await this.clickTile(fromX, fromY); // select the active mover
+    await this.page.getByRole("button", { name: "Deplacement", exact: true }).click();
+    await this.clickTile(toX, toY); // pick destination → opens the landing-facing picker
+    await this.confirmDirection(); // confirm facing → runs the glide tween
+  }
+
+  /** Read-only per-sprite animation/terrain state (`__ptE2e__.spriteStates`). Serializable primitives
+   *  only — the resting pose settles at the END of a move tween, so drive a move then poll this. */
+  spriteStates(): Promise<SpriteState[]> {
+    return this.page.evaluate(
+      () =>
+        (
+          globalThis as { __ptE2e__?: { spriteStates(): SpriteState[] } }
+        ).__ptE2e__?.spriteStates() ?? [],
+    );
   }
 
   /** End the active turn without acting: « Attendre » → confirm facing. Drives end-of-turn effects
