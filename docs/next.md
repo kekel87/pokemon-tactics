@@ -98,6 +98,7 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 
 ## Fait récemment
 
+- 2026-07-19 — Bug résolu : 51 pré-évolutions Gen 1 sans nom FR/EN → noms officiels ajoutés aux 2 fichiers i18n (source reference/pokemon.json). Roster i18n complet (152 clés).
 - 2026-07-18 — **Plan 163 — Content-fill : 7 derniers talents Gen 1 (107 → 114, pool talents Gen 1 complet).** Récolte, Délestage, Piège Sable, Gaz Inhibiteur, Fouille, Prédiction, Anticipation. Décisions #673–#676.
 - 2026-07-18 — **Plan 162 — Content-fill : 9 derniers moves apprenables Gen 1 (503 → 512, pool moves Gen 1 essentiellement complet).** Relâche/Avale (upgrade Stockage en vrai compteur de paliers), Prio-Parade, Piège de Venin, Rayon Lune/Aurore, Partage Garde, Métalaser, Grêle. Décisions #666–#672.
 - 2026-07-14 — **Plan 161 — Passe IA Phase 3, clôt le chantier IA (159→160→161).** Stat/state manip, Buée Noire, Bain de Smog, Recyclage, Calcination, Attraction, Barrage/Regard Noir, Cognobidon valorisés dans `action-scorer.ts`. Toutes les familles d'heuristiques IA de la roadmap traitées.

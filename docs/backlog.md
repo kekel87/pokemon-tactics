@@ -11,14 +11,6 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - Priorité basse — cosmétique. À reproduire (confirmer si spécifique à l'herbe haute).
 - **Confirmé à nouveau 2026-07-07 (human-testing plan 152, Anti-Air)** avec **Dracaufeu/Dracolosse** (Volant) : en jeu normal, le Volant **atterrit prématurément** et ne **reste pas en animation de vol** au-dessus d'un terrain / obstacle. Même racine (anim de vol idle cassée selon la tuile survolée). Sans lien avec Anti-Air (le grounding smack-down est correct).
 
-
-### ~70 pré-évolutions Gen 1 sans nom FR/EN — affichent l'ID anglais (2026-06-29, human-testing plan 144)
-- `packages/data/src/i18n/pokemon-names.{fr,en}.json` ne contient que **~100 entrées** : les ~70 pré-évolutions ajoutées au plan 135 (ex: `clefairy` → devrait être Mélofée) **n'ont jamais reçu leur nom FR/EN**.
-- Conséquence : ces Pokemon s'affichent par leur **ID anglais** (`clefairy`, etc.) partout (InfoPanel combat, Team Builder, sélection). Repéré en human-testing move-copy (Mélofée affiché « clefairy »).
-- Ce n'est PAS un bug move-copy — gap de données du plan 135. Fix : compléter les 2 fichiers `pokemon-names.*.json` pour les 151 (ou régénérer via la source data). Vérifier aussi qu'aucune autre table i18n (portraits/sprites) ne suppose la liste réduite.
-- Priorité moyenne — visible en jeu normal pour tout joueur utilisant une pré-évo. À traiter via `data-miner` / `doc-keeper`.
-
-
 ### Setters météo à l'entrée — pas de « guerre météo » (2026-06-21, plan 137)
 - `weatherAutoSetter` (Sécheresse) est appliqué séquentiellement à l'entrée : si plusieurs Pokemon posent une météo, **le dernier dans l'ordre d'itération écrase** (pas de résolution par vitesse/initiative).
 - **Non-problème en Gen 1** : seul Sécheresse (Soleil) existe comme talent météo-à-l'entrée du roster 151 (Drizzle/Crachin Sable/Alerte Neige = Gen 2+). Conflit impossible (Soleil vs Soleil = idempotent).
