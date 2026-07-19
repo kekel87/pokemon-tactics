@@ -4,17 +4,6 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
-### Setters météo à l'entrée — pas de « guerre météo » (2026-06-21, plan 137)
-- `weatherAutoSetter` (Sécheresse) est appliqué séquentiellement à l'entrée : si plusieurs Pokemon posent une météo, **le dernier dans l'ordre d'itération écrase** (pas de résolution par vitesse/initiative).
-- **Non-problème en Gen 1** : seul Sécheresse (Soleil) existe comme talent météo-à-l'entrée du roster 151 (Drizzle/Crachin Sable/Alerte Neige = Gen 2+). Conflit impossible (Soleil vs Soleil = idempotent).
-- À traiter **uniquement** quand on ajoutera des setters opposés (Gen 2+) : brancher `applyWeatherWar` (déjà existant) dans `triggerBattleStart` pour départager. Émet aussi 2 events `WeatherChanged` cosmétiques si 2 setters.
-- Priorité basse — dormant tant que roster = Gen 1.
-
-### Orbe de vie qui « tick » plusieurs fois sur un move de zone (2026-06-19, playtest plan 133)
-- Observé pendant le playtest Delayed/countdown : sur un move de zone, l'orbe de PV semble se décrémenter en plusieurs paliers. Non reproduit/diagnostiqué (move exact + un-orbe-multi-paliers vs plusieurs-orbes non confirmés par l'humain).
-- Piste : `battle-orchestrator.applyEvents` — chemin multi-hit (`hitsByTarget > 1` → step pacé) vs AoE multi-cibles (1 `DamageDealt` par cible). Vérifier qu'un move de zone mono-coup ne déclenche pas le stepping multi-hit, et que le `syncBoard` final ne re-anime pas l'orbe.
-- Probablement pré-existant (hors plan 133 : le chemin dégâts de zone n'a pas été touché). À reproduire et trancher (bug vs comportement multi-coups normal).
-
 ### Toile Gluante absente du roster Gen 1 — invisible en Team Builder (2026-06-19, plan 131)
 - `sticky-web` n'est apprise par aucun Pokemon du roster Gen 1 actuel (learnset vérification data-miner plan 131).
 - Conséquence : Toile Gluante n'apparaît dans aucun movepool de Team Builder — le joueur ne peut pas la poser sans passer par le sandbox (`pnpm dev:sandbox '{...}'`).
@@ -109,6 +98,12 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - Piste : dériver min/max radius (et target) du bounding box de la map au boot de la scène.
 
 ## Tâches futures (hors backlog actif)
+
+### Guerre météo — setters opposés à l'entrée (Gen 2+) (2026-06-21, plan 137 ; reclassé 2026-07-19)
+- `weatherAutoSetter` appliqué séquentiellement à l'entrée : si plusieurs Pokemon posent une météo, le dernier dans l'ordre d'itération écrase (pas de résolution vitesse/initiative).
+- **Inatteignable en Gen 1** : seul Sécheresse (Soleil) existe (Crachin/Crachin Sable/Alerte Neige = Gen 2+). Soleil vs Soleil = idempotent, conflit impossible → non testable aujourd'hui.
+- À traiter **avec l'arrivée de setters opposés (Gen 2+)** : brancher `applyWeatherWar` (déjà existant) dans `triggerBattleStart` pour départager. Émet 2 events `WeatherChanged` cosmétiques si 2 setters.
+- Sorti des bugs actifs (dormant, code spéculatif sinon).
 
 ### Animation Faint absente pour la majorité du roster (2026-06-18, observé lors du fix anim KO)
 - Seulement ~21 des Pokemon jouables du roster ont une animation `Faint` dans leur atlas (abra, bulbasaur, charizard, charmander, dummy, eevee, flareon, gengar, jigglypuff, jolteon, machop, meowth, mew, mewtwo, ninetales, pidgey, pikachu, raichu, sandshrew, sandslash, et quelques autres).

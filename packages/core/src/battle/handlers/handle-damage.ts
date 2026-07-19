@@ -130,6 +130,7 @@ function dealSingleHit(
   context: EffectContext,
   target: PokemonInstance,
   defenderTypes: PokemonType[],
+  moveDamageAccumulator: { total: number },
   hitPowerOverride?: number,
 ): BattleEvent[] {
   const events: BattleEvent[] = [];
@@ -651,15 +652,9 @@ function dealSingleHit(
     }
   }
 
+  // Accumulate this hit's damage; the attacker's post-move item hook fires once in handleDamage.
   if (actualDamage > 0) {
-    if (attackerHeldItem?.onAfterMoveDamageDealt) {
-      const itemEvents = attackerHeldItem.onAfterMoveDamageDealt({
-        attacker: context.attacker,
-        move: context.move,
-        damageDealt: actualDamage,
-      });
-      events.push(...itemEvents);
-    }
+    moveDamageAccumulator.total += actualDamage;
   }
 
   return events;
@@ -680,6 +675,7 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
     context.itemRegistry?.getForPokemon(context.attacker)?.maximizesMultiHit === true;
   const hitCount = beatUpPowers?.length ?? getHitCount(effect, context.random, skillLink);
   const isMultiHit = hitCount > 1;
+  const moveDamageAccumulator = { total: 0 };
 
   for (const target of context.targets) {
     // Conditional damage branch (pollen-puff): only damage when the predicate holds (e.g. the
@@ -706,7 +702,13 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
       }
 
       const hitPower = beatUpPowers?.[hit] ?? effect.escalatingHitPower?.[hit];
-      const hitEvents = dealSingleHit(context, target, defenderTypes, hitPower);
+      const hitEvents = dealSingleHit(
+        context,
+        target,
+        defenderTypes,
+        moveDamageAccumulator,
+        hitPower,
+      );
       events.push(...hitEvents);
       actualHits++;
 
@@ -723,6 +725,21 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
         totalHits: actualHits,
       });
     }
+  }
+
+  // Post-move attacker item (Orbe Vie recoil, Grelot Coque soin, Joyau Normal consommé) fires once
+  // for the whole move on the accumulated damage across every hit and target — never per hit (canon).
+  const attackerItem = isHeldItemSuppressed(context.state, context.attacker)
+    ? undefined
+    : context.itemRegistry?.getForPokemon(context.attacker);
+  if (moveDamageAccumulator.total > 0 && attackerItem?.onAfterMoveDamageDealt) {
+    events.push(
+      ...attackerItem.onAfterMoveDamageDealt({
+        attacker: context.attacker,
+        move: context.move,
+        damageDealt: moveDamageAccumulator.total,
+      }),
+    );
   }
 
   return events;

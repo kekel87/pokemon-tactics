@@ -100,6 +100,44 @@ describe("Life Orb", () => {
     expect(attackerState?.currentHp).toBeLessThan(hpBefore);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.HeldItemActivated);
   });
+
+  it("Given attaquant avec Orbe-Vie, When move multi-coups (Double Pied ×2), Then recoil UNE seule fois", () => {
+    const p1 = MockPokemon.fresh(MockPokemon.squirtle, {
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      orientation: Direction.East,
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+      heldItemId: HeldItemId.LifeOrb,
+      moveIds: ["double-kick"],
+    });
+    const p2 = MockPokemon.fresh(MockPokemon.charmander, {
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      orientation: Direction.West,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+      combatStats: { hp: 300, attack: 5, defense: 200, spAttack: 5, spDefense: 200, speed: 10 },
+      currentHp: 300,
+      maxHp: 300,
+    });
+    const { engine } = buildItemTestEngine([p1, p2]);
+    const recoil = Math.max(1, Math.floor(p1.maxHp / 10));
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: p1.id,
+      moveId: "double-kick",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.events.map((e) => e.type)).toContain(BattleEventType.MultiHitComplete);
+    const lifeOrbActivations = result.events.filter(
+      (e) => e.type === BattleEventType.HeldItemActivated && e.itemId === HeldItemId.LifeOrb,
+    );
+    expect(lifeOrbActivations).toHaveLength(1);
+    const attackerState = engine.getGameState(PlayerId.Player1).pokemon.get(p1.id);
+    expect(attackerState?.currentHp).toBe(p1.maxHp - recoil);
+  });
 });
 
 describe("Focus Sash", () => {
