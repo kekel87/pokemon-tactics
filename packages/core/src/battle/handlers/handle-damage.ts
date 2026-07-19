@@ -694,6 +694,11 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
       if (target.currentHp <= 0) {
         break;
       }
+      // Attacker fainted mid-move from per-hit contact recoil (Casque Brut / Peau Dure) — a KO'd
+      // Pokemon deals no further hits (canon: the multi-hit move ends when the user faints).
+      if (context.attacker.currentHp <= 0) {
+        break;
+      }
 
       if (hit > 0 && context.move.perHitAccuracy === true) {
         if (context.random() * 100 >= context.move.accuracy) {
