@@ -802,7 +802,7 @@ Source canonique : `packages/renderer/src/babylon/babylon-constants.ts`.
 
 #### Curseur FFTA hover (chantier Post-Babylon d — révise Jalon 3c)
 
-Le curseur de survol est désormais un **mesh voxel 3D unique** (`cursor.glb`, modélisé sur voxigen.io), chargé via GLTF. Il tourne avec la caméra (vrai objet 3D), est opaque (`hasVertexAlpha=false`), et n'est **pas configurable** (aucun switch de variantes — décision #514). La mécanique de switch (touche H, `HOVER_CURSOR_OPTIONS`, 4 PNG) est retirée. Source éditable : `assets-src/voxel/cursor.vxb`.
+Le curseur de survol est désormais un **mesh voxel 3D unique** (`cursor.glb`, modélisé à l'origine sur voxigen.io), chargé via GLTF. Il tourne avec la caméra (vrai objet 3D), est opaque (`hasVertexAlpha=false`), et n'est **pas configurable** (aucun switch de variantes — décision #514). La mécanique de switch (touche H, `HOVER_CURSOR_OPTIONS`, 4 PNG) est retirée. Source éditable (pipeline Goxel, décision #681) : `assets-src/voxel/goxel/cursor.gox` — ancienne source Voxigen archivée en `assets-src/voxel/voxigen/cursor.vxb`.
 
 | Constante | Valeur | Rôle |
 |-----------|--------|------|

@@ -8,7 +8,7 @@ import type { Scene } from "@babylonjs/core/scene";
 import type { Direction } from "@pokemon-tactic/core";
 import {
   ALL_PLACEMENT_DIRECTIONS,
-  ARROW_GLTF_URL,
+  ARROW_GLB_URL,
   ARROW_LAY_FLAT_X,
   ARROW_ROTATION_Y,
   ARROW_YAW_OFFSET,
@@ -42,7 +42,7 @@ export interface DirectionArrowsPicker {
 
 /**
  * Placement direction picker rendered IN the Babylon scene (plan 120, décision
- * #487): a voxel arrow (`arrow.gltf`) laid flat on each of the four neighbour
+ * #487): a voxel arrow (`arrow.glb`) laid flat on each of the four neighbour
  * tiles, rotated to point outward from the Pokemon being placed. Being real scene
  * meshes, they follow the camera rotation (←/→), zoom and window resize for free.
  * Interaction (hover preview, click confirm, Escape cancel) is routed by the
@@ -155,7 +155,7 @@ export function createDirectionArrows(scene: Scene): DirectionArrowsPicker {
     return mesh;
   }
 
-  void loadAssetContainerAsync(ARROW_GLTF_URL, scene)
+  void loadAssetContainerAsync(ARROW_GLB_URL, scene)
     .then((container) => {
       // Teardown race: if the combat scene was disposed while the glTF loaded, drop the
       // container and bail (touching a disposed scene throws).
@@ -196,7 +196,7 @@ export function createDirectionArrows(scene: Scene): DirectionArrowsPicker {
     })
     .catch((error) => {
       // biome-ignore lint/suspicious/noConsole: surfacing a fatal picker-asset load failure
-      console.error("Failed to load direction arrow", ARROW_GLTF_URL, error);
+      console.error("Failed to load direction arrow", ARROW_GLB_URL, error);
     });
 
   return {
