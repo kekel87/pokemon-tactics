@@ -4,12 +4,7 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
-### Double couche UI : DOM overlay vs HUD 3D Babylon — double système de style (2026-05-19, MAJ 2026-07-19)
-- **Correctif d'état** : Phaser est 100% supprimé (0 import). Le combat n'est plus "canvas Phaser" ; menu d'action / info-panel / timeline / journal / placement roster sont désormais du **DOM**.
-- Répartition réelle : **chrome DOM en overlay** (`packages/ui-dom/` : `battle-chrome.ts`, `info-panel.ts`, `turn-timeline.ts`, `battle-log.ts`, `placement-roster.ts`, `weather-hud.ts`) + écrans DOM (`packages/app/src/ui/` : Team Builder, Team Select, menus). **HUD ancré au monde en 3D Babylon** via `DynamicTexture` (pas `@babylonjs/gui`) : barres HP, champ pills, textes flottants, highlights tuiles/curseur/direction/compas (`packages/render-babylon/src/babylon-*.ts` + peintres `packages/render-canvas2d/`).
-- **Dette réelle restante = double source de style** : DOM unifié sur `packages/app/src/styles/tokens.css` (couleurs `--…`, types, `@font-face`), consommé aussi par `ui-dom`. Moteur sur constantes TS `0x…` (`render-babylon` + `view-core`/`render-ports`). Recouvrement non synchronisé : `#1a1a2e` déclaré 3× (`--blue-850` / `BACKGROUND_COLOR` / `BABYLON_CLEAR_COLOR`), police + couleurs de types + couleurs texte dupliquées CSS-hex ↔ `0x`-hex.
-- **Résidus morts** : `packages/app/src/constants.ts` garde `INFO_PANEL_*`, `ACTION_MENU_*`, `TIMELINE_*`, `BATTLE_LOG_*` (ère canvas), importés nulle part → à supprimer.
-- Priorité basse. Court terme : purger les résidus morts + centraliser les tokens partagés (une seule source couleurs/police exposée aux 2 couches).
+_Aucun bug actif._ (2 items reclassés + 2 vrais bugs corrigés le 2026-07-19 → `docs/backlog-archive.md`.)
 
 <!-- Le Mur — réintégrer + fixer IA : RÉSOLU plan 159 (2026-07-14, publié v2026.7.2). Carte dispo au menu + IA maîtrise ring-out/prise de hauteur. Détails → docs/backlog-archive.md. -->
 
@@ -22,6 +17,18 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 ## Dette technique
 
 <!-- Résolu 2026-06-12 (commit 30be7ee) : actions/checkout@v5, actions/setup-node@v5, pnpm/action-setup@v4, deploy-pages bumpés node24 dans ci.yml / deploy.yml / itch-deploy.yml. butler-to-itch bloqué à v1.3.0 (pas de release node24 dispo) — surveillé dans docs/next.md. -->
+
+### Style dupliqué entre couche DOM et couche 3D Babylon + code mort ère Phaser (2026-05-19, MAJ 2026-07-19)
+- **Ce n'est pas un bug** : l'UI a deux couches de rendu, ce qui est voulu.
+  - **Chrome en DOM/HTML** (overlay) : menu d'action, panneau d'info, timeline, journal de combat, placement roster, HUD météo (`packages/ui-dom/`) + tous les écrans hors-combat (Team Builder, sélection d'équipe, menus) dans `packages/app/src/ui/`.
+  - **HUD ancré au monde en 3D Babylon** (peint sur `DynamicTexture`, pas `@babylonjs/gui`) : barres de PV, pastilles champion, textes de dégâts flottants, surbrillances tuiles/curseur/direction/boussole (`packages/render-babylon/src/babylon-*.ts` + peintres `packages/render-canvas2d/`).
+  - *Périmé dans l'ancienne entrée* : plus aucun Phaser (0 import) ; le combat n'est plus du "canvas Phaser".
+- **La vraie dette = deux sources de vérité pour les couleurs/police, non synchronisées** :
+  - DOM lit `packages/app/src/styles/tokens.css` (variables `--…`, couleurs de types, `@font-face`), consommé aussi par `ui-dom`.
+  - Le moteur 3D lit des constantes TypeScript en hexa `0x…` séparées (`render-babylon`, `view-core`/`render-ports`).
+  - Même valeur déclarée plusieurs fois → risque d'incohérence à chaque changement. Ex : fond `#1a1a2e` écrit **3×** (`--blue-850` / `BACKGROUND_COLOR` / `BABYLON_CLEAR_COLOR`) ; police, couleurs de types, couleurs de texte dupliquées CSS ↔ `0x`.
+- **Code mort à purger** : `packages/app/src/constants.ts` conserve des constantes de positionnement de l'ère canvas (`INFO_PANEL_*`, `ACTION_MENU_*`, `TIMELINE_*`, `BATTLE_LOG_*`) importées nulle part.
+- **Fix** (priorité basse, maintenance) : (1) supprimer le code mort ; (2) centraliser les tokens partagés en une source unique (couleurs/police) exposée aux deux couches.
 
 ### Tag tooltip `superVsWater` hardcodé pour `typeEffectivenessOverride` (2026-06-05, plan 113)
 - **Contexte** : `MoveTooltip.ts` affiche le tag `moveTooltip.tag.superVsWater` ("×2 sur les types Eau") pour tout move ayant `typeEffectivenessOverride !== undefined`. Le champ est générique (`{ against: PokemonType; multiplier: number }`) mais le tag est spécifique à l'Eau.
