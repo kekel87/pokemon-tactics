@@ -93,6 +93,11 @@ export interface HeldItemHandler {
   isBerry?: boolean;
   onDamageModify?: (context: DamageModifyContext) => number;
   onCritStageBoost?: (context: CritStageContext) => number;
+  /**
+   * Fires ONCE per move on the total damage dealt across every hit and target (not per hit).
+   * `damageDealt` is the accumulated total. Used by Orbe Vie (recoil), Grelot Coque (soin),
+   * Joyau Normal (consommé). For per-hit contact reactions use `onAfterDamageReceived` instead.
+   */
   onAfterMoveDamageDealt?: (context: AfterMoveDamageDealtContext) => BattleEvent[];
   onAfterDamageReceived?: (context: AfterItemDamageContext) => ItemReactionResult;
   onEndTurn?: (context: ItemEndTurnContext) => BattleEvent[];

@@ -528,6 +528,21 @@ export const LOADED_DICE_MAX_HITS = {
   dummyHp: 999,
 } as const;
 
+/** Orbe Vie (`life-orb`) — recul 1/10 PV max au PORTEUR, UNE SEULE FOIS par attaque, même sur un move
+ *  multi-coups (fix : le hook attaquant `onAfterMoveDamageDealt` est appelé une fois en fin de
+ *  `handleDamage` sur le TOTAL des dégâts, plus par coup). Le joueur Florizarre tient l'Orbe Vie
+ *  (`heldItem`) et lance Balle Graine (`bullet-seed`, 2-5 coups, 100 % précision, force-pool via
+ *  `moves`) sur le dummy adjacent endurant (`dummyHp: 999`, survit à la volée) → l'Orbe s'annonce
+ *  EXACTEMENT UNE fois : « Orbe Vie de <X> s'active ! » à `toHaveCount(1)` quel que soit le nombre de
+ *  coups. Le seed hérité de DUEL + précision 100 % rendent le cast déterministe ; Florizarre survit au
+ *  recul unique. (À distinguer du Casque Brut, canon recoil PAR coup — cf mechanics-items.spec.) */
+export const LIFE_ORB_MULTI_HIT_RECOIL = {
+  ...DUEL,
+  moves: ["bullet-seed"],
+  heldItem: "life-orb",
+  dummyHp: 999,
+} as const;
+
 /** Talent Glu (`sticky-hold`, D12) — bloque tout retrait/vol/échange d'objet du porteur. Le joueur
  *  Florizarre lance Sabotage (`knock-off`) sur le dummy Grotadmorv (muk, slot Glu via `dummyAbility`)
  *  porteur des Restes (`dummyHeldItem`) adjacent → le retrait est bloqué : « Glu de <X> s'active ! »

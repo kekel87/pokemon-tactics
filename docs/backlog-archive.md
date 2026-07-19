@@ -15,6 +15,15 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Orbe de vie qui « tick » plusieurs fois sur un move de zone — RÉSOLU (2026-07-19)
+
+- **Contexte (2026-06-19, playtest plan 133)** : sur un move de zone/multi-coup, l'orbe de PV (`life-orb`) semblait se décrémenter en plusieurs paliers au lieu d'un seul.
+- **Cause racine** : le hook item attaquant `onAfterMoveDamageDealt` (recul Orbe Vie, soin Grelot Coque, consommation Joyau Normal) était appelé **dans** `dealSingleHit` — donc 1× par coup infligé. Sur un move multi-coups (ex Double Pied ×2), le recul Orbe Vie s'appliquait 2× au lieu d'1×.
+- **Fix** : `packages/core/src/battle/handlers/handle-damage.ts` — les dégâts sont désormais accumulés sur tous les coups/cibles de l'action, et le hook `onAfterMoveDamageDealt` n'est appelé **qu'une fois** en fin de `handleDamage`, sur le total. Test d'intégration ajouté (recul Orbe Vie 1×/move total, y compris multi-cibles).
+- **Casque Brut** (`rocky-helmet`, recul contact par coup, `onAfterDamageReceived`) **non touché** — reste par coup, canon correct (chaque coup de contact reçu déclenche son propre recul).
+
+---
+
 ## Anim Volant : transition de mode en déplacement — RÉSOLU (2026-07-19)
 
 - **Contexte (2026-07-03/07, human-testing Phazing/Anti-Air)** : trois sous-bugs distincts sur l'animation vol↔marche d'un Pokemon Volant.

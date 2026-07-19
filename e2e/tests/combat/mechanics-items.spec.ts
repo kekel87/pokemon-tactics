@@ -1,6 +1,7 @@
 import { expect, test } from "../../fixtures";
 import {
   DUEL,
+  LIFE_ORB_MULTI_HIT_RECOIL,
   METRONOME_BASELINE_NO_ITEM,
   METRONOME_BOOST,
   RED_CARD_EJECTS_ATTACKER,
@@ -254,4 +255,24 @@ test("§5.20 Carton Rouge : renvoie l'attaquant sur sa zone de spawn puis se con
   await expect(log(page, /Carton Rouge de .* s'active/)).toBeAttached({ timeout: 10_000 });
   await expect(log(page, /se téléporte/)).toBeAttached();
   await expect(log(page, /a utilisé son Carton Rouge/)).toBeAttached();
+});
+
+// Orbe Vie (life-orb) — recul 1/10 PV max au PORTEUR, UNE SEULE fois par attaque, même sur un move
+// multi-coups (régression : avant le fix, le recul frappait PAR coup → l'Orbe s'annonçait 2 à 5 fois
+// sur Balle Graine). Le hook attaquant `onAfterMoveDamageDealt` (émetteur du HeldItemActivated) est
+// désormais appelé une seule fois en fin de `handleDamage` sur le total des dégâts. Signal observable
+// net : le NOMBRE de lignes « Orbe Vie de <X> s'active ! » dans le journal. Le joueur Florizarre tient
+// l'Orbe (`heldItem`) et lance Balle Graine (2-5 coups, 100 % précision) sur le dummy endurant
+// (`dummyHp: 999`, survit à la volée) → l'Orbe s'annonce EXACTEMENT une fois, quel que soit le nombre
+// de coups tiré par le seed. `toHaveCount(1)` distingue le fix (1) de la régression (≥ 2). Le montant
+// chiffré du recul (HP) et le fire-once sur move mono-coup sont couverts integration core
+// (`held-items.integration.test.ts` : « recoil UNE seule fois »). À distinguer du Casque Brut, canon
+// recoil PAR coup — cf témoins Pare-Effet/Gant de Boxe ci-dessus.
+test("§5.20 Orbe Vie : recul journalisé UNE seule fois sur un move multi-coups (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(LIFE_ORB_MULTI_HIT_RECOIL);
+  await scene.castFirstMove(2, 2); // Balle Graine (multi-coups) sur le dummy adjacent endurant
+  await expect(log(page, /Orbe Vie de .* s'active/)).toHaveCount(1, { timeout: 10_000 });
 });
