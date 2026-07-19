@@ -4,6 +4,7 @@ import {
   LIFE_ORB_MULTI_HIT_RECOIL,
   METRONOME_BASELINE_NO_ITEM,
   METRONOME_BOOST,
+  PHANTOM_HIT_ROCKY_HELMET,
   RED_CARD_EJECTS_ATTACKER,
 } from "../../fixtures/sandbox-configs";
 
@@ -275,4 +276,27 @@ test("§5.20 Orbe Vie : recul journalisé UNE seule fois sur un move multi-coups
   const scene = await bootSandbox(LIFE_ORB_MULTI_HIT_RECOIL);
   await scene.castFirstMove(2, 2); // Balle Graine (multi-coups) sur le dummy adjacent endurant
   await expect(log(page, /Orbe Vie de .* s'active/)).toHaveCount(1, { timeout: 10_000 });
+});
+
+// Coup fantôme / Casque Brut (rocky-helmet) — RÉGRESSION du recul de contact PAR coup sur un move
+// multi-coups (à distinguer de l'Orbe Vie ci-dessus, recul UNE fois pour tout le move). Un attaquant à
+// très bas PV lance Double Pied (2 coups FIXES, contact, 100 %) sur un porteur de Casque Brut : le
+// recul du Casque (1/6 PV max) le met K.O. dès le coup 1. Avant le fix, la boucle multi-coups
+// continuait au coup 2 (un mort frappait encore → 2 coups sur la cible) ; après (`if
+// attacker.currentHp <= 0 break` en tête de boucle, handle-damage), elle s'arrête au 1er coup. Signal
+// observable net et contamination-proof (immunisé des ticks de terrain de fin de tour, contrairement
+// au comptage de « perd N PV ») : le récap multi-coups « Touché N fois ! » encode EXACTEMENT le nombre
+// de coups → « Touché 1 fois ! » (le fix) et JAMAIS « Touché 2 fois ! » (la régression). On confirme
+// aussi la précondition du bug par « Florizarre est K.O. ! » (le recul du Casque a bien tué l'attaquant
+// dès le 1er coup). Le montant chiffré et le fire-once sont couverts integration core
+// (held-items.integration.test.ts : « pas de coup fantôme »).
+test("§5.20 Casque Brut : pas de coup fantôme, la volée multi-coups s'arrête au K.O. de l'attaquant (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(PHANTOM_HIT_ROCKY_HELMET);
+  await scene.castFirstMove(2, 2); // Double Pied (contact ×2) sur le dummy au Casque Brut
+  await expect(log(page, /Florizarre est K\.O\./)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /Touché 1 fois/)).toBeAttached();
+  await expect(log(page, /Touché 2 fois/)).not.toBeAttached();
 });

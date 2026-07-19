@@ -207,6 +207,45 @@ describe("Rocky Helmet", () => {
     expect(attackerState?.currentHp).toBeLessThan(attackerHpBefore);
     expect(result.events.map((e) => e.type)).toContain(BattleEventType.HeldItemActivated);
   });
+
+  it("Given attaquant bas PV + move contact multi-coups vs Casque Brut, When recul coup 1 le met KO, Then pas de coup fantôme", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.squirtle, {
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      orientation: Direction.East,
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+      moveIds: ["double-kick"],
+      combatStats: { hp: 60, attack: 80, defense: 50, spAttack: 50, spDefense: 50, speed: 100 },
+      currentHp: 1,
+      maxHp: 60,
+    });
+    const target = MockPokemon.fresh(MockPokemon.charmander, {
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      orientation: Direction.West,
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+      heldItemId: HeldItemId.RockyHelmet,
+      combatStats: { hp: 300, attack: 5, defense: 200, spAttack: 5, spDefense: 200, speed: 10 },
+      currentHp: 300,
+      maxHp: 300,
+    });
+    const { engine } = buildItemTestEngine([attacker, target]);
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "double-kick",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    expect(result.success).toBe(true);
+    const attackerState = engine.getGameState(PlayerId.Player1).pokemon.get(attacker.id);
+    expect(attackerState?.currentHp).toBe(0);
+    const hitsOnTarget = result.events.filter(
+      (e) => e.type === BattleEventType.DamageDealt && e.targetId === target.id,
+    );
+    expect(hitsOnTarget).toHaveLength(1);
+  });
 });
 
 describe("Weakness Policy", () => {

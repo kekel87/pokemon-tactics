@@ -543,6 +543,32 @@ export const LIFE_ORB_MULTI_HIT_RECOIL = {
   dummyHp: 999,
 } as const;
 
+/** Coup fantôme / Casque Brut (`rocky-helmet`) — RÉGRESSION du recul de contact PAR coup sur un move
+ *  multi-coups. Contrairement à l'Orbe Vie (recul UNE fois pour tout le move), le Casque Brut riposte
+ *  à CHAQUE coup de contact reçu (1/6 PV max de l'attaquant, canon). Un attaquant à très bas PV qui
+ *  lance un move multi-coups sur un porteur de Casque tombe donc K.O. dès le coup 1 — et avant le fix,
+ *  la boucle multi-coups continuait au coup 2 (« un mort frappait encore »). Le fix ajoute
+ *  `if attacker.currentHp <= 0 break` en tête de boucle (handle-damage) → la volée s'arrête au K.O. de
+ *  l'attaquant. Le joueur Florizarre (venusaur, `hp: 1` = 1 % PV max → le recul du Casque le K.O. dès
+ *  le 1er coup) lance Double Pied (`double-kick`, 2 coups FIXES, contact, 100 % précision) sur le dummy
+ *  Ronflex (snorlax, espèce distincte → nom filtrable ; endurant, survit à un seul coup) porteur du
+ *  Casque Brut adjacent. Observable de bout en bout via le journal : « Florizarre est K.O. ! » (recul
+ *  mortel du 1er coup) + le récap multi-coups « Touché 1 fois ! » (et JAMAIS « Touché 2 fois ! » — la
+ *  signature du bug). Le récap encode EXACTEMENT le nombre de coups → signal contamination-proof
+ *  (immunisé des ticks de terrain de fin de tour, contrairement au comptage de « perd N PV »). Double
+ *  Pied 100 % précision → touche sous tout seed (DUEL hérité). Dummy inerte (`dummyMove: "leer"`), à
+ *  pleins PV (`dummyHp: 999`). Le montant chiffré et le fire-once sont couverts integration core
+ *  (`held-items.integration.test.ts` : « pas de coup fantôme »). */
+export const PHANTOM_HIT_ROCKY_HELMET = {
+  ...DUEL,
+  moves: ["double-kick"],
+  hp: 1,
+  dummyPokemon: "snorlax",
+  dummyMove: "leer",
+  dummyHeldItem: "rocky-helmet",
+  dummyHp: 999,
+} as const;
+
 /** Talent Glu (`sticky-hold`, D12) — bloque tout retrait/vol/échange d'objet du porteur. Le joueur
  *  Florizarre lance Sabotage (`knock-off`) sur le dummy Grotadmorv (muk, slot Glu via `dummyAbility`)
  *  porteur des Restes (`dummyHeldItem`) adjacent → le retrait est bloqué : « Glu de <X> s'active ! »

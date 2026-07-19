@@ -4,25 +4,12 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
-### Toile Gluante absente du roster Gen 1 — invisible en Team Builder (2026-06-19, plan 131)
-- `sticky-web` n'est apprise par aucun Pokemon du roster Gen 1 actuel (learnset vérification data-miner plan 131).
-- Conséquence : Toile Gluante n'apparaît dans aucun movepool de Team Builder — le joueur ne peut pas la poser sans passer par le sandbox (`pnpm dev:sandbox '{...}'`).
-- Ce n'est pas un bug code : la mécanique fonctionne correctement en sandbox. C'est un gap de données.
-- Fix naturel : étendre le roster à des Pokemon Gen 2+ qui apprennent `sticky-web` (Arachno, Galvaran…) — Phase 9.
-- Priorité basse — testable en sandbox, non bloquant.
-
-### Multi-coup vs Peau Dure (Rough Skin) — QA faite : bug moot, garde latent à poser (2026-06-18, QA 2026-06-28)
-- **Verdict QA (2026-06-28)** : non reproductible en l'état.
-  - **Peau Dure (`rough-skin`) PAS implémenté** (absent des talents, aucun Pokemon Gen 1 ne l'a — talent Gen 3+). **Casque Brut (`rocky-helmet`) PAS implémenté** non plus (cité en commentaire seulement).
-  - Les réactions de contact actuelles (`onAfterDamageReceived` : Statik, Pt Poison, Corps Ardent, Effet Spore, Joli Sourire, Corps Maudit, Colère) infligent toutes des **statuts/buffs, zéro recul HP** à l'attaquant.
-  - Déclenchement **par coup** confirmé (canon-correct) : `dealSingleHit` (`handle-damage.ts:118`) est appelé en boucle par coup (`handleDamage` ~ligne 584), réactions de contact incluses.
-- **Garde latent à poser EN MÊME TEMPS que Peau Dure / Casque Brut** : la boucle multi-hit (`handle-damage.ts:584-603`) ne break que sur `target.currentHp <= 0`, **jamais sur l'attaquant**. Quand une source de recul HP par coup existera, un move contact multi-coup pourra continuer après KO de l'attaquant (coups fantômes). Fix prêt : `if (context.attacker.currentHp <= 0) break;` en tête de boucle + test. Inatteignable aujourd'hui → différé (pas de sur-ingénierie).
-
-
-### Disparité UI HTML vs canvas Phaser (2026-05-19, observation playtest)
-- Le projet mélange UI HTML (Team Builder, TeamSelectScene depuis plan 086) et UI Phaser canvas (combat, action menu, info panel, placement roster, timeline).
-- Conséquences : double système de fonts/couleurs/spacing (tokens.css vs constants.ts), UX incohérente (curseur, scaling, raccourcis).
-- À planifier : décision globale renderer 2D vs HTML overlay (cf plan 062/063 Phase 3.5 Babylon différée). Court terme : aligner styles canvas sur tokens design.
+### Double couche UI : DOM overlay vs HUD 3D Babylon — double système de style (2026-05-19, MAJ 2026-07-19)
+- **Correctif d'état** : Phaser est 100% supprimé (0 import). Le combat n'est plus "canvas Phaser" ; menu d'action / info-panel / timeline / journal / placement roster sont désormais du **DOM**.
+- Répartition réelle : **chrome DOM en overlay** (`packages/ui-dom/` : `battle-chrome.ts`, `info-panel.ts`, `turn-timeline.ts`, `battle-log.ts`, `placement-roster.ts`, `weather-hud.ts`) + écrans DOM (`packages/app/src/ui/` : Team Builder, Team Select, menus). **HUD ancré au monde en 3D Babylon** via `DynamicTexture` (pas `@babylonjs/gui`) : barres HP, champ pills, textes flottants, highlights tuiles/curseur/direction/compas (`packages/render-babylon/src/babylon-*.ts` + peintres `packages/render-canvas2d/`).
+- **Dette réelle restante = double source de style** : DOM unifié sur `packages/app/src/styles/tokens.css` (couleurs `--…`, types, `@font-face`), consommé aussi par `ui-dom`. Moteur sur constantes TS `0x…` (`render-babylon` + `view-core`/`render-ports`). Recouvrement non synchronisé : `#1a1a2e` déclaré 3× (`--blue-850` / `BACKGROUND_COLOR` / `BABYLON_CLEAR_COLOR`), police + couleurs de types + couleurs texte dupliquées CSS-hex ↔ `0x`-hex.
+- **Résidus morts** : `packages/app/src/constants.ts` garde `INFO_PANEL_*`, `ACTION_MENU_*`, `TIMELINE_*`, `BATTLE_LOG_*` (ère canvas), importés nulle part → à supprimer.
+- Priorité basse. Court terme : purger les résidus morts + centraliser les tokens partagés (une seule source couleurs/police exposée aux 2 couches).
 
 <!-- Le Mur — réintégrer + fixer IA : RÉSOLU plan 159 (2026-07-14, publié v2026.7.2). Carte dispo au menu + IA maîtrise ring-out/prise de hauteur. Détails → docs/backlog-archive.md. -->
 
@@ -98,6 +85,11 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - Piste : dériver min/max radius (et target) du bounding box de la map au boot de la scène.
 
 ## Tâches futures (hors backlog actif)
+
+### Toile Gluante — 0 learner Gen 1 (gap data roster, pas un bug) (2026-06-19, plan 131 ; reclassé 2026-07-19)
+- `sticky-web` n'est apprise par aucun Pokemon du roster Gen 1 → absente des movepools Team Builder (posable seulement en sandbox).
+- Pas un bug code : la mécanique marche en sandbox. Gap de données pur.
+- Se résout naturellement quand le roster s'étend aux Pokemon Gen 2+ qui l'apprennent (Arachno, Galvaran…) — Phase 9.
 
 ### Guerre météo — setters opposés à l'entrée (Gen 2+) (2026-06-21, plan 137 ; reclassé 2026-07-19)
 - `weatherAutoSetter` appliqué séquentiellement à l'entrée : si plusieurs Pokemon posent une météo, le dernier dans l'ordre d'itération écrase (pas de résolution vitesse/initiative).

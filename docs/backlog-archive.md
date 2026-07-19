@@ -15,6 +15,14 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Coups fantômes — attaquant K.O. par recul de contact (Casque Brut) continuait un move multi-coups — RÉSOLU (2026-07-19)
+
+- **Contexte** : la boucle multi-coups de `packages/core/src/battle/handlers/handle-damage.ts` ne breakait que sur mort de la **cible** (`target.currentHp <= 0`), jamais de l'**attaquant**. Casque Brut (`rocky-helmet`) retire des PV à l'attaquant par coup de contact reçu ; sur un move contact multi-coups (Double Pied ×2) lancé par un attaquant bas PV, le recul du coup 1 pouvait le mettre K.O. et le coup 2 partait quand même (Pokemon mort qui frappe).
+- **Note correctrice** : l'ancienne entrée backlog affirmait à tort que « Casque Brut n'est pas implémenté » et que le bug était « inatteignable / moot » — c'était faux, Casque Brut est bien implémenté et le bug était reproductible.
+- **Fix** : `if (context.attacker.currentHp <= 0) break;` en tête de boucle — un move multi-coups s'arrête quand l'utilisateur s'évanouit (canon). Pose le garde latent identifié « à poser en même temps que Peau Dure/Casque Brut » ; couvre aussi Peau Dure (`rough-skin`, futur talent). Test d'intégration ajouté. Décision #678.
+
+---
+
 ## Orbe de vie qui « tick » plusieurs fois sur un move de zone — RÉSOLU (2026-07-19)
 
 - **Contexte (2026-06-19, playtest plan 133)** : sur un move de zone/multi-coup, l'orbe de PV (`life-orb`) semblait se décrémenter en plusieurs paliers au lieu d'un seul.
