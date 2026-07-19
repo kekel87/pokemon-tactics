@@ -80,6 +80,13 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ## Dette technique résolue
 
+### Génération automatique des i18n de noms (moves + pokemon) depuis `reference/` (RÉSOLU 2026-07-19)
+
+- **Contexte (2026-06-04)** : `moves.en.json` maintenu à la main s'était retrouvé incomplet (297 clés vs 938 en FR) — chaque batch de moves oubliait d'ajouter les noms EN, 47 moves s'affichaient en slug brut (`rock-slide`, `confuse-ray`) dans l'ActionMenu en anglais jusqu'au hotfix 2026-06-04. Racine identique au bug des 51 pré-évolutions Gen 1 sans nom FR/EN (voir entrée ci-dessus, 2026-07-19) : fichiers i18n maintenus à la main, dérive silencieuse.
+- **Résolution** : `build-reference.ts` (lancé par `pnpm data:update`) génère désormais automatiquement les **4 fichiers i18n de noms** — `src/i18n/moves.{fr,en}.json` ET `src/i18n/pokemon-names.{fr,en}.json` — via une fonction pure `buildI18nMaps()`, dérivés de `reference/*.json`. Parité en↔fr garantie structurellement. Nouveau test `scripts/i18n-sync.test.ts` casse le CI si les fichiers commités divergent de la sortie générée (garde anti-drift / oubli de `data:update`).
+- **Effet secondaire** : 104 vieux noms de moves legacy (Z-Moves/Dynamax/Shadow, non référencés en code, hors roster Champions) supprimés du fichier moves i18n ; 16 `hidden-power-*` (Puissance Cachée) ajoutés ; noms Pokemon inchangés (roster). Résout aussi structurellement la classe de bug côté Pokemon (le bug des 51 pré-évolutions ne pourra plus se reproduire — même racine, même fix).
+- Voir aussi `docs/process-data-update.md` (§ Fichiers produits) — les i18n de noms ne s'éditent plus à la main.
+
 ### GitHub Actions sur Node 20 — déprécié (résolu 2026-06-12, commit `30be7ee`)
 - Actions `actions/checkout`, `actions/setup-node`, `pnpm/action-setup`, `peaceiris/actions-gh-pages` bumpées vers leurs variantes Node 24 dans `ci.yml`, `deploy.yml`, `itch-deploy.yml`.
 - `Ayowel/butler-to-itch` toujours à v1.3.0 (pas de release node24 mainteneur au 2026-06-12) — surveillé dans `docs/next.md`, marche probablement via runtime node24 auto GitHub.

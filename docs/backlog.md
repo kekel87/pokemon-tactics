@@ -60,12 +60,6 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - **Fix recommandé** : construire le tag dynamiquement depuis `against`/`multiplier` (avec clés i18n de noms de types). À faire quand un 2e move à override arrive (B2/B3 ou plus tard).
 - **Priorité** : basse — cosmétique, 1 move concerné.
 
-### Générer automatiquement `moves.{en,fr}.json` depuis `reference/moves.json` dans `data:update` (2026-06-04)
-- **Contexte** : `moves.en.json` s'est retrouvé incomplet (297 clés vs 938 en FR) car il est maintenu à la main. Chaque batch de moves oublie d'ajouter les noms EN. 47 moves implémentés s'affichaient en slug brut (`rock-slide`, `confuse-ray`) dans l'ActionMenu en mode anglais jusqu'au hotfix 2026-06-04.
-- **Fix courant** : régénération manuelle depuis `reference/moves.json` (`names.en`). Clé `vise-grip` corrigée dans `moves.fr.json`.
-- **Fix recommandé** : intégrer la génération des fichiers `i18n/moves.{en,fr}.json` dans le script `build-reference.ts` (tâche `data:update`), en extrayant `names.en` et `names.fr` de chaque entrée `reference/moves.json`. Parité garantie à chaque `data:update` sans intervention manuelle.
-- **Priorité** : moyenne — bloquant uniquement pour les utilisateurs en langue anglaise ; chaque `data:update` sans ce fix est un risque de régression.
-
 ## Notes IA (à regrouper en plan d'amélioration IA)
 
 ### IA — CT-aware scoring (2026-04-25)

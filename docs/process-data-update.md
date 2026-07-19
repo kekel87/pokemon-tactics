@@ -72,6 +72,8 @@ packages/data/reference/
 
 **IDs kebab (depuis plan 089)** : les learnsets dans `pokemon.json` et les indexes `pokemon-by-move` sont produits en 100% kebab-case (`leech-seed`, `phantom-force`, `close-combat`). La translation Showdown→kebab est effectuée à build-time par `buildRawMoveIdToKebabMap(showdown.moves)` dans `build-reference.ts`. Les abilities, items et le reste de la reference étaient déjà en kebab. Aucune translation runtime n'est nécessaire côté `packages/data/src/`.
 
+**i18n de noms auto-générés (depuis 2026-07-19)** : `pnpm data:update` génère aussi automatiquement `src/i18n/moves.{fr,en}.json` et `src/i18n/pokemon-names.{fr,en}.json` via `buildI18nMaps()` (fonction pure dans `build-reference.ts`), dérivés de `reference/moves.json`/`reference/pokemon.json`. **Ne plus éditer ces 4 fichiers à la main** — toute correction de nom passe par `reference/*.json` puis `pnpm data:update`. Un test `scripts/i18n-sync.test.ts` casse le CI si les fichiers commités divergent de la sortie générée.
+
 ## Cas d'échec
 
 | Symptôme | Cause probable | Solution |
