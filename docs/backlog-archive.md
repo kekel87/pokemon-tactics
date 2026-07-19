@@ -15,6 +15,18 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Anim Volant : transition de mode en déplacement — RÉSOLU (2026-07-19)
+
+- **Contexte (2026-07-03/07, human-testing Phazing/Anti-Air)** : trois sous-bugs distincts sur l'animation vol↔marche d'un Pokemon Volant.
+  1. **Repos non terrain-aware** — `refreshGravityGrounding` (battle-orchestrator) → `setGroundedByGravity(id, false)` (combat-scene) forçait `FlyingIdle` sur **tout** Volant aéroporté sans regarder le terrain après chaque `syncBoard`, écrasant le resting terrain-aware de `applyLandingRestingAnimation`.
+  2. **Glace non fly-over** — un Volant marchait sur la glace au lieu de voler au-dessus.
+  3. **Transition trop tôt en déplacement (bug C)** — l'animation d'un pas (`moveBillboardAlongPath`, `getFlyingAnimationMode`) était choisie sur le terrain de **destination** et jouée pendant tout le tween → le Volant changeait de mode (vol↔marche) en **quittant** la case, pas en **arrivant**.
+- **Résolution (1) et (2) — 2026-07-19** : `setGroundedByGravity` et `applyLandingRestingAnimation` rendus terrain-aware via `isFlyoverTerrain` (`packages/view-core/src/movement-animation.ts`) — un Volant se **pose** (`Idle`) sur sol praticable (normal, herbe haute) et **plane** (`FlyingIdle`) sur terrain fly-over (eau, eau profonde, lave, magma, marécage, sable, neige, glace, obstacle). `TerrainType.Ice` ajouté à `FLYING_OVERFLY_TERRAINS`. Validé live (Roucarnage, hook e2e `spriteStates`) + tests unitaires (`movement-animation.test.ts`).
+- **Résolution (3) bug C — 2026-07-19** : `packages/render-babylon/src/combat-scene.ts` — le changement de mode se fait désormais à la **frontière entre les 2 cases** (mi-tween) au lieu du départ. `tweenRootPosition` reçoit un callback `onMidpoint` (fire à progress≥0.5) ; pour un pas plat, l'anim est jouée selon le terrain **source** au départ puis basculée sur le terrain **destination** à mi-parcours. Les **sauts/dénivelés** (montée/descente de cliff) restent inchangés (branche `isJumpStep` identique à l'ancien code).
+- Validé visuellement par l'humain : transitions plates, dénivelés et décors OK. Bug de l'anim des Volants entièrement clos (les 3 volets).
+
+---
+
 ## 51 pré-évolutions Gen 1 sans nom FR/EN — affichaient l'ID anglais (RÉSOLU 2026-07-19)
 
 - **Contexte (2026-06-29, human-testing plan 144)** : `packages/data/src/i18n/pokemon-names.{fr,en}.json` ne contenait que ~100 entrées (décompte initial approximatif). Les pré-évolutions ajoutées au plan 135 (ex: `clefairy` → devrait être Mélofée) n'avaient jamais reçu leur nom FR/EN, et s'affichaient par leur ID anglais brut (InfoPanel combat, Team Builder, sélection). Repéré en human-testing move-copy (Mélofée affichée « clefairy »).

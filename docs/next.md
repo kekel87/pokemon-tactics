@@ -98,7 +98,7 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 
 ## Fait récemment
 
-- 2026-07-19 — Fix anim de repos des Volants selon le terrain (posé sur sol, vol sur eau/lave/glace… ; glace ajoutée aux fly-over) + hook e2e spriteStates. Reliquat : timing de transition de mode en déplacement (bug C, différé).
+- 2026-07-19 — Fix anim de repos des Volants selon le terrain (posé sur sol, vol sur eau/lave/glace… ; glace ajoutée aux fly-over) + hook e2e spriteStates. Reliquat transition de mode en déplacement (bug C) également résolu : bascule à mi-tween au lieu du départ du pas — bug de l'anim des Volants entièrement clos.
 - 2026-07-19 — Auto-génération des 4 fichiers i18n de noms (moves + pokemon-names, fr/en) depuis reference dans build-reference.ts + test de synchro anti-drift. Fin de la classe de bug "nom manquant après batch". 104 moves legacy purgés.
 - 2026-07-19 — Bug résolu : 51 pré-évolutions Gen 1 sans nom FR/EN → noms officiels ajoutés aux 2 fichiers i18n (source reference/pokemon.json). Roster i18n complet (152 clés).
 - 2026-07-18 — **Plan 163 — Content-fill : 7 derniers talents Gen 1 (107 → 114, pool talents Gen 1 complet).** Récolte, Délestage, Piège Sable, Gaz Inhibiteur, Fouille, Prédiction, Anticipation. Décisions #673–#676.
