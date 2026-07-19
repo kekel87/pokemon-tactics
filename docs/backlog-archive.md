@@ -15,6 +15,13 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## 51 pré-évolutions Gen 1 sans nom FR/EN — affichaient l'ID anglais (RÉSOLU 2026-07-19)
+
+- **Contexte (2026-06-29, human-testing plan 144)** : `packages/data/src/i18n/pokemon-names.{fr,en}.json` ne contenait que ~100 entrées (décompte initial approximatif). Les pré-évolutions ajoutées au plan 135 (ex: `clefairy` → devrait être Mélofée) n'avaient jamais reçu leur nom FR/EN, et s'affichaient par leur ID anglais brut (InfoPanel combat, Team Builder, sélection). Repéré en human-testing move-copy (Mélofée affichée « clefairy »).
+- **Résolution** : décompte réel = **51** entrées manquantes (pas ~70). Ajoutées aux deux fichiers `pokemon-names.fr.json`/`pokemon-names.en.json`, tirées de `packages/data/reference/pokemon.json` (`names.fr`/`names.en`). Les 151 Pokemon jouables + le Dummy ont désormais chacun leur nom FR et EN — fichiers à 152 clés chacune. Vérifié en human-testing (Mélofée, Magicarpe affichent leur nom FR en jeu).
+
+---
+
 ## Talent « par défaut » silencieux — UI sandbox (RÉSOLU 2026-06-22, décision #549)
 
 - **Contexte (2026-06-21, plan 136)** : le `<select>` talent du SandboxPanel proposait une option vide « (défaut) » (valeur `""`) qui activait silencieusement `ability1` sans l'indiquer. Confusion QA : on ne savait pas quel talent tournait réellement.
