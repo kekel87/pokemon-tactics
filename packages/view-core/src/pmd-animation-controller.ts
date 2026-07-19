@@ -261,6 +261,16 @@ export class PmdAnimationController {
     return this.framesByKey.has(`${animation}-${this.currentDirection}`);
   }
 
+  /** The looping/one-shot animation currently playing (e2e flying-anim assertions). */
+  get currentAnimation(): string {
+    return this.animation;
+  }
+
+  /** The looping animation the sprite reverts to after a one-shot (e2e resting-pose assertions). */
+  get currentRestingAnimation(): string {
+    return this.restingAnimation;
+  }
+
   /** The frame to display right now (for the renderer to map to UVs), or null. */
   currentFrame(): AtlasFrame | null {
     const frames = this.framesByKey.get(`${this.animation}-${this.currentDirection}`);

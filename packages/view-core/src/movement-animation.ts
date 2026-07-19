@@ -25,8 +25,10 @@ export const FLYING_GLIDE_ANIMATION_CANDIDATES: readonly string[] = [
 ];
 
 /**
- * Destination terrains that trigger flying animation for flat movement.
- * Flying Pokemon soar over these tiles instead of walking on them.
+ * Terrains a flying Pokemon soars over rather than walking on: no walkable ground
+ * (liquids, hazards, gaps), so the sprite glides while crossing AND keeps gliding at
+ * rest. On the terrains NOT listed here (Normal, TallGrass) a flyer touches down and
+ * walks/idles like a land mon — it has solid ground to stand on.
  */
 export const FLYING_OVERFLY_TERRAINS: ReadonlySet<string> = new Set([
   TerrainType.Obstacle,
@@ -37,7 +39,13 @@ export const FLYING_OVERFLY_TERRAINS: ReadonlySet<string> = new Set([
   TerrainType.Swamp,
   TerrainType.Sand,
   TerrainType.Snow,
+  TerrainType.Ice,
 ]);
+
+/** True when the tile has no walkable ground, so a flyer glides over it (crossing and at rest). */
+export function isFlyoverTerrain(terrain: string | undefined): boolean {
+  return terrain !== undefined && FLYING_OVERFLY_TERRAINS.has(terrain);
+}
 
 export interface MovementStep {
   /** Absolute height delta between source and target tiles. */

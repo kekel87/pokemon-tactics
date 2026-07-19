@@ -140,6 +140,16 @@ export class DirectionalBillboard {
     return this.controller.direction;
   }
 
+  /** The animation currently playing (e2e flying-anim assertions). */
+  get currentAnimation(): string {
+    return this.controller.currentAnimation;
+  }
+
+  /** The looping animation reverted to after a one-shot (e2e resting-pose assertions). */
+  get currentRestingAnimation(): string {
+    return this.controller.currentRestingAnimation;
+  }
+
   constructor(private readonly options: DirectionalBillboardOptions) {
     this.controller = new PmdAnimationController(
       {
