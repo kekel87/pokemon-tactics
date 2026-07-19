@@ -12,6 +12,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { playablePokemon } from "../src/playable/playable-pokemon";
 import type { ChampionsOverride } from "./champions-override.types";
 import { fetchChampionsData } from "./fetch-champions";
 import { CACHE_DIR, cachedFetch, cachedFetchText, ensureDir } from "./fetch-utils";
@@ -22,6 +23,7 @@ const Dirname = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = join(Dirname, "..");
 const REFERENCE_DIR = join(PACKAGE_ROOT, "reference");
 const INDEXES_DIR = join(REFERENCE_DIR, "indexes");
+const I18N_DIR = join(PACKAGE_ROOT, "src", "i18n");
 
 const SHOWDOWN_BASE = "https://play.pokemonshowdown.com/data";
 const POKEAPI_BASE = "https://pokeapi.co/api/v2";
@@ -1840,6 +1842,62 @@ function applyLearnsetOverride(
   };
 }
 
+// ─── i18n generation ─────────────────────────────────────────────────────────
+
+/** Alphabetically-sorted `{ id: name }` map — stable output regardless of source order. */
+function sortedNameMap(pairs: [string, string][]): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [id, name] of pairs.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+    result[id] = name;
+  }
+  return result;
+}
+
+/**
+ * Derives the four i18n name maps from the reference entries — single source of truth
+ * for `src/i18n/*.json`. Moves cover every reference move (both languages). Pokemon names
+ * cover only the playable roster (`playablePokemon`); a custom-only entry with no reference
+ * counterpart (e.g. `dummy`) falls back to its `custom.name` in both languages. Guarantees
+ * en↔fr parity so a data batch can never again leave a name untranslated (backlog 2026-06-04 / 2026-06-29).
+ */
+export function buildI18nMaps(
+  moveEntries: MoveEntry[],
+  pokemonEntries: PokemonEntry[],
+): {
+  movesFr: Record<string, string>;
+  movesEn: Record<string, string>;
+  pokemonNamesFr: Record<string, string>;
+  pokemonNamesEn: Record<string, string>;
+} {
+  const movesFr = sortedNameMap(moveEntries.map((move) => [move.id, move.names.fr]));
+  const movesEn = sortedNameMap(moveEntries.map((move) => [move.id, move.names.en]));
+
+  const referenceNamesById = new Map(pokemonEntries.map((pokemon) => [pokemon.id, pokemon.names]));
+  const frPairs: [string, string][] = [];
+  const enPairs: [string, string][] = [];
+  for (const entry of playablePokemon) {
+    const referenceNames = referenceNamesById.get(entry.id);
+    if (referenceNames) {
+      frPairs.push([entry.id, referenceNames.fr]);
+      enPairs.push([entry.id, referenceNames.en]);
+    } else if (entry.custom) {
+      frPairs.push([entry.id, entry.custom.name]);
+      enPairs.push([entry.id, entry.custom.name]);
+    } else {
+      throw new Error(
+        `Playable pokemon "${entry.id}" is absent from the reference and has no custom name — cannot derive its i18n name.`,
+      );
+    }
+  }
+
+  return {
+    movesFr,
+    movesEn,
+    pokemonNamesFr: sortedNameMap(frPairs),
+    pokemonNamesEn: sortedNameMap(enPairs),
+  };
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
@@ -1945,6 +2003,21 @@ async function main(): Promise<void> {
     fetchedAt: championsOverride.fetchedAt,
     status: championsOverride.status,
   });
+
+  // Step 3b: Generate i18n name maps (derived from reference — never hand-maintained)
+  console.log("\n--- Writing i18n name maps ---\n");
+
+  const writeI18n = async (filename: string, data: Record<string, string>): Promise<void> => {
+    const path = join(I18N_DIR, filename);
+    await writeFile(path, `${JSON.stringify(data, null, 2)}\n`, "utf-8");
+    console.log(`  ${filename}: ${Object.keys(data).length} keys`);
+  };
+
+  const i18n = buildI18nMaps(moveEntries, pokemonEntries);
+  await writeI18n("moves.fr.json", i18n.movesFr);
+  await writeI18n("moves.en.json", i18n.movesEn);
+  await writeI18n("pokemon-names.fr.json", i18n.pokemonNamesFr);
+  await writeI18n("pokemon-names.en.json", i18n.pokemonNamesEn);
 
   // Step 4: Generate indexes
   console.log("\n--- Generating indexes ---\n");
