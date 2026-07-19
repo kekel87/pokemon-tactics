@@ -100,47 +100,6 @@ export {
   FIELD_TERRAIN_COLOR_GRASSY,
 } from "@pokemon-tactic/view-core";
 
-export const INFO_PANEL_X = 16;
-export const INFO_PANEL_Y = 606;
-export const INFO_PANEL_WIDTH = 220;
-export const INFO_PANEL_HEIGHT = 94;
-export const INFO_PANEL_ALPHA = 0.85;
-export const INFO_PANEL_CORNER_RADIUS = 6;
-
-export const ACTION_MENU_X = 1054;
-export const ACTION_MENU_BOTTOM_Y = 700;
-export const ACTION_MENU_WIDTH = 210;
-export const ACTION_MENU_ITEM_HEIGHT = 32;
-export const ACTION_MENU_BG_COLOR = 0x111122;
-export const ACTION_MENU_BG_ALPHA = 0.9;
-export const ACTION_MENU_HOVER_COLOR = 0x334466;
-export const ACTION_MENU_HOVER_ALPHA = 0.6;
-export const ACTION_MENU_DISABLED_ALPHA = 0.4;
-export const ACTION_MENU_CORNER_RADIUS = 4;
-
-export const TIMELINE_X = 16;
-export const TIMELINE_Y = 20;
-export const TIMELINE_ENTRY_SIZE = 36;
-export const TIMELINE_ENTRY_SPACING = 6;
-export const TIMELINE_ACTIVE_SIZE = 42;
-export const TIMELINE_ACTIVE_BORDER_COLOR = 0xffdd44;
-export const TIMELINE_BORDER_WIDTH = 2;
-export const TIMELINE_ACTIVE_BORDER_WIDTH = 3;
-export const TIMELINE_SEPARATOR_LINE_HEIGHT = 2;
-export const TIMELINE_SEPARATOR_COLOR = 0x888888;
-export const TIMELINE_SEPARATOR_ALPHA = 0.6;
-export const TIMELINE_SEPARATOR_THICKNESS = 5;
-export const TIMELINE_PAST_ENTRY_ALPHA = 0.55;
-export const TIMELINE_CT_BAR_THICKNESS = 5;
-export const TIMELINE_CT_BAR_GAP = 3;
-export const TIMELINE_CT_BAR_COLOR = 0x44aaff;
-export const TIMELINE_CT_BAR_BG_COLOR = 0x223344;
-export const TIMELINE_BG_COLOR = 0x111122;
-export const TIMELINE_BG_ALPHA = 0.8;
-export const TIMELINE_HIGHLIGHT_BORDER_COLOR = 0x44ffaa;
-export const TIMELINE_HIGHLIGHT_COLOR_CSS = "#44ffaa";
-export const TIMELINE_TAIL_ENTRY_ALPHA = 0.45;
-
 export const PULSE_MIN_SCALE = 1.0;
 export const PULSE_MAX_SCALE = 1.1;
 export const PULSE_DURATION_MS = 800;
@@ -317,18 +276,6 @@ export const CONFUSION_WOBBLE_DURATION_MS = 300;
 export const KNOCKBACK_SHAKE_OFFSET_X = 2;
 export const KNOCKBACK_SHAKE_DURATION_MS = 50;
 export const KNOCKBACK_SHAKE_REPEAT = 2;
-
-export const BATTLE_LOG_WIDTH = 300;
-export const BATTLE_LOG_VISIBLE_LINES = 6;
-export const BATTLE_LOG_LINE_HEIGHT = 18;
-export const BATTLE_LOG_PADDING = 8;
-export const BATTLE_LOG_HEADER_HEIGHT = 28;
-export const BATTLE_LOG_ACTIONS_HEIGHT = 28;
-export const BATTLE_LOG_BG_ALPHA = 0.7;
-export const BATTLE_LOG_BG_COLOR = 0x111122;
-export const BATTLE_LOG_MAX_ENTRIES = 50;
-export const BATTLE_LOG_FONT_SIZE = 20;
-export const DEPTH_BATTLE_LOG = 1300;
 
 export const STAT_BADGE_BUFF_BG = 0x1a4a8a;
 export const STAT_BADGE_DEBUFF_BG = 0x8a1a1a;

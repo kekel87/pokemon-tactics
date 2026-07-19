@@ -1199,3 +1199,15 @@ export const FLYING_REST_FROM_ICE = {
   ...FLYING_REST_FROM_LAND,
   playerPosition: { x: 1, y: 2 },
 } as const;
+
+/** Tag de tooltip `typeEffectivenessOverride` DÉRIVÉ dynamiquement (plus de libellé hardcodé) — le
+ *  joueur Lapras force Lyophilisation (`freeze-dry`, Glace, `typeEffectivenessOverride` ×2 vs Eau,
+ *  hors-pool via `moves`). Survoler le move dans le sous-menu d'attaque monte le tooltip dont un tag
+ *  lit « ×2 sur les types Eau » (FR) — construit depuis `moveTooltip.tag.typeEffectivenessOverride`
+ *  + `pokemonType.water`, pas une chaîne figée. Aucun cast : on n'ouvre que le menu + survol → pas de
+ *  jet, déterministe (seed DUEL hérité). Lapras est un porteur Gen-1 jouable. */
+export const TOOLTIP_FREEZE_DRY_TYPE_OVERRIDE = {
+  ...DUEL,
+  pokemon: "lapras",
+  moves: ["freeze-dry"],
+} as const;

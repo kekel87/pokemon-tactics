@@ -179,9 +179,6 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   if (move.hitsPhysicalDefense === true) {
     keys.push("moveTooltip.tag.hitsPhysicalDefense");
   }
-  if (move.typeEffectivenessOverride !== undefined) {
-    keys.push("moveTooltip.tag.superVsWater");
-  }
   if (
     move.effects.some(
       (effect) => effect.kind === EffectKind.Damage && effect.escalatingHitPower !== undefined,
@@ -324,7 +321,17 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
     keys.push("moveTooltip.tag.bypasssub");
   }
 
-  return keys.map((key) => config.translate(key));
+  const lines = keys.map((key) => config.translate(key));
+  if (move.typeEffectivenessOverride !== undefined) {
+    const { against, multiplier } = move.typeEffectivenessOverride;
+    lines.push(
+      config.translate("moveTooltip.tag.typeEffectivenessOverride", {
+        multiplier,
+        type: config.translate(`pokemonType.${against}`),
+      }),
+    );
+  }
+  return lines;
 }
 
 function renderGrid(cells: PatternCell[][], intent: MoveIntent): HTMLElement {
