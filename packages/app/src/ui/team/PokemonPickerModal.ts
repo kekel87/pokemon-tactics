@@ -1,6 +1,7 @@
 import { Modal } from "@pokemon-tactic/ui-dom";
 import { t } from "../../i18n";
 import { getTypeIconUrl } from "../../team/asset-paths";
+import { normalizeSearchText } from "../../team/search-index";
 import {
   getPlayablePokemon,
   getPortraitUrl,
@@ -160,6 +161,7 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
     renderFilters();
     grid.innerHTML = "";
     const genRange = activeGen === null ? null : GEN_FILTERS.find((g) => g.id === activeGen);
+    const normalizedQuery = normalizeSearchText(query);
     const pool = getPlayablePokemon().filter((p) => {
       if (activeTypes.size > 0) {
         const matches = p.types.some((tp) => activeTypes.has(tp));
@@ -172,7 +174,7 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
           return false;
         }
       }
-      if (query !== "" && !p.name.toLowerCase().includes(query.toLowerCase())) {
+      if (normalizedQuery !== "" && !p.searchText.includes(normalizedQuery)) {
         return false;
       }
       return true;

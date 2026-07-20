@@ -1,5 +1,6 @@
 import { Modal } from "@pokemon-tactic/ui-dom";
 import { t } from "../../i18n";
+import { normalizeSearchText } from "../../team/search-index";
 import { type AvailableItem, getAllAvailableItems } from "../../team/team-builder-data";
 
 export interface ItemPickerOptions {
@@ -86,11 +87,12 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
     });
     list.appendChild(clearRow);
 
+    const normalizedQuery = normalizeSearchText(query);
     const filtered = getAllAvailableItems().filter((i) => {
       if (category !== "all" && classifyCategory(i.category) !== category) {
         return false;
       }
-      if (query !== "" && !i.name.toLowerCase().includes(query.toLowerCase())) {
+      if (normalizedQuery !== "" && !i.searchText.includes(normalizedQuery)) {
         return false;
       }
       return true;

@@ -8,6 +8,13 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Autocomplete bilingue — chercher en langue courante ET en anglais — RÉSOLU (2026-07-20)
+
+- **Contexte (2026-05-31)** : les champs de recherche/autocomplete du Team Builder (moves, Pokemon, items) ne matchaient que sur le nom affiché dans la langue courante — un joueur FR connaissant le nom EN d'une attaque (ou inversement) ne pouvait pas la retrouver en tapant.
+- **Résolution** : nouvel util `packages/app/src/team/search-index.ts` (`normalizeSearchText`, `buildSearchText`) — normalisation NFD (accents retirés) + suppression tirets/espaces + lowercase. Champ `searchText` précalculé dans `packages/app/src/team/team-builder-data.ts`, concaténant `names.fr` + `names.en` + l'id, appliqué aux 3 pickers (moves, Pokemon, items). Tolère accents, tirets, espaces et casse.
+
+---
+
 ## Sandbox — pas de sélecteur de talent pour le Dummy dans l'UI — RÉSOLU (2026-07-20)
 
 - **Contexte (2026-06-22, playtest plan 139)** : le `SandboxPanel` exposait un sélecteur de talent pour le joueur, mais aucun pour le Dummy — seul le champ JSON `dummyAbility` permettait de surcharger le talent du Dummy, imposant de passer par `pnpm dev:sandbox '{...}'` pour tester un talent défensif côté cible.

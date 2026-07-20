@@ -1676,8 +1676,11 @@ e2e : `mechanics-content-fill-163.spec.ts`. Tous pilotés via l'UI (le joueur co
   *Le portrait du picker est un `background-image` croppé du bundle (plan 135) via le même seam
   `getPortraitUrl` que l'InfoPanel (couvert 🤖 en §4.7) — la cellule n'a pas de testid propre, donc
   le visuel du portrait dans le picker reste 👁.*
-- 🤖 Recherche « **flo** » → filtre vers **Florizarre** (nom FR localisé, **monolingue**) —
-  `picker.spec`. *Bilingue souhaité plus tard → `docs/next.md` (cible : move picker).*
+- 🤖 Recherche « **flo** » → filtre vers **Florizarre** (nom FR localisé) — `picker.spec`.
+- 🤖 **Recherche bilingue tolérante** (accents/séparateurs, `team/search-index.ts`) : en UI FR, le
+  nom **anglais** (« gyarados ») et la graphie **sans accent** (« leviator ») filtrent tous deux
+  vers **Léviator** — `picker-search.spec`. Idem pour le **picker de capacité** (« vinewhip » →
+  **Fouet Lianes**) et le **picker d'objet** (« charcoal » → **Charbon**).
 - 🤖 Filtre **type Plante** → n'affiche que des Pokemon Plante ; **2e type** → **union** ;
   **re-cliquer** → désactive ; « **Reset** » → vide les filtres — `picker.spec`.
 - 🤖 **Choisir** un Pokemon → l'assigne au slot, ferme la modale — `picker.spec`.
@@ -1798,6 +1801,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `dom/settings.spec.ts` | §6.7 — 2 options (Langue + Prévisualisation dégâts), persistance `pt-lang`/`pt-settings` |
 | `dom/credits.spec.ts` | §6.8 — titre + contenu + EN |
 | `dom/picker.spec.ts` | §7.2 — ouverture/liste/recherche, filtres type (union/toggle/reset), choisir/grisé/fermer |
+| `dom/picker-search.spec.ts` | §7.2 recherche bilingue tolérante (`team/search-index.ts`) : en UI FR, nom EN + sans-accent filtrent vers le résultat FR — Pokemon (gyarados/leviator → Léviator), capacité (vinewhip → Fouet Lianes), objet (charcoal → Charbon) |
 | `dom/team-builder.spec.ts` | §6.5 — créer+nommer+persist, générer aléatoire, supprimer (« tout vider » skippé : régression modale, cf backlog) |
 | `combat/scene-graph.spec.ts` | boot scène : sprites (groupe 2), curseur (groupe 3), terrain, FOUC retiré ; **barres PV ×2 + ombres + silhouettes (groupe 1)**, **tiles nommées `tile_x_y` (groupe 0) + décor herbe (groupe 2)** |
 | `combat/sprite-bundle.spec.ts` | §3.6/§4.7 rendu issu du bundle (plan 135) : billboards `pokemon_plane` ×2 slicés du bundle (scène prête), portrait InfoPanel = data-URL PNG croppé de `portraits.png` (pas le pixel de repli), pré-évo Pikachu rend son sprite |
@@ -1868,8 +1872,9 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
 - [x] **Paramètres** : 3 options, persistance `pt-lang`/`pt-settings` (`settings.spec`).
 - [x] **Crédits** : titre + contenu + EN (`credits.spec`).
 - [x] **Pokemon Picker** : ouverture, liste, recherche, filtres type (union/toggle/reset), grisé
-      inter-slots, fermeture (`picker.spec`) ; **fiche détaillée §7.3** (`pokemon-edit.spec`).
-      *Reste : recherche bilingue (différée → next.md).*
+      inter-slots, fermeture (`picker.spec`) ; **fiche détaillée §7.3** (`pokemon-edit.spec`) ;
+      **recherche bilingue tolérante** (nom EN + sans-accent → résultat FR, sur les 3 pickers)
+      (`picker-search.spec`).
 - [x] **Mes équipes** : créer/nommer+localStorage, générer aléatoire, supprimer
       (`team-builder.spec`). *« Tout vider » : test prêt mais **skippé** (régression modale →
       backlog). Reste : exporter, renommer depuis la liste.*

@@ -42,13 +42,6 @@ _Aucune dette active._
 - À grouper avec le chantier caméra adaptative + zoom (ci-dessous) et le refacto unités CSS chrome.
 - Priorité moyenne — cosmétique mais visible.
 
-### Autocomplete bilingue — chercher en langue courante ET en anglais (2026-05-31)
-- Les champs de recherche / autocomplete (moves, Pokemon, items, abilities) doivent matcher **les deux langues** : la langue courante (FR) **et** l'anglais, quelle que soit la langue UI active.
-- Cas d'usage : joueur FR qui connaît le nom EN d'une attaque (ou inversement) doit pouvoir le taper et trouver le résultat.
-- Concerne : MovePickerModal, Pokemon picker, Item modal (TeamEditScene), tout futur champ de recherche.
-- Impl : indexer la recherche sur `names.fr` + `names.en` (reference) au lieu du seul `getMoveName(lang)`. Normaliser (lowercase, sans accents, sans tiret) pour tolérance de frappe.
-- Priorité moyenne — QoL Team Builder.
-
 ### MoveTooltip — afficher modifiers contextuels (météo, terrain, items) (2026-05-13)
 - Ex : Blizzard "Prec 70 (100 en Neige)", Flamethrower "BP 90 (×1.5 en Soleil)", Thunder "Prec 70 (100 en Pluie, 50 en Soleil)".
 - Étendre MoveTooltip pour calculer effective BP/accuracy selon `state.weather` et types caster/cible.
