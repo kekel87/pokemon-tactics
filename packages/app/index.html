@@ -29,25 +29,10 @@
         width: 100vw;
         height: 100vh;
       }
-      #hint {
-        /* Top of screen so it never overlaps the bottom-anchored InfoPanel. Shown
-           only on the ?preview=1 dev tuning harness route (babylon-boot.ts). */
-        position: fixed;
-        left: 12px;
-        top: 12px;
-        right: 12px;
-        color: #f4e4b8;
-        font-family: monospace;
-        font-size: 13px;
-        opacity: 0.7;
-        pointer-events: none;
-        z-index: 10;
-      }
     </style>
   </head>
   <body>
     <div id="game-root"></div>
-    <div id="hint" hidden>combat · clic-glisser déplacer · molette zoom · ←/→ rotation · ?map=&lt;nom&gt; change la carte · ?preview=1 harnais dev <span id="pixinfo"></span></div>
     <script type="module" src="/src/babylon-boot.ts"></script>
   </body>
 </html>

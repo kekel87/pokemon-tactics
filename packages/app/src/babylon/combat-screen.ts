@@ -63,8 +63,8 @@ const BATTLE_CONFIRM_ATTACK = true;
 
 // 12 sprites = a max 6v6 combat, to stress 60fps. Mixed shadowSizes (0/1/2)
 // keep the grounding comparison; spread across rows to exercise occlusion.
-// Flyers exercise the glide fallback chain (Jalon 3d). Exported for the
-// `?preview=1` tuning harness route.
+// Flyers exercise the glide fallback chain (Jalon 3d). Demo roster for the
+// `?combat=1` dev shortcut (empty when the sandbox studio drives placement).
 export const DEMO_POKEMON = [
   { pokemonId: "magnemite", spawn: { x: 2, y: 1 }, team: 1 },
   { pokemonId: "pidgey", spawn: { x: 5, y: 1 }, team: 1 },
