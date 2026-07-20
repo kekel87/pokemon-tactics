@@ -35,18 +35,6 @@ _Aucune dette active._
 
 ## Feedback visuel
 
-### Sandbox — pas de sélecteur de talent pour le Dummy dans l'UI (2026-06-22, playtest plan 139)
-- Le `SandboxPanel` expose un sélecteur de talent pour le joueur, mais **aucun pour le Dummy** — seul le champ JSON `dummyAbility` permet de surcharger le talent du Dummy.
-- Conséquence : tester un talent défensif sur le Dummy (ex : Écran Poudre, Sérénité côté cible) impose de passer par la commande `pnpm dev:sandbox '{...}'`, impossible via l'UI.
-- Fix naturel : ajouter un `<select>` talent Dummy dans `SandboxPanel.ts`, miroir du sélecteur joueur.
-- Priorité basse — workaround JSON disponible.
-
-### Sandbox — `seed` absent = seed 0 → bataille entièrement déterministe (2026-06-22, playtest plan 139)
-- Lancer le sandbox sans champ `seed` dans la config utilise `seed: 0` par défaut → toute bataille est **identique** à chaque lancement.
-- Conséquence inattendue lors des tests d'effets probabilistes (flinch, effets secondaires à 30 %) : le résultat semble toujours le même, ce qui peut masquer ou fausser la validation manuelle.
-- Options : (a) générer un seed aléatoire (`Date.now()` ou `crypto.randomUUID()`) quand aucun seed n'est fourni ; (b) afficher le seed actif dans le `SandboxPanel` pour que le testeur sache que la bataille est déterministe.
-- Priorité basse — comportement documenté, mais surprenant en pratique.
-
 ### Boussole 3D — placement/échelle toujours imparfaits (2026-07-02, playtest plan 146)
 - La boussole 3D always-on près du portrait actif (plan 145) a **toujours des problèmes de placement** signalés par l'humain lors du playtest stat-manip.
 - Reliquat déjà noté (plan 145 § reporté : offsets fixes fragiles en changement de résolution, tuning à revoir avec le chantier zoom).

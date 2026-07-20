@@ -468,23 +468,15 @@ Les sprites de décorations s'intègrent dans le même espace de depth que les P
 |-----------|--------|-------------|
 | `DECORATIONS_PREVIEW_MODE_ALPHA` | `0.45` | Alpha appliqué aux sprites de décoration pendant l'aperçu de déplacement ET le ciblage d'attaque — le joueur peut lire les tiles accessibles derrière les obstacles |
 
-### Debug footprint
+### Debug footprint (supprimé, 2026-07-20)
 
-Le debug du footprint est un toggle runtime (section "Debug map" du SandboxPanel), propagé via `SandboxConfig.debugDecorationsFootprint` → `DecorationsLayer(..., { debugFootprintEnabled })`. Aucune constante buildtime — pas de `false` à re-basculer pour les releases.
-
-| Constante | Valeur | Description |
-|-----------|--------|-------------|
-| `DECORATIONS_DEBUG_FOOTPRINT_COLOR` | `0xff0000` | Carré rouge translucide sur chaque cellule du footprint |
-| `DECORATIONS_DEBUG_FOOTPRINT_ALPHA` | `0.45` | Alpha du remplissage |
-| `DECORATIONS_DEBUG_FOOTPRINT_STROKE_ALPHA` | `0.9` | Alpha du contour |
-| `DECORATIONS_DEBUG_FOOTPRINT_STROKE_WIDTH` | `1` | Épaisseur du contour |
-| `DECORATIONS_DEBUG_FOOTPRINT_DEPTH_OFFSET` | `0.25` | Depth offset — entre la tile et le Pokemon |
+L'ancien toggle des losanges de debug sur les empreintes de décoration (`SandboxConfig.debugDecorationsFootprint` + checkbox SandboxPanel + constantes `DECORATIONS_DEBUG_FOOTPRINT_*` de `constants.ts`) est **entièrement supprimé** — 0 consommateur depuis la migration Phaser → Babylon (décision #686). Config, UI **et** constantes purgées.
 
 ### Layering décorations (bottom → top)
 
 ```
 tile (+0) → highlight (+0.1) → enemy range (+0.15) → preview AoE (+0.2) →
-debug footprint (+0.25) → cursor outline ground (500 global) →
+cursor outline ground (500 global) →
 Pokemon (520+, triés par Y) →
 décoration obstacle (+0.3 sur Y grille) →
 curseur sur tile surélevée (+0.4 sur Y grille) →
