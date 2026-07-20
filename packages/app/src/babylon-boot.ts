@@ -17,10 +17,8 @@ import "./styles/index.css";
 import "./styles/team-builder-overlay.css";
 import "./styles/menu-screens.css";
 import "./styles/map-select.css";
-import { mountGameStage } from "@pokemon-tactic/ui-dom";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
-import { createBabylonPreview } from "./babylon/babylon-preview.js";
-import { createCombatScreen, DEMO_POKEMON, mountSandboxStudio } from "./babylon/combat-screen.js";
+import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.js";
 import { initLanguage } from "./i18n/index.js";
 import { getRendererBackend } from "./renderer-backend.js";
 import { sandboxBootConfig, teardownSandboxStudioDom } from "./sandbox-boot.js";
@@ -50,8 +48,7 @@ const query = new URLSearchParams(window.location.search);
 //   default        → FSM boot on the main menu
 //   VITE_SANDBOX   → straight into a player-vs-dummy sandbox combat (pnpm dev:sandbox)
 //   ?combat=1      → straight to the combat screen (dev shortcut, Jalon 3 demo content)
-//   ?map=<name>    → battlefield map (without `.tmj`) used by the combat/preview routes
-//   ?preview=1     → dev tuning harness (free rotation, sliders, Team Builder toggle)
+//   ?map=<name>    → battlefield map (without `.tmj`) used by the combat route
 const mapName = query.get("map") ?? "desert";
 const mapUrl = `assets/maps/${mapName}.tmj`;
 // Plan 125/126: the rendering backend is consumed through a seam so it stays
@@ -90,57 +87,45 @@ const sandboxConfig: SandboxConfig = resolveSandboxConfig();
 
 async function boot(root: HTMLElement): Promise<void> {
   // Splash gate (plan 135): download the sprite bundle + decode the portrait sheet before
-  // any screen renders a Pokemon. One gate covers every boot path (menu/combat/preview/sandbox).
+  // any screen renders a Pokemon. One gate covers every boot path (menu/combat/sandbox).
   await runSplash(root);
 
-  if (query.has("preview")) {
-    document.getElementById("hint")?.removeAttribute("hidden");
-    const stage = mountGameStage(root);
-    createBabylonPreview({
-      canvas: stage.canvas,
-      worldLayer: stage.worldLayer,
-      screenLayer: stage.screenLayer,
-      mapUrl,
-      pokemon: DEMO_POKEMON,
-    });
+  const reportScreenError = (error: unknown): void => {
+    // biome-ignore lint/suspicious/noConsole: surfacing a failed screen transition (otherwise swallowed by the FSM chain)
+    console.error(error);
+  };
+  const navigate: Navigate = (id, params) => {
+    manager.navigate(id, params).catch(reportScreenError);
+  };
+  const manager = new ScreenManager(root, {
+    "main-menu": () => createMainMenuScreen(navigate),
+    "battle-mode": () => createBattleModeScreen(navigate),
+    "map-select": () => createMapSelectScreen(navigate),
+    "team-select": () => createTeamSelectScreen(navigate),
+    "my-teams": () => createMyTeamsScreen(navigate),
+    "team-edit": () => createTeamEditScreen(navigate),
+    settings: () => createSettingsScreen(navigate),
+    credits: () => createCreditsScreen(navigate),
+    combat: () => createCombatScreen(navigate, backend),
+  });
+  if (sandboxEnabled) {
+    // The sandbox studio is mounted directly (not via the manager), so "Back to
+    // menu" is a boot-level entry, not a guarded in-app navigation: tear down the
+    // studio chrome + battle, then `start` (unguarded) the main menu.
+    const studio = mountSandboxStudio(
+      root,
+      sandboxConfig,
+      (id, params) => {
+        studio.dispose();
+        teardownSandboxStudioDom();
+        manager.start(id, params).catch(reportScreenError);
+      },
+      backend,
+    );
+  } else if (query.has("combat")) {
+    manager.start("combat", { mapUrl }).catch(reportScreenError);
   } else {
-    const reportScreenError = (error: unknown): void => {
-      // biome-ignore lint/suspicious/noConsole: surfacing a failed screen transition (otherwise swallowed by the FSM chain)
-      console.error(error);
-    };
-    const navigate: Navigate = (id, params) => {
-      manager.navigate(id, params).catch(reportScreenError);
-    };
-    const manager = new ScreenManager(root, {
-      "main-menu": () => createMainMenuScreen(navigate),
-      "battle-mode": () => createBattleModeScreen(navigate),
-      "map-select": () => createMapSelectScreen(navigate),
-      "team-select": () => createTeamSelectScreen(navigate),
-      "my-teams": () => createMyTeamsScreen(navigate),
-      "team-edit": () => createTeamEditScreen(navigate),
-      settings: () => createSettingsScreen(navigate),
-      credits: () => createCreditsScreen(navigate),
-      combat: () => createCombatScreen(navigate, backend),
-    });
-    if (sandboxEnabled) {
-      // The sandbox studio is mounted directly (not via the manager), so "Back to
-      // menu" is a boot-level entry, not a guarded in-app navigation: tear down the
-      // studio chrome + battle, then `start` (unguarded) the main menu.
-      const studio = mountSandboxStudio(
-        root,
-        sandboxConfig,
-        (id, params) => {
-          studio.dispose();
-          teardownSandboxStudioDom();
-          manager.start(id, params).catch(reportScreenError);
-        },
-        backend,
-      );
-    } else if (query.has("combat")) {
-      manager.start("combat", { mapUrl }).catch(reportScreenError);
-    } else {
-      manager.start("main-menu", undefined).catch(reportScreenError);
-    }
+    manager.start("main-menu", undefined).catch(reportScreenError);
   }
 }
 
