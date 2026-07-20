@@ -8,6 +8,20 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Boussole 3D — placement/échelle toujours imparfaits — RÉSOLU (2026-07-20)
+
+- **Contexte (2026-07-02, playtest plan 146)** : la boussole 3D always-on près du portrait actif (plan 145) avait toujours des problèmes de placement signalés par l'humain — reliquat déjà noté au plan 145 (offsets fixes fragiles au changement de résolution).
+- **Résolution** : `BabylonCompass.pinToCorner` (`packages/render-babylon/src/babylon-compass.ts`) ancre désormais la boussole à une **position + taille écran constantes en pixels**, dérivées des spans de la projection ortho (`orthoLeft/Right/Top/Bottom`) et des dimensions de rendu courantes, calibrées sur une référence **1920×1080** — plus de taille/position fixées en unités monde. Invariant resize, zoom et résolution. Décision #688.
+
+---
+
+## Boussole / girouette d'orientation caméra — DÉJÀ FAIT (archivé 2026-07-20)
+
+- **Contexte (2026-06-18)** : besoin exprimé d'un indicateur d'orientation caméra (la caméra Babylon tourne par snaps 90°, on perd vite le Nord).
+- **Statut réel** : couvert par la boussole always-on (plan 145) — l'aiguille suit la rotation caméra en continu. Fix placement 2026-07-20 (ci-dessus) a réglé le seul reliquat (ancrage écran imprécis).
+
+---
+
 ## Autocomplete bilingue — chercher en langue courante ET en anglais — RÉSOLU (2026-07-20)
 
 - **Contexte (2026-05-31)** : les champs de recherche/autocomplete du Team Builder (moves, Pokemon, items) ne matchaient que sur le nom affiché dans la langue courante — un joueur FR connaissant le nom EN d'une attaque (ou inversement) ne pouvait pas la retrouver en tapant.

@@ -13,14 +13,20 @@ import "@babylonjs/loaders/glTF/2.0";
 import {
   BABYLON_HUD_RENDERING_GROUP,
   BABYLON_SPRITE_PIXELS_PER_UNIT,
+  BABYLON_VIEW_SIZE,
 } from "./babylon-constants.js";
 
 /** Voxel compass authored in voxigen.io (assets-src/voxel/compass.vxb), exported as glb. */
 const COMPASS_GLB_URL = "assets/ui/compass.glb";
-/** Left inset as a fraction of the ortho extent (from the left edge). */
-const COMPASS_LEFT_FRACTION = 0.055;
-/** Top inset as a fraction of the ortho extent — small, so it rides at the active-portrait level. */
-const COMPASS_TOP_FRACTION = 0.035;
+/** On-screen size (1 ≈ raw voxel size at the reference resolution). Higher → bigger compass. */
+const COMPASS_SIZE_SCALE = 1;
+/** Reference render size (px) the fixed position + size are calibrated against (1080p / 1920×1080). */
+const COMPASS_REFERENCE_RENDER_HEIGHT = 1080;
+const COMPASS_REFERENCE_RENDER_WIDTH = 1920;
+/** Left inset as a fraction of the reference width (constant px from the left edge). Higher → right. */
+const COMPASS_LEFT_FRACTION = 0.05;
+/** Top inset as a fraction of the reference height (constant px from the top edge). Higher → lower. */
+const COMPASS_TOP_FRACTION = 0.034;
 /** Depth in front of the camera to park the compass (between minZ and maxZ). */
 const COMPASS_CAMERA_DEPTH = 20;
 /** Fixed world spin so the model's red North marker reads as world-North (calibrated to the view). */
@@ -95,20 +101,40 @@ export class BabylonCompass {
     this.root.dispose(false, true);
   }
 
-  /** Park the compass at the top-left screen corner in front of the ortho camera (per frame). */
+  /** Park the compass at a top-left corner spot with a CONSTANT on-screen pixel size (per frame). */
   private pinToCorner(camera: TargetCamera): void {
     const orthoTop = camera.orthoTop ?? 1;
     const orthoLeft = camera.orthoLeft ?? -1;
-    // Offset each axis by a fraction of its OWN ortho span so the screen position stays constant
-    // across aspect ratios / resolutions (using the vertical span for the horizontal offset would
-    // make the corner drift as the window widens).
     const horizontalSpan = (camera.orthoRight ?? 1) - orthoLeft;
     const verticalSpan = orthoTop - (camera.orthoBottom ?? -1);
+    const engine = camera.getScene().getEngine();
+    // Guard against a 0×0 canvas (hidden tab): a zero divisor would make every position/scale NaN.
+    const renderWidth = Math.max(1, engine.getRenderWidth());
+    const renderHeight = Math.max(1, engine.getRenderHeight());
+
+    // Position: a CONSTANT pixel inset from the top-left corner. The on-screen offset is
+    // `insetFraction · renderWidth` = `LEFT_FRACTION · REFERENCE_RENDER_WIDTH` (px) — renderWidth and
+    // horizontalSpan cancel out of the ortho projection, so it holds across resize and zoom alike.
+    const leftInsetFraction =
+      COMPASS_LEFT_FRACTION * (COMPASS_REFERENCE_RENDER_WIDTH / renderWidth);
+    const topInsetFraction =
+      COMPASS_TOP_FRACTION * (COMPASS_REFERENCE_RENDER_HEIGHT / renderHeight);
+    const x = orthoLeft + horizontalSpan * leftInsetFraction;
+    const y = orthoTop - verticalSpan * topInsetFraction;
+
+    // Size: pixel footprint = worldSize / verticalSpan * renderHeight. Setting worldSize ∝
+    // verticalSpan / renderHeight makes both verticalSpan and renderHeight cancel out of that
+    // footprint → a CONSTANT number of pixels, identical on any resolution, resize, or zoom.
+    // Calibrated so SIZE_SCALE ≈ 1 matches the raw voxel size at the reference height.
+    const scale =
+      COMPASS_SIZE_SCALE *
+      (verticalSpan / renderHeight) *
+      (COMPASS_REFERENCE_RENDER_HEIGHT / BABYLON_VIEW_SIZE);
+    this.root.scaling.setAll(scale);
+
     const right = camera.getDirection(Vector3.Right());
     const up = camera.getDirection(Vector3.Up());
     const forward = camera.getDirection(Vector3.Forward());
-    const x = orthoLeft + horizontalSpan * COMPASS_LEFT_FRACTION;
-    const y = orthoTop - verticalSpan * COMPASS_TOP_FRACTION;
     this.root.position
       .copyFrom(camera.position)
       .addInPlace(forward.scale(COMPASS_CAMERA_DEPTH))

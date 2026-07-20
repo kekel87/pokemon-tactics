@@ -993,6 +993,23 @@ Source canonique : `packages/renderer/src/babylon/babylon-champ-pill.ts` + `baby
 | `BABYLON_TILE_GRID_COLOR` | Couleur wireframe de la grille debug (touche `g`) |
 | `BABYLON_TILE_GRID_Z_OFFSET` | Z-offset pour éviter le z-fighting avec le terrain |
 
+#### Boussole d'orientation caméra — ancrage pixel-fixe (fix 2026-07-20)
+
+Source canonique : `packages/render-babylon/src/babylon-compass.ts`.
+
+La boussole (`compass.glb`, mesh voxel) est repositionnée/redimensionnée chaque frame (`pinToCorner`) pour occuper une **position + taille écran constantes en pixels**, dérivées des spans de la projection ortho (`orthoLeft/Right/Top/Bottom`) et des dimensions de rendu courantes — invariant au resize, au zoom et à la résolution. Calibrée sur une référence 1920×1080, sans capture d'état au boot. Corrige la dérive de l'ancien ancrage en unités monde (backlog 2026-07-02).
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `COMPASS_SIZE_SCALE` | `1` | Taille écran (≈ taille voxel brute à la résolution de référence). Plus haut = boussole plus grande. |
+| `COMPASS_LEFT_FRACTION` | `0.05` | Inset gauche, fraction de `COMPASS_REFERENCE_RENDER_WIDTH` (px constant depuis le bord gauche). Plus haut = vers la droite. |
+| `COMPASS_TOP_FRACTION` | `0.034` | Inset haut, fraction de `COMPASS_REFERENCE_RENDER_HEIGHT` (px constant depuis le bord haut). Plus haut = vers le bas. |
+| `COMPASS_REFERENCE_RENDER_WIDTH` / `COMPASS_REFERENCE_RENDER_HEIGHT` | `1920` / `1080` | Résolution de référence sur laquelle position et taille sont calibrées. |
+| `COMPASS_CAMERA_DEPTH` | `20` | Profondeur (unités monde) devant la caméra où la boussole est parquée (entre minZ/maxZ). |
+| `COMPASS_NORTH_OFFSET` | `π/2` | Rotation monde fixe alignant l'aiguille Nord du modèle sur le Nord monde réel. |
+
+Décision #688.
+
 ---
 
 ## Principes de design
