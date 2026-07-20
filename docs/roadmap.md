@@ -320,7 +320,24 @@ Tie à Babylon : éditeur et props terrain repensés pour renderer 3D.
 
 > **Note 2026-04-20** : *Choix maps UI*, *Roster maps variées* et *génération IA* remontés en Phase 3 — ne dépendent pas de Babylon. Seul l'éditeur in-game reste ici.
 
-- [ ] Éditeur de terrain in-game (placement tiles, hauteurs, spawns, décorations)
+### Vision éditeur — voxel « Minecraft créatif » (validée 2026-07-20)
+
+La carte au centre, une palette de blocs + décorations sur le côté ; on pose / enlève à la souris.
+
+- **Bloc = unité de base** : cube **24×24×24 px** (= taille des textures PMD), 1 bloc = 1 unité de hauteur monde.
+- **Relief par empilement** de cubes unitaires (façon Minecraft), **pas** d'étirement d'un cube. Rupture avec le `tile.height` flottant actuel.
+- **Chaque variation de texture / prop = un nouveau bloc** dans la palette (pas de paramètre réglable sur un bloc existant).
+- **Décorations** = entités posables séparées, réutilisent le pipeline voxel `.glb` existant (herbe haute, rochers, arbres, hazards — cf. `docs/references/voxel-tile-placement.md`).
+
+#### Conséquences techniques (à trancher au démarrage de la phase)
+
+- **Modèle données terrain** : `tile.height` (hauteur flottante extrudée) → **pile de blocs unitaires** par case (colonne, voire grille 3D). Le core continue de ne voir qu'un `MapDefinition` (hauteur dérivée du nombre de blocs empilés).
+- **Rendu = instances** (thin instances Babylon) : 1 cube modèle par type de bloc, une instance par bloc posé. Poser / enlever = ajouter / retirer une instance. Résout **gratuitement** la dette « ~1500 draw calls terrain » (blocs uniformes → plus de piège d'UV de flanc, ~10 draws). Voir dette rendu dans `docs/next.md`.
+- **Picking** : `thinInstanceIndex → (x, y, z)` — nécessaire pour l'éditeur (poser / enlever) **et** le gameplay (sélection de tuile). Remplace le `mesh.metadata {x,y}` par box actuel.
+- `packages/render-babylon/src/terrain-extruder.ts` actuel (cube étiré + `MultiMaterial` 6 submeshes / tuile) sera **remplacé**, pas optimisé.
+- **Recherche avant de coder** : regarder les éditeurs voxel / loaders type Minecraft/Cobblemon existants (réf. mémoire « research avant réinventer ») + `best-practices` sur le rendu instancié Babylon.
+
+- [ ] Éditeur de terrain in-game voxel (palette de blocs + décorations, empilement hauteur, spawns), rendu instancié, picking (x,y,z)
 
 ---
 
