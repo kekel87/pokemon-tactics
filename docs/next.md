@@ -78,7 +78,7 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 ### UI/UX en attente
 
 - **Refacto unités CSS chrome : rem → `px × --ui-scale`** (validé humain 2026-06-12, option C) — gros refacto transverse (tokens.css + tous les composants chrome `styles/`). À faire en passe dédiée, pas en plein milieu des retours.
-- **Recherche bilingue FR+EN dans le move picker** (souhait humain 2026-06-15) — taper un nom EN doit matcher l'entrée FR (ex. « ven » → venusaur). Noté `docs/test-plan.md` §7.2.
+- ~~**Recherche bilingue FR+EN dans le move picker** (souhait humain 2026-06-15)~~ — LIVRÉ : haystack normalisé bilingue (FR+EN+id, accents/séparateurs tolérés) sur les 3 pickers (`team/search-index.ts`). Couvert e2e `dom/picker-search.spec.ts`, cahier §7.2.
 - Pistes best-practices overlay (non bloquantes) : (1) plancher font-size `max(calc(N·--px), Xpx)` zone 480-767px ; (2) modales `<dialog>` top-layer → publier `--stage-scale` sur `:root` via ResizeObserver (Jalon 4) ; (3) cap ultrawide optionnel `min(100cqw/1920, 100cqh/1080)` (décision design) ; (4) `--ui-scale` barres PV monde à brancher si besoin 4K.
 - Mineur a11y placement-roster : `.pl-roster` sans heading (`<h2>`/`<section>` recommandé par `html.md`).
 - Affichage nature dans InfoPanel — mécanique core livrée (plan 072), UI absente. Reprendre à la refonte InfoPanel globale.

@@ -3,6 +3,7 @@ import { getMoveName } from "@pokemon-tactic/data";
 import { Modal } from "@pokemon-tactic/ui-dom";
 import { getLanguage, t } from "../../i18n";
 import { getCategoryIconUrl, getTypeIconUrl } from "../../team/asset-paths";
+import { buildSearchText, normalizeSearchText } from "../../team/search-index";
 import {
   type AvailableMove,
   getAllMoveInfos,
@@ -25,6 +26,8 @@ interface MoveEntry {
   id: string;
   info: AvailableMove | null;
   implemented: boolean;
+  /** Normalized FR+EN+id haystack; unimplemented moves fall back to i18n names + id. */
+  searchText: string;
 }
 
 export function openMovePickerModal(options: MovePickerOptions): void {
@@ -59,10 +62,21 @@ export function openMovePickerModal(options: MovePickerOptions): void {
 
   const excluded = new Set(options.excludeMoveIds ?? []);
   const entries: MoveEntry[] = options.allMoves
-    ? getAllMoveInfos().map((info) => ({ id: info.id, info, implemented: true }))
+    ? getAllMoveInfos().map((info) => ({
+        id: info.id,
+        info,
+        implemented: true,
+        searchText: info.searchText,
+      }))
     : getLearnsetForPokemon(options.pokemonId).map((id) => {
         const info = getMoveInfo(id);
-        return { id, info, implemented: info !== null };
+        return {
+          id,
+          info,
+          implemented: info !== null,
+          searchText:
+            info?.searchText ?? buildSearchText(getMoveName(id, "fr"), getMoveName(id, "en"), id),
+        };
       });
   entries.sort((a, b) => {
     if (a.implemented !== b.implemented) {
@@ -154,26 +168,21 @@ export function openMovePickerModal(options: MovePickerOptions): void {
   const render = (): void => {
     renderFilters();
     list.innerHTML = "";
+    const normalizedQuery = normalizeSearchText(query);
     const filtered = entries.filter((e) => {
       if (excluded.has(e.id)) {
         return false;
       }
+      if (normalizedQuery !== "" && !e.searchText.includes(normalizedQuery)) {
+        return false;
+      }
       if (e.info === null) {
-        if (category !== "all" || activeTypes.size > 0) {
-          return false;
-        }
-        if (query !== "" && !e.id.toLowerCase().includes(query.toLowerCase())) {
-          return false;
-        }
-        return true;
+        return category === "all" && activeTypes.size === 0;
       }
       if (category !== "all" && e.info.category !== category) {
         return false;
       }
       if (activeTypes.size > 0 && !activeTypes.has(e.info.type)) {
-        return false;
-      }
-      if (query !== "" && !e.info.name.toLowerCase().includes(query.toLowerCase())) {
         return false;
       }
       return true;

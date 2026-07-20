@@ -105,6 +105,26 @@ export class PokemonPicker {
   }
 }
 
+/** Move Picker modale (`<dialog>` → rôle `dialog`, titre « Choisir la capacité N »). Ouverte en
+ *  cliquant une ligne de capacité de la fiche d'un Pokemon. Les lignes de move sont des divs
+ *  cliquables sans rôle/testid → on cible le **nom FR user-facing** via `getByText` (priorité
+ *  Playwright avant testid), scopé au dialog. */
+export class MovePicker {
+  readonly dialog: Locator;
+  readonly title: Locator;
+  readonly search: Locator;
+  constructor(page: Page) {
+    this.dialog = page.getByRole("dialog");
+    this.title = page.getByRole("heading", { name: /Choisir la capacité/ });
+    this.search = this.dialog.getByPlaceholder("Rechercher…");
+  }
+
+  /** A move list row by its FR name (the `.name` span text). */
+  entry(moveFr: string): Locator {
+    return this.dialog.getByText(moveFr, { exact: true });
+  }
+}
+
 /** Item Picker modale (`<dialog>` → rôle `dialog`, titre « Choisir un objet »). Les lignes d'objet
  *  sont des divs cliquables sans rôle → `data-testid` (data row) ; le nom de l'objet reste le texte
  *  user-facing de la ligne, ciblé via `data-item-id` (id EN stable, indépendant de l'i18n). */
@@ -112,11 +132,13 @@ export class ItemPicker {
   readonly dialog: Locator;
   readonly title: Locator;
   readonly close: Locator;
+  readonly search: Locator;
   readonly rows: Locator;
   constructor(private readonly page: Page) {
     this.dialog = page.getByRole("dialog");
     this.title = page.getByRole("heading", { name: "Choisir un objet" });
     this.close = page.getByRole("button", { name: "Fermer" });
+    this.search = this.dialog.getByPlaceholder("Rechercher…");
     this.rows = page.getByTestId("item-picker-row");
   }
 
