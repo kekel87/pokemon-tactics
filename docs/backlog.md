@@ -35,13 +35,6 @@ _Aucune dette active._
 
 ## Feedback visuel
 
-### Boussole 3D — placement/échelle toujours imparfaits (2026-07-02, playtest plan 146)
-- La boussole 3D always-on près du portrait actif (plan 145) a **toujours des problèmes de placement** signalés par l'humain lors du playtest stat-manip.
-- Reliquat déjà noté (plan 145 § reporté : offsets fixes fragiles en changement de résolution, tuning à revoir avec le chantier zoom).
-- Confirmé récurrent → à traiter pour de bon : ancrage dynamique (position relative au portrait/viewport, pas offsets fixes) + échelle indexée sur `--ui-scale` / résolution.
-- À grouper avec le chantier caméra adaptative + zoom (ci-dessous) et le refacto unités CSS chrome.
-- Priorité moyenne — cosmétique mais visible.
-
 ### MoveTooltip — afficher modifiers contextuels (météo, terrain, items) (2026-05-13)
 - Ex : Blizzard "Prec 70 (100 en Neige)", Flamethrower "BP 90 (×1.5 en Soleil)", Thunder "Prec 70 (100 en Pluie, 50 en Soleil)".
 - Étendre MoveTooltip pour calculer effective BP/accuracy selon `state.weather` et types caster/cible.
@@ -83,11 +76,6 @@ _Aucune dette active._
 - Objectifs : (1) tester plein de mécaniques d'un coup en jouant les deux côtés ; (2) **voir les tooltips d'attaque** en conditions réelles ; (3) servir de base aux **screenshots / gif** (README, wiki, devlog itch).
 - Piste : mode/flag sandbox `humanVsHuman` (les deux `controller: human`), ou écran de setup où les 2 colonnes sont en Humain (TeamSelect le permet déjà — vérifier que le combat suit).
 - Priorité moyenne — gros multiplicateur pour la QA et la com.
-
-### Boussole / girouette d'orientation caméra (2026-06-18)
-- La caméra Babylon tourne par snaps 90° → on perd vite le Nord.
-- Ajouter un indicateur d'orientation (boussole / girouette) montrant la direction courante de la caméra.
-- DOM (chrome écran, coin) ou monde — à trancher. Suivre la rotation caméra.
 
 ### Sprites originaux — plan B si DMCA Nintendo (plan 096)
 - Vecteur risque IP principal : 502 sprites PNG PMDCollab rippés Showdown/PokeAPI.
