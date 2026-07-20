@@ -266,7 +266,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
 
   return {
     async mount(host, params) {
-      trackEvent(AnalyticsEvent.TeamBuilder);
+      trackEvent(AnalyticsEvent.TeamSelect);
       mapUrl = params.mapUrl;
       const loaded = await loadTiledMap(mapUrl);
       mapName = loaded.map.name;

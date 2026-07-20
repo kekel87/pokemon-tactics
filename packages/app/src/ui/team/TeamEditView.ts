@@ -47,7 +47,6 @@ export class TeamEditView {
 
     const root = document.createElement("div");
     root.className = "tb-root";
-    root.dataset.scene = "TeamEditScene";
 
     const topbar = document.createElement("div");
     topbar.className = "tb-topbar";

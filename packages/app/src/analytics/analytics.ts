@@ -12,6 +12,7 @@ export const AnalyticsEvent = {
   BattleMode: "battle-mode",
   TeamBuilder: "team-builder",
   MapSelect: "map-select",
+  TeamSelect: "team-select",
   BattleStart: "battle-start",
   BattleEnd: "battle-end",
 } as const;

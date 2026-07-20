@@ -29,7 +29,7 @@ export interface ScreenParamsById {
   "map-select": undefined;
   "team-select": { mapUrl: string };
   "my-teams": undefined;
-  "team-edit": { teamId: string | null };
+  "team-edit": { teamId: string };
   settings: undefined;
   credits: undefined;
   /** No `setup` = the `?combat=1` dev route (Jalon 3 demo content until step 7). */

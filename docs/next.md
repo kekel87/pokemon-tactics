@@ -71,7 +71,7 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 
 - Terrain : ~1500 draw calls (MultiMaterial + 6 SubMeshes par tuile, cube étiré). **Résorbé par la fondation voxel de l'éditeur (roadmap Phase 6, décision #682)** — blocs unitaires 24³ instanciés → ~10 draws. **Ne PAS optimiser `terrain-extruder.ts` maintenant** (sera remplacé, pas fusionné/optimisé).
 - Consolider le loader Tiled (`resolveExternalTilesets` dupliqué 3×, `findProperty`/`resolveTileProperties` à exporter depuis `@pokemon-tactic/data`). **À revoir avec Phase 6** (format map custom 3D, décision #451/#682) : le parsing Tiled sera retravaillé/supprimé — ne consolider que si Tiled survit comme pont d'import. Pas de refacto maintenant.
-- `MultiMaterial` non disposées au reload de map (acceptable tant que la scène entière est détruite au reload).
+- ~~`MultiMaterial` non disposées au reload de map~~ **Vérifié — non-problème (2026-07-20).** `terrain-extruder.ts` dispose via `root.dispose(false, true)` : Babylon récurse en propageant `disposeMaterialAndTextures=true`, et le cas `MultiMaterial` d'`AbstractMesh.dispose` appelle `material.dispose(false, true, true)` (`forceDisposeChildren=true`) → chaque MultiMaterial par tuile **est** disposée, sous-matériaux + textures inclus. De plus `extrudeTerrain` n'est appelé qu'1× (teardown de scène unique, aucun reload sur scène vivante). Note périmée, rien à corriger.
 - Occlusion fine per-sprite pour les décorations (rochers/herbes/arbres objectgroup).
 - Bonus plan 064 différé : marquages arène + pokéball centrale (`docs/plans/064-decorations-obstacles.md`).
 - Plan 080 Token optimization : Phase 1+3 DONE, 2+4 partiel, 5 pending — décision restante humain (skills à désinstaller, validation `/cost` session fraîche).
@@ -84,11 +84,6 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 - Mineur a11y placement-roster : `.pl-roster` sans heading (`<h2>`/`<section>` recommandé par `html.md`).
 - Affichage nature dans InfoPanel — mécanique core livrée (plan 072), UI absente. Reprendre à la refonte InfoPanel globale.
 
-### Dette code mineure (review)
-
-- Mineurs review J4/4d (team-select) : fallback hex `0x2255aa` à extraire en constante, `turnSelect.value as TurnSystemKind` → type guard, `formatLabel` dupliqué à exporter depuis `FormatPicker.ts`, `SlotForRefresh` duplicata de `SlotState`.
-- Mineurs review J5 (my-teams/team-edit) : branche `teamId === null` sans appelant production à resserrer, `trackEvent(TeamBuilder)` émis 2× (asymétrie my-teams/team-select), `dataset.scene` sans consommateur à renommer/supprimer.
-
 ### Décisions actées (pour mémoire, pas d'action)
 
 - Jalon 3.5 pixel-art **ABANDONNÉ** (2026-06-10, décision #486) — 4 essais rejetés, rendu full-res conservé. Ne pas rouvrir sans décision humaine. Historique : `docs/babylon/babylon-pixel-art-pipeline.md`.
@@ -96,6 +91,7 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 
 ## Fait récemment
 
+- 2026-07-20 — Dette code mineure (review J4/J5) soldée : `dataset.scene` mort supprimé (2 écritures, 0 lecture), `SlotForRefresh`/`SlotState` dédupliqués (alias, dép ui→team), branche `teamId === null` morte retirée (type `team-edit` resserré à `string`), event funnel `TeamSelect` ajouté (team-select ne tire plus `TeamBuilder`). Les 3 mineurs J4 (`0x2255aa`, `TurnSystemKind`, `formatLabel`) étaient déjà résolus. Dette `MultiMaterial reload` vérifiée = faux (dispose via `forceDisposeChildren`, note périmée).
 - 2026-07-20 — Dette technique résolue : harness dev Babylon jetable (`babylon-preview.ts` 426l + `team-edit-harness.ts`, branche `?preview=1` de `babylon-boot.ts`, `#hint`/`#pixinfo` d'`index.html`) supprimé. Caméra extraite dans une classe `IsometricCamera` (`packages/render-babylon/src/isometric-camera.ts`), `combat-scene.ts` délègue.
 - 2026-07-20 — Dette test résolue : helper `damageTo(events, targetId)` dupliqué inline dans 36 fichiers `packages/core/src/battle/moves/*.test.ts` centralisé dans `packages/core/src/testing/damage-events.ts` (exporté via `testing/index.ts`). -458/+37 lignes, typecheck + 1545 tests unit verts.
 - 2026-07-19 — Fix anim de repos des Volants selon le terrain (posé sur sol, vol sur eau/lave/glace… ; glace ajoutée aux fly-over) + hook e2e spriteStates. Reliquat transition de mode en déplacement (bug C) également résolu : bascule à mi-tween au lieu du départ du pas — bug de l'anim des Volants entièrement clos.

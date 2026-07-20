@@ -3,24 +3,19 @@ import {
   PlayerController,
   PlayerId,
   type TeamSelection,
-  type TeamSet,
 } from "@pokemon-tactic/core";
 import { t } from "../../i18n";
 import type { TranslationKey } from "../../i18n/types";
 import { loadLastSelection, saveLastSelectionEntry } from "../../team/last-selection";
+import type { SlotForRefresh } from "../../team/refresh-ai-teams";
 import { generateRandomTeam } from "../../team/team-generator";
 import { loadTeam } from "../../team/team-storage";
 
 /**
  * Team-select slot state and operations used by the DOM team-select screen
- * (plan 120 step 4).
+ * (plan 120 step 4). Same shape as the refresh helper's constraint.
  */
-export interface SlotState {
-  controller: PlayerController;
-  assignedTeam: TeamSet | null;
-  assignedTeamId: string | null;
-  ephemeral: boolean;
-}
+export type SlotState = SlotForRefresh;
 
 export const PLAYER_IDS: readonly PlayerId[] = [
   PlayerId.Player1,

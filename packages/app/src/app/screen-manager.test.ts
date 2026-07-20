@@ -10,7 +10,7 @@ const PARAMS: ScreenParamsById = {
   "map-select": undefined,
   "team-select": { mapUrl: "maps/volcano.tmj" },
   "my-teams": undefined,
-  "team-edit": { teamId: null },
+  "team-edit": { teamId: "team-1" },
   settings: undefined,
   credits: undefined,
   combat: { mapUrl: "maps/volcano.tmj" },
