@@ -1,8 +1,10 @@
 # Plan 080 — Token Optimization Setup
 
-**Statut** : Phase 1 DONE — Phase 3 ABANDONNÉE (Serena désinstallé) — Phase 2, 4 partiel — Phase 5 validation pending humain
+**Statut** : **abandoned** (clôturé 2026-07-20) — Phase 1 livrée, Phase 3 abandonnée (Serena), Phases 2/4 partielles, Phase 5 (validation `/cost` + audits skills/MCP) jamais faite et désormais caduque
 **Créé** : 2026-05-12
 **Objectif** : Réduire consommation tokens par tour (~3-5k économisés) sans perdre capacité.
+
+> **CLÔTURE 2026-07-20** : Plan clôturé `abandoned`. Les gains Phase 1 (frontmatter `paths:` conditionnel sur les rules, compression CLAUDE.md/RTK/MEMORY, audit agents 30→27) sont **livrés et conservés**. Le reliquat (Phase 2.3 audit skills, Phase 4 audit MCP, Phase 5 mesure `/cost` en session fraîche) est **abandonné** : écrit pour un budget contexte serré, il est caduc sur Opus 4.8 1M context où ~5k de préambule sont négligeables. Décision #684.
 
 > **MAJ 2026-06-02** : Serena désinstallé complètement (MCP + cache ~700 Mo + memory files). Phase 3 (Serena) caduque. Refs Serena ci-dessous = historique uniquement, non actionnables.
 

@@ -74,7 +74,6 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 - ~~`MultiMaterial` non disposées au reload de map~~ **Vérifié — non-problème (2026-07-20).** `terrain-extruder.ts` dispose via `root.dispose(false, true)` : Babylon récurse en propageant `disposeMaterialAndTextures=true`, et le cas `MultiMaterial` d'`AbstractMesh.dispose` appelle `material.dispose(false, true, true)` (`forceDisposeChildren=true`) → chaque MultiMaterial par tuile **est** disposée, sous-matériaux + textures inclus. De plus `extrudeTerrain` n'est appelé qu'1× (teardown de scène unique, aucun reload sur scène vivante). Note périmée, rien à corriger.
 - ~~Occlusion fine per-sprite pour les décorations~~ **Vérifié — déjà résolu (2026-06-15, commit `2cb4b77`).** Chaque déco a son propre matériau + `SpriteDepthPlugin` (foot-depth par instance) et `Decorations.update()` reprojette le pied en NDC chaque frame → occlusion correcte pendant la rotation caméra. Note écrite le 2026-06-13, corrigée 2 jours plus tard, jamais barrée. **De toute façon caduque** : les déco billboards seront remplacées par des assets voxel (roadmap Phase 6 / idée `next.md` §exploration) → depth-buffer GPU natif.
 - Bonus plan 064 différé : marquages arène + pokéball centrale (`docs/plans/064-decorations-obstacles.md`).
-- Plan 080 Token optimization : Phase 1+3 DONE, 2+4 partiel, 5 pending — décision restante humain (skills à désinstaller, validation `/cost` session fraîche).
 
 ### UI/UX en attente
 
