@@ -4,18 +4,8 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, damageTo, MockPokemon } from "../../testing";
 import type { BattleEvent } from "../../types/battle-event";
-
-function damageTo(events: BattleEvent[], targetId: string): number {
-  return events
-    .filter(
-      (e): e is Extract<BattleEvent, { type: typeof BattleEventType.DamageDealt }> =>
-        e.type === BattleEventType.DamageDealt,
-    )
-    .filter((e) => e.targetId === targetId)
-    .reduce((sum, e) => sum + e.amount, 0);
-}
 
 describe("burning-jealousy", () => {
   it("deals damage in a cone hitting a target in front", () => {

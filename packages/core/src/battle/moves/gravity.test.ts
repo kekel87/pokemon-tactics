@@ -6,20 +6,10 @@ import { FieldGlobalKind } from "../../enums/field-global-kind";
 import { PlayerId } from "../../enums/player-id";
 import { PokemonType } from "../../enums/pokemon-type";
 import { TerrainType } from "../../enums/terrain-type";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
-import type { BattleEvent } from "../../types/battle-event";
+import { buildMoveTestEngine, damageTo, MockPokemon } from "../../testing";
 import { postFieldGlobalZone } from "../field-global-system";
 
 // Gravité (gravity) — move integration tests.
-
-function damageTo(events: BattleEvent[], targetId: string): number {
-  return events
-    .filter(
-      (event): event is Extract<BattleEvent, { type: typeof BattleEventType.DamageDealt }> =>
-        event.type === BattleEventType.DamageDealt && event.targetId === targetId,
-    )
-    .reduce((sum, event) => sum + event.amount, 0);
-}
 
 describe("gravity — zone posting", () => {
   it("posts a FieldGlobalPosted (Gravity, 25-tile r3 diamond, 5 turns) and a zone in state", () => {

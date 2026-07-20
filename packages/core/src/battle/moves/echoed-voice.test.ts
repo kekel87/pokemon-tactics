@@ -1,19 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
-import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
-import type { BattleEvent } from "../../types/battle-event";
-
-function damageTo(events: BattleEvent[], targetId: string): number {
-  return events
-    .filter(
-      (e): e is Extract<BattleEvent, { type: typeof BattleEventType.DamageDealt }> =>
-        e.type === BattleEventType.DamageDealt,
-    )
-    .filter((e) => e.targetId === targetId)
-    .reduce((sum, e) => sum + e.amount, 0);
-}
+import { buildMoveTestEngine, damageTo, MockPokemon } from "../../testing";
 
 describe("echoed-voice", () => {
   it("deals damage to a target in range", () => {

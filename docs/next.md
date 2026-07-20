@@ -87,7 +87,6 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 
 ### Dette code mineure (review)
 
-- Dette test `damageTo` : helper dupliqué inline dans ~29 fichiers `*.test.ts` (viole `tests.md`) — centraliser dans `testing/` en une passe.
 - Mineurs review J4/4d (team-select) : fallback hex `0x2255aa` à extraire en constante, `turnSelect.value as TurnSystemKind` → type guard, `formatLabel` dupliqué à exporter depuis `FormatPicker.ts`, `SlotForRefresh` duplicata de `SlotState`.
 - Mineurs review J5 (my-teams/team-edit) : branche `teamId === null` sans appelant production à resserrer, `trackEvent(TeamBuilder)` émis 2× (asymétrie my-teams/team-select), `dataset.scene` sans consommateur à renommer/supprimer.
 
@@ -98,6 +97,7 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 
 ## Fait récemment
 
+- 2026-07-20 — Dette test résolue : helper `damageTo(events, targetId)` dupliqué inline dans 36 fichiers `packages/core/src/battle/moves/*.test.ts` centralisé dans `packages/core/src/testing/damage-events.ts` (exporté via `testing/index.ts`). -458/+37 lignes, typecheck + 1545 tests unit verts.
 - 2026-07-19 — Fix anim de repos des Volants selon le terrain (posé sur sol, vol sur eau/lave/glace… ; glace ajoutée aux fly-over) + hook e2e spriteStates. Reliquat transition de mode en déplacement (bug C) également résolu : bascule à mi-tween au lieu du départ du pas — bug de l'anim des Volants entièrement clos.
 - 2026-07-19 — Auto-génération des 4 fichiers i18n de noms (moves + pokemon-names, fr/en) depuis reference dans build-reference.ts + test de synchro anti-drift. Fin de la classe de bug "nom manquant après batch". 104 moves legacy purgés.
 - 2026-07-19 — Bug résolu : 51 pré-évolutions Gen 1 sans nom FR/EN → noms officiels ajoutés aux 2 fichiers i18n (source reference/pokemon.json). Roster i18n complet (152 clés).

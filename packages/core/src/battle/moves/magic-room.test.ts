@@ -1,23 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
-import { BattleEventType } from "../../enums/battle-event-type";
 import { FieldGlobalKind } from "../../enums/field-global-kind";
 import { HeldItemId } from "../../enums/held-item-id";
 import { PlayerId } from "../../enums/player-id";
-import { buildItemTestEngine, buildMoveTestEngine, MockPokemon } from "../../testing";
-import type { BattleEvent } from "../../types/battle-event";
+import { buildItemTestEngine, buildMoveTestEngine, damageTo, MockPokemon } from "../../testing";
 import { postFieldGlobalZone } from "../field-global-system";
 
 // Zone Magique (magic-room) — move integration tests.
-
-function damageTo(events: BattleEvent[], targetId: string): number {
-  return events
-    .filter(
-      (event): event is Extract<BattleEvent, { type: typeof BattleEventType.DamageDealt }> =>
-        event.type === BattleEventType.DamageDealt && event.targetId === targetId,
-    )
-    .reduce((sum, event) => sum + event.amount, 0);
-}
 
 function buildScenario() {
   const caster = MockPokemon.fresh(MockPokemon.base, {
