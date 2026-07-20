@@ -16,8 +16,9 @@ export const DUEL = {
 /** Same duel but the dummy is one hit from fainting → any Griffe is lethal (KO log assertion). */
 export const DUEL_LETHAL = { ...DUEL, dummyHp: 1 } as const;
 
-/** Player starts poisoned → the HUD must mount a status icon (test-plan §3.4). */
-export const POISONED = { status: "poisoned" } as const;
+/** Player starts poisoned → the HUD must mount a status icon (test-plan §3.4). Seeded
+ *  (via DUEL) so the sandbox stays deterministic — a config without a seed now boots random. */
+export const POISONED = { ...DUEL, status: "poisoned" } as const;
 
 /** Same duel but the only move is a multi-hit one: Balle Graine (bullet-seed) is 100% accuracy so
  *  it always lands, and the seed makes the 2-5 hit count deterministic → the log emits a single

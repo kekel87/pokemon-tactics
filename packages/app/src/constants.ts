@@ -328,12 +328,6 @@ export const DEPTH_CURSOR_RAISED_TILE_OFFSET = 0.4;
 // previewed, so the player can read reachable tiles hidden behind obstacles.
 export const DECORATIONS_PREVIEW_MODE_ALPHA = 0.45;
 
-export const DECORATIONS_DEBUG_FOOTPRINT_COLOR = 0xff0000;
-export const DECORATIONS_DEBUG_FOOTPRINT_ALPHA = 0.45;
-export const DECORATIONS_DEBUG_FOOTPRINT_STROKE_ALPHA = 0.9;
-export const DECORATIONS_DEBUG_FOOTPRINT_STROKE_WIDTH = 1;
-export const DECORATIONS_DEBUG_FOOTPRINT_DEPTH_OFFSET = 0.25;
-
 // Loading overlay timing (plan 097 → 127). Visual styling lives in `styles/loading-overlay.css`.
 export const LOADING_TIP_ROTATION_MS_DEFAULT = 3000;
 export const LOADING_FADE_OUT_MS = 200;

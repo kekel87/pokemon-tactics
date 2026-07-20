@@ -8,6 +8,20 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Sandbox — pas de sélecteur de talent pour le Dummy dans l'UI — RÉSOLU (2026-07-20)
+
+- **Contexte (2026-06-22, playtest plan 139)** : le `SandboxPanel` exposait un sélecteur de talent pour le joueur, mais aucun pour le Dummy — seul le champ JSON `dummyAbility` permettait de surcharger le talent du Dummy, imposant de passer par `pnpm dev:sandbox '{...}'` pour tester un talent défensif côté cible.
+- **Résolution** : `<select>` talent Dummy ajouté dans `SandboxPanel.ts`, miroir exact du sélecteur joueur (`dummyAbilitySelect`).
+
+---
+
+## Sandbox — `seed` absent = seed 0 → bataille entièrement déterministe (surprenant) — RÉSOLU (2026-07-20)
+
+- **Contexte (2026-06-22, playtest plan 139)** : lancer le sandbox sans champ `seed` utilisait `seed: 0` par défaut → toute bataille était identique à chaque lancement, masquant/faussant la validation manuelle d'effets probabilistes (flinch, effets secondaires %).
+- **Résolution** : nouveau mode RNG explicite dans le `SandboxPanel` — **Aléatoire** (nouveau défaut, seed frais généré à chaque mount/replay via `resolveSandboxSeed`) vs **Déterministe** (seed éditable + bouton 🎲). `SandboxConfig.rngMode?: "random" | "deterministic"`, inféré rétro-compat depuis la présence du `seed` si absent (préserve tous les scénarios e2e). Décision #685.
+
+---
+
 ## Le Mur — réintégrer + fixer IA (RÉSOLU plan 159, 2026-07-14, publié v2026.7.2)
 
 - **Contexte (2026-04-23, relancé 2026-06-18)** : map `le-mur.tmj` retirée du menu. Après la rotation caméra Babylon (Phase 5) et le fix transparence (commit `082240c`), restait à la rendre disponible et à corriger l'IA : elle ne tentait pas de monter sur le mur (tirait à travers au lieu de prendre la hauteur), se perdait sur les chemins verticaux, et les Pokemon étaient jugés trop lents sur neige.

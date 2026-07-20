@@ -14,6 +14,12 @@ export interface Position2D {
 export interface SandboxConfig {
   /** Battle RNG seed → deterministic, replayable run (e2e/recette). Omitted → 0. */
   seed?: number;
+  /**
+   * Sandbox studio RNG mode. "random" rolls a fresh seed each launch (respects
+   * Pokémon RNG); "deterministic" replays `seed`. Absent → inferred from `seed`
+   * presence (present = deterministic, absent = random). e2e passes `seed` only.
+   */
+  rngMode?: "random" | "deterministic";
   pokemon: string;
   moves: string[];
   hp: number;
@@ -44,8 +50,6 @@ export interface SandboxConfig {
   dummyPosition?: Position2D;
   /** Optional Tiled map URL (relative to public/), e.g. "assets/maps/dev/sandbox-flat.tmj" */
   mapUrl?: string;
-  /** Toggle the red debug diamonds over decoration footprints. */
-  debugDecorationsFootprint?: boolean;
   weather?: Weather;
   weatherTurns?: number;
 }

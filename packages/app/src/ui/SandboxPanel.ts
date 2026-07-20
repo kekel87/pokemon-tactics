@@ -8,7 +8,6 @@ import {
 } from "@pokemon-tactic/data";
 import {
   createButton,
-  createLabeledCheckbox,
   createLabeledRange,
   createLabeledSelect,
   createPickerCard,
@@ -116,7 +115,10 @@ export class SandboxPanel {
   private mapSelect!: HTMLSelectElement;
   private weatherSelect!: HTMLSelectElement;
   private weatherTurns = 5;
-  private debugDecorationsFootprintCheckbox!: HTMLInputElement;
+  private rngMode: "random" | "deterministic" = "random";
+  private seed = 0;
+  private seedInput!: HTMLInputElement;
+  private seedRow!: HTMLDivElement;
 
   private player!: PokemonState;
   private dummy!: PokemonState;
@@ -126,7 +128,7 @@ export class SandboxPanel {
   private playerMovesList!: MovesList;
 
   private dummyControl: "ai" | "player" = "ai";
-  private dummyAbility = "";
+  private dummyAbilitySelect!: HTMLSelectElement;
   private dummyMoveSelect!: HTMLSelectElement;
   private dummyMoves: string[] = [];
   private dummyMovesList!: MovesList;
@@ -137,8 +139,12 @@ export class SandboxPanel {
     this.dummyControl = initialConfig.dummyControl;
     this.dummyMoves = [...initialConfig.dummyMoves];
     this.weatherTurns = initialConfig.weatherTurns ?? 5;
-    this.dummyAbility =
-      initialConfig.dummyAbility ?? this.getFirstAbility(initialConfig.dummyPokemon);
+    // Prefer the explicit mode (survives the studio's rebuild-on-every-change); else
+    // infer: seed present → deterministic (reproducible, controls probabilistic effects
+    // for e2e/QA), absent → random (fresh seed each launch, respects Pokémon RNG).
+    this.rngMode =
+      initialConfig.rngMode ?? (initialConfig.seed === undefined ? "random" : "deterministic");
+    this.seed = initialConfig.seed ?? 0;
 
     const dom = getSandboxStudioDom();
     dom.playerColumn.replaceChildren(this.buildPlayerPanel(initialConfig));
@@ -201,15 +207,9 @@ export class SandboxPanel {
     left.appendChild(weatherField.row);
     this.weatherSelect = weatherField.select;
 
-    const debugFootprint = createLabeledCheckbox({
-      label: "Debug footprint",
-      checked: config.debugDecorationsFootprint ?? false,
-      labelWidth: "wide",
-      onChange: () => this.emit(),
-      signal: this.abort.signal,
-    });
-    left.appendChild(debugFootprint.row);
-    this.debugDecorationsFootprintCheckbox = debugFootprint.input;
+    for (const row of this.buildRngRows()) {
+      left.appendChild(row);
+    }
 
     const right = document.createElement("div");
     right.className = "sb-strip-right";
@@ -243,6 +243,76 @@ export class SandboxPanel {
     );
 
     return strip;
+  }
+
+  /**
+   * RNG controls: a mode toggle (random = fresh seed each launch, respects Pokémon
+   * RNG; deterministic = fixed seed for reproducible/probability-controlled runs)
+   * plus the seed field, shown only in deterministic mode.
+   */
+  private buildRngRows(): HTMLDivElement[] {
+    const modeField = createLabeledSelect({
+      label: "RNG",
+      options: [
+        { value: "random", label: "Aléatoire" },
+        { value: "deterministic", label: "Déterministe" },
+      ],
+      selected: this.rngMode,
+      layout: "inline",
+      onChange: () => {
+        this.rngMode = modeField.select.value as "random" | "deterministic";
+        // Entering deterministic mode with no seed yet → roll a concrete starting seed
+        // (0 replays the same battle, which reads as "nothing is random"). Keep a seed
+        // the user already set.
+        if (this.rngMode === "deterministic" && this.seed === 0) {
+          this.seed = SandboxPanel.randomSeed();
+          this.seedInput.value = String(this.seed);
+        }
+        this.seedRow.hidden = this.rngMode !== "deterministic";
+        this.emit();
+      },
+      signal: this.abort.signal,
+    });
+
+    const seedRow = document.createElement("div");
+    seedRow.className = "sb-form-row";
+    seedRow.hidden = this.rngMode !== "deterministic";
+    this.seedRow = seedRow;
+
+    const seedLabel = document.createElement("span");
+    seedLabel.className = "sb-form-label";
+    seedLabel.textContent = "Seed";
+    seedRow.appendChild(seedLabel);
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.className = "sb-form-input sb-seed-input";
+    input.value = String(this.seed);
+    input.addEventListener(
+      "change",
+      () => {
+        this.seed = Number(input.value) || 0;
+        this.emit();
+      },
+      { signal: this.abort.signal },
+    );
+    seedRow.appendChild(input);
+    this.seedInput = input;
+
+    seedRow.appendChild(
+      createButton({
+        label: "🎲",
+        variant: "ghost",
+        onClick: () => {
+          this.seed = SandboxPanel.randomSeed();
+          this.seedInput.value = String(this.seed);
+          this.emit();
+        },
+        signal: this.abort.signal,
+      }),
+    );
+
+    return [modeField.row, seedRow];
   }
 
   private async importJson(): Promise<void> {
@@ -289,7 +359,7 @@ export class SandboxPanel {
             } else {
               this.dummy.pokemonId = pk.id;
               this.dummy.pokemonButton.textContent = this.pokemonName(pk.id);
-              this.dummyAbility = this.getFirstAbility(pk.id);
+              this.rebuildDummyAbilityOptions();
               this.dummyMovesList.refresh(pk.id, this.dummyMoves);
             }
             this.emit();
@@ -300,16 +370,20 @@ export class SandboxPanel {
     });
     colLeft.appendChild(pokemonCard.row);
 
+    const ability = createLabeledSelect({
+      label: t("sandbox.ability"),
+      options: this.buildAbilityOptions(initialPokemonId),
+      selected:
+        (isPlayer ? config.playerAbility : config.dummyAbility) ??
+        this.getFirstAbility(initialPokemonId),
+      onChange: () => this.emit(),
+      signal: this.abort.signal,
+    });
+    colLeft.appendChild(ability.row);
     if (isPlayer) {
-      const ability = createLabeledSelect({
-        label: t("sandbox.ability"),
-        options: this.buildAbilityOptions(initialPokemonId),
-        selected: config.playerAbility ?? this.getFirstAbility(initialPokemonId),
-        onChange: () => this.emit(),
-        signal: this.abort.signal,
-      });
-      colLeft.appendChild(ability.row);
       this.playerAbilitySelect = ability.select;
+    } else {
+      this.dummyAbilitySelect = ability.select;
     }
 
     const itemCard = createPickerCard({
@@ -354,11 +428,7 @@ export class SandboxPanel {
       onChange: () => this.emit(),
       signal: this.abort.signal,
     });
-    if (isPlayer) {
-      colRight.appendChild(statusField.row);
-    } else {
-      colLeft.appendChild(statusField.row);
-    }
+    colRight.appendChild(statusField.row);
 
     const volatileField = createLabeledSelect({
       label: t("sandbox.volatile"),
@@ -412,9 +482,12 @@ export class SandboxPanel {
     this.player = this.buildPokemonState(config, "player", body);
 
     this.playerMoves = [];
-    const movepool = this.getMovepoolFor(this.player.pokemonId);
+    // Default to the curated movepool head (definition order) — the SAME 4 the battle
+    // gives an instance when `config.moves` is empty (BattleSetup movepool.slice(0,4)).
+    // The picker list stays alphabetical; only this default selection must mirror combat.
+    const defaults = this.getDefaultMoveset(this.player.pokemonId);
     for (let i = 0; i < 4; i++) {
-      this.playerMoves.push(config.moves[i] ?? movepool[i] ?? "");
+      this.playerMoves.push(config.moves[i] ?? defaults[i] ?? "");
     }
     this.playerMovesList = createMovesList({
       pokemonId: this.player.pokemonId,
@@ -550,8 +623,10 @@ export class SandboxPanel {
   }
 
   private updatePlayerMoves(): void {
-    const movepool = this.getMovepoolFor(this.player.pokemonId);
-    this.playerMoves = this.playerMoves.map((id) => (movepool.includes(id) ? id : ""));
+    // Switching species resets to that species' default moveset (mirrors the battle),
+    // rather than carrying over the previous mon's overlapping moves.
+    const defaults = this.getDefaultMoveset(this.player.pokemonId);
+    this.playerMoves = [0, 1, 2, 3].map((i) => defaults[i] ?? "");
     this.playerMovesList.refresh(this.player.pokemonId, this.playerMoves);
   }
 
@@ -662,8 +737,12 @@ export class SandboxPanel {
     const mapUrl = this.mapSelect.value || undefined;
 
     return {
+      rngMode: this.rngMode,
+      // Deterministic seed value; in random mode the battle setup rolls a fresh seed
+      // each launch (this value is carried but ignored). rngMode survives remount.
+      seed: this.seed,
       pokemon: this.player.pokemonId,
-      moves: moves.length > 0 ? moves : this.getMovepoolFor(this.player.pokemonId).slice(0, 4),
+      moves: moves.length > 0 ? moves : this.getDefaultMoveset(this.player.pokemonId),
       hp: Number(this.player.hpInput.value),
       status: this.player.statusSelect.value
         ? (this.player.statusSelect.value as StatusType)
@@ -689,11 +768,10 @@ export class SandboxPanel {
         ? (this.dummy.volatileStatusSelect.value as StatusType)
         : null,
       dummyHeldItem: this.dummy.heldItemId ? (this.dummy.heldItemId as HeldItemId) : undefined,
-      dummyAbility: this.dummyAbility || undefined,
+      dummyAbility: this.dummyAbilitySelect.value || undefined,
       dummyStatStages,
       dummyPosition: { ...this.dummy.position },
       mapUrl,
-      debugDecorationsFootprint: this.debugDecorationsFootprintCheckbox.checked,
       weather: (this.weatherSelect.value as Weather) || Weather.None,
       weatherTurns: this.weatherTurns,
     };
@@ -744,6 +822,18 @@ export class SandboxPanel {
     );
   }
 
+  private rebuildDummyAbilityOptions(): void {
+    replaceSelectOptions(
+      this.dummyAbilitySelect,
+      this.buildAbilityOptions(this.dummy.pokemonId),
+      this.getFirstAbility(this.dummy.pokemonId),
+    );
+  }
+
+  private static randomSeed(): number {
+    return crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
+  }
+
   private getFirstAbility(pokemonId: string): string {
     const abilities = getPokemonAbilities(pokemonId).all;
     for (const id of abilities) {
@@ -761,6 +851,16 @@ export class SandboxPanel {
     }
     const lang = getLanguage();
     return this.gameData.itemRegistry.get(id as HeldItemId)?.name[lang] ?? id;
+  }
+
+  /**
+   * The 4 default moves the battle assigns when no override is given
+   * (`definition.movepool.slice(0, 4)` in BattleSetup). Mirrors combat so the panel
+   * never shows a different starting moveset than what actually fights.
+   */
+  private getDefaultMoveset(pokemonId: string): string[] {
+    const definition = this.gameData.pokemon.find((entry) => entry.id === pokemonId);
+    return definition ? definition.movepool.slice(0, 4) : [];
   }
 
   private getMovepoolFor(pokemonId: string): string[] {

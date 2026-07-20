@@ -1710,7 +1710,10 @@ e2e : `mechanics-content-fill-163.spec.ts`. Tous pilotés via l'UI (le joueur co
   moves, stats, statut, météo, positions) — **chemin de boot de tous les tests combat e2e**
   (fixture `bootSandbox` + `sandbox-configs.ts`). *Le panel Sandbox Studio (UI) reste 👁.*
 - 👁 Panel : colonnes joueur/dummy, contrôle dummy **IA** (move défensif) vs **Joueur** (4 moves),
-  steppers de stats, HP %, statut/volatile, map, météo.
+  sélecteur de talent par colonne (joueur **et** Dummy — miroir), steppers de stats, HP %,
+  statut (au-dessus du volatile) puis volatile, map, météo.
+- 👁 Mode RNG : **Aléatoire** (seed frais à chaque lancement/replay, défaut) vs **Déterministe**
+  (champ seed éditable + bouton 🎲 reroll) ; passer en Déterministe avec seed à 0 en génère un.
 - 👁 Boutons : Réinitialiser, Exporter JSON (presse-papier), Importer JSON, Rejouer.
 - 👁 « Retour au menu » : teardown propre (pas de fuite DOM/canvas).
 

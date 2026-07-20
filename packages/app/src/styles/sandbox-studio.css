@@ -175,6 +175,8 @@
     align-items: center;
     gap: var(--spacing-sm);
     margin: 0;
+    /* `display: flex` otherwise overrides the UA [hidden] rule, keeping hidden rows visible. */
+    &[hidden] { display: none; }
   }
 
   .sb-form-row[data-layout="split"] {
@@ -212,6 +214,20 @@
     flex: 0 0 auto;
     width: 60px;
     text-align: center;
+  }
+
+  /* Seed field: free numeric entry sized to a 10-digit seed (the `.sb-strip-*
+     .sb-form-input` rule forces width:auto, so match its specificity to win),
+     native step spinners hidden. */
+  .sb-form-input.sb-seed-input {
+    flex: 0 0 auto;
+    width: 12ch;
+    appearance: textfield;
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
   }
 
   .sb-form-input[type="range"] {

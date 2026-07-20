@@ -328,7 +328,7 @@ function startBattleLoop(
     placements: result.placements,
     // Single entropy source for a live battle: pick one seed here, then the engine's seeded
     // PRNG drives all combat RNG deterministically (replayable; no scattered Math.random).
-    seed: crypto.getRandomValues(new Uint32Array(1))[0] ?? 0,
+    seed: randomSeed(),
     // Carry the team-builder customisation (moves, ability, item, nature, EVs)
     // into combat — keyed by instance id ("p1-pikachu") like the placements.
     ...buildTeamOverrides({ teams: setup.teams }),
@@ -355,6 +355,21 @@ function startBattleLoop(
  * uses `DummyAiController` (one defensive move + face a fixed direction) when
  * `dummyControl === "ai"`; in "player" mode both sides are human-controlled.
  */
+function randomSeed(): number {
+  return crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
+}
+
+/**
+ * Random RNG mode → a fresh seed every mount (incl. replay), so probabilistic
+ * effects vary. Deterministic mode (or an explicit `seed` from e2e) → keep it.
+ * Legacy configs with neither field default to random, matching the panel toggle.
+ */
+function resolveSandboxSeed(config: SandboxConfig): number {
+  const random =
+    config.rngMode === "random" || (config.rngMode === undefined && config.seed === undefined);
+  return random ? randomSeed() : (config.seed ?? 0);
+}
+
 function startSandboxBattle(options: {
   backend: RendererBackend;
   combat: CombatScene;
@@ -369,7 +384,7 @@ function startSandboxBattle(options: {
 }): BattleOrchestrator {
   const { backend, combat, stage, map, config, onExit, signal, onReplay, onPositionsResolved } =
     options;
-  const battle = createSandboxBattle(config, map);
+  const battle = createSandboxBattle({ ...config, seed: resolveSandboxSeed(config) }, map);
   const handles = new Map<string, CombatPokemonHandle>();
   for (const pokemon of battle.state.pokemon.values()) {
     if (pokemon.currentHp <= 0) {

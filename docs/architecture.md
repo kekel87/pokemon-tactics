@@ -488,13 +488,13 @@ pnpm dev:sandbox '{"pokemon":"pikachu"}'       # JSON inline
 
 ### Architecture sandbox
 
-- **`SandboxConfig.ts`** : type `SandboxConfig` + constante `DEFAULT_SANDBOX_CONFIG`
+- **`SandboxConfig.ts`** : type `SandboxConfig` + constante `DEFAULT_SANDBOX_CONFIG`. `rngMode?: "random" | "deterministic"` — **Aléatoire** (défaut) génère un seed frais à chaque mount/replay (`resolveSandboxSeed` dans `combat-screen.ts`), **Déterministe** rejoue `seed` ; absent → inféré de la présence du `seed`
 - **`BattleSetup.createSandboxBattle(config)`** : carte 6x6, joueur en bas, Dummy en haut, sans placement interactif
 - **`DummyAiController`** : soumet move assigné si légal, sinon `EndTurn`
 - **`SandboxPanel`** (HTML overlay) : 2 panneaux (Joueur gauche, Dummy droite) + toolbar
-  - Panel Joueur : dropdown Pokemon, 2 dropdowns moves, slider HP %, dropdown statut, stages de stats
-  - Panel Dummy : dropdown "Stats de" (custom ou preset Pokemon), stats éditables, niveau, slider HP %, dropdown move défensif, direction
-  - Toolbar : bouton Réinitialiser, bouton **Exporter JSON** (copie config en JSON dans presse-papier)
+  - Panel Joueur : dropdown Pokemon, dropdown talent, 2 dropdowns moves (défaut = `definition.movepool.slice(0,4)`, aligné sur le combat réel), slider HP %, dropdown statut, dropdown volatile, stages de stats
+  - Panel Dummy : dropdown "Stats de" (custom ou preset Pokemon), dropdown talent (miroir joueur), stats éditables, niveau, slider HP %, dropdown move défensif, direction
+  - Toolbar : mode RNG (Aléatoire/Déterministe + seed éditable + bouton 🎲), bouton Réinitialiser, bouton **Exporter JSON** (copie config en JSON dans presse-papier)
 - **Écran victoire HTML** : overlay HTML (ancré écran), indépendant du rendu moteur — compat navigateur + zoom caméra
 - **`packages/data/sandbox-configs/`** : configs JSON d'exemple
 
