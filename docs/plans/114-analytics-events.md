@@ -3,6 +3,7 @@
 > Statut : **done** (Phase 1 livrée 2026-06-05 ; Phase 2 reportée)
 > Créé : 2026-06-05
 > Auteur : Claude
+> MAJ 2026-07-20 : ajout event `team-select` (voir tableau + décision #683)
 
 ## Problème
 
@@ -15,9 +16,11 @@ Conséquence : on ne mesure rien du **vrai public (itch)**, et surtout pas le fu
 Mesurer le **funnel de parcours** (où les joueurs décrochent), **sur itch ET GitHub Pages**, sans dépendre du script bloqué. Question actionnable tôt : *à quelle étape on perd les gens ?*
 
 ```
-game-loaded → main-menu → battle-mode → team-builder → map-select → battle-start → battle-end
+game-loaded → main-menu → battle-mode → map-select → team-select → battle-start → battle-end
 ```
-Exemples de signaux : `battle-start / game-loaded` = le jeu accroche ; `battle-end / battle-start` = rétention combat ; un gros drop à `team-builder` = friction de création d'équipe.
+(branche `team-builder` : tiré depuis l'écran "Mes équipes", hors funnel principal — voir mise à jour 2026-07-20 ci-dessous)
+
+Exemples de signaux : `battle-start / game-loaded` = le jeu accroche ; `battle-end / battle-start` = rétention combat ; un gros drop à `team-select` = friction de sélection/création d'équipe.
 
 **Scope volontairement lean** (Phase 1) : juste le parcours. Les dimensions détaillées (mode, nb joueurs, difficulté…) sont **Phase 2**, reportées tant que le volume est faible (cf. section dédiée) — à ~15 plays elles seraient statistiquement illisibles.
 
@@ -84,12 +87,20 @@ export function trackEvent(name: string): void {
 | `game-loaded` | jeu prêt, 1×/session | **fin `LoadingScene.create()` AVANT `scene.start()`**, flag module-level `gameLoadedFired` (pas de re-fire au reload langue) |
 | `main-menu` | entrée menu principal | `MainMenuScene.create` |
 | `battle-mode` | écran choix de mode | `BattleModeScene.create` |
-| `team-builder` | écran équipe | `TeamSelectScene` / `TeamEditScene.create` |
 | `map-select` | écran sélection carte | `MapSelectScene.create` |
+| `team-select` | écran sélection d'équipe (funnel principal) | `team-select-screen.ts` (mount) |
 | `battle-start` | début de combat | création `BattleScene` (1×) |
 | `battle-end` | fin de combat | abonnement `BattleEventType.BattleEnded` (existe déjà) |
 
-Chaque scène appelle `trackEvent("<name>")` dans son `create()`. Pas de flag (hors `game-loaded`) : revoir un écran = re-compte, c'est voulu (mesure le passage).
+Branche hors funnel principal :
+
+| Event | Déclencheur | Où (renderer) |
+|-------|-------------|---------------|
+| `team-builder` | écran "Mes équipes" (gestion/édition d'équipes, pas le funnel de lancement) | `my-teams-screen.ts` (mount) |
+
+Chaque écran appelle `trackEvent(...)` à son mount. Pas de flag (hors `game-loaded`) : revoir un écran = re-compte, c'est voulu (mesure le passage).
+
+**MAJ 2026-07-20** : à l'origine `team-builder` était tiré au mount de l'écran team-select, doublonnant le funnel (team-select ET my-teams tiraient le même event). Séparé en deux events distincts : `team-select` (nouveau, funnel principal, remplace l'ancienne position de `team-builder` dans la chaîne) et `team-builder` (conservé, mais seulement depuis "Mes équipes"). Voir décision #683.
 
 ### Garder le `count.js` existant ?
 

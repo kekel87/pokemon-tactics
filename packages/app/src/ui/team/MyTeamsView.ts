@@ -25,7 +25,6 @@ export class MyTeamsView {
     this.options = options;
     const root = document.createElement("div");
     root.className = "tb-root";
-    root.dataset.scene = "MyTeamsScene";
 
     const topbar = document.createElement("div");
     topbar.className = "tb-topbar";
