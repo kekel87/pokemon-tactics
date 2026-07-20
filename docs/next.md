@@ -69,7 +69,7 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 
 ### Polish / dette technique (Jalon 3 rendu, non bloquants)
 
-- Terrain : merge par groupe visuel ou thin instances (actuellement MultiMaterial+SubMesh par tile, ~400 draw calls).
+- Terrain : ~1500 draw calls (MultiMaterial + 6 SubMeshes par tuile, cube étiré). **Résorbé par la fondation voxel de l'éditeur (roadmap Phase 6, décision #682)** — blocs unitaires 24³ instanciés → ~10 draws. **Ne PAS optimiser `terrain-extruder.ts` maintenant** (sera remplacé, pas fusionné/optimisé).
 - Consolider le loader Tiled (`resolveExternalTilesets` dupliqué 3×, `findProperty`/`resolveTileProperties` à exporter depuis `@pokemon-tactic/data`).
 - `MultiMaterial` non disposées au reload de map (acceptable tant que la scène entière est détruite au reload).
 - Harness dev Babylon jetable (`babylon-preview.ts`/`babylon-boot.ts`/`babylon.html`, touches k/l/o/p/v/c/i) à supprimer/refactorer (extraire `updateCamera` → `IsometricCamera`, pan → système input).
