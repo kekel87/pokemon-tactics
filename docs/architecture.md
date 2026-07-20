@@ -155,7 +155,8 @@ pokemon-tactics/
 │   │   │   │                    # babylon-field-terrains, babylon-hover-cursor, babylon-sprite-hud,
 │   │   │   │                    # babylon-direction-picker, babylon-aura-ground-icons, babylon-color…
 │   │   │   ├── battle-board-view.ts     # implémente BoardView (port render-ports)
-│   │   │   ├── combat-scene.ts          # scène combat Babylon (caméra, picking, highlights)
+│   │   │   ├── combat-scene.ts          # scène combat Babylon (délègue la caméra à IsometricCamera)
+│   │   │   ├── isometric-camera.ts      # IsometricCamera : caméra dimetric (rotation snaps, zoom, pan)
 │   │   │   ├── game-stage.ts            # implémente RenderBackend (lifecycle mount/dispose)
 │   │   │   ├── load-tiled-map.ts        # chargement carte Tiled → scène Babylon
 │   │   │   ├── map-preview-stage.ts     # preview carte
@@ -193,7 +194,7 @@ pokemon-tactics/
 │   │   │   ├── app/             # ScreenManager FSM + écrans DOM (main-menu, battle-mode, team-select,
 │   │   │   │                    # my-teams, team-edit, settings, credits, combat-screen, map-select)
 │   │   │   ├── babylon/         # Écrans qui câblent les backends : combat-screen (boucle combat),
-│   │   │   │                    # placement-flow, team-edit-harness, babylon-preview
+│   │   │   │                    # placement-flow
 │   │   │   ├── i18n/            # Système i18n maison (t, setLanguage, detectLanguage, Language enum)
 │   │   │   │   └── locales/     # fr.ts, en.ts
 │   │   │   ├── settings/        # Paramètres persistants : GameSettings, getSettings(), updateSettings()

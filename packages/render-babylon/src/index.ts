@@ -20,6 +20,7 @@ export * from "./battle-board-view.js";
 export * from "./combat-scene.js";
 export * from "./constants.js";
 export * from "./directional-billboard.js";
+export * from "./isometric-camera.js";
 export * from "./map-preview-stage.js";
 export * from "./sprite-depth-plugin.js";
 export * from "./terrain-extruder.js";

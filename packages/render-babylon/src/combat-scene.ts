@@ -1,5 +1,3 @@
-import { Camera } from "@babylonjs/core/Cameras/camera";
-import { TargetCamera } from "@babylonjs/core/Cameras/targetCamera";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
@@ -31,14 +29,7 @@ import { BabylonCompass } from "./babylon-compass.js";
 import {
   BABYLON_ATTACK_ANIMATION_MAX_MS,
   BABYLON_AURA_HOVER_ICON_LIFT,
-  BABYLON_AZIMUTH_LERP_EPSILON,
-  BABYLON_AZIMUTH_STEP,
-  BABYLON_CAMERA_AZIMUTH,
-  BABYLON_CAMERA_DISTANCE,
-  BABYLON_CAMERA_PAN_EPSILON,
-  BABYLON_CAMERA_PAN_LERP,
   BABYLON_CLEAR_COLOR,
-  BABYLON_DIMETRIC_ELEVATION,
   BABYLON_DIRECTION_ARROW_TILE_FRACTION,
   BABYLON_DIRECTIONAL_LIGHT_INTENSITY,
   BABYLON_FLOATING_TEXT_HEIGHT,
@@ -54,13 +45,8 @@ import {
   BABYLON_KNOCKBACK_SHAKE_CYCLES,
   BABYLON_KNOCKBACK_SHAKE_DURATION_MS,
   BABYLON_PICK_DRAG_THRESHOLD_PX,
-  BABYLON_ROTATION_LERP,
   BABYLON_SPRITE_HEAD_LIFT_FALLBACK,
   BABYLON_SPRITE_PIXELS_PER_UNIT,
-  BABYLON_VIEW_SIZE,
-  BABYLON_ZOOM_MAX,
-  BABYLON_ZOOM_MIN,
-  BABYLON_ZOOM_STEP,
 } from "./babylon-constants.js";
 import { createDecorations, type Decorations } from "./babylon-decorations.js";
 import { createDirectionArrows } from "./babylon-direction-picker.js";
@@ -89,6 +75,7 @@ import {
 } from "./constants.js";
 import { DirectionalBillboard } from "./directional-billboard.js";
 import { installE2eSceneHook } from "./e2e-debug-hook.js";
+import { IsometricCamera } from "./isometric-camera.js";
 import { type ExtrudedTerrain, extrudeTerrain, tileTopCenter } from "./terrain-extruder.js";
 
 // The engine-agnostic combat-scene contract (CombatScene, CombatPokemonHandle,
@@ -159,8 +146,7 @@ const DIRECTION_NEIGHBOR: Readonly<Record<Direction, { dx: number; dy: number }>
  * its tile — and a Pokémon behind another is occluded normally, never X-rayed.
  *
  * This is the parity scene. The DOM HUD (HP bars, InfoPanel) and scene FSM are
- * wired at Jalon 4; the dev tuning affordances live in the `babylon-preview`
- * harness (reachable via `?preview=1`).
+ * wired at Jalon 4.
  */
 export function createCombatScene(options: CombatSceneOptions): CombatScene {
   const { canvas, mapUrl, pokemon: pokemonSpawns, showHoverCursor = true } = options;
@@ -180,42 +166,9 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   );
   let sceneIsReady = false;
 
-  const cameraTarget = new Vector3(0, 0, 0);
-  // Goal the camera centre eases toward (recentering on the active Pokémon); the
-  // first placement snaps, later turns slide smoothly.
-  const cameraTargetGoal = new Vector3(0, 0, 0);
-  let cameraCentered = false;
-  const zoom = { value: 1 };
-  // Current (eased) and target azimuth — ←/→ snap the target by 90°, the render
-  // loop eases `azimuth` toward it so the view always rests on an iso angle.
-  const cameraAngle = { azimuth: BABYLON_CAMERA_AZIMUTH, target: BABYLON_CAMERA_AZIMUTH };
-
-  const camera = new TargetCamera("combat_ortho", Vector3.Zero(), scene);
-  camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
-  camera.minZ = 0.1;
-  camera.maxZ = 100;
-
-  function updateCamera(): void {
-    const { azimuth } = cameraAngle;
-    camera.position.set(
-      cameraTarget.x +
-        Math.cos(BABYLON_DIMETRIC_ELEVATION) * Math.cos(azimuth) * BABYLON_CAMERA_DISTANCE,
-      cameraTarget.y + Math.sin(BABYLON_DIMETRIC_ELEVATION) * BABYLON_CAMERA_DISTANCE,
-      cameraTarget.z +
-        Math.cos(BABYLON_DIMETRIC_ELEVATION) * Math.sin(azimuth) * BABYLON_CAMERA_DISTANCE,
-    );
-    camera.setTarget(cameraTarget);
-    const aspect = engine.getRenderWidth() / engine.getRenderHeight();
-    const halfWidth = (BABYLON_VIEW_SIZE * aspect) / (2 * zoom.value);
-    const halfHeight = BABYLON_VIEW_SIZE / (2 * zoom.value);
-    camera.orthoLeft = -halfWidth;
-    camera.orthoRight = halfWidth;
-    camera.orthoTop = halfHeight;
-    camera.orthoBottom = -halfHeight;
-    cameraRotatedHandler(azimuth);
-  }
-  let cameraRotatedHandler: (azimuth: number) => void = () => undefined;
-  updateCamera();
+  const isoCamera = new IsometricCamera(scene, engine);
+  // Raw Babylon camera handle for projection/picking consumers (compass, arrows).
+  const camera = isoCamera.camera;
 
   const hemisphericLight = new HemisphericLight("hemi", new Vector3(0, 1, 0), scene);
   hemisphericLight.intensity = BABYLON_HEMI_LIGHT_INTENSITY;
@@ -414,8 +367,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         width,
         height,
       );
-      cameraTarget.set(mapCenter.x, mapCenter.y, mapCenter.z);
-      updateCamera();
+      isoCamera.frameOn(mapCenter.x, mapCenter.y, mapCenter.z);
     })
     .catch((error) => {
       // biome-ignore lint/suspicious/noConsole: surfacing a fatal asset load failure
@@ -434,21 +386,19 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       return;
     }
     if (event.key === "ArrowLeft") {
-      cameraAngle.target -= BABYLON_AZIMUTH_STEP;
+      isoCamera.rotateByStep(-1);
     } else if (event.key === "ArrowRight") {
-      cameraAngle.target += BABYLON_AZIMUTH_STEP;
+      isoCamera.rotateByStep(1);
     }
   };
 
   const onWheel = (event: WheelEvent): void => {
     event.preventDefault();
-    const factor = event.deltaY < 0 ? BABYLON_ZOOM_STEP : 1 / BABYLON_ZOOM_STEP;
-    zoom.value = Math.min(BABYLON_ZOOM_MAX, Math.max(BABYLON_ZOOM_MIN, zoom.value * factor));
-    updateCamera();
+    isoCamera.zoomByWheel(event.deltaY);
   };
   const onResize = (): void => {
     engine.resize();
-    updateCamera();
+    isoCamera.update();
   };
 
   // Tile picking callbacks (wired by the host — core/FSM lands at Jalon 4).
@@ -576,16 +526,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     const deltaY = event.clientY - previousPointerY;
     previousPointerX = event.clientX;
     previousPointerY = event.clientY;
-    const worldPerPixel = BABYLON_VIEW_SIZE / zoom.value / canvas.clientHeight;
-    const right = camera.getDirection(Vector3.Right());
-    const up = camera.getDirection(Vector3.Up());
-    cameraTarget
-      .addInPlace(right.scale(-deltaX * worldPerPixel))
-      .addInPlace(up.scale(deltaY * worldPerPixel));
-    // A manual pan wins over any in-flight auto-pan: align the goal onto the new
-    // target so the render-loop lerp has nothing left to pull back toward.
-    cameraTargetGoal.copyFrom(cameraTarget);
-    updateCamera();
+    isoCamera.panByPixels(deltaX, deltaY, canvas.clientHeight);
   };
 
   window.addEventListener("keydown", onKeyDown);
@@ -605,34 +546,11 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     const deltaMs = now - lastTime;
     lastTime = now;
 
-    // Ease the azimuth toward the snapped 90° target (smooth iso turn).
-    const azimuthDelta = cameraAngle.target - cameraAngle.azimuth;
-    if (Math.abs(azimuthDelta) > BABYLON_AZIMUTH_LERP_EPSILON) {
-      cameraAngle.azimuth += azimuthDelta * Math.min(1, BABYLON_ROTATION_LERP * (deltaMs / 1000));
-      updateCamera();
-    } else if (cameraAngle.azimuth !== cameraAngle.target) {
-      cameraAngle.azimuth = cameraAngle.target;
-      updateCamera();
-    }
-
-    // Ease the camera centre toward its goal (smooth recentre on the active Pokémon).
-    const panDistance = Vector3.Distance(cameraTarget, cameraTargetGoal);
-    if (panDistance > BABYLON_CAMERA_PAN_EPSILON) {
-      Vector3.LerpToRef(
-        cameraTarget,
-        cameraTargetGoal,
-        Math.min(1, BABYLON_CAMERA_PAN_LERP * (deltaMs / 1000)),
-        cameraTarget,
-      );
-      updateCamera();
-    } else if (!cameraTarget.equals(cameraTargetGoal)) {
-      cameraTarget.copyFrom(cameraTargetGoal);
-      updateCamera();
-    }
+    isoCamera.tick(deltaMs);
 
     camera.getViewMatrix().multiplyToRef(camera.getProjectionMatrix(), viewProjection);
     for (const { billboard } of billboards) {
-      billboard.update(deltaMs, cameraAngle.azimuth, viewProjection);
+      billboard.update(deltaMs, isoCamera.azimuth, viewProjection);
     }
     decorations?.update(viewProjection);
     spriteHud.update();
@@ -1106,22 +1024,14 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       clickHandler = handler;
     },
     onCameraRotated: (handler) => {
-      cameraRotatedHandler = handler;
-      handler(cameraAngle.azimuth);
+      isoCamera.onRotated(handler);
     },
     panCameraTo: (tile) => {
       if (!tileWorldTop) {
         return;
       }
       const top = tileWorldTop(tile.x, tile.y);
-      cameraTargetGoal.set(top.x, top.y, top.z);
-      // First recentre snaps (no slide from the world origin); later ones ease in
-      // the render loop.
-      if (!cameraCentered) {
-        cameraTarget.copyFrom(cameraTargetGoal);
-        cameraCentered = true;
-        updateCamera();
-      }
+      isoCamera.panTo(top.x, top.y, top.z);
     },
     spawnFloatingText: (tile, text, color, floatOptions = {}) => {
       if (!tileWorldTop) {
