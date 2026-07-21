@@ -58,17 +58,31 @@ export interface MovementStep {
   readonly terrainType?: string;
 }
 
+export type MovementVerticalMode = "flat" | "step" | "jump";
+
 /**
- * Returns `true` when the step is a jump — that is, any movement with a
- * non-zero height delta that does not traverse a ramp. Flat movement and
- * ramp traversal are walks; everything else (half-tile cliff, full-tile
- * drop, flying over a gap) is a jump.
+ * A height change of at most this many units (a half-block) crosses as a small stair
+ * step — walk pose, no hop — rather than a jump (plan 166). Bigger drops/climbs jump.
  */
-export function isJumpStep(step: MovementStep): boolean {
-  if (step.heightDiff === 0) {
-    return false;
+const MAX_STEP_HEIGHT_DIFF = 0.5;
+
+/**
+ * How a step changes the sprite's height:
+ * - `"flat"` : no height delta, or a ramp (glides linearly along the slope).
+ * - `"step"` : a half-block (≤ `MAX_STEP_HEIGHT_DIFF`) non-ramp change — a small stair
+ *              step (walk pose, vertical eased late so it reads as a step, not a diagonal).
+ * - `"jump"` : a bigger non-ramp cliff — a hop with a vertical lead over the arc.
+ */
+export function movementVerticalMode(step: MovementStep): MovementVerticalMode {
+  if (step.heightDiff === 0 || step.isRamp) {
+    return "flat";
   }
-  return !step.isRamp;
+  return step.heightDiff <= MAX_STEP_HEIGHT_DIFF ? "step" : "jump";
+}
+
+/** True only for a genuine cliff hop (a bigger-than-half-block non-ramp change). */
+export function isJumpStep(step: MovementStep): boolean {
+  return movementVerticalMode(step) === "jump";
 }
 
 /**
@@ -91,9 +105,9 @@ export function getFlyingAnimationMode(step: MovementStep): "glide" | null {
 }
 
 /**
- * Picks the ground sprite animation to play for a movement step. Walks on
- * flat ground and ramps; hops on jumps. Used as the fallback for flying
- * Pokemon when none of the dedicated flying animations exist on the sprite.
+ * Picks the ground sprite animation to play for a movement step. Hops only on a genuine
+ * cliff jump; walks on flat ground, ramps, and small stair steps (half-blocks). Used as
+ * the fallback for flying Pokemon when none of the dedicated flying animations exist.
  */
 export function selectMovementAnimation(step: MovementStep): MovementAnimationKey {
   return isJumpStep(step) ? "Hop" : "Walk";

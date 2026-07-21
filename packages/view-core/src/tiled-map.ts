@@ -42,6 +42,23 @@ export interface VisualTile {
 }
 
 /**
+ * Liquid visual groups (plan 166). Every liquid renders as an opaque floor up to 3/6
+ * plus a surface slab 3/6→5/6 drawn over submerged sprites (deep water is the one
+ * exception — a bottomless translucent column). Per-liquid opacity + floor texture
+ * live in the renderer. Any liquid submerges a grounded sprite standing on it.
+ */
+const LIQUID_GROUPS: ReadonlySet<VisualTerrainGroup> = new Set([
+  "water",
+  "deep_water",
+  "swamp",
+  "lava",
+]);
+
+export function isLiquidGroup(group: VisualTerrainGroup): boolean {
+  return LIQUID_GROUPS.has(group);
+}
+
+/**
  * Tileset row → visual group. Solid terrains occupy 6-tile blocks (5 used + 1
  * separator) from local id 0; liquids sit at fixed ids. Source of truth:
  * `docs/tileset-mapping.md`.

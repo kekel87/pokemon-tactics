@@ -1,3 +1,4 @@
+import { Material } from "@babylonjs/core/Materials/material";
 import { MultiMaterial } from "@babylonjs/core/Materials/multiMaterial";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
@@ -8,6 +9,7 @@ import { SubMesh } from "@babylonjs/core/Meshes/subMesh";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import {
+  isLiquidGroup,
   type LoadedTiledMap,
   gridToWorldXZ as sharedGridToWorldXZ,
   tileBodyHeight as sharedTileBodyHeight,
@@ -15,13 +17,28 @@ import {
   type VisualTerrainGroup,
 } from "@pokemon-tactic/view-core";
 import {
+  BABYLON_LIQUID_ALPHA_BY_GROUP,
+  BABYLON_LIQUID_DEPTH_RATIO,
+  BABYLON_LIQUID_SURFACE_ALPHA_INDEX,
+  BABYLON_LIQUID_SURFACE_RATIO,
+  BABYLON_LIQUID_WATER_ALPHA,
   BABYLON_SIDE_DARKEN,
+  BABYLON_SPRITE_RENDERING_GROUP,
   BABYLON_TILE_CENTER_MARKER_COLOR,
   BABYLON_TILE_GRID_COLOR,
   BABYLON_TILE_GRID_Z_OFFSET,
   BABYLON_TILE_HEIGHT_SCALE,
   BABYLON_TILE_MIN_HEIGHT,
 } from "./babylon-constants.js";
+
+/**
+ * Visual group texturing the opaque floor of a liquid tile (plan 166): sand under water/
+ * swamp (placeholder), molten rock under lava so a submerged sprite's feet sit in lava,
+ * not on a beach.
+ */
+function liquidFloorGroup(group: VisualTerrainGroup): VisualTerrainGroup {
+  return group === "lava" ? "lava" : "sable";
+}
 
 /** Base URL of the flat top-down PMD terrain textures (one per visual group). */
 const TERRAIN_TEXTURE_BASE = "assets/tilesets/terrain-3d";
@@ -96,6 +113,7 @@ function createMaterialFactory(scene: Scene) {
   const textures: Texture[] = [];
   const topByGroup = new Map<VisualTerrainGroup, StandardMaterial>();
   const sideByGroup = new Map<VisualTerrainGroup, StandardMaterial>();
+  const waterByGroup = new Map<VisualTerrainGroup, StandardMaterial>();
 
   function loadTexture(url: string): Texture {
     const texture = new Texture(url, scene, true, true, Texture.NEAREST_SAMPLINGMODE);
@@ -142,6 +160,49 @@ function createMaterialFactory(scene: Scene) {
     return material;
   }
 
+  /**
+   * Translucent surface material for a walkable liquid (plan 166): the group's top
+   * texture drawn alpha-blended so the sand floor + submerged walls show through.
+   * `disableDepthWrite` keeps it from occluding sprites/terrain drawn after it; the
+   * depth *test* stays on so taller terrain in front still hides it. Mirrors the
+   * translucent pattern already in `babylon-field-terrains.ts`.
+   */
+  function waterMaterial(group: VisualTerrainGroup): StandardMaterial {
+    const cached = waterByGroup.get(group);
+    if (cached) {
+      return cached;
+    }
+    const material = new StandardMaterial(`water_${group}`, scene);
+    material.diffuseTexture = loadTexture(`${TERRAIN_TEXTURE_BASE}/${group}-top.png`);
+    material.emissiveColor = new Color3(1, 1, 1);
+    material.disableLighting = true;
+    material.specularColor = new Color3(0, 0, 0);
+    material.transparencyMode = Material.MATERIAL_ALPHABLEND;
+    material.alpha = BABYLON_LIQUID_ALPHA_BY_GROUP[group] ?? BABYLON_LIQUID_WATER_ALPHA;
+    material.disableDepthWrite = true;
+    waterByGroup.set(group, material);
+    return material;
+  }
+
+  /**
+   * A single fully-transparent material for culled side faces (plan 166): the interior
+   * walls between two adjacent liquid tiles are hidden so they don't read as submerged
+   * "walls" through the translucent surface. Shared across every tile.
+   */
+  let invisible: StandardMaterial | undefined;
+  function invisibleMaterial(): StandardMaterial {
+    if (invisible) {
+      return invisible;
+    }
+    const material = new StandardMaterial("liquid_culled_side", scene);
+    material.disableLighting = true;
+    material.alpha = 0;
+    material.transparencyMode = Material.MATERIAL_ALPHABLEND;
+    material.disableDepthWrite = true;
+    invisible = material;
+    return material;
+  }
+
   function dispose(): void {
     for (const texture of textures) {
       texture.dispose();
@@ -152,9 +213,13 @@ function createMaterialFactory(scene: Scene) {
     for (const material of sideByGroup.values()) {
       material.dispose();
     }
+    for (const material of waterByGroup.values()) {
+      material.dispose();
+    }
+    invisible?.dispose();
   }
 
-  return { topMaterial, sideMaterial, dispose };
+  return { topMaterial, sideMaterial, waterMaterial, invisibleMaterial, dispose };
 }
 
 /**
@@ -168,6 +233,99 @@ export function extrudeTerrain(scene: Scene, loaded: LoadedTiledMap): ExtrudedTe
   const root = new TransformNode("terrain", scene);
   const factory = createMaterialFactory(scene);
 
+  const liquidNeighbour = (nx: number, ny: number): boolean => {
+    const group = visualTiles[ny]?.[nx]?.group;
+    return group !== undefined && isLiquidGroup(group);
+  };
+
+  /**
+   * Side faces to hide for a liquid tile (plan 166): a wall shared with an adjacent
+   * liquid tile would read as a "wall under the water", so it's culled — only walls
+   * against solid ground / the map edge stay. Order matches Babylon box side faces
+   * 0-3 (see `buildTile`): [+Z (x+1), −Z (x−1), +X (y+1), −X (y−1)] in this left-handed
+   * binding (gridX→worldZ, gridY→worldX). Non-liquid tiles cull nothing.
+   */
+  const liquidCulledSides = (x: number, y: number): [boolean, boolean, boolean, boolean] => [
+    liquidNeighbour(x + 1, y),
+    liquidNeighbour(x - 1, y),
+    liquidNeighbour(x, y + 1),
+    liquidNeighbour(x, y - 1),
+  ];
+
+  /**
+   * A textured box occupying `[baseY, baseY + boxHeight]` on Y — the building block for
+   * every tile (full terrain, or a liquid floor / body / surface). `topMaterial` textures
+   * the top + bottom, `sideMaterial` the four walls, except walls flagged in `culledSides`
+   * (hidden via a transparent material). `transparent` routes the box into the sprite group
+   * with an alpha index so a translucent surface draws over a submerged sprite.
+   */
+  function buildTile(options: {
+    name: string;
+    world: { x: number; z: number };
+    baseY: number;
+    boxHeight: number;
+    topMaterial: StandardMaterial;
+    sideMaterial: StandardMaterial;
+    culledSides: readonly [boolean, boolean, boolean, boolean];
+    metadata: TileMeshMetadata | undefined;
+    transparent: boolean;
+  }): void {
+    const { name, world, baseY, boxHeight, culledSides, metadata, transparent } = options;
+    // Side faces (0-3) tile the texture vertically over the box height so a half or
+    // tall box keeps the same pixel size; top/bottom (4,5) stay 0..1.
+    const sideUv = new Vector4(0, 0, 1, boxHeight);
+    const topUv = new Vector4(0, 0, 1, 1);
+    const faceUV = [sideUv, sideUv, sideUv, sideUv, topUv, topUv];
+
+    const box = MeshBuilder.CreateBox(name, { size: 1, faceUV, wrap: true }, scene);
+    box.scaling.set(1, boxHeight, 1);
+    box.position.set(world.x, baseY + boxHeight / 2, world.z);
+    box.parent = root;
+
+    const culled = factory.invisibleMaterial();
+    const wallOf = (index: number): StandardMaterial =>
+      culledSides[index] ? culled : options.sideMaterial;
+    const multi = new MultiMaterial(`${name}_mat`, scene);
+    multi.subMaterials = [
+      wallOf(0),
+      wallOf(1),
+      wallOf(2),
+      wallOf(3),
+      options.topMaterial,
+      options.topMaterial,
+    ];
+    box.material = multi;
+
+    // Split the box into one SubMesh per face (6 verts each) so the 6-entry
+    // MultiMaterial maps correctly — a default box has a single submesh that
+    // would only ever use the first sub-material.
+    const verticesCount = box.getTotalVertices();
+    box.subMeshes = [];
+    for (let faceIndex = 0; faceIndex < 6; faceIndex++) {
+      box.subMeshes.push(new SubMesh(faceIndex, 0, verticesCount, faceIndex * 6, 6, box));
+    }
+
+    // Pickable for ray-cast tile selection (3b); the grid coord rides on the mesh so a
+    // pick decodes straight back to (x, y). A liquid's floor/body carries the pick; the
+    // separate translucent surface slab stays non-pickable. Frozen world matrix is still
+    // valid for picking — it just skips the per-frame recompute.
+    box.isPickable = metadata !== undefined;
+    if (metadata) {
+      box.metadata = metadata;
+    }
+    if (transparent) {
+      box.alphaIndex = BABYLON_LIQUID_SURFACE_ALPHA_INDEX;
+      // Draw in the sprite group so the surface renders AFTER the billboards → a submerged
+      // sprite is seen THROUGH the water. Depth stays shared (autoclear off) so terrain in
+      // front still occludes it; the water material's `disableDepthWrite` keeps it from
+      // burying the sprites drawn before it.
+      box.renderingGroupId = BABYLON_SPRITE_RENDERING_GROUP;
+    }
+    box.freezeWorldMatrix();
+  }
+
+  const noCull = [false, false, false, false] as const;
+
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const tile = visualTiles[y]?.[x];
@@ -176,40 +334,73 @@ export function extrudeTerrain(scene: Scene, loaded: LoadedTiledMap): ExtrudedTe
       }
 
       const totalHeight = tileBodyHeight(tile.height);
-
-      // Side faces (0-3) tile the texture vertically over the tile height so a
-      // half or tall tile keeps the same pixel size; top/bottom (4,5) stay 0..1.
-      const sideUv = new Vector4(0, 0, 1, totalHeight);
-      const topUv = new Vector4(0, 0, 1, 1);
-      const faceUV = [sideUv, sideUv, sideUv, sideUv, topUv, topUv];
-
-      const box = MeshBuilder.CreateBox(`tile_${x}_${y}`, { size: 1, faceUV, wrap: true }, scene);
-      box.scaling.set(1, totalHeight, 1);
       const world = gridToWorldXZ(x, y, width, height);
-      box.position.set(world.x, totalHeight / 2, world.z);
-      box.parent = root;
+      const name = `tile_${x}_${y}`;
+      const meta = { tile: { x, y } } satisfies TileMeshMetadata;
 
-      const top = factory.topMaterial(tile.group);
-      const side = factory.sideMaterial(tile.group);
-      const multi = new MultiMaterial(`tile_mat_${x}_${y}`, scene);
-      multi.subMaterials = [side, side, side, side, top, top];
-      box.material = multi;
-
-      // Split the box into one SubMesh per face (6 verts each) so the 6-entry
-      // MultiMaterial maps correctly — a default box has a single submesh that
-      // would only ever use the first sub-material.
-      const verticesCount = box.getTotalVertices();
-      box.subMeshes = [];
-      for (let faceIndex = 0; faceIndex < 6; faceIndex++) {
-        box.subMeshes.push(new SubMesh(faceIndex, 0, verticesCount, faceIndex * 6, 6, box));
+      if (tile.group === "deep_water") {
+        // Deep water: one translucent column 0→5/6 (no sand floor — it reads bottomless),
+        // drawn over submerged sprites. Interior walls culled so a pool merges seamlessly.
+        buildTile({
+          name,
+          world,
+          baseY: 0,
+          boxHeight: totalHeight * BABYLON_LIQUID_SURFACE_RATIO,
+          topMaterial: factory.waterMaterial(tile.group),
+          sideMaterial: factory.waterMaterial(tile.group),
+          culledSides: liquidCulledSides(x, y),
+          metadata: meta,
+          transparent: true,
+        });
+      } else if (isLiquidGroup(tile.group)) {
+        // Water / swamp / lava: opaque floor 0→3/6 (carries the pick, sits below the
+        // sprite's feet so it never X-ray-silhouettes the body) + a surface slab 3/6→5/6
+        // drawn over the submerged sprite (translucent for water/swamp, near-opaque for
+        // lava). The floor is sand under water/swamp, molten rock under lava.
+        const floorGroup = liquidFloorGroup(tile.group);
+        // Lava has no dedicated wall texture, so its darkened side would clash with the
+        // full-bright surface slab above (a two-tone split at 3/6). Use the top texture at
+        // full brightness for a seamless molten wall. Sand keeps its real wall texture (a
+        // sandy bank, seen through the translucent water above).
+        const floorSideMaterial =
+          floorGroup === "lava"
+            ? factory.topMaterial(floorGroup)
+            : factory.sideMaterial(floorGroup);
+        buildTile({
+          name,
+          world,
+          baseY: 0,
+          boxHeight: totalHeight * BABYLON_LIQUID_DEPTH_RATIO,
+          topMaterial: factory.topMaterial(floorGroup),
+          sideMaterial: floorSideMaterial,
+          culledSides: liquidCulledSides(x, y),
+          metadata: meta,
+          transparent: false,
+        });
+        buildTile({
+          name: `liquid_surface_${x}_${y}`,
+          world,
+          baseY: totalHeight * BABYLON_LIQUID_DEPTH_RATIO,
+          boxHeight: totalHeight * (BABYLON_LIQUID_SURFACE_RATIO - BABYLON_LIQUID_DEPTH_RATIO),
+          topMaterial: factory.waterMaterial(tile.group),
+          sideMaterial: factory.waterMaterial(tile.group),
+          culledSides: liquidCulledSides(x, y),
+          metadata: undefined,
+          transparent: true,
+        });
+      } else {
+        buildTile({
+          name,
+          world,
+          baseY: 0,
+          boxHeight: totalHeight,
+          topMaterial: factory.topMaterial(tile.group),
+          sideMaterial: factory.sideMaterial(tile.group),
+          culledSides: noCull,
+          metadata: meta,
+          transparent: false,
+        });
       }
-
-      // Pickable for ray-cast tile selection (3b); the grid coord rides on the
-      // mesh so a pick decodes straight back to (x, y). Frozen world matrix is
-      // still valid for picking — it just skips the per-frame recompute.
-      box.isPickable = true;
-      box.metadata = { tile: { x, y } } satisfies TileMeshMetadata;
-      box.freezeWorldMatrix();
     }
   }
 

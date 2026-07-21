@@ -42,6 +42,7 @@ import {
   BABYLON_SPRITE_DEPTH_BIAS,
   BABYLON_SPRITE_GROUND_OFFSET_PX,
   BABYLON_SPRITE_RENDERING_GROUP,
+  BABYLON_WATER_FOAM_ALPHA_INDEX,
 } from "./babylon-constants.js";
 import {
   DAMAGE_FLASH_DURATION_MS,
@@ -50,7 +51,15 @@ import {
   PULSE_MAX_SCALE,
   PULSE_MIN_SCALE,
 } from "./constants.js";
+import { createWaterFoamMaterial, type WaterFoamMaterial } from "./shaders/water-foam-material.js";
 import { SpriteDepthPlugin } from "./sprite-depth-plugin.js";
+
+/** Waterline foam band width relative to the shadow diameter (the mon's footprint, ≈ body width). */
+const WATER_FOAM_WIDTH_FACTOR = 1.8;
+/** Waterline foam band height in world units (thin strip; ≈7 game pixels at 24 px/unit). */
+const WATER_FOAM_HEIGHT = 0.2;
+/** Nudge the foam band down by this many game pixels so it sits right at the contact line. */
+const WATER_FOAM_DROP_PX = 2;
 
 export type { SemiInvulnerableDisplay };
 
@@ -131,6 +140,11 @@ export class DirectionalBillboard {
   private readonly silhouettePlane: Mesh;
   private readonly silhouetteMaterial: StandardMaterial;
   private readonly silhouetteDepthPlugin: SpriteDepthPlugin;
+  /** Procedural waterline foam band (plan 166), shown only while submerged in a liquid. */
+  private readonly waterFoam: Mesh;
+  private readonly foamMaterial: WaterFoamMaterial;
+  private foamTimeSeconds = 0;
+  private submerged = false;
   /** True for the duration of an attack lunge — biases foot depth nearer (Babylon depth only). */
   private attacking = false;
   /** Reused emissive colour, mutated each tick from the controller tint (no per-tick alloc). */
@@ -225,6 +239,24 @@ export class DirectionalBillboard {
     // it. The shadow keeps its geometry depth (NOT flattened to the sprite foot depth).
     this.shadow.alphaIndex = BABYLON_SHADOW_ALPHA_INDEX;
 
+    // Procedural waterline foam band (plan 166): a thin camera-facing quad at the water
+    // surface across the sprite, hidden until submerged. Sprite group + alpha index above
+    // the liquid surface so it draws over the water; depth-write off (test on) so terrain
+    // still occludes it. Billboarded on Y like the sprite so the crest always faces the camera.
+    this.foamMaterial = createWaterFoamMaterial(options.scene, "pokemon_water_foam");
+    this.waterFoam = MeshBuilder.CreatePlane(
+      "pokemon_water_foam",
+      { width: 1, height: 1 },
+      options.scene,
+    );
+    this.waterFoam.material = this.foamMaterial.material;
+    this.waterFoam.billboardMode = Mesh.BILLBOARDMODE_Y;
+    this.waterFoam.isPickable = false;
+    this.waterFoam.parent = this.root;
+    this.waterFoam.renderingGroupId = BABYLON_SPRITE_RENDERING_GROUP;
+    this.waterFoam.alphaIndex = BABYLON_WATER_FOAM_ALPHA_INDEX;
+    this.waterFoam.setEnabled(false);
+
     // X-ray silhouette: a twin plane sharing the atlas texture, painted flat in the
     // team colour. `depthFunction = GREATER` + no depth write draws it ONLY where the
     // sprite sits behind terrain, so units stay readable behind cliffs/walls.
@@ -309,6 +341,16 @@ export class DirectionalBillboard {
     this.material.diffuseTexture = bundle.texture;
     this.silhouetteMaterial.opacityTexture = bundle.texture;
     this.shadow.scaling.set(bundle.shadowRadius, bundle.shadowRadius, 1);
+    // Foam band as wide as the mon's footprint (shadow diameter) — narrower than the tile.
+    const foamWidth = bundle.shadowRadius * 2 * WATER_FOAM_WIDTH_FACTOR;
+    this.waterFoam.scaling.set(foamWidth, WATER_FOAM_HEIGHT, 1);
+    // Match the game pixel scale: one foam cell per game pixel of the quad's world size, so the
+    // splash pixels are the same size as the Pokémon/water pixels and never stretch when resized.
+    const ppu = this.options.pixelsPerWorldUnit;
+    this.foamMaterial.setPixelGrid(
+      Math.round(foamWidth * ppu),
+      Math.round(WATER_FOAM_HEIGHT * ppu),
+    );
     this.controller.bindAtlas({
       framesByKey: bundle.framesByKey,
       durationsByAnimation: bundle.durationsByAnimation,
@@ -445,6 +487,23 @@ export class DirectionalBillboard {
   }
 
   /**
+   * Show/hide the waterline foam band (plan 166) for a sprite standing in a liquid.
+   * `waterlineLocalY` is the local-Y of the water surface above the (submerged) root;
+   * `color` tints the foam to the liquid. Animated each frame in `update`.
+   */
+  setSubmerged(submerged: boolean, waterlineLocalY: number, color: Color3 | null): void {
+    this.submerged = submerged;
+    this.waterFoam.setEnabled(submerged);
+    if (submerged) {
+      this.waterFoam.position.y =
+        waterlineLocalY - WATER_FOAM_DROP_PX / this.options.pixelsPerWorldUnit;
+      if (color) {
+        this.foamMaterial.setColor(color);
+      }
+    }
+  }
+
+  /**
    * Mark an attack lunge: biases the foot depth nearer (see updateFootDepth) so a
    * coplanar front tile no longer clips the enlarged frame.
    */
@@ -461,6 +520,10 @@ export class DirectionalBillboard {
     this.applyTint();
     this.plane.rotation.z = this.controller.wobbleRoll();
     this.updateFootDepth(viewProjection);
+    if (this.submerged) {
+      this.foamTimeSeconds += deltaMs / 1000;
+      this.foamMaterial.setTime(this.foamTimeSeconds);
+    }
   }
 
   /** Re-applies plane + silhouette scale (frame size × active pulse) and Y (foot lift + flying lift). */
@@ -508,6 +571,9 @@ export class DirectionalBillboard {
     const footDepth = Math.min(1, Math.max(0, 0.5 * ndc.z + 0.5 - bias));
     this.depthPlugin.footDepth = footDepth;
     this.silhouetteDepthPlugin.footDepth = footDepth;
+    // Foam stamps the same foot depth (minus a hair, in-shader) so it sorts just in front of
+    // the submerged sprite while a real block in front still occludes it.
+    this.foamMaterial.setFootDepth(footDepth);
   }
 
   /** Y offset (world units) from the root to the top of the current sprite frame, for HUD anchoring. */
@@ -525,6 +591,8 @@ export class DirectionalBillboard {
     this.silhouettePlane.dispose();
     this.shadowMaterial.dispose();
     this.shadow.dispose();
+    this.foamMaterial.dispose();
+    this.waterFoam.dispose();
     this.root.dispose();
   }
 }

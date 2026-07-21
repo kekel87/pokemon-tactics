@@ -1,7 +1,7 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
-import { Color4 } from "@babylonjs/core/Maths/math.color";
+import { type Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Scene } from "@babylonjs/core/scene";
 import { Direction, directionFromTo, TerrainType } from "@pokemon-tactic/core";
@@ -17,14 +17,17 @@ import {
   getFlyingAnimationMode,
   getResolvedAtlas,
   isFlyoverTerrain,
-  isJumpStep,
+  isLiquidGroup,
   loadTiledMap,
   type MovementStep,
+  type MovementVerticalMode,
+  movementVerticalMode,
   selectMovementAnimation,
   selectMovementDuration,
   worldFacingFromDirection,
 } from "@pokemon-tactic/view-core";
 import { createAuraGroundIcons } from "./babylon-aura-ground-icons.js";
+import { hexToColor3 } from "./babylon-color.js";
 import { BabylonCompass } from "./babylon-compass.js";
 import {
   BABYLON_ATTACK_ANIMATION_MAX_MS,
@@ -44,6 +47,10 @@ import {
   BABYLON_KNOCKBACK_SHAKE_AMPLITUDE,
   BABYLON_KNOCKBACK_SHAKE_CYCLES,
   BABYLON_KNOCKBACK_SHAKE_DURATION_MS,
+  BABYLON_LIQUID_DEPTH_RATIO,
+  BABYLON_LIQUID_FOAM_COLOR_BY_GROUP,
+  BABYLON_LIQUID_FOAM_COLOR_DEFAULT,
+  BABYLON_LIQUID_SURFACE_RATIO,
   BABYLON_PICK_DRAG_THRESHOLD_PX,
   BABYLON_SPRITE_HEAD_LIFT_FALLBACK,
   BABYLON_SPRITE_PIXELS_PER_UNIT,
@@ -128,6 +135,24 @@ function jumpVerticalProgress(progress: number, ascent: boolean): number {
   return easeInQuad(Math.max(0, (progress - dropStart) / BABYLON_JUMP_VERTICAL_LEAD));
 }
 
+/** Min world-Y delta that turns a logically-flat move into a stair step (a liquid dip). */
+const LIQUID_STEP_EPSILON = 0.01;
+
+/**
+ * Vertical curve for a small stair step (plan 166 — half-block terrain change or the
+ * dip into a liquid). LINEAR (no hop ease): on an ascent the sprite steps up over the
+ * first `BABYLON_JUMP_VERTICAL_LEAD` of the move then walks flat onto the ledge; on a
+ * descent it walks flat to the edge then steps down over the last lead. Reads as an
+ * L-shaped stair — never the straight diagonal a linear Y would draw.
+ */
+function stepVerticalProgress(progress: number, ascent: boolean): number {
+  if (ascent) {
+    return Math.min(1, progress / BABYLON_JUMP_VERTICAL_LEAD);
+  }
+  const dropStart = 1 - BABYLON_JUMP_VERTICAL_LEAD;
+  return Math.max(0, (progress - dropStart) / BABYLON_JUMP_VERTICAL_LEAD);
+}
+
 /** Grid neighbour delta per facing (gridX→worldZ, gridY→worldX; matches placement-flow). */
 const DIRECTION_NEIGHBOR: Readonly<Record<Direction, { dx: number; dy: number }>> = {
   [Direction.North]: { dx: 0, dy: -1 },
@@ -196,6 +221,12 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     ready: Promise<void>;
     /** World HP bar + status icon anchored to this sprite's head. */
     overlay: SpriteHudHandle;
+    /**
+     * Whether this mon rests on the ground (plan 166). True by default; the orchestrator
+     * flips it to false for a hovering flyer/levitator via `setGroundedByGravity`. A
+     * grounded mon sinks its feet into a liquid tile; a hovering one stays above it.
+     */
+    grounded: boolean;
   }
 
   function createBillboard(entry: CombatSceneSpawn): BillboardEntry {
@@ -217,7 +248,14 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       () => billboard.spriteTopOffsetY || BABYLON_SPRITE_HEAD_LIFT_FALLBACK,
       teamColor,
     );
-    return { billboard, pokemonId: entry.pokemonId, spawn: entry.spawn, ready, overlay };
+    return {
+      billboard,
+      pokemonId: entry.pokemonId,
+      spawn: entry.spawn,
+      ready,
+      overlay,
+      grounded: true,
+    };
   }
 
   const billboards = pokemonSpawns.map(createBillboard);
@@ -313,6 +351,10 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   // rest on a decoration instead of clipping into it (decoration-patched
   // height). Decoration foot placement keeps the raw `heightAt`.
   let tileWorldTop: ((x: number, y: number) => { x: number; y: number; z: number }) | null = null;
+  // Whether a cell is a liquid tile (plan 166) — grounded sprites sink into it. Set on load.
+  let isLiquidAt: (x: number, y: number) => boolean = () => false;
+  // Foam-band tint for a liquid cell (plan 166), null on non-liquid. Set on load.
+  let liquidFoamColorAt: (x: number, y: number) => Color3 | null = () => null;
   // Per-tile terrain/height/slope lookups for per-step movement animation (plan 123 4d-5).
   let movementMap: {
     width: number;
@@ -336,6 +378,19 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       const surfaceHeightAt = (x: number, y: number): number =>
         heightAt(x, y) + (decorations?.decorationHeightAt(x, y) ?? 0);
       tileWorldTop = (x, y) => tileTopCenter(x, y, surfaceHeightAt(x, y), width, height);
+      isLiquidAt = (x, y) => {
+        const group = loaded.visualTiles[y]?.[x]?.group;
+        return group !== undefined && isLiquidGroup(group);
+      };
+      liquidFoamColorAt = (x, y) => {
+        const group = loaded.visualTiles[y]?.[x]?.group;
+        if (group === undefined || !isLiquidGroup(group)) {
+          return null;
+        }
+        return hexToColor3(
+          BABYLON_LIQUID_FOAM_COLOR_BY_GROUP[group] ?? BABYLON_LIQUID_FOAM_COLOR_DEFAULT,
+        );
+      };
       movementMap = {
         width,
         height,
@@ -351,9 +406,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       distortionZones.set(pendingDistortionZones);
       entryHazards = createEntryHazardProps(scene, heightAt, width, height);
       entryHazards.set(pendingEntryHazards);
-      for (const { billboard, spawn } of billboards) {
-        const standOn = tileTopCenter(spawn.x, spawn.y, heightAt(spawn.x, spawn.y), width, height);
-        billboard.root.position.set(standOn.x, standOn.y, standOn.z);
+      for (const entry of billboards) {
+        positionOnTile(entry);
       }
       // Centre the camera on the map middle (sandbox + initial combat framing); the
       // turn loop later eases onto the active Pokémon. Without this the target stayed
@@ -556,12 +610,32 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     scene.render();
   });
 
+  /**
+   * Sink a standing Y onto a liquid tile's floor (plan 166): a grounded mon plants its
+   * feet at 3/6 of the tile body so it reads as wading/submerged; a hovering flyer
+   * (`submerge = false`) keeps the full top and floats above the surface. `baseY` is the
+   * unrecessed tile-top Y (= body height), so the sink is a pure fraction of it.
+   */
+  function sinkOntoLiquid(x: number, y: number, baseY: number, submerge: boolean): number {
+    return submerge && isLiquidAt(x, y) ? baseY * BABYLON_LIQUID_DEPTH_RATIO : baseY;
+  }
+
   function positionOnTile(entry: BillboardEntry): void {
     if (!tileWorldTop) {
       return;
     }
+    const submerged = entry.grounded && isLiquidAt(entry.spawn.x, entry.spawn.y);
     const top = tileWorldTop(entry.spawn.x, entry.spawn.y);
-    entry.billboard.root.position.set(top.x, top.y, top.z);
+    const y = sinkOntoLiquid(entry.spawn.x, entry.spawn.y, top.y, entry.grounded);
+    entry.billboard.root.position.set(top.x, y, top.z);
+    // Waterline foam band at the liquid surface (plan 166): local-Y above the submerged
+    // root = the 2/6 slab between the sprite's feet (3/6) and the surface (5/6).
+    const waterlineLocalY = top.y * (BABYLON_LIQUID_SURFACE_RATIO - BABYLON_LIQUID_DEPTH_RATIO);
+    entry.billboard.setSubmerged(
+      submerged,
+      waterlineLocalY,
+      submerged ? liquidFoamColorAt(entry.spawn.x, entry.spawn.y) : null,
+    );
   }
 
   /** Move a billboard to another tile, keeping the tile→billboard cursor lookup in sync. */
@@ -583,7 +657,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     from: { x: number; y: number; z: number },
     to: { x: number; y: number; z: number },
     durationMs: number,
-    jump: boolean,
+    verticalMode: MovementVerticalMode,
     onMidpoint?: () => void,
   ): Promise<void> {
     return new Promise((resolve) => {
@@ -603,11 +677,11 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         }
         resolve();
       };
-      // Jump steps clear cliffs by easing the vertical axis independently of the
-      // horizontal one (port of PokemonSprite.animateMoveTo): on an ascent the
-      // sprite rises fast (easeOut) so it tops the cliff before sliding over the
-      // edge; on a descent it stays high (easeIn) then drops late. A linear Y
-      // would cut straight through the cliff face at mid-step.
+      // The vertical axis eases independently of the horizontal (port of
+      // PokemonSprite.animateMoveTo): a jump rises/drops with a lead so it tops a cliff
+      // before sliding over the edge; a step does the same linearly (a small stair); a
+      // flat move (or ramp) interpolates Y straight. A linear Y on a height change would
+      // cut a diagonal through the cliff/water instead of stepping.
       const ascent = to.y >= from.y;
       renderObserver = scene.onBeforeRenderObservable.add(() => {
         elapsed += scene.getEngine().getDeltaTime();
@@ -616,7 +690,12 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
           midpointFired = true;
           onMidpoint?.();
         }
-        const verticalProgress = jump ? jumpVerticalProgress(progress, ascent) : progress;
+        const verticalProgress =
+          verticalMode === "jump"
+            ? jumpVerticalProgress(progress, ascent)
+            : verticalMode === "step"
+              ? stepVerticalProgress(progress, ascent)
+              : progress;
         entry.billboard.root.position.set(
           from.x + (to.x - from.x) * progress,
           from.y + (to.y - from.y) * verticalProgress,
@@ -663,6 +742,12 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     let previousHeight = map.heightAt(previous.x, previous.y);
     for (const to of path) {
       entry.billboard.setWorldFacing(worldFacingFromDirection(directionFromTo(previous, to)));
+      // Drop the foam the instant the mon leaves a liquid (start of the step out), not at the end
+      // of the glide (plan 166). Kept if the destination is still a liquid; the end-of-path snap
+      // (positionOnTile) turns it back on when arriving into water.
+      if (isFlying || !isLiquidAt(to.x, to.y)) {
+        entry.billboard.setSubmerged(false, 0, null);
+      }
       const terrainType = map.terrainAt(to.x, to.y);
       const rawHeight = map.heightAt(to.x, to.y);
       // A Ghost floats at its prior height when phasing over an obstacle.
@@ -674,7 +759,24 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         isFlying,
         terrainType,
       };
-      const isJump = isJumpStep(movementStep);
+      const fromWorld = tileTopCenter(
+        previous.x,
+        previous.y,
+        previousHeight,
+        map.width,
+        map.height,
+      );
+      const toWorld = tileTopCenter(to.x, to.y, stepHeight, map.width, map.height);
+      // A walker sinks into a liquid endpoint (plan 166); a flyer glides over it at full height.
+      fromWorld.y = sinkOntoLiquid(previous.x, previous.y, fromWorld.y, !isFlying);
+      toWorld.y = sinkOntoLiquid(to.x, to.y, toWorld.y, !isFlying);
+      // Vertical mode from the terrain height, upgraded to a stair step when only the
+      // liquid dip changed Y (so entering/leaving water steps instead of sliding diagonally).
+      let verticalMode = movementVerticalMode(movementStep);
+      if (verticalMode === "flat" && Math.abs(toWorld.y - fromWorld.y) > LIQUID_STEP_EPSILON) {
+        verticalMode = "step";
+      }
+      const isJump = verticalMode === "jump";
       // Flat crossing pose for the terrain the sprite is currently over: a flyer glides above a
       // fly-over tile (no ground), walks on walkable ground. Used at the step start (source tile)
       // then again at the tile boundary (destination) so the mode switches as the sprite arrives,
@@ -688,7 +790,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       };
       if (isJump) {
         // Cliff up/down (or a flyer clearing a gap): the height-based pose holds for the whole arc —
-        // Hop on the ground, glide for a flyer. Ascent/descent timing stays exactly as before.
+        // Hop on the ground, glide for a flyer. A stair step / flat move keeps the walk (glide) pose.
         if (getFlyingAnimationMode(movementStep) === "glide") {
           entry.billboard.playFirstAvailable(
             FLYING_GLIDE_CANDIDATES,
@@ -700,20 +802,12 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       } else {
         playFlatCrossing(map.terrainAt(previous.x, previous.y));
       }
-      const fromWorld = tileTopCenter(
-        previous.x,
-        previous.y,
-        previousHeight,
-        map.width,
-        map.height,
-      );
-      const toWorld = tileTopCenter(to.x, to.y, stepHeight, map.width, map.height);
       await tweenRootPosition(
         entry,
         fromWorld,
         toWorld,
         selectMovementDuration(movementStep),
-        isJump,
+        verticalMode,
         isJump ? undefined : () => playFlatCrossing(terrainType),
       );
       previous = to;
@@ -762,19 +856,22 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     const root = entry.billboard.root.position;
     const from = { x: root.x, y: root.y, z: root.z };
     const toWorld = tileWorldTop(to.x, to.y);
-    // A knockback off a cliff is a jump, not a flat slide: without the vertical
-    // lead the Pokémon would fall diagonally straight through the cliff face
-    // (visible via the X-ray silhouette). Reuse the movement jump test so the
-    // push slides to the edge then drops late. Ramps stay a linear slide.
+    // A knockback off a cliff steps/jumps rather than sliding flat: without the vertical
+    // lead the Pokémon would fall diagonally straight through the cliff face (visible via
+    // the X-ray silhouette). Reuse the movement vertical mode so the push slides to the
+    // edge then drops (stair for a half-block, jump arc for a bigger cliff). Ramps stay linear.
     const map = movementMap;
-    const jump =
-      map !== null &&
-      isJumpStep({
-        heightDiff: Math.abs(map.heightAt(to.x, to.y) - map.heightAt(entry.spawn.x, entry.spawn.y)),
-        isRamp: map.isSlopeAt(entry.spawn.x, entry.spawn.y) || map.isSlopeAt(to.x, to.y),
-        isFlying: false,
-      });
-    await tweenRootPosition(entry, from, toWorld, MOVE_TWEEN_DURATION_MS, jump);
+    const verticalMode: MovementVerticalMode =
+      map === null
+        ? "flat"
+        : movementVerticalMode({
+            heightDiff: Math.abs(
+              map.heightAt(to.x, to.y) - map.heightAt(entry.spawn.x, entry.spawn.y),
+            ),
+            isRamp: map.isSlopeAt(entry.spawn.x, entry.spawn.y) || map.isSlopeAt(to.x, to.y),
+            isFlying: false,
+          });
+    await tweenRootPosition(entry, from, toWorld, MOVE_TWEEN_DURATION_MS, verticalMode);
     entry.billboard.setAnimation("Idle");
     moveEntryToTile(entry, to.x, to.y);
   }
@@ -886,12 +983,15 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
           const overFlyover = isFlyoverTerrain(
             movementMap?.terrainAt(created.spawn.x, created.spawn.y),
           );
-          const resting =
-            !grounded && overFlyover
-              ? created.billboard.playFirstAvailable(FLYING_GLIDE_CANDIDATES, "Idle")
-              : created.billboard.playFirstAvailable(["Idle", "Walk"], "Walk");
+          const hovering = !grounded && overFlyover;
+          const resting = hovering
+            ? created.billboard.playFirstAvailable(FLYING_GLIDE_CANDIDATES, "Idle")
+            : created.billboard.playFirstAvailable(["Idle", "Walk"], "Walk");
           created.billboard.setRestingAnimation(resting);
           created.billboard.setAnimation(resting);
+          // A hovering flyer floats above a liquid surface; a landed one sinks into it (plan 166).
+          created.grounded = !hovering;
+          positionOnTile(created);
         },
         flashDamage: () => created.billboard.flashDamage(),
         setPreviewFlash: (active) => created.billboard.setPreviewFlash(active),

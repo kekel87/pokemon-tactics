@@ -61,6 +61,8 @@ Chaque groupe liquide contient `full` + `half-a` + séparateur.
 
 Note : water (shallow, turquoise clair) et deep_water (bleu foncé) sont **visuellement distincts** depuis la régénération du tileset 2026-04-23. Avant, les deux GIDs produisaient la même couleur par bug d'extraction.
 
+**Hauteur des liquides (plan 166, 2026-07-21, corrigé)** : les liquides `full` gardent `height=1.0` (rendu 6-tranches à pleine hauteur — fond 3/6, nappe 5/6, air 1/6). Le « demi-bloc » ne concerne **que le calcul de hauteur (gameplay)**, pas le rendu : un mon posé sur un liquide s'enfonce à 3/6 = `0.5` via la submersion et son déplacement est lu comme un `step` — le demi-bloc est donc émergent. Un premier jet avait passé les `full` à `0.5`, ce qui écrasait le corps du liquide (`bodyHeight = max(0.5, tile.height) × SCALE`) → annulé (décision #697). Détail du rendu (fond + nappe, cuvette, immersion) → `docs/design-system.md` §Liquides.
+
 ### Séparateurs
 
 Lignes 5, 11, 17, 23, 29, 35, 41, 47, 53, 59, 65, 68, 71, 74, 77 — tile transparente sans propriété. Si une map y pointe, le renderer n'affiche rien.
@@ -81,10 +83,10 @@ horizontal de Tiled (bit 31 du GID), décodé par `decodeTiledGid` dans
 
 ## Rôles par groupe liquide (2 lignes)
 
-1. **Tile pleine** (`full`) — hauteur complète, height=1.0
-2. **Demi-tile A** (`half-a`) — demi-hauteur, height=0.5 (ajoutée 2026-04-23 pour cratères, cuvettes, marais peu profonds)
+1. **Tile pleine** (`full`) — height=1.0 (bloc plein — rendu 6-tranches à pleine hauteur)
+2. **Demi-tile A** (`half-a`) — height=0.5 (ajoutée 2026-04-23 pour cratères, cuvettes, marais peu profonds)
 
-Pas de pente ni de cascade sur les liquides (décision plan 050, toujours valable).
+Le `full` reste un bloc plein (`1.0`) : c'est la submersion (mon enfoncé à 3/6) qui donne le « demi-bloc » côté gameplay, pas la hauteur de la tuile (décision #697). Pas de pente ni de cascade sur les liquides (décision plan 050, toujours valable).
 
 ## Génération
 

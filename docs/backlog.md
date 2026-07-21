@@ -92,6 +92,12 @@ _Aucune._
 - Plans 046/047 : uniquement modificateur **dégâts** (`getHeightModifier`, ±10%/niveau, cap +50%/-30%). Aucun bonus portée.
 - À planifier : formule (flat +N, multiplicatif, cap), adapter `getValidTargetPositions` pour portée effective par caster, affecter preview renderer.
 
+### Animer les liquides (2026-07-21, suite plan 166)
+- Rendu liquides statique (plan 166 : transparence, cuvette, immersion, écume pixel-art). La **surface ne bouge pas**.
+- À faire (prochaine session) : animer la surface des liquides — ondulation/vagues procédurales sur la slab de surface translucide (eau, eau profonde, marais, lave). Cohérent avec l'écume déjà animée (`water-foam-material.ts`).
+- Pistes : décalage UV animé sur le `topMaterial` de la surface, ou léger déplacement vertical sinusoïdal des vertices du haut, ou shader dédié (comme l'écume). Garder l'échelle pixel-art (pas de shader lisse).
+- Constantes ajustables déjà en place (`LIQUID_SURFACE_RATIO`, alphas par groupe) — ajouter fréquence/amplitude/vitesse ajustables.
+
 ### Décorations d'arène voxel (Phase 6)
 - Pipeline Tiled `decorations.tsj` caduc → les décos passent par le **voxel** (`.glb`, cf occlusion déco résolue via voxel).
 - Marquages d'arène : lignes (segments, coins, T, croisement) + pokeball centrale.

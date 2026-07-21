@@ -45,6 +45,16 @@ export const TILE_MIN_HEIGHT = 0.5;
 export const TILE_HEIGHT_SCALE = 0.866;
 export const SIDE_DARKEN = 0.65;
 
+// --- Liquid tiles (plan 166) ---
+// A liquid tile's rendered body is read in sixths. All liquids share a surface at
+// 5/6 (a 1/6 air lip below the neighbouring solid ground, so the wall of adjacent
+// tiles shows above the water). Walkable liquids (water/swamp) get an opaque floor
+// up to 3/6 with translucent water 3/6→5/6; grounded sprites plant their feet at
+// 3/6 so they read as wading/submerged. Fractions are tunable — bump them if the
+// immersion looks too deep in playtest (100 % visual, gameplay height untouched).
+export const LIQUID_SURFACE_RATIO = 5 / 6;
+export const LIQUID_DEPTH_RATIO = 3 / 6;
+
 // --- Sprite atlas / grounding / shadow ---
 export const SPRITE_PIXELS_PER_UNIT = 24;
 export const DEFAULT_FRAME_DURATION_MS = 100;

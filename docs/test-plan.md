@@ -249,6 +249,27 @@ actives (Reflet/Mur Lumière posés). Bloqué tant que `SandboxConfig` n'expose 
 - 👁 Zoom molette réactif, recadrage sans débordement.
 - 👁 **Écran 4K / redimensionnement** : HUD et sprites à l'échelle, rien de coupé/minuscule.
 
+### 3.14 Liquides (plan 166)
+*src : `terrain-extruder.ts`, `shaders/water-foam-material.ts`, `directional-billboard.ts`, `view-core/movement-animation.ts`*
+
+- 🤖 Tuile liquide franchissable (eau/marais/lave) : fond opaque `tile_x_y` (groupe 0, pickable) **+**
+  nappe translucide séparée `liquid_surface_x_y` (groupe sprite 2, `transparent`) — `scene-graph.spec`.
+  *La texture de fond (sable/roche), l'opacité exacte par liquide, la teinte = 👁.*
+- 👁 **Cuvette** : la surface de tout liquide est en **creux** (1/6 sous le sol solide voisin), jamais
+  à niveau avec un sol franc adjacent.
+- 👁 **Eau profonde** : colonne translucide **sans fond visible** (pas de sable au fond, contrairement
+  à l'eau peu profonde/marais/lave).
+- 👁 Deux tuiles liquides voisines ne montrent **aucun mur** entre elles (faces intérieures cullées) —
+  le bassin se lit comme un plan d'eau continu.
+- 👁 **Immersion** : un Pokemon au sol dans un liquide a les pieds enfoncés (ancrés à 3/6, pas au
+  sommet) ; un Volant/Lévitation reste au niveau de la surface (5/6), au-dessus.
+- 👁 Un Pokemon immergé reste **lisible à travers** la nappe translucide (jamais occulté par l'eau).
+- 👁 **Écume de flottaison** : une fine bande d'écume + gouttes apparaît à la ligne de flottaison
+  d'un Pokemon immergé, teintée selon le liquide (blanche eau, verdâtre marais, orangée lave) ;
+  disparaît dès qu'il quitte le liquide.
+- 👁 **Anim d'entrée/sortie de liquide** : le Pokemon marche (pose Walk), aucune glissade diagonale
+  ni saut visible sur le dip — même comportement qu'un demi-bloc de terrain solide.
+
 ---
 
 ## 4. Recette — HUD / chrome DOM (overlay combat)
@@ -1803,7 +1824,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `dom/picker.spec.ts` | §7.2 — ouverture/liste/recherche, filtres type (union/toggle/reset), choisir/grisé/fermer |
 | `dom/picker-search.spec.ts` | §7.2 recherche bilingue tolérante (`team/search-index.ts`) : en UI FR, nom EN + sans-accent filtrent vers le résultat FR — Pokemon (gyarados/leviator → Léviator), capacité (vinewhip → Fouet Lianes), objet (charcoal → Charbon) |
 | `dom/team-builder.spec.ts` | §6.5 — créer+nommer+persist, générer aléatoire, supprimer (« tout vider » skippé : régression modale, cf backlog) |
-| `combat/scene-graph.spec.ts` | boot scène : sprites (groupe 2), curseur (groupe 3), terrain, FOUC retiré ; **barres PV ×2 + ombres + silhouettes (groupe 1)**, **tiles nommées `tile_x_y` (groupe 0) + décor herbe (groupe 2)** |
+| `combat/scene-graph.spec.ts` | boot scène : sprites (groupe 2), curseur (groupe 3), terrain, FOUC retiré ; **barres PV ×2 + ombres + silhouettes (groupe 1)**, **tiles nommées `tile_x_y` (groupe 0) + décor herbe (groupe 2)** ; §3.14 liquide (plan 166) : fond `tile_4_2` (groupe 0) + nappe translucide séparée `liquid_surface_4_2` (groupe sprite 2, `transparent`) sur `sandbox-flat` |
 | `combat/sprite-bundle.spec.ts` | §3.6/§4.7 rendu issu du bundle (plan 135) : billboards `pokemon_plane` ×2 slicés du bundle (scène prête), portrait InfoPanel = data-URL PNG croppé de `portraits.png` (pas le pixel de repli), pré-évo Pikachu rend son sprite |
 | `combat/scene-state.spec.ts` | §3.4 icône de statut (empoisonné) |
 | `combat/driving.spec.ts` | piloter : attaque + dégâts (journal), K.O. + fin de combat, déplacement |
