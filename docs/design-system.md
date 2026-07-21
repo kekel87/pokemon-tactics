@@ -864,6 +864,33 @@ Source canonique : `packages/renderer/src/babylon/babylon-constants.ts`.
 | `BABYLON_FIELD_TERRAIN_ALPHA_INDEX` | `2` | `alphaIndex` des quads ALPHABLEND de fill — au-dessus de l'ombre (`0`), sous les sprites. Convention alphaIndex obligatoire. Décision #483. (NB : l'herbe n'utilise plus d'alphaIndex depuis sa migration en groupe sprite, décision #496.) |
 | `BABYLON_FIELD_TERRAIN_OUTLINE_WIDTH` | `0.04` | Largeur du contour `GreasedLine` en world units. Insetté d'une demi-largeur vers l'intérieur de la tile pour anti-clip murs voisins plus hauts. Décision #484. |
 
+#### Liquides — transparence, cuvette, immersion, écume (plan 166)
+
+Source canonique : `packages/render-babylon/src/terrain-extruder.ts`, `babylon-constants.ts`, `shaders/water-foam-material.ts`, `directional-billboard.ts`, `combat-scene.ts` ; ratios `LIQUID_SURFACE_RATIO`/`LIQUID_DEPTH_RATIO` dans `packages/view-core/src/constants.ts` (ré-exportés `BABYLON_LIQUID_SURFACE_RATIO`/`BABYLON_LIQUID_DEPTH_RATIO`).
+
+Chaque tuile liquide **franchissable** (eau, marais, lave) rend **deux boîtes empilées** : un fond opaque `tile_x_y` (0 → 3/6 du corps, pickable, texture sable sous eau/marais, roche en fusion sous lave) et une nappe translucide `liquid_surface_x_y` (3/6 → 5/6, non pickable). La surface commune à **5/6** laisse **1/6** d'air sous le sol solide voisin = l'effet cuvette. **L'eau profonde** (`deep_water`) est le seul cas sans fond : colonne translucide unique **0 → 5/6** (se lit "sans fond visible"). Les faces latérales intérieures entre deux tuiles liquides adjacentes sont cullées (matériau invisible dédié) pour fusionner en un bassin continu, sans « murs sous l'eau ».
+
+| Constante | Valeur | Rôle |
+|-----------|--------|------|
+| `LIQUID_SURFACE_RATIO` | `5/6` | Sommet de la nappe/colonne liquide — commun à tous les liquides. |
+| `LIQUID_DEPTH_RATIO` | `3/6` | Sommet du fond (eau/marais/lave) **et** ancrage des pieds d'un Pokemon au sol sur liquide. |
+| `BABYLON_LIQUID_ALPHA_BY_GROUP` | eau `0.6`, eau profonde `0.5`, marais `0.9`, lave `0.99` | Opacité de la nappe/colonne par groupe — marais trouble, eau profonde la plus claire, lave quasi-opaque mais reste dans la passe transparente (jamais de X-ray de la silhouette d'un mon immergé). |
+| `BABYLON_LIQUID_WATER_ALPHA` | `0.6` | Fallback si un groupe liquide n'a pas d'entrée dédiée. |
+| `BABYLON_LIQUID_SURFACE_ALPHA_INDEX` | `1` | `alphaIndex` de la nappe/colonne — après l'ombre (`0`), avant l'écume/les Champs (`2`). |
+| `BABYLON_WATER_FOAM_ALPHA_INDEX` | `2` | `alphaIndex` de l'écume de flottaison — dessinée après la nappe pour lire par-dessus l'eau. |
+
+**Rendering group** : la nappe/colonne translucide est dessinée dans `BABYLON_SPRITE_RENDERING_GROUP` (groupe 2, comme les billboards Pokemon), pas dans le groupe terrain (0) — diverge du draft initial. Conséquence : elle est dessinée **après** les billboards → un Pokemon immergé est vu **à travers** l'eau, tout en restant occulté par le terrain plus haut devant (depth partagée, `disableDepthWrite` sur son matériau). Elle ne déclenche jamais la silhouette X-ray (pas d'écriture depth) — seuls les vrais murs terrain (groupe 0) la déclenchent. Décision #693.
+
+**Immersion des sprites** (`directional-billboard.ts`/`combat-scene.ts`) : un Pokemon **au sol** sur une tuile liquide a ses pieds ancrés à `LIQUID_DEPTH_RATIO` (3/6) au lieu du sommet plein ; Volant/Lévitation restent au sommet (`LIQUID_SURFACE_RATIO`, 5/6), au-dessus de la nappe.
+
+**Écume de flottaison** (`shaders/water-foam-material.ts`, nouveau, ajouté en human-testing — hors périmètre du draft v1) : `ShaderMaterial` pixel-art procédural — une bande d'écume + gouttes éparses à la ligne de flottaison d'un Pokemon immergé. Grille de pixels calée sur la taille monde du quad × pixels-par-unité du jeu (pixels à l'échelle jeu, jamais étirés). Tri par `gl_FragDepth` = foot-depth du sprite immergé (devant lui, derrière un vrai bloc terrain). Teinte par liquide (`BABYLON_LIQUID_FOAM_COLOR_BY_GROUP` : eau `0xeaf7ff`, eau profonde `0xdcefff`, marais `0xd7e2b4`, lave `0xffd98a` ; fallback `BABYLON_LIQUID_FOAM_COLOR_DEFAULT`). Retirée dès qu'un Pokemon quitte le liquide (au premier pas de sortie, pas en fin d'animation).
+
+**Anim de déplacement — mode vertical `flat`/`step`/`jump`** (`view-core/movement-animation.ts`) : un changement de hauteur ≤ `MAX_STEP_HEIGHT_DIFF` (0.5, demi-bloc) non-rampe est désormais un **step** (pose Walk, sans saut) plutôt qu'un `Hop` — évite la fausse glissade diagonale sur un demi-bloc ou à l'immersion/sortie d'un liquide (le dip est forcé en step). Au-delà de 0.5 (falaise), le mode reste `jump` (Hop inchangé). `selectMovementAnimation` ne distingue plus que jump/non-jump ; `movementVerticalMode` pilote l'easing vertical fin (`stepVerticalProgress`, `combat-scene.ts`) côté renderer.
+
+**Hauteur des tuiles liquides** (`tileset.tsj`) : les liquides `full` restent `height=1.0` (rendu 6-tranches à pleine hauteur). Le « demi-bloc » ne concerne que le gameplay — un mon s'enfonce à 3/6 (= `0.5`) via la submersion, lu comme un `step` au déplacement (voir `docs/tileset-mapping.md`, décision #697).
+
+Décisions #691–#697.
+
 ### Constantes Babylon — chrome combat (Jalon 4b/4c)
 
 | Constante | Valeur | Rôle |

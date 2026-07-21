@@ -302,7 +302,7 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 - [x] **Arbres en voxel** (2026-07-21) — arbre passé en prop voxel (`tree.glb`). Décision #690.
 - [x] **Mouvement herbe haute + arbres** (2026-07-21) — vent procédural via `decoration-wind-plugin.ts` (déplacement de sommets pondéré par la hauteur, base figée). Cf. `docs/references/voxel-tile-placement.md`.
 - [ ] **Auras — un « rond » par aura qui se stack** — revoir l'affichage des auras (cf. backlog « affichage des modificateurs terrain ») : un anneau au sol par aura active, empilables visuellement.
-- [ ] **Eau & liquides** — réfléchir au comportement : comportement des Pokemon dans/sur l'eau, transparence, demi-tile (half-height).
+- [x] **Eau & liquides** (2026-07-21) — transparence + cuvette + immersion des sprites + écume de flottaison + tuiles standardisées demi-bloc. Plan 166, décisions #691–#697. Voir `docs/design-system.md` §Liquides.
 - [ ] **Textures terrain — retravail** :
   - transitions entre types de terrain (blend / bords).
   - variations de texture sur un même type (casser la répétition).

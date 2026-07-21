@@ -54,6 +54,8 @@ export {
   KNOCKBACK_SHAKE_AMPLITUDE as BABYLON_KNOCKBACK_SHAKE_AMPLITUDE,
   KNOCKBACK_SHAKE_CYCLES as BABYLON_KNOCKBACK_SHAKE_CYCLES,
   KNOCKBACK_SHAKE_DURATION_MS as BABYLON_KNOCKBACK_SHAKE_DURATION_MS,
+  LIQUID_DEPTH_RATIO as BABYLON_LIQUID_DEPTH_RATIO,
+  LIQUID_SURFACE_RATIO as BABYLON_LIQUID_SURFACE_RATIO,
   PICK_DRAG_THRESHOLD_PX as BABYLON_PICK_DRAG_THRESHOLD_PX,
   PMD_DEFAULT_FRAME_TICKS as BABYLON_PMD_DEFAULT_FRAME_TICKS,
   PMD_TICK_DURATION_MS as BABYLON_PMD_TICK_DURATION_MS,
@@ -95,8 +97,42 @@ export const BABYLON_CLEAR_COLOR = { r: 0x1a / 255, g: 0x1a / 255, b: 0x2e / 255
  * distance sort can flip the order on a camera rotation.
  */
 export const BABYLON_SHADOW_ALPHA_INDEX = 0;
+/** Translucent liquid surface (plan 166): over the shadow, under the field-terrain fill + previews. */
+export const BABYLON_LIQUID_SURFACE_ALPHA_INDEX = 1;
+/** Waterline foam band (plan 166): drawn AFTER the liquid surface so it reads on top of the water. */
+export const BABYLON_WATER_FOAM_ALPHA_INDEX = 2;
 export const BABYLON_FIELD_TERRAIN_ALPHA_INDEX = 2;
 export const BABYLON_TILE_PREVIEW_ALPHA_INDEX = 3;
+
+/**
+ * Opacity of each translucent liquid surface (plan 166) — lower = more see-through.
+ * Tunable per liquid: swamp stays murky (barely translucent), deep water is the clearest,
+ * shallow water sits in between. Groups absent here render opaque (lava).
+ */
+export const BABYLON_LIQUID_ALPHA_BY_GROUP: Readonly<Record<string, number>> = {
+  water: 0.6,
+  deep_water: 0.5,
+  swamp: 0.9,
+  // Lava reads opaque but is routed as a near-opaque surface slab (α < 1 so it draws
+  // over a submerged sprite in the transparent phase) — never a full-height opaque body
+  // (that would X-ray-silhouette the sprite's legs through the lava).
+  lava: 0.99,
+};
+/** Fallback opacity for a translucent liquid with no explicit entry above. */
+export const BABYLON_LIQUID_WATER_ALPHA = 0.6;
+
+/**
+ * Tint of the procedural waterline foam band (plan 166) per liquid, so the crest reads as
+ * the right fluid — near-white water foam, murky swamp scum, molten lava froth. Hex 0xRRGGBB.
+ */
+export const BABYLON_LIQUID_FOAM_COLOR_BY_GROUP: Readonly<Record<string, number>> = {
+  water: 0xeaf7ff,
+  deep_water: 0xdcefff,
+  swamp: 0xd7e2b4,
+  lava: 0xffd98a,
+};
+/** Fallback foam tint (near-white water) for a liquid with no explicit entry. */
+export const BABYLON_LIQUID_FOAM_COLOR_DEFAULT = 0xeaf7ff;
 
 /**
  * Window-depth bias pulling a sprite's flattened foot depth toward the camera so it

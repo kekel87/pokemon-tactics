@@ -1,4 +1,5 @@
 import type { Scene } from "@babylonjs/core";
+import { MultiMaterial } from "@babylonjs/core/Materials/multiMaterial";
 
 /**
  * E2E scene-graph hook (plan 127). Exposes a **read-only, frozen** surface for Playwright to
@@ -25,6 +26,8 @@ export interface E2eSceneApi {
     isEnabled: boolean;
     renderingGroupId: number;
     position: { x: number; y: number; z: number };
+    /** Whether the mesh's material alpha-blends (plan 166 liquid surface / any translucent overlay). */
+    transparent: boolean;
   } | null;
   /** Per-sprite animation state (§11 flying-anim assertions): the animation playing now, the
    *  resting animation it reverts to, the occupied tile and its terrain. Serializable primitives. */
@@ -70,11 +73,19 @@ export function installE2eSceneHook(
       if (!mesh) {
         return null;
       }
+      // A MultiMaterial (culled liquid boxes) doesn't delegate `needAlphaBlending`, so
+      // inspect its sub-materials; a plain material answers directly.
+      const material = mesh.material;
+      const transparent =
+        material instanceof MultiMaterial
+          ? material.subMaterials.some((sub) => sub?.needAlphaBlending() ?? false)
+          : (material?.needAlphaBlending() ?? false);
       return {
         isVisible: mesh.isVisible,
         isEnabled: mesh.isEnabled(),
         renderingGroupId: mesh.renderingGroupId,
         position: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
+        transparent,
       };
     },
     spriteStates,

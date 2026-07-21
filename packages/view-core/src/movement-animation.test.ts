@@ -12,6 +12,7 @@ import {
   isFlyoverTerrain,
   isJumpStep,
   type MovementStep,
+  movementVerticalMode,
   selectMovementAnimation,
   selectMovementDuration,
 } from "./movement-animation";
@@ -29,8 +30,8 @@ describe("isJumpStep", () => {
     expect(isJumpStep(step({ heightDiff: 0.5, isRamp: true }))).toBe(false);
   });
 
-  it("is a jump for a half-tile step off a cliff (no ramp)", () => {
-    expect(isJumpStep(step({ heightDiff: 0.5, isRamp: false }))).toBe(true);
+  it("is NOT a jump for a half-tile step off a cliff — it's a stair step (plan 166)", () => {
+    expect(isJumpStep(step({ heightDiff: 0.5, isRamp: false }))).toBe(false);
   });
 
   it("is a jump for a full-tile descent", () => {
@@ -39,6 +40,24 @@ describe("isJumpStep", () => {
 
   it("is a jump for flying Pokemon climbing multiple tiles", () => {
     expect(isJumpStep(step({ heightDiff: 3, isRamp: false, isFlying: true }))).toBe(true);
+  });
+});
+
+describe("movementVerticalMode", () => {
+  it("is flat on level ground", () => {
+    expect(movementVerticalMode(step({ heightDiff: 0 }))).toBe("flat");
+  });
+
+  it("is flat on a ramp regardless of height delta", () => {
+    expect(movementVerticalMode(step({ heightDiff: 0.5, isRamp: true }))).toBe("flat");
+  });
+
+  it("is a stair step for a half-block non-ramp change", () => {
+    expect(movementVerticalMode(step({ heightDiff: 0.5, isRamp: false }))).toBe("step");
+  });
+
+  it("is a jump for a bigger-than-half-block cliff", () => {
+    expect(movementVerticalMode(step({ heightDiff: 1, isRamp: false }))).toBe("jump");
   });
 });
 
@@ -51,8 +70,8 @@ describe("selectMovementAnimation", () => {
     expect(selectMovementAnimation(step({ heightDiff: 0.5, isRamp: true }))).toBe("Walk");
   });
 
-  it("hops on a non-ramp half-tile step (ground Pokemon)", () => {
-    expect(selectMovementAnimation(step({ heightDiff: 0.5, isRamp: false }))).toBe("Hop");
+  it("walks (stair step, no hop) on a non-ramp half-tile step (plan 166)", () => {
+    expect(selectMovementAnimation(step({ heightDiff: 0.5, isRamp: false }))).toBe("Walk");
   });
 
   it("hops on a full-tile descent (ground Pokemon)", () => {
@@ -197,10 +216,13 @@ describe("selectMovementDuration", () => {
     );
   });
 
-  it("uses the jump duration for any jump (ground or flying)", () => {
+  it("uses the ground duration for a half-block stair step (plan 166 — not a jump)", () => {
     expect(selectMovementDuration(step({ heightDiff: 0.5, isRamp: false }))).toBe(
-      JUMP_TWEEN_DURATION_MS,
+      MOVE_TWEEN_DURATION_MS,
     );
+  });
+
+  it("uses the jump duration for a bigger cliff (ground or flying)", () => {
     expect(selectMovementDuration(step({ heightDiff: 1, isRamp: false }))).toBe(
       JUMP_TWEEN_DURATION_MS,
     );

@@ -77,4 +77,13 @@ test("sandbox boote : tiles nommées par coordonnée en groupe terrain + décora
     .toBeGreaterThan(0);
   const decorations = await grassNames();
   expect((await scene.meshInfo(decorations[0]))?.renderingGroupId).toBe(2);
+
+  // Liquide translucide (plan 166) : l'eau en (4,2) de `sandbox-flat` rend un fond sable opaque
+  // `tile_4_2` (groupe terrain 0, pickable) PLUS une nappe translucide séparée `liquid_surface_4_2`.
+  // La nappe est en groupe sprite (2) — dessinée APRÈS les billboards pour passer devant un Pokemon
+  // immergé — et alpha-blend (on voit le fond au travers).
+  const surface = await scene.meshInfo("liquid_surface_4_2");
+  expect(surface).not.toBeNull();
+  expect(surface?.renderingGroupId).toBe(2);
+  expect(surface?.transparent).toBe(true);
 });

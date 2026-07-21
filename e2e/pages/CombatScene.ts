@@ -5,6 +5,7 @@ interface MeshInfo {
   isEnabled: boolean;
   renderingGroupId: number;
   position: { x: number; y: number; z: number };
+  transparent: boolean;
 }
 
 /** Per-sprite animation/terrain snapshot from the read-only scene hook (§11 flying resting anim):
