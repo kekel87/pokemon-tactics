@@ -263,6 +263,21 @@ La clé i18n `battle.fall` (FR "Chute", EN "Fall") est utilisée par le handler 
 
 ---
 
+## Icônes météo (Weather HUD)
+
+Les 4 icônes météo (Soleil, Pluie, Neige, Tempête de Sable) sont des **SVG vectoriels** (`packages/app/public/assets/ui/weather/weather-{sun,rain,snow,sandstorm}.svg`) — glyphe blanc à contour noir sur un losange coloré, dérivées des pictogrammes officiels. Remplacent les anciennes PNG pixel-art (2026-07-21) — la Tempête de Sable en particulier (symbole tourbillon jugé peu lisible en pixel-art, backlog résolu → `docs/backlog-archive.md`).
+
+| Météo | Couleur du losange | Hex |
+|-------|---------------------|-----|
+| Soleil | Jaune | `#FAD903` |
+| Pluie | Bleu | `#5582A5` |
+| Neige | Cyan clair | `#88F2FD` |
+| Tempête de Sable | Orange | `#FBA819` |
+
+`getWeatherIconUrl` (`packages/app/src/team/asset-paths.ts`) résout vers `.svg`. Taille `.wh-icon` (`packages/ui-dom/src/styles/weather-hud.css`) : **56u** (`calc(56 * var(--wh-px))`) — augmentée depuis 32u, jugée trop petite en jeu. `image-rendering: pixelated` conservé (sans effet visible sur du SVG net, mais laissé pour cohérence avec le reste du HUD pixel art).
+
+---
+
 ## Battle Log
 
 | Couleur | Hex | Usage |
