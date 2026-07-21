@@ -1,8 +1,6 @@
+import { ActionKind, Direction, PlayerId } from "@pokemon-tactic/core";
+import { buildCtTestEngine } from "@pokemon-tactic/core/testing";
 import { describe, expect, it } from "vitest";
-import { ActionKind } from "../enums/action-kind";
-import { Direction } from "../enums/direction";
-import { PlayerId } from "../enums/player-id";
-import { buildCtTestEngine } from "../testing/build-ct-test-engine";
 
 describe("CT system — scenario", () => {
   it("has an active pokemon and a ctSnapshot after init", () => {
