@@ -72,23 +72,12 @@ _Aucune dette active._
 - Piste : mode/flag sandbox `humanVsHuman` (les deux `controller: human`), ou écran de setup où les 2 colonnes sont en Humain (TeamSelect le permet déjà — vérifier que le combat suit).
 - Priorité moyenne — gros multiplicateur pour la QA et la com.
 
-### Sprites originaux — plan B si DMCA Nintendo (plan 096)
-- Vecteur risque IP principal : 502 sprites PNG PMDCollab rippés Showdown/PokeAPI.
-- Décision #382 : risque assumé, profil bas (zéro monétisation, pas de post manuel, niche).
-- Si DMCA un jour → page itch retirée immédiatement, puis remplacer sprites par créatures originales (gros chantier, projet successeur).
-- Hors scope plan 096. À planifier si jamais déclenché.
-
 ### Aurora Veil v2 — post intégration Legends Z-A
 - Dropped v1 (plan 095) : 0 learner Gen 1 roster, tous les 9 learners Gen 7+ hors roster.
 - Reprise quand Alolan Ninetales et Vulpix-Alola sont intégrés via le pipeline Z-A.
 - Réutilise infrastructure `TeamAura` + `EffectKind.PostAura` (plan 098) ; ajouter variant `AuraKind.AuroraVeil` + handler combiné Phys+Spé. Requiert `state.weather === Weather.Snow` à la pose.
 
 <!-- Résolu plan 098 (2026-05-25) : Brume (Mist, Glace) + Rune Protect (Safeguard, Normal) livrés. Refactor infra unifié ScreenAura → TeamAura (4 kinds). Hook handle-stat-change.ts (Mist) + handle-status.ts (Safeguard). Bug fix friendly fire (attacker.id vs attacker.playerId). IA threat-detection + scoring threatBonus ×1.5. Renderer indicateurs 4 kinds. 1618 unit + 236 intégration verts. -->
-
-### Sandbox panel — config screens active au boot
-- Plan 095 étape 14 (optionnelle non livrée v1).
-- UI : panneau "Écrans actifs" avec sélection Kind + caster + tours restants → seed `state.screens` au démarrage sandbox.
-- Utile pour QA/playtest sans devoir poser le move chaque session.
 
 ### Ajouter Pokemon Legends Z-A comme source de données
 - Showdown mod ZA : `https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/mods/gen9legends/`
@@ -105,19 +94,14 @@ _Aucune dette active._
 - Plans 046/047 : uniquement modificateur **dégâts** (`getHeightModifier`, ±10%/niveau, cap +50%/-30%). Aucun bonus portée.
 - À planifier : formule (flat +N, multiplicatif, cap), adapter `getValidTargetPositions` pour portée effective par caster, affecter preview renderer.
 
-### Système de décorations Tiled
-- Créer `decorations.tsj` + `decorations.png` — tileset dédié, pipeline séparée du terrain
-- Marquages d'arène : lignes (~12 tiles : segments, coins, T, croisement) + pokeball centrale (~6-8 tiles)
-- Décos environnement : herbe haute overlay, arbres, rochers (sources PMD)
-- Remplir layer `decorations` de `simple-arena.tmj` + maps futures
+### Décorations d'arène voxel (Phase 6)
+- Pipeline Tiled `decorations.tsj` caduc → les décos passent par le **voxel** (`.glb`, cf occlusion déco résolue via voxel).
+- Marquages d'arène : lignes (segments, coins, T, croisement) + pokeball centrale.
+- **Peintures / blocs décorés** : motifs, dessins posés au sol / sur tuiles.
+- Décos environnement : herbe haute, arbres, rochers.
 
 ### Bonus Cabriole ×2 sur Roulade / Ball'Glace (2026-07-04, human-testing plan 149)
 - Canon : Cabriole (`defense-curl`) double la puissance de Roulade (`rollout`) et Ball'Glace (`ice-ball`) si utilisée avant, pour tout le reste du combat.
 - État actuel : **non implémenté** — `defense-curl` ne pose que Défense +1 ; `rollout-streak.ts` / `DynamicPowerKind.RolloutStreak` ignorent Cabriole. Les deux moves sont cohérents entre eux (aucun bonus).
 - À faire (passe dédiée) : flag `PokemonInstance.usedDefenseCurl?` posé par Cabriole (persistant, reset KO), consommé ×2 dans le calcul de puissance RolloutStreak (Roulade + Ball'Glace) + tests + tag tooltip. Hors périmètre plan 149 (famille lock-in).
 
-### Trajectoire de vol (montées/descentes) pour les Flying Pokemon
-- **Anim repos résolue (2026-04-26)** : Flying Pokemon restent en FlyingGlide au repos (idle, après dégâts, knockback). `PokemonSprite.setRestingAnimation()` + `playRestingAnimation()` injectés depuis `BattleScene` à la création.
-- **Restant** : trajectoire déplacement sur dénivelés. Actuellement tween saut (`Hop`) comme autres. Avec FlyingGlide, arc parabolique plus compensé par frames. À traiter avec assets flying dédiés ou quand trajectoire semblera bizarre.
-  - Piste : trajectoire 2-phase (rise-in-place → walk horizontal → drop) ou arc parabolique container Y.
-  - Constantes `JUMP_TWEEN_DURATION_MS` déjà séparables par type.

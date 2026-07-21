@@ -8,6 +8,27 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Trajectoire de vol Flying sur dénivelés — RÉSOLU DE FAIT (2026-07-21)
+
+- **Contexte (2026-04-26)** : item écrit pour le renderer **Phaser** (`BattleScene`, `PokemonSprite.setRestingAnimation`, `JUMP_TWEEN_DURATION_MS`) — trajectoire de déplacement des Flying à améliorer (arc parabolique vs tween saut).
+- **Statut réel** : le code Phaser cité est mort (migration Babylon). Le renderer Babylon gère déjà glide/flyover/atterrissage des flyers (`packages/render-babylon/src/combat-scene.ts` ~L637-724 : `selectMovementAnimation`, `isFlyoverTerrain`, `applyLandingRestingAnimation`). Reliquat caduc → retiré du backlog.
+
+---
+
+## Sprites originaux — plan B si DMCA Nintendo — RETIRÉ (2026-07-21)
+
+- **Contexte (plan 096)** : contingence si DMCA (remplacer les 502 sprites PMDCollab par des créatures originales).
+- **Statut** : déjà acté et documenté dans **décision #382** (stratégie IP). Redondant au backlog → retiré ; l'info de référence vit dans #382. Se réactive seulement si un DMCA survient.
+
+---
+
+## Sandbox — écrans actifs au boot (seed `state.screens`) — ABANDONNÉ (2026-07-21)
+
+- **Contexte (plan 095 étape 14, non livrée v1)** : option panneau sandbox pour pré-poser un écran d'équipe (Mur Lumière / Protection / Brume / Rune Protect) au démarrage sans le caster.
+- **Statut** : confort QA jugé insuffisant par l'humain → abandonné, retiré du backlog.
+
+---
+
 ## Icône Tempête de Sable — symbole tourbillon perfectible — RÉSOLU (2026-07-21)
 
 - **Contexte (2026-05-13, plan 084)** : icône Tempête de Sable acceptée provisoirement en PNG pixel-art. Le symbole vent (double spirale) était jugé moins reconnaissable que les 3 autres pictogrammes météo (Soleil/Pluie/Neige).
