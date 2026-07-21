@@ -65,6 +65,44 @@ Pour chaque action légale, le scorer collecte :
 18. **Move-copy** (Volet K, plan 160) : `scoreCallMove` — Blabla Dodo valorisé seulement si le lanceur est endormi, Mimique/Photocopie valorisés via l'efficacité de type du dernier move résolu, Métronome valorisé à un niveau conservateur (`typeAdvantage × 0.5`).
 19. **Type-manip** (Volet L, plan 160, basse prio) : `scoreConversionFamily` — gain défensif minimal si résistance identifiable, sinon garde-fou conservateur (0, déjà inerte avant ce plan).
 
+#### Pondération CT — heuristique KO-protégé (plan 165)
+
+Le scorer est **greedy monoronde** (pas de lookahead) : le CT (Charge Time, coût de temps d'une action)
+était totalement ignoré du scoring jusqu'au plan 165. Un premier essai naïf (plan 068 étape 2,
+`score *= CT_REFERENCE_COST / ctCost` appliqué à tout le score) avait produit des combats **>5000 tours**
+en charge : la division frappait aussi la composante KO, un KO lent devenait moins bien noté qu'un chip
+rapide, aucun camp ne retirait de menace → drag.
+
+**Formule retenue** — un KO retire une menace *définitivement* (step-change), il garde donc sa pleine
+valeur quel que soit son coût CT ; seul le chip/utilitaire (un débit) est pondéré par le tempo :
+
+```
+ctFactor(move) = min(1, CT_REFERENCE_COST / computeMoveCost(move.pp, move.power, move.effectTier))
+                 // CT_REFERENCE_COST = 500 (coût minimum) → cost 500 = 1.0, 900 = 0.55
+                 // min(1, …) : ne pénalise que les coûts > 500, jamais de bonus
+
+finalScore =
+  securesKo ? rawScore                  // KO (dégât direct OU ring-out létal) : jamais divisé
+            : rawScore <= 0 ? rawScore  // scores négatifs/nuls : pas de re-scaling
+                            : rawScore * ctFactor
+```
+
+`damageScore × ctFactor` reste proportionnel aux **dégâts-par-CT** (`damageScore ∝ ratio de PV infligé`,
+donc `damageScore × ref/cost ∝ ratio/cost`) : un move qui inflige plus n'est pas injustement pénalisé,
+ses dégâts supérieurs sont déjà dans `damageScore`.
+
+Implémentation (`action-scorer.ts`) : const `CT_REFERENCE_COST = 500` + fonction `applyCtWeight(score,
+securesKo, move)`, appliquée en sortie du **chemin générique** de `scoreUseMove` (assemblage final des
+points 1-19 ci-dessus). `securesKo` est accumulé depuis `scoreDamagingMove` (dégât direct, `estimate.min
+>= currentHp`) et `scoreKnockbackRingOut` (issue `lethal`).
+
+**Hors périmètre v1** (branches à `return` anticipé, scoring bespoke conservé tel quel, non pondéré CT) :
+OHKO (Guillotine…), Explosion/Destruction, Tout ou Rien, Souvenir, Vœu Soin, Croc Fatal, Balance/Effort,
+Transform, Buée Noire, stat-manip, self-buffs (`scoreSelfMove`), moves alliés (`scoreAllyTargetMove`).
+
+Validé par un scénario de charge dédié 6v6 CT (`scenarios/ct-scoring-anti-drag.scenario.test.ts`, 8 seeds) :
+83 à 303 actions par combat (plafond garde-fou fixé à 1000, largement sous le drag historique >5000).
+
 #### Move (déplacement)
 
 1. **Positionnement** : gain de distance (réelle, BFS) vers l'ennemi le plus proche × `positioning`
@@ -183,7 +221,7 @@ interface AiProfile {
 - **Pas de coordination d'équipe** : chaque Pokemon joue indépendamment
 - **Pas de positionnement préparatoire pour le ring-out** : l'IA joue un ring-out par recul quand la géométrie fonctionne déjà depuis sa case courante, mais ne se déplace pas exprès pour l'aligner, et ne protège pas sa propre position d'un ring-out adverse (Phase 2, plan 159, différé `docs/next.md`)
 - **Movement = 3 pour tous** : hardcodé, pas lié aux stats du Pokemon (à corriger)
-- **CT non intégré au scoring** : le scorer est greedy monoronde — appliquer un facteur CT pousse l'IA à choisir des moves moins puissants et allonge les combats au-delà de 5000 tours en charge. Nécessite un lookahead multi-tour pour être bénéfique (plan futur).
+- ~~CT non intégré au scoring~~ **résolu (plan 165, 2026-07-21)** : heuristique KO-protégé — voir § Pondération CT ci-dessus. Reste hors périmètre v1 : les branches à `return` anticipé (OHKO, Explosion/Destruction, Tout ou Rien, Souvenir, Vœu Soin, Croc Fatal, Balance/Effort, Transform, Buée Noire, stat-manip, self-buffs, moves alliés) ne sont pas pondérées par le CT — leur scoring bespoke reflète déjà l'engagement. Un lookahead multi-tour (approche B envisagée puis écartée, voir plan 165) resterait un levier futur optionnel pour l'anticipation de l'IA difficile, à rouvrir seulement si un playtest le réclame.
 - **Navigation long terme limitée** : `computePathDistance` évalue si une destination est atteignable, mais la navigation sur plusieurs tours (contournement de murs, emprunt de rampes) reste limitée par le BFS à budget du mouvement courant.
 - **Familles restantes sans heuristique fine (Phase 3, différé)** : Stat/state manip (Buée Noire/Boost/Bain de Smog/Renversement/Permugarde/Permuforce/Permuvitesse/Permucœur), item-interaction utilitaires (Tour de Magie/Passe-Passe/Recyclage/Gaz Corrosif), pièges purs position-linked (Barrage/Regard Noir — pas de notion de « rester adjacent pour maintenir le lock »), crit-manip Batch A (Puissance/Affilage/Cri Draconique/Yama Arashi/Dark Lariat), Cognobidon/Attraction. Ces moves restent fonctionnels (scoring statut/dégâts générique, garde-fous anti-contresens quand nécessaire) mais pas activement valorisés. Voir `docs/next.md`.
 
@@ -191,7 +229,7 @@ interface AiProfile {
 
 | Fichier | Rôle |
 |---------|------|
-| `core/src/ai/action-scorer.ts` | Scoring de chaque action (terrain penalty, path distance, ring-out, heuristiques haut-impact, passe groupée Phase 2) |
+| `core/src/ai/action-scorer.ts` | Scoring de chaque action (terrain penalty, path distance, ring-out, heuristiques haut-impact, passe groupée Phase 2, pondération CT KO-protégé plan 165) |
 | `core/src/ai/threat-detection.ts` | Primitives de menace partagées (`highestThreatEnemy`, `wouldKoUs`, `isHealthyTarget`, `bestEnemyDamageAgainst`, + 8 primitives plan 160) |
 | `core/src/ai/move-reach.ts` | `getMoveMaxReach` — portée max par targeting (extrait de `action-scorer.ts`, plan 160) |
 | `core/src/ai/scored-ai.ts` | Sélection pondérée top-N |
