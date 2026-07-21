@@ -16,10 +16,9 @@ _Aucun bug actif._ (2 items reclassés + 2 vrais bugs corrigés le 2026-07-19 �
 
 ## Dette technique
 
-### `ct-system.scenario.test.ts` n'est capté par aucun projet vitest (2026-07-21)
-- `packages/core/src/battle/ct-system.scenario.test.ts` matche le glob `unit` (`packages/*/src/**/*.test.ts`) mais en est exclu (`exclude: ["**/*.scenario.test.ts"]`) ; il ne matche pas non plus le glob du projet `scenario` (`scenarios/**/*.scenario.test.ts`, racine repo) puisqu'il vit sous `packages/core/src/battle/`. Résultat : **ce test ne tourne jamais**, ni en local ni en CI.
-- Découvert en implémentant le plan 165 (nouveau scénario placé sous `scenarios/` à la racine, conformément au glob — a mis en évidence l'incohérence de placement du fichier existant).
-- À arbitrer : déplacer le fichier sous `scenarios/` (uniformiser avec les autres `.scenario.test.ts`) ou élargir le glob du projet `scenario` pour couvrir aussi `packages/*/src/**/*.scenario.test.ts`. Ne pas corriger sans trancher l'option avec l'humain.
+_Aucune._
+
+<!-- Résolu 2026-07-21 : `ct-system.scenario.test.ts` capté par aucun projet vitest (jamais exécuté) → déplacé de `packages/core/src/battle/` vers `scenarios/` (convention unifiée, imports en alias `@pokemon-tactic/core`). 6/6 PASS. -->
 
 <!-- Résolu 2026-06-12 (commit 30be7ee) : actions/checkout@v5, actions/setup-node@v5, pnpm/action-setup@v4, deploy-pages bumpés node24 dans ci.yml / deploy.yml / itch-deploy.yml. butler-to-itch bloqué à v1.3.0 (pas de release node24 dispo) — surveillé dans docs/next.md. -->
 <!-- Résolu 2026-07-19 : Tag tooltip `superVsWater` hardcodé (plan 113) → tag dynamique `typeEffectivenessOverride` + i18n noms de types. Détails → docs/backlog-archive.md. -->
