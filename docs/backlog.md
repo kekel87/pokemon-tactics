@@ -97,7 +97,7 @@ _Aucun bug actif._ (2 items reclassés + 2 vrais bugs corrigés le 2026-07-19 �
 - Pipeline Tiled `decorations.tsj` caduc → les décos passent par le **voxel** (`.glb`, cf occlusion déco résolue via voxel).
 - Marquages d'arène : lignes (segments, coins, T, croisement) + pokeball centrale.
 - **Peintures / blocs décorés** : motifs, dessins posés au sol / sur tuiles.
-- Décos environnement : herbe haute, arbres, rochers.
+- ~~Décos environnement : herbe haute, arbres, rochers.~~ **Fait (2026-07-21)** — meshes voxel `.glb` + vent procédural, décision #690.
 
 ### Bonus Cabriole ×2 sur Roulade / Ball'Glace (2026-07-04, human-testing plan 149)
 - Canon : Cabriole (`defense-curl`) double la puissance de Roulade (`rollout`) et Ball'Glace (`ice-ball`) si utilisée avant, pour tout le reste du combat.

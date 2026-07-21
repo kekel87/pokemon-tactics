@@ -552,7 +552,6 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     for (const { billboard } of billboards) {
       billboard.update(deltaMs, isoCamera.azimuth, viewProjection);
     }
-    decorations?.update(viewProjection);
     spriteHud.update();
     scene.render();
   });

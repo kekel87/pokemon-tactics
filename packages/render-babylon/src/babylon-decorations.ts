@@ -1,43 +1,66 @@
-import { Material } from "@babylonjs/core/Materials/material";
+import { loadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
+import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import { Color3 } from "@babylonjs/core/Maths/math.color";
-import type { Matrix } from "@babylonjs/core/Maths/math.vector";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
+import type { Observer } from "@babylonjs/core/Misc/observable";
 import type { Scene } from "@babylonjs/core/scene";
 import type { MapDefinition } from "@pokemon-tactic/core";
 import { DecorationKind, type DecorationObject } from "@pokemon-tactic/data";
-import { planDecorations } from "@pokemon-tactic/view-core";
+import { planDecorations, voxelWorldSize } from "@pokemon-tactic/view-core";
+// Side-effect: registers the glTF 2.0 loader used by loadAssetContainerAsync.
+import "@babylonjs/loaders/glTF/2.0";
 import {
-  BABYLON_DECORATION_DEPTH_BIAS,
-  BABYLON_DECORATION_FOOT_DROP,
   BABYLON_SPRITE_PIXELS_PER_UNIT,
   BABYLON_SPRITE_RENDERING_GROUP,
+  BABYLON_TILE_HEIGHT_SCALE,
 } from "./babylon-constants.js";
 import type { TileHeightLookup } from "./babylon-tile-highlights.js";
-import { SpriteDepthPlugin } from "./sprite-depth-plugin.js";
-import { gridToWorldXZ, tileBodyHeight } from "./terrain-extruder.js";
+import { DecorationWindPlugin } from "./shaders/decoration-wind-plugin.js";
+import { gridToWorldXZ, tileTopCenter } from "./terrain-extruder.js";
 
-/** Decoration tile-set PNGs (under `assets/tilesets/decorations`). */
-const DECORATION_TEXTURE_BY_KIND: Readonly<Record<DecorationKind, string>> = {
-  [DecorationKind.TallGrass]: "tall-grass",
+/**
+ * Voxel GLB basename per decoration kind, in `public/assets/decorations/`. Kept in the voxel tool's
+ * native export naming (matches the `.gox` sources; human decision — avoids renaming on re-export).
+ * 1 voxel per glTF unit → scaled to 1 voxel = 1 sprite pixel like the hazards (plan 131).
+ */
+const DECORATION_MODEL_FILE: Readonly<Record<DecorationKind, string>> = {
+  [DecorationKind.TallGrass]: "tall_grass",
   [DecorationKind.Rock1]: "rock-1x1x1",
   [DecorationKind.Rock2x2]: "rock-2x2x2",
-  [DecorationKind.Tree]: "tree-1x1x3",
+  [DecorationKind.Tree]: "tree",
 };
-const DECORATION_TEXTURE_BASE = "assets/tilesets/decorations";
+const DECORATION_MODEL_BASE = "assets/decorations";
 
-interface DecorationBillboard {
-  readonly root: TransformNode;
-  readonly depthPlugin: SpriteDepthPlugin;
+const decorationModelUrl = (kind: DecorationKind): string =>
+  `${DECORATION_MODEL_BASE}/${DECORATION_MODEL_FILE[kind]}.glb`;
+
+/**
+ * Idle wind for the tree foliage + tall-grass (FFTA "alive" feel). Applied as a GPU vertex
+ * displacement weighted by height (`DecorationWindPlugin`): the base is pinned (weight 0 → trunk,
+ * roots and grass foot stay planted, nothing dips under the map) and the sway ramps to full at the
+ * top, so only the canopy/blades move. A per-vertex spatial phase (from world XZ) makes a field ripple
+ * instead of moving as one block. Rocks get no plugin (inert). Amplitudes are the world-unit horizontal
+ * throw of the very top at full lean — tree gentle, grass springier.
+ */
+const WIND_PERIOD_MS = 2600;
+const TREE_WIND_AMPLITUDE = 0.035;
+const GRASS_WIND_AMPLITUDE = 0.07;
+
+interface DecorationTemplate {
+  readonly mesh: Mesh;
+  /** World-unit lift so the model's floor lands on the tile top (`-boundingBox.min.y`). */
+  readonly lift: number;
+  /**
+   * Rendered mesh height expressed in TILE-HEIGHT units (block units) — the cursor/flyer surface the
+   * decoration adds on top of a footprint cell. `surfaceHeightAt` adds this to the raw ground height
+   * (also block units) before `tileTopCenter` scales the sum, so the mesh's world height is divided
+   * back out by `TILE_HEIGHT_SCALE` here to land the cursor exactly on the visible top.
+   */
+  readonly blockHeight: number;
 }
 
 export interface Decorations {
-  /** Per-frame: flatten each occluding decoration to its foot depth (occlusion as the camera turns). */
-  update(viewProjection: Matrix): void;
   /**
    * Height in tile units a rock/tree adds on top of a footprint cell, so the
    * cursor rests on the decoration's top instead of clipping through it (0 for
@@ -48,11 +71,11 @@ export interface Decorations {
 }
 
 /**
- * Static 2D decoration billboards (rocks/trees + auto-placed tall-grass) that
- * always face the camera (BILLBOARDMODE_Y, like the Pokémon sprites). Rocks/trees
- * occlude via the same per-instance foot-depth flatten; tall-grass never writes
- * depth so it neither hides a Pokémon nor triggers its X-ray silhouette (units
- * stand IN the grass). Décision #475 (tout en 2D face caméra). Pure map data.
+ * Static voxel decoration meshes (rocks/trees + auto-placed tall-grass) resting on the tile top —
+ * same pipeline as the entry-hazard props (plan 131): each GLB is loaded once as a disabled template
+ * and cloned as a lightweight instance per placement. They occlude via the real depth buffer in
+ * rendering group 0 (terrain group), so a Pokémon behind a rock/tree is hidden like the terrain hides
+ * it. Décision #475 (billboards 2D) remplacée par le voxel (re-modélisation Goxel). Pure map data.
  */
 export function createDecorations(
   scene: Scene,
@@ -62,152 +85,196 @@ export function createDecorations(
 ): Decorations {
   const { width: mapWidth, height: mapHeight } = map;
   const root = new TransformNode("decorations", scene);
-  // Texture cached per kind; each decoration gets its OWN material so its
-  // SpriteDepthPlugin holds a per-instance foot depth (shared material → one
-  // depth for all = broken sort).
-  const textureByKind = new Map<DecorationKind, Texture>();
-  const materials: StandardMaterial[] = [];
-  const billboards: DecorationBillboard[] = [];
-
-  function textureFor(kind: DecorationKind): Texture {
-    const cached = textureByKind.get(kind);
-    if (cached) {
-      return cached;
-    }
-    const texture = new Texture(
-      `${DECORATION_TEXTURE_BASE}/${DECORATION_TEXTURE_BY_KIND[kind]}.png`,
-      scene,
-      true,
-      true,
-      Texture.NEAREST_SAMPLINGMODE,
-    );
-    texture.hasAlpha = true;
-    textureByKind.set(kind, texture);
-    return texture;
-  }
+  const templates = new Map<DecorationKind, DecorationTemplate>();
+  const instances: Mesh[] = [];
+  const windPlugins: DecorationWindPlugin[] = [];
+  // Rendered top (world units above the tile) per footprint cell so the cursor rests on the art and
+  // flyers rise onto it. Filled once the templates load (their bounding box gives the true height).
+  const obstacleHeightByCell = new Map<string, number>();
+  let disposed = false;
 
   /**
-   * Spawn a billboard for `kind` standing on its footprint. The anchor is the
-   * footprint's near corner; the billboard is centred over the whole footprint
-   * (a 2×2 rock sits in the middle of its 4 tiles) and its frame centre sits on
-   * the tile-top centre — same grounding as the Pokémon sprites (lower half
-   * overlaps the tile front for the 2.5D look).
+   * Place one instance of `kind` centred over its footprint: XZ = footprint centre, Y = anchor tile
+   * top + the model's lift (its floor lands on the tile). Records the rendered top per cell (rocks/
+   * trees only — units stand IN tall-grass, so it adds no cursor height).
    */
   function place(
+    template: DecorationTemplate,
     kind: DecorationKind,
     anchorX: number,
     anchorY: number,
     footprintWidth: number,
     footprintHeight: number,
   ): void {
-    const texture = textureFor(kind);
-    const material = new StandardMaterial(`decoration_${kind}_${anchorX}_${anchorY}`, scene);
-    material.diffuseTexture = texture;
-    material.emissiveColor = new Color3(1, 1, 1);
-    material.disableLighting = true;
-    material.useAlphaFromDiffuseTexture = true;
-    material.backFaceCulling = false;
-    const isGrass = kind === DecorationKind.TallGrass;
-    // Crisp alpha-tested edges + depth write (they occlude). Grass occludes too —
-    // a Pokémon standing in or behind the grass has its lower body hidden by the
-    // nearer blades (foot-depth bias `BABYLON_DECORATION_DEPTH_BIAS` > the sprite's).
-    material.transparencyMode = Material.MATERIAL_ALPHATEST;
-    material.alphaCutOff = 0.5;
-    materials.push(material);
-
     const centreCol = anchorX + (footprintWidth - 1) / 2;
     const centreRow = anchorY - (footprintHeight - 1) / 2;
     const { x: worldX, z: worldZ } = gridToWorldXZ(centreCol, centreRow, mapWidth, mapHeight);
-    const groundY = tileBodyHeight(heightAt(anchorX, anchorY));
-    const billboardRoot = new TransformNode(`decoration_${kind}_${anchorX}_${anchorY}`, scene);
-    billboardRoot.parent = root;
-    billboardRoot.position.set(worldX, groundY, worldZ);
+    const top = tileTopCenter(anchorX, anchorY, heightAt(anchorX, anchorY), mapWidth, mapHeight);
 
-    const plane = MeshBuilder.CreatePlane(
-      `decoration_plane_${kind}_${anchorX}_${anchorY}`,
-      { size: 1 },
-      scene,
-    );
-    plane.material = material;
-    plane.billboardMode = Mesh.BILLBOARDMODE_Y;
-    plane.parent = billboardRoot;
-    // Grass sits in the SPRITE group (2), not terrain (0): the X-ray silhouette
-    // pass (group 1) depth-tests against terrain only, so grass occluding a unit
-    // hides it cleanly instead of revealing its silhouette through the blades.
-    // Rocks/trees stay in group 0 (their silhouette reveal is intentional).
-    plane.renderingGroupId = isGrass ? BABYLON_SPRITE_RENDERING_GROUP : 0;
-    plane.isPickable = false;
+    const isGrass = kind === DecorationKind.TallGrass;
+    const instance = template.mesh.clone(`decoration_${kind}_${anchorX}_${anchorY}`);
+    instance.setEnabled(true);
+    instance.isPickable = false;
+    instance.position.set(worldX, top.y + template.lift, worldZ);
+    // Rocks/trees: group 0 (with the terrain) — they occlude via the real depth buffer, so a Pokémon
+    // behind one is hidden like the terrain hides it, and its silhouette (group 1, depth-tested vs the
+    // terrain group) IS revealed through it (intentional, matches terrain). Tall-grass: the SPRITE
+    // group (2) instead — units stand IN it, so it must NOT feed the silhouette pass (else a unit in
+    // the grass shows an X-ray silhouette through the blades). It still occludes the lower body,
+    // depth-sorted with the sprites. A different group clears the depth buffer, hence exactly these two.
+    instance.renderingGroupId = isGrass ? BABYLON_SPRITE_RENDERING_GROUP : 0;
+    instance.parent = root;
+    instances.push(instance);
+    // Wind lives on the shared per-kind material (GPU vertex displacement), so a cloned instance needs
+    // no per-instance wiring here — the plugin was attached to the template's material at load time.
 
-    const sizePlane = (): void => {
-      const size = texture.getSize();
-      if (size.height === 0) {
-        return;
-      }
-      const worldHeight = size.height / BABYLON_SPRITE_PIXELS_PER_UNIT;
-      plane.scaling.set(worldHeight * (size.width / size.height), worldHeight, 1);
-      // Bottom-anchor dropped toward the tile's front vertex so the decoration
-      // reads as planted on the tile (grass art is drawn low in its frame, so the
-      // same drop seats it without sinking below the tile front — base stays ≥ 0).
-      plane.position.y = worldHeight / 2 - BABYLON_DECORATION_FOOT_DROP;
-      // Record the rendered top (world units above the tile) per footprint cell so
-      // the cursor rests on the art and flyers rise onto it. Use the actual drawn
-      // height, NOT the gameplay `heightUnits`: the 2D art is shorter than its
-      // collision height, so heightUnits would overshoot the visible decoration.
-      if (!isGrass) {
-        const surfaceOffset = Math.max(0, worldHeight - BABYLON_DECORATION_FOOT_DROP);
-        for (let dy = 0; dy < footprintHeight; dy++) {
-          for (let dx = 0; dx < footprintWidth; dx++) {
-            obstacleHeightByCell.set(`${anchorX + dx},${anchorY - dy}`, surfaceOffset);
-          }
+    if (!isGrass) {
+      for (let dy = 0; dy < footprintHeight; dy++) {
+        for (let dx = 0; dx < footprintWidth; dx++) {
+          obstacleHeightByCell.set(`${anchorX + dx},${anchorY - dy}`, template.blockHeight);
         }
       }
-    };
-    if (texture.isReady()) {
-      sizePlane();
-    } else {
-      texture.onLoadObservable.addOnce(sizePlane);
     }
-
-    billboards.push({ root: billboardRoot, depthPlugin: new SpriteDepthPlugin(material) });
   }
 
-  // Placement plan (explicit rocks/trees + auto-placed tall-grass) is pure map data,
-  // shared across engine adapters. Each rock/tree's rendered top is recorded in `place`
-  // (when the texture size is known) so the cursor rests on it and flyers rise onto it.
-  const obstacleHeightByCell = new Map<string, number>();
-  for (const placement of planDecorations(map, decorationObjects)) {
-    place(
-      placement.kind,
-      placement.anchorX,
-      placement.anchorY,
-      placement.footprintWidth,
-      placement.footprintHeight,
-    );
-  }
+  // Placement plan (explicit rocks/trees + auto-placed tall-grass) is pure map data, shared across
+  // engine adapters. Deferred until every referenced template has loaded.
+  const placements = planDecorations(map, decorationObjects);
+  const kinds = new Set(placements.map((placement) => placement.kind));
 
-  // Reused each frame so the foot-depth projection allocates no Vector3 per decoration.
-  const ndcScratch = new Vector3();
-  return {
-    update: (viewProjection) => {
-      for (const { root: billboardRoot, depthPlugin } of billboards) {
-        Vector3.TransformCoordinatesToRef(billboardRoot.position, viewProjection, ndcScratch);
-        depthPlugin.footDepth = Math.min(
-          1,
-          Math.max(0, 0.5 * ndcScratch.z + 0.5 - BABYLON_DECORATION_DEPTH_BIAS),
+  void Promise.all(
+    [...kinds].map(async (kind) => {
+      const container = await loadAssetContainerAsync(decorationModelUrl(kind), scene);
+      if (disposed || scene.isDisposed) {
+        container.dispose();
+        return;
+      }
+      container.addAllToScene();
+      const geometryMeshes = container.meshes.filter(
+        (mesh): mesh is Mesh => mesh instanceof Mesh && mesh.getTotalVertices() > 0,
+      );
+      const merged =
+        geometryMeshes.length === 1
+          ? geometryMeshes[0]
+          : Mesh.MergeMeshes(geometryMeshes, true, true);
+      if (!merged) {
+        return;
+      }
+      merged.name = `decoration_template_${kind}`;
+      normalizeMesh(merged);
+      const material = replaceWithStandardMaterial(merged, scene, kind);
+      // VEC4 vertex colours auto-enable transparency + show back faces; the props are opaque.
+      merged.hasVertexAlpha = false;
+      merged.isPickable = false;
+      merged.setEnabled(false);
+      merged.parent = root;
+      const bounds = merged.getBoundingInfo().boundingBox;
+      // Tree + tall-grass sway in the wind: attach the height-weighted vertex-displacement plugin to
+      // their (shared, per-kind) material, keyed on the mesh's own vertical bounds so weight 0 sits at
+      // the exact floor. Every clone of this template inherits it automatically.
+      if (kind === DecorationKind.Tree || kind === DecorationKind.TallGrass) {
+        const amplitude =
+          kind === DecorationKind.TallGrass ? GRASS_WIND_AMPLITUDE : TREE_WIND_AMPLITUDE;
+        windPlugins.push(
+          new DecorationWindPlugin(
+            material,
+            amplitude,
+            bounds.minimum.y,
+            bounds.maximum.y - bounds.minimum.y,
+          ),
         );
       }
-    },
+      templates.set(kind, {
+        mesh: merged,
+        lift: -bounds.minimum.y,
+        blockHeight: (bounds.maximum.y - bounds.minimum.y) / BABYLON_TILE_HEIGHT_SCALE,
+      });
+      for (const node of container.rootNodes) {
+        if (node !== merged) {
+          node.dispose();
+        }
+      }
+    }),
+  )
+    .then(() => {
+      if (disposed) {
+        return;
+      }
+      for (const placement of placements) {
+        const template = templates.get(placement.kind);
+        if (!template) {
+          continue;
+        }
+        place(
+          template,
+          placement.kind,
+          placement.anchorX,
+          placement.anchorY,
+          placement.footprintWidth,
+          placement.footprintHeight,
+        );
+      }
+    })
+    .catch((error) => {
+      // biome-ignore lint/suspicious/noConsole: surfacing a fatal decoration-asset load failure
+      console.error("Failed to load decoration models", error);
+    });
+
+  // Advance the wind clock once per frame and push it to every wind material. Elapsed wraps at the
+  // period so the shader's sine argument (and float precision) stays bounded over long sessions.
+  let windElapsedMs = 0;
+  const windObserver: Observer<Scene> = scene.onBeforeRenderObservable.add(() => {
+    if (windPlugins.length === 0) {
+      return;
+    }
+    windElapsedMs = (windElapsedMs + scene.getEngine().getDeltaTime()) % WIND_PERIOD_MS;
+    const wave = (2 * Math.PI * windElapsedMs) / WIND_PERIOD_MS;
+    for (const plugin of windPlugins) {
+      plugin.time = wave;
+    }
+  });
+
+  return {
     decorationHeightAt: (x, y) => obstacleHeightByCell.get(`${x},${y}`) ?? 0,
     dispose: () => {
-      // Dispose the meshes only (not materials — textures are shared per kind, so
-      // we free materials then textures explicitly below, in the right order).
-      root.dispose(false, false);
-      for (const material of materials) {
-        material.dispose();
+      disposed = true;
+      scene.onBeforeRenderObservable.remove(windObserver);
+      for (const instance of instances) {
+        instance.dispose();
       }
-      for (const texture of textureByKind.values()) {
-        texture.dispose();
+      instances.length = 0;
+      windPlugins.length = 0;
+      for (const template of templates.values()) {
+        template.mesh.dispose();
       }
+      templates.clear();
+      root.dispose(false, true);
     },
   };
+}
+
+/**
+ * Bake the glTF coordinate conversion (goxel exports Z-up, corrected by the root node matrix) and
+ * scale to 1 voxel = 1 sprite pixel — PRESERVING the model's authored transform (no X/Z recentre, no
+ * ground snap). Each decoration's floor is mapped onto the tile top at placement time via `lift`.
+ */
+function normalizeMesh(mesh: Mesh): void {
+  mesh.setParent(null);
+  mesh.bakeCurrentTransformIntoVertices();
+  mesh.scaling.setAll(voxelWorldSize(BABYLON_SPRITE_PIXELS_PER_UNIT));
+  mesh.bakeCurrentTransformIntoVertices();
+  mesh.refreshBoundingInfo();
+}
+
+/** Flat StandardMaterial (preserving vertex colours) so no PBR env texture loads (teardown-safe). */
+function replaceWithStandardMaterial(mesh: Mesh, scene: Scene, key: string): StandardMaterial {
+  const source = mesh.material;
+  const standard = new StandardMaterial(`decoration_${key}`, scene);
+  if (source instanceof PBRMaterial) {
+    standard.diffuseColor = source.albedoColor.clone();
+    standard.diffuseTexture = source.albedoTexture ?? null;
+  }
+  mesh.material = standard;
+  source?.dispose();
+  return standard;
 }

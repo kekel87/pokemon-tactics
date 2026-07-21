@@ -794,18 +794,21 @@ Source canonique : `packages/renderer/src/babylon/babylon-constants.ts`.
 | `BABYLON_PULSE_PERIOD_MS` | `900` | Période en millisecondes du pulse de respiration emissive du sprite actif (`setActive`). |
 | `BABYLON_DAMAGE_FLASH_DIM_EMISSIVE` | `0.25` | Niveau de gris de la valeur emissive pendant un flash de dégâts (`flashDamage`). Le matériau oscille entre emissive nulle et `(0.25, 0.25, 0.25)` pour signaler le coup. |
 
-#### Décorations billboards 2D (Jalon 3e)
+#### Décorations — meshes voxel (annule Jalon 3e billboards 2D, décision #690)
+
+Les décorations (arbre, herbe haute, rochers 1×1/2×2) sont passées de billboards 2D face caméra à des **meshes voxel `.glb`**, rendus par `packages/render-babylon/src/babylon-decorations.ts` (pipeline mirroré sur `babylon-entry-hazards.ts`, plan 131). Décision #690, voir `docs/decisions.md` et `docs/references/voxel-tile-placement.md` pour le détail technique complet (pipeline d'export, lift auto-mesuré, axe Z-up Goxel).
+
+Constantes **supprimées** (billboards 2D retirés) : `BABYLON_DECORATION_FOOT_DROP` et `BABYLON_DECORATION_DEPTH_BIAS` — n'existent plus dans `babylon-constants.ts`. `BABYLON_GRASS_ALPHA_INDEX` (alphaIndex du plane ALPHABLEND tall-grass) supprimée également. `BABYLON_SHADOW_ALPHA_INDEX` **reste** (ombre au sol du Pokémon, sans lien avec les décorations).
+
+**Vent (shader)** : `packages/render-babylon/src/shaders/decoration-wind-plugin.ts` — nouveau dossier `shaders/`, convention pour les plugins de matériau (`MaterialPluginBase`) du renderer Babylon. `DecorationWindPlugin` déplace les sommets horizontalement, pondéré par la hauteur du sommet dans le mesh (base figée au sol, seul le haut ondule — tronc/racines/pied d'herbe ne bougent jamais). Constantes de tuning dans `babylon-decorations.ts` :
 
 | Constante | Valeur | Rôle |
 |-----------|--------|------|
-| `BABYLON_DECORATION_FOOT_DROP` | `0.4` | Décalage vertical (unités monde) du bottom-anchor d'une décoration vers le bas, pour "planter" visuellement le sprite dans le sommet-avant de sa tile (évite l'effet de flottement). |
-| `BABYLON_DECORATION_DEPTH_BIAS` | `0.005` | Biais `footDepth` appliqué par `SpriteDepthPlugin` aux décorations — légèrement plus fort que `BABYLON_SPRITE_DEPTH_BIAS = 0.0025` → une décoration obstacle passe devant un Pokémon situé sur la MÊME tile. |
-| `BABYLON_SHADOW_ALPHA_INDEX` | `0` | `alphaIndex` de l'ombre au sol du Pokémon (plane ALPHABLEND). Valeur basse = dessiné en premier dans la pile alpha. L'herbe de la même tile (`BABYLON_GRASS_ALPHA_INDEX = 1`) est dessinée après et la couvre. |
-| `BABYLON_GRASS_ALPHA_INDEX` | `1` | `alphaIndex` des planes tall-grass (ALPHABLEND + disableDepthWrite). Dessinée après l'ombre → couvre l'ombre au sol. N'occulte pas les sprites (disableDepthWrite). Ne déclenche jamais la silhouette X-ray. |
+| `WIND_PERIOD_MS` | `2600` | Période du cycle de vent (ms), horloge partagée par tous les plugins de vent actifs |
+| `TREE_WIND_AMPLITUDE` | `0.035` | Débattement horizontal (unités monde) du sommet de l'arbre à pleine amplitude |
+| `GRASS_WIND_AMPLITUDE` | `0.07` | Débattement horizontal de l'herbe haute — plus "ressort" que l'arbre |
 
-**Convention ALPHABLEND** : tout objet utilisant le mode de transparence ALPHABLEND **doit** avoir un `alphaIndex` explicite. Sans `alphaIndex`, Babylon ne garantit pas l'ordre de rendu dans la pile alpha → artefacts visuels imprévisibles. Cette convention est commentée dans `babylon-constants.ts`.
-
-**Note perf** : le fragment shader `gl_FragDepth` (utilisé par `SpriteDepthPlugin` pour le foot-depth) désactive l'early-z GPU. À l'échelle du projet (6-20 sprites), l'impact est négligeable.
+Herbe haute rendue dans `BABYLON_SPRITE_RENDERING_GROUP` (groupe des sprites, `2`) pour ne jamais déclencher la silhouette X-ray (les unités se tiennent *dans* l'herbe, pas derrière). Rochers et arbre restent en `renderingGroupId 0` (avec le terrain) — occlusion normale, comme les entry hazards.
 
 #### Curseur FFTA hover (chantier Post-Babylon d — révise Jalon 3c)
 
@@ -972,9 +975,9 @@ Chaque frame est jouée pour sa durée PMD réelle (`atlas.meta.animations[nom].
 
 #### Phase recette — hauteur curseur sur décorations
 
-Source canonique : `packages/renderer/src/babylon/babylon-decorations.ts` + `combat-scene.ts`.
+Source canonique : `packages/render-babylon/src/babylon-decorations.ts` + `combat-scene.ts`.
 
-`decorationHeightAt(x, y)` retourne la hauteur visuelle d'une décoration en unités monde (`worldHeight − BABYLON_DECORATION_FOOT_DROP`), distincte de la hauteur gameplay. `surfaceHeightAt(x, y)` = terrain + déco, utilisé par `tileWorldTop`, highlights et mouvement. Le curseur de survol et les highlights se positionnent désormais sur le dessus de la décoration. Décision #493.
+**Mis à jour pour les meshes voxel (décision #690)** : `decorationHeightAt(x, y)` retourne la hauteur d'obstacle en unités **TILE-HEIGHT (block units)**, dérivée automatiquement de la bounding box du mesh chargé (`(bounds.maximum.y − bounds.minimum.y) / BABYLON_TILE_HEIGHT_SCALE`) — plus de `BABYLON_DECORATION_FOOT_DROP` (constante supprimée avec les billboards). Seuls rochers et arbre contribuent (l'herbe haute n'ajoute pas de hauteur, les unités s'y tiennent dedans). `surfaceHeightAt(x, y)` = terrain + déco, utilisé par `tileWorldTop`, highlights et mouvement. Le curseur de survol et les highlights se positionnent sur le dessus de la décoration. Décision #493, révisée #690.
 
 #### Phase recette — auras (Murs) in-engine
 
