@@ -1,5 +1,6 @@
 import { AURA_RADIUS } from "../battle/aura-system";
 import type { BattleEngine } from "../battle/BattleEngine";
+import { computeMoveCost } from "../battle/ct-costs";
 import { DISTORTION_RADIUS, isInDistortionZone } from "../battle/distortion-system";
 import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
 import { effectiveAbilityId } from "../battle/effective-ability";
@@ -67,6 +68,30 @@ const DANGEROUS_TERRAINS: ReadonlySet<TerrainType> = new Set([
   TerrainType.Swamp,
 ]);
 const DANGEROUS_TERRAIN_PENALTY = 8;
+
+/**
+ * CT-aware scoring (plan 165). Coût CT de référence = coût minimum d'un move (500). Le facteur tempo
+ * `min(1, CT_REFERENCE_COST / ctCost)` pénalise les moves lents (cost > 500) sans jamais bonifier les
+ * rapides (pas d'inflation de score). Appliqué au chemin générique de dégâts/statut de `scoreUseMove`,
+ * SAUF quand le move sécurise un KO (dégât direct ou ring-out létal) : un KO retire une menace
+ * définitivement (step-change) et garde sa pleine valeur quel que soit le coût. `damageScore × factor`
+ * reste ∝ dégâts-par-CT — les gros moves ne sont pas injustement pénalisés (leurs dégâts supérieurs sont
+ * déjà dans `damageScore`).
+ */
+const CT_REFERENCE_COST = 500;
+
+/**
+ * Applique le facteur tempo CT au score d'un move offensif générique. Les scores nuls/négatifs (friendly
+ * fire, garde-fous) et les moves qui sécurisent un KO ne sont jamais re-scalés. Voir `CT_REFERENCE_COST`.
+ */
+function applyCtWeight(score: number, securesKo: boolean, move: MoveDefinition): number {
+  if (securesKo || score <= 0) {
+    return score;
+  }
+  const ctCost = computeMoveCost(move.pp, move.power, move.effectTier);
+  const ctFactor = Math.min(1, CT_REFERENCE_COST / ctCost);
+  return score * ctFactor;
+}
 
 /** Les 5 crans de stats de combat (hors Précision / Esquive) — base des heuristiques buff/setup. */
 const BATTLE_STAT_STAGES: readonly StatName[] = [
@@ -405,9 +430,15 @@ function scoreUseMove(
 
   let score = 0;
 
+  // CT-aware (plan 165) : un move qui sécurise un KO (dégât direct OU ring-out létal) garde sa pleine
+  // valeur, jamais divisée par le facteur tempo. Voir `applyCtWeight`.
+  let securesKo = false;
+
   let damageScore = 0;
   if (getEffectivePowerFloor(move) > 0) {
-    damageScore = scoreDamagingMove(currentPokemon, targetsHit, move, engine, weights);
+    const damage = scoreDamagingMove(currentPokemon, targetsHit, move, engine, weights);
+    damageScore = damage.score;
+    securesKo = damage.securesKo;
   }
 
   // Charge-réaction (Mitra-Poing / Bec-Canon / Carapiège, plan 150) : le générique voyait la pleine
@@ -534,7 +565,7 @@ function scoreUseMove(
       effect.kind === EffectKind.Knockback,
   );
   if (knockback !== undefined) {
-    score += scoreKnockbackRingOut(
+    const ringOut = scoreKnockbackRingOut(
       currentPokemon,
       targetsHit,
       alliesHit,
@@ -544,6 +575,8 @@ function scoreUseMove(
       engine,
       weights,
     );
+    score += ringOut.score;
+    securesKo = securesKo || ringOut.securesLethalKo;
   }
 
   // Manipulation d'objet (Sabotage / Larcin / Tour de Magie / Passe-Passe, plan 142 ; heuristique fine
@@ -605,7 +638,7 @@ function scoreUseMove(
     }
   }
 
-  return score;
+  return applyCtWeight(score, securesKo, move);
 }
 
 /**
@@ -657,8 +690,9 @@ function scoreKnockbackRingOut(
   enemies: readonly PokemonInstance[],
   engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
-): number {
+): { score: number; securesLethalKo: boolean } {
   let score = 0;
+  let securesLethalKo = false;
   const threat = highestThreatEnemy(enemies, caster, engine);
   for (const target of targetsHit) {
     const outcome = engine.predictKnockback(caster.id, target, distance);
@@ -671,6 +705,7 @@ function scoreKnockbackRingOut(
     }
     if (outcome.lethal) {
       score += weights.killPotential * (threat?.id === target.id ? 1.5 : 1);
+      securesLethalKo = true;
     } else {
       score += (outcome.damage / target.maxHp) * weights.killPotential * 0.5;
     }
@@ -681,7 +716,7 @@ function scoreKnockbackRingOut(
       score -= weights.killPotential;
     }
   }
-  return score;
+  return { score, securesLethalKo };
 }
 
 /**
@@ -2249,8 +2284,9 @@ function scoreDamagingMove(
   move: MoveDefinition,
   engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
-): number {
+): { score: number; securesKo: boolean } {
   let totalScore = 0;
+  let securesKo = false;
 
   for (const target of targetsHit) {
     // Immunité de type non vue par estimateDamage (Sol vs aéroporté) → aucun crédit.
@@ -2270,6 +2306,7 @@ function scoreDamagingMove(
     const cannotKo = move.cannotKo === true || survivesLethalHit(target);
     if (estimate.min >= target.currentHp && !cannotKo) {
       targetScore += weights.killPotential;
+      securesKo = true;
     } else {
       const cappedMax = cannotKo ? Math.min(estimate.max, target.currentHp - 1) : estimate.max;
       const damageRatio = Math.max(0, cappedMax) / target.maxHp;
@@ -2285,7 +2322,7 @@ function scoreDamagingMove(
     totalScore += targetScore;
   }
 
-  return totalScore;
+  return { score: totalScore, securesKo };
 }
 
 function estimateAffectedTiles(

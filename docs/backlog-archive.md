@@ -8,6 +8,16 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## IA — CT-aware scoring — RÉSOLU (plan 165, 2026-07-21)
+
+- **Contexte (2026-04-25)** : le CT (Charge Time) était totalement ignoré du scoring IA (scorer greedy monoronde). Un premier essai (plan 068 étape 2, `score *= CT_REFERENCE_COST / ctCost` appliqué à tout le score) avait été rejeté : la division frappait aussi la composante KO, un KO lent devenait moins bien noté qu'un chip rapide → combats **>5000 tours** en charge. Le backlog affirmait qu'un **lookahead multi-tour** (prédiction ordre CT, évaluation N tours) était nécessaire pour corriger ça.
+- **Résolution (plan 165)** : approche **heuristique KO-protégé** retenue à la place du lookahead multi-tour initialement supposé nécessaire — pas de simulation, juste une exemption ciblée. Nouvelle const `CT_REFERENCE_COST = 500` + fonction `applyCtWeight(score, securesKo, move)` dans `packages/core/src/ai/action-scorer.ts` : le score d'un move offensif du chemin générique de `scoreUseMove` est multiplié par `min(1, 500/computeMoveCost(pp, power, effectTier))`, **sauf** si le move sécurise un KO (dégât direct ou ring-out létal), auquel cas il garde sa pleine valeur — un KO retire une menace définitivement (step-change), il n'est jamais pondéré par le tempo. Scores ≤ 0 non re-scalés.
+- **Périmètre hors v1** (branches à `return` anticipé, non pondérées) : OHKO, Explosion/Destruction, Tout ou Rien, Souvenir, Vœu Soin, Croc Fatal, Balance/Effort, Transform, Buée Noire, stat-manip, self-buffs, moves alliés.
+- **Tests** : 3 unitaires (`action-scorer.test.ts`) + 1 scénario de régression charge (`scenarios/ct-scoring-anti-drag.scenario.test.ts`, 6v6 CT, 8 seeds) — 83 à 303 actions par combat, plafond garde-fou 1000. Gate CI verte (unit + intégration 3879 tests).
+- Détails formule/design : `docs/plans/165-ai-ct-aware-scoring.md`, `docs/ai-system.md` § Pondération CT.
+
+---
+
 ## Trajectoire de vol Flying sur dénivelés — RÉSOLU DE FAIT (2026-07-21)
 
 - **Contexte (2026-04-26)** : item écrit pour le renderer **Phaser** (`BattleScene`, `PokemonSprite.setRestingAnimation`, `JUMP_TWEEN_DURATION_MS`) — trajectoire de déplacement des Flying à améliorer (arc parabolique vs tween saut).

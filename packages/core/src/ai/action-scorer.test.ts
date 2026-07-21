@@ -2,11 +2,13 @@ import { loadAllPokemonTypes, loadData, typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
 import { BattleEngine } from "../battle/BattleEngine";
 import { ActionKind } from "../enums/action-kind";
+import { EffectKind } from "../enums/effect-kind";
 import { PlayerId } from "../enums/player-id";
 import { PokemonGender } from "../enums/pokemon-gender";
 import { StatName } from "../enums/stat-name";
 import { TerrainType } from "../enums/terrain-type";
 import { MockBattle } from "../testing/mock-battle";
+import { MockMove } from "../testing/mock-move";
 import { MockPokemon } from "../testing/mock-pokemon";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
@@ -579,5 +581,112 @@ describe("scoreAction — Phase 3 heuristics (plan 161)", () => {
   it("Cognobidon (belly-drum) is rejected when a foe would KO us, valued when safe", () => {
     expect(scoreMoveOn("belly-drum", { currentHp: 15, maxHp: 15 })).toBeLessThan(0);
     expect(scoreMoveOn("belly-drum", { currentHp: 300, maxHp: 300 })).toBeGreaterThan(0);
+  });
+});
+
+describe("CT-aware scoring (plan 165)", () => {
+  function buildCtEngine(defenderOverrides: Partial<PokemonInstance> = {}) {
+    const moveRegistry = new Map<string, MoveDefinition>();
+    const fast = MockMove.fresh(MockMove.special, { id: "ct-fast", pp: 20, power: 60 });
+    const slow = MockMove.fresh(MockMove.special, { id: "ct-slow", pp: 8, power: 60 });
+    moveRegistry.set(fast.id, fast);
+    moveRegistry.set(slow.id, slow);
+
+    const pokemonTypesMap = loadAllPokemonTypes();
+    const attacker = MockPokemon.fresh(MockPokemon.charmander, {
+      id: "p1-charmander",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["ct-fast", "ct-slow"],
+    });
+    const defender = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      id: "p2-bulbasaur",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      ...defenderOverrides,
+    });
+
+    const state = MockBattle.stateFrom([attacker, defender], 6, 6);
+    const engine = new BattleEngine(
+      state,
+      moveRegistry,
+      typeChart,
+      pokemonTypesMap,
+      undefined,
+      createPrng(42),
+      42,
+    );
+    return { engine, moveRegistry };
+  }
+
+  function scoreByMoveId(defenderOverrides: Partial<PokemonInstance>, moveId: string): number {
+    const { engine, moveRegistry } = buildCtEngine(defenderOverrides);
+    const state = engine.getGameState(PlayerId.Player1);
+    const action = engine
+      .getLegalActions(PlayerId.Player1)
+      .find((a) => a.kind === ActionKind.UseMove && a.moveId === moveId);
+    if (!action) {
+      throw new Error(`No legal UseMove action for ${moveId}`);
+    }
+    return scoreAction(action, state, moveRegistry, engine, EASY_PROFILE);
+  }
+
+  it("prefers the fast move (CT 500) over the slow move (CT 900) at equal damage, non-KO target", () => {
+    const fastScore = scoreByMoveId({ currentHp: 105, maxHp: 105 }, "ct-fast");
+    const slowScore = scoreByMoveId({ currentHp: 105, maxHp: 105 }, "ct-slow");
+    expect(fastScore).toBeGreaterThan(slowScore);
+  });
+
+  it("keeps full value on a slow KO move (CT weighting never divides a kill)", () => {
+    const koScore = scoreByMoveId({ currentHp: 1, maxHp: 105 }, "ct-slow");
+    expect(koScore).toBeGreaterThanOrEqual(EASY_PROFILE.scoringWeights.killPotential);
+  });
+
+  it("keeps full value on a slow move that secures a lethal ring-out (not just a direct KO)", () => {
+    const moveRegistry = new Map<string, MoveDefinition>();
+    const knock = MockMove.fresh(MockMove.physical, {
+      id: "ct-knock",
+      pp: 8,
+      power: 40,
+      effects: [{ kind: EffectKind.Damage }, { kind: EffectKind.Knockback, distance: 1 }],
+    });
+    moveRegistry.set(knock.id, knock);
+
+    const pokemonTypesMap = loadAllPokemonTypes();
+    const attacker = MockPokemon.fresh(MockPokemon.charmander, {
+      id: "p1-charmander",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["ct-knock"],
+    });
+    const defender = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      id: "p2-bulbasaur",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+      currentHp: 150,
+      maxHp: 150,
+    });
+
+    const state = MockBattle.stateFrom([attacker, defender], 6, 6);
+    MockBattle.setTile(state, 2, 0, { terrain: TerrainType.Lava });
+    const engine = new BattleEngine(
+      state,
+      moveRegistry,
+      typeChart,
+      pokemonTypesMap,
+      undefined,
+      createPrng(42),
+      42,
+    );
+
+    const gameState = engine.getGameState(PlayerId.Player1);
+    const action = engine
+      .getLegalActions(PlayerId.Player1)
+      .find((a) => a.kind === ActionKind.UseMove && a.moveId === "ct-knock");
+    if (!action) {
+      throw new Error("No legal UseMove action for ct-knock");
+    }
+    const score = scoreAction(action, gameState, moveRegistry, engine, EASY_PROFILE);
+    expect(score).toBeGreaterThanOrEqual(EASY_PROFILE.scoringWeights.killPotential);
   });
 });
