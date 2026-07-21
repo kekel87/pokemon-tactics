@@ -41,11 +41,6 @@ _Aucune dette active._
 - Inclure aussi : effet Heat-Rock (durée étendue), Sun-instant Solar-Beam, etc.
 - Priorité moyenne — qualité de vie UX, pas bloquant.
 
-### Icône sandstorm — symbole tourbillon perfectible (2026-05-13)
-- Icône actuelle acceptée provisoirement (plan 084).
-- Symbole vent (double spirale) moins reconnaissable que les 3 autres pictogrammes (sun/rain/snow).
-- À refaire ultérieurement à la main (Aseprite) avec un symbole plus lisible.
-
 ### Caméra adaptative selon taille de carte + bornes de zoom (2026-06-19)
 - Comportement caméra dépend de la taille du jeu/carte : cadrage initial + amplitude pan/zoom calés sur dimensions de la grille.
 - Limiter les niveaux de zoom : bornes min/max pour éviter zoom trop loin (carte minuscule) ou trop près (perte vue tactique).

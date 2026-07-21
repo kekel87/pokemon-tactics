@@ -8,6 +8,13 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Icône Tempête de Sable — symbole tourbillon perfectible — RÉSOLU (2026-07-21)
+
+- **Contexte (2026-05-13, plan 084)** : icône Tempête de Sable acceptée provisoirement en PNG pixel-art. Le symbole vent (double spirale) était jugé moins reconnaissable que les 3 autres pictogrammes météo (Soleil/Pluie/Neige).
+- **Résolution** : les 4 icônes météo (Soleil, Pluie, Neige, Tempête de Sable) refaites en **SVG vectoriel** (glyphe blanc contour noir sur losange coloré, dérivées des pictogrammes officiels), remplaçant les 4 PNG. `getWeatherIconUrl` (`packages/app/src/team/asset-paths.ts`) renvoie désormais `.svg`. Taille `.wh-icon` passée de 32u à 56u (icône trop petite en jeu). Voir `docs/design-system.md` § Icônes météo.
+
+---
+
 ## Boussole 3D — placement/échelle toujours imparfaits — RÉSOLU (2026-07-20)
 
 - **Contexte (2026-07-02, playtest plan 146)** : la boussole 3D always-on près du portrait actif (plan 145) avait toujours des problèmes de placement signalés par l'humain — reliquat déjà noté au plan 145 (offsets fixes fragiles au changement de résolution).

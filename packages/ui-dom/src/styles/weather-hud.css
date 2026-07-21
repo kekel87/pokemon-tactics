@@ -26,8 +26,8 @@
   }
 
   .wh-icon {
-    inline-size: calc(32 * var(--wh-px));
-    block-size: calc(32 * var(--wh-px));
+    inline-size: calc(56 * var(--wh-px));
+    block-size: calc(56 * var(--wh-px));
     image-rendering: pixelated;
   }
 
