@@ -166,6 +166,8 @@ pokemon-tactics/
 │   │   │   ├── world-projection.ts      # projection coordonnées monde → CSS viewport
 │   │   │   ├── directional-billboard.ts # sprites PMDCollab directionnels + états
 │   │   │   ├── floating-text-spawner.ts # textes flottants en moteur
+│   │   │   ├── shaders/                 # plugins de matériau Babylon (MaterialPluginBase) —
+│   │   │   │                            # decoration-wind-plugin.ts (vent voxel décorations)
 │   │   │   └── constants.ts             # constantes visuelles Babylon (BABYLON_*)
 │   │   ├── tsconfig.json        # dépend core/data/view-core/render-ports + Babylon.js
 │   │   └── package.json

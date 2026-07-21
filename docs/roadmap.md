@@ -297,10 +297,10 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 
 > Lot d'idées rendu notées d'un coup. Voxelisation des props + retravail textures/eau/auras. Pas priorisé, à attaquer 1 par 1. `best-practices` + refs 2D-HD avant chaque chantier non trivial.
 
-- [ ] **Herbe haute en voxel** — remplacer la déco herbe haute plate par un voxel `.glb` (cf. `docs/references/voxel-tile-placement.md`).
-- [ ] **Rochers en voxel** — passer les rochers en props voxel.
-- [ ] **Arbres en voxel** — passer les arbres en props voxel.
-- [ ] **Mouvement herbe haute + arbres** — animation (vent / oscillation) sur herbe haute et arbres.
+- [x] **Herbe haute en voxel** (2026-07-21) — déco herbe haute désormais un mesh voxel `.glb` (`tall_grass.glb`), rendu via `babylon-decorations.ts`. Décision #690.
+- [x] **Rochers en voxel** (2026-07-21) — rochers 1×1 et 2×2 passés en props voxel (`rock-1x1x1.glb`, `rock-2x2x2.glb`). Décision #690.
+- [x] **Arbres en voxel** (2026-07-21) — arbre passé en prop voxel (`tree.glb`). Décision #690.
+- [x] **Mouvement herbe haute + arbres** (2026-07-21) — vent procédural via `decoration-wind-plugin.ts` (déplacement de sommets pondéré par la hauteur, base figée). Cf. `docs/references/voxel-tile-placement.md`.
 - [ ] **Auras — un « rond » par aura qui se stack** — revoir l'affichage des auras (cf. backlog « affichage des modificateurs terrain ») : un anneau au sol par aura active, empilables visuellement.
 - [ ] **Eau & liquides** — réfléchir au comportement : comportement des Pokemon dans/sur l'eau, transparence, demi-tile (half-height).
 - [ ] **Textures terrain — retravail** :

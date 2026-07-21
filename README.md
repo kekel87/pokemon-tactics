@@ -101,6 +101,13 @@ This project is an AI-assisted development experiment. The human creator is **cr
 
 See [CREDITS.md](CREDITS.md) for detailed per-Pokemon sprite credits.
 
+### Tools
+
+| Tool | Usage | License |
+|------|-------|---------|
+| [Goxel](https://goxel.xyz/) | Voxel editing (entry hazards, decorations — tree, tall grass, rocks) | GPL-3.0, free |
+| [gltf-pipeline](https://github.com/CesiumGS/gltf-pipeline) | `.gltf` → `.glb` conversion for voxel assets | Apache-2.0 |
+
 ### Inspiration
 
 **Games** — Pokemon Conquest · Final Fantasy Tactics · Fire Emblem · Advance Wars · Triangle Strategy · Dofus · Pokemon Mystery Dungeon

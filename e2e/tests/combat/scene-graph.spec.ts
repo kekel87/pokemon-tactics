@@ -64,11 +64,17 @@ test("sandbox boote : tiles nommées par coordonnée en groupe terrain + décora
   expect(tile).not.toBeNull();
   expect(tile?.renderingGroupId).toBe(0);
 
-  // Décor « herbe haute » : présent et en groupe 2 (sprite, occultable — test-plan §2), pas en
-  // groupe terrain. On vérifie qu'au moins une tuile d'herbe est montée par la map sandbox.
-  const decorations = (await scene.meshNames()).filter((name) =>
-    name.startsWith("decoration_plane_tall_grass"),
-  );
-  expect(decorations.length).toBeGreaterThan(0);
+  // Décor « herbe haute » : meshes voxel clonés (`decoration_tall_grass_<x>_<y>`, décision #690),
+  // en groupe 2 (sprite) et NON terrain — l'herbe ne doit pas alimenter la passe silhouette X-ray
+  // (une unité DANS l'herbe serait révélée à travers les brins). Les meshes voxel sont posés APRÈS
+  // le chargement async du GLB template (contrairement aux anciens billboards synchrones) → on poll
+  // leur apparition. On exclut le template désactivé (`decoration_template_tall_grass`, préfixe
+  // distinct) et on vérifie qu'au moins une tuile d'herbe est montée par la map sandbox.
+  const grassNames = async (): Promise<string[]> =>
+    (await scene.meshNames()).filter((name) => name.startsWith("decoration_tall_grass_"));
+  await expect
+    .poll(async () => (await grassNames()).length, { timeout: 10_000 })
+    .toBeGreaterThan(0);
+  const decorations = await grassNames();
   expect((await scene.meshInfo(decorations[0]))?.renderingGroupId).toBe(2);
 });

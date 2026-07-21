@@ -106,9 +106,7 @@ export const AURA_HOVER_ICON_HEIGHT = 0.28;
 export const AURA_HOVER_ICON_OFFSET = 0.2;
 export const AURA_HOVER_ICON_LIFT = 0.12;
 
-// --- Decorations + placement direction arrows ---
-export const DECORATION_FOOT_DROP = 0.4;
-export const DECORATION_DEPTH_BIAS = 0.005;
+// --- Placement direction arrows ---
 export const DIRECTION_ARROW_Y_OFFSET = 0.03;
 export const DIRECTION_ARROW_TILE_FRACTION = 0.6;
 export const DIRECTION_ARROW_ACTIVE_EMISSIVE = { r: 0.55, g: 0.5, b: 0.15 } as const;

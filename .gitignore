@@ -88,3 +88,7 @@ wiki/
 
 # Scripts de probe e2e jetables (jamais commités)
 _*.mjs
+
+# Exports voxel intermédiaires (Goxel → .gltf) : régénérables, artefact runtime = .glb (public/),
+# sources = .gox (assets-src/voxel/goxel/). On ne commite pas l'étape .gltf.
+assets-src/voxel/*.gltf
