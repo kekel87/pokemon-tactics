@@ -133,9 +133,14 @@ Spéciaux selon contexte :
 
 #### Ordre d'exécution fixe
 
-`e2e (test-writer) → human-testing → visual-tester → core-guardian → code-reviewer → doc-keeper → /ci-gate → /commit`
+`e2e (test-writer) → human-testing → **commit WIP** → visual-tester → core-guardian → code-reviewer → doc-keeper → **re-test humain** → /ci-gate → /commit (amende le WIP)`
 
 Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, `visual-tester` régression).
+
+**🔴 Garde-fous WIP + re-test (chantier visuel/renderer surtout) — RÈGLE DURE :**
+- **Commit WIP AVANT la code-review** : point de restauration propre avant que la chaîne de finalisation (code-reviewer, doc-keeper, corrections mineures, « standardisations ») ne modifie code/assets.
+- **REFAIRE tester par l'humain APRÈS la chaîne, avant le commit définitif** : la finalisation peut altérer l'état validé visuellement. **Jamais** committer définitif sur la foi d'une auto-vérification (chrome-devtools ≠ validation humaine). Le commit définitif **amende** le WIP.
+- Origine : plan 166 — une « standardisation » post-validation auto-vérifiée à tort a écrasé le rendu et fut poussée. Voir mémoire `feedback_wip_commit_retest_before_final`.
 
 **`human-testing` — mode interactif (par défaut)** : je ne dump pas tout, je déroule **un scénario à la fois**, je lance, tu regardes, tu valides.
 1. Analyse `git diff HEAD` → scénarios observables (noms FR).
