@@ -14,6 +14,7 @@ const testContext: PresentationContext = {
   translate: (key) => key,
   getLanguage: () => "en",
   getPortraitUrl: (pokemonId) => `assets/sprites/pokemon/${pokemonId}/portrait-normal.png`,
+  getItemIconUrl: (itemId) => `assets/sprites/item-icons/${itemId}.png`,
   isDamagePreviewEnabled: () => false,
 };
 

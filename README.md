@@ -95,6 +95,7 @@ This project is an AI-assisted development experiment. The human creator is **cr
 |--------|---------|
 | [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | CC BY-NC 4.0 |
 | [PokeSprite](https://github.com/msikma/pokesprite) | MIT |
+| [Pokemon Showdown](https://github.com/smogon/pokemon-showdown) — held item icons | MIT |
 | [Pokepedia](https://www.pokepedia.fr/) | Type & status icons |
 | [Bulbagarden](https://archives.bulbagarden.net/) | Category icons (Sword & Shield) |
 | Custom isometric tileset — generated from PMDCollab textures | CC BY-NC 4.0 |

@@ -109,11 +109,26 @@
   }
 
   .ip-item {
+    display: flex;
+    align-items: center;
+    gap: calc(6 * var(--ip-px));
     font-size: calc(22 * var(--ip-px));
     color: var(--color-text-secondary);
   }
 
   .ip-item[hidden] {
+    display: none;
+  }
+
+  .ip-item-icon {
+    inline-size: calc(28 * var(--ip-px));
+    block-size: calc(28 * var(--ip-px));
+    /* Source icons are 24×24 pixel-art — keep crisp when scaled up. */
+    image-rendering: pixelated;
+    flex-shrink: 0;
+  }
+
+  .ip-item-icon[hidden] {
     display: none;
   }
 

@@ -361,6 +361,10 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
   transparent de repli) — `sprite-bundle.spec`.
 - 🤖 **Survol d'une tile** (via le hook `hoverTile`) → infos du Pokemon survolé : survol adversaire
   → nom FR (Dracaufeu) + `data-team="2"` ; survol tile **vide** → repli sur l'actif (`info-panel.spec`).
+- 🤖 **Objet tenu** (plan 168) : la ligne objet (`info-panel-item`) montre l'**icône officielle** croppée
+  de `item-icons.png` À CÔTÉ du nom FR (plus d'ancien texte « 🎒 {nom} »). Porteur → icône `<img>` visible
+  avec `src` data-URL PNG + nom FR (Restes ; Orbe Vie au survol du dummy porteur, équipe 2) ; sans objet →
+  ligne **masquée** (`info-panel.spec`). *Le crop pixel exact de la cellule = 👁.*
 - 👁 **Badges** (statut/auras/volatils), preview menace au survol ennemi (§3.7), barre PV qui
   **descend** après dégâts (anim).
 - 🤖 **Badges** : statut majeur (Brûlure…), auras (Reflet…), volatils (Provoc 3t, Clone…) —
@@ -708,7 +712,8 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
 
 #### 5.25 Item interaction — manipulation de l'objet tenu (plan 142)
 Les 12 moves pilotés de bout en bout via le journal FR (`BattleLogFormatter`) + la ligne objet de
-l'InfoPanel (`info-panel-item`, « 🎒 {nom} »). Tous déterministes (aucun override `Math.random`) :
+l'InfoPanel (`info-panel-item`, icône officielle + nom FR depuis plan 168 : la ligne n'affiche plus
+que le nom en texte, l'icône `<img>` étant décorative). Tous déterministes (aucun override `Math.random`) :
 moves 100 % précision sur cible adjacente (DUEL) → pas de jet ; Éructation (90 %) s'appuie sur le seed
 fixe DUEL. On asserte le SENS (ligne de journal / contenu InfoPanel), jamais le pixel
 (`mechanics-item-interaction.spec`).
@@ -718,12 +723,12 @@ fixe DUEL. On asserte le SENS (ligne de journal / contenu InfoPanel), jamais le 
   + `moves/knock-off.test`) → on prouve le RETRAIT (la ligne de journal), pas le multiplicateur.
 - 🤖 **Larcin** (`thief`, vole l'objet si le lanceur a les mains vides — D2) — le joueur SANS objet lance
   Larcin sur le dummy porteur des Restes → « <X> vole le Restes de <Y> ! », puis l'InfoPanel du LANCEUR
-  (survol de sa case) affiche « 🎒 Restes ». La condition mains-vides (sinon dégâts seuls) est couverte
+  (survol de sa case) affiche « Restes » (+ icône). La condition mains-vides (sinon dégâts seuls) est couverte
   unit (`moves/thief.test`, `moves/covet.test`). Implore (`covet`) partage l'effet `StealItem` → unit, non
   re-piloté e2e → 👁.
 - 🤖 **Tour de Magie** (`trick`, échange inconditionnel des objets — D3) — le joueur tient le Bandeau
   Choix, le dummy les Restes ; l'échange journalise « <X> échange son objet avec <Y> ! » et l'InfoPanel du
-  lanceur montre désormais « 🎒 Restes ». L'échec si les DEUX sont vides = unit (`moves/trick.test`).
+  lanceur montre désormais « Restes » (+ icône). L'échec si les DEUX sont vides = unit (`moves/trick.test`).
   Passe-Passe (`switcheroo`) partage l'effet `SwapItems` → unit, non re-piloté e2e → 👁.
 - 🤖 **Dégommage** (`fling`, lance l'objet tenu — D6) — le joueur tient l'Orbe Flamme (`flame-orb`, fling
   power 30) et lance Dégommage au TOUR 1 (avant que l'Orbe ne brûle son propre porteur en fin de tour) sur
@@ -733,7 +738,7 @@ fixe DUEL. On asserte le SENS (ligne de journal / contenu InfoPanel), jamais le 
 - 🤖 **Recyclage** (`recycle`, restaure le dernier objet consommé par son effet — D1) — le Ronflex tient
   une Baie Lichii et démarre à 20 % PV : « Attendre » → fin de tour → la baie se mange (`consumedItemId`) →
   « … a utilisé son Baie Lichii ». Au tour suivant, Recyclage (Self) → « <X> recycle son Baie Lichii ! » et
-  l'InfoPanel re-montre « 🎒 Baie Lichii ». La non-restauration d'un objet RETIRÉ/volé (vs consommé) = unit
+  l'InfoPanel re-montre « Baie Lichii » (+ icône). La non-restauration d'un objet RETIRÉ/volé (vs consommé) = unit
   (`moves/recycle.test`).
 - 🤖 **Éructation** (`belch`, injouable tant qu'aucune baie n'a été mangée — D7) — le Ronflex tient une
   Baie Lichii à 20 % PV : « Attendre » → fin de tour → la baie se mange (`ateBerryThisBattle`). Au tour
@@ -2046,7 +2051,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-talents-tier-c.spec.ts` | §5.16 talents Tier C (plan 138) : Force Soleil (perte 1/8 PV en fin de tour sous Soleil → « Force Soleil … s'active ! » + « perd N PV »), Anti-Bruit (Mégaphone sonore bloqué → « Anti-Bruit … s'active ! », « perd N PV » absent), Boom Final (K.O. au contact → recul « Dracaufeu perd N PV »), Armurouillée (coup physique → « Défense … baisse ! » + « Vitesse … augmente ! »). 13 autres talents Tier C (multiplicateurs/immunités/réactions silencieux ou probabilistes) = unit/integration |
 | `combat/mechanics-talents-secondary.spec.ts` | §5.17 talents attaquant — effet secondaire (plan 139) : Sans Limite (Nidoking + Bombe Beurk → « Sans Limite … s'active ! », dégâts présents, « est empoisonné » absent — secondaire supprimé, tout seed) ; Sérénité (Leveinard + Bombe Beurk, FLIP au seed 1 : poison absent sans le talent, présent avec — le 30 % doublé en 60 % réussit). Le ×1.3 de Sans Limite, le cap 100 % et les exclusions de Sérénité = unit/integration core |
 | `combat/mechanics-talents-support.spec.ts` | §5.24 talents soutien & couplage objet (plan 141) : Moiteur (Électrode + Destruction sur Psykokwak porteur → « Moiteur … s'active ! » + « Mais cela échoue … ! », « Psykokwak perd N PV » absent), Gloutonnerie (Ronflex à 40 % PV + Baie Lichii → fin de tour → « Baie Lichii … s'active ! » + « Attaque … augmente ! » au seuil 50 %). Cœur Soin / Garde-Ami (soutien d'équipe, requièrent un allié à r2 → non pilotables en 1v1) et Tension (silencieux, effet = absence de baie) = unit/integration core → 👁 |
-| `combat/mechanics-item-interaction.spec.ts` | §5.25 item interaction (plan 142) : Sabotage (retire l'objet → « perd son Restes »), Larcin (vole l'objet → « vole le … » + InfoPanel du lanceur « 🎒 Restes »), Tour de Magie (échange → « échange son objet … » + InfoPanel « 🎒 Restes »), Dégommage (Orbe Flamme lancée → « dégomme son Orbe Flamme » + « est brûlé »), Recyclage (baie mangée en fin de tour puis restaurée → « recycle son Baie Lichii » + InfoPanel), Éructation (jouable seulement après une baie mangée → dégâts au dummy), Glu (Sabotage bloqué sur Grotadmorv → « Glu … s'active », « perd son Restes » absent). Implore/Passe-Passe (effets partagés), Picore/Piqûre/Calcination/Gaz Corrosif (contenu fin non distinct au journal), Substitut (D5), baies Lansat/Frista (boost silencieux), ×1.5 de Sabotage = unit/integration core → 👁 |
+| `combat/mechanics-item-interaction.spec.ts` | §5.25 item interaction (plan 142) : Sabotage (retire l'objet → « perd son Restes »), Larcin (vole l'objet → « vole le … » + InfoPanel du lanceur « Restes »), Tour de Magie (échange → « échange son objet … » + InfoPanel « Restes »), Dégommage (Orbe Flamme lancée → « dégomme son Orbe Flamme » + « est brûlé »), Recyclage (baie mangée en fin de tour puis restaurée → « recycle son Baie Lichii » + InfoPanel), Éructation (jouable seulement après une baie mangée → dégâts au dummy), Glu (Sabotage bloqué sur Grotadmorv → « Glu … s'active », « perd son Restes » absent). Implore/Passe-Passe (effets partagés), Picore/Piqûre/Calcination/Gaz Corrosif (contenu fin non distinct au journal), Substitut (D5), baies Lansat/Frista (boost silencieux), ×1.5 de Sabotage = unit/integration core → 👁 |
 | `combat/mechanics-type-manip.spec.ts` | §5.27 famille Type manip (plan 143) : Détrempage (`soak`, hors-pool forcé) sur le dummy Ronflex (Normal) → journal « Ronflex devient de type Eau ! » (event TypeChanged) + badge volatile « Type Eau » de l'InfoPanel au survol de la cible (`typeOverride`). Conversion/Conversion 2/Copie-Type/Flamme Ultime (historique de move ou type de lanceur requis, mêmes lignes de journal « devient de type … »/« perd son type Feu ! » + recalcul efficacité/STAB) = unit/integration core, non dupliqués e2e → 👁 |
 | `combat/mechanics-move-copy.spec.ts` | §5.28 famille Move-copy (plan 144) : Copie (`mimic`) — l'IA du dummy Ronflex joue Plaquage au tour 1, le joueur Alakazam lance Copie sur lui au tour 2 → journal « Alakazam apprend Plaquage ! » (event MoveCopied) ET, après une fin de tour, le sous-menu d'attaque liste « Plaquage » à la place de « Copie » (slot muté) ; Métronome (`metronome`) — le joueur tire un move (PRNG seedé), le place sur le dummy adjacent → ligne de révélation « Métronome → <move tiré> » (réentrance prouvée, identité du move tiré non assertée). Blabla Dodo (gate sommeil `requiresAsleep`), Mimique (`mirror-move`, dernier move cible) / Photocopie (`copycat`, dernier move global) (dépendent d'un historique de move), Gribouille (`sketch` ≡ Copie) = unit/integration core (`moves/{metronome,sleep-talk,mirror-move,copycat,mimic,sketch}.test.ts`), non dupliqués e2e → 👁 |
 | `combat/mechanics-field-global.spec.ts` | §5.29 famille Field global (plan 145) : les 3 zones diamant Self (Gravité / Zone Étrange / Zone Magique) posées sur la case du lanceur (2,3) → journal « déploie <label> (5 tours) » + quad de scène par kind (`field_terrain_<couleur>_2_3`, une couleur par kind) ; Vent Arrière (`tailwind`, GroundTarget portée 1) ciblé au nord (2,2) → journal « lève le Vent Arrière vers le Nord » + HUD flèche `tailwind-hud` (libellé « Vent Arrière ») ; Gravité verrouille les moves aériens → Pied Voltige (`disabledUnderGravity`) `data-enabled="false"` au menu Attaque une fois la zone posée, `data-enabled="true"` en témoin. Clouage des Volants + immunité Sol, précision ×5/3, swap Déf/DéfSpé, objet neutralisé, ctGain ×1.5 aligné au vent, décompte/expiration/horloge fantôme = unit/integration core (`moves/{gravity,wonder-room,magic-room,tailwind}.test.ts`, `field-global-system.test.ts`, `tailwind-system.test.ts`) → 👁 |
@@ -2082,7 +2087,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire |
 | `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (8 + détail + ↑/↓ aria-current), §6.4 format + Lancer gating |
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |
-| `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` |
+| `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` + **objet tenu** (plan 168 : icône officielle `<img>` data-URL + nom FR — Restes à l'actif, Orbe Vie au survol du porteur team 2 ; sans objet → ligne masquée) |
 | `combat/weather.spec.ts` | §5 météo : HUD « Plein soleil » + tours restants |
 | `combat/multi-hit.spec.ts` | §5 multi-hit : Balle Graine → récap « Touché N fois » |
 | `combat/floating-text.spec.ts` | §5.2 texte flottant de dégâts (`hud_text_plane`) à la résolution |

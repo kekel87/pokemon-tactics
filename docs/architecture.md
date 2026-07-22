@@ -185,7 +185,7 @@ pokemon-tactics/
 │   │   │   ├── Modal.ts                  # primitive modale (<dialog>, closeAriaLabel DI)
 │   │   │   ├── Stepper.ts                # primitive stepper (pure)
 │   │   │   ├── form-controls.ts          # primitives boutons/selects/checkbox (pures)
-│   │   │   ├── config.ts                # UiDomConfig (DI translate/getLanguage/getTypeIconUrl/getPortraitUrl…)
+│   │   │   ├── config.ts                # UiDomConfig (DI translate/getLanguage/getTypeIconUrl/getPortraitUrl/getItemIconUrl…)
 │   │   │   ├── constants.ts             # BATTLE_LOG_COLOR_*
 │   │   │   └── styles/                  # CSS co-localisé des composants (combat-chrome, modal, info-panel) + index.css
 │   │   ├── tsconfig.json        # dépend core/data/view-core/render-ports
@@ -215,6 +215,8 @@ pokemon-tactics/
 │   │   │       │   ├── sprites.bin          # Atlas PNG+JSON de tous les Pokemon concaténés (commité, shippé)
 │   │   │       │   ├── sprites-manifest.json # Index léger : byte-ranges, offsets PMD, index portraits (commité, shippé)
 │   │   │       │   ├── portraits.png        # Sheet unique portraits 40×40 grille 32 cols (commité, shippé)
+│   │   │       │   ├── item-icons.png       # Sheet unique icônes objets 24×24 grille 16 cols, 117 objets (plan 168, commité, shippé)
+│   │   │       │   ├── item-icons/          # Dossier per-item GITIGNORÉ (source/cache dev, non shippé, plan 168)
 │   │   │       │   └── pokemon/*/           # Dossiers per-Pokemon GITIGNORÉS (source/cache dev, non shippés)
 │   │   │       ├── tilesets/terrain/        # tileset.png + tileset.tsj (Tiled externe partagé)
 │   │   │       ├── tilesets/terrain-3d/     # 15 textures PMD plates pour Babylon
@@ -270,7 +272,8 @@ pokemon-tactics/
 │   └── tests/                   # smoke/ + dom/ + combat/ + visual/ — 51 tests (50 passants + 1 fixme)
 ├── scripts/                     # Outils de build one-shot (non packagés)
 │   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → dossiers per-Pokemon (atlas JSON+PNG, offsets) — source/cache dev, gitignorés (plan 135)
-│   ├── pack-sprites.ts          # NOUVEAU (plan 135) : lit les dossiers per-Pokemon → émet sprites.bin + sprites-manifest.json + portraits.png dans public/assets/sprites/
+│   ├── extract-item-icons.ts    # Plan 168 : fetch spritesheet Showdown itemicons-sheet.png, découpe 117 icônes 24×24 par spritenum → dossier per-item gitignoré
+│   ├── pack-sprites.ts          # Lit les dossiers per-Pokemon + per-item → émet sprites.bin + sprites-manifest.json + portraits.png + item-icons.png (plan 135, plan 168) dans public/assets/sprites/
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
 │   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
 │   ├── sprite-config.json       # +51 entrées (plan 135) + 1 (Ditto 0132, plan 157) → couvre les 151 Pokemon Gen 1 (complet)
@@ -696,6 +699,7 @@ packages/app/public/assets/sprites/  ← commités/shippés (3 fichiers)
 - **Par combattant (lazy)** : `getAtlasBlobUrl(id)` slice le `.bin` aux offsets du manifeste → `Blob` → `URL.createObjectURL` → `new Texture(blobUrl, scene)`. Upload GPU seulement pour les ~12 combattants actifs — VRAM identique à l'ancien pipeline.
 - **Cache applicatif** : `Map<pokemonId, blobUrl>` permanent par session (décision #541 — pas de révocation). Combat suivant réutilise les URLs sans refetch.
 - **Portraits** : `getPortraitStyle(id)` retourne `{backgroundImage, backgroundPosition, backgroundSize}` pointant vers `portraits.png` à l'index du manifeste — remplace les anciennes URLs `portrait-normal.png` individuelles.
+- **Icônes d'objets tenus (plan 168)** : pipeline miroir, source [Showdown itemicons](https://play.pokemonshowdown.com/sprites/itemicons/) plutôt que PMDCollab. `scripts/extract-item-icons.ts` fetch la spritesheet `itemicons-sheet.png` et découpe 117 icônes 24×24 par `spritenum` ; `pack-sprites.ts` compose `item-icons.png` (grid 16×24) + `itemIconGrid`/`itemIcons` dans le manifeste (`MANIFEST_VERSION` 1→2). `getItemIconUrl(itemId)` (`packages/app/src/team/item-icon-sheet.ts`, mirror `portrait-sheet.ts`) crop→dataURL, câblé `I18nContext`/`PresentationContext` → `InfoPanelData.itemIconUrl` → `InfoPanel` (icône officielle + nom FR, remplace l'emoji 🎒).
 
 **Clés d'animation atlas** : `{pokemonId}-{anim}-{direction}` (ex : `bulbasaur-idle-south`)
 

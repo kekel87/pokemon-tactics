@@ -45,7 +45,7 @@ import { initSandboxStudioDom } from "../sandbox-boot.js";
 import { getSettings } from "../settings/index.js";
 import { getCategoryIconUrl, getTypeIconUrl, getWeatherIconUrl } from "../team/asset-paths.js";
 import { buildTeamOverrides } from "../team/build-overrides.js";
-import { getPortraitUrl } from "../team/team-builder-data.js";
+import { getItemIconUrl, getPortraitUrl } from "../team/team-builder-data.js";
 import type { AiProfileKey, SandboxConfig } from "../types/SandboxConfig.js";
 import { type LoadingOverlayHandle, showLoadingOverlay } from "../ui/LoadingOverlay.js";
 import { SandboxPanel } from "../ui/SandboxPanel.js";
@@ -196,6 +196,7 @@ function runBattle(options: {
     getCategoryIconUrl,
     getWeatherIconUrl,
     getPortraitUrl,
+    getItemIconUrl,
   };
   const chrome = createBattleChrome({
     host: stage.screenLayer,
@@ -236,6 +237,7 @@ function runBattle(options: {
     translate: (key, params) => t(key as TranslationKey, params),
     getLanguage,
     getPortraitUrl,
+    getItemIconUrl,
     getItemName: itemNameOf,
     getAbilityName: abilityNameOf,
     isDamagePreviewEnabled: () => getSettings().damagePreview,

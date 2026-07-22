@@ -46,6 +46,11 @@ packages/data/.cache/
 # untrack the legacy folders: `git rm -r --cached packages/app/public/assets/sprites/pokemon`
 packages/app/public/assets/sprites/pokemon/
 
+# Held item icon source folder (plan 168): PNGs downloaded from Pokemon Showdown,
+# regeneratable via `pnpm extract-item-icons`. Only the packed sheet (item-icons.png,
+# committed) ships — the per-item source PNGs stay out of git.
+packages/app/public/assets/sprites/item-icons/
+
 # Reference screenshots (local only)
 docs/references/
 

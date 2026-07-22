@@ -40,15 +40,20 @@ export interface PortraitCell {
 interface SpriteManifest {
   version: number;
   portraitGrid: { cols: number; cell: number };
+  /** Grid geometry of `item-icons.png` (manifest v2+; absent in older cached bundles). */
+  itemIconGrid?: { cols: number; cell: number };
   atlas: Record<string, SpriteManifestEntry>;
   offsets: Record<string, SpriteOffsets>;
   portraits: Record<string, number>;
+  /** Per-item icon cell index into `item-icons.png` (manifest v2+). */
+  itemIcons?: Record<string, number>;
 }
 
 interface LoadedBundle {
   bin: Uint8Array;
   manifest: SpriteManifest;
   portraitSheetUrl: string;
+  itemIconSheetUrl: string;
 }
 
 /** Optional progress reporter for the splash screen: fraction in [0, 1]. */
@@ -137,6 +142,7 @@ export function loadSpriteBundle(
       bin,
       manifest,
       portraitSheetUrl: `${basePath}/portraits.png`,
+      itemIconSheetUrl: `${basePath}/item-icons.png`,
     };
   })();
   // On failure, clear the latch so a retry can re-attempt.
@@ -232,6 +238,22 @@ export function getPortraitCell(id: string): PortraitCell | null {
     return null;
   }
   const { cols, cell } = loaded.manifest.portraitGrid;
+  return { col: index % cols, row: Math.floor(index / cols), cols, cell };
+}
+
+export function getItemIconSheetUrl(): string {
+  return requireBundle().itemIconSheetUrl;
+}
+
+/** Cell of `itemId` in `item-icons.png`, or null if it has no icon (or an older bundle). */
+export function getItemIconCell(itemId: string): PortraitCell | null {
+  const loaded = requireBundle();
+  const grid = loaded.manifest.itemIconGrid;
+  const index = loaded.manifest.itemIcons?.[itemId];
+  if (!grid || index === undefined) {
+    return null;
+  }
+  const { cols, cell } = grid;
   return { col: index % cols, row: Math.floor(index / cols), cols, cell };
 }
 
