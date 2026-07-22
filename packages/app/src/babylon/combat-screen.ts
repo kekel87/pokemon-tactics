@@ -1,7 +1,10 @@
 import {
   createPrng,
+  Direction,
   EASY_PROFILE,
+  HARD_PROFILE,
   type MapDefinition,
+  MEDIUM_PROFILE,
   PlayerController,
   PlayerId,
 } from "@pokemon-tactic/core";
@@ -25,6 +28,7 @@ import {
   DummyAiController,
   loadTiledMap,
   preloadCombatSprites,
+  sandboxInstanceId,
 } from "@pokemon-tactic/view-core";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
@@ -42,7 +46,7 @@ import { getSettings } from "../settings/index.js";
 import { getCategoryIconUrl, getTypeIconUrl, getWeatherIconUrl } from "../team/asset-paths.js";
 import { buildTeamOverrides } from "../team/build-overrides.js";
 import { getPortraitUrl } from "../team/team-builder-data.js";
-import type { SandboxConfig } from "../types/SandboxConfig.js";
+import type { AiProfileKey, SandboxConfig } from "../types/SandboxConfig.js";
 import { type LoadingOverlayHandle, showLoadingOverlay } from "../ui/LoadingOverlay.js";
 import { SandboxPanel } from "../ui/SandboxPanel.js";
 import { type PlacementFlow, type PlacementResult, startPlacementFlow } from "./placement-flow.js";
@@ -349,14 +353,25 @@ function startBattleLoop(
   });
 }
 
-/**
- * Sandbox boot path (plan 120 step 9): spawn the player + dummy billboards from
- * the sandbox engine state (no placement phase) and run the loop. The dummy team
- * uses `DummyAiController` (one defensive move + face a fixed direction) when
- * `dummyControl === "ai"`; in "player" mode both sides are human-controlled.
- */
 function randomSeed(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
+}
+
+const AI_PROFILE_BY_KEY = {
+  easy: EASY_PROFILE,
+  medium: MEDIUM_PROFILE,
+  hard: HARD_PROFILE,
+} as const;
+
+function profileForKey(key: AiProfileKey | undefined) {
+  return AI_PROFILE_BY_KEY[key ?? "hard"];
+}
+
+/** Resolved spawn tile reported back to the studio panel, keyed by team + member index. */
+export interface ResolvedSpawn {
+  teamIndex: number;
+  memberIndex: number;
+  position: { x: number; y: number };
 }
 
 /**
@@ -370,6 +385,13 @@ function resolveSandboxSeed(config: SandboxConfig): number {
   return random ? randomSeed() : (config.seed ?? 0);
 }
 
+/**
+ * Sandbox boot path (plan 120 step 9, plan 167 teams): spawn every team member's
+ * billboard from the sandbox engine state (no placement phase) and run the loop.
+ * Per-team control: "player" = human; "passive" = one `DummyAiController` per member
+ * (single defensive move + face a fixed direction); "scored" = one seeded
+ * `AiTeamController` per team (the real heuristic scorer, deterministic via `config.seed`).
+ */
 function startSandboxBattle(options: {
   backend: RendererBackend;
   combat: CombatScene;
@@ -380,16 +402,16 @@ function startSandboxBattle(options: {
   signal: AbortSignal;
   onReplay: () => void;
   /** Report the engine-resolved spawn tiles back to the studio panel. */
-  onPositionsResolved?: (player: { x: number; y: number }, dummy: { x: number; y: number }) => void;
+  onPositionsResolved?: (resolved: ResolvedSpawn[]) => void;
 }): BattleOrchestrator {
   const { backend, combat, stage, map, config, onExit, signal, onReplay, onPositionsResolved } =
     options;
-  const battle = createSandboxBattle({ ...config, seed: resolveSandboxSeed(config) }, map);
+  const seed = resolveSandboxSeed(config);
+  const battle = createSandboxBattle({ ...config, seed }, map);
   const handles = new Map<string, CombatPokemonHandle>();
+  // Spawn every member, including one that starts fainted (hp:0 ally for Vœu Soin / revive
+  // scenarios): the initial syncBoard poses it knocked-out, and a later revive re-shows it.
   for (const pokemon of battle.state.pokemon.values()) {
-    if (pokemon.currentHp <= 0) {
-      continue;
-    }
     const handle = combat.addPokemon({
       pokemonId: pokemon.definitionId,
       spawn: pokemon.position,
@@ -398,12 +420,20 @@ function startSandboxBattle(options: {
     handle.setFacing(pokemon.orientation);
     handles.set(pokemon.id, handle);
   }
-  const dummyPokemonId = `p2-${config.dummyPokemon}`;
-  const playerInstance = battle.state.pokemon.get(`p1-${config.pokemon}`);
-  const dummyInstance = battle.state.pokemon.get(dummyPokemonId);
-  if (playerInstance && dummyInstance) {
-    onPositionsResolved?.(playerInstance.position, dummyInstance.position);
-  }
+
+  const resolved: ResolvedSpawn[] = [];
+  config.teams.forEach((team, teamIndex) => {
+    team.members.forEach((member, memberIndex) => {
+      const instance = battle.state.pokemon.get(
+        sandboxInstanceId(teamIndex, memberIndex, member.pokemon),
+      );
+      if (instance) {
+        resolved.push({ teamIndex, memberIndex, position: instance.position });
+      }
+    });
+  });
+  onPositionsResolved?.(resolved);
+
   return runBattle({
     backend,
     combat,
@@ -414,16 +444,48 @@ function startSandboxBattle(options: {
     signal,
     onReplay,
     wireTurnReady: (built) => {
-      if (config.dummyControl !== "ai") {
+      const passiveByInstanceId = new Map<string, DummyAiController>();
+      const scoredByPlayerId = new Map<PlayerId, AiTeamController>();
+      config.teams.forEach((team, teamIndex) => {
+        const playerId = teamIndex === 0 ? PlayerId.Player1 : PlayerId.Player2;
+        if (team.control === "passive") {
+          team.members.forEach((member, memberIndex) => {
+            const id = sandboxInstanceId(teamIndex, memberIndex, member.pokemon);
+            passiveByInstanceId.set(
+              id,
+              new DummyAiController(
+                built.engine,
+                id,
+                member.defensiveMove ?? null,
+                member.direction ?? Direction.South,
+              ),
+            );
+          });
+        } else if (team.control === "scored") {
+          scoredByPlayerId.set(
+            playerId,
+            new AiTeamController(
+              built.engine,
+              playerId,
+              profileForKey(team.aiProfile),
+              createPrng(seed),
+              built.moveDefinitions,
+            ),
+          );
+        }
+      });
+      if (passiveByInstanceId.size === 0 && scoredByPlayerId.size === 0) {
         return null;
       }
-      const dummyAi = new DummyAiController(
-        built.engine,
-        dummyPokemonId,
-        config.dummyMove,
-        config.dummyDirection,
-      );
-      return (activePokemonId) => (activePokemonId === dummyPokemonId ? dummyAi.playTurn() : false);
+      return (activePokemonId) => {
+        const passive = passiveByInstanceId.get(activePokemonId);
+        if (passive) {
+          return passive.playTurn();
+        }
+        const active = built.state.pokemon.get(activePokemonId);
+        const scored = active ? scoredByPlayerId.get(active.playerId) : undefined;
+        return scored ? scored.playTurn() : false;
+      };
     },
   });
 }
@@ -503,7 +565,7 @@ export function mountSandboxStudio(
       },
       signal: localAbort.signal,
       onReplay: () => remount(config),
-      onPositionsResolved: (player, dummy) => panel?.setResolvedPositions(player, dummy),
+      onPositionsResolved: (resolved) => panel?.setResolvedPositions(resolved),
     });
     // Sandbox auto-spawns immediately → wait for those sprite atlases too before fading.
     await activeCombat.whenReady();

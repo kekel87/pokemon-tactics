@@ -29,6 +29,7 @@ export function loadPokemonFromReference(
         movepool: entry.custom.movepool,
         genderRatio: "genderless",
         ...(entry.custom.abilityId ? { abilityId: entry.custom.abilityId } : {}),
+        ...(entry.custom.dexNumber === undefined ? {} : { dexNumber: entry.custom.dexNumber }),
       };
     }
 

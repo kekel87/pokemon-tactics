@@ -288,7 +288,13 @@ export class BattleEngine {
     this.turnPipeline.registerEndTurn(this.terrainTickHandler, 400);
     this.turnPipeline.registerEndTurn(roostedClearHandler, 500);
 
-    const pokemonIds = [...state.pokemon.keys()];
+    // Only living mons enter the CT schedule. One that starts fainted (hp:0 ally for a Vœu Soin /
+    // revive scenario) is excluded here — `onPokemonRevived` re-injects it when it comes back —
+    // mirroring how a mid-battle KO is removed via `onPokemonKO`. Otherwise a fainted mon would be
+    // handed a turn with no legal action but EndTurn.
+    const pokemonIds = [...state.pokemon.values()]
+      .filter((mon) => mon.currentHp > 0)
+      .map((mon) => mon.id);
     this.chargeTimeTurnSystem = new ChargeTimeTurnSystem(pokemonIds, (id) =>
       this.getCtGainForPokemon(id),
     );
@@ -328,6 +334,23 @@ export class BattleEngine {
   }
 
   rerunBattleStartChecks(): void {
+    // Reconcile the CT schedule with post-construction HP edits (the sandbox may spawn a member
+    // already fainted — an hp:0 ally for a Vœu Soin / revive scenario). Drop each fainted mon from
+    // the scheduler (mirroring a mid-battle KO), and if the current actor is now fainted, advance to
+    // the next living one so no turn is ever handed to a KO'd Pokémon.
+    let activeFainted = false;
+    for (const pokemon of this.state.pokemon.values()) {
+      if (pokemon.currentHp <= 0) {
+        this.chargeTimeTurnSystem.onPokemonKO(pokemon.id);
+        if (this.state.activePokemonId === pokemon.id) {
+          activeFainted = true;
+        }
+      }
+    }
+    if (activeFainted) {
+      this.advanceTurn([]);
+    }
+
     if (!this.abilityRegistry) {
       return;
     }
@@ -1141,6 +1164,22 @@ export class BattleEngine {
 
     if (result.success) {
       this.recordedActions.push(action);
+    }
+
+    // If the actor's own action left it fainted (self-KO move — Vœu Soin, Explosion, Souvenir — or
+    // lethal recoil / terrain), its turn ends immediately: a KO'd mon cannot keep acting. Advance to
+    // the next living actor so the player/AI never controls a corpse (getLegalActions would otherwise
+    // still offer the dead actor Move/EndTurn — the plan 159 anomaly).
+    if (
+      result.success &&
+      !this.battleOver &&
+      action.kind !== ActionKind.EndTurn &&
+      this.state.activePokemonId === currentPokemonId
+    ) {
+      const actor = this.state.pokemon.get(currentPokemonId);
+      if (actor && actor.currentHp <= 0) {
+        this.advanceTurn(result.events);
+      }
     }
 
     return result;

@@ -1,12 +1,11 @@
 import "./styles/sandbox-studio.css";
-import { DEFAULT_SANDBOX_CONFIG, type SandboxConfig } from "./types/SandboxConfig";
+import { normalizeSandboxConfig, type SandboxConfig } from "./types/SandboxConfig";
 
 function parseSandboxEnvConfig(): SandboxConfig | null {
   const raw = import.meta.env.VITE_SANDBOX_CONFIG;
   if (raw) {
     try {
-      const partial = JSON.parse(raw) as Partial<SandboxConfig>;
-      return { ...DEFAULT_SANDBOX_CONFIG, ...partial };
+      return normalizeSandboxConfig(JSON.parse(raw));
     } catch {
       throw new Error("Invalid VITE_SANDBOX_CONFIG JSON — check your sandbox config");
     }

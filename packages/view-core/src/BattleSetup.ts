@@ -191,7 +191,9 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
       throw new Error(`No team found for Pokemon ${placement.pokemonId}`);
     }
 
-    const definitionId = placement.pokemonId.replace(/^p\d+-/, "");
+    // Instance ids are `p{team}-{def}` (placement path) or `p{team}-m{member}-{def}` (sandbox
+    // multi-member teams); strip the player prefix and the optional member segment.
+    const definitionId = placement.pokemonId.replace(/^p\d+-(?:m\d+-)?/, "");
     const definition = pokemonDefinitions.get(definitionId);
     if (!definition) {
       throw new Error(`Unknown Pokemon definition: ${definitionId}`);
