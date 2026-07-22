@@ -2,7 +2,7 @@
 
 ## Projet
 
-Pokemon Tactics : combat tactique (Pokemon × FFTA), TypeScript + Babylon.js 8, monorepo pnpm. Core découplé du rendu. AI-playable.
+Pokemon Tactics : combat tactique (Pokemon × FFTA), TypeScript + Babylon.js 9, monorepo pnpm. Core découplé du rendu. AI-playable.
 
 ## Humain
 
@@ -67,7 +67,7 @@ Règles détaillées par package : `.claude/rules/*.md` (chargées via frontmatt
 
 ## Stack
 
-TypeScript strict ESM · Babylon.js 8 · Vitest · Playwright (`visual-tester` + harness e2e `pnpm test:e2e`) · chrome-devtools MCP (`debugger`, `performance-profiler`) · Vite · Biome · pnpm workspaces.
+TypeScript strict ESM · Babylon.js 9 · Vitest · Playwright (`visual-tester` + harness e2e `pnpm test:e2e`) · chrome-devtools MCP (`debugger`, `performance-profiler`) · Vite · Biome · pnpm workspaces.
 
 ## Interdits
 
