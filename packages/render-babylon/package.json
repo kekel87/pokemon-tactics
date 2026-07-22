@@ -12,15 +12,20 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@babylonjs/core": "^9.12.1",
-    "@babylonjs/loaders": "^9.12.1",
+    "@babylonjs/core": "^9.17.1",
+    "@babylonjs/loaders": "^9.17.1",
     "@pokemon-tactic/core": "workspace:*",
     "@pokemon-tactic/data": "workspace:*",
-    "@pokemon-tactic/view-core": "workspace:*",
     "@pokemon-tactic/render-canvas2d": "workspace:*",
-    "@pokemon-tactic/render-ports": "workspace:*"
+    "@pokemon-tactic/render-ports": "workspace:*",
+    "@pokemon-tactic/view-core": "workspace:*"
   },
   "devDependencies": {
-    "@babylonjs/inspector": "^9.12.1"
+    "@babylonjs/addons": "^9.17.1",
+    "@babylonjs/gui": "^9.17.1",
+    "@babylonjs/gui-editor": "^9.17.1",
+    "@babylonjs/inspector": "^9.17.1",
+    "@babylonjs/materials": "^9.17.1",
+    "@babylonjs/serializers": "^9.17.1"
   }
 }
