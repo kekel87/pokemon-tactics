@@ -13,9 +13,10 @@ import {
   BABYLON_DIMETRIC_ELEVATION,
   BABYLON_ROTATION_LERP,
   BABYLON_VIEW_SIZE,
-  BABYLON_ZOOM_MAX,
-  BABYLON_ZOOM_MIN,
-  BABYLON_ZOOM_STEP,
+  BABYLON_ZOOM_DEFAULT_INDEX,
+  BABYLON_ZOOM_LERP,
+  BABYLON_ZOOM_LERP_EPSILON,
+  BABYLON_ZOOM_LEVELS,
 } from "./babylon-constants.js";
 
 /** Fired on every azimuth change so screen-pinned overlays (compass, arrows) re-align. */
@@ -37,7 +38,11 @@ export class IsometricCamera {
   // recentre snaps, later turns slide smoothly.
   private readonly goal = new Vector3(0, 0, 0);
   private centered = false;
-  private zoom = 1;
+  // Discrete zoom: an index into BABYLON_ZOOM_LEVELS the wheel steps through.
+  // `zoom` (current) eases toward `zoomTarget` (the selected level) each tick.
+  private zoomIndex = BABYLON_ZOOM_DEFAULT_INDEX;
+  private zoom: number = BABYLON_ZOOM_LEVELS[BABYLON_ZOOM_DEFAULT_INDEX];
+  private zoomTarget: number = BABYLON_ZOOM_LEVELS[BABYLON_ZOOM_DEFAULT_INDEX];
   // Current (eased) azimuth and the snapped 90° goal it eases toward.
   private azimuthCurrent = BABYLON_CAMERA_AZIMUTH;
   private azimuthTarget = BABYLON_CAMERA_AZIMUTH;
@@ -90,11 +95,12 @@ export class IsometricCamera {
     this.azimuthTarget += direction * BABYLON_AZIMUTH_STEP;
   }
 
-  /** Mouse-wheel zoom (negative `deltaY` zooms in), clamped to the zoom range. */
+  /** Mouse-wheel zoom: step one discrete level (negative `deltaY` zooms in), eased in `tick`. */
   zoomByWheel(deltaY: number): void {
-    const factor = deltaY < 0 ? BABYLON_ZOOM_STEP : 1 / BABYLON_ZOOM_STEP;
-    this.zoom = Math.min(BABYLON_ZOOM_MAX, Math.max(BABYLON_ZOOM_MIN, this.zoom * factor));
-    this.update();
+    const nextIndex = this.zoomIndex + (deltaY < 0 ? 1 : -1);
+    this.zoomIndex = Math.min(BABYLON_ZOOM_LEVELS.length - 1, Math.max(0, nextIndex));
+    // Index is clamped in-range; `?? this.zoomTarget` only satisfies noUncheckedIndexedAccess.
+    this.zoomTarget = BABYLON_ZOOM_LEVELS[this.zoomIndex] ?? this.zoomTarget;
   }
 
   /** Pan the centre in the view plane by a pointer drag delta (pixels). */
@@ -136,6 +142,16 @@ export class IsometricCamera {
       this.update();
     } else if (this.azimuthCurrent !== this.azimuthTarget) {
       this.azimuthCurrent = this.azimuthTarget;
+      this.update();
+    }
+
+    // Ease the current zoom toward the selected discrete level (smooth wheel steps).
+    const zoomDelta = this.zoomTarget - this.zoom;
+    if (Math.abs(zoomDelta) > BABYLON_ZOOM_LERP_EPSILON) {
+      this.zoom += zoomDelta * Math.min(1, BABYLON_ZOOM_LERP * (deltaMs / 1000));
+      this.update();
+    } else if (this.zoom !== this.zoomTarget) {
+      this.zoom = this.zoomTarget;
       this.update();
     }
 

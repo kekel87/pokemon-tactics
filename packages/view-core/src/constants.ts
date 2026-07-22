@@ -28,14 +28,22 @@ export const CAMERA_AZIMUTH = Math.PI / 4;
 export const DIMETRIC_ELEVATION = Math.atan(1 / Math.sqrt(2));
 export const CAMERA_DISTANCE = 20;
 export const VIEW_SIZE = 13;
-export const ZOOM_MIN = 0.4;
-export const ZOOM_MAX = 3;
-export const ZOOM_STEP = 1.1;
+/**
+ * Discrete zoom levels the mouse-wheel steps between (overview → medium → close),
+ * as orthographic zoom factors relative to `VIEW_SIZE`. Higher = closer. The wheel
+ * moves one level per notch instead of a continuous scale.
+ */
+export const ZOOM_LEVELS = [0.7, 1.1, 1.8] as const;
+/** Starting level index into `ZOOM_LEVELS` (medium). */
+export const ZOOM_DEFAULT_INDEX = 1;
 export const AZIMUTH_STEP = Math.PI / 2;
 export const AZIMUTH_LERP_EPSILON = 0.001;
 export const ROTATION_LERP = 5;
 export const CAMERA_PAN_LERP = 6;
 export const CAMERA_PAN_EPSILON = 0.01;
+/** Eased zoom: lerp rate toward the target level, and the snap threshold. */
+export const ZOOM_LERP = 9;
+export const ZOOM_LERP_EPSILON = 0.001;
 export const PICK_DRAG_THRESHOLD_PX = 5;
 export const HEMI_LIGHT_INTENSITY = 0.8;
 export const DIRECTIONAL_LIGHT_INTENSITY = 0.6;
