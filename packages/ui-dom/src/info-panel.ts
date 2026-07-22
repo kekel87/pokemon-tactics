@@ -60,8 +60,13 @@ export function createInfoPanel(): InfoPanel {
 
   const hpText = el("span", "ip-hptext", "info-panel-hp");
 
-  // Held item line (🎒 {name}); hidden when the Pokémon holds nothing.
+  // Held item line: official item icon + localised name; hidden when holding nothing.
   const itemEl = el("span", "ip-item", "info-panel-item");
+  const itemIcon = el("img", "ip-item-icon");
+  itemIcon.alt = ""; // decorative: the item name is read from the sibling text
+  itemIcon.decoding = "async";
+  const itemName = el("span", "ip-item-name");
+  itemEl.append(itemIcon, itemName);
 
   const badges = el("ul", "ip-badges");
 
@@ -99,10 +104,18 @@ export function createInfoPanel(): InfoPanel {
     hpBar.setAttribute("aria-valuenow", String(data.hpCurrent));
 
     if (data.heldItem) {
-      itemEl.textContent = `🎒 ${data.heldItem}`;
+      itemName.textContent = data.heldItem;
+      if (data.itemIconUrl) {
+        itemIcon.src = data.itemIconUrl;
+        itemIcon.hidden = false;
+      } else {
+        itemIcon.removeAttribute("src");
+        itemIcon.hidden = true;
+      }
       itemEl.hidden = false;
     } else {
-      itemEl.textContent = "";
+      itemName.textContent = "";
+      itemIcon.removeAttribute("src");
       itemEl.hidden = true;
     }
 

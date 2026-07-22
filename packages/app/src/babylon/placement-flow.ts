@@ -33,7 +33,7 @@ import {
 import { getLanguage, t } from "../i18n/index.js";
 import type { TranslationKey } from "../i18n/types.js";
 import { getCategoryIconUrl, getTypeIconUrl, getWeatherIconUrl } from "../team/asset-paths.js";
-import { getPortraitUrl } from "../team/team-builder-data.js";
+import { getItemIconUrl, getPortraitUrl } from "../team/team-builder-data.js";
 
 const PLACEMENT_UI_CONFIG: UiDomConfig = {
   translate: (key, params) => t(key as TranslationKey, params),
@@ -42,6 +42,7 @@ const PLACEMENT_UI_CONFIG: UiDomConfig = {
   getCategoryIconUrl,
   getWeatherIconUrl,
   getPortraitUrl,
+  getItemIconUrl,
 };
 
 /** Everything the battle loop needs to build its engine from the finished placement. */

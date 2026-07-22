@@ -10,8 +10,14 @@ export class InfoPanel {
   readonly hpText: Locator;
   readonly hpBar: Locator;
   readonly portrait: Locator;
-  /** Held-item line (« 🎒 {nom} ») — hidden when the Pokémon holds nothing. */
+  /** Held-item line (official icon + localised FR name, e.g. « Restes ») — hidden when the Pokémon
+   *  holds nothing. The container's text is the item name (the icon `<img>` has empty alt → no text),
+   *  so `item` reads the FR name directly. */
   readonly item: Locator;
+  /** Official held-item icon inside the item line (plan 168). Scoped `img` under the testid'd
+   *  container: the icon has an empty `alt` (decorative → no `img` role) and carries no testid of its
+   *  own, so a tag-scoped locator under the stable `info-panel-item` testid is the resilient reach. */
+  readonly itemIcon: Locator;
   constructor(page: Page) {
     this.panel = page.getByTestId("info-panel");
     this.name = page.getByTestId("info-panel-name");
@@ -20,6 +26,7 @@ export class InfoPanel {
     this.hpBar = page.getByRole("progressbar");
     this.portrait = page.getByTestId("info-panel-portrait");
     this.item = page.getByTestId("info-panel-item");
+    this.itemIcon = this.item.locator("img");
   }
 }
 

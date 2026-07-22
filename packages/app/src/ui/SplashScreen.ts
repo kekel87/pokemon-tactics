@@ -1,5 +1,6 @@
 import { loadSpriteBundle } from "@pokemon-tactic/view-core";
 import "../styles/splash.css";
+import { prepareItemIconSheet } from "../team/item-icon-sheet.js";
 import { preparePortraitSheet } from "../team/portrait-sheet.js";
 
 const FADE_MS = 320;
@@ -63,7 +64,7 @@ export function runSplash(host: HTMLElement): Promise<void> {
       barOuter.hidden = false;
       Promise.resolve()
         .then(() => loadSpriteBundle({ onProgress: setProgress }))
-        .then(() => preparePortraitSheet())
+        .then(() => Promise.all([preparePortraitSheet(), prepareItemIconSheet()]))
         .then(fadeOutAndResolve)
         .catch(() => {
           barOuter.hidden = true;

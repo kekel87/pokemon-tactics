@@ -16,6 +16,17 @@ export const DUEL = {
 /** Same duel but the dummy is one hit from fainting → any Griffe is lethal (KO log assertion). */
 export const DUEL_LETHAL = { ...DUEL, dummyHp: 1 } as const;
 
+/** Objet tenu affiché avec son icône officielle dans l'InfoPanel (plan 168, cahier §4.7). Le joueur
+ *  Florizarre tient les Restes (`heldItem`), le dummy Dracaufeu tient l'Orbe Vie (`dummyHeldItem`) →
+ *  au boot le panneau de l'actif montre « Restes » + icône ; au survol du dummy, « Orbe Vie » + icône.
+ *  DUEL sans `heldItem` sert de témoin « sans objet » (ligne masquée). Aucun jet → déterministe. */
+export const HELD_ITEM_ICONS = {
+  ...DUEL,
+  heldItem: "leftovers",
+  dummyPokemon: "charizard",
+  dummyHeldItem: "life-orb",
+} as const;
+
 /** Player starts poisoned → the HUD must mount a status icon (test-plan §3.4). Seeded
  *  (via DUEL) so the sandbox stays deterministic — a config without a seed now boots random. */
 export const POISONED = { ...DUEL, status: "poisoned" } as const;

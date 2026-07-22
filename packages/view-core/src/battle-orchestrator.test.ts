@@ -170,6 +170,7 @@ function setup(
       translate: (key) => key,
       getLanguage: () => "en",
       getPortraitUrl: () => "",
+      getItemIconUrl: () => "",
       isDamagePreviewEnabled: () => true,
     },
   );

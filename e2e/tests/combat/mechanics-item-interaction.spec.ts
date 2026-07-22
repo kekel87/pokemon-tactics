@@ -12,7 +12,8 @@ import {
 import { InfoPanel } from "../../pages/combatHud";
 
 // Cahier §5.25 — Item interaction (plan 142) : manipulation de l'objet tenu pilotée de bout en bout via
-// le journal FR (BattleLogFormatter) + la ligne objet de l'InfoPanel (`info-panel-item`, « 🎒 {nom} »).
+// le journal FR (BattleLogFormatter) + la ligne objet de l'InfoPanel (`info-panel-item`, icône officielle
+// + nom FR depuis plan 168 : le texte de la ligne = le seul nom, l'icône `<img>` étant décorative).
 // Tous déterministes (aucun override Math.random) : moves 100 % précision sur cible adjacente (DUEL) →
 // pas de jet, sauf Éructation (90 %) qui s'appuie sur le seed fixe DUEL. On assert le SENS (ligne de
 // journal FR / contenu InfoPanel), jamais le pixel. Les facettes silencieuses (×1.5 de Sabotage, garde
@@ -47,7 +48,7 @@ test("§5.25 Sabotage : retire l'objet de la cible (journal « perd son Restes �
 
 // Larcin (thief) : vole l'objet de la cible si le lanceur a les mains vides (D2). Le joueur (sans objet)
 // lance Larcin sur le dummy porteur des Restes → « <X> vole le Restes de <Y> ! », puis l'InfoPanel du
-// LANCEUR (Pokemon actif après l'action) affiche « 🎒 Restes » — l'objet volé est désormais tenu.
+// LANCEUR (Pokemon actif après l'action) affiche « Restes » (+ icône) — l'objet volé est désormais tenu.
 test("§5.25 Larcin : vole l'objet (journal « vole le … » + InfoPanel du lanceur)", async ({
   page,
   bootSandbox,
@@ -58,13 +59,13 @@ test("§5.25 Larcin : vole l'objet (journal « vole le … » + InfoPanel du lan
   // Survoler la case du LANCEUR (2,3) cible l'InfoPanel sur lui (indépendant du Pokemon actif après
   // l'action) → il porte désormais l'objet volé. Re-survol par poll (anti-course HUD), cf. info-panel.spec.
   const info = new InfoPanel(page);
-  await expect.poll(() => hoveredItem(page, scene), { timeout: 10_000 }).toBe("🎒 Restes");
-  await expect(info.item).toHaveText("🎒 Restes");
+  await expect.poll(() => hoveredItem(page, scene), { timeout: 10_000 }).toBe("Restes");
+  await expect(info.item).toHaveText("Restes");
 });
 
 // Tour de Magie (trick) : échange inconditionnel des objets tenus (D3). Le joueur tient le Bandeau Choix,
 // le dummy tient les Restes ; l'échange journalise « <X> échange son objet avec <Y> ! » et l'InfoPanel du
-// lanceur montre désormais « 🎒 Restes » (il a récupéré l'objet du dummy).
+// lanceur montre désormais « Restes » (+ icône) (il a récupéré l'objet du dummy).
 test("§5.25 Tour de Magie : échange les objets tenus (journal + InfoPanel)", async ({
   page,
   bootSandbox,
@@ -74,8 +75,8 @@ test("§5.25 Tour de Magie : échange les objets tenus (journal + InfoPanel)", a
   await expect(log(page, /échange son objet avec/)).toBeAttached({ timeout: 10_000 });
   const info = new InfoPanel(page);
   // Le lanceur a récupéré l'objet du dummy (les Restes) en échange de son Bandeau Choix.
-  await expect.poll(() => hoveredItem(page, scene), { timeout: 10_000 }).toBe("🎒 Restes");
-  await expect(info.item).toHaveText("🎒 Restes");
+  await expect.poll(() => hoveredItem(page, scene), { timeout: 10_000 }).toBe("Restes");
+  await expect(info.item).toHaveText("Restes");
 });
 
 // Dégommage (fling) : lance l'objet tenu ; l'Orbe Flamme inflige la Brûlure à la cible (table
@@ -95,7 +96,7 @@ test("§5.25 Dégommage : lance l'Orbe Flamme → brûle la cible (journal)", as
 // Recyclage (recycle) : restaure le dernier objet consommé par son propre effet (D1). Le Ronflex tient
 // une Baie Lichii et démarre à 20 % PV : « Attendre » → fin de tour → la baie se mange (pose
 // consumedItemId). Au tour suivant, Recyclage (Self) restaure l'objet → « <X> recycle son Baie Lichii ! »
-// et l'InfoPanel re-montre « 🎒 Baie Lichii ». Aucun jet (hook baie inconditionnel en pincement).
+// et l'InfoPanel re-montre « Baie Lichii » (+ icône). Aucun jet (hook baie inconditionnel en pincement).
 test("§5.25 Recyclage : restaure la baie consommée (journal + InfoPanel)", async ({
   page,
   bootSandbox,
@@ -109,8 +110,8 @@ test("§5.25 Recyclage : restaure la baie consommée (journal + InfoPanel)", asy
   await expect(log(page, /recycle son Baie Lichii/)).toBeAttached({ timeout: 10_000 });
   const info = new InfoPanel(page);
   // L'objet consommé est de retour dans la main du Ronflex.
-  await expect.poll(() => hoveredItem(page, scene), { timeout: 10_000 }).toBe("🎒 Baie Lichii");
-  await expect(info.item).toHaveText("🎒 Baie Lichii");
+  await expect.poll(() => hoveredItem(page, scene), { timeout: 10_000 }).toBe("Baie Lichii");
+  await expect(info.item).toHaveText("Baie Lichii");
 });
 
 // Éructation (belch) : injouable tant qu'aucune baie n'a été mangée (D7). Le Ronflex tient une Baie

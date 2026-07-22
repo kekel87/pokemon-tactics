@@ -12,4 +12,6 @@ export interface I18nContext {
   getLanguage(): string;
   /** Portrait image URL for a Pokémon definition id. */
   getPortraitUrl(definitionId: string): string;
+  /** Held-item icon URL for a held-item id (plan 168). */
+  getItemIconUrl(itemId: string): string;
 }

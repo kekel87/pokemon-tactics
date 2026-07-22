@@ -249,6 +249,9 @@ export function getLegalAbilitiesForPokemon(pokemonId: string): readonly string[
   return Array.from(data.registry.validator.getLegalAbilities(pokemonId));
 }
 
+// Item icon URLs are cropped from the bundled item-icon sheet (plan 168) — see
+// `item-icon-sheet.ts`. Re-exported here for the same import-path convenience.
+export { getItemIconUrl } from "./item-icon-sheet.js";
 // Portrait URLs are cropped from the bundled portrait sheet (plan 135) — see
 // `portrait-sheet.ts`. Re-exported here so existing consumers' import path is unchanged.
 export { getPortraitUrl } from "./portrait-sheet.js";

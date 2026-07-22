@@ -381,6 +381,9 @@ export function buildInfoPanelView(
     portraitUrl: context.getPortraitUrl(pokemon.definitionId),
     badges,
     ...(heldItem === undefined ? {} : { heldItem }),
+    ...(pokemon.heldItemId === undefined
+      ? {}
+      : { itemIconUrl: context.getItemIconUrl(pokemon.heldItemId) }),
   };
 }
 

@@ -23,6 +23,7 @@
     "typecheck": "pnpm -r --parallel run typecheck && pnpm typecheck:e2e",
     "typecheck:e2e": "tsc -p e2e/tsconfig.json",
     "extract-sprites": "tsx scripts/extract-sprites.ts",
+    "extract-item-icons": "tsx scripts/extract-item-icons.ts",
     "pack-sprites": "tsx scripts/pack-sprites.ts",
     "download-status-icons": "tsx scripts/download-status-icons.ts",
     "replay:generate": "tsx scripts/generate-golden-replay.ts",

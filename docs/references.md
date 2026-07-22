@@ -151,6 +151,7 @@
 - [PokeSprite](https://github.com/msikma/pokesprite) — Box/menu sprites (icônes PC). Utile pour l'UI, pas pour la map.
 - [PokeAPI/sprites](https://github.com/PokeAPI/sprites) — Sprites de combat, artwork officiel. Utile pour un Pokédex.
 - [Pokepedia](https://www.pokepedia.fr/) — Type icons Légendes Pokémon Z-A, 36x36px sans texte (18 types). Utilisés dans l'UI du sous-menu attaque. Également : status icons ZA — icônes 52x36px et miniatures 172x36px pour les 7 statuts majeurs (brûlure, gel, paralysie, poison, poison grave, sommeil, K.O.). Utilisés dans TurnTimeline, sprites grille et InfoPanel.
+- [Pokemon Showdown itemicons](https://play.pokemonshowdown.com/sprites/itemicons/) — Spritesheet `itemicons-sheet.png` (icônes 24×24 par `spritenum`). Source des icônes d'objets tenus dans l'InfoPanel (plan 168).
 - [Bulbagarden Archives](https://archives.bulbagarden.net/) — Category icons Sword & Shield (Physical/Special/Status). Utilisés dans le MoveTooltip.
 - [ICON Isometric Pack — Jao](https://jao-itch.itch.io/icon-isometric-pack) — Tileset pixel art isométrique testé au plan 043. **Remplacé par un tileset custom généré à partir des textures PMDCollab (plan 050, 2026-04-14)** — plus utilisé dans le jeu.
 - [Spriters Resource HGSS](https://www.spriters-resource.com/ds_dsi/pokemonheartgoldsoulsilver/) — Overworld HGSS 32x32 (écarté : pas d'animation d'attaque).

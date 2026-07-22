@@ -68,4 +68,6 @@ export interface InfoPanelData {
   readonly badges: readonly InfoPanelBadge[];
   /** Localised held-item name; omitted when the Pokémon holds nothing. */
   readonly heldItem?: string;
+  /** Held-item icon URL (plan 168); omitted when the Pokémon holds nothing. */
+  readonly itemIconUrl?: string;
 }
