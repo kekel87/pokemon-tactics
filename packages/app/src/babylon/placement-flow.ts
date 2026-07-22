@@ -69,9 +69,9 @@ export interface PlacementFlow {
   dispose(): void;
 }
 
-/** Battle instance id ("p1-pikachu") → sprite definition id ("pikachu"). */
+/** Battle instance id ("p1-pikachu" or "p1-m0-pikachu") → sprite definition id ("pikachu"). */
 function definitionIdOf(pokemonId: string): string {
-  return pokemonId.replace(/^p\d+-/, "");
+  return pokemonId.replace(/^p\d+-(?:m\d+-)?/, "");
 }
 
 /**

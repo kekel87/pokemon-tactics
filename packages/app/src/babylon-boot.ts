@@ -22,7 +22,11 @@ import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.
 import { initLanguage } from "./i18n/index.js";
 import { getRendererBackend } from "./renderer-backend.js";
 import { sandboxBootConfig, teardownSandboxStudioDom } from "./sandbox-boot.js";
-import { DEFAULT_SANDBOX_CONFIG, type SandboxConfig } from "./types/SandboxConfig.js";
+import {
+  DEFAULT_SANDBOX_CONFIG,
+  normalizeSandboxConfig,
+  type SandboxConfig,
+} from "./types/SandboxConfig.js";
 import { createBattleModeScreen } from "./ui/dom/screens/battle-mode-screen.js";
 import { createCreditsScreen } from "./ui/dom/screens/credits-screen.js";
 import { createMainMenuScreen } from "./ui/dom/screens/main-menu-screen.js";
@@ -73,13 +77,10 @@ function resolveSandboxConfig(): SandboxConfig {
     return sandboxBootConfig.config;
   }
   if (sandboxConfigParam) {
-    return {
-      ...DEFAULT_SANDBOX_CONFIG,
-      ...(JSON.parse(sandboxConfigParam) as Partial<SandboxConfig>),
-    };
+    return normalizeSandboxConfig(JSON.parse(sandboxConfigParam));
   }
   if (hasUrlSeed && Number.isFinite(sandboxUrlSeed)) {
-    return { ...DEFAULT_SANDBOX_CONFIG, seed: sandboxUrlSeed };
+    return normalizeSandboxConfig({ seed: sandboxUrlSeed });
   }
   return DEFAULT_SANDBOX_CONFIG;
 }

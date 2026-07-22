@@ -19,10 +19,19 @@ import type { TranslationKey } from "../i18n";
 import { getLanguage, t } from "../i18n";
 import { getSandboxStudioDom } from "../sandbox-boot";
 import { getAbilityInfo } from "../team/team-builder-data";
-import { DEFAULT_SANDBOX_CONFIG, type SandboxConfig } from "../types/SandboxConfig";
+import {
+  type AiProfileKey,
+  normalizeSandboxConfig,
+  type SandboxConfig,
+  type SandboxMemberConfig,
+  type SandboxTeamConfig,
+  type TeamControl,
+} from "../types/SandboxConfig";
 import { createMovesList, type MovesList } from "./dom/MovesList";
 import { openItemPickerModal } from "./team/ItemPickerModal";
 import { openPokemonPickerModal } from "./team/PokemonPickerModal";
+
+const MAX_TEAM_SIZE = 6;
 
 const DEFENSIVE_MOVE_IDS = [
   "protect",
@@ -90,27 +99,54 @@ const SANDBOX_MAPS: SelectOption[] = [
   { value: "assets/maps/dev/decorations-demo.tmj", label: "Decorations Demo (rocks/tree/grass)" },
 ];
 
-type Owner = "player" | "dummy";
+/** Single control-select value: three of them collapse `control:"scored"` + `aiProfile`. */
+type ControlValue = "player" | "passive" | "easy" | "medium" | "hard";
 
-interface PokemonState {
+function controlToValue(control: TeamControl, aiProfile: AiProfileKey | undefined): ControlValue {
+  if (control === "scored") {
+    return aiProfile ?? "hard";
+  }
+  return control;
+}
+
+function valueToControl(value: ControlValue): { control: TeamControl; aiProfile?: AiProfileKey } {
+  if (value === "player" || value === "passive") {
+    return { control: value };
+  }
+  return { control: "scored", aiProfile: value };
+}
+
+interface MemberUiState {
   pokemonId: string;
   pokemonButton: HTMLButtonElement;
+  summaryLabel: HTMLElement;
   heldItemId: string;
   heldItemButton: HTMLButtonElement;
   hpInput: HTMLInputElement;
   statusSelect: HTMLSelectElement;
   volatileStatusSelect: HTMLSelectElement;
   directionSelect: HTMLSelectElement;
+  abilitySelect: HTMLSelectElement;
   statStageGetters: Map<StatName, () => number>;
   position: { x: number; y: number };
   positionSetters: { x: (v: number) => void; y: (v: number) => void };
+  moves: string[];
+  movesList: MovesList | null;
+  defensiveMoveSelect: HTMLSelectElement | null;
+  details: HTMLDetailsElement;
+}
+
+interface TeamUiState {
+  control: TeamControl;
+  aiProfile: AiProfileKey | undefined;
+  members: MemberUiState[];
+  section: HTMLElement;
 }
 
 export class SandboxPanel {
   private readonly onConfigChanged: (config: SandboxConfig) => void;
   private readonly abort = new AbortController();
   private readonly gameData = loadData();
-  private readonly movepoolCache = new Map<string, string[]>();
 
   private mapSelect!: HTMLSelectElement;
   private weatherSelect!: HTMLSelectElement;
@@ -120,35 +156,22 @@ export class SandboxPanel {
   private seedInput!: HTMLInputElement;
   private seedRow!: HTMLDivElement;
 
-  private player!: PokemonState;
-  private dummy!: PokemonState;
-
-  private playerAbilitySelect!: HTMLSelectElement;
-  private playerMoves: string[] = [];
-  private playerMovesList!: MovesList;
-
-  private dummyControl: "ai" | "player" = "ai";
-  private dummyAbilitySelect!: HTMLSelectElement;
-  private dummyMoveSelect!: HTMLSelectElement;
-  private dummyMoves: string[] = [];
-  private dummyMovesList!: MovesList;
-  private dummySection!: HTMLDivElement;
+  private readonly teams: [TeamUiState, TeamUiState];
 
   constructor(initialConfig: SandboxConfig, onConfigChanged: (config: SandboxConfig) => void) {
     this.onConfigChanged = onConfigChanged;
-    this.dummyControl = initialConfig.dummyControl;
-    this.dummyMoves = [...initialConfig.dummyMoves];
     this.weatherTurns = initialConfig.weatherTurns ?? 5;
     // Prefer the explicit mode (survives the studio's rebuild-on-every-change); else
-    // infer: seed present → deterministic (reproducible, controls probabilistic effects
-    // for e2e/QA), absent → random (fresh seed each launch, respects Pokémon RNG).
+    // infer: seed present → deterministic (reproducible), absent → random.
     this.rngMode =
       initialConfig.rngMode ?? (initialConfig.seed === undefined ? "random" : "deterministic");
     this.seed = initialConfig.seed ?? 0;
 
     const dom = getSandboxStudioDom();
-    dom.playerColumn.replaceChildren(this.buildPlayerPanel(initialConfig));
-    dom.dummyColumn.replaceChildren(this.buildDummyPanel(initialConfig));
+    this.teams = [
+      this.buildTeamPanel(initialConfig.teams[0], 0, dom.playerColumn),
+      this.buildTeamPanel(initialConfig.teams[1], 1, dom.dummyColumn),
+    ];
     dom.battleStrip.replaceChildren(this.buildBattleStrip(initialConfig));
   }
 
@@ -160,15 +183,385 @@ export class SandboxPanel {
     dom.battleStrip.replaceChildren();
   }
 
-  setResolvedPositions(player: { x: number; y: number }, dummy: { x: number; y: number }): void {
-    this.player.positionSetters.x(player.x);
-    this.player.positionSetters.y(player.y);
-    this.dummy.positionSetters.x(dummy.x);
-    this.dummy.positionSetters.y(dummy.y);
+  setResolvedPositions(
+    resolved: { teamIndex: number; memberIndex: number; position: { x: number; y: number } }[],
+  ): void {
+    for (const { teamIndex, memberIndex, position } of resolved) {
+      const member = this.teams[teamIndex]?.members[memberIndex];
+      if (member) {
+        member.positionSetters.x(position.x);
+        member.positionSetters.y(position.y);
+      }
+    }
   }
 
   private emit(): void {
     this.onConfigChanged(this.readConfig());
+  }
+
+  private buildTeamPanel(
+    teamConfig: SandboxTeamConfig,
+    teamIndex: number,
+    container: HTMLElement,
+  ): TeamUiState {
+    const control = teamConfig.control;
+    const aiProfile = control === "scored" ? (teamConfig.aiProfile ?? "hard") : undefined;
+
+    const section = document.createElement("div");
+    section.className = "sb-section";
+    section.dataset.controlMode = control;
+
+    const headerRow = document.createElement("div");
+    headerRow.className = "sb-team-header";
+    const title = document.createElement("h2");
+    title.className = "sb-section-title";
+    title.textContent = t(teamIndex === 0 ? "sandbox.team1" : "sandbox.team2");
+    headerRow.appendChild(title);
+
+    const controlField = createLabeledSelect({
+      label: t("sandbox.dummyControl"),
+      options: [
+        { value: "player", label: t("sandbox.dummyControl.player") },
+        { value: "passive", label: t("sandbox.control.passive") },
+        { value: "easy", label: t("sandbox.control.easy") },
+        { value: "medium", label: t("sandbox.control.medium") },
+        { value: "hard", label: t("sandbox.control.hard") },
+      ],
+      selected: controlToValue(control, aiProfile),
+      layout: "inline",
+      onChange: () => {
+        const next = valueToControl(controlField.select.value as ControlValue);
+        const config = this.readConfig();
+        const team = config.teams[teamIndex];
+        if (!team) {
+          return;
+        }
+        team.control = next.control;
+        if (next.control === "scored") {
+          team.aiProfile = next.aiProfile ?? "hard";
+        } else {
+          team.aiProfile = undefined;
+        }
+        this.onConfigChanged(config);
+      },
+      signal: this.abort.signal,
+    });
+    headerRow.appendChild(controlField.row);
+    section.appendChild(headerRow);
+
+    const membersList = document.createElement("div");
+    membersList.className = "sb-members";
+    section.appendChild(membersList);
+
+    const teamState: TeamUiState = { control, aiProfile, members: [], section };
+
+    teamConfig.members.forEach((member, memberIndex) => {
+      const memberState = this.buildMemberDetails(
+        member,
+        teamIndex,
+        memberIndex,
+        control,
+        memberIndex === 0,
+        membersList,
+      );
+      teamState.members.push(memberState);
+      membersList.appendChild(memberState.details);
+    });
+
+    const addButton = createButton({
+      label: t("sandbox.addPokemon"),
+      variant: "ghost",
+      onClick: () => this.addMember(teamIndex),
+      signal: this.abort.signal,
+    });
+    addButton.classList.add("sb-add-member");
+    addButton.disabled = teamConfig.members.length >= MAX_TEAM_SIZE;
+    section.appendChild(addButton);
+
+    container.replaceChildren(section);
+    return teamState;
+  }
+
+  private buildMemberDetails(
+    member: SandboxMemberConfig,
+    teamIndex: number,
+    memberIndex: number,
+    control: TeamControl,
+    open: boolean,
+    membersList: HTMLDivElement,
+  ): MemberUiState {
+    const details = document.createElement("details");
+    details.className = "sb-member";
+    details.open = open;
+    // Accordion: opening one member collapses its siblings in the same team.
+    details.addEventListener(
+      "toggle",
+      () => {
+        if (!details.open) {
+          return;
+        }
+        for (const sibling of membersList.querySelectorAll<HTMLDetailsElement>(
+          "details.sb-member",
+        )) {
+          if (sibling !== details) {
+            sibling.open = false;
+          }
+        }
+      },
+      { signal: this.abort.signal },
+    );
+
+    const summary = document.createElement("summary");
+    summary.className = "sb-member-summary";
+    const summaryLabel = document.createElement("span");
+    summaryLabel.className = "sb-member-summary-label";
+    summaryLabel.textContent = this.pokemonName(member.pokemon);
+    summary.appendChild(summaryLabel);
+
+    const trash = createButton({
+      label: "🗑",
+      variant: "ghost",
+      onClick: () => this.removeMember(teamIndex, memberIndex),
+      signal: this.abort.signal,
+    });
+    trash.classList.add("sb-member-trash");
+    trash.setAttribute("aria-label", t("sandbox.removePokemon"));
+    // The trash button lives inside <summary>; suppress the default toggle so a delete
+    // click never also expands/collapses the member.
+    trash.addEventListener(
+      "click",
+      (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      },
+      { signal: this.abort.signal },
+    );
+    summary.appendChild(trash);
+    details.appendChild(summary);
+
+    const body = document.createElement("div");
+    body.className = "sb-member-body";
+    details.appendChild(body);
+
+    const state = this.buildMemberEditor(member, control, body, summaryLabel);
+    state.details = details;
+    return state;
+  }
+
+  private buildMemberEditor(
+    member: SandboxMemberConfig,
+    control: TeamControl,
+    container: HTMLDivElement,
+    summaryLabel: HTMLElement,
+  ): MemberUiState {
+    const grid = document.createElement("div");
+    grid.className = "sb-grid";
+    container.appendChild(grid);
+
+    const colLeft = document.createElement("div");
+    colLeft.className = "sb-col";
+    const colRight = document.createElement("div");
+    colRight.className = "sb-col";
+    grid.appendChild(colLeft);
+    grid.appendChild(colRight);
+
+    const initialPokemonId = member.pokemon;
+    const initialHeldItem = member.heldItem ?? "";
+
+    // Forward-declared so the picker/HP callbacks can refresh the summary + dependents.
+    const state: MemberUiState = {
+      pokemonId: initialPokemonId,
+      pokemonButton: undefined as unknown as HTMLButtonElement,
+      summaryLabel,
+      heldItemId: initialHeldItem,
+      heldItemButton: undefined as unknown as HTMLButtonElement,
+      hpInput: undefined as unknown as HTMLInputElement,
+      statusSelect: undefined as unknown as HTMLSelectElement,
+      volatileStatusSelect: undefined as unknown as HTMLSelectElement,
+      directionSelect: undefined as unknown as HTMLSelectElement,
+      abilitySelect: undefined as unknown as HTMLSelectElement,
+      statStageGetters: new Map(),
+      position: { x: member.position?.x ?? 0, y: member.position?.y ?? 0 },
+      // Real setters are wired below once the position row is built.
+      positionSetters: {
+        x: () => {
+          /* replaced below */
+        },
+        y: () => {
+          /* replaced below */
+        },
+      },
+      moves: [],
+      movesList: null,
+      defensiveMoveSelect: null,
+      details: undefined as unknown as HTMLDetailsElement,
+    };
+
+    const pokemonCard = createPickerCard({
+      label: t("sandbox.pokemon"),
+      text: this.pokemonName(initialPokemonId),
+      onClick: () => {
+        openPokemonPickerModal({
+          onSelect: (pk) => {
+            state.pokemonId = pk.id;
+            state.pokemonButton.textContent = this.pokemonName(pk.id);
+            this.refreshSummary(state);
+            this.rebuildAbilityOptions(state);
+            if (state.movesList) {
+              this.resetMemberMoves(state);
+            }
+            this.emit();
+          },
+        });
+      },
+      signal: this.abort.signal,
+    });
+    colLeft.appendChild(pokemonCard.row);
+    state.pokemonButton = pokemonCard.button;
+
+    const ability = createLabeledSelect({
+      label: t("sandbox.ability"),
+      options: this.buildAbilityOptions(initialPokemonId),
+      selected: member.ability ?? this.getFirstAbility(initialPokemonId),
+      onChange: () => this.emit(),
+      signal: this.abort.signal,
+    });
+    colLeft.appendChild(ability.row);
+    state.abilitySelect = ability.select;
+
+    const itemCard = createPickerCard({
+      label: "Item",
+      text: this.itemName(initialHeldItem),
+      onClick: () => {
+        openItemPickerModal({
+          onSelect: (item) => {
+            const id = item?.id ?? "";
+            state.heldItemId = id;
+            state.heldItemButton.textContent = this.itemName(id);
+            this.emit();
+          },
+        });
+      },
+      signal: this.abort.signal,
+    });
+    colLeft.appendChild(itemCard.row);
+    state.heldItemButton = itemCard.button;
+
+    const hpField = createLabeledRange({
+      label: t("sandbox.hpPercent"),
+      min: 0,
+      max: 100,
+      value: member.hp ?? 100,
+      onChange: () => this.emit(),
+      signal: this.abort.signal,
+    });
+    colLeft.appendChild(hpField.row);
+    state.hpInput = hpField.input;
+
+    const statusField = createLabeledSelect({
+      label: t("sandbox.status"),
+      options: [
+        { value: "", label: t("sandbox.none") },
+        ...STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) })),
+      ],
+      selected: member.status ?? "",
+      onChange: () => this.emit(),
+      signal: this.abort.signal,
+    });
+    colRight.appendChild(statusField.row);
+    state.statusSelect = statusField.select;
+
+    const volatileField = createLabeledSelect({
+      label: t("sandbox.volatile"),
+      options: [
+        { value: "", label: t("sandbox.none") },
+        ...VOLATILE_STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) })),
+      ],
+      selected: member.volatileStatus ?? "",
+      onChange: () => this.emit(),
+      signal: this.abort.signal,
+    });
+    colRight.appendChild(volatileField.row);
+    state.volatileStatusSelect = volatileField.select;
+
+    colRight.appendChild(this.buildStatStagesRow(member.statStages ?? {}, state.statStageGetters));
+
+    const positionRow = this.buildPositionRow(state.position, member.direction);
+    colRight.appendChild(positionRow.row);
+    state.directionSelect = positionRow.directionSelect;
+    state.positionSetters = positionRow.setters;
+
+    // Control-dependent move UI: passive teams script a single defensive move; player and
+    // scored teams edit a 4-move set. The CSS hides whichever row is inactive via
+    // `[data-control-mode]`, but we build the relevant one so `readConfig` has a source.
+    if (control === "passive") {
+      const defensiveMoves = this.gameData.moves.filter((m) => DEFENSIVE_MOVE_IDS.includes(m.id));
+      const defensiveField = createLabeledSelect({
+        label: t("sandbox.move"),
+        options: [
+          { value: "", label: t("sandbox.passive") },
+          ...defensiveMoves.map((m) => ({ value: m.id, label: this.moveName(m.id) })),
+        ],
+        selected: member.defensiveMove ?? "",
+        onChange: () => this.emit(),
+        signal: this.abort.signal,
+      });
+      defensiveField.row.classList.add("sb-defensive-row");
+      grid.appendChild(defensiveField.row);
+      state.defensiveMoveSelect = defensiveField.select;
+    } else {
+      const defaults = this.getDefaultMoveset(initialPokemonId);
+      state.moves = [0, 1, 2, 3].map((i) => member.moves?.[i] ?? defaults[i] ?? "");
+      const movesList = createMovesList({
+        pokemonId: initialPokemonId,
+        moves: state.moves,
+        allMoves: getLegalMoves(initialPokemonId).size === 0,
+        onChange: (slotIndex, moveId) => {
+          state.moves[slotIndex] = moveId;
+          this.emit();
+        },
+        signal: this.abort.signal,
+      });
+      movesList.element.classList.add("sb-moves-grid");
+      grid.appendChild(movesList.element);
+      state.movesList = movesList;
+    }
+
+    return state;
+  }
+
+  private resetMemberMoves(state: MemberUiState): void {
+    const defaults = this.getDefaultMoveset(state.pokemonId);
+    state.moves = [0, 1, 2, 3].map((i) => defaults[i] ?? "");
+    state.movesList?.refresh(state.pokemonId, state.moves);
+  }
+
+  private addMember(teamIndex: number): void {
+    const config = this.readConfig();
+    const team = config.teams[teamIndex];
+    if (!team || team.members.length >= MAX_TEAM_SIZE) {
+      return;
+    }
+    team.members.push({ pokemon: this.defaultNewMemberSpecies(teamIndex) });
+    this.onConfigChanged(config);
+  }
+
+  private removeMember(teamIndex: number, memberIndex: number): void {
+    const config = this.readConfig();
+    const team = config.teams[teamIndex];
+    if (!team || team.members.length <= 1) {
+      return;
+    }
+    team.members.splice(memberIndex, 1);
+    this.onConfigChanged(config);
+  }
+
+  private defaultNewMemberSpecies(teamIndex: number): string {
+    return teamIndex === 0 ? "venusaur" : "dummy";
+  }
+
+  private refreshSummary(state: MemberUiState): void {
+    state.summaryLabel.textContent = this.pokemonName(state.pokemonId);
   }
 
   private buildBattleStrip(config: SandboxConfig): HTMLDivElement {
@@ -219,7 +612,7 @@ export class SandboxPanel {
       createButton({
         label: t("sandbox.reset"),
         variant: "ghost",
-        onClick: () => this.onConfigChanged({ ...DEFAULT_SANDBOX_CONFIG }),
+        onClick: () => this.onConfigChanged(normalizeSandboxConfig({})),
         signal: this.abort.signal,
       }),
     );
@@ -261,9 +654,6 @@ export class SandboxPanel {
       layout: "inline",
       onChange: () => {
         this.rngMode = modeField.select.value as "random" | "deterministic";
-        // Entering deterministic mode with no seed yet → roll a concrete starting seed
-        // (0 replays the same battle, which reads as "nothing is random"). Keep a seed
-        // the user already set.
         if (this.rngMode === "deterministic" && this.seed === 0) {
           this.seed = SandboxPanel.randomSeed();
           this.seedInput.value = String(this.seed);
@@ -318,316 +708,10 @@ export class SandboxPanel {
   private async importJson(): Promise<void> {
     try {
       const text = await navigator.clipboard.readText();
-      const parsed = JSON.parse(text) as Partial<SandboxConfig>;
-      this.onConfigChanged({ ...this.readConfig(), ...parsed });
+      this.onConfigChanged(normalizeSandboxConfig(JSON.parse(text)));
     } catch (_err) {
       window.alert(t("sandbox.importJsonError"));
     }
-  }
-
-  private buildPokemonState(
-    config: SandboxConfig,
-    owner: Owner,
-    container: HTMLDivElement,
-  ): PokemonState {
-    const isPlayer = owner === "player";
-    const grid = document.createElement("div");
-    grid.className = "sb-grid";
-    container.appendChild(grid);
-
-    const colLeft = document.createElement("div");
-    colLeft.className = "sb-col";
-    const colRight = document.createElement("div");
-    colRight.className = "sb-col";
-    grid.appendChild(colLeft);
-    grid.appendChild(colRight);
-
-    const initialPokemonId = isPlayer ? config.pokemon : config.dummyPokemon;
-    const initialHeldItem = isPlayer ? (config.heldItem ?? "") : (config.dummyHeldItem ?? "");
-
-    const pokemonCard = createPickerCard({
-      label: t("sandbox.pokemon"),
-      text: this.pokemonName(initialPokemonId),
-      onClick: () => {
-        openPokemonPickerModal({
-          onSelect: (pk) => {
-            if (isPlayer) {
-              this.player.pokemonId = pk.id;
-              this.player.pokemonButton.textContent = this.pokemonName(pk.id);
-              this.updatePlayerMoves();
-              this.rebuildPlayerAbilityOptions();
-            } else {
-              this.dummy.pokemonId = pk.id;
-              this.dummy.pokemonButton.textContent = this.pokemonName(pk.id);
-              this.rebuildDummyAbilityOptions();
-              this.dummyMovesList.refresh(pk.id, this.dummyMoves);
-            }
-            this.emit();
-          },
-        });
-      },
-      signal: this.abort.signal,
-    });
-    colLeft.appendChild(pokemonCard.row);
-
-    const ability = createLabeledSelect({
-      label: t("sandbox.ability"),
-      options: this.buildAbilityOptions(initialPokemonId),
-      selected:
-        (isPlayer ? config.playerAbility : config.dummyAbility) ??
-        this.getFirstAbility(initialPokemonId),
-      onChange: () => this.emit(),
-      signal: this.abort.signal,
-    });
-    colLeft.appendChild(ability.row);
-    if (isPlayer) {
-      this.playerAbilitySelect = ability.select;
-    } else {
-      this.dummyAbilitySelect = ability.select;
-    }
-
-    const itemCard = createPickerCard({
-      label: "Item",
-      text: this.itemName(initialHeldItem),
-      onClick: () => {
-        openItemPickerModal({
-          onSelect: (item) => {
-            const id = item?.id ?? "";
-            if (isPlayer) {
-              this.player.heldItemId = id;
-              this.player.heldItemButton.textContent = this.itemName(id);
-            } else {
-              this.dummy.heldItemId = id;
-              this.dummy.heldItemButton.textContent = this.itemName(id);
-            }
-            this.emit();
-          },
-        });
-      },
-      signal: this.abort.signal,
-    });
-    colLeft.appendChild(itemCard.row);
-
-    const hpField = createLabeledRange({
-      label: t("sandbox.hpPercent"),
-      min: 1,
-      max: 100,
-      value: isPlayer ? config.hp : config.dummyHp,
-      onChange: () => this.emit(),
-      signal: this.abort.signal,
-    });
-    colLeft.appendChild(hpField.row);
-
-    const statusField = createLabeledSelect({
-      label: t("sandbox.status"),
-      options: [
-        { value: "", label: t("sandbox.none") },
-        ...STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) })),
-      ],
-      selected: (isPlayer ? config.status : config.dummyStatus) ?? "",
-      onChange: () => this.emit(),
-      signal: this.abort.signal,
-    });
-    colRight.appendChild(statusField.row);
-
-    const volatileField = createLabeledSelect({
-      label: t("sandbox.volatile"),
-      options: [
-        { value: "", label: t("sandbox.none") },
-        ...VOLATILE_STATUS_ENTRIES.map(([s, key]) => ({ value: s, label: t(key) })),
-      ],
-      selected: (isPlayer ? config.volatileStatus : config.dummyVolatileStatus) ?? "",
-      onChange: () => this.emit(),
-      signal: this.abort.signal,
-    });
-    colRight.appendChild(volatileField.row);
-
-    const statStageGetters = new Map<StatName, () => number>();
-    const stagesInitial = isPlayer ? config.statStages : config.dummyStatStages;
-    colRight.appendChild(this.buildStatStagesRow(stagesInitial, statStageGetters));
-
-    const positionInitial = isPlayer ? config.playerPosition : config.dummyPosition;
-    const directionInitial = isPlayer ? config.playerDirection : config.dummyDirection;
-    const position = { x: positionInitial?.x ?? 0, y: positionInitial?.y ?? 0 };
-    const positionRow = this.buildPositionRow(position, directionInitial);
-    colRight.appendChild(positionRow.row);
-
-    return {
-      pokemonId: initialPokemonId,
-      pokemonButton: pokemonCard.button,
-      heldItemId: initialHeldItem,
-      heldItemButton: itemCard.button,
-      hpInput: hpField.input,
-      statusSelect: statusField.select,
-      volatileStatusSelect: volatileField.select,
-      directionSelect: positionRow.directionSelect,
-      statStageGetters,
-      position,
-      positionSetters: positionRow.setters,
-    };
-  }
-
-  private buildPlayerPanel(config: SandboxConfig): HTMLDivElement {
-    const panel = document.createElement("div");
-    panel.className = "sb-section";
-
-    const header = document.createElement("h2");
-    header.className = "sb-section-title";
-    header.textContent = t("sandbox.player");
-    panel.appendChild(header);
-
-    const body = document.createElement("div");
-    panel.appendChild(body);
-
-    this.player = this.buildPokemonState(config, "player", body);
-
-    this.playerMoves = [];
-    // Default to the curated movepool head (definition order) — the SAME 4 the battle
-    // gives an instance when `config.moves` is empty (BattleSetup movepool.slice(0,4)).
-    // The picker list stays alphabetical; only this default selection must mirror combat.
-    const defaults = this.getDefaultMoveset(this.player.pokemonId);
-    for (let i = 0; i < 4; i++) {
-      this.playerMoves.push(config.moves[i] ?? defaults[i] ?? "");
-    }
-    this.playerMovesList = createMovesList({
-      pokemonId: this.player.pokemonId,
-      moves: this.playerMoves,
-      onChange: (slotIndex, moveId) => {
-        this.playerMoves[slotIndex] = moveId;
-        this.emit();
-      },
-      signal: this.abort.signal,
-    });
-    this.playerMovesList.element.classList.add("sb-moves-grid");
-    body.appendChild(this.playerMovesList.element);
-
-    return panel;
-  }
-
-  private buildDummyPanel(config: SandboxConfig): HTMLDivElement {
-    const panel = document.createElement("div");
-    panel.className = "sb-section";
-    panel.dataset.controlMode = this.dummyControl;
-    this.dummySection = panel;
-
-    const header = document.createElement("h2");
-    header.className = "sb-section-title";
-    header.textContent = t("sandbox.dummy");
-    panel.appendChild(header);
-
-    const body = document.createElement("div");
-    panel.appendChild(body);
-
-    this.dummy = this.buildPokemonState(config, "dummy", body);
-
-    body.appendChild(this.buildControlRow());
-
-    const defensiveMoves = this.gameData.moves.filter((m) => DEFENSIVE_MOVE_IDS.includes(m.id));
-    const dummyMoveField = createLabeledSelect({
-      label: t("sandbox.move"),
-      options: [
-        { value: "", label: t("sandbox.passive") },
-        ...defensiveMoves.map((m) => ({ value: m.id, label: this.moveName(m.id) })),
-      ],
-      selected: config.dummyMove ?? "",
-      onChange: () => this.emit(),
-      signal: this.abort.signal,
-    });
-    dummyMoveField.row.classList.add("sb-defensive-row");
-    body.appendChild(dummyMoveField.row);
-    this.dummyMoveSelect = dummyMoveField.select;
-
-    this.dummyMovesList = createMovesList({
-      pokemonId: this.dummy.pokemonId,
-      moves: this.dummyMoves,
-      // The dummy species has no learnset (it's a test target), so offer every
-      // implemented move — otherwise the picker would be empty.
-      allMoves: true,
-      onChange: (slotIndex, moveId) => {
-        this.dummyMoves[slotIndex] = moveId;
-        this.emit();
-      },
-      signal: this.abort.signal,
-    });
-    this.dummyMovesList.element.classList.add("sb-moves-grid");
-    body.appendChild(this.dummyMovesList.element);
-
-    return panel;
-  }
-
-  private buildControlRow(): HTMLDivElement {
-    const row = document.createElement("div");
-    row.className = "sb-form-row";
-
-    const label = document.createElement("span");
-    label.className = "sb-form-label";
-    label.dataset.width = "wide";
-    label.textContent = `${t("sandbox.dummyControl")}:`;
-    row.appendChild(label);
-
-    const group = document.createElement("div");
-    group.className = "sb-radio-group";
-    group.appendChild(this.createControlRadio("ai", t("sandbox.dummyControl.ai")));
-    group.appendChild(this.createControlRadio("player", t("sandbox.dummyControl.player")));
-    row.appendChild(group);
-
-    return row;
-  }
-
-  private createControlRadio(value: "ai" | "player", label: string): HTMLLabelElement {
-    const wrapper = document.createElement("label");
-    wrapper.className = "sb-radio-option";
-    const input = document.createElement("input");
-    input.type = "radio";
-    input.name = "sandbox-dummy-control";
-    input.value = value;
-    input.checked = this.dummyControl === value;
-    input.addEventListener(
-      "change",
-      () => {
-        if (!input.checked) {
-          return;
-        }
-        this.dummyControl = value;
-        this.dummySection.dataset.controlMode = value;
-        if (value === "player" && this.dummyMoves.every((id) => id === "")) {
-          this.autoFillDummyMoves();
-        }
-        this.emit();
-      },
-      { signal: this.abort.signal },
-    );
-    wrapper.appendChild(input);
-    const span = document.createElement("span");
-    span.textContent = label;
-    wrapper.appendChild(span);
-    return wrapper;
-  }
-
-  private autoFillDummyMoves(): void {
-    const movepool = this.getMovepoolFor(this.dummy.pokemonId);
-    if (movepool.length === 0) {
-      return;
-    }
-    const pool = [...movepool];
-    const picks: string[] = [];
-    for (let i = 0; i < 4 && pool.length > 0; i++) {
-      const idx = Math.floor(Math.random() * pool.length);
-      picks.push(pool.splice(idx, 1)[0] ?? "");
-    }
-    while (picks.length < 4) {
-      picks.push("");
-    }
-    this.dummyMoves = picks;
-    this.dummyMovesList.refresh(this.dummy.pokemonId, this.dummyMoves);
-  }
-
-  private updatePlayerMoves(): void {
-    // Switching species resets to that species' default moveset (mirrors the battle),
-    // rather than carrying over the previous mon's overlapping moves.
-    const defaults = this.getDefaultMoveset(this.player.pokemonId);
-    this.playerMoves = [0, 1, 2, 3].map((i) => defaults[i] ?? "");
-    this.playerMovesList.refresh(this.player.pokemonId, this.playerMoves);
   }
 
   private buildStatStagesRow(
@@ -729,52 +813,55 @@ export class SandboxPanel {
   }
 
   private readConfig(): SandboxConfig {
-    const moves = this.playerMoves.filter((v) => v !== "");
-
-    const statStages = this.collectStatStages(this.player.statStageGetters);
-    const dummyStatStages = this.collectStatStages(this.dummy.statStageGetters);
-
-    const mapUrl = this.mapSelect.value || undefined;
-
     return {
       rngMode: this.rngMode,
       // Deterministic seed value; in random mode the battle setup rolls a fresh seed
       // each launch (this value is carried but ignored). rngMode survives remount.
       seed: this.seed,
-      pokemon: this.player.pokemonId,
-      moves: moves.length > 0 ? moves : this.getDefaultMoveset(this.player.pokemonId),
-      hp: Number(this.player.hpInput.value),
-      status: this.player.statusSelect.value
-        ? (this.player.statusSelect.value as StatusType)
-        : null,
-      volatileStatus: this.player.volatileStatusSelect.value
-        ? (this.player.volatileStatusSelect.value as StatusType)
-        : null,
-      heldItem: this.player.heldItemId ? (this.player.heldItemId as HeldItemId) : undefined,
-      playerAbility: this.playerAbilitySelect.value || undefined,
-      statStages,
-      playerPosition: { ...this.player.position },
-      playerDirection: this.player.directionSelect.value as Direction,
-      dummyPokemon: this.dummy.pokemonId || "dummy",
-      dummyControl: this.dummyControl,
-      dummyMove: this.dummyMoveSelect.value || null,
-      dummyMoves: [...this.dummyMoves],
-      dummyDirection: this.dummy.directionSelect.value as Direction,
-      dummyHp: Number(this.dummy.hpInput.value),
-      dummyStatus: this.dummy.statusSelect.value
-        ? (this.dummy.statusSelect.value as StatusType)
-        : null,
-      dummyVolatileStatus: this.dummy.volatileStatusSelect.value
-        ? (this.dummy.volatileStatusSelect.value as StatusType)
-        : null,
-      dummyHeldItem: this.dummy.heldItemId ? (this.dummy.heldItemId as HeldItemId) : undefined,
-      dummyAbility: this.dummyAbilitySelect.value || undefined,
-      dummyStatStages,
-      dummyPosition: { ...this.dummy.position },
-      mapUrl,
+      mapUrl: this.mapSelect.value || undefined,
       weather: (this.weatherSelect.value as Weather) || Weather.None,
       weatherTurns: this.weatherTurns,
+      teams: [this.readTeam(this.teams[0]), this.readTeam(this.teams[1])],
     };
+  }
+
+  private readTeam(team: TeamUiState): SandboxTeamConfig {
+    const result: SandboxTeamConfig = {
+      control: team.control,
+      members: team.members.map((member) => this.readMember(member)),
+    };
+    if (team.control === "scored") {
+      result.aiProfile = team.aiProfile ?? "hard";
+    }
+    return result;
+  }
+
+  private readMember(member: MemberUiState): SandboxMemberConfig {
+    const moves = member.movesList ? member.moves.filter((id) => id !== "") : undefined;
+    const result: SandboxMemberConfig = {
+      pokemon: member.pokemonId || "dummy",
+      hp: Number(member.hpInput.value),
+      status: member.statusSelect.value ? (member.statusSelect.value as StatusType) : null,
+      volatileStatus: member.volatileStatusSelect.value
+        ? (member.volatileStatusSelect.value as StatusType)
+        : null,
+      statStages: this.collectStatStages(member.statStageGetters),
+      direction: member.directionSelect.value as Direction,
+      position: { ...member.position },
+    };
+    if (moves && moves.length > 0) {
+      result.moves = moves;
+    }
+    if (member.heldItemId) {
+      result.heldItem = member.heldItemId as HeldItemId;
+    }
+    if (member.abilitySelect.value) {
+      result.ability = member.abilitySelect.value;
+    }
+    if (member.defensiveMoveSelect) {
+      result.defensiveMove = member.defensiveMoveSelect.value || null;
+    }
+    return result;
   }
 
   private collectStatStages(
@@ -814,19 +901,11 @@ export class SandboxPanel {
     return options;
   }
 
-  private rebuildPlayerAbilityOptions(): void {
+  private rebuildAbilityOptions(state: MemberUiState): void {
     replaceSelectOptions(
-      this.playerAbilitySelect,
-      this.buildAbilityOptions(this.player.pokemonId),
-      this.getFirstAbility(this.player.pokemonId),
-    );
-  }
-
-  private rebuildDummyAbilityOptions(): void {
-    replaceSelectOptions(
-      this.dummyAbilitySelect,
-      this.buildAbilityOptions(this.dummy.pokemonId),
-      this.getFirstAbility(this.dummy.pokemonId),
+      state.abilitySelect,
+      this.buildAbilityOptions(state.pokemonId),
+      this.getFirstAbility(state.pokemonId),
     );
   }
 
@@ -861,23 +940,6 @@ export class SandboxPanel {
   private getDefaultMoveset(pokemonId: string): string[] {
     const definition = this.gameData.pokemon.find((entry) => entry.id === pokemonId);
     return definition ? definition.movepool.slice(0, 4) : [];
-  }
-
-  private getMovepoolFor(pokemonId: string): string[] {
-    const cached = this.movepoolCache.get(pokemonId);
-    if (cached !== undefined) {
-      return cached;
-    }
-    const legal = getLegalMoves(pokemonId);
-    const result: string[] = [];
-    for (const move of this.gameData.moves) {
-      if (legal.has(move.id)) {
-        result.push(move.id);
-      }
-    }
-    result.sort((a, b) => this.moveName(a).localeCompare(this.moveName(b)));
-    this.movepoolCache.set(pokemonId, result);
-    return result;
   }
 
   private pokemonName(id: string): string {

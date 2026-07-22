@@ -4,7 +4,12 @@
  * renderer's existing import sites stay unchanged.
  */
 export {
+  type AiProfileKey,
   DEFAULT_SANDBOX_CONFIG,
+  normalizeSandboxConfig,
   type Position2D,
   type SandboxConfig,
+  type SandboxMemberConfig,
+  type SandboxTeamConfig,
+  type TeamControl,
 } from "@pokemon-tactic/view-core";

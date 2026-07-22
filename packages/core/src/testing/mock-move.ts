@@ -40,6 +40,20 @@ export abstract class MockMove {
     targeting: { kind: TargetingKind.Self },
   };
 
+  /** Self-targeting sacrifice move (Vœu Soin / Souvenir family): faints the caster on use. */
+  static readonly selfKo: MoveDefinition = {
+    id: "self-ko",
+    name: "Self KO",
+    type: PokemonType.Normal,
+    category: Category.Status,
+    power: 0,
+    accuracy: 100,
+    pp: 5,
+    effects: [],
+    selfKo: true,
+    targeting: { kind: TargetingKind.Self },
+  };
+
   static fresh(base: MoveDefinition, overrides?: Partial<MoveDefinition>): MoveDefinition {
     return {
       ...base,

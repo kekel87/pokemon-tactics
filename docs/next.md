@@ -2,7 +2,7 @@
 
 Maintenu par Claude Code. Lu via `/next`.
 
-## État actuel (2026-07-18)
+## État actuel (2026-07-22)
 
 **Content-fill Gen 1 clos.** Phase 4 « mécaniques complexes » + son chantier IA (plans 159→160→161) + les 2 sessions content-fill (162 moves, 163 talents) sont tous terminés. Roster et pool Gen 1 désormais complets : **512 moves**, **114/114 talents**, **117/117 objets tenus**, **151/151 Pokemon jouables**, **203 OP sets**.
 
@@ -18,7 +18,6 @@ Maintenu par Claude Code. Lu via `/next`.
 
 - **Refaire les 5 visuels README/wiki** (reporté 2026-06-16) : `docs/images/{demo.gif, maps-selection, battle-log, team-builder, team-selection}-screenshot.png` montrent encore l'ancien rendu Phaser. Captures auto Babylon (visual-tester) rejetées par l'humain → originaux conservés en attendant que l'humain les refasse à la main.
 - **Choisir la prochaine grosse phase** (6/7/8) ou une session polish/dette technique — voir options ci-dessus. Pas de recommandation imposée.
-- **Trancher le harness e2e IA** (`dummyControl: "scored"`) si on veut débloquer les tests e2e des heuristiques IA (plans 159/160/161) — voir détail dans § Reporté ci-dessous. Non bloquant, mais en attente depuis 2026-07-14.
 
 ## Reporté / backlog technique
 
@@ -28,10 +27,6 @@ Core + renderer livrés et couverts en unit/intégration pour toutes les famille
 
 - **Content-fill plan 162 (9 derniers moves Gen 1)** : réussite/fizzle standards couverts 🤖. Cas de RÉUSSITE exacts Relâche/Avale (dégâts/soin par palier de Stockage) et Stockage 3ᵉ palier restent 👁 (couverts unit/intégration) — débloquable en ajoutant `stockpileCount` à `SandboxConfig`.
 - **Content-fill plan 163 (7 derniers talents Gen 1)** : 6/7 talents couverts 🤖. **Délestage** (`unburden`) reste 👁 — son effet (Vitesse ×2) ne se manifeste que via la portée de mouvement/l'ordre CT après une perte d'objet, aucun signal e2e déterministe propre sans exposer `unburdenActive` (ou un champ InfoPanel de vitesse effective) dans `SandboxConfig`.
-
-### IA — heuristiques : e2e bloqué par le harness
-
-Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiController` (scripté, n'appelle jamais `scoreAction`) ; le vrai scorer ne tourne qu'en jeu normal avec PRNG non-seedé et équipes IA non-configurables → aucune assertion e2e déterministe possible pour les heuristiques des plans 159/160/161 (ring-out, faux-KO, self-KO, lock-in, priorité/timing, manip-talent, buff/statut, grille, field global, phazing, move-copy, stat manip, etc.). **Prérequis (feature harness, à décider avec l'humain)** : (1) mode `dummyControl: "scored"` dans `SandboxConfig` câblant `AiTeamController` ; (2) PRNG IA seedé depuis `config.seed` + profil déterministe (`randomWeight:0`/`topN:1`) en test ; (3) moveset IA configurable ; (4) équipe alliée à 2 avec allié KO de départ (pour tester Vœu Soin).
 
 ### OP sets restants (non bloquant)
 
@@ -45,7 +40,8 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 - **Surveillance playtest Mitra-Poing/Carapiège** (plan 150) : « trap moves » à risque d'échec élevé en formats multi-mons (3v3+, fenêtre de charge exposée). Rouvrir seulement si le playtest confirme un taux d'échec trop élevé.
 - **Placement Ditto / Imposteur** (plan 157) : le placement au spawn influence quel ennemi Imposteur copie — question de design non tranchée.
 - **Positionnement offensif/défensif pour le ring-out** (plan 159, Phase 2 différée) : manœuvrer exprès pour aligner ennemi/bord/soi + éviter de stationner en bord si un ennemi porte un move à recul — jugé puissant mais coûteux, différé.
-- **Anomalies pré-existantes** (signalées par le plan 159, non corrigées) : test `magic-room`/Life Orb flaky (PRNG non seedé) ; `BattleEngine.getLegalActions` n'exclut pas un acteur qui vient de s'auto-KO au recul (garde `currentHp > 0` manquante).
+- **Anomalie pré-existante** (signalée par le plan 159, non corrigée) : test `magic-room`/Life Orb flaky (PRNG non seedé). ~~`BattleEngine.getLegalActions` n'exclut pas un acteur qui vient de s'auto-KO au recul~~ **Corrigé (plan 167, 2026-07-22)** : une action self-KO avance désormais le tour immédiatement (`submitAction`).
+- **Isolation de tests fragile (préexistante, signalée code-review plan 167)** : `pnpm test` (run multi-packages) peut faire échouer `knock-off.test.ts` (« expected 45 to be greater than 50 ») selon l'allocation de workers/CPU — `loadData()` mémoïse un objet partagé (`load-data.ts` `cachedGameData`) qu'un test d'un autre package mute, et le sharding décide s'ils tombent dans le même worker. Vert et stable sur la machine du gate ; non causé par plan 167 (reproduit avec ses fichiers revertés). Fix : `Object.freeze`/copie défensive du cache, ou cloner avant mutation dans le test coupable. Non bloquant.
 - **Heuristiques IA objets légers (plan 158)** : 11 objets passifs, neutres pour l'IA — pas de contresens à corriger, priorité faible.
 - **Heuristiques IA fines item-interaction (plan 142)** : Gaz Corrosif/Sabotage/Tour de Magie/Passe-Passe passent par le scoring générique `hasItemManip`, pas de bonus dédié — non bloquant, moves fonctionnels.
 
@@ -90,6 +86,10 @@ Constat `test-writer` (2026-07-14) : le boot sandbox `?config=` câble `DummyAiC
 
 ## Fait récemment
 
+- 2026-07-22 — **Plan 167 — Studio sandbox N-vs-N par équipes + harness e2e IA « scoré »** (commit WIP `024c770`) : `SandboxConfig` v2 (`teams`, adaptateur rétro-compat), contrôle par équipe (5 niveaux Joueur/Auto passif/Facile/Moyen/Difficile — `scored` câble enfin le vrai `AiTeamController` seedé), UI accordéon Équipe 1/Équipe 2. **Débloque l'e2e des heuristiques IA des plans 159/160/161** — résout l'item « e2e IA bloqué par le harness ». 2 fixes moteur (membre KO au spawn plus planifié dans le CT ; action self-KO avance le tour immédiatement — corrige l'anomalie plan 159 `getLegalActions`). RNG de création désormais seedée (`creationRng`) — résout l'item « Seeder la RNG de création du sandbox ». Fix connexe : `dexNumber` propagé aux entrées custom (Métamorph reprend sa place #132 au picker). Décisions #698–#702.
+- 2026-07-22 — **Rendu des liquides** (commit `b6261c7`) : transparence, cuvette, immersion des Pokemon, écume de bord. Terrains eau/lave/eau profonde rendus comme volumes liquides plutôt que blocs opaques.
+- 2026-07-22 — Doc : garde-fous WIP + re-test humain post-chaîne inscrits dans la règle « Après impl » de CLAUDE.md (commit `862e7c3`, origine plan 166).
+- 2026-07-21 — **Décorations voxel** (commit `742276c`) : arbre, herbe haute, rochers 1×1/2×2 en meshes voxel `.glb` (pipeline mirroré des entry hazards) + vent procédural GPU (`decoration-wind-plugin.ts`). Remplace les billboards. Décision #690, `docs/references/voxel-tile-placement.md`.
 - 2026-07-21 — **Plan 165 — IA CT-aware, heuristique KO-protégé.** Résout l'item backlog « IA — CT-aware scoring » (2026-04-25) sans le lookahead multi-tour initialement supposé nécessaire : `applyCtWeight`/`CT_REFERENCE_COST` dans `action-scorer.ts` pondèrent le score des moves offensifs génériques par le tempo CT, sauf s'ils sécurisent un KO (jamais divisé). Scénario de régression charge 6v6 CT (8 seeds) confirme l'absence de drag. Voir `docs/ai-system.md` § Pondération CT.
 - 2026-07-20 — Dette code mineure (review J4/J5) soldée : `dataset.scene` mort supprimé (2 écritures, 0 lecture), `SlotForRefresh`/`SlotState` dédupliqués (alias, dép ui→team), branche `teamId === null` morte retirée (type `team-edit` resserré à `string`), event funnel `TeamSelect` ajouté (team-select ne tire plus `TeamBuilder`). Les 3 mineurs J4 (`0x2255aa`, `TurnSystemKind`, `formatLabel`) étaient déjà résolus. Dette `MultiMaterial reload` vérifiée = faux (dispose via `forceDisposeChildren`, note périmée).
 - 2026-07-20 — Dette technique résolue : harness dev Babylon jetable (`babylon-preview.ts` 426l + `team-edit-harness.ts`, branche `?preview=1` de `babylon-boot.ts`, `#hint`/`#pixinfo` d'`index.html`) supprimé. Caméra extraite dans une classe `IsometricCamera` (`packages/render-babylon/src/isometric-camera.ts`), `combat-scene.ts` délègue.

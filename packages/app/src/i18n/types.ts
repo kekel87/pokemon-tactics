@@ -67,6 +67,14 @@ export interface Translations {
   "sandbox.dummyControl": string;
   "sandbox.dummyControl.ai": string;
   "sandbox.dummyControl.player": string;
+  "sandbox.team1": string;
+  "sandbox.team2": string;
+  "sandbox.control.passive": string;
+  "sandbox.control.easy": string;
+  "sandbox.control.medium": string;
+  "sandbox.control.hard": string;
+  "sandbox.addPokemon": string;
+  "sandbox.removePokemon": string;
   "status.burned": string;
   "status.poisoned": string;
   "status.badlyPoisoned": string;

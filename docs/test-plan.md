@@ -56,7 +56,8 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Appeler / copier un move (Métronome/Copie/Mimique…) | §5.28 |
 | Copie d'identité (Morphing / Imposteur / Métamorph) | §5.34 |
 | Talent de révélation / immobilisation / neutralisation (Fouille/Piège Sable/Gaz Inhibiteur…) | §5.14, §5.37 |
-| Heuristiques de scoring IA (choix de move) | §5.35 (unit ; e2e reporté) |
+| Heuristiques de scoring IA (choix de move) | §5.35 (unit) ; IA scorée seedée e2e §5.38 |
+| Harness équipes N-vs-N / contrôle par équipe / membre KO au spawn | §5.38 |
 | Move (effet observable) | §5 (famille concernée) |
 | HUD DOM combat (log, timeline, menus, tooltip) | §4 |
 | Écran / menu / navigation | §6 |
@@ -465,11 +466,12 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
 ### 5.4 Changements de stats (un cas par sens)
 - 🤖 Interaction : hausse (Danse-Lames, self) / baisse (Rugissement, ennemi) journalisées — `mechanics-status.spec`.
 - 🤖 **Grondement** (`howl`, Normal Statut Self, StatChange Attaque +1 `radius: 2`) : buff
-  multi-allié (lanceur + alliés vivants du diamant Manhattan r2). Le harness sandbox est un 1v1 →
-  seul le **lanceur** (dans son propre rayon) est observable : Arcanin gagne Attaque +1 → journal
-  « Attaque de <X> augmente ! » — `mechanics-status.spec`. *Le volet multi-allié (buff des alliés
-  dans le rayon, exclusion des ennemis / alliés hors r2) n'est pas exposable en 1v1 → couvert unit
-  `battle/moves/howl.test.ts`.*
+  multi-allié (lanceur + alliés vivants du diamant Manhattan r2). Au moment d'écrire cette spec le
+  harness sandbox était encore 1v1 → seul le **lanceur** (dans son propre rayon) était observable :
+  Arcanin gagne Attaque +1 → journal « Attaque de <X> augmente ! » — `mechanics-status.spec`. *Le
+  volet multi-allié (buff des alliés dans le rayon, exclusion des ennemis / alliés hors r2) est
+  couvert unit `battle/moves/howl.test.ts` — désormais exposable en e2e via une équipe à 2+ membres
+  (§5.38, plan 167), non repris à ce jour.*
 - 👁 **Magné-Contrôle** (`magnetic-flux`, Électrik Statut Self, Déf/Déf.Spé +1 `radius: 2` +
   `abilityGate: ["plus","minus"]`) : **no-op injouable** en Gen 1 — aucun Pokemon du roster n'a le
   talent Plus/Minus, donc l'effet ne s'applique jamais. Codé par complétude (plan 156), sens couvert
@@ -1103,11 +1105,11 @@ ne les apprend) → forcés via `moves` (SandboxSetup écrase `moveIds`).*
   `moves/{fishious-rend,bolt-beak}.test.ts`) : le toggle de tempo dépend de l'horloge d'actions, non
   rejouable proprement à travers le harness 1v1 (le dummy AI n'agit pas de façon déterministe).*
 - 👁 **Hommage Posthume** (`last-respects`, Spectre Phys 50, puissance ×(1 + alliés K.O. du lanceur)) :
-  le SCALING n'est **pas observable en e2e** — la sandbox est un **1v1** (le lanceur n'a aucun allié) et
-  n'expose ni équipe de 2+ ni amorçage d'allié K.O. via `SandboxConfig`, donc le facteur vaut toujours 1
-  (puissance de base). De plus le Dummy est **Normal-type** → un move Spectre fait 0 dégât (pas de ligne
-  de journal). Le sens (`faintedAllyCount`/`AllyFaintCountScaled`) reste couvert par les unit/integration
-  du core (`dynamic-power-system.test.ts`, `moves/last-respects.test.ts`).
+  le SCALING n'était **pas observable en e2e** au moment d'écrire cette spec — la sandbox était un
+  **1v1** (le lanceur n'avait aucun allié). **Désormais exposable** : `SandboxConfig` v2 (§5.38, plan
+  167) permet une équipe à 2+ membres avec un allié `hp:0` au spawn, non repris à ce jour. Le sens
+  (`faintedAllyCount`/`AllyFaintCountScaled`) reste couvert par les unit/integration du core
+  (`dynamic-power-system.test.ts`, `moves/last-respects.test.ts`).
 
 ### 5.26 Famille Pièges (trapping)
 *src : core `data/overrides/tactical.ts` (`bind`, `fire-spin`, `whirlpool`, `sand-tomb`, `block`,
@@ -1479,19 +1481,18 @@ unit : `ai/action-scorer.test.ts`, `ai/scored-ai.test.ts`, `ai/scored-ai-smoke.t
 Toutes les heuristiques de scoring sont **couvertes en unit** (fonction pure `scoreAction` — dégâts,
 efficacité de type, valorisation des buffs/debuffs, Buée Noire, Recyclage, Attraction, Cognobidon,
 épinglage de menace, etc. ; plan 161 : +7 tests dans le describe « Phase 3 heuristics »).
-- 👁 **e2e des heuristiques IA — BLOQUÉ (reporté), prérequis feature `dummyControl: "scored"`.**
-  Le harness sandbox (`bootSandbox` / `SandboxConfig`) n'expose que deux modes de contrôle de la
-  cible : `dummyControl: "ai"` câble `DummyAiController` (un unique move défensif scripté + face à une
-  direction fixe — **il n'appelle JAMAIS `scoreAction`**) et `dummyControl: "player"` (hot-seat
-  humain). Le **vrai scorer** (`AiTeamController`) n'est branché que par `wireScoredAi` sur le chemin
-  team-select (`startBattleLoop`), avec équipes construites par le team-builder et un PRNG
-  `createPrng(Date.now())` **non seedé** — donc **ni pilotable par URL de config, ni déterministe**.
-  Aucune assertion e2e déterministe d'une décision IA n'est possible aujourd'hui sans changement de
-  harness. **Prérequis** : ajouter à `SandboxConfig` un mode `dummyControl: "scored"` qui câble
-  `AiTeamController` sur la Player2 sandbox, alimenté par `config.seed` (`createPrng(seed)`), de sorte
-  qu'un état seedé + un roster fixé rendent le choix de move déterministe et assertable au journal
-  (« l'adversaire utilise X »). Tant que ce mode n'existe pas, le sens reste **couvert unit** et l'e2e
-  est reporté (cf. `docs/next.md`). *Ne pas écrire de spec IA non-déterministe / factice.*
+- 🤖 **e2e des heuristiques IA — DÉBLOQUÉ (plan 167).** Le schéma `SandboxConfig` v2 (`teams`) expose
+  `control: "scored"` (+ `aiProfile`) qui câble `AiTeamController` sur l'équipe, alimenté par
+  `config.seed` (`createPrng(seed)`). Couvert par `teams-scored-ai.spec` : une équipe scorée « hard »
+  prend son tour toute seule (Dracaufeu choisit ET exécute Lance-Flammes sur Florizarre — ligne
+  « utilise » + « perd N PV »), contraste avec une équipe `passive` inerte. *Le scoring fin par
+  heuristique (chaque terme de `scoreAction`) reste couvert unit — l'e2e prouve que le VRAI scorer
+  tourne, seedé, en sandbox.*
+- 👁 **Reproductibilité CHIFFRÉE (même seed → même dégât) — assertable depuis le plan 167, pas encore
+  couverte par une spec dédiée.** `createSandboxBattle` passe désormais `creationRng: createPrng(seed)`
+  (`rollNature`/`rollGender` inclus, `view-core/BattleSetup.ts`) — même seed → même nature/genre/spread
+  de stats/dégât à chaque boot (décision #701). La **décision** du scorer est déjà couverte 🤖
+  ci-dessus ; une spec asserte-valeur-exacte reste à ajouter par `test-writer` si jugée utile.
 
 ### 5.36 Content-fill — 9 derniers moves Gen 1 (plan 162)
 *src : core `data/overrides/tactical.ts` (les 9 + `stockpile`), handlers
@@ -1582,6 +1583,31 @@ e2e : `mechanics-content-fill-163.spec.ts`. Tous pilotés via l'UI (le joueur co
 - 👁 **Exemptions Piège Sable fines** (Vol/Spectre/Lévitation/Fuite/Carapace Mue/Gaz Inhibiteur),
   **fin de neutralisation à la mort/départ du porteur**, **valeur exacte du soin Récolte 50 % hors
   Soleil**, **flag `unburdenActive` reset KO** : lifecycle & valeurs = unit/integration core → 👁.
+
+### 5.38 Harness équipes N-vs-N & IA scorée (plan 167)
+*src : `view-core/sandbox-config.ts` (schéma v2 `teams` + `normalizeSandboxConfig`),
+`app/babylon/combat-screen.ts` (`startSandboxBattle`), `view-core/SandboxSetup.ts` ; unit :
+`view-core/sandbox-config.test.ts`, `view-core/SandboxSetup.test.ts`, core
+`battle/self-ko-turn-advance.test.ts`.*
+Le studio sandbox passe du 1v1 plat aux **équipes** avec contrôle par équipe
+(`player` / `passive` / `scored`). C'est ce qui débloque l'e2e du vrai scorer IA (§5.35) et les
+scénarios multi-membres (allié KO au spawn, revive).
+- 🤖 **IA scorée agit d'elle-même** : équipe 2 `control:"scored"`, `aiProfile:"hard"`, seedée → elle
+  attaque sans intervention (Dracaufeu → Lance-Flammes) ; contraste avec `passive` qui reste inerte
+  et figée sur sa tuile de spawn — `teams-scored-ai.spec`.
+- 👁 **Reproductibilité chiffrée** (même seed → même dégât exact) **assertable depuis ce plan** : la RNG
+  de création (`rollNature`/`rollGender`) est désormais seedée via `creationRng` dans
+  `createSandboxBattle` (décision #701) — reste à écrire une spec dédiée (cf. §5.35, dernier point).
+- 🤖 **Membre KO au spawn** (`hp:0`) : ne prend jamais le tour et ne le bloque pas (le joueur pilote
+  directement le membre vivant), et **Vœu Soin** le **réanime** (« revient au combat ! ») au prix du
+  self-KO du lanceur — `teams-scored-ai.spec`. *Fix moteur : un acteur qui s'auto-KO (Vœu Soin /
+  Explosion / Souvenir / recul / terrain létal) avance son tour immédiatement au lieu de laisser
+  `getLegalActions` offrir un coup au « cadavre » — verrouillé unit core `self-ko-turn-advance.test`.*
+- 👁 **Studio équipes (chrome DOM du panneau `SandboxPanel`)** : accordéon par équipe, sélecteur de
+  contrôle (Joueur / Passif / IA easy·medium·hard), add/trash de membre, colonnes par équipe. Rendu
+  de l'éditeur non piloté par le boot `?config` → validé à l'œil en human-testing.
+- 👁 **Réanimation visuelle** (sprite KO qui se relève, barre PV qui remonte à 50 %) : rendu/anim →
+  œil ; le sens (revive + self-KO) est déjà 🤖 au journal ci-dessus.
 
 ---
 
@@ -1863,6 +1889,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/weather.spec.ts` | §4.3/§5.12 — HUD météo (config) + pose via cast (Danse Pluie/Zénith/Tempête de Sable) ; §5.14 Roche Humide prolonge la Pluie à 8 tours (HUD `weather-turns`) |
 | `combat/mechanics-items.spec.ts` | §5.17 objets tenus du lot 95→99 : Ballon (éclate au 1er coup offensif → « Ballon … s'active ! » + « a utilisé son Ballon »), Lunettes Filtre (Spore bloqué → « Lunettes Filtre … s'active ! », « s'est endormi » absent), Pare-Effet (Griffe contact → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Talisman Sain (Groz'Yeux IA bloqué → « Talisman Sain … s'active ! »). Immunités silencieuses (Sol/poudre/météo, hazards/terrains au sol, baisse auto-infligée) = unit/integration. §5.18 lot 99→101 : Gant de Boxe (Mach Punch Poing → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Spray Gorge (Aboiement Son → « Spray Gorge … s'active ! »). Boost ×1,1, +1 AtqSpé, consommation, move Son statut = unit. §5.19 Métronome (objet) : 4 Griffe d'affilée sur dummy Ronflex endurant → AVEC objet le 4e coup (×1,3) > le 1er (×1,0) ; SANS objet série plate (variance seule). Compteur 0..10, cap +100 %, remise à zéro (move différent/raté) = unit. §5.20 objets « eject » (lot 102→104) : Carton Rouge (Florizarre dashe en Vive-Attaque depuis son spawn sur le dummy Ronflex porteur → l'ATTAQUANT est renvoyé chez lui → « Carton Rouge … s'active ! » + « … se téléporte ! » + « a utilisé son Carton Rouge »). Bouton Fuite (renvoie le PORTEUR : no-op si le dummy n'a pas bougé → non pilotable côté joueur) = unit/integration core (`forced-teleport.test.ts`, `items/eject-items.test.ts`) → 👁. Orbe Vie (recul 1×/attaque, même multi-coups) : Florizarre porteur lance Balle Graine sur le dummy endurant → « Orbe Vie … s'active ! » à `toHaveCount(1)` (fix vs régression du recul par coup) ; montant chiffré du recul + fire-once mono-coup = integration core (`held-items.integration.test.ts`). Casque Brut (recoil défenseur PAR coup, canon) distinct = témoins Pare-Effet/Gant §5.17/§5.18. Casque Brut — coup fantôme (régression) : attaquant `hp: 1` lance Double Pied (2 coups fixes, contact) sur le dummy Ronflex porteur du Casque → le recul du coup 1 le met K.O. → « Florizarre est K.O. ! » + récap « Touché 1 fois ! » (jamais « Touché 2 fois ! » — la boucle multi-coups s'arrête au K.O., fix `handle-damage`) ; montant chiffré + fire-once = integration core (`held-items.integration.test.ts` : « pas de coup fantôme ») |
 | `combat/mechanics-items-content-fill.spec.ts` | §5.14 objets légers content-fill (plan 158) : Carapace Mue (Étreinte + Aucun Garde forçant 100 % sur le dummy Ronflex porteur → « L'objet de Ronflex le protège ! », « Ronflex est piégé ! » absent), Dé Pipé (Balle Graine → « Touché 5 fois ! » via l'objet). 9 autres objets silencieux (marqueurs poids/vitesse, crit-stage, défense Métamorph, modulateurs de piège, anti-secondaire, survie 10 %) + 2 talents no-op (Fuite/Ramassage) = unit (`battle/items/content-fill-158.test.ts`, `effective-weight.test.ts`, `effective-base-speed.test.ts`) → 👁 |
+| `combat/teams-scored-ai.spec.ts` | §5.38/§5.35 harness équipes v2 (`teams`, plan 167) : IA scorée « hard » seedée agit d'elle-même (Dracaufeu → Lance-Flammes, journal « utilise » + « perd N PV »), contraste équipe `passive` inerte (aucune ligne « utilise » + sprite figé sur sa tuile de spawn via `spriteStates`) ; membre KO au spawn (`hp:0`) ne bloque pas le tour + réanimé par Vœu Soin (« revient au combat ! » + self-KO du lanceur « est K.O. »). Reproductibilité chiffrée (dégât exact) = 👁 (RNG de création non seedée, cf. §5.35) ; chrome studio équipes (accordéon/contrôle/add-trash) + anim de réanimation = 👁 |
 | `dom/maps.spec.ts` | §8.1/§8.3 — les 9 cartes montent (tuiles, no crash) + Le Mur multi-niveaux |
 | `combat/hud.spec.ts` | §4 — sous-menu (type/nom), tooltip + grille de pattern (survol), §4.12 tag d'efficacité de type dérivé (Lyophilisation ×2 Eau), timeline, §4.11 combat EN (`pt-lang=en`) |
 | `combat/hud-menu.spec.ts` | §4.1 bannière, §4.2 timeline (active/team), §4.4 menu (5 boutons, Objet/Statut off), §4.5 move-item (type/nom/PP), §4.9 journal (titre + repli) |
@@ -1881,7 +1908,8 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
 `DUEL_LETHAL`, `POISONED`, `MULTI_HIT`, `CRIT_FOCUS_ENERGY`, `CRIT_LASER_FOCUS`, `CRIT_STORM_THROW`,
 `MORPH_MEW`, `MORPH_TERRAIN`, `IMPOSTER_DITTO`, `UPPER_HAND_HIT`, `UPPER_HAND_FIZZLE`,
 `HARVEST_SUN_RESTORE`, `ARENA_TRAP_PLAYER_TRAPPED`, `ARENA_TRAP_RELEASE`, `NEUTRALIZING_GAS_SUPPRESS`,
-`NEUTRALIZING_GAS_FAR`, `FRISK_REVEALS_ITEM`, `FOREWARN_REVEALS_MOVE`, `ANTICIPATION_REVEALS_ABILITY`…),
+`NEUTRALIZING_GAS_FAR`, `FRISK_REVEALS_ITEM`, `FOREWARN_REVEALS_MOVE`, `ANTICIPATION_REVEALS_ABILITY`,
+`SCORED_AI_ATTACKS`, `PASSIVE_AI_STATIC`, `SPAWN_FAINTED_ALLY_REVIVE` [schéma v2 `teams`]…),
 `e2e/pages/` (POM : `MainMenu`, `Splash`, `CombatScene`, `screens`, `teamBuilder`, `combatHud`).
 
 ### À étendre (👁 → 🤖, par priorité — DOM d'abord, c'est facile)
@@ -1925,13 +1953,13 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
 - [ ] **Reste 👁 (compliqué/impossible en e2e — marqué manuel dans le cahier)** :
       - **Aura ground icons / preview menace au survol** : `hoverTile` dispo, mais besoin d'un état
         avec auras actives au boot (`SandboxConfig` ne l'expose pas) → bloqué, reste 👁.
-      - **Heuristiques de scoring IA (§5.35, plans 159→161)** : **reporté** — le harness ne peut pas
-        piloter le vrai scorer. `dummyControl: "ai"` câble `DummyAiController` (move scripté, ne passe
-        jamais par `scoreAction`) ; le `AiTeamController` réel n'est branché que sur le chemin
-        team-select, avec PRNG `createPrng(Date.now())` non seedé et équipes non configurables par URL
-        → non déterministe, non pilotable. **Prérequis feature** : `dummyControl: "scored"` dans
-        `SandboxConfig` câblant `AiTeamController` sur Player2 avec `createPrng(config.seed)`. Sens
-        **couvert unit** (`ai/action-scorer.test.ts`). *Ne pas écrire de spec IA factice.*
+      - **Heuristiques de scoring IA (§5.35, plans 159→161)** : **débloqué (plan 167, §5.38)** —
+        `SandboxConfig` v2 expose `control: "scored"` (+ `aiProfile`) câblant `AiTeamController` seedé
+        via `createPrng(config.seed)`. La **décision** du scorer tourne en e2e (`teams-scored-ai.spec`) ;
+        le détail fin de chaque terme de `scoreAction` reste **couvert unit**
+        (`ai/action-scorer.test.ts`). Scénarios supplémentaires par famille (ring-out, faux-KO,
+        lock-in, priorité/timing, phazing, move-copy, stat manip…) restants à ajouter au cas par cas
+        via `test-writer`, pas bloqués par le harness.
       - ~~**EN en combat**~~ : **CORRIGÉ** (`initLanguage()` au boot + locale Playwright `fr-FR`) →
         couvert par `hud.spec` (`pt-lang=en` → menu en anglais).
       - **Tout ce qui est pixel/anim/couleur** : flottants (couleur par type), anims sprite (idle/

@@ -1212,3 +1212,82 @@ export const TOOLTIP_FREEZE_DRY_TYPE_OVERRIDE = {
   pokemon: "lapras",
   moves: ["freeze-dry"],
 } as const;
+
+// --- Plan 167 — harness équipes N-vs-N & IA scorée (schéma SandboxConfig v2 `teams`) ------------
+// Le boot ?config accepte le v2 : `teams: [équipe1, équipe2]`, chaque équipe portant son `control`
+// ("player" | "passive" | "scored") + ses membres. Ces fixtures exercent le VRAI scorer IA
+// (`control:"scored"` → AiTeamController seedé) — le déblocage de ce plan. Déterministe via `seed`.
+// Colonne x=2 de `sandbox-flat` : rangs 0/1/4 `normal`, rangs 2/3 dangereux (swamp sur x=2) → on
+// place les combattants sur des tuiles `normal` (2,1)/(2,4). Dracaufeu (Feu/Vol, vitesse 100 > 80)
+// joue AVANT Florizarre au boot : c'est lui qui déclenche le premier tour IA observable.
+
+/** Équipe 2 pilotée par le vrai scorer IA (`control:"scored"`, profil « hard »). Dracaufeu (IA, en
+ *  (2,1)) fait face à Florizarre (joueur, en (2,4)) sur la colonne x=2 ; plus rapide, il agit dès le
+ *  boot : Lance-Flammes (Ligne 3) descend la colonne et touche Florizarre. ⚠️ Le seed fixe rend
+ *  la RNG de COMBAT reproductible (précision/critique/variance), mais PAS la création (nature/genre
+ *  via `rollNature`/`rollGender` sur `Math.random` non seedé dans `createSandboxBattle`) → le dégât
+ *  exact varie d'un boot à l'autre ; seule la décision « attaquer » du scorer est reproductible. */
+export const SCORED_AI_ATTACKS = {
+  seed: 20250722,
+  teams: [
+    {
+      control: "player",
+      members: [{ pokemon: "venusaur", position: { x: 2, y: 4 }, direction: "north" }],
+    },
+    {
+      control: "scored",
+      aiProfile: "hard",
+      members: [
+        {
+          pokemon: "charizard",
+          moves: ["flamethrower"],
+          position: { x: 2, y: 1 },
+          direction: "south",
+        },
+      ],
+    },
+  ],
+} as const;
+
+/** Même disposition, mais l'équipe 2 est PASSIVE (aucun move défensif) : Dracaufeu attend son tour
+ *  sans jamais attaquer ni bouger — le contraste avec l'IA scorée (aucune ligne « Dracaufeu utilise »,
+ *  sprite figé sur sa tuile de spawn). */
+export const PASSIVE_AI_STATIC = {
+  seed: 20250722,
+  teams: [
+    {
+      control: "player",
+      members: [{ pokemon: "venusaur", position: { x: 2, y: 4 }, direction: "north" }],
+    },
+    {
+      control: "passive",
+      members: [{ pokemon: "charizard", position: { x: 2, y: 1 }, direction: "south" }],
+    },
+  ],
+} as const;
+
+/** Équipe 1 = Florizarre + un allié Dracaufeu KO au spawn (`hp:0`). Le membre KO n'est jamais actif
+ *  et ne bloque pas le tour (le joueur pilote directement Florizarre). Florizarre porte Vœu Soin
+ *  (healing-wish) : ciblé sur la tuile de l'allié KO adjacent (3,4), il se sacrifie et le réanime.
+ *  Équipe 2 = un dummy passif parqué au coin (0,0), hors de portée. */
+export const SPAWN_FAINTED_ALLY_REVIVE = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["healing-wish"],
+          position: { x: 2, y: 4 },
+          direction: "north",
+        },
+        { pokemon: "charizard", hp: 0, position: { x: 3, y: 4 } },
+      ],
+    },
+    {
+      control: "passive",
+      members: [{ pokemon: "dummy", position: { x: 0, y: 0 } }],
+    },
+  ],
+} as const;

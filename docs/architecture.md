@@ -478,29 +478,76 @@ Mêmes events alimentent les **replays** (sérialisation JSON).
 
 ## 5b. Mode Sandbox
 
-Accessible uniquement via `pnpm dev:sandbox` (variable Vite `VITE_SANDBOX`). Combat 1v1 sur micro-carte 6x6.
+Accessible uniquement via `pnpm dev:sandbox` (variable Vite `VITE_SANDBOX`). Studio **N-vs-N par équipes** (plan 167, 2026-07-22 — remplace l'ancien 1v1 fixe Joueur/Dummy) sur micro-carte 6x6.
 
 ### Lancement
 
 ```bash
 pnpm dev:sandbox                        # Config par défaut (DEFAULT_SANDBOX_CONFIG)
 pnpm dev:sandbox packages/data/sandbox-configs/config.json   # Depuis un fichier JSON
-pnpm dev:sandbox '{"pokemon":"pikachu"}'       # JSON inline
+pnpm dev:sandbox '{"pokemon":"pikachu"}'       # JSON inline, schéma legacy plat (normalisé automatiquement)
 ```
+
+### Schéma `SandboxConfig` v2 (par équipes)
+
+```ts
+interface SandboxTeamMemberConfig {
+  pokemon: string;
+  moves?: string[];
+  hp?: number;               // 0 = allié KO au spawn (ex: tester Vœu Soin)
+  status?: string;
+  volatileStatus?: string;
+  statStages?: Record<string, number>;
+  heldItem?: string;
+  ability?: string;
+  position?: { x: number; y: number };
+  direction?: string;
+  defensiveMove?: string | null; // mode "passive" : move joué par ce membre
+}
+
+interface SandboxTeamConfig {
+  control: "player" | "passive" | "scored";
+  aiProfile?: "easy" | "medium" | "hard"; // requis si control === "scored"
+  members: SandboxTeamMemberConfig[]; // 1..6
+}
+
+interface SandboxConfig {
+  seed?: number;
+  rngMode?: "random" | "deterministic";
+  mapUrl?: string;
+  weather?: string;
+  weatherTurns?: number;
+  teams: [SandboxTeamConfig, SandboxTeamConfig];
+}
+```
+
+- **`normalizeSandboxConfig(raw)`** (`packages/view-core/src/sandbox-config.ts`) : adaptateur rétro-compat — tout schéma plat legacy (détecté via `raw.pokemon`) est mappé vers `teams` ; **tous** les fixtures e2e existants et toute URL sandbox déjà en circulation restent valides sans migration. Appelé aux 3 points de parsing (`babylon-boot.ts`, `sandbox-boot.ts`, `e2e/pages/CombatScene.ts`).
+
+### Contrôle par équipe — un dropdown, 5 niveaux
+
+| Label UI | `control` | `aiProfile` | Controller câblé |
+|----------|-----------|-------------|-------------------|
+| Joueur | `player` | — | `HumanController` (chaque membre) |
+| Auto passif | `passive` | — | `DummyAiController` par membre (scripté, joue `defensiveMove`) |
+| Facile | `scored` | `easy` | `AiTeamController`, `EASY_PROFILE` |
+| Moyen | `scored` | `medium` | `AiTeamController`, `MEDIUM_PROFILE` |
+| Difficile | `scored` | `hard` | `AiTeamController`, `HARD_PROFILE` |
+
+`scored` câble le **vrai scorer IA** (`pickScoredAction`/`scoreAction`, plans 159/160/161) — auparavant inatteignable en sandbox (le `dummyControl:"ai"` legacy ne câblait que `DummyAiController` scripté). `AiTeamController` est seedé via `createPrng(config.seed ?? 0)` (plus de `Date.now()`) : les 3 profils sont déterministes/replayables en e2e. Débloque l'e2e des heuristiques IA — voir `docs/decisions.md` #699.
 
 ### Architecture sandbox
 
-- **`SandboxConfig.ts`** : type `SandboxConfig` + constante `DEFAULT_SANDBOX_CONFIG`. `rngMode?: "random" | "deterministic"` — **Aléatoire** (défaut) génère un seed frais à chaque mount/replay (`resolveSandboxSeed` dans `combat-screen.ts`), **Déterministe** rejoue `seed` ; absent → inféré de la présence du `seed`
-- **`BattleSetup.createSandboxBattle(config)`** : carte 6x6, joueur en bas, Dummy en haut, sans placement interactif
-- **`DummyAiController`** : soumet move assigné si légal, sinon `EndTurn`
-- **`SandboxPanel`** (HTML overlay) : 2 panneaux (Joueur gauche, Dummy droite) + toolbar
-  - Panel Joueur : dropdown Pokemon, dropdown talent, 2 dropdowns moves (défaut = `definition.movepool.slice(0,4)`, aligné sur le combat réel), slider HP %, dropdown statut, dropdown volatile, stages de stats
-  - Panel Dummy : dropdown "Stats de" (custom ou preset Pokemon), dropdown talent (miroir joueur), stats éditables, niveau, slider HP %, dropdown move défensif, direction
-  - Toolbar : mode RNG (Aléatoire/Déterministe + seed éditable + bouton 🎲), bouton Réinitialiser, bouton **Exporter JSON** (copie config en JSON dans presse-papier)
+- **`SandboxConfig.ts`** : type `SandboxConfig` v2 + constante `DEFAULT_SANDBOX_CONFIG`. `rngMode?: "random" | "deterministic"` — **Aléatoire** (défaut) génère un seed frais à chaque mount/replay (`resolveSandboxSeed` dans `combat-screen.ts`), **Déterministe** rejoue `seed` ; absent → inféré de la présence du `seed`
+- **`BattleSetup.createSandboxBattle(config)`** : carte 6x6, **2 équipes de 1 à 6 membres**, spawns depuis `format.spawnZones` (fallback cascade si plus de membres que de zones). Passe `creationRng: createPrng(config.seed)` à `createBattleFromPlacements` — nature/genre inclus dans le déterminisme (décision #701, auparavant `Math.random()` même à seed fixe)
+- **`DummyAiController`** : une instance par membre en mode `passive`, soumet le `defensiveMove` assigné si légal, sinon `EndTurn`
+- **`SandboxPanel`** (HTML overlay) : 2 accordéons équipe (Équipe 1 / Équipe 2), un seul ouvert à la fois
+  - En-tête équipe : nom + dropdown contrôle (5 niveaux ci-dessus)
+  - Membres : pile de cartes repliables (résumé sprite + nom FR + HP, clic = déplie), éditeur complet par membre (Pokemon, moves, ability, item, HP, statut, volatile, stages, position, direction), bouton **+ Ajouter Pokémon** (désactivé à 6), icône poubelle (désactivée si dernier membre)
 - **Écran victoire HTML** : overlay HTML (ancré écran), indépendant du rendu moteur — compat navigateur + zoom caméra
 - **`packages/data/sandbox-configs/`** : configs JSON d'exemple
 
 > Sprite Dummy = sprite PMDCollab `#0000 form 1` (sprite générique).
+> Fix connexe (plan 167) : `dexNumber` propagé sur les entrées Pokemon `custom` — Métamorph (Ditto) reprend sa place #132 dans le picker (décision #702).
 
 ---
 

@@ -158,3 +158,6 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 162 | [Content-fill : derniers moves apprenables Gen 1](./162-content-fill-derniers-moves-gen1.md) | done | 2026-07-18 |
 | 163 | [Content-fill : 7 derniers talents Gen 1](./163-content-fill-derniers-talents-gen1.md) | done | 2026-07-18 |
 | 164 | [Centralisation des design tokens (DOM ↔ 3D)](./164-design-tokens-centralization.md) | abandoned | 2026-07-19 |
+| 165 | [IA CT-aware, heuristique KO-protégé](./165-ai-ct-aware-scoring.md) | done | 2026-07-21 |
+| 166 | [Liquides — transparence, cuvette, immersion](./166-liquides-transparence-cuvette.md) | done | 2026-07-21 |
+| 167 | [Studio sandbox multi-Pokémon par équipe + harness e2e IA « scoré »](./167-sandbox-teams-scored-ai-harness.md) | done | 2026-07-22 |

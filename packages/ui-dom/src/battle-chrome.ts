@@ -27,9 +27,12 @@ const INSTRUCTION_KEY: Readonly<Record<BattleInstruction, string>> = {
   selectRetreat: "attack.selectRetreat",
 };
 
-/** Battle instance id ("p1-pikachu") → definition id ("pikachu") for name/portrait lookup. */
+/**
+ * Battle instance id → definition id for name/portrait lookup. Handles both id shapes:
+ * `p1-pikachu` (placement path) and `p1-m0-pikachu` (sandbox multi-member teams).
+ */
 function definitionIdOf(pokemonId: string): string {
-  return pokemonId.replace(/^p\d+-/, "");
+  return pokemonId.replace(/^p\d+-(?:m\d+-)?/, "");
 }
 
 /** "player-2" → "battle.player2" label key. */

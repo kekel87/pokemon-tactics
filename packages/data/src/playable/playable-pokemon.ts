@@ -94,6 +94,7 @@ export const playablePokemon: PlayablePokemonEntry[] = [
       weight: 4,
       movepool: ["transform"],
       abilityId: "imposter",
+      dexNumber: 132,
     },
   },
   // Gen 1 complete (plan 135): the 70 pre-evolutions, in national-dex order. Movepools derive from

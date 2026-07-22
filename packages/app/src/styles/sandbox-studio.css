@@ -321,8 +321,68 @@
     padding: var(--spacing-xs) var(--spacing-sm);
   }
 
-  .sb-section[data-control-mode="ai"] .sb-moves-grid { display: none; }
-  .sb-section[data-control-mode="player"] .sb-defensive-row { display: none; }
+  /* Only the active control's move UI is built per member, but keep the guard so a
+     stale row never lingers after a control switch. Passive → scripted defensive move;
+     player/scored → editable 4-move set. */
+  .sb-section[data-control-mode="passive"] .sb-moves-grid { display: none; }
+  .sb-section:not([data-control-mode="passive"]) .sb-defensive-row { display: none; }
+
+  .sb-team-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+
+    & .sb-section-title { margin: 0; }
+  }
+
+  .sb-members {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .sb-member {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-sm);
+  }
+
+  .sb-member-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xxs) var(--spacing-sm);
+    cursor: pointer;
+    list-style: none;
+    &::-webkit-details-marker { display: none; }
+  }
+
+  .sb-member-summary-label {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    font-weight: bold;
+  }
+
+  .sb-member-trash {
+    flex: 0 0 auto;
+    padding-block: var(--spacing-xxs);
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  .sb-member-body {
+    padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-sm);
+    border-top: 1px solid var(--color-border-surface);
+  }
+
+  .sb-add-member {
+    margin-top: var(--spacing-xs);
+    width: 100%;
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
 
   @media (max-width: 1024px) {
     .sb-columns {

@@ -1,8 +1,10 @@
 import { ActionKind, Direction, PlayerId } from "@pokemon-tactic/core";
 import { describe, expect, it } from "vitest";
 import { DummyAiController } from "./DummyAiController";
-import { createSandboxBattle } from "./SandboxSetup";
+import { createSandboxBattle, sandboxInstanceId } from "./SandboxSetup";
 import { DEFAULT_SANDBOX_CONFIG } from "./sandbox-config.js";
+
+const DUMMY = sandboxInstanceId(1, 0, "dummy");
 
 function skipPlayerTurn(result: ReturnType<typeof createSandboxBattle>): void {
   const actions = result.engine.getLegalActions(PlayerId.Player1);
@@ -15,7 +17,7 @@ function skipPlayerTurn(result: ReturnType<typeof createSandboxBattle>): void {
 }
 
 function skipToDummyTurn(result: ReturnType<typeof createSandboxBattle>): void {
-  for (let i = 0; i < 20 && result.state.activePokemonId !== "p2-dummy"; i++) {
+  for (let i = 0; i < 20 && result.state.activePokemonId !== DUMMY; i++) {
     const endTurn = result.engine
       .getLegalActions(PlayerId.Player1)
       .find((a) => a.kind === ActionKind.EndTurn);
@@ -29,47 +31,45 @@ function skipToDummyTurn(result: ReturnType<typeof createSandboxBattle>): void {
 describe("DummyAiController", () => {
   it("plays EndTurn when no move assigned (passive mode)", () => {
     const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
-    const dummy = new DummyAiController(result.engine, "p2-dummy", null, Direction.South);
+    const dummy = new DummyAiController(result.engine, DUMMY, null, Direction.South);
 
-    // Advance to dummy's turn if the player goes first (CT order depends on speed)
-    if (result.state.activePokemonId !== "p2-dummy") {
-      const playerId = PlayerId.Player1;
+    if (result.state.activePokemonId !== DUMMY) {
       const endTurnAction = result.engine
-        .getLegalActions(playerId)
+        .getLegalActions(PlayerId.Player1)
         .find((a) => a.kind === ActionKind.EndTurn);
       if (endTurnAction) {
-        result.engine.submitAction(playerId, endTurnAction);
+        result.engine.submitAction(PlayerId.Player1, endTurnAction);
       }
     }
 
-    expect(result.state.activePokemonId).toBe("p2-dummy");
+    expect(result.state.activePokemonId).toBe(DUMMY);
     dummy.playTurn();
-    expect(result.state.activePokemonId).not.toBe("p2-dummy");
+    expect(result.state.activePokemonId).not.toBe(DUMMY);
   });
 
   it("plays assigned move when legal then ends turn", () => {
-    const result = createSandboxBattle({ ...DEFAULT_SANDBOX_CONFIG, dummyMove: "protect" });
-    const dummy = new DummyAiController(result.engine, "p2-dummy", "protect", Direction.South);
+    const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
+    const dummy = new DummyAiController(result.engine, DUMMY, "protect", Direction.South);
 
     skipToDummyTurn(result);
     const events = dummy.playTurn();
     expect(events.length).toBeGreaterThan(0);
-    expect(result.state.activePokemonId).not.toBe("p2-dummy");
+    expect(result.state.activePokemonId).not.toBe(DUMMY);
   });
 
   it("falls back to EndTurn when assigned move is not legal", () => {
     const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
-    const dummy = new DummyAiController(result.engine, "p2-dummy", "fake-move-id", Direction.South);
+    const dummy = new DummyAiController(result.engine, DUMMY, "fake-move-id", Direction.South);
 
     skipToDummyTurn(result);
     const events = dummy.playTurn();
     expect(events.length).toBeGreaterThan(0);
-    expect(result.state.activePokemonId).not.toBe("p2-dummy");
+    expect(result.state.activePokemonId).not.toBe(DUMMY);
   });
 
   it("does nothing when it is not the dummy turn", () => {
     const result = createSandboxBattle(DEFAULT_SANDBOX_CONFIG);
-    const dummy = new DummyAiController(result.engine, "p2-dummy", null, Direction.South);
+    const dummy = new DummyAiController(result.engine, DUMMY, null, Direction.South);
 
     skipToDummyTurn(result);
     dummy.playTurn();

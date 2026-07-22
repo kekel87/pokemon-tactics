@@ -86,6 +86,12 @@ describe("loadData", () => {
     expect(protect?.flags).toBeUndefined();
   });
 
+  it("custom Ditto carries its national-dex number for picker ordering", () => {
+    const data = loadData();
+    const ditto = data.pokemon.find((pokemon) => pokemon.id === "ditto");
+    expect(ditto?.dexNumber).toBe(132);
+  });
+
   it("pokemon have correct ids derived from names", () => {
     const data = loadData();
     const ids = data.pokemon.map((p) => p.id);

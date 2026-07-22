@@ -14,6 +14,8 @@ export interface PlayablePokemonCustom {
   weight: number;
   movepool: string[];
   abilityId?: string;
+  /** National-dex number for picker ordering (custom mons have no reference to derive it from). */
+  dexNumber?: number;
 }
 
 export interface PlayablePokemonEntry {
