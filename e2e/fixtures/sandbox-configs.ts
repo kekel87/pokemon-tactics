@@ -1291,3 +1291,742 @@ export const SPAWN_FAINTED_ALLY_REVIVE = {
     },
   ],
 } as const;
+
+// --- Familles mécaniques sans couverture e2e (plans 146/147/149/153/154 + phazing) ---------------
+// Duel adjacent sur terrain NORMAL : `sandbox-flat` a des terrains dangereux sur les rangs y=2/3 de
+// la colonne x=2 (swamp/ice…) — les configs DUEL historiques (2,3)/(2,2) sont donc SUR du marais. Ces
+// familles préfèrent les rangs y=4 (100 % normal) : lanceur (2,4) face EST, cible (3,4) adjacente →
+// aucun DoT de terrain ne pollue le journal, et les moves Single/Cone/Zone touchent la cible. Cible
+// Ronflex (snorlax, espèce ≠ lanceur → nom filtrable) endurante (`dummyHp: 999` = PV pleins de
+// l'espèce) et passive (aucun `dummyMove` → attend, ne pollue jamais). Seed fixe, aucun override
+// `Math.random` : tous ces moves sont STATUT (aucun jet de précision) ou 100 % → cast déterministe.
+const NORMAL_DUEL = {
+  seed: 12345,
+  pokemon: "venusaur",
+  playerPosition: { x: 2, y: 4 },
+  playerDirection: "east",
+  dummyPokemon: "snorlax",
+  dummyPosition: { x: 3, y: 4 },
+  dummyHp: 999,
+} as const;
+
+// Famille Manip état/stats (plan 146) — reset / copie / inversion / échange de crans de stats. Tous
+// des moves STATUT (aucun jet) → cast déterministe. Le SENS observable est la ligne de journal FR
+// dédiée (BattleLogFormatter), pas le pixel. Cast sur la cible (3,4) sauf Buée Noire (Zone Self).
+
+/** Buée Noire (`haze`, Zone r3 Self) — remet à zéro les crans de TOUS les mons du diamant (lanceur +
+ *  cible) → journal « Les changements de stats de tous les Pokémon sont annulés ! » (StatStagesReset).
+ *  Cast sur la propre case (2,4) ; les deux combattants sont dans le rayon r3. */
+export const STAT_MANIP_HAZE = { ...NORMAL_DUEL, moves: ["haze"] } as const;
+
+/** Bain de Smog (`clear-smog`, Single 1-3) — dégâts PUIS reset des crans de la cible → journal
+ *  « Ronflex perd N PV » + « Les changements de stats de tous les Pokémon sont annulés ! ». */
+export const STAT_MANIP_CLEAR_SMOG = { ...NORMAL_DUEL, moves: ["clear-smog"] } as const;
+
+/** Boost (`psych-up`, Single 1-3) — le lanceur COPIE les crans de la cible → journal « Florizarre
+ *  copie les changements de stats de Ronflex ! » (StatStagesCopied). */
+export const STAT_MANIP_PSYCH_UP = { ...NORMAL_DUEL, moves: ["psych-up"] } as const;
+
+/** Renversement (`topsy-turvy`, Single 1-3) — inverse le signe des crans de la cible → journal
+ *  « Les changements de stats de Ronflex sont inversés ! » (StatStagesInverted). */
+export const STAT_MANIP_TOPSY_TURVY = { ...NORMAL_DUEL, moves: ["topsy-turvy"] } as const;
+
+/** Permugarde (`guard-swap`, Single 1-3) — échange les crans Déf + Déf. Spé. lanceur↔cible → journal
+ *  « Florizarre et Ronflex échangent leur Défense et Déf. Spé. ! » (StatStagesSwapped). */
+export const STAT_MANIP_GUARD_SWAP = { ...NORMAL_DUEL, moves: ["guard-swap"] } as const;
+
+/** Permuforce (`power-swap`, Single 1-3) — échange les crans Atq + Atq. Spé. → journal « … échangent
+ *  leur Attaque et Atq. Spé. ! ». */
+export const STAT_MANIP_POWER_SWAP = { ...NORMAL_DUEL, moves: ["power-swap"] } as const;
+
+/** Permucœur (`heart-swap`, Single 1-1) — échange les 7 crans lanceur↔cible → journal « Florizarre et
+ *  Ronflex échangent leur … ! » (StatStagesSwapped, les 7 libellés). Cast sur la cible adjacente. */
+export const STAT_MANIP_HEART_SWAP = { ...NORMAL_DUEL, moves: ["heart-swap"] } as const;
+
+/** Permuvitesse (`speed-swap`, Single 1-1) — échange la Vitesse BRUTE → journal « Florizarre et
+ *  Ronflex échangent leur Vitesse ! » (SpeedSwapped). Cast sur la cible adjacente. */
+export const STAT_MANIP_SPEED_SWAP = { ...NORMAL_DUEL, moves: ["speed-swap"] } as const;
+
+// Famille Lock-in multi-tours (plan 149) — verrou 2-3 tours (Mania/Danse Fleurs/Colère + Confusion à
+// la fin) ou 3 tours (Brouhaha, sans confusion). Le SENS observable : (1) le journal FR de départ
+// « <X> se déchaîne avec <move> ! » (LockInStarted) ; (2) le VERROUILLAGE — au tour suivant le menu
+// d'attaque ne liste plus que le move verrouillé (getLegalActions le filtre). Ball'Glace (`ice-ball`,
+// RolloutStreak) et Frénésie (`rage`, non implémenté) restent 👁 (cf. cahier §5.40).
+
+/** Colère (`outrage`, Single 1-1, lockIn 2-3 + confuseOnEnd) — DEUX moves [outrage, scratch] pour
+ *  prouver le verrouillage : après le 1ᵉ cast, le menu d'attaque du tour suivant ne montre plus que
+ *  Colère (Griffe filtrée). Cast sur la cible adjacente (3,4). */
+export const LOCK_IN_OUTRAGE = { ...NORMAL_DUEL, moves: ["outrage", "scratch"] } as const;
+
+/** Mania (`thrash`, Single 1-1, lockIn 2-3 + confuseOnEnd) — journal de départ « … se déchaîne … ». */
+export const LOCK_IN_THRASH = { ...NORMAL_DUEL, moves: ["thrash"] } as const;
+
+/** Danse Fleurs (`petal-dance`, Single 1-2, lockIn 2-3 + confuseOnEnd) — idem, portée 1-2. */
+export const LOCK_IN_PETAL_DANCE = { ...NORMAL_DUEL, moves: ["petal-dance"] } as const;
+
+/** Brouhaha (`uproar`, Cone 1-3, lockIn 3 SANS confusion) — cône vers l'EST : le lanceur (2,4) face
+ *  est vise la cible (3,4) dans le cône → journal « … se déchaîne avec Brouhaha ! ». */
+export const LOCK_IN_UPROAR = { ...NORMAL_DUEL, moves: ["uproar"] } as const;
+
+// Famille Manip talent — Batch C (plan 153). Mutation runtime du talent (event AbilityChanged →
+// ligne de journal FR). Le lanceur porte Engrais (`overgrow`, explicite pour que l'échange/copie soit
+// non-trivial) et la cible Vaccin (`immunity`, ≠ lanceur → aucun échec « no-op »). Single r1, cast sur
+// la cible adjacente (3,4). Statut sans jet → déterministe.
+
+/** Soucigraine (`worry-seed`) — remplace le talent de la cible par Insomnie → journal « Le talent de
+ *  Ronflex devient <Insomnie> ! » (AbilityChanged, reason SetByMove). */
+export const ABILITY_MANIP_WORRY_SEED = {
+  ...NORMAL_DUEL,
+  moves: ["worry-seed"],
+  playerAbility: "overgrow",
+  dummyAbility: "immunity",
+} as const;
+
+/** Suc Digestif (`gastro-acid`) — supprime le talent de la cible → journal « Le talent de Ronflex est
+ *  neutralisé ! » (AbilityChanged, reason GastroAcid). */
+export const ABILITY_MANIP_GASTRO_ACID = {
+  ...NORMAL_DUEL,
+  moves: ["gastro-acid"],
+  playerAbility: "overgrow",
+  dummyAbility: "immunity",
+} as const;
+
+/** Imitation (`role-play`) — le lanceur COPIE le talent de la cible → journal « Florizarre copie le
+ *  talent <Vaccin> ! » (AbilityChanged, reason RolePlay). */
+export const ABILITY_MANIP_ROLE_PLAY = {
+  ...NORMAL_DUEL,
+  moves: ["role-play"],
+  playerAbility: "overgrow",
+  dummyAbility: "immunity",
+} as const;
+
+/** Échange (`skill-swap`) — échange les talents lanceur↔cible → DEUX lignes « Le talent de … devient
+ *  … ! » (AbilityChanged ×2, reason SkillSwap). On assert celle du lanceur. */
+export const ABILITY_MANIP_SKILL_SWAP = {
+  ...NORMAL_DUEL,
+  moves: ["skill-swap"],
+  playerAbility: "overgrow",
+  dummyAbility: "immunity",
+} as const;
+
+// Famille Buff/statut — Batch D (plan 154). Chaque move a une ligne de journal FR dédiée. Statut sans
+// jet → déterministe. Cast Self sur la propre case (2,4) ; cast ennemi sur la cible adjacente (3,4).
+
+/** Malédiction (`curse`) — lanceur SPECTRE : Ectoplasma (gengar) sacrifie 50 % PV + DoT sur la cible
+ *  ennemie r3 → journal « Ectoplasma se maudit et jette une malédiction sur Ronflex ! (-N PV) »
+ *  (Cursed). Cast sur la cible (3,4). Gengar démarre à PV pleins (coût 50 % non létal). */
+export const BUFF_STATUS_CURSE_GHOST = {
+  ...NORMAL_DUEL,
+  pokemon: "gengar",
+  moves: ["curse"],
+} as const;
+
+/** Malédiction (`curse`) — lanceur NON-Spectre : Florizarre (Plante/Poison) se buffe (Self) : −1 Vit,
+ *  +1 Atq, +1 Déf, sans coût de PV → journal « Attaque de Florizarre augmente ! » + « Vitesse de
+ *  Florizarre baisse ! » (StatChanged). Cast sur la propre case (2,4). */
+export const BUFF_STATUS_CURSE_SELF = { ...NORMAL_DUEL, moves: ["curse"] } as const;
+
+/** Bâillement (`yawn`, Single 1-1) — rend la cible somnolente (sommeil différé) → journal « Ronflex
+ *  commence à somnoler ! » (Drowsy). Cast sur la cible adjacente (3,4). */
+export const BUFF_STATUS_YAWN = { ...NORMAL_DUEL, moves: ["yawn"] } as const;
+
+/** Cognobidon (`belly-drum`, Self) — sacrifie 50 % PV, maximise l'Attaque → journal « Florizarre se
+ *  tape le bidon et maximise son Attaque ! (-N PV) » (BellyDrumUsed). Florizarre à PV pleins (coût
+ *  50 % non létal, Attaque pas déjà +6). Cast sur la propre case (2,4). */
+export const BUFF_STATUS_BELLY_DRUM = { ...NORMAL_DUEL, moves: ["belly-drum"] } as const;
+
+/** Acupression (`acupressure`, ally-or-self) — +2 à une stat de combat ALÉATOIRE du lanceur (seedée)
+ *  → journal « <stat> de Florizarre augmente ! » (StatChanged). La stat exacte dépend du seed → on
+ *  assert le SENS (une hausse sur le lanceur), pas l'identité de la stat. Cast sur la propre case. */
+export const BUFF_STATUS_ACUPRESSURE = { ...NORMAL_DUEL, moves: ["acupressure"] } as const;
+
+/** Attraction (`attract`, Single 1-1) — infatue une cible du SEXE OPPOSÉ. Tauros (100 % ♂) vise
+ *  Kangourex (kangaskhan, 100 % ♀) → le sexe opposé est GARANTI quel que soit le seed → journal
+ *  « Kangourex tombe amoureux ! » (StatusApplied Infatuated). Cast sur la cible adjacente (3,4). */
+export const BUFF_STATUS_ATTRACT = {
+  ...NORMAL_DUEL,
+  pokemon: "tauros",
+  moves: ["attract"],
+  dummyPokemon: "kangaskhan",
+} as const;
+
+/** Vol Magnétik (`magnet-rise`, Self) — le lanceur lévite 5 tours → journal « Florizarre lévite grâce
+ *  à un champ magnétique ! » (MagnetRisePosted). Aucune Gravité en jeu. Cast sur la propre case. */
+export const BUFF_STATUS_MAGNET_RISE = { ...NORMAL_DUEL, moves: ["magnet-rise"] } as const;
+
+// Famille Phazing — Cyclone / Hurlement / Projection éjectent chaque ennemi vers SA zone de spawn
+// (EffectKind.PhazeToSpawn → ejectToSpawn : pas de banc, l'éjection remplace le switch forcé canon).
+// ⚠️ L'ÉJECTION elle-même n'agit QUE si la cible n'est PAS déjà sur sa case de spawn
+// (`forced-teleport` : positionKey ≠ current) : en 1v1 statique la cible reste sur son spawn → un
+// no-op non journalisé. La rendre observable exigerait de repositionner de façon fiable la cible
+// HORS de son spawn ET dans la portée du lanceur — or (a) le déplacement d'un mon en hot-seat n'est
+// pas gréable via le DOM dans ce harness, et (b) la zone de contrôle interdit d'entrer sur une case
+// adjacente à un ennemi (indispensable pour Cyclone r1 / Projection corps-à-corps). Le SENS de
+// l'éjection reste couvert par les unit core (`handle-phaze.test.ts`, `forced-teleport.test.ts`) → 👁.
+// On pilote donc ici le volet OBSERVABLE en 1v1 statique : Projection inflige ses dégâts (la cible
+// reste sur son spawn, éjection no-op), Cyclone/Hurlement se lancent et résolvent (MoveStarted). Duel
+// normal (lanceur (2,4) est / cible (3,4)), aucun jet → déterministe.
+
+/** Cyclone (`whirlwind`, Zone r1 Self) — le lanceur souffle la zone (MoveStarted « … utilise Cyclone ! »).
+ *  Cast sur la propre case (2,4) ; la cible sur son spawn n'est pas déplaçable → éjection no-op (👁). */
+export const PHAZE_WHIRLWIND = { ...NORMAL_DUEL, moves: ["whirlwind"] } as const;
+
+/** Hurlement (`roar`, Cone 1-3) — le lanceur crie vers l'est (MoveStarted « … utilise Hurlement ! »).
+ *  Cast sur la case de la cible (3,4) dans le cône ; éjection no-op sur spawn (👁). */
+export const PHAZE_ROAR = { ...NORMAL_DUEL, moves: ["roar"] } as const;
+
+/** Projection (`circle-throw`, Single 1-1) — dégâts PUIS éjection. En 1v1 statique seuls les DÉGÂTS
+ *  sont observables (« Ronflex perd N PV ») ; la cible sur son spawn n'est pas éjectée (no-op, 👁).
+ *  Projection est à 90 % de précision → le lanceur porte Aucun Garde (`no-guard`) pour forcer la
+ *  précision à 100 % (touche sous TOUT seed, même parti-pris que TRAP_PARTIAL_FIRE_SPIN). */
+export const PHAZE_CIRCLE_THROW = {
+  ...NORMAL_DUEL,
+  moves: ["circle-throw"],
+  playerAbility: "no-guard",
+} as const;
+
+// Famille Sacrifice / Self-KO (plan 147) — le lanceur meurt en échange d'un effet. En 1v1 le lanceur
+// est l'unique mon du joueur → son self-K.O. clôt le combat (modale), mais les lignes de journal de la
+// résolution sont émises AVANT et persistent → assertables. Le lanceur agit au TOUR 1 (aucune fin de
+// tour préalable). Statut/portée fixe → déterministe. Vœu Soin (healing-wish) est DÉJÀ couvert §5.38.
+
+/** Destruction (`self-destruct`, Zone r2 Self, isExplosion) — dégâts AoE + auto-K.O. du lanceur. Cast
+ *  sur la propre case (2,4) : la cible adjacente (3,4) est dans le rayon → journal « Ronflex perd N PV »
+ *  + « Florizarre est K.O. ! ». */
+export const SELF_KO_SELF_DESTRUCT = { ...NORMAL_DUEL, moves: ["self-destruct"] } as const;
+
+/** Explosion (`explosion`, Zone r2 Self, isExplosion) — variante ×forte de Destruction (même modèle
+ *  self-K.O. AoE). Cast sur la propre case (2,4). */
+export const SELF_KO_EXPLOSION = { ...NORMAL_DUEL, moves: ["explosion"] } as const;
+
+/** Souvenir (`memento`, Single 1-3, selfKo) — auto-K.O. + baisse Atq/Atq. Spé. de la cible de 2 →
+ *  journal « Attaque de Ronflex baisse ! » + « Florizarre est K.O. ! ». Cast sur la cible (3,4). */
+export const SELF_KO_MEMENTO = { ...NORMAL_DUEL, moves: ["memento"] } as const;
+
+/** Tout ou Rien (`final-gambit`, Single 1-1, selfKoOnConnect) — dégâts fixes = PV du lanceur (typés
+ *  Combat, la cible Normal n'est pas immunisée) + auto-K.O. sur touche → journal « Florizarre joue le
+ *  tout pour le tout ! » (FinalGambitApplied) + « Ronflex perd N PV ». Cible endurante (survit). */
+export const SELF_KO_FINAL_GAMBIT = { ...NORMAL_DUEL, moves: ["final-gambit"] } as const;
+
+/** Lien du Destin (`destiny-bond`, Self) — pose le volatile → journal « Florizarre tisse un lien du
+ *  destin… » (DestinyBondPosted). Le DÉCLENCHEMENT (tueur entraîné) exige que le lanceur soit K.O.
+ *  avant son prochain tour → 👁 (cf. cahier §5.44). Cast sur la propre case (2,4). */
+export const SELF_KO_DESTINY_BOND = { ...NORMAL_DUEL, moves: ["destiny-bond"] } as const;
+
+/** Rancune (`grudge`, Self) — pose le volatile → journal « Florizarre nourrit une rancune… »
+ *  (GrudgePosted). Le DÉCLENCHEMENT (scellement du move tueur) exige un K.O. par move → 👁. Cast Self. */
+export const SELF_KO_GRUDGE = { ...NORMAL_DUEL, moves: ["grudge"] } as const;
+
+// ── Batch E « grille » (plan 155) via harness N-vs-N (plan 167) — §5.45 ──────────────────────────
+// Quatre moves hors-pool Gen 1 (redirection / promotion CT / échange de position) forcés via `moves`.
+// Ils VISENT ou AFFECTENT des ennemis/alliés → il faut le format v2 `teams` (une vraie équipe 2 mons
+// pour les moves alliés). Terrain normal (rang y=4, 100 % normal ; cf. NORMAL_DUEL) → aucun DoT ne
+// pollue le journal. Moves STATUT (aucun jet de précision) → cast déterministe (seed fixe).
+
+/** Par Ici (`follow-me`, Zone r4 Self) — les ennemis dans le diamant Manhattan r4 centré sur le
+ *  lanceur pivotent pour lui faire face → journal « Florizarre attire l'attention ! … » (DrewAttention,
+ *  émis dès qu'au moins un ennemi tourne). Le lanceur Florizarre en (2,4) ; l'ennemi Ronflex passif en
+ *  (3,4), distance Manhattan 1 ≤ 4 → DANS la zone. Cast Self sur (2,4). Par Ici N'EST PAS un move
+ *  poudre → il tourne AUSSI les Plante (cf. RAGE_POWDER_GRASS_IMMUNE, le contraste du flag poudre). */
+export const FOLLOW_ME_DRAWS = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        { pokemon: "venusaur", moves: ["follow-me"], position: { x: 2, y: 4 }, direction: "east" },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "snorlax", position: { x: 3, y: 4 } }] },
+  ],
+} as const;
+
+/** Par Ici — HORS zone : l'ennemi Ronflex passif est parqué en (0,0), distance Manhattan 6 > 4 du
+ *  lanceur (2,4) → il ne pivote PAS. Le move se lance quand même (« utilise Par Ici ! ») mais AUCUNE
+ *  ligne « attire l'attention » n'est émise (affectedIds vide). Prouve la borne de la Zone r4. */
+export const FOLLOW_ME_OUT_OF_RANGE = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        { pokemon: "venusaur", moves: ["follow-me"], position: { x: 2, y: 4 }, direction: "east" },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "snorlax", position: { x: 0, y: 0 } }] },
+  ],
+} as const;
+
+/** Poudre Fureur (`rage-powder`, Zone r4 Self, move POUDRE) — comme Par Ici mais poudre : les ennemis
+ *  Plante / Envelocape / Lunettes Filtre ne pivotent PAS. Ici l'ennemi Ronflex (Normal, non immunisé)
+ *  en (3,4) pivote → « Florizarre attire l'attention ! … » (DrewAttention). Cast Self sur (2,4). */
+export const RAGE_POWDER_HITS = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["rage-powder"],
+          position: { x: 2, y: 4 },
+          direction: "east",
+        },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "snorlax", position: { x: 3, y: 4 } }] },
+  ],
+} as const;
+
+/** Poudre Fureur — IMMUNITÉ poudre : l'ennemi est un Florizarre (Plante/Poison) en (3,4), DANS la
+ *  zone r4 mais immunisé aux poudres → il ne pivote PAS. Le move se lance (« utilise Poudre Fureur ! »)
+ *  mais AUCUNE ligne « attire l'attention » (affectedIds vide). Comparé à RAGE_POWDER_HITS (Ronflex
+ *  Normal tourné) ET à FOLLOW_ME sur le même Plante, prouve que c'est bien le flag POUDRE qui bloque. */
+export const RAGE_POWDER_GRASS_IMMUNE = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["rage-powder"],
+          position: { x: 2, y: 4 },
+          direction: "east",
+        },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "venusaur", position: { x: 3, y: 4 } }] },
+  ],
+} as const;
+
+/** Après Vous (`after-you`, Single r3, targetsAlly) — la cible alliée passe STRICTEMENT prochaine au
+ *  Charge Time (promotion non-destructive consommée dans `advanceTurn`). Équipe joueur = Florizarre
+ *  (after-you, Vit 80) en (2,4) + un allié LENT Ronflex (Vit 30) en (3,4). Équipe ennemie = un
+ *  Électrode RAPIDE (Vit 150) passif en (5,4). À vide, après le tour de Florizarre l'Électrode (le plus
+ *  rapide) jouerait AVANT le lent Ronflex ; avec Après Vous sur Ronflex, ce dernier est promu prochain
+ *  → « Ronflex va agir juste après ! » (PromotedToActNext) puis, après `endTurn`, Ronflex devient
+ *  l'actif (avant l'Électrode). L'Électrode passif temporise au boot → la main revient à Florizarre.
+ *  Cast Single sur la case de l'allié (3,4). Statut sans jet → déterministe. */
+export const AFTER_YOU_PROMOTES = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        { pokemon: "venusaur", moves: ["after-you"], position: { x: 2, y: 4 }, direction: "east" },
+        { pokemon: "snorlax", position: { x: 3, y: 4 } },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "electrode", position: { x: 5, y: 4 } }] },
+  ],
+} as const;
+
+/** Interversion (`ally-switch`, Single r3, targetsAlly) — le lanceur ÉCHANGE sa position avec un allié
+ *  r3 (terrain re-déclenché aux 2 cases, no-op sur terrain normal). Équipe joueur = Florizarre
+ *  (ally-switch) en (2,4) + un allié Ronflex en (2,5), distance 1. Équipe ennemie = un Électrode passif
+ *  parqué au coin (0,0). Cast Single sur la case de l'allié (2,5) → « Florizarre et Ronflex échangent
+ *  leur place ! » (AlliesSwapped) ; après coup Florizarre occupe (2,5) et Ronflex (2,4) (observable via
+ *  `spriteStates`). Espèces distinctes → tuiles filtrables sans ambiguïté. Statut → déterministe. */
+export const ALLY_SWITCH_SWAP = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["ally-switch"],
+          position: { x: 2, y: 4 },
+          direction: "east",
+        },
+        { pokemon: "snorlax", position: { x: 2, y: 5 } },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "electrode", position: { x: 0, y: 0 } }] },
+  ],
+} as const;
+
+/** Hurlement (`roar`, Cone 1-3, PhazeToSpawn) — RÉGRESSION éjection forcée OBSERVABLE via le harness
+ *  hot-seat (les DEUX équipes en `player` → on pilote l'ennemi). L'éjection ne renvoie un mon chez lui
+ *  QUE s'il n'est PAS déjà sur sa case de spawn (`forced-teleport`) : impossible à voir en 1v1 statique
+ *  (§5.43, 👁), mais ici l'Électrode ennemi (Vit 150 → actif au boot) est PILOTÉ pour QUITTER son spawn
+ *  (5,4) vers (4,4) — distance 2 du lanceur, hors zone de contrôle (Cyclone/Projection r1 seraient
+ *  bloqués par l'adjacence ; le cône r1-3 de Hurlement atteint (4,4) sans coller le lanceur). Puis
+ *  Florizarre (2,4) crie le cône vers l'est → l'Électrode hors-spawn est renvoyé sur (5,4) : « Électrode
+ *  se téléporte ! » (Teleported) et il retrouve sa case de spawn (observable via `spriteStates`).
+ *  Hurlement est un move statut sans jet → déterministe (seed fixe). */
+export const PHAZE_ROAR_EJECTS = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        { pokemon: "venusaur", moves: ["roar"], position: { x: 2, y: 4 }, direction: "east" },
+      ],
+    },
+    {
+      // Anti-Bruit (soundproof), le talent par défaut d'Électrode, BLOQUE Hurlement (move sonore) →
+      // on force Statik (`static`, sans effet ici, Hurlement n'est pas un contact) pour que le cône
+      // touche et déclenche l'éjection.
+      control: "player",
+      members: [
+        { pokemon: "electrode", ability: "static", position: { x: 5, y: 4 }, direction: "west" },
+      ],
+    },
+  ],
+} as const;
+
+// ── Content-fill débloqué (plans 162/163) — §5.36/§5.37 : cas 👁 → 🤖 grâce aux champs `stockpileCount`
+// et `unburdenActive` de SandboxMemberConfig. Terrain normal (y=4). Ennemi passif slow (Ronflex Vit 30)
+// parqué hors-jeu, ou cible endurante à (3,4). Moves 100 % / statut → déterministes (seed fixe).
+
+/** Relâche (`spit-up`, Single r3) RÉUSSITE — le lanceur pré-chargé à 3 paliers de Stockage
+ *  (`stockpileCount: 3`) inflige des dégâts spé = 100 × paliers puis vide sa réserve : « Ronflex perd
+ *  N PV » + « Florizarre libère sa réserve accumulée ! » (StockpileReleased). Cible Ronflex passive et
+ *  ENDURANTE (hp plein, 3ᵉ palier ≈ 300 BP → survit ou tombe, la ligne de dégâts est émise dans les 2
+ *  cas). Cast Single sur la cible adjacente (3,4). */
+export const SPIT_UP_SUCCESS = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["spit-up"],
+          position: { x: 2, y: 4 },
+          direction: "east",
+          stockpileCount: 3,
+        },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "snorlax", position: { x: 3, y: 4 } }] },
+  ],
+} as const;
+
+/** Relâche — 1 seul palier : même setup mais `stockpileCount: 1` (≈ 100 BP). Comparé à SPIT_UP_SUCCESS
+ *  (3 paliers), prouve le SCALING chiffré (dégâts croissants avec les paliers) ; sert aussi de base au
+ *  test de CONSOMMATION (après ce cast la réserve tombe à 0 → un 2ᵉ Relâche échoue). Cible endurante. */
+export const SPIT_UP_ONE_LAYER = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["spit-up"],
+          position: { x: 2, y: 4 },
+          direction: "east",
+          stockpileCount: 1,
+        },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "snorlax", position: { x: 3, y: 4 } }] },
+  ],
+} as const;
+
+/** Avale (`swallow`, Self) RÉUSSITE — le lanceur pré-chargé à 3 paliers (`stockpileCount: 3`) et blessé
+ *  (`hp: 50` = 50 % du max) se soigne (3 paliers → 100 % du max, plafonné aux PV manquants = 50 % du
+ *  max) puis vide sa réserve : « Florizarre récupère N PV » + « Florizarre libère sa réserve accumulée ! ».
+ *  Ennemi Ronflex passif parqué au coin (0,0). Cast Self sur (2,4). */
+export const SWALLOW_SUCCESS = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["swallow"],
+          position: { x: 2, y: 4 },
+          direction: "east",
+          hp: 50,
+          stockpileCount: 3,
+        },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "snorlax", position: { x: 0, y: 0 } }] },
+  ],
+} as const;
+
+/** Avale — 1 seul palier : même blessure (`hp: 50`) mais `stockpileCount: 1` → soin 25 % du max.
+ *  Comparé à SWALLOW_SUCCESS (3 paliers = 50 % du max plafonné), prouve le SCALING chiffré du soin. */
+export const SWALLOW_ONE_LAYER = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["swallow"],
+          position: { x: 2, y: 4 },
+          direction: "east",
+          hp: 50,
+          stockpileCount: 1,
+        },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "snorlax", position: { x: 0, y: 0 } }] },
+  ],
+} as const;
+
+/** Stockage (`stockpile`, Self) 3ᵉ PALIER + échec au-delà — le lanceur pré-chargé à 2 paliers
+ *  (`stockpileCount: 2`) : un cast atteint « accumule ! (Stockage 3/3) » (Stockpiled) ; un 2ᵉ cast
+ *  (après `endTurn`) dépasse le cap 3 → « Mais cela échoue … ! » (MoveFailed). Ennemi passif hors-jeu. */
+export const STOCKPILE_THIRD_TIER = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["stockpile"],
+          position: { x: 2, y: 4 },
+          direction: "east",
+          stockpileCount: 2,
+        },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "snorlax", position: { x: 0, y: 0 } }] },
+  ],
+} as const;
+
+/** Délestage (`unburden`, plan 163) — Vitesse ×2 une fois l'objet perdu/consommé, ici forcée via
+ *  `unburdenActive: true` sur l'instance. Deux mons de MÊME espèce (Florizarre, Vit de base 80) : SEUL
+ *  le flag Délestage diffère (équipe 2). Harness hot-seat (les 2 équipes `player` → aucun auto-tour,
+ *  cadence CT pilotée). ⚠️ Le mon actif au boot est FIGÉ à la création (avant l'application du flag) →
+ *  l'équipe 1 (`p1-…`, gagnante des égalités d'id) ouvre le combat dans les 2 configs ; le ×2 se lit
+ *  donc sur la CADENCE (qui rejoue en 3ᵉ après deux « Attendre »), pas sur l'actif du boot. La Vitesse
+ *  alimente une courbe log → le ×2 n'est pas un doublement de gain mais rend le porteur strictement
+ *  plus rapide → l'équipe 2 reprend la main en 3ᵉ. Aucun jet → déterministe (seed fixe). */
+export const UNBURDEN_ACTS_FIRST = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [{ pokemon: "venusaur", position: { x: 2, y: 4 }, direction: "north" }],
+    },
+    {
+      control: "player",
+      members: [
+        { pokemon: "venusaur", position: { x: 4, y: 4 }, direction: "south", unburdenActive: true },
+      ],
+    },
+  ],
+} as const;
+
+/** Témoin du flip Délestage : MÊME setup mais SANS `unburdenActive` → à Vitesse de base égale,
+ *  l'alternance rend la main à l'équipe 1 (`p1-…`, gagnante des égalités d'id) en 3ᵉ tour. Comparé à
+ *  UNBURDEN_ACTS_FIRST, prouve que c'est bien le ×2 (et non un biais d'id/position) qui fait rejouer
+ *  l'équipe 2 plus tôt. */
+export const UNBURDEN_BASELINE = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [{ pokemon: "venusaur", position: { x: 2, y: 4 }, direction: "north" }],
+    },
+    {
+      control: "player",
+      members: [{ pokemon: "venusaur", position: { x: 4, y: 4 }, direction: "south" }],
+    },
+  ],
+} as const;
+
+// Physique de terrain (§5.17-5.20, plan e2e terrain) — les dégâts de hauteur / chute / DoT de terrain
+// ne sont PAS journalisés (test-plan : « dégâts via HP non journalisés ») → on les lit par les PV
+// (barre de vie InfoPanel `role="progressbar"` → `aria-valuenow`) et par la tuile finale des sprites
+// (`spriteStates().tile`). Déterministe : seed fixe + hauteurs/terrains figés par les maps dev.
+
+// --- §5.17 modificateur de dégâts par hauteur — sur `sandbox-fall-1` (plateau cols 0-2 à h2.0, sol
+// cols 3-5 à h1.0 ; la glace du plateau est en row 2, on reste donc en row 1). Même Griffe (Single 1-1,
+// 100 % précision), même seed, même cible endurante (Ronflex) : seul l'écart de hauteur change le
+// dégât (±10 %/niveau). Chaque paire garde le MÊME axe/sens d'attaque pour que le modificateur de face
+// s'annule. Le lanceur Florizarre force Griffe (défaut DUEL). ---
+
+/** Attaquant plus HAUT d'un niveau (plateau (2,1) h2.0 → cible sol (3,1) h1.0, attaque vers l'est) →
+ *  ×1.1. À comparer à {@link HEIGHT_DMG_FLAT_EAST} (même axe est, Δh=0). */
+export const HEIGHT_DMG_HIGH = {
+  ...DUEL,
+  moves: ["scratch"],
+  playerPosition: { x: 2, y: 1 },
+  playerDirection: "east",
+  dummyPosition: { x: 3, y: 1 },
+  dummyPokemon: "snorlax",
+  dummyHp: 999,
+  mapUrl: "assets/maps/dev/sandbox-fall-1.tmj",
+} as const;
+
+/** Témoin à plat pour la paire EST (sol (3,1) h1.0 → sol (4,1) h1.0, attaque vers l'est, Δh=0 → ×1.0). */
+export const HEIGHT_DMG_FLAT_EAST = {
+  ...HEIGHT_DMG_HIGH,
+  playerPosition: { x: 3, y: 1 },
+  dummyPosition: { x: 4, y: 1 },
+} as const;
+
+/** Attaquant plus BAS d'un niveau (sol (3,1) h1.0 → cible plateau (2,1) h2.0, attaque vers l'ouest) →
+ *  ×0.9. À comparer à {@link HEIGHT_DMG_FLAT_WEST} (même axe ouest, Δh=0). */
+export const HEIGHT_DMG_LOW = {
+  ...HEIGHT_DMG_HIGH,
+  playerPosition: { x: 3, y: 1 },
+  playerDirection: "west",
+  dummyPosition: { x: 2, y: 1 },
+} as const;
+
+/** Témoin à plat pour la paire OUEST (sol (4,1) h1.0 → sol (3,1) h1.0, attaque vers l'ouest, Δh=0). */
+export const HEIGHT_DMG_FLAT_WEST = {
+  ...HEIGHT_DMG_HIGH,
+  playerPosition: { x: 4, y: 1 },
+  playerDirection: "west",
+  dummyPosition: { x: 3, y: 1 },
+} as const;
+
+// --- §5.18 table de chute (non létale) — repoussé par-dessus une falaise sur `sandbox-fall-2`
+// (plateau h3.0 → sol h1.0 = 2 niveaux → 33 %) et `sandbox-fall-3` (h4.0 → h1.0 = 3 niveaux → 66 %).
+// Draco-Queue (Slash + Knockback 1) frappe et repousse la cible hors du plateau (row 1, hors glace).
+// Le dégât du MOVE est identique (mêmes espèces/seed, Δh=0 sur le plateau) → la différence de PV entre
+// fall-2 et fall-3 isole la table (66 % − 33 %). seed 7 : Draco-Queue (90 %) touche. ---
+
+/** Chute de 2 niveaux → 33 % PV. Ronflex endurant (hp 999) survit au coup + à la chute. */
+export const FALL_TABLE_2 = {
+  ...DUEL,
+  seed: 7,
+  moves: ["dragon-tail"],
+  playerPosition: { x: 1, y: 1 },
+  playerDirection: "east",
+  dummyPosition: { x: 2, y: 1 },
+  dummyPokemon: "snorlax",
+  dummyHp: 999,
+  mapUrl: "assets/maps/dev/sandbox-fall-2.tmj",
+} as const;
+
+/** Chute de 3 niveaux → 66 % PV (même setup, falaise plus haute). */
+export const FALL_TABLE_3 = {
+  ...FALL_TABLE_2,
+  mapUrl: "assets/maps/dev/sandbox-fall-3.tmj",
+} as const;
+
+/** §5.18 glissade sur la glace — `sandbox-flat` a une colonne de glace en x=1 (y=2 et y=3). Le lanceur
+ *  Florizarre est au NORD (1,0) de la cible Ronflex (1,1) ; Draco-Queue la repousse d'UNE case au sud
+ *  sur (1,2) glace, puis elle GLISSE dans l'élan (sud) sur (1,3) glace et s'arrête sur (1,4) normal —
+ *  soit 3 cases pour un repoussé de 1. La tuile finale (`spriteStates().tile` = (1,4)) prouve la
+ *  glissade (au-delà de l'adjacence). Ronflex endurant survit. seed 7 → Draco-Queue touche. */
+export const ICE_SLIDE = {
+  ...DUEL,
+  seed: 7,
+  moves: ["dragon-tail"],
+  playerPosition: { x: 1, y: 0 },
+  playerDirection: "south",
+  dummyPosition: { x: 1, y: 1 },
+  dummyPokemon: "snorlax",
+  dummyHp: 999,
+} as const;
+
+/** §5.18 immunité au repoussé — un Volant/immunisé au terrain d'ARRIVÉE n'est PAS déplacé. Le lanceur
+ *  Florizarre (0,3) repousse Dracaufeu (0,4) vers le sud : la case d'arrivée (0,5) est de la LAVE
+ *  (impassable) et Dracaufeu (Feu/Vol) y est immunisé → le repoussé est bloqué, sa tuile reste (0,4).
+ *  `spriteStates().tile` inchangée + AUCUNE ligne « repoussé ». seed 7 → Draco-Queue touche. */
+export const KNOCKBACK_IMMUNE_FLYER = {
+  ...DUEL,
+  seed: 7,
+  moves: ["dragon-tail"],
+  playerPosition: { x: 0, y: 3 },
+  playerDirection: "south",
+  dummyPokemon: "charizard",
+  dummyPosition: { x: 0, y: 4 },
+  dummyHp: 999,
+} as const;
+
+/** §5.18 recul mortel — Damoclès (`double-edge`, Single 1-1, 100 % précision, recul 1/3). Le lanceur
+ *  Florizarre démarre à 1 % PV : le coup blesse le Ronflex endurant (hp 999, survit → c'est bien le
+ *  RECUL, pas la riposte, qui tue) puis le recul met le LANCEUR K.O. → journal « Florizarre est K.O. ».
+ *  100 % précision → déterministe (seed DUEL hérité), le lanceur agit au tour 1 (avant toute fin de tour). */
+export const RECOIL_SELF_KO = {
+  ...DUEL,
+  moves: ["double-edge"],
+  hp: 1,
+  dummyPokemon: "snorlax",
+  dummyHp: 999,
+} as const;
+
+// --- §5.20 effets de terrain lisibles par PV (sur `sandbox-flat`) ---
+
+/** DoT Magma 1/16 en fin de tour. Le SUJET est le dummy Ronflex posé sur le magma (5,2), en HOT-SEAT
+ *  (`dummyControl: "player"`) : le tour s'arrête à chaque décision, donc après avoir passé le tour du
+ *  dummy on lit ses PV APRÈS exactement UN tick de terrain et AVANT que sa brûlure (posée par le magma)
+ *  ne tique à son prochain début de tour → perte isolée = `floor(maxHp/16)`. Le joueur Florizarre est
+ *  hors terrain (0,0) ; il joue en premier (plus rapide), d'où l'ordre Florizarre → Ronflex → Florizarre
+ *  (cadence CT alternée). Aucun jet → déterministe. */
+export const MAGMA_DOT = {
+  ...DUEL,
+  moves: ["scratch"],
+  playerPosition: { x: 0, y: 0 },
+  playerDirection: "south",
+  dummyPokemon: "snorlax",
+  dummyControl: "player",
+  dummyMoves: ["tackle"],
+  dummyPosition: { x: 5, y: 2 },
+  dummyHp: 999,
+} as const;
+
+/** Bonus de puissance ×1.15 — un move du TYPE du terrain sous le LANCEUR gagne ×1.15. Florizarre (non
+ *  Feu/Vol → pas immunisé au magma) lance Poing Feu (`fire-punch`, Feu, Single 1-1, 100 % précision)
+ *  depuis une case MAGMA (5,2) sur le Ronflex endurant (5,3) → dégât boosté. À comparer à
+ *  {@link TERRAIN_POWER_BONUS_BASELINE} (même move/seed/axe depuis une case NORMALE). Seul le terrain
+ *  du lanceur change → la cible perd STRICTEMENT plus de PV sur magma. */
+export const TERRAIN_POWER_BONUS_MAGMA = {
+  ...DUEL,
+  moves: ["fire-punch"],
+  playerPosition: { x: 5, y: 2 },
+  playerDirection: "south",
+  dummyPokemon: "snorlax",
+  dummyPosition: { x: 5, y: 3 },
+  dummyHp: 999,
+} as const;
+
+/** Témoin du bonus de terrain : même Poing Feu depuis une case NORMALE (0,0) → cible (0,1), même axe
+ *  d'attaque (sud), même géométrie → ×1.0. Comparé à {@link TERRAIN_POWER_BONUS_MAGMA}, prouve que
+ *  c'est bien le magma sous le lanceur (et non le seed/la position) qui augmente le dégât. */
+export const TERRAIN_POWER_BONUS_BASELINE = {
+  ...TERRAIN_POWER_BONUS_MAGMA,
+  playerPosition: { x: 0, y: 0 },
+  dummyPosition: { x: 0, y: 1 },
+} as const;
+
+// --- §5.19 immunités du Volant aux terrains (sur `sandbox-flat`) ---
+
+/** Un Volant posé sur la LAVE (0,5) — mortelle au sol en fin de tour — y SURVIT (immunité de terrain).
+ *  Dracaufeu passe le tour ; ses PV restent pleins et aucune ligne « K.O. » n'est émise pour lui. */
+export const FLYER_ON_LAVA = {
+  ...DUEL,
+  pokemon: "charizard",
+  playerPosition: { x: 0, y: 5 },
+  dummyPosition: { x: 3, y: 0 },
+} as const;
+
+/** Un Volant posé sur le MAGMA (5,2) — qui brûle au sol — n'est PAS brûlé (immunité de terrain).
+ *  Dracaufeu passe le tour ; aucune ligne « brûlé par le magma » et ses PV restent pleins. */
+export const FLYER_ON_MAGMA = {
+  ...DUEL,
+  pokemon: "charizard",
+  playerPosition: { x: 5, y: 2 },
+  dummyPosition: { x: 3, y: 0 },
+} as const;
+
+/** §5.19 pas de glissade pour le Volant — Dracaufeu repoussé sur la glace (1,2) ne glisse PAS (immunité
+ *  glace du Volant) : sa tuile finale reste (1,2), à comparer au Ronflex qui glisse jusqu'à (1,4)
+ *  ({@link ICE_SLIDE}). Même setup de repoussé (Draco-Queue depuis (1,0), seed 7). */
+export const FLYER_ICE_NO_SLIDE = {
+  ...DUEL,
+  seed: 7,
+  moves: ["dragon-tail"],
+  playerPosition: { x: 1, y: 0 },
+  playerDirection: "south",
+  dummyPokemon: "charizard",
+  dummyPosition: { x: 1, y: 1 },
+  dummyHp: 999,
+} as const;
