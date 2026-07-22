@@ -31,8 +31,8 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ### Infra e2e — 2 points signalés (code-review 2026-07-22)
 
-- **Le gate ne typecheck PAS `e2e/`** : `pnpm typecheck` = `pnpm -r --parallel run typecheck` ne couvre que `packages/*` ; `e2e/` n'a pas de `package.json`, et Playwright transpile via esbuild sans type-check → une erreur `tsc` latente passe entre les mailles (attrapée cette fois par la review, ex. `as const` sur `POLL`). **À faire** : ajouter une étape `tsc -p e2e/tsconfig.json` au gate.
-- **Wrapper `pnpm exec biome` cassé dans l'env de dev** : crashe au démarrage (« Linter process terminated abnormally », même sur `biome --version`) alors que le binaire natif du store tourne (`node_modules/.pnpm/@biomejs+cli-linux-x64@2.5.5/.../biome --version` → OK). Contournement : invoquer le binaire direct. À diagnostiquer (shim JS / spawn) — sinon le gate `lint:fix` est inopérant localement.
+- **Le gate typecheckait pas `e2e/` — RÉSOLU (2026-07-22).** `pnpm typecheck` chaîne désormais `typecheck:e2e` (`tsc -p e2e/tsconfig.json`) après les packages ; Playwright transpilant via esbuild sans type-check, une erreur `tsc` latente passait sinon entre les mailles (ex. `as const` sur `POLL`, attrapé par la review). Le gate couvre maintenant `e2e/`.
+- **`pnpm exec biome` échoue SOUS CHARGE — pas un bug persistant.** Le crash « Linter process terminated abnormally (possibly out of memory) » se produit quand biome tourne en concurrence de tâches lourdes (suite e2e 16 workers, agents). `pnpm lint` / `pnpm lint:fix` (ce que le gate utilise, `biome check [--write] .`) **fonctionnent** en standalone (1376 fichiers OK). Seul le chemin `pnpm exec biome` (couche node supplémentaire) est fragile sous pression mémoire. Contournement si besoin en pleine charge : binaire natif direct (`node_modules/.pnpm/@biomejs+cli-linux-x64@*/.../biome`). Aucun fix code requis — ne pas lancer biome pendant la suite e2e.
 
 ### OP sets restants (non bloquant)
 
