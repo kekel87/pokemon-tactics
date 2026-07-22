@@ -770,6 +770,12 @@ Source canonique : `packages/renderer/src/babylon/babylon-constants.ts`.
 | `BABYLON_ROTATION_LERP` | Facteur d'interpolation (lerp) pour la rotation caméra animée |
 | `BABYLON_CAMERA_PAN_LERP` | Facteur d'interpolation (lerp) du recentrage caméra (pan smooth sur le Pokemon actif) |
 | `BABYLON_CAMERA_PAN_EPSILON` | Distance monde sous laquelle le pan snap sur sa cible (arrête le lerp) |
+| `BABYLON_ZOOM_LEVELS` | Zoom **3 crans discrets** `[0.7, 1.1, 1.8]` (Vue d'ensemble / Moyen / Rapproché), facteurs ortho relatifs à `BABYLON_VIEW_SIZE` — plus haut = plus proche. La molette avance/recule d'1 cran par notch, clampé aux bornes du tableau (pas de zoom continu). |
+| `BABYLON_ZOOM_DEFAULT_INDEX` | Index de départ dans `BABYLON_ZOOM_LEVELS` (`1` = Moyen) |
+| `BABYLON_ZOOM_LERP` | Facteur d'interpolation (lerp) du zoom courant vers le cran cible sélectionné — même pattern que `BABYLON_ROTATION_LERP`/`BABYLON_CAMERA_PAN_LERP` (easing sur les transitions de cran, pas de saut sec) |
+| `BABYLON_ZOOM_LERP_EPSILON` | Distance en-dessous de laquelle le zoom snap sur sa cible (arrête le lerp) |
+
+**Zoom à crans (2026-07-22)** : le zoom caméra est passé d'un scale continu à **3 niveaux fixes**, avec easing entre crans (`IsometricCamera.tick`, `packages/render-babylon/src/isometric-camera.ts`), même pattern que l'azimut/pan (index cible + lerp par frame). `zoomByWheel(deltaY)` avance/recule d'1 index par notch de molette et clamp `[0, ZOOM_LEVELS.length - 1]`. Les anciennes constantes de zoom continu (`ZOOM_MIN`/`ZOOM_MAX`/`ZOOM_STEP`) sont **supprimées** — remplacées par `ZOOM_LEVELS`/`ZOOM_DEFAULT_INDEX`. Constantes sources dans `packages/view-core/src/constants.ts` (`ZOOM_LEVELS`, `ZOOM_DEFAULT_INDEX`, `ZOOM_LERP`, `ZOOM_LERP_EPSILON`), re-exportées côté Babylon sous préfixe `BABYLON_` (`babylon-constants.ts`). Portée réduite vs le besoin initial : le cadrage/bornes **adaptatifs à la taille de la carte** (backlog 2026-06-19) est écarté pour l'instant, voir `docs/backlog.md`.
 
 #### Sprites
 

@@ -190,13 +190,6 @@ export const WEATHER_HUD_BG_ALPHA = 0.85;
 export const WEATHER_HUD_BG_COLOR = 0x111122;
 export const WEATHER_HUD_PADDING = 6;
 
-const ZOOM_CLOSE = 4.0;
-const ZOOM_MEDIUM = 2.6;
-const ZOOM_OVERVIEW = 1.7;
-export const ZOOM_LEVELS = [ZOOM_OVERVIEW, ZOOM_MEDIUM, ZOOM_CLOSE] as const;
-export const ZOOM_DEFAULT_INDEX = 1;
-export const ZOOM_TWEEN_DURATION_MS = 300;
-
 export const ARROW_PAN_SPEED = 6;
 export const CAMERA_BOUNDS_MARGIN = 100;
 

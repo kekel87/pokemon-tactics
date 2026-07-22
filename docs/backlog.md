@@ -39,10 +39,9 @@ _Aucune._
 - Inclure aussi : effet Heat-Rock (durée étendue), Sun-instant Solar-Beam, etc.
 - Priorité moyenne — qualité de vie UX, pas bloquant.
 
-### Caméra adaptative selon taille de carte + bornes de zoom (2026-06-19)
-- Comportement caméra dépend de la taille du jeu/carte : cadrage initial + amplitude pan/zoom calés sur dimensions de la grille.
-- Limiter les niveaux de zoom : bornes min/max pour éviter zoom trop loin (carte minuscule) ou trop près (perte vue tactique).
-- Piste : dériver min/max radius (et target) du bounding box de la map au boot de la scène.
+### Caméra adaptative selon taille de carte (2026-06-19, portée réduite 2026-07-22)
+- ~~Limiter les niveaux de zoom : bornes min/max pour éviter zoom trop loin (carte minuscule) ou trop près (perte vue tactique).~~ **Fait (2026-07-22)** — zoom passé à 3 crans discrets (Vue d'ensemble 0.7 / Moyen 1.1 / Rapproché 1.8, défaut Moyen), easing entre crans, molette = 1 cran/notch clampé. `ZOOM_LEVELS`/`ZOOM_DEFAULT_INDEX`/`ZOOM_LERP` (`docs/design-system.md`).
+- **Volet écarté (décision humaine, 2026-07-22)** : le cadrage initial + amplitude pan/zoom calés sur les dimensions de la grille (comportement caméra qui s'adapte à la taille de la carte) n'est **pas** implémenté et n'est plus prévu pour l'instant. Pourrait revenir plus tard si le besoin se représente (ex: cartes beaucoup plus grandes en Phase 6) — pas supprimé de la doc pour cette raison, mais aucune action engagée.
 
 ## Tâches futures (hors backlog actif)
 
