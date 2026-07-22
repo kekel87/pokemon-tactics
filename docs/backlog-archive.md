@@ -8,6 +8,13 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Animation Faint absente pour la majorité du roster — CLÔTURÉ non-actionnable (2026-07-22)
+
+- **Contexte (2026-06-18)** : seuls **29/152** atlas du roster embarquent une animation `Faint` ; les 123 autres (dont Florizarre) ne jouent aucun effondrement au KO (assombrissement + masquage HUD uniquement). La « cause supposée » du backlog était un gap `extract-sprites` à corriger.
+- **Investigation (2026-07-22)** : `extract-sprites` **demande déjà** `Faint` (présent dans `scripts/sprite-config.json`) et résout les alias `CopyOf`. Le vrai gap est **amont** : la source PMDCollab **n'a pas de sheet `Faint`** pour ces 123 Pokemon — rien à télécharger. Un « re-dl des Faint » est donc impossible sans re-rip depuis une autre source.
+- **Fallback tenté puis abandonné (décision humaine)** : jouer `Sleep` (couché) gelé quand `Faint` manque. Bloqueur découvert : dans la source PMDCollab, `Sleep` **n'existe que pour la direction Sud** (convention PMD — on dort face caméra), alors qu'`Idle` a les 8 directions. Un KO'd sprite ne faisant pas face Sud → `hasAnimation("Sleep")` faux → fallback silencieusement inopérant (confirmé runtime : Florizarre K.O. restait en `Idle`). Le rendre fonctionnel aurait exigé de verrouiller l'orientation Sud des sprites K.O. + `faintPose` toutes-directions — jugé disproportionné pour le gain. **Tout le code du fallback a été reverté** (arbre propre, aucune trace).
+- **Décision** : ne rien faire. L'assombrissement au KO reste le comportement. Rouvrir seulement si un jour le roster est re-rippé depuis une source fournissant `Faint` multi-direction (ou `Sleep` multi-direction). Non lié à un bug code.
+
 ## IA — CT-aware scoring — RÉSOLU (plan 165, 2026-07-21)
 
 - **Contexte (2026-04-25)** : le CT (Charge Time) était totalement ignoré du scoring IA (scorer greedy monoronde). Un premier essai (plan 068 étape 2, `score *= CT_REFERENCE_COST / ctCost` appliqué à tout le score) avait été rejeté : la division frappait aussi la composante KO, un KO lent devenait moins bien noté qu'un chip rapide → combats **>5000 tours** en charge. Le backlog affirmait qu'un **lookahead multi-tour** (prédiction ordre CT, évaluation N tours) était nécessaire pour corriger ça.

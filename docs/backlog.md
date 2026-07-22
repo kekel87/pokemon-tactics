@@ -57,13 +57,6 @@ _Aucune._
 - À traiter **avec l'arrivée de setters opposés (Gen 2+)** : brancher `applyWeatherWar` (déjà existant) dans `triggerBattleStart` pour départager. Émet 2 events `WeatherChanged` cosmétiques si 2 setters.
 - Sorti des bugs actifs (dormant, code spéculatif sinon).
 
-### Animation Faint absente pour la majorité du roster (2026-06-18, observé lors du fix anim KO)
-- Seulement ~21 des Pokemon jouables du roster ont une animation `Faint` dans leur atlas (abra, bulbasaur, charizard, charmander, dummy, eevee, flareon, gengar, jigglypuff, jolteon, machop, meowth, mew, mewtwo, ninetales, pidgey, pikachu, raichu, sandshrew, sandslash, et quelques autres).
-- Les Pokemon sans `Faint` ne jouent aucune animation d'effondrement au KO (tint sombre + masquage HUD uniquement — le comportement de fallback actuel).
-- Exemples sans Faint : Florizarre (seulement 8 animations dans l'atlas), et la majorité du roster.
-- **Cause supposée** : asset gap côté ripping PMDCollab/extract-sprites, pas un bug code. À investiguer : pourquoi `extract-sprites` ne récupère pas `Faint` pour tous les Pokemon ?
-- Priorité basse — l'effondrement visuel fonctionne via fallback, mais manque de polish.
-
 ### Scénario de combat piloté Joueur vs Joueur (QA + captures) (2026-06-18)
 - Pouvoir piloter un combat **JcJ** (les deux camps humains), via l'UI si possible — sinon harness sandbox.
 - Objectifs : (1) tester plein de mécaniques d'un coup en jouant les deux côtés ; (2) **voir les tooltips d'attaque** en conditions réelles ; (3) servir de base aux **screenshots / gif** (README, wiki, devlog itch).
