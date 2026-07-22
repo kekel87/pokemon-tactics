@@ -40,7 +40,10 @@ export default defineConfig({
   projects: [
     { name: "smoke", testMatch: "**/smoke/**/*.spec.ts" },
     { name: "dom", testMatch: "**/dom/**/*.spec.ts" },
-    { name: "combat", testMatch: "**/combat/**/*.spec.ts" },
+    // 60s (vs 30s défaut) : le boot Babylon sous SwiftShader (rendu logiciel) est lourd, et les tests
+    // de comparaison bootent 2-4 scènes → sous forte parallélisation le budget 30s déborde (flake de
+    // charge, pas de déterminisme). Le rendu reste déterministe ; seul le temps de boot varie.
+    { name: "combat", testMatch: "**/combat/**/*.spec.ts", timeout: 60_000 },
     { name: "visual", testMatch: "**/visual/**/*.spec.ts", retries: 0 },
   ].map((project) => ({ ...project, use: { ...devices["Desktop Chrome"], locale: "fr-FR" } })),
   webServer: {

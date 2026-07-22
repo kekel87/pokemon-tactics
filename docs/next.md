@@ -21,12 +21,18 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## Reporté / backlog technique
 
-### e2e Playwright manquants (non bloquants)
+### e2e Playwright — chantier de rattrapage CLOS (2026-07-22)
 
-Core + renderer livrés et couverts en unit/intégration pour toutes les familles ci-dessous, mais aucun scénario e2e ne pilote encore l'UI. À ajouter via `test-writer` + `docs/test-plan.md` §5 quand jugé utile : Move-copy (144), Field global (145), Phazing (Cyclone/Hurlement/Projection), Stat/state manip (146), Sacrifice/Self-KO (147), OHKO (148), Lock-in multi-turn (149), Priorité/timing conditionnel (150, en cours via `test-writer`), Misc Batch A→E (151-155), objets tenus légers (158), Batch B-META Morphing/Imposteur/Métamorph (157, en cours via `test-writer`). **§5.17-20 physique terrain** (LoS/chute/glace) reste 👁 (couverture SENS unit core, cf. harness Phase 5).
+**Toutes les familles de mécaniques ont désormais une couverture e2e** (~62 tests ajoutés, 3 batches via `test-writer`). Sections `docs/test-plan.md` §5.39-5.46 créées + §5.17-5.20 physique terrain révisées (👁→🤖 pour tout l'observable). Familles couvertes ce chantier : Stat/state manip (146), Lock-in (149), Manip talent Batch C (153), Buff/statut Batch D (154), Phazing, Sacrifice/Self-KO (147), Batch E grille (155, via harness N-vs-N), physique terrain (5.17-5.20). Move-copy (144)/Field global (145)/OHKO (148)/Priorité-timing (150)/Batch A/B (151-152)/Transform (157) étaient déjà couverts (next.md précédent était périmé).
 
-- **Content-fill plan 162 (9 derniers moves Gen 1)** : réussite/fizzle standards couverts 🤖. Cas de RÉUSSITE exacts Relâche/Avale (dégâts/soin par palier de Stockage) et Stockage 3ᵉ palier restent 👁 (couverts unit/intégration) — débloquable en ajoutant `stockpileCount` à `SandboxConfig`.
-- **Content-fill plan 163 (7 derniers talents Gen 1)** : 6/7 talents couverts 🤖. **Délestage** (`unburden`) reste 👁 — son effet (Vitesse ×2) ne se manifeste que via la portée de mouvement/l'ordre CT après une perte d'objet, aucun signal e2e déterministe propre sans exposer `unburdenActive` (ou un champ InfoPanel de vitesse effective) dans `SandboxConfig`.
+**Débloqués par l'extension `SandboxConfig`** (champs test-only `stockpileCount` + `unburdenActive` sur `SandboxMemberConfig`, view-core) : Relâche/Avale RÉUSSITE exacte + Stockage 3ᵉ palier (162) et Délestage (163, observé via cadence CT) — tous passés 👁→🤖.
+
+**Restent 👁 volontairement** (signal e2e absent, SENS couvert unit core) : ligne de vue hauteur (whiff/targeting ambigu), valeurs chiffrées exactes (caps ±50 %/−30 %, ×1.15, table de chute au PV près), coût de déplacement terrain (tuiles atteignables non exposées par le hook), éjection forcée corps-à-corps r1 (Cyclone/Projection : cible hors-spawn devrait être adjacente, interdit par la zone de contrôle), Colère/`rage` **non implémenté** (aucun override tactique), occlusion/curseur/perch (pixel/rendu).
+
+### Infra e2e — 2 points signalés (code-review 2026-07-22)
+
+- **Le gate ne typecheck PAS `e2e/`** : `pnpm typecheck` = `pnpm -r --parallel run typecheck` ne couvre que `packages/*` ; `e2e/` n'a pas de `package.json`, et Playwright transpile via esbuild sans type-check → une erreur `tsc` latente passe entre les mailles (attrapée cette fois par la review, ex. `as const` sur `POLL`). **À faire** : ajouter une étape `tsc -p e2e/tsconfig.json` au gate.
+- **Wrapper `pnpm exec biome` cassé dans l'env de dev** : crashe au démarrage (« Linter process terminated abnormally », même sur `biome --version`) alors que le binaire natif du store tourne (`node_modules/.pnpm/@biomejs+cli-linux-x64@2.5.5/.../biome --version` → OK). Contournement : invoquer le binaire direct. À diagnostiquer (shim JS / spawn) — sinon le gate `lint:fix` est inopérant localement.
 
 ### OP sets restants (non bloquant)
 
@@ -86,6 +92,7 @@ Core + renderer livrés et couverts en unit/intégration pour toutes les famille
 
 ## Fait récemment
 
+- 2026-07-22 — **Chantier e2e — rattrapage de couverture complet (~62 tests)** : specs Playwright pour toutes les familles restantes (Stat/state manip, Lock-in, Manip talent Batch C, Buff/statut Batch D, Phazing, Sacrifice/Self-KO, Batch E grille via harness N-vs-N, physique terrain 5.17-5.20). Extension `SandboxConfig` test-only (`stockpileCount`/`unburdenActive`) débloquant Relâche/Avale/Stockage/Délestage exacts. `docs/test-plan.md` §5.39-5.46 + §5.17-5.20 révisées (👁→🤖). Signalé : gate ne typecheck pas `e2e/` + wrapper biome cassé (voir § Infra e2e).
 - 2026-07-22 — **Plan 167 — Studio sandbox N-vs-N par équipes + harness e2e IA « scoré »** (commit WIP `024c770`) : `SandboxConfig` v2 (`teams`, adaptateur rétro-compat), contrôle par équipe (5 niveaux Joueur/Auto passif/Facile/Moyen/Difficile — `scored` câble enfin le vrai `AiTeamController` seedé), UI accordéon Équipe 1/Équipe 2. **Débloque l'e2e des heuristiques IA des plans 159/160/161** — résout l'item « e2e IA bloqué par le harness ». 2 fixes moteur (membre KO au spawn plus planifié dans le CT ; action self-KO avance le tour immédiatement — corrige l'anomalie plan 159 `getLegalActions`). RNG de création désormais seedée (`creationRng`) — résout l'item « Seeder la RNG de création du sandbox ». Fix connexe : `dexNumber` propagé aux entrées custom (Métamorph reprend sa place #132 au picker). Décisions #698–#702.
 - 2026-07-22 — **Rendu des liquides** (commit `b6261c7`) : transparence, cuvette, immersion des Pokemon, écume de bord. Terrains eau/lave/eau profonde rendus comme volumes liquides plutôt que blocs opaques.
 - 2026-07-22 — Doc : garde-fous WIP + re-test humain post-chaîne inscrits dans la règle « Après impl » de CLAUDE.md (commit `862e7c3`, origine plan 166).

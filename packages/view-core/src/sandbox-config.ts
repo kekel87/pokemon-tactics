@@ -34,6 +34,17 @@ export interface SandboxMemberConfig {
   direction?: Direction;
   /** Single passive move played each turn when the team is in "passive" (scripted) control. */
   defensiveMove?: string | null;
+  /**
+   * Pré-charge le compteur de Stockage (`stockpileCount`, plan 162). Permet de tester la RÉUSSITE
+   * exacte de Relâche/Avale (dégâts/soin par palier) et le 3ᵉ palier sans enchaîner 3 tours de
+   * Stockage (fragile). Harness e2e uniquement — pas exposé dans le studio.
+   */
+  stockpileCount?: number;
+  /**
+   * Active Délestage (`unburdenActive`, Vitesse ×2, plan 163) directement, sans simuler une perte
+   * d'objet. Rend l'effet observable via l'ordre du Charge Time. Harness e2e uniquement.
+   */
+  unburdenActive?: boolean;
 }
 
 export interface SandboxTeamConfig {

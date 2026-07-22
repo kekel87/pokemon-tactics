@@ -29,10 +29,19 @@ function applyConfigToInstance(
   status: StatusType | null,
   volatileStatus: StatusType | null,
   statStages: Partial<Record<StatName, number>>,
+  stockpileCount: number | undefined,
+  unburdenActive: boolean | undefined,
 ): void {
   const instance = result.state.pokemon.get(pokemonId);
   if (!instance) {
     return;
+  }
+
+  if (stockpileCount !== undefined) {
+    instance.stockpileCount = stockpileCount;
+  }
+  if (unburdenActive !== undefined) {
+    instance.unburdenActive = unburdenActive;
   }
 
   if (hp <= 0) {
@@ -230,6 +239,8 @@ export function createSandboxBattle(
       member.status ?? null,
       member.volatileStatus ?? null,
       member.statStages ?? {},
+      member.stockpileCount,
+      member.unburdenActive,
     );
   }
 

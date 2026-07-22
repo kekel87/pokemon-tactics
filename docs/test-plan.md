@@ -58,6 +58,14 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Talent de révélation / immobilisation / neutralisation (Fouille/Piège Sable/Gaz Inhibiteur…) | §5.14, §5.37 |
 | Heuristiques de scoring IA (choix de move) | §5.35 (unit) ; IA scorée seedée e2e §5.38 |
 | Harness équipes N-vs-N / contrôle par équipe / membre KO au spawn | §5.38 |
+| Manip état/stats (reset/copie/inversion/échange de crans — Buée Noire/Boost/Permu…) | §5.39 |
+| Lock-in multi-tours (Mania/Danse Fleurs/Colère/Brouhaha) | §5.40 |
+| Manip talent (Soucigraine/Suc Digestif/Imitation/Échange) | §5.41 |
+| Buff/statut conditionnel (Malédiction/Bâillement/Cognobidon/Acupression/Attraction/Vol Magnétik) | §5.42 |
+| Phazing / éjection forcée (Cyclone/Hurlement/Projection) | §5.43 |
+| Sacrifice / Self-KO (Destruction/Souvenir/Tout ou Rien/Lien du Destin/Rancune) | §5.44 |
+| Grille tactique (Par Ici/Poudre Fureur/Après Vous/Interversion) | §5.45 |
+| Stockage/Relâche/Avale RÉUSSITE + Délestage (débloqués `stockpileCount`/`unburdenActive`) | §5.46 (+ §5.36, §5.37) |
 | Move (effet observable) | §5 (famille concernée) |
 | HUD DOM combat (log, timeline, menus, tooltip) | §4 |
 | Écran / menu / navigation | §6 |
@@ -990,34 +998,36 @@ réellement touchées à la résolution.*
 *src : core `battle/height-modifier.ts`, `grid/line-of-sight.ts`*
 - 👁 **Ligne de vue bloquée** : une tile-obstacle dont la hauteur dépasse `hauteur de référence + 1`
   bloque une attaque qui passe au-dessus (attaquant h0 → cible derrière un obstacle h2 = bloqué).
-- 👁 Monter d'un niveau « débloque » la vue (attaquant h1 derrière obstacle h2 = passe).
+- 👁 Monter d'un niveau « débloque » la vue (attaquant h1 derrière obstacle h2 = passe). *LoS non
+  pilotée en e2e : setup ambigu (whiff/targeting) → SENS en unit core (`line-of-sight`).*
 - 🤖 **Mêlée (portée 1)** : bloquée si l'écart de hauteur ≥ 2 (h1→h3 adjacent = aucune résolution ;
-  contrôle à plat Δh=0 = résout) — `height.spec` sur `sandbox-melee-block`. *LoS + modificateur de
-  dégâts ±10%/niveau = SENS en unit core (`line-of-sight`, `height-modifier`) ; setup e2e ambigu
-  (whiff/targeting), reste 👁.*
+  contrôle à plat Δh=0 = résout) — `height.spec` sur `sandbox-melee-block`.
 - 👁 **Distance (portée ≥ 2)** : jamais bloquée par l'écart de hauteur.
-- 👁 **Modificateur de dégâts** : attaquant plus **haut** → +10 %/niveau (cap +50 %) ; plus **bas** →
-  −10 %/niveau (cap −30 %).
+- 🤖 **Modificateur de dégâts** ±10 %/niveau — même Griffe/seed/cible sur `sandbox-fall-1` (plateau
+  h2.0 / sol h1.0) : attaquant plus **haut** retire STRICTEMENT plus de PV qu'à plat (+10 %), plus
+  **bas** en retire moins (−10 %), lus par la barre de vie de la cible (`height.spec`). *Les caps
+  (+50 % / −30 %) = SENS unit core (`height-modifier`).*
 - 👁 Occlusion visuelle entre niveaux (cf §3.12) + curseur sur sommet composé.
 
 ### 5.18 Chute / repoussé (knockback) / terrain létal / glace
-*src : core `battle/fall-damage.ts`, `handlers/handle-knockback.ts`*
-- 👁 **Table de chute** (% PV max selon niveaux descendus) : 0-1 → 0 % ; 2 → 33 % ; 3 → 66 % ;
-  ≥4 → **100 % (K.O. certain)**.
+*src : core `battle/fall-damage.ts`, `handlers/handle-knockback.ts`. e2e : `mechanics-terrain-physics.spec`.*
+- 🤖 **Table de chute** (% PV max selon niveaux descendus) : 2 → 33 %, 3 → 66 % — repoussé hors d'un
+  plateau identique sur `sandbox-fall-2`/`-3`, la DIFFÉRENCE de PV (lue à la barre de vie, le dégât du
+  move s'annulant) valant exactement `floor(0.66·max) − floor(0.33·max)`. 0-1 → 0 % (SENS unit core) ;
+  ≥4 → **100 % (K.O.)** déjà 🤖 (falaise 4). — `mechanics-terrain-physics.spec`.
 - 🤖 **Repoussé (knockback)** → « <X> est repoussé ! » piloté (Draconnerie — `mechanics-movement.spec`).
-  *La chute/glissade qui SUIT le repoussé n'est PAS journalisée (dégâts via HP) → SENS unit core
-  (`fall-damage`), rendu 👁.*
-- 🤖 **chute mortelle** : repoussé par-dessus une falaise de 4 niveaux → K.O. (sur `sandbox-fall-4` — `mechanics-traversal.spec`). *Les dégâts de chute non-létaux ne sont pas journalisés → 👁.*
+- 🤖 **chute mortelle** : repoussé par-dessus une falaise de 4 niveaux → K.O. (sur `sandbox-fall-4` — `mechanics-traversal.spec`).
 - 🤖 **Terrain létal au sol** (lave / eau profonde) → **K.O.** en fin de tour, piloté sur `sandbox-flat`
   (`mechanics-terrain.spec`). *Le « poussé DANS » via knockback reste 👁 (combine knockback + fall).*
-- 👁 **Poussé sur la glace** → **glissade** automatique dans la direction du knockback jusqu'à
-  non-glace / bord / obstacle / Pokemon ; descente en glissant → dégâts de chute cumulés ;
-  collision avec un Pokemon → dégâts aux deux.
-- 👁 **Immunité knockback** : si la cible est immunisée au terrain d'arrivée (type/Volant) → non
-  déplacée.
-- 👁 **Recul (recoil)** (Damoclès `double-edge` 1/3, Bélier `take-down` 1/4) peut **K.O. le
-  lanceur** ; cumulable avec une chute (le rammeur en Dash repousse la cible **et** se reçoit le
-  recul → double K.O. possible).
+- 🤖 **Poussé sur la glace** → **glissade** automatique dans la direction du knockback jusqu'à la
+  première case non-glace : un repoussé d'UNE case sur la bande de glace (x=1) fait finir la cible en
+  (1,4), 3 cases plus loin (`spriteStates().tile`) — `mechanics-terrain-physics.spec`. *Dégâts de
+  chute en glissant + collision entre deux Pokemon = SENS unit core (`knockback-prediction`).*
+- 🤖 **Immunité knockback** : cible immunisée au terrain d'arrivée (Volant vers la lave) → **non
+  déplacée** (tuile inchangée + aucune ligne « repoussé ») — `mechanics-terrain-physics.spec`.
+- 🤖 **Recul (recoil)** peut **K.O. le lanceur** : Damoclès (`double-edge` 1/3) lancé à 1 % PV met le
+  lanceur K.O. par recul (la cible endurante survit) — `mechanics-terrain-physics.spec`. *Bélier
+  (`take-down` 1/4, Dash 85 %) + le double K.O. Dash (recul + chute) = SENS unit core → 👁.*
 
 ### 5.19 Traversée spéciale (Spectre / Volant)
 *src : core `battle/height-traversal.ts`, `terrain-effects.ts`*
@@ -1025,11 +1035,15 @@ réellement touchées à la résolution.*
   inaccessible au sol — comparaison des tuiles de déplacement Ectoplasma vs Florizarre sur la map
   fixture `sandbox-ghost-pocket.tmj` (`mechanics-traversal.spec`). *Le « ne peut pas s'arrêter sur
   l'obstacle » = vérifié implicitement (s'arrête sur la poche normale).*
-- 🤖 **Volant** immunisé aux effets de terrain : Dracaufeu sur le marais → aucun poison
-  (`mechanics-traversal.spec`).
+- 🤖 **Volant** immunisé aux effets de terrain (`mechanics-traversal.spec`) : Dracaufeu ne subit
+  **aucun poison** sur le marais, **aucune brûlure** sur le magma, et **SURVIT sur la lave** (terrain
+  mortel au sol) — PV pleins + aucune ligne K.O./statut.
+- 🤖 **Volant : pas de glissade** sur glace — repoussé sur la glace, Dracaufeu s'arrête sur la case
+  d'arrivée (1,2) au lieu de glisser (`spriteStates().tile`, contraste avec le sol §5.18) —
+  `mechanics-traversal.spec`.
 - 👁 **Volant (Flying)** : passe **au-dessus** de tout, **peut se poser** sur un obstacle (perch),
-  **immunisé** à toutes les pénalités de terrain (eau/sable/neige/marais/lave/eau profonde/glace),
-  **aucun dégât de chute**, **pas de glissade** sur glace.
+  immunité aux terrains non pénalisants au sol (eau/sable/neige) + **aucun dégât de chute** = SENS
+  unit core (`terrain-effects`, `height-traversal`).
 - 👁 Curseur / picking : le volant posé en hauteur → curseur sur son sommet (cf §3.8/§3.10).
 
 ### 5.20 Effets de terrain par type (au sol, hors Volant)
@@ -1037,17 +1051,22 @@ réellement touchées à la résolution.*
 - 🤖 Interaction (sur `sandbox-flat`, qui a tous les terrains) : **Magma → brûlé**, **Marais →
   empoisonné** (Pokémon non-Poison), **Lave → K.O.** en fin de tour (`mechanics-terrain.spec`).
   L'immunité de type est respectée (Florizarre Plante/Poison immunisé au marais). *Coût de
-  déplacement + bonus ×1.15 + glissade glace restent 👁 (SENS unit core).*
+  déplacement reste 👁 (non exposé par le harness).*
 - 👁 **Coût de déplacement** : Eau +1 (sauf Eau), Sable +1 (sauf Sol), Neige +1 (sauf Glace),
-  Marais +2 (sauf Poison/Acier).
-- 👁 **Statut de fin de tour** : **Marais** → empoisonné ; **Magma** → brûlé (sauf types immunisés).
-- 👁 **Dégâts de fin de tour** : **Magma** 1/16 PV ; **Lave** et **Eau profonde** → K.O. instantané
-  (sauf Feu/Volant resp. Eau/Volant).
-- 👁 **Bonus de puissance** : move du même type que le terrain → ×1.15 (ex. move Feu sur Magma).
-- 👁 **Glace** : glissade au knockback (cf §5.18).
-- 👁 **Table d'immunités** (aucune pénalité/statut/DOT) : Herbe haute→Volant ; Eau/Eau profonde→Eau,
-  Volant ; Magma/Lave→Feu, Volant ; Glace/Neige→Glace/Volant ; Sable→Sol, Volant ;
-  Marais→Poison, Acier, Volant.
+  Marais +2 (sauf Poison/Acier). *Non pilotable : les tuiles atteignables ne sont pas exposées par le
+  hook de scène → SENS unit core (`terrain-effects.getMovementPenalty`).*
+- 👁 **Statut de fin de tour** : **Marais** → empoisonné ; **Magma** → brûlé — déjà 🤖 ci-dessus.
+- 🤖 **Dégâts de fin de tour** : **Magma** 1/16 PV — le sujet (hot-seat) sur le magma perd exactement
+  `floor(maxHp/16)` PV après un tick de terrain, isolé de la brûlure (lu à la barre de vie) —
+  `mechanics-terrain.spec`. **Lave / Eau profonde** → K.O. instantané déjà 🤖 (§5.18/létal).
+- 🤖 **Bonus de puissance** : move du même type que le terrain sous le lanceur → ×1.15 — Poing Feu
+  depuis le magma retire STRICTEMENT plus de PV que depuis une case normale (même seed/axe/cible) —
+  `mechanics-terrain.spec`. *La valeur exacte ×1.15 = SENS unit core (`getTerrainTypeBonusFactor`).*
+- 🤖 **Glace** : glissade au knockback — cf §5.18 (`mechanics-terrain-physics.spec`).
+- 🤖 **Table d'immunités** — cas représentatifs pilotés : Volant→Marais/Magma/Lave/Glace
+  (`mechanics-traversal.spec`) ; Poison→Marais (Florizarre, `mechanics-terrain.spec`). *Le reste de la
+  table (Herbe haute→Volant ; Eau/Eau profonde→Eau ; Feu→Magma/Lave ; Glace/Neige→Glace ; Sable→Sol,
+  Acier→Marais) = SENS unit core (`terrain-effects.isTerrainImmune`).*
 
 ### 5.21 Distorsion (Trick Room) — zone statique + inversion du Charge Time
 *src : core `battle/distortion-system.ts`, `BattleEngine.getCtGainForPokemon` ; rendu zone réutilise
@@ -1530,12 +1549,11 @@ est en contrôle humain), donc exécutés de bout en bout ; déterministe (seed 
   50 % PV MAX (« Florizarre est K.O. ! ») — `mechanics-content-fill-162.spec`.
 - 🤖 **Grêle** (`hail`, Self) : pose la Neige → « … utilise Grêle ! » + HUD météo « Neige » —
   `mechanics-content-fill-162.spec`.
-- 👁 **Relâche / Avale — RÉUSSITE (dégâts × paliers ; soin 25/50/100 % ; réserve consommée + badge
-  disparu)** : **reporté** (cf. `docs/next.md`). Nécessite une réserve pré-chargée que `SandboxConfig`
-  n'expose pas (`stockpileCount`) ; la seule voie e2e serait 3+ tours de Stockage puis Relâche/Avale
-  (multi-tours fragile) → couvert unit core (`spit-up.test.ts`, `swallow.test.ts`).
-- 👁 **Stockage — 3e palier + échec au 4e usage** : reporté (4 tours consécutifs de cast → cyclage de
-  tours fragile) ; le cap et l'échec sont couverts unit (`stockpile.test.ts`).
+- 🤖 **Relâche / Avale — RÉUSSITE (dégâts × paliers ; soin 25/50/100 % ; réserve consommée)** : débloqué
+  par le champ e2e `stockpileCount` (harness) → couvert **§5.46** (`mechanics-content-fill-unlocked.spec`).
+  Le badge « Stockage » qui disparaît reste 👁 (montant/lifecycle fins = unit).
+- 🤖 **Stockage — 3e palier + échec au-delà du cap** : débloqué par `stockpileCount` (réserve à 2 → cast
+  → 3/3, puis échec) → couvert **§5.46** (`mechanics-content-fill-unlocked.spec`).
 - 👁 **Partage Garde — valeurs (moyenne Déf+Déf.Spé effectives), persistance, reset KO, purge par
   Morphing** + **Piège de Venin — magnitude/ordre des crans**, **soin météo-dépendant exact (Soleil ⅔
   / rien ½ / autre ¼)**, **dégâts exacts de Relâche (100 × paliers)** : valeurs & lifecycle =
@@ -1576,10 +1594,10 @@ e2e : `mechanics-content-fill-163.spec.ts`. Tous pilotés via l'UI (le joueur co
   `mechanics-content-fill-163.spec`.
 - 🤖 **Anticipation** (`anticipation`, révélation non-canon du talent) : le talent du dummy est révélé →
   badge « Talent : Lévitation » (infoPanel.reveal.ability) à son survol — `mechanics-content-fill-163.spec`.
-- 👁 **Délestage** (`unburden`) : **reporté** (cf. `docs/next.md`). La Vitesse ×2 (posée à la
-  consommation/perte d'objet, sans event ni journal) ne se manifeste que par la portée de mouvement /
-  l'ordre CT, non observable proprement dans le 1v1 sandbox (perte d'objet live + comparaison de
-  compte de tuiles sur la grille 6×6 clippée) → couvert unit/integration core (`effective-base-speed.test.ts`).
+- 🤖 **Délestage** (`unburden`) : débloqué par le champ e2e `unburdenActive` + le harness hot-seat →
+  la Vitesse ×2 se lit sur la CADENCE du Charge Time (le porteur reprend la main plus tôt qu'un mon de
+  même Vitesse sans le flag) → couvert **§5.46** (`mechanics-content-fill-unlocked.spec`). La valeur
+  exacte du gain / le reset KO du flag restent unit (`effective-base-speed.test.ts`).
 - 👁 **Exemptions Piège Sable fines** (Vol/Spectre/Lévitation/Fuite/Carapace Mue/Gaz Inhibiteur),
   **fin de neutralisation à la mort/départ du porteur**, **valeur exacte du soin Récolte 50 % hors
   Soleil**, **flag `unburdenActive` reset KO** : lifecycle & valeurs = unit/integration core → 👁.
@@ -1608,6 +1626,163 @@ scénarios multi-membres (allié KO au spawn, revive).
   de l'éditeur non piloté par le boot `?config` → validé à l'œil en human-testing.
 - 👁 **Réanimation visuelle** (sprite KO qui se relève, barre PV qui remonte à 50 %) : rendu/anim →
   œil ; le sens (revive + self-KO) est déjà 🤖 au journal ci-dessus.
+
+### 5.39 Famille Manip état/stats (Buée Noire / Boost / Renversement / Permu… / Bain de Smog)
+*src : `battle/handlers/stat-manip/*` (reset/copy/invert/swap) ; unit/integration core :
+`battle/handlers/stat-manip/*.test.ts`, `battle/moves/{haze,psych-up,topsy-turvy,guard-swap,
+power-swap,heart-swap,speed-swap,clear-smog}.test.ts`.*
+Reset / copie / inversion / échange de crans de stats. Tous des moves STATUT (aucun jet) →
+déterministes ; le SENS est la ligne de journal FR dédiée. Duel normal (`sandbox-flat` rang y=4,
+100 % normal) : lanceur (2,4) est / cible Ronflex endurante (3,4). — `mechanics-stat-state-manip.spec`.
+- 🤖 **Buée Noire** (`haze`, Zone r3 Self) → « Les changements de stats de tous les Pokémon sont
+  annulés ! » (team-agnostic).
+- 🤖 **Bain de Smog** (`clear-smog`, Single 1-3) → dégâts (« Ronflex perd N PV ») puis reset des crans.
+- 🤖 **Boost** (`psych-up`) → « Florizarre copie les changements de stats de Ronflex ! ».
+- 🤖 **Renversement** (`topsy-turvy`) → « Les changements de stats de Ronflex sont inversés ! ».
+- 🤖 **Permugarde** (`guard-swap`) → « … échangent leur Défense et Déf. Spé. ! ».
+- 🤖 **Permuforce** (`power-swap`) → « … échangent leur Attaque et Atq. Spé. ! ».
+- 🤖 **Permucœur** (`heart-swap`, r1) → « Florizarre et Ronflex échangent leur … ! » (les 7 crans).
+- 🤖 **Permuvitesse** (`speed-swap`, r1) → « … échangent leur Vitesse ! » (Vitesse brute).
+- 👁 Valeurs exactes des crans post-échange, blocage par le Clone (Substitut), immunités = unit core.
+
+### 5.40 Famille Lock-in multi-tours (Mania / Danse Fleurs / Colère / Brouhaha)
+*src : `battle/lock-in.ts`, `battle/uproar-aura.ts` ; unit core : `battle/lock-in.test.ts`,
+`battle/uproar-aura.test.ts`, `battle/moves/{outrage,thrash,petal-dance,uproar}.test.ts`.*
+Un move qui verrouille son lanceur plusieurs tours (2-3 + Confusion finale ; Brouhaha 3 sans
+confusion). — `mechanics-lock-in.spec`.
+- 🤖 **Colère** (`outrage`) → journal de départ « Florizarre se déchaîne avec Colère ! » (LockInStarted).
+- 🤖 **Colère — verrouillage** : après un cast, au tour suivant le menu d'attaque ne laisse Colère
+  jouable (`data-enabled="true"`) que Colère ; Griffe est désactivée (`data-enabled="false"`, filtrée
+  par `getLegalActions`), convention §5.16/§5.31.
+- 🤖 **Mania** (`thrash`) / **Danse Fleurs** (`petal-dance`) → « … se déchaîne avec … ! ».
+- 🤖 **Brouhaha** (`uproar`, Cone 1-3, verrou 3 sans confusion) → « … se déchaîne avec Brouhaha ! ».
+- 👁 **Décompte exact + Confusion finale** (2-3 tours, self-confusion à l'expiration) + immunité Terrain
+  Brumeux + aura anti-sommeil de Brouhaha = unit core (décompte variable au seed → non asserté e2e).
+- 👁 **Ball'Glace** (`ice-ball`) : ce n'est **pas** un lock-in mais un snowball (`RolloutStreak`, la
+  puissance croît par usage consécutif) → couvert unit `dynamic-power`, pas de signal journal distinct
+  du dégât en 1v1. **Frénésie** (`rage`) : **non implémenté** (aucun override tactique) → non testable.
+
+### 5.41 Famille Manip talent — Batch C (Soucigraine / Suc Digestif / Imitation / Échange)
+*src : `battle/handlers/ability-manip/*` ; unit/integration core :
+`battle/handlers/ability-manip/*.test.ts`, `battle/moves/{worry-seed,gastro-acid,role-play,
+skill-swap}.test.ts`.*
+Mutation runtime du talent (event `AbilityChanged`). Lanceur Engrais (`overgrow`), cible Vaccin
+(`immunity`), distincts → aucun échec no-op. Single r1, cast sur la cible (3,4). —
+`mechanics-ability-manip.spec`.
+- 🤖 **Soucigraine** (`worry-seed`) → « Le talent de Ronflex devient <Insomnie> ! » (SetByMove).
+- 🤖 **Suc Digestif** (`gastro-acid`) → « Le talent de Ronflex est neutralisé ! » (GastroAcid).
+- 🤖 **Imitation** (`role-play`) → « Florizarre copie le talent <Vaccin> ! » (RolePlay).
+- 🤖 **Échange** (`skill-swap`) → « Le talent de Florizarre devient … ! » (SkillSwap, ×2 côtés).
+- 👁 Effet fonctionnel du talent muté (Insomnie réveille, suppression pour tout le combat) = unit.
+
+### 5.42 Famille Buff/statut — Batch D (Malédiction / Bâillement / Cognobidon / Acupression / Attraction / Vol Magnétik)
+*src : `battle/handlers/buff-status/*` ; unit/integration core :
+`battle/handlers/buff-status/*.test.ts`, `battle/moves/{curse,yawn,belly-drum,acupressure,attract,
+magnet-rise}.test.ts`.*
+Chaque move a une ligne de journal FR dédiée. — `mechanics-buff-status.spec`.
+- 🤖 **Malédiction — Spectre** (`curse`, Ectoplasma) → « Ectoplasma se maudit et jette une malédiction
+  sur Ronflex ! (-N PV) » (Cursed, sacrifice 50 % PV + DoT).
+- 🤖 **Malédiction — non-Spectre** (Florizarre, Self) → buff « Attaque … augmente ! » + « Vitesse …
+  baisse ! » (ciblage conditionnel au type du lanceur).
+- 🤖 **Bâillement** (`yawn`) → « Ronflex commence à somnoler ! » (Drowsy, sommeil différé).
+- 🤖 **Cognobidon** (`belly-drum`, Self) → « Florizarre se tape le bidon et maximise son Attaque ! (-N PV) ».
+- 🤖 **Acupression** (`acupressure`, Self) → « <stat aléatoire> de Florizarre augmente ! » (stat seedée,
+  on assert la hausse, pas l'identité).
+- 🤖 **Attraction** (`attract`) → Tauros (♂) sur Kangourex (♀, sexe opposé garanti) → « Kangourex tombe
+  amoureux ! » (Infatuated).
+- 🤖 **Vol Magnétik** (`magnet-rise`, Self) → « Florizarre lévite grâce à un champ magnétique ! ».
+- 👁 Effets internes différés/persistants (DoT de Malédiction, endormissement effectif du Bâillement,
+  cap +6 de Cognobidon, 50 % saut de tour d'Attraction, immunité Sol 5 tours de Vol Magnétik) = unit.
+
+### 5.43 Famille Phazing (Cyclone / Hurlement / Projection)
+*src : `battle/handlers/handle-phaze.ts`, `battle/forced-teleport.ts` ; unit core :
+`battle/handlers/handle-phaze.test.ts`, `battle/forced-teleport.test.ts`.*
+Pas de banc → le switch forcé canon est réinterprété en **éjection vers la zone de spawn**
+(`PhazeToSpawn` → `ejectToSpawn`, comme Bouton Fuite / Carton Rouge). — `mechanics-phazing.spec`.
+- 🤖 **Projection** (`circle-throw`, Single 1-1, lanceur avec Aucun Garde → 100 %) → dégâts observables
+  « Ronflex perd N PV ».
+- 🤖 **Cyclone** (`whirlwind`, Zone r1 Self) / **Hurlement** (`roar`, Cone 1-3) → le move se lance et
+  résout (MoveStarted « Florizarre utilise Cyclone / Hurlement ! »).
+- 🤖 **L'éjection forcée elle-même** (le repoussé « … se téléporte ! ») — débloquée par le harness
+  hot-seat (plan 167) : on PILOTE l'Électrode ennemi (rapide → actif au boot) hors de son spawn (5,4)
+  → (4,4), puis Hurlement (cône r1-3, atteint (4,4) sans coller le lanceur ; Statik forcé pour
+  contourner Anti-Bruit qui bloque le move sonore) le renvoie chez lui → « Électrode se téléporte ! »
+  (Teleported) et il retrouve (5,4) (via `spriteStates`). Cyclone r1 / Projection r1 restent 👁 (leur
+  adjacence est interdite par la zone de contrôle → pas de cible hors-spawn atteignable). —
+  `mechanics-phazing.spec`.
+- 👁 **Éjection au corps-à-corps** (Cyclone r1 / Projection r1) : la cible hors-spawn devrait se tenir
+  adjacente au lanceur, ce que la zone de contrôle interdit → couvert par les unit core ci-dessus.
+
+### 5.44 Famille Sacrifice / Self-KO (Destruction / Explosion / Souvenir / Tout ou Rien / Lien du Destin / Rancune)
+*src : `battle/handlers/{handle-final-gambit,handle-post-destiny-bond,handle-post-grudge}.ts`,
+`battle/BattleEngine.ts` (`handleKo`, `isExplosion`, `selfKo`) ; unit core :
+`battle/moves/{self-destruct,explosion,memento,final-gambit,destiny-bond,grudge}.test.ts`,
+`battle/handlers/handle-final-gambit.test.ts`.*
+Le lanceur meurt en échange d'un effet ; en 1v1 son self-K.O. clôt le combat, mais les lignes de
+résolution sont émises avant et persistent. Vœu Soin est couvert §5.38 (non dupliqué). Cast au tour 1.
+— `mechanics-self-ko.spec`.
+- 🤖 **Destruction** (`self-destruct`) / **Explosion** (`explosion`, Zone r2 Self, isExplosion) → dégâts
+  AoE « Ronflex perd N PV » + auto-K.O. « Florizarre est K.O. ! ».
+- 🤖 **Souvenir** (`memento`, selfKo) → « Attaque de Ronflex baisse ! » + « Florizarre est K.O. ! ».
+- 🤖 **Tout ou Rien** (`final-gambit`, selfKoOnConnect) → « Florizarre joue le tout pour le tout ! »
+  (FinalGambitApplied) + « Ronflex perd N PV ».
+- 🤖 **Lien du Destin** (`destiny-bond`, Self) → « Florizarre tisse un lien du destin… » (DestinyBondPosted).
+- 🤖 **Rancune** (`grudge`, Self) → « Florizarre nourrit une rancune… » (GrudgePosted).
+- 👁 **Déclenchements différés** de Lien du Destin (le tueur est entraîné dans la chute) et de Rancune
+  (le move tueur est scellé sur l'attaquant) : exigent que le lanceur soit K.O. par un ennemi avant son
+  prochain tour → non gréable proprement en 1v1 déterministe. Couverts par les unit core (`handleKo`).
+- 👁 Blocage par Moiteur de Destruction (`self-destruct`) déjà couvert §5.24 ; valeurs de dégâts / de
+  baisses de stats / immunité Spectre de Tout ou Rien = unit core.
+
+### 5.45 Batch E « grille » (Par Ici / Poudre Fureur / Après Vous / Interversion)
+*src : `battle/handlers/grid-targeting/{handle-draw-attention,handle-act-after-user,
+handle-swap-ally-positions}.ts`, `battle/powder-immunity.ts`, `battle/BattleEngine.ts`
+(`promoteToImmediateNext`, `pendingCtPromotion`) ; events `DrewAttention` / `PromotedToActNext` /
+`AlliesSwapped` ; journal `ui-dom/BattleLogFormatter.ts` ; unit core :
+`battle/moves/{follow-me,rage-powder,after-you,ally-switch}.test.ts`.*
+Quatre moves hors-pool Gen 1 (redirection / promotion CT / échange de position) forcés via `moves`,
+pilotés via le **harness N-vs-N** (plan 167 : format v2 `teams`, requis pour les moves alliés). Moves
+statut sans jet → déterministe (seed fixe). — `mechanics-grid-tactics.spec`.
+- 🤖 **Par Ici** (`follow-me`, Zone r4 Self) : un ennemi dans le diamant r4 pivote → « Florizarre attire
+  l'attention ! … » (DrewAttention) ; un ennemi HORS r4 (parqué en (0,0), Manhattan 6) ne pivote pas →
+  le move se lance (« utilise Par Ici ! ») mais AUCUNE ligne « attire l'attention » (borne de la zone).
+- 🤖 **Poudre Fureur** (`rage-powder`, Zone r4 Self, move POUDRE) : un ennemi non immunisé (Ronflex,
+  Normal) pivote → « attire l'attention ! » ; un ennemi Plante (Florizarre) DANS la zone est immunisé
+  (poudre) → « utilise Poudre Fureur ! » sans « attire l'attention » (contraste du flag poudre vs Par Ici).
+- 🤖 **Après Vous** (`after-you`, Single r3 allié) : l'allié LENT ciblé est promu prochain → « Ronflex va
+  agir juste après ! » (PromotedToActNext) puis, après `endTurn`, devient l'actif AVANT l'ennemi rapide
+  (portrait de tête de la timeline = l'allié).
+- 🤖 **Interversion** (`ally-switch`, Single r3 allié) : le lanceur et l'allié permutent leur case →
+  « Florizarre et Ronflex échangent leur place ! » (AlliesSwapped) + positions effectivement échangées
+  dans la scène (Florizarre ↔ Ronflex via `spriteStates`).
+- 👁 **Orientation dos-exposé (back-attack ×1.15)** de Par Ici / Poudre Fureur, **re-déclenchement du
+  terrain aux 2 cases** d'Interversion (lave/eau/hazard), **immunités poudre fines** (Envelocape /
+  Lunettes Filtre) : valeurs & lifecycle = unit/integration core.
+
+### 5.46 Content-fill débloqué — Relâche / Avale / Stockage RÉUSSITE + Délestage (plans 162/163)
+*src : `battle/handlers/stockpile/{handle-stockpile,handle-consume-stockpile,handle-swallow-heal}.ts`,
+`dynamic-power-system.ts` (`StockpileLayers` = 100 × paliers), `battle/effective-base-speed.ts`
+(unburden ×2 sur la Vitesse de base) ; `view-core/sandbox-config.ts` (champs e2e `stockpileCount` /
+`unburdenActive`) + `view-core/SandboxSetup.ts` (`applyConfigToInstance`) ; unit core :
+`battle/moves/{spit-up,swallow,stockpile}.test.ts`, `battle/effective-base-speed.test.ts`.*
+Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux champs `stockpileCount` /
+`unburdenActive` (harness e2e uniquement). Déterministe (seed moteur). — `mechanics-content-fill-unlocked.spec`.
+- 🤖 **Relâche** (`spit-up`) RÉUSSITE : réserve pré-chargée à 3 paliers → dégâts « Ronflex perd N PV » +
+  « Florizarre libère sa réserve accumulée ! » (StockpileReleased) ; les dégâts CROISSENT avec les
+  paliers (3 > 1, assertion chiffrée figeant « 100 × paliers ») ; après le cast la réserve retombe à 0
+  → un 2ᵉ Relâche ÉCHOUE (« Mais cela échoue … ! »).
+- 🤖 **Avale** (`swallow`) RÉUSSITE : réserve à 3 paliers + PV bas → soin « Florizarre récupère N PV » +
+  « libère sa réserve accumulée ! » ; le soin CROÎT avec les paliers (3 → 50 % du max plafonné > 1 → 25 %).
+- 🤖 **Stockage** (`stockpile`) 3ᵉ palier : réserve à 2 paliers → « accumule ! (Stockage 3/3) » ; un cast
+  au-delà du cap 3 (après `endTurn`) échoue (« Mais cela échoue … ! »).
+- 🤖 **Délestage** (`unburden`) : deux Florizarre de même Vitesse de base, SEUL le flag diffère (hot-seat).
+  Le mon actif au boot étant figé à la création (avant le flag), le ×2 se lit sur la CADENCE : après deux
+  « Attendre » le porteur (équipe 2) reprend la main en 3ᵉ, là où le témoin (sans flag, Vitesse égale)
+  rend la main à l'équipe 1. Prouve que le ×2 (courbe log → gain accru, pas doublé) rend strictement
+  plus rapide.
+- 👁 **Valeurs exactes** (montant « 100 × paliers » au PV près, fractions de soin 25/50/100 %, cadence CT
+  chiffrée), **reset des crans Déf/Déf.Spé** à la consommation, **reset KO du flag `unburdenActive`** :
+  valeurs & lifecycle = unit/integration core.
 
 ---
 
@@ -1863,7 +2038,8 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-dynamic-power.spec.ts` | §5.23 puissance conditionnelle : Branchicrok & Prise de Bec (hors-pool, ×2 cible fraîche tour 1) résolvent et infligent des dégâts (journal « perd N PV »). Hommage Posthume non couvert (scaling non observable en 1v1 + Dummy Normal immunisé Spectre) → 👁 |
 | `combat/mechanics-charge.spec.ts` | §5.6 Vol charge, §5.7 Clonage, §5.11 Lance-Soleil (journal) + preview charge sous/hors Soleil (`sunSkipsCharge`) |
 | `combat/mechanics-movement.spec.ts` | §5.13 Téléport + hit-and-run Demi-Tour + dash directionnel (Vive-Attaque, chantier g), §5.18 repoussé (Draconnerie) |
-| `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) |
+| `combat/mechanics-terrain.spec.ts` | §5.20 Magma brûle / Marais empoisonne / Lave K.O. (sur `sandbox-flat`) ; §5.20 DoT Magma = `floor(maxHp/16)` (sujet hot-seat, tick isolé de la brûlure, lu à la barre de vie) ; §5.20 bonus de puissance ×1.15 (Poing Feu depuis le magma retire plus de PV que depuis une case normale, même seed/axe) |
+| `combat/mechanics-terrain-physics.spec.ts` | §5.18 table de chute (fall-2/fall-3 : diff PV = `floor(0.66·max)−floor(0.33·max)`, dégât du move annulé) ; §5.18 glissade glace (repoussé 1 case → tuile finale (1,4), `spriteStates`) ; §5.18 immunité repoussé (Volant vers la lave → tuile inchangée, pas de « repoussé ») ; §5.18 recul mortel (Damoclès à 1 % PV → lanceur K.O. par recul). Valeurs/caps chiffrés, take-down Dash, collision glace = unit core |
 | `combat/mechanics-abilities.spec.ts` | §5.14 Intimidation (talent) + Restes (objet) + 3 baies (Baie Pocpoc anti-type, Baie Lichii pincement, Baie Fraive soin — une par famille) + 2 objets simples à event (Grelot Coque soin post-coup, Orbe Toxique auto-Poison Grave) + Bulbe (objet de réaction : coup Eau → Atq. Spé. +1 + consommé, une par famille) + Graine Électrik (granule de terrain : pose Champ Électrifié sous soi → fin de tour Déf +1 + consommée, une par famille) journalisés. Bandeau Muscle / Lunettes Sages (×1.1 sans event) = unit ; Pile / Boule de Neige / Lichen Lumineux (même factory) = unit ; Graine Herbe / Graine Psychique / Graine Brume (même factory) = unit + objets de précision (bande de jet seed 6, Élecanon 50 % : témoin sans objet rate / Loupe ×1,1 touche / Lentille Zoom ×1,0 inactive face à dummy inerte rate ; ×1,2 conditionnel = unit) + objets d'évasion (bande de jet seed 30, Jet-Pierres 90 % : témoin sans objet touche / Poudre Claire ×0,9 rate / Encens Doux ×0,9 rate) + §5.15 objets flinch (bande de jet seed 3, Jet-Pierres 90 % côté attaquant porteur : témoin sans objet touche sans apeurer / Roche Royale +10 % apeure / Croc Rasoir +10 % apeure) + §5.16 nouveaux objets (Herbe Mental : le joueur lance Provoc sur le dummy porteur → « Herbe Mental … s'active ! » + « a utilisé son Herbe Mental » ; Veste de Combat : au menu Attaque le move statut Repli reste affiché mais `data-enabled="false"`, Griffe sélectionnable, témoin sans objet → Repli sélectionnable). Grosse Racine (×1,3 soin drain) + Déf. Spé ×1,5 de la Veste + autres volatiles soignés par l'Herbe Mental = unit |
 | `combat/mechanics-talents-tier-a.spec.ts` | §5.14 talents Tier A (plan 136) : Régé-Force (soin de fin de tour), Multi-Coups (Balle Graine → « Touché 5 fois ! »), Querelleur (Griffe touche un Ectoplasma Spectre — dégâts présents, « Ça n'affecte pas » absent — garde le fix handle-damage). Autres talents Tier A (silencieux / dépendants de l'IA) = unit |
 | `combat/mechanics-talents-tier-b.spec.ts` | §5.15 talents Tier B (plan 137) : Sécheresse (Soleil à l'entrée → HUD « Plein soleil »), Cuvette (soin de fin de tour sous Pluie → « Cuvette … s'active ! » + « récupère N PV »), Vaccin (Poudre Toxik bloquée → « Vaccin … s'active ! », « est empoisonné » absent). 11 autres talents Tier B (blockers/multiplicateurs silencieux, soins miroirs, réactions dépendantes du type de coup ou de l'IA) = unit |
@@ -1880,16 +2056,24 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-crit.spec.ts` | §5.32 famille manipulation de coups critiques (Misc Batch A, plan 151) : Puissance (`focus-energy`, Self) → journal « … est plus enclin aux coups critiques ! » + badge InfoPanel « Puissance +2 » (survol du lanceur) ; Affilage (`laser-focus`, Self, 0 learner Gen 1 → sandbox) → journal « … se concentre : son prochain coup sera critique ! » + badge « Affilage », puis le coup SUIVANT (Griffe au tour 2 après un tour terminé) est forcé critique → « Coup critique sur … ! » ; Yama Arashi (`storm-throw`, `alwaysCrit`, 0 learner Gen 1 → sandbox) → « Coup critique sur … ! » à chaque coup, seed-indépendant. Cri Draconique (`dragon-cheer`, exige un allié JOUEUR — non supporté par le harness) et Dark Lariat (`darkest-lariat`, ignore les crans défensifs — pas de feedback observable) + lifecycle multi-tours (empilement, cleanup KO, `preventsCrit` annule `alwaysCrit`) = unit/integration core (`moves/*.test.ts`, `crit-manip.integration.test.ts`) → 👁 |
 | `combat/mechanics-utility-damage.spec.ts` | §5.33 famille dégâts utilitaires (Misc Batch B, plan 152) : Faux-Chage (`false-swipe`, `cannotKo`) — dégâts sans K.O., cible à quelques PV reste à EXACTEMENT 1 PV (InfoPanel « 1 / max ») + aucune victoire ; Croc Fatal (`super-fang`, `HalveTargetHp`, 90 % → `seed: 1`) — « … perd la moitié de ses PV (-N) ! » (SuperFangApplied) + flottant `-N` ; Ruse (`feint`, `bypassProtect`) — le dummy (plus rapide, Ronflex lent en face) se protège (Abri) puis Ruse touche à travers (journal dégâts) ; Anti-Air (`smack-down`) — cloue le Dracolosse (Vol) au sol → « … est cloué au sol ! » (SmackedDown) + badge InfoPanel « Au sol », puis contrôle immunité Sol (Coud'Boue sur Vol non cloué = zéro dégât, immunité de type silencieuse) vs cas cloué (Coud'Boue ajoute une ligne de dégâts) ; Poursuite (`pursuit`, `pursuitBackstab`) — deux boots au seul dummyDirection près → dégâts de dos (×2,3) > 2× ceux de face (×0,85) ; Corps Perdu (`vital-throw`, `bypassAccuracy`) — touche une cible à Esquive +6 sans « rate son attaque ! ». Substitut cassable (Faux-Chage), typechart ignoré + K.O. 1-2 PV (Croc Fatal), ×0,85 face/×1,0 flanc exacts (Poursuite), vulnérabilité hazards + atterrissage forcé + cleanup KO (grounding), contrôle négatif du never-miss = unit/integration core (`moves/*.test.ts`, `utility-damage.integration.test.ts`) → 👁. Flottants (couleur) + tags tooltip = 👁 (pixel) |
 | `combat/mechanics-transform.spec.ts` | §5.34 famille Transform (plan 157) : Morphing (`transform`) — Mew lance Morphing sur le Léviator adjacent → journal « Mew se transforme ! » (event Transformed), le menu d'attaque liste ensuite les moves copiés de la cible (« Cascade », plus « Morphing »), l'InfoPanel garde l'identité + les PV du lanceur (nom « Mew » inchangé, barre de PV stable — PV non copiés #649), et le type Vol copié fait léviter le morphé sur le marais (aucune ligne « marécage » en fin de tour, témoin non transformé empoisonné) ; Imposteur (`imposter`) — Métamorph (ditto) se transforme à l'entrée sur l'ennemi le plus proche → « … se transforme ! » dès le boot + menu du tour 1 déjà celui de la cible. Swap d'atlas du sprite (texture non exposée par le hook scène) + interaction Substitut + nom d'affichage `ditto`/Métamorph + copie fine (stats/crans/tempo/poids/genre), gates d'échec, cleanup KO, garde-fou IA, « manip écrase » = unit/integration core (`transform.integration.test`, `moves/transform.test.ts`, `handlers/transform/transform.test.ts`) → 👁 |
-| `combat/mechanics-content-fill-162.spec.ts` | §5.36 content-fill des 9 derniers moves Gen 1 (plan 162), tous pilotés joueur : Stockage (`stockpile`) accumule un palier (« accumule ! (Stockage 1/3) » + badge InfoPanel « Stockage 1 »), un 2e usage empile « (Stockage 2/3) » ; Relâche (`spit-up`) & Avale (`swallow`) échouent sans réserve (« Mais cela échoue … ! ») ; Prio-Parade (`upper-hand`) touche+apeure une cible agressive (dummy hot-seat à la Charge) sinon fizzle ; Piège de Venin (`venom-drench`) baisse 3 stats d'une cible empoisonnée sinon fizzle ; Rayon Lune (`moonlight`) & Aurore (`morning-sun`) soignent le lanceur (« récupère N PV ») ; Partage Garde (`guard-split`) « partage sa Garde avec … » ; Métalaser (`steel-beam`, 95 % → seed qui touche) inflige dégâts + recul « Florizarre perd N PV » et auto-K.O. un lanceur à bas PV ; Grêle (`hail`) pose la Neige (« utilise Grêle » + HUD « Neige »). Réussite Relâche/Avale + 3e palier/4e-échec Stockage (réserve pré-chargée / multi-tours) + valeurs Partage Garde / soin météo exact / dégâts × paliers = unit/integration core → 👁 (reporté `docs/next.md`) |
-| `combat/mechanics-content-fill-163.spec.ts` | §5.37 content-fill des 7 derniers talents Gen 1 (plan 163), pilotés via l'UI : Récolte (`harvest`) recrée sous Soleil la Baie Lichii mangée en fin de tour (« Récolte … s'active ! » + « recycle son Baie Lichii ») ; Piège Sable (`arena-trap`) désactive le bouton « Deplacement » du piégé non-exempté (Cran) + badge « Piégé », et le libère (badge disparu) quand le porteur s'éloigne ; Gaz Inhibiteur (`neutralizing-gas`) monte le badge « Talent neutralisé » sur un ennemi à Manhattan r2 (pas au-delà, pas d'auto-neutralisation) ; Fouille (`frisk`) → badge « Objet : Restes » ; Prédiction (`forewarn`) → badge « Menace : … » ; Anticipation (`anticipation`) → badge « Talent : Lévitation ». Délestage (`unburden`, Vitesse ×2 non observable proprement en 1v1) = unit/integration core → 👁 (reporté `docs/next.md`) ; exemptions Piège Sable fines / fin de neutralisation à la mort / soin Récolte 50 % hors Soleil / reset KO = unit |
-| `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant (marais) |
+| `combat/mechanics-content-fill-162.spec.ts` | §5.36 content-fill des 9 derniers moves Gen 1 (plan 162), tous pilotés joueur : Stockage (`stockpile`) accumule un palier (« accumule ! (Stockage 1/3) » + badge InfoPanel « Stockage 1 »), un 2e usage empile « (Stockage 2/3) » ; Relâche (`spit-up`) & Avale (`swallow`) échouent sans réserve (« Mais cela échoue … ! ») ; Prio-Parade (`upper-hand`) touche+apeure une cible agressive (dummy hot-seat à la Charge) sinon fizzle ; Piège de Venin (`venom-drench`) baisse 3 stats d'une cible empoisonnée sinon fizzle ; Rayon Lune (`moonlight`) & Aurore (`morning-sun`) soignent le lanceur (« récupère N PV ») ; Partage Garde (`guard-split`) « partage sa Garde avec … » ; Métalaser (`steel-beam`, 95 % → seed qui touche) inflige dégâts + recul « Florizarre perd N PV » et auto-K.O. un lanceur à bas PV ; Grêle (`hail`) pose la Neige (« utilise Grêle » + HUD « Neige »). Réussite Relâche/Avale + 3e palier/échec au-delà du cap Stockage désormais 🤖 via `stockpileCount` → §5.46 (`mechanics-content-fill-unlocked.spec`) ; valeurs Partage Garde / soin météo exact / dégâts × paliers au PV près = unit/integration core → 👁 |
+| `combat/mechanics-content-fill-163.spec.ts` | §5.37 content-fill des 7 derniers talents Gen 1 (plan 163), pilotés via l'UI : Récolte (`harvest`) recrée sous Soleil la Baie Lichii mangée en fin de tour (« Récolte … s'active ! » + « recycle son Baie Lichii ») ; Piège Sable (`arena-trap`) désactive le bouton « Deplacement » du piégé non-exempté (Cran) + badge « Piégé », et le libère (badge disparu) quand le porteur s'éloigne ; Gaz Inhibiteur (`neutralizing-gas`) monte le badge « Talent neutralisé » sur un ennemi à Manhattan r2 (pas au-delà, pas d'auto-neutralisation) ; Fouille (`frisk`) → badge « Objet : Restes » ; Prédiction (`forewarn`) → badge « Menace : … » ; Anticipation (`anticipation`) → badge « Talent : Lévitation ». Délestage (`unburden`, Vitesse ×2) désormais 🤖 via `unburdenActive` + harness hot-seat (cadence CT) → §5.46 (`mechanics-content-fill-unlocked.spec`) ; exemptions Piège Sable fines / fin de neutralisation à la mort / soin Récolte 50 % hors Soleil / reset KO = unit |
+| `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant immunités (marais/magma/lave : PV pleins, aucun statut/K.O.) + §5.19 Volant pas de glissade sur glace (tuile d'arrivée conservée) |
 | `combat/flying-resting-anim.spec.ts` | §3.6 anim de repos d'un Volant selon le terrain d'atterrissage (Roucarnage/`pidgeot` sur `sandbox-flat`, déplacements 1-case pilotés + hook `spriteStates`) : glace (1,2) & marais (2,2) fly-over → reste en vol (`restingAnimation` « FlyingIdle ») ; sol `normal` (1,1) → se pose (« Idle »). La table `isFlyoverTerrain` (tous les terrains fly-over) = unit `view-core/movement-animation.test.ts` ; le glide visuel/hauteur du sprite = 👁 |
-| `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) |
+| `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) + §5.17 modificateur de dégâts ±10 %/niveau (`sandbox-fall-1` : attaquant plus haut/plus bas → PV cible ≷ à plat, même Griffe/seed) |
 | `combat/patterns.spec.ts` | §5.16 — 10 patterns pilotés de bout en bout (journal « utilise X ») |
 | `combat/weather.spec.ts` | §4.3/§5.12 — HUD météo (config) + pose via cast (Danse Pluie/Zénith/Tempête de Sable) ; §5.14 Roche Humide prolonge la Pluie à 8 tours (HUD `weather-turns`) |
 | `combat/mechanics-items.spec.ts` | §5.17 objets tenus du lot 95→99 : Ballon (éclate au 1er coup offensif → « Ballon … s'active ! » + « a utilisé son Ballon »), Lunettes Filtre (Spore bloqué → « Lunettes Filtre … s'active ! », « s'est endormi » absent), Pare-Effet (Griffe contact → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Talisman Sain (Groz'Yeux IA bloqué → « Talisman Sain … s'active ! »). Immunités silencieuses (Sol/poudre/météo, hazards/terrains au sol, baisse auto-infligée) = unit/integration. §5.18 lot 99→101 : Gant de Boxe (Mach Punch Poing → Casque Brut adverse muet ; témoin sans objet → Casque Brut s'active), Spray Gorge (Aboiement Son → « Spray Gorge … s'active ! »). Boost ×1,1, +1 AtqSpé, consommation, move Son statut = unit. §5.19 Métronome (objet) : 4 Griffe d'affilée sur dummy Ronflex endurant → AVEC objet le 4e coup (×1,3) > le 1er (×1,0) ; SANS objet série plate (variance seule). Compteur 0..10, cap +100 %, remise à zéro (move différent/raté) = unit. §5.20 objets « eject » (lot 102→104) : Carton Rouge (Florizarre dashe en Vive-Attaque depuis son spawn sur le dummy Ronflex porteur → l'ATTAQUANT est renvoyé chez lui → « Carton Rouge … s'active ! » + « … se téléporte ! » + « a utilisé son Carton Rouge »). Bouton Fuite (renvoie le PORTEUR : no-op si le dummy n'a pas bougé → non pilotable côté joueur) = unit/integration core (`forced-teleport.test.ts`, `items/eject-items.test.ts`) → 👁. Orbe Vie (recul 1×/attaque, même multi-coups) : Florizarre porteur lance Balle Graine sur le dummy endurant → « Orbe Vie … s'active ! » à `toHaveCount(1)` (fix vs régression du recul par coup) ; montant chiffré du recul + fire-once mono-coup = integration core (`held-items.integration.test.ts`). Casque Brut (recoil défenseur PAR coup, canon) distinct = témoins Pare-Effet/Gant §5.17/§5.18. Casque Brut — coup fantôme (régression) : attaquant `hp: 1` lance Double Pied (2 coups fixes, contact) sur le dummy Ronflex porteur du Casque → le recul du coup 1 le met K.O. → « Florizarre est K.O. ! » + récap « Touché 1 fois ! » (jamais « Touché 2 fois ! » — la boucle multi-coups s'arrête au K.O., fix `handle-damage`) ; montant chiffré + fire-once = integration core (`held-items.integration.test.ts` : « pas de coup fantôme ») |
 | `combat/mechanics-items-content-fill.spec.ts` | §5.14 objets légers content-fill (plan 158) : Carapace Mue (Étreinte + Aucun Garde forçant 100 % sur le dummy Ronflex porteur → « L'objet de Ronflex le protège ! », « Ronflex est piégé ! » absent), Dé Pipé (Balle Graine → « Touché 5 fois ! » via l'objet). 9 autres objets silencieux (marqueurs poids/vitesse, crit-stage, défense Métamorph, modulateurs de piège, anti-secondaire, survie 10 %) + 2 talents no-op (Fuite/Ramassage) = unit (`battle/items/content-fill-158.test.ts`, `effective-weight.test.ts`, `effective-base-speed.test.ts`) → 👁 |
 | `combat/teams-scored-ai.spec.ts` | §5.38/§5.35 harness équipes v2 (`teams`, plan 167) : IA scorée « hard » seedée agit d'elle-même (Dracaufeu → Lance-Flammes, journal « utilise » + « perd N PV »), contraste équipe `passive` inerte (aucune ligne « utilise » + sprite figé sur sa tuile de spawn via `spriteStates`) ; membre KO au spawn (`hp:0`) ne bloque pas le tour + réanimé par Vœu Soin (« revient au combat ! » + self-KO du lanceur « est K.O. »). Reproductibilité chiffrée (dégât exact) = 👁 (RNG de création non seedée, cf. §5.35) ; chrome studio équipes (accordéon/contrôle/add-trash) + anim de réanimation = 👁 |
+| `combat/mechanics-stat-state-manip.spec.ts` | §5.39 famille Manip état/stats (plan 146) : Buée Noire (reset zone Self « … tous les Pokémon sont annulés ! »), Bain de Smog (dégâts + reset), Boost (« copie les changements de stats »), Renversement (« … sont inversés »), Permugarde/Permuforce/Permucœur (« échangent leur … »), Permuvitesse (« échangent leur Vitesse »). Valeurs de crans / blocage Clone = unit core → 👁 |
+| `combat/mechanics-lock-in.spec.ts` | §5.40 famille Lock-in multi-tours (plan 149) : Colère/Mania/Danse Fleurs/Brouhaha → journal de départ « … se déchaîne avec … ! » (LockInStarted) ; Colère → verrouillage au tour suivant (menu : Colère `data-enabled="true"`, Griffe `false`). Décompte exact + Confusion finale = unit → 👁 ; Ball'Glace (RolloutStreak, pas un lock-in) = unit dynamic-power → 👁 ; Frénésie (`rage`) non implémenté |
+| `combat/mechanics-ability-manip.spec.ts` | §5.41 famille Manip talent Batch C (plan 153) : Soucigraine (« Le talent de Ronflex devient … »), Suc Digestif (« … est neutralisé »), Imitation (« copie le talent … »), Échange (« Le talent de Florizarre devient … ») — event AbilityChanged. Effet fonctionnel du talent muté = unit → 👁 |
+| `combat/mechanics-buff-status.spec.ts` | §5.42 famille Buff/statut Batch D (plan 154) : Malédiction Spectre (Ectoplasma « se maudit et jette une malédiction ») vs non-Spectre (buff Self « Attaque augmente » + « Vitesse baisse »), Bâillement (« commence à somnoler »), Cognobidon (« se tape le bidon … »), Acupression (hausse aléatoire seedée « … de Florizarre augmente »), Attraction (Tauros ♂ → Kangourex ♀ « tombe amoureux »), Vol Magnétik (« lévite grâce à un champ magnétique »). Effets internes différés/persistants = unit → 👁 |
+| `combat/mechanics-phazing.spec.ts` | §5.43 famille Phazing (Cyclone/Hurlement/Projection) : Projection inflige des dégâts (« Ronflex perd N PV », Aucun Garde → 100 %), Cyclone/Hurlement se lancent et résolvent (« Florizarre utilise Cyclone/Hurlement ! »). ÉJECTION forcée observable (débloquée par le harness hot-seat, plan 167) : l'Électrode ennemi (Statik forcé pour contourner Anti-Bruit) est piloté hors de son spawn (5,4)→(4,4), puis Hurlement (cône r1-3) le renvoie chez lui → « Électrode se téléporte ! » + retour en (5,4) via `spriteStates`. Éjection au corps-à-corps (Cyclone/Projection r1, adjacence interdite par la zone de contrôle) = unit core `handle-phaze`/`forced-teleport` → 👁 |
+| `combat/mechanics-self-ko.spec.ts` | §5.44 famille Sacrifice/Self-KO (plan 147) : Destruction/Explosion (dégâts AoE + « Florizarre est K.O. »), Souvenir (« Attaque de Ronflex baisse » + self-KO), Tout ou Rien (« joue le tout pour le tout » + dégâts), Lien du Destin (« tisse un lien du destin… »), Rancune (« nourrit une rancune… »). Déclenchements différés (tueur entraîné / move scellé) = unit core → 👁 ; Vœu Soin déjà §5.38 |
+| `combat/mechanics-grid-tactics.spec.ts` | §5.45 Batch E « grille » (plan 155) via harness N-vs-N : Par Ici (`follow-me`, Zone r4 Self) attire un ennemi à portée (« Florizarre attire l'attention ! ») et pas un ennemi hors r4 (borne de zone) ; Poudre Fureur (`rage-powder`, poudre) attire un ennemi Normal mais pas un Plante immunisé (contraste du flag poudre) ; Après Vous (`after-you`, allié r3) promeut l'allié lent au prochain tour (« Ronflex va agir juste après ! » + allié actif avant l'ennemi rapide) ; Interversion (`ally-switch`, allié r3) échange les positions lanceur↔allié (« … échangent leur place ! » + tuiles permutées via `spriteStates`). Orientation dos-exposé / re-déclenchement terrain / immunités poudre fines = unit core → 👁 |
+| `combat/mechanics-content-fill-unlocked.spec.ts` | §5.46 débloque en 🤖 les cas RÉUSSITE de §5.36/§5.37 via les champs e2e `stockpileCount`/`unburdenActive` : Relâche (`spit-up`) 3 paliers → dégâts « Ronflex perd N PV » + « libère sa réserve accumulée ! », dégâts croissants (3 > 1), réserve consommée → 2ᵉ usage échoue ; Avale (`swallow`) 3 paliers + PV bas → soin « récupère N PV » + « libère », soin croissant (3 > 1) ; Stockage (`stockpile`) réserve à 2 → « (Stockage 3/3) » puis échec au-delà du cap ; Délestage (`unburden`, hot-seat) → cadence CT : le porteur (Vitesse ×2) reprend la main en 3ᵉ, témoin sans flag rend la main à l'équipe 1. Valeurs exactes (montant PV, fractions de soin, gain CT chiffré) + reset crans/KO = unit core → 👁 |
 | `dom/maps.spec.ts` | §8.1/§8.3 — les 9 cartes montent (tuiles, no crash) + Le Mur multi-niveaux |
 | `combat/hud.spec.ts` | §4 — sous-menu (type/nom), tooltip + grille de pattern (survol), §4.12 tag d'efficacité de type dérivé (Lyophilisation ×2 Eau), timeline, §4.11 combat EN (`pt-lang=en`) |
 | `combat/hud-menu.spec.ts` | §4.1 bannière, §4.2 timeline (active/team), §4.4 menu (5 boutons, Objet/Statut off), §4.5 move-item (type/nom/PP), §4.9 journal (titre + repli) |

@@ -1,4 +1,11 @@
+import type { Page } from "@playwright/test";
 import { expect, test } from "../../fixtures";
+import {
+  MAGMA_DOT,
+  TERRAIN_POWER_BONUS_BASELINE,
+  TERRAIN_POWER_BONUS_MAGMA,
+} from "../../fixtures/sandbox-configs";
+import { readHp } from "../../pages/combat-queries";
 
 // Cahier §5.20 — effets de terrain de fin de tour, pilotés sur la map `sandbox-flat` (tous les
 // terrains présents). On place le joueur sur la tuile du terrain voulu, on passe le tour
@@ -7,7 +14,11 @@ import { expect, test } from "../../fixtures";
 //
 // IMPORTANT : l'immunité de type compte (logique core) — Florizarre (Plante/Poison) est immunisé
 // au poison du marécage → on prend un Pokémon au sol non-Poison (Ronflex) pour le marécage.
-const log = (page: import("@playwright/test").Page, re: RegExp) =>
+//
+// Les dégâts de terrain (DoT, bonus de puissance) ne sont PAS journalisés → on les lit par les PV
+// (barre de vie InfoPanel `role="progressbar"` → `aria-valuenow`).
+
+const log = (page: Page, re: RegExp) =>
   page.getByTestId("battle-log-entry").filter({ hasText: re });
 
 const baseAt = (pokemon: string, x: number, y: number) => ({
@@ -39,4 +50,33 @@ test("§5.20 terrain létal : la lave met K.O. le Pokémon au sol", async ({ pag
   const scene = await bootSandbox(baseAt("venusaur", 0, 5)); // lave (0,5)
   await scene.endTurn();
   await expect(log(page, /K\.O\./)).toBeAttached({ timeout: 10_000 });
+});
+
+// §5.20 DoT Magma 1/16 en fin de tour. Le sujet (Ronflex) est sur le magma, en hot-seat, pour n'isoler
+// qu'UN tick : on passe le tour du joueur puis celui du dummy (qui applique le DoT), et on relit ses PV
+// AVANT que sa brûlure fraîchement posée ne tique → perte = floor(maxHp/16).
+test("§5.20 Magma : retire 1/16 des PV max en fin de tour (DoT)", async ({ page, bootSandbox }) => {
+  const scene = await bootSandbox(MAGMA_DOT);
+  const before = await readHp(scene, page, 5, 2, "Ronflex");
+  await scene.endTurn(); // tour du joueur (hors terrain)
+  await scene.endTurn(); // tour du dummy sur magma → applique le tick de terrain
+  const after = await readHp(scene, page, 5, 2, "Ronflex");
+  expect(after.now).toBe(before.now - Math.floor(before.max / 16));
+});
+
+// §5.20 bonus de puissance ×1.15 : un move du type du terrain sous le lanceur retire plus de PV. Même
+// Poing Feu/seed/cible, seul le terrain du lanceur change (magma vs normal).
+test("§5.20 bonus de terrain : un move Feu depuis le magma retire plus de PV (×1.15)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const onMagma = await bootSandbox(TERRAIN_POWER_BONUS_MAGMA);
+  await onMagma.castFirstMove(5, 3);
+  const boosted = await readHp(onMagma, page, 5, 3, "Ronflex");
+
+  const onNormal = await bootSandbox(TERRAIN_POWER_BONUS_BASELINE);
+  await onNormal.castFirstMove(0, 1);
+  const baseline = await readHp(onNormal, page, 0, 1, "Ronflex");
+
+  expect(boosted.max - boosted.now).toBeGreaterThan(baseline.max - baseline.now);
 });

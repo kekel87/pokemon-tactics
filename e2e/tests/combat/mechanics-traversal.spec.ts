@@ -1,9 +1,18 @@
+import type { Page } from "@playwright/test";
 import { expect, test } from "../../fixtures";
-import { DUEL } from "../../fixtures/sandbox-configs";
+import {
+  DUEL,
+  FLYER_ICE_NO_SLIDE,
+  FLYER_ON_LAVA,
+  FLYER_ON_MAGMA,
+} from "../../fixtures/sandbox-configs";
+import { readHp } from "../../pages/combat-queries";
 
 // Cahier §5.18 / §5.19 — chute mortelle par repoussé + immunité Volant, pilotées sur les maps de
 // chute dédiées (`sandbox-fall-*`) et la flat (terrains). Interactions à travers le renderer.
-const log = (page: import("@playwright/test").Page, re: RegExp) =>
+const POLL = { timeout: 10_000, intervals: [150, 250, 400] };
+
+const log = (page: Page, re: RegExp) =>
   page.getByTestId("battle-log-entry").filter({ hasText: re });
 
 // §5.18 — chute mortelle : sur `sandbox-fall-4` (moitié gauche hauteur 5, droite hauteur 1), un
@@ -73,4 +82,43 @@ test("§5.19 Volant : immunisé au poison du marais (aucun effet de terrain)", a
   // Le tour est passé (le dummy a joué) mais aucun empoisonnement de marais sur le Volant.
   await expect(log(page, /Tour de/).first()).toBeAttached({ timeout: 10_000 });
   await expect(log(page, /marécage/)).toHaveCount(0);
+});
+
+// §5.19 — immunité Volant à un terrain MORTEL au sol : Dracaufeu posé sur la lave y survit (le sol y
+// serait K.O. en fin de tour). On assert qu'aucun K.O. n'est émis pour lui et que ses PV restent pleins.
+test("§5.19 Volant : survit sur la lave (immunité au terrain mortel)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(FLYER_ON_LAVA);
+  await scene.endTurn();
+  await expect(log(page, /Tour de/).first()).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /Dracaufeu est K\.O\./)).toHaveCount(0);
+  const hp = await readHp(scene, page, 0, 5, "Dracaufeu");
+  expect(hp.now).toBe(hp.max); // PV intacts
+});
+
+// §5.19 — immunité Volant au statut de terrain : Dracaufeu posé sur le magma n'est pas brûlé.
+test("§5.19 Volant : pas de brûlure sur le magma", async ({ page, bootSandbox }) => {
+  const scene = await bootSandbox(FLYER_ON_MAGMA);
+  await scene.endTurn();
+  await expect(log(page, /Tour de/).first()).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /brûlé par le magma/)).toHaveCount(0);
+  const hp = await readHp(scene, page, 5, 2, "Dracaufeu");
+  expect(hp.now).toBe(hp.max);
+});
+
+// §5.19 — pas de glissade pour le Volant : repoussé sur la glace, Dracaufeu s'arrête sur la case
+// d'arrivée (1,2) au lieu de glisser (contraste avec un Pokémon au sol, cf §5.18 glissade → (1,4)).
+test("§5.19 Volant : pas de glissade sur la glace (reste sur la case d'arrivée)", async ({
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(FLYER_ICE_NO_SLIDE);
+  await scene.castFirstMove(1, 1); // repoussé sud → (1,2) glace, mais Volant → pas de glissade
+  await expect
+    .poll(async () => {
+      const state = (await scene.spriteStates()).find((s) => s.pokemonId === "charizard");
+      return state ? `${state.tile.x},${state.tile.y}` : null;
+    }, POLL)
+    .toBe("1,2");
 });
