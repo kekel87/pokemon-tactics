@@ -14,6 +14,10 @@ const baseURL = `http://localhost:${port}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  // Chaque test boote sa propre scène seedée (aucun état partagé entre tests) → on parallélise AU
+  // NIVEAU DU TEST, pas seulement du fichier. Sans ça les N tests d'un même spec tournent en série
+  // sur un worker (mesuré : spec 9 tests 45→21 s). Voir plan 170.
+  fullyParallel: true,
   // Determinism over speed-of-flakiness: no implicit retries locally; CI absorbs GPU/timing jitter.
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "blob" : "list",
@@ -26,12 +30,15 @@ export default defineConfig({
     trace: "on-first-retry",
     video: "retain-on-failure",
     screenshot: "only-on-failure",
-    // WebGL en CI headless : le rendu Babylon a besoin de WebGL. Chromium headless moderne désactive
-    // le fallback logiciel par défaut → la scène ne se monte jamais (`waitReady` timeout sur tous les
-    // tests combat). On force SwiftShader (rendu logiciel) : indispensable en CI sans GPU, inoffensif
-    // en local. Voir e2e CI job (ci.yml).
+    // WebGL headless : le rendu Babylon a besoin de WebGL. En local (harnais e2e local-only) on
+    // laisse Chromium utiliser le GPU matériel — mesuré ~16 % plus rapide sous contention que le
+    // rendu logiciel, et 0 coût (machine avec GPU). SwiftShader (rendu logiciel) n'est forcé que
+    // sous CI headless sans GPU, où le fallback est désactivé par défaut → sinon la scène ne se
+    // monte jamais (`waitReady` timeout sur tous les combat specs). Voir plan 170.
     launchOptions: {
-      args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
+      args: process.env.CI
+        ? ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
+        : [],
     },
   },
   expect: {
