@@ -280,6 +280,7 @@ pokemon-tactics/
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
 │   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
 │   ├── sprite-config.json       # +51 entrées (plan 135) + 1 (Ditto 0132, plan 157) → couvre les 151 Pokemon Gen 1 (complet)
+│   ├── e2e-affected.ts          # Plan 170 : calcule le niveau e2e (smoke/affected/full) depuis le diff, escalade auto conservatrice — `pnpm test:e2e:affected`
 │   └── map-preview.js           # Vite helper pour pnpm dev:map
 ├── .worktrees/                  # Git worktrees (gitignored) — voir section "Workflow worktrees"
 │   └── <branche-slug>/          # Un répertoire par worktree actif

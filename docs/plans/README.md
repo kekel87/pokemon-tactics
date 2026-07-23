@@ -163,3 +163,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 167 | [Studio sandbox multi-Pokémon par équipe + harness e2e IA « scoré »](./167-sandbox-teams-scored-ai-harness.md) | done | 2026-07-22 |
 | 168 | [Icônes officielles d'objets tenus dans l'InfoPanel](./168-item-icons-info-panel.md) | done | 2026-07-22 |
 | 169 | [Purge des demi-blocs de liquide](./169-purge-demi-blocs-liquide.md) | done | 2026-07-23 |
+| 170 | [Niveaux de test e2e + sélection « affected » du diff](./170-e2e-tiers-affected.md) | done | 2026-07-23 |

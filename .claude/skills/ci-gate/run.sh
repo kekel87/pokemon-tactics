@@ -43,7 +43,7 @@ case "$MODE" in
     step "build"           pnpm build
     step "test"            pnpm test
     step "test:integration" pnpm test:integration
-    step "e2e"             pnpm test:e2e
+    step "e2e"             pnpm test:e2e:affected
     ;;
   slow)
     step "lint:fix"        pnpm lint:fix

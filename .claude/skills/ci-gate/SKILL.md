@@ -17,7 +17,7 @@ Lance (tier passé en argument, défaut `full`) :
 bash .claude/skills/ci-gate/run.sh ${ARGUMENTS:-full}
 ```
 
-Tiers : `fast` = lint:fix → typecheck → test · `full` = + build + test:integration · `slow` = + test:all (scenario).
+Tiers : `fast` = lint:fix → typecheck → test · `full` = + build + test:integration + **e2e `affected`** (niveau choisi d'après le diff, cf plan 170 : L1 smoke / L2 affected / L3 full, escalade auto si cross-cutting) · `slow` = + test:all (scenario) + **e2e `full`** (les 349, filet pré-release).
 
 `pnpm lint:fix` peut modifier des fichiers (autofix Biome) — c'est attendu, ne les revert pas.
 
