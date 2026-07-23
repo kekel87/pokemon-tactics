@@ -47,6 +47,7 @@ import { handleHealSelf } from "./handlers/handle-heal-self";
 import { handleHealTarget } from "./handlers/handle-heal-target";
 import { handleHelpingHand } from "./handlers/handle-helping-hand";
 import { handleKnockback } from "./handlers/handle-knockback";
+import { handleMarkDefenseCurl } from "./handlers/handle-mark-defense-curl";
 import { handlePainSplit } from "./handlers/handle-pain-split";
 import { handlePerishSong } from "./handlers/handle-perish-song";
 import { handlePhaze } from "./handlers/handle-phaze";
@@ -198,6 +199,7 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   registry.register(EffectKind.ConsumeStockpile, handleConsumeStockpile);
   registry.register(EffectKind.VenomDrench, handleVenomDrench);
   registry.register(EffectKind.GuardSplit, handleGuardSplit);
+  registry.register(EffectKind.MarkDefenseCurl, handleMarkDefenseCurl);
   return registry;
 }
 

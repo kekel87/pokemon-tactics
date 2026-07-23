@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import { PokemonType } from "../enums/pokemon-type";
 import { TargetingKind } from "../enums/targeting-kind";
-import { MockPokemon } from "../testing";
+import { MockMap, MockPokemon } from "../testing";
 import type { TraversalContext } from "../types/traversal-context";
 import { Grid } from "./Grid";
-import { resolveTargeting } from "./targeting";
+import { resolveTargeting, type TargetingMoveContext } from "./targeting";
 
 describe("resolveTargeting", () => {
   const grid = Grid.createFlat(8, 8);
@@ -582,6 +583,111 @@ describe("resolveTargeting", () => {
         grid,
       );
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("height range bonus", () => {
+    // A ranged (line-of-sight) context so heightReachAllows/losAllows do not veto downhill targets.
+    const rangedContext: TargetingMoveContext = { type: PokemonType.Normal };
+
+    it("extends Single reach downhill by the height bonus (caster +4 → +2 tiles)", () => {
+      const highGround = MockMap.buildGridWithHeights([[4, 0, 0, 0, 0, 0]]);
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+
+      const reachable = resolveTargeting(
+        { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+        caster,
+        { x: 4, y: 0 },
+        highGround,
+        undefined,
+        rangedContext,
+      );
+      expect(reachable).toEqual([{ x: 4, y: 0 }]);
+
+      const tooFar = resolveTargeting(
+        { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+        caster,
+        { x: 5, y: 0 },
+        highGround,
+        undefined,
+        rangedContext,
+      );
+      expect(tooFar).toEqual([]);
+    });
+
+    it("grants no Single extension on flat ground", () => {
+      const flat = MockMap.buildGridWithHeights([[0, 0, 0, 0, 0]]);
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+        caster,
+        { x: 4, y: 0 },
+        flat,
+        undefined,
+        rangedContext,
+      );
+      expect(result).toEqual([]);
+    });
+
+    it("grants no Single extension when aiming uphill", () => {
+      const uphill = MockMap.buildGridWithHeights([[0, 0, 0, 0, 4]]);
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Single, range: { min: 1, max: 2 } },
+        caster,
+        { x: 4, y: 0 },
+        uphill,
+        undefined,
+        rangedContext,
+      );
+      expect(result).toEqual([]);
+    });
+
+    it("does not extend melee (range 1) from high ground", () => {
+      const highGround = MockMap.buildGridWithHeights([[4, 0, 0]]);
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+      const result = resolveTargeting(
+        { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+        caster,
+        { x: 2, y: 0 },
+        highGround,
+        undefined,
+        rangedContext,
+      );
+      expect(result).toEqual([]);
+    });
+
+    it("lengthens a Line downhill by the height bonus", () => {
+      const highGround = MockMap.buildGridWithHeights([[4, 0, 0, 0, 0, 0]]);
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+      const extended = resolveTargeting(
+        { kind: TargetingKind.Line, length: 2 },
+        caster,
+        { x: 1, y: 0 },
+        highGround,
+        undefined,
+        rangedContext,
+      );
+      expect(extended).toEqual([
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+        { x: 3, y: 0 },
+        { x: 4, y: 0 },
+      ]);
+    });
+
+    it("lets a Blast be lobbed farther downhill (radius unchanged)", () => {
+      const highGround = MockMap.buildGridWithHeights([[4, 0, 0, 0, 0]]);
+      const caster = { ...MockPokemon.base, position: { x: 0, y: 0 } };
+      const reachable = resolveTargeting(
+        { kind: TargetingKind.Blast, range: { min: 1, max: 2 }, radius: 1 },
+        caster,
+        { x: 4, y: 0 },
+        highGround,
+        undefined,
+        rangedContext,
+      );
+      expect(reachable).toContainEqual({ x: 4, y: 0 });
     });
   });
 });

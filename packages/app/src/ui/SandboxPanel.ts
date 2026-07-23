@@ -17,6 +17,7 @@ import {
 } from "@pokemon-tactic/ui-dom";
 import type { TranslationKey } from "../i18n";
 import { getLanguage, t } from "../i18n";
+import { MAPS_REGISTRY } from "../maps/maps-registry";
 import { getSandboxStudioDom } from "../sandbox-boot";
 import { getAbilityInfo } from "../team/team-builder-data";
 import {
@@ -97,6 +98,9 @@ const SANDBOX_MAPS: SelectOption[] = [
   { value: "assets/maps/dev/sandbox-fall-4.tmj", label: "Sandbox Fall 4 (lethal)" },
   { value: "assets/maps/dev/sandbox-los.tmj", label: "Sandbox LoS (2 pillars)" },
   { value: "assets/maps/dev/decorations-demo.tmj", label: "Decorations Demo (rocks/tree/grass)" },
+  { value: "__game_maps__", label: "— Maps de jeu —", disabled: true },
+  // The real battle maps (relief, terrain, hazards) — derived from the registry so this stays in sync.
+  ...MAPS_REGISTRY.map((entry) => ({ value: entry.url, label: entry.displayName.fr })),
 ];
 
 /** Single control-select value: three of them collapse `control:"scored"` + `aiProfile`. */

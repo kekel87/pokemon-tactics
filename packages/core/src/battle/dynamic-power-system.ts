@@ -7,7 +7,7 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 import { effectiveCombatStats } from "./effective-combat-stats";
 import { effectiveWeight } from "./effective-weight";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
-import { pendingRolloutIndex, rolloutPowerForIndex } from "./rollout-streak";
+import { rolloutEffectivePower } from "./rollout-streak";
 import { getEffectiveStat, isMajorStatus } from "./stat-modifier";
 
 interface DynamicPowerInput {
@@ -265,7 +265,7 @@ const RESOLVERS: ReadonlyMap<DynamicPowerKind, DynamicPowerResolver> = new Map([
   ],
   [
     DynamicPowerKind.RolloutStreak,
-    ({ move, attacker }) => rolloutPowerForIndex(pendingRolloutIndex(attacker, move.id)),
+    ({ move, attacker }) => rolloutEffectivePower(attacker, move.id),
   ],
   [
     DynamicPowerKind.AllyFaintCountScaled,

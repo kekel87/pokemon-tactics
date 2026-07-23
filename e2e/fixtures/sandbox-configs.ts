@@ -2041,3 +2041,58 @@ export const FLYER_ICE_NO_SLIDE = {
   dummyPosition: { x: 1, y: 1 },
   dummyHp: 999,
 } as const;
+
+// --- §5.23 Boul'Armure double Roulade/Ball'Glace — sur `sandbox-flat`, row 4 entièrement plate (aucun
+// terrain spécial ; les rangs 2-3 portent la glace/marais). Rhinoféros en (0,4) face est, Ronflex
+// endurant (hp 999) en (2,4) à distance 2 : Roulade (Dash 2) glisse d'une case sur (1,4) et percute le
+// dummy. On compare DEUX Roulade « fraîches » (streak index 1, base 30 BP) : l'une sans Boul'Armure,
+// l'autre APRÈS Boul'Armure (Boul'Armure remet le streak à 0, donc même index — seul le flag ×2 diffère).
+// Le seed 20 fait toucher Roulade (90 %) dans les deux boots (rôle vérifié en local). PV lus à la barre
+// de vie de l'InfoPanel (`readHp`), les dégâts n'étant pas chiffrés dans le journal autrement.
+
+/** Roulade fraîche SANS Boul'Armure (témoin) : puissance de base (index 1 = 30 BP). */
+export const ROLLOUT_FRESH = {
+  seed: 20,
+  pokemon: "rhydon",
+  moves: ["rollout"],
+  playerPosition: { x: 0, y: 4 },
+  playerDirection: "east",
+  dummyPokemon: "snorlax",
+  dummyPosition: { x: 2, y: 4 },
+  dummyHp: 999,
+} as const;
+
+/** Roulade fraîche APRÈS Boul'Armure : Boul'Armure (index 0) pose le flag `usedDefenseCurl` et remet le
+ *  streak à 0, puis Roulade (index 1) est doublée (30 → 60 BP). Mêmes espèces/positions/seed que le
+ *  témoin → seul le doublage Boul'Armure explique les PV en plus. */
+export const ROLLOUT_AFTER_DEFENSE_CURL = {
+  ...ROLLOUT_FRESH,
+  moves: ["defense-curl", "rollout"],
+} as const;
+
+// --- §5.17 portée dynamique selon la hauteur — sur `sandbox-fall-4` (plateau cols 0-2 à h5, fosse cols
+// 3-5 à h1, 6x6). Aéropique (`aerial-ace`, Single 1-2, précision garantie) ne porte qu'à 2 à plat, mais
+// gagne getHeightRangeBonus = clamp(0,2,floor(Δh/2)) vers une cible en contrebas. ---
+
+/** Attaquant EN HAUTEUR : Rhinoféros en (2,3) h5 face est, Ronflex en (5,3) h1, distance 3. Δh=4 →
+ *  bonus +2 → portée effective 1-4 ≥ 3 → Aéropique ATTEINT la cible et résout (journal « utilise »). */
+export const HEIGHT_RANGE_HIGH = {
+  seed: 1,
+  pokemon: "rhydon",
+  moves: ["aerial-ace"],
+  playerPosition: { x: 2, y: 3 },
+  playerDirection: "east",
+  dummyPokemon: "snorlax",
+  dummyPosition: { x: 5, y: 3 },
+  dummyHp: 999,
+  mapUrl: "assets/maps/dev/sandbox-fall-4.tmj",
+} as const;
+
+/** Témoin À PLAT : Rhinoféros en (3,0) h1 face sud, Ronflex en (3,3) h1 (même colonne de la fosse),
+ *  distance 3, Δh=0 → aucun bonus → portée 1-2 < 3 → Aéropique HORS de portée, aucune résolution. */
+export const HEIGHT_RANGE_FLAT = {
+  ...HEIGHT_RANGE_HIGH,
+  playerPosition: { x: 3, y: 0 },
+  playerDirection: "south",
+  dummyPosition: { x: 3, y: 3 },
+} as const;

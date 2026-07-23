@@ -118,7 +118,7 @@ import { trappedTickHandler } from "./handlers/trapped-tick-handler";
 import { createWeatherTickHandler } from "./handlers/weather-tick-handler";
 import { wishTickHandler } from "./handlers/wish-tick-handler";
 import { isHealBlocked, isHealingMove } from "./heal-block-system";
-import { getHeightModifier } from "./height-modifier";
+import { getHeightModifier, HEIGHT_RANGE_BONUS_CAP } from "./height-modifier";
 import { canEnterTerrain, canStopOn, canTraverse } from "./height-traversal";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { collectImprisonedMoveIds } from "./imprison-system";
@@ -1359,10 +1359,13 @@ export class BattleEngine {
       case TargetingKind.Cross:
         return [pokemon.position];
       case TargetingKind.Single: {
+        // Ranged moves (max > 1) can reach farther downhill: widen the candidate set by the height
+        // bonus cap so those tiles are offered; resolveTargeting applies the exact per-tile gate.
+        const rangeExtension = targeting.range.max > 1 ? HEIGHT_RANGE_BONUS_CAP : 0;
         const tiles = this.grid.getTilesInRange(
           pokemon.position,
           targeting.range.min,
-          targeting.range.max,
+          targeting.range.max + rangeExtension,
         );
         if (move.targetsAlly === true) {
           return tiles.filter((position) => this.isAdjacentAllyTile(pokemon, position));
@@ -1380,10 +1383,12 @@ export class BattleEngine {
       case TargetingKind.Dash:
         return this.getDashPositions(pokemon.position, targeting.maxDistance);
       case TargetingKind.Blast:
+        // The blast's aimed centre can be lobbed farther downhill; widen the candidate centres by
+        // the height bonus cap. resolveTargeting applies the exact per-tile gate + interception.
         return this.grid.getTilesInRange(
           pokemon.position,
           targeting.range.min,
-          targeting.range.max,
+          targeting.range.max + HEIGHT_RANGE_BONUS_CAP,
         );
       case TargetingKind.Teleport: {
         const allTiles = this.grid.getTilesInRange(
@@ -3633,6 +3638,8 @@ export class BattleEngine {
     pokemon.lastHitBy = undefined;
     pokemon.grudgeLockedMoveIds = undefined;
     pokemon.smackedDown = undefined;
+    // Boul'Armure (defense-curl): a fresh corpse loses the Roulade / Ball'Glace power-doubling flag.
+    pokemon.usedDefenseCurl = undefined;
     // Buff/statut family (plan 154): drowsiness + temporary levitation die with the mon.
     pokemon.drowsyTurns = undefined;
     pokemon.magnetRiseTurns = undefined;

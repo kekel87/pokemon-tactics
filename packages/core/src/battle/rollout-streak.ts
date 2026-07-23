@@ -30,6 +30,17 @@ export function rolloutPowerForIndex(index: number): number {
   return Math.min(ROLLOUT_MAX_POWER, ROLLOUT_BASE_POWER * 2 ** (index - 1));
 }
 
+/**
+ * Effective Rollout / Ball'Glace power for the cast a Pokémon is about to perform: the streak power
+ * (`rolloutPowerForIndex`), doubled if the caster has used Boul'Armure (defense-curl) this battle
+ * (`usedDefenseCurl`) — canon 30 → 480, up to 960 after Boul'Armure. Single source of truth shared
+ * by the dynamic-power resolver and any preview.
+ */
+export function rolloutEffectivePower(pokemon: PokemonInstance, moveId: string): number {
+  const base = rolloutPowerForIndex(pendingRolloutIndex(pokemon, moveId));
+  return pokemon.usedDefenseCurl === true ? base * 2 : base;
+}
+
 /** Dash range for a given cast index: 2 → 5, +1 per consecutive cast, capped at 5. */
 export function rolloutRangeForIndex(index: number): number {
   return Math.min(ROLLOUT_MAX_RANGE, ROLLOUT_BASE_RANGE + (index - 1));

@@ -158,6 +158,8 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
       keys.push("moveTooltip.tag.actAfterUser");
     } else if (effect.kind === EffectKind.SwapAllyPositions) {
       keys.push("moveTooltip.tag.swapAllyPositions");
+    } else if (effect.kind === EffectKind.MarkDefenseCurl) {
+      keys.push("moveTooltip.tag.markDefenseCurl");
     }
   }
   if (move.alwaysCrit === true) {

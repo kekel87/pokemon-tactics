@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { PlayerId } from "../enums/player-id";
 import { MockPokemon } from "../testing";
-import { pendingRolloutIndex, rolloutPowerForIndex, rolloutRangeForIndex } from "./rollout-streak";
+import {
+  pendingRolloutIndex,
+  rolloutEffectivePower,
+  rolloutPowerForIndex,
+  rolloutRangeForIndex,
+} from "./rollout-streak";
 
 const ROLLOUT_MOVE_ID = "rollout";
 
@@ -39,6 +44,27 @@ describe("rollout-streak", () => {
     it("is 1 when no streak has started yet", () => {
       const pokemon = caster();
       expect(pendingRolloutIndex(pokemon, ROLLOUT_MOVE_ID)).toBe(1);
+    });
+  });
+
+  describe("rolloutEffectivePower", () => {
+    const caster = () =>
+      MockPokemon.fresh(MockPokemon.base, { id: "c", playerId: PlayerId.Player1 });
+
+    it("matches the streak power without Boul'Armure", () => {
+      const pokemon = caster();
+      pokemon.lastUsedMoveId = ROLLOUT_MOVE_ID;
+      pokemon.rolloutStreak = 4;
+      expect(rolloutEffectivePower(pokemon, ROLLOUT_MOVE_ID)).toBe(480);
+    });
+
+    it("doubles the streak power once Boul'Armure has been used (up to 960)", () => {
+      const pokemon = caster();
+      pokemon.usedDefenseCurl = true;
+      expect(rolloutEffectivePower(pokemon, ROLLOUT_MOVE_ID)).toBe(60);
+      pokemon.lastUsedMoveId = ROLLOUT_MOVE_ID;
+      pokemon.rolloutStreak = 4;
+      expect(rolloutEffectivePower(pokemon, ROLLOUT_MOVE_ID)).toBe(960);
     });
   });
 });

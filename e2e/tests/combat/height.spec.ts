@@ -6,9 +6,14 @@ import {
   HEIGHT_DMG_FLAT_WEST,
   HEIGHT_DMG_HIGH,
   HEIGHT_DMG_LOW,
+  HEIGHT_RANGE_FLAT,
+  HEIGHT_RANGE_HIGH,
 } from "../../fixtures/sandbox-configs";
 import type { CombatScene } from "../../pages/CombatScene";
 import { readHp } from "../../pages/combat-queries";
+
+const usedAerialAce = (page: Page) =>
+  page.getByTestId("battle-log-entry").filter({ hasText: /utilise Aéropique/ });
 
 // Cahier §5.17 — combat en hauteur. Cas pilotable proprement : la **mêlée (portée 1) est bloquée
 // si l'écart de hauteur ≥ 2**. Sur `sandbox-melee-block` (bloc h3 en haut-gauche, h1 ailleurs) :
@@ -71,4 +76,29 @@ test("§5.17 modificateur : attaquant plus BAS retire moins de PV qu'à plat (�
   const low = await damageDealt(await bootSandbox(HEIGHT_DMG_LOW), page, 2, 1);
   const flat = await damageDealt(await bootSandbox(HEIGHT_DMG_FLAT_WEST), page, 3, 1);
   expect(low).toBeLessThan(flat);
+});
+
+// §5.17 portée dynamique selon la hauteur — un attaquant en surplomb voit sa portée s'allonger vers les
+// cases en contrebas : `getHeightRangeBonus = clamp(0, 2, floor(Δh/2))`. Sur `sandbox-fall-4` (plateau
+// h5 / fosse h1), une cible à distance 3 (hors portée de base 1-2 d'Aéropique) devient ATTEIGNABLE
+// depuis le plateau (Δh=4 → +2 → portée 1-4). Contrôle à plat (même distance 3, Δh=0) : hors de portée,
+// aucune résolution. Aéropique a une précision garantie → pas de raté à seeder. Le montant du bonus
+// (5 cas), l'exclusion mêlée/Dash/Tranche et l'application par pattern = SENS unit/integration core
+// (`battle/height-modifier.test.ts`, `grid/targeting.integration.test.ts`).
+test("§5.17 portée : un surplomb (Δh=4) rend une cible à distance 3 attaquable (résolution)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(HEIGHT_RANGE_HIGH);
+  await scene.castFirstMove(5, 3); // cible à distance 3, en contrebas → dans la portée étendue
+  await expect(usedAerialAce(page)).toBeAttached({ timeout: 10_000 });
+});
+
+test("§5.17 portée : à plat (Δh=0) la même cible à distance 3 reste hors de portée (aucune résolution)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(HEIGHT_RANGE_FLAT);
+  await scene.castFirstMove(3, 3); // distance 3 sans surplomb → hors portée 1-2 → clic sans effet
+  await expect(usedAerialAce(page)).toHaveCount(0);
 });

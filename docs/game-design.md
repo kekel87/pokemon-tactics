@@ -227,6 +227,13 @@ Dégâts = ((2 × Level / 5 + 2) × Power × (Atk / Def) / 50 + 2)
 - -10% par niveau désavantage, plafond -30%
 - `ignoresHeight: true` supprime ce modificateur (Séisme, Ampleur…)
 
+**Bonus de portée par hauteur (décision #708, 2026-07-23)** : un attaquant en surplomb tire aussi **plus loin**, en plus du bonus de dégâts ci-dessus (plans 046/047 ne touchaient que les dégâts).
+- `getHeightRangeBonus(hAttaquant, hCible) = clamp(0, +2, ⌊(hAttaquant − hCible) / 2⌋)` — **+1 case de portée par tranche de 2 niveaux** de hauteur au-dessus de la cible, plafond +2.
+- **Jamais de malus** : tirer vers le haut ou à plat n'accorde aucun bonus (le malus de dégâts est déjà porté par le modificateur ci-dessus, pas de double peine sur la portée).
+- Appliqué aux résolveurs **Single (portée > 1)**, **Blast** et **Cône/Ligne** — pour ces 2 derniers, le bonus est évalué sur la tuile **au bout de la portée de base** dans la direction visée (pas la tuile ciblée).
+- **Exclus** : mêlée (portée 1), Dash, Tranche (`slash`).
+- Ciblage : `getValidTargetPositions` élargit d'abord les candidats Single/Blast de +2 cases (superset), puis `resolveTargeting` applique le gate exact tuile par tuile (pas de faux positif).
+
 ### Chute & dégâts de chute (plan 046)
 
 Déclenchés quand knockback ou dash envoie Pokemon vers tile plus basse.
@@ -965,6 +972,8 @@ Move `taunt` (Ténèbres, Statut, Single r3, acc 100, PP 20). Pendant **3 tours*
 ## 8h. Roulade — mécanisme snowball (décision #521)
 
 **Portée ET puissance montent à chaque cast consécutif** du même lanceur. Reset si le lanceur utilise un autre move.
+
+**Boul'Armure ×2 (décision #709, 2026-07-23)** : Boul'Armure (`defense-curl`) pose un flag persistant (`PokemonInstance.usedDefenseCurl`, reset au KO) en plus de son +1 Déf. Tant qu'il est actif, **Roulade et Ball'Glace infligent le double de puissance**, cumulatif avec le snowball (30→480 devient 60→960). Résout l'item backlog qui nommait à tort ce move « Cabriole » — le nom FR officiel de `defense-curl` est **Boul'Armure**.
 
 | Cast | Portée | Puissance |
 |------|--------|-----------|

@@ -160,6 +160,19 @@ describe("rollout", () => {
       vi.restoreAllMocks();
     });
 
+    it("doubles the estimated power once Boul'Armure has been used (usedDefenseCurl)", () => {
+      const caster = makeCaster();
+      const { engine, state } = buildMoveTestEngine([caster, makeFoe("target-1", { x: 5, y: 0 })]);
+      const live = state.pokemon.get(caster.id);
+      if (!live) {
+        throw new Error("missing caster");
+      }
+      const plain = engine.estimateDamage(caster.id, "rollout", "target-1");
+      live.usedDefenseCurl = true;
+      const curled = engine.estimateDamage(caster.id, "rollout", "target-1");
+      expect(curled?.max ?? 0).toBeGreaterThan(plain?.max ?? 0);
+    });
+
     it("resets the streak when a different move is used", () => {
       const caster = makeCaster();
       const target = makeFoe("target-1", { x: 1, y: 0 });

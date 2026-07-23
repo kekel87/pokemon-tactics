@@ -191,6 +191,12 @@ export interface PokemonInstance {
   /** Consecutive-cast count for Rollout (Roulade) — snowballs Dash range + power. Reset to 0 on any other move. */
   rolloutStreak?: number;
   /**
+   * Set once Boul'Armure (defense-curl) is used — doubles the power of Roulade (rollout) and
+   * Ball'Glace (ice-ball) for the rest of the battle. Persistent (unlike `rolloutStreak`, which any
+   * other move resets); cleared only on faint.
+   */
+  usedDefenseCurl?: boolean;
+  /**
    * Consecutive successful uses of the same move (Métronome objet) — 0..METRONOME_MAX_STEPS.
    * Drives the cumulative damage boost. Reset to 0 when the move changes or the previous use failed.
    */

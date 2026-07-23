@@ -556,6 +556,8 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
     targeting: { kind: TargetingKind.Self },
     effects: [
       { kind: EffectKind.StatChange, stat: StatName.Defense, stages: 1, target: EffectTarget.Self },
+      // Doubles Roulade / Ball'Glace power for the rest of the battle (canon Defense Curl).
+      { kind: EffectKind.MarkDefenseCurl },
     ],
   },
   rollout: {

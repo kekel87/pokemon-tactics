@@ -1,4 +1,9 @@
-import { heightBlocks, isMeleeBlockedByHeight, withinHeightReach } from "../battle/height-modifier";
+import {
+  getHeightRangeBonus,
+  heightBlocks,
+  isMeleeBlockedByHeight,
+  withinHeightReach,
+} from "../battle/height-modifier";
 import { PokemonType } from "../enums/pokemon-type";
 import { TargetingKind } from "../enums/targeting-kind";
 import type { MoveFlags } from "../types/move-flags";
@@ -223,17 +228,24 @@ function resolveSingle(
     return [];
   }
   const distance = manhattanDistance(origin, target);
-  if (distance < minRange || distance > maxRange) {
-    return [];
-  }
   const originHeight = getTileHeight(grid, origin);
   const targetHeight = getTileHeight(grid, target);
 
   if (maxRange === 1) {
+    if (distance < minRange || distance > maxRange) {
+      return [];
+    }
     if (isMeleeBlockedByHeight(originHeight, targetHeight, maxRange)) {
       return [];
     }
     return [target];
+  }
+
+  // High ground extends ranged reach toward tiles below (Line/Cone/Blast share this via their own
+  // resolvers). Melee (handled above) is unaffected.
+  const effectiveMaxRange = maxRange + getHeightRangeBonus(originHeight, targetHeight);
+  if (distance < minRange || distance > effectiveMaxRange) {
+    return [];
   }
 
   if (!heightReachAllows(guard, originHeight, targetHeight)) {
@@ -258,7 +270,11 @@ function resolveCone(
   const originHeight = getTileHeight(grid, origin);
   const result: Position[] = [];
 
-  for (let distance = range.min; distance <= range.max; distance++) {
+  // High ground lengthens the cone toward lower tiles, referenced to the tile at the base-range end.
+  const baseEnd = stepInDirection(origin, direction, range.max);
+  const maxDistance = range.max + getHeightRangeBonus(originHeight, getTileHeight(grid, baseEnd));
+
+  for (let distance = range.min; distance <= maxDistance; distance++) {
     const center = stepInDirection(origin, direction, distance);
     if (grid.isInBounds(center)) {
       const centerHeight = getTileHeight(grid, center);
@@ -335,7 +351,11 @@ function resolveLine(origin: Position, target: Position, length: number, grid: G
   const originHeight = getTileHeight(grid, origin);
   const result: Position[] = [];
 
-  for (let step = 1; step <= length; step++) {
+  // High ground lengthens the line toward lower tiles, referenced to the tile at the base-length end.
+  const baseEnd = stepInDirection(origin, direction, length);
+  const effectiveLength = length + getHeightRangeBonus(originHeight, getTileHeight(grid, baseEnd));
+
+  for (let step = 1; step <= effectiveLength; step++) {
     const position = stepInDirection(origin, direction, step);
     if (!grid.isInBounds(position)) {
       break;
@@ -437,7 +457,10 @@ function resolveBlast(
     return [];
   }
   const distance = manhattanDistance(origin, target);
-  if (distance < range.min || distance > range.max) {
+  // High ground lets the blast's aimed centre be lobbed farther onto lower tiles (radius unchanged).
+  const effectiveMaxRange =
+    range.max + getHeightRangeBonus(getTileHeight(grid, origin), getTileHeight(grid, target));
+  if (distance < range.min || distance > effectiveMaxRange) {
     return [];
   }
 

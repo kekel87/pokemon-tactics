@@ -416,6 +416,7 @@ const fr: Translations = {
   "moveTooltip.tag.drawAttentionPowder": "🧲 Attire l'attention (poudre — Plante immunisé)",
   "moveTooltip.tag.actAfterUser": "⏫ La cible alliée joue juste après toi",
   "moveTooltip.tag.swapAllyPositions": "⇄ Échange de place avec un allié",
+  "moveTooltip.tag.markDefenseCurl": "🌀 Double la puissance de Roulade / Ball'Glace ensuite",
   "moveTooltip.tag.healBlock": "🚫 Anti-Soin (2 tours)",
   "moveTooltip.tag.spite": "⏳ Retarde le prochain tour de la cible",
   "moveTooltip.tag.removesItem": "🗑️ Retire l'objet de la cible",
