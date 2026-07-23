@@ -9,8 +9,15 @@ const QUICK_POWDER_SPEED_MOD = 2;
  * `speedStatOverride` (Permuvitesse / speed-swap) > `transformState.baseSpeed` (Morphing/Imposteur,
  * plan 157) > species `baseStats.speed`. Poudre Vite (`quick-powder`) then doubles it for an
  * untransformed Métamorph (species-locked, read directly from `heldItemId` — no registry on this
- * path; Zone Magique suppression not modelled here, minor gap). The InfoPanel base-stat display
- * keeps reading `baseStats.speed` directly (decision #597).
+ * path). The InfoPanel base-stat display keeps reading `baseStats.speed` directly (decision #597).
+ *
+ * Zone Magique (magic-room) suppression is **deliberately not modelled here** (documented carve-out,
+ * decision #714): threading `state` through the whole Speed path — including the derived-stat cache
+ * recompute sites (`applyStatStage`) that have no `state` — would be a wide, invasive change, and the
+ * suppression would be cache-cadence-approximate anyway (movement recomputes on stat change, not when
+ * a mon walks in/out of a zone). The only affected case is an *untransformed* Métamorph standing in a
+ * Zone Magique, which is practically unreachable (Métamorph transforms turn 1). Registry-driven items
+ * ARE suppressed, via `effectiveHeldItem`; Pierrallégée is suppressed via `effectiveWeight(_, state)`.
  */
 export function effectiveBaseSpeed(pokemon: PokemonInstance): number {
   const base =
