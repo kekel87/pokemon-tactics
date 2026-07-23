@@ -24,7 +24,9 @@
     align-items: baseline;
     gap: var(--spacing-lg);
     .pl-roster-instruction {
+      margin: 0;
       color: var(--color-text-primary);
+      font-size: inherit;
       font-weight: bold;
     }
     .pl-roster-counter {

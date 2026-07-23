@@ -53,12 +53,18 @@ Rédiger une ligne **orientée joueur** (pas développeur) par changement notabl
 - Détails techniques (noms de fichiers, classes, fonctions)
 - Commits `chore:`, `refactor:`, `test:`, `docs:` sans impact joueur
 
+**Concision (feedback humain 2026-06-12) — RÈGLE** : regrouper par catégorie, ne PAS énumérer chaque move/Pokemon avec sa sous-puce. Un lot de contenu = **une ligne de synthèse chiffrée**, pas N puces.
+- ❌ `- Added Roll­out\n- Added Ice Ball\n- Added Thrash\n- Added Petal Dance …` (une puce par move)
+- ✅ `- 9 new moves incl. lock-in family (Thrash, Petal Dance, Ice Ball) and Spit Up/Swallow`
+- ❌ une sous-puce par Pokemon d'un batch → ✅ `- 12 new Pokemon added to the roster (Gen 1 pre-evolutions)`
+- Ne détailler nommément que les **têtes d'affiche** (feature marquante, move emblématique) ; le reste en agrégat. Vise ~5-10 lignes de changelog max, pas 40.
+
 Format final (Markdown) — grouper :
 
 ```markdown
 ## What's New
 
-- Major new features (mechanics, moves, Pokemon, maps, modes)
+- Major new features (mechanics, moves, Pokemon, maps, modes) — agrégés, pas une puce par item
 
 ## Improvements
 

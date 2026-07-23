@@ -48,7 +48,7 @@ export class PlacementRoster {
     const header = document.createElement("div");
     header.className = "pl-roster-header";
     const playerNumber = state.playerId.match(/player-(\d+)/)?.[1] ?? "1";
-    const instruction = document.createElement("span");
+    const instruction = document.createElement("h2");
     instruction.className = "pl-roster-instruction";
     instruction.textContent = this.config.translate("placement.instruction", {
       player: playerNumber,
