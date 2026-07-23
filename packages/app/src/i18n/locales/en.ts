@@ -415,6 +415,7 @@ const en: Translations = {
   "moveTooltip.tag.drawAttentionPowder": "🧲 Draws attention (powder — Grass immune)",
   "moveTooltip.tag.actAfterUser": "⏫ Target ally acts right after you",
   "moveTooltip.tag.swapAllyPositions": "⇄ Swap places with an ally",
+  "moveTooltip.tag.markDefenseCurl": "🌀 Doubles Rollout / Ice Ball power afterwards",
   "moveTooltip.tag.healBlock": "🚫 Heal Block (2 turns)",
   "moveTooltip.tag.spite": "⏳ Delays the target's next turn",
   "moveTooltip.tag.removesItem": "🗑️ Removes the target's held item",

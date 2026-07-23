@@ -178,6 +178,11 @@ export const EffectKind = {
    * (`defenseStatOverride` / `spDefenseStatOverride`). Mirrors the Permuvitesse raw-stat override.
    */
   GuardSplit: "guard_split",
+  /**
+   * Boul'Armure (defense-curl): mark the caster so that Roulade (rollout) and Ball'Glace (ice-ball)
+   * deal double power for the rest of the battle (`usedDefenseCurl`). Applied alongside the Defense +1.
+   */
+  MarkDefenseCurl: "mark_defense_curl",
 } as const;
 
 export type EffectKind = (typeof EffectKind)[keyof typeof EffectKind];

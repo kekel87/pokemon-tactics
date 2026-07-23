@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getHeightModifier, heightBlocks, isMeleeBlockedByHeight } from "./height-modifier";
+import {
+  getHeightModifier,
+  getHeightRangeBonus,
+  heightBlocks,
+  isMeleeBlockedByHeight,
+} from "./height-modifier";
 
 describe("getHeightModifier", () => {
   it("returns 1.0 for same height", () => {
@@ -74,6 +79,31 @@ describe("isMeleeBlockedByHeight", () => {
 
   it("blocks melee when attacker is higher by 2", () => {
     expect(isMeleeBlockedByHeight(3, 1, 1)).toBe(true);
+  });
+});
+
+describe("getHeightRangeBonus", () => {
+  it("grants no bonus on flat ground", () => {
+    expect(getHeightRangeBonus(2, 2)).toBe(0);
+  });
+
+  it("grants no bonus when aiming uphill", () => {
+    expect(getHeightRangeBonus(0, 4)).toBe(0);
+  });
+
+  it("grants +1 per two levels of elevation above the aimed tile", () => {
+    expect(getHeightRangeBonus(2, 0)).toBe(1);
+    expect(getHeightRangeBonus(3, 0)).toBe(1);
+    expect(getHeightRangeBonus(4, 0)).toBe(2);
+  });
+
+  it("caps the bonus at 2 tiles", () => {
+    expect(getHeightRangeBonus(10, 0)).toBe(2);
+  });
+
+  it("floors fractional elevation differences", () => {
+    expect(getHeightRangeBonus(1.5, 0)).toBe(0);
+    expect(getHeightRangeBonus(2.5, 0)).toBe(1);
   });
 });
 

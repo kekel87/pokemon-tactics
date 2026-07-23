@@ -198,4 +198,5 @@ export type Effect =
   | { kind: typeof EffectKind.SwallowHeal }
   | { kind: typeof EffectKind.ConsumeStockpile }
   | { kind: typeof EffectKind.VenomDrench }
-  | { kind: typeof EffectKind.GuardSplit };
+  | { kind: typeof EffectKind.GuardSplit }
+  | { kind: typeof EffectKind.MarkDefenseCurl };

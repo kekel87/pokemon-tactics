@@ -415,6 +415,7 @@ export interface Translations {
   "moveTooltip.tag.drawAttentionPowder": string;
   "moveTooltip.tag.actAfterUser": string;
   "moveTooltip.tag.swapAllyPositions": string;
+  "moveTooltip.tag.markDefenseCurl": string;
   "moveTooltip.tag.healBlock": string;
   "moveTooltip.tag.spite": string;
   "moveTooltip.tag.removesItem": string;

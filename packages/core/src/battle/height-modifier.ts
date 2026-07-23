@@ -22,6 +22,26 @@ export function getHeightModifier(
   return 1.0 + clampedBonus;
 }
 
+/** Highest ranged bonus an attacker can gain from elevation (in tiles). */
+export const HEIGHT_RANGE_BONUS_CAP = 2;
+/** Levels of elevation over the aimed tile needed for each +1 tile of range. */
+const HEIGHT_LEVELS_PER_RANGE_BONUS = 2;
+
+/**
+ * Extra targeting range (in tiles) an attacker gains for aiming at a tile BELOW it: +1 per
+ * `HEIGHT_LEVELS_PER_RANGE_BONUS` levels of elevation above the aimed tile, clamped to
+ * `[0, HEIGHT_RANGE_BONUS_CAP]`. Never negative — shooting uphill costs no range (the disadvantage
+ * is already carried by the damage penalty in `getHeightModifier`). Applies to ranged targeting
+ * only (Single with range > 1, Blast, Line, Cone); melee and Dash are unaffected.
+ */
+export function getHeightRangeBonus(attackerHeight: number, targetHeight: number): number {
+  const diff = attackerHeight - targetHeight;
+  if (diff <= 0) {
+    return 0;
+  }
+  return Math.min(HEIGHT_RANGE_BONUS_CAP, Math.floor(diff / HEIGHT_LEVELS_PER_RANGE_BONUS));
+}
+
 const MELEE_HEIGHT_LIMIT = 2;
 
 export function isMeleeBlockedByHeight(

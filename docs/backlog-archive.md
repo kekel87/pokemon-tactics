@@ -8,6 +8,22 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Portée dynamique selon hauteur (dénivelé) — RÉSOLU (2026-07-23)
+
+- **Contexte** : les plans 046/047 n'ajustaient que le modificateur de **dégâts** selon le dénivelé (`getHeightModifier`, ±10%/niveau, cap +50%/-30%) — aucun bonus de **portée** pour un attaquant en surplomb.
+- **Résolution** : nouvelle fonction `getHeightRangeBonus(hAttaquant, hCible) = clamp(0, +2, ⌊(hAttaquant − hCible) / 2⌋)` (`packages/core/src/grid/targeting.ts`) — positif seulement (downhill-only, pas de double peine avec le malus dégâts existant). Appliquée aux résolveurs Single (portée>1), Blast, Cône, Ligne (référencée à la tuile en bout de portée de base pour Cône/Ligne) ; exclus mêlée/Dash/Tranche. `BattleEngine.getValidTargetPositions` élargit les candidats Single/Blast en superset (+2), `resolveTargeting` filtre exactement ensuite — pas de faux positif de ciblage.
+- Décision #708, `docs/game-design.md` § Hauteur des tiles.
+
+---
+
+## Bonus Cabriole ×2 sur Roulade / Ball'Glace — RÉSOLU (2026-07-23)
+
+- **Contexte (2026-07-04, human-testing plan 149)** : l'item était initialement mal nommé « Cabriole » — **erreur de nom FR**, corrigée à l'archivage : le move visé est **Boul'Armure** (`defense-curl`), Cabriole n'est pas ce move. Canon : Boul'Armure double la puissance de Roulade (`rollout`) et Ball'Glace (`ice-ball`) si utilisée avant, pour tout le reste du combat.
+- **Résolution** : Boul'Armure pose un flag persistant `PokemonInstance.usedDefenseCurl` (reset au KO, nouveau `EffectKind.MarkDefenseCurl` + `handle-mark-defense-curl.ts`, ajouté **en plus** de son +1 Déf existant). Tant qu'il est actif, Roulade et Ball'Glace infligent le double de puissance via `rolloutEffectivePower(pokemon, moveId)` (`packages/core/src/battle/rollout-streak.ts`), cumulatif avec le snowball propre à `RolloutStreak` (30→480 devient 60→960). Tag tooltip `moveTooltip.tag.markDefenseCurl` (FR « 🌀 Double la puissance de Roulade / Ball'Glace ensuite »).
+- Décision #709, `docs/game-design.md` § 8h.
+
+---
+
 ## Animer les liquides — RÉSOLU (2026-07-23)
 
 - **Contexte (2026-07-21, suite plan 166)** : le rendu liquides (transparence, cuvette, immersion, écume) laissait la **surface statique** — seule l'écume de flottaison bougeait.
