@@ -167,7 +167,10 @@ pokemon-tactics/
 │   │   │   ├── directional-billboard.ts # sprites PMDCollab directionnels + états
 │   │   │   ├── floating-text-spawner.ts # textes flottants en moteur
 │   │   │   ├── shaders/                 # plugins de matériau Babylon (MaterialPluginBase) —
-│   │   │   │                            # decoration-wind-plugin.ts (vent voxel décorations)
+│   │   │   │                            # decoration-wind-plugin.ts (vent voxel décorations),
+│   │   │   │                            # liquid-shimmer-plugin.ts (anim procédurale surfaces
+│   │   │   │                            # liquides : lueur/scintillement/ondulation, 2026-07-23),
+│   │   │   │                            # water-foam-material.ts (écume de flottaison)
 │   │   │   └── constants.ts             # constantes visuelles Babylon (BABYLON_*)
 │   │   ├── tsconfig.json        # dépend core/data/view-core/render-ports + Babylon.js
 │   │   └── package.json

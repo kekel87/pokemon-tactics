@@ -11,6 +11,75 @@ Le tileset est **généré** automatiquement par les scripts Python de `scripts/
 Voir `scripts/README.md` pour la pipeline complète et `docs/plans/050-custom-tileset.md`
 pour le contexte du remplacement de JAO.
 
+## Provenance des textures (spriters-resource.com)
+
+Chaque texture terrain est extraite (via `scripts/extract-pmd-tile.py`) d'une **sheet
+de donjon PMD** rippée sur [spriters-resource.com](https://www.spriters-resource.com/).
+Les sheets originales sont conservées **read-only, gitignorées** dans
+`docs/references/pmd-tilesets/<catégorie>/*.png`. Le tableau ci-dessous donne la
+source exacte de chaque sheet utilisée (asset-id + URL vérifiés octet-pour-octet
+contre les fichiers locaux, 2026-07-23).
+
+> **Crédit / licence** : toutes les sheets retenues sont rippées et formatées par
+> le contributeur **`SilverDeoxys563`** (sections « Dungeon Tiles »). Mention sur
+> les sheets : *« No credit is necessary, but it's always appreciated! »*. Assets
+> de fan-rip de jeux Nintendo/The Pokémon Company — usage de **référence de
+> développement uniquement**, non redistribuables tels quels (cf. `docs/decisions.md`
+> sur les assets libres de droits).
+
+| Sheet (fichier local) | Donjon | Jeu | asset-id | URL | Sert (terrains) |
+|---|---|---|---|---|---|
+| `normal_grass/forest-path` | Forest Path | Explorers of Time/Darkness (DS) | 85768 | [/asset/85768/](https://www.spriters-resource.com/ds_dsi/pokemonmysterydungeonexplorersoftimedarkness/asset/85768/) | herbe (top) |
+| `normal_grass/lightning-field` | Lightning Field | Red Rescue Team (GBA) | 85275 | [/asset/85275/](https://www.spriters-resource.com/game_boy_advance/pokemonmysterydungeonredrescueteam/asset/85275/) | herbe (flanc) |
+| `tall_grass_forest/mystery-jungle-01f-15f` | Mystery Jungle 01F–15F | Explorers of Time/Darkness (DS) | 84968 | [/asset/84968/](https://www.spriters-resource.com/ds_dsi/pokemonmysterydungeonexplorersoftimedarkness/asset/84968/) | tall_grass (top+flanc) |
+| `rock/mt-thunder` | Mt. Thunder | Red Rescue Team (GBA) | 19788 | [/asset/19788/](https://www.spriters-resource.com/game_boy_advance/pokemonmysterydungeonredrescueteam/asset/19788/) | roche |
+| `brick_ruins/buried-relic-b51f-b99f` | Buried Relic B51F–B99F | Red Rescue Team (GBA) | 85417 | [/asset/85417/](https://www.spriters-resource.com/game_boy_advance/pokemonmysterydungeonredrescueteam/asset/85417/) | brique |
+| `sand/northern-desert-01f-07f` | Northern Desert 01F–07F | Explorers of Time/Darkness (DS) | 37112 | [/asset/37112/](https://www.spriters-resource.com/ds_dsi/pokemonmysterydungeonexplorersoftimedarkness/asset/37112/) | sable (top+flanc) |
+| `brick_ruins/buried-relic-b21f-b50f` | Buried Relic B21F–B50F | Red Rescue Team (GBA) | 85416 | [/asset/85416/](https://www.spriters-resource.com/game_boy_advance/pokemonmysterydungeonredrescueteam/asset/85416/) | pave |
+| `brick_ruins/darknight-relic` | Darknight Relic | Red Rescue Team (GBA) | 40730 | [/asset/40730/](https://www.spriters-resource.com/game_boy_advance/pokemonmysterydungeonredrescueteam/asset/40730/) | path (ground) + wood (walls) |
+| `snow/frosty-forest` | Frosty Forest | Red Rescue Team (GBA) | 85202 | [/asset/85202/](https://www.spriters-resource.com/game_boy_advance/pokemonmysterydungeonredrescueteam/asset/85202/) | snow (top) |
+| `snow/snow-path` | Snow Path | Red Rescue Team (GBA) | 85186 | [/asset/85186/](https://www.spriters-resource.com/game_boy_advance/pokemonmysterydungeonredrescueteam/asset/85186/) | snow (flanc) |
+| `ice/ice-maze` | Ice Maze | Red Rescue Team (GBA) | 85201 | [/asset/85201/](https://www.spriters-resource.com/game_boy_advance/pokemonmysterydungeonredrescueteam/asset/85201/) | ice |
+| `lava_magma/magma-cavern-b18f-b23f` | Magma Cavern B18F–B23F | Red Rescue Team (GBA) | 85239 | [/asset/85239/](https://www.spriters-resource.com/game_boy_advance/pokemonmysterydungeonredrescueteam/asset/85239/) | magma (Ground) + lava (Lava) |
+| `water/miracle-sea` | Miracle Sea | Explorers of Time/Darkness (DS) | 85996 | [/asset/85996/](https://www.spriters-resource.com/ds_dsi/pokemonmysterydungeonexplorersoftimedarkness/asset/85996/) | water + deep_water |
+| `swamp_poison/poison-maze` | Poison Maze | Red Rescue Team (GBA) | 85483 | [/asset/85483/](https://www.spriters-resource.com/game_boy_advance/pokemonmysterydungeonredrescueteam/asset/85483/) | swamp |
+
+> **Doublons écartés** : `Lightning Field` (id 75142) et `Mt. Thunder` (id 75100)
+> existent en second exemplaire (uploadeur `FluffyBunny`, section « Dungeon Boss
+> Rooms ») à des **dimensions différentes** qui ne matchent PAS nos fichiers — ce
+> sont d'autres découpes. Les ids retenus ci-dessus (85275 / 19788, 813×770) sont
+> les seuls à correspondre octet-pour-octet.
+
+Les catégories dans `docs/references/pmd-tilesets/` contiennent **d'autres sheets
+candidates non retenues** (autres donjons du même biome) — utiles si on veut
+changer l'aspect d'un terrain ou en ajouter un nouveau sans re-chercher sur
+spriters.
+
+## Phase 6 — variants d'autotile & animation (à exploiter plus tard)
+
+Deux choses présentes dans les sheets source mais **pas encore extraites**, à
+garder en tête pour l'éditeur de map 3D (Phase 6) :
+
+- **Variants d'autotile** : chaque section de terrain d'une sheet PMD contient un
+  **jeu complet de variantes** (centre plein + bords + coins intérieurs/extérieurs
+  + péninsules), organisé par la « Legend » de bitmask à gauche de la sheet. On
+  n'extrait aujourd'hui **que la tuile centrale pleine** (col_local 1, row 1). Pour
+  l'autotiling de l'éditeur, il faudra extraire l'ensemble du bloc de variantes de
+  chaque terrain (ex. la colonne « Lava » de Magma Cavern = centre + coins/bords,
+  **pas** des frames d'animation — corrigé 2026-07-23).
+- **Animation par palette-cycling (source PMD, non retenue)** : PMD anime l'eau/la
+  lave **par rotation de palette** (pas par frames multiples). Les sheets exposent,
+  à droite, les **bandes de palette** (une colonne = un slot de couleur, une ligne
+  = une frame) et une note de vitesse (ex. `Lava-Ground speed: Every 3 frames`).
+  Notre pipeline fige **une seule ligne de palette** → texture statique, et reste
+  ainsi : reconstruire ce cycle (bake de frames hors-ligne ou LUT de palette dans
+  un shader) n'a **pas été implémenté** et n'est pas retenu comme approche.
+  **L'animation des liquides est faite (2026-07-23), mais procéduralement** —
+  `LiquidShimmerPlugin` (`packages/render-babylon/src/shaders/liquid-shimmer-plugin.ts`)
+  synthétise lueur/scintillement/ondulation par shader au-dessus de la texture
+  statique, sans rejouer le palette-cycling source ni des frames. Détails :
+  `docs/design-system.md` § Liquides, décision #707.
+
 ## Organisation
 
 **Principe** : 1 colonne × 26 lignes, groupes par terrain empilés verticalement,

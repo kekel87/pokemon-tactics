@@ -306,7 +306,7 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 - [ ] **Textures terrain — retravail** :
   - transitions entre types de terrain (blend / bords).
   - variations de texture sur un même type (casser la répétition).
-  - animation (eau, lave, magma, marais…).
+  - [x] animation (eau, lave, magma, marais…) (2026-07-23) — `LiquidShimmerPlugin` (procédural : lueur/scintillement/ondulation), pas du palette-cycling. Décision #707. Voir `docs/design-system.md` §Liquides.
 
 ---
 

@@ -8,6 +8,15 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Animer les liquides — RÉSOLU (2026-07-23)
+
+- **Contexte (2026-07-21, suite plan 166)** : le rendu liquides (transparence, cuvette, immersion, écume) laissait la **surface statique** — seule l'écume de flottaison bougeait.
+- **Résolution** : nouveau `LiquidShimmerPlugin` (`packages/render-babylon/src/shaders/liquid-shimmer-plugin.ts`, mirroré du vent des décorations) anime la surface translucide par shader — lueur/assombrissement par zones (`blob`), vague de scintillement directionnelle (`sparkle`), ondulation verticale (`ripple`), pilotées par `scene.onBeforeRenderObservable`, tunables par liquide (`BABYLON_LIQUID_SHIMMER_BY_GROUP`). Échantillonnage pixel-perfect (snap grille de texels, `BABYLON_LIQUID_SURFACE_PIXELS_PER_UNIT = 24`), pas de shader lisse. Piste retenue = procédurale, **pas** la palette-cycling source PMD (celle-ci nécessiterait de reconstruire un cycle de palette hors pipeline actuel — non retenu, `docs/tileset-mapping.md` § Provenance).
+- Changement connexe : la lave rejoint la branche `deep_water` (colonne pleine 0→5/6), supprimant le seam demi-bloc de l'ancien fond+nappe.
+- Décision #707, `docs/design-system.md` § Liquides.
+
+---
+
 ## Animation Faint absente pour la majorité du roster — CLÔTURÉ non-actionnable (2026-07-22)
 
 - **Contexte (2026-06-18)** : seuls **29/152** atlas du roster embarquent une animation `Faint` ; les 123 autres (dont Florizarre) ne jouent aucun effondrement au KO (assombrissement + masquage HUD uniquement). La « cause supposée » du backlog était un gap `extract-sprites` à corriger.
