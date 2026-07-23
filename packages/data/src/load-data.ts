@@ -5,6 +5,7 @@ import itemsReference from "../reference/items.json";
 import movesReference from "../reference/moves.json";
 import pokemonReference from "../reference/pokemon.json";
 import { abilityHandlers } from "./abilities/ability-definitions";
+import { deepFreeze } from "./deep-freeze";
 import { itemHandlers } from "./items/item-definitions";
 import { buildItemRegistry } from "./items/load-items";
 import { loadAbilitiesFromReference } from "./loaders/load-abilities";
@@ -162,6 +163,10 @@ export function loadData(): GameData {
     itemHandlers,
   );
 
+  // Freeze the plain-data definitions (pokemon + moves) so a test in one worker can't mutate the
+  // shared cache and poison another test's baseline. Registries hold handler functions, not data.
+  deepFreeze(pokemon);
+  deepFreeze(moves);
   cachedGameData = { pokemon, moves, abilityRegistry, itemRegistry };
   return cachedGameData;
 }
@@ -170,7 +175,9 @@ export function loadAllPokemonTypes(): Map<string, PokemonType[]> {
   const reference = pokemonReference as unknown as ReferencePokemon[];
   const result = new Map<string, PokemonType[]>();
   for (const entry of reference) {
-    result.set(entry.id, entry.types as PokemonType[]);
+    // `entry.types` is a direct reference into the shared JSON — freeze it so a type read/copy can't
+    // mutate the singleton in place and poison another test (same invariant as the frozen defs).
+    result.set(entry.id, deepFreeze(entry.types as PokemonType[]));
   }
   return result;
 }
