@@ -62,6 +62,11 @@ Maintenu par Claude Code. Lu via `/next`.
 - **Bump `Ayowel/butler-to-itch`** (workflow `itch-deploy.yml`) — bloqué à v1.3.0 (runtime node20) tant qu'aucune release node24 n'est publiée par le mainteneur. Bumper dès disponible.
 - **Changelogs release trop verbeux** (feedback 2026-06-12) — raccourcir le format joueur : regrouper par catégorie sans énumérer chaque move + sa sous-puce. Appliquer dès la prochaine release.
 - **Scaling assets Gen 2+** — chunk-by-génération du bundle sprites (`pack-sprites`) reste à implémenter quand on attaque Gen 2 ; architecture déjà prête (plan 135), indépendante du nombre de Pokemon.
+- **Perf des suites de test — unit + e2e deviennent longues (2026-07-23)** — à investiguer dans une passe dédiée (`best-practices` Vitest/Playwright + `performance-profiler`), pas de refacto à l'aveugle.
+  - **Chiffres observés** au gate : unit 3532 tests s'exécutent en **~4.6 s**, mais **transform ~29 s + import ~55 s** d'overhead (le goulot = transpile esbuild + chargement du graphe de modules, PAS les assertions) ; e2e 349 tests = **~10.4 min** (boot d'une scène Babylon WebGL software-GL par spec).
+  - **Pistes unit/integration** : (1) cache de transform Vite persistant (`cacheDir`) pour amortir les ~29 s de transform sur les reruns ; (2) profiler les ~55 s d'import — suspect n°1 : `loadData()` parse les gros JSON `reference/*` par worker → **mémoïser/`Object.freeze` le cache partagé** (recoupe le fix « isolation tests fragile », double bénéfice) ; (3) revoir `maxWorkers`/`pool` (threads déjà, `isolate:false` déjà) — possible thrashing CPU ; (4) `test --changed` en watch local.
+  - **Pistes e2e** : (1) le coût dominant = boot de scène Babylon par test → **booter une fois par spec et réinitialiser l'état via le hook e2e** (`__ptE2e__` / seed) plutôt que reload complet ; (2) batcher plusieurs assertions par boot au lieu d'1 spec = 1 boot = 1 check ; (3) découper **smoke (chemin critique, rapide)** vs **full (pré-release/nightly)** — le gate quotidien ne lance que le smoke ; (4) vérifier si un flag « skip animations » raccourcit les tweens attendus.
+  - Objectif : gate local < ~5 min sans perdre de couverture. Bloquant à terme pour la vélocité (le gate tourne à chaque commit).
 
 ### Idées en exploration (humain, rien d'engagé)
 
