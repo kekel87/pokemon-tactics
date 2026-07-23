@@ -333,7 +333,11 @@ export function extrudeTerrain(scene: Scene, loaded: LoadedTiledMap): ExtrudedTe
         continue;
       }
 
-      const totalHeight = tileBodyHeight(tile.height);
+      // Liquids are always full-height bodies (decision #697): depth is read from the submerged
+      // sprite, never from a shorter tile. Clamp guards against a stray height < 1 (legacy half-a
+      // liquid tiles) rendering a broken half-column (plan 169).
+      const bodyHeight = isLiquidGroup(tile.group) ? Math.max(1, tile.height) : tile.height;
+      const totalHeight = tileBodyHeight(bodyHeight);
       const world = gridToWorldXZ(x, y, width, height);
       const name = `tile_${x}_${y}`;
       const meta = { tile: { x, y } } satisfies TileMeshMetadata;

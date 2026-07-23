@@ -8,6 +8,14 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Régression — demi-blocs de liquide obsolètes depuis le rendu volume liquide — RÉSOLU (2026-07-23)
+
+- **Contexte** : le nouveau rendu des liquides (volumes translucides + colonne pleine, commits `b6261c7` / animation procédurale liquide) avait supprimé le seam demi-bloc de la lave (décision #707), mais il restait des tuiles liquides `half-a` (`height=0.5`, ids 67/70/73/76) dans 3 maps de jeu — reliquat de l'ancien rendu bloc opaque, incompatible avec la décision #697 (liquides `full` toujours à `height=1.0`, demi-bloc gameplay émergent via la submersion, pas via la hauteur de tuile).
+- **Résolution (plan 169)** : **Data** — dans Archipel des Pontons (`naval-arena`), Tourbière (`swamp`) et Volcan Actif (`volcano`), les tuiles liquides `half-a` remplacées par `full`. + 2 retours de cohérence : 4 tuiles Tourbière sous les arbres passées en herbe/normal ; 24 demi-blocs de magma **solide** (Volcan Actif, sans lien avec le magma liquide) passés en pleins. **Renderer** (`terrain-extruder.ts`) — clamp `bodyHeight ≥ 1` pour tout groupe liquide, invariant « liquide toujours plein ». **Code** (`tiled-map.ts`) — ids 67/70/73/76 retirés de `LIQUID_GROUP_BY_LOCAL_ID`. **Tileset** (`tileset.tsj`) — entrées tuile `half-a` liquide supprimées ; le PNG n'est pas re-coupé (2 rangs morts/réservés par groupe liquide, pour ne pas décaler tous les ids liquides suivants). Le magma `half-a` (solide) est conservé tel quel.
+- Décision #711, `docs/tileset-mapping.md` § Terrains liquides.
+
+---
+
 ## Portée dynamique selon hauteur (dénivelé) — RÉSOLU (2026-07-23)
 
 - **Contexte** : les plans 046/047 n'ajustaient que le modificateur de **dégâts** selon le dénivelé (`getHeightModifier`, ±10%/niveau, cap +50%/-30%) — aucun bonus de **portée** pour un attaquant en surplomb.

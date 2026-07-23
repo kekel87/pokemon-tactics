@@ -79,16 +79,17 @@ const SOLID_GROUPS: readonly VisualTerrainGroup[] = [
 const SOLID_BLOCK_SIZE = 6;
 const SOLID_USED_PER_BLOCK = 5;
 
-/** Liquids sit at fixed local ids (full + half-a). Source: `docs/tileset-mapping.md`. */
+/**
+ * Liquids sit at fixed local ids — `full` only (`height=1`). The legacy `half-a` liquid tiles
+ * (ids 67/70/73/76, `height=0.5`) were purged (plan 169, decision #697): liquids are always
+ * full-height bodies, depth comes from sprite submersion, never from a shorter tile. Their PNG
+ * rows stay as reserved dead rows to avoid shifting every liquid id. Source: `docs/tileset-mapping.md`.
+ */
 const LIQUID_GROUP_BY_LOCAL_ID: Readonly<Record<number, VisualTerrainGroup>> = {
   66: "water",
-  67: "water",
   69: "deep_water",
-  70: "deep_water",
   72: "lava",
-  73: "lava",
   75: "swamp",
-  76: "swamp",
 };
 
 /** Tileset tile custom properties as stored in the `.tsj`. */
