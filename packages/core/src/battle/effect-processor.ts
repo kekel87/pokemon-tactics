@@ -1,6 +1,7 @@
 import { BattleEventType } from "../enums/battle-event-type";
 import { EffectKind } from "../enums/effect-kind";
-import type { PokemonType } from "../enums/pokemon-type";
+import { PokemonType } from "../enums/pokemon-type";
+import { StatusImmuneReason } from "../enums/status-immune-reason";
 import { StatusType } from "../enums/status-type";
 import type { BattleEvent } from "../types/battle-event";
 import type { BattleState } from "../types/battle-state";
@@ -203,6 +204,16 @@ export function createDefaultEffectRegistry(): EffectHandlerRegistry {
   return registry;
 }
 
+/** The first status a move inflicts, if any — used to label a Poudre move's Grass-type immunity. */
+function firstInflictedStatus(move: MoveDefinition): StatusType | undefined {
+  for (const effect of move.effects) {
+    if (effect.kind === EffectKind.Status) {
+      return "statuses" in effect ? effect.statuses[0] : effect.status;
+    }
+  }
+  return undefined;
+}
+
 export function processEffects(
   context: ProcessContext,
   registry?: EffectHandlerRegistry,
@@ -218,6 +229,24 @@ export function processEffects(
   // does (damage OR status), so it gates targets before the type-immunity pass below.
   const moveImmuneIds = new Set<string>();
   for (const target of context.targets) {
+    // Grass-type immunity to Poudre moves (canon Gen 6+). Envelocape / Lunettes Filtre are covered by
+    // the onMoveImmunity hooks below; a Grass-type target shrugs off powder with no ability/item.
+    if (context.move.flags?.powder === true) {
+      const targetTypes = context.targetTypesMap.get(target.id) ?? [];
+      if (targetTypes.includes(PokemonType.Grass)) {
+        moveImmuneIds.add(target.id);
+        const powderStatus = firstInflictedStatus(context.move);
+        if (powderStatus !== undefined) {
+          events.push({
+            type: BattleEventType.StatusImmune,
+            targetId: target.id,
+            status: powderStatus,
+            reason: StatusImmuneReason.Type,
+          });
+        }
+        continue;
+      }
+    }
     const immunityResult = resolveDefensiveAbility(
       context.abilityRegistry,
       target,

@@ -1611,6 +1611,53 @@ export const RAGE_POWDER_GRASS_IMMUNE = {
   ],
 } as const;
 
+/** Immunité poudre du type Plante (canon Gen 6+) — Poudre Dodo (`sleep-powder`, Zone r1 auto-centrée
+ *  sur le lanceur, statut Sommeil, `flags.powder`). Le lanceur Florizarre (Plante, immunisé à sa
+ *  propre poudre) en (2,4) ; la cible est un SECOND Florizarre (Plante/Poison) adjacent en (3,4),
+ *  DANS la zone r1 mais de type Plante → le move entier est bloqué : « Ça n'affecte pas Florizarre… »
+ *  et AUCUN Sommeil. Contraste avec SLEEP_POWDER_HITS (cible Salamèche non-Plante endormie) → prouve
+ *  que c'est le type Plante, pas la portée, qui bloque. Cast auto-centré confirmé sur (2,4). Seed 1 :
+ *  le jet de précision 75 % de Poudre Dodo TOUCHE (l'immunité se résout après le hit — cf. seed 4/20
+ *  qui ratent → ni immunité ni sommeil). */
+export const SLEEP_POWDER_GRASS_IMMUNE = {
+  seed: 1,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["sleep-powder"],
+          position: { x: 2, y: 4 },
+          direction: "east",
+        },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "venusaur", position: { x: 3, y: 4 } }] },
+  ],
+} as const;
+
+/** Contrôle non-Plante de l'immunité poudre — même Poudre Dodo lancé par Florizarre, mais la cible
+ *  adjacente est Salamèche (`charmander`, Feu, non-Plante) en (3,4) → elle est bien endormie
+ *  (« s'est endormi »). Seed 1 : précision ET jet de statut 75 % passent tous deux → déterministe. */
+export const SLEEP_POWDER_HITS = {
+  seed: 1,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["sleep-powder"],
+          position: { x: 2, y: 4 },
+          direction: "east",
+        },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "charmander", position: { x: 3, y: 4 } }] },
+  ],
+} as const;
+
 /** Après Vous (`after-you`, Single r3, targetsAlly) — la cible alliée passe STRICTEMENT prochaine au
  *  Charge Time (promotion non-destructive consommée dans `advanceTurn`). Équipe joueur = Florizarre
  *  (after-you, Vit 80) en (2,4) + un allié LENT Ronflex (Vit 30) en (3,4). Équipe ennemie = un
