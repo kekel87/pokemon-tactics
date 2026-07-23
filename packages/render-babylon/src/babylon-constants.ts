@@ -136,6 +136,117 @@ export const BABYLON_LIQUID_FOAM_COLOR_BY_GROUP: Readonly<Record<string, number>
 export const BABYLON_LIQUID_FOAM_COLOR_DEFAULT = 0xeaf7ff;
 
 /**
+ * Texel density of a liquid surface: the top texture is 24×24 px over one world-unit tile, so the
+ * shimmer effects snap their world-XZ sampling to a 1/24-unit grid → chunky pixel-art cells aligned
+ * to the texture texels (no smooth sub-pixel gradient), matching the rest of the pixel-art look.
+ */
+export const BABYLON_LIQUID_SURFACE_PIXELS_PER_UNIT = 24;
+
+/**
+ * Procedural liquid "life" (2026-07-23): a `LiquidShimmerPlugin` on each liquid SURFACE material
+ * synthesises animation over the static texture. NOT palette-cycling / not frame animation — the
+ * PMD source sheets carry neither (their in-game animation is engine palette rotation, absent from
+ * the rips; see `docs/tileset-mapping.md` § Provenance). Only the surface slab animates; the opaque
+ * floor (sand / molten rock) stays still. Two brightness effects (per-liquid, mix freely) + a ripple:
+ *
+ * - `blob` : signed brightness of localized moving patches ("bubbles"). `> 0` brightens (lava),
+ *   `< 0` darkens (swamp). `blobScale` = spatial frequency (radians/world-unit; ~1 tile = 1 unit),
+ *   `blobSpeed` = how fast the patches churn.
+ * - `sparkle` : brightness of a travelling shimmer band + twinkling glints (water). `sparkleScale`
+ *   = band/glint frequency, `sparkleSpeed` = wave travel speed.
+ * - `ripple` : vertical bob amplitude of the surface, world units (≈24 px/unit → 0.03 ≈ ¾ px).
+ *   `rippleSpeed` = oscillations/s, `phaseFreq` = spatial frequency so neighbours bob out of phase.
+ * - `flowX`/`flowZ` : world-XZ direction the sparkle wave travels and the blobs advect along.
+ *   East = +Z, West = −Z, South = +X, North = −X (see `direction-arrow-layout.ts`); so `(0, 1)`
+ *   is West→East and `(1, 1)` is North-West→South-East. `blobDrift` = how fast blobs slide along
+ *   that flow (0 = no directional slide).
+ * - `blobPatternCycle` : blob animation mode. `0` = churn in place (bubbles pop, e.g. lava). `1` =
+ *   static pattern-cycle — three FIXED dark-zone layouts cross-faded by slow cosines so zones
+ *   appear/disappear in place without drifting (e.g. swamp); `blobSpeed` sets the (slow) cycle rate.
+ */
+export interface LiquidShimmerParams {
+  readonly blob: number;
+  readonly blobScale: number;
+  readonly blobSpeed: number;
+  readonly blobDrift: number;
+  readonly blobPatternCycle: number;
+  readonly sparkle: number;
+  readonly sparkleScale: number;
+  readonly sparkleSpeed: number;
+  readonly ripple: number;
+  readonly rippleSpeed: number;
+  readonly phaseFreq: number;
+  readonly flowX: number;
+  readonly flowZ: number;
+}
+export const BABYLON_LIQUID_SHIMMER_BY_GROUP: Readonly<Record<string, LiquidShimmerParams>> = {
+  // Lava: warm bubble blobs churning in place (no directional drift); light ripple.
+  lava: {
+    blob: 0.3,
+    blobScale: 8,
+    blobSpeed: 1.6,
+    blobDrift: 0,
+    blobPatternCycle: 0,
+    sparkle: 0,
+    sparkleScale: 0,
+    sparkleSpeed: 0,
+    ripple: 0.03,
+    rippleSpeed: 1.3,
+    phaseFreq: 1.7,
+    flowX: 1,
+    flowZ: 0,
+  },
+  // Shallow water: a travelling sparkle wave, West→East; medium ripple.
+  water: {
+    blob: 0,
+    blobScale: 0,
+    blobSpeed: 0,
+    blobDrift: 0,
+    blobPatternCycle: 0,
+    sparkle: 0.18,
+    sparkleScale: 5,
+    sparkleSpeed: 1.9,
+    ripple: 0.06,
+    rippleSpeed: 1.2,
+    phaseFreq: 1.2,
+    flowX: 0,
+    flowZ: 1,
+  },
+  // Deep water: subtler sparkle wave, calmer, kept on the NW→SE diagonal; medium ripple.
+  deep_water: {
+    blob: 0,
+    blobScale: 0,
+    blobSpeed: 0,
+    blobDrift: 0,
+    blobPatternCycle: 0,
+    sparkle: 0.13,
+    sparkleScale: 4,
+    sparkleSpeed: 1.4,
+    ripple: 0.045,
+    rippleSpeed: 1,
+    phaseFreq: 1,
+    flowX: 1,
+    flowZ: 1,
+  },
+  // Swamp: static dark-zone patterns that appear/disappear in place (no drift), slow cycle; ripple.
+  swamp: {
+    blob: -0.24,
+    blobScale: 7,
+    blobSpeed: 0.9,
+    blobDrift: 0,
+    blobPatternCycle: 1,
+    sparkle: 0,
+    sparkleScale: 0,
+    sparkleSpeed: 0,
+    ripple: 0.035,
+    rippleSpeed: 0.7,
+    phaseFreq: 1.4,
+    flowX: 0,
+    flowZ: 0,
+  },
+};
+
+/**
  * Window-depth bias pulling a sprite's flattened foot depth toward the camera so it
  * wins the depth tie against its own tile/shadow while taller terrain still occludes.
  * Babylon-only (the X-ray silhouette + `SpriteDepthPlugin` are not ported to Three).

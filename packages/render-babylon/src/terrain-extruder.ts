@@ -19,6 +19,7 @@ import {
 import {
   BABYLON_LIQUID_ALPHA_BY_GROUP,
   BABYLON_LIQUID_DEPTH_RATIO,
+  BABYLON_LIQUID_SHIMMER_BY_GROUP,
   BABYLON_LIQUID_SURFACE_ALPHA_INDEX,
   BABYLON_LIQUID_SURFACE_RATIO,
   BABYLON_LIQUID_WATER_ALPHA,
@@ -30,15 +31,7 @@ import {
   BABYLON_TILE_HEIGHT_SCALE,
   BABYLON_TILE_MIN_HEIGHT,
 } from "./babylon-constants.js";
-
-/**
- * Visual group texturing the opaque floor of a liquid tile (plan 166): sand under water/
- * swamp (placeholder), molten rock under lava so a submerged sprite's feet sit in lava,
- * not on a beach.
- */
-function liquidFloorGroup(group: VisualTerrainGroup): VisualTerrainGroup {
-  return group === "lava" ? "lava" : "sable";
-}
+import { LiquidShimmerPlugin } from "./shaders/liquid-shimmer-plugin.js";
 
 /** Base URL of the flat top-down PMD terrain textures (one per visual group). */
 const TERRAIN_TEXTURE_BASE = "assets/tilesets/terrain-3d";
@@ -114,6 +107,9 @@ function createMaterialFactory(scene: Scene) {
   const topByGroup = new Map<VisualTerrainGroup, StandardMaterial>();
   const sideByGroup = new Map<VisualTerrainGroup, StandardMaterial>();
   const waterByGroup = new Map<VisualTerrainGroup, StandardMaterial>();
+  // Animated glow/ripple plugins on the liquid surface materials; the scene advances their
+  // `time` each frame (see `extrudeTerrain`). Disposed with their host material.
+  const shimmerPlugins: LiquidShimmerPlugin[] = [];
 
   function loadTexture(url: string): Texture {
     const texture = new Texture(url, scene, true, true, Texture.NEAREST_SAMPLINGMODE);
@@ -180,6 +176,10 @@ function createMaterialFactory(scene: Scene) {
     material.transparencyMode = Material.MATERIAL_ALPHABLEND;
     material.alpha = BABYLON_LIQUID_ALPHA_BY_GROUP[group] ?? BABYLON_LIQUID_WATER_ALPHA;
     material.disableDepthWrite = true;
+    const shimmer = BABYLON_LIQUID_SHIMMER_BY_GROUP[group];
+    if (shimmer) {
+      shimmerPlugins.push(new LiquidShimmerPlugin(material, shimmer));
+    }
     waterByGroup.set(group, material);
     return material;
   }
@@ -219,7 +219,7 @@ function createMaterialFactory(scene: Scene) {
     invisible?.dispose();
   }
 
-  return { topMaterial, sideMaterial, waterMaterial, invisibleMaterial, dispose };
+  return { topMaterial, sideMaterial, waterMaterial, invisibleMaterial, shimmerPlugins, dispose };
 }
 
 /**
@@ -338,9 +338,12 @@ export function extrudeTerrain(scene: Scene, loaded: LoadedTiledMap): ExtrudedTe
       const name = `tile_${x}_${y}`;
       const meta = { tile: { x, y } } satisfies TileMeshMetadata;
 
-      if (tile.group === "deep_water") {
-        // Deep water: one translucent column 0→5/6 (no sand floor — it reads bottomless),
-        // drawn over submerged sprites. Interior walls culled so a pool merges seamlessly.
+      if (tile.group === "deep_water" || tile.group === "lava") {
+        // Deep/full liquids (deep water, lava): one single column 0→5/6, no separate floor —
+        // deep water reads bottomless, lava reads as a solid molten body (both would show an
+        // ugly two-tone half-block seam at 3/6 if split like shallow water). Drawn over
+        // submerged sprites; interior walls culled so a pool merges seamlessly. Lava's near-
+        // opaque alpha (0.99) hides a submerged sprite's legs; deep water's stays see-through.
         buildTile({
           name,
           world,
@@ -353,26 +356,17 @@ export function extrudeTerrain(scene: Scene, loaded: LoadedTiledMap): ExtrudedTe
           transparent: true,
         });
       } else if (isLiquidGroup(tile.group)) {
-        // Water / swamp / lava: opaque floor 0→3/6 (carries the pick, sits below the
-        // sprite's feet so it never X-ray-silhouettes the body) + a surface slab 3/6→5/6
-        // drawn over the submerged sprite (translucent for water/swamp, near-opaque for
-        // lava). The floor is sand under water/swamp, molten rock under lava.
-        const floorGroup = liquidFloorGroup(tile.group);
-        // Lava has no dedicated wall texture, so its darkened side would clash with the
-        // full-bright surface slab above (a two-tone split at 3/6). Use the top texture at
-        // full brightness for a seamless molten wall. Sand keeps its real wall texture (a
-        // sandy bank, seen through the translucent water above).
-        const floorSideMaterial =
-          floorGroup === "lava"
-            ? factory.topMaterial(floorGroup)
-            : factory.sideMaterial(floorGroup);
+        // Shallow liquids (water, swamp): a sand floor 0→3/6 (carries the pick, sits below the
+        // sprite's feet so it never X-ray-silhouettes the body, and reads as a bank through the
+        // translucent water) + a translucent surface slab 3/6→5/6 drawn over the submerged
+        // sprite. Lava and deep water take the single full-column branch above instead.
         buildTile({
           name,
           world,
           baseY: 0,
           boxHeight: totalHeight * BABYLON_LIQUID_DEPTH_RATIO,
-          topMaterial: factory.topMaterial(floorGroup),
-          sideMaterial: floorSideMaterial,
+          topMaterial: factory.topMaterial("sable"),
+          sideMaterial: factory.sideMaterial("sable"),
           culledSides: liquidCulledSides(x, y),
           metadata: meta,
           transparent: false,
@@ -404,11 +398,28 @@ export function extrudeTerrain(scene: Scene, loaded: LoadedTiledMap): ExtrudedTe
     }
   }
 
+  // Drive the liquid surface glow/ripple: advance every shimmer plugin's clock once per frame.
+  // Only registered when the map actually has animated liquids (materials are created lazily
+  // during the tile loop above, so `shimmerPlugins` is populated by now).
+  let shimmerElapsedSeconds = 0;
+  const shimmerObserver =
+    factory.shimmerPlugins.length > 0
+      ? scene.onBeforeRenderObservable.add(() => {
+          shimmerElapsedSeconds += scene.getEngine().getDeltaTime() / 1000;
+          for (const plugin of factory.shimmerPlugins) {
+            plugin.time = shimmerElapsedSeconds;
+          }
+        })
+      : null;
+
   return {
     root,
     worldWidth: width,
     worldDepth: height,
     dispose: () => {
+      if (shimmerObserver) {
+        scene.onBeforeRenderObservable.remove(shimmerObserver);
+      }
       root.dispose(false, true);
       factory.dispose();
     },

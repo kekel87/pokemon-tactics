@@ -78,12 +78,33 @@ test("sandbox boote : tiles nommées par coordonnée en groupe terrain + décora
   const decorations = await grassNames();
   expect((await scene.meshInfo(decorations[0]))?.renderingGroupId).toBe(2);
 
-  // Liquide translucide (plan 166) : l'eau en (4,2) de `sandbox-flat` rend un fond sable opaque
-  // `tile_4_2` (groupe terrain 0, pickable) PLUS une nappe translucide séparée `liquid_surface_4_2`.
-  // La nappe est en groupe sprite (2) — dessinée APRÈS les billboards pour passer devant un Pokemon
-  // immergé — et alpha-blend (on voit le fond au travers).
-  const surface = await scene.meshInfo("liquid_surface_4_2");
-  expect(surface).not.toBeNull();
-  expect(surface?.renderingGroupId).toBe(2);
-  expect(surface?.transparent).toBe(true);
+  // Liquides peu profonds (plan 166) — eau (4,2) et marais (2,2) de `sandbox-flat` : chacun rend un
+  // fond sable opaque `tile_x_y` (groupe terrain 0, pickable) PLUS une nappe translucide séparée
+  // `liquid_surface_x_y`. La nappe est en groupe sprite (2) — dessinée APRÈS les billboards pour
+  // passer devant un Pokemon immergé — et alpha-blend (on voit le fond au travers).
+  for (const [x, y] of [
+    [4, 2], // eau
+    [2, 2], // marais
+  ] as const) {
+    const surface = await scene.meshInfo(`liquid_surface_${x}_${y}`);
+    expect(surface, `liquid_surface_${x}_${y} should exist`).not.toBeNull();
+    expect(surface?.renderingGroupId).toBe(2);
+    expect(surface?.transparent).toBe(true);
+  }
+
+  // Liquides pleins (chantier anim liquides) — lave (0,5) et eau profonde (5,5) : UNE seule colonne
+  // pleine `tile_x_y` 0→5/6, SANS nappe séparée (un split fond+surface montrerait une couture bicolore
+  // à 3/6 disgracieuse). La lave rejoint désormais l'eau profonde sur cette branche colonne unique →
+  // plus AUCUN `liquid_surface_*` pour ces tuiles. (Le glow/scintillement/ondulation de la surface est
+  // un effet shader continu = 👁, non exposé par le hook scène.)
+  const names = await scene.meshNames();
+  for (const [x, y] of [
+    [0, 5], // lave
+    [5, 5], // eau profonde
+  ] as const) {
+    expect(await scene.meshInfo(`tile_${x}_${y}`), `tile_${x}_${y} column`).not.toBeNull();
+    expect(names, `no liquid_surface for full liquid at ${x},${y}`).not.toContain(
+      `liquid_surface_${x}_${y}`,
+    );
+  }
 });
