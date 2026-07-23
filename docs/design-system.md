@@ -874,7 +874,12 @@ Source canonique : `packages/renderer/src/babylon/babylon-constants.ts`.
 
 Source canonique : `packages/render-babylon/src/terrain-extruder.ts`, `babylon-constants.ts`, `shaders/water-foam-material.ts`, `directional-billboard.ts`, `combat-scene.ts` ; ratios `LIQUID_SURFACE_RATIO`/`LIQUID_DEPTH_RATIO` dans `packages/view-core/src/constants.ts` (ré-exportés `BABYLON_LIQUID_SURFACE_RATIO`/`BABYLON_LIQUID_DEPTH_RATIO`).
 
-Chaque tuile liquide **franchissable** (eau, marais, lave) rend **deux boîtes empilées** : un fond opaque `tile_x_y` (0 → 3/6 du corps, pickable, texture sable sous eau/marais, roche en fusion sous lave) et une nappe translucide `liquid_surface_x_y` (3/6 → 5/6, non pickable). La surface commune à **5/6** laisse **1/6** d'air sous le sol solide voisin = l'effet cuvette. **L'eau profonde** (`deep_water`) est le seul cas sans fond : colonne translucide unique **0 → 5/6** (se lit "sans fond visible"). Les faces latérales intérieures entre deux tuiles liquides adjacentes sont cullées (matériau invisible dédié) pour fusionner en un bassin continu, sans « murs sous l'eau ».
+Chaque tuile liquide **franchissable** rend soit deux boîtes empilées, soit une colonne pleine, selon le groupe :
+
+- **Eau (`water`) et marais (`swamp`)** : un fond opaque `tile_x_y` (0 → 3/6 du corps, pickable, texture sable) et une nappe translucide `liquid_surface_x_y` (3/6 → 5/6, non pickable). La surface commune à **5/6** laisse **1/6** d'air sous le sol solide voisin = l'effet cuvette.
+- **Eau profonde (`deep_water`) et lave (`lava`)** : **colonne pleine unique 0 → 5/6**, pas de fond séparé — l'eau profonde se lit "sans fond visible", la lave comme un corps de roche en fusion continu (2026-07-23 : la lave a rejoint cette branche, quittant le groupe fond+nappe initial du plan 166 — supprime le seam demi-bloc visible à 3/6 entre un fond roche et une nappe distincte).
+
+Les faces latérales intérieures entre deux tuiles liquides adjacentes sont cullées (matériau invisible dédié) pour fusionner en un bassin continu, sans « murs sous l'eau ».
 
 | Constante | Valeur | Rôle |
 |-----------|--------|------|
@@ -895,7 +900,15 @@ Chaque tuile liquide **franchissable** (eau, marais, lave) rend **deux boîtes e
 
 **Hauteur des tuiles liquides** (`tileset.tsj`) : les liquides `full` restent `height=1.0` (rendu 6-tranches à pleine hauteur). Le « demi-bloc » ne concerne que le gameplay — un mon s'enfonce à 3/6 (= `0.5`) via la submersion, lu comme un `step` au déplacement (voir `docs/tileset-mapping.md`, décision #697).
 
-Décisions #691–#697.
+**Animation procédurale des liquides** (2026-07-23, `shaders/liquid-shimmer-plugin.ts`) : `LiquidShimmerPlugin` (`MaterialPluginBase`, mirroré du vent des décorations, `decoration-wind-plugin.ts`) anime la surface **translucide** de chaque liquide par-dessus sa texture statique — le fond (sable/roche en fusion) ne bouge jamais. Ce n'est **ni du palette-cycling ni des frames** : les sheets PMD source n'en contiennent pas (leur animation en jeu est une rotation de palette moteur, absente des rips ; voir `docs/tileset-mapping.md` § Provenance). Approche procédurale choisie délibérément. Piloté par `scene.onBeforeRenderObservable` (temps en secondes, `plugin.time`), 3 effets combinables et tunables par liquide via `BABYLON_LIQUID_SHIMMER_BY_GROUP: Record<string, LiquidShimmerParams>` (`babylon-constants.ts`) :
+
+- **Lueur/assombrissement par zones** (`blob`, signé) : patches localisés d'un champ 2D animé qui éclaircissent (`> 0`, lave = bulles chaudes qui pulsent en place) ou assombrissent (`< 0`, marais = zones sombres). Deux modes via `blobPatternCycle` : `0` = churn en place (bulles qui popent, lave) ; `1` = cycle de **3 patterns fixes** cross-fadés par cosinus lents, zones qui apparaissent/disparaissent sans dériver (marais). `blobScale`/`blobSpeed`/`blobDrift` réglent fréquence spatiale, vitesse de churn, vitesse de glisse le long du flux.
+- **Vague de scintillement directionnelle** (`sparkle`) : une bande brillante voyageuse + glints scintillants épars — eau claire Ouest→Est, eau profonde en diagonale (plus calme). `sparkleScale`/`sparkleSpeed` réglent fréquence et vitesse de la vague.
+- **Ondulation verticale** (`ripple`) : léger bob vertical de la surface (amplitude en world units, ≈24 px/unité → `0.03` ≈ ¾ px), `rippleSpeed`/`phaseFreq` réglant l'oscillation et le déphasage spatial entre voisins.
+
+`flowX`/`flowZ` fixent l'axe de flux monde-XZ pour `sparkle` et l'advection de `blob` — Est = `+Z`, Ouest = `−Z`, Sud = `+X`, Nord = `−X` (cf. `direction-arrow-layout.ts`) : eau claire `(0, 1)` = Ouest→Est, eau profonde `(1, 1)` = diagonale Nord-Ouest→Sud-Est. **Pixel-perfect** : tout échantillonnage monde-XZ est snappé à la grille de texels de la texture (`BABYLON_LIQUID_SURFACE_PIXELS_PER_UNIT = 24`, 24×24 px/tuile) avant d'être injecté dans les fonctions de bruit — les effets rendent en cellules pixel-art nettes, jamais en dégradé lissé sous-pixel.
+
+Décisions #691–#697, #707.
 
 ### Constantes Babylon — chrome combat (Jalon 4b/4c)
 
