@@ -4,7 +4,13 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
-_Aucun bug actif._ (2 items reclassés + 2 vrais bugs corrigés le 2026-07-19 → `docs/backlog-archive.md`.)
+### Régression — demi-blocs de liquide obsolètes depuis le rendu volume liquide (2026-07-23)
+- Le nouveau rendu des liquides (volumes translucides + colonne pleine, commits `b6261c7` / animation procédurale) a supprimé le seam demi-bloc de la lave, mais **il reste des tuiles liquides en demi-bloc** ailleurs (héritées de l'ancien rendu bloc opaque) qui **n'ont plus de sens** avec le nouveau système.
+- À **remplacer** par le rendu volume liquide plein cohérent avec eau / eau profonde / lave.
+- Repérer les tuiles/hauteurs concernées (maps + `terrain-extruder.ts` / mapping liquides) et uniformiser.
+
+<!-- _Aucun bug actif._ (2 items reclassés + 2 vrais bugs corrigés le 2026-07-19 → `docs/backlog-archive.md`.) -->
+
 
 <!-- Le Mur — réintégrer + fixer IA : RÉSOLU plan 159 (2026-07-14, publié v2026.7.2). Carte dispo au menu + IA maîtrise ring-out/prise de hauteur. Détails → docs/backlog-archive.md. -->
 
