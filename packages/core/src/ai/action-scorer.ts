@@ -26,6 +26,7 @@ import { EffectTarget } from "../enums/effect-target";
 import type { EntryHazardKind } from "../enums/entry-hazard-kind";
 import { FieldGlobalKind } from "../enums/field-global-kind";
 import { FieldTerrain } from "../enums/field-terrain";
+import { HeldItemId } from "../enums/held-item-id";
 import { PokemonGender } from "../enums/pokemon-gender";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
@@ -68,6 +69,34 @@ const DANGEROUS_TERRAINS: ReadonlySet<TerrainType> = new Set([
   TerrainType.Swamp,
 ]);
 const DANGEROUS_TERRAIN_PENALTY = 8;
+
+/**
+ * Objets à fort impact tactique dont la manipulation (Sabotage / Tour de Magie / Passe-Passe / Gaz
+ * Corrosif) vaut nettement plus que la moyenne (heuristique fine plan 142). Priver l'ennemi d'un objet
+ * de survie (Ceinture Force, Bandana), d'un item Choix, d'un boost offensif (Orbe Vie) ou de sustain
+ * (Restes) change réellement l'échange ; les catch-all « toute baie » (`-berry`, réactif/consommable)
+ * comptent aussi. Les objets passifs stat-sticks (Charbon, Cape Noire…) restent au bonus générique.
+ */
+const HIGH_VALUE_MANIP_TARGET_ITEMS: ReadonlySet<HeldItemId> = new Set([
+  HeldItemId.FocusSash,
+  HeldItemId.FocusBand,
+  HeldItemId.Leftovers,
+  HeldItemId.BlackSludge,
+  HeldItemId.LifeOrb,
+  HeldItemId.ChoiceBand,
+  HeldItemId.ChoiceSpecs,
+  HeldItemId.ChoiceScarf,
+  HeldItemId.AssaultVest,
+  HeldItemId.Eviolite,
+  HeldItemId.ToxicOrb,
+  HeldItemId.FlameOrb,
+]);
+const HIGH_VALUE_MANIP_MULTIPLIER = 2;
+
+/** True si retirer/échanger cet objet à l'ennemi a une valeur tactique supérieure à la moyenne. */
+function isHighValueManipTarget(itemId: HeldItemId): boolean {
+  return HIGH_VALUE_MANIP_TARGET_ITEMS.has(itemId) || itemId.endsWith("-berry");
+}
 
 /**
  * CT-aware scoring (plan 165). Coût CT de référence = coût minimum d'un move (500). Le facteur tempo
@@ -579,8 +608,8 @@ function scoreUseMove(
     securesKo = securesKo || ringOut.securesLethalKo;
   }
 
-  // Manipulation d'objet (Sabotage / Larcin / Tour de Magie / Passe-Passe, plan 142 ; heuristique fine
-  // plan 159) : ne vaut le coup que si la cible porte réellement un objet.
+  // Manipulation d'objet (Sabotage / Larcin / Tour de Magie / Passe-Passe / Gaz Corrosif, plan 142) :
+  // ne vaut le coup que si la cible porte réellement un objet, pondéré par sa valeur tactique.
   const hasItemManip = move.effects.some(
     (effect) =>
       effect.kind === EffectKind.StealItem ||
@@ -591,7 +620,12 @@ function scoreUseMove(
   if (hasItemManip) {
     for (const target of targetsHit) {
       if (target.heldItemId !== undefined) {
-        score += weights.statChanges;
+        // Heuristique fine (plan 142) : priver l'ennemi d'un objet à fort impact (survie / Choix /
+        // Orbe Vie / Restes / baie réactive) vaut davantage que virer un stat-stick passif.
+        const multiplier = isHighValueManipTarget(target.heldItemId)
+          ? HIGH_VALUE_MANIP_MULTIPLIER
+          : 1;
+        score += weights.statChanges * multiplier;
       }
     }
   }

@@ -120,8 +120,8 @@ function speedRatioInversePower(attacker: PokemonInstance, target: PokemonInstan
 }
 
 /** low-kick / grass-knot — power by the target's body weight in kilograms. */
-function targetWeightPower(target: PokemonInstance): number {
-  const weight = effectiveWeight(target);
+function targetWeightPower(target: PokemonInstance, state: BattleState | undefined): number {
+  const weight = effectiveWeight(target, state);
   if (weight >= 200) {
     return 120;
   }
@@ -145,9 +145,13 @@ function targetWeightPower(target: PokemonInstance): number {
  * Uses Showdown's multiplicative comparison (`userWeight >= targetWeight * N`) so the
  * boundaries (e.g. exactly ×3 → 80) match the games exactly.
  */
-function weightRatioPower(attacker: PokemonInstance, target: PokemonInstance): number {
-  const userWeight = effectiveWeight(attacker);
-  const targetWeight = effectiveWeight(target);
+function weightRatioPower(
+  attacker: PokemonInstance,
+  target: PokemonInstance,
+  state: BattleState | undefined,
+): number {
+  const userWeight = effectiveWeight(attacker, state);
+  const targetWeight = effectiveWeight(target, state);
   if (userWeight >= targetWeight * 5) {
     return 120;
   }
@@ -219,8 +223,14 @@ const RESOLVERS: ReadonlyMap<DynamicPowerKind, DynamicPowerResolver> = new Map([
     ({ attacker }) =>
       attacker.maxHp > 0 ? Math.floor((150 * attacker.currentHp) / attacker.maxHp) : 0,
   ],
-  [DynamicPowerKind.TargetWeight, ({ target }) => targetWeightPower(target)],
-  [DynamicPowerKind.WeightRatio, ({ attacker, target }) => weightRatioPower(attacker, target)],
+  [
+    DynamicPowerKind.TargetWeight,
+    ({ target, battleState }) => targetWeightPower(target, battleState),
+  ],
+  [
+    DynamicPowerKind.WeightRatio,
+    ({ attacker, target, battleState }) => weightRatioPower(attacker, target, battleState),
+  ],
   [
     DynamicPowerKind.DamagedByEnemySinceLastAction,
     ({ move, attacker }) =>

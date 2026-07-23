@@ -16,6 +16,7 @@ import { resolveDefensiveAbility } from "./ability-suppression";
 import { getTypeEffectiveness } from "./damage-calculator";
 import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handler-registry";
 import { EffectHandlerRegistry } from "./effect-handler-registry";
+import { effectiveHeldItem } from "./effective-held-item";
 import { isEffectivelyGrounded } from "./field-global-system";
 import { enumerateZoneTiles } from "./field-terrain-system";
 import { handleCopyAbility } from "./handlers/ability-manip/handle-copy-ability";
@@ -397,6 +398,7 @@ export function processEffects(
     }
 
     const effectTargets = filterShieldDustTargets(
+      context.state,
       processedEffect,
       moveHasDamage,
       nonImmuneTargets,
@@ -542,6 +544,7 @@ function withDoubledSecondaryChance(effect: Effect): Effect {
 }
 
 function filterShieldDustTargets(
+  state: BattleState,
   effect: Effect,
   moveHasDamage: boolean,
   targets: PokemonInstance[],
@@ -569,8 +572,8 @@ function filterShieldDustTargets(
       continue;
     }
     // Cape Obscure (covert-cloak): the item mirror of Écran Poudre — the holder is shielded from
-    // the added effects of incoming moves.
-    const item = itemRegistry?.getForPokemon(target);
+    // the added effects of incoming moves (suppressed inside a Zone Magique).
+    const item = effectiveHeldItem(state, target, itemRegistry);
     if (item?.suppressesIncomingSecondary === true) {
       events.push({
         type: BattleEventType.HeldItemActivated,

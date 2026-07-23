@@ -14,6 +14,7 @@ import { resolveDefensiveAbility } from "../ability-suppression";
 import { isProtectedFromStatus } from "../aura-system";
 import { effectConditionHolds } from "../condition-eval";
 import type { EffectContext } from "../effect-handler-registry";
+import { effectiveHeldItem } from "../effective-held-item";
 import { isOnFieldTerrain } from "../field-terrain-system";
 import { tryMentalHerbCure } from "../mental-herb";
 import { isMajorStatus } from "../stat-modifier";
@@ -235,7 +236,7 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
       // position-linked) — the trap simply fails to take hold.
       if (
         status === StatusTypeEnum.Trapped &&
-        context.itemRegistry?.getForPokemon(target)?.immuneToTrapping === true
+        effectiveHeldItem(context.state, target, context.itemRegistry)?.immuneToTrapping === true
       ) {
         events.push({
           type: BattleEventType.StatusBlocked,
@@ -253,7 +254,7 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
         "positionLinked" in effect &&
         effect.positionLinked === true;
 
-      const attackerItem = context.itemRegistry?.getForPokemon(context.attacker);
+      const attackerItem = effectiveHeldItem(context.state, context.attacker, context.itemRegistry);
 
       let remainingTurns = -1;
       if (!isPositionLinkedTrap) {

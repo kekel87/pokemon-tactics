@@ -1301,8 +1301,14 @@ SENS observable et déterministe.
   slot) : différence de dégâts numérique (nécessite un témoin + positionnement défenseur dans/hors
   zone) → unit (`moves/wonder-room.test.ts`, `damage-calculator`).
 - 👁 **Zone Magique — objet neutralisé** d'un porteur dans la zone (objet inerte mais NON consommé,
-  redevient actif hors zone) : effet comportemental/numérique (nécessite un témoin) → unit
-  (`moves/magic-room.test.ts`, `isHeldItemSuppressed`).
+  redevient actif hors zone) : effet comportemental/numérique (nécessite un témoin) → couvert
+  intégration core `moves/magic-room.test.ts` (chokepoints `effectiveHeldItem` / `effectiveWeight`),
+  qui pilote un vrai combat pour les 5 objets suppressibles — Cape Obscure (`covert-cloak`, secondaire
+  entrant), Carapace Mue (`shed-shell`, piégeage), Accro Griffe (`grip-claw`, durée de piège), Bande
+  Étreinte (`binding-band`, chip de piège), Pierrallégée (`float-stone`, poids/Balayage) : effet
+  neutralisé dans la zone, rétabli hors zone (témoin sans zone). Poudre Vite (`quick-powder`) = NON
+  suppressible (décision assumée #714). Non pilotable en e2e court (multi-tour + positionnement du
+  porteur dans le diamant r3, aucune ligne de journal FR distincte de la neutralisation).
 - 👁 **Vent Arrière — ctGain ×1.5** des mons (les 2 camps) dont l'orientation == direction du vent :
   décalage d'ordre dans la timeline `predictCtTimeline` (nécessite un setup d'alignement d'orientation
   + cumul après Distorsion) → unit (`moves/tailwind.test.ts`, `BattleEngine.getCtGainForPokemon`).

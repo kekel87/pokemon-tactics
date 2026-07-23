@@ -68,6 +68,7 @@ import { processEffects } from "./effect-processor";
 import { effectiveAbilityId } from "./effective-ability";
 import { effectiveBaseSpeed } from "./effective-base-speed";
 import { isEffectivelyFlying, resolveBaseTypes } from "./effective-flying";
+import { effectiveHeldItem } from "./effective-held-item";
 import { effectiveMoveIds } from "./effective-move-ids";
 import {
   absorbsToxicSpikes,
@@ -79,7 +80,7 @@ import {
 } from "./entry-hazard-system";
 import { FacingZone, getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
-import { isAirborneMove, isEffectivelyGrounded, isHeldItemSuppressed } from "./field-global-system";
+import { isAirborneMove, isEffectivelyGrounded } from "./field-global-system";
 import {
   decrementFieldTerrainsTimer,
   getFieldTerrainBpMultiplier,
@@ -659,7 +660,7 @@ export class BattleEngine {
     if (ownAbility === "run-away" || ownAbility === "neutralizing-gas") {
       return false;
     }
-    if (this.itemRegistry?.getForPokemon(pokemon)?.immuneToTrapping === true) {
+    if (effectiveHeldItem(this.state, pokemon, this.itemRegistry)?.immuneToTrapping === true) {
       return false;
     }
     for (const other of this.state.pokemon.values()) {
@@ -3321,9 +3322,7 @@ export class BattleEngine {
     if (activePokemon && activePokemon.currentHp > 0) {
       // Zone Magique (magic-room): a holder inside the zone has its end-of-turn item effects (Restes
       // regen, terrain seeds…) suppressed while it stands inside.
-      const item = isHeldItemSuppressed(this.state, activePokemon)
-        ? undefined
-        : this.itemRegistry?.getForPokemon(activePokemon);
+      const item = effectiveHeldItem(this.state, activePokemon, this.itemRegistry);
       // Tension (unnerve): a living enemy with Tension blocks end-of-turn berry consumption.
       const berryBlocked =
         item?.isBerry === true && areBerriesSuppressed(this.state, activePokemon);
@@ -3729,9 +3728,7 @@ export class BattleEngine {
     // (already inverted) gain.
     const windMultiplier = tailwindSpeedMultiplier(this.state, pokemon);
     // Zone Magique (magic-room) suppresses held-item effects while the holder stands inside it.
-    const item = isHeldItemSuppressed(this.state, pokemon)
-      ? undefined
-      : this.itemRegistry?.getForPokemon(pokemon);
+    const item = effectiveHeldItem(this.state, pokemon, this.itemRegistry);
     const modifier = item?.onCtGainModify?.({ pokemon }) ?? 1.0;
     return Math.round(base * windMultiplier * modifier);
   }
