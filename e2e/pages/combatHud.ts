@@ -2,7 +2,9 @@ import type { Locator, Page } from "@playwright/test";
 
 /** InfoPanel DOM chrome (edge-anchored) — reflects the active/hovered Pokemon's identity and PV.
  *  Located by `data-testid` (resilient, role-agnostic) per Playwright guidance; the HP bar carries
- *  a real `role="progressbar"` so it's reached by role, not a testid. */
+ *  a real `role="progressbar"` so it's reached by role — but SCOPED under the `info-panel` testid,
+ *  because the loading overlay exposes its own `role="progressbar"` bar while fading out (a bare
+ *  page-level role would match both → strict-mode violation on an early read). */
 export class InfoPanel {
   readonly panel: Locator;
   readonly name: Locator;
@@ -23,7 +25,7 @@ export class InfoPanel {
     this.name = page.getByTestId("info-panel-name");
     this.level = page.getByTestId("info-panel-level");
     this.hpText = page.getByTestId("info-panel-hp");
-    this.hpBar = page.getByRole("progressbar");
+    this.hpBar = this.panel.getByRole("progressbar");
     this.portrait = page.getByTestId("info-panel-portrait");
     this.item = page.getByTestId("info-panel-item");
     this.itemIcon = this.item.locator("img");
