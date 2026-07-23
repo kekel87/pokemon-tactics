@@ -113,20 +113,18 @@ Chaque groupe solide contient, dans l'ordre : `full` · `half-a` (flanc homogèn
 
 > **magma = solide** : roche volcanique refroidie, marchable. À ne pas confondre avec `lava` (liquide, coulée en fusion).
 
-### Terrains liquides (4 × 3 lignes chacun)
+### Terrains liquides (4 × 3 lignes PNG chacun, 1 seule tuile active)
 
-Chaque groupe liquide contient `full` + `half-a` + séparateur.
+Chaque groupe liquide ne contient plus qu'un `full` (purge des demi-blocs liquides, 2026-07-23, plan 169 — le rendu volume liquide est incompatible avec une tuile liquide en demi-hauteur, cf. `docs/design-system.md` § Liquides et décision #711). Les 2 lignes PNG restantes du groupe (ex-`half-a` + séparateur) sont désormais **mortes/réservées** : le PNG n'a **pas** été re-coupé pour ne pas décaler tous les ids liquides suivants, ces rangs n'ont simplement plus d'entrée dans `tileset.tsj`.
 
 | tile_id | groupe     | role   | terrain    | sheet + top                      |
 |---------|------------|--------|------------|----------------------------------|
 | 66      | water      | full   | water      | `miracle-sea` shallow water      |
-| 67      | water      | half-a | water      | idem                             |
 | 69      | deep_water | full   | deep_water | `miracle-sea` deep water         |
-| 70      | deep_water | half-a | deep_water | idem                             |
 | 72      | lava       | full   | lava       | `magma-cavern-b18f-b23f` lava    |
-| 73      | lava       | half-a | lava       | idem                             |
 | 75      | swamp      | full   | swamp      | `poison-maze` ground             |
-| 76      | swamp      | half-a | swamp      | idem                             |
+
+> Ids 67/70/73/76 (ex-`half-a` liquide) : retirés de `tileset.tsj` **et** de `LIQUID_GROUP_BY_LOCAL_ID` (`tiled-map.ts`). Les 3 maps de jeu qui en pointaient (Archipel des Pontons/`naval-arena`, Tourbière/`swamp`, Volcan Actif/`volcano`) ont été migrées vers `full`. Le magma `half-a` (**solide**, id distinct du magma liquide) n'est pas concerné — conservé tel quel.
 
 Note : water (shallow, turquoise clair) et deep_water (bleu foncé) sont **visuellement distincts** depuis la régénération du tileset 2026-04-23. Avant, les deux GIDs produisaient la même couleur par bug d'extraction.
 
@@ -150,12 +148,13 @@ Les variantes E (escalier E, pente E) sont obtenues **au rendu** via le flip
 horizontal de Tiled (bit 31 du GID), décodé par `decodeTiledGid` dans
 `packages/data/src/tiled/tiled-utils.ts`.
 
-## Rôles par groupe liquide (2 lignes)
+## Rôles par groupe liquide (1 ligne active)
 
-1. **Tile pleine** (`full`) — height=1.0 (bloc plein — rendu 6-tranches à pleine hauteur)
-2. **Demi-tile A** (`half-a`) — height=0.5 (ajoutée 2026-04-23 pour cratères, cuvettes, marais peu profonds)
+1. **Tile pleine** (`full`) — height=1.0 (bloc plein — rendu 6-tranches à pleine hauteur). Invariant renforcé côté renderer (`terrain-extruder.ts`) : `bodyHeight` d'un groupe liquide est clampé à ≥ 1 quoi qu'il arrive.
 
 Le `full` reste un bloc plein (`1.0`) : c'est la submersion (mon enfoncé à 3/6) qui donne le « demi-bloc » côté gameplay, pas la hauteur de la tuile (décision #697). Pas de pente ni de cascade sur les liquides (décision plan 050, toujours valable).
+
+**Ex-demi-tile liquide (`half-a`, height=0.5, ajoutée 2026-04-23) — purgée 2026-07-23** (plan 169) : un rendu volume liquide n'a pas de sens en demi-hauteur (le renderer clampe désormais le corps liquide à `≥ 1` de toute façon). Retirée de `tileset.tsj` et de `LIQUID_GROUP_BY_LOCAL_ID` ; les 3 maps de jeu qui l'utilisaient sont passées en `full`. Décision #711.
 
 ## Génération
 

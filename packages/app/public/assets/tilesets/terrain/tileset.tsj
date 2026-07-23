@@ -964,42 +964,12 @@
       ]
     },
     {
-      "id": 67,
-      "properties": [
-        {
-          "name": "height",
-          "type": "float",
-          "value": 0.5
-        },
-        {
-          "name": "terrain",
-          "type": "string",
-          "value": "water"
-        }
-      ]
-    },
-    {
       "id": 69,
       "properties": [
         {
           "name": "height",
           "type": "float",
           "value": 1.0
-        },
-        {
-          "name": "terrain",
-          "type": "string",
-          "value": "deep_water"
-        }
-      ]
-    },
-    {
-      "id": 70,
-      "properties": [
-        {
-          "name": "height",
-          "type": "float",
-          "value": 0.5
         },
         {
           "name": "terrain",
@@ -1024,42 +994,12 @@
       ]
     },
     {
-      "id": 73,
-      "properties": [
-        {
-          "name": "height",
-          "type": "float",
-          "value": 0.5
-        },
-        {
-          "name": "terrain",
-          "type": "string",
-          "value": "lava"
-        }
-      ]
-    },
-    {
       "id": 75,
       "properties": [
         {
           "name": "height",
           "type": "float",
           "value": 1.0
-        },
-        {
-          "name": "terrain",
-          "type": "string",
-          "value": "swamp"
-        }
-      ]
-    },
-    {
-      "id": 76,
-      "properties": [
-        {
-          "name": "height",
-          "type": "float",
-          "value": 0.5
         },
         {
           "name": "terrain",
