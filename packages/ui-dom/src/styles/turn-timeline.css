@@ -47,12 +47,12 @@
   }
 
   .tt-entry {
-    --tt-size: 2.25rem;
+    --tt-size: calc(36px * var(--ui-scale));
     display: flex;
     align-items: flex-end;
     gap: 2px;
     &[data-active="true"] {
-      --tt-size: 3rem;
+      --tt-size: calc(48px * var(--ui-scale));
     }
     &[data-dimmed="true"] {
       opacity: 0.5;

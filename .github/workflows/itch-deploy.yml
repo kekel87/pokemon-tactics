@@ -42,7 +42,7 @@ jobs:
         run: pnpm build
 
       - name: Push to itch.io
-        uses: Ayowel/butler-to-itch@v1.3.0
+        uses: Ayowel/butler-to-itch@v2.0.0
         with:
           butler_key: ${{ secrets.BUTLER_API_KEY }}
           itch_user: kekel87

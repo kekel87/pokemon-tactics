@@ -64,7 +64,7 @@
     flex-direction: column;
     align-items: stretch;
     gap: var(--spacing-xs);
-    min-inline-size: 16rem;
+    min-inline-size: calc(256px * var(--ui-scale));
   }
 
   .bc-instruction {
@@ -135,8 +135,8 @@
   }
 
   .bc-move-type {
-    inline-size: 1.25rem;
-    block-size: 1.25rem;
+    inline-size: calc(20px * var(--ui-scale));
+    block-size: calc(20px * var(--ui-scale));
     flex: 0 0 auto;
     image-rendering: pixelated;
   }
