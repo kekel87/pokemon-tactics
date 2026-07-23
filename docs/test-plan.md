@@ -469,6 +469,12 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
 
 ### 5.3 Statuts majeurs (un cas par statut)
 - 🤖 Interaction : icône montée pour chaque statut majeur + application via cast (Spore endort) — `mechanics-status.spec`. Couleur du flottant 👁.
+- 🤖 **Immunité poudre du type Plante** (canon Gen 6+) — Poudre Dodo (`sleep-powder`, `flags.powder`)
+  sur un Florizarre (Plante) → le move touche mais l'immunité de type le bloque : « Ça n'affecte pas
+  Florizarre… » + AUCUN Sommeil. Contrôle non-Plante : Salamèche est bien endormie (« s'est
+  endormi ») → prouve que c'est le type Plante, pas la portée, qui bloque — `mechanics-powder-immunity.spec`.
+  *Le blocage combiné statut+stat et l'event `StatusImmune` = SENS unit core (`battle/moves/sleep-powder.test.ts`,
+  `effect-processor`). Spore / Para-Spore / Poudre Toxik partagent exactement ce gate `flags.powder` → non repris e2e.*
 *Chaque statut : icône à **droite** de la barre PV (`hud_status_icon` 🤖 présence via
 `scene-state.spec`) + texte flottant d'application + effet par tour.*
 - 👁 **Empoisonné** → « est empoisonné ! » + `-N`/tour (flash).
@@ -2059,6 +2065,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/normal-game.spec.ts` | parcours réel menu → carte → équipe → combat monte |
 | `combat/targeting.spec.ts` | §3.7/§4.8/§4.12 — highlights `highlight_move_*` au déplacement, instruction « Sélectionne la cible »→« Confirmer ? » en attaque |
 | `combat/mechanics-status.spec.ts` | §5.3 icône/statut + Spore, §5.4 stat ± + Grondement (buff self), §5.5 confusion/Provoc (journal) |
+| `combat/mechanics-powder-immunity.spec.ts` | §5.3 immunité poudre du type Plante (canon Gen 6+) : Poudre Dodo (`sleep-powder`, `flags.powder`) sur Florizarre (Plante) → « Ça n'affecte pas Florizarre… » + aucun Sommeil ; contrôle Salamèche (non-Plante) endormie. Blocage statut+stat / event `StatusImmune` / autres moves poudre (Spore, Para-Spore, Poudre Toxik) = SENS unit core |
 | `combat/mechanics-field.spec.ts` | §5.9 auras (Reflet/Mur/Brume/Rune), §5.10 4 champs déployés (journal) |
 | `combat/mechanics-distortion.spec.ts` | §5.21 Distorsion : zone posée (journal « Distorsion ! » + quads indigo en scène) + inversion CT dans la timeline (lent avant rapide) |
 | `combat/mechanics-hazards.spec.ts` | §5.22 Pièges au sol : Picots posés via le picker GroundTarget (journal « Des Picots sont posés au sol » + mesh `hazard_hazards_spikes_1_x_y` sur la case visée seule). Déclenchement = SENS unit core (non pilotable : owner-immunity + dummy AI immobile) |

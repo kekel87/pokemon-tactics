@@ -12,8 +12,9 @@ import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
  * - the Envelocape ability (`overcoat`) — via its `onMoveImmunity` hook,
  * - the Lunettes Filtre item (`safety-goggles`) — via its `onMoveImmunity` hook.
  *
- * Returns `false` for non-powder moves. The ability/item hooks mirror the existing powder gate in
- * `effect-processor.ts`; the Grass-type branch is the piece that gate does not (yet) cover.
+ * Returns `false` for non-powder moves. This mirrors the powder gate in `effect-processor.ts`
+ * (Grass type + ability/item hooks); it exists so grid-targeting handlers (Poudre Fureur) that run
+ * their own target loop, outside `processEffects`, share the exact same immunity rule.
  */
 export function isImmuneToPowderMove(
   target: PokemonInstance,

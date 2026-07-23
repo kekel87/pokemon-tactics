@@ -38,6 +38,42 @@ describe("sleep-powder", () => {
     vi.restoreAllMocks();
   });
 
+  it("has no effect on a Grass-type target (Poudre immunity) and reports StatusImmune", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const caster = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      playerId: PlayerId.Player1,
+      position: { x: 2, y: 2 },
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const grassTarget = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      id: "grass-target",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const { engine, state } = buildMoveTestEngine([caster, grassTarget]);
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: caster.id,
+      moveId: "sleep-powder",
+      targetPosition: caster.position,
+    });
+
+    expect(result.success).toBe(true);
+    expect(state.pokemon.get("grass-target")?.statusEffects).toHaveLength(0);
+    expect(result.events).toContainEqual(
+      expect.objectContaining({
+        type: BattleEventType.StatusImmune,
+        targetId: "grass-target",
+        status: StatusType.Asleep,
+      }),
+    );
+
+    vi.restoreAllMocks();
+  });
+
   it("does not affect target outside zone radius 1", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 

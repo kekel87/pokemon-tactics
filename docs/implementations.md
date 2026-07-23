@@ -288,7 +288,7 @@
 | Frappe Atlas | seismic-toss | Combat | Phys | var | 100 | 20 | mêlée | Dégâts = niveau |
 | Berceuse | sing | Normal | Statut | — | 55 | 15 | cône r3 | Sommeil 100% |
 | Tranche | slash | Normal | Phys | 70 | 100 | 20 | slash | Critique élevé |
-| Poudre Dodo | sleep-powder | Plante | Statut | — | 75 | 15 | zone r1 | Sommeil 75% |
+| Poudre Dodo | sleep-powder | Plante | Statut | — | 75 | 15 | zone r1 | Sommeil 75%. **Cibles de type Plante entièrement immunisées** (`flags.powder`, décision #710). |
 | Bombe Beurk | sludge-bomb | Poison | Spé | 90 | 100 | 10 | blast r2-4/r1 | Poison 30% |
 | Brouillard | smokescreen | Normal | Statut | — | 100 | 20 | zone r1 | −1 Préc cibles |
 | Stockage | stockpile | Normal | Statut | — | — | 20 | self | +1 Déf, +1 DéfSpé |
@@ -365,7 +365,7 @@
 | Enroulement | coil | Poison | Statut | — | — | 20 | self | +1 Atk, +1 Déf, +1 Préc |
 | Regard Médusant | glare | Normal | Statut | — | 100 | 30 | single r1–3 | Para 100% |
 | Force Cosmique | cosmic-power | Psy | Statut | — | — | 20 | self | +1 Déf, +1 DéfSpé |
-| Spore | spore | Plante | Statut | — | 100 | 15 | single r1 | Sommeil 100% |
+| Spore | spore | Plante | Statut | — | 100 | 15 | single r1 | Sommeil 100%. **Cibles de type Plante entièrement immunisées** (`flags.powder`, décision #710). |
 | Lame Feuille | leaf-blade | Plante | Phys | 90 | 100 | 15 | slash | Critique élevé (`critRatio: 1`) |
 | Picpic | drill-peck | Vol | Phys | 80 | 100 | 20 | slash | — |
 | Barrière | barrier | Psy | Statut | — | — | 20 | self | +2 Déf |
@@ -559,8 +559,8 @@
 | Rengorgement | work-up | Normal | Statut | — | — | 30 | self | +1 Atk, +1 AtqSpé |
 | Poliroche | rock-polish | Roche | Statut | — | — | 20 | self | +2 Vit |
 | Coaching | coaching | Combat | Statut | — | — | 10 | allié r1 | +1 Atk, +1 Déf allié |
-| Poudre Toxik | poison-powder | Poison | Statut | — | 75 | 35 | single r1 | Poison 100% |
-| Para-Spore | stun-spore | Plante | Statut | — | 75 | 30 | single r1 | Para 100% |
+| Poudre Toxik | poison-powder | Poison | Statut | — | 75 | 35 | single r1 | Poison 100%. **Cibles de type Plante entièrement immunisées** (`flags.powder`, décision #710). |
+| Para-Spore | stun-spore | Plante | Statut | — | 75 | 30 | single r1 | Para 100%. **Cibles de type Plante entièrement immunisées** (`flags.powder`, décision #710). |
 | Gaz Toxik | poison-gas | Poison | Statut | — | 90 | 40 | zone r1 | Poison 100% |
 | Doux Baiser | sweet-kiss | Fée | Statut | — | 75 | 10 | single r1–3 | Confusion 100% |
 | Danse Folle | teeter-dance | Normal | Statut | — | 100 | 20 | zone r2 | Confusion 100% cibles, friendly fire |
