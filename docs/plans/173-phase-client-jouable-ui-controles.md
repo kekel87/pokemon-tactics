@@ -56,21 +56,46 @@ Tous **CC0 / domaine public** (vérifié 2026-07-24) → OK à committer (respec
 
 ## Lot 3 — Compléter l'UI *(DÉMARRAGE)*
 
-But : l'UI que verront les joueurs mobiles ramenés par la promo. Items :
-- **InfoPanel** : afficher la **nature** (plan 072, `natureOverrides` déjà prêt côté données) ; passe de complétude générale de l'InfoPanel.
-- **Info terrain / modificateurs** : afficher les modificateurs de la case (hauteur, terrain, DoT, effets) — backlog « affichage des modificateurs terrain ».
-- **Auras** : « 1 rond par aura empilable » au sol (backlog Polish visuel 2D-HD + UI).
-- **Preview combat** : previews d'attaque/dégâts/issue lisibles (état actuel à auditer).
-- **Info move** : tooltips complets + **tooltips type chart** (efficacités au hover, ex-Phase 9).
-- **Responsive** : brancher les pistes overlay restantes — `--stage-scale` pour modales `<dialog>` top-layer, cap ultrawide optionnel, `--ui-scale` barres PV monde.
-- **a11y** : passe (headings, aria, focus) + activer le lint a11y Biome HTML/CSS (ex-Phase 9).
+But : l'UI que verront les joueurs mobiles ramenés par la promo. **Réf-cible d'affichage d'info = le panneau Showdown** (screenshot fourni 2026-07-24).
 
-> Lot 3 sera détaillé dans un plan dédié (174 ?) au moment de l'attaquer. Certains items sont indépendants (nature, tooltips) et livrables vite ; d'autres (auras, info terrain) touchent au rendu → `best-practices` + refs avant.
+### État actuel (`packages/ui-dom/src/info-panel.ts`, vérifié)
+Panneau minimal : `portrait · nom/genre/niveau · barre PV (chiffres exacts) · objet (icône+nom, jamais gaté) · badges (statuts)`. **Rien** de : types, stats, talent, moves. → c'est un **enrichissement** (étendre le view-model `InfoPanelData` de `render-ports` + l'adaptateur view-core + le rendu), pas un tweak.
+
+### Deux niveaux d'affichage d'info (décision 2026-07-24)
+- **InfoPanel** = vue **rapide** (hover desktop / **tap-to-inspect** mobile). **On commence par TOUT y mettre** (types/stats/crans/talent) et on regarde ce que ça donne, surtout sur mobile.
+- **Dialog Status** = **fallback**, PAS construite d'emblée. Le **bouton Status existe déjà** dans le menu d'action (`battle-chrome.ts`, actuellement désactivé). On la construira **seulement si** l'InfoPanel enrichi déborde sur mobile — alors on allège le panneau et on rabat le détail complet (stats/moves/talent) dans cette dialog (`<dialog>` top-layer), câblée sur le bouton existant.
+- **Stratégie** : InfoPanel enrichi d'abord → évaluer mobile → dialog Status en repli si besoin. Même view-model enrichi pour les deux.
+
+### Modèle d'info (rappel — enemy détaillé au Lot 176)
+- **Tes Pokemon** : stats **exactes** (EV/nature) + valeur **après crans**, talent, types, PV exacts.
+- **Ennemi** : stats en **plage** min–max (base publique) + valeur après crans (min–max + max après modif), talent **gaté** (« possibles » → révélé), moves **révélés à l'usage**, **PV en %** (pas exact), objet **gaté**. La plage est publique (aucune fuite) ; le **gating** (talent/moves/objet réels + PV%) est enforced au Lot 176 (`getGameState`).
+
+### Items Lot 3
+- **Enrichir l'InfoPanel « tes Pokemon »** : types, stats exactes + crans, talent, nature (plan 072, `natureOverrides` prêt). **Point de départ du Lot 3 (plan 174).**
+- **Dialog Status détaillée** (bouton menu d'action existant) : **fallback** — construite seulement si l'InfoPanel enrichi déborde sur mobile.
+- **Preview combat** : voir § dédié ci-dessous.
+- **Info move** : tooltips complets + **tooltips type chart** (efficacités, ex-Phase 9).
+- **Info terrain / modificateurs** de la case (hauteur, terrain, DoT, effets) — backlog « affichage des modificateurs terrain ». Touche au rendu → `best-practices` avant.
+- **Auras** : « 1 rond par aura empilable » au sol. Touche au rendu → `best-practices` avant.
+- **Responsive + dette mobile** : brancher `--stage-scale` (dialogs top-layer), cap ultrawide, `--ui-scale` barres PV ; **+ corriger la dette mobile existante** (des éléments déjà mal alignés/cassés sur mobile, signalé humain 2026-07-24).
+- **a11y** : passe (headings, aria, focus) + lint a11y Biome HTML/CSS (ex-Phase 9).
+
+### Preview combat (à la validation de cible)
+Respecte le réglage **« Aperçu des dégâts » on/off** existant (Settings) — off = pas de prévision. Contenu :
+- **Prévision de dégâts** : plage min–max + **%** + indicateur **K.O.** (« met K.O. » / « laisse ~X% ») — cœur tactique.
+- **Barre de vie prédite** (morceau retiré en fantôme) + portrait cible.
+- **Résumé attaque** : type, effet, **proba d'effet secondaire** (avant/après modif), précision, crit.
+- **Modificateurs affichés** : efficacité de type (fold « tooltips type chart »), dos +15% / surplomb hauteur.
+- **AoE** : cycle des cibles + alerte **tir allié** si un allié est dans la zone.
+- Cohérent fog : contre stats ennemies cachées → prévision en **plage**.
+
+> Découpage en plans : **174** = InfoPanel « tes Pokemon » enrichi (types/stats+crans/talent/nature), direct dans le panneau, sans dialog. **175** = Preview combat. **176** = Panneau ennemi + fog (`getGameState` perspective, gating talent/moves/objet, PV%). Dialog Status = **repli** ajouté seulement si mobile déborde. Items rendu (info terrain, auras) = `best-practices` + refs avant, plan(s) à part. Chaque plan détaillé écrit au moment de l'attaquer.
 
 ## Lot 1 — Contrôles tactiles
 
 But : rendre le combat pilotable au doigt (la douleur n°1).
 - **Sélection** : le tap génère déjà un `PointerEvent` → picking OK ; vérifier ergonomie (taille de hit tuile, feedback).
+- **Tap-to-inspect + curseur** : sur mobile pas de hover → l'InfoPanel s'ouvre **au tap** sur un Pokemon/tuile ; adapter la logique de **curseur** (aujourd'hui hover-driven) au doigt. Lié au Lot 3 (le panneau) et au Lot 1 (l'input).
 - **Zoom** : **pinch** (2 doigts) — aujourd'hui zoom = molette uniquement.
 - **Pan** : **glissé 2 doigts** (le 1 doigt = sélection/drag-pan actuel à arbitrer).
 - **Rotation caméra** : **boutons on-screen** (assets mobile-controls Kenney) — aujourd'hui clavier `←/→` seul.
