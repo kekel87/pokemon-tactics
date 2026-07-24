@@ -4,6 +4,8 @@ import {
   FIELD_GLOBAL_MAGIC_ROOM,
   FIELD_GLOBAL_WONDER_ROOM,
   GRAVITY_BLOCKS_AERIAL,
+  MAGIC_ROOM_BALLOON_BASELINE,
+  MAGIC_ROOM_SUPPRESSES_BALLOON,
   TAILWIND_NORTH,
 } from "../../fixtures/sandbox-configs";
 import { TailwindHud } from "../../pages/combatHud";
@@ -113,4 +115,49 @@ test("§5.29 Gravité (témoin) : le move aérien reste jouable hors zone (menu)
   await page.getByRole("button", { name: "Attaque", exact: true }).click();
   const aerialRow = page.getByTestId("move-item").filter({ hasText: "Pied Voltige" });
   await expect(aerialRow).toHaveAttribute("data-enabled", "true");
+});
+
+// --- Zone Magique neutralise l'objet tenu d'un mon DANS la zone (plan 171) ------------------------
+// Canon (chokepoint `effectiveHeldItem`) : un mon qui se tient dans la Zone Magique voit TOUS les
+// effets de son objet tenu neutralisés. Signal e2e le plus net = le Ballon (air-balloon), qui donne
+// l'immunité au type Sol : sous Zone Magique elle tombe → Séisme (Sol) TOUCHE le porteur. On pilote
+// les moves et on lit le journal FR. Les 15 autres effets d'objet routés restent 👁 / unit+integration
+// core (injouables ou non-binaires en 1v1 self-cast — voir la note de MAGIC_ROOM_SUPPRESSES_BALLOON).
+
+test("§5.29 Zone Magique : neutralise le Ballon → Séisme touche le porteur (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(MAGIC_ROOM_SUPPRESSES_BALLOON);
+
+  await scene.castFirstMove(2, 3); // Zone Magique (Self) posée sur la propre case du Mackogneur.
+  await expect(log(page, /déploie Zone Magique/)).toBeAttached({ timeout: 10_000 });
+
+  // Le cast ne clôt pas le tour : on l'achève (« Attendre »), l'IA (Ronflex inerte à Groz'Yeux) rejoue,
+  // puis la main revient au lanceur. On attend la réactivation du bouton Attaque avant de rouvrir le menu.
+  await scene.endTurn();
+  const attackButton = page.getByRole("button", { name: "Attaque", exact: true });
+  await expect(attackButton).toBeEnabled({ timeout: 20_000 });
+
+  // Séisme (2e move, Sol, Zone r2 auto-centrée) → cast sur la propre case du lanceur. Le Ronflex adjacent
+  // est DANS la Zone Magique : son Ballon est neutralisé, l'immunité Sol tombe → il encaisse les dégâts.
+  await attackButton.click();
+  await page.getByTestId("move-item").filter({ hasText: "Séisme" }).click();
+  await scene.clickTile(2, 3);
+  await scene.clickTile(2, 3);
+  await expect(log(page, /Ronflex perd \d+ PV/)).toBeAttached({ timeout: 10_000 });
+});
+
+test("§5.29 Zone Magique (témoin) : hors zone le Ballon immunise du Séisme (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(MAGIC_ROOM_BALLOON_BASELINE);
+
+  // MÊME duel mais SANS Zone Magique posée (Séisme est le seul move). Le Ronflex garde son Ballon →
+  // immunité Sol intacte : Séisme résout (« Mackogneur utilise Séisme ! ») mais son efficacité 0 sur le
+  // porteur n'émet AUCUNE ligne « perd N PV ». Prouve que c'est la Zone Magique qui fait toucher au-dessus.
+  await scene.castFirstMove(2, 3);
+  await expect(log(page, /utilise Séisme/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /Ronflex perd \d+ PV/)).toHaveCount(0);
 });

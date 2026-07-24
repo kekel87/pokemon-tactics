@@ -5,6 +5,7 @@ import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 import { getEffectiveTypes, isEffectivelyFlying, resolveBaseTypes } from "../effective-flying";
+import { effectiveHeldItem } from "../effective-held-item";
 import { isEffectivelyGrounded } from "../field-global-system";
 import type { HeldItemHandlerRegistry } from "../held-item-handler-registry";
 import { isMajorStatus } from "../stat-modifier";
@@ -19,6 +20,7 @@ const EMPTY_RESULT: PhaseResult = {
 };
 
 function applyTerrainStatus(
+  state: BattleState,
   pokemon: PokemonInstance,
   terrain: TerrainType,
   types: PokemonType[],
@@ -35,7 +37,7 @@ function applyTerrainStatus(
     return;
   }
 
-  const item = itemRegistry?.getForPokemon(pokemon);
+  const item = effectiveHeldItem(state, pokemon, itemRegistry);
   const itemBlock = item?.onTerrainTick?.({ pokemon, terrain });
   if (itemBlock?.blocked) {
     events.push(...itemBlock.events);
@@ -52,6 +54,7 @@ function applyTerrainStatus(
 }
 
 function applyTerrainDot(
+  state: BattleState,
   pokemon: PokemonInstance,
   terrain: TerrainType,
   types: PokemonType[],
@@ -68,7 +71,7 @@ function applyTerrainDot(
     return false;
   }
 
-  const item = itemRegistry?.getForPokemon(pokemon);
+  const item = effectiveHeldItem(state, pokemon, itemRegistry);
   const itemBlock = item?.onTerrainTick?.({ pokemon, terrain });
   if (itemBlock?.blocked) {
     events.push(...itemBlock.events);
@@ -118,12 +121,20 @@ export function createTerrainTickHandler(
     const terrainTypes = grounded ? types.filter((type) => type !== PokemonType.Flying) : types;
     const events: BattleEvent[] = [];
 
-    applyTerrainStatus(pokemon, terrain, terrainTypes, isFlying, events, itemRegistry);
+    applyTerrainStatus(state, pokemon, terrain, terrainTypes, isFlying, events, itemRegistry);
     if (pokemon.currentHp <= 0) {
       return { events, skipAction: false, restrictActions: false, pokemonFainted: true };
     }
 
-    const fainted = applyTerrainDot(pokemon, terrain, terrainTypes, isFlying, events, itemRegistry);
+    const fainted = applyTerrainDot(
+      state,
+      pokemon,
+      terrain,
+      terrainTypes,
+      isFlying,
+      events,
+      itemRegistry,
+    );
     return { events, skipAction: false, restrictActions: false, pokemonFainted: fainted };
   };
 }

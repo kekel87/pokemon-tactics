@@ -5,6 +5,7 @@ import type { BattleEvent } from "../../types/battle-event";
 import type { BattleState } from "../../types/battle-state";
 import type { AbilityHandlerRegistry } from "../ability-handler-registry";
 import { resolveBaseTypes } from "../effective-flying";
+import { effectiveHeldItem } from "../effective-held-item";
 import type { HeldItemHandlerRegistry } from "../held-item-handler-registry";
 import type { PhaseHandler, PhaseResult } from "../turn-pipeline";
 import {
@@ -68,7 +69,8 @@ export function weatherTickHandler(
   if (weatherDealsDamage(activeWeather)) {
     const types = resolveBaseTypes(pokemon, deps.pokemonTypesMap);
     // Lunettes Filtre (safety-goggles): the holder shrugs off weather chip damage.
-    const itemImmune = deps.itemRegistry?.getForPokemon(pokemon)?.immuneToWeatherDamage === true;
+    const itemImmune =
+      effectiveHeldItem(state, pokemon, deps.itemRegistry)?.immuneToWeatherDamage === true;
     if (!itemImmune && !isWeatherDamageImmune(types, activeWeather)) {
       const damage = computeWeatherDamage(pokemon.maxHp);
       pokemon.currentHp = Math.max(0, pokemon.currentHp - damage);

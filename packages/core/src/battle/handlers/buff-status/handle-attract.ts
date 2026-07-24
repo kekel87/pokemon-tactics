@@ -100,6 +100,8 @@ export function handleAttract(context: EffectContext): BattleEvent[] {
     targetId: target.id,
     status: StatusType.Infatuated,
   });
-  events.push(...tryMentalHerbCure(target, StatusType.Infatuated, context.itemRegistry));
+  events.push(
+    ...tryMentalHerbCure(context.state, target, StatusType.Infatuated, context.itemRegistry),
+  );
   return events;
 }

@@ -940,7 +940,8 @@ export class BattleEngine {
       const isTaunted = currentPokemon.volatileStatuses.some((v) => v.type === StatusType.Taunted);
       // Veste de Combat (assault-vest): the holder may not select status-category moves.
       const forbidsStatusMoves =
-        this.itemRegistry?.getForPokemon(currentPokemon)?.forbidsStatusMoves === true;
+        effectiveHeldItem(this.state, currentPokemon, this.itemRegistry)?.forbidsStatusMoves ===
+        true;
       const disabledMoveId = currentPokemon.volatileStatuses.find(
         (v) => v.type === StatusType.Disabled,
       )?.moveId;
@@ -1032,7 +1033,8 @@ export class BattleEngine {
         // Dégommage (fling): only usable while the user holds a flingable item.
         if (
           move.requiresFlingableItem === true &&
-          (this.itemRegistry?.getForPokemon(currentPokemon)?.flingPower ?? undefined) === undefined
+          (effectiveHeldItem(this.state, currentPokemon, this.itemRegistry)?.flingPower ??
+            undefined) === undefined
         ) {
           continue;
         }
@@ -1493,7 +1495,7 @@ export class BattleEngine {
     // mirroring getLegalActions (no dedicated event, like the imprison / Heal Block gates).
     if (
       move.category === Category.Status &&
-      this.itemRegistry?.getForPokemon(pokemon)?.forbidsStatusMoves === true
+      effectiveHeldItem(this.state, pokemon, this.itemRegistry)?.forbidsStatusMoves === true
     ) {
       return { success: false, events: [], error: ActionError.InvalidAction };
     }
@@ -1593,7 +1595,8 @@ export class BattleEngine {
     }
     if (
       move.requiresFlingableItem === true &&
-      (this.itemRegistry?.getForPokemon(pokemon)?.flingPower ?? undefined) === undefined
+      (effectiveHeldItem(this.state, pokemon, this.itemRegistry)?.flingPower ?? undefined) ===
+        undefined
     ) {
       return { success: false, events: [], error: ActionError.InvalidAction };
     }
@@ -3036,7 +3039,7 @@ export class BattleEngine {
         if (isTerrainImmune(TerrainType.Magma, pokemonTypes, this.isEffectivelyFlying(pokemon))) {
           break;
         }
-        const item = this.itemRegistry?.getForPokemon(pokemon);
+        const item = effectiveHeldItem(this.state, pokemon, this.itemRegistry);
         const terrainResult = item?.onTerrainTick?.({ pokemon, terrain: TerrainType.Magma });
         if (terrainResult?.blocked) {
           events.push(...terrainResult.events);
@@ -4115,7 +4118,7 @@ export class BattleEngine {
     if (pokemon.lockedMoveId !== undefined) {
       return;
     }
-    const item = this.itemRegistry?.getForPokemon(pokemon);
+    const item = effectiveHeldItem(this.state, pokemon, this.itemRegistry);
     if (item?.onMoveLock?.()) {
       pokemon.lockedMoveId = moveId;
     }

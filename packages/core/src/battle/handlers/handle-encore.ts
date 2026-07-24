@@ -45,7 +45,9 @@ export function handleEncore(context: EffectContext): BattleEvent[] {
       turns: ENCORE_TURNS,
     });
     // Herbe Mentale (mental-herb): cures Encore the instant it lands.
-    events.push(...tryMentalHerbCure(target, StatusType.Encored, context.itemRegistry));
+    events.push(
+      ...tryMentalHerbCure(context.state, target, StatusType.Encored, context.itemRegistry),
+    );
   }
 
   return events;

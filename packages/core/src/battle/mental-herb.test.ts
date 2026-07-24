@@ -1,9 +1,11 @@
 import { loadData } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
 import { BattleEventType } from "../enums/battle-event-type";
+import { FieldGlobalKind } from "../enums/field-global-kind";
 import { HeldItemId } from "../enums/held-item-id";
 import { StatusType } from "../enums/status-type";
-import { MockPokemon } from "../testing";
+import { MockBattle, MockPokemon } from "../testing";
+import { postFieldGlobalZone } from "./field-global-system";
 import { tryMentalHerbCure } from "./mental-herb";
 
 const itemRegistry = loadData().itemRegistry;
@@ -26,7 +28,8 @@ describe("tryMentalHerbCure", () => {
           volatileStatuses: [{ type: status, remainingTurns: 3 }],
         });
 
-        const events = tryMentalHerbCure(holder, status, itemRegistry);
+        const state = MockBattle.stateFrom([holder]);
+        const events = tryMentalHerbCure(state, holder, status, itemRegistry);
 
         expect(holder.volatileStatuses.some((v) => v.type === status)).toBe(false);
         expect(holder.heldItemId).toBeUndefined();
@@ -49,7 +52,8 @@ describe("tryMentalHerbCure", () => {
         volatileStatuses: [{ type: StatusType.Confused, remainingTurns: 3 }],
       });
 
-      const events = tryMentalHerbCure(holder, StatusType.Confused, itemRegistry);
+      const state = MockBattle.stateFrom([holder]);
+      const events = tryMentalHerbCure(state, holder, StatusType.Confused, itemRegistry);
 
       expect(events).toHaveLength(0);
       expect(holder.volatileStatuses.some((v) => v.type === StatusType.Confused)).toBe(true);
@@ -64,7 +68,8 @@ describe("tryMentalHerbCure", () => {
         volatileStatuses: [{ type: StatusType.Taunted, remainingTurns: 3 }],
       });
 
-      const events = tryMentalHerbCure(holder, StatusType.Taunted, itemRegistry);
+      const state = MockBattle.stateFrom([holder]);
+      const events = tryMentalHerbCure(state, holder, StatusType.Taunted, itemRegistry);
 
       expect(events).toHaveLength(0);
       expect(holder.volatileStatuses.some((v) => v.type === StatusType.Taunted)).toBe(true);
@@ -77,7 +82,8 @@ describe("tryMentalHerbCure", () => {
         volatileStatuses: [{ type: StatusType.Taunted, remainingTurns: 3 }],
       });
 
-      const events = tryMentalHerbCure(holder, StatusType.Taunted, itemRegistry);
+      const state = MockBattle.stateFrom([holder]);
+      const events = tryMentalHerbCure(state, holder, StatusType.Taunted, itemRegistry);
 
       expect(events).toHaveLength(0);
       expect(holder.heldItemId).toBe(HeldItemId.Leftovers);
@@ -92,9 +98,28 @@ describe("tryMentalHerbCure", () => {
         volatileStatuses: [],
       });
 
-      const events = tryMentalHerbCure(holder, StatusType.Taunted, itemRegistry);
+      const state = MockBattle.stateFrom([holder]);
+      const events = tryMentalHerbCure(state, holder, StatusType.Taunted, itemRegistry);
 
       expect(events).toHaveLength(0);
+      expect(holder.heldItemId).toBe(HeldItemId.MentalHerb);
+    });
+  });
+
+  describe("suppressed by Zone Magique", () => {
+    it("Given a Mental Herb holder standing in a Zone Magique is Taunted, Then the herb is suppressed and the volatile remains", () => {
+      const holder = MockPokemon.fresh(MockPokemon.base, {
+        id: "holder",
+        heldItemId: HeldItemId.MentalHerb,
+        volatileStatuses: [{ type: StatusType.Taunted, remainingTurns: 3 }],
+      });
+      const state = MockBattle.stateFrom([holder]);
+      postFieldGlobalZone(state, holder, FieldGlobalKind.MagicRoom);
+
+      const events = tryMentalHerbCure(state, holder, StatusType.Taunted, itemRegistry);
+
+      expect(events).toHaveLength(0);
+      expect(holder.volatileStatuses.some((v) => v.type === StatusType.Taunted)).toBe(true);
       expect(holder.heldItemId).toBe(HeldItemId.MentalHerb);
     });
   });
@@ -107,7 +132,8 @@ describe("tryMentalHerbCure", () => {
         volatileStatuses: [{ type: StatusType.Taunted, remainingTurns: 3 }],
       });
 
-      const events = tryMentalHerbCure(holder, StatusType.Taunted, undefined);
+      const state = MockBattle.stateFrom([holder]);
+      const events = tryMentalHerbCure(state, holder, StatusType.Taunted, undefined);
 
       expect(events).toHaveLength(0);
       expect(holder.volatileStatuses.some((v) => v.type === StatusType.Taunted)).toBe(true);

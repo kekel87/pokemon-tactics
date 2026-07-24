@@ -11,6 +11,7 @@ import { applyStatStage } from "../apply-stat-stage";
 import { isProtectedFromStatDecrease } from "../aura-system";
 import type { EffectContext } from "../effect-handler-registry";
 import { effectiveAbilityId } from "../effective-ability";
+import { effectiveHeldItem } from "../effective-held-item";
 import { shouldSubstituteBlock } from "../substitute-system";
 
 export function handleStatChange(context: EffectContext): BattleEvent[] {
@@ -49,7 +50,11 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
       }
 
       // Talisman Sain (clear-amulet): blocks any opponent-inflicted stat drop on the holder.
-      const itemBlock = context.itemRegistry?.getForPokemon(pokemon)?.onStatChangeBlocked?.({
+      const itemBlock = effectiveHeldItem(
+        context.state,
+        pokemon,
+        context.itemRegistry,
+      )?.onStatChangeBlocked?.({
         self: pokemon,
         stat: effect.stat,
         stages: effect.stages,

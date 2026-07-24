@@ -45,7 +45,9 @@ export function handleDisable(context: EffectContext): BattleEvent[] {
       turns: DISABLE_TURNS,
     });
     // Herbe Mentale (mental-herb): cures Disable the instant it lands.
-    events.push(...tryMentalHerbCure(target, StatusType.Disabled, context.itemRegistry));
+    events.push(
+      ...tryMentalHerbCure(context.state, target, StatusType.Disabled, context.itemRegistry),
+    );
   }
 
   return events;

@@ -30,6 +30,7 @@ import {
 import { checkDefense } from "../defense-check";
 import { resolveDynamicPower } from "../dynamic-power-system";
 import type { EffectContext } from "../effect-handler-registry";
+import { effectiveHeldItem } from "../effective-held-item";
 import {
   isEffectivelyGrounded,
   isHeldItemSuppressed,
@@ -672,7 +673,8 @@ export function handleDamage(context: EffectContext): BattleEvent[] {
   // Multi-Coups (skill-link) OR Dé Pipé (loaded-dice, maximizesMultiHit): variable-hit moves land max hits.
   const skillLink =
     context.abilityRegistry?.getForPokemon(context.attacker)?.id === "skill-link" ||
-    context.itemRegistry?.getForPokemon(context.attacker)?.maximizesMultiHit === true;
+    effectiveHeldItem(context.state, context.attacker, context.itemRegistry)?.maximizesMultiHit ===
+      true;
   const hitCount = beatUpPowers?.length ?? getHitCount(effect, context.random, skillLink);
   const isMultiHit = hitCount > 1;
   const moveDamageAccumulator = { total: 0 };
