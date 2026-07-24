@@ -48,14 +48,19 @@ InfoPanel allié, glanceable :
    - `readonly types: readonly string[]` (ids de type, ex. `["grass","fighting"]` → tokens/i18n côté vue).
    - `readonly ability?: string` (nom localisé ; omis = non affiché).
    - `readonly nature?: string` (nom localisé).
-   - `readonly stats?: readonly { key: StatName-string; label: string; value: number; stage: number; modified: number }[]` (omis côté ennemi en 174).
-   > `StatName` est un enum core — côté render-ports (pas de dep core) on passe des **strings** déjà résolues. Le label localisé est calculé dans l'adaptateur view-core.
-2. **Adaptateur `buildInfoPanelView` (view-core)** — pour un mon allié : remplir `types` (`getPokemonTypes`), `ability` (`effectiveAbilityId` → nom FR), `nature` (→ nom FR), `stats` (`effectiveCombatStats` pour la base + `statStages` pour les crans + calcul `modified` = base × multiplicateur de cran). Passer `isAlly`. Pour un ennemi : `isAlly:false`, laisser `types` (public, OK à montrer) mais **omettre** stats/ability/nature (→ 176). *(Types ennemis publics = OK dès maintenant ; le reste attend 176.)*
-   - **Perspective** : l'appelant (orchestrateur) sait quelle équipe possède le mon inspecté vs le joueur actif → passe `isAlly`. (Ne PAS s'appuyer sur `getGameState` qui est full-info ; le vrai filtre = 176.)
-   - Multiplicateur de cran : réutiliser la table core existante (crans → ×) ; si pas exposée hors damage-calc, extraire un helper pur partagé.
+   - `readonly stats?: readonly { label: string; value: number; stage: number; modified: number }[]` (omis côté ennemi en 174). **Pas de champ `key`** (ordre implicite du tableau) ; **PV hors de ce tableau** (déjà `hpCurrent/hpMax`). Le tableau = les **5 stats de combat** (Atq/Déf/Atq Spé/Déf Spé/Vit) dans cet ordre.
+   > Pas de dep core dans render-ports → `label` est une **string déjà localisée** (résolue dans l'adaptateur view-core), `stage` = nombre de crans (−6..+6), `modified` = valeur après crans.
+2. **Adaptateur `buildInfoPanelView` (view-core)** — pour un mon allié :
+   - **types** : `getPokemonTypes` est une **méthode de `BattleEngine`** (a besoin de `pokemonTypesMap`, privé). L'adaptateur n'a que `(context, pokemon, state)` → **ajouter un accesseur `context.getPokemonTypes(definitionId): string[]`** (mirror de `context.getPortraitUrl`/`getAbilityName`, l.321/360/381) qui renvoie les types de base (data) ; l'adaptateur applique `pokemon.typeOverride` s'il est présent (Flamme Ultime/transform). Types = ids → chips côté vue (tokens `--type-<id>` + i18n `pokemonType.<id>`).
+   - **ability** : `context.getAbilityName(effectiveAbilityId(pokemon))` (pattern déjà utilisé l.360).
+   - **nature** : réutiliser les clés i18n **existantes** `teamBuilder.nature.<id>` (table `EditLeftPanel.ts`) ; idéalement les promouvoir en accesseur `context.getNatureName(nature)`.
+   - **stats** : base via `effectiveCombatStats(...)` ; `stage` via `pokemon.statStages[stat]` ; **`modified = Math.floor(base × getStatMultiplier(stage))`** — `getStatMultiplier` est **exporté** de `packages/core/src/battle/stat-modifier.ts` (formule identique à celle utilisée par le core, l.20). Labels FR via i18n `statName.<id>` (**à vérifier/ajouter**).
+   - Passer `isAlly: true`.
+   - Pour un **ennemi** : `isAlly:false`, remplir `types` (public, OK) mais **omettre** `stats`/`ability`/`nature` (→ 176).
+   - **Perspective (`isAlly`)** : défini par **l'appelant** (l'orchestrateur, `battle-orchestrator.ts`, qui appelle `updateInfoPanel`) — il connaît l'équipe du mon inspecté vs le joueur actif. Ne PAS s'appuyer sur `getGameState` (full-info ; vrai filtre = 176).
 3. **Vue `info-panel.ts`** — rendre chips types (couleur token), bloc stats (flèches + valeur modifiée), ligne talent/nature. Tout conditionnel à la présence (ennemi omet → non rendu, panneau reste minimal).
-4. **CSS** (`info-panel.css` / tokens) — chips types (fond `--type-<id>`), grille stats, style flèches ↑↓ (réutiliser les indicateurs de crans existants s'il y en a — cf. roadmap Phase 1 « stat change indicators flèches ↑↓ colorées dans InfoPanel »… **à retrouver**, peut-être déjà un style).
-5. **i18n** — vérifier/ajouter `statName.<id>` FR+EN ; réutiliser natures FR du Team Builder ; types FR déjà là.
+4. **CSS** (`info-panel.css` / tokens) — chips types (fond `--type-<id>`), grille stats. **Flèches de crans : CSS à créer** (vérifié : pas de style `.stat-up/.stat-down` réutilisable en Phase 1 — l'ancien indicateur Phaser n'a pas de pendant DOM). Nouvelles classes `.ip-stat-buff` (vert ↑) / `.ip-stat-debuff` (rouge ↓), nombre de flèches = |stage|. Format ligne : `{label} {value}` si `stage==0`, sinon `{label} {value} {flèches} → {modified}`.
+5. **i18n** — **ajouter `statName.<id>` FR+EN** (Atq/Déf/Atq Spé/Déf Spé/Vit, + PV pour le label PV) ; natures = clés `teamBuilder.nature.*` existantes (réutiliser ou promouvoir) ; types FR `pokemonType.<id>` déjà là.
 
 ## Tests
 
