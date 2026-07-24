@@ -16,8 +16,7 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
-- **OP sets Batch B/D faisables en Gen 1** (validé 2026-07-24) : ajouter via `data-miner` les sets emblématiques encore absents avec learners Gen 1 — Faux-Chage, Ruse, Anti-Air, Poursuite, Corps Perdu (Batch B), Attraction (Batch D). Petit content-fill. (Le reste — Vol Magnétik, Affilage, Cri Draconique, Dark Lariat, Bec-Canon, Carapiège, Par Ici, Poudre Fureur, Après Vous, Interversion — reste **impossible tant que Gen 1 est le seul roster**, 0 learner → Phase 9 Gen 2+.)
-- **Choisir la prochaine grosse phase** (6/7/8) ou une session polish/dette technique — voir options ci-dessus. Pas de recommandation imposée.
+- **Phase 6.5 — Client jouable : contrôles & UI** (validée 2026-07-24, plan-cadre `docs/plans/173-phase-client-jouable-ui-controles.md`). Prochaine grosse phase, prioritaire avant le Multijoueur (retour réel : injouable mobile → contrôles tactiles). **Démarrage = Lot 3 (compléter l'UI)** : nature InfoPanel, info terrain/modificateurs, auras, preview combat, info move + tooltips type chart, responsive, a11y. Puis Lot 1 (tactile), Lot 2 (clavier/manette, y c. manette sur mobile). Assets Kenney CC0. **Prochaine étape : détailler le plan du Lot 3 (plan 174 ?) avant de coder.**
 - **Refaire les 5 visuels README/wiki** (reporté 2026-06-16) : `docs/images/{demo.gif, maps-selection, battle-log, team-builder, team-selection}-screenshot.png` montrent encore l'ancien rendu Phaser. Captures auto Babylon (visual-tester) rejetées par l'humain → originaux conservés en attendant que l'humain les refasse à la main.
 
 ## Reporté / backlog technique
@@ -73,6 +72,8 @@ Volet « faisable en Gen 1 » (Faux-Chage/Ruse/Anti-Air/Poursuite/Corps Perdu/At
 - Bonus plan 064 différé : marquages arène + pokéball centrale (`docs/plans/064-decorations-obstacles.md`).
 
 ### UI/UX en attente
+
+> **Les items ouverts ci-dessous sont consolidés dans la Phase 6.5 « Client jouable » (plan-cadre `docs/plans/173`, Lot 3).** Ils seront traités là — détail au plan du Lot 3.
 
 - ~~**Refacto unités CSS chrome : rem → `px × --ui-scale`** (validé humain 2026-06-12, option C) — gros refacto transverse (tokens.css + tous les composants chrome `styles/`).~~ **RÉSOLU (2026-07-23).** 23 valeurs `rem` du chrome (battle-log, move-tooltip, turn-timeline, battle-chrome) converties en `calc(px * var(--ui-scale))`.
 - ~~**Recherche bilingue FR+EN dans le move picker** (souhait humain 2026-06-15)~~ — LIVRÉ : haystack normalisé bilingue (FR+EN+id, accents/séparateurs tolérés) sur les 3 pickers (`team/search-index.ts`). Couvert e2e `dom/picker-search.spec.ts`, cahier §7.2.

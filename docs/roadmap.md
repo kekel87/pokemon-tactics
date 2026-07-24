@@ -311,6 +311,18 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 
 ---
 
+## Phase 6.5 — Client jouable : contrôles & UI ⏳ *PROCHAINE PHASE ACTIVE (2026-07-24)*
+
+> **Prioritaire, avant la Phase 7 (Multijoueur).** Seul retour de vrais utilisateurs : **injouable sur mobile → contrôles tactiles**. Un multi n'a de valeur que sur un client jouable.
+> Plan-cadre consolidé : `docs/plans/173-phase-client-jouable-ui-controles.md` (consolide « Support manette » ex-Phase 7, « UI revamps »/« Tooltips type chart »/a11y ex-Phase 9, + backlog UI/UX de `next.md`).
+> Assets **Kenney CC0** intégrés (input-prompts, mobile-controls, cursor-pixel-pack).
+
+- [ ] **Lot 3 — Compléter l'UI** *(démarrage)* : nature InfoPanel (plan 072), info terrain/modificateurs, auras (1 rond empilable), preview combat, info move + tooltips type chart, responsive (`--stage-scale`/ultrawide/`--ui-scale` PV), a11y.
+- [ ] **Lot 1 — Contrôles tactiles** : pinch-zoom, pan 2 doigts, boutons rotation caméra on-screen, cibles ≥44px `@media (pointer:coarse)`.
+- [ ] **Lot 2 — Config clavier + manette** : couche d'input device-agnostique (actions logiques remappables), Gamepad API (y c. **manette sur mobile**), écran de remapping.
+
+---
+
 ## Phase 6 — Maps & Éditeur (3D)
 
 > **Position actuelle : après Phase 3.5** (reordonnée 2026-04-20, donc post-Phase 7).
@@ -361,7 +373,7 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 - [ ] Écran de victoire enrichi (récap, tours, KO, MVP)
 - [ ] Speed controls (skip/accélérer animations)
 - [ ] Tutoriel interactif
-- [ ] Support manette
+- [→] ~~Support manette~~ **déplacé en Phase 6.5 — Client jouable (Lot 2)** (2026-07-24)
 
 ---
 
@@ -369,12 +381,12 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 
 > But : confort et qualité visuelle
 
-- [ ] UI revamps
+- [→] ~~UI revamps~~ **déplacé en Phase 6.5 — Client jouable (Lot 3)** (2026-07-24)
 - [x] **CSS modulaire Team Builder + `<dialog>` natif + HTML a11y** — livré plan 085 polish 2026-05-18. `packages/renderer/src/styles/` 12 modules (@layer, tokens, `<dialog showModal()>` natif, slot cards `<button>`, aria-label i18n, lazy loading, bugfix `@layer reset`). Rules `.claude/rules/css.md` + `.claude/rules/html.md`. Décisions #321-325.
 - [ ] **Biome HTML/CSS lint** — Biome v2.4 gère HTML formatter + CSS formatter. Étendre `biome.json` : `files.includes` += `**/*.{css,html}`, activer `linter.rules.a11y.recommended: true`. Optionnel : audit Axe + Lighthouse. Optionnel : `stylelint-plugin-use-baseline`.
 - [ ] Son / Musique
 - [ ] Décors sur les maps
-- [ ] Tooltips type chart (efficacités au hover)
+- [→] ~~Tooltips type chart (efficacités au hover)~~ **déplacé en Phase 6.5 — Client jouable (Lot 3)** (2026-07-24)
 - [ ] Auto-save localStorage
 
 ---
