@@ -48,11 +48,6 @@ Volet « faisable en Gen 1 » (Faux-Chage/Ruse/Anti-Air/Poursuite/Corps Perdu/At
 - **Heuristiques IA objets légers (plan 158) — WON'T-FIX documenté (2026-07-23, décision #714).** Les 11 objets passifs sont toujours-actifs et ne conditionnent aucune décision IA : leur ajouter un « bonus dédié » inventerait du scoring sans choix sous-jacent (bruit qui dégraderait l'IA). Seul sous-cas réel (l'IA sur-estime les dégâts contre un Métamorph à Poudre Métal) est ultra-niche. Laissé tel quel sciemment.
 - ~~**Heuristiques IA fines item-interaction (plan 142)**~~ **RÉSOLU (2026-07-23, décision #714).** Sabotage/Tour de Magie/Passe-Passe/Gaz Corrosif : le bonus `hasItemManip` est désormais pondéré par la valeur tactique de l'objet visé (`HIGH_VALUE_MANIP_TARGET_ITEMS` + toute baie `-berry` → ×2 ; stat-sticks passifs → générique).
 
-### Design — pistes à trancher plus tard
-
-- **Réévaluer l'équilibrage de Tension** si des baies de soin en quantité sont ajoutées au pool d'objets (décision #561) — Tension bloque toutes les baies consommables ennemies, deviendrait très dominant.
-- **Possessif étendu à toute l'arène** (décision #534) — actuellement Possessif ne scelle que les ennemis qui connaissent les mêmes moves. Piste d'équilibrage : étendre à tous les Pokémon présents (alliés inclus). À évaluer à l'usage.
-
 ### Infra / process
 
 - **Migrer l'analytics vers backend first-party** — GoatCounter (plan 114) bloqué par les adblockers (`goatcounter.com` filtré par EasyPrivacy). Fix : endpoint `/analytics` sur notre propre domaine backend. À faire avec le futur backend matchmaking, pas avant.
