@@ -753,6 +753,75 @@ function scoreKnockbackRingOut(
   return { score, securesLethalKo };
 }
 
+/** Le premier effet de recul du move (avec sa distance de poussée), ou `undefined`. */
+function findKnockbackEffect(move: MoveDefinition): { distance: number } | undefined {
+  return move.effects.find(
+    (effect): effect is Extract<typeof effect, { kind: typeof EffectKind.Knockback }> =>
+      effect.kind === EffectKind.Knockback,
+  );
+}
+
+/** Le mon connaît-il au moins un move à recul (`EffectKind.Knockback`) ? Gate coût des heuristiques ring-out. */
+function hasKnockbackMove(
+  pokemon: PokemonInstance,
+  moveRegistry: Map<string, MoveDefinition>,
+): boolean {
+  for (const moveId of effectiveMoveIds(pokemon)) {
+    const move = moveRegistry.get(moveId);
+    if (move && findKnockbackEffect(move) !== undefined) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Sécurité défensive du ring-out (plan 172, volet A4). Pénalise une destination candidate d'où un
+ * ennemi porteur d'un move à recul pourrait m'éjecter **fatalement** (chute / glissade / terrain létal).
+ * Coût borné : le scan `enemies × moves` est léger ; la prédiction `predictKnockback` + LoS (le poste
+ * coûteux) ne tourne que quand un move à recul adverse atteint réellement la case. Pénalité non
+ * cumulative (un seul risque mortel suffit à condamner la case) et déclenchée **uniquement** sur
+ * éjection létale — pas d'évitement mou des bords quand le recul ne tue pas.
+ */
+function evaluateKnockbackVulnerability(
+  self: PokemonInstance,
+  fromPosition: Position,
+  enemies: readonly PokemonInstance[],
+  moveRegistry: Map<string, MoveDefinition>,
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  const selfAtDestination: PokemonInstance = { ...self, position: fromPosition };
+  for (const enemy of enemies) {
+    for (const moveId of effectiveMoveIds(enemy)) {
+      const move = moveRegistry.get(moveId);
+      if (!move) {
+        continue;
+      }
+      const knockback = findKnockbackEffect(move);
+      if (knockback === undefined) {
+        continue;
+      }
+      if (manhattanDistance(enemy.position, fromPosition) > getMoveMaxReach(move.targeting)) {
+        continue;
+      }
+      if (!engine.hasLineOfSightFrom(enemy.position, fromPosition)) {
+        continue;
+      }
+      const outcome = engine.predictKnockback(
+        enemy.id,
+        selfAtDestination,
+        knockback.distance,
+        enemy.position,
+      );
+      if (outcome?.lethal) {
+        return -weights.killPotential;
+      }
+    }
+  }
+  return 0;
+}
+
 /**
  * Balance (pain-split) / Effort (endeavor): both want a low-HP caster and a high-HP target. Score by
  * the HP gap (target fraction − caster fraction); negative or tiny gaps return ~0 so the AI does not
@@ -2501,6 +2570,17 @@ function scoreMove(
   );
   score += attackBonus;
 
+  // Sécurité défensive du ring-out (plan 172, volet A4) : fuir une case d'où un ennemi à recul
+  // m'éjecterait fatalement. Coût borné (cf. JSDoc de la fonction).
+  score += evaluateKnockbackVulnerability(
+    currentPokemon,
+    destination,
+    enemies,
+    moveRegistry,
+    engine,
+    weights,
+  );
+
   return score;
 }
 
@@ -2514,6 +2594,13 @@ function evaluateAttacksFromPosition(
 ): number {
   let bestAttackScore = 0;
 
+  // Ring-out offensif (plan 172, volet A3) : si le mon a un move à recul, on identifie la menace n°1
+  // pour surpondérer l'éjection fatale de cette cible. Gate coût : `highestThreatEnemy` (O(N×M)) n'est
+  // calculée que quand le mon peut réellement pousser.
+  const ringOutThreat = hasKnockbackMove(pokemon, moveRegistry)
+    ? highestThreatEnemy(enemies, pokemon, engine)
+    : null;
+
   for (const moveId of effectiveMoveIds(pokemon)) {
     const move = moveRegistry.get(moveId);
     if (!move || getEffectivePowerFloor(move) === 0) {
@@ -2521,6 +2608,7 @@ function evaluateAttacksFromPosition(
     }
 
     const reach = getMoveMaxReach(move.targeting);
+    const knockback = findKnockbackEffect(move);
 
     for (const enemy of enemies) {
       const dist = manhattanDistance(fromPosition, enemy.position);
@@ -2553,6 +2641,23 @@ function evaluateAttacksFromPosition(
       }
       if (estimate.effectiveness > 1) {
         attackScore += weights.typeAdvantage;
+      }
+
+      // A3 : depuis cette case candidate, le recul éjecterait-il fatalement l'ennemi (chute / glissade /
+      // terrain létal) ? La direction est calculée depuis `fromPosition` → bouger d'un côté ou de l'autre
+      // de l'ennemi change l'issue, ce qui pousse l'IA à se placer pour aligner le vide. Lethal-only
+      // (décision humaine) : le chip de chute partielle reste crédité depuis la position actuelle.
+      if (knockback !== undefined) {
+        const outcome = engine.predictKnockback(
+          pokemon.id,
+          enemy,
+          knockback.distance,
+          fromPosition,
+        );
+        if (outcome?.lethal) {
+          const ringOutScore = weights.killPotential * (enemy.id === ringOutThreat?.id ? 1.5 : 1);
+          attackScore = Math.max(attackScore, ringOutScore);
+        }
       }
 
       if (attackScore > bestAttackScore) {

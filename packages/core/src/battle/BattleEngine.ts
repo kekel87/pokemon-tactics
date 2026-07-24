@@ -847,13 +847,14 @@ export class BattleEngine {
     attackerId: string,
     target: PokemonInstance,
     distance: number,
+    attackerPosition?: Position,
   ): KnockbackOutcome | null {
     const attacker = this.state.pokemon.get(attackerId);
     if (!attacker) {
       return null;
     }
     return predictKnockbackOutcome({
-      attackerPosition: attacker.position,
+      attackerPosition: attackerPosition ?? attacker.position,
       target,
       distance,
       grid: this.grid,
