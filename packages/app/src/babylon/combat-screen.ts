@@ -240,6 +240,7 @@ function runBattle(options: {
     getItemIconUrl,
     getItemName: itemNameOf,
     getAbilityName: abilityNameOf,
+    getPokemonTypes: (definitionId) => battle.pokemonDefinitions.get(definitionId)?.types ?? [],
     isDamagePreviewEnabled: () => getSettings().damagePreview,
   };
   const spawnFloatingText = createFloatingTextSpawner(combat, battle.state, {

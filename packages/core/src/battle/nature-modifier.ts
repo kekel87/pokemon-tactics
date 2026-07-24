@@ -34,6 +34,11 @@ const NATURE_TABLE: Record<Nature, NatureEffect> = {
   [Nature.Quirky]: { boost: null, lowered: null },
 };
 
+/** The boosted / lowered stat of a nature (both null = neutral). For the InfoPanel nature readout (plan 174). */
+export function getNatureEffect(nature: Nature): NatureEffect {
+  return NATURE_TABLE[nature];
+}
+
 export function applyNatureModifier(stats: BaseStats, nature: Nature): BaseStats {
   const effect = NATURE_TABLE[nature];
   if (effect.boost === null || effect.lowered === null) {

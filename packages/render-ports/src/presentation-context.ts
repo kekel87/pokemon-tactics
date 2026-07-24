@@ -14,4 +14,6 @@ export interface PresentationContext extends I18nContext {
   getItemName(itemId: string): string | null;
   /** Localised ability name for an ability id (null when unknown) — ability-manip badges (plan 153). */
   getAbilityName(abilityId: string): string | null;
+  /** Species base types for a Pokémon definition id (override/transform applied by the adapter, plan 174). */
+  getPokemonTypes(definitionId: string): readonly string[];
 }

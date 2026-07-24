@@ -1,4 +1,11 @@
-import { Direction, type HeldItemId, StatName, StatusType, Weather } from "@pokemon-tactic/core";
+import {
+  Direction,
+  type HeldItemId,
+  Nature,
+  StatName,
+  StatusType,
+  Weather,
+} from "@pokemon-tactic/core";
 import {
   getLegalMoves,
   getMoveName,
@@ -81,6 +88,12 @@ const VOLATILE_STATUS_ENTRIES: [StatusType, TranslationKey][] = [
   [StatusType.Trapped, "status.trapped"],
 ];
 
+/** All 25 natures → their Team-Builder i18n label (name + affected stats). Nature is species-independent. */
+const NATURE_ENTRIES: [Nature, TranslationKey][] = Object.values(Nature).map((nature) => [
+  nature,
+  `teamBuilder.nature.${nature}` as TranslationKey,
+]);
+
 const DIRECTION_ENTRIES: [Direction, TranslationKey][] = [
   [Direction.North, "direction.north"],
   [Direction.East, "direction.east"],
@@ -131,6 +144,7 @@ interface MemberUiState {
   volatileStatusSelect: HTMLSelectElement;
   directionSelect: HTMLSelectElement;
   abilitySelect: HTMLSelectElement;
+  natureSelect: HTMLSelectElement;
   statStageGetters: Map<StatName, () => number>;
   position: { x: number; y: number };
   positionSetters: { x: (v: number) => void; y: (v: number) => void };
@@ -384,6 +398,7 @@ export class SandboxPanel {
       volatileStatusSelect: undefined as unknown as HTMLSelectElement,
       directionSelect: undefined as unknown as HTMLSelectElement,
       abilitySelect: undefined as unknown as HTMLSelectElement,
+      natureSelect: undefined as unknown as HTMLSelectElement,
       statStageGetters: new Map(),
       position: { x: member.position?.x ?? 0, y: member.position?.y ?? 0 },
       // Real setters are wired below once the position row is built.
@@ -432,6 +447,19 @@ export class SandboxPanel {
     });
     colLeft.appendChild(ability.row);
     state.abilitySelect = ability.select;
+
+    const nature = createLabeledSelect({
+      label: t("sandbox.nature"),
+      options: [
+        { value: "", label: t("sandbox.natureRandom") },
+        ...NATURE_ENTRIES.map(([n, key]) => ({ value: n, label: t(key) })),
+      ],
+      selected: member.nature ?? "",
+      onChange: () => this.emit(),
+      signal: this.abort.signal,
+    });
+    colLeft.appendChild(nature.row);
+    state.natureSelect = nature.select;
 
     const itemCard = createPickerCard({
       label: "Item",
@@ -861,6 +889,9 @@ export class SandboxPanel {
     }
     if (member.abilitySelect.value) {
       result.ability = member.abilitySelect.value;
+    }
+    if (member.natureSelect.value) {
+      result.nature = member.natureSelect.value as Nature;
     }
     if (member.defensiveMoveSelect) {
       result.defensiveMove = member.defensiveMoveSelect.value || null;

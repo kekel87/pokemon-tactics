@@ -1,7 +1,8 @@
 # Plan 174 — InfoPanel enrichi « tes Pokemon »
 
-> **Statut** : draft
+> **Statut** : done
 > **Créé** : 2026-07-24
+> **Terminé** : 2026-07-24. Commit `c3418fe`.
 > **Phase** : 6.5 Client jouable — Lot 3 (compléter l'UI), 1er chantier. Plan-cadre : `docs/plans/173`.
 
 ## But
@@ -78,6 +79,14 @@ InfoPanel allié, glanceable :
 - **Valeur après crans = chiffre** (ex. `Atq 120 ↑↑ → 180`), pas seulement les flèches (décision humaine 2026-07-24).
 - **174 = allié seulement** ; ennemi (plages/gating/PV%) = 176. Types ennemis publics affichables mais on garde le focus allié ici.
 - Dialog Status = repli, hors 174.
+
+### Décisions prises en implémentation
+
+- **Valeur effective inclut les statuts modifiant les stats** (Brûlure ÷2 Attaque physique sauf Cran ×1.5, Paralysie ÷2 Vitesse sauf Pied Véloce ×1.5), pas seulement EV/nature/crans — nouvelle `effectiveDisplayStat` (core), mirroir des chemins damage-calc/initiative. Voir `docs/decisions.md` #717.
+- **Nom de la nature non affiché en toutes lettres** — l'effet (boost/baisse) est montré via labels de stat colorés (bleu/rouge, `natureEffect`), plus lisible qu'un nom de nature isolé sur un panneau déjà dense.
+- **Largeur du panneau réduite 330→300px + ombre de texte ajoutée** (lisibilité du texte sur toutes les couleurs d'équipe possibles).
+- **Badges de crans doublons retirés côté allié** — l'ancien indicateur de crans (hors grille stats) devenait redondant avec la nouvelle grille stats (flèches + valeur modifiée), supprimé pour ce côté.
+- **Responsive/mobile reporté au Lot 1** (`docs/plans/173` — contrôles tactiles) : l'encombrement du panneau enrichi sur petit écran n'est pas traité ici. Voir `docs/decisions.md` #718.
 
 ## Gate
 

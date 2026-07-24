@@ -507,6 +507,7 @@ interface SandboxTeamMemberConfig {
   statStages?: Record<string, number>;
   heldItem?: string;
   ability?: string;
+  nature?: string;           // omis → roll aléatoire depuis le seed de création
   position?: { x: number; y: number };
   direction?: string;
   defensiveMove?: string | null; // mode "passive" : move joué par ce membre
@@ -528,7 +529,7 @@ interface SandboxConfig {
 }
 ```
 
-- **`normalizeSandboxConfig(raw)`** (`packages/view-core/src/sandbox-config.ts`) : adaptateur rétro-compat — tout schéma plat legacy (détecté via `raw.pokemon`) est mappé vers `teams` ; **tous** les fixtures e2e existants et toute URL sandbox déjà en circulation restent valides sans migration. Appelé aux 3 points de parsing (`babylon-boot.ts`, `sandbox-boot.ts`, `e2e/pages/CombatScene.ts`).
+- **`normalizeSandboxConfig(raw)`** (`packages/view-core/src/sandbox-config.ts`) : adaptateur rétro-compat — tout schéma plat legacy (détecté via `raw.pokemon`) est mappé vers `teams` ; **tous** les fixtures e2e existants et toute URL sandbox déjà en circulation restent valides sans migration. Appelé aux 3 points de parsing (`babylon-boot.ts`, `sandbox-boot.ts`, `e2e/pages/CombatScene.ts`). Schéma plat : `playerNature`/`dummyNature` (mappés sur `members[0].nature`).
 
 ### Contrôle par équipe — un dropdown, 5 niveaux
 
@@ -549,7 +550,7 @@ interface SandboxConfig {
 - **`DummyAiController`** : une instance par membre en mode `passive`, soumet le `defensiveMove` assigné si légal, sinon `EndTurn`
 - **`SandboxPanel`** (HTML overlay) : 2 accordéons équipe (Équipe 1 / Équipe 2), un seul ouvert à la fois
   - En-tête équipe : nom + dropdown contrôle (5 niveaux ci-dessus)
-  - Membres : pile de cartes repliables (résumé sprite + nom FR + HP, clic = déplie), éditeur complet par membre (Pokemon, moves, ability, item, HP, statut, volatile, stages, position, direction), bouton **+ Ajouter Pokémon** (désactivé à 6), icône poubelle (désactivée si dernier membre)
+  - Membres : pile de cartes repliables (résumé sprite + nom FR + HP, clic = déplie), éditeur complet par membre (Pokemon, moves, ability, item, HP, statut, volatile, stages, **nature**, position, direction), bouton **+ Ajouter Pokémon** (désactivé à 6), icône poubelle (désactivée si dernier membre)
 - **Écran victoire HTML** : overlay HTML (ancré écran), indépendant du rendu moteur — compat navigateur + zoom caméra
 - **`packages/data/sandbox-configs/`** : configs JSON d'exemple
 
@@ -558,7 +559,20 @@ interface SandboxConfig {
 
 ---
 
-## 5c. Système i18n
+## 5c. InfoPanel enrichi — perspective allié (plan 174)
+
+`InfoPanelData` (`packages/render-ports/src/view-models.ts`) porte un flag de perspective `isAlly: boolean` : côté allié, le panneau affiche en plus **types** (chips localisées), **stats** (5 lignes Atq/Déf/Atq Spé/Déf Spé/Vit), **talent** et **nature** ; côté ennemi ces champs restent `undefined` (panneau minimal inchangé, plages/gating = plan 176).
+
+- **`InfoPanelStat`** : `{ label, value, stage, modified, natureEffect? }` — `value` = stat effective (EV/nature) avant crans, `stage` = crans actifs (`-6..+6`), `modified` = valeur après crans, `natureEffect?: "boost" | "lower"` colore le label (bleu/rouge) sans afficher le nom de la nature en toutes lettres.
+- **`effectiveDisplayStat(pokemon, stat)`** (`packages/core/src/battle/display-stat.ts`) : stat affichée = base (EV/nature) × crans, puis **statut** — Brûlure ÷2 Attaque physique (sauf Cran, ×1.5 à la place), Paralysie ÷2 Vitesse (sauf Pied Véloce, ×1.5 à la place). Mirroir des chemins damage-calc/initiative : le panneau ne contredit jamais le combat réel.
+- **`getNatureEffect(nature)`** (core, exporté) : donne l'effet boost/lower d'une nature sur une stat donnée, consommé par l'adaptateur pour `natureEffect`.
+- **Adaptateur** : `buildInfoPanelView` (`packages/view-core/src/battle-views.ts`) construit `types`/`ability`/`nature`/`stats` uniquement si `isAlly`, décidé par l'appelant (`battle-orchestrator.ts`, qui connaît l'équipe du mon inspecté vs le joueur actif) — pas de dépendance à `getGameState` (full-info).
+- **Vue** (`packages/ui-dom/src/info-panel.ts`) : chips de types (tokens `--type-<id>`), grille stats 5 colonnes (label/valeur/crans/flèche/valeur modifiée), flèches `.ip-stat-buff`/`.ip-stat-debuff`. Largeur du panneau 330→300px, ombre de texte ajoutée (lisibilité sur toute couleur d'équipe).
+- **Décisions retenues** (voir `docs/decisions.md`) : nom de la nature non affiché (l'effet suffit, via labels colorés) ; responsive/mobile reporté au Lot 1 (`docs/plans/173`) ; badges de crans doublons de l'ancien affichage retirés côté allié (remplacés par la grille stats).
+
+---
+
+## 5d. Système i18n
 
 Renderer supporte FR et EN. Core i18n-free : émet events avec IDs, renderer traduit.
 

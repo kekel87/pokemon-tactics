@@ -64,6 +64,8 @@ export interface Translations {
   "sandbox.custom": string;
   "sandbox.passive": string;
   "sandbox.ability": string;
+  "sandbox.nature": string;
+  "sandbox.natureRandom": string;
   "sandbox.dummyControl": string;
   "sandbox.dummyControl.ai": string;
   "sandbox.dummyControl.player": string;

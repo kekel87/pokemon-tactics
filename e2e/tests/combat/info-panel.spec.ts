@@ -1,5 +1,5 @@
 import { expect, test } from "../../fixtures";
-import { DUEL, HELD_ITEM_ICONS } from "../../fixtures/sandbox-configs";
+import { DUEL, HELD_ITEM_ICONS, INFO_PANEL_ALLY_STATS } from "../../fixtures/sandbox-configs";
 import { InfoPanel } from "../../pages/combatHud";
 
 // Cahier §4 (panneau d'info) — le HUD chrome reflète l'identité + les PV du Pokemon actif.
@@ -16,8 +16,8 @@ test("info panel : identité du Pokemon actif (Florizarre, Niv. 50, PV pleins)",
   // Nom FR officiel (jamais l'ID anglais) — le joueur incarne Florizarre dans ce duel.
   await expect(info.name).toHaveText("Florizarre");
   await expect(info.level).toHaveText("Lv.50");
-  // PV pleins au boot : "155 / 155" (les deux nombres égaux).
-  await expect(info.hpText).toHaveText(/^(\d+) \/ \1$/);
+  // PV pleins au boot : "155 / 155" (les deux nombres égaux ; le % vit dans un span frère, cf. plan 174).
+  await expect(info.hpNumbers).toHaveText(/^(\d+) \/ \1$/);
   await expect(info.portrait).toBeVisible();
 });
 
@@ -94,4 +94,71 @@ test("§4.7 info panel : sans objet tenu → ligne objet masquée", async ({ pag
 
   await expect(info.panel).toBeVisible();
   await expect(info.item).toBeHidden();
+});
+
+// §4.7 — panneau enrichi d'un ALLIÉ (plan 174) : l'actif au boot est le joueur Florizarre (team 1),
+// donc le panneau affiche chips de types, ligne PV avec pourcentage, talent et bloc des 5 stats. Avec
+// `statStages.attack: +2`, la ligne Attaque (1ʳᵉ du bloc) montre le cran « 2↑ », la flèche « → » et la
+// valeur effective modifiée (base ×2). DOM pur (view-model découplé du core), déterministe (seed DUEL).
+test("§4.7 info panel : allié enrichi (types + PV% + talent + stats, cran → valeur modifiée)", async ({
+  page,
+  bootSandbox,
+}) => {
+  await bootSandbox(INFO_PANEL_ALLY_STATS);
+  const info = new InfoPanel(page);
+
+  await expect(info.panel).toBeVisible();
+  await expect(info.panel).toHaveAttribute("data-team", "1");
+
+  // Chips de types (Florizarre = Plante/Poison) — le libellé est CSS-uppercased, on asserte l'id.
+  await expect(info.typeChips).toHaveCount(2);
+  await expect(info.types.locator("li[data-type='grass']")).toBeVisible();
+  await expect(info.types.locator("li[data-type='poison']")).toBeVisible();
+
+  // Ligne PV : pourcentage secondaire (PV pleins au boot → « (100%) »).
+  await expect(info.hpPct).toHaveText(/\(\d+%\)/);
+
+  // Talent (ally-only) visible et non vide.
+  await expect(info.talent).toBeVisible();
+  await expect(info.talent).not.toBeEmpty();
+
+  // Bloc des 5 stats (Atq/Déf/Atk Spé/Déf Spé/Vit).
+  await expect(info.stats).toBeVisible();
+  await expect(info.statRows).toHaveCount(5);
+
+  // 1ʳᵉ ligne = Attaque, boostée +2 → crans « 2↑ », flèche « → », valeur effective ≠ base.
+  const attackCells = info.statRows.first().locator("span");
+  const baseValue = await attackCells.nth(1).textContent();
+  await expect(attackCells.nth(2)).toHaveText("2↑"); // .ip-stat-crans
+  await expect(attackCells.nth(3)).toHaveText("→"); // .ip-stat-arrow
+  const modified = attackCells.nth(4); // .ip-stat-modified
+  await expect(modified).toHaveText(/^\d+$/);
+  await expect(modified).not.toHaveText(baseValue ?? "");
+});
+
+// §4.7 — un ENNEMI reste minimal (plan 174) : types publics affichés, mais PAS de bloc stats ni de
+// talent. On survole le dummy Dracaufeu (team 2) puis on vérifie l'omission côté panneau.
+test("§4.7 info panel : ennemi minimal (types visibles, stats + talent masqués)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(INFO_PANEL_ALLY_STATS);
+  const info = new InfoPanel(page);
+
+  await expect
+    .poll(
+      async () => {
+        await scene.hoverTile(2, 2);
+        return info.name.textContent();
+      },
+      { timeout: 10_000 },
+    )
+    .toBe("Dracaufeu");
+  await expect(info.panel).toHaveAttribute("data-team", "2");
+
+  // Types publics → toujours affichés (Dracaufeu = Feu/Vol).
+  await expect(info.typeChips).toHaveCount(2);
+  // Lecture privée réservée à l'allié : pas de bloc stats ni de talent pour un ennemi.
+  await expect(info.stats).toBeHidden();
+  await expect(info.talent).toBeHidden();
 });

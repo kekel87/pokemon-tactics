@@ -4,6 +4,11 @@ import {
   type BattleState,
   CT_THRESHOLD,
   type CtTimelineEntry,
+  type DisplayStat,
+  effectiveAbilityId,
+  effectiveCombatStats,
+  effectiveDisplayStat,
+  getNatureEffect,
   PokemonGender,
   type PokemonInstance,
   type PokemonType,
@@ -15,6 +20,8 @@ import { getMoveName, getPokemonName, strongestMoveId } from "@pokemon-tactic/da
 import type {
   InfoPanelBadge,
   InfoPanelData,
+  InfoPanelStat,
+  InfoPanelType,
   PresentationContext,
   TailwindView,
   TimelineEntryView,
@@ -171,11 +178,71 @@ function pushAuraBadges(
   }
 }
 
-/** Build the InfoPanel view-model for a Pokémon (mirror of `InfoPanel.update`). */
+/** Ordered battle stats shown in the ally InfoPanel (HP is the life bar, not a row). */
+const INFO_PANEL_STAT_ROWS: ReadonlyArray<{ readonly stat: DisplayStat; readonly key: string }> = [
+  { stat: StatName.Attack, key: "stat.atk" },
+  { stat: StatName.Defense, key: "stat.def" },
+  { stat: StatName.SpAttack, key: "stat.spA" },
+  { stat: StatName.SpDefense, key: "stat.spD" },
+  { stat: StatName.Speed, key: "stat.spd" },
+];
+
+/** Effective types (override > transform > species), localised into chips. */
+function buildTypeChips(
+  context: PresentationContext,
+  pokemon: PokemonInstance,
+  language: string,
+): InfoPanelType[] {
+  const typeIds: readonly string[] =
+    pokemon.typeOverride ??
+    pokemon.transformState?.types ??
+    context.getPokemonTypes(pokemon.definitionId);
+  return typeIds.map((id) => ({
+    id,
+    label: TYPE_LABEL[id as PokemonType]
+      ? language === "fr"
+        ? TYPE_LABEL[id as PokemonType].fr
+        : TYPE_LABEL[id as PokemonType].en
+      : id,
+  }));
+}
+
+/**
+ * Battle stats for the ally panel: base (EV/nature) + crans + stat-modifying statuses, via the core
+ * `effectiveDisplayStat` (mirrors the damage-calc / initiative math, incl. burn/paralysis + Cran/Pied
+ * Véloce). The nature's boosted/lowered stat colours its label.
+ */
+function buildStatRows(context: PresentationContext, pokemon: PokemonInstance): InfoPanelStat[] {
+  const combat = effectiveCombatStats(pokemon);
+  const natureEffect = getNatureEffect(pokemon.nature);
+  return INFO_PANEL_STAT_ROWS.map(({ stat, key }) => {
+    const row: InfoPanelStat = {
+      label: context.translate(key),
+      value: combat[stat],
+      stage: pokemon.statStages[stat] ?? 0,
+      modified: effectiveDisplayStat(pokemon, stat),
+      ...(natureEffect.boost === stat
+        ? { natureEffect: "boost" as const }
+        : natureEffect.lowered === stat
+          ? { natureEffect: "lower" as const }
+          : {}),
+    };
+    return row;
+  });
+}
+
+/**
+ * Build the InfoPanel view-model for a Pokémon (mirror of `InfoPanel.update`).
+ *
+ * `isAlly` (plan 174) gates the enriched readout: allies get stats + ability + nature; enemies
+ * render minimal (types are public, so shown either way). The enemy progressive-reveal panel is
+ * plan 176 — the caller (orchestrator) decides `isAlly` from the viewing player's perspective.
+ */
 export function buildInfoPanelView(
   context: PresentationContext,
   pokemon: PokemonInstance,
   state: BattleState,
+  isAlly = false,
 ): InfoPanelData {
   const language = context.getLanguage();
   const badges: InfoPanelBadge[] = [];
@@ -186,7 +253,21 @@ export function buildInfoPanelView(
     badges.push({ label: context.translate(majorKey), variant: "debuff" });
   }
 
+  // Ally panels show Atk/Déf/Atk Spé/Déf Spé/Vit crans inline in the stats block (plan 174), so only
+  // Précision/Esquive (not in the block) still need a badge. Enemy panels keep every stat-stage badge.
+  const inlineStats: ReadonlySet<string> = isAlly
+    ? new Set<string>([
+        StatName.Attack,
+        StatName.Defense,
+        StatName.SpAttack,
+        StatName.SpDefense,
+        StatName.Speed,
+      ])
+    : new Set<string>();
   for (const [stat, key] of Object.entries(STAT_LABEL)) {
+    if (inlineStats.has(stat)) {
+      continue;
+    }
     const stages = pokemon.statStages[stat as keyof typeof pokemon.statStages];
     if (stages === undefined || stages === 0) {
       continue;
@@ -371,6 +452,10 @@ export function buildInfoPanelView(
       ? undefined
       : (context.getItemName(pokemon.heldItemId) ?? undefined);
 
+  // Ally-only enrichment (plan 174): exact stats, effective ability, nature. Enemies stay minimal.
+  const abilityId = isAlly ? effectiveAbilityId(pokemon) : undefined;
+  const ability = abilityId ? (context.getAbilityName(abilityId) ?? undefined) : undefined;
+
   return {
     name: getPokemonName(pokemon.definitionId, language),
     level: pokemon.level,
@@ -379,6 +464,10 @@ export function buildInfoPanelView(
     hpMax: pokemon.maxHp,
     team: teamNumberOf(pokemon.playerId),
     portraitUrl: context.getPortraitUrl(pokemon.definitionId),
+    isAlly,
+    types: buildTypeChips(context, pokemon, language),
+    ...(ability === undefined ? {} : { ability }),
+    ...(isAlly ? { stats: buildStatRows(context, pokemon) } : {}),
     badges,
     ...(heldItem === undefined ? {} : { heldItem }),
     ...(pokemon.heldItemId === undefined

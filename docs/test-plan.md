@@ -371,6 +371,16 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
   de `item-icons.png` À CÔTÉ du nom FR (plus d'ancien texte « 🎒 {nom} »). Porteur → icône `<img>` visible
   avec `src` data-URL PNG + nom FR (Restes ; Orbe Vie au survol du dummy porteur, équipe 2) ; sans objet →
   ligne **masquée** (`info-panel.spec`). *Le crop pixel exact de la cellule = 👁.*
+- 🤖 **Panneau enrichi d'un allié** (plan 174) : quand l'actif/survolé appartient à l'équipe du joueur
+  (`data-team="1"`, `isAlly`), le panneau ajoute — en plus de l'identité/PV/objet/badges — les **chips de
+  types** (`info-panel-types > li[data-type]`, ex. `grass`/`poison`), la **ligne PV avec pourcentage**
+  (`.ip-hppct`, ex. « (100%) »), le **talent** poussé à droite (`info-panel-talent`) et le **bloc des 5
+  stats** (`info-panel-stats`, Atq/Déf/Atk Spé/Déf Spé/Vit). Une stat à cran (`statStages.attack: +2`)
+  montre sur sa ligne le cran « 2↑ », la flèche « → » et la **valeur effective** (base ×2) ≠ base
+  (`info-panel.spec`). Un **ennemi** (`data-team="2"`) reste minimal : types publics affichés, mais bloc
+  stats + talent **masqués** (`info-panel.spec`). *Le calcul crans/brûlure/paralysie de la valeur
+  effective (`effectiveDisplayStat`), la couleur de la nature et l'omission ennemie = unit
+  `display-stat.test`/`battle-views.test`. Les couleurs des chips/crans (buff bleu, debuff rouge) = 👁.*
 - 👁 **Badges** (statut/auras/volatils), preview menace au survol ennemi (§3.7), barre PV qui
   **descend** après dégâts (anim).
 - 🤖 **Badges** : statut majeur (Brûlure…), auras (Reflet…), volatils (Provoc 3t, Clone…) —
@@ -2134,7 +2144,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire |
 | `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (8 + détail + ↑/↓ aria-current), §6.4 format + Lancer gating |
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |
-| `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` + **objet tenu** (plan 168 : icône officielle `<img>` data-URL + nom FR — Restes à l'actif, Orbe Vie au survol du porteur team 2 ; sans objet → ligne masquée) |
+| `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` + **objet tenu** (plan 168 : icône officielle `<img>` data-URL + nom FR — Restes à l'actif, Orbe Vie au survol du porteur team 2 ; sans objet → ligne masquée) + **panneau enrichi allié** (plan 174 : chips de types `li[data-type]`, ligne PV avec `.ip-hppct`, talent `info-panel-talent`, bloc des 5 stats `info-panel-stats` ; une stat à cran (+2 Atq) affiche « 2↑ » + « → » + valeur effective ≠ base) + **ennemi minimal** (types visibles, bloc stats + talent masqués au survol du dummy team 2) |
 | `combat/weather.spec.ts` | §5 météo : HUD « Plein soleil » + tours restants |
 | `combat/multi-hit.spec.ts` | §5 multi-hit : Balle Graine → récap « Touché N fois » |
 | `combat/floating-text.spec.ts` | §5.2 texte flottant de dégâts (`hud_text_plane`) à la résolution |

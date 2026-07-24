@@ -164,3 +164,7 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 168 | [Icônes officielles d'objets tenus dans l'InfoPanel](./168-item-icons-info-panel.md) | done | 2026-07-22 |
 | 169 | [Purge des demi-blocs de liquide](./169-purge-demi-blocs-liquide.md) | done | 2026-07-23 |
 | 170 | [Niveaux de test e2e + sélection « affected » du diff](./170-e2e-tiers-affected.md) | done | 2026-07-23 |
+| 171 | [Zone Magique canonique complète](./171-zone-magique-canonique-complete.md) | done | 2026-07-24 |
+| 172 | [IA — positionnement pour le ring-out (Phase 2 du plan 159)](./172-ai-ring-out-positioning.md) | done | 2026-07-24 |
+| 173 | [Phase « Client jouable : contrôles & UI » (consolidation)](./173-phase-client-jouable-ui-controles.md) | ready | 2026-07-24 |
+| 174 | [InfoPanel enrichi « tes Pokemon »](./174-infopanel-tes-pokemon.md) | done | 2026-07-24 |

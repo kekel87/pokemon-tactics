@@ -1,6 +1,7 @@
 import {
   Direction,
   type HeldItemId,
+  type Nature,
   type StatName,
   type StatusType,
   Weather,
@@ -29,6 +30,8 @@ export interface SandboxMemberConfig {
   statStages?: Partial<Record<StatName, number>>;
   heldItem?: HeldItemId;
   ability?: string;
+  /** Nature override. Omitted → rolled from the creation seed (random). */
+  nature?: Nature;
   /** Explicit spawn tile. Omitted → resolved from the format's spawn zone (+ cascade fallback). */
   position?: Position2D;
   direction?: Direction;
@@ -110,6 +113,8 @@ interface LegacySandboxConfig {
   dummyHeldItem?: HeldItemId;
   playerAbility?: string;
   dummyAbility?: string;
+  playerNature?: Nature;
+  dummyNature?: Nature;
   dummyPosition?: Position2D;
   mapUrl?: string;
   weather?: Weather;
@@ -158,6 +163,7 @@ function fromLegacy(raw: Partial<LegacySandboxConfig>): SandboxConfig {
     statStages: flat.statStages,
     heldItem: flat.heldItem,
     ability: flat.playerAbility,
+    nature: flat.playerNature,
     position: flat.playerPosition,
     direction: flat.playerDirection,
   });
@@ -172,6 +178,7 @@ function fromLegacy(raw: Partial<LegacySandboxConfig>): SandboxConfig {
     statStages: flat.dummyStatStages,
     heldItem: flat.dummyHeldItem,
     ability: flat.dummyAbility,
+    nature: flat.dummyNature,
     position: flat.dummyPosition,
     direction: flat.dummyDirection,
     defensiveMove: flat.dummyMove,

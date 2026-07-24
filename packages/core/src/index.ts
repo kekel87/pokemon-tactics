@@ -27,6 +27,7 @@ export {
   computeMoveCost,
   moveCtTempo,
 } from "./battle/ct-costs";
+export { type DisplayStat, effectiveDisplayStat } from "./battle/display-stat";
 export {
   DISTORTION_DEFAULT_DURATION,
   DISTORTION_RADIUS,
@@ -40,6 +41,7 @@ export type { EffectContext, EffectHandler, TypeChart } from "./battle/effect-ha
 export { EffectHandlerRegistry } from "./battle/effect-handler-registry";
 export { createDefaultEffectRegistry } from "./battle/effect-processor";
 export { effectiveAbilityId } from "./battle/effective-ability";
+export { effectiveCombatStats } from "./battle/effective-combat-stats";
 export { isEffectivelyFlying, resolveBaseTypes } from "./battle/effective-flying";
 export { effectiveMoveIds } from "./battle/effective-move-ids";
 export {
@@ -75,6 +77,7 @@ export { getEffectiveInitiative } from "./battle/initiative-calculator";
 export { metronomeDamageMultiplier, pendingMetronomeSteps } from "./battle/metronome-streak";
 export {
   applyNatureModifier,
+  getNatureEffect,
   NATURE_BOOST_MULTIPLIER,
   NATURE_LOWER_MULTIPLIER,
 } from "./battle/nature-modifier";
@@ -142,6 +145,7 @@ export {
   TypeChangeReason,
 } from "./types/battle-event";
 export type * from "./types/index";
+export type { NatureEffect } from "./types/nature-effect";
 export type { SemiInvulnerableDisplay } from "./types/semi-invulnerable-display";
 export { SemiInvulnerableState } from "./types/semi-invulnerable-state";
 export { SP_PER_STAT_MAX, SP_TOTAL_MAX } from "./types/stat-spread";

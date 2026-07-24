@@ -1,6 +1,7 @@
 import type {
   HeldItemId,
   MapDefinition,
+  Nature,
   PlacementEntry,
   PlacementTeam,
 } from "@pokemon-tactic/core";
@@ -179,6 +180,7 @@ export function createSandboxBattle(
   const placements: PlacementEntry[] = [];
   const heldItemOverrides: Record<string, HeldItemId> = {};
   const abilityOverrides: Record<string, string> = {};
+  const natureOverrides: Record<string, Nature> = {};
   const moveOverrides: Record<string, readonly string[]> = {};
   const occupied = new Set<string>();
 
@@ -209,6 +211,9 @@ export function createSandboxBattle(
       if (member.ability) {
         abilityOverrides[id] = member.ability;
       }
+      if (member.nature) {
+        natureOverrides[id] = member.nature;
+      }
       if (member.moves && member.moves.length > 0) {
         moveOverrides[id] = [...member.moves];
       }
@@ -222,6 +227,7 @@ export function createSandboxBattle(
     placements,
     heldItemOverrides,
     abilityOverrides,
+    natureOverrides,
     moveOverrides,
     seed: config.seed,
     // Seed instance creation too (nature/gender), so a fixed seed reproduces the same stat spread

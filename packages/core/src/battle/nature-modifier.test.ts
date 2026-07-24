@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { Nature } from "../enums/nature";
+import { StatName } from "../enums/stat-name";
 import type { BaseStats } from "../types/base-stats";
 import {
   applyNatureModifier,
+  getNatureEffect,
   NATURE_BOOST_MULTIPLIER,
   NATURE_LOWER_MULTIPLIER,
 } from "./nature-modifier";
@@ -97,5 +99,22 @@ describe("applyNatureModifier", () => {
     expect(result.defense).toBe(SAMPLE.defense);
     expect(result.spDefense).toBe(SAMPLE.spDefense);
     expect(result.speed).toBe(SAMPLE.speed);
+  });
+});
+
+describe("getNatureEffect", () => {
+  it("returns null boost and lowered for a neutral nature", () => {
+    expect(getNatureEffect(Nature.Hardy)).toEqual({ boost: null, lowered: null });
+  });
+
+  it("returns the boosted and lowered stats for a non-neutral nature", () => {
+    expect(getNatureEffect(Nature.Adamant)).toEqual({
+      boost: StatName.Attack,
+      lowered: StatName.SpAttack,
+    });
+    expect(getNatureEffect(Nature.Modest)).toEqual({
+      boost: StatName.SpAttack,
+      lowered: StatName.Attack,
+    });
   });
 });

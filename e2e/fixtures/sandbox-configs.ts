@@ -27,6 +27,17 @@ export const HELD_ITEM_ICONS = {
   dummyHeldItem: "life-orb",
 } as const;
 
+/** InfoPanel enrichi d'un ALLIÉ (plan 174, cahier §4.7). L'actif au boot est le joueur Florizarre
+ *  (Plante/Poison, team 1 → `isAlly`), donc le panneau montre les chips de types, la ligne PV avec
+ *  pourcentage, le talent poussé à droite et le bloc des 5 stats. `statStages.attack: +2` rend une
+ *  stat modifiée : sa ligne affiche crans « 2↑ » + « → » + la valeur effective (base ×2). Le dummy
+ *  Dracaufeu est un ennemi → son panneau reste minimal (pas de bloc stats). Aucun jet → déterministe. */
+export const INFO_PANEL_ALLY_STATS = {
+  ...DUEL,
+  statStages: { attack: 2 },
+  dummyPokemon: "charizard",
+} as const;
+
 /** Player starts poisoned → the HUD must mount a status icon (test-plan §3.4). Seeded
  *  (via DUEL) so the sandbox stays deterministic — a config without a seed now boots random. */
 export const POISONED = { ...DUEL, status: "poisoned" } as const;

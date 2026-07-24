@@ -15,6 +15,9 @@ const testContext: PresentationContext = {
   getLanguage: () => "en",
   getPortraitUrl: (pokemonId) => `assets/sprites/pokemon/${pokemonId}/portrait-normal.png`,
   getItemIconUrl: (itemId) => `assets/sprites/item-icons/${itemId}.png`,
+  getItemName: (itemId) => itemId,
+  getAbilityName: (abilityId) => `ability:${abilityId}`,
+  getPokemonTypes: () => ["electric"],
   isDamagePreviewEnabled: () => false,
 };
 
@@ -84,6 +87,50 @@ describe("buildInfoPanelView", () => {
     } as unknown as Partial<PokemonInstance>);
     const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]));
     expect(view.badges.filter((b) => b.variant === "volatile")).toHaveLength(1);
+  });
+
+  it("exposes public type chips for either side", () => {
+    const pokemon = makePokemon();
+    const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]), false);
+    expect(view.types).toEqual([{ id: "electric", label: "Electric" }]);
+  });
+
+  it("prefers a type override over the species types", () => {
+    const pokemon = makePokemon({ typeOverride: ["fire"] } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]), false);
+    expect(view.types.map((t) => t.id)).toEqual(["fire"]);
+  });
+
+  it("enriches an ally with ability, nature and battle stats", () => {
+    const pokemon = makePokemon({
+      abilityId: "static",
+      nature: "modest",
+      combatStats: { hp: 60, attack: 80, defense: 50, spAttack: 120, spDefense: 55, speed: 110 },
+      statStages: { attack: 2, spAttack: -1 },
+    } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]), true);
+    expect(view.isAlly).toBe(true);
+    expect(view.ability).toBe("ability:static");
+    expect(view.stats).toHaveLength(5);
+    expect(view.stats?.[0].natureEffect).toBe("lower");
+    expect(view.stats?.[2].natureEffect).toBe("boost");
+    const attack = view.stats?.[0];
+    expect(attack).toMatchObject({ value: 80, stage: 2, modified: 160 });
+    const spAttack = view.stats?.[2];
+    expect(spAttack).toMatchObject({ value: 120, stage: -1, modified: 80 });
+    const speed = view.stats?.[4];
+    expect(speed).toMatchObject({ value: 110, stage: 0, modified: 110 });
+  });
+
+  it("omits stats, ability and nature for an enemy", () => {
+    const pokemon = makePokemon({
+      abilityId: "static",
+      nature: "modest",
+    } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]), false);
+    expect(view.isAlly).toBe(false);
+    expect(view.stats).toBeUndefined();
+    expect(view.ability).toBeUndefined();
   });
 
   it("badges the caster's own aura", () => {

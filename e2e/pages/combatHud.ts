@@ -20,6 +20,20 @@ export class InfoPanel {
    *  container: the icon has an empty `alt` (decorative → no `img` role) and carries no testid of its
    *  own, so a tag-scoped locator under the stable `info-panel-item` testid is the resilient reach. */
   readonly itemIcon: Locator;
+  /** Enriched ally readout (plan 174). Type chips list — each `<li>` carries `data-type="<id>"`
+   *  (the label is CSS-uppercased so its `textContent` stays « Plante » → we assert the id attribute). */
+  readonly types: Locator;
+  readonly typeChips: Locator;
+  /** HP line inner spans: exact numbers (« 155 / 155 ») then percentage (« (NN%) »). Since plan 174
+   *  the `info-panel-hp` span wraps BOTH, so read the numbers from the 1st child, not the container. */
+  readonly hpNumbers: Locator;
+  readonly hpPct: Locator;
+  /** Localised talent name, pushed to the right of the HP row (ally only → hidden for enemies). */
+  readonly talent: Locator;
+  /** Battle-stats block (ally only). Each `.ip-stat` row is a direct `<div>` child; a row's cells
+   *  are ordered `<span>`s: label, value, crans, arrow, modified — tag-scoped like `itemIcon`. */
+  readonly stats: Locator;
+  readonly statRows: Locator;
   constructor(page: Page) {
     this.panel = page.getByTestId("info-panel");
     this.name = page.getByTestId("info-panel-name");
@@ -29,6 +43,13 @@ export class InfoPanel {
     this.portrait = page.getByTestId("info-panel-portrait");
     this.item = page.getByTestId("info-panel-item");
     this.itemIcon = this.item.locator("img");
+    this.types = page.getByTestId("info-panel-types");
+    this.typeChips = this.types.locator("li");
+    this.hpNumbers = this.hpText.locator("span").nth(0);
+    this.hpPct = this.hpText.locator("span").nth(1);
+    this.talent = page.getByTestId("info-panel-talent");
+    this.stats = page.getByTestId("info-panel-stats");
+    this.statRows = this.stats.locator("> div");
   }
 }
 

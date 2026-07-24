@@ -348,7 +348,12 @@ export class BattleOrchestrator {
       return;
     }
     const shown = this.pokemonAt(this.hoveredTile) ?? this.activePokemon();
-    this.chrome.updateInfoPanel(shown ? buildInfoPanelView(this.context, shown, this.state) : null);
+    // Perspective (plan 174): "ally" = same team as the player whose turn it is (hotseat viewer).
+    // The real fog-of-war filter (online + hidden enemy info) lands in plan 176.
+    const isAlly = shown != null && shown.playerId === this.activePokemon()?.playerId;
+    this.chrome.updateInfoPanel(
+      shown ? buildInfoPanelView(this.context, shown, this.state, isAlly) : null,
+    );
     this.chrome.updateWeather(buildWeatherView(this.state));
     this.chrome.updateTailwind(buildTailwindView(this.state));
   }

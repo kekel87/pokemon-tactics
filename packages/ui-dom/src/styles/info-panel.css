@@ -23,7 +23,7 @@
     align-items: start;
     column-gap: calc(12 * var(--ip-px));
     row-gap: calc(6 * var(--ip-px));
-    inline-size: calc(330 * var(--ip-px));
+    inline-size: calc(300 * var(--ip-px));
     padding: calc(12 * var(--ip-px));
 
     background: color-mix(in srgb, var(--ip-team) 85%, transparent);
@@ -31,6 +31,9 @@
     border-radius: calc(9 * var(--ip-px));
     color: var(--color-text-primary);
     font-family: var(--font-family);
+    /* Dark text shadow across the whole panel: keeps every label — name, level, HP, the coloured
+       buff/debuff/nature text — legible on any team-colour background (same-hue cases). */
+    text-shadow: 0 calc(1 * var(--ip-px)) 0 rgba(0, 0, 0, 0.5);
 
     /* data-team → team color token. */
     &[data-team="1"] { --ip-team: var(--team-1); }
@@ -49,12 +52,26 @@
 
   .ip-portrait {
     /* Top-left, aligned to the panel padding (align-items:start on the grid). */
+    grid-column: 1;
+    grid-row: 1;
     inline-size: calc(60 * var(--ip-px));
     block-size: calc(60 * var(--ip-px));
     image-rendering: pixelated;
   }
 
-  .ip-body {
+  /* Identity + type chips sit beside the portrait (row 1). */
+  .ip-headercol {
+    grid-column: 2;
+    grid-row: 1;
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+    gap: calc(6 * var(--ip-px));
+  }
+
+  /* HP + item + trait + stats reclaim the full width under the portrait row (feedback plan 174). */
+  .ip-content {
+    grid-column: 1 / -1;
     min-inline-size: 0;
     display: flex;
     flex-direction: column;
@@ -88,6 +105,103 @@
     color: var(--color-text-secondary);
   }
 
+  /* Type chips (plan 174): colour from the shared `--type-<id>` tokens. */
+  .ip-types {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(4 * var(--ip-px));
+  }
+
+  .ip-types[hidden] {
+    display: none;
+  }
+
+  .ip-type {
+    padding: calc(1 * var(--ip-px)) calc(8 * var(--ip-px));
+    font-size: calc(20 * var(--ip-px));
+    font-weight: bold;
+    border-radius: calc(4 * var(--ip-px));
+    text-transform: uppercase;
+    letter-spacing: calc(0.5 * var(--ip-px));
+    color: var(--color-text-primary);
+    background: var(--type-fallback);
+    &[data-type="normal"] { background: var(--type-normal); }
+    &[data-type="fire"] { background: var(--type-fire); }
+    &[data-type="water"] { background: var(--type-water); }
+    &[data-type="grass"] { background: var(--type-grass); }
+    &[data-type="electric"] { background: var(--type-electric); }
+    &[data-type="ice"] { background: var(--type-ice); }
+    &[data-type="fighting"] { background: var(--type-fighting); }
+    &[data-type="poison"] { background: var(--type-poison); }
+    &[data-type="ground"] { background: var(--type-ground); }
+    &[data-type="flying"] { background: var(--type-flying); }
+    &[data-type="psychic"] { background: var(--type-psychic); }
+    &[data-type="bug"] { background: var(--type-bug); }
+    &[data-type="rock"] { background: var(--type-rock); }
+    &[data-type="ghost"] { background: var(--type-ghost); }
+    &[data-type="dragon"] { background: var(--type-dragon); }
+    &[data-type="dark"] { background: var(--type-dark); }
+    &[data-type="steel"] { background: var(--type-steel); }
+    &[data-type="fairy"] { background: var(--type-fairy); }
+  }
+
+  /* Battle-stats block (plan 174, ally only). Two columns of stat rows. */
+  .ip-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: calc(2 * var(--ip-px)) calc(16 * var(--ip-px));
+    font-size: calc(22 * var(--ip-px));
+    font-weight: bold;
+    color: var(--color-text-primary);
+  }
+
+  .ip-stats[hidden] {
+    display: none;
+  }
+
+  /* Fixed columns → label / value / delta line up across every row and both columns. Label hugs its
+     value (tight gap); the slack lives in the delta column / between the two stat columns. */
+  /* Five fixed columns: label / value / crans / arrow / modified. Empty cells still reserve width so
+     the "→" always lands at the same x — with or without the ↑/↓ crans indicator. */
+  .ip-stat {
+    display: grid;
+    grid-template-columns:
+      calc(30 * var(--ip-px)) calc(31 * var(--ip-px)) calc(22 * var(--ip-px))
+      calc(13 * var(--ip-px)) auto;
+    align-items: baseline;
+    column-gap: calc(2 * var(--ip-px));
+    white-space: nowrap;
+  }
+
+  /* Stat label, tinted by the nature's boosted (blue) / lowered (red) stat — Pokémon-style. */
+  .ip-stat-label {
+    color: var(--color-text-secondary);
+    &[data-nature="boost"] { color: var(--type-flying); }
+    &[data-nature="lower"] { color: var(--red-400); }
+  }
+
+  /* Right-aligned: the value hugs the crans/arrow side, leaving a little more room after the label. */
+  .ip-stat-value {
+    text-align: end;
+  }
+
+  /* Crans hug the arrow (right-aligned in their column). */
+  .ip-stat-crans {
+    text-align: end;
+  }
+
+  .ip-stat-arrow {
+    color: var(--color-text-secondary);
+    font-weight: normal;
+  }
+
+  /* Compact stage indicator ("2↑") + effective value share the buff/debuff colours. */
+  .ip-stat-buff { color: var(--green-500); }
+  .ip-stat-debuff { color: var(--red-400); }
+
   .ip-hpbar {
     block-size: calc(9 * var(--ip-px));
     background: var(--blue-950);
@@ -103,9 +217,37 @@
     background: var(--ip-team);
   }
 
+  /* HP + talent share one row: HP left, talent pushed right. */
+  .ip-hprow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(10 * var(--ip-px));
+  }
+
   .ip-hptext {
     font-size: calc(24 * var(--ip-px));
+    font-weight: bold;
+    color: var(--color-text-primary);
+  }
+
+  /* Percentage reads as secondary: smaller + dimmer than the exact HP numbers. */
+  .ip-hppct {
+    font-size: calc(18 * var(--ip-px));
     color: var(--color-text-secondary);
+  }
+
+  .ip-talent {
+    font-size: calc(22 * var(--ip-px));
+    font-weight: bold;
+    color: var(--color-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ip-talent[hidden] {
+    display: none;
   }
 
   .ip-item {
