@@ -401,6 +401,91 @@ describe("scoreAction", () => {
   });
 });
 
+describe("ring-out positioning (plan 172)", () => {
+  it("A3: scores moving to an aligning tile higher when the knockback would ring a foe out", () => {
+    const data = loadData();
+    const moveRegistry = new Map<string, MoveDefinition>();
+    for (const move of data.moves) {
+      moveRegistry.set(move.id, move);
+    }
+    const pokemonTypesMap = loadAllPokemonTypes();
+
+    function scoreMoveToAlign(ledge: boolean): number {
+      const attacker = MockPokemon.fresh(MockPokemon.charmander, {
+        id: "p1",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 0 },
+        moveIds: ["dragon-tail"],
+        currentPp: { "dragon-tail": 10 },
+      });
+      const defender = MockPokemon.fresh(MockPokemon.bulbasaur, {
+        id: "p2",
+        playerId: PlayerId.Player2,
+        position: { x: 2, y: 0 },
+      });
+      const state = MockBattle.stateFrom([attacker, defender], 6, 3);
+      MockBattle.setTile(state, 0, 0, { height: 4.5 });
+      MockBattle.setTile(state, 1, 0, { height: 4.5 });
+      MockBattle.setTile(state, 2, 0, { height: 4.5 });
+      MockBattle.setTile(state, 3, 0, { height: ledge ? 0.5 : 4.5 });
+      const engine = new BattleEngine(state, moveRegistry, typeChart, pokemonTypesMap);
+      state.activePokemonId = "p1";
+      const gameState = engine.getGameState(PlayerId.Player1);
+      return scoreAction(
+        { kind: ActionKind.Move, pokemonId: "p1", path: [{ x: 1, y: 0 }] },
+        gameState,
+        moveRegistry,
+        engine,
+        EASY_PROFILE,
+      );
+    }
+
+    expect(scoreMoveToAlign(true)).toBeGreaterThan(scoreMoveToAlign(false));
+  });
+
+  it("A4: penalizes moving to a tile where an enemy knockback would ring us out fatally", () => {
+    const data = loadData();
+    const moveRegistry = new Map<string, MoveDefinition>();
+    for (const move of data.moves) {
+      moveRegistry.set(move.id, move);
+    }
+    const pokemonTypesMap = loadAllPokemonTypes();
+
+    function scoreMoveNearEnemy(exposed: boolean): number {
+      const self = MockPokemon.fresh(MockPokemon.charmander, {
+        id: "p1",
+        playerId: PlayerId.Player1,
+        position: { x: 1, y: 1 },
+        moveIds: ["ember"],
+        currentPp: { ember: 10 },
+      });
+      const enemy = MockPokemon.fresh(MockPokemon.bulbasaur, {
+        id: "p2",
+        playerId: PlayerId.Player2,
+        position: { x: 2, y: 0 },
+        moveIds: ["dragon-tail"],
+        currentPp: { "dragon-tail": 10 },
+      });
+      const state = MockBattle.stateFrom([self, enemy], 6, 3);
+      MockBattle.setTile(state, 0, 0, { height: exposed ? 0.5 : 4.5 });
+      MockBattle.setTile(state, 1, 0, { height: 4.5 });
+      MockBattle.setTile(state, 2, 0, { height: 4.5 });
+      const engine = new BattleEngine(state, moveRegistry, typeChart, pokemonTypesMap);
+      state.activePokemonId = "p1";
+      const gameState = engine.getGameState(PlayerId.Player1);
+      return scoreAction(
+        { kind: ActionKind.Move, pokemonId: "p1", path: [{ x: 1, y: 0 }] },
+        gameState,
+        moveRegistry,
+        engine,
+        EASY_PROFILE,
+      );
+    }
+
+    expect(scoreMoveNearEnemy(true)).toBeLessThan(scoreMoveNearEnemy(false));
+  });
+});
+
 function scoreMoveOn(
   moveId: string,
   attackerOverrides: Partial<PokemonInstance> = {},

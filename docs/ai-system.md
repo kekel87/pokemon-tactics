@@ -51,7 +51,7 @@ Pour chaque action légale, le scorer collecte :
    - **Type advantage** : `effectiveness > 1` → +`typeAdvantage` (3). `< 1` → malus
 5. **Friendly fire** : -30% de `killPotential` par allié dans la zone d'effet
 6. **Effets secondaires** : +`statChanges × 1.5` pour les debuffs ennemis, +`statChanges` pour les statuts
-7. **Ring-out par recul** (`scoreKnockbackRingOut`, moves à `EffectKind.Knockback` — Draco-Queue, Coud'Krâne, Draco-Charge) : pour chaque ennemi touché, `BattleEngine.predictKnockback` calcule l'issue (déplacement, glissade sur glace, chute, terrain létal) depuis la position **actuelle** de l'attaquant. Issue `lethal` (chute mortelle ou terrain létal) → `killPotential` (×1.5 si la cible est `highestThreatEnemy`). Sinon → dégâts directs + bonus `fallDamage / maxHp × killPotential × 0.5`. Un allié qui serait éjecté à mort → **malus dur** `-killPotential`. L'IA ne se repositionne pas encore exprès pour préparer un ring-out (Phase 2, différé)
+7. **Ring-out par recul** (`scoreKnockbackRingOut`, moves à `EffectKind.Knockback` — Draco-Queue, Coud'Krâne, Draco-Charge) : pour chaque ennemi touché, `BattleEngine.predictKnockback` calcule l'issue (déplacement, glissade sur glace, chute, terrain létal) depuis la position **actuelle** de l'attaquant. Issue `lethal` (chute mortelle ou terrain létal) → `killPotential` (×1.5 si la cible est `highestThreatEnemy`). Sinon → dégâts directs + bonus `fallDamage / maxHp × killPotential × 0.5`. Un allié qui serait éjecté à mort → **malus dur** `-killPotential`. Depuis le plan 172, l'IA se repositionne aussi exprès pour préparer/éviter un ring-out — voir § Positionnement ring-out (A3/A4) ci-dessous
 8. **Faux-KO / immunité transverse** (Volet A, plan 160) : avant de créditer un KO plein (`estimate.min >= currentHp`), si `survivesLethalHit(target)` (porteur Ceinture Force/Fermeté à PV pleins, Bandeau, Baie Sitrus non consommée) → dégradé en crédit dégât partiel (cap `(currentHp-1)/maxHp`). Si `isImmuneToMoveType(target, move)` (move Sol vs Lévitation/Ballon/volant effectif) → dégât/efficacité = 0. Appliqué dans `scoreDamagingMove`, `evaluateAttacksFromPosition`, `scoreOhko`, `scoreKnockbackRingOut`.
 9. **Sacrifice / Self-KO** (Volet B, plan 160) : Explosion/Destruction/Explo-Brume (coût de suicide déduit du score, annulé si `wouldKoUs`, ×1.5 si un KO touche `highestThreatEnemy`), Souvenir (valeur ∝ dégât adverse potentiel de la cible, ×1.5 si menace n°1), Tout ou Rien (dégâts prédits = PV actuels, KO → `killPotential` net du coût), Vœu Soin (ciblage tuile via `occupantAt` — revive un allié KO à `killPotential × 0.5`, soigne un blessé proportionnellement, garde-fou si tuile vide/ennemi/allié plein), Lien du Destin / Rancune (outil de désespoir valorisé seulement si `wouldKoUs`).
 10. **Lock-in multi-tour** (Volet C, plan 160) : bonus/malus additif sur les moves à `lockIn` — malus d'engagement standard, quasi nul pour Brouhaha (bonus AoE + anti-sommeil), bonus de continuité croissant pour Ball'Glace (`RolloutStreak` déjà engagé).
@@ -114,6 +114,32 @@ Validé par un scénario de charge dédié 6v6 CT (`scenarios/ct-scoring-anti-dr
    - Vérifie si un ennemi serait à portée depuis la destination — hauteur/terrain/facing et ligne de vue calculés **depuis la position candidate** (`attackerPosition` sur `estimateDamage`, garde `hasLineOfSightFrom` dans `evaluateAttacksFromPosition` — élimine les positions « sniper fantôme » à travers un mur/relief)
    - Score le meilleur dégât possible × 0.8 (facteur d'estimation)
 5. Le lookahead fait que l'IA **se déplace vers des positions d'attaque**, pas juste vers l'ennemi — y compris **grimper un plateau pour tirer en surplomb** quand ça améliore l'estimation de dégâts
+
+#### Positionnement ring-out (A3/A4, plan 172)
+
+Phase 2 du ring-out (suite de la Phase 1 § Attaques, point 7) : l'IA ne se contente plus du recul
+quand la géométrie fonctionne déjà depuis sa case, elle **manœuvre exprès**.
+
+- **A3 — offensif** (`evaluateAttacksFromPosition`) : gate coût — ignoré si le Pokemon ne connaît
+  aucun move à `EffectKind.Knockback`. Sinon, pour chaque move à recul × chaque ennemi à portée +
+  LoS depuis la case candidate (`fromPosition`), `engine.predictKnockback(pokemon.id, enemy,
+  distance, fromPosition)` prédit l'issue **depuis cette case**. Issue `lethal` → `killPotential`
+  (×1.5 sur `highestThreatEnemy`), fondu dans `bestAttackScore` (même échelle que les KO directs).
+  **Lethal-only** : une chute partielle non létale depuis une case candidate n'est pas créditée (déjà
+  couverte par `scoreKnockbackRingOut` depuis la position actuelle ; l'ajouter à chaque destination
+  aurait gonflé le bruit de déplacement). Garde friendly-fire symétrique conservée.
+- **A4 — défensif** (`evaluateKnockbackVulnerability`, appelée depuis `scoreMove`) : gate coût —
+  ignoré si aucun ennemi ne porte de move à recul. Sinon, pour chaque ennemi porteur d'un move à
+  recul dont la portée + LoS atteint `fromPosition`, prédit l'éjection de **soi-même déplacé**
+  (`{ ...self, position: fromPosition }`, clone superficiel, aucun état muté) depuis la position de
+  l'ennemi. Issue `lethal` → pénalité `−killPotential` sur le score de la destination.
+  **Lethal-only** : pas de pénalité graduée sur un recul non létal (survivable) — évite une IA
+  passive qui fuirait mollement tous les bords.
+- **Base commune** : `BattleEngine.predictKnockback` gagne un 4ᵉ paramètre optionnel
+  `attackerPosition?` (défaut = `attacker.position`, rétrocompat totale), passé tel quel à
+  `predictKnockbackOutcome` (déjà pur, acceptait une position arbitraire).
+- Heuristiques communes à tous les niveaux de difficulté (cohérent plan 159, pas de branche par
+  difficulté).
 
 #### EndTurn (fin de tour)
 
@@ -219,7 +245,7 @@ interface AiProfile {
 - **Pas de prédiction** : ne prédit pas les actions du joueur au tour suivant
 - ~~estimateDamage approximatif~~ **résolu (plan 159, 2026-07-14)** : `attackerPosition?` sur `estimateDamage` calcule hauteur/terrain/facing depuis la position candidate (plus depuis `attacker.position`), et `evaluateAttacksFromPosition` vérifie la ligne de vue (`hasLineOfSightFrom`) — plus de « sniper fantôme » à travers un mur. Reste une approximation résiduelle : le lookahead utilise toujours la **portée max** (`getMoveMaxReach`), pas la forme exacte du targeting (cône/ligne/zone).
 - **Pas de coordination d'équipe** : chaque Pokemon joue indépendamment
-- **Pas de positionnement préparatoire pour le ring-out** : l'IA joue un ring-out par recul quand la géométrie fonctionne déjà depuis sa case courante, mais ne se déplace pas exprès pour l'aligner, et ne protège pas sa propre position d'un ring-out adverse (Phase 2, plan 159, différé `docs/next.md`)
+- ~~**Pas de positionnement préparatoire pour le ring-out**~~ **résolu (plan 172, 2026-07-24)** : voir § Positionnement ring-out (A3/A4) ci-dessus — l'IA manœuvre désormais exprès pour aligner un ring-out offensif et évite les cases exposées à un ring-out adverse létal.
 - **Movement = 3 pour tous** : hardcodé, pas lié aux stats du Pokemon (à corriger)
 - ~~CT non intégré au scoring~~ **résolu (plan 165, 2026-07-21)** : heuristique KO-protégé — voir § Pondération CT ci-dessus. Reste hors périmètre v1 : les branches à `return` anticipé (OHKO, Explosion/Destruction, Tout ou Rien, Souvenir, Vœu Soin, Croc Fatal, Balance/Effort, Transform, Buée Noire, stat-manip, self-buffs, moves alliés) ne sont pas pondérées par le CT — leur scoring bespoke reflète déjà l'engagement. Un lookahead multi-tour (approche B envisagée puis écartée, voir plan 165) resterait un levier futur optionnel pour l'anticipation de l'IA difficile, à rouvrir seulement si un playtest le réclame.
 - **Navigation long terme limitée** : `computePathDistance` évalue si une destination est atteignable, mais la navigation sur plusieurs tours (contournement de murs, emprunt de rampes) reste limitée par le BFS à budget du mouvement courant.
