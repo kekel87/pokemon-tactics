@@ -262,7 +262,11 @@ export function processEffects(
       continue;
     }
     // Lunettes Filtre (safety-goggles): immune to Poudre moves, same gate as Envelocape.
-    const itemImmunity = context.itemRegistry?.getForPokemon(target)?.onMoveImmunity?.({
+    const itemImmunity = effectiveHeldItem(
+      context.state,
+      target,
+      context.itemRegistry,
+    )?.onMoveImmunity?.({
       self: target,
       move: context.move,
     });
@@ -300,7 +304,11 @@ export function processEffects(
         events.push(...immunityResult.events);
       }
       // Ballon (air-balloon): grants Sol immunity while held, same gate as Lévitation.
-      const itemImmunity = context.itemRegistry?.getForPokemon(target)?.onTypeImmunity?.({
+      const itemImmunity = effectiveHeldItem(
+        context.state,
+        target,
+        context.itemRegistry,
+      )?.onTypeImmunity?.({
         self: target,
         moveType: context.move.type,
       });
@@ -426,7 +434,7 @@ export function processEffects(
       if (!pokemon || pokemon.currentHp <= 0) {
         continue;
       }
-      const itemHandler = context.itemRegistry.getForPokemon(pokemon);
+      const itemHandler = effectiveHeldItem(context.state, pokemon, context.itemRegistry);
       if (!itemHandler?.onStatLowered) {
         continue;
       }
@@ -460,7 +468,7 @@ export function processEffects(
   // against surviving targets — but only when the move does not already inflict flinch itself
   // (faithful to King's Rock / Razor Fang, which never stack with a move's own flinch).
   if (moveHasDamage && context.itemRegistry && nonImmuneTargets.length > 0) {
-    const attackerItem = context.itemRegistry.getForPokemon(context.attacker);
+    const attackerItem = effectiveHeldItem(context.state, context.attacker, context.itemRegistry);
     if (attackerItem?.onFlinchChance) {
       const moveInflictsFlinch = context.move.effects.some(
         (effect) =>
@@ -499,7 +507,7 @@ export function processEffects(
   // status) — so it lives outside the damage-gated flinch block above. The handler self-filters on
   // the move flag (e.g. Son) and is consumed on activation.
   if (context.itemRegistry && context.attacker.currentHp > 0) {
-    const attackerItem = context.itemRegistry.getForPokemon(context.attacker);
+    const attackerItem = effectiveHeldItem(context.state, context.attacker, context.itemRegistry);
     if (attackerItem?.onAfterMoveUse) {
       const result = attackerItem.onAfterMoveUse({
         self: context.attacker,

@@ -710,6 +710,49 @@ export const GRAVITY_BLOCKS_AERIAL = {
   dummyHp: 999,
 } as const;
 
+// Zone Magique neutralise l'objet tenu (plan 171) — canon : un mon DANS la Zone Magique voit TOUS les
+// effets de son objet tenu neutralisés (chokepoint `effectiveHeldItem`). Le signal e2e le plus net est
+// le Ballon (`air-balloon`), qui donne au porteur l'immunité au type Sol : sous Zone Magique cette
+// immunité tombe → Séisme (Sol) TOUCHE le porteur, alors qu'il en est immunisé hors zone. Les 15 autres
+// effets d'objet routés (Veste de Combat, Herbe Mentale, verrou Choice, Dé Pipé, Grosse Racine,
+// Lunettes Filtre, Talisman Sain…) restent 👁 / couverts unit+integration core : en sandbox 1v1
+// self-cast ils sont soit injouables (le porteur d'une Veste de Combat ne peut pas lancer Zone Magique,
+// un move statut), soit non-binaires au journal (magnitude de soin/coups → dépend du seed). Cf. §5.29.
+
+/** Zone Magique neutralise le Ballon — le joueur Mackogneur (machamp) a deux moves : Zone Magique
+ *  (`magic-room`, Self → posée sur sa propre case (2,3), diamant r3) puis Séisme (`earthquake`, Sol,
+ *  Zone r2 auto-centrée, caster exclu). Le dummy Ronflex (snorlax, Normal, espèce ≠ lanceur → nom
+ *  filtrable au journal) est adjacent en (2,2), DANS le diamant de la Zone Magique, porteur du Ballon
+ *  (`dummyHeldItem: "air-balloon"`) et endurant (`dummyHp: 999` → survit au Séisme, on observe les
+ *  dégâts et non un K.O.). Le dummy est en `ai` + Groz'Yeux (`dummyMove: "leer"`, sans dégât) pour
+ *  rester en place et ne pas polluer le journal. Tour 1 : pose de la Zone Magique (le cast ne clôt pas
+ *  le tour → « Attendre », l'IA rejoue, la main revient). Tour 2 : Séisme, cast sur la propre case du
+ *  lanceur (Zone auto-centrée). Le Ronflex étant dans la Zone Magique, son Ballon est neutralisé →
+ *  l'immunité Sol tombe → « Ronflex perd N PV ! ». Moves statut/Sol à 100 % de précision → aucun jet,
+ *  cast déterministe (seed DUEL hérité). */
+export const MAGIC_ROOM_SUPPRESSES_BALLOON = {
+  ...DUEL,
+  pokemon: "machamp",
+  moves: ["magic-room", "earthquake"],
+  playerPosition: { x: 2, y: 3 },
+  dummyPokemon: "snorlax",
+  dummyControl: "ai",
+  dummyMove: "leer",
+  dummyPosition: { x: 2, y: 2 },
+  dummyHeldItem: "air-balloon",
+  dummyHp: 999,
+} as const;
+
+/** Témoin du Ballon SANS Zone Magique — MÊME duel mais le SEUL move est Séisme (Zone Magique retirée
+ *  du moveset). Le Ronflex porte toujours le Ballon (immunité Sol intacte, aucune zone pour la
+ *  neutraliser) → Séisme émet un DamageDealt d'efficacité 0 (aucune ligne de journal « perd N PV »).
+ *  Comparé à {@link MAGIC_ROOM_SUPPRESSES_BALLOON}, prouve que c'est bien la Zone Magique — et non la
+ *  portée ni le seed — qui fait toucher le Séisme. */
+export const MAGIC_ROOM_BALLOON_BASELINE = {
+  ...MAGIC_ROOM_SUPPRESSES_BALLOON,
+  moves: ["earthquake"],
+} as const;
+
 /** Famille K.O. en un coup (OHKO, plan 148) — Guillotine (`guillotine`, Normal, Single 1-1 contact)
  *  hors-pool forcée. Précision 30 % PLATE → `seed: 0` fait toucher (déterministe, jamais d'override
  *  `Math.random`). Le dummy Normal (défaut) n'a aucune immunité de type → sur touche, dégâts = PV max

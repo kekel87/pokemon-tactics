@@ -2,6 +2,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import type { BattleEvent } from "../../types/battle-event";
 import { eatBerry } from "../eat-berry";
 import type { EffectContext } from "../effect-handler-registry";
+import { effectiveHeldItem } from "../effective-held-item";
 import { removeHeldItem } from "../held-item-transfer";
 
 /**
@@ -12,7 +13,7 @@ import { removeHeldItem } from "../held-item-transfer";
  */
 export function handleFlingItem(context: EffectContext): BattleEvent[] {
   const events: BattleEvent[] = [];
-  const item = context.itemRegistry?.getForPokemon(context.attacker);
+  const item = effectiveHeldItem(context.state, context.attacker, context.itemRegistry);
   // Defensive: the move is gated to a flingable item by getLegalActions + submitAction, so this is
   // unreachable in normal play — it only guards a hand-built action.
   if (item?.flingPower === undefined) {

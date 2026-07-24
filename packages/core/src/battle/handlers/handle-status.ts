@@ -329,7 +329,7 @@ export function handleStatus(context: EffectContext): BattleEvent[] {
 
     // Herbe Mentale (mental-herb): a move-restricting volatile (Provoc, Attraction, Anti-Soin…) is
     // cured the instant it lands, consuming the herb.
-    events.push(...tryMentalHerbCure(target, status, context.itemRegistry));
+    events.push(...tryMentalHerbCure(context.state, target, status, context.itemRegistry));
 
     if (isMajorStatus(status) && targetAbility?.onAfterStatusReceived) {
       const abilityEvents = targetAbility.onAfterStatusReceived({

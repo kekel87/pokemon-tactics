@@ -9,17 +9,24 @@ import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
  * holder stands in a Zone Magique (magic-room), which suppresses every held item. Reading
  * `registry.getForPokemon(pokemon)` directly would ignore the zone; route through here instead.
  *
- * ⚠️ **Partial adoption (decision #714).** Only the audited item effects are routed through this
- * helper today: secondary-block (Cape Obscure), trapping items (Carapace Mue / Accro Griffe / Bande
- * Étreinte), end-of-turn regen, CT-gain modifiers, and arena-trap escape. **Many other live item
- * reads still call `registry.getForPokemon(...)` directly and are NOT suppressed by Zone Magique**
- * (Veste de Combat `forbidsStatusMoves`, Orbe Vie, Dé Pipé, Grosse Racine, Fling, immunité météo…) —
- * canonically they should be. Catalogued as a residual backlog item in `docs/next.md`. New live-item
- * reads should go through this helper; extending it to the residual set is not yet in scope.
+ * **Full adoption (plan 171, decision #714).** Every live held-item *effect* read routes through
+ * this helper (or through the equivalent `fieldGlobal.*ItemSuppressed` / inline `isHeldItemSuppressed`
+ * guard already present at a handful of damage/accuracy sites) — Veste de Combat `forbidsStatusMoves`,
+ * Orbe Vie & type-boost items, Dé Pipé `maximizesMultiHit`, Grosse Racine `onDrainHealModify`,
+ * Lancer/Dégommage (fling), weather-damage immunity, `onMoveImmunity`/`onTypeImmunity`,
+ * `onStatChangeBlocked`, `onFlinchChance`, `onAfterMoveUse`, terrain-tick blocks, Herbe Mentale,
+ * Choice-lock, arena-trap escape, trapping items, secondary-block, end-of-turn regen, CT modifiers,
+ * and the powder-immunity gate shared by the grid-targeting path (Poudre Fureur, `powder-immunity.ts`).
+ * New live-item effect reads MUST go through here.
  *
- * Not used by the pure stat helpers `effectiveWeight` (Pierrallégée) — which threads `state` itself —
- * nor `effectiveBaseSpeed` (Poudre Vite, documented carve-out): those read `heldItemId` off the
- * species path without a registry lookup.
+ * **Deliberate carve-outs (NOT routed):**
+ * - Pure stat helpers `effectiveWeight` (Pierrallégée) — threads `state` itself — and
+ *   `effectiveBaseSpeed` (Poudre Vite, Métamorph carve-out): read `heldItemId` off the species path
+ *   without a registry lookup, suppression handled inline.
+ * - Berry *manipulation* moves (canon: Zone Magique nullifies effects but the berry is still
+ *   physically there, so the move still works): Calcination burning the target's berry
+ *   (`handle-burn-target-item.ts`) and Picore/Piqûre eating the enemy berry
+ *   (`handle-eat-target-berry.ts`). Human decision 2026-07-24.
  */
 export function effectiveHeldItem(
   state: BattleState,

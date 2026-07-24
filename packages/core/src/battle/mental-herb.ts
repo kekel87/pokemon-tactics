@@ -2,7 +2,9 @@ import { BattleEventType } from "../enums/battle-event-type";
 import type { StatusType } from "../enums/status-type";
 import { StatusType as StatusTypeEnum } from "../enums/status-type";
 import type { BattleEvent } from "../types/battle-event";
+import type { BattleState } from "../types/battle-state";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { effectiveHeldItem } from "./effective-held-item";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { consumeHeldItem } from "./held-item-transfer";
 
@@ -22,6 +24,7 @@ const RESTRICTING_VOLATILES: ReadonlySet<StatusType> = new Set([
  * volatile has been pushed onto the target.
  */
 export function tryMentalHerbCure(
+  state: BattleState,
   target: PokemonInstance,
   status: StatusType,
   itemRegistry: HeldItemHandlerRegistry | undefined,
@@ -29,7 +32,7 @@ export function tryMentalHerbCure(
   if (!RESTRICTING_VOLATILES.has(status)) {
     return [];
   }
-  const item = itemRegistry?.getForPokemon(target);
+  const item = effectiveHeldItem(state, target, itemRegistry);
   if (item?.curesMoveRestriction !== true) {
     return [];
   }

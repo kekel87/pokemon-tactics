@@ -27,6 +27,7 @@ export function handleDrawAttention(context: EffectContext): BattleEvent[] {
     const monTypes = context.targetTypesMap.get(mon.id) ?? [];
     if (
       isImmuneToPowderMove(
+        context.state,
         mon,
         context.move,
         monTypes,

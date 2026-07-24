@@ -1,8 +1,10 @@
 import { PokemonType } from "../enums/pokemon-type";
+import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { resolveDefensiveAbility } from "./ability-suppression";
+import { effectiveHeldItem } from "./effective-held-item";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 
 /**
@@ -17,6 +19,7 @@ import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
  * their own target loop, outside `processEffects`, share the exact same immunity rule.
  */
 export function isImmuneToPowderMove(
+  state: BattleState,
   target: PokemonInstance,
   move: MoveDefinition,
   targetTypes: PokemonType[],
@@ -38,8 +41,9 @@ export function isImmuneToPowderMove(
   if (abilityBlocked === true) {
     return true;
   }
-  const itemBlocked = itemRegistry
-    ?.getForPokemon(target)
-    ?.onMoveImmunity?.({ self: target, move })?.blocked;
+  const itemBlocked = effectiveHeldItem(state, target, itemRegistry)?.onMoveImmunity?.({
+    self: target,
+    move,
+  })?.blocked;
   return itemBlocked === true;
 }

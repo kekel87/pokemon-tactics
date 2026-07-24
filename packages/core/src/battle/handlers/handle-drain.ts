@@ -3,6 +3,7 @@ import type { EffectKind } from "../../enums/effect-kind";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import type { EffectContext } from "../effect-handler-registry";
+import { effectiveHeldItem } from "../effective-held-item";
 import { isHealBlocked } from "../heal-block-system";
 
 export function handleDrain(context: EffectContext): BattleEvent[] {
@@ -51,7 +52,7 @@ export function handleDrain(context: EffectContext): BattleEvent[] {
   // Grosse Racine (big-root): boosts HP recovered from draining moves. The redirected backlash
   // (Suintement) and the Heal Block suppression above are unaffected — only the heal portion grows.
   const drainHealMultiplier =
-    context.itemRegistry?.getForPokemon(pokemon)?.onDrainHealModify?.() ?? 1;
+    effectiveHeldItem(context.state, pokemon, context.itemRegistry)?.onDrainHealModify?.() ?? 1;
   const boostedDrain =
     drainHealMultiplier === 1 ? drainAmount : Math.floor(drainAmount * drainHealMultiplier);
 
