@@ -102,3 +102,47 @@ export interface InfoPanelData {
   /** Held-item icon URL (plan 168); omitted when the Pokémon holds nothing. */
   readonly itemIconUrl?: string;
 }
+
+/* ── Tile info panel (plan 177) ───────────────────────────────────────────── */
+
+/** Visual tone of a tile-effect chip → CSS colour cue (danger = red malus, buff = green bonus). */
+export type TileInfoTone = "danger" | "buff" | "info";
+
+/**
+ * One effect "chip" of the tile-info panel, icon-first (design 2026-07-25: near-zero text). Composed
+ * of resolved image icons (type/status sprites), an emoji **placeholder** for glyphs with no asset yet
+ * (height/boot/wall/skull/trigger/no-effect — swapped for a real icon pack at a dedicated point), and a
+ * short text/number (`×1.15`, `−2`, a hazard/field/zone name). `title` is the localised accessible
+ * label (tooltip/aria). Several chips can share one line (`TileInfoData.lines` is a list of chip rows).
+ */
+export interface TileInfoChip {
+  /** Resolved image-icon URLs (type sprites for the bonus/immunity, status sprite for burn/poison). */
+  readonly iconUrls?: readonly string[];
+  /** Emoji placeholder for a still-missing glyph (icon-pack point). Omitted once a sprite exists. */
+  readonly emoji?: string;
+  /** Short text/number shown after the icons (`×1.15`, `−2`, `−1/16`, hazard/field/zone name). */
+  readonly text?: string;
+  /** Remaining turns of a field/global zone → shown as a leading count badge (replaces the ✦/◈ glyph). */
+  readonly duration?: number;
+  /** Render `text` in a smaller size (the DoT fraction reads as secondary). */
+  readonly small?: boolean;
+  /** Localised accessible label (aria-label / title) describing the effect. */
+  readonly title?: string;
+  readonly tone?: TileInfoTone;
+}
+
+/**
+ * Tile-info panel view-model (plan 177): the terrain + active modifiers of the tile under the
+ * cursor (or the active Pokémon's tile by default). Pure data; the view-core builder resolves every
+ * icon URL + label so the DOM component stays a dumb renderer (mirror of `InfoPanelData`). Each line
+ * is a row of chips (grouping decision 2026-07-25: traversal/status/DoT/hazards/field/zones share one
+ * line; the damage bonus and the immunity list get their own lines).
+ */
+export interface TileInfoData {
+  /** Localised terrain name (ex. "Magma"). */
+  readonly terrainLabel: string;
+  /** Tile height level (shown with a height glyph). */
+  readonly height: number;
+  /** Ordered rows, each a list of chips; may be empty. */
+  readonly lines: readonly (readonly TileInfoChip[])[];
+}

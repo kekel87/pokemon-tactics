@@ -13,6 +13,21 @@
     pointer-events: none;
   }
 
+  /* Plan 177: Pokémon InfoPanel + tile-info panel side by side, pinned to the column bottom.
+     `stretch` matches the tile panel's height to the (taller) InfoPanel. */
+  .bc-infopanel-row {
+    margin-block-start: auto;
+    display: flex;
+    align-items: stretch;
+    gap: var(--spacing-md);
+    pointer-events: none;
+  }
+
+  /* The InfoPanel pinned itself to the column bottom before; that job now belongs to the row. */
+  .bc-infopanel-row > .ip-panel {
+    margin-block-start: 0;
+  }
+
   /* Battle chrome (plan 121 step 4b) — screen-anchored menus over the Babylon
      canvas. The root is click-through; only the menus + dialog catch pointer
      events so tile picking still reaches the canvas. */

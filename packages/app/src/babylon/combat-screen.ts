@@ -43,7 +43,12 @@ import type { TranslationKey } from "../i18n/types.js";
 import type { RendererBackend } from "../renderer-backend.js";
 import { initSandboxStudioDom } from "../sandbox-boot.js";
 import { getSettings } from "../settings/index.js";
-import { getCategoryIconUrl, getTypeIconUrl, getWeatherIconUrl } from "../team/asset-paths.js";
+import {
+  getCategoryIconUrl,
+  getStatusIconUrl,
+  getTypeIconUrl,
+  getWeatherIconUrl,
+} from "../team/asset-paths.js";
 import { buildTeamOverrides } from "../team/build-overrides.js";
 import { getItemIconUrl, getPortraitUrl } from "../team/team-builder-data.js";
 import type { AiProfileKey, SandboxConfig } from "../types/SandboxConfig.js";
@@ -241,6 +246,8 @@ function runBattle(options: {
     getItemName: itemNameOf,
     getAbilityName: abilityNameOf,
     getPokemonTypes: (definitionId) => battle.pokemonDefinitions.get(definitionId)?.types ?? [],
+    getTypeIconUrl,
+    getStatusIconUrl,
     isDamagePreviewEnabled: () => getSettings().damagePreview,
   };
   const spawnFloatingText = createFloatingTextSpawner(combat, battle.state, {

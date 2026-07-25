@@ -6,10 +6,12 @@ import type {
   PlacementTeam,
 } from "@pokemon-tactic/core";
 import {
+  type BattleState,
   createPrng,
   Direction,
   PlayerController,
   PlayerId,
+  postEntryHazard,
   type StatName,
   StatusType,
   setWeather,
@@ -21,7 +23,49 @@ import {
   type BattleSetupResult,
   createBattleFromPlacements,
 } from "./BattleSetup.js";
-import type { Position2D, SandboxConfig, SandboxMemberConfig } from "./sandbox-config.js";
+import type {
+  Position2D,
+  SandboxConfig,
+  SandboxDebugTiles,
+  SandboxMemberConfig,
+} from "./sandbox-config.js";
+
+/**
+ * Test-only tile seeding (plan 177): pre-place hazards/field/zones on explicit tiles so the tile-info
+ * panel + its e2e can read a populated tile. Each zone entry covers just its single tile.
+ */
+function applyDebugTiles(state: BattleState, debugTiles: SandboxDebugTiles): void {
+  for (const hazard of debugTiles.hazards ?? []) {
+    const layers = Math.max(1, hazard.layers ?? 1);
+    for (let i = 0; i < layers; i++) {
+      postEntryHazard(state, hazard.kind, { x: hazard.x, y: hazard.y });
+    }
+  }
+  for (const field of debugTiles.fieldTerrains ?? []) {
+    const tile = { x: field.x, y: field.y };
+    state.fieldTerrains.push({
+      kind: field.kind,
+      casterId: "debug",
+      tiles: [tile],
+      anchor: tile,
+      remainingTurns: 5,
+    });
+  }
+  for (const zone of debugTiles.globalZones ?? []) {
+    const tile = { x: zone.x, y: zone.y };
+    state.fieldGlobalZones.push({
+      kind: zone.kind,
+      casterId: "debug",
+      tiles: [tile],
+      anchor: tile,
+      remainingTurns: 5,
+    });
+  }
+  for (const tile of debugTiles.distortion ?? []) {
+    const at = { x: tile.x, y: tile.y };
+    state.distortionZones.push({ casterId: "debug", tiles: [at], anchor: at, remainingTurns: 5 });
+  }
+}
 
 function applyConfigToInstance(
   result: BattleSetupResult,
@@ -253,6 +297,10 @@ export function createSandboxBattle(
   if (config.weather && config.weather !== Weather.None) {
     const weatherEvents = setWeather(result.state, config.weather, config.weatherTurns ?? 5);
     result.engine.addStartupEvents(weatherEvents);
+  }
+
+  if (config.debugTiles) {
+    applyDebugTiles(result.state, config.debugTiles);
   }
 
   result.engine.rerunBattleStartChecks();

@@ -11,6 +11,7 @@
  * file self-assigns `@layer components`, so order is preserved without a statement here. */
 @import "./modal.css";
 @import "./info-panel.css";
+@import "./tile-info-panel.css";
 @import "./placement.css";
 @import "./battle-chrome.css";
 @import "./battle-log.css";

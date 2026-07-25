@@ -125,7 +125,7 @@ pokemon-tactics/
 │   ├── render-ports/            # Ports hexagonaux du contrat de rendu (plan 125, renommé plan 126)
 │   │   ├── src/
 │   │   │   ├── ports/           # BoardView, BattleChrome, BattleFeedback (interfaces moteur-agnostiques)
-│   │   │   ├── view-models/     # WeatherView, TimelineView, InfoPanelData… (données UI découplées du core)
+│   │   │   ├── view-models/     # WeatherView, TimelineView, InfoPanelData, TileInfoData (plan 177)… (données UI découplées du core)
 │   │   │   ├── presentation-context.ts  # PresentationContext (DI i18n + assets)
 │   │   │   ├── render-backend.ts        # RenderBackend (lifecycle : mount/dispose)
 │   │   │   ├── team-colors.ts           # TEAM_COLORS, teamColorByIndex, teamColorToHex, getTeamColorByPlayerId
@@ -184,6 +184,7 @@ pokemon-tactics/
 │   │   │   ├── turn-timeline.ts         # TurnTimeline (RR + CT)
 │   │   │   ├── weather-hud.ts           # WeatherHud
 │   │   │   ├── info-panel.ts            # InfoPanel
+│   │   │   ├── tile-info-panel.ts       # TileInfoPanel (plan 177 — terrain/hazards/champ/zones de la case survolée)
 │   │   │   ├── pattern-preview.ts       # previews de ciblage
 │   │   │   ├── Modal.ts                  # primitive modale (<dialog>, closeAriaLabel DI)
 │   │   │   ├── Stepper.ts                # primitive stepper (pure)
@@ -614,6 +615,20 @@ packages/data/src/i18n/
 - Scroll interne (molette) avec auto-scroll bas
 
 `packages/ui-dom/src/battle-log.ts` (BattleLogFormatter) — traduit `BattleEvent` en messages i18n. Logique pure, agnostique moteur. 41 tests unitaires.
+
+---
+
+## 5e. Panneau d'info de case (plan 177)
+
+2ᵉ panneau DOM distinct, à droite de l'InfoPanel Pokemon (même hauteur, moins large), décrivant **la case sous le curseur** (défaut = case du Pokemon actif si rien n'est survolé) — indépendant de son occupant. 100 % view-model + DOM : les effets sont déjà rendus en 3D (hazards voxel, champs, zones, auras), ce panneau ne fait qu'exposer en texte/icônes ce qui existe déjà.
+
+- **`TileInfoData`** (`packages/render-ports/src/view-models.ts`) : terrain (label i18n), hauteur, franchissabilité, malus de déplacement, statut à l'arrêt/DoT, bonus de type, hazards (`kind`+`layers`), champ actif, zones globales. Port `BattleChrome.updateTileInfo(view: TileInfoData | null)`.
+- **Builder** : `buildTileInfoView(context, state, position)` (`packages/view-core/src/battle-views.ts`) agrège les fonctions core déjà table-driven : `terrain-effects.ts` (`getMovementPenalty`, `getTerrainDotFraction`, `getTerrainStatusOnStop`, `getTerrainTypeBonusFactor`, `getTerrainBonusType`/`getTerrainImmuneTypes` — 2 nouveaux exports purs plan 177), `entry-hazard-system.ts` (`getEntryHazardsAt`), `field-terrain-system.ts` (`getFieldTerrainAt`), `field-global-system.ts` (`isInFieldGlobalZone`). Pur, testable, retourne `null` hors limites.
+- **Orchestrateur** : `refreshTileInfo(position | null)` (`battle-orchestrator.ts`), appelé juste après `refreshInfoPanel()` dans `onTileHover()`.
+- **Vue** : `packages/ui-dom/src/tile-info-panel.ts` (`createTileInfoPanel()`, dumb) + `packages/ui-dom/src/styles/tile-info-panel.css`. Chrome restructuré : `.bc-left-col` → rangée `infoPanelRow` `[infoPanel, tileInfoPanel]` sous la timeline (`battle-chrome.ts`).
+- **Design « zéro texte »** (v1 textuel rejeté en human-testing) : icônes + chiffres courts. Sprites réutilisés `assets/ui/types/*` (bonus de type + immunités) et `assets/ui/statuses/icon-*` (statut) ; émoji `⛰ 👣 🛑 🥾 ⛔💀 🆓` en **placeholders** (pack cohérent différé, § chantiers séparés). Trigger de statut affiché explicitement : `👣` (déclenche au passage — ex. Brûlure au Magma, boucle par pas moteur) vs `🛑` (déclenche à l'arrêt — ex. Poison au Marécage, fin de tour) ; DoT par tour = glyphe « en continu ». Purement affichage, aucune modification core.
+- **Seed test-only** `SandboxConfig.debugTiles` (hazards/champ/zones/distortion posables sur une case) — sert la démo et l'e2e du panneau, pas une fonctionnalité gameplay.
+- **Chantiers séparés notés hors périmètre** (voir `docs/next.md`) : pack d'icônes (game-icons.net), Évasion Herbe Haute (core, jamais implémentée), hazards interdits sur liquide sauf Piège de Roc (core), rendu in-world des effets sur tuiles (plan à part).
 
 ---
 

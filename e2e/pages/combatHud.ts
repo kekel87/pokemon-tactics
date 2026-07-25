@@ -53,6 +53,40 @@ export class InfoPanel {
   }
 }
 
+/** TileInfoPanel DOM chrome (plan 177) — the narrow terrain panel to the right of the Pokémon
+ *  InfoPanel; reflects the terrain + active modifiers of the tile under the cursor (or the active
+ *  Pokémon's tile by default). Located by `data-testid`; the effect chips carry no testid, so their
+ *  assertions read user-facing text (`getByText` on the localised hazard/field/zone name), the resolved
+ *  icon `<img src>` (tag-scoped `img[src*=…]`, resilient like `InfoPanel.itemIcon`), or the chip's
+ *  accessible label (`getByLabel` on the emoji-only traversal chip) — never a CSS class. */
+export class TileInfoPanel {
+  readonly panel: Locator;
+  /** Terrain name span (FR official, ex. « Magma » / « Neutre »). */
+  readonly terrain: Locator;
+  /** Effect-chip rows — each `<li>` is one line of chips. Tag-scoped under the testid'd panel. */
+  readonly lines: Locator;
+  /** All resolved icon `<img>` inside the panel (type + status sprites). */
+  readonly icons: Locator;
+  constructor(page: Page) {
+    this.panel = page.getByTestId("tile-info-panel");
+    this.terrain = page.getByTestId("tile-info-terrain");
+    this.lines = this.panel.locator("li");
+    this.icons = this.panel.locator("img");
+  }
+
+  /** A chip icon whose resolved `src` matches a known asset path fragment (ex. « types/fire »,
+   *  « statuses/icon-burned ») — an attribute selector, not a fragile class. */
+  icon(pathFragment: string): Locator {
+    return this.panel.locator(`img[src*="${pathFragment}"]`);
+  }
+
+  /** The effect line (`<li>`) that contains the given user-facing text (hazard/field/zone name) —
+   *  used to assert the duration badge sits on the same chip as the name. */
+  line(text: string): Locator {
+    return this.panel.locator("li", { hasText: text });
+  }
+}
+
 /** Weather HUD (top-center) — shown when the battle has active weather. */
 export class WeatherHud {
   readonly hud: Locator;

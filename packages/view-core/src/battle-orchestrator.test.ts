@@ -155,6 +155,7 @@ function setup(
     hideMenus: () => undefined,
     updateTurnInfo: () => undefined,
     updateInfoPanel: () => undefined,
+    updateTileInfo: () => undefined,
     updateWeather: () => undefined,
     updateTailwind: () => undefined,
     updateTimeline: () => undefined,
@@ -177,6 +178,8 @@ function setup(
       getItemName: () => null,
       getAbilityName: () => null,
       getPokemonTypes: () => [],
+      getTypeIconUrl: () => "",
+      getStatusIconUrl: () => "",
       isDamagePreviewEnabled: () => true,
     },
   );

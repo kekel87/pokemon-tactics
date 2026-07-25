@@ -16,7 +16,7 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
-- **Phase 6.5 — Client jouable : contrôles & UI** (validée 2026-07-24, plan-cadre `docs/plans/173-phase-client-jouable-ui-controles.md`). Prochaine grosse phase, prioritaire avant le Multijoueur (retour réel : injouable mobile → contrôles tactiles). **Démarrage = Lot 3 (compléter l'UI)** : nature InfoPanel, info terrain/modificateurs, auras, preview combat, info move + tooltips type chart, responsive, a11y. Puis Lot 1 (tactile), Lot 2 (clavier/manette, y c. manette sur mobile). Assets Kenney CC0. **Prochaine étape : détailler le plan du Lot 3 (plan 174 ?) avant de coder.**
+- **Phase 6.5 — Client jouable : contrôles & UI** (validée 2026-07-24, plan-cadre `docs/plans/173-phase-client-jouable-ui-controles.md`). Prochaine grosse phase, prioritaire avant le Multijoueur (retour réel : injouable mobile → contrôles tactiles). **Lot 3 (compléter l'UI) en cours** : ~~nature InfoPanel~~ **livré** (plan 174, 2026-07-24), ~~info terrain/modificateurs~~ **livré** (plan 177, panneau d'info de case, 2026-07-25) — restent auras, preview combat, info move + tooltips type chart, responsive, a11y. Puis Lot 1 (tactile), Lot 2 (clavier/manette, y c. manette sur mobile). Assets Kenney CC0. **Prochaine étape : détailler le prochain item du Lot 3 (auras ou preview combat) avant de coder.**
 - **Refaire les 5 visuels README/wiki** (reporté 2026-06-16) : `docs/images/{demo.gif, maps-selection, battle-log, team-builder, team-selection}-screenshot.png` montrent encore l'ancien rendu Phaser. Captures auto Babylon (visual-tester) rejetées par l'humain → originaux conservés en attendant que l'humain les refasse à la main.
 
 ## Reporté / backlog technique
@@ -57,6 +57,15 @@ Volet « faisable en Gen 1 » (Faux-Chage/Ruse/Anti-Air/Poursuite/Corps Perdu/At
 - **Perf des suites de test — volet e2e RÉSOLU (plan 170, 2026-07-23)**, volet unit/integration reste ouvert mais **basse priorité** (déjà ~5-6s wall, pas le vrai goulot).
   - **e2e** : `fullyParallel: true` + GPU matériel local (SwiftShader réservé à `process.env.CI`) → full suite 10.4→8.2 min. 3 niveaux via `scripts/e2e-affected.ts` : **L1 smoke** (~4.4s, plancher à chaque commit), **L2 affected** (sous-ensemble calculé du diff), **L3 full** (349, escalade auto si diff cross-cutting, filet obligatoire au `/publish`). `ci-gate full` → e2e = affected, `ci-gate slow` → e2e = full. Décision #713.
   - **Pistes unit/integration restantes (basse priorité, non engagées)** : (1) cache de transform Vite persistant (`cacheDir`) pour amortir le coût transform sur les reruns ; (2) `loadData()` — le gel (`deepFreeze`, décision #712) couvre déjà `pokemon`/`moves`/`typeChart`, reste à profiler si le parsing JSON par worker est encore un poste notable ; (3) revoir `maxWorkers`/`pool` si contention CPU observée ; (4) `test --changed` en watch local.
+
+### Chantiers séparés — plan 177 (panneau d'info de case, 2026-07-25)
+
+Notés en marge du plan 177 (livré), hors périmètre — 4 pistes distinctes non engagées :
+
+- **Point icônes** — remplacer les émoji placeholder du panneau d'info de case (`⛰ 👣 🛑 🥾 ⛔💀 🆓`) par un pack cohérent. Piste notée par l'humain : **game-icons.net** (~4000 icônes silhouette monochromes, CC BY, couvre botte/montagne/crâne/mur/pas/main-stop/pics). Décision de sourcing reportée à ce point.
+- **Évasion Herbe Haute (core)** — Herbe Haute n'a aujourd'hui aucun effet mécanique (juste « immunise Vol », cosmétique) ; l'« Évasion +1 » du backlog n'a jamais été codée. Décision actée (2026-07-25) : à implémenter dans le core (magnitude/forme à cadrer — cran d'Esquive vs modificateur d'accuracy dédié, interaction précision garantie/météo/Lentiscope/Œil Composé), puis afficher au panneau. `game-designer` + `best-practices` avant de coder.
+- **Hazards interdits dans les liquides sauf Piège de Roc (core)** — Piège de Roc flotte, les autres hazards (Picots, Pics Toxik, Toile Gluante) coulent ; leur pose devrait échouer sur une tuile liquide. Non implémenté.
+- **Rendu in-world des effets sur tuiles** — marqueurs/anneaux d'effets directement sur les tuiles (feedback permanent sans survol du panneau), ex. un rond par aura. Rendu Babylon → `best-practices` avant, plan à part.
 
 ### Idées en exploration (humain, rien d'engagé)
 

@@ -35,6 +35,7 @@ import { AnimationQueue } from "./AnimationQueue.js";
 import {
   buildInfoPanelView,
   buildTailwindView,
+  buildTileInfoView,
   buildTimelineView,
   buildWeatherView,
 } from "./battle-views.js";
@@ -214,6 +215,7 @@ export class BattleOrchestrator {
     this.board.setActive(null);
     this.chrome.hideMenus();
     this.chrome.updateInfoPanel(null);
+    this.chrome.updateTileInfo(null);
     this.chrome.updateWeather(null);
     this.chrome.updateTailwind(null);
   }
@@ -276,6 +278,7 @@ export class BattleOrchestrator {
     }
     this.hoveredTile = tile;
     this.refreshInfoPanel();
+    this.refreshTileInfo();
     // Hovering an aura caster floats its team-aura symbols over its radius tiles.
     const hovered = this.pokemonAt(tile);
     this.showAuraHoverFor(hovered?.id ?? null);
@@ -358,6 +361,17 @@ export class BattleOrchestrator {
     this.chrome.updateTailwind(buildTailwindView(this.state));
   }
 
+  /** Push the hovered tile's terrain + modifiers (defaults to the active Pokémon's tile). */
+  private refreshTileInfo(): void {
+    if (this.disposed) {
+      return;
+    }
+    const position = this.hoveredTile ?? this.activePokemon()?.position ?? null;
+    this.chrome.updateTileInfo(
+      position ? buildTileInfoView(this.context, this.state, position) : null,
+    );
+  }
+
   /**
    * Refresh the turn timeline from the current order (Charge-Time predicts ahead).
    * Pass `previewMoveId` while a move is being targeted/confirmed to preview how it
@@ -385,6 +399,7 @@ export class BattleOrchestrator {
     });
     this.syncBoard();
     this.refreshInfoPanel();
+    this.refreshTileInfo();
     this.refreshTimeline();
     this.board.panCameraTo(active.position);
 
@@ -1177,6 +1192,7 @@ export class BattleOrchestrator {
     }
     this.syncBoard();
     this.refreshInfoPanel();
+    this.refreshTileInfo();
   }
 
   /** Re-sync every billboard with engine state (positions, facing, KO, semi-invulnerable). */

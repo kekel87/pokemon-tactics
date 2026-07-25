@@ -16,4 +16,8 @@ export interface PresentationContext extends I18nContext {
   getAbilityName(abilityId: string): string | null;
   /** Species base types for a Pokémon definition id (override/transform applied by the adapter, plan 174). */
   getPokemonTypes(definitionId: string): readonly string[];
+  /** Type-icon sprite URL for a type id (tile-info type bonus / immunity, plan 177). */
+  getTypeIconUrl(type: string): string;
+  /** Status-icon sprite URL for a status kind (tile-info on-stop status, plan 177). */
+  getStatusIconUrl(kind: string): string;
 }

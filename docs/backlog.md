@@ -31,10 +31,6 @@ _Aucune._
 
 ## Notes IA (à regrouper en plan d'amélioration IA)
 
-### Afficher les modificateurs terrain actifs dans l'InfoPanel
-- Afficher effets terrain actifs sur tile du Pokemon sélectionné/survolé (ex: "Évasion +1 (herbe haute)", "Brûlure au passage (magma)", "Malus déplacement +2 (marécage)").
-- Lié à l'étape 22 du plan 051.
-
 ## Feedback visuel
 
 ### MoveTooltip — afficher modifiers contextuels (météo, terrain, items) (2026-05-13)

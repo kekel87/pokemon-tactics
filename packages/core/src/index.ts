@@ -98,6 +98,13 @@ export {
   tailwindSpeedMultiplier,
 } from "./battle/tailwind-system";
 export { validateTeamSelection } from "./battle/team-validator";
+export {
+  getMovementPenalty,
+  getTerrainBonusType,
+  getTerrainDotFraction,
+  getTerrainImmuneTypes,
+  getTerrainStatusOnStop,
+} from "./battle/terrain-effects";
 export type { PhaseHandler, PhaseResult } from "./battle/turn-pipeline";
 export { TurnPipeline } from "./battle/turn-pipeline";
 export type { ValidationResult } from "./battle/validate";

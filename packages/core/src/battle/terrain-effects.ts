@@ -88,6 +88,16 @@ export function getTerrainTypeBonusFactor(
   return 1.15;
 }
 
+/** The move type a terrain grants a ×1.15 bonus to (for a non-immune attacker standing on it), or null. */
+export function getTerrainBonusType(terrain: TerrainType): PokemonTypeValue | null {
+  return TERRAIN_TYPE_BONUS[terrain] ?? null;
+}
+
+/** Types a terrain grants free passage to (no movement penalty / status / DoT). Used for tile-info readouts. */
+export function getTerrainImmuneTypes(terrain: TerrainType): readonly PokemonTypeValue[] {
+  return TERRAIN_IMMUNE_TYPES[terrain] ?? [];
+}
+
 const TERRAIN_STATUS_ON_STOP: Partial<Record<TerrainType, StatusType>> = {
   [TerrainType.Magma]: StatusType.Burned,
   [TerrainType.Swamp]: StatusType.Poisoned,

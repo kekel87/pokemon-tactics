@@ -1,5 +1,8 @@
 import {
   Direction,
+  type EntryHazardKind,
+  type FieldGlobalKind,
+  type FieldTerrain,
   type HeldItemId,
   type Nature,
   type StatName,
@@ -58,6 +61,19 @@ export interface SandboxTeamConfig {
   members: SandboxMemberConfig[];
 }
 
+/**
+ * Test-only tile seeding (plan 177): pre-place entry hazards, field terrains, global zones or a
+ * Distorsion on explicit tiles at spawn, so the tile-info panel (and its e2e) can be exercised on a
+ * populated tile without scripting the moves that would post them. Harness/demo only — not surfaced
+ * in the studio UI. Each zone entry covers just its single tile (enough for the panel's per-tile read).
+ */
+export interface SandboxDebugTiles {
+  hazards?: { kind: EntryHazardKind; x: number; y: number; layers?: number }[];
+  fieldTerrains?: { kind: FieldTerrain; x: number; y: number }[];
+  globalZones?: { kind: FieldGlobalKind; x: number; y: number }[];
+  distortion?: Position2D[];
+}
+
 export interface SandboxConfig {
   /** Battle RNG seed → deterministic, replayable run (e2e/recette). Omitted → 0. */
   seed?: number;
@@ -73,6 +89,8 @@ export interface SandboxConfig {
   weatherTurns?: number;
   /** Exactly two teams: Équipe 1 (Player1) and Équipe 2 (Player2). */
   teams: [SandboxTeamConfig, SandboxTeamConfig];
+  /** Test-only tile seeding for the tile-info panel + its e2e (harness/demo only). */
+  debugTiles?: SandboxDebugTiles;
 }
 
 export const DEFAULT_SANDBOX_CONFIG: SandboxConfig = {
@@ -235,5 +253,6 @@ export function normalizeSandboxConfig(raw: unknown): SandboxConfig {
       normalizeTeam(teamsRaw[0], DEFAULT_SANDBOX_CONFIG.teams[0]),
       normalizeTeam(teamsRaw[1], DEFAULT_SANDBOX_CONFIG.teams[1]),
     ],
+    debugTiles: rawConfig.debugTiles as SandboxDebugTiles | undefined,
   });
 }

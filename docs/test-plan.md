@@ -440,6 +440,26 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
 - 🤖 Le dernier adversaire K.O. → journal « remporte le combat » (`driving.spec`).
 - 👁 Modale de victoire + retour menu.
 
+### 4.13 Panneau d'info de case (`.ti-panel`, plan 177)
+*Second panneau chrome à droite de l'InfoPanel Pokemon : terrain + modificateurs de la case sous le
+curseur (défaut = case du Pokemon actif). DOM pur (view-model `buildTileInfoView` découplé du core) +
+survol via `hoverTile`. Seed test-only `debugTiles` (hazards/champ/zones/distorsion). e2e :
+`tile-info-panel.spec`.*
+- 🤖 **En-tête** : nom FR officiel du terrain (`tile-info-terrain`) + altitude numérique à côté du
+  glyphe ⛰ ; terrain « normal » → « Neutre », sans aucune puce d'effet (`tile-info-panel.spec`).
+- 🤖 **Magma** (5,2) : sprite du statut **Brûlé** (`statuses/icon-burned.png`), **bonus de type Feu**
+  (sprite `types/fire.png` + « ×1.15 ») et **immunité** (types épargnés Feu + Vol, sprite
+  `types/flying.png`) — `tile-info-panel.spec`.
+- 🤖 **Case peuplée** (seed `debugTiles`) : puces stackées — **hazards** « Picots ×3 » (empilable) et
+  « Piège de Roc » (mono-couche, sans ×N), **champ** « Champ Herbu » et **zones** « Gravité » /
+  « Distorsion », chacune précédée d'un **badge de durée** [5] sur la même puce (`tile-info-panel.spec`).
+- 🤖 **Lave** (survol (0,5), infranchissable) : ligne traversal **fusionnée** — une seule puce dont
+  l'étiquette accessible est « Chute fatale » (le cas fatal absorbe l'infranchissabilité) —
+  `tile-info-panel.spec`.
+- 👁 **Trigger visuel** du statut (glyphe 👣 passage / 🛑 arrêt), **DoT** « −1/16 » en petit, malus de
+  déplacement « −N » rouge, glyphes placeholder (⛰/🆓/⛔💀) → **remplacés au point icônes** (pixel/émoji).
+- 👁 **Layout** : largeur réduite, hauteur alignée sur l'allié, semi-transparence par équipe (rendu).
+
 ---
 
 ## 5. Recette — feedbacks de mécaniques
@@ -2145,6 +2165,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (8 + détail + ↑/↓ aria-current), §6.4 format + Lancer gating |
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |
 | `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` + **objet tenu** (plan 168 : icône officielle `<img>` data-URL + nom FR — Restes à l'actif, Orbe Vie au survol du porteur team 2 ; sans objet → ligne masquée) + **panneau enrichi allié** (plan 174 : chips de types `li[data-type]`, ligne PV avec `.ip-hppct`, talent `info-panel-talent`, bloc des 5 stats `info-panel-stats` ; une stat à cran (+2 Atq) affiche « 2↑ » + « → » + valeur effective ≠ base) + **ennemi minimal** (types visibles, bloc stats + talent masqués au survol du dummy team 2) |
+| `combat/tile-info-panel.spec.ts` | §4.13 panneau d'info de case (plan 177) : en-tête terrain FR + altitude (« Neutre » sans puce sur une case normale) ; **Magma** (5,2) → sprite statut Brûlé (`statuses/icon-burned.png`) + bonus Feu (`types/fire.png` « ×1.15 ») + immunité (Feu/Vol, `types/flying.png`) ; **case peuplée** (seed `debugTiles`) → hazards « Picots ×3 » / « Piège de Roc », champ « Champ Herbu », zones « Gravité »/« Distorsion » avec badge de durée [5] ; **Lave** (survol (0,5)) → puce traversal fusionnée « Chute fatale ». Triggers émoji/DoT/malus + layout = 👁 (placeholders remplacés au point icônes) |
 | `combat/weather.spec.ts` | §5 météo : HUD « Plein soleil » + tours restants |
 | `combat/multi-hit.spec.ts` | §5 multi-hit : Balle Graine → récap « Touché N fois » |
 | `combat/floating-text.spec.ts` | §5.2 texte flottant de dégâts (`hud_text_plane`) à la résolution |
@@ -2155,8 +2176,10 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
 `MORPH_MEW`, `MORPH_TERRAIN`, `IMPOSTER_DITTO`, `UPPER_HAND_HIT`, `UPPER_HAND_FIZZLE`,
 `HARVEST_SUN_RESTORE`, `ARENA_TRAP_PLAYER_TRAPPED`, `ARENA_TRAP_RELEASE`, `NEUTRALIZING_GAS_SUPPRESS`,
 `NEUTRALIZING_GAS_FAR`, `FRISK_REVEALS_ITEM`, `FOREWARN_REVEALS_MOVE`, `ANTICIPATION_REVEALS_ABILITY`,
-`SCORED_AI_ATTACKS`, `PASSIVE_AI_STATIC`, `SPAWN_FAINTED_ALLY_REVIVE` [schéma v2 `teams`]…),
-`e2e/pages/` (POM : `MainMenu`, `Splash`, `CombatScene`, `screens`, `teamBuilder`, `combatHud`).
+`SCORED_AI_ATTACKS`, `PASSIVE_AI_STATIC`, `SPAWN_FAINTED_ALLY_REVIVE` [schéma v2 `teams`],
+`TILE_INFO_NEUTRAL`, `TILE_INFO_MAGMA`, `TILE_INFO_POPULATED` [§4.13, dont un schéma v2 `teams` +
+`debugTiles`]…), `e2e/pages/` (POM : `MainMenu`, `Splash`, `CombatScene`, `screens`, `teamBuilder`,
+`combatHud` — dont `TileInfoPanel`).
 
 ### À étendre (👁 → 🤖, par priorité — DOM d'abord, c'est facile)
 
@@ -2182,6 +2205,10 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
       (`floating-text.spec`).
 - [x] **Survol scène — info panel** : hook `hoverTile` ajouté à `__ptE2e__` ; survol adversaire →
       ses infos (Dracaufeu/team), tile vide → repli sur l'actif (`info-panel.spec`).
+- [x] **§4.13 Panneau d'info de case** (plan 177) : terrain FR + altitude, Magma (statut Brûlé + bonus
+      Feu ×1.15 + immunité), case peuplée via seed `debugTiles` (hazards/champ/zones + badge durée), Lave
+      survolée (traversal fusionnée « Chute fatale ») (`tile-info-panel.spec`). *Émoji/DoT/malus + layout
+      = 👁 (placeholders remplacés au point icônes).*
 - [x] **§4 / §6 / §7 (DOM) — couverture poussée au maximum automatisable** : timeline CT, tooltip
       (apparaît/disparaît/tag), badge statut, nom EN (`hud-state`) ; Échap/hors-portée/modale victoire
       (`combat-flow`) ; Échap retour, ↑/↓ aria-current, format (`screens`) ; Paramètres 2 options +

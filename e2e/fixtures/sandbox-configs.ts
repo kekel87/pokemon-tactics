@@ -2109,6 +2109,51 @@ export const TERRAIN_POWER_BONUS_BASELINE = {
   dummyPosition: { x: 0, y: 1 },
 } as const;
 
+// --- §4.13 Panneau d'info de case (plan 177, sur `sandbox-flat`) — le panneau décrit la case sous le
+// curseur (défaut = case du Pokemon actif). On PLACE le joueur sur la case à lire pour l'afficher par
+// défaut (sans survol), ou on SURVOLE une case (lave impassable) via le hook `hoverTile`. Aucun jet
+// n'est requis (lecture pure du terrain) → déterministe. Rangée y=2 de `sandbox-flat` =
+// [sand, ice, swamp, snow, water, magma] → magma = (5,2) ; lave = (0,5). ---
+
+/** §4.13 case Neutre : le joueur Florizarre est posé sur une tuile NORMALE (0,0) → au boot le panneau
+ *  (défaut = case de l'actif) affiche « Neutre » + l'altitude (h0 sur la carte plate), sans aucune puce
+ *  d'effet (terrain neutre). */
+export const TILE_INFO_NEUTRAL = {
+  ...DUEL,
+  playerPosition: { x: 0, y: 0 },
+} as const;
+
+/** §4.13 case Magma (5,2) : le joueur est posé dessus → panneau « Magma » avec le sprite du statut
+ *  Brûlé (déclenché au passage), le bonus de type Feu (sprite Feu + « ×1.15 ») et la ligne d'immunité
+ *  (types épargnés Feu + Vol, dont le sprite Vol n'apparaît QUE là). Magma est franchissable → spawn OK. */
+export const TILE_INFO_MAGMA = {
+  ...DUEL,
+  playerPosition: { x: 5, y: 2 },
+} as const;
+
+/** §4.13 case peuplée : seed test-only `debugTiles` (schéma v2 `teams` — seul lui propage `debugTiles`)
+ *  qui empile sur la case Magma (5,2) des hazards (3 couches de Picots + 1 Piège de Roc), un champ
+ *  (Champ Herbu) et deux zones globales (Gravité + Distorsion). Le joueur y est posé → le panneau par
+ *  défaut affiche toutes les puces stackées (hazards « nom ×couches », champ/zones précédés d'un badge
+ *  de durée [5]). */
+export const TILE_INFO_POPULATED = {
+  seed: 1,
+  mapUrl: "assets/maps/dev/sandbox-flat.tmj",
+  teams: [
+    { control: "player", members: [{ pokemon: "venusaur", position: { x: 5, y: 2 } }] },
+    { control: "passive", members: [{ pokemon: "snorlax", position: { x: 0, y: 0 } }] },
+  ],
+  debugTiles: {
+    hazards: [
+      { kind: "spikes", x: 5, y: 2, layers: 3 },
+      { kind: "stealth-rock", x: 5, y: 2 },
+    ],
+    fieldTerrains: [{ kind: "grassy", x: 5, y: 2 }],
+    globalZones: [{ kind: "gravity", x: 5, y: 2 }],
+    distortion: [{ x: 5, y: 2 }],
+  },
+} as const;
+
 // --- §5.19 immunités du Volant aux terrains (sur `sandbox-flat`) ---
 
 /** Un Volant posé sur la LAVE (0,5) — mortelle au sol en fin de tour — y SURVIT (immunité de terrain).

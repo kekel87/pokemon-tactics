@@ -4,6 +4,7 @@ import "./styles/layers.css";
 // index.css @import chain silently unloaded every ui-dom style in dev.
 import "@pokemon-tactic/ui-dom/styles/modal.css";
 import "@pokemon-tactic/ui-dom/styles/info-panel.css";
+import "@pokemon-tactic/ui-dom/styles/tile-info-panel.css";
 import "@pokemon-tactic/ui-dom/styles/placement.css";
 import "@pokemon-tactic/ui-dom/styles/battle-chrome.css";
 import "@pokemon-tactic/ui-dom/styles/battle-log.css";

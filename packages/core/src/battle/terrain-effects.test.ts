@@ -4,7 +4,9 @@ import { StatusType } from "../enums/status-type";
 import { TerrainType } from "../enums/terrain-type";
 import {
   getMovementPenalty,
+  getTerrainBonusType,
   getTerrainDotFraction,
+  getTerrainImmuneTypes,
   getTerrainStatusOnStop,
   getTerrainTypeBonusFactor,
   isTerrainImmune,
@@ -168,5 +170,40 @@ describe("getTerrainDotFraction", () => {
   it("Lava and DeepWater deal OHKO damage (fraction=1)", () => {
     expect(getTerrainDotFraction(TerrainType.Lava)).toBe(1);
     expect(getTerrainDotFraction(TerrainType.DeepWater)).toBe(1);
+  });
+});
+
+describe("getTerrainBonusType", () => {
+  it("returns the boosted move type per terrain", () => {
+    expect(getTerrainBonusType(TerrainType.Water)).toBe(PokemonType.Water);
+    expect(getTerrainBonusType(TerrainType.Magma)).toBe(PokemonType.Fire);
+    expect(getTerrainBonusType(TerrainType.Lava)).toBe(PokemonType.Fire);
+    expect(getTerrainBonusType(TerrainType.Sand)).toBe(PokemonType.Ground);
+    expect(getTerrainBonusType(TerrainType.Ice)).toBe(PokemonType.Ice);
+  });
+
+  it("returns null for terrains without a type bonus", () => {
+    expect(getTerrainBonusType(TerrainType.Normal)).toBeNull();
+    expect(getTerrainBonusType(TerrainType.TallGrass)).toBeNull();
+    expect(getTerrainBonusType(TerrainType.Obstacle)).toBeNull();
+  });
+});
+
+describe("getTerrainImmuneTypes", () => {
+  it("returns the types a terrain spares", () => {
+    expect(getTerrainImmuneTypes(TerrainType.Magma)).toEqual([
+      PokemonType.Fire,
+      PokemonType.Flying,
+    ]);
+    expect(getTerrainImmuneTypes(TerrainType.Swamp)).toEqual([
+      PokemonType.Poison,
+      PokemonType.Steel,
+      PokemonType.Flying,
+    ]);
+  });
+
+  it("returns an empty list for terrains without immunities", () => {
+    expect(getTerrainImmuneTypes(TerrainType.Normal)).toEqual([]);
+    expect(getTerrainImmuneTypes(TerrainType.Obstacle)).toEqual([]);
   });
 });

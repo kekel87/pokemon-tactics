@@ -1,14 +1,24 @@
 import {
   AURA_RADIUS,
   type BattleState,
+  EntryHazardKind,
+  FieldGlobalKind,
   PokemonGender,
   type PokemonInstance,
+  type Position,
   StatusType,
+  type TerrainType,
+  type TileState,
   Weather,
 } from "@pokemon-tactic/core";
 import type { PresentationContext } from "@pokemon-tactic/render-ports";
 import { describe, expect, it } from "vitest";
-import { buildInfoPanelView, buildTimelineView, buildWeatherView } from "./battle-views.js";
+import {
+  buildInfoPanelView,
+  buildTileInfoView,
+  buildTimelineView,
+  buildWeatherView,
+} from "./battle-views.js";
 
 const testContext: PresentationContext = {
   translate: (key) => key,
@@ -18,6 +28,8 @@ const testContext: PresentationContext = {
   getItemName: (itemId) => itemId,
   getAbilityName: (abilityId) => `ability:${abilityId}`,
   getPokemonTypes: () => ["electric"],
+  getTypeIconUrl: (type) => `assets/ui/types/${type}.png`,
+  getStatusIconUrl: (kind) => `assets/ui/statuses/icon-${kind}.png`,
   isDamagePreviewEnabled: () => false,
 };
 
@@ -234,5 +246,155 @@ describe("buildTimelineView", () => {
     // The deciding mon is marked isSelf at its resulting position (2nd), not pinned on top.
     expect(view.entries[0]).toMatchObject({ isSelf: false });
     expect(view.entries[1]).toMatchObject({ isSelf: true });
+  });
+});
+
+function tileState(terrain: TerrainType, height = 0): TileState {
+  return { position: { x: 0, y: 0 }, height, terrain, occupantId: null };
+}
+
+function makeTileState(tile: TileState, overrides: Partial<BattleState> = {}): BattleState {
+  return {
+    grid: [[tile]],
+    entryHazards: [],
+    fieldTerrains: [],
+    fieldGlobalZones: [],
+    distortionZones: [],
+    ...overrides,
+  } as unknown as BattleState;
+}
+
+const ORIGIN: Position = { x: 0, y: 0 };
+
+describe("buildTileInfoView", () => {
+  it("returns null for an out-of-bounds tile", () => {
+    const state = makeTileState(tileState("normal"));
+    expect(buildTileInfoView(testContext, state, { x: 5, y: 5 })).toBeNull();
+  });
+
+  it("exposes terrain + height (header) and no effect lines for plain ground", () => {
+    const state = makeTileState(tileState("normal", 2));
+    const view = buildTileInfoView(testContext, state, ORIGIN);
+    expect(view?.terrainLabel).toBe("tileInfo.terrain.normal");
+    expect(view?.height).toBe(2);
+    expect(view?.lines).toEqual([]);
+  });
+
+  it("surfaces magma's burn (status sprite), DoT and Fire type bonus", () => {
+    const state = makeTileState(tileState("magma"));
+    const chips = buildTileInfoView(testContext, state, ORIGIN)?.lines.flat() ?? [];
+    const titles = chips.map((c) => c.title);
+    expect(titles).toContain("tileInfo.onStop.burn");
+    expect(titles).toContain("tileInfo.dot");
+    expect(titles).toContain("tileInfo.typeBonus");
+    expect(titles).toContain("tileInfo.immune");
+    const burn = chips.find((c) => c.title === "tileInfo.onStop.burn");
+    expect(burn?.iconUrls).toEqual(["assets/ui/statuses/icon-burned.png"]);
+    const bonus = chips.find((c) => c.title === "tileInfo.typeBonus");
+    expect(bonus?.iconUrls).toEqual(["assets/ui/types/fire.png"]);
+    expect(bonus?.text).toBe("×1.15");
+  });
+
+  it("groups intrinsic effects on line 1, stacks hazards/bonus/immunity below", () => {
+    const state = makeTileState(tileState("magma"), {
+      entryHazards: [{ kind: EntryHazardKind.Spikes, tile: ORIGIN, layers: 1 }],
+    } as unknown as Partial<BattleState>);
+    const view = buildTileInfoView(testContext, state, ORIGIN);
+    expect(view?.lines[0]?.map((c) => c.title)).toEqual(["tileInfo.onStop.burn", "tileInfo.dot"]);
+    const stacked = (view?.lines.slice(1) ?? []).map((row) => row[0]?.title);
+    expect(stacked).toEqual(["tileInfo.hazard.spikes", "tileInfo.typeBonus", "tileInfo.immune"]);
+  });
+
+  it("shows field/global zones with their remaining-turns duration and no glyph", () => {
+    const state = makeTileState(tileState("normal"), {
+      fieldTerrains: [
+        { kind: "grassy", casterId: "x", tiles: [ORIGIN], anchor: ORIGIN, remainingTurns: 5 },
+      ],
+      fieldGlobalZones: [
+        {
+          kind: FieldGlobalKind.Gravity,
+          casterId: "x",
+          tiles: [ORIGIN],
+          anchor: ORIGIN,
+          remainingTurns: 3,
+        },
+      ],
+    } as unknown as Partial<BattleState>);
+    const chips = buildTileInfoView(testContext, state, ORIGIN)?.lines.flat() ?? [];
+    const field = chips.find((c) => c.title === "tileInfo.field.grassy");
+    const gravity = chips.find((c) => c.title === "tileInfo.zone.gravity");
+    expect(field?.duration).toBe(5);
+    expect(field?.emoji).toBeUndefined();
+    expect(gravity?.duration).toBe(3);
+  });
+
+  it("renders the DoT fraction as a small secondary chip", () => {
+    const chips =
+      buildTileInfoView(testContext, makeTileState(tileState("magma")), ORIGIN)?.lines.flat() ?? [];
+    const dot = chips.find((c) => c.title === "tileInfo.dot");
+    expect(dot?.text).toBe("−1/16");
+    expect(dot?.small).toBe(true);
+  });
+
+  it("drops the warning glyph on hazards (human 2026-07-25)", () => {
+    const state = makeTileState(tileState("normal"), {
+      entryHazards: [{ kind: EntryHazardKind.Spikes, tile: ORIGIN, layers: 1 }],
+    } as unknown as Partial<BattleState>);
+    const spikes = buildTileInfoView(testContext, state, ORIGIN)
+      ?.lines.flat()
+      .find((c) => c.title === "tileInfo.hazard.spikes");
+    expect(spikes?.emoji).toBeUndefined();
+  });
+
+  it("merges lava's impassable + fatal fall into one traversal chip", () => {
+    const state = makeTileState(tileState("lava"));
+    const chips = buildTileInfoView(testContext, state, ORIGIN)?.lines.flat() ?? [];
+    const traversal = chips.find((c) => c.title === "tileInfo.dotFatal");
+    expect(traversal?.emoji).toBe("⛔💀");
+    expect(chips.map((c) => c.title)).not.toContain("tileInfo.impassable");
+  });
+
+  it("uses the pass-through trigger glyph for magma burn, stop for swamp poison", () => {
+    const magma = buildTileInfoView(
+      testContext,
+      makeTileState(tileState("magma")),
+      ORIGIN,
+    )?.lines.flat();
+    const swamp = buildTileInfoView(
+      testContext,
+      makeTileState(tileState("swamp")),
+      ORIGIN,
+    )?.lines.flat();
+    expect(magma?.find((c) => c.title === "tileInfo.onStop.burn")?.emoji).toBe("👣");
+    expect(swamp?.find((c) => c.title === "tileInfo.onStop.poison")?.emoji).toBe("🛑");
+  });
+
+  it("shows the swamp movement penalty as a red negative and poison", () => {
+    const chips =
+      buildTileInfoView(testContext, makeTileState(tileState("swamp")), ORIGIN)?.lines.flat() ?? [];
+    const move = chips.find((c) => c.title === "tileInfo.movementPenalty");
+    expect(move?.text).toBe("−2");
+    expect(move?.tone).toBe("danger");
+    expect(chips.map((c) => c.title)).toContain("tileInfo.onStop.poison");
+  });
+
+  it("lists hazards on the tile with a layer count", () => {
+    const state = makeTileState(tileState("normal"), {
+      entryHazards: [{ kind: EntryHazardKind.Spikes, tile: ORIGIN, layers: 2 }],
+    } as unknown as Partial<BattleState>);
+    const spikes = buildTileInfoView(testContext, state, ORIGIN)
+      ?.lines.flat()
+      .find((c) => c.title === "tileInfo.hazard.spikes");
+    expect(spikes?.text).toBe("tileInfo.hazard.spikes ×2");
+  });
+
+  it("reports an active global zone covering the tile", () => {
+    const state = makeTileState(tileState("normal"), {
+      fieldGlobalZones: [{ kind: FieldGlobalKind.Gravity, tiles: [ORIGIN] }],
+    } as unknown as Partial<BattleState>);
+    const titles = buildTileInfoView(testContext, state, ORIGIN)
+      ?.lines.flat()
+      .map((c) => c.title);
+    expect(titles).toContain("tileInfo.zone.gravity");
   });
 });

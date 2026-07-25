@@ -9,6 +9,7 @@ import type {
   InfoPanelData,
   SelectedMoveView,
   TailwindView,
+  TileInfoData,
   TimelineView,
   TurnInfoView,
   WeatherView,
@@ -18,6 +19,7 @@ import { el } from "./dom-helpers.js";
 import { createInfoPanel } from "./info-panel.js";
 import { createMoveTooltip } from "./move-tooltip.js";
 import { createTailwindHud } from "./tailwind-hud.js";
+import { createTileInfoPanel } from "./tile-info-panel.js";
 import { createTurnTimeline } from "./turn-timeline.js";
 import { createWeatherHud } from "./weather-hud.js";
 
@@ -88,9 +90,14 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   // overlapping it. All removed with the overlay on teardown (stage.dispose removes
   // the whole subtree).
   const infoPanel = createInfoPanel();
+  // Second, narrower panel (plan 177) to the right of the Pokémon panel: terrain + tile modifiers.
+  // Both sit in a bottom-pinned row so the tile panel stretches to the InfoPanel's height.
+  const tileInfoPanel = createTileInfoPanel();
+  const infoPanelRow = el("div", "bc-infopanel-row");
+  infoPanelRow.append(infoPanel.element, tileInfoPanel.element);
   const timeline = createTurnTimeline(config);
   const leftColumn = el("div", "bc-left-col");
-  leftColumn.append(timeline.element, infoPanel.element);
+  leftColumn.append(timeline.element, infoPanelRow);
   host.append(leftColumn);
 
   function button(label: string, onClick: () => void, disabled = false): HTMLButtonElement {
@@ -219,6 +226,14 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
         infoPanel.update(view);
       } else {
         infoPanel.hide();
+      }
+    },
+
+    updateTileInfo: (view: TileInfoData | null) => {
+      if (view) {
+        tileInfoPanel.update(view);
+      } else {
+        tileInfoPanel.hide();
       }
     },
 

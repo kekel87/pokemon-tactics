@@ -318,7 +318,8 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 > Assets **Kenney CC0** intégrés (input-prompts, mobile-controls, cursor-pixel-pack).
 
 - [x] **InfoPanel enrichi allié** (2026-07-24) — types, stats (base→crans→valeur effective incluant statuts), talent, nature (effet via labels colorés) dans le panneau de combat côté joueur. Ennemi reste minimal (révélation progressive = plan 176). Plan 174, décisions #717–#718.
-- [ ] **Lot 3 — Compléter l'UI** *(en cours)* : info terrain/modificateurs, auras (1 rond empilable), preview combat, info move + tooltips type chart, responsive (`--stage-scale`/ultrawide/`--ui-scale` PV), a11y.
+- [x] **Panneau d'info de case (terrain/modificateurs)** (2026-07-25) — 2ᵉ panneau DOM icône-first à droite de l'InfoPanel Pokemon : franchissabilité, malus déplacement, statut à l'arrêt/passage + DoT, bonus de type/immunités, hazards, champ, zones. Plan 177, décision #719.
+- [ ] **Lot 3 — Compléter l'UI** *(en cours)* : auras (1 rond empilable), preview combat, info move + tooltips type chart, responsive (`--stage-scale`/ultrawide/`--ui-scale` PV), a11y.
 - [ ] **Lot 1 — Contrôles tactiles** : pinch-zoom, pan 2 doigts, boutons rotation caméra on-screen, cibles ≥44px `@media (pointer:coarse)`.
 - [ ] **Lot 2 — Config clavier + manette** : couche d'input device-agnostique (actions logiques remappables), Gamepad API (y c. **manette sur mobile**), écran de remapping.
 

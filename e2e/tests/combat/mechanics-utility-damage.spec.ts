@@ -54,7 +54,7 @@ test("§5.33 Faux-Chage : les dégâts ne mettent jamais K.O. (cible reste à 1 
       },
       { timeout: 10_000 },
     )
-    .toMatch(/^1 \/ \d+$/);
+    .toMatch(/^1 \/ \d+ \(\d+%\)$/);
 });
 
 // §5.33 Croc Fatal (`super-fang`, HalveTargetHp) : dégâts fixes = ⌊PV actuels / 2⌋ → journal dédié +

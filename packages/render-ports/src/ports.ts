@@ -5,7 +5,13 @@ import type {
   Position,
   SemiInvulnerableDisplay,
 } from "@pokemon-tactic/core";
-import type { InfoPanelData, TailwindView, TimelineView, WeatherView } from "./view-models.js";
+import type {
+  InfoPanelData,
+  TailwindView,
+  TileInfoData,
+  TimelineView,
+  WeatherView,
+} from "./view-models.js";
 
 /**
  * Render-backend ports (plan 125). The presentation layer (orchestrator) drives
@@ -206,6 +212,8 @@ export interface BattleChrome {
   updateTurnInfo(info: TurnInfoView): void;
   /** Set the info panel to the hovered/active Pokémon (null clears it). */
   updateInfoPanel(view: InfoPanelData | null): void;
+  /** Set the tile-info panel to the hovered/active tile's terrain + modifiers (null clears it). */
+  updateTileInfo(view: TileInfoData | null): void;
   /** Set the weather HUD (null hides it). */
   updateWeather(view: WeatherView | null): void;
   /** Set the Vent Arrière (tailwind) HUD (null hides it). */

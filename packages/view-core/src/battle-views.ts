@@ -5,15 +5,28 @@ import {
   CT_THRESHOLD,
   type CtTimelineEntry,
   type DisplayStat,
+  type EntryHazardKind,
   effectiveAbilityId,
   effectiveCombatStats,
   effectiveDisplayStat,
+  FieldGlobalKind,
+  type FieldTerrain,
+  getEntryHazardsAt,
+  getMovementPenalty,
   getNatureEffect,
+  getTerrainBonusType,
+  getTerrainDotFraction,
+  getTerrainImmuneTypes,
+  getTerrainStatusOnStop,
+  isTerrainPassable,
+  maxLayersFor,
   PokemonGender,
   type PokemonInstance,
   type PokemonType,
+  type Position,
   StatName,
   StatusType,
+  type TerrainType,
   Weather,
 } from "@pokemon-tactic/core";
 import { getMoveName, getPokemonName, strongestMoveId } from "@pokemon-tactic/data";
@@ -24,6 +37,8 @@ import type {
   InfoPanelType,
   PresentationContext,
   TailwindView,
+  TileInfoChip,
+  TileInfoData,
   TimelineEntryView,
   TimelineView,
   WeatherKind,
@@ -43,6 +58,9 @@ import type {
 export type {
   InfoPanelData,
   TailwindView,
+  TileInfoChip,
+  TileInfoData,
+  TileInfoTone,
   TimelineEntryView,
   TimelineView,
   WeatherKind,
@@ -473,6 +491,205 @@ export function buildInfoPanelView(
     ...(pokemon.heldItemId === undefined
       ? {}
       : { itemIconUrl: context.getItemIconUrl(pokemon.heldItemId) }),
+  };
+}
+
+/* ── Tile info panel (plan 177) ───────────────────────────────────────────── */
+
+const TERRAIN_LABEL: Record<TerrainType, string> = {
+  normal: "tileInfo.terrain.normal",
+  tall_grass: "tileInfo.terrain.tallGrass",
+  obstacle: "tileInfo.terrain.obstacle",
+  water: "tileInfo.terrain.water",
+  deep_water: "tileInfo.terrain.deepWater",
+  magma: "tileInfo.terrain.magma",
+  lava: "tileInfo.terrain.lava",
+  ice: "tileInfo.terrain.ice",
+  sand: "tileInfo.terrain.sand",
+  snow: "tileInfo.terrain.snow",
+  swamp: "tileInfo.terrain.swamp",
+};
+
+const HAZARD_LABEL: Record<EntryHazardKind, string> = {
+  spikes: "tileInfo.hazard.spikes",
+  "stealth-rock": "tileInfo.hazard.stealthRock",
+  "toxic-spikes": "tileInfo.hazard.toxicSpikes",
+  "sticky-web": "tileInfo.hazard.stickyWeb",
+};
+
+const FIELD_LABEL: Record<FieldTerrain, string> = {
+  grassy: "tileInfo.field.grassy",
+  electric: "tileInfo.field.electric",
+  misty: "tileInfo.field.misty",
+  psychic: "tileInfo.field.psychic",
+};
+
+const ON_STOP_STATUS_LABEL: Partial<Record<StatusType, string>> = {
+  [StatusType.Burned]: "tileInfo.onStop.burn",
+  [StatusType.Poisoned]: "tileInfo.onStop.poison",
+};
+
+/** Per-terrain status trigger glyph (human 2026-07-25): 👣 = inflicted on pass-through, 🛑 = on stop. */
+const TERRAIN_STATUS_TRIGGER: Partial<Record<TerrainType, string>> = {
+  magma: "👣",
+  swamp: "🛑",
+};
+
+const FIELD_GLOBAL_ORDER: readonly FieldGlobalKind[] = [
+  FieldGlobalKind.Gravity,
+  FieldGlobalKind.WonderRoom,
+  FieldGlobalKind.MagicRoom,
+];
+
+const FIELD_GLOBAL_LABEL: Record<FieldGlobalKind, string> = {
+  gravity: "tileInfo.zone.gravity",
+  "wonder-room": "tileInfo.zone.wonderRoom",
+  "magic-room": "tileInfo.zone.magicRoom",
+};
+
+function typeLabelOf(type: PokemonType, language: string): string {
+  const entry = TYPE_LABEL[type];
+  if (!entry) {
+    return type;
+  }
+  return language === "fr" ? entry.fr : entry.en;
+}
+
+/**
+ * Build the tile-info view-model (plan 177): the terrain of `position` + every modifier active on it
+ * (movement cost, DoT/status, type bonus, immunities, hazards, field terrain, global zones). Effects
+ * are read intrinsically (occupant-agnostic: what the tile does to a grounded, non-immune mon), so the
+ * panel is meaningful even over an empty tile. Returns null when `position` is out of bounds.
+ */
+export function buildTileInfoView(
+  context: PresentationContext,
+  state: BattleState,
+  position: Position,
+): TileInfoData | null {
+  const tile = state.grid?.[position.y]?.[position.x];
+  if (!tile) {
+    return null;
+  }
+  const language = context.getLanguage();
+  const { terrain } = tile;
+  const covers = (tiles: readonly Position[]): boolean =>
+    tiles.some((t) => t.x === position.x && t.y === position.y);
+
+  // Line 1 = the terrain's intrinsic combat effects (traversal / status / DoT) grouped on one row
+  // (the height sits beside the name in the header, human 2026-07-25). The rest is stacked below.
+  const summary: TileInfoChip[] = [];
+
+  const dotFraction = getTerrainDotFraction(terrain);
+  const fatal = dotFraction === 1;
+  const penalty = getMovementPenalty(terrain, [], false);
+  if (!isTerrainPassable(terrain)) {
+    summary.push({
+      emoji: fatal ? "⛔💀" : "⛔",
+      title: context.translate(fatal ? "tileInfo.dotFatal" : "tileInfo.impassable"),
+      tone: "danger",
+    });
+  } else if (penalty > 0) {
+    summary.push({
+      emoji: "🥾",
+      text: `−${penalty}`,
+      title: context.translate("tileInfo.movementPenalty", { cost: String(penalty) }),
+      tone: "danger",
+    });
+  }
+
+  // Status: trigger glyph (👣 = inflicted on pass-through / 🛑 = on stop, per terrain) + status sprite.
+  const onStop = getTerrainStatusOnStop(terrain, [], false);
+  const onStopKey = onStop ? ON_STOP_STATUS_LABEL[onStop] : undefined;
+  if (onStop && onStopKey) {
+    summary.push({
+      emoji: TERRAIN_STATUS_TRIGGER[terrain] ?? "🛑",
+      iconUrls: [context.getStatusIconUrl(onStop)],
+      title: context.translate(onStopKey),
+      tone: "danger",
+    });
+  }
+
+  // Recurring damage while standing (🛑 = on stop). Shown small (secondary). Fatal → traversal row above.
+  if (dotFraction !== null && !fatal) {
+    summary.push({
+      emoji: "🛑",
+      text: `−1/${dotFraction}`,
+      small: true,
+      title: context.translate("tileInfo.dot", { fraction: String(dotFraction) }),
+      tone: "danger",
+    });
+  }
+
+  const lines: TileInfoChip[][] = [];
+  if (summary.length > 0) {
+    lines.push(summary);
+  }
+
+  // Stacked (one per line): hazards (no ⚠ glyph, human 2026-07-25), then field + global zones with
+  // their remaining-turns count in place of a glyph, then distortion.
+  for (const cell of getEntryHazardsAt(state, position)) {
+    const name = context.translate(HAZARD_LABEL[cell.kind]);
+    lines.push([
+      {
+        text: maxLayersFor(cell.kind) > 1 ? `${name} ×${cell.layers}` : name,
+        title: name,
+        tone: "danger",
+      },
+    ]);
+  }
+
+  const fieldZone = [...state.fieldTerrains].reverse().find((zone) => covers(zone.tiles));
+  if (fieldZone) {
+    const name = context.translate(FIELD_LABEL[fieldZone.kind]);
+    lines.push([{ text: name, duration: fieldZone.remainingTurns, title: name, tone: "info" }]);
+  }
+
+  for (const kind of FIELD_GLOBAL_ORDER) {
+    const zone = state.fieldGlobalZones.find((z) => z.kind === kind && covers(z.tiles));
+    if (zone) {
+      const name = context.translate(FIELD_GLOBAL_LABEL[kind]);
+      lines.push([{ text: name, duration: zone.remainingTurns, title: name, tone: "info" }]);
+    }
+  }
+
+  const distortion = state.distortionZones.find((zone) => covers(zone.tiles));
+  if (distortion) {
+    const name = context.translate("tileInfo.zone.distortion");
+    lines.push([{ text: name, duration: distortion.remainingTurns, title: name, tone: "info" }]);
+  }
+
+  // Damage bonus: own line — the real type sprite + the multiplier.
+  const bonusType = getTerrainBonusType(terrain);
+  if (bonusType) {
+    lines.push([
+      {
+        iconUrls: [context.getTypeIconUrl(bonusType)],
+        text: "×1.15",
+        title: context.translate("tileInfo.typeBonus", { type: typeLabelOf(bonusType, language) }),
+        tone: "buff",
+      },
+    ]);
+  }
+
+  // Immunity: own line — a "free/unaffected" marker (🆓) then the spared type sprites.
+  const immuneTypes = getTerrainImmuneTypes(terrain);
+  if (immuneTypes.length > 0) {
+    lines.push([
+      {
+        emoji: "🆓",
+        iconUrls: immuneTypes.map((type) => context.getTypeIconUrl(type)),
+        title: context.translate("tileInfo.immune", {
+          types: immuneTypes.map((type) => typeLabelOf(type, language)).join(", "),
+        }),
+        tone: "info",
+      },
+    ]);
+  }
+
+  return {
+    terrainLabel: context.translate(TERRAIN_LABEL[terrain]),
+    height: tile.height,
+    lines,
   };
 }
 

@@ -8,6 +8,15 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+## Afficher les modificateurs terrain actifs dans l'InfoPanel — RÉSOLU (2026-07-25)
+
+- **Contexte** : le joueur ne voyait nulle part les effets d'une case (coût de déplacement, statut au magma/marécage, bonus de type, hazards, champ/zone active) — liés à l'étape 22 du plan 051. Exemples cités : « Évasion +1 (herbe haute) », « Brûlure au passage (magma) », « Malus déplacement +2 (marécage) ».
+- **Résolution (plan 177)** : nouveau panneau DOM distinct (`TileInfoPanel`, `packages/ui-dom/src/tile-info-panel.ts`) à droite de l'InfoPanel Pokemon, décrivant la case survolée (ou celle du Pokemon actif par défaut) — franchissabilité, malus de déplacement, statut à l'arrêt/au passage + DoT, bonus de type, immunités, hazards posés, champ actif, zones globales. 100 % view-model + DOM (agrège les fonctions core déjà table-driven), design icône-first (v1 textuel rejeté en human-testing).
+- **Reliquat non couvert** : « Évasion +1 (herbe haute) » cité en exemple ne s'affiche pas — la mécanique **n'existe pas encore côté core** (Herbe Haute n'a aucun effet mécanique aujourd'hui). Suivi séparément dans `docs/next.md` § Chantiers séparés — plan 177.
+- Décision #719, `docs/architecture.md` § 5e.
+
+---
+
 ## Régression — demi-blocs de liquide obsolètes depuis le rendu volume liquide — RÉSOLU (2026-07-23)
 
 - **Contexte** : le nouveau rendu des liquides (volumes translucides + colonne pleine, commits `b6261c7` / animation procédurale liquide) avait supprimé le seam demi-bloc de la lave (décision #707), mais il restait des tuiles liquides `half-a` (`height=0.5`, ids 67/70/73/76) dans 3 maps de jeu — reliquat de l'ancien rendu bloc opaque, incompatible avec la décision #697 (liquides `full` toujours à `height=1.0`, demi-bloc gameplay émergent via la submersion, pas via la hauteur de tuile).

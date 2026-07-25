@@ -1,0 +1,121 @@
+/*
+ * TileInfoPanel (plan 177) — terrain + modifiers readout, second chrome panel to the right of the
+ * Pokémon InfoPanel. Pairs with `tile-info-panel.ts`. Same `--ip-px` scaling contract as the
+ * InfoPanel (one design px at the 1920-wide reference, resolved against the #game-stage container),
+ * narrower, and stretched to the InfoPanel's height by the `.bc-infopanel-row` flex row.
+ */
+
+@layer components {
+  .ti-panel {
+    --ip-px: calc(100cqw / 1920);
+
+    flex: 0 0 auto;
+    align-self: stretch;
+    inline-size: calc(140 * var(--ip-px));
+
+    display: flex;
+    flex-direction: column;
+    gap: calc(5 * var(--ip-px));
+    padding: calc(12 * var(--ip-px));
+
+    background: color-mix(in srgb, var(--color-bg-surface) 88%, transparent);
+    border: max(1px, calc(1.5 * var(--ip-px))) solid var(--color-border-faint);
+    border-radius: calc(9 * var(--ip-px));
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+    text-shadow: 0 calc(1 * var(--ip-px)) 0 rgba(0, 0, 0, 0.5);
+  }
+
+  /* Terrain name (left) + altitude pushed to the right on one row (human 2026-07-25). */
+  .ti-header {
+    display: flex;
+    align-items: baseline;
+    gap: calc(6 * var(--ip-px));
+    white-space: nowrap;
+  }
+
+  .ti-terrain {
+    font-size: calc(24 * var(--ip-px));
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ti-height {
+    margin-inline-start: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: calc(2 * var(--ip-px));
+    font-size: calc(19 * var(--ip-px));
+    color: var(--color-text-secondary);
+  }
+
+  .ti-lines {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    margin-block-start: calc(2 * var(--ip-px));
+    display: flex;
+    flex-direction: column;
+    gap: calc(6 * var(--ip-px));
+  }
+
+  /* A row groups several effect chips (grouping 2026-07-25); wraps within the narrow card. */
+  .ti-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(4 * var(--ip-px)) calc(8 * var(--ip-px));
+    font-size: calc(22 * var(--ip-px));
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  /* Icon-first chip (design 2026-07-25): optional glyph + image sprites + short text/number. */
+  .ti-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(3 * var(--ip-px));
+
+    /* Mirror the InfoPanel stat colours (plan 174): red = harmful, green = beneficial. */
+    &[data-tone="danger"] { color: var(--red-400); }
+    &[data-tone="buff"] { color: var(--green-500); }
+    &[data-tone="info"] { color: var(--color-text-primary); }
+  }
+
+  /* Height-constrained, width auto → keeps each sprite's native aspect (status icons are 52×36,
+     type icons 36×36); forcing a square would squash the status sprites. */
+  .ti-icon-img {
+    flex: 0 0 auto;
+    block-size: calc(20 * var(--ip-px));
+    inline-size: auto;
+    image-rendering: pixelated;
+  }
+
+  .ti-glyph {
+    flex: 0 0 auto;
+    font-size: calc(18 * var(--ip-px));
+  }
+
+  /* Remaining-turns badge shown in place of a field/zone glyph (human 2026-07-25). */
+  .ti-duration {
+    flex: 0 0 auto;
+    min-inline-size: calc(18 * var(--ip-px));
+    padding-inline: calc(4 * var(--ip-px));
+    border-radius: calc(4 * var(--ip-px));
+    background: color-mix(in srgb, var(--color-text-primary) 18%, transparent);
+    font-size: calc(16 * var(--ip-px));
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .ti-text {
+    min-inline-size: 0;
+  }
+
+  /* Secondary reading (DoT fraction), smaller than the rest (human 2026-07-25). */
+  .ti-text-small {
+    font-size: calc(15 * var(--ip-px));
+    opacity: 0.85;
+  }
+}
