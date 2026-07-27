@@ -2322,9 +2322,7 @@ export const COMBAT_PREVIEW_AOE = {
     },
     {
       control: "passive",
-      members: [
-        { pokemon: "snorlax", position: { x: 2, y: 2 }, hp: 999, defensiveMove: "leer" },
-      ],
+      members: [{ pokemon: "snorlax", position: { x: 2, y: 2 }, hp: 999, defensiveMove: "leer" }],
     },
   ],
 } as const;

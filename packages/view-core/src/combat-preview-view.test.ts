@@ -26,6 +26,8 @@ const testContext: PresentationContext = {
 
 const TACKLE = "tackle";
 const SHADOW_BALL = "shadow-ball";
+const GROWL = "growl";
+const GUILLOTINE = "guillotine";
 
 interface Scenario {
   engine: BattleEngine;
@@ -37,7 +39,7 @@ function scenario(defenderOverrides: Record<string, unknown> = {}, withAlly = fa
     id: "attacker",
     playerId: PlayerId.Player1,
     position: { x: 2, y: 2 },
-    moveIds: [TACKLE, SHADOW_BALL],
+    moveIds: [TACKLE, SHADOW_BALL, GROWL],
   });
   const defender = MockPokemon.fresh(MockPokemon.base, {
     id: "defender",
@@ -155,6 +157,52 @@ describe("buildCombatPreviewView", () => {
     expect(build(scene, ["defender"])?.target.preview?.verdictLabel).toBe("");
   });
 
+  it("hides an unrevealed Fermeté behind a plain K.O. on a one-hit-KO move", () => {
+    const view = build(scenario({ abilityId: "sturdy" }), ["defender"], 0, GUILLOTINE);
+
+    expect(view?.attack.damageValue).toBe("combatPreview.ohko.headline");
+    expect(view?.attack.outcome).toBe("guaranteed-ko");
+    expect(view?.target.preview?.verdictLabel).toBe("");
+    expect(view?.target.preview?.remainingLabel).toBe("combatPreview.remaining(0)");
+  });
+
+  it("names the Fermeté immunity once the ability is revealed", () => {
+    const view = build(
+      scenario({ abilityId: "sturdy", revealedAbility: true }),
+      ["defender"],
+      0,
+      GUILLOTINE,
+    );
+
+    expect(view?.attack.outcome).toBe("no-effect");
+    expect(view?.target.preview?.verdictLabel).toBe("combatPreview.ohko.sturdyImmune");
+    expect(view?.target.preview?.remainingLabel).toBe("");
+  });
+
+  it("blames Fermeté for a survival at 1 HP only once revealed", () => {
+    const scene = scenario({ maxHp: 10, currentHp: 10, abilityId: "sturdy" });
+    const defender = pokemonOf(scene, "defender");
+
+    expect(build(scene, ["defender"])?.target.preview?.verdictLabel).toBe("");
+
+    defender.revealedAbility = true;
+    expect(build(scene, ["defender"])?.target.preview?.verdictLabel).toContain(
+      "combatPreview.guard.sturdy",
+    );
+  });
+
+  it("knows an ally's Fermeté without any reveal", () => {
+    const scene = scenario({}, true);
+    const ally = pokemonOf(scene, "ally");
+    ally.abilityId = "sturdy";
+    ally.maxHp = 10;
+    ally.currentHp = 10;
+
+    expect(build(scene, ["defender", "ally"], 1)?.target.preview?.verdictLabel).toContain(
+      "combatPreview.guard.sturdy",
+    );
+  });
+
   it("never mentions Bandeau, whose survival is probabilistic", () => {
     const view = build(scenario({ maxHp: 10, currentHp: 10, heldItemId: HeldItemId.FocusBand }), [
       "defender",
@@ -191,6 +239,26 @@ describe("buildCombatPreviewView", () => {
 
   it("labels the crit chance as a whole percent instead of a decimal", () => {
     expect(build(scenario(), ["defender"])?.attack.critText).toBe("combatPreview.crit.short(4 %)");
+  });
+
+  it("does not call a status move immune, even against a type that blocks its damage", () => {
+    const scene = scenario({ definitionId: "gengar" });
+    const view = build(scene, ["defender"], 0, GROWL);
+
+    expect(view?.attack.outcome).not.toBe("no-effect");
+    expect(view?.target.preview?.verdictLabel).toBe("");
+  });
+
+  it("still calls a DAMAGING move immune against the same target", () => {
+    const view = build(scenario({ definitionId: "gengar" }), ["defender"]);
+
+    expect(view?.attack.outcome).toBe("no-effect");
+  });
+
+  it("drops the crit line on a status move, and keeps its effect chip", () => {
+    const view = build(scenario(), ["defender"], 0, GROWL);
+
+    expect(view?.attack.critText).toBe("");
   });
 
   it("emits no modifier chip when every multiplier is neutral", () => {

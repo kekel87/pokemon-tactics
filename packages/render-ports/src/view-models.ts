@@ -176,7 +176,18 @@ export interface TileInfoData {
 }
 
 /** How lethal the focused hit is — drives both the verdict wording and its colour. */
-export type CombatPreviewOutcome = "guaranteed-ko" | "possible-ko" | "survives" | "no-effect";
+/** How lethal the focused hit is — drives the verdict colour and the `data-outcome` DOM hook. */
+export const CombatPreviewOutcome = {
+  /** Even the lowest roll kills. */
+  GuaranteedKo: "guaranteed-ko",
+  /** Only the high rolls kill. */
+  PossibleKo: "possible-ko",
+  Survives: "survives",
+  /** Type immunity on a damaging move. */
+  NoEffect: "no-effect",
+} as const;
+
+export type CombatPreviewOutcome = (typeof CombatPreviewOutcome)[keyof typeof CombatPreviewOutcome];
 
 /**
  * Combat-preview panel view-model (plan 175): what the locked-in attack would do to ONE focused

@@ -1,3 +1,4 @@
+import type { OhkoImmunity } from "../battle/ohko";
 import type { SurvivalGuardKind } from "../enums/survival-guard-kind";
 import type { DamageEstimate } from "./damage-estimate";
 
@@ -25,4 +26,14 @@ export interface MovePreview {
    * the target. The view decides whether the player is allowed to KNOW about it.
    */
   readonly survivalGuard: SurvivalGuardKind | null;
+  /**
+   * One-hit-KO move (Abîme, Guillotine, Empal'Korne, Glaciation). Their damage range is meaningless
+   * — they either kill outright or do nothing — so the view must read this instead of `damage`.
+   */
+  readonly isOhko: boolean;
+  /**
+   * Why the target is flat-out immune to this OHKO move, if it is. Note Fermeté grants TOTAL
+   * immunity here, not the survive-at-1-HP of `survivalGuard`.
+   */
+  readonly ohkoImmunity: OhkoImmunity | null;
 }

@@ -56,7 +56,6 @@ import type {
  */
 
 export type {
-  CombatPreviewOutcome,
   InfoPanelAttack,
   InfoPanelData,
   TailwindView,
@@ -68,6 +67,7 @@ export type {
   WeatherKind,
   WeatherView,
 } from "@pokemon-tactic/render-ports";
+export { CombatPreviewOutcome } from "@pokemon-tactic/render-ports";
 
 /** FR/EN type names — single source for the type-override badge and the battle-log type-manip lines. */
 export const TYPE_LABEL: Record<PokemonType, { fr: string; en: string }> = {

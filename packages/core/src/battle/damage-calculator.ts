@@ -52,6 +52,11 @@ export interface EstimateCombatContext {
   weather?: Weather;
   targetAlreadyActed?: boolean;
   fieldGlobal?: FieldGlobalDamageContext;
+  /**
+   * Coup d'Main ×1.5 / Garde Amie ×0.75 — the engine applies these to the damage AFTER the roll, so
+   * the estimate scales its bounds the same way instead of ignoring them.
+   */
+  postRollMultiplier?: number;
 }
 
 /**
@@ -391,6 +396,14 @@ export function getStab(
   return abilityId === "adaptability" ? 2.0 : 1.5;
 }
 
+/** Mirrors the engine's post-roll rounding: floor, but never below 1 once the hit deals damage. */
+function applyPostRoll(damage: number, multiplier: number): number {
+  if (multiplier === 1 || damage <= 0) {
+    return damage;
+  }
+  return Math.max(1, Math.floor(damage * multiplier));
+}
+
 const ROLL_MIN = 0.85;
 const ROLL_MAX = 1.0;
 
@@ -418,6 +431,7 @@ export function estimateDamage(
     weather = Weather.None,
     targetAlreadyActed = false,
     fieldGlobal = {},
+    postRollMultiplier = 1,
   } = combat;
   const resolvedMove = resolveDynamicPower(move, attacker, defender);
   const effectiveness = getTypeEffectiveness(
@@ -473,8 +487,8 @@ export function estimateDamage(
     fieldGlobal,
   );
   return {
-    min,
-    max,
+    min: applyPostRoll(min, postRollMultiplier),
+    max: applyPostRoll(max, postRollMultiplier),
     effectiveness,
     facingModifier,
     heightModifier,

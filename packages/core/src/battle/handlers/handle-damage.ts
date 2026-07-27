@@ -1,71 +1,31 @@
 import { BattleEventType } from "../../enums/battle-event-type";
 import { Category } from "../../enums/category";
 import type { EffectKind } from "../../enums/effect-kind";
-import { FieldGlobalKind } from "../../enums/field-global-kind";
 import { HeldItemId } from "../../enums/held-item-id";
-import { PokemonType } from "../../enums/pokemon-type";
-import { StatName } from "../../enums/stat-name";
-import { StatusType } from "../../enums/status-type";
-import { Weather } from "../../enums/weather";
+import type { PokemonType } from "../../enums/pokemon-type";
 import { Grid } from "../../grid/Grid";
 import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
-import type { MoveDefinition } from "../../types/move-definition";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 import type { RandomFn } from "../../utils/prng";
 import { resolveDefensiveAbility } from "../ability-suppression";
-import {
-  computeBrickBreakInteraction,
-  computeScreenMultiplier,
-  removeAurasOfCaster,
-} from "../aura-system";
+import { removeAurasOfCaster } from "../aura-system";
 import { areBerriesSuppressed } from "../berry-suppression";
 import { applyChargeReaction } from "../charge-reaction";
 import { effectConditionHolds } from "../condition-eval";
-import {
-  calculateDamageWithCrit,
-  type FieldGlobalDamageContext,
-  getTypeEffectiveness,
-} from "../damage-calculator";
+import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calculator";
+import { resolveDamageContext } from "../damage-context";
 import { checkDefense } from "../defense-check";
 import { resolveDynamicPower } from "../dynamic-power-system";
 import type { EffectContext } from "../effect-handler-registry";
 import { effectiveHeldItem } from "../effective-held-item";
-import {
-  isEffectivelyGrounded,
-  isHeldItemSuppressed,
-  isInFieldGlobalZone,
-} from "../field-global-system";
-import {
-  getFieldTerrainBpMultiplier,
-  getFieldTerrainDamageMultiplier,
-  getFieldTerrainMovePowerMultiplier,
-  resolveFieldTerrainPulseMove,
-} from "../field-terrain-system";
+import { isHeldItemSuppressed } from "../field-global-system";
 import { ejectToSpawn } from "../forced-teleport";
 import { friendGuardMultiplier } from "../friend-guard-system";
 import { consumeHeldItem } from "../held-item-transfer";
 import { isMajorStatus } from "../stat-modifier";
 import { applySubstituteAbsorption, shouldSubstituteBlock } from "../substitute-system";
-import {
-  effectiveWeather,
-  getWeatherBallBp,
-  getWeatherBallType,
-  getWeatherBpModifier,
-  getWeatherDefenseStatBoost,
-} from "../weather-system";
 import { HELPING_HAND_MULTIPLIER } from "./handle-helping-hand";
-
-function resolveWeatherBallMove(move: MoveDefinition, activeWeather: Weather): MoveDefinition {
-  if (!move.weatherBoostedType) {
-    return move;
-  }
-  return {
-    ...move,
-    type: getWeatherBallType(activeWeather),
-    power: getWeatherBallBp(activeWeather, move.power),
-  };
-}
 
 const MULTI_HIT_PROBABILITIES: number[] = [0.35, 0.35, 0.15, 0.15];
 
@@ -136,20 +96,21 @@ function dealSingleHit(
 ): BattleEvent[] {
   const events: BattleEvent[] = [];
   const facingMod = context.facingModifierMap.get(target.id) ?? 1.0;
-  const activeWeather = effectiveWeather(context.state, (pokemon) => {
-    if (pokemon.currentHp <= 0) {
-      return false;
-    }
-    const handler = context.abilityRegistry?.getForPokemon(pokemon);
-    return handler?.suppressesWeatherEffects === true;
-  });
+  // Shared with the forecast (`BattleEngine.estimateDamage`) so the two can never drift again —
+  // Météore's weather morph, Lance-Soleil's rain penalty, the Chargeur doubling, screens, field and
+  // the post-roll Coup d'Main / Garde Amie all live in one place now.
+  const damageContext = resolveDamageContext(
+    context.state,
+    context.attacker,
+    target,
+    context.move,
+    context.attackerTypes,
+    defenderTypes,
+    context.abilityRegistry,
+  );
+  const activeWeather = damageContext.activeWeather;
   let resolvedMove = resolveDynamicPower(
-    resolveFieldTerrainPulseMove(
-      context.state,
-      context.attacker,
-      context.attackerTypes,
-      resolveWeatherBallMove(context.move, activeWeather),
-    ),
+    damageContext.resolvedMove,
     context.attacker,
     target,
     context.state,
@@ -158,69 +119,6 @@ function dealSingleHit(
   if (hitPowerOverride !== undefined) {
     resolvedMove = { ...resolvedMove, power: hitPowerOverride };
   }
-  // Charge (B3): the user's next Electric move is doubled while the Charged volatile is held.
-  if (
-    resolvedMove.type === PokemonType.Electric &&
-    context.attacker.volatileStatuses.some((v) => v.type === StatusType.Charged)
-  ) {
-    resolvedMove = { ...resolvedMove, power: resolvedMove.power * 2 };
-  }
-  let weatherBp = getWeatherBpModifier(resolvedMove.type, activeWeather);
-  if (
-    resolvedMove.id === "solar-beam" &&
-    (activeWeather === Weather.Rain ||
-      activeWeather === Weather.Sandstorm ||
-      activeWeather === Weather.Snow)
-  ) {
-    weatherBp *= 0.5;
-  }
-  const usesPhysicalDefense =
-    resolvedMove.category === Category.Physical || resolvedMove.hitsPhysicalDefense === true;
-  const defenseStat = usesPhysicalDefense ? StatName.Defense : StatName.SpDefense;
-  const defenseWeather = getWeatherDefenseStatBoost(defenderTypes, defenseStat, activeWeather);
-  const brickBreakInteraction = computeBrickBreakInteraction(context.state, target, resolvedMove);
-  const screenMultiplier = brickBreakInteraction.breakAuraCasterId
-    ? 1.0
-    : computeScreenMultiplier(context.state, context.attacker, target, resolvedMove);
-  const fieldTerrainBp =
-    getFieldTerrainBpMultiplier(
-      context.state,
-      context.attacker,
-      context.attackerTypes,
-      resolvedMove,
-    ) *
-    getFieldTerrainMovePowerMultiplier(
-      context.state,
-      context.attacker,
-      context.attackerTypes,
-      target,
-      defenderTypes,
-      resolvedMove,
-    );
-  const fieldTerrainDamage = getFieldTerrainDamageMultiplier(
-    context.state,
-    target,
-    defenderTypes,
-    resolvedMove,
-  );
-  // Analyste (analytic): the holder acts after the target when the target's last action is more
-  // recent than the holder's — the exact inverse of fishious-rend's "target idle" condition.
-  const targetAlreadyActed =
-    (target.lastActedAtAction ?? -1) > (context.attacker.lastActedAtAction ?? -1);
-
-  // Field-global per-hit modifiers (caller holds BattleState): Gravité grounding (Ground hits a
-  // Flying defender), Zone Étrange (swap defender Def↔Sp.Def), Zone Magique (suppress item effects).
-  const fieldGlobalContext: FieldGlobalDamageContext = {
-    // `defenderGroundedByGravity` now means "effectively grounded": Gravité zone OR Anti-Air (smack-down).
-    defenderGroundedByGravity: isEffectivelyGrounded(context.state, target),
-    defenderDefensesSwapped: isInFieldGlobalZone(
-      context.state,
-      target.position,
-      FieldGlobalKind.WonderRoom,
-    ),
-    attackerItemSuppressed: isHeldItemSuppressed(context.state, context.attacker),
-    defenderItemSuppressed: isHeldItemSuppressed(context.state, target),
-  };
 
   const { damage: baseDamage, isCrit } = calculateDamageWithCrit(
     context.attacker,
@@ -236,15 +134,15 @@ function dealSingleHit(
     facingMod,
     context.abilityRegistry,
     context.itemRegistry,
-    weatherBp,
-    defenseWeather,
-    screenMultiplier,
-    brickBreakInteraction.multiplier,
-    fieldTerrainBp,
-    fieldTerrainDamage,
+    damageContext.weatherBpMultiplier,
+    damageContext.defenseWeatherMultiplier,
+    damageContext.screenMultiplier,
+    damageContext.brickBreakMultiplier,
+    damageContext.fieldTerrainBpMultiplier,
+    damageContext.fieldTerrainDamageMultiplier,
     activeWeather,
-    targetAlreadyActed,
-    fieldGlobalContext,
+    damageContext.targetAlreadyActed,
+    damageContext.fieldGlobal,
   );
 
   // Coup d'Main (helping-hand): the ally's offensive move is boosted while the flag is set. Applied
@@ -277,7 +175,7 @@ function dealSingleHit(
       context.typeChart,
       context.move.typeEffectivenessOverride,
       scrappyGhostBypass,
-      fieldGlobalContext.defenderGroundedByGravity === true,
+      damageContext.fieldGlobal.defenderGroundedByGravity === true,
     );
     damage = ohkoEffectiveness === 0 ? 0 : target.maxHp;
   }
@@ -322,7 +220,7 @@ function dealSingleHit(
 
   // Zone Magique (magic-room): a holder inside the zone has its item inert — no FocusSash survival,
   // no type-reaction / berry / eject triggers, no Life Orb recoil, no contact-effect protection.
-  const targetItem = fieldGlobalContext.defenderItemSuppressed
+  const targetItem = damageContext.fieldGlobal.defenderItemSuppressed
     ? undefined
     : context.itemRegistry?.getForPokemon(target);
   const isSuperEffective =
@@ -332,14 +230,14 @@ function dealSingleHit(
       context.typeChart,
       context.move.typeEffectivenessOverride,
       scrappyGhostBypass,
-      fieldGlobalContext.defenderGroundedByGravity === true,
+      damageContext.fieldGlobal.defenderGroundedByGravity === true,
     ) > 1;
   const isContact = context.move.flags?.contact === true;
   // Pare-Effet (protective-pads) / Gant de Boxe (punching-glove): the holder's contact moves ignore
   // the target's contact-triggered reactions (Casque Brut recoil, Statik, Peau Dure, Boom Final…).
   // Pare-Effet covers every contact move; Gant de Boxe only its Poing moves. The move still counts as
   // contact for the attacker's own effects (Poing de Fer, Toxitouche) — only the target's reactions are muted.
-  const attackerHeldItem = fieldGlobalContext.attackerItemSuppressed
+  const attackerHeldItem = damageContext.fieldGlobal.attackerItemSuppressed
     ? undefined
     : context.itemRegistry?.getForPokemon(context.attacker);
   const contactNullified =
@@ -365,7 +263,7 @@ function dealSingleHit(
     context.typeChart,
     context.move.typeEffectivenessOverride,
     scrappyGhostBypass,
-    fieldGlobalContext.defenderGroundedByGravity === true,
+    damageContext.fieldGlobal.defenderGroundedByGravity === true,
   );
 
   if (isCrit) {
@@ -477,12 +375,12 @@ function dealSingleHit(
     events.push({ type: BattleEventType.OneHitKo, targetId: target.id });
   }
 
-  if (brickBreakInteraction.breakAuraCasterId) {
-    const brokenAuras = removeAurasOfCaster(context.state, brickBreakInteraction.breakAuraCasterId);
+  if (damageContext.brickBreakCasterId) {
+    const brokenAuras = removeAurasOfCaster(context.state, damageContext.brickBreakCasterId);
     for (const brokenAura of brokenAuras) {
       events.push({
         type: BattleEventType.AuraBroken,
-        casterId: brickBreakInteraction.breakAuraCasterId,
+        casterId: damageContext.brickBreakCasterId,
         kind: brokenAura.kind,
         breakerId: context.attacker.id,
         breakerMoveId: context.move.id,

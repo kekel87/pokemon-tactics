@@ -185,14 +185,29 @@ Dégâts = ((2 × Level / 5 + 2) × Power × (Atk / Def) / 50 + 2)
 | **Burn** | ×0.5 | Sur Attaque physique si lanceur brûlé |
 | **random** | ×0.85–1.00 (uniforme) | Variance ±15% |
 
-**Preview dégâts** (plan 019) :
-- `estimateDamage(attackerId, moveId, defenderId)` retourne `{ min, max, effectiveness }`
+**Preview dégâts** (plan 019, enrichi plan 175) :
+- `BattleEngine.estimateDamage(attackerId, moveId, defenderId, targetPosition?, attackerPosition?)` retourne un `DamageEstimate { min, max, effectiveness, facingModifier, heightModifier, terrainModifier, resolvedMoveType, resolvedPower }`
 - `min` = roll 0.85, `max` = roll 1.00
-- `effectiveness = 0` → affiche "Immune"
+- `effectiveness = 0` → affiche "Sans effet"
+- **Intègre météo, écrans (Reflet/Mur Lumière) et Brise Barrière** (plan 175, 2026-07-25/26) — auparavant ces multiplicateurs étaient figés à `1.0` dans l'estimation : le chiffre annoncé divergeait des dégâts réels sous soleil/pluie ou derrière un mur, et les heuristiques IA qui lisent `estimateDamage`/`scoreUseMove` (~10 sites) sous-estimaient ces situations. Effet de bord assumé et voulu : le scoring IA en tient désormais compte.
+- **`BattleEngine.previewMove(attackerId, moveId, defenderId, targetPosition?)`** (plan 175) agrège `DamageEstimate` + précision effective (`computeEffectiveAccuracy`, pure — extrait de `checkAccuracy`) + chance de critique effective (`effectiveCritChance`, pure — extrait de `calculateDamage`) en un seul `MovePreview`, base du panneau de preview de combat (§ ci-dessous).
 
 > **Modificateur hauteur** (plan 046) : ±10%/niveau, plafonds +50%/-30%.
-> **Modificateur terrain** (plan 051) : +15% si type move correspond au terrain attaquant.
+> **Modificateur terrain** (plan 051) : +15% si type move correspond au terrain attaquant — **y compris pour le type natif/immunisé au terrain**, seul un attaquant aéroporté en est exclu (décision 2026-07-25, plan 175 ; § 6 « Types de terrain » pour le détail).
 > **Orientation** (plan 052) : dos/face — voir section 8.
+
+### Panneau de preview de combat (plan 175, 2026-07-25/26)
+
+À la confirmation d'une cible (`confirm_attack`), un panneau DOM remplace temporairement le panneau d'info de case (plan 177) dans la rangée de panneaux secondaires. Il détaille, pour la **cible en focus** :
+- Portrait/nom, chevrons `◀ ▶` (+ `Tab`/`Shift+Tab`) pour cycler entre les cibles d'une zone d'effet, compteur `n/N`
+- Barre de vie prédite : plein jusqu'à `min` (perte certaine), dégradé jusqu'à `max` (zone de roll) ; dégâts `min–max` + `%` des PV max
+- **Verdict K.O.** (« Met K.O. » / « Peut mettre K.O. » / « Laisse ~X% »), nuancé « sauf Ceinture Force / Ténacité / Fermeté » si une source de survie à 1 PV **connue du joueur** rendrait le verdict létal mensonger (Bandeau exclu — survie probabiliste, jamais nuancé)
+- Précision effective (`%`, ou « touche à coup sûr »), critique effectif (`%` arrondi à l'entier, ou « Garanti »/« Impossible »)
+- Puces de modificateurs (efficacité de type, dos, hauteur, terrain) + effet secondaire et sa chance %
+- Alerte tir allié si la cible en focus est un allié
+- Gaté par le réglage **Prévisualisation dégâts** (comme les labels in-world existants)
+
+Valeurs exactes (pas de fourchette élargie par le fog) : le gating d'info ennemie n'existe pas encore (plan 176). **Legs identifié** : ce panneau expose des données que le plan 176 s'apprête à cacher (type exact via la chip d'efficacité, PV exacts via la barre/le verdict, talents/objets défensifs via l'écart de précision/crit) — le plan 176 devra trancher si ce panneau reste un outil privilégié exempté de fog, ou bascule en estimations dégradées. Détail : `docs/plans/175-combat-preview.md`.
 
 ---
 
@@ -297,7 +312,7 @@ Calcul : `Math.floor(diff)` → index dans `[0, 0, 33, 66, 100]`.
 
 > **Règle globale Vol** : pas affecté par terrains, sauf `obstacle` où Spectre ne peut pas s'arrêter. **Lévitation** confère mêmes immunités terrain que type Vol — plan 069+070. Ne peut pas atterrir sur lava/deep_water.
 >
-> **Bonus type/terrain** : +15% dégâts si type move correspond au terrain tile occupée par l'attaquant. Via `getTerrainTypeBonusFactor`.
+> **Bonus type/terrain** : +15% dégâts si type move correspond au terrain tile occupée par l'attaquant. Via `getTerrainTypeBonusFactor`. **Le bonus vaut aussi pour le type natif/immunisé au terrain** (ex: un Feu sur magma/lave, un Eau sur eau/eau profonde) — seul un attaquant **aéroporté** (Vol/Lévitation, ne touche jamais la tuile) en est exclu. L'immunité de type continue par ailleurs d'annuler dégâts de terrain, statut et malus de déplacement ; ce sont deux effets distincts (décision 2026-07-25, plan 175).
 >
 > **Ice slide** : Pokemon non-Glace/Vol atterrissant sur `ice` après knockback continue à glisser. Collision mur → `WallImpactDealt`. Collision Pokemon → `IceSlideCollision`.
 >

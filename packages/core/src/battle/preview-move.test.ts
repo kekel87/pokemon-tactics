@@ -12,6 +12,8 @@ import { setWeather } from "./weather-system";
 
 const TACKLE = "tackle";
 const EMBER = "ember";
+const METRONOME = "metronome";
+const GUILLOTINE = "guillotine";
 const SLAM = "slam";
 
 function battle(overrides: Partial<PokemonInstance> = {}) {
@@ -19,7 +21,7 @@ function battle(overrides: Partial<PokemonInstance> = {}) {
     id: "attacker",
     playerId: PlayerId.Player1,
     position: { x: 2, y: 2 },
-    moveIds: [TACKLE, SLAM, EMBER],
+    moveIds: [TACKLE, SLAM, EMBER, METRONOME, GUILLOTINE],
   });
   const defender = MockPokemon.fresh(MockPokemon.base, {
     id: "defender",
@@ -94,6 +96,47 @@ describe("BattleEngine.previewMove", () => {
   it("reports a neutral weather modifier under clear skies", () => {
     const { engine } = battle();
     expect(engine.previewMove("attacker", EMBER, "defender")?.damage?.weatherModifier).toBe(1);
+  });
+
+  it("previews the CALLED move, not the caller, once a call-move is committed", () => {
+    const { engine, state } = battle();
+    const attacker = state.pokemon.get("attacker");
+    if (!attacker) {
+      throw new Error("missing attacker");
+    }
+    attacker.pendingCalledMove = {
+      sourceMoveId: METRONOME,
+      calledMoveId: EMBER,
+      reveal: true,
+    };
+
+    const preview = engine.previewMove("attacker", METRONOME, "defender");
+
+    expect(preview?.damage?.resolvedMoveType).toBe("fire");
+    expect(preview?.damage?.max).toBeGreaterThan(0);
+  });
+
+  it("reports a K.O.-en-un-coup move as OHKO, with its flat accuracy", () => {
+    const { engine } = battle();
+    const preview = engine.previewMove("attacker", GUILLOTINE, "defender");
+
+    expect(preview?.isOhko).toBe(true);
+    expect(preview?.accuracy).toBe(30);
+    expect(preview?.ohkoImmunity).toBeNull();
+    expect(preview?.survivalGuard).toBeNull();
+  });
+
+  it("reports Fermeté as a TOTAL immunity to an OHKO move, not a 1-HP survival", () => {
+    const { engine } = battle({ abilityId: "sturdy" });
+    const preview = engine.previewMove("attacker", GUILLOTINE, "defender");
+
+    expect(preview?.ohkoImmunity).toBe("sturdy");
+    expect(preview?.survivalGuard).toBeNull();
+  });
+
+  it("keeps a normal move out of the OHKO path", () => {
+    const { engine } = battle();
+    expect(engine.previewMove("attacker", TACKLE, "defender")?.isOhko).toBe(false);
   });
 
   it("reports no survival guard on a plain target", () => {

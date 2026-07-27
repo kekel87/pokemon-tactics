@@ -346,6 +346,9 @@ export interface Translations {
   "combatPreview.guard.sturdy": string;
   "combatPreview.guard.focusSash": string;
   "combatPreview.noEffect": string;
+  "combatPreview.ohko.headline": string;
+  "combatPreview.ohko.iceImmune": string;
+  "combatPreview.ohko.sturdyImmune": string;
   "combatPreview.accuracy.guaranteed": string;
   "combatPreview.damageUnit": string;
   "combatPreview.remaining": string;

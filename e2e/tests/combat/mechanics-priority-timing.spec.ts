@@ -182,8 +182,7 @@ test("§5.31 Mitra-Poing : interrompu si frappé pendant la charge → échec au
   for (let attempt = 0; attempt < 8; attempt++) {
     // Le panneau gauche montre le Pokemon ACTIF (et lui seul, depuis le plan 175) → c'est le
     // signal direct de « à qui le tour ».
-    const active =
-      (await new InfoPanel(page).name.textContent().catch(() => "")) ?? "";
+    const active = (await new InfoPanel(page).name.textContent().catch(() => "")) ?? "";
     if (active.includes("Alakazam")) {
       break;
     }

@@ -50,11 +50,7 @@ import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { resolveDefensiveAbility } from "./ability-suppression";
 import { checkAccuracy, computeEffectiveAccuracy, consumeLockedOn } from "./accuracy-check";
 import { applyImpactDamage } from "./apply-impact-damage";
-import {
-  computeBrickBreakInteraction,
-  computeScreenMultiplier,
-  removeAurasOfCaster,
-} from "./aura-system";
+import { removeAurasOfCaster } from "./aura-system";
 import { areBerriesSuppressed } from "./berry-suppression";
 import { ChargeTimeTurnSystem } from "./ChargeTimeTurnSystem";
 import { effectiveCritChance } from "./crit-chance";
@@ -67,6 +63,7 @@ import {
   computeMoveCost,
 } from "./ct-costs";
 import { estimateDamage, getTypeEffectiveness } from "./damage-calculator";
+import { resolveDamageContext } from "./damage-context";
 import { findDampInTargets } from "./damp-system";
 import { getAttackOrigin } from "./defense-check";
 import {
@@ -90,17 +87,9 @@ import {
 } from "./entry-hazard-system";
 import { FacingZone, getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
-import {
-  isAirborneMove,
-  isEffectivelyGrounded,
-  isHeldItemSuppressed,
-  isInFieldGlobalZone,
-} from "./field-global-system";
+import { isAirborneMove, isEffectivelyGrounded } from "./field-global-system";
 import {
   decrementFieldTerrainsTimer,
-  getFieldTerrainBpMultiplier,
-  getFieldTerrainDamageMultiplier,
-  getFieldTerrainMovePowerMultiplier,
   isEnemyPsychicBarrierAt,
   isOnFieldTerrain,
   PSYCHIC_BARRIER_IMPACT_HEIGHT,
@@ -142,7 +131,7 @@ import { type KnockbackOutcome, predictKnockbackOutcome } from "./knockback-pred
 import { isLockInMove, resolveLockIn } from "./lock-in";
 import { isMetronomeCallable, isSleepTalkCallable } from "./move-copy/callable-moves";
 import { resolveNaturePowerMove } from "./nature-power-system";
-import { type OhkoImmunity, ohkoAccuracy, ohkoImmunityReason } from "./ohko";
+import { isOhkoMove, type OhkoImmunity, ohkoAccuracy, ohkoImmunityReason } from "./ohko";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { computePressureBonus } from "./pressure";
 import { pendingRolloutIndex, recordLastUsedMove, rolloutRangeForIndex } from "./rollout-streak";
@@ -160,13 +149,7 @@ import {
 } from "./terrain-effects";
 import type { PhaseHandler } from "./turn-pipeline";
 import { TurnPipeline } from "./turn-pipeline";
-import {
-  decrementWeatherTimer,
-  effectiveWeather,
-  getWeatherBpModifier,
-  getWeatherDefenseStatBoost,
-  setWeather,
-} from "./weather-system";
+import { decrementWeatherTimer, effectiveWeather, setWeather } from "./weather-system";
 
 type EventHandler = (event: BattleEvent) => void;
 
@@ -419,31 +402,20 @@ export class BattleEngine {
     }
     const attackerTypes = this.effectiveTypesOf(attacker);
     const defenderTypes = this.effectiveTypesOf(defender);
-    // B4 morphs the AI must see for correct scoring: Nature Power full swap, then Terrain Pulse type.
-    const morphedMove = resolveNaturePowerMove(
-      (id) => this.moveRegistry.get(id),
+    // Same resolution as the real hit — including a pending CALLED move (Métronome / Blabla Dodo /
+    // Photocopie), which is committed before the confirm phase. Resolving only Force Nature here left
+    // the preview describing the *caller*: "Métronome, 0 dégât, type Normal" for an incoming
+    // Lance-Flammes. `resolveEffectiveMove` already folds in Force Nature and Champlification.
+    const damageContext = resolveDamageContext(
       this.state,
-      this.grid,
       attacker,
-      rawMove,
-    );
-    const move = resolveFieldTerrainPulseMove(this.state, attacker, attackerTypes, morphedMove);
-    const fieldTerrainBp =
-      getFieldTerrainBpMultiplier(this.state, attacker, attackerTypes, move) *
-      getFieldTerrainMovePowerMultiplier(
-        this.state,
-        attacker,
-        attackerTypes,
-        defender,
-        defenderTypes,
-        move,
-      );
-    const fieldTerrainDamage = getFieldTerrainDamageMultiplier(
-      this.state,
       defender,
+      this.resolveEffectiveMove(attacker, rawMove),
+      attackerTypes,
       defenderTypes,
-      move,
+      this.abilityRegistry ?? undefined,
     );
+    const move = damageContext.resolvedMove;
     // Lookahead: evaluate the hit as if the attacker stood on `attackerPosition` (a candidate move
     // destination), so height / terrain / facing reflect where it would actually fire from.
     const originPosition = attackerPosition ?? attacker.position;
@@ -464,18 +436,6 @@ export class BattleEngine {
       targetPosition ?? defender.position,
     );
     const facingMod = getFacingModifier(getFacingZone(attackOrigin, defender));
-    // Weather / screens / Brise Barrière / field-global, mirrored from the real damage path
-    // (`handle-damage.ts`). These used to be left at 1 here, so the estimate — and every AI
-    // heuristic reading it — ignored the sun, the rain and Reflet/Mur Lumière.
-    const activeWeather = effectiveWeather(this.state, (target) => {
-      if (target.currentHp <= 0) {
-        return false;
-      }
-      return this.abilityRegistry?.getForPokemon(target)?.suppressesWeatherEffects === true;
-    });
-    const usesPhysicalDefense =
-      move.category === Category.Physical || move.hitsPhysicalDefense === true;
-    const brickBreak = computeBrickBreakInteraction(this.state, defender, move);
     return estimateDamage(
       attacker,
       defender,
@@ -488,31 +448,19 @@ export class BattleEngine {
       facingMod,
       this.abilityRegistry ?? undefined,
       this.itemRegistry ?? undefined,
-      fieldTerrainBp,
-      fieldTerrainDamage,
+      damageContext.fieldTerrainBpMultiplier,
+      damageContext.fieldTerrainDamageMultiplier,
       {
-        weatherBpMultiplier: getWeatherBpModifier(move.type, activeWeather),
-        defenseWeatherMultiplier: getWeatherDefenseStatBoost(
-          defenderTypes,
-          usesPhysicalDefense ? StatName.Defense : StatName.SpDefense,
-          activeWeather,
-        ),
-        screenMultiplier: brickBreak.breakAuraCasterId
-          ? 1.0
-          : computeScreenMultiplier(this.state, attacker, defender, move),
-        brickBreakMultiplier: brickBreak.multiplier,
-        weather: activeWeather,
-        targetAlreadyActed: (defender.lastActedAtAction ?? -1) > (attacker.lastActedAtAction ?? -1),
-        fieldGlobal: {
-          defenderGroundedByGravity: isEffectivelyGrounded(this.state, defender),
-          defenderDefensesSwapped: isInFieldGlobalZone(
-            this.state,
-            defender.position,
-            FieldGlobalKind.WonderRoom,
-          ),
-          attackerItemSuppressed: isHeldItemSuppressed(this.state, attacker),
-          defenderItemSuppressed: isHeldItemSuppressed(this.state, defender),
-        },
+        weatherBpMultiplier: damageContext.weatherBpMultiplier,
+        defenseWeatherMultiplier: damageContext.defenseWeatherMultiplier,
+        screenMultiplier: damageContext.screenMultiplier,
+        brickBreakMultiplier: damageContext.brickBreakMultiplier,
+        weather: damageContext.activeWeather,
+        targetAlreadyActed: damageContext.targetAlreadyActed,
+        fieldGlobal: damageContext.fieldGlobal,
+        // Coup d'Main / Garde Amie land after the roll in the real hit; the estimate must scale its
+        // bounds the same way or it under/over-reports whenever either is up.
+        postRollMultiplier: damageContext.postRollMultiplier,
       },
     );
   }
@@ -541,17 +489,35 @@ export class BattleEngine {
     // Zone Magique: a holder inside the zone has its crit-stage item (Lentilscope, Croc Rasoir…)
     // suppressed, exactly as the damage path does.
     const attackerItem = effectiveHeldItem(this.state, attacker, this.itemRegistry);
+    // OHKO moves (Abîme, Guillotine, Empal'Korne, Glaciation) bypass the damage formula AND
+    // `checkAccuracy`: they roll a flat `ohkoAccuracy`, and Fermeté makes the target outright immune
+    // instead of surviving at 1 HP. Reporting them like a normal hit made the panel claim "survit".
+    const attackerTypes = this.effectiveTypesOf(attacker);
+    const ohko = isOhkoMove(move);
+    const ohkoImmunity = ohko
+      ? ohkoImmunityReason(move, attacker, defender, {
+          typeChart: this.typeChart,
+          targetTypes: this.effectiveTypesOf(defender),
+          abilityRegistry: this.abilityRegistry ?? undefined,
+          scrappyGhostBypass: this.abilityRegistry?.getForPokemon(attacker)?.id === "scrappy",
+          groundedByGravity: isEffectivelyGrounded(this.state, defender),
+        })
+      : null;
     return {
       damage,
-      accuracy: computeEffectiveAccuracy(
-        move,
-        attacker,
-        defender,
-        this.terrainEvasionBonusFor(defender),
-        this.abilityRegistry ?? undefined,
-        this.state,
-        this.itemRegistry ?? undefined,
-      ),
+      isOhko: ohko,
+      ohkoImmunity,
+      accuracy: ohko
+        ? ohkoAccuracy(move, attackerTypes)
+        : computeEffectiveAccuracy(
+            move,
+            attacker,
+            defender,
+            this.terrainEvasionBonusFor(defender),
+            this.abilityRegistry ?? undefined,
+            this.state,
+            this.itemRegistry ?? undefined,
+          ),
       critChance: effectiveCritChance(
         attacker,
         defender,
@@ -559,7 +525,9 @@ export class BattleEngine {
         attackerItem,
         this.abilityRegistry ?? undefined,
       ),
-      survivalGuard: this.survivalGuardOf(defender, attacker),
+      // A survive-at-1-HP guard is meaningless against an OHKO move — Fermeté there is a full
+      // immunity, already reported via `ohkoImmunity`.
+      survivalGuard: ohko ? null : this.survivalGuardOf(defender, attacker),
     };
   }
 

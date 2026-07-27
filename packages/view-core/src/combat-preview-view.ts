@@ -1,21 +1,23 @@
 import {
   type BattleEngine,
   type BattleState,
+  Category,
   EffectKind,
   type MoveDefinition,
   type MovePreview,
+  type OhkoImmunity,
   type PokemonInstance,
   type Position,
   StatName,
   SurvivalGuardKind,
 } from "@pokemon-tactic/core";
-import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
-import type {
+import { getMoveName } from "@pokemon-tactic/data";
+import {
   CombatPreviewOutcome,
-  InfoPanelAttack,
-  InfoPanelData,
-  PresentationContext,
-  TileInfoChip,
+  type InfoPanelAttack,
+  type InfoPanelData,
+  type PresentationContext,
+  type TileInfoChip,
 } from "@pokemon-tactic/render-ports";
 import { buildInfoPanelView } from "./battle-views.js";
 
@@ -32,6 +34,13 @@ const SURVIVAL_GUARD_LABEL: Record<SurvivalGuardKind, string> = {
   [SurvivalGuardKind.FocusSash]: "combatPreview.guard.focusSash",
 };
 
+/** Why an OHKO move does nothing here — Fermeté is a full immunity, not a 1-HP survival. */
+const OHKO_IMMUNITY_LABEL: Record<OhkoImmunity, string> = {
+  type: "combatPreview.noEffect",
+  ice: "combatPreview.ohko.iceImmune",
+  sturdy: "combatPreview.ohko.sturdyImmune",
+};
+
 /** Short stat names, shared with the InfoPanel stat block so the two never drift apart. */
 const STAT_LABEL: Record<string, string> = {
   [StatName.Attack]: "stat.atk",
@@ -43,25 +52,42 @@ const STAT_LABEL: Record<string, string> = {
   [StatName.Evasion]: "stat.eva",
 };
 
-function teamNumberOf(playerId: string): number {
-  return Number(playerId.match(/(\d+)/)?.[1] ?? "1");
+/**
+ * Whether the player is allowed to KNOW the target's ability (human decision 2026-07-25: nuance the
+ * verdict only when the source is visible; extended 2026-07-27 to the OHKO immunity).
+ *
+ * The enemy InfoPanel prints no ability at all unless a reveal effect (Anticipation, plan 163) set
+ * `revealedAbility`, so a forecast naming Fermeté would leak exactly what the panel hides. An ally's
+ * ability is always on screen (plan 174), hence always known.
+ */
+function isAbilityKnownToPlayer(target: PokemonInstance, attacker: PokemonInstance): boolean {
+  return target.playerId === attacker.playerId || target.revealedAbility === true;
 }
 
 /**
- * Whether the player is allowed to KNOW about the guard that would save the target (human decision
- * 2026-07-25: nuance the verdict only when the source is visible).
- *
- * Ténacité is always known — the player watched the target spend its action bracing. Fermeté and
- * Ceinture Force are an ability and a held item: today nothing is hidden, so this is `true`, but the
- * predicate exists so plan 176 only has to swap in its perspective check instead of retrofitting the
- * whole verdict path. Without it the preview would happily reveal a Ceinture Force the fog hides.
+ * Whether the survive-at-1-HP guard may be named in the verdict. Ténacité is an action the player
+ * watched, and the held item is public today (the InfoPanel shows it for enemies too — fog on items
+ * comes with plan 176), so only Fermeté depends on the ability being known.
  */
-function isGuardKnownToPlayer(guard: SurvivalGuardKind, target: PokemonInstance): boolean {
-  if (guard === SurvivalGuardKind.Endure) {
-    return true;
+function isGuardKnownToPlayer(guard: SurvivalGuardKind, abilityKnown: boolean): boolean {
+  return guard !== SurvivalGuardKind.Sturdy || abilityKnown;
+}
+
+/**
+ * The OHKO immunity as the player may see it: Fermeté is hidden until revealed, so an unrevealed one
+ * reads as a plain "K.O." and the surprise happens on execution. Type and Glace immunities stay
+ * visible — the enemy panel already shows types.
+ */
+function visibleOhkoImmunity(preview: MovePreview, abilityKnown: boolean): OhkoImmunity | null {
+  if (preview.ohkoImmunity === "sturdy" && !abilityKnown) {
+    return null;
   }
-  // Plan 176 hook: gate on the same visibility the InfoPanel uses (`revealedItem` & co).
-  return target.currentHp >= 0;
+  return preview.ohkoImmunity;
+}
+
+/** A move that can actually deal damage — the only kind type immunity fully blocks. */
+function isDamagingMove(move: MoveDefinition): boolean {
+  return move.category !== Category.Status && move.power > 0;
 }
 
 /** Crit odds as displayed: the two certainties read as words, everything else as a whole percent. */
@@ -178,20 +204,43 @@ function buildVerdict(
   context: PresentationContext,
   preview: MovePreview,
   target: PokemonInstance,
+  move: MoveDefinition,
+  shownImmunity: OhkoImmunity | null,
+  abilityKnown: boolean,
 ): { outcome: CombatPreviewOutcome; verdictLabel: string } {
+  // OHKO moves (Abîme, Guillotine, Empal'Korne, Glaciation) never produce a damage range: they kill
+  // outright or do nothing. Read through `damage` here and the panel claims "survit" on a move that
+  // one-shots. Fermeté is a TOTAL immunity against them, not a survive-at-1-HP.
+  if (preview.isOhko) {
+    return shownImmunity === null
+      ? { outcome: CombatPreviewOutcome.GuaranteedKo, verdictLabel: "" }
+      : {
+          outcome: CombatPreviewOutcome.NoEffect,
+          verdictLabel: context.translate(
+            OHKO_IMMUNITY_LABEL[shownImmunity] ?? "combatPreview.noEffect",
+          ),
+        };
+  }
+
   const damage = preview.damage;
-  if (damage && damage.effectiveness === 0) {
-    return { outcome: "no-effect", verdictLabel: context.translate("combatPreview.noEffect") };
+  // Type immunity only blocks a DAMAGING move: `effect-processor.ts` lets a status move through
+  // regardless (a Normal-type debuff still lands on a Ghost). Reading `effectiveness === 0` alone
+  // announced "Sans effet" for Rugissement on Ectoplasma, whose Attack drop does apply.
+  if (damage && damage.effectiveness === 0 && isDamagingMove(move)) {
+    return {
+      outcome: CombatPreviewOutcome.NoEffect,
+      verdictLabel: context.translate("combatPreview.noEffect"),
+    };
   }
   if (!damage || damage.max <= 0) {
-    return { outcome: "survives", verdictLabel: "" };
+    return { outcome: CombatPreviewOutcome.Survives, verdictLabel: "" };
   }
   if (damage.max < target.currentHp) {
-    return { outcome: "survives", verdictLabel: "" };
+    return { outcome: CombatPreviewOutcome.Survives, verdictLabel: "" };
   }
 
   const guard =
-    preview.survivalGuard !== null && isGuardKnownToPlayer(preview.survivalGuard, target)
+    preview.survivalGuard !== null && isGuardKnownToPlayer(preview.survivalGuard, abilityKnown)
       ? preview.survivalGuard
       : null;
   const caveat = guard
@@ -201,7 +250,10 @@ function buildVerdict(
     : "";
 
   return {
-    outcome: damage.min >= target.currentHp ? "guaranteed-ko" : "possible-ko",
+    outcome:
+      damage.min >= target.currentHp
+        ? CombatPreviewOutcome.GuaranteedKo
+        : CombatPreviewOutcome.PossibleKo,
     verdictLabel: caveat,
   };
 }
@@ -243,20 +295,35 @@ export function buildCombatPreviewView(
   const isAlly = target.playerId === attacker.playerId;
   const damage = preview.damage;
   const hasDamage = damage !== null && damage.max > 0;
-  const { outcome, verdictLabel } = buildVerdict(context, preview, target);
+  // Resolved once and shared by the verdict and the "HP left" line: masking the immunity in one but
+  // not the other would print "K.O." over an empty forecast bar.
+  const abilityKnown = isAbilityKnownToPlayer(target, attacker);
+  const shownImmunity = visibleOhkoImmunity(preview, abilityKnown);
+  const { outcome, verdictLabel } = buildVerdict(
+    context,
+    preview,
+    target,
+    displayMove,
+    shownImmunity,
+    abilityKnown,
+  );
 
   // Predicted HP left, expressed as the share of max HP — the worst case first, mirroring how the
   // damage range reads. A lethal hit collapses to a flat 0 %.
-  const remainingLabel = hasDamage
-    ? damage.max >= target.currentHp
+  const remainingLabel = preview.isOhko
+    ? shownImmunity === null
       ? context.translate("combatPreview.remaining", { percent: "0" })
-      : context.translate("combatPreview.remaining", {
-          percent: `${hpPercent(target.currentHp - damage.max, target.maxHp)}–${hpPercent(
-            target.currentHp - damage.min,
-            target.maxHp,
-          )}`,
-        })
-    : "";
+      : ""
+    : hasDamage
+      ? damage.max >= target.currentHp
+        ? context.translate("combatPreview.remaining", { percent: "0" })
+        : context.translate("combatPreview.remaining", {
+            percent: `${hpPercent(target.currentHp - damage.max, target.maxHp)}–${hpPercent(
+              target.currentHp - damage.min,
+              target.maxHp,
+            )}`,
+          })
+      : "";
 
   return {
     attack: {
@@ -270,14 +337,22 @@ export function buildCombatPreviewView(
       }),
       // Rounded to a whole percent (human decision 2026-07-25): the genre standard is a percentage,
       // but a decimal like "6.25 %" is false precision next to this panel's short numbers.
-      critText: context.translate("combatPreview.crit.short", {
-        value: critValueOf(context, preview.critChance),
-      }),
-      damageValue: hasDamage ? `${damage.min}–${damage.max}` : "—",
-      damageUnitLabel: hasDamage ? context.translate("combatPreview.damageUnit") : "",
+      // A status move never crits — the line would be pure noise there.
+      critText: isDamagingMove(displayMove)
+        ? context.translate("combatPreview.crit.short", {
+            value: critValueOf(context, preview.critChance),
+          })
+        : "",
+      damageValue: preview.isOhko
+        ? context.translate("combatPreview.ohko.headline")
+        : hasDamage
+          ? `${damage.min}–${damage.max}`
+          : "—",
+      damageUnitLabel:
+        hasDamage && !preview.isOhko ? context.translate("combatPreview.damageUnit") : "",
       outcome,
       modifierChips: buildModifierChips(context, preview),
-      effectChip: hasDamage ? buildEffectChip(context, displayMove) : null,
+      effectChip: buildEffectChip(context, displayMove),
     },
     // The victim's readout is a normal InfoPanel view with the forecast layered on, so the cursor
     // card is literally the same component as the active-Pokémon panel (human 2026-07-25).

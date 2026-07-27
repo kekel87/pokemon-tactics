@@ -35,7 +35,7 @@ export function consumeLockedOn(attacker: PokemonInstance): boolean {
  * The accuracy a move would actually be rolled against, as a percentage — the pure half of
  * `checkAccuracy`, with no RNG and no mutation. `null` means "hits for sure" (Verrouillage armed,
  * `bypassAccuracy`, or an effective accuracy that already reached 100%), which the combat preview
- * (plan 175) renders as a guaranteed-hit glyph rather than "100%".
+ * (plan 175) renders through its own localised label instead of a computed percentage.
  *
  * Reads the Verrouillage volatile WITHOUT consuming it: the consumption is a side effect that must
  * stay in `checkAccuracy`, so previewing a move never spends the lock-on.

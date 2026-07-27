@@ -1,6 +1,7 @@
 # Plan 175 — Preview de combat (prévision de dégâts détaillée)
 
-> **Statut** : ready (validé humain 2026-07-25, après `plan-reviewer` + `game-designer` + `best-practices`)
+> **Statut** : done (livré 2026-07-26, commit `dc43def`)
+> **Statut précédent** : ready (validé humain 2026-07-25, après `plan-reviewer` + `game-designer` + `best-practices`)
 > **Créé** : 2026-07-25
 > **Phase** : 6.5 « Client jouable », Lot 3 (compléter l'UI). Suite des plans 174 (InfoPanel allié) et 177 (panneau d'info de case).
 > **Cadre** : `docs/plans/173-phase-client-jouable-ui-controles.md` — § « Preview combat (à la validation de cible) ».
@@ -57,14 +58,40 @@ Rendu : `MET K.O. — sauf Ceinture Force`. Quand la source est inconnue, **aucu
 
 ### Point à valider en human-testing — le contrôle de cycle
 
-Le cycle arrive **avant** la couche d'input device-agnostique (Lot 2). Proposition, à confirmer à l'écran :
+Le cycle arrive **avant** la couche d'input device-agnostique (Lot 2). Proposition initiale : chevrons
+`◀ ▶` dans l'en-tête, plus `Tab` / `Shift+Tab`. **Tranché autrement à l'écran** — voir § Retours
+human-testing ci-dessous.
 
-- **Chevrons `◀ ▶` dans l'en-tête du panneau** — cliquables à la souris, tapables au doigt, focusables au clavier. C'est le seul mécanisme qui marche sur les trois entrées sans rien câbler de neuf.
-- **+ `Tab` / `Shift+Tab`** pendant la phase de confirmation, pour le clavier (le focus DOM tombe naturellement sur les chevrons).
-- Le compteur `2/3` est affiché à côté des chevrons.
-- Panneau **masqué et cycle inerte** quand il n'y a qu'une seule cible (cas majoritaire).
+## Retours human-testing (2026-07-26) — ce que le draft avait faux
 
-Quand la couche d'input du Lot 2 arrivera, `cycle-target` deviendra une action logique et les chevrons resteront comme affordance tactile.
+Six allers-retours à l'écran ont réécrit une bonne part de la maquette. Ce que le plan proposait et ce
+qui a été retenu :
+
+| Draft | Livré | Pourquoi |
+|-------|-------|----------|
+| Panneau de preview **remplaçant** le panneau de case | **L'InfoPanel du lanceur s'étire** (3ᵉ colonne + pointe de flèche) et porte le bloc d'attaque ; la **carte curseur** (2ᵉ instance du même composant) porte la cible | Format FFT demandé par l'humain. Une carte séparée « fusionnée » au panneau a été essayée puis rejetée (« c'est moche ») : une seule carte, une seule bordure |
+| Panneau gauche = survolé ou actif | Panneau gauche = **actif seul** ; carte droite = survolé, puis cible à la confirmation | Survoler ne doit plus chasser son propre Pokemon de l'écran |
+| Verdict écrit à 3 états (« Met K.O. » / « Peut mettre K.O. » / « Laisse ~X % ») | **Aucune phrase de verdict** : la couleur du chiffre porte la létalité (rouge / jaune / blanc). Texte gardé pour les deux seuls cas que la couleur ne dit pas — immunité et garde-fou de survie | « Laisse ~8 % » jugé non pertinent, la barre le montre déjà |
+| Segment fantôme **en dégradé** de min à max | **Trois zones franches** séparées par un trait | Le dégradé était illisible |
+| Chevrons `◀ ▶` + compteur dans l'en-tête | **Pas de chevrons.** Cycle au **survol** d'une autre cible de l'empreinte, ou `Tab` / `Shift+Tab`. Compteur `n/N` sur la ligne des types, à droite sous le niveau | Le survol est l'affordance naturelle ; les chevrons encombraient |
+| Bandeau « Tir allié » | **Supprimé** (texte, style et clé i18n) | La couleur d'équipe de la carte le dit déjà |
+| Bloc de stats sur la carte cible | **Jamais de bloc de stats** sur la carte de prévision, même pour un allié | C'est un panneau de dégâts ; les stats sont sur le panneau du lanceur juste à côté |
+
+**Deux défauts moteur découverts en cours de route**, tous deux hors du périmètre initial et tranchés
+par l'humain :
+
+- **`estimateDamage` ignorait la météo, les écrans et Brise Barrière** (multiplicateurs figés à 1) —
+  le chiffre annoncé divergeait des dégâts réels, et les ~10 heuristiques IA qui s'en servent
+  sous-estimaient sous soleil/pluie ou derrière un mur. Corrigé (décision #721).
+- **Le bonus de type du terrain était refusé au type natif** : `getTerrainTypeBonusFactor` sortait sur
+  `isTerrainImmune`, or Feu est immunisé au magma — Arcanin ne pouvait jamais en profiter, un Ronflex
+  avec Lance-Flammes si. Découplé (décision #722).
+
+**Deux bugs annexes** corrigés au passage : `initSettings()` manquait au boot (un réglage persisté
+redevenait le défaut au rechargement, donc le gating « Prévisualisation dégâts » ne s'appliquait
+jamais), et `[hidden]` était **inerte** sur `.ip-panel` / `.ti-panel` — une règle auteur `display:`
+bat celle du navigateur, il faut un `&[hidden] { display: none }` explicite. Ce piège a coûté trois
+allers-retours ; tout composant de ce dépôt qui pose un `display` doit déclarer son opt-out.
 
 ## Constat carto (2026-07-25)
 
@@ -127,17 +154,17 @@ Puis **`BattleEngine.previewMove(attackerId, moveId, defenderId, targetPosition?
 
 ## Étapes
 
-- [ ] **Étape 1 — Core, précision pure.** Extraire `computeEffectiveAccuracy` d'`accuracy-check.ts` (garder `checkAccuracy` iso-comportement, `consumeLockedOn` non déplacé). Tests unitaires : crans, talents, objets, Gravité, override météo, `bypassAccuracy`, Verrouillage.
-- [ ] **Étape 2 — Core, critique pure.** Créer `crit-chance.ts` + `effectiveCritChance`, brancher `calculateDamage` dessus. Tests : crans cumulés, `alwaysCrit`, `guaranteedCritArmed`, `preventsCrit`.
-- [ ] **Étape 3 — Core, `DamageEstimate` enrichi.** Ajouter les 4 champs, les remplir dans `BattleEngine.estimateDamage` (valeurs déjà calculées sur place, juste propagées). Vérifier qu'aucun appelant IA ne casse.
-- [ ] **Étape 4 — Core, `previewMove`.** Créer `MovePreview` interface dans `packages/core/src/types/` (ou ajouter à `damage-estimate.ts`) : agrège `DamageEstimate` + `effectiveAccuracy` + `effectiveCritChance`. Créer méthode `BattleEngine.previewMove(attackerId, moveId, defenderId, targetPosition?, attackerPosition?)` qui l'appelle et l'expose. Tests unitaires : tous les cas d'accuracy/crit (0%, 100%, forcé, impossible) + move sans dégâts (status).
-- [ ] **Étape 5 — View-model.** `CombatPreviewData` interface dans `render-ports/src/view-models.ts` : structure réutilisant les patterns de `TileInfoData` (aucun type core qui fuit, tout pré-résolu). Champs : `focusIndex` (index cible en focus), `totalTargets` (nombre total de cibles, pour le compteur), `targetName`, `targetLevel`, `targetPortraitUrl`, `targetTeam`, `hpCurrent`, `hpMax`, `damageMin`, `damageMax`, `effectiveness`, `verdictLabel`, `precisionPercent` (null si bypass), `critChancePercent` (null si impossible/garanti), `critLabel?` (« Garanti »/« Impossible »), `effectSecondaryChance`, `isAlly`, `modifierChips[]` (type, facing, height, terrain, chacun avec icon URL + label + value), `effectChip?` (effect icon + name + chance %). + signature `updateCombatPreview(view: CombatPreviewData | null)` sur le port `BattleChrome` (`ports.ts`).
-- [ ] **Étape 6 — Builder.** `buildCombatPreviewView(context, state, attackerId, moveId, targets, focusIndex)` dans `view-core/src/battle-views.ts` (ajouter si nécessaire). Appelle `engine.previewMove()` pour chaque cible, remplir `CombatPreviewData` avec : verdict K.O. (« Met K.O. » si `min >= currentHp`, « Peut mettre K.O. » si `max >= currentHp > min`, sinon « Laisse ~X% »), **+ garde-fou de survie à 1 PV** (Ténacité / Fermeté / Ceinture Force) suffixé au verdict **uniquement si la source est connue du joueur** — écrire le prédicat de visibilité dès maintenant, même s'il renvoie toujours `true` sans fog (cf. § « Verdict K.O. — garde-fous »), chips modificateurs (`×1.15` type, `+15%` dos, hauteur, terrain), précision `%` (ou null/label si bypass/100%), critique `%` **arrondi à l'entier** ou label (`Garanti`/`Impossible`), effet secondaire avec chance %, drapeau allié (`isAlly` == true). Tests unitaires : K.O. garanti/possible/survie, **garde-fou Ceinture Force à PV max (connu → suffixe, inconnu → verdict nu)**, **Bandeau qui ne déclenche AUCUN garde-fou**, immunité, allié, précision 0%/100%, critique garanti/impossible, **arrondi du `%` de critique**.
-- [ ] **Étape 7 — Orchestrateur.** Dans `battle-orchestrator.ts` `tryPickTarget()` (l.768) : à l'entrée en `confirm_attack`, construire la liste de cibles (à partir de `previewOccupantIds()`), poser `focusIndex = 0` sur la cible principale, appeler `chrome.updateCombatPreview(...)`. Nettoyer dans `resolveAttack()` (l.848) et à l'annulation. Méthode `cycleCombatPreviewTarget(delta)` (nouvelle, privée) : recalcule et remonte le view-model via `chrome.updateCombatPreview()`, **sans** rejouer la sélection ni modifier `tryPickTarget`.
-- [ ] **Étape 8 — Composant DOM.** `packages/ui-dom/src/combat-preview-panel.ts` — `createCombatPreviewPanel(config, onCycleTarget)` → `{ element, update(view), show(), hide(), destroy() }`, bête. En-tête : portrait + nom cible + chevrons `◀ ▶` + compteur `{focusIndex+1}/{totalTargets}` (chevrons et compteur masqués si `totalTargets <= 1`). **Zone tactile des chevrons ≥ 44×44 px** (padding autour du glyphe, pas le glyphe seul — standards iOS 44pt / Android 48dp, le jeu est mobile-first). Barre PV prédite : segment fantôme **plein jusqu'à `min`, dégradé jusqu'à `max`** (CSS `linear-gradient` sur la portion `min`→`max`), teinte distincte de la barre restante. Callback chevrons : appelle `onCycleTarget(+1)` ou `onCycleTarget(-1)`. + `styles/combat-preview-panel.css` (tokens `--ip-px` partagés, largeur alignée sur `tile-info-panel`).
-- [ ] **Étape 9 — Swap dans le chrome.** `battle-chrome.ts` : créer `createCombatPreviewPanel()` (ligne ~92-95), ajouter à `.bc-infopanel-row`, mutuellement exclusif du `TileInfoPanel` (utiliser `element.hidden = true/false` pour les deux). Vérifier qu'aucune des deux transitions ne fait sauter la hauteur de la rangée (la hauteur est pilotée par `infoPanel.element`). Ajouter `combatPreviewPanel.update()` au cas `confirm_attack` dans `tryPickTarget()`. **Import CSS à ajouter dans `babylon-boot.ts`** (piège du plan 177 : l'app importe chaque CSS ui-dom individuellement, pas via `styles/index.css`).
-- [ ] **Étape 10 — Clavier.** Câbler `Tab`/`Shift+Tab` pendant `confirm_attack` → `cycleCombatPreviewTarget(+1)` / `cycleCombatPreviewTarget(-1)`. Le focus des chevrons est géré naturellement (ils sont des `<button>` focusables). Cas single-target : le panneau existe mais le cycle est inerte (les chevrons ne s'affichent pas, cf. Étape 8). Ne doit pas casser `Escape` (annuler) ni `Espace`/`Entrée` (confirmer), déjà câblés dans `combat-screen.ts`.
-- [ ] **Étape 11 — i18n.** Clés FR + EN dans `packages/app/src/i18n/locales/{fr,en}.ts` : 
+- [x] **Étape 1 — Core, précision pure.** Extraire `computeEffectiveAccuracy` d'`accuracy-check.ts` (garder `checkAccuracy` iso-comportement, `consumeLockedOn` non déplacé). Tests unitaires : crans, talents, objets, Gravité, override météo, `bypassAccuracy`, Verrouillage.
+- [x] **Étape 2 — Core, critique pure.** Créer `crit-chance.ts` + `effectiveCritChance`, brancher `calculateDamage` dessus. Tests : crans cumulés, `alwaysCrit`, `guaranteedCritArmed`, `preventsCrit`.
+- [x] **Étape 3 — Core, `DamageEstimate` enrichi.** Ajouter les 4 champs, les remplir dans `BattleEngine.estimateDamage` (valeurs déjà calculées sur place, juste propagées). Vérifier qu'aucun appelant IA ne casse.
+- [x] **Étape 4 — Core, `previewMove`.** Créer `MovePreview` interface dans `packages/core/src/types/` (ou ajouter à `damage-estimate.ts`) : agrège `DamageEstimate` + `effectiveAccuracy` + `effectiveCritChance`. Créer méthode `BattleEngine.previewMove(attackerId, moveId, defenderId, targetPosition?, attackerPosition?)` qui l'appelle et l'expose. Tests unitaires : tous les cas d'accuracy/crit (0%, 100%, forcé, impossible) + move sans dégâts (status).
+- [x] **Étape 5 — View-model.** `CombatPreviewData` interface dans `render-ports/src/view-models.ts` : structure réutilisant les patterns de `TileInfoData` (aucun type core qui fuit, tout pré-résolu). Champs : `focusIndex` (index cible en focus), `totalTargets` (nombre total de cibles, pour le compteur), `targetName`, `targetLevel`, `targetPortraitUrl`, `targetTeam`, `hpCurrent`, `hpMax`, `damageMin`, `damageMax`, `effectiveness`, `verdictLabel`, `precisionPercent` (null si bypass), `critChancePercent` (null si impossible/garanti), `critLabel?` (« Garanti »/« Impossible »), `effectSecondaryChance`, `isAlly`, `modifierChips[]` (type, facing, height, terrain, chacun avec icon URL + label + value), `effectChip?` (effect icon + name + chance %). + signature `updateCombatPreview(view: CombatPreviewData | null)` sur le port `BattleChrome` (`ports.ts`).
+- [x] **Étape 6 — Builder.** `buildCombatPreviewView(context, state, attackerId, moveId, targets, focusIndex)` dans `view-core/src/battle-views.ts` (ajouter si nécessaire). Appelle `engine.previewMove()` pour chaque cible, remplir `CombatPreviewData` avec : verdict K.O. (« Met K.O. » si `min >= currentHp`, « Peut mettre K.O. » si `max >= currentHp > min`, sinon « Laisse ~X% »), **+ garde-fou de survie à 1 PV** (Ténacité / Fermeté / Ceinture Force) suffixé au verdict **uniquement si la source est connue du joueur** — écrire le prédicat de visibilité dès maintenant, même s'il renvoie toujours `true` sans fog (cf. § « Verdict K.O. — garde-fous »), chips modificateurs (`×1.15` type, `+15%` dos, hauteur, terrain), précision `%` (ou null/label si bypass/100%), critique `%` **arrondi à l'entier** ou label (`Garanti`/`Impossible`), effet secondaire avec chance %, drapeau allié (`isAlly` == true). Tests unitaires : K.O. garanti/possible/survie, **garde-fou Ceinture Force à PV max (connu → suffixe, inconnu → verdict nu)**, **Bandeau qui ne déclenche AUCUN garde-fou**, immunité, allié, précision 0%/100%, critique garanti/impossible, **arrondi du `%` de critique**.
+- [x] **Étape 7 — Orchestrateur.** Dans `battle-orchestrator.ts` `tryPickTarget()` (l.768) : à l'entrée en `confirm_attack`, construire la liste de cibles (à partir de `previewOccupantIds()`), poser `focusIndex = 0` sur la cible principale, appeler `chrome.updateCombatPreview(...)`. Nettoyer dans `resolveAttack()` (l.848) et à l'annulation. Méthode `cycleCombatPreviewTarget(delta)` (nouvelle, privée) : recalcule et remonte le view-model via `chrome.updateCombatPreview()`, **sans** rejouer la sélection ni modifier `tryPickTarget`.
+- [x] **Étape 8 — Composant DOM.** `packages/ui-dom/src/combat-preview-panel.ts` — `createCombatPreviewPanel(config, onCycleTarget)` → `{ element, update(view), show(), hide(), destroy() }`, bête. En-tête : portrait + nom cible + chevrons `◀ ▶` + compteur `{focusIndex+1}/{totalTargets}` (chevrons et compteur masqués si `totalTargets <= 1`). **Zone tactile des chevrons ≥ 44×44 px** (padding autour du glyphe, pas le glyphe seul — standards iOS 44pt / Android 48dp, le jeu est mobile-first). Barre PV prédite : segment fantôme **plein jusqu'à `min`, dégradé jusqu'à `max`** (CSS `linear-gradient` sur la portion `min`→`max`), teinte distincte de la barre restante. Callback chevrons : appelle `onCycleTarget(+1)` ou `onCycleTarget(-1)`. + `styles/combat-preview-panel.css` (tokens `--ip-px` partagés, largeur alignée sur `tile-info-panel`).
+- [x] **Étape 9 — Swap dans le chrome.** `battle-chrome.ts` : créer `createCombatPreviewPanel()` (ligne ~92-95), ajouter à `.bc-infopanel-row`, mutuellement exclusif du `TileInfoPanel` (utiliser `element.hidden = true/false` pour les deux). Vérifier qu'aucune des deux transitions ne fait sauter la hauteur de la rangée (la hauteur est pilotée par `infoPanel.element`). Ajouter `combatPreviewPanel.update()` au cas `confirm_attack` dans `tryPickTarget()`. **Import CSS à ajouter dans `babylon-boot.ts`** (piège du plan 177 : l'app importe chaque CSS ui-dom individuellement, pas via `styles/index.css`).
+- [x] **Étape 10 — Clavier.** Câbler `Tab`/`Shift+Tab` pendant `confirm_attack` → `cycleCombatPreviewTarget(+1)` / `cycleCombatPreviewTarget(-1)`. Le focus des chevrons est géré naturellement (ils sont des `<button>` focusables). Cas single-target : le panneau existe mais le cycle est inerte (les chevrons ne s'affichent pas, cf. Étape 8). Ne doit pas casser `Escape` (annuler) ni `Espace`/`Entrée` (confirmer), déjà câblés dans `combat-screen.ts`.
+- [x] **Étape 11 — i18n.** Clés FR + EN dans `packages/app/src/i18n/locales/{fr,en}.ts` : 
   - Verdicts K.O. : `combatPreview.verdict.guaranteedKo` (« Met K.O. »), `combatPreview.verdict.possibleKo` (« Peut mettre K.O. »), `combatPreview.verdict.survives` (« Laisse ~{percent}% »)
   - Précision/Critique : `combatPreview.accuracy` (« Précision »), `combatPreview.accuracy.guaranteed` (« Touche à coup sûr »), `combatPreview.crit` (« Critique »), `combatPreview.crit.guaranteed` (« Garanti »), `combatPreview.crit.impossible` (« Impossible »)
   - Alerte allié : `combatPreview.allyTarget` (« Tir allié »), `combatPreview.allyTargetWarning` (« Allie en danger »)
@@ -145,9 +172,9 @@ Puis **`BattleEngine.previewMove(attackerId, moveId, defenderId, targetPosition?
   - Effet secondaire : `combatPreview.secondaryEffect` (« Effet »)
   - Cycle (affichage) : `combatPreview.targetCount` (« {current}/{total} »). **Noms FR officiels** pour tout move/talent/statut cité.
 - [x] **Étape 12 — Doc : lever la contradiction sur le brouillard de guerre.** ✅ **Fait au cadrage (2026-07-25).** `docs/game-design.md` §2 réécrit : la règle « pas de brouillard de guerre » est restreinte au **spatial** (positions, terrain, hauteur, effets de case restent publics) ; l'information sur les Pokemon adverses (stats exactes, talent, objet, PV) devient **partielle et révélée à l'usage**, stats de base publiques en plage min–max, mise en œuvre au plan 176. **Décision #720** ajoutée à `docs/decisions.md`.
-- [ ] **Étape 13 — Human-testing.** Scénarios ci-dessous. **Valider en particulier l'affordance du cycle**, la lisibilité du dégradé fantôme et la taille tactile des chevrons.
-- [ ] **Étape 14 — e2e** (`test-writer`) : nouvelle section `docs/test-plan.md` + spec Playwright (K.O. garanti, garde-fou Ceinture Force, immunité, AoE multi-cibles + cycle, tir allié, réglage off).
-- [ ] **Étape 15 — Cleanup** : zéro code mort, zéro `any`, lint vert.
+- [x] **Étape 13 — Human-testing.** Scénarios ci-dessous. **Valider en particulier l'affordance du cycle**, la lisibilité du dégradé fantôme et la taille tactile des chevrons.
+- [x] **Étape 14 — e2e** (`test-writer`) : nouvelle section `docs/test-plan.md` + spec Playwright (K.O. garanti, garde-fou Ceinture Force, immunité, AoE multi-cibles + cycle, tir allié, réglage off).
+- [x] **Étape 15 — Cleanup** : zéro code mort, zéro `any`, lint vert.
 
 ## Scénarios de human-testing prévus
 

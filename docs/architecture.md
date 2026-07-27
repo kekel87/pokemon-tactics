@@ -125,7 +125,7 @@ pokemon-tactics/
 │   ├── render-ports/            # Ports hexagonaux du contrat de rendu (plan 125, renommé plan 126)
 │   │   ├── src/
 │   │   │   ├── ports/           # BoardView, BattleChrome, BattleFeedback (interfaces moteur-agnostiques)
-│   │   │   ├── view-models/     # WeatherView, TimelineView, InfoPanelData, TileInfoData (plan 177)… (données UI découplées du core)
+│   │   │   ├── view-models/     # WeatherView, TimelineView, InfoPanelData (+ preview/attack, plan 175), TileInfoData (plan 177)… (données UI découplées du core)
 │   │   │   ├── presentation-context.ts  # PresentationContext (DI i18n + assets)
 │   │   │   ├── render-backend.ts        # RenderBackend (lifecycle : mount/dispose)
 │   │   │   ├── team-colors.ts           # TEAM_COLORS, teamColorByIndex, teamColorToHex, getTeamColorByPlayerId
@@ -138,6 +138,7 @@ pokemon-tactics/
 │   │   ├── src/
 │   │   │   ├── battle-orchestrator/     # battle-orchestrator (FSM 9 phases combat)
 │   │   │   ├── battle-views/            # view-builders (WeatherView, TimelineView, InfoPanelData…)
+│   │   │   ├── combat-preview-view.ts   # buildCombatPreviewView (plan 175)
 │   │   │   ├── floating-text-content.ts # contenu textes flottants
 │   │   │   ├── movement-animation.ts    # logique animation déplacement
 │   │   │   ├── animation-queue.ts       # AnimationQueue
@@ -185,6 +186,7 @@ pokemon-tactics/
 │   │   │   ├── weather-hud.ts           # WeatherHud
 │   │   │   ├── info-panel.ts            # InfoPanel
 │   │   │   ├── tile-info-panel.ts       # TileInfoPanel (plan 177 — terrain/hazards/champ/zones de la case survolée)
+│   │   │   │                           # info-panel.ts sert aussi de "cursor card" cible (plan 175, 2 instances)
 │   │   │   ├── pattern-preview.ts       # previews de ciblage
 │   │   │   ├── Modal.ts                  # primitive modale (<dialog>, closeAriaLabel DI)
 │   │   │   ├── Stepper.ts                # primitive stepper (pure)
@@ -629,6 +631,20 @@ packages/data/src/i18n/
 - **Design « zéro texte »** (v1 textuel rejeté en human-testing) : icônes + chiffres courts. Sprites réutilisés `assets/ui/types/*` (bonus de type + immunités) et `assets/ui/statuses/icon-*` (statut) ; émoji `⛰ 👣 🛑 🥾 ⛔💀 🆓` en **placeholders** (pack cohérent différé, § chantiers séparés). Trigger de statut affiché explicitement : `👣` (déclenche au passage — ex. Brûlure au Magma, boucle par pas moteur) vs `🛑` (déclenche à l'arrêt — ex. Poison au Marécage, fin de tour) ; DoT par tour = glyphe « en continu ». Purement affichage, aucune modification core.
 - **Seed test-only** `SandboxConfig.debugTiles` (hazards/champ/zones/distortion posables sur une case) — sert la démo et l'e2e du panneau, pas une fonctionnalité gameplay.
 - **Chantiers séparés notés hors périmètre** (voir `docs/next.md`) : pack d'icônes (game-icons.net), Évasion Herbe Haute (core, jamais implémentée), hazards interdits sur liquide sauf Piège de Roc (core), rendu in-world des effets sur tuiles (plan à part).
+
+---
+
+## 5f. Preview de combat (plan 175)
+
+À la confirmation d'une cible (`confirm_attack`), le panneau `InfoPanel` du lanceur et la « cursor card » (une **2ᵉ instance** du même composant `createInfoPanel`, pas un composant dédié) portent le pronostic. Pas de nouveau type `CombatPreviewData` : les deux ajouts vivent directement sur `InfoPanelData` (`packages/render-ports/src/view-models.ts`), pour que la carte cible reste littéralement le même composant que le panneau du Pokemon actif (décision humaine 2026-07-25 — une carte flèche fusionnée séparée a été essayée et rejetée, jugée moche).
+
+- **`InfoPanelData.attack?: InfoPanelAttack`** : bloc attaque, rendu comme **section à l'intérieur** du panneau du lanceur (pas une carte flèche séparée) — nom + icône de type du move, précision/critique pré-formatés, `min–max` (ou `—` si aucun dégât), `outcome` (colore le chiffre), puces de modificateurs (`TileInfoChip`, réutilisées du plan 177) et puce d'effet secondaire.
+- **`InfoPanelData.preview?: InfoPanelPreview`** : pronostic superposé sur la cursor card pendant une confirmation — dégâts `{min, max}`, `remainingLabel` (PV restants en %), `outcome` (`CombatPreviewOutcome = "guaranteed-ko" | "possible-ko" | "survives" | "no-effect"`), `verdictLabel` (texte seulement pour l'immunité ou un garde-fou de survie connu — les 3 K.O. passent par la couleur de `outcome`, pas par du texte), `focusIndex`/`totalTargets` (compteur `n/N`, chevrons masqués si 1).
+- **Builder** : `buildCombatPreviewView(context, engine, state, attackerId, moveId, displayMove, targetIds, focusIndex, targetPosition?)` (`packages/view-core/src/combat-preview-view.ts`) — appelle `engine.previewMove()`, construit le bloc `attack` et enrichit un `buildInfoPanelView(...)` normal du champ `preview` pour la cible (`stats` explicitement mis à `undefined` sur la cursor card : c'est un lecteur de dégâts, pas la fiche stats du lanceur). Garde-fou de survie à 1 PV (`isGuardKnownToPlayer`) : Ténacité toujours connue (le joueur a vu l'action), Fermeté/Ceinture Force gatées sur une visibilité qui vaut toujours `true` aujourd'hui (pas de fog) mais existe déjà comme point d'accroche pour le plan 176. Le Bandeau (`focus-band`) ne passe jamais par ce garde-fou (survie probabiliste).
+- **Extensions core pures** (aucune dépendance UI) : `computeEffectiveAccuracy` (extrait de `checkAccuracy`, `accuracy-check.ts` — `checkAccuracy` reste iso-comportement, `consumeLockedOn` non déplacé) ; `effectiveCritChance` (nouveau `packages/core/src/battle/crit-chance.ts`, extrait du cumul de crans de `calculateDamage`) ; `DamageEstimate` enrichi de `heightModifier`, `terrainModifier`, `weatherModifier`, `screenModifier`, `resolvedMoveType`, `resolvedPower` (champs **ajoutés**, aucun retiré — les appelants IA existants ne bougent pas) ; `BattleEngine.previewMove(attackerId, moveId, defenderId, targetPosition?)` agrège `DamageEstimate` + accuracy + crit + `survivalGuard: SurvivalGuardKind | null` en un seul `MovePreview` (`packages/core/src/types/move-preview.ts`).
+- **Orchestrateur** : `battle-orchestrator.ts` construit la liste des cibles (`previewOccupantIds()`) à l'entrée en `confirm_attack`, pose `focusIndex = 0`, pousse le view-model via le port `BattleChrome.updateCursorPanel(view: InfoPanelData | null)` (nouveau, à côté de `updateInfoPanel`/`updateTileInfo`). Cycle (`cycleCombatPreviewTarget(delta)`) recalcule et republie sans rejouer `tryPickTarget`. Chrome (`battle-chrome.ts`) : `cursorPanel = createInfoPanel("cursor-panel")`, 3ᵉ élément de `.bc-infopanel-row` `[infoPanel, tileInfoPanel, cursorPanel]` — le `TileInfoPanel` central n'est pas swappé (contrairement au draft initial du plan), les trois cohabitent.
+- **Règles de jeu corrigées à cette occasion** (pas seulement de l'UI, décisions #721–#722) : `estimateDamage` intègre désormais météo/écrans (Reflet/Mur Lumière)/Brise Barrière (`weatherModifier`/`screenModifier`, auparavant figés à `1.0`) ; `getTerrainTypeBonusFactor` (`terrain-effects.ts`) n'exclut plus le type natif/immunisé au terrain du bonus ×1.15, seul un attaquant aéroporté en est exclu.
+- **Legs au plan 176** : ce panneau affiche des valeurs exactes (pas de plage élargie par le fog) — type exact via la puce d'efficacité, PV exacts via la barre/le verdict, garde-fous de survie via des talents/objets pas encore cachés. Le plan 176 devra trancher si ce panneau reste un outil privilégié exempté de fog, ou bascule en estimations dégradées. Détail complet : `docs/plans/175-combat-preview.md`.
 
 ---
 

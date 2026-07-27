@@ -168,5 +168,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 172 | [IA — positionnement pour le ring-out (Phase 2 du plan 159)](./172-ai-ring-out-positioning.md) | done | 2026-07-24 |
 | 173 | [Phase « Client jouable : contrôles & UI » (consolidation)](./173-phase-client-jouable-ui-controles.md) | ready | 2026-07-24 |
 | 174 | [InfoPanel enrichi « tes Pokemon »](./174-infopanel-tes-pokemon.md) | done | 2026-07-24 |
-| 175 | [Combat preview (prévision de dégâts détaillée)](./175-combat-preview.md) | draft | 2026-07-25 |
+| 175 | [Combat preview (prévision de dégâts détaillée)](./175-combat-preview.md) | done | 2026-07-26 |
 | 177 | [Panneau d'info de case (terrain & modificateurs)](./177-tile-info-panel.md) | done | 2026-07-24 |
