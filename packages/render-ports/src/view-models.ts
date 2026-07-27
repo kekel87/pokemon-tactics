@@ -101,6 +101,34 @@ export interface InfoPanelData {
   readonly heldItem?: string;
   /** Held-item icon URL (plan 168); omitted when the Pokémon holds nothing. */
   readonly itemIconUrl?: string;
+  /**
+   * Confirm-phase overlay (plan 175): present only on the cursor/target card while an attack is
+   * being confirmed. The card is the SAME component as the active-Pokémon panel — the human asked
+   * the two to share their base — so the forecast rides on top of the usual readout instead of
+   * living in a card of its own.
+   */
+  readonly preview?: InfoPanelPreview;
+  /**
+   * Confirm-phase attack block (plan 175): present only on the ATTACKER's panel while an attack is
+   * locked in. Rendered as a section inside this card rather than a separate arrow card.
+   */
+  readonly attack?: InfoPanelAttack;
+}
+
+/** The forecast layered onto the cursor card while an attack is locked in (plan 175). */
+export interface InfoPanelPreview {
+  /** Predicted damage range, painted onto the HP bar; null when the move deals none. */
+  readonly damage: { readonly min: number; readonly max: number } | null;
+  /** Predicted HP left, as a localised range or `0 %` on a lethal hit. */
+  readonly remainingLabel: string;
+  /** Lethality — colours the HP-left figure. */
+  readonly outcome: CombatPreviewOutcome;
+  /** Immunity or known survive-at-1-HP caveat; empty when nothing needs spelling out. */
+  readonly verdictLabel: string;
+  /** 0-based index of this target within the footprint (for the `n/N` counter). */
+  readonly focusIndex: number;
+  /** Living targets under the footprint; chevrons stay hidden when this is 1. */
+  readonly totalTargets: number;
 }
 
 /* ── Tile info panel (plan 177) ───────────────────────────────────────────── */
@@ -145,4 +173,41 @@ export interface TileInfoData {
   readonly height: number;
   /** Ordered rows, each a list of chips; may be empty. */
   readonly lines: readonly (readonly TileInfoChip[])[];
+}
+
+/** How lethal the focused hit is — drives both the verdict wording and its colour. */
+export type CombatPreviewOutcome = "guaranteed-ko" | "possible-ko" | "survives" | "no-effect";
+
+/**
+ * Combat-preview panel view-model (plan 175): what the locked-in attack would do to ONE focused
+ * target. Same contract as `TileInfoData` — every label is localised and every icon resolved by the
+ * view-core builder, so the DOM component stays a dumb renderer with no core dependency.
+ *
+ * Values are exact (no fog): the enemy-information gating lands with plan 176, which must revisit
+ * this panel — several fields here would otherwise leak what that plan hides.
+ */
+/**
+ * The attack block (plan 175), rendered as a section INSIDE the attacker's own InfoPanel — a
+ * separate fused arrow card was tried first and rejected as ugly (human 2026-07-25).
+ *
+ * The victim's side of the forecast is not here: it rides on the cursor card as
+ * `InfoPanelData.preview`.
+ */
+export interface InfoPanelAttack {
+  readonly moveName: string;
+  readonly moveTypeIconUrl: string;
+  /** Pre-formatted accuracy (`Préc. 75 %`, or a guaranteed-hit wording). */
+  readonly accuracyText: string;
+  /** Pre-formatted crit odds (`Crit. 4 %`, `Crit. garanti`, `Crit. impossible`). */
+  readonly critText: string;
+  /** The headline number (`95–112`), or an em dash when the move deals no damage. */
+  readonly damageValue: string;
+  /** Localised caption under it ("points de dégâts"); empty when there is no damage. */
+  readonly damageUnitLabel: string;
+  /** Lethality — colours the headline number instead of spelling out a verdict. */
+  readonly outcome: CombatPreviewOutcome;
+  /** Modifier chips (type effectiveness, back attack, height, terrain) — only those ≠ 1. */
+  readonly modifierChips: readonly TileInfoChip[];
+  /** Secondary-effect chip (icon + affected stat + chance), when the move carries one. */
+  readonly effectChip: TileInfoChip | null;
 }

@@ -30,7 +30,8 @@ Combat tactique sur grille isométrique :
 - Formats : 2p (6v6 max), 3p (4v4v4), 4p (3v3v3v3), 6p (2v2×6), 12p (1×12)
 - **Taille d'équipe configurable** par format — base = 6v6. Définie avant le combat.
 - **Multijoueur local hot-seat** (style Civilization)
-- **Pas de brouillard de guerre** — chaque joueur voit tout
+- **Pas de brouillard de guerre spatial** — positions, terrain, hauteur et effets de case sont publics : chaque joueur voit tout le plateau, en permanence
+- **Information partielle sur les Pokemon adverses** — stats exactes, talent, objet tenu et PV précis d'un ennemi ne sont pas donnés d'emblée ; ils se révèlent à l'usage (un move vu, un objet déclenché, un talent scouté). Les stats de base restent publiques sous forme de **plage** min–max, aucune information n'est inventée. Mise en œuvre : plan 176 (`getGameState` par perspective) — jusque-là le client reste plein-info en local et en sandbox
 - **FFA = chacun pour soi** — pas d'alliances dynamiques
 - Multijoueur réseau : plus tard
 

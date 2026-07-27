@@ -72,13 +72,20 @@ const TERRAIN_TYPE_BONUS: Partial<Record<TerrainType, PokemonTypeValue>> = {
   [TerrainType.Swamp]: PokemonType.Poison,
 };
 
+/**
+ * The ×1.15 the tile grants to a matching move type, for an attacker standing ON it.
+ *
+ * Only *airborne* attackers are excluded: they never touch the tile, so it cannot empower them.
+ * Type immunity does NOT disqualify (decision 2026-07-25) — it only cancels the terrain's damage
+ * and status. Gating the bonus on it inverted the intent: a Fire type is immune to magma, so it was
+ * the one mon that could never draw power from standing in lava, while any non-Fire attacker could.
+ */
 export function getTerrainTypeBonusFactor(
   terrain: TerrainType,
   moveType: PokemonTypeValue,
-  attackerTypes: PokemonTypeValue[],
   isFlying = false,
 ): number {
-  if (isTerrainImmune(terrain, attackerTypes, isFlying)) {
+  if (isFlying) {
     return 1.0;
   }
   const bonusType = TERRAIN_TYPE_BONUS[terrain];

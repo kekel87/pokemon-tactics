@@ -75,54 +75,33 @@ describe("getMovementPenalty", () => {
 
 describe("getTerrainTypeBonusFactor", () => {
   it("returns 1.15 for matching type/terrain", () => {
-    expect(
-      getTerrainTypeBonusFactor(TerrainType.Water, PokemonType.Water, [PokemonType.Normal]),
-    ).toBe(1.15);
-    expect(
-      getTerrainTypeBonusFactor(TerrainType.DeepWater, PokemonType.Water, [PokemonType.Normal]),
-    ).toBe(1.15);
-    expect(
-      getTerrainTypeBonusFactor(TerrainType.Magma, PokemonType.Fire, [PokemonType.Normal]),
-    ).toBe(1.15);
-    expect(
-      getTerrainTypeBonusFactor(TerrainType.Lava, PokemonType.Fire, [PokemonType.Normal]),
-    ).toBe(1.15);
-    expect(getTerrainTypeBonusFactor(TerrainType.Ice, PokemonType.Ice, [PokemonType.Normal])).toBe(
-      1.15,
-    );
-    expect(
-      getTerrainTypeBonusFactor(TerrainType.Sand, PokemonType.Ground, [PokemonType.Normal]),
-    ).toBe(1.15);
-    expect(getTerrainTypeBonusFactor(TerrainType.Snow, PokemonType.Ice, [PokemonType.Normal])).toBe(
-      1.15,
-    );
-    expect(
-      getTerrainTypeBonusFactor(TerrainType.Swamp, PokemonType.Poison, [PokemonType.Normal]),
-    ).toBe(1.15);
+    expect(getTerrainTypeBonusFactor(TerrainType.Water, PokemonType.Water)).toBe(1.15);
+    expect(getTerrainTypeBonusFactor(TerrainType.DeepWater, PokemonType.Water)).toBe(1.15);
+    expect(getTerrainTypeBonusFactor(TerrainType.Magma, PokemonType.Fire)).toBe(1.15);
+    expect(getTerrainTypeBonusFactor(TerrainType.Lava, PokemonType.Fire)).toBe(1.15);
+    expect(getTerrainTypeBonusFactor(TerrainType.Ice, PokemonType.Ice)).toBe(1.15);
+    expect(getTerrainTypeBonusFactor(TerrainType.Sand, PokemonType.Ground)).toBe(1.15);
+    expect(getTerrainTypeBonusFactor(TerrainType.Snow, PokemonType.Ice)).toBe(1.15);
+    expect(getTerrainTypeBonusFactor(TerrainType.Swamp, PokemonType.Poison)).toBe(1.15);
   });
 
   it("returns 1.0 for non-matching move type", () => {
-    expect(
-      getTerrainTypeBonusFactor(TerrainType.Water, PokemonType.Fire, [PokemonType.Normal]),
-    ).toBe(1.0);
-    expect(
-      getTerrainTypeBonusFactor(TerrainType.Magma, PokemonType.Water, [PokemonType.Normal]),
-    ).toBe(1.0);
+    expect(getTerrainTypeBonusFactor(TerrainType.Water, PokemonType.Fire)).toBe(1.0);
+    expect(getTerrainTypeBonusFactor(TerrainType.Magma, PokemonType.Water)).toBe(1.0);
   });
 
   it("returns 1.0 for normal terrain", () => {
-    expect(
-      getTerrainTypeBonusFactor(TerrainType.Normal, PokemonType.Normal, [PokemonType.Normal]),
-    ).toBe(1.0);
+    expect(getTerrainTypeBonusFactor(TerrainType.Normal, PokemonType.Normal)).toBe(1.0);
   });
 
-  it("immune attacker gets no bonus", () => {
-    expect(
-      getTerrainTypeBonusFactor(TerrainType.Magma, PokemonType.Fire, [PokemonType.Flying]),
-    ).toBe(1.0);
-    expect(getTerrainTypeBonusFactor(TerrainType.Magma, PokemonType.Fire, [PokemonType.Fire])).toBe(
-      1.0,
-    );
+  it("grants the bonus to the terrain's own type, which is immune to its damage", () => {
+    expect(getTerrainTypeBonusFactor(TerrainType.Magma, PokemonType.Fire, false)).toBe(1.15);
+    expect(getTerrainTypeBonusFactor(TerrainType.Water, PokemonType.Water, false)).toBe(1.15);
+  });
+
+  it("returns 1.0 for an airborne attacker, which never touches the tile", () => {
+    expect(getTerrainTypeBonusFactor(TerrainType.Magma, PokemonType.Fire, true)).toBe(1.0);
+    expect(getTerrainTypeBonusFactor(TerrainType.Water, PokemonType.Water, true)).toBe(1.0);
   });
 });
 

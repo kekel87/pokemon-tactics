@@ -23,6 +23,7 @@ import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.
 import { initLanguage } from "./i18n/index.js";
 import { getRendererBackend } from "./renderer-backend.js";
 import { sandboxBootConfig, teardownSandboxStudioDom } from "./sandbox-boot.js";
+import { initSettings } from "./settings/index.js";
 import {
   DEFAULT_SANDBOX_CONFIG,
   normalizeSandboxConfig,
@@ -47,6 +48,10 @@ if (!root) {
 // (`?config`/`?combat`) qui ne passe pas par le menu. Sans ça, la langue restait figée au défaut
 // (FR) hors navigation menu → HUD de combat en FR même avec `pt-lang=en` (bug backlog).
 initLanguage();
+// Idem pour les réglages (`pt-settings`) : sans cette lecture au boot, `getSettings()` restait sur
+// les défauts en mémoire et un réglage persisté (ex. Prévisualisation dégâts OFF) redevenait ON au
+// rechargement — et le gating du panneau de preview (plan 175) ne s'appliquait jamais.
+initSettings();
 
 const query = new URLSearchParams(window.location.search);
 // Routes (plan 120 step 9):

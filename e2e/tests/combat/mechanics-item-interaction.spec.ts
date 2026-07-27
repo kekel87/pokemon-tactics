@@ -9,7 +9,8 @@ import {
   THIEF_STEALS_ITEM,
   TRICK_SWAPS_ITEMS,
 } from "../../fixtures/sandbox-configs";
-import { InfoPanel } from "../../pages/combatHud";
+import type { CombatScene } from "../../pages/CombatScene";
+import { cardShowing } from "../../pages/combat-queries";
 
 // Cahier §5.25 — Item interaction (plan 142) : manipulation de l'objet tenu pilotée de bout en bout via
 // le journal FR (BattleLogFormatter) + la ligne objet de l'InfoPanel (`info-panel-item`, icône officielle
@@ -22,16 +23,14 @@ import { InfoPanel } from "../../pages/combatHud";
 const log = (page: Page, re: RegExp) =>
   page.getByTestId("battle-log-entry").filter({ hasText: re });
 
-// L'InfoPanel reflète le Pokemon SURVOLÉ (sinon l'actif). Après une action, l'actif peut être le dummy
-// le temps de son tour → on survole la case du JOUEUR (2,3) pour cibler son panneau, et on RE-survole à
-// chaque poll (le hover est continu dans le jeu réel ; un seul peut être écrasé par un re-render). Cf.
-// le pattern de info-panel.spec.ts.
-const hoveredItem = async (
-  page: Page,
-  scene: { hoverTile(x: number, y: number): Promise<void> },
-) => {
+// Après une action, l'actif peut être le dummy le temps de son tour → on survole la case du LANCEUR
+// (2,3) et on lit la carte qui l'affiche : le panneau gauche s'il est redevenu actif, la carte curseur
+// sinon (plan 175). On RE-survole à chaque poll (le hover est continu dans le jeu réel ; un seul peut
+// être écrasé par un re-render).
+const hoveredItem = async (page: Page, scene: CombatScene, casterName: string) => {
   await scene.hoverTile(2, 3);
-  return page.getByTestId("info-panel-item").textContent();
+  const card = await cardShowing(page, casterName);
+  return card ? card.item.textContent() : null;
 };
 
 // Sabotage (knock-off) : retire l'objet retirable de la cible. Le joueur lance Sabotage sur le dummy
@@ -56,11 +55,11 @@ test("§5.25 Larcin : vole l'objet (journal « vole le … » + InfoPanel du lan
   const scene = await bootSandbox(THIEF_STEALS_ITEM);
   await scene.castFirstMove(2, 2);
   await expect(log(page, /vole le Restes de/)).toBeAttached({ timeout: 10_000 });
-  // Survoler la case du LANCEUR (2,3) cible l'InfoPanel sur lui (indépendant du Pokemon actif après
-  // l'action) → il porte désormais l'objet volé. Re-survol par poll (anti-course HUD), cf. info-panel.spec.
-  const info = new InfoPanel(page);
-  await expect.poll(() => hoveredItem(page, scene), { timeout: 10_000 }).toBe("Restes");
-  await expect(info.item).toHaveText("Restes");
+  // Survoler la case du LANCEUR (2,3) → sa carte montre l'objet volé. Re-survol par poll (anti-course
+  // HUD), cf. info-panel.spec.
+  await expect
+    .poll(() => hoveredItem(page, scene, "Florizarre"), { timeout: 10_000 })
+    .toBe("Restes");
 });
 
 // Tour de Magie (trick) : échange inconditionnel des objets tenus (D3). Le joueur tient le Bandeau Choix,
@@ -73,10 +72,10 @@ test("§5.25 Tour de Magie : échange les objets tenus (journal + InfoPanel)", a
   const scene = await bootSandbox(TRICK_SWAPS_ITEMS);
   await scene.castFirstMove(2, 2);
   await expect(log(page, /échange son objet avec/)).toBeAttached({ timeout: 10_000 });
-  const info = new InfoPanel(page);
   // Le lanceur a récupéré l'objet du dummy (les Restes) en échange de son Bandeau Choix.
-  await expect.poll(() => hoveredItem(page, scene), { timeout: 10_000 }).toBe("Restes");
-  await expect(info.item).toHaveText("Restes");
+  await expect
+    .poll(() => hoveredItem(page, scene, "Florizarre"), { timeout: 10_000 })
+    .toBe("Restes");
 });
 
 // Dégommage (fling) : lance l'objet tenu ; l'Orbe Flamme inflige la Brûlure à la cible (table
@@ -108,10 +107,10 @@ test("§5.25 Recyclage : restaure la baie consommée (journal + InfoPanel)", asy
   // Tour suivant : Recyclage (Self → cible = sa propre case) restaure l'objet consommé.
   await scene.castFirstMove(2, 3);
   await expect(log(page, /recycle son Baie Lichii/)).toBeAttached({ timeout: 10_000 });
-  const info = new InfoPanel(page);
   // L'objet consommé est de retour dans la main du Ronflex.
-  await expect.poll(() => hoveredItem(page, scene), { timeout: 10_000 }).toBe("Baie Lichii");
-  await expect(info.item).toHaveText("Baie Lichii");
+  await expect
+    .poll(() => hoveredItem(page, scene, "Ronflex"), { timeout: 10_000 })
+    .toBe("Baie Lichii");
 });
 
 // Éructation (belch) : injouable tant qu'aucune baie n'a été mangée (D7). Le Ronflex tient une Baie

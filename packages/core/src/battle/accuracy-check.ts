@@ -31,22 +31,30 @@ export function consumeLockedOn(attacker: PokemonInstance): boolean {
   return false;
 }
 
-export function checkAccuracy(
+/**
+ * The accuracy a move would actually be rolled against, as a percentage — the pure half of
+ * `checkAccuracy`, with no RNG and no mutation. `null` means "hits for sure" (Verrouillage armed,
+ * `bypassAccuracy`, or an effective accuracy that already reached 100%), which the combat preview
+ * (plan 175) renders as a guaranteed-hit glyph rather than "100%".
+ *
+ * Reads the Verrouillage volatile WITHOUT consuming it: the consumption is a side effect that must
+ * stay in `checkAccuracy`, so previewing a move never spends the lock-on.
+ */
+export function computeEffectiveAccuracy(
   move: MoveDefinition,
   attacker: PokemonInstance,
   defender: PokemonInstance,
-  random: RandomFn = () => Math.random(),
   terrainEvasionBonus = 0,
   abilityRegistry?: AbilityHandlerRegistry,
   state?: BattleState,
   itemRegistry?: HeldItemHandlerRegistry,
-): boolean {
-  if (consumeLockedOn(attacker)) {
-    return true;
+): number | null {
+  if (attacker.volatileStatuses.some((v) => v.type === StatusType.LockedOn)) {
+    return null;
   }
 
   if (move.bypassAccuracy) {
-    return true;
+    return null;
   }
 
   const accuracyStages = attacker.statStages[StatName.Accuracy];
@@ -122,7 +130,34 @@ export function checkAccuracy(
       gravityAccBonus) /
     evasionMultiplier;
 
-  if (effectiveAccuracy >= 100) {
+  return effectiveAccuracy >= 100 ? null : effectiveAccuracy;
+}
+
+export function checkAccuracy(
+  move: MoveDefinition,
+  attacker: PokemonInstance,
+  defender: PokemonInstance,
+  random: RandomFn = () => Math.random(),
+  terrainEvasionBonus = 0,
+  abilityRegistry?: AbilityHandlerRegistry,
+  state?: BattleState,
+  itemRegistry?: HeldItemHandlerRegistry,
+): boolean {
+  // Verrouillage is consumed here (and only here) before the pure computation reads it.
+  if (consumeLockedOn(attacker)) {
+    return true;
+  }
+
+  const effectiveAccuracy = computeEffectiveAccuracy(
+    move,
+    attacker,
+    defender,
+    terrainEvasionBonus,
+    abilityRegistry,
+    state,
+    itemRegistry,
+  );
+  if (effectiveAccuracy === null) {
     return true;
   }
 

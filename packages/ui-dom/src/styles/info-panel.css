@@ -21,19 +21,31 @@
     display: grid;
     grid-template-columns: auto 1fr;
     align-items: start;
+    /* Rows hug the top instead of spreading when this card is stretched taller than its content —
+       so a short target card keeps its HP bar level with the attacker's (human 2026-07-25). */
+    align-content: start;
     column-gap: calc(12 * var(--ip-px));
     row-gap: calc(6 * var(--ip-px));
     inline-size: calc(300 * var(--ip-px));
     padding: calc(12 * var(--ip-px));
 
-    background: color-mix(in srgb, var(--ip-team) 85%, transparent);
-    border: max(1px, calc(1.5 * var(--ip-px))) solid var(--color-border-faint);
+    --ip-bg: color-mix(in srgb, var(--ip-team) 85%, transparent);
+    --ip-edge: max(1px, calc(1.5 * var(--ip-px)));
+
+    background: var(--ip-bg);
+    border: var(--ip-edge) solid var(--color-border-faint);
     border-radius: calc(9 * var(--ip-px));
     color: var(--color-text-primary);
     font-family: var(--font-family);
     /* Dark text shadow across the whole panel: keeps every label — name, level, HP, the coloured
        buff/debuff/nature text — legible on any team-colour background (same-hue cases). */
     text-shadow: 0 calc(1 * var(--ip-px)) 0 rgba(0, 0, 0, 0.5);
+
+    /* The author `display: grid` above beats the UA `[hidden] { display: none }`, so `hide()` was
+       inert and an empty card stayed on screen (cursor card, plan 175). */
+    &[hidden] {
+      display: none;
+    }
 
     /* data-team → team color token. */
     &[data-team="1"] { --ip-team: var(--team-1); }
@@ -203,6 +215,7 @@
   .ip-stat-debuff { color: var(--red-400); }
 
   .ip-hpbar {
+    position: relative;
     block-size: calc(9 * var(--ip-px));
     background: var(--blue-950);
     border: max(1px, calc(1 * var(--ip-px))) solid var(--blue-1000);
@@ -215,6 +228,237 @@
     inline-size: calc(var(--ip-hp, 1) * 100%);
     block-size: 100%;
     background: var(--ip-team);
+  }
+
+  /* Combat forecast (plan 175), only on the cursor card during a confirm. Three flatly distinct
+     zones: team colour = what survives, bright red = the loss a minimum roll guarantees, dark red =
+     the extra a maximum roll would also take. Widths/offsets are set per-update in JS. */
+  .ip-ghost-certain,
+  .ip-ghost-roll {
+    position: absolute;
+    inset-block: 0;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .ip-ghost-certain {
+    background: var(--red-400);
+    border-inline-start: max(1px, calc(1 * var(--ip-px))) solid var(--blue-1000);
+  }
+
+  .ip-ghost-roll {
+    background: color-mix(in srgb, var(--red-400) 45%, #000);
+    border-inline-start: max(1px, calc(1 * var(--ip-px))) solid var(--blue-1000);
+  }
+
+  /* Predicted HP left — the answer to "what does this leave standing?". */
+  .ip-remaining {
+    font-size: calc(19 * var(--ip-px));
+    font-weight: 700;
+    line-height: 1.1;
+
+    .ip-panel[data-outcome="guaranteed-ko"] & { color: var(--red-400); }
+    .ip-panel[data-outcome="possible-ko"] & { color: var(--yellow-400); }
+  }
+
+  /* Only shown for an immunity or a survival-guard caveat — never a routine verdict. */
+  .ip-verdict {
+    font-size: calc(16 * var(--ip-px));
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--color-text-secondary);
+  }
+
+  /* Attack forecast (plan 175): during a confirm the panel STRETCHES rightwards and ends in an
+     arrow tip, carrying the attack block in that extension (human 2026-07-25) — one card, one
+     border, rather than a separate card fused alongside.
+
+     `border-radius` still rounds the background paint before `clip-path` runs, so the left corners
+     survive; the CSS `border` does not (clip-path cuts it along the diagonal), hence the ::after
+     clone below which redraws it following the same outline. */
+  .ip-panel[data-attack="1"] {
+    --ip-tip: calc(20 * var(--ip-px));
+
+    position: relative;
+    inline-size: calc(500 * var(--ip-px));
+    grid-template-columns: auto 1fr auto;
+    /* The tip is painted OUTSIDE the box, so it needs its own room in the row — without this it
+       overlaps whatever card comes next. */
+    margin-inline-end: var(--ip-tip);
+
+    /* The card keeps its NORMAL border and rounded left corners — an earlier attempt clipped the
+       whole panel and redrew the outline, which squared those corners off. Only the right edge
+       changes: it opens onto the arrow tip built from the two pseudo-elements below. */
+    border-inline-end: none;
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+
+    /* Keep the Pokémon readout in the first two columns instead of spanning under the extension —
+       otherwise the attack block floats in a top-right corner with the stats running beneath it. */
+    & > .ip-content,
+    & > .ip-badges {
+      grid-column: 1 / 3;
+    }
+
+    /* Tip outline: a triangle with its middle carved out, so it reads as a continuation of the
+       card's border rather than a filled wedge. */
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block: calc(-1 * var(--ip-edge));
+      inset-inline-start: 100%;
+      inline-size: var(--ip-tip);
+      background: var(--color-border-faint);
+      pointer-events: none;
+      clip-path: polygon(
+        0 0,
+        100% 50%,
+        0 100%,
+        0 calc(100% - var(--ip-edge)),
+        calc(100% - 2.4 * var(--ip-edge)) 50%,
+        0 var(--ip-edge)
+      );
+    }
+
+    /* Tip fill, inset by the border width so it never bleeds over the outline above. */
+    &::after {
+      content: "";
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 100%;
+      inline-size: calc(var(--ip-tip) - 2.4 * var(--ip-edge));
+      background: var(--ip-bg);
+      pointer-events: none;
+      clip-path: polygon(0 0, 100% 50%, 0 100%);
+    }
+  }
+
+  /* The stretched extension: third grid column, contents centred like the standalone card it
+     replaces. `span 3` (portrait + content + badges rows), NOT `1 / -1`: this grid has no explicit
+     rows, so `-1` resolves to the FIRST line and everything else would wrap underneath. */
+  .ip-attack {
+    grid-column: 3;
+    grid-row: 1 / span 3;
+    align-self: center;
+    inline-size: calc(185 * var(--ip-px));
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: calc(4 * var(--ip-px));
+    padding-inline-start: calc(12 * var(--ip-px));
+    margin-inline-start: calc(4 * var(--ip-px));
+    border-inline-start: max(1px, calc(1.5 * var(--ip-px))) solid
+      color-mix(in srgb, var(--color-text-primary) 30%, transparent);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .ip-attack-move {
+    display: flex;
+    align-items: center;
+    gap: calc(5 * var(--ip-px));
+    font-size: calc(23 * var(--ip-px));
+    font-weight: bold;
+  }
+
+  .ip-attack-type {
+    flex: 0 0 auto;
+    block-size: calc(20 * var(--ip-px));
+    inline-size: auto;
+    image-rendering: pixelated;
+  }
+
+  /* Headline damage with its unit tight beside it, precision/crit on the line below. */
+  .ip-attack-damagerow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: calc(4 * var(--ip-px));
+  }
+
+  .ip-attack-damage {
+    font-size: calc(28 * var(--ip-px));
+    font-weight: 700;
+    line-height: 1.05;
+
+    /* Lethality is carried by this colour (human 2026-07-25: no verdict sentence). */
+    &[data-outcome="guaranteed-ko"] { color: var(--red-400); }
+    &[data-outcome="possible-ko"] { color: var(--yellow-400); }
+    &[data-outcome="no-effect"] { color: var(--color-text-secondary); }
+  }
+
+  .ip-attack-unit {
+    font-size: calc(17 * var(--ip-px));
+    color: var(--color-text-secondary);
+  }
+
+  .ip-attack-stats {
+    flex-basis: 100%;
+    display: flex;
+    justify-content: center;
+    gap: calc(10 * var(--ip-px));
+    font-size: calc(19 * var(--ip-px));
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+
+  .ip-attack-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: calc(3 * var(--ip-px)) calc(8 * var(--ip-px));
+    font-size: calc(20 * var(--ip-px));
+    font-weight: 600;
+    line-height: 1;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  /* Icon-first chip, same visual language as the tile-info panel (plan 177). */
+  .ip-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(3 * var(--ip-px));
+
+    &[data-tone="danger"] { color: var(--red-400); }
+    &[data-tone="buff"] { color: var(--green-500); }
+    &[data-tone="info"] { color: var(--color-text-primary); }
+  }
+
+  .ip-chip-icon {
+    flex: 0 0 auto;
+    block-size: calc(21 * var(--ip-px));
+    inline-size: auto;
+    image-rendering: pixelated;
+  }
+
+  .ip-chip-glyph {
+    flex: 0 0 auto;
+    font-size: calc(19 * var(--ip-px));
+  }
+
+  /* Target counter for an area move: on the last badge line, pushed right (human 2026-07-25).
+     No chevrons — hovering another target of the footprint focuses it, as does Tab / Shift+Tab. */
+  .ip-counter {
+    /* Pushed to the row's right edge, so it lands directly under the level. */
+    margin-inline-start: auto;
+    font-size: calc(20 * var(--ip-px));
+    font-weight: bold;
+    color: var(--color-text-secondary);
+
+    &[hidden] {
+      display: none;
+    }
   }
 
   /* HP + talent share one row: HP left, talent pushed right. */

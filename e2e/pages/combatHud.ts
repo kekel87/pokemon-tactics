@@ -1,10 +1,13 @@
 import type { Locator, Page } from "@playwright/test";
 
-/** InfoPanel DOM chrome (edge-anchored) — reflects the active/hovered Pokemon's identity and PV.
- *  Located by `data-testid` (resilient, role-agnostic) per Playwright guidance; the HP bar carries
- *  a real `role="progressbar"` so it's reached by role — but SCOPED under the `info-panel` testid,
- *  because the loading overlay exposes its own `role="progressbar"` bar while fading out (a bare
- *  page-level role would match both → strict-mode violation on an early read). */
+/** InfoPanel DOM chrome (edge-anchored) — since plan 175 it reflects the ACTIVE Pokemon only; the
+ *  hovered/targeted readout lives on the cursor card ({@link CursorPanel}), the same component
+ *  mounted a second time. Located by `data-testid` (resilient, role-agnostic) per Playwright
+ *  guidance; the HP bar carries a real `role="progressbar"` so it's reached by role — but SCOPED
+ *  under the panel root, because the loading overlay exposes its own `role="progressbar"` bar while
+ *  fading out (a bare page-level role would match both → strict-mode violation on an early read).
+ *  Every inner locator is likewise scoped under the root: the two cards share their inner testids
+ *  (one component, two instances), so only the root tells them apart. */
 export class InfoPanel {
   readonly panel: Locator;
   readonly name: Locator;
@@ -34,22 +37,54 @@ export class InfoPanel {
    *  are ordered `<span>`s: label, value, crans, arrow, modified — tag-scoped like `itemIcon`. */
   readonly stats: Locator;
   readonly statRows: Locator;
-  constructor(page: Page) {
-    this.panel = page.getByTestId("info-panel");
-    this.name = page.getByTestId("info-panel-name");
-    this.level = page.getByTestId("info-panel-level");
-    this.hpText = page.getByTestId("info-panel-hp");
+  /** Confirm-phase forecast (plan 175) — inert on the left card, filled on the cursor card. */
+  readonly remaining: Locator;
+  readonly verdict: Locator;
+  readonly counter: Locator;
+  /** Confirm-phase attack block (plan 175) — the ATTACKER's card grows a third column carrying it. */
+  readonly attack: Locator;
+  readonly moveName: Locator;
+  readonly damage: Locator;
+  readonly accuracy: Locator;
+  readonly crit: Locator;
+  readonly modifiers: Locator;
+  readonly effect: Locator;
+  constructor(page: Page, testId = "info-panel") {
+    this.panel = page.getByTestId(testId);
+    this.name = this.panel.getByTestId("info-panel-name");
+    this.level = this.panel.getByTestId("info-panel-level");
+    this.hpText = this.panel.getByTestId("info-panel-hp");
     this.hpBar = this.panel.getByRole("progressbar");
-    this.portrait = page.getByTestId("info-panel-portrait");
-    this.item = page.getByTestId("info-panel-item");
+    this.portrait = this.panel.getByTestId("info-panel-portrait");
+    this.item = this.panel.getByTestId("info-panel-item");
     this.itemIcon = this.item.locator("img");
-    this.types = page.getByTestId("info-panel-types");
-    this.typeChips = this.types.locator("li");
+    this.types = this.panel.getByTestId("info-panel-types");
+    // `li[data-type]` and not a bare `li`: since plan 175 the target counter rides this same row.
+    this.typeChips = this.types.locator("li[data-type]");
     this.hpNumbers = this.hpText.locator("span").nth(0);
     this.hpPct = this.hpText.locator("span").nth(1);
-    this.talent = page.getByTestId("info-panel-talent");
-    this.stats = page.getByTestId("info-panel-stats");
+    this.talent = this.panel.getByTestId("info-panel-talent");
+    this.stats = this.panel.getByTestId("info-panel-stats");
     this.statRows = this.stats.locator("> div");
+    this.remaining = this.panel.getByTestId("combat-preview-remaining");
+    this.verdict = this.panel.getByTestId("combat-preview-verdict");
+    this.counter = this.panel.getByTestId("combat-preview-counter");
+    this.attack = this.panel.getByTestId("combat-preview-attack");
+    this.moveName = this.panel.getByTestId("combat-preview-move");
+    this.damage = this.panel.getByTestId("combat-preview-damage");
+    this.accuracy = this.panel.getByTestId("combat-preview-accuracy");
+    this.crit = this.panel.getByTestId("combat-preview-crit");
+    this.modifiers = this.panel.getByTestId("combat-preview-modifiers");
+    this.effect = this.panel.getByTestId("combat-preview-effect");
+  }
+}
+
+/** Cursor card (plan 175) — same component as {@link InfoPanel}, mounted a second time to the right
+ *  of the tile panel. Shows the Pokemon under the cursor, and during a confirm the focused target of
+ *  the attack footprint with its damage forecast layered on. */
+export class CursorPanel extends InfoPanel {
+  constructor(page: Page) {
+    super(page, "cursor-panel");
   }
 }
 

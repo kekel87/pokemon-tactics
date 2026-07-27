@@ -9,7 +9,7 @@ import { TargetingKind } from "../enums/targeting-kind";
 import { MockBattle } from "../testing/mock-battle";
 import { MockPokemon } from "../testing/mock-pokemon";
 import type { MoveDefinition } from "../types/move-definition";
-import { checkAccuracy } from "./accuracy-check";
+import { checkAccuracy, computeEffectiveAccuracy } from "./accuracy-check";
 
 const { abilityRegistry } = loadData();
 
@@ -177,5 +177,77 @@ describe("checkAccuracy ability onEvasionModify", () => {
 
     // Roll 0.5: 80% damage move (not status) at full accuracy → 80 > 50 → hit.
     expect(checkAccuracy(damageMove80, attacker, holder, () => 0.5, 0, abilityRegistry)).toBe(true);
+  });
+});
+
+describe("computeEffectiveAccuracy", () => {
+  it("returns null for a move that already reaches 100%", () => {
+    expect(
+      computeEffectiveAccuracy(
+        move100,
+        fresh(MockBattle.player1Fast),
+        fresh(MockBattle.player2Slow),
+      ),
+    ).toBeNull();
+  });
+
+  it("returns null for a move that bypasses accuracy", () => {
+    const swift: MoveDefinition = { ...move75, id: "swift", bypassAccuracy: true };
+    expect(
+      computeEffectiveAccuracy(swift, fresh(MockBattle.player1Fast), fresh(MockBattle.player2Slow)),
+    ).toBeNull();
+  });
+
+  it("returns the raw accuracy with no modifiers in play", () => {
+    expect(
+      computeEffectiveAccuracy(
+        move75,
+        fresh(MockBattle.player1Fast),
+        fresh(MockBattle.player2Slow),
+      ),
+    ).toBe(75);
+  });
+
+  it("divides by the defender's evasion multiplier", () => {
+    const defender = fresh(MockBattle.player2Slow, { [StatName.Evasion]: 1 });
+    expect(computeEffectiveAccuracy(move75, fresh(MockBattle.player1Fast), defender)).toBe(50);
+  });
+
+  it("applies the terrain evasion bonus like an extra evasion stage", () => {
+    const defender = fresh(MockBattle.player2Slow);
+    expect(computeEffectiveAccuracy(move75, fresh(MockBattle.player1Fast), defender, 1)).toBe(50);
+  });
+
+  it("multiplies by the attacker's accuracy stages, then clamps to null past 100", () => {
+    const attackerBoosted = fresh(MockBattle.player1Fast, { [StatName.Accuracy]: 1 });
+    expect(
+      computeEffectiveAccuracy(move75, attackerBoosted, fresh(MockBattle.player2Slow)),
+    ).toBeNull();
+  });
+
+  it("halves accuracy through a defensive ability modifier", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, { id: "attacker" });
+    const confusedHolder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      abilityId: "tangled-feet",
+      volatileStatuses: [{ type: StatusType.Confused, remainingTurns: 3 }],
+    });
+    const damageMove80: MoveDefinition = { ...move100, id: "risky80", accuracy: 80 };
+
+    expect(
+      computeEffectiveAccuracy(damageMove80, attacker, confusedHolder, 0, abilityRegistry),
+    ).toBe(40);
+  });
+
+  it("reports a guaranteed hit while Verrouillage is armed, without consuming it", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      volatileStatuses: [{ type: StatusType.LockedOn, remainingTurns: 1 }],
+    });
+    const defender = MockPokemon.fresh(MockPokemon.base, { id: "defender" });
+
+    expect(computeEffectiveAccuracy(move75, attacker, defender)).toBeNull();
+    expect(computeEffectiveAccuracy(move75, attacker, defender)).toBeNull();
+    expect(attacker.volatileStatuses).toHaveLength(1);
   });
 });

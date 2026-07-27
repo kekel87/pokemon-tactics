@@ -2242,3 +2242,89 @@ export const HEIGHT_RANGE_FLAT = {
   playerDirection: "south",
   dummyPosition: { x: 3, y: 3 },
 } as const;
+
+// --- §4.14 Preview de combat (plan 175) — la prévision détaillée affichée pendant la CONFIRMATION :
+// bloc d'attaque greffé sur le panneau du lanceur (nom + type du move, fourchette de dégâts colorée par
+// létalité, précision, critique, puces de modificateurs, effet secondaire) et carte cible à droite (PV
+// prédits, verdict, compteur n/N sur l'empreinte). Tout est calculé sans jet (`previewMove` est pur :
+// il lit Verrouillage sans le consommer), donc ces configs sont déterministes quel que soit le seed —
+// le seed hérité de DUEL ne sert qu'à figer la nature/les IV du roster. Aucun de ces tests ne RÉSOUT
+// l'attaque : ils s'arrêtent à la confirmation (`aimFirstMove`).
+
+/** Coup NON létal — Griffe (Normal, 40 BP) du Florizarre sur un Ronflex (snorlax) à pleins PV : la
+ *  fourchette reste loin sous ses PV → verdict « survit », la carte cible annonce les PV restants en
+ *  plage (« → X–Y % PV ») et le chiffre de dégâts n'est pas coloré en létal. Espèce endurante choisie
+ *  exprès pour que la survie soit garantie quels que soient nature/IV. */
+export const COMBAT_PREVIEW_SURVIVES = { ...DUEL, dummyPokemon: "snorlax" } as const;
+
+/** IMMUNITÉ — Griffe (Normal) sur un Ectoplasma (gengar, Spectre/Poison) : le type chart annule tout
+ *  (×0) → la preview n'affiche aucune fourchette (tiret) mais le marqueur « Sans effet ». */
+export const COMBAT_PREVIEW_IMMUNE = { ...DUEL, dummyPokemon: "gengar" } as const;
+
+/** GARDE-FOU de survie à 1 PV — l'Ectoplasma (frêle) est à PLEINS PV et tient une Ceinture Force
+ *  (`focus-sash`) ; le Mackogneur lance Séisme (Sol, 100 BP, Zone r2 auto-centrée, lanceur exclu), ×2
+ *  sur le Poison. Défense de la cible à -2 crans (÷2) pour que même le roll MINIMUM dépasse ses PV :
+ *  le verdict est catégoriquement létal, et porte pourtant la mention « sauf Ceinture Force » (source
+ *  connue du joueur — il n'y a pas encore de fog). Cible adjacente en (2,2), donc dans la zone ; le
+ *  cast vise la propre case du lanceur (Zone auto-centrée). */
+export const COMBAT_PREVIEW_FOCUS_SASH = {
+  ...DUEL,
+  pokemon: "machamp",
+  moves: ["earthquake"],
+  dummyPokemon: "gengar",
+  dummyStatStages: { defense: -2 },
+  dummyHeldItem: "focus-sash",
+} as const;
+
+/** PRÉCISION dégradée — Griffe est à 100 % de base, mais le dummy monte Esquive +2 (`statStages`) :
+ *  la précision EFFECTIVE tombe à 100 / ×2 = 50 %. Prouve que le panneau affiche la précision calculée
+ *  (crans d'Esquive compris) et non la valeur de fiche du move. Aucun jet n'est fait (on ne confirme
+ *  jamais), donc le chiffre est déterministe. */
+export const COMBAT_PREVIEW_ACCURACY = {
+  ...DUEL,
+  dummyPokemon: "snorlax",
+  dummyStatStages: { evasion: 2 },
+} as const;
+
+/** MODIFICATEURS + effet secondaire — le Dracaufeu lance Lance-Flammes (Feu, Ligne 3, secondaire
+ *  Brûlure 10 %) sur un Florizarre (Plante/Poison) adjacent : la puce d'efficacité affiche ×2 (Feu vs
+ *  Plante) et la puce d'effet la chance du statut. Cible endurante (`dummyHp: 999`) pour que le verdict
+ *  reste « survit » et n'écrase pas la lecture des puces. */
+export const COMBAT_PREVIEW_MODIFIERS = {
+  ...DUEL,
+  pokemon: "charizard",
+  moves: ["flamethrower"],
+  dummyPokemon: "venusaur",
+  dummyHp: 999,
+} as const;
+
+/** ZONE multi-cibles + TIR ALLIÉ (schéma v2 `teams`) — l'Alakazam (Vitesse 120, il joue en premier)
+ *  lance Séisme (Zone r2 auto-centrée, lanceur exclu) depuis (2,3) : l'empreinte couvre SON PROPRE
+ *  ALLIÉ Florizarre en (2,4) et l'ennemi Ronflex en (2,2). Deux occupants vivants → compteur « n/2 »
+ *  et cycle (survol d'une autre cible, ou Tab / Shift+Tab). L'ordre de cycle suit l'ordre des Pokemon
+ *  de l'état (équipe 1 puis équipe 2) → l'allié d'abord, ce qui montre aussi le tir allié (carte cible
+ *  en `data-team="1"`). Vitesses très écartées (120 / 80 / 30) → l'Alakazam est l'actif au boot, sans
+ *  dépendre du seed. Ronflex inerte (Groz'Yeux) et endurant : le combat ne bouge pas sous nos pieds. */
+export const COMBAT_PREVIEW_AOE = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "alakazam",
+          moves: ["earthquake"],
+          position: { x: 2, y: 3 },
+          direction: "north",
+        },
+        { pokemon: "venusaur", position: { x: 2, y: 4 } },
+      ],
+    },
+    {
+      control: "passive",
+      members: [
+        { pokemon: "snorlax", position: { x: 2, y: 2 }, hp: 999, defensiveMove: "leer" },
+      ],
+    },
+  ],
+} as const;

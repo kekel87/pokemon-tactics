@@ -1,6 +1,6 @@
 import { expect, test } from "../../fixtures";
 import { TYPE_MANIP_SOAK } from "../../fixtures/sandbox-configs";
-import { InfoPanel } from "../../pages/combatHud";
+import { badgeCountOnHover } from "../../pages/combat-queries";
 
 // Cahier §5.27 — famille Type manip (réécriture du type d'un Pokemon), pilotée à travers le renderer.
 // Les unit/integration core couvrent la résolution pure (efficacité/STAB recalculés, fail wholesale,
@@ -20,31 +20,22 @@ test("§5.27 Détrempage : la cible devient de type Eau (journal)", async ({ pag
 
 // §5.27 Détrempage : le typeOverride remonte dans l'InfoPanel sous forme de badge volatile « Type Eau »
 // (au survol de la case de la cible). Le badge n'a pas de testid propre : il porte un texte
-// user-facing (« Type Eau ») → on le localise par texte, scopé à l'InfoPanel (résilient, role-agnostic).
+// user-facing (« Type Eau ») → on le localise par texte, scopé à la carte (résilient, role-agnostic).
 test("§5.27 Détrempage : l'InfoPanel de la cible affiche le badge « Type Eau »", async ({
   page,
   bootSandbox,
 }) => {
   const scene = await bootSandbox(TYPE_MANIP_SOAK);
-  const info = new InfoPanel(page);
 
   await scene.castFirstMove(2, 2);
   await expect(log(page, /Ronflex devient de type Eau/)).toBeAttached({ timeout: 10_000 });
 
   // Le survol est CONTINU dans le jeu réel (pointermove répété) ; un seul hoverTile peut être écrasé
-  // par un re-render du HUD → on RE-survole à chaque itération du poll jusqu'à ce que le panneau
-  // reflète la cible piégée + son badge de type (robuste, pas de course).
-  const badge = info.panel.getByText("Type Eau", { exact: true });
+  // par un re-render du HUD → `badgeCountOnHover` RE-survole à chaque itération du poll, et lit la
+  // carte qui montre bien la cible (carte curseur ici — le panneau gauche reste sur l'actif).
   await expect
-    .poll(
-      async () => {
-        await scene.hoverTile(2, 2);
-        if ((await info.name.textContent()) !== "Ronflex") {
-          return 0;
-        }
-        return badge.count();
-      },
-      { timeout: 10_000 },
-    )
+    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 2 }, "Ronflex", "Type Eau"), {
+      timeout: 10_000,
+    })
     .toBe(1);
 });

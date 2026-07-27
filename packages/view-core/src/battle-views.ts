@@ -56,6 +56,8 @@ import type {
  */
 
 export type {
+  CombatPreviewOutcome,
+  InfoPanelAttack,
   InfoPanelData,
   TailwindView,
   TileInfoChip,

@@ -9,8 +9,40 @@
  * is wired at Jalon 4, keeping this decoupled from `@pokemon-tactic/core`.
  */
 
-import type { InfoPanelData } from "@pokemon-tactic/render-ports";
+import type { InfoPanelData, TileInfoChip } from "@pokemon-tactic/render-ports";
 import { el } from "./dom-helpers.js";
+
+/** Icon-first chip, shared with the tile-info panel's visual language (plan 177). */
+function chipElement(chip: TileInfoChip): HTMLElement {
+  const node = el("span", "ip-chip");
+  if (chip.tone) {
+    node.dataset.tone = chip.tone;
+  }
+  if (chip.title) {
+    node.title = chip.title;
+    node.setAttribute("aria-label", chip.title);
+  }
+  if (chip.emoji) {
+    const glyph = el("span", "ip-chip-glyph");
+    glyph.textContent = chip.emoji;
+    glyph.setAttribute("aria-hidden", "true");
+    node.append(glyph);
+  }
+  for (const url of chip.iconUrls ?? []) {
+    const icon = el("img", "ip-chip-icon");
+    icon.src = url;
+    icon.alt = "";
+    icon.decoding = "async";
+    icon.loading = "lazy";
+    node.append(icon);
+  }
+  if (chip.text) {
+    const text = el("span", "ip-chip-text");
+    text.textContent = chip.text;
+    node.append(text);
+  }
+  return node;
+}
 
 // Data view-model types live in the renderer contract package (plan 125);
 // re-exported for callers importing them from here.
@@ -33,8 +65,13 @@ const GENDER_SYMBOL: Record<"male" | "female", string> = {
   female: "♀", // ♀
 };
 
-export function createInfoPanel(): InfoPanel {
-  const panel = el("div", "ip-panel", "info-panel");
+/**
+ * @param testId root `data-testid`. The chrome mounts this component TWICE (left panel + cursor
+ * card, plan 175); the two roots must be distinguishable or every e2e locator matches both. Inner
+ * testids stay identical on purpose — a test scopes them under the root it means.
+ */
+export function createInfoPanel(testId = "info-panel"): InfoPanel {
+  const panel = el("div", "ip-panel", testId);
   panel.dataset.team = "1";
   panel.hidden = true;
 
@@ -52,7 +89,8 @@ export function createInfoPanel(): InfoPanel {
   const levelEl = el("span", "ip-level", "info-panel-level");
   header.append(nameEl, genderEl, levelEl);
 
-  // Type chips (both allies + enemies — types are public).
+  // Type chips (both allies + enemies — types are public). The target counter rides on this row,
+  // right-aligned under the level (human 2026-07-25).
   const typesEl = el("ul", "ip-types", "info-panel-types");
   headerCol.append(header, typesEl);
 
@@ -61,7 +99,13 @@ export function createInfoPanel(): InfoPanel {
   hpBar.setAttribute("role", "progressbar");
   hpBar.setAttribute("aria-valuemin", "0");
   const hpFill = el("div", "ip-hpfill");
-  hpBar.append(hpFill);
+  // Confirm-phase forecast (plan 175): the loss a minimum roll guarantees, then the extra a maximum
+  // roll would take. Inert (hidden) on the left panel, which never carries a preview.
+  const ghostCertain = el("div", "ip-ghost-certain");
+  const ghostRoll = el("div", "ip-ghost-roll");
+  ghostCertain.hidden = true;
+  ghostRoll.hidden = true;
+  hpBar.append(hpFill, ghostCertain, ghostRoll);
 
   // HP line: "142 / 180 (79%)" on the left, talent pushed to the right (ally only) — same row.
   // Percentage is a smaller sibling span so it reads as secondary to the exact HP numbers.
@@ -88,9 +132,48 @@ export function createInfoPanel(): InfoPanel {
 
   // Full-width column under the portrait row: HP + item + stats reclaim the space next to the
   // portrait (feedback plan 174). Portrait/header sit on row 1; content + badges span both columns.
+  // Preview extras (plan 175), all inert on the left panel: target cycling in the header, the
+  // friendly-fire banner, and the predicted HP left.
+  // Target counter — no chevrons (human 2026-07-25): cycling is driven by hovering another target
+  // of the footprint, or Tab / Shift+Tab. Rides the type-chip row, right-aligned under the level.
+  const targetCounter = el("li", "ip-counter", "combat-preview-counter");
+  targetCounter.hidden = true;
+
+  const remainingEl = el("div", "ip-remaining", "combat-preview-remaining");
+  remainingEl.hidden = true;
+  const verdictEl = el("div", "ip-verdict", "combat-preview-verdict");
+  verdictEl.hidden = true;
+
+  // Attack block (plan 175): a section of the ATTACKER's own panel while a confirm is open. A
+  // separate fused arrow card was tried first and rejected — this keeps one card, one border.
+  const attackEl = el("div", "ip-attack", "combat-preview-attack");
+  attackEl.hidden = true;
+  const attackMove = el("div", "ip-attack-move");
+  const attackTypeIcon = el("img", "ip-attack-type");
+  attackTypeIcon.alt = "";
+  attackTypeIcon.decoding = "async";
+  const attackMoveName = el("span", "ip-attack-name", "combat-preview-move");
+  attackMove.append(attackTypeIcon, attackMoveName);
+
+  const attackDamageRow = el("div", "ip-attack-damagerow");
+  const attackDamage = el("span", "ip-attack-damage", "combat-preview-damage");
+  const attackDamageUnit = el("span", "ip-attack-unit");
+  const attackStats = el("span", "ip-attack-stats");
+  const attackAccuracy = el("span", "ip-attack-stat", "combat-preview-accuracy");
+  const attackCrit = el("span", "ip-attack-stat", "combat-preview-crit");
+  attackStats.append(attackAccuracy, attackCrit);
+  attackDamageRow.append(attackDamage, attackDamageUnit, attackStats);
+
+  const attackModifiers = el("div", "ip-attack-chips", "combat-preview-modifiers");
+  const attackEffect = el("div", "ip-attack-chips", "combat-preview-effect");
+  attackEl.append(attackMove, attackDamageRow, attackModifiers, attackEffect);
+
   const content = el("div", "ip-content");
-  content.append(hpBar, hpRow, itemEl, statsEl);
-  panel.append(portrait, headerCol, content, badges);
+  content.append(hpBar, hpRow, remainingEl, verdictEl, itemEl, statsEl);
+  // The attack block is a THIRD grid column, not a row inside the content: during a confirm the
+  // panel stretches rightwards and ends in an arrow tip, carrying the block in that extension
+  // (human 2026-07-25) — same readout as the old standalone card, now part of the panel.
+  panel.append(portrait, headerCol, content, badges, attackEl);
 
   function update(data: InfoPanelData): void {
     panel.hidden = false;
@@ -121,6 +204,58 @@ export function createInfoPanel(): InfoPanel {
     hpBar.setAttribute("aria-valuemax", String(data.hpMax));
     hpBar.setAttribute("aria-valuenow", String(data.hpCurrent));
 
+    const attack = data.attack;
+    attackEl.hidden = attack === undefined;
+    // Drives the panel's stretched, arrow-tipped shape (CSS): the block is an extension of this
+    // card, not a card of its own.
+    panel.dataset.attack = attack ? "1" : "";
+    if (attack) {
+      attackTypeIcon.src = attack.moveTypeIconUrl;
+      attackMoveName.textContent = attack.moveName;
+      attackDamage.textContent = attack.damageValue;
+      attackDamage.dataset.outcome = attack.outcome;
+      attackDamageUnit.textContent = attack.damageUnitLabel;
+      attackAccuracy.textContent = attack.accuracyText;
+      attackCrit.textContent = attack.critText;
+      attackModifiers.replaceChildren(...attack.modifierChips.map(chipElement));
+      attackModifiers.hidden = attack.modifierChips.length === 0;
+      if (attack.effectChip) {
+        attackEffect.replaceChildren(chipElement(attack.effectChip));
+        attackEffect.hidden = false;
+      } else {
+        attackEffect.replaceChildren();
+        attackEffect.hidden = true;
+      }
+    }
+
+    const preview = data.preview;
+    panel.dataset.outcome = preview?.outcome ?? "";
+    if (preview?.damage && data.hpMax > 0) {
+      // Both overlays hug the right edge of the current HP and grow leftwards.
+      const certain = Math.min(preview.damage.min, data.hpCurrent) / data.hpMax;
+      const rolled = Math.min(preview.damage.max, data.hpCurrent) / data.hpMax;
+      ghostCertain.hidden = false;
+      ghostRoll.hidden = rolled <= certain;
+      ghostCertain.style.width = `${certain * 100}%`;
+      ghostCertain.style.left = `${(ratio - certain) * 100}%`;
+      ghostRoll.style.width = `${(rolled - certain) * 100}%`;
+      ghostRoll.style.left = `${(ratio - rolled) * 100}%`;
+    } else {
+      ghostCertain.hidden = true;
+      ghostRoll.hidden = true;
+    }
+
+    const multiTarget = (preview?.totalTargets ?? 0) > 1;
+    targetCounter.hidden = !multiTarget;
+    targetCounter.textContent = multiTarget
+      ? `${(preview?.focusIndex ?? 0) + 1}/${preview?.totalTargets}`
+      : "";
+
+    remainingEl.textContent = preview?.remainingLabel ?? "";
+    remainingEl.hidden = !preview?.remainingLabel;
+    verdictEl.textContent = preview?.verdictLabel ?? "";
+    verdictEl.hidden = !preview?.verdictLabel;
+
     // Talent shares the HP row (ally only), pushed to the right.
     if (data.ability) {
       talentEl.textContent = data.ability;
@@ -140,10 +275,9 @@ export function createInfoPanel(): InfoPanel {
         typeFragment.append(chip);
       }
       typesEl.append(typeFragment);
-      typesEl.hidden = false;
-    } else {
-      typesEl.hidden = true;
     }
+    typesEl.append(targetCounter);
+    typesEl.hidden = data.types.length === 0 && targetCounter.hidden;
 
     statsEl.replaceChildren();
     if (data.stats && data.stats.length > 0) {

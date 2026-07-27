@@ -460,6 +460,38 @@ survol via `hoverTile`. Seed test-only `debugTiles` (hazards/champ/zones/distors
   déplacement « −N » rouge, glyphes placeholder (⛰/🆓/⛔💀) → **remplacés au point icônes** (pixel/émoji).
 - 👁 **Layout** : largeur réduite, hauteur alignée sur l'allié, semi-transparence par équipe (rendu).
 
+### 4.14 Preview de combat (plan 175)
+
+*Prévision affichée à la **confirmation** d'une attaque. Le panneau du lanceur s'étire (3ᵉ colonne +
+pointe de flèche) et porte le bloc d'attaque ; la carte curseur devient la cible focalisée avec sa
+barre de vie prédite. Le panneau d'info de case s'efface pendant le ciblage. Gaté par le réglage
+« Prévisualisation dégâts ». Core : `BattleEngine.previewMove` ; view-model :
+`buildCombatPreviewView`. e2e : `combat-preview.spec`.*
+
+- 🤖 **K.O. garanti** : chiffre de dégâts en rouge (`data-outcome="guaranteed-ko"`), PV restants
+  « → 0 % PV », panneau de case masqué pendant la confirmation (`combat-preview.spec`).
+- 🤖 **Coup non létal** : PV restants en **plage** (« → X–Y % PV »), aucun verdict écrit — la couleur
+  du chiffre porte seule la létalité (`combat-preview.spec`).
+- 🤖 **Immunité** : « Sans effet », aucune fourchette de dégâts, aucune zone peinte sur la barre
+  (`combat-preview.spec`).
+- 🤖 **Garde-fou de survie** : cible à PV max tenant une **Ceinture Force** → le verdict létal porte
+  « sauf Ceinture Force ». **Bandeau** n'en déclenche aucun (survie probabiliste) —
+  `combat-preview.spec` + unit `preview-move.test.ts`.
+- 🤖 **Précision effective** : Esquive +2 sur la cible fait tomber la précision affichée (Griffe →
+  50 %) ; un move qui ne peut pas rater affiche 100 % sans consommer Verrouillage (`combat-preview.spec`).
+- 🤖 **Modificateurs** : puces efficacité de type (×2) et effet secondaire (10 %) —
+  `combat-preview.spec`. Dos/Face, hauteur, **Terrain ×1.15**, **Météo ×1.5** et **Mur** partagent le
+  même rendu de puce.
+- 🤖 **Zone multi-cibles** : compteur `n/N` sur la ligne des types, cycle au **survol** d'une autre
+  cible de l'empreinte et au clavier (`Tab` / `Shift+Tab`), tir allié reconnaissable à la couleur
+  d'équipe de la carte (`combat-preview.spec`).
+- 🤖 **Réglage désactivé** : « Prévisualisation dégâts » OFF → aucune prévision, ni panneau ni
+  étiquettes in-world ; le panneau de case reste (`combat-preview.spec`).
+- 👁 **Forme du panneau étiré** : pointe de flèche à droite, bordure d'origine et coins arrondis
+  conservés à gauche, contenu du bloc centré verticalement (rendu pur).
+- 👁 **Barre de vie prédite** : trois zones franches (restant / dégâts certains / zone de jet) —
+  lisibilité des teintes, pas la géométrie (couverte par les valeurs `aria-valuenow`).
+
 ---
 
 ## 5. Recette — feedbacks de mécaniques
@@ -2166,6 +2198,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |
 | `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` + **objet tenu** (plan 168 : icône officielle `<img>` data-URL + nom FR — Restes à l'actif, Orbe Vie au survol du porteur team 2 ; sans objet → ligne masquée) + **panneau enrichi allié** (plan 174 : chips de types `li[data-type]`, ligne PV avec `.ip-hppct`, talent `info-panel-talent`, bloc des 5 stats `info-panel-stats` ; une stat à cran (+2 Atq) affiche « 2↑ » + « → » + valeur effective ≠ base) + **ennemi minimal** (types visibles, bloc stats + talent masqués au survol du dummy team 2) |
 | `combat/tile-info-panel.spec.ts` | §4.13 panneau d'info de case (plan 177) : en-tête terrain FR + altitude (« Neutre » sans puce sur une case normale) ; **Magma** (5,2) → sprite statut Brûlé (`statuses/icon-burned.png`) + bonus Feu (`types/fire.png` « ×1.15 ») + immunité (Feu/Vol, `types/flying.png`) ; **case peuplée** (seed `debugTiles`) → hazards « Picots ×3 » / « Piège de Roc », champ « Champ Herbu », zones « Gravité »/« Distorsion » avec badge de durée [5] ; **Lave** (survol (0,5)) → puce traversal fusionnée « Chute fatale ». Triggers émoji/DoT/malus + layout = 👁 (placeholders remplacés au point icônes) |
+| `combat/combat-preview.spec.ts` | §4.14 preview de combat (plan 175) : **K.O. garanti** (chiffre rouge, « → 0 % PV », panneau de case masqué) ; **coup non létal** (PV restants en plage, aucun verdict) ; **immunité** (« Sans effet », pas de fourchette) ; **Ceinture Force** à PV max → verdict « sauf Ceinture Force » ; **précision effective** (Esquive +2 → Griffe à 50 %) ; **puces** efficacité ×2 + effet secondaire 10 % ; **zone multi-cibles** (compteur n/2, cycle `Tab`/`Shift+Tab` et au survol, tir allié) ; **réglage désactivé** → aucune prévision. Forme de la pointe + teintes de la barre prédite = 👁 |
 | `combat/weather.spec.ts` | §5 météo : HUD « Plein soleil » + tours restants |
 | `combat/multi-hit.spec.ts` | §5 multi-hit : Balle Graine → récap « Touché N fois » |
 | `combat/floating-text.spec.ts` | §5.2 texte flottant de dégâts (`hud_text_plane`) à la résolution |
@@ -2209,6 +2242,7 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
       Feu ×1.15 + immunité), case peuplée via seed `debugTiles` (hazards/champ/zones + badge durée), Lave
       survolée (traversal fusionnée « Chute fatale ») (`tile-info-panel.spec`). *Émoji/DoT/malus + layout
       = 👁 (placeholders remplacés au point icônes).*
+- [x] **§4.14 Preview de combat** (plan 175) : verdict létal/non létal/immunité, garde-fou Ceinture Force, précision effective, puces de modificateurs, zone multi-cibles (compteur + cycle clavier et survol), réglage désactivé (`combat-preview.spec`). *Forme de la pointe et teintes de la barre prédite = 👁 (rendu pur).*
 - [x] **§4 / §6 / §7 (DOM) — couverture poussée au maximum automatisable** : timeline CT, tooltip
       (apparaît/disparaît/tag), badge statut, nom EN (`hud-state`) ; Échap/hors-portée/modale victoire
       (`combat-flow`) ; Échap retour, ↑/↓ aria-current, format (`screens`) ; Paramètres 2 options +

@@ -39,6 +39,7 @@ import {
   buildTimelineView,
   buildWeatherView,
 } from "./battle-views.js";
+import { buildCombatPreviewView, type CombatPreviewResult } from "./combat-preview-view.js";
 import {
   AURA_INDICATOR_SYMBOL,
   BATTLE_TEXT_QUEUE_DELAY_MS,
@@ -185,6 +186,9 @@ export class BattleOrchestrator {
   private previewDirection: Direction | null = null;
   /** Tiles of the current attack-target preview footprint (drives the confirm-phase flash). */
   private previewTiles: readonly Position[] = [];
+  /** Living occupants of the locked footprint, in cycle order (combat preview, plan 175). */
+  private previewTargetIds: readonly string[] = [];
+  private previewFocusIndex = 0;
   private disposed = false;
 
   constructor(
@@ -269,6 +273,19 @@ export class BattleOrchestrator {
     }
   }
 
+  /**
+   * Cycle the combat preview to the next/previous target of the footprint (plan 175). Returns true
+   * when it actually consumed the input, so the host only swallows the key (Tab) when there was
+   * something to cycle — otherwise normal focus navigation must keep working.
+   */
+  onCycleTargetKey(delta: number): boolean {
+    if (this.inputState.phase !== "confirm_attack" || this.previewTargetIds.length <= 1) {
+      return false;
+    }
+    this.cycleCombatPreviewTarget(delta);
+    return true;
+  }
+
   /** Hover a tile → show that Pokémon in the info panel (off a Pokémon → the active one). */
   onTileHover(tile: Position | null): void {
     // Frozen while a battle animation resolves: hovering shouldn't repaint the info
@@ -277,6 +294,15 @@ export class BattleOrchestrator {
       return;
     }
     this.hoveredTile = tile;
+    // Aiming an area move: hovering another Pokémon of the footprint focuses it (human 2026-07-25),
+    // alongside Tab / Shift+Tab. Hovering elsewhere keeps the current focus rather than clearing it.
+    if (this.inputState.phase === "confirm_attack") {
+      const hoveredId = this.pokemonAt(tile)?.id;
+      const index = hoveredId === undefined ? -1 : this.previewTargetIds.indexOf(hoveredId);
+      if (index !== -1) {
+        this.previewFocusIndex = index;
+      }
+    }
     this.refreshInfoPanel();
     this.refreshTileInfo();
     // Hovering an aura caster floats its team-aura symbols over its radius tiles.
@@ -350,15 +376,70 @@ export class BattleOrchestrator {
     if (this.disposed) {
       return;
     }
-    const shown = this.pokemonAt(this.hoveredTile) ?? this.activePokemon();
-    // Perspective (plan 174): "ally" = same team as the player whose turn it is (hotseat viewer).
-    // The real fog-of-war filter (online + hidden enemy info) lands in plan 176.
-    const isAlly = shown != null && shown.playerId === this.activePokemon()?.playerId;
+    // Left panel = the ACTIVE Pokémon only (human 2026-07-25). Hovering another mon used to hijack
+    // this card; that readout now lives on the cursor card, which never displaces your own status.
+    const active = this.activePokemon();
+    const base = active ? buildInfoPanelView(this.context, active, this.state, true) : null;
+    // While a confirm is open the panel keeps its attack extension and the cursor card stays locked
+    // on the focused target — every refresh must re-attach both, or moving the mouse wipes them.
+    const confirmPreview = base ? this.buildConfirmPreview() : null;
     this.chrome.updateInfoPanel(
-      shown ? buildInfoPanelView(this.context, shown, this.state, isAlly) : null,
+      base && confirmPreview ? { ...base, attack: confirmPreview.attack } : base,
     );
+    if (confirmPreview) {
+      this.chrome.updateCursorPanel(confirmPreview.target);
+    } else {
+      this.refreshCursorPanel();
+    }
     this.chrome.updateWeather(buildWeatherView(this.state));
     this.chrome.updateTailwind(buildTailwindView(this.state));
+  }
+
+  /** The confirm-phase forecast for the focused target, or null when no attack is locked in. */
+  private buildConfirmPreview(): CombatPreviewResult | null {
+    const active = this.activePokemon();
+    const state = this.inputState;
+    if (!active || state.phase !== "confirm_attack" || this.previewTargetIds.length === 0) {
+      return null;
+    }
+    const displayMove =
+      this.engine.getEffectiveMove(active.id, state.moveId) ??
+      this.moveDefinitions.get(state.moveId);
+    if (!displayMove) {
+      return null;
+    }
+    return buildCombatPreviewView(
+      this.context,
+      this.engine,
+      this.state,
+      active.id,
+      state.moveId,
+      displayMove,
+      this.previewTargetIds,
+      this.previewFocusIndex,
+      state.action.kind === ActionKind.UseMove ? state.action.targetPosition : undefined,
+    );
+  }
+
+  /**
+   * Cursor card: whoever sits under the cursor. Left untouched while a confirm is open — there the
+   * card belongs to the focused target and is driven by `refreshCombatPreview`.
+   */
+  private refreshCursorPanel(): void {
+    if (this.disposed || this.inputState.phase === "confirm_attack") {
+      return;
+    }
+    const active = this.activePokemon();
+    const hovered = this.pokemonAt(this.hoveredTile);
+    // Shown only over ANOTHER Pokémon: hovering the active one would just duplicate the left panel
+    // (human 2026-07-25), and an empty tile clears the card entirely.
+    const shown = hovered && hovered.id !== active?.id ? hovered : null;
+    // Perspective (plan 174): "ally" = same team as the player whose turn it is (hotseat viewer).
+    // The real fog-of-war filter (online + hidden enemy info) lands in plan 176.
+    const isAlly = shown != null && shown.playerId === active?.playerId;
+    this.chrome.updateCursorPanel(
+      shown ? buildInfoPanelView(this.context, shown, this.state, isAlly) : null,
+    );
   }
 
   /** Push the hovered tile's terrain + modifiers (defaults to the active Pokémon's tile). */
@@ -366,9 +447,14 @@ export class BattleOrchestrator {
     if (this.disposed) {
       return;
     }
+    // Hidden while aiming or confirming (human 2026-07-25): the row belongs to the attack forecast
+    // then, and a stale terrain card beside it just adds noise.
+    const aiming =
+      this.inputState.phase === "select_attack_target" ||
+      this.inputState.phase === "confirm_attack";
     const position = this.hoveredTile ?? this.activePokemon()?.position ?? null;
     this.chrome.updateTileInfo(
-      position ? buildTileInfoView(this.context, this.state, position) : null,
+      !aiming && position ? buildTileInfoView(this.context, this.state, position) : null,
     );
   }
 
@@ -495,8 +581,7 @@ export class BattleOrchestrator {
   }
 
   private enterAttackTarget(moveId: string): void {
-    this.board.setPreviewFlash([]);
-    this.board.setDamageEstimates([]);
+    this.clearConfirmPreview();
 
     // Move-copy (plan 144): a call-move that resolves WITHOUT a pre-picked target (Métronome /
     // Blabla Dodo / Photocopie) rolls the called move now, then targets it. Mimique (target-last)
@@ -781,6 +866,11 @@ export class BattleOrchestrator {
       // Predicted-damage overlay on each target (parity, plan 123 4d-4; setting-gated).
       if (this.context.isDamagePreviewEnabled()) {
         this.board.setDamageEstimates(this.buildDamageEstimates(moveId, action));
+        // Detailed forecast panel (plan 175) — every occupant of the footprint is a cyclable
+        // target, allies included, since hitting one is a real (and sometimes wanted) outcome.
+        this.previewTargetIds = this.previewOccupantIds();
+        this.previewFocusIndex = this.defaultPreviewFocusIndex(action);
+        this.refreshCombatPreview();
       }
       return;
     }
@@ -844,10 +934,49 @@ export class BattleOrchestrator {
     return estimates;
   }
 
-  /** Branch to the Hit&Run retreat picker, or execute directly. */
-  private resolveAttack(moveId: string, action: Action): void {
+  /**
+   * The target the panel opens on: the one actually aimed at, not merely the first occupant of the
+   * footprint — otherwise aiming a blast past an ally would open on the ally (game-designer, 2026-07-25).
+   */
+  private defaultPreviewFocusIndex(action: Action): number {
+    if (action.kind !== ActionKind.UseMove) {
+      return 0;
+    }
+    const aimed = this.previewTargetIds.findIndex((id) => {
+      const pokemon = this.state.pokemon.get(id);
+      return pokemon !== undefined && positionEquals(pokemon.position, action.targetPosition);
+    });
+    return aimed === -1 ? 0 : aimed;
+  }
+
+  /** Rebuild the attack extension + target card from the current focus. */
+  private refreshCombatPreview(): void {
+    this.refreshInfoPanel();
+    this.refreshTileInfo();
+  }
+
+  /** Move the panel's focus to the next/previous target of the footprint, wrapping around. */
+  private cycleCombatPreviewTarget(delta: number): void {
+    const count = this.previewTargetIds.length;
+    if (count <= 1) {
+      return;
+    }
+    this.previewFocusIndex = (this.previewFocusIndex + delta + count) % count;
+    this.refreshCombatPreview();
+  }
+
+  /** Tear down every confirm-phase overlay (board flash, damage labels, preview panel). */
+  private clearConfirmPreview(): void {
     this.board.setPreviewFlash([]);
     this.board.setDamageEstimates([]);
+    this.previewTargetIds = [];
+    this.previewFocusIndex = 0;
+    this.refreshInfoPanel();
+  }
+
+  /** Branch to the Hit&Run retreat picker, or execute directly. */
+  private resolveAttack(moveId: string, action: Action): void {
+    this.clearConfirmPreview();
     const active = this.activePokemon();
 
     // Move-copy (plan 144): Mimique (target-last). Confirming the ENEMY pick resolves the copy here

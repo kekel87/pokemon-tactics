@@ -10,8 +10,7 @@ import {
   NEUTRALIZING_GAS_FAR,
   NEUTRALIZING_GAS_SUPPRESS,
 } from "../../fixtures/sandbox-configs";
-import type { CombatScene } from "../../pages/CombatScene";
-import { InfoPanel } from "../../pages/combatHud";
+import { badgeCountOnHover } from "../../pages/combat-queries";
 
 // Cahier §5.37 — Content-fill des 7 derniers talents Gen 1 (plan 163). Chaque talent est PILOTABLE via
 // l'UI sandbox (le joueur contrôle son mon ; `playerAbility`/`dummyAbility` overridables), donc on
@@ -21,24 +20,6 @@ import { InfoPanel } from "../../pages/combatHud";
 // reporté (`docs/next.md`) : sa Vitesse ×2 n'est pas observable proprement en 1v1 → unit core.
 const log = (page: Page, re: RegExp) =>
   page.getByTestId("battle-log-entry").filter({ hasText: re });
-
-// Le survol est CONTINU dans le jeu réel : on re-survole à chaque itération du poll (robuste sans
-// course) et on ne compte le badge QUE quand l'InfoPanel affiche bien le mon attendu.
-function badgeCountOnHover(
-  scene: CombatScene,
-  info: InfoPanel,
-  tile: { x: number; y: number },
-  expectedName: string,
-  badgeMatcher: string | RegExp,
-): Promise<number> {
-  return (async () => {
-    await scene.hoverTile(tile.x, tile.y);
-    if ((await info.name.textContent()) !== expectedName) {
-      return -1;
-    }
-    return info.panel.getByText(badgeMatcher).count();
-  })();
-}
 
 // ── Récolte (harvest) — fin de tour sous Soleil (100 %) recrée la baie consommée ──────────────────
 // §5.37 Récolte : sous Soleil, la Baie Lichii mangée en fin de tour (pincement à 20 % PV) est
@@ -71,9 +52,8 @@ test("§5.37 Piège Sable : l'InfoPanel du mon piégé affiche le badge « Piég
   bootSandbox,
 }) => {
   const scene = await bootSandbox(ARENA_TRAP_PLAYER_TRAPPED);
-  const info = new InfoPanel(page);
   await expect
-    .poll(() => badgeCountOnHover(scene, info, { x: 2, y: 3 }, "Florizarre", "Piégé"), {
+    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 3 }, "Florizarre", "Piégé"), {
       timeout: 10_000,
     })
     .toBe(1);
@@ -86,11 +66,10 @@ test("§5.37 Piège Sable : le badge « Piégé » disparaît quand le porteur s
   bootSandbox,
 }) => {
   const scene = await bootSandbox(ARENA_TRAP_RELEASE);
-  const info = new InfoPanel(page);
 
   // À l'init, le dummy adjacent est piégé.
   await expect
-    .poll(() => badgeCountOnHover(scene, info, { x: 2, y: 2 }, "Ronflex", "Piégé"), {
+    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 2 }, "Ronflex", "Piégé"), {
       timeout: 10_000,
     })
     .toBe(1);
@@ -100,7 +79,7 @@ test("§5.37 Piège Sable : le badge « Piégé » disparaît quand le porteur s
   await scene.clickTile(2, 5);
 
   await expect
-    .poll(() => badgeCountOnHover(scene, info, { x: 2, y: 2 }, "Ronflex", "Piégé"), {
+    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 2 }, "Ronflex", "Piégé"), {
       timeout: 10_000,
     })
     .toBe(0);
@@ -114,9 +93,8 @@ test("§5.37 Gaz Inhibiteur : le talent d'un ennemi à portée est neutralisé (
   bootSandbox,
 }) => {
   const scene = await bootSandbox(NEUTRALIZING_GAS_SUPPRESS);
-  const info = new InfoPanel(page);
   await expect
-    .poll(() => badgeCountOnHover(scene, info, { x: 2, y: 2 }, "Ronflex", "Talent neutralisé"), {
+    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 2 }, "Ronflex", "Talent neutralisé"), {
       timeout: 10_000,
     })
     .toBe(1);
@@ -127,9 +105,8 @@ test("§5.37 Gaz Inhibiteur : le porteur ne s'auto-neutralise pas (aucun badge)"
   bootSandbox,
 }) => {
   const scene = await bootSandbox(NEUTRALIZING_GAS_SUPPRESS);
-  const info = new InfoPanel(page);
   await expect
-    .poll(() => badgeCountOnHover(scene, info, { x: 2, y: 3 }, "Florizarre", "Talent neutralisé"), {
+    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 3 }, "Florizarre", "Talent neutralisé"), {
       timeout: 10_000,
     })
     .toBe(0);
@@ -141,9 +118,8 @@ test("§5.37 Gaz Inhibiteur : un ennemi hors du rayon r2 n'est pas neutralisé (
   bootSandbox,
 }) => {
   const scene = await bootSandbox(NEUTRALIZING_GAS_FAR);
-  const info = new InfoPanel(page);
   await expect
-    .poll(() => badgeCountOnHover(scene, info, { x: 2, y: 0 }, "Ronflex", "Talent neutralisé"), {
+    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 0 }, "Ronflex", "Talent neutralisé"), {
       timeout: 10_000,
     })
     .toBe(0);
@@ -156,9 +132,8 @@ test("§5.37 Fouille : révèle l'objet de l'ennemi (badge « Objet : Restes »)
   bootSandbox,
 }) => {
   const scene = await bootSandbox(FRISK_REVEALS_ITEM);
-  const info = new InfoPanel(page);
   await expect
-    .poll(() => badgeCountOnHover(scene, info, { x: 2, y: 2 }, "Ronflex", "Objet : Restes"), {
+    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 2 }, "Ronflex", "Objet : Restes"), {
       timeout: 10_000,
     })
     .toBe(1);
@@ -172,9 +147,8 @@ test("§5.37 Prédiction : révèle la menace de l'ennemi (badge « Menace : …
   bootSandbox,
 }) => {
   const scene = await bootSandbox(FOREWARN_REVEALS_MOVE);
-  const info = new InfoPanel(page);
   await expect
-    .poll(() => badgeCountOnHover(scene, info, { x: 2, y: 2 }, "Ronflex", /^Menace : /), {
+    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 2 }, "Ronflex", /^Menace : /), {
       timeout: 10_000,
     })
     .toBe(1);
@@ -187,9 +161,8 @@ test("§5.37 Anticipation : révèle le talent de l'ennemi (badge « Talent : L�
   bootSandbox,
 }) => {
   const scene = await bootSandbox(ANTICIPATION_REVEALS_ABILITY);
-  const info = new InfoPanel(page);
   await expect
-    .poll(() => badgeCountOnHover(scene, info, { x: 2, y: 2 }, "Ronflex", "Talent : Lévitation"), {
+    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 2 }, "Ronflex", "Talent : Lévitation"), {
       timeout: 10_000,
     })
     .toBe(1);

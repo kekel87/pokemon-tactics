@@ -210,8 +210,16 @@ export interface BattleChrome {
   updateInstruction(instruction: BattleInstruction): void;
   hideMenus(): void;
   updateTurnInfo(info: TurnInfoView): void;
-  /** Set the info panel to the hovered/active Pokémon (null clears it). */
+  /**
+   * Left panel: the ACTIVE Pokémon, and only it (human 2026-07-25 — hovering another mon no longer
+   * hijacks this card; that readout moved to the cursor card).
+   */
   updateInfoPanel(view: InfoPanelData | null): void;
+  /**
+   * Cursor card (plan 175): the Pokémon under the cursor, and during a confirm the focused target
+   * with its forecast (`InfoPanelData.preview`). Same component as the left panel by design.
+   */
+  updateCursorPanel(view: InfoPanelData | null): void;
   /** Set the tile-info panel to the hovered/active tile's terrain + modifiers (null clears it). */
   updateTileInfo(view: TileInfoData | null): void;
   /** Set the weather HUD (null hides it). */

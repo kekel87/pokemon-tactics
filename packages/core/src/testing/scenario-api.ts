@@ -2,6 +2,7 @@ export { buildChargeTimeSystem } from "./build-charge-time-system";
 export { buildCtTestEngine } from "./build-ct-test-engine";
 export { buildFallTestEngine } from "./build-fall-test-engine";
 export { buildHeightTestEngine } from "./build-height-test-engine";
+export { buildItemTestEngine } from "./build-item-test-engine";
 export { buildMoveTestEngine } from "./build-move-test-engine";
 export { buildTestEngineFromPlacements } from "./build-test-engine";
 export { MockBattle } from "./mock-battle";

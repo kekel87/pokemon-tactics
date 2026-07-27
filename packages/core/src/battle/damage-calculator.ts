@@ -9,6 +9,7 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
 import { resolveDefensiveAbility } from "./ability-suppression";
+import { effectiveCritChance } from "./crit-chance";
 import { resolveDynamicPower } from "./dynamic-power-system";
 import { effectiveCombatStats } from "./effective-combat-stats";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
@@ -17,13 +18,6 @@ import { getEffectiveStat } from "./stat-modifier";
 const BATTLE_LEVEL = 50;
 
 type TypeChart = Record<PokemonType, Record<PokemonType, number>>;
-
-const CRIT_THRESHOLDS: number[] = [1 / 24, 1 / 8, 0.5, 1.0];
-
-function getCritChance(stage: number): number {
-  const index = Math.min(stage, CRIT_THRESHOLDS.length - 1);
-  return CRIT_THRESHOLDS[Math.max(0, index)] ?? 1.0;
-}
 
 export interface DamageResult {
   damage: number;
@@ -40,6 +34,24 @@ export interface FieldGlobalDamageContext {
   defenderDefensesSwapped?: boolean;
   attackerItemSuppressed?: boolean;
   defenderItemSuppressed?: boolean;
+}
+
+/**
+ * The battle-wide modifiers a damage ESTIMATE must reproduce to match the hit that will actually
+ * land: weather (BP and defence boosts), screens, Brise Barrière, and the field-global context.
+ *
+ * These used to be hardcoded to 1 in `estimateDamage`, so the forecast — and every AI heuristic
+ * built on it — silently ignored the sun, the rain and Reflet/Mur Lumière. Grouped as an options
+ * object rather than seven more positional parameters.
+ */
+export interface EstimateCombatContext {
+  weatherBpMultiplier?: number;
+  defenseWeatherMultiplier?: number;
+  screenMultiplier?: number;
+  brickBreakMultiplier?: number;
+  weather?: Weather;
+  targetAlreadyActed?: boolean;
+  fieldGlobal?: FieldGlobalDamageContext;
 }
 
 /**
@@ -155,16 +167,17 @@ export function calculateDamageWithCrit(
     ? undefined
     : itemRegistry?.getForPokemon(attacker);
 
-  const baseCritStage = move.critRatio ?? 0;
-  const itemCritStage = attackerItem?.onCritStageBoost?.({ self: attacker, move }) ?? 0;
-  const volatileCritStage = attacker.critStageBoost ?? 0;
-  const totalCritStage = baseCritStage + itemCritStage + volatileCritStage;
   // Yama Arashi (alwaysCrit) / Affilage (guaranteedCritArmed) force a crit; `preventsCrit` (Coque
   // Armure / Muscle Coque) still overrides — crit immunity wins.
-  const forcedCrit = move.alwaysCrit === true || attacker.guaranteedCritArmed === true;
-  const isCrit = defenderAbility?.preventsCrit
-    ? false
-    : forcedCrit || random() < getCritChance(totalCritStage);
+  const critChance = effectiveCritChance(attacker, defender, move, attackerItem, abilityRegistry);
+  // The two short-circuits are kept explicit rather than inferred from `critChance`, to preserve the
+  // exact RNG consumption of the pre-extraction code: a crit-immune defender and a forced crit both
+  // resolve WITHOUT drawing, while a stage-3 crit (chance 1.0 but not forced) still draws once — a
+  // value of 1 alone cannot tell those two apart, and skipping that draw would desync seeded tests.
+  const isCrit =
+    critChance === 0
+      ? false
+      : move.alwaysCrit === true || attacker.guaranteedCritArmed === true || random() < critChance;
 
   const critDefenseStage = isCrit ? Math.max(0, defenseStageForCalc) : defenseStageForCalc;
   const effectiveDefense = Math.floor(
@@ -301,6 +314,7 @@ export function calculateDamage(
   fieldTerrainDamageMultiplier = 1.0,
   weather: Weather = Weather.None,
   targetAlreadyActed = false,
+  fieldGlobal: FieldGlobalDamageContext = {},
 ): number {
   return calculateDamageWithCrit(
     attacker,
@@ -324,6 +338,7 @@ export function calculateDamage(
     fieldTerrainDamageMultiplier,
     weather,
     targetAlreadyActed,
+    fieldGlobal,
   ).damage;
 }
 
@@ -393,7 +408,17 @@ export function estimateDamage(
   itemRegistry?: HeldItemHandlerRegistry,
   fieldTerrainBpMultiplier = 1.0,
   fieldTerrainDamageMultiplier = 1.0,
+  combat: EstimateCombatContext = {},
 ): DamageEstimate {
+  const {
+    weatherBpMultiplier = 1.0,
+    defenseWeatherMultiplier = 1.0,
+    screenMultiplier = 1.0,
+    brickBreakMultiplier = 1.0,
+    weather = Weather.None,
+    targetAlreadyActed = false,
+    fieldGlobal = {},
+  } = combat;
   const resolvedMove = resolveDynamicPower(move, attacker, defender);
   const effectiveness = getTypeEffectiveness(
     resolvedMove.type,
@@ -414,12 +439,15 @@ export function estimateDamage(
     facingModifier,
     abilityRegistry,
     itemRegistry,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
+    weatherBpMultiplier,
+    defenseWeatherMultiplier,
+    screenMultiplier,
+    brickBreakMultiplier,
     fieldTerrainBpMultiplier,
     fieldTerrainDamageMultiplier,
+    weather,
+    targetAlreadyActed,
+    fieldGlobal,
   );
   const max = calculateDamage(
     attacker,
@@ -434,12 +462,26 @@ export function estimateDamage(
     facingModifier,
     abilityRegistry,
     itemRegistry,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
+    weatherBpMultiplier,
+    defenseWeatherMultiplier,
+    screenMultiplier,
+    brickBreakMultiplier,
     fieldTerrainBpMultiplier,
     fieldTerrainDamageMultiplier,
+    weather,
+    targetAlreadyActed,
+    fieldGlobal,
   );
-  return { min, max, effectiveness, facingModifier };
+  return {
+    min,
+    max,
+    effectiveness,
+    facingModifier,
+    heightModifier,
+    terrainModifier,
+    weatherModifier: weatherBpMultiplier,
+    screenModifier: screenMultiplier,
+    resolvedMoveType: resolvedMove.type,
+    resolvedPower: resolvedMove.power,
+  };
 }

@@ -9,6 +9,7 @@ import {
   PRIORITY_SUCKER_FIZZLE,
   PRIORITY_SUCKER_HIT,
 } from "../../fixtures/sandbox-configs";
+import { InfoPanel } from "../../pages/combatHud";
 
 // Cahier §5.31 — Famille Priorité / timing conditionnel (plan 150). Six moves dont l'identité repose
 // sur le TIMING (1ʳᵉ action du combat, fraîcheur de la dernière action de la cible, charge
@@ -179,11 +180,10 @@ test("§5.31 Mitra-Poing : interrompu si frappé pendant la charge → échec au
   // Le dummy peut temporiser un tour de plus avant qu'Alakazam ne reprenne la main : on avance
   // jusqu'à son tour (borné pour ne jamais boucler).
   for (let attempt = 0; attempt < 8; attempt++) {
+    // Le panneau gauche montre le Pokemon ACTIF (et lui seul, depuis le plan 175) → c'est le
+    // signal direct de « à qui le tour ».
     const active =
-      (await page
-        .getByTestId("info-panel-name")
-        .textContent()
-        .catch(() => "")) ?? "";
+      (await new InfoPanel(page).name.textContent().catch(() => "")) ?? "";
     if (active.includes("Alakazam")) {
       break;
     }

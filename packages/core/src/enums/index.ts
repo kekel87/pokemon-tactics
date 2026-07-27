@@ -30,6 +30,7 @@ export { PokemonType } from "./pokemon-type";
 export { StatName } from "./stat-name";
 export { StatusImmuneReason } from "./status-immune-reason";
 export { StatusType } from "./status-type";
+export { SurvivalGuardKind } from "./survival-guard-kind";
 export { TargetingKind } from "./targeting-kind";
 export { TeamValidationError } from "./team-validation-error";
 export { isTerrainPassable, TerrainType } from "./terrain-type";

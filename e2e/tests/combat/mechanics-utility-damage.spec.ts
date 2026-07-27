@@ -9,7 +9,8 @@ import {
   SUPER_FANG,
   VITAL_THROW,
 } from "../../fixtures/sandbox-configs";
-import { InfoPanel } from "../../pages/combatHud";
+import { badgeCountOnHover } from "../../pages/combat-queries";
+import { CursorPanel } from "../../pages/combatHud";
 
 // Cahier §5.33 — Misc Batch B : dégâts utilitaires (plan 152). Six moves dont l'identité est un
 // CALCUL de dégâts particulier (plafonné, fixe, conditionnel au positionnement) plutôt qu'un effet
@@ -35,7 +36,8 @@ test("§5.33 Faux-Chage : les dégâts ne mettent jamais K.O. (cible reste à 1 
   bootSandbox,
 }) => {
   const scene = await bootSandbox(FALSE_SWIPE);
-  const info = new InfoPanel(page);
+  // Cible survolée ≠ Pokemon actif → sa lecture vit sur la carte curseur (plan 175).
+  const target = new CursorPanel(page);
 
   await scene.castFirstMove(2, 2);
 
@@ -44,13 +46,13 @@ test("§5.33 Faux-Chage : les dégâts ne mettent jamais K.O. (cible reste à 1 
   // ... mais ne met jamais K.O. : aucune modale de victoire.
   await expect(page.getByRole("dialog").filter({ hasText: /gagne/ })).toHaveCount(0);
 
-  // La cible reste à EXACTEMENT 1 PV — survol → InfoPanel « 1 / max » (le joueur, plein, ne matche
-  // pas). Re-survol à chaque itération (le pointer-move est continu → robuste sous charge).
+  // La cible reste à EXACTEMENT 1 PV — survol → carte curseur « 1 / max » (le joueur, plein, ne
+  // matche pas). Re-survol à chaque itération (le pointer-move est continu → robuste sous charge).
   await expect
     .poll(
       async () => {
         await scene.hoverTile(2, 2);
-        return info.hpText.textContent();
+        return target.hpText.textContent();
       },
       { timeout: 10_000 },
     )
@@ -154,23 +156,14 @@ test("§5.33 Anti-Air : l'InfoPanel du Volant cloué affiche le badge « Au sol 
   bootSandbox,
 }) => {
   const scene = await bootSandbox(ANTI_AIR);
-  const info = new InfoPanel(page);
 
   await scene.castFirstMove(2, 2);
   await expect(log(page, /est cloué au sol/)).toBeAttached({ timeout: 10_000 });
 
-  const badge = info.panel.getByText("Au sol", { exact: true });
   await expect
-    .poll(
-      async () => {
-        await scene.hoverTile(2, 2);
-        if ((await info.name.textContent()) !== "Dracolosse") {
-          return 0;
-        }
-        return badge.count();
-      },
-      { timeout: 10_000 },
-    )
+    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 2 }, "Dracolosse", "Au sol"), {
+      timeout: 10_000,
+    })
     .toBe(1);
 });
 

@@ -156,6 +156,8 @@ function setup(
     updateTurnInfo: () => undefined,
     updateInfoPanel: () => undefined,
     updateTileInfo: () => undefined,
+    updateCursorPanel: () => undefined,
+    updateCombatPreview: () => undefined,
     updateWeather: () => undefined,
     updateTailwind: () => undefined,
     updateTimeline: () => undefined,

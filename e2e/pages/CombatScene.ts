@@ -78,6 +78,20 @@ export class CombatScene {
     await this.clickTile(x, y);
   }
 
+  /** Aim the active Pokemon's first move at (x,y) and STOP on the confirmation step: Attaque → 1er
+   *  move → survol de la cible → cible. One click short of {@link castFirstMove}, so the confirm-phase
+   *  overlays (preview flash, damage labels, combat-preview panel — plan 175) stay on screen to be
+   *  asserted. Target = the victim's tile for a targeted move, the caster's own tile for a self-centred
+   *  zone. The hover is NOT decoration: a directional/single footprint is computed by the cursor-follow
+   *  preview, so a real pointer always moves over the tile before pressing — skipping it would lock in
+   *  an empty footprint and no forecast. */
+  async aimFirstMove(x: number, y: number): Promise<void> {
+    await this.page.getByRole("button", { name: "Attaque", exact: true }).click();
+    await this.page.getByTestId("move-item").first().click();
+    await this.hoverTile(x, y);
+    await this.clickTile(x, y);
+  }
+
   /** Drive a one-tile move end to end via the real DOM+canvas path: select the mover, open the move
    *  sub-flow (« Deplacement »), pick the destination tile, then confirm the landing facing so the
    *  glide tween runs. The landing resting animation is only applied once the tween settles — poll

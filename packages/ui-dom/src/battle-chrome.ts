@@ -93,8 +93,14 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   // Second, narrower panel (plan 177) to the right of the Pokémon panel: terrain + tile modifiers.
   // Both sit in a bottom-pinned row so the tile panel stretches to the InfoPanel's height.
   const tileInfoPanel = createTileInfoPanel();
+  // Combat preview (plan 175): two more cards sharing the tile panel's slot — while an attack is
+  // being confirmed the arrow + target cards take over and the tile panel steps aside, forming the
+  // FFT triptych [attacker InfoPanel] ▷ [attack] ▷ [target]. Never both at once.
+  // Cursor card: the SAME component as the left panel (human 2026-07-25), showing whatever the
+  // cursor is over — and, during a confirm, the focused target with its forecast layered in.
+  const cursorPanel = createInfoPanel("cursor-panel");
   const infoPanelRow = el("div", "bc-infopanel-row");
-  infoPanelRow.append(infoPanel.element, tileInfoPanel.element);
+  infoPanelRow.append(infoPanel.element, tileInfoPanel.element, cursorPanel.element);
   const timeline = createTurnTimeline(config);
   const leftColumn = el("div", "bc-left-col");
   leftColumn.append(timeline.element, infoPanelRow);
@@ -234,6 +240,14 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
         tileInfoPanel.update(view);
       } else {
         tileInfoPanel.hide();
+      }
+    },
+
+    updateCursorPanel: (view: InfoPanelData | null) => {
+      if (view) {
+        cursorPanel.update(view);
+      } else {
+        cursorPanel.hide();
       }
     },
 

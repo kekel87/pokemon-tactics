@@ -1,8 +1,10 @@
 import { expect, test } from "../../fixtures";
 import { DUEL, HELD_ITEM_ICONS, INFO_PANEL_ALLY_STATS } from "../../fixtures/sandbox-configs";
-import { InfoPanel } from "../../pages/combatHud";
+import { CursorPanel, InfoPanel } from "../../pages/combatHud";
 
-// Cahier §4 (panneau d'info) — le HUD chrome reflète l'identité + les PV du Pokemon actif.
+// Cahier §4 (panneau d'info) — le HUD chrome porte DEUX cartes bâties sur le même composant
+// (plan 175) : le panneau gauche reflète l'identité + les PV du Pokemon ACTIF (et lui seul), la carte
+// curseur reflète le Pokemon sous le curseur (masquée sur une case vide ou sur l'actif lui-même).
 // DOM uniquement (view-model découplé du core), donc robuste sans toucher à la scène 3D.
 
 test("info panel : identité du Pokemon actif (Florizarre, Niv. 50, PV pleins)", async ({
@@ -21,31 +23,44 @@ test("info panel : identité du Pokemon actif (Florizarre, Niv. 50, PV pleins)",
   await expect(info.portrait).toBeVisible();
 });
 
-// §4.7 — le survol d'une tile met à jour le panneau vers le Pokemon survolé (piloté par le hook
-// hoverTile, qui rejoue le chemin pointer-move → orchestrateur). Survol d'une tile vide → repli sur
-// le Pokemon actif.
-test("§4.7 info panel : survoler l'adversaire affiche ses infos, tile vide → repli sur l'actif", async ({
+// §4.7 — le survol d'une tile remplit la CARTE CURSEUR (piloté par le hook hoverTile, qui rejoue le
+// chemin pointer-move → orchestrateur), sans jamais déplacer le panneau gauche : celui-ci reste sur
+// l'actif (plan 175 — le joueur ne perd plus l'état de son propre Pokemon en promenant la souris).
+// Survol d'une tile vide → la carte curseur se masque.
+test("§4.7 info panel : survoler l'adversaire remplit la carte curseur, le panneau gauche reste sur l'actif", async ({
   page,
   bootSandbox,
 }) => {
   // Dummy = un vrai Pokemon adverse (Dracaufeu) pour vérifier le nom FR au survol.
   const scene = await bootSandbox({ ...DUEL, dummyPokemon: "charizard" });
   const info = new InfoPanel(page);
+  const cursor = new CursorPanel(page);
 
   // Le survol est CONTINU dans le jeu réel (pointermove répété). Un seul `hoverTile` peut être
   // écrasé par un re-render du HUD sous charge → on RE-survole à chaque itération du poll jusqu'à
-  // ce que le panneau reflète la cible (robuste, pas de course).
-  const hoverName = async (x: number, y: number): Promise<string | null> => {
+  // ce que la carte reflète la cible (robuste, pas de course).
+  const hoverCursorName = async (x: number, y: number): Promise<string | null> => {
     await scene.hoverTile(x, y);
-    return info.name.textContent();
+    return cursor.name.textContent();
   };
 
-  // Survol de l'adversaire (2,2) → panneau Dracaufeu.
-  await expect.poll(() => hoverName(2, 2), { timeout: 10_000 }).toBe("Dracaufeu");
-  await expect(info.panel).toHaveAttribute("data-team", "2");
+  // Survol de l'adversaire (2,2) → carte curseur Dracaufeu, aux couleurs de l'équipe 2.
+  await expect.poll(() => hoverCursorName(2, 2), { timeout: 10_000 }).toBe("Dracaufeu");
+  await expect(cursor.panel).toHaveAttribute("data-team", "2");
+  // Le panneau gauche n'a pas bougé : il montre toujours le Pokemon actif.
+  await expect(info.name).toHaveText("Florizarre");
 
-  // Survol d'une tile vide → repli sur le Pokemon actif (Florizarre).
-  await expect.poll(() => hoverName(5, 5), { timeout: 10_000 }).toBe("Florizarre");
+  // Survol d'une tile vide → la carte curseur se masque, le panneau gauche reste.
+  await expect
+    .poll(
+      async () => {
+        await scene.hoverTile(5, 5);
+        return cursor.panel.isVisible();
+      },
+      { timeout: 10_000 },
+    )
+    .toBe(false);
+  await expect(info.name).toHaveText("Florizarre");
 });
 
 // §4.7 — objet tenu (plan 168) : la ligne objet montre l'icône OFFICIELLE croppée de la feuille
@@ -66,25 +81,25 @@ test("§4.7 info panel : objet tenu → icône officielle + nom FR (Restes)", as
   await expect(info.itemIcon).toHaveAttribute("src", /^data:image\//);
 });
 
-// §4.7 — l'objet tenu suit le Pokemon SURVOLÉ : survoler le dummy Dracaufeu (porteur de l'Orbe Vie)
-// affiche son objet dans le panneau (nom FR + icône), sur l'équipe 2. Re-survol par poll (hover continu,
-// anti-course HUD), cf. le test de survol ci-dessus.
-test("§4.7 info panel : survol du porteur → son objet tenu (Orbe Vie + icône, team 2)", async ({
+// §4.7 — l'objet tenu suit le Pokemon SURVOLÉ, sur la carte curseur : survoler le dummy Dracaufeu
+// (porteur de l'Orbe Vie) y affiche son objet (nom FR + icône), sur l'équipe 2. Re-survol par poll
+// (hover continu, anti-course HUD), cf. le test de survol ci-dessus.
+test("§4.7 info panel : survol du porteur → son objet tenu sur la carte curseur (Orbe Vie, team 2)", async ({
   page,
   bootSandbox,
 }) => {
   const scene = await bootSandbox(HELD_ITEM_ICONS);
-  const info = new InfoPanel(page);
+  const cursor = new CursorPanel(page);
 
   const hoverItem = async (x: number, y: number): Promise<string | null> => {
     await scene.hoverTile(x, y);
-    return info.item.textContent();
+    return cursor.item.textContent();
   };
 
   await expect.poll(() => hoverItem(2, 2), { timeout: 10_000 }).toBe("Orbe Vie");
-  await expect(info.panel).toHaveAttribute("data-team", "2");
-  await expect(info.itemIcon).toBeVisible();
-  await expect(info.itemIcon).toHaveAttribute("src", /^data:image\//);
+  await expect(cursor.panel).toHaveAttribute("data-team", "2");
+  await expect(cursor.itemIcon).toBeVisible();
+  await expect(cursor.itemIcon).toHaveAttribute("src", /^data:image\//);
 });
 
 // §4.7 — sans objet tenu, la ligne objet est MASQUÉE (DUEL : le joueur Florizarre ne tient rien).
@@ -137,28 +152,28 @@ test("§4.7 info panel : allié enrichi (types + PV% + talent + stats, cran → 
 });
 
 // §4.7 — un ENNEMI reste minimal (plan 174) : types publics affichés, mais PAS de bloc stats ni de
-// talent. On survole le dummy Dracaufeu (team 2) puis on vérifie l'omission côté panneau.
+// talent. On survole le dummy Dracaufeu (team 2) puis on vérifie l'omission sur la carte curseur.
 test("§4.7 info panel : ennemi minimal (types visibles, stats + talent masqués)", async ({
   page,
   bootSandbox,
 }) => {
   const scene = await bootSandbox(INFO_PANEL_ALLY_STATS);
-  const info = new InfoPanel(page);
+  const cursor = new CursorPanel(page);
 
   await expect
     .poll(
       async () => {
         await scene.hoverTile(2, 2);
-        return info.name.textContent();
+        return cursor.name.textContent();
       },
       { timeout: 10_000 },
     )
     .toBe("Dracaufeu");
-  await expect(info.panel).toHaveAttribute("data-team", "2");
+  await expect(cursor.panel).toHaveAttribute("data-team", "2");
 
   // Types publics → toujours affichés (Dracaufeu = Feu/Vol).
-  await expect(info.typeChips).toHaveCount(2);
+  await expect(cursor.typeChips).toHaveCount(2);
   // Lecture privée réservée à l'allié : pas de bloc stats ni de talent pour un ennemi.
-  await expect(info.stats).toBeHidden();
-  await expect(info.talent).toBeHidden();
+  await expect(cursor.stats).toBeHidden();
+  await expect(cursor.talent).toBeHidden();
 });

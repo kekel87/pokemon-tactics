@@ -24,6 +24,13 @@
     color: var(--color-text-primary);
     font-family: var(--font-family);
     text-shadow: 0 calc(1 * var(--ip-px)) 0 rgba(0, 0, 0, 0.5);
+
+    /* Without this the author `display: flex` above beats the UA `[hidden] { display: none }` and
+       `hide()` is inert — latent since plan 177 (the panel is always populated, so it never showed),
+       but the plan 175 swap needs this panel to actually step aside. */
+    &[hidden] {
+      display: none;
+    }
   }
 
   /* Terrain name (left) + altitude pushed to the right on one row (human 2026-07-25). */

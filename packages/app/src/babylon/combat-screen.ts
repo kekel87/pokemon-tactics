@@ -287,6 +287,12 @@ function runBattle(options: {
       } else if (event.key === " " || event.key === "Enter") {
         event.preventDefault();
         orchestrator.onConfirmKey();
+      } else if (event.key === "Tab") {
+        // Only swallowed while a multi-target confirm is open (plan 175): everywhere else Tab must
+        // stay plain focus navigation. ←/→ were unavailable — they already rotate the camera.
+        if (orchestrator.onCycleTargetKey(event.shiftKey ? -1 : 1)) {
+          event.preventDefault();
+        }
       }
     },
     { signal },

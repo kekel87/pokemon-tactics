@@ -4,17 +4,20 @@ import { BattleEventType } from "../enums/battle-event-type";
 import { CallMoveSourceKind } from "../enums/call-move-source-kind";
 import { Category } from "../enums/category";
 import { ChargeReaction } from "../enums/charge-reaction";
+import { DefensiveKind } from "../enums/defensive-kind";
 import { Direction } from "../enums/direction";
 import { DynamicPowerKind } from "../enums/dynamic-power-kind";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import { EntryHazardKind } from "../enums/entry-hazard-kind";
 import { FieldGlobalKind } from "../enums/field-global-kind";
+import { HeldItemId } from "../enums/held-item-id";
 import { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
 import { MoveFailedReason } from "../enums/move-failed-reason";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
+import { SurvivalGuardKind } from "../enums/survival-guard-kind";
 import { TargetingKind } from "../enums/targeting-kind";
 import { isTerrainPassable, TerrainType } from "../enums/terrain-type";
 import { Weather } from "../enums/weather";
@@ -31,6 +34,7 @@ import type { CtTimelineEntry } from "../types/ct-timeline-entry";
 import type { DamageEstimate } from "../types/damage-estimate";
 import type { EntryHazardCell } from "../types/entry-hazard-cell";
 import type { MoveDefinition } from "../types/move-definition";
+import type { MovePreview } from "../types/move-preview";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import type { RangeConfig } from "../types/range-config";
@@ -43,11 +47,17 @@ import { directionFromTo, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
 import type { RandomFn } from "../utils/prng";
 import type { AbilityHandlerRegistry } from "./ability-handler-registry";
-import { checkAccuracy, consumeLockedOn } from "./accuracy-check";
+import { resolveDefensiveAbility } from "./ability-suppression";
+import { checkAccuracy, computeEffectiveAccuracy, consumeLockedOn } from "./accuracy-check";
 import { applyImpactDamage } from "./apply-impact-damage";
-import { removeAurasOfCaster } from "./aura-system";
+import {
+  computeBrickBreakInteraction,
+  computeScreenMultiplier,
+  removeAurasOfCaster,
+} from "./aura-system";
 import { areBerriesSuppressed } from "./berry-suppression";
 import { ChargeTimeTurnSystem } from "./ChargeTimeTurnSystem";
+import { effectiveCritChance } from "./crit-chance";
 import {
   CT_START,
   CT_THRESHOLD,
@@ -80,7 +90,12 @@ import {
 } from "./entry-hazard-system";
 import { FacingZone, getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
-import { isAirborneMove, isEffectivelyGrounded } from "./field-global-system";
+import {
+  isAirborneMove,
+  isEffectivelyGrounded,
+  isHeldItemSuppressed,
+  isInFieldGlobalZone,
+} from "./field-global-system";
 import {
   decrementFieldTerrainsTimer,
   getFieldTerrainBpMultiplier,
@@ -145,7 +160,13 @@ import {
 } from "./terrain-effects";
 import type { PhaseHandler } from "./turn-pipeline";
 import { TurnPipeline } from "./turn-pipeline";
-import { decrementWeatherTimer, effectiveWeather, setWeather } from "./weather-system";
+import {
+  decrementWeatherTimer,
+  effectiveWeather,
+  getWeatherBpModifier,
+  getWeatherDefenseStatBoost,
+  setWeather,
+} from "./weather-system";
 
 type EventHandler = (event: BattleEvent) => void;
 
@@ -435,12 +456,7 @@ export class BattleEngine {
     );
     const attackerTerrain = this.grid.getTile(originPosition)?.terrain;
     const terrainMod = attackerTerrain
-      ? getTerrainTypeBonusFactor(
-          attackerTerrain,
-          move.type,
-          attackerTypes,
-          this.isEffectivelyFlying(attacker),
-        )
+      ? getTerrainTypeBonusFactor(attackerTerrain, move.type, this.isEffectivelyFlying(attacker))
       : 1.0;
     const attackOrigin = getAttackOrigin(
       originPosition === attacker.position ? attacker : { ...attacker, position: originPosition },
@@ -448,6 +464,18 @@ export class BattleEngine {
       targetPosition ?? defender.position,
     );
     const facingMod = getFacingModifier(getFacingZone(attackOrigin, defender));
+    // Weather / screens / Brise Barrière / field-global, mirrored from the real damage path
+    // (`handle-damage.ts`). These used to be left at 1 here, so the estimate — and every AI
+    // heuristic reading it — ignored the sun, the rain and Reflet/Mur Lumière.
+    const activeWeather = effectiveWeather(this.state, (target) => {
+      if (target.currentHp <= 0) {
+        return false;
+      }
+      return this.abilityRegistry?.getForPokemon(target)?.suppressesWeatherEffects === true;
+    });
+    const usesPhysicalDefense =
+      move.category === Category.Physical || move.hitsPhysicalDefense === true;
+    const brickBreak = computeBrickBreakInteraction(this.state, defender, move);
     return estimateDamage(
       attacker,
       defender,
@@ -462,7 +490,119 @@ export class BattleEngine {
       this.itemRegistry ?? undefined,
       fieldTerrainBp,
       fieldTerrainDamage,
+      {
+        weatherBpMultiplier: getWeatherBpModifier(move.type, activeWeather),
+        defenseWeatherMultiplier: getWeatherDefenseStatBoost(
+          defenderTypes,
+          usesPhysicalDefense ? StatName.Defense : StatName.SpDefense,
+          activeWeather,
+        ),
+        screenMultiplier: brickBreak.breakAuraCasterId
+          ? 1.0
+          : computeScreenMultiplier(this.state, attacker, defender, move),
+        brickBreakMultiplier: brickBreak.multiplier,
+        weather: activeWeather,
+        targetAlreadyActed: (defender.lastActedAtAction ?? -1) > (attacker.lastActedAtAction ?? -1),
+        fieldGlobal: {
+          defenderGroundedByGravity: isEffectivelyGrounded(this.state, defender),
+          defenderDefensesSwapped: isInFieldGlobalZone(
+            this.state,
+            defender.position,
+            FieldGlobalKind.WonderRoom,
+          ),
+          attackerItemSuppressed: isHeldItemSuppressed(this.state, attacker),
+          defenderItemSuppressed: isHeldItemSuppressed(this.state, defender),
+        },
+      },
     );
+  }
+
+  /**
+   * Everything the combat preview panel needs for one attacker→target pair (plan 175): damage range
+   * with its modifiers, effective accuracy, crit odds, and any deterministic survive-at-1-HP guard.
+   *
+   * Read-only by construction — no RNG draw, no state mutation (Verrouillage is read, never
+   * consumed), so the view can recompute it every time the player cycles the focused target.
+   */
+  previewMove(
+    attackerId: string,
+    moveId: string,
+    defenderId: string,
+    targetPosition?: Position,
+  ): MovePreview | null {
+    const attacker = this.state.pokemon.get(attackerId);
+    const defender = this.state.pokemon.get(defenderId);
+    const rawMove = this.moveRegistry.get(moveId);
+    if (!attacker || !defender || !rawMove) {
+      return null;
+    }
+    const move = this.resolveEffectiveMove(attacker, rawMove);
+    const damage = this.estimateDamage(attackerId, moveId, defenderId, targetPosition);
+    // Zone Magique: a holder inside the zone has its crit-stage item (Lentilscope, Croc Rasoir…)
+    // suppressed, exactly as the damage path does.
+    const attackerItem = effectiveHeldItem(this.state, attacker, this.itemRegistry);
+    return {
+      damage,
+      accuracy: computeEffectiveAccuracy(
+        move,
+        attacker,
+        defender,
+        this.terrainEvasionBonusFor(defender),
+        this.abilityRegistry ?? undefined,
+        this.state,
+        this.itemRegistry ?? undefined,
+      ),
+      critChance: effectiveCritChance(
+        attacker,
+        defender,
+        move,
+        attackerItem,
+        this.abilityRegistry ?? undefined,
+      ),
+      survivalGuard: this.survivalGuardOf(defender, attacker),
+    };
+  }
+
+  /** Evasion stages a defender owes to its tile (Herbe Haute +1, unless immune to it). */
+  private terrainEvasionBonusFor(defender: PokemonInstance): number {
+    const tile = this.grid.getTile(defender.position);
+    if (tile?.terrain !== TerrainType.TallGrass) {
+      return 0;
+    }
+    return isTerrainImmune(
+      TerrainType.TallGrass,
+      this.effectiveTypesOf(defender),
+      this.isEffectivelyFlying(defender),
+    )
+      ? 0
+      : 1;
+  }
+
+  /**
+   * The deterministic survive-at-1-HP effect currently shielding `defender`, if any — mirrors the
+   * order `handle-damage.ts` applies them (Ténacité first, then Fermeté, then Ceinture Force).
+   * Fermeté and Ceinture Force only bite from full HP, so they are reported only then.
+   */
+  private survivalGuardOf(
+    defender: PokemonInstance,
+    attacker: PokemonInstance,
+  ): SurvivalGuardKind | null {
+    if (defender.activeDefense?.kind === DefensiveKind.Endure) {
+      return SurvivalGuardKind.Endure;
+    }
+    if (defender.currentHp < defender.maxHp) {
+      return null;
+    }
+    // Brise Moule ignores Fermeté, so resolve it through the same breakable-ability path as damage.
+    if (
+      resolveDefensiveAbility(this.abilityRegistry ?? undefined, defender, attacker)?.id ===
+      "sturdy"
+    ) {
+      return SurvivalGuardKind.Sturdy;
+    }
+    return effectiveHeldItem(this.state, defender, this.itemRegistry)?.id === HeldItemId.FocusSash
+      ? SurvivalGuardKind.FocusSash
+      : null;
   }
 
   /**
@@ -1996,7 +2136,6 @@ export class BattleEngine {
       ? getTerrainTypeBonusFactor(
           attackerTile.terrain,
           effectiveMove.type,
-          attackerTypes,
           this.isEffectivelyFlying(pokemon),
         )
       : 1.0;
