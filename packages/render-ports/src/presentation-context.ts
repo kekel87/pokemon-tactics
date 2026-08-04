@@ -20,4 +20,10 @@ export interface PresentationContext extends I18nContext {
   getTypeIconUrl(type: string): string;
   /** Status-icon sprite URL for a status kind (tile-info on-stop status, plan 177). */
   getStatusIconUrl(kind: string): string;
+  /**
+   * Status-LABEL sprite URL for a status kind (plan 178): the `label-<status>.png` art with the name
+   * and colour baked in, as opposed to the bare `icon-<status>.png` glyph. Used wherever a status is
+   * shown as a self-describing chip rather than a pictogram to decode.
+   */
+  getStatusLabelUrl(kind: string): string;
 }

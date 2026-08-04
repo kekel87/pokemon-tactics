@@ -1,6 +1,7 @@
 import { type HeldItemId, Nature, PokemonGender, type TeamSlot } from "@pokemon-tactic/core";
+import { getTypeName } from "@pokemon-tactic/data";
 import type { TranslationKey } from "../../i18n";
-import { t } from "../../i18n";
+import { getLanguage, t } from "../../i18n";
 import { getTypeIconUrl } from "../../team/asset-paths";
 import { toggleGender } from "../../team/gender-helpers";
 import {
@@ -136,7 +137,7 @@ export class EditLeftPanel {
       icon.className = "tb-type-icon";
       icon.alt = "";
       badge.appendChild(icon);
-      badge.appendChild(document.createTextNode(type));
+      badge.appendChild(document.createTextNode(getTypeName(type, getLanguage())));
       sub.appendChild(badge);
     }
     info.appendChild(sub);

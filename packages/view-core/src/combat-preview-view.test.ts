@@ -21,6 +21,7 @@ const testContext: PresentationContext = {
   getPokemonTypes: () => ["electric"],
   getTypeIconUrl: (type) => `assets/ui/types/${type}.png`,
   getStatusIconUrl: (kind) => `assets/ui/statuses/icon-${kind}.png`,
+  getStatusLabelUrl: (kind) => `assets/ui/statuses/label-${kind}.png`,
   isDamagePreviewEnabled: () => true,
 };
 
@@ -218,6 +219,25 @@ describe("buildCombatPreviewView", () => {
     expect(view?.target.isAlly).toBe(true);
     expect(view?.target.stats).toBeUndefined();
     expect(view?.target.preview?.totalTargets).toBe(2);
+  });
+
+  it("prints the Charge Time cost of the strike", () => {
+    const view = build(scenario(), ["defender"]);
+
+    expect(view?.attack.ctText).toMatch(/^move\.ctCost\(\d+\)$/);
+  });
+
+  it("spells out the Pression surcharge separately from the total", () => {
+    const view = build(scenario({ abilityId: "pressure" }), ["defender"]);
+
+    expect(view?.attack.ctText).toMatch(/^move\.ctCost\(\d+\)$/);
+    expect(view?.attack.ctSurchargeText).toMatch(/^\+\d+$/);
+  });
+
+  it("leaves the surcharge empty when no target taxes the move", () => {
+    const view = build(scenario(), ["defender"]);
+
+    expect(view?.attack.ctSurchargeText).toBe("");
   });
 
   it("labels a guaranteed hit rather than printing 100 %", () => {

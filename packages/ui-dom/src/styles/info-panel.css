@@ -131,33 +131,13 @@
     display: none;
   }
 
-  .ip-type {
-    padding: calc(1 * var(--ip-px)) calc(8 * var(--ip-px));
-    font-size: calc(20 * var(--ip-px));
-    font-weight: bold;
-    border-radius: calc(4 * var(--ip-px));
-    text-transform: uppercase;
-    letter-spacing: calc(0.5 * var(--ip-px));
-    color: var(--color-text-primary);
-    background: var(--type-fallback);
-    &[data-type="normal"] { background: var(--type-normal); }
-    &[data-type="fire"] { background: var(--type-fire); }
-    &[data-type="water"] { background: var(--type-water); }
-    &[data-type="grass"] { background: var(--type-grass); }
-    &[data-type="electric"] { background: var(--type-electric); }
-    &[data-type="ice"] { background: var(--type-ice); }
-    &[data-type="fighting"] { background: var(--type-fighting); }
-    &[data-type="poison"] { background: var(--type-poison); }
-    &[data-type="ground"] { background: var(--type-ground); }
-    &[data-type="flying"] { background: var(--type-flying); }
-    &[data-type="psychic"] { background: var(--type-psychic); }
-    &[data-type="bug"] { background: var(--type-bug); }
-    &[data-type="rock"] { background: var(--type-rock); }
-    &[data-type="ghost"] { background: var(--type-ghost); }
-    &[data-type="dragon"] { background: var(--type-dragon); }
-    &[data-type="dark"] { background: var(--type-dark); }
-    &[data-type="steel"] { background: var(--type-steel); }
-    &[data-type="fairy"] { background: var(--type-fairy); }
+  /* The chip itself lives in `type-chip.css` (plan 178, shared with the move tooltip); the panel
+     only re-bases its design pixel onto the container-query unit, and breathes a little more
+     vertically now that the chips carry an icon (human 2026-08-03). */
+  .ip-types .type-chip {
+    --type-chip-px: var(--ip-px);
+
+    padding-block: calc(3 * var(--type-chip-px));
   }
 
   /* Battle-stats block (plan 174, ally only). Two columns of stat rows. */
@@ -407,6 +387,27 @@
     font-size: calc(19 * var(--ip-px));
     color: var(--color-text-secondary);
     white-space: nowrap;
+  }
+
+  /* Charge Time sur sa propre ligne (plan 178) : en 3ᵉ valeur de `.ip-attack-stats` elle débordait le
+     bloc et se noyait dans les autres chiffres. La surtaxe Pression est colorée en danger — c'est un
+     malus infligé par la cible, pas une décoration. */
+  .ip-attack-ct {
+    display: flex;
+    justify-content: center;
+    gap: calc(6 * var(--ip-px));
+    font-size: calc(19 * var(--ip-px));
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+
+  .ip-attack-ct-surcharge {
+    font-weight: bold;
+    color: var(--red-400);
+
+    &:empty {
+      display: none;
+    }
   }
 
   .ip-attack-chips {

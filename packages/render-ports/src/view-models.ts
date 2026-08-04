@@ -57,6 +57,8 @@ export interface InfoPanelBadge {
 export interface InfoPanelType {
   readonly id: string;
   readonly label: string;
+  /** Type-icon sprite URL (plan 178) — resolved here because the panel is a dumb renderer. */
+  readonly iconUrl: string;
 }
 
 /** One battle-stat row (plan 174): value after EV/nature, crans, status → effective value. */
@@ -157,6 +159,14 @@ export interface TileInfoChip {
   /** Localised accessible label (aria-label / title) describing the effect. */
   readonly title?: string;
   readonly tone?: TileInfoTone;
+  /**
+   * Status chip art (plan 178): `label-<status>.png`, name + colour baked in. When set, the renderer
+   * draws it via `createStatusChip` instead of the bare `iconUrls` glyph — a self-describing badge
+   * rather than a pictogram to decode. `statusLabelAlt` carries the localised name for a11y, since
+   * the name lives inside the image.
+   */
+  readonly statusLabelUrl?: string;
+  readonly statusLabelAlt?: string;
 }
 
 /**
@@ -217,6 +227,17 @@ export interface InfoPanelAttack {
   readonly damageUnitLabel: string;
   /** Lethality — colours the headline number instead of spelling out a verdict. */
   readonly outcome: CombatPreviewOutcome;
+  /**
+   * Pre-formatted Charge Time cost of this strike (`CT: 720`). Plan 178 — exact here, unlike the
+   * submenu tooltip's base-only figure.
+   */
+  readonly ctText: string;
+  /**
+   * The Pression surcharge alone (`+100`), empty when no target taxes the move. Kept apart from
+   * `ctText` so the renderer can colour it as the penalty it is — folded into one string it was
+   * invisible among the other figures (human 2026-08-03).
+   */
+  readonly ctSurchargeText: string;
   /** Modifier chips (type effectiveness, back attack, height, terrain) — only those ≠ 1. */
   readonly modifierChips: readonly TileInfoChip[];
   /** Secondary-effect chip (icon + affected stat + chance), when the move carries one. */

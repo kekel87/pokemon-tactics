@@ -3844,23 +3844,43 @@ export class BattleEngine {
     return Math.round(base * windMultiplier * modifier);
   }
 
+  /**
+   * Charge Time cost a move would bill (plan 178) — the figure behind the UI's 5-step tempo gauge.
+   *
+   * `targetIds` is optional because the two callers know different things: the attack submenu has no
+   * target picked yet, so it gets the base cost alone, while the confirm-phase forecast passes the
+   * focused targets and gets the Pression surcharge folded in (it is per-target and stacks on an AoE
+   * — see `computePressureBonus`). Never estimates a surcharge it cannot know.
+   */
+  previewMoveCtCost(
+    moveId: string,
+    targetIds: readonly string[] = [],
+  ): { base: number; pressureBonus: number; total: number } {
+    const move = this.moveRegistry.get(moveId);
+    if (!move) {
+      // Same fallback as the retrospective path below: one unknown-move behaviour, not two.
+      return { base: CT_START, pressureBonus: 0, total: CT_START };
+    }
+    const base = computeMoveCost(move.pp, move.power, move.effectTier);
+    const pressureBonus =
+      targetIds.length === 0
+        ? 0
+        : computePressureBonus(
+            this.state.activePokemonId,
+            move,
+            targetIds,
+            this.state,
+            this.abilityRegistry,
+          );
+    return { base, pressureBonus, total: base + pressureBonus };
+  }
+
   private computeCurrentMoveCost(): number {
     if (!this.turnState.hasActed || !this.turnState.lastMoveId) {
       return 0;
     }
-    const move = this.moveRegistry.get(this.turnState.lastMoveId);
-    if (!move) {
-      return 600;
-    }
-    const attackerId = this.state.activePokemonId;
-    const pressureBonus = computePressureBonus(
-      attackerId,
-      move,
-      this.turnState.lastTargetIds,
-      this.state,
-      this.abilityRegistry,
-    );
-    return computeMoveCost(move.pp, move.power, move.effectTier) + pressureBonus;
+    // Delegates so the prospective preview and this retrospective billing share one calculation.
+    return this.previewMoveCtCost(this.turnState.lastMoveId, this.turnState.lastTargetIds).total;
   }
 
   private syncCtSnapshot(): void {

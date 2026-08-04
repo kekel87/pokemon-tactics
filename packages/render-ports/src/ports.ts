@@ -8,6 +8,7 @@ import type {
 import type {
   InfoPanelData,
   TailwindView,
+  TileInfoChip,
   TileInfoData,
   TimelineView,
   WeatherView,
@@ -175,6 +176,19 @@ export interface AttackSubmenuMoveView {
   hasTargets: boolean;
   /** Charge Time "tempo" rating 1..CT_TEMPO_MAX (heavier = the user waits longer before acting again). */
   costTempo: number;
+  /**
+   * Charge Time cost in raw CT (plan 178): the exact figure the 5-step `costTempo` gauge compresses,
+   * so two moves sharing a tempo rating stay comparable. Base cost only — the Pression surcharge is
+   * per-target (`computePressureBonus`) and no target is picked yet at submenu time.
+   */
+  ctCost: number;
+  /**
+   * Secondary-effect chip (plan 178) — built by the shared `buildSecondaryEffectChip`, the same
+   * builder the confirm-phase forecast uses, so the tooltip cannot drift from it. Null when the move
+   * carries no chance-based side effect. Passed as a view-model fragment rather than rebuilt in the
+   * chrome, which has no status-icon resolver of its own.
+   */
+  effectChip: TileInfoChip | null;
   blockedTag?: BlockedMoveTag;
 }
 

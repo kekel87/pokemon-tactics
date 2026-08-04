@@ -1,0 +1,64 @@
+/*
+ * Type chip (plan 178) — the ONE way to render an elemental type as a coloured badge.
+ * Extracted from `.ip-type` (plan 174) so the InfoPanel and the move tooltip share a single
+ * definition instead of drifting apart, and aligned on the visual the Team Builder already proved
+ * (`.tb-type-badge`): icon + name on the type colour.
+ *
+ * Foreground stays WHITE for every type (human 2026-08-03): the type ICON is a white silhouette, so
+ * pairing it with a dark label on the light backgrounds (Électrik, Glace) read as inconsistent. The
+ * `--type-text-<id>` tokens are therefore deliberately NOT used here. The Team Builder badges
+ * (`.tb-type-badge`) still use them and so still differ — a known, accepted divergence, listed as
+ * remaining work rather than a justified difference.
+ *
+ * Scaling contract: metrics are expressed in `--type-chip-px`, one design pixel. The chrome
+ * convention (`px * --ui-scale`) is the default; a host on the container-query system overrides it
+ * with its own unit (the InfoPanel passes `--ip-px`) so both keep their existing sizing.
+ */
+
+@layer components {
+  .type-chip {
+    --type-chip-px: calc(1px * var(--ui-scale));
+
+    display: inline-flex;
+    align-items: center;
+    gap: calc(3 * var(--type-chip-px));
+    /* Métriques REPRISES À L'IDENTIQUE de l'ancien `.ip-type` (plan 174, validé visuellement) :
+       les changer au passage en composant partagé rendait les chips de l'InfoPanel « bizarres ». */
+    padding: calc(1 * var(--type-chip-px)) calc(8 * var(--type-chip-px));
+    font-size: calc(20 * var(--type-chip-px));
+    font-weight: bold;
+    border-radius: calc(4 * var(--type-chip-px));
+    text-transform: uppercase;
+    letter-spacing: calc(0.5 * var(--type-chip-px));
+    white-space: nowrap;
+    background: var(--type-fallback);
+    color: var(--color-text-primary);
+    &[data-type="normal"] { background: var(--type-normal); }
+    &[data-type="fire"] { background: var(--type-fire); }
+    &[data-type="water"] { background: var(--type-water); }
+    &[data-type="grass"] { background: var(--type-grass); }
+    &[data-type="electric"] { background: var(--type-electric); }
+    &[data-type="ice"] { background: var(--type-ice); }
+    &[data-type="fighting"] { background: var(--type-fighting); }
+    &[data-type="poison"] { background: var(--type-poison); }
+    &[data-type="ground"] { background: var(--type-ground); }
+    &[data-type="flying"] { background: var(--type-flying); }
+    &[data-type="psychic"] { background: var(--type-psychic); }
+    &[data-type="bug"] { background: var(--type-bug); }
+    &[data-type="rock"] { background: var(--type-rock); }
+    &[data-type="ghost"] { background: var(--type-ghost); }
+    &[data-type="dragon"] { background: var(--type-dragon); }
+    &[data-type="dark"] { background: var(--type-dark); }
+    &[data-type="steel"] { background: var(--type-steel); }
+    &[data-type="fairy"] { background: var(--type-fairy); }
+  }
+
+  /* Leading type icon, when the caller resolved a URL for it. */
+  .type-chip-icon {
+    inline-size: calc(16 * var(--type-chip-px));
+    block-size: calc(16 * var(--type-chip-px));
+    object-fit: contain;
+    image-rendering: pixelated;
+    flex: 0 0 auto;
+  }
+}

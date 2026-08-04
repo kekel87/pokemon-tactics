@@ -1,5 +1,5 @@
 import { CT_TEMPO_MAX } from "@pokemon-tactic/core";
-import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
+import { getMoveName, getPokemonName, getTypeName } from "@pokemon-tactic/data";
 import type {
   ActionMenuView,
   AttackSubmenuMoveView,
@@ -129,7 +129,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     }
 
     const icon = el("img", "bc-move-type", "move-type-icon");
-    icon.alt = move.definition.type;
+    icon.alt = getTypeName(move.definition.type, language);
     icon.loading = "lazy";
     icon.decoding = "async";
     icon.src = config.getTypeIconUrl(move.definition.type);
@@ -148,7 +148,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
 
     // Tooltip on hover/focus — shown for usable moves AND blocked ones (to explain why).
     if (enabled || move.blockedTag !== undefined) {
-      const open = (): void => tooltip.show(move.definition, move.blockedTag);
+      const open = (): void => tooltip.show(move);
       row.addEventListener("pointerenter", open);
       row.addEventListener("focus", open);
       row.addEventListener("pointerleave", () => tooltip.hide());
@@ -204,7 +204,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
         header.append(name);
       } else {
         const icon = el("img", "bc-move-type");
-        icon.alt = move.definition.type;
+        icon.alt = getTypeName(move.definition.type, language);
         icon.loading = "lazy";
         icon.decoding = "async";
         icon.src = config.getTypeIconUrl(move.definition.type);

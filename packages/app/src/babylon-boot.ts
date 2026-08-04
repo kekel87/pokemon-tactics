@@ -3,6 +3,8 @@ import "./styles/layers.css";
 // Vite-dev does not resolve nested @imports inside a dependency's CSS, so the
 // index.css @import chain silently unloaded every ui-dom style in dev.
 import "@pokemon-tactic/ui-dom/styles/modal.css";
+import "@pokemon-tactic/ui-dom/styles/type-chip.css";
+import "@pokemon-tactic/ui-dom/styles/status-chip.css";
 import "@pokemon-tactic/ui-dom/styles/info-panel.css";
 import "@pokemon-tactic/ui-dom/styles/tile-info-panel.css";
 import "@pokemon-tactic/ui-dom/styles/placement.css";

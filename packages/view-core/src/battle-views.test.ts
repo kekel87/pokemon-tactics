@@ -104,7 +104,9 @@ describe("buildInfoPanelView", () => {
   it("exposes public type chips for either side", () => {
     const pokemon = makePokemon();
     const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]), false);
-    expect(view.types).toEqual([{ id: "electric", label: "Electric" }]);
+    expect(view.types).toEqual([
+      { id: "electric", label: "Electric", iconUrl: "assets/ui/types/electric.png" },
+    ]);
   });
 
   it("prefers a type override over the species types", () => {

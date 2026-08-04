@@ -9,40 +9,10 @@
  * is wired at Jalon 4, keeping this decoupled from `@pokemon-tactic/core`.
  */
 
-import type { InfoPanelData, TileInfoChip } from "@pokemon-tactic/render-ports";
+import type { InfoPanelData } from "@pokemon-tactic/render-ports";
+import { createChip } from "./chip.js";
 import { el } from "./dom-helpers.js";
-
-/** Icon-first chip, shared with the tile-info panel's visual language (plan 177). */
-function chipElement(chip: TileInfoChip): HTMLElement {
-  const node = el("span", "ip-chip");
-  if (chip.tone) {
-    node.dataset.tone = chip.tone;
-  }
-  if (chip.title) {
-    node.title = chip.title;
-    node.setAttribute("aria-label", chip.title);
-  }
-  if (chip.emoji) {
-    const glyph = el("span", "ip-chip-glyph");
-    glyph.textContent = chip.emoji;
-    glyph.setAttribute("aria-hidden", "true");
-    node.append(glyph);
-  }
-  for (const url of chip.iconUrls ?? []) {
-    const icon = el("img", "ip-chip-icon");
-    icon.src = url;
-    icon.alt = "";
-    icon.decoding = "async";
-    icon.loading = "lazy";
-    node.append(icon);
-  }
-  if (chip.text) {
-    const text = el("span", "ip-chip-text");
-    text.textContent = chip.text;
-    node.append(text);
-  }
-  return node;
-}
+import { createTypeChip } from "./type-chip.js";
 
 // Data view-model types live in the renderer contract package (plan 125);
 // re-exported for callers importing them from here.
@@ -164,9 +134,17 @@ export function createInfoPanel(testId = "info-panel"): InfoPanel {
   attackStats.append(attackAccuracy, attackCrit);
   attackDamageRow.append(attackDamage, attackDamageUnit, attackStats);
 
+  // Charge Time on its OWN row (plan 178): squeezed as a third value next to Préc./Crit. it overflowed
+  // the block and read as noise — the human missed the Pression surcharge entirely. The surcharge is
+  // a separate span so it can be coloured as the penalty it is.
+  const attackCt = el("div", "ip-attack-ct", "combat-preview-ct");
+  const attackCtValue = el("span");
+  const attackCtSurcharge = el("span", "ip-attack-ct-surcharge");
+  attackCt.append(attackCtValue, attackCtSurcharge);
+
   const attackModifiers = el("div", "ip-attack-chips", "combat-preview-modifiers");
   const attackEffect = el("div", "ip-attack-chips", "combat-preview-effect");
-  attackEl.append(attackMove, attackDamageRow, attackModifiers, attackEffect);
+  attackEl.append(attackMove, attackDamageRow, attackCt, attackModifiers, attackEffect);
 
   const content = el("div", "ip-content");
   content.append(hpBar, hpRow, remainingEl, verdictEl, itemEl, statsEl);
@@ -217,10 +195,12 @@ export function createInfoPanel(testId = "info-panel"): InfoPanel {
       attackDamageUnit.textContent = attack.damageUnitLabel;
       attackAccuracy.textContent = attack.accuracyText;
       attackCrit.textContent = attack.critText;
-      attackModifiers.replaceChildren(...attack.modifierChips.map(chipElement));
+      attackCtValue.textContent = attack.ctText;
+      attackCtSurcharge.textContent = attack.ctSurchargeText;
+      attackModifiers.replaceChildren(...attack.modifierChips.map((c) => createChip(c, "ip")));
       attackModifiers.hidden = attack.modifierChips.length === 0;
       if (attack.effectChip) {
-        attackEffect.replaceChildren(chipElement(attack.effectChip));
+        attackEffect.replaceChildren(createChip(attack.effectChip, "ip"));
         attackEffect.hidden = false;
       } else {
         attackEffect.replaceChildren();
@@ -269,10 +249,9 @@ export function createInfoPanel(testId = "info-panel"): InfoPanel {
     if (data.types.length > 0) {
       const typeFragment = document.createDocumentFragment();
       for (const type of data.types) {
-        const chip = el("li", "ip-type");
-        chip.dataset.type = type.id;
-        chip.textContent = type.label;
-        typeFragment.append(chip);
+        typeFragment.append(
+          createTypeChip(type.id, type.label, { tag: "li", iconUrl: type.iconUrl }),
+        );
       }
       typesEl.append(typeFragment);
     }

@@ -57,6 +57,7 @@ import {
   PERISH_AURA_INDICATOR_SYMBOL,
 } from "./constants.js";
 import { moveIntent, selfPreviewRadius } from "./move-intent.js";
+import { buildSecondaryEffectChip } from "./secondary-effect-chip.js";
 
 /**
  * Battle loop orchestrator (plan 120 step 7b) — the engine-agnostic input FSM.
@@ -567,6 +568,10 @@ export class BattleOrchestrator {
         definition,
         hasTargets: targetableMoveIds.has(moveId),
         costTempo: moveCtTempo(definition.pp, definition.power, definition.effectTier),
+        // Base cost only: no target is picked at submenu time, so the per-target Pression surcharge
+        // is unknowable here (it is folded into the confirm-phase forecast instead, plan 178).
+        ctCost: this.engine.previewMoveCtCost(moveId).base,
+        effectChip: buildSecondaryEffectChip(this.context, definition),
         blockedTag: resolveBlockedTag(definition, isTaunted, disabledMoveId, encoredMoveId),
       });
     }

@@ -101,6 +101,7 @@ function setup(
     getPokemonTypes: () => [],
     isAirborneIgnoringGravity: () => false,
     predictCtTimeline: () => [],
+    previewMoveCtCost: () => ({ base: 600, pressureBonus: 0, total: 600 }),
   } as unknown as BattleEngine;
 
   const board: BoardView = {
@@ -253,6 +254,7 @@ describe("BattleOrchestrator", () => {
       id: "tackle",
       pp: 35,
       targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+      effects: [],
     } as unknown as MoveDefinition;
     const harness = setup([useMoveAction("tackle", target)], tackle);
     harness.orchestrator.start();
@@ -271,6 +273,7 @@ describe("BattleOrchestrator", () => {
       id: "tackle",
       pp: 35,
       targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+      effects: [],
     } as unknown as MoveDefinition;
     const harness = setup([useMoveAction("tackle", target)], tackle, { confirmAttack: true });
     harness.orchestrator.start();
@@ -290,6 +293,7 @@ describe("BattleOrchestrator", () => {
       id: "tackle",
       pp: 35,
       targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+      effects: [],
     } as unknown as MoveDefinition;
     const harness = setup([useMoveAction("tackle", target)], tackle, { confirmAttack: true });
     harness.orchestrator.start();
@@ -334,6 +338,7 @@ describe("BattleOrchestrator", () => {
         hitRange: { min: 1, max: 1 },
         retreatRange: { min: 1, max: 2 },
       },
+      effects: [],
     } as unknown as MoveDefinition;
     const harness = setup([useMoveAction("quickattack", target)], hitAndRun);
     harness.orchestrator.start();
@@ -365,6 +370,7 @@ describe("BattleOrchestrator", () => {
         hitRange: { min: 1, max: 1 },
         retreatRange: { min: 1, max: 2 },
       },
+      effects: [],
     } as unknown as MoveDefinition;
     const harness = setup([useMoveAction("quickattack", target)], hitAndRun);
     harness.orchestrator.start();

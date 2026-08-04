@@ -2,13 +2,11 @@ import {
   type BattleEngine,
   type BattleState,
   Category,
-  EffectKind,
   type MoveDefinition,
   type MovePreview,
   type OhkoImmunity,
   type PokemonInstance,
   type Position,
-  StatName,
   SurvivalGuardKind,
 } from "@pokemon-tactic/core";
 import { getMoveName } from "@pokemon-tactic/data";
@@ -20,6 +18,7 @@ import {
   type TileInfoChip,
 } from "@pokemon-tactic/render-ports";
 import { buildInfoPanelView } from "./battle-views.js";
+import { buildSecondaryEffectChip } from "./secondary-effect-chip.js";
 
 /** The two halves of the forecast: the arrow card, and the cursor card showing the victim. */
 export interface CombatPreviewResult {
@@ -39,17 +38,6 @@ const OHKO_IMMUNITY_LABEL: Record<OhkoImmunity, string> = {
   type: "combatPreview.noEffect",
   ice: "combatPreview.ohko.iceImmune",
   sturdy: "combatPreview.ohko.sturdyImmune",
-};
-
-/** Short stat names, shared with the InfoPanel stat block so the two never drift apart. */
-const STAT_LABEL: Record<string, string> = {
-  [StatName.Attack]: "stat.atk",
-  [StatName.Defense]: "stat.def",
-  [StatName.SpAttack]: "stat.spA",
-  [StatName.SpDefense]: "stat.spD",
-  [StatName.Speed]: "stat.spd",
-  [StatName.Accuracy]: "stat.acc",
-  [StatName.Evasion]: "stat.eva",
 };
 
 /**
@@ -161,38 +149,6 @@ function buildModifierChips(context: PresentationContext, preview: MovePreview):
   return chips;
 }
 
-/** The move's first chance-based secondary effect, as a chip (status or stat drop). */
-function buildEffectChip(context: PresentationContext, move: MoveDefinition): TileInfoChip | null {
-  for (const effect of move.effects) {
-    if (effect.kind === EffectKind.Status && effect.chance > 0 && effect.chance < 100) {
-      const status = "status" in effect ? effect.status : effect.statuses[0];
-      return {
-        iconUrls: [context.getStatusIconUrl(status)],
-        text: `${effect.chance} %`,
-        title: context.translate("combatPreview.secondaryEffect"),
-        tone: "info",
-      };
-    }
-    if (
-      effect.kind === EffectKind.StatChange &&
-      effect.chance !== undefined &&
-      effect.chance > 0 &&
-      effect.chance < 100
-    ) {
-      // Names the stat and the direction: a lone "⬇ 20 %" left the player guessing what dropped.
-      const statKey = STAT_LABEL[effect.stat];
-      const stat = statKey ? context.translate(statKey) : effect.stat;
-      const arrow = effect.stages > 0 ? "↑" : "↓";
-      return {
-        text: `${stat} ${Math.abs(effect.stages)}${arrow} · ${effect.chance} %`,
-        title: context.translate("combatPreview.secondaryEffect"),
-        tone: effect.stages > 0 ? "buff" : "danger",
-      };
-    }
-  }
-  return null;
-}
-
 /**
  * Lethality + the only text worth printing next to it.
  *
@@ -269,6 +225,25 @@ function buildVerdict(
  * itself), while `displayMove` is that already-morphed definition — used only to read the secondary
  * effect, so the chip describes what will actually land.
  */
+/**
+ * The move's Charge Time cost for this exact strike (plan 178), total and Pression surcharge kept
+ * SEPARATE: the ability belongs to the target, and seeing the tax is what makes it a tactical fact.
+ * Two fields rather than one string so the DOM can colour the surcharge — folded into `CT: 750 (+50)`
+ * it was invisible among the other figures (human 2026-08-03).
+ */
+function buildCtTexts(
+  context: PresentationContext,
+  engine: BattleEngine,
+  moveId: string,
+  targetIds: readonly string[],
+): { ctText: string; ctSurchargeText: string } {
+  const cost = engine.previewMoveCtCost(moveId, targetIds);
+  return {
+    ctText: context.translate("move.ctCost", { value: cost.total }),
+    ctSurchargeText: cost.pressureBonus > 0 ? `+${cost.pressureBonus}` : "",
+  };
+}
+
 export function buildCombatPreviewView(
   context: PresentationContext,
   engine: BattleEngine,
@@ -351,8 +326,12 @@ export function buildCombatPreviewView(
       damageUnitLabel:
         hasDamage && !preview.isOhko ? context.translate("combatPreview.damageUnit") : "",
       outcome,
+      // Charge Time (plan 178): here — and ONLY here — the surcharge is knowable, because the targets
+      // are locked in. Pression is billed per target and stacks on an AoE (`computePressureBonus`),
+      // so the submenu tooltip can only show the base cost.
+      ...buildCtTexts(context, engine, moveId, targetIds),
       modifierChips: buildModifierChips(context, preview),
-      effectChip: buildEffectChip(context, displayMove),
+      effectChip: buildSecondaryEffectChip(context, displayMove),
     },
     // The victim's readout is a normal InfoPanel view with the forecast layered on, so the cursor
     // card is literally the same component as the active-Pokémon panel (human 2026-07-25).

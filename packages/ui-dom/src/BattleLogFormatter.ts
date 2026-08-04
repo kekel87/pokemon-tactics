@@ -22,7 +22,7 @@ import {
   TypeChangeReason,
   Weather,
 } from "@pokemon-tactic/core";
-import { TYPE_LABEL } from "@pokemon-tactic/view-core";
+import { getTypeName } from "@pokemon-tactic/data";
 import {
   BATTLE_LOG_COLOR_ABILITY,
   BATTLE_LOG_COLOR_BATTLE_ENDED,
@@ -855,7 +855,7 @@ export function formatBattleEvent(
         message = lang === "fr" ? `${name} n'a plus de type !` : `${name} has no type now!`;
       } else {
         const typeLabel = event.newTypes
-          .map((type) => TYPE_LABEL[type]?.[lang] ?? type)
+          .map((type) => getTypeName(type, lang))
           .join(lang === "fr" ? " / " : "/");
         message =
           lang === "fr"

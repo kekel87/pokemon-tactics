@@ -46,6 +46,7 @@ import { getSettings } from "../settings/index.js";
 import {
   getCategoryIconUrl,
   getStatusIconUrl,
+  getStatusLabelUrl,
   getTypeIconUrl,
   getWeatherIconUrl,
 } from "../team/asset-paths.js";
@@ -248,6 +249,7 @@ function runBattle(options: {
     getPokemonTypes: (definitionId) => battle.pokemonDefinitions.get(definitionId)?.types ?? [],
     getTypeIconUrl,
     getStatusIconUrl,
+    getStatusLabelUrl,
     isDamagePreviewEnabled: () => getSettings().damagePreview,
   };
   const spawnFloatingText = createFloatingTextSpawner(combat, battle.state, {

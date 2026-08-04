@@ -22,14 +22,13 @@ import {
   maxLayersFor,
   PokemonGender,
   type PokemonInstance,
-  type PokemonType,
   type Position,
   StatName,
   StatusType,
   type TerrainType,
   Weather,
 } from "@pokemon-tactic/core";
-import { getMoveName, getPokemonName, strongestMoveId } from "@pokemon-tactic/data";
+import { getMoveName, getPokemonName, getTypeName, strongestMoveId } from "@pokemon-tactic/data";
 import type {
   InfoPanelBadge,
   InfoPanelData,
@@ -68,28 +67,6 @@ export type {
   WeatherView,
 } from "@pokemon-tactic/render-ports";
 export { CombatPreviewOutcome } from "@pokemon-tactic/render-ports";
-
-/** FR/EN type names — single source for the type-override badge and the battle-log type-manip lines. */
-export const TYPE_LABEL: Record<PokemonType, { fr: string; en: string }> = {
-  normal: { fr: "Normal", en: "Normal" },
-  fire: { fr: "Feu", en: "Fire" },
-  water: { fr: "Eau", en: "Water" },
-  grass: { fr: "Plante", en: "Grass" },
-  electric: { fr: "Électrik", en: "Electric" },
-  ice: { fr: "Glace", en: "Ice" },
-  fighting: { fr: "Combat", en: "Fighting" },
-  poison: { fr: "Poison", en: "Poison" },
-  ground: { fr: "Sol", en: "Ground" },
-  flying: { fr: "Vol", en: "Flying" },
-  psychic: { fr: "Psy", en: "Psychic" },
-  bug: { fr: "Insecte", en: "Bug" },
-  rock: { fr: "Roche", en: "Rock" },
-  ghost: { fr: "Spectre", en: "Ghost" },
-  dragon: { fr: "Dragon", en: "Dragon" },
-  dark: { fr: "Ténèbres", en: "Dark" },
-  steel: { fr: "Acier", en: "Steel" },
-  fairy: { fr: "Fée", en: "Fairy" },
-};
 
 const MAJOR_STATUS_LABEL: Partial<Record<StatusType, string>> = {
   [StatusType.Burned]: "status.burned",
@@ -219,11 +196,8 @@ function buildTypeChips(
     context.getPokemonTypes(pokemon.definitionId);
   return typeIds.map((id) => ({
     id,
-    label: TYPE_LABEL[id as PokemonType]
-      ? language === "fr"
-        ? TYPE_LABEL[id as PokemonType].fr
-        : TYPE_LABEL[id as PokemonType].en
-      : id,
+    label: getTypeName(id, language),
+    iconUrl: context.getTypeIconUrl(id),
   }));
 }
 
@@ -402,9 +376,7 @@ export function buildInfoPanelView(
     if (pokemon.typeOverride.length === 0) {
       badges.push({ label: context.translate("infoPanel.volatile.noType"), variant: "volatile" });
     } else {
-      const typeLabel = pokemon.typeOverride
-        .map((type) => (language === "fr" ? TYPE_LABEL[type].fr : TYPE_LABEL[type].en))
-        .join(" / ");
+      const typeLabel = pokemon.typeOverride.map((type) => getTypeName(type, language)).join(" / ");
       badges.push({
         label: context.translate("infoPanel.volatile.typeChanged", { types: typeLabel }),
         variant: "volatile",
@@ -549,14 +521,6 @@ const FIELD_GLOBAL_LABEL: Record<FieldGlobalKind, string> = {
   "magic-room": "tileInfo.zone.magicRoom",
 };
 
-function typeLabelOf(type: PokemonType, language: string): string {
-  const entry = TYPE_LABEL[type];
-  if (!entry) {
-    return type;
-  }
-  return language === "fr" ? entry.fr : entry.en;
-}
-
 /**
  * Build the tile-info view-model (plan 177): the terrain of `position` + every modifier active on it
  * (movement cost, DoT/status, type bonus, immunities, hazards, field terrain, global zones). Effects
@@ -667,7 +631,7 @@ export function buildTileInfoView(
       {
         iconUrls: [context.getTypeIconUrl(bonusType)],
         text: "×1.15",
-        title: context.translate("tileInfo.typeBonus", { type: typeLabelOf(bonusType, language) }),
+        title: context.translate("tileInfo.typeBonus", { type: getTypeName(bonusType, language) }),
         tone: "buff",
       },
     ]);
@@ -681,7 +645,7 @@ export function buildTileInfoView(
         emoji: "🆓",
         iconUrls: immuneTypes.map((type) => context.getTypeIconUrl(type)),
         title: context.translate("tileInfo.immune", {
-          types: immuneTypes.map((type) => typeLabelOf(type, language)).join(", "),
+          types: immuneTypes.map((type) => getTypeName(type, language)).join(", "),
         }),
         tone: "info",
       },

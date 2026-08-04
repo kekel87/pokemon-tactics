@@ -1,0 +1,33 @@
+/*
+ * Status chip (plan 178) — the ONE way to render a major status as a badge.
+ *
+ * Uses the `label-<status>.png` art (name + colour baked in), which shipped with the status assets
+ * but was wired nowhere: every consumer showed the bare `icon-<status>.png` glyph instead, leaving
+ * the player to recognise a pictogram. The label art is self-describing, so the chip is the image
+ * plus whatever the caller appends (a probability, a duration).
+ *
+ * Scaling contract: mirrors `.type-chip` — metrics in `--status-chip-px`, defaulting to the chrome
+ * convention, overridable by a container-query host.
+ */
+
+@layer components {
+  .status-chip {
+    --status-chip-px: calc(1px * var(--ui-scale));
+
+    display: inline-flex;
+    align-items: center;
+    gap: calc(4 * var(--status-chip-px));
+    white-space: nowrap;
+  }
+
+  .status-chip-label {
+    /* Height-driven: the art keeps its own aspect ratio, so only the block size is pinned.
+       Calibré en human-testing (2026-08-03) : 20 dominait la ligne, 16 était trop discret à côté du
+       texte passé à 21px — 18 est le compromis retenu. */
+    block-size: calc(18 * var(--status-chip-px));
+    inline-size: auto;
+    object-fit: contain;
+    image-rendering: pixelated;
+    flex: 0 0 auto;
+  }
+}

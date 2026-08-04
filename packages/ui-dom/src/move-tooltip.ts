@@ -3,20 +3,25 @@ import {
   AttackStatSource,
   CallMoveSourceKind,
   ChargeReaction,
+  CT_TEMPO_MAX,
   EffectKind,
   EffectTarget,
   StatusType,
   TargetingKind,
 } from "@pokemon-tactic/core";
+import { getTypeName } from "@pokemon-tactic/data";
+import type { AttackSubmenuMoveView } from "@pokemon-tactic/render-ports";
 import {
   type BlockedMoveTag,
   type MoveIntent,
   moveIntent,
   selfPreviewRadius,
 } from "@pokemon-tactic/view-core";
+import { createChip } from "./chip.js";
 import type { UiDomConfig } from "./config.js";
 import { el } from "./dom-helpers.js";
 import { buildPatternPreview, type PatternCell } from "./pattern-preview.js";
+import { createTypeChip } from "./type-chip.js";
 
 /**
  * MoveTooltip — DOM/CSS move tooltip (plan 121 step
@@ -55,7 +60,8 @@ const BLOCKED_TAG_KEY: Record<BlockedMoveTag, string> = {
 
 export interface MoveTooltip {
   readonly element: HTMLElement;
-  show(move: MoveDefinition, blockedTag?: BlockedMoveTag): void;
+  /** Takes the whole submenu view-model (plan 178): the tooltip also reads its CT cost + tempo. */
+  show(move: AttackSubmenuMoveView): void;
   hide(): void;
 }
 
@@ -77,8 +83,12 @@ function rangeLabel(move: MoveDefinition): string | null {
   }
 }
 
-/** All localised tag lines for a move. */
-function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
+/**
+ * All localised tag lines for a move. Exported for unit testing: this is the plan's real logic
+ * (which mechanical facts a move advertises), and it is pure — no DOM, so it runs in the node test
+ * environment while the rendered result is covered e2e.
+ */
+export function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   const keys: string[] = [];
 
   if (move.twoTurnCharge) {
@@ -264,8 +274,14 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
   if (move.fieldTerrainTargetingOverride !== undefined) {
     keys.push("moveTooltip.tag.expandingForceTerrain");
   }
-  if (move.effects.some((effect) => effect.kind === EffectKind.Recoil && effect.fraction >= 999)) {
-    keys.push("moveTooltip.tag.mistyExplosionSelfKo");
+  // Self-KO family (plan 147) — three distinct rules, none of which had a tag before plan 178.
+  // `isExplosion` is the only one Moiteur (damp) can cancel, so it gets its own wording.
+  if (move.isExplosion === true) {
+    keys.push("moveTooltip.tag.selfKoExplosion");
+  } else if (move.selfKo === true) {
+    keys.push("moveTooltip.tag.selfKo");
+  } else if (move.selfKoOnConnect === true) {
+    keys.push("moveTooltip.tag.selfKoOnConnect");
   }
   if (move.fieldTerrainBoostedType === true) {
     keys.push("moveTooltip.tag.terrainPulseMorph");
@@ -329,11 +345,35 @@ function tagLines(move: MoveDefinition, config: UiDomConfig): string[] {
     lines.push(
       config.translate("moveTooltip.tag.typeEffectivenessOverride", {
         multiplier,
-        type: config.translate(`pokemonType.${against}`),
+        type: getTypeName(against, config.getLanguage()),
       }),
     );
   }
+  // Recoil / drain carry a fraction, so they are built here rather than pushed as bare keys.
+  // "Contrecoup" deliberately, not "recul": that word already means the knockback ejection, and
+  // `crashOnMiss` ("Recul si échec") can show on the same move (plan 178).
+  for (const effect of move.effects) {
+    if (effect.kind === EffectKind.Recoil) {
+      lines.push(
+        config.translate(
+          effect.ofMaxHp === true
+            ? "moveTooltip.tag.recoilMaxHp"
+            : "moveTooltip.tag.recoilFraction",
+          { percent: toPercent(effect.fraction) },
+        ),
+      );
+    } else if (effect.kind === EffectKind.Drain) {
+      lines.push(
+        config.translate("moveTooltip.tag.drain", { percent: toPercent(effect.fraction) }),
+      );
+    }
+  }
   return lines;
+}
+
+/** A `0..1` effect fraction as a whole percentage (1/3 → 33), for the recoil / drain tags. */
+function toPercent(fraction: number): number {
+  return Math.round(fraction * 100);
 }
 
 function renderGrid(cells: PatternCell[][], intent: MoveIntent): HTMLElement {
@@ -350,36 +390,109 @@ function renderGrid(cells: PatternCell[][], intent: MoveIntent): HTMLElement {
   return grid;
 }
 
+/** One `Label value` cell of the numbers row — label bold, value regular (human 2026-08-03). */
+function statCell(label: string, value: string): HTMLElement {
+  const cell = el("span", "mt-stat");
+  const name = el("span", "mt-stat-label");
+  name.textContent = label;
+  const figure = el("span", "mt-stat-value");
+  figure.textContent = value;
+  cell.append(name, figure);
+  return cell;
+}
+
 export function createMoveTooltip(config: UiDomConfig): MoveTooltip {
   const root = el("div", "mt-tooltip", "move-tooltip");
   root.hidden = true;
 
   return {
     element: root,
-    show: (move: MoveDefinition, blockedTag?: BlockedMoveTag) => {
+    show: (view: AttackSubmenuMoveView) => {
+      const move = view.definition;
+      const blockedTag = view.blockedTag;
       root.replaceChildren();
 
+      // Layout (reworked in human-testing, 2026-08-03): the first pass stacked one line per fact and
+      // split the pattern from its own grid, which read as noise and ate vertical space. Now three
+      // bands — identity, numbers, then targeting with the grid BESIDE its name — and the qualitative
+      // rows (effect, tags) last.
+
+      // Left column — identity then the numbers, one fact per line so the values align vertically.
+      const main = el("div", "mt-main");
+
+      main.append(
+        createTypeChip(move.type, getTypeName(move.type, config.getLanguage()), {
+          iconUrl: config.getTypeIconUrl(move.type),
+        }),
+      );
+
+      // Category NAMED, not icon-only: the pictogram alone left the player guessing physique/spécial.
+      const categoryRow = el("div", "mt-category-row");
       const category = el("img", "mt-category");
-      category.alt = move.category;
+      category.alt = "";
       category.loading = "lazy";
       category.decoding = "async";
       category.src = config.getCategoryIconUrl(move.category);
-      root.append(category);
+      const categoryName = el("span");
+      categoryName.textContent = config.translate(`moveCategory.${move.category}`);
+      categoryRow.append(category, categoryName);
+      main.append(categoryRow);
 
-      const power = move.power > 0 ? `${move.power}` : "—";
-      const accuracy = move.accuracy > 0 ? `${move.accuracy}` : "—";
-      const stats = el("div", "mt-line", "move-tooltip-stats");
-      stats.textContent = `${config.translate("move.power", { value: power })}  ${config.translate("move.accuracy", { value: accuracy })}`;
-      root.append(stats);
+      const stats = el("div", "mt-stats", "move-tooltip-stats");
+      stats.append(
+        statCell(config.translate("move.power.label"), move.power > 0 ? `${move.power}` : "—"),
+        statCell(
+          config.translate("move.accuracy.label"),
+          move.accuracy > 0 ? `${move.accuracy}` : "—",
+        ),
+      );
+      // CT: pips coloured by weight (light → green, heavy → red, same language as the move row's
+      // gauge) then the raw figure the 5-step gauge compresses.
+      const ctCell = el("div", "mt-stat", "move-tooltip-ct");
+      const ctLabel = el("span", "mt-stat-label");
+      ctLabel.textContent = config.translate("move.ctCost.label");
+      const tempo = el("span", "mt-ct-tempo");
+      tempo.dataset.tempo = String(view.costTempo);
+      tempo.textContent =
+        "●".repeat(view.costTempo) + "○".repeat(Math.max(0, CT_TEMPO_MAX - view.costTempo));
+      tempo.setAttribute("aria-hidden", "true");
+      const ctValue = el("span", "mt-stat-value");
+      ctValue.textContent = String(view.ctCost);
+      // Chiffre AVANT les pastilles (humain 2026-08-03) : la valeur s'aligne alors avec celles de
+      // Puis/Préc au-dessus, et la jauge se lit comme sa qualification.
+      ctCell.append(ctLabel, ctValue, tempo);
+      stats.append(ctCell);
+      main.append(stats);
 
+      // Right column — the pattern grid fills the space the text column leaves empty (layout B,
+      // human 2026-08-03), so it costs no vertical band of its own; its name sits right under it.
       const patternKey = PATTERN_TRANSLATION_KEY[move.targeting.kind];
       const patternName = patternKey ? config.translate(patternKey) : move.targeting.kind;
       const range = rangeLabel(move);
-      const patternLine = el("div", "mt-line");
-      patternLine.textContent = range
-        ? `${patternName}  ${config.translate("move.range", { value: range })}`
-        : patternName;
-      root.append(patternLine);
+      const gridColumn = el("div", "mt-gridcol");
+      gridColumn.append(
+        renderGrid(buildPatternPreview(move.targeting, selfPreviewRadius(move)), moveIntent(move)),
+      );
+      const patternLabel = el("span", "mt-pattern-name");
+      patternLabel.textContent = patternName;
+      gridColumn.append(patternLabel);
+      if (range) {
+        const rangeLine = el("span", "mt-pattern-range");
+        rangeLine.textContent = config.translate("move.range", { value: range });
+        gridColumn.append(rangeLine);
+      }
+
+      const body = el("div", "mt-body");
+      body.append(main, gridColumn);
+      root.append(body);
+
+      // Secondary effect (plan 178): the confirm-phase forecast already showed it, but only AFTER
+      // committing to a move and clicking a target — so it was invisible while choosing.
+      if (view.effectChip) {
+        const effect = el("div", "mt-line mt-effect", "move-tooltip-effect");
+        effect.append(createChip(view.effectChip, "mt"));
+        root.append(effect);
+      }
 
       for (const line of tagLines(move, config)) {
         const node = el("div", "mt-line");
@@ -393,9 +506,6 @@ export function createMoveTooltip(config: UiDomConfig): MoveTooltip {
         root.append(blocked);
       }
 
-      root.append(
-        renderGrid(buildPatternPreview(move.targeting, selfPreviewRadius(move)), moveIntent(move)),
-      );
       root.hidden = false;
     },
     hide: () => {

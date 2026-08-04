@@ -1278,6 +1278,38 @@ export const TOOLTIP_FREEZE_DRY_TYPE_OVERRIDE = {
   moves: ["freeze-dry"],
 } as const;
 
+// --- Plan 178 — tooltip d'attaque enrichi ------------------------------------------------------
+// Un porteur par famille de tag nouvellement affichée. Les moves sont choisis pour que le premier
+// (et unique) move du moveset porte le trait testé, donc `move-item.first()` suffit.
+
+/** Bélier (take-down) : contrecoup d'un quart des dégâts infligés. */
+export const TOOLTIP_RECOIL_TAKE_DOWN = {
+  ...DUEL,
+  pokemon: "bulbasaur",
+  moves: ["take-down"],
+} as const;
+
+/** Métalaser (steel-beam) : contrecoup exprimé en part des PV MAX, pas des dégâts. */
+export const TOOLTIP_RECOIL_MAX_HP = {
+  ...DUEL,
+  pokemon: "magnemite",
+  moves: ["steel-beam"],
+} as const;
+
+/** Méga-Sangsue (mega-drain) : soigne la moitié des dégâts infligés. */
+export const TOOLTIP_DRAIN_MEGA_DRAIN = {
+  ...DUEL,
+  pokemon: "exeggutor",
+  moves: ["mega-drain"],
+} as const;
+
+/** Destruction (self-destruct) : auto-K.O. annulable par Moiteur. */
+export const TOOLTIP_SELF_KO_EXPLOSION = {
+  ...DUEL,
+  pokemon: "geodude",
+  moves: ["self-destruct"],
+} as const;
+
 // --- Plan 167 — harness équipes N-vs-N & IA scorée (schéma SandboxConfig v2 `teams`) ------------
 // Le boot ?config accepte le v2 : `teams: [équipe1, équipe2]`, chaque équipe portant son `control`
 // ("player" | "passive" | "scored") + ses membres. Ces fixtures exercent le VRAI scorer IA

@@ -354,10 +354,40 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
   « 🛡️ basé sur la Défense », « ⚡ puissance variable », « 🔊 Sonore (ignore Clone) », blocages
   (« Bloqué par Provoc/Entrave/Bis »).
 - 🤖 **Tag d'efficacité de type DÉRIVÉ** (`typeEffectivenessOverride`) — plus de libellé figé : le
-  tag est construit depuis `moveTooltip.tag.typeEffectivenessOverride` + `pokemonType.<id>`. Survoler
-  Lyophilisation (freeze-dry, ×2 vs Eau) → tag « ×2 sur les types Eau » (FR) — `hud.spec` (§4.12).
+  tag est construit depuis `moveTooltip.tag.typeEffectivenessOverride` + le nom de type de la source
+  unique (`getTypeName`). Survoler Lyophilisation (freeze-dry, ×2 vs Eau) → tag « ×2 sur les types
+  Eau » (FR) — `hud.spec` (§4.12).
 - 👁 Position près du move, **pas de débordement hors écran** (bord droit, bas).
 - 👁 Valider l'affichage FR **et** EN.
+
+#### 4.6.1 Enrichissements plan 178
+- 🤖 **Type nommé** — en-tête du tooltip : un chip `.type-chip` non vide, le **même composant** que
+  les chips de types de l'InfoPanel (§4.7), coloré par `data-type` (`hud.spec`).
+- 🤖 **Coût CT chiffré** (`move-tooltip-ct`) — pastilles de tempo **+** le chiffre (`CT: 620`) : les 5
+  paliers du tempo compressent une plage continue, deux moves à `●●●○○` étaient indiscernables
+  (`hud.spec`). Coût **de base** ici — pas de cible choisie, donc la surtaxe Pression (par cible,
+  cumulative en AoE) est inconnaissable ; elle apparaît à la confirmation (§4.14).
+- 🤖 **Contrecoup** — deux formes : part des **dégâts infligés** (Bélier → « Contrecoup : 25 % des
+  dégâts infligés » ; aussi Boutefeu, Damoclès, Rapace, Aquatacle, Martobois à 33 %) et part des **PV
+  max** (Métalaser → « Contrecoup : 50 % des PV max »). `hud.spec`.
+  *Vocabulaire : « Contrecoup », pas « recul » — ce mot désigne déjà l'éjection par knockback et le
+  tag « 💥 Recul si échec ou immunité », qui peut s'afficher sur le même move.*
+- 🤖 **Drain** — Méga-Sangsue → « Soigne 50 % des dégâts infligés » ; Vampibaiser → 75 %. Aussi
+  Vole-Vie, Giga-Sangsue, Vampirisme, Vampi-Poing, Dévorêve. `hud.spec`.
+- 🤖 **Auto-K.O.** — trois règles distinctes : `isExplosion` (Destruction, Explosion, Explo-Brume →
+  « Le lanceur tombe K.O. · annulé par **Moiteur** »), `selfKo` (Souvenir, Vœu Soin →
+  inconditionnel), `selfKoOnConnect` (Tout ou Rien → seulement s'il touche). `hud.spec`.
+  *Régression fermée : le tag était conditionné à un contrecoup `fraction >= 999` qu'aucun move ne
+  porte — Explo-Brume n'annonçait donc rien alors que la clé i18n existait.*
+- 👁 **Effet secondaire** (`move-tooltip-effect`) — pour les 6 statuts qui ont un art `label-*`
+  (Brûlure, Paralysie, Poison, Poison grave, Gel, Sommeil) : **probabilité puis chip de statut**
+  (« 10 % » + badge nommé), l'art portant le nom et la couleur. Les autres statuts (ex. Confusion) et
+  les changements de stat gardent le glyphe + texte (« Vitesse 1↓ · 20 % »). Construit par le **même**
+  builder que la preview de confirmation (`buildSecondaryEffectChip`) **et** rendu par le **même**
+  composant (`createChip`) — les deux ne peuvent diverger ni en données ni en rendu. Unit :
+  `secondary-effect-chip.test.ts`.
+- 👁 **Volume** — jusqu'à 6 lignes de plus qu'avant sur un composant qui en affichait déjà ~10 : un
+  move cumulant contrecoup + effet secondaire + type + CT (ex. Boutefeu) ne doit pas déborder.
 
 ### 4.7 Panneau d'info (`.ip-panel`)
 - 🤖 Au boot, reflète le **Pokemon actif** : nom FR (Florizarre), niveau (Lv.50), PV plein, portrait
@@ -487,6 +517,12 @@ barre de vie prédite. Le panneau d'info de case s'efface pendant le ciblage. Ga
   d'équipe de la carte (`combat-preview.spec`).
 - 🤖 **Réglage désactivé** : « Prévisualisation dégâts » OFF → aucune prévision, ni panneau ni
   étiquettes in-world ; le panneau de case reste (`combat-preview.spec`).
+- 👁 **Coût CT exact** (`combat-preview-ct`, plan 178) — sur **sa propre ligne** sous
+  précision/critique (en 3ᵉ valeur de cette ligne il débordait le bloc et passait inaperçu, corrigé en
+  human-testing). Les cibles étant verrouillées, la surtaxe **Pression** est ici calculable : elle est
+  rendue dans un **span distinct coloré en danger** (`CT: 750` puis `+50` en rouge), pas fondue dans le
+  total — le talent appartient à la cible, voir la taxe est ce qui en fait un fait tactique. Cumule une
+  fois par cible sous Pression en AoE. Le tooltip du sous-menu, lui, ne montre que la base (§4.6.1).
 - 👁 **Forme du panneau étiré** : pointe de flèche à droite, bordure d'origine et coins arrondis
   conservés à gauche, contenu du bloc centré verticalement (rendu pur).
 - 👁 **Barre de vie prédite** : trois zones franches (restant / dégâts certains / zone de jet) —

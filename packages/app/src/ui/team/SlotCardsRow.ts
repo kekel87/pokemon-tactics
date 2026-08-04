@@ -1,5 +1,6 @@
 import type { TeamSlot } from "@pokemon-tactic/core";
-import { t } from "../../i18n";
+import { getTypeName } from "@pokemon-tactic/data";
+import { getLanguage, t } from "../../i18n";
 import { getTypeIconUrl } from "../../team/asset-paths";
 import { getPlayablePokemonById, getPortraitUrl } from "../../team/team-builder-data";
 
@@ -95,7 +96,7 @@ export class SlotCardsRow {
           icon.loading = "lazy";
           icon.decoding = "async";
           badge.appendChild(icon);
-          badge.appendChild(document.createTextNode(type));
+          badge.appendChild(document.createTextNode(getTypeName(type, getLanguage())));
           types.appendChild(badge);
         }
         card.appendChild(types);

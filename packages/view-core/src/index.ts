@@ -25,6 +25,7 @@ export * from "./movement-animation.js";
 export * from "./pmd-animation-controller.js";
 export * from "./SandboxSetup.js";
 export * from "./sandbox-config.js";
+export * from "./secondary-effect-chip.js";
 export * from "./sprite-atlas.js";
 export * from "./sprite-bundle.js";
 export * from "./sprite-facing.js";

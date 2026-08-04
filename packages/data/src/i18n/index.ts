@@ -23,3 +23,5 @@ export function getMoveName(moveId: string, language: string): string {
 export function getPokemonName(pokemonId: string, language: string): string {
   return pokemonNames[language]?.[pokemonId] ?? pokemonNamesEn[pokemonId] ?? pokemonId;
 }
+
+export { getTypeName } from "./type-names";
