@@ -4,11 +4,8 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Bugs
 
-### Sandbox Studio — le sélecteur Talent n'affiche pas l'override de config (2026-08-03, plan 178)
-- `dummyAbility: "pressure"` (ou tout override d'ability) est bien appliqué au moteur de combat, mais le dropdown Talent du panel Sandbox continue d'afficher le talent par défaut de l'espèce — désynchronisation UI/état réel.
-- Découvert en construisant les scénarios human-testing du plan 178 (préparation d'un porteur de Pression).
 
-_Aucun autre bug actif._
+_Aucun bug actif._
 
 <!-- Résolu 2026-07-23 (plan 169) : Régression — demi-blocs de liquide obsolètes depuis le rendu volume liquide → docs/backlog-archive.md. -->
 <!-- 2 items reclassés + 2 vrais bugs corrigés le 2026-07-19 → `docs/backlog-archive.md`. -->
@@ -27,7 +24,11 @@ _Aucun autre bug actif._
 ### `packages/*/tsconfig.json` exclut les `*.test.ts` du typecheck (2026-08-03, plan 178)
 - Chaque `tsconfig.json` de package porte `"exclude": ["src/**/*.test.ts"]` : une erreur de type dans un fichier de test n'est jamais détectée par `pnpm typecheck`, seulement par Vitest à l'exécution (qui peut passer si la valeur mal typée fonctionne quand même au runtime).
 - Constaté sur un `PresentationContext` de test devenu incomplet pendant le plan 178 (nouveaux champs `getStatusLabelUrl`/`translate` ajoutés, un mock de test non mis à jour n'a pas fait échouer le typecheck).
-- Analogue au trou e2e (`e2e/` non typechecké) corrigé au plan 170 — même remède probable : chaîner un `typecheck` incluant les tests, ou retirer l'exclusion si aucune raison ne la justifie.
+- Analogue au trou e2e (`e2e/` non typechecké) corrigé au plan 170 — même remède : retirer l'exclusion. **Mais l'ampleur a été mesurée (2026-08-03) et ce n'est pas un quick-win** : en retirant l'exclusion des 8 `tsconfig`, `tsc` remonte **~2000 erreurs**, réparties `core` 1978 · `ui-dom` 11 · `view-core` 7 · `app` 3 · les autres 0.
+- **84 % viennent d'une seule cause** : 1662 `TS2561` du type « `currentPp` n'existe pas sur `Partial<PokemonInstance>` » — les tests du core posent un champ **fantôme**. (Cohérent avec le fait que les PP ne sont pas consommés en combat : ils ne servent qu'à calculer le coût CT.) Le nettoyage est donc mécanique mais touche des centaines de fichiers de test.
+- Le reste (~330) est varié : mocks de `BoardView`/`BattleChrome`/`PresentationContext` désynchronisés de leur interface, `Object is possibly undefined`, littéraux incomplets.
+- **Ordre suggéré** : (1) purger `currentPp` des tests du core, (2) traiter `ui-dom`/`view-core`/`app` (une trentaine, dont des mocks réellement périmés), (3) retirer l'exclusion et verrouiller. ⚠️ `packages/app/src/styles/tokens-parity.test.ts` importe `node:fs`/`node:path`/`node:url` : il faudra **ajouter `@types/node`** (aucun `@types/*` dans le projet aujourd'hui) — décision de dépendance à valider avec l'humain.
+- **Déjà corrigé au passage (plan 178)** : `packages/app/src/team/__tests__/refresh-ai-teams.test.ts` — son type local `Slot` n'avait jamais suivi l'ajout de `ephemeral` à `SlotForRefresh`, ce qui cassait aussi l'inférence générique et masquait `label`. Exemple typique de ce que l'exclusion laisse pourrir.
 
 <!-- Résolu 2026-07-21 : `ct-system.scenario.test.ts` capté par aucun projet vitest (jamais exécuté) → déplacé de `packages/core/src/battle/` vers `scenarios/` (convention unifiée, imports en alias `@pokemon-tactic/core`). 6/6 PASS. -->
 

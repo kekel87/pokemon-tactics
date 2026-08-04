@@ -440,7 +440,7 @@ export class SandboxPanel {
 
     const ability = createLabeledSelect({
       label: t("sandbox.ability"),
-      options: this.buildAbilityOptions(initialPokemonId),
+      options: this.buildAbilityOptions(initialPokemonId, member.ability),
       selected: member.ability ?? this.getFirstAbility(initialPokemonId),
       onChange: () => this.emit(),
       signal: this.abort.signal,
@@ -922,7 +922,14 @@ export class SandboxPanel {
     navigator.clipboard.writeText(json);
   }
 
-  private buildAbilityOptions(pokemonId: string): SelectOption[] {
+  /**
+   * @param selectedAbilityId talent réellement porté par le membre. La liste ne contient que les
+   * talents *légaux de l'espèce* ; un override de config (`dummyAbility`, ex. Pression sur un
+   * Ronflex) n'en fait pas partie, l'`<option>` n'existait donc pas et le `<select>` retombait
+   * silencieusement sur le premier talent — le panneau affichait « Vaccin » pendant que le moteur
+   * appliquait Pression. On ajoute l'override à la liste pour que l'UI dise la vérité.
+   */
+  private buildAbilityOptions(pokemonId: string, selectedAbilityId?: string): SelectOption[] {
     const abilities = getPokemonAbilities(pokemonId).all;
     const options: SelectOption[] = [];
     for (const id of abilities) {
@@ -931,6 +938,17 @@ export class SandboxPanel {
         value: id,
         label: info?.name ?? id,
         disabled: info ? !info.implemented : false,
+      });
+    }
+    if (
+      selectedAbilityId !== undefined &&
+      selectedAbilityId !== "" &&
+      !abilities.includes(selectedAbilityId)
+    ) {
+      const info = getAbilityInfo(selectedAbilityId);
+      options.push({
+        value: selectedAbilityId,
+        label: `${info?.name ?? selectedAbilityId} ${t("sandbox.custom")}`,
       });
     }
     return options;

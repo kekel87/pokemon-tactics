@@ -18,6 +18,7 @@ interface Slot {
   controller: PlayerController;
   assignedTeam: TeamSet | null;
   assignedTeamId: string | null;
+  ephemeral: boolean;
   label: string;
 }
 
@@ -48,12 +49,14 @@ describe("refreshAllAiSlots", () => {
         controller: PlayerController.Human,
         assignedTeam: humanTeam,
         assignedTeamId: humanTeam.id,
+        ephemeral: false,
         label: "J1",
       },
       {
         controller: PlayerController.Ai,
         assignedTeam: aiSavedTeam,
         assignedTeamId: aiSavedTeam.id,
+        ephemeral: false,
         label: "J2",
       },
     ];
@@ -66,7 +69,13 @@ describe("refreshAllAiSlots", () => {
 
   it("returns same shape (no controller mutation)", () => {
     const slots: Slot[] = [
-      { controller: PlayerController.Ai, assignedTeam: null, assignedTeamId: null, label: "J1" },
+      {
+        controller: PlayerController.Ai,
+        assignedTeam: null,
+        assignedTeamId: null,
+        ephemeral: false,
+        label: "J1",
+      },
     ];
     const refreshed = refreshAllAiSlots(slots, "Aléatoire");
     expect(refreshed[0]?.controller).toBe(PlayerController.Ai);

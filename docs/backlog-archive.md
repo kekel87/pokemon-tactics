@@ -8,6 +8,9 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+### Sandbox Studio — le sélecteur Talent n'affichait pas l'override de config — RÉSOLU (2026-08-03, plan 178)
+`dummyAbility: "pressure"` était bien appliqué au moteur, mais le dropdown Talent montrait le talent par défaut de l'espèce. Cause : `buildAbilityOptions` ne listait que les talents **légaux de l'espèce** ; un override hors de cette liste n'avait pas d'`<option>`, et le `<select>` retombait silencieusement sur le premier. Correction : l'override est ajouté à la liste, suffixé « (custom) » comme le picker Pokemon. Découvert en préparant les scénarios human-testing du plan 178 (porteur de Pression).
+
 ## Afficher les modificateurs terrain actifs dans l'InfoPanel — RÉSOLU (2026-07-25)
 
 - **Contexte** : le joueur ne voyait nulle part les effets d'une case (coût de déplacement, statut au magma/marécage, bonus de type, hazards, champ/zone active) — liés à l'étape 22 du plan 051. Exemples cités : « Évasion +1 (herbe haute) », « Brûlure au passage (magma) », « Malus déplacement +2 (marécage) ».
