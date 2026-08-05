@@ -200,9 +200,12 @@
   --radius-md: 6px;
   --radius-pill: 16px;
 
-  /* Z-index */
+  /* Z-index — ordre d'empilement : overlay 100 < dropdown 150 < chargement 5000
+     < splash 6000 < invite d'orientation 7000. L'invite d'orientation passe au-dessus de
+     tout : elle doit obstruer le jeu même pendant le splash ou un écran de chargement. */
   --z-overlay: 100;
   --z-dropdown: 150;
+  --z-orientation-prompt: 7000;
 
   /* Modales */
   --modal-width-default: min(80vw, 960px);

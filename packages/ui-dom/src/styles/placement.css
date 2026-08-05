@@ -8,7 +8,15 @@
     flex-direction: column;
     align-items: center;
     gap: var(--spacing-xs);
-    padding: var(--spacing-sm) var(--spacing-lg);
+    /*
+     * Bottom-anchored bar → it lands exactly where a phone's gesture bar / a notch sits in
+     * landscape, so the Pokémon names underneath the portraits were the first thing to go under
+     * the system UI. Same `max(design, env(...))` treatment as the combat chrome (plan 179 §G);
+     * `viewport-fit=cover` in index.html is what makes these resolve to anything but 0px.
+     */
+    padding-block: var(--spacing-sm) max(var(--spacing-sm), env(safe-area-inset-bottom));
+    padding-inline: max(var(--spacing-lg), env(safe-area-inset-left))
+      max(var(--spacing-lg), env(safe-area-inset-right));
     background: color-mix(in oklch, var(--pl-team-color) 35%, var(--color-bg-base));
     border-top: 1px solid var(--color-border-surface);
     font-family: var(--font-family);
@@ -96,11 +104,46 @@
   .pl-roster-finish {
     position: absolute;
     inset-block-start: 50%;
-    inset-inline-end: var(--spacing-lg);
+    inset-inline-end: max(var(--spacing-lg), env(safe-area-inset-right));
     transform: translateY(-50%);
     /* .tb-btn sets display:inline-flex, which would override the hidden attribute. */
     &[hidden] {
       display: none;
+    }
+  }
+
+  /*
+   * Small screens (plan 179). This bar runs on the fixed `:root` tokens like the rest of the
+   * pre-179 chrome, so on a 393px-tall phone it claimed 99px — a quarter of the screen — for a
+   * strip of portraits, and its labels sat 6px from the bottom edge. Same scoped token re-basing
+   * as `.bc-root` / `.tb-root` / `.tb-dialog`.
+   */
+  @media (height < 500px), (width < 900px) {
+    .pl-roster {
+      --font-size-xs: 12px;
+      --font-size-sm: 13px;
+      --font-size-lg: 18px;
+      --spacing-xs: 3px;
+      --spacing-sm: 4px;
+      --spacing-lg: 8px;
+      /* `.pl-roster-finish` est un `.tb-btn` DANS cette barre : sans ces deux tokens il gardait son
+         padding de bureau (8/14px) alors que la barre autour de lui se resserrait. */
+      --pad-control-y: 5px;
+      --pad-control-x: 9px;
+    }
+
+    /* Terminer le placement est une action tactile primaire : même plancher que les lignes du menu
+       de combat, sinon elle resterait au minimum de 24px. */
+    @media (pointer: coarse) {
+      .pl-roster {
+        --target-min: 30px;
+      }
+    }
+
+    .pl-roster-portrait {
+      width: 36px;
+      height: 36px;
+      border-width: 1px;
     }
   }
 }

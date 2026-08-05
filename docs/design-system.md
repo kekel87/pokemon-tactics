@@ -603,15 +603,18 @@ Usage : `padding: calc(8 * var(--ip-px))` = 8 px design → scale proportionnel 
 - `--ui-scale` (publié par `ResizeObserver` sur `#game-stage`) reste disponible comme fallback JS pour les cas où les container queries ne suffisent pas.
 - Compat : Safari 2026 + Chrome + Firefox supportent les container queries (`cqw`/`cqi`).
 
-### Reflow mobile
+### Second référentiel de design mobile (plan 179)
 
-```css
-@container stage (width < 768px) {
-  /* barre bas pleine largeur, scale sur ref 768 */
-}
-```
+Sous un petit stage, `--ui-scale` ne se calcule plus contre 1920×1080 mais contre **1280×720** (même ratio 16:9) : le *point zéro* du calcul bascule, rien ne cesse de scaler — ce n'est PAS le plancher de font-size par élément refusé le 2026-07-23 (la maquette reste homothétique). Contrepartie honnête : ça introduit un **palier discret** (le chrome grossit d'un coup au franchissement du seuil, pas continûment). Décision #733.
 
-Panneaux collapsés/stackés sous 768 px (style PokeRogue). Pas de shrink illisible.
+**Convention à copier pour tout futur composant scalé** :
+
+- **Seuil, toujours les deux conditions** : `height < 500px` **ou** `width < 900px` — hauteur = téléphone tenu en paysage, largeur = tablette tenue en portrait (portrait reste jouable sur tablette, cf. overlay d'orientation). Même prédicat, en **syntaxe de plage** partout : JS (`game-stage.ts`), `@media`, `@container stage`. Décision #734 — pas de source unique possible (`@custom-media` non Baseline, une variable CSS n'est pas lisible dans une condition de media/container query).
+- **Référence** : 1280×720 sous le seuil, 1920×1080 sinon. Constantes `MOBILE_DESIGN_REFERENCE_WIDTH/HEIGHT/MAX_HEIGHT/MAX_WIDTH` (`packages/ui-dom/src/game-stage.ts`).
+- **Container queries** (InfoPanel `--ip-px`, HUD météo `--wh-px`, timeline `--tt-size`, panneau de case) répliquent le seuil via `@container stage ((height < 500px) or (width < 900px)) { --xx-px: calc(100cqw / 1280); }` — même mécanisme, la valeur de référence change dans le bloc.
+- **`--type-chip-px`** (chip de type partagé, `type-chip.ts`) : toujours redéfini **sur la chip elle-même** (`.type-chip` ou `<sélecteur hôte> .type-chip`), jamais sur un ancêtre — une déclaration posée sur l'élément bat l'héritage d'un ancêtre, une valeur posée plus haut dans l'arbre (ex. `.tb-root`) reste sans effet mesurable. Repli obligatoire `var(--ui-scale, 1)` sur tout host hors `#game-stage` (ex. Team Builder, monté sur `#game-root`) : sans lui, `--ui-scale` est indéfini, le `calc()` amont devient invalide et l'icône retombe sur sa taille native. Décision #737.
+
+Panneaux collapsés/stackés sous le seuil (style PokeRogue). Pas de shrink illisible.
 
 ### Tokens équipe et badges (tokens.css)
 
@@ -750,9 +753,9 @@ Source : `packages/renderer/src/styles/sandbox-studio.css` + tokens `tokens.css`
 
 - **Canvas plein viewport, pas de letterbox** (décision #472) : `#game-stage` remplit 100% du viewport ; la caméra orthographique dimetric « comble » selon le ratio (montre plus/moins de scène). Zéro bande noire, tout ratio (ultrawide, mobile portrait). Révise les décisions 2a/2b #464-468 (qui partaient d'un stage letterboxé 16:9).
 - **Structure** : `#game-root > #game-stage (container-type:size, container-name:stage) > (canvas + #game-overlay > .ui-world + .ui-screen)`. `.ui-world` = UI ancrée-monde (barres PV, curseur), reprojetée par frame. `.ui-screen` = panneaux ancrés-écran (InfoPanel, menus, Team Builder).
-- **Scaling chrome (cat. B) via container-query units** : chaque métrique = `calc(N * --px)` avec `--px = calc(100cqw / 1920)` (1px design @ ref 1920), résolu contre `#game-stage`. 100% CSS, scale proportionnel à la taille du jeu sans JS. Reflow mobile `@container stage (width < 768px)` → ref 768 (≈2.5× plus gros, style PokeRogue). `--ui-scale` (publié par `ResizeObserver`) reste un fallback.
-- **Adapter Team Builder prod-safe** (décisions #470-471) : overrides cqw cloisonnés dans `@container stage`, raw px wrappés `var(--tb-*, <px-original>)` → l'app prod (hors stage) garde son rendu d'origine.
-- **Pistes différées best-practices** (validées agent, marché 2026) : ~~plancher font-size `max(calc(N·--px), Xpx)` pour 480-767px~~ **écarté sciemment (2026-07-23)** — au refacto CSS chrome rem→`px × --ui-scale`, l'humain a tranché « tout scaler sans plancher » ; `--stage-scale` sur `:root` pour les modales `<dialog>` top-layer (qui échappent au container) ; cap ultrawide `min(100cqw/1920, 100cqh/1080)` ; `--ui-scale` barres PV monde pour 4K.
+- **Scaling chrome (cat. B) via container-query units** : chaque métrique = `calc(N * --px)` avec `--px = calc(100cqw / 1920)` (1px design @ ref 1920), résolu contre `#game-stage`. 100% CSS, scale proportionnel à la taille du jeu sans JS. **Second référentiel mobile (plan 179, décisions #733–#734)** : sous `height < 500px` ou `width < 900px`, la référence bascule à 1280×720 (chrome ×1,5) — remplace l'ancien seuil `width < 768px` (jamais déclenché en paysage téléphone, exclusivement largeur). Voir § Second référentiel de design mobile ci-dessus pour la convention complète. `--ui-scale` (publié par `ResizeObserver`, même bascule côté JS via `MOBILE_DESIGN_REFERENCE_*`) reste un fallback pour le chrome hors container-query (journal, timeline, tooltip, chips).
+- **Adapter Team Builder prod-safe** (décisions #470-471) : overrides cqw cloisonnés dans `@container stage`, raw px wrappés `var(--tb-*, <px-original>)` → l'app prod (hors stage) garde son rendu d'origine. **Toujours inerte en production** (`.tb-root` monté sur `#game-root`, pas `#game-stage` — reconfirmé 2026-08-06, voir `docs/next.md`) : le Team Builder mobile passe plutôt par une media query classique scopée `.tb-root` (`@media (height < 500px), (width < 900px)`, plan 179), pas ce système `@container stage`.
+- **Pistes différées best-practices** (validées agent, marché 2026) : ~~plancher font-size `max(calc(N·--px), Xpx)` pour 480-767px~~ **écarté sciemment (2026-07-23)** — au refacto CSS chrome rem→`px × --ui-scale`, l'humain a tranché « tout scaler sans plancher » (le plancher de **hit-area tactile**, lui, est retenu — 24-30px, décision #735) ; `--stage-scale` sur `:root` pour les modales `<dialog>` top-layer (qui échappent au container) ; cap ultrawide `min(100cqw/1920, 100cqh/1080)` ; `--ui-scale` barres PV monde pour 4K (2 éléments de chrome — indicateur de tour, pastille d'instruction — et la dialog de victoire scalent désormais leur texte sans leur padding en 4K, point ouvert non tranché, voir `docs/next.md`).
 
 ### Constantes Babylon — caméra, depth, silhouette (Jalon 3a)
 

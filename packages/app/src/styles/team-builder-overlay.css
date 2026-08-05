@@ -111,4 +111,77 @@
       grid-template-columns: repeat(3, 1fr);
     }
   }
+
+  /*
+   * ⚠️ Everything above is INERT in production (plan 179, verified at runtime 2026-08-05).
+   * `.tb-root` is mounted on `#game-root` by `ScreenManager`, not inside `#game-stage` — and
+   * that is by design: the stage belongs to the combat renderer and does not exist while a
+   * menu screen is up. So no ancestor declares `container-name: stage`, `--tb-px` resolves to
+   * nothing, and the screen runs on the fixed `:root` tokens. The blocks above were written
+   * against `team-edit-harness.ts`, deleted on 2026-07-20.
+   *
+   * Reviving them (giving this screen its own container / viewport-unit `--tb-px`) would
+   * rescale the Team Builder at *every* size, 4K included — a deliberate visual change that
+   * needs its own review, so it is left out of this plan and recorded in `docs/next.md`.
+   *
+   * What follows is the narrow fix for the reported bug: on a phone the fixed tokens produced
+   * a 56px topbar with 22px text on a 393px-tall screen, and the icon+label buttons wrapped
+   * onto two lines. Scoped to `.tb-root`, so nothing outside this screen moves.
+   */
+  /*
+   * Unité du composant partagé `type-chip` (`packages/ui-dom/src/styles/type-chip.css`) pour cet
+   * écran, qui vit hors de `#game-stage` et n'a donc pas de `--ui-scale`.
+   *
+   * ⚠️ Doit cibler la chip ELLE-MÊME, pas `.tb-root` : `.type-chip` déclare `--type-chip-px` sur
+   * son propre élément, et une déclaration sur l'élément bat l'héritage d'un ancêtre — une valeur
+   * posée sur `.tb-root` restait donc sans effet (mesuré 2026-08-06 : `calc(1px * 1)`, chips à
+   * l'échelle 1:1 de la maquette 1920). C'est exactement ce que fait l'InfoPanel avec
+   * `.ip-types .type-chip`.
+   *
+   * Divisé par 21, valeur retenue par l'humain sur téléphone réel : la police de la chip vaut
+   * `20 × --type-chip-px`, donc /20 la met pile à hauteur du texte environnant. /21 la pose juste
+   * en dessous (~12,4px sur mobile, pour un nom de Pokemon à 15px) — assez discrète pour ne pas
+   * concurrencer le nom, assez grande pour rester lisible. Essais écartés : /26 (10px, trop petit)
+   * et /23 (11,3px, encore un peu juste).
+   * `line-height: 1` rend la hauteur déterministe (police + padding), sinon la chip du panneau
+   * d'édition héritait un interlignage différent de celle des cartes de slot et les deux ne
+   * faisaient pas la même hauteur (22px contre 28px).
+   */
+  .tb-root .type-chip {
+    --type-chip-px: calc(var(--font-size-sm) / 21);
+
+    line-height: 1;
+  }
+
+  @media (height < 500px), (width < 900px) {
+    .tb-root {
+      --font-size-xs: 12px;
+      --font-size-sm: 13px;
+      --font-size-md: 15px;
+      --font-size-lg: 18px;
+      --spacing-sm: 4px;
+      --spacing-md: 5px;
+      --spacing-lg: 8px;
+      --spacing-xl: 10px;
+      --pad-control-y: 5px;
+      --pad-control-x: 9px;
+      --tb-name-input-w: 150px;
+      --tb-portrait-lg: 52px;
+      --tb-portrait-sm: 40px;
+      --tb-slot-min-h: 74px;
+      --tb-clear-size: 22px;
+      --tb-clear-font: 18px;
+    }
+
+    /* Icon + label side by side instead of stacking: what put the header buttons on two
+       lines was the label wrapping under its glyph, not the row overflowing. */
+    .tb-topbar .tb-btn {
+      flex-wrap: nowrap;
+      white-space: nowrap;
+    }
+
+    .tb-topbar-title {
+      margin-right: var(--spacing-md);
+    }
+  }
 }

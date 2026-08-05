@@ -23,6 +23,13 @@
   .tb-showdown-textarea {
     width: 100%;
     min-height: 240px;
+
+    /* 240px de plancher suffisaient à eux seuls à faire déborder la modale sur un écran de 393px
+       de haut, clavier ouvert (retour humain 2026-08-06). Sur petit écran c'est la zone de saisie
+       qui cède, pas l'en-tête et son bouton de fermeture. */
+    @media (height < 500px), (width < 900px) {
+      min-height: 96px;
+    }
     background: var(--color-bg-elevated);
     color: var(--color-text-primary);
     border: 1px solid var(--gray-700);

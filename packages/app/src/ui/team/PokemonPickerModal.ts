@@ -1,5 +1,6 @@
+import { getTypeName } from "@pokemon-tactic/data";
 import { Modal } from "@pokemon-tactic/ui-dom";
-import { t } from "../../i18n";
+import { getLanguage, t } from "../../i18n";
 import { getTypeIconUrl } from "../../team/asset-paths";
 import { normalizeSearchText } from "../../team/search-index";
 import {
@@ -7,6 +8,7 @@ import {
   getPortraitUrl,
   type PlayablePokemon,
 } from "../../team/team-builder-data";
+import { focusSearchUnlessTouch } from "./picker-focus";
 
 export interface PokemonPickerOptions {
   onSelect: (pokemon: PlayablePokemon) => void;
@@ -103,12 +105,16 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
       } else if (activeTypes.has(type)) {
         chip.dataset.state = "active";
       }
+      // Localised name, not the raw English id (plan 179): these chips were the last place in
+      // the UI still showing `Dark`/`Fairy`/`Grass`. `getTypeName` is the single source since
+      // plan 178.
+      const typeName = getTypeName(type, getLanguage());
       const icon = document.createElement("img");
       icon.src = getTypeIconUrl(type);
-      icon.alt = type;
+      icon.alt = typeName;
       chip.appendChild(icon);
       const label = document.createElement("span");
-      label.textContent = type;
+      label.textContent = typeName;
       chip.appendChild(label);
       chip.addEventListener("click", () => {
         if (!availableTypes.has(type)) {
@@ -211,5 +217,5 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
   });
 
   render();
-  search.focus();
+  focusSearchUnlessTouch(search);
 }

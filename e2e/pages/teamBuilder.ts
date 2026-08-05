@@ -83,6 +83,8 @@ export class PokemonPicker {
   readonly search: Locator;
   readonly reset: Locator;
   readonly cells: Locator;
+  /** Every type filter chip, in render order — used to assert they stay on one swipeable row. */
+  readonly typeChips: Locator;
   constructor(private readonly page: Page) {
     this.dialog = page.getByRole("dialog");
     this.title = page.getByRole("heading", { name: "Choisir un Pokémon" });
@@ -90,6 +92,7 @@ export class PokemonPicker {
     this.search = page.getByPlaceholder("Rechercher…");
     this.reset = page.getByText("Reset", { exact: true });
     this.cells = page.getByTestId("pokemon-cell");
+    this.typeChips = page.getByTestId("pokemon-type-filter");
   }
 
   /** A pokemon grid cell by FR name. */
@@ -113,15 +116,23 @@ export class MovePicker {
   readonly dialog: Locator;
   readonly title: Locator;
   readonly search: Locator;
-  constructor(page: Page) {
+  /** Type filter chips — only the types the Pokemon's legal moves cover, so the set varies. */
+  readonly typeChips: Locator;
+  constructor(private readonly page: Page) {
     this.dialog = page.getByRole("dialog");
     this.title = page.getByRole("heading", { name: /Choisir la capacité/ });
     this.search = this.dialog.getByPlaceholder("Rechercher…");
+    this.typeChips = page.getByTestId("move-type-filter");
   }
 
   /** A move list row by its FR name (the `.name` span text). */
   entry(moveFr: string): Locator {
     return this.dialog.getByText(moveFr, { exact: true });
+  }
+
+  /** A type filter chip by its `data-type` (English type id) — same contract as the Pokemon picker. */
+  typeChip(type: string): Locator {
+    return this.typeChips.and(this.page.locator(`[data-type="${type}"]`));
   }
 }
 

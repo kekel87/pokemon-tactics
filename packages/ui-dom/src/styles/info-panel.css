@@ -137,7 +137,9 @@
   .ip-types .type-chip {
     --type-chip-px: var(--ip-px);
 
-    padding-block: calc(3 * var(--type-chip-px));
+    /* 3 lisait trop haut sur un vrai téléphone (humain, 2026-08-06) — les chips de type
+       occupaient une bande inutilement épaisse sous le nom. */
+    padding-block: calc(1.5 * var(--type-chip-px));
   }
 
   /* Battle-stats block (plan 174, ally only). Two columns of stat rows. */
@@ -578,9 +580,26 @@
   }
 
   /*
+   * Phone-sized stage (plan 179 §B): scale against a smaller reference than 1920. Mirrors the
+   * `MOBILE_DESIGN_REFERENCE_*` condition in `game-stage.ts` — one threshold for both scaling
+   * systems. Short *or* narrow: a phone lying down is as wide as a desktop window but only
+   * ~390 tall, an upright tablet is the mirror case.
+   * Layout untouched: the panel stays a card, only its scale changes.
+   */
+  @container stage ((height < 500px) or (width < 900px)) {
+    .ip-panel {
+      /* 1500, not the 1280 the chrome uses: reviewed on a phone, the panel at 1280 ate too
+         much of the board. Per-panel calibration is what the `--ip-px` contract is for — the
+         reference is a knob per component, only the *threshold* has to be shared. */
+      --ip-px: calc(100cqw / 1500);
+    }
+  }
+
+  /*
    * Mobile reflow (plan 119 §4): under a narrow *game* box, scale the panel
    * against a 768 reference instead of 1920 (≈2.5× bigger px) and stretch it to
    * a bottom bar — PokeRogue-style, readable, not a shrunk-to-illegible panel.
+   * Declared after the block above so this stronger reflow wins when both match.
    */
   @container stage (width < 768px) {
     .ip-panel {

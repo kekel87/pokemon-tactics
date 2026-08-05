@@ -72,6 +72,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Écran / menu / navigation | §6 |
 | Team Builder / sandbox | §7 |
 | Placement / zones de spawn | §8.5 |
+| Responsive / mobile / `--ui-scale` / safe-area / cible tactile | §4.16, §6.9, §7.5, §8.5 |
 
 ---
 
@@ -583,6 +584,53 @@ situation).*
   (`combat-preview-view.test`) ; l'e2e existant §4.14 teste la version **fog OFF** (objet connu).
 - 👁 **Rendu des placeholders** : gris/espacement du « ??? », carré pointillé du glyphe d'objet
   (dessiné en CSS, aucun asset) — pixel pur, à revoir au « point icônes » (§4.13).
+
+### 4.16 Responsive du chrome de combat (plan 179)
+
+*src : `ui-dom/game-stage.ts` (`--ui-scale` + second référentiel), `styles/battle-chrome.css`,
+`battle-log.css`, `placement.css`, `app/index.html` (meta viewport)*
+*e2e : `combat/responsive-chrome.spec.ts`*
+
+*Décisions d'entrée (ne pas rouvrir) : **paysage forcé** sur mobile, cible **min-width 360px**,
+**pas de plancher de font-size** — le plancher n'est autorisé que sur la **hit-area** (WCAG 2.2 SC
+2.5.8 « spacing exception »). Le second référentiel introduit un **palier discret** assumé : sous le
+seuil, tout le chrome grossit d'un coup ×1,5, la maquette restant homothétique.*
+
+- 🤖 **Second référentiel** : `--ui-scale = min(l/réf-l, h/réf-h)` avec la référence **1280×720** dès
+  que `hauteur < 500` **OU** `largeur < 900`, sinon **1920×1080**. Quatre cas mesurés : téléphone
+  paysage 851×393 → ≈0,546 ; tablette debout 820×1180 → ≈0,641 ; **fenêtre 1280×720 → 0,667**
+  (garde du seuil : elle RESTE sur la référence de bureau, sinon son chrome sauterait ×1,5) ;
+  1920×1080 → 1 (`responsive-chrome.spec`).
+- 🤖 **Menu d'action + bannière de tour à l'échelle** : ils étaient les seuls éléments du chrome sur
+  des tokens fixes (22px sur téléphone comme sur 4K). Leur `font-size` vaut désormais
+  `28px × --ui-scale` à n'importe quelle taille d'écran (`responsive-chrome.spec`).
+- 🤖 **Planchers tactiles (`pointer: coarse`)** : lignes du menu d'action, **lignes de la liste
+  d'attaques** (elles lisaient plus courtes que le menu qu'elles remplacent) et bouton replié du
+  journal ≥ **30px** — au-dessus du minimum WCAG 24px, en-dessous des 44px recommandés jugés trop
+  hauts sur un vrai téléphone. **Contre-épreuve pointeur fin** : le bouton du journal garde sa taille
+  homothétique (≈19px) — le plancher porte sur la hit-area, jamais sur le rendu
+  (`responsive-chrome.spec`).
+- 🤖 **Journal élargi sur mobile** : sous le seuil, le panneau passe de la maquette 288px/18,4px à
+  **400px/26px** (plafond `55vw`) — c'est le seul panneau dont le contenu EST la raison d'être.
+  **Contre-épreuve 1920×1080** : maquette 288/18,4px conservée (`responsive-chrome.spec`).
+- 🤖 **Aucun débordement** du chrome à **851×393** et **640×360**, pointeur grossier (le cas le plus
+  dur, les planchers agrandissant les cibles). Les conteneurs défilants par conception (`.tt-list`,
+  `.bl-list`) sont exclus de l'audit : un enfant défilé hors cadre n'est pas un bug de mise en page
+  (`responsive-chrome.spec`).
+- 🤖 **Barre de placement** (§8.5) : montée et lisible sur téléphone paysage — le bug observé était un
+  `.pl-roster` resté 0×0, jamais vu à l'écran — et portraits compactés sous le seuil (48 → 36px)
+  (`responsive-chrome.spec`, parcours réel : la sandbox auto-place).
+- 🤖 **Meta viewport** : `viewport-fit=cover` + `interactive-widget=resizes-content` présents. Garde-fou
+  de configuration assumé : leur **effet** est invisible en Chromium de bureau (ni encoche ni clavier
+  virtuel) mais leur absence casse silencieusement tout `env(safe-area-inset-*)` et toute modale en
+  `dvh` (§6.9, `responsive-screens.spec`).
+- 👁 **Safe-area réelle** (`env(safe-area-inset-left/right/bottom)` sur `.bc-root`, `.bc-left-col`,
+  `.bl-panel`, `.pl-roster`) : en paysage l'encoche passe sur le **côté**. Non automatisable — les
+  insets résolvent à 0px sans encoche physique, et Chromium n'en émule aucune. **Téléphone réel.**
+- 👁 **Lisibilité ressentie et esthétique** du chrome au zoom ×1,5 (densité du menu, InfoPanel réduit,
+  timeline, portraits de la timeline à petite taille) : jugement d'œil, pas de signal DOM.
+- 👁 **Overlay d'orientation en portrait** *pendant un combat* : l'invite est globale (§6.9), son
+  interaction avec une scène montée reste à l'œil.
 
 ---
 
@@ -2034,6 +2082,11 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
 - 🤖 « Retour » → Mode de combat (`screens.spec`).
 - 🤖 Liste de **9 cartes** ; nom + méta + **description** renseignés ; **sélectionner une autre
   carte met à jour le détail** (`screens.spec`). *L'aperçu Babylon live = 👁.*
+- 🤖 **Voile de chargement de l'aperçu** (plan 179) : changer de carte repasse par
+  `data-state="loading"` (spinner) puis retombe sur `"idle"` quand `CombatScene.ready` résout — un
+  cadre vide « donne l'impression que c'est cassé ». Séquence enregistrée par MutationObserver, donc
+  la phase courte n'est pas échantillonnée au hasard (`responsive-screens.spec`). *Le spinner
+  lui-même (dessin, fondu) = 👁.*
 - 👁 **Déplacer** la map (pan) et **tourner** la caméra dans l'aperçu.
 - 🤖 `↑/↓` navigue la liste (sélection surlignée, `aria-current`).
 
@@ -2076,6 +2129,43 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
 - 🤖 Contenu présent (disclaimer fan-project, sprites PMDCollab, tileset, police, code).
 - 🤖 Valider le titre/contenu en **anglais** (« Credits ») après switch de langue.
 
+### 6.9 Écrans DOM sur petit écran (plan 179)
+
+*src : `app/ui/OrientationPrompt.ts` + `styles/orientation-prompt.css`, `styles/map-select.css`,
+`components/team-select.css`, `app/index.html`*
+*e2e : `dom/responsive-screens.spec.ts` — Team Builder et sélecteurs en §7.5, chrome de combat en §4.16*
+
+*Ces écrans vivent **hors** de `#game-stage` : ils n'ont pas de `--ui-scale` et tournent sur les tokens
+`:root` fixes. Le correctif est un **bloc `@media (max-height: 500px), (max-width: 900px)`** qui rebase
+ces tokens par écran — même seuil que le second référentiel du chrome (§4.16), à copier pour tout
+nouvel écran DOM.*
+
+- 🤖 **Invite d'orientation** (« Tourne ton écran » + « Pokemon Tactics se joue en paysage. ») : elle
+  n'obstrue que ce qui est réellement injouable — portrait **ET** pointeur grossier **ET** largeur
+  < 600px. Quatre cas : téléphone portrait 393×851 → **affichée** ; téléphone paysage → masquée ;
+  **tablette debout 820×1180 → masquée** (elle a la place de jouer) ; fenêtre de bureau étroite
+  500×900 à la souris → masquée (`responsive-screens.spec`).
+  *C'est une **obstruction**, pas un verrou : `screen.orientation.lock()` exige le plein écran et iOS
+  Safari n'implémente pas l'API du tout.*
+- 🤖 **Choix de la carte** : les **9 cartes** listées et **les deux boutons** (« Retour », « Choisir
+  cette carte ») entièrement dans le viewport à 851×393 — ils tombaient sous le bord bas, l'écran
+  devenait un cul-de-sac. Plus l'audit « aucun élément hors viewport », `.ms-list` (qui prend la
+  compression pour que les boutons restent ancrés) exclu (`responsive-screens.spec`).
+- 🤖 **Sélection d'équipe** : ses tokens suivent le seuil mobile — titre 28 → **18px**, portraits des
+  lignes d'équipe rétrécis (mesurés en comparaison directe par redimensionnement, pas en valeur
+  absolue). Plus l'audit « aucun élément hors viewport », `.ts-team-list` exclu
+  (`responsive-screens.spec`).
+- 🤖 **Meta viewport** : `viewport-fit=cover` + `interactive-widget=resizes-content`
+  (`responsive-screens.spec`) — voir la nuance « garde-fou de configuration » en §4.16.
+- 👁 **Safe-area de la sélection d'équipe** (`padding-inline`/`-block-end` en `env(...)`) : 0px sans
+  encoche physique → **téléphone réel**.
+- 👁 **Animation du glyphe** de l'invite (téléphone qui bascule, `prefers-reduced-motion`) et **densité
+  ressentie** des écrans réduits : pixel/anim.
+- 👁 **Menu principal, Paramètres, Crédits sur téléphone** : vérifiés sans défaut au human-testing, pas
+  d'assertion propre à ajouter — ils n'ont pas de bloc mobile parce que l'essentiel de leurs métriques
+  est déjà en `clamp()` / `vmin` (`menu-screens.css`). Re-dérouler §6.1 / §6.7 / §6.8 à l'œil en cas de
+  changement de tokens.
+
 ---
 
 ## 7. Recette — Team Builder & Sandbox
@@ -2087,7 +2177,8 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
   « Sauvegardé » qui flashe.
 - 🤖 Par slot : Pokemon (picker §7.2), talent, objet, nature, 4 moves (pickers), stats + points de
   stat + presets — **tout en FR**.
-- 👁 Slot vide = « Slot N » avec « + » ; slot rempli = portrait + nom FR + badges de type.
+- 👁 Slot vide = « Slot N » avec « + » ; slot rempli = portrait + nom FR + **chips de type** (composant
+  partagé `type-chip`, plus l'ancien `.tb-type-badge` — cf §7.5).
 - 🤖 Bouton « Vider ce slot » (croix) sur un slot rempli.
 - 👁 « **Tout vider** » → **modale de confirmation** « Vider l'équipe » puis vide les slots.
   ⚠️ **RÉGRESSION de migration** : la modale avait été perdue (`clearAll()` vide direct, clés i18n
@@ -2097,7 +2188,9 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
 - 👁 **Validation** (au lancement) : équipe vide, > 6, doublon espèce/objet/move, move/talent/
   nature/genre illégal, EV invalides → message d'erreur clair.
 - 👁 Export/Import Showdown.
-- 👁 Responsive / 4K (overlay scale).
+- 👁 **4K** : le système d'échelle `--tb-px` du Team Builder est **inerte en production** (l'écran n'est
+  pas monté dans `#game-stage`, cf la note dans `team-builder-overlay.css`) → l'écran garde ses tokens
+  `:root` sur un 4K. Le ressusciter est un chantier à part (`docs/next.md`). **Petit écran : voir §7.5.**
 
 ### 7.2 Pokemon Picker (modale)
 *src : `app/ui/team/PokemonPickerModal.ts` (`<dialog>`), recherche `pokemon-search`*
@@ -2136,6 +2229,10 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
   points de stat + total ≤ max = 👁.*
 - 🤖 **4 capacités** listées (`.tb-move-row` ×4 — `pokemon-edit.spec`). *« Build » qui applique un
   set OP = 👁.*
+- 🤖 **Icône officielle de l'objet** dans le champ « objet tenu » ET dans les lignes du sélecteur
+  d'objet (plan 179) : le crop de la planche fait 24px de large, un objet sans icône retombe sur un
+  pixel transparent 1×1 → `naturalWidth` distingue les deux sans lire l'image (§7.5,
+  `responsive-team-builder.spec`).
 
 ### 7.4 Sandbox Studio
 *src : `app/babylon/combat-screen.ts` (mountSandboxStudio), `app/ui/SandboxPanel.ts`,
@@ -2151,6 +2248,56 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
   (champ seed éditable + bouton 🎲 reroll) ; passer en Déterministe avec seed à 0 en génère un.
 - 👁 Boutons : Réinitialiser, Exporter JSON (presse-papier), Importer JSON, Rejouer.
 - 👁 « Retour au menu » : teardown propre (pas de fuite DOM/canvas).
+
+*Sandbox Studio est **hors périmètre responsive** (décision humaine 2026-08-05 : outil de dev,
+`sandbox-studio.css` non touché).*
+
+### 7.5 Team Builder et sélecteurs sur petit écran (plan 179)
+
+*src : `styles/team-builder-overlay.css` (bloc `@media`), `components/slot-card.css`,
+`components/picker.css`, `components/topbar.css`, `ui-dom/styles/modal.css`, `type-chip.css`,
+`components/showdown.css`, `app/ui/team/picker-focus.ts`*
+*e2e : `dom/responsive-team-builder.spec.ts` — ancre Ectoplasma (SPECTRE + POISON, deux types longs)*
+
+- 🤖 **6 slots à largeur égale** : `repeat(6, minmax(0, 1fr))` et non `1fr` seul — `1fr` vaut
+  `minmax(auto, 1fr)`, dont le minimum est la largeur min-content, donc **un Pokemon à deux types
+  longs élargissait sa colonne** et le 6e slot sortait de l'écran. Les 6 cartes mesurent la même
+  largeur et la 6e est dans le viewport (`responsive-team-builder.spec`).
+- 🤖 **Chips de type unifiées** : le Team Builder rend ses types avec le composant partagé
+  `type-chip` (celui de l'InfoPanel de combat) ; `.tb-type-badge` est **supprimé**. La chip d'une
+  **carte de slot** et celle du **panneau d'édition** ont la **même hauteur et la même police** —
+  elles divergeaient (22px contre 28px, interlignage hérité différent). Assertion purement relative
+  (`responsive-team-builder.spec`).
+- 🤖 **`--type-chip-px` valide hors de `#game-stage`** : sans le fallback `1` sur `--ui-scale`, le
+  `calc()` devient invalide, l'icône retombe sur `inline-size: auto` et s'affiche à sa **taille
+  native** (symptôme : « chips énormes »). Contrat homothétique vérifié — `icône = 0,8 × police`
+  (16 contre 20 `--type-chip-px`), invariant sans nombre magique (`responsive-team-builder.spec`).
+- 🤖 **Grille de résultats atteignable** : les filtres passaient sur ~5 lignes et écrasaient la grille
+  à **0px de haut** (aucune cellule cliquable). Au moins une cellule entièrement dans le viewport à
+  851×393 (`responsive-team-builder.spec`).
+- 🤖 **Puces de filtre sur une seule ligne défilable** (plutôt que rétrécies) : toutes les puces
+  partagent la même ordonnée — signal indépendant du CSS. Vérifié dans le sélecteur de **Pokemon** et
+  celui de **capacité** (`responsive-team-builder.spec`).
+- 🤖 **Noms FR des puces de type** : c'était le dernier endroit de l'UI à afficher les ids anglais
+  (« Grass », « Dark ») → « Plante », « Ténèbres » dans les deux sélecteurs
+  (`responsive-team-builder.spec`).
+- 🤖 **Pas de focus auto du champ de recherche sur pointeur grossier** : le clavier virtuel recouvrait
+  la modale, donc la liste qu'on venait consulter. Contre-épreuve **pointeur fin** : le focus auto est
+  conservé (confort clavier-souris). Le critère est le **pointeur**, pas la taille
+  (`responsive-team-builder.spec`).
+- 🤖 **Modales dans l'écran, fermeture atteignable** : le sélecteur de Pokemon ET la modale
+  **Showdown** (la dernière à déborder — le plancher de 240px de son `<textarea>` tombe à 96px sous
+  le seuil) tiennent entièrement dans le viewport à 851×393, bouton « Fermer » compris
+  (`responsive-team-builder.spec`).
+- 🤖 **Aucun élément du Team Builder hors viewport** à 851×393 (`.tb-content`, `.tb-list`,
+  `.tb-pokemon-grid` exclus : défilants par conception) (`responsive-team-builder.spec`).
+- 👁 **Clavier virtuel** : en-tête `.tb-modal-header` collant + `.tb-dialog` plafonnée à `100dvh` +
+  `interactive-widget=resizes-content`. **Non automatisable** — Chromium de bureau n'a pas de clavier
+  virtuel, donc rien ne rétrécit le viewport de mise en page. Seule la présence des drapeaux du meta
+  viewport est 🤖 (§6.9). **Téléphone réel.**
+- 👁 **Fondu de bord droit** signalant que la rangée de puces défile (`mask-image`) : pixel pur.
+- 👁 **Densité ressentie** des cellules de résultat réduites, des puces et de la topbar : jugement
+  d'œil.
 
 ---
 
@@ -2187,6 +2334,12 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
   format (gris).
 - 👁 Le joueur place ses Pokemon (roster, placés grisés) puis **choisit la direction** (flèches
   §3.9) ; `Échap` annule (uniquement son propre placement).
+- 🤖 **Barre de roster sur téléphone paysage** (plan 179) : la barre est montée et lisible (le bug
+  observé était un `.pl-roster` resté 0×0, jamais vu à l'écran) et ses portraits se compactent sous
+  le seuil mobile (48 → 36px). Parcours réel obligatoire — la sandbox auto-place, et seul un joueur
+  **Humain** ouvre la phase interactive (`responsive-chrome.spec`, cf §4.16).
+- 👁 **Safe-area en bas de la barre** (`env(safe-area-inset-bottom)`) : les noms sous les portraits
+  passaient sous la barre de gestes. 0px sans encoche physique → **téléphone réel**.
 
 ### 8.6 Aperçu de carte (map-select)
 - 👁 Aperçu Babylon de la map avant combat (cf §6.3).
@@ -2300,6 +2453,9 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/weather.spec.ts` | §5 météo : HUD « Plein soleil » + tours restants |
 | `combat/multi-hit.spec.ts` | §5 multi-hit : Balle Graine → récap « Touché N fois » |
 | `combat/floating-text.spec.ts` | §5.2 texte flottant de dégâts (`hud_text_plane`) à la résolution |
+| `combat/responsive-chrome.spec.ts` | §4.16 responsive du chrome (plan 179) : `--ui-scale` sur 4 tailles (téléphone paysage 851×393 ≈0,546, tablette debout 820×1180 ≈0,641, **garde du seuil** 1280×720 → 0,667 desktop, 1920×1080 → 1) ; menu d'action + bannière de tour à `28px × --ui-scale` ; planchers tactiles ≥ 30px (menu, liste d'attaques, bouton du journal) avec contre-épreuve pointeur fin (≈19px) ; journal élargi 400/26px sous le seuil vs maquette 288/18,4px à 1920 ; aucun débordement à 851×393 et 640×360 ; §8.5 barre de placement montée + portraits compactés (parcours réel, joueur Humain + « Placement auto » décoché). Safe-area réelle + lisibilité ressentie = 👁 |
+| `dom/responsive-screens.spec.ts` | §6.9 écrans DOM sur petit écran (plan 179) : invite d'orientation sur 4 combinaisons (portrait tactile → affichée ; paysage, tablette debout 820×1180, fenêtre étroite à la souris → masquée) ; choix de la carte (9 cartes + « Retour »/« Choisir cette carte » dans le viewport, audit sans débordement) ; §6.3 voile de chargement de l'aperçu (`loading` → `idle` enregistré par MutationObserver) ; sélection d'équipe (titre 28 → 18px, portraits rétrécis, audit sans débordement) ; meta viewport `viewport-fit=cover` + `interactive-widget=resizes-content` |
+| `dom/responsive-team-builder.spec.ts` | §7.5 Team Builder + sélecteurs sur petit écran (plan 179), ancre Ectoplasma : 6 slots à largeur égale (`minmax(0,1fr)`, 6e dans le viewport) ; chips `type-chip` identiques entre carte de slot et panneau d'édition ; icône = 0,8 × police (⇒ `--type-chip-px` valide hors `#game-stage`) ; grille de résultats atteignable ; puces de filtre sur une seule ligne + noms FR (Plante/Ténèbres) dans les sélecteurs de Pokemon ET de capacité ; focus auto du champ de recherche sur pointeur fin / **pas** sur pointeur grossier ; modales (Pokemon + Showdown) dans l'écran avec « Fermer » atteignable ; §7.3 icônes d'objet (`naturalWidth` 24 ⇒ vrai crop) ; audit sans débordement. Clavier virtuel + `mask-image` = 👁 |
 | `visual/screens.spec.ts` | golden : menu, mode combat, paramètres, crédits, scène de combat |
 
 Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.ts` : `DUEL`,
@@ -2347,6 +2503,23 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
       (`combat-flow`) ; Échap retour, ↑/↓ aria-current, format (`screens`) ; Paramètres 2 options +
       persistance (`settings`) ; état vide (`team-builder`) ; compteur/vider-slot/natures/move-picker/preset
       (`pokemon-edit`).
+- [x] **§4.16 / §6.9 / §7.5 Responsive + dette mobile** (plan 179) : second référentiel `--ui-scale` sur
+      4 tailles dont la **garde du seuil** 1280×720, chrome à l'échelle, planchers tactiles avec
+      contre-épreuve pointeur fin, journal élargi, invite d'orientation sur 4 combinaisons, audits « rien
+      hors viewport » (chrome 851×393 + 640×360, carte, sélection d'équipe, Team Builder), chips de type
+      unifiées, sélecteurs (grille atteignable, une ligne de puces, noms FR, focus conditionné au
+      pointeur), modales dans l'écran, barre de placement, voile de chargement de l'aperçu
+      (`responsive-chrome`, `responsive-screens`, `responsive-team-builder`).
+- [ ] **Reste 👁 responsive (physiquement non émulable)** :
+      - **`env(safe-area-inset-*)`** (chrome, journal, barre de placement, sélection d'équipe) : sans
+        encoche physique les insets résolvent à **0px** et Chromium n'en émule aucune → **téléphone
+        réel** obligatoire.
+      - **Clavier virtuel** (`interactive-widget=resizes-content`, `.tb-dialog` en `100dvh`, en-tête
+        collant) : aucun clavier virtuel en Chromium de bureau, donc rien ne rétrécit le viewport de
+        mise en page. Seule la **présence** des drapeaux du meta viewport est 🤖 (§6.9).
+      - **Lisibilité et densité ressenties** au zoom ×1,5, `mask-image` de la rangée de puces,
+        animation du glyphe d'orientation, **4K** (`--tb-px` du Team Builder inerte en production) :
+        jugement d'œil / pixel.
 - [ ] **Reste 👁 DOM (irréductible — vérifié non reproductible, pas par flemme)** :
       - **§4.5 move grisé** (0 PP / sans cible / bloqué Provoc-Entrave-Bis) : en pratique les moves
         injouables sont **filtrés** de la liste (pas affichés grisés), le 0-PP n'est pas configurable

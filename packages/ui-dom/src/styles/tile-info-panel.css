@@ -8,6 +8,12 @@
 @layer components {
   .ti-panel {
     --ip-px: calc(100cqw / 1920);
+    /* Phone-sized stage (plan 179 §B). Height-keyed, mirrors the threshold in
+       `game-stage.ts`. Same 1500 reference as the InfoPanel next to it — the two panels sit
+       side by side in `.bc-infopanel-row` and must not scale apart. */
+    @container stage ((height < 500px) or (width < 900px)) {
+      --ip-px: calc(100cqw / 1500);
+    }
 
     flex: 0 0 auto;
     align-self: stretch;

@@ -1,7 +1,12 @@
 import { Modal } from "@pokemon-tactic/ui-dom";
 import { t } from "../../i18n";
 import { normalizeSearchText } from "../../team/search-index";
-import { type AvailableItem, getAllAvailableItems } from "../../team/team-builder-data";
+import {
+  type AvailableItem,
+  getAllAvailableItems,
+  getItemIconUrl,
+} from "../../team/team-builder-data";
+import { focusSearchUnlessTouch } from "./picker-focus";
 
 export interface ItemPickerOptions {
   onSelect: (item: AvailableItem | null) => void;
@@ -78,8 +83,7 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
     list.innerHTML = "";
 
     const clearRow = document.createElement("div");
-    clearRow.className = "tb-list-row";
-    clearRow.style.gridTemplateColumns = "1fr";
+    clearRow.className = "tb-list-row tb-item-list-row-clear";
     clearRow.textContent = t("teamBuilder.itemNone");
     clearRow.addEventListener("click", () => {
       options.onSelect(null);
@@ -99,23 +103,31 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
     });
     for (const item of filtered) {
       const row = document.createElement("div");
-      row.className = "tb-list-row";
+      // `tb-item-list-row` porte la grille (icône / texte / étiquette) en CSS, et
+      // `tb-item-list-row-text` la colonne de texte — les deux étaient en styles inline, ce que
+      // les règles du projet interdisent.
+      row.className = "tb-list-row tb-item-list-row";
       row.dataset.testid = "item-picker-row";
       row.dataset.itemId = item.id;
-      row.style.gridTemplateColumns = "minmax(0,1fr) auto";
       if (!item.implemented) {
         row.dataset.state = "disabled";
       }
+      // Icône officielle de l'objet (demande humaine 2026-08-06), même source que l'InfoPanel.
+      const icon = document.createElement("img");
+      icon.className = "tb-item-icon";
+      icon.src = getItemIconUrl(item.id);
+      icon.alt = "";
+      icon.loading = "lazy";
+      icon.decoding = "async";
+      row.appendChild(icon);
       const left = document.createElement("div");
-      left.style.display = "flex";
-      left.style.flexDirection = "column";
+      left.className = "tb-item-list-row-text";
       const name = document.createElement("span");
       name.className = "name";
       name.textContent = item.name;
       left.appendChild(name);
       const desc = document.createElement("span");
       desc.className = "meta";
-      desc.style.textAlign = "left";
       desc.textContent = item.shortDescription;
       left.appendChild(desc);
       row.appendChild(left);
@@ -145,5 +157,5 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
   });
 
   render();
-  search.focus();
+  focusSearchUnlessTouch(search);
 }

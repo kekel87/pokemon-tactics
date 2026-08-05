@@ -54,6 +54,20 @@
     &[data-active="true"] {
       --tt-size: calc(48px * var(--ui-scale));
     }
+
+    /*
+     * Phone-sized stage (plan 179): the portraits went the *other* way from the rest of the
+     * chrome — reviewed on a phone, 36 design px landed at the edge of unreadable while the
+     * panels around them had room to spare. Bumped here only, so the desktop strip is
+     * untouched. Costs a couple of visible entries: `.tt-list` scrolls, and reading the next
+     * few turns matters more than counting the far ones.
+     */
+    @container stage ((height < 500px) or (width < 900px)) {
+      --tt-size: calc(46px * var(--ui-scale));
+      &[data-active="true"] {
+        --tt-size: calc(60px * var(--ui-scale));
+      }
+    }
     &[data-dimmed="true"] {
       opacity: 0.5;
     }

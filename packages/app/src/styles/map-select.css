@@ -8,6 +8,11 @@
     inset: 0;
     display: grid;
     grid-template-columns: clamp(260px, 24vw, 480px) 1fr;
+    /* The implicit row is `auto`-sized, whose minimum is the columns' min-content — so on a
+       short viewport the row grew past the 393px box and both columns' bottom buttons fell off
+       the screen. `minmax(0, 1fr)` pins the row to the grid height and lets the children
+       shrink (they have `min-block-size: 0` + their own scrollers). */
+    grid-template-rows: minmax(0, 1fr);
     background: var(--color-bg-base);
     font-family: var(--font-family);
     color: var(--color-text-primary);
@@ -23,7 +28,11 @@
     gap: var(--ms-gap);
     padding: var(--ms-padding);
     background: var(--color-bg-surface);
-    overflow-y: auto;
+    /* The panel itself no longer scrolls — `.ms-list` does (plan 179). Scrolling the panel
+       pushed the confirm button below the fold as soon as the map list outgrew the height,
+       and `margin-block-start: auto` cannot pin it inside an overflowing box. */
+    overflow: hidden;
+    min-block-size: 0;
   }
 
   .ms-title {
@@ -40,6 +49,14 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xs);
+    /* Takes the slack and scrolls, so the button below stays pinned and visible. */
+    flex: 0 1 auto;
+    min-block-size: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .ms-list-item {
@@ -78,14 +95,57 @@
     gap: var(--ms-gap);
     padding: var(--ms-padding);
     min-inline-size: 0;
+    /* Lets the preview absorb the squeeze instead of the column overflowing. */
+    min-block-size: 0;
   }
 
   .ms-preview {
+    /* `relative` pour ancrer le voile de chargement (`.ms-preview-loading`). */
+    position: relative;
     flex: 1;
     min-block-size: 0;
     border: 1px solid var(--color-border-surface);
     border-radius: var(--radius-md);
     overflow: hidden;
+  }
+
+  /* Voile de chargement de l'aperçu (`map-preview-stage.ts`) : sans lui, le cadre reste vide le
+     temps de construire la scène et ça se lit comme un écran cassé (humain, 2026-08-06). */
+  .ms-preview-loading {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--color-bg-surface);
+    pointer-events: none;
+    transition: opacity var(--duration-base);
+
+    &::after {
+      content: "";
+      inline-size: clamp(20px, 4vmin, 44px);
+      aspect-ratio: 1;
+      border: 3px solid color-mix(in oklch, var(--color-accent) 30%, transparent);
+      border-block-start-color: var(--color-accent);
+      border-radius: 50%;
+      animation: ms-preview-spin 0.8s linear infinite;
+    }
+
+    /* `idle` est posé par `map-preview-stage.ts` quand `CombatScene.ready` résout. */
+    &[data-state="idle"] {
+      opacity: 0;
+    }
+  }
+
+  @keyframes ms-preview-spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ms-preview-loading::after {
+      animation: none;
+    }
   }
 
   .ms-preview-canvas {
@@ -120,5 +180,45 @@
 
   .ms-confirm {
     align-self: center;
+  }
+
+  /*
+   * Small screens (plan 179). This screen sizes itself with `clamp(min, N vmin, max)`, and on a
+   * short viewport every clamp bottoms out at its *minimum* — which was calibrated for desktop.
+   * At 851×393: `vmin` = 393, so `3vmin` = 11.8px lost to a 22px floor, and the left column's
+   * `clamp(260px, 24vw, 480px)` sat at 260px (31 % of the width). Nothing shrank, so the list
+   * and the confirm button ran past the bottom edge. Lower the floors here.
+   */
+  @media (height < 500px), (width < 900px) {
+    .ms-screen {
+      --ms-gap: 6px;
+      --ms-padding: 8px;
+      grid-template-columns: clamp(150px, 22vw, 480px) 1fr;
+    }
+
+    .ms-title {
+      font-size: 16px;
+    }
+
+    .ms-list-item {
+      font-size: 13px;
+      padding: 4px 8px;
+    }
+
+    .ms-details {
+      padding: var(--spacing-sm);
+    }
+
+    .ms-details-name {
+      font-size: 14px;
+    }
+
+    .ms-details-meta {
+      font-size: 11px;
+    }
+
+    .ms-details-description {
+      font-size: 12px;
+    }
   }
 }

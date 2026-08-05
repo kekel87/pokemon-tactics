@@ -3,6 +3,17 @@
     width: var(--modal-width-default);
     display: flex;
     flex-direction: column;
+    /*
+     * ⚠️ Écrase `max-width: 95vw; max-height: 95vh` de `base.css` (`@layer components` bat
+     * `@layer base`, et `max-height` ≡ `max-block-size`). Le bug corrigé était l'UNITÉ, pas
+     * l'absence de plafond : `vh` vaut la hauteur *large* du viewport, donc clavier virtuel ouvert
+     * la modale Showdown débordait et emportait son en-tête hors écran (retour humain 2026-08-06).
+     * Les 95 % sont conservés pour garder la marge visible au bord de l'écran sur grand écran.
+     * `dvh` suit la hauteur réellement disponible, de pair avec `interactive-widget=resizes-content`
+     * (index.html).
+     */
+    max-block-size: 95dvh;
+    max-inline-size: 95vw;
     &[data-size="picker"] {
       width: var(--modal-width-picker);
       height: var(--modal-height-picker);
@@ -30,6 +41,12 @@
     gap: var(--spacing-md);
     padding: var(--spacing-md) var(--spacing-lg);
     border-bottom: 1px solid var(--color-border-surface);
+    /* Ne se comprime jamais : c'est `.tb-modal-body` qui porte `overflow: auto`, donc le corps
+       défile et l'en-tête — avec son bouton de fermeture — reste toujours visible. (Un
+       `position: sticky` a été essayé ici : inopérant, `.tb-dialog` est en `overflow: hidden`
+       (`base.css`) donc il n'y a aucun conteneur défilant auquel se coller, et l'en-tête est un
+       frère du corps, pas un descendant.) */
+    flex: 0 0 auto;
     .tb-modal-title {
       flex: 1;
       margin: 0;
@@ -58,5 +75,47 @@
   .tb-modal-body {
     padding: var(--spacing-lg);
     overflow: auto;
+  }
+
+  /*
+   * Small screens (plan 179). These dialogs render in the `<dialog>` top-layer from
+   * `document.body`, so they sit outside every scaling system the rest of the app uses — no
+   * `#game-stage` container, no `.tb-root` ancestor — and run on the raw `:root` px tokens.
+   * On a 393px-tall phone that meant a 53px header and 22px text inside a 314px box, leaving
+   * the picker's result grid **0px tall** (measured 2026-08-05: zero cells reachable).
+   * Tokens are re-based on the dialog itself, which is the only shared ancestor available.
+   */
+  @media (height < 500px), (width < 900px) {
+    .tb-dialog {
+      --font-size-xs: 12px;
+      --font-size-sm: 13px;
+      --font-size-md: 15px;
+      --font-size-lg: 18px;
+      --spacing-sm: 4px;
+      --spacing-md: 5px;
+      --spacing-lg: 8px;
+      --spacing-xl: 10px;
+      --pad-control-y: 5px;
+      --pad-control-x: 9px;
+      --pad-chip-y: 4px;
+      --pad-chip-x: 9px;
+    }
+
+    .tb-modal-header .tb-modal-close {
+      width: 28px;
+      height: 28px;
+      font-size: 22px;
+    }
+  }
+
+  /* Short viewports only: reclaim the vertical margin the 80vh default leaves unused. A narrow
+     but tall screen (upright tablet) has no such problem, so it keeps the default.
+     `dvh` et non `vh` : la boîte suit la hauteur réellement disponible clavier virtuel ouvert.
+     Le plafond `max-block-size` est déjà posé sur `.tb-dialog` ci-dessus, inutile de le répéter. */
+  @media (height < 500px) {
+    .tb-dialog[data-size="picker"] {
+      width: min(96vw, 1200px);
+      height: 94dvh;
+    }
   }
 }

@@ -18,6 +18,7 @@
 @import "./components/set-op.css";
 @import "./components/showdown.css";
 @import "./components/team-select.css";
+@import "./orientation-prompt.css";
 /* Combat-chrome + modal styles co-located in @pokemon-tactic/ui-dom (plan 125 Phase 4),
  * imported once at boot (babylon-boot.ts). */
 @import "./utilities.css";

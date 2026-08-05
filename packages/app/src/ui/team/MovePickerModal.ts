@@ -1,5 +1,5 @@
 import { CT_TEMPO_MAX } from "@pokemon-tactic/core";
-import { getMoveName } from "@pokemon-tactic/data";
+import { getMoveName, getTypeName } from "@pokemon-tactic/data";
 import { Modal } from "@pokemon-tactic/ui-dom";
 import { getLanguage, t } from "../../i18n";
 import { getCategoryIconUrl, getTypeIconUrl } from "../../team/asset-paths";
@@ -10,6 +10,7 @@ import {
   getLearnsetForPokemon,
   getMoveInfo,
 } from "../../team/team-builder-data";
+import { focusSearchUnlessTouch } from "./picker-focus";
 
 export interface MovePickerOptions {
   pokemonId: string;
@@ -131,15 +132,21 @@ export function openMovePickerModal(options: MovePickerOptions): void {
       const chip = document.createElement("div");
       chip.className = "tb-filter-chip";
       chip.dataset.type = type;
+      // Same test contract as the Pokemon picker's chips: a clickable div with no role, whose
+      // label is localised — testid to locate, `data-type` (stable EN id) to pick one.
+      chip.dataset.testid = "move-type-filter";
       if (activeTypes.has(type)) {
         chip.dataset.state = "active";
       }
+      // Localised name, not the raw English id (plan 179) — `getTypeName` is the single source
+      // since plan 178.
+      const typeName = getTypeName(type, getLanguage());
       const icon = document.createElement("img");
       icon.src = getTypeIconUrl(type);
-      icon.alt = type;
+      icon.alt = typeName;
       chip.appendChild(icon);
       const label = document.createElement("span");
-      label.textContent = type;
+      label.textContent = typeName;
       chip.appendChild(label);
       chip.addEventListener("click", () => {
         if (activeTypes.has(type)) {
@@ -275,5 +282,5 @@ export function openMovePickerModal(options: MovePickerOptions): void {
   });
 
   render();
-  search.focus();
+  focusSearchUnlessTouch(search);
 }

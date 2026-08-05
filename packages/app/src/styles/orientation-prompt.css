@@ -1,0 +1,68 @@
+/*
+ * Portrait prompt (plan 179 §A). Pairs with `ui/OrientationPrompt.ts`.
+ * Hidden by default; shown only on a *phone* held upright:
+ *  - `pointer: coarse` keeps it away from a desktop window that merely happens to be taller
+ *    than it is wide;
+ *  - `max-width: 599px` keeps it away from **tablets**, which have room to play upright
+ *    (portrait iPad ≈ 768-834 CSS px wide, where `--ui-scale` lands around 0.6 — perfectly
+ *    playable). Phones top out around 430 px wide in portrait, so 600 separates the two
+ *    cleanly. Decision: obstruct only where portrait is genuinely unplayable.
+ */
+
+@layer components {
+  .or-overlay {
+    display: none;
+  }
+
+  @media (orientation: portrait) and (pointer: coarse) and (max-width: 599px) {
+    .or-overlay {
+      position: fixed;
+      /* Covers the notch too: this is a full-bleed blocker, nothing here is interactive. */
+      inset: 0;
+      z-index: var(--z-orientation-prompt);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(8px, 2vmin, 20px);
+      padding: clamp(16px, 6vmin, 48px);
+      background: var(--color-bg-base);
+      color: var(--color-text-primary);
+      font-family: var(--font-family);
+      text-align: center;
+    }
+
+    /* Phone outline that tips over, so the instruction reads without the text. */
+    .or-glyph {
+      inline-size: clamp(48px, 18vmin, 120px);
+      aspect-ratio: 9 / 16;
+      border: clamp(3px, 0.8vmin, 6px) solid var(--color-text-primary);
+      border-radius: clamp(6px, 2vmin, 14px);
+      animation: or-tip 2.4s ease-in-out infinite;
+    }
+
+    .or-title {
+      margin: 0;
+      font-size: clamp(20px, 6vmin, 40px);
+    }
+
+    .or-hint {
+      margin: 0;
+      color: var(--color-text-secondary);
+      font-size: clamp(14px, 4vmin, 26px);
+    }
+  }
+
+  @keyframes or-tip {
+    0%, 40% { transform: rotate(0deg); }
+    70%, 100% { transform: rotate(-90deg); }
+  }
+
+  /* Respect a reduced-motion preference: the glyph still communicates via its final pose. */
+  @media (prefers-reduced-motion: reduce) {
+    .or-glyph {
+      animation: none;
+      transform: rotate(-90deg);
+    }
+  }
+}

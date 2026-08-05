@@ -8,6 +8,34 @@
     color: var(--color-text-primary);
     font-family: var(--font-family);
     z-index: var(--z-overlay);
+    /* Taille des portraits de la liste d'équipes ; redéfinie dans le bloc compact ci-dessous.
+       Déclarée ici plutôt qu'en repli `var(--ts-portrait-size, 40px)` côté consommateur, sinon la
+       valeur de bureau et celle de mobile vivent dans deux endroits sans lien lisible. */
+    --ts-portrait-size: 40px;
+
+    /*
+     * Petits écrans (plan 179). Cet écran vivait entièrement sur les tokens `:root` fixes, comme
+     * le Team Builder et les sélecteurs avant lui — d'où le « on dirait qu'il ne scale pas comme
+     * le reste » (humain, 2026-08-06, sur téléphone réel). Mêmes valeurs que `.tb-root` pour que
+     * les deux écrans s'accordent, plus les métriques propres à celui-ci (portraits, safe-area).
+     */
+    @media (height < 500px), (width < 900px) {
+      --font-size-xs: 12px;
+      --font-size-sm: 13px;
+      --font-size-md: 15px;
+      --font-size-lg: 18px;
+      --spacing-sm: 4px;
+      --spacing-md: 5px;
+      --spacing-lg: 8px;
+      --spacing-xl: 10px;
+      --pad-control-y: 5px;
+      --pad-control-x: 9px;
+      --ts-portrait-size: 28px;
+
+      /* Ancré aux bords, donc soumis à l'encoche et à la barre de gestes en paysage. */
+      padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+      padding-block-end: env(safe-area-inset-bottom);
+    }
   }
 
   .ts-header {
@@ -184,8 +212,8 @@
   }
 
   .ts-team-row-portrait {
-    width: 40px;
-    height: 40px;
+    width: var(--ts-portrait-size);
+    height: var(--ts-portrait-size);
     background: var(--color-bg-surface);
     border: 1px solid var(--color-border-surface);
     border-radius: var(--radius-sm);

@@ -2,7 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover : prérequis strict pour `env(safe-area-inset-*)` (sinon tous
+         résolvent à 0px) et pour que Safari ne letterbox pas le jeu en paysage sur les
+         iPhone à encoche / Dynamic Island. Voir plan 179 §G. -->
+    <!-- interactive-widget=resizes-content : quand le clavier virtuel s'ouvre, le viewport de
+         *mise en page* rétrécit au lieu de rester à sa hauteur pleine. Sans ça, une modale en
+         `vh`/`dvh` reste plus haute que la zone visible et son en-tête — donc son bouton de
+         fermeture — passe hors écran, sans moyen de la refermer (retour humain, 2026-08-06).
+         ⚠️ Chromium et Firefox Android uniquement : WebKit n'implémente pas cette clé, et sur iOS
+         `dvh` ne tient pas compte du clavier virtuel non plus. Le repli iOS serait un écouteur
+         `visualViewport` — hors périmètre du plan 179, noté au plan 180. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content"
+    />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <title>Pokemon Tactics</title>
     <style>
@@ -25,9 +38,21 @@
           background: #1a1a2e;
         }
       }
-      #game-root {
-        width: 100vw;
-        height: 100vh;
+      /* Dimensionne #game-root avant que le CSS principal ne soit chargé (paint initial).
+         Volontairement sans `vh`/`vw` : ces unités valent la hauteur *large* du viewport
+         mobile, donc le jeu déborde sous la barre d'URL tant qu'elle est déployée.
+         `position: fixed; inset: 0` donne la même boîte sans dépendre d'aucune unité de
+         viewport — et reste aligné sur game-overlay.css qui redéclare la même règle.
+
+         ⚠️ DOIT rester dans `@layer reset` : un style auteur NON calqué battrait toutes les
+         couches, y compris l'override `body[data-sandbox="true"] #game-root { position: relative }`
+         de `sandbox-studio.css` (@layer components) — le Sandbox Studio se retrouvait alors
+         entièrement recouvert par la scène, détecté par le golden visuel du gate. */
+      @layer reset {
+        #game-root {
+          position: fixed;
+          inset: 0;
+        }
       }
     </style>
   </head>

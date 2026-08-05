@@ -1,7 +1,10 @@
 @layer components {
-  .tb-type-badge,
   .tb-filter-chip {
-    /* Mapping type -> bg + text color partagé entre badges et chips filtre. */
+    /* Mapping type -> bg + text color des puces de filtre des sélecteurs.
+     * Les badges de type du Team Builder utilisaient ce même mapping via `.tb-type-badge` ; ils
+     * sont passés au composant partagé `createTypeChip` (`type-chip.css`) le 2026-08-06 — l'humain
+     * voulait explicitement le même rendu que l'InfoPanel de combat. `.tb-type-badge` n'ayant plus
+     * aucun consommateur, sa règle a été supprimée. */
     &[data-type="normal"] { background: var(--type-normal); color: var(--type-text-normal); }
     &[data-type="fire"] { background: var(--type-fire); color: var(--type-text-fire); }
     &[data-type="water"] { background: var(--type-water); color: var(--type-text-water); }
@@ -20,19 +23,6 @@
     &[data-type="dark"] { background: var(--type-dark); color: var(--type-text-dark); }
     &[data-type="steel"] { background: var(--type-steel); color: var(--type-text-steel); }
     &[data-type="fairy"] { background: var(--type-fairy); color: var(--type-text-fairy); }
-  }
-
-  .tb-type-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-md);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-sm);
-    line-height: 1;
-    text-transform: capitalize;
-    white-space: nowrap;
-    background: var(--type-fallback);
   }
 
   .tb-type-icon {

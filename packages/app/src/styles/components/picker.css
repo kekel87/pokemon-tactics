@@ -124,6 +124,94 @@
     grid-template-columns: 24px 28px minmax(0, 1fr) 60px 60px 80px;
   }
 
+  /* Sélecteur d'objet : icône / nom+description / étiquette « non implémenté ». */
+  .tb-item-list-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  /* Ligne « (aucun objet) » : une seule colonne, pas la grille icône/texte/étiquette. */
+  .tb-item-list-row-clear {
+    grid-template-columns: 1fr;
+  }
+
+  /* Colonne texte de la ligne d'objet : le nom au-dessus, la description en dessous et alignée à
+     gauche — `.tb-list-row .meta` la mettrait à droite. Était en styles inline avant. */
+  .tb-item-list-row-text {
+    display: flex;
+    flex-direction: column;
+
+    .meta {
+      text-align: start;
+    }
+  }
+
+  /* Deux consommateurs : les lignes du sélecteur d'objet (grille) et le champ « objet tenu » du
+     panneau d'édition (`.tb-input-clickable`, en flex — d'où le `flex: 0 0 auto`). */
+  .tb-item-icon {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+  }
+
+  /*
+   * Short viewports (plan 179). The type/generation filters wrap onto ~5 rows, which on a
+   * 393px-tall phone consumed the whole dialog and squeezed the result list to nothing. They
+   * become a single horizontally-scrollable row instead: the chips keep their tappable floor (the
+   * opposite fix — shrinking them under the WCAG minimum — would have traded one usability bug for
+   * another), and the results get the height back.
+   */
+  @media (height < 500px) {
+    .tb-picker-filters,
+    .tb-picker-filter-row {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      /* Rien n'indiquait que la rangée défile (humain, 2026-08-06). Un fondu sur le bord droit
+         signale « il y a la suite ». Volontairement statique : le faire disparaître en fin de
+         course demanderait `animation-timeline: scroll()`, qui n'est pas Baseline (inopérant sur
+         Firefox Android, le navigateur de test) — même raison que l'anchor positioning écarté
+         dans `.claude/rules/css.md`. */
+      mask-image: linear-gradient(to right, #000 0, #000 88%, transparent 100%);
+      /* The row is swiped, and a horizontal bar here read as a stray divider (same call as
+         `.tt-list` and `.bl-list`). */
+      scrollbar-width: none;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .tb-filter-chip {
+      flex: 0 0 auto;
+      /* Les puces lisaient trop grandes sur un vrai téléphone (humain, 2026-08-06) : elles
+         mangeaient la hauteur au détriment de la liste de résultats. Seuls le padding vertical et
+         l'icône se resserrent — le plancher `min-height: var(--target-min)` de la règle de base
+         reste, sinon la puce tomberait à 22px et passerait sous le minimum de 24px de WCAG 2.2
+         SC 2.5.8, ce que tout ce chantier cherche justement à éviter. */
+      padding-block: var(--spacing-xxs);
+      img {
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    /* Denser result cells so more than one row fits in what is left. */
+    .tb-pokemon-grid {
+      grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+      grid-auto-rows: 76px;
+    }
+
+    .tb-pokemon-cell .tb-pokemon-cell-portrait {
+      width: 40px;
+      height: 40px;
+    }
+
+    /* Floor so the list never collapses again, whatever the filters end up costing. */
+    .tb-list,
+    .tb-pokemon-grid {
+      min-block-size: 96px;
+    }
+  }
+
   /* CT "tempo" pips: light = green, moderate = amber, heavy = red (overrides .meta dim colour). */
   .tb-move-tempo {
     color: var(--color-tempo-medium);

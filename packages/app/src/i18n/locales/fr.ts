@@ -235,6 +235,8 @@ const fr: Translations = {
   "menu.battle": "Combat",
   "menu.settings": "Paramètres",
   "menu.credits": "Crédits",
+  "orientation.title": "Tourne ton écran",
+  "orientation.hint": "Pokemon Tactics se joue en paysage.",
   "battleMode.title": "Mode de combat",
   "battleMode.local": "Local",
   "battleMode.online": "En ligne",

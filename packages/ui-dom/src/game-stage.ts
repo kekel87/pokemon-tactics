@@ -25,6 +25,38 @@ import type { RenderBackend } from "@pokemon-tactic/render-ports";
 export const DESIGN_REFERENCE_WIDTH = 1920;
 export const DESIGN_REFERENCE_HEIGHT = 1080;
 
+/**
+ * Second design reference for phone-sized stages (plan 179 §B), same 16:9 ratio so the
+ * `min()` below stays meaningful. Scaling a 1920-wide mockup down to a phone in landscape
+ * yields `--ui-scale ≈ 0.36`, which renders 21.6px chrome text at 8px — unreadable.
+ * Comparing against 1280×720 instead yields ≈0.54, i.e. the whole chrome ×1.5, keeping the
+ * mockup homothetic (nothing stops scaling relative to anything else — only the reference
+ * point moves). This is NOT the per-element font-size floor rejected on 2026-07-23.
+ *
+ * Either dimension can be the small one, so both are tested:
+ *  - **height < 500**: a phone lying down is ~667-956 CSS px wide (indistinguishable from a
+ *    desktop window) but only ~360-430 tall. The pre-existing `@container stage
+ *    (width < 768px)` overrides never fired in landscape for exactly that reason.
+ *  - **width < 900**: a *tablet held upright* (~820×1180) is the mirror case — tall enough to
+ *    pass the height test, yet its width caps the scale at ~0.43. Portrait is allowed on
+ *    tablets (see `orientation-prompt.css`), so this case has to be covered too.
+ *
+ * Both bounds sit clear of a 1280×720 laptop window (720 > 500, 1280 > 900), which must keep
+ * the desktop reference — otherwise its chrome would jump 1.5× at that size.
+ *
+ * CSS that scales through container queries instead of `--ui-scale` (`--ip-px`, `--wh-px`,
+ * `--tt-size`) mirrors this condition. Kept as a container query rather than a JS-set
+ * attribute on purpose: an `#game-stage[data-…]` selector would outrank the plain-class rules
+ * it has to coexist with (notably the narrow-width bottom-bar reflow in `info-panel.css`) and
+ * silently win the cascade.
+ */
+export const MOBILE_DESIGN_REFERENCE_WIDTH = 1280;
+export const MOBILE_DESIGN_REFERENCE_HEIGHT = 720;
+/** Stage height (CSS px) below which the mobile design reference kicks in. */
+export const MOBILE_DESIGN_REFERENCE_MAX_HEIGHT = 500;
+/** Stage width (CSS px) below which the mobile design reference kicks in (upright tablets). */
+export const MOBILE_DESIGN_REFERENCE_MAX_WIDTH = 900;
+
 export interface GameStageOptions {
   /** Called after the stage is resized, with the stage CSS pixel size. */
   readonly onResize?: (width: number, height: number) => void;
@@ -69,7 +101,11 @@ export function mountGameStage(root: HTMLElement, options: GameStageOptions = {}
   root.append(stage);
 
   const applyScale = (width: number, height: number): void => {
-    const scale = Math.min(width / DESIGN_REFERENCE_WIDTH, height / DESIGN_REFERENCE_HEIGHT);
+    const isPhoneSized =
+      height < MOBILE_DESIGN_REFERENCE_MAX_HEIGHT || width < MOBILE_DESIGN_REFERENCE_MAX_WIDTH;
+    const referenceWidth = isPhoneSized ? MOBILE_DESIGN_REFERENCE_WIDTH : DESIGN_REFERENCE_WIDTH;
+    const referenceHeight = isPhoneSized ? MOBILE_DESIGN_REFERENCE_HEIGHT : DESIGN_REFERENCE_HEIGHT;
+    const scale = Math.min(width / referenceWidth, height / referenceHeight);
     stage.style.setProperty("--ui-scale", String(scale));
     options.onResize?.(width, height);
   };

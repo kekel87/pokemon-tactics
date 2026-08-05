@@ -1,5 +1,6 @@
 import type { TeamSlot } from "@pokemon-tactic/core";
 import { getTypeName } from "@pokemon-tactic/data";
+import { createTypeChip } from "@pokemon-tactic/ui-dom";
 import { getLanguage, t } from "../../i18n";
 import { getTypeIconUrl } from "../../team/asset-paths";
 import { getPlayablePokemonById, getPortraitUrl } from "../../team/team-builder-data";
@@ -86,18 +87,14 @@ export class SlotCardsRow {
         const types = document.createElement("div");
         types.className = "tb-slot-card-types";
         for (const type of pokemon.types) {
-          const badge = document.createElement("span");
-          badge.className = "tb-type-badge";
-          badge.dataset.type = type;
-          const icon = document.createElement("img");
-          icon.src = getTypeIconUrl(type);
-          icon.className = "tb-type-icon";
-          icon.alt = "";
-          icon.loading = "lazy";
-          icon.decoding = "async";
-          badge.appendChild(icon);
-          badge.appendChild(document.createTextNode(getTypeName(type, getLanguage())));
-          types.appendChild(badge);
+          // Composant partagé avec l'InfoPanel de combat (plan 178). Remplace l'ancien
+          // `.tb-type-badge` maison, qui divergeait : icône plus grosse, texte parfois noir sur
+          // fond clair, padding vertical plus épais (demandé 2× par l'humain, 2026-08-06).
+          types.appendChild(
+            createTypeChip(type, getTypeName(type, getLanguage()), {
+              iconUrl: getTypeIconUrl(type),
+            }),
+          );
         }
         card.appendChild(types);
       }

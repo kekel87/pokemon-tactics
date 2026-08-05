@@ -105,6 +105,19 @@ export default defineConfig({
   plugins: [goatcounterPlugin(), stripPerPokemonSpriteFoldersPlugin(), ...bundleAuditPlugins()],
   server: {
     port: resolveDevPort(),
+    /*
+     * Vite refuse par défaut les requêtes dont l'en-tête `Host` n'est pas local (protection
+     * anti-DNS-rebinding) — donc un tunnel de dev reçoit un 403 « This host is not allowed ».
+     * Ouvert uniquement sur `PT_TUNNEL=1`, jamais par défaut : accepter n'importe quel `Host` en
+     * permanence exposerait le serveur de dev à une attaque par rebinding depuis un simple onglet.
+     *
+     * Restreint au domaine du fournisseur de tunnel plutôt que `true` : la protection reste
+     * entière pour tout autre `Host`, y compris quand la variable est posée. `undefined` quand elle
+     * ne l'est pas → Vite garde sa liste blanche locale, aucun changement de comportement.
+     *
+     * Usage et pièges : `docs/references/test-sur-telephone.md`.
+     */
+    allowedHosts: process.env.PT_TUNNEL === "1" ? [".trycloudflare.com"] : undefined,
   },
   define: {
     // biome-ignore lint/style/useNamingConvention: Vite define convention uses __VAR__ double-underscore syntax

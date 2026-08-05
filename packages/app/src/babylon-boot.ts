@@ -39,6 +39,7 @@ import { createMyTeamsScreen } from "./ui/dom/screens/my-teams-screen.js";
 import { createSettingsScreen } from "./ui/dom/screens/settings-screen.js";
 import { createTeamEditScreen } from "./ui/dom/screens/team-edit-screen.js";
 import { createTeamSelectScreen } from "./ui/dom/screens/team-select-screen.js";
+import { mountOrientationPrompt } from "./ui/OrientationPrompt.js";
 import { runSplash } from "./ui/SplashScreen.js";
 
 const root = document.getElementById("game-root");
@@ -54,6 +55,11 @@ initLanguage();
 // les défauts en mémoire et un réglage persisté (ex. Prévisualisation dégâts OFF) redevenait ON au
 // rechargement — et le gating du panneau de preview (plan 175) ne s'appliquait jamais.
 initSettings();
+
+// Invite « tourne ton écran » (plan 179) : montée après `initLanguage()` pour que son texte parte
+// dans la bonne langue. Sa visibilité est purement CSS (portrait + pointeur grossier), donc elle
+// vit hors de la FSM d'écrans et couvre tous les chemins de boot, sandbox et combat direct inclus.
+mountOrientationPrompt(document.body);
 
 const query = new URLSearchParams(window.location.search);
 // Routes (plan 120 step 9):

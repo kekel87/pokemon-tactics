@@ -240,6 +240,8 @@ export interface Translations {
   "menu.battle": string;
   "menu.settings": string;
   "menu.credits": string;
+  "orientation.title": string;
+  "orientation.hint": string;
   "battleMode.title": string;
   "battleMode.local": string;
   "battleMode.online": string;

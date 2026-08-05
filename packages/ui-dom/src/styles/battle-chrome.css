@@ -1,11 +1,25 @@
 @layer components {
+  /*
+   * Marge au bord de l'écran, partagée par les deux racines du chrome. `.bc-left-col` est un FRÈRE
+   * de `.bc-root` (toutes deux appendues à l'hôte par `battle-chrome.ts`), pas son enfant : une
+   * valeur déclarée sur `.bc-root` ne lui parvient donc pas. Sans ce token commun, le menu d'action
+   * (dans `.bc-root`, marge scalée) et l'InfoPanel (dans `.bc-left-col`, marge fixe) cessaient
+   * d'être alignés sur la même ligne de base — écart nul sur téléphone mais 24px en 4K, donc
+   * invisible à la validation mobile.
+   */
+  :where(.bc-root, .bc-left-col) {
+    --bc-edge: calc(18px * var(--ui-scale));
+  }
+
   /* Left column: turn timeline (top, shrinks + scrolls) over the info panel
      (pinned bottom via margin-block-start:auto). Click-through wrapper; the
      timeline re-enables pointer events. */
   .bc-left-col {
     position: absolute;
-    inset-block: var(--spacing-lg);
-    inset-inline-start: var(--spacing-lg);
+    /* Safe-area insets: see the note on `.bc-root`. */
+    inset-block: max(var(--bc-edge), env(safe-area-inset-top))
+      max(var(--bc-edge), env(safe-area-inset-bottom));
+    inset-inline-start: max(var(--bc-edge), env(safe-area-inset-left));
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -39,9 +53,51 @@
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: var(--spacing-lg);
-    font-size: var(--font-size-md);
+    /*
+     * Safe-area insets (plan 179 §G): the canvas stays full-bleed under the notch, only the
+     * interactive panels are pushed in. In *landscape* — the forced orientation — the notch
+     * and the gesture bar sit on the sides, so `-left`/`-right` carry the real work here,
+     * not `-top` as most examples show. `viewport-fit=cover` in index.html is what makes
+     * these resolve to anything other than 0px.
+     */
+    padding-block: max(var(--bc-edge), env(safe-area-inset-top))
+      max(var(--bc-edge), env(safe-area-inset-bottom));
+    padding-inline: max(var(--bc-edge), env(safe-area-inset-left))
+      max(var(--bc-edge), env(safe-area-inset-right));
+    /*
+     * Plan 179 §C. This chrome was the only part of the game that never scaled: it sat on
+     * the fixed `--font-size-md`/`--pad-control-*`/`--spacing-*` tokens inherited from the
+     * Team Builder, so the action menu rendered 22px on a phone *and* on a 4K screen —
+     * proportionate by accident on the former, tiny on the latter, while every other panel
+     * doubled. Design size is 28px (`--font-size-lg`): a first pass at 34px (the InfoPanel's
+     * Pokémon-name size) read as too heavy on a phone once the ×1.5 mobile zoom applied on
+     * top of it, so the menu sits one step below the panel titles.
+     *
+     * Redefining the shared tokens *locally* rather than editing `.tb-btn` itself: the
+     * button component is shared with the Team Builder, which lives on the `clamp()/vmin`
+     * sizing system and must not move. `.tb-btn` reads these through inheritance.
+     */
+    font-size: calc(28px * var(--ui-scale));
+    --pad-control-y: calc(10px * var(--ui-scale));
+    --pad-control-x: calc(18px * var(--ui-scale));
+    /* Gap/padding scale of this subtree only. Deliberately NOT a local override of the
+       global `--spacing-*` tokens: those are inherited by every descendant, and the blast
+       radius would reach panels that already own their scaling. */
+    --bc-gap-xs: calc(6px * var(--ui-scale));
+    --bc-gap-sm: calc(9px * var(--ui-scale));
     line-height: var(--line-height-base);
+
+    /*
+     * Touch floor (plan 179 §E). `.tb-btn` carries `min-height: var(--target-min)` (24px); on a
+     * coarse pointer the combat menu rows get a taller floor. 44px (the Apple/Material
+     * recommendation) then 36px both read as too tall on a real phone (human, 2026-08-06); 30px is
+     * the value that looked right there, still above the 24px WCAG 2.2 SC 2.5.8 *minimum*. Scoped
+     * to the combat chrome on purpose — raising `--target-min` in `tokens.css` would also resize
+     * every Team Builder button on touch.
+     */
+    @media (pointer: coarse) {
+      --target-min: 30px;
+    }
   }
 
   /* Top-centre stack: turn banner + weather HUD beneath it. */
@@ -50,12 +106,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: var(--bc-gap-sm);
   }
 
   .bc-turn {
     pointer-events: none;
-    padding: var(--spacing-xs) var(--spacing-lg);
+    padding: var(--bc-gap-xs) calc(18px * var(--ui-scale));
     border-radius: var(--radius-md);
     background: color-mix(in oklch, var(--color-bg-surface) 80%, transparent);
     color: var(--color-text-primary);
@@ -100,8 +156,8 @@
     pointer-events: auto;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-xs);
+    gap: var(--bc-gap-xs);
+    padding: var(--bc-gap-xs);
     border: 1px solid var(--color-border-surface);
     border-radius: var(--radius-md);
     background: color-mix(in oklch, var(--color-bg-surface) 90%, transparent);
@@ -120,15 +176,19 @@
   .bc-move-list {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: var(--bc-gap-xs);
   }
 
   .bc-move-item,
   .bc-selected-move {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-xs);
+    gap: var(--bc-gap-xs);
+    padding: var(--bc-gap-xs) var(--bc-gap-xs);
+    /* Same floor as the root menu rows (`.tb-btn` → `--target-min`): the attack list read as
+       noticeably shorter than the menu it replaces, and a move row is just as tappable a target
+       (human, 2026-08-06). */
+    min-block-size: var(--target-min);
     border-radius: var(--radius-sm);
     background: transparent;
     color: var(--color-text-primary);

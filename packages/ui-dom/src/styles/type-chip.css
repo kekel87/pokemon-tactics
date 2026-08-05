@@ -1,14 +1,17 @@
 /*
  * Type chip (plan 178) — the ONE way to render an elemental type as a coloured badge.
  * Extracted from `.ip-type` (plan 174) so the InfoPanel and the move tooltip share a single
- * definition instead of drifting apart, and aligned on the visual the Team Builder already proved
- * (`.tb-type-badge`): icon + name on the type colour.
+ * definition instead of drifting apart: icon + name on the type colour.
  *
  * Foreground stays WHITE for every type (human 2026-08-03): the type ICON is a white silhouette, so
  * pairing it with a dark label on the light backgrounds (Électrik, Glace) read as inconsistent. The
- * `--type-text-<id>` tokens are therefore deliberately NOT used here. The Team Builder badges
- * (`.tb-type-badge`) still use them and so still differ — a known, accepted divergence, listed as
- * remaining work rather than a justified difference.
+ * `--type-text-<id>` tokens are therefore deliberately NOT used here.
+ *
+ * Depuis le 2026-08-06 le Team Builder utilise ce composant lui aussi (`SlotCardsRow`,
+ * `EditLeftPanel`) — son ancien badge maison a été supprimé. Un seul COMPOSANT partout, mais deux
+ * calibrations : les hôtes du chrome de combat passent leur propre unité (`--ip-px`) et gardent
+ * l'interlignage hérité, tandis que `.tb-root .type-chip` (`team-builder-overlay.css`) dérive son
+ * unité de `--font-size-sm` et fixe `line-height: 1`.
  *
  * Scaling contract: metrics are expressed in `--type-chip-px`, one design pixel. The chrome
  * convention (`px * --ui-scale`) is the default; a host on the container-query system overrides it
@@ -17,7 +20,15 @@
 
 @layer components {
   .type-chip {
-    --type-chip-px: calc(1px * var(--ui-scale));
+    /*
+     * Fallback `1` OBLIGATOIRE : hors de `#game-stage`, `--ui-scale` n'est pas défini, `calc()`
+     * devient invalide, et chaque propriété qui en dépend retombe sur sa valeur initiale — dont
+     * `inline-size: auto` sur l'icône, qui s'affiche alors à sa taille native (retour humain
+     * 2026-08-06 : chips énormes dans le Team Builder). Un hôte hors chrome doit malgré tout
+     * redéfinir `--type-chip-px` avec sa propre unité, sinon il rend à l'échelle 1:1 de la
+     * maquette 1920 — trop gros à côté d'un texte en px fixes.
+     */
+    --type-chip-px: calc(1px * var(--ui-scale, 1));
 
     display: inline-flex;
     align-items: center;

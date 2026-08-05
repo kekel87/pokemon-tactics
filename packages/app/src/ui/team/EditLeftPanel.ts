@@ -1,11 +1,13 @@
 import { type HeldItemId, Nature, PokemonGender, type TeamSlot } from "@pokemon-tactic/core";
 import { getTypeName } from "@pokemon-tactic/data";
+import { createTypeChip } from "@pokemon-tactic/ui-dom";
 import type { TranslationKey } from "../../i18n";
 import { getLanguage, t } from "../../i18n";
 import { getTypeIconUrl } from "../../team/asset-paths";
 import { toggleGender } from "../../team/gender-helpers";
 import {
   getAbilityInfo,
+  getItemIconUrl,
   getItemInfo,
   getOpSetsByPokemonId,
   getPlayablePokemonById,
@@ -129,16 +131,11 @@ export class EditLeftPanel {
     const sub = document.createElement("div");
     sub.className = "tb-edit-sub";
     for (const type of pokemon.types) {
-      const badge = document.createElement("span");
-      badge.className = "tb-type-badge";
-      badge.dataset.type = type;
-      const icon = document.createElement("img");
-      icon.src = getTypeIconUrl(type);
-      icon.className = "tb-type-icon";
-      icon.alt = "";
-      badge.appendChild(icon);
-      badge.appendChild(document.createTextNode(getTypeName(type, getLanguage())));
-      sub.appendChild(badge);
+      // Même composant partagé que l'InfoPanel de combat (plan 178) — voir la note dans
+      // `SlotCardsRow.ts`.
+      sub.appendChild(
+        createTypeChip(type, getTypeName(type, getLanguage()), { iconUrl: getTypeIconUrl(type) }),
+      );
     }
     info.appendChild(sub);
     const lvl = document.createElement("div");
@@ -314,7 +311,18 @@ export class EditLeftPanel {
       input.textContent = t("teamBuilder.itemNone");
     } else {
       const info = getItemInfo(slot.heldItemId);
-      input.textContent = info?.name ?? slot.heldItemId;
+      // Icône officielle à côté du nom (demande humaine 2026-08-06), même source que l'InfoPanel
+      // de combat depuis le plan 168.
+      const icon = document.createElement("img");
+      icon.className = "tb-item-icon";
+      icon.src = getItemIconUrl(slot.heldItemId);
+      icon.alt = "";
+      icon.loading = "lazy";
+      icon.decoding = "async";
+      input.appendChild(icon);
+      const label = document.createElement("span");
+      label.textContent = info?.name ?? slot.heldItemId;
+      input.appendChild(label);
     }
     input.addEventListener("click", () => {
       openItemPickerModal({

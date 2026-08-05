@@ -1,7 +1,11 @@
 @layer components {
   .tb-slots-row {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    /* `minmax(0, …)` et non `1fr` seul : `1fr` vaut `minmax(auto, 1fr)`, dont le minimum est la
+       largeur min-content de la carte — un Pokemon à deux types longs (« SPECTRE » + « POISON »)
+       élargissait donc sa colonne et les 6 slots n'avaient pas la même largeur, le dernier
+       débordant de l'écran (humain, 2026-08-06). */
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: var(--spacing-md);
     margin-bottom: var(--spacing-lg);
   }
@@ -59,6 +63,10 @@
     .tb-slot-card-types {
       display: flex;
       gap: var(--spacing-xs);
+      /* Les colonnes étant désormais à largeur égale, les deux chips passent à la ligne plutôt que
+         d'élargir la carte. */
+      flex-wrap: wrap;
+      justify-content: center;
     }
   }
 

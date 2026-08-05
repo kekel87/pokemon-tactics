@@ -9,12 +9,37 @@
   .bl-panel {
     pointer-events: auto;
     position: absolute;
-    inset-block-start: var(--spacing-lg);
-    inset-inline-end: var(--spacing-lg);
+    inset-block-start: max(var(--spacing-lg), env(safe-area-inset-top));
+    inset-inline-end: max(var(--spacing-lg), env(safe-area-inset-right));
     inline-size: calc(288px * var(--ui-scale));
     max-inline-size: 40vw;
     /* Fixed header height, reused as the collapsed toggle's square side. */
     --bl-header-size: calc(35.2px * var(--ui-scale));
+
+    /*
+     * Touch floor (plan 179 §E). Collapsed, this panel *is* its toggle button, so on a phone
+     * the square measured 13px — well under the 24px WCAG 2.2 SC 2.5.8 minimum and far from
+     * the 44px recommendation. The usual trick (keep the visual small, widen an invisible
+     * hit area with a pseudo-element) does not work here: `overflow: hidden` above would clip
+     * it. So the square itself grows, and only on coarse pointers — mouse users keep the
+     * scaled visual.
+     */
+    @media (pointer: coarse) {
+      /* 44px puis 36px lisaient trop haut sur un vrai téléphone (humain, 2026-08-06) — aligné sur
+         le plancher du menu d'action (`--target-min: 30px`) pour que les deux s'accordent. */
+      --bl-header-size: max(30px, calc(35.2px * var(--ui-scale)));
+    }
+
+    /* Sur téléphone le journal était à la fois trop étroit et trop petit à lire (humain,
+       2026-08-06) : le contenu est la raison d'être du panneau, il gagne en largeur et en corps.
+       `--bl-body-size` porte le corps du texte pour que les deux réglages restent côte à côte. */
+    --bl-body-size: calc(18.4px * var(--ui-scale));
+
+    @media (height < 500px), (width < 900px) {
+      inline-size: calc(400px * var(--ui-scale));
+      max-inline-size: 55vw;
+      --bl-body-size: calc(26px * var(--ui-scale));
+    }
     display: flex;
     flex-direction: column;
     border: 1px solid var(--color-border-surface);
@@ -87,7 +112,7 @@
     box-shadow:
       inset 0 7px 6px -7px rgb(0 0 0 / 0.6),
       inset 0 -7px 6px -7px rgb(0 0 0 / 0.6);
-    font-size: calc(18.4px * var(--ui-scale));
+    font-size: var(--bl-body-size);
   }
 
   /* Replay transport bar (disabled placeholders — future replay feature). */
