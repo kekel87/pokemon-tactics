@@ -23,6 +23,14 @@ export class InfoPanel {
    *  container: the icon has an empty `alt` (decorative → no `img` role) and carries no testid of its
    *  own, so a tag-scoped locator under the stable `info-panel-item` testid is the resilient reach. */
   readonly itemIcon: Locator;
+  /** Generic stand-in that replaces the official icon while the fog hides the item (plan 176): a
+   *  CSS-drawn dotted square carrying a lone « ? ». Reached by its user-facing text, EXACT so the
+   *  « ??? » placeholder name sitting beside it doesn't match — never by class. */
+  readonly itemGlyph: Locator;
+  /** Localised item NAME alone (« Restes », or the fog's « ??? » placeholder). Read from its own span
+   *  and not from {@link item}: under fog the line ALSO renders the glyph's « ? », so the container's
+   *  text is `? ???` — only the last span carries the datum. Tag-scoped like {@link itemIcon}. */
+  readonly itemName: Locator;
   /** Enriched ally readout (plan 174). Type chips list — each `<li>` carries `data-type="<id>"`
    *  (the label is CSS-uppercased so its `textContent` stays « Plante » → we assert the id attribute). */
   readonly types: Locator;
@@ -45,6 +53,11 @@ export class InfoPanel {
   readonly attack: Locator;
   readonly moveName: Locator;
   readonly damage: Locator;
+  /** Unit of the damage bounds — « PV », or « % » under the enemy fog (plan 176), which is the ONLY
+   *  readable difference (the bounds themselves stay `min–max` either way). It carries no testid of
+   *  its own, so it is reached as the span right after the testid'd figure — a structural hop like
+   *  {@link itemIcon}'s tag-scoped `img`, never a CSS class. */
+  readonly damageUnit: Locator;
   readonly accuracy: Locator;
   readonly crit: Locator;
   readonly modifiers: Locator;
@@ -58,6 +71,8 @@ export class InfoPanel {
     this.portrait = this.panel.getByTestId("info-panel-portrait");
     this.item = this.panel.getByTestId("info-panel-item");
     this.itemIcon = this.item.locator("img");
+    this.itemGlyph = this.item.getByText("?", { exact: true });
+    this.itemName = this.item.locator("span").last();
     this.types = this.panel.getByTestId("info-panel-types");
     // `li[data-type]` and not a bare `li`: since plan 175 the target counter rides this same row.
     this.typeChips = this.types.locator("li[data-type]");
@@ -72,6 +87,7 @@ export class InfoPanel {
     this.attack = this.panel.getByTestId("combat-preview-attack");
     this.moveName = this.panel.getByTestId("combat-preview-move");
     this.damage = this.panel.getByTestId("combat-preview-damage");
+    this.damageUnit = this.damage.locator("xpath=following-sibling::span[1]");
     this.accuracy = this.panel.getByTestId("combat-preview-accuracy");
     this.crit = this.panel.getByTestId("combat-preview-crit");
     this.modifiers = this.panel.getByTestId("combat-preview-modifiers");

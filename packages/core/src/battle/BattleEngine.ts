@@ -134,6 +134,7 @@ import { resolveNaturePowerMove } from "./nature-power-system";
 import { isOhkoMove, type OhkoImmunity, ohkoAccuracy, ohkoImmunityReason } from "./ohko";
 import { checkPositionLinkedStatuses } from "./position-linked-statuses";
 import { computePressureBonus } from "./pressure";
+import { applyRevealsFromEvents } from "./reveal-tracking";
 import { pendingRolloutIndex, recordLastUsedMove, rolloutRangeForIndex } from "./rollout-streak";
 import {
   canMoveHitSemiInvulnerable,
@@ -316,6 +317,9 @@ export class BattleEngine {
   consumeStartupEvents(): BattleEvent[] {
     const events = this.startupEvents;
     this.startupEvents = [];
+    // Entry-time abilities (Intimidation, Gaz Inhibiteur…) announce themselves, so they count as
+    // watched (plan 176).
+    applyRevealsFromEvents(this.state, events);
     return events;
   }
 
@@ -1202,7 +1206,21 @@ export class BattleEngine {
     return actions;
   }
 
+  /**
+   * Resolve an action and return everything it produced.
+   *
+   * Thin wrapper over {@link applyAction} so the reveal bookkeeping (plan 176) has ONE funnel: the
+   * resolution path has 17 success exits, and marking each of them would be a standing invitation to
+   * miss the next one. Everything an item or ability did during this action is named in the returned
+   * events, so this is exactly the set the player watched.
+   */
   submitAction(playerId: string, action: Action): ActionResult {
+    const result = this.applyAction(playerId, action);
+    applyRevealsFromEvents(this.state, result.events);
+    return result;
+  }
+
+  private applyAction(playerId: string, action: Action): ActionResult {
     if (this.battleOver) {
       return { success: false, events: [], error: ActionError.BattleOver };
     }

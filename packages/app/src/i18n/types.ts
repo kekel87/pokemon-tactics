@@ -353,6 +353,7 @@ export interface Translations {
   "combatPreview.ohko.sturdyImmune": string;
   "combatPreview.accuracy.guaranteed": string;
   "combatPreview.damageUnit": string;
+  "combatPreview.damageUnitPercent": string;
   "combatPreview.remaining": string;
   "combatPreview.facing.back": string;
   "combatPreview.facing.front": string;
@@ -381,6 +382,7 @@ export interface Translations {
   "substitute.failed.active": string;
   "substitute.blocked": string;
   "infoPanel.volatile.substitute": string;
+  "infoPanel.volatile.substituteHidden": string;
   "infoPanel.volatile.taunted": string;
   "infoPanel.volatile.disabled": string;
   "infoPanel.volatile.encored": string;
@@ -398,15 +400,15 @@ export interface Translations {
   "infoPanel.volatile.typeChanged": string;
   "infoPanel.volatile.noType": string;
   "infoPanel.volatile.abilityChanged": string;
+  "infoPanel.volatile.abilityChangedHidden": string;
   "infoPanel.volatile.abilitySealed": string;
   "infoPanel.volatile.cursed": string;
   "infoPanel.volatile.drowsy": string;
   "infoPanel.volatile.magnetRise": string;
   "infoPanel.volatile.stockpile": string;
   "infoPanel.volatile.gasSuppressed": string;
-  "infoPanel.reveal.item": string;
   "infoPanel.reveal.topMove": string;
-  "infoPanel.reveal.ability": string;
+  "infoPanel.unknown": string;
   "moveTooltip.tag.sound": string;
   "moveTooltip.tag.bypasssub": string;
   "moveTooltip.tag.dynamicPower": string;

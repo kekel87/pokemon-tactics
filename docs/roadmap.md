@@ -317,10 +317,12 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 > Plan-cadre consolidé : `docs/plans/173-phase-client-jouable-ui-controles.md` (consolide « Support manette » ex-Phase 7, « UI revamps »/« Tooltips type chart »/a11y ex-Phase 9, + backlog UI/UX de `next.md`).
 > Assets **Kenney CC0** intégrés (input-prompts, mobile-controls, cursor-pixel-pack).
 
-- [x] **InfoPanel enrichi allié** (2026-07-24) — types, stats (base→crans→valeur effective incluant statuts), talent, nature (effet via labels colorés) dans le panneau de combat côté joueur. Ennemi reste minimal (révélation progressive = plan 176). Plan 174, décisions #717–#718.
+- [x] **InfoPanel enrichi allié** (2026-07-24) — types, stats (base→crans→valeur effective incluant statuts), talent, nature (effet via labels colorés) dans le panneau de combat côté joueur. Ennemi reste minimal sous fog (plan 176, livré). Plan 174, décisions #717–#718.
 - [x] **Panneau d'info de case (terrain/modificateurs)** (2026-07-25) — 2ᵉ panneau DOM icône-first à droite de l'InfoPanel Pokemon : franchissabilité, malus déplacement, statut à l'arrêt/passage + DoT, bonus de type/immunités, hazards, champ, zones. Plan 177, décision #719.
 - [x] **Preview de combat** (2026-07-26) — panneau détaillé à la confirmation d'attaque : dégâts min–max + %, verdict K.O. (avec garde-fou survie à 1 PV si connu), précision/critique effectifs, puces de modificateurs, cycle multi-cibles + alerte tir allié. `estimateDamage` intègre désormais météo/écrans/Brise Barrière. Plan 175, décisions #721–#722.
-- [ ] **Lot 3 — Compléter l'UI** *(en cours)* : auras (1 rond empilable), info move + tooltips type chart, responsive (`--stage-scale`/ultrawide/`--ui-scale` PV), a11y.
+- [x] **Tooltip d'attaque enrichi + noms de type unifiés** (2026-08-03) — contrecoup/drain/auto-K.O., coût CT chiffré, chip de type, probabilité d'effet secondaire ; source unique `getTypeName` remplace `TYPE_LABEL` et les clés i18n `pokemonType.*`. Table de types 18×18 et efficacité contextuelle par move abandonnées. Plan 178, décisions #724–#727.
+- [x] **Panneau ennemi + fog** (2026-08-05) — PV en %, objet tenu et talent en placeholders `???` jusqu'à révélation à l'usage (core `reveal-tracking.ts`, définitive, reset au K.O.), dégâts de preview + overlay en % sous fog. Fog **ON en dur** en partie réelle, désactivable en sandbox (`SandboxConfig.fogOfWar`, défaut OFF ⇒ lecture complète). Plan 176, décisions #728–#732.
+- [ ] **Lot 3 — Compléter l'UI** *(en cours)* : auras (1 rond empilable), responsive (`--stage-scale`/ultrawide/`--ui-scale` PV), a11y.
 - [ ] **Lot 1 — Contrôles tactiles** : pinch-zoom, pan 2 doigts, boutons rotation caméra on-screen, cibles ≥44px `@media (pointer:coarse)`.
 - [ ] **Lot 2 — Config clavier + manette** : couche d'input device-agnostique (actions logiques remappables), Gamepad API (y c. **manette sur mobile**), écran de remapping.
 

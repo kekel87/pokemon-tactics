@@ -190,9 +190,28 @@ function runBattle(options: {
   signal: AbortSignal;
   onReplay: () => void;
   wireTurnReady: (battle: BattleSetupResult) => BattleOrchestrator["onTurnReady"];
+  /**
+   * Fog ennemi (plan 176): withhold enemy exact HP / unrevealed held item / Substitute HP, and read
+   * the forecast's damage in % of max HP. Always on in a real battle (it is a rule, not a setting);
+   * the sandbox studio drives it from `config.fogOfWar`.
+   */
+  enemyInfoHidden: boolean;
+  /** Players a human drives — the fog reads through their eyes, never the acting AI's (plan 176). */
+  humanPlayerIds: readonly string[];
 }): BattleOrchestrator {
-  const { backend, combat, stage, battle, handles, onExit, signal, onReplay, wireTurnReady } =
-    options;
+  const {
+    backend,
+    combat,
+    stage,
+    battle,
+    handles,
+    onExit,
+    signal,
+    onReplay,
+    wireTurnReady,
+    enemyInfoHidden,
+    humanPlayerIds,
+  } = options;
   const board = backend.createBattleBoardView(combat, handles);
   // Host-injected i18n / asset-path deps for the reusable DOM chrome (plan 125 Phase 4).
   const uiConfig: UiDomConfig = {
@@ -251,6 +270,7 @@ function runBattle(options: {
     getStatusIconUrl,
     getStatusLabelUrl,
     isDamagePreviewEnabled: () => getSettings().damagePreview,
+    isEnemyInfoHidden: () => enemyInfoHidden,
   };
   const spawnFloatingText = createFloatingTextSpawner(combat, battle.state, {
     getPokemonName: pokemonNameOf,
@@ -273,7 +293,7 @@ function runBattle(options: {
     board,
     chrome,
     feedback,
-    { confirmAttack: BATTLE_CONFIRM_ATTACK },
+    { confirmAttack: BATTLE_CONFIRM_ATTACK, humanPlayerIds },
     presentationContext,
   );
   orchestrator.onTurnReady = wireTurnReady(battle);
@@ -368,6 +388,11 @@ function startBattleLoop(
     signal,
     onReplay,
     wireTurnReady: (built) => wireScoredAi(built, aiPlayerIds),
+    // A real battle always withholds enemy information (plan 176) — no player-facing opt-out.
+    enemyInfoHidden: true,
+    humanPlayerIds: result.placementTeams
+      .filter((team) => team.controller === PlayerController.Human)
+      .map((team) => team.playerId),
   });
 }
 
@@ -383,6 +408,11 @@ const AI_PROFILE_BY_KEY = {
 
 function profileForKey(key: AiProfileKey | undefined) {
   return AI_PROFILE_BY_KEY[key ?? "hard"];
+}
+
+/** Sandbox team index → engine player id (Équipe 1 = Player1, Équipe 2 = Player2). */
+function teamPlayerId(teamIndex: number): PlayerId {
+  return teamIndex === 0 ? PlayerId.Player1 : PlayerId.Player2;
 }
 
 /** Resolved spawn tile reported back to the studio panel, keyed by team + member index. */
@@ -461,6 +491,14 @@ function startSandboxBattle(options: {
     onExit,
     signal,
     onReplay,
+    // Studio default is OFF (debugging wants exact figures); the checkbox turns the fog on. The panel
+    // remounts the whole scene on every config change, so no live update path is needed.
+    enemyInfoHidden: config.fogOfWar === true,
+    // A "player" team is human-driven; hotseat (both teams player) hands the viewpoint over with the
+    // turn, exactly like `viewerPlayerId` expects.
+    humanPlayerIds: config.teams
+      .map((team, index) => (team.control === "player" ? teamPlayerId(index) : null))
+      .filter((playerId): playerId is PlayerId => playerId !== null),
     wireTurnReady: (built) => {
       const passiveByInstanceId = new Map<string, DummyAiController>();
       const scoredByPlayerId = new Map<PlayerId, AiTeamController>();

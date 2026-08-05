@@ -482,6 +482,13 @@
     color: var(--color-text-secondary);
   }
 
+  /* Fog (plan 176): with the exact figures withheld, the percentage IS the readout — it inherits the
+     primary size/colour instead of reading as a dimmer aside to numbers that are no longer there. */
+  .ip-hptext[data-hp-only="1"] .ip-hppct {
+    font-size: inherit;
+    color: inherit;
+  }
+
   .ip-talent {
     font-size: calc(22 * var(--ip-px));
     font-weight: bold;
@@ -517,6 +524,34 @@
 
   .ip-item-icon[hidden] {
     display: none;
+  }
+
+  /* Fog placeholder (plan 176): a generic slot for an item the player has not learnt yet — same
+     footprint as the real icon so the line does not jump when the item gets revealed. */
+  .ip-item-glyph {
+    display: grid;
+    place-items: center;
+    inline-size: calc(28 * var(--ip-px));
+    block-size: calc(28 * var(--ip-px));
+    flex-shrink: 0;
+    border: calc(2 * var(--ip-px)) dashed var(--color-border-surface);
+    border-radius: calc(4 * var(--ip-px));
+    color: var(--color-text-secondary);
+    font-size: calc(18 * var(--ip-px));
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  .ip-item-glyph[hidden] {
+    display: none;
+  }
+
+  /* An unknown item / talent reads as a gap to fill, not as a value: dimmer than a real name. */
+  .ip-item[data-unknown="1"] .ip-item-name,
+  .ip-talent[data-unknown="1"] {
+    color: var(--color-text-secondary);
+    font-weight: normal;
+    letter-spacing: calc(2 * var(--ip-px));
   }
 
   .ip-badges {

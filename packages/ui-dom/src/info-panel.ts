@@ -77,7 +77,8 @@ export function createInfoPanel(testId = "info-panel"): InfoPanel {
   ghostRoll.hidden = true;
   hpBar.append(hpFill, ghostCertain, ghostRoll);
 
-  // HP line: "142 / 180 (79%)" on the left, talent pushed to the right (ally only) — same row.
+  // HP line: "142 / 180 (79%)" on the left, talent pushed to the right — same row. Under fog an
+  // enemy reads "79%" alone and its talent slot carries a placeholder (plan 176).
   // Percentage is a smaller sibling span so it reads as secondary to the exact HP numbers.
   const hpRow = el("div", "ip-hprow");
   const hpText = el("span", "ip-hptext", "info-panel-hp");
@@ -87,15 +88,22 @@ export function createInfoPanel(testId = "info-panel"): InfoPanel {
   const talentEl = el("span", "ip-talent", "info-panel-talent");
   hpRow.append(hpText, talentEl);
 
-  // Held item line: official item icon + localised name; hidden when holding nothing.
+  // Held item line: official item icon + localised name. Hidden only when the Pokémon is KNOWN to
+  // hold nothing — under fog it carries a generic glyph + placeholder instead (plan 176).
   const itemEl = el("span", "ip-item", "info-panel-item");
   const itemIcon = el("img", "ip-item-icon");
   itemIcon.alt = ""; // decorative: the item name is read from the sibling text
   itemIcon.decoding = "async";
+  // Generic stand-in for an item the fog hides (plan 176): CSS-drawn, so no asset is needed for a
+  // slot whose whole point is to say "something may be here".
+  const itemGlyph = el("span", "ip-item-glyph");
+  itemGlyph.setAttribute("aria-hidden", "true"); // decorative: the "???" text beside it carries the meaning
+  itemGlyph.hidden = true;
   const itemName = el("span", "ip-item-name");
-  itemEl.append(itemIcon, itemName);
+  itemEl.append(itemIcon, itemGlyph, itemName);
 
-  // Ally-only (plan 174): battle-stats block. Hidden for enemies.
+  // Battle-stats block (plan 174): present on any panel read in full — an ally, or an enemy with the
+  // fog off (studio). Absent from a fogged enemy.
   const statsEl = el("div", "ip-stats", "info-panel-stats");
 
   const badges = el("ul", "ip-badges");
@@ -175,12 +183,24 @@ export function createInfoPanel(testId = "info-panel"): InfoPanel {
     }
 
     const ratio = data.hpMax > 0 ? Math.max(0, Math.min(1, data.hpCurrent / data.hpMax)) : 0;
+    const percent = Math.round(ratio * 100);
     // Runtime ratio → CSS var (no static-CSS equivalent); width derives from it.
     hpFill.style.setProperty("--ip-hp", String(ratio));
-    hpNumbers.textContent = `${data.hpCurrent} / ${data.hpMax}`;
-    hpPct.textContent = ` (${Math.round(ratio * 100)}%)`;
-    hpBar.setAttribute("aria-valuemax", String(data.hpMax));
-    hpBar.setAttribute("aria-valuenow", String(data.hpCurrent));
+    // Fog (plan 176): an enemy shows the percentage ALONE — parentheses would qualify a figure that
+    // is no longer there. ARIA follows what is on screen (0-100 scale), otherwise a screen reader
+    // would announce the very numbers the fog withholds.
+    hpText.dataset.hpOnly = data.hideExactHp === true ? "1" : "";
+    if (data.hideExactHp === true) {
+      hpNumbers.textContent = "";
+      hpPct.textContent = `${percent}%`;
+      hpBar.setAttribute("aria-valuemax", "100");
+      hpBar.setAttribute("aria-valuenow", String(percent));
+    } else {
+      hpNumbers.textContent = `${data.hpCurrent} / ${data.hpMax}`;
+      hpPct.textContent = ` (${percent}%)`;
+      hpBar.setAttribute("aria-valuemax", String(data.hpMax));
+      hpBar.setAttribute("aria-valuenow", String(data.hpCurrent));
+    }
 
     const attack = data.attack;
     attackEl.hidden = attack === undefined;
@@ -236,9 +256,11 @@ export function createInfoPanel(testId = "info-panel"): InfoPanel {
     verdictEl.textContent = preview?.verdictLabel ?? "";
     verdictEl.hidden = !preview?.verdictLabel;
 
-    // Talent shares the HP row (ally only), pushed to the right.
+    // Talent shares the HP row, pushed to the right. Under fog an enemy's slot carries the `???`
+    // placeholder (plan 176) — dimmed via `data-unknown`, so it reads as "yet to learn".
     if (data.ability) {
       talentEl.textContent = data.ability;
+      talentEl.dataset.unknown = data.abilityUnknown === true ? "1" : "";
       talentEl.hidden = false;
     } else {
       talentEl.textContent = "";
@@ -302,6 +324,15 @@ export function createInfoPanel(testId = "info-panel"): InfoPanel {
 
     if (data.heldItem) {
       itemName.textContent = data.heldItem;
+      // Fog (plan 176): no official icon to show, so the slot falls back to the generic CSS pouch —
+      // and the line is present even for a Pokémon holding nothing, since "holds nothing" is itself
+      // information the fog withholds.
+      const unknown = data.itemUnknown === true;
+      itemEl.dataset.unknown = unknown ? "1" : "";
+      itemGlyph.hidden = !unknown;
+      // `hidden` stops the glyph from RENDERING but leaves its text in the line's textContent — the
+      // item line then reads "?Restes" to anything extracting text (e2e, screen readers). Blank it.
+      itemGlyph.textContent = unknown ? "?" : "";
       if (data.itemIconUrl) {
         itemIcon.src = data.itemIconUrl;
         itemIcon.hidden = false;
@@ -313,6 +344,8 @@ export function createInfoPanel(testId = "info-panel"): InfoPanel {
     } else {
       itemName.textContent = "";
       itemIcon.removeAttribute("src");
+      itemGlyph.hidden = true;
+      itemGlyph.textContent = "";
       itemEl.hidden = true;
     }
 

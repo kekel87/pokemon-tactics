@@ -10,6 +10,12 @@ import type { I18nContext } from "./i18n-context.js";
 export interface PresentationContext extends I18nContext {
   /** Whether the confirm-phase damage preview is enabled (renderer setting). */
   isDamagePreviewEnabled(): boolean;
+  /**
+   * Whether enemy information is withheld (fog, plan 176): exact HP figures, an unrevealed held item,
+   * Substitute HP, and absolute damage bounds in the forecast. Hard-on in a real battle — it is a
+   * rule, not a comfort setting; the sandbox studio switches it off to inspect exact figures.
+   */
+  isEnemyInfoHidden(): boolean;
   /** Localised held-item name for an item id (null when unknown). */
   getItemName(itemId: string): string | null;
   /** Localised ability name for an ability id (null when unknown) — ability-manip badges (plan 153). */

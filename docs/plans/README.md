@@ -169,5 +169,6 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 173 | [Phase « Client jouable : contrôles & UI » (consolidation)](./173-phase-client-jouable-ui-controles.md) | ready | 2026-07-24 |
 | 174 | [InfoPanel enrichi « tes Pokemon »](./174-infopanel-tes-pokemon.md) | done | 2026-07-24 |
 | 175 | [Combat preview (prévision de dégâts détaillée)](./175-combat-preview.md) | done | 2026-07-26 |
+| 176 | [Fog ennemi (rétention d'information sur les Pokemon adverses)](./176-fog-ennemi.md) | done | 2026-08-05 |
 | 177 | [Panneau d'info de case (terrain & modificateurs)](./177-tile-info-panel.md) | done | 2026-07-24 |
 | 178 | [Tooltip d'attaque enrichi + harmonisation de l'affichage des types](./178-move-tooltip-et-types.md) | done | 2026-08-03 |

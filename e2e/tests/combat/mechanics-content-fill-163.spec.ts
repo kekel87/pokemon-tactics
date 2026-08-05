@@ -10,7 +10,7 @@ import {
   NEUTRALIZING_GAS_FAR,
   NEUTRALIZING_GAS_SUPPRESS,
 } from "../../fixtures/sandbox-configs";
-import { badgeCountOnHover } from "../../pages/combat-queries";
+import { badgeCountOnHover, hoverCard } from "../../pages/combat-queries";
 
 // Cahier §5.37 — Content-fill des 7 derniers talents Gen 1 (plan 163). Chaque talent est PILOTABLE via
 // l'UI sandbox (le joueur contrôle son mon ; `playerAbility`/`dummyAbility` overridables), donc on
@@ -126,17 +126,18 @@ test("§5.37 Gaz Inhibiteur : un ennemi hors du rayon r2 n'est pas neutralisé (
 });
 
 // ── Fouille (frisk) — révèle l'objet des ennemis ──────────────────────────────────────────────────
-// §5.37 Fouille : l'objet du dummy est révélé à l'entrée → badge « Objet : Restes » à son survol.
-test("§5.37 Fouille : révèle l'objet de l'ennemi (badge « Objet : Restes »)", async ({
+// §5.37 Fouille : l'objet du dummy est révélé à l'entrée → son SLOT d'objet le nomme au lieu du `???`
+// du fog. Le badge « Objet : X » du plan 163 a disparu au plan 176 (redondant avec le slot, qui
+// n'apparaît qu'une fois l'info connue) → la config allume le fog, sinon il n'y aurait rien à révéler.
+test("§5.37 Fouille : révèle l'objet de l'ennemi (slot « Restes » au lieu de « ??? »)", async ({
   page,
   bootSandbox,
 }) => {
   const scene = await bootSandbox(FRISK_REVEALS_ITEM);
-  await expect
-    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 2 }, "Ronflex", "Objet : Restes"), {
-      timeout: 10_000,
-    })
-    .toBe(1);
+  const card = await hoverCard(scene, page, 2, 2, "Ronflex");
+
+  await expect(card.itemName).toHaveText("Restes");
+  await expect(card.item).toHaveAttribute("data-unknown", "");
 });
 
 // ── Prédiction (forewarn) — révèle la capacité la plus puissante des ennemis ───────────────────────
@@ -155,15 +156,15 @@ test("§5.37 Prédiction : révèle la menace de l'ennemi (badge « Menace : …
 });
 
 // ── Anticipation (anticipation) — révèle le talent des ennemis (non-canon, plan 163) ──────────────
-// §5.37 Anticipation : le talent du dummy est révélé → badge « Talent : Lévitation » à son survol.
-test("§5.37 Anticipation : révèle le talent de l'ennemi (badge « Talent : Lévitation »)", async ({
+// §5.37 Anticipation : le talent du dummy est révélé → son SLOT de talent le nomme au lieu du `???` du
+// fog (même bascule badge → slot que Fouille ci-dessus, plan 176).
+test("§5.37 Anticipation : révèle le talent de l'ennemi (slot « Lévitation » au lieu de « ??? »)", async ({
   page,
   bootSandbox,
 }) => {
   const scene = await bootSandbox(ANTICIPATION_REVEALS_ABILITY);
-  await expect
-    .poll(() => badgeCountOnHover(scene, page, { x: 2, y: 2 }, "Ronflex", "Talent : Lévitation"), {
-      timeout: 10_000,
-    })
-    .toBe(1);
+  const card = await hoverCard(scene, page, 2, 2, "Ronflex");
+
+  await expect(card.talent).toHaveText("Lévitation");
+  await expect(card.talent).toHaveAttribute("data-unknown", "");
 });

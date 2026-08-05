@@ -31,7 +31,7 @@ Combat tactique sur grille isométrique :
 - **Taille d'équipe configurable** par format — base = 6v6. Définie avant le combat.
 - **Multijoueur local hot-seat** (style Civilization)
 - **Pas de brouillard de guerre spatial** — positions, terrain, hauteur et effets de case sont publics : chaque joueur voit tout le plateau, en permanence
-- **Information partielle sur les Pokemon adverses** — stats exactes, talent, objet tenu et PV précis d'un ennemi ne sont pas donnés d'emblée ; ils se révèlent à l'usage (un move vu, un objet déclenché, un talent scouté). Les stats de base restent publiques sous forme de **plage** min–max, aucune information n'est inventée. Mise en œuvre : plan 176 (`getGameState` par perspective) — jusque-là le client reste plein-info en local et en sandbox
+- **Information partielle sur les Pokemon adverses (fog, plan 176, 2026-08-05)** — PV en **pourcentage seul**, objet tenu et talent en `???` tant qu'ils ne sont pas révélés ; ils se révèlent **à l'usage, définitivement** (un objet déclenché, un talent activé) et jamais par déduction inventée. Talent et bloc de stats chiffrées d'un ennemi restent absents (règle « ennemi minimal », plan 174), sauf en sandbox fog **désactivé** (lecture complète, réservée au studio de debug). **Règle de jeu, pas un réglage joueur** — fog **ON en dur** en partie réelle. Implémenté côté vue (`view-core`), pas dans `getGameState` (toujours plein état par référence) — une redaction côté core par perspective attend un serveur autoritaire (Phase 7, multijoueur)
 - **FFA = chacun pour soi** — pas d'alliances dynamiques
 - Multijoueur réseau : plus tard
 
@@ -207,7 +207,7 @@ Dégâts = ((2 × Level / 5 + 2) × Power × (Atk / Def) / 50 + 2)
 - Alerte tir allié si la cible en focus est un allié
 - Gaté par le réglage **Prévisualisation dégâts** (comme les labels in-world existants)
 
-Valeurs exactes (pas de fourchette élargie par le fog) : le gating d'info ennemie n'existe pas encore (plan 176). **Legs identifié** : ce panneau expose des données que le plan 176 s'apprête à cacher (type exact via la chip d'efficacité, PV exacts via la barre/le verdict, talents/objets défensifs via l'écart de précision/crit) — le plan 176 devra trancher si ce panneau reste un outil privilégié exempté de fog, ou bascule en estimations dégradées. Détail : `docs/plans/175-combat-preview.md`.
+**Sous fog (plan 176, 2026-08-05)** : les dégâts sont exprimés en `%` des PV max plutôt qu'en PV absolus (afficher les deux à côté aurait permis de déduire les PV max par soustraction) ; le garde-fou « sauf Ceinture Force / Fermeté » ne nomme ces objets/talents que s'ils sont déjà connus du joueur (Ténacité reste toujours nommée — le joueur a vu l'action). Type de la cible et son efficacité restent visibles (les types sont publics, décision plan 174). Fog **OFF** (sandbox uniquement) : panneau en PV absolus, comme avant le plan 176. Détail : `docs/plans/175-combat-preview.md`, `docs/plans/176-fog-ennemi.md`.
 
 ---
 

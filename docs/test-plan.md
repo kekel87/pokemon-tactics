@@ -51,11 +51,12 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Traversée (Spectre / Volant) | §5.19, §8.4 |
 | Effets de terrain (coût/statut/DOT/bonus) | §5.20, §8.1 |
 | Pattern de ciblage d'un move | §3.7, §4.6, §5.16 |
+| Panneau d'info Pokemon / fog ennemi (PV, objet, talent, stats) | §4.7, §4.15 |
 | Objet tenu / manipulation d'objet (vol/échange/retrait/recyclage) | §5.14, §5.25 |
 | Réécriture de type (Détrempage/Conversion/Flamme Ultime…) | §5.27, §4.7 |
 | Appeler / copier un move (Métronome/Copie/Mimique…) | §5.28 |
 | Copie d'identité (Morphing / Imposteur / Métamorph) | §5.34 |
-| Talent de révélation / immobilisation / neutralisation (Fouille/Piège Sable/Gaz Inhibiteur…) | §5.14, §5.37 |
+| Talent de révélation / immobilisation / neutralisation (Fouille/Piège Sable/Gaz Inhibiteur…) | §5.14, §5.37, §4.15 |
 | Heuristiques de scoring IA (choix de move) | §5.35 (unit) ; IA scorée seedée e2e §5.38 |
 | Harness équipes N-vs-N / contrôle par équipe / membre KO au spawn | §5.38 |
 | Manip état/stats (reset/copie/inversion/échange de crans — Buée Noire/Boost/Permu…) | §5.39 |
@@ -407,10 +408,12 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
   (`.ip-hppct`, ex. « (100%) »), le **talent** poussé à droite (`info-panel-talent`) et le **bloc des 5
   stats** (`info-panel-stats`, Atq/Déf/Atk Spé/Déf Spé/Vit). Une stat à cran (`statStages.attack: +2`)
   montre sur sa ligne le cran « 2↑ », la flèche « → » et la **valeur effective** (base ×2) ≠ base
-  (`info-panel.spec`). Un **ennemi** (`data-team="2"`) reste minimal : types publics affichés, mais bloc
-  stats + talent **masqués** (`info-panel.spec`). *Le calcul crans/brûlure/paralysie de la valeur
-  effective (`effectiveDisplayStat`), la couleur de la nature et l'omission ennemie = unit
-  `display-stat.test`/`battle-views.test`. Les couleurs des chips/crans (buff bleu, debuff rouge) = 👁.*
+  (`info-panel.spec`). Un **ennemi** (`data-team="2"`) obtient la **même lecture complète quand le fog
+  est coupé** (plan 176, défaut du sandbox) : types + bloc stats + talent en clair (`info-panel.spec`).
+  La règle « ennemi minimal » du plan 174 ne vaut plus que **sous fog** → §4.15. *Le calcul
+  crans/brûlure/paralysie de la valeur effective (`effectiveDisplayStat`), la couleur de la nature et
+  la rétention ennemie = unit `display-stat.test`/`battle-views.test`. Les couleurs des chips/crans
+  (buff bleu, debuff rouge) = 👁.*
 - 👁 **Badges** (statut/auras/volatils), preview menace au survol ennemi (§3.7), barre PV qui
   **descend** après dégâts (anim).
 - 🤖 **Badges** : statut majeur (Brûlure…), auras (Reflet…), volatils (Provoc 3t, Clone…) —
@@ -527,6 +530,59 @@ barre de vie prédite. Le panneau d'info de case s'efface pendant le ciblage. Ga
   conservés à gauche, contenu du bloc centré verticalement (rendu pur).
 - 👁 **Barre de vie prédite** : trois zones franches (restant / dégâts certains / zone de jet) —
   lisibilité des teintes, pas la géométrie (couverte par les valeurs `aria-valuenow`).
+
+### 4.15 Fog ennemi (plan 176)
+
+*Rétention d'information sur les Pokemon ADVERSES : ce qu'un adversaire ne peut pas connaître n'est pas
+affiché. Appliqué dans les **adaptateurs de vue** (`view-core/battle-views.ts` →
+`isEnemyInfoHidden()` + `hideExactHp`/`itemUnknown`/`abilityUnknown`, `combat-preview-view.ts` pour les
+bornes de dégâts), pas dans le core — la redaction de `getGameState` par perspective est renvoyée à la
+Phase 7 (backend). Conséquence assumée : le **journal** et les **dégâts flottants** gardent leurs
+chiffres absolus.*
+
+*Réglage : **ON en dur en partie réelle** (c'est une règle de jeu, pas un confort) ; le studio sandbox
+est **OFF par défaut** et l'allume par la case « Fog ennemi » (`SandboxConfig.fogOfWar`, absent → OFF).
+Révélation à l'usage : `core/battle/reveal-tracking.ts` pose `revealedItem`/`revealedAbility` dès qu'un
+event **nomme** l'objet ou le talent. e2e : `combat-fog.spec` (paires fog ON / fog OFF sur la même
+situation).*
+
+- 🤖 **PV** : la carte d'un ennemi affiche le **pourcentage seul** (« 70% », sans parenthèses — c'est
+  devenu LE chiffre), jamais « x / y ». L'ARIA suit ce qui est à l'écran (`aria-valuemax="100"`,
+  `aria-valuenow=<pct>`) → le helper e2e `readHp` ne rend plus des PV absolus sous fog
+  (`combat-fog.spec`).
+- 🤖 **Objet tenu inconnu** : slot présent avec « ??? » + `data-unknown="1"` et le **glyphe générique**
+  à la place de l'icône officielle (même encombrement → la ligne ne saute pas à la révélation). Vrai
+  **même si l'ennemi ne tient rien** : une ligne absente livrerait « ne tient rien »
+  (`combat-fog.spec`).
+- 🤖 **Talent inconnu** : slot normal (à droite de la ligne de PV, comme chez un allié) avec « ??? » +
+  `data-unknown="1"` — les badges « Objet : X » / « Talent : X » du plan 163 sont **supprimés**
+  (redondants avec les slots) ; le badge « Menace : X » de Prédiction reste (`combat-fog.spec`).
+- 🤖 **Pas de bloc de stats** sur un ennemi foggé ; ses chips de **types** restent (publics)
+  (`combat-fog.spec`).
+- 🤖 **Révélation à l'usage — objet** : l'ennemi porteur des Restes se soigne en fin de tour (« Restes
+  de Ronflex s'active ! ») → son slot passe de « ??? » à « Restes » + icône officielle. Ce qui a agi
+  sous les yeux du joueur n'est plus caché (`combat-fog.spec`).
+- 🤖 **Révélation à l'entrée — talent** : Intimidation s'annonce à l'entrée en combat → le talent de
+  l'ennemi est nommé dès le boot, le reste du fog tenant toujours (`combat-fog.spec`).
+- 🤖 **Révélation par scouting** : **Fouille** → slot d'objet « Restes », **Anticipation** → slot de
+  talent « Lévitation », tous deux **sous fog** (sans fog il n'y a rien à révéler) — §5.37,
+  `mechanics-content-fill-163.spec`.
+- 🤖 **Preview de combat** : sur une cible ennemie les bornes de dégâts sont une **part des PV max** et
+  l'unité devient « % » (au lieu de « PV ») — sinon « 42–50 PV » à côté du « → 51–56 % PV » restant
+  rendrait les PV max en une soustraction. Témoin fog OFF sur la même cible : unité « PV »
+  (`combat-fog.spec`).
+- 🤖 **Fog OFF ⇒ lecture complète** (décision humaine 2026-08-05) : un ennemi se lit alors exactement
+  comme un allié — PV exacts « x / y (NN%) », bloc des 5 stats, talent et objet réels
+  (`combat-fog.spec`, `info-panel.spec` §4.7).
+- 👁 **Badge Substitut nu** : sous fog le badge du Clone perd son chiffre de PV
+  (`infoPanel.volatile.substituteHidden`). Non automatisé : `SandboxConfig` n'expose pas `substituteHp`
+  au boot (ni `volatileStatus`, où le Clone n'est pas un statut) — il faudrait passer le dummy en
+  hot-seat et lui faire lancer Clonage. Le SENS est unit (`battle-views.test`).
+- 👁 **Garde-fou « sauf Ceinture Force » masqué** : sous fog, la Ceinture Force non révélée n'est plus
+  nommée dans le verdict létal (même règle que Fermeté, plan 175) — couvert unit
+  (`combat-preview-view.test`) ; l'e2e existant §4.14 teste la version **fog OFF** (objet connu).
+- 👁 **Rendu des placeholders** : gris/espacement du « ??? », carré pointillé du glyphe d'objet
+  (dessiné en CSS, aucun asset) — pixel pur, à revoir au « point icônes » (§4.13).
 
 ---
 
@@ -1716,7 +1772,8 @@ est en contrôle humain), donc exécutés de bout en bout ; déterministe (seed 
 `PokemonMoved` / KO) ; `PokemonInstance` (`unburdenActive`, `arenaTrapped`, `abilitySuppressedByGas`,
 `revealedItem`/`revealedTopMove`/`revealedAbility`) ; events `ArenaTrapped`/`ArenaReleased` ;
 badges `view-core/battle-views.ts` (`status.trapped`, `infoPanel.volatile.gasSuppressed`,
-`infoPanel.reveal.{item,topMove,ability}`) ; flottant `view-core/floating-text-content.ts`
+`infoPanel.reveal.topMove` — les badges objet/talent ont laissé place aux **slots** du fog, §4.15) ;
+flottant `view-core/floating-text-content.ts`
 (`battle.trapped`/`battle.released`) ; journal `ui-dom/BattleLogFormatter.ts` ; unit par talent ;
 e2e : `mechanics-content-fill-163.spec.ts`. Tous pilotés via l'UI (le joueur contrôle son mon,
 `playerAbility`/`dummyAbility` overridables) ; déterministe (seed moteur, aucun override
@@ -1736,13 +1793,17 @@ e2e : `mechanics-content-fill-163.spec.ts`. Tous pilotés via l'UI (le joueur co
   talent neutralisé → badge « Talent neutralisé » (infoPanel.volatile.gasSuppressed) à son survol ; le
   porteur ne s'auto-neutralise pas (aucun badge) ; témoin à Manhattan 3 → aucun badge (portée bornée à
   r2, non field-wide) — `mechanics-content-fill-163.spec`.
-- 🤖 **Fouille** (`frisk`) : l'objet du dummy est révélé à l'entrée → badge « Objet : Restes »
-  (infoPanel.reveal.item) à son survol — `mechanics-content-fill-163.spec`.
+- 🤖 **Fouille** (`frisk`) : l'objet du dummy est révélé à l'entrée → sous **fog** (§4.15), son slot
+  d'objet le nomme (« Restes », `data-unknown=""`) au lieu du « ??? ». Le badge « Objet : X » a été
+  supprimé au plan 176 (redondant avec le slot) et fog OFF montre l'objet de tout le monde → la config
+  e2e allume le fog, sans quoi le talent n'aurait plus rien d'observable —
+  `mechanics-content-fill-163.spec`.
 - 🤖 **Prédiction** (`forewarn`) : la capacité la plus forte du dummy est révélée → badge « Menace :
   {capacité} » (infoPanel.reveal.topMove ; préfixe asserté, capacité dérivée du moveset d'espèce) —
   `mechanics-content-fill-163.spec`.
 - 🤖 **Anticipation** (`anticipation`, révélation non-canon du talent) : le talent du dummy est révélé →
-  badge « Talent : Lévitation » (infoPanel.reveal.ability) à son survol — `mechanics-content-fill-163.spec`.
+  sous **fog**, son slot de talent le nomme (« Lévitation ») au lieu du « ??? » (même bascule badge →
+  slot que Fouille, plan 176) — `mechanics-content-fill-163.spec`.
 - 🤖 **Délestage** (`unburden`) : débloqué par le champ e2e `unburdenActive` + le harness hot-seat →
   la Vitesse ×2 se lit sur la CADENCE du Charge Time (le porteur reprend la main plus tôt qu'un mon de
   même Vitesse sans le flag) → couvert **§5.46** (`mechanics-content-fill-unlocked.spec`). La valeur
@@ -2207,7 +2268,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-utility-damage.spec.ts` | §5.33 famille dégâts utilitaires (Misc Batch B, plan 152) : Faux-Chage (`false-swipe`, `cannotKo`) — dégâts sans K.O., cible à quelques PV reste à EXACTEMENT 1 PV (InfoPanel « 1 / max ») + aucune victoire ; Croc Fatal (`super-fang`, `HalveTargetHp`, 90 % → `seed: 1`) — « … perd la moitié de ses PV (-N) ! » (SuperFangApplied) + flottant `-N` ; Ruse (`feint`, `bypassProtect`) — le dummy (plus rapide, Ronflex lent en face) se protège (Abri) puis Ruse touche à travers (journal dégâts) ; Anti-Air (`smack-down`) — cloue le Dracolosse (Vol) au sol → « … est cloué au sol ! » (SmackedDown) + badge InfoPanel « Au sol », puis contrôle immunité Sol (Coud'Boue sur Vol non cloué = zéro dégât, immunité de type silencieuse) vs cas cloué (Coud'Boue ajoute une ligne de dégâts) ; Poursuite (`pursuit`, `pursuitBackstab`) — deux boots au seul dummyDirection près → dégâts de dos (×2,3) > 2× ceux de face (×0,85) ; Corps Perdu (`vital-throw`, `bypassAccuracy`) — touche une cible à Esquive +6 sans « rate son attaque ! ». Substitut cassable (Faux-Chage), typechart ignoré + K.O. 1-2 PV (Croc Fatal), ×0,85 face/×1,0 flanc exacts (Poursuite), vulnérabilité hazards + atterrissage forcé + cleanup KO (grounding), contrôle négatif du never-miss = unit/integration core (`moves/*.test.ts`, `utility-damage.integration.test.ts`) → 👁. Flottants (couleur) + tags tooltip = 👁 (pixel) |
 | `combat/mechanics-transform.spec.ts` | §5.34 famille Transform (plan 157) : Morphing (`transform`) — Mew lance Morphing sur le Léviator adjacent → journal « Mew se transforme ! » (event Transformed), le menu d'attaque liste ensuite les moves copiés de la cible (« Cascade », plus « Morphing »), l'InfoPanel garde l'identité + les PV du lanceur (nom « Mew » inchangé, barre de PV stable — PV non copiés #649), et le type Vol copié fait léviter le morphé sur le marais (aucune ligne « marécage » en fin de tour, témoin non transformé empoisonné) ; Imposteur (`imposter`) — Métamorph (ditto) se transforme à l'entrée sur l'ennemi le plus proche → « … se transforme ! » dès le boot + menu du tour 1 déjà celui de la cible. Swap d'atlas du sprite (texture non exposée par le hook scène) + interaction Substitut + nom d'affichage `ditto`/Métamorph + copie fine (stats/crans/tempo/poids/genre), gates d'échec, cleanup KO, garde-fou IA, « manip écrase » = unit/integration core (`transform.integration.test`, `moves/transform.test.ts`, `handlers/transform/transform.test.ts`) → 👁 |
 | `combat/mechanics-content-fill-162.spec.ts` | §5.36 content-fill des 9 derniers moves Gen 1 (plan 162), tous pilotés joueur : Stockage (`stockpile`) accumule un palier (« accumule ! (Stockage 1/3) » + badge InfoPanel « Stockage 1 »), un 2e usage empile « (Stockage 2/3) » ; Relâche (`spit-up`) & Avale (`swallow`) échouent sans réserve (« Mais cela échoue … ! ») ; Prio-Parade (`upper-hand`) touche+apeure une cible agressive (dummy hot-seat à la Charge) sinon fizzle ; Piège de Venin (`venom-drench`) baisse 3 stats d'une cible empoisonnée sinon fizzle ; Rayon Lune (`moonlight`) & Aurore (`morning-sun`) soignent le lanceur (« récupère N PV ») ; Partage Garde (`guard-split`) « partage sa Garde avec … » ; Métalaser (`steel-beam`, 95 % → seed qui touche) inflige dégâts + recul « Florizarre perd N PV » et auto-K.O. un lanceur à bas PV ; Grêle (`hail`) pose la Neige (« utilise Grêle » + HUD « Neige »). Réussite Relâche/Avale + 3e palier/échec au-delà du cap Stockage désormais 🤖 via `stockpileCount` → §5.46 (`mechanics-content-fill-unlocked.spec`) ; valeurs Partage Garde / soin météo exact / dégâts × paliers au PV près = unit/integration core → 👁 |
-| `combat/mechanics-content-fill-163.spec.ts` | §5.37 content-fill des 7 derniers talents Gen 1 (plan 163), pilotés via l'UI : Récolte (`harvest`) recrée sous Soleil la Baie Lichii mangée en fin de tour (« Récolte … s'active ! » + « recycle son Baie Lichii ») ; Piège Sable (`arena-trap`) désactive le bouton « Deplacement » du piégé non-exempté (Cran) + badge « Piégé », et le libère (badge disparu) quand le porteur s'éloigne ; Gaz Inhibiteur (`neutralizing-gas`) monte le badge « Talent neutralisé » sur un ennemi à Manhattan r2 (pas au-delà, pas d'auto-neutralisation) ; Fouille (`frisk`) → badge « Objet : Restes » ; Prédiction (`forewarn`) → badge « Menace : … » ; Anticipation (`anticipation`) → badge « Talent : Lévitation ». Délestage (`unburden`, Vitesse ×2) désormais 🤖 via `unburdenActive` + harness hot-seat (cadence CT) → §5.46 (`mechanics-content-fill-unlocked.spec`) ; exemptions Piège Sable fines / fin de neutralisation à la mort / soin Récolte 50 % hors Soleil / reset KO = unit |
+| `combat/mechanics-content-fill-163.spec.ts` | §5.37 content-fill des 7 derniers talents Gen 1 (plan 163), pilotés via l'UI : Récolte (`harvest`) recrée sous Soleil la Baie Lichii mangée en fin de tour (« Récolte … s'active ! » + « recycle son Baie Lichii ») ; Piège Sable (`arena-trap`) désactive le bouton « Deplacement » du piégé non-exempté (Cran) + badge « Piégé », et le libère (badge disparu) quand le porteur s'éloigne ; Gaz Inhibiteur (`neutralizing-gas`) monte le badge « Talent neutralisé » sur un ennemi à Manhattan r2 (pas au-delà, pas d'auto-neutralisation) ; Fouille (`frisk`) → slot d'objet « Restes » et Anticipation (`anticipation`) → slot de talent « Lévitation », tous deux **sous fog** (`fogOfWar: true`, plan 176 : les badges « Objet/Talent : X » ont été supprimés et fog OFF montre tout) ; Prédiction (`forewarn`) → badge « Menace : … » (conservé). Délestage (`unburden`, Vitesse ×2) désormais 🤖 via `unburdenActive` + harness hot-seat (cadence CT) → §5.46 (`mechanics-content-fill-unlocked.spec`) ; exemptions Piège Sable fines / fin de neutralisation à la mort / soin Récolte 50 % hors Soleil / reset KO = unit |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant immunités (marais/magma/lave : PV pleins, aucun statut/K.O.) + §5.19 Volant pas de glissade sur glace (tuile d'arrivée conservée) |
 | `combat/flying-resting-anim.spec.ts` | §3.6 anim de repos d'un Volant selon le terrain d'atterrissage (Roucarnage/`pidgeot` sur `sandbox-flat`, déplacements 1-case pilotés + hook `spriteStates`) : glace (1,2) & marais (2,2) fly-over → reste en vol (`restingAnimation` « FlyingIdle ») ; sol `normal` (1,1) → se pose (« Idle »). La table `isFlyoverTerrain` (tous les terrains fly-over) = unit `view-core/movement-animation.test.ts` ; le glide visuel/hauteur du sprite = 👁 |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) + §5.17 modificateur de dégâts ±10 %/niveau (`sandbox-fall-1` : attaquant plus haut/plus bas → PV cible ≷ à plat, même Griffe/seed) + §5.17 portée dynamique selon la hauteur (`sandbox-fall-4` : Aéropique atteint une cible à distance 3 depuis le plateau h5 vers la fosse h1 (Δh=4 → +2), hors portée à plat → aucune résolution ; bonus/exclusions par pattern = unit/integration) |
@@ -2232,8 +2293,9 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire |
 | `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (8 + détail + ↑/↓ aria-current), §6.4 format + Lancer gating |
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |
-| `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` + **objet tenu** (plan 168 : icône officielle `<img>` data-URL + nom FR — Restes à l'actif, Orbe Vie au survol du porteur team 2 ; sans objet → ligne masquée) + **panneau enrichi allié** (plan 174 : chips de types `li[data-type]`, ligne PV avec `.ip-hppct`, talent `info-panel-talent`, bloc des 5 stats `info-panel-stats` ; une stat à cran (+2 Atq) affiche « 2↑ » + « → » + valeur effective ≠ base) + **ennemi minimal** (types visibles, bloc stats + talent masqués au survol du dummy team 2) |
+| `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` + **objet tenu** (plan 168 : icône officielle `<img>` data-URL + nom FR — Restes à l'actif, Orbe Vie au survol du porteur team 2 ; sans objet → ligne masquée) + **panneau enrichi allié** (plan 174 : chips de types `li[data-type]`, ligne PV avec `.ip-hppct`, talent `info-panel-talent`, bloc des 5 stats `info-panel-stats` ; une stat à cran (+2 Atq) affiche « 2↑ » + « → » + valeur effective ≠ base) + **ennemi sans fog → lecture complète** (plan 176 : au survol du dummy team 2, types + bloc des 5 stats + talent en clair — le cas « minimal » ne vaut plus que SOUS fog, `combat-fog.spec`) |
 | `combat/tile-info-panel.spec.ts` | §4.13 panneau d'info de case (plan 177) : en-tête terrain FR + altitude (« Neutre » sans puce sur une case normale) ; **Magma** (5,2) → sprite statut Brûlé (`statuses/icon-burned.png`) + bonus Feu (`types/fire.png` « ×1.15 ») + immunité (Feu/Vol, `types/flying.png`) ; **case peuplée** (seed `debugTiles`) → hazards « Picots ×3 » / « Piège de Roc », champ « Champ Herbu », zones « Gravité »/« Distorsion » avec badge de durée [5] ; **Lave** (survol (0,5)) → puce traversal fusionnée « Chute fatale ». Triggers émoji/DoT/malus + layout = 👁 (placeholders remplacés au point icônes) |
+| `combat/combat-fog.spec.ts` | §4.15 fog ennemi (plan 176), piloté par le seul champ `fogOfWar` en paires ON/OFF sur la même situation : **PV en pourcentage seul** (aucun « x / y », ARIA rebasculée sur l'échelle 0-100) ; **objet inconnu** « ??? » + `data-unknown="1"` + glyphe générique à la place de l'icône officielle, **y compris sur un ennemi qui ne tient rien** ; **talent inconnu** « ??? » dans son slot ; **aucun bloc de stats** (types publics conservés) ; **révélation à l'usage** (les Restes de l'ennemi s'activent en fin de tour → slot « Restes » + icône) et **à l'entrée** (Intimidation → talent nommé dès le boot) ; **preview** en % (unité « % ») vs témoin fog OFF en « PV » ; **fog OFF → lecture complète** (PV exacts, 5 stats, talent, objet réel). Rendu des placeholders (gris, carré pointillé) + badge Substitut nu + garde-fou « sauf Ceinture Force » masqué = 👁/unit |
 | `combat/combat-preview.spec.ts` | §4.14 preview de combat (plan 175) : **K.O. garanti** (chiffre rouge, « → 0 % PV », panneau de case masqué) ; **coup non létal** (PV restants en plage, aucun verdict) ; **immunité** (« Sans effet », pas de fourchette) ; **Ceinture Force** à PV max → verdict « sauf Ceinture Force » ; **précision effective** (Esquive +2 → Griffe à 50 %) ; **puces** efficacité ×2 + effet secondaire 10 % ; **zone multi-cibles** (compteur n/2, cycle `Tab`/`Shift+Tab` et au survol, tir allié) ; **réglage désactivé** → aucune prévision. Forme de la pointe + teintes de la barre prédite = 👁 |
 | `combat/weather.spec.ts` | §5 météo : HUD « Plein soleil » + tours restants |
 | `combat/multi-hit.spec.ts` | §5 multi-hit : Balle Graine → récap « Touché N fois » |
@@ -2278,6 +2340,7 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
       Feu ×1.15 + immunité), case peuplée via seed `debugTiles` (hazards/champ/zones + badge durée), Lave
       survolée (traversal fusionnée « Chute fatale ») (`tile-info-panel.spec`). *Émoji/DoT/malus + layout
       = 👁 (placeholders remplacés au point icônes).*
+- [x] **§4.15 Fog ennemi** (plan 176) : PV en pourcentage seul, placeholders « ??? » objet/talent (+ glyphe générique, y compris sans objet), pas de bloc de stats, révélation à l'usage (Restes) et à l'entrée (Intimidation), dégâts de preview en %, et témoins **fog OFF → lecture complète** (`combat-fog.spec`). *Rendu des placeholders, badge Substitut nu et garde-fou « sauf Ceinture Force » masqué = 👁/unit.*
 - [x] **§4.14 Preview de combat** (plan 175) : verdict létal/non létal/immunité, garde-fou Ceinture Force, précision effective, puces de modificateurs, zone multi-cibles (compteur + cycle clavier et survol), réglage désactivé (`combat-preview.spec`). *Forme de la pointe et teintes de la barre prédite = 👁 (rendu pur).*
 - [x] **§4 / §6 / §7 (DOM) — couverture poussée au maximum automatisable** : timeline CT, tooltip
       (apparaît/disparaît/tag), badge statut, nom EN (`hud-state`) ; Échap/hors-portée/modale victoire

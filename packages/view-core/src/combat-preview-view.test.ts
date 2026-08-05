@@ -23,7 +23,10 @@ const testContext: PresentationContext = {
   getStatusIconUrl: (kind) => `assets/ui/statuses/icon-${kind}.png`,
   getStatusLabelUrl: (kind) => `assets/ui/statuses/label-${kind}.png`,
   isDamagePreviewEnabled: () => true,
+  isEnemyInfoHidden: () => false,
 };
+
+const foggedContext: PresentationContext = { ...testContext, isEnemyInfoHidden: () => true };
 
 const TACKLE = "tackle";
 const SHADOW_BALL = "shadow-ball";
@@ -69,13 +72,19 @@ function pokemonOf(scene: Scenario, id: string) {
   return pokemon;
 }
 
-function build(scene: Scenario, targetIds: readonly string[], focusIndex = 0, moveId = TACKLE) {
+function build(
+  scene: Scenario,
+  targetIds: readonly string[],
+  focusIndex = 0,
+  moveId = TACKLE,
+  context: PresentationContext = testContext,
+) {
   const move = scene.engine.getEffectiveMove("attacker", moveId);
   if (!move) {
     throw new Error(`missing move ${moveId}`);
   }
   return buildCombatPreviewView(
-    testContext,
+    context,
     scene.engine,
     scene.state,
     "attacker",
@@ -159,7 +168,13 @@ describe("buildCombatPreviewView", () => {
   });
 
   it("hides an unrevealed Fermeté behind a plain K.O. on a one-hit-KO move", () => {
-    const view = build(scenario({ abilityId: "sturdy" }), ["defender"], 0, GUILLOTINE);
+    const view = build(
+      scenario({ abilityId: "sturdy" }),
+      ["defender"],
+      0,
+      GUILLOTINE,
+      foggedContext,
+    );
 
     expect(view?.attack.damageValue).toBe("combatPreview.ohko.headline");
     expect(view?.attack.outcome).toBe("guaranteed-ko");
@@ -173,6 +188,7 @@ describe("buildCombatPreviewView", () => {
       ["defender"],
       0,
       GUILLOTINE,
+      foggedContext,
     );
 
     expect(view?.attack.outcome).toBe("no-effect");
@@ -184,9 +200,19 @@ describe("buildCombatPreviewView", () => {
     const scene = scenario({ maxHp: 10, currentHp: 10, abilityId: "sturdy" });
     const defender = pokemonOf(scene, "defender");
 
-    expect(build(scene, ["defender"])?.target.preview?.verdictLabel).toBe("");
+    expect(build(scene, ["defender"], 0, TACKLE, foggedContext)?.target.preview?.verdictLabel).toBe(
+      "",
+    );
 
     defender.revealedAbility = true;
+    expect(
+      build(scene, ["defender"], 0, TACKLE, foggedContext)?.target.preview?.verdictLabel,
+    ).toContain("combatPreview.guard.sturdy");
+  });
+
+  it("names Fermeté without any reveal when the fog is off", () => {
+    const scene = scenario({ maxHp: 10, currentHp: 10, abilityId: "sturdy" });
+
     expect(build(scene, ["defender"])?.target.preview?.verdictLabel).toContain(
       "combatPreview.guard.sturdy",
     );
@@ -283,5 +309,39 @@ describe("buildCombatPreviewView", () => {
 
   it("emits no modifier chip when every multiplier is neutral", () => {
     expect(build(scenario(), ["defender"])?.attack.modifierChips).toHaveLength(0);
+  });
+
+  it("expresses the damage as a share of max HP under fog", () => {
+    const scene = scenario();
+    const clear = build(scene, ["defender"]);
+    const fogged = build(scene, ["defender"], 0, TACKLE, foggedContext);
+    const hpMax = clear?.target.hpMax ?? 0;
+    const [min, max] = (clear?.attack.damageValue ?? "").split("–").map(Number);
+
+    expect(fogged?.attack.damageUnitLabel).toBe("combatPreview.damageUnitPercent");
+    expect(fogged?.attack.damageValue).toBe(
+      `${Math.round((min / hpMax) * 100)}–${Math.round((max / hpMax) * 100)}`,
+    );
+  });
+
+  it("keeps absolute HP bounds for an ally under fog", () => {
+    const view = build(scenario({}, true), ["defender", "ally"], 1, TACKLE, foggedContext);
+
+    expect(view?.attack.damageUnitLabel).toBe("combatPreview.damageUnit");
+    expect(view?.attack.damageValue).toMatch(/^\d+–\d+$/);
+  });
+
+  it("stops naming Ceinture Force under fog until the item is scouted", () => {
+    const scene = scenario({ maxHp: 10, currentHp: 10, heldItemId: HeldItemId.FocusSash });
+    const defender = pokemonOf(scene, "defender");
+
+    expect(build(scene, ["defender"], 0, TACKLE, foggedContext)?.target.preview?.verdictLabel).toBe(
+      "",
+    );
+
+    defender.revealedItem = true;
+    expect(
+      build(scene, ["defender"], 0, TACKLE, foggedContext)?.target.preview?.verdictLabel,
+    ).toContain("combatPreview.guard.focusSash");
   });
 });

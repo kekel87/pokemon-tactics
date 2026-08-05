@@ -82,27 +82,46 @@ export interface InfoPanelData {
   readonly gender?: "male" | "female";
   readonly hpCurrent: number;
   readonly hpMax: number;
+  /**
+   * Fog (plan 176): print the HP percentage alone, never the `current / max` figures. The bar itself
+   * is unaffected — it only ever expressed a ratio.
+   */
+  readonly hideExactHp?: boolean;
   /** 1-based team index → `--team-N` color token. */
   readonly team: number;
   /** Portrait image URL; omitted = no portrait shown. */
   readonly portraitUrl?: string;
   /**
-   * Perspective flag (plan 174): only allies get the enriched stats/ability/nature.
-   * Enemy progressive-reveal = plan 176; for now enemies render minimal.
+   * Perspective flag (plan 174): the panel belongs to the VIEWER's team. Informational — what the
+   * panel withholds is driven by the fog (plan 176), not by this flag: a fogged enemy loses its exact
+   * HP, its stats block and the names of its item/ability; an unfogged one reads like an ally.
    */
   readonly isAlly: boolean;
   /** Effective types (species, override or transform), localised chips. */
   readonly types: readonly InfoPanelType[];
-  /** Localised ability name; omitted for enemies (plan 174) / when unknown. */
+  /**
+   * Localised ability name — or the `???` placeholder when the fog hides it (plan 176). Omitted only
+   * when the Pokémon has no ability to show.
+   */
   readonly ability?: string;
-  /** Battle stats (Atk/Déf/Atk Spé/Déf Spé/Vit) in that order; omitted for enemies. */
+  /** Fog (plan 176): `ability` holds a placeholder, not a name → render it as unknown. */
+  readonly abilityUnknown?: boolean;
+  /** Battle stats (Atk/Déf/Atk Spé/Déf Spé/Vit) in that order; omitted for a fogged enemy. */
   readonly stats?: readonly InfoPanelStat[];
   /** Status changes / volatiles / statuses, rendered as chips. */
   readonly badges: readonly InfoPanelBadge[];
-  /** Localised held-item name; omitted when the Pokémon holds nothing. */
+  /**
+   * Localised held-item name — or the `???` placeholder when the fog hides it (plan 176). Omitted
+   * only when the Pokémon is known to hold nothing.
+   */
   readonly heldItem?: string;
-  /** Held-item icon URL (plan 168); omitted when the Pokémon holds nothing. */
+  /** Held-item icon URL (plan 168); omitted when the item is unknown or absent. */
   readonly itemIconUrl?: string;
+  /**
+   * Fog (plan 176): `heldItem` holds a placeholder → render a generic icon instead of the official
+   * one. Set even when the Pokémon holds nothing: whether it carries an item is hidden too.
+   */
+  readonly itemUnknown?: boolean;
   /**
    * Confirm-phase overlay (plan 175): present only on the cursor/target card while an attack is
    * being confirmed. The card is the SAME component as the active-Pokémon panel — the human asked

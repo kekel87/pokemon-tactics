@@ -44,21 +44,32 @@ const OHKO_IMMUNITY_LABEL: Record<OhkoImmunity, string> = {
  * Whether the player is allowed to KNOW the target's ability (human decision 2026-07-25: nuance the
  * verdict only when the source is visible; extended 2026-07-27 to the OHKO immunity).
  *
- * The enemy InfoPanel prints no ability at all unless a reveal effect (Anticipation, plan 163) set
- * `revealedAbility`, so a forecast naming Fermeté would leak exactly what the panel hides. An ally's
- * ability is always on screen (plan 174), hence always known.
+ * Mirror of the panel's own rule (plan 176): not fogged → the ability is on screen, so it may be
+ * named; fogged → only once a reveal (Anticipation, or watching it fire) unlocked it. Reading it any
+ * other way would make the forecast name what the panel hides — or hide what the panel prints.
  */
-function isAbilityKnownToPlayer(target: PokemonInstance, attacker: PokemonInstance): boolean {
-  return target.playerId === attacker.playerId || target.revealedAbility === true;
+function isAbilityKnownToPlayer(target: PokemonInstance, fogged: boolean): boolean {
+  return !fogged || target.revealedAbility === true;
 }
 
 /**
- * Whether the survive-at-1-HP guard may be named in the verdict. Ténacité is an action the player
- * watched, and the held item is public today (the InfoPanel shows it for enemies too — fog on items
- * comes with plan 176), so only Fermeté depends on the ability being known.
+ * Whether the survive-at-1-HP guard may be named in the verdict — the rule is "name only what the
+ * player can already see". Ténacité is an action they watched, so it is always fair game. Fermeté
+ * depends on the ability being known (plan 175), and since plan 176 the fog hides an enemy's held
+ * item until Fouille scouts it, so Ceinture Force follows the same test as the panel it mirrors.
  */
-function isGuardKnownToPlayer(guard: SurvivalGuardKind, abilityKnown: boolean): boolean {
-  return guard !== SurvivalGuardKind.Sturdy || abilityKnown;
+function isGuardKnownToPlayer(
+  guard: SurvivalGuardKind,
+  abilityKnown: boolean,
+  itemKnown: boolean,
+): boolean {
+  if (guard === SurvivalGuardKind.Sturdy) {
+    return abilityKnown;
+  }
+  if (guard === SurvivalGuardKind.FocusSash) {
+    return itemKnown;
+  }
+  return true;
 }
 
 /**
@@ -163,6 +174,7 @@ function buildVerdict(
   move: MoveDefinition,
   shownImmunity: OhkoImmunity | null,
   abilityKnown: boolean,
+  itemKnown: boolean,
 ): { outcome: CombatPreviewOutcome; verdictLabel: string } {
   // OHKO moves (Abîme, Guillotine, Empal'Korne, Glaciation) never produce a damage range: they kill
   // outright or do nothing. Read through `damage` here and the panel claims "survit" on a move that
@@ -196,7 +208,8 @@ function buildVerdict(
   }
 
   const guard =
-    preview.survivalGuard !== null && isGuardKnownToPlayer(preview.survivalGuard, abilityKnown)
+    preview.survivalGuard !== null &&
+    isGuardKnownToPlayer(preview.survivalGuard, abilityKnown, itemKnown)
       ? preview.survivalGuard
       : null;
   const caveat = guard
@@ -270,9 +283,14 @@ export function buildCombatPreviewView(
   const isAlly = target.playerId === attacker.playerId;
   const damage = preview.damage;
   const hasDamage = damage !== null && damage.max > 0;
+  // Fog (plan 176): an enemy's max HP is hidden, so absolute damage bounds cannot be shown — printing
+  // "42–50 PV" next to "→ 51–56 % PV" would hand the max back in one subtraction. Bounds become a
+  // share of the target's max HP instead. An ally's readout is unchanged, exact figures and all.
+  const fogged = !isAlly && context.isEnemyInfoHidden();
+  const itemKnown = !fogged || target.revealedItem === true;
   // Resolved once and shared by the verdict and the "HP left" line: masking the immunity in one but
   // not the other would print "K.O." over an empty forecast bar.
-  const abilityKnown = isAbilityKnownToPlayer(target, attacker);
+  const abilityKnown = isAbilityKnownToPlayer(target, fogged);
   const shownImmunity = visibleOhkoImmunity(preview, abilityKnown);
   const { outcome, verdictLabel } = buildVerdict(
     context,
@@ -281,6 +299,7 @@ export function buildCombatPreviewView(
     displayMove,
     shownImmunity,
     abilityKnown,
+    itemKnown,
   );
 
   // Predicted HP left, expressed as the share of max HP — the worst case first, mirroring how the
@@ -321,10 +340,16 @@ export function buildCombatPreviewView(
       damageValue: preview.isOhko
         ? context.translate("combatPreview.ohko.headline")
         : hasDamage
-          ? `${damage.min}–${damage.max}`
+          ? fogged
+            ? `${hpPercent(damage.min, target.maxHp)}–${hpPercent(damage.max, target.maxHp)}`
+            : `${damage.min}–${damage.max}`
           : "—",
       damageUnitLabel:
-        hasDamage && !preview.isOhko ? context.translate("combatPreview.damageUnit") : "",
+        hasDamage && !preview.isOhko
+          ? context.translate(
+              fogged ? "combatPreview.damageUnitPercent" : "combatPreview.damageUnit",
+            )
+          : "",
       outcome,
       // Charge Time (plan 178): here — and ONLY here — the surcharge is knowable, because the targets
       // are locked in. Pression is billed per target and stacks on an AoE (`computePressureBonus`),

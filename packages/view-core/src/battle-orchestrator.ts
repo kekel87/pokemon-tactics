@@ -372,6 +372,23 @@ export class BattleOrchestrator {
     return null;
   }
 
+  /**
+   * Whose eyes the panels read through (plan 176). While the acting player is human, that is them
+   * (hotseat hands the view over with the turn); during an AI turn the view stays with the human, so
+   * the enemy now taking its turn is still rendered as an enemy — fog included.
+   */
+  private viewerPlayerId(): string | null {
+    const humans = this.config.humanPlayerIds ?? [];
+    const actingPlayerId = this.activePokemon()?.playerId ?? null;
+    if (humans.length === 0) {
+      return actingPlayerId;
+    }
+    if (actingPlayerId !== null && humans.includes(actingPlayerId)) {
+      return actingPlayerId;
+    }
+    return humans[0] ?? actingPlayerId;
+  }
+
   /** Push the hovered (or active) Pokémon to the info panel + the current weather. */
   private refreshInfoPanel(): void {
     if (this.disposed) {
@@ -379,8 +396,17 @@ export class BattleOrchestrator {
     }
     // Left panel = the ACTIVE Pokémon only (human 2026-07-25). Hovering another mon used to hijack
     // this card; that readout now lives on the cursor card, which never displaces your own status.
+    // The actor is NOT always an ally: on an AI turn this card shows the enemy that is playing, and
+    // it must stay fogged (plan 176) instead of dumping its exact HP / item / ability once per turn.
     const active = this.activePokemon();
-    const base = active ? buildInfoPanelView(this.context, active, this.state, true) : null;
+    const base = active
+      ? buildInfoPanelView(
+          this.context,
+          active,
+          this.state,
+          active.playerId === this.viewerPlayerId(),
+        )
+      : null;
     // While a confirm is open the panel keeps its attack extension and the cursor card stays locked
     // on the focused target — every refresh must re-attach both, or moving the mouse wipes them.
     const confirmPreview = base ? this.buildConfirmPreview() : null;
@@ -435,9 +461,9 @@ export class BattleOrchestrator {
     // Shown only over ANOTHER Pokémon: hovering the active one would just duplicate the left panel
     // (human 2026-07-25), and an empty tile clears the card entirely.
     const shown = hovered && hovered.id !== active?.id ? hovered : null;
-    // Perspective (plan 174): "ally" = same team as the player whose turn it is (hotseat viewer).
-    // The real fog-of-war filter (online + hidden enemy info) lands in plan 176.
-    const isAlly = shown != null && shown.playerId === active?.playerId;
+    // Perspective (plan 174, corrected plan 176): "ally" = same team as the VIEWER, which is the
+    // acting player only while a human is acting — see `viewerPlayerId`.
+    const isAlly = shown != null && shown.playerId === this.viewerPlayerId();
     this.chrome.updateCursorPanel(
       shown ? buildInfoPanelView(this.context, shown, this.state, isAlly) : null,
     );
@@ -925,9 +951,17 @@ export class BattleOrchestrator {
       if (!immune && estimate.min === 0 && estimate.max === 0) {
         continue;
       }
+      // Fog (plan 176): this overlay sits right above the target's head, beside a panel already
+      // reading in percent — leaving it in absolute HP would both hand back the max HP the fog hides
+      // and contradict the card on screen at the same instant.
+      const fogged = pokemon.playerId !== this.viewerPlayerId() && this.context.isEnemyInfoHidden();
       const label = immune
         ? this.context.translate("battle.immune")
-        : `${formatDamageRange(estimate.min, estimate.max)}${formatFacingSuffix(estimate.facingModifier)}`;
+        : `${
+            fogged
+              ? formatDamagePercentRange(estimate.min, estimate.max, pokemon.maxHp)
+              : formatDamageRange(estimate.min, estimate.max)
+          }${formatFacingSuffix(estimate.facingModifier)}`;
       estimates.push({
         pokemonId: pokemon.id,
         min: estimate.min,
@@ -1724,6 +1758,20 @@ function resolveBlockedTag(
 /** "12" when min===max, else "8-12" (port of GameController.showDamageText range). */
 export function formatDamageRange(min: number, max: number): string {
   return min === max ? `${min}` : `${min}-${max}`;
+}
+
+/**
+ * Same range as {@link formatDamageRange}, expressed as a share of the target's max HP — the only
+ * form the fog allows over an enemy's head (plan 176). Mirrors the percent the forecast card prints,
+ * so the two readouts never disagree.
+ */
+export function formatDamagePercentRange(min: number, max: number, maxHp: number): string {
+  if (maxHp <= 0) {
+    return "0%";
+  }
+  const low = Math.round((min / maxHp) * 100);
+  const high = Math.round((max / maxHp) * 100);
+  return low === high ? `${low}%` : `${low}-${high}%`;
 }
 
 /** " (+25%)" / " (-25%)" facing modifier suffix, or "" when neutral. */

@@ -151,9 +151,12 @@ test("§4.7 info panel : allié enrichi (types + PV% + talent + stats, cran → 
   await expect(modified).not.toHaveText(baseValue ?? "");
 });
 
-// §4.7 — un ENNEMI reste minimal (plan 174) : types publics affichés, mais PAS de bloc stats ni de
-// talent. On survole le dummy Dracaufeu (team 2) puis on vérifie l'omission sur la carte curseur.
-test("§4.7 info panel : ennemi minimal (types visibles, stats + talent masqués)", async ({
+// §4.7 — un ENNEMI se lit EN ENTIER quand le fog est coupé (plan 176, décision humaine 2026-08-05) :
+// le sandbox a le fog OFF par défaut, et couper le fog sert précisément à tout inspecter → la carte
+// d'un adversaire montre alors les mêmes blocs qu'un allié (types, stats, talent). La règle « ennemi
+// minimal » du plan 174 ne vaut plus que SOUS fog — donc toujours, en partie réelle : ce cas-là est
+// testé avec `fogOfWar: true` dans `combat-fog.spec` (§4.15).
+test("§4.7 info panel : ennemi sans fog → lecture complète (types + stats + talent)", async ({
   page,
   bootSandbox,
 }) => {
@@ -173,7 +176,10 @@ test("§4.7 info panel : ennemi minimal (types visibles, stats + talent masqués
 
   // Types publics → toujours affichés (Dracaufeu = Feu/Vol).
   await expect(cursor.typeChips).toHaveCount(2);
-  // Lecture privée réservée à l'allié : pas de bloc stats ni de talent pour un ennemi.
-  await expect(cursor.stats).toBeHidden();
-  await expect(cursor.talent).toBeHidden();
+  // Fog coupé → même lecture qu'un allié : bloc des 5 stats et talent en clair (pas de `???`).
+  await expect(cursor.stats).toBeVisible();
+  await expect(cursor.statRows).toHaveCount(5);
+  await expect(cursor.talent).toBeVisible();
+  await expect(cursor.talent).not.toBeEmpty();
+  await expect(cursor.talent).toHaveAttribute("data-unknown", "");
 });

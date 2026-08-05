@@ -87,6 +87,12 @@ export interface SandboxConfig {
   mapUrl?: string;
   weather?: Weather;
   weatherTurns?: number;
+  /**
+   * Fog ennemi (plan 176): withhold enemy information — exact HP, unrevealed held item, Substitute
+   * HP, absolute damage bounds in the forecast. A real battle always has it ON; the studio defaults
+   * it OFF (absent → `false`) because debugging wants the exact figures.
+   */
+  fogOfWar?: boolean;
   /** Exactly two teams: Équipe 1 (Player1) and Équipe 2 (Player2). */
   teams: [SandboxTeamConfig, SandboxTeamConfig];
   /** Test-only tile seeding for the tile-info panel + its e2e (harness/demo only). */
@@ -137,6 +143,7 @@ interface LegacySandboxConfig {
   mapUrl?: string;
   weather?: Weather;
   weatherTurns?: number;
+  fogOfWar?: boolean;
 }
 
 const LEGACY_DEFAULTS: LegacySandboxConfig = {
@@ -208,6 +215,7 @@ function fromLegacy(raw: Partial<LegacySandboxConfig>): SandboxConfig {
     mapUrl: flat.mapUrl,
     weather: flat.weather,
     weatherTurns: flat.weatherTurns,
+    fogOfWar: raw.fogOfWar,
     teams: [
       { control: "player", members: [playerMember] },
       { control: dummyIsPlayer ? "player" : "passive", members: [dummyMember] },
@@ -249,6 +257,7 @@ export function normalizeSandboxConfig(raw: unknown): SandboxConfig {
     weather: (rawConfig.weather as Weather | undefined) ?? DEFAULT_SANDBOX_CONFIG.weather,
     weatherTurns:
       (rawConfig.weatherTurns as number | undefined) ?? DEFAULT_SANDBOX_CONFIG.weatherTurns,
+    fogOfWar: rawConfig.fogOfWar as boolean | undefined,
     teams: [
       normalizeTeam(teamsRaw[0], DEFAULT_SANDBOX_CONFIG.teams[0]),
       normalizeTeam(teamsRaw[1], DEFAULT_SANDBOX_CONFIG.teams[1]),

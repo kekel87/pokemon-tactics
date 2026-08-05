@@ -15,6 +15,7 @@ import {
 } from "@pokemon-tactic/data";
 import {
   createButton,
+  createLabeledCheckbox,
   createLabeledRange,
   createLabeledSelect,
   createPickerCard,
@@ -170,6 +171,8 @@ export class SandboxPanel {
   private weatherSelect!: HTMLSelectElement;
   private weatherTurns = 5;
   private rngMode: "random" | "deterministic" = "random";
+  /** Fog ennemi (plan 176) — off by default: the studio exists to read exact figures. */
+  private fogOfWar = false;
   private seed = 0;
   private seedInput!: HTMLInputElement;
   private seedRow!: HTMLDivElement;
@@ -183,6 +186,7 @@ export class SandboxPanel {
     // infer: seed present → deterministic (reproducible), absent → random.
     this.rngMode =
       initialConfig.rngMode ?? (initialConfig.seed === undefined ? "random" : "deterministic");
+    this.fogOfWar = initialConfig.fogOfWar === true;
     this.seed = initialConfig.seed ?? 0;
 
     const dom = getSandboxStudioDom();
@@ -636,6 +640,19 @@ export class SandboxPanel {
       left.appendChild(row);
     }
 
+    // Fog ennemi (plan 176): a real battle always has it on, so the studio needs the switch to
+    // reproduce what the player sees — and to turn it off when debugging needs exact figures.
+    const fogField = createLabeledCheckbox({
+      label: "Fog ennemi",
+      checked: this.fogOfWar,
+      onChange: (checked) => {
+        this.fogOfWar = checked;
+        this.emit();
+      },
+      signal: this.abort.signal,
+    });
+    left.appendChild(fogField.row);
+
     const right = document.createElement("div");
     right.className = "sb-strip-right";
     strip.appendChild(right);
@@ -853,6 +870,7 @@ export class SandboxPanel {
       mapUrl: this.mapSelect.value || undefined,
       weather: (this.weatherSelect.value as Weather) || Weather.None,
       weatherTurns: this.weatherTurns,
+      fogOfWar: this.fogOfWar,
       teams: [this.readTeam(this.teams[0]), this.readTeam(this.teams[1])],
     };
   }

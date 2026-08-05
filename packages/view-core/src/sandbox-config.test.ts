@@ -109,6 +109,20 @@ describe("normalizeSandboxConfig", () => {
     });
   });
 
+  it("leaves the fog off unless a config asks for it", () => {
+    expect(normalizeSandboxConfig({}).fogOfWar).toBeUndefined();
+    expect(
+      normalizeSandboxConfig({
+        fogOfWar: true,
+        teams: [
+          { control: "player", members: [{ pokemon: "venusaur" }] },
+          { control: "passive", members: [{ pokemon: "dummy" }] },
+        ],
+      }).fogOfWar,
+    ).toBe(true);
+    expect(normalizeSandboxConfig({ pokemon: "venusaur", fogOfWar: true }).fogOfWar).toBe(true);
+  });
+
   it("preserves an explicit member direction", () => {
     const config = normalizeSandboxConfig({
       pokemon: "venusaur",

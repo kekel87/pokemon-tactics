@@ -255,4 +255,11 @@ export interface BattleFeedback {
 export interface BattleOrchestratorConfig {
   /** Insert a confirm step between target selection and execution (parity default). */
   confirmAttack: boolean;
+  /**
+   * Player ids a human drives (plan 176). The fog needs the identity of the VIEWER, not of the actor:
+   * the panels follow the acting player while they are human (hotseat), and stay on the human's side
+   * during an AI turn — otherwise every enemy turn would render the enemy as an "ally" and print in
+   * clear exactly what the fog withholds. Empty/omitted → the actor is the viewer (legacy behaviour).
+   */
+  humanPlayerIds?: readonly string[];
 }

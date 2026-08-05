@@ -31,7 +31,10 @@ const testContext: PresentationContext = {
   getTypeIconUrl: (type) => `assets/ui/types/${type}.png`,
   getStatusIconUrl: (kind) => `assets/ui/statuses/icon-${kind}.png`,
   isDamagePreviewEnabled: () => false,
+  isEnemyInfoHidden: () => false,
 };
+
+const foggedContext: PresentationContext = { ...testContext, isEnemyInfoHidden: () => true };
 
 function makePokemon(overrides: Partial<PokemonInstance> = {}): PokemonInstance {
   return {
@@ -42,6 +45,8 @@ function makePokemon(overrides: Partial<PokemonInstance> = {}): PokemonInstance 
     position: { x: 0, y: 0 },
     currentHp: 30,
     maxHp: 35,
+    combatStats: { hp: 35, attack: 55, defense: 40, spAttack: 50, spDefense: 50, speed: 90 },
+    nature: "serious",
     gender: PokemonGender.Genderless,
     statusEffects: [],
     statStages: {},
@@ -82,11 +87,11 @@ describe("buildInfoPanelView", () => {
     expect(debuffs).toHaveLength(1);
   });
 
-  it("signs and colours stat stages", () => {
+  it("signs and colours stat stages on a panel without a stats block", () => {
     const pokemon = makePokemon({
       statStages: { attack: 1, defense: -2 },
     } as unknown as Partial<PokemonInstance>);
-    const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]));
+    const view = buildInfoPanelView(foggedContext, pokemon, makeState([pokemon]));
     const buff = view.badges.find((b) => b.variant === "buff");
     const debuff = view.badges.find((b) => b.variant === "debuff");
     expect(buff?.label.endsWith("+1")).toBe(true);
@@ -136,15 +141,94 @@ describe("buildInfoPanelView", () => {
     expect(speed).toMatchObject({ value: 110, stage: 0, modified: 110 });
   });
 
-  it("omits stats, ability and nature for an enemy", () => {
+  it("reads an enemy in full when the fog is off, ally-style", () => {
     const pokemon = makePokemon({
       abilityId: "static",
       nature: "modest",
+      combatStats: { hp: 60, attack: 80, defense: 50, spAttack: 120, spDefense: 55, speed: 110 },
     } as unknown as Partial<PokemonInstance>);
     const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]), false);
     expect(view.isAlly).toBe(false);
+    expect(view.stats).toHaveLength(5);
+    expect(view.ability).toBe("ability:static");
+    expect(view.hideExactHp).toBeUndefined();
+  });
+
+  it("omits stats for a fogged enemy", () => {
+    const pokemon = makePokemon({ abilityId: "static" } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(foggedContext, pokemon, makeState([pokemon]), false);
     expect(view.stats).toBeUndefined();
-    expect(view.ability).toBeUndefined();
+  });
+
+  it("shows an enemy's exact hp and held item when the fog is off", () => {
+    const pokemon = makePokemon({ heldItemId: "leftovers" } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]), false);
+    expect(view.hideExactHp).toBeUndefined();
+    expect(view.heldItem).toBe("leftovers");
+    expect(view.itemIconUrl).toContain("leftovers");
+  });
+
+  it("hides an enemy's exact hp and held item under fog", () => {
+    const pokemon = makePokemon({ heldItemId: "leftovers" } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(foggedContext, pokemon, makeState([pokemon]), false);
+    expect(view.hideExactHp).toBe(true);
+    expect(view.hpCurrent).toBe(30);
+    expect(view.heldItem).toBe("infoPanel.unknown");
+    expect(view.itemUnknown).toBe(true);
+    expect(view.itemIconUrl).toBeUndefined();
+  });
+
+  it("keeps a placeholder item slot for an enemy holding nothing", () => {
+    const pokemon = makePokemon();
+    const view = buildInfoPanelView(foggedContext, pokemon, makeState([pokemon]), false);
+    expect(view.heldItem).toBe("infoPanel.unknown");
+    expect(view.itemUnknown).toBe(true);
+  });
+
+  it("shows a scouted held item under fog", () => {
+    const pokemon = makePokemon({
+      heldItemId: "leftovers",
+      revealedItem: true,
+    } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(foggedContext, pokemon, makeState([pokemon]), false);
+    expect(view.heldItem).toBe("leftovers");
+    expect(view.itemUnknown).toBeUndefined();
+    expect(view.itemIconUrl).toContain("leftovers");
+  });
+
+  it("placeholders an enemy ability under fog until it is known", () => {
+    const hidden = makePokemon({ abilityId: "static" } as unknown as Partial<PokemonInstance>);
+    const hiddenView = buildInfoPanelView(foggedContext, hidden, makeState([hidden]), false);
+    expect(hiddenView.ability).toBe("infoPanel.unknown");
+    expect(hiddenView.abilityUnknown).toBe(true);
+
+    const known = makePokemon({
+      abilityId: "static",
+      revealedAbility: true,
+    } as unknown as Partial<PokemonInstance>);
+    const knownView = buildInfoPanelView(foggedContext, known, makeState([known]), false);
+    expect(knownView.ability).toBe("ability:static");
+    expect(knownView.abilityUnknown).toBeUndefined();
+    expect(knownView.badges.some((b) => b.label.includes("static"))).toBe(false);
+  });
+
+  it("never fogs an ally", () => {
+    const pokemon = makePokemon({
+      heldItemId: "leftovers",
+      nature: "modest",
+      combatStats: { hp: 60, attack: 80, defense: 50, spAttack: 120, spDefense: 55, speed: 110 },
+    } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(foggedContext, pokemon, makeState([pokemon]), true);
+    expect(view.hideExactHp).toBeUndefined();
+    expect(view.heldItem).toBe("leftovers");
+  });
+
+  it("drops the substitute hp figure under fog", () => {
+    const pokemon = makePokemon({ substituteHp: 45 } as unknown as Partial<PokemonInstance>);
+    const clear = buildInfoPanelView(testContext, pokemon, makeState([pokemon]), false);
+    expect(clear.badges[0].label).toBe("infoPanel.volatile.substitute");
+    const fogged = buildInfoPanelView(foggedContext, pokemon, makeState([pokemon]), false);
+    expect(fogged.badges[0].label).toBe("infoPanel.volatile.substituteHidden");
   });
 
   it("badges the caster's own aura", () => {

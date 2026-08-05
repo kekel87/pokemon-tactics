@@ -1212,10 +1212,13 @@ export const NEUTRALIZING_GAS_FAR = {
 
 /** Fouille (`frisk`) — révèle l'objet des ennemis à l'entrée. Le joueur Florizarre porte Fouille ; le
  *  dummy Ronflex tient les Restes (`dummyHeldItem: "leftovers"`). À l'init (`onBattleStart`)
- *  `revealedItem` est posé sur le dummy → au survol, l'InfoPanel du dummy monte le badge « Objet :
- *  Restes » (infoPanel.reveal.item). Aucun jet → déterministe. */
+ *  `revealedItem` est posé sur le dummy → au survol, son slot d'objet montre « Restes » au lieu du
+ *  `???` du fog. **`fogOfWar: true` est indispensable** : depuis le plan 176 le badge « Objet : X » a
+ *  disparu (redondant avec le slot) et fog OFF montre l'objet de tout le monde → sans fog, Fouille
+ *  n'aurait plus rien d'observable. Aucun jet → déterministe. */
 export const FRISK_REVEALS_ITEM = {
   ...DUEL,
+  fogOfWar: true,
   playerAbility: "frisk",
   dummyPokemon: "snorlax",
   dummyHeldItem: "leftovers",
@@ -1233,10 +1236,12 @@ export const FOREWARN_REVEALS_MOVE = {
 
 /** Anticipation (`anticipation`) — révèle le TALENT des ennemis (choix non-canon, plan 163). Le joueur
  *  Florizarre porte Anticipation ; à l'init `revealedAbility` est posé sur le dummy Ronflex
- *  (`dummyAbility: "levitate"`) → au survol, badge « Talent : Lévitation » (infoPanel.reveal.ability).
- *  Aucun jet → déterministe. */
+ *  (`dummyAbility: "levitate"`) → au survol, son slot de talent montre « Lévitation » au lieu du `???`
+ *  du fog. **`fogOfWar: true` est indispensable**, même raison que {@link FRISK_REVEALS_ITEM} : le
+ *  badge « Talent : X » a disparu au plan 176 et fog OFF montre le talent de tout le monde. */
 export const ANTICIPATION_REVEALS_ABILITY = {
   ...DUEL,
+  fogOfWar: true,
   playerAbility: "anticipation",
   dummyPokemon: "snorlax",
   dummyAbility: "levitate",
@@ -2358,3 +2363,62 @@ export const COMBAT_PREVIEW_AOE = {
     },
   ],
 } as const;
+
+// ── Fog ennemi (plan 176, cahier §4.15) ───────────────────────────────────────────────────────────
+// Le studio pilote la rétention d'information par le SEUL champ `fogOfWar` (absent → fog OFF). Ces
+// configs vont par PAIRES fog ON / fog OFF sur la même situation : c'est le témoin qui prouve que
+// l'assertion discrimine (sous fog OFF un ennemi se lit désormais comme un allié — décision humaine
+// 2026-08-05). Le dummy est passif et aucun test ne résout d'attaque → aucun jet, déterministe.
+
+/** Témoin fog OFF (défaut du studio) — le dummy Dracaufeu tient l'Orbe Vie, porte Brasier et est à
+ *  70 % de ses PV max (`dummyHp` est un pourcentage) : sa carte doit tout montrer, PV exacts
+ *  « x / y », bloc des 5 stats, talent « Brasier » et objet réel « Orbe Vie ». 70 % et pas des PV
+ *  pleins parce qu'un « 100% » ne prouverait rien sur la lecture du pourcentage sous fog. */
+export const FOG_OFF_ENEMY = {
+  ...DUEL,
+  dummyPokemon: "charizard",
+  dummyHeldItem: "life-orb",
+  dummyAbility: "blaze",
+  dummyHp: 70,
+} as const;
+
+/** MÊME situation, fog ON : la carte de l'ennemi retient ses PV exacts (pourcentage seul, ARIA
+ *  rebasculée sur l'échelle 0-100), son objet et son talent (`???` + `data-unknown="1"`) et perd son
+ *  bloc de stats. Ni l'Orbe Vie (déclenchée en attaquant) ni Brasier (passif de pincement) ne se
+ *  montrent tant que le dummy passif ne fait rien → les deux slots restent inconnus. */
+export const FOG_ENEMY = { ...FOG_OFF_ENEMY, fogOfWar: true } as const;
+
+/** Fog ON sur un ennemi qui NE TIENT RIEN : le placeholder d'objet est posé quand même, parce que
+ *  « ne tient rien » est une information à part entière (plan 176). Dracaufeu nu, PV pleins. */
+export const FOG_ENEMY_NO_ITEM = { ...DUEL, fogOfWar: true, dummyPokemon: "charizard" } as const;
+
+/** Révélation à l'usage — OBJET (plan 176 §2bis) : fog ON et le dummy Ronflex tient les Restes à 70 %
+ *  de ses PV. Tant qu'il n'a rien montré son slot affiche `???` ; la fin de son tour déclenche les
+ *  Restes (« Restes de Ronflex s'active ! ») → l'objet a agi sous les yeux du joueur, donc le slot
+ *  passe à « Restes » avec son icône officielle. Soin de fin de tour = aucun jet.
+ *  Ronflex (Vitesse 30) et pas Dracaufeu (100) : il faut que le porteur joue APRÈS le Florizarre (80),
+ *  sinon sa fin de tour tombe avant le premier survol et l'objet est révélé dès le boot — le « avant »
+ *  du scénario n'existerait plus. */
+export const FOG_REVEAL_ITEM_ON_USE = {
+  ...DUEL,
+  fogOfWar: true,
+  dummyPokemon: "snorlax",
+  dummyHeldItem: "leftovers",
+  dummyHp: 70,
+} as const;
+
+/** Révélation à l'usage — TALENT : fog ON et le dummy Tauros porte Intimidation, qui s'annonce à
+ *  l'ENTRÉE en combat (`consumeStartupEvents`) → son talent est déjà connu au boot, donc son slot
+ *  affiche « Intimidation » et non `???`, sans qu'on ait à piloter le moindre tour. */
+export const FOG_REVEAL_ABILITY_ON_ENTRY = {
+  ...DUEL,
+  fogOfWar: true,
+  dummyPokemon: "tauros",
+  dummyAbility: "intimidate",
+} as const;
+
+/** Preview de combat sous fog — MÊME duel que {@link COMBAT_PREVIEW_SURVIVES} (Griffe sur un Ronflex
+ *  à PV pleins, donc une fourchette s'affiche), fog ON : les bornes de dégâts passent en PART des PV
+ *  max et l'unité devient « % ». Sans ça, « 42–50 PV » à côté de « → 51–56 % PV » rendrait les PV max
+ *  en une soustraction. Le témoin fog OFF est `COMBAT_PREVIEW_SURVIVES` lui-même. */
+export const FOG_PREVIEW = { ...COMBAT_PREVIEW_SURVIVES, fogOfWar: true } as const;

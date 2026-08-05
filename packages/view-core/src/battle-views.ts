@@ -228,9 +228,14 @@ function buildStatRows(context: PresentationContext, pokemon: PokemonInstance): 
 /**
  * Build the InfoPanel view-model for a Pokémon (mirror of `InfoPanel.update`).
  *
- * `isAlly` (plan 174) gates the enriched readout: allies get stats + ability + nature; enemies
- * render minimal (types are public, so shown either way). The enemy progressive-reveal panel is
- * plan 176 — the caller (orchestrator) decides `isAlly` from the viewing player's perspective.
+ * Two levers, both decided by the caller (the orchestrator) from the viewing player's perspective:
+ * `isAlly` (plan 174) and the host's fog switch (plan 176, `isEnemyInfoHidden`).
+ *
+ * - ally → full readout: exact HP, stats, ability, item.
+ * - enemy + fog → HP as a percentage, `???` placeholders for ability and item until each is scouted
+ *   (Fouille / Anticipation) or watched in action, Substitute HP withheld. Types stay public.
+ * - enemy, no fog → same full readout as an ally (studio only: a real battle always fogs). The point
+ *   of switching the fog off is to inspect everything (human 2026-08-05).
  */
 export function buildInfoPanelView(
   context: PresentationContext,
@@ -239,6 +244,16 @@ export function buildInfoPanelView(
   isAlly = false,
 ): InfoPanelData {
   const language = context.getLanguage();
+  // Fog (plan 176): an enemy withholds its exact HP, its held item until a reveal effect scouts it,
+  // and its Substitute's HP. Everything else it shows is either public (name/level/types) or already
+  // announced in the log and floating texts when it happened (stat crans, statuses, auras).
+  // `fogged` is the only lever: an ally is never fogged, and an enemy is fogged exactly when the host
+  // asks for it. Not fogged ⇒ full readout (stats + ability + item), whether ally or enemy — the
+  // studio switches the fog off precisely to inspect everything (human 2026-08-05), and a real battle
+  // always fogs, so an enemy never gets the full readout there.
+  const fogged = !isAlly && context.isEnemyInfoHidden();
+  const itemKnown = !fogged || pokemon.revealedItem === true;
+  const abilityKnown = !fogged || pokemon.revealedAbility === true;
   const badges: InfoPanelBadge[] = [];
 
   const majorStatus = pokemon.statusEffects[0]?.type;
@@ -247,17 +262,18 @@ export function buildInfoPanelView(
     badges.push({ label: context.translate(majorKey), variant: "debuff" });
   }
 
-  // Ally panels show Atk/Déf/Atk Spé/Déf Spé/Vit crans inline in the stats block (plan 174), so only
-  // Précision/Esquive (not in the block) still need a badge. Enemy panels keep every stat-stage badge.
-  const inlineStats: ReadonlySet<string> = isAlly
-    ? new Set<string>([
+  // A panel carrying the stats block shows Atk/Déf/Atk Spé/Déf Spé/Vit crans inline (plan 174), so
+  // only Précision/Esquive (absent from the block) still need a badge. A fogged enemy has no block →
+  // it keeps every stat-stage badge.
+  const inlineStats: ReadonlySet<string> = fogged
+    ? new Set<string>()
+    : new Set<string>([
         StatName.Attack,
         StatName.Defense,
         StatName.SpAttack,
         StatName.SpDefense,
         StatName.Speed,
-      ])
-    : new Set<string>();
+      ]);
   for (const [stat, key] of Object.entries(STAT_LABEL)) {
     if (inlineStats.has(stat)) {
       continue;
@@ -308,10 +324,13 @@ export function buildInfoPanelView(
   }
 
   if (pokemon.substituteHp !== undefined && pokemon.substituteHp > 0) {
+    // Under fog the exact HP of an enemy's Substitut is withheld like its own HP (plan 176).
     badges.push({
-      label: context.translate("infoPanel.volatile.substitute", {
-        hp: String(pokemon.substituteHp),
-      }),
+      label: fogged
+        ? context.translate("infoPanel.volatile.substituteHidden")
+        : context.translate("infoPanel.volatile.substitute", {
+            hp: String(pokemon.substituteHp),
+          }),
       variant: "volatile",
     });
   }
@@ -390,10 +409,15 @@ export function buildInfoPanelView(
       variant: "debuff",
     });
   } else if (pokemon.abilityIdOverride !== undefined) {
-    const abilityName =
-      context.getAbilityName(pokemon.abilityIdOverride) ?? pokemon.abilityIdOverride;
+    // The manip itself is public (Échange / Détrempage are announced), but the RESULTING ability is
+    // only named when the panel is allowed to name it — otherwise this badge would spell out what the
+    // slot two lines above is hiding behind `???` (plan 176).
     badges.push({
-      label: context.translate("infoPanel.volatile.abilityChanged", { ability: abilityName }),
+      label: abilityKnown
+        ? context.translate("infoPanel.volatile.abilityChanged", {
+            ability: context.getAbilityName(pokemon.abilityIdOverride) ?? pokemon.abilityIdOverride,
+          })
+        : context.translate("infoPanel.volatile.abilityChangedHidden"),
       variant: "volatile",
     });
   }
@@ -409,15 +433,9 @@ export function buildInfoPanelView(
     });
   }
 
-  // Info-reveal abilities (plan 163): scouting badges set by Fouille / Prédiction / Anticipation.
-  if (pokemon.revealedItem === true && pokemon.heldItemId !== undefined) {
-    badges.push({
-      label: context.translate("infoPanel.reveal.item", {
-        item: context.getItemName(pokemon.heldItemId) ?? pokemon.heldItemId,
-      }),
-      variant: "volatile",
-    });
-  }
+  // Info-reveal (plan 163 scouting + plan 176 reveal-on-use). Item and ability get NO badge: both
+  // have a real slot below, filled the moment they become known — a badge naming them again said it
+  // twice. Menace (Prédiction) keeps its badge: nothing in the panel lists an enemy's moves.
   if (pokemon.revealedTopMove === true) {
     const topMoveId = strongestMoveId(pokemon.moveIds);
     if (topMoveId !== undefined) {
@@ -429,24 +447,26 @@ export function buildInfoPanelView(
       });
     }
   }
-  if (pokemon.revealedAbility === true && pokemon.abilityId !== undefined) {
-    const abilityName = context.getAbilityName(pokemon.abilityId) ?? pokemon.abilityId;
-    badges.push({
-      label: context.translate("infoPanel.reveal.ability", { ability: abilityName }),
-      variant: "volatile",
-    });
-  }
-
   pushAuraBadges(context, badges, pokemon, state);
 
-  const heldItem =
-    pokemon.heldItemId === undefined
-      ? undefined
-      : (context.getItemName(pokemon.heldItemId) ?? undefined);
-
-  // Ally-only enrichment (plan 174): exact stats, effective ability, nature. Enemies stay minimal.
-  const abilityId = isAlly ? effectiveAbilityId(pokemon) : undefined;
+  // Fog (plan 176): item and ability are hidden information until scouted (Fouille / Anticipation,
+  // plan 163) or watched in action. Both keep a PLACEHOLDER slot while unknown — an empty item line
+  // would leak "holds nothing", and a missing ability line would leak nothing-to-fear. The player
+  // sees that there is something to learn, not what it is.
+  const abilityId = abilityKnown ? effectiveAbilityId(pokemon) : undefined;
   const ability = abilityId ? (context.getAbilityName(abilityId) ?? undefined) : undefined;
+  const unknownLabel = context.translate("infoPanel.unknown");
+
+  // Three states, not two: known-and-held (name + official icon — the id stands in when a translation
+  // is missing, rather than dropping the line), known-and-empty (no line at all), unknown (placeholder).
+  const itemFields: Pick<InfoPanelData, "heldItem" | "itemIconUrl" | "itemUnknown"> = itemKnown
+    ? pokemon.heldItemId === undefined
+      ? {}
+      : {
+          heldItem: context.getItemName(pokemon.heldItemId) ?? pokemon.heldItemId,
+          itemIconUrl: context.getItemIconUrl(pokemon.heldItemId),
+        }
+    : { heldItem: unknownLabel, itemUnknown: true };
 
   return {
     name: getPokemonName(pokemon.definitionId, language),
@@ -454,17 +474,19 @@ export function buildInfoPanelView(
     gender: genderOf(pokemon.gender),
     hpCurrent: pokemon.currentHp,
     hpMax: pokemon.maxHp,
+    ...(fogged ? { hideExactHp: true } : {}),
     team: teamNumberOf(pokemon.playerId),
     portraitUrl: context.getPortraitUrl(pokemon.definitionId),
     isAlly,
     types: buildTypeChips(context, pokemon, language),
-    ...(ability === undefined ? {} : { ability }),
-    ...(isAlly ? { stats: buildStatRows(context, pokemon) } : {}),
+    ...(abilityKnown
+      ? ability === undefined
+        ? {}
+        : { ability }
+      : { ability: unknownLabel, abilityUnknown: true }),
+    ...(fogged ? {} : { stats: buildStatRows(context, pokemon) }),
     badges,
-    ...(heldItem === undefined ? {} : { heldItem }),
-    ...(pokemon.heldItemId === undefined
-      ? {}
-      : { itemIconUrl: context.getItemIconUrl(pokemon.heldItemId) }),
+    ...itemFields,
   };
 }
 

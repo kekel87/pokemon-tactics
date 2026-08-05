@@ -184,6 +184,7 @@ function setup(
       getTypeIconUrl: () => "",
       getStatusIconUrl: () => "",
       isDamagePreviewEnabled: () => true,
+      isEnemyInfoHidden: () => false,
     },
   );
 
