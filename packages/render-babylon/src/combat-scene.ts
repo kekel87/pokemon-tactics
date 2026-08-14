@@ -182,6 +182,21 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     antialias: false,
   });
 
+  // Diagnostic de perte de contexte WebGL (plan 180-a §D). Backgrounder un onglet sur téléphone fait
+  // récupérer la VRAM au système, ce qui perd le contexte — symptôme facile à confondre avec un
+  // rechargement de page. Aucune récupération à écrire ici : l'`Engine` n'est PAS construit avec
+  // `doNotHandleContextLost`, donc Babylon reconstruit déjà ses ressources tout seul. Ces deux
+  // traces servent uniquement à trancher, dans un rapport de bug, entre « contexte perdu puis
+  // restauré » et « onglet déchargé » (ce dernier cas = plan 180-c).
+  engine.onContextLostObservable.add(() => {
+    // biome-ignore lint/suspicious/noConsole: trace de diagnostic — Babylon gère la restauration seul
+    console.warn("[render] WebGL context lost — Babylon will rebuild its resources");
+  });
+  engine.onContextRestoredObservable.add(() => {
+    // biome-ignore lint/suspicious/noConsole: trace de diagnostic, pendant de la perte ci-dessus
+    console.warn("[render] WebGL context restored");
+  });
+
   const scene = new Scene(engine);
   scene.clearColor = new Color4(
     BABYLON_CLEAR_COLOR.r,

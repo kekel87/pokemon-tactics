@@ -6,22 +6,41 @@
  */
 
 @layer components {
-  .bl-panel {
-    pointer-events: auto;
+  /*
+   * Rangée haut-droite : [bouton plein écran] [journal] (plan 180-a).
+   *
+   * C'est la rangée qui porte l'ancrage au coin, pas le journal : « à gauche du journal » doit
+   * rester vrai alors que sa largeur change en permanence — replié (`inline-size: auto`), plafonné
+   * à 40vw, ou élargi à 400px sur téléphone. Un décalage absolu du bouton devrait redupliquer tout
+   * ce calcul et se désynchroniserait au premier repli.
+   *
+   * Largeur en shrink-to-fit (ancrée par la seule fin d'axe) → la rangée colle au contenu, et le
+   * bouton masqué (`hidden`) ne laisse ni trou ni interstice.
+   */
+  .bl-log-row {
     position: absolute;
     inset-block-start: max(var(--spacing-lg), env(safe-area-inset-top));
     inset-inline-end: max(var(--spacing-lg), env(safe-area-inset-right));
-    inline-size: calc(288px * var(--ui-scale));
-    max-inline-size: 40vw;
-    /* Fixed header height, reused as the collapsed toggle's square side. */
+    display: flex;
+    /* Aligné en haut : le journal déplié est bien plus haut que le bouton, qui doit rester
+       au niveau de son en-tête plutôt que de flotter au milieu. */
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    /* La rangée n'est qu'un cadre de disposition : elle ne doit pas intercepter les clics
+       destinés à la scène (le journal et le bouton réactivent le pointeur pour eux-mêmes). */
+    pointer-events: none;
+
+    /* Hauteur d'en-tête du journal, qui sert aussi de côté au carré replié — déclarée ici, sur
+       l'ancêtre commun, pour que le bouton plein écran hérite exactement de la même mesure et
+       reste aligné sur l'en-tête du journal au pixel près (plan 180-a). */
     --bl-header-size: calc(35.2px * var(--ui-scale));
 
     /*
-     * Touch floor (plan 179 §E). Collapsed, this panel *is* its toggle button, so on a phone
+     * Touch floor (plan 179 §E). Collapsed, the log panel *is* its toggle button, so on a phone
      * the square measured 13px — well under the 24px WCAG 2.2 SC 2.5.8 minimum and far from
      * the 44px recommendation. The usual trick (keep the visual small, widen an invisible
-     * hit area with a pseudo-element) does not work here: `overflow: hidden` above would clip
-     * it. So the square itself grows, and only on coarse pointers — mouse users keep the
+     * hit area with a pseudo-element) does not work here: `overflow: hidden` on the panel would
+     * clip it. So the square itself grows, and only on coarse pointers — mouse users keep the
      * scaled visual.
      */
     @media (pointer: coarse) {
@@ -29,6 +48,12 @@
          le plancher du menu d'action (`--target-min: 30px`) pour que les deux s'accordent. */
       --bl-header-size: max(30px, calc(35.2px * var(--ui-scale)));
     }
+  }
+
+  .bl-panel {
+    pointer-events: auto;
+    inline-size: calc(288px * var(--ui-scale));
+    max-inline-size: 40vw;
 
     /* Sur téléphone le journal était à la fois trop étroit et trop petit à lire (humain,
        2026-08-06) : le contenu est la raison d'être du panneau, il gagne en largeur et en corps.

@@ -690,6 +690,20 @@ Rétention d'information sur les Pokemon **adverses**, appliquée côté vue (`p
 
 ---
 
+## 5j. Comportement plateforme mobile — plein écran, orientation, survie au rechargement (plan 180-a/180-b)
+
+Nouvelle famille de modules `packages/app/src/platform/` : encapsule les API navigateur **best-effort** dont le support diverge fortement par plateforme (Android vs iOS), séparée du reste de `app` pour que chaque wrapper documente en tête de fichier ses limites et pièges de séquencement plutôt que de les laisser implicites au site d'appel.
+
+- **`platform/fullscreen.ts`** : `isFullscreenSupported()`, `isFullscreen()`, `toggleFullscreen()`, `onFullscreenChange()`. Deux règles de séquencement non négociables (couvertes par `fullscreen.test.ts`, § décisions #741) : `requestFullscreen()` appelé **synchroniquement** dans le gestionnaire de clic (un `await` avant perd l'activation utilisateur), puis `screen.orientation.lock("landscape")` seulement **après** résolution de la promesse de plein écran (l'inverse jette `SecurityError` sur Firefox Android, Bugzilla #1610745). Le verrouillage est best-effort en `try/catch`, jamais une dépendance — absent sur iOS, en échec sur iPad. Deux points d'entrée partagent ce module : la ligne « Plein écran » de `settings-screen.ts` et le bouton du chrome de combat (rangée `.bl-log-row`, `createBattleLogRow` de `ui-dom`).
+- **`platform/pwa.ts`** : `isStandalone()` (teste `display-mode: standalone` **et** `navigator.standalone`, le premier seul étant peu fiable), `isIosLike()`. Consommé par la ligne « Installer l'app » des réglages (affichée seulement sur iPhone non installé).
+- **`platform/wake-lock.ts`** : acquisition best-effort avec **ré-acquisition sur `visibilitychange`** (le verrou est relâché par le navigateur en arrière-plan et ne revient pas de lui-même), relâchement idempotent. Acquis au boot (`babylon-boot.ts`).
+- **`app/screen-persistence.ts`** : `saveCurrentScreen`/`loadPersistedScreen`, clé `pt-last-screen`. Seuls les écrans **sans paramètre** sont restaurables — `ParamlessScreenId` est un mapped type dérivé de `ScreenParamsById` (`app/screens.ts`), pas une liste maintenue à la main : un écran qui gagne des paramètres casse la compilation au lieu de laisser une reprise silencieusement invalide. Péremption 1h. Branché en un point unique (`screen-manager.ts`, après un montage réussi), lu au boot du menu — **pas** sur les routes sandbox/`?combat=` (entrées de dev déterministes).
+- **Manifeste PWA** (`packages/app/public/manifest.json` + icônes `icon-192.png`/`icon-512.png`/`apple-touch-icon.png`) : icônes obtenues par agrandissement nearest-neighbor du favicon 28×28 (décision #738, aucun autre artwork dans le dépôt). **URLs relatives dans le manifeste** — un fichier de `public/` est copié verbatim par Vite, contrairement au `<link>` d'`index.html` que Vite réécrit ; le jeu est servi sous 3 bases différentes (`/`, `/pokemon-tactics/`, `./`) et des chemins absolus cassaient l'installabilité en silence sur les deux déploiements réels (décision #739).
+- **Diagnostic WebGL** : `engine.onContextLostObservable`/`onContextRestoredObservable` dans `combat-scene.ts` posent un `console.warn` de diagnostic — aucune logique de récupération, Babylon reconstruit déjà seul ses ressources (créé sans `doNotHandleContextLost`).
+- **Ce que ces deux lots ne résolvent pas** : un combat en cours reste perdu au rechargement (lot 180-c, review core, sérialisation de l'état moteur) ; le Wake Lock n'empêche ni la décharge d'onglet sous pression mémoire ni la veille après verrouillage manuel de l'écran ; sur iPhone, aucun verrouillage d'orientation n'est possible par aucune voie (API absente, champ `orientation` du manifeste ignoré par WebKit même en PWA installée). Détail complet : `docs/plans/180-comportement-plateforme-mobile.md`, décisions #738–#743.
+
+---
+
 ## 6. Système de surcharge (override) pour l'équilibrage
 
 ### Structure des données

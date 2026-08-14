@@ -16,7 +16,13 @@ import type {
   PresentationContext,
 } from "@pokemon-tactic/render-ports";
 import type { GameStage, UiDomConfig } from "@pokemon-tactic/ui-dom";
-import { createBattleChrome, createBattleLog, mountGameStage } from "@pokemon-tactic/ui-dom";
+import {
+  createBattleChrome,
+  createBattleLog,
+  createBattleLogRow,
+  createFullscreenButton,
+  mountGameStage,
+} from "@pokemon-tactic/ui-dom";
 import {
   AiTeamController,
   type BattleFeedback,
@@ -40,6 +46,12 @@ import {
 import { HighlightKind } from "../enums/highlight-kind.js";
 import { getLanguage, t } from "../i18n/index.js";
 import type { TranslationKey } from "../i18n/types.js";
+import {
+  isFullscreen,
+  isFullscreenSupported,
+  onFullscreenChange,
+  toggleFullscreen,
+} from "../platform/fullscreen.js";
 import type { RendererBackend } from "../renderer-backend.js";
 import { initSandboxStudioDom } from "../sandbox-boot.js";
 import { getSettings } from "../settings/index.js";
@@ -254,7 +266,24 @@ function runBattle(options: {
     },
     translate: uiConfig.translate,
   });
-  stage.screenLayer.append(battleLog.element);
+  // Bouton plein écran à gauche du journal (plan 180-a) : second point d'entrée, celui des
+  // réglages obligeant à quitter le combat — or c'est en plein combat, sur téléphone, que la barre
+  // d'URL coûte le plus. Il vit dans la même rangée que le journal pour rester collé à son bord
+  // gauche quelle que soit sa largeur (replié, plafonné à 40vw, élargi sur téléphone).
+  const fullscreenButton = createFullscreenButton({
+    label: t("settings.fullscreen"),
+    isSupported: isFullscreenSupported,
+    isFullscreen,
+    // Appelé directement depuis le clic, sans `await` en amont : l'activation utilisateur doit
+    // encore tenir quand `requestFullscreen()` part.
+    onToggle: () => void toggleFullscreen(),
+  });
+  // Le bouton disparaît une fois en plein écran, y compris sur une sortie qu'il n'a pas déclenchée
+  // (Échap, geste système) — d'où l'abonnement plutôt qu'un simple rafraîchissement au clic.
+  // Branché sur le `signal` du combat, comme les autres écouteurs de cette fonction : la sortie de
+  // l'écran le retire, sinon un combat quitté en laisserait un derrière lui à chaque partie.
+  onFullscreenChange(() => fullscreenButton.refresh(), { signal });
+  stage.screenLayer.append(createBattleLogRow(fullscreenButton.element, battleLog.element));
   // Host-injected presentation deps (plan 125, décision #4): the orchestrator +
   // view-builders + floating-text mapper stay renderer-agnostic; the app-shell
   // wires the real i18n / settings / asset-path here.

@@ -71,6 +71,14 @@
     color: var(--color-text-secondary);
   }
 
+  /* Valeur d'une ligne de réglage qui informe au lieu d'agir (marche à suivre pour installer
+     l'app sur iPhone, plan 180-a) : occupe la place d'une bascule sans en avoir l'apparence. */
+  .mn-row-hint {
+    font-size: clamp(14px, 1.8vmin, 26px);
+    color: var(--color-text-muted);
+    text-align: end;
+  }
+
   .mn-credits {
     display: flex;
     flex-direction: column;

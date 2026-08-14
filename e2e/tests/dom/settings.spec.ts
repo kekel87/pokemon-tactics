@@ -2,8 +2,9 @@ import { expect, test } from "../../fixtures";
 import { MainMenu } from "../../pages/MainMenu";
 import { SettingsScreen } from "../../pages/screens";
 
-// Cahier §6.7.
-test("paramètres : 2 options (libellés FR), retour au menu", async ({ page }) => {
+// Cahier §6.7. Les deux options INCONDITIONNELLES ; les lignes conditionnées à la plateforme
+// (« Plein écran », « Installer l'app ») sont en §6.10 (`platform.spec`).
+test("paramètres : les 2 options de base (libellés FR), retour au menu", async ({ page }) => {
   const menu = new MainMenu(page);
   const settings = new SettingsScreen(page);
   await menu.goto();

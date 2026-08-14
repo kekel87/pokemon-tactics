@@ -45,6 +45,22 @@ export interface BattleLog extends BattleFeedback {
   destroy(): void;
 }
 
+/**
+ * Rangée haut-droite du chrome de combat : `[bouton plein écran] [journal]` (plan 180-a).
+ *
+ * Vit ici, dans le package qui définit `.bl-log-row` et son ancrage au coin, plutôt que fabriquée à
+ * la main côté app avec la classe en dur. Deux raisons : la classe est un contrat de `ui-dom`, et
+ * surtout c'est la rangée qui déclare `--bl-header-size` — un journal monté hors d'elle perdrait
+ * silencieusement la hauteur de son en-tête. Passer par cette fonction rend ce cas inatteignable.
+ *
+ * Les enfants sont ajoutés dans l'ordre reçu : le premier se retrouve à gauche du journal.
+ */
+export function createBattleLogRow(...children: readonly HTMLElement[]): HTMLElement {
+  const row = el("div", "bl-log-row");
+  row.append(...children);
+  return row;
+}
+
 export function createBattleLog(options: BattleLogOptions): BattleLog {
   const { context, teamOf, translate } = options;
 

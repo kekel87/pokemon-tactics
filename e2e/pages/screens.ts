@@ -58,11 +58,17 @@ export class SettingsScreen {
   /** Each setting's control carries a dedicated `data-testid` (resilient to label/i18n changes). */
   readonly languageToggle: Locator;
   readonly damagePreviewToggle: Locator;
+  /** Fullscreen row (plan 180-a) — the row is ABSENT (not disabled) where the API is missing. */
+  readonly fullscreenToggle: Locator;
+  /** iOS-only « add to home screen » instruction (plan 180-a) — absent everywhere else. */
+  readonly installHint: Locator;
   constructor(page: Page) {
     this.title = page.getByRole("heading", { name: "Paramètres" });
     this.back = page.getByRole("button", { name: "Retour" });
     this.languageToggle = page.getByTestId("setting-language");
     this.damagePreviewToggle = page.getByTestId("setting-damage-preview");
+    this.fullscreenToggle = page.getByTestId("setting-fullscreen");
+    this.installHint = page.getByTestId("setting-install-hint");
   }
 }
 

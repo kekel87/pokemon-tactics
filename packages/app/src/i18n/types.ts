@@ -253,6 +253,9 @@ export interface Translations {
   "settings.title": string;
   "settings.language": string;
   "settings.damagePreview": string;
+  "settings.fullscreen": string;
+  "settings.installApp": string;
+  "settings.installAppIosHint": string;
   "settings.on": string;
   "settings.off": string;
   "settings.back": string;

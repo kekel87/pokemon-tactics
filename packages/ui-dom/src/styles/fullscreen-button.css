@@ -1,0 +1,43 @@
+/*
+ * Bouton plein écran du chrome de combat (plan 180-a).
+ * Pendant de `fullscreen-button.ts`. Vit dans `.bl-log-row` (battle-log.css), à gauche du journal.
+ *
+ * Volontairement calqué sur la surface du journal — même bordure, même fond translucide, même
+ * rayon, même côté de carré (`--bl-header-size`, héritée de la rangée) — pour lire comme un second
+ * bouton de la même famille plutôt que comme un élément rapporté.
+ */
+
+@layer components {
+  .fs-btn {
+    pointer-events: auto;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--bl-header-size);
+    block-size: var(--bl-header-size);
+    padding: 0;
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    background: color-mix(in oklch, var(--color-bg-surface) 85%, transparent);
+    color: var(--color-text-secondary);
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-bg-elevated-hover);
+    }
+
+    /* `hidden` seul ne suffirait pas : la règle `display: flex` ci-dessus est une règle auteur et
+       battrait le `display: none` du navigateur (même piège que `.ip-panel` au plan 175). */
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .fs-btn-glyph {
+    line-height: 1;
+    /* Aligné sur le corps du burger du journal (`.bl-burger`). */
+    font-size: calc(21.6px * var(--ui-scale));
+  }
+}

@@ -1,3 +1,4 @@
+import { saveCurrentScreen } from "./screen-persistence";
 import { SCREEN_TRANSITIONS, type ScreenId, type ScreenParamsById } from "./screens";
 
 /**
@@ -80,6 +81,9 @@ export class ScreenManager {
     await screen.mount(this.host, params);
     this.currentScreen = screen;
     this.currentId = id;
+    // Single choke point for the resume point (plan 180-b): recorded only after a SUCCESSFUL mount,
+    // so a screen that threw on the way up is never the one we boot back into.
+    saveCurrentScreen(id);
   }
 
   private isLegal(id: ScreenId): boolean {

@@ -10,6 +10,7 @@ import "@pokemon-tactic/ui-dom/styles/tile-info-panel.css";
 import "@pokemon-tactic/ui-dom/styles/placement.css";
 import "@pokemon-tactic/ui-dom/styles/battle-chrome.css";
 import "@pokemon-tactic/ui-dom/styles/battle-log.css";
+import "@pokemon-tactic/ui-dom/styles/fullscreen-button.css";
 import "@pokemon-tactic/ui-dom/styles/move-tooltip.css";
 import "@pokemon-tactic/ui-dom/styles/turn-timeline.css";
 import "@pokemon-tactic/ui-dom/styles/weather-hud.css";
@@ -21,8 +22,10 @@ import "./styles/team-builder-overlay.css";
 import "./styles/menu-screens.css";
 import "./styles/map-select.css";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
+import { loadPersistedScreen } from "./app/screen-persistence.js";
 import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.js";
 import { initLanguage } from "./i18n/index.js";
+import { startWakeLock } from "./platform/wake-lock.js";
 import { getRendererBackend } from "./renderer-backend.js";
 import { sandboxBootConfig, teardownSandboxStudioDom } from "./sandbox-boot.js";
 import { initSettings } from "./settings/index.js";
@@ -60,6 +63,11 @@ initSettings();
 // dans la bonne langue. Sa visibilité est purement CSS (portrait + pointeur grossier), donc elle
 // vit hors de la FSM d'écrans et couvre tous les chemins de boot, sandbox et combat direct inclus.
 mountOrientationPrompt(document.body);
+
+// Garde l'écran allumé pendant qu'on réfléchit à son tour (plan 180-b). Best-effort : absent de
+// certains navigateurs, relâché par le navigateur en arrière-plan (d'où la ré-acquisition interne),
+// et impuissant face à un verrouillage manuel ou à une décharge d'onglet sous pression mémoire.
+startWakeLock();
 
 const query = new URLSearchParams(window.location.search);
 // Routes (plan 120 step 9):
@@ -140,7 +148,12 @@ async function boot(root: HTMLElement): Promise<void> {
   } else if (query.has("combat")) {
     manager.start("combat", { mapUrl }).catch(reportScreenError);
   } else {
-    manager.start("main-menu", undefined).catch(reportScreenError);
+    // Reprise silencieuse de l'écran quitté (plan 180-b) : un onglet déchargé pendant la veille
+    // revient là où le joueur en était. Seuls les écrans sans paramètre sont restaurables — un
+    // combat perdu retombe donc sur le menu (sa restauration est le lot 180-c). Les routes sandbox
+    // et `?combat=` ci-dessus sont exclues à dessein : ce sont des entrées de dev, elles doivent
+    // rester déterministes.
+    manager.start(loadPersistedScreen() ?? "main-menu", undefined).catch(reportScreenError);
   }
 }
 

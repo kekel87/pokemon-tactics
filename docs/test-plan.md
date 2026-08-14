@@ -73,6 +73,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Team Builder / sandbox | §7 |
 | Placement / zones de spawn | §8.5 |
 | Responsive / mobile / `--ui-scale` / safe-area / cible tactile | §4.16, §6.9, §7.5, §8.5 |
+| Plateforme (plein écran, manifeste PWA, veille/Wake Lock, reprise d'écran au rechargement) | §6.10, §4.17, §6.7 |
 
 ---
 
@@ -631,6 +632,40 @@ seuil, tout le chrome grossit d'un coup ×1,5, la maquette restant homothétique
   timeline, portraits de la timeline à petite taille) : jugement d'œil, pas de signal DOM.
 - 👁 **Overlay d'orientation en portrait** *pendant un combat* : l'invite est globale (§6.9), son
   interaction avec une scène montée reste à l'œil.
+
+### 4.17 Bouton plein écran du chrome de combat (plan 180-a)
+
+*src : `ui-dom/fullscreen-button.ts` + `styles/fullscreen-button.css`, `styles/battle-log.css`
+(rangée `.bl-log-row`), `app/platform/fullscreen.ts`, `app/babylon/combat-screen.ts`*
+*e2e : `combat/platform-chrome.spec.ts` — la ligne équivalente des réglages est en §6.10*
+
+*Second point d'entrée assumé (la ligne des réglages oblige à quitter le combat, or c'est en plein
+combat sur téléphone que la barre d'URL coûte le plus). Il vit dans la même rangée que le journal
+pour rester collé à son bord gauche quelle que soit sa largeur (replié, plafonné à 40vw, élargi sur
+téléphone).*
+
+- 🤖 **Présent et visible** hors plein écran, **nom accessible « Plein écran »** (contrôle icône
+  seule → `aria-label`, le glyphe ⛶ est `aria-hidden`), entièrement dans le viewport
+  (`platform-chrome.spec`).
+- 🤖 **Le clic fait passer le document en plein écran** (`document.fullscreenElement` renseigné) **et
+  le bouton s'efface** (`hidden`) ; **une sortie qu'il n'a pas déclenchée** (`exitFullscreen()`
+  programmatique, l'équivalent d'Échap / d'un geste système) **le fait revenir** — ce qui n'est vrai
+  que grâce à son abonnement `fullscreenchange` (`platform-chrome.spec`).
+  ⚠️ **Ce test ne dit RIEN du plein écran mobile.** Il prouve l'état du document et la réaction du
+  chrome en Chromium de bureau, headless, au gate **local** (l'e2e ne tourne pas en CI GitHub). Il ne
+  prouve **ni** que la barre d'URL est réellement masquée sur téléphone, **ni** que le verrouillage
+  paysage aboutit — voir les deux cases 👁 ci-dessous. Ne pas conclure « le plein écran mobile est
+  couvert ».
+- 👁 **Barre d'URL réellement masquée** sur téléphone (le besoin d'origine : récupérer la bande que
+  la barre ampute en paysage) : aucun signal DOM ne l'expose. **Téléphone réel, validé 2026-08-14.**
+- 👁 **Verrouillage paysage** enchaîné après la promesse de `requestFullscreen()` : refusé en
+  Chromium de bureau et **avalé par le `try/catch` best-effort** de `platform/fullscreen.ts` — le test
+  🤖 ci-dessus passerait à l'identique si le `lock()` disparaissait du code. **Téléphone réel
+  (Android Chrome/Firefox), validé 2026-08-14.**
+- 👁 **Absent sur iPhone** (API Fullscreen non implémentée → `hidden`, jamais un bouton inerte) :
+  demande un vrai WebKit iOS.
+- 👁 **Alignement au pixel** sur l'en-tête du journal (même côté de carré `--bl-header-size`, même
+  bordure/fond/rayon) et absence d'interstice quand le bouton est masqué : rendu pur.
 
 ---
 
@@ -2117,9 +2152,11 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
 ### 6.7 Paramètres
 *libellés : `settings.*` ; storage `pt-lang`, `pt-settings`*
 - 🤖 Accès depuis le menu ; titre « Paramètres » ; Retour → menu.
-- 🤖 **2 entrées** : **Langue** (FR/EN), **Prévisualisation dégâts** (Oui/Non). Valider chaque
-  libellé en FR **et** EN. *(L'option « Curseur » a été retirée : le curseur de survol est désormais
-  un modèle voxel unique non configurable — cf §3.8.)*
+- 🤖 **2 entrées inconditionnelles** : **Langue** (FR/EN), **Prévisualisation dégâts** (Oui/Non).
+  Valider chaque libellé en FR **et** EN. *(L'option « Curseur » a été retirée : le curseur de survol
+  est désormais un modèle voxel unique non configurable — cf §3.8.)* Deux lignes **conditionnées à la
+  plateforme** s'y ajoutent — **Plein écran** (si l'API existe) et **Installer l'app** (iPhone non
+  installé) : voir §6.10.
 - 🤖 Changer une option **persiste en localStorage** : langue → `pt-lang` ; prévisualisation →
   `pt-settings` (JSON).
 
@@ -2165,6 +2202,69 @@ nouvel écran DOM.*
   d'assertion propre à ajouter — ils n'ont pas de bloc mobile parce que l'essentiel de leurs métriques
   est déjà en `clamp()` / `vmin` (`menu-screens.css`). Re-dérouler §6.1 / §6.7 / §6.8 à l'œil en cas de
   changement de tokens.
+
+### 6.10 Comportement plateforme — PWA, plein écran, veille, reprise d'écran (plan 180-a/180-b)
+
+*src : `app/public/manifest.json` + `app/index.html` (liens `manifest`/`apple-touch-icon`,
+`theme-color`), `app/platform/{fullscreen,pwa,wake-lock}.ts`, `app/app/screen-persistence.ts`
+(clé `pt-last-screen`), `app/app/screen-manager.ts`, `app/babylon-boot.ts`,
+`app/ui/dom/screens/settings-screen.ts`*
+*e2e : `dom/platform.spec.ts` — le bouton plein écran du combat est en §4.17*
+
+*⚠️ Note pour l'écriture de tests : la reprise est **globale** (`localStorage`). Aucun nettoyage n'est
+nécessaire aujourd'hui — Playwright donne un **contexte de navigateur neuf par test**, donc un
+stockage vide — et chaque spec ne navigue qu'une fois. Mais un test qui **re-naviguerait** vers `/`
+après avoir quitté le menu repartirait sur l'écran quitté, et réutiliser un contexte entre tests
+(`storageState`, série partagée) ferait fuiter le point de reprise d'un test au suivant.*
+
+*Ce lot répond à des retours de **téléphone réel** : barre d'URL qui ampute le paysage, rotation non
+automatique, veille qui recharge le site. Trois de ces leviers sont **hors de portée d'un harness de
+bureau** (plein écran réel, verrouillage d'orientation, Wake Lock) et restent 👁 — ils ont été
+validés sur téléphone le **2026-08-14**. Ce qui s'automatise, c'est ce qui est **servi** (manifeste)
+et ce qui **survit à un rechargement** (reprise d'écran).*
+
+- 🤖 **Manifeste PWA servi et valide** : `/manifest.json` répond, parse, porte `name`
+  « Pokemon Tactics » et `display: "standalone"`, et **chaque `src` d'icône répond 200 en
+  `image/png`** (un manifeste dont les icônes 404 est refusé à l'installation) (`platform.spec`).
+- 🤖 **Le document déclare la plateforme** : `<link rel="manifest">`, `<link rel="apple-touch-icon">`
+  (fichier réellement joignable — iOS n'utilise pas les icônes du manifeste) et
+  `<meta name="theme-color" content="#1a1a2e">`, aligné sur `--color-bg-base` (`platform.spec`).
+- 🤖 **Reprise silencieuse de l'écran quitté** : quitter le menu pour un écran **sans paramètre**
+  l'enregistre (`pt-last-screen` = `credits`), et un **rechargement y revient** (contenu compris),
+  après re-passage par le splash (`platform.spec`).
+- 🤖 **Garde-fou des écrans à paramètres** : « Choix de la carte » est enregistré, mais entrer dans
+  « Sélection d'équipe » (qui exige un `mapUrl`) **efface** le point de reprise → rechargement =
+  **menu principal**, jamais un écran périmé (`platform.spec`).
+- 🤖 **Un combat perdu revient au menu principal** : parcours réel jusqu'à la scène montée →
+  `pt-last-screen` effacé → rechargement = menu principal, sans chrome de combat remonté. Restaurer
+  un combat exige de sérialiser le moteur : c'est le **lot 180-c** (`platform-chrome.spec`).
+- 🤖 **Réglages — ligne « Plein écran »** présente et à « NON » hors plein écran (état lu du
+  document, **jamais** persisté dans `pt-settings` : c'est un état vivant, pas une préférence), et
+  **ligne « Installer l'app » absente** hors iPhone non installé (`platform.spec`).
+- 🤖 **Aller-retour de la bascule** : un clic met le document en plein écran et le libellé passe à
+  « OUI » (relu depuis `fullscreenchange`, pas d'un état local) ; un second clic en sort et il
+  revient à « NON » (`platform.spec`). Prouve au passage la **règle de séquencement n°1** —
+  `requestFullscreen()` appelé synchroniquement dans le handler, qu'un `await` mal placé casserait en
+  silence.
+- 👁 **Ce que l'aller-retour 🤖 ne prouve pas** : la **barre d'URL réellement masquée** sur téléphone
+  (aucun signal DOM) et le **verrouillage paysage** (`screen.orientation.lock` refusé en Chromium de
+  bureau et avalé par le `try/catch` best-effort → le test passerait même si le `lock()` disparaissait
+  du code). Ces deux points restent **téléphone réel, Android Chrome/Firefox** (validés 2026-08-14).
+  Et l'e2e ne tourne **qu'au gate local**, pas en CI GitHub : rien de tout ça n'est gardé par la CI.
+- 👁 **Wake Lock** (l'écran ne s'éteint plus pendant qu'on réfléchit, ré-acquisition au retour
+  d'arrière-plan) : aucun signal observable en Chromium de bureau — la permission y est refusée
+  (`console.warn` de diagnostic au boot, sans conséquence). **Téléphone réel.** Rappel des limites :
+  ne survit ni au verrouillage manuel, ni à une décharge d'onglet sous pression mémoire.
+- 👁 **Installation PWA** (Android : « Installer l'app » du navigateur, `display`/`orientation`
+  honorés une fois installée ; iOS : Partager → Sur l'écran d'accueil) et **rendu des icônes**
+  (Pokéball agrandie en nearest-neighbor, fond opaque `#1a1a2e` — iOS remplace la transparence par du
+  noir) : hors d'atteinte d'un navigateur piloté.
+- 👁 **Comportement iOS** : ligne « Plein écran » **absente** (API non implémentée), ligne
+  « Installer l'app » **visible** puis masquée une fois installée (`shouldOfferIosInstall`), et
+  `orientation: "landscape"` du manifeste **ignoré** par WebKit même en PWA installée → l'invite
+  d'obstruction (§6.9) reste le seul levier. Demande un vrai WebKit iOS.
+- 👁 **Péremption du point de reprise à 1 h** : dépend de l'horloge, pas de la navigation — le sens
+  est couvert en unit (`app/screen-persistence.test.ts`).
 
 ---
 
@@ -2383,7 +2483,9 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `smoke/splash.spec.ts` | §6.0 splash de boot (plan 135) : overlay présent + titre + barre de progression pendant le téléchargement du bundle (requête `sprites.bin` retenue), puis retiré du DOM et le menu monte |
 | `dom/navigation.spec.ts` | menu → mode de combat → choix carte → retour |
 | `dom/main-menu.spec.ts` | §6.1 — titre, 5 entrées, Aventure disabled, version, switch FR→EN + `pt-lang` |
-| `dom/settings.spec.ts` | §6.7 — 2 options (Langue + Prévisualisation dégâts), persistance `pt-lang`/`pt-settings` |
+| `dom/settings.spec.ts` | §6.7 — 2 options inconditionnelles (Langue + Prévisualisation dégâts), persistance `pt-lang`/`pt-settings` |
+| `dom/platform.spec.ts` | §6.10 comportement plateforme (plan 180-a/180-b) : manifeste PWA servi + JSON valide (`name`, `display: standalone`) + **chaque icône répond 200 en `image/png`** ; `<link rel="manifest">`, `<link rel="apple-touch-icon">` (fichier joignable) et `<meta name="theme-color">` déclarés ; **reprise d'écran** — Crédits enregistré (`pt-last-screen`) et retrouvé après rechargement ; **garde-fou** — « Sélection d'équipe » (écran à paramètres) efface le point de reprise → rechargement = menu principal ; réglages : ligne « Plein écran » présente à « NON », ligne « Installer l'app » absente hors iPhone, **aller-retour de la bascule** (clic → `document.fullscreenElement` renseigné + « OUI », re-clic → sortie + « NON »). Barre d'URL réellement masquée / verrouillage paysage (avalé par le `try/catch`) / Wake Lock / installation / iOS = 👁 (validés téléphone réel 2026-08-14) |
+| `combat/platform-chrome.spec.ts` | §4.17 bouton plein écran du chrome de combat : visible hors plein écran, nom accessible « Plein écran », dans le viewport ; **clic → document en plein écran + bouton `hidden`**, puis **sortie non déclenchée par lui** (`exitFullscreen()`) **→ bouton de retour** (abonnement `fullscreenchange`) ; §6.10 **un combat perdu revient au menu principal** (parcours réel jusqu'à la scène montée → `pt-last-screen` effacé → rechargement = menu, aucun chrome de combat remonté). Barre d'URL masquée + verrouillage paysage = 👁 (aucun signal DOM ; le `lock()` est refusé en desktop et avalé par le `try/catch`) |
 | `dom/credits.spec.ts` | §6.8 — titre + contenu + EN |
 | `dom/picker.spec.ts` | §7.2 — ouverture/liste/recherche, filtres type (union/toggle/reset), choisir/grisé/fermer |
 | `dom/picker-search.spec.ts` | §7.2 recherche bilingue tolérante (`team/search-index.ts`) : en UI FR, nom EN + sans-accent filtrent vers le résultat FR — Pokemon (gyarados/leviator → Léviator), capacité (vinewhip → Fouet Lianes), objet (charcoal → Charbon) |
@@ -2466,7 +2568,8 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
 `SCORED_AI_ATTACKS`, `PASSIVE_AI_STATIC`, `SPAWN_FAINTED_ALLY_REVIVE` [schéma v2 `teams`],
 `TILE_INFO_NEUTRAL`, `TILE_INFO_MAGMA`, `TILE_INFO_POPULATED` [§4.13, dont un schéma v2 `teams` +
 `debugTiles`]…), `e2e/pages/` (POM : `MainMenu`, `Splash`, `CombatScene`, `screens`, `teamBuilder`,
-`combatHud` — dont `TileInfoPanel`).
+`combatHud` — dont `TileInfoPanel` —, `app-shell` : métadonnées de plateforme du `<head>`,
+rechargement re-passant par le splash, lecture du point de reprise `pt-last-screen`).
 
 ### À étendre (👁 → 🤖, par priorité — DOM d'abord, c'est facile)
 
@@ -2474,7 +2577,8 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
       (`splash.spec`) ; billboards slicés du bundle + portrait InfoPanel croppé de `portraits.png` +
       pré-évo Pikachu (`sprite-bundle.spec`). *Fade/anim du splash + portrait du picker = 👁.*
 - [x] **Menu principal** : 5 entrées, Aventure disabled, version, switch FR→EN (`main-menu.spec`).
-- [x] **Paramètres** : 3 options, persistance `pt-lang`/`pt-settings` (`settings.spec`).
+- [x] **Paramètres** : 2 options inconditionnelles + persistance `pt-lang`/`pt-settings`
+      (`settings.spec`) ; lignes conditionnées à la plateforme en §6.10 (`platform.spec`).
 - [x] **Crédits** : titre + contenu + EN (`credits.spec`).
 - [x] **Pokemon Picker** : ouverture, liste, recherche, filtres type (union/toggle/reset), grisé
       inter-slots, fermeture (`picker.spec`) ; **fiche détaillée §7.3** (`pokemon-edit.spec`) ;
@@ -2510,6 +2614,29 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
       unifiées, sélecteurs (grille atteignable, une ligne de puces, noms FR, focus conditionné au
       pointeur), modales dans l'écran, barre de placement, voile de chargement de l'aperçu
       (`responsive-chrome`, `responsive-screens`, `responsive-team-builder`).
+- [x] **§4.17 / §6.10 Comportement plateforme** (plan 180-a/180-b) : manifeste PWA servi + icônes
+      réellement joignables, liens/`theme-color` du document, **reprise de l'écran courant** au
+      rechargement + ses deux garde-fous (écran à paramètres et combat → menu principal), ligne
+      « Plein écran » des réglages, bouton plein écran du chrome de combat (`platform.spec`,
+      `platform-chrome.spec`). **Bascule effective du plein écran incluse** : le clic Playwright porte
+      l'activation utilisateur, donc `document.fullscreenElement` et la réaction du chrome (bouton
+      `hidden` puis de retour à la sortie) sont assertables — mesuré stable : **28 exécutions des 2
+      tests, 0 échec**, dont `--repeat-each=10`, le projet `dom` répété ×3 et la suite complète.
+      ⚠️ Vaut pour **Chromium headless** (le seul navigateur du harness, et le seul mode du gate) ; en
+      `--headed` un refus de plein écran ferait ÉCHOUER le test, pas passer à faux.
+- [ ] **Reste 👁 plateforme (hors d'atteinte d'un navigateur piloté)** :
+      - **Barre d'URL réellement masquée + verrouillage paysage** : l'ÉTAT plein écran est 🤖, son
+        **effet mobile** ne l'est pas — aucun signal DOM n'expose la barre d'URL, et
+        `screen.orientation.lock()` est refusé en Chromium de bureau puis avalé par le `try/catch`
+        best-effort (le test 🤖 passerait à l'identique sans le `lock()`). **Téléphone réel**
+        (validés 2026-08-14).
+      - **Wake Lock** : permission refusée en Chromium de bureau (`console.warn` de diagnostic au
+        boot), aucun signal observable → **téléphone réel**.
+      - **Installation PWA + comportement iOS** : `beforeinstallprompt` (Android) et Partager → Sur
+        l'écran d'accueil (iOS), rendu des icônes, ligne « Plein écran » absente / « Installer
+        l'app » visible sur iPhone → demandent un vrai WebKit iOS.
+      - **Péremption à 1 h** du point de reprise : dépend de l'horloge → unit
+        (`app/screen-persistence.test.ts`).
 - [ ] **Reste 👁 responsive (physiquement non émulable)** :
       - **`env(safe-area-inset-*)`** (chrome, journal, barre de placement, sélection d'équipe) : sans
         encoche physique les insets résolvent à **0px** et Chromium n'en émule aucune → **téléphone

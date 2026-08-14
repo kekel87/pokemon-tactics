@@ -16,7 +16,26 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="28x28" href="/favicon.png" />
+    <!-- Grande icône déclarée AUSSI comme favicon (plan 180-a). Firefox Android a deux modes : soit
+         il « installe » le site (et prend les icônes du manifeste), soit il crée un simple signet —
+         et dans ce second cas c'est le favicon qui sert d'icône de raccourci. Avec le seul favicon
+         28×28, ce repli donnait une icône agrandie donc floue. Déclarer la 192 ici la rend
+         disponible dans les deux modes, sans toucher au 28×28 qui reste net dans l'onglet. -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <!-- Manifeste PWA (plan 180-a). Sur Android il autorise l'installation et fait honorer
+         `display: standalone` + `orientation: landscape` une fois installé. Sur iPhone, WebKit lit
+         le nom, les icônes et `theme_color` mais IGNORE `orientation` — même en PWA installée : le
+         verrouillage paysage y est impossible, l'overlay d'obstruction (OrientationPrompt) reste le
+         seul levier. Volontairement PAS d'`apple-mobile-web-app-capable` : la doc web.dev ne le
+         recommande plus (il dégrade l'installation si le manifeste échoue à charger). -->
+    <link rel="manifest" href="/manifest.json" />
+    <!-- iOS n'utilise pas les icônes du manifeste pour l'écran d'accueil et applique son propre
+         masque arrondi : d'où une icône 180×180 dédiée, à fond opaque (la transparence deviendrait
+         du noir). -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- Doit rester aligné sur `background` de html/body ci-dessous et sur --color-bg-base. -->
+    <meta name="theme-color" content="#1a1a2e" />
     <title>Pokemon Tactics</title>
     <style>
       @font-face {
