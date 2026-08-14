@@ -518,6 +518,8 @@ export class BattleOrchestrator {
 
     const aiEvents = this.onTurnReady?.(active.id);
     if (Array.isArray(aiEvents)) {
+      // The AI submitted its actions itself inside the hook, so the engine's log has already grown.
+      this.config.onActionCommitted?.();
       this.inputState = { phase: "animating" };
       this.chrome.hideMenus();
       this.board.clearHighlights();
@@ -1119,6 +1121,9 @@ export class BattleOrchestrator {
       this.enterActionMenu();
       return;
     }
+    // Persist before the animation, not after: the action is already committed to the engine, and a
+    // tab discarded mid-animation must resume with it (plan 181).
+    this.config.onActionCommitted?.();
     this.inputState = { phase: "animating" };
     this.chrome.hideMenus();
     this.board.clearHighlights();

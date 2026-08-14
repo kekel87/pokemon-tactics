@@ -1,13 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createLocalStorageStub } from "../testing/local-storage-stub";
 
-const localStorageMap = new Map<string, string>();
-const localStorageMock = {
-  getItem: (key: string) => localStorageMap.get(key) ?? null,
-  setItem: (key: string, value: string) => localStorageMap.set(key, value),
-  removeItem: (key: string) => localStorageMap.delete(key),
-  clear: () => localStorageMap.clear(),
-};
-vi.stubGlobal("localStorage", localStorageMock);
+const { storage, entries: localStorageMap } = createLocalStorageStub();
+vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("navigator", { languages: ["fr-FR"], language: "fr-FR" });
 
 const { detectLanguage, getLanguage, initLanguage, onLanguageChange, setLanguage, t } =

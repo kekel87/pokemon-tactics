@@ -45,6 +45,21 @@ export async function hoverCard(
   return card;
 }
 
+/** Nom FR et PV du Pokemon ACTIF, lus sur le panneau d'info gauche — qui ne reflète que lui depuis le
+ *  plan 175, donc SANS survol : la lecture est stable dès que la main est au joueur. Utile pour
+ *  comparer un état de combat à lui-même de part et d'autre d'un rechargement (§6.11 reprise). */
+export async function readActivePokemon(
+  page: Page,
+): Promise<{ name: string; hp: string; maxHp: string }> {
+  const panel = new InfoPanel(page);
+  await expect(panel.panel).toBeVisible();
+  return {
+    name: (await panel.name.textContent()) ?? "",
+    hp: (await panel.hpBar.getAttribute("aria-valuenow")) ?? "",
+    maxHp: (await panel.hpBar.getAttribute("aria-valuemax")) ?? "",
+  };
+}
+
 /** Nombre d'occurrences de `badgeMatcher` (badge volatile, statut, aura…) sur la carte d'info qui
  *  montre `name` après un survol de la tuile — `-1` tant qu'aucune carte ne le montre, pour que le
  *  poll appelant réessaie au lieu de conclure « 0 badge » sur une carte qui n'est pas la bonne.

@@ -238,6 +238,7 @@ export interface Translations {
   "pokemon.dragonite": string;
   "menu.adventure": string;
   "menu.battle": string;
+  "menu.resumeBattle": string;
   "menu.settings": string;
   "menu.credits": string;
   "orientation.title": string;

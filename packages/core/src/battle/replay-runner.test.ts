@@ -97,6 +97,32 @@ describe("replay-runner", () => {
     expect(state1.currentTurnIndex).toBe(state2.currentTurnIndex);
   });
 
+  it("reports the events of each replayed action", () => {
+    const engine = buildSeededEngine(42);
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "p1-charmander",
+      moveId: "ember",
+      targetPosition: { x: 1, y: 0 },
+    });
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "p1-charmander",
+      direction: Direction.East,
+    });
+    const replay = engine.exportReplay();
+
+    const batches: number[] = [];
+    runReplay(
+      replay,
+      (seed) => buildSeededEngine(seed),
+      (events) => batches.push(events.length),
+    );
+
+    expect(batches).toHaveLength(2);
+    expect(batches[0]).toBeGreaterThan(0);
+  });
+
   it("throws on invalid replay action", () => {
     const badReplay = {
       seed: 42,

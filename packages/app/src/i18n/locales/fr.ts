@@ -233,6 +233,7 @@ const fr: Translations = {
   "pokemon.dragonite": "Dracolosse",
   "menu.adventure": "Aventure",
   "menu.battle": "Combat",
+  "menu.resumeBattle": "Reprendre le combat",
   "menu.settings": "Paramètres",
   "menu.credits": "Crédits",
   "orientation.title": "Tourne ton écran",

@@ -5,6 +5,14 @@ export class MainMenu {
   readonly title: Locator;
   readonly adventure: Locator;
   readonly combat: Locator;
+  /**
+   * « Reprendre le combat — <carte> » (plan 181) — present ONLY when a resumable battle is stored, so
+   * `toHaveCount(0)` is the assertion for "nothing to resume". Matched on the label's PREFIX: the map
+   * name is appended to it and belongs to the assertion, not to the locator.
+   */
+  readonly resume: Locator;
+  /** The menu entries in DOM order — the resume entry must come FIRST when it exists. */
+  readonly entries: Locator;
   readonly teamBuilder: Locator;
   readonly settings: Locator;
   readonly credits: Locator;
@@ -16,6 +24,8 @@ export class MainMenu {
     this.title = page.getByRole("heading", { level: 1, name: "POKEMON TACTICS" });
     this.adventure = page.getByRole("button", { name: "Aventure", exact: true });
     this.combat = page.getByRole("button", { name: "Combat", exact: true });
+    this.resume = page.getByRole("button", { name: /^Reprendre le combat/ });
+    this.entries = page.getByRole("navigation").getByRole("button");
     this.teamBuilder = page.getByRole("button", { name: "Constructeur d'équipe" });
     this.settings = page.getByRole("button", { name: "Paramètres" });
     this.credits = page.getByRole("button", { name: "Crédits" });

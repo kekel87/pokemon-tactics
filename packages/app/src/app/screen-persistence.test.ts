@@ -1,32 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createLocalStorageStub } from "../testing/local-storage-stub";
 import { loadPersistedScreen, saveCurrentScreen } from "./screen-persistence";
 
 const STORAGE_KEY = "pt-last-screen";
 
-/**
- * The suite runs on the `node` environment (no jsdom in this repo), so `localStorage` has to be
- * provided. A Map-backed stand-in is enough: these tests are about which screens are eligible and
- * how entries expire, not about Web Storage semantics.
- */
-function createStorageStub(): Storage {
-  const entries = new Map<string, string>();
-  return {
-    get length() {
-      return entries.size;
-    },
-    clear: () => entries.clear(),
-    getItem: (key: string) => entries.get(key) ?? null,
-    key: (index: number) => [...entries.keys()][index] ?? null,
-    removeItem: (key: string) => entries.delete(key),
-    setItem: (key: string, value: string) => {
-      entries.set(key, value);
-    },
-  } satisfies Storage;
-}
-
 describe("screen persistence", () => {
   beforeEach(() => {
-    vi.stubGlobal("localStorage", createStorageStub());
+    vi.stubGlobal("localStorage", createLocalStorageStub().storage);
   });
 
   afterEach(() => {
@@ -103,7 +83,7 @@ describe("screen persistence", () => {
   });
 
   it("does not throw when storage refuses to write", () => {
-    const refusing = createStorageStub();
+    const refusing = createLocalStorageStub().storage;
     refusing.setItem = () => {
       throw new Error("QuotaExceededError");
     };
@@ -113,7 +93,7 @@ describe("screen persistence", () => {
   });
 
   it("does not throw when storage refuses to read", () => {
-    const refusing = createStorageStub();
+    const refusing = createLocalStorageStub().storage;
     refusing.getItem = () => {
       throw new Error("SecurityError");
     };

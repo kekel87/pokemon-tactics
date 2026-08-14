@@ -262,4 +262,10 @@ export interface BattleOrchestratorConfig {
    * clear exactly what the fog withholds. Empty/omitted → the actor is the viewer (legacy behaviour).
    */
   humanPlayerIds?: readonly string[];
+  /**
+   * Fired whenever the engine's action log has grown — after a human action is accepted, and after the
+   * AI hook returns (the AI submits its own actions). The host uses it to persist the battle so a
+   * reload can resume it (plan 181); the orchestrator itself knows nothing of storage.
+   */
+  onActionCommitted?: () => void;
 }

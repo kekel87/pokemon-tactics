@@ -1,5 +1,6 @@
 import { Nature, type TeamSet } from "@pokemon-tactic/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createLocalStorageStub, type LocalStorageStub } from "../../testing/local-storage-stub";
 import { clearAllTeams, deleteTeam, listTeamSummaries, loadTeam, saveTeam } from "../team-storage";
 
 function buildTeam(id: string, name: string): TeamSet {
@@ -20,41 +21,17 @@ function buildTeam(id: string, name: string): TeamSet {
   };
 }
 
-function setupLocalStorageMock(): { store: Record<string, string> } {
-  const store: Record<string, string> = {};
-  const mock = {
-    getItem: vi.fn((key: string) => store[key] ?? null),
-    setItem: vi.fn((key: string, value: string) => {
-      store[key] = value;
-    }),
-    removeItem: vi.fn((key: string) => {
-      delete store[key];
-    }),
-    clear: vi.fn(() => {
-      for (const k of Object.keys(store)) {
-        delete store[k];
-      }
-    }),
-    key: vi.fn(),
-    length: 0,
-  };
-  Object.defineProperty(globalThis, "localStorage", {
-    value: mock,
-    writable: true,
-    configurable: true,
-  });
-  return { store };
-}
-
 describe("team-storage", () => {
-  let mockState: { store: Record<string, string> };
+  let stub: LocalStorageStub;
 
   beforeEach(() => {
-    mockState = setupLocalStorageMock();
+    stub = createLocalStorageStub();
+    vi.stubGlobal("localStorage", stub.storage);
   });
 
   afterEach(() => {
     clearAllTeams();
+    vi.unstubAllGlobals();
   });
 
   it("save then load returns identical team", () => {
@@ -82,15 +59,15 @@ describe("team-storage", () => {
   });
 
   it("recovers gracefully from corrupted JSON", () => {
-    mockState.store["pokemon-tactics:teams"] = "not-valid-json{";
+    stub.entries.set("pokemon-tactics:teams", "not-valid-json{");
     expect(listTeamSummaries()).toEqual([]);
   });
 
   it("resets on schema version mismatch", () => {
-    mockState.store["pokemon-tactics:teams"] = JSON.stringify({
-      version: 99,
-      teams: { t1: buildTeam("t1", "Old") },
-    });
+    stub.entries.set(
+      "pokemon-tactics:teams",
+      JSON.stringify({ version: 99, teams: { t1: buildTeam("t1", "Old") } }),
+    );
     expect(listTeamSummaries()).toEqual([]);
   });
 });

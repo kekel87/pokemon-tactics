@@ -44,10 +44,17 @@ export class TeamSelectScreen {
   readonly title: Locator;
   /** Toggle the Player 1 slot from Human → AI (assigns it a random team → launchable). */
   readonly humanToggle: Locator;
+  /**
+   * « 🎲 Aléatoire » row of the team list — assigns a random team to the ACTIVE slot, which is slot 1
+   * on arrival. The way to launch a battle the test can PLAY: {@link humanToggle} also makes it
+   * launchable, but by handing slot 1 to the AI, leaving no human turn to drive.
+   */
+  readonly randomTeam: Locator;
   readonly launch: Locator;
   constructor(page: Page) {
     this.title = page.getByText("Sélection d'équipe", { exact: false });
     this.humanToggle = page.getByRole("button", { name: "Humain", exact: true });
+    this.randomTeam = page.getByRole("button", { name: "🎲 Aléatoire", exact: true });
     this.launch = page.getByRole("button", { name: "Lancer ▶", exact: true });
   }
 }

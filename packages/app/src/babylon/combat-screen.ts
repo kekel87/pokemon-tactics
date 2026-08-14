@@ -1,4 +1,7 @@
 import {
+  type BattleEvent,
+  BattleEventType,
+  type BattleState,
   createPrng,
   Direction,
   EASY_PROFILE,
@@ -28,7 +31,6 @@ import {
   type BattleFeedback,
   BattleOrchestrator,
   type BattleSetupResult,
-  createBattleFromPlacements,
   createFloatingTextSpawner,
   createSandboxBattle,
   DummyAiController,
@@ -36,6 +38,7 @@ import {
   preloadCombatSprites,
   sandboxInstanceId,
 } from "@pokemon-tactic/view-core";
+import { type BattleResumeSave, battleResumeStore } from "../app/battle-persistence.js";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
 import {
@@ -62,11 +65,11 @@ import {
   getTypeIconUrl,
   getWeatherIconUrl,
 } from "../team/asset-paths.js";
-import { buildTeamOverrides } from "../team/build-overrides.js";
 import { getItemIconUrl, getPortraitUrl } from "../team/team-builder-data.js";
 import type { AiProfileKey, SandboxConfig } from "../types/SandboxConfig.js";
 import { type LoadingOverlayHandle, showLoadingOverlay } from "../ui/LoadingOverlay.js";
 import { SandboxPanel } from "../ui/SandboxPanel.js";
+import { type BattleInputs, buildBattle, resumeBattle } from "./battle-resume.js";
 import { type PlacementFlow, type PlacementResult, startPlacementFlow } from "./placement-flow.js";
 
 // confirmAttack defaults to true (plan 123 4d-3): a target click locks the
@@ -210,6 +213,16 @@ function runBattle(options: {
   enemyInfoHidden: boolean;
   /** Players a human drives — the fog reads through their eyes, never the acting AI's (plan 176). */
   humanPlayerIds: readonly string[];
+  /**
+   * Events of a battle rebuilt from its saved action log (plan 181). Pushed into the log ONLY, so a
+   * resumed battle comes back with its history — never through `feedback`, which would re-spawn every
+   * damage number of the whole battle over the sprites.
+   */
+  initialLogEvents?: readonly BattleEvent[];
+  /** Called after each action the engine accepted — the hook the resume save hangs on (plan 181). */
+  onActionCommitted?: () => void;
+  /** Called once the battle can no longer be resumed: it ended, or the player walked away. */
+  onBattleClosed?: () => void;
 }): BattleOrchestrator {
   const {
     backend,
@@ -223,6 +236,9 @@ function runBattle(options: {
     wireTurnReady,
     enemyInfoHidden,
     humanPlayerIds,
+    initialLogEvents,
+    onActionCommitted,
+    onBattleClosed,
   } = options;
   const board = backend.createBattleBoardView(combat, handles);
   // Host-injected i18n / asset-path deps for the reusable DOM chrome (plan 125 Phase 4).
@@ -237,8 +253,18 @@ function runBattle(options: {
   };
   const chrome = createBattleChrome({
     host: stage.screenLayer,
-    onExit,
-    onReplay,
+    onExit: () => {
+      // Leaving for the menu abandons the battle: its save must go with it, or the menu would offer to
+      // resume a battle the player just quit.
+      onBattleClosed?.();
+      onExit();
+    },
+    onReplay: () => {
+      // "Replay" restarts the whole placement→battle flow from scratch; the old log describes a battle
+      // that no longer exists.
+      onBattleClosed?.();
+      onReplay();
+    },
     config: uiConfig,
   });
   const language = getLanguage();
@@ -309,10 +335,18 @@ function runBattle(options: {
     translate: presentationContext.translate,
     getLanguage: presentationContext.getLanguage,
   });
+  // History of a resumed battle: the log alone, and before the live feed starts, so the restored lines
+  // sit above whatever happens next.
+  for (const event of initialLogEvents ?? []) {
+    battleLog.report(event);
+  }
   const feedback: BattleFeedback = {
     report: (event) => {
       battleLog.report(event);
       spawnFloatingText(event);
+      if (event.type === BattleEventType.BattleEnded) {
+        onBattleClosed?.();
+      }
     },
   };
   const orchestrator = new BattleOrchestrator(
@@ -322,7 +356,7 @@ function runBattle(options: {
     board,
     chrome,
     feedback,
-    { confirmAttack: BATTLE_CONFIRM_ATTACK, humanPlayerIds },
+    { confirmAttack: BATTLE_CONFIRM_ATTACK, humanPlayerIds, onActionCommitted },
     presentationContext,
   );
   orchestrator.onTurnReady = wireTurnReady(battle);
@@ -387,24 +421,74 @@ function startBattleLoop(
   combat: CombatScene,
   stage: GameStage,
   map: MapDefinition,
+  mapUrl: string,
   setup: CombatSetup,
   result: PlacementResult,
   navigate: Navigate,
   signal: AbortSignal,
   onReplay: () => void,
 ): BattleOrchestrator {
-  const battle = createBattleFromPlacements({
-    map,
-    teams: result.placementTeams,
+  const inputs: BattleInputs = {
+    setup,
+    placementTeams: result.placementTeams,
     placements: result.placements,
-    // Single entropy source for a live battle: pick one seed here, then the engine's seeded
-    // PRNG drives all combat RNG deterministically (replayable; no scattered Math.random).
+    // Single entropy source for a live battle: pick one seed here, then the engine's seeded PRNG drives
+    // all combat RNG deterministically (replayable; no scattered Math.random).
     seed: randomSeed(),
-    // Carry the team-builder customisation (moves, ability, item, nature, EVs)
-    // into combat — keyed by instance id ("p1-pikachu") like the placements.
-    ...buildTeamOverrides({ teams: setup.teams }),
+  };
+  const battle = buildBattle(inputs, map);
+  return runResolvedBattle({
+    backend,
+    combat,
+    stage,
+    battle,
+    handles: result.handles,
+    mapUrl,
+    inputs,
+    navigate,
+    signal,
+    onReplay,
   });
-  const aiPlayerIds = result.placementTeams
+}
+
+/**
+ * Wire a built real battle (fresh or resumed) into the loop and keep its resume save up to date.
+ *
+ * Single point on purpose: the resumed path must not become a second combat path that drifts from the
+ * live one. The only thing it does differently is arrive with a history (`initialLogEvents`) and with
+ * billboards spawned from engine state rather than from the placement phase.
+ */
+function runResolvedBattle(options: {
+  backend: RendererBackend;
+  combat: CombatScene;
+  stage: GameStage;
+  battle: BattleSetupResult;
+  handles: ReadonlyMap<string, CombatPokemonHandle>;
+  mapUrl: string;
+  inputs: BattleInputs;
+  navigate: Navigate;
+  signal: AbortSignal;
+  onReplay: () => void;
+  initialLogEvents?: readonly BattleEvent[];
+}): BattleOrchestrator {
+  const { backend, combat, stage, battle, handles, mapUrl, inputs, navigate, signal, onReplay } =
+    options;
+  const store = battleResumeStore();
+  const persist = (): void => {
+    const replay = battle.engine.exportReplay();
+    store.save({
+      mapUrl,
+      setup: inputs.setup,
+      placementTeams: inputs.placementTeams,
+      placements: inputs.placements,
+      seed: replay.seed,
+      actions: replay.actions,
+    });
+  };
+  // Saved before the first action too: a reload right after placement should resume the battle that was
+  // just set up, not send the player back through team-select.
+  persist();
+  const aiPlayerIds = inputs.placementTeams
     .filter((team) => team.controller === PlayerController.Ai)
     .map((team) => team.playerId);
   return runBattle({
@@ -412,16 +496,85 @@ function startBattleLoop(
     combat,
     stage,
     battle,
-    handles: result.handles,
-    onExit: () => navigate("main-menu", undefined),
+    handles,
     signal,
     onReplay,
+    initialLogEvents: options.initialLogEvents,
+    onExit: () => navigate("main-menu", undefined),
     wireTurnReady: (built) => wireScoredAi(built, aiPlayerIds),
     // A real battle always withholds enemy information (plan 176) — no player-facing opt-out.
     enemyInfoHidden: true,
-    humanPlayerIds: result.placementTeams
+    humanPlayerIds: inputs.placementTeams
       .filter((team) => team.controller === PlayerController.Human)
       .map((team) => team.playerId),
+    onActionCommitted: persist,
+    onBattleClosed: () => store.clear(),
+  });
+}
+
+/**
+ * Spawn one billboard per Pokémon straight from engine state, for the two paths that have no placement
+ * phase to walk (the sandbox studio and a resumed battle). Poses each mon where the engine says it
+ * stands right now — mid-battle positions and K.O.s included; the initial `syncBoard` lays a fainted
+ * one down, and a later revive re-shows it.
+ *
+ * The team number is read from the instance-id prefix, like the placement path does (`p3-` is team 3),
+ * NOT from `playerId === Player1 ? 1 : 2`: formats go up to `12v1` (twelve teams of one — `formatKey`
+ * is `{teamCount}v{maxPokemonPerTeam}`), and the number drives the team colour and the X-ray
+ * silhouette. Hard-coding two teams silently repainted players 3+ in the enemy's colour.
+ */
+function spawnBillboardsFromState(
+  combat: CombatScene,
+  state: BattleState,
+): Map<string, CombatPokemonHandle> {
+  const handles = new Map<string, CombatPokemonHandle>();
+  for (const pokemon of state.pokemon.values()) {
+    const handle = combat.addPokemon({
+      pokemonId: pokemon.definitionId,
+      spawn: pokemon.position,
+      team: Number(pokemon.id.match(/^p(\d+)-/)?.[1] ?? 1),
+    });
+    handle.setFacing(pokemon.orientation);
+    handles.set(pokemon.id, handle);
+  }
+  return handles;
+}
+
+/**
+ * Resume path (plan 181): rebuild the battle from its saved action log, spawn the billboards from the
+ * resulting engine state, and hand it to the same loop as a fresh battle.
+ *
+ * Throws if the log cannot be replayed; the caller drops the save and falls back to the menu.
+ */
+function startResumedBattle(
+  backend: RendererBackend,
+  combat: CombatScene,
+  stage: GameStage,
+  map: MapDefinition,
+  save: BattleResumeSave,
+  navigate: Navigate,
+  signal: AbortSignal,
+  onReplay: () => void,
+): BattleOrchestrator {
+  const inputs: BattleInputs = {
+    setup: save.setup,
+    placementTeams: save.placementTeams,
+    placements: save.placements,
+    seed: save.seed,
+  };
+  const { battle, logEvents } = resumeBattle(inputs, save.actions, map);
+  return runResolvedBattle({
+    backend,
+    combat,
+    stage,
+    battle,
+    handles: spawnBillboardsFromState(combat, battle.state),
+    mapUrl: save.mapUrl,
+    inputs,
+    navigate,
+    signal,
+    onReplay,
+    initialLogEvents: logEvents,
   });
 }
 
@@ -485,18 +638,8 @@ function startSandboxBattle(options: {
     options;
   const seed = resolveSandboxSeed(config);
   const battle = createSandboxBattle({ ...config, seed }, map);
-  const handles = new Map<string, CombatPokemonHandle>();
-  // Spawn every member, including one that starts fainted (hp:0 ally for Vœu Soin / revive
-  // scenarios): the initial syncBoard poses it knocked-out, and a later revive re-shows it.
-  for (const pokemon of battle.state.pokemon.values()) {
-    const handle = combat.addPokemon({
-      pokemonId: pokemon.definitionId,
-      spawn: pokemon.position,
-      team: pokemon.playerId === PlayerId.Player1 ? 1 : 2,
-    });
-    handle.setFacing(pokemon.orientation);
-    handles.set(pokemon.id, handle);
-  }
+  // Includes a member that starts fainted (hp:0 ally for Vœu Soin / revive scenarios).
+  const handles = spawnBillboardsFromState(combat, battle.state);
 
   const resolved: ResolvedSpawn[] = [];
   config.teams.forEach((team, teamIndex) => {
@@ -718,15 +861,67 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     const overlay = loading;
     const activeStage = mountGameStage(host);
     stage = activeStage;
+    const setup = params.setup;
+    const resume = params.resume;
+    // A resumed battle carries the map it was played on; `params.mapUrl` and `resume.mapUrl` agree
+    // today, but the saved one is the authority — the engine is rebuilt from it.
+    const mapUrl = resume?.mapUrl ?? params.mapUrl;
     const activeCombat = backend.createCombatScene({
       canvas: activeStage.canvas,
-      mapUrl: params.mapUrl,
-      pokemon: params.setup ? [] : DEMO_POKEMON,
+      mapUrl,
+      pokemon: setup || resume ? [] : DEMO_POKEMON,
     });
     combat = activeCombat;
     overlay.setProgress(0.2);
 
-    const setup = params.setup;
+    if (resume) {
+      // Everything that can fail sits inside the try: a map fetch that dies on a flaky mobile network
+      // — the very situation this feature serves — would otherwise strand the player under a loading
+      // veil forever, save intact, failing again at every attempt.
+      try {
+        const [loaded] = await Promise.all([loadTiledMap(mapUrl), activeCombat.ready]);
+        if (localAbort.signal.aborted) {
+          overlay.cancel();
+          return;
+        }
+        overlay.setProgress(0.6);
+        // Only the sprite atlases have to be warm before the billboards appear, exactly as on the
+        // placement path — the battle itself already has its position.
+        await preloadCombatSprites(resume.setup.teams.flatMap((team) => team.pokemonDefinitionIds));
+        if (localAbort.signal.aborted) {
+          overlay.cancel();
+          return;
+        }
+        orchestrator = startResumedBattle(
+          backend,
+          activeCombat,
+          activeStage,
+          loaded.map,
+          resume,
+          navigate,
+          abort.signal,
+          // "Replay" from a resumed battle restarts its setup from the top — same placement→battle flow
+          // as a fresh battle, minus the stale log.
+          () => {
+            teardown();
+            void mountContent(host, { mapUrl: resume.mapUrl, setup: resume.setup });
+          },
+        );
+      } catch (error) {
+        // Nothing restorable: a log the engine rejects (changed data), a battle that turned out to be
+        // already won, or a map/sprite fetch that failed. Drop the save and go back to the menu rather
+        // than leave the player in a half-built battle or under an endless loading veil.
+        // biome-ignore lint/suspicious/noConsole: diagnostic-only — a replay that fails is silent to the player (they land on the menu), and this is the only trace of why
+        console.warn("[resume] battle replay failed, dropping the save:", error);
+        battleResumeStore().clear();
+        overlay.cancel();
+        navigate("main-menu", undefined);
+        return;
+      }
+      overlay.setProgress(1);
+      await overlay.finish();
+      return;
+    }
     if (!setup) {
       mountDemoContent(activeCombat);
       await activeCombat.whenReady();
@@ -771,6 +966,7 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
           activeCombat,
           activeStage,
           map,
+          params.mapUrl,
           setup,
           result,
           navigate,

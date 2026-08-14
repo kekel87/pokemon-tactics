@@ -1,12 +1,33 @@
 import { AnalyticsEvent, trackEvent } from "../../../analytics/analytics";
+import { type BattleResumeSave, battleResumeStore } from "../../../app/battle-persistence";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { getLanguage, setLanguage, t } from "../../../i18n";
 import { Language } from "../../../i18n/types";
+import { MAPS_REGISTRY } from "../../../maps/maps-registry";
 import { el, menuButton } from "./elements";
 
 const VERSION_TEXT = __APP_VERSION__;
 
-/** DOM port of MainMenuScene: title, 5 entries (Aventure disabled), version, language toggle. */
+/**
+ * Entry point back into a battle interrupted by a reload (plan 181) — shown only when a save exists,
+ * so the menu is unchanged for a player who has no battle waiting.
+ *
+ * The map name is spelled out in the label: the whole point of coming back here is not remembering
+ * what was going on.
+ */
+function resumeEntry(save: BattleResumeSave, navigate: Navigate): HTMLButtonElement {
+  const map = MAPS_REGISTRY.find((entry) => entry.url === save.mapUrl);
+  const mapName = map?.displayName[getLanguage()];
+  const label = mapName ? `${t("menu.resumeBattle")} — ${mapName}` : t("menu.resumeBattle");
+  return menuButton(label, () =>
+    navigate("combat", { mapUrl: save.mapUrl, setup: save.setup, resume: save }),
+  );
+}
+
+/**
+ * DOM port of MainMenuScene: title, 5 entries (Aventure disabled) plus a 6th when a battle is waiting
+ * to be resumed, version, language toggle.
+ */
 export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
   let root: HTMLElement | null = null;
 
@@ -18,6 +39,12 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
     title.textContent = "POKEMON TACTICS";
 
     const buttons = el("nav", "mn-buttons");
+    // Read on every render (including the language toggle's re-render), so a battle abandoned from the
+    // combat screen stops being offered without any cross-screen plumbing.
+    const save = battleResumeStore().load();
+    if (save) {
+      buttons.append(resumeEntry(save, navigate));
+    }
     buttons.append(
       menuButton(t("menu.adventure")),
       menuButton(t("menu.battle"), () => navigate("battle-mode", undefined)),

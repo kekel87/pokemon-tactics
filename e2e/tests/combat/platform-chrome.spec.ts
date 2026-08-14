@@ -1,6 +1,7 @@
 import { expect, test } from "../../fixtures";
 import { DUEL } from "../../fixtures/sandbox-configs";
 import { AppShell } from "../../pages/app-shell";
+import { BattleResumeStore } from "../../pages/battle-resume";
 import { CombatScene } from "../../pages/CombatScene";
 import { MainMenu } from "../../pages/MainMenu";
 import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages/screens";
@@ -60,6 +61,7 @@ test("§6.10 reprise d'écran : un combat perdu revient au menu principal", asyn
   const teams = new TeamSelectScreen(page);
   const scene = new CombatScene(page);
   const shell = new AppShell(page);
+  const store = new BattleResumeStore(page);
 
   // Parcours réel (pas la route sandbox) : c'est le boot de l'app qu'on verrouille ici.
   await menu.goto();
@@ -71,9 +73,13 @@ test("§6.10 reprise d'écran : un combat perdu revient au menu principal", asyn
   await teams.humanToggle.click();
   await teams.launch.click();
   await scene.waitReady();
+  // ⚠️ `waitReady` gate la SCÈNE (carte + atlas), pas le combat : la phase de placement, puis la
+  // première sauvegarde de reprise, arrivent après. Sans cette attente le rechargement partirait
+  // avant que le combat n'existe côté persistance.
+  await expect.poll(() => store.actionCount(), { timeout: 15_000 }).toBeGreaterThanOrEqual(0);
 
-  // Restaurer un combat exigerait de sérialiser l'état du moteur (lot 180-c) : le point de reprise
-  // est effacé plutôt que laissé sur un écran de menu périmé.
+  // Le combat n'est pas un écran restaurable (il ne se remonte pas tout seul au boot) : le point de
+  // reprise est effacé plutôt que laissé sur un écran de menu périmé.
   expect(await shell.persistedScreenId()).toBeNull();
 
   await shell.reload();
@@ -82,4 +88,7 @@ test("§6.10 reprise d'écran : un combat perdu revient au menu principal", asyn
   await expect(menu.combat).toBeVisible();
   // Et pas un demi-combat remonté sans son état.
   await expect(page.getByTestId("action-menu")).toHaveCount(0);
+  // Depuis le plan 181 le combat n'est plus PERDU pour autant : le menu propose de le reprendre, sur
+  // décision du joueur. La reprise elle-même est vérifiée en §6.11 (`combat/battle-resume.spec`).
+  await expect(menu.resume).toBeVisible();
 });

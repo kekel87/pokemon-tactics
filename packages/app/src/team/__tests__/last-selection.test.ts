@@ -1,39 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createLocalStorageStub, type LocalStorageStub } from "../../testing/local-storage-stub";
 import { clearLastSelection, loadLastSelection, saveLastSelectionEntry } from "../last-selection";
 
 const STORAGE_KEY = "pt:team-select:last-v1";
 
-function setupLocalStorageMock(): { store: Record<string, string> } {
-  const store: Record<string, string> = {};
-  const mock = {
-    getItem: vi.fn((key: string) => store[key] ?? null),
-    setItem: vi.fn((key: string, value: string) => {
-      store[key] = value;
-    }),
-    removeItem: vi.fn((key: string) => {
-      delete store[key];
-    }),
-    clear: vi.fn(),
-    key: vi.fn(),
-    length: 0,
-  };
-  Object.defineProperty(globalThis, "localStorage", {
-    value: mock,
-    writable: true,
-    configurable: true,
-  });
-  return { store };
-}
-
 describe("last-selection storage", () => {
-  let mockState: { store: Record<string, string> };
+  let stub: LocalStorageStub;
 
   beforeEach(() => {
-    mockState = setupLocalStorageMock();
+    stub = createLocalStorageStub();
+    vi.stubGlobal("localStorage", stub.storage);
   });
 
   afterEach(() => {
     clearLastSelection();
+    vi.unstubAllGlobals();
   });
 
   it("returns empty when nothing stored", () => {
@@ -53,12 +34,12 @@ describe("last-selection storage", () => {
   });
 
   it("ignores stored schema with wrong version", () => {
-    mockState.store[STORAGE_KEY] = JSON.stringify({ version: 99, bySlot: { 0: "foo" } });
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ version: 99, bySlot: { 0: "foo" } }));
     expect(loadLastSelection()).toEqual({});
   });
 
   it("recovers gracefully from corrupted JSON", () => {
-    mockState.store[STORAGE_KEY] = "not-valid-json{";
+    stub.entries.set(STORAGE_KEY, "not-valid-json{");
     expect(loadLastSelection()).toEqual({});
   });
 

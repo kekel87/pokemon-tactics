@@ -233,6 +233,7 @@ const en: Translations = {
   "pokemon.dragonite": "Dragonite",
   "menu.adventure": "Adventure",
   "menu.battle": "Battle",
+  "menu.resumeBattle": "Resume battle",
   "menu.settings": "Settings",
   "menu.credits": "Credits",
   "orientation.title": "Rotate your device",

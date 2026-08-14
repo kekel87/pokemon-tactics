@@ -172,3 +172,6 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 176 | [Fog ennemi (rétention d'information sur les Pokemon adverses)](./176-fog-ennemi.md) | done | 2026-08-05 |
 | 177 | [Panneau d'info de case (terrain & modificateurs)](./177-tile-info-panel.md) | done | 2026-07-24 |
 | 178 | [Tooltip d'attaque enrichi + harmonisation de l'affichage des types](./178-move-tooltip-et-types.md) | done | 2026-08-03 |
+| 179 | [Responsive + dette mobile](./179-responsive-dette-mobile.md) | done | 2026-08-06 |
+| 180 | [Comportement plateforme mobile (plein écran, orientation, survie au rechargement)](./180-comportement-plateforme-mobile.md) | done | 2026-08-14 |
+| 181 | [Reprise d'un combat en cours (lot 180-c)](./181-reprise-combat-en-cours.md) | done | 2026-08-14 |

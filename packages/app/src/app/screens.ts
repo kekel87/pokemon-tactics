@@ -1,4 +1,5 @@
 import type { TeamSelection } from "@pokemon-tactic/core";
+import type { BattleResumeSave } from "./battle-persistence";
 
 /**
  * Screen FSM (plan 120) — screen IDs and legal transition table.
@@ -32,12 +33,17 @@ export interface ScreenParamsById {
   "team-edit": { teamId: string };
   settings: undefined;
   credits: undefined;
-  /** No `setup` = the `?combat=1` dev route (Jalon 3 demo content until step 7). */
-  combat: { mapUrl: string; setup?: CombatSetup };
+  /**
+   * No `setup` = the `?combat=1` dev route (Jalon 3 demo content until step 7).
+   * A `resume` (plan 181) rebuilds a battle from its saved action log and skips the placement phase.
+   */
+  combat: { mapUrl: string; setup?: CombatSetup; resume?: BattleResumeSave };
 }
 
 export const SCREEN_TRANSITIONS: Readonly<Record<ScreenId, readonly ScreenId[]>> = {
-  "main-menu": ["battle-mode", "my-teams", "settings", "credits"],
+  // `combat` is reachable straight from the menu by the resume entry (plan 181) — the only way into a
+  // battle that skips map + team selection, because the saved battle already carries both.
+  "main-menu": ["battle-mode", "my-teams", "settings", "credits", "combat"],
   "battle-mode": ["map-select", "main-menu"],
   "map-select": ["team-select", "battle-mode"],
   "team-select": ["combat", "map-select"],

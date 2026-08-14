@@ -74,6 +74,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Placement / zones de spawn | §8.5 |
 | Responsive / mobile / `--ui-scale` / safe-area / cible tactile | §4.16, §6.9, §7.5, §8.5 |
 | Plateforme (plein écran, manifeste PWA, veille/Wake Lock, reprise d'écran au rechargement) | §6.10, §4.17, §6.7 |
+| Reprise d'un combat en cours (sauvegarde `pt-battle-resume`, entrée de menu, rejeu du journal d'actions) | §6.11, §6.1, §6.10 |
 
 ---
 
@@ -2099,7 +2100,8 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
 *libellés : `menu.*` ; lang `pt-lang` ; version `__APP_VERSION__`*
 - 🤖 Le **titre** « POKEMON TACTICS » s'affiche (heading h1).
 - 🤖 **5 entrées** dans l'ordre, libellés FR : **Aventure**, **Combat**, **Constructeur d'équipe**,
-  **Paramètres**, **Crédits**.
+  **Paramètres**, **Crédits**. Une **6ᵉ entrée conditionnelle** (« Reprendre le combat — <carte> ») se
+  place **avant** elles quand un combat est reprenable → §6.11.
 - 🤖 **Aventure** est **désactivée** (`disabled`).
 - 🤖 **Numéro de version** visible en bas à gauche (`.mn-version`).
 - 🤖 Clic sur le bouton de langue (bas-droite, « FR » → « EN ») : les 5 entrées passent en anglais
@@ -2235,9 +2237,11 @@ et ce qui **survit à un rechargement** (reprise d'écran).*
 - 🤖 **Garde-fou des écrans à paramètres** : « Choix de la carte » est enregistré, mais entrer dans
   « Sélection d'équipe » (qui exige un `mapUrl`) **efface** le point de reprise → rechargement =
   **menu principal**, jamais un écran périmé (`platform.spec`).
-- 🤖 **Un combat perdu revient au menu principal** : parcours réel jusqu'à la scène montée →
-  `pt-last-screen` effacé → rechargement = menu principal, sans chrome de combat remonté. Restaurer
-  un combat exige de sérialiser le moteur : c'est le **lot 180-c** (`platform-chrome.spec`).
+- 🤖 **Un combat ne se remonte pas tout seul au boot** : parcours réel jusqu'à la scène montée →
+  `pt-last-screen` effacé → rechargement = menu principal, sans chrome de combat remonté. Depuis le
+  plan 181 le combat n'est plus **perdu** pour autant : le menu propose de le reprendre, sur décision
+  du joueur → §6.11 (`platform-chrome.spec` vérifie les deux : menu nu de combat **et** entrée de
+  reprise présente).
 - 🤖 **Réglages — ligne « Plein écran »** présente et à « NON » hors plein écran (état lu du
   document, **jamais** persisté dans `pt-settings` : c'est un état vivant, pas une préférence), et
   **ligne « Installer l'app » absente** hors iPhone non installé (`platform.spec`).
@@ -2265,6 +2269,72 @@ et ce qui **survit à un rechargement** (reprise d'écran).*
   d'obstruction (§6.9) reste le seul levier. Demande un vrai WebKit iOS.
 - 👁 **Péremption du point de reprise à 1 h** : dépend de l'horloge, pas de la navigation — le sens
   est couvert en unit (`app/screen-persistence.test.ts`).
+
+### 6.11 Reprise d'un combat en cours (plan 181)
+
+*src : `app/app/battle-persistence.ts` (clé `pt-battle-resume`, port `load`/`save`/`clear`),
+`app/babylon/battle-resume.ts` (`buildBattle` + `resumeBattle`), `app/babylon/combat-screen.ts`
+(crochet `onActionCommitted`, effacement), `app/ui/dom/screens/main-menu-screen.ts` (entrée de menu),
+`app/app/screens.ts` (transition `main-menu → combat`), core `battle/replay-runner.ts`*
+*e2e : `dom/battle-resume-menu.spec.ts` (l'entrée n'apparaît PAS) +
+`combat/battle-resume.spec.ts` (elle apparaît et le combat remonte)*
+
+*Ce qui est persisté : les **entrées** du combat (carte, équipes, placements, seed) et le **journal
+d'actions** — jamais d'état dérivé (PV, positions, jauges CT). La reprise rejoue le journal sur un
+moteur reconstruit : tout ce qui est dérivé se recalcule. C'est ce qui rend la recette simple —
+il n'y a pas de champ à vérifier un par un, seulement « est-ce le même combat ? ».*
+
+*⚠️ Note pour l'écriture de tests : la sauvegarde n'existe **que** sur le chemin réel menu → carte →
+équipe → placement → combat. La route de dev `?combat=1` et le studio sandbox n'y participent pas
+(entrées de développement, volontairement déterministes), donc **aucun `bootSandbox` ne peut
+fabriquer cet état** — il faut monter un vrai combat, d'où un spec en projet `combat` et non `dom`.
+Et `waitReady()` ne suffit pas : il gate la **scène**, alors que la première sauvegarde arrive après
+la phase de placement → attendre la clé (`expect.poll`) avant de recharger. Côté DOM, **un cas de
+rejet par test** : chaque rechargement re-traverse le splash, et trois d'affilée mettaient un seul test
+à 27 s sous charge, pour un budget de projet de 30 s.*
+
+- 🤖 **Sans sauvegarde, le menu est inchangé** : 5 entrées, « Aventure » en tête, aucune entrée de
+  reprise (`battle-resume-menu.spec`). Garde-fou de non-régression : la reprise **s'ajoute**, elle ne
+  remplace ni ne réordonne rien.
+- 🤖 **Sauvegardé dès le démarrage du combat**, avant toute action (`pt-battle-resume` présente avec
+  un journal d'actions vide) : un rechargement juste après le placement doit reprendre le combat qui
+  vient d'être posé, pas renvoyer en sélection d'équipe (`battle-resume.spec`).
+- 🤖 **La sauvegarde grossit à chaque action validée** : deux tours passés (« Attendre ») → le nombre
+  d'actions enregistrées augmente (les actions de l'IA comptent aussi, elle les soumet elle-même)
+  (`battle-resume.spec`).
+- 🤖 **L'entrée de reprise nomme la carte** et se place **en tête** du menu :
+  « Reprendre le combat — Arène Simple », le nom étant relu de l'écran de choix de carte et non codé
+  en dur (`battle-resume.spec`).
+- 🤖 **Reprise sans repasser par le placement** : clic sur l'entrée → la scène de combat monte
+  directement avec **tout son monde** (même nombre de billboards `pokemon_plane` qu'avant le
+  rechargement) et le menu d'action est rendu au joueur (`battle-resume.spec`).
+- 🤖 **Même combat, pas un combat neuf** : après la reprise, le **journal est reconstruit à
+  l'identique** (les lignes d'avant le rechargement, dans le même ordre, en tête du journal), le
+  **Pokemon dont c'est le tour** et ses **PV** sont ceux qu'on a quittés, et le journal d'actions
+  ré-exporté retombe sur le **même nombre d'actions** (`battle-resume.spec`). C'est le faisceau qui
+  distingue une reprise d'un combat relancé de zéro — vérifié en rouge : privée de sa charge utile
+  `resume`, l'entrée relance un combat neuf et le spec échoue (journal de 4 lignes au lieu de 10).
+- 🤖 **Sauvegarde d'un autre build ignorée** (`buildVersion` étranger, forme par ailleurs complète) :
+  aucune entrée de reprise. Une mise à jour du jeu peut changer une formule → on préfère perdre la
+  reprise que restaurer un combat faux (`battle-resume-menu.spec`).
+- 🤖 **Schéma inconnu ignoré** (`version: 999` estampillée du **bon** build — donc le rejet vient bien
+  du numéro de schéma) et **entrée corrompue** (JSON tronqué) : aucune entrée de reprise, **aucune
+  exception non attrapée** au boot (`pageerror` surveillé) (`battle-resume-menu.spec`).
+- 👁 **La clé disparaît à la fin du combat** (et au « Retour au menu » / « Rejouer » de la modale de
+  victoire, qui sont ses seuls points d'entrée) : **non automatisable** en e2e. Terminer un vrai
+  combat suppose de K.O. une équipe entière tirée au hasard par le chemin de production (équipes
+  aléatoires, 12 Pokemon sur la carte, IA adverse) — ni court ni déterministe ; et le sandbox, qui
+  sait finir un combat en un coup (`DUEL_LETHAL`), **ne participe pas** à la persistance. Le sens est
+  couvert ailleurs : `clear()` en unit (`app/battle-persistence.test.ts`) et le rejeu en intégration
+  (`app/babylon/battle-resume.integration.test.ts`). **À dérouler à l'œil** : gagner un combat →
+  retour au menu → l'entrée de reprise a disparu.
+- 👁 **Rien ne se rejoue à l'écran** à la reprise (les events du rejeu alimentent le journal seul :
+  pas de textes flottants, pas d'animations, pas de mouvement de caméra qui rediffuserait tout le
+  combat). Invariant visuel, donc œil humain.
+- 👁 **Coût du rejeu** sur un combat long (le voile de chargement doit couvrir le fast-forward) :
+  question de ressenti et de durée, pas de signal DOM.
+- 👁 **Le cas d'usage réel** : téléphone, onglet déchargé par l'OS sous pression mémoire (pas un
+  simple `reload()` piloté), retour au jeu → l'entrée est là. Téléphone réel.
 
 ---
 
@@ -2465,6 +2535,8 @@ Raccourci `/ci-gate`. Zéro warning Biome toléré.
 7. Un champ + une météo actifs, HUD à jour (§3.1, §4) ; occlusions correctes (pastille/auras/
    champ, §2).
 8. Écran 4K / redimensionnement (§3.13, §4.11) ; console navigateur : **zéro erreur**.
+9. Reprise : recharger en plein combat → menu avec « Reprendre le combat — <carte> » → le combat
+   revient tel quel ; puis gagner un combat → l'entrée a **disparu** (§6.11).
 
 ## 11. E2E — Playwright (`pnpm test:e2e`)
 
@@ -2486,6 +2558,8 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `dom/settings.spec.ts` | §6.7 — 2 options inconditionnelles (Langue + Prévisualisation dégâts), persistance `pt-lang`/`pt-settings` |
 | `dom/platform.spec.ts` | §6.10 comportement plateforme (plan 180-a/180-b) : manifeste PWA servi + JSON valide (`name`, `display: standalone`) + **chaque icône répond 200 en `image/png`** ; `<link rel="manifest">`, `<link rel="apple-touch-icon">` (fichier joignable) et `<meta name="theme-color">` déclarés ; **reprise d'écran** — Crédits enregistré (`pt-last-screen`) et retrouvé après rechargement ; **garde-fou** — « Sélection d'équipe » (écran à paramètres) efface le point de reprise → rechargement = menu principal ; réglages : ligne « Plein écran » présente à « NON », ligne « Installer l'app » absente hors iPhone, **aller-retour de la bascule** (clic → `document.fullscreenElement` renseigné + « OUI », re-clic → sortie + « NON »). Barre d'URL réellement masquée / verrouillage paysage (avalé par le `try/catch`) / Wake Lock / installation / iOS = 👁 (validés téléphone réel 2026-08-14) |
 | `combat/platform-chrome.spec.ts` | §4.17 bouton plein écran du chrome de combat : visible hors plein écran, nom accessible « Plein écran », dans le viewport ; **clic → document en plein écran + bouton `hidden`**, puis **sortie non déclenchée par lui** (`exitFullscreen()`) **→ bouton de retour** (abonnement `fullscreenchange`) ; §6.10 **un combat perdu revient au menu principal** (parcours réel jusqu'à la scène montée → `pt-last-screen` effacé → rechargement = menu, aucun chrome de combat remonté). Barre d'URL masquée + verrouillage paysage = 👁 (aucun signal DOM ; le `lock()` est refusé en desktop et avalé par le `try/catch`) |
+| `dom/battle-resume-menu.spec.ts` | §6.11 entrée « Reprendre le combat » — les cas où elle **ne doit pas** apparaître, **un par test** (chaque rechargement re-traverse le splash : les trois rejets enchaînés dans un seul test le mettaient à 27 s sous charge, le plus lent du projet `dom` pour un budget de 30 s) : aucune sauvegarde (menu intact : 5 entrées, « Aventure » en tête, clé absente) ; sauvegarde d'un **autre build** (`buildVersion` étranger, forme par ailleurs complète) ; **schéma inconnu** (`version: 999` estampillée du BON build → le rejet vient du numéro de schéma, pas du build) ; **entrée corrompue** (JSON tronqué). Dans les trois cas de rejet : pas d'entrée, menu debout, et **aucune exception non attrapée** au boot (`pageerror` surveillé) |
+| `combat/battle-resume.spec.ts` | §6.11 reprise d'un combat en cours (plan 181), sur le **chemin réel** (la sauvegarde n'existe pas en sandbox) : combat lancé avec un joueur Humain (équipe « 🎲 Aléatoire ») → clé `pt-battle-resume` écrite **dès le démarrage** (journal d'actions vide), deux « Attendre » → le compte d'actions **grossit** ; rechargement → menu principal avec l'entrée **en tête** nommant la carte (« Reprendre le combat — Arène Simple », nom relu de l'écran de carte) ; clic → scène remontée **sans repasser par le placement** (même nombre de `pokemon_plane`, menu d'action rendu), **journal reconstruit à l'identique** (mêmes lignes, même ordre, en tête), **même Pokemon actif et mêmes PV**, **même nombre d'actions** ré-exporté. Aucune valeur en dur (équipes + seed aléatoires côté production) : tout est comparé avant/après. Fin de combat → clé effacée = 👁 (non déterministe : équipes aléatoires, 12 mons ; le sandbox qui sait finir un combat ne persiste pas) |
 | `dom/credits.spec.ts` | §6.8 — titre + contenu + EN |
 | `dom/picker.spec.ts` | §7.2 — ouverture/liste/recherche, filtres type (union/toggle/reset), choisir/grisé/fermer |
 | `dom/picker-search.spec.ts` | §7.2 recherche bilingue tolérante (`team/search-index.ts`) : en UI FR, nom EN + sans-accent filtrent vers le résultat FR — Pokemon (gyarados/leviator → Léviator), capacité (vinewhip → Fouet Lianes), objet (charcoal → Charbon) |
@@ -2569,7 +2643,10 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
 `TILE_INFO_NEUTRAL`, `TILE_INFO_MAGMA`, `TILE_INFO_POPULATED` [§4.13, dont un schéma v2 `teams` +
 `debugTiles`]…), `e2e/pages/` (POM : `MainMenu`, `Splash`, `CombatScene`, `screens`, `teamBuilder`,
 `combatHud` — dont `TileInfoPanel` —, `app-shell` : métadonnées de plateforme du `<head>`,
-rechargement re-passant par le splash, lecture du point de reprise `pt-last-screen`).
+rechargement re-passant par le splash, lecture du point de reprise `pt-last-screen` ;
+`battle-resume` : lecture/écriture de la sauvegarde de combat `pt-battle-resume` — écriture en **texte
+brut**, pour pouvoir exprimer une entrée corrompue —, et `wellFormedSave`, charge utile de forme
+complète dont seul le tampon `version`/`buildVersion` est falsifié).
 
 ### À étendre (👁 → 🤖, par priorité — DOM d'abord, c'est facile)
 
@@ -2624,6 +2701,17 @@ rechargement re-passant par le splash, lecture du point de reprise `pt-last-scre
       tests, 0 échec**, dont `--repeat-each=10`, le projet `dom` répété ×3 et la suite complète.
       ⚠️ Vaut pour **Chromium headless** (le seul navigateur du harness, et le seul mode du gate) ; en
       `--headed` un refus de plein écran ferait ÉCHOUER le test, pas passer à faux.
+- [x] **§6.11 Reprise d'un combat en cours** (plan 181) : sauvegarde écrite dès le démarrage puis
+      grossissante, entrée de menu en tête nommant la carte, combat remonté **sans repasser par le
+      placement** avec journal reconstruit à l'identique / même Pokemon actif / mêmes PV / même compte
+      d'actions (`battle-resume.spec`, projet `combat` — la sauvegarde n'existe pas en sandbox) ; rejets
+      (autre build, schéma inconnu, JSON corrompu) sans entrée ni exception (`battle-resume-menu.spec`,
+      projet `dom`, un cas par test pour rester loin du budget de 30 s). Discrimination vérifiée en
+      rouge (entrée privée de sa charge utile `resume` → combat relancé de zéro → spec en échec).
+      *Reste 👁 : effacement à la fin du combat (terminer un combat de production = 12 mons tirés au
+      hasard, ni court ni déterministe ; le sandbox qui sait finir un combat ne persiste pas), absence
+      de rediffusion visuelle du rejeu, coût du rejeu, et le vrai cas d'usage (onglet déchargé par
+      l'OS ≠ `reload()` piloté).*
 - [ ] **Reste 👁 plateforme (hors d'atteinte d'un navigateur piloté)** :
       - **Barre d'URL réellement masquée + verrouillage paysage** : l'ÉTAT plein écran est 🤖, son
         **effet mobile** ne l'est pas — aucun signal DOM n'expose la barre d'URL, et

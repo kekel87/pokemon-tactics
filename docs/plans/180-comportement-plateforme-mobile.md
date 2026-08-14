@@ -1,6 +1,6 @@
 # Plan 180 — Comportement plateforme mobile (plein écran, orientation, survie au rechargement)
 
-- **Statut** : `in-progress` — lots **180-a** et **180-b** livrés et validés sur téléphone réel (2026-08-14, commit WIP `118cd55`). Lot **180-c** reste `draft`, plan à part.
+- **Statut** : `done` — lots **180-a** et **180-b** livrés et validés sur téléphone réel (2026-08-14, commit WIP `118cd55`). Lot **180-c** livré à part par le [plan 181](./181-reprise-combat-en-cours.md), même jour.
 - **Date** : 2026-08-06, arbitrages tranchés et vérification de fraîcheur le 2026-08-14
 - **Origine** : retours sur **téléphone réel** (Android, Firefox) pendant la validation du [plan 179](./179-responsive-dette-mobile.md). Le 179 traite le **CSS/layout** ; ces retours-là sont du **comportement plateforme**, hors de son périmètre.
 - **Recherche préalable** : agent `best-practices` (A→E), 2026-08-06, avec lecture du code de **PokeRogue** (référence explicite du projet). Conclusions et sources ci-dessous.
@@ -129,7 +129,7 @@ Quatre décisions prises par l'humain avant l'implémentation de 180-a/180-b :
 
 À dire clairement à l'humain au moment du test, pour éviter une attente déçue :
 
-- **Un combat en cours reste perdu** au rechargement. C'est 180-c, et c'est le seul vrai remède au retour n°4.
+- ~~**Un combat en cours reste perdu** au rechargement. C'est 180-c, et c'est le seul vrai remède au retour n°4.~~ **Résolu le 2026-08-14 par le [plan 181](./181-reprise-combat-en-cours.md)** : le combat est persisté sous forme de journal d'actions et repris depuis une entrée « Reprendre le combat » au menu principal.
 - Le Wake Lock **n'empêche pas** la décharge de l'onglet sous pression mémoire (aucune API web ne le peut), ni la veille après un verrouillage manuel de l'écran.
 - Sur **iPhone**, aucun verrouillage d'orientation n'est possible, ni par API ni par manifeste.
 
@@ -139,7 +139,7 @@ Quatre décisions prises par l'humain avant l'implémentation de 180-a/180-b :
 |---|---|---|
 | **180-a** | Manifeste PWA + bouton plein écran + verrouillage paysage enchaîné + diagnostic de perte de contexte WebGL | petit |
 | **180-b** | Wake Lock (avec ré-acquisition sur `visibilitychange`) + persistance de l'écran/menu courant | petit |
-| **180-c** | Persistance et reprise d'un **combat en cours** | gros — plan à part, review core |
+| **180-c** | Persistance et reprise d'un **combat en cours** | livré par le [plan 181](./181-reprise-combat-en-cours.md) (2026-08-14) — finalement **moyen**, pas gros : l'infra de rejeu (`BattleReplay` + `runReplay`) existait déjà, donc aucun sérialiseur d'état à écrire |
 
 ## Sources
 
