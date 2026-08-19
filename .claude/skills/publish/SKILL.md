@@ -54,7 +54,3 @@ Un subagent ne peut ni poser de question à l'humain ni lancer d'autres agents. 
 - Workflow itch-deploy : https://github.com/kekel87/pokemon-tactics/actions/workflows/itch-deploy.yml
 - Dashboard itch devlog : https://itch.io/dashboard/game/4605116/new-devlog
 - Wiki repo : https://github.com/kekel87/pokemon-tactics.wiki.git
-
-## Recovery itch.io page
-
-Si page itch perd settings : voir `docs/references/itch-page-state.md` (snapshot à créer post-stabilisation page).
