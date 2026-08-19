@@ -4,7 +4,7 @@
  * text, tile-map loading, projection. Depends on render-ports + view-core
  * (+ Babylon); never on the app-shell. The app-shell wires these into screens.
  */
-export * from "./babylon-aura-ground-icons.js";
+export * from "./babylon-aura-rings.js";
 export * from "./babylon-champ-pill.js";
 export * from "./babylon-color.js";
 export * from "./babylon-constants.js";

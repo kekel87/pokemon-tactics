@@ -41,7 +41,7 @@ export interface FieldGlobalDamageContext {
  * land: weather (BP and defence boosts), screens, Brise Barrière, and the field-global context.
  *
  * These used to be hardcoded to 1 in `estimateDamage`, so the forecast — and every AI heuristic
- * built on it — silently ignored the sun, the rain and Reflet/Mur Lumière. Grouped as an options
+ * built on it — silently ignored the sun, the rain and Protection/Mur Lumière. Grouped as an options
  * object rather than seven more positional parameters.
  */
 export interface EstimateCombatContext {

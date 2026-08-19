@@ -32,8 +32,6 @@ export {
 
 export const CURSOR_COLOR = 0xffdd44;
 
-export const AURA_HOVER_MAX_ICONS = 6;
-export const SCREEN_HOVER_AURA_ALPHA = 0.7;
 export const FIELD_TERRAIN_OUTLINE_ALPHA = 0.95;
 
 export const TILE_HIGHLIGHT_MOVE_COLOR = 0x4488cc;

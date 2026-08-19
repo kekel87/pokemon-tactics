@@ -6,7 +6,7 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 
 /** Manhattan radius of Brouhaha's no-sleep aura (mobile, centred on the locked caster). */
-const UPROAR_AURA_RADIUS = 3;
+export const UPROAR_AURA_RADIUS = 3;
 const UPROAR_MOVE_ID = "uproar";
 
 /** True while `pokemon` is locked into Brouhaha (uproar) — it projects the no-sleep aura. */

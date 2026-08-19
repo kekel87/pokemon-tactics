@@ -1,14 +1,13 @@
 import { Material } from "@babylonjs/core/Materials/material";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { CreateGreasedLine } from "@babylonjs/core/Meshes/Builders/greasedLineBuilder";
 import type { GreasedLineBaseMesh } from "@babylonjs/core/Meshes/GreasedLine/greasedLineBaseMesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
 import type { FieldTerrainSpec } from "@pokemon-tactic/render-ports";
-import { fieldTerrainBorderEdges } from "@pokemon-tactic/view-core";
+import { borderOutlineSegments } from "./babylon-border-outline.js";
 import { type ChampPill, createChampPill } from "./babylon-champ-pill.js";
 import { hexToColor3 } from "./babylon-color.js";
 import {
@@ -69,7 +68,10 @@ export function createFieldTerrains(
       material.dispose();
     }
     for (const outline of outlines) {
-      outline.dispose();
+      // Same requirement as the aura rings: `CreateGreasedLine` mints a StandardMaterial per
+      // call and registers it on the scene, so a bare `dispose()` would leak it on every
+      // `set()`. Pre-existing leak, fixed here because this is the same call path.
+      outline.dispose(false, true);
     }
     for (const pill of pills) {
       pill.dispose();
@@ -117,34 +119,14 @@ export function createFieldTerrains(
       quad.parent = parent;
     }
 
-    // Perimeter: each border edge (a neighbour absent from the set) becomes a
-    // GreasedLine segment on the relevant side. gridX → world Z, gridY → world X
-    // (see terrain-extruder.gridToWorldXZ). Stroke inset by its half-width so it
-    // lies fully inside the tile (no clip into a taller neighbour's wall).
-    const inset = BABYLON_FIELD_TERRAIN_OUTLINE_WIDTH / 2;
-    const borderLines: Vector3[][] = [];
-    for (const edge of fieldTerrainBorderEdges(onGrid)) {
-      const top = topAt(edge.x, edge.y);
-      const lineY = top.y + BABYLON_TILE_OUTLINE_Y_OFFSET;
-      const minX = top.x - 0.5;
-      const maxX = top.x + 0.5;
-      const minZ = top.z - 0.5;
-      const maxZ = top.z + 0.5;
-      if (edge.side === "xPlus") {
-        const z = maxZ - inset;
-        borderLines.push([new Vector3(minX, lineY, z), new Vector3(maxX, lineY, z)]);
-      } else if (edge.side === "xMinus") {
-        const z = minZ + inset;
-        borderLines.push([new Vector3(minX, lineY, z), new Vector3(maxX, lineY, z)]);
-      } else if (edge.side === "yPlus") {
-        const lineX = maxX - inset;
-        borderLines.push([new Vector3(lineX, lineY, minZ), new Vector3(lineX, lineY, maxZ)]);
-      } else {
-        const lineX = minX + inset;
-        borderLines.push([new Vector3(lineX, lineY, minZ), new Vector3(lineX, lineY, maxZ)]);
-      }
-    }
-
+    // Perimeter: the shared stair-stepped contour builder. Stroke inset by its half-width
+    // so it lies fully inside the tile (no clip into a taller neighbour's wall).
+    const borderLines = borderOutlineSegments(
+      onGrid,
+      topAt,
+      BABYLON_TILE_OUTLINE_Y_OFFSET,
+      BABYLON_FIELD_TERRAIN_OUTLINE_WIDTH / 2,
+    );
     if (borderLines.length > 0) {
       const outline = CreateGreasedLine(
         `field_terrain_outline_${spec.anchor.x}_${spec.anchor.y}`,

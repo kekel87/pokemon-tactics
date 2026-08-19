@@ -1028,19 +1028,47 @@ Source canonique : `packages/render-babylon/src/babylon-decorations.ts` + `comba
 
 **Mis à jour pour les meshes voxel (décision #690)** : `decorationHeightAt(x, y)` retourne la hauteur d'obstacle en unités **TILE-HEIGHT (block units)**, dérivée automatiquement de la bounding box du mesh chargé (`(bounds.maximum.y − bounds.minimum.y) / BABYLON_TILE_HEIGHT_SCALE`) — plus de `BABYLON_DECORATION_FOOT_DROP` (constante supprimée avec les billboards). Seuls rochers et arbre contribuent (l'herbe haute n'ajoute pas de hauteur, les unités s'y tiennent dedans). `surfaceHeightAt(x, y)` = terrain + déco, utilisé par `tileWorldTop`, highlights et mouvement. Le curseur de survol et les highlights se positionnent sur le dessus de la décoration. Décision #493, révisée #690.
 
-#### Phase recette — auras (Murs) in-engine
+#### Phase recette — auras : anneaux au sol + pastilles de barre de vie
 
-Source canonique : `packages/renderer/src/babylon/babylon-sprite-hud.ts` + `babylon-aura-ground-icons.ts`.
+Source canonique : `packages/render-babylon/src/babylon-aura-rings.ts` + `babylon-sprite-hud.ts`, contour partagé `babylon-border-outline.ts`, view-model `packages/view-core/src/aura-ring-view.ts`.
+
+> Constantes nommées ci-dessous **sans** le préfixe `BABYLON_` : elles vivent dans `packages/view-core/src/constants.ts` et le renderer les réimporte sous alias `BABYLON_*` (convention du projet).
+
+**Refonte plan 182 (2026-08-19)** : les anciennes **icônes émoji au sol, affichées au survol du lanceur** sont remplacées par des **anneaux permanents** dessinant le contour de la zone. `babylon-aura-ground-icons.ts` et `view-core/aura-ground-layout.ts` (layout en croix 1→6) sont supprimés, ainsi que le port `setAuraGroundIcons` — la décision #494 est **annulée** pour le sol. Les pastilles de la barre de vie, elles, sont inchangées.
+
+**Deux canaux complémentaires** : l'anneau dit **où** est la zone, la pastille de barre de vie dit **quelle** aura c'est. Les 4 murs d'équipe partagent le même rayon et le même lanceur, donc leurs contours sont rigoureusement identiques — seules la teinte et la hauteur d'empilement les distinguent au sol.
 
 | Constante | Rôle |
 |-----------|------|
-| `BABYLON_HUD_AURA_ICON_SIZE` | Côté (unités monde) d'une icône d'aura dans la barre de vie (`setLeftIndicators`). |
-| `BABYLON_HUD_AURA_ICON_GAP` | Espacement entre icônes d'aura consécutives dans la barre de vie. |
-| `BABYLON_AURA_HOVER_ICON_SIZE` | Côté (unités monde) d'une icône d'aura au sol (affiché au survol du lanceur). |
-| `BABYLON_AURA_HOVER_LIFT` | Lift world-Y appliqué aux icônes au sol pour les décaler légèrement de la surface de la tuile. |
-| `BABYLON_AURA_HOVER_ALPHA` | Alpha des icônes d'aura au sol (semi-transparent pour ne pas masquer la carte). |
+| `HUD_AURA_ICON_SIZE` | Côté (unités monde) d'une icône d'aura dans la barre de vie (`setLeftIndicators`). |
+| `HUD_AURA_ICON_GAP` | Espacement entre icônes d'aura consécutives dans la barre de vie. |
+| `AURA_RING_STACK_PITCH` | Pas d'empilement vertical entre deux anneaux d'un même lanceur : **2 voxels** (`2 / 24` unité) — 1 voxel de trait + 1 voxel de vide. Un pas de 1 voxel ferait lire deux anneaux voisins comme un seul trait épais. |
+| `AURA_RING_COLOR_BY_KIND` | Teinte par aura. Pendant chromatique d'`AURA_INDICATOR_SYMBOL`, posé juste à côté dans `view-core/constants.ts` : la règle est « la teinte prolonge l'émoji de la barre de vie », elle doit rester vérifiable d'un coup d'œil. |
+| `FIELD_TERRAIN_OUTLINE_WIDTH` | Largeur du trait, réutilisée telle quelle : `0.04` unité ≈ **1 voxel** (1/24 = 0.0417). |
+| `TILE_OUTLINE_Y_OFFSET` | Lift de base, auquel s'ajoute `(stackIndex + 1) × AURA_RING_STACK_PITCH` — le `+1` fait qu'un anneau **seul** flotte déjà d'un cran, sinon il se lit comme peint sur la tuile à la manière du périmètre des Champs. |
+| `AURA_RING_PULSE_PERIOD_MS` | Période de la respiration du trait (2600 ms). |
+| `AURA_RING_PULSE_MIN_ALPHA` | Plancher d'alpha de la respiration (0.55 ; le sommet est à 1). Volontairement haut : l'anneau est la **seule** marque de la zone, il doit rester franchement lisible au creux du cycle — la pulsation attire l'œil, elle ne fait pas clignoter le contour. |
 
-Les icônes au sol sont rendues via un **groupe sprite** (pivot billboardé par tuile, layout en croix) : les Pokemon les occluent naturellement par le depth-buffer. Les icônes sur les tuiles occupées par un Pokemon sont masquées. Décision #494.
+**Géométrie procédurale, pas un asset voxel.** Contrairement aux hazards et aux décorations (`.gox` → `.glb`), la forme du contour dépend du rayon, du découpage au bord de carte et de la position vivante du lanceur — aucun asset n'est auteurable. L'anneau réutilise donc intégralement la machinerie de périmètre des Champs : `fieldTerrainBorderEdges` pour le contour en escalier d'un jeu de tuiles quelconque, un segment `CreateGreasedLine` par arête de bordure, chacun posé sur le haut de **sa** tuile — donc l'anneau épouse le relief. Trait inséré d'une demi-largeur pour ne pas mordre dans le mur d'un voisin plus haut.
+
+Le lift sert **à la fois** l'empilement et l'anti-z-fighting sur la surface coplanaire : un seul mécanisme, pas deux à réconcilier. Rendering group `0`, donc les Pokemon occluent naturellement un anneau derrière eux via le depth-buffer partagé (`combat-scene.ts` désactive l'auto-clear du depth pour les groupes 1 et 2). Pas d'`alphaIndex` ni de `disableDepthWrite` — comme le contour des Champs.
+
+**Teintes** — dérivées de la couleur de l'émoji quand elle est distinctive, avec deux écarts assumés, et poussées à l'écart des 8 couleurs de zone au sol déjà prises (4 Terrains, Distorsion, Gravité, Zone Étrange, Zone Magique) :
+
+| Aura | Émoji | Teinte | Origine |
+|---|---|---|---|
+| Protection | 🛡️ | `0x8ec5e8` bleu acier | dérivée, éclaircie loin du bleu de Gravité |
+| Mur Lumière | ✨ | `0xffe9a8` or pâle | dérivée, pâlie loin du jaune de Terrain Électrifié |
+| Brume | 🌫️ | `0xd8f2f7` cyan glacé | dérivée, saturée (le gris pur disparaîtrait sur neige/sable) |
+| Rune Protect | 🕊️ | `0xb5c46a` olive | dérivée du **rameau**, pas du corps blanc |
+| Requiem | 🎵 | `0x6b2d8f` violet sombre | **écart** : la note est bleu nuit — invisible sur terrain sombre, et trop proche du bleu acier |
+| Brouhaha | 🔊 | `0xff8c42` orange chaud | **écart, aucune base émoji** : le haut-parleur est gris, teinte déjà prise 3 fois |
+
+Limite de la règle : les couleurs d'émoji dépendent de la police (Noto Color Emoji sous Linux, autre chose sur iOS/Android). C'est un guide de conception, pas un invariant testable.
+
+**Effet visuel — la pulsation du trait, rien d'autre.** Tous les anneaux partagent **la même phase** (les décaler produisait du scintillement, pas une pulsation, dès que plusieurs s'empilent sur un lanceur). Deux pistes ont été essayées puis **écartées à l'œil** (arbitrage humain 2026-08-19) : un **halo** (2ᵉ trait large et translucide sous le net) — à alpha bas il était à peine visible tout en jurant déjà avec le trait opaque, et le monter le transformait en second trait plein au lieu d'une diffusion ; un **`GlowLayer`** réel — ç'aurait été le premier post-process de la scène, et comme tout le rendu flat unlit repose sur des matériaux émissifs, il aurait fallu le masquer mesh par mesh.
+
+**Brouhaha gagne son premier rendu** : elle projetait déjà une aura anti-sommeil r3 dans le core (`uproar-aura.ts`) sans aucune trace à l'écran — désormais un anneau **et** une pastille 🔊.
 
 #### Phase recette — Champs dédup + pastille centrée
 

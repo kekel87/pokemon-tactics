@@ -1,4 +1,5 @@
 import type {
+  AuraKind,
   BattleEvent,
   Direction,
   MoveDefinition,
@@ -74,6 +75,27 @@ export interface BoardEntryHazard {
   readonly layers: number;
 }
 
+/**
+ * Which aura a ground ring draws. Wider than `AuraKind`: Requiem lives on
+ * `pokemon.perishAura` and Brouhaha on a lock-in move id, so neither has an
+ * `AuraKind` to key off.
+ */
+export type AuraRingKind = AuraKind | "perish-aura" | "uproar";
+
+/** One aura zone drawn as a stair-stepped voxel outline on the ground (plan 182). */
+export interface AuraRingSpec {
+  /** Stable across frames — `${kind}:${casterPokemonId}`. */
+  readonly id: string;
+  readonly kind: AuraRingKind;
+  readonly casterPokemonId: string;
+  /** Every tile inside the zone (Manhattan diamond, already clipped to the grid). */
+  readonly tiles: readonly Position[];
+  /** Aura identity colour — continues the emoji shown on the HP bar. */
+  readonly color: number;
+  /** 0-based height in the stack of rings sharing this caster (lift = (index + 1) × pitch). */
+  readonly stackIndex: number;
+}
+
 /** A team-aura icon shown left of a Pokémon's HP bar (caster + protected allies). */
 export interface BoardAuraIndicator {
   readonly id: string;
@@ -147,8 +169,8 @@ export interface BoardView {
   setEntryHazards(hazards: readonly BoardEntryHazard[]): void;
   /** Replace a Pokémon's team-aura icons (left of its HP bar; empty clears). */
   setAuraIndicators(pokemonId: string, indicators: readonly BoardAuraIndicator[]): void;
-  /** Float aura symbols over a caster's aura-radius tiles on hover (empty clears). */
-  setAuraGroundIcons(cells: readonly Position[], symbols: readonly string[]): void;
+  /** Replace the permanent ground rings outlining every active aura zone (empty clears). */
+  setAuraRings(rings: readonly AuraRingSpec[]): void;
   panCameraTo(tile: Position): void;
   showDirectionPicker(
     center: Position,

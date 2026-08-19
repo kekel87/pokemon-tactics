@@ -118,7 +118,7 @@ export function createBattleBoardView(
     setEntryHazards: (zones) => combat.setEntryHazards(zones),
     setAuraIndicators: (pokemonId, indicators) =>
       handles.get(pokemonId)?.setLeftIndicators(indicators),
-    setAuraGroundIcons: (cells, symbols) => combat.setAuraGroundIcons(cells, symbols),
+    setAuraRings: (rings) => combat.setAuraRings(rings),
     panCameraTo: (tile: Position) => combat.panCameraTo(tile),
     showDirectionPicker: (
       center: Position,

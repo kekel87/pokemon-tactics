@@ -1,5 +1,5 @@
-import type { Scene } from "@babylonjs/core";
 import { MultiMaterial } from "@babylonjs/core/Materials/multiMaterial";
+import type { Scene } from "@babylonjs/core/scene";
 
 /**
  * E2E scene-graph hook (plan 127). Exposes a **read-only, frozen** surface for Playwright to
@@ -13,7 +13,8 @@ export interface E2eSceneApi {
   /** Drive a tile click (same path as a real canvas pick → orchestrator), to pilot a turn in e2e. */
   clickTile(x: number, y: number): void;
   /** Drive a tile hover (same path as a real canvas pointer-move → orchestrator) — lets e2e assert
-   *  hover-only UI (info panel of the hovered Pokemon, aura ground icons, threat preview). */
+   *  hover-only UI (info panel of the hovered Pokemon, threat preview). Aura zones are NO LONGER
+   *  hover-driven since plan 182: they are permanent ground rings. */
   hoverTile(x: number, y: number): void;
   /** Confirm the open direction picker with its current facing (the "Attendre"/placement flow) —
    *  lets e2e end a turn to drive end-of-turn effects (status ticks, charge T2, aura/field expiry).
@@ -28,6 +29,17 @@ export interface E2eSceneApi {
     position: { x: number; y: number; z: number };
     /** Whether the mesh's material alpha-blends (plan 166 liquid surface / any translucent overlay). */
     transparent: boolean;
+  } | null;
+  /**
+   * World-space bounding box of a mesh (min/max corners), or null if absent. Needed because some
+   * meshes bake their world coordinates into the vertex data instead of `position`: the aura rings
+   * (plan 182) are GreasedLine meshes built from absolute points, so they sit at the origin and
+   * their extent — where the ring is, and which Y plane its stack level rides — is only readable
+   * here. Primitives only, like the rest of the surface.
+   */
+  meshBounds(name: string): {
+    min: { x: number; y: number; z: number };
+    max: { x: number; y: number; z: number };
   } | null;
   /** Per-sprite animation state (§11 flying-anim assertions): the animation playing now, the
    *  resting animation it reverts to, the occupied tile and its terrain. Serializable primitives. */
@@ -86,6 +98,21 @@ export function installE2eSceneHook(
         renderingGroupId: mesh.renderingGroupId,
         position: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
         transparent,
+      };
+    },
+    meshBounds: (name: string) => {
+      const mesh = scene.getMeshByName(name);
+      if (!mesh) {
+        return null;
+      }
+      // The one write on this otherwise read-only surface, and it is deliberate: the world
+      // matrix is a cache the render loop refreshes every frame anyway, and forcing it here
+      // makes the bounds correct even when queried before the next frame.
+      mesh.computeWorldMatrix(true);
+      const box = mesh.getBoundingInfo().boundingBox;
+      return {
+        min: { x: box.minimumWorld.x, y: box.minimumWorld.y, z: box.minimumWorld.z },
+        max: { x: box.maximumWorld.x, y: box.maximumWorld.y, z: box.maximumWorld.z },
       };
     },
     spriteStates,

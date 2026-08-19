@@ -1,4 +1,4 @@
-import { AURA_RADIUS } from "../battle/aura-system";
+import { isWithinAuraRadius } from "../battle/aura-system";
 import type { BattleEngine } from "../battle/BattleEngine";
 import { computeMoveCost } from "../battle/ct-costs";
 import { DISTORTION_RADIUS, isInDistortionZone } from "../battle/distortion-system";
@@ -1371,9 +1371,7 @@ function scoreSelfMove(
       if (candidate.id === currentPokemon.id) {
         continue;
       }
-      const dx = Math.abs(candidate.position.x - currentPokemon.position.x);
-      const dy = Math.abs(candidate.position.y - currentPokemon.position.y);
-      if (dx + dy <= AURA_RADIUS) {
+      if (isWithinAuraRadius(currentPokemon.position, candidate.position)) {
         alliesInRadius += 1;
       }
     }

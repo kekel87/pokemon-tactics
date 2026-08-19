@@ -108,6 +108,11 @@ export {
 } from "./battle/terrain-effects";
 export type { PhaseHandler, PhaseResult } from "./battle/turn-pipeline";
 export { TurnPipeline } from "./battle/turn-pipeline";
+export {
+  isUnderNoSleepAura,
+  isUproarLocked,
+  UPROAR_AURA_RADIUS,
+} from "./battle/uproar-aura";
 export type { ValidationResult } from "./battle/validate";
 export { validateBattleData } from "./battle/validate";
 export { validateMapDefinition } from "./battle/validate-map";

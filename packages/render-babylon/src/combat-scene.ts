@@ -26,12 +26,11 @@ import {
   selectMovementDuration,
   worldFacingFromDirection,
 } from "@pokemon-tactic/view-core";
-import { createAuraGroundIcons } from "./babylon-aura-ground-icons.js";
+import { type AuraRingSpec, type AuraRings, createAuraRings } from "./babylon-aura-rings.js";
 import { hexToColor3 } from "./babylon-color.js";
 import { BabylonCompass } from "./babylon-compass.js";
 import {
   BABYLON_ATTACK_ANIMATION_MAX_MS,
-  BABYLON_AURA_HOVER_ICON_LIFT,
   BABYLON_CLEAR_COLOR,
   BABYLON_DIRECTION_ARROW_TILE_FRACTION,
   BABYLON_DIRECTIONAL_LIGHT_INTENSITY,
@@ -226,7 +225,6 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   // engine (decision #487) — billboarded quads parented to each sprite root.
   const spriteHud = createSpriteHud(scene);
   // Ground aura hover icons (symbols floated over a caster's aura radius).
-  const auraGroundIcons = createAuraGroundIcons(scene);
 
   interface BillboardEntry {
     billboard: DirectionalBillboard;
@@ -358,6 +356,9 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   // Distorsion (Trick Room) zones — same zone renderer, distinct colour.
   let distortionZones: FieldTerrains | null = null;
   let pendingDistortionZones: readonly FieldTerrainSpec[] = [];
+  // Permanent aura rings (plan 182) — stair-stepped ground outline per aura zone.
+  let auraRings: AuraRings | null = null;
+  let pendingAuraRings: readonly AuraRingSpec[] = [];
   // Entry-hazard traps (plan 131) — stacked voxel GLB props per kind + layer count.
   let entryHazards: EntryHazards | null = null;
   let pendingEntryHazards: readonly EntryHazardSpec[] = [];
@@ -421,6 +422,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       distortionZones.set(pendingDistortionZones);
       entryHazards = createEntryHazardProps(scene, heightAt, width, height);
       entryHazards.set(pendingEntryHazards);
+      auraRings = createAuraRings(scene, heightAt, width, height);
+      auraRings.set(pendingAuraRings);
       for (const entry of billboards) {
         positionOnTile(entry);
       }
@@ -1118,17 +1121,9 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       pendingEntryHazards = specs;
       entryHazards?.set(specs);
     },
-    setAuraGroundIcons: (cells, symbols) => {
-      if (!tileWorldTop || cells.length === 0 || symbols.length === 0) {
-        auraGroundIcons.set([], []);
-        return;
-      }
-      const project = tileWorldTop;
-      const anchors = cells.map((cell) => {
-        const top = project(cell.x, cell.y);
-        return { x: top.x, y: top.y + BABYLON_AURA_HOVER_ICON_LIFT, z: top.z };
-      });
-      auraGroundIcons.set(anchors, symbols);
+    setAuraRings: (specs) => {
+      pendingAuraRings = specs;
+      auraRings?.set(specs);
     },
     clearHighlights: () => highlights?.clear(),
     onTileHover: (handler) => {
@@ -1220,7 +1215,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       distortionZones?.dispose();
       entryHazards?.dispose();
       spriteHud.dispose();
-      auraGroundIcons.dispose();
+      auraRings?.dispose();
       for (const { billboard } of billboards) {
         billboard.dispose();
       }

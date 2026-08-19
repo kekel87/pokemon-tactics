@@ -3,9 +3,11 @@ import { AuraKind } from "../enums/aura-kind";
 import { PlayerId } from "../enums/player-id";
 import { buildMoveTestEngine, MockMove, MockPokemon } from "../testing";
 import {
+  AURA_RADIUS,
   computeBrickBreakInteraction,
   computeScreenMultiplier,
   findActiveAurasProtectingTarget,
+  isWithinAuraRadius,
   postAura,
 } from "./aura-system";
 
@@ -386,5 +388,30 @@ describe("computeBrickBreakInteraction — double-protected target", () => {
     const result = computeBrickBreakInteraction(state, target, brickBreakMove);
     expect(result.multiplier).toBe(2.0);
     expect(result.breakAuraCasterId).toBe(target.id);
+  });
+});
+
+describe("isWithinAuraRadius", () => {
+  const centre = { x: 5, y: 5 };
+
+  it("includes the caster's own tile", () => {
+    expect(isWithinAuraRadius(centre, centre)).toBe(true);
+  });
+
+  it("measures Manhattan distance, not Chebyshev", () => {
+    expect(isWithinAuraRadius(centre, { x: 7, y: 7 })).toBe(false);
+    expect(isWithinAuraRadius(centre, { x: 6, y: 7 })).toBe(true);
+  });
+
+  it("includes the boundary and excludes one tile past it", () => {
+    expect(isWithinAuraRadius(centre, { x: 5 + AURA_RADIUS, y: 5 })).toBe(true);
+    expect(isWithinAuraRadius(centre, { x: 5 + AURA_RADIUS + 1, y: 5 })).toBe(false);
+    expect(isWithinAuraRadius(centre, { x: 5, y: 5 - AURA_RADIUS })).toBe(true);
+    expect(isWithinAuraRadius(centre, { x: 5, y: 5 - AURA_RADIUS - 1 })).toBe(false);
+  });
+
+  it("is symmetric in its arguments", () => {
+    const target = { x: 3, y: 6 };
+    expect(isWithinAuraRadius(centre, target)).toBe(isWithinAuraRadius(target, centre));
   });
 });

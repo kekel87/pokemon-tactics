@@ -21,6 +21,10 @@ _Aucun bug actif._
 
 ## Dette technique
 
+### `AuraRingKind` encodé en union de littéraux plutôt qu'en const-object (2026-08-19, plan 182)
+- `packages/render-ports/src/ports.ts` déclare `export type AuraRingKind = AuraKind | "perish-aura" | "uproar"`, et les deux littéraux sont ensuite **répétés** comme clés dans `packages/view-core/src/constants.ts` (`AURA_RING_COLOR_BY_KIND`) et comme valeurs poussées dans `packages/view-core/src/aura-ring-view.ts` — 3 fichiers, pas de source unique. La convention du projet serait un const-object (`export const AuraRingKind = { ...AuraKind, PerishAura: "perish-aura", Uproar: "uproar" } as const`).
+- **Laissé tel quel sciemment** : `ports.ts` livre déjà `BoardHighlight` et `AttackPreviewKind` en unions nues, donc l'encodage est cohérent avec son fichier. Signalé par `code-reviewer` (2026-08-19) comme non bloquant. À revoir si un 7ᵉ kind d'aura apparaît — c'est là que l'absence de source unique coûtera.
+
 ### `packages/*/tsconfig.json` exclut les `*.test.ts` du typecheck (2026-08-03, plan 178)
 - Chaque `tsconfig.json` de package porte `"exclude": ["src/**/*.test.ts"]` : une erreur de type dans un fichier de test n'est jamais détectée par `pnpm typecheck`, seulement par Vitest à l'exécution (qui peut passer si la valeur mal typée fonctionne quand même au runtime).
 - Constaté sur un `PresentationContext` de test devenu incomplet pendant le plan 178 (nouveaux champs `getStatusLabelUrl`/`translate` ajoutés, un mock de test non mis à jour n'a pas fait échouer le typecheck).

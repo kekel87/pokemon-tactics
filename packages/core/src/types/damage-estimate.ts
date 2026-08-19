@@ -11,7 +11,7 @@ export interface DamageEstimate {
   readonly terrainModifier: number;
   /** Weather power multiplier (sun on Fire, rain on Water…); 1 under clear skies. */
   readonly weatherModifier: number;
-  /** Reflet / Mur Lumière damage reduction on the defender's side; 1 when no screen applies. */
+  /** Protection / Mur Lumière damage reduction on the defender's side; 1 when no screen applies. */
   readonly screenModifier: number;
   /** Move type AFTER any morph (Force Nature, Champlification) — what the preview must display. */
   readonly resolvedMoveType: PokemonType;

@@ -41,7 +41,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Je touche… | Sections à dérouler |
 |------------|---------------------|
 | Champ / terrain de combat | §3.1, §3.2, §3.3 |
-| Barre PV / statut / aura / dégâts estimés | §3.4, §3.5, §5.3, §5.4, §5.9 |
+| Barre PV / statut / aura (pastille + anneau au sol) / dégâts estimés | §3.4, §3.5, §5.3, §5.4, §5.9 |
 | Sprite / animation Pokemon | §3.6, §5.1, §5.6, §5.8, §5.13 |
 | Bundle de sprites / splash de boot / portraits | §6.0, §3.6, §4.7 |
 | Highlights / curseur / picker | §3.7, §3.8, §3.9 |
@@ -107,11 +107,12 @@ Règle : mécanique core → **test unit AVANT** le visuel. Le visuel valide le 
 ## 3. Recette — scène de combat 3D
 
 *Les cases ici sont **👁 manuelles** par défaut (rendu/pixels/anim). Quelques **faits** du
-scene-graph sont déjà 🤖 (e2e `tests/combat/scene-graph.spec.ts` + `scene-state.spec.ts`) :
+scene-graph sont déjà 🤖 (e2e `tests/combat/scene-graph.spec.ts` + `scene-state.spec.ts` +
+`aura-rings.spec.ts`) :
 présence des sprites (`pokemon_plane`, groupe 2 occultable), curseur de survol (`hover_cursor`,
 groupe 3 jamais occulté), tiles de terrain (`tile_*`), icône de statut (`hud_status_icon`) quand
-empoisonné. Le scene-graph juge le **sens** (présence, groupe d'occlusion, position) — la couleur,
-l'animation et le pixel exact restent 👁.*
+empoisonné, anneaux d'aura au sol (`aura_ring_*`, §3.5). Le scene-graph juge le **sens** (présence,
+groupe d'occlusion, position/étendue) — la couleur, l'animation et le pixel exact restent 👁.*
 
 ### 3.1 Champ de terrain (overlay)
 *src : `field-terrains.ts`, `field-terrain-borders.ts`, core `field-terrain-system.ts`*
@@ -150,26 +151,55 @@ l'animation et le pixel exact restent 👁.*
 - 🤖 Une **barre PV par Pokemon** montée (`hud_hp_bar_plane` ×2 — `scene-graph.spec`). *La position
   « au-dessus de la tête » qui suit le sprite + la couleur/coins = 👁 (pixel).*
 - 👁 Remplissage **proportionnel aux PV**, couleur équipe, coins arrondis.
-- 👁 **Icônes empilées à gauche** (auras/écrans/charge : Reflet 🛡️, Mur Lumière ✨, Brume 🌫️,
-  Rune Protect 🕊️, charge ⚡) : jusqu'à 6, **la plus récente/fraîche en tête**, alliés
-  protégés en semi-transparent.
+- 👁 **Icônes empilées à gauche** (auras/écrans/charge : Protection 🛡️, Mur Lumière ✨, Brume 🌫️,
+  Rune Protect 🕊️, Requiem 🎵, **Brouhaha 🔊** (plan 182), charge ⚡) : jusqu'à 6, **la plus
+  récente/fraîche en tête**, alliés protégés en semi-transparent. *Chaque pastille est un
+  `hud_text_plane` générique dont le hook n'expose pas le glyphe → le sens « telle aura est
+  affichée » n'est pas asservissable ici ; c'est l'anneau au sol qui l'est (§3.5).*
 - 🤖 **Une icône de statut majeur à droite** (`hud_status_icon` présente quand empoisonné —
   `scene-state.spec`). *Le glyphe exact par statut = 👁.*
 - 👁 **Estimation de dégâts** (avant confirmation) : bande sur la barre + nombre au-dessus,
   rouge (garanti) / orange (possible) / gris « Immun ». *Peinte dans la texture de la barre PV
   (pas un mesh) → non observable au scene-graph, reste 👁.*
 
-### 3.5 Indicateurs d'aura au sol
-*src : `aura-ground-icons.ts`, `view-core/aura-ground-layout.ts`*
+### 3.5 Anneaux d'aura au sol (plan 182)
+*src : `babylon-aura-rings.ts`, `view-core/aura-ring-view.ts`, `view-core/field-terrain-borders.ts`*
 
-*Le hook `hoverTile` existe désormais (cf §4.7) → automatisable si on peut booter un état avec auras
-actives (Reflet/Mur Lumière posés). Bloqué tant que `SandboxConfig` n'expose pas d'auras de départ
-→ reste 👁 pour l'instant.*
-- 👁 S'affichent **au survol du lanceur** uniquement ; disparaissent en quittant le survol.
-- 👁 Un symbole **centré sur chaque tile** de la portée (r=3).
-- 👁 **Pattern selon le nombre d'auras** (1=centre, 2=côte à côte, 3=triangle, 4=croix,
-  5+=grille), **aligné écran** (reste stable quand on tourne la caméra).
-- 👁 **Occultés par les Pokemon**, semi-transparents.
+*Les émoji flottés au survol du lanceur sont remplacés par un **anneau permanent** par aura, tracé
+sur le **contour** de la zone (contour en escalier, un mesh GreasedLine par aura nommé
+`aura_ring_<kind>:<idLanceur>`). 6 auras : les 4 murs d'équipe (r3), **Requiem** (rayon propre, touche
+tout le monde) et **Brouhaha** (r3, pendant le verrou). `SandboxConfig` n'expose toujours aucune aura
+de départ → les scénarios e2e **posent l'aura en jeu** puis lisent le scene-graph
+(`aura-rings.spec`).*
+- 🤖 **Présent sans le moindre survol** dès la pose (Protection posée → un anneau ; aucun avant la
+  pose), en **groupe de rendu 0** donc occultable par les sprites (`aura-rings.spec`).
+- 🤖 **Empilement** : deux auras du même lanceur (Protection + Mur Lumière, même centre et même
+  rayon) = **deux meshes** sur deux plans Y séparés d'un pas d'empilement (2 voxels), sans décalage
+  dans le plan du sol (`aura-rings.spec`).
+- 🤖 **Suit le lanceur** : après un déplacement d'une case, l'étendue du contour se décale d'une
+  tuile (vérifié sur Requiem r2, seul rayon assez petit pour ne pas toucher les bords de la carte
+  6×6) (`aura-rings.spec`).
+- 🤖 **Requiem ne court-circuite plus** les auras d'équipe au sol : Requiem + Protection du même
+  lanceur = deux anneaux, sur deux plans Y distincts (`aura-rings.spec`).
+- 🤖 **Brouhaha a enfin un rendu** : anneau présent pendant le verrou (`aura-rings.spec`).
+- 🤖 **Disparaît à l'expiration** de l'aura (plus aucun anneau + « L'aura … se dissipe » au journal)
+  (`aura-rings.spec`).
+- 👁 **Section du trait = 1 voxel**, net, sans morsure dans le mur d'une tuile voisine plus haute.
+  *Épaisseur en pixels → non jugeable au scene-graph.*
+- 👁 **Une teinte par aura** (Protection bleu acier, Mur Lumière or pâle, Brume cyan glacé, Rune
+  Protect olive, Requiem violet sombre, Brouhaha orange chaud) et lisibilité de ces teintes sur
+  neige / sable / roche. *Couleur de matériau non exposée par le hook.*
+- 👁 **Collisions de teinte** à arbitrer à l'œil : l'or pâle contre le jaune doré du curseur/dash, le
+  bleu acier contre le bleu d'équipe 1.
+- 👁 **Jonctions aux coins** de l'escalier (les arêtes sont des segments indépendants, pas une
+  polyligne fermée) : ni micro-trou ni chevauchement visible.
+- 👁 **Relief** : le contour épouse le haut de chaque tuile (monte/descend avec le terrain) ; sur
+  terrain accidenté la pile se lit **par segment**, pas comme des plans parallèles.
+- 👁 **Lisibilité de la pile à l'œil** (2-3 anneaux à 1 voxel d'écart apparent sous caméra
+  dimétrique) et **superposition** avec le fill + le contour d'un Champ sur la même tuile.
+- 👁 **Trait fin au zoom arrière** : pas de scintillement / sous-échantillonnage aux crans de zoom.
+- 👁 **Les deux camps** dessinent leurs anneaux (aucun gating sous le fog) — y compris Requiem et
+  Brouhaha ennemis.
 
 ### 3.6 Sprite Pokemon (billboard directionnel)
 *src : `directional-billboard.ts`, `view-core/pmd-animation-controller.ts`,
@@ -419,7 +449,7 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
   (buff bleu, debuff rouge) = 👁.*
 - 👁 **Badges** (statut/auras/volatils), preview menace au survol ennemi (§3.7), barre PV qui
   **descend** après dégâts (anim).
-- 🤖 **Badges** : statut majeur (Brûlure…), auras (Reflet…), volatils (Provoc 3t, Clone…) —
+- 🤖 **Badges** : statut majeur (Brûlure…), auras (Protection…), volatils (Provoc 3t, Clone…) —
   `data-variant` distinct par type.
 - 👁 Survol d'une **tile vide** → repli sur le **Pokemon actif** (ou masqué).
 - 👁 Survol d'un **ennemi** → ses infos + sa portée (preview menace, cf §3.7).
@@ -781,15 +811,21 @@ Chaque texte flottant doit s'afficher en **FR et EN**. Réf : `floating-text-con
 - 🤖 Journal « <X> est K.O. ! » (`driving.spec`).
 - 👁 Le **corps K.O. reste en place** et **bloque sa tile** (inaccessible aux autres).
 
-### 5.9 Auras (Reflet / Mur Lumière / Brume / Rune Protect) — un cas par aura
-- 🤖 Interaction : Reflet / Mur Lumière / Brume / Rune Protect posés (journal) — `mechanics-field.spec`.
+### 5.9 Auras (Protection / Mur Lumière / Brume / Rune Protect) — un cas par aura
+- 🤖 Interaction : Protection / Mur Lumière / Brume / Rune Protect posées (journal) — `mechanics-field.spec`.
+- 🤖 **Zone lisible sans survol** : la pose dessine l'**anneau au sol** de la zone, qui suit le
+  lanceur et meurt avec l'aura (cf §3.5) — `aura-rings.spec`.
 - 👁 Pose → « <X> pose <Aura> (N tours) » + **indicateur à gauche** de la barre PV (lanceur opaque,
   alliés protégés semi-transparents ; cf §3.4/3.5).
-- 👁 **Reflet** réduit les dégâts **physiques** ; **Mur Lumière** les **spéciaux** (cibles dans le
+- 👁 **Protection** réduit les dégâts **physiques** ; **Mur Lumière** les **spéciaux** (cibles dans le
   rayon).
 - 👁 **Brume** bloque les baisses de stats ; **Rune Protect** bloque les statuts.
-- 👁 **Brisée** (Casse-Brique sur le lanceur) → « <Y> brise l'aura <Aura> de <X> ! » (rouge).
-- 👁 **Expiration** → « L'aura <Aura> de <X> se dissipe » (silencieux, disparition de l'indicateur).
+- 👁 **Brisée** (Casse-Brique sur le lanceur) → « <Y> brise l'aura <Aura> de <X> ! » (rouge), et
+  **l'anneau disparaît** avec elle. *La brisure demande un 2ᵉ acteur qui frappe le lanceur : le dummy
+  sandbox est passif → non pilotable en e2e, le sens reste couvert unit core.*
+- 🤖 **Expiration** → « L'aura <Aura> de <X> se dissipe » (silencieux) + **disparition de l'anneau**
+  au sol — `aura-rings.spec`. *La disparition de la pastille de barre de vie reste 👁 : son glyphe
+  n'est pas exposé par le hook (cf §3.4).*
 
 ### 5.10 Champs de terrain (Herbu / Électrifié / Brumeux / Psychique) — un cas par champ
 - 🤖 Interaction : 4 champs (Herbu/Électrifié/Brumeux/Psychique) déployés (journal) — `mechanics-field.spec`.
@@ -1946,6 +1982,9 @@ déterministes ; le SENS est la ligne de journal FR dédiée. Duel normal (`sand
 `battle/uproar-aura.test.ts`, `battle/moves/{outrage,thrash,petal-dance,uproar}.test.ts`.*
 Un move qui verrouille son lanceur plusieurs tours (2-3 + Confusion finale ; Brouhaha 3 sans
 confusion). — `mechanics-lock-in.spec`.
+- 🤖 **Brouhaha — aura anti-sommeil rendue** : pendant le verrou, son **anneau au sol** est dessiné
+  (premier rendu de cette aura, cf §3.5) — `aura-rings.spec`. *La pastille 🔊 de la barre de vie
+  reste 👁 (glyphe non exposé par le hook).*
 - 🤖 **Colère** (`outrage`) → journal de départ « Florizarre se déchaîne avec Colère ! » (LockInStarted).
 - 🤖 **Colère — verrouillage** : après un cast, au tour suivant le menu d'attaque ne laisse Colère
   jouable (`data-enabled="true"`) que Colère ; Griffe est désactivée (`data-enabled="false"`, filtrée
@@ -2574,7 +2613,8 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/targeting.spec.ts` | §3.7/§4.8/§4.12 — highlights `highlight_move_*` au déplacement, instruction « Sélectionne la cible »→« Confirmer ? » en attaque |
 | `combat/mechanics-status.spec.ts` | §5.3 icône/statut + Spore, §5.4 stat ± + Grondement (buff self), §5.5 confusion/Provoc (journal) |
 | `combat/mechanics-powder-immunity.spec.ts` | §5.3 immunité poudre du type Plante (canon Gen 6+) : Poudre Dodo (`sleep-powder`, `flags.powder`) sur Florizarre (Plante) → « Ça n'affecte pas Florizarre… » + aucun Sommeil ; contrôle Salamèche (non-Plante) endormie. Blocage statut+stat / event `StatusImmune` / autres moves poudre (Spore, Para-Spore, Poudre Toxik) = SENS unit core |
-| `combat/mechanics-field.spec.ts` | §5.9 auras (Reflet/Mur/Brume/Rune), §5.10 4 champs déployés (journal) |
+| `combat/mechanics-field.spec.ts` | §5.9 auras (Protection/Mur/Brume/Rune), §5.10 4 champs déployés (journal) |
+| `combat/aura-rings.spec.ts` | §3.5/§5.9 anneaux d'aura au sol (plan 182) : anneau `aura_ring_<kind>:<idLanceur>` présent dès la pose **sans aucun survol** (groupe 0, occultable) ; empilement de 2 auras du même lanceur (Protection + Mur Lumière → 2 meshes, plans Y séparés du pas de 2 voxels, aucun décalage au sol) ; le contour **suit** le lanceur déplacé (Requiem r2, seul rayon plus petit que la carte 6×6) ; Requiem + aura d'équipe **coexistent** (court-circuit du chemin au sol tombé) ; **Brouhaha** dessine son anneau pendant le verrou (premier rendu) ; disparition à l'expiration + « L'aura … se dissipe ». Teinte/épaisseur/jonctions/lisibilité de la pile et pastille 🔊 = 👁 |
 | `combat/mechanics-distortion.spec.ts` | §5.21 Distorsion : zone posée (journal « Distorsion ! » + quads indigo en scène) + inversion CT dans la timeline (lent avant rapide) |
 | `combat/mechanics-hazards.spec.ts` | §5.22 Pièges au sol : Picots posés via le picker GroundTarget (journal « Des Picots sont posés au sol » + mesh `hazard_hazards_spikes_1_x_y` sur la case visée seule). Déclenchement = SENS unit core (non pilotable : owner-immunity + dummy AI immobile) |
 | `combat/mechanics-dynamic-power.spec.ts` | §5.23 puissance conditionnelle : Branchicrok & Prise de Bec (hors-pool, ×2 cible fraîche tour 1) résolvent et infligent des dégâts (journal « perd N PV »). Boul'Armure ×2 Roulade : Rhinoféros lance Roulade fraîche seule vs après Boul'Armure sur Ronflex endurant (`sandbox-flat`, mêmes positions/seed) → PV retirés (barre de vie) au moins ×1,6 après Boul'Armure. Hommage Posthume non couvert (scaling non observable en 1v1 + Dummy Normal immunisé Spectre) → 👁 ; facteur ×2 exact/reset au K.O./Ball'Glace = unit |
@@ -2747,8 +2787,13 @@ complète dont seul le tampon `version`/`buildVersion` est falsifié).
       - **Pan/rotation aperçu carte, transition d'écran, responsive 4K, re-render visuel** : pixel/
         anim/canvas → 👁.
 - [ ] **Reste 👁 (compliqué/impossible en e2e — marqué manuel dans le cahier)** :
-      - **Aura ground icons / preview menace au survol** : `hoverTile` dispo, mais besoin d'un état
-        avec auras actives au boot (`SandboxConfig` ne l'expose pas) → bloqué, reste 👁.
+      - ~~**Aura ground icons**~~ : **DÉBLOQUÉ autrement (plan 182)** — les émoji au survol sont
+        remplacés par des **anneaux permanents** (§3.5). `SandboxConfig` n'expose toujours aucune aura
+        de départ, mais l'aura est désormais **posée en jeu** par un cast puis lue au scene-graph
+        (`aura-rings.spec`). Restent 👁 : teinte, épaisseur d'un voxel, jonctions aux coins,
+        lisibilité de la pile, pastille 🔊 (glyphe non exposé).
+      - **Preview de menace au survol** : `hoverTile` dispo, mais l'état de départ voulu (ennemi
+        menaçant sous fog) n'est pas amorçable → reste 👁.
       - **Heuristiques de scoring IA (§5.35, plans 159→161)** : **débloqué (plan 167, §5.38)** —
         `SandboxConfig` v2 expose `control: "scored"` (+ `aiProfile`) câblant `AiTeamController` seedé
         via `createPrng(config.seed)`. La **décision** du scorer tourne en e2e (`teams-scored-ai.spec`) ;

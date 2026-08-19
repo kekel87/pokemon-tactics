@@ -2422,3 +2422,24 @@ export const FOG_REVEAL_ABILITY_ON_ENTRY = {
  *  max et l'unité devient « % ». Sans ça, « 42–50 PV » à côté de « → 51–56 % PV » rendrait les PV max
  *  en une soustraction. Le témoin fog OFF est `COMBAT_PREVIEW_SURVIVES` lui-même. */
 export const FOG_PREVIEW = { ...COMBAT_PREVIEW_SURVIVES, fogOfWar: true } as const;
+
+// --- Anneaux d'aura au sol (plan 182) ----------------------------------------------------------
+// Les anneaux sont PERMANENTS (plus de survol) : la seule façon d'en obtenir un est de POSER l'aura
+// en jeu, `SandboxConfig` n'exposant aucune aura de départ. Positions NORMAL_DUEL (rangs y=4, 100 %
+// normal) et non DUEL : sur les rangs y=2/3 le lanceur prendrait un DoT de terrain, ce qui pourrait
+// le tuer sur les 6 tours du scénario d'expiration (une aura meurt avec son lanceur → l'anneau
+// disparaîtrait pour la mauvaise raison). Tous ces moves sont STATUT (aucun jet) → déterministes.
+
+/** Protection (`reflect`, aura d'équipe r3) posée sur la propre case → un anneau au sol, SANS survol.
+ *  Sert aussi au scénario d'expiration : l'aura dure 5 tours du lanceur (`AURA_DEFAULT_DURATION`). */
+export const AURA_RING_REFLECT = { ...NORMAL_DUEL, moves: ["reflect"] } as const;
+
+/** Protection PUIS Mur Lumière, même lanceur → deux auras d'équipe de même rayon et même centre :
+ *  l'empilement en world-Y est la seule chose qui les distingue (plan 182, décision 5). */
+export const AURA_RING_STACK = { ...NORMAL_DUEL, moves: ["reflect", "light-screen"] } as const;
+
+/** Requiem (`perish-song`, Self, aura de mort r2 portée par `pokemon.perishAura`) + Protection en 2ᵉ
+ *  move. Deux usages : (a) le rayon r2 est le seul assez PETIT pour ne pas couvrir toute la carte 6×6
+ *  — c'est donc lui qui rend observable le fait que l'anneau SUIVE son lanceur ; (b) Requiem et une
+ *  aura d'équipe du même lanceur coexistent désormais (le court-circuit du chemin au sol est tombé). */
+export const AURA_RING_PERISH = { ...NORMAL_DUEL, moves: ["perish-song", "reflect"] } as const;

@@ -1,3 +1,4 @@
+import { AuraKind } from "../enums/aura-kind";
 import { Direction } from "../enums/direction";
 import { Nature } from "../enums/nature";
 import { PlayerId } from "../enums/player-id";
@@ -8,6 +9,7 @@ import { TerrainType } from "../enums/terrain-type";
 import { Weather } from "../enums/weather";
 import type { BattleState } from "../types/battle-state";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import type { TeamAura } from "../types/team-aura";
 import type { TileState } from "../types/tile-state";
 
 const ZERO_STAT_STAGES: Record<StatNameType, number> = {
@@ -142,7 +144,20 @@ export abstract class MockBattle {
     Object.assign(tile, overrides);
   }
 
-  static stateFrom(pokemon: PokemonInstance[], gridWidth = 5, gridHeight = 5): BattleState {
+  /** Base team aura (Protection, posted first). Spread it to vary kind / caster / post order. */
+  static readonly teamAura: TeamAura = {
+    kind: AuraKind.Reflect,
+    casterPokemonId: "p1-mon",
+    remainingRounds: 5,
+    postedAtAction: 1,
+  };
+
+  static stateFrom(
+    pokemon: PokemonInstance[],
+    gridWidth = 5,
+    gridHeight = 5,
+    auras: TeamAura[] = [],
+  ): BattleState {
     const grid = buildFlatGrid(gridWidth, gridHeight);
     const pokemonMap = new Map<string, PokemonInstance>();
     for (const p of pokemon) {
@@ -155,7 +170,7 @@ export abstract class MockBattle {
       activePokemonId: "",
       weather: Weather.None,
       weatherTurnsRemaining: 0,
-      auras: [],
+      auras,
       fieldTerrains: [],
       distortionZones: [],
       fieldGlobalZones: [],

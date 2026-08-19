@@ -136,7 +136,7 @@ function setup(
     setDistortionZones: () => undefined,
     setEntryHazards: () => undefined,
     setAuraIndicators: () => undefined,
-    setAuraGroundIcons: () => undefined,
+    setAuraRings: () => undefined,
     panCameraTo: () => undefined,
     showDirectionPicker: (_center, _initial, callbacks) => {
       pickerCallbacks = callbacks;

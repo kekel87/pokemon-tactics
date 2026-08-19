@@ -8,7 +8,7 @@ const FRIEND_GUARD_MULTIPLIER = 0.75;
 
 /**
  * Garde Amie (friend-guard): a living ally of the defender within Manhattan r2 reduces the damage
- * the defender takes to ×0.75. Multiplicative with screens (Reflet/Mur Lumière). Applied in
+ * the defender takes to ×0.75. Multiplicative with screens (Protection/Mur Lumière). Applied in
  * handle-damage after the core damage calc (which lacks `state`). Inert in 1v1 (no ally on field).
  */
 export function friendGuardMultiplier(state: BattleState, defender: PokemonInstance): number {

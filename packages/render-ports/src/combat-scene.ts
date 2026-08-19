@@ -1,6 +1,7 @@
 import type { Direction } from "@pokemon-tactic/core";
 import type { HighlightKind } from "./highlight-kind.js";
 import type {
+  AuraRingSpec,
   DirectionPickerCallbacks,
   DirectionPickerHandle,
   SemiInvulnerableDisplay,
@@ -136,7 +137,8 @@ export interface CombatScene {
   setDistortionZones(specs: readonly FieldTerrainSpec[]): void;
   /** Entry-hazard voxel props (plan 131): stacked GLB models per kind + layer count (empty clears). */
   setEntryHazards(specs: readonly EntryHazardSpec[]): void;
-  setAuraGroundIcons(cells: readonly { x: number; y: number }[], symbols: readonly string[]): void;
+  /** Permanent ground rings outlining each active aura zone (plan 182; empty clears). */
+  setAuraRings(rings: readonly AuraRingSpec[]): void;
   clearHighlights(): void;
   addPokemon(entry: CombatSceneSpawn): CombatPokemonHandle;
   removePokemon(handle: CombatPokemonHandle): void;

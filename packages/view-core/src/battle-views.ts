@@ -1,5 +1,4 @@
 import {
-  AURA_RADIUS,
   type AuraKind,
   type BattleState,
   CT_THRESHOLD,
@@ -19,6 +18,7 @@ import {
   getTerrainImmuneTypes,
   getTerrainStatusOnStop,
   isTerrainPassable,
+  isWithinAuraRadius,
   maxLayersFor,
   PokemonGender,
   type PokemonInstance,
@@ -160,10 +160,7 @@ function pushAuraBadges(
     if (!caster || caster.currentHp <= 0 || caster.playerId !== pokemon.playerId) {
       continue;
     }
-    const distance =
-      Math.abs(caster.position.x - pokemon.position.x) +
-      Math.abs(caster.position.y - pokemon.position.y);
-    if (distance > AURA_RADIUS) {
+    if (!isWithinAuraRadius(caster.position, pokemon.position)) {
       continue;
     }
     badges.push({

@@ -11,7 +11,7 @@ import {
   type SpawnZoneHighlight,
   type TileHighlightPosition,
 } from "@pokemon-tactic/render-ports";
-import { fieldTerrainBorderEdges, fieldTerrainBorderSegment } from "@pokemon-tactic/view-core";
+import { borderOutlineSegments } from "./babylon-border-outline.js";
 import { hexToColor3 } from "./babylon-color.js";
 import {
   BABYLON_TILE_CURSOR_WIDTH,
@@ -238,18 +238,9 @@ export function createTileHighlights(
     if (onGrid.length === 0) {
       return;
     }
-    // Border edges (a neighbour absent from the set) come from the shared
-    // perimeter logic; each maps to its world segment via the shared offset table.
-    const lines: Vector3[][] = [];
-    for (const edge of fieldTerrainBorderEdges(onGrid)) {
-      const top = topAt(edge.x, edge.y);
-      const lineY = top.y + BABYLON_TILE_OUTLINE_Y_OFFSET;
-      const segment = fieldTerrainBorderSegment(edge.side);
-      lines.push([
-        new Vector3(top.x + segment.ax, lineY, top.z + segment.az),
-        new Vector3(top.x + segment.bx, lineY, top.z + segment.bz),
-      ]);
-    }
+    // The shared stair-stepped contour builder. No inset: the range outline sits on the
+    // tile edge itself, unlike the thicker Champs / aura strokes.
+    const lines = borderOutlineSegments(onGrid, topAt, BABYLON_TILE_OUTLINE_Y_OFFSET);
     // GreasedLine (not CreateLineSystem) so the perimeter has a real world-space
     // thickness instead of a 1px hairline.
     outline = CreateGreasedLine(

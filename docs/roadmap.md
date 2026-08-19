@@ -302,7 +302,7 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 - [x] **Rochers en voxel** (2026-07-21) — rochers 1×1 et 2×2 passés en props voxel (`rock-1x1x1.glb`, `rock-2x2x2.glb`). Décision #690.
 - [x] **Arbres en voxel** (2026-07-21) — arbre passé en prop voxel (`tree.glb`). Décision #690.
 - [x] **Mouvement herbe haute + arbres** (2026-07-21) — vent procédural via `decoration-wind-plugin.ts` (déplacement de sommets pondéré par la hauteur, base figée). Cf. `docs/references/voxel-tile-placement.md`.
-- [ ] **Auras — un « rond » par aura qui se stack** — revoir l'affichage des auras (cf. backlog « affichage des modificateurs terrain ») : un anneau au sol par aura active, empilables visuellement.
+- [x] **Auras — un « rond » par aura qui se stack** (2026-08-19) — anneaux voxel permanents (contour de zone en escalier, section 1 voxel, empilés en Y au pas de 2 voxels, une teinte par aura) remplacent les émoji au survol. Requiem et Brouhaha intégrées, Brouhaha gagne son premier rendu. Plan 182, décisions #753–#757.
 - [x] **Eau & liquides** (2026-07-21) — transparence + cuvette + immersion des sprites + écume de flottaison + tuiles standardisées demi-bloc. Plan 166, décisions #691–#697. Voir `docs/design-system.md` §Liquides.
 - [ ] **Textures terrain — retravail** :
   - transitions entre types de terrain (blend / bords).
@@ -323,7 +323,7 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 - [x] **Tooltip d'attaque enrichi + noms de type unifiés** (2026-08-03) — contrecoup/drain/auto-K.O., coût CT chiffré, chip de type, probabilité d'effet secondaire ; source unique `getTypeName` remplace `TYPE_LABEL` et les clés i18n `pokemonType.*`. Table de types 18×18 et efficacité contextuelle par move abandonnées. Plan 178, décisions #724–#727.
 - [x] **Panneau ennemi + fog** (2026-08-05) — PV en %, objet tenu et talent en placeholders `???` jusqu'à révélation à l'usage (core `reveal-tracking.ts`, définitive, reset au K.O.), dégâts de preview + overlay en % sous fog. Fog **ON en dur** en partie réelle, désactivable en sandbox (`SandboxConfig.fogOfWar`, défaut OFF ⇒ lecture complète). Plan 176, décisions #728–#732.
 - [x] **Responsive + dette mobile** (2026-08-06) — second référentiel de design mobile (1280×720 sous `height < 500px` ou `width < 900px`), chrome de combat + tous les écrans de menu redensifiés pour petit écran, overlay d'orientation (obstruction, pas verrouillage), clavier virtuel, type unifié (`createTypeChip` exporté par `ui-dom`). Validé sur téléphone réel (combat, Team Builder, sélecteurs, orientation) ; dialog de victoire et rendu 4K non vus. Plan 179, décisions #733–#737.
-- [ ] **Lot 3 — reste** : auras (1 rond empilable). ~~a11y~~ **abandonné, pas reporté** (2026-08-19, décision #752) — gestion du focus rapatriée au Lot 2, voir plus bas.
+- [x] **Lot 3 — TERMINÉ** (2026-08-19) — dernier item livré : **auras en anneaux au sol** (plan 182, décisions #753–#757). ~~a11y~~ **abandonné, pas reporté** (décision #752) — gestion du focus rapatriée au Lot 2, voir plus bas.
 - [ ] **Lot 1 — Contrôles tactiles** : pinch-zoom, pan 2 doigts, boutons rotation caméra on-screen, cibles ≥44px `@media (pointer:coarse)`.
 - [ ] **Lot 2 — Config clavier + manette** : couche d'input device-agnostique (actions logiques remappables), Gamepad API (y c. **manette sur mobile**), écran de remapping. **Gestion du focus** (rapatriée du Lot 3, décision #752) — prérequis fonctionnel de la navigation clavier/manette, pas une faveur d'accessibilité.
 

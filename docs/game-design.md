@@ -151,7 +151,7 @@ Quand le lanceur d'un effet **environnemental** (météo ou champ de terrain) me
 - Quitte le scheduler dès que ses effets sont tous expirés.
 - Pas de plafond de durée fantôme (voulu — un Pokemon lent très rapide au décès peut faire durer longtemps).
 
-**Barrières (Reflet, Mur Lumière, Brume, Rune Protect) :** meurent avec leur lanceur — pas de ghost. `removeAurasOfCaster` est conservé dans `handleKo`.
+**Barrières (Protection, Mur Lumière, Brume, Rune Protect) :** meurent avec leur lanceur — pas de ghost. `removeAurasOfCaster` est conservé dans `handleKo`.
 
 ---
 
@@ -189,7 +189,7 @@ Dégâts = ((2 × Level / 5 + 2) × Power × (Atk / Def) / 50 + 2)
 - `BattleEngine.estimateDamage(attackerId, moveId, defenderId, targetPosition?, attackerPosition?)` retourne un `DamageEstimate { min, max, effectiveness, facingModifier, heightModifier, terrainModifier, resolvedMoveType, resolvedPower }`
 - `min` = roll 0.85, `max` = roll 1.00
 - `effectiveness = 0` → affiche "Sans effet"
-- **Intègre météo, écrans (Reflet/Mur Lumière) et Brise Barrière** (plan 175, 2026-07-25/26) — auparavant ces multiplicateurs étaient figés à `1.0` dans l'estimation : le chiffre annoncé divergeait des dégâts réels sous soleil/pluie ou derrière un mur, et les heuristiques IA qui lisent `estimateDamage`/`scoreUseMove` (~10 sites) sous-estimaient ces situations. Effet de bord assumé et voulu : le scoring IA en tient désormais compte.
+- **Intègre météo, écrans (Protection/Mur Lumière) et Brise Barrière** (plan 175, 2026-07-25/26) — auparavant ces multiplicateurs étaient figés à `1.0` dans l'estimation : le chiffre annoncé divergeait des dégâts réels sous soleil/pluie ou derrière un mur, et les heuristiques IA qui lisent `estimateDamage`/`scoreUseMove` (~10 sites) sous-estimaient ces situations. Effet de bord assumé et voulu : le scoring IA en tient désormais compte.
 - **`BattleEngine.previewMove(attackerId, moveId, defenderId, targetPosition?)`** (plan 175) agrège `DamageEstimate` + précision effective (`computeEffectiveAccuracy`, pure — extrait de `checkAccuracy`) + chance de critique effective (`effectiveCritChance`, pure — extrait de `calculateDamage`) en un seul `MovePreview`, base du panneau de preview de combat (§ ci-dessous).
 
 > **Modificateur hauteur** (plan 046) : ±10%/niveau, plafonds +50%/-30%.

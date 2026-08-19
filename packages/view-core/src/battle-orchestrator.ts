@@ -1,7 +1,6 @@
 import {
   type Action,
   ActionKind,
-  AURA_RADIUS,
   type BattleEngine,
   type BattleEvent,
   BattleEventType,
@@ -15,6 +14,8 @@ import {
   FieldGlobalKind,
   FieldTerrain,
   isEffectivelyGrounded,
+  isUproarLocked,
+  isWithinAuraRadius,
   type MoveDefinition,
   manhattanDistance,
   moveCtTempo,
@@ -32,6 +33,7 @@ import {
 import { AnimationCategory, moveAnimationCategory } from "@pokemon-tactic/data";
 import { getTeamColorByPlayerId } from "@pokemon-tactic/render-ports";
 import { AnimationQueue } from "./AnimationQueue.js";
+import { buildAuraRingSpecs } from "./aura-ring-view.js";
 import {
   buildInfoPanelView,
   buildTailwindView,
@@ -55,6 +57,7 @@ import {
   FIELD_TERRAIN_COLOR_MISTY,
   FIELD_TERRAIN_COLOR_PSYCHIC,
   PERISH_AURA_INDICATOR_SYMBOL,
+  UPROAR_AURA_INDICATOR_SYMBOL,
 } from "./constants.js";
 import { moveIntent, selfPreviewRadius } from "./move-intent.js";
 import { buildSecondaryEffectChip } from "./secondary-effect-chip.js";
@@ -306,9 +309,7 @@ export class BattleOrchestrator {
     }
     this.refreshInfoPanel();
     this.refreshTileInfo();
-    // Hovering an aura caster floats its team-aura symbols over its radius tiles.
     const hovered = this.pokemonAt(tile);
-    this.showAuraHoverFor(hovered?.id ?? null);
     this.updateEnemyRangeHover(hovered);
     if (this.inputState.phase === "select_attack_target") {
       this.updateAttackPreview(this.inputState.moveId, tile);
@@ -1396,6 +1397,7 @@ export class BattleOrchestrator {
     // so forget the tracked enemy.
     this.hoveredEnemyRangePokemonId = null;
     this.refreshAuraVisuals();
+    this.refreshAuraRings();
     this.refreshFieldTerrainVisuals();
     this.refreshDistortionVisuals();
     this.refreshGravityGrounding();
@@ -1577,6 +1579,15 @@ export class BattleOrchestrator {
           alpha: 1,
         });
       }
+      // Brouhaha (uproar): a 🔊 badge while the caster is locked in and projects its
+      // no-sleep aura. Had no rendering at all before plan 182.
+      if (pokemon.currentHp > 0 && isUproarLocked(pokemon)) {
+        pushSpec(pokemon.id, {
+          id: "uproar",
+          symbol: UPROAR_AURA_INDICATOR_SYMBOL,
+          alpha: 1,
+        });
+      }
     }
     // Order by remaining rounds (soonest-expiring closest to the bar) so the icon
     // row reads as a turns-left gauge.
@@ -1598,10 +1609,7 @@ export class BattleOrchestrator {
         ) {
           continue;
         }
-        const distance =
-          Math.abs(candidate.position.x - caster.position.x) +
-          Math.abs(candidate.position.y - caster.position.y);
-        if (distance <= AURA_RADIUS) {
+        if (isWithinAuraRadius(caster.position, candidate.position)) {
           pushSpec(candidate.id, { id: aura.kind, symbol });
         }
       }
@@ -1611,35 +1619,17 @@ export class BattleOrchestrator {
     }
   }
 
-  /** Float a hovered aura caster's symbols over its radius tiles (null/no-aura clears). */
-  private showAuraHoverFor(pokemonId: string | null): void {
-    const caster = pokemonId ? this.state.pokemon.get(pokemonId) : null;
-    const auras = pokemonId
-      ? this.state.auras.filter((aura) => aura.casterPokemonId === pokemonId)
-      : [];
-    // Requiem (perish-song): the death zone is shown only on hover of its caster (r-radius around it).
-    if (caster && caster.perishAura !== undefined) {
-      const zone = this.engine
-        .getGrid()
-        .getTilesInRange(caster.position, 0, caster.perishAura.radius)
-        .filter((tile) => this.pokemonAt(tile) === null);
-      this.board.setAuraGroundIcons(zone, [PERISH_AURA_INDICATOR_SYMBOL]);
-      return;
-    }
-    if (!caster || auras.length === 0) {
-      this.board.setAuraGroundIcons([], []);
-      return;
-    }
-    // Skip tiles a Pokémon stands on — the icon would be hidden behind / read as
-    // "under" the sprite. Only the open aura-radius tiles get a ground marker.
-    const tiles = this.engine
-      .getGrid()
-      .getTilesInRange(caster.position, 0, AURA_RADIUS)
-      .filter((tile) => this.pokemonAt(tile) === null);
-    const symbols = [...auras]
-      .sort((a, b) => a.postedAtAction - b.postedAtAction)
-      .map((aura) => AURA_INDICATOR_SYMBOL[aura.kind]);
-    this.board.setAuraGroundIcons(tiles, symbols);
+  /**
+   * Repaint the permanent ground rings outlining every active aura zone (plan 182).
+   * No hover involved: a ring is up for as long as its aura is. Unlike the emoji
+   * markers it replaced, tiles occupied by a Pokémon are NOT skipped — the stroke runs
+   * along tile edges, so nothing hides behind a sprite.
+   */
+  private refreshAuraRings(): void {
+    const grid = this.engine.getGrid();
+    this.board.setAuraRings(
+      buildAuraRingSpecs(this.state, (center, radius) => grid.getTilesInRange(center, 0, radius)),
+    );
   }
 
   private enterBattleOver(winnerId: string | null): void {

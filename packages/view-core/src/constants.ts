@@ -12,6 +12,7 @@
 
 import type { AuraKind as AuraKindType } from "@pokemon-tactic/core";
 import { AuraKind } from "@pokemon-tactic/core";
+import type { AuraRingKind } from "@pokemon-tactic/render-ports";
 
 // ---------------------------------------------------------------------------
 // Shared renderer view tunables (plan 126). World-space sizes, camera/iso math,
@@ -119,11 +120,6 @@ export const FIELD_TERRAIN_OUTLINE_WIDTH = 0.04;
 export const CHAMP_PILL_HEIGHT = 0.5;
 export const CHAMP_PILL_LIFT = 0.25;
 
-// --- Ground aura hover icons ---
-export const AURA_HOVER_ICON_HEIGHT = 0.28;
-export const AURA_HOVER_ICON_OFFSET = 0.2;
-export const AURA_HOVER_ICON_LIFT = 0.12;
-
 // --- Placement direction arrows ---
 export const DIRECTION_ARROW_Y_OFFSET = 0.03;
 export const DIRECTION_ARROW_TILE_FRACTION = 0.6;
@@ -209,6 +205,60 @@ export const AURA_INDICATOR_SYMBOL: Record<AuraKindType, string> = {
   [AuraKind.LightScreen]: "✨",
   [AuraKind.Mist]: "🌫️",
   [AuraKind.Safeguard]: "🕊️",
+};
+
+/** Brouhaha (uproar) no-sleep aura indicator (left of the HP bar + ground ring). */
+export const UPROAR_AURA_INDICATOR_SYMBOL = "🔊";
+
+// --- Ground aura rings (plan 182) -------------------------------------------
+
+/**
+ * World-Y gap between two stacked rings: 2 voxels (1 voxel of ring + 1 voxel of
+ * gap). A 1-voxel pitch would read as a single thicker stroke, not as a stack.
+ */
+export const AURA_RING_STACK_PITCH = 2 / 24;
+
+/**
+ * The ring's only visual effect: the stroke itself breathes. A halo (a second, wider,
+ * translucent stroke underneath) was tried and dropped — at low alpha it was barely
+ * visible yet already clashed with the opaque stroke, and raising its alpha turned it
+ * into a second solid line instead of a diffusion. A real `GlowLayer` was ruled out
+ * too: it would be this scene's first bloom pass, and since the whole flat-unlit look
+ * is built on emissive materials it would have to be masked mesh by mesh.
+ */
+export const AURA_RING_PULSE_PERIOD_MS = 2600;
+/**
+ * Alpha floor of the breathing stroke (it peaks at 1). Deliberately high: the ring is
+ * the only thing marking the zone, so it must stay plainly readable at the trough — the
+ * pulse is there to catch the eye, not to make the outline come and go.
+ */
+export const AURA_RING_PULSE_MIN_ALPHA = 0.55;
+
+/**
+ * Ring tint per aura, the chromatic counterpart of `AURA_INDICATOR_SYMBOL` above
+ * — keep both tables side by side, the rule is "the tint continues the emoji
+ * already shown on the HP bar", so a reviewer must be able to check it at a glance.
+ *
+ * Anchored on each emoji's dominant hue where that hue is distinctive, with two
+ * deliberate departures: Requiem's note is navy (invisible on dark terrain, and too
+ * close to Protection's steel blue), and Brouhaha's speaker is grey — a hue already
+ * spoken for three times over. Values are also pushed away from the eight ground-zone
+ * colours above (four Terrains, Distorsion, Gravité, Zone Étrange, Zone Magique),
+ * which crowd the yellow / pink / purple / blue space a ground ring competes in.
+ */
+export const AURA_RING_COLOR_BY_KIND: Record<AuraRingKind, number> = {
+  /** 🛡️ steel blue, lightened away from Gravité's muted blue. */
+  [AuraKind.Reflect]: 0x8ec5e8,
+  /** ✨ gold, paled away from Terrain Électrifié's saturated yellow. */
+  [AuraKind.LightScreen]: 0xffe9a8,
+  /** 🌫️ icy near-white, kept off Zone Étrange's darker teal. */
+  [AuraKind.Mist]: 0xd8f2f7,
+  /** 🕊️ olive from the olive branch, duller than Terrain Herbu's bright green. */
+  [AuraKind.Safeguard]: 0xb5c46a,
+  /** 🎵 deep violet — menace, and separated by value from Terrain Psychique. */
+  "perish-aura": 0x6b2d8f,
+  /** 🔊 warm orange — no emoji basis, and the rose/pink space is already taken. */
+  uproar: 0xff8c42,
 };
 
 // --- Battle floating-text: timing ------------------------------------------

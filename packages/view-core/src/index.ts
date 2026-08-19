@@ -8,7 +8,7 @@
 
 export * from "./AiTeamController.js";
 export * from "./AnimationQueue.js";
-export * from "./aura-ground-layout.js";
+export * from "./aura-ring-view.js";
 export * from "./BattleSetup.js";
 export * from "./battle-orchestrator.js";
 export * from "./battle-views.js";

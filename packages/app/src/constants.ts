@@ -226,11 +226,6 @@ export const SCREEN_REFLECT_ID = "reflect";
 export const SCREEN_LIGHT_SCREEN_ID = "light-screen";
 export const SCREEN_PROTECTED_ALPHA = 0.75;
 
-export const SCREEN_HOVER_AURA_FONT_SIZE = 6;
-export const SCREEN_HOVER_AURA_ALPHA = 0.7;
-export const AURA_HOVER_ICON_OFFSET = 5;
-export const AURA_HOVER_MAX_ICONS = 6;
-
 export const SCREEN_HIGHLIGHT_RADIUS_TILES = 3;
 
 export const DAMAGE_ESTIMATE_COLOR = 0x000000;

@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 interface MeshInfo {
   isVisible: boolean;
@@ -6,6 +6,11 @@ interface MeshInfo {
   renderingGroupId: number;
   position: { x: number; y: number; z: number };
   transparent: boolean;
+}
+
+interface MeshBounds {
+  min: { x: number; y: number; z: number };
+  max: { x: number; y: number; z: number };
 }
 
 /** Per-sprite animation/terrain snapshot from the read-only scene hook (§11 flying resting anim):
@@ -58,7 +63,7 @@ export class CombatScene {
     );
   }
 
-  /** Drive a tile hover — same path as a real canvas pointer-move (info panel / aura on hover). */
+  /** Drive a tile hover — same path as a real canvas pointer-move (info panel ; les auras ne dépendent plus du survol depuis le plan 182). */
   hoverTile(x: number, y: number): Promise<void> {
     return this.page.evaluate(
       (tile) =>
@@ -72,8 +77,19 @@ export class CombatScene {
   /** Cast the active Pokemon's first move at (x,y) and confirm: Attaque → 1er move → cible → confirme.
    *  Target = dummy tile for offensive/status moves, own tile for self/team moves. */
   async castFirstMove(x: number, y: number): Promise<void> {
+    await this.castMove(this.page.getByTestId("move-item").first(), x, y);
+  }
+
+  /** Comme {@link castFirstMove} mais en choisissant le move par son NOM FR affiché — nécessaire dès
+   *  qu'un test enchaîne DEUX moves du même mon (empiler deux auras), où « le premier » ne suffit plus. */
+  async castMoveNamed(name: string, x: number, y: number): Promise<void> {
+    await this.castMove(this.page.getByTestId("move-item").filter({ hasText: name }), x, y);
+  }
+
+  /** Shared cast flow: Attaque → le move désigné → cible → confirme. */
+  private async castMove(move: Locator, x: number, y: number): Promise<void> {
     await this.page.getByRole("button", { name: "Attaque", exact: true }).click();
-    await this.page.getByTestId("move-item").first().click();
+    await move.click();
     await this.clickTile(x, y);
     await this.clickTile(x, y);
   }
@@ -175,6 +191,26 @@ export class CombatScene {
       }
       return [...ys];
     });
+  }
+
+  /** Noms de mesh commençant par `prefix` (familles nommées `<famille>_<clé>` : anneaux d'aura,
+   *  highlights, hazards…) — `countByName` demande un nom EXACT, or la clé d'un anneau d'aura porte
+   *  l'id d'instance du lanceur. */
+  async meshNamesStartingWith(prefix: string): Promise<string[]> {
+    return (await this.meshNames()).filter((name) => name.startsWith(prefix));
+  }
+
+  /** Boîte englobante MONDE d'un mesh (`__ptE2e__.meshBounds`). Seul signal géométrique des anneaux
+   *  d'aura : ce sont des GreasedLine bâtis sur des points absolus, donc leur `position` reste à
+   *  l'origine et c'est l'étendue qui dit où passe l'anneau et sur quel plan Y il est empilé. */
+  meshBounds(name: string): Promise<MeshBounds | null> {
+    return this.page.evaluate(
+      (meshName) =>
+        (
+          globalThis as { __ptE2e__?: { meshBounds(n: string): MeshBounds | null } }
+        ).__ptE2e__?.meshBounds(meshName) ?? null,
+      name,
+    );
   }
 
   meshInfo(name: string): Promise<MeshInfo | null> {
