@@ -22,6 +22,7 @@ step() {
       typecheck) echo "  fix: lis l'erreur tsc, vérifie packages/*/tsconfig.json";;
       test)     echo "  fix: \`pnpm test\` localement, isole le test cassé avec --reporter=verbose";;
       test:integration) echo "  fix: \`pnpm test:integration\` localement";;
+      test:scenario) echo "  fix: \`pnpm test:scenario\` localement ; alias @pokemon-tactic/* resolus via tsconfigPaths — l'include du tsconfig racine doit couvrir scenarios/";;
       e2e)      echo "  fix: \`pnpm test:e2e\` localement ; harness Playwright (DOM + scène Babylon). Pas en CI (WebGL headless instable)";;
     esac
     echo ""
@@ -43,6 +44,7 @@ case "$MODE" in
     step "build"           pnpm build
     step "test"            pnpm test
     step "test:integration" pnpm test:integration
+    step "test:scenario"   pnpm test:scenario
     step "e2e"             pnpm test:e2e:affected
     ;;
   slow)
