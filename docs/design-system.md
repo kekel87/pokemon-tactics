@@ -657,7 +657,7 @@ Les couleurs de type sont extraites du pixel dominant des icônes `assets/ui/typ
 | `--pad-control-*` | Padding des contrôles interactifs (inputs, selects, boutons textuels) |
 | `--pad-chip-*` | Padding des chips/badges (badges types, tags items) |
 | `--pad-icon-btn` | Padding uniform des boutons icônes (×, close) |
-| `--target-min: 24px` | Taille tactile minimale WCAG — appliquée à tous les boutons icônes |
+| `--target-min: 24px` | Taille tactile minimale (jouabilité au pouce, pas conformité WCAG — décision #752) — appliquée à tous les boutons icônes, plancher relevé à 30px sous `pointer: coarse` sur le chrome de combat et la barre de placement (plan 179, décision #735) |
 
 ### Couleurs stats (barres stats Team Builder)
 

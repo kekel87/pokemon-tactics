@@ -10,7 +10,7 @@
 
 Cette phase **consolide des items aujourd'hui dispersés** :
 - **Phase 7 (Multijoueur)** → on rapatrie **« Support manette »**. (`Tutoriel interactif`, `Speed controls`, écran victoire enrichi **restent** en Phase 7 : compréhension/confort, hors périmètre contrôles.)
-- **Phase 9 (Polish)** → on rapatrie **« UI revamps »**, **« Tooltips type chart »**, **a11y** (`Biome HTML/CSS lint a11y`).
+- **Phase 9 (Polish)** → on rapatrie **« UI revamps »** et **« Tooltips type chart »**. L'**a11y** (`Biome HTML/CSS lint a11y`) était aussi rapatriée ici — **abandonnée depuis** (2026-08-19, décision #752), voir § Hors périmètre.
 - **Backlog `next.md` (§ UI/UX en attente)** :
   - Affichage **nature** dans l'InfoPanel (mécanique core livrée plan 072, UI absente).
   - Pistes best-practices overlay restantes : (2) modales `<dialog>` top-layer → publier `--stage-scale` sur `:root` via ResizeObserver ; (3) cap ultrawide optionnel `min(100cqw/1920, 100cqh/1080)` ; (4) `--ui-scale` sur les barres PV monde (4K).
@@ -78,7 +78,7 @@ Panneau minimal : `portrait · nom/genre/niveau · barre PV (chiffres exacts) ·
 - **Info terrain / modificateurs** de la case (hauteur, terrain, DoT, effets) — backlog « affichage des modificateurs terrain ». Touche au rendu → `best-practices` avant.
 - **Auras** : « 1 rond par aura empilable » au sol. Touche au rendu → `best-practices` avant.
 - **Responsive + dette mobile** : brancher `--stage-scale` (dialogs top-layer), cap ultrawide, `--ui-scale` barres PV ; **+ corriger la dette mobile existante** (des éléments déjà mal alignés/cassés sur mobile, signalé humain 2026-07-24).
-- **a11y** : passe (headings, aria, focus) + lint a11y Biome HTML/CSS (ex-Phase 9).
+- ~~**a11y** : passe (headings, aria, focus) + lint a11y Biome HTML/CSS (ex-Phase 9).~~ **ABANDONNÉ (2026-08-19, décision #752).** Le support lecteur d'écran n'est pas visé : le combat est un canvas Babylon, non représentable dans l'arbre d'accessibilité. Les morceaux utiles sont rapatriés sous leur vraie justification — **gestion du focus → Lot 2** (prérequis clavier/manette), **HTML sémantique + noms accessibles** → règle vivante `.claude/rules/html.md` justifiée par le harnais e2e, **taille de cible tactile** → déjà livrée au plan 179. Lint a11y Biome non activé.
 
 ### Preview combat (à la validation de cible)
 Respecte le réglage **« Aperçu des dégâts » on/off** existant (Settings) — off = pas de prévision. Contenu :
@@ -109,6 +109,7 @@ But : confort desktop + manette (y compris **sur mobile**).
 - **Couche d'input logique + tracker de source active** (cf. Architecture) : actions remappables, `last-input-wins`.
 - **Gamepad API** : navigation menus + combat à la manette ; prompts contextuels (glyphes Kenney selon la source active).
 - **Source active pilote l'UI** : masque l'overlay tactile (Lot 1) quand la manette/clavier est active, bascule le style des prompts.
+- **Gestion du focus** *(rapatriée du Lot 3, décision #752)* : un focus qui survit au re-rendu est un **prérequis fonctionnel** de la navigation clavier/manette, pas une faveur d'accessibilité. Cas connu à corriger : `packages/app/src/ui/dom/screens/settings-screen.ts` reconstruit tout son sous-arbre à chaque bascule (`root.remove()` + `render()`) et éjecte le focus vers `<body>` — les 3 lignes Langue / Prévisualisation dégâts / Plein écran.
 - **Écran de config** : remapping clavier + manette, dans Settings.
 - **Manette sur mobile (first-class)** : gratuit si la couche est device-agnostique + overlay masquable ; **tester la manette USB-C réelle de l'humain** (Android) + iOS Safari.
 
@@ -123,6 +124,7 @@ But : confort desktop + manette (y compris **sur mobile**).
 - Masquer objet ennemi (info cachée) → Phase 7 / backend matchmaking.
 - Son/Musique, auto-save, décors → Phase 9.
 - Éditeur de niveau → Phase 6.
+- **Support lecteur d'écran** (a11y au sens WCAG) → **abandonné, pas reporté** (décision #752). Le combat est un canvas ; le rendre jouable en non-voyant demanderait une représentation textuelle parallèle de tout l'état tactique. Ce qui touche au **focus** part au Lot 2, ce qui touche à la **sémantique HTML** reste une règle vivante (surface de requête e2e).
 
 ## Décisions à trancher
 

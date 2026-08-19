@@ -594,7 +594,8 @@ situation).*
 *e2e : `combat/responsive-chrome.spec.ts`*
 
 *Décisions d'entrée (ne pas rouvrir) : **paysage forcé** sur mobile, cible **min-width 360px**,
-**pas de plancher de font-size** — le plancher n'est autorisé que sur la **hit-area** (WCAG 2.2 SC
+**pas de plancher de font-size** — le plancher n'est autorisé que sur la **hit-area** (motif
+jouabilité au pouce, pas conformité WCAG — décision #752 ; techniquement alignée sur WCAG 2.2 SC
 2.5.8 « spacing exception »). Le second référentiel introduit un **palier discret** assumé : sous le
 seuil, tout le chrome grossit d'un coup ×1,5, la maquette restant homothétique.*
 
@@ -608,8 +609,9 @@ seuil, tout le chrome grossit d'un coup ×1,5, la maquette restant homothétique
   `28px × --ui-scale` à n'importe quelle taille d'écran (`responsive-chrome.spec`).
 - 🤖 **Planchers tactiles (`pointer: coarse`)** : lignes du menu d'action, **lignes de la liste
   d'attaques** (elles lisaient plus courtes que le menu qu'elles remplacent) et bouton replié du
-  journal ≥ **30px** — au-dessus du minimum WCAG 24px, en-dessous des 44px recommandés jugés trop
-  hauts sur un vrai téléphone. **Contre-épreuve pointeur fin** : le bouton du journal garde sa taille
+  journal ≥ **30px** — au-dessus du plancher 24px (`--target-min`), en-dessous des 44px recommandés
+  jugés trop hauts sur un vrai téléphone (motif jouabilité au pouce, pas conformité WCAG — décision
+  #752). **Contre-épreuve pointeur fin** : le bouton du journal garde sa taille
   homothétique (≈19px) — le plancher porte sur la hit-area, jamais sur le rendu
   (`responsive-chrome.spec`).
 - 🤖 **Journal élargi sur mobile** : sous le seuil, le panneau passe de la maquette 288px/18,4px à

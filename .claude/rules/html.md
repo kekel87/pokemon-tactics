@@ -28,46 +28,56 @@ Cible : evergreen browsers, DOM construit en TypeScript, zéro framework. Compag
 
 - **`<input>` et `<select>` natifs en premier** — avant tout custom dropdown. `<datalist>` pour autocomplete simple.
 
-## Accessibilité
+## Focus, clavier et noms accessibles
 
-- **Sémantique HTML > ARIA** — "no ARIA is better than bad ARIA". 90% du temps, le bon élément HTML suffit.
+> **Périmètre (décision #752, 2026-08-19)** : le support **lecteur d'écran** n'est **pas visé** — le combat est
+> un canvas Babylon, non représentable dans l'arbre d'accessibilité. Les règles ci-dessous ne sont donc pas là
+> pour la conformité WCAG, elles tiennent parce que : **(a)** le harnais e2e interroge le DOM par **rôle** et
+> **nom accessible** (142 `getByRole`), **(b)** le clavier et la manette (Lot 2) ont besoin d'un focus qui ne
+> saute pas, **(c)** les éléments natifs donnent gratuitement un comportement qu'on aurait sinon à réécrire.
+> Ce qui ne sert **que** le lecteur d'écran (`aria-pressed`, `aria-live`) est **optionnel** — ne pas le
+> réclamer en revue.
 
-- **`aria-label` sur les boutons icône uniquement** — bouton avec texte visible = pas d'aria-label. Bouton `×` (fermer) = `aria-label="Fermer"`.
+- **Sémantique HTML > ARIA** — "no ARIA is better than bad ARIA". 90% du temps, le bon élément HTML suffit,
+  et il est déjà interrogeable par `getByRole`.
+
+- **Nom accessible sur les boutons icône** — `aria-label` sur un bouton **sans texte visible**. C'est ce que lit
+  `getByRole("button", { name })` : sans lui, le bouton n'est adressable que par `data-testid`. Bouton avec texte
+  visible = **pas** d'`aria-label`.
   ```ts
   closeBtn.setAttribute("aria-label", "Fermer");
   ```
 
-- **États dynamiques obligatoires** :
-  - Dropdown ouvert : `aria-expanded="true"` sur le déclencheur
-  - Tab actif : `aria-selected="true"` sur `role="tab"`
-  - Toggle : `aria-pressed`
-  - Page courante : `aria-current="page"`
-
-- **Focus management sur modale** — `<dialog showModal()>` gère le focus trap automatiquement. Après fermeture, le focus revient à l'élément déclencheur (garder une référence).
+- **Focus management sur modale** *(requis — clavier/manette)* — `<dialog showModal()>` gère le focus trap
+  automatiquement. Après fermeture, le focus revient à l'élément déclencheur (garder une référence).
   ```ts
   const trigger = document.activeElement as HTMLElement;
   dialog.addEventListener("close", () => trigger?.focus(), { once: true });
   ```
 
-- **`inert` pour désactiver un sous-arbre** — plus fiable qu'`aria-hidden` quand on veut bloquer focus + interactions.
+- **Ne pas détruire le focus au re-rendu** *(requis — clavier/manette)* — un handler qui reconstruit tout son
+  sous-arbre (`root.remove()` puis `render()`) éjecte le focus vers `<body>` : au clavier ou à la manette, la
+  navigation repart de zéro à chaque interaction. Muter l'élément existant, ou re-focaliser explicitement après
+  le rendu. *Cas connu à corriger au Lot 2* : `packages/app/src/ui/dom/screens/settings-screen.ts` (les 3 lignes
+  Langue / Prévisualisation dégâts / Plein écran).
+
+- **`inert` pour désactiver un sous-arbre** — plus fiable qu'`aria-hidden` quand on veut bloquer focus +
+  interactions.
   ```ts
   panelBehindModal.inert = true;
   ```
 
-- **`tabindex="0"` / `tabindex="-1"` uniquement** — `tabindex` positif interdit. `-1` pour focus programmatique, `0` pour entrer dans l'ordre naturel.
+- **`tabindex="0"` / `tabindex="-1"` uniquement** — `tabindex` positif interdit. `-1` pour focus programmatique,
+  `0` pour entrer dans l'ordre naturel.
 
 - **`:focus-visible` en CSS** — ne jamais supprimer `outline` sans remplacer par `:focus-visible`.
 
-- **Taille cible WCAG 2.5.8** — minimum 24×24px sur tout interactif. Viser 44×44px pour boutons principaux.
+- **Taille de cible tactile — plancher 30px sous `pointer: coarse`** (hit-area seule, pas le rendu ; arbitré sur
+  téléphone réel au plan 179). Motif : jouabilité au pouce. Viser plus large sur les boutons principaux.
 
-- **`aria-live="polite"`** pour les annonces non-urgentes (log de combat, toasts) — region injectée dans le DOM au chargement, pas à l'annonce.
-  ```ts
-  const liveRegion = document.createElement("div");
-  liveRegion.setAttribute("aria-live", "polite");
-  liveRegion.setAttribute("aria-atomic", "true");
-  liveRegion.className = "sr-only";
-  document.body.appendChild(liveRegion);
-  ```
+- **États ARIA dynamiques : seulement quand ils portent une info qu'un test ou le CSS lit** — `aria-expanded` sur
+  un déclencheur d'accordéon, `aria-current="page"`, `aria-selected` sur `role="tab"`. **`aria-pressed` et
+  `aria-live` ne sont pas exigés** (lecteur d'écran seul).
 
 ## Construction DOM en TypeScript
 

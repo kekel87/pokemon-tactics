@@ -314,7 +314,7 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 ## Phase 6.5 — Client jouable : contrôles & UI ⏳ *PROCHAINE PHASE ACTIVE (2026-07-24)*
 
 > **Prioritaire, avant la Phase 7 (Multijoueur).** Seul retour de vrais utilisateurs : **injouable sur mobile → contrôles tactiles**. Un multi n'a de valeur que sur un client jouable.
-> Plan-cadre consolidé : `docs/plans/173-phase-client-jouable-ui-controles.md` (consolide « Support manette » ex-Phase 7, « UI revamps »/« Tooltips type chart »/a11y ex-Phase 9, + backlog UI/UX de `next.md`).
+> Plan-cadre consolidé : `docs/plans/173-phase-client-jouable-ui-controles.md` (consolide « Support manette » ex-Phase 7, « UI revamps »/« Tooltips type chart » ~~/a11y~~ ex-Phase 9, + backlog UI/UX de `next.md`). L'a11y (support lecteur d'écran) rapatriée ici a été **abandonnée, pas reportée** (2026-08-19, décision #752) — voir plan 173 § Hors périmètre.
 > Assets **Kenney CC0** intégrés (input-prompts, mobile-controls, cursor-pixel-pack).
 
 - [x] **InfoPanel enrichi allié** (2026-07-24) — types, stats (base→crans→valeur effective incluant statuts), talent, nature (effet via labels colorés) dans le panneau de combat côté joueur. Ennemi reste minimal sous fog (plan 176, livré). Plan 174, décisions #717–#718.
@@ -323,9 +323,9 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 - [x] **Tooltip d'attaque enrichi + noms de type unifiés** (2026-08-03) — contrecoup/drain/auto-K.O., coût CT chiffré, chip de type, probabilité d'effet secondaire ; source unique `getTypeName` remplace `TYPE_LABEL` et les clés i18n `pokemonType.*`. Table de types 18×18 et efficacité contextuelle par move abandonnées. Plan 178, décisions #724–#727.
 - [x] **Panneau ennemi + fog** (2026-08-05) — PV en %, objet tenu et talent en placeholders `???` jusqu'à révélation à l'usage (core `reveal-tracking.ts`, définitive, reset au K.O.), dégâts de preview + overlay en % sous fog. Fog **ON en dur** en partie réelle, désactivable en sandbox (`SandboxConfig.fogOfWar`, défaut OFF ⇒ lecture complète). Plan 176, décisions #728–#732.
 - [x] **Responsive + dette mobile** (2026-08-06) — second référentiel de design mobile (1280×720 sous `height < 500px` ou `width < 900px`), chrome de combat + tous les écrans de menu redensifiés pour petit écran, overlay d'orientation (obstruction, pas verrouillage), clavier virtuel, type unifié (`createTypeChip` exporté par `ui-dom`). Validé sur téléphone réel (combat, Team Builder, sélecteurs, orientation) ; dialog de victoire et rendu 4K non vus. Plan 179, décisions #733–#737.
-- [ ] **Lot 3 — reste** : auras (1 rond empilable), a11y.
+- [ ] **Lot 3 — reste** : auras (1 rond empilable). ~~a11y~~ **abandonné, pas reporté** (2026-08-19, décision #752) — gestion du focus rapatriée au Lot 2, voir plus bas.
 - [ ] **Lot 1 — Contrôles tactiles** : pinch-zoom, pan 2 doigts, boutons rotation caméra on-screen, cibles ≥44px `@media (pointer:coarse)`.
-- [ ] **Lot 2 — Config clavier + manette** : couche d'input device-agnostique (actions logiques remappables), Gamepad API (y c. **manette sur mobile**), écran de remapping.
+- [ ] **Lot 2 — Config clavier + manette** : couche d'input device-agnostique (actions logiques remappables), Gamepad API (y c. **manette sur mobile**), écran de remapping. **Gestion du focus** (rapatriée du Lot 3, décision #752) — prérequis fonctionnel de la navigation clavier/manette, pas une faveur d'accessibilité.
 
 ---
 
@@ -389,7 +389,7 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 
 - [→] ~~UI revamps~~ **déplacé en Phase 6.5 — Client jouable (Lot 3)** (2026-07-24)
 - [x] **CSS modulaire Team Builder + `<dialog>` natif + HTML a11y** — livré plan 085 polish 2026-05-18. `packages/renderer/src/styles/` 12 modules (@layer, tokens, `<dialog showModal()>` natif, slot cards `<button>`, aria-label i18n, lazy loading, bugfix `@layer reset`). Rules `.claude/rules/css.md` + `.claude/rules/html.md`. Décisions #321-325.
-- [ ] **Biome HTML/CSS lint** — Biome v2.4 gère HTML formatter + CSS formatter. Étendre `biome.json` : `files.includes` += `**/*.{css,html}`, activer `linter.rules.a11y.recommended: true`. Optionnel : audit Axe + Lighthouse. Optionnel : `stylelint-plugin-use-baseline`.
+- [ ] **Biome HTML/CSS lint** — Biome v2.4 gère HTML formatter + CSS formatter. Étendre `biome.json` : `files.includes` += `**/*.{css,html}`. ~~Activer `linter.rules.a11y.recommended: true`. Optionnel : audit Axe + Lighthouse.~~ **Lint/audit a11y non activés** (2026-08-19, décision #752) — support lecteur d'écran abandonné, `biome.json` garde `a11y.preset: "none"`. Optionnel : `stylelint-plugin-use-baseline`.
 - [ ] Son / Musique
 - [ ] Décors sur les maps
 - [→] ~~Tooltips type chart (efficacités au hover)~~ **déplacé en Phase 6.5 — Client jouable (Lot 3)** (2026-07-24)
