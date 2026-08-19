@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ActionError } from "../../enums/action-error";
 import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
@@ -118,7 +118,15 @@ describe("gravity — immediate grounding on cast", () => {
 });
 
 describe("gravity — grounds a Flying defender", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("lets a Ground move hit a Flying-type standing in the zone", () => {
+    // Cavalerie Lourde a une précision de 95 : sans épingler l'aléa, l'assertion « dégâts > 0 »
+    // échoue ~5 % des exécutions sur un coup manqué. 0.5 touche et ne critique pas.
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+
     function build() {
       const caster = MockPokemon.fresh(MockPokemon.base, {
         id: "caster",

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
@@ -9,6 +9,10 @@ import { buildItemTestEngine, MockPokemon } from "../../testing";
 import { ProtectionReason } from "../../types/battle-event";
 
 describe("Clear Amulet", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe("blocks opponent-inflicted stat drops", () => {
     it("Given a Talisman Sain holder is hit by Groz'Yeux, Then its Defense stays at 0 and the block events fire", () => {
       const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -88,7 +92,11 @@ describe("Clear Amulet", () => {
   });
 
   describe("does not block self-inflicted drops", () => {
-    it("Given a Talisman Sain holder uses Draco-Météore, Then its own Sp.Atk still drops", () => {
+    it("Given a Talisman Sain holder uses Surchauffe, Then its own Sp.Atk still drops", () => {
+      // Surchauffe a une précision de 90 : on épingle l'aléa pour que l'assertion ne dépende pas de
+      // la question de savoir si le moteur applique la baisse de stat sur un coup manqué.
+      vi.spyOn(Math, "random").mockReturnValue(0.5);
+
       const holder = MockPokemon.fresh(MockPokemon.base, {
         id: "holder",
         playerId: PlayerId.Player1,

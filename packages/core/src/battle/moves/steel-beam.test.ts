@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
 import { PlayerId } from "../../enums/player-id";
 import { buildMoveTestEngine, MockPokemon } from "../../testing";
@@ -26,7 +26,19 @@ function setup(casterHp: number) {
 }
 
 describe("steel-beam", () => {
+  // Métalaser a une précision de 95 : sans épingler l'aléa, ces tests manquent leur cible ~5 % des
+  // exécutions (le moteur retombe sur Math.random quand le harnais ne reçoit pas de `random`).
+  // 0.5 touche (50 < 95), ne critique pas, et donne un jet de dégâts médian.
+  function pinRandom() {
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("deals damage and recoils 50% of the caster's max HP", () => {
+    pinRandom();
     const { engine, state } = setup(100);
     const foeHpBefore = state.pokemon.get("foe")?.currentHp ?? 0;
 
@@ -43,6 +55,7 @@ describe("steel-beam", () => {
   });
 
   it("can down the caster through recoil", () => {
+    pinRandom();
     const { engine, state } = setup(40);
 
     engine.submitAction(PlayerId.Player1, {
