@@ -295,6 +295,32 @@ Les 4 icônes météo (Soleil, Pluie, Neige, Tempête de Sable) sont des **SVG v
 
 ---
 
+## Glyphe de geste attendu (chantier « aide visuelle des gestes attendus », 2026-08-20)
+
+La ligne d'instruction du combat (`.bc-instruction`) accueille désormais un glyphe de geste dans un
+nouveau parent `.bc-instruction-row` (`packages/ui-dom/src/input-prompt-glyph.ts` +
+`styles/battle-chrome.css`). Feuille source : Kenney **`input-prompts-pixel-1-bit`** (16×16, 1-bit,
+CC0) — géométrie complète, tuiles retenues et contraintes d'intégration dans
+`docs/references/kenney-input-prompts-tileset.md`.
+
+- **Rendu** : `mask-image` sur la feuille + `background-color: currentcolor` (suit la couleur du
+  texte, pas de seconde palette à maintenir), `image-rendering: pixelated`. Agrandissement en
+  **facteur entier nu** porté par une custom property (`--bc-glyph-scale`) — jamais
+  `calc(32px / 16px)` (piège transversal Chromium/Firefox, décision #775).
+- **Choix du dessin** : souris pleine (tuile 111) en pointeur fin, main-curseur (tuile 578) en
+  pointeur grossier — choisi par `@media (pointer: coarse)`, pas par un tracker de source d'entrée
+  JS (posé plus tard au Lot 2 du plan-cadre 173).
+- **Suffixe « ×2 »** : du texte, pas un dessin — le pack n'a **aucun** glyphe de geste tactile
+  (décision #771) — affiché en tactile uniquement sur les 2 phases directionnelles (`aimDirection`,
+  `selectDirection`).
+- **Taille** : `0.9em`, suit la police de la ligne d'instruction plutôt qu'un pixel fixe (décision
+  #773).
+- **URL de la feuille injectée par l'hôte** (`UiDomConfig.getInputPromptSheetUrl`), jamais en
+  `url()` dans le CSS de `ui-dom` — cohérent avec le chemin de déploiement relatif (GitHub
+  Pages/itch).
+
+---
+
 ## UI — Menus et boutons
 
 ### Boutons standards (menus)
@@ -1104,6 +1130,17 @@ La boussole (`compass.glb`, mesh voxel) est repositionnée/redimensionnée chaqu
 | `COMPASS_NORTH_OFFSET` | `π/2` | Rotation monde fixe alignant l'aiguille Nord du modèle sur le Nord monde réel. |
 
 Décision #688.
+
+**Glyphe de rotation (chantier « aide visuelle des gestes attendus », 2026-08-20)** : un plan
+texturé (`BILLBOARDMODE_ALL`, `Texture.NEAREST_SAMPLINGMODE`, alpha-**blend** à
+`COMPASS_ROTATE_GLYPH_ALPHA = 0.72`) affiche la même feuille Kenney 1-bit à droite de la boussole,
+sur le groupe HUD. UV calculées dans le repère flipé de Babylon (`invertY` actif par défaut — voir
+`docs/references/babylon-gotchas.md`). Tuile **colonne 27, ligne 19**
+(`COMPASS_ROTATE_GLYPH_COLUMN`/`_ROW`) — choisie par l'humain **contre** la lecture géométrique du
+sens de rotation (décision #772). Taille alignée sur un **demi-pas de 8px**
+(`COMPASS_ROTATE_GLYPH_STEP_PX`), seule exception à la règle du facteur entier des glyphes CSS
+(décision #774). Le proxy de picking de la boussole (§ ci-dessus) s'étend vers la droite seulement
+pour englober ce glyphe — une seule zone tapable, pas un second contrôle.
 
 ---
 

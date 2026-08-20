@@ -15,4 +15,6 @@ export interface UiDomConfig extends I18nContext {
   getCategoryIconUrl(category: string): string;
   /** Weather-readout icon URL for a weather kind (sun / rain / sandstorm / snow). */
   getWeatherIconUrl(kind: string): string;
+  /** Shared Kenney 1-bit input-prompt tilesheet (mask source for the instruction-line glyph). */
+  getInputPromptSheetUrl(): string;
 }

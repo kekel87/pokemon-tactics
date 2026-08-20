@@ -16,6 +16,7 @@ export * from "./form-controls.js";
 export * from "./fullscreen-button.js";
 export * from "./game-stage.js";
 export * from "./info-panel.js";
+export * from "./input-prompt-glyph.js";
 export * from "./Modal.js";
 export * from "./move-tooltip.js";
 export * from "./pattern-preview.js";

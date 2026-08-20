@@ -268,6 +268,7 @@ export interface Translations {
   "credits.sprites": string;
   "credits.tileset": string;
   "credits.font": string;
+  "credits.inputPrompts": string;
   "credits.code": string;
   "credits.back": string;
   "log.title": string;

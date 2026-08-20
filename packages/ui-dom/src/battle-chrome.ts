@@ -17,6 +17,7 @@ import type {
 import type { UiDomConfig } from "./config.js";
 import { el } from "./dom-helpers.js";
 import { createInfoPanel } from "./info-panel.js";
+import { createInputPromptGlyph, INSTRUCTION_GLYPH } from "./input-prompt-glyph.js";
 import { createMoveTooltip } from "./move-tooltip.js";
 import { createTailwindHud } from "./tailwind-hud.js";
 import { createTileInfoPanel } from "./tile-info-panel.js";
@@ -80,13 +81,25 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   const bottom = el("div", "bc-bottom");
   const tooltip = createMoveTooltip(config);
   const menuColumn = el("div", "bc-menu-col");
+  // The pill is the ROW, not the text node: the glyph sits inside it while `combat-instruction`
+  // stays a text-only element, so the ~13 e2e `toHaveText` assertions on it keep matching.
+  const instructionRow = el("div", "bc-instruction-row");
+  instructionRow.hidden = true;
+  const instructionGlyph = createInputPromptGlyph(config);
   const instruction = el("div", "bc-instruction", "combat-instruction");
-  instruction.hidden = true;
+  instructionRow.append(instructionGlyph.element, instruction);
   const menu = el("div", "bc-menu", "action-menu");
-  menuColumn.append(instruction, menu);
+  menuColumn.append(instructionRow, menu);
   bottom.append(tooltip.element, menuColumn);
   root.append(top, bottom);
   host.appendChild(root);
+
+  /** Text + expected gesture always move together — one call per instruction change. */
+  function showInstruction(key: BattleInstruction): void {
+    instructionRow.hidden = false;
+    instruction.textContent = config.translate(INSTRUCTION_KEY[key]);
+    instructionGlyph.update(INSTRUCTION_GLYPH[key]);
+  }
 
   // Left column (top→bottom): the turn timeline shrinks to leave room for the info
   // panel pinned at the bottom, so the timeline reacts to the panel instead of
@@ -174,7 +187,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
 
     showActionMenu: (view: ActionMenuView) => {
       tooltip.hide();
-      instruction.hidden = true;
+      instructionRow.hidden = true;
       const first = view.canUndoMove
         ? button(config.translate("action.undoMove"), view.onUndoMove)
         : button(config.translate("action.move"), view.onMove, !view.canMove);
@@ -189,7 +202,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
 
     showAttackSubmenu: (view: AttackSubmenuView) => {
       tooltip.hide();
-      instruction.hidden = true;
+      instructionRow.hidden = true;
       const list = el("div", "bc-move-list");
       for (const move of view.moves) {
         list.append(moveRow(move, () => view.onSelect(move.definition.id)));
@@ -217,26 +230,23 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       // Cancel sits under the locked-in move, mirroring the attack submenu's own button (plan 183):
       // Escape is the only other way out and does not exist on a touch screen.
       menu.replaceChildren(header, button(config.translate("action.cancel"), move.onCancel));
-      instruction.hidden = false;
-      instruction.textContent = config.translate(INSTRUCTION_KEY[key]);
+      showInstruction(key);
     },
 
     showCancellableInstruction: (key: BattleInstruction, onCancel: () => void) => {
       tooltip.hide();
       menu.replaceChildren(button(config.translate("action.cancel"), onCancel));
-      instruction.hidden = false;
-      instruction.textContent = config.translate(INSTRUCTION_KEY[key]);
+      showInstruction(key);
     },
 
     updateInstruction: (key: BattleInstruction) => {
-      instruction.hidden = false;
-      instruction.textContent = config.translate(INSTRUCTION_KEY[key]);
+      showInstruction(key);
     },
 
     hideMenus: () => {
       tooltip.hide();
       menu.replaceChildren();
-      instruction.hidden = true;
+      instructionRow.hidden = true;
     },
 
     updateInfoPanel: (view: InfoPanelData | null) => {

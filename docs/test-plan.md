@@ -69,6 +69,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Stockage/Relâche/Avale RÉUSSITE + Délestage (débloqués `stockpileCount`/`unburdenActive`) | §5.46 (+ §5.36, §5.37) |
 | Move (effet observable) | §5 (famille concernée) |
 | HUD DOM combat (log, timeline, menus, tooltip) | §4 |
+| Glyphe de geste attendu / boussole tapable (aide visuelle des gestes) | §4.8, §4.18 |
 | Écran / menu / navigation | §6 |
 | Team Builder / sandbox | §7 |
 | Placement / zones de spawn | §8.5 |
@@ -455,9 +456,28 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
 - 👁 Survol d'un **ennemi** → ses infos + sa portée (preview menace, cf §3.7).
 - 👁 Couleur d'équipe (`data-team`) ; se masque quand on quitte le survol.
 
-### 4.8 Ligne d'instruction (`.bc-instruction`)
+### 4.8 Ligne d'instruction (`.bc-instruction-row` : glyphe + `.bc-instruction`)
+
+*src : `ui-dom/battle-chrome.ts`, `ui-dom/input-prompt-glyph.ts`*
+*e2e : `combat/input-prompt-glyph.spec.ts` (+ `combat/targeting.spec.ts`)*
+
 - 🤖 Guide l'action : « Sélectionne la cible » (ciblage) puis « Confirmer ? » (confirmation) —
-  `targeting.spec`. *« Choisis le repli » (hit-and-run) = 👁.*
+  `targeting.spec` ; les 6 phases sont couvertes texte + geste par `input-prompt-glyph.spec`,
+  « Choisis la case de repli » (hit-and-run) comprise.
+- 🤖 **Glyphe du geste attendu** à gauche du texte (chantier « aide visuelle des gestes attendus »,
+  suite du Lot 1 du plan 173) : la ligne disait QUOI faire, jamais COMMENT. `data-glyph` vaut
+  `act-twice` sur les **deux phases directionnelles** (visée d'un cône/ligne/fauche/charge,
+  orientation de fin de tour — retaper la même direction valide) et `act` sur les quatre autres
+  (cible, confirmation, destination, case de repli) — `input-prompt-glyph.spec`.
+- 🤖 Le **texte reste seul** dans `.bc-instruction` : la pastille est passée au parent
+  `.bc-instruction-row`, et c'est lui qui porte `hidden` — hors phase d'input, glyphe compris, tout
+  disparaît (`input-prompt-glyph.spec` ; non-régression des ~13 specs qui assertent ce texte exact).
+- 🤖 Suffixe **« ×2 »** du geste directionnel présent en **pointeur grossier** et absent en pointeur
+  fin — une souris valide une direction du premier clic (`input-prompt-glyph.spec`, `hasTouch`).
+- 👁 **Dessin** du glyphe : souris en pointeur fin, main en pointeur grossier (tuile de la feuille
+  Kenney 1-bit posée en masque CSS, teinte héritée de la pastille, `image-rendering: pixelated`).
+  Choix fait en CSS pur (`@media (pointer: coarse)`), donc rebrancher une souris sur un téléphone
+  re-style la pastille sans re-rendu — c'est du pixel, invisible au DOM.
 
 ### 4.9 Journal de combat (`.bl-panel`)
 - 🤖 Entrées en **FR** : usage de move (« <X> utilise <Move> ! »), dégâts (« perd N PV ! »),
@@ -706,7 +726,7 @@ téléphone).*
 `render-babylon/babylon-compass.ts` (boussole tapable), `view-core/battle-orchestrator.ts`
 (visée d'un pattern directionnel + annulation), `ui-dom/battle-chrome.ts`,
 `ui-dom/chrome-insets.ts` (mesure de la timeline)*
-*e2e : `combat/touch-controls.spec.ts`*
+*e2e : `combat/touch-controls.spec.ts`, `combat/compass-rotate-hint.spec.ts`*
 
 *Le doigt n'a pas de survol : aucun `pointermove` n'arrive avant le contact. Tout l'étage
 d'information du Lot 3 (panneau Pokemon, panneau de case, portée ennemie, prévision de combat) étant
@@ -751,14 +771,33 @@ au doigt doit passer par lui, sinon elle ne teste rien de ce lot.
 - 👁 **Aucun saut de zoom quand un doigt se lève** (la distance de référence est réarmée à chaque
   changement du nombre de pointeurs). C'est le piège classique de l'implémentation, invisible
   autrement. **Téléphone réel, validé 2026-08-20.**
-- 👁 **Boussole tapable** (un cran de rotation par tap, toujours dans le même sens), **taille et
-  ancrage repris de la première case de la timeline** (même côté, coin haut-gauche posé au coin
-  haut-droit du portrait). Trois tentatives à base de constantes maison avaient dérivé : derrière la
-  timeline, puis flottante, puis glissant à chaque changement de taille. Mesuré à l'exécution
-  (`chrome-insets.ts`), donc aucun nombre choisi à l'œil — mais rien ne l'observe automatiquement.
-  **Téléphone réel, validé 2026-08-20.**
-- 👁 **Zone tapable de la boussole ≥ 44 px** malgré une aiguille de ~17 px de large : le proxy de
-  picking est invisible et contre-scalé, donc aucune assertion de rendu ne le voit. **Téléphone réel.**
+- 🤖 **Boussole tapable** : une pression sur elle donne **un cran de rotation** de la vue. Vérifié par
+  une vraie pression souris (`page.mouse`) sur le point où la scène dessine le contrôle, donc à
+  travers la même couche d'entrée que le tap ; le signal de rotation est la position **monde** du
+  glyphe épinglé à l'écran, qui est reprojetée depuis une autre base de caméra dès que celle-ci
+  orbite (`compass-rotate-hint.spec`). *Le tap au doigt reste 👁 (téléphone réel, 2026-08-20).*
+- 🤖 **Ancrage repris de la première case de la timeline** : la zone tapable commence juste après le
+  portrait actif (écart de dégagement de 6 px, donc sans le recouvrir) et le glyphe de rotation est
+  exactement à son niveau (même centre vertical), à n'importe quelle taille d'écran
+  (`compass-rotate-hint.spec`). Trois tentatives à base de constantes maison avaient dérivé :
+  derrière la timeline, puis flottante, puis glissant à chaque changement de taille — la mesure à
+  l'exécution (`chrome-insets.ts`) est désormais observée. *La **taille** de l'aiguille reste 👁 :
+  son mesh garde une boîte englobante non recentrée, donc sa projection ne la mesure pas.*
+- 🤖 **Zone tapable de la boussole ≥ 44 px** malgré une aiguille de ~17 px de large : le proxy de
+  picking est invisible, mais sa **projection à l'écran** (hook `meshScreenBox`) le mesure
+  (`compass-rotate-hint.spec`).
+- 🤖 **Glyphe de rotation à droite de la boussole** (chantier « aide visuelle des gestes attendus ») :
+  rien ne disait que la boussole se tapait. Flèche circulaire posée à sa droite, sur le groupe de
+  rendu du HUD, **dans la zone tapable de la boussole** — pas un second contrôle : la zone couvre
+  boussole + écart + glyphe et s'arrête net sur son bord droit (`compass-rotate-hint.spec`).
+- 🤖 **La zone tapable ne s'étend que vers la DROITE** : sa hauteur reste celle de la boussole (le
+  carré du portrait, planché à la cible tactile) et le glyphe occupe sa moitié droite. Un cube élargi
+  (l'implémentation d'avant) aurait gagné autant de plateau **en dessous** de la boussole, où taper
+  une case aurait fait tourner la caméra ; cliquer juste sous la zone ne tourne pas, alors que la
+  même pression sur le glyphe tourne (contre-épreuve dans le même test — `compass-rotate-hint.spec`).
+- 👁 **Dessin de la flèche** (tuile Kenney, sens de rotation tel que l'œil le lit, translucidité à
+  72 %, upscale à demi-tuile pour tomber sur ×2,5) : le sens « horaire » géométrique se lisait à
+  l'envers en jeu, c'est le choix humain qui tranche. **Œil / téléphone réel, 2026-08-20.**
 - 👁 **Seuil de glissé à 10 px au doigt** (contre 5 px à la souris) : un tap « immobile » qui dérive
   ne doit pas devenir un pan. **Téléphone réel.**
 - 👁 **`pointercancel`** (bascule d'application, geste système) ne laisse pas de doigt fantôme :
@@ -2726,7 +2765,9 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/hud-state.spec.ts` | §4.6 tooltip (apparaît/disparaît + tag 2 tours), §4.2 timeline CT (`data-ct`), §4.7 badge statut, §4.5 nom EN |
 | `combat/preview-colours.spec.ts` | §4.6 couleurs de preview pilotées par l'intention : `data-intent` attack/buff/heal (Griffe/Danse Lames/Fontaine de Vie), cellules `data-cell` target/dash/caster/caster-target, croix lanceur, centre Séisme vide |
 | `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire |
-| `combat/touch-controls.spec.ts` | §4.18 comportement au doigt via **`tapTile`** (seule entrée du hook qui traverse la vraie couche d'entrée) : **un tap agit du premier coup** ; un **pattern directionnel** s'ouvre cône affiché, retaper la même **direction** lance, une autre direction re-vise sans lancer (validation depuis une case différente = la comparaison est directionnelle). + **annulation atteignable au doigt** sur les 3 phases réparées (destination, cible, orientation). Pinch / pan 2 doigts / boussole / orientation de fin de tour / seuil de glissé / `pointercancel` = 👁 téléphone réel |
+| `combat/touch-controls.spec.ts` | §4.18 comportement au doigt via **`tapTile`** (seule entrée du hook qui traverse la vraie couche d'entrée) : **un tap agit du premier coup** ; un **pattern directionnel** s'ouvre cône affiché, retaper la même **direction** lance, une autre direction re-vise sans lancer (validation depuis une case différente = la comparaison est directionnelle). + **annulation atteignable au doigt** sur les 3 phases réparées (destination, cible, orientation). Pinch / pan 2 doigts / orientation de fin de tour / seuil de glissé / `pointercancel` = 👁 téléphone réel ; la boussole est couverte par `compass-rotate-hint.spec` |
+| `combat/input-prompt-glyph.spec.ts` | §4.8 glyphe du geste attendu dans la ligne d'instruction (chantier « aide visuelle des gestes attendus », suite du Lot 1 du plan 173) : `data-glyph` = `act-twice` sur les 2 phases **directionnelles** (visée de cône/ligne/fauche/charge, orientation de fin de tour) et `act` sur les 4 autres (cible, confirmation, destination de déplacement, case de repli de Demi-Tour) ; **suffixe « ×2 » présent en pointeur grossier** (`hasTouch`) et **absent en pointeur fin** ; la pastille entière (glyphe compris) disparaît hors phase d'input ; **non-régression** du `textContent` exact de `combat-instruction`, restée un nœud de texte pur alors que la pastille est passée à la rangée parente. Le DESSIN (souris vs main, masque CSS sur la feuille Kenney 1-bit) = 👁 pixel |
+| `combat/compass-rotate-hint.spec.ts` | §4.18 boussole + glyphe de rotation : **un clic fait tourner la vue d'un cran** (vrai clic souris sur le point projeté du glyphe, donc à travers la couche d'entrée réelle ; signal = position **monde** du mesh épinglé à l'écran, reprojetée quand la caméra orbite) ; **cliquer juste sous la zone ne tourne pas**, avec contre-épreuve dans le même test ; **zone tapable ≥ 44 px** et **croissance vers la droite seulement** (hauteur = carré du portrait planché à la cible tactile, bord droit = bord du glyphe) ; **ancrage sur le premier portrait de la timeline** (dégagement de 6 px, glyphe au même centre vertical), sur le groupe de rendu HUD. Dessin de la flèche / sens lu à l'œil / tap au doigt = 👁 |
 | `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (8 + détail + ↑/↓ aria-current), §6.4 format + Lancer gating |
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |
 | `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` + **objet tenu** (plan 168 : icône officielle `<img>` data-URL + nom FR — Restes à l'actif, Orbe Vie au survol du porteur team 2 ; sans objet → ligne masquée) + **panneau enrichi allié** (plan 174 : chips de types `li[data-type]`, ligne PV avec `.ip-hppct`, talent `info-panel-talent`, bloc des 5 stats `info-panel-stats` ; une stat à cran (+2 Atq) affiche « 2↑ » + « → » + valeur effective ≠ base) + **ennemi sans fog → lecture complète** (plan 176 : au survol du dummy team 2, types + bloc des 5 stats + talent en clair — le cas « minimal » ne vaut plus que SOUS fog, `combat-fog.spec`) |
@@ -2819,6 +2860,16 @@ complète dont seul le tampon `version`/`buildVersion` est falsifié).
       hasard, ni court ni déterministe ; le sandbox qui sait finir un combat ne persiste pas), absence
       de rediffusion visuelle du rejeu, coût du rejeu, et le vrai cas d'usage (onglet déchargé par
       l'OS ≠ `reload()` piloté).*
+- [x] **Aide visuelle des gestes attendus** (suite du Lot 1 du plan-cadre 173) : glyphe de geste dans
+      la ligne d'instruction — geste par phase, suffixe « ×2 » réservé au pointeur grossier, pastille
+      masquée hors phase d'input, texte de `combat-instruction` inchangé (`input-prompt-glyph.spec`) ;
+      glyphe de rotation de la boussole — pression qui tourne la vue, pression sous la zone qui ne
+      tourne pas, zone ≥ 44 px étendue vers la droite seulement, ancrage sur le portrait de la
+      timeline (`compass-rotate-hint.spec`). **Débloqué par un ajout au hook** : `meshScreenBox(name)`
+      projette la boîte englobante d'un mesh à l'écran (lecture seule, strippé du build prod), seul
+      moyen de situer — et de cliquer — un mesh épinglé à un coin d'écran, dont la position monde est
+      recalculée depuis la caméra à chaque frame. *Restent 👁 : les deux dessins (souris/main, flèche
+      circulaire) et le sens de rotation tel que l'œil le lit.*
 - [ ] **Reste 👁 plateforme (hors d'atteinte d'un navigateur piloté)** :
       - **Barre d'URL réellement masquée + verrouillage paysage** : l'ÉTAT plein écran est 🤖, son
         **effet mobile** ne l'est pas — aucun signal DOM n'expose la barre d'URL, et

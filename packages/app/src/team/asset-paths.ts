@@ -18,3 +18,12 @@ export function getStatusLabelUrl(kind: string): string {
 export function getWeatherIconUrl(kind: string): string {
   return `assets/ui/weather/weather-${kind}.svg`;
 }
+
+/**
+ * Kenney `input-prompts-pixel-1-bit` tilesheet (CC0), 34×24 tiles of 16px, no gutter — mask source
+ * for the instruction-line gesture glyph. One sheet rather than extracted tiles: the Lot 2
+ * keyboard/gamepad prompts will draw dozens more glyphes from the same file.
+ */
+export function getInputPromptSheetUrl(): string {
+  return "assets/ui/input-prompts/tilemap-1bit.png";
+}

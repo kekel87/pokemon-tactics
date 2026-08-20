@@ -32,7 +32,12 @@ import {
 } from "../constants.js";
 import { getLanguage, t } from "../i18n/index.js";
 import type { TranslationKey } from "../i18n/types.js";
-import { getCategoryIconUrl, getTypeIconUrl, getWeatherIconUrl } from "../team/asset-paths.js";
+import {
+  getCategoryIconUrl,
+  getInputPromptSheetUrl,
+  getTypeIconUrl,
+  getWeatherIconUrl,
+} from "../team/asset-paths.js";
 import { getItemIconUrl, getPortraitUrl } from "../team/team-builder-data.js";
 
 const PLACEMENT_UI_CONFIG: UiDomConfig = {
@@ -41,6 +46,7 @@ const PLACEMENT_UI_CONFIG: UiDomConfig = {
   getTypeIconUrl,
   getCategoryIconUrl,
   getWeatherIconUrl,
+  getInputPromptSheetUrl,
   getPortraitUrl,
   getItemIconUrl,
 };

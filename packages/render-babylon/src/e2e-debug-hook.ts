@@ -1,4 +1,5 @@
 import { MultiMaterial } from "@babylonjs/core/Materials/multiMaterial";
+import { Matrix, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { Scene } from "@babylonjs/core/scene";
 
 /**
@@ -52,6 +53,21 @@ export interface E2eSceneApi {
   meshBounds(name: string): {
     min: { x: number; y: number; z: number };
     max: { x: number; y: number; z: number };
+  } | null;
+  /**
+   * On-screen box of a mesh: its world bounding box projected through the active camera, in CSS px
+   * relative to the canvas. Null if absent.
+   *
+   * The only way to assert — or to press — a mesh that is pinned to a SCREEN corner rather than to a
+   * tile (the compass and its rotation glyph, plan 183 + chantier glyphes): their world position is
+   * recomputed from the camera basis every frame, so it says nothing about where the finger has to
+   * land. Primitives only, and read-only: projection touches no scene state.
+   */
+  meshScreenBox(name: string): {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
   } | null;
   /** Per-sprite animation state (§11 flying-anim assertions): the animation playing now, the
    *  resting animation it reverts to, the occupied tile and its terrain. Serializable primitives. */
@@ -128,6 +144,41 @@ export function installE2eSceneHook(
         min: { x: box.minimumWorld.x, y: box.minimumWorld.y, z: box.minimumWorld.z },
         max: { x: box.maximumWorld.x, y: box.maximumWorld.y, z: box.maximumWorld.z },
       };
+    },
+    meshScreenBox: (name: string) => {
+      const mesh = scene.getMeshByName(name);
+      const camera = scene.activeCamera;
+      if (!mesh || !camera) {
+        return null;
+      }
+      // Same deliberate refresh as `meshBounds`: the world matrix is a per-frame cache, and forcing
+      // it makes the projection correct even when queried between two frames.
+      mesh.computeWorldMatrix(true);
+      const engine = scene.getEngine();
+      const renderWidth = Math.max(1, engine.getRenderWidth());
+      const renderHeight = Math.max(1, engine.getRenderHeight());
+      // The engine is built without `adaptToDeviceRatio`, so framebuffer px usually EQUAL CSS px —
+      // but not on a device with a pixel ratio, and a press is dispatched in CSS px.
+      const canvas = engine.getRenderingCanvas();
+      const cssPerRenderX = (canvas?.clientWidth ?? renderWidth) / renderWidth;
+      const cssPerRenderY = (canvas?.clientHeight ?? renderHeight) / renderHeight;
+      const viewport = camera.viewport.toGlobal(renderWidth, renderHeight);
+      const transform = scene.getTransformMatrix();
+      const identity = Matrix.Identity();
+      let left = Number.POSITIVE_INFINITY;
+      let top = Number.POSITIVE_INFINITY;
+      let right = Number.NEGATIVE_INFINITY;
+      let bottom = Number.NEGATIVE_INFINITY;
+      for (const corner of mesh.getBoundingInfo().boundingBox.vectorsWorld) {
+        const projected = Vector3.Project(corner, identity, transform, viewport);
+        const x = projected.x * cssPerRenderX;
+        const y = projected.y * cssPerRenderY;
+        left = Math.min(left, x);
+        right = Math.max(right, x);
+        top = Math.min(top, y);
+        bottom = Math.max(bottom, y);
+      }
+      return { left, top, right, bottom };
     },
     spriteStates,
   });

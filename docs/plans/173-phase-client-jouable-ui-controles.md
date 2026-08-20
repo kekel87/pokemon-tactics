@@ -53,6 +53,8 @@ Tous **CC0 / domaine public** (vérifié 2026-07-24) → OK à committer (respec
 - **cursor-pixel-pack** (180 curseurs 16×16) — curseurs pixel-art.
 
 > **Décision à trancher (style)** : le jeu est **2D-HD full-res** (pixel-art abandonné, décision #486). Le pack **normal 64×64** colle probablement mieux à la chrome actuelle que le **1-bit 16×16**. L'humain a pris les deux → choisir **un** style cohérent avec l'UI (reco : normal 64×64 pour les prompts ; curseur pixel = à évaluer vs le curseur voxel `.glb` in-world déjà en place — le pack curseur est un **curseur d'UI DOM**, pas le curseur de sélection de tuile). Pipeline via agent `asset-manager` (download, découpe spritesheet, atlas/manifest façon `pack-sprites`/`extract-item-icons`).
+>
+> **Résolu (2026-08-20, décision #770) — CONTRE la reco ci-dessus, tranché hors du Lot 2.** Pack retenu : **`input-prompts-pixel-1-bit`** — le jeu est pixel-art et le chrome de combat utilise déjà des glyphes monochromes (⛶, ☰), des icônes couleur 64×64 auraient introduit un troisième style. Intégré par un chantier séparé « aide visuelle des gestes attendus » (fin de Lot 1, commit WIP `6891639`) pour la ligne d'instruction du combat et le glyphe de rotation de la boussole — géométrie complète et tuiles retenues dans `docs/references/kenney-input-prompts-tileset.md`. **`cursor-pixel-pack` reste non intégré**, décision toujours reportée au Lot 2.
 
 ## Lot 3 — Compléter l'UI *(DÉMARRAGE)*
 
@@ -129,7 +131,7 @@ But : confort desktop + manette (y compris **sur mobile**).
 ## Décisions à trancher
 
 **Niveau plan-cadre (peuvent être tranchées maintenant) :**
-1. **Style Kenney** : normal 64×64 vs pixel 1-bit 16×16 (reco : **normal 64×64** pour les prompts, cohérent 2D-HD full-res). Curseur pixel-pack : curseur d'**UI DOM** (le curseur de sélection de tuile in-world reste le voxel `.glb` existant, sauf choix visuel contraire).
+1. ~~**Style Kenney** : normal 64×64 vs pixel 1-bit 16×16 (reco : **normal 64×64** pour les prompts, cohérent 2D-HD full-res).~~ **TRANCHÉ (2026-08-20, décision #770)** : **1-bit 16×16**, contre la reco — voir § Assets ci-dessus. Curseur pixel-pack : curseur d'**UI DOM** (le curseur de sélection de tuile in-world reste le voxel `.glb` existant), **toujours non intégré**.
 2. **Couche d'input** : minimale dès maintenant vs au Lot 2 (reco : **Lot 2** — l'UI DOM est déjà tactile-cliquable, ne pas sur-architecturer).
 3. **Ordre interne du Lot 3** (reco : **quick-wins d'abord**) — nature InfoPanel + tooltips type chart (indépendants, faible risque) **puis** auras + info terrain (touchent au rendu → `best-practices` + refs 2D-HD avant).
 

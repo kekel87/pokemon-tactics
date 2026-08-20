@@ -13,6 +13,15 @@ interface MeshBounds {
   max: { x: number; y: number; z: number };
 }
 
+/** On-screen box of a mesh (CSS px) — the only frame in which a screen-pinned HUD mesh (compass,
+ *  rotation glyph) can be located or pressed. */
+export interface MeshScreenBox {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
 /** Per-sprite animation/terrain snapshot from the read-only scene hook (§11 flying resting anim):
  *  the animation playing now, the resting pose it reverts to, its occupied tile and that terrain. */
 interface SpriteState {
@@ -248,6 +257,52 @@ export class CombatScene {
         ).__ptE2e__?.meshBounds(meshName) ?? null,
       name,
     );
+  }
+
+  /**
+   * Projected on-screen box of a mesh (`__ptE2e__.meshScreenBox`), converted to **viewport** CSS px
+   * so it composes with `boundingBox()` of a DOM locator and with `page.mouse`.
+   *
+   * The only frame in which the compass and its rotation glyph can be located: both are pinned to a
+   * screen corner, so their world position is recomputed from the camera basis every frame and says
+   * nothing about where they are drawn.
+   */
+  async meshViewportBox(name: string): Promise<MeshScreenBox | null> {
+    const [box, rect] = await Promise.all([
+      this.page.evaluate(
+        (meshName) =>
+          (
+            globalThis as { __ptE2e__?: { meshScreenBox(n: string): MeshScreenBox | null } }
+          ).__ptE2e__?.meshScreenBox(meshName) ?? null,
+        name,
+      ),
+      this.canvasRect(),
+    ]);
+    return box === null
+      ? null
+      : {
+          left: box.left + rect.left,
+          right: box.right + rect.left,
+          top: box.top + rect.top,
+          bottom: box.bottom + rect.top,
+        };
+  }
+
+  /**
+   * Click a raw viewport point with the real mouse — the only way to reach a scene control that is
+   * NOT a tile: the compass rotates the view on a click, so no DOM locator reaches it and
+   * `clickTile` (which short-circuits to the orchestrator) never runs its handler.
+   */
+  async clickViewportPoint(x: number, y: number): Promise<void> {
+    await this.page.mouse.click(x, y);
+  }
+
+  /** Viewport position of the render canvas (the scene hook reports canvas-relative pixels). */
+  private canvasRect(): Promise<{ left: number; top: number }> {
+    return this.page.evaluate(() => {
+      const box = document.getElementById("game-canvas")?.getBoundingClientRect();
+      return { left: box?.left ?? 0, top: box?.top ?? 0 };
+    });
   }
 
   meshInfo(name: string): Promise<MeshInfo | null> {

@@ -267,6 +267,8 @@ const fr: Translations = {
     "Tileset : tiles isométriques custom générées à partir des\ntextures Pokemon Mystery Dungeon (même source que les sprites)",
   "credits.font":
     'Police : "Pokémon Emerald Pro" par crystalwalrein — CC-BY-SA 3.0\nhttps://fontstruct.com/fontstructions/show/832818',
+  "credits.inputPrompts":
+    'Glyphes de contrôles : "Input Prompts Pixel 1-Bit" par Kenney — CC0\nhttps://kenney.nl/assets/input-prompts-pixel-1-bit',
   "credits.code": "Code : développé avec l'aide de Claude (Anthropic)",
   "credits.back": "Retour",
   "log.title": "Journal de combat",

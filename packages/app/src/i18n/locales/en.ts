@@ -267,6 +267,8 @@ const en: Translations = {
     "Tileset: custom isometric tiles built from Pokemon Mystery Dungeon\ntextures (same source as the sprites above)",
   "credits.font":
     'Font: "Pokémon Emerald Pro" by crystalwalrein — CC-BY-SA 3.0\nhttps://fontstruct.com/fontstructions/show/832818',
+  "credits.inputPrompts":
+    'Input glyphs: "Input Prompts Pixel 1-Bit" by Kenney — CC0\nhttps://kenney.nl/assets/input-prompts-pixel-1-bit',
   "credits.code": "Code: developed with the assistance of Claude (Anthropic)",
   "credits.back": "Back",
   "log.title": "Battle Log",

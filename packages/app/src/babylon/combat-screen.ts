@@ -61,6 +61,7 @@ import { initSandboxStudioDom } from "../sandbox-boot.js";
 import { getSettings } from "../settings/index.js";
 import {
   getCategoryIconUrl,
+  getInputPromptSheetUrl,
   getStatusIconUrl,
   getStatusLabelUrl,
   getTypeIconUrl,
@@ -249,6 +250,7 @@ function runBattle(options: {
     getTypeIconUrl,
     getCategoryIconUrl,
     getWeatherIconUrl,
+    getInputPromptSheetUrl,
     getPortraitUrl,
     getItemIconUrl,
   };

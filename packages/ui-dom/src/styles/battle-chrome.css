@@ -138,9 +138,17 @@
     min-inline-size: calc(256px * var(--ui-scale));
   }
 
-  .bc-instruction {
+  /*
+   * Instruction pill (chantier glyphes, suite du Lot 1 / plan 183). The pill moved from the text
+   * node to this row so a gesture glyph can sit beside the text; `.bc-instruction` stays text-only
+   * because ~13 e2e specs assert its exact `textContent`.
+   */
+  .bc-instruction-row {
     pointer-events: none;
     align-self: center;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
     padding: var(--spacing-xs) var(--spacing-md);
     border-radius: var(--radius-sm);
     background: color-mix(in oklch, var(--color-bg-surface) 80%, transparent);
@@ -148,6 +156,74 @@
     font-weight: 600;
     &[hidden] {
       display: none;
+    }
+  }
+
+  /*
+   * Kenney `input-prompts-pixel-1-bit` glyph (CC0), drawn as a MASK so it inherits the pill's
+   * accent colour instead of shipping a second, off-palette art style. The sheet URL is injected
+   * by the host (`--bc-glyph-sheet`, see `input-prompt-glyph.ts`) — the deploy base path makes an
+   * `url()` literal in this file unreliable.
+   *
+   * 16px source, sized off the instruction text so the two stay proportionate at any stage size.
+   */
+  .bc-input-glyph {
+    /*
+     * Sized off the FONT (human 2026-08-20), not off an integer upscale of the 16px tile. The tile
+     * steps were 16px apart, so every adjustment jumped by ×2 — too small then too big, with the
+     * wanted size in between. `em` tracks the instruction text at every stage size instead.
+     *
+     * 0.9em rather than a flat 1em: a filled 16×16 square carries far more ink than a letter of the
+     * same height, so matching the font size exactly over-weights it (measured: 48px read as too
+     * heavy in 4K, 32px as too light, ~40px is the mark — which 0.9em lands on).
+     *
+     * The upscale is therefore fractional, and `image-rendering: pixelated` on the icon is what
+     * keeps it crisp: nearest-neighbour alternates 2px and 3px columns instead of smoothing.
+     */
+    --bc-glyph-size: 0.9em;
+
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--bc-glyph-size) / 8);
+
+    /*
+     * Coarse pointer → the pointing hand (tile 578) stands in for a finger: this pack has mouse,
+     * keyboard, gamepad and trackpad glyphs but NO touch-gesture ones. Fine pointer keeps the
+     * solid mouse whose LEFT button is cut out (tile 111; tile 112 is its right-button mirror,
+     * tile 77 the same drawing in outline form).
+     */
+    --bc-glyph-col: 9;
+    --bc-glyph-row: 3;
+    @media (pointer: coarse) {
+      --bc-glyph-col: 0;
+      --bc-glyph-row: 17;
+    }
+  }
+
+  .bc-input-glyph-icon {
+    flex: none;
+    inline-size: var(--bc-glyph-size);
+    block-size: var(--bc-glyph-size);
+    background-color: currentcolor;
+    /* Same nearest-neighbour upscale the canvas gets: a bilinear mask softens the 1-bit outline,
+       visible on the diagonals at a device pixel ratio above 1. */
+    image-rendering: pixelated;
+    mask-image: var(--bc-glyph-sheet);
+    mask-repeat: no-repeat;
+    /* Sheet is 34×24 tiles, so it measures 34 × 24 glyph-sizes whatever that size is. */
+    mask-size: calc(34 * var(--bc-glyph-size)) calc(24 * var(--bc-glyph-size));
+    mask-position: calc(var(--bc-glyph-col) * var(--bc-glyph-size) * -1)
+      calc(var(--bc-glyph-row) * var(--bc-glyph-size) * -1);
+  }
+
+  /*
+   * "Re-tap the same direction to fire" (plan 183 §C) has no glyph in the pack, so the hand carries
+   * a "×2" suffix. Touch only — a mouse validates a direction on its first click.
+   */
+  @media (pointer: coarse) {
+    .bc-input-glyph[data-glyph="act-twice"]::after {
+      content: "×2";
     }
   }
 

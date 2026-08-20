@@ -49,6 +49,9 @@ playwright.config.ts
 - Scène 3D : interroger via `page.evaluate` sur le handle exposé (`__ptE2e__` : `isReady`,
   `clickTile`, `hoverTile`, `meshNames`/`countByName`/`meshInfo`), **extraire des primitives
   sérialisables** (les objets Babylon ne le sont pas).
+- Mesh épinglé à un coin d'ÉCRAN (boussole, glyphe de rotation) : sa position monde est recalculée
+  depuis la caméra à chaque frame → passer par `meshScreenBox(name)` (projection, CSS px) pour le
+  situer, et par une vraie pression `page.mouse` pour l'actionner (`clickTile` ne joue que les tiles).
 
 ## Vitesse
 
