@@ -153,6 +153,7 @@ function setup(
     },
     showSelectedMove: () => undefined,
     updateInstruction: () => undefined,
+    showCancellableInstruction: () => undefined,
     hideMenus: () => undefined,
     updateTurnInfo: () => undefined,
     updateInfoPanel: () => undefined,

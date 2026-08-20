@@ -56,11 +56,12 @@ Découpage en packages (plan 125, noms finalisés plan 126) pour rendre un chang
 ### Architecture : Hexagonal / Ports & Adapters + Humble Object + Dependency Inversion
 
 Le découpage suit le pattern Hexagonal (Ports & Adapters) :
-- **`render-ports`** définit les interfaces (ports) que tout backend de rendu doit implémenter (`BoardView`, `BattleChrome`, `BattleFeedback`, `RenderBackend`).
+- **`render-ports`** définit les interfaces (ports) que tout backend de rendu doit implémenter (`BoardView`, `BattleChrome`, `BattleFeedback`, `RenderBackend`). `BoardView.onTileClick` porte un `TilePointerSource` (`"pointer" | "touch"`, plan 183) : le renderer transmet seulement la **source** du press, jamais une décision — l'arbitrage tactile (viser un pattern directionnel par direction, pas par case) reste dans `view-core`/l'orchestrateur, seul à connaître la direction.
 - **`render-babylon`** et **`render-canvas2d`** sont des adapters (implémentations concrètes des ports).
 - **`view-core`** orchestre en dépendant uniquement des ports, jamais des adapters.
 - **Humble Object** : `app` est le seul point à connaître les dépendances concrètes (câblage DI au boot).
 - **Dependency Inversion** : les packages de haut niveau (`view-core`) ne dépendent pas des détails (`render-babylon`), les deux dépendent d'abstractions (`render-ports`).
+- **Exemple concret (plan 183)** : la boussole Babylon doit se caler sur une case du chrome DOM, mesurée par `createChromeInsetProbe` (`packages/ui-dom/src/chrome-insets.ts`). Plutôt que `render-babylon` importe `ui-dom`, `app` mesure et passe un callback `timelineFirstCell` dans `CombatSceneOptions` — le renderer ne reçoit que des nombres, jamais une dépendance DOM.
 
 ```mermaid
 graph TD
@@ -192,6 +193,7 @@ pokemon-tactics/
 │   │   │   ├── Stepper.ts                # primitive stepper (pure)
 │   │   │   ├── form-controls.ts          # primitives boutons/selects/checkbox (pures)
 │   │   │   ├── config.ts                # UiDomConfig (DI translate/getLanguage/getTypeIconUrl/getPortraitUrl/getItemIconUrl…)
+│   │   │   ├── chrome-insets.ts         # createChromeInsetProbe (plan 183) : mesure la 1ère case de la timeline (taille/ancrage boussole)
 │   │   │   ├── constants.ts             # BATTLE_LOG_COLOR_*
 │   │   │   └── styles/                  # CSS co-localisé des composants (combat-chrome, modal, info-panel) + index.css
 │   │   ├── tsconfig.json        # dépend core/data/view-core/render-ports

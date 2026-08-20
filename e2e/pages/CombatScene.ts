@@ -74,6 +74,24 @@ export class CombatScene {
     );
   }
 
+  /**
+   * Tap a tile as a FINGER would (plan 183): synthesises a real `pointerdown`/`pointerup` on the
+   * canvas, so the press travels the actual input layer instead of short-circuiting to the
+   * orchestrator the way `clickTile` does.
+   *
+   * On touch the first tap only INSPECTS — call it twice on the same tile to act, like a player.
+   * Resolves to false when the map has no geometry yet.
+   */
+  tapTile(x: number, y: number): Promise<boolean> {
+    return this.page.evaluate(
+      (tile) =>
+        (
+          globalThis as { __ptE2e__?: { tapTile(x: number, y: number): boolean } }
+        ).__ptE2e__?.tapTile(tile.x, tile.y) ?? false,
+      { x, y },
+    );
+  }
+
   /** Cast the active Pokemon's first move at (x,y) and confirm: Attaque → 1er move → cible → confirme.
    *  Target = dummy tile for offensive/status moves, own tile for self/team moves. */
   async castFirstMove(x: number, y: number): Promise<void> {
@@ -90,8 +108,22 @@ export class CombatScene {
   private async castMove(move: Locator, x: number, y: number): Promise<void> {
     await this.page.getByRole("button", { name: "Attaque", exact: true }).click();
     await move.click();
+    if (!(await this.skippedTargeting())) {
+      await this.clickTile(x, y);
+    }
     await this.clickTile(x, y);
-    await this.clickTile(x, y);
+  }
+
+  /**
+   * True when selecting the move landed straight on the confirmation step, i.e. the targeting phase
+   * was skipped (plan 183). A static pattern — soi-même, croix, zone — is centred on the caster and
+   * ignores the aimed tile entirely (`resolveTargeting` reads `caster.position`), so asking for a
+   * target was asking to choose between one option. Helpers must therefore not spend a click aiming,
+   * or it would confirm the attack a step early.
+   */
+  private async skippedTargeting(): Promise<boolean> {
+    const instruction = this.page.getByTestId("combat-instruction");
+    return (await instruction.textContent())?.trim() === "Confirmer ?";
   }
 
   /** Aim the active Pokemon's first move at (x,y) and STOP on the confirmation step: Attaque → 1er
@@ -104,6 +136,11 @@ export class CombatScene {
   async aimFirstMove(x: number, y: number): Promise<void> {
     await this.page.getByRole("button", { name: "Attaque", exact: true }).click();
     await this.page.getByTestId("move-item").first().click();
+    // A static pattern is already ON the confirmation step (see `skippedTargeting`): aiming would
+    // spend the click that confirms, and the overlays this helper exists to expose would vanish.
+    if (await this.skippedTargeting()) {
+      return;
+    }
     await this.hoverTile(x, y);
     await this.clickTile(x, y);
   }

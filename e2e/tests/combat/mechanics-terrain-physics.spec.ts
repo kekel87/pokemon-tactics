@@ -19,6 +19,20 @@ const POLL = { timeout: 10_000, intervals: [150, 250, 400] };
 const log = (page: Page, re: RegExp) =>
   page.getByTestId("battle-log-entry").filter({ hasText: re });
 
+/**
+ * Wait until the action has fully resolved, i.e. the action menu is back for the next turn.
+ *
+ * `readHp` hovers a tile and reads whichever info card names the Pokémon — and during the confirm and
+ * animating phases the COMBAT FORECAST card also names it, at its pre-damage HP. Reading too early
+ * therefore latches onto the forecast (plan 183: a directional pattern now paints its default fan on
+ * entering the phase, so that card exists even when the test never hovered). Hover cannot refresh
+ * mid-animation either — `onTileHover` deliberately ignores the `animating` phase.
+ */
+const settled = (page: import("@playwright/test").Page) =>
+  expect(page.getByRole("button", { name: "Attendre", exact: true })).toBeVisible({
+    timeout: 15_000,
+  });
+
 /** Poll the sprite's occupied tile (settles at the end of the knockback/slide tween). */
 const tileOf = (scene: CombatScene, pokemonId: string) =>
   expect.poll(async () => {
@@ -35,10 +49,12 @@ test("§5.18 table de chute : 3 niveaux (66 %) retire plus que 2 niveaux (33 %)"
 }) => {
   const scene2 = await bootSandbox(FALL_TABLE_2);
   await scene2.castFirstMove(2, 1); // Draco-Queue frappe + repousse la cible en contrebas (3,1)
+  await settled(page);
   const fall2 = await readHp(scene2, page, 3, 1, "Ronflex");
 
   const scene3 = await bootSandbox(FALL_TABLE_3);
   await scene3.castFirstMove(2, 1);
+  await settled(page);
   const fall3 = await readHp(scene3, page, 3, 1, "Ronflex");
 
   expect(fall2.now).toBeLessThan(fall2.max); // la cible a bien chuté

@@ -33,7 +33,9 @@ test("§5.6 semi-invul : Vol charge au tour 1 (journal)", async ({ page, bootSan
 const selectFirstMove = async (page: import("@playwright/test").Page) => {
   await page.getByRole("button", { name: "Attaque", exact: true }).click();
   await page.getByTestId("move-item").first().click();
-  await expect(page.getByTestId("combat-instruction")).toHaveText("Sélectionne la cible");
+  // Lance-Soleil est un motif Ligne, donc l'instruction parle de DIRECTION depuis le plan 183 :
+  // on y vise une direction, pas une case (cf. `docs/test-plan.md` §4.18).
+  await expect(page.getByTestId("combat-instruction")).toHaveText("Choisis la direction");
 };
 
 // §5.11 — Lance-Soleil sous Soleil saute la charge : la sélection passe DIRECT en ciblage, donc

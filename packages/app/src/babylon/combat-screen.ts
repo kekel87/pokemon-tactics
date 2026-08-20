@@ -18,11 +18,12 @@ import type {
   FieldTerrainSpec,
   PresentationContext,
 } from "@pokemon-tactic/render-ports";
-import type { GameStage, UiDomConfig } from "@pokemon-tactic/ui-dom";
+import type { ChromeInsetProbe, GameStage, UiDomConfig } from "@pokemon-tactic/ui-dom";
 import {
   createBattleChrome,
   createBattleLog,
   createBattleLogRow,
+  createChromeInsetProbe,
   createFullscreenButton,
   mountGameStage,
 } from "@pokemon-tactic/ui-dom";
@@ -361,7 +362,9 @@ function runBattle(options: {
   );
   orchestrator.onTurnReady = wireTurnReady(battle);
 
-  combat.onTileClick((pick) => orchestrator.onTileClick({ x: pick.x, y: pick.y }));
+  // The source travels with the press: a finger aiming a directional pattern needs a preview tap
+  // before it commits, a mouse has already hovered (plan 183).
+  combat.onTileClick((pick, source) => orchestrator.onTileClick({ x: pick.x, y: pick.y }, source));
   combat.onTileHover((pick) => orchestrator.onTileHover(pick ? { x: pick.x, y: pick.y } : null));
   combat.onCameraRotated((azimuth) => chrome.updateCameraAzimuth(azimuth));
   window.addEventListener(
@@ -745,6 +748,8 @@ export function mountSandboxStudio(
   let combat: CombatScene | null = null;
   let orchestrator: BattleOrchestrator | null = null;
   let loading: LoadingOverlayHandle | null = null;
+  /** Measures the left chrome column so the compass parks clear of it (plan 183). */
+  let insetProbe: ChromeInsetProbe | null = null;
   let abort = new AbortController();
   let disposed = false;
 
@@ -756,6 +761,8 @@ export function mountSandboxStudio(
     orchestrator = null;
     combat?.dispose();
     combat = null;
+    insetProbe?.dispose();
+    insetProbe = null;
     stage?.dispose();
     stage = null;
   }
@@ -768,10 +775,16 @@ export function mountSandboxStudio(
     const mapUrl = sandboxMapUrl(config);
     const activeStage = mountGameStage(host);
     stage = activeStage;
+    // The compass is pinned near the left edge, where the turn timeline sits: it asks the chrome how
+    // wide that column actually is rather than assuming (plan 183).
+    insetProbe?.dispose();
+    insetProbe = createChromeInsetProbe(activeStage.stage);
+    const probe = insetProbe;
     const activeCombat = backend.createCombatScene({
       canvas: activeStage.canvas,
       mapUrl,
       pokemon: [],
+      timelineFirstCell: () => probe.firstCell(),
     });
     combat = activeCombat;
     overlay.setProgress(0.2);
@@ -833,6 +846,8 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
   let placement: PlacementFlow | null = null;
   let orchestrator: BattleOrchestrator | null = null;
   let loading: LoadingOverlayHandle | null = null;
+  /** Measures the left chrome column so the compass parks clear of it (plan 183). */
+  let insetProbe: ChromeInsetProbe | null = null;
   // Recreated on every (re)mount so a "Replay" tears down the previous keyboard
   // listeners cleanly (plan 120 step 8 — disposal parity with an FSM transition).
   let abort = new AbortController();
@@ -847,6 +862,8 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     placement = null;
     combat?.dispose();
     combat = null;
+    insetProbe?.dispose();
+    insetProbe = null;
     stage?.dispose();
     stage = null;
   }
@@ -866,10 +883,14 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     // A resumed battle carries the map it was played on; `params.mapUrl` and `resume.mapUrl` agree
     // today, but the saved one is the authority — the engine is rebuilt from it.
     const mapUrl = resume?.mapUrl ?? params.mapUrl;
+    insetProbe?.dispose();
+    insetProbe = createChromeInsetProbe(activeStage.stage);
+    const probe = insetProbe;
     const activeCombat = backend.createCombatScene({
       canvas: activeStage.canvas,
       mapUrl,
       pokemon: setup || resume ? [] : DEMO_POKEMON,
+      timelineFirstCell: () => probe.firstCell(),
     });
     combat = activeCombat;
     overlay.setProgress(0.2);

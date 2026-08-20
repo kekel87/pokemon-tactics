@@ -21,8 +21,11 @@ export interface Translations {
   "battle.restart": string;
   "battle.backToMenu": string;
   "attack.selectTarget": string;
+  "attack.aimDirection": string;
   "attack.confirm": string;
   "attack.selectRetreat": string;
+  "move.selectDestination": string;
+  "move.selectDirection": string;
   "stat.atk": string;
   "stat.def": string;
   "stat.spA": string;

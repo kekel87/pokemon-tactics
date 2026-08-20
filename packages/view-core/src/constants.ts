@@ -46,6 +46,18 @@ export const CAMERA_PAN_EPSILON = 0.01;
 export const ZOOM_LERP = 9;
 export const ZOOM_LERP_EPSILON = 0.001;
 export const PICK_DRAG_THRESHOLD_PX = 5;
+/**
+ * Same threshold for a finger (plan 183). A "still" tap always drifts a few pixels, so the
+ * mouse-calibrated 5px turns legitimate taps into drags — the pointer type picks between the two.
+ */
+export const PICK_DRAG_THRESHOLD_TOUCH_PX = 10;
+/**
+ * Pinch spread ratio that steps one zoom level (plan 183). A RATIO, not a pixel delta: it is
+ * independent of the current zoom, so the gesture feels the same close up and zoomed out. The
+ * reference distance is re-armed after every step (and whenever the active pointer count changes,
+ * which is what stops a finger lifting from jumping the zoom).
+ */
+export const PINCH_ZOOM_STEP_RATIO = 1.25;
 export const HEMI_LIGHT_INTENSITY = 0.8;
 export const DIRECTIONAL_LIGHT_INTENSITY = 0.6;
 

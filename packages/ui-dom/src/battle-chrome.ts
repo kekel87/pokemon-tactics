@@ -25,8 +25,11 @@ import { createWeatherHud } from "./weather-hud.js";
 
 const INSTRUCTION_KEY: Readonly<Record<BattleInstruction, string>> = {
   selectTarget: "attack.selectTarget",
+  aimDirection: "attack.aimDirection",
   confirm: "attack.confirm",
   selectRetreat: "attack.selectRetreat",
+  selectMoveDestination: "move.selectDestination",
+  selectDirection: "move.selectDirection",
 };
 
 /**
@@ -211,7 +214,16 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
         name.textContent = getMoveName(move.definition.id, language);
         header.append(icon, name);
       }
-      menu.replaceChildren(header);
+      // Cancel sits under the locked-in move, mirroring the attack submenu's own button (plan 183):
+      // Escape is the only other way out and does not exist on a touch screen.
+      menu.replaceChildren(header, button(config.translate("action.cancel"), move.onCancel));
+      instruction.hidden = false;
+      instruction.textContent = config.translate(INSTRUCTION_KEY[key]);
+    },
+
+    showCancellableInstruction: (key: BattleInstruction, onCancel: () => void) => {
+      tooltip.hide();
+      menu.replaceChildren(button(config.translate("action.cancel"), onCancel));
       instruction.hidden = false;
       instruction.textContent = config.translate(INSTRUCTION_KEY[key]);
     },

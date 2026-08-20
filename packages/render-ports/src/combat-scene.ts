@@ -76,6 +76,12 @@ export interface DamageEstimateView {
 }
 
 /** A Pokemon to spawn on the board at a grid cell, optionally facing a direction. */
+/**
+ * Which device produced a tile press (plan 183). A finger has no hover, so aiming a directional
+ * pattern needs a preview tap before it commits — a mouse already previewed on the way in.
+ */
+export type TilePointerSource = "pointer" | "touch";
+
 export interface CombatSceneSpawn {
   pokemonId: string;
   spawn: { x: number; y: number };
@@ -148,7 +154,7 @@ export interface CombatScene {
     callbacks: DirectionPickerCallbacks,
   ): DirectionPickerHandle;
   onTileHover(handler: (pick: TilePick | null) => void): void;
-  onTileClick(handler: (pick: TilePick) => void): void;
+  onTileClick(handler: (pick: TilePick, source: TilePointerSource) => void): void;
   /** Notified with the camera azimuth (radians) whenever the iso view rotates (←/→ snap + ease). */
   onCameraRotated(handler: (azimuth: number) => void): void;
   panCameraTo(tile: { x: number; y: number }): void;

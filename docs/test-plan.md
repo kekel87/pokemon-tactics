@@ -700,6 +700,70 @@ téléphone).*
 - 👁 **Alignement au pixel** sur l'en-tête du journal (même côté de carré `--bl-header-size`, même
   bordure/fond/rayon) et absence d'interstice quand le bouton est masqué : rendu pur.
 
+### 4.18 Contrôles tactiles (plan 183, Lot 1)
+
+*src : `render-babylon/combat-scene.ts` (table de pointeurs, pinch, sélecteur de direction),
+`render-babylon/babylon-compass.ts` (boussole tapable), `view-core/battle-orchestrator.ts`
+(visée d'un pattern directionnel + annulation), `ui-dom/battle-chrome.ts`,
+`ui-dom/chrome-insets.ts` (mesure de la timeline)*
+*e2e : `combat/touch-controls.spec.ts`*
+
+*Le doigt n'a pas de survol : aucun `pointermove` n'arrive avant le contact. Tout l'étage
+d'information du Lot 3 (panneau Pokemon, panneau de case, portée ennemie, prévision de combat) étant
+piloté par le survol, il était purement invisible sur téléphone. Un tap fait donc en un geste ce que
+la souris fait en deux — survoler puis cliquer.*
+
+⚠️ **`clickTile` / `hoverTile` du hook e2e court-circuitent cette couche** (ils appellent
+l'orchestrateur en direct, et ~419 tests en dépendent). Seul **`tapTile`** synthétise un vrai
+`pointerdown`/`pointerup` tactile et traverse la couche réelle : toute assertion sur le comportement
+au doigt doit passer par lui, sinon elle ne teste rien de ce lot.
+
+**Un tap agit du premier coup**, sauf pour viser un pattern directionnel.
+
+- 🤖 **Un seul tap suffit pour se déplacer** (`touch-controls.spec`). Un tap en deux temps généralisé
+  avait été essayé puis **abandonné** (humain 2026-08-19) : le jeu a déjà sa propre étape de
+  confirmation, donc l'empiler portait chaque action à **4 taps** contre 2 clics à la souris.
+- 🤖 **Un pattern directionnel** (cône, ligne, fauche, charge) **s'ouvre avec son cône déjà affiché**,
+  dans la direction où regarde le lanceur — sans quoi la phase s'ouvrait sur un plateau vide et il
+  fallait deviner qu'il fallait taper quelque part (`touch-controls.spec`).
+- 🤖 **La ligne d'instruction dit « Choisis la direction »**, pas « Sélectionne la cible », pour ces
+  quatre motifs : on y vise une direction, pas une case, et parler de cible induisait en erreur
+  (retour humain 2026-08-19). Variante `aimDirection` de `BattleInstruction` (`touch-controls.spec`).
+- 🤖 **Une attaque au motif statique** (soi-même, croix, zone) **saute la phase de ciblage** et arrive
+  directement à la confirmation : centrée sur le lanceur, elle n'avait aucune cible à désigner et se
+  validait « sur n'importe quel clic » — elle faisait donc choisir entre une seule option. L'empreinte
+  reste affichée et la prévision de dégâts s'ajoute, pour un clic de moins (`touch-controls.spec`).
+- 🤖 **Retaper la direction déjà visée lance l'attaque** ; **taper une autre direction re-vise sans
+  lancer**. La comparaison porte sur la **direction**, pas sur la case : le test valide depuis une
+  case *différente* de celle visée, ce qu'une comparaison de cases refuserait (`touch-controls.spec`).
+- 👁 **Orientation en fin de tour** (« Attendre ») : même règle, arbitrée dans le sélecteur de
+  direction côté scène. Un booléen « a déjà tapé » y validait la nouvelle orientation au lieu de
+  l'afficher (bug trouvé sur téléphone, 2026-08-19) ; c'est désormais la direction qui est comparée.
+  Pas de signal e2e — le sélecteur est un mesh piloté par la position du pointeur. **Téléphone réel.**
+- 🤖 **Annulation atteignable au doigt** — Échap n'existe pas sur un écran tactile, et 5 phases sur 6
+  n'avaient aucune sortie. Les trois phases réparées sont couvertes (`touch-controls.spec`) :
+  **choix de destination** (« Où se déplacer ? » + Annuler → retour au menu), **choix de cible**
+  (Annuler → retour au sous-menu d'attaque), **choix d'orientation** (« Choisis l'orientation » +
+  Annuler → retour au menu, sélecteur démonté et HUD rétabli). Les deux premières appelaient
+  `hideMenus()` : l'écran était littéralement vide.
+- 👁 **Pinch à deux doigts → crans de zoom** et **pan par le centroïde** : demandent deux pointeurs
+  tactiles simultanés, hors de ce que le hook synthétise. **Téléphone réel, validé 2026-08-19.**
+- 👁 **Aucun saut de zoom quand un doigt se lève** (la distance de référence est réarmée à chaque
+  changement du nombre de pointeurs). C'est le piège classique de l'implémentation, invisible
+  autrement. **Téléphone réel, validé 2026-08-19.**
+- 👁 **Boussole tapable** (un cran de rotation par tap, toujours dans le même sens), **taille et
+  ancrage repris de la première case de la timeline** (même côté, coin haut-gauche posé au coin
+  haut-droit du portrait). Trois tentatives à base de constantes maison avaient dérivé : derrière la
+  timeline, puis flottante, puis glissant à chaque changement de taille. Mesuré à l'exécution
+  (`chrome-insets.ts`), donc aucun nombre choisi à l'œil — mais rien ne l'observe automatiquement.
+  **Téléphone réel, validé 2026-08-19.**
+- 👁 **Zone tapable de la boussole ≥ 44 px** malgré une aiguille de ~17 px de large : le proxy de
+  picking est invisible et contre-scalé, donc aucune assertion de rendu ne le voit. **Téléphone réel.**
+- 👁 **Seuil de glissé à 10 px au doigt** (contre 5 px à la souris) : un tap « immobile » qui dérive
+  ne doit pas devenir un pan. **Téléphone réel.**
+- 👁 **`pointercancel`** (bascule d'application, geste système) ne laisse pas de doigt fantôme :
+  demande d'interrompre un geste au niveau de l'OS. **Téléphone réel.**
+
 ---
 
 ## 5. Recette — feedbacks de mécaniques
@@ -2662,6 +2726,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/hud-state.spec.ts` | §4.6 tooltip (apparaît/disparaît + tag 2 tours), §4.2 timeline CT (`data-ct`), §4.7 badge statut, §4.5 nom EN |
 | `combat/preview-colours.spec.ts` | §4.6 couleurs de preview pilotées par l'intention : `data-intent` attack/buff/heal (Griffe/Danse Lames/Fontaine de Vie), cellules `data-cell` target/dash/caster/caster-target, croix lanceur, centre Séisme vide |
 | `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire |
+| `combat/touch-controls.spec.ts` | §4.18 comportement au doigt via **`tapTile`** (seule entrée du hook qui traverse la vraie couche d'entrée) : **un tap agit du premier coup** ; un **pattern directionnel** s'ouvre cône affiché, retaper la même **direction** lance, une autre direction re-vise sans lancer (validation depuis une case différente = la comparaison est directionnelle). + **annulation atteignable au doigt** sur les 3 phases réparées (destination, cible, orientation). Pinch / pan 2 doigts / boussole / orientation de fin de tour / seuil de glissé / `pointercancel` = 👁 téléphone réel |
 | `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (8 + détail + ↑/↓ aria-current), §6.4 format + Lancer gating |
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |
 | `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` + **objet tenu** (plan 168 : icône officielle `<img>` data-URL + nom FR — Restes à l'actif, Orbe Vie au survol du porteur team 2 ; sans objet → ligne masquée) + **panneau enrichi allié** (plan 174 : chips de types `li[data-type]`, ligne PV avec `.ip-hppct`, talent `info-panel-talent`, bloc des 5 stats `info-panel-stats` ; une stat à cran (+2 Atq) affiche « 2↑ » + « → » + valeur effective ≠ base) + **ennemi sans fog → lecture complète** (plan 176 : au survol du dummy team 2, types + bloc des 5 stats + talent en clair — le cas « minimal » ne vaut plus que SOUS fog, `combat-fog.spec`) |

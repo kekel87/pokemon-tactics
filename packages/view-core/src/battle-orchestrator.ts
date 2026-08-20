@@ -31,7 +31,7 @@ import {
   Weather,
 } from "@pokemon-tactic/core";
 import { AnimationCategory, moveAnimationCategory } from "@pokemon-tactic/data";
-import { getTeamColorByPlayerId } from "@pokemon-tactic/render-ports";
+import { getTeamColorByPlayerId, type TilePointerSource } from "@pokemon-tactic/render-ports";
 import { AnimationQueue } from "./AnimationQueue.js";
 import { buildAuraRingSpecs } from "./aura-ring-view.js";
 import {
@@ -188,6 +188,21 @@ export class BattleOrchestrator {
   /** Enemy whose reachable-tile range is currently painted on hover (null = none). */
   private hoveredEnemyRangePokemonId: string | null = null;
   private previewDirection: Direction | null = null;
+  /**
+   * True while `previewDirection` holds only the DEFAULT shown when the phase opened, and not a
+   * direction the player actually aimed (plan 183).
+   *
+   * It matters because a click confirms "in the hovered direction": seeding a default made a click
+   * with no prior hover fire along the caster's facing instead of toward the clicked tile — a real
+   * regression, caught by the fall-table e2e which clicks without hovering.
+   */
+  private previewDirectionIsDefault = false;
+  /**
+   * Facing a finger has aimed a directional pattern at (plan 183). Touch has no hover, so a tap that
+   * CHANGES the direction previews it and only a tap repeating it commits. Seeded with the default
+   * shown on entering the phase, so agreeing with that default costs one tap, not two.
+   */
+  private touchAimedDirection: Direction | null = null;
   /** Tiles of the current attack-target preview footprint (drives the confirm-phase flash). */
   private previewTiles: readonly Position[] = [];
   /** Living occupants of the locked footprint, in cycle order (combat preview, plan 175). */
@@ -230,13 +245,18 @@ export class BattleOrchestrator {
 
   // --- Raw input entry points (wired by the combat screen: picking + keyboard) ---
 
-  onTileClick(tile: Position): void {
+  onTileClick(tile: Position, source: TilePointerSource = "pointer"): void {
     const phase = this.inputState;
     switch (phase.phase) {
       case "select_move_destination":
         this.tryMoveTo(tile);
         break;
       case "select_attack_target":
+        // A finger aiming a directional pattern has to SEE the fan before firing it: a tap that
+        // changes the direction only previews, a tap repeating it commits. A mouse already hovered.
+        if (source === "touch" && this.aimDirectionalPatternByTouch(phase.moveId, tile)) {
+          break;
+        }
         this.tryPickTarget(phase.moveId, tile);
         break;
       case "confirm_attack":
@@ -248,6 +268,26 @@ export class BattleOrchestrator {
       default:
         break;
     }
+  }
+
+  /**
+   * Re-aim a directional pattern from a touch tap. Returns true when the tap was consumed as an aim
+   * (so the caller must NOT commit). Compares DIRECTIONS, not tiles: several tiles share a direction,
+   * so a tile comparison would refuse to confirm a fan the player is already looking at.
+   */
+  private aimDirectionalPatternByTouch(moveId: string, tile: Position): boolean {
+    const active = this.activePokemon();
+    const move = this.effectiveMove(moveId);
+    if (!active || !move || !this.isDirectionalPattern(move.targeting.kind)) {
+      return false;
+    }
+    const direction = directionFromTo(active.position, tile);
+    if (direction === this.touchAimedDirection) {
+      return false;
+    }
+    this.touchAimedDirection = direction;
+    this.updateAttackPreview(moveId, tile);
+    return true;
   }
 
   onEscape(): void {
@@ -555,7 +595,9 @@ export class BattleOrchestrator {
       .map((action) => action.path.at(-1))
       .filter(isPosition);
     this.board.setHighlights("move", destinations);
-    this.chrome.hideMenus();
+    // Was `hideMenus()`: it left the screen with nothing at all, so a touch player had no way back
+    // out of the phase (plan 183).
+    this.chrome.showCancellableInstruction("selectMoveDestination", () => this.onEscape());
     this.inputState = { phase: "select_move_destination" };
   }
 
@@ -616,6 +658,7 @@ export class BattleOrchestrator {
 
   private enterAttackTarget(moveId: string): void {
     this.clearConfirmPreview();
+    this.touchAimedDirection = null;
 
     // Move-copy (plan 144): a call-move that resolves WITHOUT a pre-picked target (Métronome /
     // Blabla Dodo / Photocopie) rolls the called move now, then targets it. Mimique (target-last)
@@ -680,8 +723,18 @@ export class BattleOrchestrator {
     const displayMoveId =
       isCalledPending === true && pending?.reveal === true ? pending.calledMoveId : moveId;
     const definition = this.moveDefinitions.get(displayMoveId);
+    const aimedKind = this.effectiveMove(moveId)?.targeting.kind;
     if (definition) {
-      this.chrome.showSelectedMove({ definition, masked }, "selectTarget");
+      this.chrome.showSelectedMove(
+        // Same handler Escape drives — the chrome renders it as a Cancel button, the only way back
+        // on a touch screen (plan 183).
+        { definition, masked, onCancel: () => this.onEscape() },
+        // A cône/ligne/fauche/charge aims a DIRECTION, so calling it a "cible" misled the player
+        // (retour humain 2026-08-19).
+        aimedKind !== undefined && this.isDirectionalPattern(aimedKind)
+          ? "aimDirection"
+          : "selectTarget",
+      );
     }
     this.inputState = { phase: "select_attack_target", moveId };
     this.previewDirection = null;
@@ -689,6 +742,38 @@ export class BattleOrchestrator {
     this.showEntryPreview(moveId);
     // Charge-Time: preview how committing this move reshuffles the upcoming order.
     this.refreshTimeline(moveId);
+
+    /*
+     * Directional patterns (cône, ligne, fauche, charge) are aimed by the pointer, so on a phone they
+     * used to open on an empty board: nothing showed until the player guessed they had to tap
+     * somewhere ("on comprend pas ce qu'il faut faire", human 2026-08-19). Open on the caster's own
+     * facing instead — the fan is visible immediately, and `touchAimedDirection` is seeded with it so
+     * accepting that default costs ONE tap, while tapping elsewhere re-aims first.
+     */
+    const aimingActive = this.activePokemon();
+    const aimingMove = this.effectiveMove(moveId);
+    if (!aimingActive || !aimingMove) {
+      return;
+    }
+    if (this.isDirectionalPattern(aimingMove.targeting.kind)) {
+      this.touchAimedDirection = aimingActive.orientation;
+      this.updateAttackPreview(
+        moveId,
+        stepInDirection(aimingActive.position, aimingActive.orientation, 1),
+      );
+      // Painted, but nobody has aimed yet: a click must still resolve toward the clicked tile.
+      this.previewDirectionIsDefault = true;
+      return;
+    }
+    /*
+     * Static patterns (Soi-même / croix / zone) are centred on the caster: there is no target to
+     * pick, and the phase existed only to swallow a click that confirmed "on ANY click". So it asked
+     * the player to choose between one option (retour humain 2026-08-19). Skip straight to the
+     * confirmation, which keeps the footprint AND adds the damage forecast for the same single click.
+     */
+    if (this.isStaticPattern(aimingMove.targeting.kind)) {
+      this.tryPickTarget(moveId, aimingActive.position);
+    }
   }
 
   // --- Attack-target previews (port of GameController.handleTileHover, plan 121 4b-5) ---
@@ -809,6 +894,7 @@ export class BattleOrchestrator {
         return;
       }
       this.previewDirection = direction;
+      this.previewDirectionIsDefault = false;
       const target = stepInDirection(active.position, direction, 1);
       affected = resolveTargeting(move.targeting, active, target, grid, undefined, moveContext);
     } else {
@@ -1078,13 +1164,21 @@ export class BattleOrchestrator {
     if (!active) {
       return;
     }
-    this.chrome.hideMenus();
     this.board.clearHighlights();
     this.inputState = { phase: "select_direction" };
     // Hide the active's HUD while the direction arrows are up so the HP bar doesn't
     // clutter the choice; restore on
     // confirm/cancel (syncBoard never re-shows a hidden HUD on its own).
     this.board.setHudVisible(active.id, false);
+    // Backing out has to tear the picker down and restore the HUD, which plain `onEscape` does NOT
+    // do — hence a shared closure rather than routing the button through it (plan 183).
+    const cancelDirection = (): void => {
+      this.picker?.dispose();
+      this.picker = null;
+      this.board.setHudVisible(active.id, true);
+      this.enterActionMenu();
+    };
+    this.chrome.showCancellableInstruction("selectDirection", cancelDirection);
     this.picker = this.board.showDirectionPicker(active.position, active.orientation, {
       onPreview: (direction) => this.board.setFacing(active.id, direction),
       onConfirm: (direction) => {
@@ -1092,6 +1186,7 @@ export class BattleOrchestrator {
         this.board.setHudVisible(active.id, true);
         this.executeAction({ kind: ActionKind.EndTurn, pokemonId: active.id, direction });
       },
+      // Fired by the picker itself (Escape through the scene), so the handle is already gone.
       onCancel: () => {
         this.picker = null;
         this.board.setHudVisible(active.id, true);
@@ -1655,6 +1750,17 @@ export class BattleOrchestrator {
     );
   }
 
+  /**
+   * Direction a click/tap confirms: the one actually aimed (hover on a mouse, tap on a finger), or
+   * else the direction toward the clicked tile. The default shown when the phase opens does NOT
+   * count as aimed — otherwise a click with no prior hover would fire along the caster's facing.
+   */
+  private aimedDirection(from: Position, tile: Position): Direction {
+    return this.previewDirection !== null && !this.previewDirectionIsDefault
+      ? this.previewDirection
+      : directionFromTo(from, tile);
+  }
+
   private targetActions(moveId: string): Extract<Action, { kind: typeof ActionKind.UseMove }>[] {
     return this.useMoveActions().filter((action) => action.moveId === moveId);
   }
@@ -1691,7 +1797,7 @@ export class BattleOrchestrator {
     // actions enumerate every tile of each axis, so confirm on the FARTHEST tile in the hovered
     // direction — the engine still stops at the first wall/occupant within that reach.
     if (move && active && move.targeting.kind === TargetingKind.Dash) {
-      const direction = this.previewDirection ?? directionFromTo(active.position, tile);
+      const direction = this.aimedDirection(active.position, tile);
       let farthest: Extract<Action, { kind: typeof ActionKind.UseMove }> | undefined;
       for (const action of actions) {
         if (directionFromTo(active.position, action.targetPosition) !== direction) {
@@ -1711,7 +1817,7 @@ export class BattleOrchestrator {
     // anywhere validates in the hovered direction (the current preview direction),
     // falling back to the direction toward the clicked tile.
     if (move && active && this.isDirectionalPattern(move.targeting.kind)) {
-      const direction = this.previewDirection ?? directionFromTo(active.position, tile);
+      const direction = this.aimedDirection(active.position, tile);
       const target = stepInDirection(active.position, direction, 1);
       return actions.find((action) => positionEquals(action.targetPosition, target));
     }

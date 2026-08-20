@@ -13,6 +13,19 @@ export const DUEL = {
   dummyPosition: { x: 2, y: 2 },
 } as const;
 
+/**
+ * Même duel avec **Tranch'Herbe**, dont le pattern est directionnel (Fauche) : c'est le seul cas où
+ * un doigt doit viser avant de lancer (plan 183). Le lanceur regarde le nord et la cible est au
+ * nord, donc la direction par défaut ouverte par la phase est déjà la bonne.
+ */
+export const DUEL_DIRECTIONAL = { ...DUEL, moves: ["razor-leaf"] } as const;
+
+/**
+ * Même duel avec **Danse-Lames**, dont le motif est statique (centré sur le lanceur) : il n'y a
+ * aucune cible à désigner, donc la phase de ciblage est sautée (plan 183).
+ */
+export const DUEL_SELF_TARGET = { ...DUEL, moves: ["swords-dance"] } as const;
+
 /** Same duel but the dummy is one hit from fainting → any Griffe is lethal (KO log assertion). */
 export const DUEL_LETHAL = { ...DUEL, dummyHp: 1 } as const;
 

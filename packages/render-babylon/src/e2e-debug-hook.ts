@@ -20,6 +20,18 @@ export interface E2eSceneApi {
    *  lets e2e end a turn to drive end-of-turn effects (status ticks, charge T2, aura/field expiry).
    *  No-op if no picker is open. */
   confirmDirection(): void;
+  /**
+   * Tap a tile as a FINGER would (plan 183): synthesises a real `pointerdown`/`pointerup` pair with
+   * `pointerType: "touch"` on the canvas, so the press travels the actual input layer — pick, drag
+   * threshold, and the two-step tap included.
+   *
+   * Deliberately NOT a variant of `clickTile`: that one short-circuits straight to the orchestrator
+   * and every existing e2e test depends on it doing exactly that. This is the only entry point that
+   * exercises the touch path, so a two-step tap needs two calls, like a real player.
+   *
+   * Returns false when the tile could not be projected to a canvas point (map not ready yet).
+   */
+  tapTile(x: number, y: number): boolean;
   meshNames(): string[];
   countByName(name: string): number;
   meshInfo(name: string): {
@@ -67,6 +79,7 @@ export function installE2eSceneHook(
   hoverTile: (x: number, y: number) => void,
   confirmDirection: () => void,
   spriteStates: () => E2eSpriteState[],
+  tapTile: (x: number, y: number) => boolean,
 ): void {
   // biome-ignore lint/style/useNamingConvention: VITE_E2E is an external Vite env var name.
   const e2eFlag = (import.meta as { env?: { VITE_E2E?: string } }).env?.VITE_E2E;
@@ -78,6 +91,7 @@ export function installE2eSceneHook(
     clickTile,
     hoverTile,
     confirmDirection,
+    tapTile,
     meshNames: (): string[] => scene.meshes.map((mesh) => mesh.name),
     countByName: (name: string): number => scene.meshes.filter((mesh) => mesh.name === name).length,
     meshInfo: (name: string) => {

@@ -228,6 +228,11 @@ export interface SelectedMoveView {
    * The chrome shows "???" and no type icon — only the board pattern is revealed.
    */
   masked?: boolean;
+  /**
+   * Back out of this phase (plan 183). Same handler Escape drives; the chrome renders it as the
+   * Cancel button the attack submenu already had, which is the only way back on a touch screen.
+   */
+  onCancel: () => void;
 }
 
 export interface TurnInfoView {
@@ -235,8 +240,21 @@ export interface TurnInfoView {
   playerId: string;
 }
 
-/** Semantic instruction the chrome localises (keeps the FSM free of i18n key strings). */
-export type BattleInstruction = "selectTarget" | "confirm" | "selectRetreat";
+/**
+ * Semantic instruction the chrome localises (keeps the FSM free of i18n key strings).
+ *
+ * `selectMoveDestination` / `selectDirection` joined at plan 183: those two phases used to blank the
+ * chrome entirely, which left a touch player with no visible way back (Escape does not exist on a
+ * finger). They now show an instruction plus a Cancel button like every other phase.
+ */
+export type BattleInstruction =
+  | "selectTarget"
+  /** Cône/ligne/fauche/charge : on vise une DIRECTION, pas une case — dire « cible » induisait en erreur. */
+  | "aimDirection"
+  | "confirm"
+  | "selectRetreat"
+  | "selectMoveDestination"
+  | "selectDirection";
 
 /** Screen-anchored chrome port (impl: minimal DOM 4a; final panels 4b). */
 export interface BattleChrome {
@@ -244,6 +262,11 @@ export interface BattleChrome {
   showAttackSubmenu(view: AttackSubmenuView): void;
   showSelectedMove(move: SelectedMoveView, instruction: BattleInstruction): void;
   updateInstruction(instruction: BattleInstruction): void;
+  /**
+   * Instruction line + Cancel button for a phase with no move to show (plan 183): picking a movement
+   * destination, or a facing. These two used to call `hideMenus`, leaving nothing on screen at all.
+   */
+  showCancellableInstruction(instruction: BattleInstruction, onCancel: () => void): void;
   hideMenus(): void;
   updateTurnInfo(info: TurnInfoView): void;
   /**
