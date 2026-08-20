@@ -1,16 +1,16 @@
 # Plan 183 — Contrôles tactiles (Lot 1)
 
-> **Statut** : done (2026-08-19 — livré, validé sur téléphone réel)
-> **Créé** : 2026-08-19
+> **Statut** : done (2026-08-20 — livré, validé sur téléphone réel)
+> **Créé** : 2026-08-20
 > **Phase** : 6.5 « Client jouable », Lot 1 (contrôles tactiles) — **le lot qui justifie la phase**
 > **Cadre** : `docs/plans/173-phase-client-jouable-ui-controles.md` § « Lot 1 — Contrôles tactiles »
-> **Recherche préalable** : agent `best-practices`, 2026-08-19 (8 points, sources en fin de document). Cadrage antérieur : `docs/plans/180-comportement-plateforme-mobile.md` §E (lecture de `pokerogue/src/touch-controls.ts`).
+> **Recherche préalable** : agent `best-practices`, 2026-08-20 (8 points, sources en fin de document). Cadrage antérieur : `docs/plans/180-comportement-plateforme-mobile.md` §E (lecture de `pokerogue/src/touch-controls.ts`).
 
 ## Motivation
 
 **Seul retour de vrais utilisateurs de tout le backlog** : les proches de l'humain ont dit le jeu **injouable sur mobile**, et la douleur précisée (2026-07-24) est bien celle des **contrôles**. Le Lot 3 (l'UI) est clos depuis le plan 182 ; ce lot est la raison d'être de la phase.
 
-**Le point dur n'est pas le pinch, c'est le survol.** La cartographie du 2026-08-19 donne l'état réel :
+**Le point dur n'est pas le pinch, c'est le survol.** La cartographie du 2026-08-20 donne l'état réel :
 
 | Interaction | Mécanisme actuel | Au doigt |
 |---|---|---|
@@ -36,11 +36,11 @@ Vérifié dans le code, pour ne pas rouvrir de chasse :
 - `overflow: hidden` sur la racine → pas de pull-to-refresh Android à neutraliser.
 - La caméra **se recentre déjà seule** sur le Pokemon actif à chaque tour (`battle-orchestrator.ts:518` → `panCameraTo(active.position)`), donc un pan raté se corrige au tour suivant.
 
-## Décisions humaines (2026-08-19)
+## Décisions humaines (2026-08-20)
 
 | Sujet | Décision | Raison |
 |---|---|---|
-| **Confirmation au doigt** | ~~Tap en deux temps généralisé~~ **ABANDONNÉ en cours de test (2026-08-19)**. Un tap **agit du premier coup** et alimente le survol au passage, donc les panneaux d'info et la prévision apparaissent quand même. Souris inchangée. | Mesuré sur le vrai flux : le jeu a **déjà** sa propre étape de confirmation (choisir une cible ouvre la prévision, il faut re-cliquer), donc empiler la mienne portait une attaque à **4 taps** contre 2 clics à la souris. « Trop lourd, 2 taps pour tout » (humain). Redondance que je n'avais pas vue en proposant le deux-temps. |
+| **Confirmation au doigt** | ~~Tap en deux temps généralisé~~ **ABANDONNÉ en cours de test (2026-08-20)**. Un tap **agit du premier coup** et alimente le survol au passage, donc les panneaux d'info et la prévision apparaissent quand même. Souris inchangée. | Mesuré sur le vrai flux : le jeu a **déjà** sa propre étape de confirmation (choisir une cible ouvre la prévision, il faut re-cliquer), donc empiler la mienne portait une attaque à **4 taps** contre 2 clics à la souris. « Trop lourd, 2 taps pour tout » (humain). Redondance que je n'avais pas vue en proposant le deux-temps. |
 | **Viser un pattern directionnel** | Seule exception : cône/ligne/fauche/charge **s'ouvrent avec leur cône déjà affiché** (direction du lanceur), puis **retaper la même direction lance**, une autre direction re-vise. Arbitré dans l'orchestrateur, pas dans le renderer. | Sans défaut affiché la phase s'ouvrait sur un plateau vide (« on comprend pas ce qu'il faut faire », humain). Et la comparaison doit porter sur la **direction**, pas sur la case — plusieurs cases partagent une direction, donc une comparaison de cases refusait de valider un cône déjà à l'écran. Seul l'orchestrateur connaît la direction, d'où le déplacement de l'arbitrage. |
 | **Orientation en fin de tour** | Même règle : retaper la même orientation valide, en changer l'affiche. | Bug trouvé sur téléphone : je comparais un booléen « a déjà tapé » et non la direction, donc changer d'avis validait la nouvelle orientation au lieu de la montrer. |
 | **Zoom au pinch** | Le pinch **saute de cran en cran** dans les 3 niveaux existants (`ZOOM_LEVELS = [0.7, 1.1, 1.8]`), au-delà d'un seuil d'écartement. Pas de zoom continu. | Cohérence stricte avec la molette et le clavier : une seule notion de zoom dans tout le jeu, une seule chose à tester. |
@@ -114,7 +114,7 @@ Sur exactement 2 pointeurs actifs :
 
 ### F. Annulation atteignable au doigt
 
-Trou identifié le 2026-08-19 en cours de rédaction, **plus large que le tactile** : `onEscape` (`battle-orchestrator.ts:253`) gère correctement les six phases annulables, mais rien ne permet de le déclencher sans clavier.
+Trou identifié le 2026-08-20 en cours de rédaction, **plus large que le tactile** : `onEscape` (`battle-orchestrator.ts:253`) gère correctement les six phases annulables, mais rien ne permet de le déclencher sans clavier.
 
 | Phase | Rendu chrome actuel | Annulable au doigt ? |
 |---|---|---|
@@ -158,7 +158,7 @@ Aucun bouton ajouté par ce lot, mais un manque à corriger sur les boutons icô
 
    ⚠️ Playwright pilote le jeu par le **hook de scène** (`installE2eSceneHook`), dont `clickTile` / `hoverTile` appellent `clickHandler` / `hoverHandler` **directement** — ils court-circuitent donc toute cette couche.
 
-   **Décision révisée (2026-08-19, review du plan)** : on **n'y touche pas**. `clickTile` / `hoverTile` gardent leur sémantique de court-circuit, donc les ~419 tests e2e existants sont **intacts par construction**. On **ajoute** à côté une méthode distincte (`tapTile`, nom à confirmer) qui synthétise un vrai `pointerdown` / `pointerup` tactile et traverse la couche d'entrée réelle — seuls les nouveaux tests du tap en deux temps l'utilisent. Isole complètement le risque au lieu de le répartir sur toute la suite.
+   **Décision révisée (2026-08-20, review du plan)** : on **n'y touche pas**. `clickTile` / `hoverTile` gardent leur sémantique de court-circuit, donc les ~419 tests e2e existants sont **intacts par construction**. On **ajoute** à côté une méthode distincte (`tapTile`, nom à confirmer) qui synthétise un vrai `pointerdown` / `pointerup` tactile et traverse la couche d'entrée réelle — seuls les nouveaux tests du tap en deux temps l'utilisent. Isole complètement le risque au lieu de le répartir sur toute la suite.
 
    L'étape 6 (annulation), elle, est du DOM pur → couverte par le harnais existant sans rien changer.
 
@@ -170,7 +170,7 @@ Aucun bouton ajouté par ce lot, mais un manque à corriger sur les boutons icô
 - ~~Survie de la machine à états du tap aux transitions inattendues.~~ **Sans objet** : il n'y a plus d'état de tap à faire survivre. Un tap agit immédiatement, et la seule mémoire restante est la direction visée (`touchAimedDirection`), remise à zéro à l'entrée de la phase de ciblage. Le risque a disparu avec la simplification, pas été traité.
 - **Mélange clavier + doigt dans le sélecteur d'orientation** : la règle du tap en deux temps ne s'applique qu'aux événements `touch`, le clavier garde son chemin direct. Un joueur qui alterne les deux dans la même phase devrait être cohérent, mais ça ne se vérifie qu'au test humain.
 - **Couplage implicite avec le Lot 2** : le tactile est codé en direct dans `combat-scene.ts`, donc le Lot 2 devra rapatrier la machine à états derrière la couche d'actions logiques, et non l'envelopper. Dette assumée, conforme à la reco du cadre 173 (ne pas sur-architecturer avant d'en avoir besoin) — mais c'est bien une dette, pas un choix neutre.
-- **`onTileClick` en phase `confirm_attack` valide l'attaque quelle que soit la tuile cliquée** (`battle-orchestrator.ts:239`). Comportement **conservé sciemment** (décision humaine 2026-08-19) : à la souris c'est un raccourci de confirmation rapide, et les deux garde-fous de ce lot le rendent inoffensif au doigt — le tap en deux temps fait qu'un tap ailleurs recadre au lieu de valider, et le bouton « Annuler » (F) donne une sortie explicite. Noté pour ne pas le rouvrir sans raison.
+- **`onTileClick` en phase `confirm_attack` valide l'attaque quelle que soit la tuile cliquée** (`battle-orchestrator.ts:239`). Comportement **conservé sciemment** (décision humaine 2026-08-20) : à la souris c'est un raccourci de confirmation rapide, et les deux garde-fous de ce lot le rendent inoffensif au doigt — le tap en deux temps fait qu'un tap ailleurs recadre au lieu de valider, et le bouton « Annuler » (F) donne une sortie explicite. Noté pour ne pas le rouvrir sans raison.
 - **Le tap en deux temps double le nombre de gestes** pour agir sur mobile. C'est le prix de l'inspection ; à valider au test humain, et à réévaluer si ça donne une impression de lourdeur.
 - La **couche d'entrée device-agnostique** (actions logiques, source active « last-input-wins ») reste au **Lot 2**, conformément à la reco du plan-cadre 173. Ce lot code le tactile en direct dans `combat-scene.ts` ; le Lot 2 devra le rapatrier derrière la couche.
 

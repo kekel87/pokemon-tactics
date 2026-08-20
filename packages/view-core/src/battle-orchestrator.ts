@@ -730,7 +730,7 @@ export class BattleOrchestrator {
         // on a touch screen (plan 183).
         { definition, masked, onCancel: () => this.onEscape() },
         // A cône/ligne/fauche/charge aims a DIRECTION, so calling it a "cible" misled the player
-        // (retour humain 2026-08-19).
+        // (retour humain 2026-08-20).
         aimedKind !== undefined && this.isDirectionalPattern(aimedKind)
           ? "aimDirection"
           : "selectTarget",
@@ -746,7 +746,7 @@ export class BattleOrchestrator {
     /*
      * Directional patterns (cône, ligne, fauche, charge) are aimed by the pointer, so on a phone they
      * used to open on an empty board: nothing showed until the player guessed they had to tap
-     * somewhere ("on comprend pas ce qu'il faut faire", human 2026-08-19). Open on the caster's own
+     * somewhere ("on comprend pas ce qu'il faut faire", human 2026-08-20). Open on the caster's own
      * facing instead — the fan is visible immediately, and `touchAimedDirection` is seeded with it so
      * accepting that default costs ONE tap, while tapping elsewhere re-aims first.
      */
@@ -768,7 +768,7 @@ export class BattleOrchestrator {
     /*
      * Static patterns (Soi-même / croix / zone) are centred on the caster: there is no target to
      * pick, and the phase existed only to swallow a click that confirmed "on ANY click". So it asked
-     * the player to choose between one option (retour humain 2026-08-19). Skip straight to the
+     * the player to choose between one option (retour humain 2026-08-20). Skip straight to the
      * confirmation, which keeps the footprint AND adds the damage forecast for the same single click.
      */
     if (this.isStaticPattern(aimingMove.targeting.kind)) {

@@ -319,7 +319,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
      * Facing a finger has previewed on this picker, if any (plan 183). Touch has no hover, so a tap
      * previews and only a tap of the SAME facing confirms. Storing the direction rather than a
      * "has previewed" flag is the point: with a flag, changing your mind confirmed the new facing
-     * immediately instead of showing it first (human 2026-08-19). Unused on the mouse path.
+     * immediately instead of showing it first (human 2026-08-20). Unused on the mouse path.
      */
     touchAimedDirection?: Direction;
   } | null = null;

@@ -38,7 +38,7 @@ test("tactile : un pattern directionnel s'ouvre avec son cône déjà affiché",
   await page.getByTestId("move-item").first().click();
 
   // Sans ça la phase s'ouvrait sur un plateau vide et il fallait deviner qu'il fallait taper
-  // quelque part ("on comprend pas ce qu'il faut faire", humain 2026-08-19).
+  // quelque part ("on comprend pas ce qu'il faut faire", humain 2026-08-20).
   await expect
     .poll(async () => (await scene.meshNamesStartingWith(PREVIEW_PREFIX)).length)
     .toBeGreaterThan(0);
@@ -94,7 +94,7 @@ test("une attaque centrée sur le lanceur saute la phase de ciblage", async ({
   await page.getByTestId("move-item").first().click();
 
   // Un motif statique est centré sur le lanceur : la phase de ciblage demandait de choisir entre une
-  // seule option et se validait sur n'importe quel clic (retour humain 2026-08-19). On arrive donc
+  // seule option et se validait sur n'importe quel clic (retour humain 2026-08-20). On arrive donc
   // directement à la confirmation, l'empreinte reste affichée et la prévision de dégâts s'ajoute.
   await expect(page.getByTestId("combat-instruction")).toHaveText("Confirmer ?");
 });

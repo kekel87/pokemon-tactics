@@ -183,7 +183,7 @@ export class BabylonCompass {
     const renderHeight = Math.max(1, engine.getRenderHeight());
 
     /*
-     * Size AND anchor both come from the timeline's first portrait (human 2026-08-19). Three earlier
+     * Size AND anchor both come from the timeline's first portrait (human 2026-08-20). Three earlier
      * attempts with constants of my own all drifted: behind the timeline, then floating in the void,
      * then sliding whenever the size changed. Matching the portrait removes every magic number —
      * no breakpoint, no multiplier — and keeps the two level and equally sized at any stage size.

@@ -721,14 +721,14 @@ au doigt doit passer par lui, sinon elle ne teste rien de ce lot.
 **Un tap agit du premier coup**, sauf pour viser un pattern directionnel.
 
 - 🤖 **Un seul tap suffit pour se déplacer** (`touch-controls.spec`). Un tap en deux temps généralisé
-  avait été essayé puis **abandonné** (humain 2026-08-19) : le jeu a déjà sa propre étape de
+  avait été essayé puis **abandonné** (humain 2026-08-20) : le jeu a déjà sa propre étape de
   confirmation, donc l'empiler portait chaque action à **4 taps** contre 2 clics à la souris.
 - 🤖 **Un pattern directionnel** (cône, ligne, fauche, charge) **s'ouvre avec son cône déjà affiché**,
   dans la direction où regarde le lanceur — sans quoi la phase s'ouvrait sur un plateau vide et il
   fallait deviner qu'il fallait taper quelque part (`touch-controls.spec`).
 - 🤖 **La ligne d'instruction dit « Choisis la direction »**, pas « Sélectionne la cible », pour ces
   quatre motifs : on y vise une direction, pas une case, et parler de cible induisait en erreur
-  (retour humain 2026-08-19). Variante `aimDirection` de `BattleInstruction` (`touch-controls.spec`).
+  (retour humain 2026-08-20). Variante `aimDirection` de `BattleInstruction` (`touch-controls.spec`).
 - 🤖 **Une attaque au motif statique** (soi-même, croix, zone) **saute la phase de ciblage** et arrive
   directement à la confirmation : centrée sur le lanceur, elle n'avait aucune cible à désigner et se
   validait « sur n'importe quel clic » — elle faisait donc choisir entre une seule option. L'empreinte
@@ -738,7 +738,7 @@ au doigt doit passer par lui, sinon elle ne teste rien de ce lot.
   case *différente* de celle visée, ce qu'une comparaison de cases refuserait (`touch-controls.spec`).
 - 👁 **Orientation en fin de tour** (« Attendre ») : même règle, arbitrée dans le sélecteur de
   direction côté scène. Un booléen « a déjà tapé » y validait la nouvelle orientation au lieu de
-  l'afficher (bug trouvé sur téléphone, 2026-08-19) ; c'est désormais la direction qui est comparée.
+  l'afficher (bug trouvé sur téléphone, 2026-08-20) ; c'est désormais la direction qui est comparée.
   Pas de signal e2e — le sélecteur est un mesh piloté par la position du pointeur. **Téléphone réel.**
 - 🤖 **Annulation atteignable au doigt** — Échap n'existe pas sur un écran tactile, et 5 phases sur 6
   n'avaient aucune sortie. Les trois phases réparées sont couvertes (`touch-controls.spec`) :
@@ -747,16 +747,16 @@ au doigt doit passer par lui, sinon elle ne teste rien de ce lot.
   Annuler → retour au menu, sélecteur démonté et HUD rétabli). Les deux premières appelaient
   `hideMenus()` : l'écran était littéralement vide.
 - 👁 **Pinch à deux doigts → crans de zoom** et **pan par le centroïde** : demandent deux pointeurs
-  tactiles simultanés, hors de ce que le hook synthétise. **Téléphone réel, validé 2026-08-19.**
+  tactiles simultanés, hors de ce que le hook synthétise. **Téléphone réel, validé 2026-08-20.**
 - 👁 **Aucun saut de zoom quand un doigt se lève** (la distance de référence est réarmée à chaque
   changement du nombre de pointeurs). C'est le piège classique de l'implémentation, invisible
-  autrement. **Téléphone réel, validé 2026-08-19.**
+  autrement. **Téléphone réel, validé 2026-08-20.**
 - 👁 **Boussole tapable** (un cran de rotation par tap, toujours dans le même sens), **taille et
   ancrage repris de la première case de la timeline** (même côté, coin haut-gauche posé au coin
   haut-droit du portrait). Trois tentatives à base de constantes maison avaient dérivé : derrière la
   timeline, puis flottante, puis glissant à chaque changement de taille. Mesuré à l'exécution
   (`chrome-insets.ts`), donc aucun nombre choisi à l'œil — mais rien ne l'observe automatiquement.
-  **Téléphone réel, validé 2026-08-19.**
+  **Téléphone réel, validé 2026-08-20.**
 - 👁 **Zone tapable de la boussole ≥ 44 px** malgré une aiguille de ~17 px de large : le proxy de
   picking est invisible et contre-scalé, donc aucune assertion de rendu ne le voit. **Téléphone réel.**
 - 👁 **Seuil de glissé à 10 px au doigt** (contre 5 px à la souris) : un tap « immobile » qui dérive
