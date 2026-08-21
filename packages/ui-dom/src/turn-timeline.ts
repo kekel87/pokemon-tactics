@@ -1,6 +1,6 @@
 import type { TimelineEntryView, TimelineView } from "@pokemon-tactic/view-core";
 import type { UiDomConfig } from "./config.js";
-import { el } from "./dom-helpers.js";
+import { el, scrollByStep } from "./dom-helpers.js";
 
 /**
  * TurnTimeline — DOM/CSS turn timeline (plan 121 step
@@ -16,6 +16,8 @@ import { el } from "./dom-helpers.js";
 export interface TurnTimeline {
   readonly element: HTMLElement;
   update(view: TimelineView): void;
+  /** Step the predicted-order list (keyboard / gamepad, plan 184 — it only scrolled by wheel). */
+  scrollByStep(delta: 1 | -1): void;
   destroy(): void;
 }
 
@@ -90,6 +92,7 @@ export function createTurnTimeline(config: UiDomConfig): TurnTimeline {
       }
       list.append(fragment);
     },
+    scrollByStep: (delta) => scrollByStep(list, delta),
     destroy: () => root.remove(),
   };
 }

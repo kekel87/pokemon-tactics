@@ -4,7 +4,7 @@ import type { Navigate, Screen } from "../../../app/screen-manager";
 import { getLanguage, setLanguage, t } from "../../../i18n";
 import { Language } from "../../../i18n/types";
 import { MAPS_REGISTRY } from "../../../maps/maps-registry";
-import { el, menuButton } from "./elements";
+import { bindScreenInput, el, menuButton } from "./elements";
 
 const VERSION_TEXT = __APP_VERSION__;
 
@@ -30,6 +30,7 @@ function resumeEntry(save: BattleResumeSave, navigate: Navigate): HTMLButtonElem
  */
 export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
   let root: HTMLElement | null = null;
+  let unbindScreenInput: (() => void) | null = null;
 
   const render = (host: HTMLElement): void => {
     root?.remove();
@@ -72,8 +73,12 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
     mount(host) {
       trackEvent(AnalyticsEvent.MainMenu);
       render(host);
+      // Sans « retour » (c'est le premier écran), mais les flèches doivent y naviguer comme partout.
+      unbindScreenInput = bindScreenInput();
     },
     dispose() {
+      unbindScreenInput?.();
+      unbindScreenInput = null;
       root?.remove();
       root = null;
     },

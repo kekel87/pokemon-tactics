@@ -28,6 +28,9 @@ export interface PlacementRosterState {
  * placed/remaining counter, and the "Done" button. Minimal chrome — restyled 4b.
  */
 export class PlacementRoster {
+  /** Bouton « Terminer », pour que le clavier puisse l'atteindre (plan 184). */
+  private finishButton: HTMLButtonElement | null = null;
+
   readonly element: HTMLElement;
   private callbacks: PlacementRosterCallbacks | null = null;
   private readonly config: UiDomConfig;
@@ -75,8 +78,39 @@ export class PlacementRoster {
     finish.textContent = this.config.translate("placement.done");
     finish.hidden = callbacks.onFinish === undefined;
     finish.addEventListener("click", () => this.callbacks?.onFinish?.());
+    this.finishButton = finish;
 
     this.element.replaceChildren(header, list, finish);
+  }
+
+  /**
+   * Donne le focus au bouton « Terminer » s'il est proposé (plan 184). Le placement se pilote au
+   * plateau, donc les flèches n'y déplacent aucun focus DOM : sans ce point d'entrée, « Terminer »
+   * était inatteignable au clavier et une équipe incomplète ne pouvait pas être validée.
+   */
+  focusFinish(): boolean {
+    if (this.finishButton === null || this.finishButton.hidden) {
+      return false;
+    }
+    this.finishButton.focus();
+    return true;
+  }
+
+  /** Le bouton « Terminer » détient-il le focus ? (le navigateur l'activera lui-même à l'Espace) */
+  isFinishFocused(): boolean {
+    return this.finishButton !== null && document.activeElement === this.finishButton;
+  }
+
+  /** Clique « Terminer » (manette : aucune activation native ne suit un appui de pad). */
+  activateFinish(): void {
+    this.finishButton?.click();
+  }
+
+  /** Rend le focus au plateau : plus aucun contrôle du roster ne le détient. */
+  blurFinish(): void {
+    if (this.isFinishFocused()) {
+      this.finishButton?.blur();
+    }
   }
 
   hide(): void {

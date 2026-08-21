@@ -289,6 +289,24 @@ export interface BattleChrome {
   updateCameraAzimuth(azimuth: number): void;
   /** Refresh the turn timeline (active + predicted order). */
   updateTimeline(view: TimelineView): void;
+  /**
+   * Walk the focus through the buttons of the menu currently on screen (plan 184): the keyboard and
+   * gamepad equivalent of moving the mouse over them. Skips disabled entries.
+   */
+  focusMenuStep(delta: 1 | -1): void;
+  /**
+   * Does the menu currently hold the focus? Lets the input layer leave Space / Enter to the
+   * browser's own activation of a focused button instead of claiming the key.
+   */
+  isMenuFocused(): boolean;
+  /**
+   * Activate the focused menu entry, reporting whether there was one — for a GAMEPAD, where no
+   * native activation follows: a pad press is not a keyboard event, so nothing would happen at all
+   * (retour humain 2026-08-21, manette Switch Pro).
+   */
+  activateFocusedMenuItem(): boolean;
+  /** Step the timeline's predicted-order list (it only scrolled by wheel before plan 184). */
+  scrollTimeline(delta: 1 | -1): void;
   showVictory(winnerId: string | null): void;
 }
 

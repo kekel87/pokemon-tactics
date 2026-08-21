@@ -177,4 +177,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 181 | [Reprise d'un combat en cours (lot 180-c)](./181-reprise-combat-en-cours.md) | done | 2026-08-14 |
 | 182 | [Anneaux d'aura au sol (contour de zone permanent)](./182-anneaux-aura-au-sol.md) | done | 2026-08-19 |
 | 183 | [Contrôles tactiles (Lot 1)](./183-controles-tactiles.md) | done | 2026-08-20 |
-| 184 | [Contrôles clavier & manette (Lot 2)](./184-controles-clavier-manette.md) | draft | 2026-08-20 |
+| 184 | [Contrôles clavier & manette (Lot 2)](./184-controles-clavier-manette.md) | done | 2026-08-21 |

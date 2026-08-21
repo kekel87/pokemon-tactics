@@ -1,6 +1,6 @@
 # Plan 184 — Contrôles clavier & manette (Lot 2)
 
-> **Statut** : draft
+> **Statut** : done (2026-08-21 — étapes A→E livrées, gate local vert, **validé à la main** : clavier, manette Switch Pro, téléphone, téléphone + manette)
 > **Créé** : 2026-08-20
 > **Phase** : 6.5 « Client jouable », Lot 2 (clavier / manette) — **dernier lot de la phase**
 > **Cadre** : `docs/plans/173-phase-client-jouable-ui-controles.md` § « Lot 2 — Config clavier + manette » + § « Architecture — couche d'input device-agnostique »
@@ -321,6 +321,122 @@ Si l'étape E dérape (régression tactile non triviale), elle est **coupable du
 ## Suite
 
 Plan dédié suivant : **écran de remapping clavier & manette** (décision 1) — capture de touche, persistance, conflits, glyphes par binding. La couche posée ici en est le prérequis : remapper, c'est réécrire la table qui traduit une entrée brute en action logique.
+
+## Livraison (2026-08-21)
+
+Ce qui a changé par rapport au plan tel qu'écrit, et pourquoi.
+
+### Un trou trouvé en cours d'exécution : le sélecteur d'orientation
+
+`onTileClick` n'a **aucun cas** pour la phase `select_direction` — la seule façon de répondre au choix
+d'orientation est le sélecteur lui-même (position du pointeur, ou tap). Au clavier, « Attendre »
+ouvrait donc une phase sans issue, et le **placement** était pire : c'est le même sélecteur, donc
+aucun Pokemon n'aurait pu être placé sans souris.
+
+Corrigé par deux primitives : `aimDirectionPicker(screenDirection)` (les flèches visent le sélecteur
+quand il est ouvert, avant de bouger le curseur) et `confirmDirectionPicker()` (Confirm est offert au
+sélecteur d'abord). Le trou n'était pas dans le plan : il vient de ce que la phase se résout hors de
+`onTileClick`, ce que la cartographie initiale n'avait pas relevé.
+
+### Écarts d'implémentation
+
+- **La conversion écran→grille est un helper unique** (`bestNeighborForScreenVector`) partagé par les
+  trois usages : le pointeur qui vise une orientation, la flèche qui déplace le curseur, la flèche
+  qui vise une orientation. C'était trois fois le même best-dot ; le plan n'en prévoyait qu'un.
+- **Le zoom absolu est arrivé au port** (`setZoomLevel`) comme prévu, `IsometricCamera.setZoomIndex`
+  posant l'index au lieu de l'incrémenter.
+- **Étape E faite en déplacement réel** : `packages/app/src/input/pointer-source.ts` porte les ~180
+  lignes de gestes, et `render-babylon` ne contient plus **aucun** `addEventListener("pointer*")`
+  (critère de réussite du plan, vérifié). Le renderer a gagné 9 primitives d'entrée en échange
+  (`pickTileAt`, `isCompassHitAt`, `setCursor`, `dispatchTileClick`, les 4 du sélecteur,
+  `panCameraByPixels`) : c'est le prix du découpage « l'app décide, le renderer mesure ».
+- **`dispatchTileClick` sur le port** : le hook e2e (`clickTile`/`hoverTile`) court-circuite
+  volontairement la couche d'entrée et ~419 tests en dépendent. La scène garde donc son slot de
+  callback, et la source pointeur y **dispatch** au lieu d'appeler l'orchestrateur en direct — sinon
+  le handoff placement → combat (un seul slot, échangé) se serait dédoublé.
+
+### Ce que le gate couvre, et ce qu'il ne couvre pas
+
+- **Couvert** : 13 e2e clavier (`combat/keyboard-controls.spec.ts`), les 7 e2e tactiles du plan 183
+  **inchangés et verts après le déplacement**, 45 unit sur la couche (routeur, tracker, bindings,
+  manette), 5 unit `inputContext()`. Gate local complet vert.
+- **Non couvert, à valider à la main** : le **pinch et le pan à deux doigts** (aucun signal e2e — le
+  hook ne synthétise qu'un pointeur), la **manette** (`navigator.getGamepads()` n'est pas
+  instrumentable par Playwright), et le **glyphe de prompt manette**. Le tactile a été déplacé, pas
+  réécrit, mais un déplacement de code validé sur téléphone se revalide sur téléphone.
+
+### Retours de la validation humaine (2026-08-21) — 14 correctifs
+
+La recette a été faite scénario par scénario (clavier, caméra, menus, orientation, placement,
+manette, téléphone + manette). Elle a produit **plus de corrections que l'implémentation initiale**,
+et deux d'entre elles étaient des blocages francs. Ce qui a été appris, par famille :
+
+**Ce qui était structurellement faux, pas mal réglé**
+
+1. **Le menu principal ignorait le clavier** : seul écran sans registration, parce qu'il n'a pas de
+   « retour » à brancher — or navigation au focus et retour sont deux besoins distincts.
+   `bindScreenInput` accepte désormais un retour **optionnel**. Les 8 écrans sont couverts par
+   `dom/screen-keyboard.spec.ts` pour que ça ne reparte pas à la dérive.
+2. **À la manette, aucune activation native ne suit un appui** : `confirm` renvoyait « non consommé »
+   en comptant sur le navigateur, donc A ne faisait **rien** sur les menus (décision #792). Une
+   manette n'a pas de comportement natif de formulaire — tout ce qui reposait implicitement sur le
+   navigateur doit être explicite pour elle.
+3. **Le focus était piégé** dans les contrôles de formulaire (règle binaire « un champ = on se
+   tait »). Règle retenue : chacun garde l'axe qu'il **utilise** (décision #785).
+4. **Navigation en ordre DOM** dans une mise en page 2D : ← → morts, ↓ en diagonale. Remplacée par une
+   navigation **spatiale** (décision #786).
+5. **Le bouton « Terminer » du placement était inatteignable** : le placement tournait en contexte
+   `board`, où les flèches ne déplacent aucun focus DOM — donc une équipe incomplète ne pouvait pas
+   être validée. L'étape « choix du Pokemon » est devenue un contexte de **menu** (décision #788).
+6. **Le dialogue de victoire était classé `locked`** : inatteignable à la manette (décision #794).
+7. **Le placement n'avait aucune origine de curseur** : elle vient de `panCameraTo`, appelé par
+   l'orchestrateur… qui n'existe pas encore pendant le placement.
+
+**Ce que seul un humain pouvait voir**
+
+8. **Un liseré de focus sur « Annuler »** promettait qu'Espace allait annuler. Corrigé
+   structurellement : le focus n'est repris que par les deux menus que les flèches naviguent
+   (décision #790) — le garde-fou par contexte ne suffisait pas, le chrome étant rendu **avant** que
+   la phase ne bascule.
+9. **« Annuler le déplacement » en tête de menu** = annulations accidentelles, et un ordre de menu qui
+   changeait d'un tour à l'autre (décision #796).
+10. **Le curseur ne repartait pas du Pokemon actif**, et restait affiché pendant le tour adverse en
+    montrant la fiche du mon précédent (décision #789).
+11. **Annuler Plénitude ne faisait rien** (motif statique → retour vers une phase qui se re-confirme)
+    et **annuler Destruction** laissait la zone clignoter (décision #795).
+12. **A/B inversés sur manette Nintendo** — fait matériel, donc détecté par l'identifiant plutôt que
+    réglé (décision #793).
+13. **Pan au stick droit inversé** : un stick parle le langage du regard, `panCamera` celui du glissé
+    (décision #794).
+14. **Glyphes mal calés**, et deux tentatives rejetées avant la bonne (décision #791).
+
+**Ce que ça dit du plan** : la partie « câblage » était juste, la partie « ce que le joueur comprend »
+ne pouvait pas l'être sans manette et sans téléphone en main. Les cas 5, 6 et 7 ont un point commun —
+**une phase classée dans le mauvais contexte d'entrée rend une UI entière inatteignable**, sans
+erreur, sans test rouge. C'est le risque propre à cette architecture, et le prix de son avantage.
+
+**Validé sur** : clavier (AZERTY, Firefox), manette **Switch Pro** filaire (reconnue `standard` par
+Firefox), **téléphone réel**, et **téléphone + manette** — le cas que le plan-cadre 173 voulait
+first-class, qui marche effectivement sans code spécifique.
+
+### Suites ouvertes
+
+1. **Écran de remapping** (décision 1) — plan dédié, à faire **avec la légende de contrôles**
+   ci-dessous : les deux répondent à « le joueur sait-il ce qu'il peut faire ? ».
+2. **Légende de contrôles près de la boussole** (demandé par l'humain 2026-08-21) : aucun raccourci
+   caméra n'est annoncé nulle part. Glyphe de la boussole → souris / doigt selon la source, puis
+   rotation ← → avec sa touche, puis zoom + − avec sa touche ou pinch. À faire en **DOM** (la boussole
+   est un mesh Babylon épinglé ; `chrome-insets.ts` fournit déjà l'ancrage partagé).
+3. **Refonte de l'écran de sélection d'équipe** (demandé par l'humain 2026-08-21) : aplatir les
+   formats, clarifier Humain / IA, rendre lisible le comportement du joueur actif. Le câblage clavier a
+   rendu ces problèmes visibles, mais ce sont des problèmes de **conception d'écran** — plan à part,
+   pas de rafistolage au coup par coup.
+4. **Inspection du plateau pendant les phases de menu** (décision #780) : perte assumée, rouvrable à
+   peu de frais — le curseur est gelé, pas détruit.
+5. **Sortir d'un champ texte demande `Tab`** : la couche laisse volontairement tout le clavier à un
+   champ de saisie (sinon impossible d'écrire), donc les flèches n'en sortent pas. Les autres contrôles
+   ont une sortie (§ « Contrôles qui gardent un axe »). À revoir si la manette doit atteindre le
+   Team Builder.
 
 ## Sources
 

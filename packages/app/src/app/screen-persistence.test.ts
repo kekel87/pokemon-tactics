@@ -24,14 +24,15 @@ describe("screen persistence", () => {
     expect(loadPersistedScreen()).toBeNull();
   });
 
-  it.each(["team-select", "team-edit", "combat"] as const)(
-    "does not persist %s, which cannot be restored without its params",
-    (screenId) => {
-      saveCurrentScreen(screenId);
+  it.each([
+    "team-select",
+    "team-edit",
+    "combat",
+  ] as const)("does not persist %s, which cannot be restored without its params", (screenId) => {
+    saveCurrentScreen(screenId);
 
-      expect(loadPersistedScreen()).toBeNull();
-    },
-  );
+    expect(loadPersistedScreen()).toBeNull();
+  });
 
   it("clears an earlier resume point when moving to a screen with params", () => {
     saveCurrentScreen("map-select");

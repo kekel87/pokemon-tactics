@@ -22,6 +22,31 @@
     font-family: inherit;
   }
 
+  /* Focus ring, app-wide (plan 184). Before this there was exactly ONE `:focus-visible` rule in the
+     whole CSS (the attack rows), and an invisible focus is an unusable focus: the keyboard and the
+     gamepad navigate BY focus, so where it sits has to be readable at a glance.
+
+     Yellow because that is already the design-system colour for focus, cursor and active selection.
+
+     Deliberately NOT gated on `[data-input-source]`: `:focus-visible` is precisely the browser
+     heuristic for "the player is navigating by keyboard", and it already knows things we do not —
+     including that a focus moved by script after a keyboard press still deserves a ring. Hiding it
+     under the pointer would break clicking a button then continuing with the arrows. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    /*
+     * Liseré tracé À L'INTÉRIEUR de l'élément (offset négatif), pas autour (retour humain
+     * 2026-08-21). Deux raisons, constatées sur l'écran de sélection d'équipe :
+     *   - un conteneur défilant le ROGNE. `overflow-y: auto` force `overflow-x` à `auto` lui aussi
+     *     (spec : `visible` sur un axe devient `auto` si l'autre ne l'est pas), donc un liseré posé
+     *     autour d'une carte se retrouvait coupé à gauche et à droite ;
+     *   - sur une carte qui a déjà sa propre bordure de couleur (la couleur du joueur), un liseré
+     *     extérieur DOUBLE le contour et les deux se disputent la lecture.
+     * À l'intérieur, il ne peut être ni coupé ni confondu avec une bordure.
+     */
+    outline-offset: -2px;
+  }
+
   .tb-root,
   .tb-dialog,
   .ts-root {

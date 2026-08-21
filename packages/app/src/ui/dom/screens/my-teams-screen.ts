@@ -1,12 +1,12 @@
 import { AnalyticsEvent, trackEvent } from "../../../analytics/analytics";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { MyTeamsView } from "../../team/MyTeamsView";
-import { bindEscape } from "./elements";
+import { bindScreenInput } from "./elements";
 
 /** DOM port of MyTeamsScene (plan 120 step 5) — wraps the shared MyTeamsView. */
 export function createMyTeamsScreen(navigate: Navigate): Screen<"my-teams"> {
   let view: MyTeamsView | null = null;
-  let unbindEscape: (() => void) | null = null;
+  let unbindScreenInput: (() => void) | null = null;
   const goBack = (): void => navigate("main-menu", undefined);
 
   return {
@@ -17,11 +17,11 @@ export function createMyTeamsScreen(navigate: Navigate): Screen<"my-teams"> {
         onEditTeam: (teamId) => navigate("team-edit", { teamId }),
       });
       host.append(view.element);
-      unbindEscape = bindEscape(goBack);
+      unbindScreenInput = bindScreenInput(goBack);
     },
     dispose() {
-      unbindEscape?.();
-      unbindEscape = null;
+      unbindScreenInput?.();
+      unbindScreenInput = null;
       view?.destroy();
       view = null;
     },

@@ -11,6 +11,7 @@ import type {
   CombatSceneSpawn,
   DirectionPickerCallbacks,
   DirectionPickerHandle,
+  ScreenDirection,
   TilePointerSource,
 } from "@pokemon-tactic/render-ports";
 import {
@@ -51,9 +52,6 @@ import {
   BABYLON_LIQUID_FOAM_COLOR_BY_GROUP,
   BABYLON_LIQUID_FOAM_COLOR_DEFAULT,
   BABYLON_LIQUID_SURFACE_RATIO,
-  BABYLON_PICK_DRAG_THRESHOLD_PX,
-  BABYLON_PICK_DRAG_THRESHOLD_TOUCH_PX,
-  BABYLON_PINCH_ZOOM_STEP_RATIO,
   BABYLON_SPRITE_HEAD_LIFT_FALLBACK,
   BABYLON_SPRITE_PIXELS_PER_UNIT,
 } from "./babylon-constants.js";
@@ -116,17 +114,6 @@ export interface CombatSceneOptions {
 
 const ALL_DIRECTIONS = [Direction.North, Direction.South, Direction.East, Direction.West] as const;
 
-/**
- * Pointer families the input layer treats differently, mirroring `PointerEvent.pointerType`
- * (plan 183). A finger has no hover, so its press has to stand in for one.
- */
-const PointerKind = {
-  Mouse: "mouse",
-  Pen: "pen",
-  Touch: "touch",
-} as const;
-type PointerKind = (typeof PointerKind)[keyof typeof PointerKind];
-
 /** Quadratic ease-out — fast start, slow finish (jump ascent: top the cliff early). */
 function easeOutQuad(t: number): number {
   return 1 - (1 - t) * (1 - t);
@@ -184,7 +171,8 @@ const DIRECTION_NEIGHBOR: Readonly<Record<Direction, { dx: number; dy: number }>
 /**
  * Production combat-scene renderer (Jalon 3a): a Tiled map extruded to 3D with
  * stacked elevation layers, PMD directional billboards placed on it, and a
- * dimetric orthographic camera that snaps between the 4 iso views (←/→).
+ * dimetric orthographic camera that snaps between the 4 iso views (rotation driven
+ * by the app-side input layer, plan 184).
  * Sprites render in group 2 (after terrain group 0 and X-ray silhouettes group 1,
  * depth buffer kept) with `SpriteDepthPlugin` flattening each to its foot depth, so
  * taller terrain in front occludes it without the upright plane self-clipping into
@@ -342,7 +330,10 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     const rect = canvas.getBoundingClientRect();
     const init: PointerEventInit = {
       pointerId: 1,
-      pointerType: PointerKind.Touch,
+      // Literal rather than a shared constant: since plan 184 the gesture rules (and the
+      // `pointerType` families they read) live in the app's input layer, and the renderer must not
+      // depend on it. What matters is that this string is what a real finger reports.
+      pointerType: "touch",
       button: 0,
       buttons: 1,
       clientX: rect.left + projected.x,
@@ -367,10 +358,46 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   }
 
   /**
+   * Grid neighbour of `centerTile` whose SCREEN offset best matches a screen-space vector.
+   *
+   * One helper for the three things that need it: the pointer aiming a facing (vector = pointer
+   * minus centre), an arrow key stepping the cursor, and an arrow key aiming a facing (vector = the
+   * pressed screen diagonal). Re-projected on every call, so it tracks the camera's rotation and
+   * zoom instead of assuming an azimuth.
+   */
+  function bestNeighborForScreenVector(
+    centerTile: { x: number; y: number },
+    vectorX: number,
+    vectorY: number,
+  ): { direction: Direction; x: number; y: number } | null {
+    if (!tileWorldTop) {
+      return null;
+    }
+    const center = tileWorldTop(centerTile.x, centerTile.y);
+    const centerScreen = projectWorld(new Vector3(center.x, center.y, center.z));
+    const aimLength = Math.hypot(vectorX, vectorY) || 1;
+    let best: { direction: Direction; x: number; y: number } | null = null;
+    let bestDot = Number.NEGATIVE_INFINITY;
+    for (const direction of ALL_DIRECTIONS) {
+      const { dx, dy } = DIRECTION_NEIGHBOR[direction];
+      const neighbor = tileWorldTop(centerTile.x + dx, centerTile.y + dy);
+      const neighborScreen = projectWorld(new Vector3(neighbor.x, neighbor.y, neighbor.z));
+      const neighborX = neighborScreen.x - centerScreen.x;
+      const neighborY = neighborScreen.y - centerScreen.y;
+      const length = Math.hypot(neighborX, neighborY) || 1;
+      const dot = (vectorX * neighborX + vectorY * neighborY) / (aimLength * length);
+      if (dot > bestDot) {
+        bestDot = dot;
+        best = { direction, x: centerTile.x + dx, y: centerTile.y + dy };
+      }
+    }
+    return best;
+  }
+
+  /**
    * Direction whose neighbour tile lies closest (by screen angle) to the pointer,
    * measured from the placed Pokémon's tile. Mouse-driven (not arrow-picking) so
-   * the whole screen is a generous hit area, and re-projected each call so it
-   * tracks camera rotation/zoom. Returns null before the map loads.
+   * the whole screen is a generous hit area. Returns null before the map loads.
    */
   function directionFromPointer(
     centerTile: { x: number; y: number },
@@ -382,25 +409,10 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     }
     const center = tileWorldTop(centerTile.x, centerTile.y);
     const centerScreen = projectWorld(new Vector3(center.x, center.y, center.z));
-    const pointerVectorX = pointerX - centerScreen.x;
-    const pointerVectorY = pointerY - centerScreen.y;
-    const pointerLength = Math.hypot(pointerVectorX, pointerVectorY) || 1;
-    let best: Direction | null = null;
-    let bestDot = Number.NEGATIVE_INFINITY;
-    for (const direction of ALL_DIRECTIONS) {
-      const { dx, dy } = DIRECTION_NEIGHBOR[direction];
-      const neighbor = tileWorldTop(centerTile.x + dx, centerTile.y + dy);
-      const neighborScreen = projectWorld(new Vector3(neighbor.x, neighbor.y, neighbor.z));
-      const vectorX = neighborScreen.x - centerScreen.x;
-      const vectorY = neighborScreen.y - centerScreen.y;
-      const length = Math.hypot(vectorX, vectorY) || 1;
-      const dot = (pointerVectorX * vectorX + pointerVectorY * vectorY) / (pointerLength * length);
-      if (dot > bestDot) {
-        bestDot = dot;
-        best = direction;
-      }
-    }
-    return best;
+    return (
+      bestNeighborForScreenVector(centerTile, pointerX - centerScreen.x, pointerY - centerScreen.y)
+        ?.direction ?? null
+    );
   }
 
   const hoverCursor = showHoverCursor ? new BabylonHoverCursor(scene) : null;
@@ -409,6 +421,16 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     ? new BabylonCompass(scene, camera, timelineFirstCell, () => canvas.clientWidth)
     : null;
   const hoverHead = new Vector3();
+  /**
+   * Tile the cursor rests on, whatever put it there — a mouse hover, a finger tap or an arrow key
+   * (plan 184). Confirm validates it, and an arrow steps from it.
+   *
+   * It is deliberately NOT cleared when the action menu opens: coming back to the board must
+   * resume where the player left the cursor, not walk across the map again.
+   */
+  let cursorPick: TilePick | null = null;
+  /** Last tile the camera was centred on — where a keyboard cursor starts if nothing hovered yet. */
+  let cameraFocusTile: TilePick | null = null;
 
   let terrain: ExtrudedTerrain | null = null;
   let decorations: Decorations | null = null;
@@ -510,22 +532,104 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     });
 
   // ←/→ snap the camera by 90° between the 4 iso views (edge-triggered).
-  const onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === "Escape" && directionPicker) {
-      // Cancel the facing choice. Block the placement-flow's own Escape=undo
-      // (also a window listener) so a single press doesn't both cancel AND undo.
-      event.stopImmediatePropagation();
-      const { callbacks } = directionPicker;
-      closeDirectionPicker();
-      callbacks.onCancel();
+  /**
+   * Cancel an open facing choice (plan 184). Previously an `Escape` keydown bound right here, which
+   * had to call `stopImmediatePropagation()` so one press wouldn't also undo a placement; the input
+   * layer now offers Cancel to the picker first and falls back to the phase cancel, so the
+   * arbitration is explicit instead of depending on listener order.
+   */
+  /**
+   * Screen vector each arrow / d-pad press aims at, as a canvas-pixel direction (plan 184).
+   *
+   * They are DIAGONALS, and that is the whole point: in a dimetric view the four grid axes project
+   * to the four screen diagonals, so an "up" of (0,-1) would sit exactly between two grid axes and
+   * tie. Aiming up-and-right instead lands on exactly one axis — the FFT / FFTA convention, where
+   * pressing up walks the cursor diagonally up the board.
+   */
+  const SCREEN_DIRECTION_VECTOR: Readonly<Record<ScreenDirection, { x: number; y: number }>> = {
+    up: { x: 1, y: -1 },
+    right: { x: 1, y: 1 },
+    down: { x: -1, y: 1 },
+    left: { x: -1, y: -1 },
+  };
+
+  /**
+   * Step the cursor one tile toward a screen direction.
+   *
+   * The grid step comes from PROJECTING the four neighbours and keeping the best match — not from a
+   * per-azimuth lookup table. It self-corrects: rotate the camera, change the elevation or the
+   * handedness, and the arrows keep pointing where the player looks, with no table to maintain.
+   */
+  function stepCursor(direction: ScreenDirection): void {
+    const map = movementMap;
+    if (!map) {
       return;
     }
-    if (event.key === "ArrowLeft") {
-      isoCamera.rotateByStep(-1);
-    } else if (event.key === "ArrowRight") {
-      isoCamera.rotateByStep(1);
+    // No cursor yet (keyboard used before the mouse ever hovered): start from whatever the camera
+    // last centred on, which is the active Pokémon at the top of each turn.
+    const origin = cursorPick ?? cameraFocusTile;
+    if (!origin) {
+      return;
     }
-  };
+    const aim = SCREEN_DIRECTION_VECTOR[direction];
+    const best = bestNeighborForScreenVector(origin, aim.x, aim.y);
+    // At a board edge the best candidate points off the grid: leave the cursor where it is rather
+    // than sliding it sideways along the rim.
+    if (best && best.x >= 0 && best.y >= 0 && best.x < map.width && best.y < map.height) {
+      applyHover({ x: best.x, y: best.y });
+    }
+  }
+
+  /**
+   * Aim an open facing picker with an arrow / d-pad press (plan 184), previewing the new facing.
+   * Returns false when no picker is open, so the caller can fall back to moving the tile cursor.
+   *
+   * Without this the keyboard could open the end-of-turn facing choice but never answer it — and
+   * placement, which uses the same picker, could not place a single Pokémon.
+   */
+  function aimDirectionPicker(screenDirection: ScreenDirection): boolean {
+    if (!directionPicker) {
+      return false;
+    }
+    // Le curseur se pose sur la case du Pokemon : on y choisit une orientation, pas une case, donc
+    // la rotation doit se lire comme tournant autour de lui (retour humain 2026-08-21).
+    const { center } = directionPicker;
+    cursorPick = { x: center.x, y: center.y };
+    if (showHoverCursor) {
+      highlights?.setCursor(cursorPick);
+    }
+    paintHoverCursor(cursorPick);
+    const aim = SCREEN_DIRECTION_VECTOR[screenDirection];
+    const best = bestNeighborForScreenVector(center, aim.x, aim.y);
+    if (!best || best.direction === directionPicker.current) {
+      return true;
+    }
+    directionPicker.current = best.direction;
+    directionArrows.setActive(best.direction);
+    directionPicker.callbacks.onPreview(best.direction);
+    return true;
+  }
+
+  /** Commit the facing the picker currently shows. False when no picker is open. */
+  function confirmDirectionPicker(): boolean {
+    if (!directionPicker) {
+      return false;
+    }
+    const { callbacks, current } = directionPicker;
+    closeDirectionPicker();
+    callbacks.onConfirm(current);
+    return true;
+  }
+
+  function cancelDirectionPicker(): boolean {
+    if (!directionPicker) {
+      return false;
+    }
+    const { callbacks } = directionPicker;
+    closeDirectionPicker();
+    callbacks.onCancel();
+    return true;
+  }
 
   const onWheel = (event: WheelEvent): void => {
     event.preventDefault();
@@ -551,14 +655,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     () => sceneIsReady,
     (x, y) => clickHandler({ x, y }, "pointer"),
     (x, y) => hoverHandler({ x, y }),
-    () => {
-      if (!directionPicker) {
-        return;
-      }
-      const { callbacks, current } = directionPicker;
-      closeDirectionPicker();
-      callbacks.onConfirm(current);
-    },
+    () => void confirmDirectionPicker(),
     () =>
       billboards.map((entry) => ({
         pokemonId: entry.pokemonId,
@@ -568,160 +665,16 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         terrain: movementMap?.terrainAt(entry.spawn.x, entry.spawn.y),
       })),
     (x, y) => dispatchSyntheticTap(x, y),
+    () => (cursorPick ? { x: cursorPick.x, y: cursorPick.y } : null),
   );
 
-  // Left press: pan while dragging, or click-select the tile if released without
-  // moving past the drag threshold. A cell hidden by a pillar is reached by
-  // rotating the camera (←/→), not a 2D-style Alt disambiguation.
-  //
-  // Multi-pointer since plan 183: the state below is per-press, but `activePointers` tracks every
-  // live pointer so two fingers can pinch. A single scalar `dragging` flag could not tell one finger
-  // from two.
-  let dragging = false;
-  let pressMoved = false;
-  let pressStartX = 0;
-  let pressStartY = 0;
-  let previousPointerX = 0;
-  let previousPointerY = 0;
-  // Drag threshold of the press in flight: a finger drifts more than a mouse, so the pointer type
-  // picks the threshold at press time rather than one global constant serving both.
-  let pressDragThreshold = BABYLON_PICK_DRAG_THRESHOLD_PX;
-  /** Live pointers by `pointerId` — the pinch reads this, and a stale entry would make it jump. */
-  const activePointers = new Map<number, { x: number; y: number }>();
-  // Pinch reference, re-armed on every zoom step AND whenever the pointer count changes. Letting it
-  // survive a 2→1 finger transition is the classic cause of a sudden zoom jump.
-  let pinchReferenceDistance: number | null = null;
-
-  const pointerKindOf = (event: PointerEvent): PointerKind =>
-    event.pointerType === PointerKind.Touch || event.pointerType === PointerKind.Pen
-      ? event.pointerType
-      : PointerKind.Mouse;
-
-  /** Centroid + spread of the two live pointers, or null unless exactly two are down. */
-  const pinchState = (): { centerX: number; centerY: number; distance: number } | null => {
-    if (activePointers.size !== 2) {
-      return null;
-    }
-    const [first, second] = [...activePointers.values()];
-    if (!first || !second) {
-      return null;
-    }
-    return {
-      centerX: (first.x + second.x) / 2,
-      centerY: (first.y + second.y) / 2,
-      distance: Math.hypot(second.x - first.x, second.y - first.y),
-    };
-  };
-
-  const onPointerDown = (event: PointerEvent): void => {
-    if (event.button !== 0) {
-      return;
-    }
-    activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    // Keep receiving moves even if the finger slides off the canvas mid-drag. Only for a real
-    // pointer: capturing an id the browser never issued (a synthetic tap from the e2e hook) throws
-    // NotFoundError. Losing capture there is harmless — move/up are bound on `window` anyway.
-    if (event.isTrusted) {
-      canvas.setPointerCapture(event.pointerId);
-    }
-    if (activePointers.size >= 2) {
-      // A second finger means a camera gesture, never a selection: drop both the press in flight and
-      // any pending inspection so the gesture can't end up committing an action.
-      dragging = false;
-      const pinch = pinchState();
-      pinchReferenceDistance = pinch?.distance ?? null;
-      if (pinch) {
-        // The pan now tracks the centroid, so seed it here — otherwise the first move would pan by
-        // the whole distance between the last single-finger position and the centroid.
-        previousPointerX = pinch.centerX;
-        previousPointerY = pinch.centerY;
-      }
-      return;
-    }
-    dragging = true;
-    pressMoved = false;
-    pressStartX = event.clientX;
-    pressStartY = event.clientY;
-    previousPointerX = event.clientX;
-    previousPointerY = event.clientY;
-    pressDragThreshold =
-      pointerKindOf(event) === PointerKind.Touch
-        ? BABYLON_PICK_DRAG_THRESHOLD_TOUCH_PX
-        : BABYLON_PICK_DRAG_THRESHOLD_PX;
-  };
-  // Pointer → canvas-relative coords (what `scene.pick` expects), independent of
-  // which overlay element the event bubbled from.
-  const canvasPointer = (event: PointerEvent): { x: number; y: number } => {
-    const rect = canvas.getBoundingClientRect();
-    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
-  };
-  const onPointerUp = (event: PointerEvent): void => {
-    // `pointerdown` is bound to the canvas but `pointerup`/`pointermove` to the window, so a press
-    // that started on the DOM chrome (Annuler, une attaque du menu) bubbles up here too. Acting on
-    // it would pick a tile under a button — and with a finger still resting on the canvas,
-    // `dragging` is true, so it would commit a board action the player never asked for.
-    const wasOurs = activePointers.delete(event.pointerId);
-    // Re-arm the pinch against whatever is still down: comparing a two-finger spread with a
-    // one-finger position is what makes the zoom lurch when a finger lifts.
-    pinchReferenceDistance = pinchState()?.distance ?? null;
-    const wasClick = wasOurs && dragging && !pressMoved;
-    dragging = false;
-    if (!wasClick) {
-      return;
-    }
-    const kind = pointerKindOf(event);
-    const { x, y } = canvasPointer(event);
-    // The compass sits on top of the board, so it has to win the press before the tile under it does
-    // — otherwise the ray carries on and selects a tile the player never aimed at.
-    if (compass?.isHit(scene, x, y) === true) {
-      isoCamera.rotateByStep(1);
-      return;
-    }
-    if (directionPicker) {
-      const { callbacks, center, current } = directionPicker;
-      const direction = directionFromPointer(center, x, y) ?? current;
-      // No hover on touch, so a tap that CHANGES the facing must show it, not commit it. Only a tap
-      // repeating the facing already on screen confirms.
-      if (kind === PointerKind.Touch && directionPicker.touchAimedDirection !== direction) {
-        directionPicker.touchAimedDirection = direction;
-        directionPicker.current = direction;
-        directionArrows.setActive(direction);
-        callbacks.onPreview(direction);
-        return;
-      }
-      closeDirectionPicker();
-      callbacks.onConfirm(direction);
-      return;
-    }
-    const pick = pickTile(scene, x, y);
-    if (!pick) {
-      return;
-    }
-    // A tap does in one gesture what a mouse does in two — hover then click. Feeding the hover first
-    // is what makes the info panels and the damage forecast appear at all on a finger.
-    if (kind === PointerKind.Touch) {
-      applyHover(pick);
-      clickHandler(pick, "touch");
-      return;
-    }
-    clickHandler(pick, "pointer");
-  };
-  // A pointer the OS took away (app switch, system gesture): forget it, and never let it act.
-  const onPointerCancel = (event: PointerEvent): void => {
-    activePointers.delete(event.pointerId);
-    pinchReferenceDistance = pinchState()?.distance ?? null;
-    dragging = false;
-    pressMoved = true;
-  };
   /**
    * Paint the selection cursor on a tile and push it to the host. The FFTA cursor follows every
    * tile, lifted to the head when a Pokémon stands there; the tile cursor is its ground base.
    * Shared by the mouse hover and the first touch tap, which has to stand in for that hover.
    */
-  const applyHover = (pick: TilePick | null): void => {
-    if (showHoverCursor) {
-      highlights?.setCursor(pick);
-    }
+  /** Lift the 3D cursor onto a tile (head height when a Pokémon stands there), or hide it. */
+  const paintHoverCursor = (pick: TilePick | null): void => {
     if (pick && tileWorldTop) {
       const top = tileWorldTop(pick.x, pick.y);
       const occupant = billboardByTile.get(`${pick.x},${pick.y}`);
@@ -736,88 +689,21 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     } else {
       hoverCursor?.hide();
     }
+  };
+
+  const applyHover = (pick: TilePick | null): void => {
+    cursorPick = pick;
+    if (showHoverCursor) {
+      highlights?.setCursor(pick);
+    }
+    paintHoverCursor(pick);
     hoverHandler(pick);
   };
 
-  const onPointerMove = (event: PointerEvent): void => {
-    const tracked = activePointers.get(event.pointerId);
-    if (tracked) {
-      tracked.x = event.clientX;
-      tracked.y = event.clientY;
-    } else if (activePointers.size > 0) {
-      // A pointer we never saw go down, while one of ours is held: the press belongs to the DOM
-      // chrome (scrolling the battle log, say). Panning the camera from it would be wrong.
-      return;
-    }
-
-    // Two fingers: pinch to step the zoom, and pan by the centroid so both happen in one gesture.
-    const pinch = pinchState();
-    if (pinch) {
-      if (pinchReferenceDistance !== null && pinchReferenceDistance > 0) {
-        const ratio = pinch.distance / pinchReferenceDistance;
-        if (ratio >= BABYLON_PINCH_ZOOM_STEP_RATIO) {
-          isoCamera.zoomByWheel(-1);
-          pinchReferenceDistance = pinch.distance;
-        } else if (ratio <= 1 / BABYLON_PINCH_ZOOM_STEP_RATIO) {
-          isoCamera.zoomByWheel(1);
-          pinchReferenceDistance = pinch.distance;
-        }
-      } else {
-        pinchReferenceDistance = pinch.distance;
-      }
-      const deltaX = pinch.centerX - previousPointerX;
-      const deltaY = pinch.centerY - previousPointerY;
-      previousPointerX = pinch.centerX;
-      previousPointerY = pinch.centerY;
-      isoCamera.panByPixels(deltaX, deltaY, canvas.clientHeight);
-      return;
-    }
-
-    if (!dragging) {
-      // A finger produces no hover: it would flicker the cursor across every tile crossed before the
-      // drag threshold trips. On touch the cursor is placed by the first tap instead (see onPointerUp).
-      if (pointerKindOf(event) === PointerKind.Touch) {
-        return;
-      }
-      const { x, y } = canvasPointer(event);
-      if (directionPicker) {
-        // Picker open: the pointer position relative to the placed Pokémon picks
-        // the facing (generous, whole-screen hit area); suppress the tile cursor.
-        const direction = directionFromPointer(directionPicker.center, x, y);
-        if (direction && direction !== directionPicker.current) {
-          directionPicker.current = direction;
-          directionArrows.setActive(direction);
-          directionPicker.callbacks.onPreview(direction);
-        }
-        return;
-      }
-      // Over the compass the cursor must not wander onto the tile behind it, exactly as the press
-      // does not select it.
-      applyHover(compass?.isHit(scene, x, y) === true ? null : pickTile(scene, x, y));
-      return;
-    }
-    if (
-      Math.abs(event.clientX - pressStartX) > pressDragThreshold ||
-      Math.abs(event.clientY - pressStartY) > pressDragThreshold
-    ) {
-      pressMoved = true;
-    }
-    const deltaX = event.clientX - previousPointerX;
-    const deltaY = event.clientY - previousPointerY;
-    previousPointerX = event.clientX;
-    previousPointerY = event.clientY;
-    isoCamera.panByPixels(deltaX, deltaY, canvas.clientHeight);
-  };
-
-  window.addEventListener("keydown", onKeyDown);
   // On the canvas (not window): an embedded scene (map-select preview) must not
   // steal the wheel from surrounding scrollable DOM panels.
   canvas.addEventListener("wheel", onWheel, { passive: false });
   window.addEventListener("resize", onResize);
-  canvas.addEventListener("pointerdown", onPointerDown);
-  window.addEventListener("pointerup", onPointerUp);
-  window.addEventListener("pointermove", onPointerMove);
-  window.addEventListener("pointercancel", onPointerCancel);
 
   let lastTime = performance.now();
   // Reused each frame so the shared view-projection matrix is built once, not per sprite.
@@ -1352,10 +1238,59 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     onCameraRotated: (handler) => {
       isoCamera.onRotated(handler);
     },
+    pickTileAt: (x, y) => pickTile(scene, x, y),
+    isCompassHitAt: (x, y) => compass?.isHit(scene, x, y) === true,
+    setCursor: (pick) => applyHover(pick),
+    pinCursor: (pick) => {
+      cursorPick = pick;
+      if (showHoverCursor) {
+        highlights?.setCursor(pick);
+      }
+      paintHoverCursor(pick);
+    },
+    dispatchTileClick: (pick, source) => clickHandler(pick, source),
+    directionPickerFacing: () => directionPicker?.current ?? null,
+    aimDirectionPickerAt: (x, y) =>
+      directionPicker ? directionFromPointer(directionPicker.center, x, y) : null,
+    previewDirectionPickerFacing: (direction) => {
+      if (!directionPicker) {
+        return;
+      }
+      directionPicker.current = direction;
+      directionArrows.setActive(direction);
+      directionPicker.callbacks.onPreview(direction);
+    },
+    confirmDirectionPickerFacing: (direction) => {
+      if (!directionPicker) {
+        return;
+      }
+      const { callbacks } = directionPicker;
+      closeDirectionPicker();
+      callbacks.onConfirm(direction);
+    },
+    panCameraByPixels: (deltaX, deltaY) =>
+      isoCamera.panByPixels(deltaX, deltaY, canvas.clientHeight),
+    moveCursor: (direction) => stepCursor(direction),
+    aimDirectionPicker: (direction) => aimDirectionPicker(direction),
+    gridDirectionFrom: (center, direction) => {
+      const aim = SCREEN_DIRECTION_VECTOR[direction];
+      return bestNeighborForScreenVector(center, aim.x, aim.y)?.direction ?? null;
+    },
+    confirmDirectionPicker: () => confirmDirectionPicker(),
+    cursorTile: () => cursorPick,
+    cameraFocusTile: () => cameraFocusTile,
+    rotateCamera: (step) => isoCamera.rotateByStep(step),
+    zoomCamera: (step) => {
+      // `zoomByWheel` speaks wheel deltas (negative = closer); the logical action speaks notches.
+      isoCamera.zoomByWheel(-step);
+    },
+    setZoomLevel: (index) => isoCamera.setZoomIndex(index),
+    cancelDirectionPicker: () => cancelDirectionPicker(),
     panCameraTo: (tile) => {
       if (!tileWorldTop) {
         return;
       }
+      cameraFocusTile = { x: tile.x, y: tile.y };
       const top = tileWorldTop(tile.x, tile.y);
       isoCamera.panTo(top.x, top.y, top.z);
     },
@@ -1418,13 +1353,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     },
     dispose: () => {
       loadCancelled = true;
-      window.removeEventListener("keydown", onKeyDown);
       canvas.removeEventListener("wheel", onWheel);
       window.removeEventListener("resize", onResize);
-      canvas.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("pointerup", onPointerUp);
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointercancel", onPointerCancel);
       directionArrows.dispose();
       hoverCursor?.dispose();
       compass?.dispose();

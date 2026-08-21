@@ -803,6 +803,134 @@ au doigt doit passer par lui, sinon elle ne teste rien de ce lot.
 - 👁 **`pointercancel`** (bascule d'application, geste système) ne laisse pas de doigt fantôme :
   demande d'interrompre un geste au niveau de l'OS. **Téléphone réel.**
 
+### 4.19 Contrôles clavier & manette (plan 184, Lot 2)
+
+*src : `app/input/` (`logical-action.ts`, `input-source.ts`, `input-router.ts`, `keyboard-source.ts`,
+`gamepad-source.ts`, `input-system.ts`), `view-core/battle-orchestrator.ts` (`inputContext()`),
+`render-babylon/combat-scene.ts` (curseur écran-relatif, `cancelDirectionPicker`),
+`render-babylon/isometric-camera.ts` (`setZoomIndex`), `ui-dom/battle-chrome.ts` (focus du menu),
+`ui-dom/dom-helpers.ts` (`scrollByStep`), `app/styles/base.css` (liseré `:focus-visible`)*
+*e2e : `combat/keyboard-controls.spec.ts`, `dom/screens.spec.ts` (Échap, flèches du choix de carte)*
+
+*Toutes les entrées passent par une **couche d'actions logiques** : un seul écouteur clavier pour
+l'app, et un routeur qui donne l'action à **un** consommateur selon le contexte (`menu` / `board` /
+`screen` / `locked`, dérivé de la phase de l'orchestrateur). C'est ce qui remplace les 5 `keydown`
+dispersés qui devinaient chacun s'ils étaient concernés — dont un qui appelait
+`stopImmediatePropagation()` pour qu'un Échap n'annule pas **et** ne défasse pas un placement.*
+
+*⚠️ **Les bindings sont des POSITIONS de touche** (`KeyboardEvent.code`), pas des caractères : un
+test doit presser `KeyW` (= Z en AZERTY, W en QWERTY), jamais « la touche Z ». Playwright presse par
+`code` quand on lui passe `KeyW`, donc la disposition de la machine de test n'entre pas en jeu.*
+
+*⚠️ **Piège d'écriture de test** : presser une flèche depuis le menu d'actions déplace le **focus**,
+pas le curseur — il faut d'abord entrer dans une phase de plateau (« Déplacement »). Et une pression
+envoyée avant que le menu ne soit affiché tombe en contexte `locked` (le tour drenne ses events de
+démarrage) : elle est ignorée à raison, mais le test compte alors une flèche de moins — échec sous
+charge seulement. Attendre le menu avant la première touche.*
+
+*⚠️ **La manette n'est pas pilotable par Playwright** (`navigator.getGamepads()` n'est pas
+instrumentable) : toute sa logique — fronts, deadzone circulaire, répétition, filtre `mapping` — est
+couverte **en unit** (`app/input/gamepad-source.test.ts`, 17 cas). Les cases 👁 manette ci-dessous
+sont donc assumées, pas oubliées.*
+
+- 🤖 **Les flèches déplacent le curseur de case** en phase de plateau — c'est le trou que ce lot
+  comble : avant, le curseur n'existait que comme conséquence d'une position de pointeur, donc au
+  clavier seul rien ne pouvait désigner une case. Signal e2e : `cursorTile()` du hook de scène (le
+  curseur est un mesh, sa position n'a de sens qu'à travers la projection).
+- 🤖 **Une flèche = exactement une case**, et la flèche opposée ramène sur ses pas.
+- 🤖 **Le curseur s'arrête au bord de la carte** au lieu de sortir de la grille ou de disparaître.
+- 🤖 **Une rotation de la vue change ce que fait une flèche** (curseur écran-relatif) : `KeyE` puis ↑
+  ne donne plus la même case. ⚠️ La rotation est **animée** : attendre qu'elle soit arrivée (la
+  position monde du glyphe épinglé cesse de bouger) avant de mesurer, sinon on mesure une caméra à
+  mi-course, entre deux axes de grille.
+- 🤖 **`KeyW`/`KeyA`/`KeyS`/`KeyD` font la même chose que les flèches** (ZQSD en AZERTY, WASD en
+  QWERTY : les mêmes touches physiques).
+- 🤖 **Espace / Entrée valident la case sous le curseur** ; **Échap remonte d'un cran** (depuis le
+  choix de cible on revient à la liste d'attaques, pas au menu racine).
+- 🤖 **Rien n'est consommé pendant une animation** (contexte `locked`) : le curseur ne bouge pas.
+- 🔴 **Le sélecteur d'orientation répond lui-même** (décision #783) : la phase du choix d'orientation
+  n'a **aucun** cas dans `onTileClick`, donc les flèches doivent **viser** le sélecteur et Confirm lui
+  être offert d'abord. Sans ça « Attendre » ouvre une phase sans issue au clavier — et le
+  **placement**, qui utilise le même sélecteur, ne laisse placer aucun Pokemon. **Œil** (le sélecteur
+  est un mesh piloté par la position du pointeur, sans signal DOM).
+- 🤖 **Les flèches naviguent le menu d'actions** (contexte `menu`) au lieu du plateau, et le bouton
+  focalisé est visible (liseré `:focus-visible`).
+- 🤖 **Le focus survit au re-rendu du menu** : chaque phase reconstruit le menu (`replaceChildren`),
+  ce qui éjectait le focus vers `<body>` — la navigation clavier repartait de zéro à chaque étape
+  d'un tour. Le menu reprend le focus **seulement** si la source active est le clavier ou la manette.
+- 🤖 **Une bascule des réglages garde le focus** (Prévisualisation dégâts) : le libellé est muté sur
+  place au lieu de reconstruire l'écran. Le changement de **langue** reste un re-rendu complet (tout
+  est retraduit) mais repose le focus sur sa ligne.
+- 🤖 **`KeyQ`/`KeyE` tournent la vue d'un quart de tour** (A/E en AZERTY, Q/E en QWERTY) — les flèches
+  ne tournent plus la caméra, c'est le seul changement de rôle assumé de ce lot.
+- 👁 **`KeyR`/`KeyF` font un cran de zoom relatif**. `+`/`−` ne sont **pas** bindés (la position
+  `Minus` porte `)` en AZERTY) — couvert en unit sur la table de bindings.
+- 🤖 **Tab / Maj+Tab font défiler les cibles** d'une empreinte multi-cibles (comportement du plan 175,
+  désormais routé par la couche), et ne sont avalés que s'il y avait quelque chose à cycler.
+- 🤖 **Échap revient en arrière sur les écrans de menu**, et les flèches y déplacent le focus.
+- 🤖 **Les flèches du choix de carte déplacent la SÉLECTION** (pas le focus DOM) : cet écran
+  enregistre son propre consommateur.
+- 🤖 **`Digit1`/`Digit2`/`Digit3` posent le cran de zoom** : mesuré sur la largeur projetée d'une case
+  du plateau (un mesh épinglé à l'écran, comme la boussole, ne bougerait pas).
+- 👁 **`PageUp`/`PageDown` défilent le journal de combat**, `Maj+` la timeline CT. Aucune des deux
+  zones n'est focalisable, donc elles étaient inatteignables au clavier. **Œil** (le défilement d'un
+  conteneur non focalisable ne laisse pas de signal DOM stable à assert).
+- 👁 **Manette : A confirme, B annule, X cycle les cibles, LB/RB tournent, LT/RT zooment**, croix et
+  stick gauche déplacent le curseur, **stick droit** panote la caméra. **Manette réelle** (+ unit) —
+  *validé sur manette Switch Pro, 2026-08-21.*
+- 🔴 **À la manette, la couche ACTIVE elle-même le contrôle focalisé** : un appui de pad n'est pas un
+  événement clavier, donc aucune activation native ne suit et A ne faisait rien du tout sur un menu.
+  Concerne le menu de combat, les écrans de menu et le bouton « Terminer » du placement. **Manette
+  réelle** (décision #792).
+- 🔴 **Disposition Nintendo : A/B et X/Y échangés automatiquement** d'après `Gamepad.id` (`057e`). Le
+  *standard mapping* indexe par position, or le bas porte B et la droite A sur une manette Nintendo —
+  sans l'échange, appuyer sur A annulait. **Unit** (identifiant factice) + **manette réelle**
+  (décision #793).
+- 👁 **Pan au stick droit dans le sens du REGARD** (pousser à droite regarde à droite), l'inverse d'un
+  glissé de souris. Inversion configurable renvoyée au plan de remapping. **Manette réelle.**
+- 👁 **Dialogue de victoire navigable à la manette** : la phase `battle_over` est un contexte de
+  **menu**, et la navigation de focus traite en priorité un `<dialog>` ouvert (une modale piège le
+  focus, et une manette n'a pas de `Tab`). **Manette réelle** (décision #794).
+- 👁 **Manette : `Y` maintenu + croix/stick défile** le journal (haut/bas) et la timeline
+  (gauche/droite). Modificateur maintenu, pas une bascule. **Manette réelle** (+ unit).
+- 👁 **Une direction maintenue se répète** après un délai initial (~380 ms puis ~90 ms) : sans le
+  délai un simple appui traversait plusieurs cases. **Manette réelle** (+ unit).
+- 👁 **Le glyphe de la ligne d'instruction passe au bouton A / à la croix** dès que la manette est la
+  source active, et le suffixe « ×2 » disparaît (la croix dit déjà « viser puis confirmer »).
+  **Œil / manette réelle.**
+- 👁 **Manette sur téléphone** : la Gamepad API la voit comme sur desktop, donc rien de spécifique —
+  et le basculement des glyphes doit **primer sur** le média `pointer: coarse`, sinon un écran tactile
+  afficherait toujours un doigt malgré la manette. **Téléphone + manette réels — validé 2026-08-21.**
+- ⚠️ **Limite connue Firefox** : `mapping` vaut `""` pour toute manette absente de la table interne
+  du navigateur, même physiquement standard (Bugzilla #952773, #1542893, #1922925). Une manette réelle
+  peut donc être **silencieusement invisible** sous Firefox, sans écran de remapping pour s'en sortir
+  (hors périmètre de ce lot). Vérifier sous Chromium avant de conclure à un bug du jeu. *La manette
+  Switch Pro de l'humain, elle, est bien reconnue `standard` par Firefox (2026-08-21).*
+- 🤖 **Glyphe de prompt clavier** : capuchon de touche sur **une** tuile (Espace col 17/ligne 4 pour la
+  ligne d'instruction, ESC col 17/ligne 0 sur « Annuler »). Les touches Entrée (2 tuiles) et Espace
+  (3 tuiles) « réalistes » de la feuille sont trop larges pour un masque d'une tuile — c'était la
+  conclusion erronée de la décision #782, corrigée par la #791.
+- 👁 **Le glyphe de « Annuler » reste affiché à la souris** (le raccourci est toujours disponible) et
+  disparaît **au doigt** (aucune touche à presser). À la manette il montre **B**.
+- 🔴 **Contrôles de formulaire : chacun garde l'axe qu'il utilise, la couche prend l'autre** (décision
+  #785) — champ texte tout, `<select>` seulement la touche qui l'ouvre, curseur ← →, case à cocher
+  rien. Sans cette règle le focus était **piégé** dans une case à cocher, et seul `Tab` en sortait.
+- 🤖 **Navigation directionnelle SPATIALE** (voisin le plus proche dans la direction, pénalité hors
+  axe) et non ordre DOM — sinon ← → sont des touches mortes et ↓ saute en diagonale entre colonnes
+  (décision #786). Couvert par `dom/screen-keyboard.spec.ts`.
+- 🤖 **Placement en trois temps** : choisir (roster horizontal, curseur masqué) → placer (curseur posé
+  sur une case libre de la zone) → orienter. Annuler remonte d'une étape ; « Terminer » est atteignable
+  par ↓ depuis le roster (décision #788).
+- 🔴 **Le curseur repart du Pokemon actif** à l'ouverture d'une phase de plateau, s'efface pendant la
+  résolution, et la case survolée est **désélectionnée** (sinon le panneau de prévision est repeint
+  depuis un état périmé et montre le Pokemon du tour d'avant — décision #789).
+- 🔴 **Annuler une attaque à motif statique revient à la liste d'attaques**, et toute remontée d'un
+  cran défait le clignotement + les étiquettes de dégâts (décisions #795). Testé sur **Plénitude**
+  (motif sur soi) et **Destruction** (zone).
+- 🤖 **« Annuler le déplacement » est la DERNIÈRE entrée du menu**, sous « Attendre », et
+  « Déplacement » garde toujours la première place (décision #796) : en tête, l'annulation occupait le
+  premier arrêt de focus et se déclenchait sans qu'on la vise.
+
 ---
 
 ## 5. Recette — feedbacks de mécaniques

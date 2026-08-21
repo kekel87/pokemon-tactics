@@ -56,6 +56,13 @@ export interface BattleChromeOptions {
   onReplay: () => void;
   /** Host-injected i18n / asset-path deps (plan 125 Phase 4). */
   config: UiDomConfig;
+  /**
+   * Should a freshly-rebuilt menu take the focus? (plan 184) The app answers from the active input
+   * source: yes on keyboard / gamepad — every phase calls `replaceChildren`, which drops the focus to
+   * `<body>`, so navigation would restart from nothing at each step of a turn — but no at the
+   * pointer, where a focus ring appearing under an idle mouse reads as a bug.
+   */
+  shouldAutoFocusMenu?: () => boolean;
 }
 
 /**
@@ -67,6 +74,7 @@ export interface BattleChromeOptions {
  */
 export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   const { host, onExit, onReplay, config } = options;
+  const shouldAutoFocusMenu = options.shouldAutoFocusMenu ?? ((): boolean => false);
   const language = config.getLanguage();
 
   const root = el("div", "bc-root");
@@ -93,6 +101,30 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   bottom.append(tooltip.element, menuColumn);
   root.append(top, bottom);
   host.appendChild(root);
+
+  /** Focusable entries of the menu as shown, in DOM order (disabled ones are not focus stops). */
+  function menuControls(): HTMLElement[] {
+    return [...menu.querySelectorAll<HTMLElement>("button:not(:disabled)")];
+  }
+
+  /**
+   * Re-focus after a rebuild of a NAVIGABLE menu (the action menu, the attack list). Those two call
+   * `menu.replaceChildren(...)`, which drops the focus to `<body>` — harmless with a mouse, but it
+   * means keyboard and gamepad navigation restarts from nothing on every step of a turn.
+   *
+   * ⚠️ Deliberately NOT called by the board phases (`showSelectedMove`,
+   * `showCancellableInstruction`): there the arrows drive the BOARD, and focusing the lone
+   * « Annuler » promised an action Space was not going to take (retour humain 2026-08-21). Gating it
+   * on the input context instead would have been fragile — the chrome is rendered BEFORE the phase
+   * switches (`battle-orchestrator.ts` sets `inputState` after calling `showSelectedMove`), so the
+   * context still read `menu` at that instant. The rule is structural: focus follows the arrows.
+   */
+  function restoreMenuFocus(): void {
+    if (!shouldAutoFocusMenu()) {
+      return;
+    }
+    menuControls()[0]?.focus();
+  }
 
   /** Text + expected gesture always move together — one call per instruction change. */
   function showInstruction(key: BattleInstruction): void {
@@ -128,6 +160,21 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     node.textContent = label;
     node.disabled = disabled;
     node.addEventListener("click", onClick);
+    return node;
+  }
+
+  /**
+   * « Annuler », prefixed with the key that does the same thing (plan 184, retour humain
+   * 2026-08-21). Échap and B cancel too, and nothing said so — while a focus ring on this very button
+   * was reading as "Space will cancel". A glyph states the binding instead of a highlight implying
+   * the wrong one. CSS shows it only for the source in use.
+   */
+  function cancelButton(onClick: () => void): HTMLButtonElement {
+    const node = button(config.translate("action.cancel"), onClick);
+    const glyph = el("span", "bc-btn-key");
+    glyph.setAttribute("aria-hidden", "true");
+    glyph.style.setProperty("--bc-glyph-sheet", `url("${config.getInputPromptSheetUrl()}")`);
+    node.prepend(glyph);
     return node;
   }
 
@@ -188,16 +235,20 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     showActionMenu: (view: ActionMenuView) => {
       tooltip.hide();
       instructionRow.hidden = true;
-      const first = view.canUndoMove
-        ? button(config.translate("action.undoMove"), view.onUndoMove)
-        : button(config.translate("action.move"), view.onMove, !view.canMove);
+      // « Annuler le déplacement » va EN DERNIER, sous « Attendre » (retour humain 2026-08-21) :
+      // placé en tête, il occupait le premier arrêt de focus — donc celui qu'un Espace ou un A
+      // atteint sans viser — et le joueur annulait son déplacement sans le vouloir. La première
+      // entrée reste « Déplacement », grisée quand on a déjà bougé, pour que l'ordre du menu ne
+      // change pas d'un tour à l'autre.
       menu.replaceChildren(
-        first,
+        button(config.translate("action.move"), view.onMove, !view.canMove),
         button(config.translate("action.attack"), view.onAttack, !view.canAct),
         button(config.translate("action.item"), () => undefined, true),
         button(config.translate("action.wait"), view.onWait),
         button(config.translate("action.status"), () => undefined, true),
+        ...(view.canUndoMove ? [button(config.translate("action.undoMove"), view.onUndoMove)] : []),
       );
+      restoreMenuFocus();
     },
 
     showAttackSubmenu: (view: AttackSubmenuView) => {
@@ -207,7 +258,8 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       for (const move of view.moves) {
         list.append(moveRow(move, () => view.onSelect(move.definition.id)));
       }
-      menu.replaceChildren(list, button(config.translate("action.cancel"), view.onCancel));
+      menu.replaceChildren(list, cancelButton(view.onCancel));
+      restoreMenuFocus();
     },
 
     showSelectedMove: (move: SelectedMoveView, key: BattleInstruction) => {
@@ -229,13 +281,13 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       }
       // Cancel sits under the locked-in move, mirroring the attack submenu's own button (plan 183):
       // Escape is the only other way out and does not exist on a touch screen.
-      menu.replaceChildren(header, button(config.translate("action.cancel"), move.onCancel));
+      menu.replaceChildren(header, cancelButton(move.onCancel));
       showInstruction(key);
     },
 
     showCancellableInstruction: (key: BattleInstruction, onCancel: () => void) => {
       tooltip.hide();
-      menu.replaceChildren(button(config.translate("action.cancel"), onCancel));
+      menu.replaceChildren(cancelButton(onCancel));
       showInstruction(key);
     },
 
@@ -278,6 +330,34 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     updateCameraAzimuth: (azimuth: number) => tailwindHud.setAzimuth(azimuth),
 
     updateTimeline: (view: TimelineView) => timeline.update(view),
+
+    focusMenuStep: (delta) => {
+      const controls = menuControls();
+      if (controls.length === 0) {
+        return;
+      }
+      const index = controls.indexOf(document.activeElement as HTMLElement);
+      // Nothing focused yet (first arrow press of the turn): enter the menu at its top when
+      // stepping down, at its bottom when stepping up.
+      const next =
+        index === -1
+          ? delta > 0
+            ? 0
+            : controls.length - 1
+          : (index + delta + controls.length) % controls.length;
+      controls[next]?.focus();
+    },
+    isMenuFocused: () =>
+      document.activeElement !== null && menu.contains(document.activeElement as Node),
+    activateFocusedMenuItem: () => {
+      const focused = menuControls().find((control) => control === document.activeElement);
+      if (!focused) {
+        return false;
+      }
+      focused.click();
+      return true;
+    },
+    scrollTimeline: (delta) => timeline.scrollByStep(delta),
 
     showVictory: (winnerId: string | null) => {
       const dialog = el("dialog", "bc-victory");

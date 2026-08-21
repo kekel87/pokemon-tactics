@@ -2,6 +2,7 @@ import { createMapPreviewStage, type MapPreviewStage } from "@pokemon-tactic/ren
 import { AnalyticsEvent, trackEvent } from "../../../analytics/analytics";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { getLanguage, t } from "../../../i18n";
+import { getInputSystem } from "../../../input/input-system";
 import { MAPS_REGISTRY } from "../../../maps/maps-registry";
 import { el, menuButton } from "./elements";
 
@@ -15,7 +16,7 @@ export function createMapSelectScreen(navigate: Navigate): Screen<"map-select"> 
   let preview: MapPreviewStage | null = null;
   let selectedIndex = 0;
   const listButtons: HTMLButtonElement[] = [];
-  const abort = new AbortController();
+  let unregisterInput: (() => void) | undefined;
 
   const goBack = (): void => navigate("battle-mode", undefined);
 
@@ -95,25 +96,36 @@ export function createMapSelectScreen(navigate: Navigate): Screen<"map-select"> 
       preview = createMapPreviewStage(previewContainer);
       refreshSelection();
 
-      window.addEventListener(
-        "keydown",
-        (event) => {
-          if (event.key === "Escape") {
-            goBack();
-          } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-            // Keep the arrows for the selection — never scroll the list panel.
-            event.preventDefault();
-            moveSelection(event.key === "ArrowUp" ? -1 : 1);
-          } else if (event.key === "Enter" && !(event.target instanceof HTMLButtonElement)) {
-            // A focused button already activates natively on Enter.
+      // This screen keeps its own arrows: they walk the MAP SELECTION, not the DOM focus, so it
+      // registers a menu consumer of its own rather than the generic `bindScreenInput` (plan 184).
+      unregisterInput = getInputSystem()?.register({
+        context: () => "screen",
+        menu: {
+          focusMove: (direction) => {
+            if (direction === "up") {
+              moveSelection(-1);
+            } else if (direction === "down") {
+              moveSelection(1);
+            }
+          },
+          confirm: () => {
+            // A focused button already activates natively on Enter/Space.
+            if (document.activeElement instanceof HTMLButtonElement) {
+              return false;
+            }
             confirmSelection();
-          }
+            return true;
+          },
+          cancel: () => {
+            goBack();
+            return true;
+          },
         },
-        { signal: abort.signal },
-      );
+      });
     },
     dispose() {
-      abort.abort();
+      unregisterInput?.();
+      unregisterInput = undefined;
       preview?.dispose();
       preview = null;
       root?.remove();

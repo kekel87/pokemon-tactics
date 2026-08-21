@@ -33,6 +33,11 @@ export interface E2eSceneApi {
    * Returns false when the tile could not be projected to a canvas point (map not ready yet).
    */
   tapTile(x: number, y: number): boolean;
+  /**
+   * Tile the cursor rests on (plan 184), or null when nothing is under it. The keyboard cursor has no
+   * other observable signal: it is a mesh whose position only makes sense against the projection.
+   */
+  cursorTile(): { x: number; y: number } | null;
   meshNames(): string[];
   countByName(name: string): number;
   meshInfo(name: string): {
@@ -96,6 +101,7 @@ export function installE2eSceneHook(
   confirmDirection: () => void,
   spriteStates: () => E2eSpriteState[],
   tapTile: (x: number, y: number) => boolean,
+  cursorTile: () => { x: number; y: number } | null,
 ): void {
   // biome-ignore lint/style/useNamingConvention: VITE_E2E is an external Vite env var name.
   const e2eFlag = (import.meta as { env?: { VITE_E2E?: string } }).env?.VITE_E2E;
@@ -108,6 +114,7 @@ export function installE2eSceneHook(
     hoverTile,
     confirmDirection,
     tapTile,
+    cursorTile,
     meshNames: (): string[] => scene.meshes.map((mesh) => mesh.name),
     countByName: (name: string): number => scene.meshes.filter((mesh) => mesh.name === name).length,
     meshInfo: (name: string) => {

@@ -6,7 +6,7 @@ import {
   formatBattleEvent,
 } from "./BattleLogFormatter.js";
 import type { UiDomConfig } from "./config.js";
-import { el } from "./dom-helpers.js";
+import { el, scrollByStep } from "./dom-helpers.js";
 
 /**
  * BattleLog — DOM/CSS battle log panel (plan 121 step
@@ -42,6 +42,8 @@ export interface BattleLogOptions {
 
 export interface BattleLog extends BattleFeedback {
   readonly element: HTMLElement;
+  /** Step the entry list (keyboard / gamepad, plan 184 — it only scrolled by wheel and drag). */
+  scrollByStep(delta: 1 | -1): void;
   destroy(): void;
 }
 
@@ -125,6 +127,7 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
 
   return {
     element: root,
+    scrollByStep: (delta) => scrollByStep(list, delta),
     report: (event: BattleEvent) => {
       const result = formatBattleEvent(event, context);
       if (!result) {

@@ -1,6 +1,6 @@
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { t } from "../../../i18n";
-import { bindEscape, el, menuButton } from "./elements";
+import { bindScreenInput, el, menuButton } from "./elements";
 
 const CREDIT_KEYS = [
   "credits.disclaimer",
@@ -14,7 +14,7 @@ const CREDIT_KEYS = [
 /** DOM port of CreditsScene: attribution paragraphs + back to menu. */
 export function createCreditsScreen(navigate: Navigate): Screen<"credits"> {
   let root: HTMLElement | null = null;
-  let unbindEscape: (() => void) | null = null;
+  let unbindScreenInput: (() => void) | null = null;
 
   const goBack = (): void => navigate("main-menu", undefined);
 
@@ -34,11 +34,11 @@ export function createCreditsScreen(navigate: Navigate): Screen<"credits"> {
 
       root.append(title, content, menuButton(t("credits.back"), goBack));
       host.append(root);
-      unbindEscape = bindEscape(goBack);
+      unbindScreenInput = bindScreenInput(goBack);
     },
     dispose() {
-      unbindEscape?.();
-      unbindEscape = null;
+      unbindScreenInput?.();
+      unbindScreenInput = null;
       root?.remove();
       root = null;
     },

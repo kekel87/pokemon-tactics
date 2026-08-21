@@ -26,7 +26,7 @@ import {
   toggleSlotController,
 } from "../../team-select/slot-state";
 import { createTeamListElement, type TeamListEntry } from "../../team-select/TeamList";
-import { bindEscape, el } from "./elements";
+import { bindScreenInput, el } from "./elements";
 
 /**
  * DOM port of TeamSelectScene (plan 120 step 4, minimal version — full screen in
@@ -36,7 +36,7 @@ import { bindEscape, el } from "./elements";
  */
 export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"> {
   let root: HTMLElement | null = null;
-  let unbindEscape: (() => void) | null = null;
+  let unbindScreenInput: (() => void) | null = null;
   let mapUrl = "";
   let mapName = "";
   let formatOptions: FormatOption[] = [];
@@ -285,11 +285,11 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       root = el("div", "ts-root");
       host.append(root);
       render();
-      unbindEscape = bindEscape(goBack);
+      unbindScreenInput = bindScreenInput(goBack);
     },
     dispose() {
-      unbindEscape?.();
-      unbindEscape = null;
+      unbindScreenInput?.();
+      unbindScreenInput = null;
       root?.remove();
       root = null;
     },

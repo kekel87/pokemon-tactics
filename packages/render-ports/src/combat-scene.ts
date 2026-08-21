@@ -21,6 +21,15 @@ export interface TilePick {
   readonly y: number;
 }
 
+/**
+ * Where an arrow / d-pad press points **on screen** (plan 184) — never a grid direction.
+ *
+ * The iso camera snaps between 4 azimuths, so "up" means "the top of the screen" and the grid axis
+ * it lands on changes with the rotation. Translating this into a grid step is the renderer's job:
+ * it is the only side that knows the current azimuth and the projection.
+ */
+export type ScreenDirection = "up" | "down" | "left" | "right";
+
 /** A grid cell referenced by a highlight / outline / field-terrain. */
 export interface TileHighlightPosition {
   readonly x: number;
@@ -155,6 +164,82 @@ export interface CombatScene {
   ): DirectionPickerHandle;
   onTileHover(handler: (pick: TilePick | null) => void): void;
   onTileClick(handler: (pick: TilePick, source: TilePointerSource) => void): void;
+
+  // --- Input primitives (plan 184) -------------------------------------------------------------
+  // The gesture RULES (tap vs drag, pinch, two-step aiming) live in the app's input layer; what
+  // stays here is what genuinely needs the scene: picking, projection, the camera and the picker's
+  // rendering. These are the seam between the two.
+
+  /** Tile under a canvas-relative point, or null (nothing there, or the map is still loading). */
+  pickTileAt(canvasX: number, canvasY: number): TilePick | null;
+  /** Is that canvas point on the compass control? It sits over the board and must win the press. */
+  isCompassHitAt(canvasX: number, canvasY: number): boolean;
+  /** Paint the tile cursor and emit `onTileHover` — the mouse-hover path, reused by touch and keys. */
+  setCursor(pick: TilePick | null): void;
+  /**
+   * Paint the tile cursor WITHOUT notifying the host (plan 184). Used to park it on the caster while
+   * a direction is being aimed: the rotation must read as turning around the Pokémon, and emitting a
+   * hover on his own tile would re-aim the very fan being aimed.
+   */
+  pinCursor(pick: TilePick | null): void;
+  /** Emit `onTileClick`: the app decided this gesture is a press on that tile. */
+  dispatchTileClick(pick: TilePick, source: TilePointerSource): void;
+  /** Facing an open picker currently shows, or null when none is open. */
+  directionPickerFacing(): Direction | null;
+  /** Which facing a canvas point means for the open picker (whole-screen hit area), or null. */
+  aimDirectionPickerAt(canvasX: number, canvasY: number): Direction | null;
+  /** Show a facing on the open picker without committing it. */
+  previewDirectionPickerFacing(direction: Direction): void;
+  /** Commit a facing on the open picker. */
+  confirmDirectionPickerFacing(direction: Direction): void;
+  /** Pan the camera by a pointer-drag delta, in canvas pixels. */
+  panCameraByPixels(deltaX: number, deltaY: number): void;
+  /**
+   * Step the tile cursor one tile toward a SCREEN direction (plan 184), clamped to the grid, and
+   * emit the matching `onTileHover` — the very path the mouse hover takes, so the info panels, the
+   * tile panel and the damage forecast follow a keyboard cursor for free.
+   *
+   * Only the cursor: aiming a facing or a directional fan is decided by the caller, which knows the
+   * phase (`aimDirectionPicker`, `gridDirectionFrom`).
+   */
+  moveCursor(direction: ScreenDirection): void;
+  /**
+   * Aim an OPEN facing picker toward a screen direction, reporting whether there was one. The arrows
+   * must aim it rather than walk the cursor: that phase is answered by the picker alone.
+   */
+  aimDirectionPicker(direction: ScreenDirection): boolean;
+  /**
+   * Grid direction a screen direction means, measured from a tile — the projection-based conversion,
+   * exposed for the callers that aim something other than the cursor (a directional attack fan).
+   */
+  gridDirectionFrom(center: { x: number; y: number }, direction: ScreenDirection): Direction | null;
+  /** Tile the cursor currently rests on — what Confirm validates. */
+  cursorTile(): TilePick | null;
+  /**
+   * Tile the camera is centred on — the active Pokémon, since the orchestrator recentres on it every
+   * turn. Where a keyboard cursor should (re)start from.
+   */
+  cameraFocusTile(): TilePick | null;
+  /**
+   * Commit the facing an open direction picker currently shows, reporting whether there was one.
+   *
+   * Confirm has to offer it to the picker FIRST: the facing choice (end of turn, and every placement)
+   * is answered by the picker alone — `onTileClick` has no case for that phase — so without this a
+   * keyboard or gamepad could open it and never answer it.
+   */
+  confirmDirectionPicker(): boolean;
+  /** One quarter turn (`-1` left, `1` right): the iso view has exactly 4 azimuths. */
+  rotateCamera(step: -1 | 1): void;
+  /** Step one notch of the discrete zoom (`1` closer, `-1` further). */
+  zoomCamera(step: -1 | 1): void;
+  /** Jump straight to a zoom notch (the `1`/`2`/`3` keys); the index is clamped in range. */
+  setZoomLevel(index: number): void;
+  /**
+   * Cancel an open direction picker, reporting whether there was one. Lets the input layer offer the
+   * picker the Cancel action first and fall back to the phase-level cancel — the explicit
+   * arbitration that replaced a `stopImmediatePropagation()` (plan 184).
+   */
+  cancelDirectionPicker(): boolean;
   /** Notified with the camera azimuth (radians) whenever the iso view rotates (←/→ snap + ease). */
   onCameraRotated(handler: (azimuth: number) => void): void;
   panCameraTo(tile: { x: number; y: number }): void;

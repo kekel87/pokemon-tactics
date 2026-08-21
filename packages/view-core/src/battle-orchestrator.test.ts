@@ -398,3 +398,60 @@ describe("damage preview formatters", () => {
     expect(formatFacingSuffix(1)).toBe("");
   });
 });
+
+describe("inputContext (plan 184)", () => {
+  const tackle = {
+    id: "tackle",
+    pp: 35,
+    targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+    effects: [],
+  } as unknown as MoveDefinition;
+
+  it("is locked before the first turn is handed over", () => {
+    const harness = setup([]);
+    expect(harness.orchestrator.inputContext()).toBe("locked");
+  });
+
+  it("is menu on the action menu and on the attack submenu", () => {
+    const harness = setup([useMoveAction("tackle", { x: 4, y: 3 })], tackle);
+    harness.orchestrator.start();
+    expect(harness.orchestrator.inputContext()).toBe("menu");
+
+    harness.lastActionMenu().onAttack();
+    expect(harness.orchestrator.inputContext()).toBe("menu");
+  });
+
+  it("is board on every phase that designates a tile", () => {
+    const target = { x: 4, y: 3 };
+    const harness = setup([moveAction({ x: 5, y: 4 }), useMoveAction("tackle", target)], tackle);
+    harness.orchestrator.start();
+
+    harness.lastActionMenu().onMove();
+    expect(harness.orchestrator.inputContext()).toBe("board");
+
+    harness.orchestrator.onEscape();
+    harness.lastActionMenu().onAttack();
+    harness.lastSubmenu().onSelect("tackle");
+    expect(harness.orchestrator.inputContext()).toBe("board");
+  });
+
+  it("is board while choosing the end-of-turn facing", () => {
+    const harness = setup([]);
+    harness.orchestrator.start();
+    harness.orchestrator.onConfirmKey();
+    expect(harness.orchestrator.inputContext()).toBe("board");
+  });
+
+  it("notifies only when the context actually changes, not on every phase change", () => {
+    const target = { x: 4, y: 3 };
+    const harness = setup([useMoveAction("tackle", target)], tackle);
+    const seen: string[] = [];
+    harness.orchestrator.onInputContextChanged = (context) => seen.push(context);
+
+    harness.orchestrator.start();
+    harness.lastActionMenu().onAttack();
+    harness.lastSubmenu().onSelect("tackle");
+
+    expect(seen).toEqual(["menu", "board"]);
+  });
+});

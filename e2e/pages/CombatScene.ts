@@ -101,6 +101,19 @@ export class CombatScene {
     );
   }
 
+  /**
+   * Tile the cursor rests on (plan 184), or null. The keyboard/gamepad cursor has no other stable
+   * signal — it is a mesh whose position is only meaningful through the projection.
+   */
+  cursorTile(): Promise<{ x: number; y: number } | null> {
+    return this.page.evaluate(
+      () =>
+        (
+          globalThis as { __ptE2e__?: { cursorTile(): { x: number; y: number } | null } }
+        ).__ptE2e__?.cursorTile() ?? null,
+    );
+  }
+
   /** Cast the active Pokemon's first move at (x,y) and confirm: Attaque → 1er move → cible → confirme.
    *  Target = dummy tile for offensive/status moves, own tile for self/team moves. */
   async castFirstMove(x: number, y: number): Promise<void> {

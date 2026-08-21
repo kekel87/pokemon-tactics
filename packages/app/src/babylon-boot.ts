@@ -25,6 +25,7 @@ import { type Navigate, ScreenManager } from "./app/screen-manager.js";
 import { loadPersistedScreen } from "./app/screen-persistence.js";
 import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.js";
 import { initLanguage } from "./i18n/index.js";
+import { initInputSystem } from "./input/input-system.js";
 import { startWakeLock } from "./platform/wake-lock.js";
 import { getRendererBackend } from "./renderer-backend.js";
 import { sandboxBootConfig, teardownSandboxStudioDom } from "./sandbox-boot.js";
@@ -58,6 +59,11 @@ initLanguage();
 // les défauts en mémoire et un réglage persisté (ex. Prévisualisation dégâts OFF) redevenait ON au
 // rechargement — et le gating du panneau de preview (plan 175) ne s'appliquait jamais.
 initSettings();
+// Couche d'entrée device-agnostique (plan 184) : un seul écouteur clavier pour toute l'app, et le
+// suivi de la source active (souris / doigt / clavier / manette). Montée au boot, avant tout écran :
+// les écrans et le combat s'y enregistrent à leur montage, y compris les chemins d'entrée directs
+// (`?config`/`?combat`) qui ne passent pas par le menu.
+initInputSystem(root);
 
 // Invite « tourne ton écran » (plan 179) : montée après `initLanguage()` pour que son texte parte
 // dans la bonne langue. Sa visibilité est purement CSS (portrait + pointeur grossier), donc elle

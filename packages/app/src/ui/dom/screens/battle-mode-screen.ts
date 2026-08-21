@@ -1,12 +1,12 @@
 import { AnalyticsEvent, trackEvent } from "../../../analytics/analytics";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { t } from "../../../i18n";
-import { bindEscape, el, menuButton } from "./elements";
+import { bindScreenInput, el, menuButton } from "./elements";
 
 /** DOM port of BattleModeScene: Local enabled, Online/Tutorial disabled, back to menu. */
 export function createBattleModeScreen(navigate: Navigate): Screen<"battle-mode"> {
   let root: HTMLElement | null = null;
-  let unbindEscape: (() => void) | null = null;
+  let unbindScreenInput: (() => void) | null = null;
 
   const goBack = (): void => navigate("main-menu", undefined);
 
@@ -28,11 +28,11 @@ export function createBattleModeScreen(navigate: Navigate): Screen<"battle-mode"
 
       root.append(title, buttons);
       host.append(root);
-      unbindEscape = bindEscape(goBack);
+      unbindScreenInput = bindScreenInput(goBack);
     },
     dispose() {
-      unbindEscape?.();
-      unbindEscape = null;
+      unbindScreenInput?.();
+      unbindScreenInput = null;
       root?.remove();
       root = null;
     },

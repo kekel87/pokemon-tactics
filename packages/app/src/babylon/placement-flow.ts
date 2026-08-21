@@ -32,6 +32,8 @@ import {
 } from "../constants.js";
 import { getLanguage, t } from "../i18n/index.js";
 import type { TranslationKey } from "../i18n/types.js";
+import { InputSource } from "../input/input-source.js";
+import { getInputSystem } from "../input/input-system.js";
 import {
   getCategoryIconUrl,
   getInputPromptSheetUrl,
@@ -109,6 +111,15 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
   let picker: DirectionPickerHandle | null = null;
   let selectedPokemonId: string | null = null;
   let placing = true;
+  /**
+   * Étape courante du placement au clavier / à la manette (plan 184, retour humain 2026-08-21) :
+   * on CHOISIT un Pokemon, puis on le PLACE, puis on l'oriente. Les mêmes flèches servent les deux
+   * premières étapes selon l'étape en cours, plutôt que d'ajouter une touche pour parcourir le
+   * roster — et Annuler remonte d'un cran au lieu de défaire tout de suite.
+   *
+   * Sans objet au pointeur : la souris désigne directement l'entrée du roster ou la case.
+   */
+  let keyboardStep: "roster" | "board" = "roster";
 
   function ownerTeamNumberOf(pokemonId: string): number {
     const match = pokemonId.match(/^p(\d+)-/);
@@ -148,6 +159,64 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
     combat.setSpawnZoneHighlights(zones);
   }
 
+  /**
+   * Pose le curseur sur une case libre de la zone de spawn quand le joueur navigue au clavier ou à la
+   * manette (plan 184, retour humain 2026-08-21).
+   *
+   * Sans ça le placement était injouable sans souris : le curseur clavier part de « la case que la
+   * caméra a centrée », or ce recentrage est fait par l'orchestrateur de combat — qui n'existe pas
+   * encore pendant le placement. Il n'y avait donc aucune origine, et les flèches ne faisaient rien.
+   * Au pointeur, on ne touche à rien : le curseur suit la souris dès le premier mouvement.
+   */
+  function seedCursorInSpawnZone(activeTeamIndex: number): void {
+    if (getInputSystem()?.tracker.isFocusDriven() !== true || combat.cursorTile() !== null) {
+      return;
+    }
+    const occupied = new Set(phase.getPlacedPositions().map((p) => `${p.x},${p.y}`));
+    const free = format.spawnZones[activeTeamIndex]?.positions.find(
+      (position) => !occupied.has(`${position.x},${position.y}`),
+    );
+    if (free) {
+      combat.setCursor({ x: free.x, y: free.y });
+    }
+  }
+
+  /**
+   * Passe au Pokemon suivant / précédent à placer (plan 184, retour humain 2026-08-21).
+   *
+   * Appelé par les flèches pendant l'étape « choix du Pokemon » (voir `keyboardStep`) : pas de touche
+   * dédiée à ajouter, c'est l'étape qui décide de ce que la flèche parcourt.
+   */
+  function cycleRosterSelection(delta: 1 | -1): void {
+    const next = phase.getNextToPlace();
+    if (!placing || !next) {
+      return;
+    }
+    const unplaced = phase.getUnplacedPokemonIds(next.playerId);
+    if (unplaced.length === 0) {
+      return;
+    }
+    const index = selectedPokemonId === null ? -1 : unplaced.indexOf(selectedPokemonId);
+    selectedPokemonId =
+      unplaced[(index + delta + unplaced.length) % unplaced.length] ?? unplaced[0] ?? null;
+    const teamIndex = placementTeams.findIndex((candidate) => candidate.playerId === next.playerId);
+    showRoster(
+      next.playerId,
+      teamIndex,
+      placementTeams.find((candidate) => candidate.playerId === next.playerId),
+    );
+  }
+
+  /**
+   * Repasse à l'étape « choix du Pokemon » et MASQUE le curseur de case : rien n'est piloté sur le
+   * plateau à ce moment-là, et le laisser affiché laissait croire le contraire (humain 2026-08-21).
+   * Le curseur sera reposé sur une case libre de la zone au passage à l'étape suivante.
+   */
+  function enterRosterStep(): void {
+    keyboardStep = "roster";
+    combat.pinCursor(null);
+  }
+
   function enterPlacement(): void {
     if (!placing) {
       return;
@@ -181,6 +250,7 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
 
     const unplaced = phase.getUnplacedPokemonIds(next.playerId);
     selectedPokemonId = unplaced[0] ?? null;
+    enterRosterStep();
     showRoster(next.playerId, teamIndex, team);
   }
 
@@ -313,17 +383,110 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
     placing = false;
     roster.hide();
     combat.setSpawnZoneHighlights([]);
-    window.removeEventListener("keydown", onKeyDown);
+    unregisterInput?.();
     onComplete({ placements: phase.getPlacements(), placementTeams, handles: handleByPokemonId });
   }
 
-  // Escape = undo (placement only — an open direction picker swallows it first).
-  const onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === "Escape" && placing && picker === null) {
-      undoLastPlacement();
-    }
-  };
-  window.addEventListener("keydown", onKeyDown);
+  /**
+   * Placement is a board context of its own (plan 184): the arrows drive the same tile cursor as in
+   * battle, Confirm places, Cancel undoes. It never coexists with the battle orchestrator — `finish()`
+   * unregisters before the battle starts — which is what keeps "one consumer per action" true without
+   * any priority to arbitrate.
+   */
+  const unregisterInput = getInputSystem()?.register({
+    // L'étape « choix du Pokemon » EST une étape de menu : les flèches y parcourent une liste et
+    // doivent pouvoir atteindre « Terminer » (retour humain 2026-08-21). L'étape « placement », elle,
+    // pilote le plateau. Le contexte suit donc l'étape.
+    context: () => (keyboardStep === "roster" ? "menu" : "board"),
+    menu: {
+      // Roster horizontal : ← → parcourent les Pokemon (les flèches suivent ce qu'on voit).
+      // ↓ descend sur « Terminer » quand il est proposé, ↑ le quitte.
+      focusMove: (direction) => {
+        if (direction === "left") {
+          cycleRosterSelection(-1);
+        } else if (direction === "right") {
+          cycleRosterSelection(1);
+        } else if (direction === "down") {
+          roster.focusFinish();
+        } else {
+          roster.blurFinish();
+        }
+      },
+      confirm: () => {
+        // « Terminer » focalisé : au clavier le navigateur l'active lui-même, à la manette il faut
+        // le cliquer nous-mêmes (un appui de pad n'est pas un événement clavier).
+        if (roster.isFinishFocused()) {
+          if (getInputSystem()?.tracker.current() === InputSource.Gamepad) {
+            roster.activateFinish();
+            return true;
+          }
+          return false;
+        }
+        const next = phase.getNextToPlace();
+        if (!placing || !next || selectedPokemonId === null) {
+          return false;
+        }
+        // Pokemon choisi → on passe au plateau, curseur posé sur une case libre de la zone.
+        keyboardStep = "board";
+        seedCursorInSpawnZone(
+          placementTeams.findIndex((candidate) => candidate.playerId === next.playerId),
+        );
+        return true;
+      },
+      cancel: () => {
+        if (!placing) {
+          return false;
+        }
+        undoLastPlacement();
+        return true;
+      },
+    },
+    board: {
+      moveCursor: (direction) => {
+        // Le sélecteur d'orientation ouvert prend la flèche en premier : on y choisit une direction.
+        if (!combat.aimDirectionPicker(direction)) {
+          combat.moveCursor(direction);
+        }
+      },
+      confirmCursorTile: () => {
+        // Placement answers the facing picker the same way a battle turn does — and it is the ONLY
+        // way to finish a placement, so without it no Pokémon could be placed by keyboard at all.
+        if (combat.confirmDirectionPicker()) {
+          return true;
+        }
+        if (!placing) {
+          return false;
+        }
+        const tile = combat.cursorTile();
+        if (!tile) {
+          return false;
+        }
+        handleTileClick(tile.x, tile.y);
+        return true;
+      },
+      cancel: () => {
+        // An open facing picker gets first refusal: cancelling the facing must not also undo the
+        // placement underneath it (what the old `picker === null` guard did, in reverse).
+        if (combat.cancelDirectionPicker()) {
+          return true;
+        }
+        if (!placing) {
+          return false;
+        }
+        // Sur le plateau, Annuler remonte au choix du Pokemon — il ne défait pas un placement qu'on
+        // n'a pas encore fait (retour humain 2026-08-21). Défaire, c'est Annuler à l'étape d'avant.
+        enterRosterStep();
+        return true;
+      },
+      cycleTarget: () => false,
+      rotateCamera: (step) => combat.rotateCamera(step),
+      panCamera: (deltaX, deltaY) => combat.panCameraByPixels(deltaX, deltaY),
+      zoomCamera: (step) => combat.zoomCamera(step),
+      setZoomLevel: (index) => combat.setZoomLevel(index),
+      scrollLog: () => undefined,
+      scrollTimeline: () => undefined,
+    },
+  });
   combat.onTileClick((pick) => handleTileClick(pick.x, pick.y));
 
   if (options.autoPlacement) {
@@ -339,7 +502,7 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
   return {
     dispose: () => {
       placing = false;
-      window.removeEventListener("keydown", onKeyDown);
+      unregisterInput?.();
       picker?.dispose();
       picker = null;
       roster.destroy();

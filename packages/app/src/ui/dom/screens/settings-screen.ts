@@ -9,13 +9,24 @@ import {
 } from "../../../platform/fullscreen";
 import { shouldOfferIosInstall } from "../../../platform/pwa";
 import { getSettings, updateSettings } from "../../../settings";
-import { bindEscape, el, menuButton } from "./elements";
+import { bindScreenInput, el, menuButton } from "./elements";
 
 /** DOM port of SettingsScene: language and damage-preview rows. */
 export function createSettingsScreen(navigate: Navigate): Screen<"settings"> {
   let root: HTMLElement | null = null;
-  let unbindEscape: (() => void) | null = null;
+  let unbindScreenInput: (() => void) | null = null;
   let unbindFullscreen: (() => void) | null = null;
+  let fullscreenToggle: HTMLButtonElement | null = null;
+
+  /**
+   * Refresh just the fullscreen label. Leaving fullscreen through Escape or a system gesture has to
+   * show through, but rebuilding the screen for one word would drop the keyboard focus (plan 184).
+   */
+  const refreshFullscreenLabel = (): void => {
+    if (fullscreenToggle) {
+      fullscreenToggle.textContent = isFullscreen() ? t("settings.on") : t("settings.off");
+    }
+  };
 
   const goBack = (): void => navigate("main-menu", undefined);
 
@@ -30,22 +41,30 @@ export function createSettingsScreen(navigate: Navigate): Screen<"settings"> {
   const render = (host: HTMLElement): void => {
     root?.remove();
     root = el("div", "mn-screen");
+    fullscreenToggle = null;
 
     const title = el("h1", "mn-title");
     title.textContent = t("settings.title");
 
+    // Switching the language retranslates every label of the screen, so this one really does rebuild
+    // — and then puts the focus back where it was, or a keyboard player would lose their place.
     const languageToggle = menuButton(getLanguage() === Language.French ? "FR" : "EN", () => {
       setLanguage(getLanguage() === Language.French ? Language.English : Language.French);
       render(host);
+      root?.querySelector<HTMLElement>("[data-testid='setting-language']")?.focus();
     });
     languageToggle.dataset.testid = "setting-language";
 
-    const damagePreviewEnabled = getSettings().damagePreview;
     const damagePreviewToggle = menuButton(
-      damagePreviewEnabled ? t("settings.on") : t("settings.off"),
+      getSettings().damagePreview ? t("settings.on") : t("settings.off"),
       () => {
         updateSettings({ damagePreview: !getSettings().damagePreview });
-        render(host);
+        // Only this label changes — mutate it in place. Rebuilding the whole subtree used to drop the
+        // focus to `<body>` on every toggle, which makes keyboard and gamepad navigation unusable
+        // (plan 184, dette rapatriée du Lot 3 / décision #752).
+        damagePreviewToggle.textContent = getSettings().damagePreview
+          ? t("settings.on")
+          : t("settings.off");
       },
     );
     damagePreviewToggle.dataset.testid = "setting-damage-preview";
@@ -61,16 +80,13 @@ export function createSettingsScreen(navigate: Navigate): Screen<"settings"> {
     // sur iPhone elle est absente (Safari ne l'implémente pas), et une bascule inerte serait pire
     // que pas de bascule. Là-bas, c'est la ligne d'installation ci-dessous qui prend le relais.
     if (isFullscreenSupported()) {
-      const fullscreenToggle = menuButton(
-        isFullscreen() ? t("settings.on") : t("settings.off"),
-        () => {
-          // Pas d'`await` avant l'appel : `toggleFullscreen` doit consommer l'activation
-          // utilisateur de ce clic, sinon la demande est rejetée. Le rendu suit via
-          // `fullscreenchange`, ce qui couvre aussi les sorties non déclenchées par nous
-          // (Échap, geste système).
-          void toggleFullscreen();
-        },
-      );
+      fullscreenToggle = menuButton(isFullscreen() ? t("settings.on") : t("settings.off"), () => {
+        // Pas d'`await` avant l'appel : `toggleFullscreen` doit consommer l'activation
+        // utilisateur de ce clic, sinon la demande est rejetée. Le rendu suit via
+        // `fullscreenchange`, ce qui couvre aussi les sorties non déclenchées par nous
+        // (Échap, geste système).
+        void toggleFullscreen();
+      });
       fullscreenToggle.dataset.testid = "setting-fullscreen";
       rows.append(row(t("settings.fullscreen"), fullscreenToggle));
     }
@@ -93,14 +109,15 @@ export function createSettingsScreen(navigate: Navigate): Screen<"settings"> {
   return {
     mount(host) {
       render(host);
-      unbindEscape = bindEscape(goBack);
-      // Le plein écran peut être quitté sans passer par la bascule (Échap, geste système) : on
-      // réaffiche depuis l'état réel du document plutôt que depuis un état local qui dériverait.
-      unbindFullscreen = onFullscreenChange(() => render(host));
+      unbindScreenInput = bindScreenInput(goBack);
+      // Le plein écran peut être quitté sans passer par la bascule (Échap, geste système) : on relit
+      // l'état réel du document plutôt qu'un état local qui dériverait — mais on ne rafraîchit que
+      // le libellé concerné, pas tout l'écran (plan 184 : un re-rendu perd le focus clavier).
+      unbindFullscreen = onFullscreenChange(refreshFullscreenLabel);
     },
     dispose() {
-      unbindEscape?.();
-      unbindEscape = null;
+      unbindScreenInput?.();
+      unbindScreenInput = null;
       unbindFullscreen?.();
       unbindFullscreen = null;
       root?.remove();

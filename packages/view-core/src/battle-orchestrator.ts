@@ -146,6 +146,31 @@ type InputState =
   | { phase: "animating" }
   | { phase: "battle_over"; winnerId: string | null };
 
+/**
+ * Input family a phase belongs to (plan 184) — what the arrows/d-pad drive, and whether Confirm /
+ * Cancel mean anything at all.
+ *
+ * - `menu`: the DOM action menu owns the arrows (focus), the board cursor is frozen in place.
+ * - `board`: the arrows drive the tile cursor, Confirm validates the tile under it.
+ * - `locked`: an animation is playing — no input is consumed (the board is mid-change).
+ */
+export type InputContext = "menu" | "board" | "locked";
+
+const INPUT_CONTEXT_BY_PHASE: Readonly<Record<InputState["phase"], InputContext>> = {
+  action_menu: "menu",
+  attack_submenu: "menu",
+  select_move_destination: "board",
+  select_attack_target: "board",
+  confirm_attack: "board",
+  select_retreat_target: "board",
+  select_direction: "board",
+  animating: "locked",
+  // Le dialogue de victoire EST un menu (Rejouer / Retour au menu) : le classer `locked` le rendait
+  // inatteignable à la manette, qui n'a pas de `Tab` pour naviguer dans une modale (retour humain
+  // 2026-08-21).
+  battle_over: "menu",
+};
+
 const BOARD_EVENT_TYPES = new Set<string>([
   BattleEventType.PokemonMoved,
   BattleEventType.PokemonDashed,
@@ -290,6 +315,120 @@ export class BattleOrchestrator {
     return true;
   }
 
+  /**
+   * Tile a directional aim turns around, or null when the current phase is not aiming a direction
+   * (plan 184, retour humain 2026-08-21).
+   *
+   * Aiming a cone / line / slash / dash picks a DIRECTION, not a tile: at the keyboard or the gamepad
+   * the cursor must therefore stay on the caster and only the fan rotate — exactly like the
+   * end-of-turn facing choice. Walking a tile cursor across the board to express a direction was the
+   * mouse's idiom leaking into the keyboard's.
+   */
+  directionalAimCenter(): Position | null {
+    if (this.inputState.phase !== "select_attack_target") {
+      return null;
+    }
+    const active = this.activePokemon();
+    const move = this.effectiveMove(this.inputState.moveId);
+    if (!active || !move || !this.isDirectionalPattern(move.targeting.kind)) {
+      return null;
+    }
+    return active.position;
+  }
+
+  /** Rotate the aimed fan of a directional pattern (keyboard / gamepad). False if not applicable. */
+  aimDirectionalPattern(direction: Direction): boolean {
+    const center = this.directionalAimCenter();
+    if (center === null || this.inputState.phase !== "select_attack_target") {
+      return false;
+    }
+    this.touchAimedDirection = direction;
+    this.updateAttackPreview(this.inputState.moveId, stepInDirection(center, direction, 1));
+    return true;
+  }
+
+  /**
+   * Confirm pressed on the board by a keyboard or a gamepad (plan 184). Returns whether it was
+   * consumed.
+   *
+   * The phase decides what Confirm even needs — which is why this lives here and not in the input
+   * layer: the confirmation step ignores the tile entirely (`resolveAttack` reads the locked action),
+   * a directional aim wants the aimed DIRECTION, and only the tile-designating phases want the
+   * cursor. The first version asked the cursor for a tile in every phase, so the confirmation step
+   * was unreachable at the keyboard: the cursor had never moved there, so there was no tile to give
+   * (retour humain 2026-08-21).
+   */
+  onBoardConfirm(cursorTile: Position | null): boolean {
+    switch (this.inputState.phase) {
+      case "confirm_attack":
+        this.resolveAttack(this.inputState.moveId, this.inputState.action);
+        return true;
+      case "select_attack_target":
+        if (this.confirmDirectionalPattern()) {
+          return true;
+        }
+        break;
+      default:
+        break;
+    }
+    if (cursorTile === null) {
+      return false;
+    }
+    this.onTileClick(cursorTile, "pointer");
+    return true;
+  }
+
+  /** Fire the aimed directional pattern (keyboard / gamepad Confirm). False if not applicable. */
+  private confirmDirectionalPattern(): boolean {
+    const center = this.directionalAimCenter();
+    if (center === null || this.inputState.phase !== "select_attack_target") {
+      return false;
+    }
+    const active = this.activePokemon();
+    // Nothing aimed yet: the phase opens with the fan along the caster's facing, so Confirm commits
+    // that default rather than doing nothing (same rule as the first tap on touch).
+    const direction = this.previewDirection ?? active?.orientation;
+    if (direction === undefined) {
+      return false;
+    }
+    this.tryPickTarget(this.inputState.moveId, stepInDirection(center, direction, 1));
+    return true;
+  }
+
+  /**
+   * Which family of input the player is in (plan 184). The keyboard/gamepad layer routes an arrow
+   * press to the board cursor or to the DOM menu focus depending on it — a decision the 5 scattered
+   * `keydown` listeners it replaces used to take by guessing from `event.key`.
+   *
+   * Derived from the phase, never stored: `inputState` stays the single source of truth.
+   */
+  inputContext(): InputContext {
+    return INPUT_CONTEXT_BY_PHASE[this.inputState.phase];
+  }
+
+  /** Notified whenever `inputContext()` changes, so the router doesn't poll it on every key. */
+  onInputContextChanged: ((context: InputContext) => void) | null = null;
+
+  /**
+   * The only writer of `inputState`. Centralised so an input-context change can never be missed:
+   * a phase transition that forgot to notify would leave the arrows driving the wrong consumer.
+   */
+  private setInputState(next: InputState): void {
+    const previousContext = INPUT_CONTEXT_BY_PHASE[this.inputState.phase];
+    this.inputState = next;
+    // Une action se résout : la case survolée devient une information PÉRIMÉE (le plateau change
+    // sous elle). On la DÉSÉLECTIONNE, on ne se contente pas de cacher le curseur — sinon le
+    // prochain rafraîchissement repeint la fiche du Pokemon d'avant depuis cet état resté en place
+    // (retour humain 2026-08-21).
+    if (next.phase === "animating") {
+      this.hoveredTile = null;
+    }
+    const nextContext = INPUT_CONTEXT_BY_PHASE[next.phase];
+    if (nextContext !== previousContext) {
+      this.onInputContextChanged?.(nextContext);
+    }
+  }
+
   onEscape(): void {
     const phase = this.inputState;
     switch (phase.phase) {
@@ -302,9 +441,19 @@ export class BattleOrchestrator {
         this.enterAttackSubmenu();
         break;
       case "confirm_attack":
-      case "select_retreat_target":
+      case "select_retreat_target": {
+        // Un motif STATIQUE (soi-même, croix, zone) saute la phase de ciblage (plan 183) : revenir
+        // « à la phase d'avant » y renvoyait donc à une phase qui se re-confirme aussitôt, et
+        // l'annulation paraissait ne rien faire (retour humain 2026-08-21, Plénitude). Pour ces
+        // motifs, l'étape d'avant est la LISTE D'ATTAQUES.
+        const move = this.effectiveMove(phase.moveId);
+        if (move && this.isStaticPattern(move.targeting.kind)) {
+          this.enterAttackSubmenu();
+          break;
+        }
         this.enterAttackTarget(phase.moveId);
         break;
+      }
       default:
         break;
     }
@@ -561,7 +710,7 @@ export class BattleOrchestrator {
     if (Array.isArray(aiEvents)) {
       // The AI submitted its actions itself inside the hook, so the engine's log has already grown.
       this.config.onActionCommitted?.();
-      this.inputState = { phase: "animating" };
+      this.setInputState({ phase: "animating" });
       this.chrome.hideMenus();
       this.board.clearHighlights();
       this.enqueueEvents(aiEvents, () => this.refreshUI());
@@ -571,8 +720,10 @@ export class BattleOrchestrator {
   }
 
   private enterActionMenu(): void {
+    this.clearConfirmPreview();
+    this.board.clearPreview();
     this.board.clearHighlights();
-    this.inputState = { phase: "action_menu" };
+    this.setInputState({ phase: "action_menu" });
     // Drop any move-preview reshuffle, back to the plain upcoming order.
     this.refreshTimeline();
     const active = this.activePokemon();
@@ -598,7 +749,7 @@ export class BattleOrchestrator {
     // Was `hideMenus()`: it left the screen with nothing at all, so a touch player had no way back
     // out of the phase (plan 183).
     this.chrome.showCancellableInstruction("selectMoveDestination", () => this.onEscape());
-    this.inputState = { phase: "select_move_destination" };
+    this.setInputState({ phase: "select_move_destination" });
   }
 
   private tryMoveTo(tile: Position): void {
@@ -613,6 +764,13 @@ export class BattleOrchestrator {
   }
 
   private enterAttackSubmenu(): void {
+    // Revenir d'un cran doit défaire les surcouches de la confirmation : sans ça, annuler une attaque
+    // à motif statique (Destruction) laissait les Pokemon de la zone clignoter avec leurs dégâts
+    // prévus, comme si l'attaque était toujours en cours (retour humain 2026-08-21). `enterAttackTarget`
+    // le faisait déjà ; ce chemin-là est nouveau depuis que l'annulation d'un motif statique revient
+    // ici plutôt qu'à une phase de ciblage qui n'existe pas.
+    this.clearConfirmPreview();
+    this.board.clearPreview();
     this.board.clearHighlights();
     const active = this.activePokemon();
     if (!active) {
@@ -651,7 +809,7 @@ export class BattleOrchestrator {
       onSelect: (moveId) => this.enterAttackTarget(moveId),
       onCancel: () => this.enterActionMenu(),
     });
-    this.inputState = { phase: "attack_submenu" };
+    this.setInputState({ phase: "attack_submenu" });
     // No move chosen yet → plain upcoming order (clears a previous move preview).
     this.refreshTimeline();
   }
@@ -736,7 +894,7 @@ export class BattleOrchestrator {
           : "selectTarget",
       );
     }
-    this.inputState = { phase: "select_attack_target", moveId };
+    this.setInputState({ phase: "select_attack_target", moveId });
     this.previewDirection = null;
     this.board.clearPreview();
     this.showEntryPreview(moveId);
@@ -980,7 +1138,7 @@ export class BattleOrchestrator {
       // do NOT repaint the tile red (the confirm step only adds the flash +
       // damage estimates), so a buff/heal move stays blue through confirmation.
       this.chrome.updateInstruction("confirm");
-      this.inputState = { phase: "confirm_attack", moveId, action };
+      this.setInputState({ phase: "confirm_attack", moveId, action });
       // Flash the living occupants of the locked footprint (parity, plan 123 4d-3).
       this.board.setPreviewFlash(this.previewOccupantIds());
       // Predicted-damage overlay on each target (parity, plan 123 4d-4; setting-gated).
@@ -1139,7 +1297,7 @@ export class BattleOrchestrator {
       if (retreatTiles.length > 0) {
         this.board.setHighlights("retreat", retreatTiles);
         this.chrome.updateInstruction("selectRetreat");
-        this.inputState = { phase: "select_retreat_target", moveId, action, retreatTiles };
+        this.setInputState({ phase: "select_retreat_target", moveId, action, retreatTiles });
         return;
       }
     }
@@ -1165,7 +1323,7 @@ export class BattleOrchestrator {
       return;
     }
     this.board.clearHighlights();
-    this.inputState = { phase: "select_direction" };
+    this.setInputState({ phase: "select_direction" });
     // Hide the active's HUD while the direction arrows are up so the HP bar doesn't
     // clutter the choice; restore on
     // confirm/cancel (syncBoard never re-shows a hidden HUD on its own).
@@ -1220,7 +1378,7 @@ export class BattleOrchestrator {
     // Persist before the animation, not after: the action is already committed to the engine, and a
     // tab discarded mid-animation must resume with it (plan 181).
     this.config.onActionCommitted?.();
-    this.inputState = { phase: "animating" };
+    this.setInputState({ phase: "animating" });
     this.chrome.hideMenus();
     this.board.clearHighlights();
     this.enqueueEvents(result.events, () => this.refreshUI());
@@ -1728,7 +1886,7 @@ export class BattleOrchestrator {
   }
 
   private enterBattleOver(winnerId: string | null): void {
-    this.inputState = { phase: "battle_over", winnerId };
+    this.setInputState({ phase: "battle_over", winnerId });
     this.board.clearHighlights();
     this.board.setActive(null);
     this.chrome.showVictory(winnerId);

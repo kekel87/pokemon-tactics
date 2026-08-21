@@ -51,6 +51,14 @@ import { HighlightKind } from "../enums/highlight-kind.js";
 import { getLanguage, t } from "../i18n/index.js";
 import type { TranslationKey } from "../i18n/types.js";
 import {
+  activateFocusedControl,
+  focusInDirection,
+  isModalOpen,
+} from "../input/focus-navigation.js";
+import { InputSource } from "../input/input-source.js";
+import { getInputSystem } from "../input/input-system.js";
+import { attachPointerSource, type PointerSource } from "../input/pointer-source.js";
+import {
   isFullscreen,
   isFullscreenSupported,
   onFullscreenChange,
@@ -243,6 +251,7 @@ function runBattle(options: {
     onBattleClosed,
   } = options;
   const board = backend.createBattleBoardView(combat, handles);
+  const inputSystem = getInputSystem();
   // Host-injected i18n / asset-path deps for the reusable DOM chrome (plan 125 Phase 4).
   const uiConfig: UiDomConfig = {
     translate: (key, params) => t(key as TranslationKey, params),
@@ -269,6 +278,11 @@ function runBattle(options: {
       onReplay();
     },
     config: uiConfig,
+    // Keyboard and gamepad navigate by focus, and every phase rebuilds the menu — so the fresh menu
+    // has to take the focus back, or navigation restarts from nothing at each step (plan 184).
+    // Which menus take it is the chrome's call: only the two the arrows navigate (see
+    // `restoreMenuFocus`), never a board phase's lone « Annuler ».
+    shouldAutoFocusMenu: () => inputSystem?.tracker.isFocusDriven() === true,
   });
   const language = getLanguage();
   // Shared name resolvers for the log + floating texts (instance id → localised names).
@@ -363,30 +377,139 @@ function runBattle(options: {
     presentationContext,
   );
   orchestrator.onTurnReady = wireTurnReady(battle);
+  /**
+   * À l'ouverture d'une phase de plateau, le curseur repart du Pokemon actif (retour humain
+   * 2026-08-21) : le reprendre là où on l'avait laissé au tour d'avant était déroutant — on visait
+   * depuis un coin de la carte sans rapport avec le mon qui joue.
+   *
+   * Seulement au clavier / à la manette : au pointeur, le curseur suit la souris de toute façon, et
+   * le repositionner sous elle serait un saut visuel gratuit.
+   */
+  orchestrator.onInputContextChanged = (context) => {
+    if (inputSystem?.tracker.isFocusDriven() !== true) {
+      return;
+    }
+    // Tour de l'IA / résolution d'une action : plus rien n'est pointable, donc le curseur s'efface —
+    // le laisser sur le Pokemon du tour précédent affichait en plus sa fiche en prévision, comme si
+    // on visait encore quelque chose (retour humain 2026-08-21).
+    if (context === "locked") {
+      combat.pinCursor(null);
+      chrome.updateCursorPanel(null);
+      chrome.updateTileInfo(null);
+      return;
+    }
+    if (context !== "board") {
+      return;
+    }
+    const focus = combat.cameraFocusTile();
+    if (focus) {
+      combat.pinCursor(focus);
+    }
+  };
 
   // The source travels with the press: a finger aiming a directional pattern needs a preview tap
   // before it commits, a mouse has already hovered (plan 183).
   combat.onTileClick((pick, source) => orchestrator.onTileClick({ x: pick.x, y: pick.y }, source));
   combat.onTileHover((pick) => orchestrator.onTileHover(pick ? { x: pick.x, y: pick.y } : null));
   combat.onCameraRotated((azimuth) => chrome.updateCameraAzimuth(azimuth));
-  window.addEventListener(
-    "keydown",
-    (event) => {
-      if (event.key === "Escape") {
-        orchestrator.onEscape();
-      } else if (event.key === " " || event.key === "Enter") {
-        event.preventDefault();
-        orchestrator.onConfirmKey();
-      } else if (event.key === "Tab") {
-        // Only swallowed while a multi-target confirm is open (plan 175): everywhere else Tab must
-        // stay plain focus navigation. ←/→ were unavailable — they already rotate the camera.
-        if (orchestrator.onCycleTargetKey(event.shiftKey ? -1 : 1)) {
-          event.preventDefault();
+
+  // Keyboard / gamepad (plan 184). Replaces the `keydown` listener this used to be: the arrows now
+  // drive a real board cursor, and the routing between the board and the DOM menu comes from the
+  // orchestrator's phase instead of each listener guessing from `event.key`.
+  const unregisterInput = inputSystem?.register({
+    context: () => orchestrator.inputContext(),
+    board: {
+      moveCursor: (direction) => {
+        // Ordre explicite, du plus spécifique au plus général (retour humain 2026-08-21) :
+        // 1. un sélecteur d'orientation ouvert (fin de tour) : la flèche le VISE ;
+        if (combat.aimDirectionPicker(direction)) {
+          return;
         }
-      }
+        // 2. une visée de pattern directionnel (cône, ligne, fauche, charge) : le curseur reste sur
+        //    le lanceur et seule l'empreinte tourne — on y choisit une direction, pas une case.
+        const aimCenter = orchestrator.directionalAimCenter();
+        if (aimCenter) {
+          // Le curseur se pose SUR le lanceur : la rotation doit se lire comme tournant autour de
+          // lui, et un curseur resté ailleurs (ou nulle part) rendait la phase illisible.
+          combat.pinCursor(aimCenter);
+          const grid = combat.gridDirectionFrom(aimCenter, direction);
+          if (grid !== null) {
+            orchestrator.aimDirectionalPattern(grid);
+          }
+          return;
+        }
+        // 3. sinon : le curseur de case marche.
+        combat.moveCursor(direction);
+      },
+      confirmCursorTile: () => {
+        // The facing picker answers Confirm itself: that phase has no `onTileClick` case at all, so
+        // without this the keyboard could open the end-of-turn facing choice and never answer it.
+        if (combat.confirmDirectionPicker()) {
+          return true;
+        }
+        // C'est la PHASE qui décide de ce dont Confirm a besoin (case sous le curseur, direction
+        // visée, ou rien du tout à l'étape de confirmation) — donc c'est l'orchestrateur qui tranche.
+        return orchestrator.onBoardConfirm(combat.cursorTile());
+      },
+      cancel: () => {
+        // The open facing picker gets first refusal, then the phase cancel — the explicit
+        // arbitration that replaced `combat-scene.ts`'s `stopImmediatePropagation()`.
+        if (combat.cancelDirectionPicker()) {
+          return true;
+        }
+        orchestrator.onEscape();
+        return true;
+      },
+      cycleTarget: (delta) => orchestrator.onCycleTargetKey(delta),
+      rotateCamera: (step) => combat.rotateCamera(step),
+      panCamera: (deltaX, deltaY) => combat.panCameraByPixels(deltaX, deltaY),
+      zoomCamera: (step) => combat.zoomCamera(step),
+      setZoomLevel: (index) => combat.setZoomLevel(index),
+      scrollLog: (delta) => battleLog.scrollByStep(delta),
+      scrollTimeline: (delta) => chrome.scrollTimeline(delta),
     },
-    { signal },
-  );
+    menu: {
+      focusMove: (direction) => {
+        // Dialogue de victoire ouvert : c'est LUI le menu (Rejouer / Retour au menu). Le navigateur y
+        // piège le focus, donc parcourir le menu d'actions derrière n'aurait aucun effet — et à la
+        // manette, sans `Tab`, la modale était inatteignable (retour humain 2026-08-21).
+        if (isModalOpen()) {
+          focusInDirection(direction);
+          return;
+        }
+        // Le menu de combat est une colonne : seules les flèches verticales le parcourent.
+        if (direction === "up") {
+          chrome.focusMenuStep(-1);
+        } else if (direction === "down") {
+          chrome.focusMenuStep(1);
+        }
+      },
+      confirm: () => {
+        // À la MANETTE, aucune activation native ne suit : un appui de pad n'est pas un événement
+        // clavier, donc si on ne clique pas nous-mêmes, A ne fait rien du tout sur un menu (retour
+        // humain 2026-08-21). Au clavier, à l'inverse, le navigateur active le bouton focalisé et
+        // réclamer la touche ici l'en empêcherait.
+        const onGamepad = inputSystem?.tracker.current() === InputSource.Gamepad;
+        if (isModalOpen()) {
+          return onGamepad ? activateFocusedControl() : false;
+        }
+        if (onGamepad) {
+          if (chrome.activateFocusedMenuItem()) {
+            return true;
+          }
+        } else if (chrome.isMenuFocused()) {
+          return false;
+        }
+        orchestrator.onConfirmKey();
+        return true;
+      },
+      cancel: () => {
+        orchestrator.onEscape();
+        return true;
+      },
+    },
+  });
+  signal.addEventListener("abort", () => unregisterInput?.(), { once: true });
 
   orchestrator.start();
   return orchestrator;
@@ -726,6 +849,22 @@ function startSandboxBattle(options: {
 const SANDBOX_DEFAULT_MAP_URL = "assets/maps/dev/sandbox-flat.tmj";
 
 /** Resolve the sandbox map url (kept document-relative so it works under any deploy base). */
+/**
+ * Bind the mouse/touch gestures of a freshly created scene (plan 184 étape E). Skipped when the
+ * input system is absent (a boot path that never called `initInputSystem`), which leaves the scene
+ * inert rather than half-wired.
+ */
+function attachPointerSourceForScene(
+  canvas: HTMLCanvasElement,
+  scene: CombatScene,
+): PointerSource | null {
+  const system = getInputSystem();
+  if (!system) {
+    return null;
+  }
+  return attachPointerSource({ canvas, scene, tracker: system.tracker });
+}
+
 function sandboxMapUrl(config: SandboxConfig): string {
   return config.mapUrl ?? SANDBOX_DEFAULT_MAP_URL;
 }
@@ -748,6 +887,7 @@ export function mountSandboxStudio(
   let panel: SandboxPanel | null = null;
   let stage: GameStage | null = null;
   let combat: CombatScene | null = null;
+  let pointerSource: PointerSource | null = null;
   let orchestrator: BattleOrchestrator | null = null;
   let loading: LoadingOverlayHandle | null = null;
   /** Measures the left chrome column so the compass parks clear of it (plan 183). */
@@ -761,6 +901,8 @@ export function mountSandboxStudio(
     loading = null;
     orchestrator?.dispose();
     orchestrator = null;
+    pointerSource?.dispose();
+    pointerSource = null;
     combat?.dispose();
     combat = null;
     insetProbe?.dispose();
@@ -789,6 +931,10 @@ export function mountSandboxStudio(
       timelineFirstCell: () => probe.firstCell(),
     });
     combat = activeCombat;
+    // Mouse and touch gestures live in the app's input layer, next to the keyboard and the gamepad
+    // (plan 184 étape E): the scene keeps picking, projection and the camera, not the rules.
+    pointerSource?.dispose();
+    pointerSource = attachPointerSourceForScene(activeStage.canvas, activeCombat);
     overlay.setProgress(0.2);
     const [loaded] = await Promise.all([loadTiledMap(mapUrl), activeCombat.ready]);
     if (localAbort.signal.aborted) {
@@ -845,6 +991,7 @@ export function mountSandboxStudio(
 export function createCombatScreen(navigate: Navigate, backend: RendererBackend): Screen<"combat"> {
   let stage: GameStage | null = null;
   let combat: CombatScene | null = null;
+  let pointerSource: PointerSource | null = null;
   let placement: PlacementFlow | null = null;
   let orchestrator: BattleOrchestrator | null = null;
   let loading: LoadingOverlayHandle | null = null;
@@ -862,6 +1009,8 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     orchestrator = null;
     placement?.dispose();
     placement = null;
+    pointerSource?.dispose();
+    pointerSource = null;
     combat?.dispose();
     combat = null;
     insetProbe?.dispose();
@@ -895,6 +1044,10 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
       timelineFirstCell: () => probe.firstCell(),
     });
     combat = activeCombat;
+    // Mouse and touch gestures live in the app's input layer, next to the keyboard and the gamepad
+    // (plan 184 étape E): the scene keeps picking, projection and the camera, not the rules.
+    pointerSource?.dispose();
+    pointerSource = attachPointerSourceForScene(activeStage.canvas, activeCombat);
     overlay.setProgress(0.2);
 
     if (resume) {

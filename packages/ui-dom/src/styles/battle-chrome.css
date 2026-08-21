@@ -199,6 +199,33 @@
       --bc-glyph-col: 0;
       --bc-glyph-row: 17;
     }
+
+    /*
+     * Active input source (plan 184) OVERRIDES the pointer media query, which stays the default for
+     * "nothing observed yet". That order is what makes a gamepad plugged into a phone re-style the
+     * prompt — the media query alone would keep showing a finger.
+     *
+     * Keyboard: the one-tile key glyph at col 17 / row 4 (choix humain 2026-08-21). The realistic
+     * SPACE and ENTER keys of the sheet are 3 and 2 tiles WIDE, which a one-tile mask cannot show —
+     * this small key cap is the usable stand-in for "press the key".
+     *
+     * Gamepad: the A button (outline circle + solid letter, tile col 4 / row 0) for a press, the
+     * d-pad (col 0 / row 1) for the two phases that aim a direction.
+     */
+    :where([data-input-source="keyboard"]) & {
+      --bc-glyph-col: 17;
+      --bc-glyph-row: 4;
+    }
+
+    :where([data-input-source="gamepad"]) & {
+      --bc-glyph-col: 4;
+      --bc-glyph-row: 0;
+
+      &[data-glyph="act-twice"] {
+        --bc-glyph-col: 0;
+        --bc-glyph-row: 1;
+      }
+    }
   }
 
   .bc-input-glyph-icon {
@@ -218,11 +245,67 @@
   }
 
   /*
+   * Key glyph carried by the « Annuler » button (plan 184, retour humain 2026-08-21): Échap cancels
+   * too, and nothing said so. Hidden at the pointer and on touch — there the button IS the control,
+   * and a key drawing would name something the player has no way to press.
+   *
+   * Same mask machinery as the instruction glyph, but sized off this button's own font.
+   */
+  .bc-btn-key {
+    /*
+     * Glyphe de touche porté par « Annuler » (plan 184) : Échap annule aussi, et rien ne le disait —
+     * alors qu'un liseré de focus sur ce bouton, lui, laissait croire qu'Espace annulerait.
+     *
+     * Affiché en permanence, même à la souris : le raccourci reste disponible (retour humain
+     * 2026-08-21). Seul le doigt le masque — là, il n'y a pas de touche Échap à presser.
+     *
+     * Même taille que le glyphe de la ligne d'instruction (0.9em, réglée à l'œil au chantier
+     * précédent) et centré par le flex de `.tb-btn` : ne pas chercher à le caler sur les lettres,
+     * deux tentatives ont été rejetées (hauteur de capitale = trop petit ; marge négative sur
+     * baseline = déplacement dans le mauvais sens sur Firefox, la baseline synthétisée d'une boîte
+     * vide n'étant pas traitée pareil d'un moteur à l'autre).
+     */
+    --bc-key-size: 0.9em;
+
+    flex: none;
+    display: inline-block;
+    inline-size: var(--bc-key-size);
+    block-size: var(--bc-key-size);
+    background-color: currentcolor;
+    image-rendering: pixelated;
+    mask-image: var(--bc-glyph-sheet);
+    mask-repeat: no-repeat;
+    mask-size: calc(34 * var(--bc-key-size)) calc(24 * var(--bc-key-size));
+    /* Touche ESC : tuile colonne 17 / ligne 0. */
+    mask-position: calc(-17 * var(--bc-key-size)) 0;
+
+    /* Manette : c'est B qui annule — même énoncé, autre appareil. */
+    :where([data-input-source="gamepad"]) & {
+      mask-position: calc(-5 * var(--bc-key-size)) 0;
+    }
+
+    /* Au doigt, aucune touche à presser : le bouton EST le contrôle. */
+    :where([data-input-source="touch"]) & {
+      display: none;
+    }
+  }
+
+  /* `.tb-btn` centre déjà en flex ; il ne manque que l'écart entre le glyphe et le libellé. */
+  .bc-btn:has(.bc-btn-key) {
+    gap: var(--bc-gap-xs);
+  }
+
+
+  /*
    * "Re-tap the same direction to fire" (plan 183 §C) has no glyph in the pack, so the hand carries
    * a "×2" suffix. Touch only — a mouse validates a direction on its first click.
    */
   @media (pointer: coarse) {
-    .bc-input-glyph[data-glyph="act-twice"]::after {
+    /* Not with a gamepad: there the d-pad glyph already says "aim, then confirm", and a phone with a
+       pad clipped on still matches `pointer: coarse` (plan 184). */
+    .bc-input-glyph[data-glyph="act-twice"]:not(
+      :where([data-input-source="gamepad"]) *
+    )::after {
       content: "×2";
     }
   }

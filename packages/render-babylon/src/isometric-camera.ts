@@ -103,6 +103,16 @@ export class IsometricCamera {
     this.zoomTarget = BABYLON_ZOOM_LEVELS[this.zoomIndex] ?? this.zoomTarget;
   }
 
+  /**
+   * Jump straight to a zoom notch (the `1`/`2`/`3` keys, plan 184). `ZOOM_LEVELS` only holds 3
+   * values, so an absolute pick is cheaper for the player than stepping — and the index is clamped
+   * exactly as `zoomByWheel` clamps its own.
+   */
+  setZoomIndex(index: number): void {
+    this.zoomIndex = Math.min(BABYLON_ZOOM_LEVELS.length - 1, Math.max(0, Math.trunc(index)));
+    this.zoomTarget = BABYLON_ZOOM_LEVELS[this.zoomIndex] ?? this.zoomTarget;
+  }
+
   /** Pan the centre in the view plane by a pointer drag delta (pixels). */
   panByPixels(deltaX: number, deltaY: number, canvasClientHeight: number): void {
     const worldPerPixel = BABYLON_VIEW_SIZE / this.zoom / canvasClientHeight;
