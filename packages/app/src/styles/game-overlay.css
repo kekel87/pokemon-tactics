@@ -36,6 +36,17 @@
     touch-action: none;
     /* Crisp nearest upscale of the low-res framebuffer (pixel-art). */
     image-rendering: pixelated;
+
+    /*
+     * No focus ring on the board. The canvas is focusable (Babylon wants it so, see `combat-scene.ts`
+     * — we lower its tabindex to -1) but it is not a control: nothing about it changes when it holds
+     * the focus, so the app-wide yellow ring around the whole scene was pure noise (retour humain
+     * 2026-08-24). Belt and braces with the tabindex: a script-driven `focus()` can still land here.
+     */
+    &:focus,
+    &:focus-visible {
+      outline: none;
+    }
   }
 
   #game-overlay {

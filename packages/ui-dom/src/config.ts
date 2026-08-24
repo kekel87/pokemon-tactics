@@ -17,4 +17,12 @@ export interface UiDomConfig extends I18nContext {
   getWeatherIconUrl(kind: string): string;
   /** Shared Kenney 1-bit input-prompt tilesheet (mask source for the instruction-line glyph). */
   getInputPromptSheetUrl(): string;
+  /** Kenney 1-bit cursor tilesheet — magnifiers, pinch, rotation pair, pointing hand (plan 185). */
+  getCursorSheetUrl(): string;
+  /**
+   * Character to DRAW for a physical key position (plan 185). The bindings are by position
+   * (`KeyboardEvent.code`), so the character depends on the layout — `KeyQ` is Q on QWERTY and A on
+   * AZERTY. Resolved by the host (`key-legend.ts`), which owns both the bindings and the layout.
+   */
+  getKeyLabel(code: string): string;
 }

@@ -181,6 +181,10 @@
      * keeps it crisp: nearest-neighbour alternates 2px and 3px columns instead of smoothing.
      */
     --bc-glyph-size: 0.9em;
+    /* Sheet in force + its tile grid. Both are swapped, together, by the touch rules below. */
+    --bc-glyph-sheet: var(--bc-prompt-sheet);
+    --bc-glyph-cols: 34;
+    --bc-glyph-rows: 24;
 
     flex: none;
     display: flex;
@@ -195,9 +199,18 @@
      */
     --bc-glyph-col: 9;
     --bc-glyph-row: 3;
+    /*
+     * Touch: the cursor pack's pointing hand (plan 185). It replaces the input-prompts hand
+     * everywhere « tap » is drawn — the legend beside the compass uses the same tile, so the gesture
+     * has ONE drawing in the whole game (choix humain 2026-08-24). Sheet AND grid move together:
+     * that pack is 20×11 tiles, not 34×24.
+     */
     @media (pointer: coarse) {
-      --bc-glyph-col: 0;
-      --bc-glyph-row: 17;
+      --bc-glyph-sheet: var(--bc-cursor-sheet);
+      --bc-glyph-cols: 20;
+      --bc-glyph-rows: 11;
+      --bc-glyph-col: 17;
+      --bc-glyph-row: 6;
     }
 
     /*
@@ -212,12 +225,38 @@
      * Gamepad: the A button (outline circle + solid letter, tile col 4 / row 0) for a press, the
      * d-pad (col 0 / row 1) for the two phases that aim a direction.
      */
+    /* A finger on a touchscreen LAPTOP: fine pointer, so the media query above never fires. Stated
+       explicitly, as the control legend does — the two must not disagree about the device in hand. */
+    :where([data-input-source="touch"]) & {
+      --bc-glyph-sheet: var(--bc-cursor-sheet);
+      --bc-glyph-cols: 20;
+      --bc-glyph-rows: 11;
+      --bc-glyph-col: 17;
+      --bc-glyph-row: 6;
+    }
+
+    /* A mouse plugged into a phone: the pointer wins over the coarse-pointer default, exactly as it
+       does in the control legend — the two must not disagree about what device is in hand. */
+    :where([data-input-source="pointer"]) & {
+      --bc-glyph-sheet: var(--bc-prompt-sheet);
+      --bc-glyph-cols: 34;
+      --bc-glyph-rows: 24;
+      --bc-glyph-col: 9;
+      --bc-glyph-row: 3;
+    }
+
     :where([data-input-source="keyboard"]) & {
+      --bc-glyph-sheet: var(--bc-prompt-sheet);
+      --bc-glyph-cols: 34;
+      --bc-glyph-rows: 24;
       --bc-glyph-col: 17;
       --bc-glyph-row: 4;
     }
 
     :where([data-input-source="gamepad"]) & {
+      --bc-glyph-sheet: var(--bc-prompt-sheet);
+      --bc-glyph-cols: 34;
+      --bc-glyph-rows: 24;
       --bc-glyph-col: 4;
       --bc-glyph-row: 0;
 
@@ -238,8 +277,10 @@
     image-rendering: pixelated;
     mask-image: var(--bc-glyph-sheet);
     mask-repeat: no-repeat;
-    /* Sheet is 34×24 tiles, so it measures 34 × 24 glyph-sizes whatever that size is. */
-    mask-size: calc(34 * var(--bc-glyph-size)) calc(24 * var(--bc-glyph-size));
+    /* The sheet measures cols × rows glyph-sizes, whatever that size is — and whichever sheet is in
+       force (input-prompts is 34×24, the cursor pack 20×11). */
+    mask-size: calc(var(--bc-glyph-cols) * var(--bc-glyph-size))
+      calc(var(--bc-glyph-rows) * var(--bc-glyph-size));
     mask-position: calc(var(--bc-glyph-col) * var(--bc-glyph-size) * -1)
       calc(var(--bc-glyph-row) * var(--bc-glyph-size) * -1);
   }

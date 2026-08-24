@@ -1,0 +1,312 @@
+/*
+ * Control legend (plan 185) — pairs with `control-legend.ts`. The "it clicks" drawing to the right
+ * of the compass, and one line per camera control underneath it. Tokens from `tokens.css`.
+ *
+ * Which drawings show is decided HERE, not in JS: `@media (pointer: coarse)` is the default for
+ * "nothing observed yet" and `[data-input-source]` overrides it — the same precedence as
+ * `.bc-input-glyph`, and what makes a gamepad plugged into a phone re-style the legend with no
+ * re-render.
+ *
+ * Two sheets are in play, with different tile grids: Kenney `input-prompts` (34×24) for the mouse
+ * and the key caps, Kenney `cursor-pixel-pack` (20×11) for the magnifiers, the pinch pair, the
+ * rotation pair and the pointing hand. Each drawing declares its sheet by class and the offset maths
+ * reads the grid from custom properties — see `docs/references/kenney-input-prompts-tileset.md`.
+ */
+
+@layer components {
+  /*
+   * Positioning context. `.tt-active` is the STABLE host of the active slot (its
+   * `.tt-active-portrait` child is what gets rebuilt each turn), and the compass is pinned to its
+   * right edge at its top with a side equal to its height.
+   */
+  .tt-active {
+    position: relative;
+  }
+
+  .cl-root {
+    /*
+     * Drawing size. The compass is as tall as the active portrait (48 design px) and the ring glyph
+     * validated at the previous chantier sat at half of it, so half is the reference here too.
+     *
+     * Floored at 16px — one source tile. Below that, nearest-neighbour DOWNSCALES the 1-bit drawing
+     * and drops whole pixel rows: measured at a 0.61 stage scale the caps landed at 14.6px and the
+     * letters were unreadable. Same floor the mesh glyph used (`INPUT_PROMPT_TILE_PX`).
+     */
+    --cl-size: max(16px, calc(24px * var(--ui-scale)));
+
+    /* An affordance hint, not game state: the same restraint as the mesh glyph it replaces. */
+    opacity: 0.72;
+    /* Never a control — the compass is what answers clicks (décision humaine 2026-08-24). */
+    pointer-events: none;
+    color: var(--color-text-primary);
+  }
+
+  /*
+   * Invisible stand-in for the compass. Same top and same height as the slot, made SQUARE by
+   * `aspect-ratio` — which is exactly how the renderer sizes the compass (side = slot height). That
+   * turns "to the right of the compass" and "under the compass" into plain offsets, no measurement.
+   */
+  .cl-compass-box {
+    position: absolute;
+    inset-inline-start: calc(100% + var(--cl-clearance));
+    inset-block-start: 0;
+    block-size: 100%;
+    aspect-ratio: 1;
+  }
+
+  /* To the compass' right, vertically centred on it (retour humain 2026-08-24). */
+  .cl-tap {
+    position: absolute;
+    inset-inline-start: calc(100% + var(--cl-clearance));
+    inset-block-start: 50%;
+    translate: 0 -50%;
+    display: flex;
+  }
+
+  /* The two lines: under the compass, so one slot height plus the clearance down. */
+  .cl-rows {
+    position: absolute;
+    inset-inline-start: calc(100% + var(--cl-clearance));
+    inset-block-start: calc(100% + var(--cl-clearance));
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: calc(var(--cl-size) / 6);
+    /* Wider than the timeline column: must not stretch the flex parent's line box. */
+    white-space: nowrap;
+  }
+
+  .cl-row {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--cl-size) / 3);
+  }
+
+  /* `[drawing][key]`, and the same order on every line (retour humain 2026-08-24). */
+  .cl-entry {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--cl-size) / 8);
+  }
+
+  /*
+   * Shared mask plumbing. `mask-size` is the whole sheet expressed in drawing units, so one offset
+   * step is one drawing size — hence the per-sheet grid below.
+   *
+   * ⚠️ No `calc(length / length)` anywhere here — Chromium accepts it, Firefox throws the whole
+   * declaration away without a console error (décision #775).
+   */
+  .cl-glyph {
+    flex: none;
+    display: inline-block;
+    inline-size: var(--cl-size);
+    block-size: var(--cl-size);
+    background-color: currentcolor;
+    /* Nearest-neighbour, like every other pixel-art surface: a bilinear mask softens the 1-bit
+       outline as soon as the device pixel ratio goes above 1. */
+    image-rendering: pixelated;
+    mask-repeat: no-repeat;
+    mask-image: var(--cl-sheet);
+    mask-size: calc(var(--cl-sheet-cols) * var(--cl-size))
+      calc(var(--cl-sheet-rows) * var(--cl-size));
+    mask-position: calc(var(--cl-col) * var(--cl-size) * -1)
+      calc(var(--cl-row) * var(--cl-size) * -1);
+  }
+
+  .cl-sheet-prompts {
+    --cl-sheet: var(--cl-prompt-sheet);
+    --cl-sheet-cols: 34;
+    --cl-sheet-rows: 24;
+  }
+
+  .cl-sheet-cursors {
+    --cl-sheet: var(--cl-cursor-sheet);
+    --cl-sheet-cols: 20;
+    --cl-sheet-rows: 11;
+  }
+
+  /* Tiles. The cursor-pack picks are the human's (2026-08-24); the mouse stays the input-prompts
+     one, that pack being the only one drawing a mouse DEVICE rather than a cursor. */
+  .cl-glyph-mouse {
+    --cl-col: 9;
+    --cl-row: 3;
+  }
+
+  /* Tap: the cursor pack's pointing hand — the human's pick, and the same drawing the instruction
+     line uses (`.bc-input-glyph`), so "tap" looks identical everywhere. */
+  .cl-glyph-hand {
+    --cl-col: 17;
+    --cl-row: 6;
+  }
+
+  /*
+   * Rotation pair. Which of the two reads as "the view turns this way" is NOT decided from the
+   * sheet: the previous chantier picked a ring arrow by geometry and it read backwards once mounted
+   * on the live scene (2026-08-20). These are the mirror pair; swap the two columns if play-testing
+   * says the sense is inverted.
+   */
+  .cl-glyph-rotate-left {
+    --cl-col: 10;
+    --cl-row: 10;
+  }
+
+  .cl-glyph-rotate-right {
+    --cl-col: 9;
+    --cl-row: 10;
+  }
+
+  /* Magnifiers carry their own sign, so no `+` / `−` text and no misleading `+` key cap. */
+  .cl-glyph-zoom-in {
+    --cl-col: 7;
+    --cl-row: 0;
+  }
+
+  .cl-glyph-zoom-out {
+    --cl-col: 8;
+    --cl-row: 0;
+  }
+
+  /*
+   * Touch zoom: HANDS, not the magnifiers of the keyboard line and not the pack's four-arrow pair
+   * (choix humain 2026-08-24) — fingers apart to zoom in, fingers pinched to zoom out. Same family
+   * as the tap hand right of the compass, so the whole touch legend speaks one language.
+   */
+  .cl-glyph-spread {
+    --cl-col: 14;
+    --cl-row: 6;
+  }
+
+  .cl-glyph-pinch {
+    --cl-col: 15;
+    --cl-row: 8;
+  }
+
+  /*
+   * Key caps. The layout-derived tile arrives inline as `--cl-cap-col/row` (an inline custom
+   * property beats any stylesheet rule, hence the separate name), and the gamepad overrides it here
+   * with its fixed bumpers and triggers.
+   */
+  .cl-cap {
+    --cl-col: var(--cl-cap-col);
+    --cl-row: var(--cl-cap-row);
+  }
+
+  /*
+   * Gamepad: LB/RB rotate, LT/RT zoom — outline variants, matching the A/B buttons already in use.
+   * Selected by ROLE, never by position (see `control-legend.ts`).
+   */
+  :where([data-input-source="gamepad"]) {
+    .cl-entry[data-cl-role="rotate-left"] .cl-cap {
+      --cl-col: 9;
+      --cl-row: 16;
+    }
+
+    .cl-entry[data-cl-role="rotate-right"] .cl-cap {
+      --cl-col: 10;
+      --cl-row: 16;
+    }
+
+    /* RT zooms IN, LT zooms OUT (`gamepad-source.ts`) — not the left-to-right reading order. */
+    .cl-entry[data-cl-role="zoom-in"] .cl-cap {
+      --cl-col: 8;
+      --cl-row: 16;
+    }
+
+    .cl-entry[data-cl-role="zoom-out"] .cl-cap {
+      --cl-col: 7;
+      --cl-row: 16;
+    }
+  }
+
+  /*
+   * Per-source visibility. Default (fine pointer, nothing observed yet): mouse hint, keys on both
+   * lines, no gestures.
+   */
+  .cl-glyph-hand,
+  .cl-entry-gesture {
+    display: none;
+  }
+
+  /*
+   * Coarse pointer: the hand replaces the mouse, the gestures replace the keys, and the rotation
+   * line goes away — the compass itself is the rotation control there.
+   */
+  @media (pointer: coarse) {
+    .cl-glyph-mouse {
+      display: none;
+    }
+
+    .cl-glyph-hand {
+      display: inline-block;
+    }
+
+    [data-testid="control-legend-rotate"] {
+      display: none;
+    }
+
+    [data-testid="control-legend-zoom"] .cl-entry:not(.cl-entry-gesture) {
+      display: none;
+    }
+
+    .cl-entry-gesture {
+      display: flex;
+    }
+  }
+
+  :where([data-input-source="touch"]) {
+    .cl-glyph-mouse {
+      display: none;
+    }
+
+    .cl-glyph-hand {
+      display: inline-block;
+    }
+
+    [data-testid="control-legend-rotate"] {
+      display: none;
+    }
+
+    [data-testid="control-legend-zoom"] .cl-entry:not(.cl-entry-gesture) {
+      display: none;
+    }
+
+    .cl-entry-gesture {
+      display: flex;
+    }
+  }
+
+  /*
+   * …and back the other way: a mouse, a keyboard or a gamepad on a coarse-pointer device (the
+   * "phone + gamepad" case of plan 184) gets the keys back and drops the gestures.
+   */
+  :where(
+      [data-input-source="pointer"],
+      [data-input-source="keyboard"],
+      [data-input-source="gamepad"]
+    ) {
+    .cl-glyph-mouse {
+      display: inline-block;
+    }
+
+    .cl-glyph-hand {
+      display: none;
+    }
+
+    [data-testid="control-legend-rotate"] {
+      display: flex;
+    }
+
+    [data-testid="control-legend-zoom"] .cl-entry:not(.cl-entry-gesture) {
+      display: flex;
+    }
+
+    .cl-entry-gesture {
+      display: none;
+    }
+  }
+
+  /* A gamepad has no compass to click, so neither drawing applies. */
+  :where([data-input-source="gamepad"]) .cl-tap {
+    display: none;
+  }
+}

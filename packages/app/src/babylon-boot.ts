@@ -13,6 +13,7 @@ import "@pokemon-tactic/ui-dom/styles/battle-log.css";
 import "@pokemon-tactic/ui-dom/styles/fullscreen-button.css";
 import "@pokemon-tactic/ui-dom/styles/move-tooltip.css";
 import "@pokemon-tactic/ui-dom/styles/turn-timeline.css";
+import "@pokemon-tactic/ui-dom/styles/control-legend.css";
 import "@pokemon-tactic/ui-dom/styles/weather-hud.css";
 import "./styles/tokens.css";
 import "./styles/game-overlay.css";
@@ -26,6 +27,7 @@ import { loadPersistedScreen } from "./app/screen-persistence.js";
 import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.js";
 import { initLanguage } from "./i18n/index.js";
 import { initInputSystem } from "./input/input-system.js";
+import { resolveKeyLabels } from "./input/key-legend.js";
 import { startWakeLock } from "./platform/wake-lock.js";
 import { getRendererBackend } from "./renderer-backend.js";
 import { sandboxBootConfig, teardownSandboxStudioDom } from "./sandbox-boot.js";
@@ -64,6 +66,10 @@ initSettings();
 // les écrans et le combat s'y enregistrent à leur montage, y compris les chemins d'entrée directs
 // (`?config`/`?combat`) qui ne passent pas par le menu.
 initInputSystem(root);
+// Real keyboard layout for the control legend (plan 185), fire-and-forget: the API is Chromium-only
+// and the legend falls back to the game's language until (or unless) it answers. Kicked here so the
+// answer has landed long before any combat mounts.
+void resolveKeyLabels();
 
 // Invite « tourne ton écran » (plan 179) : montée après `initLanguage()` pour que son texte parte
 // dans la bonne langue. Sa visibilité est purement CSS (portrait + pointeur grossier), donc elle

@@ -178,3 +178,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 182 | [Anneaux d'aura au sol (contour de zone permanent)](./182-anneaux-aura-au-sol.md) | done | 2026-08-19 |
 | 183 | [Contrôles tactiles (Lot 1)](./183-controles-tactiles.md) | done | 2026-08-20 |
 | 184 | [Contrôles clavier & manette (Lot 2)](./184-controles-clavier-manette.md) | done | 2026-08-21 |
+| 185 | [Légende de contrôles près de la boussole](./185-legende-controles.md) | ready | 2026-08-24 |

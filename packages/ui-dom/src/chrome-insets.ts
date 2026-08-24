@@ -10,8 +10,13 @@
  * Lives in ui-dom because it is a DOM measurement; the renderer only ever receives numbers.
  */
 
-/** Gap between the timeline's right edge and whatever the renderer pins beside it (CSS px). */
-const CHROME_CLEARANCE_PX = 6;
+/**
+ * Gap between the timeline's right edge and whatever the renderer pins beside it (CSS px).
+ *
+ * Exported because the control legend (plan 185) leaves the SAME gap under the compass, in CSS: one
+ * constant for both, so the DOM gap and the mesh gap cannot drift apart.
+ */
+export const CHROME_CLEARANCE_PX = 6;
 
 /** Geometry of the timeline's first portrait, in CSS px relative to the stage box. */
 export interface TimelineFirstCell {

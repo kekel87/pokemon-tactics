@@ -269,6 +269,7 @@ export interface Translations {
   "credits.tileset": string;
   "credits.font": string;
   "credits.inputPrompts": string;
+  "credits.cursors": string;
   "credits.code": string;
   "credits.back": string;
   "log.title": string;

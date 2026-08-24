@@ -15,6 +15,7 @@ import type {
   WeatherView,
 } from "@pokemon-tactic/view-core";
 import type { UiDomConfig } from "./config.js";
+import { createControlLegend } from "./control-legend.js";
 import { el } from "./dom-helpers.js";
 import { createInfoPanel } from "./info-panel.js";
 import { createInputPromptGlyph, INSTRUCTION_GLYPH } from "./input-prompt-glyph.js";
@@ -150,6 +151,10 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   const infoPanelRow = el("div", "bc-infopanel-row");
   infoPanelRow.append(infoPanel.element, tileInfoPanel.element, cursorPanel.element);
   const timeline = createTurnTimeline(config);
+  // Camera legend (plan 185): an absolute child of the timeline's stable active slot, because the
+  // compass is pinned to that slot's right edge — so "under the compass" needs no measurement.
+  // Absolute is load-bearing: a static child would grow the slot's box, which the compass measures.
+  timeline.activeSlotAnchor.append(createControlLegend(config).element);
   const leftColumn = el("div", "bc-left-col");
   leftColumn.append(timeline.element, infoPanelRow);
   host.append(leftColumn);

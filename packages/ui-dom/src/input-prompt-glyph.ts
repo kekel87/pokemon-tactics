@@ -39,7 +39,12 @@ export interface InputPromptGlyph {
 export function createInputPromptGlyph(config: UiDomConfig): InputPromptGlyph {
   const element = el("span", "bc-input-glyph", "combat-input-glyph");
   element.setAttribute("aria-hidden", "true");
-  element.style.setProperty("--bc-glyph-sheet", `url("${config.getInputPromptSheetUrl()}")`);
+  // Two sheets, because the tap drawing comes from the cursor pack (plan 185, choix humain
+  // 2026-08-24: one tap glyph everywhere) while the key and pad prompts stay on input-prompts. The
+  // CSS picks one — hence two distinct names rather than one inline URL, which would beat every
+  // stylesheet rule.
+  element.style.setProperty("--bc-prompt-sheet", `url("${config.getInputPromptSheetUrl()}")`);
+  element.style.setProperty("--bc-cursor-sheet", `url("${config.getCursorSheetUrl()}")`);
   element.dataset.glyph = InputPromptKind.Act;
   // The drawing lives in a child: a `mask` clips its own element's pseudo-elements too, so the
   // "×2" suffix of the two-tap prompt has to sit outside the masked box.

@@ -8,6 +8,7 @@ const CREDIT_KEYS = [
   "credits.tileset",
   "credits.font",
   "credits.inputPrompts",
+  "credits.cursors",
   "credits.code",
 ] as const;
 

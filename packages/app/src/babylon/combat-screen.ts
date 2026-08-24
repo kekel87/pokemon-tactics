@@ -57,6 +57,7 @@ import {
 } from "../input/focus-navigation.js";
 import { InputSource } from "../input/input-source.js";
 import { getInputSystem } from "../input/input-system.js";
+import { keyLabel } from "../input/key-legend.js";
 import { attachPointerSource, type PointerSource } from "../input/pointer-source.js";
 import {
   isFullscreen,
@@ -69,6 +70,7 @@ import { initSandboxStudioDom } from "../sandbox-boot.js";
 import { getSettings } from "../settings/index.js";
 import {
   getCategoryIconUrl,
+  getCursorSheetUrl,
   getInputPromptSheetUrl,
   getStatusIconUrl,
   getStatusLabelUrl,
@@ -260,6 +262,8 @@ function runBattle(options: {
     getCategoryIconUrl,
     getWeatherIconUrl,
     getInputPromptSheetUrl,
+    getCursorSheetUrl,
+    getKeyLabel: keyLabel,
     getPortraitUrl,
     getItemIconUrl,
   };

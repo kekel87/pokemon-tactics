@@ -27,3 +27,17 @@ export function getWeatherIconUrl(kind: string): string {
 export function getInputPromptSheetUrl(): string {
   return "assets/ui/input-prompts/tilemap-1bit.png";
 }
+
+/**
+ * Kenney `cursor-pixel-pack` tilesheet (CC0), 20×11 tiles of 16px, no gutter — the drawings the
+ * input-prompts sheet lacks: magnifiers, pinch/spread, a rotation pair, and a nicer pointing hand
+ * (plan 185, choix humain 2026-08-24).
+ *
+ * ⚠️ Committed as a MASK variant, not the pack file: the original draws white lines inside a black
+ * outline, both fully opaque, so a CSS mask would have turned every icon into a filled blob. The
+ * committed sheet keeps the non-black pixels only, painted white — same contract as the
+ * input-prompts sheet. See `docs/references/kenney-input-prompts-tileset.md`.
+ */
+export function getCursorSheetUrl(): string {
+  return "assets/ui/cursors/tilemap-1bit.png";
+}

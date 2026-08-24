@@ -212,6 +212,21 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   });
 
   const scene = new Scene(engine);
+
+  /*
+   * Babylon stamps `tabindex="1"` on the canvas so ITS keyboard observable can fire. We do not use
+   * that observable — the app has a single `window` keydown listener (plan 184) — and the positive
+   * tabindex cost us twice: the canvas became the FIRST tab stop of the page (a positive tabindex
+   * jumps the queue, which `.claude/rules/html.md` forbids outright), and once focused the app-wide
+   * `:focus-visible` ring drew a yellow outline around the whole battle scene (bug relevé par
+   * l'humain, 2026-08-24). `-1` keeps it focusable by script — Babylon's pointer handling needs
+   * nothing else — without ever putting it in the player's tab order.
+   *
+   * ⚠️ AFTER `new Scene(...)`, not after `new Engine(...)`: the Scene constructor attaches input
+   * control, and that is what stamps the attribute. Setting it earlier is silently overwritten
+   * (measured: the canvas was back to `tabindex="1"`).
+   */
+  canvas.tabIndex = -1;
   scene.clearColor = new Color4(
     BABYLON_CLEAR_COLOR.r,
     BABYLON_CLEAR_COLOR.g,
