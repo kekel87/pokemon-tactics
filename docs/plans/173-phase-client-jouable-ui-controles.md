@@ -1,6 +1,6 @@
 # Plan 173 — Phase « Client jouable : contrôles & UI » (consolidation)
 
-> **Statut** : ready (plan-cadre validé — le détail de chaque lot va dans son propre plan avant code)
+> **Statut** : done (2026-08-21 — **les 3 lots sont livrés et validés à la main** : Lot 3 = plans 174–182 publiés en `v2026.8.1`, Lot 1 = plan 183, Lot 2 = plan 184. Deux items sortis du périmètre en chantiers dédiés : **écran de remapping** et **refonte de l'écran de sélection d'équipe** — voir `docs/next.md`)
 > **Créé** : 2026-07-24
 > **Nature** : plan-cadre d'une phase entière. Chaque lot sera détaillé dans son propre plan au moment de l'attaquer. Ce document consolide le périmètre, l'ordre et les décisions.
 
@@ -106,6 +106,9 @@ But : rendre le combat pilotable au doigt (la douleur n°1).
 - **Overlay masquable dès la conception** : les boutons on-screen doivent être **source-aware** (cachés quand la source active est `gamepad`/clavier, ré-affichés au toucher). Le toggle est piloté par le tracker de source active (Lot 2), mais l'overlay doit exposer ce point d'accroche dès le Lot 1 — **cas mobile + manette USB-C**.
 
 ## Lot 2 — Config clavier + manette
+
+> **LIVRÉ le 2026-08-21** — plan `docs/plans/184-controles-clavier-manette.md`, décisions #776–#796. Validé à la main : clavier AZERTY/Firefox, caméra, menus, choix d'orientation, placement, **manette Switch Pro** filaire, **téléphone réel** (revalidation du tactile rapatrié) et **téléphone + manette** — le cas « first-class » ci-dessous marche effectivement **sans code spécifique**, comme prévu.
+> **Seul item de ce lot non livré : l'« écran de config » (remapping).** Décision humaine : bindings **fixes** au Lot 2, le remapping part dans un **plan dédié après**, à faire **avec** la « légende de contrôles près de la boussole » (même question : le joueur sait-il ce qu'il peut faire ?). Voir `docs/next.md`.
 
 But : confort desktop + manette (y compris **sur mobile**).
 - **Couche d'input logique + tracker de source active** (cf. Architecture) : actions remappables, `last-input-wins`.

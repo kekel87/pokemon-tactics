@@ -523,6 +523,10 @@ Route `?map=` preview retirée (non nécessaire). Suite : **Jalon 4b** (chrome c
 
 ### Prochaine étape
 
+**Phase 6.5 « Client jouable : contrôles & UI » CLOSE (2026-08-21).** Les 3 lots sont livrés **et validés à la main** (Lot 3 = plans 174–182 publiés en `v2026.8.1`, Lot 1 = plan 183 tactile, Lot 2 = plan 184 clavier/manette). **Aucune phase active.** Suite à trancher avec l'humain — options dans `docs/next.md` § À faire maintenant : chantier « légende de contrôles + écran de remapping » (à faire ensemble), chantier « refonte de l'écran de sélection d'équipe », ou une grosse phase (6 Maps & Éditeur 3D, 7 Multijoueur — désormais débloquée puisque le client est jouable, 8 Équilibrage).
+
+#### Historique (obsolète, conservé pour contexte)
+
 **Phase 4 en pause (dans main).** Plans 069–118 terminés. Roster Gen 1 complet : 80 Pokemon jouables + dummy. 177 OP sets. **393 moves implémentés.** Batches G1–G6 + B1/B2/B3 clos. **B4 clos** : plans 117 (Champs/field-terrain, 4 setter moves) + 118 (dépendants B4) terminés sur main (2026-06-09). ~121 moves restants (batches B5+). Reprendre après Phase 5 ou en parallèle sur une autre session.
 
 ### Bugs connus non corrigés

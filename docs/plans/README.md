@@ -166,7 +166,7 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 170 | [Niveaux de test e2e + sélection « affected » du diff](./170-e2e-tiers-affected.md) | done | 2026-07-23 |
 | 171 | [Zone Magique canonique complète](./171-zone-magique-canonique-complete.md) | done | 2026-07-24 |
 | 172 | [IA — positionnement pour le ring-out (Phase 2 du plan 159)](./172-ai-ring-out-positioning.md) | done | 2026-07-24 |
-| 173 | [Phase « Client jouable : contrôles & UI » (consolidation)](./173-phase-client-jouable-ui-controles.md) | ready | 2026-07-24 |
+| 173 | [Phase « Client jouable : contrôles & UI » (consolidation)](./173-phase-client-jouable-ui-controles.md) | done | 2026-07-24 |
 | 174 | [InfoPanel enrichi « tes Pokemon »](./174-infopanel-tes-pokemon.md) | done | 2026-07-24 |
 | 175 | [Combat preview (prévision de dégâts détaillée)](./175-combat-preview.md) | done | 2026-07-26 |
 | 176 | [Fog ennemi (rétention d'information sur les Pokemon adverses)](./176-fog-ennemi.md) | done | 2026-08-05 |
