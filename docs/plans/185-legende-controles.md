@@ -1,6 +1,6 @@
 # Plan 185 — Légende de contrôles près de la boussole
 
-> **Statut** : ready (revues plan + design passées le 2026-08-24, corrections intégrées)
+> **Statut** : done (2026-08-24 — livré, **validé à la main** sur desktop puis sur téléphone réel via tunnel)
 > **Créé** : 2026-08-24
 > **Phase** : suite directe du Lot 2 (plan 184), hors phase — chantier de découvrabilité
 > **Cadre** : `docs/next.md` § Reporté, « Chantier dédié : légende de contrôles près de la boussole » (demandé 2026-08-21 pendant la validation du plan 184)
@@ -20,22 +20,26 @@ Le problème n'est pas l'entrée : elle marche. C'est la **découvrabilité**. U
 | 2 | Où vit le glyphe « ça se clique » | **Tout en DOM.** Le mesh anneau (`COMPASS_ROTATE_GLYPH_*`, `compass_rotate_hint`) est **supprimé** ; la légende DOM porte le glyphe souris/doigt sur sa première ligne. Un seul chemin de rendu de glyphe, zéro plomberie `InputSource` → renderer. |
 | 3 | Lettre affichée pour la rotation | **`getLayoutMap()` + repli sur la langue du jeu.** Les bindings sont par position (`KeyQ`), donc la lettre dépend de la disposition : A en AZERTY, Q en QWERTY. |
 | 4 | Permanence | **Permanente et discrète** : toujours visible, alpha réduit comme l'ancien glyphe de boussole, `pointer-events: none`. Un réglage on/off a été **écarté** ; la revue design le remet sur la table (§ Revues), il reste réouvrable après test. |
-| 5 | Rendu | **Glyphes seuls, aucun libellé** — glyphe d'action + capuchons de touches en pixel-art 1 bit. Une seule chaîne à traduire : « pincer » au doigt. |
+| 5 | Rendu | **Glyphes seuls, aucun libellé** — dessin + capuchon de touche en pixel-art 1 bit. Aucune chaîne à traduire au final (le « pincer » prévu a disparu au profit d'une main, voir § Retours de test). |
 | 6 | Zone tapable de la boussole | **Carré, plancher 44 px.** Le proxy de picking perd son extension vers la droite (elle n'existait que pour englober le mesh anneau). La légende DOM reste inerte. |
 
-## Maquette validée
+## Rendu livré
 
 ```
-CLAVIER / SOURIS            DOIGT                      MANETTE
+SOURIS / CLAVIER              DOIGT                       MANETTE
 
- [boussole]  🖱              [boussole]  ☝              [boussole]
-            ⟲ □A □E                    (masquée)                  ⟲ □LB □RB
-            □R + □F −                ☝ pincer                     □LT + □RT −
+ [boussole] 🖱                 [boussole] ☝                 [boussole]
+   ⟲ □A   ⟳ □E                   (ligne masquée)              ⟲ □LB  ⟳ □RB
+   🔍+ □R  🔍− □F                 🔍+ ✋   🔍− 🤏               🔍+ □RT  🔍− □LT
 ```
 
-- **Ligne 1** — souris (9,3) ou main-curseur (0,17) : « la boussole se clique / se tape ». Masquée à la manette : aucune boussole à cliquer avec un pad.
-- **Ligne 2 — rotation** : anneau fléché (27,19) + les deux capuchons. **Masquée au doigt** : la boussole s'en charge, et il n'y a pas de touche.
-- **Ligne 3 — zoom** : la feuille n'a **aucune loupe** (comme elle n'a aucun glyphe tactile). Donc pas de glyphe d'action : chaque capuchon est suivi de son signe `+` / `−` **hors capuchon** — un capuchon `+` se lirait « presse la touche + », qui n'est justement pas un binding (plan 184 a écarté `Minus`/`Equal`, dont la position porte `)` en AZERTY). Au doigt : main + « pincer ».
+- **« Ça se clique »** à DROITE de la boussole, centré verticalement sur elle. Souris au pointeur fin,
+  main au pointeur grossier, **rien** à la manette (aucune boussole à cliquer avec un pad).
+- **Une entrée par sens**, et le même ordre de lecture partout : `[dessin][touche]`. La rotation est
+  masquée au doigt — la boussole tourne déjà la vue au tap, et il n'y a pas de touche à nommer.
+- **Zoom** : les loupes `+` / `−` du pack de curseurs portent le sens ; au doigt elles restent, la
+  main écartée / pincée remplaçant le capuchon. À la manette, `RT` zoome avant et `LT` arrière —
+  l'ordre des bindings, pas l'ordre de lecture.
 
 ## État des lieux vérifié dans le code (2026-08-24)
 
@@ -47,34 +51,42 @@ CLAVIER / SOURIS            DOIGT                      MANETTE
 | Glyphe de touche d'« Annuler » | `.bc-btn-key` | **Modèle de capuchon** : une tuile, `0.9em`, masqué au doigt. |
 | Source d'entrée active | `input-source.ts` → attribut `data-input-source` sur la racine (`input-system.ts`) | **Réutilisé tel quel** : la légende change d'aspect par CSS, sans re-render. |
 | Bindings caméra | `keyboard-source.ts` (`KeyQ`/`KeyE`, `Digit1-3`, `KeyR`/`KeyF`), `gamepad-source.ts` (LB/RB, LT/RT) | **Source de vérité** : les codes viennent de là, jamais recopiés. |
-| Case active de la timeline | `turn-timeline.ts` — `activeSlot.replaceChildren()` **à chaque tour** | Doit devenir un **hôte stable** ; voir étape C. |
+| Case active de la timeline | `turn-timeline.ts` — `activeSlot.replaceChildren()` **à chaque tour**, et vidée pendant une prévisualisation | **Laissée telle quelle** : la légende ne s'y accroche pas (voir § Ancrage). |
 
-### Ancrage — pourquoi la légende n'a pas besoin de `chrome-insets`
+### Ancrage — la mesure a un seul propriétaire
 
-La note de `docs/next.md` prévoyait de réutiliser la mesure de `chrome-insets.ts`. **Inutile** : cette mesure existe parce que la boussole est un *mesh* placé par arithmétique de pixels. La légende est du DOM — elle peut être **fille absolue de l'élément qu'elle longe**.
+**Deux approches ont échoué avant celle qui tient**, et elles valent d'être notées : le raisonnement
+« la légende est du DOM, donc elle peut s'ancrer sur le DOM » était juste et le résultat faux.
 
-La boussole est épinglée au **bord droit** de `.tt-active`, à son **top**, avec un côté égal à sa **hauteur**. Donc :
+1. **Fille absolue de la case active de la timeline** (`.tt-active`, `left/top: calc(100% + 6px)`).
+   Exact au repos : la boussole est épinglée au bord droit de cette case, avec un côté égal à sa
+   hauteur. Mais la case **se vide** pendant une prévisualisation de coût en CT — `buildTimelineView`
+   ne pin AUCUNE entrée comme active dans ce mode — sa boîte tombe à 0×0 et la légende s'écrase sur
+   la boussole. Bug relevé par l'humain en jouant, invisible au repos.
+2. **Réserver cette boîte en CSS** (`min-inline-size`/`min-block-size` reconstruits depuis les
+   tokens de taille du portrait). La légende tenait, mais **la boussole a bougé de ~1 px** : elle
+   mesure exactement cette boîte, donc reconstruire la taille à côté, c'est en changer une deuxième
+   — et l'arithmétique n'était juste ni au pixel ni aux points de rupture mobiles.
 
-```css
-.bc-control-legend {
-  position: absolute;
-  inset-inline-start: calc(100% + var(--bc-legend-clearance));
-  inset-block-start: calc(100% + var(--bc-legend-clearance));
-}
-```
+**Retenu** : `chrome-insets.ts` reste le **propriétaire unique** de la mesure, et les deux
+consommateurs la lisent. La sonde gagne un `subscribe(cell)` — ce dont un consommateur DOM a besoin
+et que le renderer n'a pas, lui qui relit `firstCell()` à chaque frame rendue. La légende écrit alors
+trois pixels (`--cl-compass-left/top/side`) uniquement quand la mesure change, et se place dessus.
 
-Exact par construction, sans mesure JS, sans écriture DOM par frame, et ça suit la boussole à toute taille de scène.
+Bénéfice inattendu : le cas de la prévisualisation se règle **tout seul**. La sonde garde son dernier
+bon relevé quand la boîte mesurée passe à zéro — le même mécanisme qui gardait déjà la boussole en
+place — donc légende et boussole restent immobiles ensemble (vérifié : `dx = dy = 0`).
 
-⚠️ Trois garde-fous :
-- `.tt-active` passe en **`position: relative`** (étape D) — c'est un `display: flex; flex: 0 0 auto`, l'ajout est inoffensif.
-- L'enfant reste **hors du flux**. Un enfant statique changerait la boîte de `.tt-active`, que le `ResizeObserver` de `chrome-insets` observe → la boussole se redimensionnerait à cause de sa propre légende.
-- Aucun ancêtre ne coupe le débordement : `.tt-timeline` et `.bc-left-col` n'ont pas d'`overflow` (seul `.tt-list`, qui est un **frère**).
+⚠️ Piège de positionnement rencontré : la racine de la légende est une boîte absolue de taille nulle,
+donc un `calc(100% + …)` sur ses enfants ne résout **rien** et les parquait dans le coin de la scène.
+Tous les offsets partent des trois pixels mesurés, jamais d'un pourcentage.
 
 ### Limite assumée : timeline masquée = légende masquée
 
-`turn-timeline.ts` fait `root.hidden = true` quand il n'y a aucune entrée (avant le premier tour, phase de placement). La légende, fille de la timeline, disparaît alors — et la boussole, elle, retombe sur son ancrage de repli (`COMPASS_LEFT_FRACTION`/`COMPASS_TOP_FRACTION`) puisque `firstCell()` renvoie `null`.
-
-**Assumé** : suivre la boussole dans ce cas voudrait dire répliquer l'arithmétique du renderer côté DOM, exactement ce que l'ancrage évite. La légende apparaît donc avec la timeline, au premier tour. À confirmer au human-testing : est-ce que la phase de placement paraît amputée ?
+`turn-timeline.ts` masque la timeline quand elle n'a aucune entrée (avant le premier tour, phase de
+placement) : la sonde ne mesure alors rien et la légende reste cachée jusqu'au premier tour. Suivre la
+boussole dans ce cas voudrait dire répliquer son arithmétique de repli côté DOM, exactement ce que
+l'ancrage sur la mesure évite.
 
 ## Étapes
 
@@ -125,80 +137,69 @@ export function keyLabel(code: string): string;
 
 ### C — Le composant (`packages/ui-dom/src/control-legend.ts`) — *dépend de B*
 
-**Hôte stable, tranché** : aujourd'hui `turn-timeline.ts` appelle `activeSlot.replaceChildren()` à chaque tour, donc une fille de `.tt-active` serait détruite au premier tour. On **découpe la case active en deux** :
-
-- `.tt-active` devient un **hôte stable** : plus jamais vidé, `position: relative`, c'est lui que `chrome-insets` continue d'observer (sa boîte est inchangée, il enveloppe toujours le portrait au plus juste) ;
-- une fille interne `.tt-active-portrait` reçoit désormais le `replaceChildren()` du portrait actif ;
-- `TurnTimeline` expose `readonly anchor: HTMLElement` (l'hôte stable) — `battle-chrome.ts` y insère la légende. Une propriété plutôt qu'un `querySelector` depuis le chrome : la timeline reste propriétaire de sa structure.
-
-Le composant lui-même :
-
-- `createControlLegend(config)` → `{ element }`. Trois lignes, chacune `[glyphe d'action?][capuchon + signe]…`, `aria-hidden="true"` (décoratif ; l'a11y lecteur d'écran est hors périmètre, décision #752).
-- `data-testid` (harnais e2e, cf. `.claude/rules/e2e.md`) : `control-legend` sur la racine, `control-legend-tap` / `control-legend-rotate` / `control-legend-zoom` sur les trois lignes.
-- `ui-dom` ne peut pas importer `packages/app` : l'hôte passe les étiquettes. Nouveau membre de `UiDomConfig` :
-  ```ts
-  /** Étiquette de touche à dessiner pour un `KeyboardEvent.code` (dépend de la disposition). */
-  getKeyLabel(code: string): string;
-  ```
-  Câblé dans `combat-screen.ts` sur `keyLabel` de l'étape B, comme les autres accès de config.
-- La lettre est traduite en coordonnées de tuile par une table `CHARACTER_TILE` interne au composant (relevé de l'étape A). Caractère inconnu → la ligne se replie sur le capuchon générique déjà en service (17,4).
-- « pincer » passe par `config.translate("controls.pinch")` (clés `fr` + `en` + `types.ts`).
-- `--bc-legend-clearance` est posée **en JS à la construction**, depuis la constante exportée : `element.style.setProperty("--bc-legend-clearance", \`${CHROME_CLEARANCE_PX}px\`)` — même patron que l'URL de la feuille. Une seule constante pour le dégagement du mesh et celui du DOM, impossible de les faire diverger.
+- `createControlLegend(config, insets)` → `{ element }`, monté par `battle-chrome.ts` dans la couche
+  écran (`host`), qui partage l'origine de la scène (`#game-overlay` est en `inset: 0`). Le chrome
+  crée sa propre sonde `createChromeInsetProbe(host)` : `host` contient la timeline et sert de repère,
+  donc la légende n'a besoin d'aucun accès au DOM de la timeline.
+- `aria-hidden="true"` : décoratif (l'a11y lecteur d'écran est hors périmètre, décision #752).
+- Chaque dessin déclare **sa feuille par classe** (`cl-sheet-prompts` 34×24, `cl-sheet-cursors` 20×11)
+  et son `data-testid` : la légende n'a ni rôle ni texte, donc c'est le seul accroche-test légitime, et
+  la tuile se lit comme une **valeur** (propriétés personnalisées calculées), pas comme une capture.
+- Le rôle d'une entrée (`rotate-left`, `zoom-in`…) part en `data-cl-role`, ce qui permet au CSS de
+  nommer le capuchon qu'il remplace à la manette. **Pas de `:nth-of-type`** : tous les enfants d'une
+  ligne sont des `<span>`, donc l'index comptait aussi le dessin et décalait chaque capuchon d'un
+  cran (bug attrapé au self-check).
+- `ui-dom` ne peut pas importer `packages/app` : l'hôte passe les étiquettes de touches via un nouveau
+  membre `UiDomConfig.getKeyLabel(code)`, câblé sur `keyLabel` (étape B). La lettre devient une tuile
+  par la table `CHARACTER_TILE` ; caractère inconnu → capuchon générique (17,4).
 
 ### D — Le style (`packages/ui-dom/src/styles/control-legend.css`)
 
-- `.tt-active { position: relative; }` (dans `turn-timeline.css`) + le positionnement absolu décrit en « Ancrage ».
-- Capuchons et glyphes : patron de `.bc-btn-key` — masque sur la feuille, `background-color: currentcolor`, `image-rendering: pixelated`, taille en `em`, coordonnées en custom properties.
-- ⚠️ **Jamais** de `calc(longueur / longueur)` (décision #775 : accepté par Chromium, toute la déclaration jetée par Firefox, sans erreur console).
-- Alpha `0.72` repris de l'ancien mesh, `pointer-events: none`.
-- Visibilité par source — **même ordre de précédence que `.bc-input-glyph`** : la requête média est le défaut « rien d'observé encore », `data-input-source` surcharge.
-
-```css
-.bc-control-legend-rotate { /* visible par défaut (souris/clavier) */ }
-
-@media (pointer: coarse) {
-  .bc-control-legend-rotate { display: none; }        /* la boussole s'en charge */
-}
-:where([data-input-source="touch"]) .bc-control-legend-rotate { display: none; }
-:where([data-input-source="keyboard"]) .bc-control-legend-rotate { display: flex; }
-:where([data-input-source="gamepad"]) .bc-control-legend-tap { display: none; }
-```
-
-| | Ligne 1 (clic/tap) | Ligne 2 (rotation) | Ligne 3 (zoom) |
-|---|---|---|---|
-| souris (défaut fin) | souris (9,3) | ⟲ + `A` `E` | `R` + / `F` − |
-| doigt (`pointer: coarse`, `touch`) | main (0,17) | **masquée** | main + « pincer » |
-| clavier | souris (9,3) | ⟲ + `A` `E` | `R` + / `F` − |
-| manette | **masquée** | ⟲ + `LB` `RB` | `LT` + / `RT` − |
+- Positionnement : voir § Ancrage — trois pixels mesurés (`--cl-compass-left/top/side`), zéro
+  pourcentage, zéro `aspect-ratio` déduit.
+- Capuchons et dessins : patron de `.bc-btn-key` — masque sur la feuille, `background-color:
+  currentcolor`, `image-rendering: pixelated`, coordonnées en propriétés personnalisées. La grille de
+  la feuille est elle aussi une propriété, puisque les deux packs n'ont pas la même.
+- Taille plancher à **16 px**, une tuile source : en dessous, le plus proche voisin *réduit* le dessin
+  1 bit et supprime des rangées entières de pixels — mesuré à 14,6 px sur une petite scène, les
+  lettres étaient illisibles. Même plancher que l'ancien mesh.
+- ⚠️ **Jamais** de `calc(longueur / longueur)` (décision #775 : accepté par Chromium, toute la
+  déclaration jetée par Firefox, sans erreur console).
+- Visibilité par source — **même ordre de précédence que `.bc-input-glyph`** : la requête média est le
+  défaut « rien d'observé encore », `data-input-source` surcharge (c'est ce qui fait qu'une manette
+  branchée sur un téléphone rhabille la légende sans re-render).
 
 ### E — Retirer le mesh anneau
 
-Dans `babylon-compass.ts` : `createRotateHint`, le champ `rotateHint`, son bloc dans `pinToCorner`, son `dispose`, les constantes `COMPASS_ROTATE_GLYPH_*` et `INPUT_PROMPT_SHEET_*`. Le proxy de picking redevient un **carré** : `hitWidthPx = hitHeightPx = max(footprintPx, COMPASS_MIN_HIT_PX)`, sans `proxyOffsetX`. Vérifier les imports devenus morts (`Texture` sûrement ; `StandardMaterial` reste utilisé par le mesh boussole).
+Dans `babylon-compass.ts` : `createRotateHint`, le champ `rotateHint`, son bloc dans `pinToCorner`,
+son `dispose`, les constantes `COMPASS_ROTATE_GLYPH_*` / `INPUT_PROMPT_SHEET_*` et l'import `Texture`
+devenu mort. Le proxy de picking redevient un **carré** de côté `max(footprint, 44)` — mais qui croît
+toujours **vers la droite seulement** : centré sur l'aiguille, son bord gauche passait ~4 px À
+L'INTÉRIEUR du portrait de la timeline (mesuré en e2e), ce qui rendait un tap au bord du portrait
+capable de tourner la caméra. C'est la raison qui interdisait déjà la croissance vers la gauche.
 
-Zéro tolérance au code mort : la section **« Deuxième chemin de rendu : dans la scène Babylon »** de `docs/references/kenney-input-prompts-tileset.md` disparaît avec lui (UV flipées, `NEAREST`, alpha-blend, demi-pas de 8 px), remplacée par une ligne d'historique — la contrainte de demi-pas (décision #774) n'a plus de sujet.
+La section « Deuxième chemin de rendu : dans la scène Babylon » du doc de référence disparaît avec le
+mesh (UV flipées, `NEAREST`, alpha-blend, demi-pas de 8 px) — la contrainte de demi-pas (décision
+#774) n'a plus de sujet.
 
 ### F — Tests
 
-`e2e/tests/combat/compass-rotate-hint.spec.ts` (190 lignes, 4 tests) → renommé `compass-and-legend.spec.ts`. Sort de chaque test existant :
+`compass-rotate-hint.spec.ts` → `compass-and-legend.spec.ts`, **6 tests verts** :
 
-| Test actuel | Sort |
+| Test | Ce qu'il tient |
 |---|---|
-| « glyphe posé à droite de la boussole » (interroge `meshInfo("compass_rotate_hint")`) | **Supprimé** — le mesh n'existe plus. Remplacé par l'assertion DOM « légende posée sous la boussole ». |
-| « la zone tapable couvre le glyphe » (`meshViewportBox(HINT)`) | **Réécrit** : la zone tapable est un **carré** — côté = `max(hauteur du portrait, 44)`, et son **bord droit ne dépasse plus** le bord droit de la boussole (contre-épreuve directe de l'étape E). Signaux : `meshScreenBox("compass")` + `meshViewportBox("compass_pick_proxy")`, tous deux déjà exposés par le hook. |
-| « cliquer le glyphe fait tourner la vue » | **Réécrit** : le clic tombe au **centre de la boussole** (`meshViewportBox("compass_pick_proxy")`), plus sur le glyphe. Le signal de rotation est inchangé : la position **monde** du mesh boussole, reprojetée à chaque frame, qui ne bouge que quand la caméra tourne. |
-| « cliquer juste sous la boussole ne tourne pas » | **Conservé**, la borne devient le bas du carré (la contre-épreuve reste dans le même test). |
+| zone tapable carrée ancrée sur le portrait | côté = `max(hauteur du portrait, 44)`, bord gauche = bord droit du portrait + dégagement (donc pas de croissance vers la gauche) |
+| cliquer la boussole fait tourner la vue | vraie pression souris ; **signal = position monde du PROXY**, pas du mesh `compass` : celui-ci est enfant du nœud racine, donc sa `position` est locale et vaut (0,0,0) à jamais — piège qui a fait échouer la première version du test |
+| cliquer sous la boussole ne tourne pas | avec contre-épreuve dans le même test |
+| légende posée à droite et sous la boussole | comparaison de boîtes contre le **carré de la boussole** reconstruit depuis le portrait, pas contre le proxy (qui peut être plus grand à cause du plancher tactile) |
+| la légende suit la source d'entrée | pilotée par une vraie frappe puis un vrai tap (`tapTile` émet un `pointerType: "touch"`) ; vérifie aussi les tuiles des gestes |
+| la légende ne bouge pas quand la timeline perd son entrée active | rejoue la prévisualisation de coût en CT — le bug relevé par l'humain |
 
-Ajouts, en DOM cette fois (locators, plus de projection de mesh) :
+`input-prompt-glyph.spec.ts` gagne 2 tests (feuille input-prompts en pointeur fin, feuille de curseurs
+au doigt) → **12 verts**. Unit : `key-legend.test.ts`, **6 verts**.
 
-- la légende est visible et posée **sous** la boussole : comparaison de boîtes — `boundingBox()` de `[data-testid="control-legend"]` contre `meshViewportBox("compass")` (bord haut de la légende sous le bord bas de la boussole, bords gauches alignés au dégagement près) ;
-- les lignes attendues par source, en pilotant `data-input-source` par une **vraie entrée** (une frappe clavier, un tap via `tapTile`) et non en écrivant l'attribut : ligne 1 masquée à la manette, ligne 2 masquée au doigt ;
-- **ligne rotation absente** sur le projet mobile ;
-- les capuchons portent les bonnes tuiles. Playwright **peut** lire une custom property — `locator.evaluate(el => getComputedStyle(el).getPropertyValue("--bc-glyph-col"))` — donc l'assertion est une valeur, pas une capture d'écran ;
-- la boussole **ne change pas de taille** quand la légende est montée (garde-fou de l'ancrage : le test de taille existant face au portrait est conservé).
-
-Restent 👁 : le dessin des tuiles, le sens perçu de l'anneau, la lecture au doigt sur téléphone réel.
-
-Unit : `key-legend.test.ts` (étape B). Rien d'autre — le DOM est couvert par l'e2e.
+Restent 👁 : le dessin des tuiles, le sens perçu des flèches de rotation, la lecture au doigt sur
+téléphone réel.
 
 ### G — Docs
 
@@ -219,16 +220,54 @@ Unit : `key-legend.test.ts` (étape B). Rien d'autre — le DOM est couvert par 
 - **Écart au genre assumé** : FFT/FFTA n'annoncent rien, Triangle Strategy montre des prompts **transitoires**, Into the Breach met tout dans un menu. Notre permanence se justifie par un contexte qu'aucun d'eux n'a : navigateur, pas de manuel, et **trois modalités d'entrée coexistant sur le même appareil** (le cas « téléphone + manette » du plan 184). La revue recommande d'exposer le réglage on/off **dès la livraison** ; l'humain a tranché « permanente » le 2026-08-24 → on livre sans réglage, réouvrable après test.
 - **Trou hors périmètre à documenter** : rien n'indique que la liste CT défile (`scrollbar-width: none` est délibéré, et `PageUp`/`PageDown` ne sont annoncés nulle part). Ni cette légende ni aucune décision ne le couvrent → à verser en § Reporté de `docs/next.md`, pas à traiter ici.
 
+## Retours de test (humain, 2026-08-24)
+
+La première version livrée suivait la maquette validée (trois lignes empilées sous la boussole,
+capuchon + signe `+`/`−`, mains du pack input-prompts). Six retours l'ont refaite :
+
+1. **le glyphe « ça se clique » part à DROITE de la boussole**, centré verticalement, au lieu d'être
+   la première ligne de la pile ;
+2. **une entrée par sens de rotation** au lieu d'un anneau partagé ;
+3. **intégration du pack Kenney `cursor-pixel-pack`** (CC0) pour ses **loupes `+` / `−`** — la feuille
+   input-prompts n'a aucune loupe, ce qui avait forcé le contournement « capuchon + signe » ;
+4. **même ordre partout** : `[dessin][touche]` sur les deux lignes ;
+5. **zoom tactile aligné sur deux icônes** (le pack a une paire pincement / écartement), ce qui a fait
+   disparaître le mot « pincer » — et donc la clé i18n `controls.pinch`, jamais livrée ;
+6. **le tap du nouveau pack remplace l'ancien PARTOUT**, ligne d'instruction comprise.
+
+Puis, après un second passage : les loupes doivent **rester** sur la ligne tactile, la main disant le
+geste et la loupe le sens — donc `[loupe][main]`, la même forme que `[loupe][touche]`.
+
+### Intégration du pack de curseurs
+
+Le pack dessine des **lignes blanches dans un contour noir opaque**. En masque CSS, seul l'alpha
+compte : contour et remplissage étant tous deux opaques, chaque icône devenait un **pâté**. La
+variante commitée (`packages/app/public/assets/ui/cursors/tilemap-1bit.png`, 3 Ko) ne garde que les
+pixels **non noirs**, peints en blanc — même contrat que la feuille input-prompts, détail préservé
+(vérifié à la loupe avant intégration). L'original n'est pas commité.
+
+### Deux bugs trouvés pendant les tests
+
+- **Légende écrasée sur la boussole pendant une prévisualisation de coût en CT** — cause et correctif
+  en § Ancrage. Relevé par l'humain en jouant, invisible au repos.
+- **Liseré de focus jaune autour de toute la scène de combat** (hors périmètre de ce plan, corrigé au
+  passage). Babylon stampe `tabindex="1"` sur le canvas : celui-ci devenait le **premier arrêt de
+  tabulation** de la page (un `tabindex` positif passe devant tout, ce que `.claude/rules/html.md`
+  interdit) et le liseré `:focus-visible` global — posé au plan 184 — l'entourait dès qu'il prenait le
+  focus. Corrigé par `canvas.tabIndex = -1` **après `new Scene(...)`** (c'est le constructeur de
+  `Scene` qui attache l'entrée et stampe l'attribut : le poser après `new Engine(...)` est écrasé
+  silencieusement, mesuré) + `#game-canvas:focus { outline: none }` en ceinture et bretelles.
+
 ## Risques
 
-| Risque | Parade |
+| Risque | Sort |
 |---|---|
-| Légende + timeline se lisent comme un fouillis | Alpha 0.72, `pointer-events: none`, et un scénario de human-testing qui juge **les deux ensemble** (revue design). Purement additif : rien à défaire si l'humain dit non. |
-| Débordement sur le plateau en scène étroite (téléphone) | Au doigt il ne reste **qu'une ligne**, dans le couloir de la timeline. Revalidation 👁 téléphone réel. |
-| La légende change la boîte de `.tt-active` → la boussole grossit | Enfant **absolu** obligatoire + hôte stable qui enveloppe toujours le portrait au plus juste, et un test e2e sur la taille de la boussole. |
-| `getLayoutMap()` renvoie une lettre hors feuille | Filtre `A-Z0-9` sur un seul caractère + repli langue + repli capuchon générique (17,4). |
-| Zone tapable de la boussole rétrécie (~125 → 79 px de large en 4K) | Conséquence assumée de la décision 6, plancher 44 px conservé. **À revalider au doigt.** |
-| Le sens de l'anneau se lit à l'envers (déjà arrivé le 2026-08-20) | Une seule tuile d'abord ; la paire miroir n'est proposée qu'**en jeu**, jamais depuis la planche. |
+| Légende + timeline se lisent comme un fouillis | **Levé** : validé à la main sur desktop puis sur téléphone réel, la légende jugée en place, pas en isolation. Purement additive de toute façon. |
+| Débordement sur le plateau en scène étroite (téléphone) | **Levé** au test sur téléphone réel : au doigt il ne reste qu'une ligne, dans le couloir de la timeline. |
+| La légende change la boîte que la boussole mesure | **Arrivé**, puis levé : c'est le deuxième échec du § Ancrage. La légende ne touche plus au DOM de la timeline, un test e2e garde la géométrie. |
+| `getLayoutMap()` renvoie une lettre hors feuille | Filtre `A-Z0-9` sur un seul caractère + repli langue + repli capuchon générique (17,4), couvert par le test unitaire. |
+| Zone tapable de la boussole rétrécie (~125 → 79 px de large en 4K) | Conséquence assumée de la décision 6, plancher 44 px conservé, croissance vers la droite préservée. Validé au doigt sur téléphone réel. |
+| Le sens des flèches de rotation se lit à l'envers (déjà arrivé le 2026-08-20) | Paire miroir proposée **en jeu**, jamais depuis la planche : validée telle quelle par l'humain. Permuter les deux colonnes du CSS suffirait si ça se retournait. |
 
 ## Hors périmètre
 

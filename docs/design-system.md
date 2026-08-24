@@ -321,6 +321,43 @@ CC0) — géométrie complète, tuiles retenues et contraintes d'intégration da
 
 ---
 
+## Légende de contrôles près de la boussole (plan 185, 2026-08-24)
+
+Élément DOM permanent (`packages/ui-dom/src/control-legend.ts` + `styles/control-legend.css`),
+monté par `battle-chrome.ts`, ancré sur la même mesure que le renderer utilise pour épingler la
+boussole (`chrome-insets.ts`, doté d'un `subscribe`) — une mesure, deux consommateurs en lecture.
+
+- **Disposition** : glyphe « ça se clique » (souris ou main) à **droite** de la boussole, centré
+  verticalement ; en dessous, une ligne **rotation** puis une ligne **zoom**, chaque entrée lisant
+  `[dessin][touche]` (ex. `⟲ A` / `⟳ E`, loupe `+` `R` / loupe `−` `F`).
+- **Alpha permanent 0,72**, `pointer-events: none` — ce n'est jamais un contrôle, seulement de la
+  lecture.
+- **Source d'entrée en CSS pur** : `data-input-source` sur la racine, `@media (pointer: coarse)`
+  servant de défaut « rien d'observé encore » — même ordre de précédence que `.bc-input-glyph`
+  (§ Glyphe de geste attendu ci-dessus).
+  - **Manette** : pas de glyphe de clic ; `LB`/`RB` pour la rotation, `RT`/`LT` pour le zoom (`RT` =
+    zoom avant, conforme à `gamepad-source.ts`).
+  - **Tactile** : ligne rotation **masquée** (taper la boussole tourne déjà la vue) ; zoom = mêmes
+    loupes, accompagnées d'une main écartée (zoom avant) / pincée (zoom arrière).
+- **Étiquette de touche selon la disposition clavier** : `packages/app/src/input/key-legend.ts`
+  résout `navigator.keyboard.getLayoutMap()` (Chromium, contexte sécurisé requis) avec repli sur la
+  langue du jeu (FR → `A`, EN → `Q` pour `KeyQ` — la seule position qui diverge). Piège documenté
+  dans `docs/references/kenney-input-prompts-tileset.md` § Capuchons de touches : la feuille dessine
+  une légende QWERTY, donc `KeyQ` doit se dessiner avec la tuile `A` pour un joueur AZERTY.
+- **Glyphes de gestes tactiles (loupes, mains)** : pack Kenney `cursor-pixel-pack` (CC0), commité en
+  variante masque (`packages/app/public/assets/ui/cursors/tilemap-1bit.png`) — l'original dessine
+  des traits blancs dans un contour noir opaque, incompatible avec un masque CSS ; géométrie et
+  tuiles en service : `docs/references/kenney-input-prompts-tileset.md` § Deuxième feuille. Le tap
+  (main qui appuie) est désormais dessiné par cette feuille **partout**, y compris la ligne
+  d'instruction (`.bc-input-glyph`), qui change de feuille et de grille ensemble avec la légende.
+- **Mesh anneau de rotation supprimé** de `babylon-compass.ts` (deuxième chemin de rendu de glyphe,
+  cf. § Glyphe de geste attendu) : la ligne rotation de la légende le remplace. Le proxy de picking
+  de la boussole redevient un **carré** (plancher 44 px) là où il s'étirait pour englober le glyphe ;
+  il garde sa croissance **vers la droite seulement**, sans quoi le plancher tactile le ferait mordre
+  sur le portrait de la timeline.
+
+---
+
 ## UI — Menus et boutons
 
 ### Boutons standards (menus)
@@ -1131,16 +1168,16 @@ La boussole (`compass.glb`, mesh voxel) est repositionnée/redimensionnée chaqu
 
 Décision #688.
 
-**Glyphe de rotation (chantier « aide visuelle des gestes attendus », 2026-08-20)** : un plan
-texturé (`BILLBOARDMODE_ALL`, `Texture.NEAREST_SAMPLINGMODE`, alpha-**blend** à
-`COMPASS_ROTATE_GLYPH_ALPHA = 0.72`) affiche la même feuille Kenney 1-bit à droite de la boussole,
-sur le groupe HUD. UV calculées dans le repère flipé de Babylon (`invertY` actif par défaut — voir
-`docs/references/babylon-gotchas.md`). Tuile **colonne 27, ligne 19**
-(`COMPASS_ROTATE_GLYPH_COLUMN`/`_ROW`) — choisie par l'humain **contre** la lecture géométrique du
-sens de rotation (décision #772). Taille alignée sur un **demi-pas de 8px**
-(`COMPASS_ROTATE_GLYPH_STEP_PX`), seule exception à la règle du facteur entier des glyphes CSS
-(décision #774). Le proxy de picking de la boussole (§ ci-dessus) s'étend vers la droite seulement
-pour englober ce glyphe — une seule zone tapable, pas un second contrôle.
+**Glyphe de rotation dans la scène — SUPPRIMÉ au plan 185** (2026-08-24, décision #801). Un plan
+texturé affichait la feuille Kenney 1-bit à droite de la boussole, sur le groupe HUD (tuile colonne
+27 / ligne 19, alpha-blend 0,72, demi-pas de 8 px — décisions #772 et #774). C'était le **second des
+deux chemins de rendu de glyphe** du jeu ; la ligne rotation de la légende DOM le remplace
+(§ Légende de contrôles près de la boussole). Conservé ici comme historique : les constantes
+`COMPASS_ROTATE_GLYPH_*` n'existent plus, et la règle du demi-pas n'a plus de sujet.
+
+Le proxy de picking de la boussole n'a donc plus de glyphe à englober : il redevient **carré**
+(plancher 44 px), tout en gardant sa croissance **vers la droite seulement** — centré sur l'aiguille,
+son bord gauche mordait ~4 px sur le portrait de la timeline.
 
 ---
 
