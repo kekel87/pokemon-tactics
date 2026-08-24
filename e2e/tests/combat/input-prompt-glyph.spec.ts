@@ -23,6 +23,17 @@ const INSTRUCTION = "combat-instruction";
 const suffix = (glyph: Locator): Promise<string> =>
   glyph.evaluate((node) => getComputedStyle(node, "::after").content);
 
+/** Feuille de tuiles en vigueur pour le dessin, plus sa grille : les deux feuilles n'ont pas la même
+ *  géométrie (input-prompts 34×24, curseurs 20×11), donc elles doivent bouger ensemble. */
+const sheet = (glyph: Locator): Promise<{ url: string; columns: string }> =>
+  glyph.evaluate((node) => {
+    const icon = node.firstElementChild ?? node;
+    return {
+      url: getComputedStyle(icon).maskImage,
+      columns: getComputedStyle(node).getPropertyValue("--bc-glyph-cols").trim(),
+    };
+  });
+
 test("§4.8 sélection de cible : un geste simple, et le texte de la pastille est intact", async ({
   page,
   bootSandbox,
@@ -120,6 +131,20 @@ test("§4.8 à la souris, aucun suffixe « ×2 » même sur une phase directionn
   expect(await suffix(page.getByTestId(GLYPH))).toBe("none");
 });
 
+test("§4.8 en pointeur fin, le dessin vient de la feuille input-prompts", async ({
+  page,
+  bootSandbox,
+}) => {
+  await bootSandbox(DUEL);
+
+  await page.getByRole("button", { name: "Attaque", exact: true }).click();
+  await page.getByTestId("move-item").first().click();
+
+  const { url, columns } = await sheet(page.getByTestId(GLYPH));
+  expect(url).toContain("/input-prompts/");
+  expect(columns).toBe("34");
+});
+
 test.describe("§4.8 pointeur grossier (au doigt)", () => {
   // `hasTouch` fait matcher `@media (pointer: coarse)`, la seule condition du suffixe et du dessin
   // de main. Téléphone paysage, la taille de référence du chrome mobile (§4.16).
@@ -133,6 +158,24 @@ test.describe("§4.8 pointeur grossier (au doigt)", () => {
 
     await expect(page.getByTestId(GLYPH)).toHaveAttribute("data-glyph", "act-twice");
     expect(await suffix(page.getByTestId(GLYPH))).toBe('"×2"');
+  });
+
+  test("§4.8 le tap est dessiné par la feuille de curseurs, comme dans la légende", async ({
+    page,
+    bootSandbox,
+  }) => {
+    await bootSandbox(DUEL);
+
+    await page.getByRole("button", { name: "Attaque", exact: true }).click();
+    await page.getByTestId("move-item").first().click();
+
+    // « Le tap, tu le remplaces partout » (demande humaine 2026-08-24) : la main du pack de curseurs
+    // remplace celle d'input-prompts, ici comme dans la légende de contrôles. La FEUILLE et sa
+    // grille changent ensemble — une grille restée à 34×24 décalerait la tuile sans rien casser
+    // d'autre, donc les deux sont vérifiées.
+    const { url, columns } = await sheet(page.getByTestId(GLYPH));
+    expect(url).toContain("/cursors/");
+    expect(columns).toBe("20");
   });
 
   test("§4.8 une phase à geste simple n'affiche pas de suffixe", async ({ page, bootSandbox }) => {

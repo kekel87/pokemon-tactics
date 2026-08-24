@@ -20,16 +20,20 @@ const NORTH_TILE = { x: 2, y: 2 };
 const SOUTH_TILE = { x: 2, y: 4 };
 
 /**
- * Attend que la rotation de caméra ait fini de s'animer. Le glyphe de la boussole est épinglé à
- * l'écran, donc sa position MONDE est reprojetée à chaque frame pendant que la vue orbite : elle
+ * Attend que la rotation de caméra ait fini de s'animer. La zone tapable de la boussole est épinglée
+ * à l'écran, donc sa position MONDE est reprojetée à chaque frame pendant que la vue orbite : elle
  * cesse de bouger quand la rotation est arrivée. Sans cette attente, la flèche suivante serait
  * mesurée sur une caméra à mi-course, entre deux axes de grille.
+ *
+ * ⚠️ Ce mesh-ci et pas `compass` : l'aiguille est enfant du nœud racine de la boussole, donc sa
+ * `position` est locale et ne bouge jamais. (Avant le plan 185, c'était le glyphe d'anneau, mesh
+ * depuis supprimé.)
  */
 async function waitForCameraSettled(scene: {
   meshInfo(name: string): Promise<{ position: { x: number; y: number; z: number } } | null>;
 }): Promise<void> {
   const position = async (): Promise<string> =>
-    JSON.stringify((await scene.meshInfo("compass_rotate_hint"))?.position ?? null);
+    JSON.stringify((await scene.meshInfo("compass_pick_proxy"))?.position ?? null);
   let previous = "";
   await expect
     .poll(async () => {
