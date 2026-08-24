@@ -57,7 +57,7 @@ import {
 } from "../input/focus-navigation.js";
 import { InputSource } from "../input/input-source.js";
 import { getInputSystem } from "../input/input-system.js";
-import { keyLabel } from "../input/key-legend.js";
+import { cameraKeyLabels } from "../input/key-legend.js";
 import { attachPointerSource, type PointerSource } from "../input/pointer-source.js";
 import {
   isFullscreen,
@@ -211,6 +211,13 @@ function runBattle(options: {
   backend: RendererBackend;
   combat: CombatScene;
   stage: GameStage;
+  /**
+   * The ONE probe measuring the timeline's first portrait, owned by `mountContent` (which disposes
+   * it). Both consumers read it: the renderer pins the compass to it, the DOM chrome places the
+   * control legend on it (plan 185). A second probe would mean two `ResizeObserver` on the same
+   * element and two reference boxes — and a lifecycle nobody owns.
+   */
+  insets: ChromeInsetProbe;
   battle: BattleSetupResult;
   handles: ReadonlyMap<string, CombatPokemonHandle>;
   onExit: () => void;
@@ -240,6 +247,7 @@ function runBattle(options: {
     backend,
     combat,
     stage,
+    insets,
     battle,
     handles,
     onExit,
@@ -263,12 +271,13 @@ function runBattle(options: {
     getWeatherIconUrl,
     getInputPromptSheetUrl,
     getCursorSheetUrl,
-    getKeyLabel: keyLabel,
+    getCameraKeyLabels: cameraKeyLabels,
     getPortraitUrl,
     getItemIconUrl,
   };
   const chrome = createBattleChrome({
     host: stage.screenLayer,
+    insets,
     onExit: () => {
       // Leaving for the menu abandons the battle: its save must go with it, or the menu would offer to
       // resume a battle the player just quit.
@@ -552,6 +561,7 @@ function startBattleLoop(
   backend: RendererBackend,
   combat: CombatScene,
   stage: GameStage,
+  insets: ChromeInsetProbe,
   map: MapDefinition,
   mapUrl: string,
   setup: CombatSetup,
@@ -573,6 +583,7 @@ function startBattleLoop(
     backend,
     combat,
     stage,
+    insets,
     battle,
     handles: result.handles,
     mapUrl,
@@ -594,6 +605,8 @@ function runResolvedBattle(options: {
   backend: RendererBackend;
   combat: CombatScene;
   stage: GameStage;
+  /** See `runBattle`: the single chrome-inset probe, owned by `mountContent`. */
+  insets: ChromeInsetProbe;
   battle: BattleSetupResult;
   handles: ReadonlyMap<string, CombatPokemonHandle>;
   mapUrl: string;
@@ -603,8 +616,19 @@ function runResolvedBattle(options: {
   onReplay: () => void;
   initialLogEvents?: readonly BattleEvent[];
 }): BattleOrchestrator {
-  const { backend, combat, stage, battle, handles, mapUrl, inputs, navigate, signal, onReplay } =
-    options;
+  const {
+    backend,
+    combat,
+    stage,
+    insets,
+    battle,
+    handles,
+    mapUrl,
+    inputs,
+    navigate,
+    signal,
+    onReplay,
+  } = options;
   const store = battleResumeStore();
   const persist = (): void => {
     const replay = battle.engine.exportReplay();
@@ -627,6 +651,7 @@ function runResolvedBattle(options: {
     backend,
     combat,
     stage,
+    insets,
     battle,
     handles,
     signal,
@@ -682,6 +707,7 @@ function startResumedBattle(
   backend: RendererBackend,
   combat: CombatScene,
   stage: GameStage,
+  insets: ChromeInsetProbe,
   map: MapDefinition,
   save: BattleResumeSave,
   navigate: Navigate,
@@ -699,6 +725,7 @@ function startResumedBattle(
     backend,
     combat,
     stage,
+    insets,
     battle,
     handles: spawnBillboardsFromState(combat, battle.state),
     mapUrl: save.mapUrl,
@@ -758,6 +785,8 @@ function startSandboxBattle(options: {
   backend: RendererBackend;
   combat: CombatScene;
   stage: GameStage;
+  /** See `runBattle`: the single chrome-inset probe, owned by `mountContent`. */
+  insets: ChromeInsetProbe;
   map: MapDefinition;
   config: SandboxConfig;
   onExit: () => void;
@@ -766,8 +795,18 @@ function startSandboxBattle(options: {
   /** Report the engine-resolved spawn tiles back to the studio panel. */
   onPositionsResolved?: (resolved: ResolvedSpawn[]) => void;
 }): BattleOrchestrator {
-  const { backend, combat, stage, map, config, onExit, signal, onReplay, onPositionsResolved } =
-    options;
+  const {
+    backend,
+    combat,
+    stage,
+    insets,
+    map,
+    config,
+    onExit,
+    signal,
+    onReplay,
+    onPositionsResolved,
+  } = options;
   const seed = resolveSandboxSeed(config);
   const battle = createSandboxBattle({ ...config, seed }, map);
   // Includes a member that starts fainted (hp:0 ally for Vœu Soin / revive scenarios).
@@ -790,6 +829,7 @@ function startSandboxBattle(options: {
     backend,
     combat,
     stage,
+    insets,
     battle,
     handles,
     onExit,
@@ -950,6 +990,7 @@ export function mountSandboxStudio(
       backend,
       combat: activeCombat,
       stage: activeStage,
+      insets: probe,
       map: loaded.map,
       config,
       onExit: () => {
@@ -1076,6 +1117,7 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
           backend,
           activeCombat,
           activeStage,
+          probe,
           loaded.map,
           resume,
           navigate,
@@ -1145,6 +1187,7 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
           backend,
           activeCombat,
           activeStage,
+          probe,
           map,
           params.mapUrl,
           setup,

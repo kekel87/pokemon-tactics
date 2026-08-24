@@ -34,7 +34,7 @@ import { getLanguage, t } from "../i18n/index.js";
 import type { TranslationKey } from "../i18n/types.js";
 import { InputSource } from "../input/input-source.js";
 import { getInputSystem } from "../input/input-system.js";
-import { keyLabel } from "../input/key-legend.js";
+import { cameraKeyLabels } from "../input/key-legend.js";
 import {
   getCategoryIconUrl,
   getCursorSheetUrl,
@@ -52,7 +52,7 @@ const PLACEMENT_UI_CONFIG: UiDomConfig = {
   getWeatherIconUrl,
   getInputPromptSheetUrl,
   getCursorSheetUrl,
-  getKeyLabel: keyLabel,
+  getCameraKeyLabels: cameraKeyLabels,
   getPortraitUrl,
   getItemIconUrl,
 };

@@ -12,7 +12,6 @@ export * from "./battle-log.js";
 export * from "./chrome-insets.js";
 export * from "./config.js";
 export * from "./constants.js";
-export * from "./control-legend.js";
 export * from "./form-controls.js";
 export * from "./fullscreen-button.js";
 export * from "./game-stage.js";

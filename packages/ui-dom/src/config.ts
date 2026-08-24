@@ -8,6 +8,14 @@ import type { I18nContext } from "@pokemon-tactic/render-ports";
  * Shares `translate` / `getLanguage` / `getPortraitUrl` with `PresentationContext`
  * via the common `I18nContext`.
  */
+/** Key characters the control legend draws, keyed by the camera control they trigger (plan 185). */
+export interface CameraKeyLabels {
+  readonly rotateLeft: string;
+  readonly rotateRight: string;
+  readonly zoomIn: string;
+  readonly zoomOut: string;
+}
+
 export interface UiDomConfig extends I18nContext {
   /** Type-badge icon URL for an elemental type id. */
   getTypeIconUrl(type: string): string;
@@ -20,9 +28,12 @@ export interface UiDomConfig extends I18nContext {
   /** Kenney 1-bit cursor tilesheet — magnifiers, pinch, rotation pair, pointing hand (plan 185). */
   getCursorSheetUrl(): string;
   /**
-   * Character to DRAW for a physical key position (plan 185). The bindings are by position
-   * (`KeyboardEvent.code`), so the character depends on the layout — `KeyQ` is Q on QWERTY and A on
-   * AZERTY. Resolved by the host (`key-legend.ts`), which owns both the bindings and the layout.
+   * Characters to DRAW on the camera-control legend (plan 185), one per control.
+   *
+   * The host resolves them, because it owns both halves: which physical key each control is bound to
+   * (`keyboard-source.ts`, by `KeyboardEvent.code`) and which character that key carries on the
+   * player's layout (`key-legend.ts` — `KeyQ` is Q on QWERTY, A on AZERTY). `ui-dom` therefore never
+   * names a key code, which also means the future remapping screen has a single table to rewrite.
    */
-  getKeyLabel(code: string): string;
+  getCameraKeyLabels(): CameraKeyLabels;
 }

@@ -14,6 +14,7 @@ import type {
   TurnInfoView,
   WeatherView,
 } from "@pokemon-tactic/view-core";
+import type { ChromeInsetProbe } from "./chrome-insets.js";
 import type { UiDomConfig } from "./config.js";
 import { createControlLegend } from "./control-legend.js";
 import { el } from "./dom-helpers.js";
@@ -58,6 +59,12 @@ export interface BattleChromeOptions {
   /** Host-injected i18n / asset-path deps (plan 125 Phase 4). */
   config: UiDomConfig;
   /**
+   * The probe measuring the timeline's first portrait, owned (and disposed) by the host. Passed in
+   * rather than created here so ONE measurement serves both consumers: the renderer pins the compass
+   * to it, this chrome places the control legend on it (plan 185).
+   */
+  insets: ChromeInsetProbe;
+  /**
    * Should a freshly-rebuilt menu take the focus? (plan 184) The app answers from the active input
    * source: yes on keyboard / gamepad — every phase calls `replaceChildren`, which drops the focus to
    * `<body>`, so navigation would restart from nothing at each step of a turn — but no at the
@@ -74,7 +81,7 @@ export interface BattleChromeOptions {
  * tweens, floating text) is 4c.
  */
 export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
-  const { host, onExit, onReplay, config } = options;
+  const { host, onExit, onReplay, config, insets } = options;
   const shouldAutoFocusMenu = options.shouldAutoFocusMenu ?? ((): boolean => false);
   const language = config.getLanguage();
 
@@ -138,6 +145,13 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   // panel pinned at the bottom, so the timeline reacts to the panel instead of
   // overlapping it. All removed with the overlay on teardown (stage.dispose removes
   // the whole subtree).
+  /*
+   * Camera legend (plan 185). Placed from the timeline's first portrait — the same measurement the
+   * renderer pins the compass to, passed in rather than measured again here: the active slot empties
+   * during a move-CT preview, and a legend hanging off it in the DOM collapsed onto the compass.
+   */
+  host.append(createControlLegend(config, insets));
+
   const infoPanel = createInfoPanel();
   // Second, narrower panel (plan 177) to the right of the Pokémon panel: terrain + tile modifiers.
   // Both sit in a bottom-pinned row so the tile panel stretches to the InfoPanel's height.
@@ -151,10 +165,6 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   const infoPanelRow = el("div", "bc-infopanel-row");
   infoPanelRow.append(infoPanel.element, tileInfoPanel.element, cursorPanel.element);
   const timeline = createTurnTimeline(config);
-  // Camera legend (plan 185): an absolute child of the timeline's stable active slot, because the
-  // compass is pinned to that slot's right edge — so "under the compass" needs no measurement.
-  // Absolute is load-bearing: a static child would grow the slot's box, which the compass measures.
-  timeline.activeSlotAnchor.append(createControlLegend(config).element);
   const leftColumn = el("div", "bc-left-col");
   leftColumn.append(timeline.element, infoPanelRow);
   host.append(leftColumn);

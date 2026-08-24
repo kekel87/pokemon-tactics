@@ -222,10 +222,14 @@ export class BabylonCompass {
       : COMPASS_TOP_FRACTION * COMPASS_REFERENCE_RENDER_HEIGHT - halfFootprintPx;
     const sizeScale = footprintPx / COMPASS_NATURAL_FOOTPRINT_PX;
     /*
-     * Square tap area, floored at the touch target (plan 185). It used to stretch to the RIGHT to
-     * swallow the ring-arrow glyph that sat there; that glyph is now a DOM legend BELOW the compass
-     * (`control-legend.ts`), deliberately inert — so the area is the needle's own box again, and
-     * nothing off-centre has to be compensated for.
+     * Square tap area, floored at the touch target (plan 185). It used to be a RECTANGLE stretching
+     * right to swallow the ring-arrow glyph that sat there; that glyph is now a DOM legend below the
+     * compass (`control-legend.ts`), deliberately inert, so the width is back to the needle's own.
+     *
+     * The growth stays one-directional though: when the floor exceeds the needle's footprint, the
+     * square extends to the RIGHT only. Centring it on the needle instead put its left edge ~4px
+     * INSIDE the timeline portrait (measured in e2e), making a tap at the edge of the portrait rotate
+     * the camera — the same reason the original rectangle never grew leftwards.
      */
     const hitSidePx = Math.max(footprintPx, COMPASS_MIN_HIT_PX);
     /*
@@ -236,6 +240,8 @@ export class BabylonCompass {
      */
     const worldPerPx = verticalSpan / renderHeight;
     this.pickProxy.scaling.set(hitSidePx * worldPerPx, hitSidePx * worldPerPx, 1);
+    // Offset by half of what the floor added, so the LEFT edge stays on the compass' left edge.
+    const proxyOffsetX = ((hitSidePx - footprintPx) / 2) * worldPerPx;
     const leftInsetFraction = (leftEdgePx + halfFootprintPx) / renderWidth;
     const topInsetFraction = (topEdgePx + halfFootprintPx) / renderHeight;
     const x = orthoLeft + horizontalSpan * leftInsetFraction;
@@ -260,11 +266,10 @@ export class BabylonCompass {
       .addInPlace(right.scale(x))
       .addInPlace(up.scale(y));
 
-    // The proxy is concentric with the needle: same centre, same pinning maths.
     this.pickProxy.position
       .copyFrom(camera.position)
       .addInPlace(forward.scale(COMPASS_CAMERA_DEPTH))
-      .addInPlace(right.scale(x))
+      .addInPlace(right.scale(x + proxyOffsetX))
       .addInPlace(up.scale(y));
   }
 

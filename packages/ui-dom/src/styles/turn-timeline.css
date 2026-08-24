@@ -6,16 +6,6 @@
 
 @layer components {
   .tt-timeline {
-    /*
-     * Side of the ACTIVE portrait, hoisted out of `.tt-entry` (plan 185): the active slot reserves
-     * this box even when it is empty, so two things read the same number and cannot drift.
-     */
-    --tt-active-portrait: calc(48px * var(--ui-scale));
-
-    @container stage ((height < 500px) or (width < 900px)) {
-      --tt-active-portrait: calc(60px * var(--ui-scale));
-    }
-
     /* Flex child of `.bc-left-col`: sits at the top, shrinks to leave room for the
        info panel pinned below (so the visible card count adapts to the stage
        height and the strip never overlaps the panel). `.tt-list` scrolls the rest. */
@@ -33,17 +23,6 @@
   .tt-active {
     display: flex;
     flex: 0 0 auto;
-    /*
-     * Reserve the active portrait's box even when the slot is EMPTY. A move-CT preview unpins the
-     * active mon entirely (`buildTimelineView`: no entry is `isActive` while previewing), so this
-     * host used to collapse to 0×0 mid-turn — and the control legend, which hangs off it, piled
-     * itself onto the compass (bug relevé par l'humain, 2026-08-24). The compass only survived
-     * because `chrome-insets` keeps its last good measurement; now the box itself holds.
-     *
-     * `+ 4px` = the portrait's own 2px border on each side.
-     */
-    min-inline-size: calc(var(--tt-active-portrait) + 4px);
-    min-block-size: calc(var(--tt-active-portrait) + 4px);
   }
 
   .tt-list {
@@ -73,7 +52,7 @@
     align-items: flex-end;
     gap: 2px;
     &[data-active="true"] {
-      --tt-size: var(--tt-active-portrait);
+      --tt-size: calc(48px * var(--ui-scale));
     }
 
     /*
@@ -86,7 +65,7 @@
     @container stage ((height < 500px) or (width < 900px)) {
       --tt-size: calc(46px * var(--ui-scale));
       &[data-active="true"] {
-        --tt-size: var(--tt-active-portrait);
+        --tt-size: calc(60px * var(--ui-scale));
       }
     }
     &[data-dimmed="true"] {

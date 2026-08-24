@@ -15,12 +15,6 @@ import { el, scrollByStep } from "./dom-helpers.js";
 
 export interface TurnTimeline {
   readonly element: HTMLElement;
-  /**
-   * Stable box around the active slot — never emptied by `update`, and the element the compass
-   * measures (`chrome-insets.ts`). What the chrome anchors the control legend to (plan 185): the
-   * compass is pinned to this box's right edge, so "under the compass" is expressible in CSS alone.
-   */
-  readonly activeSlotAnchor: HTMLElement;
   update(view: TimelineView): void;
   /** Step the predicted-order list (keyboard / gamepad, plan 184 — it only scrolled by wheel). */
   scrollByStep(delta: 1 | -1): void;
@@ -71,22 +65,15 @@ function entryElement(
 export function createTurnTimeline(config: UiDomConfig): TurnTimeline {
   const root = el("div", "tt-timeline", "timeline");
   root.hidden = true;
-  // Two boxes, not one: `activeSlot` is the STABLE host (it is what `chrome-insets` observes and
-  // what the control legend hangs off), while `activePortrait` is the part rebuilt every turn.
-  // Before plan 185 the rebuild happened on `activeSlot` itself, so any extra child of it was
-  // destroyed at the first turn.
   const activeSlot = el("div", "tt-active");
-  const activePortrait = el("div", "tt-active-portrait");
-  activeSlot.append(activePortrait);
   const list = el("ol", "tt-list");
   root.append(activeSlot, list);
 
   return {
     element: root,
-    activeSlotAnchor: activeSlot,
     update: (view: TimelineView) => {
       root.dataset.ct = String(view.showCtBars);
-      activePortrait.replaceChildren();
+      activeSlot.replaceChildren();
       list.replaceChildren();
 
       if (view.entries.length === 0) {
@@ -98,7 +85,7 @@ export function createTurnTimeline(config: UiDomConfig): TurnTimeline {
       const fragment = document.createDocumentFragment();
       for (const entry of view.entries) {
         if (entry.isActive) {
-          activePortrait.append(entryElement(entry, view.showCtBars, config));
+          activeSlot.append(entryElement(entry, view.showCtBars, config));
         } else {
           fragment.append(entryElement(entry, view.showCtBars, config));
         }

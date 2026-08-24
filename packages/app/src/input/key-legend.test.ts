@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Language } from "../i18n/types.js";
-import { keyLabel, resolveKeyLabels } from "./key-legend.js";
+import { cameraKeyLabels, resolveKeyLabels } from "./key-legend.js";
+import { KEYBOARD_BINDINGS } from "./keyboard-source.js";
+import { LogicalAction } from "./logical-action.js";
 
 const language = vi.hoisted(() => ({ current: "fr" as Language }));
 vi.mock("../i18n/index.js", () => ({
@@ -28,16 +30,25 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("keyLabel", () => {
+describe("cameraKeyLabels", () => {
   it("falls back to the AZERTY letter in French when the layout API is absent", async () => {
     stubKeyboard(null);
     await resolveKeyLabels();
 
-    expect(keyLabel("KeyQ")).toBe("A");
-    expect(keyLabel("KeyE")).toBe("E");
-    expect(keyLabel("KeyR")).toBe("R");
-    expect(keyLabel("KeyF")).toBe("F");
-    expect(keyLabel("Digit1")).toBe("1");
+    expect(cameraKeyLabels().rotateLeft).toBe("A");
+    expect(cameraKeyLabels().rotateRight).toBe("E");
+    expect(cameraKeyLabels().zoomIn).toBe("R");
+    expect(cameraKeyLabels().zoomOut).toBe("F");
+  });
+
+  it("resolves each control through its binding, not through a hard-coded key", async () => {
+    const boundToRotateLeft = Object.keys(KEYBOARD_BINDINGS).find(
+      (code) => KEYBOARD_BINDINGS[code] === LogicalAction.RotateCameraLeft,
+    );
+    stubKeyboard(new Map([[boundToRotateLeft ?? "", "z"]]));
+    await resolveKeyLabels();
+
+    expect(cameraKeyLabels().rotateLeft).toBe("Z");
   });
 
   it("falls back to the QWERTY letter in English", async () => {
@@ -45,23 +56,23 @@ describe("keyLabel", () => {
     stubKeyboard(null);
     await resolveKeyLabels();
 
-    expect(keyLabel("KeyQ")).toBe("Q");
-    expect(keyLabel("KeyE")).toBe("E");
+    expect(cameraKeyLabels().rotateLeft).toBe("Q");
+    expect(cameraKeyLabels().rotateRight).toBe("E");
   });
 
   it("prefers what the layout API reports over the language guess", async () => {
     stubKeyboard(new Map([["KeyQ", "q"]]));
     await resolveKeyLabels();
 
-    expect(keyLabel("KeyQ")).toBe("Q");
-    expect(keyLabel("KeyR")).toBe("R");
+    expect(cameraKeyLabels().rotateLeft).toBe("Q");
+    expect(cameraKeyLabels().zoomIn).toBe("R");
   });
 
   it("falls back when the API throws (permission policy)", async () => {
     stubKeyboard(new Error("SecurityError"));
     await resolveKeyLabels();
 
-    expect(keyLabel("KeyQ")).toBe("A");
+    expect(cameraKeyLabels().rotateLeft).toBe("A");
   });
 
   it("ignores characters the tilesheet cannot draw", async () => {
@@ -74,15 +85,8 @@ describe("keyLabel", () => {
     );
     await resolveKeyLabels();
 
-    expect(keyLabel("KeyQ")).toBe("A");
-    expect(keyLabel("KeyE")).toBe("E");
-    expect(keyLabel("KeyR")).toBe("R");
-  });
-
-  it("returns an empty label for a position nobody maps", async () => {
-    stubKeyboard(null);
-    await resolveKeyLabels();
-
-    expect(keyLabel("KeyZ")).toBe("");
+    expect(cameraKeyLabels().rotateLeft).toBe("A");
+    expect(cameraKeyLabels().rotateRight).toBe("E");
+    expect(cameraKeyLabels().zoomIn).toBe("R");
   });
 });

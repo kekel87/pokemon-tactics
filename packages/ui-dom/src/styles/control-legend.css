@@ -14,60 +14,74 @@
  */
 
 @layer components {
-  /*
-   * Positioning context. `.tt-active` is the STABLE host of the active slot (its
-   * `.tt-active-portrait` child is what gets rebuilt each turn), and the compass is pinned to its
-   * right edge at its top with a side equal to its height.
-   */
-  .tt-active {
-    position: relative;
-  }
-
   .cl-root {
     /*
      * Drawing size. The compass is as tall as the active portrait (48 design px) and the ring glyph
      * validated at the previous chantier sat at half of it, so half is the reference here too.
      *
-     * Floored at 16px — one source tile. Below that, nearest-neighbour DOWNSCALES the 1-bit drawing
-     * and drops whole pixel rows: measured at a 0.61 stage scale the caps landed at 14.6px and the
-     * letters were unreadable. Same floor the mesh glyph used (`INPUT_PROMPT_TILE_PX`).
+     * Floored at 16px — the source tile's own size. Below that, nearest-neighbour DOWNSCALES the
+     * 1-bit drawing and drops whole pixel rows: measured at a 0.61 stage scale the caps landed at
+     * 14.6px and the letters were unreadable.
      */
     --cl-size: max(16px, calc(24px * var(--ui-scale)));
+
+    /*
+     * The legend's OWN spacing: compass↔"it clicks", compass↔lines. Deliberately not the renderer's
+     * timeline clearance — that one is already baked into `--cl-compass-left` (the probe adds it), and
+     * conflating the two would make a change to the mesh gap move the legend's internals too.
+     */
+    --cl-gap: 6px;
+
+    /*
+     * Stage-anchored, from the SAME measurement the renderer pins the compass to (`chrome-insets`,
+     * pushed in as pixels by `control-legend.ts`). The stage and this layer share an origin
+     * (`#game-overlay` is `inset: 0` over the stage), so the numbers transfer as-is.
+     */
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
 
     /* An affordance hint, not game state: the same restraint as the mesh glyph it replaces. */
     opacity: 0.72;
     /* Never a control — the compass is what answers clicks (décision humaine 2026-08-24). */
     pointer-events: none;
     color: var(--color-text-primary);
+
+    &[hidden] {
+      display: none;
+    }
   }
 
   /*
-   * Invisible stand-in for the compass. Same top and same height as the slot, made SQUARE by
-   * `aspect-ratio` — which is exactly how the renderer sizes the compass (side = slot height). That
-   * turns "to the right of the compass" and "under the compass" into plain offsets, no measurement.
+   * Invisible stand-in for the compass: the exact square the renderer draws the needle in. Everything
+   * else is one offset from it, which is why no other rule needs to know about the timeline.
    */
   .cl-compass-box {
     position: absolute;
-    inset-inline-start: calc(100% + var(--cl-clearance));
-    inset-block-start: 0;
-    block-size: 100%;
-    aspect-ratio: 1;
+    inset-inline-start: var(--cl-compass-left);
+    inset-block-start: var(--cl-compass-top);
+    inline-size: var(--cl-compass-side);
+    block-size: var(--cl-compass-side);
   }
 
   /* To the compass' right, vertically centred on it (retour humain 2026-08-24). */
   .cl-tap {
     position: absolute;
-    inset-inline-start: calc(100% + var(--cl-clearance));
+    inset-inline-start: calc(100% + var(--cl-gap));
     inset-block-start: 50%;
     translate: 0 -50%;
     display: flex;
   }
 
-  /* The two lines: under the compass, so one slot height plus the clearance down. */
+  /*
+   * The two lines: under the compass, aligned on its left edge. Offsets come from the compass' own
+   * measurement, NOT from `100%` of a parent — the root is a zero-sized absolute box, so a percentage
+   * here resolved against nothing and parked the lines in the stage corner (caught at self-check).
+   */
   .cl-rows {
     position: absolute;
-    inset-inline-start: calc(100% + var(--cl-clearance));
-    inset-block-start: calc(100% + var(--cl-clearance));
+    inset-inline-start: var(--cl-compass-left);
+    inset-block-start: calc(var(--cl-compass-top) + var(--cl-compass-side) + var(--cl-gap));
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -240,11 +254,11 @@
       display: inline-block;
     }
 
-    [data-testid="control-legend-rotate"] {
+    .cl-row-rotate {
       display: none;
     }
 
-    [data-testid="control-legend-zoom"] .cl-entry:not(.cl-entry-gesture) {
+    .cl-row-zoom .cl-entry:not(.cl-entry-gesture) {
       display: none;
     }
 
@@ -262,11 +276,11 @@
       display: inline-block;
     }
 
-    [data-testid="control-legend-rotate"] {
+    .cl-row-rotate {
       display: none;
     }
 
-    [data-testid="control-legend-zoom"] .cl-entry:not(.cl-entry-gesture) {
+    .cl-row-zoom .cl-entry:not(.cl-entry-gesture) {
       display: none;
     }
 
@@ -292,11 +306,11 @@
       display: none;
     }
 
-    [data-testid="control-legend-rotate"] {
+    .cl-row-rotate {
       display: flex;
     }
 
-    [data-testid="control-legend-zoom"] .cl-entry:not(.cl-entry-gesture) {
+    .cl-row-zoom .cl-entry:not(.cl-entry-gesture) {
       display: flex;
     }
 

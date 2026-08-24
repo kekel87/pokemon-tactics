@@ -1,5 +1,8 @@
+import type { CameraKeyLabels } from "@pokemon-tactic/ui-dom";
 import { getLanguage } from "../i18n/index.js";
 import { Language } from "../i18n/types.js";
+import { KEYBOARD_BINDINGS } from "./keyboard-source.js";
+import { LogicalAction } from "./logical-action.js";
 
 /**
  * Which CHARACTER to draw for a bound key position (plan 185).
@@ -102,6 +105,33 @@ export async function resolveKeyLabels(): Promise<void> {
  * boot-time resolution has long landed by the time any combat mounts. Returns an empty string for a
  * position nobody mapped, which the caller draws as the generic key cap.
  */
-export function keyLabel(code: string): string {
+function keyLabel(code: string): string {
   return resolved[code] ?? FALLBACK[getLanguage()][code] ?? "";
+}
+
+/**
+ * Which physical key each camera control is bound to — read back from the BINDING TABLE, never
+ * retyped. The legend would otherwise drift from the bindings in silence, and the remapping screen
+ * (plan dédié) is going to rewrite exactly that table.
+ */
+function boundCode(action: LogicalAction): string | undefined {
+  return Object.keys(KEYBOARD_BINDINGS).find((code) => KEYBOARD_BINDINGS[code] === action);
+}
+
+/**
+ * Characters the control legend draws, one per camera control (plan 185). A control whose binding
+ * disappeared resolves to an empty label, which the legend draws as the generic key cap — honest
+ * about not knowing rather than showing a stale letter.
+ */
+export function cameraKeyLabels(): CameraKeyLabels {
+  const label = (action: LogicalAction): string => {
+    const code = boundCode(action);
+    return code === undefined ? "" : keyLabel(code);
+  };
+  return {
+    rotateLeft: label(LogicalAction.RotateCameraLeft),
+    rotateRight: label(LogicalAction.RotateCameraRight),
+    zoomIn: label(LogicalAction.ZoomIn),
+    zoomOut: label(LogicalAction.ZoomOut),
+  };
 }

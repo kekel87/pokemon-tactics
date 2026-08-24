@@ -31,6 +31,12 @@ export interface TimelineFirstCell {
 export interface ChromeInsetProbe {
   /** Null until the chrome mounts (the scene is built first) or if the timeline is hidden. */
   firstCell(): TimelineFirstCell | null;
+  /**
+   * Called whenever the measurement changes. What the DOM consumers need and the renderer does not:
+   * the renderer re-reads `firstCell()` every rendered frame anyway, while a DOM element must be
+   * told to move — and being told beats polling in a `requestAnimationFrame` loop of its own.
+   */
+  subscribe(listener: (cell: TimelineFirstCell) => void): () => void;
   dispose(): void;
 }
 
@@ -42,6 +48,7 @@ export interface ChromeInsetProbe {
 export function createChromeInsetProbe(stage: HTMLElement): ChromeInsetProbe {
   let cell: TimelineFirstCell | null = null;
   let observed: Element | null = null;
+  const listeners = new Set<(cell: TimelineFirstCell) => void>();
 
   const measure = (element: Element): void => {
     const stageBox = stage.getBoundingClientRect();
@@ -54,6 +61,9 @@ export function createChromeInsetProbe(stage: HTMLElement): ChromeInsetProbe {
         topPx: box.top - stageBox.top,
         sizePx: box.height,
       };
+      for (const listener of listeners) {
+        listener(cell);
+      }
     }
   };
 
@@ -63,22 +73,59 @@ export function createChromeInsetProbe(stage: HTMLElement): ChromeInsetProbe {
     }
   });
 
+  /**
+   * Find the element to watch, if it is there yet. The chrome mounts after the scene, so this is
+   * retried until it lands — then never again, the observer keeping the measurement fresh from then
+   * on. First child of the timeline is the active slot, which shrink-wraps the portrait; the timeline
+   * itself reserves a scrollbar gutter for its list and reads wider.
+   */
+  const ensureObserved = (): void => {
+    if (observed) {
+      return;
+    }
+    const found = stage.querySelector('[data-testid="timeline"]')?.firstElementChild;
+    if (found) {
+      observed = found;
+      observer.observe(found);
+      measure(found);
+    }
+  };
+
+  let pollHandle: number | null = null;
+  /**
+   * Retry the lookup until a measurement lands. Only for the SUBSCRIBERS: the renderer calls
+   * `firstCell()` every rendered frame and so retries on its own, while a DOM consumer would
+   * otherwise wait forever for a first value (the timeline is appended after the legend, and reads
+   * 0×0 until it is in the document).
+   */
+  const poll = (): void => {
+    pollHandle = null;
+    ensureObserved();
+    if (cell === null) {
+      pollHandle = requestAnimationFrame(poll);
+    }
+  };
+
   return {
-    firstCell: () => {
-      // The chrome mounts after the scene, so the lookup is retried until it lands — then never
-      // again, because from that point the observer keeps the measurement fresh.
-      if (!observed) {
-        // First child of the timeline is the active slot, which shrink-wraps the portrait — unlike
-        // the timeline itself, whose scrolling list reserves a scrollbar gutter and reads wider.
-        const found = stage.querySelector('[data-testid="timeline"]')?.firstElementChild;
-        if (found) {
-          observed = found;
-          observer.observe(found);
-          measure(found);
-        }
+    subscribe: (listener) => {
+      listeners.add(listener);
+      if (cell) {
+        listener(cell);
+      } else if (pollHandle === null) {
+        poll();
       }
+      return () => listeners.delete(listener);
+    },
+    firstCell: () => {
+      ensureObserved();
       return cell;
     },
-    dispose: () => observer.disconnect(),
+    dispose: () => {
+      if (pollHandle !== null) {
+        cancelAnimationFrame(pollHandle);
+      }
+      listeners.clear();
+      observer.disconnect();
+    },
   };
 }
