@@ -1,0 +1,51 @@
+/*
+ * Bouton d'ouverture du menu de combat (plan 187).
+ * Pendant de `combat-menu-button.ts`. Vit dans `.bl-log-row` (battle-log.css), ENTRE le bouton de
+ * plein écran et le journal.
+ *
+ * Préfixe `cmb-` et non `cm-` : `cm-` appartient à la modale, qui vit dans `packages/app` —
+ * un même namespace à cheval sur deux packages serait le seul du projet.
+ * Calqué sur `.fs-btn` — même surface, même côté de carré (`--bl-header-size`), même famille visuelle.
+ * Il ne se masque jamais, contrairement au plein écran : il a toujours quelque chose à offrir.
+ */
+
+@layer components {
+  .cmb-btn {
+    pointer-events: auto;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--bl-header-size);
+    block-size: var(--bl-header-size);
+    padding: 0;
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    /* Tactile (plan 183) : ni sélection de texte ni menu contextuel iOS sur un appui un peu long. */
+    user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+    background: color-mix(in oklch, var(--color-bg-surface) 85%, transparent);
+    color: var(--color-text-secondary);
+    font: inherit;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--color-bg-elevated-hover);
+    }
+
+    /* Verrou d'animation (`locked`) : le menu ne s'ouvre pas, et ça doit SE VOIR. Au clavier une
+       touche inerte ne se remarque pas ; un bouton tactile sans retour se fait taper trois fois de
+       suite et se lit comme un bug (revue design, plan 187). */
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+
+  .cmb-glyph {
+    line-height: 1;
+    /* Aligné sur le corps du burger du journal et du glyphe de plein écran. */
+    font-size: calc(21.6px * var(--ui-scale));
+  }
+}

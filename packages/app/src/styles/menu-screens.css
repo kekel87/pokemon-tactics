@@ -94,4 +94,17 @@
     color: var(--color-text-muted);
     white-space: pre-line;
   }
+
+  /* Le même panneau, monté dans la modale du menu de combat plutôt qu'en écran (plan 187). Seul le
+     plein cadre est levé : toutes les autres règles — dont celles de `controls-screen.css`, qui
+     descendent de `.ct-screen` — continuent de s'appliquer telles quelles. Le fond devient
+     transparent parce que c'est le `<dialog>` qui le peint désormais. */
+  .mn-screen.mn-embedded {
+    position: static;
+    inset: auto;
+    background: transparent;
+    /* Le panneau remplit la boîte de la modale, qui porte la contrainte de taille. */
+    max-block-size: 100%;
+    overflow-y: auto;
+  }
 }

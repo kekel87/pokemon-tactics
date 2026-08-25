@@ -180,3 +180,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 184 | [Contrôles clavier & manette (Lot 2)](./184-controles-clavier-manette.md) | done | 2026-08-21 |
 | 185 | [Légende de contrôles près de la boussole](./185-legende-controles.md) | done | 2026-08-24 |
 | 186 | [Écran de remapping (clavier & manette)](./186-ecran-remapping.md) | done | 2026-08-25 |
+| 187 | [Menu de combat](./187-menu-de-combat.md) | done | 2026-08-25 |

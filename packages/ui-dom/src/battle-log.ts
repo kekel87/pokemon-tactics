@@ -76,7 +76,10 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
   const title = el("span", "bl-title", "battle-log-title");
   title.textContent = translate("log.title");
   const burger = el("span", "bl-burger");
-  burger.textContent = "☰";
+  // `▤` (cadre + lignes) plutôt que le burger `☰` (plan 187) : le burger part au bouton du menu de
+  // combat, dont il est le glyphe conventionnel, et un panneau de texte se décrit mieux par un cadre
+  // ligné. Celui-ci est de toute façon étiqueté par le titre « Journal » juste à côté.
+  burger.textContent = "▤";
   burger.setAttribute("aria-hidden", "true");
   header.append(title, burger);
 

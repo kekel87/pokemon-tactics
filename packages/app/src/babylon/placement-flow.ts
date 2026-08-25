@@ -490,6 +490,10 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
       scrollLog: () => undefined,
       toggleLog: () => undefined,
       scrollTimeline: () => undefined,
+      // Pas de menu de combat pendant le placement (plan 187) : le chrome — et donc la rangée qui
+      // porte son bouton, ses deux sorties et sa registration — naît dans `runBattle`, après cette
+      // phase. Le trou (aucune sortie pendant le placement) préexiste à ce plan et part en § Reporté.
+      openCombatMenu: () => false,
     },
   });
   combat.onTileClick((pick) => handleTileClick(pick.x, pick.y));

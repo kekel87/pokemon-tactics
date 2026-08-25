@@ -386,6 +386,78 @@ describe("BattleOrchestrator", () => {
   });
 });
 
+/*
+ * `onEscape` doit dire s'il a VRAIMENT annulé quelque chose (plan 187) : c'est ce booléen qui permet
+ * à l'app de distinguer « j'ai reculé d'un cran » de « il n'y avait nulle part où reculer », le
+ * second cas étant celui où `Échap` ouvre le menu de combat.
+ *
+ * Le risque que ces tests couvrent : `Échap` est la sortie de TOUT le flux d'attaque, et un `false`
+ * rendu par erreur depuis une phase profonde ouvrirait le menu au lieu de reculer.
+ */
+describe("BattleOrchestrator.onEscape — a-t-il annulé quelque chose ?", () => {
+  it("renvoie false au menu d'actions racine : il n'y a rien à annuler", () => {
+    const harness = setup([useMoveAction("tackle", { x: 4, y: 3 })]);
+    harness.orchestrator.start();
+    expect(harness.orchestrator.onEscape()).toBe(false);
+  });
+
+  it("renvoie true depuis la liste d'attaques, et redescend au menu d'actions", () => {
+    const harness = setup([useMoveAction("tackle", { x: 4, y: 3 })]);
+    harness.orchestrator.start();
+    harness.lastActionMenu().onAttack();
+    expect(harness.orchestrator.onEscape()).toBe(true);
+    // Revenu à la racine, la fois suivante n'a donc plus rien à annuler.
+    expect(harness.orchestrator.onEscape()).toBe(false);
+  });
+
+  it("renvoie true depuis le choix de cible", () => {
+    const harness = setup([useMoveAction("tackle", { x: 4, y: 3 })]);
+    harness.orchestrator.start();
+    harness.lastActionMenu().onAttack();
+    harness.lastSubmenu().onSelect("tackle");
+    expect(harness.orchestrator.onEscape()).toBe(true);
+  });
+
+  it("renvoie true depuis la confirmation d'attaque", () => {
+    const target: Position = { x: 4, y: 3 };
+    const tackle = {
+      id: "tackle",
+      pp: 35,
+      targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+      effects: [],
+    } as unknown as MoveDefinition;
+    const harness = setup([useMoveAction("tackle", target)], tackle, { confirmAttack: true });
+    harness.orchestrator.start();
+    harness.lastActionMenu().onAttack();
+    harness.lastSubmenu().onSelect("tackle");
+    harness.orchestrator.onTileClick(target);
+    expect(harness.orchestrator.onEscape()).toBe(true);
+  });
+
+  it("renvoie true depuis le choix de destination de déplacement", () => {
+    const harness = setup([useMoveAction("tackle", { x: 4, y: 3 })]);
+    harness.orchestrator.start();
+    harness.lastActionMenu().onMove();
+    expect(harness.orchestrator.onEscape()).toBe(true);
+  });
+
+  /*
+   * La phase la plus à risque des six, et celle que la revue de code a eu raison de réclamer : c'est
+   * la seule où DEUX annulations s'empilent côté app (`combat.cancelDirectionPicker()` d'abord, puis
+   * `onEscape()`). Si l'orchestrateur y renvoyait `false`, le sélecteur d'orientation se refermerait
+   * et le menu de combat s'ouvrirait par-dessus.
+   */
+  it("renvoie true depuis le sélecteur d'orientation ouvert par Attendre", () => {
+    const harness = setup([]);
+    harness.orchestrator.start();
+    harness.orchestrator.onConfirmKey();
+    expect(harness.pickerCallbacks).not.toBeNull();
+    expect(harness.orchestrator.onEscape()).toBe(true);
+    // Et on est bien redescendu au menu d'actions : le suivant n'a plus rien à annuler.
+    expect(harness.orchestrator.onEscape()).toBe(false);
+  });
+});
+
 describe("damage preview formatters", () => {
   it("collapses an equal range and joins a spread", () => {
     expect(formatDamageRange(12, 12)).toBe("12");

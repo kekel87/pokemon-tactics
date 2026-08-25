@@ -1,6 +1,7 @@
 // Composable test fixtures (extend here as the suite grows — never raw `beforeEach`).
 import { test as base, expect } from "@playwright/test";
 import { CombatScene } from "../pages/CombatScene";
+import { CombatMenuOverlay } from "../pages/combat-menu";
 
 interface CombatFixtures {
   /**
@@ -9,6 +10,8 @@ interface CombatFixtures {
    * the goto + `waitReady()` gate into one call so no test re-implements the boot-and-wait dance.
    */
   bootSandbox: (config?: Record<string, unknown>) => Promise<CombatScene>;
+  /** La modale du menu de combat et son bouton `☰` (plan 187) — locators seuls, état mutable nul. */
+  combatMenu: CombatMenuOverlay;
 }
 
 export const test = base.extend<CombatFixtures>({
@@ -23,6 +26,9 @@ export const test = base.extend<CombatFixtures>({
       await scene.waitReady();
       return scene;
     });
+  },
+  combatMenu: async ({ page }, use) => {
+    await use(new CombatMenuOverlay(page));
   },
 });
 

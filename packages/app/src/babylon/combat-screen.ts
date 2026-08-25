@@ -24,6 +24,7 @@ import {
   createBattleLog,
   createBattleLogRow,
   createChromeInsetProbe,
+  createCombatMenuButton,
   createFullscreenButton,
   mountGameStage,
 } from "@pokemon-tactic/ui-dom";
@@ -35,6 +36,7 @@ import {
   createFloatingTextSpawner,
   createSandboxBattle,
   DummyAiController,
+  type InputContext,
   loadTiledMap,
   preloadCombatSprites,
   sandboxInstanceId,
@@ -79,6 +81,7 @@ import {
 } from "../team/asset-paths.js";
 import { getItemIconUrl, getPortraitUrl } from "../team/team-builder-data.js";
 import type { AiProfileKey, SandboxConfig } from "../types/SandboxConfig.js";
+import { createCombatMenu } from "../ui/dom/combat-menu.js";
 import { type LoadingOverlayHandle, showLoadingOverlay } from "../ui/LoadingOverlay.js";
 import { SandboxPanel } from "../ui/SandboxPanel.js";
 import { type BattleInputs, buildBattle, resumeBattle } from "./battle-resume.js";
@@ -297,6 +300,34 @@ function runBattle(options: {
     // `restoreMenuFocus`), never a board phase's lone « Annuler ».
     shouldAutoFocusMenu: () => inputSystem?.tracker.isFocusDriven() === true,
   });
+  /*
+   * Menu de combat (plan 187). Né ici, et nulle part ailleurs : `runBattle` est la seule fonction qui
+   * possède à la fois le `screenLayer`, les deux sorties du chrome et la registration d'entrée du
+   * combat — les trois choses dont ce menu a besoin. Les trois chemins de combat (placement, reprise,
+   * sandbox) passent par elle, donc tous les trois l'obtiennent.
+   *
+   * Ce n'est PAS une pause : rien n'est suspendu à l'ouverture (voir `combat-menu.ts`).
+   */
+  const combatMenu = createCombatMenu({
+    host: stage.screenLayer,
+    // Abandonner et Recommencer détruisent la partie : ils purgent la sauvegarde comme le fait le
+    // dialogue de victoire. C'est ce que leur confirmation annonce.
+    onAbandon: () => {
+      onBattleClosed?.();
+      onExit();
+    },
+    onRestart: () => {
+      onBattleClosed?.();
+      onReplay();
+    },
+    // Quitter, lui, sort SANS purger — la partie reste reprenable depuis le menu principal. Fourni
+    // seulement quand une sauvegarde existe : `onBattleClosed` n'est passé que par le vrai combat
+    // (`store.clear()`), pas par le studio sandbox. Là-bas, l'entrée ne s'affiche donc pas plutôt
+    // que de promettre une reprise sans rien à reprendre.
+    onQuitKeepingSave: onBattleClosed === undefined ? undefined : () => onExit(),
+  });
+  signal.addEventListener("abort", () => combatMenu.dispose(), { once: true });
+
   const language = getLanguage();
   // Shared name resolvers for the log + floating texts (instance id → localised names).
   const pokemonNameOf = (id: string): string => {
@@ -339,7 +370,29 @@ function runBattle(options: {
   // Branché sur le `signal` du combat, comme les autres écouteurs de cette fonction : la sortie de
   // l'écran le retire, sinon un combat quitté en laisserait un derrière lui à chaque partie.
   onFullscreenChange(() => fullscreenButton.refresh(), { signal });
-  stage.screenLayer.append(createBattleLogRow(fullscreenButton.element, battleLog.element));
+  // Entrée tactile du menu de combat (plan 187) : un téléphone n'a ni `Échap` ni `Start`. Entre le
+  // plein écran et le journal (retour humain 2026-08-25) — la rangée existe, rien n'y flotte de plus.
+  const combatMenuButton = createCombatMenuButton({
+    label: t("combatMenu.open"),
+    onOpen: () => combatMenu.open(),
+  });
+  stage.screenLayer.append(
+    createBattleLogRow(fullscreenButton.element, combatMenuButton.element, battleLog.element),
+  );
+  /*
+   * Le bouton du menu n'est actif que quand le menu peut RÉELLEMENT s'ouvrir : hors verrou
+   * d'animation (décision 14) et sans autre modale à l'écran (décision 15). Une seule règle, relue
+   * par les deux endroits qui la font changer — sinon les deux écritures dépendent de leur ordre
+   * d'exécution, et `enterBattleOver` change justement le contexte AVANT d'ouvrir la victoire.
+   *
+   * Sans ce grisage, le bouton reste cliquable et l'ouverture est refusée en silence : c'est le seul
+   * appareil qui n'a aucun autre retour, et on tape trois fois dessus en croyant à un bug (décision 18).
+   */
+  let inputContext: InputContext = "locked";
+  const refreshCombatMenuButton = (): void => {
+    combatMenuButton.setEnabled(inputContext !== "locked" && !isModalOpen());
+  };
+  refreshCombatMenuButton();
   // Host-injected presentation deps (plan 125, décision #4): the orchestrator +
   // view-builders + floating-text mapper stay renderer-agnostic; the app-shell
   // wires the real i18n / settings / asset-path here.
@@ -379,12 +432,33 @@ function runBattle(options: {
       }
     },
   };
+  /**
+   * Le combat peut se terminer **menu ouvert** — l'IA achève le dernier Pokemon du joueur pendant
+   * qu'il lit ses réglages. Le menu s'efface alors devant le dialogue de victoire, qui porte ses
+   * propres sorties (plan 187).
+   *
+   * Décoré ici, au seul endroit où le chrome est remis à l'orchestrateur, qui l'appelle en un point
+   * unique : la couverture est donc exhaustive, sans que le menu écoute les événements du combat ni
+   * que `view-core` apprenne son existence.
+   */
+  const chromeWithMenuAwareVictory: typeof chrome = {
+    ...chrome,
+    showVictory: (winnerId) => {
+      combatMenu.close();
+      // Le menu refuse de s'ouvrir tant que la victoire est à l'écran (décision 15) : le bouton doit
+      // donc le DIRE, sinon on tape trois fois dessus en croyant à un bug (décision 18). Le contexte
+      // `battle_over` valant `menu` et non `locked`, la bascule ci-dessous ne l'aurait pas couvert.
+      chrome.showVictory(winnerId);
+      // Après l'ouverture, pour que la règle voie la modale qui vient d'apparaître.
+      refreshCombatMenuButton();
+    },
+  };
   const orchestrator = new BattleOrchestrator(
     battle.engine,
     battle.state,
     battle.moveDefinitions,
     board,
-    chrome,
+    chromeWithMenuAwareVictory,
     feedback,
     { confirmAttack: BATTLE_CONFIRM_ATTACK, humanPlayerIds, onActionCommitted },
     presentationContext,
@@ -399,6 +473,10 @@ function runBattle(options: {
    * le repositionner sous elle serait un saut visuel gratuit.
    */
   orchestrator.onInputContextChanged = (context) => {
+    // Avant le filtre ci-dessous : le grisage du bouton compte au DOIGT, précisément là où
+    // `isFocusDriven()` est faux.
+    inputContext = context;
+    refreshCombatMenuButton();
     if (inputSystem?.tracker.isFocusDriven() !== true) {
       return;
     }
@@ -470,8 +548,15 @@ function runBattle(options: {
         if (combat.cancelDirectionPicker()) {
           return true;
         }
-        orchestrator.onEscape();
-        return true;
+        // Même garde que côté menu : une modale ouverte possède `Échap` (aujourd'hui la victoire est
+        // en contexte `menu`, donc ce chemin ne la voit pas — le garde est là pour que ça reste vrai
+        // si une phase de plateau venait à coexister avec une modale).
+        if (isModalOpen()) {
+          return true;
+        }
+        // Rien à annuler (plateau au repos) → `Échap` ouvre le menu de combat (plan 187 décision 7).
+        // C'est l'orchestrateur qui dit la vérité, pas une liste de phases écrite ici.
+        return orchestrator.onEscape() || combatMenu.open();
       },
       cycleTarget: (delta) => orchestrator.onCycleTargetKey(delta),
       rotateCamera: (step) => combat.rotateCamera(step),
@@ -481,6 +566,7 @@ function runBattle(options: {
       scrollLog: (delta) => battleLog.scrollByStep(delta),
       toggleLog: () => battleLog.toggleCollapsed(),
       scrollTimeline: (delta) => chrome.scrollTimeline(delta),
+      openCombatMenu: () => combatMenu.open(),
     },
     menu: {
       focusMove: (direction) => {
@@ -518,8 +604,19 @@ function runBattle(options: {
         return true;
       },
       cancel: () => {
-        orchestrator.onEscape();
-        return true;
+        // Le dialogue de victoire possède `Échap` : on AVALE la touche pour qu'il ne se ferme pas.
+        //
+        // Sans ce garde, la phase `battle_over` (contexte `menu`) laissait `cancel` renvoyer false —
+        // rien à annuler, et `open()` refuse tant qu'un `dialog` est là (décision 15) — donc le
+        // routeur ne faisait pas `preventDefault()` et la fermeture NATIVE d'`Échap` emportait
+        // Rejouer / Retour au menu. `showVictory` n'étant appelé qu'une fois, l'écran de résultat
+        // était perdu pour de bon. Avant le plan 187, le `return true` inconditionnel masquait ça.
+        if (isModalOpen()) {
+          return true;
+        }
+        // Menu d'actions RACINE : il n'y a plus rien à annuler, donc `Échap` y ouvre le menu de
+        // combat (plan 187 décision 7) — le seul endroit du flux où la touche était sans effet.
+        return orchestrator.onEscape() || combatMenu.open();
       },
     },
   });

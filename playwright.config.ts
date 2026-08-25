@@ -46,7 +46,13 @@ export default defineConfig({
   },
   projects: [
     { name: "smoke", testMatch: "**/smoke/**/*.spec.ts" },
-    { name: "dom", testMatch: "**/dom/**/*.spec.ts" },
+    // 60s comme `combat`, et pour la même raison (mesuré 2026-08-25, plan 187). Trois specs de ce
+    // projet font un RECHARGEMENT complet de page : en dev, Vite re-sert tout le graphe de modules
+    // non bundlé depuis un seul serveur partagé par 16 workers. Isolées, ces 17 tests passent en 24 s
+    // (~1,4 s chacun) ; dans la suite complète un seul dépassait 30 s — une dégradation de plus de
+    // 20× qui ne vient pas d'un chemin de code mais de la file d'attente. Le projet a basculé quand
+    // la suite a grossi de 17 tests, ce que le plan 179 avait annoncé (« `dom` frôle son délai »).
+    { name: "dom", testMatch: "**/dom/**/*.spec.ts", timeout: 60_000 },
     // 60s (vs 30s défaut) : le boot Babylon sous SwiftShader (rendu logiciel) est lourd, et les tests
     // de comparaison bootent 2-4 scènes → sous forte parallélisation le budget 30s déborde (flake de
     // charge, pas de déterminisme). Le rendu reste déterministe ; seul le temps de boot varie.

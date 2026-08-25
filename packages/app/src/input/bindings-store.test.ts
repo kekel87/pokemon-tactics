@@ -92,12 +92,14 @@ describe("transposition des défauts du plan 184", () => {
     }
   });
 
-  it("ajoute les deux boutons que le plan 184 laissait libres : Y et Select", () => {
+  it("ajoute les trois boutons que le plan 184 laissait libres : Y, Select et Start", () => {
     const lookup = createBindingsStore(null).gamepadLookup();
     expect(lookup.get(3)).toBe(LogicalAction.CycleTargetPrevious);
     expect(lookup.get(8)).toBe(LogicalAction.ToggleBattleLog);
+    // Start, gardé libre par le plan 186 en prévision du menu de combat (plan 187).
+    expect(lookup.get(9)).toBe(LogicalAction.OpenCombatMenu);
     expect([...lookup.keys()].sort((left, right) => left - right)).toEqual([
-      0, 1, 2, 3, 4, 5, 6, 7, 8,
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
     ]);
   });
 

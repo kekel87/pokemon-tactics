@@ -76,6 +76,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Responsive / mobile / `--ui-scale` / safe-area / cible tactile | §4.16, §6.9, §7.5, §8.5 |
 | Plateforme (plein écran, manifeste PWA, veille/Wake Lock, reprise d'écran au rechargement) | §6.10, §4.17, §6.7 |
 | Reprise d'un combat en cours (sauvegarde `pt-battle-resume`, entrée de menu, rejeu du journal d'actions) | §6.11, §6.1, §6.10 |
+| Menu de combat / sorties d'un combat en cours (`Échap`, `Start`, `☰` — Reprendre/Paramètres/Recommencer/Abandonner/Quitter) | §4.20, §6.12, §6.11 |
 
 ---
 
@@ -829,7 +830,8 @@ au doigt doit passer par lui, sinon elle ne teste rien de ce lot.
 `render-babylon/combat-scene.ts` (curseur écran-relatif, `cancelDirectionPicker`),
 `render-babylon/isometric-camera.ts` (`setZoomIndex`), `ui-dom/battle-chrome.ts` (focus du menu),
 `ui-dom/dom-helpers.ts` (`scrollByStep`), `app/styles/base.css` (liseré `:focus-visible`)*
-*e2e : `combat/keyboard-controls.spec.ts`, `dom/screens.spec.ts` (Échap, flèches du choix de carte)*
+*e2e : `combat/keyboard-controls.spec.ts`, `dom/screens.spec.ts` (Échap, flèches du choix de carte),
+`combat/combat-menu.spec.ts` (retombée d'`Échap` : ce qu'il annule vraiment, cran par cran — §4.20)*
 
 *Toutes les entrées passent par une **couche d'actions logiques** : un seul écouteur clavier pour
 l'app, et un routeur qui donne l'action à **un** consommateur selon le contexte (`menu` / `board` /
@@ -949,6 +951,93 @@ sont donc assumées, pas oubliées.*
 - 🤖 **« Annuler le déplacement » est la DERNIÈRE entrée du menu**, sous « Attendre », et
   « Déplacement » garde toujours la première place (décision #796) : en tête, l'annulation occupait le
   premier arrêt de focus et se déclenchait sans qu'on la vise.
+
+### 4.20 Menu de combat (plan 187)
+
+*src : `app/ui/dom/combat-menu.ts`, `app/ui/dom/panels/` (`panel.ts`, `settings-panel.ts`,
+`controls-panel.ts`), `ui-dom/combat-menu-button.ts`, `app/babylon/combat-screen.ts` (`runBattle` :
+création, décoration de `showVictory`, les deux `cancel`), `view-core/battle-orchestrator.ts`
+(`onEscape(): boolean`), `app/input/logical-action.ts` + `bindings-store.ts` (`OpenCombatMenu`),
+`styles/combat-menu.css`, `ui-dom/styles/combat-menu-button.css`*
+*e2e : `combat/combat-menu.spec.ts` (17 cas)*
+
+*⚠️ **Aucun test unitaire ne couvre cette surcouche, et c'est assumé** : elle est en DOM, le projet
+`unit` de Vitest n'a pas d'environnement DOM et aucun composant DOM n'y est monté. L'e2e est le seul
+filet — d'où une section 🤖 inhabituellement dense.*
+
+***Ce n'est PAS une pause** : le combat continue de tourner derrière (l'IA joue, les animations se
+déroulent, le futur chronomètre du multi tournera). Rien n'est à « reprendre » à la fermeture, et le
+libellé ne doit jamais promettre le contraire.*
+
+**La retombée d'`Échap` — le point de régression du plan.** `onEscape()` renvoie désormais *s'il y
+avait quelque chose à annuler*, et l'hôte n'ouvre le menu que quand la réponse est non. `Échap` est la
+sortie de **tout** le flux d'attaque : un cran qui se mettrait à ouvrir la modale au lieu de reculer
+rendrait le jeu injouable au clavier. Un cas e2e par cran, chacun vérifiant **en plus** que la modale
+n'est pas montée.
+
+- 🤖 **`Échap` remonte d'un cran, sans ouvrir le menu** : liste d'attaques → menu d'actions ; choix de
+  cible → liste d'attaques ; confirmation → choix de cible ; destination de déplacement → menu
+  d'actions ; sélecteur d'orientation de fin de tour → menu d'actions (celui-là est servi par la scène,
+  qui a le premier refus, donc il ne dépend pas du booléen).
+  ⚠️ **Piège d'écriture de test** : le `textContent` de `combat-instruction` n'est **pas** vidé quand la
+  pastille se masque — `toBeHidden()` est le seul signal juste, `not.toHaveText()` passerait pour une
+  mauvaise raison.
+- 🤖 **`Échap` au menu d'actions racine ouvre le menu** — le seul endroit du flux où la touche était
+  sans effet. Entrées dans l'ordre : **Reprendre · Paramètres · Recommencer · Abandonner** (+ Quitter,
+  voir plus bas).
+- 🤖 **Une seule frappe referme, et ne rouvre pas.** Le `cancel` natif du `<dialog>` est neutralisé :
+  sans ça la fermeture native déclencherait aussi l'action logique *Annuler*, qui n'ayant plus rien à
+  annuler rouvrirait aussitôt la modale. Après la frappe : plus aucun `dialog[open]`, l'entrée est
+  revenue au combat (une flèche reprend la navigation du menu d'actions) et la modale est **toujours**
+  fermée — puis réouvrable d'un second `Échap`.
+- 🤖 **Les niveaux se dépilent un cran à la fois** : Paramètres → Contrôles, puis `Échap` fait
+  Contrôles → Paramètres → menu → fermé. Sans pile explicite, `Échap` dans les Contrôles ramènerait au
+  combat en sautant les Paramètres.
+- 🤖 **L'action logique est remappable et agit** : `open-combat-menu` posé sur une touche (via
+  `pt-bindings`) ouvre le menu. C'est aussi le seul moyen de piloter l'action elle-même — son défaut
+  est **`Start` à la manette et rien au clavier** (`Échap` fait déjà le travail), et Playwright ne
+  pousse pas de bouton de pad.
+- 🤖 **Une capture de touche dans la modale renonce à la capture, pas au niveau** : dans les Contrôles
+  de la modale, `Échap` sur une case en attente referme la capture (sans jamais assigner `Échap`) et
+  **reste** sur le panneau. La capture a sa sortie inconditionnelle, servie avant le routeur — sans
+  cette priorité, configurer une touche refermerait le panneau au lieu de renoncer à la frappe.
+- 🤖 **Ouvrir n'annule RIEN** : menu ouvert **par le bouton** en pleine visée (pas par `Échap`, qui
+  reculerait), puis « Reprendre » → la phase de ciblage est retrouvée intacte **et vivante** (désigner
+  la cible fait avancer à la confirmation). C'est ce qui distingue les deux entrées : ouvrir le menu
+  par erreur ne coûte jamais le choix en cours.
+- 🤖 **Le bouton `☰`** (rangée haut-droite, entre le plein écran et le journal) ouvre le menu, et il est
+  **désactivé pendant un verrou d'animation** — le seul état visuel que le tactile a en propre : une
+  touche inerte ne se remarque pas, un bouton sans retour se fait taper trois fois et se lit comme un bug.
+- 🤖 **Le focus revient à ce qui a ouvert la modale** à la fermeture (sinon il retombe sur `<body>` et
+  la navigation clavier / manette repart de zéro).
+- 🤖 **« Recommencer » derrière une confirmation** : libellé **propre à l'action** (« Recommencer ce
+  combat depuis le placement ? La progression de cette tentative sera perdue. » — rien n'y est perdu
+  définitivement, c'est la *tentative* qui saute) ; « Annuler » dépile d'un cran et ne détruit rien ;
+  « Confirmer » relance vraiment le combat depuis zéro (voile de chargement, puis chrome de neuf).
+- 🤖 **« Abandonner » derrière une confirmation**, avec un texte **distinct** de celui de Recommencer,
+  et rend la main au menu principal.
+- 🤖 **« Quitter » n'existe que là où une sauvegarde de reprise existe** : absent du studio sandbox
+  (rien à reprendre), présent dans un vrai combat. Il sort **sans confirmation** — rien n'est perdu, et
+  une confirmation sur une action réversible use le réflexe jusqu'à ce qu'on valide sans lire, y compris
+  devant l'abandon — et la partie reste **reprenable** (entrée « Reprendre le combat » au menu). Contre-
+  épreuve dans le même cas : « Abandonner » depuis la partie reprise **purge** la sauvegarde.
+- 🤖 **Le dialogue de victoire garde la main** : `Échap` ne le referme pas et le menu **refuse** de
+  s'ouvrir par-dessus (il porte déjà ses propres sorties, et deux modales empilées n'ont aucun sens).
+  ⚠️ Trou refermé en fin de plan : `battle_over` étant un contexte de *menu*, son `cancel`
+  retombait sur « rien à annuler » → pas de `preventDefault()` → la fermeture **native** d'`Échap`
+  emportait Rejouer / Retour au menu, définitivement (`showVictory` n'est appelé qu'une fois). Le
+  `return true` inconditionnel d'avant ce plan masquait le défaut.
+- 👁 **La victoire qui survient MENU OUVERT** (le menu se referme, la victoire prend la main) : **non
+  automatisable par le harnais** — l'IA n'agit que quand le joueur a passé la main, instant précis où le
+  verrou d'animation interdit d'ouvrir le menu. À dérouler à la main (finir un combat en gardant le
+  menu ouvert n'est atteignable qu'en hot-seat lent).
+- 👁 **Navigation à la manette dans la modale** : `Start` ouvre, la croix parcourt, `A` active, `B`
+  dépile d'un cran, et `B` renonce à une capture de touche en cours avant de refermer quoi que ce soit
+  (son pendant clavier est 🤖 ci-dessus). **Manette réelle** (Playwright ne pilote pas
+  `navigator.getGamepads()`).
+- 👁 **Rendu** : voile de la modale, largeur/centrage sur 4K comme sur téléphone, et les deux glyphes de
+  la rangée (`☰` pour le menu, `▤` pour le repli du journal — ils ont été échangés par ce plan).
+  Pixel pur.
 
 ---
 
@@ -2632,7 +2721,7 @@ rejet par test** : chaque rechargement re-traverse le splash, et trois d'affilé
 ### 6.12 Écran de contrôles — réassignation clavier & manette (plan 186)
 
 *src : `app/input/bindings-store.ts`, `app/ui/dom/screens/controls-screen.ts`, `styles/controls-screen.css` ; storage `pt-bindings` (+ `invertRightStick` dans `pt-settings`)*
-*e2e : `dom/controls-remapping.spec.ts` (écran) · `dom/gamepad-menus.spec.ts` (manette synthétique) · `combat/controls-remapping.spec.ts` (effet réel + légende)*
+*e2e : `dom/controls-remapping.spec.ts` (écran) · `dom/gamepad-menus.spec.ts` (manette synthétique) · `combat/controls-remapping.spec.ts` (effet réel + légende) · `combat/combat-menu.spec.ts` (le même panneau monté dans la modale de combat)*
 
 *Les bindings ne vivent plus dans les sources d'entrée : un magasin unique les porte, et la source
 clavier, la source manette et la légende de contrôles (§4.18) le relisent. Une lettre re-figée en dur
@@ -2660,6 +2749,14 @@ quelque part ferait mentir la légende sans casser le jeu — d'où la moitié c
   `R3 + ←/→` (barre d'ordre de jeu) et `R3 + ↑/↓` (journal), en case inerte. C'est un **maintien +
   direction**, donc rien à remapper — mais il n'était écrit nulle part avant ce plan, donc
   indevinable. Le modificateur était `Y`, déplacé sur `R3` pour libérer `Y`.
+- 🤖 **Ligne « Menu de combat »** dans « Curseur & menus », juste après *Annuler* dont elle est la
+  retombée : `Start` en colonne manette, **rien** en clavier (`Échap` fait déjà le travail — un second
+  défaut clavier serait une deuxième vérité à maintenir). C'est le seul endroit qui l'annonce, donc le
+  seul qui la rend découvrable (§4.20).
+- 🤖 **Le même panneau se monte dans le menu de combat** (plan 187) : la mise en page a été extraite de
+  ses deux écrans, l'enveloppe plein cadre mise à part. **Critère de non-régression** : aucun
+  `data-testid` déplacé, **aucun e2e de Réglages ou de Contrôles touché** — si un test doit bouger, ce
+  n'est plus une extraction. (Vérifié : les 84 cas du projet `dom` passent sans modification.)
 - 🤖 **Inversion du stick droit** : bascule OUI/NON persistée dans `pt-settings` (préférence, pas binding).
 - 🤖 **Persistance** : le binding survit au rechargement ; « Tout réinitialiser » rend les défauts.
 - 🤖 **Effet réel + légende** (combat) : la touche réassignée fait tourner la caméra, la légende dessine
@@ -2964,6 +3061,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/hud-menu.spec.ts` | §4.1 bannière, §4.2 timeline (active/team), §4.4 menu (5 boutons, Objet/Statut off), §4.5 move-item (type/nom/PP), §4.9 journal (titre + repli) |
 | `combat/hud-state.spec.ts` | §4.6 tooltip (apparaît/disparaît + tag 2 tours), §4.2 timeline CT (`data-ct`), §4.7 badge statut, §4.5 nom EN |
 | `combat/preview-colours.spec.ts` | §4.6 couleurs de preview pilotées par l'intention : `data-intent` attack/buff/heal (Griffe/Danse Lames/Fontaine de Vie), cellules `data-cell` target/dash/caster/caster-target, croix lanceur, centre Séisme vide |
+| `combat/combat-menu.spec.ts` | §4.20 menu de combat (plan 187), **seul filet de la surcouche** (rien en unit : pas de DOM dans le projet `unit`) : `Échap` **remonte d'un cran sans ouvrir la modale** sur les 5 crans du tour (liste d'attaques, choix de cible, confirmation, destination de déplacement, orientation de fin de tour) ; `Échap` **au menu d'actions racine ouvre** le menu (4 entrées dans l'ordre, « Quitter » absent en sandbox) ; **une seule frappe referme, sans rouvrir** (`cancel` natif du `<dialog>` neutralisé) + l'entrée revient au combat + réouvrable ; **niveaux** Paramètres → Contrôles dépilés un cran à la fois, ligne « Menu de combat » à `Start` dans la table ; **action logique remappable** au clavier (le défaut `Start` n'est pas pilotable) ; **ouvrir n'annule rien** (visée retrouvée intacte ET vivante, menu ouvert par le bouton) ; bouton **`☰`** ouvre et **se grise en `locked`** ; **focus rendu** au déclencheur à la fermeture ; **capture de touche** dans les Contrôles de la modale annulée par `Échap` **sans** dépiler le niveau ; **Recommencer** (confirmation à libellé propre, « Annuler » dépile, « Confirmer » relance depuis zéro) ; **Abandonner** (confirmation à texte distinct → menu principal) ; **Quitter** sur un combat RÉEL (présent seulement là où une sauvegarde existe, **sans confirmation**, partie reprenable — puis contre-épreuve : Abandonner purge) ; **le dialogue de victoire garde la main** (`Échap` ne le referme pas, le menu refuse de s'ouvrir par-dessus). Victoire survenant **menu ouvert** = 👁 (l'IA n'agit qu'après que le joueur a passé la main, moment où le verrou interdit d'ouvrir le menu) ; manette + rendu de la modale = 👁 |
 | `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire |
 | `combat/touch-controls.spec.ts` | §4.18 comportement au doigt via **`tapTile`** (seule entrée du hook qui traverse la vraie couche d'entrée) : **un tap agit du premier coup** ; un **pattern directionnel** s'ouvre cône affiché, retaper la même **direction** lance, une autre direction re-vise sans lancer (validation depuis une case différente = la comparaison est directionnelle). + **annulation atteignable au doigt** sur les 3 phases réparées (destination, cible, orientation). Pinch / pan 2 doigts / orientation de fin de tour / seuil de glissé / `pointercancel` = 👁 téléphone réel ; la boussole est couverte par `compass-and-legend.spec` |
 | `combat/input-prompt-glyph.spec.ts` | §4.8 glyphe du geste attendu dans la ligne d'instruction (chantier « aide visuelle des gestes attendus », suite du Lot 1 du plan 173) : `data-glyph` = `act-twice` sur les 2 phases **directionnelles** (visée de cône/ligne/fauche/charge, orientation de fin de tour) et `act` sur les 4 autres (cible, confirmation, destination de déplacement, case de repli de Demi-Tour) ; **suffixe « ×2 » présent en pointeur grossier** (`hasTouch`) et **absent en pointeur fin** ; la pastille entière (glyphe compris) disparaît hors phase d'input ; **non-régression** du `textContent` exact de `combat-instruction`, restée un nœud de texte pur alors que la pastille est passée à la rangée parente ; **la feuille de tuiles change avec le pointeur** (plan 185) : `input-prompts-pixel-1-bit` en pointeur fin, `cursor-pixel-pack` en pointeur grossier, feuille et grille ensemble. Le DESSIN (souris vs main, masque CSS) = 👁 pixel |
@@ -2990,7 +3088,7 @@ Helpers : `e2e/fixtures/` (`bootSandbox(config?)` + catalogue `sandbox-configs.t
 `SCORED_AI_ATTACKS`, `PASSIVE_AI_STATIC`, `SPAWN_FAINTED_ALLY_REVIVE` [schéma v2 `teams`],
 `TILE_INFO_NEUTRAL`, `TILE_INFO_MAGMA`, `TILE_INFO_POPULATED` [§4.13, dont un schéma v2 `teams` +
 `debugTiles`]…), `e2e/pages/` (POM : `MainMenu`, `Splash`, `CombatScene`, `screens`, `teamBuilder`,
-`combatHud` — dont `TileInfoPanel` —, `app-shell` : métadonnées de plateforme du `<head>`,
+`combatHud` — dont `TileInfoPanel` —, `combat-menu` : modale du menu de combat + bouton `☰`, monté en fixture `combatMenu`, `app-shell` : métadonnées de plateforme du `<head>`,
 rechargement re-passant par le splash, lecture du point de reprise `pt-last-screen` ;
 `battle-resume` : lecture/écriture de la sauvegarde de combat `pt-battle-resume` — écriture en **texte
 brut**, pour pouvoir exprimer une entrée corrompue —, et `wellFormedSave`, charge utile de forme

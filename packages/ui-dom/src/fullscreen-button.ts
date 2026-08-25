@@ -44,9 +44,9 @@ export function createFullscreenButton(options: FullscreenButtonOptions): Fullsc
   button.title = options.label;
 
   const glyph = el("span", "fs-btn-glyph");
-  // Glyphe texte, comme le burger du journal (`.bl-burger` = "☰") : même famille visuelle et aucun
-  // asset à charger. Rejoint le chantier « pack d'icônes cohérent » noté au plan 177, qui remplacera
-  // d'un coup les glyphes/émoji placeholder de l'UI.
+  // Glyphe texte, comme ses deux voisins de rangée (`.cmb-glyph` = "☰", `.bl-burger` = "▤") : même
+  // famille visuelle, aucun asset. Rejoint le chantier « pack d'icônes cohérent » noté au plan 177,
+  // qui remplacera d'un coup les glyphes/émoji placeholder de l'UI.
   glyph.textContent = "⛶";
   // Décoratif : le bouton est déjà nommé par son `aria-label`, le glyphe ne doit pas être annoncé
   // une seconde fois.

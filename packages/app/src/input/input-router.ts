@@ -40,6 +40,15 @@ export interface BoardInputConsumer {
   /** Ouvrir / refermer le journal de combat (plan 186). */
   toggleLog(): void;
   scrollTimeline(delta: 1 | -1): void;
+  /**
+   * Ouvrir le menu de combat (plan 187). Renvoie false quand l'ouverture est refusée — menu déjà
+   * ouvert, ou dialogue de victoire à l'écran, qui porte déjà ses propres sorties.
+   *
+   * Vit sur le consommateur PLATEAU parce que c'est exactement là qu'il doit vivre : les deux
+   * registrations en combat (bataille et placement) en fournissent un, aucun écran de menu n'en
+   * fournit — la route est donc exacte par construction, sans test de contexte à écrire.
+   */
+  openCombatMenu(): boolean;
 }
 
 /** A DOM menu whose buttons take the focus: the combat action menu, or a menu screen. */
@@ -115,6 +124,12 @@ export function createInputRouter(options: InputRouterOptions): InputRouter {
       case LogicalAction.ToggleBattleLog:
         target.toggleLog();
         return true;
+      // Traité ici, donc soumis au même verrou que le reste : pendant `locked` (animation en cours)
+      // le menu ne s'ouvre pas (plan 187 décision 14). Les verrous durent moins d'une seconde, et une
+      // exception rouvrirait la question « que se passe-t-il si le joueur quitte au milieu d'une
+      // animation » pour un gain nul.
+      case LogicalAction.OpenCombatMenu:
+        return target.openCombatMenu();
       case LogicalAction.ScrollLogUp:
         target.scrollLog(-1);
         return true;

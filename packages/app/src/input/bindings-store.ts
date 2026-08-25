@@ -150,6 +150,9 @@ export const DEFAULT_BINDINGS: BindingSet = {
     [LogicalAction.ScrollLogUp]: [key("PageUp", true), null],
     [LogicalAction.ScrollLogDown]: [key("PageDown", true), null],
     [LogicalAction.ToggleBattleLog]: [key("KeyJ"), null],
+    // Aucun défaut clavier (plan 187) : `Échap` ouvre le menu quand il n'a rien à annuler. La ligne
+    // reste affichée — l'écran est aussi une liste de référence, et le joueur peut y assigner sa touche.
+    [LogicalAction.OpenCombatMenu]: [null, null],
   },
   gamepad: {
     [LogicalAction.CursorUp]: null,
@@ -178,6 +181,8 @@ export const DEFAULT_BINDINGS: BindingSet = {
     // Select (décision humaine 2026-08-25) : avec `R3 + ↑/↓` pour le défilement, le journal devient
     // entièrement pilotable à la manette — l'ouvrir ne demandait sinon rien de moins que la souris.
     [LogicalAction.ToggleBattleLog]: 8,
+    // Start — le seul bouton que le plan 186 a laissé libre, en prévision de ce menu (plan 187).
+    [LogicalAction.OpenCombatMenu]: 9,
   },
 };
 

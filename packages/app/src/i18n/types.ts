@@ -316,7 +316,28 @@ export interface Translations {
   "controls.padAxis": string;
   "controls.invertRightStick": string;
   "controls.action.toggle-battle-log": string;
+  "controls.action.open-combat-menu": string;
   "controls.group.aoePreview": string;
+  /** Menu de combat (plan 187) — surcouche ouverte en cours de partie, sans mettre en pause. */
+  "combatMenu.title": string;
+  "combatMenu.open": string;
+  "combatMenu.resume": string;
+  "combatMenu.settings": string;
+  "combatMenu.restart": string;
+  /** Sortie DESTRUCTRICE : la sauvegarde de reprise part avec la partie. */
+  "combatMenu.abandon": string;
+  /** Sortie SÛRE : on rend la main au menu principal en gardant la partie reprenable. */
+  "combatMenu.quit": string;
+  /** Un libellé par action : rien n'est définitivement perdu en recommençant, seule la tentative. */
+  "combatMenu.confirmAbandon": string;
+  /**
+   * Ajouté à la confirmation d'abandon SEULEMENT là où « Quitter » existe (donc jamais dans le studio
+   * sandbox) : sans ce découpage, le texte renvoyait à un bouton invisible.
+   */
+  "combatMenu.confirmAbandonQuitHint": string;
+  "combatMenu.confirmRestart": string;
+  "combatMenu.confirm": string;
+  "combatMenu.cancel": string;
   "credits.title": string;
   "credits.disclaimer": string;
   "credits.sprites": string;

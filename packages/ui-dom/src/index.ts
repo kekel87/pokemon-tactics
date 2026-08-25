@@ -10,6 +10,7 @@ export * from "./BattleLogFormatter.js";
 export * from "./battle-chrome.js";
 export * from "./battle-log.js";
 export * from "./chrome-insets.js";
+export * from "./combat-menu-button.js";
 export * from "./config.js";
 export * from "./constants.js";
 export * from "./form-controls.js";

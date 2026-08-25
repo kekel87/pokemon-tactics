@@ -31,6 +31,10 @@ function makeBoard(): BoardInputConsumer & { calls: string[] } {
     scrollLog: (delta) => calls.push(`scrollLog:${delta}`),
     toggleLog: () => calls.push("toggleLog"),
     scrollTimeline: (delta) => calls.push(`scrollTimeline:${delta}`),
+    openCombatMenu: () => {
+      calls.push("openCombatMenu");
+      return true;
+    },
   };
 }
 

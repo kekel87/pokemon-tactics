@@ -429,17 +429,26 @@ export class BattleOrchestrator {
     }
   }
 
-  onEscape(): void {
+  /**
+   * Remonter d'un cran dans le flux de tour. **Renvoie s'il y avait vraiment quelque chose à
+   * annuler** (plan 187).
+   *
+   * Ce booléen est ce qui permet à l'hôte de distinguer « j'ai reculé » de « il n'y avait nulle part
+   * où reculer » — au menu d'actions racine et sur le plateau au repos, il n'y a rien à défaire, et
+   * `Échap` y sert alors à ouvrir le menu de combat. Faire remonter la vérité est plus juste qu'une
+   * liste de phases écrite en dur côté app, qui dériverait au premier ajout de phase.
+   */
+  onEscape(): boolean {
     const phase = this.inputState;
     switch (phase.phase) {
       case "select_move_destination":
       case "attack_submenu":
       case "select_direction":
         this.enterActionMenu();
-        break;
+        return true;
       case "select_attack_target":
         this.enterAttackSubmenu();
-        break;
+        return true;
       case "confirm_attack":
       case "select_retreat_target": {
         // Un motif STATIQUE (soi-même, croix, zone) saute la phase de ciblage (plan 183) : revenir
@@ -449,13 +458,14 @@ export class BattleOrchestrator {
         const move = this.effectiveMove(phase.moveId);
         if (move && this.isStaticPattern(move.targeting.kind)) {
           this.enterAttackSubmenu();
-          break;
+          return true;
         }
         this.enterAttackTarget(phase.moveId);
-        break;
+        return true;
       }
       default:
-        break;
+        // Menu d'actions racine, plateau au repos, tour verrouillé : rien à annuler.
+        return false;
     }
   }
 

@@ -741,6 +741,22 @@ Un combat en cours survit au rechargement (décharge d'onglet mobile, fermeture 
 
 ---
 
+## 5m. Menu de combat (plan 187)
+
+Surcouche d'interface sur un combat qui **continue de tourner derrière** — pas une pause (décision #819) : aucun état « en pause » dans l'orchestrateur, l'IA joue et les animations se déroulent pendant que le menu est ouvert.
+
+- **`packages/app/src/ui/dom/combat-menu.ts`** : un seul `<dialog>` dont le corps est remplacé selon le niveau courant — `menu` (Reprendre · Paramètres · Recommencer · Abandonner · Quitter) → `settings` → `controls` → `confirm`. Créé et détruit par `runBattle` (le point unique par lequel passent les trois chemins de combat : placement, reprise, sandbox), jamais passé en paramètre.
+- **Empile sa propre registration** sur la pile de l'`InputSystem` (plan 184, décision #821) : le menu devient l'unique consommateur pendant qu'il est ouvert, sans qu'un consommateur du combat (curseur, caméra, zoom) n'ait été modifié, et sans démonter l'état du plateau — une visée ou un choix d'orientation en cours sont retrouvés intacts à la fermeture. `event.preventDefault()` sur le `cancel` natif du `<dialog>` (décision #822) : sinon `Échap` fermerait la modale **et** produirait l'action logique `Cancel`, qui rouvrirait aussitôt le menu.
+- **`BattleOrchestrator.onEscape(): boolean`** (décision #820, était `void`) : `true` si une phase a été défaite, `false` sinon (menu d'actions racine, plateau au repos). Les deux `cancel` de `combat-screen.ts` propagent ce booléen au lieu de renvoyer `true` en dur : ils ouvrent le menu de combat exactement quand `onEscape()` n'a rien annulé. Le placement (hors périmètre) avait déjà ce comportement.
+- **Panneaux réutilisables** (`packages/app/src/ui/dom/panels/settings-panel.ts` + `controls-panel.ts`, décision #824) : `Panel = { element: HTMLElement; dispose(): void; cancelCapture?(): boolean }`, extraits de `settings-screen.ts`/`controls-screen.ts` sans changement de comportement (aucun `data-testid` déplacé). Les deux écrans ne gardent que l'enveloppe plein cadre (titre, retour, `bindScreenInput`, `navigate`) ; la surcouche monte le **même** panneau. Raison : `ScreenManager` fait *dispose puis mount*, donc naviguer `combat → settings` par l'écran normal détruirait la partie en cours. `cancelCapture?()` n'existe que sur le panneau des Contrôles, appelé en premier par le `cancel` de la modale (une capture de touche en cours s'annule avant de dépiler un niveau).
+- **Deux sorties distinctes** (décision #823) : `Abandonner` purge la sauvegarde de reprise (plan 181) derrière une confirmation ; `Quitter` la garde reprenable, sans confirmation. `onQuitKeepingSave` est optionnel et n'est fourni que là où une sauvegarde existe (jamais par le studio sandbox), donc l'entrée ne s'affiche que là où elle a un sens.
+- **Action logique** `OpenCombatMenu` (`logical-action.ts`), défaut `gamepad: [9, null]` (`Start`), aucun défaut clavier — `Échap` fait déjà le travail via la retombée d'`onEscape()`. Route dans `input-router.ts` comme le reste, donc bloquée par `locked`.
+- **Icônes** : le burger `☰` passe au menu de combat, le journal prend `▤` (décision #825).
+- **La victoire referme le menu** en décorant `showVictory` au seul point où le chrome est remis à l'orchestrateur — le menu n'écoute aucun événement du combat, `view-core` n'apprend pas son existence.
+- **Ce que ce plan ne fait pas** : pas de sauvegardes multiples/créneaux nommés, pas de refonte des Paramètres/Contrôles, pas de drapeau multijoueur pour `Recommencer`, pas de menu pendant la phase de placement (le chrome de combat naît dans `runBattle`, après le placement — trou préexistant, noté `docs/next.md` § Reporté). Détail complet : `docs/plans/187-menu-de-combat.md`, décisions #819–#826.
+
+---
+
 ## 6. Système de surcharge (override) pour l'équilibrage
 
 ### Structure des données

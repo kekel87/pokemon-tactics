@@ -55,6 +55,17 @@ export const LogicalAction = {
    * n'indiquait qu'il s'ouvrait.
    */
   ToggleBattleLog: "toggle-battle-log",
+  /**
+   * Ouvrir le menu de combat (plan 187) — Reprendre / Paramètres / Recommencer / Quitter.
+   *
+   * Ce n'est PAS une pause : le combat continue de tourner derrière la surcouche. En ligne une pause
+   * est impossible, donc il n'existe qu'un seul comportement, validé dès le solo.
+   *
+   * Aucun défaut clavier : `Échap` ouvre déjà le menu quand il n'a rien à annuler (la retombée de
+   * `Cancel`, plan 187 décision 7). Un second défaut clavier serait une deuxième vérité à maintenir —
+   * le joueur reste libre de lui en assigner une dans l'écran de contrôles.
+   */
+  OpenCombatMenu: "open-combat-menu",
 } as const;
 
 export type LogicalAction = (typeof LogicalAction)[keyof typeof LogicalAction];
