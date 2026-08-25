@@ -19,14 +19,21 @@ import type { ScreenDirection } from "./input-router.js";
  */
 export function focusableControls(): HTMLElement[] {
   const dialog = document.querySelector<HTMLElement>("dialog[open]");
-  const host = dialog ?? document.querySelector<HTMLElement>("#game-root");
+  const root = document.querySelector<HTMLElement>("#game-root");
+  const host = dialog ?? root;
   if (!host) {
     return [];
   }
   const selector =
     "button:not(:disabled), input:not(:disabled):not([type='hidden']), select:not(:disabled), textarea:not(:disabled), [tabindex='0']";
+  // `data-nav-skip` retire un contrôle de la navigation POUR UNE SOURCE d'entrée donnée (plan 186) :
+  // les colonnes clavier de l'écran de contrôles n'ont rien à offrir à une manette, qui ne peut y
+  // écrire que des touches qu'elle n'a pas. La source active est celle publiée par `InputSystem`.
+  const source = root?.dataset.inputSource ?? "";
   return [...host.querySelectorAll<HTMLElement>(selector)].filter(
-    (control) => control.offsetParent !== null || control.getClientRects().length > 0,
+    (control) =>
+      control.dataset.navSkip !== source &&
+      (control.offsetParent !== null || control.getClientRects().length > 0),
   );
 }
 

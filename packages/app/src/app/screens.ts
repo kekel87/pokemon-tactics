@@ -13,6 +13,7 @@ export type ScreenId =
   | "my-teams"
   | "team-edit"
   | "settings"
+  | "controls"
   | "credits"
   | "combat";
 
@@ -32,6 +33,7 @@ export interface ScreenParamsById {
   "my-teams": undefined;
   "team-edit": { teamId: string };
   settings: undefined;
+  controls: undefined;
   credits: undefined;
   /**
    * No `setup` = the `?combat=1` dev route (Jalon 3 demo content until step 7).
@@ -49,7 +51,10 @@ export const SCREEN_TRANSITIONS: Readonly<Record<ScreenId, readonly ScreenId[]>>
   "team-select": ["combat", "map-select"],
   "my-teams": ["team-edit", "main-menu"],
   "team-edit": ["my-teams"],
-  settings: ["main-menu"],
+  settings: ["main-menu", "controls"],
+  // On n'entre dans les contrôles que depuis Réglages : le retour y ramène, plutôt que d'éjecter le
+  // joueur jusqu'au menu principal (revue 2026-08-25).
+  controls: ["settings"],
   credits: ["main-menu"],
   combat: ["main-menu"],
 };

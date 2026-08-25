@@ -28,11 +28,18 @@
 
      Yellow because that is already the design-system colour for focus, cursor and active selection.
 
-     Deliberately NOT gated on `[data-input-source]`: `:focus-visible` is precisely the browser
-     heuristic for "the player is navigating by keyboard", and it already knows things we do not —
-     including that a focus moved by script after a keyboard press still deserves a ring. Hiding it
-     under the pointer would break clicking a button then continuing with the arrows. */
-  :focus-visible {
+     Pas gated on `[data-input-source]` pour le CLAVIER : `:focus-visible` est précisément
+     l'heuristique du navigateur pour « le joueur navigue au clavier », et elle sait des choses que
+     nous ignorons — dont qu'un focus déplacé par script après une frappe mérite quand même l'anneau.
+
+     🔴 Mais elle ne sait RIEN de la manette (retour humain 2026-08-25) : un appui de pad n'est pas un
+     événement DOM, donc après un clic la modalité reste « pointeur » et le focus posé par script
+     n'était PAS dessiné. Le joueur voyait un écran sans focus alors que le focus existait — presser A
+     changeait la langue ou ouvrait les crédits « tout seul ». D'où la seconde règle : quand la source
+     active est la manette, le simple `:focus` porte l'anneau. Elle s'éteint d'elle-même dès que la
+     souris reprend la main, `data-input-source` suivant le dernier appareil utilisé. */
+  :focus-visible,
+  [data-input-source="gamepad"] :focus {
     outline: 2px solid var(--color-accent);
     /*
      * Liseré tracé À L'INTÉRIEUR de l'élément (offset négatif), pas autour (retour humain

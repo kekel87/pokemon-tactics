@@ -1,95 +1,39 @@
+import { getBindings, keyLookupKey } from "./bindings-store.js";
 import { LogicalAction } from "./logical-action.js";
 
 /**
- * Keyboard bindings, by PHYSICAL KEY POSITION (plan 184).
+ * Résolution d'une frappe en action logique.
  *
- * The table is keyed on `KeyboardEvent.code`, not `.key`: `code` names the physical key and ignores
- * the layout, the locale and the modifiers. The names read as QWERTY legends but designate
- * positions, so ONE table serves both layouts — `KeyW/KeyA/KeyS/KeyD` is ZQSD on AZERTY and WASD on
- * QWERTY, `KeyQ`/`KeyE` is A/E on AZERTY and Q/E on QWERTY.
+ * Les bindings eux-mêmes ne sont plus ici : ils vivent dans `bindings-store.ts` depuis le plan 186,
+ * parce que l'écran de contrôles les réécrit. Ce qui reste, c'est la LECTURE d'un événement — les
+ * règles qui, elles, ne se remappent pas : les positions physiques plutôt que les caractères
+ * (`KeyboardEvent.code`, plan 184), le refus des combinaisons du navigateur et de l'OS, et l'arbitrage
+ * avec le contrôle qui a le focus.
  *
- * The digits are the clearest illustration of why: on AZERTY the top row only yields digits with
- * Shift (a bare press gives `& é " '`), so `event.key === "1"` would demand `Maj+&` while
- * `code === "Digit1"` is the bare press in both layouts.
- *
- * ⚠️ `+` / `−` were deliberately NOT used for zoom: the `Minus` position carries `)` on AZERTY, so
- * binding it by position would mean "zoom with the closing parenthesis". Reading those two by
- * character would have worked, but for one pair of bindings it would have introduced a second way
- * of reading a key. Hence: the whole table is `code`, without exception, and no `key` path exists.
- *
- * The general rule, for a future binding: position for movement and actions, character for a
- * symbol key whose *meaning* is the symbol.
+ * Rappel de la règle du plan 184, toujours vraie pour un binding futur : position pour les
+ * déplacements et les actions, caractère pour une touche dont le SENS est le symbole. Le magasin ne
+ * connaît que des positions — `+` / `−` restent hors-jeu, la position `Minus` portant `)` sur AZERTY.
  */
-export const KEYBOARD_BINDINGS: Readonly<Record<string, LogicalAction>> = {
-  // Cursor / focus — arrows and the movement pad, both.
-  ArrowUp: LogicalAction.CursorUp,
-  ArrowDown: LogicalAction.CursorDown,
-  ArrowLeft: LogicalAction.CursorLeft,
-  ArrowRight: LogicalAction.CursorRight,
-  KeyW: LogicalAction.CursorUp,
-  KeyA: LogicalAction.CursorLeft,
-  KeyS: LogicalAction.CursorDown,
-  KeyD: LogicalAction.CursorRight,
-
-  // Actions.
-  Space: LogicalAction.Confirm,
-  Enter: LogicalAction.Confirm,
-  NumpadEnter: LogicalAction.Confirm,
-  Escape: LogicalAction.Cancel,
-
-  // Camera — one quarter turn each way (4 iso azimuths).
-  KeyQ: LogicalAction.RotateCameraLeft,
-  KeyE: LogicalAction.RotateCameraRight,
-
-  // Zoom: 3 notches, so 3 absolute keys, plus a relative pair.
-  Digit1: LogicalAction.ZoomLevel1,
-  Digit2: LogicalAction.ZoomLevel2,
-  Digit3: LogicalAction.ZoomLevel3,
-  Numpad1: LogicalAction.ZoomLevel1,
-  Numpad2: LogicalAction.ZoomLevel2,
-  Numpad3: LogicalAction.ZoomLevel3,
-  KeyR: LogicalAction.ZoomIn,
-  KeyF: LogicalAction.ZoomOut,
-};
-
-/**
- * Bindings that need a modifier to disambiguate. Kept apart from the flat table so the table stays
- * a plain `Record<code, action>` — the shape the future remapping screen will rewrite.
- */
-const SHIFTED_BINDINGS: Readonly<Record<string, LogicalAction>> = {
-  Tab: LogicalAction.CycleTargetPrevious,
-  PageUp: LogicalAction.ScrollTimelineUp,
-  PageDown: LogicalAction.ScrollTimelineDown,
-};
-
-const UNSHIFTED_BINDINGS: Readonly<Record<string, LogicalAction>> = {
-  Tab: LogicalAction.CycleTargetNext,
-  PageUp: LogicalAction.ScrollLogUp,
-  PageDown: LogicalAction.ScrollLogDown,
-};
 
 /** What this event means, or null when the key is not bound. */
-export function resolveKeyboardAction(event: {
-  code: string;
-  shiftKey: boolean;
-  ctrlKey?: boolean;
-  altKey?: boolean;
-  metaKey?: boolean;
-}): LogicalAction | null {
+export function resolveKeyboardAction(
+  event: {
+    code: string;
+    shiftKey: boolean;
+    ctrlKey?: boolean;
+    altKey?: boolean;
+    metaKey?: boolean;
+  },
+  lookup: ReadonlyMap<string, LogicalAction> = getBindings().keyboardLookup(),
+): LogicalAction | null {
   // Ctrl / Alt / Meta belong to the browser and the OS (Ctrl+R reloads, Alt+Tab switches app):
   // the game binds none of them, and stealing one would break a shortcut the player relies on.
   if (event.ctrlKey === true || event.altKey === true || event.metaKey === true) {
     return null;
   }
-  const modified = event.shiftKey ? SHIFTED_BINDINGS[event.code] : UNSHIFTED_BINDINGS[event.code];
-  if (modified !== undefined) {
-    return modified;
-  }
-  // Shift on anything else is not a binding of ours either — only the three keys above pair with it.
-  if (event.shiftKey) {
-    return null;
-  }
-  return KEYBOARD_BINDINGS[event.code] ?? null;
+  // Une position et son homologue à Maj sont deux bindings DIFFÉRENTS (`Tab` / `Maj+Tab`), donc deux
+  // clés distinctes dans la table — pas une table par état de Maj comme au plan 184.
+  return lookup.get(keyLookupKey(event.code, event.shiftKey)) ?? null;
 }
 
 /**

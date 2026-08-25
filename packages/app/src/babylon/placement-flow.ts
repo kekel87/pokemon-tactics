@@ -488,6 +488,7 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
       zoomCamera: (step) => combat.zoomCamera(step),
       setZoomLevel: (index) => combat.setZoomLevel(index),
       scrollLog: () => undefined,
+      toggleLog: () => undefined,
       scrollTimeline: () => undefined,
     },
   });

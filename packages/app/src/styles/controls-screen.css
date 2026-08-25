@@ -1,0 +1,208 @@
+/* Écran de contrôles (plan 186) — grille action × 2 slots, un appareil à la fois.
+ * Se pose sur `.mn-screen` (menu-screens.css) : mêmes tokens, mêmes clamps vmin. */
+
+@layer components {
+  .ct-screen {
+    /* L'écran défile : 23 actions ne tiennent pas dans un viewport de portable, et encore moins
+       en paysage sur téléphone. Le centrage vertical de `.mn-screen` est donc levé. */
+    justify-content: flex-start;
+    /* Écran dense : l'espacement des écrans de menu ferait défiler un 4K pour 20 lignes (retour
+       humain 2026-08-25). Titre et interlignes sont donc rebasés ici, pas hérités. */
+    gap: clamp(4px, 0.8vmin, 12px);
+    padding: clamp(8px, 1.6vmin, 24px);
+    overflow-y: auto;
+    /* Largeur commune à l'en-tête de colonnes, aux titres de section et aux grilles : sans elle,
+       la colonne d'action s'étirait sur 700px et exilait les cases au bord droit. */
+    --ct-gap: clamp(3px, 0.5vmin, 10px);
+    --ct-slot: clamp(76px, 9vmin, 190px);
+    /* Dimensionnée en `vmin`, PAS en `ch` : un `ch` dans une variable se résout sur la police du
+       conteneur (16px), pas sur celle des libellés, donc la colonne restait étroite pendant que le
+       texte grossissait. Pas `1fr` non plus — une fraction étirait la colonne et exilait les cases
+       au bord droit. */
+    --ct-action: clamp(150px, 21vmin, 480px);
+    --ct-width: calc(var(--ct-action) + 3 * var(--ct-slot) + 3 * var(--ct-gap));
+  }
+
+  .ct-screen .mn-title {
+    font-size: clamp(20px, 2.6vmin, 58px);
+  }
+
+  .ct-grid {
+    display: grid;
+    grid-template-columns: var(--ct-action) repeat(3, var(--ct-slot));
+    gap: var(--ct-gap);
+    align-items: center;
+    inline-size: var(--ct-width);
+  }
+
+  /* Case sans objet : le panoramique n'a pas de touche, la ligne d'inversion pas de colonne clavier.
+     Un espace réservé plutôt qu'un bouton désactivé — il n'y a rien à y mettre, jamais. */
+  .ct-cell-void {
+    display: block;
+  }
+
+  /* Ligne d'un RÉGLAGE au milieu de la table (inversion du stick droit) : pas de binding, donc
+     pas de cases clavier — seule la colonne manette porte quelque chose. */
+  .ct-grid-toggle {
+    margin-block-start: var(--ct-gap);
+  }
+
+  .ct-cell-toggle {
+    min-width: 0;
+  }
+
+  .ct-column-head {
+    font-size: clamp(11px, 1.4vmin, 30px);
+    color: var(--color-text-faint);
+    text-align: center;
+  }
+
+  /* Respiration entre sections indexée sur la HAUTEUR, pas sur `vmin` : c'est la place verticale qui
+     décide. Un 4K aère (retour humain 2026-08-25), un portable reste compact. */
+  .ct-groups {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1.6vh, 30px);
+  }
+
+  .ct-group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mn-gap);
+    inline-size: var(--ct-width);
+    margin-block-end: clamp(2px, 0.4vh, 8px);
+  }
+
+  .ct-group-title {
+    margin: 0;
+    font-size: clamp(14px, 1.8vmin, 40px);
+    color: var(--color-text-secondary);
+  }
+
+  .ct-reset {
+    min-width: 0;
+    font-size: clamp(10px, 1.1vmin, 24px);
+    padding-block: 2px;
+    padding-inline: var(--spacing-sm);
+  }
+
+  /* Les libellés tiennent sur UNE ligne (retour humain 2026-08-25) : la colonne est dimensionnée
+     pour le plus long et n'autorise pas le retour à la ligne. */
+  .ct-action {
+    white-space: nowrap;
+    padding-inline-end: var(--spacing-md);
+    font-size: clamp(13px, 1.6vmin, 36px);
+    color: var(--color-text-primary);
+  }
+
+  .ct-cell {
+    min-block-size: clamp(28px, 2.8vmin, 58px);
+    padding: var(--spacing-xs);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    font-size: clamp(12px, 1.6vmin, 34px);
+    text-align: center;
+    cursor: pointer;
+  }
+
+  /* Un binding que le joueur a lui-même posé : l'écran sert aussi de référence à quelqu'un qui a
+     oublié y avoir touché. */
+  .ct-cell[data-state="custom"] {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  /* Vide de NAISSANCE : la majorité des actions n'ont jamais eu de secondaire. Aucune alerte —
+     sinon l'écran s'ouvre couvert de rouge au premier lancement (plan 186, décision 15). */
+  .ct-cell[data-state="empty"] {
+    color: var(--color-text-faint);
+  }
+
+  /* Vidé par un ÉCHANGE : le seul cas qui alerte. L'astérisque double la couleur, qui ne doit pas
+     porter l'information seule. */
+  .ct-cell[data-state="displaced"] {
+    border-color: var(--color-state-danger);
+    color: var(--color-state-danger);
+  }
+
+  .ct-cell[data-state="displaced"]::after {
+    content: " *";
+  }
+
+  .ct-cell[data-state="capturing"] {
+    border-color: var(--color-accent);
+    border-style: dashed;
+  }
+
+  .ct-cell[data-state="fixed"] {
+    border-style: dashed;
+    border-color: var(--color-border-faint);
+    background: transparent;
+    color: var(--color-text-faint);
+    cursor: default;
+  }
+
+  .ct-message {
+    margin: 0;
+    min-block-size: 1.2em;
+    font-size: clamp(12px, 1.5vmin, 32px);
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+
+  .ct-capture {
+    display: flex;
+    align-items: center;
+    gap: var(--mn-gap);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px dashed var(--color-accent);
+    border-radius: var(--radius-sm);
+    color: var(--color-accent);
+    font-size: clamp(13px, 1.7vmin, 34px);
+  }
+
+  .ct-capture[hidden] {
+    display: none;
+  }
+
+  /* Le bandeau annonce ce qu'il attend : une touche, ou un bouton de manette. */
+  .ct-capture[data-device="key"] .ct-capture-text-pad,
+  .ct-capture[data-device="pad"] .ct-capture-text:not(.ct-capture-text-pad) {
+    display: none;
+  }
+
+  .ct-capture-cancel {
+    min-width: 0;
+    font-size: clamp(12px, 1.4vmin, 20px);
+  }
+
+  .ct-footer {
+    display: flex;
+    margin-block-start: calc(var(--ct-gap) / 2);
+    gap: var(--mn-gap);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Téléphone : la grille en 3 colonnes devient une carte par action (même approche que le
+     plan 179 pour le Team Builder). */
+  @media (width < 760px) {
+    .ct-columns {
+      display: none;
+    }
+
+    .ct-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      row-gap: clamp(2px, 0.5vmin, 6px);
+      inline-size: min(94vw, 420px);
+    }
+
+    .ct-action {
+      grid-column: 1 / -1;
+      color: var(--color-text-secondary);
+    }
+  }
+}

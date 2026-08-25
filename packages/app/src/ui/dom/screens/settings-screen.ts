@@ -100,6 +100,10 @@ export function createSettingsScreen(navigate: Navigate): Screen<"settings"> {
       rows.append(row(t("settings.installApp"), hint));
     }
 
+    const controls = menuButton(t("settings.configure"), () => navigate("controls", undefined));
+    controls.dataset.testid = "setting-controls";
+    rows.append(row(t("settings.controls"), controls));
+
     const back = menuButton(t("settings.back"), goBack);
 
     root.append(title, rows, back);

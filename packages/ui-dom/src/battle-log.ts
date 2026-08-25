@@ -44,6 +44,8 @@ export interface BattleLog extends BattleFeedback {
   readonly element: HTMLElement;
   /** Step the entry list (keyboard / gamepad, plan 184 — it only scrolled by wheel and drag). */
   scrollByStep(delta: 1 | -1): void;
+  /** Ouvrir / refermer le panneau — le repli n'existait qu'au clic sur l'en-tête (plan 186). */
+  toggleCollapsed(): void;
   destroy(): void;
 }
 
@@ -128,6 +130,7 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
   return {
     element: root,
     scrollByStep: (delta) => scrollByStep(list, delta),
+    toggleCollapsed: () => setCollapsed(root.dataset.collapsed !== "true"),
     report: (event: BattleEvent) => {
       const result = formatBattleEvent(event, context);
       if (!result) {

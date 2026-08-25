@@ -202,9 +202,13 @@ pokemon-tactics/
 │   ├── app/                     # Composition root / app-shell Vite (plan 125, renommé plan 126)
 │   │   ├── src/
 │   │   │   ├── app/             # ScreenManager FSM + écrans DOM (main-menu, battle-mode, team-select,
-│   │   │   │                    # my-teams, team-edit, settings, credits, combat-screen, map-select)
+│   │   │   │                    # my-teams, team-edit, settings, controls, credits, combat-screen,
+│   │   │   │                    # map-select)
 │   │   │   ├── babylon/         # Écrans qui câblent les backends : combat-screen (boucle combat),
 │   │   │   │                    # placement-flow
+│   │   │   ├── input/           # Couche d'entrée device-agnostique (plans 184/186) : actions logiques,
+│   │   │   │                    # routeur par contexte, sources clavier/manette/pointeur, magasin de
+│   │   │   │                    # bindings, navigation du focus DOM, étiquettes de touches
 │   │   │   ├── i18n/            # Système i18n maison (t, setLanguage, detectLanguage, Language enum)
 │   │   │   │   └── locales/     # fr.ts, en.ts
 │   │   │   ├── settings/        # Paramètres persistants : GameSettings, getSettings(), updateSettings()
@@ -703,6 +707,24 @@ Nouvelle famille de modules `packages/app/src/platform/` : encapsule les API nav
 - **Manifeste PWA** (`packages/app/public/manifest.json` + icônes `icon-192.png`/`icon-512.png`/`apple-touch-icon.png`) : icônes obtenues par agrandissement nearest-neighbor du favicon 28×28 (décision #738, aucun autre artwork dans le dépôt). **URLs relatives dans le manifeste** — un fichier de `public/` est copié verbatim par Vite, contrairement au `<link>` d'`index.html` que Vite réécrit ; le jeu est servi sous 3 bases différentes (`/`, `/pokemon-tactics/`, `./`) et des chemins absolus cassaient l'installabilité en silence sur les deux déploiements réels (décision #739).
 - **Diagnostic WebGL** : `engine.onContextLostObservable`/`onContextRestoredObservable` dans `combat-scene.ts` posent un `console.warn` de diagnostic — aucune logique de récupération, Babylon reconstruit déjà seul ses ressources (créé sans `doNotHandleContextLost`).
 - **Ce que ces deux lots ne résolvent pas** : un combat en cours reste perdu au rechargement (lot 180-c → traité au plan 181, § 5k) ; le Wake Lock n'empêche ni la décharge d'onglet sous pression mémoire ni la veille après verrouillage manuel de l'écran ; sur iPhone, aucun verrouillage d'orientation n'est possible par aucune voie (API absente, champ `orientation` du manifeste ignoré par WebKit même en PWA installée). Détail complet : `docs/plans/180-comportement-plateforme-mobile.md`, décisions #738–#743.
+
+---
+
+## 5l. Couche d'entrée et remapping (plans 184 / 186)
+
+Toute entrée — clavier, manette, pointeur, doigt — produit une **`LogicalAction`** ; les consommateurs (curseur de plateau, caméra, focus des menus DOM, orchestrateur) écoutent ces actions et ne voient jamais un événement. C'est cette indirection qui a rendu l'ajout de la manette *gratuit* côté consommateurs : un producteur de plus, zéro consommateur touché.
+
+- **`input/logical-action.ts`** : les 23 actions du jeu. Elles sont écran-relatives, jamais grille-relatives (« haut » = le haut de l'écran quel que soit l'azimut de la caméra).
+- **`input/input-system.ts`** : **l'unique** écouteur `keydown` de l'app (il en remplace cinq, éparpillés dans quatre fichiers, dont l'un devait appeler `stopImmediatePropagation()` pour qu'un seul `Échap` n'annule pas deux choses à la fois). Porte aussi le **mode capture** (`beginCapture`) de l'écran de contrôles : pendant une capture, rien ne part au routeur — configurer une touche ne doit pas jouer le coup qu'elle déclenche.
+- **`input/input-router.ts`** : route chaque action vers **exactement un** consommateur, choisi par le contexte courant (`menu` / `board` / `screen` / `locked`). L'invariant « une action, un consommateur » est couvert par un test.
+- **`input/bindings-store.ts`** (plan 186) : source unique de « quelle entrée déclenche quelle action ». Les défauts sont rangés **par action** — l'axe que l'écran de remapping manipule — et les tables de recherche (`code → action`, `bouton → action`) en sont **dérivées** puis mises en cache : le chemin chaud (chaque frappe, chaque frame de poll) ne balaie jamais un `Record` d'actions. Persistance dans `pt-bindings`, qui ne stocke que les **écarts** au défaut, pour qu'un défaut révisé atteigne un joueur qui n'avait rien personnalisé.
+- **`input/keyboard-source.ts`** : lecture d'un événement, sans plus aucune table — positions physiques (`KeyboardEvent.code`, un seul jeu pour AZERTY et QWERTY), refus de `Ctrl`/`Alt`/`Meta` (ils appartiennent au navigateur et à l'OS), et arbitrage avec le contrôle qui a le focus (un champ texte garde tout, un `<select>` garde l'axe vertical, une case à cocher ne garde rien).
+- **`input/gamepad-source.ts`** : l'API Gamepad n'a **aucun événement de bouton**, et Chrome **mute ses objets en place** — l'état est donc scruté en `requestAnimationFrame` et les fronts calculés sur des **primitives** (un `Set` d'indices, jamais une référence du navigateur). Échange bas↔droite sur une manette Nintendo, déduit de l'identifiant : c'est un fait matériel, pas une préférence.
+- **`input/focus-navigation.ts`** : navigation **spatiale** du focus DOM (le voisin le plus proche dans la direction pressée), pas l'ordre DOM — qui zigzague dans une mise en page à deux dimensions. `data-nav-skip` retire un contrôle de la navigation **pour une source d'entrée donnée**.
+- **`input/key-legend.ts`** : quel *caractère* dessiner pour une position, via `navigator.keyboard.getLayoutMap()` (Chromium uniquement) avec repli sur la langue du jeu. Lit le magasin, donc la légende de combat (plan 185) suit un remapping sans câblage.
+- **Écran `controls`** (`ui/dom/screens/controls-screen.ts`) : une table à trois colonnes (Principal / Secondaire / Manette), atteinte depuis Réglages et qui y retourne.
+
+⚠️ **Deux pièges plateforme** actés en décisions #813 et #814, tous deux invisibles sous Chromium : Firefox renvoie un `mapping` **vide** pour une manette pourtant standard (elle était donc totalement muette), et `:focus-visible` **ignore la manette** (un appui de pad n'est pas un événement DOM, donc l'anneau de focus n'était pas dessiné après un clic souris).
 
 ---
 

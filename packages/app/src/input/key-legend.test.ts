@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Language } from "../i18n/types.js";
+import { getBindings } from "./bindings-store.js";
 import { cameraKeyLabels, resolveKeyLabels } from "./key-legend.js";
-import { KEYBOARD_BINDINGS } from "./keyboard-source.js";
 import { LogicalAction } from "./logical-action.js";
 
 const language = vi.hoisted(() => ({ current: "fr" as Language }));
@@ -42,10 +42,8 @@ describe("cameraKeyLabels", () => {
   });
 
   it("resolves each control through its binding, not through a hard-coded key", async () => {
-    const boundToRotateLeft = Object.keys(KEYBOARD_BINDINGS).find(
-      (code) => KEYBOARD_BINDINGS[code] === LogicalAction.RotateCameraLeft,
-    );
-    stubKeyboard(new Map([[boundToRotateLeft ?? "", "z"]]));
+    const boundToRotateLeft = getBindings().current().keyboard[LogicalAction.RotateCameraLeft][0];
+    stubKeyboard(new Map([[boundToRotateLeft?.code ?? "", "z"]]));
     await resolveKeyLabels();
 
     expect(cameraKeyLabels().rotateLeft).toBe("Z");

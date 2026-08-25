@@ -2629,6 +2629,54 @@ rejet par test** : chaque rechargement re-traverse le splash, et trois d'affilé
 
 ---
 
+### 6.12 Écran de contrôles — réassignation clavier & manette (plan 186)
+
+*src : `app/input/bindings-store.ts`, `app/ui/dom/screens/controls-screen.ts`, `styles/controls-screen.css` ; storage `pt-bindings` (+ `invertRightStick` dans `pt-settings`)*
+*e2e : `dom/controls-remapping.spec.ts` (écran) · `dom/gamepad-menus.spec.ts` (manette synthétique) · `combat/controls-remapping.spec.ts` (effet réel + légende)*
+
+*Les bindings ne vivent plus dans les sources d'entrée : un magasin unique les porte, et la source
+clavier, la source manette et la légende de contrôles (§4.18) le relisent. Une lettre re-figée en dur
+quelque part ferait mentir la légende sans casser le jeu — d'où la moitié combat de la recette.*
+
+- 🤖 **Accès** : Réglages → ligne « Contrôles » → écran dédié ; titre « Contrôles » ; Retour → menu.
+- 🤖 **Liste de référence** : une seule table à **3 colonnes** (Principal / Secondaire / **Manette**) et
+  5 sections — « Curseur & menus », « Prévisualisation AoE », « Caméra », « Barre d'ordre de jeu »,
+  « Journal de combat ».
+- 🤖 **Aucune alerte à l'ouverture** : un écran vierge n'a **aucune** case `displaced`. La majorité des
+  actions n'ont pas de secondaire — les peindre en rouge donnerait un écran cassé au premier lancement.
+- 🤖 **Lignes qui annoncent au lieu de proposer** : « Annuler » (`Échap` / B, la sortie de capture),
+  le curseur **à la manette** (« Croix/Stick », un axe) et les 3 crans de zoom absolus à la manette
+  (« — »). Le panoramique n'est **plus listé** du tout.
+- 🤖 **Capture** : clic sur une case → état `capturing` → la frappe suivante est prise, la case affiche
+  la touche et passe en `custom` ; seul l'écart est écrit dans `pt-bindings`.
+- 🤖 **Échange** : poser une touche déjà prise la retire de son ancienne action, dont le slot passe en
+  `displaced` (rouge + astérisque) avec le message « R a quitté « Zoom avant » ».
+- 🤖 **Sorties de capture** : bouton « Annuler » (la seule issue d'un joueur tactile) et `Échap` —
+  lequel n'est jamais assigné et ne quitte pas l'écran tant qu'une capture est ouverte.
+- 🤖 **Défauts revus** : `J` ouvre/ferme le journal ; `Page ↑/↓` → barre d'ordre de jeu ;
+  `Maj+Page ↑/↓` → journal. Côté manette : **`Y`** = cible précédente, **`Select`** = afficher/masquer
+  le journal — qui devient entièrement pilotable au pad.
+- 🤖 **Le geste de défilement manette est ANNONCÉ** : les 4 lignes de défilement affichent
+  `R3 + ←/→` (barre d'ordre de jeu) et `R3 + ↑/↓` (journal), en case inerte. C'est un **maintien +
+  direction**, donc rien à remapper — mais il n'était écrit nulle part avant ce plan, donc
+  indevinable. Le modificateur était `Y`, déplacé sur `R3` pour libérer `Y`.
+- 🤖 **Inversion du stick droit** : bascule OUI/NON persistée dans `pt-settings` (préférence, pas binding).
+- 🤖 **Persistance** : le binding survit au rechargement ; « Tout réinitialiser » rend les défauts.
+- 🤖 **Effet réel + légende** (combat) : la touche réassignée fait tourner la caméra, la légende dessine
+  la **nouvelle** lettre, et l'ancienne position ne fait plus rien.
+- 🤖 **Manette dans les menus** (`gamepad-menus.spec`) : manette **synthétique** (`navigator.getGamepads`
+  remplacé), arrivée à la **souris** puis croix directionnelle → le focus apparaît et la règle
+  `[data-input-source="gamepad"] :focus` s'applique. Joué sur `mapping: "standard"` **et**
+  `mapping: ""` — la réponse de Firefox pour une Switch Pro, qui rendait la manette totalement muette.
+  ⚠️ Ne pas remplacer cette assertion par une mesure d'`outline` calculé : Chromium dessine l'anneau
+  pour un focus programmatique, donc elle passerait avec ou sans le correctif.
+- 👁 **Capture à la manette** : Playwright ne pousse pas de bouton sur une vraie manette. À dérouler à
+  la main, pad branché — y compris le saut des colonnes clavier (`data-nav-skip`), non automatisable.
+- 👁 **Rendu 4K** : l'écran ne doit défiler ni en 4K ni en 1440p (mesuré : `scrollHeight == clientHeight`),
+  et aucun libellé ne doit déborder. Le confort réel reste à l'œil.
+- 👁 **Rendu sur téléphone** : sous 760px la grille passe en cartes (action en titre, ses 3 cases
+  dessous) — mise en page à valider sur téléphone réel.
+
 ## 7. Recette — Team Builder & Sandbox
 
 ### 7.1 Édition d'équipe (slots)
@@ -2847,6 +2895,9 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `dom/navigation.spec.ts` | menu → mode de combat → choix carte → retour |
 | `dom/main-menu.spec.ts` | §6.1 — titre, 5 entrées, Aventure disabled, version, switch FR→EN + `pt-lang` |
 | `dom/settings.spec.ts` | §6.7 — 2 options inconditionnelles (Langue + Prévisualisation dégâts), persistance `pt-lang`/`pt-settings` |
+| `dom/controls-remapping.spec.ts` | §6.12 — écran de contrôles (plan 186) : accès depuis Réglages, 5 sections listées, **aucune case `displaced` à l'ouverture**, actions fixes (Annuler, panoramique) inertes, capture d'une touche → `custom` + écart seul écrit dans `pt-bindings`, échange (ancien slot `displaced` + message nommant l'action délogée), annulation par bouton **et** par `Échap` (jamais assigné, ne quitte pas l'écran), persistance au rechargement, « Tout réinitialiser ». Capture manette = 👁 (Playwright ne pilote pas `navigator.getGamepads()`) |
+| `dom/gamepad-menus.spec.ts` | §6.12 manette dans les menus (plan 186) : manette **synthétique** injectée via `navigator.getGamepads`, arrivée à la souris puis croix directionnelle → focus pris **et** anneau applicable. Joué sur `mapping: "standard"` et `mapping: ""` (réponse de Firefox pour une Switch Pro, qui rendait le pad muet) |
+| `combat/controls-remapping.spec.ts` | §6.12 moitié combat : une touche réassignée **fait tourner la caméra** et la **légende dessine la nouvelle lettre** (tuile du capuchon lue en propriétés calculées) ; l'ancienne position ne fait plus rien |
 | `dom/platform.spec.ts` | §6.10 comportement plateforme (plan 180-a/180-b) : manifeste PWA servi + JSON valide (`name`, `display: standalone`) + **chaque icône répond 200 en `image/png`** ; `<link rel="manifest">`, `<link rel="apple-touch-icon">` (fichier joignable) et `<meta name="theme-color">` déclarés ; **reprise d'écran** — Crédits enregistré (`pt-last-screen`) et retrouvé après rechargement ; **garde-fou** — « Sélection d'équipe » (écran à paramètres) efface le point de reprise → rechargement = menu principal ; réglages : ligne « Plein écran » présente à « NON », ligne « Installer l'app » absente hors iPhone, **aller-retour de la bascule** (clic → `document.fullscreenElement` renseigné + « OUI », re-clic → sortie + « NON »). Barre d'URL réellement masquée / verrouillage paysage (avalé par le `try/catch`) / Wake Lock / installation / iOS = 👁 (validés téléphone réel 2026-08-14) |
 | `combat/platform-chrome.spec.ts` | §4.17 bouton plein écran du chrome de combat : visible hors plein écran, nom accessible « Plein écran », dans le viewport ; **clic → document en plein écran + bouton `hidden`**, puis **sortie non déclenchée par lui** (`exitFullscreen()`) **→ bouton de retour** (abonnement `fullscreenchange`) ; §6.10 **un combat perdu revient au menu principal** (parcours réel jusqu'à la scène montée → `pt-last-screen` effacé → rechargement = menu, aucun chrome de combat remonté). Barre d'URL masquée + verrouillage paysage = 👁 (aucun signal DOM ; le `lock()` est refusé en desktop et avalé par le `try/catch`) |
 | `dom/battle-resume-menu.spec.ts` | §6.11 entrée « Reprendre le combat » — les cas où elle **ne doit pas** apparaître, **un par test** (chaque rechargement re-traverse le splash : les trois rejets enchaînés dans un seul test le mettaient à 27 s sous charge, le plus lent du projet `dom` pour un budget de 30 s) : aucune sauvegarde (menu intact : 5 entrées, « Aventure » en tête, clé absente) ; sauvegarde d'un **autre build** (`buildVersion` étranger, forme par ailleurs complète) ; **schéma inconnu** (`version: 999` estampillée du BON build → le rejet vient du numéro de schéma, pas du build) ; **entrée corrompue** (JSON tronqué). Dans les trois cas de rejet : pas d'entrée, menu debout, et **aucune exception non attrapée** au boot (`pageerror` surveillé) |

@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  isClaimedByFocusedControl,
-  KEYBOARD_BINDINGS,
-  resolveKeyboardAction,
-} from "./keyboard-source.js";
+import { getBindings } from "./bindings-store.js";
+import { isClaimedByFocusedControl, resolveKeyboardAction } from "./keyboard-source.js";
 import { LogicalAction } from "./logical-action.js";
 
 const press = (code: string, modifiers: Partial<KeyboardEvent> = {}) =>
@@ -41,10 +38,10 @@ describe("resolveKeyboardAction", () => {
   it("pairs Shift with the three keys that need a second meaning", () => {
     expect(press("Tab")).toBe(LogicalAction.CycleTargetNext);
     expect(press("Tab", { shiftKey: true })).toBe(LogicalAction.CycleTargetPrevious);
-    expect(press("PageDown")).toBe(LogicalAction.ScrollLogDown);
-    expect(press("PageUp")).toBe(LogicalAction.ScrollLogUp);
-    expect(press("PageDown", { shiftKey: true })).toBe(LogicalAction.ScrollTimelineDown);
-    expect(press("PageUp", { shiftKey: true })).toBe(LogicalAction.ScrollTimelineUp);
+    expect(press("PageDown")).toBe(LogicalAction.ScrollTimelineDown);
+    expect(press("PageUp")).toBe(LogicalAction.ScrollTimelineUp);
+    expect(press("PageDown", { shiftKey: true })).toBe(LogicalAction.ScrollLogDown);
+    expect(press("PageUp", { shiftKey: true })).toBe(LogicalAction.ScrollLogUp);
   });
 
   it("leaves the browser and the OS their shortcuts", () => {
@@ -57,8 +54,10 @@ describe("resolveKeyboardAction", () => {
   it("keeps confirm and cancel on their conventional keys", () => {
     expect(press("Space")).toBe(LogicalAction.Confirm);
     expect(press("Enter")).toBe(LogicalAction.Confirm);
-    expect(press("NumpadEnter")).toBe(LogicalAction.Confirm);
     expect(press("Escape")).toBe(LogicalAction.Cancel);
+    // `NumpadEnter` est PERDU depuis le plan 186 (décision 6) : Confirmer était la seule action à 3
+    // bindings, et un binding remappable n'a que 2 slots. Le joueur peut le remettre lui-même.
+    expect(press("NumpadEnter")).toBeNull();
   });
 
   it("returns null for an unbound key", () => {
@@ -68,8 +67,8 @@ describe("resolveKeyboardAction", () => {
   });
 
   it("has no `key`-based binding at all — the whole table is physical positions", () => {
-    for (const code of Object.keys(KEYBOARD_BINDINGS)) {
-      expect(code).not.toMatch(/^[a-z0-9+=-]$/i);
+    for (const lookupKey of getBindings().keyboardLookup().keys()) {
+      expect(lookupKey.replace("Shift+", "")).not.toMatch(/^[a-z0-9+=-]$/i);
     }
   });
 });

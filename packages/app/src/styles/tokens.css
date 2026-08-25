@@ -112,6 +112,8 @@
   --color-bg-elevated-hover: var(--blue-800);
   --color-border-surface: var(--blue-700);
   --color-border-faint: rgb(255 255 255 / 0.3); /* liseré UI clair (miroir UI_BORDER_*) */
+  /* État d'alerte d'un contrôle : binding délogé par un échange (écran de contrôles, plan 186). */
+  --color-state-danger: var(--red-400);
   --color-accent: var(--yellow-400);
   /* TurnTimeline CT bar (barre de charge et son fond). */
   --color-timeline-ct: #44aaff;

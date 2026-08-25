@@ -1,8 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createGamepadPollState,
   type GamepadSnapshot,
   pollGamepad,
+  pollGamepadButtons,
+  SCROLL_MODIFIER_BUTTON,
+  startGamepadPolling,
   stickAction,
 } from "./gamepad-source.js";
 import { LogicalAction } from "./logical-action.js";
@@ -67,11 +70,6 @@ describe("stickAction", () => {
 });
 
 describe("pollGamepad", () => {
-  it("ignores a pad whose mapping is not standard", () => {
-    const state = createGamepadPollState();
-    expect(pollGamepad(pad({ pressed: [Button.A], mapping: "" }), state)).toEqual([]);
-  });
-
   it("fires ONE action per press, not one per frame", () => {
     const state = createGamepadPollState();
     const held = pad({ pressed: [Button.A] });
@@ -137,10 +135,10 @@ describe("pollGamepad", () => {
     expect(press(3)).toEqual([LogicalAction.CycleTargetNext]);
   });
 
-  it("garde l'index 2 comme modificateur de défilement sur une disposition Nintendo", () => {
+  it("laisse le modificateur de défilement hors de l'échange Nintendo", () => {
     const state = createGamepadPollState();
     const held = pad({
-      pressed: [2, 13],
+      pressed: [SCROLL_MODIFIER_BUTTON, 13],
       id: "Nintendo Switch Pro Controller",
     });
 
@@ -153,9 +151,9 @@ describe("pollGamepad", () => {
     ).toEqual([LogicalAction.Confirm]);
   });
 
-  it("gives Y no action of its own — it is a held modifier", () => {
+  it("le modificateur de défilement n a pas d action propre", () => {
     const state = createGamepadPollState();
-    expect(pollGamepad(pad({ pressed: [Button.Y] }), state)).toEqual([]);
+    expect(pollGamepad(pad({ pressed: [SCROLL_MODIFIER_BUTTON] }), state)).toEqual([]);
   });
 
   it("moves the cursor with the d-pad", () => {
@@ -194,20 +192,20 @@ describe("pollGamepad", () => {
     expect(pollGamepad(pad({ pressed: [Button.DpadUp] }), state)).toEqual([LogicalAction.CursorUp]);
   });
 
-  it("turns a direction into a panel scroll while Y is held", () => {
+  it("transforme une direction en défilement tant que le modificateur est maintenu", () => {
     const state = createGamepadPollState();
 
-    expect(pollGamepad(pad({ pressed: [Button.Y, Button.DpadDown] }), state)).toEqual([
-      LogicalAction.ScrollLogDown,
-    ]);
+    expect(pollGamepad(pad({ pressed: [SCROLL_MODIFIER_BUTTON, Button.DpadDown] }), state)).toEqual(
+      [LogicalAction.ScrollLogDown],
+    );
     pollGamepad(pad({}), state);
-    expect(pollGamepad(pad({ pressed: [Button.Y, Button.DpadLeft] }), state)).toEqual([
-      LogicalAction.ScrollTimelineUp,
-    ]);
+    expect(pollGamepad(pad({ pressed: [SCROLL_MODIFIER_BUTTON, Button.DpadLeft] }), state)).toEqual(
+      [LogicalAction.ScrollTimelineUp],
+    );
     pollGamepad(pad({}), state);
-    expect(pollGamepad(pad({ pressed: [Button.Y], axes: [0, 1, 0, 0] }), state)).toEqual([
-      LogicalAction.ScrollLogDown,
-    ]);
+    expect(
+      pollGamepad(pad({ pressed: [SCROLL_MODIFIER_BUTTON], axes: [0, 1, 0, 0] }), state),
+    ).toEqual([LogicalAction.ScrollLogDown]);
   });
 
   it("pans continuously with the RIGHT stick, without edge detection", () => {
@@ -241,5 +239,111 @@ describe("pollGamepad", () => {
     const actions = pollGamepad(pad({ pressed: [Button.A, Button.DpadUp] }), state);
 
     expect(actions).toEqual([LogicalAction.Confirm, LogicalAction.CursorUp]);
+  });
+});
+
+describe("capture et pads non standard (plan 186)", () => {
+  it("lit les boutons bruts quel que soit le `mapping` — c'est le seul moyen de configurer un pad que Firefox ne reconnaît pas", () => {
+    const state = createGamepadPollState();
+    expect(pollGamepadButtons(pad({ pressed: [Button.X], mapping: "" }), state)).toEqual([
+      Button.X,
+    ]);
+  });
+
+  it("ne rend un bouton qu'au front, pas à chaque frame", () => {
+    const state = createGamepadPollState();
+    const held = pad({ pressed: [Button.A] });
+    expect(pollGamepadButtons(held, state)).toEqual([Button.A]);
+    expect(pollGamepadButtons(held, state)).toEqual([]);
+  });
+
+  it("applique l'échange Nintendo à la capture : le bouton du BAS s'enregistre comme le bouton du bas", () => {
+    const state = createGamepadPollState();
+    const captured = pollGamepadButtons(
+      pad({ pressed: [Button.B], id: "057e-2009-Pro Controller" }),
+      state,
+    );
+    expect(captured).toEqual([Button.A]);
+  });
+
+  it("route un pad au `mapping` vide, celui que Firefox renvoie pour une manette pourtant standard", () => {
+    const buttonActions = new Map([[Button.A, LogicalAction.Confirm]]);
+
+    expect(
+      pollGamepad(pad({ pressed: [Button.A], mapping: "" }), createGamepadPollState(), {
+        buttonActions,
+      }),
+    ).toEqual([LogicalAction.Confirm]);
+  });
+});
+
+describe("cycle de vie du poller (plan 186)", () => {
+  function stubEnvironment(pads: (GamepadSnapshot | null)[]): {
+    listeners: Map<string, () => void>;
+    runFrames: (count: number) => void;
+  } {
+    const listeners = new Map<string, () => void>();
+    const pending: (() => void)[] = [];
+    vi.stubGlobal("window", {
+      addEventListener: (type: string, handler: () => void) => listeners.set(type, handler),
+      removeEventListener: (type: string) => listeners.delete(type),
+    });
+    vi.stubGlobal("navigator", { getGamepads: () => pads });
+    vi.stubGlobal("requestAnimationFrame", (callback: () => void) => {
+      pending.push(callback);
+      return pending.length;
+    });
+    vi.stubGlobal("cancelAnimationFrame", () => undefined);
+    return {
+      listeners,
+      runFrames: (count) => {
+        for (let index = 0; index < count; index++) {
+          pending.shift()?.();
+        }
+      },
+    };
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("survit à une connexion annoncée avant que le pad ne soit publié", () => {
+    const pads: (GamepadSnapshot | null)[] = [null];
+    const emitted: LogicalAction[] = [];
+    const { listeners, runFrames } = stubEnvironment(pads);
+
+    const poller = startGamepadPolling((action) => emitted.push(action));
+    listeners.get("gamepadconnected")?.();
+    runFrames(3);
+
+    pads[0] = pad({ pressed: [Button.A] });
+    runFrames(1);
+
+    expect(emitted).toEqual([LogicalAction.Confirm]);
+    poller.dispose();
+  });
+
+  it("rattrape un pad déjà publié dont l'événement de connexion a été manqué", () => {
+    const emitted: LogicalAction[] = [];
+    const { runFrames } = stubEnvironment([pad({ pressed: [Button.A] })]);
+
+    const poller = startGamepadPolling((action) => emitted.push(action));
+    runFrames(1);
+
+    expect(emitted).toEqual([LogicalAction.Confirm]);
+    poller.dispose();
+  });
+
+  it("finit par rendre la main quand aucune manette ne répond", () => {
+    const emitted: LogicalAction[] = [];
+    const { listeners, runFrames } = stubEnvironment([null]);
+
+    const poller = startGamepadPolling((action) => emitted.push(action));
+    listeners.get("gamepadconnected")?.();
+    runFrames(400);
+
+    expect(emitted).toEqual([]);
+    poller.dispose();
   });
 });

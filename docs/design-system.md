@@ -693,6 +693,7 @@ Ajoutés au Jalon 2b — miroir des constantes canvas dans `constants.ts` :
 | `--color-tempo-medium` | `var(--yellow-400)` | Pastilles tempo CT modéré |
 | `--color-tempo-heavy` | `var(--red-400)` | Pastilles tempo CT lourd (rejoue plus tard) |
 | `--color-border-faint` | Semi-transparent blanc feutré | Bordure douce panneaux |
+| `--color-state-danger` | `var(--red-400)` | État d'alerte d'un contrôle — case de l'écran de contrôles **vidée par un échange** (plan 186). Toujours doublé d'un repère non-couleur (astérisque) |
 
 Pastilles « tempo » (`.bc-move-tempo`, `.tb-move-tempo`) : `●`/`○` 1–5 indiquant le poids du coût CT
 d'un move (vert léger → ambre → rouge lourd), via `data-tempo`. Remplace l'ancienne colonne PP.

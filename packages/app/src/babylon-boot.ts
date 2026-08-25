@@ -21,11 +21,13 @@ import "./styles/game-overlay.css";
 import "./styles/index.css";
 import "./styles/team-builder-overlay.css";
 import "./styles/menu-screens.css";
+import "./styles/controls-screen.css";
 import "./styles/map-select.css";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
 import { loadPersistedScreen } from "./app/screen-persistence.js";
 import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.js";
 import { initLanguage } from "./i18n/index.js";
+import { initBindings } from "./input/bindings-store.js";
 import { initInputSystem } from "./input/input-system.js";
 import { resolveKeyLabels } from "./input/key-legend.js";
 import { startWakeLock } from "./platform/wake-lock.js";
@@ -38,6 +40,7 @@ import {
   type SandboxConfig,
 } from "./types/SandboxConfig.js";
 import { createBattleModeScreen } from "./ui/dom/screens/battle-mode-screen.js";
+import { createControlsScreen } from "./ui/dom/screens/controls-screen.js";
 import { createCreditsScreen } from "./ui/dom/screens/credits-screen.js";
 import { createMainMenuScreen } from "./ui/dom/screens/main-menu-screen.js";
 import { createMapSelectScreen } from "./ui/dom/screens/map-select-screen.js";
@@ -61,6 +64,7 @@ initLanguage();
 // les défauts en mémoire et un réglage persisté (ex. Prévisualisation dégâts OFF) redevenait ON au
 // rechargement — et le gating du panneau de preview (plan 175) ne s'appliquait jamais.
 initSettings();
+initBindings();
 // Couche d'entrée device-agnostique (plan 184) : un seul écouteur clavier pour toute l'app, et le
 // suivi de la source active (souris / doigt / clavier / manette). Montée au boot, avant tout écran :
 // les écrans et le combat s'y enregistrent à leur montage, y compris les chemins d'entrée directs
@@ -140,6 +144,7 @@ async function boot(root: HTMLElement): Promise<void> {
     "my-teams": () => createMyTeamsScreen(navigate),
     "team-edit": () => createTeamEditScreen(navigate),
     settings: () => createSettingsScreen(navigate),
+    controls: () => createControlsScreen(navigate),
     credits: () => createCreditsScreen(navigate),
     combat: () => createCombatScreen(navigate, backend),
   });

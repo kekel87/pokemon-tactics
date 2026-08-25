@@ -37,6 +37,8 @@ export interface BoardInputConsumer {
   zoomCamera(step: 1 | -1): void;
   setZoomLevel(index: number): void;
   scrollLog(delta: 1 | -1): void;
+  /** Ouvrir / refermer le journal de combat (plan 186). */
+  toggleLog(): void;
   scrollTimeline(delta: 1 | -1): void;
 }
 
@@ -109,6 +111,9 @@ export function createInputRouter(options: InputRouterOptions): InputRouter {
         return true;
       case LogicalAction.ZoomLevel3:
         target.setZoomLevel(2);
+        return true;
+      case LogicalAction.ToggleBattleLog:
+        target.toggleLog();
         return true;
       case LogicalAction.ScrollLogUp:
         target.scrollLog(-1);

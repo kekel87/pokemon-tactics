@@ -40,9 +40,6 @@ export const LogicalAction = {
   ZoomLevel1: "zoom-level-1",
   ZoomLevel2: "zoom-level-2",
   ZoomLevel3: "zoom-level-3",
-  /** Move the focus inside the current DOM menu (combat action menu, or a menu screen). */
-  MenuNext: "menu-next",
-  MenuPrevious: "menu-previous",
   /**
    * The battle log and the CT timeline scroll by wheel and drag only; neither is focusable, so
    * without a dedicated binding a keyboard player never sees past the ~11 first predicted turns
@@ -52,6 +49,12 @@ export const LogicalAction = {
   ScrollLogDown: "scroll-log-down",
   ScrollTimelineUp: "scroll-timeline-up",
   ScrollTimelineDown: "scroll-timeline-down",
+  /**
+   * Ouvrir / refermer le journal (plan 186, retour humain 2026-08-25). Le panneau a toujours eu son
+   * repli, mais seulement au clic sur son en-tête : au clavier il était inatteignable, et rien
+   * n'indiquait qu'il s'ouvrait.
+   */
+  ToggleBattleLog: "toggle-battle-log",
 } as const;
 
 export type LogicalAction = (typeof LogicalAction)[keyof typeof LogicalAction];

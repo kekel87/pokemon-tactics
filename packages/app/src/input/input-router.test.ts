@@ -29,6 +29,7 @@ function makeBoard(): BoardInputConsumer & { calls: string[] } {
     zoomCamera: (step) => calls.push(`zoomCamera:${step}`),
     setZoomLevel: (index) => calls.push(`setZoomLevel:${index}`),
     scrollLog: (delta) => calls.push(`scrollLog:${delta}`),
+    toggleLog: () => calls.push("toggleLog"),
     scrollTimeline: (delta) => calls.push(`scrollTimeline:${delta}`),
   };
 }

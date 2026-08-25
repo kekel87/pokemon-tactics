@@ -69,6 +69,8 @@ export class SettingsScreen {
   readonly fullscreenToggle: Locator;
   /** iOS-only « add to home screen » instruction (plan 180-a) — absent everywhere else. */
   readonly installHint: Locator;
+  /** Ligne « Contrôles » → écran de remapping (plan 186). */
+  readonly controls: Locator;
   constructor(page: Page) {
     this.title = page.getByRole("heading", { name: "Paramètres" });
     this.back = page.getByRole("button", { name: "Retour" });
@@ -76,6 +78,34 @@ export class SettingsScreen {
     this.damagePreviewToggle = page.getByTestId("setting-damage-preview");
     this.fullscreenToggle = page.getByTestId("setting-fullscreen");
     this.installHint = page.getByTestId("setting-install-hint");
+    this.controls = page.getByTestId("setting-controls");
+  }
+}
+
+export class ControlsScreen {
+  readonly title: Locator;
+  /** Bandeau de capture — masqué tant qu'aucune case n'attend une touche. */
+  readonly captureCancel: Locator;
+  /** Message d'échange (« X a quitté « Action » »), vide au repos. */
+  readonly message: Locator;
+  readonly resetAll: Locator;
+  constructor(private readonly page: Page) {
+    this.title = page.getByRole("heading", { name: "Contrôles" });
+    this.captureCancel = page.getByTestId("controls-capture-cancel");
+    this.message = page.getByTestId("controls-message");
+    this.resetAll = page.getByTestId("controls-reset-all");
+  }
+
+  /**
+   * Case de la table : `action` est la valeur de `LogicalAction`, `cell` vaut 0 (principal),
+   * 1 (secondaire) ou `"pad"` (colonne manette).
+   */
+  cell(action: string, cell: 0 | 1 | "pad"): Locator {
+    return this.page.getByTestId(`control-${action}-${cell}`);
+  }
+
+  storedBindings(): Promise<string | null> {
+    return this.page.evaluate(() => localStorage.getItem("pt-bindings"));
   }
 }
 

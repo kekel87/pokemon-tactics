@@ -479,6 +479,7 @@ function runBattle(options: {
       zoomCamera: (step) => combat.zoomCamera(step),
       setZoomLevel: (index) => combat.setZoomLevel(index),
       scrollLog: (delta) => battleLog.scrollByStep(delta),
+      toggleLog: () => battleLog.toggleCollapsed(),
       scrollTimeline: (delta) => chrome.scrollTimeline(delta),
     },
     menu: {

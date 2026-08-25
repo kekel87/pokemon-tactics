@@ -1,7 +1,7 @@
 import type { CameraKeyLabels } from "@pokemon-tactic/ui-dom";
 import { getLanguage } from "../i18n/index.js";
 import { Language } from "../i18n/types.js";
-import { KEYBOARD_BINDINGS } from "./keyboard-source.js";
+import { getBindings, type RemappableAction } from "./bindings-store.js";
 import { LogicalAction } from "./logical-action.js";
 
 /**
@@ -26,32 +26,36 @@ import { LogicalAction } from "./logical-action.js";
 const DRAWABLE = /^[A-Z0-9]$/;
 
 /**
- * Fallback per language. Covers exactly the positions the legend draws — a position absent from
- * here falls back to the generic key cap, which is the honest answer for "we don't know".
+ * Écarts de disposition connus, par langue. Seules les positions dont le CARACTÈRE change sont
+ * listées : partout ailleurs, `KeyX` se lit `X` et `Digit1` se lit `1`, ce que `derivedCharacter`
+ * fait sans table. Le repli ne sert que là où le navigateur ne sait pas répondre (Firefox, Safari).
  */
 const FALLBACK: Readonly<Record<Language, Readonly<Record<string, string>>>> = {
   [Language.French]: {
     KeyQ: "A",
-    KeyE: "E",
-    KeyR: "R",
-    KeyF: "F",
-    Digit1: "1",
-    Digit2: "2",
-    Digit3: "3",
+    KeyA: "Q",
+    KeyW: "Z",
+    KeyZ: "W",
   },
-  [Language.English]: {
-    KeyQ: "Q",
-    KeyE: "E",
-    KeyR: "R",
-    KeyF: "F",
-    Digit1: "1",
-    Digit2: "2",
-    Digit3: "3",
-  },
+  [Language.English]: {},
 };
 
-/** Codes worth asking the layout map about — the ones any legend or prompt can draw. */
-const QUERIED_CODES = ["KeyQ", "KeyE", "KeyR", "KeyF", "Digit1", "Digit2", "Digit3"] as const;
+/** Positions dont une légende ou l'écran de contrôles peut avoir besoin : lettres et chiffres. */
+const QUERIED_CODES: readonly string[] = [
+  ...Array.from({ length: 26 }, (_, index) => `Key${String.fromCharCode(65 + index)}`),
+  ...Array.from({ length: 10 }, (_, index) => `Digit${index}`),
+];
+
+/** `KeyR` → `R`, `Digit3` → `3`. La lecture QWERTY, celle que la position porte par défaut. */
+function derivedCharacter(code: string): string {
+  if (code.startsWith("Key") && code.length === 4) {
+    return code.slice(3);
+  }
+  if (code.startsWith("Digit") && code.length === 6) {
+    return code.slice(5);
+  }
+  return "";
+}
 
 /** Layout-reported characters, empty until (and unless) the API answers. */
 let resolved: Record<string, string> = {};
@@ -110,12 +114,25 @@ function keyLabel(code: string): string {
 }
 
 /**
+ * Caractère à AFFICHER pour une position, pour l'écran de contrôles (plan 186) : comme `keyLabel`,
+ * mais avec la lecture QWERTY par défaut plutôt que le vide. L'écran écrit du texte, pas une tuile —
+ * il n'a pas besoin que le caractère existe dans la feuille Kenney, seulement qu'il soit honnête.
+ */
+export function keyCharacter(code: string): string {
+  return keyLabel(code) || derivedCharacter(code);
+}
+
+/**
  * Which physical key each camera control is bound to — read back from the BINDING TABLE, never
  * retyped. The legend would otherwise drift from the bindings in silence, and the remapping screen
  * (plan dédié) is going to rewrite exactly that table.
  */
-function boundCode(action: LogicalAction): string | undefined {
-  return Object.keys(KEYBOARD_BINDINGS).find((code) => KEYBOARD_BINDINGS[code] === action);
+function boundCode(action: RemappableAction): string | undefined {
+  // Slot principal d'abord : c'est celui que l'écran de contrôles présente en premier, donc celui
+  // que le joueur reconnaîtra sur la légende. Un binding à Maj n'est pas dessinable (la feuille n'a
+  // pas de capuchon « Maj+X ») et aucune commande caméra n'en porte.
+  const slots = getBindings().current().keyboard[action];
+  return slots.find((binding) => binding !== null && !binding.shift)?.code;
 }
 
 /**
@@ -124,9 +141,9 @@ function boundCode(action: LogicalAction): string | undefined {
  * about not knowing rather than showing a stale letter.
  */
 export function cameraKeyLabels(): CameraKeyLabels {
-  const label = (action: LogicalAction): string => {
+  const label = (action: RemappableAction): string => {
     const code = boundCode(action);
-    return code === undefined ? "" : keyLabel(code);
+    return code === undefined ? "" : keyCharacter(code);
   };
   return {
     rotateLeft: label(LogicalAction.RotateCameraLeft),
