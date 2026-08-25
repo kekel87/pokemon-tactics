@@ -2670,8 +2670,10 @@ quelque part ferait mentir la légende sans casser le jeu — d'où la moitié c
   `mapping: ""` — la réponse de Firefox pour une Switch Pro, qui rendait la manette totalement muette.
   ⚠️ Ne pas remplacer cette assertion par une mesure d'`outline` calculé : Chromium dessine l'anneau
   pour un focus programmatique, donc elle passerait avec ou sans le correctif.
-- 👁 **Capture à la manette** : Playwright ne pousse pas de bouton sur une vraie manette. À dérouler à
-  la main, pad branché — y compris le saut des colonnes clavier (`data-nav-skip`), non automatisable.
+- ✅ **Capture à la manette** — **validée à la main le 2026-08-25**, pad réel : capture d'un bouton,
+  saut des colonnes clavier (`data-nav-skip`), `Select` qui ouvre le journal et `R3 + direction` qui
+  le fait défiler. Playwright ne pousse pas de bouton sur une vraie manette : à re-dérouler à la main
+  si la couche d'entrée rebouge.
 - 👁 **Rendu 4K** : l'écran ne doit défiler ni en 4K ni en 1440p (mesuré : `scrollHeight == clientHeight`),
   et aucun libellé ne doit déborder. Le confort réel reste à l'œil.
 - 👁 **Rendu sur téléphone** : sous 760px la grille passe en cartes (action en titre, ses 3 cases

@@ -1,6 +1,6 @@
 # Plan 186 — Écran de remapping (clavier & manette)
 
-> **Statut** : done (2026-08-25 — livré et **validé à la main** : écran, remapping, journal, manette et anneau de focus)
+> **Statut** : done (2026-08-25 — livré et **validé à la main sur manette réelle** : écran, remapping, journal, capture de bouton, `Select` / `R3 + direction`, saut des colonnes clavier et anneau de focus)
 > **Créé** : 2026-08-24
 > **Phase** : hors phase — chantier de contrôle issu de la validation du Lot 2 (plan 184)
 > **Cadre** : `docs/next.md` § Reporté, « Chantier dédié : écran de remapping » (ouvert 2026-08-21, découplé de la légende le 2026-08-24 une fois le plan 185 livré)
