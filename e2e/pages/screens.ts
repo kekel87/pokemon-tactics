@@ -40,22 +40,59 @@ export class MapSelectScreen {
   }
 }
 
+/**
+ * Écran de sélection d'équipe, refondu au plan 188 : un camp par carte en une colonne, le format en
+ * rangée de segments (#830), Humain / IA en segment à deux états (#831), et l'équipe choisie dans une
+ * modale ouverte par la carte (#832).
+ *
+ * ⚠️ Le segment a changé la SÉMANTIQUE du geste, pas seulement le DOM. Avant, un bouton unique
+ * basculait : cliquer « Humain » **donnait le camp à l'IA**. Maintenant chaque bouton désigne un
+ * état, donc « Humain » sur un camp déjà humain ne fait rien — d'où {@link giveSlotToAi}, qui vise
+ * « IA ». Un test qui aurait gardé l'ancien clic serait passé au vert en ne testant plus rien.
+ */
 export class TeamSelectScreen {
   readonly title: Locator;
-  /** Toggle the Player 1 slot from Human → AI (assigns it a random team → launchable). */
-  readonly humanToggle: Locator;
-  /**
-   * « 🎲 Aléatoire » row of the team list — assigns a random team to the ACTIVE slot, which is slot 1
-   * on arrival. The way to launch a battle the test can PLAY: {@link humanToggle} also makes it
-   * launchable, but by handing slot 1 to the AI, leaving no human turn to drive.
-   */
-  readonly randomTeam: Locator;
+  /** Rangée de segments de format (« 2J × 6 », « 3J × 4 »…). */
+  readonly formatSegments: Locator;
   readonly launch: Locator;
-  constructor(page: Page) {
+  constructor(private readonly page: Page) {
     this.title = page.getByText("Sélection d'équipe", { exact: false });
-    this.humanToggle = page.getByRole("button", { name: "Humain", exact: true });
-    this.randomTeam = page.getByRole("button", { name: "🎲 Aléatoire", exact: true });
+    this.formatSegments = page.getByTestId("format-segments");
     this.launch = page.getByRole("button", { name: "Lancer ▶", exact: true });
+  }
+
+  /** Bouton d'équipe d'un camp (0-indexé) — l'ouvre sur son sélecteur. */
+  teamButton(slotIndex = 0): Locator {
+    return this.page
+      .getByTestId("player-team-button")
+      .and(this.page.locator(`[data-slot-index="${slotIndex}"]`));
+  }
+
+  /**
+   * Donne un camp à l'IA, ce qui lui assigne une équipe aléatoire — donc rend le combat lançable
+   * sans passer par le sélecteur. Le chemin le plus court vers un combat, mais il ne laisse aucun
+   * tour humain à jouer : pour un combat que le test PILOTE, voir {@link pickRandomTeam}.
+   */
+  async giveSlotToAi(slotIndex = 0): Promise<void> {
+    await this.page
+      .getByTestId("player-controller")
+      .and(this.page.locator(`[data-slot-index="${slotIndex}"][data-controller="ai"]`))
+      .click();
+  }
+
+  /**
+   * Assigne une équipe aléatoire à un camp **en gardant son contrôleur** : ouvre le sélecteur du
+   * camp, prend « 🎲 Aléatoire », la modale se referme. C'est la façon de lancer un combat que le
+   * test peut jouer, le camp 1 restant humain.
+   */
+  async pickRandomTeam(slotIndex = 0): Promise<void> {
+    await this.teamButton(slotIndex).click();
+    // Scopé au `<dialog>`, sans quoi le locator est ambigu : les camps IA portent « 🎲 Aléatoire »
+    // comme NOM D'ÉQUIPE sur leur propre bouton, donc le même libellé existe des deux côtés.
+    await this.page
+      .getByRole("dialog")
+      .getByRole("button", { name: "🎲 Aléatoire", exact: true })
+      .click();
   }
 }
 

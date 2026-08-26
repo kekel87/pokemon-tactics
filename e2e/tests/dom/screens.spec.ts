@@ -94,8 +94,9 @@ test("§6.4 sélection d'équipe : sélecteur de format + contrôles présents",
   await maps.confirm.click();
   await expect(teams.title).toBeVisible();
 
-  await expect(page.locator(".ts-format-picker-select")).toBeVisible();
-  await expect(page.locator(".ts-player-cell").first()).toBeVisible();
+  // Rangée de segments de format (plan 188 #830 : c'était un `<select>`) + au moins un camp.
+  await expect(teams.formatSegments).toBeVisible();
+  await expect(teams.teamButton(0)).toBeVisible();
 });
 
 test("§6.4 sélection d'équipe : « Lancer » désactivé tant que les slots ne sont pas tous assignés", async ({
@@ -115,7 +116,7 @@ test("§6.4 sélection d'équipe : « Lancer » désactivé tant que les slots n
   // Joueur 1 = Humain non assigné → lancement bloqué.
   await expect(teams.launch).toBeDisabled();
 
-  // Bascule J1 en IA (équipe aléatoire assignée) → tous les slots prêts → lançable.
-  await teams.humanToggle.click();
+  // Donne J1 à l'IA (équipe aléatoire assignée) → tous les camps prêts → lançable.
+  await teams.giveSlotToAi();
   await expect(teams.launch).toBeEnabled();
 });

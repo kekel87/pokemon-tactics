@@ -155,6 +155,9 @@ export class EditRightPanel {
       row.appendChild(label);
       const slider = document.createElement("input");
       slider.type = "range";
+      // Contrat de test : le testid localise, `data-stat` désigne laquelle (id EN stable).
+      slider.dataset.testid = "pokemon-edit-sp-slider";
+      slider.dataset.stat = cfg.key;
       slider.min = "0";
       slider.max = String(SP_PER_STAT_MAX);
       slider.value = String(slot.statSpread[cfg.key] ?? 0);

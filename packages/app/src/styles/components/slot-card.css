@@ -36,10 +36,12 @@
       border-style: solid;
       border-color: var(--color-border-surface);
     }
+    /* Bleu et non l'accent : la carte est un `<button>`, donc focalisable, et l'anneau de focus
+       jaune se confondait avec son liseré d'état. Voir décision #836. */
     &[data-state="active"] {
-      border-color: var(--color-accent);
+      border-color: var(--color-btn-border);
       background: var(--color-bg-elevated-hover);
-      box-shadow: 0 0 0 1px var(--color-accent);
+      box-shadow: 0 0 0 1px var(--color-btn-bg);
     }
     .tb-slot-card-plus {
       font-size: var(--font-size-lg);

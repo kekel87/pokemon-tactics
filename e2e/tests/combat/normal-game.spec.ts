@@ -24,7 +24,7 @@ test("jeu normal : menu → carte → équipe → la scène de combat monte", as
 
   // Joueur 1 (Humain) → IA lui attribue une équipe aléatoire ; Joueur 2 (IA) en a déjà une.
   await expect(teamSelect.title).toBeVisible();
-  await teamSelect.humanToggle.click();
+  await teamSelect.giveSlotToAi();
   await expect(teamSelect.launch).toBeEnabled();
   await teamSelect.launch.click();
 

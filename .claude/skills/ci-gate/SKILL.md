@@ -21,6 +21,14 @@ Tiers : `fast` = lint:fix → typecheck → test · `full` = + build + test:inte
 
 `pnpm lint:fix` peut modifier des fichiers (autofix Biome) — c'est attendu, ne les revert pas.
 
+## Ressources machine (2026-08-25)
+
+L'humain travaille et joue sur cette machine pendant le gate. L'e2e passe donc par
+`scripts/with-cpu-cap.sh` (plafond noyau : 4 cœurs sur 16, 8 Go, priorité basse) et 3 workers — le
+tier `full` reste `affected`, jamais `pnpm test:e2e` en direct. Un run long se lance **en tâche de
+fond** pour pouvoir être arrêté dès qu'il réclame sa machine. `PT_FULL_SPEED=1` débride, uniquement
+s'il l'a demandé. Détails : `.claude/rules/e2e.md` § Ressources machine.
+
 ## Rapport final — format STRICT
 
 Ton dernier message est le seul contenu visible par l'appelant. Il contient, dans cet ordre :

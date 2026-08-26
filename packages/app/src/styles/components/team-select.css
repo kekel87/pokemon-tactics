@@ -8,11 +8,6 @@
     color: var(--color-text-primary);
     font-family: var(--font-family);
     z-index: var(--z-overlay);
-    /* Taille des portraits de la liste d'équipes ; redéfinie dans le bloc compact ci-dessous.
-       Déclarée ici plutôt qu'en repli `var(--ts-portrait-size, 40px)` côté consommateur, sinon la
-       valeur de bureau et celle de mobile vivent dans deux endroits sans lien lisible. */
-    --ts-portrait-size: 40px;
-
     /*
      * Petits écrans (plan 179). Cet écran vivait entièrement sur les tokens `:root` fixes, comme
      * le Team Builder et les sélecteurs avant lui — d'où le « on dirait qu'il ne scale pas comme
@@ -30,7 +25,6 @@
       --spacing-xl: 10px;
       --pad-control-y: 5px;
       --pad-control-x: 9px;
-      --ts-portrait-size: 28px;
 
       /* Ancré aux bords, donc soumis à l'encoche et à la barre de gestes en paysage. */
       padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
@@ -57,44 +51,92 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    flex-wrap: wrap;
     .ts-format-picker-label {
       color: var(--color-text-dim);
       font-size: var(--font-size-sm);
     }
-    .ts-format-picker-select {
-      padding: var(--spacing-xs) var(--spacing-sm);
-      background: var(--color-bg-surface);
+  }
+
+  /* Segment à états visibles — le motif partagé par la rangée de formats (#830) et par la bascule
+     Humain / IA (#831). Les deux états sont toujours dessinés, l'actif surligné : on voit ce qu'on
+     choisit avant de le choisir, au lieu de deviner ce qu'un bouton bascule va devenir.
+     `[data-state="active"]` et non `.active` — cf. `.claude/rules/css.md`. */
+  .ts-segments {
+    /* Liseré interne du groupe : assez fin pour lire les segments comme UN contrôle, pas trois. */
+    --ts-segment-gutter: 2px;
+
+    display: inline-flex;
+    gap: var(--ts-segment-gutter);
+    padding: var(--ts-segment-gutter);
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-sm);
+  }
+
+  .ts-segment {
+    appearance: none;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: transparent;
+    color: var(--color-text-dim);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    text-align: center;
+    min-height: var(--target-min);
+    &:hover:not([data-state="active"]) {
+      background: var(--color-bg-elevated-hover);
       color: var(--color-text-primary);
-      border: 1px solid var(--color-border-surface);
-      border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: var(--font-size-sm);
+    }
+    /* Bleu et NON l'accent jaune : le jaune est déjà l'anneau de focus (`base.css`), et l'anneau
+       étant tracé À L'INTÉRIEUR, il disparaissait purement et simplement sur un segment rempli de
+       jaune — « on perd où on est » (retour humain 2026-08-25). Le bleu des boutons est déjà ce que
+       `map-select.css` emploie pour la carte sélectionnée d'une liste navigable au focus : on aligne
+       sur ce précédent plutôt que d'inventer. Décision #836. */
+    &[data-state="active"] {
+      background: var(--color-btn-bg);
+      border-color: var(--color-btn-border);
+      color: var(--color-text-primary);
     }
   }
 
+  /* Une seule colonne de camps depuis le plan 188 (#832) : la liste d'équipes qui occupait le centre
+     est passée en modale, donc l'espace horizontal n'a plus à être partagé. Les camps s'y empilent
+     et la colonne défile — jusqu'à 12 camps, le format maximal des cartes. */
   .ts-main {
     flex: 1;
-    display: grid;
-    grid-template-columns: 220px 1fr 220px;
+    display: flex;
+    justify-content: center;
     gap: var(--spacing-lg);
     padding: var(--spacing-lg);
     min-height: 0;
-    &:has(.ts-players-column[data-side="right"]:not(:empty)) {
-      grid-template-columns: 220px 1fr 220px;
-    }
-    &:not(:has(.ts-players-column[data-side="right"])) {
-      grid-template-columns: 220px 1fr;
-    }
   }
 
   .ts-players-column {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-content: start;
     gap: var(--spacing-sm);
     overflow-y: auto;
     min-width: 0;
+    width: 100%;
+    max-width: 420px;
+
+    /* Deux colonnes au-delà de 6 camps : les cartes portent maintenant un segment sur sa propre
+       rangée et une rangée de portraits, donc à 12 camps une colonne unique ne montrerait que deux
+       ou trois camps à la fois (retour humain 2026-08-25). */
+    &[data-layout="two"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      max-width: 860px;
+    }
   }
 
+  /* La carte n'est plus cliquable elle-même (#832 : c'est le bouton d'équipe qui ouvre le sélecteur),
+     donc plus de `cursor: pointer` ni d'état `[data-active]` — ce dernier était le second curseur
+     que la refonte supprime. */
   .ts-player-cell {
     --ts-player-color: var(--color-accent);
     display: flex;
@@ -103,18 +145,10 @@
     gap: var(--spacing-xs);
     padding: var(--spacing-sm);
     background: var(--color-bg-surface);
-    border: 2px solid transparent;
+    border: 2px solid var(--ts-player-color);
     border-radius: var(--radius-md);
     color: inherit;
-    cursor: pointer;
     text-align: left;
-    &[data-active="true"] {
-      border-color: var(--ts-player-color);
-      background: var(--color-bg-elevated);
-    }
-    &:hover {
-      background: var(--color-bg-elevated-hover);
-    }
   }
 
   .ts-player-cell-header {
@@ -136,7 +170,25 @@
     }
   }
 
+  /* Le segment Humain / IA hérite son apparence de `.ts-segments` / `.ts-segment`. Ce qui lui est
+     propre : il occupe TOUTE la largeur de la carte, sur sa propre rangée, et ses deux boutons se
+     partagent l'espace à égalité.
+
+     C'est ce qui rend la navigation du focus naturelle (retour humain 2026-08-25). `focusInDirection`
+     compare des CENTRES d'éléments : tant que le segment était collé à droite de l'en-tête, son
+     centre tombait à droite de celui du bouton d'équipe, donc ← depuis « Humain » trouvait l'équipe
+     comme « voisin de gauche ». Aligné sur la même bande horizontale, ← → restent dans le segment et
+     ↑ ↓ traversent la carte. */
   .ts-player-cell-controller {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  /* Bouton, et non plus texte : c'est lui qui ouvre le sélecteur d'équipe du camp (#832). */
+  .ts-player-cell-team {
+    appearance: none;
+    width: 100%;
     padding: var(--spacing-xs) var(--spacing-sm);
     background: var(--color-bg-elevated);
     color: var(--color-text-primary);
@@ -144,20 +196,49 @@
     border-radius: var(--radius-sm);
     cursor: pointer;
     font-family: inherit;
-    font-size: var(--font-size-xs);
-    &[data-controller="human"] { color: var(--color-accent); }
-  }
-
-  .ts-player-cell-team {
-    color: var(--color-text-primary);
     font-size: var(--font-size-sm);
+    text-align: left;
+    min-height: var(--target-min);
+
+    /* Nom au-dessus, portraits en dessous : la carte redit QUELLE équipe c'est, pas seulement son
+       nom — ce que l'ancienne liste permanente montrait et que #832 avait fait perdre. */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+
+    &:hover { background: var(--color-bg-elevated-hover); }
     &[data-state="empty"] { color: var(--color-text-dim); font-style: italic; }
-    &[data-state="ephemeral"] { color: var(--color-text-dim); }
+    &[data-state="ephemeral"] .ts-player-cell-team-name { color: var(--color-text-dim); }
   }
 
+  .ts-player-cell-team-name {
+    color: inherit;
+  }
+
+  /*
+   * La liste d'équipes vit dans un `<dialog>` depuis le plan 188 (#832), donc sur `document.body` —
+   * HORS de `.ts-root`. Ses métriques compactes sont déclarées ICI et non sur `.ts-root` pour cette
+   * raison : un token posé sur l'écran ne l'atteindrait plus.
+   */
   .ts-team-list {
     overflow-y: auto;
     min-height: 0;
+
+    /* Mêmes seuils et mêmes valeurs que le bloc compact de `.ts-root` (plan 179) : la modale doit
+       rétrécir comme l'écran qui l'ouvre, pas rester en métriques de bureau sur un téléphone. */
+    @media (height < 500px), (width < 900px) {
+      --font-size-xs: 12px;
+      --font-size-sm: 13px;
+      --font-size-md: 15px;
+      --font-size-lg: 18px;
+      --spacing-sm: 4px;
+      --spacing-md: 5px;
+      --spacing-lg: 8px;
+      --spacing-xl: 10px;
+      --pad-control-y: 5px;
+      --pad-control-x: 9px;
+    }
   }
 
   .ts-team-list-items {
@@ -205,13 +286,30 @@
     font-size: var(--font-size-md);
   }
 
-  .ts-team-row-portraits {
+  /*
+   * Le token de taille est déclaré sur le CONTENEUR de portraits, pas sur un écran : ces portraits
+   * vivent maintenant dans deux arbres — la carte de camp (dans `.ts-root`) et la liste du sélecteur
+   * (dans un `<dialog>` monté sur `<body>`). Déclaré sur l'un des deux, il manquerait à l'autre.
+   */
+  .ts-portraits {
+    --ts-portrait-size: 40px;
+
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-xs);
+
+    /* Sur une carte de camp les portraits sont une vignette, pas la donnée principale : plus petits
+       que dans la liste, où c'est ce qu'on vient comparer. */
+    .ts-player-cell-team & {
+      --ts-portrait-size: 26px;
+    }
+
+    @media (height < 500px), (width < 900px) {
+      --ts-portrait-size: 28px;
+    }
   }
 
-  .ts-team-row-portrait {
+  .ts-portrait {
     width: var(--ts-portrait-size);
     height: var(--ts-portrait-size);
     background: var(--color-bg-surface);

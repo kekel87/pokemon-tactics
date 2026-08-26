@@ -20,6 +20,21 @@ export default defineConfig({
   fullyParallel: true,
   // Determinism over speed-of-flakiness: no implicit retries locally; CI absorbs GPU/timing jitter.
   retries: process.env.CI ? 2 : 0,
+  /**
+   * 3 workers au lieu du défaut Playwright (cœurs / 2, soit 8 ici).
+   *
+   * Motif (2026-08-25) : 8 Chromium avec WebGL saturaient les 16 cœurs pendant ~12 min, rendant le
+   * poste inutilisable pour travailler ou jouer en parallèle. Le plafond CPU/RAM du noyau est posé
+   * par `scripts/with-cpu-cap.sh` (c'est lui qui BORNE) ; ce réglage-ci évite juste que Playwright
+   * ouvre 8 navigateurs pour se les faire étrangler par le cgroup — 3 workers dans 4 cœurs avancent
+   * mieux que 8 qui se battent.
+   *
+   * Lu ici plutôt que passé en `--workers` afin que TOUTES les entrées en profitent, y compris
+   * `scripts/e2e-affected.ts` qui construit ses propres arguments.
+   *
+   * `PT_FULL_SPEED=1` rend la main au défaut Playwright (runs où personne n'utilise la machine).
+   */
+  workers: process.env.PT_FULL_SPEED ? undefined : Number(process.env.PT_E2E_WORKERS ?? 3),
   reporter: process.env.CI ? "blob" : "list",
   use: {
     baseURL,
@@ -48,7 +63,7 @@ export default defineConfig({
     { name: "smoke", testMatch: "**/smoke/**/*.spec.ts" },
     // 60s comme `combat`, et pour la même raison (mesuré 2026-08-25, plan 187). Trois specs de ce
     // projet font un RECHARGEMENT complet de page : en dev, Vite re-sert tout le graphe de modules
-    // non bundlé depuis un seul serveur partagé par 16 workers. Isolées, ces 17 tests passent en 24 s
+    // non bundlé depuis un seul serveur partagé par tous les workers. Isolées, ces 17 tests passent en 24 s
     // (~1,4 s chacun) ; dans la suite complète un seul dépassait 30 s — une dégradation de plus de
     // 20× qui ne vient pas d'un chemin de code mais de la file d'attente. Le projet a basculé quand
     // la suite a grossi de 17 tests, ce que le plan 179 avait annoncé (« `dom` frôle son délai »).

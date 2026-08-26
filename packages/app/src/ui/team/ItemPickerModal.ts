@@ -1,12 +1,14 @@
 import { Modal } from "@pokemon-tactic/ui-dom";
 import { t } from "../../i18n";
+import { InputSource } from "../../input/input-source";
 import { normalizeSearchText } from "../../team/search-index";
 import {
   type AvailableItem,
   getAllAvailableItems,
   getItemIconUrl,
 } from "../../team/team-builder-data";
-import { focusSearchUnlessTouch } from "./picker-focus";
+import { renderPreservingFocus } from "../dom/preserve-focus";
+import { focusPickerEntry } from "./picker-focus";
 
 export interface ItemPickerOptions {
   onSelect: (item: AvailableItem | null) => void;
@@ -40,6 +42,10 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
   search.type = "text";
   search.className = "tb-picker-search";
   search.placeholder = t("teamBuilder.picker.search");
+  // Sauté par la navigation MANETTE (plan 188, décision humaine 2026-08-26 : pas de saisie au pad).
+  // Une manette ne peut pas taper, donc s'y arrêter est un cul-de-sac ; tout ce qui compte reste
+  // atteignable autrement — ici les chips de filtre. `data-nav-skip` est le mécanisme du plan 186.
+  search.dataset.navSkip = InputSource.Gamepad;
   body.appendChild(search);
 
   const filters = document.createElement("div");
@@ -64,7 +70,8 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
       { key: "other", label: t("teamBuilder.picker.itemOther") },
     ];
     for (const item of items) {
-      const chip = document.createElement("div");
+      const chip = document.createElement("button");
+      chip.type = "button";
       chip.className = "tb-filter-chip";
       if (category === item.key) {
         chip.dataset.state = "active";
@@ -78,11 +85,16 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
     }
   };
 
-  const render = (): void => {
+  // Envelopé pour que cliquer un chip de filtre ne renvoie pas le focus au `<body>` (retour humain
+  // 2026-08-26). `body` est la racine du contenu de la modale, donc couvre filtres ET résultats.
+  const render = (): void => renderPreservingFocus(body, renderNow);
+
+  const renderNow = (): void => {
     renderFilters();
     list.innerHTML = "";
 
-    const clearRow = document.createElement("div");
+    const clearRow = document.createElement("button");
+    clearRow.type = "button";
     clearRow.className = "tb-list-row tb-item-list-row-clear";
     clearRow.textContent = t("teamBuilder.itemNone");
     clearRow.addEventListener("click", () => {
@@ -102,16 +114,17 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
       return true;
     });
     for (const item of filtered) {
-      const row = document.createElement("div");
+      const row = document.createElement("button");
+      row.type = "button";
       // `tb-item-list-row` porte la grille (icône / texte / étiquette) en CSS, et
       // `tb-item-list-row-text` la colonne de texte — les deux étaient en styles inline, ce que
       // les règles du projet interdisent.
       row.className = "tb-list-row tb-item-list-row";
       row.dataset.testid = "item-picker-row";
       row.dataset.itemId = item.id;
-      if (!item.implemented) {
-        row.dataset.state = "disabled";
-      }
+      // `disabled` réel plutôt qu'un `data-state` : c'est ce que `focusableControls()` lit pour ne
+      // pas proposer un objet non implémenté au clavier / à la manette (plan 188, trou A).
+      row.disabled = !item.implemented;
       // Icône officielle de l'objet (demande humaine 2026-08-06), même source que l'InfoPanel.
       const icon = document.createElement("img");
       icon.className = "tb-item-icon";
@@ -141,9 +154,6 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
         row.appendChild(tag);
       }
       row.addEventListener("click", () => {
-        if (!item.implemented) {
-          return;
-        }
         options.onSelect(item);
         modal.close();
       });
@@ -157,5 +167,5 @@ export function openItemPickerModal(options: ItemPickerOptions): void {
   });
 
   render();
-  focusSearchUnlessTouch(search);
+  focusPickerEntry(search, () => list.querySelector<HTMLElement>("button:not(:disabled)"));
 }

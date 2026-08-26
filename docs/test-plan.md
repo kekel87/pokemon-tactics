@@ -2507,15 +2507,44 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
 - 👁 **Déplacer** la map (pan) et **tourner** la caméra dans l'aperçu.
 - 🤖 `↑/↓` navigue la liste (sélection surlignée, `aria-current`).
 
-### 6.4 Sélection d'équipe (team select)
-- 🤖 Joueur 1 (Humain) → IA lui assigne une équipe aléatoire ; J2 (IA) en a déjà une → combat
-  lançable → scène montée (`normal-game.spec`).
-- 🤖 « Lancer ▶ » **désactivé tant que les slots ne sont pas tous assignés** ; bascule Humain→IA
-  l'active (`screens.spec`).
-- 👁 Format (dropdown) → nb de slots ; chaque slot toggle **Humain/IA**, couleur joueur.
-- 👁 Liste des équipes + « 🎲 Aléatoire » ; « 🎲 Remplir IA » ; toggle Placement auto.
+### 6.4 Sélection d'équipe (team select) — refondu au plan 188
+
+*src : `app/ui/dom/screens/team-select-screen.ts`, `app/ui/team-select/{FormatPicker,PlayerCell,PlayersColumn,TeamPickerModal,slot-state}.ts`, `styles/components/team-select.css`*
+*e2e : `dom/screens.spec.ts` · `dom/responsive-screens.spec.ts` (seuil mobile) · `combat/normal-game.spec.ts`, `combat/battle-resume.spec.ts`, `combat/combat-menu.spec.ts`, `combat/responsive-chrome.spec.ts` (chemins d'entrée en combat)*
+
+*Le câblage clavier/manette du Lot 2 avait rendu visibles trois défauts qui n'étaient pas des défauts
+d'entrée mais de conception d'écran (retour humain 2026-08-21). Décisions #830 à #835.*
+
+- 🤖 **Format en rangée de segments** (#830), plus de `<select>` : le format actif est **lu en
+  permanence**, l'actif porte `data-state="active"`. Libellés **« 2J × 6 », « 3J × 4 », « 4J × 3 »,
+  « 6J × 2 », « 12J × 1 »** sous le titre de rangée « Joueurs × Pokemon » (#835) — l'ancienne forme
+  réutilisait la clé du format et affichait « 2v6 », qui **se lit** « deux contre six ».
+- 🤖 **Segment Humain / IA à deux états visibles** (#831) : chaque bouton désigne un état, il n'y a
+  plus de bascule. ⚠️ **Changement de sémantique** : presser « Humain » sur un camp déjà humain ne
+  fait plus rien, alors que l'ancien bouton unique le donnait à l'IA. Donner un camp à l'IA lui
+  assigne une équipe aléatoire → combat lançable (`screens.spec`, `normal-game.spec`).
+- 🤖 **Plus de « camp actif »** (#832) : la liste d'équipes permanente est devenue une modale ouverte
+  par le bouton d'équipe du camp. Un seul curseur à l'écran — le focus — donc plus de contradiction
+  possible entre lui et un index interne.
+- 🤖 **Le focus survit au re-rendu** : presser un segment reconstruit l'écran, et le contrôle
+  focalisé est retrouvé par son **adresse logique** (`data-testid` + `data-slot-index`, ou
+  `data-controller`, ou `data-format-key`), pas par référence. Avant, chaque appui renvoyait le focus
+  au `<body>` et la navigation au pad repartait de zéro (`.claude/rules/html.md`).
+- 🤖 **Le focus va au prochain camp non assigné** après une sélection réussie (#834) — écart assumé à
+  la convention `<dialog>`, qui vise la modale refermée **sans rien faire**. Une sortie par `Échap`,
+  par B ou par la croix rend bien le focus au déclencheur.
+- 🤖 « Lancer ▶ » **désactivé tant que les camps ne sont pas tous pourvus** (`screens.spec`).
+- 🤖 **Seuil mobile** : le token `--ts-portrait-size` est déclaré sur `.ts-team-list` et **non** sur
+  `.ts-root` — la liste vit dans un `<dialog>` sur `document.body`, hors de l'arbre de l'écran, donc
+  un token posé sur l'écran ne l'atteindrait plus. Mesuré en ouvrant le sélecteur à chaque viewport
+  (`responsive-screens.spec`).
+- 👁 **Colonne unique jusqu'à 12 camps** : l'écran répartissait les camps en deux colonnes au-delà de
+  six, parce que la liste occupait le centre. À valider **sur le format 12 camps** (`spawns_12p`,
+  présent sur les 9 cartes) — c'est là que l'empilement et le défilement se voient, pas en 3 camps.
+- 👁 Couleur de joueur par camp ; toggle Placement auto. *« 🎲 Remplir IA » a été **supprimé** (#841,
+  plan 188) — passer un camp en IA lui assigne déjà une équipe aléatoire (#831).*
   *Plus de sélecteur de système de tours (Charge Time seul).*
-- 👁 i18n FR/EN.
+- 👁 i18n FR/EN (dont le titre du sélecteur, « Équipe de {joueur} »).
 
 ### 6.5 Mes équipes (liste — constructeur d'équipe) → détails picker §7.2
 *libellés : `teamBuilder.*`*
@@ -2776,6 +2805,81 @@ quelque part ferait mentir la légende sans casser le jeu — d'où la moitié c
 - 👁 **Rendu sur téléphone** : sous 760px la grille passe en cartes (action en titre, ses 3 cases
   dessous) — mise en page à valider sur téléphone réel.
 
+### 6.13 Manette dans le Team Builder et ses sélecteurs (plan 188, volet 2)
+
+*src : `app/input/focus-navigation.ts` (`applyToControl`, `closeOpenModal`), `app/input/input-system.ts` (chemin manette), `app/input/gamepad-source.ts` (résilience du poller), `app/ui/dom/preserve-focus.ts` (focus survit au re-rendu, partagé), `app/ui/dom/screens/elements.ts` (`cancel`), `app/ui/team/{PokemonPickerModal,MovePickerModal,ItemPickerModal,ShowdownIoModal,NaturePickerModal,picker-focus}.ts`, `app/ui/team/{EditLeftPanel,EditRightPanel,MovesList}.ts` (contrôles convertis en `<button>`)*
+*e2e : `dom/gamepad-pickers.spec.ts` — manette synthétique partagée (`e2e/pages/gamepad.ts`)*
+
+*Le Team Builder n'avait jamais été éprouvé à la manette. Ce n'était pas une gêne mais une **impasse** :
+les chips de filtre et les lignes de résultat étaient des `<div>` cliquables, donc invisibles au focus
+(`focusableControls()` ne matche que `button`/`input`/`select`/`textarea`/`[tabindex="0"]`). On ouvrait
+le sélecteur de Pokemon et on ne pouvait rien choisir, rien filtrer, ni même refermer la modale.*
+
+*⚠️ **C'est un état qui passait tout le gate en vert.** Ni le lint, ni le typecheck, ni aucun test
+unitaire ou e2e existant ne voit la différence entre un `<div>` cliquable et un `<button>` — d'où cette
+section. (Pas de compte de tests ici : un chiffre de doc figé se périme au premier test ajouté, et le
+garde-fou du projet est de toujours recompter depuis la source réelle.)*
+
+- 🤖 **Le focus survit au re-rendu, PARTOUT, via un helper partagé** (`renderPreservingFocus`,
+  `preserve-focus.ts`) : chaque écran qui reconstruit son sous-arbre à un changement d'état (changer
+  de genre, cocher un filtre, presser un segment…) retrouve le contrôle focalisé par son **adresse
+  logique** (`data-testid` + rang parmi ses homonymes), pas par référence. Branché sur `TeamEditView`,
+  les trois sélecteurs, `MyTeamsView`, `NaturePickerModal` et l'écran de sélection d'équipe — avant,
+  chaque interaction renvoyait le focus au `<body>` et la navigation au pad repartait de zéro.
+- 🤖 **Filtres et résultats atteignables** : chips (type, génération, catégorie), lignes de capacité et
+  d'objet, cartes de la grille de Pokemon sont de vrais `<button type="button">`.
+- 🤖 **Ligne d'objet, lignes de capacité, lignes du menu des builds atteignables au focus** (panneau
+  d'édition, `EditLeftPanel`/`EditRightPanel`/`MovesList`) : trois familles de `<div>` cliquables
+  (`tb-input-clickable` pour l'objet, `MovesList` pour les 4 lignes de capacité, `tb-set-op-row` pour
+  le menu des builds) converties en `<button>` — invisibles au focus avant, montré par le test humain
+  (la navigation sautait de Talent à Nature, le menu des builds s'ouvrait sans pouvoir y entrer).
+- 🤖 **`disabled` porté par l'ATTRIBUT**, pas par un `data-state` ni par un `pointer-events: none` en
+  style en ligne : c'est le `:not(:disabled)` de `focusableControls()` qui l'exclut. Un contrôle
+  neutralisé au `pointer-events` restait proposé au focus tout en étant inerte. Le CSS bascule sur
+  `:disabled`.
+- 🤖 **Focus d'entrée à trois cas** (`focusPickerEntry`) : souris → champ de recherche (confort
+  d'origine), doigt → **rien** (le clavier virtuel recouvrirait la liste — retour humain 2026-08-06),
+  **manette → premier résultat**. Entrer sur le champ au pad était un cul-de-sac : il ne peut pas taper.
+- 🤖 **B referme la modale** : `Échap` n'existe pas sur une manette, et le `cancel` de l'écran refusait
+  d'agir dès qu'un `<dialog>` était ouvert. Au clavier on continue de rendre la main à la fermeture
+  native — la réclamer rejouerait le double traitement d'`Échap` de la décision #822.
+- 🤖 **Curseur de PS réglable au pad** : ← → règlent la valeur via `stepUp`/`stepDown` (donc `min`,
+  `max` et `step` respectés) puis émettent `input`. La cadence vient du modèle de répétition déjà
+  présent dans `gamepad-source.ts` (23 frames puis toutes les 6) — aucun modèle d'entrée continu écrit
+  pour l'occasion. En butée, l'appui **repart au routeur** pour qu'on puisse sortir du contrôle.
+- 🤖 **La Nature est une liste maison, pas un `<select>`** (`NaturePickerModal`) : le `<select>` natif
+  de Nature disparaît du Team Builder — il « capturait » la manette (haut/bas changeaient l'option sans
+  jamais dérouler). Remplacé par une liste dans un `<dialog>`, même geste que les trois sélecteurs :
+  trois **colonnes** (nom · hausse · baisse, pas un libellé unique qui revenait à la ligne), couleurs
+  de l'InfoPanel (`data-nature`, mêmes tokens que `info-panel.css`), filtres par stat augmentée, source
+  de vérité `getNatureEffect` du core. **La même modale sert dans le sandbox**, dont le `<select>`
+  gardait le même défaut — avec sa ligne « Aléatoire » conservée.
+- 🤖 **Les champs texte sont sautés par la navigation au pad, pas juste inertes** : le champ de
+  recherche des trois sélecteurs et le nom d'équipe portent `data-nav-skip="gamepad"` — la manette ne
+  s'y arrête plus du tout (elle ne saisit pas de texte, un focus piégé dedans serait un cul-de-sac). Le
+  filtrage passe par les chips ; l'équipe garde son nom par défaut, renommable au clavier.
+- 🤖 **Onglets de la modale Showdown** (`Importer` / `Exporter`) en `<button>`, désactivation par
+  attribut. Le *contenu* (deux `<textarea>`) reste hors périmètre : un pad ne saisit pas de texte.
+- 🤖 **Le bug précis qui tuait la manette est couvert** : le curseur de PS règle sa valeur au pad sans
+  se bloquer (`applyToControl` appelait `stepUp` détaché de son receveur → `Illegal invocation` →
+  `requestAnimationFrame` du poller jamais replanifié → manette entière éteinte jusqu'au rechargement).
+- 👁 **Le filet générique reste non testé directement** : `try/catch` autour de `emit` dans
+  `gamepad-source.ts` journalise et poursuit la boucle pour **n'importe quel** bug futur d'un
+  consommateur, pas seulement celui du curseur de PS — aucun test ne fait délibérément lever un
+  consommateur pour vérifier que le poller survit.
+- 👁 **Rendu des contrôles convertis** : les chips, cartes et lignes ont changé d'élément HTML. Les
+  remises à zéro (`appearance`, `font-size`, `font-family`, `text-align`) doivent rendre le changement
+  **invisible à l'œil** — à contrôler sur les trois sélecteurs.
+- 👁 **Navigation dans la grille dense de Pokemon** : premier cas où `focusInDirection` et sa
+  `CROSS_AXIS_PENALTY` s'appliquent à beaucoup d'éléments homogènes. Si un ajustement s'avérait
+  nécessaire, il sort du plan — la pénalité est partagée par tous les écrans.
+- ✅ **Validé sur pad réel (manette Switch Pro filaire) le 2026-08-26**, recette humaine 5 scénarios sur
+  5. ⚠️ **Les correctifs de la revue de code qui a suivi** (helper de focus partagé, boutons du panneau
+  d'édition, `NaturePickerModal`, résilience du poller) **n'ont été rejoués qu'à la manette synthétique**
+  via `dom/gamepad-pickers.spec.ts` — celle-ci remplace `navigator.getGamepads()` et teste toute la
+  chaîne **après** le matériel (poller → routeur → contrôle focalisé → DOM), jamais le matériel
+  lui-même. Revalidation sur pad réel à refaire, notée `docs/next.md` § Reporté.
+
 ## 7. Recette — Team Builder & Sandbox
 
 ### 7.1 Édition d'équipe (slots)
@@ -2994,8 +3098,9 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `dom/navigation.spec.ts` | menu → mode de combat → choix carte → retour |
 | `dom/main-menu.spec.ts` | §6.1 — titre, 5 entrées, Aventure disabled, version, switch FR→EN + `pt-lang` |
 | `dom/settings.spec.ts` | §6.7 — 2 options inconditionnelles (Langue + Prévisualisation dégâts), persistance `pt-lang`/`pt-settings` |
-| `dom/controls-remapping.spec.ts` | §6.12 — écran de contrôles (plan 186) : accès depuis Réglages, 5 sections listées, **aucune case `displaced` à l'ouverture**, actions fixes (Annuler, panoramique) inertes, capture d'une touche → `custom` + écart seul écrit dans `pt-bindings`, échange (ancien slot `displaced` + message nommant l'action délogée), annulation par bouton **et** par `Échap` (jamais assigné, ne quitte pas l'écran), persistance au rechargement, « Tout réinitialiser ». Capture manette = 👁 (Playwright ne pilote pas `navigator.getGamepads()`) |
+| `dom/controls-remapping.spec.ts` | §6.12 — écran de contrôles (plan 186) : accès depuis Réglages, 5 sections listées, **aucune case `displaced` à l'ouverture**, actions fixes (Annuler, panoramique) inertes, capture d'une touche → `custom` + écart seul écrit dans `pt-bindings`, échange (ancien slot `displaced` + message nommant l'action délogée), annulation par bouton **et** par `Échap` (jamais assigné, ne quitte pas l'écran), persistance au rechargement, « Tout réinitialiser ». La capture **au pad** est couverte par `dom/gamepad-menus.spec.ts` (manette synthétique) ; seul un **pad réel** reste 👁 |
 | `dom/gamepad-menus.spec.ts` | §6.12 manette dans les menus (plan 186) : manette **synthétique** injectée via `navigator.getGamepads`, arrivée à la souris puis croix directionnelle → focus pris **et** anneau applicable. Joué sur `mapping: "standard"` et `mapping: ""` (réponse de Firefox pour une Switch Pro, qui rendait le pad muet) |
+| `dom/gamepad-pickers.spec.ts` | §6.13 manette dans le Team Builder (plan 188) : le sélecteur s'ouvre sur un **résultat** et non dans le champ de recherche, on remonte de la grille aux chips de filtre puis on choisit (navigation spatiale), **B** referme (là où `Échap` n'existe pas sur un pad), **← →** règlent un curseur de PS jusqu'à sortir du contrôle par l'axe vertical — c'est ce test qui a attrapé le bug précis tuant toute la manette (#842, `applyToControl`/`stepUp`). Manette synthétique partagée (`pages/gamepad.ts`). Nature en liste (#839) hors couverture e2e ici (unit `focus-navigation.test.ts` pour l'arbitrage du contrôle focalisé) ; le filet générique de résilience du poller (`try/catch` sur `emit`) n'est testé nulle part directement, 👁 §6.13 |
 | `combat/controls-remapping.spec.ts` | §6.12 moitié combat : une touche réassignée **fait tourner la caméra** et la **légende dessine la nouvelle lettre** (tuile du capuchon lue en propriétés calculées) ; l'ancienne position ne fait plus rien |
 | `dom/platform.spec.ts` | §6.10 comportement plateforme (plan 180-a/180-b) : manifeste PWA servi + JSON valide (`name`, `display: standalone`) + **chaque icône répond 200 en `image/png`** ; `<link rel="manifest">`, `<link rel="apple-touch-icon">` (fichier joignable) et `<meta name="theme-color">` déclarés ; **reprise d'écran** — Crédits enregistré (`pt-last-screen`) et retrouvé après rechargement ; **garde-fou** — « Sélection d'équipe » (écran à paramètres) efface le point de reprise → rechargement = menu principal ; réglages : ligne « Plein écran » présente à « NON », ligne « Installer l'app » absente hors iPhone, **aller-retour de la bascule** (clic → `document.fullscreenElement` renseigné + « OUI », re-clic → sortie + « NON »). Barre d'URL réellement masquée / verrouillage paysage (avalé par le `try/catch`) / Wake Lock / installation / iOS = 👁 (validés téléphone réel 2026-08-14) |
 | `combat/platform-chrome.spec.ts` | §4.17 bouton plein écran du chrome de combat : visible hors plein écran, nom accessible « Plein écran », dans le viewport ; **clic → document en plein écran + bouton `hidden`**, puis **sortie non déclenchée par lui** (`exitFullscreen()`) **→ bouton de retour** (abonnement `fullscreenchange`) ; §6.10 **un combat perdu revient au menu principal** (parcours réel jusqu'à la scène montée → `pt-last-screen` effacé → rechargement = menu, aucun chrome de combat remonté). Barre d'URL masquée + verrouillage paysage = 👁 (aucun signal DOM ; le `lock()` est refusé en desktop et avalé par le `try/catch`) |

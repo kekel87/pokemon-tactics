@@ -230,8 +230,9 @@ test.describe("§8.5 barre de placement sur téléphone paysage", () => {
     await maps.confirm.click();
     await expect(teamSelect.title).toBeVisible();
     // Joueur 1 reste HUMAIN (« 🎲 Aléatoire » lui donne une équipe sans le passer en IA) : c'est la
-    // seule façon d'obtenir la phase de placement interactive — un joueur IA auto-place.
-    await page.getByRole("button", { name: "🎲 Aléatoire", exact: true }).click();
+    // seule façon d'obtenir la phase de placement interactive — un joueur IA auto-place. Passe par
+    // le POM depuis le plan 188 : la liste d'équipes est dans une modale qu'il faut ouvrir (#832).
+    await teamSelect.pickRandomTeam(0);
     await page.getByRole("checkbox").uncheck(); // « Placement auto » décoché
     await expect(teamSelect.launch).toBeEnabled();
     await teamSelect.launch.click();

@@ -21,7 +21,12 @@
     &[data-state="open"] { display: flex; }
   }
 
+  /* `<button>` depuis le plan 188 : le menu s'ouvrait mais on ne pouvait pas y entrer au focus. */
   .tb-set-op-row {
+    appearance: none;
+    text-align: left;
+    width: 100%;
+    display: block;
     padding: var(--pad-control-y) var(--pad-control-x);
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border-surface);

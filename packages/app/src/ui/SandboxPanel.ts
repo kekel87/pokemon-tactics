@@ -38,6 +38,7 @@ import {
 } from "../types/SandboxConfig";
 import { createMovesList, type MovesList } from "./dom/MovesList";
 import { openItemPickerModal } from "./team/ItemPickerModal";
+import { openNaturePickerModal } from "./team/NaturePickerModal";
 import { openPokemonPickerModal } from "./team/PokemonPickerModal";
 
 const MAX_TEAM_SIZE = 6;
@@ -95,6 +96,8 @@ const NATURE_ENTRIES: [Nature, TranslationKey][] = Object.values(Nature).map((na
   `teamBuilder.nature.${nature}` as TranslationKey,
 ]);
 
+const NATURE_KEY_BY_NATURE = Object.fromEntries(NATURE_ENTRIES) as Record<Nature, TranslationKey>;
+
 const DIRECTION_ENTRIES: [Direction, TranslationKey][] = [
   [Direction.North, "direction.north"],
   [Direction.East, "direction.east"],
@@ -145,7 +148,8 @@ interface MemberUiState {
   volatileStatusSelect: HTMLSelectElement;
   directionSelect: HTMLSelectElement;
   abilitySelect: HTMLSelectElement;
-  natureSelect: HTMLSelectElement;
+  /** `null` = tirée au hasard. Portée par l'état depuis que la nature se choisit en modale. */
+  nature: Nature | null;
   statStageGetters: Map<StatName, () => number>;
   position: { x: number; y: number };
   positionSetters: { x: (v: number) => void; y: (v: number) => void };
@@ -402,7 +406,7 @@ export class SandboxPanel {
       volatileStatusSelect: undefined as unknown as HTMLSelectElement,
       directionSelect: undefined as unknown as HTMLSelectElement,
       abilitySelect: undefined as unknown as HTMLSelectElement,
-      natureSelect: undefined as unknown as HTMLSelectElement,
+      nature: member.nature ?? null,
       statStageGetters: new Map(),
       position: { x: member.position?.x ?? 0, y: member.position?.y ?? 0 },
       // Real setters are wired below once the position row is built.
@@ -452,18 +456,30 @@ export class SandboxPanel {
     colLeft.appendChild(ability.row);
     state.abilitySelect = ability.select;
 
-    const nature = createLabeledSelect({
+    // La MÊME modale que le Team Builder (plan 188, demande humaine 2026-08-26) : le `<select>`
+    // capturait la manette sans jamais s'ouvrir, et deux façons de choisir une nature dans le même
+    // jeu n'avaient pas de raison d'être.
+    const natureLabel = (nature: Nature | null): string =>
+      nature === null ? t("sandbox.natureRandom") : t(NATURE_KEY_BY_NATURE[nature]);
+    const natureCard = createPickerCard({
       label: t("sandbox.nature"),
-      options: [
-        { value: "", label: t("sandbox.natureRandom") },
-        ...NATURE_ENTRIES.map(([n, key]) => ({ value: n, label: t(key) })),
-      ],
-      selected: member.nature ?? "",
-      onChange: () => this.emit(),
+      text: natureLabel(state.nature),
+      onClick: () => {
+        openNaturePickerModal({
+          natures: NATURE_ENTRIES.map(([nature]) => nature),
+          nameKeys: NATURE_KEY_BY_NATURE,
+          current: state.nature,
+          randomLabel: t("sandbox.natureRandom"),
+          onSelect: (nature) => {
+            state.nature = nature;
+            natureCard.button.textContent = natureLabel(nature);
+            this.emit();
+          },
+        });
+      },
       signal: this.abort.signal,
     });
-    colLeft.appendChild(nature.row);
-    state.natureSelect = nature.select;
+    colLeft.appendChild(natureCard.row);
 
     const itemCard = createPickerCard({
       label: "Item",
@@ -908,8 +924,8 @@ export class SandboxPanel {
     if (member.abilitySelect.value) {
       result.ability = member.abilitySelect.value;
     }
-    if (member.natureSelect.value) {
-      result.nature = member.natureSelect.value as Nature;
+    if (member.nature !== null) {
+      result.nature = member.nature;
     }
     if (member.defensiveMoveSelect) {
       result.defensiveMove = member.defensiveMoveSelect.value || null;

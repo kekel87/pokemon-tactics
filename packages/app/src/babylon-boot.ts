@@ -71,7 +71,7 @@ initBindings();
 // suivi de la source active (souris / doigt / clavier / manette). Montée au boot, avant tout écran :
 // les écrans et le combat s'y enregistrent à leur montage, y compris les chemins d'entrée directs
 // (`?config`/`?combat`) qui ne passent pas par le menu.
-initInputSystem(root);
+initInputSystem();
 // Real keyboard layout for the control legend (plan 185), fire-and-forget: the API is Chromium-only
 // and the legend falls back to the game's language until (or unless) it answers. Kicked here so the
 // answer has landed long before any combat mounts.

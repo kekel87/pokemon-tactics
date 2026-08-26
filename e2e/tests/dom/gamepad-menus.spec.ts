@@ -1,46 +1,14 @@
-import type { Page } from "@playwright/test";
 import { expect, test } from "../../fixtures";
+import { pressPadButton, withFakeGamepad } from "../../pages/gamepad";
 import { MainMenu } from "../../pages/MainMenu";
 import { ControlsScreen, SettingsScreen } from "../../pages/screens";
 
 // Cahier §6.12 — la manette dans les écrans de menu (plan 186, retour humain 2026-08-25).
 //
-// Playwright ne pilote pas de vraie manette, mais `navigator.getGamepads()` est une simple fonction :
-// on la remplace par une manette synthétique dont le test pousse les boutons. Ça ne teste pas le
+// La manette synthétique vit dans `pages/gamepad.ts` depuis le plan 188 (un second fichier en a eu
+// besoin) : `navigator.getGamepads()` est une simple fonction, on la remplace. Ça ne teste pas le
 // matériel — ça teste toute la chaîne qui vient après lui (poller → routeur → focus DOM), c'est-à-dire
 // exactement ce qui était cassé.
-
-/** Installe une manette synthétique, contrôlable depuis la page via `__pad__`. */
-async function withFakeGamepad(page: Page, mapping: string): Promise<void> {
-  await page.addInitScript((padMapping: string) => {
-    const buttons = Array.from({ length: 17 }, () => ({ pressed: false, value: 0 }));
-    const fake = {
-      index: 0,
-      // Identifiant NEUTRE : un `057e` (Nintendo) déclencherait l'échange bas↔droite et un appui sur
-      // l'index 2 s'enregistrerait en index logique 3. Cet échange a ses propres tests unitaires.
-      id: "Xbox Wireless Controller (Vendor: 045e)",
-      mapping: padMapping,
-      buttons,
-      axes: [0, 0, 0, 0],
-      connected: true,
-    };
-    (globalThis as unknown as { __pad__: typeof fake }).__pad__ = fake;
-    navigator.getGamepads = () => [fake] as unknown as ReturnType<Navigator["getGamepads"]>;
-    globalThis.addEventListener("load", () =>
-      globalThis.dispatchEvent(new Event("gamepadconnected")),
-    );
-  }, mapping);
-}
-
-async function pressPadButton(page: Page, index: number): Promise<void> {
-  await page.evaluate((button: number) => {
-    const pad = (globalThis as unknown as { __pad__: { buttons: { pressed: boolean }[] } }).__pad__;
-    const target = pad.buttons[button];
-    if (target) {
-      target.pressed = true;
-    }
-  }, index);
-}
 
 const DPAD_DOWN = 13;
 
@@ -72,9 +40,9 @@ for (const mapping of ["standard", ""]) {
         ),
       )
       .not.toBeNull();
-    expect(
-      await page.evaluate(() => document.getElementById("game-root")?.dataset.inputSource),
-    ).toBe("gamepad");
+    // Publié sur `<html>` depuis le plan 188 : la règle d'anneau doit aussi atteindre les `<dialog>`,
+    // qui vivent sur `<body>` et non dans `#game-root`.
+    expect(await page.evaluate(() => document.documentElement.dataset.inputSource)).toBe("gamepad");
 
     // Le focus doit être VU, pas seulement posé. ⚠️ On vise NOTRE règle, pas `getComputedStyle` :
     // Chromium dessine déjà l'anneau pour un focus programmatique, donc mesurer l'outline passerait

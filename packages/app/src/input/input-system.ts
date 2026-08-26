@@ -1,5 +1,6 @@
 import type { InputContext } from "@pokemon-tactic/view-core";
 import type { CapturedInput } from "./bindings-store.js";
+import { applyToFocusedControl } from "./focus-navigation.js";
 import { startGamepadPolling } from "./gamepad-source.js";
 import {
   type BoardInputConsumer,
@@ -49,13 +50,19 @@ const CAPTURE_CANCEL_BUTTON = 1;
  * time, so the top of the stack is the active one — which is what makes "one consumer per (context,
  * action)" structural rather than a matter of listener order.
  */
-export function createInputSystem(root: HTMLElement | null): InputSystem {
+export function createInputSystem(): InputSystem {
   const stack: InputRegistration[] = [];
   const active = (): InputRegistration | null => stack.at(-1) ?? null;
 
   const tracker = createInputSourceTracker((source) => {
-    // Published on the DOM so the CSS can pick the matching prompt glyph with no re-render.
-    root?.setAttribute("data-input-source", source);
+    // Publié sur `<html>` et non sur `#game-root` (plan 188, retour humain 2026-08-25) : la règle
+    // d'anneau de focus est `[data-input-source="gamepad"] :focus`, et un `<dialog>` ouvert par
+    // `showModal()` vit sur `<body>` — donc HORS de `#game-root`. Le focus se déplaçait bien dans une
+    // modale à la manette, mais rien ne le dessinait : « la dialog n'est pas navigable à la manette »,
+    // alors qu'elle l'était et qu'on ne le voyait pas. La racine du document couvre les deux arbres.
+    // Optionnel plutôt que garanti : la suite unitaire tourne en environnement node, sans DOM du
+    // tout. Publier une info d'affichage ne doit pas décider si la couche d'entrée peut exister.
+    globalThis.document?.documentElement?.setAttribute("data-input-source", source);
   });
 
   const router = createInputRouter({
@@ -113,6 +120,12 @@ export function createInputSystem(root: HTMLElement | null): InputSystem {
   const gamepad = startGamepadPolling(
     (action) => {
       tracker.note(InputSource.Gamepad);
+      // Le contrôle focalisé passe AVANT le routeur, comme au clavier (`isClaimedByFocusedControl`
+      // plus haut) — mais en appliquant l'effet au lieu de se retirer : un appui de pad ne produit
+      // aucun événement clavier, donc personne ne le ferait derrière nous (plan 188).
+      if (applyToFocusedControl(action)) {
+        return;
+      }
       router.handle(action);
     },
     () =>
@@ -165,9 +178,9 @@ export function createInputSystem(root: HTMLElement | null): InputSystem {
 let current: InputSystem | null = null;
 
 /** Boot entry — called once, next to `initSettings()`. */
-export function initInputSystem(root: HTMLElement | null): InputSystem {
+export function initInputSystem(): InputSystem {
   current?.dispose();
-  current = createInputSystem(root);
+  current = createInputSystem();
   return current;
 }
 

@@ -52,7 +52,13 @@ Les overlays de grille utilisent des couleurs semi-transparentes superposées au
 - **Bleu** = allié, possibilité, buff (déplacement, zone de buff)
 - **Rouge** = danger, attaque, dégâts (zone d'attaque, confirmation)
 - **Orange** = menace ennemie (portée de déplacement ennemi au hover)
-- **Jaune** = focus, curseur, sélection active
+- **Jaune** = focus et curseur. ⚠️ **Plus « sélection active » sur un contrôle focalisable** (décision
+  #836, 2026-08-25) : l'anneau de focus est jaune ET tracé à l'intérieur de l'élément, donc sur un
+  contrôle rempli de jaune il devenait invisible — « on perd où on est ». Sur tout contrôle qui peut
+  prendre le focus (segments, chips de filtre, onglets, cartes de slot, lignes de liste), l'état
+  **sélectionné** se peint au **bleu des boutons** (`--color-btn-bg` / `--color-btn-border`), comme
+  `map-select.css` le faisait déjà pour la carte choisie. Le jaune reste l'accent partout où le focus
+  n'existe pas : curseur de tuile, surbrillances au sol, titres, timeline CT.
 
 ### Langage couleur sémantique
 

@@ -3,6 +3,7 @@ import { t } from "../../i18n";
 import { generateRandomTeam } from "../../team/team-generator";
 import { createEmptyTeam } from "../../team/team-helpers";
 import { deleteTeam, listTeamSummaries, loadTeam, saveTeam } from "../../team/team-storage";
+import { renderPreservingFocus } from "../dom/preserve-focus";
 import { openDeleteConfirmModal } from "./DeleteConfirmModal";
 import { openShowdownIoModal } from "./ShowdownIoModal";
 import { createTeamCardElement } from "./TeamCard";
@@ -77,6 +78,10 @@ export class MyTeamsView {
   }
 
   private renderTeams(): void {
+    renderPreservingFocus(this.content, () => this.renderTeamsNow());
+  }
+
+  private renderTeamsNow(): void {
     this.content.innerHTML = "";
     const summaries = listTeamSummaries().sort((a, b) => b.updatedAt - a.updatedAt);
 

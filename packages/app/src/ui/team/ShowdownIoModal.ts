@@ -22,11 +22,15 @@ export function openShowdownIoModal(options: ShowdownIoModalOptions): void {
   const tabs = document.createElement("div");
   tabs.className = "tb-showdown-tabs";
 
-  const importTab = document.createElement("div");
+  // `<button>` et non `<div>` : les onglets n'étaient pas focalisables, donc impossible de basculer
+  // d'onglet au clavier ou à la manette (plan 188, trou E).
+  const importTab = document.createElement("button");
+  importTab.type = "button";
   importTab.className = "tb-showdown-tab";
   importTab.textContent = t("teamBuilder.showdownImport");
 
-  const exportTab = document.createElement("div");
+  const exportTab = document.createElement("button");
+  exportTab.type = "button";
   exportTab.className = "tb-showdown-tab";
   exportTab.textContent = t("teamBuilder.showdownExport");
 
@@ -138,15 +142,11 @@ export function openShowdownIoModal(options: ShowdownIoModalOptions): void {
     importView.style.display = mode === "import" ? "" : "none";
     exportView.style.display = mode === "export" ? "" : "none";
   };
-  if (options.onImport === undefined) {
-    importTab.style.pointerEvents = "none";
-    importTab.style.opacity = "0.4";
-  }
-  importTab.addEventListener("click", () => {
-    if (options.onImport !== undefined) {
-      setMode("import");
-    }
-  });
+  // `disabled` porté par l'ATTRIBUT, pas par un style en ligne : `focusableControls()` lit
+  // `:not(:disabled)`, donc un onglet neutralisé au `pointer-events` restait proposé au focus tout
+  // en étant inerte. L'opacité part au CSS, via `:disabled` (plan 188, trou E).
+  importTab.disabled = options.onImport === undefined;
+  importTab.addEventListener("click", () => setMode("import"));
   exportTab.addEventListener("click", () => setMode("export"));
   setMode(options.mode);
 }

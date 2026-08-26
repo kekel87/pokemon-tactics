@@ -10,6 +10,18 @@
     min-height: var(--target-min);
   }
 
+  /* Les chips, cellules et lignes de résultat sont des `<button>` depuis le plan 188 (un `<div>`
+     cliquable n'est pas focalisable, donc n'existait pas pour la manette). Seules l'apparence native
+     et l'alignement du texte sont à remettre à zéro : `base.css` fait déjà hériter `font-family`
+     (globalement) et `font-size` (sous `.tb-root` / `.tb-dialog` / `.ts-root`), et les redéclarer ici
+     serait la duplication que `css.md` interdit (revue de code 2026-08-26). */
+  .tb-filter-chip,
+  .tb-pokemon-cell,
+  .tb-list-row {
+    appearance: none;
+    text-align: left;
+  }
+
   .tb-filter-chip {
     display: inline-flex;
     align-items: center;
@@ -23,14 +35,18 @@
     color: var(--color-text-primary);
     text-transform: capitalize;
     line-height: 1;
-    &:hover { filter: brightness(1.2); }
+    &:hover:not(:disabled) { filter: brightness(1.2); }
+    /* Bleu et non l'accent : voir décision #836 (le jaune est l'anneau de focus, et l'étape B du
+       plan 188 vient de rendre ces chips atteignables au focus — donc le télescopage, jusque-là
+       théorique, devient réel). */
     &[data-state="active"] {
-      border-color: var(--color-accent);
-      box-shadow: 0 0 0 2px var(--color-accent);
+      border-color: var(--color-btn-border);
+      box-shadow: 0 0 0 2px var(--color-btn-bg);
     }
-    &[data-state="disabled"] {
+    &:disabled {
       opacity: 0.3;
       cursor: not-allowed;
+      filter: none;
     }
     img { width: 22px; height: 22px; image-rendering: pixelated; }
     &[data-variant="reset"] {
@@ -71,11 +87,11 @@
     border: 1px solid var(--color-border-surface);
     border-radius: var(--radius-sm);
     cursor: pointer;
-    &:hover {
+    &:hover:not(:disabled) {
       background: var(--color-bg-elevated-hover);
       border-color: var(--color-btn-bg);
     }
-    &[data-state="disabled"] { opacity: 0.3; cursor: not-allowed; }
+    &:disabled { opacity: 0.3; cursor: not-allowed; }
     .tb-pokemon-cell-portrait {
       width: 56px;
       height: 56px;
@@ -111,11 +127,11 @@
     border: 1px solid var(--color-border-surface);
     border-radius: var(--radius-sm);
     cursor: pointer;
-    &:hover {
+    &:hover:not(:disabled) {
       background: var(--color-bg-elevated-hover);
       border-color: var(--color-btn-bg);
     }
-    &[data-state="disabled"] { opacity: 0.4; cursor: not-allowed; }
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
     .name { color: var(--color-text-primary); }
     .meta { color: var(--color-text-dim); text-align: right; font-size: var(--font-size-sm); }
   }
@@ -223,5 +239,35 @@
     &[data-tempo="5"] {
       color: var(--color-tempo-heavy);
     }
+  }
+
+  /*
+   * Sélecteur de Nature (plan 188). Trois colonnes — nom, hausse, baisse — et non un libellé unique
+   * `« Rigide (+Atk, -AtkSp) »` : celui-ci revenait à la ligne au milieu d'un mot dans une modale
+   * étroite (retour humain 2026-08-26).
+   *
+   * Les couleurs sont celles de l'InfoPanel, et par le MÊME attribut (`data-nature`) que
+   * `packages/ui-dom/src/styles/info-panel.css` : un `+Atk` doit se lire pareil dans les deux écrans.
+   */
+  .tb-nature-row {
+    grid-template-columns: minmax(0, 1fr) 4.5rem 4.5rem;
+  }
+
+  .tb-nature-mod {
+    white-space: nowrap;
+    text-align: right;
+    &[data-nature="boost"] { color: var(--type-flying); }
+    &[data-nature="lower"] { color: var(--red-400); }
+  }
+
+  /* Le déclencheur du panneau d'édition affiche la même chose que la ligne choisie — sur une seule
+     ligne, sans retour, et les modificateurs poussés à droite. */
+  .tb-nature-trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    white-space: nowrap;
+    .name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .tb-nature-mod { flex: 0 0 auto; }
   }
 }

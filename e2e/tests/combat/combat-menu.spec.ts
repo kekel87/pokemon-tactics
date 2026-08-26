@@ -472,7 +472,7 @@ test("§4.20 « Quitter » n'existe qu'avec une sauvegarde, sort sans confirmati
   await expect(maps.title).toBeVisible();
   await maps.confirm.click();
   await expect(teams.title).toBeVisible();
-  await teams.randomTeam.click();
+  await teams.pickRandomTeam();
   await expect(teams.launch).toBeEnabled();
   await teams.launch.click();
   await scene.waitReady();

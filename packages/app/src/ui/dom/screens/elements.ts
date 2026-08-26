@@ -1,7 +1,9 @@
 import {
   activateFocusedControl,
+  closeOpenModal,
   focusableControls,
   focusInDirection,
+  isModalOpen,
 } from "../../../input/focus-navigation";
 import { InputSource } from "../../../input/input-source";
 import { getInputSystem } from "../../../input/input-system";
@@ -79,7 +81,17 @@ export function bindScreenInput(onBack?: () => void): () => void {
       },
       cancel: () => {
         // A modal dialog owns Escape: it must close, not navigate the screen away underneath it.
-        if (onBack === undefined || document.querySelector("dialog[open]") !== null) {
+        if (isModalOpen()) {
+          // ...mais `Échap` n'existe pas sur une manette, donc B n'avait AUCUNE sortie : on entrait
+          // dans un sélecteur du Team Builder et on y restait (plan 188). Au clavier on continue de
+          // rendre la main à la fermeture native du `<dialog>` — la réclamer ici doublerait le
+          // traitement, cf. décision #822.
+          if (system.tracker.current() !== InputSource.Gamepad) {
+            return false;
+          }
+          return closeOpenModal();
+        }
+        if (onBack === undefined) {
           return false;
         }
         onBack();

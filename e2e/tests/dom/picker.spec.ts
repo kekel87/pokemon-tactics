@@ -63,10 +63,12 @@ test("picker : choisir un Pokemon, grisé dans un autre slot, fermeture", async 
   await expect(picker.dialog).toBeHidden();
   await expect(edit.filledSlot("Florizarre")).toBeVisible();
 
-  // Slot 2 → le picker rouvre, Florizarre grisé (déjà pris).
+  // Slot 2 → le picker rouvre, Florizarre grisé (déjà pris). `toBeDisabled` et non
+  // `data-state="disabled"` : la cellule est un `<button disabled` depuis le plan 188, ce qui est
+  // aussi ce qui l'exclut de la navigation au clavier / à la manette.
   await edit.slot(2).click();
   await expect(picker.title).toBeVisible();
-  await expect(picker.cell("Florizarre")).toHaveAttribute("data-state", "disabled");
+  await expect(picker.cell("Florizarre")).toBeDisabled();
 
   // Fermeture via la croix.
   await picker.close.click();

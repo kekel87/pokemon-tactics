@@ -7,10 +7,12 @@ import {
   type TeamSlot,
 } from "@pokemon-tactic/core";
 import { t } from "../../i18n";
+import { InputSource } from "../../input/input-source";
 import { resolveSlotGender } from "../../team/gender-helpers";
 import { getOpSetsByPokemonId } from "../../team/team-builder-data";
 import { SaveDebouncer, touchTeam } from "../../team/team-helpers";
 import { loadTeam, saveTeam } from "../../team/team-storage";
+import { renderPreservingFocus } from "../dom/preserve-focus";
 import { openClearTeamConfirmModal } from "./ClearTeamConfirmModal";
 import { EditLeftPanel } from "./EditLeftPanel";
 import { EditRightPanel } from "./EditRightPanel";
@@ -63,6 +65,9 @@ export class TeamEditView {
     nameInput.type = "text";
     nameInput.className = "tb-topbar-name-input";
     nameInput.dataset.testid = "team-name-input";
+    // Sauté par la navigation MANETTE (décision humaine 2026-08-26) : le pad ne saisit pas de texte.
+    // L'équipe garde son nom par défaut, renommable au clavier — rien n'en dépend au pad.
+    nameInput.dataset.navSkip = InputSource.Gamepad;
     nameInput.value = this.team?.name ?? t("teamBuilder.untitledTeam");
     nameInput.addEventListener("input", () => {
       if (this.team === null) {
@@ -157,7 +162,19 @@ export class TeamEditView {
     this.element.remove();
   }
 
+  /**
+   * Reconstruit la rangée de slots et les deux panneaux, en RENDANT le focus au contrôle qui l'avait
+   * (plan 188, retour humain 2026-08-26 : « quand je change le genre d'un Pokemon ça perd le focus et
+   * repart d'en haut, et c'est comme ça à peu près partout sur l'écran »).
+   *
+   * Enveloppé ici, au seul point d'où tout le sous-arbre se reconstruit, plutôt que dans chaque
+   * panneau : `renderAll` est déjà l'endroit qui décide de tout redessiner.
+   */
   private renderAll(): void {
+    renderPreservingFocus(this.element, () => this.renderAllNow());
+  }
+
+  private renderAllNow(): void {
     if (this.team === null) {
       return;
     }
@@ -210,13 +227,41 @@ export class TeamEditView {
     this.renderAll();
   }
 
+  /**
+   * Commit qui ne redessine que ce que des stats changent — mais en PRÉSERVANT le focus.
+   *
+   * C'était la cause du « j'arrive à aller sur les curseurs, mais ils ne bougent pas et je reste
+   * bloqué dessus » (retour humain 2026-08-26) : un cran de curseur émet `input`, ce qui reconstruit
+   * le panneau droit, ce qui éjectait le focus vers `<body>`. La valeur changeait bien — c'est la
+   * pression SUIVANTE qui n'allait plus nulle part, et de l'extérieur ça se lit comme un curseur mort.
+   *
+   * Deux points d'entrée nommés plutôt qu'un booléen positionnel (revue de code 2026-08-26) : lu sur
+   * l'appel, `commitStatsOnly(team)` et `commitStatsAndIdentity(team)` disent ce qu'ils redessinent,
+   * là où `commitStatsOnly(team, true)` ne disait rien. Le second sert la Nature, qui s'affiche à
+   * gauche depuis qu'elle n'est plus un `<select>` gardant sa propre valeur.
+   */
   private commitStatsOnly(team: TeamSet): void {
+    this.commitAndRedraw(team, false);
+  }
+
+  /** Comme `commitStatsOnly`, plus le panneau gauche — la Nature s'y affiche. */
+  private commitStatsAndIdentity(team: TeamSet): void {
+    this.commitAndRedraw(team, true);
+  }
+
+  private commitAndRedraw(team: TeamSet, alsoLeftPanel: boolean): void {
     this.team = touchTeam(team);
     this.saveDebouncer.schedule(this.team);
     const activeSlot = this.team.slots[this.activeSlotIndex];
-    if (activeSlot !== undefined) {
-      this.rightPanel.render(activeSlot);
+    if (activeSlot === undefined) {
+      return;
     }
+    renderPreservingFocus(this.element, () => {
+      this.rightPanel.render(activeSlot);
+      if (alsoLeftPanel) {
+        this.leftPanel.render(activeSlot);
+      }
+    });
   }
 
   private handleSlotClick(index: number): void {
@@ -311,7 +356,7 @@ export class TeamEditView {
       return;
     }
     slots[this.activeSlotIndex] = { ...slot, nature };
-    this.commitStatsOnly({ ...this.team, slots });
+    this.commitStatsAndIdentity({ ...this.team, slots });
   }
 
   private handleMoveChange(index: number, moveId: string): void {

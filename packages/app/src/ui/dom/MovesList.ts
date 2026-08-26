@@ -28,7 +28,7 @@ export function createMovesList(options: CreateMovesListOptions): MovesList {
   const list = document.createElement("div");
   list.className = "tb-moves-list";
 
-  const rows: HTMLDivElement[] = [];
+  const rows: HTMLButtonElement[] = [];
 
   const renderRow = (index: number): void => {
     const row = rows[index];
@@ -108,7 +108,11 @@ export function createMovesList(options: CreateMovesListOptions): MovesList {
   };
 
   for (let i = 0; i < slotsCount; i++) {
-    const row = document.createElement("div");
+    // `<button>` et non `<div>` : les lignes de capacité étaient inatteignables au clavier comme à la
+    // manette (retour humain 2026-08-26 : « je n'arrive pas à aller sur les capacités »).
+    // `.claude/rules/html.md` l'interdit déjà — « `<button type="button">` pour toute action ».
+    const row = document.createElement("button");
+    row.type = "button";
     row.className = "tb-move-row";
     row.dataset.testid = "pokemon-edit-move-row";
     row.addEventListener("click", () => openPicker(i), { signal: options.signal });

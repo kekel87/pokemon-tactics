@@ -44,7 +44,7 @@ test("§6.11 reprise : le combat remonte à l'identique depuis le menu principal
   expect(mapName).not.toBe("");
   await maps.confirm.click();
   await expect(teams.title).toBeVisible();
-  await teams.randomTeam.click();
+  await teams.pickRandomTeam();
   await expect(teams.launch).toBeEnabled();
   await teams.launch.click();
   await scene.waitReady();

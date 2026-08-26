@@ -310,7 +310,36 @@ export function startGamepadPolling(
   let frame: number | null = null;
   let idleFrames = 0;
 
+  /**
+   * 🔴 La boucle se replanifie TOUJOURS, quoi qu'il arrive dans le corps (plan 188, 2026-08-26).
+   *
+   * Sans ça, une exception d'un consommateur remontait jusqu'ici, `requestAnimationFrame` n'était
+   * jamais rappelé — et comme `frame` gardait son ancien identifiant, `start()` refusait de relancer.
+   * Résultat : **la manette morte jusqu'au rechargement**, pour un bug situé dans un écran. C'est
+   * arrivé (`Illegal invocation` dans `applyToControl`) et le symptôme rapporté était « les curseurs
+   * ne bougent pas et je reste bloqué dessus » — un diagnostic à trois niveaux de sa cause.
+   *
+   * Le `finally` couvre tout le corps, et pas seulement `emit` : le chemin de capture appelle
+   * `capture(index)`, qui est aussi du code de consommateur (l'écran de remapping) et tuait la boucle
+   * de la même façon (revue de code 2026-08-26).
+   */
   const poll = (): void => {
+    try {
+      pollOnce();
+    } catch (error) {
+      // Sans cette trace l'exception est perdue en silence — et c'est ce silence qui a fait
+      // diagnostiquer « les curseurs ne bougent pas » au lieu de « une erreur tue la manette ».
+      // biome-ignore lint/suspicious/noConsole: seule trace d'un consommateur qui lève
+      console.error("[input] un consommateur a levé pendant le sondage manette", error);
+    } finally {
+      if (frame !== null) {
+        frame = requestAnimationFrame(poll);
+      }
+    }
+  };
+
+  /** Un tour de sondage. `frame = null` demande l'arrêt (plus aucune manette connectée). */
+  const pollOnce = (): void => {
     const pads = navigator.getGamepads?.() ?? [];
     let connected = 0;
     for (const pad of pads) {
@@ -349,12 +378,10 @@ export function startGamepadPolling(
         frame = null;
         idleFrames = 0;
         states.clear();
-        return;
       }
     } else {
       idleFrames = 0;
     }
-    frame = requestAnimationFrame(poll);
   };
 
   const start = (): void => {

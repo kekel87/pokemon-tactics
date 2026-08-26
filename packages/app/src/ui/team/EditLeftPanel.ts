@@ -16,6 +16,7 @@ import {
 } from "../../team/team-builder-data";
 import { createMovesList } from "../dom/MovesList";
 import { openItemPickerModal } from "./ItemPickerModal";
+import { appendNatureLabel, openNaturePickerModal } from "./NaturePickerModal";
 
 const NATURE_ORDER: Nature[] = [
   Nature.Adamant,
@@ -202,7 +203,10 @@ export class EditLeftPanel {
     dropdown.className = "tb-set-op-dropdown";
 
     for (const set of sets) {
-      const row = document.createElement("div");
+      // `<button>` : on pouvait ouvrir le menu des builds mais pas y entrer, ses lignes n'étant pas
+      // focalisables (retour humain 2026-08-26).
+      const row = document.createElement("button");
+      row.type = "button";
       row.className = "tb-set-op-row";
       const nameEl = document.createElement("div");
       nameEl.className = "name";
@@ -303,7 +307,10 @@ export class EditLeftPanel {
     title.textContent = t("teamBuilder.section.item");
     title.dataset.testid = "pokemon-edit-section-item";
     section.appendChild(title);
-    const input = document.createElement("div");
+    // `<button>` et non `<div>` : la ligne d'objet était invisible au focus, donc la navigation
+    // sautait de Talent à Nature (retour humain 2026-08-26).
+    const input = document.createElement("button");
+    input.type = "button";
     input.className = "tb-input-clickable";
     input.dataset.testid = "pokemon-edit-item-value";
     if (slot.heldItemId === undefined) {
@@ -341,21 +348,30 @@ export class EditLeftPanel {
     title.textContent = t("teamBuilder.section.nature");
     title.dataset.testid = "pokemon-edit-section-nature";
     section.appendChild(title);
-    const select = document.createElement("select");
-    select.className = "tb-select";
-    for (const nature of NATURE_ORDER) {
-      const option = document.createElement("option");
-      option.value = nature;
-      option.textContent = t(NATURE_I18N[nature]);
-      if (slot.nature === nature) {
-        option.selected = true;
-      }
-      select.appendChild(option);
-    }
-    select.addEventListener("change", () => {
-      this.callbacks.onNatureChange(select.value as Nature);
+    // Un bouton qui ouvre une LISTE, et non plus un `<select>` natif (plan 188, retour humain
+    // 2026-08-26 : « le select me capture […] j'aimerais pouvoir l'ouvrir »). Même geste que les
+    // sélecteurs de Pokemon, de capacité et d'objet — un seul comportement à apprendre.
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "tb-input-clickable";
+    trigger.dataset.testid = "pokemon-edit-nature-value";
+    trigger.classList.add("tb-nature-trigger");
+    appendNatureLabel(trigger, slot.nature, NATURE_I18N[slot.nature]);
+    trigger.addEventListener("click", () => {
+      openNaturePickerModal({
+        natures: NATURE_ORDER,
+        nameKeys: NATURE_I18N,
+        current: slot.nature,
+        // Le Team Builder n'offre pas « Aléatoire » (pas de `randomLabel`), donc `nature` ne peut
+        // pas être `null` ici — le garde le dit explicitement plutôt que de forcer le type.
+        onSelect: (nature) => {
+          if (nature !== null) {
+            this.callbacks.onNatureChange(nature);
+          }
+        },
+      });
     });
-    section.appendChild(select);
+    section.appendChild(trigger);
     return section;
   }
 

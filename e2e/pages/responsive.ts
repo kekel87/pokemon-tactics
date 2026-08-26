@@ -172,10 +172,12 @@ export const COMBAT_CHROME_SCROLLERS = ".tt-list, .bl-list";
 export const MAP_SELECT_ROOT = ".ms-screen";
 /** Map list: the scroller since plan 179 (it takes the squeeze so the buttons stay pinned). */
 export const MAP_SELECT_SCROLLERS = ".ms-list";
-/** `.ts-root` — team-select screen root (slots on the left, saved teams on the right). */
+/** `.ts-root` — team-select screen root (une colonne de camps depuis le plan 188 #832 : la liste
+ *  d'équipes qui occupait le centre est passée en modale). */
 export const TEAM_SELECT_ROOT = ".ts-root";
-/** Saved-teams list: scrolls by design, its cards are clipped. */
-export const TEAM_SELECT_SCROLLERS = ".ts-team-list";
+/** Colonne des camps : c'est elle qui défile depuis le plan 188 (la liste d'équipes a quitté
+ *  l'écran), et elle doit prendre la contrainte pour que header et footer restent ancrés. */
+export const TEAM_SELECT_SCROLLERS = ".ts-players-column";
 /** `.tb-root` — Team Builder overlay root (topbar, slot row, edit panels). */
 export const TEAM_BUILDER_ROOT = ".tb-root";
 /** Team Builder scrollers: the screen body, and the picker lists/grid inside its dialogs. */

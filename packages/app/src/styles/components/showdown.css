@@ -5,7 +5,11 @@
     margin-bottom: var(--spacing-md);
   }
 
+  /* `<button>` depuis le plan 188 (trou E) : un onglet en `<div>` n'était pas focalisable, donc
+     impossible de basculer d'onglet à la manette. Remises à zéro de bouton + `:disabled`, qui
+     remplace le `pointer-events`/`opacity` en styles inline. */
   .tb-showdown-tab {
+    appearance: none;
     padding: var(--pad-control-y) var(--pad-control-x);
     cursor: pointer;
     background: var(--color-bg-elevated);
@@ -13,10 +17,15 @@
     border-radius: var(--radius-sm);
     color: var(--color-text-muted);
     min-height: var(--target-min);
+    /* Bleu et non l'accent : voir décision #836. */
     &[data-state="active"] {
-      background: var(--color-accent);
-      color: var(--color-text-dark);
-      border-color: var(--color-accent);
+      background: var(--color-btn-bg);
+      color: var(--color-text-primary);
+      border-color: var(--color-btn-border);
+    }
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
     }
   }
 

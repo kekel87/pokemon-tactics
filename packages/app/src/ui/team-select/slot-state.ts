@@ -3,19 +3,28 @@ import {
   PlayerController,
   PlayerId,
   type TeamSelection,
+  type TeamSet,
 } from "@pokemon-tactic/core";
 import { t } from "../../i18n";
 import type { TranslationKey } from "../../i18n/types";
 import { loadLastSelection, saveLastSelectionEntry } from "../../team/last-selection";
-import type { SlotForRefresh } from "../../team/refresh-ai-teams";
 import { generateRandomTeam } from "../../team/team-generator";
 import { loadTeam } from "../../team/team-storage";
 
 /**
- * Team-select slot state and operations used by the DOM team-select screen
- * (plan 120 step 4). Same shape as the refresh helper's constraint.
+ * L'état d'un camp sur l'écran de sélection d'équipe (plan 120 étape 4).
+ *
+ * Déclaré ICI depuis le plan 188 : la forme vivait dans `refresh-ai-teams.ts` comme contrainte du
+ * helper « Remplir IA », supprimé avec son bouton (décision humaine 2026-08-26). Le type était la
+ * seule chose de ce fichier encore utilisée — le garder là aurait laissé un fichier dont le nom ne
+ * décrit plus rien.
  */
-export type SlotState = SlotForRefresh;
+export interface SlotState {
+  controller: PlayerController;
+  assignedTeam: TeamSet | null;
+  assignedTeamId: string | null;
+  ephemeral: boolean;
+}
 
 export const PLAYER_IDS: readonly PlayerId[] = [
   PlayerId.Player1,
@@ -98,19 +107,30 @@ export function buildInitialSlots(format: MapFormat): SlotState[] {
   return slots;
 }
 
-/** Human ↔ AI; switching to AI rolls a random team, to human clears the slot. */
-export function toggleSlotController(slot: SlotState): void {
-  if (slot.controller === PlayerController.Human) {
-    slot.controller = PlayerController.Ai;
+/**
+ * Pose le contrôleur d'un camp ; passer à l'IA tire une équipe aléatoire, passer à l'humain vide le
+ * camp. Renvoie `false` quand le camp était déjà sur ce contrôleur, donc que rien n'a bougé.
+ *
+ * Une POSE et non une bascule depuis le plan 188 (décision #831) : le segment affiche les deux états
+ * en permanence, donc chaque bouton désigne une cible précise. Une bascule y serait fausse — presser
+ * « Humain » sur un camp déjà humain le donnerait à l'IA, et c'est exactement le contresens que le
+ * bouton unique produisait.
+ */
+export function setSlotController(slot: SlotState, controller: PlayerController): boolean {
+  if (slot.controller === controller) {
+    return false;
+  }
+  slot.controller = controller;
+  if (controller === PlayerController.Ai) {
     slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
     slot.assignedTeamId = null;
     slot.ephemeral = true;
   } else {
-    slot.controller = PlayerController.Human;
     slot.assignedTeam = null;
     slot.assignedTeamId = null;
     slot.ephemeral = false;
   }
+  return true;
 }
 
 /**

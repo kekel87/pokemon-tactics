@@ -1,6 +1,7 @@
 import { getTypeName } from "@pokemon-tactic/data";
 import { Modal } from "@pokemon-tactic/ui-dom";
 import { getLanguage, t } from "../../i18n";
+import { InputSource } from "../../input/input-source";
 import { getTypeIconUrl } from "../../team/asset-paths";
 import { normalizeSearchText } from "../../team/search-index";
 import {
@@ -8,7 +9,8 @@ import {
   getPortraitUrl,
   type PlayablePokemon,
 } from "../../team/team-builder-data";
-import { focusSearchUnlessTouch } from "./picker-focus";
+import { renderPreservingFocus } from "../dom/preserve-focus";
+import { focusPickerEntry } from "./picker-focus";
 
 export interface PokemonPickerOptions {
   onSelect: (pokemon: PlayablePokemon) => void;
@@ -61,6 +63,10 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
   search.type = "text";
   search.className = "tb-picker-search";
   search.placeholder = t("teamBuilder.picker.search");
+  // Sauté par la navigation MANETTE (plan 188, décision humaine 2026-08-26 : pas de saisie au pad).
+  // Une manette ne peut pas taper, donc s'y arrêter est un cul-de-sac ; tout ce qui compte reste
+  // atteignable autrement — ici les chips de filtre. `data-nav-skip` est le mécanisme du plan 186.
+  search.dataset.navSkip = InputSource.Gamepad;
   body.appendChild(search);
 
   const typeRow = document.createElement("div");
@@ -96,13 +102,15 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
   const renderFilters = (): void => {
     typeRow.innerHTML = "";
     for (const type of TYPE_FILTERS) {
-      const chip = document.createElement("div");
+      const chip = document.createElement("button");
+      chip.type = "button";
       chip.className = "tb-filter-chip";
       chip.dataset.type = type;
       chip.dataset.testid = "pokemon-type-filter";
-      if (!availableTypes.has(type)) {
-        chip.dataset.state = "disabled";
-      } else if (activeTypes.has(type)) {
+      // `disabled` réel, pas un `data-state` : c'est ce que `focusableControls()` lit pour ne pas
+      // proposer un filtre inerte au clavier / à la manette (plan 188, trou A).
+      chip.disabled = !availableTypes.has(type);
+      if (activeTypes.has(type)) {
         chip.dataset.state = "active";
       }
       // Localised name, not the raw English id (plan 179): these chips were the last place in
@@ -117,9 +125,6 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
       label.textContent = typeName;
       chip.appendChild(label);
       chip.addEventListener("click", () => {
-        if (!availableTypes.has(type)) {
-          return;
-        }
         if (activeTypes.has(type)) {
           activeTypes.delete(type);
         } else {
@@ -132,24 +137,24 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
 
     genRow.innerHTML = "";
     for (const gen of GEN_FILTERS) {
-      const chip = document.createElement("div");
+      const chip = document.createElement("button");
+      chip.type = "button";
       chip.className = "tb-filter-chip";
-      if (!availableGens.has(gen.id)) {
-        chip.dataset.state = "disabled";
-      } else if (activeGen === gen.id) {
+      chip.dataset.testid = "pokemon-gen-filter";
+      chip.dataset.gen = gen.id;
+      chip.disabled = !availableGens.has(gen.id);
+      if (activeGen === gen.id) {
         chip.dataset.state = "active";
       }
       chip.textContent = gen.label;
       chip.addEventListener("click", () => {
-        if (!availableGens.has(gen.id)) {
-          return;
-        }
         activeGen = activeGen === gen.id ? null : gen.id;
         render();
       });
       genRow.appendChild(chip);
     }
-    const reset = document.createElement("div");
+    const reset = document.createElement("button");
+    reset.type = "button";
     reset.className = "tb-filter-chip";
     reset.dataset.variant = "reset";
     reset.textContent = t("teamBuilder.picker.reset");
@@ -163,7 +168,11 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
     genRow.appendChild(reset);
   };
 
-  const render = (): void => {
+  // Envelopé pour que cliquer un chip de filtre ne renvoie pas le focus au `<body>` (retour humain
+  // 2026-08-26). `body` est la racine du contenu de la modale, donc couvre filtres ET résultats.
+  const render = (): void => renderPreservingFocus(body, renderNow);
+
+  const renderNow = (): void => {
     renderFilters();
     grid.innerHTML = "";
     const genRange = activeGen === null ? null : GEN_FILTERS.find((g) => g.id === activeGen);
@@ -186,13 +195,12 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
       return true;
     });
     for (const pokemon of pool) {
-      const cell = document.createElement("div");
+      const cell = document.createElement("button");
       const isExcluded = excluded.has(pokemon.id);
+      cell.type = "button";
       cell.className = "tb-pokemon-cell";
       cell.dataset.testid = "pokemon-cell";
-      if (isExcluded) {
-        cell.dataset.state = "disabled";
-      }
+      cell.disabled = isExcluded;
       const portrait = document.createElement("div");
       portrait.className = "tb-pokemon-cell-portrait";
       portrait.style.backgroundImage = `url(${getPortraitUrl(pokemon.id)})`;
@@ -201,12 +209,10 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
       name.className = "tb-pokemon-cell-name";
       name.textContent = pokemon.name;
       cell.appendChild(name);
-      if (!isExcluded) {
-        cell.addEventListener("click", () => {
-          options.onSelect(pokemon);
-          modal.close();
-        });
-      }
+      cell.addEventListener("click", () => {
+        options.onSelect(pokemon);
+        modal.close();
+      });
       grid.appendChild(cell);
     }
   };
@@ -217,5 +223,5 @@ export function openPokemonPickerModal(options: PokemonPickerOptions): void {
   });
 
   render();
-  focusSearchUnlessTouch(search);
+  focusPickerEntry(search, () => grid.querySelector<HTMLElement>("button:not(:disabled)"));
 }

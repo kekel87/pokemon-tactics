@@ -1,5 +1,5 @@
-import type { TeamSet, TeamSlot } from "@pokemon-tactic/core";
-import { getPortraitUrl } from "../../team/team-builder-data";
+import type { TeamSet } from "@pokemon-tactic/core";
+import { createPlaceholderPortraitsElement, createTeamPortraitsElement } from "./TeamPortraits";
 
 export interface TeamListItemBadge {
   slotIndex: number;
@@ -35,23 +35,20 @@ export function createTeamListItemElement(
 
   const name = document.createElement("span");
   name.className = "ts-team-row-name";
-  if (props.isRandomRow) {
-    name.textContent = props.randomLabel;
-  } else if (props.team === null) {
-    name.textContent = "—";
-  } else {
-    name.textContent = props.team.name;
-  }
+  // Pas de troisième cas : le seul producteur (`TeamPickerModal`) n'émet que `(équipe, false)` ou
+  // `(null, true)`. Le `« — »` d'avant était une branche morte (revue de code 2026-08-26).
+  name.textContent = props.team === null ? props.randomLabel : props.team.name;
   button.appendChild(name);
 
-  const portraits = document.createElement("span");
-  portraits.className = "ts-team-row-portraits";
-  if (props.team !== null) {
-    appendPortraits(portraits, props.team.slots);
-  } else if (props.isRandomRow) {
-    appendPlaceholderPortraits(portraits);
-  }
-  button.appendChild(portraits);
+  // Rembourré à 6 : dans une LISTE, les colonnes de portraits doivent se superposer d'une ligne à
+  // l'autre. La carte de camp, elle, ne rembourre pas (cf. `TeamPortraits`).
+  // Deux cas seulement, et c'est structurel : `TeamPickerModal` n'émet que `(équipe, false)` ou
+  // `(null, true)`. Une troisième branche « pas d'équipe et pas la ligne aléatoire » était morte.
+  button.appendChild(
+    props.team === null
+      ? createPlaceholderPortraitsElement()
+      : createTeamPortraitsElement(props.team.slots, { padTo: 6 }),
+  );
 
   const badgeContainer = document.createElement("span");
   badgeContainer.className = "ts-team-row-badges";
@@ -62,29 +59,6 @@ export function createTeamListItemElement(
 
   item.appendChild(button);
   return item;
-}
-
-function appendPortraits(target: HTMLElement, slots: readonly TeamSlot[]): void {
-  for (let i = 0; i < 6; i++) {
-    const slot = slots[i];
-    const portrait = document.createElement("span");
-    portrait.className = "ts-team-row-portrait";
-    if (slot === undefined) {
-      portrait.dataset.empty = "true";
-    } else {
-      portrait.style.backgroundImage = `url(${getPortraitUrl(slot.pokemonId)})`;
-    }
-    target.appendChild(portrait);
-  }
-}
-
-function appendPlaceholderPortraits(target: HTMLElement): void {
-  for (let i = 0; i < 6; i++) {
-    const portrait = document.createElement("span");
-    portrait.className = "ts-team-row-portrait";
-    portrait.dataset.placeholder = "true";
-    target.appendChild(portrait);
-  }
 }
 
 function createBadge(badge: TeamListItemBadge): HTMLElement {

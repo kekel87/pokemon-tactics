@@ -66,6 +66,27 @@ playwright.config.ts
 - Port unique par worktree : `fullyParallel` OK (Vite gère N connexions, app stateless) ; sinon
   série. Sharding seulement si la suite dépasse ~5 min.
 
+## Ressources machine (RÈGLE DURE — 2026-08-25)
+
+L'humain **travaille et joue sur cette machine pendant que la suite tourne**. Une suite qui prend les
+16 cœurs lui coûte sa session — c'est arrivé deux fois le 2026-08-25.
+
+- **Toujours passer par `pnpm test:e2e:affected`**, jamais `pnpm test:e2e` en cours de chantier. Le
+  niveau (L1 smoke / L2 affected / L3 full) se **décide depuis le diff** (`scripts/e2e-affected.ts`,
+  plan 170) ; le choisir soi-même « par sécurité », c'est lancer 478 tests pour un bouton.
+- **Le plafond est posé par `scripts/with-cpu-cap.sh`**, branché sur `test:e2e`, `test:e2e:smoke` et
+  `test:e2e:affected` : `systemd-run --user --scope` avec `CPUQuota=400%` (4 cœurs sur 16),
+  `MemoryMax=8G` et `CPUWeight=20` (cède le CPU aux tâches interactives). C'est le **noyau** qui
+  borne tout l'arbre de process, là où `--workers` n'est qu'une consigne que Playwright s'applique
+  à lui-même.
+- **`workers: 3`** dans `playwright.config.ts` (au lieu du défaut cœurs / 2 = 8) : 3 navigateurs dans
+  4 cœurs avancent mieux que 8 qui se battent. Réglable par `PT_E2E_WORKERS`.
+- **`PT_FULL_SPEED=1` débride** (plafond levé + workers par défaut). À réserver aux runs où **personne
+  n'utilise la machine**, et à annoncer avant de lancer.
+- **Ne jamais lancer un run long sans le dire**, et le lancer en tâche de fond pour pouvoir l'arrêter
+  (`TaskStop`) dès que l'humain réclame sa machine.
+- `test:e2e:ui` reste **non bridé** : c'est l'humain qui le pilote, il sait ce qu'il lance.
+
 ## Attente (anti-flaky)
 
 - **Bannir `page.waitForTimeout(ms)`**.

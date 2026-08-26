@@ -70,7 +70,7 @@ test("§6.10 reprise d'écran : un combat perdu revient au menu principal", asyn
   await expect(maps.title).toBeVisible();
   await maps.confirm.click();
   await expect(teams.title).toBeVisible();
-  await teams.humanToggle.click();
+  await teams.giveSlotToAi();
   await teams.launch.click();
   await scene.waitReady();
   // ⚠️ `waitReady` gate la SCÈNE (carte + atlas), pas le combat : la phase de placement, puis la

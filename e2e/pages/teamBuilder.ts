@@ -74,8 +74,10 @@ export class PokemonEdit {
   }
 }
 
-/** Pokemon Picker modale (`<dialog>` → rôle `dialog`). Les puces/cellules sont des divs cliquables
- *  sans rôle → `data-testid` ; titre/recherche/boutons restent user-facing (rôle/placeholder/texte). */
+/** Pokemon Picker modale (`<dialog>` → rôle `dialog`). Les puces et cellules sont des `<button>`
+ *  depuis le plan 188 (elles étaient des divs cliquables, donc inatteignables au focus) mais gardent
+ *  leur `data-testid` comme contrat de test ; titre/recherche/boutons restent user-facing
+ *  (rôle/placeholder/texte). */
 export class PokemonPicker {
   readonly dialog: Locator;
   readonly title: Locator;
@@ -109,9 +111,10 @@ export class PokemonPicker {
 }
 
 /** Move Picker modale (`<dialog>` → rôle `dialog`, titre « Choisir la capacité N »). Ouverte en
- *  cliquant une ligne de capacité de la fiche d'un Pokemon. Les lignes de move sont des divs
- *  cliquables sans rôle/testid → on cible le **nom FR user-facing** via `getByText` (priorité
- *  Playwright avant testid), scopé au dialog. */
+ *  cliquant une ligne de capacité de la fiche d'un Pokemon. Les lignes de move sont des `<button>`
+ *  depuis le plan 188 (elles étaient des divs cliquables, donc inatteignables au focus) et n'ont pas
+ *  de testid → on cible le **nom FR user-facing** via `getByText` (priorité Playwright avant
+ *  testid), scopé au dialog. Une capacité non implémentée porte `disabled`. */
 export class MovePicker {
   readonly dialog: Locator;
   readonly title: Locator;
@@ -137,8 +140,9 @@ export class MovePicker {
 }
 
 /** Item Picker modale (`<dialog>` → rôle `dialog`, titre « Choisir un objet »). Les lignes d'objet
- *  sont des divs cliquables sans rôle → `data-testid` (data row) ; le nom de l'objet reste le texte
- *  user-facing de la ligne, ciblé via `data-item-id` (id EN stable, indépendant de l'i18n). */
+ *  sont des `<button>` depuis le plan 188 (elles étaient des divs cliquables) → on garde le
+ *  `data-testid` (data row) ; le nom de l'objet reste le texte user-facing de la ligne, ciblé via
+ *  `data-item-id` (id EN stable, indépendant de l'i18n). Un objet non implémenté porte `disabled`. */
 export class ItemPicker {
   readonly dialog: Locator;
   readonly title: Locator;

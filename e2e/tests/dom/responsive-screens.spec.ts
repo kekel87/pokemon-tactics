@@ -153,6 +153,28 @@ test.describe("§6.3 voile de chargement de l'aperçu de carte", () => {
   });
 });
 
+/**
+ * Ouvre le sélecteur d'équipe du camp 1, mesure un portrait, le referme.
+ *
+ * Les portraits ont quitté l'écran pour la modale au plan 188 (#832) ; on ouvre et referme à chaque
+ * viewport plutôt que de laisser la modale ouverte pendant le redimensionnement, pour mesurer un
+ * `<dialog>` déjà stabilisé à la nouvelle taille.
+ */
+const measurePickerPortrait = async (
+  page: Page,
+  responsive: Responsive,
+  teamSelect: TeamSelectScreen,
+): Promise<{ height: number } | null> => {
+  await teamSelect.teamButton(0).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  // Scopé au `<dialog>` : la carte de camp derrière porte AUSSI des portraits (plus petits, et
+  // de taille fixe), donc un sélecteur global mesurerait la mauvaise vignette.
+  const metrics = await responsive.metrics("dialog[open] .ts-portrait");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toBeHidden();
+  return metrics;
+};
+
 test.describe("§6.9 sélection d'équipe sur téléphone paysage", () => {
   test.use({ viewport: PHONE_LANDSCAPE });
 
@@ -174,11 +196,17 @@ test.describe("§6.9 sélection d'équipe sur téléphone paysage", () => {
       .toEqual([]);
 
     expect(await responsive.fontSizePx(teamSelect.title)).toBe(18);
-    const phonePortrait = await responsive.metrics(".ts-team-row-portrait");
+
+    // Les portraits vivent dans le sélecteur d'équipe depuis le plan 188 (#832) — il faut l'ouvrir
+    // pour les mesurer. Ils sont portés par la ligne « 🎲 Aléatoire », donc présents même sans
+    // équipe sauvegardée. Le token `--ts-portrait-size` est déclaré sur `.ts-portraits` (le conteneur)
+    // et non sur un écran : les portraits vivent dans DEUX arbres depuis le plan 188 — la carte de
+    // camp, et la liste du sélecteur, qui est un `<dialog>` monté sur `<body>`.
+    const phonePortrait = await measurePickerPortrait(page, responsive, teamSelect);
 
     await page.setViewportSize(DESKTOP_WINDOW);
     await expect.poll(() => responsive.fontSizePx(teamSelect.title)).toBe(28);
-    const desktopPortrait = await responsive.metrics(".ts-team-row-portrait");
+    const desktopPortrait = await measurePickerPortrait(page, responsive, teamSelect);
     expect(phonePortrait?.height).toBeLessThan(desktopPortrait?.height ?? 0);
   });
 });

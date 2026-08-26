@@ -46,14 +46,20 @@ test("§7.3 fiche : Florizarre assigné affiche identité, sections et stats", a
   await expect(edit.moveRows).toHaveCount(4);
 });
 
-test("§7.3 fiche : la Nature offre les 25 natures (select)", async ({ page }) => {
+test("§7.3 fiche : la Nature s'ouvre en liste et offre les 25 natures", async ({ page }) => {
   await openFlorizarreEdit(page);
-  const natureSelect = page
-    .locator(".tb-edit-section")
-    .filter({ has: page.getByTestId("pokemon-edit-section-nature") })
-    .locator("select");
-  await expect(natureSelect).toBeVisible();
-  expect(await natureSelect.locator("option").count()).toBe(25);
+  // C'était un `<select>` natif ; c'est une liste dans un `<dialog>` depuis le plan 188 (le `<select>`
+  // capturait la manette sans jamais s'ouvrir). Le geste est celui des trois autres sélecteurs.
+  await page.getByTestId("pokemon-edit-nature-value").click();
+  await expect(page.getByTestId("nature-picker-list")).toBeVisible();
+  await expect(page.getByTestId("nature-picker-row")).toHaveCount(25);
+
+  // Choisir referme la modale et met le déclencheur à jour.
+  const chosen = page.getByTestId("nature-picker-row").nth(3);
+  const chosenLabel = ((await chosen.textContent()) ?? "").trim();
+  await chosen.click();
+  await expect(page.getByRole("dialog")).toBeHidden();
+  await expect(page.getByTestId("pokemon-edit-nature-value")).toHaveText(chosenLabel);
 });
 
 test("§7.3 fiche : cliquer une capacité ouvre le picker de move", async ({ page }) => {
@@ -66,11 +72,14 @@ test("§7.3 fiche : cliquer une capacité ouvre le picker de move", async ({ pag
 
 test("§7.3 fiche : un preset de stats modifie la répartition", async ({ page }) => {
   await openFlorizarreEdit(page);
+  const edit = new PokemonEdit(page);
   const statsText = () => page.locator(".tb-stat-value").allTextContents();
 
-  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  // Scopé à la rangée de presets : le chip « Reset » des sélecteurs est un `<button>` depuis le plan
+  // 188 (il était un `<div>`), donc un `getByRole` global en trouve désormais deux.
+  await edit.presets.getByRole("button", { name: "Reset", exact: true }).click();
   const before = (await statsText()).join("|");
-  await page.getByRole("button", { name: "Sweeper Phys", exact: true }).click();
+  await edit.presets.getByRole("button", { name: "Sweeper Phys", exact: true }).click();
   // La répartition de points change → au moins une valeur de stat diffère.
   await expect.poll(async () => (await statsText()).join("|")).not.toBe(before);
 });
@@ -93,7 +102,9 @@ test("§7.3 fiche : le picker d'objet liste un objet boost-de-type et l'assigne 
   // (implémenté → non grisé).
   const charcoal = picker.row("charcoal");
   await expect(charcoal).toBeVisible();
-  await expect(charcoal).not.toHaveAttribute("data-state", "disabled");
+  // `not.toBeDisabled()` et non `data-state` : `ItemPickerModal` porte la désactivation sur
+  // l'ATTRIBUT depuis le plan 188, donc l'ancienne assertion ne pouvait plus échouer.
+  await expect(charcoal).not.toBeDisabled();
   await expect(charcoal).toContainText("Charbon");
 
   // Sélection → modale fermée, champ « Objet » du slot mis à jour avec le nom FR.
