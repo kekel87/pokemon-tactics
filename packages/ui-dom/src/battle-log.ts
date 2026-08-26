@@ -38,6 +38,24 @@ export interface BattleLogOptions {
   teamOf: (pokemonId: string) => number | null;
   /** Localise the panel title (host-injected, plan 125 Phase 4). */
   translate: UiDomConfig["translate"];
+  /**
+   * Capuchons de défilement, construits par l'hôte (plan 189, décision 8).
+   *
+   * Ils vont en pied de liste et n'apparaissent que **quand elle déborde** : contrairement à la
+   * timeline, qui déborde toujours, le journal naît **vide** et annoncerait un contrôle sans effet.
+   *
+   * ⚠️ La touche qui **ouvre** le journal n'est pas ici : le panneau est en `overflow: hidden` et,
+   * replié, sa boîte EST celle de l'en-tête — un indice ajouté dedans se retrouvait *dans* le bouton
+   * (retour humain 2026-08-26) et, sous l'en-tête, aurait été rogné. L'appelant l'accroche donc SOUS
+   * le panneau via `withKeyHint`, dans la rangée.
+   *
+   * Construits par l'hôte parce que `ui-dom` ne lit pas les bindings — c'est `key-legend.ts` qui sait
+   * quelle touche est liée à quoi.
+   */
+  keyHints?: {
+    readonly scrollUp?: HTMLElement | null;
+    readonly scrollDown?: HTMLElement | null;
+  };
 }
 
 export interface BattleLog extends BattleFeedback {
@@ -65,8 +83,27 @@ export function createBattleLogRow(...children: readonly HTMLElement[]): HTMLEle
   return row;
 }
 
+/**
+ * Un bouton du chrome et, **sous** lui, le capuchon de sa touche (plan 189, décision 10).
+ *
+ * La règle est générale et pas un cas particulier du journal : un bouton du chrome annonce son
+ * raccourci là où on le regarde. Avant, la seule façon d'apprendre que `J` ouvre le journal était
+ * d'aller lire l'écran de contrôles — que rien n'invite à ouvrir.
+ *
+ * Renvoie le bouton **nu** quand il n'y a pas d'indice à montrer (aucune touche liée, ou un appareil
+ * sans clavier) : pas de colonne vide qui décalerait la rangée pour rien.
+ */
+export function withKeyHint(button: HTMLElement, hint: HTMLElement | null): HTMLElement {
+  if (hint === null) {
+    return button;
+  }
+  const column = el("div", "bl-row-item");
+  column.append(button, hint);
+  return column;
+}
+
 export function createBattleLog(options: BattleLogOptions): BattleLog {
-  const { context, teamOf, translate } = options;
+  const { context, teamOf, translate, keyHints } = options;
 
   const root = el("div", "bl-panel", "battle-log");
   root.dataset.collapsed = "true";
@@ -97,7 +134,53 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
     actions.append(button);
   }
 
-  root.append(header, list, actions);
+  /*
+   * Indices de défilement (plan 189, décision 8) — un à CHAQUE extrémité de la liste, masqués par
+   * défaut.
+   *
+   * `battle-log.css` garde sa barre en `thin`, mais rien ne dit AVEC QUOI défiler au clavier. Groupés
+   * en pied, les deux se lisaient comme une rangée de quatre capuchons sans rapport avec la liste
+   * (retour humain 2026-08-26) ; à chaque bout, la direction du capuchon désigne le bord vers lequel
+   * il emmène — même disposition que l'ordre de jeu.
+   */
+  const scrollHintRow = (child: HTMLElement | null | undefined, testId: string): HTMLElement => {
+    const row = el("div", "bl-scroll-hint", testId);
+    row.hidden = true;
+    row.setAttribute("aria-hidden", "true");
+    if (child) {
+      row.append(child);
+    }
+    return row;
+  };
+  const scrollHintTop = scrollHintRow(keyHints?.scrollUp, "battle-log-scroll-hint-top");
+  const scrollHintBottom = scrollHintRow(keyHints?.scrollDown, "battle-log-scroll-hint-bottom");
+  const hasScrollHint =
+    scrollHintTop.childElementCount > 0 || scrollHintBottom.childElementCount > 0;
+
+  /**
+   * La liste déborde-t-elle ? Une comparaison, pas un sondage : appelée quand le contenu change et
+   * quand la boîte change de taille — les deux seuls moments où la réponse peut bouger.
+   */
+  const refreshScrollHint = (): void => {
+    if (!hasScrollHint) {
+      return;
+    }
+    const overflowing = list.scrollHeight > list.clientHeight;
+    scrollHintTop.hidden = !overflowing;
+    scrollHintBottom.hidden = !overflowing;
+  };
+
+  /*
+   * `clientHeight` vaut 0 tant que le panneau est replié ou hors flux : sans cet observateur, l'indice
+   * resterait masqué au premier dépliage, moment où il est le plus utile.
+   */
+  const resizeObserver =
+    hasScrollHint && typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(() => refreshScrollHint())
+      : null;
+  resizeObserver?.observe(list);
+
+  root.append(header, scrollHintTop, list, scrollHintBottom, actions);
 
   const setCollapsed = (collapsed: boolean): void => {
     root.dataset.collapsed = String(collapsed);
@@ -128,6 +211,7 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
       list.firstElementChild?.remove();
     }
     list.scrollTop = list.scrollHeight;
+    refreshScrollHint();
   }
 
   return {
@@ -147,6 +231,9 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
         appendEntry(result);
       }
     },
-    destroy: () => root.remove(),
+    destroy: () => {
+      resizeObserver?.disconnect();
+      root.remove();
+    },
   };
 }

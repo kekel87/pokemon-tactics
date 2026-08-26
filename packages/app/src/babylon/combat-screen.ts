@@ -26,7 +26,9 @@ import {
   createChromeInsetProbe,
   createCombatMenuButton,
   createFullscreenButton,
+  createKeyHint,
   mountGameStage,
+  withKeyHint,
 } from "@pokemon-tactic/ui-dom";
 import {
   AiTeamController,
@@ -59,7 +61,8 @@ import {
 } from "../input/focus-navigation.js";
 import { InputSource } from "../input/input-source.js";
 import { getInputSystem } from "../input/input-system.js";
-import { cameraKeyLabels } from "../input/key-legend.js";
+import { cameraKeyLabels, combatMenuKeyHint, keyHintOf } from "../input/key-legend.js";
+import { LogicalAction } from "../input/logical-action.js";
 import { attachPointerSource, type PointerSource } from "../input/pointer-source.js";
 import {
   isFullscreen,
@@ -177,12 +180,81 @@ function mountDemoContent(combat: CombatScene): void {
   ]);
 }
 
+/**
+ * Chrome de la phase de placement (plan 189).
+ *
+ * Le menu de combat naissait dans `runBattle`, donc **après** cette phase : pendant qu'on posait ses
+ * Pokemon, il n'existait ni sortie, ni accès aux Paramètres — un joueur qui découvrait là que sa
+ * touche tombait mal devait attendre le début du combat. Trou signalé par le plan 187, refermé ici.
+ *
+ * Une rangée **réduite** : le plein écran et le bouton du menu, **pas** le journal — il n'y a aucun
+ * combat dont tenir le journal. Et une seule instance de menu vivante à la fois : celle-ci est
+ * détruite au passage de relais, avant que `runBattle` ne monte la sienne.
+ */
+/** Ce que le chrome de placement rend à `createCombatScreen` : sa destruction, et son ouverture. */
+interface PlacementChrome {
+  dispose(): void;
+  /** Ouvrir le menu — routé par le flux de placement, qui ne possède pas le menu lui-même. */
+  open(): boolean;
+}
+
+function mountPlacementChrome(options: {
+  stage: GameStage;
+  onRestart: () => void;
+  onQuit: () => void;
+}): PlacementChrome {
+  const { stage, onRestart, onQuit } = options;
+  const combatMenu = createCombatMenu({
+    host: stage.screenLayer,
+    variant: "placement",
+    onRestart,
+    // Au placement, la sortie destructrice s'appelle « Quitter » et confirme : rien n'est sauvegardé
+    // encore, mais les Pokemon déjà posés sont perdus (plan 189, décisions 4 et 5).
+    onAbandon: onQuit,
+  });
+  const fullscreenButton = createFullscreenButton({
+    label: t("settings.fullscreen"),
+    isSupported: isFullscreenSupported,
+    isFullscreen,
+    // Appelé directement depuis le clic, sans `await` en amont : l'activation utilisateur doit encore
+    // tenir quand `requestFullscreen()` part.
+    onToggle: () => void toggleFullscreen(),
+  });
+  const stopFullscreenWatch = new AbortController();
+  onFullscreenChange(() => fullscreenButton.refresh(), { signal: stopFullscreenWatch.signal });
+  const combatMenuButton = createCombatMenuButton({
+    label: t("combatMenu.open"),
+    onOpen: () => combatMenu.open(),
+  });
+  const row = createBattleLogRow(
+    fullscreenButton.element,
+    // Le capuchon de la touche sous le bouton (plan 189, décision 10). Vaut ici comme en combat : la
+    // phase de placement est justement celle où on cherche les Paramètres sans savoir par où passer.
+    withKeyHint(
+      combatMenuButton.element,
+      createKeyHint(getInputPromptSheetUrl(), combatMenuKeyHint(), "combat-menu-key-hint"),
+    ),
+  );
+  stage.screenLayer.append(row);
+  return {
+    // Exposée pour que le flux de placement puisse router `Start` et `Échap` vers ELLE : le flux ne
+    // possède pas le menu, il n'en connaît que l'ouverture.
+    open: () => combatMenu.open(),
+    dispose() {
+      stopFullscreenWatch.abort();
+      combatMenu.dispose();
+      row.remove();
+    },
+  };
+}
+
 async function mountPlacement(
   combat: CombatScene,
   stage: GameStage,
   mapUrl: string,
   setup: CombatSetup,
   onComplete: (result: PlacementResult, map: MapDefinition) => void,
+  openCombatMenu?: () => boolean,
 ): Promise<PlacementFlow> {
   const [loaded] = await Promise.all([loadTiledMap(mapUrl), combat.ready]);
   const format =
@@ -198,6 +270,7 @@ async function mountPlacement(
     format,
     teams: setup.teams,
     autoPlacement: setup.autoPlacement,
+    openCombatMenu,
     host: stage.screenLayer,
     onComplete: (result) => onComplete(result, loaded.map),
   });
@@ -294,6 +367,23 @@ function runBattle(options: {
       onReplay();
     },
     config: uiConfig,
+    /*
+     * Capuchons de défilement de l'ordre de jeu (plan 189), un à chaque extrémité de la liste : c'est
+     * là que le défilement se produit, donc là que la direction du capuchon veut dire quelque chose.
+     * Affichés en permanence — la liste déborde toujours, 4K comprise (décision 7).
+     */
+    timelineKeyHints: {
+      scrollUp: createKeyHint(
+        getInputPromptSheetUrl(),
+        keyHintOf(LogicalAction.ScrollTimelineUp),
+        "timeline-scroll-up-key-hint",
+      ),
+      scrollDown: createKeyHint(
+        getInputPromptSheetUrl(),
+        keyHintOf(LogicalAction.ScrollTimelineDown),
+        "timeline-scroll-down-key-hint",
+      ),
+    },
     // Keyboard and gamepad navigate by focus, and every phase rebuilds the menu — so the fresh menu
     // has to take the focus back, or navigation restarts from nothing at each step (plan 184).
     // Which menus take it is the chrome's call: only the two the arrows navigate (see
@@ -352,6 +442,25 @@ function runBattle(options: {
       return pokemon ? Number(pokemon.playerId.match(/(\d+)/)?.[1] ?? "1") : null;
     },
     translate: uiConfig.translate,
+    /*
+     * Les capuchons de touche du journal (plan 189, décision 8) : celui qui l'ouvre dans son en-tête,
+     * ceux qui le font défiler en pied de liste — et ces deux-là ne s'affichent que quand elle déborde.
+     *
+     * Les positions sortent du magasin de bindings, jamais écrites en dur : un remappage doit changer
+     * ce que le joueur voit ici, sinon la légende mentirait dès la première touche déplacée.
+     */
+    keyHints: {
+      scrollUp: createKeyHint(
+        getInputPromptSheetUrl(),
+        keyHintOf(LogicalAction.ScrollLogUp),
+        "log-scroll-up-key-hint",
+      ),
+      scrollDown: createKeyHint(
+        getInputPromptSheetUrl(),
+        keyHintOf(LogicalAction.ScrollLogDown),
+        "log-scroll-down-key-hint",
+      ),
+    },
   });
   // Bouton plein écran à gauche du journal (plan 180-a) : second point d'entrée, celui des
   // réglages obligeant à quitter le combat — or c'est en plein combat, sur téléphone, que la barre
@@ -377,7 +486,25 @@ function runBattle(options: {
     onOpen: () => combatMenu.open(),
   });
   stage.screenLayer.append(
-    createBattleLogRow(fullscreenButton.element, combatMenuButton.element, battleLog.element),
+    createBattleLogRow(
+      fullscreenButton.element,
+      // Chaque bouton du chrome annonce sa touche SOUS lui (plan 189, décision 10) — les deux ici,
+      // dans la rangée, parce que c'est elle qui empile un bouton et son indice.
+      withKeyHint(
+        combatMenuButton.element,
+        createKeyHint(getInputPromptSheetUrl(), combatMenuKeyHint(), "combat-menu-key-hint"),
+      ),
+      // Sous le PANNEAU et non dans son en-tête : replié, le journal *est* son bouton, donc l'indice
+      // tombe pile dessous — et il ne peut pas être rogné par l'`overflow: hidden` du panneau.
+      withKeyHint(
+        battleLog.element,
+        createKeyHint(
+          getInputPromptSheetUrl(),
+          keyHintOf(LogicalAction.ToggleBattleLog),
+          "log-open-key-hint",
+        ),
+      ),
+    ),
   );
   /*
    * Le bouton du menu n'est actif que quand le menu peut RÉELLEMENT s'ouvrir : hors verrou
@@ -1136,6 +1263,8 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
   let combat: CombatScene | null = null;
   let pointerSource: PointerSource | null = null;
   let placement: PlacementFlow | null = null;
+  /** Chrome de la phase de placement (plan 189) : détruit au passage de relais à `runBattle`. */
+  let placementChrome: PlacementChrome | null = null;
   let orchestrator: BattleOrchestrator | null = null;
   let loading: LoadingOverlayHandle | null = null;
   /** Measures the left chrome column so the compass parks clear of it (plan 183). */
@@ -1152,6 +1281,8 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     orchestrator = null;
     placement?.dispose();
     placement = null;
+    placementChrome?.dispose();
+    placementChrome = null;
     pointerSource?.dispose();
     pointerSource = null;
     combat?.dispose();
@@ -1275,12 +1406,30 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
       teardown();
       void mountContent(host, params);
     };
-    placement = await mountPlacement(
+    /*
+     * Monté AVANT le placement, détruit dès que le combat prend la main (plan 189).
+     *
+     * « Quitter » rend la main au menu principal sans rien purger : aucune sauvegarde n'existe encore,
+     * le combat n'a pas commencé. « Recommencer » repasse par `replay`, donc par cette même phase.
+     */
+    placementChrome = mountPlacementChrome({
+      stage: activeStage,
+      onRestart: replay,
+      onQuit: () => {
+        teardown();
+        navigate("main-menu", undefined);
+      },
+    });
+    const placementFlow = await mountPlacement(
       activeCombat,
       activeStage,
       params.mapUrl,
       setup,
       (result, map) => {
+        // Passage de relais : jamais deux menus vivants, sinon deux registrations se disputeraient
+        // `Start` et le joueur en ouvrirait un au hasard.
+        placementChrome?.dispose();
+        placementChrome = null;
         orchestrator = startBattleLoop(
           backend,
           activeCombat,
@@ -1295,7 +1444,26 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
           replay,
         );
       },
+      // Le flux route `Start` et `Échap` vers le menu que le chrome ci-dessus possède. Lu à l'appel et
+      // non capturé : `placementChrome` est remis à null au passage de relais, et l'ouverture doit
+      // cesser avec lui plutôt que de rouvrir un menu détruit.
+      () => placementChrome?.open() ?? false,
     );
+    /*
+     * ⚠️ Le seul `await` de cette fonction qui n'avait pas sa garde, et le seul dont la fenêtre soit
+     * devenue ATTEIGNABLE avec ce plan (signalé en revue de code, 2026-08-26).
+     *
+     * Le voile de chargement est déjà retiré quand `mountPlacement` part chercher la carte, et le
+     * chrome du placement — donc « Quitter » et « Recommencer » — est à l'écran pendant ce fetch. Sans
+     * cette garde, quitter là déclenchait `teardown()` puis laissait la promesse résoudre par-dessus :
+     * un flux de placement monté sur une scène déjà disposée, avec sa registration d'entrée jamais
+     * dépilée.
+     */
+    if (localAbort.signal.aborted) {
+      placementFlow.dispose();
+      return;
+    }
+    placement = placementFlow;
   }
 
   return {

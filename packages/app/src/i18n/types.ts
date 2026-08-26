@@ -299,6 +299,14 @@ export interface Translations {
   "controls.group.turnOrder": string;
   "controls.group.battleLog": string;
   "controls.padAxis": string;
+  "controls.padStick": string;
+  "controls.fallbackPan": string;
+  "controls.fallbackPanKeys": string;
+  "controls.fallbackPanOverridden": string;
+  "controls.action.pan-camera-up": string;
+  "controls.action.pan-camera-down": string;
+  "controls.action.pan-camera-left": string;
+  "controls.action.pan-camera-right": string;
   "controls.invertRightStick": string;
   "controls.action.toggle-battle-log": string;
   "controls.action.open-combat-menu": string;
@@ -321,6 +329,8 @@ export interface Translations {
    */
   "combatMenu.confirmAbandonQuitHint": string;
   "combatMenu.confirmRestart": string;
+  "combatMenu.confirmRestartPlacement": string;
+  "combatMenu.confirmQuitPlacement": string;
   "combatMenu.confirm": string;
   "combatMenu.cancel": string;
   "credits.title": string;

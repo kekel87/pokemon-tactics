@@ -77,6 +77,8 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Plateforme (plein écran, manifeste PWA, veille/Wake Lock, reprise d'écran au rechargement) | §6.10, §4.17, §6.7 |
 | Reprise d'un combat en cours (sauvegarde `pt-battle-resume`, entrée de menu, rejeu du journal d'actions) | §6.11, §6.1, §6.10 |
 | Menu de combat / sorties d'un combat en cours (`Échap`, `Start`, `☰` — Reprendre/Paramètres/Recommencer/Abandonner/Quitter) | §4.20, §6.12, §6.11 |
+| Panoramique caméra (clavier, stick droit, glissé) | §4.19, §4.18 |
+| Capuchon de touche sous un bouton du chrome / indice de défilement d'une liste | §4.2, §4.9, §4.19, §4.18 |
 
 ---
 
@@ -343,6 +345,10 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
 - 👁 **MAJ temps réel** après chaque action (l'ordre se recalcule).
 - 👁 Un Pokemon **K.O.** disparaît de la timeline.
 - 👁 Masquée si aucune entrée.
+- 🤖 **Capuchons de défilement à chaque extrémité verticale de la liste**, affichés **en permanence**
+  (plan 189, décision 7 : elle déborde toujours, 4K comprise — aucune condition à calculer). La
+  direction du capuchon désigne le bord vers lequel il emmène ; groupés sous la boussole, ils
+  disaient quelle touche presser sans dire de quoi ils parlaient — `chrome-key-hints.spec`.
 
 ### 4.3 Météo (HUD)
 - 🤖 HUD météo « Plein soleil » + tours restants quand une météo est active (`weather.spec`).
@@ -490,6 +496,14 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
   **multi-hit** (« Touché N fois ! ») — `multi-hit.spec`.
 - 🤖 Titre « Journal de combat » + bouton de **repli** (`.bl-burger`) présents (`hud-menu.spec`).
   *Autoscroll, plafond ~50 lignes, pastille couleur = 👁.*
+- 🤖 **La touche qui l'OUVRE s'affiche sous le panneau** (plan 189, décision 10), pas dedans : replié,
+  le journal *est* son en-tête, donc un indice ajouté à l'intérieur se retrouvait dans le bouton et,
+  sous l'en-tête, aurait été rogné par l'`overflow: hidden` — `chrome-key-hints.spec`.
+- 🤖 **Les touches qui le font DÉFILER n'apparaissent qu'au débordement** (décision 8) : une à chaque
+  extrémité de la liste, masquées tant que `scrollHeight ≤ clientHeight`. Asymétrie voulue avec
+  l'ordre de jeu (§4.2, permanent) — le journal naît **vide** et annoncerait un contrôle sans effet.
+  Réévalué au changement de contenu et à un `ResizeObserver`, jamais par sondage —
+  `chrome-key-hints.spec`.
 
 ### 4.10 Modale de victoire
 - 🤖 Fin de partie : modale vainqueur, bouton retour menu.
@@ -800,9 +814,12 @@ au doigt doit passer par lui, sinon elle ne teste rien de ce lot.
 - 🤖 **Cliquer juste sous la boussole ne tourne pas la vue** : contre-épreuve dans le même test que le
   clic qui tourne, confirmant que le carré ne mord pas sur le plateau en dessous
   (`compass-and-legend.spec`).
-- 🤖 **Légende posée à droite (glyphe « ça se clique ») et sous la boussole (rotation + zoom)** : les
-  deux repères lisent la même mesure que le renderer (`chrome-insets.ts`) pour épingler leur position
-  (`compass-and-legend.spec`).
+- 🤖 **Légende posée à droite de la boussole** (glyphe « ça se clique ») : il lit la même mesure que le
+  renderer (`chrome-insets.ts`) pour épingler sa position (`compass-and-legend.spec`).
+- 🤖 **Les deux lignes de contrôles caméra (rotation + zoom) vivent dans la colonne latérale de
+  l'ordre de jeu**, entre les capuchons `Page↑` et `Page↓` (plan 189, retour humain 2026-08-26) :
+  ancrées sous la boussole, elles finissaient **par-dessus** elle. Les trois se lisent désormais comme
+  un seul bloc, à côté de ce qu'ils pilotent (`compass-and-legend.spec`).
 - 🤖 **La légende suit la source d'entrée active** (`data-input-source`) : glyphe souris/doigt à
   droite, `A`/`E` ou `LB`/`RB` pour la rotation (ligne masquée au tactile — la boussole tourne déjà
   la vue au tap), loupes `+`/`−` + touche ou `RT`/`LT` pour le zoom (`compass-and-legend.spec`).
@@ -811,6 +828,23 @@ au doigt doit passer par lui, sinon elle ne teste rien de ce lot.
   puis réservation de sa boîte en CSS — avaient soit écrasé la légende sur la boussole, soit déplacé
   la boussole elle-même ; la mesure a désormais un seul propriétaire (`compass-and-legend.spec`,
   décision #798).
+  > **Passé rouge puis re-vert au plan 189 (2026-08-27) — troisième tentative, la bonne.** Les lignes
+  > de contrôles ayant emménagé **dans** la colonne de l'ordre de jeu, elles suivaient le flux de la
+  > timeline : case active vidée, elles remontaient de 36 px avec la liste. Arbitrage humain : on
+  > **stabilise la colonne** plutôt que d'accepter le mouvement. `.tt-active` réserve donc la hauteur
+  > d'une vignette active même vide (`min-block-size`, format téléphone du plan 179 compris, plus les
+  > deux bordures du portrait qui est en `content-box` — les oublier laissait 3 px de décalage).
+  > ⚠️ Ce qui rend cette réservation sûre là où celle du plan 185 ne l'était pas : `chrome-insets`
+  > **écarte toute mesure de largeur ou de hauteur nulle**, et un slot vide reste large de 0. La
+  > boussole garde donc sa dernière mesure — c'est la *largeur* que le plan 185 changeait, pas la
+  > hauteur.
+- 🤖 **Ligne du panoramique caméra** (plan 189, 2026-08-27) : **un** dessin — la croix de déplacement,
+  feuille des curseurs (5, 0) — suivi des **quatre** touches du pavé numérique, dans l'ordre de la
+  croix (haut, gauche, droite, bas). Alignée sur les deux lignes du dessus, à la colonne près : elle
+  porte l'écart *interne* d'une entrée et non celui d'entre-entrées, sans quoi sa première touche
+  tombe 3 px trop à droite. **Bascule par appareil** : stick droit à 4 directions à la manette
+  (feuille des prompts (15, 14) — pas le glyphe de clic), **ligne masquée au doigt**, qui fait glisser
+  le plateau à deux doigts sans touche à presser (`compass-and-legend.spec`).
 - 👁 **Dessin des glyphes** (flèches de rotation, loupes, mains ouverte/pincée/tap — feuilles Kenney,
   translucidité permanente à 72 %) et **lecture au doigt** (ligne rotation masquée, boussole qui
   tourne la vue au tap) : pixel / téléphone réel — `docs/references/kenney-input-prompts-tileset.md`.
@@ -831,7 +865,9 @@ au doigt doit passer par lui, sinon elle ne teste rien de ce lot.
 `render-babylon/isometric-camera.ts` (`setZoomIndex`), `ui-dom/battle-chrome.ts` (focus du menu),
 `ui-dom/dom-helpers.ts` (`scrollByStep`), `app/styles/base.css` (liseré `:focus-visible`)*
 *e2e : `combat/keyboard-controls.spec.ts`, `dom/screens.spec.ts` (Échap, flèches du choix de carte),
-`combat/combat-menu.spec.ts` (retombée d'`Échap` : ce qu'il annule vraiment, cran par cran — §4.20)*
+`combat/combat-menu.spec.ts` (retombée d'`Échap` : ce qu'il annule vraiment, cran par cran — §4.20),
+`combat/camera-pan-keyboard.spec.ts` (panoramique au maintien, plan 189),
+`combat/chrome-key-hints.spec.ts` (capuchons de touche du chrome, plan 189)*
 
 *Toutes les entrées passent par une **couche d'actions logiques** : un seul écouteur clavier pour
 l'app, et un routeur qui donne l'action à **un** consommateur selon le contexte (`menu` / `board` /
@@ -909,6 +945,25 @@ sont donc assumées, pas oubliées.*
   (décision #793).
 - 👁 **Pan au stick droit dans le sens du REGARD** (pousser à droite regarde à droite), l'inverse d'un
   glissé de souris. Inversion configurable renvoyée au plan de remapping. **Manette réelle.**
+- 🤖 **Panoramique au CLAVIER, sur maintien** (plan 189, volet A) : `Numpad8/2/4/6` en croix, tenues,
+  déplacent la caméra — mesuré sur la projection d'une case (un mesh épinglé à l'écran, boussole
+  comprise, ne bougerait pas). C'était le trou : au clavier seul la caméra ne se déplaçait pas du
+  tout, le panoramique n'existant qu'au stick droit et au glissé du doigt — `camera-pan-keyboard.spec`.
+- 🤖 **Le relâchement ARRÊTE la caméra** : le piège du seul contrôle continu du jeu (`keydown` ne se
+  répète pas, une boucle `requestAnimationFrame` réémet l'action). Une touche restée « collée » ferait
+  dériver le plateau tout seul — `camera-pan-keyboard.spec`.
+- 🤖 **Les touches opposées se défont** (`Numpad8`/`Numpad2` verticalement, `Numpad4`/`Numpad6`
+  horizontalement) au lieu de s'ajouter — `camera-pan-keyboard.spec`.
+- 🤖 **`Maj` + flèches panote aussi**, jeu de secours FIXE des claviers sans pavé numérique
+  (décision 2) : ni remappable ni capturable, consulté **en repli seulement** — il ne vole donc jamais
+  une touche que le joueur aurait assignée — `camera-pan-keyboard.spec`.
+- 🤖 **`Numpad1/2/3` ne posent plus de cran de zoom** (décision 3) : le pavé numérique devient « la
+  caméra », la rangée de chiffres garde les crans (`Digit1/2/3` suffisent). Régression assumée pour
+  qui les utilisait, à annoncer au changelog — `camera-pan-keyboard.spec`.
+- 👁 **`Alt+Tab` pendant un maintien ne laisse pas la touche collée** (le `keyup` part à l'autre
+  fenêtre) : `blur` et `visibilitychange` vident le jeu de touches tenues. Couvert en **unit**
+  (`app/input/keyboard-hold-source.test.ts`, 8 cas) ; un `blur` synthétique en e2e ne prouverait que
+  le câblage de l'écouteur, pas le scénario.
 - 👁 **Dialogue de victoire navigable à la manette** : la phase `battle_over` est un contexte de
   **menu**, et la navigation de focus traite en priorité un `<dialog>` ouvert (une modale piège le
   focus, et une manette n'a pas de `Tab`). **Manette réelle** (décision #794).
@@ -959,7 +1014,8 @@ sont donc assumées, pas oubliées.*
 création, décoration de `showVictory`, les deux `cancel`), `view-core/battle-orchestrator.ts`
 (`onEscape(): boolean`), `app/input/logical-action.ts` + `bindings-store.ts` (`OpenCombatMenu`),
 `styles/combat-menu.css`, `ui-dom/styles/combat-menu-button.css`*
-*e2e : `combat/combat-menu.spec.ts` (17 cas)*
+*e2e : `combat/combat-menu.spec.ts` (17 cas, variante combat) · `combat/placement-menu.spec.ts`
+(7 cas, variante **placement** — plan 189)*
 
 *⚠️ **Aucun test unitaire ne couvre cette surcouche, et c'est assumé** : elle est en DOM, le projet
 `unit` de Vitest n'a pas d'environnement DOM et aucun composant DOM n'y est monté. L'e2e est le seul
@@ -1038,6 +1094,41 @@ n'est pas montée.
 - 👁 **Rendu** : voile de la modale, largeur/centrage sur 4K comme sur téléphone, et les deux glyphes de
   la rangée (`☰` pour le menu, `▤` pour le repli du journal — ils ont été échangés par ce plan).
   Pixel pur.
+- 🤖 **Le bouton `☰` porte le capuchon de sa touche SOUS lui** (plan 189, décision 10), et ce capuchon
+  suit `Menu de combat` **si le joueur lui a assigné une touche**, sinon celui d'*Annuler* — écrire
+  `Échap` en dur ferait mentir le chrome dès le premier remappage, dans les deux sens
+  (`chrome-key-hints.spec`).
+
+**Variante `placement` (plan 189, volet B).** Le menu naissait dans `runBattle`, donc **après** le
+placement : pendant qu'on posait ses Pokemon il n'existait ni sortie, ni accès aux Paramètres, et
+`Start` était inerte. ⚠️ **Aucune de ces cases n'est atteignable sans décocher « Placement auto »** à
+la sélection d'équipe (coché par défaut) : l'option pose l'équipe d'un coup et la phase n'existe plus
+à l'écran. C'est ce qui a laissé le trou passer inaperçu si longtemps.
+
+- 🤖 **Rangée haut-droite RÉDUITE** : plein écran + `☰`, **pas** de journal (aucun combat dont tenir le
+  journal), pas de timeline — `placement-menu.spec`.
+- 🤖 **Quatre entrées, et pas une de plus** : *Reprendre · Paramètres · Recommencer · Quitter*.
+  **Pas d'« Abandonner »** (décision 4) : il purge une sauvegarde de reprise qui n'existe pas encore.
+  Sa sortie destructrice s'appelle « Quitter » — le nom qui dit la vérité à ce moment-là —
+  `placement-menu.spec`.
+- 🤖 **`Échap` ouvre le menu quand il n'a rien à défaire**, et une seule frappe referme (même
+  neutralisation du `cancel` natif du `<dialog>` qu'en combat) — `placement-menu.spec`.
+- 🤖 **`Échap` DÉFAIT d'abord le dernier placement** et n'ouvre le menu qu'ensuite : miroir exact du
+  `orchestrator.onEscape() || combatMenu.open()` du combat, chaîné dans `placement-flow.ts`.
+  ⚠️ **Piège d'écriture de test** : le placement **alterne les joueurs** et l'IA pose toute son équipe
+  dès qu'on lui rend la main — après le PREMIER Pokemon du joueur, `canUndo()` est donc faux
+  (l'anti-triche interdit de défaire quand l'adversaire a joué depuis). Le chaînage ne s'observe qu'à
+  partir du **deuxième** — `placement-menu.spec`.
+- 🤖 **« Recommencer » et « Quitter » confirment tous les deux** (décision 5, les Pokemon déjà posés
+  sont perdus), avec un libellé propre à la phase (« Recommencer le placement ? », « Quitter ? … il
+  n'y a rien à reprendre »). « Annuler » dépile sans rien détruire, « Confirmer » remet le placement à
+  zéro / rend la main au menu principal **sans partie reprenable** — `placement-menu.spec`.
+- 🤖 **Passage de relais : jamais deux menus vivants.** Le chrome du placement est détruit quand
+  `runBattle` monte le sien — un seul bouton `☰`, un seul `<dialog>`, et c'est la variante *combat*
+  qui a pris la main (« Abandonner » de retour, journal monté). Sans ça, deux registrations d'entrée
+  se disputeraient `Start` et le joueur en ouvrirait un au hasard — `placement-menu.spec`.
+- 👁 **Manette pendant le placement** (`Start` ouvre, croix / `A` / `B` naviguent) : Playwright ne
+  pilote pas `navigator.getGamepads()`. **Manette réelle.**
 
 ---
 
@@ -2764,7 +2855,13 @@ quelque part ferait mentir la légende sans casser le jeu — d'où la moitié c
   actions n'ont pas de secondaire — les peindre en rouge donnerait un écran cassé au premier lancement.
 - 🤖 **Lignes qui annoncent au lieu de proposer** : « Annuler » (`Échap` / B, la sortie de capture),
   le curseur **à la manette** (« Croix/Stick », un axe) et les 3 crans de zoom absolus à la manette
-  (« — »). Le panoramique n'est **plus listé** du tout.
+  (« — »).
+- 🤖 **Le panoramique est REVENU dans cet écran** (plan 189, **révision des décisions #807 et #811**) :
+  il en avait été sorti parce qu'il n'existait qu'au stick, donc qu'une touche assignée n'aurait rien
+  fait — le clavier a depuis gagné le maintien qui lui manquait. Quatre lignes remappables, défaut
+  **pavé numérique** (« Pavé 8 »…) ; colonne manette **inerte** (« Stick droit » : c'est un axe, jamais
+  un bouton) ; et le **jeu de secours `Maj` + flèches** affiché en lecture seule sous elles (décision 2
+  — un contrôle qu'on ne peut ni deviner ni lire ici n'existe pas pour le joueur).
 - 🤖 **Capture** : clic sur une case → état `capturing` → la frappe suivante est prise, la case affiche
   la touche et passe en `custom` ; seul l'écart est écrit dans `pt-bindings`.
 - 🤖 **Échange** : poser une touche déjà prise la retire de son ancienne action, dont le slot passe en
@@ -3098,7 +3195,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `dom/navigation.spec.ts` | menu → mode de combat → choix carte → retour |
 | `dom/main-menu.spec.ts` | §6.1 — titre, 5 entrées, Aventure disabled, version, switch FR→EN + `pt-lang` |
 | `dom/settings.spec.ts` | §6.7 — 2 options inconditionnelles (Langue + Prévisualisation dégâts), persistance `pt-lang`/`pt-settings` |
-| `dom/controls-remapping.spec.ts` | §6.12 — écran de contrôles (plan 186) : accès depuis Réglages, 5 sections listées, **aucune case `displaced` à l'ouverture**, actions fixes (Annuler, panoramique) inertes, capture d'une touche → `custom` + écart seul écrit dans `pt-bindings`, échange (ancien slot `displaced` + message nommant l'action délogée), annulation par bouton **et** par `Échap` (jamais assigné, ne quitte pas l'écran), persistance au rechargement, « Tout réinitialiser ». La capture **au pad** est couverte par `dom/gamepad-menus.spec.ts` (manette synthétique) ; seul un **pad réel** reste 👁 |
+| `dom/controls-remapping.spec.ts` | §6.12 — écran de contrôles (plan 186) : accès depuis Réglages, 5 sections listées, **aucune case `displaced` à l'ouverture**, actions fixes (Annuler) inertes, **panoramique de retour** (remappable au clavier depuis le plan 189, « Stick droit » inerte en colonne manette, secours `Maj` + flèches en lecture seule), capture d'une touche → `custom` + écart seul écrit dans `pt-bindings`, échange (ancien slot `displaced` + message nommant l'action délogée), annulation par bouton **et** par `Échap` (jamais assigné, ne quitte pas l'écran), persistance au rechargement, « Tout réinitialiser ». La capture **au pad** est couverte par `dom/gamepad-menus.spec.ts` (manette synthétique) ; seul un **pad réel** reste 👁 |
 | `dom/gamepad-menus.spec.ts` | §6.12 manette dans les menus (plan 186) : manette **synthétique** injectée via `navigator.getGamepads`, arrivée à la souris puis croix directionnelle → focus pris **et** anneau applicable. Joué sur `mapping: "standard"` et `mapping: ""` (réponse de Firefox pour une Switch Pro, qui rendait le pad muet) |
 | `dom/gamepad-pickers.spec.ts` | §6.13 manette dans le Team Builder (plan 188) : le sélecteur s'ouvre sur un **résultat** et non dans le champ de recherche, on remonte de la grille aux chips de filtre puis on choisit (navigation spatiale), **B** referme (là où `Échap` n'existe pas sur un pad), **← →** règlent un curseur de PS jusqu'à sortir du contrôle par l'axe vertical — c'est ce test qui a attrapé le bug précis tuant toute la manette (#842, `applyToControl`/`stepUp`). Manette synthétique partagée (`pages/gamepad.ts`). Nature en liste (#839) hors couverture e2e ici (unit `focus-navigation.test.ts` pour l'arbitrage du contrôle focalisé) ; le filet générique de résilience du poller (`try/catch` sur `emit`) n'est testé nulle part directement, 👁 §6.13 |
 | `combat/controls-remapping.spec.ts` | §6.12 moitié combat : une touche réassignée **fait tourner la caméra** et la **légende dessine la nouvelle lettre** (tuile du capuchon lue en propriétés calculées) ; l'ancienne position ne fait plus rien |
@@ -3115,6 +3212,9 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/scene-state.spec.ts` | §3.4 icône de statut (empoisonné) |
 | `combat/driving.spec.ts` | piloter : attaque + dégâts (journal), K.O. + fin de combat, déplacement |
 | `combat/normal-game.spec.ts` | parcours réel menu → carte → équipe → combat monte |
+| `combat/placement-menu.spec.ts` | §4.20 variante **placement** du menu de combat (plan 189, volet B) — 7 cas, tous par le **parcours réel** avec « Placement auto » DÉCOCHÉ (le studio sandbox n'a pas de phase de placement, et l'option cochée la rend invisible) : rangée haut-droite **réduite** (plein écran + `☰`, sans journal ni timeline) + capuchon de touche sous le bouton ; ouverture par `☰` avec **exactement 4 entrées** et **pas d'« Abandonner »** ; `Échap` ouvre quand il n'a rien à défaire, une seconde frappe referme ; `Échap` **défait d'abord** le dernier placement (observable seulement à partir du 2ᵉ Pokemon posé — l'IA pose toute son équipe entre les deux, et l'anti-triche bloque l'annulation) ; **Recommencer** (confirmation propre à la phase, « Annuler » dépile, « Confirmer » remet le compteur à 0/6 avec un seul `☰`) ; **Quitter** (confirmation → menu principal, **sans** entrée « Reprendre ») ; **passage de relais** (placement → combat : un seul bouton `☰`, un seul `<dialog>`, variante *combat* avec « Abandonner » et journal montés). Manette pendant le placement = 👁 |
+| `combat/camera-pan-keyboard.spec.ts` | §4.19 panoramique caméra au **clavier** (plan 189, volet A) — 5 cas : un **maintien** de `Numpad8` déplace la caméra (mesuré sur la projection d'une case du plateau, un mesh épinglé à l'écran ne bougerait pas) et le **relâchement l'arrête** (30 frames d'immobilité en contre-épreuve — le piège du seul contrôle continu du jeu) ; `Numpad8`/`Numpad2` et `Numpad4`/`Numpad6` panotent en **sens opposés** ; le secours **`Maj` + flèches** panote aussi (claviers sans pavé numérique) ; `Numpad1` **ne pose plus de cran de zoom**. ⚠️ Le maintien attend la **preuve** que la caméra a bougé au lieu d'un nombre de frames fixe : le `keydown` synthétique traverse la file d'ENTRÉE quand `page.evaluate` emprunte celle du script. Purge de la touche collée (`blur` / `visibilitychange`) = **unit** |
+| `combat/chrome-key-hints.spec.ts` | §4.2 / §4.9 / §4.19 capuchons de touche du chrome (plan 189, volet C — « un bouton du chrome porte le glyphe de sa touche **sous** lui ») — 5 cas : les capuchons de `☰` et du journal sont bien **sous** leur bouton (comparaison de boîtes) ; celui du menu suit `Menu de combat` quand une touche lui est assignée et retombe sur *Annuler* sinon (tuile du capuchon lue en propriétés calculées, jamais `Escape` en dur) ; les capuchons de défilement de l'**ordre de jeu** encadrent la liste **en permanence** ; ceux du **journal** n'apparaissent **qu'une fois la liste débordée** (replié = masqués, déplié mais vide = masqués, affichés après quelques fins de tour — la boucle sort dès le débordement, `DUEL` posant les combattants sur du marécage un tour de trop les mettrait K.O.) ; **manette en main** (`data-input-source` posé, Playwright ne pilotant pas `navigator.getGamepads()`) le capuchon de touche cède la place au bouton de pad et au **geste** `R3 + direction`. Le DESSIN des tuiles = 👁 pixel |
 | `combat/targeting.spec.ts` | §3.7/§4.8/§4.12 — highlights `highlight_move_*` au déplacement, instruction « Sélectionne la cible »→« Confirmer ? » en attaque |
 | `combat/mechanics-status.spec.ts` | §5.3 icône/statut + Spore, §5.4 stat ± + Grondement (buff self), §5.5 confusion/Provoc (journal) |
 | `combat/mechanics-powder-immunity.spec.ts` | §5.3 immunité poudre du type Plante (canon Gen 6+) : Poudre Dodo (`sleep-powder`, `flags.powder`) sur Florizarre (Plante) → « Ça n'affecte pas Florizarre… » + aucun Sommeil ; contrôle Salamèche (non-Plante) endormie. Blocage statut+stat / event `StatusImmune` / autres moves poudre (Spore, Para-Spore, Poudre Toxik) = SENS unit core |
@@ -3170,7 +3270,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire |
 | `combat/touch-controls.spec.ts` | §4.18 comportement au doigt via **`tapTile`** (seule entrée du hook qui traverse la vraie couche d'entrée) : **un tap agit du premier coup** ; un **pattern directionnel** s'ouvre cône affiché, retaper la même **direction** lance, une autre direction re-vise sans lancer (validation depuis une case différente = la comparaison est directionnelle). + **annulation atteignable au doigt** sur les 3 phases réparées (destination, cible, orientation). Pinch / pan 2 doigts / orientation de fin de tour / seuil de glissé / `pointercancel` = 👁 téléphone réel ; la boussole est couverte par `compass-and-legend.spec` |
 | `combat/input-prompt-glyph.spec.ts` | §4.8 glyphe du geste attendu dans la ligne d'instruction (chantier « aide visuelle des gestes attendus », suite du Lot 1 du plan 173) : `data-glyph` = `act-twice` sur les 2 phases **directionnelles** (visée de cône/ligne/fauche/charge, orientation de fin de tour) et `act` sur les 4 autres (cible, confirmation, destination de déplacement, case de repli de Demi-Tour) ; **suffixe « ×2 » présent en pointeur grossier** (`hasTouch`) et **absent en pointeur fin** ; la pastille entière (glyphe compris) disparaît hors phase d'input ; **non-régression** du `textContent` exact de `combat-instruction`, restée un nœud de texte pur alors que la pastille est passée à la rangée parente ; **la feuille de tuiles change avec le pointeur** (plan 185) : `input-prompts-pixel-1-bit` en pointeur fin, `cursor-pixel-pack` en pointeur grossier, feuille et grille ensemble. Le DESSIN (souris vs main, masque CSS) = 👁 pixel |
-| `combat/compass-and-legend.spec.ts` | §4.18 boussole + légende de contrôles (ex `compass-rotate-hint.spec.ts`, renommé et étendu au plan 185) : **zone tapable CARRÉE ancrée sur le portrait** (plancher 44 px — le glyphe qui l'étendait vers la droite est supprimé) ; **un clic fait tourner la vue d'un cran** (vrai clic souris sur le point projeté du proxy de picking, donc à travers la couche d'entrée réelle) ; **cliquer juste sous la boussole ne tourne pas**, contre-épreuve dans le même test ; **légende posée à droite (glyphe « ça se clique ») et sous la boussole (rotation + zoom)**, ancrée sur la même mesure que le renderer (`chrome-insets.ts`) ; **la légende suit la source d'entrée active** (`data-input-source` : souris/doigt/clavier/manette) ; **la légende reste immobile quand la timeline perd son entrée active** (case vide en prévisualisation de coût CT — deux approches antérieures avaient soit écrasé la légende sur la boussole soit déplacé la boussole, décision #798). Dessin des glyphes / sens de rotation lu à l'œil / tap au doigt = 👁 |
+| `combat/compass-and-legend.spec.ts` | §4.18 boussole + légende de contrôles (ex `compass-rotate-hint.spec.ts`, renommé et étendu au plan 185) : **zone tapable CARRÉE ancrée sur le portrait** (plancher 44 px — le glyphe qui l'étendait vers la droite est supprimé) ; **un clic fait tourner la vue d'un cran** (vrai clic souris sur le point projeté du proxy de picking, donc à travers la couche d'entrée réelle) ; **cliquer juste sous la boussole ne tourne pas**, contre-épreuve dans le même test ; **légende posée à droite (glyphe « ça se clique »)**, ancrée sur la même mesure que le renderer (`chrome-insets.ts`), ses **lignes de contrôles caméra descendues dans la colonne latérale de l'ordre de jeu** entre les capuchons `Page↑`/`Page↓` (plan 189 — sous la boussole, elles finissaient par-dessus elle) ; **la légende suit la source d'entrée active** (`data-input-source` : souris/doigt/clavier/manette) ; **la légende reste immobile quand la timeline perd son entrée active** (case vide en prévisualisation de coût CT — trois approches successives : ancrage DOM dans la case active, réservation de sa largeur, et enfin réservation de sa **hauteur** au plan 189, la seule qui ne déplace pas la boussole ; décision #798). Dessin des glyphes / sens de rotation lu à l'œil / tap au doigt = 👁 |
 | `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (8 + détail + ↑/↓ aria-current), §6.4 format + Lancer gating |
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |
 | `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` + **objet tenu** (plan 168 : icône officielle `<img>` data-URL + nom FR — Restes à l'actif, Orbe Vie au survol du porteur team 2 ; sans objet → ligne masquée) + **panneau enrichi allié** (plan 174 : chips de types `li[data-type]`, ligne PV avec `.ip-hppct`, talent `info-panel-talent`, bloc des 5 stats `info-panel-stats` ; une stat à cran (+2 Atq) affiche « 2↑ » + « → » + valeur effective ≠ base) + **ennemi sans fog → lecture complète** (plan 176 : au survol du dummy team 2, types + bloc des 5 stats + talent en clair — le cas « minimal » ne vaut plus que SOUS fog, `combat-fog.spec`) |

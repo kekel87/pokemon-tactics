@@ -75,6 +75,12 @@ export interface PlacementFlowOptions {
   autoPlacement: boolean;
   /** DOM layer over the canvas (game-stage screenLayer) hosting roster + picker. */
   host: HTMLElement;
+  /**
+   * Ouvrir le menu de combat de la phase de placement (plan 189). Fourni par `createCombatScreen`,
+   * qui possède le `screenLayer` et les sorties — le flux, lui, ne fait que router l'entrée vers lui.
+   * Absent au studio sandbox, qui n'a pas de phase de placement.
+   */
+  openCombatMenu?: () => boolean;
   onComplete: (result: PlacementResult) => void;
 }
 
@@ -97,6 +103,7 @@ function definitionIdOf(pokemonId: string): string {
  */
 export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow {
   const { combat, map, format, teams, host, onComplete } = options;
+  const openCombatMenu = options.openCombatMenu;
 
   const placementTeams: PlacementTeam[] = teams.map((selection, index) => ({
     playerId: selection.playerId,
@@ -365,15 +372,20 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
     enterPlacement();
   }
 
-  function undoLastPlacement(): void {
+  /**
+   * Renvoie ce qu'il a réellement défait (plan 189) : sans cette réponse, *Annuler* était avalé même
+   * quand il n'y avait rien à annuler, et le menu de combat — qui s'ouvre sur un `Échap` sans emploi,
+   * comme en combat — ne pouvait jamais s'atteindre au clavier pendant cette phase.
+   */
+  function undoLastPlacement(): boolean {
     // Anti-cheat (core `canUndo`): only undo while the opponent hasn't placed
     // since — i.e. the current player's placement is still the most recent one.
     if (!phase.canUndo()) {
-      return;
+      return false;
     }
     const last = phase.getPlacements().at(-1);
     if (!last || !phase.removePlacement(last.pokemonId).success) {
-      return;
+      return false;
     }
     const handle = handleByPokemonId.get(last.pokemonId);
     if (handle) {
@@ -381,6 +393,7 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
       handleByPokemonId.delete(last.pokemonId);
     }
     enterPlacement();
+    return true;
   }
 
   function finish(): void {
@@ -441,8 +454,10 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
         if (!placing) {
           return false;
         }
-        undoLastPlacement();
-        return true;
+        // `Échap` défait d'abord ; quand il n'a rien à défaire il ouvre le menu (plan 189), exactement
+        // comme `orchestrator.onEscape() || combatMenu.open()` en combat. Le chaînage est ICI et pas
+        // dans le routeur : c'est le consommateur qui sait ce qu'il avait à annuler.
+        return undoLastPlacement() || (openCombatMenu?.() ?? false);
       },
     },
     board: {
@@ -479,6 +494,10 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
         }
         // Sur le plateau, Annuler remonte au choix du Pokemon — il ne défait pas un placement qu'on
         // n'a pas encore fait (retour humain 2026-08-21). Défaire, c'est Annuler à l'étape d'avant.
+        //
+        // Pas de repli vers le menu de combat ICI : le contexte vaut `board` exactement quand
+        // `keyboardStep === "board"`, donc ce consommateur a toujours quelque chose à remonter. Le
+        // menu s'ouvre depuis l'étape du roster, où `Échap` peut réellement n'avoir rien à défaire.
         enterRosterStep();
         return true;
       },
@@ -490,10 +509,10 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
       scrollLog: () => undefined,
       toggleLog: () => undefined,
       scrollTimeline: () => undefined,
-      // Pas de menu de combat pendant le placement (plan 187) : le chrome — et donc la rangée qui
-      // porte son bouton, ses deux sorties et sa registration — naît dans `runBattle`, après cette
-      // phase. Le trou (aucune sortie pendant le placement) préexiste à ce plan et part en § Reporté.
-      openCombatMenu: () => false,
+      // Le menu de combat existe désormais pendant le placement (plan 189) : `createCombatScreen`
+      // monte sa propre instance — variante `placement`, sans « Abandonner » faute de sauvegarde à
+      // purger — et nous passe son ouverture. Le trou signalé par le plan 187 est refermé.
+      openCombatMenu: () => openCombatMenu?.() ?? false,
     },
   });
   combat.onTileClick((pick) => handleTileClick(pick.x, pick.y));

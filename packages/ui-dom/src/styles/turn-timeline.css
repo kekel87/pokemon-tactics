@@ -9,23 +9,91 @@
     /* Flex child of `.bc-left-col`: sits at the top, shrinks to leave room for the
        info panel pinned below (so the visible card count adapts to the stage
        height and the strip never overlaps the panel). `.tt-list` scrolls the rest. */
-    pointer-events: auto;
+    /*
+     * ⚠️ `none` sur le conteneur depuis le plan 189, `auto` sur la LISTE seule (voir plus bas).
+     *
+     * La grille ci-dessous a élargi cette boîte à la colonne latérale, qui passe juste sous la
+     * boussole : en `auto`, elle interceptait ses clics et le pivot de vue devenait mort (retour
+     * humain 2026-08-26). Seule la liste a besoin du pointeur — elle défile à la molette.
+     */
+    pointer-events: none;
     min-block-size: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    /*
+     * Grille 2 × 2 depuis le plan 189 (retour humain 2026-08-26), et c'est la grille qui fait le
+     * travail : la colonne latérale partage la RANGÉE de `.tt-list`, donc elle en prend la hauteur
+     * exacte — sans mesure JS, et sans suivre le Pokemon actif de la rangée du dessus, contre lequel
+     * `Page↑` s'alignait à tort.
+     *
+     *   rangée 1 : [ Pokemon actif ] [ — ]
+     *   rangée 2 : [ liste (défile) ] [ colonne latérale ]
+     */
+    /*
+     * Taille d'une vignette ACTIVE, définie une fois ici et lue deux fois : par la largeur de la
+     * colonne 1, et par la hauteur réservée de `.tt-active`. Elle vaut `--tt-size` de
+     * `.tt-entry[data-active="true"]` **plus les deux bordures** du portrait, qui est en
+     * `content-box` — les omettre laisse un écart de 3 px, mesuré dans les deux axes.
+     */
+    --tt-active-size: calc(48px * var(--ui-scale) + 4px);
+
+    display: grid;
+    /*
+     * ⚠️ Colonne 1 à largeur FIXE, et pas `auto` (retour humain 2026-08-27).
+     *
+     * Le portrait actif est plus large que ceux de la liste : en `auto`, la colonne se rétrécissait
+     * quand la case active se vidait et TOUT glissait de 3 px vers la gauche — la liste comme la
+     * colonne latérale, donc la légende. Figer la colonne règle les deux d'un coup.
+     *
+     * C'est la GRILLE qu'on fige, jamais `.tt-active` lui-même : `chrome-insets` mesure cet
+     * élément-là et écarte les boîtes de largeur nulle, ce qui garde la boussole immobile pendant
+     * qu'il est vide. Une `min-inline-size` sur le slot lui rendrait une largeur, donc une mesure —
+     * c'est exactement ce que le plan 185 avait dû rejeter.
+     */
+    grid-template-columns: var(--tt-active-size) auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    justify-items: start;
     gap: var(--spacing-xs);
+
+    /* Format téléphone (plan 179) : la vignette active y est plus grande, la réserve suit. */
+    @container stage ((height < 500px) or (width < 900px)) {
+      --tt-active-size: calc(60px * var(--ui-scale) + 4px);
+    }
+
     &[hidden] {
       display: none;
     }
   }
 
   .tt-active {
+    grid-column: 1;
+    grid-row: 1;
     display: flex;
     flex: 0 0 auto;
+    /*
+     * Hauteur RÉSERVÉE, même vide (plan 189, décision humaine du 2026-08-26 sur #798).
+     *
+     * La case active se vide pendant la prévisualisation de coût en CT — à l'ouverture du menu
+     * d'attaque, donc souvent. Sa boîte tombait alors à 0 et tout ce qui la suit remontait d'un cran :
+     * la liste, et depuis ce plan les contrôles caméra qui vivent à côté d'elle. La légende sautait
+     * de 36 px à chaque visée, ce que #798 interdisait.
+     *
+     * ⚠️ Sans danger pour la boussole, et c'est ce qu'il fallait vérifier : `chrome-insets` ignore
+     * toute mesure dont la largeur OU la hauteur est nulle. Un slot vide reste large de 0 (il n'a
+     * aucun enfant), donc la mesure continue d'être écartée et la boussole garde sa dernière valeur —
+     * réserver la hauteur ne lui fait rien. C'est ce qui distingue ce cas du `min-inline-size` que le
+     * plan 185 avait rejeté, lequel changeait bel et bien la largeur mesurée.
+     *
+     * La valeur vient de `--tt-active-size`, définie sur le conteneur et partagée avec la largeur de
+     * la colonne : une réserve plus courte laisserait le décalage, une plus haute ouvrirait un trou
+     * sous la boussole, et deux formules séparées finiraient par diverger.
+     */
+    min-block-size: var(--tt-active-size);
   }
 
   .tt-list {
+    grid-column: 1;
+    grid-row: 2;
+    /* Le seul élément de la timeline qui reçoit le pointeur : la molette la fait défiler. */
+    pointer-events: auto;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -44,6 +112,30 @@
     &::-webkit-scrollbar {
       display: none;
     }
+  }
+
+  /*
+   * Colonne latérale (plan 189) : `Page↑` en haut, les contrôles caméra en dessous après un écart,
+   * `Page↓` poussé tout en bas.
+   *
+   * Elle vit dans la rangée de la liste (voir la grille ci-dessus), donc elle en épouse la hauteur et
+   * ne lui vole aucune place — la liste est précisément celle qui déborde et qu'on veut faire défiler.
+   */
+  .tt-side {
+    grid-column: 2;
+    grid-row: 2;
+    block-size: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    /* Un cadre d'annotation : les clics vont au plateau (la légende n'a jamais rien à recevoir). */
+    pointer-events: none;
+  }
+
+  /* Poussé en bas de la colonne : c'est le bout de liste qu'il désigne. */
+  .tt-side > .cl-hint:last-child {
+    margin-block-start: auto;
   }
 
   .tt-entry {
@@ -100,6 +192,10 @@
   }
 
   .tt-ctbar {
+    /* Sans jauge à montrer : la place est tenue, rien n'est peint (voir `turn-timeline.ts`). */
+    &[data-empty="true"] {
+      visibility: hidden;
+    }
     inline-size: 4px;
     block-size: var(--tt-size);
     background: var(--color-timeline-ct-bg);

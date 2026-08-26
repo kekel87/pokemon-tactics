@@ -197,7 +197,7 @@ test("§4.18 cliquer sous la boussole ne fait pas tourner la vue", async ({ page
     .toBeGreaterThan(ROTATION_WORLD_EPSILON);
 });
 
-test("§4.18 la légende est posée à droite de la boussole et sous elle", async ({
+test("§4.18 la légende est posée à droite de la boussole, ses lignes dans la colonne de l'ordre de jeu", async ({
   page,
   bootSandbox,
 }) => {
@@ -209,14 +209,20 @@ test("§4.18 la légende est posée à droite de la boussole et sous elle", asyn
   const rotate = await domBox(page, "control-legend-rotate");
   const zoom = await domBox(page, "control-legend-zoom");
 
-  // « Ça se clique » : à DROITE de la boussole, centré verticalement sur elle (demande humaine).
+  // « Ça se clique » : à DROITE de la boussole, centré verticalement sur elle (demande humaine). La
+  // boussole ne garde QUE ce dessin-là, celui qui dit qu'elle se clique.
   expect(tap.left).toBeCloseTo(compass.right + CHROME_CLEARANCE_PX, 0);
   expect((tap.top + tap.bottom) / 2).toBeCloseTo((compass.top + compass.bottom) / 2, 0);
 
-  // Les deux lignes de contrôles : SOUS la boussole, alignées sur son bord gauche.
-  expect(rotate.top).toBeCloseTo(compass.bottom + CHROME_CLEARANCE_PX, 0);
-  expect(rotate.left).toBeCloseTo(compass.left, 0);
+  // Les deux lignes de contrôles ont QUITTÉ le dessous de la boussole au plan 189 (retour humain
+  // 2026-08-26) : ancrées là, elles finissaient par-dessus elle. Elles descendent dans la colonne
+  // latérale de l'ordre de jeu, entre les deux capuchons de défilement — les trois se lisent alors
+  // comme un seul bloc, à côté de ce qu'ils pilotent.
+  const scrollUp = await domBox(page, "timeline-scroll-up-key-hint");
+  const scrollDown = await domBox(page, "timeline-scroll-down-key-hint");
+  expect(rotate.top).toBeGreaterThanOrEqual(scrollUp.bottom);
   expect(zoom.top).toBeGreaterThanOrEqual(rotate.bottom);
+  expect(zoom.bottom).toBeLessThanOrEqual(scrollDown.top);
 });
 
 test("§4.18 la légende suit la source d'entrée : touches au clavier, gestes au doigt", async ({

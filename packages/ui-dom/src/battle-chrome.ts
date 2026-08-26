@@ -23,7 +23,7 @@ import { createInputPromptGlyph, INSTRUCTION_GLYPH } from "./input-prompt-glyph.
 import { createMoveTooltip } from "./move-tooltip.js";
 import { createTailwindHud } from "./tailwind-hud.js";
 import { createTileInfoPanel } from "./tile-info-panel.js";
-import { createTurnTimeline } from "./turn-timeline.js";
+import { createTurnTimeline, type TurnTimelineKeyHints } from "./turn-timeline.js";
 import { createWeatherHud } from "./weather-hud.js";
 
 const INSTRUCTION_KEY: Readonly<Record<BattleInstruction, string>> = {
@@ -71,6 +71,11 @@ export interface BattleChromeOptions {
    * pointer, where a focus ring appearing under an idle mouse reads as a bug.
    */
   shouldAutoFocusMenu?: () => boolean;
+  /**
+   * Capuchons de défilement de l'ordre de jeu (plan 189), un à chaque extrémité de la liste.
+   * Construits par l'hôte : `ui-dom` ne lit pas les bindings.
+   */
+  timelineKeyHints?: TurnTimelineKeyHints;
 }
 
 /**
@@ -150,7 +155,8 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
    * renderer pins the compass to, passed in rather than measured again here: the active slot empties
    * during a move-CT preview, and a legend hanging off it in the DOM collapsed onto the compass.
    */
-  host.append(createControlLegend(config, insets));
+  const controlLegend = createControlLegend(config, insets);
+  host.append(controlLegend.element);
 
   const infoPanel = createInfoPanel();
   // Second, narrower panel (plan 177) to the right of the Pokémon panel: terrain + tile modifiers.
@@ -164,7 +170,13 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   const cursorPanel = createInfoPanel("cursor-panel");
   const infoPanelRow = el("div", "bc-infopanel-row");
   infoPanelRow.append(infoPanel.element, tileInfoPanel.element, cursorPanel.element);
-  const timeline = createTurnTimeline(config);
+  const timeline = createTurnTimeline(config, options.timelineKeyHints);
+  /*
+   * Les lignes de la légende descendent dans la colonne latérale de l'ordre de jeu (plan 189, retour
+   * humain 2026-08-26) : ancrées sous la boussole, elles finissaient PAR-DESSUS elle. La boussole ne
+   * garde que son propre dessin, celui qui dit qu'elle se clique.
+   */
+  timeline.legendSlot.append(controlLegend.rows);
   const leftColumn = el("div", "bc-left-col");
   leftColumn.append(timeline.element, infoPanelRow);
   host.append(leftColumn);

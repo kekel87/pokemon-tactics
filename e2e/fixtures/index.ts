@@ -2,6 +2,7 @@
 import { test as base, expect } from "@playwright/test";
 import { CombatScene } from "../pages/CombatScene";
 import { CombatMenuOverlay } from "../pages/combat-menu";
+import { PlacementPhase } from "../pages/placement";
 
 interface CombatFixtures {
   /**
@@ -12,6 +13,8 @@ interface CombatFixtures {
   bootSandbox: (config?: Record<string, unknown>) => Promise<CombatScene>;
   /** La modale du menu de combat et son bouton `☰` (plan 187) — locators seuls, état mutable nul. */
   combatMenu: CombatMenuOverlay;
+  /** La phase de placement interactive (plan 189) — locators + le geste « poser un Pokemon ». */
+  placement: PlacementPhase;
 }
 
 export const test = base.extend<CombatFixtures>({
@@ -29,6 +32,9 @@ export const test = base.extend<CombatFixtures>({
   },
   combatMenu: async ({ page }, use) => {
     await use(new CombatMenuOverlay(page));
+  },
+  placement: async ({ page }, use) => {
+    await use(new PlacementPhase(page));
   },
 });
 

@@ -1,7 +1,8 @@
-import type { CameraKeyLabels } from "@pokemon-tactic/ui-dom";
+import type { CameraKeyLabels, KeyHintSpec } from "@pokemon-tactic/ui-dom";
 import { getLanguage } from "../i18n/index.js";
 import { Language } from "../i18n/types.js";
 import { getBindings, type RemappableAction } from "./bindings-store.js";
+import { SCROLL_MODIFIER_BUTTON } from "./gamepad-source.js";
 import { LogicalAction } from "./logical-action.js";
 
 /**
@@ -123,6 +124,23 @@ export function keyCharacter(code: string): string {
 }
 
 /**
+ * Les quatre touches du panoramique, telles que la légende les DESSINE (plan 189).
+ *
+ * Le pavé numérique se réduit à son chiffre : la feuille n'a pas de capuchon « Pavé 8 », et le
+ * contexte le dit déjà — les quatre chiffres alignés derrière une croix de déplacement ne se lisent
+ * pas comme la rangée du haut. Une touche non liée rend une chaîne vide, que la légende dessine
+ * comme un capuchon générique plutôt que d'inventer un caractère.
+ */
+function panCharacter(action: RemappableAction): string {
+  const code = boundCode(action);
+  if (code === undefined) {
+    return "";
+  }
+  const numpad = /^Numpad([0-9])$/.exec(code)?.[1];
+  return numpad ?? keyCharacter(code);
+}
+
+/**
  * Which physical key each camera control is bound to — read back from the BINDING TABLE, never
  * retyped. The legend would otherwise drift from the bindings in silence, and the remapping screen
  * (plan dédié) is going to rewrite exactly that table.
@@ -150,5 +168,76 @@ export function cameraKeyLabels(): CameraKeyLabels {
     rotateRight: label(LogicalAction.RotateCameraRight),
     zoomIn: label(LogicalAction.ZoomIn),
     zoomOut: label(LogicalAction.ZoomOut),
+    panUp: panCharacter(LogicalAction.PanCameraUp),
+    panDown: panCharacter(LogicalAction.PanCameraDown),
+    panLeft: panCharacter(LogicalAction.PanCameraLeft),
+    panRight: panCharacter(LogicalAction.PanCameraRight),
   };
+}
+
+/**
+ * Le binding d'une action **y compris quand il porte `Maj`** (plan 189).
+ *
+ * `boundCode` écarte délibérément les bindings à Maj — la feuille n'a pas de capuchon « Maj+X », et la
+ * légende caméra n'en a aucun. Mais le défilement du journal est sur `Maj+Page↑/↓` : le filtrer
+ * revenait à n'afficher AUCUN indice, ce qui s'est vu (retour humain 2026-08-26). Ici on rend les
+ * deux moitiés, et la légende dessine deux capuchons.
+ */
+export function keyHintOf(action: RemappableAction): KeyHintSpec {
+  const slots = getBindings().current().keyboard[action];
+  const binding = slots.find((slot) => slot !== null);
+  const direction = GESTURE_DIRECTION[action];
+  return {
+    key: binding?.code ?? "",
+    shift: binding?.shift ?? false,
+    pad: padButtonOf(action),
+    padGesture:
+      direction === undefined ? undefined : { modifier: SCROLL_MODIFIER_BUTTON, direction },
+  };
+}
+
+/**
+ * Les quatre actions de défilement sont un GESTE à la manette (plan 189) : `R3` maintenu + le
+ * curseur. Elles n'ont donc aucun bouton à annoncer, et sans cette table l'indice disparaissait
+ * purement et simplement pad en main. Directions calquées sur `SCROLL_BY_CURSOR_ACTION`.
+ */
+const GESTURE_DIRECTION: Readonly<
+  Partial<Record<RemappableAction, "up" | "down" | "left" | "right">>
+> = {
+  [LogicalAction.ScrollLogUp]: "up",
+  [LogicalAction.ScrollLogDown]: "down",
+  [LogicalAction.ScrollTimelineUp]: "left",
+  [LogicalAction.ScrollTimelineDown]: "right",
+};
+
+/**
+ * Quelle touche ouvre le menu de combat (plan 189) — la question n'a pas de réponse directe.
+ *
+ * `OpenCombatMenu` naît **sans** défaut clavier (plan 187) : c'est `Échap` qui l'ouvre, et seulement
+ * quand il n'a rien à annuler — or `Échap` est le binding d'*Annuler*. Écrire `Escape` en dur ferait
+ * donc mentir l'affichage dès le premier remappage, dans les deux sens : un joueur qui assigne une
+ * touche au menu verrait encore `Échap`, un joueur qui déplace *Annuler* verrait un `Échap` qui
+ * n'ouvre plus rien.
+ *
+ * Une fonction et non un `??` chez l'appelant : c'est une règle de produit, et les deux endroits qui
+ * la posent (le glyphe sous le bouton `☰`, l'écran de contrôles) doivent en donner la même réponse.
+ */
+export function combatMenuKeyHint(): KeyHintSpec {
+  /*
+   * Par `keyHintOf` et non `boundCode` (signalé en revue de code, 2026-08-26) : `boundCode` écarte les
+   * bindings à Maj, donc un joueur qui assignait `Maj+M` au menu voyait l'indice retomber sur `ÉCHAP`
+   * — précisément le mensonge que cette fonction existe pour éviter.
+   */
+  const own = keyHintOf(LogicalAction.OpenCombatMenu);
+  if (own.key !== "") {
+    return own;
+  }
+  // Aucune touche propre (c'est le défaut, plan 187) : `Échap` l'ouvre quand il n'a rien à annuler.
+  // `Start` reste le bouton du menu — le seul que le plan 186 avait laissé libre pour lui.
+  return { ...keyHintOf(LogicalAction.Cancel), pad: padButtonOf(LogicalAction.OpenCombatMenu) };
+}
+
+/** Le bouton de manette lié à une action, ou `undefined` — pour les indices du chrome (plan 189). */
+function padButtonOf(action: RemappableAction): number | undefined {
+  return getBindings().current().gamepad[action] ?? undefined;
 }

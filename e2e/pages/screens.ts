@@ -54,10 +54,18 @@ export class TeamSelectScreen {
   readonly title: Locator;
   /** Rangée de segments de format (« 2J × 6 », « 3J × 4 »…). */
   readonly formatSegments: Locator;
+  /**
+   * Case « Placement auto », **cochée par défaut**. La décocher est le seul moyen d'atteindre la
+   * phase de placement interactive : cochée, tout est posé d'un coup avant que la phase ne s'affiche
+   * (`placement-flow.ts`), donc rien de ce qui vit pendant le placement — son menu de combat compris
+   * (plan 189) — n'est atteignable.
+   */
+  readonly autoPlacement: Locator;
   readonly launch: Locator;
   constructor(private readonly page: Page) {
     this.title = page.getByText("Sélection d'équipe", { exact: false });
     this.formatSegments = page.getByTestId("format-segments");
+    this.autoPlacement = page.getByRole("checkbox");
     this.launch = page.getByRole("button", { name: "Lancer ▶", exact: true });
   }
 

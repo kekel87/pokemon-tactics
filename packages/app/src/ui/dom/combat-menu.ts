@@ -41,6 +41,16 @@ export interface CombatMenuOptions {
   /** `screenLayer` du GameStage : la modale meurt avec l'écran de combat. */
   readonly host: HTMLElement;
   /**
+   * Quelle phase ce menu sert (plan 189).
+   *
+   * `"placement"` n'offre **pas** « Abandonner » : cette entrée purge la sauvegarde de reprise, qui
+   * n'existe pas encore pendant le placement — le combat n'a pas commencé. Sa sortie s'appelle donc
+   * « Quitter », et elle **confirme** : rien de sauvegardable n'est perdu, mais les Pokemon déjà posés
+   * le sont (décisions 4 et 5). C'est la même mécanique qu'« Abandonner » — détruire ce qui est en
+   * cours et rendre la main au menu principal — sous le nom qui dit la vérité à ce moment-là.
+   */
+  readonly variant?: "battle" | "placement";
+  /**
    * ABANDONNER : rendre la main au menu principal **et** détruire la partie en cours (la sauvegarde
    * de reprise part avec elle). Derrière une confirmation.
    */
@@ -80,7 +90,8 @@ type Level =
   | { readonly kind: "confirm"; readonly action: "abandon" | "restart" };
 
 export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
-  const { host, onAbandon, onRestart, onQuitKeepingSave } = options;
+  const { host, onAbandon, onRestart, onQuitKeepingSave, variant = "battle" } = options;
+  const isPlacement = variant === "placement";
 
   let dialog: HTMLDialogElement | null = null;
   let body: HTMLElement | null = null;
@@ -113,16 +124,25 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
       // doigt, qui n'a ni `Échap` ni B.
       entry("combatMenu.resume", "combat-menu-resume", close),
       entry("combatMenu.settings", "combat-menu-settings", () => push({ kind: "settings" })),
-      // Les deux actions qui détruisent la partie, chacune derrière une confirmation.
+      // Les actions qui détruisent la partie, chacune derrière une confirmation.
       entry("combatMenu.restart", "combat-menu-restart", () =>
         push({ kind: "confirm", action: "restart" }),
       ),
-      entry("combatMenu.abandon", "combat-menu-abandon", () =>
-        push({ kind: "confirm", action: "abandon" }),
-      ),
     );
-    // La sortie sûre : sans confirmation, et seulement là où il y a une sauvegarde à garder.
-    if (onQuitKeepingSave) {
+    // Au placement, « Quitter » EST la sortie destructrice (voir `variant`) : une seule entrée, qui
+    // confirme. En combat, les deux existent et ne font pas la même chose.
+    list.append(
+      isPlacement
+        ? entry("combatMenu.quit", "combat-menu-quit", () =>
+            push({ kind: "confirm", action: "abandon" }),
+          )
+        : entry("combatMenu.abandon", "combat-menu-abandon", () =>
+            push({ kind: "confirm", action: "abandon" }),
+          ),
+    );
+    // La sortie sûre : sans confirmation, et seulement là où il y a une sauvegarde à garder — donc
+    // jamais au placement, où « Quitter » est déjà la sortie destructrice ci-dessus.
+    if (onQuitKeepingSave && !isPlacement) {
       list.append(
         entry("combatMenu.quit", "combat-menu-quit", () => {
           close();
@@ -139,7 +159,13 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
     // Un libellé par action (plan 187 décision 17) : « la partie sera perdue » est vrai des deux mais
     // imprécis pour Recommencer — même carte, mêmes équipes, c'est la TENTATIVE qui saute.
     question.textContent = t(
-      action === "abandon" ? "combatMenu.confirmAbandon" : "combatMenu.confirmRestart",
+      action === "restart"
+        ? isPlacement
+          ? "combatMenu.confirmRestartPlacement"
+          : "combatMenu.confirmRestart"
+        : isPlacement
+          ? "combatMenu.confirmQuitPlacement"
+          : "combatMenu.confirmAbandon",
     );
     const confirm = menuButton(t("combatMenu.confirm"), () => {
       close();

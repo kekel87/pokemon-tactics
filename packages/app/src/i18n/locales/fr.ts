@@ -294,6 +294,14 @@ const fr: Translations = {
   "controls.group.turnOrder": "Barre d'ordre de jeu",
   "controls.group.battleLog": "Journal de combat",
   "controls.padAxis": "Croix/Stick",
+  "controls.padStick": "Stick droit",
+  "controls.fallbackPan": "Secours (sans pavé num.)",
+  "controls.fallbackPanKeys": "Maj + flèches",
+  "controls.fallbackPanOverridden": "Maj + flèches — réassigné",
+  "controls.action.pan-camera-up": "Panoramique haut",
+  "controls.action.pan-camera-down": "Panoramique bas",
+  "controls.action.pan-camera-left": "Panoramique gauche",
+  "controls.action.pan-camera-right": "Panoramique droite",
   "controls.invertRightStick": "Inverser le stick droit",
   "controls.action.toggle-battle-log": "Afficher/Masquer",
   "controls.action.open-combat-menu": "Menu de combat",
@@ -307,6 +315,10 @@ const fr: Translations = {
   "combatMenu.quit": "Quitter",
   "combatMenu.confirmAbandon": "Abandonner ce combat ? La partie en cours sera perdue.",
   "combatMenu.confirmAbandonQuitHint": " « Quitter » la garde reprenable.",
+  "combatMenu.confirmRestartPlacement":
+    "Recommencer le placement ? Les Pokemon déjà posés seront retirés.",
+  "combatMenu.confirmQuitPlacement":
+    "Quitter ? Les Pokemon déjà posés seront perdus — le combat n\u2019a pas encore commencé, il n\u2019y a rien à reprendre.",
   "combatMenu.confirmRestart":
     "Recommencer ce combat depuis le placement ? La progression de cette tentative sera perdue.",
   "combatMenu.confirm": "Confirmer",

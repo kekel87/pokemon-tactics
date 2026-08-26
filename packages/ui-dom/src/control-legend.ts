@@ -63,6 +63,26 @@ const CHARACTER_TILE: Readonly<Record<string, readonly [number, number]>> = {
 /** Space bar "small" cap: the stand-in for "press a key" when we cannot name the character. */
 const GENERIC_KEY_TILE = [17, 4] as const;
 
+/**
+ * Capuchons NOMMÉS — ceux dont la feuille dessine le mot plutôt qu'un caractère (plan 189).
+ *
+ * ⚠️ **Ceci lève la décision #791**, qui déclarait les touches de plus d'une tuile « inutilisables par
+ * un masque d'une tuile » : c'était vrai du masque, pas de la feuille. Un capuchon de 2 tuiles se
+ * dessine en élargissant la FENÊTRE (`--cl-cap-span`, lu par le CSS) — `mask-size` et `mask-position`
+ * ne changent pas, seule la boîte s'ouvre sur la tuile voisine. Le tenant-lieu générique reste la
+ * barre d'espace pour tout ce qui n'a toujours pas de capuchon.
+ *
+ * Relevé le 2026-08-26 sur `tilemap-1bit.png`, crops vérifiés à l'œil (34 × 24 tuiles de 16 px).
+ */
+const NAMED_CAP: Readonly<
+  Record<string, { readonly tile: readonly [number, number]; readonly span: 1 | 2 }>
+> = {
+  Escape: { tile: [17, 0], span: 1 },
+  ShiftLeft: { tile: [17, 7], span: 2 },
+  PageUp: { tile: [23, 6], span: 2 },
+  PageDown: { tile: [25, 6], span: 2 },
+};
+
 /** One contiguous run of caps: `characters[i]` sits at column `firstColumn + i` of `line`. */
 function tileRun(
   characters: string,
@@ -102,7 +122,10 @@ type Role = (typeof Role)[keyof typeof Role];
 const dashed = (role: Role): string =>
   role.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 
-/** The drawing each control gets: an entry cannot be paired with the wrong one. */
+/**
+ * The drawing each control gets: an entry cannot be paired with the wrong one.
+ *
+ */
 const ROLE_DRAWING: Readonly<Record<Role, string>> = {
   [Role.RotateLeft]: "cl-glyph-rotate-left",
   [Role.RotateRight]: "cl-glyph-rotate-right",
@@ -134,11 +157,187 @@ function glyph(sheet: Sheet, modifier: string, testId: string): HTMLElement {
  * value gets its own property name and the CSS decides which one wins.
  */
 function keyCap(character: string, role: Role): HTMLElement {
-  const cap = glyph(Sheet.Prompts, "cl-cap", `legend-cap-${dashed(role)}`);
-  const [column, line] = CHARACTER_TILE[character] ?? GENERIC_KEY_TILE;
+  return applyCapTile(glyph(Sheet.Prompts, "cl-cap", `legend-cap-${dashed(role)}`), character);
+}
+
+/**
+ * Pose la tuile d'un capuchon sur un élément déjà créé — partagé par la légende et par les indices
+ * sous les boutons du chrome (plan 189), pour que les deux dessinent le même capuchon pour la même
+ * touche. Deux tables et deux replis auraient dérivé l'un de l'autre au premier ajout.
+ */
+function applyCapTile(cap: HTMLElement, character: string): HTMLElement {
+  /*
+   * Un capuchon NOMMÉ d'abord (`PageUp`, `Escape`…), un caractère ensuite, le tenant-lieu en dernier.
+   * L'ordre compte : `CHARACTER_TILE` n'a que `A-Z0-9`, donc une position nommée y échouerait et
+   * retomberait sur un capuchon VIERGE — lisible comme « presse une touche », ce qui n'apprend rien.
+   */
+  const named = NAMED_CAP[character];
+  const [column, line] = named?.tile ?? CHARACTER_TILE[character] ?? GENERIC_KEY_TILE;
   cap.style.setProperty("--cl-cap-col", String(column));
   cap.style.setProperty("--cl-cap-row", String(line));
+  // Publié seulement quand il vaut 2 : le CSS retombe sur 1 par défaut, et une propriété inline en
+  // moins par capuchon sur une légende redessinée à chaque mesure.
+  if (named && named.span !== 1) {
+    cap.style.setProperty("--cl-cap-span", String(named.span));
+  }
   return cap;
+}
+
+/**
+ * Boutons de manette dessinés, par index de *mapping standard* W3C (plan 189).
+ *
+ * Variantes **contour**, comme les LB/RB/LT/RT de la légende et le bouton A : mélanger contour et
+ * plein ferait deux vocabulaires dans le même chrome. Relevé le 2026-08-26 (ligne 20 = contour, 21 =
+ * plein).
+ *
+ * `Start` est cerclé d'un `+` : c'est le dessin Nintendo, et c'est le bon défaut ici — la manette de
+ * référence du projet est une Switch Pro, où ce bouton porte littéralement un `+`.
+ */
+const PAD_BUTTON_TILE: Readonly<Record<number, readonly [number, number]>> = {
+  8: [4, 20],
+  9: [5, 20],
+  // `R3` — le stick DROIT avec la flèche de pression, c'est-à-dire le clic et non une inclinaison.
+  // La feuille offre aussi le stick par direction (vertical, horizontal, les quatre) : ce sont des
+  // dessins différents, et celui-ci est le seul qui dise « appuie dessus » (relevé 2026-08-26).
+  11: [16, 14],
+};
+
+/**
+ * Croix directionnelle, un segment allumé par direction (plan 189). Relevé le 2026-08-26, colonnes 1
+ * à 4 de la ligne 2, dans le sens horaire à partir du haut.
+ */
+const PAD_DIRECTION_TILE: Readonly<Record<string, readonly [number, number]>> = {
+  up: [1, 2],
+  right: [2, 2],
+  down: [3, 2],
+  left: [4, 2],
+};
+
+/** Ce qu'un indice de touche doit annoncer, par appareil. */
+export interface KeyHintSpec {
+  /** `KeyboardEvent.code` (`PageUp`, `KeyJ`…) ou caractère déjà résolu. Vide = rien à dire. */
+  readonly key: string;
+  /**
+   * Le binding porte-t-il `Maj` ? Dessiné en DEUX capuchons (`SHIFT` puis la touche), la feuille n'en
+   * ayant aucun pour « Maj+X ». Sans ça, un binding à Maj — le défilement du journal, par exemple —
+   * ne pouvait s'annoncer nulle part et disparaissait purement et simplement (retour humain
+   * 2026-08-26).
+   */
+  readonly shift?: boolean;
+  /** Index de bouton en mapping standard, quand la manette a un équivalent. */
+  readonly pad?: number;
+  /**
+   * Geste manette : un bouton **maintenu** + une direction (plan 189).
+   *
+   * Le défilement des panneaux n'est pas un bouton à la manette — c'est `R3` tenu plus le curseur
+   * (`SCROLL_BY_CURSOR_ACTION`). Il n'avait donc rien à annoncer et l'indice disparaissait pad en
+   * main, ce qui se lisait comme « pas de raccourci » alors qu'il en existe un (retour humain
+   * 2026-08-26).
+   *
+   * Le modificateur est un index de bouton comme un autre (`R3` = 11) : il se dessine avec le glyphe
+   * de clic du stick droit, et la direction avec la croix — c'est bien elle (ou le stick gauche) qu'on
+   * pousse, `SCROLL_BY_CURSOR_ACTION` passant par les actions de curseur.
+   */
+  readonly padGesture?: {
+    readonly modifier: number;
+    readonly direction: "up" | "down" | "left" | "right";
+  };
+}
+
+/**
+ * Un capuchon **autonome**, à coller sous un bouton du chrome (plan 189).
+ *
+ * La règle que ça sert : *un bouton du chrome porte le glyphe de sa touche sous lui* (décision 10).
+ * Elle vaut pour le journal, pour le menu de combat, pour l'ordre de jeu, et pour tout bouton ajouté
+ * ensuite — d'où une fabrique plutôt que trois copies.
+ *
+ * **Les deux appareils sont dessinés, le CSS choisit** — comme partout ailleurs dans ce chrome
+ * (`data-input-source`, avec `pointer: coarse` comme défaut « rien d'observé »). Sans ça l'indice
+ * annonçait `ESC` à un joueur manette en main, qui cherchait `Start` (retour humain 2026-08-26).
+ *
+ * Rend `null` quand il n'y a rien à annoncer : pas de capuchon vierge, qui se lirait « presse une
+ * touche » sans dire laquelle.
+ *
+ * Prend l'URL de la feuille et non un `UiDomConfig` : c'est tout ce dont un capuchon a besoin, et les
+ * appelants ne sont pas tous dans une fonction qui a déjà construit la config complète.
+ */
+export function createKeyHint(
+  promptSheetUrl: string,
+  spec: KeyHintSpec,
+  testId: string,
+): HTMLElement | null {
+  const padTile = spec.pad === undefined ? undefined : PAD_BUTTON_TILE[spec.pad];
+  const gesture = spec.padGesture;
+  if (spec.key === "" && padTile === undefined && gesture === undefined) {
+    return null;
+  }
+  const hint = el("span", "cl-hint", testId);
+  // Décoratif : le bouton qu'il annote porte déjà son nom accessible.
+  hint.setAttribute("aria-hidden", "true");
+  hint.style.setProperty("--cl-prompt-sheet", `url("${promptSheetUrl}")`);
+  if (spec.key !== "") {
+    if (spec.shift === true) {
+      hint.append(
+        applyCapTile(glyph(Sheet.Prompts, "cl-cap cl-hint-key", `${testId}-shift`), "ShiftLeft"),
+      );
+      /*
+       * Un `+` en TEXTE entre les deux capuchons (retour humain 2026-08-26) : sans lui, `SHIFT`
+       * `PAGE↑` se lit comme deux touches au choix plutôt qu'une combinaison.
+       *
+       * Texte et non capuchon, délibérément — c'est la même règle que la ligne de zoom de la légende
+       * (plan 185) : un capuchon `+` se lirait « presse la touche + », qui n'est pas ce qu'on dit.
+       */
+      const plus = el("span", "cl-hint-plus");
+      plus.textContent = "+";
+      hint.append(plus);
+    }
+    const character = NAMED_CAP[spec.key] ? spec.key : (keyCharacterOf(spec.key) ?? spec.key);
+    hint.append(
+      applyCapTile(glyph(Sheet.Prompts, "cl-cap cl-hint-key", `${testId}-cap`), character),
+    );
+  }
+  if (padTile !== undefined) {
+    const cap = glyph(Sheet.Prompts, "cl-cap cl-hint-pad", `${testId}-pad`);
+    cap.style.setProperty("--cl-cap-col", String(padTile[0]));
+    cap.style.setProperty("--cl-cap-row", String(padTile[1]));
+    hint.append(cap);
+  }
+  if (gesture !== undefined) {
+    const group = el("span", "cl-hint-gesture", `${testId}-gesture`);
+    // Pas de repli en dur : recopier des coordonnées ici les ferait diverger de la table le jour où
+    // elle bouge. Un modificateur inconnu ne dessine rien, ce qui se remarque — contrairement à un
+    // bouton dessiné pour un autre.
+    const modifierTile = PAD_BUTTON_TILE[gesture.modifier];
+    const modifier = glyph(Sheet.Prompts, "cl-cap", `${testId}-modifier`);
+    if (modifierTile !== undefined) {
+      modifier.style.setProperty("--cl-cap-col", String(modifierTile[0]));
+      modifier.style.setProperty("--cl-cap-row", String(modifierTile[1]));
+    }
+    const plus = el("span", "cl-hint-plus");
+    plus.textContent = "+";
+    const direction = glyph(Sheet.Prompts, "cl-cap", `${testId}-direction`);
+    const tile = PAD_DIRECTION_TILE[gesture.direction];
+    if (tile !== undefined) {
+      direction.style.setProperty("--cl-cap-col", String(tile[0]));
+      direction.style.setProperty("--cl-cap-row", String(tile[1]));
+    }
+    group.append(modifier, plus, direction);
+    hint.append(group);
+  }
+  return hint;
+}
+
+/**
+ * `KeyJ` → `J`, pour les positions que la feuille dessine par caractère. Volontairement naïf : la
+ * résolution de disposition (AZERTY/QWERTY) vit côté app dans `key-legend.ts`, qui livre déjà un
+ * caractère à la légende. Ici on ne rattrape que le cas d'un `code` passé tel quel.
+ */
+function keyCharacterOf(code: string): string | undefined {
+  const letter = /^Key([A-Z])$/.exec(code)?.[1];
+  if (letter !== undefined) {
+    return letter;
+  }
+  return /^Digit([0-9])$/.exec(code)?.[1];
 }
 
 /** `[drawing][key]`, in that order on every line (retour humain 2026-08-24: one reading order). */
@@ -166,7 +365,22 @@ function gestureEntry(role: "zoomIn" | "zoomOut"): HTMLElement {
   return group;
 }
 
-export function createControlLegend(config: UiDomConfig, insets: ChromeInsetProbe): HTMLElement {
+/**
+ * Ce que la légende rend depuis le plan 189 : deux morceaux montés à deux endroits.
+ *
+ * `element` reste **ancré à la boussole** (le dessin « ça se clique », posé depuis la mesure du
+ * renderer). `rows` part dans la colonne latérale de l'ordre de jeu, où l'humain veut lire les
+ * contrôles caméra — sous le capuchon `Page↑` et au-dessus de `Page↓`. Les deux ne peuvent pas
+ * partager un positionnement : l'un suit une mesure 3D, l'autre le flux d'une colonne DOM.
+ */
+export interface ControlLegend {
+  /** Ancré à la boussole, en absolu sur la couche d'écran. */
+  readonly element: HTMLElement;
+  /** Les lignes de contrôles caméra, à monter dans le flux d'un hôte. */
+  readonly rows: HTMLElement;
+}
+
+export function createControlLegend(config: UiDomConfig, insets: ChromeInsetProbe): ControlLegend {
   const element = el("div", "cl-root", "control-legend");
   // Decorative: the board is a canvas and screen-reader support is out of scope (décision #752).
   element.setAttribute("aria-hidden", "true");
@@ -223,7 +437,47 @@ export function createControlLegend(config: UiDomConfig, insets: ChromeInsetProb
     gestureEntry(Role.ZoomOut),
   );
 
-  rows.append(rotateRow, zoomRow);
-  element.append(compassBox, rows);
-  return element;
+  /*
+   * Pas de ligne de défilement ici (plan 189, retour humain 2026-08-26). Elle y a existé une version :
+   * regroupée sous la boussole, elle disait quelle touche presser sans dire de quoi elle parlait. Les
+   * deux capuchons vivent maintenant aux **extrémités verticales de la liste d'ordre de jeu**
+   * (`turn-timeline.ts`), où la direction du capuchon désigne le bord vers lequel il emmène.
+   */
+  /*
+   * Panoramique caméra (plan 189, retour humain 2026-08-27).
+   *
+   * Une ligne d'une forme à part : **un** dessin, puis les **quatre** touches. Les autres contrôles
+   * ont une entrée par direction parce que leur dessin change avec elle (une rotation à gauche n'est
+   * pas celle de droite) ; ici la croix de déplacement dit déjà « les quatre sens », et la répéter
+   * quatre fois n'ajouterait rien. Les capuchons suivent la disposition du pavé : haut, gauche,
+   * droite, bas.
+   *
+   * À la manette, la même ligne bascule vers le stick droit (CSS `data-input-source`) : c'est le
+   * geste, et il n'y a aucune touche à presser.
+   */
+  const panRow = el("div", "cl-row cl-row-pan", "control-legend-pan");
+  panRow.append(glyph(Sheet.Cursors, "cl-glyph-pan", "legend-glyph-pan"));
+  for (const [character, name] of [
+    [keys.panUp, "up"],
+    [keys.panLeft, "left"],
+    [keys.panRight, "right"],
+    [keys.panDown, "down"],
+  ] as const) {
+    panRow.append(
+      applyCapTile(glyph(Sheet.Prompts, "cl-cap cl-pan-key", `legend-cap-pan-${name}`), character),
+    );
+  }
+  panRow.append(glyph(Sheet.Prompts, "cl-glyph-pan-stick", "legend-glyph-pan-stick"));
+
+  rows.append(rotateRow, zoomRow, panRow);
+  /*
+   * Les lignes portent leurs PROPRES feuilles et leur taille : montées hors de `.cl-root` (dans la
+   * colonne de l'ordre de jeu), elles n'héritent plus des variables que la racine posait.
+   */
+  rows.classList.add("cl-rows-inline");
+  rows.setAttribute("aria-hidden", "true");
+  rows.style.setProperty("--cl-prompt-sheet", `url("${config.getInputPromptSheetUrl()}")`);
+  rows.style.setProperty("--cl-cursor-sheet", `url("${config.getCursorSheetUrl()}")`);
+  element.append(compassBox);
+  return { element, rows };
 }

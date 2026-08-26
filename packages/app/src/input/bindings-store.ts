@@ -41,15 +41,15 @@ export type BindingCell = BindingSlot | "pad";
 export type BindingSlots<T> = readonly [T | null, T | null];
 
 /**
- * Le panoramique caméra ne se remappe pas et ne s'affiche pas (retour humain 2026-08-25) : il n'existe
- * qu'en continu — stick droit et glissé du doigt — alors que la couche d'entrée est en `keydown`. Une
- * touche qu'on lui assignerait ne ferait rien. Son seul réglage est l'inversion du stick droit, qui
- * est une préférence (`pt-settings`), pas un binding.
+ * Toute action logique se remappe (plan 189).
+ *
+ * Le panoramique caméra en était exclu (décisions #807, #811 — « il n'existe qu'en continu alors que
+ * la couche d'entrée est en `keydown`, une touche qu'on lui assignerait ne ferait rien »). La prémisse
+ * a changé : `keyboard-hold-source.ts` donne au clavier le maintien qui lui manquait, donc une touche
+ * assignée au panoramique fait désormais quelque chose. L'alias reste — il documente l'intention et
+ * évite de réécrire les vingt signatures qui le nomment.
  */
-export type RemappableAction = Exclude<
-  LogicalAction,
-  "pan-camera-up" | "pan-camera-down" | "pan-camera-left" | "pan-camera-right"
->;
+export type RemappableAction = LogicalAction;
 
 export interface BindingSet {
   readonly keyboard: Readonly<Record<RemappableAction, BindingSlots<KeyBinding>>>;
@@ -102,15 +102,30 @@ export const GAMEPAD_UNAVAILABLE_ACTIONS: readonly LogicalAction[] = [
   LogicalAction.ZoomLevel3,
 ];
 
+/**
+ * À la manette, le panoramique est le **stick droit** — un axe analogique, pas un bouton (plan 189).
+ * Comme le curseur (`GAMEPAD_AXIS_ACTIONS`), il s'annonce sans se réassigner : lui donner un bouton
+ * échangerait un geste continu contre un cran par appui. Son seul réglage reste l'inversion du stick,
+ * qui est une préférence (`pt-settings`), pas un binding. Au clavier, en revanche, ces quatre actions
+ * se remappent normalement.
+ */
+export const GAMEPAD_STICK_ACTIONS: readonly LogicalAction[] = [
+  LogicalAction.PanCameraUp,
+  LogicalAction.PanCameraDown,
+  LogicalAction.PanCameraLeft,
+  LogicalAction.PanCameraRight,
+];
+
 export function isFixedAction(action: LogicalAction): boolean {
   return FIXED_ACTIONS.includes(action);
 }
 
-/** Cette action accepte-t-elle un bouton de manette ? (axe et non-applicable exclus) */
+/** Cette action accepte-t-elle un bouton de manette ? (axe, stick et non-applicable exclus) */
 export function acceptsGamepadBinding(action: LogicalAction): boolean {
   return (
     !isFixedAction(action) &&
     !GAMEPAD_AXIS_ACTIONS.includes(action) &&
+    !GAMEPAD_STICK_ACTIONS.includes(action) &&
     !GAMEPAD_GESTURE_ACTIONS.includes(action) &&
     !GAMEPAD_UNAVAILABLE_ACTIONS.includes(action)
   );
@@ -140,9 +155,19 @@ export const DEFAULT_BINDINGS: BindingSet = {
     [LogicalAction.RotateCameraRight]: [key("KeyE"), null],
     [LogicalAction.ZoomIn]: [key("KeyR"), null],
     [LogicalAction.ZoomOut]: [key("KeyF"), null],
-    [LogicalAction.ZoomLevel1]: [key("Digit1"), key("Numpad1")],
-    [LogicalAction.ZoomLevel2]: [key("Digit2"), key("Numpad2")],
-    [LogicalAction.ZoomLevel3]: [key("Digit3"), key("Numpad3")],
+    // ⚠️ `Numpad1/2/3` ont quitté le slot secondaire (plan 189, décision 3) : le pavé numérique passe
+    // tout entier au panoramique, la rangée de chiffres garde les crans de zoom. `Digit1/2/3` suffisent
+    // — un cran de zoom n'a pas besoin de deux touches, un panoramique directionnel a besoin des quatre.
+    [LogicalAction.ZoomLevel1]: [key("Digit1"), null],
+    [LogicalAction.ZoomLevel2]: [key("Digit2"), null],
+    [LogicalAction.ZoomLevel3]: [key("Digit3"), null],
+    // Pavé numérique, en croix : 8/2/4/6 est la disposition directionnelle que le pavé dessine
+    // physiquement (plan 189). Aucun slot secondaire — le repli des claviers sans pavé est
+    // `FALLBACK_KEY_BINDINGS`, qui n'est pas un binding remappable.
+    [LogicalAction.PanCameraUp]: [key("Numpad8"), null],
+    [LogicalAction.PanCameraDown]: [key("Numpad2"), null],
+    [LogicalAction.PanCameraLeft]: [key("Numpad4"), null],
+    [LogicalAction.PanCameraRight]: [key("Numpad6"), null],
     // L'ordre de jeu prime sur le journal (retour humain 2026-08-25) : il se lit à chaque tour, le
     // journal se consulte après coup. Il prend donc `Page ↑/↓` nus, le journal passe sous Maj.
     [LogicalAction.ScrollTimelineUp]: [key("PageUp"), null],
@@ -183,8 +208,32 @@ export const DEFAULT_BINDINGS: BindingSet = {
     [LogicalAction.ToggleBattleLog]: 8,
     // Start — le seul bouton que le plan 186 a laissé libre, en prévision de ce menu (plan 187).
     [LogicalAction.OpenCombatMenu]: 9,
+    // Stick DROIT, donc aucun bouton (plan 189, `GAMEPAD_STICK_ACTIONS`) : annoncé, jamais assignable.
+    [LogicalAction.PanCameraUp]: null,
+    [LogicalAction.PanCameraDown]: null,
+    [LogicalAction.PanCameraLeft]: null,
+    [LogicalAction.PanCameraRight]: null,
   },
 };
+
+/**
+ * Jeu de secours **fixe** du panoramique, pour les claviers sans pavé numérique (plan 189, décision 2).
+ *
+ * Un portable doit pouvoir déplacer la caméra sans passer par l'écran de contrôles — sinon le
+ * panoramique reste introuvable sur la moitié du matériel. Non remappable et non capturable : il ne
+ * passe pas par `assign()`, l'écran de contrôles l'affiche en lecture seule.
+ *
+ * ⚠️ Ce n'est PAS le mécanisme de `FIXED_ACTIONS`, qui dit « cette *action* ne se réassigne nulle
+ * part ». C'est un second jeu qui **coexiste** avec le binding remappable de la même action, et qui
+ * lui **cède toujours la place** : voir la fusion dans `keyboardLookup()`. Si le joueur assigne
+ * `Maj+↑` à autre chose, c'est son choix qui s'applique — le jeu ne vole pas une touche en silence.
+ */
+export const FALLBACK_KEY_BINDINGS: readonly (readonly [KeyBinding, LogicalAction])[] = [
+  [key("ArrowUp", true), LogicalAction.PanCameraUp],
+  [key("ArrowDown", true), LogicalAction.PanCameraDown],
+  [key("ArrowLeft", true), LogicalAction.PanCameraLeft],
+  [key("ArrowRight", true), LogicalAction.PanCameraRight],
+];
 
 /** Clé de recherche d'une touche : la position, préfixée quand Maj fait partie du binding. */
 export function keyLookupKey(code: string, shift: boolean): string {
@@ -378,6 +427,14 @@ export function createBindingsStore(storage: BindingsStorage | null): BindingsSt
     keyboardLookup() {
       if (keyboardCache === null) {
         keyboardCache = new Map();
+        /*
+         * Le secours d'abord, les bindings du joueur ENSUITE et par-dessus (plan 189) : l'ordre est
+         * le mécanisme. `Map.set` écrase, donc une touche assignée par le joueur reprend toujours sa
+         * clé au repli — le secours ne survit que là où personne ne l'a réclamée.
+         */
+        for (const [binding, action] of FALLBACK_KEY_BINDINGS) {
+          keyboardCache.set(keyLookupKey(binding.code, binding.shift), action);
+        }
         for (const [action, slots] of keyboard) {
           for (const binding of slots) {
             if (binding !== null) {

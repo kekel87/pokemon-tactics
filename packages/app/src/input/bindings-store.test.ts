@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  acceptsGamepadBinding,
   type BindingsStorage,
   createBindingsStore,
   DEFAULT_BINDINGS,
@@ -24,9 +25,16 @@ const PLAN_184_KEYBOARD: Record<string, LogicalAction> = {
   Digit1: LogicalAction.ZoomLevel1,
   Digit2: LogicalAction.ZoomLevel2,
   Digit3: LogicalAction.ZoomLevel3,
-  Numpad1: LogicalAction.ZoomLevel1,
-  Numpad2: LogicalAction.ZoomLevel2,
-  Numpad3: LogicalAction.ZoomLevel3,
+  // Le pavé numérique a quitté le zoom au plan 189 (décision 3) : il porte le panoramique, en croix.
+  Numpad8: LogicalAction.PanCameraUp,
+  Numpad2: LogicalAction.PanCameraDown,
+  Numpad4: LogicalAction.PanCameraLeft,
+  Numpad6: LogicalAction.PanCameraRight,
+  // Secours des claviers sans pavé numérique (plan 189, décision 2) : fixe, non remappable.
+  "Shift+ArrowUp": LogicalAction.PanCameraUp,
+  "Shift+ArrowDown": LogicalAction.PanCameraDown,
+  "Shift+ArrowLeft": LogicalAction.PanCameraLeft,
+  "Shift+ArrowRight": LogicalAction.PanCameraRight,
   KeyR: LogicalAction.ZoomIn,
   KeyF: LogicalAction.ZoomOut,
   Tab: LogicalAction.CycleTargetNext,
@@ -263,8 +271,61 @@ describe("persistance", () => {
     ).toBe(LogicalAction.RotateCameraLeft);
   });
 
-  it("n'expose plus le panoramique, qui ne se remappe pas", () => {
-    expect(Object.keys(DEFAULT_BINDINGS.keyboard)).not.toContain(LogicalAction.PanCameraUp);
+  it("expose le panoramique, remappable depuis le plan 189", () => {
+    // Inverse du test précédent, et c'est le point : les décisions #807/#811 l'excluaient parce que le
+    // clavier n'avait pas de maintien. Il en a un (`keyboard-hold-source`), donc la ligne existe.
+    expect(Object.keys(DEFAULT_BINDINGS.keyboard)).toContain(LogicalAction.PanCameraUp);
+  });
+
+  it("pose le panoramique sur le pavé numérique, en croix", () => {
+    const store = createBindingsStore(null);
+    expect(store.keyboardLookup().get("Numpad8")).toBe(LogicalAction.PanCameraUp);
+    expect(store.keyboardLookup().get("Numpad2")).toBe(LogicalAction.PanCameraDown);
+    expect(store.keyboardLookup().get("Numpad4")).toBe(LogicalAction.PanCameraLeft);
+    expect(store.keyboardLookup().get("Numpad6")).toBe(LogicalAction.PanCameraRight);
+  });
+
+  it("libère Numpad1/2/3 des crans de zoom, qui gardent la rangée de chiffres", () => {
+    const store = createBindingsStore(null);
+    // `Numpad2` doit appartenir au panoramique et à lui seul : c'est la collision que la décision 3
+    // tranche. Les crans gardent `Digit1/2/3`.
+    expect(store.keyboardLookup().get("Numpad1")).toBeUndefined();
+    expect(store.keyboardLookup().get("Numpad3")).toBeUndefined();
+    expect(store.keyboardLookup().get("Digit1")).toBe(LogicalAction.ZoomLevel1);
+    expect(store.keyboardLookup().get("Digit2")).toBe(LogicalAction.ZoomLevel2);
+    expect(store.keyboardLookup().get("Digit3")).toBe(LogicalAction.ZoomLevel3);
+  });
+
+  it("offre Maj+flèches en secours du panoramique, pour un clavier sans pavé numérique", () => {
+    const lookup = createBindingsStore(null).keyboardLookup();
+    expect(lookup.get("Shift+ArrowUp")).toBe(LogicalAction.PanCameraUp);
+    expect(lookup.get("Shift+ArrowDown")).toBe(LogicalAction.PanCameraDown);
+    expect(lookup.get("Shift+ArrowLeft")).toBe(LogicalAction.PanCameraLeft);
+    expect(lookup.get("Shift+ArrowRight")).toBe(LogicalAction.PanCameraRight);
+    // Les flèches NUES restent le curseur : le secours vit sur la variante à Maj, pas à leur place.
+    expect(lookup.get("ArrowUp")).toBe(LogicalAction.CursorUp);
+  });
+
+  it("le secours cède la place à une assignation du joueur", () => {
+    const store = createBindingsStore(null);
+    // Le joueur pose `Maj+↑` sur *Confirmer* : c'est SON choix qui doit s'appliquer, sinon le jeu lui
+    // volerait une touche en silence au profit d'un repli qu'il n'a pas demandé.
+    const result = store.assign(LogicalAction.Confirm, 0, {
+      kind: "key",
+      code: "ArrowUp",
+      shift: true,
+    });
+    expect(result.status).toBe("assigned");
+    expect(store.keyboardLookup().get("Shift+ArrowUp")).toBe(LogicalAction.Confirm);
+    // Les trois autres directions du secours ne sont pas touchées.
+    expect(store.keyboardLookup().get("Shift+ArrowDown")).toBe(LogicalAction.PanCameraDown);
+  });
+
+  it("n'accepte aucun bouton de manette pour le panoramique, qui est un stick", () => {
+    expect(acceptsGamepadBinding(LogicalAction.PanCameraUp)).toBe(false);
+    expect(acceptsGamepadBinding(LogicalAction.PanCameraRight)).toBe(false);
+    // Témoin : une action à bouton reste assignable.
+    expect(acceptsGamepadBinding(LogicalAction.Confirm)).toBe(true);
   });
 
   it("expose les mêmes actions côté clavier et côté manette", () => {

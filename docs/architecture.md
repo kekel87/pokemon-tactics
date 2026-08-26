@@ -710,7 +710,7 @@ Nouvelle famille de modules `packages/app/src/platform/` : encapsule les API nav
 
 ---
 
-## 5l. Couche d'entrée et remapping (plans 184 / 186)
+## 5l. Couche d'entrée et remapping (plans 184 / 186 / 189)
 
 Toute entrée — clavier, manette, pointeur, doigt — produit une **`LogicalAction`** ; les consommateurs (curseur de plateau, caméra, focus des menus DOM, orchestrateur) écoutent ces actions et ne voient jamais un événement. C'est cette indirection qui a rendu l'ajout de la manette *gratuit* côté consommateurs : un producteur de plus, zéro consommateur touché.
 
@@ -719,6 +719,7 @@ Toute entrée — clavier, manette, pointeur, doigt — produit une **`LogicalAc
 - **`input/input-router.ts`** : route chaque action vers **exactement un** consommateur, choisi par le contexte courant (`menu` / `board` / `screen` / `locked`). L'invariant « une action, un consommateur » est couvert par un test.
 - **`input/bindings-store.ts`** (plan 186) : source unique de « quelle entrée déclenche quelle action ». Les défauts sont rangés **par action** — l'axe que l'écran de remapping manipule — et les tables de recherche (`code → action`, `bouton → action`) en sont **dérivées** puis mises en cache : le chemin chaud (chaque frappe, chaque frame de poll) ne balaie jamais un `Record` d'actions. Persistance dans `pt-bindings`, qui ne stocke que les **écarts** au défaut, pour qu'un défaut révisé atteigne un joueur qui n'avait rien personnalisé.
 - **`input/keyboard-source.ts`** : lecture d'un événement, sans plus aucune table — positions physiques (`KeyboardEvent.code`, un seul jeu pour AZERTY et QWERTY), refus de `Ctrl`/`Alt`/`Meta` (ils appartiennent au navigateur et à l'OS), et arbitrage avec le contrôle qui a le focus (un champ texte garde tout, un `<select>` garde l'axe vertical, une case à cocher ne garde rien).
+- **`input/keyboard-hold-source.ts`** (plan 189) : premier modèle d'entrée **continu** côté clavier — jusque-là le seul comportement continu du jeu était côté manette (`gamepad-source.ts`, boucle `rAF`). `input-system.ts` reste l'unique propriétaire des écouteurs (il alimente la source depuis son `onKeyDown` et enregistre `keyup`/`blur`/`visibilitychange`) ; ce module ne porte que l'état (jeu de codes tenus) et la boucle `rAF` qui réémet l'action tant qu'une touche reste enfoncée. `blur`/`visibilitychange` **purgent** le jeu — sinon `Alt+Tab` pendant un appui laisse une touche « collée », le `keyup` partant à l'autre fenêtre. Sert le panoramique caméra au clavier, remappable depuis ce plan (révise les décisions #807/#811, `docs/decisions.md`).
 - **`input/gamepad-source.ts`** : l'API Gamepad n'a **aucun événement de bouton**, et Chrome **mute ses objets en place** — l'état est donc scruté en `requestAnimationFrame` et les fronts calculés sur des **primitives** (un `Set` d'indices, jamais une référence du navigateur). Échange bas↔droite sur une manette Nintendo, déduit de l'identifiant : c'est un fait matériel, pas une préférence.
 - **`input/focus-navigation.ts`** : navigation **spatiale** du focus DOM (le voisin le plus proche dans la direction pressée), pas l'ordre DOM — qui zigzague dans une mise en page à deux dimensions. `data-nav-skip` retire un contrôle de la navigation **pour une source d'entrée donnée**.
 - **`input/key-legend.ts`** : quel *caractère* dessiner pour une position, via `navigator.keyboard.getLayoutMap()` (Chromium uniquement) avec repli sur la langue du jeu. Lit le magasin, donc la légende de combat (plan 185) suit un remapping sans câblage.
@@ -741,7 +742,7 @@ Un combat en cours survit au rechargement (décharge d'onglet mobile, fermeture 
 
 ---
 
-## 5m. Menu de combat (plan 187)
+## 5m. Menu de combat (plans 187 / 189)
 
 Surcouche d'interface sur un combat qui **continue de tourner derrière** — pas une pause (décision #819) : aucun état « en pause » dans l'orchestrateur, l'IA joue et les animations se déroulent pendant que le menu est ouvert.
 
@@ -753,7 +754,8 @@ Surcouche d'interface sur un combat qui **continue de tourner derrière** — pa
 - **Action logique** `OpenCombatMenu` (`logical-action.ts`), défaut `gamepad: [9, null]` (`Start`), aucun défaut clavier — `Échap` fait déjà le travail via la retombée d'`onEscape()`. Route dans `input-router.ts` comme le reste, donc bloquée par `locked`.
 - **Icônes** : le burger `☰` passe au menu de combat, le journal prend `▤` (décision #825).
 - **La victoire referme le menu** en décorant `showVictory` au seul point où le chrome est remis à l'orchestrateur — le menu n'écoute aucun événement du combat, `view-core` n'apprend pas son existence.
-- **Ce que ce plan ne fait pas** : pas de sauvegardes multiples/créneaux nommés, pas de refonte des Paramètres/Contrôles, pas de drapeau multijoueur pour `Recommencer`, pas de menu pendant la phase de placement (le chrome de combat naît dans `runBattle`, après le placement — trou préexistant, noté `docs/next.md` § Reporté). Détail complet : `docs/plans/187-menu-de-combat.md`, décisions #819–#826.
+- **Ce que ce plan ne fait pas** : pas de sauvegardes multiples/créneaux nommés, pas de refonte des Paramètres/Contrôles, pas de drapeau multijoueur pour `Recommencer`. Détail complet : `docs/plans/187-menu-de-combat.md`, décisions #819–#826.
+- **Menu pendant la phase de placement** (plan 189) : le trou ci-dessus est comblé par une **seconde instance** de `createCombatMenu`, montée par `mountContent` pour la durée du placement et détruite quand `runBattle` prend la main — jamais deux vivantes à la fois. Entrées **Reprendre / Paramètres / Recommencer / Quitter** (pas d'« Abandonner » : aucune sauvegarde n'existe encore à ce stade) ; « Quitter » demande confirmation (placements perdus). `Échap` ouvre le menu seulement quand `undoLastPlacement` n'a rien à défaire — même règle que `onEscape()` en combat. Décisions #843–#848.
 
 ---
 

@@ -8,6 +8,7 @@ import {
   type MenuInputConsumer,
 } from "./input-router.js";
 import { createInputSourceTracker, InputSource, type InputSourceTracker } from "./input-source.js";
+import { createKeyboardHoldSource, isContinuousAction } from "./keyboard-hold-source.js";
 import { isClaimedByFocusedControl, resolveKeyboardAction } from "./keyboard-source.js";
 import type { LogicalAction } from "./logical-action.js";
 
@@ -76,6 +77,18 @@ export function createInputSystem(): InputSystem {
     captureSink = null;
   };
 
+  /*
+   * Maintien de touche (plan 189). Le panoramique caméra est la seule action continue du jeu : elle a
+   * besoin d'être réémise tant que la touche est tenue, ce qu'un `keydown` sans répétition ne fait
+   * pas. La source ne possède que l'état et la boucle ; les écouteurs restent ici, parce que le plan
+   * 184 a réduit l'app à un seul `keydown` et qu'on n'en ajoute pas un second.
+   */
+  const holdSource = createKeyboardHoldSource((action) => {
+    // Pas de `tracker.note` ici : la frappe qui a lancé le maintien l'a déjà fait, et le répéter à
+    // chaque frame republierait `data-input-source` soixante fois par seconde pour rien.
+    router.handle(action);
+  });
+
   const onKeyDown = (event: KeyboardEvent): void => {
     if (captureSink !== null) {
       // Rien ne part au routeur pendant une capture : configurer une touche ne doit pas jouer le
@@ -106,6 +119,25 @@ export function createInputSystem(): InputSystem {
       return;
     }
     tracker.note(InputSource.Keyboard);
+    /*
+     * Une action continue démarre un maintien — mais SEULEMENT si un consommateur la prend vraiment
+     * (signalé en revue de code, 2026-08-26).
+     *
+     * `isContinuousAction` dit « ça se tient », pas « quelqu'un écoute ». Hors combat, aucun
+     * consommateur plateau n'existe : réclamer la touche y démarrait une boucle qui émettait
+     * soixante fois par seconde dans le vide, `preventDefault()` compris — et `Maj+↑` cessait
+     * d'incrémenter un curseur du Team Builder au profit d'un panoramique qui n'existe pas sur cet
+     * écran. Le premier appui passe donc par le routeur, comme n'importe quelle autre touche, et
+     * c'est sa réponse qui décide.
+     */
+    if (isContinuousAction(action)) {
+      if (!router.handle(action)) {
+        return;
+      }
+      holdSource.press(event.code, action);
+      event.preventDefault();
+      return;
+    }
     if (router.handle(action)) {
       // Only for an action a consumer actually took: preventing the default of an unconsumed Space
       // or Enter would swallow the browser's own activation of a focused button.
@@ -113,7 +145,31 @@ export function createInputSystem(): InputSystem {
     }
   };
 
+  /*
+   * Le relâchement ne consulte AUCUN binding : il rend la touche par son `code`, quoi qu'elle
+   * signifie. Un remappage en cours de maintien, ou un `keyup` qui arrive sans son Maj, laisserait
+   * sinon la touche collée et la caméra dériverait toute seule.
+   */
+  const onKeyUp = (event: KeyboardEvent): void => {
+    holdSource.release(event.code);
+  };
+
+  /*
+   * `Alt+Tab` pendant un maintien envoie le `keyup` à l'AUTRE fenêtre : sans ces deux écouteurs, la
+   * touche resterait tenue et le plateau glisserait tout seul au retour. `visibilitychange` couvre le
+   * changement d'onglet, que `blur` ne signale pas partout.
+   */
+  const onWindowBlur = (): void => holdSource.releaseAll();
+  const onVisibilityChange = (): void => {
+    if (globalThis.document?.hidden === true) {
+      holdSource.releaseAll();
+    }
+  };
+
   window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("keyup", onKeyUp);
+  window.addEventListener("blur", onWindowBlur);
+  globalThis.document?.addEventListener("visibilitychange", onVisibilityChange);
 
   // The gamepad has no button events at all: the poller watches it in a `requestAnimationFrame`
   // loop, started by the first `gamepadconnected` and stopped once no pad is left.
@@ -169,6 +225,10 @@ export function createInputSystem(): InputSystem {
       captureSink?.(null);
       endCapture();
       window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onWindowBlur);
+      globalThis.document?.removeEventListener("visibilitychange", onVisibilityChange);
+      holdSource.dispose();
       gamepad.dispose();
       stack.length = 0;
     },

@@ -74,20 +74,35 @@
   }
 
   /*
-   * The two lines: under the compass, aligned on its left edge. Offsets come from the compass' own
-   * measurement, NOT from `100%` of a parent — the root is a zero-sized absolute box, so a percentage
-   * here resolved against nothing and parked the lines in the stage corner (caught at self-check).
+   * Les deux lignes de contrôles caméra.
+   *
+   * ⚠️ **Elles ne sont plus ancrées à la boussole** (plan 189, retour humain 2026-08-26) : elles
+   * finissaient PAR-DESSUS elle. Elles vivent maintenant dans le flux de la colonne latérale de
+   * l'ordre de jeu (`.tt-side`), entre `Page↑` et `Page↓`. D'où le `--cl-size` reposé ici : hors de
+   * `.cl-root`, plus rien ne le leur donnait.
+   *
+   * L'ancienne note vaut toujours pour ce qui reste ancré (`.cl-compass-box`) : ses décalages viennent
+   * de la mesure de la boussole et jamais d'un `100%`, la racine étant une boîte absolue de taille
+   * nulle contre laquelle un pourcentage ne résout rien.
    */
   .cl-rows {
-    position: absolute;
-    inset-inline-start: var(--cl-compass-left);
-    inset-block-start: calc(var(--cl-compass-top) + var(--cl-compass-side) + var(--cl-gap));
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: calc(var(--cl-size) / 6);
     /* Wider than the timeline column: must not stretch the flex parent's line box. */
     white-space: nowrap;
+  }
+
+  /*
+   * Montées hors de `.cl-root` : elles reposent la taille de dessin et la couleur que la racine
+   * portait, sinon les capuchons héritent du document (et sortent en noir).
+   */
+  .cl-rows-inline {
+    --cl-size: max(16px, calc(24px * var(--ui-scale)));
+    color: var(--color-text-primary);
+    opacity: 0.72;
+    pointer-events: none;
   }
 
   .cl-row {
@@ -110,6 +125,122 @@
    * ⚠️ No `calc(length / length)` anywhere here — Chromium accepts it, Firefox throws the whole
    * declaration away without a console error (décision #775).
    */
+  /*
+   * Capuchon autonome sous un bouton du chrome (plan 189, `createKeyHint`).
+   *
+   * Il vit HORS de `.cl-root`, donc il repose les deux variables dont la machinerie de masque a besoin
+   * — la feuille arrive en inline depuis le TS, la taille est ici. Volontairement **plus petit** que
+   * dans la légende : c'est une annotation sous un bouton, pas une ligne à lire.
+   */
+  .cl-hint {
+    /*
+     * Plancher relevé à 16px après essai (retour humain 2026-08-26 : « pas affiché ») — à 12px le
+     * capuchon existait mais ne se lisait pas, ce qui revient au même. Même plancher que la légende,
+     * pour la même raison : en dessous, le plus proche voisin réduit un dessin 1-bit de 16px et perd
+     * des rangées entières de pixels.
+     */
+    --cl-size: max(16px, calc(24px * var(--ui-scale)));
+    display: flex;
+    justify-content: center;
+    /* Deux capuchons quand le binding porte Maj (`SHIFT` + la touche) : ils se lisent comme un seul. */
+    gap: calc(var(--cl-size) / 8);
+    /* La rangée du chrome coupe les clics ; cet indice n'en veut pas non plus. */
+    pointer-events: none;
+    /*
+     * Mêmes couleur et opacité que la légende de contrôles (retour humain 2026-08-26 : les capuchons
+     * sortaient en NOIR). Le masque se peint en `currentcolor` — hors de `.cl-root`, l'indice héritait
+     * de la couleur du document, donc du noir sur un chrome sombre.
+     */
+    color: var(--color-text-primary);
+    opacity: 0.72;
+  }
+
+  /*
+   * Quel appareil l'indice annonce (plan 189) — décidé en CSS, comme le reste du chrome.
+   *
+   * Défaut : la touche. Un doigt ne voit ni l'un ni l'autre (il a le bouton sous les yeux, et aucune
+   * touche à presser). Une manette branchée montre son bouton, jamais la touche : c'est le retour du
+   * 2026-08-26, où l'indice disait `ESC` à quelqu'un qui cherchait `Start`.
+   */
+  /*
+   * ⚠️ Sélecteurs `.cl-hint > …` et non `.cl-hint-pad` seul : `.cl-glyph` déclare `display:
+   * inline-block` plus bas dans ce fichier, et à spécificité égale c'est la DERNIÈRE règle qui gagne —
+   * les deux capuchons s'affichaient donc côte à côte (constaté à l'auto-vérification, 2026-08-26).
+   * L'enfant direct suffit à passer devant sans recourir à `!important`.
+   */
+  .cl-hint > .cl-hint-pad {
+    display: none;
+  }
+
+  /* Un geste manette : le modificateur en toutes lettres, le « + », la direction dessinée. */
+  .cl-hint-gesture {
+    align-items: center;
+    gap: calc(var(--cl-size) / 8);
+  }
+
+  .cl-hint > .cl-hint-gesture {
+    display: none;
+  }
+
+  :where([data-input-source="gamepad"]) .cl-hint > .cl-hint-gesture {
+    display: flex;
+  }
+
+  .cl-hint-modifier {
+    align-self: center;
+    line-height: 1;
+    font-size: calc(var(--cl-size) * 0.55);
+    font-weight: bold;
+  }
+
+  /*
+   * Le « + » d'une combinaison : accolé aux capuchons, jamais dessiné comme une touche.
+   *
+   * Boîte de la HAUTEUR d'un capuchon et centrage en flex, plutôt qu'un `align-self` sur du texte nu :
+   * un `+` ne remplit pas sa boîte em (il est haut et étroit), donc centrer la boîte ne centre pas le
+   * signe — il flottait au-dessus de la ligne des capuchons (retour humain 2026-08-26).
+   */
+  .cl-hint-plus {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    block-size: var(--cl-size);
+    line-height: 1;
+    font-size: calc(var(--cl-size) * 0.85);
+    font-weight: bold;
+  }
+
+  /* Le « + » du binding CLAVIER disparaît pad en main ; celui du geste vit dans `.cl-hint-gesture`. */
+  :where([data-input-source="gamepad"]) .cl-hint > .cl-hint-plus {
+    display: none;
+  }
+
+  @media (pointer: coarse) {
+    :where(:not([data-input-source])) .cl-hint {
+      display: none;
+    }
+  }
+
+  :where([data-input-source="gamepad"]) {
+    .cl-hint > .cl-hint-key {
+      display: none;
+    }
+    .cl-hint > .cl-hint-pad {
+      display: inline-block;
+    }
+    /*
+     * Une manette sans équivalent pour ce contrôle : rien à montrer plutôt qu'une touche fausse. Le
+     * geste compte comme un équivalent — c'en est un, juste pas un bouton unique.
+     */
+    .cl-hint:not(:has(.cl-hint-pad, .cl-hint-gesture)) {
+      display: none;
+    }
+  }
+
+  :where([data-input-source="touch"]) .cl-hint {
+    display: none;
+  }
+
   .cl-glyph {
     flex: none;
     display: inline-block;
@@ -170,6 +301,63 @@
   }
 
   /* Magnifiers carry their own sign, so no `+` / `−` text and no misleading `+` key cap. */
+  /*
+   * ⚠️ Écart INTERNE, pas celui d'entre-entrées (retour humain 2026-08-27).
+   *
+   * Cette ligne n'a qu'un dessin suivi de ses touches, là où les autres alternent `[dessin][touche]`.
+   * Avec l'écart d'entre-entrées (`--cl-size / 3`), sa première touche tombait 3 px plus à droite que
+   * le `A` et le `R` des lignes au-dessus, et la colonne se lisait de travers. Le même écart que
+   * `.cl-entry` la remet dans l'axe, et les quatre touches se lisent alors comme un groupe.
+   */
+  .cl-row-pan {
+    gap: calc(var(--cl-size) / 8);
+  }
+
+  /*
+   * Croix de déplacement (feuille des curseurs, colonne 5 ligne 0) — le glyphe du panoramique,
+   * choisi par l'humain le 2026-08-27 parmi les cinq variantes de cette colonne. La plus pleine des
+   * cinq, donc la plus lisible à 16 px.
+   */
+  .cl-glyph-pan {
+    --cl-col: 5;
+    --cl-row: 0;
+  }
+
+  /*
+   * Son pendant manette : le stick DROIT avec ses quatre directions (feuille des prompts, colonne 15
+   * ligne 14) — pas le glyphe de clic, qui dirait « appuie » là où il faut pousser.
+   */
+  .cl-glyph-pan-stick {
+    --cl-col: 15;
+    --cl-row: 14;
+  }
+
+  /* Le panoramique s'annonce d'un côté ou de l'autre, jamais les deux. */
+  .cl-glyph-pan-stick {
+    display: none;
+  }
+
+  :where([data-input-source="gamepad"]) {
+    .cl-row-pan .cl-pan-key,
+    .cl-row-pan .cl-glyph-pan {
+      display: none;
+    }
+    .cl-row-pan .cl-glyph-pan-stick {
+      display: inline-block;
+    }
+  }
+
+  /* Au doigt, rien à annoncer : on fait glisser le plateau à deux doigts, sans touche ni bouton. */
+  @media (pointer: coarse) {
+    :where(:not([data-input-source])) .cl-row-pan {
+      display: none;
+    }
+  }
+
+  :where([data-input-source="touch"]) .cl-row-pan {
+    display: none;
+  }
+
   .cl-glyph-zoom-in {
     --cl-col: 7;
     --cl-row: 0;
@@ -203,6 +391,13 @@
   .cl-cap {
     --cl-col: var(--cl-cap-col);
     --cl-row: var(--cl-cap-row);
+    /*
+     * Capuchons de 2 tuiles (`PAGE↑`, `PAGE↓` — plan 189, lève la décision #791). Seule la FENÊTRE
+     * s'élargit : `mask-size` et `mask-position` de `.cl-glyph` restent inchangés, la boîte s'ouvre
+     * simplement sur la tuile voisine, qui porte la fin du dessin. Défaut 1 ici, pour que le cas
+     * courant n'ait aucune propriété inline à publier.
+     */
+    inline-size: calc(var(--cl-size) * var(--cl-cap-span, 1));
   }
 
   /*

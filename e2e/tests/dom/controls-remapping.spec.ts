@@ -31,6 +31,10 @@ test("§6.12 l'écran liste les contrôles, sans une seule case en alerte à l'o
   await expect(page.getByRole("heading", { name: "Barre d'ordre de jeu" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Journal de combat" })).toBeVisible();
   await expect(controls.cell("rotate-camera-left", 0)).toHaveText("A");
+  // Le panoramique est REVENU dans cet écran au plan 189 (révision des décisions #807 et #811) : il
+  // n'existait qu'au stick, ce qui le rendait inassignable ; le clavier a depuis gagné le maintien de
+  // touche qui lui manquait, et le pavé numérique en est le défaut.
+  await expect(controls.cell("pan-camera-up", 0)).toHaveText("Pavé 8");
 
   // La régression la plus facile à réintroduire : la majorité des actions n'ont pas de secondaire,
   // et les peindre comme « vidées par un échange » couvrirait l'écran de rouge au premier lancement.
@@ -50,8 +54,14 @@ test("§6.12 les lignes sans binding possible annoncent au lieu de proposer", as
   await expect(controls.cell("scroll-log-up", "pad")).toHaveText("R3 + ↑");
   await expect(controls.cell("scroll-timeline-up", "pad")).toHaveText("R3 + ←");
   await expect(controls.cell("scroll-log-up", "pad")).toBeDisabled();
-  // Le panoramique n'est plus listé du tout : il ne se remappe pas.
-  await expect(controls.cell("pan-camera-up", 0)).toHaveCount(0);
+  // Le panoramique se remappe au clavier depuis le plan 189, mais à la manette c'est le stick DROIT
+  // — un axe, pas un bouton. Annoncé, donc, jamais assignable.
+  await expect(controls.cell("pan-camera-up", "pad")).toHaveText("Stick droit");
+  await expect(controls.cell("pan-camera-up", "pad")).toBeDisabled();
+  // Et le jeu de secours des claviers SANS pavé numérique (décision 2), en lecture seule : il ne se
+  // remappe pas — donc pas une case du tableau, qui promettrait une capture — mais un contrôle qu'on
+  // ne peut ni deviner ni lire ici n'existe pas pour le joueur.
+  await expect(page.getByTestId("control-fallback-pan")).toHaveText("Maj + flèches");
 });
 
 test("§6.12 la colonne manette n'a qu'un slot, et le stick droit s'inverse", async ({ page }) => {

@@ -864,6 +864,45 @@
 | 840 | 2026-08-26 | **Pas de saisie de texte à la manette ; les champs texte sont sautés** | Décision humaine, contre un clavier virtuel à l'écran et contre une molette de caractères. Les champs de recherche des trois sélecteurs et le nom d'équipe portent `data-nav-skip="gamepad"` (mécanisme du plan 186) : la navigation au pad ne s'y arrête plus du tout. Le filtrage passe par les chips, l'équipe garde son nom par défaut, renommable au clavier. Contrepartie assumée : renommer une équipe reste un geste clavier-souris. | Plan 188, décision humaine 2026-08-26. |
 | 841 | 2026-08-26 | **« Remplir IA » est supprimé** | Décision humaine : le bouton n'a plus de sens — passer un camp en IA lui assigne déjà une équipe aléatoire (#831), et la ligne « 🎲 Aléatoire » de la modale la rejoue camp par camp. Ménage complet : `refresh-ai-teams.ts` et son test supprimés, clé `teamSelect.actions.refreshAi` retirée (et `teamSelect.fillAi`, trouvée déjà morte). `SlotForRefresh` déplacé dans `slot-state.ts` sous le nom `SlotState`. | Plan 188, décision humaine 2026-08-26. |
 | 842 | 2026-08-26 | **Une exception d'un consommateur ne tue plus la manette** | Bug de portée bien plus large que son symptôme (« les curseurs de PS ne bougent pas et je reste bloqué dessus ») : `applyToControl` appelait `stepUp` détaché de son receveur → `Illegal invocation` → l'exception remontait jusqu'à `poll`, dont la chaîne `requestAnimationFrame` n'était alors jamais replanifiée, et `start()` refusait de la relancer car `frame` gardait son ancien identifiant — une seule erreur d'écran tuait donc la manette entière jusqu'au rechargement. Deux correctifs : l'appel comme méthode, et un `try/catch` autour de `emit` dans `gamepad-source.ts` qui journalise et poursuit la boucle — le second est le vrai filet, sans lui n'importe quel bug futur d'un consommateur pourra à nouveau éteindre l'appareil. | Plan 188, 2026-08-26. |
+| 843 | 2026-08-26 | **Panoramique caméra au clavier : pavé numérique remappable, jeu de secours fixe sans pavé, zoom libéré des `Numpad1/2/3`** | Défauts `Numpad8`/`Numpad2`/`Numpad4`/`Numpad6` (slot 0), remappables — la couche d'entrée gagne un maintien continu (`keyboard-hold-source.ts`) qui le permet enfin. Un jeu `Maj`+flèches, **non remappable et non capturable**, sert de secours sur les claviers sans pavé numérique — un portable doit pouvoir paner sans passer par l'écran de contrôles ; il ne gagne jamais contre un binding du joueur, consulté seulement quand le lookup principal ne répond rien. En échange, `Numpad1/2/3` sont libérés des crans de zoom (qui gardent `Digit1/2/3`, suffisants) : le pavé numérique devient « la caméra », la rangée de chiffres « les crans de zoom ». | Plan 189, décision humaine 2026-08-26. |
+| 844 | 2026-08-26 | **Menu de combat pendant le placement : Reprendre / Paramètres / Recommencer / Quitter, pas d'« Abandonner », « Quitter » confirme** | Une seconde instance du menu vit pendant la phase de placement, détruite quand `runBattle` prend la main (jamais deux vivantes à la fois). Pas d'« Abandonner » : il purgerait une sauvegarde qui n'existe pas encore à ce stade — une entrée qui mènerait au même endroit que « Quitter » n'apprendrait rien. « Quitter » (`navigate("main-menu")`, aucune sauvegarde à purger) demande **confirmation** : les placements déjà faits sont perdus. `Échap` ouvre le menu seulement quand il n'a rien à annuler — même règle qu'en combat, `undoLastPlacement` reste prioritaire. | Plan 189, décision humaine 2026-08-26. |
+| 845 | 2026-08-26 | **Chaque bouton du chrome porte le glyphe de sa touche sous lui — règle générale, pas trois cas particuliers** | Bouton Journal : touche d'ouverture (`J`) affichée sous le bouton, toujours. Bouton `☰` Menu : `Start`/`Échap` sous le bouton, toujours. Un bouton ajouté plus tard s'y conforme sans redécider au cas par cas. | Plan 189, décision humaine 2026-08-26. |
+| 846 | 2026-08-26 | **Découvrabilité du défilement par glyphes de touche, jamais un indicateur graphique ; permanent pour la timeline, conditionnel pour le journal** | Ni fondu ni chevrons sur les listes qui défilent (barre d'ordre de jeu / timeline CT, journal de combat) : des glyphes de touche à la place. Bloc dédié sous la légende de contrôles caméra pour la timeline, affiché **en permanence** — elle déborde toujours, 4K comprise, aucune condition à calculer. Dans le journal, les glyphes de défilement s'affichent **dedans**, et **seulement quand il déborde** (`scrollHeight > clientHeight`, réévalué au changement de contenu et au redimensionnement) — il est vide en début de combat, contrairement à la timeline. | Plan 189, décision humaine 2026-08-26. |
+| 847 | 2026-08-26 | **Capuchons de défilement de la timeline lus aux deux extrémités de la liste** | Retenu pendant la recette du 2026-08-26 : les glyphes de défilement (`Page↑`/`Page↓`) se lisent aux extrémités haut/bas de la liste d'ordre de jeu, au plus près du geste qu'ils décrivent, plutôt que comme un couple isolé dans le bloc de légende. | Plan 189, retour humain 2026-08-26. |
+| 848 | 2026-08-26 | **`R3` + direction annonce aussi le geste manette du nouveau bloc de défilement de la timeline** | Le mécanisme existant (décision #817, plan 186 — modificateur `R3` maintenu + axe) est étendu à ce bloc : à la manette, `data-input-source` bascule les caps vers `R3 + ↑/↓`, déjà déclaré dans `GAMEPAD_GESTURE_ACTIONS` — le mécanisme existait, il n'y avait que la ligne à ajouter. | Plan 189, 2026-08-26. |
+
+### Révisé au plan 189
+
+Les décisions ci-dessous ne sont pas réécrites : leur raisonnement était juste au moment où il a été
+tenu. C'est leur **prémisse** qui a changé.
+
+- **#807 et #811** (le panoramique caméra ne se remappe pas et ne s'affiche pas dans l'écran de
+  contrôles) : la prémisse était « il n'existe qu'en continu alors que la couche d'entrée est en
+  `keydown`, donc une touche qu'on lui assignerait ne ferait rien ». `packages/app/src/input/keyboard-hold-source.ts`
+  donne désormais au clavier le maintien qui lui manquait (plan 189, décision #843). Le panoramique
+  est **remappable**, a des défauts au pavé numérique (`Numpad8/2/4/6`), un jeu de secours fixe
+  `Maj`+flèches pour les claviers sans pavé, et il est **revenu dans l'écran de contrôles** — puis
+  dans la **légende** le 2026-08-27 (croix de déplacement + les quatre touches sur une ligne ; stick
+  droit à la manette ; rien au doigt, qui fait glisser le plateau). À la manette il reste le stick
+  droit — annoncé, pas assignable (`GAMEPAD_STICK_ACTIONS`).
+- **#791** (les capuchons de touche de plus d'une tuile sont inutilisables par un masque d'une tuile) :
+  levé par `--cl-cap-span`, qui élargit la **fenêtre du masque** en plus de la largeur, sans toucher à
+  `mask-size`/`mask-position` par ailleurs. Le tenant-lieu générique reste la barre d'espace pour ce
+  qui n'a toujours pas de capuchon.
+- **#798** (la légende de contrôles ne bouge pas quand la timeline perd son entrée active) — **tenue,
+  par un troisième moyen** (arbitrage humain du 2026-08-27). Le plan 189 ayant déplacé les lignes de
+  contrôles caméra **dans** la colonne de l'ordre de jeu, elles suivaient désormais le flux de la
+  timeline : case active vidée en prévisualisation de coût CT, elles remontaient de 36 px avec la
+  liste. Deux issues se valaient sur le papier — accepter le mouvement et réviser #798, ou stabiliser
+  la colonne. **Choix : stabiliser.** `.tt-active` réserve la hauteur d'une vignette active même vide
+  (`min-block-size`, valeur du format téléphone du plan 179 comprise, plus les **deux bordures** du
+  portrait, qui est en `content-box` — les omettre laissait 3 px de décalage résiduel).
+  ⚠️ Ce qui rend cette réservation possible là où le plan 185 avait dû rejeter la sienne : celle-là
+  portait sur la **largeur** (`min-inline-size`), que `chrome-insets` mesure et transmet à la boussole.
+  Celle-ci porte sur la **hauteur**, et la sonde écarte toute mesure dont la largeur ou la hauteur est
+  nulle — un slot vide restant large de 0, la boussole garde sa dernière valeur et ne bouge pas. Les
+  trois tentatives sont conservées dans `docs/test-plan.md` §4.18, parce que l'ordre dans lequel elles
+  ont échoué est ce qui explique la forme actuelle.
 
 ---
 

@@ -294,6 +294,14 @@ const en: Translations = {
   "controls.group.turnOrder": "Turn order bar",
   "controls.group.battleLog": "Battle log",
   "controls.padAxis": "D-pad/Stick",
+  "controls.padStick": "Right stick",
+  "controls.fallbackPan": "Fallback (no numpad)",
+  "controls.fallbackPanKeys": "Shift + arrows",
+  "controls.fallbackPanOverridden": "Shift + arrows — reassigned",
+  "controls.action.pan-camera-up": "Pan up",
+  "controls.action.pan-camera-down": "Pan down",
+  "controls.action.pan-camera-left": "Pan left",
+  "controls.action.pan-camera-right": "Pan right",
   "controls.invertRightStick": "Invert right stick",
   "controls.action.toggle-battle-log": "Show/Hide",
   "controls.action.open-combat-menu": "Battle menu",
@@ -307,6 +315,10 @@ const en: Translations = {
   "combatMenu.quit": "Quit",
   "combatMenu.confirmAbandon": "Forfeit this battle? The battle in progress will be lost.",
   "combatMenu.confirmAbandonQuitHint": ' "Quit" keeps it resumable.',
+  "combatMenu.confirmRestartPlacement":
+    "Restart placement? Pokemon already placed will be removed.",
+  "combatMenu.confirmQuitPlacement":
+    "Quit? Pokemon already placed will be lost \u2014 the battle has not started, so there is nothing to resume.",
   "combatMenu.confirmRestart":
     "Restart this battle from placement? This attempt's progress will be lost.",
   "combatMenu.confirm": "Confirm",

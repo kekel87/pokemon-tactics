@@ -15,6 +15,14 @@ import { el, scrollByStep } from "./dom-helpers.js";
 
 export interface TurnTimeline {
   readonly element: HTMLElement;
+  /**
+   * Emplacement des contrôles caméra, au MILIEU de la colonne latérale (plan 189).
+   *
+   * Cette colonne est alignée sur la hauteur de la liste et porte `Page↑` en haut, cet emplacement au
+   * milieu, `Page↓` en bas — les trois se lisent comme un seul bloc, à côté de ce qu'ils pilotent. La
+   * légende y descend au passage : ancrée à la boussole, elle se superposait à elle.
+   */
+  readonly legendSlot: HTMLElement;
   update(view: TimelineView): void;
   /** Step the predicted-order list (keyboard / gamepad, plan 184 — it only scrolled by wheel). */
   scrollByStep(delta: 1 | -1): void;
@@ -39,12 +47,36 @@ function entryElement(
     node.dataset.dimmed = "true";
   }
 
-  if (showCtBars && entry.ctRatio !== null) {
+  /*
+   * La barre de CT tient sa place même sans jauge à montrer — mais **seulement dans la liste**
+   * (retours humains 2026-08-27, deux passes).
+   *
+   * Le défaut : la barre n'était ajoutée que lorsqu'il y avait quelque chose à peindre, donc les
+   * portraits perdaient ses 4 px plus les 2 px d'écart et glissaient vers la gauche. Deux causes,
+   * qu'il fallait couvrir toutes les deux : le **ratio** d'une entrée qui tombe à `null` (le Pokemon
+   * qui joue), et le **drapeau global** `showCtBars` qui passe à faux — celui-là vide la colonne
+   * entière d'un coup, et c'est ce que montraient les captures du 2026-08-27. La place est donc
+   * réservée dans tous les cas, indépendamment de l'un comme de l'autre.
+   *
+   * ⚠️ **La case active est exclue**, et c'est une demande explicite : son portrait reste collé au
+   * bord de la colonne. Elle vit dans son propre conteneur, au-dessus de la liste — lui réserver une
+   * barre l'avait décalée de 6 px, ce qui n'était pas le défaut à corriger.
+   *
+   * `visibility: hidden` plutôt que rien : la place est tenue, aucune jauge vide n'est peinte — une
+   * barre à zéro se lirait comme une information, alors qu'il n'y en a pas.
+   */
+  if (!entry.isActive) {
     const bar = el("div", "tt-ctbar");
-    const fill = el("div", "tt-ctfill");
-    // Runtime ratio → CSS var (no static-CSS equivalent); height derives from it.
-    fill.style.setProperty("--tt-ct", String(entry.ctRatio));
-    bar.append(fill);
+    // Peinte seulement quand il y a vraiment une jauge : ni en ordre par tour (`showCtBars` faux pour
+    // toute la liste), ni pour un Pokemon dont le CT vient d'être consommé.
+    if (showCtBars && entry.ctRatio !== null) {
+      const fill = el("div", "tt-ctfill");
+      // Runtime ratio → CSS var (no static-CSS equivalent); height derives from it.
+      fill.style.setProperty("--tt-ct", String(entry.ctRatio));
+      bar.append(fill);
+    } else {
+      bar.dataset.empty = "true";
+    }
     node.append(bar);
   }
 
@@ -62,25 +94,73 @@ function entryElement(
   return node;
 }
 
-export function createTurnTimeline(config: UiDomConfig): TurnTimeline {
+/**
+ * Capuchons de défilement, construits par l'hôte (plan 189) — `ui-dom` ne lit pas les bindings.
+ *
+ * Un à chaque **extrémité verticale de la liste** (retour humain 2026-08-26) : c'est là que le
+ * défilement se produit, et la direction du capuchon désigne alors le bord vers lequel il emmène.
+ * Regroupés sous la légende de la boussole, ils disaient quelle touche presser sans dire de quoi ils
+ * parlaient.
+ */
+export interface TurnTimelineKeyHints {
+  readonly scrollUp?: HTMLElement | null;
+  readonly scrollDown?: HTMLElement | null;
+}
+
+export function createTurnTimeline(
+  config: UiDomConfig,
+  keyHints?: TurnTimelineKeyHints,
+): TurnTimeline {
   const root = el("div", "tt-timeline", "timeline");
-  root.hidden = true;
   const activeSlot = el("div", "tt-active");
+  // Rien à montrer avant le premier `update` — mais la colonne latérale, elle, existe déjà.
+  activeSlot.hidden = true;
   const list = el("ol", "tt-list");
-  root.append(activeSlot, list);
+  list.hidden = true;
+  /*
+   * Ils encadrent la LISTE, pas le composant : le slot actif reste le premier enfant, parce que
+   * `chrome-insets` mesure sa vignette pour y accrocher la boussole ET la légende — un élément inséré
+   * avant lui déplacerait les deux.
+   *
+   * Affichés en permanence (décision 7) : la liste déborde toujours, 4K comprise.
+   */
+  /*
+   * Colonne latérale, en grille avec la liste (voir le CSS) : c'est la grille qui l'aligne sur la
+   * HAUTEUR de `.tt-list`, sans mesurer quoi que ce soit en JS. `Page↑` en haut, la légende dessous
+   * avec un écart, `Page↓` poussé en bas.
+   */
+  const sideColumn = el("div", "tt-side");
+  if (keyHints?.scrollUp) {
+    sideColumn.append(keyHints.scrollUp);
+  }
+  const legendSlot = el("div", "tt-side-legend");
+  sideColumn.append(legendSlot);
+  if (keyHints?.scrollDown) {
+    sideColumn.append(keyHints.scrollDown);
+  }
+  root.append(activeSlot, list, sideColumn);
 
   return {
     element: root,
+    legendSlot,
     update: (view: TimelineView) => {
       root.dataset.ct = String(view.showCtBars);
       activeSlot.replaceChildren();
       list.replaceChildren();
 
-      if (view.entries.length === 0) {
-        root.hidden = true;
+      /*
+       * On masque le CONTENU, pas la racine (signalé en revue de code, 2026-08-26).
+       *
+       * Depuis le plan 189, la colonne latérale porte les contrôles caméra — qui n'ont rien à voir
+       * avec l'ordre de jeu et ne doivent pas s'éteindre avec lui. `root.hidden` les emportait à
+       * chaque instant où la liste est vide, à commencer par celui d'avant le premier `update`.
+       */
+      const empty = view.entries.length === 0;
+      activeSlot.hidden = empty;
+      list.hidden = empty;
+      if (empty) {
         return;
       }
-      root.hidden = false;
 
       const fragment = document.createDocumentFragment();
       for (const entry of view.entries) {

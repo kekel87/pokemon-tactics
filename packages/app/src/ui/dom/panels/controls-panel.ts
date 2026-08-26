@@ -5,11 +5,14 @@ import {
   BINDING_SLOTS,
   type BindingCell,
   type CapturedInput,
+  FALLBACK_KEY_BINDINGS,
   GAMEPAD_AXIS_ACTIONS,
   GAMEPAD_GESTURE_ACTIONS,
+  GAMEPAD_STICK_ACTIONS,
   getBindings,
   isFixedAction,
   type KeyBinding,
+  keyLookupKey,
   type RemappableAction,
 } from "../../../input/bindings-store";
 import { SCROLL_MODIFIER_BUTTON } from "../../../input/gamepad-source";
@@ -80,6 +83,12 @@ const GROUPS: readonly ControlGroup[] = [
       LogicalAction.ZoomLevel1,
       LogicalAction.ZoomLevel2,
       LogicalAction.ZoomLevel3,
+      // De retour ici au plan 189 : le panoramique se remappe désormais, le clavier ayant gagné le
+      // maintien de touche qui lui manquait (révision des décisions #807, #811).
+      LogicalAction.PanCameraUp,
+      LogicalAction.PanCameraDown,
+      LogicalAction.PanCameraLeft,
+      LogicalAction.PanCameraRight,
     ],
   },
   {
@@ -196,6 +205,14 @@ export function createControlsPanel(options: PanelOptions): Panel {
       // pas : ces lignes annoncent au lieu de proposer.
       if (GAMEPAD_AXIS_ACTIONS.includes(action)) {
         button.textContent = t("controls.padAxis");
+        button.dataset.state = "fixed";
+        button.disabled = true;
+        return;
+      }
+      // Le panoramique est le stick DROIT : un axe analogique, donc annoncé et non proposé (plan 189).
+      // Distinct de `padAxis`, qui décrit la croix et le stick gauche du curseur.
+      if (GAMEPAD_STICK_ACTIONS.includes(action)) {
+        button.textContent = t("controls.padStick");
         button.dataset.state = "fixed";
         button.disabled = true;
         return;
@@ -361,6 +378,41 @@ export function createControlsPanel(options: PanelOptions): Panel {
     return row;
   };
 
+  /**
+   * Le jeu de secours du panoramique, en lecture seule (plan 189, décision 2).
+   *
+   * `Maj`+flèches existe pour les claviers sans pavé numérique. Il n'est pas remappable — donc pas une
+   * case du tableau, qui promettrait une capture — mais il doit être VISIBLE : un contrôle qu'on ne
+   * peut ni deviner ni lire dans cet écran n'existe pas pour le joueur. Même forme que la ligne du
+   * stick, dont il est le voisin logique.
+   */
+  const buildFallbackPanRow = (): HTMLElement => {
+    const row = el("div", "ct-grid ct-grid-toggle");
+    const label = el("span", "ct-action");
+    label.textContent = t("controls.fallbackPan");
+    const keys = el("span", "ct-cell", "control-fallback-pan");
+    /*
+     * Dérivé de la table, jamais affirmé (signalé en revue de code, 2026-08-26).
+     *
+     * Le secours CÈDE la place à une assignation du joueur — c'est voulu, et `keyboardLookup()`
+     * l'applique. Mais l'écran continuait d'annoncer « Maj + flèches » même une fois la touche volée :
+     * sur un portable sans pavé numérique, le panoramique devenait alors introuvable pendant que cette
+     * ligne affirmait le contraire.
+     */
+    const lookup = bindings.keyboardLookup();
+    const stillActive = FALLBACK_KEY_BINDINGS.every(
+      ([binding, action]) => lookup.get(keyLookupKey(binding.code, binding.shift)) === action,
+    );
+    keys.textContent = stillActive
+      ? t("controls.fallbackPanKeys")
+      : t("controls.fallbackPanOverridden");
+    keys.dataset.state = stillActive ? "fixed" : "displaced";
+    const spacerSecondary = el("span", "ct-cell-void");
+    const spacerPad = el("span", "ct-cell-void");
+    row.append(label, keys, spacerSecondary, spacerPad);
+    return row;
+  };
+
   const buildGroup = (group: ControlGroup): HTMLElement => {
     const section = el("section", "ct-group");
     const heading = el("h2", "ct-group-title");
@@ -389,7 +441,7 @@ export function createControlsPanel(options: PanelOptions): Panel {
     }
     section.append(head, grid);
     if (group.titleKey === "controls.group.camera") {
-      section.append(buildStickRow());
+      section.append(buildFallbackPanRow(), buildStickRow());
     }
     return section;
   };

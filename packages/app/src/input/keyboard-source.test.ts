@@ -25,7 +25,9 @@ describe("resolveKeyboardAction", () => {
     expect(press("Digit1")).toBe(LogicalAction.ZoomLevel1);
     expect(press("Digit2")).toBe(LogicalAction.ZoomLevel2);
     expect(press("Digit3")).toBe(LogicalAction.ZoomLevel3);
-    expect(press("Numpad2")).toBe(LogicalAction.ZoomLevel2);
+    // `Numpad2` a quitté le zoom au plan 189 (décision 3) : le pavé numérique porte le panoramique,
+    // et un cran de zoom n'avait pas besoin de deux touches là où un panoramique en veut quatre.
+    expect(press("Numpad2")).toBe(LogicalAction.PanCameraDown);
     expect(press("KeyR")).toBe(LogicalAction.ZoomIn);
     expect(press("KeyF")).toBe(LogicalAction.ZoomOut);
   });

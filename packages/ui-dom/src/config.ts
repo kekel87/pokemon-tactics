@@ -14,6 +14,14 @@ export interface CameraKeyLabels {
   readonly rotateRight: string;
   readonly zoomIn: string;
   readonly zoomOut: string;
+  /**
+   * Les quatre touches du panoramique caméra (plan 189). Un caractère chacune — le chiffre du pavé
+   * numérique, que l'hôte a déjà réduit : la feuille n'a pas de capuchon « Pavé 8 ».
+   */
+  readonly panUp: string;
+  readonly panDown: string;
+  readonly panLeft: string;
+  readonly panRight: string;
 }
 
 export interface UiDomConfig extends I18nContext {

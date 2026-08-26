@@ -13,6 +13,12 @@ export * from "./chrome-insets.js";
 export * from "./combat-menu-button.js";
 export * from "./config.js";
 export * from "./constants.js";
+/*
+ * Export nommé, pas `export *` : la légende de contrôles reste interne (montée par `battle-chrome`),
+ * seule sa fabrique de capuchon sort — c'est elle qui garantit qu'un indice sous un bouton dessine la
+ * même touche que la légende (plan 189).
+ */
+export { createKeyHint, type KeyHintSpec } from "./control-legend.js";
 export * from "./form-controls.js";
 export * from "./fullscreen-button.js";
 export * from "./game-stage.js";

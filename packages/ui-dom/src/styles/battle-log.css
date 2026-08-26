@@ -17,6 +17,51 @@
    * Largeur en shrink-to-fit (ancrée par la seule fin d'axe) → la rangée colle au contenu, et le
    * bouton masqué (`hidden`) ne laisse ni trou ni interstice.
    */
+  /*
+   * Une colonne « bouton + capuchon de sa touche » dans la rangée (plan 189, `withKeyHint`).
+   *
+   * La rangée est un flex horizontal : sans ce conteneur, l'indice se rangerait À CÔTÉ du bouton au
+   * lieu de sous lui. `align-items: flex-start` de la rangée garde le bouton aligné sur l'en-tête du
+   * journal, et l'indice pend sous lui sans pousser quoi que ce soit.
+   */
+  /*
+   * Capuchons de défilement du journal (plan 189) — un à chaque extrémité de la liste. Masqués tant
+   * qu'elle tient dans sa boîte, voir `refreshScrollHint`.
+   *
+   * ⚠️ Ils portent leur PROPRE `--cl-size`, plus grand que celui de la légende : les capuchons de ce
+   * panneau sont `SHIFT` et `PAGE↑/↓`, des mots dessinés dans une tuile de 16 px — illisibles à
+   * l'échelle qui suffit à un `J` ou un `ESC` (retour humain 2026-08-26, capture à l'appui). Un
+   * capuchon nommé a besoin de plus de place qu'un capuchon lettre, et la seule variable qui compte
+   * ici est la lisibilité du mot.
+   */
+  .bl-scroll-hint {
+    display: flex;
+    /* Alignés à droite (retour humain 2026-08-26), du côté de la barre de défilement qu'ils décrivent. */
+    justify-content: flex-end;
+    padding-inline: var(--spacing-sm);
+    padding-block: calc(2px * var(--ui-scale));
+    &[hidden] {
+      display: none;
+    }
+
+    /*
+     * ⚠️ Posé sur le `.cl-hint` lui-même, pas sur cette ligne : `.cl-hint` déclare son propre
+     * `--cl-size` et, à égalité de spécificité, la règle de l'élément gagne sur celle héritée du
+     * parent. Le sélecteur descendant (0-2-0) passe devant.
+     */
+    & .cl-hint {
+      --cl-size: max(22px, calc(28px * var(--ui-scale)));
+    }
+  }
+
+  .bl-row-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(2px * var(--ui-scale));
+    pointer-events: none;
+  }
+
   .bl-log-row {
     position: absolute;
     inset-block-start: max(var(--spacing-lg), env(safe-area-inset-top));
@@ -115,6 +160,7 @@
 
   .bl-panel[data-collapsed="true"] .bl-title,
   .bl-panel[data-collapsed="true"] .bl-list,
+  .bl-panel[data-collapsed="true"] .bl-scroll-hint,
   .bl-panel[data-collapsed="true"] .bl-actions {
     display: none;
   }

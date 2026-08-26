@@ -2,15 +2,19 @@ import type { InputContext } from "@pokemon-tactic/view-core";
 import { CURSOR_ACTION_DIRECTION, LogicalAction } from "./logical-action.js";
 
 /**
- * Pixels de pan par frame quand le stick droit est à fond. ~8 px à 60 fps = ~480 px/s : assez pour
- * traverser une carte sans que le geste paraisse brusque.
+ * Pixels de pan par frame quand l'entrée est à fond. ~8 px à 60 fps = ~480 px/s : assez pour traverser
+ * une carte sans que le geste paraisse brusque.
+ *
+ * Plus propre au stick depuis le plan 189 (d'où le renommage) : le clavier tenu émet la même action à
+ * la même cadence, et vaut donc l'amplitude PLEINE. Le stick est analogique, le clavier est
+ * tout-ou-rien — c'est la seule différence entre les deux, et elle ne se traduit pas ici.
  *
  * ⚠️ **Négatif**, et c'est le point (retour humain 2026-08-21) : `panCamera` parle le langage d'un
  * GLISSÉ de souris (on tire le plateau, il suit le doigt), alors qu'un stick parle celui d'un regard
- * (je pousse à droite, je regarde à droite) — les deux sont opposés. Une inversion configurable est
- * prévue au plan de remapping ; ce défaut-là est le sens naturel du stick.
+ * (je pousse à droite, je regarde à droite) — les deux sont opposés. L'inversion est un réglage
+ * (`invertRightStick`) ; ce défaut-là est le sens naturel du stick.
  */
-const GAMEPAD_PAN_STEP_PX = -8;
+const PAN_STEP_PX = -8;
 
 /** Where the arrows point on screen — never a grid direction (the camera rotates). */
 export type ScreenDirection = "up" | "down" | "left" | "right";
@@ -143,16 +147,16 @@ export function createInputRouter(options: InputRouterOptions): InputRouter {
         target.scrollTimeline(1);
         return true;
       case LogicalAction.PanCameraUp:
-        target.panCamera(0, -GAMEPAD_PAN_STEP_PX);
+        target.panCamera(0, -PAN_STEP_PX);
         return true;
       case LogicalAction.PanCameraDown:
-        target.panCamera(0, GAMEPAD_PAN_STEP_PX);
+        target.panCamera(0, PAN_STEP_PX);
         return true;
       case LogicalAction.PanCameraLeft:
-        target.panCamera(-GAMEPAD_PAN_STEP_PX, 0);
+        target.panCamera(-PAN_STEP_PX, 0);
         return true;
       case LogicalAction.PanCameraRight:
-        target.panCamera(GAMEPAD_PAN_STEP_PX, 0);
+        target.panCamera(PAN_STEP_PX, 0);
         return true;
       default:
         return false;
