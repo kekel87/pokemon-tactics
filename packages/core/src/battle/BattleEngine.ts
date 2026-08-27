@@ -63,7 +63,11 @@ import {
   computeMoveCost,
 } from "./ct-costs";
 import { estimateDamage, getTypeEffectiveness } from "./damage-calculator";
-import { resolveDamageContext } from "./damage-context";
+import {
+  type CasterMoveContext,
+  resolveCasterMoveContext,
+  resolveDamageContext,
+} from "./damage-context";
 import { findDampInTargets } from "./damp-system";
 import { getAttackOrigin } from "./defense-check";
 import {
@@ -201,6 +205,12 @@ export class BattleEngine {
   private confusionChecked = false;
   private flinchedThisTurn = false;
   private battleOver = false;
+  /** Verdict de fin retardé, révisable tant que la résolution court (plan 191). */
+  private pendingBattleEnd: { winnerId: string | null } | null = null;
+  /** Garde-fou de l'invariant « au plus un `BattleEnded` par combat » (plan 191). */
+  private battleEndEmitted = false;
+  /** Le move en cours de résolution porte un auto-K.O. → les court-circuits le laissent passer. */
+  private selfKoPending = false;
 
   private startupEvents: BattleEvent[] = [];
 
@@ -1216,6 +1226,13 @@ export class BattleEngine {
    */
   submitAction(playerId: string, action: Action): ActionResult {
     const result = this.applyAction(playerId, action);
+    // Frontière de résolution (plan 191) : le verdict de fin, resté révisable pendant toute la
+    // résolution, est émis ici. `applyAction` est son unique appelant, donc c'est le seul endroit à
+    // brancher — et les `handleKo` des effets de fin de tour vivent dans son arbre d'appel.
+    this.finalizeBattleEnd(result.events);
+    // Le drapeau est propre à une résolution : sans cette remise à zéro, un move à auto-K.O. rendrait
+    // les court-circuits permissifs pour toutes les actions suivantes.
+    this.selfKoPending = false;
     applyRevealsFromEvents(this.state, result.events);
     return result;
   }
@@ -2046,6 +2063,19 @@ export class BattleEngine {
       targets.length = 0;
     }
 
+    /*
+     * Auto-K.O. en attente (plan 191) : ce move fera tomber son propre lanceur plus bas dans cette
+     * même résolution. Les court-circuits « quelqu'un a gagné, j'arrête » situés ENTRE le K.O. de la
+     * cible et ce bloc doivent donc le laisser passer, sinon le lanceur survit à sa propre Explosion
+     * quand elle tue le dernier ennemi — et le match nul reste inatteignable (cause racine mesurée,
+     * garde-fou de `applyMoveEffects` juste après `handleKo`).
+     *
+     * `selfKoOnConnect` est inclus sans attendre de savoir si le move a touché : le drapeau ne fait
+     * qu'autoriser la poursuite de la résolution, et le bloc d'auto-K.O. revérifie ses conditions.
+     */
+    this.selfKoPending =
+      move.isExplosion === true || move.selfKo === true || move.selfKoOnConnect === true;
+
     let dampFizzled = false;
     if (move.isExplosion === true) {
       const dampHolder = findDampInTargets(targets);
@@ -2192,7 +2222,7 @@ export class BattleEngine {
       }
       if (event.type === BattleEventType.PokemonKo) {
         this.handleKo(event.pokemonId, events);
-        if (this.battleOver) {
+        if (this.battleOver && !this.selfKoPending) {
           return { success: true, events };
         }
         const target = this.state.pokemon.get(event.pokemonId);
@@ -2223,7 +2253,7 @@ export class BattleEngine {
       )
     ) {
       this.applyGravityGroundingOnCast(events);
-      if (this.battleOver) {
+      if (this.battleOver && !this.selfKoPending) {
         return { success: true, events };
       }
     }
@@ -2240,7 +2270,7 @@ export class BattleEngine {
       const smacked = this.state.pokemon.get(targetId);
       if (smacked && smacked.currentHp > 0) {
         this.applyGroundingTerrainTick(smacked, events);
-        if (this.battleOver) {
+        if (this.battleOver && !this.selfKoPending) {
           return { success: true, events };
         }
       }
@@ -2259,7 +2289,7 @@ export class BattleEngine {
       const changed = this.state.pokemon.get(changedId);
       if (changed && changed.currentHp > 0 && !this.isEffectivelyFlying(changed)) {
         this.applyGroundingTerrainTick(changed, events);
-        if (this.battleOver) {
+        if (this.battleOver && !this.selfKoPending) {
           return { success: true, events };
         }
       }
@@ -2278,7 +2308,7 @@ export class BattleEngine {
       const swapped = this.state.pokemon.get(swappedId);
       if (swapped && swapped.currentHp > 0 && !this.isEffectivelyFlying(swapped)) {
         this.applyGroundingTerrainTick(swapped, events);
-        if (this.battleOver) {
+        if (this.battleOver && !this.selfKoPending) {
           return { success: true, events };
         }
       }
@@ -3810,32 +3840,71 @@ export class BattleEngine {
     this.emit(eliminatedEvent);
     events.push(eliminatedEvent);
 
-    this.checkVictory(events);
+    this.checkVictory();
   }
 
-  private checkVictory(events: BattleEvent[]): void {
-    if (this.battleOver) {
-      return;
-    }
+  /**
+   * Verdict de fin de combat, RÉVISABLE tant que la résolution en cours n'est pas terminée
+   * (plan 191).
+   *
+   * Avant ce plan, ce verdict était scellé ET émis au premier K.O. individuel, ce qui rendait le
+   * match nul inatteignable : le premier combattant à tomber laissait l'autre camp seul vivant, et
+   * le garde-fou qui suit ce `handleKo` sortait de la résolution avant que l'auto-K.O. du lanceur
+   * (Explosion et compagnie) ait la moindre chance de s'appliquer.
+   *
+   * `battleOver` reste posé IMMÉDIATEMENT — les garde-fous de refus d'entrée en dépendent, et les
+   * court-circuits de résolution conservent ainsi leur comportement partout où aucun auto-K.O. n'est
+   * en attente. Seuls le verdict et son émission sont retardés jusqu'à `submitAction`, ce qui permet
+   * à un second K.O. de la même résolution de le **dégrader** en nul.
+   */
+  private checkVictory(): void {
     const playersAlive = new Set<string>();
     for (const pokemon of this.state.pokemon.values()) {
       if (pokemon.currentHp > 0) {
         playersAlive.add(pokemon.playerId);
       }
     }
-
-    // size 1 → that player wins; size 0 → a mutual KO (e.g. a Requiem detonation wiping every
-    // remaining mon of both sides) ends the battle as a draw (winnerId null).
-    if (playersAlive.size <= 1) {
-      const winnerId = playersAlive.size === 1 ? ([...playersAlive][0] as string) : null;
-      this.battleOver = true;
-      const endEvent: BattleEvent = {
-        type: BattleEventType.BattleEnded,
-        winnerId,
-      };
-      this.emit(endEvent);
-      events.push(endEvent);
+    if (playersAlive.size > 1) {
+      return;
     }
+
+    // size 1 → ce joueur gagne ; size 0 → K.O. mutuel, match nul (`winnerId` null).
+    const winnerId = playersAlive.size === 1 ? ([...playersAlive][0] as string) : null;
+    if (this.pendingBattleEnd !== null) {
+      // Révision : un verdict déjà pris ne peut que se DÉGRADER en nul, jamais changer de vainqueur.
+      if (winnerId === null) {
+        this.pendingBattleEnd = { winnerId: null };
+      }
+      return;
+    }
+    this.battleOver = true;
+    this.pendingBattleEnd = { winnerId };
+  }
+
+  /**
+   * Émet le verdict retardé, une fois et une seule, à la frontière de la résolution.
+   *
+   * Invariant : `BattleEnded` est émis **au plus une fois par combat**, et le journal ne montre
+   * jamais un vainqueur qu'il faudrait ensuite corriger — c'est toute la raison du report.
+   */
+  private finalizeBattleEnd(events: BattleEvent[]): void {
+    if (this.pendingBattleEnd === null) {
+      return;
+    }
+    if (this.battleEndEmitted) {
+      // L'invariant du §4 du plan 191, gardé et non seulement documenté : un verdict déjà émis ne
+      // peut pas l'être une seconde fois, quel que soit le chemin qui a reposé un `pendingBattleEnd`.
+      this.pendingBattleEnd = null;
+      return;
+    }
+    const endEvent: BattleEvent = {
+      type: BattleEventType.BattleEnded,
+      winnerId: this.pendingBattleEnd.winnerId,
+    };
+    this.pendingBattleEnd = null;
+    this.battleEndEmitted = true;
+    this.emit(endEvent);
+    events.push(endEvent);
   }
 
   private getCtGainForPokemon(pokemonId: string): number {
@@ -3870,6 +3939,29 @@ export class BattleEngine {
    * focused targets and gets the Pression surcharge folded in (it is per-target and stacks on an AoE
    * — see `computePressureBonus`). Never estimates a surcharge it cannot know.
    */
+  /**
+   * Contexte de puissance/précision d'un move pour un lanceur donné, SANS cible (plan 192).
+   *
+   * Même motif que {@link previewMoveCtCost} juste en dessous : l'infobulle a besoin d'un chiffre
+   * que seul le moteur peut résoudre correctement (il détient le registre de talents, donc Cran et
+   * les talents qui neutralisent la météo), et le faire passer par ici évite d'exposer ce registre.
+   * Retourne `null` si le move ou le lanceur est inconnu.
+   */
+  previewCasterMoveContext(pokemonId: string, moveId: string): CasterMoveContext | null {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    const move = this.moveRegistry.get(moveId);
+    if (!pokemon || !move) {
+      return null;
+    }
+    return resolveCasterMoveContext(
+      this.state,
+      pokemon,
+      move,
+      this.effectiveTypesOf(pokemon),
+      this.abilityRegistry ?? undefined,
+    );
+  }
+
   previewMoveCtCost(
     moveId: string,
     targetIds: readonly string[] = [],

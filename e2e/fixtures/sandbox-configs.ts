@@ -29,6 +29,18 @@ export const DUEL_SELF_TARGET = { ...DUEL, moves: ["swords-dance"] } as const;
 /** Same duel but the dummy is one hit from fainting → any Griffe is lethal (KO log assertion). */
 export const DUEL_LETHAL = { ...DUEL, dummyHp: 1 } as const;
 
+/** **Match nul** (plan 191, cahier §4.10) : Électrode emploie Destruction sur le dernier adversaire,
+ *  qui est à 1 PV — les deux camps se vident dans la MÊME résolution, donc personne ne l'emporte.
+ *  Ce scénario était inatteignable avant le plan 191 (`checkVictory` scellait le verdict au premier
+ *  K.O., et le court-circuit qui suit sortait avant l'auto-K.O. du lanceur). Électrode apprend
+ *  `self-destruct` ; le motif est centré sur le lanceur, donc aucune cible à désigner. */
+export const DUEL_MUTUAL_KO = {
+  ...DUEL,
+  pokemon: "electrode",
+  moves: ["self-destruct"],
+  dummyHp: 1,
+} as const;
+
 /** Objet tenu affiché avec son icône officielle dans l'InfoPanel (plan 168, cahier §4.7). Le joueur
  *  Florizarre tient les Restes (`heldItem`), le dummy Dracaufeu tient l'Orbe Vie (`dummyHeldItem`) →
  *  au boot le panneau de l'actif montre « Restes » + icône ; au survol du dummy, « Orbe Vie » + icône.

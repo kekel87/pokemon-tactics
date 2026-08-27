@@ -1,5 +1,5 @@
 import { expect, test } from "../../fixtures";
-import { DUEL, DUEL_LETHAL } from "../../fixtures/sandbox-configs";
+import { DUEL, DUEL_LETHAL, DUEL_MUTUAL_KO } from "../../fixtures/sandbox-configs";
 import { expectLocalizedBattleLog } from "../../pages/combat-queries";
 
 test("piloter : Griffe touche le dummy adjacent et journalise l'effet", async ({
@@ -47,6 +47,31 @@ test("piloter : un coup létal met le dummy K.O.", async ({ page, bootSandbox })
   // combat (`pokemonKo`, `battleEnded.winner`) que le scénario dédié — dont la cible survit exprès
   // aux trois tours — ne peut pas atteindre. Le balayage large est dans `battle-log-i18n.spec`.
   await expectLocalizedBattleLog(page, 4);
+});
+
+test("piloter : un K.O. mutuel dans la même résolution donne un match nul", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(DUEL_MUTUAL_KO);
+
+  await page.getByRole("button", { name: "Attaque", exact: true }).click();
+  await page.getByTestId("move-item").first().click();
+  await scene.clickTile(2, 3);
+
+  await expect(page.getByTestId("battle-log-entry").filter({ hasText: "est K.O." })).toBeAttached({
+    timeout: 10_000,
+  });
+
+  // Le verdict est un NUL : personne ne « remporte le combat », et la modale l'annonce.
+  await expect(
+    page.getByTestId("battle-log-entry").filter({ hasText: "remporte le combat" }),
+  ).toHaveCount(0);
+  const victory = page.getByRole("dialog").filter({ hasText: /Match nul/ });
+  await expect(victory).toBeVisible({ timeout: 10_000 });
+  // Le match nul est le seul cas qui garde sa ligne de détail sous le titre (plan 190).
+  await expect(victory.getByRole("heading")).toHaveText("Match nul");
+  await expect(victory).toContainText("personne ne l'emporte");
 });
 
 test("piloter : un déplacement débloque l'annulation (mouvement exécuté)", async ({

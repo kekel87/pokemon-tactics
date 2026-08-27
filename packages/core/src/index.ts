@@ -27,6 +27,10 @@ export {
   computeMoveCost,
   moveCtTempo,
 } from "./battle/ct-costs";
+export {
+  type CasterMoveContext,
+  resolveCasterMoveContext,
+} from "./battle/damage-context";
 export { type DisplayStat, effectiveDisplayStat } from "./battle/display-stat";
 export {
   DISTORTION_DEFAULT_DURATION,
