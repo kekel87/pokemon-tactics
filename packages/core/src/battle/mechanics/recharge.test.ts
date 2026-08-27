@@ -13,7 +13,6 @@ describe("recharge", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["hyper-beam", "scratch"],
-      currentPp: { "hyper-beam": 5, scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
   }
@@ -120,7 +119,9 @@ describe("recharge", () => {
 
   it("does not error if pokemon is KO during recharge", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
-    const attacker = makeAttacker({ currentHp: 1, maxHp: 100 });
+    const attacker = makeAttacker();
+    attacker.currentHp = 1;
+    attacker.maxHp = 100;
     const foe = MockPokemon.fresh(MockPokemon.base, {
       id: "foe",
       playerId: PlayerId.Player2,
@@ -128,7 +129,6 @@ describe("recharge", () => {
       currentHp: 500,
       maxHp: 500,
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       combatStats: { hp: 500, attack: 200, defense: 55, spAttack: 55, spDefense: 55, speed: 55 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });

@@ -14,7 +14,6 @@ describe("hyper-beam", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["hyper-beam"],
-      currentPp: { "hyper-beam": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -26,7 +25,7 @@ describe("hyper-beam", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([attacker, defender]);
-    const hpBefore = state.pokemon.get(defender.id)?.currentHp;
+    const hpBefore = state.pokemon.get(defender.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -51,7 +50,6 @@ describe("hyper-beam", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["hyper-beam"],
-      currentPp: { "hyper-beam": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe1 = MockPokemon.fresh(MockPokemon.base, {
@@ -93,7 +91,6 @@ describe("hyper-beam", () => {
       position: { x: 0, y: 2 },
       orientation: Direction.East,
       moveIds: ["hyper-beam"],
-      currentPp: { "hyper-beam": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

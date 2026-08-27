@@ -10,7 +10,6 @@ describe("splash", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["splash"],
-      currentPp: { splash: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const dummy = MockPokemon.fresh(MockPokemon.base, {
@@ -20,7 +19,7 @@ describe("splash", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, dummy]);
-    const hpBefore = state.pokemon.get(dummy.id)?.currentHp;
+    const hpBefore = state.pokemon.get(dummy.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

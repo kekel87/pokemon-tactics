@@ -1,6 +1,7 @@
 import {
   BattleEventType,
   DefensiveKind,
+  Direction,
   StatName,
   StatusType,
   TerrainType,
@@ -18,6 +19,8 @@ import { Language, type TranslationKey } from "./types";
 const frContext: BattleLogContext = {
   getPokemonName: (id) => (id === "pika" ? "Pikachu" : id === "bulba" ? "Bulbizarre" : id),
   getMoveName: (id) => (id === "thunderbolt" ? "Tonnerre" : id),
+  getAbilityName: () => null,
+  getItemName: () => null,
   language: Language.French,
   translate: (key, params) => translateIn(Language.French, key as TranslationKey, params),
 };
@@ -54,7 +57,12 @@ describe("journal de combat — rendu FR/EN avec les vraies locales", () => {
   describe("MoveStarted", () => {
     it("formats in French", () => {
       const result = formatBattleEvent(
-        { type: BattleEventType.MoveStarted, attackerId: "pika", moveId: "thunderbolt" },
+        {
+          type: BattleEventType.MoveStarted,
+          attackerId: "pika",
+          moveId: "thunderbolt",
+          direction: Direction.North,
+        },
         frContext,
       ) as BattleLogEntry;
       expect(result.message).toBe("Pikachu utilise Tonnerre !");
@@ -64,7 +72,12 @@ describe("journal de combat — rendu FR/EN avec les vraies locales", () => {
 
     it("formats in English", () => {
       const result = formatBattleEvent(
-        { type: BattleEventType.MoveStarted, attackerId: "pika", moveId: "thunderbolt" },
+        {
+          type: BattleEventType.MoveStarted,
+          attackerId: "pika",
+          moveId: "thunderbolt",
+          direction: Direction.North,
+        },
         enContext,
       ) as BattleLogEntry;
       expect(result.message).toBe("Pikachu used Thunderbolt!");
@@ -78,8 +91,8 @@ describe("journal de combat — rendu FR/EN avec les vraies locales", () => {
         frContext,
       ) as BattleLogEntry[];
       expect(result).toHaveLength(1);
-      expect(result[0].message).toBe("Bulbizarre perd 42 PV !");
-      expect(result[0].color).toBe(BattleLogColors.damage);
+      expect(result[0]?.message).toBe("Bulbizarre perd 42 PV !");
+      expect(result[0]?.color).toBe(BattleLogColors.damage);
     });
 
     it("formats damage in English", () => {
@@ -87,7 +100,7 @@ describe("journal de combat — rendu FR/EN avec les vraies locales", () => {
         { type: BattleEventType.DamageDealt, targetId: "bulba", amount: 42, effectiveness: 1 },
         enContext,
       ) as BattleLogEntry[];
-      expect(result[0].message).toBe("Bulbasaur lost 42 HP!");
+      expect(result[0]?.message).toBe("Bulbasaur lost 42 HP!");
     });
 
     it("adds super effective line for effectiveness >= 2", () => {
@@ -96,8 +109,8 @@ describe("journal de combat — rendu FR/EN avec les vraies locales", () => {
         frContext,
       ) as BattleLogEntry[];
       expect(result).toHaveLength(2);
-      expect(result[1].message).toContain("Super efficace");
-      expect(result[1].color).toBe(BattleLogColors.effectiveness);
+      expect(result[1]?.message).toContain("Super efficace");
+      expect(result[1]?.color).toBe(BattleLogColors.effectiveness);
     });
 
     it("adds extremely effective line for effectiveness >= 4", () => {
@@ -106,7 +119,7 @@ describe("journal de combat — rendu FR/EN avec les vraies locales", () => {
         enContext,
       ) as BattleLogEntry[];
       expect(result).toHaveLength(2);
-      expect(result[1].message).toContain("Extremely effective");
+      expect(result[1]?.message).toContain("Extremely effective");
     });
 
     it("adds not very effective line for effectiveness <= 0.5", () => {
@@ -115,7 +128,7 @@ describe("journal de combat — rendu FR/EN avec les vraies locales", () => {
         frContext,
       ) as BattleLogEntry[];
       expect(result).toHaveLength(2);
-      expect(result[1].message).toContain("Pas très efficace");
+      expect(result[1]?.message).toContain("Pas très efficace");
     });
 
     it("adds barely effective line for effectiveness <= 0.25", () => {
@@ -124,7 +137,7 @@ describe("journal de combat — rendu FR/EN avec les vraies locales", () => {
         enContext,
       ) as BattleLogEntry[];
       expect(result).toHaveLength(2);
-      expect(result[1].message).toContain("Barely effective");
+      expect(result[1]?.message).toContain("Barely effective");
     });
 
     it("returns null for immune (effectiveness === 0)", () => {

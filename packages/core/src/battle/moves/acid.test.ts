@@ -14,7 +14,6 @@ describe("acid", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["acid"],
-      currentPp: { acid: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -24,7 +23,7 @@ describe("acid", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, foe]);
-    const hpBefore = state.pokemon.get(foe.id)?.currentHp;
+    const hpBefore = state.pokemon.get(foe.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

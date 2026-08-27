@@ -31,7 +31,7 @@ describe("BattleState.auras — append entries", () => {
       kind: AuraKind.Reflect,
       casterPokemonId: caster.id,
       remainingRounds: 5,
-      postedRound: state.roundNumber,
+      postedAtAction: 0,
     };
     state.auras.push(aura);
 
@@ -53,13 +53,13 @@ describe("BattleState.auras — same caster can carry both Reflect and Light Scr
       kind: AuraKind.Reflect,
       casterPokemonId: caster.id,
       remainingRounds: 5,
-      postedRound: 1,
+      postedAtAction: 0,
     });
     state.auras.push({
       kind: AuraKind.LightScreen,
       casterPokemonId: caster.id,
       remainingRounds: 5,
-      postedRound: 3,
+      postedAtAction: 0,
     });
 
     expect(state.auras.length).toBe(2);
@@ -80,7 +80,7 @@ describe("BattleState.auras — decrement remainingRounds", () => {
       kind: AuraKind.Reflect,
       casterPokemonId: caster.id,
       remainingRounds: 5,
-      postedRound: 1,
+      postedAtAction: 0,
     });
     const aura = state.auras[0];
     if (aura) {
@@ -104,7 +104,7 @@ describe("BattleState.auras — removal at zero", () => {
       kind: AuraKind.Reflect,
       casterPokemonId: caster.id,
       remainingRounds: 1,
-      postedRound: 1,
+      postedAtAction: 0,
     });
     const aura = state.auras[0];
     if (aura) {
@@ -131,13 +131,13 @@ describe("BattleState.auras — removal on caster KO", () => {
       kind: AuraKind.LightScreen,
       casterPokemonId: caster.id,
       remainingRounds: 5,
-      postedRound: 1,
+      postedAtAction: 0,
     });
     state.auras.push({
       kind: AuraKind.Reflect,
       casterPokemonId: caster.id,
       remainingRounds: 5,
-      postedRound: 2,
+      postedAtAction: 0,
     });
 
     const remaining = state.auras.filter((aura) => aura.casterPokemonId !== caster.id);
@@ -166,13 +166,13 @@ describe("BattleState.auras — multi-caster", () => {
       kind: AuraKind.Reflect,
       casterPokemonId: casterA.id,
       remainingRounds: 5,
-      postedRound: 1,
+      postedAtAction: 0,
     });
     state.auras.push({
       kind: AuraKind.LightScreen,
       casterPokemonId: casterB.id,
       remainingRounds: 5,
-      postedRound: 1,
+      postedAtAction: 0,
     });
 
     expect(state.auras.length).toBe(2);

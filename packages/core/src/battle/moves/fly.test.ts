@@ -4,6 +4,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
 import { Weather } from "../../enums/weather";
 import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import type { Action } from "../../types/action";
 import { SemiInvulnerableState } from "../../types/semi-invulnerable-state";
 import { createPrng } from "../../utils/prng";
 
@@ -14,7 +15,6 @@ describe("fly", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["fly"],
-      currentPp: { fly: 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -55,7 +55,6 @@ describe("fly", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["fly"],
-      currentPp: { fly: 14 },
       chargingMove: { moveId: "fly", targetPosition: { x: 0, y: 0 } },
       lockedMoveId: "fly",
       semiInvulnerableState: SemiInvulnerableState.Flying,
@@ -103,7 +102,6 @@ describe("fly — sun does not skip the charge turn", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["fly"],
-      currentPp: { fly: 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -120,7 +118,10 @@ describe("fly — sun does not skip the charge turn", () => {
 
     const moveActions = engine
       .getLegalActions(PlayerId.Player1)
-      .filter((a) => a.kind === ActionKind.UseMove && a.moveId === "fly");
+      .filter(
+        (a): a is Extract<Action, { kind: typeof ActionKind.UseMove }> =>
+          a.kind === ActionKind.UseMove && a.moveId === "fly",
+      );
 
     expect(moveActions).toHaveLength(1);
     expect(moveActions[0]?.targetPosition).toEqual(attacker.position);
@@ -132,7 +133,6 @@ describe("fly — sun does not skip the charge turn", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["fly"],
-      currentPp: { fly: 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {

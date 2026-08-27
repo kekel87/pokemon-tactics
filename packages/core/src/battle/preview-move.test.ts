@@ -150,7 +150,7 @@ describe("BattleEngine.previewMove", () => {
     if (!defender) {
       throw new Error("missing defender");
     }
-    defender.activeDefense = { kind: DefensiveKind.Endure };
+    defender.activeDefense = { kind: DefensiveKind.Endure, appliedAtAction: 0 };
 
     expect(engine.previewMove("attacker", TACKLE, "defender")?.survivalGuard).toBe(
       SurvivalGuardKind.Endure,

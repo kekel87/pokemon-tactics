@@ -32,7 +32,6 @@ function freshPokemon(
     statStages: { ...base.statStages },
     statusEffects: [...base.statusEffects],
     moveIds: [...base.moveIds],
-    currentPp: { ...base.currentPp },
     ...overrides,
     ...(overrides?.position ? { position: { ...overrides.position } } : {}),
   };
@@ -60,7 +59,6 @@ describe("BattleEngine.executeUseMove — valid move hits and deals damage", () 
       position: { x: 0, y: 0 },
       derivedStats: { ...MockPokemon.bulbasaur.derivedStats, initiative: 100 },
       moveIds: ["razor-leaf"],
-      currentPp: { "razor-leaf": 25 },
     });
     const defender = freshPokemon(MockPokemon.charmander, {
       id: "defender",
@@ -110,7 +108,6 @@ describe("BattleEngine.executeUseMove — unknown move", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["nonexistent-move"],
-      currentPp: { "nonexistent-move": 10 },
     });
     const defender = freshPokemon(MockPokemon.bulbasaur, {
       id: "defender",
@@ -148,7 +145,6 @@ describe("BattleEngine.executeUseMove — target out of range", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
     });
     const defender = freshPokemon(MockPokemon.bulbasaur, {
       id: "defender",
@@ -183,7 +179,6 @@ describe("BattleEngine.executeUseMove — status move hits", () => {
       position: { x: 0, y: 0 },
       derivedStats: HIGH_INIT,
       moveIds: ["sleep-powder"],
-      currentPp: { "sleep-powder": 15 },
     });
     const defender = freshPokemon(MockPokemon.charmander, {
       id: "defender",
@@ -243,7 +238,6 @@ describe("BattleEngine.executeUseMove — AoE cross hits multiple targets", () =
       position: { x: 2, y: 2 },
       derivedStats: HIGH_INIT,
       moveIds: ["bubble-beam"],
-      currentPp: { "bubble-beam": 20 },
     });
     const targetNorth = freshPokemon(MockPokemon.charmander, {
       id: "target-north",
@@ -302,7 +296,6 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
       position: { x: 2, y: 2 },
       derivedStats: HIGH_INIT,
       moveIds: ["bubble-beam"],
-      currentPp: { "bubble-beam": 20 },
     });
     const ally = freshPokemon(MockPokemon.bulbasaur, {
       id: "ally",
@@ -362,7 +355,6 @@ describe("BattleEngine.executeUseMove — friendly fire on AoE", () => {
       position: { x: 0, y: 2 },
       derivedStats: HIGH_INIT,
       moveIds: ["sludge-bomb"],
-      currentPp: { "sludge-bomb": 10 },
     });
     const ally = freshPokemon(MockPokemon.squirtle, {
       id: "ally",
@@ -406,7 +398,6 @@ describe("BattleEngine.executeUseMove — miss", () => {
       position: { x: 0, y: 0 },
       derivedStats: { ...MockPokemon.bulbasaur.derivedStats, initiative: 100 },
       moveIds: ["razor-leaf"],
-      currentPp: { "razor-leaf": 25 },
     });
     const defender = freshPokemon(MockPokemon.charmander, {
       id: "defender",
@@ -440,7 +431,7 @@ describe("BattleEngine.executeUseMove — miss", () => {
     expect(eventTypes).toContain(BattleEventType.MoveMissed);
     expect(eventTypes).not.toContain(BattleEventType.DamageDealt);
 
-    const hpAfter = state.pokemon.get("defender")?.currentHp;
+    const hpAfter = state.pokemon.get("defender")!.currentHp;
     expect(hpAfter).toBe(defender.currentHp);
   });
 });

@@ -14,7 +14,7 @@ const BATTLE_STATS = [
 ] as const;
 
 function sumBattleStages(stages: Record<string, number>): number {
-  return BATTLE_STATS.reduce((total, stat) => total + stages[stat], 0);
+  return BATTLE_STATS.reduce((total, stat) => total + (stages[stat] ?? 0), 0);
 }
 
 function setup() {
@@ -23,7 +23,6 @@ function setup() {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["acupressure"],
-    currentPp: { acupressure: 5 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
   const foe = MockPokemon.fresh(MockPokemon.base, {

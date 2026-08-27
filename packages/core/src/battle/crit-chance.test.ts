@@ -1,5 +1,6 @@
 import { loadData } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
+import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
 import { MockMove, MockPokemon } from "../testing";
 import { effectiveCritChance, getCritChance } from "./crit-chance";
@@ -45,7 +46,12 @@ describe("crit-chance", () => {
     });
 
     it("adds the held item's crit stage boost", () => {
-      const scopeLens = { onCritStageBoost: () => 2 };
+      const scopeLens = {
+        id: HeldItemId.ScopeLens,
+        name: { fr: "Lentiscope", en: "Scope Lens" },
+        shortDescription: { fr: "", en: "" },
+        onCritStageBoost: () => 2,
+      };
       expect(effectiveCritChance(attacker(), defender(), MockMove.physical, scopeLens)).toBe(0.5);
     });
 

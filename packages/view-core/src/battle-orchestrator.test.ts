@@ -102,6 +102,7 @@ function setup(
     isAirborneIgnoringGravity: () => false,
     predictCtTimeline: () => [],
     previewMoveCtCost: () => ({ base: 600, pressureBonus: 0, total: 600 }),
+    previewCasterMoveContext: () => null,
   } as unknown as BattleEngine;
 
   const board: BoardView = {
@@ -138,6 +139,7 @@ function setup(
     setAuraIndicators: () => undefined,
     setAuraRings: () => undefined,
     panCameraTo: () => undefined,
+    setGroundedByGravity: () => undefined,
     showDirectionPicker: (_center, _initial, callbacks) => {
       pickerCallbacks = callbacks;
       return { dispose: () => undefined };
@@ -159,10 +161,14 @@ function setup(
     updateInfoPanel: () => undefined,
     updateTileInfo: () => undefined,
     updateCursorPanel: () => undefined,
-    updateCombatPreview: () => undefined,
     updateWeather: () => undefined,
     updateTailwind: () => undefined,
     updateTimeline: () => undefined,
+    updateCameraAzimuth: () => undefined,
+    focusMenuStep: () => false,
+    isMenuFocused: () => false,
+    activateFocusedMenuItem: () => false,
+    scrollTimeline: () => undefined,
     showVictory: () => undefined,
   };
 
@@ -178,6 +184,7 @@ function setup(
       translate: (key) => key,
       getLanguage: () => "en",
       getPortraitUrl: () => "",
+      getStatusLabelUrl: () => "",
       getItemIconUrl: () => "",
       getItemName: () => null,
       getAbilityName: () => null,

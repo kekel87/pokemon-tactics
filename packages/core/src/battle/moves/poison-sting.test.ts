@@ -15,7 +15,6 @@ describe("poison-sting", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["poison-sting"],
-      currentPp: { "poison-sting": 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -25,7 +24,7 @@ describe("poison-sting", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, foe]);
-    const hpBefore = state.pokemon.get(foe.id)?.currentHp;
+    const hpBefore = state.pokemon.get(foe.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -48,7 +47,6 @@ describe("poison-sting", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["poison-sting"],
-      currentPp: { "poison-sting": 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

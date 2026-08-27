@@ -11,7 +11,6 @@ describe("dazzling-gleam", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["dazzling-gleam"],
-      currentPp: { "dazzling-gleam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -21,7 +20,7 @@ describe("dazzling-gleam", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, foe]);
-    const hpBefore = state.pokemon.get(foe.id)?.currentHp;
+    const hpBefore = state.pokemon.get(foe.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -41,7 +40,6 @@ describe("dazzling-gleam", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["dazzling-gleam"],
-      currentPp: { "dazzling-gleam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe1 = MockPokemon.fresh(MockPokemon.base, {
@@ -76,7 +74,6 @@ describe("dazzling-gleam", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["dazzling-gleam"],
-      currentPp: { "dazzling-gleam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const farFoe = MockPokemon.fresh(MockPokemon.base, {
@@ -86,7 +83,7 @@ describe("dazzling-gleam", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, farFoe]);
-    const hpBefore = state.pokemon.get(farFoe.id)?.currentHp;
+    const hpBefore = state.pokemon.get(farFoe.id)!.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

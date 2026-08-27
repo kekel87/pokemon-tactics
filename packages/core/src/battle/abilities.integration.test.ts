@@ -22,7 +22,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["razor-leaf"],
-      currentPp: { "razor-leaf": 25 },
       currentHp: 25,
       maxHp: 100,
       abilityId: "overgrow",
@@ -44,7 +43,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["razor-leaf"],
-      currentPp: { "razor-leaf": 25 },
       currentHp: 25,
       maxHp: 100,
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
@@ -215,7 +213,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["kinesis"],
-      currentPp: { kinesis: 15 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.pidgey, {
@@ -253,7 +250,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const pikachu = MockPokemon.fresh(MockPokemon.base, {
@@ -291,7 +287,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["karate-chop"],
-      currentPp: { "karate-chop": 25 },
       abilityId: "guts",
       statusEffects: [{ type: StatusType.Burned, remainingTurns: null }],
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
@@ -311,7 +306,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["karate-chop"],
-      currentPp: { "karate-chop": 25 },
       statusEffects: [{ type: StatusType.Burned, remainingTurns: null }],
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -356,7 +350,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["toxic"],
-      currentPp: { toxic: 10 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const abra = MockPokemon.fresh(MockPokemon.base, {
@@ -395,7 +388,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["earthquake"],
-      currentPp: { earthquake: 10 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const gastly = MockPokemon.fresh(MockPokemon.base, {
@@ -433,7 +425,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["karate-chop"],
-      currentPp: { "karate-chop": 25 },
       combatStats: { hp: 100, attack: 999, defense: 55, spAttack: 55, spDefense: 55, speed: 55 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -543,7 +534,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
       gender: PokemonGender.Male,
     });
@@ -584,7 +574,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
       gender: PokemonGender.Female,
     });
@@ -621,7 +610,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
       gender: PokemonGender.Genderless,
     });
@@ -658,7 +646,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
       gender: PokemonGender.Male,
     });
@@ -756,7 +743,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       abilityId: "adaptability",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -775,7 +761,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const targetWithout = MockPokemon.fresh(MockPokemon.base, {
@@ -819,7 +804,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["kinesis"],
-      currentPp: { kinesis: 15 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const tentacool = MockPokemon.fresh(MockPokemon.base, {
@@ -860,7 +844,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const nidoran = MockPokemon.fresh(MockPokemon.base, {
@@ -897,7 +880,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       abilityId: "technician",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -916,7 +898,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const targetWithout = MockPokemon.fresh(MockPokemon.base, {
@@ -995,7 +976,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const sandshrew = MockPokemon.fresh(MockPokemon.base, {
@@ -1029,7 +1009,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["supersonic"],
-      currentPp: { supersonic: 20 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const lickitung = MockPokemon.fresh(MockPokemon.base, {
@@ -1068,7 +1047,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["hypnosis"],
-      currentPp: { hypnosis: 20 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const kangaskhan = MockPokemon.fresh(MockPokemon.base, {
@@ -1111,7 +1089,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const bulbasaur = MockPokemon.fresh(MockPokemon.base, {
@@ -1176,7 +1153,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["thunder-wave"],
-      currentPp: { "thunder-wave": 20 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const machop = MockPokemon.fresh(MockPokemon.base, {
@@ -1211,7 +1187,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["earthquake"],
-      currentPp: { earthquake: 10 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const gastly = MockPokemon.fresh(MockPokemon.base, {
@@ -1244,7 +1219,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const tentacool = MockPokemon.fresh(MockPokemon.base, {
@@ -1317,7 +1291,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["hypnosis"],
-      currentPp: { hypnosis: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -1360,7 +1333,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["sleep-powder"],
-      currentPp: { "sleep-powder": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -1403,7 +1375,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -1444,7 +1415,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -1474,7 +1444,6 @@ describe("ability system integration", () => {
       currentHp: 100,
       maxHp: 100,
       moveIds: ["double-edge"],
-      currentPp: { "double-edge": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -1521,7 +1490,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["thunder-wave"],
-      currentPp: { "thunder-wave": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -1558,7 +1526,6 @@ describe("ability system integration", () => {
       position: { x: 0, y: 0 },
       abilityId: "iron-fist",
       moveIds: ["thunder-punch"],
-      currentPp: { "thunder-punch": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     // Given same attacker without iron-fist using thunder-punch
@@ -1567,7 +1534,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["thunder-punch"],
-      currentPp: { "thunder-punch": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -1623,7 +1589,6 @@ describe("ability system integration", () => {
       abilityId: "natural-cure",
       statusEffects: [{ type: StatusType.Burned, remainingTurns: null }],
       moveIds: ["surf"],
-      currentPp: { surf: 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -1687,7 +1652,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["cross-chop"],
-      currentPp: { "cross-chop": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -1714,7 +1678,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const vileplume = MockPokemon.fresh(MockPokemon.base, {
@@ -1756,7 +1719,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const vileplume = MockPokemon.fresh(MockPokemon.base, {
@@ -1789,7 +1751,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const golduck = MockPokemon.fresh(MockPokemon.base, {
@@ -1833,7 +1794,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["cross-chop"],
-      currentPp: { "cross-chop": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -1860,7 +1820,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const kingler = MockPokemon.fresh(MockPokemon.base, {
@@ -1900,7 +1859,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const jynx = MockPokemon.fresh(MockPokemon.base, {
@@ -1934,7 +1892,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const magmar = MockPokemon.fresh(MockPokemon.base, {
@@ -1976,7 +1933,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const magmar = MockPokemon.fresh(MockPokemon.base, {
@@ -2064,7 +2020,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const omastar = MockPokemon.fresh(MockPokemon.base, {
@@ -2100,7 +2055,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       abilityId: "poison-touch",
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -2143,7 +2097,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       abilityId: "poison-touch",
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -2178,7 +2131,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 2 },
       moveIds: ["sludge-bomb"],
-      currentPp: { "sludge-bomb": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const mrMimeWith = MockPokemon.fresh(MockPokemon.base, {
@@ -2196,7 +2148,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 2 },
       moveIds: ["sludge-bomb"],
-      currentPp: { "sludge-bomb": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const mrMimeWithout = MockPokemon.fresh(MockPokemon.base, {
@@ -2239,7 +2190,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["will-o-wisp"],
-      currentPp: { "will-o-wisp": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const seakingWith = MockPokemon.fresh(MockPokemon.base, {
@@ -2272,7 +2222,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["sludge-bomb"],
-      currentPp: { "sludge-bomb": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const venomothWith = MockPokemon.fresh(MockPokemon.base, {
@@ -2309,7 +2258,6 @@ describe("ability system integration", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 2 },
         moveIds: ["sleep-powder"],
-        currentPp: { "sleep-powder": 15 },
         ...(withAbility ? { abilityId: "compound-eyes" as const } : {}),
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
@@ -2327,7 +2275,7 @@ describe("ability system integration", () => {
         const seq = i / total + 0.001;
         vi.spyOn(Math, "random").mockReturnValue(seq);
         const { engine } = buildMoveTestEngine([
-          { ...attacker, currentPp: { "sleep-powder": 15 } },
+          { ...attacker },
           { ...defender, statusEffects: [] },
         ]);
         const result = engine.submitAction(PlayerId.Player1, {
@@ -2356,7 +2304,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["twineedle"],
-      currentPp: { twineedle: 20 },
       currentHp: 20,
       maxHp: 100,
       abilityId: "swarm",
@@ -2375,7 +2322,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["twineedle"],
-      currentPp: { twineedle: 20 },
       currentHp: 20,
       maxHp: 100,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -2425,7 +2371,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["sleep-powder"],
-      currentPp: { "sleep-powder": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const venomothWith = MockPokemon.fresh(MockPokemon.base, {
@@ -2462,7 +2407,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["double-edge", "body-slam"],
-      currentPp: { "double-edge": 15, "body-slam": 15 },
       abilityId: "reckless",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -2481,7 +2425,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["double-edge", "body-slam"],
-      currentPp: { "double-edge": 15, "body-slam": 15 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const plainTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -2525,7 +2468,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["body-slam"],
-      currentPp: { "body-slam": 15 },
       abilityId: "reckless",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -2542,7 +2484,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["body-slam"],
-      currentPp: { "body-slam": 15 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const plainTarget2 = MockPokemon.fresh(MockPokemon.base, {
@@ -2578,7 +2519,6 @@ describe("ability system integration", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 2 },
         moveIds: ["body-slam"],
-        currentPp: { "body-slam": 15 },
         abilityId: "rivalry",
         gender: selfGender,
         derivedStats: { movement: 4, jump: 1, initiative: 100 },
@@ -2624,7 +2564,6 @@ describe("ability system integration", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 2 },
         moveIds: ["karate-chop"],
-        currentPp: { "karate-chop": 25 },
         ...(withAbility ? { abilityId: "tinted-lens" } : {}),
         derivedStats: { movement: 4, jump: 1, initiative: 100 },
       });
@@ -2670,7 +2609,6 @@ describe("ability system integration", () => {
       currentHp: 50,
       maxHp: 160,
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -2747,7 +2685,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["cross-chop"],
-      currentPp: { "cross-chop": 5 },
       abilityId: "sniper",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -2765,7 +2702,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["cross-chop"],
-      currentPp: { "cross-chop": 5 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const plainTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -2810,7 +2746,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["cross-chop"],
-      currentPp: { "cross-chop": 5 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const holder = MockPokemon.fresh(MockPokemon.base, {
@@ -2859,7 +2794,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const holder = MockPokemon.fresh(MockPokemon.base, {
@@ -2893,7 +2827,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const holder = MockPokemon.fresh(MockPokemon.base, {
@@ -2941,7 +2874,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["leaf-storm"],
-      currentPp: { "leaf-storm": 5 },
       abilityId: "defiant",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -2974,7 +2906,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const holder = MockPokemon.fresh(MockPokemon.base, {
@@ -3023,7 +2954,6 @@ describe("ability system integration", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 2 },
         moveIds: ["body-slam"],
-        currentPp: { "body-slam": 15 },
         abilityId: "unaware",
         derivedStats: { movement: 4, jump: 1, initiative: 100 },
       });
@@ -3059,7 +2989,6 @@ describe("ability system integration", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 2 },
         moveIds: ["body-slam"],
-        currentPp: { "body-slam": 15 },
         statStages: { ...MockPokemon.base.statStages, [StatName.Attack]: attackStage },
         derivedStats: { movement: 4, jump: 1, initiative: 100 },
       });
@@ -3094,7 +3023,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       abilityId: "scrappy",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -3113,7 +3041,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const ghost2 = MockPokemon.fresh(MockPokemon.base, {
@@ -3165,7 +3092,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["fury-attack"],
-      currentPp: { "fury-attack": 20 },
       abilityId: "skill-link",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -3183,7 +3109,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["fury-attack"],
-      currentPp: { "fury-attack": 20 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const target2 = MockPokemon.fresh(MockPokemon.base, {
@@ -3230,7 +3155,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["leer"],
-      currentPp: { leer: 30 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -3265,7 +3189,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["kinesis"],
-      currentPp: { kinesis: 15 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -3307,7 +3230,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["poison-powder"],
-      currentPp: { "poison-powder": 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -3340,7 +3262,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const sandshrew = MockPokemon.fresh(MockPokemon.base, {
@@ -3372,7 +3293,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const articuno = MockPokemon.fresh(MockPokemon.base, {
@@ -3405,7 +3325,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["bite"],
-      currentPp: { bite: 25 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const holderDark = MockPokemon.fresh(MockPokemon.base, {
@@ -3443,7 +3362,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const holderNormal = MockPokemon.fresh(MockPokemon.base, {
@@ -3674,7 +3592,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const holderWith = MockPokemon.fresh(MockPokemon.base, {
@@ -3692,7 +3609,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const holderWithout = MockPokemon.fresh(MockPokemon.base, {
@@ -3734,7 +3650,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["bite"],
-      currentPp: { bite: 25 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const holderDark = MockPokemon.fresh(MockPokemon.base, {
@@ -3771,7 +3686,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const holderNormal = MockPokemon.fresh(MockPokemon.base, {
@@ -3824,7 +3738,6 @@ describe("ability system integration", () => {
       position: { x: 0, y: 2 },
       abilityId: "steadfast",
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       volatileStatuses: [{ type: StatusType.Flinch, remainingTurns: 1 }],
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -3945,7 +3858,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["rock-slide"],
-      currentPp: { "rock-slide": 10 },
       abilityId: "sand-force",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -3963,7 +3875,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["rock-slide"],
-      currentPp: { "rock-slide": 10 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const targetWithout = MockPokemon.fresh(MockPokemon.base, {
@@ -4013,7 +3924,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["water-gun"],
-      currentPp: { "water-gun": 25 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const paras = MockPokemon.fresh(MockPokemon.base, {
@@ -4054,7 +3964,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["toxic"],
-      currentPp: { toxic: 10 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const tangela = MockPokemon.fresh(MockPokemon.base, {
@@ -4097,7 +4006,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 2 },
       moveIds: ["sleep-powder"],
-      currentPp: { "sleep-powder": 15 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const cloyster = MockPokemon.fresh(MockPokemon.base, {
@@ -4138,7 +4046,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const onix = MockPokemon.fresh(MockPokemon.base, {
@@ -4182,7 +4089,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["body-slam"],
-      currentPp: { "body-slam": 15 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const pidgeot = MockPokemon.fresh(MockPokemon.base, {
@@ -4216,7 +4122,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["hyper-voice"],
-      currentPp: { "hyper-voice": 10 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const electrode = MockPokemon.fresh(MockPokemon.base, {
@@ -4307,7 +4212,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["toxic"],
-      currentPp: { toxic: 10 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const venomoth = MockPokemon.fresh(MockPokemon.base, {
@@ -4341,7 +4245,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       abilityId: "hustle",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -4359,7 +4262,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const targetWithout = MockPokemon.fresh(MockPokemon.base, {
@@ -4401,7 +4303,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["swift"],
-      currentPp: { swift: 20 },
       abilityId: "analytic",
       lastActedAtAction: 0,
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
@@ -4421,7 +4322,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["swift"],
-      currentPp: { swift: 20 },
       abilityId: "analytic",
       lastActedAtAction: 5,
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
@@ -4467,7 +4367,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       abilityId: "stench",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -4507,7 +4406,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["mega-drain"],
-      currentPp: { "mega-drain": 10 },
       currentHp: 100,
       maxHp: 200,
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
@@ -4551,7 +4449,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       combatStats: { hp: 100, attack: 999, defense: 55, spAttack: 55, spDefense: 55, speed: 55 },
       currentHp: 100,
       maxHp: 100,
@@ -4597,7 +4494,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       abilityId: "infiltrator",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -4637,7 +4533,6 @@ describe("ability system integration", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 2 },
         moveIds: ["sludge-bomb"],
-        currentPp: { "sludge-bomb": 10 },
         abilityId: "serene-grace",
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       }),
@@ -4667,7 +4562,6 @@ describe("ability system integration", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 2 },
         moveIds: ["sludge-bomb"],
-        currentPp: { "sludge-bomb": 10 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       }),
       MockPokemon.fresh(MockPokemon.base, {
@@ -4711,7 +4605,6 @@ describe("ability system integration", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 2 },
         moveIds: ["sludge-bomb"],
-        currentPp: { "sludge-bomb": 10 },
         abilityId: "sheer-force",
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       }),
@@ -4738,7 +4631,6 @@ describe("ability system integration", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 2 },
         moveIds: ["sludge-bomb"],
-        currentPp: { "sludge-bomb": 10 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       }),
       targetWithout,
@@ -4760,7 +4652,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["sludge-bomb"],
-      currentPp: { "sludge-bomb": 10 },
       abilityId: "sheer-force",
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -4810,7 +4701,6 @@ describe("ability system integration", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 2 },
         moveIds: ["scratch"],
-        currentPp: { scratch: 35 },
         abilityId: "sheer-force",
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       }),
@@ -4836,7 +4726,6 @@ describe("ability system integration", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 2 },
         moveIds: ["scratch"],
-        currentPp: { scratch: 35 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       }),
       targetWithout,
@@ -4862,7 +4751,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["earthquake"],
-      currentPp: { earthquake: 10 },
       abilityId: "mold-breaker",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -4899,7 +4787,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["karate-chop"],
-      currentPp: { "karate-chop": 25 },
       abilityId: "mold-breaker",
       combatStats: { hp: 100, attack: 999, defense: 55, spAttack: 55, spDefense: 55, speed: 55 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
@@ -4939,7 +4826,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["kinesis"],
-      currentPp: { kinesis: 15 },
       abilityId: "mold-breaker",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -4975,7 +4861,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       abilityId: "mold-breaker",
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
@@ -5013,7 +4898,6 @@ describe("ability system integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["earthquake"],
-      currentPp: { earthquake: 10 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const gastly = MockPokemon.fresh(MockPokemon.base, {

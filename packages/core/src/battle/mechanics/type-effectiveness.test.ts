@@ -54,8 +54,8 @@ describe("type effectiveness", () => {
 
     expect(estimate).not.toBeNull();
     expect(estimate?.effectiveness).toBe(0);
-    expect(estimate?.min).toBe(0);
-    expect(estimate?.max).toBe(0);
+    expect(estimate!.min).toBe(0);
+    expect(estimate!.max).toBe(0);
   });
 
   it("double super effective: Grass vs Rock/Ground (Geodude) deals x4", () => {
@@ -113,6 +113,6 @@ describe("type effectiveness", () => {
 
     expect(estimate).not.toBeNull();
     expect(estimate?.effectiveness).toBe(0);
-    expect(estimate?.min).toBe(0);
+    expect(estimate!.min).toBe(0);
   });
 });

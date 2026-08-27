@@ -293,8 +293,8 @@ describe("estimateDamage", () => {
       [PokemonType.Normal],
       [PokemonType.Normal],
     );
-    expect(estimate.min).toBeGreaterThan(0);
-    expect(estimate.max).toBeGreaterThanOrEqual(estimate.min);
+    expect(estimate!.min).toBeGreaterThan(0);
+    expect(estimate!.max).toBeGreaterThanOrEqual(estimate!.min);
     expect(estimate.effectiveness).toBe(1);
   });
 
@@ -307,8 +307,8 @@ describe("estimateDamage", () => {
       [PokemonType.Normal],
       [PokemonType.Ghost],
     );
-    expect(estimate.min).toBe(0);
-    expect(estimate.max).toBe(0);
+    expect(estimate!.min).toBe(0);
+    expect(estimate!.max).toBe(0);
     expect(estimate.effectiveness).toBe(0);
   });
 
@@ -322,8 +322,8 @@ describe("estimateDamage", () => {
       [PokemonType.Normal],
       [PokemonType.Normal],
     );
-    expect(estimate.min).toBe(0);
-    expect(estimate.max).toBe(0);
+    expect(estimate!.min).toBe(0);
+    expect(estimate!.max).toBe(0);
   });
 
   it("returns effectiveness=2 for super effective", () => {
@@ -337,7 +337,7 @@ describe("estimateDamage", () => {
       [PokemonType.Grass],
     );
     expect(estimate.effectiveness).toBe(2);
-    expect(estimate.min).toBeGreaterThan(0);
+    expect(estimate!.min).toBeGreaterThan(0);
   });
 
   it("returns effectiveness=0.5 for not very effective", () => {

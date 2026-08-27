@@ -16,7 +16,6 @@ describe("scale-shot", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["scale-shot"],
-      currentPp: { "scale-shot": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -28,7 +27,7 @@ describe("scale-shot", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([attacker, defender]);
-    const hpBefore = state.pokemon.get(defender.id)?.currentHp;
+    const hpBefore = state.pokemon.get(defender.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -54,7 +53,6 @@ describe("scale-shot", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["scale-shot"],
-      currentPp: { "scale-shot": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -86,7 +84,6 @@ describe("scale-shot", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scale-shot"],
-      currentPp: { "scale-shot": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

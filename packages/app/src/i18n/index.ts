@@ -70,7 +70,22 @@ export function translateIn(
   key: TranslationKey,
   params?: Record<string, string | number>,
 ): string {
-  let text = LOCALES[language][key] ?? LOCALES.en[key] ?? key;
+  const own = LOCALES[language][key];
+  if (own === undefined && import.meta.env.DEV) {
+    /*
+     * Le repli sur l'anglais est SILENCIEUX, et c'est un piège mesuré (plan 190 §10) : une clé
+     * absente du seul `fr.ts` produit « Attack de Florizarre augmente ! » — de l'anglais dans une
+     * phrase française, sans aucune alerte. Le type `Translations` verrouille les clés littérales,
+     * mais il ne voit rien des clés COMPOSÉES à l'exécution (`battleLog.status.${status}.applied`),
+     * qui n'existent dans aucun type.
+     *
+     * On garde le repli (mieux qu'une clé brute à l'écran pour le joueur) et on le rend bruyant
+     * hors production, là où quelqu'un peut encore le corriger.
+     */
+    // biome-ignore lint/suspicious/noConsole: diagnostique de développement uniquement — le repli sur l'anglais reste silencieux pour le joueur, et c'est la seule trace d'une clé manquante que le type `Translations` ne peut pas voir (clés composées à l'exécution)
+    console.warn(`[i18n] clé absente de « ${language} », repli sur l'anglais : ${key}`);
+  }
+  let text = own ?? LOCALES.en[key] ?? key;
   if (params) {
     for (const [paramKey, value] of Object.entries(params)) {
       text = text.replaceAll(`{${paramKey}}`, String(value));

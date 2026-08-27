@@ -110,7 +110,7 @@ describe("ChargeTimeTurnSystem", () => {
     const after = system.getCtSnapshot();
     expect(after.fast).toBe(before.fast);
     expect(after.slow).toBe(before.slow);
-    expect(after.target).toBeGreaterThan(Math.max(after.fast, after.slow));
+    expect(after.target).toBeGreaterThan(Math.max(after.fast ?? 0, after.slow ?? 0));
     expect(after.target).toBeGreaterThanOrEqual(CT_THRESHOLD);
   });
 

@@ -51,7 +51,7 @@
     grid-template-columns: var(--tt-active-size) auto;
     grid-template-rows: auto minmax(0, 1fr);
     justify-items: start;
-    gap: var(--spacing-xs);
+    gap: var(--bc-pad-xs);
 
     /* Format téléphone (plan 179) : la vignette active y est plus grande, la réserve suit. */
     @container stage ((height < 500px) or (width < 900px)) {
@@ -100,7 +100,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--spacing-xs);
+    gap: var(--bc-pad-xs);
     /* Takes the timeline's remaining height and scrolls the rest of the predicted
        order; the count of visible portraits adapts to the available space. */
     min-block-size: 0;
@@ -128,7 +128,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--spacing-sm);
+    gap: var(--bc-pad-sm);
     /* Un cadre d'annotation : les clics vont au plateau (la légende n'a jamais rien à recevoir). */
     pointer-events: none;
   }
@@ -183,7 +183,7 @@
     inline-size: var(--tt-size);
     block-size: var(--tt-size);
     border: 2px solid var(--tt-team, var(--color-border-surface));
-    border-radius: var(--radius-sm);
+    border-radius: var(--bc-radius-sm);
     image-rendering: pixelated;
     .tt-entry[data-active="true"] &,
     .tt-entry[data-self="true"] & {

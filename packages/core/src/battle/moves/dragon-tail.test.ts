@@ -14,7 +14,6 @@ describe("dragon-tail", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["dragon-tail"],
-      currentPp: { "dragon-tail": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -24,7 +23,7 @@ describe("dragon-tail", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([attacker, defender]);
-    const hpBefore = state.pokemon.get(defender.id)?.currentHp;
+    const hpBefore = state.pokemon.get(defender.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -49,7 +48,6 @@ describe("dragon-tail", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["dragon-tail"],
-      currentPp: { "dragon-tail": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const front = MockPokemon.fresh(MockPokemon.base, {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
+import { Direction } from "../enums/direction";
 import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
 import { buildItemTestEngine, MockBattle, MockPokemon } from "../testing";
@@ -117,6 +118,7 @@ describe("applyRevealsFromEvents", () => {
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
       pokemonId: "holder",
+      direction: Direction.North,
     });
 
     expect(result.events.map((event) => event.type)).toContain(BattleEventType.HeldItemActivated);

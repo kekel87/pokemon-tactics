@@ -184,4 +184,6 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 188 | [Refonte de l'écran de sélection d'équipe + passe manette (Team Builder & modales)](./188-refonte-selection-equipe-passe-manette.md) | done | 2026-08-25 |
 | 189 | [Panoramique clavier, menu de combat au placement, découvrabilité du défilement](./189-panoramique-clavier-menu-placement-decouvrabilite.md) | done | 2026-08-26 |
 | 190 | [Migration i18n du journal de combat](./190-i18n-journal-de-combat.md) | done | 2026-08-27 |
-| 191 | [Le match nul, ou sa suppression : K.O. simultanés d'une même résolution](./191-match-nul-ko-simultane.md) | draft | 2026-08-27 |
+| 191 | [Match nul sur K.O. simultanés d'une même résolution](./191-match-nul-ko-simultane.md) | done | 2026-08-27 |
+| 192 | [Infobulle d'attaque : modificateurs contextuels](./192-infobulle-modificateurs-contextuels.md) | done | 2026-08-27 |
+| 193 | [Verrouiller le typecheck des fichiers de test](./193-typecheck-des-tests.md) | done | 2026-08-27 |

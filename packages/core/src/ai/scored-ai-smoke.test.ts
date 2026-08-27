@@ -102,11 +102,6 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
       }
       const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
       const activeMoveIds = definition.movepool.slice(0, 4);
-      const currentPp: Record<string, number> = {};
-      for (const moveId of activeMoveIds) {
-        const move = moveRegistry.get(moveId);
-        currentPp[moveId] = move?.pp ?? 0;
-      }
       const instance: PokemonInstance = {
         id: placement.pokemonId,
         definitionId: definition.id,
@@ -126,14 +121,14 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
         position: placement.position,
         orientation: Direction.South,
         moveIds: activeMoveIds,
-        currentPp,
         activeDefense: null,
-        lastEndureRound: null,
         toxicCounter: 0,
         volatileStatuses: [],
         recharging: false,
         gender: PokemonGender.Genderless,
         nature: Nature.Hardy,
+        weight: 50,
+        lastEndureAtAction: null,
       };
       pokemonMap.set(instance.id, instance);
       const row = grid[placement.position.y];
@@ -148,10 +143,6 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
     const state: BattleState = {
       grid,
       pokemon: pokemonMap,
-      turnOrder: [],
-      currentTurnIndex: 0,
-      roundNumber: 1,
-      predictedNextRoundOrder: [],
       weather: Weather.None,
       weatherTurnsRemaining: 0,
       auras: [],
@@ -160,6 +151,7 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
       fieldGlobalZones: [],
       entryHazards: [],
       pendingStrikes: [],
+      activePokemonId: "",
     };
 
     const seed = 42;

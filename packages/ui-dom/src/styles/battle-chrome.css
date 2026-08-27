@@ -391,6 +391,14 @@
     inline-size: 100%;
     justify-content: flex-start;
     text-align: start;
+    /*
+     * Arrondi repris sur l'échelle du sous-arbre. `.tb-btn` porte `border-radius: var(--radius-sm)`
+     * = 4px FIXE (`components/button.css`) et il est PARTAGÉ avec le Team Builder, qui doit rester
+     * sur son propre système — d'où l'override ciblé ici plutôt qu'une édition en place. Sans lui,
+     * en 4K le panneau était à 12px, les lignes d'attaque à 8px et les lignes de menu à 4px, dans
+     * le même panneau (revue de code du plan 190).
+     */
+    border-radius: var(--bc-radius-sm);
   }
 
   .bc-move-list {

@@ -13,7 +13,6 @@ describe("knockback", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["dragon-tail"],
-      currentPp: { "dragon-tail": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       ...overrides,
     });
@@ -98,7 +97,7 @@ describe("knockback", () => {
     const attacker = makeAttacker({ position: { x: 4, y: 2 } });
     const foe = makeFoe({ position: { x: 5, y: 2 } });
     const { engine, state } = buildMoveTestEngine([attacker, foe]);
-    const hpBefore = state.pokemon.get(foe.id)?.currentHp;
+    const hpBefore = state.pokemon.get(foe.id)!.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

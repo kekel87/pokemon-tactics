@@ -14,7 +14,6 @@ describe("mean-look", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["mean-look"],
-      currentPp: { "mean-look": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -24,7 +23,7 @@ describe("mean-look", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([caster, target]);
-    const hpBefore = state.pokemon.get(target.id)?.currentHp;
+    const hpBefore = state.pokemon.get(target.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -53,7 +52,6 @@ describe("mean-look", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["mean-look"],
-      currentPp: { "mean-look": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -61,7 +59,6 @@ describe("mean-look", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([caster, target]);
@@ -94,7 +91,6 @@ describe("mean-look", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["mean-look"],
-      currentPp: { "mean-look": 5 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {

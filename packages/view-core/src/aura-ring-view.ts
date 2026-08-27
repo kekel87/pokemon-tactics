@@ -18,7 +18,7 @@ import {
   type Position,
   UPROAR_AURA_RADIUS,
 } from "@pokemon-tactic/core";
-import type { AuraRingKind, AuraRingSpec } from "@pokemon-tactic/render-ports";
+import { AuraRingKind, type AuraRingSpec } from "@pokemon-tactic/render-ports";
 import { AURA_RING_COLOR_BY_KIND } from "./constants";
 
 /** Tile lookup for an aura zone — `Grid.getTilesInRange` clips to the map for us. */
@@ -82,7 +82,7 @@ export function buildAuraRingSpecs(
     // Requiem carries its own radius — the only aura whose radius is not a constant.
     if (pokemon.perishAura !== undefined) {
       pending.push({
-        kind: "perish-aura",
+        kind: AuraRingKind.PerishAura,
         caster: pokemon,
         radius: pokemon.perishAura.radius,
         postedAtAction: undefined,
@@ -90,7 +90,7 @@ export function buildAuraRingSpecs(
     }
     if (isUproarLocked(pokemon)) {
       pending.push({
-        kind: "uproar",
+        kind: AuraRingKind.Uproar,
         caster: pokemon,
         radius: UPROAR_AURA_RADIUS,
         postedAtAction: undefined,

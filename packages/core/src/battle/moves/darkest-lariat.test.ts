@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
 import { StatName } from "../../enums/stat-name";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, MockPokemon, ZERO_STAT_STAGES } from "../../testing";
 
 function damageAgainst(defenseStage: number): number {
   const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -22,6 +22,7 @@ function damageAgainst(defenseStage: number): number {
     combatStats: { hp: 400, attack: 50, defense: 100, spAttack: 50, spDefense: 100, speed: 10 },
     derivedStats: { movement: 3, jump: 1, initiative: 10 },
     statStages: {
+      ...ZERO_STAT_STAGES,
       [StatName.Attack]: 0,
       [StatName.Defense]: defenseStage,
       [StatName.SpAttack]: 0,

@@ -19,7 +19,6 @@ function fresh(base: PokemonInstance, overrides: Partial<PokemonInstance>): Poke
     statStages: { ...base.statStages },
     statusEffects: [],
     moveIds: [...base.moveIds],
-    currentPp: { ...base.currentPp },
     volatileStatuses: [],
     ...overrides,
   };
@@ -92,9 +91,6 @@ describe("replay-runner", () => {
     const p2a = state1.pokemon.get("p2-bulbasaur");
     const p2b = state2.pokemon.get("p2-bulbasaur");
     expect(p2a?.currentHp).toBe(p2b?.currentHp);
-
-    expect(state1.roundNumber).toBe(state2.roundNumber);
-    expect(state1.currentTurnIndex).toBe(state2.currentTurnIndex);
   });
 
   it("reports the events of each replayed action", () => {
@@ -128,7 +124,7 @@ describe("replay-runner", () => {
       seed: 42,
       actions: [
         {
-          kind: ActionKind.UseMove as const,
+          kind: ActionKind.UseMove,
           pokemonId: "p1-charmander",
           moveId: "nonexistent-move",
           targetPosition: { x: 1, y: 0 },

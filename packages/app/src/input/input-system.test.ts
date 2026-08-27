@@ -32,7 +32,7 @@ afterEach(() => {
 describe("mode capture (plan 186)", () => {
   it("détourne la frappe vers le récepteur au lieu de la router", () => {
     const press = stubWindow();
-    system = createInputSystem(null);
+    system = createInputSystem();
     const rotate = vi.fn();
     system.register({
       context: () => "board",
@@ -47,6 +47,8 @@ describe("mode capture (plan 186)", () => {
         setZoomLevel: vi.fn(),
         scrollLog: vi.fn(),
         scrollTimeline: vi.fn(),
+        toggleLog: vi.fn(),
+        openCombatMenu: vi.fn(),
       },
     });
     const captured: (CapturedInput | null)[] = [];
@@ -60,7 +62,7 @@ describe("mode capture (plan 186)", () => {
 
   it("garde Maj comme partie du binding capturé", () => {
     const press = stubWindow();
-    system = createInputSystem(null);
+    system = createInputSystem();
     const captured: (CapturedInput | null)[] = [];
     system.beginCapture((value) => captured.push(value));
 
@@ -71,7 +73,7 @@ describe("mode capture (plan 186)", () => {
 
   it("annule sur Échap, sans l'assigner (décision 8)", () => {
     const press = stubWindow();
-    system = createInputSystem(null);
+    system = createInputSystem();
     const captured: (CapturedInput | null)[] = [];
     system.beginCapture((value) => captured.push(value));
 
@@ -82,7 +84,7 @@ describe("mode capture (plan 186)", () => {
 
   it("ignore une frappe à Ctrl / Alt / Meta sans clore la capture", () => {
     const press = stubWindow();
-    system = createInputSystem(null);
+    system = createInputSystem();
     const captured: (CapturedInput | null)[] = [];
     system.beginCapture((value) => captured.push(value));
 
@@ -95,7 +97,7 @@ describe("mode capture (plan 186)", () => {
 
   it("rend la main au routeur une fois la capture close", () => {
     const press = stubWindow();
-    system = createInputSystem(null);
+    system = createInputSystem();
     const rotate = vi.fn();
     system.register({
       context: () => "board",
@@ -110,6 +112,8 @@ describe("mode capture (plan 186)", () => {
         setZoomLevel: vi.fn(),
         scrollLog: vi.fn(),
         scrollTimeline: vi.fn(),
+        toggleLog: vi.fn(),
+        openCombatMenu: vi.fn(),
       },
     });
     system.beginCapture(() => undefined);
@@ -122,7 +126,7 @@ describe("mode capture (plan 186)", () => {
 
   it("annule la capture par la fonction rendue (le bouton « Annuler » de l'écran)", () => {
     stubWindow();
-    system = createInputSystem(null);
+    system = createInputSystem();
     const captured: (CapturedInput | null)[] = [];
 
     const cancel = system.beginCapture((value) => captured.push(value));
@@ -133,7 +137,7 @@ describe("mode capture (plan 186)", () => {
 
   it("annule la capture en cours quand une seconde s'ouvre", () => {
     stubWindow();
-    system = createInputSystem(null);
+    system = createInputSystem();
     const first: (CapturedInput | null)[] = [];
 
     system.beginCapture((value) => first.push(value));

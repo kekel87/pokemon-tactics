@@ -5,6 +5,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { HeldItemId } from "../../enums/held-item-id";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
+import { Weather } from "../../enums/weather";
 import { buildItemTestEngine, MockMove, MockPokemon } from "../../testing";
 import type { DamageModifyContext } from "../../types/ability-definition";
 import type { PokemonInstance } from "../../types/pokemon-instance";
@@ -18,6 +19,9 @@ function defenseContext(self: PokemonInstance): DamageModifyContext {
     attackerTypes: [],
     defenderTypes: [],
     effectiveness: 1,
+    isCrit: false,
+    weather: Weather.None,
+    targetAlreadyActed: false,
   };
 }
 

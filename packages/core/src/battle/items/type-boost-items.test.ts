@@ -5,6 +5,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { HeldItemId } from "../../enums/held-item-id";
 import { PlayerId } from "../../enums/player-id";
 import { PokemonType } from "../../enums/pokemon-type";
+import { Weather } from "../../enums/weather";
 import { buildItemTestEngine, MockMove, MockPokemon } from "../../testing";
 import type { DamageModifyContext } from "../../types/ability-definition";
 
@@ -40,6 +41,9 @@ function modifyContext(moveType: PokemonType, isAttacker: boolean): DamageModify
     attackerTypes: [],
     defenderTypes: [],
     effectiveness: 1,
+    isCrit: false,
+    weather: Weather.None,
+    targetAlreadyActed: false,
   };
 }
 

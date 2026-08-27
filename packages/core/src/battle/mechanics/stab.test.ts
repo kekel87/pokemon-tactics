@@ -20,7 +20,6 @@ describe("STAB", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["ember"],
-      currentPp: { ember: 25 },
     });
     const bulbasaur2 = MockPokemon.fresh(MockPokemon.bulbasaur, {
       playerId: PlayerId.Player2,
@@ -32,9 +31,9 @@ describe("STAB", () => {
 
     expect(stabEstimate).not.toBeNull();
     expect(noStabEstimate).not.toBeNull();
-    expect(stabEstimate?.min).toBeGreaterThan(noStabEstimate?.min);
-    expect(stabEstimate?.max).toBeGreaterThan(noStabEstimate?.max);
-    expect(stabEstimate?.min / noStabEstimate?.min).toBeCloseTo(1.5, 0);
+    expect(stabEstimate!.min).toBeGreaterThan(noStabEstimate!.min);
+    expect(stabEstimate!.max).toBeGreaterThan(noStabEstimate!.max);
+    expect(stabEstimate!.min / noStabEstimate!.min).toBeCloseTo(1.5, 0);
   });
 
   it("Pidgey Wing Attack (Flying move, Normal/Flying Pokemon) has STAB", () => {
@@ -51,7 +50,6 @@ describe("STAB", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["wing-attack"],
-      currentPp: { "wing-attack": 35 },
     });
     const charmander2 = MockPokemon.fresh(MockPokemon.charmander, {
       playerId: PlayerId.Player2,
@@ -70,8 +68,8 @@ describe("STAB", () => {
 
     expect(stabEstimate).not.toBeNull();
     expect(noStabEstimate).not.toBeNull();
-    expect(stabEstimate?.min).toBeGreaterThan(noStabEstimate?.min);
-    expect(stabEstimate?.min / noStabEstimate?.min).toBeCloseTo(1.5, 0);
+    expect(stabEstimate!.min).toBeGreaterThan(noStabEstimate!.min);
+    expect(stabEstimate!.min / noStabEstimate!.min).toBeCloseTo(1.5, 0);
   });
 
   it("Charmander Scratch (Normal move, Fire Pokemon) has no STAB", () => {
@@ -90,7 +88,6 @@ describe("STAB", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
     });
     const bulbasaur2 = MockPokemon.fresh(MockPokemon.bulbasaur, {
       playerId: PlayerId.Player2,
@@ -109,7 +106,7 @@ describe("STAB", () => {
 
     expect(charmanderEstimate).not.toBeNull();
     expect(noFireEstimate).not.toBeNull();
-    expect(charmanderEstimate?.min).toBe(noFireEstimate?.min);
-    expect(charmanderEstimate?.max).toBe(noFireEstimate?.max);
+    expect(charmanderEstimate!.min).toBe(noFireEstimate!.min);
+    expect(charmanderEstimate!.max).toBe(noFireEstimate!.max);
   });
 });

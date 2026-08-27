@@ -13,7 +13,6 @@ function attacker(overrides: Partial<Parameters<typeof MockPokemon.fresh>[1]> = 
     playerId: PlayerId.Player1,
     position: { x: 1, y: 2 },
     moveIds: ["guillotine"],
-    currentPp: { guillotine: 5 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
     ...overrides,
   });
@@ -133,7 +132,7 @@ describe("OHKO family", () => {
   it("Abîme (Ground) does not affect a Flying target", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const { engine, state } = buildMoveTestEngine([
-      attacker({ moveIds: ["fissure"], currentPp: { fissure: 5 } }),
+      attacker({ moveIds: ["fissure"] }),
       foe({ definitionId: "pidgey", currentHp: 200, maxHp: 200 }),
     ]);
 
@@ -151,7 +150,7 @@ describe("OHKO family", () => {
   it("Glaciation does not affect an Ice-type target", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const { engine, state } = buildMoveTestEngine([
-      attacker({ definitionId: "lapras", moveIds: ["sheer-cold"], currentPp: { "sheer-cold": 5 } }),
+      attacker({ definitionId: "lapras", moveIds: ["sheer-cold"] }),
       foe({ definitionId: "dewgong", currentHp: 200, maxHp: 200 }),
     ]);
 
@@ -170,7 +169,7 @@ describe("OHKO family", () => {
     vi.spyOn(Math, "random").mockReturnValueOnce(0).mockReturnValueOnce(0.99).mockReturnValue(0.99);
     const secondFoe = foe({ id: "foe2", position: { x: 3, y: 2 }, currentHp: 250, maxHp: 250 });
     const { engine, state } = buildMoveTestEngine([
-      attacker({ moveIds: ["fissure"], currentPp: { fissure: 5 } }),
+      attacker({ moveIds: ["fissure"] }),
       foe(),
       secondFoe,
     ]);

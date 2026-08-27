@@ -12,7 +12,6 @@ describe("self-destruct", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["self-destruct"],
-      currentPp: { "self-destruct": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -24,7 +23,7 @@ describe("self-destruct", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, foe]);
-    const hpBefore = state.pokemon.get(foe.id)?.currentHp;
+    const hpBefore = state.pokemon.get(foe.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -46,7 +45,6 @@ describe("self-destruct", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["self-destruct"],
-      currentPp: { "self-destruct": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe1 = MockPokemon.fresh(MockPokemon.base, {
@@ -93,7 +91,6 @@ describe("self-destruct", () => {
       currentHp: 100,
       maxHp: 100,
       moveIds: ["self-destruct"],
-      currentPp: { "self-destruct": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -128,7 +125,6 @@ describe("self-destruct", () => {
       currentHp: 100,
       maxHp: 100,
       moveIds: ["self-destruct"],
-      currentPp: { "self-destruct": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const farFoe = MockPokemon.fresh(MockPokemon.base, {
@@ -161,7 +157,6 @@ describe("self-destruct", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["self-destruct"],
-      currentPp: { "self-destruct": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const farFoe = MockPokemon.fresh(MockPokemon.base, {
@@ -173,7 +168,7 @@ describe("self-destruct", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, farFoe]);
-    const hpBefore = state.pokemon.get(farFoe.id)?.currentHp;
+    const hpBefore = state.pokemon.get(farFoe.id)!.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

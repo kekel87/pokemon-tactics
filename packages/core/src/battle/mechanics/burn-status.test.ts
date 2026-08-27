@@ -68,9 +68,9 @@ describe("burn status", () => {
 
     expect(normalEstimate).not.toBeNull();
     expect(burnedEstimate).not.toBeNull();
-    expect(burnedEstimate?.max).toBeLessThan(normalEstimate?.max);
-    expect(burnedEstimate?.max).toBeLessThanOrEqual(Math.ceil(normalEstimate?.max / 2) + 1);
-    expect(burnedEstimate?.max).toBeGreaterThanOrEqual(Math.floor(normalEstimate?.max / 2) - 1);
+    expect(burnedEstimate!.max).toBeLessThan(normalEstimate!.max);
+    expect(burnedEstimate!.max).toBeLessThanOrEqual(Math.ceil(normalEstimate!.max / 2) + 1);
+    expect(burnedEstimate!.max).toBeGreaterThanOrEqual(Math.floor(normalEstimate!.max / 2) - 1);
   });
 
   it("does not halve Special move damage", () => {
@@ -101,7 +101,7 @@ describe("burn status", () => {
 
     expect(normalEstimate).not.toBeNull();
     expect(burnedEstimate).not.toBeNull();
-    expect(burnedEstimate?.min).toBe(normalEstimate?.min);
-    expect(burnedEstimate?.max).toBe(normalEstimate?.max);
+    expect(burnedEstimate!.min).toBe(normalEstimate!.min);
+    expect(burnedEstimate!.max).toBe(normalEstimate!.max);
   });
 });

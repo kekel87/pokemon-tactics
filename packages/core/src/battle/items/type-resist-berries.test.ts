@@ -2,6 +2,7 @@ import { itemHandlers } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
 import { HeldItemId } from "../../enums/held-item-id";
 import { PokemonType } from "../../enums/pokemon-type";
+import { Weather } from "../../enums/weather";
 import { MockMove, MockPokemon } from "../../testing";
 import type { DamageModifyContext } from "../../types/ability-definition";
 import type { AfterItemDamageContext } from "../../types/held-item-definition";
@@ -39,6 +40,9 @@ function modifyContext(
     isAttacker,
     attackerTypes: [],
     defenderTypes: [],
+    isCrit: false,
+    weather: Weather.None,
+    targetAlreadyActed: false,
     effectiveness,
   };
 }

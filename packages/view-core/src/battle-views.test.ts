@@ -30,6 +30,7 @@ const testContext: PresentationContext = {
   getPokemonTypes: () => ["electric"],
   getTypeIconUrl: (type) => `assets/ui/types/${type}.png`,
   getStatusIconUrl: (kind) => `assets/ui/statuses/icon-${kind}.png`,
+  getStatusLabelUrl: (kind) => `assets/ui/statuses/label-${kind}.png`,
   isDamagePreviewEnabled: () => false,
   isEnemyInfoHidden: () => false,
 };
@@ -131,8 +132,8 @@ describe("buildInfoPanelView", () => {
     expect(view.isAlly).toBe(true);
     expect(view.ability).toBe("ability:static");
     expect(view.stats).toHaveLength(5);
-    expect(view.stats?.[0].natureEffect).toBe("lower");
-    expect(view.stats?.[2].natureEffect).toBe("boost");
+    expect(view.stats?.[0]?.natureEffect).toBe("lower");
+    expect(view.stats?.[2]?.natureEffect).toBe("boost");
     const attack = view.stats?.[0];
     expect(attack).toMatchObject({ value: 80, stage: 2, modified: 160 });
     const spAttack = view.stats?.[2];
@@ -226,9 +227,9 @@ describe("buildInfoPanelView", () => {
   it("drops the substitute hp figure under fog", () => {
     const pokemon = makePokemon({ substituteHp: 45 } as unknown as Partial<PokemonInstance>);
     const clear = buildInfoPanelView(testContext, pokemon, makeState([pokemon]), false);
-    expect(clear.badges[0].label).toBe("infoPanel.volatile.substitute");
+    expect(clear.badges[0]?.label).toBe("infoPanel.volatile.substitute");
     const fogged = buildInfoPanelView(foggedContext, pokemon, makeState([pokemon]), false);
-    expect(fogged.badges[0].label).toBe("infoPanel.volatile.substituteHidden");
+    expect(fogged.badges[0]?.label).toBe("infoPanel.volatile.substituteHidden");
   });
 
   it("badges the caster's own aura", () => {

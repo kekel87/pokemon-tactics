@@ -148,7 +148,10 @@ describe("buildCombatPreviewView", () => {
 
   it("names a known survival guard, the one case colour cannot convey", () => {
     const scene = scenario({ currentHp: 1 });
-    pokemonOf(scene, "defender").activeDefense = { kind: DefensiveKind.Endure };
+    pokemonOf(scene, "defender").activeDefense = {
+      kind: DefensiveKind.Endure,
+      appliedAtAction: 0,
+    };
 
     expect(build(scene, ["defender"])?.target.preview?.verdictLabel).toContain(
       "combatPreview.guard.endure",
@@ -316,7 +319,7 @@ describe("buildCombatPreviewView", () => {
     const clear = build(scene, ["defender"]);
     const fogged = build(scene, ["defender"], 0, TACKLE, foggedContext);
     const hpMax = clear?.target.hpMax ?? 0;
-    const [min, max] = (clear?.attack.damageValue ?? "").split("–").map(Number);
+    const [min = 0, max = 0] = (clear?.attack.damageValue ?? "").split("–").map(Number);
 
     expect(fogged?.attack.damageUnitLabel).toBe("combatPreview.damageUnitPercent");
     expect(fogged?.attack.damageValue).toBe(

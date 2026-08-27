@@ -1,3 +1,4 @@
+import { typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
@@ -34,14 +35,12 @@ function buildEndTurnEngine(terrain: TerrainType, actorTypes: PokemonType[], hp 
   });
   const state = MockBattle.stateFrom([actor, dummy], 5, 5);
   MockBattle.setTile(state, 0, 0, { terrain });
-  state.turnOrder = ["actor", "dummy"];
-  state.currentTurnIndex = 0;
   const pokemonTypesMap = new Map<string, PokemonType[]>([
     ["test-actor", actorTypes],
     ["test", [PokemonType.Normal]],
   ]);
   return {
-    engine: new BattleEngine(state, new Map(), {}, pokemonTypesMap),
+    engine: new BattleEngine(state, new Map(), typeChart, pokemonTypesMap),
     state,
     actor,
   };
@@ -65,7 +64,6 @@ function buildAttackEngine(attackerTerrain: TerrainType) {
     definitionId: "test-attacker",
     position: { x: 0, y: 0 },
     moveIds: ["test-fire"],
-    currentPp: { "test-fire": 10 },
     playerId: PlayerId.Player1,
   });
   const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -78,15 +76,20 @@ function buildAttackEngine(attackerTerrain: TerrainType) {
   });
   const state = MockBattle.stateFrom([attacker, defender], 5, 5);
   MockBattle.setTile(state, 0, 0, { terrain: attackerTerrain });
-  state.turnOrder = ["attacker", "defender"];
-  state.currentTurnIndex = 0;
   const pokemonTypesMap = new Map<string, PokemonType[]>([
     ["test-attacker", [PokemonType.Normal]],
     ["test", [PokemonType.Normal]],
   ]);
   const moveRegistry = new Map<string, MoveDefinition>([["test-fire", testFireMove]]);
   return {
-    engine: new BattleEngine(state, moveRegistry, {}, pokemonTypesMap, undefined, createPrng(0)),
+    engine: new BattleEngine(
+      state,
+      moveRegistry,
+      typeChart,
+      pokemonTypesMap,
+      undefined,
+      createPrng(0),
+    ),
     state,
     defender,
   };
@@ -202,7 +205,6 @@ describe("terrain integration — ice slide after knockback", () => {
       definitionId: "test-attacker",
       position: { x: 0, y: 0 },
       moveIds: ["test-knockback"],
-      currentPp: { "test-knockback": 10 },
       playerId: PlayerId.Player1,
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -219,15 +221,12 @@ describe("terrain integration — ice slide after knockback", () => {
     MockBattle.setTile(state, 3, 0, { terrain: TerrainType.Ice });
     MockBattle.setTile(state, 4, 0, { terrain: TerrainType.Ice });
 
-    state.turnOrder = ["attacker", "target"];
-    state.currentTurnIndex = 0;
-
     const moveRegistry = new Map<string, MoveDefinition>([["test-knockback", knockbackMove]]);
     const pokemonTypesMap = new Map<string, PokemonType[]>([
       ["test-attacker", [PokemonType.Normal]],
       ["test", [PokemonType.Normal]],
     ]);
-    const engine = new BattleEngine(state, moveRegistry, {}, pokemonTypesMap);
+    const engine = new BattleEngine(state, moveRegistry, typeChart, pokemonTypesMap);
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

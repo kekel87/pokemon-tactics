@@ -11,7 +11,6 @@ describe("soft-boiled", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["soft-boiled"],
-      currentPp: { "soft-boiled": 10 },
       currentHp: 50,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -42,7 +41,6 @@ describe("soft-boiled", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["soft-boiled"],
-      currentPp: { "soft-boiled": 10 },
       currentHp: 190,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -71,7 +69,6 @@ describe("soft-boiled", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["soft-boiled"],
-      currentPp: { "soft-boiled": 10 },
       currentHp: 200,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -100,7 +97,6 @@ describe("soft-boiled", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["soft-boiled"],
-      currentPp: { "soft-boiled": 10 },
       currentHp: 50,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -112,7 +108,7 @@ describe("soft-boiled", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, foe]);
-    const foeHpBefore = state.pokemon.get(foe.id)?.currentHp;
+    const foeHpBefore = state.pokemon.get(foe.id)!.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

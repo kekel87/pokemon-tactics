@@ -71,7 +71,6 @@ describe("TurnPipeline", () => {
     const event1: BattleEvent = {
       type: BattleEventType.TurnStarted,
       pokemonId: "p1",
-      roundNumber: 1,
     };
     const event2: BattleEvent = { type: BattleEventType.TurnEnded, pokemonId: "p1" };
     pipeline.registerStartTurn(

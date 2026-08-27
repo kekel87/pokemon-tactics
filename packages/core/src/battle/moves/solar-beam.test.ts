@@ -4,6 +4,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
 import { Weather } from "../../enums/weather";
 import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import type { Action } from "../../types/action";
 
 describe("solar-beam", () => {
   it("T1 charge locks caster on solar-beam without dealing damage", () => {
@@ -12,7 +13,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -44,7 +44,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 9 },
       chargingMove: { moveId: "solar-beam", targetPosition: { x: 0, y: 0 } },
       lockedMoveId: "solar-beam",
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -81,7 +80,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 9 },
       chargingMove: { moveId: "solar-beam", targetPosition: { x: 0, y: 0 } },
       lockedMoveId: "solar-beam",
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -124,7 +122,6 @@ describe("solar-beam — sun skips the charge turn", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -138,7 +135,10 @@ describe("solar-beam — sun skips the charge turn", () => {
 
     const moveActions = engine
       .getLegalActions(PlayerId.Player1)
-      .filter((a) => a.kind === ActionKind.UseMove && a.moveId === "solar-beam");
+      .filter(
+        (a): a is Extract<Action, { kind: typeof ActionKind.UseMove }> =>
+          a.kind === ActionKind.UseMove && a.moveId === "solar-beam",
+      );
 
     expect(moveActions.length).toBeGreaterThan(0);
     expect(
@@ -161,7 +161,6 @@ describe("solar-beam — sun skips the charge turn", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -175,7 +174,10 @@ describe("solar-beam — sun skips the charge turn", () => {
 
     const moveActions = engine
       .getLegalActions(PlayerId.Player1)
-      .filter((a) => a.kind === ActionKind.UseMove && a.moveId === "solar-beam");
+      .filter(
+        (a): a is Extract<Action, { kind: typeof ActionKind.UseMove }> =>
+          a.kind === ActionKind.UseMove && a.moveId === "solar-beam",
+      );
 
     expect(moveActions).toHaveLength(1);
     expect(moveActions[0]?.targetPosition).toEqual(attacker.position);
@@ -187,7 +189,6 @@ describe("solar-beam — sun skips the charge turn", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {

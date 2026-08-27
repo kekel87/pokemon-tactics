@@ -1,3 +1,4 @@
+import { typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
 import { ActionError } from "../enums/action-error";
 import { ActionKind } from "../enums/action-kind";
@@ -28,7 +29,7 @@ function buildEngine(pokemonTypes: PokemonType[], movement = 4) {
     ["test-pokemon", pokemonTypes],
     ["test", [PokemonType.Normal]],
   ]);
-  const engine = new BattleEngine(state, new Map(), {}, pokemonTypesMap);
+  const engine = new BattleEngine(state, new Map(), typeChart, pokemonTypesMap);
   engine.pinActiveForTest("mover");
   return { engine, state };
 }

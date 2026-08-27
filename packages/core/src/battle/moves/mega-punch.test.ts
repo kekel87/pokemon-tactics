@@ -15,7 +15,6 @@ describe("mega-punch", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["mega-punch"],
-      currentPp: { "mega-punch": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -25,7 +24,7 @@ describe("mega-punch", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, foe]);
-    const hpBefore = state.pokemon.get(foe.id)?.currentHp;
+    const hpBefore = state.pokemon.get(foe.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -46,7 +45,6 @@ describe("mega-punch", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["mega-punch"],
-      currentPp: { "mega-punch": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

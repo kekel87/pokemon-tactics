@@ -11,7 +11,6 @@ describe("synthesis", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["synthesis"],
-      currentPp: { synthesis: 5 },
       currentHp: 50,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -42,7 +41,6 @@ describe("synthesis", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["synthesis"],
-      currentPp: { synthesis: 5 },
       currentHp: 190,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -71,7 +69,6 @@ describe("synthesis", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["synthesis"],
-      currentPp: { synthesis: 5 },
       currentHp: 50,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -83,7 +80,7 @@ describe("synthesis", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, foe]);
-    const foHpBefore = state.pokemon.get(foe.id)?.currentHp;
+    const foHpBefore = state.pokemon.get(foe.id)!.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,

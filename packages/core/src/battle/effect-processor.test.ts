@@ -28,7 +28,6 @@ function fresh(base: PokemonInstance, overrides?: Partial<PokemonInstance>): Pok
     statStages: { ...base.statStages },
     statusEffects: [...base.statusEffects],
     moveIds: [...base.moveIds],
-    currentPp: { ...base.currentPp },
     ...overrides,
   };
 }
@@ -84,10 +83,6 @@ function makeContext(
   const fullState: BattleState = {
     grid: [],
     pokemon: new Map(),
-    turnOrder: [],
-    currentTurnIndex: 0,
-    roundNumber: 1,
-    predictedNextRoundOrder: [],
     weather: Weather.None,
     weatherTurnsRemaining: 0,
     auras: [],
@@ -96,6 +91,7 @@ function makeContext(
     fieldGlobalZones: [],
     entryHazards: [],
     pendingStrikes: [],
+    activePokemonId: "",
     ...state,
   };
   return {
@@ -110,6 +106,8 @@ function makeContext(
     heightModifier: 1.0,
     terrainModifier: 1.0,
     facingModifierMap: new Map<string, number>(),
+    moveTypeOf: () => undefined,
+    targetPosition: { x: 0, y: 0 },
   };
 }
 
@@ -236,10 +234,6 @@ describe("processEffects — status", () => {
       state: {
         grid: [],
         pokemon: new Map(),
-        turnOrder: [],
-        currentTurnIndex: 0,
-        roundNumber: 1,
-        predictedNextRoundOrder: [],
         weather: Weather.None,
         weatherTurnsRemaining: 0,
         auras: [],
@@ -248,6 +242,7 @@ describe("processEffects — status", () => {
         fieldGlobalZones: [],
         entryHazards: [],
         pendingStrikes: [],
+        activePokemonId: "",
       } as BattleState,
       typeChart: immuneChart,
       attackerTypes: [PokemonType.Electric] as PokemonType[],
@@ -256,6 +251,8 @@ describe("processEffects — status", () => {
       heightModifier: 1.0,
       terrainModifier: 1.0,
       facingModifierMap: new Map<string, number>(),
+      moveTypeOf: () => undefined,
+      targetPosition: { x: 0, y: 0 },
     };
 
     const events = processEffects(context);

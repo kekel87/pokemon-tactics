@@ -25,7 +25,6 @@ describe("baton-pass", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["baton-pass"],
-      currentPp: { "baton-pass": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       statStages: {
         [StatName.Hp]: 0,
@@ -69,7 +68,6 @@ describe("baton-pass", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["baton-pass"],
-      currentPp: { "baton-pass": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const ally = MockPokemon.fresh(MockPokemon.charmander, {
@@ -98,7 +96,6 @@ describe("baton-pass", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["baton-pass"],
-      currentPp: { "baton-pass": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const ally = MockPokemon.fresh(MockPokemon.charmander, {
@@ -125,7 +122,6 @@ describe("baton-pass", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["baton-pass"],
-      currentPp: { "baton-pass": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       statStages: { ...ATTACK_2_STAGES },
     });
@@ -154,7 +150,6 @@ describe("baton-pass", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["baton-pass"],
-      currentPp: { "baton-pass": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const ally = MockPokemon.fresh(MockPokemon.charmander, {
@@ -181,7 +176,6 @@ describe("baton-pass", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["baton-pass"],
-      currentPp: { "baton-pass": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       statStages: {
         [StatName.Hp]: 0,
@@ -219,7 +213,6 @@ describe("baton-pass", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["baton-pass"],
-      currentPp: { "baton-pass": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       statStages: {
         [StatName.Hp]: 0,
@@ -267,7 +260,6 @@ describe("baton-pass", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["baton-pass"],
-      currentPp: { "baton-pass": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       statStages: {
         [StatName.Hp]: 0,
@@ -310,7 +302,6 @@ describe("baton-pass", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["baton-pass"],
-      currentPp: { "baton-pass": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       statStages: { ...ATTACK_2_STAGES },
     });
@@ -318,7 +309,7 @@ describe("baton-pass", () => {
       id: "ally-1",
       playerId: PlayerId.Player1,
       position: { x: 1, y: 0 },
-      activeDefense: { kind: DefensiveKind.Protect, expiresAtRound: 999 },
+      activeDefense: { kind: DefensiveKind.Protect, appliedAtAction: 0 },
     });
     const { engine, state } = buildMoveTestEngine([caster, ally]);
 

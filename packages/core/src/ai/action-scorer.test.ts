@@ -78,7 +78,7 @@ describe("scoreAction", () => {
         return false;
       }
       const estimate = engine.estimateDamage("p1-charmander", s.action.moveId, "p2-bulbasaur");
-      return estimate && estimate.min >= 10;
+      return estimate && estimate!.min >= 10;
     });
 
     const nonKoScore = scores.find((s) => {
@@ -86,7 +86,7 @@ describe("scoreAction", () => {
         return false;
       }
       const estimate = engine.estimateDamage("p1-charmander", s.action.moveId, "p2-bulbasaur");
-      return estimate && estimate.min < 10;
+      return estimate && estimate!.min < 10;
     });
 
     if (koScore && nonKoScore) {
@@ -370,7 +370,6 @@ describe("scoreAction", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: ["dragon-tail"],
-        currentPp: { "dragon-tail": 10 },
       });
       const defender = MockPokemon.fresh(MockPokemon.bulbasaur, {
         id: "p2",
@@ -416,7 +415,6 @@ describe("ring-out positioning (plan 172)", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: ["dragon-tail"],
-        currentPp: { "dragon-tail": 10 },
       });
       const defender = MockPokemon.fresh(MockPokemon.bulbasaur, {
         id: "p2",
@@ -457,14 +455,12 @@ describe("ring-out positioning (plan 172)", () => {
         playerId: PlayerId.Player1,
         position: { x: 1, y: 1 },
         moveIds: ["ember"],
-        currentPp: { ember: 10 },
       });
       const enemy = MockPokemon.fresh(MockPokemon.bulbasaur, {
         id: "p2",
         playerId: PlayerId.Player2,
         position: { x: 2, y: 0 },
         moveIds: ["dragon-tail"],
-        currentPp: { "dragon-tail": 10 },
       });
       const state = MockBattle.stateFrom([self, enemy], 6, 3);
       MockBattle.setTile(state, 0, 0, { height: exposed ? 0.5 : 4.5 });

@@ -49,7 +49,8 @@ describe("validateMapDefinition", () => {
     const map = structuredClone(MockMap.map8x8);
     const format = map.formats[0];
     if (format) {
-      format.spawnZones = [format.spawnZones[0]].filter(Boolean);
+      const firstZone = format.spawnZones[0];
+      format.spawnZones = firstZone ? [firstZone] : [];
     }
     const result = validateMapDefinition(map);
     expect(result.valid).toBe(false);

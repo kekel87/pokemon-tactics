@@ -21,6 +21,14 @@ function contextFor(defenseKind: DefensiveKind): EffectContext {
     typeChart: {} as TypeChart,
     attackerTypes: [],
     targetTypesMap: new Map(),
+    moveTypeOf: () => undefined,
+    targetPosition: { x: 0, y: 0 },
+    random: () => 0.5,
+    heightModifier: 1,
+    terrainModifier: 1,
+    facingModifierMap: new Map<string, number>(),
+    shared: { lastDamageDealt: 0 },
+    pokemonInRadius: () => [],
   };
 }
 

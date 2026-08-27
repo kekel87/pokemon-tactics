@@ -9,8 +9,13 @@ import type { TeamSet } from "../team-set";
 const registry: ShowdownExportRegistry = {
   getPokemonName: (id) => ({ charizard: "Charizard", snorlax: "Snorlax" })[id] ?? id,
   getAbilityName: (id) => ({ blaze: "Blaze", "thick-fat": "Thick Fat" })[id] ?? id,
-  getItemName: (id) =>
-    ({ [HeldItemId.Leftovers]: "Leftovers", [HeldItemId.ChoiceBand]: "Choice Band" })[id] ?? id,
+  getItemName: (id) => {
+    const names: Partial<Record<HeldItemId, string>> = {
+      [HeldItemId.Leftovers]: "Leftovers",
+      [HeldItemId.ChoiceBand]: "Choice Band",
+    };
+    return names[id] ?? id;
+  },
   getMoveName: (id) =>
     ({
       flamethrower: "Flamethrower",

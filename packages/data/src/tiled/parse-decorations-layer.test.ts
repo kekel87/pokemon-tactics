@@ -189,12 +189,13 @@ describe("parseDecorationsLayer", () => {
       return;
     }
 
-    for (const [x, y] of [
+    const occupied: [number, number][] = [
       [2, 3],
       [3, 3],
       [2, 2],
       [3, 2],
-    ]) {
+    ];
+    for (const [x, y] of occupied) {
       expect(result.map.tiles[y]![x]!.terrain).toBe(TerrainType.Obstacle);
       expect(result.map.tiles[y]![x]!.height).toBe(2);
     }

@@ -14,7 +14,6 @@ describe("trapped status", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["wrap"],
-      currentPp: { wrap: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -22,7 +21,6 @@ describe("trapped status", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 50 },
     });
     const { engine, state } = buildMoveTestEngine([source, target]);
@@ -56,7 +54,6 @@ describe("trapped status", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["wrap"],
-      currentPp: { wrap: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -64,7 +61,6 @@ describe("trapped status", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 50 },
     });
     const { engine } = buildMoveTestEngine([source, target]);
@@ -95,7 +91,6 @@ describe("trapped status", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["wrap"],
-      currentPp: { wrap: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -115,8 +110,8 @@ describe("trapped status", () => {
       targetPosition: { x: 1, y: 0 },
     });
 
-    const hpAfterHit = state.pokemon.get(target.id)?.currentHp;
-    const sourceHpAfterHit = state.pokemon.get(source.id)?.currentHp;
+    const hpAfterHit = state.pokemon.get(target.id)!.currentHp;
+    const sourceHpAfterHit = state.pokemon.get(source.id)!.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
@@ -129,7 +124,7 @@ describe("trapped status", () => {
       direction: Direction.West,
     });
 
-    const hpAfterTick = state.pokemon.get(target.id)?.currentHp;
+    const hpAfterTick = state.pokemon.get(target.id)!.currentHp;
     const expectedDamage = Math.max(1, Math.floor(100 * 0.125));
 
     expect(hpAfterHit - hpAfterTick).toBe(expectedDamage);
@@ -146,7 +141,6 @@ describe("trapped status", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["wrap"],
-      currentPp: { wrap: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -156,7 +150,6 @@ describe("trapped status", () => {
       currentHp: 200,
       maxHp: 200,
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 50 },
     });
     const { engine, state } = buildMoveTestEngine([source, target]);
@@ -178,7 +171,7 @@ describe("trapped status", () => {
         pokemonId: source.id,
         direction: Direction.East,
       });
-      if (state.pokemon.get(target.id)?.currentHp <= 0) {
+      if ((state.pokemon.get(target.id)?.currentHp ?? 0) <= 0) {
         break;
       }
       engine.submitAction(PlayerId.Player2, {
@@ -203,7 +196,6 @@ describe("trapped status", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["wrap"],
-      currentPp: { wrap: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const knocker = MockPokemon.fresh(MockPokemon.base, {
@@ -212,7 +204,6 @@ describe("trapped status", () => {
       position: { x: 0, y: 1 },
       orientation: Direction.East,
       moveIds: ["dragon-tail"],
-      currentPp: { "dragon-tail": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {

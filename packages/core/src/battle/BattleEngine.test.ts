@@ -470,7 +470,6 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       id: "mover",
       position: { x: 2, y: 2 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
     });
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, registry);
@@ -491,7 +490,6 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       id: "mover",
       position: { x: 2, y: 2 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
     });
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, registry);
@@ -515,7 +513,6 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       id: "mover",
       position: { x: 2, y: 2 },
       moveIds: ["growth"],
-      currentPp: { growth: 20 },
     });
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, registry);
@@ -536,7 +533,6 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       id: "mover",
       position: { x: 2, y: 2 },
       moveIds: ["heat-wave"],
-      currentPp: { "heat-wave": 10 },
     });
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, registry);
@@ -554,7 +550,6 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       id: "mover",
       position: { x: 2, y: 2 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
     });
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, registry);
@@ -575,7 +570,6 @@ describe("BattleEngine.getLegalActions — use_move", () => {
       id: "mover",
       position: { x: 2, y: 2 },
       moveIds: ["tackle", "growth"],
-      currentPp: { tackle: 35, growth: 20 },
     });
     const state = MockBattle.stateFrom([mover, fresh(P2)]);
     const engine = new BattleEngine(state, registry);
@@ -729,7 +723,6 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
     });
     const target = fresh(P2, { id: "target", position: { x: 2, y: 0 } });
     const singleMove: MoveDefinition = {
@@ -761,7 +754,6 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
       id: "attacker",
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
     });
     const target = fresh(P2, { id: "target", position: { x: 2, y: 0 } });
     const singleMove: MoveDefinition = {
@@ -817,7 +809,6 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
       id: "attacker",
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
     });
     const target = fresh(P2, { id: "target", position: { x: 2, y: 0 } });
     const singleMove: MoveDefinition = {
@@ -900,7 +891,6 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
     });
     const target = fresh(P2, { id: "target", position: { x: 3, y: 0 } });
     const singleMove: MoveDefinition = {
@@ -928,7 +918,6 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
       id: "attacker",
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
     });
     const target = fresh(P2, { id: "target", position: { x: 2, y: 0 } });
     const singleMove: MoveDefinition = {
@@ -961,7 +950,6 @@ describe("BattleEngine Move+Act (FFTA-like)", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
     });
     const target = fresh(P2, { id: "target", position: { x: 2, y: 0 } });
     const singleMove: MoveDefinition = {
@@ -1008,7 +996,6 @@ describe("BattleEngine dash move", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
     });
     const state = MockBattle.stateFrom([attacker, fresh(P2)]);
     const engine = new BattleEngine(state, dashRegistry);
@@ -1029,7 +1016,6 @@ describe("BattleEngine dash move", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
     });
     const state = MockBattle.stateFrom([attacker, fresh(P2)]);
     const engine = new BattleEngine(state, dashRegistry);
@@ -1050,7 +1036,6 @@ describe("BattleEngine dash move", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
     });
     const state = MockBattle.stateFrom([attacker, fresh(P2)]);
     const engine = new BattleEngine(state, dashRegistry);
@@ -1079,7 +1064,6 @@ describe("BattleEngine dash move", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
     });
     const enemy = fresh(P2, { id: "enemy", position: { x: 2, y: 0 } });
     const state = MockBattle.stateFrom([attacker, enemy], 5, 1);
@@ -1104,7 +1088,6 @@ describe("BattleEngine dash move", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
     });
     const enemy = fresh(P2, { id: "enemy", position: { x: 1, y: 0 } });
     const state = MockBattle.stateFrom([attacker, enemy], 5, 1);
@@ -1129,7 +1112,6 @@ describe("BattleEngine dash move", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
     });
     const enemy = fresh(P2, { id: "enemy", position: { x: 1, y: 0 } });
     const state = MockBattle.stateFrom([attacker, enemy], 5, 1);
@@ -1157,7 +1139,6 @@ describe("BattleEngine dash move", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
     });
     const state = MockBattle.stateFrom([attacker, fresh(P2)]);
     const engine = new BattleEngine(state, dashRegistry);
@@ -1185,7 +1166,6 @@ describe("BattleEngine dash move", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
     });
     const state = MockBattle.stateFrom([attacker, fresh(P2)]);
     const engine = new BattleEngine(state, dashRegistry);
@@ -1211,7 +1191,6 @@ describe("BattleEngine dash move", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
     });
     const state = MockBattle.stateFrom([attacker, fresh(P2)]);
     const engine = new BattleEngine(state, dashRegistry);
@@ -1234,7 +1213,6 @@ describe("BattleEngine dash move", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
     });
     const state = MockBattle.stateFrom([attacker, fresh(P2)]);
     const engine = new BattleEngine(state, dashRegistry);
@@ -1314,7 +1292,6 @@ describe("BattleEngine KO body blocking", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
     const koEnemy = fresh(P2, {
@@ -1350,7 +1327,6 @@ describe("BattleEngine KO body blocking", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
     const livingEnemy = fresh(P2, {
@@ -1380,7 +1356,6 @@ describe("BattleEngine KO body blocking", () => {
       id: "attacker",
       position: { x: 0, y: 0 },
       moveIds: ["earthquake"],
-      currentPp: { earthquake: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
     const koEnemy = fresh(P2, {
@@ -1441,15 +1416,14 @@ describe("BattleEngine KO body blocking", () => {
         power: 200,
         accuracy: 100,
         pp: 10,
-        targeting: { kind: TargetingKind.Single, range: 1 },
-        effects: [{ kind: EffectKind.Damage, target: "foe" }],
+        targeting: { kind: TargetingKind.Single, range: { min: 1, max: 1 } },
+        effects: [{ kind: EffectKind.Damage }],
       };
       const engine = new BattleEngine(
         MockBattle.stateFrom([
           fresh(P1, {
             position: { x: 0, y: 0 },
             moveIds: ["test-hit"],
-            currentPp: { "test-hit": 10 },
           }),
           fresh(P2, { position: { x: 1, y: 0 }, currentHp: 1 }),
         ]),
@@ -1504,7 +1478,6 @@ describe("BattleEngine KO body blocking", () => {
         id: "attacker",
         position: { x: 0, y: 0 },
         moveIds: ["tackle"],
-        currentPp: { tackle: 35 },
       });
       const target = fresh(P2, { position: { x: 2, y: 0 } });
       const state = MockBattle.stateFrom([attacker, target], 5, 1);
@@ -1541,7 +1514,6 @@ describe("BattleEngine KO body blocking", () => {
         id: "attacker",
         position: { x: 0, y: 0 },
         moveIds: ["tackle"],
-        currentPp: { tackle: 35 },
       });
       const target = fresh(P2, { position: { x: 1, y: 0 } });
       const state = MockBattle.stateFrom([attacker, target]);

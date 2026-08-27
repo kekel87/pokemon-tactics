@@ -14,7 +14,6 @@ describe("earthquake", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["earthquake"],
-      currentPp: { earthquake: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -24,7 +23,7 @@ describe("earthquake", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([user, foe]);
-    const hpBefore = state.pokemon.get(foe.id)?.currentHp;
+    const hpBefore = state.pokemon.get(foe.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -47,7 +46,6 @@ describe("earthquake", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["earthquake"],
-      currentPp: { earthquake: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe1 = MockPokemon.fresh(MockPokemon.base, {
@@ -85,7 +83,6 @@ describe("earthquake", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["earthquake"],
-      currentPp: { earthquake: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeBehindPillar = MockPokemon.fresh(MockPokemon.base, {

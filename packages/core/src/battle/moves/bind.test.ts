@@ -16,7 +16,6 @@ describe("bind", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["bind"],
-      currentPp: { bind: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -26,7 +25,7 @@ describe("bind", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([caster, target]);
-    const hpBefore = state.pokemon.get(target.id)?.currentHp;
+    const hpBefore = state.pokemon.get(target.id)!.currentHp;
 
     const result = engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -57,7 +56,6 @@ describe("bind", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["bind"],
-      currentPp: { bind: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -65,7 +63,6 @@ describe("bind", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([caster, target]);
@@ -104,7 +101,6 @@ describe("bind", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["bind"],
-      currentPp: { bind: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -124,7 +120,7 @@ describe("bind", () => {
       targetPosition: { x: 1, y: 0 },
     });
 
-    const hpAfterHit = state.pokemon.get(target.id)?.currentHp;
+    const hpAfterHit = state.pokemon.get(target.id)!.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
@@ -137,7 +133,7 @@ describe("bind", () => {
       direction: Direction.West,
     });
 
-    const hpAfterTick = state.pokemon.get(target.id)?.currentHp;
+    const hpAfterTick = state.pokemon.get(target.id)!.currentHp;
     const expectedDamage = Math.max(1, Math.floor(100 * 0.125));
     expect(hpAfterHit - hpAfterTick).toBe(expectedDamage);
 
@@ -151,7 +147,6 @@ describe("bind", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["bind"],
-      currentPp: { bind: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {

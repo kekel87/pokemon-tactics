@@ -6,7 +6,8 @@ import type { StatName as StatNameType } from "../enums/stat-name";
 import { StatName } from "../enums/stat-name";
 import type { PokemonInstance } from "../types/pokemon-instance";
 
-const ZERO_STAT_STAGES: Record<StatNameType, number> = {
+/** Tous les crans à zéro — base à étendre quand un test n'en fixe que quelques-uns. */
+export const ZERO_STAT_STAGES: Record<StatNameType, number> = {
   [StatName.Hp]: 0,
   [StatName.Attack]: 0,
   [StatName.Defense]: 0,

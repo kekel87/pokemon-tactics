@@ -1,6 +1,7 @@
 import {
   BattleEventType,
   DefensiveKind,
+  Direction,
   StatName,
   StatusType,
   TerrainType,
@@ -49,6 +50,7 @@ describe("BattleLogFormatter — contrat de clés i18n", () => {
         type: BattleEventType.MoveStarted,
         attackerId: "pika",
         moveId: "thunderbolt",
+        direction: Direction.North,
       }),
     ).toBe("battleLog.moveStarted.used|moveName=Tonnerre,name=Pikachu");
   });
@@ -130,7 +132,7 @@ describe("BattleLogFormatter — contrat de clés i18n", () => {
       traceOf({
         type: BattleEventType.TerrainStatusApplied,
         pokemonId: "pika",
-        terrain: TerrainType.Grass,
+        terrain: TerrainType.Normal,
         status: StatusType.Poisoned,
       }),
     ).toBe("battleLog.status.poisoned.applied|name=Pikachu");
@@ -162,12 +164,14 @@ describe("BattleLogFormatter — contrat de clés i18n", () => {
       type: BattleEventType.EntryHazardTriggered,
       pokemonId: "pika",
       kind: "toxic-spikes",
+      tile: { x: 0, y: 0 },
       status: StatusType.BadlyPoisoned,
     });
     const normal = traceOf({
       type: BattleEventType.EntryHazardTriggered,
       pokemonId: "pika",
       kind: "toxic-spikes",
+      tile: { x: 0, y: 0 },
       status: StatusType.Poisoned,
     });
     expect(badly).toContain("battleLog.entryHazardTriggered.badlyPoisoned");
@@ -176,7 +180,7 @@ describe("BattleLogFormatter — contrat de clés i18n", () => {
   });
 
   it("émet la clé de météo posée puis dissipée", () => {
-    expect(traceOf({ type: BattleEventType.WeatherSet, weather: "rain" })).toBe(
+    expect(traceOf({ type: BattleEventType.WeatherSet, weather: "rain", turns: 5 })).toBe(
       "battleLog.weather.rainSet",
     );
     expect(traceOf({ type: BattleEventType.WeatherCleared, weather: "rain" })).toBe(
@@ -188,9 +192,9 @@ describe("BattleLogFormatter — contrat de clés i18n", () => {
     const events: Parameters<typeof formatBattleEvent>[0][] = [
       { type: BattleEventType.TurnStarted, pokemonId: "pika" },
       { type: BattleEventType.MoveMissed, attackerId: "pika", targetId: "bulba" },
-      { type: BattleEventType.PokemonKo, pokemonId: "bulba" },
-      { type: BattleEventType.CriticalHit, attackerId: "pika", targetId: "bulba" },
-      { type: BattleEventType.WeatherSet, weather: "sun" },
+      { type: BattleEventType.PokemonKo, pokemonId: "bulba", countdownStart: 0 },
+      { type: BattleEventType.CriticalHit, targetId: "bulba" },
+      { type: BattleEventType.WeatherSet, weather: "sun", turns: 5 },
     ];
     for (const event of events) {
       const result = formatBattleEvent(event, traceContext());

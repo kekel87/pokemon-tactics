@@ -75,7 +75,7 @@ function buildGoldenEngine(seed: number): BattleEngine {
     { x: 10, y: 7 },
   ];
 
-  function placePokemon(defId: string, playerId: string, pos: { x: number; y: number }) {
+  function placePokemon(defId: string, playerId: PlayerId, pos: { x: number; y: number }) {
     const definition = pokemonDefinitions.get(defId);
     if (!definition) {
       throw new Error(`Unknown pokemon: ${defId}`);
@@ -109,6 +109,7 @@ function buildGoldenEngine(seed: number): BattleEngine {
       recharging: false,
       gender: PokemonGender.Genderless,
       nature: Nature.Hardy,
+      weight: 50,
     };
     pokemonMap.set(instance.id, instance);
     const row = grid[pos.y];

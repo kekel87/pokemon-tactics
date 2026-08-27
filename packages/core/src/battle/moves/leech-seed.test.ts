@@ -69,7 +69,7 @@ describe("leech-seed", () => {
       targetPosition: { x: 2, y: 0 },
     });
 
-    const casterHpAfterSeed = state.pokemon.get(caster.id)?.currentHp;
+    const casterHpAfterSeed = state.pokemon.get(caster.id)!.currentHp;
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.EndTurn,
@@ -84,8 +84,8 @@ describe("leech-seed", () => {
       direction: Direction.South,
     });
 
-    const targetHpAfter = state.pokemon.get(target.id)?.currentHp;
-    const casterHpAfter = state.pokemon.get(caster.id)?.currentHp;
+    const targetHpAfter = state.pokemon.get(target.id)!.currentHp;
+    const casterHpAfter = state.pokemon.get(caster.id)!.currentHp;
 
     // Target lost 1/8 of 99 = 12 HP
     expect(targetHpAfter).toBeLessThan(99);
@@ -140,7 +140,6 @@ describe("leech-seed", () => {
       playerId: PlayerId.Player2,
       position: { x: 0, y: 1 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       combatStats: { hp: 100, attack: 200, defense: 55, spAttack: 55, spDefense: 55, speed: 55 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });

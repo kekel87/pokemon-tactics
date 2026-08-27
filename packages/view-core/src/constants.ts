@@ -12,7 +12,7 @@
 
 import type { AuraKind as AuraKindType } from "@pokemon-tactic/core";
 import { AuraKind } from "@pokemon-tactic/core";
-import type { AuraRingKind } from "@pokemon-tactic/render-ports";
+import { AuraRingKind } from "@pokemon-tactic/render-ports";
 
 // ---------------------------------------------------------------------------
 // Shared renderer view tunables (plan 126). World-space sizes, camera/iso math,
@@ -268,9 +268,9 @@ export const AURA_RING_COLOR_BY_KIND: Record<AuraRingKind, number> = {
   /** 🕊️ olive from the olive branch, duller than Terrain Herbu's bright green. */
   [AuraKind.Safeguard]: 0xb5c46a,
   /** 🎵 deep violet — menace, and separated by value from Terrain Psychique. */
-  "perish-aura": 0x6b2d8f,
+  [AuraRingKind.PerishAura]: 0x6b2d8f,
   /** 🔊 warm orange — no emoji basis, and the rose/pink space is already taken. */
-  uproar: 0xff8c42,
+  [AuraRingKind.Uproar]: 0xff8c42,
 };
 
 // --- Battle floating-text: timing ------------------------------------------

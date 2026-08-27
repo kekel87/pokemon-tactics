@@ -22,7 +22,7 @@ describe("checkDefense", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         position: { x: 4, y: 3 },
         orientation: Direction.West,
-        activeDefense: { kind: DefensiveKind.Protect, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Protect, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow, { position: { x: 3, y: 3 } });
       const result = checkDefense(atk, def, MockMove.physical, 30, atk.position);
@@ -39,7 +39,7 @@ describe("checkDefense", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         position: { x: 4, y: 3 },
         orientation: Direction.East,
-        activeDefense: { kind: DefensiveKind.Protect, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Protect, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow, { position: { x: 3, y: 3 } });
       const result = checkDefense(atk, def, MockMove.physical, 30, atk.position);
@@ -51,7 +51,7 @@ describe("checkDefense", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         position: { x: 4, y: 3 },
         orientation: Direction.West,
-        activeDefense: { kind: DefensiveKind.Detect, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Detect, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow, { position: { x: 3, y: 3 } });
       const result = checkDefense(atk, def, MockMove.physical, 30, atk.position);
@@ -63,7 +63,7 @@ describe("checkDefense", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         position: { x: 4, y: 3 },
         orientation: Direction.West,
-        activeDefense: { kind: DefensiveKind.Protect, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Protect, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow, { position: { x: 3, y: 3 } });
       const move = MockMove.fresh(MockMove.physical, {
@@ -78,7 +78,7 @@ describe("checkDefense", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         position: { x: 3, y: 3 },
         orientation: Direction.South,
-        activeDefense: { kind: DefensiveKind.Protect, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Protect, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow, { position: { x: 3, y: 4 } });
       const move = MockMove.fresh(MockMove.special, {
@@ -94,7 +94,7 @@ describe("checkDefense", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         position: { x: 3, y: 3 },
         orientation: Direction.South,
-        activeDefense: { kind: DefensiveKind.Protect, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Protect, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow, { position: { x: 3, y: 0 } });
       const move = MockMove.fresh(MockMove.special, {
@@ -110,7 +110,7 @@ describe("checkDefense", () => {
   describe("Wide Guard", () => {
     it("blocks AoE zone attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.WideGuard, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.WideGuard, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const move = MockMove.fresh(MockMove.physical, {
@@ -123,7 +123,7 @@ describe("checkDefense", () => {
 
     it("blocks AoE cone attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.WideGuard, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.WideGuard, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const move = MockMove.fresh(MockMove.physical, {
@@ -136,7 +136,7 @@ describe("checkDefense", () => {
 
     it("blocks AoE cross attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.WideGuard, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.WideGuard, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const move = MockMove.fresh(MockMove.physical, {
@@ -149,7 +149,7 @@ describe("checkDefense", () => {
 
     it("blocks AoE slash attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.WideGuard, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.WideGuard, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const move = MockMove.fresh(MockMove.physical, {
@@ -162,7 +162,7 @@ describe("checkDefense", () => {
 
     it("blocks AoE blast attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.WideGuard, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.WideGuard, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const move = MockMove.fresh(MockMove.physical, {
@@ -175,7 +175,7 @@ describe("checkDefense", () => {
 
     it("does NOT block single target attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.WideGuard, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.WideGuard, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const result = checkDefense(atk, def, MockMove.physical, 30, atk.position);
@@ -186,7 +186,7 @@ describe("checkDefense", () => {
 
     it("does NOT block self-targeting move", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.WideGuard, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.WideGuard, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const move = MockMove.fresh(MockMove.physical, {
@@ -201,7 +201,7 @@ describe("checkDefense", () => {
   describe("Quick Guard", () => {
     it("blocks any attack and is consumed", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.QuickGuard, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.QuickGuard, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const result = checkDefense(atk, def, MockMove.physical, 30, atk.position);
@@ -212,7 +212,7 @@ describe("checkDefense", () => {
 
     it("blocks special attack too", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.QuickGuard, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.QuickGuard, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const result = checkDefense(atk, def, MockMove.special, 30, atk.position);
@@ -226,7 +226,7 @@ describe("checkDefense", () => {
     it("reflects x2 on adjacent physical attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         position: { x: 4, y: 3 },
-        activeDefense: { kind: DefensiveKind.Counter, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Counter, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow, { position: { x: 3, y: 3 } });
       const result = checkDefense(atk, def, MockMove.physical, 30, atk.position);
@@ -238,7 +238,7 @@ describe("checkDefense", () => {
     it("does NOT reflect on special attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         position: { x: 4, y: 3 },
-        activeDefense: { kind: DefensiveKind.Counter, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Counter, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow, { position: { x: 3, y: 3 } });
       const result = checkDefense(atk, def, MockMove.special, 30, atk.position);
@@ -249,7 +249,7 @@ describe("checkDefense", () => {
     it("does NOT reflect on non-adjacent physical attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         position: { x: 4, y: 3 },
-        activeDefense: { kind: DefensiveKind.Counter, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Counter, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow, { position: { x: 1, y: 3 } });
       const result = checkDefense(atk, def, MockMove.physical, 30, atk.position);
@@ -262,7 +262,7 @@ describe("checkDefense", () => {
     it("reflects x2 on special attack at any range", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         position: { x: 4, y: 3 },
-        activeDefense: { kind: DefensiveKind.MirrorCoat, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.MirrorCoat, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow, { position: { x: 0, y: 0 } });
       const result = checkDefense(atk, def, MockMove.special, 25, atk.position);
@@ -274,7 +274,7 @@ describe("checkDefense", () => {
     it("does NOT reflect on physical attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         position: { x: 4, y: 3 },
-        activeDefense: { kind: DefensiveKind.MirrorCoat, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.MirrorCoat, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow, { position: { x: 3, y: 3 } });
       const result = checkDefense(atk, def, MockMove.physical, 25, atk.position);
@@ -286,7 +286,7 @@ describe("checkDefense", () => {
   describe("Metal Burst", () => {
     it("reflects x1.5 on physical attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.MetalBurst, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.MetalBurst, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const result = checkDefense(atk, def, MockMove.physical, 40, atk.position);
@@ -296,7 +296,7 @@ describe("checkDefense", () => {
 
     it("reflects x1.5 on special attack", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.MetalBurst, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.MetalBurst, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const result = checkDefense(atk, def, MockMove.special, 40, atk.position);
@@ -306,7 +306,7 @@ describe("checkDefense", () => {
 
     it("does NOT reflect on status move", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
-        activeDefense: { kind: DefensiveKind.MetalBurst, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.MetalBurst, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const result = checkDefense(atk, def, MockMove.status, 0, atk.position);
@@ -319,7 +319,7 @@ describe("checkDefense", () => {
     it("survives at 1 HP when damage would KO", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         currentHp: 20,
-        activeDefense: { kind: DefensiveKind.Endure, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Endure, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const result = checkDefense(atk, def, MockMove.physical, 50, atk.position);
@@ -331,7 +331,7 @@ describe("checkDefense", () => {
     it("does nothing when damage would not KO", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         currentHp: 100,
-        activeDefense: { kind: DefensiveKind.Endure, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Endure, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const result = checkDefense(atk, def, MockMove.physical, 30, atk.position);
@@ -343,7 +343,7 @@ describe("checkDefense", () => {
     it("triggers when damage equals current HP", () => {
       const def = MockPokemon.fresh(MockBattle.player1Fast, {
         currentHp: 30,
-        activeDefense: { kind: DefensiveKind.Endure, roundApplied: 1, turnIndexApplied: 0 },
+        activeDefense: { kind: DefensiveKind.Endure, appliedAtAction: 0 },
       });
       const atk = MockPokemon.fresh(MockBattle.player2Slow);
       const result = checkDefense(atk, def, MockMove.physical, 30, atk.position);

@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { PlayerId } from "../../enums/player-id";
 import { StatName } from "../../enums/stat-name";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, MockPokemon, ZERO_STAT_STAGES } from "../../testing";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 
 function setup(
@@ -16,7 +16,6 @@ function setup(
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["swallow"],
-    currentPp: { swallow: 10 },
     stockpileCount,
     currentHp,
     maxHp: 100,
@@ -72,7 +71,11 @@ describe("swallow", () => {
 
   it("undoes only the actual stockpile boost, never below it", () => {
     const { engine, state } = setup(2, 20, {
-      statStages: { defense: 6, spDefense: 6 },
+      statStages: {
+        ...ZERO_STAT_STAGES,
+        defense: 6,
+        spDefense: 6,
+      },
       stockpileDefBoost: 0,
       stockpileSpDefBoost: 0,
     });

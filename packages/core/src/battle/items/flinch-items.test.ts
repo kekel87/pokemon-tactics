@@ -55,10 +55,6 @@ function makeContext(
   const state: BattleState = {
     grid: [],
     pokemon: new Map(),
-    turnOrder: [],
-    currentTurnIndex: 0,
-    roundNumber: 1,
-    predictedNextRoundOrder: [],
     weather: Weather.None,
     weatherTurnsRemaining: 0,
     auras: [],
@@ -67,6 +63,7 @@ function makeContext(
     fieldGlobalZones: [],
     entryHazards: [],
     pendingStrikes: [],
+    activePokemonId: "",
   };
   return {
     attacker,
@@ -80,6 +77,8 @@ function makeContext(
     heightModifier: 1.0,
     terrainModifier: 1.0,
     facingModifierMap: new Map<string, number>(),
+    moveTypeOf: () => undefined,
+    targetPosition: { x: 0, y: 0 },
     itemRegistry,
   };
 }

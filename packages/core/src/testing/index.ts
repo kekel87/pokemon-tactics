@@ -8,6 +8,6 @@ export { endTurnUntilActor } from "./end-turn-until-actor";
 export { MockBattle } from "./mock-battle";
 export { MockMap } from "./mock-map";
 export { MockMove } from "./mock-move";
-export { MockPokemon } from "./mock-pokemon";
+export { MockPokemon, ZERO_STAT_STAGES } from "./mock-pokemon";
 export { MockTeamSelection } from "./mock-team-selection";
 export { MockValidation } from "./mock-validation";

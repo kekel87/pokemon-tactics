@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { AuraKind } from "../enums/aura-kind";
 import { BattleEventType } from "../enums/battle-event-type";
+import { Direction } from "../enums/direction";
 import { Nature } from "../enums/nature";
 import { PlayerId } from "../enums/player-id";
 import { PokemonGender } from "../enums/pokemon-gender";
@@ -48,8 +49,6 @@ function buildFullEngine(
         position: { x, y },
         terrain: "normal",
         height: 0,
-        slope: null,
-        decoration: null,
         occupantId: null,
       });
     }
@@ -91,7 +90,6 @@ function buildFullEngine(
     undefined,
     0,
     undefined,
-    undefined,
     data.abilityRegistry,
     data.itemRegistry,
   );
@@ -102,7 +100,7 @@ function buildFullEngine(
 function makePokemon(opts: {
   id: string;
   definitionId: string;
-  playerId: string;
+  playerId: PlayerId;
   position: { x: number; y: number };
   moveIds: string[];
   initiative?: number;
@@ -113,11 +111,6 @@ function makePokemon(opts: {
     throw new Error(`Unknown pokemon: ${opts.definitionId}`);
   }
   const combat = computeCombatStats(def.baseStats, 50);
-  const currentPp: Record<string, number> = {};
-  for (const m of opts.moveIds) {
-    const move = data.moves.find((mv) => mv.id === m);
-    currentPp[m] = move?.pp ?? 30;
-  }
   return {
     id: opts.id,
     definitionId: opts.definitionId,
@@ -135,9 +128,8 @@ function makePokemon(opts: {
     statStages: { ...ZERO_STAGES },
     statusEffects: [],
     position: opts.position,
-    orientation: 0,
+    orientation: Direction.North,
     moveIds: opts.moveIds,
-    currentPp,
     activeDefense: null,
     lastEndureAtAction: null,
     toxicCounter: 0,
@@ -145,6 +137,7 @@ function makePokemon(opts: {
     recharging: false,
     gender: PokemonGender.Genderless,
     nature: Nature.Hardy,
+    weight: 50,
   };
 }
 

@@ -51,7 +51,6 @@ describe("gravity — airborne move ban", () => {
       playerId: PlayerId.Player1,
       position: { x: 5, y: 5 },
       moveIds: ["gravity", "fly"],
-      currentPp: { gravity: 10, fly: 10 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
       id: "foe",
@@ -96,7 +95,6 @@ describe("gravity — immediate grounding on cast", () => {
       playerId: PlayerId.Player2,
       position: { x: 5, y: 6 },
       typeOverride: [PokemonType.Flying],
-      hp: 100,
     });
     const { engine, state } = buildMoveTestEngine([caster, flyer], { gridSize: 12 });
     const magmaTile = state.grid[6]?.[5];
@@ -133,7 +131,6 @@ describe("gravity — grounds a Flying defender", () => {
         playerId: PlayerId.Player1,
         position: { x: 5, y: 5 },
         moveIds: ["high-horsepower"],
-        currentPp: { "high-horsepower": 10 },
       });
       const foe = MockPokemon.fresh(MockPokemon.base, {
         id: "foe",
