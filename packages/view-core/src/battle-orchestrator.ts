@@ -59,6 +59,7 @@ import {
   PERISH_AURA_INDICATOR_SYMBOL,
   UPROAR_AURA_INDICATOR_SYMBOL,
 } from "./constants.js";
+import { buildMoveContextualView } from "./move-contextual-view.js";
 import { moveIntent, selfPreviewRadius } from "./move-intent.js";
 import { buildSecondaryEffectChip } from "./secondary-effect-chip.js";
 
@@ -811,6 +812,11 @@ export class BattleOrchestrator {
         // is unknowable here (it is folded into the confirm-phase forecast instead, plan 178).
         ctCost: this.engine.previewMoveCtCost(moveId).base,
         effectChip: buildSecondaryEffectChip(this.context, definition),
+        contextual: buildMoveContextualView(
+          this.context,
+          this.engine.previewCasterMoveContext(active.id, moveId),
+          definition,
+        ),
         blockedTag: resolveBlockedTag(definition, isTaunted, disabledMoveId, encoredMoveId),
       });
     }

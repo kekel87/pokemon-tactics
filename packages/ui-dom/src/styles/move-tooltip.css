@@ -120,6 +120,36 @@
     color: var(--color-text-secondary);
   }
 
+  /*
+   * Valeurs corrigées par le contexte (plan 192). La fiche reste lisible mais barrée et atténuée ;
+   * l'effective prend la couleur de son sens — vert si le contexte améliore le move, rouge s'il le
+   * dégrade — le même langage que la jauge de tempo juste en dessous.
+   */
+  .mt-stat-superseded {
+    text-decoration: line-through;
+    opacity: 0.55;
+    margin-inline-end: calc(4px * var(--ui-scale));
+  }
+
+  .mt-stat-effective {
+    font-weight: bold;
+
+    /* Même langage de tons que `.mt-chip` juste en dessous, plutôt qu'un jeu de couleurs maison. */
+    &[data-tone="buff"] {
+      color: var(--color-tempo-light);
+    }
+    &[data-tone="danger"] {
+      color: var(--red-400);
+    }
+  }
+
+  /* Pourquoi les chiffres diffèrent, plus la brûlure. Discret : c'est une note, pas une donnée. */
+  .mt-context {
+    color: var(--color-text-secondary);
+    font-size: 0.85em;
+    opacity: 0.9;
+  }
+
   /* Pastilles de tempo colorées comme la jauge de la ligne de move : léger → vert, lourd → rouge. */
   .mt-ct-tempo {
     letter-spacing: calc(1px * var(--ui-scale));

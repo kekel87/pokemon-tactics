@@ -1,11 +1,11 @@
 import type {
-  AuraKind,
   BattleEvent,
   Direction,
   MoveDefinition,
   Position,
   SemiInvulnerableDisplay,
 } from "@pokemon-tactic/core";
+import { AuraKind } from "@pokemon-tactic/core";
 import type {
   InfoPanelData,
   TailwindView,
@@ -79,8 +79,20 @@ export interface BoardEntryHazard {
  * Which aura a ground ring draws. Wider than `AuraKind`: Requiem lives on
  * `pokemon.perishAura` and Brouhaha on a lock-in move id, so neither has an
  * `AuraKind` to key off.
+ *
+ * Const-object plutôt qu'union nue (convention du projet, dette levée le 2026-08-27) : les deux
+ * littéraux supplémentaires étaient répétés à la main dans `view-core/constants.ts` (clés de
+ * `AURA_RING_COLOR_BY_KIND`) et `view-core/aura-ring-view.ts` (valeurs poussées) — trois fichiers,
+ * aucune source unique. Signalé non bloquant par `code-reviewer` le 2026-08-19, avec le bon
+ * pronostic : « à revoir si un 7ᵉ kind apparaît ».
  */
-export type AuraRingKind = AuraKind | "perish-aura" | "uproar";
+export const AuraRingKind = {
+  ...AuraKind,
+  PerishAura: "perish-aura",
+  Uproar: "uproar",
+} as const;
+
+export type AuraRingKind = (typeof AuraRingKind)[keyof typeof AuraRingKind];
 
 /** One aura zone drawn as a stair-stepped voxel outline on the ground (plan 182). */
 export interface AuraRingSpec {
@@ -211,7 +223,43 @@ export interface AttackSubmenuMoveView {
    * chrome, which has no status-icon resolver of its own.
    */
   effectChip: TileInfoChip | null;
+  /**
+   * Valeurs corrigées par le contexte du LANCEUR (plan 192) — météo, champ sous ses pieds, Chargeur,
+   * Coup d'Main, brûlure. Null quand rien ne s'applique, pour que l'infobulle n'affiche une ligne
+   * « effectif » que lorsqu'elle apporte une information.
+   *
+   * Volontairement indépendant de la cible : cette vue est construite au survol, avant tout choix de
+   * cible. Ce qui dépend de la cible (efficacité de type, esquive, murs, défense adverse, hauteur,
+   * orientation) reste dans la prévision de la phase de confirmation.
+   */
+  contextual: MoveContextualView | null;
   blockedTag?: BlockedMoveTag;
+}
+
+/** Une valeur de fiche corrigée par le contexte, avec de quoi nommer la cause. */
+export interface ContextualStat {
+  /** Valeur de la fiche du move. */
+  readonly base: number;
+  /** Valeur effective ici et maintenant. */
+  readonly effective: number;
+}
+
+export interface MoveContextualView {
+  /** Présent seulement si la puissance effective diffère de celle de la fiche. */
+  readonly power: ContextualStat | null;
+  /** Présent seulement si la météo impose une précision différente. */
+  readonly accuracy: ContextualStat | null;
+  /**
+   * Causes à nommer, en clés i18n déjà résolues par l'hôte côté `view-core` (ex. « Soleil »,
+   * « Champ Électrifié »). Le chrome les affiche telles quelles.
+   */
+  readonly causes: readonly string[];
+  /**
+   * La brûlure divise les dégâts physiques par deux. Elle n'est PAS pliée dans `power` : elle réduit
+   * la statistique d'Attaque du lanceur, pas la puissance du move — annoncer « Puis 100 → 50 »
+   * mentirait sur la grandeur concernée. Affichée comme une mention à part.
+   */
+  readonly burnHalvesDamage: boolean;
 }
 
 export interface AttackSubmenuView {

@@ -20,6 +20,7 @@ export * from "./direction-arrow-layout.js";
 export * from "./field-terrain-borders.js";
 export * from "./floating-text-content.js";
 export * from "./floating-text-spawner.js";
+export * from "./move-contextual-view.js";
 export * from "./move-intent.js";
 export * from "./movement-animation.js";
 export * from "./pmd-animation-controller.js";

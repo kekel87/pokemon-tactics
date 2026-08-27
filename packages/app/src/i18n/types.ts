@@ -845,6 +845,10 @@ export interface Translations {
   "battleLog.stat.defense": string;
   "battleLog.stat.evasion": string;
   "battleLog.stat.hp": string;
+  "moveContext.charge": string;
+  "moveContext.helpingHand": string;
+  "moveContext.effective": string;
+  "moveContext.burnHalves": string;
   "battleLog.stat.spAttack": string;
   "battleLog.stat.spDefense": string;
   "battleLog.stat.speed": string;

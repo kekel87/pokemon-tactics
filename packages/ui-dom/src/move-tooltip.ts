@@ -391,13 +391,26 @@ function renderGrid(cells: PatternCell[][], intent: MoveIntent): HTMLElement {
 }
 
 /** One `Label value` cell of the numbers row — label bold, value regular (human 2026-08-03). */
-function statCell(label: string, value: string): HTMLElement {
+function statCell(label: string, value: string, effective?: number): HTMLElement {
   const cell = el("span", "mt-stat");
   const name = el("span", "mt-stat-label");
   name.textContent = label;
   const figure = el("span", "mt-stat-value");
   figure.textContent = value;
   cell.append(name, figure);
+  if (effective === undefined) {
+    return cell;
+  }
+  /*
+   * Valeur du contexte (plan 192) : la fiche reste lisible mais barrée, l'effective prend la place
+   * du chiffre qui compte. Deux éléments plutôt qu'un texte « 90 → 135 » pour que le style puisse
+   * distinguer les deux, et pour que le lecteur voie d'un coup lequel s'applique.
+   */
+  figure.classList.add("mt-stat-superseded");
+  const actual = el("span", "mt-stat-value", "mt-stat-effective");
+  actual.textContent = String(effective);
+  actual.dataset.tone = effective > Number(value) ? "buff" : "danger";
+  cell.append(actual);
   return cell;
 }
 
@@ -439,11 +452,17 @@ export function createMoveTooltip(config: UiDomConfig): MoveTooltip {
       main.append(categoryRow);
 
       const stats = el("div", "mt-stats", "move-tooltip-stats");
+      const contextual = view.contextual;
       stats.append(
-        statCell(config.translate("move.power.label"), move.power > 0 ? `${move.power}` : "—"),
+        statCell(
+          config.translate("move.power.label"),
+          move.power > 0 ? `${move.power}` : "—",
+          contextual?.power?.effective,
+        ),
         statCell(
           config.translate("move.accuracy.label"),
           move.accuracy > 0 ? `${move.accuracy}` : "—",
+          contextual?.accuracy?.effective,
         ),
       );
       // CT: pips coloured by weight (light → green, heavy → red, same language as the move row's
@@ -463,6 +482,31 @@ export function createMoveTooltip(config: UiDomConfig): MoveTooltip {
       ctCell.append(ctLabel, ctValue, tempo);
       stats.append(ctCell);
       main.append(stats);
+
+      /*
+       * Pourquoi les chiffres diffèrent, et la brûlure (plan 192).
+       *
+       * La brûlure est annoncée en clair au lieu d'être pliée dans la puissance : elle divise la
+       * statistique d'Attaque du lanceur, pas la puissance du move — écrire « Puis 100 → 50 »
+       * mentirait sur la grandeur concernée. Elle vaut quand même sa mention ici parce qu'elle
+       * change le classement entre un move physique et un move spécial.
+       */
+      if (contextual !== null) {
+        const notes: string[] = [];
+        if (contextual.causes.length > 0) {
+          notes.push(
+            `${config.translate("moveContext.effective")} : ${contextual.causes.join(", ")}`,
+          );
+        }
+        if (contextual.burnHalvesDamage) {
+          notes.push(config.translate("moveContext.burnHalves"));
+        }
+        if (notes.length > 0) {
+          const context = el("div", "mt-context");
+          context.textContent = notes.join(" · ");
+          main.append(context);
+        }
+      }
 
       // Right column — the pattern grid fills the space the text column leaves empty (layout B,
       // human 2026-08-03), so it costs no vertical band of its own; its name sits right under it.
