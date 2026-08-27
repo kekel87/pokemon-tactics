@@ -10,7 +10,6 @@ function fire(foeX: number, allies: PokemonInstance[] = []) {
     playerId: PlayerId.Player1,
     position: { x: 2, y: 2 },
     moveIds: ["last-respects"],
-    currentPp: { "last-respects": 5 },
   });
   const foe = MockPokemon.fresh(MockPokemon.base, {
     id: "foe",

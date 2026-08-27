@@ -13,7 +13,6 @@ describe("dream-eater", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["dream-eater"],
-      currentPp: { "dream-eater": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const awakeTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -47,7 +46,6 @@ describe("dream-eater", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["dream-eater"],
-      currentPp: { "dream-eater": 15 },
       currentHp: 50,
       maxHp: 300,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -88,7 +86,6 @@ describe("dream-eater", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["dream-eater"],
-      currentPp: { "dream-eater": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const farTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -117,7 +114,6 @@ describe("dream-eater", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["dream-eater"],
-      currentPp: { "dream-eater": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const awakeTarget = MockPokemon.fresh(MockPokemon.base, {

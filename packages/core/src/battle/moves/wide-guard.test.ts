@@ -13,7 +13,6 @@ describe("wide-guard", () => {
       position: { x: 3, y: 2 },
       orientation: Direction.South,
       moveIds: ["wide-guard"],
-      currentPp: { "wide-guard": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.pidgey, {
@@ -56,7 +55,6 @@ describe("wide-guard", () => {
       position: { x: 3, y: 3 },
       orientation: Direction.South,
       moveIds: ["wide-guard"],
-      currentPp: { "wide-guard": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.charmander, {

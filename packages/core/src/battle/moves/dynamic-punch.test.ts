@@ -14,7 +14,6 @@ describe("dynamic-punch", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["dynamic-punch"],
-      currentPp: { "dynamic-punch": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -47,7 +46,6 @@ describe("dynamic-punch", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["dynamic-punch"],
-      currentPp: { "dynamic-punch": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -81,7 +79,6 @@ describe("dynamic-punch", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["dynamic-punch"],
-      currentPp: { "dynamic-punch": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -114,7 +111,6 @@ describe("dynamic-punch", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["dynamic-punch"],
-      currentPp: { "dynamic-punch": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

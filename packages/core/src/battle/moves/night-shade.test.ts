@@ -11,7 +11,6 @@ describe("night-shade", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["night-shade"],
-      currentPp: { "night-shade": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -41,7 +40,6 @@ describe("night-shade", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["night-shade"],
-      currentPp: { "night-shade": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const diagonalTarget = MockPokemon.fresh(MockPokemon.base, {

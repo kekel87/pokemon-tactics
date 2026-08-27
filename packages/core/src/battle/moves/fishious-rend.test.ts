@@ -9,7 +9,6 @@ function fire(foeX: number) {
     playerId: PlayerId.Player1,
     position: { x: 2, y: 2 },
     moveIds: ["fishious-rend"],
-    currentPp: { "fishious-rend": 5 },
   });
   const foe = MockPokemon.fresh(MockPokemon.base, {
     id: "foe",

@@ -12,7 +12,6 @@ function setup(casterGender: PokemonGender, foeGender: PokemonGender) {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["attract"],
-    currentPp: { attract: 5 },
     gender: casterGender,
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });

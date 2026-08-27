@@ -10,7 +10,6 @@ describe("avalanche", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["avalanche"],
-      currentPp: { avalanche: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -37,7 +36,6 @@ describe("avalanche", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["avalanche"],
-      currentPp: { avalanche: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -64,7 +62,6 @@ describe("avalanche", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["avalanche"],
-      currentPp: { avalanche: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       lastActedAtAction: 1,
       lastDamagedByEnemyAtAction: 5,
@@ -84,7 +81,6 @@ describe("avalanche", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: ["avalanche"],
-        currentPp: { avalanche: 10 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const d2 = MockPokemon.fresh(MockPokemon.base, {
@@ -125,7 +121,6 @@ describe("avalanche", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["avalanche"],
-      currentPp: { avalanche: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       lastActedAtAction: 5,
       lastDamagedByEnemyAtAction: 3,
@@ -145,7 +140,6 @@ describe("avalanche", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: ["avalanche"],
-        currentPp: { avalanche: 10 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const d2 = MockPokemon.fresh(MockPokemon.base, {

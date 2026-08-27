@@ -13,7 +13,6 @@ describe("metal-sound", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["metal-sound"],
-      currentPp: { "metal-sound": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -51,7 +50,6 @@ describe("metal-sound", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["metal-sound"],
-      currentPp: { "metal-sound": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -82,7 +80,6 @@ describe("metal-sound", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["metal-sound"],
-      currentPp: { "metal-sound": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -116,7 +113,6 @@ describe("metal-sound", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["metal-sound"],
-      currentPp: { "metal-sound": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -146,7 +142,6 @@ describe("metal-sound", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["metal-sound"],
-      currentPp: { "metal-sound": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {

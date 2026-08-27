@@ -14,7 +14,6 @@ describe("BattleEngine.submitAction — self-KO advances the turn immediately", 
     id: "sacrifice",
     position: { x: 0, y: 0 },
     moveIds: [MockMove.selfKo.id],
-    currentPp: { [MockMove.selfKo.id]: MockMove.selfKo.pp },
   });
   const ally = fresh(MockBattle.player1Medium, { id: "ally", position: { x: 2, y: 0 } });
   const enemy = fresh(MockBattle.player2Slow, { id: "enemy" });

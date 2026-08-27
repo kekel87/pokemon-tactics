@@ -23,7 +23,6 @@ function owner() {
     playerId: PlayerId.Player1,
     position: { x: 5, y: 5 },
     moveIds: ["toxic-spikes"],
-    currentPp: { "toxic-spikes": 10 },
   });
 }
 

@@ -12,7 +12,6 @@ describe("sheer-cold", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 2 },
       moveIds: ["sheer-cold"],
-      currentPp: { "sheer-cold": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

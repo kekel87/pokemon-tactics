@@ -28,7 +28,6 @@ describe("sunny-day setter move", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["sunny-day"],
-      currentPp: { "sunny-day": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -62,7 +61,6 @@ describe("rain-dance setter move", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["rain-dance"],
-      currentPp: { "rain-dance": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -96,7 +94,6 @@ describe("sandstorm setter move", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["sandstorm"],
-      currentPp: { sandstorm: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -130,7 +127,6 @@ describe("snowscape setter move", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["snowscape"],
-      currentPp: { snowscape: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -168,7 +164,6 @@ describe("weather-ball", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["weather-ball"],
-      currentPp: { "weather-ball": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -206,7 +201,6 @@ describe("weather-ball", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["weather-ball"],
-      currentPp: { "weather-ball": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const baseFoe = MockPokemon.fresh(MockPokemon.base, {
@@ -232,7 +226,6 @@ describe("weather-ball", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["weather-ball"],
-      currentPp: { "weather-ball": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const sunFoe = MockPokemon.fresh(MockPokemon.base, {
@@ -265,7 +258,6 @@ describe("weather-ball", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["weather-ball"],
-      currentPp: { "weather-ball": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const baseFoe = MockPokemon.fresh(MockPokemon.base, {
@@ -290,7 +282,6 @@ describe("weather-ball", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["weather-ball"],
-      currentPp: { "weather-ball": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const rainFoe = MockPokemon.fresh(MockPokemon.base, {
@@ -323,7 +314,6 @@ describe("weather-ball", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["weather-ball"],
-      currentPp: { "weather-ball": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const sandFoe = MockPokemon.fresh(MockPokemon.base, {
@@ -349,7 +339,6 @@ describe("weather-ball", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["weather-ball"],
-      currentPp: { "weather-ball": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const baseFoe2 = MockPokemon.fresh(MockPokemon.base, {
@@ -384,7 +373,6 @@ describe("weather-ball", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["weather-ball"],
-      currentPp: { "weather-ball": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const snowFoe = MockPokemon.fresh(MockPokemon.base, {
@@ -410,7 +398,6 @@ describe("weather-ball", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["weather-ball"],
-      currentPp: { "weather-ball": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const baseFoe3 = MockPokemon.fresh(MockPokemon.base, {
@@ -452,7 +439,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -493,7 +479,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -530,7 +515,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -572,7 +556,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 10 },
       currentHp: 1,
       maxHp: 100,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -590,7 +573,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       combatStats: { hp: 100, attack: 200, defense: 55, spAttack: 55, spDefense: 55, speed: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
@@ -634,7 +616,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -642,7 +623,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["rain-dance"],
-      currentPp: { "rain-dance": 5 },
       currentHp: 500,
       maxHp: 500,
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
@@ -697,7 +677,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const sunFoe = MockPokemon.fresh(MockPokemon.base, {
@@ -732,7 +711,6 @@ describe("solar-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["solar-beam"],
-      currentPp: { "solar-beam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -788,7 +766,6 @@ describe("synthesis", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["synthesis"],
-      currentPp: { synthesis: 5 },
       currentHp: 50,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -822,7 +799,6 @@ describe("synthesis", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["synthesis"],
-      currentPp: { synthesis: 5 },
       currentHp: 10,
       maxHp: 300,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -857,7 +833,6 @@ describe("synthesis", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["synthesis"],
-      currentPp: { synthesis: 5 },
       currentHp: 10,
       maxHp: 300,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -892,7 +867,6 @@ describe("synthesis", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["synthesis"],
-      currentPp: { synthesis: 5 },
       currentHp: 10,
       maxHp: 300,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -928,7 +902,6 @@ describe("synthesis", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["synthesis"],
-      currentPp: { synthesis: 5 },
       currentHp: 10,
       maxHp: 300,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -969,7 +942,6 @@ describe("weather war", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["sunny-day"],
-      currentPp: { "sunny-day": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const slowSetter = MockPokemon.fresh(MockPokemon.base, {
@@ -977,7 +949,6 @@ describe("weather war", () => {
       playerId: PlayerId.Player2,
       position: { x: 4, y: 4 },
       moveIds: ["rain-dance"],
-      currentPp: { "rain-dance": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([fastSetter, slowSetter]);

@@ -12,7 +12,6 @@ describe("breaking-swipe", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["breaking-swipe"],
-      currentPp: { "breaking-swipe": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeFront = MockPokemon.fresh(MockPokemon.base, {
@@ -47,7 +46,6 @@ describe("breaking-swipe", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["breaking-swipe"],
-      currentPp: { "breaking-swipe": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeFront = MockPokemon.fresh(MockPokemon.base, {
@@ -81,7 +79,6 @@ describe("breaking-swipe", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["breaking-swipe"],
-      currentPp: { "breaking-swipe": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeOutside = MockPokemon.fresh(MockPokemon.base, {

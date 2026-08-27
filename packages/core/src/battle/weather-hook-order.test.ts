@@ -112,7 +112,6 @@ describe("end-turn hook order: Sandstorm damage then Leftovers heal", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 0 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const { engine, state } = buildItemTestEngine([attacker, pokemon]);

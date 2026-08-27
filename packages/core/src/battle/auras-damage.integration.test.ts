@@ -37,7 +37,6 @@ describe("Reflect aura — Physical damage reduction", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       combatStats: STRONG_PHYS_ATTACK,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -66,7 +65,6 @@ describe("Reflect aura — Physical damage reduction", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       combatStats: STRONG_PHYS_ATTACK,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -111,7 +109,6 @@ describe("Light Screen aura — Special damage reduction", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["water-gun"],
-      currentPp: { "water-gun": 25 },
       combatStats: STRONG_SPECIAL_ATTACK,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -140,7 +137,6 @@ describe("Light Screen aura — Special damage reduction", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["water-gun"],
-      currentPp: { "water-gun": 25 },
       combatStats: STRONG_SPECIAL_ATTACK,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -185,7 +181,6 @@ describe("Brick Break vs caster of aura in melee", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["brick-break"],
-      currentPp: { "brick-break": 15 },
       combatStats: STRONG_PHYS_ATTACK,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -214,7 +209,6 @@ describe("Brick Break vs caster of aura in melee", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["brick-break"],
-      currentPp: { "brick-break": 15 },
       combatStats: STRONG_PHYS_ATTACK,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -270,7 +264,6 @@ describe("Brick Break vs protected ally of aura caster", () => {
       playerId: PlayerId.Player2,
       position: { x: 3, y: 0 },
       moveIds: ["brick-break"],
-      currentPp: { "brick-break": 15 },
       combatStats: STRONG_PHYS_ATTACK,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -305,7 +298,6 @@ describe("Brick Break vs protected ally of aura caster", () => {
       playerId: PlayerId.Player2,
       position: { x: 3, y: 0 },
       moveIds: ["brick-break"],
-      currentPp: { "brick-break": 15 },
       combatStats: STRONG_PHYS_ATTACK,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -360,7 +352,6 @@ describe("Brick Break vs unprotected target", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["brick-break"],
-      currentPp: { "brick-break": 15 },
       combatStats: STRONG_PHYS_ATTACK,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -411,7 +402,6 @@ describe("Brick Break vs double-protected caster in melee", () => {
       playerId: PlayerId.Player2,
       position: { x: 3, y: 0 },
       moveIds: ["brick-break"],
-      currentPp: { "brick-break": 15 },
       combatStats: STRONG_PHYS_ATTACK,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });

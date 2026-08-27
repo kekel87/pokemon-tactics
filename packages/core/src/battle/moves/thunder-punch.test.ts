@@ -13,7 +13,6 @@ describe("thunder-punch", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["thunder-punch"],
-      currentPp: { "thunder-punch": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -47,7 +46,6 @@ describe("thunder-punch", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["thunder-punch"],
-      currentPp: { "thunder-punch": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

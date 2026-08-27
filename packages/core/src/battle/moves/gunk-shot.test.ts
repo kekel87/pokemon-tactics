@@ -14,7 +14,6 @@ describe("gunk-shot", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["gunk-shot"],
-      currentPp: { "gunk-shot": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -50,7 +49,6 @@ describe("gunk-shot", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["gunk-shot"],
-      currentPp: { "gunk-shot": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -85,7 +83,6 @@ describe("gunk-shot", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["gunk-shot"],
-      currentPp: { "gunk-shot": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -120,7 +117,6 @@ describe("gunk-shot", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["gunk-shot"],
-      currentPp: { "gunk-shot": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const inRange = MockPokemon.fresh(MockPokemon.base, {

@@ -13,7 +13,6 @@ describe("quick-guard", () => {
       position: { x: 3, y: 3 },
       orientation: Direction.North,
       moveIds: ["quick-guard"],
-      currentPp: { "quick-guard": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -21,7 +20,6 @@ describe("quick-guard", () => {
       playerId: PlayerId.Player2,
       position: { x: 3, y: 4 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([defender, attacker]);
@@ -58,7 +56,6 @@ describe("quick-guard", () => {
       position: { x: 3, y: 3 },
       orientation: Direction.North,
       moveIds: ["quick-guard"],
-      currentPp: { "quick-guard": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -66,7 +63,6 @@ describe("quick-guard", () => {
       playerId: PlayerId.Player2,
       position: { x: 3, y: 4 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([defender, attacker]);
@@ -100,7 +96,6 @@ describe("quick-guard", () => {
       position: { x: 3, y: 3 },
       orientation: Direction.North,
       moveIds: ["quick-guard"],
-      currentPp: { "quick-guard": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker1 = MockPokemon.fresh(MockPokemon.base, {
@@ -108,7 +103,6 @@ describe("quick-guard", () => {
       playerId: PlayerId.Player2,
       position: { x: 3, y: 4 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 50 },
     });
     const attacker2 = MockPokemon.fresh(MockPokemon.base, {
@@ -116,7 +110,6 @@ describe("quick-guard", () => {
       playerId: PlayerId.Player2,
       position: { x: 3, y: 2 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([defender, attacker1, attacker2]);

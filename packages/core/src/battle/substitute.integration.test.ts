@@ -15,7 +15,6 @@ describe("Substitute — post + cost + invariants", () => {
       maxHp: 100,
       currentHp: 100,
       moveIds: ["substitute"],
-      currentPp: { substitute: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.base, {
@@ -50,7 +49,6 @@ describe("Substitute — post + cost + invariants", () => {
       maxHp: 100,
       currentHp: 25,
       moveIds: ["substitute"],
-      currentPp: { substitute: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.base, {
@@ -87,7 +85,6 @@ describe("Substitute — post + cost + invariants", () => {
       currentHp: 75,
       substituteHp: 25,
       moveIds: ["substitute"],
-      currentPp: { substitute: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.base, {
@@ -133,7 +130,6 @@ describe("Substitute — damage absorption", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -174,7 +170,6 @@ describe("Substitute — damage absorption", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -216,7 +211,6 @@ describe("Substitute — status block", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["thunder-wave"],
-      currentPp: { "thunder-wave": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -260,7 +254,6 @@ describe("Substitute — stat change block", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["icy-wind"],
-      currentPp: { "icy-wind": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -304,7 +297,6 @@ describe("Substitute — sound bypass", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 0 },
       moveIds: ["sing"],
-      currentPp: { sing: 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -346,7 +338,6 @@ describe("Substitute — sound bypass", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -378,7 +369,6 @@ describe("Substitute — KO cleanup", () => {
       currentHp: 50,
       substituteHp: 25,
       moveIds: ["self-destruct"],
-      currentPp: { "self-destruct": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.base, {

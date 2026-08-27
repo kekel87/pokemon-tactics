@@ -13,7 +13,6 @@ describe("dive", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["dive"],
-      currentPp: { dive: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -53,7 +52,6 @@ describe("dive", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["dive"],
-      currentPp: { dive: 9 },
       chargingMove: { moveId: "dive", targetPosition: { x: 0, y: 0 } },
       lockedMoveId: "dive",
       semiInvulnerableState: SemiInvulnerableState.Diving,

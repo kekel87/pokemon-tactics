@@ -14,7 +14,6 @@ describe("taunt", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["taunt"],
-      currentPp: { taunt: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -51,7 +50,6 @@ describe("taunt", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["taunt"],
-      currentPp: { taunt: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -80,7 +78,6 @@ describe("taunt", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["taunt"],
-      currentPp: { taunt: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

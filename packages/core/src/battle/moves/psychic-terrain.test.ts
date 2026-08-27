@@ -27,7 +27,6 @@ describe("psychic-terrain — anti-dash barrier", () => {
       playerId: PlayerId.Player2,
       position: { x: 0, y: 5 },
       moveIds: ["extreme-speed"],
-      currentPp: { "extreme-speed": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const { engine, state } = buildMoveTestEngine([caster, dasher], {
@@ -71,7 +70,6 @@ describe("psychic-terrain — anti-dash barrier", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 5 },
       moveIds: ["extreme-speed"],
-      currentPp: { "extreme-speed": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -114,7 +112,6 @@ describe("psychic-terrain — anti-dash barrier", () => {
       playerId: PlayerId.Player2,
       position: { x: 0, y: 5 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
       derivedStats: { movement: 4, jump: 2, initiative: 100 },
     });
     const { engine, state } = buildMoveTestEngine([caster, flyer], {
@@ -153,7 +150,6 @@ describe("psychic-terrain — anti-dash barrier", () => {
       playerId: PlayerId.Player2,
       position: { x: 4, y: 4 },
       moveIds: ["extreme-speed"],
-      currentPp: { "extreme-speed": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const { engine, state } = buildMoveTestEngine([caster, dasher], {
@@ -188,7 +184,6 @@ describe("psychic-terrain — Psychic move ×1.3 boost", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 0 },
       moveIds: ["psychic"],
-      currentPp: { psychic: 10 },
       combatStats: { hp: 55, attack: 50, defense: 45, spAttack: 200, spDefense: 95, speed: 120 },
       derivedStats: { movement: 4, jump: 1, initiative: 120 },
     });
@@ -219,7 +214,6 @@ describe("psychic-terrain — Psychic move ×1.3 boost", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["psychic"],
-      currentPp: { psychic: 10 },
       combatStats: { hp: 55, attack: 50, defense: 45, spAttack: 200, spDefense: 95, speed: 120 },
       derivedStats: { movement: 4, jump: 1, initiative: 120 },
     });
@@ -260,7 +254,6 @@ describe("psychic-terrain — move posting", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["psychic-terrain"],
-      currentPp: { "psychic-terrain": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

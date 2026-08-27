@@ -14,7 +14,6 @@ function slowFastTrio() {
     playerId: PlayerId.Player1,
     position: { x: 5, y: 5 },
     moveIds: ["trick-room"],
-    currentPp: { "trick-room": 10 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
   const slow = MockPokemon.fresh(MockPokemon.base, {

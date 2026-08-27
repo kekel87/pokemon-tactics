@@ -26,7 +26,6 @@ describe("teleport landing — terrain integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["teleport"],
-      currentPp: { teleport: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.squirtle, {
@@ -61,7 +60,6 @@ describe("teleport landing — terrain integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["teleport"],
-      currentPp: { teleport: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.charmander, {

@@ -307,7 +307,6 @@ describe("cloud-nine ability (Golduck)", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["ember"],
-      currentPp: { ember: 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const targetRef = MockPokemon.fresh(MockPokemon.base, {
@@ -343,7 +342,6 @@ describe("cloud-nine ability (Golduck)", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["ember"],
-      currentPp: { ember: 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 80 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {

@@ -14,7 +14,6 @@ describe("slash", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["slash"],
-      currentPp: { slash: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeFront = MockPokemon.fresh(MockPokemon.base, {

@@ -14,7 +14,6 @@ describe("circle-throw", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["circle-throw"],
-      currentPp: { "circle-throw": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

@@ -22,7 +22,6 @@ describe("grassy-terrain — zone posting", () => {
       playerId: PlayerId.Player1,
       position: { x: 5, y: 5 },
       moveIds: ["grassy-terrain"],
-      currentPp: { "grassy-terrain": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -60,7 +59,6 @@ describe("grassy-terrain — zone posting", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["grassy-terrain"],
-      currentPp: { "grassy-terrain": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -89,7 +87,6 @@ describe("grassy-terrain — end-of-turn heal", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["grassy-terrain"],
-      currentPp: { "grassy-terrain": 10 },
       currentHp: 80,
       maxHp: 160,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -132,7 +129,6 @@ describe("grassy-terrain — end-of-turn heal", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["grassy-terrain"],
-      currentPp: { "grassy-terrain": 10 },
       currentHp: 159,
       maxHp: 160,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -171,7 +167,6 @@ describe("grassy-terrain — end-of-turn heal", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["grassy-terrain"],
-      currentPp: { "grassy-terrain": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     // Pidgey is Normal/Flying — not grounded
@@ -221,7 +216,6 @@ describe("grassy-terrain — end-of-turn heal", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["grassy-terrain"],
-      currentPp: { "grassy-terrain": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     // Placed at (5,5) — outside r3 from (0,0): manhattan(5,5,0,0) = 10 > 3
@@ -346,7 +340,6 @@ describe("grassy-terrain — Earthquake ×0.5 vs grounded target on zone", () =>
       playerId: PlayerId.Player1,
       position: { x: 1, y: 0 },
       moveIds: ["earthquake"],
-      currentPp: { earthquake: 10 },
       combatStats: { hp: 100, attack: 200, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -376,7 +369,6 @@ describe("grassy-terrain — Earthquake ×0.5 vs grounded target on zone", () =>
       playerId: PlayerId.Player1,
       position: { x: 1, y: 0 },
       moveIds: ["earthquake"],
-      currentPp: { earthquake: 10 },
       combatStats: { hp: 100, attack: 200, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -419,7 +411,6 @@ describe("grassy-terrain — zone expiration", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["grassy-terrain"],
-      currentPp: { "grassy-terrain": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -465,7 +456,6 @@ describe("grassy-terrain — zone expiration", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["grassy-terrain"],
-      currentPp: { "grassy-terrain": 10 },
       heldItemId: HeldItemId.TerrainExtender,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });

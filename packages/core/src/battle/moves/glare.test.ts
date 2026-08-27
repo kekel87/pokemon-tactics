@@ -11,7 +11,6 @@ describe("glare", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["glare"],
-      currentPp: { glare: 30 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -45,7 +44,6 @@ describe("glare", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["glare"],
-      currentPp: { glare: 30 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -75,7 +73,6 @@ describe("glare", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["glare"],
-      currentPp: { glare: 30 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {

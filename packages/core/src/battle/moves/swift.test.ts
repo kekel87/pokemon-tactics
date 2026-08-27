@@ -11,7 +11,6 @@ describe("swift", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["swift"],
-      currentPp: { swift: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -43,7 +42,6 @@ describe("swift", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["swift"],
-      currentPp: { swift: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target1 = MockPokemon.fresh(MockPokemon.base, {
@@ -82,7 +80,6 @@ describe("swift", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["swift"],
-      currentPp: { swift: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {

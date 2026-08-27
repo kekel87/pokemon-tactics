@@ -10,7 +10,6 @@ describe("quiver-dance", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["quiver-dance"],
-      currentPp: { "quiver-dance": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const dummy = MockPokemon.fresh(MockPokemon.charmander, {

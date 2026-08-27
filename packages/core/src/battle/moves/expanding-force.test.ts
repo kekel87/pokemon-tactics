@@ -15,7 +15,6 @@ function makeCaster(position = { x: 5, y: 5 }, definitionId = "test") {
     playerId: PlayerId.Player1,
     position,
     moveIds: ["expanding-force"],
-    currentPp: { "expanding-force": 10 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
 }

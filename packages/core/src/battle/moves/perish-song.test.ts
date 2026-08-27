@@ -11,7 +11,6 @@ function makeCaster() {
     playerId: PlayerId.Player1,
     position: { x: 4, y: 4 },
     moveIds: ["perish-song"],
-    currentPp: { "perish-song": 5 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
 }

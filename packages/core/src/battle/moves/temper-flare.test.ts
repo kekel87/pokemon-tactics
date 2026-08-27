@@ -11,7 +11,6 @@ describe("temper-flare", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["temper-flare"],
-      currentPp: { "temper-flare": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -40,7 +39,6 @@ describe("temper-flare", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["temper-flare"],
-      currentPp: { "temper-flare": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {

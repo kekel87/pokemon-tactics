@@ -19,7 +19,6 @@ function makeConfusedEngine(options?: {
     position: { x: 2, y: 2 },
     orientation: Direction.East,
     moveIds: ["ember"],
-    currentPp: { ember: 25 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
     volatileStatuses: [{ type: StatusType.Confused, remainingTurns: 3 }],
   });
@@ -158,7 +157,6 @@ describe("confusion status", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: ["ember"],
-        currentPp: { ember: 25 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
         volatileStatuses: [{ type: StatusType.Confused, remainingTurns: 1 }],
       });

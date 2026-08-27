@@ -127,7 +127,6 @@ describe("quick-attack", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const distant = MockPokemon.fresh(MockPokemon.base, {
@@ -161,7 +160,6 @@ describe("quick-attack", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["quick-attack"],
-      currentPp: { "quick-attack": 30 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const distant = MockPokemon.fresh(MockPokemon.base, {

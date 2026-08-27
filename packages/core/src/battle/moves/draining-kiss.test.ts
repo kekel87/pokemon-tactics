@@ -12,7 +12,6 @@ describe("draining-kiss", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["draining-kiss"],
-      currentPp: { "draining-kiss": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -42,7 +41,6 @@ describe("draining-kiss", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["draining-kiss"],
-      currentPp: { "draining-kiss": 10 },
       currentHp: 50,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -74,7 +72,6 @@ describe("draining-kiss", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["draining-kiss"],
-      currentPp: { "draining-kiss": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

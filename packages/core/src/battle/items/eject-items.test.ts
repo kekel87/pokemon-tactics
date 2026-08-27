@@ -20,7 +20,6 @@ describe("Eject items", () => {
         position: { x: 3, y: 2 },
         orientation: Direction.West,
         moveIds: ["tackle"],
-        currentPp: { tackle: 30 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const holder = MockPokemon.fresh(MockPokemon.charmander, {
@@ -61,7 +60,6 @@ describe("Eject items", () => {
         position: { x: 3, y: 2 },
         orientation: Direction.West,
         moveIds: ["tackle"],
-        currentPp: { tackle: 30 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const holder = MockPokemon.fresh(MockPokemon.charmander, {

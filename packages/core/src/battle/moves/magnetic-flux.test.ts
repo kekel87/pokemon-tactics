@@ -11,7 +11,6 @@ describe("magnetic-flux", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["magnetic-flux"],
-      currentPp: { "magnetic-flux": 10 },
       abilityId: "pressure",
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -44,7 +43,6 @@ describe("magnetic-flux", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["magnetic-flux"],
-      currentPp: { "magnetic-flux": 10 },
       abilityId: "pressure",
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });

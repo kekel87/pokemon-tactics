@@ -14,7 +14,6 @@ describe("lock-on", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["lock-on"],
-      currentPp: { "lock-on": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -48,7 +47,6 @@ describe("lock-on", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["lock-on"],
-      currentPp: { "lock-on": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -86,7 +84,6 @@ describe("lock-on", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["lock-on", "thunder-wave"],
-      currentPp: { "lock-on": 5, "thunder-wave": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -140,7 +137,6 @@ describe("lock-on", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["lock-on"],
-      currentPp: { "lock-on": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

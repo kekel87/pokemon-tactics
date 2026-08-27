@@ -13,7 +13,6 @@ describe("Misc Batch E — grille-problématiques (plan 155)", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["follow-me"],
-      currentPp: { "follow-me": 5 },
     });
     const foeA = MockPokemon.fresh(MockPokemon.base, {
       id: "foeA",
@@ -47,7 +46,6 @@ describe("Misc Batch E — grille-problématiques (plan 155)", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["rage-powder"],
-      currentPp: { "rage-powder": 5 },
     });
     const grassFoe = MockPokemon.fresh(MockPokemon.bulbasaur, {
       id: "grassFoe",
@@ -81,7 +79,6 @@ describe("Misc Batch E — grille-problématiques (plan 155)", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["after-you"],
-      currentPp: { "after-you": 5 },
     });
     const slowAlly = MockPokemon.fresh(MockPokemon.base, {
       id: "slowAlly",
@@ -119,7 +116,6 @@ describe("Misc Batch E — grille-problématiques (plan 155)", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["ally-switch"],
-      currentPp: { "ally-switch": 5 },
     });
     const ally = MockPokemon.fresh(MockPokemon.base, {
       id: "ally",

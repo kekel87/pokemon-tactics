@@ -10,7 +10,6 @@ function setup() {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["gastro-acid"],
-    currentPp: { "gastro-acid": 5 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
   const foe = MockPokemon.fresh(MockPokemon.base, {

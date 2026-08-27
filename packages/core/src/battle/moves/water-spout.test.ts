@@ -9,7 +9,6 @@ function fire(foeX: number, attackerHp: number) {
     playerId: PlayerId.Player1,
     position: { x: 2, y: 2 },
     moveIds: ["water-spout"],
-    currentPp: { "water-spout": 5 },
     currentHp: attackerHp,
     maxHp: 100,
     derivedStats: { movement: 3, jump: 1, initiative: 100 },

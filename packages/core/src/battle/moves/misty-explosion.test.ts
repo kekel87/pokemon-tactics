@@ -14,7 +14,6 @@ function makeCaster(position = { x: 5, y: 5 }) {
     playerId: PlayerId.Player1,
     position,
     moveIds: ["misty-explosion"],
-    currentPp: { "misty-explosion": 5 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
 }

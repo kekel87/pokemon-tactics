@@ -13,7 +13,6 @@ describe("aqua-ring", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["aqua-ring"],
-      currentPp: { "aqua-ring": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -42,7 +41,6 @@ describe("aqua-ring", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["aqua-ring"],
-      currentPp: { "aqua-ring": 20 },
       currentHp: 80,
       maxHp: 160,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -79,7 +77,6 @@ describe("aqua-ring", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["aqua-ring"],
-      currentPp: { "aqua-ring": 20 },
       currentHp: 80,
       maxHp: 160,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -121,7 +118,6 @@ describe("aqua-ring", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["aqua-ring"],
-      currentPp: { "aqua-ring": 20 },
       currentHp: 159,
       maxHp: 160,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },

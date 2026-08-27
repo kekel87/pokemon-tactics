@@ -12,7 +12,6 @@ describe("charge", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["charge"],
-      currentPp: { charge: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -39,7 +38,6 @@ describe("charge", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["charge"],
-      currentPp: { charge: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -76,7 +74,6 @@ describe("charge", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["spark"],
-      currentPp: { spark: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const { engine: engineNormal } = buildMoveTestEngine([attackerNoCharge, foe1], {
@@ -105,7 +102,6 @@ describe("charge", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["spark"],
-      currentPp: { spark: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Charged, remainingTurns: 1 }],
     });
@@ -132,7 +128,6 @@ describe("charge", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["spark"],
-      currentPp: { spark: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Charged, remainingTurns: 1 }],
     });
@@ -161,7 +156,6 @@ describe("charge", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Charged, remainingTurns: 1 }],
     });

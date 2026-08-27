@@ -13,7 +13,6 @@ function setup(casterTypes: PokemonType[]) {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["curse"],
-    currentPp: { curse: 5 },
     currentHp: 100,
     maxHp: 100,
     typeOverride: casterTypes,

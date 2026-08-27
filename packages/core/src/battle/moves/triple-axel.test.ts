@@ -12,7 +12,6 @@ describe("triple-axel", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["triple-axel"],
-      currentPp: { "triple-axel": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -48,7 +47,6 @@ describe("triple-axel", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["triple-axel"],
-      currentPp: { "triple-axel": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -90,7 +88,6 @@ describe("triple-axel", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["triple-axel"],
-      currentPp: { "triple-axel": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -129,7 +126,6 @@ describe("triple-axel", () => {
       currentHp: attackerMaxHp,
       maxHp: attackerMaxHp,
       moveIds: ["triple-axel"],
-      currentPp: { "triple-axel": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -168,7 +164,6 @@ describe("triple-axel", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["triple-axel"],
-      currentPp: { "triple-axel": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

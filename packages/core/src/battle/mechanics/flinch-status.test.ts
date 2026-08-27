@@ -15,7 +15,6 @@ describe("Flinch volatile status", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Flinch, remainingTurns: 1 }],
     });
@@ -46,7 +45,6 @@ describe("Flinch volatile status", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Flinch, remainingTurns: 1 }],
     });
@@ -75,7 +73,6 @@ describe("Flinch volatile status", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Flinch, remainingTurns: 1 }],
     });
@@ -105,7 +102,6 @@ describe("Flinch volatile status", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Flinch, remainingTurns: 1 }],
     });

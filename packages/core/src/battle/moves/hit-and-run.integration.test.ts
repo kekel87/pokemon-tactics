@@ -26,7 +26,6 @@ describe("HitAndRun engine integration — u-turn", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["u-turn"],
-      currentPp: { "u-turn": 20 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.bulbasaur, {
       id: "enemy",
@@ -62,7 +61,6 @@ describe("HitAndRun engine integration — u-turn", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["u-turn"],
-      currentPp: { "u-turn": 20 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.bulbasaur, {
       id: "enemy",
@@ -95,7 +93,6 @@ describe("HitAndRun engine integration — u-turn", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["u-turn"],
-      currentPp: { "u-turn": 20 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.bulbasaur, {
       id: "enemy",
@@ -134,7 +131,6 @@ describe("HitAndRun engine integration — u-turn", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["u-turn"],
-      currentPp: { "u-turn": 20 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.bulbasaur, {
       id: "enemy",
@@ -167,7 +163,6 @@ describe("HitAndRun engine integration — u-turn", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["u-turn"],
-      currentPp: { "u-turn": 20 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.bulbasaur, {
@@ -204,7 +199,6 @@ describe("HitAndRun engine integration — volt-switch", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["volt-switch"],
-      currentPp: { "volt-switch": 20 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.bulbasaur, {
       id: "enemy",
@@ -236,7 +230,6 @@ describe("HitAndRun engine integration — flip-turn", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["flip-turn"],
-      currentPp: { "flip-turn": 20 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.bulbasaur, {

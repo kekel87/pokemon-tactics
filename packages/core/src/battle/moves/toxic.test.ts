@@ -14,7 +14,6 @@ describe("toxic", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["toxic"],
-      currentPp: { toxic: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
   }

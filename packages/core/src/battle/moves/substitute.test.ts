@@ -14,7 +14,6 @@ describe("substitute", () => {
       maxHp: 100,
       currentHp: 100,
       moveIds: ["substitute"],
-      currentPp: { substitute: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.base, {
@@ -49,7 +48,6 @@ describe("substitute", () => {
       maxHp: 100,
       currentHp: 25,
       moveIds: ["substitute"],
-      currentPp: { substitute: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.base, {
@@ -85,7 +83,6 @@ describe("substitute", () => {
       currentHp: 75,
       substituteHp: 25,
       moveIds: ["substitute"],
-      currentPp: { substitute: 9 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.base, {

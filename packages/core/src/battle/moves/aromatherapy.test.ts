@@ -12,7 +12,6 @@ describe("aromatherapy", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["aromatherapy"],
-      currentPp: { aromatherapy: 5 },
       statusEffects: [{ type: StatusType.Burned, remainingTurns: 3 }],
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -53,7 +52,6 @@ describe("aromatherapy", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["aromatherapy"],
-      currentPp: { aromatherapy: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const allyConfused = MockPokemon.fresh(MockPokemon.base, {
@@ -95,7 +93,6 @@ describe("aromatherapy", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["aromatherapy"],
-      currentPp: { aromatherapy: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const allyFar = MockPokemon.fresh(MockPokemon.base, {
@@ -130,7 +127,6 @@ describe("aromatherapy", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["aromatherapy"],
-      currentPp: { aromatherapy: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

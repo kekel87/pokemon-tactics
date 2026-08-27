@@ -22,7 +22,6 @@ describe("White Herb", () => {
         playerId: PlayerId.Player1,
         position: { x: 2, y: 0 },
         moveIds: ["growl"],
-        currentPp: { growl: 40 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const { engine, state } = buildItemTestEngine([magneton, holder]);
@@ -79,7 +78,6 @@ describe("White Herb", () => {
         playerId: PlayerId.Player1,
         position: { x: 2, y: 0 },
         moveIds: ["growl"],
-        currentPp: { growl: 40 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const { engine } = buildItemTestEngine([magneton, target]);
@@ -115,7 +113,6 @@ describe("White Herb", () => {
         playerId: PlayerId.Player1,
         position: { x: 2, y: 0 },
         moveIds: ["growl"],
-        currentPp: { growl: 40 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const { engine } = buildItemTestEngine([magneton, holder]);
@@ -169,7 +166,6 @@ describe("White Herb", () => {
         playerId: PlayerId.Player1,
         position: { x: 2, y: 0 },
         moveIds: ["growl"],
-        currentPp: { growl: 40 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const { engine } = buildItemTestEngine([magneton, holder]);
@@ -201,7 +197,6 @@ describe("White Herb", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: ["close-combat"],
-        currentPp: { "close-combat": 5 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
         heldItemId: HeldItemId.WhiteHerb,
         combatStats: { hp: 130, attack: 130, defense: 80, spAttack: 65, spDefense: 85, speed: 55 },
@@ -249,7 +244,6 @@ describe("White Herb", () => {
         playerId: PlayerId.Player1,
         position: { x: 2, y: 0 },
         moveIds: ["growl"],
-        currentPp: { growl: 40 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const { engine } = buildItemTestEngine([magneton, holder]);

@@ -10,7 +10,6 @@ function setup(foeHp: number) {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["false-swipe"],
-    currentPp: { "false-swipe": 5 },
     combatStats: { hp: 100, attack: 250, defense: 55, spAttack: 55, spDefense: 55, speed: 55 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });

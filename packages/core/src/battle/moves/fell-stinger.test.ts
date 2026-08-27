@@ -12,7 +12,6 @@ describe("fell-stinger", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["fell-stinger"],
-      currentPp: { "fell-stinger": 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -42,7 +41,6 @@ describe("fell-stinger", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["fell-stinger"],
-      currentPp: { "fell-stinger": 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

@@ -12,7 +12,6 @@ describe("beat-up", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["beat-up"],
-      currentPp: { "beat-up": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -41,7 +40,6 @@ describe("beat-up", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["beat-up"],
-      currentPp: { "beat-up": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -68,7 +66,6 @@ describe("beat-up", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["beat-up"],
-      currentPp: { "beat-up": 10 },
       baseStats: { hp: 100, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -122,7 +119,6 @@ describe("beat-up", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["beat-up"],
-      currentPp: { "beat-up": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const statusedAlly = MockPokemon.fresh(MockPokemon.base, {

@@ -12,7 +12,6 @@ describe("meteor-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["meteor-beam"],
-      currentPp: { "meteor-beam": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -46,7 +45,6 @@ describe("meteor-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["meteor-beam"],
-      currentPp: { "meteor-beam": 9 },
       chargingMove: { moveId: "meteor-beam", targetPosition: { x: 0, y: 0 } },
       lockedMoveId: "meteor-beam",
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -85,7 +83,6 @@ describe("meteor-beam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["meteor-beam"],
-      currentPp: { "meteor-beam": 9 },
       chargingMove: { moveId: "meteor-beam", targetPosition: { x: 0, y: 0 } },
       lockedMoveId: "meteor-beam",
       derivedStats: { movement: 3, jump: 1, initiative: 100 },

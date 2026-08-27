@@ -29,7 +29,6 @@ describe("Safeguard aura — blocks major statuses + confusion from enemies", ()
       playerId: PlayerId.Player2,
       position: { x: 2, y: 0 },
       moveIds: ["sleep-powder"],
-      currentPp: { "sleep-powder": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -80,7 +79,6 @@ describe("Safeguard aura — blocks major statuses + confusion from enemies", ()
       playerId: PlayerId.Player2,
       position: { x: 2, y: 0 },
       moveIds: ["thunder-wave"],
-      currentPp: { "thunder-wave": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -131,7 +129,6 @@ describe("Safeguard aura — blocks major statuses + confusion from enemies", ()
       playerId: PlayerId.Player2,
       position: { x: 2, y: 0 },
       moveIds: ["toxic"],
-      currentPp: { toxic: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -184,7 +181,6 @@ describe("Safeguard aura — blocks major statuses + confusion from enemies", ()
       playerId: PlayerId.Player2,
       position: { x: 2, y: 0 },
       moveIds: ["confuse-ray"],
-      currentPp: { "confuse-ray": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -225,7 +221,6 @@ describe("Safeguard aura — blocks major statuses + confusion from enemies", ()
       currentHp: 50,
       maxHp: 100,
       moveIds: ["rest"],
-      currentPp: { rest: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -266,7 +261,6 @@ describe("Safeguard aura — blocks major statuses + confusion from enemies", ()
       playerId: PlayerId.Player1,
       position: { x: 2, y: 0 },
       moveIds: ["thunder-wave"],
-      currentPp: { "thunder-wave": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -314,7 +308,6 @@ describe("Safeguard aura — blocks major statuses + confusion from enemies", ()
       playerId: PlayerId.Player2,
       position: { x: 6, y: 0 },
       moveIds: ["sleep-powder"],
-      currentPp: { "sleep-powder": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -358,7 +351,6 @@ describe("Safeguard aura — blocks major statuses + confusion from enemies", ()
       playerId: PlayerId.Player2,
       position: { x: 2, y: 0 },
       moveIds: ["sleep-powder"],
-      currentPp: { "sleep-powder": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 

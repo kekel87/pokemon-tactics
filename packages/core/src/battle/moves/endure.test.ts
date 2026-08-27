@@ -15,7 +15,6 @@ describe("endure", () => {
       maxHp: 100,
       orientation: Direction.South,
       moveIds: ["endure"],
-      currentPp: { endure: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -23,7 +22,6 @@ describe("endure", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 3 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       combatStats: {
         hp: 100,
         attack: 200,
@@ -72,7 +70,6 @@ describe("endure", () => {
       lastActedAtAction: 0,
       orientation: Direction.South,
       moveIds: ["endure"],
-      currentPp: { endure: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -80,7 +77,6 @@ describe("endure", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 3 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       combatStats: {
         hp: 100,
         attack: 200,
@@ -117,7 +113,6 @@ describe("endure", () => {
       maxHp: 100,
       orientation: Direction.South,
       moveIds: ["endure"],
-      currentPp: { endure: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -125,7 +120,6 @@ describe("endure", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 3 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       combatStats: {
         hp: 100,
         attack: 55,

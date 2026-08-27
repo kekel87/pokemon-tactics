@@ -12,7 +12,6 @@ describe("vital-throw", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["vital-throw"],
-      currentPp: { "vital-throw": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

@@ -13,7 +13,6 @@ describe("stun-spore", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["stun-spore"],
-      currentPp: { "stun-spore": 30 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -46,7 +45,6 @@ describe("stun-spore", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["stun-spore"],
-      currentPp: { "stun-spore": 30 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -75,7 +73,6 @@ describe("stun-spore", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["stun-spore"],
-      currentPp: { "stun-spore": 30 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const farTarget = MockPokemon.fresh(MockPokemon.base, {

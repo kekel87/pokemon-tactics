@@ -15,7 +15,6 @@ describe("string-shot", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["string-shot"],
-      currentPp: { "string-shot": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -47,7 +46,6 @@ describe("string-shot", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["string-shot"],
-      currentPp: { "string-shot": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe1 = MockPokemon.fresh(MockPokemon.base, {
@@ -88,7 +86,6 @@ describe("string-shot", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["string-shot"],
-      currentPp: { "string-shot": 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

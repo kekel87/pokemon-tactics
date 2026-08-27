@@ -16,7 +16,6 @@ function makeCaster(position = { x: 5, y: 5 }) {
     playerId: PlayerId.Player1,
     position,
     moveIds: ["nature-power"],
-    currentPp: { "nature-power": 20 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
 }

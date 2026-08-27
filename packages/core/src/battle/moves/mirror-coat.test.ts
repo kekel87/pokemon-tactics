@@ -13,7 +13,6 @@ describe("mirror-coat", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.South,
       moveIds: ["mirror-coat"],
-      currentPp: { "mirror-coat": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.charmander, {
@@ -55,7 +54,6 @@ describe("mirror-coat", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.South,
       moveIds: ["mirror-coat"],
-      currentPp: { "mirror-coat": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -63,7 +61,6 @@ describe("mirror-coat", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 3 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([defender, attacker]);

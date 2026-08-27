@@ -12,7 +12,6 @@ describe("psybeam", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["psybeam"],
-      currentPp: { psybeam: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -45,7 +44,6 @@ describe("psybeam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["psybeam"],
-      currentPp: { psybeam: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe1 = MockPokemon.fresh(MockPokemon.base, {
@@ -83,7 +81,6 @@ describe("psybeam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["psybeam"],
-      currentPp: { psybeam: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeOnLine = MockPokemon.fresh(MockPokemon.base, {
@@ -126,7 +123,6 @@ describe("psybeam", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["psybeam"],
-      currentPp: { psybeam: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeBehind = MockPokemon.fresh(MockPokemon.base, {

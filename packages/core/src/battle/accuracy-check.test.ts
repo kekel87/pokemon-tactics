@@ -36,7 +36,6 @@ function fresh(base: typeof MockBattle.player1Fast, overrides?: Record<string, u
     statStages: { ...base.statStages, ...overrides },
     statusEffects: [...base.statusEffects],
     moveIds: [...base.moveIds],
-    currentPp: { ...base.currentPp },
   };
 }
 

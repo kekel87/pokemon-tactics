@@ -11,7 +11,6 @@ function makeCaster() {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["future-sight"],
-    currentPp: { "future-sight": 10 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
 }

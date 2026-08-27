@@ -15,7 +15,6 @@ describe("disable", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["disable"],
-      currentPp: { disable: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -23,7 +22,6 @@ describe("disable", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
       lastUsedMoveId: "tackle",
     });
@@ -56,7 +54,6 @@ describe("disable", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["disable"],
-      currentPp: { disable: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -64,7 +61,6 @@ describe("disable", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([attacker, target]);
@@ -88,7 +84,6 @@ describe("disable", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["disable"],
-      currentPp: { disable: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {

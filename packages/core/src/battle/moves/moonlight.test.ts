@@ -10,7 +10,6 @@ function setup() {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["moonlight"],
-    currentPp: { moonlight: 5 },
     currentHp: 40,
     maxHp: 100,
     derivedStats: { movement: 3, jump: 1, initiative: 100 },

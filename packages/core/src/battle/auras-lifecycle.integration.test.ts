@@ -21,7 +21,6 @@ describe("screens lifecycle — Reflect decrement", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["reflect"],
-      currentPp: { reflect: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -74,7 +73,6 @@ describe("screens lifecycle — caster KO dissipates aura", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["light-screen"],
-      currentPp: { "light-screen": 5 },
       currentHp: 1,
       maxHp: 1,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -85,7 +83,6 @@ describe("screens lifecycle — caster KO dissipates aura", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       combatStats: {
         hp: 100,
         attack: 200,
@@ -140,7 +137,6 @@ describe("screens lifecycle — Light Clay extends duration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["reflect"],
-      currentPp: { reflect: 5 },
       heldItemId: HeldItemId.LightClay,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });

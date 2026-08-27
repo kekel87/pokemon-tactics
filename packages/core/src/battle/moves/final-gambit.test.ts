@@ -13,7 +13,6 @@ describe("final-gambit", () => {
       currentHp: 120,
       maxHp: 200,
       moveIds: ["final-gambit"],
-      currentPp: { "final-gambit": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -49,7 +48,6 @@ describe("final-gambit", () => {
       currentHp: 120,
       maxHp: 200,
       moveIds: ["final-gambit"],
-      currentPp: { "final-gambit": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

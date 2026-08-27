@@ -20,7 +20,6 @@ function psyshockDamage(defenderStats: typeof BASE_STATS): number {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["psyshock"],
-    currentPp: { psyshock: 10 },
     combatStats: { hp: 100, attack: 50, defense: 50, spAttack: 100, spDefense: 50, speed: 50 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
@@ -51,7 +50,6 @@ describe("psyshock", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["psyshock"],
-      currentPp: { psyshock: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -81,7 +79,6 @@ describe("psyshock", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["psyshock"],
-      currentPp: { psyshock: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

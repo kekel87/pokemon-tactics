@@ -14,7 +14,6 @@ describe("swords-dance", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["swords-dance"],
-      currentPp: { "swords-dance": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

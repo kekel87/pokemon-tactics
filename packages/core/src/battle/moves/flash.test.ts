@@ -15,7 +15,6 @@ describe("flash", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["flash"],
-      currentPp: { flash: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

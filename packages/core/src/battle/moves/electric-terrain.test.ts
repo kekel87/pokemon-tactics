@@ -32,7 +32,6 @@ describe("electric-terrain — sleep blocked for grounded mon on zone", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 4 },
       moveIds: ["sleep-powder"],
-      currentPp: { "sleep-powder": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const { engine, state } = buildMoveTestEngine([caster, target, enemy], {
@@ -82,7 +81,6 @@ describe("electric-terrain — sleep blocked for grounded mon on zone", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 4 },
       moveIds: ["confuse-ray"],
-      currentPp: { "confuse-ray": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const { engine, state } = buildMoveTestEngine([caster, target, enemy], {
@@ -125,7 +123,6 @@ describe("electric-terrain — sleep blocked for grounded mon on zone", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 4 },
       moveIds: ["sleep-powder"],
-      currentPp: { "sleep-powder": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const { engine, state } = buildMoveTestEngine([caster, flyer, enemy], {
@@ -160,7 +157,6 @@ describe("electric-terrain — Electric move ×1.3 boost", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 0 },
       moveIds: ["thunderbolt"],
-      currentPp: { thunderbolt: 15 },
       combatStats: { hp: 110, attack: 90, defense: 55, spAttack: 90, spDefense: 80, speed: 110 },
       derivedStats: { movement: 4, jump: 1, initiative: 110 },
     });
@@ -192,7 +188,6 @@ describe("electric-terrain — Electric move ×1.3 boost", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["thunderbolt"],
-      currentPp: { thunderbolt: 15 },
       combatStats: { hp: 110, attack: 90, defense: 55, spAttack: 90, spDefense: 80, speed: 110 },
       derivedStats: { movement: 4, jump: 1, initiative: 110 },
     });
@@ -234,7 +229,6 @@ describe("electric-terrain — move posting", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["electric-terrain"],
-      currentPp: { "electric-terrain": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

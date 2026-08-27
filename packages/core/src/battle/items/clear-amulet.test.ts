@@ -21,7 +21,6 @@ describe("Clear Amulet", () => {
         position: { x: 0, y: 0 },
         orientation: Direction.East,
         moveIds: ["leer"],
-        currentPp: { leer: 30 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const holder = MockPokemon.fresh(MockPokemon.base, {
@@ -68,7 +67,6 @@ describe("Clear Amulet", () => {
         position: { x: 0, y: 0 },
         orientation: Direction.East,
         moveIds: ["leer"],
-        currentPp: { leer: 30 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const target = MockPokemon.fresh(MockPokemon.base, {
@@ -103,7 +101,6 @@ describe("Clear Amulet", () => {
         position: { x: 0, y: 0 },
         orientation: Direction.East,
         moveIds: ["overheat"],
-        currentPp: { overheat: 5 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
         heldItemId: HeldItemId.ClearAmulet,
       });

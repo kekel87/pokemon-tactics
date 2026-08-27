@@ -10,7 +10,6 @@ describe("mega-drain", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["mega-drain"],
-      currentPp: { "mega-drain": 15 },
       currentHp: 100,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },

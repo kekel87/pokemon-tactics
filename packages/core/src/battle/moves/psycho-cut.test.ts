@@ -14,7 +14,6 @@ describe("psycho-cut", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["psycho-cut"],
-      currentPp: { "psycho-cut": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeFront = MockPokemon.fresh(MockPokemon.base, {
@@ -52,7 +51,6 @@ describe("psycho-cut", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["psycho-cut"],
-      currentPp: { "psycho-cut": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeOutside = MockPokemon.fresh(MockPokemon.base, {

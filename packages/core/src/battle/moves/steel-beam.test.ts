@@ -9,7 +9,6 @@ function setup(casterHp: number) {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["steel-beam"],
-    currentPp: { "steel-beam": 5 },
     currentHp: casterHp,
     maxHp: 100,
     derivedStats: { movement: 3, jump: 1, initiative: 100 },

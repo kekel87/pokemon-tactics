@@ -11,7 +11,6 @@ function fire(defenderX: number, attackerOverrides: Partial<PokemonInstance> = {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["facade"],
-    currentPp: { facade: 20 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
     ...attackerOverrides,
   });

@@ -19,7 +19,6 @@ function fresh(base: PokemonInstance, overrides: Partial<PokemonInstance>): Poke
     statStages: { ...base.statStages },
     statusEffects: [],
     moveIds: [...base.moveIds],
-    currentPp: { ...base.currentPp },
     volatileStatuses: [],
     ...overrides,
   };

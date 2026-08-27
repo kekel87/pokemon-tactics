@@ -12,7 +12,6 @@ describe("horn-drill", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 2 },
       moveIds: ["horn-drill"],
-      currentPp: { "horn-drill": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const near = MockPokemon.fresh(MockPokemon.base, {

@@ -15,7 +15,6 @@ describe("friendly fire", () => {
       playerId: PlayerId.Player1,
       position: { x: 3, y: 3 },
       moveIds: ["magnitude"],
-      currentPp: { magnitude: 30 },
       derivedStats: { movement: 3, jump: 1, initiative: 90 },
     });
     const ally = MockPokemon.fresh(MockPokemon.charmander, {

@@ -14,7 +14,6 @@ describe("shell-smash", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["shell-smash"],
-      currentPp: { "shell-smash": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -46,7 +45,6 @@ describe("shell-smash", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["shell-smash"],
-      currentPp: { "shell-smash": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -76,7 +74,6 @@ describe("shell-smash", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["shell-smash"],
-      currentPp: { "shell-smash": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -105,7 +102,6 @@ describe("shell-smash", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["shell-smash"],
-      currentPp: { "shell-smash": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

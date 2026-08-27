@@ -22,7 +22,6 @@ describe("Throat Spray", () => {
         position: { x: 0, y: 0 },
         orientation: Direction.East,
         moveIds: ["snarl"],
-        currentPp: { snarl: 15 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
         heldItemId: HeldItemId.ThroatSpray,
       });
@@ -80,7 +79,6 @@ describe("Throat Spray", () => {
         position: { x: 0, y: 0 },
         orientation: Direction.East,
         moveIds: ["growl"],
-        currentPp: { growl: 40 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
         heldItemId: HeldItemId.ThroatSpray,
       });

@@ -12,7 +12,6 @@ describe("focus-blast", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["focus-blast"],
-      currentPp: { "focus-blast": 100 },
       combatStats: { hp: 100, attack: 50, defense: 50, spAttack: 130, spDefense: 50, speed: 100 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -60,7 +59,6 @@ describe("focus-blast", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["focus-blast"],
-      currentPp: { "focus-blast": 100 },
       combatStats: { hp: 100, attack: 50, defense: 50, spAttack: 130, spDefense: 50, speed: 100 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });

@@ -11,7 +11,6 @@ function setup(currentHp: number) {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["belly-drum"],
-    currentPp: { "belly-drum": 5 },
     currentHp,
     maxHp: 100,
     derivedStats: { movement: 3, jump: 1, initiative: 100 },

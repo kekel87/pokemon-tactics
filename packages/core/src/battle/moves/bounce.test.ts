@@ -14,7 +14,6 @@ describe("bounce", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["bounce"],
-      currentPp: { bounce: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -55,7 +54,6 @@ describe("bounce", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["bounce"],
-      currentPp: { bounce: 4 },
       chargingMove: { moveId: "bounce", targetPosition: { x: 0, y: 0 } },
       lockedMoveId: "bounce",
       semiInvulnerableState: SemiInvulnerableState.Flying,
@@ -101,7 +99,6 @@ describe("bounce", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["bounce"],
-      currentPp: { bounce: 4 },
       chargingMove: { moveId: "bounce", targetPosition: { x: 0, y: 0 } },
       lockedMoveId: "bounce",
       semiInvulnerableState: SemiInvulnerableState.Flying,

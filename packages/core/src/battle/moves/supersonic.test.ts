@@ -14,7 +14,6 @@ describe("supersonic", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["supersonic"],
-      currentPp: { supersonic: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
   }

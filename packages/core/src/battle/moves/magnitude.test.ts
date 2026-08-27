@@ -11,7 +11,6 @@ describe("magnitude", () => {
       playerId: PlayerId.Player1,
       position: { x: 3, y: 3 },
       moveIds: ["magnitude"],
-      currentPp: { magnitude: 30 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target1 = MockPokemon.fresh(MockPokemon.base, {
@@ -50,7 +49,6 @@ describe("magnitude", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["magnitude"],
-      currentPp: { magnitude: 30 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const farTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -78,7 +76,6 @@ describe("magnitude", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["magnitude"],
-      currentPp: { magnitude: 30 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeBehindPillar = MockPokemon.fresh(MockPokemon.base, {

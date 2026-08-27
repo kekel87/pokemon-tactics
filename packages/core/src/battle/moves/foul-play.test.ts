@@ -26,7 +26,6 @@ function foulPlayDamage(
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["foul-play"],
-    currentPp: { "foul-play": 15 },
     combatStats: { hp: 100, attack: 30, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
     statStages: { ...MockPokemon.base.statStages, ...options.attackerStages },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -88,7 +87,6 @@ describe("foul-play", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["foul-play"],
-      currentPp: { "foul-play": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {

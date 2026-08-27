@@ -13,7 +13,6 @@ describe("counter", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.South,
       moveIds: ["counter"],
-      currentPp: { counter: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -21,7 +20,6 @@ describe("counter", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 3 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([defender, attacker]);
@@ -57,7 +55,6 @@ describe("counter", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.South,
       moveIds: ["counter"],
-      currentPp: { counter: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.charmander, {
@@ -100,7 +97,6 @@ describe("counter", () => {
       position: { x: 3, y: 3 },
       orientation: Direction.South,
       moveIds: ["counter"],
-      currentPp: { counter: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -108,7 +104,6 @@ describe("counter", () => {
       playerId: PlayerId.Player2,
       position: { x: 3, y: 0 },
       moveIds: ["rock-throw"],
-      currentPp: { "rock-throw": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([defender, attacker]);

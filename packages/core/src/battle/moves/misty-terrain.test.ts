@@ -31,7 +31,6 @@ describe("misty-terrain — major status blocked for grounded mon on zone", () =
       playerId: PlayerId.Player2,
       position: { x: 2, y: 4 },
       moveIds: ["thunder-wave"],
-      currentPp: { "thunder-wave": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const { engine, state } = buildMoveTestEngine([caster, target, enemy], {
@@ -81,7 +80,6 @@ describe("misty-terrain — major status blocked for grounded mon on zone", () =
       playerId: PlayerId.Player2,
       position: { x: 2, y: 4 },
       moveIds: ["confuse-ray"],
-      currentPp: { "confuse-ray": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const { engine, state } = buildMoveTestEngine([caster, target, enemy], {
@@ -131,7 +129,6 @@ describe("misty-terrain — major status blocked for grounded mon on zone", () =
       playerId: PlayerId.Player2,
       position: { x: 2, y: 4 },
       moveIds: ["thunder-wave"],
-      currentPp: { "thunder-wave": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const { engine, state } = buildMoveTestEngine([caster, flyer, enemy], {
@@ -166,7 +163,6 @@ describe("misty-terrain — Dragon move ×0.5 vs grounded target on zone", () =>
       playerId: PlayerId.Player1,
       position: { x: 1, y: 0 },
       moveIds: ["dragon-breath"],
-      currentPp: { "dragon-breath": 20 },
       combatStats: { hp: 100, attack: 50, defense: 50, spAttack: 200, spDefense: 50, speed: 80 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -203,7 +199,6 @@ describe("misty-terrain — Dragon move ×0.5 vs grounded target on zone", () =>
       playerId: PlayerId.Player1,
       position: { x: 1, y: 0 },
       moveIds: ["dragon-breath"],
-      currentPp: { "dragon-breath": 20 },
       combatStats: { hp: 100, attack: 50, defense: 50, spAttack: 200, spDefense: 50, speed: 80 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
@@ -246,7 +241,6 @@ describe("misty-terrain — move posting", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["misty-terrain"],
-      currentPp: { "misty-terrain": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

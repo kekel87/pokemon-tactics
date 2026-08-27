@@ -13,7 +13,6 @@ describe("poison-powder", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["poison-powder"],
-      currentPp: { "poison-powder": 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -46,7 +45,6 @@ describe("poison-powder", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["poison-powder"],
-      currentPp: { "poison-powder": 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -75,7 +73,6 @@ describe("poison-powder", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["poison-powder"],
-      currentPp: { "poison-powder": 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const farTarget = MockPokemon.fresh(MockPokemon.base, {

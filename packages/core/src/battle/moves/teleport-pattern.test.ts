@@ -12,7 +12,6 @@ describe("teleport (pure 1-turn)", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["teleport"],
-      currentPp: { teleport: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const bystander = MockPokemon.fresh(MockPokemon.charmander, {
@@ -44,7 +43,6 @@ describe("teleport (pure 1-turn)", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["teleport"],
-      currentPp: { teleport: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const blocker = MockPokemon.fresh(MockPokemon.charmander, {
@@ -88,7 +86,6 @@ describe("two-turn TP charge — T1 behaviour", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: [moveId],
-        currentPp: { [moveId]: 15 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -129,7 +126,6 @@ describe("teleport range invariants", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["teleport"],
-      currentPp: { teleport: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.charmander, {

@@ -12,7 +12,6 @@ describe("flame-wheel", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["flame-wheel"],
-      currentPp: { "flame-wheel": 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -45,7 +44,6 @@ describe("flame-wheel", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["flame-wheel"],
-      currentPp: { "flame-wheel": 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {

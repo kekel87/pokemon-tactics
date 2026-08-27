@@ -12,7 +12,6 @@ describe("guillotine", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 2 },
       moveIds: ["guillotine"],
-      currentPp: { guillotine: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

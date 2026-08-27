@@ -10,7 +10,6 @@ function setup() {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["guard-split"],
-    currentPp: { "guard-split": 10 },
     combatStats: { hp: 100, attack: 55, defense: 100, spAttack: 55, spDefense: 40, speed: 55 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });

@@ -12,7 +12,6 @@ describe("freeze-dry", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["freeze-dry"],
-      currentPp: { "freeze-dry": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -42,7 +41,6 @@ describe("freeze-dry", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["freeze-dry"],
-      currentPp: { "freeze-dry": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -69,7 +67,6 @@ describe("freeze-dry", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["freeze-dry"],
-      currentPp: { "freeze-dry": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const waterTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -106,7 +103,6 @@ describe("freeze-dry", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["freeze-dry"],
-      currentPp: { "freeze-dry": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const waterFlyingTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -142,7 +138,6 @@ describe("freeze-dry", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["freeze-dry"],
-      currentPp: { "freeze-dry": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const waterIceTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -179,7 +174,6 @@ describe("freeze-dry", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["freeze-dry"],
-      currentPp: { "freeze-dry": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -210,7 +204,6 @@ describe("freeze-dry", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["freeze-dry"],
-      currentPp: { "freeze-dry": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

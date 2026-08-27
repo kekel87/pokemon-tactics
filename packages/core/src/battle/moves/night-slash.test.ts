@@ -14,7 +14,6 @@ describe("night-slash", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["night-slash"],
-      currentPp: { "night-slash": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeFront = MockPokemon.fresh(MockPokemon.base, {
@@ -52,7 +51,6 @@ describe("night-slash", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["night-slash"],
-      currentPp: { "night-slash": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeOutside = MockPokemon.fresh(MockPokemon.base, {

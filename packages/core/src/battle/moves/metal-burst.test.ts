@@ -13,7 +13,6 @@ describe("metal-burst", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.South,
       moveIds: ["metal-burst"],
-      currentPp: { "metal-burst": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -21,7 +20,6 @@ describe("metal-burst", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 3 },
       moveIds: ["scratch"],
-      currentPp: { scratch: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([defender, attacker]);
@@ -57,7 +55,6 @@ describe("metal-burst", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.South,
       moveIds: ["metal-burst"],
-      currentPp: { "metal-burst": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.charmander, {
@@ -99,7 +96,6 @@ describe("metal-burst", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.South,
       moveIds: ["metal-burst"],
-      currentPp: { "metal-burst": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -107,7 +103,6 @@ describe("metal-burst", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 3 },
       moveIds: ["smokescreen"],
-      currentPp: { smokescreen: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([defender, attacker]);

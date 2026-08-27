@@ -16,7 +16,6 @@ describe("bug-buzz", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["bug-buzz"],
-      currentPp: { "bug-buzz": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -49,7 +48,6 @@ describe("bug-buzz", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["bug-buzz"],
-      currentPp: { "bug-buzz": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -79,7 +77,6 @@ describe("bug-buzz", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["bug-buzz"],
-      currentPp: { "bug-buzz": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -109,7 +106,6 @@ describe("bug-buzz", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["bug-buzz"],
-      currentPp: { "bug-buzz": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeBehindPillar = MockPokemon.fresh(MockPokemon.base, {
@@ -141,7 +137,6 @@ describe("bug-buzz", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["bug-buzz"],
-      currentPp: { "bug-buzz": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

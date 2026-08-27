@@ -111,7 +111,6 @@ describe("Plan 141 — talents soutien & couplage objet", () => {
         playerId: PlayerId.Player1,
         position: { x: 2, y: 2 },
         moveIds: ["self-destruct"],
-        currentPp: { "self-destruct": 5 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const target = MockPokemon.fresh(MockPokemon.base, {
@@ -168,7 +167,6 @@ describe("Plan 141 — talents soutien & couplage objet", () => {
         playerId: PlayerId.Player1,
         position: { x: 2, y: 2 },
         moveIds: ["self-destruct"],
-        currentPp: { "self-destruct": 5 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const target = MockPokemon.fresh(MockPokemon.base, {
@@ -275,7 +273,6 @@ describe("Plan 141 — talents soutien & couplage objet", () => {
         playerId: PlayerId.Player2,
         position: { x: 2, y: 2 },
         moveIds: ["tackle"],
-        currentPp: { tackle: 35 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const defender = MockPokemon.fresh(MockPokemon.base, {

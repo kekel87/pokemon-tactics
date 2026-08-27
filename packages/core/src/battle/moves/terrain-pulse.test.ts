@@ -15,7 +15,6 @@ function setup(terrain: FieldTerrain | null) {
     playerId: PlayerId.Player1,
     position: { x: 5, y: 5 },
     moveIds: ["terrain-pulse"],
-    currentPp: { "terrain-pulse": 10 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
   const target = MockPokemon.fresh(MockPokemon.base, {

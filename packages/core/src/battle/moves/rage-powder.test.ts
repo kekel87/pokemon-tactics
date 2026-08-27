@@ -11,7 +11,6 @@ function setup() {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["rage-powder"],
-    currentPp: { "rage-powder": 5 },
   });
   const grassFoe = MockPokemon.fresh(MockPokemon.bulbasaur, {
     id: "grassFoe",

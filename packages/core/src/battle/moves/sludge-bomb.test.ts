@@ -100,7 +100,6 @@ describe("sludge-bomb", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["sludge-bomb"],
-      currentPp: { "sludge-bomb": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const targetBehindPillar = MockPokemon.fresh(MockPokemon.charmander, {
@@ -130,7 +129,6 @@ describe("sludge-bomb", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["sludge-bomb"],
-      currentPp: { "sludge-bomb": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const onEpicenterTile = MockPokemon.fresh(MockPokemon.charmander, {

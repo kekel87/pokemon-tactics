@@ -16,7 +16,6 @@ function makeCaster() {
     playerId: PlayerId.Player1,
     position: { x: 5, y: 1 },
     moveIds: ["rising-voltage"],
-    currentPp: { "rising-voltage": 20 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
 }

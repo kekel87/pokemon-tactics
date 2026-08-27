@@ -29,7 +29,6 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 0 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -85,7 +84,6 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       playerId: PlayerId.Player2,
       position: { x: 5, y: 2 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -140,7 +138,6 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 0 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -185,7 +182,6 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       playerId: PlayerId.Player2,
       position: { x: 6, y: 0 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -230,7 +226,6 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 0 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -283,7 +278,6 @@ describe("Mist aura — blocks enemy stat decreases", () => {
       playerId: PlayerId.Player2,
       position: { x: 2, y: 0 },
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 

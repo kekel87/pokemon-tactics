@@ -17,7 +17,6 @@ describe("Taunt — disrupts status moves for 3 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["taunt"],
-      currentPp: { taunt: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -25,7 +24,6 @@ describe("Taunt — disrupts status moves for 3 turns", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["recover", "tackle"],
-      currentPp: { recover: 10, tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 50 },
     });
 
@@ -61,7 +59,6 @@ describe("Taunt — disrupts status moves for 3 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 5 },
       volatileStatuses: [{ type: StatusType.Taunted, remainingTurns: 3 }],
     });
@@ -76,7 +73,6 @@ describe("Taunt — disrupts status moves for 3 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 0 },
       moveIds: ["recover", "tackle"],
-      currentPp: { recover: 10, tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Taunted, remainingTurns: 3 }],
     });
@@ -106,7 +102,6 @@ describe("Taunt — disrupts status moves for 3 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Taunted, remainingTurns: 3 }],
     });
@@ -141,7 +136,6 @@ describe("Taunt — disrupts status moves for 3 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["recover", "tackle"],
-      currentPp: { recover: 10, tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Taunted, remainingTurns: 3 }],
     });
@@ -173,7 +167,6 @@ describe("Taunt — disrupts status moves for 3 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Taunted, remainingTurns: 3 }],
     });
@@ -212,7 +205,6 @@ describe("Taunt — disrupts status moves for 3 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["taunt"],
-      currentPp: { taunt: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -262,7 +254,6 @@ describe("Taunt — disrupts status moves for 3 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["taunt"],
-      currentPp: { taunt: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
 
@@ -300,7 +291,6 @@ describe("Taunt — disrupts status moves for 3 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const ally = MockPokemon.fresh(MockPokemon.base, {

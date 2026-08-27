@@ -9,7 +9,6 @@ function setup() {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["skill-swap"],
-    currentPp: { "skill-swap": 5 },
     abilityId: "torrent",
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });

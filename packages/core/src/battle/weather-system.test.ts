@@ -129,7 +129,6 @@ describe("heat-rock item", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["sunny-day"],
-      currentPp: { "sunny-day": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       // TODO(plan-084-étape-9): HeldItemId.HeatRock n'est pas encore dans l'enum
       heldItemId: "heat-rock" as HeldItemId,
@@ -430,7 +429,6 @@ describe("Fire move damage in Sun — integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["flamethrower"],
-      currentPp: { flamethrower: 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const baseTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -460,7 +458,6 @@ describe("Fire move damage in Sun — integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["flamethrower"],
-      currentPp: { flamethrower: 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const sunTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -500,7 +497,6 @@ describe("Water move damage in Sun — integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["water-gun"],
-      currentPp: { "water-gun": 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const baseTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -529,7 +525,6 @@ describe("Water move damage in Sun — integration", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["water-gun"],
-      currentPp: { "water-gun": 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const sunTarget = MockPokemon.fresh(MockPokemon.base, {
@@ -727,7 +722,6 @@ describe("Freeze status blocked in Sun", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 2 },
       moveIds: ["blizzard"],
-      currentPp: { blizzard: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {

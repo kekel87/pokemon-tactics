@@ -13,7 +13,6 @@ describe("grudge", () => {
       currentHp: 1,
       maxHp: 200,
       moveIds: ["grudge"],
-      currentPp: { grudge: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const ally = MockPokemon.fresh(MockPokemon.base, {
@@ -30,7 +29,6 @@ describe("grudge", () => {
       currentHp: 300,
       maxHp: 300,
       moveIds: ["tackle"],
-      currentPp: { tackle: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([caster, ally, foe]);

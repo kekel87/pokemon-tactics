@@ -9,7 +9,6 @@ function fire(defenderX: number, attackerSpeed: number) {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["gyro-ball"],
-    currentPp: { "gyro-ball": 5 },
     combatStats: { ...MockPokemon.base.combatStats, speed: attackerSpeed },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });

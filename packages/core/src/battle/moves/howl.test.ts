@@ -11,7 +11,6 @@ describe("howl", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["howl"],
-      currentPp: { howl: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const allyNear = MockPokemon.fresh(MockPokemon.base, {

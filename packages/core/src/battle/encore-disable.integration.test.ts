@@ -16,7 +16,6 @@ describe("Disable — blocks the target's last used move for 4 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["disable"],
-      currentPp: { disable: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -24,7 +23,6 @@ describe("Disable — blocks the target's last used move for 4 turns", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle", "recover"],
-      currentPp: { tackle: 35, recover: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 50 },
       lastUsedMoveId: "tackle",
     });
@@ -61,7 +59,6 @@ describe("Disable — blocks the target's last used move for 4 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle", "ember"],
-      currentPp: { tackle: 35, ember: 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Disabled, remainingTurns: 4, moveId: "tackle" }],
     });
@@ -96,7 +93,6 @@ describe("Disable — blocks the target's last used move for 4 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle", "ember"],
-      currentPp: { tackle: 35, ember: 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Disabled, remainingTurns: 4, moveId: "tackle" }],
     });
@@ -126,7 +122,6 @@ describe("Disable — blocks the target's last used move for 4 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["disable"],
-      currentPp: { disable: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -134,7 +129,6 @@ describe("Disable — blocks the target's last used move for 4 turns", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 5 },
     });
 
@@ -161,7 +155,6 @@ describe("Disable — blocks the target's last used move for 4 turns", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["disable"],
-      currentPp: { disable: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -169,7 +162,6 @@ describe("Disable — blocks the target's last used move for 4 turns", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 5 },
       lastUsedMoveId: "tackle",
       volatileStatuses: [{ type: StatusType.Disabled, remainingTurns: 4, moveId: "tackle" }],
@@ -199,7 +191,6 @@ describe("Encore — forces the target to repeat its last move for 3 turns", () 
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["encore"],
-      currentPp: { encore: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -207,7 +198,6 @@ describe("Encore — forces the target to repeat its last move for 3 turns", () 
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["recover", "tackle"],
-      currentPp: { recover: 10, tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 50 },
       lastUsedMoveId: "recover",
     });
@@ -245,7 +235,6 @@ describe("Encore — forces the target to repeat its last move for 3 turns", () 
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle", "ember"],
-      currentPp: { tackle: 35, ember: 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Encored, remainingTurns: 3, moveId: "tackle" }],
     });
@@ -271,7 +260,6 @@ describe("Encore — forces the target to repeat its last move for 3 turns", () 
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle", "ember"],
-      currentPp: { tackle: 35, ember: 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Encored, remainingTurns: 3, moveId: "tackle" }],
     });
@@ -303,7 +291,6 @@ describe("Encore — forces the target to repeat its last move for 3 turns", () 
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["encore"],
-      currentPp: { encore: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -311,7 +298,6 @@ describe("Encore — forces the target to repeat its last move for 3 turns", () 
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 5 },
     });
 
@@ -339,7 +325,6 @@ describe("Encore/Disable — interactions", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["disable", "encore"],
-      currentPp: { disable: 20, encore: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -347,7 +332,6 @@ describe("Encore/Disable — interactions", () => {
       playerId: PlayerId.Player2,
       position: { x: 1, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 5 },
       lastUsedMoveId: "tackle",
       substituteHp: 25,
@@ -382,7 +366,6 @@ describe("Encore/Disable — interactions", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [{ type: StatusType.Taunted, remainingTurns: 3 }],
     });
@@ -432,7 +415,6 @@ describe("Encore/Disable — interactions", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle"],
-      currentPp: { tackle: 35 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const ally = MockPokemon.fresh(MockPokemon.base, {
@@ -464,7 +446,6 @@ describe("Encore/Disable — interactions", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle", "ember"],
-      currentPp: { tackle: 35, ember: 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       volatileStatuses: [
         { type: StatusType.Disabled, remainingTurns: 4, moveId: "tackle" },

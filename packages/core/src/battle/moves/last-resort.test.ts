@@ -11,7 +11,6 @@ describe("last-resort", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle", "scratch", "last-resort"],
-      currentPp: { tackle: 35, scratch: 35, "last-resort": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       usedMoveIds: ["tackle"],
     });
@@ -37,7 +36,6 @@ describe("last-resort", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle", "scratch", "last-resort"],
-      currentPp: { tackle: 35, scratch: 35, "last-resort": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -62,7 +60,6 @@ describe("last-resort", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle", "scratch", "last-resort"],
-      currentPp: { tackle: 35, scratch: 35, "last-resort": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       usedMoveIds: ["tackle", "scratch"],
     });
@@ -88,7 +85,6 @@ describe("last-resort", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["tackle", "last-resort"],
-      currentPp: { tackle: 35, "last-resort": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       usedMoveIds: ["tackle"],
     });

@@ -22,7 +22,6 @@ function owner() {
     playerId: PlayerId.Player1,
     position: { x: 5, y: 5 },
     moveIds: ["spikes"],
-    currentPp: { spikes: 10 },
   });
 }
 

@@ -12,7 +12,6 @@ describe("absorb", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["absorb"],
-      currentPp: { absorb: 25 },
       currentHp: 100,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -46,7 +45,6 @@ describe("absorb", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["absorb"],
-      currentPp: { absorb: 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -77,7 +75,6 @@ describe("absorb", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["absorb"],
-      currentPp: { absorb: 25 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

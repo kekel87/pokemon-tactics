@@ -15,7 +15,6 @@ describe("growl", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -47,7 +46,6 @@ describe("growl", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["growl"],
-      currentPp: { growl: 40 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeBehindPillar = MockPokemon.fresh(MockPokemon.base, {

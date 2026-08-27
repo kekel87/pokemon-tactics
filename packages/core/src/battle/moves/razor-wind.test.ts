@@ -11,7 +11,6 @@ describe("razor-wind", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 0 },
       moveIds: ["razor-wind"],
-      currentPp: { "razor-wind": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.charmander, {
@@ -43,7 +42,6 @@ describe("razor-wind", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 0 },
       moveIds: ["razor-wind"],
-      currentPp: { "razor-wind": 9 },
       chargingMove: { moveId: "razor-wind", targetPosition: { x: 2, y: 0 } },
       lockedMoveId: "razor-wind",
       derivedStats: { movement: 3, jump: 1, initiative: 100 },

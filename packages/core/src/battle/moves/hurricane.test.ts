@@ -12,7 +12,6 @@ describe("hurricane", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["hurricane"],
-      currentPp: { hurricane: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -44,7 +43,6 @@ describe("hurricane", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["hurricane"],
-      currentPp: { hurricane: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -77,7 +75,6 @@ describe("hurricane", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["hurricane"],
-      currentPp: { hurricane: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -106,7 +103,6 @@ describe("hurricane", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["hurricane"],
-      currentPp: { hurricane: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe1 = MockPokemon.fresh(MockPokemon.base, {
@@ -143,7 +139,6 @@ describe("hurricane", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["hurricane"],
-      currentPp: { hurricane: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeOutside = MockPokemon.fresh(MockPokemon.base, {

@@ -11,7 +11,6 @@ function setup() {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["follow-me"],
-    currentPp: { "follow-me": 5 },
   });
   const foe = MockPokemon.fresh(MockPokemon.base, {
     id: "foe",

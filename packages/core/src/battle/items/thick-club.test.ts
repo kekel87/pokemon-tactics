@@ -29,7 +29,6 @@ describe("Thick Club", () => {
           playerId: PlayerId.Player1,
           position: { x: 0, y: 0 },
           moveIds: ["earthquake"],
-          currentPp: { earthquake: 10 },
           combatStats: {
             hp: 170,
             attack: 85,
@@ -66,7 +65,6 @@ describe("Thick Club", () => {
           playerId: PlayerId.Player1,
           position: { x: 0, y: 0 },
           moveIds: ["earthquake"],
-          currentPp: { earthquake: 10 },
           combatStats: {
             hp: 170,
             attack: 85,
@@ -112,7 +110,6 @@ describe("Thick Club", () => {
           playerId: PlayerId.Player1,
           position: { x: 0, y: 0 },
           moveIds: ["earthquake"],
-          currentPp: { earthquake: 10 },
           combatStats: {
             hp: 165,
             attack: 50,
@@ -149,7 +146,6 @@ describe("Thick Club", () => {
           playerId: PlayerId.Player1,
           position: { x: 0, y: 0 },
           moveIds: ["earthquake"],
-          currentPp: { earthquake: 10 },
           combatStats: {
             hp: 165,
             attack: 50,
@@ -195,7 +191,6 @@ describe("Thick Club", () => {
           playerId: PlayerId.Player1,
           position: { x: 0, y: 0 },
           moveIds: ["thunderbolt"],
-          currentPp: { thunderbolt: 15 },
           combatStats: {
             hp: 170,
             attack: 85,
@@ -232,7 +227,6 @@ describe("Thick Club", () => {
           playerId: PlayerId.Player1,
           position: { x: 0, y: 0 },
           moveIds: ["thunderbolt"],
-          currentPp: { thunderbolt: 15 },
           combatStats: {
             hp: 170,
             attack: 85,

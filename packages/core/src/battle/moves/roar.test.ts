@@ -14,7 +14,6 @@ describe("roar", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["roar"],
-      currentPp: { roar: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const near = MockPokemon.fresh(MockPokemon.base, {
@@ -57,7 +56,6 @@ describe("roar", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["roar"],
-      currentPp: { roar: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeBehindPillar = MockPokemon.fresh(MockPokemon.base, {

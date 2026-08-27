@@ -13,7 +13,6 @@ function setup(random: () => number) {
     playerId: PlayerId.Player1,
     position: { x: 1, y: 1 },
     moveIds: ["mud-bomb"],
-    currentPp: { "mud-bomb": 10 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
   const target = MockPokemon.fresh(MockPokemon.base, {

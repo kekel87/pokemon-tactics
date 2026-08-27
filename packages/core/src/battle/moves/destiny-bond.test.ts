@@ -13,7 +13,6 @@ describe("destiny-bond", () => {
       currentHp: 1,
       maxHp: 200,
       moveIds: ["destiny-bond"],
-      currentPp: { "destiny-bond": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -24,7 +23,6 @@ describe("destiny-bond", () => {
       currentHp: 300,
       maxHp: 300,
       moveIds: ["tackle"],
-      currentPp: { tackle: 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 10 },
     });
     const { engine, state } = buildMoveTestEngine([caster, foe]);

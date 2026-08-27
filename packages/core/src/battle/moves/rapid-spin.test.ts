@@ -12,7 +12,6 @@ function setup() {
     playerId: PlayerId.Player1,
     position: { x: 5, y: 5 },
     moveIds: ["rapid-spin"],
-    currentPp: { "rapid-spin": 10 },
   });
   const foe = MockPokemon.fresh(MockPokemon.base, {
     id: "foe",

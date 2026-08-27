@@ -10,7 +10,6 @@ describe("leech-life", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["leech-life"],
-      currentPp: { "leech-life": 10 },
       currentHp: 100,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },

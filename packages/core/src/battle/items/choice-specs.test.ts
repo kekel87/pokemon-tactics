@@ -37,7 +37,6 @@ describe("Choice Specs", () => {
           playerId: PlayerId.Player1,
           position: { x: 0, y: 0 },
           moveIds: ["psychic"],
-          currentPp: { psychic: 10 },
           combatStats: {
             hp: 416,
             attack: 110,
@@ -81,7 +80,6 @@ describe("Choice Specs", () => {
           playerId: PlayerId.Player1,
           position: { x: 0, y: 0 },
           moveIds: ["psychic"],
-          currentPp: { psychic: 10 },
           combatStats: {
             hp: 416,
             attack: 110,
@@ -134,7 +132,6 @@ describe("Choice Specs", () => {
           playerId: PlayerId.Player1,
           position: { x: 0, y: 0 },
           moveIds: ["scratch"],
-          currentPp: { scratch: 35 },
           combatStats: {
             hp: 416,
             attack: 110,
@@ -178,7 +175,6 @@ describe("Choice Specs", () => {
           playerId: PlayerId.Player1,
           position: { x: 0, y: 0 },
           moveIds: ["scratch"],
-          currentPp: { scratch: 35 },
           combatStats: {
             hp: 416,
             attack: 110,
@@ -212,7 +208,6 @@ describe("Choice Specs", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: ["psychic", "ice-beam"],
-        currentPp: { psychic: 10, "ice-beam": 10 },
         combatStats: {
           hp: 416,
           attack: 110,
@@ -260,7 +255,6 @@ describe("Choice Specs", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: ["psychic", "ice-beam"],
-        currentPp: { psychic: 10, "ice-beam": 10 },
         combatStats: {
           hp: 416,
           attack: 110,
@@ -299,7 +293,6 @@ describe("Choice Specs", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: ["psychic", "thunderbolt"],
-        currentPp: { psychic: 10, thunderbolt: 15 },
         combatStats: {
           hp: 416,
           attack: 110,

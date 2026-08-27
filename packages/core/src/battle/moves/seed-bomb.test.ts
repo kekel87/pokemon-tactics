@@ -11,7 +11,6 @@ describe("seed-bomb", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["seed-bomb"],
-      currentPp: { "seed-bomb": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -40,7 +39,6 @@ describe("seed-bomb", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["seed-bomb"],
-      currentPp: { "seed-bomb": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -69,7 +67,6 @@ describe("seed-bomb", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["seed-bomb"],
-      currentPp: { "seed-bomb": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

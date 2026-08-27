@@ -343,7 +343,6 @@ describe("Light Ball", () => {
         orientation: Direction.East,
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
         moveIds: ["thunderbolt"],
-        currentPp: { thunderbolt: 15 },
         baseStats: { hp: 35, attack: 55, defense: 40, spAttack: 50, spDefense: 50, speed: 90 },
         combatStats: { hp: 70, attack: 58, defense: 45, spAttack: 55, spDefense: 55, speed: 95 },
         heldItemId: HeldItemId.LightBall,
@@ -376,7 +375,6 @@ describe("Light Ball", () => {
         orientation: Direction.East,
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
         moveIds: ["thunderbolt"],
-        currentPp: { thunderbolt: 15 },
         baseStats: { hp: 35, attack: 55, defense: 40, spAttack: 50, spDefense: 50, speed: 90 },
         combatStats: { hp: 70, attack: 58, defense: 45, spAttack: 55, spDefense: 55, speed: 95 },
       }),
@@ -530,7 +528,6 @@ describe("Heavy-Duty Boots — terrain", () => {
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
       heldItemId: HeldItemId.HeavyDutyBoots,
       moveIds: [],
-      currentPp: {},
     });
     const foe = MockPokemon.fresh(MockPokemon.charmander, {
       playerId: PlayerId.Player2,

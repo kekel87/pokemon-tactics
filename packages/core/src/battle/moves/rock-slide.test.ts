@@ -14,7 +14,6 @@ describe("rock-slide", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["rock-slide"],
-      currentPp: { "rock-slide": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -49,7 +48,6 @@ describe("rock-slide", () => {
       position: { x: 0, y: 2 },
       orientation: Direction.East,
       moveIds: ["rock-slide"],
-      currentPp: { "rock-slide": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe1 = MockPokemon.fresh(MockPokemon.base, {

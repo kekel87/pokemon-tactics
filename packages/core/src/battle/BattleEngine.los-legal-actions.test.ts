@@ -18,14 +18,12 @@ describe("BattleEngine.getLegalActions — LoS non-regression", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 2 },
       moveIds: ["ranged-test"],
-      currentPp: { "ranged-test": 20 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.base, {
       id: "p2",
       playerId: PlayerId.Player2,
       position: { x: 3, y: 2 },
       moveIds: [],
-      currentPp: {},
     });
     const state = MockBattle.stateFrom([attacker, enemy], 5, 5);
     MockBattle.setTile(state, 2, 2, { height: 3 });
@@ -53,14 +51,12 @@ describe("BattleEngine.getLegalActions — LoS non-regression", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 2 },
       moveIds: ["sound-test"],
-      currentPp: { "sound-test": 20 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.base, {
       id: "p2",
       playerId: PlayerId.Player2,
       position: { x: 3, y: 2 },
       moveIds: [],
-      currentPp: {},
     });
     const state = MockBattle.stateFrom([attacker, enemy], 5, 5);
     MockBattle.setTile(state, 2, 2, { height: 3 });

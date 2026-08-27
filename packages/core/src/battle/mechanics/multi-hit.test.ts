@@ -13,7 +13,6 @@ describe("multi-hit", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: [moveId],
-      currentPp: { [moveId]: 30 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
   }

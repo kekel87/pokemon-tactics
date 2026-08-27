@@ -22,7 +22,6 @@ describe("Punching Glove", () => {
         currentHp: 200,
         maxHp: 200,
         moveIds: ["mach-punch"],
-        currentPp: { "mach-punch": 30 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
         heldItemId: HeldItemId.PunchingGlove,
       });
@@ -60,7 +59,6 @@ describe("Punching Glove", () => {
         currentHp: 200,
         maxHp: 200,
         moveIds: ["mach-punch"],
-        currentPp: { "mach-punch": 30 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const holder = MockPokemon.fresh(MockPokemon.charmander, {
@@ -106,7 +104,6 @@ describe("Punching Glove", () => {
           position: { x: 0, y: 0 },
           orientation: Direction.East,
           moveIds: ["mach-punch"],
-          currentPp: { "mach-punch": 30 },
           derivedStats: { movement: 3, jump: 1, initiative: 100 },
           heldItemId: HeldItemId.PunchingGlove,
         }),
@@ -135,7 +132,6 @@ describe("Punching Glove", () => {
           position: { x: 0, y: 0 },
           orientation: Direction.East,
           moveIds: ["mach-punch"],
-          currentPp: { "mach-punch": 30 },
           derivedStats: { movement: 3, jump: 1, initiative: 100 },
         }),
         targetWithout,

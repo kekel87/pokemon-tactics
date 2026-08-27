@@ -15,7 +15,6 @@ describe("burning-jealousy", () => {
       position: { x: 0, y: 2 },
       orientation: Direction.East,
       moveIds: ["burning-jealousy"],
-      currentPp: { "burning-jealousy": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -43,7 +42,6 @@ describe("burning-jealousy", () => {
       position: { x: 0, y: 2 },
       orientation: Direction.East,
       moveIds: ["burning-jealousy"],
-      currentPp: { "burning-jealousy": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe1 = MockPokemon.fresh(MockPokemon.base, {
@@ -78,7 +76,6 @@ describe("burning-jealousy", () => {
       position: { x: 2, y: 2 },
       orientation: Direction.East,
       moveIds: ["burning-jealousy"],
-      currentPp: { "burning-jealousy": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foeFront = MockPokemon.fresh(MockPokemon.base, {
@@ -121,7 +118,6 @@ describe("burning-jealousy", () => {
       position: { x: 0, y: 2 },
       orientation: Direction.East,
       moveIds: ["burning-jealousy"],
-      currentPp: { "burning-jealousy": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -153,7 +149,6 @@ describe("burning-jealousy", () => {
       position: { x: 0, y: 2 },
       orientation: Direction.East,
       moveIds: ["burning-jealousy"],
-      currentPp: { "burning-jealousy": 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

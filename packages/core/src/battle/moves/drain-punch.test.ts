@@ -12,7 +12,6 @@ describe("drain-punch", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["drain-punch"],
-      currentPp: { "drain-punch": 10 },
       currentHp: 50,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -47,7 +46,6 @@ describe("drain-punch", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["drain-punch"],
-      currentPp: { "drain-punch": 10 },
       currentHp: 100,
       maxHp: 200,
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
@@ -81,7 +79,6 @@ describe("drain-punch", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["drain-punch"],
-      currentPp: { "drain-punch": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

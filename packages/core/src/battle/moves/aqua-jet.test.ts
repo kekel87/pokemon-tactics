@@ -11,7 +11,6 @@ describe("aqua-jet", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["aqua-jet"],
-      currentPp: { "aqua-jet": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -42,7 +41,6 @@ describe("aqua-jet", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["aqua-jet"],
-      currentPp: { "aqua-jet": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -73,7 +71,6 @@ describe("aqua-jet", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["aqua-jet"],
-      currentPp: { "aqua-jet": 20 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

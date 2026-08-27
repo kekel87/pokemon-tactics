@@ -15,7 +15,6 @@ describe("movement recalculation after speed stage changes", () => {
       orientation: Direction.East,
       baseStats: { hp: 55, attack: 70, defense: 45, spAttack: 70, spDefense: 50, speed: 60 },
       moveIds: ["agility"],
-      currentPp: { agility: 30 },
       derivedStats: { movement: 4, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -49,7 +48,6 @@ describe("movement recalculation after speed stage changes", () => {
       orientation: Direction.East,
       baseStats: { hp: 35, attack: 55, defense: 40, spAttack: 50, spDefense: 50, speed: 90 },
       moveIds: ["agility"],
-      currentPp: { agility: 30 },
       derivedStats: { movement: 5, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

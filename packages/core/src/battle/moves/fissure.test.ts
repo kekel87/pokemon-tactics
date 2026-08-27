@@ -12,7 +12,6 @@ describe("fissure", () => {
       playerId: PlayerId.Player1,
       position: { x: 1, y: 2 },
       moveIds: ["fissure"],
-      currentPp: { fissure: 5 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const near = MockPokemon.fresh(MockPokemon.base, {

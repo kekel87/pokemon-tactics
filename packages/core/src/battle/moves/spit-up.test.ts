@@ -10,7 +10,6 @@ function setup(stockpileCount?: number) {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["spit-up"],
-    currentPp: { "spit-up": 10 },
     stockpileCount,
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });

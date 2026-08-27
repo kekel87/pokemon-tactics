@@ -11,7 +11,6 @@ function makeAlly() {
     playerId: PlayerId.Player1,
     position: { x: 1, y: 0 },
     moveIds: ["water-gun"],
-    currentPp: { "water-gun": 25 },
     derivedStats: { movement: 3, jump: 1, initiative: 60 },
   });
 }
@@ -33,7 +32,6 @@ function makeCaster() {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["helping-hand"],
-    currentPp: { "helping-hand": 20 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
 }

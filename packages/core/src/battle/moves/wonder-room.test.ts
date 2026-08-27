@@ -13,7 +13,6 @@ function buildScenario() {
     playerId: PlayerId.Player1,
     position: { x: 5, y: 5 },
     moveIds: ["tackle"],
-    currentPp: { tackle: 10 },
   });
   const foe = MockPokemon.fresh(MockPokemon.base, {
     id: "foe",

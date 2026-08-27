@@ -10,7 +10,6 @@ function fire(defenderX: number, attackerWeight: number) {
     position: { x: 0, y: 0 },
     weight: attackerWeight,
     moveIds: ["heavy-slam"],
-    currentPp: { "heavy-slam": 10 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
   });
   const defender = MockPokemon.fresh(MockPokemon.base, {

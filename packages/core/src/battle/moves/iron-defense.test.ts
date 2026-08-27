@@ -14,7 +14,6 @@ describe("iron-defense", () => {
       position: { x: 0, y: 0 },
       orientation: Direction.East,
       moveIds: ["iron-defense"],
-      currentPp: { "iron-defense": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const foe = MockPokemon.fresh(MockPokemon.base, {

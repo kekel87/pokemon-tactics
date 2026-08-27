@@ -12,7 +12,6 @@ describe("rock-smash", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["rock-smash"],
-      currentPp: { "rock-smash": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -42,7 +41,6 @@ describe("rock-smash", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["rock-smash"],
-      currentPp: { "rock-smash": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const target = MockPokemon.fresh(MockPokemon.base, {
@@ -69,7 +67,6 @@ describe("rock-smash", () => {
       playerId: PlayerId.Player1,
       position: { x: 2, y: 2 },
       moveIds: ["rock-smash"],
-      currentPp: { "rock-smash": 15 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const diagonalTarget = MockPokemon.fresh(MockPokemon.base, {

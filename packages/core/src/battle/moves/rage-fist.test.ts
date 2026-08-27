@@ -9,7 +9,6 @@ function fire(timesHit: number) {
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
     moveIds: ["rage-fist"],
-    currentPp: { "rage-fist": 10 },
     derivedStats: { movement: 3, jump: 1, initiative: 100 },
     timesHit,
   });
@@ -44,7 +43,6 @@ describe("rage-fist", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["rage-fist"],
-      currentPp: { "rage-fist": 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {

@@ -10,7 +10,6 @@ describe("assurance", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["assurance"],
-      currentPp: { assurance: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -37,7 +36,6 @@ describe("assurance", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["assurance"],
-      currentPp: { assurance: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -64,7 +62,6 @@ describe("assurance", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["assurance"],
-      currentPp: { assurance: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -84,7 +81,6 @@ describe("assurance", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: ["assurance"],
-        currentPp: { assurance: 10 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const d2 = MockPokemon.fresh(MockPokemon.base, {
@@ -125,7 +121,6 @@ describe("assurance", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["assurance"],
-      currentPp: { assurance: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const defender = MockPokemon.fresh(MockPokemon.base, {
@@ -145,7 +140,6 @@ describe("assurance", () => {
         playerId: PlayerId.Player1,
         position: { x: 0, y: 0 },
         moveIds: ["assurance"],
-        currentPp: { assurance: 10 },
         derivedStats: { movement: 3, jump: 1, initiative: 100 },
       });
       const d2 = MockPokemon.fresh(MockPokemon.base, {

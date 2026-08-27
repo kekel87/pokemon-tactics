@@ -16,7 +16,6 @@ function buildScenario() {
     playerId: PlayerId.Player1,
     position: { x: 5, y: 5 },
     moveIds: ["tackle"],
-    currentPp: { tackle: 10 },
     heldItemId: HeldItemId.LifeOrb,
   });
   const foe = MockPokemon.fresh(MockPokemon.base, {
@@ -138,7 +137,6 @@ function magicRoomItemScenario(config: {
     playerId: PlayerId.Player1,
     position: { x: 5, y: 5 },
     moveIds: [config.attackerMove],
-    currentPp: { [config.attackerMove]: 10 },
     combatStats: { hp: 100, attack: 120, defense: 50, spAttack: 120, spDefense: 50, speed: 80 },
     ...(config.attackerItem ? { heldItemId: config.attackerItem } : {}),
   });

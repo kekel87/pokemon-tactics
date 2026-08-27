@@ -13,7 +13,6 @@ describe("coaching", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["coaching"],
-      currentPp: { coaching: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const ally = MockPokemon.fresh(MockPokemon.base, {
@@ -44,7 +43,6 @@ describe("coaching", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["coaching"],
-      currentPp: { coaching: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const ally = MockPokemon.fresh(MockPokemon.base, {
@@ -72,7 +70,6 @@ describe("coaching", () => {
       playerId: PlayerId.Player1,
       position: { x: 0, y: 0 },
       moveIds: ["coaching"],
-      currentPp: { coaching: 10 },
       derivedStats: { movement: 3, jump: 1, initiative: 100 },
     });
     const enemy = MockPokemon.fresh(MockPokemon.base, {
