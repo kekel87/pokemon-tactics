@@ -388,16 +388,27 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
 
     showVictory: (winnerId: string | null) => {
       const dialog = el("dialog", "bc-victory");
+      /*
+       * Le titre porte le VERDICT, la phrase le DÉTAIL — motif que le cas « match nul » visait déjà
+       * et que le cas victoire manquait : il mettait le NOM du vainqueur en titre, puis « {joueur}
+       * gagne ! » juste en dessous, soit la même information deux fois (retour humain 2026-08-27,
+       * première fois que cette dialog était vue en recette).
+       *
+       * Pas de titre « Victoire ! » : `showVictory` ne reçoit que l'id du vainqueur, jamais le camp
+       * LOCAL — et en bac à sable les deux équipes peuvent être « joueur », donc il n'existe pas
+       * toujours de point de vue à privilégier. Un verdict qui reste vrai quel que soit le gagnant
+       * est la seule formulation honnête ici.
+       */
       const heading = document.createElement("h2");
       heading.textContent =
-        winnerId === null ? config.translate("battle.draw") : playerLabel(winnerId, config);
-      const message = el("p", "bc-victory-message");
-      message.textContent =
         winnerId === null
-          ? config.translate("battle.drawMessage")
-          : config.translate("battle.wins", {
-              player: playerLabel(winnerId, config),
-            });
+          ? config.translate("battle.draw")
+          : config.translate("battle.wins", { player: playerLabel(winnerId, config) });
+      /* Le détail n'existe que pour le match nul ; sur une victoire il ferait doublon avec le titre. */
+      const message = winnerId === null ? el("p", "bc-victory-message") : null;
+      if (message) {
+        message.textContent = config.translate("battle.drawMessage");
+      }
       const replay = button(config.translate("battle.restart"), () => {
         dialog.close();
         onReplay();
@@ -408,7 +419,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       });
       const actions = el("div", "bc-victory-actions");
       actions.append(replay, exit);
-      dialog.append(heading, message, actions);
+      dialog.append(heading, ...(message ? [message] : []), actions);
       root.appendChild(dialog);
       dialog.showModal();
     },

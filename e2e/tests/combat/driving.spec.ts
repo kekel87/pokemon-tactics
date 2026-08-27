@@ -1,5 +1,6 @@
 import { expect, test } from "../../fixtures";
 import { DUEL, DUEL_LETHAL } from "../../fixtures/sandbox-configs";
+import { expectLocalizedBattleLog } from "../../pages/combat-queries";
 
 test("piloter : Griffe touche le dummy adjacent et journalise l'effet", async ({
   page,
@@ -41,6 +42,11 @@ test("piloter : un coup létal met le dummy K.O.", async ({ page, bootSandbox })
   await expect(
     page.getByTestId("battle-log-entry").filter({ hasText: "remporte le combat" }),
   ).toBeAttached();
+
+  // Garde-fou i18n (plan 190) : greffé ici parce que ce journal contient les familles de FIN de
+  // combat (`pokemonKo`, `battleEnded.winner`) que le scénario dédié — dont la cible survit exprès
+  // aux trois tours — ne peut pas atteindre. Le balayage large est dans `battle-log-i18n.spec`.
+  await expectLocalizedBattleLog(page, 4);
 });
 
 test("piloter : un déplacement débloque l'annulation (mouvement exécuté)", async ({
@@ -49,11 +55,11 @@ test("piloter : un déplacement débloque l'annulation (mouvement exécuté)", a
 }) => {
   const scene = await bootSandbox(DUEL);
 
-  await page.getByRole("button", { name: "Deplacement", exact: true }).click();
+  await page.getByRole("button", { name: "Déplacement", exact: true }).click();
   await scene.clickTile(3, 3); // tile libre adjacente → exécute le déplacement
 
   // Mouvement effectué → le menu propose désormais d'annuler le déplacement.
-  await expect(page.getByRole("button", { name: "Annuler deplacement", exact: true })).toBeVisible({
+  await expect(page.getByRole("button", { name: "Annuler déplacement", exact: true })).toBeVisible({
     timeout: 10_000,
   });
 });

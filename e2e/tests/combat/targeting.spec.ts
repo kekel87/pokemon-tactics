@@ -5,7 +5,7 @@ import { DUEL } from "../../fixtures/sandbox-configs";
 // Le SENS (des highlights apparaissent, l'instruction guide) via scene-graph + DOM ; la COULEUR
 // (bleu/rouge) et le contour exact restent 👁.
 
-test("§4.12 déplacement : clic « Deplacement » fait apparaître des highlights de tile", async ({
+test("§4.12 déplacement : clic « Déplacement » fait apparaître des highlights de tile", async ({
   page,
   bootSandbox,
 }) => {
@@ -16,7 +16,7 @@ test("§4.12 déplacement : clic « Deplacement » fait apparaître des highligh
     (await scene.meshNames()).filter((name) => name.startsWith("highlight_move_")).length;
   expect(await countMoveHighlights()).toBe(0);
 
-  await page.getByRole("button", { name: "Deplacement", exact: true }).click();
+  await page.getByRole("button", { name: "Déplacement", exact: true }).click();
 
   // Les tiles atteignables sont surlignées (mesh `highlight_move_x_y`).
   await expect.poll(countMoveHighlights).toBeGreaterThan(0);

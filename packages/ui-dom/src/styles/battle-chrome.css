@@ -9,6 +9,26 @@
    */
   :where(.bc-root, .bc-left-col) {
     --bc-edge: calc(18px * var(--ui-scale));
+
+    /*
+     * Espacements et rayons de CE sous-arbre, scalés (plan 179 § points 4K restants, 2026-08-27).
+     * Même raison d'être que les `--bc-gap-*` de `.bc-root` : le chrome vit sur une police scalée
+     * (`calc(28px * var(--ui-scale))`), et les `--spacing-*`/`--radius-*` globaux sont FIXES — donc
+     * en 4K la pastille d'instruction et la dialog de victoire affichaient un texte de ~56px dans
+     * 4px et 12px de garniture. Redéfinir les tokens globaux ici est exclu (le plan 179 l'avait déjà
+     * écarté : ils sont hérités par des panneaux qui portent leur propre échelle), d'où cette
+     * famille locale aux mêmes N que `tokens.css`.
+     *
+     * Déclarée sur le `:where()` partagé, pas sur `.bc-root` : `.bc-left-col` est un FRÈRE de
+     * `.bc-root` (les deux appendus à l'hôte par `battle-chrome.ts`), exactement la raison qui a
+     * fait naître ce bloc pour `--bc-edge`.
+     */
+    --bc-pad-xs: calc(4px * var(--ui-scale));
+    --bc-pad-sm: calc(6px * var(--ui-scale));
+    --bc-pad-md: calc(8px * var(--ui-scale));
+    --bc-pad-lg: calc(12px * var(--ui-scale));
+    --bc-radius-sm: calc(4px * var(--ui-scale));
+    --bc-radius-md: calc(6px * var(--ui-scale));
   }
 
   /* Left column: turn timeline (top, shrinks + scrolls) over the info panel
@@ -23,7 +43,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--spacing-md);
+    gap: var(--bc-pad-md);
     pointer-events: none;
   }
 
@@ -33,7 +53,7 @@
     margin-block-start: auto;
     display: flex;
     align-items: stretch;
-    gap: var(--spacing-md);
+    gap: var(--bc-pad-md);
     pointer-events: none;
   }
 
@@ -112,7 +132,7 @@
   .bc-turn {
     pointer-events: none;
     padding: var(--bc-gap-xs) calc(18px * var(--ui-scale));
-    border-radius: var(--radius-md);
+    border-radius: var(--bc-radius-md);
     background: color-mix(in oklch, var(--color-bg-surface) 80%, transparent);
     color: var(--color-text-primary);
     font-weight: 600;
@@ -126,7 +146,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: flex-end;
-    gap: var(--spacing-sm);
+    gap: var(--bc-pad-sm);
   }
 
   .bc-menu-col {
@@ -134,7 +154,7 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: var(--spacing-xs);
+    gap: var(--bc-pad-xs);
     min-inline-size: calc(256px * var(--ui-scale));
   }
 
@@ -148,9 +168,9 @@
     align-self: center;
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-md);
-    border-radius: var(--radius-sm);
+    gap: var(--bc-pad-xs);
+    padding: var(--bc-pad-xs) var(--bc-pad-md);
+    border-radius: var(--bc-radius-sm);
     background: color-mix(in oklch, var(--color-bg-surface) 80%, transparent);
     color: var(--color-accent);
     font-weight: 600;
@@ -359,7 +379,7 @@
     gap: var(--bc-gap-xs);
     padding: var(--bc-gap-xs);
     border: 1px solid var(--color-border-surface);
-    border-radius: var(--radius-md);
+    border-radius: var(--bc-radius-md);
     background: color-mix(in oklch, var(--color-bg-surface) 90%, transparent);
     &:empty {
       display: none;
@@ -389,7 +409,7 @@
        noticeably shorter than the menu it replaces, and a move row is just as tappable a target
        (human, 2026-08-06). */
     min-block-size: var(--target-min);
-    border-radius: var(--radius-sm);
+    border-radius: var(--bc-radius-sm);
     background: transparent;
     color: var(--color-text-primary);
     font: inherit;
@@ -447,8 +467,8 @@
     pointer-events: auto;
     margin: auto;
     border: 1px solid var(--color-border-surface);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-lg);
+    border-radius: var(--bc-radius-md);
+    padding: var(--bc-pad-lg);
     background: var(--color-bg-surface);
     color: var(--color-text-primary);
     text-align: center;
@@ -457,14 +477,31 @@
     }
   }
 
+  /*
+   * Le `<h2>` de cette dialog n'était stylé NULLE PART (ni ici, ni `reset.css`, ni `base.css`), donc
+   * il prenait les valeurs par défaut du navigateur — `font-size: 1.5em` et `margin-block: 0.83em`.
+   * Des marges en `em` sur une police mise à l'échelle : en 4K (`--ui-scale` 2, police de base 56px)
+   * le titre montait à 84px et ses marges à ~70px de chaque côté, soit ~94px de vide au-dessus du
+   * titre. Défaut préexistant, invisible jusqu'ici parce qu'aucun combat n'avait jamais été gagné en
+   * recette (retour humain 2026-08-27).
+   *
+   * Marges reprises sur les jetons mis à l'échelle du sous-arbre, et rien en haut : la marge
+   * intérieure de la dialog fait déjà ce travail.
+   */
+  .bc-victory h2 {
+    margin-block: 0 var(--bc-pad-md);
+    font-size: 1.4em;
+    line-height: 1.1;
+  }
+
   .bc-victory-message {
-    margin-block: var(--spacing-md);
+    margin-block: var(--bc-pad-md);
   }
 
   .bc-victory-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-sm);
+    gap: var(--bc-pad-sm);
     justify-content: center;
   }
 }

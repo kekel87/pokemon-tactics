@@ -18,9 +18,9 @@ const log = (page: Page, re: RegExp) =>
 // contrôle, (1,1) est franchissable ; les Single 1-1 sont omnidirectionnels). Le pas n'ouvre pas
 // l'horloge d'action (lastActedAtAction stampé en FIN de tour seulement).
 async function approachDummy(scene: CombatScene, page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Deplacement", exact: true }).click();
+  await page.getByRole("button", { name: "Déplacement", exact: true }).click();
   await scene.clickTile(1, 1);
-  await expect(page.getByRole("button", { name: "Annuler deplacement", exact: true })).toBeVisible({
+  await expect(page.getByRole("button", { name: "Annuler déplacement", exact: true })).toBeVisible({
     timeout: 10_000,
   });
 }

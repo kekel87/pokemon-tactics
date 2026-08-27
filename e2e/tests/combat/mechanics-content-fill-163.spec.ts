@@ -36,13 +36,13 @@ test("§5.37 Récolte : recrée la baie de pincement consommée en fin de tour (
 
 // ── Piège Sable (arena-trap) — immobilise l'ennemi au sol adjacent (r1 Chebyshev) ─────────────────
 // §5.37 Piège Sable : le joueur (Cran, non-exempt) est adjacent au dummy porteur → bouton
-// « Deplacement » désactivé + badge « Piégé » sur l'InfoPanel du joueur (posés à l'init).
+// « Déplacement » désactivé + badge « Piégé » sur l'InfoPanel du joueur (posés à l'init).
 test("§5.37 Piège Sable : le mon piégé ne peut plus se déplacer (bouton désactivé)", async ({
   page,
   bootSandbox,
 }) => {
   await bootSandbox(ARENA_TRAP_PLAYER_TRAPPED);
-  await expect(page.getByRole("button", { name: "Deplacement", exact: true })).toBeDisabled({
+  await expect(page.getByRole("button", { name: "Déplacement", exact: true })).toBeDisabled({
     timeout: 10_000,
   });
 });
@@ -75,7 +75,7 @@ test("§5.37 Piège Sable : le badge « Piégé » disparaît quand le porteur s
     .toBe(1);
 
   // Le joueur (porteur de Piège Sable) se déplace en (2,5) → distance 3 du dummy → rupture.
-  await page.getByRole("button", { name: "Deplacement", exact: true }).click();
+  await page.getByRole("button", { name: "Déplacement", exact: true }).click();
   await scene.clickTile(2, 5);
 
   await expect

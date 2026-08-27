@@ -33,7 +33,7 @@ test("§4.4 menu d'action : 5 boutons FR, Objet et Statut désactivés", async (
   await bootSandbox(DUEL);
   const menu = page.getByTestId("action-menu");
 
-  for (const label of ["Deplacement", "Attaque", "Objet", "Attendre", "Statut"]) {
+  for (const label of ["Déplacement", "Attaque", "Objet", "Attendre", "Statut"]) {
     await expect(menu.getByRole("button", { name: label, exact: true })).toBeVisible();
   }
   // Objet / Statut non implémentés → toujours désactivés.

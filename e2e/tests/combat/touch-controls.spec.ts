@@ -18,13 +18,13 @@ const PREVIEW_PREFIX = "highlight_preview_attack_";
 test("tactile : un seul tap suffit pour se déplacer", async ({ page, bootSandbox }) => {
   const scene = await bootSandbox(DUEL);
 
-  await page.getByRole("button", { name: "Deplacement", exact: true }).click();
+  await page.getByRole("button", { name: "Déplacement", exact: true }).click();
   expect(await scene.tapTile(3, 3)).toBe(true);
 
   // Le déplacement est parti du premier coup : le menu propose de l'annuler. Un tap en deux temps
   // généralisé demandait 4 taps par action (le jeu a déjà sa propre étape de confirmation).
   await expect(
-    page.getByRole("button", { name: "Annuler deplacement", exact: true }),
+    page.getByRole("button", { name: "Annuler déplacement", exact: true }),
   ).toBeVisible();
 });
 
@@ -105,7 +105,7 @@ test("annulation : le choix de destination expose une instruction et un bouton A
 }) => {
   await bootSandbox(DUEL);
 
-  await page.getByRole("button", { name: "Deplacement", exact: true }).click();
+  await page.getByRole("button", { name: "Déplacement", exact: true }).click();
 
   // Cette phase appelait `hideMenus()` : l'écran était vide, donc sans issue au doigt.
   await expect(page.getByTestId("combat-instruction")).toHaveText("Où se déplacer ?");
@@ -113,7 +113,7 @@ test("annulation : le choix de destination expose une instruction et un bouton A
   await expect(cancel).toBeVisible();
 
   await cancel.click();
-  await expect(page.getByRole("button", { name: "Deplacement", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Déplacement", exact: true })).toBeVisible();
 });
 
 test("annulation : le choix de cible expose un bouton Annuler et revient au sous-menu", async ({

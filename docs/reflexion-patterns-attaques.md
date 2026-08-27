@@ -255,7 +255,7 @@ Cross reste bien. Ondes sombres qui se repandent en croix.
 - Repousser dans le vide (bord de falaise) = chute + degats ?
 - Repousser hors de portee de Vampigraine = casser le lien
 
-### 6.4 Warp / Deplacement libre + frappe
+### 6.4 Warp / Déplacement libre + frappe
 
 **Description** : le lanceur se teleporte sur une case adjacente a la cible (ou sur la cible), frappe, et reste a l'arrivee. Ignore tous les obstacles entre depart et arrivee.
 **Parametres** : `range: {min, max}` (distance max)

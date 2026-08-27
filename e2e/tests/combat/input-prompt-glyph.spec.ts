@@ -62,7 +62,7 @@ test("§4.8 confirmation : un geste simple", async ({ page, bootSandbox }) => {
 test("§4.8 destination de déplacement : un geste simple", async ({ page, bootSandbox }) => {
   await bootSandbox(DUEL);
 
-  await page.getByRole("button", { name: "Deplacement", exact: true }).click();
+  await page.getByRole("button", { name: "Déplacement", exact: true }).click();
 
   await expect(page.getByTestId(INSTRUCTION)).toHaveText("Où se déplacer ?");
   await expect(page.getByTestId(GLYPH)).toHaveAttribute("data-glyph", "act");

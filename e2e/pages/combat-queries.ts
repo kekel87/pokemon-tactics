@@ -93,3 +93,28 @@ export async function readHp(
   const max = Number(await card.hpBar.getAttribute("aria-valuemax"));
   return { now, max };
 }
+
+/**
+ * Garde-fou i18n du journal (plan 190) : aucune ligne ne doit exposer une clé `battleLog.*` brute.
+ *
+ * Le formateur n'émet plus que des clés, résolues par les locales de `app`. Une clé jamais déclarée
+ * n'est vue par personne : le typecheck ne juge que le type `Translations`, or DOUZE familles de clés
+ * sont COMPOSÉES à l'exécution (`battleLog.status.${status}.applied`, `battleLog.stat.${stat}`,
+ * `battleLog.aura.${kind}`…) — de simples littéraux de gabarit à ses yeux. `t()` retombe alors
+ * silencieusement sur la clé et le journal affiche « battleLog.pokemonKo », sans erreur. C'est le
+ * chemin qu'ouvre une valeur d'enum nouvelle (un statut, un type d'aura) dont la clé n'a été ajoutée
+ * dans AUCUNE locale, et seul le journal RENDU peut le dire.
+ *
+ * Le cas « présente en EN, oubliée en FR » ne passe PAS par ici : `t()` retombe d'abord sur l'anglais,
+ * donc le journal français affiche une phrase ANGLAISE. Ce sont les assertions de phrase FR des specs
+ * appelantes qui l'attrapent — les deux moitiés sont complémentaires (vérifié rouge-vert).
+ *
+ * `minimumEntries` garde le garde-fou honnête : sur un journal vide, « aucune clé brute » est vrai
+ * pour la mauvaise raison. On lit `textContent` (et non `innerText`) pour rester indépendant d'un
+ * éventuel `text-transform`.
+ */
+export async function expectLocalizedBattleLog(page: Page, minimumEntries: number): Promise<void> {
+  const lines = await page.getByTestId("battle-log-entry").allTextContents();
+  expect(lines.length).toBeGreaterThanOrEqual(minimumEntries);
+  expect(lines.filter((line) => line.includes("battleLog."))).toEqual([]);
+}

@@ -168,12 +168,12 @@ export class CombatScene {
   }
 
   /** Drive a one-tile move end to end via the real DOM+canvas path: select the mover, open the move
-   *  sub-flow (« Deplacement »), pick the destination tile, then confirm the landing facing so the
+   *  sub-flow (« Déplacement »), pick the destination tile, then confirm the landing facing so the
    *  glide tween runs. The landing resting animation is only applied once the tween settles — poll
    *  {@link spriteStates} on `tile === destination` to read it (see §11 flying resting anim). */
   async moveTo(fromX: number, fromY: number, toX: number, toY: number): Promise<void> {
     await this.clickTile(fromX, fromY); // select the active mover
-    await this.page.getByRole("button", { name: "Deplacement", exact: true }).click();
+    await this.page.getByRole("button", { name: "Déplacement", exact: true }).click();
     await this.clickTile(toX, toY); // pick destination → opens the landing-facing picker
     await this.confirmDirection(); // confirm facing → runs the glide tween
   }

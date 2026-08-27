@@ -672,6 +672,48 @@ Usage : `padding: calc(8 * var(--ip-px))` = 8 px design → scale proportionnel 
 - `--ui-scale` (publié par `ResizeObserver` sur `#game-stage`) reste disponible comme fallback JS pour les cas où les container queries ne suffisent pas.
 - Compat : Safari 2026 + Chrome + Firefox supportent les container queries (`cqw`/`cqi`).
 
+### Garniture et arrondis mis à l'échelle de l'interface de combat (plan 190, décision #849)
+
+Les panneaux posés au-dessus de la vue 3D vivent sur une police mise à l'échelle
+(`font-size: calc(28px * var(--ui-scale))` sur `.bc-root`, plan 179 §C) alors que les jetons
+globaux `--spacing-*` / `--radius-*` de `tokens.css` sont **fixes**. En 4K (`--ui-scale` = 2) le
+texte doublait mais pas la boîte : la pastille d'instruction affichait ~56px de texte dans 4px de
+garniture, la dialog de victoire dans 12px.
+
+Famille locale déclarée sur `:where(.bc-root, .bc-left-col)` — sur le `:where()` partagé et non sur
+`.bc-root`, parce que `.bc-left-col` est un **frère** de `.bc-root` (les deux appendus à l'hôte par
+`battle-chrome.ts`), la même raison qui a fait naître ce bloc pour `--bc-edge` :
+
+| Jeton | Valeur | Équivalent global fixe |
+|---|---|---|
+| `--bc-pad-xs` | `calc(4px * var(--ui-scale))` | `--spacing-xs` |
+| `--bc-pad-sm` | `calc(6px * var(--ui-scale))` | `--spacing-sm` |
+| `--bc-pad-md` | `calc(8px * var(--ui-scale))` | `--spacing-md` |
+| `--bc-pad-lg` | `calc(12px * var(--ui-scale))` | `--spacing-lg` |
+| `--bc-radius-sm` | `calc(4px * var(--ui-scale))` | `--radius-sm` |
+| `--bc-radius-md` | `calc(6px * var(--ui-scale))` | `--radius-md` |
+
+Mêmes `N` que `tokens.css`, donc aspect identique à la référence 1920. Complètent les `--bc-gap-xs`
+(6px) et `--bc-gap-sm` (9px) du plan 179, qui ont d'autres `N` et restent en place.
+
+**Règle** : dans ce sous-arbre, n'employer ni `--spacing-*` ni `--radius-*`. Les jetons globaux ne
+sont **pas** redéfinis localement — le plan 179 l'avait déjà écarté, ils sont hérités par des
+panneaux qui portent leur propre échelle en unités de requête de conteneur (`--ip-px`, `--wh-px`,
+`--tt-size`), qu'un override casserait.
+
+**Portée réelle** : `battle-chrome.css` est intégralement converti (seul `--target-min` subsiste,
+volontairement — plancher tactile, décision #735), et `move-tooltip.css` l'est aussi (elle mettait
+déjà sa police à l'échelle à 21px × `--ui-scale`, donc 42px en 4K dans 6px de garniture — le même
+défaut). **Restent fixes**, décision humaine du 2026-08-27 de s'arrêter là : `components/button.css`
+(`.tb-btn`, arrondi 4px — partagé avec le Team Builder, à corriger par un sélecteur ciblé
+`.bc-menu .bc-btn`, jamais en place) et `turn-timeline.css` (écarts 4/4/6px). Consignés dans
+`docs/backlog.md`.
+
+Le `<h2>` de la dialog de victoire n'était stylé **nulle part** et prenait les valeurs par défaut du
+navigateur — `font-size: 1.5em`, `margin-block: 0.83em` — donc des marges en `em` sur une police mise
+à l'échelle : 84px de titre et ~70px de marge de chaque côté en 4K. Désormais explicite dans
+`battle-chrome.css` (`.bc-victory h2`).
+
 ### Second référentiel de design mobile (plan 179)
 
 Sous un petit stage, `--ui-scale` ne se calcule plus contre 1920×1080 mais contre **1280×720** (même ratio 16:9) : le *point zéro* du calcul bascule, rien ne cesse de scaler — ce n'est PAS le plancher de font-size par élément refusé le 2026-07-23 (la maquette reste homothétique). Contrepartie honnête : ça introduit un **palier discret** (le chrome grossit d'un coup au franchissement du seuil, pas continûment). Décision #733.
@@ -824,8 +866,8 @@ Source : `packages/renderer/src/styles/sandbox-studio.css` + tokens `tokens.css`
 - **Canvas plein viewport, pas de letterbox** (décision #472) : `#game-stage` remplit 100% du viewport ; la caméra orthographique dimetric « comble » selon le ratio (montre plus/moins de scène). Zéro bande noire, tout ratio (ultrawide, mobile portrait). Révise les décisions 2a/2b #464-468 (qui partaient d'un stage letterboxé 16:9).
 - **Structure** : `#game-root > #game-stage (container-type:size, container-name:stage) > (canvas + #game-overlay > .ui-world + .ui-screen)`. `.ui-world` = UI ancrée-monde (barres PV, curseur), reprojetée par frame. `.ui-screen` = panneaux ancrés-écran (InfoPanel, menus, Team Builder).
 - **Scaling chrome (cat. B) via container-query units** : chaque métrique = `calc(N * --px)` avec `--px = calc(100cqw / 1920)` (1px design @ ref 1920), résolu contre `#game-stage`. 100% CSS, scale proportionnel à la taille du jeu sans JS. **Second référentiel mobile (plan 179, décisions #733–#734)** : sous `height < 500px` ou `width < 900px`, la référence bascule à 1280×720 (chrome ×1,5) — remplace l'ancien seuil `width < 768px` (jamais déclenché en paysage téléphone, exclusivement largeur). Voir § Second référentiel de design mobile ci-dessus pour la convention complète. `--ui-scale` (publié par `ResizeObserver`, même bascule côté JS via `MOBILE_DESIGN_REFERENCE_*`) reste un fallback pour le chrome hors container-query (journal, timeline, tooltip, chips).
-- **Adapter Team Builder prod-safe** (décisions #470-471) : overrides cqw cloisonnés dans `@container stage`, raw px wrappés `var(--tb-*, <px-original>)` → l'app prod (hors stage) garde son rendu d'origine. **Toujours inerte en production** (`.tb-root` monté sur `#game-root`, pas `#game-stage` — reconfirmé 2026-08-06, voir `docs/next.md`) : le Team Builder mobile passe plutôt par une media query classique scopée `.tb-root` (`@media (height < 500px), (width < 900px)`, plan 179), pas ce système `@container stage`.
-- **Pistes différées best-practices** (validées agent, marché 2026) : ~~plancher font-size `max(calc(N·--px), Xpx)` pour 480-767px~~ **écarté sciemment (2026-07-23)** — au refacto CSS chrome rem→`px × --ui-scale`, l'humain a tranché « tout scaler sans plancher » (le plancher de **hit-area tactile**, lui, est retenu — 24-30px, décision #735) ; `--stage-scale` sur `:root` pour les modales `<dialog>` top-layer (qui échappent au container) ; cap ultrawide `min(100cqw/1920, 100cqh/1080)` ; `--ui-scale` barres PV monde pour 4K (2 éléments de chrome — indicateur de tour, pastille d'instruction — et la dialog de victoire scalent désormais leur texte sans leur padding en 4K, point ouvert non tranché, voir `docs/next.md`).
+- ~~**Adapter Team Builder prod-safe** (décisions #470-471) : overrides cqw cloisonnés dans `@container stage`, raw px wrappés `var(--tb-*, <px-original>)` → l'app prod (hors stage) garde son rendu d'origine.~~ **PURGÉ (2026-08-27, plan 190, décision #850)** : cet adaptateur était **toujours inerte en production** (`.tb-root` monté sur `#game-root`, pas `#game-stage` — reconfirmé 2026-08-06) depuis la suppression de `team-edit-harness.ts` (2026-07-20), et il n'a jamais été ressuscité — l'humain a préféré purger le code mort plutôt que rescaler l'écran en effet de bord (`team-builder-overlay.css` 216 → 78 lignes). Le Team Builder mobile passe par une media query classique scopée `.tb-root` (`@media (height < 500px), (width < 900px)`, plan 179), qui reste en place et n'est pas affectée. Le retour « l'app est trop petite en 4K » reste non traité pour cet écran — c'est le chantier à ouvrir si besoin (`docs/next.md`).
+- **Pistes différées best-practices** (validées agent, marché 2026) : ~~plancher font-size `max(calc(N·--px), Xpx)` pour 480-767px~~ **écarté sciemment (2026-07-23)** — au refacto CSS chrome rem→`px × --ui-scale`, l'humain a tranché « tout scaler sans plancher » (le plancher de **hit-area tactile**, lui, est retenu — 24-30px, décision #735) ; `--stage-scale` sur `:root` pour les modales `<dialog>` top-layer (qui échappent au container) ; cap ultrawide `min(100cqw/1920, 100cqh/1080)` ; `--ui-scale` barres PV monde pour 4K. ~~(2 éléments — indicateur de tour, pastille d'instruction — et la dialog de victoire scalent leur texte sans leur padding en 4K, point ouvert non tranché)~~ **RÉSOLU le 2026-08-27, décision #849** : voir § Garniture et arrondis mis à l'échelle ci-dessous. L'indicateur de tour n'était en réalité **pas** concerné (ses marges étaient déjà mises à l'échelle depuis le plan 179).
 
 ### Constantes Babylon — caméra, depth, silhouette (Jalon 3a)
 

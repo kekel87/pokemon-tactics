@@ -26,16 +26,16 @@ test("flux : annuler un déplacement restaure l'option de déplacement", async (
 }) => {
   const scene = await bootSandbox(DUEL);
 
-  await page.getByRole("button", { name: "Deplacement", exact: true }).click();
-  await scene.clickTile(3, 3); // exécute le déplacement → le menu propose "Annuler deplacement"
+  await page.getByRole("button", { name: "Déplacement", exact: true }).click();
+  await scene.clickTile(3, 3); // exécute le déplacement → le menu propose "Annuler déplacement"
 
-  const undo = page.getByRole("button", { name: "Annuler deplacement", exact: true });
+  const undo = page.getByRole("button", { name: "Annuler déplacement", exact: true });
   await expect(undo).toBeVisible();
   await undo.click();
 
-  // Déplacement annulé → l'option "Deplacement" revient (et l'annulation disparaît).
-  await expect(page.getByRole("button", { name: "Deplacement", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Annuler deplacement", exact: true })).toHaveCount(
+  // Déplacement annulé → l'option "Déplacement" revient (et l'annulation disparaît).
+  await expect(page.getByRole("button", { name: "Déplacement", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Annuler déplacement", exact: true })).toHaveCount(
     0,
   );
 });
@@ -79,4 +79,10 @@ test("§4.10 modale de victoire : apparaît à la fin du combat avec un retour a
   const victory = page.getByRole("dialog").filter({ hasText: /gagne/ });
   await expect(victory).toBeVisible({ timeout: 10_000 });
   await expect(victory.getByRole("button", { name: "Retour au menu" })).toBeVisible();
+
+  // Le VERDICT est porté par le titre. Avant le 2026-08-27 le titre portait le NOM du vainqueur
+  // (« Joueur 1 ») et la phrase juste en dessous le répétait (« Joueur 1 gagne ! »).
+  await expect(victory.getByRole("heading")).toHaveText("Joueur 1 gagne !");
+  // Et il n'est écrit QU'UNE FOIS : la phrase de détail n'existe plus sur une victoire.
+  expect(((await victory.textContent()) ?? "").match(/gagne/g)).toHaveLength(1);
 });

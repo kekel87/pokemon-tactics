@@ -58,13 +58,27 @@ export function onLanguageChange(callback: LanguageChangeCallback): () => void {
   };
 }
 
-export function t(key: TranslationKey, params?: Record<string, string | number>): string {
-  const translations = LOCALES[currentLanguage];
-  let text = translations[key] ?? LOCALES.en[key] ?? key;
+/**
+ * Traduit dans une locale EXPLICITE, sans toucher à la langue courante du module.
+ *
+ * Extrait de `t()` (plan 190) pour que les appelants qui connaissent déjà leur locale — au premier
+ * chef les tests, qui comparent le rendu FR et EN dans le même fichier — n'aient pas à piloter le
+ * singleton `currentLanguage` ni son `localStorage`.
+ */
+export function translateIn(
+  language: Language,
+  key: TranslationKey,
+  params?: Record<string, string | number>,
+): string {
+  let text = LOCALES[language][key] ?? LOCALES.en[key] ?? key;
   if (params) {
     for (const [paramKey, value] of Object.entries(params)) {
       text = text.replaceAll(`{${paramKey}}`, String(value));
     }
   }
   return text;
+}
+
+export function t(key: TranslationKey, params?: Record<string, string | number>): string {
+  return translateIn(currentLanguage, key, params);
 }

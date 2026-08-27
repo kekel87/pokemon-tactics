@@ -135,8 +135,7 @@
   .tb-move-row {
     display: grid;
     grid-template-columns:
-      var(--tb-mv-col-num, 24px) var(--tb-mv-col-cat, 28px) minmax(0, 1fr)
-      var(--tb-mv-col-pow, 50px) var(--tb-mv-col-acc, 60px);
+      24px 28px minmax(0, 1fr) 50px 60px;
     align-items: center;
     gap: var(--spacing-md);
     padding: var(--pad-control-y) var(--pad-control-x);

@@ -1179,7 +1179,7 @@ export const HARVEST_SUN_RESTORE = {
  *  Inhibiteur l'immuniseraient), d'où `playerAbility: "guts"` (Cran, non-exempt) sur le Florizarre
  *  (Plante/Poison, au sol). Le dummy Ronflex porte Piège Sable et démarre adjacent (2,2). À l'init du
  *  combat `recomputeGasSuppression` (qui traite aussi Piège Sable) pose `arenaTrapped` sur le joueur →
- *  le bouton « Deplacement » est DÉSACTIVÉ (aucune action Move dans `getLegalActions` → `canMove`
+ *  le bouton « Déplacement » est DÉSACTIVÉ (aucune action Move dans `getLegalActions` → `canMove`
  *  false) et l'InfoPanel du joueur monte le badge « Piégé » (status.trapped). Aucun jet → déterministe. */
 export const ARENA_TRAP_PLAYER_TRAPPED = {
   ...DUEL,
@@ -2456,3 +2456,20 @@ export const AURA_RING_STACK = { ...NORMAL_DUEL, moves: ["reflect", "light-scree
  *  — c'est donc lui qui rend observable le fait que l'anneau SUIVE son lanceur ; (b) Requiem et une
  *  aura d'équipe du même lanceur coexistent désormais (le court-circuit du chemin au sol est tombé). */
 export const AURA_RING_PERISH = { ...NORMAL_DUEL, moves: ["perish-song", "reflect"] } as const;
+
+// --- Journal de combat : garde-fou i18n (plan 190) ----------------------------------------------
+
+/** Depuis le plan 190, `BattleLogFormatter` n'embarque plus aucune chaîne : il émet 234 clés
+ *  `battleLog.*` que les locales de `app` résolvent, et douze familles de clés sont COMPOSÉES à
+ *  l'exécution — donc invisibles au typecheck, qui n'y voit qu'un littéral de gabarit. Ce duel
+ *  déclenche en trois casts les familles de lignes les plus exposées, dont DEUX clés composées :
+ *  Mach Punch (Combat vs Ronflex Normal) → `moveStarted.used` + `effectiveness.super` +
+ *  `damageDealt` ; Spore → `status.asleep.applied` (composée) ; Danse Lames → `statChanged.raised`
+ *  dont le nom de stat est lui-même `stat.attack` (composée). Positions NORMAL_DUEL (rangs y=4,
+ *  100 % normal) pour qu'aucun DoT de terrain ne brouille le journal, Ronflex à PV pleins (999) pour
+ *  qu'il survive aux trois tours, et seed fixe — Mach Punch est à 100 % de précision, les deux
+ *  autres sont des moves statut. */
+export const BATTLE_LOG_I18N = {
+  ...NORMAL_DUEL,
+  moves: ["mach-punch", "spore", "swords-dance"],
+} as const;

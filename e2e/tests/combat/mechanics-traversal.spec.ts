@@ -54,7 +54,7 @@ test("§5.19 Spectre : traverse un mur d'obstacle pour atteindre une poche ferm�
       dummyPokemon: "snorlax",
       mapUrl: "assets/maps/dev/sandbox-ghost-pocket.tmj",
     });
-    await page.getByRole("button", { name: "Deplacement", exact: true }).click();
+    await page.getByRole("button", { name: "Déplacement", exact: true }).click();
     await expect
       .poll(async () => (await scene.meshNames()).some((n) => n.startsWith("highlight_move_")))
       .toBe(true);

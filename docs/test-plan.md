@@ -79,6 +79,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Menu de combat / sorties d'un combat en cours (`Échap`, `Start`, `☰` — Reprendre/Paramètres/Recommencer/Abandonner/Quitter) | §4.20, §6.12, §6.11 |
 | Panoramique caméra (clavier, stick droit, glissé) | §4.19, §4.18 |
 | Capuchon de touche sous un bouton du chrome / indice de défilement d'une liste | §4.2, §4.9, §4.19, §4.18 |
+| Clé i18n (`packages/app/src/i18n/locales/*`) — libellé de bouton, ligne de journal, nouvelle valeur d'enum journalisée | §4.9 (clés brutes + parité FR/EN), §4.4 (les libellés d'action sont des **sélecteurs e2e** : changer « Déplacement » impose de balayer `e2e/`), §6.7 |
 
 ---
 
@@ -233,7 +234,7 @@ de départ → les scénarios e2e **posent l'aura en jeu** puis lisent le scene-
 ### 3.7 Highlights de tile
 *src : `tile-highlights.ts`, `render-ports`*
 
-- 🤖 Highlights montés en phase d'input : `highlight_move_x_y` au clic « Deplacement »,
+- 🤖 Highlights montés en phase d'input : `highlight_move_x_y` au clic « Déplacement »,
   `highlight*` en ciblage d'attaque (`targeting.spec`). *Les **couleurs** restent 👁.*
 - 👁 Couleurs : déplacement **bleu**, attaque **rouge**, repli **vert**, portée ennemie
   **orange** (discret).
@@ -355,13 +356,17 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
   *L'icône exacte + l'absence hors météo = 👁.*
 
 ### 4.4 Menu d'action (`.bc-menu`) — états des boutons
-- 🤖 Au tour du joueur, les **5 boutons** s'affichent, FR : **Deplacement**, **Attaque**, **Objet**,
+- 🤖 Au tour du joueur, les **5 boutons** s'affichent, FR : **Déplacement**, **Attaque**, **Objet**,
   **Attendre**, **Statut** (`hud-menu.spec`) (EN : Move / Attack / Item / Wait / Status — 👁).
+  ⚠️ Ces libellés sont un **contrat de test** : les specs pilotent le menu par
+  `getByRole("button", { name: … })`, POM `CombatScene` compris. Les retoucher (accents inclus)
+  impose de balayer `e2e/` et ce cahier dans le même mouvement — ~30 tests étaient tombés au
+  2026-08-27 sur l'accentuation de « Déplacement » / « Annuler déplacement » (plan 190 §8).
 - 🤖 **Objet** et **Statut** : toujours désactivés (`disabled`, non implémentés — `hud-menu.spec`).
-- 👁 **Deplacement** grisé si le Pokemon a déjà bougé ce tour (ou aucune tile atteignable).
+- 👁 **Déplacement** grisé si le Pokemon a déjà bougé ce tour (ou aucune tile atteignable).
 - 👁 **Attaque** grisé si aucune action possible (aucun move avec cible à portée).
-- 🤖 Après un déplacement, le 1er bouton devient **« Annuler deplacement »** ; après annulation,
-  redevient « Deplacement » (`combat-flow.spec`).
+- 🤖 Après un déplacement, le 1er bouton devient **« Annuler déplacement »** ; après annulation,
+  redevient « Déplacement » (`combat-flow.spec`).
 - 👁 Bouton désactivé non cliquable (pas de transition d'état).
 
 ### 4.5 Sous-menu d'attaque (`.bc-move-item`) — liste des moves
@@ -504,12 +509,41 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
   l'ordre de jeu (§4.2, permanent) — le journal naît **vide** et annoncerait un contrôle sans effet.
   Réévalué au changement de contenu et à un `ResizeObserver`, jamais par sondage —
   `chrome-key-hints.spec`.
+- 🤖 **Aucune ligne n'affiche une clé `battleLog.*` brute** (plan 190) : depuis la migration i18n le
+  formateur n'émet que des clés, et douze familles sont **composées à l'exécution**
+  (`battleLog.status.<statut>.applied`, `battleLog.stat.<stat>`, `battleLog.aura.<type>`…) — donc
+  invisibles au typecheck. Une clé jamais déclarée fait afficher son propre nom au journal, sans
+  aucune erreur. Un combat de trois tours (Mach Punch super efficace → Spore → Danse Lames) déclenche
+  les familles les plus exposées puis le journal entier est balayé — `battle-log-i18n.spec`, sondage
+  de fin de combat greffé sur `driving.spec` (familles K.O. / « remporte le combat »).
+- 🤖 **Une clé oubliée en FR mais présente en EN** ne rend pas la clé brute (`t()` retombe sur
+  l'anglais) : elle rend une **phrase anglaise dans un journal français**, attrapée par les
+  assertions de phrase FR — `battle-log-i18n.spec` (vérifié rouge-vert dans les deux sens).
 
 ### 4.10 Modale de victoire
 - 🤖 Fin de partie : modale vainqueur, bouton retour menu.
+- 🤖 **Le verdict est porté par le TITRE, et écrit une seule fois** (retour humain 2026-08-27, 1ʳᵉ
+  recette de cette modale) : le `<h2>` disait le NOM du vainqueur (« Joueur 1 ») et la phrase juste
+  en dessous le répétait (« Joueur 1 gagne ! »). Le titre porte désormais la phrase de verdict et la
+  ligne de détail **n'existe plus sur une victoire** — `combat-flow.spec` (titre exact + « gagne »
+  compté une fois dans la modale).
+- 👁 **Match nul** (« Match nul » en titre + « Double K.O. — personne ne l'emporte ! » en détail, le
+  seul cas qui garde une ligne de détail) : **non atteignable** en bac à sable, donc non automatisé.
+  `checkVictory` s'exécute à CHAQUE K.O. : le premier combattant à tomber laisse l'autre camp seul
+  vivant, le combat est déjà clos (`battleOver`) quand le second tombe. Vérifié : Explosion sur une
+  cible à 1 PV (le lanceur s'auto-K.O. dans la même résolution) rend « Joueur 1 gagne ! », pas un
+  match nul — `winnerId: null` n'a aucun chemin d'exécution connu aujourd'hui.
+- 👁 **Marges du titre en 4K** : le `<h2>` n'était stylé nulle part et prenait les `margin-block:
+  0.83em` du navigateur, soit ~70 px de chaque côté en `--ui-scale` 2 (plan 190). Marges reprises sur
+  les jetons `--bc-pad-*` du sous-arbre. Purement pixel → œil.
 
 ### 4.11 Transverse
 - 👁 Responsive (mobile/4K) : pas d'élément coupé/chevauché.
+- 👁 **Marges intérieures du chrome de combat à l'échelle** (plan 190) : plus aucun `--spacing-*` /
+  `--radius-*` FIXE dans `battle-chrome.css` — une famille locale `--bc-pad-*` / `--bc-radius-*` posée
+  sur `:where(.bc-root, .bc-left-col)` suit `--ui-scale`. Les deux défauts corrigés se voyaient en 4K :
+  pastille d'instruction et modale de victoire. Purement pixel (aucun changement de DOM ni de texte)
+  → œil, en 4K.
 - 🤖 i18n combat : `pt-lang=en` au boot sandbox → menu d'action en anglais (Move/Attack/…) —
   `hud.spec`. *La cohérence visuelle de la bascule (mise en page intacte) reste 👁.*
 
@@ -518,12 +552,12 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
 `targeting.spec`.*
 
 **Déplacement**
-- 🤖 Clic « Deplacement » → highlights sur les tiles atteignables (`targeting.spec` ; couleur 👁).
+- 🤖 Clic « Déplacement » → highlights sur les tiles atteignables (`targeting.spec` ; couleur 👁).
 - 👁 Survol d'une tile bleue → curseur jaune dessus.
 - 🤖 Clic une tile atteignable → le Pokemon s'y déplace (anim Walk/Hop) ; le menu réapparaît avec
-  « Annuler deplacement ».
+  « Annuler déplacement ».
 - 👁 Clic hors zone bleue → rien (pas de déplacement).
-- 🤖 « Annuler deplacement » → le Pokemon revient à sa tile d'origine, « Deplacement » réactivé.
+- 🤖 « Annuler déplacement » → le Pokemon revient à sa tile d'origine, « Déplacement » réactivé.
 - 👁 `Échap` pendant la sélection de destination → retour menu d'action sans bouger.
 
 **Attaque (move single-target)**
@@ -2336,7 +2370,7 @@ e2e : `mechanics-content-fill-163.spec.ts`. Tous pilotés via l'UI (le joueur co
   `onEndTurn`) → journal « Récolte de Ronflex s'active ! » + « Ronflex recycle son Baie Lichii ! » —
   `mechanics-content-fill-163.spec`.
 - 🤖 **Piège Sable** (`arena-trap`) : un mon au sol adjacent (Chebyshev r1) au porteur ennemi et NON
-  exempté (`guts`) ne peut plus se déplacer → bouton « Deplacement » DÉSACTIVÉ + badge InfoPanel
+  exempté (`guts`) ne peut plus se déplacer → bouton « Déplacement » DÉSACTIVÉ + badge InfoPanel
   « Piégé » (status.trapped) au survol du piégé (posés à l'init) — `mechanics-content-fill-163.spec`.
 - 🤖 **Piège Sable — rupture** : le porteur s'éloigne (Chebyshev > 1) → le mon libéré perd son badge
   « Piégé » (recompute après `PokemonMoved`). Le flottant « Libéré ! » (mesh `hud_text_plane` non
@@ -3210,7 +3244,8 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/scene-graph.spec.ts` | boot scène : sprites (groupe 2), curseur (groupe 3), terrain, FOUC retiré ; **barres PV ×2 + ombres + silhouettes (groupe 1)**, **tiles nommées `tile_x_y` (groupe 0) + décor herbe (groupe 2)** ; §3.14 liquides : peu profond eau (4,2)/marais (2,2) = fond `tile_x_y` (groupe 0) + nappe translucide séparée `liquid_surface_x_y` (groupe sprite 2, `transparent`) ; plein lave (0,5)/eau profonde (5,5) = colonne unique `tile_x_y` **sans** `liquid_surface_*` ; sur `sandbox-flat` |
 | `combat/sprite-bundle.spec.ts` | §3.6/§4.7 rendu issu du bundle (plan 135) : billboards `pokemon_plane` ×2 slicés du bundle (scène prête), portrait InfoPanel = data-URL PNG croppé de `portraits.png` (pas le pixel de repli), pré-évo Pikachu rend son sprite |
 | `combat/scene-state.spec.ts` | §3.4 icône de statut (empoisonné) |
-| `combat/driving.spec.ts` | piloter : attaque + dégâts (journal), K.O. + fin de combat, déplacement |
+| `combat/driving.spec.ts` | piloter : attaque + dégâts (journal), K.O. + fin de combat, déplacement ; §4.9 garde-fou i18n greffé sur le journal de FIN de combat (aucune clé `battleLog.*` brute sur les familles `pokemonKo` / `battleEnded.winner`, que le scénario dédié ne peut pas atteindre — sa cible survit exprès) |
+| `combat/battle-log-i18n.spec.ts` | §4.9 **garde-fou i18n du journal** (plan 190) : le formateur n'émet plus que des clés `battleLog.*`, dont douze familles **composées à l'exécution** (`status.<statut>.applied`, `stat.<stat>`, `aura.<type>`…) donc invisibles au typecheck. Un duel de trois tours (Mach Punch super efficace → Spore → Danse Lames) déclenche usage de move / efficacité / dégâts / statut / cran de stat, puis TOUTES les lignes sont balayées : aucune ne doit contenir `battleLog.`. Les assertions de phrase FR couvrent l'autre moitié du filet (clé oubliée en FR mais présente en EN → phrase anglaise, pas clé brute). Vérifié rouge-vert dans les deux sens |
 | `combat/normal-game.spec.ts` | parcours réel menu → carte → équipe → combat monte |
 | `combat/placement-menu.spec.ts` | §4.20 variante **placement** du menu de combat (plan 189, volet B) — 7 cas, tous par le **parcours réel** avec « Placement auto » DÉCOCHÉ (le studio sandbox n'a pas de phase de placement, et l'option cochée la rend invisible) : rangée haut-droite **réduite** (plein écran + `☰`, sans journal ni timeline) + capuchon de touche sous le bouton ; ouverture par `☰` avec **exactement 4 entrées** et **pas d'« Abandonner »** ; `Échap` ouvre quand il n'a rien à défaire, une seconde frappe referme ; `Échap` **défait d'abord** le dernier placement (observable seulement à partir du 2ᵉ Pokemon posé — l'IA pose toute son équipe entre les deux, et l'anti-triche bloque l'annulation) ; **Recommencer** (confirmation propre à la phase, « Annuler » dépile, « Confirmer » remet le compteur à 0/6 avec un seul `☰`) ; **Quitter** (confirmation → menu principal, **sans** entrée « Reprendre ») ; **passage de relais** (placement → combat : un seul bouton `☰`, un seul `<dialog>`, variante *combat* avec « Abandonner » et journal montés). Manette pendant le placement = 👁 |
 | `combat/camera-pan-keyboard.spec.ts` | §4.19 panoramique caméra au **clavier** (plan 189, volet A) — 5 cas : un **maintien** de `Numpad8` déplace la caméra (mesuré sur la projection d'une case du plateau, un mesh épinglé à l'écran ne bougerait pas) et le **relâchement l'arrête** (30 frames d'immobilité en contre-épreuve — le piège du seul contrôle continu du jeu) ; `Numpad8`/`Numpad2` et `Numpad4`/`Numpad6` panotent en **sens opposés** ; le secours **`Maj` + flèches** panote aussi (claviers sans pavé numérique) ; `Numpad1` **ne pose plus de cran de zoom**. ⚠️ Le maintien attend la **preuve** que la caméra a bougé au lieu d'un nombre de frames fixe : le `keydown` synthétique traverse la file d'ENTRÉE quand `page.evaluate` emprunte celle du script. Purge de la touche collée (`blur` / `visibilitychange`) = **unit** |
@@ -3244,7 +3279,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/mechanics-utility-damage.spec.ts` | §5.33 famille dégâts utilitaires (Misc Batch B, plan 152) : Faux-Chage (`false-swipe`, `cannotKo`) — dégâts sans K.O., cible à quelques PV reste à EXACTEMENT 1 PV (InfoPanel « 1 / max ») + aucune victoire ; Croc Fatal (`super-fang`, `HalveTargetHp`, 90 % → `seed: 1`) — « … perd la moitié de ses PV (-N) ! » (SuperFangApplied) + flottant `-N` ; Ruse (`feint`, `bypassProtect`) — le dummy (plus rapide, Ronflex lent en face) se protège (Abri) puis Ruse touche à travers (journal dégâts) ; Anti-Air (`smack-down`) — cloue le Dracolosse (Vol) au sol → « … est cloué au sol ! » (SmackedDown) + badge InfoPanel « Au sol », puis contrôle immunité Sol (Coud'Boue sur Vol non cloué = zéro dégât, immunité de type silencieuse) vs cas cloué (Coud'Boue ajoute une ligne de dégâts) ; Poursuite (`pursuit`, `pursuitBackstab`) — deux boots au seul dummyDirection près → dégâts de dos (×2,3) > 2× ceux de face (×0,85) ; Corps Perdu (`vital-throw`, `bypassAccuracy`) — touche une cible à Esquive +6 sans « rate son attaque ! ». Substitut cassable (Faux-Chage), typechart ignoré + K.O. 1-2 PV (Croc Fatal), ×0,85 face/×1,0 flanc exacts (Poursuite), vulnérabilité hazards + atterrissage forcé + cleanup KO (grounding), contrôle négatif du never-miss = unit/integration core (`moves/*.test.ts`, `utility-damage.integration.test.ts`) → 👁. Flottants (couleur) + tags tooltip = 👁 (pixel) |
 | `combat/mechanics-transform.spec.ts` | §5.34 famille Transform (plan 157) : Morphing (`transform`) — Mew lance Morphing sur le Léviator adjacent → journal « Mew se transforme ! » (event Transformed), le menu d'attaque liste ensuite les moves copiés de la cible (« Cascade », plus « Morphing »), l'InfoPanel garde l'identité + les PV du lanceur (nom « Mew » inchangé, barre de PV stable — PV non copiés #649), et le type Vol copié fait léviter le morphé sur le marais (aucune ligne « marécage » en fin de tour, témoin non transformé empoisonné) ; Imposteur (`imposter`) — Métamorph (ditto) se transforme à l'entrée sur l'ennemi le plus proche → « … se transforme ! » dès le boot + menu du tour 1 déjà celui de la cible. Swap d'atlas du sprite (texture non exposée par le hook scène) + interaction Substitut + nom d'affichage `ditto`/Métamorph + copie fine (stats/crans/tempo/poids/genre), gates d'échec, cleanup KO, garde-fou IA, « manip écrase » = unit/integration core (`transform.integration.test`, `moves/transform.test.ts`, `handlers/transform/transform.test.ts`) → 👁 |
 | `combat/mechanics-content-fill-162.spec.ts` | §5.36 content-fill des 9 derniers moves Gen 1 (plan 162), tous pilotés joueur : Stockage (`stockpile`) accumule un palier (« accumule ! (Stockage 1/3) » + badge InfoPanel « Stockage 1 »), un 2e usage empile « (Stockage 2/3) » ; Relâche (`spit-up`) & Avale (`swallow`) échouent sans réserve (« Mais cela échoue … ! ») ; Prio-Parade (`upper-hand`) touche+apeure une cible agressive (dummy hot-seat à la Charge) sinon fizzle ; Piège de Venin (`venom-drench`) baisse 3 stats d'une cible empoisonnée sinon fizzle ; Rayon Lune (`moonlight`) & Aurore (`morning-sun`) soignent le lanceur (« récupère N PV ») ; Partage Garde (`guard-split`) « partage sa Garde avec … » ; Métalaser (`steel-beam`, 95 % → seed qui touche) inflige dégâts + recul « Florizarre perd N PV » et auto-K.O. un lanceur à bas PV ; Grêle (`hail`) pose la Neige (« utilise Grêle » + HUD « Neige »). Réussite Relâche/Avale + 3e palier/échec au-delà du cap Stockage désormais 🤖 via `stockpileCount` → §5.46 (`mechanics-content-fill-unlocked.spec`) ; valeurs Partage Garde / soin météo exact / dégâts × paliers au PV près = unit/integration core → 👁 |
-| `combat/mechanics-content-fill-163.spec.ts` | §5.37 content-fill des 7 derniers talents Gen 1 (plan 163), pilotés via l'UI : Récolte (`harvest`) recrée sous Soleil la Baie Lichii mangée en fin de tour (« Récolte … s'active ! » + « recycle son Baie Lichii ») ; Piège Sable (`arena-trap`) désactive le bouton « Deplacement » du piégé non-exempté (Cran) + badge « Piégé », et le libère (badge disparu) quand le porteur s'éloigne ; Gaz Inhibiteur (`neutralizing-gas`) monte le badge « Talent neutralisé » sur un ennemi à Manhattan r2 (pas au-delà, pas d'auto-neutralisation) ; Fouille (`frisk`) → slot d'objet « Restes » et Anticipation (`anticipation`) → slot de talent « Lévitation », tous deux **sous fog** (`fogOfWar: true`, plan 176 : les badges « Objet/Talent : X » ont été supprimés et fog OFF montre tout) ; Prédiction (`forewarn`) → badge « Menace : … » (conservé). Délestage (`unburden`, Vitesse ×2) désormais 🤖 via `unburdenActive` + harness hot-seat (cadence CT) → §5.46 (`mechanics-content-fill-unlocked.spec`) ; exemptions Piège Sable fines / fin de neutralisation à la mort / soin Récolte 50 % hors Soleil / reset KO = unit |
+| `combat/mechanics-content-fill-163.spec.ts` | §5.37 content-fill des 7 derniers talents Gen 1 (plan 163), pilotés via l'UI : Récolte (`harvest`) recrée sous Soleil la Baie Lichii mangée en fin de tour (« Récolte … s'active ! » + « recycle son Baie Lichii ») ; Piège Sable (`arena-trap`) désactive le bouton « Déplacement » du piégé non-exempté (Cran) + badge « Piégé », et le libère (badge disparu) quand le porteur s'éloigne ; Gaz Inhibiteur (`neutralizing-gas`) monte le badge « Talent neutralisé » sur un ennemi à Manhattan r2 (pas au-delà, pas d'auto-neutralisation) ; Fouille (`frisk`) → slot d'objet « Restes » et Anticipation (`anticipation`) → slot de talent « Lévitation », tous deux **sous fog** (`fogOfWar: true`, plan 176 : les badges « Objet/Talent : X » ont été supprimés et fog OFF montre tout) ; Prédiction (`forewarn`) → badge « Menace : … » (conservé). Délestage (`unburden`, Vitesse ×2) désormais 🤖 via `unburdenActive` + harness hot-seat (cadence CT) → §5.46 (`mechanics-content-fill-unlocked.spec`) ; exemptions Piège Sable fines / fin de neutralisation à la mort / soin Récolte 50 % hors Soleil / reset KO = unit |
 | `combat/mechanics-traversal.spec.ts` | §5.18 chute mortelle (repoussé/falaise 4) + §5.19 Spectre (poche) + Volant immunités (marais/magma/lave : PV pleins, aucun statut/K.O.) + §5.19 Volant pas de glissade sur glace (tuile d'arrivée conservée) |
 | `combat/flying-resting-anim.spec.ts` | §3.6 anim de repos d'un Volant selon le terrain d'atterrissage (Roucarnage/`pidgeot` sur `sandbox-flat`, déplacements 1-case pilotés + hook `spriteStates`) : glace (1,2) & marais (2,2) fly-over → reste en vol (`restingAnimation` « FlyingIdle ») ; sol `normal` (1,1) → se pose (« Idle »). La table `isFlyoverTerrain` (tous les terrains fly-over) = unit `view-core/movement-animation.test.ts` ; le glide visuel/hauteur du sprite = 👁 |
 | `combat/height.spec.ts` | §5.17 mêlée bloquée par écart de hauteur ≥2 (`sandbox-melee-block`) + §5.17 modificateur de dégâts ±10 %/niveau (`sandbox-fall-1` : attaquant plus haut/plus bas → PV cible ≷ à plat, même Griffe/seed) + §5.17 portée dynamique selon la hauteur (`sandbox-fall-4` : Aéropique atteint une cible à distance 3 depuis le plateau h5 vers la fosse h1 (Δh=4 → +2), hors portée à plat → aucune résolution ; bonus/exclusions par pattern = unit/integration) |
@@ -3267,7 +3302,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/hud-state.spec.ts` | §4.6 tooltip (apparaît/disparaît + tag 2 tours), §4.2 timeline CT (`data-ct`), §4.7 badge statut, §4.5 nom EN |
 | `combat/preview-colours.spec.ts` | §4.6 couleurs de preview pilotées par l'intention : `data-intent` attack/buff/heal (Griffe/Danse Lames/Fontaine de Vie), cellules `data-cell` target/dash/caster/caster-target, croix lanceur, centre Séisme vide |
 | `combat/combat-menu.spec.ts` | §4.20 menu de combat (plan 187), **seul filet de la surcouche** (rien en unit : pas de DOM dans le projet `unit`) : `Échap` **remonte d'un cran sans ouvrir la modale** sur les 5 crans du tour (liste d'attaques, choix de cible, confirmation, destination de déplacement, orientation de fin de tour) ; `Échap` **au menu d'actions racine ouvre** le menu (4 entrées dans l'ordre, « Quitter » absent en sandbox) ; **une seule frappe referme, sans rouvrir** (`cancel` natif du `<dialog>` neutralisé) + l'entrée revient au combat + réouvrable ; **niveaux** Paramètres → Contrôles dépilés un cran à la fois, ligne « Menu de combat » à `Start` dans la table ; **action logique remappable** au clavier (le défaut `Start` n'est pas pilotable) ; **ouvrir n'annule rien** (visée retrouvée intacte ET vivante, menu ouvert par le bouton) ; bouton **`☰`** ouvre et **se grise en `locked`** ; **focus rendu** au déclencheur à la fermeture ; **capture de touche** dans les Contrôles de la modale annulée par `Échap` **sans** dépiler le niveau ; **Recommencer** (confirmation à libellé propre, « Annuler » dépile, « Confirmer » relance depuis zéro) ; **Abandonner** (confirmation à texte distinct → menu principal) ; **Quitter** sur un combat RÉEL (présent seulement là où une sauvegarde existe, **sans confirmation**, partie reprenable — puis contre-épreuve : Abandonner purge) ; **le dialogue de victoire garde la main** (`Échap` ne le referme pas, le menu refuse de s'ouvrir par-dessus). Victoire survenant **menu ouvert** = 👁 (l'IA n'agit qu'après que le joueur a passé la main, moment où le verrou interdit d'ouvrir le menu) ; manette + rendu de la modale = 👁 |
-| `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire |
+| `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire : présence + retour au menu, **titre = phrase de verdict** (« Joueur 1 gagne ! ») et « gagne » compté **une seule fois** dans la modale — la ligne de détail en doublon a disparu des victoires (plan 190). Le match nul reste 👁 : `checkVictory` s'exécutant à chaque K.O., `winnerId: null` n'a aucun chemin atteignable |
 | `combat/touch-controls.spec.ts` | §4.18 comportement au doigt via **`tapTile`** (seule entrée du hook qui traverse la vraie couche d'entrée) : **un tap agit du premier coup** ; un **pattern directionnel** s'ouvre cône affiché, retaper la même **direction** lance, une autre direction re-vise sans lancer (validation depuis une case différente = la comparaison est directionnelle). + **annulation atteignable au doigt** sur les 3 phases réparées (destination, cible, orientation). Pinch / pan 2 doigts / orientation de fin de tour / seuil de glissé / `pointercancel` = 👁 téléphone réel ; la boussole est couverte par `compass-and-legend.spec` |
 | `combat/input-prompt-glyph.spec.ts` | §4.8 glyphe du geste attendu dans la ligne d'instruction (chantier « aide visuelle des gestes attendus », suite du Lot 1 du plan 173) : `data-glyph` = `act-twice` sur les 2 phases **directionnelles** (visée de cône/ligne/fauche/charge, orientation de fin de tour) et `act` sur les 4 autres (cible, confirmation, destination de déplacement, case de repli de Demi-Tour) ; **suffixe « ×2 » présent en pointeur grossier** (`hasTouch`) et **absent en pointeur fin** ; la pastille entière (glyphe compris) disparaît hors phase d'input ; **non-régression** du `textContent` exact de `combat-instruction`, restée un nœud de texte pur alors que la pastille est passée à la rangée parente ; **la feuille de tuiles change avec le pointeur** (plan 185) : `input-prompts-pixel-1-bit` en pointeur fin, `cursor-pixel-pack` en pointeur grossier, feuille et grille ensemble. Le DESSIN (souris vs main, masque CSS) = 👁 pixel |
 | `combat/compass-and-legend.spec.ts` | §4.18 boussole + légende de contrôles (ex `compass-rotate-hint.spec.ts`, renommé et étendu au plan 185) : **zone tapable CARRÉE ancrée sur le portrait** (plancher 44 px — le glyphe qui l'étendait vers la droite est supprimé) ; **un clic fait tourner la vue d'un cran** (vrai clic souris sur le point projeté du proxy de picking, donc à travers la couche d'entrée réelle) ; **cliquer juste sous la boussole ne tourne pas**, contre-épreuve dans le même test ; **légende posée à droite (glyphe « ça se clique »)**, ancrée sur la même mesure que le renderer (`chrome-insets.ts`), ses **lignes de contrôles caméra descendues dans la colonne latérale de l'ordre de jeu** entre les capuchons `Page↑`/`Page↓` (plan 189 — sous la boussole, elles finissaient par-dessus elle) ; **la légende suit la source d'entrée active** (`data-input-source` : souris/doigt/clavier/manette) ; **la légende reste immobile quand la timeline perd son entrée active** (case vide en prévisualisation de coût CT — trois approches successives : ancrage DOM dans la case active, réservation de sa largeur, et enfin réservation de sa **hauteur** au plan 189, la seule qui ne déplace pas la boussole ; décision #798). Dessin des glyphes / sens de rotation lu à l'œil / tap au doigt = 👁 |
@@ -3414,7 +3449,7 @@ complète dont seul le tampon `version`/`buildVersion` est falsifié).
       - **§4.5 move grisé** (0 PP / sans cible / bloqué Provoc-Entrave-Bis) : en pratique les moves
         injouables sont **filtrés** de la liste (pas affichés grisés), le 0-PP n'est pas configurable
         en sandbox, et Provoc vient de l'adversaire (IA) → setup non reproductible proprement.
-      - **§4.4 Attaque/Deplacement grisé** « si aucune action » : pas reproduit (le bouton reste
+      - **§4.4 Attaque/Déplacement grisé** « si aucune action » : pas reproduit (le bouton reste
         actif même cible hors portée dans nos configs).
       - **Export/Import Showdown, presse-papier** (§7.1, §7.4) : clipboard → 👁.
       - **Pan/rotation aperçu carte, transition d'écran, responsive 4K, re-render visuel** : pixel/

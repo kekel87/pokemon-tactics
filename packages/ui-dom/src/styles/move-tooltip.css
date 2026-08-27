@@ -5,20 +5,30 @@
  */
 
 @layer components {
+  /*
+   * Garniture et arrondi pris sur les jetons mis à l'échelle de `.bc-root` (`--bc-pad-*`,
+   * `--bc-radius-*`), pas sur les `--spacing-*`/`--radius-*` globaux qui sont FIXES : cette
+   * infobulle scale déjà sa police (21px × `--ui-scale`) et sa largeur, donc en 4K elle affichait
+   * un texte de 42px dans 6px de garniture — le défaut corrigé sur la pastille d'instruction, à
+   * trois jetons près (revue de code du plan 190, 2026-08-27).
+   *
+   * La référence directe (sans repli) est sûre : `createMoveTooltip` n'a qu'un seul appelant,
+   * `battle-chrome.ts`, qui la monte dans `.bc-bottom` — donc toujours sous `.bc-root`.
+   */
   .mt-tooltip {
     pointer-events: none;
     align-self: flex-end;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: var(--bc-pad-xs);
     /* Widened + upsized in human-testing (2026-08-03): 13.6px was unreadable, then 17px still too
        small. À 21px la largeur doit suivre, sinon les lignes de tags reviennent à la ligne.
        Le chip de type NE suit PAS cette taille : il se dimensionne sur `--type-chip-px`, donc il
        reste identique à celui de l'InfoPanel (demande humaine « tout sauf le type »). */
     inline-size: calc(300px * var(--ui-scale));
-    padding: var(--spacing-sm);
+    padding: var(--bc-pad-sm);
     border: 1px solid var(--color-border-surface);
-    border-radius: var(--radius-md);
+    border-radius: var(--bc-radius-md);
     background: color-mix(in oklch, var(--color-bg-surface) 92%, transparent);
     color: var(--color-text-primary);
     font-size: calc(21px * var(--ui-scale));

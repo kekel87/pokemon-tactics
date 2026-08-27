@@ -21,6 +21,17 @@ _Aucun bug actif._
 
 ## Dette technique
 
+### Le match nul de combat n'a aucun chemin d'exécution (2026-08-27, plan 190)
+- `checkVictory` (`packages/core/src/battle/BattleEngine.ts:3816`) est appelé **à chaque K.O. individuel** : le premier combattant qui tombe laisse l'autre camp seul vivant, `playersAlive.size === 1`, vainqueur déclaré et `battleOver = true` — le second K.O. de la même résolution arrive toujours trop tard. Mesuré : Explosion sur une cible à 1 PV, où le lanceur s'auto-K.O. dans la même résolution, produit « Joueur 1 gagne ! » au lieu d'un nul.
+- Conséquence : `winnerId: null` est **inatteignable**, donc `battle.draw`, `battle.drawMessage`, `battleLog.battleEnded.draw` et la branche `<p class="bc-victory-message">` conservée par `showVictory` sont du **code mort de fait**. Le commentaire du core décrit pourtant ce cas (« une détonation de Requiem balayant les deux camps »). Aucun test du core n'assertait le nul non plus — `test-writer` a retiré son test plutôt que d'inventer un chemin.
+- **Question ouverte, non tranchée** : soit `checkVictory` groupe les K.O. d'une même résolution et le nul devient réel, soit les trois clés et la branche de `showVictory` partent.
+- Détail : `docs/plans/190-i18n-journal-de-combat.md` § 10.
+
+### `t()` retombe sur l'ANGLAIS avant la clé brute — clés composées non couvertes par le type `Translations` (2026-08-27, plan 190)
+- Le type `Translations` (clés littérales) garantit que `fr.ts`/`en.ts` portent les mêmes clés — mais une clé **composée à l'exécution** (ex. `battleLog.status.${status}.applied`) n'existe dans aucun type : si elle manque d'une seule locale, `t()` retombe sur l'autre locale (l'anglais) plutôt que sur la clé brute, donc un balayage « la sortie ne contient jamais `battleLog.` » ne la détecte pas. `test-writer` a dénombré **12 familles** composées dans le journal (pas les 6 qu'annonçait la note d'origine du plan).
+- **Comblé pour le journal** par `packages/app/src/i18n/battle-log-keys.test.ts` (itère chaque valeur d'enum du core, exige la clé dans les deux locales, exige son absence pour les valeurs hors journal). La règle générale — tester une famille de clés composées ne se limite pas au typecheck — mérite d'être appliquée à toute future famille du même genre, dans l'app comme ailleurs.
+- Détail : `docs/plans/190-i18n-journal-de-combat.md` § 10.
+
 ### `AuraRingKind` encodé en union de littéraux plutôt qu'en const-object (2026-08-19, plan 182)
 - `packages/render-ports/src/ports.ts` déclare `export type AuraRingKind = AuraKind | "perish-aura" | "uproar"`, et les deux littéraux sont ensuite **répétés** comme clés dans `packages/view-core/src/constants.ts` (`AURA_RING_COLOR_BY_KIND`) et comme valeurs poussées dans `packages/view-core/src/aura-ring-view.ts` — 3 fichiers, pas de source unique. La convention du projet serait un const-object (`export const AuraRingKind = { ...AuraKind, PerishAura: "perish-aura", Uproar: "uproar" } as const`).
 - **Laissé tel quel sciemment** : `ports.ts` livre déjà `BoardHighlight` et `AttackPreviewKind` en unions nues, donc l'encodage est cohérent avec son fichier. Signalé par `code-reviewer` (2026-08-19) comme non bloquant. À revoir si un 7ᵉ kind d'aura apparaît — c'est là que l'absence de source unique coûtera.
@@ -44,6 +55,26 @@ _Aucun bug actif._
 ## Notes IA (à regrouper en plan d'amélioration IA)
 
 ## Feedback visuel
+
+### Valeurs fixes restantes sous une police mise à l'échelle — menu d'actions et timeline (2026-08-27, revue de code du plan 190)
+
+Le plan 190 a mis à l'échelle toute la garniture de `battle-chrome.css` (jetons `--bc-pad-*` /
+`--bc-radius-*` sur `:where(.bc-root, .bc-left-col)`) puis, sur décision humaine, celle de
+`move-tooltip.css`. **Deux feuilles stylent encore des descendants DOM de ce sous-arbre avec des
+valeurs fixes**, décision humaine du 2026-08-27 de s'arrêter là (leur écart est nettement moins
+visible que celui de l'infobulle) :
+
+- `packages/app/src/styles/components/button.css:13` — `.tb-btn` garde `border-radius:
+  var(--radius-sm)` = **4px fixe**. En 4K le panneau qui le contient (`.bc-menu`) est à 12px et les
+  lignes d'attaque (`.bc-move-item`) à 8px : les lignes du menu d'actions restent à 4px, dans le même
+  panneau. **L'écart est aggravé par le plan 190** (6 vs 4 avant, 12 vs 4 après). ⚠️ Ne PAS éditer
+  `.tb-btn` en place : il est partagé avec le Team Builder, qui doit rester sur son propre système.
+  Le correctif est un sélecteur ciblé `.bc-menu .bc-btn` dans `battle-chrome.css`.
+- `packages/ui-dom/src/styles/turn-timeline.css:54,103,131,186` — vignettes mises à l'échelle
+  (`--tt-size`) mais écarts **4/4/6px** et arrondi de portrait **4px** fixes.
+
+Purement pixel, donc hors portée e2e — à juger à l'œil sur grand écran.
+
 
 ### MoveTooltip — afficher modifiers contextuels (météo, terrain, items) (2026-05-13)
 - Ex : Blizzard "Prec 70 (100 en Neige)", Flamethrower "BP 90 (×1.5 en Soleil)", Thunder "Prec 70 (100 en Pluie, 50 en Soleil)".

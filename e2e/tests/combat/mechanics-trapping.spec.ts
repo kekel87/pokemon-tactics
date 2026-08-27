@@ -50,7 +50,7 @@ test("§5.24 piège pur : le verrou se rompt quand le lanceur s'éloigne (journa
   await scene.castFirstMove(2, 2);
   await expect(log(page, /Ronflex est piégé/)).toBeAttached({ timeout: 10_000 });
 
-  await page.getByRole("button", { name: "Deplacement", exact: true }).click();
+  await page.getByRole("button", { name: "Déplacement", exact: true }).click();
   await scene.clickTile(2, 5); // distance 3 du dummy (2,2) → rupture du verrou position-linked
 
   await expect(log(page, /Ronflex est libéré du piège/)).toBeAttached({ timeout: 10_000 });

@@ -47,7 +47,7 @@ async function waitForCameraSettled(scene: {
 
 /** Entre dans une phase de plateau, où les flèches pilotent le curseur. */
 async function enterBoardPhase(page: import("@playwright/test").Page): Promise<void> {
-  await page.getByRole("button", { name: "Deplacement", exact: true }).click();
+  await page.getByRole("button", { name: "Déplacement", exact: true }).click();
 }
 
 test("clavier : une flèche pose le curseur, sans souris", async ({ page, bootSandbox }) => {
@@ -147,7 +147,7 @@ test("clavier : Espace valide la case sous le curseur", async ({ page, bootSandb
 
   // Le déplacement est parti : le menu propose de l'annuler (même signal que le tap du plan 183).
   await expect(
-    page.getByRole("button", { name: "Annuler deplacement", exact: true }),
+    page.getByRole("button", { name: "Annuler déplacement", exact: true }),
   ).toBeVisible();
 });
 
@@ -167,7 +167,7 @@ test("clavier : Échap sort de la phase en cours", async ({ page, bootSandbox })
 test("clavier : les flèches naviguent le menu d'actions", async ({ page, bootSandbox }) => {
   await bootSandbox(DUEL);
 
-  const move = page.getByRole("button", { name: "Deplacement", exact: true });
+  const move = page.getByRole("button", { name: "Déplacement", exact: true });
   const attack = page.getByRole("button", { name: "Attaque", exact: true });
   // Le menu doit être là AVANT la première touche : pendant que le tour drenne ses events de
   // démarrage, le contexte est `locked` et une pression est ignorée — à raison, mais le test

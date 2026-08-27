@@ -132,7 +132,7 @@ test("§4.20 Échap au choix de destination revient au menu d'actions, sans ouvr
 }) => {
   await bootSandbox(DUEL);
   await waitForPlayerTurn(page, combatMenu);
-  await page.getByRole("button", { name: "Deplacement", exact: true }).click();
+  await page.getByRole("button", { name: "Déplacement", exact: true }).click();
   await expect(page.getByTestId("combat-instruction")).toHaveText("Où se déplacer ?");
 
   await page.keyboard.press("Escape");
@@ -140,7 +140,7 @@ test("§4.20 Échap au choix de destination revient au menu d'actions, sans ouvr
   // Le menu racine est revenu (la phase n'affichait qu'un « Annuler ») et la pastille d'instruction
   // est masquée. ⚠️ Son `textContent` n'est PAS vidé au masquage : `toBeHidden` est le seul signal
   // juste, `not.toHaveText` passerait pour une mauvaise raison.
-  await expect(page.getByRole("button", { name: "Deplacement", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Déplacement", exact: true })).toBeVisible();
   await expect(page.getByTestId("combat-instruction")).toBeHidden();
   await expect(combatMenu.dialog).toHaveCount(0);
 });

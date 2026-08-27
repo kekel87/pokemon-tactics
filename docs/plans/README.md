@@ -183,3 +183,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 187 | [Menu de combat](./187-menu-de-combat.md) | done | 2026-08-25 |
 | 188 | [Refonte de l'écran de sélection d'équipe + passe manette (Team Builder & modales)](./188-refonte-selection-equipe-passe-manette.md) | done | 2026-08-25 |
 | 189 | [Panoramique clavier, menu de combat au placement, découvrabilité du défilement](./189-panoramique-clavier-menu-placement-decouvrabilite.md) | done | 2026-08-26 |
+| 190 | [Migration i18n du journal de combat](./190-i18n-journal-de-combat.md) | done | 2026-08-27 |
+| 191 | [Le match nul, ou sa suppression : K.O. simultanés d'une même résolution](./191-match-nul-ko-simultane.md) | draft | 2026-08-27 |

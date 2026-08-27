@@ -436,6 +436,7 @@ function runBattle(options: {
       getAbilityName: abilityNameOf,
       getItemName: itemNameOf,
       language,
+      translate: uiConfig.translate,
     },
     teamOf: (id) => {
       const pokemon = battle.state.pokemon.get(id);

@@ -13,490 +13,200 @@ import {
   formatBattleEvent,
 } from "./BattleLogFormatter";
 
-const frContext: BattleLogContext = {
-  getPokemonName: (id) => (id === "pika" ? "Pikachu" : id === "bulba" ? "Bulbizarre" : id),
-  getMoveName: (id) => (id === "thunderbolt" ? "Tonnerre" : id),
-  language: "fr",
-};
+function traceContext(): BattleLogContext {
+  return {
+    getPokemonName: (id) => (id === "pika" ? "Pikachu" : id === "bulba" ? "Bulbizarre" : id),
+    getMoveName: (id) => (id === "thunderbolt" ? "Tonnerre" : id),
+    getAbilityName: (id) => (id === "static" ? "Statik" : null),
+    getItemName: (id) => (id === "leftovers" ? "Restes" : null),
+    language: "fr",
+    translate: (key, params) => {
+      const args = Object.entries(params ?? {})
+        .map(([name, value]) => `${name}=${String(value)}`)
+        .sort()
+        .join(",");
+      return args === "" ? key : `${key}|${args}`;
+    },
+  };
+}
 
-const enContext: BattleLogContext = {
-  ...frContext,
-  getPokemonName: (id) => (id === "pika" ? "Pikachu" : id === "bulba" ? "Bulbasaur" : id),
-  getMoveName: (id) => (id === "thunderbolt" ? "Thunderbolt" : id),
-  language: "en",
-};
+function traceOf(event: Parameters<typeof formatBattleEvent>[0]): string {
+  const result = formatBattleEvent(event, traceContext());
+  const entry = (Array.isArray(result) ? result[0] : result) as BattleLogEntry;
+  return entry.message;
+}
 
-describe("BattleLogFormatter", () => {
-  describe("TurnStarted", () => {
-    it("formats in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.TurnStarted, pokemonId: "pika" },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Tour de Pikachu");
-      expect(result.color).toBe(BattleLogColors.turn);
-      expect(result.pokemonIds).toEqual(["pika"]);
-    });
-
-    it("formats in English", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.TurnStarted, pokemonId: "pika" },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu's turn");
-    });
+describe("BattleLogFormatter — contrat de clés i18n", () => {
+  it("route un événement simple vers sa clé, avec le nom en paramètre", () => {
+    expect(traceOf({ type: BattleEventType.TurnStarted, pokemonId: "pika" })).toBe(
+      "battleLog.turnStarted|name=Pikachu",
+    );
   });
 
-  describe("MoveStarted", () => {
-    it("formats in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.MoveStarted, attackerId: "pika", moveId: "thunderbolt" },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu utilise Tonnerre !");
-      expect(result.color).toBe(BattleLogColors.move);
-      expect(result.pokemonIds).toEqual(["pika"]);
-    });
-
-    it("formats in English", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.MoveStarted, attackerId: "pika", moveId: "thunderbolt" },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu used Thunderbolt!");
-    });
+  it("passe le nom d'attaque résolu, pas son identifiant", () => {
+    expect(
+      traceOf({
+        type: BattleEventType.MoveStarted,
+        attackerId: "pika",
+        moveId: "thunderbolt",
+      }),
+    ).toBe("battleLog.moveStarted.used|moveName=Tonnerre,name=Pikachu");
   });
 
-  describe("DamageDealt", () => {
-    it("formats damage in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.DamageDealt, targetId: "bulba", amount: 42, effectiveness: 1 },
-        frContext,
-      ) as BattleLogEntry[];
-      expect(result).toHaveLength(1);
-      expect(result[0].message).toBe("Bulbizarre perd 42 PV !");
-      expect(result[0].color).toBe(BattleLogColors.damage);
+  it("distingue les variantes d'un même événement par des clés différentes", () => {
+    const raised = traceOf({
+      type: BattleEventType.StatChanged,
+      targetId: "pika",
+      stat: StatName.Attack,
+      stages: 1,
     });
-
-    it("formats damage in English", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.DamageDealt, targetId: "bulba", amount: 42, effectiveness: 1 },
-        enContext,
-      ) as BattleLogEntry[];
-      expect(result[0].message).toBe("Bulbasaur lost 42 HP!");
+    const lowered = traceOf({
+      type: BattleEventType.StatChanged,
+      targetId: "pika",
+      stat: StatName.Attack,
+      stages: -1,
     });
-
-    it("adds super effective line for effectiveness >= 2", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.DamageDealt, targetId: "bulba", amount: 80, effectiveness: 2 },
-        frContext,
-      ) as BattleLogEntry[];
-      expect(result).toHaveLength(2);
-      expect(result[1].message).toContain("Super efficace");
-      expect(result[1].color).toBe(BattleLogColors.effectiveness);
-    });
-
-    it("adds extremely effective line for effectiveness >= 4", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.DamageDealt, targetId: "bulba", amount: 120, effectiveness: 4 },
-        enContext,
-      ) as BattleLogEntry[];
-      expect(result).toHaveLength(2);
-      expect(result[1].message).toContain("Extremely effective");
-    });
-
-    it("adds not very effective line for effectiveness <= 0.5", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.DamageDealt, targetId: "bulba", amount: 10, effectiveness: 0.5 },
-        frContext,
-      ) as BattleLogEntry[];
-      expect(result).toHaveLength(2);
-      expect(result[1].message).toContain("Pas très efficace");
-    });
-
-    it("adds barely effective line for effectiveness <= 0.25", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.DamageDealt, targetId: "bulba", amount: 5, effectiveness: 0.25 },
-        enContext,
-      ) as BattleLogEntry[];
-      expect(result).toHaveLength(2);
-      expect(result[1].message).toContain("Barely effective");
-    });
-
-    it("returns null for immune (effectiveness === 0)", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.DamageDealt, targetId: "bulba", amount: 0, effectiveness: 0 },
-        frContext,
-      );
-      expect(result).toBeNull();
-    });
-
-    it("does not add effectiveness line for neutral damage", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.DamageDealt, targetId: "bulba", amount: 30, effectiveness: 1 },
-        frContext,
-      ) as BattleLogEntry[];
-      expect(result).toHaveLength(1);
-    });
+    expect(raised).toContain("battleLog.statChanged.raised");
+    expect(lowered).toContain("battleLog.statChanged.lowered");
   });
 
-  describe("MoveMissed", () => {
-    it("formats in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.MoveMissed, attackerId: "pika", targetId: "bulba" },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu rate son attaque !");
-      expect(result.color).toBe(BattleLogColors.miss);
-    });
-
-    it("formats in English", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.MoveMissed, attackerId: "pika", targetId: "bulba" },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu's attack missed!");
-    });
+  it("interpole le libellé de statistique par sa clé, pas par une table locale", () => {
+    expect(
+      traceOf({
+        type: BattleEventType.StatChanged,
+        targetId: "pika",
+        stat: StatName.SpAttack,
+        stages: 1,
+      }),
+    ).toBe("battleLog.statChanged.raised|name=Pikachu,statName=battleLog.stat.spAttack");
   });
 
-  describe("StatusApplied", () => {
-    it("formats burn in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.StatusApplied, targetId: "bulba", status: StatusType.Burned },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Bulbizarre est brûlé !");
-      expect(result.color).toBe(BattleLogColors.status);
-    });
-
-    it("formats sleep in English", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.StatusApplied, targetId: "pika", status: StatusType.Asleep },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu fell asleep!");
-    });
-
-    it("formats seeded in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.StatusApplied, targetId: "bulba", status: StatusType.Seeded },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Bulbizarre est infecté par Vampigraine !");
-    });
+  it("compose la clé de statut sur la VALEUR d'enum, tirets et soulignés compris", () => {
+    expect(
+      traceOf({
+        type: BattleEventType.StatusApplied,
+        targetId: "pika",
+        status: StatusType.BadlyPoisoned,
+      }),
+    ).toBe("battleLog.status.badly_poisoned.applied|name=Pikachu");
+    expect(
+      traceOf({
+        type: BattleEventType.StatusApplied,
+        targetId: "pika",
+        status: StatusType.AquaRing,
+      }),
+    ).toBe("battleLog.status.aqua-ring.applied|name=Pikachu");
   });
 
-  describe("StatusRemoved", () => {
-    it("formats wake up in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.StatusRemoved, targetId: "pika", status: StatusType.Asleep },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu se réveille !");
-    });
-
-    it("formats confusion end in English", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.StatusRemoved, targetId: "pika", status: StatusType.Confused },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu snapped out of confusion");
-    });
+  it("sépare application et disparition d'un statut", () => {
+    expect(
+      traceOf({
+        type: BattleEventType.StatusRemoved,
+        targetId: "pika",
+        status: StatusType.Burned,
+      }),
+    ).toBe("battleLog.status.burned.removed|name=Pikachu");
   });
 
-  describe("StatusImmune", () => {
-    it("formats in French with the target name", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.StatusImmune, targetId: "pika", status: StatusType.Paralyzed },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Ça n'affecte pas Pikachu...");
-      expect(result.color).toBe(BattleLogColors.status);
-      expect(result.pokemonIds).toEqual(["pika"]);
-    });
-
-    it("formats in English with the target name", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.StatusImmune, targetId: "bulba", status: StatusType.Poisoned },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("It doesn't affect Bulbasaur...");
-    });
+  it("n'écrit AUCUNE ligne pour un statut hors périmètre du journal", () => {
+    expect(
+      formatBattleEvent(
+        { type: BattleEventType.StatusApplied, targetId: "pika", status: StatusType.Roosted },
+        traceContext(),
+      ),
+    ).toBeNull();
   });
 
-  describe("TerrainStatusApplied", () => {
-    it("formats swamp poison in French", () => {
-      const result = formatBattleEvent(
-        {
-          type: BattleEventType.TerrainStatusApplied,
-          pokemonId: "pika",
-          terrain: TerrainType.Swamp,
-          status: StatusType.Poisoned,
-        },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu est empoisonné par le marécage !");
-      expect(result.color).toBe(BattleLogColors.status);
-      expect(result.pokemonIds).toEqual(["pika"]);
-    });
-
-    it("formats magma burn in English", () => {
-      const result = formatBattleEvent(
-        {
-          type: BattleEventType.TerrainStatusApplied,
-          pokemonId: "bulba",
-          terrain: TerrainType.Magma,
-          status: StatusType.Burned,
-        },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Bulbasaur was burned by the magma!");
-    });
+  it("retombe sur le statut quand le terrain n'a pas de ligne dédiée", () => {
+    expect(
+      traceOf({
+        type: BattleEventType.TerrainStatusApplied,
+        pokemonId: "pika",
+        terrain: TerrainType.Swamp,
+        status: StatusType.Poisoned,
+      }),
+    ).toBe("battleLog.terrainStatus.swamp|name=Pikachu");
+    expect(
+      traceOf({
+        type: BattleEventType.TerrainStatusApplied,
+        pokemonId: "pika",
+        terrain: TerrainType.Grass,
+        status: StatusType.Poisoned,
+      }),
+    ).toBe("battleLog.status.poisoned.applied|name=Pikachu");
   });
 
-  describe("StatChanged", () => {
-    it("formats stat up in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.StatChanged, targetId: "pika", stat: StatName.Attack, stages: 2 },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Attaque de Pikachu augmente !");
-      expect(result.color).toBe(BattleLogColors.statUp);
-    });
-
-    it("formats stat down in English", () => {
-      const result = formatBattleEvent(
-        {
-          type: BattleEventType.StatChanged,
-          targetId: "bulba",
-          stat: StatName.Defense,
-          stages: -1,
-        },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Bulbasaur's Defense fell!");
-      expect(result.color).toBe(BattleLogColors.statDown);
-    });
-
-    it("formats special stats", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.StatChanged, targetId: "pika", stat: StatName.SpAttack, stages: 1 },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toContain("Atq. Spé.");
-    });
+  it("route le nom de protection par sa clé, et distingue blocage et renvoi", () => {
+    expect(
+      traceOf({
+        type: BattleEventType.DefenseTriggered,
+        defenderId: "pika",
+        defenseKind: DefensiveKind.Protect,
+        blocked: true,
+      }),
+    ).toBe(
+      "battleLog.defenseTriggered.protected|defenseName=battleLog.defense.protect,name=Pikachu",
+    );
+    expect(
+      traceOf({
+        type: BattleEventType.DefenseTriggered,
+        defenderId: "pika",
+        defenseKind: DefensiveKind.Counter,
+        blocked: false,
+      }),
+    ).toBe("battleLog.defenseTriggered.reflected|defenseName=battleLog.defense.counter");
   });
 
-  describe("PokemonKo", () => {
-    it("formats in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.PokemonKo, pokemonId: "bulba", countdownStart: 3 },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Bulbizarre est K.O. !");
-      expect(result.color).toBe(BattleLogColors.ko);
+  it("choisit la clé selon la gravité de l'empoisonnement par piège d'entrée", () => {
+    const badly = traceOf({
+      type: BattleEventType.EntryHazardTriggered,
+      pokemonId: "pika",
+      kind: "toxic-spikes",
+      status: StatusType.BadlyPoisoned,
     });
-
-    it("formats in English", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.PokemonKo, pokemonId: "bulba", countdownStart: 3 },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Bulbasaur fainted!");
+    const normal = traceOf({
+      type: BattleEventType.EntryHazardTriggered,
+      pokemonId: "pika",
+      kind: "toxic-spikes",
+      status: StatusType.Poisoned,
     });
+    expect(badly).toContain("battleLog.entryHazardTriggered.badlyPoisoned");
+    expect(normal).toContain("battleLog.entryHazardTriggered.poisoned");
+    expect(badly).toContain("label=battleLog.entryHazard.toxic-spikes");
   });
 
-  describe("DefenseActivated", () => {
-    it("formats Protect in French", () => {
-      const result = formatBattleEvent(
-        {
-          type: BattleEventType.DefenseActivated,
-          pokemonId: "pika",
-          defenseKind: DefensiveKind.Protect,
-        },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu se protège avec Abri !");
-      expect(result.color).toBe(BattleLogColors.defense);
-    });
-
-    it("formats Counter in English", () => {
-      const result = formatBattleEvent(
-        {
-          type: BattleEventType.DefenseActivated,
-          pokemonId: "pika",
-          defenseKind: DefensiveKind.Counter,
-        },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu used Counter!");
-    });
+  it("émet la clé de météo posée puis dissipée", () => {
+    expect(traceOf({ type: BattleEventType.WeatherSet, weather: "rain" })).toBe(
+      "battleLog.weather.rainSet",
+    );
+    expect(traceOf({ type: BattleEventType.WeatherCleared, weather: "rain" })).toBe(
+      "battleLog.weather.rainCleared",
+    );
   });
 
-  describe("DefenseTriggered", () => {
-    it("formats blocked in French", () => {
-      const result = formatBattleEvent(
-        {
-          type: BattleEventType.DefenseTriggered,
-          defenderId: "pika",
-          defenseKind: DefensiveKind.Protect,
-          blocked: true,
-        },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Abri protège Pikachu !");
-    });
-
-    it("formats reflected in English", () => {
-      const result = formatBattleEvent(
-        {
-          type: BattleEventType.DefenseTriggered,
-          defenderId: "pika",
-          defenseKind: DefensiveKind.Counter,
-          blocked: false,
-        },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Counter reflected the damage!");
-    });
+  it("ne fabrique jamais de message sans passer par translate", () => {
+    const events: Parameters<typeof formatBattleEvent>[0][] = [
+      { type: BattleEventType.TurnStarted, pokemonId: "pika" },
+      { type: BattleEventType.MoveMissed, attackerId: "pika", targetId: "bulba" },
+      { type: BattleEventType.PokemonKo, pokemonId: "bulba" },
+      { type: BattleEventType.CriticalHit, attackerId: "pika", targetId: "bulba" },
+      { type: BattleEventType.WeatherSet, weather: "sun" },
+    ];
+    for (const event of events) {
+      const result = formatBattleEvent(event, traceContext());
+      const entries = Array.isArray(result) ? result : result === null ? [] : [result];
+      for (const entry of entries) {
+        expect(entry.message.startsWith("battleLog.")).toBe(true);
+      }
+    }
   });
 
-  describe("ConfusionTriggered", () => {
-    it("formats in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.ConfusionTriggered, pokemonId: "pika" },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu est confus...");
-      expect(result.color).toBe(BattleLogColors.status);
-    });
-  });
-
-  describe("KnockbackApplied", () => {
-    it("formats in French", () => {
-      const result = formatBattleEvent(
-        {
-          type: BattleEventType.KnockbackApplied,
-          pokemonId: "bulba",
-          from: { x: 0, y: 0 },
-          to: { x: 1, y: 0 },
-        },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Bulbizarre est repoussé !");
-    });
-  });
-
-  describe("MultiHitComplete", () => {
-    it("formats in French", () => {
-      const result = formatBattleEvent(
-        {
-          type: BattleEventType.MultiHitComplete,
-          attackerId: "pika",
-          targetId: "bulba",
-          totalHits: 3,
-        },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Touché 3 fois !");
-    });
-
-    it("formats in English", () => {
-      const result = formatBattleEvent(
-        {
-          type: BattleEventType.MultiHitComplete,
-          attackerId: "pika",
-          targetId: "bulba",
-          totalHits: 5,
-        },
-        enContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Hit 5 times!");
-    });
-  });
-
-  describe("RechargeStarted", () => {
-    it("formats in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.RechargeStarted, pokemonId: "pika" },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Pikachu doit se recharger");
-      expect(result.color).toBe(BattleLogColors.recharge);
-    });
-  });
-
-  describe("BattleEnded", () => {
-    it("formats in French", () => {
-      const result = formatBattleEvent(
-        { type: BattleEventType.BattleEnded, winnerId: "Joueur 1" },
-        frContext,
-      ) as BattleLogEntry;
-      expect(result.message).toBe("Joueur 1 remporte le combat !");
-      expect(result.color).toBe(BattleLogColors.battleEnded);
-    });
-  });
-
-  describe("ignored events", () => {
-    it("returns null for TurnEnded", () => {
-      expect(
-        formatBattleEvent({ type: BattleEventType.TurnEnded, pokemonId: "pika" }, frContext),
-      ).toBeNull();
-    });
-
-    it("returns null for PokemonMoved", () => {
-      expect(
-        formatBattleEvent(
-          { type: BattleEventType.PokemonMoved, pokemonId: "pika", path: [] },
-          frContext,
-        ),
-      ).toBeNull();
-    });
-
-    it("returns null for PokemonDashed", () => {
-      expect(
-        formatBattleEvent(
-          { type: BattleEventType.PokemonDashed, pokemonId: "pika", path: [] },
-          frContext,
-        ),
-      ).toBeNull();
-    });
-
-    it("returns null for DefenseCleared", () => {
-      expect(
-        formatBattleEvent(
-          {
-            type: BattleEventType.DefenseCleared,
-            pokemonId: "pika",
-            defenseKind: DefensiveKind.Protect,
-          },
-          frContext,
-        ),
-      ).toBeNull();
-    });
-
-    it("returns null for RechargeEnded", () => {
-      expect(
-        formatBattleEvent({ type: BattleEventType.RechargeEnded, pokemonId: "pika" }, frContext),
-      ).toBeNull();
-    });
-
-    it("returns null for ConfusionRedirected", () => {
-      expect(
-        formatBattleEvent(
-          { type: BattleEventType.ConfusionRedirected, pokemonId: "pika" },
-          frContext,
-        ),
-      ).toBeNull();
-    });
-
-    it("returns null for KnockbackBlocked", () => {
-      expect(
-        formatBattleEvent(
-          { type: BattleEventType.KnockbackBlocked, pokemonId: "pika", reason: "wall" },
-          frContext,
-        ),
-      ).toBeNull();
-    });
+  it("conserve la couleur et les identifiants de Pokemon de chaque ligne", () => {
+    const result = formatBattleEvent(
+      { type: BattleEventType.TurnStarted, pokemonId: "pika" },
+      traceContext(),
+    ) as BattleLogEntry;
+    expect(result.color).toBe(BattleLogColors.turn);
+    expect(result.pokemonIds).toEqual(["pika"]);
   });
 });
