@@ -31,6 +31,14 @@ export function createTeamListItemElement(
   const button = document.createElement("button");
   button.type = "button";
   button.className = "ts-team-row-button";
+  /*
+   * Contrat de test : le testid localise la ligne, `data-team-id` dit LAQUELLE — l'id d'équipe, pas
+   * son nom. Le nom seul ne suffit pas : la ligne focalisée n'est identifiable, de l'extérieur, que
+   * par le texte de son conteneur, et ce conteneur porte le texte de TOUTES les lignes (plan 194 —
+   * une cible « Fangs & Fists » matchait la ligne « Blaze & Psy », qui se faisait assigner à sa place).
+   */
+  button.dataset.testid = "team-row";
+  button.dataset.teamId = props.team === null ? "random" : props.team.id;
   button.addEventListener("click", () => callbacks.onClick());
 
   const name = document.createElement("span");

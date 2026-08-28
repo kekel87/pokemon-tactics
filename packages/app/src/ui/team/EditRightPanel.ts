@@ -197,6 +197,10 @@ export class EditRightPanel {
       btn.className = "tb-btn";
       btn.type = "button";
       btn.textContent = t(preset.labelKey);
+      // Contrat de test : le testid localise la rangée, `data-preset-id` dit LEQUEL — le libellé, lui,
+      // se traduit (plan 194, la séquence d'intro applique un build à la manette).
+      btn.dataset.testid = "pokemon-edit-preset";
+      btn.dataset.presetId = preset.id;
       btn.addEventListener("click", () => this.callbacks.onPresetApply({ ...preset.spread }));
       presets.appendChild(btn);
     }

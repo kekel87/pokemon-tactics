@@ -14,6 +14,16 @@ import type { Page } from "@playwright/test";
 export const PadButton = {
   A: 0,
   B: 1,
+  /*
+   * Bumpers et gâchettes : les index du mapping standard W3C, tels que `DEFAULT_BINDINGS`
+   * (`packages/app/src/input/bindings-store.ts`) les assigne — rotation de caméra d'un quart de tour
+   * (LB/RB), zoom d'un cran (LT/RT). Ajoutés au plan 194 : la séquence d'intro filme la rotation, qui
+   * n'existe que sur les bumpers. X, Y, Select et Start ne sont pas listés : personne ne les presse.
+   */
+  LeftBumper: 4,
+  RightBumper: 5,
+  LeftTrigger: 6,
+  RightTrigger: 7,
   DpadUp: 12,
   DpadDown: 13,
   DpadLeft: 14,
@@ -154,6 +164,20 @@ export async function holdPadUntil(
 export function focusedTestId(page: Page): Promise<string | null> {
   return page.evaluate(
     () => (document.activeElement as HTMLElement | null)?.dataset?.testid ?? null,
+  );
+}
+
+/**
+ * Valeur d'un `data-*` du contrôle focalisé (`name` en camelCase, tel que `dataset` l'expose).
+ *
+ * Complète {@link focusedTestId} là où le `testid` ne suffit pas : dans une FAMILLE de contrôles
+ * homonymes (les segments de format, les cartes de camp), c'est l'attribut d'identité qui dit
+ * *lequel* des frères porte le liseré.
+ */
+export function focusedDataValue(page: Page, name: string): Promise<string | null> {
+  return page.evaluate(
+    (key) => (document.activeElement as HTMLElement | null)?.dataset?.[key] ?? null,
+    name,
   );
 }
 

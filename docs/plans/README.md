@@ -187,3 +187,4 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 191 | [Match nul sur K.O. simultanés d'une même résolution](./191-match-nul-ko-simultane.md) | done | 2026-08-27 |
 | 192 | [Infobulle d'attaque : modificateurs contextuels](./192-infobulle-modificateurs-contextuels.md) | done | 2026-08-27 |
 | 193 | [Verrouiller le typecheck des fichiers de test](./193-typecheck-des-tests.md) | done | 2026-08-27 |
+| 194 | [Séquence d'intro : bande-annonce et captures](./194-sequence-intro-captures.md) | done | 2026-08-28 |

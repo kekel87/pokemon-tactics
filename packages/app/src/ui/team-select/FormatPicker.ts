@@ -59,6 +59,14 @@ export function createFormatPickerElement(
     const segment = document.createElement("button");
     segment.type = "button";
     segment.className = "ts-segment";
+    /*
+     * Testid présent, et pas seulement `data-format-key` : `renderPreservingFocus` ne sait restaurer
+     * le focus que **par famille de `data-testid`** (le repli par rang global a été retiré exprès, il
+     * posait le focus sur un bouton « Supprimer »). Sans lui, changer de format renvoyait le liseré
+     * sur `<body>`, puis `focusInDirection` réentrait sur `controls[0]` = « ◀ Retour », tout à gauche
+     * de l'écran — signalé comme un bug visuel en filmant la séquence d'intro (plan 194).
+     */
+    segment.dataset.testid = "format-segment";
     segment.dataset.formatKey = option.key;
     if (option.key === activeKey) {
       segment.dataset.state = "active";

@@ -46,6 +46,7 @@ import {
 import { type BattleResumeSave, battleResumeStore } from "../app/battle-persistence.js";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
+import { forcedBattleSeed } from "../capture-seed";
 import {
   FIELD_TERRAIN_COLOR_ELECTRIC,
   FIELD_TERRAIN_COLOR_GRASSY,
@@ -270,6 +271,14 @@ async function mountPlacement(
     format,
     teams: setup.teams,
     autoPlacement: setup.autoPlacement,
+    /*
+     * Le seed est tiré ICI, avant le placement, et le combat reprendra celui-là.
+     *
+     * Une seule source d'entropie pour toute la partie : le placement en faisait une seconde, sur
+     * `Math.random`, donc les douze Pokemon se posaient ailleurs à chaque lancement — et une capture
+     * censée être reproductible ne l'était pas.
+     */
+    randomSeed: randomSeed(),
     openCombatMenu,
     host: stage.screenLayer,
     onComplete: (result) => onComplete(result, loaded.map),
@@ -800,9 +809,12 @@ function startBattleLoop(
     setup,
     placementTeams: result.placementTeams,
     placements: result.placements,
-    // Single entropy source for a live battle: pick one seed here, then the engine's seeded PRNG drives
-    // all combat RNG deterministically (replayable; no scattered Math.random).
-    seed: randomSeed(),
+    /*
+     * Le seed du placement, repris tel quel : une seule source d'entropie par partie, placement
+     * compris. C'est ce que cette ligne prétendait déjà être — elle en tirait en fait un SECOND, et le
+     * placement, lui, n'en avait aucun.
+     */
+    seed: result.seed,
   };
   const battle = buildBattle(inputs, map);
   return runResolvedBattle({
@@ -964,6 +976,12 @@ function startResumedBattle(
 }
 
 function randomSeed(): number {
+  // Scénario de capture (plan 194) : `?seed=` fixe le combat pour que deux runs produisent les mêmes
+  // images. Inerte hors DEV/E2E — voir `capture-seed.ts` pour la garde.
+  const forced = forcedBattleSeed();
+  if (forced !== null) {
+    return forced;
+  }
   return crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
 }
 

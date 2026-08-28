@@ -55,6 +55,17 @@ export class TeamSelectScreen {
   /** Rangée de segments de format (« 2J × 6 », « 3J × 4 »…). */
   readonly formatSegments: Locator;
   /**
+   * Les segments un par un, dans l'ordre du DOM. Visés par leur RÔLE dans la rangée, et non par
+   * `data-testid="format-segment"` : ce testid est justement ce que le correctif ajoute (il est la
+   * clé de restauration du focus), donc s'en servir ici rendrait aveugle le test qui le vérifie.
+   */
+  readonly formatSegmentButtons: Locator;
+  /**
+   * Le segment du format RETENU — `data-state="active"` n'est posé que sur lui. C'est la lecture du
+   * format courant qui ne dépend ni de l'i18n ni du `text-transform` du libellé.
+   */
+  readonly activeFormatSegment: Locator;
+  /**
    * Case « Placement auto », **cochée par défaut**. La décocher est le seul moyen d'atteindre la
    * phase de placement interactive : cochée, tout est posé d'un coup avant que la phase ne s'affiche
    * (`placement-flow.ts`), donc rien de ce qui vit pendant le placement — son menu de combat compris
@@ -65,6 +76,8 @@ export class TeamSelectScreen {
   constructor(private readonly page: Page) {
     this.title = page.getByText("Sélection d'équipe", { exact: false });
     this.formatSegments = page.getByTestId("format-segments");
+    this.formatSegmentButtons = this.formatSegments.getByRole("button");
+    this.activeFormatSegment = this.formatSegmentButtons.and(page.locator('[data-state="active"]'));
     this.autoPlacement = page.getByRole("checkbox");
     this.launch = page.getByRole("button", { name: "Lancer ▶", exact: true });
   }

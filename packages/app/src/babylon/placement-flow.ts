@@ -64,6 +64,13 @@ export interface PlacementResult {
   placementTeams: PlacementTeam[];
   /** Live billboards keyed by core instance id ("p1-pikachu") — handed to the BoardView. */
   handles: Map<string, CombatPokemonHandle>;
+  /**
+   * Le seed qui a servi au placement, rendu pour que le combat prenne le MÊME.
+   *
+   * Une seule source d'entropie par partie, placement compris — c'est ce que le commentaire de
+   * `startBattleLoop` promettait déjà, alors que le placement tirait en réalité sur `Math.random`.
+   */
+  seed: number;
 }
 
 export interface PlacementFlowOptions {
@@ -73,6 +80,15 @@ export interface PlacementFlowOptions {
   teams: TeamSelection[];
   /** Team-select option: place every Pokemon at random and skip the interactive phase. */
   autoPlacement: boolean;
+  /**
+   * Seed du tirage de placement.
+   *
+   * Sans lui, `PlacementPhase` retombe sur `Math.random` (`randomSeed == null ? Math.random : …`) et
+   * les douze Pokemon se posent sur d'autres cases à chaque partie. Invisible en jeu, fatal pour une
+   * capture reproductible : les distances changent, donc le tour filmé change, donc tout le combat
+   * change — à seed d'URL identique (plan 194, revue de code du 2026-08-28).
+   */
+  randomSeed: number;
   /** DOM layer over the canvas (game-stage screenLayer) hosting roster + picker. */
   host: HTMLElement;
   /**
@@ -112,7 +128,13 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
     ),
     controller: selection.controller,
   }));
-  const phase = new PlacementPhase(map, placementTeams, format, PlacementMode.Alternating);
+  const phase = new PlacementPhase(
+    map,
+    placementTeams,
+    format,
+    PlacementMode.Alternating,
+    options.randomSeed,
+  );
   const gridCenter: Position = { x: Math.floor(map.width / 2), y: Math.floor(map.height / 2) };
 
   const roster = new PlacementRoster(PLACEMENT_UI_CONFIG);
@@ -401,7 +423,12 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
     roster.hide();
     combat.setSpawnZoneHighlights([]);
     unregisterInput?.();
-    onComplete({ placements: phase.getPlacements(), placementTeams, handles: handleByPokemonId });
+    onComplete({
+      placements: phase.getPlacements(),
+      placementTeams,
+      handles: handleByPokemonId,
+      seed: options.randomSeed,
+    });
   }
 
   /**

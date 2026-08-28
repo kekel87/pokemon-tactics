@@ -18,7 +18,26 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
-- **Plan 191 — match nul sur K.O. simultanés** (`docs/plans/191-match-nul-ko-simultane.md`, statut `draft`, rédigé le 2026-08-27). Décision humaine prise : **grouper les K.O. d'une même résolution** plutôt que supprimer le match nul. Cause racine tracée : `checkVictory` scelle ET émet le verdict au premier K.O., donc l'auto-K.O. de l'attaquant qui suit dans la même résolution ne peut plus le réviser. Le correctif est plus étroit qu'il n'y paraît (`battleOver` reste posé immédiatement, seuls le verdict et son émission sont retardés) — détail au §3-4 du plan. **Tests d'abord**, puis `game-designer` (c'est une règle du jeu qui change).
+- **Plan 194 — séquence d'intro : LIVRÉ et validé** (2026-08-28). Marche à suivre complète :
+  **`docs/capture-sequence.md`**, skill **`/capture-intro`**.
+
+  ```bash
+  pnpm capture:intro      # joue la séquence (~4 min) → vidéo brute + 52 captures + beats.json
+  pnpm capture:trailer    # bande-annonce montée → .captures/intro-trailer.mp4
+  pnpm capture:release    # GIF du combat + 3 captures de publication → .captures/release/
+  ```
+
+  Livrables validés par l'humain : **vidéo** (1 min 40, → YouTube non répertorié), **GIF du combat
+  entier** (2,3 Mo, accéléré ×2 pour tenir sous les 3 Mo d'itch.io), **3 captures** (sélecteur de
+  terrain, constructeur d'équipe, sélection d'équipe en 12 joueurs) → itch.io, wiki, README.
+
+  ⚠️ **Deux règles à ne pas perdre** : la séquence se joue **entièrement à la manette** (un seul
+  `.click()` remet `data-input-source` sur la souris et le liseré disparaît d'un coup à l'image), et le
+  mode `?seed=` reste **strictement local** (garde `DEV || VITE_E2E`, preuve sur le bundle publié au §3
+  du plan).
+
+  **Reste ouvert** : la refonte des 5 visuels README/wiki encore en rendu Phaser — les captures livrées
+  en donnent enfin la matière.
 
 
 - **Trancher la suite (Phase 6.5 close, aucune phase active, menu de combat et refonte de la sélection d'équipe livrés).** Aucune option n'est imposée :

@@ -8,6 +8,17 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+### Scénario de combat piloté Joueur vs Joueur (QA + captures) — RÉSOLU (2026-08-28, plan 194)
+- **Contexte** : entrée du 2026-06-18, demandant un scénario de combat piloté et reproductible pour la QA et les captures. Le périmètre a été **élargi par l'humain** en cours de cadrage : ce n'est plus un scénario de QA, c'est devenu la **séquence d'intro du jeu**.
+- **Résolution** : `pnpm capture:intro` joue la séquence complète (menu → constructeur d'équipe → carte → équipes → un tour de combat 6v6) **entièrement à la manette**, en anglais, reproductible (seed forcé + placement automatique seedé, décisions #856-857). Les **deux camps sont humains** — un camp laissé à l'IA reçoit une équipe tirée au hasard que le seed n'atteint pas — c'est donc le scénario Joueur vs Joueur demandé à l'origine, livré au passage.
+- **Volet menus** validé à l'œil le 2026-08-27, **volet combat** validé le 2026-08-28.
+- Livrables dérivés : `pnpm capture:trailer` (bande-annonce ~1 min 40, sans son — décision #860), `pnpm capture:release` (GIF du combat + 3 captures de publication pour itch.io/wiki/README).
+- ⚠️ Piste écartée : **pas le bac à sable** (« c'est pas la bonne interface » — son panneau de studio pollue l'image). Tout passe par le parcours normal.
+- Détail complet : `docs/capture-sequence.md`, `docs/plans/194-sequence-intro-captures.md`. Décisions #856–#860.
+- **Reste ouvert (hors périmètre de ce point)** : refonte des 5 visuels README/wiki à partir des captures livrées (`docs/next.md` § À faire maintenant), et le bug de fond « étiquettes de carte en français en dur » découvert au passage (`docs/backlog.md`).
+
+---
+
 ### Sandbox Studio — le sélecteur Talent n'affichait pas l'override de config — RÉSOLU (2026-08-03, plan 178)
 `dummyAbility: "pressure"` était bien appliqué au moteur, mais le dropdown Talent montrait le talent par défaut de l'espèce. Cause : `buildAbilityOptions` ne listait que les talents **légaux de l'espèce** ; un override hors de cette liste n'avait pas d'`<option>`, et le `<select>` retombait silencieusement sur le premier. Correction : l'override est ajouté à la liste, suffixé « (custom) » comme le picker Pokemon. Découvert en préparant les scénarios human-testing du plan 178 (porteur de Pression).
 
@@ -256,6 +267,59 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 - **Effet secondaire** : 104 vieux noms de moves legacy (Z-Moves/Dynamax/Shadow, non référencés en code, hors roster Champions) supprimés du fichier moves i18n ; 16 `hidden-power-*` (Puissance Cachée) ajoutés ; noms Pokemon inchangés (roster). Résout aussi structurellement la classe de bug côté Pokemon (le bug des 51 pré-évolutions ne pourra plus se reproduire — même racine, même fix).
 - Voir aussi `docs/process-data-update.md` (§ Fichiers produits) — les i18n de noms ne s'éditent plus à la main.
 
+### Le match nul de combat n'a aucun chemin d'exécution — RÉSOLU (2026-08-27, plan 191)
+
+`checkVictory` scellait ET émettait le verdict au premier K.O. individuel, et le court-circuit qui
+suit ce `handleKo` sortait de la résolution avant l'auto-K.O. du lanceur. Le verdict est désormais
+**révisable** jusqu'à la frontière de résolution (`submitAction`), un drapeau `selfKoPending`
+assouplit les 5 court-circuits concernés pour les seuls moves à auto-K.O., et `BattleEnded` est émis
+une fois et une seule. `battle.draw`, `battle.drawMessage`, `battleLog.battleEnded.draw` et la
+branche `<p>` de `showVictory` ne sont plus du code mort. Couvert par 3 tests de scénario + l'e2e
+`DUEL_MUTUAL_KO`. Détail : `docs/plans/191-match-nul-ko-simultane.md`.
+
+### `t()` retombe sur l'ANGLAIS avant la clé brute — TRAITÉ (2026-08-27)
+
+Deux filets posés : `battle-log-keys.test.ts` (+72 cas) itère chaque valeur d'enum du core et exige
+la clé dans les deux locales — et son **absence** pour les valeurs hors journal ; et `translateIn`
+émet désormais un `console.warn` hors production quand la clé manque de la locale active, ce qui
+couvre **aussi** les familles composées que le type `Translations` ne voit pas. Le repli sur l'anglais
+est conservé : mieux qu'une clé brute à l'écran pour le joueur. **Règle qui reste vivante** : toute
+future famille de clés composées à l'exécution a besoin de son test d'exhaustivité, le typecheck ne
+la couvrira jamais.
+
+### `AuraRingKind` encodé en union de littéraux — RÉSOLU (2026-08-27)
+
+Devenu un const-object dans `packages/render-ports/src/ports.ts` (`{ ...AuraKind, PerishAura, Uproar }`).
+Les deux littéraux ne sont plus répétés : `view-core/constants.ts` emploie des clés calculées et
+`aura-ring-view.ts` les membres de l'enum. Source unique, comme la convention du projet l'exige.
+
+### Les `tsconfig` excluent les `*.test.ts` du typecheck — RÉSOLU (2026-08-27, plan 193)
+
+**Les 8 paquets sont verrouillés**, `core` compris : aucun `tsconfig` n'exclut plus les tests, donc
+une erreur de type dans un test casse désormais le gate. `@types/node` ajouté, avec `types: ["node"]`
+sur les 3 paquets qui en ont besoin (pas dans la base — `process` resterait alors typable en code
+navigateur).
+
+Ce que le verrou a trouvé, et qui était invisible jusque-là : **12 champs fantômes** (0 usage en
+production, vestiges de refontes passées — `currentPp` seul pesait 1662 erreurs et 507 fichiers), des
+**signatures qui avaient bougé sans que les tests suivent** (`makeAttacker()`, `BattleEngine`,
+`EndTurn`), des **mocks incomplets** (`EffectContext`, `DamageModifyContext`, `BattleChrome`,
+`BoardView`, `PresentationContext`…), et des `filter` à prédicat booléen qui masquaient une variante
+d'union. Aucune fausse alerte.
+
+Enseignement méthodologique consigné au plan : **115 des 290 erreurs du core venaient d'une seule
+ligne**. Le comptage brut ne dit rien de la charge de travail — c'est la distribution par fichier
+qu'il faut regarder.
+
+Détail : `docs/plans/193-typecheck-des-tests.md`.
+
+<!-- Résolu 2026-07-21 : `ct-system.scenario.test.ts` capté par aucun projet vitest (jamais exécuté) → déplacé de `packages/core/src/battle/` vers `scenarios/` (convention unifiée, imports en alias `@pokemon-tactic/core`). 6/6 PASS. -->
+
+<!-- Résolu 2026-06-12 (commit 30be7ee) : actions/checkout@v5, actions/setup-node@v5, pnpm/action-setup@v4, deploy-pages bumpés node24 dans ci.yml / deploy.yml / itch-deploy.yml. butler-to-itch bloqué à v1.3.0 (pas de release node24 dispo) — surveillé dans docs/next.md. -->
+<!-- Résolu 2026-07-19 : Tag tooltip `superVsWater` hardcodé (plan 113) → tag dynamique `typeEffectivenessOverride` + i18n noms de types. Détails → docs/backlog-archive.md. -->
+<!-- Résolu 2026-07-19 : Style dupliqué DOM↔Babylon — audit a montré que c'était en quasi-totalité du code mort (purgé), résidu vivant verrouillé par test de parité, centralisation complète écartée (sur-ingénierie). Détails → docs/backlog-archive.md. -->
+<!-- Résolu 2026-07-21 : IA — CT-aware scoring (plan 165). Détails → docs/backlog-archive.md. -->
+
 ### GitHub Actions sur Node 20 — déprécié (résolu 2026-06-12, commit `30be7ee`)
 - Actions `actions/checkout`, `actions/setup-node`, `pnpm/action-setup`, `peaceiris/actions-gh-pages` bumpées vers leurs variantes Node 24 dans `ci.yml`, `deploy.yml`, `itch-deploy.yml`.
 - `Ayowel/butler-to-itch` toujours à v1.3.0 (pas de release node24 mainteneur au 2026-06-12) — surveillé dans `docs/next.md`, marche probablement via runtime node24 auto GitHub.
@@ -468,3 +532,38 @@ Recette visuelle humaine de la migration Babylon validée (2026-06-14). Les 4 re
 ### Dégâts Vampigraine pas reflétés sur la HP bar (plan 024)
 ### Status burn non affiché au spawn en sandbox (plan 024)
 ### Événements du tour Dummy non animés (fix 2026-04-02)
+
+---
+
+## Feedback visuel résolu (2026-08-27)
+
+### Valeurs fixes restantes sous une police mise à l'échelle — RÉSOLU (2026-08-27)
+
+Les deux feuilles que la décision du 2026-08-27 avait mises de côté sont finalement traitées, sur
+demande de l'humain : `components/button.css` (l'arrondi de `.tb-btn`, corrigé par un sélecteur
+**ciblé** `.bc-menu .bc-btn` dans `battle-chrome.css` — jamais en place, il est partagé avec le Team
+Builder) et `turn-timeline.css` (écarts et arrondi de portrait). Plus aucun `--spacing-*`/`--radius-*`
+fixe dans le sous-arbre de l'interface de combat.
+
+### Infobulle d'attaque — modificateurs contextuels — RÉSOLU (2026-08-27, plan 192)
+
+L'infobulle affiche désormais la puissance et la précision **effectives** (fiche barrée, valeur réelle
+colorée par son sens) avec leurs causes nommées, plus une mention de brûlure distincte. Calcul par
+`resolveCasterMoveContext` dans le core, **source unique partagée avec la prévision de dégâts** — le
+fichier `damage-context.ts` raconte lui-même qu'un calcul dupliqué avait déjà dérivé une fois.
+
+Le périmètre suit un clivage précis, tranché avec l'humain : **tout ce qui ne dépend pas de la cible**
+(météo, champ sous le lanceur, Chargeur, Coup d'Main, brûlure, morphe de move) va dans l'infobulle ;
+ce qui dépend de la cible reste dans la prévision. C'est ce clivage qui rend le sujet faisable, là où
+l'« efficacité contextuelle par move » avait été abandonnée le 2026-08-03 faute de cible de référence.
+
+**Reste hors périmètre** : les **objets tenus** (Charbon, Magnet…). Ils sont bien indépendants de la
+cible et entreraient dans le cadre, mais chacun est un cas à câbler ; le point d'extension est
+`resolveCasterMoveContext`. Et aucun e2e ne vérifie encore le rendu sous météo (les deux suites
+unitaires couvrent le calcul et la mise en mots).
+
+### Le curseur manette repart sur « ◀ Retour » à chaque changement de format — RÉSOLU 2026-08-28
+- **Constaté** (2026-08-27, en filmant la séquence d'intro du plan 194) : sur l'écran de sélection d'équipe, à la manette, changer de format renvoyait le liseré de focus sur « ◀ Retour » à l'autre bout de l'écran. Il fallait retraverser l'écran à chaque cran.
+- **Cause** (`packages/app/src/ui/team-select/FormatPicker.ts`) : les segments recevaient `data-format-key` et `data-state` mais **pas de `data-testid`**. Changer de format re-rend via `renderPreservingFocus`, qui ne sait restaurer le focus que **par famille de `data-testid`** (le repli par rang global avait été retiré exprès — il posait le focus sur un bouton « Supprimer »). Sans testid, le focus retombait sur `<body>`, et `focusInDirection` réentrait sur `controls[0]` = « ◀ Retour ».
+- **Correctif** : `segment.dataset.testid = "format-segment";`. Une ligne.
+- **Reporté puis repris** : classé « gêne, ne casse rien » le 2026-08-27, corrigé le lendemain quand l'humain l'a identifié à l'image comme un bug visuel de la bande-annonce (« on dirait qu'il y a un bug visuellement »). Aucun test e2e ne visait ces segments individuellement.

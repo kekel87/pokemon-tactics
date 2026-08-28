@@ -387,7 +387,9 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     scrollTimeline: (delta) => timeline.scrollByStep(delta),
 
     showVictory: (winnerId: string | null) => {
-      const dialog = el("dialog", "bc-victory");
+      // Testid plutôt qu'une classe CSS : le harnais e2e a besoin de savoir « le combat est fini »
+      // (plan 194) et la règle interdit de viser une classe, couplée au style.
+      const dialog = el("dialog", "bc-victory", "battle-over");
       /*
        * Le titre porte le VERDICT, la phrase le DÉTAIL — motif que le cas « match nul » visait déjà
        * et que le cas victoire manquait : il mettait le NOM du vainqueur en titre, puis « {joueur}

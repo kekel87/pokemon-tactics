@@ -2635,7 +2635,7 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
 ### 6.4 Sélection d'équipe (team select) — refondu au plan 188
 
 *src : `app/ui/dom/screens/team-select-screen.ts`, `app/ui/team-select/{FormatPicker,PlayerCell,PlayersColumn,TeamPickerModal,slot-state}.ts`, `styles/components/team-select.css`*
-*e2e : `dom/screens.spec.ts` · `dom/responsive-screens.spec.ts` (seuil mobile) · `combat/normal-game.spec.ts`, `combat/battle-resume.spec.ts`, `combat/combat-menu.spec.ts`, `combat/responsive-chrome.spec.ts` (chemins d'entrée en combat)*
+*e2e : `dom/screens.spec.ts` · `dom/gamepad-menus.spec.ts` (focus manette sur la rangée de formats) · `dom/responsive-screens.spec.ts` (seuil mobile) · `combat/normal-game.spec.ts`, `combat/battle-resume.spec.ts`, `combat/combat-menu.spec.ts`, `combat/responsive-chrome.spec.ts` (chemins d'entrée en combat)*
 
 *Le câblage clavier/manette du Lot 2 avait rendu visibles trois défauts qui n'étaient pas des défauts
 d'entrée mais de conception d'écran (retour humain 2026-08-21). Décisions #830 à #835.*
@@ -2655,6 +2655,14 @@ d'entrée mais de conception d'écran (retour humain 2026-08-21). Décisions #83
   focalisé est retrouvé par son **adresse logique** (`data-testid` + `data-slot-index`, ou
   `data-controller`, ou `data-format-key`), pas par référence. Avant, chaque appui renvoyait le focus
   au `<body>` et la navigation au pad repartait de zéro (`.claude/rules/html.md`).
+- 🤖 **Changer de format garde le liseré dans la rangée de formats**, à la manette : le segment
+  pressé reste focalisé au lieu de renvoyer sur « ◀ Retour », tout à gauche du bandeau. Le sélecteur
+  de format ne portait aucun `data-testid` — la seule ancre que `renderPreservingFocus` sait suivre,
+  le repli par rang global ayant été retiré exprès — donc le focus repartait au `<body>` puis
+  `focusInDirection` réentrait sur `controls[0]` (bug visuel signalé le 2026-08-28 en filmant la
+  séquence d'intro, plan 194). Joué à la manette synthétique (`gamepad-menus.spec`) : entrée dans la
+  rangée par →, **A** change de format, puis ← prouve que le contrôle refocalisé appartient bien au
+  **nouveau** rendu et non à un nœud détaché.
 - 🤖 **Le focus va au prochain camp non assigné** après une sélection réussie (#834) — écart assumé à
   la convention `<dialog>`, qui vise la modale refermée **sans rien faire**. Une sortie par `Échap`,
   par B ou par la croix rend bien le focus au déclencheur.
@@ -3230,7 +3238,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `dom/main-menu.spec.ts` | §6.1 — titre, 5 entrées, Aventure disabled, version, switch FR→EN + `pt-lang` |
 | `dom/settings.spec.ts` | §6.7 — 2 options inconditionnelles (Langue + Prévisualisation dégâts), persistance `pt-lang`/`pt-settings` |
 | `dom/controls-remapping.spec.ts` | §6.12 — écran de contrôles (plan 186) : accès depuis Réglages, 5 sections listées, **aucune case `displaced` à l'ouverture**, actions fixes (Annuler) inertes, **panoramique de retour** (remappable au clavier depuis le plan 189, « Stick droit » inerte en colonne manette, secours `Maj` + flèches en lecture seule), capture d'une touche → `custom` + écart seul écrit dans `pt-bindings`, échange (ancien slot `displaced` + message nommant l'action délogée), annulation par bouton **et** par `Échap` (jamais assigné, ne quitte pas l'écran), persistance au rechargement, « Tout réinitialiser ». La capture **au pad** est couverte par `dom/gamepad-menus.spec.ts` (manette synthétique) ; seul un **pad réel** reste 👁 |
-| `dom/gamepad-menus.spec.ts` | §6.12 manette dans les menus (plan 186) : manette **synthétique** injectée via `navigator.getGamepads`, arrivée à la souris puis croix directionnelle → focus pris **et** anneau applicable. Joué sur `mapping: "standard"` et `mapping: ""` (réponse de Firefox pour une Switch Pro, qui rendait le pad muet) |
+| `dom/gamepad-menus.spec.ts` | §6.12 manette dans les menus (plan 186) : manette **synthétique** injectée via `navigator.getGamepads`, arrivée à la souris puis croix directionnelle → focus pris **et** anneau applicable. Joué sur `mapping: "standard"` et `mapping: ""` (réponse de Firefox pour une Switch Pro, qui rendait le pad muet) ; échange de bouton nommant l'action délogée. **§6.4** : changer de format au pad garde le liseré sur le segment pressé (le `data-testid` manquant du sélecteur de format le renvoyait sur « ◀ Retour »). Les segments sont visés par leur **rôle** dans la rangée, jamais par ce testid — s'en servir rendrait le test aveugle à la régression qu'il garde |
 | `dom/gamepad-pickers.spec.ts` | §6.13 manette dans le Team Builder (plan 188) : le sélecteur s'ouvre sur un **résultat** et non dans le champ de recherche, on remonte de la grille aux chips de filtre puis on choisit (navigation spatiale), **B** referme (là où `Échap` n'existe pas sur un pad), **← →** règlent un curseur de PS jusqu'à sortir du contrôle par l'axe vertical — c'est ce test qui a attrapé le bug précis tuant toute la manette (#842, `applyToControl`/`stepUp`). Manette synthétique partagée (`pages/gamepad.ts`). Nature en liste (#839) hors couverture e2e ici (unit `focus-navigation.test.ts` pour l'arbitrage du contrôle focalisé) ; le filet générique de résilience du poller (`try/catch` sur `emit`) n'est testé nulle part directement, 👁 §6.13 |
 | `combat/controls-remapping.spec.ts` | §6.12 moitié combat : une touche réassignée **fait tourner la caméra** et la **légende dessine la nouvelle lettre** (tuile du capuchon lue en propriétés calculées) ; l'ancienne position ne fait plus rien |
 | `dom/platform.spec.ts` | §6.10 comportement plateforme (plan 180-a/180-b) : manifeste PWA servi + JSON valide (`name`, `display: standalone`) + **chaque icône répond 200 en `image/png`** ; `<link rel="manifest">`, `<link rel="apple-touch-icon">` (fichier joignable) et `<meta name="theme-color">` déclarés ; **reprise d'écran** — Crédits enregistré (`pt-last-screen`) et retrouvé après rechargement ; **garde-fou** — « Sélection d'équipe » (écran à paramètres) efface le point de reprise → rechargement = menu principal ; réglages : ligne « Plein écran » présente à « NON », ligne « Installer l'app » absente hors iPhone, **aller-retour de la bascule** (clic → `document.fullscreenElement` renseigné + « OUI », re-clic → sortie + « NON »). Barre d'URL réellement masquée / verrouillage paysage (avalé par le `try/catch`) / Wake Lock / installation / iOS = 👁 (validés téléphone réel 2026-08-14) |
