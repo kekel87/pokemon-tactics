@@ -30,14 +30,28 @@ n'a joué que **2 tests smoke sur 519**. Pour une release, toujours forcer `pnpm
 
 **Reste à faire :**
 - [x] Devlog itch.io publié (2026-08-29).
-- [ ] Commiter les refs post-release : `STATUS.md`, `docs/roadmap.md`, `docs/backlog.md`,
-      `docs/plans/194-*.md` → `docs: post-release v2026.8.2 cleanup`.
-- [ ] Sync wiki (`wiki-keeper` lancé le 2026-08-29) : Changelog EN+FR, Mécaniques (match nul,
-      infobulle contextuelle), page Contrôles à créer.
-- [ ] **Refonte des visuels README + wiki** à partir des captures du plan 194.
-      ⚠️ Ne prendre que des captures sur **Arène Simple** : les étiquettes des 8 autres cartes
-      s'affichent en français même en version anglaise (bug backlog), et la rangée de formats
-      affiche `2J × 6` en anglais (`packages/app/src/ui/team-select/FormatPicker.ts:30`).
+- [x] Refs post-release commitées (2026-08-29, `472570b` « docs: nettoyage post-release v2026.8.2 »).
+- [x] Sync wiki **fait** (2026-08-29, commit wiki `5a7f24a`) : Changelog EN+FR, Mécaniques (match
+      nul, infobulle contextuelle), pages `Controls.md` + `Contrôles.md` créées. **Les visuels du
+      wiki sont passés aussi** — `images/{demo.gif, map-select-screenshot.png,
+      team-builder-screenshot.png}` sont octet pour octet les captures du plan 194
+      (`combat.gif`, `01-map-select.png`, `02-team-builder.png`).
+- [x] **Visuels README refaits (2026-08-29)** — release soldée. `docs/images/` ne contient plus que
+      les **2 fichiers réellement référencés** par `README.md` (l.11 et l.17), tous deux repris des
+      captures validées du plan 194 : `demo.gif` ← `combat.gif`, `team-builder-screenshot.png` ←
+      `02-team-builder.png`. Les **3 orphelins** (`battle-log`, `maps-selection`, `team-selection`,
+      encore en rendu Phaser, cités nulle part dans le dépôt) sont **purgés** — décision humaine du
+      2026-08-29, ≈2,2 Mo retirés.
+
+      ⚠️ **Les captures de `.captures/release/` sont antérieures au fix i18n `f785f70`.** Deux sont
+      **périmées** et ne doivent pas être publiées telles quelles : `01b-map-select-cave.png`
+      (« 12×12 · couloirs, dénivelé » en UI anglaise) et `03-twelve-players.png` (`2J × 6` …
+      `12J × 1`). Le **code est correct** (`maps-registry.ts` porte des `tags: { fr, en }[]` depuis
+      `e9f23d1`) — c'est la matière qui date. Les deux copiées dans `docs/images/` et la
+      `01-map-select.png` publiée au wiki sont **saines** (aucun texte traduisible à l'image :
+      Arène Simple a `tags: []`). **Re-capture volontairement reportée** (décision humaine
+      2026-08-29 : rien de périmé n'est publié) → à rejouer (`pnpm capture:release`) à la prochaine
+      passe de captures.
 
 - **Plan 194 — séquence d'intro : LIVRÉ et validé** (2026-08-28). Marche à suivre complète :
   **`docs/capture-sequence.md`**, skill **`/capture-intro`**.
@@ -57,15 +71,14 @@ n'a joué que **2 tests smoke sur 519**. Pour une release, toujours forcer `pnpm
   mode `?seed=` reste **strictement local** (garde `DEV || VITE_E2E`, preuve sur le bundle publié au §3
   du plan).
 
-  **Reste ouvert** : la refonte des 5 visuels README/wiki encore en rendu Phaser — les captures livrées
-  en donnent enfin la matière.
+  **Reste ouvert** : plus rien — wiki (commit wiki `5a7f24a`) et README soldés le 2026-08-29.
 
 
 - **Trancher la suite (Phase 6.5 close, aucune phase active, menu de combat et refonte de la sélection d'équipe livrés).** Aucune option n'est imposée :
   - **Grosse phase** : Phase 6 (Maps & Éditeur 3D), Phase 7 (Multijoueur — désormais débloquée, le client est jouable), Phase 8 (Équilibrage).
 - **Phase 6.5 — Client jouable : contrôles & UI — CLOSE (2026-08-21)**, historique du périmètre conservé ici (plan-cadre `docs/plans/173-phase-client-jouable-ui-controles.md`, phase validée 2026-07-24). Elle était prioritaire avant le Multijoueur (retour réel : injouable mobile → contrôles tactiles) — cette justification est **levée**. **Lot 3 (compléter l'UI)** : ~~nature InfoPanel~~ **livré** (plan 174, 2026-07-24), ~~info terrain/modificateurs~~ **livré** (plan 177, panneau d'info de case, 2026-07-25), ~~preview combat~~ **livré** (plan 175, 2026-07-26), ~~info move~~ **livré** (plan 178, tooltip enrichi + harmonisation des types, 2026-08-03), ~~panneau ennemi + information cachée~~ **livré** (plan 176, information ennemie cachée, 2026-08-05), ~~responsive + dette mobile~~ **livré** (plan 179, 2026-08-06, voir § Fait récemment — validation humaine partielle : dialog de victoire et rendu 4K jamais vus) ~~auras~~ **livré** (plan 182, 2026-08-20, anneaux au sol) → **Lot 3 TERMINÉ**. (l'**a11y** est **abandonnée** le 2026-08-20, décision #752 : support lecteur d'écran non visé, le combat est un canvas ; la gestion du focus part au Lot 2, le HTML sémantique reste une règle vivante justifiée par le harnais e2e, la taille de cible tactile est livrée au plan 179). ~~Lot 1 (contrôles tactiles)~~ **livré** (plan 183, 2026-08-20, validé sur téléphone réel — voir § Fait récemment) : c'était la justification prioritaire de la phase (retour réel « injouable mobile »). **Dette assumée notée par le plan** : le tactile est codé en direct dans `combat-scene.ts`, pas derrière une couche d'actions logiques — le Lot 2 devra le **rapatrier**, pas l'envelopper. ~~**Prochaine étape : Lot 2 (clavier/manette)**~~ **LIVRÉ (plan 184, 2026-08-21, étapes A→E, gate local vert) → la Phase 6.5 « Client jouable » a ses 3 lots clos.** **Validé à la main le 2026-08-21**, scénario par scénario : clavier (AZERTY/Firefox), caméra, menus, choix d'orientation, placement, **manette Switch Pro** filaire, **téléphone réel** (pinch, pan à deux doigts, tap, boussole — la revalidation qu'exigeait l'étape E, le tactile ayant été déplacé sans être réécrit) et **téléphone + manette**. **→ Phase 6.5 CLOSE**, rien ne reste en attente de validation dessus. Deux retours de cette session de test ont été sortis du périmètre en chantiers dédiés (§ Reporté) : **légende de contrôles + écran de remapping** (à faire ensemble) et **refonte de l'écran de sélection d'équipe**. Décisions humaines actées : bindings **fixes** (l'écran de remapping part dans un plan dédié **après**), bindings par **position physique** (`KeyboardEvent.code`, un seul jeu pour AZERTY/QWERTY), navigation des menus par **focus DOM natif**, couche d'actions logiques dans `packages/app/src/input/`, perte d'inspection du plateau assumée pendant `action_menu`/`attack_submenu`, défilement journal/timeline par bindings dédiés. Assets Kenney CC0 — la feuille `input-prompts-pixel-1-bit` est déjà intégrée (chantier séparé « aide visuelle des gestes attendus », § Fait récemment ci-dessous) et sera réutilisée pour les glyphes clavier/manette ; `cursor-pixel-pack` reste non intégré. ⚠️ L'item « tooltips type chart » du plan-cadre 173 est **abandonné** (décision humaine 2026-08-03 : la preview du plan 175 donne déjà le multiplicateur résolu, une table 18×18 serait un mur d'icônes) ; l'« efficacité contextuelle par move » l'est aussi (exigeait une cible de référence collante, trop de design pour un tri grossier), ainsi que les descriptions textuelles de moves (la source décrit le canon Gen 8/9, divergent de nos règles).
 - ~~**Chantier séparé : ressusciter l'échelle `--tb-px` du Team Builder.**~~ **TRANCHÉ (2026-08-27) : on ne la ressuscite PAS, le code mort est purgé.** Décision humaine — rescaler l'écran à toutes les tailles (4K comprise) est un changement visuel qui mérite son propre chantier, pas un effet de bord de nettoyage. Purgé : les ~90 lignes de tokens `@container stage` inertes, le bloc de reflux `@container stage (width < 768px)`, les règles mortes `.ui-screen .tb-root` (rien ne monte cet écran dans la couche écran du stage depuis la suppression de `team-edit-harness.ts` le 2026-07-20), et les **7 indirections `var(--tb-*, Npx)` devenues vestigiales** dans `stat-bar.css`/`set-op.css`/`edit-panels.css` (plus aucun déclarant après la purge — `--tb-stat-col`, `--tb-statbar-h`, `--tb-setop-min-w`, `--tb-mv-col-{num,cat,pow,acc}`). `team-builder-overlay.css` passe de **216 à 78 lignes**, son en-tête raconte désormais l'état réel. Ce qui **reste vivant et intact** : le correctif étroit du plan 179 (tokens compacts `.tb-root` sous `@media (height < 500px), (width < 900px)`) et l'unité de la `type-chip`. Le retour « l'app est trop petite en 4K » reste donc **non traité pour cet écran** — c'est le chantier à ouvrir si tu veux y revenir.
-- **Refaire les 5 visuels README/wiki** (reporté 2026-06-16) : `docs/images/{demo.gif, maps-selection, battle-log, team-builder, team-selection}-screenshot.png` montrent encore l'ancien rendu Phaser. Captures auto Babylon (visual-tester) rejetées par l'humain → originaux conservés en attendant que l'humain les refasse à la main.
+- ~~**Refaire les 5 visuels README/wiki**~~ **SOLDÉ le 2026-08-29** (reporté depuis le 2026-06-16). Volet **wiki** passé le matin (commit wiki `5a7f24a`), volet **README** l'après-midi. Les captures auto par `visual-tester` avaient été rejetées une fois par l'humain — c'est la séquence d'intro du plan 194 (`pnpm capture:release`) qui a fourni la matière validée. Résultat : `docs/images/` réduit aux **2 fichiers réellement référencés**, les 3 orphelins Phaser purgés.
 
 ## Reporté / backlog technique
 
