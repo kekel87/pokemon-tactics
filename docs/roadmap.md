@@ -401,11 +401,32 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 ## Phase 7 — Multijoueur
 
 > But : jouer contre de vrais adversaires
+>
+> **Cadrage arrêté le 2026-08-29** (passe de préparation, aucun code écrit) : **P2P WebRTC via PeerJS,
+> zéro backend** — la mention « WebSocket » qui figurait ici contredisait la décision #209 et était un
+> reliquat d'avant. Détail complet et raisonnement : **[multiplayer.md](multiplayer.md)**, décisions
+> #862-870.
 
-- [ ] Multijoueur réseau (WebSocket)
-- [ ] Écran de victoire enrichi (récap, tours, KO, MVP)
-- [ ] Speed controls (skip/accélérer animations)
-- [ ] Tutoriel interactif
+**Ce qui est déjà prêt** : replay et déterminisme verrouillés (plan 181), port de persistance (#751),
+hot-seat N joueurs avec `humanPlayerIds` (plan 188) — le tour distant se greffe là où le tour hot-seat
+existe déjà.
+
+**Ce qui est écarté et ne reviendra pas sans nouvelle décision** : serveur autoritaire, Supabase
+(mise en pause au bout de 7 jours), matchmaking, fog réel en ligne (#863), classement compétitif
+(#870).
+
+- [ ] **Télémétrie de jeu** — Cloudflare Workers + D1, remplace Goatcounter (faussé par les bloqueurs).
+      Usages seulement : parties jouées, Pokemon et attaques les plus joués, taux d'abandon.
+      **Indépendante du réseau et déjà utile en solo** → première tranche livrable de la phase
+      (#867, #868, #870)
+- [ ] **Multijoueur réseau P2P** — lobby (`ScreenId` neuf), protocole d'actions, validation,
+      détection de désync (sérialisation canonique à écrire), chronomètre local auto-déclarant
+      (#864, #865), reconnexion par le chemin du plan 181. **Viser le 1v1**, retester le FFA à 12
+      ensuite
+- [ ] Écran de victoire enrichi (récap, tours, KO, MVP) — sans dépendance réseau
+- [ ] Speed controls (skip/accélérer animations) — sans dépendance réseau
+- [ ] Tutoriel interactif — sans dépendance réseau
+- [ ] *Si besoin, après la V1* : signaling maison et relais de secours NAT sur Durable Object (#869)
 - [→] ~~Support manette~~ **déplacé en Phase 6.5 — Client jouable (Lot 2)** (2026-07-24)
 
 ---

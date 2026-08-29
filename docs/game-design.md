@@ -33,7 +33,7 @@ Combat tactique sur grille isométrique :
 - **Pas de brouillard de guerre spatial** — positions, terrain, hauteur et effets de case sont publics : chaque joueur voit tout le plateau, en permanence
 - **Information partielle sur les Pokemon adverses (fog, plan 176, 2026-08-05)** — PV en **pourcentage seul**, objet tenu et talent en `???` tant qu'ils ne sont pas révélés ; ils se révèlent **à l'usage, définitivement** (un objet déclenché, un talent activé) et jamais par déduction inventée. Talent et bloc de stats chiffrées d'un ennemi restent absents (règle « ennemi minimal », plan 174), sauf en sandbox fog **désactivé** (lecture complète, réservée au studio de debug). **Règle de jeu, pas un réglage joueur** — fog **ON en dur** en partie réelle. Implémenté côté vue (`view-core`), pas dans `getGameState` (toujours plein état par référence) — une redaction côté core par perspective attend un serveur autoritaire (Phase 7, multijoueur)
 - **FFA = chacun pour soi** — pas d'alliances dynamiques
-- Multijoueur réseau : plus tard
+- **Multijoueur réseau : Phase 7** — P2P WebRTC, aucun backend, code de partie à partager (pas de matchmaking). Voir [multiplayer.md](multiplayer.md)
 
 ---
 
@@ -1104,7 +1104,7 @@ Chaque combat = séquence d'actions déterministe :
 | **Combat rapide** | POC | Choisir 2+ équipes, lancer un combat |
 | **Mode histoire / aventure** | À voir | Entrée désactivée dans le menu |
 | **Multijoueur local** | Phase 1 | Hot-seat |
-| **Multijoueur réseau** | Phase 4+ | WebSocket |
+| **Multijoueur réseau** | Phase 7 | **P2P WebRTC** (PeerJS), pas de serveur — décisions #209, #862 |
 
 ---
 
