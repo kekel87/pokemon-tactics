@@ -24,7 +24,7 @@ Thin wrapper sur l'agent `publisher` (sonnet). Entrée unique pour toute la cha�
 Un subagent ne peut ni poser de question à l'humain ni lancer d'autres agents. Le skill (main loop) orchestre :
 
 **Phase 1 — agent `publisher` (préparation)** :
-1. **Compile changelog** depuis `git log <last_tag>..HEAD` + plans associés (format joueur : What's New / Improvements / Bug Fixes / Distribution)
+1. **Compile changelog** depuis `git log <last_tag>..HEAD` + plans associés (format joueur : What's New / Improvements / Bug Fixes — **jamais de section « Distribution »**)
 2. **CI gate full** (`bash .claude/skills/ci-gate/run.sh full`) — BLOQUANT
 3. **Rapporte** tag proposé + changelog + résultat CI, puis s'arrête
 

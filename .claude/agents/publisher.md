@@ -73,11 +73,11 @@ Format final (Markdown) — grouper :
 ## Bug Fixes
 
 - Player-visible fixes
-
-## Distribution
-
-- itch.io / GitHub Pages updates (seulement si pertinent — première release post-itch deploy, etc.)
 ```
+
+🔴 **PAS de section « Distribution ».** Bande-annonce, captures, mises à jour itch/Pages, pipeline
+de release : c'est de la logistique interne, pas du contenu joueur. Ça ne va NI dans le changelog
+GitHub, NI dans le devlog itch. Règle rappelée plusieurs fois par l'humain.
 
 ### 2. Vérifier le build
 
