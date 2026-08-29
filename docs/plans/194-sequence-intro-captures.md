@@ -1,6 +1,6 @@
 # Plan 194 — Séquence d'intro : bande-annonce et captures reproductibles
 
-- **Statut** : `in-progress` (2026-08-28) — **volet menus/constructeur LIVRÉ et validé à l'œil par l'humain** ; **volet combat implémenté**, en attente de validation humaine. Montage ffmpeg et doc/skill livrés (§10, §11).
+- **Statut** : `done` (2026-08-29) — **volet menus/constructeur** validé à l'œil par l'humain le 2026-08-27, **volet combat** validé le 2026-08-28, **bande-annonce et captures validées** à la publication de la **v2026.8.2** (2026-08-29). Montage ffmpeg et doc/skill livrés (§10, §11).
 - **Origine** : entrée « Scénario de combat piloté Joueur vs Joueur (QA + captures) » de `docs/backlog.md` (2026-06-18), dernier item actionnable du backlog. Le périmètre a été **élargi par l'humain** en cours de cadrage : ce n'est plus un scénario de QA, c'est la **séquence d'intro du jeu**.
 
 ## 1. Ce qui est demandé, et ce que ce n'est pas

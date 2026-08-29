@@ -18,6 +18,27 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
+### 2026-08-29 — Release `v2026.8.2` PUBLIÉE
+
+**Phase 6.5 « Client jouable » est sortie.** https://github.com/kekel87/pokemon-tactics/releases/tag/v2026.8.2
+— 25 commits, 12 plans clos (183→194). `itch-deploy` et Pages verts. Gate `full` vert :
+3955 unit, 388 integration, 23 scenario, et **519/519 e2e** joués en passe complète.
+
+⚠️ **Piège du gate constaté ce jour** : `test:e2e:affected` a classé le diff comme non-code et
+n'a joué que **2 tests smoke sur 519**. Pour une release, toujours forcer `pnpm test:e2e` complet
+— le gate seul ne suffit pas.
+
+**Reste à faire :**
+- [x] Devlog itch.io publié (2026-08-29).
+- [ ] Commiter les refs post-release : `STATUS.md`, `docs/roadmap.md`, `docs/backlog.md`,
+      `docs/plans/194-*.md` → `docs: post-release v2026.8.2 cleanup`.
+- [ ] Sync wiki (`wiki-keeper` lancé le 2026-08-29) : Changelog EN+FR, Mécaniques (match nul,
+      infobulle contextuelle), page Contrôles à créer.
+- [ ] **Refonte des visuels README + wiki** à partir des captures du plan 194.
+      ⚠️ Ne prendre que des captures sur **Arène Simple** : les étiquettes des 8 autres cartes
+      s'affichent en français même en version anglaise (bug backlog), et la rangée de formats
+      affiche `2J × 6` en anglais (`packages/app/src/ui/team-select/FormatPicker.ts:30`).
+
 - **Plan 194 — séquence d'intro : LIVRÉ et validé** (2026-08-28). Marche à suivre complète :
   **`docs/capture-sequence.md`**, skill **`/capture-intro`**.
 

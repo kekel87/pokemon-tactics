@@ -34,6 +34,13 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - **Correctif** : passer `tags` en `{ fr, en }[]` comme ses voisins, ou en clés i18n. Neuf cartes, deux à quatre étiquettes chacune.
 - **Contournement en attendant** : la capture livrée utilise Arène Simple, seule carte sans étiquette.
 
+### Libellé de format d'équipe en français en dur (2026-08-29)
+- **Constaté** : sur l'écran de sélection d'équipe en anglais, la rangée de formats affiche `2J × 6`, `3J × 4`… — le `J` (Joueurs) reste français, alors que le titre de rangée est bien traduit (`teamSelect.format.label` → « Players × Pokemon: »).
+- **Cause** (`packages/app/src/ui/team-select/FormatPicker.ts:30`) : `formatLabel` renvoie un gabarit en dur `` `${format.teamCount}J × ${format.maxPokemonPerTeam}` ``, sans passer par `translate`. Introduit par la **décision #835** (plan 188), qui a remplacé les libellés `2v6` par `2J × 6` — la forme est la bonne, c'est le routage i18n qui manque.
+- **Même famille** que « Étiquettes de carte en français en dur » ci-dessus : un libellé joueur construit en code plutôt que tiré d'une locale. À traiter dans la même passe.
+- **Correctif** : clé i18n paramétrée (`teamSelect.format.option` avec `{players}` / `{pokemon}`), pour que le `J` devienne `P` en anglais.
+- **Repéré à la préparation de la release v2026.8.2** ; décision humaine : **publier sans corriger**, l'item reste ouvert.
+
 ## Notes IA (à regrouper en plan d'amélioration IA)
 
 ## Feedback visuel
