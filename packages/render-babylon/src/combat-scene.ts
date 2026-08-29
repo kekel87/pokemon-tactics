@@ -665,7 +665,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   // Read-only e2e scene-graph hook (stripped from prod). clickTile drives the same handler a
   // real canvas pick would, so Playwright can pilot a turn. Installed here so `clickHandler` is
   // in scope; it reads the current handler at call time (reassigned by `onTileClick`).
-  installE2eSceneHook(
+  const uninstallE2eSceneHook = installE2eSceneHook(
     scene,
     () => sceneIsReady,
     (x, y) => clickHandler({ x, y }, "pointer"),
@@ -1370,6 +1370,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       loadCancelled = true;
       canvas.removeEventListener("wheel", onWheel);
       window.removeEventListener("resize", onResize);
+      uninstallE2eSceneHook();
       directionArrows.dispose();
       hoverCursor?.dispose();
       compass?.dispose();

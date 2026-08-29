@@ -92,6 +92,14 @@ L'humain **travaille et joue sur cette machine pendant que la suite tourne**. Un
 - **Bannir `page.waitForTimeout(ms)`**.
 - Boot : `page.waitForFunction(() => window.<flag>SceneReady === true)`.
 - Assertion qui converge (anim en cours) : `expect.poll(() => page.evaluate(…), { timeout, intervals })`.
+- **Une attente qui converge trop vite est aussi suspecte qu'une attente qui timeout** (2026-08-29,
+  décision #861) : `__ptE2e__` était posé sur `globalThis` sans `uninstall` au `dispose()` de la
+  scène — l'aperçu de carte (`map-preview-stage.ts`) construit lui aussi un `createCombatScene`, donc
+  après cet écran `isReady()` répondait `true` en pointant une scène **détruite**. Plusieurs specs
+  (`normal-game`, `combat-menu`, `battle-resume`, `placement-menu`, `platform-chrome`,
+  `responsive-chrome`) ne gataient sur rien : `waitReady()` était satisfait instantanément par le
+  hook périmé, et le timeout de l'`expect` suivant absorbait tout le vrai boot du combat. Tout hook
+  global de readiness doit être désinstallé (gardé par identité) à la destruction de ce qu'il décrit.
 
 ## Scene-graph (préféré au pixel)
 

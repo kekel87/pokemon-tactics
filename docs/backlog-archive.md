@@ -19,6 +19,25 @@ Source de vérité primaire : git log + commit messages + `docs/plans/` + `docs/
 
 ---
 
+### `__ptE2e__` survit à la destruction de sa scène — RÉSOLU (2026-08-29, commit `e9f23d1`)
+- **Contexte (2026-08-28)** : le hook de debug de scène (`packages/render-babylon/src/e2e-debug-hook.ts`) est posé sur `globalThis` par `createCombatScene`, et rien ne le retirait au `dispose()`. Or l'écran de choix de carte construit son aperçu 3D avec `createCombatScene` (`map-preview-stage.ts`) : après cet écran, `__ptE2e__.isReady()` répondait donc `true` en pointant une scène détruite. Coûté un run de capture au plan 194.
+- **Résolution** : `installE2eSceneHook` renvoie désormais un `uninstall`, appelé dans le `dispose()` de `combat-scene.ts`. Désinstallation gardée par identité (`holder.__ptE2e__ === api`) : une scène créée avant qui se dispose plus tard ne peut pas décrocher la scène vivante qui a pris sa place.
+- **Trouvaille annexe de `test-writer`, hors périmètre du correctif** : plusieurs specs e2e (`normal-game`, `combat-menu`, `battle-resume`, `placement-menu`, `platform-chrome`, `responsive-chrome`) passaient **parce que** `waitReady()` était un no-op — le hook périmé de l'aperçu de carte le satisfaisait instantanément, et le timeout de l'`expect` suivant absorbait tout le boot du combat. Elles gatent désormais réellement. Décision #861, `.claude/rules/e2e.md`.
+
+---
+
+### Étiquettes de carte en français en dur — RÉSOLU (2026-08-29, commit `e9f23d1`)
+- **Contexte (2026-08-28)** : sur l'écran de choix de carte en anglais, la ligne de méta affichait « 12×12 · couloirs, dénivelé » — les étiquettes restaient françaises. Vu en sortant une capture pour itch.io et le README (plan 194). Cause : `displayName`/`description` de `packages/app/src/maps/maps-registry.ts` sont bien des paires `{ fr, en }`, mais `tags` était un `string[]` français en dur, concaténé tel quel par `map-select-screen.ts`.
+- **Résolution** : `tags` passe de `string[]` à `{ fr, en }[]`, projection par locale dans `map-select-screen.ts`. Neuf cartes, treize étiquettes traduites.
+
+---
+
+### Libellé de format d'équipe en français en dur — RÉSOLU (2026-08-29, commit `e9f23d1`)
+- **Contexte (2026-08-29, repéré à la préparation de v2026.8.2)** : sur l'écran de sélection d'équipe en anglais, la rangée de formats affichait `2J × 6`, `3J × 4`… — le `J` (Joueurs) restait français alors que le titre de rangée était bien traduit. Cause (`FormatPicker.ts`) : `formatLabel` renvoyait un gabarit en dur, introduit par la **décision #835** (plan 188) sans routage i18n. Publié tel quel en v2026.8.2 (décision humaine : ne pas corriger avant release).
+- **Résolution** : nouvelle clé i18n paramétrée `teamSelect.format.option` (`{players}J × {pokemon}` en FR, `{players}P × {pokemon}` en EN), et les libellés sont recalculés à chaque rendu dans `team-select-screen.ts` (`formatOptions` est bâti une fois à l'entrée d'écran ; sans ce recalcul un changement de langue aurait laissé les segments dans l'ancienne locale).
+
+---
+
 ### Sandbox Studio — le sélecteur Talent n'affichait pas l'override de config — RÉSOLU (2026-08-03, plan 178)
 `dummyAbility: "pressure"` était bien appliqué au moteur, mais le dropdown Talent montrait le talent par défaut de l'espèce. Cause : `buildAbilityOptions` ne listait que les talents **légaux de l'espèce** ; un override hors de cette liste n'avait pas d'`<option>`, et le `<select>` retombait silencieusement sur le premier. Correction : l'override est ajouté à la liste, suffixé « (custom) » comme le picker Pokemon. Découvert en préparant les scénarios human-testing du plan 178 (porteur de Pression).
 

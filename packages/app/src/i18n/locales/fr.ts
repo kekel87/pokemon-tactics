@@ -157,6 +157,7 @@ const fr: Translations = {
   "teamSelect.player11": "Joueur 11",
   "teamSelect.player12": "Joueur 12",
   "teamSelect.format.label": "Joueurs × Pokemon :",
+  "teamSelect.format.option": "{players}J × {pokemon}",
   "teamSelect.players.choose": "— choisir —",
   "teamSelect.controller.human": "Humain",
   "teamSelect.controller.ai": "IA",

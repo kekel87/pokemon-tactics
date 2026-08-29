@@ -19,27 +19,13 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 
 ## Dette technique
 
-### `__ptE2e__` survit à la destruction de sa scène (2026-08-28)
-- **Constaté** : le hook de debug de scène (`packages/render-babylon/src/e2e-debug-hook.ts`) est posé sur `globalThis` par `createCombatScene`, et **rien ne le retire** au `dispose()`. Or l'écran de choix de carte construit son aperçu 3D avec `createCombatScene` (`map-preview-stage.ts`) : après cet écran, `__ptE2e__.isReady()` répond donc `true` en pointant une scène détruite.
-- **Conséquence** : un harnais qui attend « scène prête » pour savoir qu'un combat a démarré part **sans rien attendre**. Coûté un run de capture au plan 194 (la séquence croyait avoir lancé le combat et filmait encore l'écran de sélection d'équipe). Contourné là-bas en attendant le menu d'actions du combat, pas la scène.
-- **Correctif proposé** : faire renvoyer un `uninstall` par `installE2eSceneHook` et l'appeler dans `dispose()` — le hook ne survivrait plus à sa scène. À vérifier contre les tests qui traversent menu → combat : ils attendent la nouvelle scène, donc un hook effacé entre les deux les rend plus stricts, pas plus fragiles.
-
 <!-- Résolus 2026-08-27 : match nul sans chemin d'exécution (plan 191), repli anglais de `t()` sur les
      clés composées, `AuraRingKind` en union de littéraux, `tsconfig` excluant les `*.test.ts` des 8
      paquets (plan 193) → docs/backlog-archive.md. -->
 
-### Étiquettes de carte en français en dur (2026-08-28)
-- **Constaté** : sur l'écran de choix de carte en anglais, la ligne de méta affiche « 12×12 · couloirs, dénivelé » — les étiquettes restent françaises. Vu en sortant une capture pour itch.io et le README, dont le public est anglophone (plan 194).
-- **Cause** (`packages/app/src/maps/maps-registry.ts`) : `displayName` et `description` sont bien des paires `{ fr, en }`, mais `tags` est un `string[]` **français en dur**. `map-select-screen.ts:45` les concatène tels quels.
-- **Correctif** : passer `tags` en `{ fr, en }[]` comme ses voisins, ou en clés i18n. Neuf cartes, deux à quatre étiquettes chacune.
-- **Contournement en attendant** : la capture livrée utilise Arène Simple, seule carte sans étiquette.
-
-### Libellé de format d'équipe en français en dur (2026-08-29)
-- **Constaté** : sur l'écran de sélection d'équipe en anglais, la rangée de formats affiche `2J × 6`, `3J × 4`… — le `J` (Joueurs) reste français, alors que le titre de rangée est bien traduit (`teamSelect.format.label` → « Players × Pokemon: »).
-- **Cause** (`packages/app/src/ui/team-select/FormatPicker.ts:30`) : `formatLabel` renvoie un gabarit en dur `` `${format.teamCount}J × ${format.maxPokemonPerTeam}` ``, sans passer par `translate`. Introduit par la **décision #835** (plan 188), qui a remplacé les libellés `2v6` par `2J × 6` — la forme est la bonne, c'est le routage i18n qui manque.
-- **Même famille** que « Étiquettes de carte en français en dur » ci-dessus : un libellé joueur construit en code plutôt que tiré d'une locale. À traiter dans la même passe.
-- **Correctif** : clé i18n paramétrée (`teamSelect.format.option` avec `{players}` / `{pokemon}`), pour que le `J` devienne `P` en anglais.
-- **Repéré à la préparation de la release v2026.8.2** ; décision humaine : **publier sans corriger**, l'item reste ouvert.
+<!-- Résolus 2026-08-29 (commit e9f23d1) : `__ptE2e__` survit à la destruction de sa scène,
+     étiquettes de carte en français en dur, libellé de format d'équipe en français en dur →
+     docs/backlog-archive.md. -->
 
 ## Notes IA (à regrouper en plan d'amélioration IA)
 

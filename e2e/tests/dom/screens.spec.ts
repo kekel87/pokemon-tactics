@@ -96,6 +96,9 @@ test("§6.4 sélection d'équipe : sélecteur de format + contrôles présents",
 
   // Rangée de segments de format (plan 188 #830 : c'était un `<select>`) + au moins un camp.
   await expect(teams.formatSegments).toBeVisible();
+  // Le libellé lui-même (#835) : « 2J × 6 » et non la clé de format « 2v6 », qui **se lit** « deux
+  // contre six ». Le « J » est celui de Joueurs, donc il suit la locale → EN dans `screens-i18n.spec`.
+  await expect(teams.activeFormatSegment).toHaveText("2J × 6");
   await expect(teams.teamButton(0)).toBeVisible();
 });
 

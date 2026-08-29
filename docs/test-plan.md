@@ -80,6 +80,8 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Panoramique caméra (clavier, stick droit, glissé) | §4.19, §4.18 |
 | Capuchon de touche sous un bouton du chrome / indice de défilement d'une liste | §4.2, §4.9, §4.19, §4.18 |
 | Clé i18n (`packages/app/src/i18n/locales/*`) — libellé de bouton, ligne de journal, nouvelle valeur d'enum journalisée | §4.9 (clés brutes + parité FR/EN), §4.4 (les libellés d'action sont des **sélecteurs e2e** : changer « Déplacement » impose de balayer `e2e/`), §6.7 |
+| Texte affiché construit **hors** du dictionnaire (donnée bilingue d'un registre, gabarit en dur) | §6.3, §6.4 — dérouler l'écran **en anglais**, c'est là que la fuite se voit |
+| Hook de debug de scène `__ptE2e__` (installation, désinstallation, surface exposée) | §8.6, §6.3 — c'est le harnais, une régression y aveugle toute la suite |
 
 ---
 
@@ -2588,7 +2590,7 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
 ## 6. Recette — écrans DOM (hors combat)
 *src : `app/ui/dom/screens/`, `app/app/screen-manager.ts`, `app/ui/SplashScreen.ts`*
 *e2e : `tests/smoke/boot.spec.ts`, `tests/smoke/splash.spec.ts`, `tests/dom/navigation.spec.ts`,
-`tests/dom/menus.spec.ts`,
+`tests/dom/screens.spec.ts`, `tests/dom/main-menu.spec.ts`, `tests/dom/screens-i18n.spec.ts`,
 `tests/visual/screens.spec.ts` (golden)*
 
 ### 6.0 Navigation globale
@@ -2631,11 +2633,20 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
   lui-même (dessin, fondu) = 👁.*
 - 👁 **Déplacer** la map (pan) et **tourner** la caméra dans l'aperçu.
 - 🤖 `↑/↓` navigue la liste (sélection surlignée, `aria-current`).
+- 🤖 **Étiquettes de terrain traduites** : la ligne de méta est `12×12  ·  couloirs, dénivelé` en
+  français et `12×12  ·  corridors, elevation` en anglais sur « Grotte Exiguë ». Elles étaient un
+  `string[]` français en dur dans `maps-registry.ts` — donc du français qui fuitait dans l'UI
+  anglaise, juste à côté d'un nom et d'une description qui, eux, étaient bien traduits
+  (`screens-i18n.spec`).
+- 🤖 **Le hook de scène ne survit pas à l'écran quitté** : l'aperçu est une vraie `createCombatScene`,
+  il installe donc `__ptE2e__` et répond `isReady() === true`. Quitter l'écran doit le désinstaller,
+  sans quoi le harnais entier croit « scène prête » sur une scène détruite → §8.6
+  (`scene-hook-lifecycle.spec`).
 
 ### 6.4 Sélection d'équipe (team select) — refondu au plan 188
 
 *src : `app/ui/dom/screens/team-select-screen.ts`, `app/ui/team-select/{FormatPicker,PlayerCell,PlayersColumn,TeamPickerModal,slot-state}.ts`, `styles/components/team-select.css`*
-*e2e : `dom/screens.spec.ts` · `dom/gamepad-menus.spec.ts` (focus manette sur la rangée de formats) · `dom/responsive-screens.spec.ts` (seuil mobile) · `combat/normal-game.spec.ts`, `combat/battle-resume.spec.ts`, `combat/combat-menu.spec.ts`, `combat/responsive-chrome.spec.ts` (chemins d'entrée en combat)*
+*e2e : `dom/screens.spec.ts` · `dom/screens-i18n.spec.ts` (libellés de format en anglais) · `dom/gamepad-menus.spec.ts` (focus manette sur la rangée de formats) · `dom/responsive-screens.spec.ts` (seuil mobile) · `combat/normal-game.spec.ts`, `combat/battle-resume.spec.ts`, `combat/combat-menu.spec.ts`, `combat/responsive-chrome.spec.ts`, `combat/scene-hook-lifecycle.spec.ts` (chemins d'entrée en combat)*
 
 *Le câblage clavier/manette du Lot 2 avait rendu visibles trois défauts qui n'étaient pas des défauts
 d'entrée mais de conception d'écran (retour humain 2026-08-21). Décisions #830 à #835.*
@@ -2643,7 +2654,16 @@ d'entrée mais de conception d'écran (retour humain 2026-08-21). Décisions #83
 - 🤖 **Format en rangée de segments** (#830), plus de `<select>` : le format actif est **lu en
   permanence**, l'actif porte `data-state="active"`. Libellés **« 2J × 6 », « 3J × 4 », « 4J × 3 »,
   « 6J × 2 », « 12J × 1 »** sous le titre de rangée « Joueurs × Pokemon » (#835) — l'ancienne forme
-  réutilisait la clé du format et affichait « 2v6 », qui **se lit** « deux contre six ».
+  réutilisait la clé du format et affichait « 2v6 », qui **se lit** « deux contre six ». Le libellé
+  actif est asserté en FR (`screens.spec`).
+- 🤖 **Le libellé de format suit la langue** : « 2P × 6 » en anglais, pas « 2J × 6 ». Le gabarit était
+  en dur dans `FormatPicker.ts`, donc le « J » de Joueurs restait français sous une rangée titrée
+  « Players × Pokemon ». Vérifié aussi **après un changement de format**, qui reconstruit tout
+  l'écran (`screens-i18n.spec`).
+  *Le cas « la langue change PENDANT qu'on est sur cet écran » n'est pas automatisable : aucun écran
+  de préparation ne porte de bascule de langue (elle vit au menu principal, dans les Réglages et dans
+  le menu de combat), et quitter l'écran le démonte. Les libellés relus à chaque rendu restent donc
+  une garde de code, pas une case de recette.*
 - 🤖 **Segment Humain / IA à deux états visibles** (#831) : chaque bouton désigne un état, il n'y a
   plus de bascule. ⚠️ **Changement de sémantique** : presser « Humain » sur un camp déjà humain ne
   fait plus rien, alors que l'ancien bouton unique le donnait à l'IA. Donner un camp à l'IA lui
@@ -2677,7 +2697,8 @@ d'entrée mais de conception d'écran (retour humain 2026-08-21). Décisions #83
 - 👁 Couleur de joueur par camp ; toggle Placement auto. *« 🎲 Remplir IA » a été **supprimé** (#841,
   plan 188) — passer un camp en IA lui assigne déjà une équipe aléatoire (#831).*
   *Plus de sélecteur de système de tours (Charge Time seul).*
-- 👁 i18n FR/EN (dont le titre du sélecteur, « Équipe de {joueur} »).
+- 👁 i18n FR/EN du **reste** de l'écran (titre du sélecteur « Équipe de {joueur} », cartes de camp,
+  Placement auto). *Le libellé de format, lui, est 🤖 ci-dessus.*
 
 ### 6.5 Mes équipes (liste — constructeur d'équipe) → détails picker §7.2
 *libellés : `teamBuilder.*`*
@@ -3193,7 +3214,14 @@ garde-fou du projet est de toujours recompter depuis la source réelle.)*
   passaient sous la barre de gestes. 0px sans encoche physique → **téléphone réel**.
 
 ### 8.6 Aperçu de carte (map-select)
+*src : `render-babylon/map-preview-stage.ts`, `render-babylon/e2e-debug-hook.ts`*
 - 👁 Aperçu Babylon de la map avant combat (cf §6.3).
+- 🤖 **Cycle de vie du hook de scène** : l'aperçu est une `createCombatScene` complète, il installe
+  donc `__ptE2e__` et le fait passer à `isReady() === true`. Quitter l'écran le **désinstalle** ;
+  l'écran de sélection d'équipe, qui n'a aucune scène, n'expose donc plus de hook, et le combat en
+  réinstalle un qui porte de la géométrie. Enjeu : c'est le HARNAIS lui-même — un hook rémanent fait
+  franchir `waitReady()` sur une scène détruite, et tout ce qui suit s'appuie sur du vide (le piège
+  avait déjà mordu la séquence d'intro, plan 194) (`scene-hook-lifecycle.spec`).
 
 ---
 
@@ -3314,7 +3342,9 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/touch-controls.spec.ts` | §4.18 comportement au doigt via **`tapTile`** (seule entrée du hook qui traverse la vraie couche d'entrée) : **un tap agit du premier coup** ; un **pattern directionnel** s'ouvre cône affiché, retaper la même **direction** lance, une autre direction re-vise sans lancer (validation depuis une case différente = la comparaison est directionnelle). + **annulation atteignable au doigt** sur les 3 phases réparées (destination, cible, orientation). Pinch / pan 2 doigts / orientation de fin de tour / seuil de glissé / `pointercancel` = 👁 téléphone réel ; la boussole est couverte par `compass-and-legend.spec` |
 | `combat/input-prompt-glyph.spec.ts` | §4.8 glyphe du geste attendu dans la ligne d'instruction (chantier « aide visuelle des gestes attendus », suite du Lot 1 du plan 173) : `data-glyph` = `act-twice` sur les 2 phases **directionnelles** (visée de cône/ligne/fauche/charge, orientation de fin de tour) et `act` sur les 4 autres (cible, confirmation, destination de déplacement, case de repli de Demi-Tour) ; **suffixe « ×2 » présent en pointeur grossier** (`hasTouch`) et **absent en pointeur fin** ; la pastille entière (glyphe compris) disparaît hors phase d'input ; **non-régression** du `textContent` exact de `combat-instruction`, restée un nœud de texte pur alors que la pastille est passée à la rangée parente ; **la feuille de tuiles change avec le pointeur** (plan 185) : `input-prompts-pixel-1-bit` en pointeur fin, `cursor-pixel-pack` en pointeur grossier, feuille et grille ensemble. Le DESSIN (souris vs main, masque CSS) = 👁 pixel |
 | `combat/compass-and-legend.spec.ts` | §4.18 boussole + légende de contrôles (ex `compass-rotate-hint.spec.ts`, renommé et étendu au plan 185) : **zone tapable CARRÉE ancrée sur le portrait** (plancher 44 px — le glyphe qui l'étendait vers la droite est supprimé) ; **un clic fait tourner la vue d'un cran** (vrai clic souris sur le point projeté du proxy de picking, donc à travers la couche d'entrée réelle) ; **cliquer juste sous la boussole ne tourne pas**, contre-épreuve dans le même test ; **légende posée à droite (glyphe « ça se clique »)**, ancrée sur la même mesure que le renderer (`chrome-insets.ts`), ses **lignes de contrôles caméra descendues dans la colonne latérale de l'ordre de jeu** entre les capuchons `Page↑`/`Page↓` (plan 189 — sous la boussole, elles finissaient par-dessus elle) ; **la légende suit la source d'entrée active** (`data-input-source` : souris/doigt/clavier/manette) ; **la légende reste immobile quand la timeline perd son entrée active** (case vide en prévisualisation de coût CT — trois approches successives : ancrage DOM dans la case active, réservation de sa largeur, et enfin réservation de sa **hauteur** au plan 189, la seule qui ne déplace pas la boussole ; décision #798). Dessin des glyphes / sens de rotation lu à l'œil / tap au doigt = 👁 |
-| `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (8 + détail + ↑/↓ aria-current), §6.4 format + Lancer gating |
+| `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (9 + détail + ↑/↓ aria-current), §6.4 libellé du format actif (« 2J × 6 », #835) + Lancer gating |
+| `dom/screens-i18n.spec.ts` | §6.3 / §6.4 i18n des écrans de préparation, par le bouton de langue du menu (le geste du joueur, et le seul qui existe — aucun de ces écrans ne porte de bascule) : **étiquettes de terrain** d'une carte en FR puis en EN (« couloirs, dénivelé » → « corridors, elevation », avec contre-épreuve que le français ne fuit plus), **libellé de format** « 2P × 6 » et non « 2J × 6 », re-vérifié **après un changement de format** qui reconstruit l'écran. Un changement de langue *pendant* qu'on est sur l'écran n'est pas atteignable (cf §6.4) |
+| `combat/scene-hook-lifecycle.spec.ts` | §6.3 / §8.6 cycle de vie du hook de scène `__ptE2e__` — le HARNAIS lui-même : l'aperçu de carte est une `createCombatScene` complète, donc quitter cet écran doit **désinstaller** le hook (sinon `waitReady()` franchit sa barrière sur une scène détruite). Deux gardes : hook installé **et prêt** sur l'aperçu puis absent après « Retour » ; absent sur la sélection d'équipe (DOM pur, et point de lancement du combat) puis réinstallé par le combat sur une scène qui **porte de la géométrie** |
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |
 | `combat/info-panel.spec.ts` | §4.7 panneau d'info : actif (nom FR/niveau/PV/portrait) + **survol** (adversaire Dracaufeu/team, tile vide → repli) via hook `hoverTile` + **objet tenu** (plan 168 : icône officielle `<img>` data-URL + nom FR — Restes à l'actif, Orbe Vie au survol du porteur team 2 ; sans objet → ligne masquée) + **panneau enrichi allié** (plan 174 : chips de types `li[data-type]`, ligne PV avec `.ip-hppct`, talent `info-panel-talent`, bloc des 5 stats `info-panel-stats` ; une stat à cran (+2 Atq) affiche « 2↑ » + « → » + valeur effective ≠ base) + **ennemi sans fog → lecture complète** (plan 176 : au survol du dummy team 2, types + bloc des 5 stats + talent en clair — le cas « minimal » ne vaut plus que SOUS fog, `combat-fog.spec`) |
 | `combat/tile-info-panel.spec.ts` | §4.13 panneau d'info de case (plan 177) : en-tête terrain FR + altitude (« Neutre » sans puce sur une case normale) ; **Magma** (5,2) → sprite statut Brûlé (`statuses/icon-burned.png`) + bonus Feu (`types/fire.png` « ×1.15 ») + immunité (Feu/Vol, `types/flying.png`) ; **case peuplée** (seed `debugTiles`) → hazards « Picots ×3 » / « Piège de Roc », champ « Champ Herbu », zones « Gravité »/« Distorsion » avec badge de durée [5] ; **Lave** (survol (0,5)) → puce traversal fusionnée « Chute fatale ». Triggers émoji/DoT/malus + layout = 👁 (placeholders remplacés au point icônes) |
@@ -3430,6 +3460,17 @@ complète dont seul le tampon `version`/`buildVersion` est falsifié).
       Validé desktop **et** téléphone réel par l'humain. Bug non lié corrigé au passage : le canvas
       Babylon posait lui-même `tabindex="1"` (premier arrêt de tabulation de la page), désormais
       `-1`.
+- [x] **§6.3 / §6.4 i18n des écrans de préparation** : étiquettes de terrain d'une carte et libellé de
+      format, les deux seuls textes de ces écrans construits **hors** du dictionnaire (donnée
+      française en dur dans `maps-registry.ts`, gabarit en dur dans `FormatPicker.ts`). Vérifiés dans
+      les deux langues, avec contre-épreuve que le français ne fuit plus (`screens-i18n.spec`).
+      *Reste hors d'atteinte : un changement de langue **pendant** qu'on est sur l'écran — aucun de ces
+      écrans ne porte de bascule, elle vit au menu principal, dans les Réglages et dans le menu de
+      combat, et en sortir démonte l'écran.*
+- [x] **§8.6 cycle de vie du hook de scène `__ptE2e__`** : le harnais se garde lui-même. L'aperçu de
+      carte étant une `createCombatScene` complète, un hook qui survit à son `dispose()` fait franchir
+      `waitReady()` sur une scène détruite — les tests suivants s'appuient alors sur du vide, sans
+      jamais rougir (`scene-hook-lifecycle.spec`).
 - [ ] **Reste 👁 plateforme (hors d'atteinte d'un navigateur piloté)** :
       - **Barre d'URL réellement masquée + verrouillage paysage** : l'ÉTAT plein écran est 🤖, son
         **effet mobile** ne l'est pas — aucun signal DOM n'expose la barre d'URL, et

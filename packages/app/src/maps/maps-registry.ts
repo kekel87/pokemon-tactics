@@ -4,7 +4,9 @@ export interface MapEntry {
   displayName: { fr: string; en: string };
   description: { fr: string; en: string };
   size: string;
-  tags: string[];
+  /** Étiquettes de terrain, bilingues comme `displayName`/`description` : elles s'affichent
+   *  telles quelles sous le nom de la carte, donc un `string[]` français fuitait en anglais. */
+  tags: { fr: string; en: string }[];
 }
 
 export const MAPS_REGISTRY: MapEntry[] = [
@@ -28,7 +30,10 @@ export const MAPS_REGISTRY: MapEntry[] = [
       en: "Tall grass everywhere, strategic clearings, tree barriers.",
     },
     size: "14×14",
-    tags: ["herbe haute", "dénivelé"],
+    tags: [
+      { fr: "herbe haute", en: "tall grass" },
+      { fr: "dénivelé", en: "elevation" },
+    ],
   },
   {
     id: "cramped-cave",
@@ -39,7 +44,10 @@ export const MAPS_REGISTRY: MapEntry[] = [
       en: "Tight corridors around a central rock block. Ambushes guaranteed.",
     },
     size: "12×12",
-    tags: ["couloirs", "dénivelé"],
+    tags: [
+      { fr: "couloirs", en: "corridors" },
+      { fr: "dénivelé", en: "elevation" },
+    ],
   },
   {
     id: "volcano",
@@ -50,7 +58,11 @@ export const MAPS_REGISTRY: MapEntry[] = [
       en: "Central lava crater, impassable. Burning magma on the slopes.",
     },
     size: "14×14",
-    tags: ["lave", "magma", "dénivelé"],
+    tags: [
+      { fr: "lave", en: "lava" },
+      { fr: "magma", en: "magma" },
+      { fr: "dénivelé", en: "elevation" },
+    ],
   },
   {
     id: "swamp",
@@ -61,7 +73,11 @@ export const MAPS_REGISTRY: MapEntry[] = [
       en: "Poisonous swamp, central pond, dry islands as safe spots.",
     },
     size: "14×14",
-    tags: ["poison", "eau", "herbe haute"],
+    tags: [
+      { fr: "poison", en: "poison" },
+      { fr: "eau", en: "water" },
+      { fr: "herbe haute", en: "tall grass" },
+    ],
   },
   {
     id: "desert",
@@ -72,7 +88,10 @@ export const MAPS_REGISTRY: MapEntry[] = [
       en: "Dunes in each corner, central ruins with line-of-sight pillars.",
     },
     size: "14×14",
-    tags: ["dénivelé", "sable"],
+    tags: [
+      { fr: "dénivelé", en: "elevation" },
+      { fr: "sable", en: "sand" },
+    ],
   },
   {
     id: "naval-arena",
@@ -83,7 +102,10 @@ export const MAPS_REGISTRY: MapEntry[] = [
       en: "Deep water everywhere. Three pontoons linked by bridges. Every fall = KO.",
     },
     size: "14×14",
-    tags: ["eau profonde", "chutes"],
+    tags: [
+      { fr: "eau profonde", en: "deep water" },
+      { fr: "chutes", en: "falls" },
+    ],
   },
   {
     id: "toundra",
@@ -94,7 +116,10 @@ export const MAPS_REGISTRY: MapEntry[] = [
       en: "Open snowy plain. Slippery ice patches, scattered rocks.",
     },
     size: "12×12",
-    tags: ["neige", "glace"],
+    tags: [
+      { fr: "neige", en: "snow" },
+      { fr: "glace", en: "ice" },
+    ],
   },
   {
     id: "le-mur",
@@ -105,6 +130,10 @@ export const MAPS_REGISTRY: MapEntry[] = [
       en: "A pyramidal ice wall towers over the center. Shove your foes into the void: on ice they slide, and from atop the wall the fall is lethal.",
     },
     size: "16×16",
-    tags: ["glace", "dénivelé", "chute"],
+    tags: [
+      { fr: "glace", en: "ice" },
+      { fr: "dénivelé", en: "elevation" },
+      { fr: "chute", en: "fall" },
+    ],
   },
 ];

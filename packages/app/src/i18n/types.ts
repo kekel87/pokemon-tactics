@@ -162,6 +162,7 @@ export interface Translations {
   "teamSelect.player11": string;
   "teamSelect.player12": string;
   "teamSelect.format.label": string;
+  "teamSelect.format.option": string;
   "teamSelect.players.choose": string;
   "teamSelect.controller.human": string;
   "teamSelect.controller.ai": string;

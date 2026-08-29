@@ -102,11 +102,11 @@ export function installE2eSceneHook(
   spriteStates: () => E2eSpriteState[],
   tapTile: (x: number, y: number) => boolean,
   cursorTile: () => { x: number; y: number } | null,
-): void {
+): () => void {
   // biome-ignore lint/style/useNamingConvention: VITE_E2E is an external Vite env var name.
   const e2eFlag = (import.meta as { env?: { VITE_E2E?: string } }).env?.VITE_E2E;
   if (e2eFlag !== "true") {
-    return;
+    return () => undefined;
   }
   const api: E2eSceneApi = Object.freeze({
     isReady,
@@ -189,5 +189,19 @@ export function installE2eSceneHook(
     },
     spriteStates,
   });
-  (globalThis as { __ptE2e__?: E2eSceneApi }).__ptE2e__ = api;
+  const holder = globalThis as { __ptE2e__?: E2eSceneApi };
+  holder.__ptE2e__ = api;
+  // Returns the uninstall so the hook cannot outlive its scene. The map-select preview builds a
+  // full combat scene too (`map-preview-stage.ts`), so without this a disposed preview kept
+  // answering `isReady() === true` and a harness waiting on "scene ready" waited on nothing.
+  // Guarded by identity: a scene created before this one, disposing later, must not unhook the
+  // live surface. The mirror order (an older scene still alive when a newer one disposes) leaves
+  // no hook at all — deliberately not fixed with a stack: it is unreachable through the screen
+  // manager, which disposes before mounting, and it fails safe (`waitReady()` waits instead of
+  // lying, which is the failure this whole change is about).
+  return () => {
+    if (holder.__ptE2e__ === api) {
+      holder.__ptE2e__ = undefined;
+    }
+  };
 }

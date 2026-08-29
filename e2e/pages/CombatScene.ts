@@ -61,6 +61,20 @@ export class CombatScene {
     );
   }
 
+  /**
+   * Le hook `__ptE2e__` est-il installé ? Distinct de {@link isReady}, qui répond `false` aussi bien
+   * pour « pas de hook » que pour « scène pas encore prête ».
+   *
+   * Le hook EST le harnais : il doit désigner la scène VIVANTE. L'écran de choix de carte monte son
+   * aperçu avec `createCombatScene` (`map-preview-stage.ts`), donc il en installe un ; s'il y
+   * survivait, `waitReady()` répondrait « prête » sur une scène détruite et attendrait dans le vide.
+   */
+  hookInstalled(): Promise<boolean> {
+    return this.page.evaluate(
+      () => (globalThis as { __ptE2e__?: unknown }).__ptE2e__ !== undefined,
+    );
+  }
+
   /** Drive a tile click (pilot a turn) — same path as a real canvas pick. */
   clickTile(x: number, y: number): Promise<void> {
     return this.page.evaluate(

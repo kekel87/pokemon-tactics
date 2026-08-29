@@ -1,16 +1,23 @@
 import type { Locator, Page } from "@playwright/test";
 
 /*
- * Localisateurs ANGLAIS pour la séquence d'intro (plan 194).
+ * Localisateurs ANGLAIS des écrans, écrits pour la séquence d'intro (plan 194) puis partagés avec
+ * les specs qui vérifient l'i18n des écrans de préparation — d'où sa place ici et non dans
+ * `e2e/capture/`.
  *
- * Les POMs de `e2e/pages/` codent les libellés en **français** — c'est leur contrat : le projet est
- * FR-first et la suite e2e tourne en `fr-FR`. La vidéo et les captures, elles, visent itch.io et le
- * README, donc l'anglais (demande de l'humain 2026-08-27).
+ * Les autres POMs de `e2e/pages/` codent les libellés en **français** — c'est leur contrat : le
+ * projet est FR-first et la suite e2e tourne en `fr-FR`. La vidéo et les captures, elles, visent
+ * itch.io et le README, donc l'anglais (demande de l'humain 2026-08-27).
  *
  * D'où ce module plutôt qu'une modification des POMs partagés : les toucher ferait basculer 519 tests
  * dans une langue qu'ils n'attendent pas. Les libellés ci-dessous sont **relevés dans
  * `packages/app/src/i18n/locales/en.ts`**, jamais traduits au jugé — « Select this map » et non
  * « Choose this map », « Start ▶ » et non « Launch ».
+ *
+ * ⚠️ Les AJOUTS doivent être des localisateurs par libellé : c'est la raison d'être du fichier.
+ * Les localisateurs par `data-testid` qu'on y trouve encore (`mapDetailName`, `formatSegments`,
+ * les cartes d'équipe…) sont un reliquat de la capture d'intro, et deux doublonnent des POMs de
+ * `screens.ts` — indépendants de la langue, ils auraient leur place là-bas.
  */
 export class EnglishScreens {
   constructor(private readonly page: Page) {}

@@ -42,7 +42,8 @@ export function createMapSelectScreen(navigate: Navigate): Screen<"map-select"> 
     listButtons[selectedIndex]?.scrollIntoView({ block: "nearest" });
     const lang = getLanguage();
     detailsName.textContent = entry.displayName[lang];
-    const tagsText = entry.tags.length > 0 ? `  ·  ${entry.tags.join(", ")}` : "";
+    const tagsText =
+      entry.tags.length > 0 ? `  ·  ${entry.tags.map((tag) => tag[lang]).join(", ")}` : "";
     detailsMeta.textContent = `${entry.size}${tagsText}`;
     detailsDescription.textContent = entry.description[lang];
     preview?.setMap(entry.url);

@@ -239,8 +239,13 @@ test.describe("§8.5 barre de placement sur téléphone paysage", () => {
     await scene.waitReady();
 
     // La barre est bien montée et lisible (le bug observé était un `.pl-roster` à 0×0).
+    //
+    // Budget élargi : `waitReady()` gate la SCÈNE, alors que la barre n'est montée qu'après le
+    // préchargement des atlas de toute l'équipe tirée au sort — une étape asynchrone distincte, sans
+    // signal propre. Les 5 s par défaut suffisent au spec isolé mais pas sous charge parallèle
+    // (observé sur un run de 15 fichiers, 3 workers sous plafond CPU).
     const roster = page.getByRole("heading", { name: /Joueur 1/ });
-    await expect(roster).toBeVisible();
+    await expect(roster).toBeVisible({ timeout: 15_000 });
     await expect(roster).toBeInViewport({ ratio: 1 });
     const phonePortrait = await responsive.metrics(".pl-roster-portrait");
 

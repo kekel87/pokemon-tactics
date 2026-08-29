@@ -1,6 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { expect, test } from "@playwright/test";
+import { EnglishScreens } from "../pages/en-locators";
 import { PadButton, tapPadButton, withFakeGamepad } from "../pages/gamepad";
 import { BeatRecorder, CAPTURE_DIR, resetCaptureDir } from "./beats";
 import {
@@ -27,7 +28,6 @@ import {
   type Tile,
   waitForActionMenu,
 } from "./combat-pad";
-import { EnglishScreens } from "./en-locators";
 import {
   connectCapturePad,
   padActivate,
@@ -552,11 +552,13 @@ test("séquence d'intro", async ({ page }) => {
   /*
    * Le signal « le combat a démarré » est le MENU D'ACTIONS, pas la scène.
    *
-   * `__ptE2e__.isReady()` ne vaut rien ici : l'écran de choix de carte construit son aperçu 3D avec
-   * `createCombatScene`, donc le hook est déjà installé et répond `true` — et il y SURVIT, car
-   * `dispose()` ne le retire pas. La première version de cette étape voyait donc « scène prête »
-   * sans avoir lancé quoi que ce soit : A n'était jamais pressé, et la capture suivante montrait
-   * encore l'écran de sélection d'équipe.
+   * `__ptE2e__.isReady()` répondait « prête » sans qu'aucun combat n'ait démarré : l'écran de choix
+   * de carte construit son aperçu 3D avec `createCombatScene`, donc il installait le hook, et
+   * l'aperçu détruit continuait de répondre `true` faute d'être désinstallé au `dispose()`. A
+   * n'était jamais pressé et la capture suivante montrait encore la sélection d'équipe. Le hook est
+   * désormais retiré avec sa scène (garde de cycle de vie couverte par
+   * `tests/combat/scene-hook-lifecycle.spec.ts`), mais le menu d'actions reste le bon signal ici :
+   * la scène est prête AVANT que le placement automatique n'ait posé les douze Pokemon.
    */
   /*
    * Qui est de quel camp : la capture le DIT au pilote, elle ne le laisse pas deviner. `spriteStates()`

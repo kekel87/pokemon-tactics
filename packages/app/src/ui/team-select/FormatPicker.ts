@@ -1,4 +1,5 @@
 import type { MapFormat } from "@pokemon-tactic/core";
+import { t } from "../../i18n";
 
 export interface FormatOption {
   key: string;
@@ -25,9 +26,15 @@ export function buildFormatKey(format: MapFormat): string {
  * un affrontement déséquilibré, alors que le format est symétrique. Le `×` lève l'ambiguïté du `v`,
  * et la rangée est titrée « Joueurs × Pokemon » — ce qui rend le `J` lisible sans légende séparée.
  * La forme reste courte, condition pour que la rangée de segments tienne sur un téléphone.
+ *
+ * Passe par `t()` : le gabarit était en dur, donc le « J » de Joueurs s'affichait aussi en anglais
+ * (« 2J × 6 » au lieu de « 2P × 6 »). L'initiale suit la locale, comme le titre de la rangée.
  */
 export function formatLabel(format: MapFormat): string {
-  return `${format.teamCount}J × ${format.maxPokemonPerTeam}`;
+  return t("teamSelect.format.option", {
+    players: format.teamCount,
+    pokemon: format.maxPokemonPerTeam,
+  });
 }
 
 /**

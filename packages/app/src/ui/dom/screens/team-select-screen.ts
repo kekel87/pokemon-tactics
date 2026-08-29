@@ -42,7 +42,12 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   let unbindScreenInput: (() => void) | null = null;
   let mapUrl = "";
   let mapName = "";
-  let formatOptions: FormatOption[] = [];
+  /**
+   * Formats de la carte, SANS leur libellé : celui-ci dépend de la langue et se relit au rendu
+   * (`buildHeader`). Le stocker le figerait dans la locale d'entrée d'écran — c'est précisément le
+   * bug corrigé côté `formatLabel`, et le champ n'aurait aucun lecteur.
+   */
+  let formatOptions: Omit<FormatOption, "label">[] = [];
   let formatKey = "";
   let slots: SlotState[] = [];
   let autoPlacement = true;
@@ -140,7 +145,10 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     title.textContent = `${t("teamSelect.title")} — ${mapName}`;
 
     const picker = createFormatPickerElement(
-      formatOptions,
+      // Le libellé est assemblé ici, jamais stocké : il dépend de la langue courante. Garde de
+      // code, pas un cas de recette — aucun écran de préparation ne porte de bascule de langue
+      // aujourd'hui (elle vit au menu principal, dans les Réglages et dans le menu de combat).
+      formatOptions.map((option) => ({ ...option, label: formatLabel(option.format) })),
       formatKey,
       t("teamSelect.format.label"),
       { onChange: onFormatChange },
@@ -229,7 +237,6 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       formatOptions = loaded.map.formats.map((format) => ({
         key: buildFormatKey(format),
         format,
-        label: formatLabel(format),
       }));
       const firstOption = formatOptions[0];
       if (!firstOption) {

@@ -23,7 +23,7 @@ export class MapSelectScreen {
   readonly title: Locator;
   readonly confirm: Locator;
   readonly back: Locator;
-  /** The 8 selectable map rows (left list). */
+  /** The 9 selectable map rows (left list). */
   readonly listItems: Locator;
   /** Right-hand detail panel of the currently-selected map. */
   readonly detailName: Locator;
