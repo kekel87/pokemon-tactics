@@ -74,9 +74,57 @@ n'a joué que **2 tests smoke sur 519**. Pour une release, toujours forcer `pnpm
   **Reste ouvert** : plus rien — wiki (commit wiki `5a7f24a`) et README soldés le 2026-08-29.
 
 
-### 2026-08-29 — Phase 7 PRÉPARÉE (pas démarrée)
+### 2026-08-31 — Phase 7 PLANIFIÉE (pas démarrée)
 
-Décision humaine : **on ne démarre pas la Phase 7, on la prépare.** Passe d'audit de faisabilité sur
+**Deux plans rédigés, statut `draft`, zéro ligne de code écrite.** `docs/plans/195-phase7-multijoueur-telemetrie.md`
+(plan-cadre : Lot A télémétrie, Lot B multijoueur P2P 1v1 en 4 tranches — transport+lobby / combat /
+robustesse / désync —, Lot C réduit à l'écran de victoire enrichi ; après-V1 non engagé : signaling
+maison, relais NAT, FFA à 12) et `docs/plans/196-telemetrie-cloudflare-workers.md` (Lot A détaillé,
+9 étapes). Décisions humaines **#871-878** inscrites (`docs/decisions.md`) : pas de nom de domaine
+(l'API reste sur `*.workers.dev`), Worker dans `packages/telemetry-worker/` (workspace existant, pas
+de script `build`), Lot C réduit à l'écran de victoire (Speed controls et Tutoriel interactif partent
+en Phase 9 — Polish, sans lien avec le réseau ni la télémétrie), **télémétrie sur trois événements** :
+`session` (fréquentation, funnel d'écran et usage de l'interface — crédits, Showdown import/export,
+équipes, contrôles, menu de combat, reprise — compteurs accumulés en mémoire, envoyés en **deltas**
+par `sendBeacon` à `visibilitychange → hidden`, jamais un envoi par clic), `battle_started` (composition
+d'équipe par mode, modèle *usage stats* à la Showdown/Smogon), `battle_ended` (issue, durée, tours,
+K.O. par cause, attaques réellement lancées) ; interrogation de la base depuis le chat via
+`wrangler d1 execute --remote` + script `pnpm stats` (noms FR officiels obligatoires à l'affichage) ;
+plafond réel corrigé à **~25 000 parties/jour** (pas ~50 000, une écriture indexée compte deux lignes) ;
+limitation de débit par le binding `ratelimit` (le WAF gratuit exige un domaine).
+
+**Complété en fin de journée — parité Goatcounter exigée (#879), et ce qu'elle coûte (#878 révisée).**
+Le schéma du matin acceptait de perdre les **visiteurs uniques** : refusé par l'humain, qui veut « a
+minima les mêmes infos que Goatcounter » — navigateurs, systèmes, pays, langues, tailles d'écran,
+référents. Méthode retenue, la sienne : visiteur = `HMAC(secret ⊕ date du jour, IP + agent)` calculé
+dans le Worker, **seul le haché est écrit, jamais l'IP**, et le sel tournant chaque jour rend tout
+suivi inter-jours impossible (uniques par jour, pas sur 30 jours — même limite que Goatcounter). Le
+reste vient de la requête HTTP sans que le client envoie plus : catégories de navigateur/système,
+**pays par `request.cf.country`** (ni base GeoIP ni IP à lire), langue par `Accept-Language`, écran en
+paliers. ⚠️ **Les référents externes resteront invisibles sur itch.io** — dans l'iframe,
+`document.referrer` vaut `html-classic.itch.zone`, le vrai référent étant cross-origin ; c'est
+pourquoi Goatcounter ne les voyait pas non plus, et le tableau du dashboard itch reste la source pour
+cette plateforme. Sur GitHub Pages ils seront captés.
+**Contrepartie juridique, et ce qu'on en fait (#878 finalisée)** : on quitte « article 82 hors
+périmètre » pour la **mesure d'audience exemptée de consentement**, qui a des conditions. **Décision
+humaine : aucun livrable de conformité en V1** — ni bandeau, ni mention de transparence, ni
+interrupteur d'opposition. Motif : on ne le faisait pas davantage avec Goatcounter, et l'échelle ne le
+justifie pas. À noter que **cinq des six conditions sont tenues par la structure du schéma sans rien
+faire** (finalité unique, pas de recoupement, pas de suivi entre sites ni entre jours par le sel
+quotidien, IP jamais écrite) ; seules manquent l'information des personnes et la rétention, à définir.
+🔔 **À revisiter si l'audience devient significative** — points d'accroche déjà en place (écran de
+crédits, `settings-panel.ts`), schéma inchangé le jour où ça arrive.
+
+**Prochaine action concrète, qui bloque tout le reste : créer le compte Cloudflare** (étape 0 du plan
+196, action humaine non déléguable — compte, base D1, jeton d'API de déploiement).
+
+**Reste ouverte (plan 196 § Décisions à trancher avant de coder), Reco : oui, non tranchée par
+l'humain** : un `battle_id` éphémère par partie (sans lui, le taux d'abandon n'existe qu'en global,
+jamais par carte ni par format).
+
+---
+
+**Cadrage initial (2026-08-29).** Décision humaine : **on ne démarre pas la Phase 7, on la prépare.** Passe d'audit de faisabilité sur
 tout ce qui avait été noté depuis avril, **aucune ligne de code écrite**. Résultat : `docs/multiplayer.md`
 réécrit en v2, décisions **#862-870** inscrites, contradictions doc corrigées.
 
@@ -98,16 +146,21 @@ lues et 100k écrites/j, 5 Go ; API Hibernation confirmée pour les WebSockets).
 
 **Prochaine étape quand la phase démarrera** : la **télémétrie** — indépendante du réseau, déjà utile en
 solo (100 % du jeu aujourd'hui), et c'est elle qui fait apparaître le compte Cloudflare dont le reste
-dépendra. Rattachée à la Phase 7 par choix humain (même chantier « serveur »).
+dépendra. Rattachée à la Phase 7 par choix humain (même chantier « serveur »). **Devenue concrète le
+2026-08-31** : plan 196, qui commence par la création du compte Cloudflare (§ ci-dessus).
 
-**Restent à trancher au moment de coder** : durée du chrono et action par défaut (« passer le tour » est
-le choix sûr) · politique de désync partielle en FFA à 12 (viser le 1v1 d'abord) · nom de domaine ou
-non, pour que l'API télémétrie soit en première partie plutôt que sur `*.workers.dev`.
+**Restent à trancher au moment de coder** (détail : plan 195 § Décisions à trancher, plan 196
+§ Décisions à trancher avant de coder) : durée du chrono et action par défaut (« passer le tour » est
+le choix sûr) · politique de désync partielle en FFA à 12 (viser le 1v1 d'abord) · politique de
+reconnexion (délai, ce que voit l'autre pair) · saisie du code de partie à la manette. **Le nom de
+domaine est tranché** (#871, décision du 2026-08-31) : pas de nom de domaine, l'API télémétrie reste
+sur `*.workers.dev`.
 
-- **Trancher la suite : toujours ouvert.** La Phase 7 est cadrée mais pas lancée. Options inchangées,
+- **Trancher la suite : toujours ouvert.** La Phase 7 est planifiée mais pas lancée. Options inchangées,
   aucune imposée :
-  - **Grosse phase** : Phase 6 (Maps & Éditeur 3D), Phase 7 (Multijoueur — **cadrée le 2026-08-29**,
-    prête à démarrer par la télémétrie), Phase 8 (Équilibrage).
+  - **Grosse phase** : Phase 6 (Maps & Éditeur 3D), Phase 7 (Multijoueur — **cadrée le 2026-08-29,
+    planifiée le 2026-08-31** par les plans 195/196, prête à démarrer par la création du compte
+    Cloudflare), Phase 8 (Équilibrage).
 - **Phase 6.5 — Client jouable : contrôles & UI — CLOSE (2026-08-21)**, historique du périmètre conservé ici (plan-cadre `docs/plans/173-phase-client-jouable-ui-controles.md`, phase validée 2026-07-24). Elle était prioritaire avant le Multijoueur (retour réel : injouable mobile → contrôles tactiles) — cette justification est **levée**. **Lot 3 (compléter l'UI)** : ~~nature InfoPanel~~ **livré** (plan 174, 2026-07-24), ~~info terrain/modificateurs~~ **livré** (plan 177, panneau d'info de case, 2026-07-25), ~~preview combat~~ **livré** (plan 175, 2026-07-26), ~~info move~~ **livré** (plan 178, tooltip enrichi + harmonisation des types, 2026-08-03), ~~panneau ennemi + information cachée~~ **livré** (plan 176, information ennemie cachée, 2026-08-05), ~~responsive + dette mobile~~ **livré** (plan 179, 2026-08-06, voir § Fait récemment — validation humaine partielle : dialog de victoire et rendu 4K jamais vus) ~~auras~~ **livré** (plan 182, 2026-08-20, anneaux au sol) → **Lot 3 TERMINÉ**. (l'**a11y** est **abandonnée** le 2026-08-20, décision #752 : support lecteur d'écran non visé, le combat est un canvas ; la gestion du focus part au Lot 2, le HTML sémantique reste une règle vivante justifiée par le harnais e2e, la taille de cible tactile est livrée au plan 179). ~~Lot 1 (contrôles tactiles)~~ **livré** (plan 183, 2026-08-20, validé sur téléphone réel — voir § Fait récemment) : c'était la justification prioritaire de la phase (retour réel « injouable mobile »). **Dette assumée notée par le plan** : le tactile est codé en direct dans `combat-scene.ts`, pas derrière une couche d'actions logiques — le Lot 2 devra le **rapatrier**, pas l'envelopper. ~~**Prochaine étape : Lot 2 (clavier/manette)**~~ **LIVRÉ (plan 184, 2026-08-21, étapes A→E, gate local vert) → la Phase 6.5 « Client jouable » a ses 3 lots clos.** **Validé à la main le 2026-08-21**, scénario par scénario : clavier (AZERTY/Firefox), caméra, menus, choix d'orientation, placement, **manette Switch Pro** filaire, **téléphone réel** (pinch, pan à deux doigts, tap, boussole — la revalidation qu'exigeait l'étape E, le tactile ayant été déplacé sans être réécrit) et **téléphone + manette**. **→ Phase 6.5 CLOSE**, rien ne reste en attente de validation dessus. Deux retours de cette session de test ont été sortis du périmètre en chantiers dédiés (§ Reporté) : **légende de contrôles + écran de remapping** (à faire ensemble) et **refonte de l'écran de sélection d'équipe**. Décisions humaines actées : bindings **fixes** (l'écran de remapping part dans un plan dédié **après**), bindings par **position physique** (`KeyboardEvent.code`, un seul jeu pour AZERTY/QWERTY), navigation des menus par **focus DOM natif**, couche d'actions logiques dans `packages/app/src/input/`, perte d'inspection du plateau assumée pendant `action_menu`/`attack_submenu`, défilement journal/timeline par bindings dédiés. Assets Kenney CC0 — la feuille `input-prompts-pixel-1-bit` est déjà intégrée (chantier séparé « aide visuelle des gestes attendus », § Fait récemment ci-dessous) et sera réutilisée pour les glyphes clavier/manette ; `cursor-pixel-pack` reste non intégré. ⚠️ L'item « tooltips type chart » du plan-cadre 173 est **abandonné** (décision humaine 2026-08-03 : la preview du plan 175 donne déjà le multiplicateur résolu, une table 18×18 serait un mur d'icônes) ; l'« efficacité contextuelle par move » l'est aussi (exigeait une cible de référence collante, trop de design pour un tri grossier), ainsi que les descriptions textuelles de moves (la source décrit le canon Gen 8/9, divergent de nos règles).
 - ~~**Chantier séparé : ressusciter l'échelle `--tb-px` du Team Builder.**~~ **TRANCHÉ (2026-08-27) : on ne la ressuscite PAS, le code mort est purgé.** Décision humaine — rescaler l'écran à toutes les tailles (4K comprise) est un changement visuel qui mérite son propre chantier, pas un effet de bord de nettoyage. Purgé : les ~90 lignes de tokens `@container stage` inertes, le bloc de reflux `@container stage (width < 768px)`, les règles mortes `.ui-screen .tb-root` (rien ne monte cet écran dans la couche écran du stage depuis la suppression de `team-edit-harness.ts` le 2026-07-20), et les **7 indirections `var(--tb-*, Npx)` devenues vestigiales** dans `stat-bar.css`/`set-op.css`/`edit-panels.css` (plus aucun déclarant après la purge — `--tb-stat-col`, `--tb-statbar-h`, `--tb-setop-min-w`, `--tb-mv-col-{num,cat,pow,acc}`). `team-builder-overlay.css` passe de **216 à 78 lignes**, son en-tête raconte désormais l'état réel. Ce qui **reste vivant et intact** : le correctif étroit du plan 179 (tokens compacts `.tb-root` sous `@media (height < 500px), (width < 900px)`) et l'unité de la `type-chip`. Le retour « l'app est trop petite en 4K » reste donc **non traité pour cet écran** — c'est le chantier à ouvrir si tu veux y revenir.
 - ~~**Refaire les 5 visuels README/wiki**~~ **SOLDÉ le 2026-08-29** (reporté depuis le 2026-06-16). Volet **wiki** passé le matin (commit wiki `5a7f24a`), volet **README** l'après-midi. Les captures auto par `visual-tester` avaient été rejetées une fois par l'humain — c'est la séquence d'intro du plan 194 (`pnpm capture:release`) qui a fourni la matière validée. Résultat : `docs/images/` réduit aux **2 fichiers réellement référencés**, les 3 orphelins Phaser purgés.
@@ -246,6 +299,7 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
 
 ## Fait récemment
 
+- 2026-08-31 — **Phase 7 planifiée : plans 195 (cadre) et 196 (Lot A télémétrie détaillé) rédigés, `draft`, zéro code écrit.** Découpage : Lot A télémétrie Cloudflare Workers + D1, Lot B multijoueur P2P 1v1 en 4 tranches (transport+lobby / combat / robustesse / désync), Lot C réduit à l'écran de victoire enrichi (Speed controls et Tutoriel interactif partent en Phase 9 — Polish, décision humaine, sans lien avec le réseau ni la télémétrie). **Télémétrie sur trois événements**, pas deux : `session` (fréquentation, funnel d'écran ET usage de l'interface — crédits ouverts, Showdown import/export réussi ou échoué, équipe créée/sauvegardée/supprimée, écran des contrôles, touche réassignée, menu de combat, reprise de combat, langue, plein écran — compteurs accumulés en mémoire, envoyés en deltas par `sendBeacon` à `visibilitychange → hidden`, jamais un envoi par clic, sous peine de faire tomber le plafond à ~1 600 visites/jour), `battle_started` (composition d'équipe par mode — modèle *usage stats* à la Showdown/Smogon, la composition voyage au démarrage pour ne pas perdre les abandons des statistiques), `battle_ended` (issue, durée, tours, K.O. par cause, attaques réellement lancées). Décisions #871-878 : pas de nom de domaine (`*.workers.dev`), Worker dans `packages/telemetry-worker/`, `pnpm stats` + `wrangler d1 execute --remote` pour interroger la base en chat avec noms FR officiels, plafond réel ~25 000 parties/jour (correction du calcul du 2026-08-29), limitation de débit par le binding `ratelimit`, pas de bandeau de consentement. **Constat technique consigné (pas une décision)** : `analytics.ts` déclare 8 événements, 3 ne sont jamais émis (`game-loaded`, `battle-start`, `battle-end`) depuis le refactor `e0c1a221` du 2026-06-15 — aucun combat n'est mesuré depuis deux mois et demi ; traité par l'étape 3 du plan 196. Seule décision encore ouverte : un `battle_id` éphémère par partie (Reco : oui). Prochaine action concrète, bloquante : créer le compte Cloudflare (étape 0 du plan 196, action humaine).
 - 2026-08-29 — **Phase 7 préparée, pas démarrée (aucun code).** Audit de faisabilité de tout ce qui avait été noté sur le multijoueur depuis le 2026-04-06, vérifications faites sur le web. Deux prémisses mortes trouvées : « information complète, rien à cacher » (faux depuis le fog du plan 176) et « un serveur autoritaire arrivera en Phase 7 » (supposé par #728, #732, #751 et le plan 181). Tranché : **P2P sans backend** (#862), **fog cosmétique en ligne** — le report de #728/#732 est clos par un « non » (#863), **chronomètre local auto-déclarant** dont le timeout produit une *action* et non un message réseau, donc il traverse `exportReplay()` sans cas particulier (#864, #865), **codes de partie préfixés** car le namespace PeerJS Cloud est mondial et partagé (#866), **télémétrie sur Cloudflare Workers + D1** en remplacement de Goatcounter, faussé par les bloqueurs de publicité (#867, #868), ordre d'apparition de Workers (#869), pas de classement compétitif (#870). Supabase écarté (pause à 7 jours ; le cron GitHub censé la contourner est lui-même désactivé après 60 jours sans activité du dépôt). Livrables : `docs/multiplayer.md` réécrit en v2 (306 → 539 lignes), décisions #862-870 + section « Révisé à la préparation de la Phase 7 », Phase 7 de `roadmap.md` recadrée, mentions « WebSocket » de `roadmap.md` et `game-design.md` §14 corrigées — elles contredisaient la décision #209 depuis avril.
 
 - 2026-08-27 — **Trois reliquats soldés avant release : points 4K de l'interface de combat, échelle morte du Team Builder, migration i18n du journal (plan 190).** (1) **4K** — la note de ce fichier était périmée sur un des trois éléments (l'indicateur de tour avait déjà ses paddings scalés depuis le plan 179) ; les deux vrais défauts, pastille d'instruction et dialog de victoire, sont corrigés par une famille de tokens locale `--bc-pad-*`/`--bc-radius-*` sur le `:where(.bc-root, .bc-left-col)` partagé, et le sous-arbre est passé en entier — plus aucun `--spacing-*`/`--radius-*` fixe dans `battle-chrome.css` — le nom de fichier reste anglais, convention du dépôt (décision #849). (2) **Team Builder** — décision humaine de **ne pas** ressusciter `--tb-px` et de purger : `team-builder-overlay.css` 216 → 78 lignes, plus les 7 indirections `var(--tb-*, Npx)` restées sans déclarant dans `stat-bar.css`/`set-op.css`/`edit-panels.css` (décision #850). (3) **i18n du journal** — migration **complète** : le périmètre réel était 157 ternaires + 10 tables = **234 chaînes** dans 1617 lignes, pas les « six familles » annoncées ; `BattleLogFormatter.ts` finit à **0** occurrence de `=== "fr"`, les locales passent de 699 à **933 clés**, sortie octet pour octet identique en FR et EN. Migration **scriptée** (extracteur maison — l'API compilateur JS de TypeScript n'existe plus en TS 7, portage Go), avec contrôles automatiques de parité de paramètres FR/EN et de clés dupliquées ; les chaînes n'ont jamais été retapées, une recopie de mémoire ayant justement inventé « Terrain Herbu » là où le code dit « Champ Herbu ». Test dédoublé par responsabilité (clé+params côté `ui-dom`, phrases FR/EN côté `app` avec les vraies locales) — aucune couverture perdue. Décisions #851-855. **Correction d'accents, avec son contrecoup** : `"action.move"` (« Deplacement ») **et** `"action.undoMove"` (« Annuler deplacement ») étaient non accentués — deux valeurs, pas une (ma première vérification n'avait cherché que la capitale). Ces deux libellés sont des **sélecteurs e2e** : les corriger a fait tomber ~30 tests au premier passage du gate. Répercuté sur **25 occurrences dans 15 fichiers e2e** (dont le POM `CombatScene.ts`) + **12 dans `docs/test-plan.md`**, plus le titre §6.4 de `docs/reflexion-patterns-attaques.md`. Leçon pour la prochaine fois : un libellé d'action de l'interface de combat est du texte **lu par le harnais**, pas seulement par le joueur.
@@ -276,14 +330,14 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
 
 ## Contexte prochaine session
 
-**2026-08-29 — Phase 7 cadrée, pas lancée.** Rien n'est en cours, aucune phase active. Si la Phase 7
-démarre, elle démarre par la **télémétrie** (§ À faire maintenant) — c'est la seule tranche qui n'a
-aucune dépendance réseau, qui sert déjà le solo, et qui fait apparaître le compte Cloudflare dont le
-signaling et le relais NAT dépendront ensuite. Avant de coder quoi que ce soit de réseau, **lire
-`docs/multiplayer.md` en entier** : sa v2 corrige deux prémisses fausses qui ont contaminé quatre
-décisions d'août, et son § « Ce que la révision de 2026-08-29 a changé » dit lesquelles. La Phase 6
-(éditeur voxel) et la Phase 8 (équilibrage, avec son prérequis `loadMapDefinition` Node-compatible)
-restent des options entières — le cadrage de la 7 ne les a pas dépriorisées.
+**2026-08-31 — Phase 7 planifiée, pas lancée.** Rien n'est en cours, aucune phase active. Deux plans
+en `draft`, zéro code écrit : `docs/plans/195-phase7-multijoueur-telemetrie.md` (plan-cadre) et
+`docs/plans/196-telemetrie-cloudflare-workers.md` (Lot A détaillé, 9 étapes). **Si la Phase 7 démarre,
+la première action est humaine et non déléguable : créer le compte Cloudflare** (étape 0 du plan 196 —
+compte, base D1, jeton d'API de déploiement). Avant de coder quoi que ce soit de réseau, **lire
+`docs/multiplayer.md` en entier** (v2, 2026-08-29), puis les deux plans. La Phase 6 (éditeur voxel)
+et la Phase 8 (équilibrage, avec son prérequis `loadMapDefinition` Node-compatible) restent des
+options entières — la planification de la 7 ne les a pas dépriorisées.
 
 **2026-08-26 — Plan 188 TERMINÉ.** Recette humaine 5/5 validée (clavier + manette Switch Pro
 filaire), code-review traitée (helper de focus partagé, boutons du panneau d'édition, résilience du

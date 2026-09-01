@@ -373,8 +373,14 @@ humain/IA) et `battle_ended` (durée, tours, camp vainqueur, Pokemon et moves ut
 les deux donne gratuitement le taux d'abandon. **Une seule requête par partie**, jamais une par move.
 
 **Schéma** : événement brut en JSON, **agrégation à la lecture**. La contrainte serrée est
-100 000 lignes écrites/jour → ~50 000 parties/jour en brut, contre ~2 200 si on éclatait en une ligne
-par Pokemon et par move.
+100 000 lignes écrites/jour.
+
+⚠️ **Chiffre corrigé le 2026-08-31** (vérification web, plan 196) : la doc D1 précise qu'une écriture
+sur une table indexée compte **deux lignes** — celle de la table et celle de l'index. Avec deux
+événements par partie, une partie coûte donc **~4 lignes**, pas 2 : le plafond réel est de l'ordre de
+**~25 000 parties/jour**, non ~50 000 comme écrit ici le 2026-08-29. Sans conséquence pratique à notre
+échelle, et le rapport de force avec un schéma éclaté (une ligne par Pokemon et par move, ~45× plus
+coûteux) reste intact — c'est lui qui justifie le brut.
 
 ⚠️ **RGPD** : en collectant nous-mêmes, nous devenons **responsable du traitement**. Goatcounter
 offrait le sans-cookie et la conformité clés en main (#215) ; ici c'est à faire **exprès** — aucun

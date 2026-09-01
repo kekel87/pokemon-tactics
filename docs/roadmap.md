@@ -405,7 +405,8 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 > **Cadrage arrêté le 2026-08-29** (passe de préparation, aucun code écrit) : **P2P WebRTC via PeerJS,
 > zéro backend** — la mention « WebSocket » qui figurait ici contredisait la décision #209 et était un
 > reliquat d'avant. Détail complet et raisonnement : **[multiplayer.md](multiplayer.md)**, décisions
-> #862-870.
+> #862-870. **Plan-cadre de la phase** : `docs/plans/195-phase7-multijoueur-telemetrie.md` (lots, ordre,
+> risques et décisions ouvertes).
 
 **Ce qui est déjà prêt** : replay et déterminisme verrouillés (plan 181), port de persistance (#751),
 hot-seat N joueurs avec `humanPlayerIds` (plan 188) — le tour distant se greffe là où le tour hot-seat
@@ -423,9 +424,11 @@ existe déjà.
       détection de désync (sérialisation canonique à écrire), chronomètre local auto-déclarant
       (#864, #865), reconnexion par le chemin du plan 181. **Viser le 1v1**, retester le FFA à 12
       ensuite
-- [ ] Écran de victoire enrichi (récap, tours, KO, MVP) — sans dépendance réseau
-- [ ] Speed controls (skip/accélérer animations) — sans dépendance réseau
-- [ ] Tutoriel interactif — sans dépendance réseau
+- [ ] Écran de victoire enrichi (récap, tours, KO, MVP) — sans dépendance réseau, mais **garde sa place ici** :
+      même matière que l'événement `battle_ended` de la télémétrie (durée, tours, camp vainqueur)
+- [→] ~~Speed controls (skip/accélérer animations)~~ **déplacé en Phase 9 — Polish** (2026-08-31, plan-cadre 195) :
+      aucun lien avec le réseau ni la télémétrie, jamais cadré depuis son ajout du 2026-04-02
+- [→] ~~Tutoriel interactif~~ **déplacé en Phase 9 — Polish** (2026-08-31, plan-cadre 195)
 - [ ] *Si besoin, après la V1* : signaling maison et relais de secours NAT sur Durable Object (#869)
 - [→] ~~Support manette~~ **déplacé en Phase 6.5 — Client jouable (Lot 2)** (2026-07-24)
 
@@ -439,6 +442,11 @@ existe déjà.
 - [x] **CSS modulaire Team Builder + `<dialog>` natif + HTML a11y** — livré plan 085 polish 2026-05-18. `packages/renderer/src/styles/` 12 modules (@layer, tokens, `<dialog showModal()>` natif, slot cards `<button>`, aria-label i18n, lazy loading, bugfix `@layer reset`). Rules `.claude/rules/css.md` + `.claude/rules/html.md`. Décisions #321-325.
 - [ ] **Biome HTML/CSS lint** — Biome v2.4 gère HTML formatter + CSS formatter. Étendre `biome.json` : `files.includes` += `**/*.{css,html}`. ~~Activer `linter.rules.a11y.recommended: true`. Optionnel : audit Axe + Lighthouse.~~ **Lint/audit a11y non activés** (2026-08-19, décision #752) — support lecteur d'écran abandonné, `biome.json` garde `a11y.preset: "none"`. Optionnel : `stylelint-plugin-use-baseline`.
 - [ ] Son / Musique
+- [ ] **Speed controls** — configurer la vitesse des déplacements, passer les animations d'attaque.
+      **Rapatrié de la Phase 7** (2026-08-31, plan-cadre 195). ⚠️ Les animations d'attaque n'existent pas
+      encore ; les durées sont des constantes centralisées (`render-babylon/src/constants.ts`) et le point
+      d'accroche UI existe (`settings-panel.ts`, monté par l'écran de paramètres **et** le menu de combat)
+- [ ] **Tutoriel interactif** — **rapatrié de la Phase 7** (2026-08-31, plan-cadre 195)
 - [ ] Décors sur les maps
 - [→] ~~Tooltips type chart (efficacités au hover)~~ **déplacé en Phase 6.5 — Client jouable (Lot 3)** (2026-07-24)
 - [ ] Auto-save localStorage
