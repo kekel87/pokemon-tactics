@@ -101,21 +101,25 @@ Goatcounter retiré du bundle. Décisions **#880-886** (`docs/decisions.md`).
 
 **Ce qui reste, concrètement, dans l'ordre le plus utile** :
 
-1. **Finir une partie jusqu'au bout en production** — aucune ligne `battle_ended` n'existe encore
-   en base. Tant que ce n'est pas fait, tout ce que porte cet événement (attaques réellement
-   lancées, tour et cause des K.O., durée, tours) est **non éprouvé**, malgré les 64+ tests
-   unitaires qui, eux, passent.
-2. **Workflow GitHub de déploiement du Worker** (étape 5 bis, jamais faite) — le déploiement est
-   **manuel** (`wrangler deploy`). Demande un jeton d'API Cloudflare en secret de dépôt —
-   **action humaine**.
-3. **Anomalie `-dirty` non résolue** — les builds de CI estampillent la version `-dirty` alors
-   qu'un checkout est propre. Le build est désormais instrumenté pour dire quels fichiers sont
-   sales, mais aucun run de CI ne l'a encore rapporté. Cause inconnue à ce stade.
-4. **Fermeture du compte Goatcounter** — différée volontairement, il faut d'abord exporter les
-   données historiques. Le plugin Vite est déjà retiré du bundle (vérifié au build) ; ne reste
-   que la fermeture du compte lui-même, action humaine.
-5. **Rejouer la suite e2e complète** — pas rejouée depuis le correctif `pagehide` ; seul le smoke
-   (2 tests) est passé jusqu'ici.
+1. ~~**Finir une partie jusqu'au bout en production**~~ **FAIT le 2026-09-02 à 21h59**, sur itch.io.
+   `battle_ended` vérifié en vrai : `battleId` reliant les deux événements, vainqueur, 13 tours,
+   0,6 min, et le détail par Pokemon — **Bulbizarre**, K.O. au tour 13 par dégâts, une seule
+   **Balle Graine** lancée. Cette ligne illustre au passage pourquoi le champ K.O. existe : sans
+   lui, « une Balle Graine en 13 tours » se lirait comme une attaque peu utilisée, alors que son
+   porteur était tombé.
+2. ~~**Workflow GitHub de déploiement du Worker**~~ **FAIT le 2026-09-02** — jeton posé par
+   l'humain, workflow vert, le Worker se déploie seul sur changement du paquet.
+3. ~~**Anomalie `-dirty`**~~ **RÉSOLUE le 2026-09-02** (décision `#887`) — le fichier de
+   verrouillage ne portait pas l'entrée `packages/telemetry-worker: {}`, donc chaque `pnpm install`
+   la rajoutait et salissait l'arbre. Deux hypothèses testées et réfutées avant celle-là ; c'est
+   l'instrumentation du build qui a tranché en nommant le fichier coupable.
+4. **Fermeture du compte Goatcounter** — export récupéré par l'humain le 2026-09-02
+   (786 hits, 7 avril → 2 septembre). **Décision : on ne réinjecte pas** ces données dans la base —
+   Goatcounter comptait un hit par événement, nous comptons des visites au drapeau `first` : les
+   mélanger rendrait faux tous les chiffres historiques. Ne reste que la fermeture du compte.
+5. ~~**Rejouer la suite e2e complète**~~ **FAIT le 2026-09-02** — 524/524, après installation du
+   binaire `chrome-headless-shell` absent du cache (faux positif documenté dans
+   `.claude/rules/e2e.md`).
 
 ---
 
