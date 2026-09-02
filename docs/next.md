@@ -86,37 +86,36 @@ n'a joué que **2 tests smoke sur 519**. Pour une release, toujours forcer `pnpm
   **Reste ouvert** : plus rien — wiki (commit wiki `5a7f24a`) et README soldés le 2026-08-29.
 
 
-### 2026-09-02 — Phase 7 DÉMARRÉE : Lot A télémétrie, étapes 1-2 livrées
+### 2026-09-02 (fin de journée) — Lot A télémétrie quasi clos, reste à faire
 
-Le Lot A (télémétrie) est lancé. `docs/plans/195-phase7-multijoueur-telemetrie.md` et
-`docs/plans/196-telemetrie-cloudflare-workers.md` passent `draft` → `in-progress`. **Compte
-Cloudflare créé** (`account_id fb522b06e2c2d12bfa3657f32a4fd44a`) et **base D1
-`pokemon-tactics-events` créée** (`database_id f0a2fca1-e016-4537-82c3-2f6cb8d53eca`, région
-WEUR) — étape 0 du plan 196 soldée.
+`docs/plans/196-telemetrie-cloudflare-workers.md` reste `in-progress` : 7 des 9 étapes sont
+faites (0, 1, 2, 3, 4, 5, 7, 8), l'étape 6 (vérification en production) est **partielle**. Détail
+complet, écarts au plan : voir le plan 196 lui-même (§ Étapes 6-8), pas répété ici.
 
-**Étape 1 (spike) FAITE** : le POST `sendBeacon` passe sur itch.io **et** GitHub Pages (origines
-mesurées : `html-classic.itch.zone`, `kekel87.github.io`). **Le diagnostic du plan 114 est
-réfuté** — l'iframe itch n'est pas sandboxée (`sandbox` vaut `null`), le document du jeu ne porte
-aucune CSP ; le blocage historique de Goatcounter venait des bloqueurs de publicité côté
-navigateur des joueurs, pas d'un sandboxing itch. Détail complet dans le plan 196 § Étape 1.
+**Livré** : Worker en ligne (`https://pokemon-tactics-telemetry.kekel87.workers.dev`), collecte
+`POST /e` vérifiée en production sur itch.io et GitHub Pages ; relevé live protégé par mot de
+passe sur `GET /tableau` (fréquentation, audience, entonnoir, cartes, formats, fenêtre 7/30/90/365
+jours) ; `pnpm stats` en terminal pour l'équilibrage Phase 8 (Pokemon, talents, objets tenus,
+attaques, causes de K.O.) ; `src/report.ts` module partagé entre le dashboard et le script ;
+Goatcounter retiré du bundle. Décisions **#880-886** (`docs/decisions.md`).
 
-**Étape 2 (paquet) LIVRÉE** : nouveau paquet `packages/telemetry-worker/` — `wrangler.toml`,
-`migrations/0001_init.sql`, `src/index.ts` (endpoint `POST /e`), `src/validate.ts` et
-`src/visitor.ts` (fonctions pures), 64 tests unitaires. **Pas de script `build`** (un Worker se
-déploie, il ne se build pas — voir `docs/architecture.md`). Dépendances `wrangler` et
-`@cloudflare/workers-types` ajoutées à la racine.
+**Ce qui reste, concrètement, dans l'ordre le plus utile** :
 
-**Décisions #880-881** (`docs/decisions.md`) : `battle_id` éphémère par partie retenu (tranche la
-question laissée ouverte le 2026-08-31, ci-dessous) ; POST `sendBeacon` + garde-fou `Origin`, et
-réfutation du plan 114.
-
-**Pas encore fait, à ne pas annoncer comme fait** : le Worker n'est **pas déployé**, la migration
-n'est **pas appliquée** sur la base distante, le client de jeu n'est **pas câblé** (étapes 3 à 8
-restantes du plan 196), et **Goatcounter est toujours en place** (son retrait est l'étape 7,
-volontairement après vérification en production).
-
-**Prochaine action concrète** : étapes 3-4 du plan 196 — client `telemetry.ts` + câblage des trois
-événements (`session`/`battle_started`/`battle_ended`), puis déploiement.
+1. **Finir une partie jusqu'au bout en production** — aucune ligne `battle_ended` n'existe encore
+   en base. Tant que ce n'est pas fait, tout ce que porte cet événement (attaques réellement
+   lancées, tour et cause des K.O., durée, tours) est **non éprouvé**, malgré les 64+ tests
+   unitaires qui, eux, passent.
+2. **Workflow GitHub de déploiement du Worker** (étape 5 bis, jamais faite) — le déploiement est
+   **manuel** (`wrangler deploy`). Demande un jeton d'API Cloudflare en secret de dépôt —
+   **action humaine**.
+3. **Anomalie `-dirty` non résolue** — les builds de CI estampillent la version `-dirty` alors
+   qu'un checkout est propre. Le build est désormais instrumenté pour dire quels fichiers sont
+   sales, mais aucun run de CI ne l'a encore rapporté. Cause inconnue à ce stade.
+4. **Fermeture du compte Goatcounter** — différée volontairement, il faut d'abord exporter les
+   données historiques. Le plugin Vite est déjà retiré du bundle (vérifié au build) ; ne reste
+   que la fermeture du compte lui-même, action humaine.
+5. **Rejouer la suite e2e complète** — pas rejouée depuis le correctif `pagehide` ; seul le smoke
+   (2 tests) est passé jusqu'ici.
 
 ---
 

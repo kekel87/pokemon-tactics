@@ -280,11 +280,18 @@ pokemon-tactics/
 │   │
 │   └── telemetry-worker/        # Cloudflare Worker de télémétrie (plan 196, Phase 7 Lot A) — HORS JEU,
 │       │                        # ne fait pas partie du client ; pas de script `build` (un Worker se
-│       │                        # déploie, il ne se build pas), déployé sur Cloudflare (*.workers.dev)
+│       │                        # déploie, il ne se build pas), déployé en ligne :
+│       │                        # https://pokemon-tactics-telemetry.kekel87.workers.dev
 │       ├── src/
-│       │   ├── index.ts         # Endpoint unique POST /e
+│       │   ├── worker.ts        # Endpoint de collecte POST /e (ex `index.ts`, renommé étape 6)
+│       │   ├── dashboard.ts     # Route GET /tableau : relevé live protégé par auth HTTP basique
+│       │   │                    # (secret `dashboardPassword` posé par `wrangler secret put`)
+│       │   ├── report.ts        # Agrégation + rendu du rapport — module partagé, importé par
+│       │   │                    # `worker.ts` (dashboard) ET par `scripts/telemetry-stats.ts`
+│       │   │                    # (terminal) : un seul générateur, deux consommateurs
 │       │   ├── validate.ts      # Validation du payload (fonctions pures)
-│       │   └── visitor.ts       # Hash visiteur HMAC(secret ⊕ date du jour, IP+agent) (fonctions pures)
+│       │   ├── visitor.ts       # Hash visiteur HMAC(secret ⊕ date du jour, IP+agent) (fonctions pures)
+│       │   └── testing/mock-telemetry.ts  # Fixtures de test partagées
 │       ├── migrations/
 │       │   └── 0001_init.sql    # Schéma D1 (base distante `pokemon-tactics-events`, région WEUR)
 │       ├── wrangler.toml
@@ -303,7 +310,11 @@ pokemon-tactics/
 │   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
 │   ├── sprite-config.json       # +51 entrées (plan 135) + 1 (Ditto 0132, plan 157) → couvre les 151 Pokemon Gen 1 (complet)
 │   ├── e2e-affected.ts          # Plan 170 : calcule le niveau e2e (smoke/affected/full) depuis le diff, escalade auto conservatrice — `pnpm test:e2e:affected`
-│   └── map-preview.js           # Vite helper pour pnpm dev:map
+│   ├── map-preview.js           # Vite helper pour pnpm dev:map
+│   └── telemetry-stats.ts       # `pnpm stats` : rapport terminal des statistiques d'usage (Pokemon,
+│                                 # talents, objets tenus, attaques, causes de K.O.) — matière
+│                                 # d'équilibrage Phase 8, interroge D1 en remote, réutilise `report.ts`
+│                                 # du Worker (même générateur que le tableau `/tableau`)
 ├── .worktrees/                  # Git worktrees (gitignored) — voir section "Workflow worktrees"
 │   └── <branche-slug>/          # Un répertoire par worktree actif
 ├── docs/

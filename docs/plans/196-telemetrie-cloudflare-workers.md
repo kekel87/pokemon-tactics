@@ -351,7 +351,7 @@ Ce que Goatcounter subissait relevait donc du **navigateur du visiteur** (bloque
 - [ ] **Compteurs d'interface** : un incrément en mémoire à chaque action de la table du § `session`, et l'envoi des deltas sur `visibilitychange → hidden`. Un seul module compteur, appelé depuis les écrans — **pas** un appel réseau par bouton.
 - [ ] Vérifier que le bac à sable et les tests e2e n'émettent rien — **procédure, pas intention** : lancer `pnpm dev:sandbox`, jouer une partie, et confirmer dans l'onglet réseau des devtools **zéro requête vers `/e`**. `platformPrefix()` rend `null` sur `localhost`, c'est ce garde qu'on vérifie.
 
-### Étape 5 — Déploiement — ⏳ manuel FAIT le 2026-09-02, workflow GitHub restant
+### Étape 5 — Déploiement — ✅ manuel FAIT, workflow ÉCRIT le 2026-09-02 (attend le jeton)
 
 **URL de production** : `https://pokemon-tactics-telemetry.kekel87.workers.dev/e`
 
@@ -373,19 +373,51 @@ Le changement casse l'ancienne URL et demande quelques minutes d'émission de ce
   ```
   avec le jeton de l'étape 0 en secret de dépôt. C'est l'étape de déploiement dont la décision #869 disait qu'elle rendrait le signaling et le relais NAT « nettement moins chers » ensuite.
 
-### Étape 6 — Vérifier en production
-- [ ] GitHub Pages : une partie complète → deux lignes en base, préfixe `ghp`.
-- [ ] itch.io : idem, préfixe `itch`. L'étape 1 a déjà levé le doute sur la forme d'envoi ; ici on vérifie la chaîne complète.
-- [ ] Une partie **quittée en cours** → `battle_started` seul, pas de `battle_ended`.
-- [ ] Une partie **reprise** (plan 181) → pas de second `battle_started`.
+- [x] **Écrit le 2026-09-02** : `.github/workflows/telemetry-deploy.yml`. Déclenché sur changement du
+      paquet uniquement (le jeu et le Worker ont des cycles de vie séparés), plus `workflow_dispatch`.
+      Joue **typecheck et tests avant de déployer** — ce paquet porte l'authentification du relevé, on
+      ne le pousse pas à l'aveugle. Commande vérifiée par `--dry-run` : elle résout `wrangler` depuis
+      la racine et lit le bon `wrangler.toml`.
+- [ ] 🔴 **Action humaine restante** : poser le jeton d'API en secret de dépôt
+      (`Settings → Secrets and variables → Actions → New repository secret`), nom
+      **`CLOUDFLARE_API_TOKEN`**, valeur = un jeton créé depuis le modèle « Edit Cloudflare Workers ».
+      Sans lui le workflow échoue au dernier pas ; le déploiement manuel continue de marcher.
+- [x] ⚠️ Les **secrets du Worker** (`visitorSecret`, `dashboardPassword`) ne sont **pas** redéployés
+      par ce workflow : ils vivent chez Cloudflare, posés une fois, et survivent aux déploiements. Les
+      y mettre les ferait transiter par GitHub pour rien.
 
-### Étape 7 — Retirer Goatcounter *(seulement maintenant)*
-- [ ] Supprimer `goatcounterPlugin()` de `packages/app/vite.config.ts` (et son entrée dans `plugins: [...]`).
-- [ ] Vérifier sur `pnpm build` que `dist/index.html` ne contient plus ni `gc.zgo.at` ni `data-goatcounter`.
+### Étape 6 — Vérifier en production — ⏳ PARTIELLE le 2026-09-02
+- [x] GitHub Pages : `battle_started` et `session` reçus, préfixe `ghp`, audience renseignée
+      (`FR`, `Firefox`, `Linux`, `fr`, palier `>=1920`).
+- [x] itch.io : `battle_started` et `session` reçus, préfixe `itch`. **La confirmation qui comptait** :
+      le beacon franchit bien l'iframe, en conditions réelles et non plus par inférence.
+- [x] Une partie **quittée en cours** → `battle_started` seul, pas de `battle_ended`. Vérifié quatre
+      fois plutôt qu'une, faute d'avoir terminé une partie.
+- [x] **Aucune IP, aucun agent brut** dans aucune ligne — la garantie `#879` tenue en production.
+- [ ] 🔴 **Une partie menée jusqu'au bout.** C'est le seul trou qui reste, et il porte tout ce que
+      `battle_ended` transporte : attaques réellement lancées, tour et cause de chaque K.O., durée,
+      nombre de tours. Aucune ligne `battle_ended` n'existe encore en base.
+- [ ] Une partie **reprise** (plan 181) → pas de second `battle_started`.
+- [ ] `document.referrer` sous l'iframe itch — attendu `html-classic.itch.zone`, jamais le vrai
+      référent externe (`#879`). Les lignes `session` d'itch reçues jusqu'ici ne l'ont pas rempli.
+
+**Deux bugs trouvés par cette étape**, tous deux corrigés le jour même :
+1. La ligne `session` d'itch **n'arrivait jamais** alors que `battle_started` passait :
+   `visibilitychange` n'est pas garanti à la fermeture d'un onglet. Correctif : écouter **aussi**
+   `pagehide` (commit `934d110`). Le plan disait « plus fiable que `pagehide` » — c'était vrai, mais
+   ça voulait dire « en plus de », pas « à la place de ».
+2. Les **versions du jeu** étaient comptées par ligne et non par visite.
+
+### Étape 7 — Retirer Goatcounter — ✅ FAIT le 2026-09-02
+- [x] `goatcounterPlugin()` supprimé de `packages/app/vite.config.ts`, avec son entrée dans `plugins` et l'import `IndexHtmlTransformContext` devenu inutile.
+- [x] Vérifié au build : `dist/index.html` ne contient plus ni `gc.zgo.at` ni `data-goatcounter`.
+- [ ] **Fermer le compte Goatcounter** — action humaine, volontairement différée : exporter d'abord
+      (des mois de fréquentation, seule trace de l'audience d'avant), puis `Réglages → Delete Account`.
+      Rien ne presse, le code ne l'appelle plus.
 - [ ] Garder le compte Goatcounter en lecture et **comparer les deux mesures sur au moins trois jours** avant de le fermer. Ce qu'on compare : le même **ordre de grandeur** de visites (les chiffres absolus différeront, Goatcounter étant amputé par les bloqueurs — c'est le motif du remplacement, #867), et une répartition de pays et de navigateurs de forme comparable. Un écart massif inexpliqué est un signal, pas une fatalité.
 - [ ] **Puis** fermer le compte.
 
-### Étape 8 — Lire les statistiques, et pouvoir les demander à Claude en chat
+### Étape 8 — Lire les statistiques — ✅ FAIT le 2026-09-02
 
 **Exigence humaine (2026-08-31)** : « j'aimerais pouvoir te demander des stats ». Claude Code doit donc pouvoir interroger la base lui-même, depuis le dépôt, sans passer par un tableau de bord.
 
@@ -437,6 +469,41 @@ Ce que l'exemption de mesure d'audience demanderait, pour mémoire et pour le jo
 2. ~~**Un `battle_id` éphémère dans le payload ?**~~ **RÉSOLU le 2026-09-02 : oui** (décision humaine `#880`, conforme à la reco). Identifiant **aléatoire tiré à chaque partie**, porté par `battle_started` **et** `battle_ended` pour les relier — on obtient l'abandon **par carte et par format**, au lieu du seul taux global qu'auraient donné deux compteurs comparés. Règle non négociable qui accompagne la décision : **jamais écrit sur le disque, jamais lié à un appareil, jamais réutilisé d'une partie à l'autre**. Un identifiant de partie non persistant ne réidentifie personne ; un identifiant stable, si — c'est la ligne à ne pas franchir, et elle rejoint le sel quotidien de `#879`.
 
 **→ Plus aucune décision ouverte sur ce plan.**
+
+## Ce que l'étape 8 a livré, au-delà du plan
+
+Le plan prévoyait un script de lecture. Il y en a un — `pnpm stats`, rapport terminal — **et** un
+relevé consultable de partout, que le plan n'envisageait pas.
+
+| Livrable | Ce qu'il porte |
+|---|---|
+| `pnpm stats` | rapport terminal, **seul endroit** des statistiques d'usage (Pokemon, talents, objets, attaques, causes de K.O.) — la matière d'équilibrage de la Phase 8 |
+| `GET /tableau` | relevé live protégé par mot de passe : fréquentation, audience, entonnoir, cartes, formats |
+| `packages/telemetry-worker/src/report.ts` | agrégation et rendu **partagés** par les deux — un seul générateur |
+
+**Pourquoi le live est devenu acceptable** alors que le plan l'excluait implicitement : la page ne
+montre plus aucun Pokemon (décision humaine du 2026-09-02), donc elle n'a plus besoin de
+`packages/data` pour ses noms FR. Ne restaient que 9 noms de cartes, recopiés dans le module du
+Worker et **gardés par un test de parité** (`report.test.ts`) qui casse si une carte est ajoutée sans
+mettre la table à jour.
+
+**Décisions de présentation, prises avec l'humain écran en main :**
+- Deux graphiques en **petits multiples** plutôt qu'une courbe à deux séries — c'est ce que fait le
+  tableau de bord d'itch.io, et c'est la réponse au double axe.
+- Le **pas suit la fenêtre** (jour ≤ 31 j, semaine ≤ 120 j, mois au-delà). Un premier jet plafonnait
+  à 90 colonnes et **perdait** les données au-delà : regrouper garde tout, tronquer ment.
+- Entonnoir à **deux taux** (depuis le départ, depuis l'étape précédente), convention PostHog et
+  Amplitude. Avec un seul taux, toutes les étapes se ressemblent et on ne sait pas laquelle réparer.
+- Couleurs de série tirées de la **palette catégorielle validée** du projet, contrôlées par le
+  validateur (séparation CVD ΔE 24,7 en clair, 26,8 en sombre). Le teal du reste de la page échouait
+  le plancher de chroma — il « lit gris » comme marque.
+- Pas de drapeau sur les **langues** : une langue n'est pas un pays, et on ne stocke pas la région.
+
+**Deux bugs trouvés par l'humain à l'usage**, tous deux corrigés :
+1. Les **versions du jeu** étaient comptées par ligne et non par visite — « 8 versions » pour 4 visites.
+2. Le Worker n'a **aucun fuseau local** : il affichait l'heure UTC (deux heures de moins), et rangeait
+   un événement de 00h30 heure de Paris au jour précédent. Corrigé sur `Europe/Paris` — le sel du
+   haché de visiteur, lui, reste en UTC, c'est le mécanisme de confidentialité.
 
 ## Écarts au plan, constatés à l'exécution (2026-09-02)
 
