@@ -1,8 +1,9 @@
 # Plan 196 — Télémétrie de jeu (Cloudflare Workers + D1)
 
-> **Statut** : in-progress
+> **Statut** : done
 > **Créé** : 2026-08-31
 > **Démarré** : 2026-09-02
+> **Terminé** : 2026-09-02
 > **Lot A de la Phase 7** — plan-cadre : `docs/plans/195-phase7-multijoueur-telemetrie.md`
 > **Décisions** : `#867` (Cloudflare plutôt que Goatcounter), `#868` (deux événements par partie, brut + agrégation à la lecture, RGPD par construction), `#870` (usages, pas de scores), `#215` (ce que Goatcounter offrait clés en main).
 > **Tranché le 2026-08-31** : pas de nom de domaine, l'API reste sur `*.workers.dev` · le Worker vit dans `packages/telemetry-worker/`.
@@ -378,7 +379,9 @@ Le changement casse l'ancienne URL et demande quelques minutes d'émission de ce
       Joue **typecheck et tests avant de déployer** — ce paquet porte l'authentification du relevé, on
       ne le pousse pas à l'aveugle. Commande vérifiée par `--dry-run` : elle résout `wrangler` depuis
       la racine et lit le bon `wrangler.toml`.
-- [ ] 🔴 **Action humaine restante** : poser le jeton d'API en secret de dépôt
+- [x] ✅ **Jeton posé et workflow vert le 2026-09-02** : le premier run a échoué faute de secret, le
+      second est passé. Le Worker se déploie désormais seul sur changement du paquet.
+- [x] ~~Action humaine : poser le jeton d'API en secret de dépôt~~
       (`Settings → Secrets and variables → Actions → New repository secret`), nom
       **`CLOUDFLARE_API_TOKEN`**, valeur = un jeton créé depuis le modèle « Edit Cloudflare Workers ».
       Sans lui le workflow échoue au dernier pas ; le déploiement manuel continue de marcher.
@@ -386,7 +389,7 @@ Le changement casse l'ancienne URL et demande quelques minutes d'émission de ce
       par ce workflow : ils vivent chez Cloudflare, posés une fois, et survivent aux déploiements. Les
       y mettre les ferait transiter par GitHub pour rien.
 
-### Étape 6 — Vérifier en production — ⏳ PARTIELLE le 2026-09-02
+### Étape 6 — Vérifier en production — ✅ FAIT le 2026-09-02
 - [x] GitHub Pages : `battle_started` et `session` reçus, préfixe `ghp`, audience renseignée
       (`FR`, `Firefox`, `Linux`, `fr`, palier `>=1920`).
 - [x] itch.io : `battle_started` et `session` reçus, préfixe `itch`. **La confirmation qui comptait** :
@@ -394,9 +397,14 @@ Le changement casse l'ancienne URL et demande quelques minutes d'émission de ce
 - [x] Une partie **quittée en cours** → `battle_started` seul, pas de `battle_ended`. Vérifié quatre
       fois plutôt qu'une, faute d'avoir terminé une partie.
 - [x] **Aucune IP, aucun agent brut** dans aucune ligne — la garantie `#879` tenue en production.
-- [ ] 🔴 **Une partie menée jusqu'au bout.** C'est le seul trou qui reste, et il porte tout ce que
-      `battle_ended` transporte : attaques réellement lancées, tour et cause de chaque K.O., durée,
-      nombre de tours. Aucune ligne `battle_ended` n'existe encore en base.
+- [x] 🔴 **Une partie menée jusqu'au bout** — faite à 21h59 sur itch.io. Tout ce que `battle_ended`
+      transporte est vérifié en vrai : `battleId` reliant les deux événements (`#880`), vainqueur,
+      13 tours, 0,6 min, et le détail par Pokemon — **Bulbizarre**, K.O. au tour 13 par dégâts, une
+      seule **Balle Graine** lancée.
+
+      Cette ligne prouve au passage le raisonnement du plan sur le champ K.O. : sans lui, « une
+      Balle Graine sur 13 tours » se lirait comme une attaque peu utilisée ; avec lui, on lit que
+      son porteur est tombé. Les deux cas seraient indiscernables.
 - [ ] Une partie **reprise** (plan 181) → pas de second `battle_started`.
 - [ ] `document.referrer` sous l'iframe itch — attendu `html-classic.itch.zone`, jamais le vrai
       référent externe (`#879`). Les lignes `session` d'itch reçues jusqu'ici ne l'ont pas rempli.
