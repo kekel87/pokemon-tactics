@@ -1,0 +1,50 @@
+name: Deploy telemetry Worker
+
+# Déclenché UNIQUEMENT quand le paquet du Worker change : le jeu et le Worker ont des cycles de vie
+# séparés, et redéployer la collecte à chaque commit de gameplay n'aurait aucun sens.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/telemetry-worker/**"
+      - ".github/workflows/telemetry-deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Deux déploiements concurrents écraseraient l'un l'autre sans que rien ne le dise.
+concurrency:
+  group: telemetry-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Le Worker n'a pas de script `build` (il ne se build pas, il se déploie), mais il a des tests
+      # et un typecheck — et il porte l'authentification du relevé. On ne déploie pas sans eux.
+      - run: pnpm --filter @pokemon-tactic/telemetry-worker run typecheck
+      - run: pnpm vitest run --project unit packages/telemetry-worker
+
+      # `wrangler deploy` lit `wrangler.toml` : `account_id` et `database_id` y sont en clair (ce sont
+      # des identifiants, pas des clés). SEUL le jeton est un secret, et il ne vit que dans les
+      # secrets du dépôt — jamais dans le dépôt lui-même.
+      #
+      # ⚠️ Les secrets du Worker (`visitorSecret`, `dashboardPassword`) NE SONT PAS redéployés ici :
+      # ils vivent chez Cloudflare, posés une fois par `wrangler secret put`, et survivent aux
+      # déploiements. Les mettre dans ce workflow reviendrait à les faire transiter par GitHub.
+      - run: pnpm --filter @pokemon-tactic/telemetry-worker exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
