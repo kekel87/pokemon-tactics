@@ -18,8 +18,15 @@
  * entre isolats (un Durable Object), disproportionné à notre échelle. Le modèle Plausible est le
  * bon compromis pour une fonction sans état.
  *
- * Autre écart mineur assumé : Plausible et Goatcounter incluent un identifiant de site dans la
- * clé. Inutile ici — un seul Worker, une seule table, jamais deux sites à distinguer.
+ * ⚠️ **Écart assumé, et il n'est PAS mineur** (tranché le 2026-09-02, décision #886) : Plausible et
+ * Goatcounter incluent un identifiant de site dans la clé ; nous **non**. La plateforme n'entre donc
+ * pas dans le calcul, et **la même personne produit le même haché sur itch.io et sur GitHub Pages
+ * le même jour** — on peut la suivre de l'une à l'autre dans la journée. Ce n'est pas un oubli : le
+ * choix a été posé explicitement, la contrepartie étant qu'inclure la plateforme ferait compter
+ * pour DEUX visiteurs uniques quelqu'un qui joue sur les deux le même jour.
+ *
+ * La première rédaction de ce commentaire disait « inutile ici, jamais deux sites à distinguer » —
+ * c'était faux, par confusion entre « une seule base » et « un seul site ». On en a deux.
  */
 
 const encoder = new TextEncoder();

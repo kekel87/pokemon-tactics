@@ -156,7 +156,7 @@ périmètre » pour la **mesure d'audience exemptée de consentement**, qui a de
 humaine : aucun livrable de conformité en V1** — ni bandeau, ni mention de transparence, ni
 interrupteur d'opposition. Motif : on ne le faisait pas davantage avec Goatcounter, et l'échelle ne le
 justifie pas. À noter que **cinq des six conditions sont tenues par la structure du schéma sans rien
-faire** (finalité unique, pas de recoupement, pas de suivi entre sites ni entre jours par le sel
+faire** (finalité unique, pas de recoupement, pas de suivi entre jours par le sel
 quotidien, IP jamais écrite) ; seules manquent l'information des personnes et la rétention, à définir.
 🔔 **À revisiter si l'audience devient significative** — points d'accroche déjà en place (écran de
 crédits, `settings-panel.ts`), schéma inchangé le jour où ça arrive.

@@ -421,7 +421,8 @@ Ce que l'exemption de mesure d'audience demanderait, pour mémoire et pour le jo
 |-----------|----------------------|
 | Finalité strictement limitée à la mesure d'audience | ✅ Aucune autre finalité, aucune transmission à un tiers |
 | Pas de recoupement avec un autre traitement | ✅ La base ne contient qu'elle-même |
-| Pas de suivi entre sites ni entre jours | ✅ Sel quotidien — le haché change chaque jour, y compris pour nous |
+| Pas de suivi entre **jours** | ✅ Sel quotidien — le haché change chaque jour, y compris pour nous |
+| Pas de suivi entre **sites** | ⚠️ **Non tenu, et assumé** (décision `#886`) : la plateforme n'entre pas dans le calcul du haché, donc la même personne produit le même identifiant sur itch.io et sur GitHub Pages le même jour. Inclure la plateforme — ce que font Plausible et Goatcounter — ferait compter pour deux uniques quelqu'un qui joue sur les deux. Choix humain du 2026-09-02 |
 | IP non conservée | ✅ Entrée de calcul en mémoire, jamais écrite |
 | Durée de conservation limitée | ⚠️ Rétention à définir (13 mois, référence CNIL) — voir la purge du § plan gratuit |
 | Information et droit d'opposition | ❌ **Non fournis, assumé** |
