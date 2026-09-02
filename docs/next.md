@@ -18,6 +18,29 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
+### Dans quelques jours — croiser nos compteurs avec le tableau de bord itch.io
+
+Décidé le 2026-09-02. C'est la seule **validation externe** dont on dispose : itch compte côté
+serveur, nous côté client, donc un accord des ordres de grandeur prouverait la chaîne mieux que
+n'importe quel test.
+
+**La bonne comparaison** : « Browser Plays » d'itch ↔ nos **visites** sur la plateforme `itch`
+(`/tableau`, ou `pnpm stats`). Surtout PAS « Views », qui compte les gens ayant vu la page du jeu
+sans jamais cliquer sur « Run game » — chez nous ils n'existent pas, le code ne tourne pas.
+
+**Écarts attendus, qui ne sont PAS des pannes :**
+- **Nous serons systématiquement en dessous.** Les bloqueurs de publicité coupent notre envoi et pas
+  le comptage serveur d'itch — c'est exactement ce qui aveuglait Goatcounter (décision `#881`, mesuré).
+  Un déficit de 10 à 30 % est normal ; c'est même une mesure indirecte du taux de blocage.
+- **Les journées peuvent ne pas coïncider.** Notre découpage est sur `Europe/Paris` ; vérifier sur
+  quel fuseau itch affiche les siennes avant de conclure à un décalage.
+- **Une visite ≠ une partie.** Nos « parties lancées » n'ont pas d'équivalent chez itch.
+
+🔴 **Ce qui serait un vrai signal d'alarme** : nos visites **supérieures** à leurs Browser Plays
+(impossible sans double comptage — le drapeau `first` serait en cause), ou un rapport qui **s'effondre
+brutalement** d'un jour à l'autre sans changement de trafic (signe que la collecte casse).
+
+
 ### 2026-09-02 (fin de journée) — question ouverte héritée de la session
 
 **Classement compétitif : prémisse à rouvrir ou pas.** En validant la télémétrie, l'humain a évoqué
