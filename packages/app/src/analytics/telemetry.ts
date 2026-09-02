@@ -290,8 +290,22 @@ export function flushSession(): void {
 }
 
 /**
- * Installe l'envoi groupé. `visibilitychange → hidden` est le cas d'usage canonique de
- * `sendBeacon` — plus fiable que `pagehide`, notoirement capricieux sur iOS.
+ * Installe l'envoi groupé, sur **les deux** événements de fin de vie de page.
+ *
+ * 🔴 `visibilitychange` NE SUFFIT PAS, et ça s'est vu en production le 2026-09-02 : une visite sur
+ * itch.io a bien produit son `battle_started`, mais **jamais** sa ligne `session`. La documentation
+ * est formelle — `visibilitychange` n'est pas garanti à la **fermeture** d'un onglet (et WebKit a un
+ * bug de longue date où il ne part pas du tout, que Wikipédia contourne de cette façon). Le patron
+ * recommandé est donc :
+ *   - `visibilitychange → hidden` pour la mise en **arrière-plan** (changement d'onglet, minimisation) ;
+ *   - `pagehide` pour la **fermeture** et la navigation sortante, qui est le cas qu'on a raté.
+ *
+ * Le plan 196 disait « plus fiable que `pagehide` » — c'était vrai, mais ça voulait dire « en plus
+ * de », pas « à la place de ».
+ *
+ * **Le double déclenchement est inoffensif par construction** : le premier envoi vide les compteurs
+ * et consomme `first`, donc le second n'a plus rien à dire et `flushSession()` ne part pas. Pas
+ * besoin d'un drapeau « déjà envoyé » — ce sont les deltas qui rendent l'opération idempotente.
  */
 export function initTelemetry(): void {
   if (listenerInstalled) {
@@ -303,6 +317,7 @@ export function initTelemetry(): void {
       flushSession();
     }
   });
+  window.addEventListener("pagehide", () => flushSession());
 }
 
 /**
