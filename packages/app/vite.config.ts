@@ -37,10 +37,24 @@ function resolveDevPort(): number | undefined {
 
 function resolveAppVersion(): string {
   try {
-    return execSync("git describe --tags --always --dirty", {
+    const version = execSync("git describe --tags --always --dirty", {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();
+    /*
+     * Un build de CI part d'un `checkout` propre : `-dirty` y est donc anormal, et pollue
+     * l'étiquette de version qui sert justement à ne pas mélanger deux versions du jeu (#748).
+     * Observé le 2026-09-02 sur les lignes de télémétrie de production, cause inconnue — alors on
+     * dit CE QUI est sale plutôt que de deviner. Un build qui estampille `-dirty` doit se justifier.
+     */
+    if (version.endsWith("-dirty")) {
+      const changed = execSync("git status --porcelain", {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim();
+      console.warn(`[version] arbre sale, version estampillée ${version}. Fichiers :\n${changed}`);
+    }
+    return version;
   } catch {
     return "dev";
   }
