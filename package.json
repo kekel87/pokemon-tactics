@@ -35,6 +35,7 @@
     "data:update:skip-fetch": "pnpm --filter @pokemon-tactic/data run data:update:skip-fetch",
     "data:update:fetch-only": "pnpm --filter @pokemon-tactic/data run data:update:fetch-only",
     "data:diff": "pnpm --filter @pokemon-tactic/data run data:diff",
+    "stats": "tsx scripts/telemetry-stats.ts",
     "capture:intro": "playwright test --config=playwright.capture.config.ts",
     "capture:video": "tsx scripts/build-intro-video.ts",
     "capture:trailer": "tsx scripts/build-intro-trailer.ts",

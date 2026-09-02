@@ -20,6 +20,7 @@
     "build-intro-video.ts",
     "build-intro-trailer.ts",
     "build-intro-gifs.ts",
-    "build-release-assets.ts"
+    "build-release-assets.ts",
+    "telemetry-stats.ts"
   ]
 }

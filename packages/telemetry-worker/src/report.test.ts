@@ -1,0 +1,195 @@
+import { describe, expect, it } from "vitest";
+import { MAPS_REGISTRY } from "../../app/src/maps/maps-registry";
+import { buildReport, countryLabel, languageLabel, MAP_NAMES } from "./report";
+import { createEventRow as rowOf } from "./testing/mock-telemetry";
+
+describe("parité des noms de cartes", () => {
+  it("🔴 couvre exactement les cartes du registre du jeu", () => {
+    expect(Object.keys(MAP_NAMES).sort()).toEqual(MAPS_REGISTRY.map((entry) => entry.id).sort());
+  });
+
+  it("porte le même nom FR que le registre pour chaque carte", () => {
+    for (const entry of MAPS_REGISTRY) {
+      expect(MAP_NAMES[entry.id]).toBe(entry.displayName.fr);
+    }
+  });
+});
+
+describe("buildReport", () => {
+  it("compte les visites au drapeau first et non au nombre de lignes", () => {
+    const report = buildReport(
+      [
+        rowOf({ id: 1, payload: { first: true, screens: { "main-menu": 1 } } }),
+        rowOf({ id: 2, payload: { screens: { credits: 1 } } }),
+        rowOf({ id: 3, payload: { screens: { credits: 1 } } }),
+      ],
+      30,
+    );
+
+    expect(report.rows).toBe(3);
+    expect(report.visits).toBe(1);
+  });
+
+  it("additionne les deltas de compteurs venus de plusieurs lignes", () => {
+    const report = buildReport(
+      [
+        rowOf({ id: 1, payload: { first: true, screens: { "main-menu": 2 } } }),
+        rowOf({ id: 2, payload: { screens: { "main-menu": 3 } } }),
+      ],
+      30,
+    );
+
+    expect(report.screens.get("main-menu")).toBe(5);
+  });
+
+  it("ne compte un visiteur qu'une fois, quel que soit le nombre de ses lignes", () => {
+    const report = buildReport(
+      [
+        rowOf({ id: 1, visitor: "abc", payload: { first: true } }),
+        rowOf({ id: 2, visitor: "abc", payload: {} }),
+        rowOf({ id: 3, visitor: "def", payload: { first: true } }),
+      ],
+      30,
+    );
+
+    expect(report.uniqueVisitors).toBe(2);
+  });
+
+  it("regroupe les navigateurs sans leur version", () => {
+    const report = buildReport(
+      [
+        rowOf({ id: 1, browser: "Firefox 154", payload: { first: true } }),
+        rowOf({ id: 2, browser: "Firefox 153", payload: {} }),
+      ],
+      30,
+    );
+
+    expect(report.browsers.get("Firefox")).toBe(2);
+    expect(report.browsers.has("Firefox 154")).toBe(false);
+  });
+
+  it("tire le taux d'abandon de l'écart entre parties lancées et terminées", () => {
+    const report = buildReport(
+      [
+        rowOf({ id: 1, kind: "battle_started", payload: { map: "the-wall", teams: [] } }),
+        rowOf({ id: 2, kind: "battle_started", payload: { map: "forest", teams: [] } }),
+        rowOf({
+          id: 3,
+          kind: "battle_ended",
+          payload: { turns: 10, durationMs: 60_000, outcomes: [] },
+        }),
+      ],
+      30,
+    );
+
+    expect(report.battlesStarted).toBe(2);
+    expect(report.battlesEnded).toBe(1);
+    expect(report.abandonRate).toBeCloseTo(0.5);
+  });
+
+  it("ne relève la composition que des équipes bâties à la main", () => {
+    const report = buildReport(
+      [
+        rowOf({
+          id: 1,
+          kind: "battle_started",
+          payload: {
+            map: "forest",
+            teams: [
+              {
+                side: 0,
+                source: "human-built",
+                members: [
+                  {
+                    species: "venusaur",
+                    ability: "chlorophyll",
+                    item: "life-orb",
+                    moves: ["growth"],
+                  },
+                ],
+              },
+              { side: 1, source: "ai-random" },
+            ],
+          },
+        }),
+      ],
+      30,
+    );
+
+    expect(report.speciesUsage.get("venusaur")).toBe(1);
+    expect(report.teamSources.get("ai-random")).toBe(1);
+    expect(report.speciesUsage.size).toBe(1);
+  });
+
+  it("rend un axe de dates continu, jours creux compris", () => {
+    const report = buildReport([rowOf({ id: 1, payload: { first: true } })], 7);
+
+    expect(report.daily).toHaveLength(7);
+    expect(report.daily.at(-1)?.visits).toBe(1);
+    expect(report.daily[0]?.visits).toBe(0);
+  });
+
+  it("laisse les moyennes vides quand aucune partie ne s'est terminée", () => {
+    const report = buildReport(
+      [rowOf({ id: 1, kind: "battle_started", payload: { map: "forest", teams: [] } })],
+      30,
+    );
+
+    expect(report.averageTurns).toBe(null);
+    expect(report.averageDurationMs).toBe(null);
+    expect(report.abandonRate).toBe(1);
+  });
+});
+
+describe("libellés d'audience", () => {
+  it.each([
+    ["FR", "🇫🇷 France"],
+    ["US", "🇺🇸 États-Unis"],
+    ["DE", "🇩🇪 Allemagne"],
+  ])("nomme le pays %s en français avec son drapeau", (code, expected) => {
+    expect(countryLabel(code)).toBe(expected);
+  });
+
+  it.each([
+    ["T1", "Réseau Tor"],
+    ["XX", "Origine inconnue"],
+  ])("traduit le code non géographique %s", (code, expected) => {
+    expect(countryLabel(code)).toBe(expected);
+  });
+
+  it("retombe sur le code brut plutôt que d'échouer sur un code inconnu", () => {
+    expect(countryLabel("ZZZ")).toBe("ZZZ");
+  });
+
+  it.each([
+    ["fr", "français"],
+    ["en", "anglais"],
+    ["ja", "japonais"],
+  ])("nomme la langue %s en français", (tag, expected) => {
+    expect(languageLabel(tag)).toBe(expected);
+  });
+
+  it("ne colle PAS de drapeau à une langue, qui n'est pas un pays", () => {
+    expect(languageLabel("fr")).not.toMatch(/\p{Regional_Indicator}/u);
+  });
+});
+
+describe("versions du jeu", () => {
+  it("🔴 se comptent par VISITE et non par ligne", () => {
+    const report = buildReport(
+      [
+        rowOf({ id: 1, build: "v1", payload: { first: true } }),
+        rowOf({ id: 2, build: "v1", payload: { screens: { credits: 1 } } }),
+        rowOf({
+          id: 3,
+          build: "v1",
+          kind: "battle_started",
+          payload: { map: "forest", teams: [] },
+        }),
+      ],
+      30,
+    );
+
+    expect(report.builds.get("v1")).toBe(1);
+  });
+});

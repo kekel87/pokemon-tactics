@@ -9,6 +9,7 @@
  * d'aucun paquet du jeu.
  */
 
+import type { EventRow } from "../report";
 import type { Env } from "../worker";
 
 /** Les deux origines mesurées au spike de l'étape 1 (décision #881). */
@@ -136,4 +137,50 @@ export function createTelemetryEnv(options: { failWrite?: Error; secret?: string
 /** Faux limiteur qui refuse tout, pour le chemin 429. */
 export function createSaturatedRateLimiter(): Env["rateLimiter"] {
   return { limit: () => Promise.resolve({ success: false }) } as unknown as Env["rateLimiter"];
+}
+
+/**
+ * Ligne de base de la table `events`, telle que la lit `buildReport`. Le payload est passé en objet
+ * et sérialisé ici : c'est la forme qu'un test veut écrire, et la colonne est du TEXT en base.
+ */
+export function createEventRow(
+  overrides: Omit<Partial<EventRow>, "payload"> & { payload: unknown },
+): EventRow {
+  const { payload, ...rest } = overrides;
+  return {
+    id: 1,
+    receivedAt: Date.now(),
+    kind: "session",
+    build: "v2026.9.1",
+    platform: "ghp",
+    visitor: null,
+    country: null,
+    browser: null,
+    os: null,
+    lang: null,
+    ...rest,
+    payload: JSON.stringify(payload),
+  };
+}
+
+/**
+ * Faux `D1Database` en LECTURE, pour la route du relevé. Retient les fenêtres demandées (`windows`)
+ * afin qu'un test puisse vérifier le plafonnement sans inspecter le SQL.
+ */
+export function createReadableDatabase(rows: EventRow[]): {
+  database: D1Database;
+  windows: number[];
+} {
+  const windows: number[] = [];
+  const database = {
+    prepare() {
+      return {
+        bind(since: number) {
+          windows.push(since);
+          return { all: () => Promise.resolve({ results: rows }) };
+        },
+      };
+    },
+  } as unknown as D1Database;
+  return { database, windows };
 }
