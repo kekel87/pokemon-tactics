@@ -103,6 +103,23 @@ l'ancien s'éteint et les 524 tests tombent d'un bloc en `net::ERR_CONNECTION_RE
 - Ne pas lire le résultat à travers `| tail -N` : le tampon avale tout si le run est tué. Rediriger
   vers un fichier (`> run.log 2>&1`) et lire le fichier.
 
+## Binaire Playwright manquant (piège vécu — 2026-09-02)
+
+Le projet `visual` tourne sur **`chrome-headless-shell`**, une variante distincte du Chromium que
+les autres projets utilisent. Une mise à jour de Playwright peut la laisser absente du cache : les
+519 autres tests passent, et **les 5 du projet `visual` échouent en bloc** sur
+`Executable doesn't exist at ~/.cache/ms-playwright/chromium_headless_shell-<n>/…`.
+
+- **Signature à reconnaître** : *tous* les tests d'un **seul projet** tombent, avec un message de
+  lancement de navigateur — jamais une différence de capture.
+- **Remède** : `pnpm exec playwright install chromium-headless-shell` (~115 Mo dans le cache
+  utilisateur, aucune installation globale). Puis rejouer **le seul projet** :
+  `npx playwright test --project=visual`, pas les 524.
+- 🔴 **Ne JAMAIS répondre par `--update-snapshots`.** Le réflexe est tentant quand des tests visuels
+  échouent en masse ; ici il aurait réécrit cinq références saines sur la foi d'un faux positif, et
+  la prochaine vraie régression visuelle serait passée inaperçue. Un échec de capture montre une
+  **différence d'image** ; celui-ci montre un binaire absent — deux choses sans rapport.
+
 ## Attente (anti-flaky)
 
 - **Bannir `page.waitForTimeout(ms)`**.
