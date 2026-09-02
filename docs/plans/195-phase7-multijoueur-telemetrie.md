@@ -88,6 +88,23 @@ Signaling maison sur Durable Object (~100 lignes, namespace à nous, plus de dé
 
 ## Risques identifiés — et la position tenue sur chacun
 
+> 🔔 **Risque ajouté le 2026-09-02 : `*.workers.dev` sur une liste de filtrage emporterait la mise en
+> relation.** Les bloqueurs travaillent sur des **motifs d'URL**, pas sur « tout appel tiers » — notre
+> domaine n'y est pas aujourd'hui. Mais le précédent existe : EasyList a ajouté `trycloudflare.com`,
+> bloquant d'un coup tous les tunnels Cloudflare. Or la décision `#869` met le serveur de mise en
+> relation du Lot B **sur le même domaine** que la télémétrie.
+>
+> **Atténuation déjà en place, gratuite** : la télémétrie sert de **canari**. L'écart entre nos
+> compteurs et les « Browser Plays » du tableau de bord itch.io mesure en continu si notre domaine
+> Cloudflare atteint les joueurs. Un rapport qui s'effondre sans changement de trafic annonce que le
+> Lot B perdrait les mêmes joueurs — bien avant qu'une ligne de multijoueur soit écrite.
+>
+> **Nuance qui limite la casse** : une fois les deux pairs connectés, le trafic de jeu ne passe plus
+> par nous (`#862`, pair-à-pair). Un domaine bloqué casserait la **mise en relation**, pas la partie
+> en cours. Et contrairement à la télémétrie, un multijoueur cassé se **voit** — le joueur réessaie,
+> change de navigateur, se plaint ; c'est aussi pourquoi les listes sont agressives sur l'analytique
+> et prudentes sur ce qui casse des sites.
+
 | Risque | Position |
 |--------|----------|
 | **NAT symétrique / CGNAT mobile** : certaines paires ne se connecteront jamais en direct. | Assumé en V1 : message clair, « réessayez depuis une connexion fixe ». Le vrai correctif est le relais de secours, après la V1. L'IPv6 (>50 % mondial en mars 2026, France en tête) joue pour nous. |
