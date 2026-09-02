@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { MAPS_REGISTRY } from "../../app/src/maps/maps-registry";
-import { buildReport, countryLabel, languageLabel, MAP_NAMES } from "./report";
+import {
+  buildReport,
+  countryLabel,
+  Granularity,
+  granularityFor,
+  languageLabel,
+  MAP_NAMES,
+} from "./report";
 import { createEventRow as rowOf } from "./testing/mock-telemetry";
 
 describe("parité des noms de cartes", () => {
@@ -121,12 +128,12 @@ describe("buildReport", () => {
     expect(report.speciesUsage.size).toBe(1);
   });
 
-  it("rend un axe de dates continu, jours creux compris", () => {
+  it("rend un axe continu, périodes creuses comprises", () => {
     const report = buildReport([rowOf({ id: 1, payload: { first: true } })], 7);
 
-    expect(report.daily).toHaveLength(7);
-    expect(report.daily.at(-1)?.visits).toBe(1);
-    expect(report.daily[0]?.visits).toBe(0);
+    expect(report.series).toHaveLength(7);
+    expect(report.series.at(-1)?.visits).toBe(1);
+    expect(report.series[0]?.visits).toBe(0);
   });
 
   it("laisse les moyennes vides quand aucune partie ne s'est terminée", () => {
@@ -191,5 +198,75 @@ describe("versions du jeu", () => {
     );
 
     expect(report.builds.get("v1")).toBe(1);
+  });
+});
+
+describe("fuseau d'affichage", () => {
+  function utcDayOf(timestamp: number): string {
+    return new Date(timestamp).toISOString().slice(0, 10);
+  }
+
+  function bucketOf(timestamp: number): string | undefined {
+    const report = buildReport(
+      [rowOf({ id: 1, receivedAt: timestamp, payload: { first: true } })],
+      30,
+    );
+    return report.series.find((point) => point.visits > 0)?.key;
+  }
+
+  it("🔴 range 22h30 UTC au jour SUIVANT — l'heure de Paris est en avance", () => {
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    const stamp = Date.parse(`${yesterday}T22:30:00Z`);
+    const nextDay = utcDayOf(stamp + 86_400_000);
+
+    expect(bucketOf(stamp)).toBe(nextDay);
+  });
+
+  it("range 10h UTC au même jour", () => {
+    const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    const stamp = Date.parse(`${yesterday}T10:00:00Z`);
+
+    expect(bucketOf(stamp)).toBe(utcDayOf(stamp));
+  });
+});
+
+describe("pas de la série", () => {
+  it.each([
+    [7, Granularity.Day],
+    [30, Granularity.Day],
+    [31, Granularity.Day],
+    [32, Granularity.Week],
+    [90, Granularity.Week],
+    [120, Granularity.Week],
+    [121, Granularity.Month],
+    [365, Granularity.Month],
+  ])("passe une fenêtre de %s jours au pas %s", (days, expected) => {
+    expect(granularityFor(days)).toBe(expected);
+  });
+
+  it("🔴 regroupe par semaine au lieu de perdre les données au-delà de 90 colonnes", () => {
+    const report = buildReport([], 90);
+
+    expect(report.granularity).toBe(Granularity.Week);
+    expect(report.series.length).toBeLessThanOrEqual(14);
+    expect(report.series.length).toBeGreaterThan(10);
+  });
+
+  it("regroupe par mois sur une année, sans tronquer la fenêtre", () => {
+    const report = buildReport([], 365);
+
+    expect(report.granularity).toBe(Granularity.Month);
+    expect(report.series.length).toBeLessThanOrEqual(13);
+    expect(report.series.length).toBeGreaterThan(11);
+  });
+
+  it("ramène une semaine à son lundi", () => {
+    const wednesday = Date.parse("2026-09-02T12:00:00Z");
+    const report = buildReport(
+      [rowOf({ id: 1, receivedAt: wednesday, payload: { first: true } })],
+      90,
+    );
+
+    expect(report.series.find((point) => point.visits > 0)?.key).toBe("2026-08-31");
   });
 });

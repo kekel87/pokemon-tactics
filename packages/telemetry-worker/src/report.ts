@@ -90,6 +90,77 @@ export interface BattleEndedPayload {
   outcomes: MemberOutcomePayload[];
 }
 
+/**
+ * Fuseau d'affichage. Un Worker n'a **aucun fuseau local** : il tourne en UTC, donc `toLocaleString`
+ * y rendait deux heures de moins que l'heure française (relevé le 2026-09-02 : « 18:27 » pour 20h27).
+ * Le découpage par jour souffrait du même biais — un événement à 00h30 heure de Paris comptait pour
+ * la veille.
+ *
+ * ⚠️ Le sel du haché de visiteur reste en **UTC** (`dayStamp`, `visitor.ts`) et ne doit PAS suivre ce
+ * fuseau : c'est le mécanisme de confidentialité, il doit tourner à heure fixe indépendamment de qui
+ * regarde le relevé.
+ */
+const TIME_ZONE = "Europe/Paris";
+
+/** Fenêtres proposées en un clic. Le graphique journalier plafonne à 90 colonnes. */
+const RANGES: readonly number[] = [7, 30, 90, 365];
+
+/** `sv-SE` rend un format déjà ISO (`2026-09-02`), sans avoir à recomposer les morceaux. */
+const DAY_FORMAT = new Intl.DateTimeFormat("sv-SE", { timeZone: TIME_ZONE });
+const STAMP_FORMAT = new Intl.DateTimeFormat("fr-FR", {
+  timeZone: TIME_ZONE,
+  dateStyle: "short",
+  timeStyle: "short",
+});
+
+/** Jour ISO dans le fuseau d'affichage : `2026-09-02`. */
+function dayKeyOf(timestamp: number): string {
+  return DAY_FORMAT.format(new Date(timestamp));
+}
+
+/**
+ * Clé de seau selon le pas. La semaine est ramenée à son **lundi**, le mois à son premier jour.
+ *
+ * L'arithmétique se fait sur la date du calendrier de Paris traitée comme une date UTC : c'est sans
+ * risque puisque la valeur ne sert que de clé de regroupement, jamais d'instant.
+ */
+function bucketKeyOf(timestamp: number, granularity: Granularity): string {
+  const day = dayKeyOf(timestamp);
+  if (granularity === Granularity.Day) {
+    return day;
+  }
+  if (granularity === Granularity.Month) {
+    return `${day.slice(0, 7)}-01`;
+  }
+  const date = new Date(`${day}T00:00:00Z`);
+  // `getUTCDay()` rend 0 le dimanche : on le ramène à 6 pour que la semaine commence le lundi.
+  const offset = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - offset);
+  return date.toISOString().slice(0, 10);
+}
+
+const MONTH_FORMAT = new Intl.DateTimeFormat("fr-FR", { timeZone: "UTC", month: "short" });
+
+/** Étiquette d'axe : `02/09` au jour et à la semaine, `sept. 26` au mois. */
+function bucketLabelOf(key: string, granularity: Granularity): string {
+  const [year, month, day] = key.split("-");
+  if (granularity === Granularity.Month) {
+    return `${MONTH_FORMAT.format(new Date(`${key}T00:00:00Z`))} ${year?.slice(2) ?? ""}`;
+  }
+  return `${day}/${month}`;
+}
+
+/** Nombre de seaux à afficher pour une fenêtre donnée. */
+function bucketCountFor(days: number, granularity: Granularity): number {
+  if (granularity === Granularity.Day) {
+    return days;
+  }
+  if (granularity === Granularity.Week) {
+    return Math.ceil(days / 7);
+  }
+  return Math.ceil(days / 30);
+}
+
 export type Tally = Map<string, number>;
 
 export function bump(tally: Tally, key: string, by = 1): void {
@@ -134,12 +205,45 @@ export interface Report {
   averageDurationMs: number | null;
   /** Versions du jeu, comptées par VISITE. Rapport terminal uniquement. */
   builds: Tally;
-  /** Une entrée par jour ayant produit au moins un événement, du plus ancien au plus récent. */
-  daily: DailyPoint[];
+  /** Série temporelle continue, au pas de `granularity` — trous compris. */
+  series: SeriesPoint[];
+  granularity: Granularity;
 }
 
-export interface DailyPoint {
-  day: string;
+/**
+ * Pas de la série temporelle. **Dérivé de la fenêtre**, comme le font itch.io (son sélecteur
+ * « Daily »), Plausible et GA4 : au-delà de quelques semaines, une colonne par jour devient
+ * illisible et on agrège. Mon premier jet plafonnait à 90 colonnes, ce qui **perdait** les données
+ * au-delà au lieu de les regrouper — relevé par l'humain le 2026-09-02.
+ */
+export const Granularity = {
+  Day: "day",
+  Week: "week",
+  Month: "month",
+} as const;
+export type Granularity = (typeof Granularity)[keyof typeof Granularity];
+
+export function granularityFor(days: number): Granularity {
+  if (days <= 31) {
+    return Granularity.Day;
+  }
+  if (days <= 120) {
+    return Granularity.Week;
+  }
+  return Granularity.Month;
+}
+
+export const GRANULARITY_LABELS: Record<Granularity, string> = {
+  day: "par jour",
+  week: "par semaine",
+  month: "par mois",
+};
+
+export interface SeriesPoint {
+  /** Clé du seau, du plus ancien au plus récent. */
+  key: string;
+  /** Étiquette d'axe, déjà lisible. */
+  label: string;
   visits: number;
   started: number;
   ended: number;
@@ -186,20 +290,27 @@ export function buildReport(rows: EventRow[], days: number): Report {
     averageTurns: null,
     averageDurationMs: null,
     builds: new Map(),
-    daily: [],
+    series: [],
+    granularity: granularityFor(days),
   };
 
   const visitors = new Set<string>();
-  const perDay = new Map<string, DailyPoint>();
-  const dayOf = (timestamp: number): string => new Date(timestamp).toISOString().slice(0, 10);
-  const dayEntry = (timestamp: number): DailyPoint => {
-    const day = dayOf(timestamp);
-    const existing = perDay.get(day);
+  const granularity = granularityFor(days);
+  const perBucket = new Map<string, SeriesPoint>();
+  const dayEntry = (timestamp: number): SeriesPoint => {
+    const key = bucketKeyOf(timestamp, granularity);
+    const existing = perBucket.get(key);
     if (existing) {
       return existing;
     }
-    const fresh: DailyPoint = { day, visits: 0, started: 0, ended: 0 };
-    perDay.set(day, fresh);
+    const fresh: SeriesPoint = {
+      key,
+      label: bucketLabelOf(key, granularity),
+      visits: 0,
+      started: 0,
+      ended: 0,
+    };
+    perBucket.set(key, fresh);
     return fresh;
   };
   let turnsTotal = 0;
@@ -295,16 +406,30 @@ export function buildReport(rows: EventRow[], days: number): Report {
   }
 
   report.uniqueVisitors = visitors.size;
-  // Axe de dates CONTINU, jours creux compris : un trou dans la fréquentation est une information,
-  // et une série qui saute les jours vides déforme la lecture du rythme.
-  const dayCount = Math.min(days, 90);
-  const today = new Date();
-  report.daily = Array.from({ length: dayCount }, (_, offset) => {
-    const date = new Date(today);
-    date.setUTCDate(date.getUTCDate() - (dayCount - 1 - offset));
-    const day = date.toISOString().slice(0, 10);
-    return perDay.get(day) ?? { day, visits: 0, started: 0, ended: 0 };
-  });
+  // Axe CONTINU, seaux vides compris : un trou dans la fréquentation est une information, et une
+  // série qui saute les périodes creuses déforme la lecture du rythme.
+  //
+  // On recule en millisecondes puis on formate DANS le fuseau : recomposer une date en UTC pour
+  // l'afficher ensuite à Paris décalait la série d'un jour près des changements d'heure.
+  const now = Date.now();
+  const step = granularity === Granularity.Day ? 1 : granularity === Granularity.Week ? 7 : 30;
+  const buckets = new Map<string, SeriesPoint>();
+  for (let offset = bucketCountFor(days, granularity) - 1; offset >= 0; offset -= 1) {
+    const key = bucketKeyOf(now - offset * step * 86_400_000, granularity);
+    if (!buckets.has(key)) {
+      buckets.set(
+        key,
+        perBucket.get(key) ?? {
+          key,
+          label: bucketLabelOf(key, granularity),
+          visits: 0,
+          started: 0,
+          ended: 0,
+        },
+      );
+    }
+  }
+  report.series = [...buckets.values()].sort((left, right) => left.key.localeCompare(right.key));
   if (report.battlesStarted > 0) {
     report.abandonRate = 1 - report.battlesEnded / report.battlesStarted;
   }
@@ -489,26 +614,25 @@ function shortDay(day: string): string {
  * Une seule série par cadre, donc **aucune légende** : le titre nomme la mesure.
  */
 function renderDailyChart(
-  daily: DailyPoint[],
+  series: SeriesPoint[],
   key: "visits" | "started" | "ended",
   color: string,
   seriesClass: string,
 ): string {
-  if (daily.length === 0) {
-    return `<p class="empty">Aucun jour sur la période.</p>`;
+  if (series.length === 0) {
+    return `<p class="empty">Aucune période sur la fenêtre.</p>`;
   }
 
-  const values = daily.map((point) => point[key]);
-  const maxValue = Math.max(1, ...values);
+  const maxValue = Math.max(1, ...series.map((point) => point[key]));
   // Graduations sur des entiers atteints : un compte d'événements n'a pas de demi-valeur, et une
   // graduation doit nommer une valeur que le graphique touche.
   const ticks =
     maxValue <= 4 ? [...Array(maxValue + 1).keys()] : [0, Math.round(maxValue / 2), maxValue];
   const innerWidth = PLOT.width - PLOT.padLeft - PLOT.padRight;
   const innerHeight = PLOT.height - PLOT.padTop - PLOT.padBottom;
-  const slot = innerWidth / daily.length;
+  const slot = innerWidth / series.length;
   // Écart de 2 px entre colonnes voisines, pris sur la surface — jamais deux aplats qui se touchent.
-  const barWidth = Math.max(2, slot - 2);
+  const barWidth = Math.max(1.5, slot - 2);
   const baseline = PLOT.padTop + innerHeight;
 
   const grid = ticks
@@ -521,7 +645,7 @@ function renderDailyChart(
     })
     .join("");
 
-  const columns = daily
+  const columns = series
     .map((point, index) => {
       const value = point[key];
       const x = PLOT.padLeft + index * slot + (slot - barWidth) / 2;
@@ -535,25 +659,25 @@ function renderDailyChart(
     })
     .join("");
 
-  const labelEvery = Math.max(1, Math.ceil(daily.length / 6));
-  const dayLabels = daily
+  const labelEvery = Math.max(1, Math.ceil(series.length / 6));
+  const labels = series
     .map((point, index) =>
-      index % labelEvery === 0 || index === daily.length - 1
-        ? `<text x="${(PLOT.padLeft + index * slot + slot / 2).toFixed(1)}" y="${PLOT.height - 6}" class="tick" text-anchor="middle">${shortDay(point.day)}</text>`
+      index % labelEvery === 0 || index === series.length - 1
+        ? `<text x="${(PLOT.padLeft + index * slot + slot / 2).toFixed(1)}" y="${PLOT.height - 6}" class="tick" text-anchor="middle">${escapeHtml(point.label)}</text>`
         : "",
     )
     .join("");
 
-  const hotspots = daily
+  const hotspots = series
     .map(
       (point, index) =>
-        `<rect x="${(PLOT.padLeft + index * slot).toFixed(1)}" y="${PLOT.padTop}" width="${slot.toFixed(1)}" height="${innerHeight}" class="hot" data-day="${escapeHtml(shortDay(point.day))}" data-value="${point[key]}" />`,
+        `<rect x="${(PLOT.padLeft + index * slot).toFixed(1)}" y="${PLOT.padTop}" width="${slot.toFixed(1)}" height="${innerHeight}" class="hot" data-day="${escapeHtml(point.label)}" data-value="${point[key]}" />`,
     )
     .join("");
 
   return `<div class="plotwrap ${seriesClass}">
-    <svg viewBox="0 0 ${PLOT.width} ${PLOT.height}" role="img" aria-label="Par jour">
-      ${grid}${dayLabels}${columns}
+    <svg viewBox="0 0 ${PLOT.width} ${PLOT.height}" role="img" aria-label="Série temporelle">
+      ${grid}${labels}${columns}
       <g class="hots">${hotspots}</g>
     </svg>
     <div class="tip" hidden></div>
@@ -682,8 +806,14 @@ export function renderHtml(report: Report, generatedAt: Date): string {
   }
   .sheet { max-inline-size: 78rem; margin-inline: auto; }
 
-  header { padding-block-end: .5rem; border-block-end: 2px solid var(--ink); }
+  header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem .9rem; padding-block-end: .5rem; border-block-end: 2px solid var(--ink); }
   .stamp { font-family: var(--data); font-size: .78rem; color: var(--muted); margin: 0; }
+  .ranges { display: flex; gap: .1rem; font-family: var(--data); font-size: .78rem; }
+  .ranges a, .ranges b { padding: .15rem .5rem; border-radius: 3px; text-decoration: none; }
+  .ranges a { color: var(--muted); }
+  .ranges a:hover { color: var(--ink); background: var(--line-soft); }
+  .ranges a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .ranges b { color: var(--panel); background: var(--accent); font-weight: 500; }
 
   .rail { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); background: var(--panel); border: 1px solid var(--line); border-block-start: none; }
   .rail div { padding: 1rem 1.1rem; border-inline-start: 1px solid var(--line-soft); }
@@ -755,7 +885,8 @@ export function renderHtml(report: Report, generatedAt: Date): string {
 </style>
 <div class="sheet">
   <header>
-    <p class="stamp">${report.days} derniers jours · relevé le ${escapeHtml(generatedAt.toLocaleString("fr-FR"))}</p>
+    <nav class="ranges">${RANGES.map((range) => (range === report.days ? `<b>${range} j</b>` : `<a href="?jours=${range}">${range} j</a>`)).join("")}</nav>
+    <p class="stamp">${report.days} derniers jours · relevé le ${escapeHtml(STAMP_FORMAT.format(generatedAt))}</p>
   </header>
 
   <div class="rail">
@@ -770,12 +901,12 @@ export function renderHtml(report: Report, generatedAt: Date): string {
 
   <section class="charts">
     <div class="chartbox">
-      <h3><i class="sw" style="background:${SERIES.visits.token}"></i>Visites par jour</h3>
-      ${renderDailyChart(report.daily, "visits", SERIES.visits.token, "s-visits")}
+      <h3><i class="sw" style="background:${SERIES.visits.token}"></i>Visites ${GRANULARITY_LABELS[report.granularity]}</h3>
+      ${renderDailyChart(report.series, "visits", SERIES.visits.token, "s-visits")}
     </div>
     <div class="chartbox">
-      <h3><i class="sw" style="background:${SERIES.battles.token}"></i>Parties lancées par jour</h3>
-      ${renderDailyChart(report.daily, "started", SERIES.battles.token, "s-battles")}
+      <h3><i class="sw" style="background:${SERIES.battles.token}"></i>Parties lancées ${GRANULARITY_LABELS[report.granularity]}</h3>
+      ${renderDailyChart(report.series, "started", SERIES.battles.token, "s-battles")}
     </div>
   </section>
 
