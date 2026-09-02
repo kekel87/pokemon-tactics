@@ -37,6 +37,7 @@ Claude = dev principal, autonome implémentation, valide design avec humain.
 | `docs/implementations.md` | Liste Pokemon/Moves/Abilities/Items implémentés |
 | `docs/plans/` | Plan en cours avant coder |
 | `docs/next.md` | Agenda persistant (`/next`) |
+| `docs/plans/196-telemetrie-cloudflare-workers.md` | Avant toucher à la télémétrie, au Worker Cloudflare ou à `pnpm stats` |
 | `docs/test-plan.md` | Cahier de recette visuelle — avant valider un changement de rendu, avant release |
 | `.claude/rules/e2e.md` | Conventions harness Playwright e2e (fixtures, POMs, seed, hook scène) |
 

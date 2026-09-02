@@ -7,6 +7,7 @@
  * (décision #881 : itch n'impose ni CSP ni sandbox).
  */
 
+import { handleDashboard } from "./dashboard";
 import {
   categorizeBrowser,
   categorizeOs,
@@ -25,9 +26,13 @@ export interface Env {
   rateLimiter: RateLimit;
   /** Sel du haché de visiteur. Posé par `wrangler secret put visitorSecret`, absent du dépôt. */
   visitorSecret?: string;
+  /** Mot de passe du relevé live. Posé par `wrangler secret put dashboardPassword`. Sans lui, la
+   *  route `/tableau` reste inaccessible — jamais ouverte par omission. */
+  dashboardPassword?: string;
 }
 
 const ENDPOINT_PATH = "/e";
+const DASHBOARD_PATH = "/tableau";
 
 function statusFor(reason: ValidationFailure): number {
   switch (reason) {
@@ -65,7 +70,15 @@ export default {
   async fetch(request: Request<unknown, IncomingRequestCfProperties>, env: Env): Promise<Response> {
     const origin = request.headers.get("Origin");
 
-    if (new URL(request.url).pathname !== ENDPOINT_PATH) {
+    const { pathname } = new URL(request.url);
+
+    // Relevé live, protégé par mot de passe. Traité avant tout le reste : ce n'est pas une
+    // collecte, donc ni l'origine, ni le limiteur, ni la validation d'enveloppe ne le concernent.
+    if (pathname === DASHBOARD_PATH) {
+      return handleDashboard(request, env.database, env.dashboardPassword);
+    }
+
+    if (pathname !== ENDPOINT_PATH) {
       return respond(404, origin);
     }
 
