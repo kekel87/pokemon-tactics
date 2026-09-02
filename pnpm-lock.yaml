@@ -156,6 +156,8 @@ importers:
         specifier: workspace:*
         version: link:../core
 
+  packages/telemetry-worker: {}
+
   packages/ui-dom:
     dependencies:
       '@pokemon-tactic/core':
