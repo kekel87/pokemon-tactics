@@ -598,11 +598,6 @@ const SERIES = {
 
 const PLOT = { width: 640, height: 132, padLeft: 30, padRight: 10, padTop: 10, padBottom: 20 };
 
-function shortDay(day: string): string {
-  const [, month, date] = day.split("-");
-  return `${date}/${month}`;
-}
-
 /**
  * Un graphique en colonnes par mesure, empilés — des **petits multiples**, à la manière du tableau
  * de bord d'itch.io.

@@ -245,7 +245,7 @@
       }
     },
     {
-      "includes": ["vite.config.ts", "vitest.config.ts", "*.config.mjs", "**/scripts/**"],
+      "includes": ["**/vite.config.ts", "vitest.config.ts", "*.config.mjs", "**/scripts/**"],
       "linter": {
         "rules": {
           "suspicious": {

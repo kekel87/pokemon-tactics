@@ -118,7 +118,6 @@ export default defineConfig({
     allowedHosts: process.env.PT_TUNNEL === "1" ? [".trycloudflare.com"] : undefined,
   },
   define: {
-    // biome-ignore lint/style/useNamingConvention: Vite define convention uses __VAR__ double-underscore syntax
     __APP_VERSION__: JSON.stringify(resolveAppVersion()),
   },
   build: {
