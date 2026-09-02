@@ -1,3 +1,4 @@
+import { countScreen, TelemetryScreen } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { createControlsPanel } from "../panels/controls-panel";
 import type { Panel } from "../panels/panel";
@@ -20,6 +21,8 @@ export function createControlsScreen(navigate: Navigate): Screen<"controls"> {
 
   return {
     mount(host) {
+      // La légende du plan 185 suffit-elle, ou va-t-on chercher la liste complète ? (plan 196)
+      countScreen(TelemetryScreen.Controls);
       panel = createControlsPanel({ onBack: goBack });
       host.append(panel.element);
       unbindScreenInput = bindScreenInput(goBack);

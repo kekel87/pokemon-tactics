@@ -1,4 +1,4 @@
-import { AnalyticsEvent, trackEvent } from "../../../analytics/analytics";
+import { countScreen, TelemetryScreen } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { MyTeamsView } from "../../team/MyTeamsView";
 import { bindScreenInput } from "./elements";
@@ -11,7 +11,7 @@ export function createMyTeamsScreen(navigate: Navigate): Screen<"my-teams"> {
 
   return {
     mount(host) {
-      trackEvent(AnalyticsEvent.TeamBuilder);
+      countScreen(TelemetryScreen.TeamBuilder);
       view = new MyTeamsView({
         onBack: goBack,
         onEditTeam: (teamId) => navigate("team-edit", { teamId }),

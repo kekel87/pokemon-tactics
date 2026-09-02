@@ -1,0 +1,14 @@
+{
+  "name": "@pokemon-tactic/telemetry-worker",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "migrate": "wrangler d1 migrations apply pokemon-tactics-events --remote",
+    "migrate:local": "wrangler d1 migrations apply pokemon-tactics-events --local"
+  }
+}

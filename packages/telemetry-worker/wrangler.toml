@@ -1,0 +1,34 @@
+name = "pokemon-tactics-telemetry"
+main = "src/worker.ts"
+compatibility_date = "2026-09-02"
+
+# Identifiants, pas des secrets : ils n'ouvrent aucun accès sans authentification.
+# Le jeton d'API de déploiement, lui, ne vit QUE dans un secret de dépôt GitHub (étape 5),
+# et le secret du haché de visiteur QUE dans `wrangler secret put` (décision #879).
+account_id = "fb522b06e2c2d12bfa3657f32a4fd44a"
+
+[[d1_databases]]
+binding = "database"                                  # ce que le Worker voit : env.database
+database_name = "pokemon-tactics-events"
+database_id = "f0a2fca1-e016-4537-82c3-2f6cb8d53eca"  # région WEUR, créée le 2026-09-02
+migrations_dir = "migrations"
+
+# Filet anti-rafale. Le WAF et les Rate Limiting Rules gratuits opèrent au niveau zone,
+# ce qui exige un domaine personnalisé — indisponible sur *.workers.dev (décisions #871, #877).
+# `period` n'accepte que 10 ou 60 secondes. Volontairement approximatif (eventually consistent) :
+# le risque couvert n'est pas la triche (#870) mais le quota, qu'un script pourrait brûler.
+[[ratelimits]]
+name = "rateLimiter"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 30
+  period = 60
+
+# Épinglé explicitement plutôt qu'hérité du défaut de plateforme : c'est ce qui rend visible le
+# `console.error` du chemin d'échec d'écriture (sinon une table absente est indiscernable d'un
+# fonctionnement normal). ⚠️ Ne JAMAIS activer Logpush avec inclusion des en-têtes : cela capterait
+# `CF-Connecting-IP` et `User-Agent`, et ferait tomber la décision #879 sans qu'une ligne de code
+# n'ait changé.
+[observability]
+enabled = true

@@ -243,7 +243,7 @@ pokemon-tactics/
 │   │   ├── tsconfig.json        # extends base + DOM libs
 │   │   └── package.json
 │   │
-│   └── data/                    # Données Pokemon (partagées)
+│   ├── data/                    # Données Pokemon (partagées)
 │       ├── src/
 │       │   ├── abilities/       # Définitions talents : ability-definitions.ts (20 AbilityDefinition), index.ts
 │       │   ├── items/           # Définitions objets tenus : item-definitions.ts (12 HeldItemDefinition), load-items.ts
@@ -275,6 +275,19 @@ pokemon-tactics/
 │       ├── scripts/             # Scripts de génération one-shot (non compilés dans src/)
 │       │   ├── build-reference.ts   # Génère reference/ depuis Showdown + PokeAPI (pnpm data:update) — applique applyChampionsOverrides
 │       │   └── fetch-champions.ts   # Fetch mod Showdown Champions (data/mods/champions/) et extrait overrides par regex
+│       ├── tsconfig.json
+│       └── package.json
+│   │
+│   └── telemetry-worker/        # Cloudflare Worker de télémétrie (plan 196, Phase 7 Lot A) — HORS JEU,
+│       │                        # ne fait pas partie du client ; pas de script `build` (un Worker se
+│       │                        # déploie, il ne se build pas), déployé sur Cloudflare (*.workers.dev)
+│       ├── src/
+│       │   ├── index.ts         # Endpoint unique POST /e
+│       │   ├── validate.ts      # Validation du payload (fonctions pures)
+│       │   └── visitor.ts       # Hash visiteur HMAC(secret ⊕ date du jour, IP+agent) (fonctions pures)
+│       ├── migrations/
+│       │   └── 0001_init.sql    # Schéma D1 (base distante `pokemon-tactics-events`, région WEUR)
+│       ├── wrangler.toml
 │       ├── tsconfig.json
 │       └── package.json
 │

@@ -1,4 +1,5 @@
 import type { TeamSelection } from "@pokemon-tactic/core";
+import type { TelemetryTeam } from "../analytics/telemetry";
 import type { BattleResumeSave } from "./battle-persistence";
 
 /**
@@ -22,6 +23,15 @@ export interface CombatSetup {
   teams: TeamSelection[];
   formatKey: string;
   autoPlacement: boolean;
+  /**
+   * Provenance des équipes pour `battle_started` (plan 196). Portée ici parce que `TeamSelection`
+   * (core) ne connaît pas la notion d'équipe éphémère : c'est un concept de l'écran de sélection,
+   * et le core n'a pas à l'apprendre pour de la télémétrie.
+   *
+   * Absente sur les chemins qui ne passent pas par l'écran de sélection (bac à sable, `?combat=1`),
+   * qui n'émettent donc rien — ce qui est le comportement voulu.
+   */
+  telemetryTeams?: readonly TelemetryTeam[];
 }
 
 /** Params passed to each screen's mount(). Extended as plan 120 steps land. */

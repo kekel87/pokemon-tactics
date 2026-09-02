@@ -1,5 +1,6 @@
 import type { MapFormat, PlayerController } from "@pokemon-tactic/core";
-import { AnalyticsEvent, trackEvent } from "../../../analytics/analytics";
+import { buildTelemetryTeams } from "../../../analytics/team-telemetry";
+import { countScreen, TelemetryScreen } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { t } from "../../../i18n";
 import { loadTiledMap } from "../../../maps/load-tiled-map";
@@ -74,7 +75,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     }
     navigate("combat", {
       mapUrl,
-      setup: { teams, formatKey, autoPlacement },
+      setup: { teams, formatKey, autoPlacement, telemetryTeams: buildTelemetryTeams(slots) },
     });
   };
 
@@ -230,7 +231,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
 
   return {
     async mount(host, params) {
-      trackEvent(AnalyticsEvent.TeamSelect);
+      countScreen(TelemetryScreen.TeamSelect);
       mapUrl = params.mapUrl;
       const loaded = await loadTiledMap(mapUrl);
       mapName = loaded.map.name;

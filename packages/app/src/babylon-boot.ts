@@ -25,6 +25,7 @@ import "./styles/menu-screens.css";
 import "./styles/controls-screen.css";
 import "./styles/combat-menu.css";
 import "./styles/map-select.css";
+import { initTelemetry } from "./analytics/telemetry.js";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
 import { loadPersistedScreen } from "./app/screen-persistence.js";
 import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.js";
@@ -67,6 +68,10 @@ initLanguage();
 // rechargement — et le gating du panneau de preview (plan 175) ne s'appliquait jamais.
 initSettings();
 initBindings();
+// Télémétrie (plan 196) : n'installe qu'un écouteur `visibilitychange` — les compteurs partent
+// groupés au masquage de l'onglet, jamais un envoi par clic. Neutralisée d'office hors des deux
+// hôtes de publication, donc muette en développement, dans le bac à sable et sous Playwright.
+initTelemetry();
 // Couche d'entrée device-agnostique (plan 184) : un seul écouteur clavier pour toute l'app, et le
 // suivi de la source active (souris / doigt / clavier / manette). Montée au boot, avant tout écran :
 // les écrans et le combat s'y enregistrent à leur montage, y compris les chemins d'entrée directs

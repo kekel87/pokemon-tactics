@@ -1,5 +1,6 @@
 import { exportTeamToShowdown, importShowdownTeam, type TeamSet } from "@pokemon-tactic/core";
 import { Modal } from "@pokemon-tactic/ui-dom";
+import { countAction, TelemetryAction } from "../../analytics/telemetry";
 import { t } from "../../i18n";
 import { getTeamBuilderRegistry } from "../../team/team-builder-data";
 import { touchTeam } from "../../team/team-helpers";
@@ -13,6 +14,8 @@ export interface ShowdownIoModalOptions {
 }
 
 export function openShowdownIoModal(options: ShowdownIoModalOptions): void {
+  // Le format d'échange Showdown sert-il vraiment ? (plan 196)
+  countAction(TelemetryAction.ShowdownModal);
   const modal = new Modal({
     title: t("teamBuilder.showdown"),
     closeAriaLabel: t("teamBuilder.aria.close"),
@@ -48,6 +51,7 @@ export function openShowdownIoModal(options: ShowdownIoModalOptions): void {
   try {
     const registry = getTeamBuilderRegistry();
     exportTextarea.value = exportTeamToShowdown(options.team, registry.exportRegistry);
+    countAction(TelemetryAction.ShowdownExport);
   } catch (err) {
     exportTextarea.value = `Error: ${(err as Error).message}`;
   }
@@ -110,6 +114,9 @@ export function openShowdownIoModal(options: ShowdownIoModalOptions): void {
         importFeedback.appendChild(warnList);
       }
       if (result.team === null) {
+        // 🔴 Un collage qui ne parse pas est aujourd'hui un bug produit totalement invisible : c'est
+        // exactement ce que ce compteur rend visible (plan 196).
+        countAction(TelemetryAction.ShowdownImportFail);
         if (result.warnings.length === 0) {
           const errorList = document.createElement("div");
           errorList.className = "tb-error-list";
@@ -123,9 +130,11 @@ export function openShowdownIoModal(options: ShowdownIoModalOptions): void {
         slots: result.team.slots,
         name: options.team.name,
       });
+      countAction(TelemetryAction.ShowdownImportOk);
       options.onImport?.(updated);
       modal.close();
     } catch (err) {
+      countAction(TelemetryAction.ShowdownImportFail);
       const errorList = document.createElement("div");
       errorList.className = "tb-error-list";
       errorList.textContent = (err as Error).message;

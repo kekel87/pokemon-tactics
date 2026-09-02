@@ -1,5 +1,5 @@
 import { createMapPreviewStage, type MapPreviewStage } from "@pokemon-tactic/render-babylon";
-import { AnalyticsEvent, trackEvent } from "../../../analytics/analytics";
+import { countScreen, TelemetryScreen } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { getLanguage, t } from "../../../i18n";
 import { getInputSystem } from "../../../input/input-system";
@@ -63,7 +63,7 @@ export function createMapSelectScreen(navigate: Navigate): Screen<"map-select"> 
 
   return {
     mount(host) {
-      trackEvent(AnalyticsEvent.MapSelect);
+      countScreen(TelemetryScreen.MapSelect);
       root = el("div", "ms-screen");
 
       const aside = el("aside", "ms-list-panel");

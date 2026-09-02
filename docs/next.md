@@ -18,6 +18,18 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
+### 2026-09-02 (fin de journée) — question ouverte héritée de la session
+
+**Classement compétitif : prémisse à rouvrir ou pas.** En validant la télémétrie, l'humain a évoqué
+« un login/mot de passe, principalement pour faire du classement pour le matchmaking ». La décision
+**#870** dit « pas de classement compétitif ». Rien n'est engagé, aucune ligne de code n'existe — mais
+si l'envie se confirme, c'est une décision du **Lot B (multijoueur)**, pas de la télémétrie, et elle
+entraîne deux conséquences déjà écrites (`#885`) : un identifiant de compte dans la base en fait une
+**donnée personnelle**, ce qui fait tomber `#878` (aucun livrable de conformité en V1) et impose
+politique de confidentialité, rétention et droits d'accès. **Règle validée par l'humain le 2026-09-02** : l'audience
+anonyme et d'éventuelles statistiques identifiées restent deux mondes séparés, jamais joints.
+
+
 ### 2026-08-29 — Release `v2026.8.2` PUBLIÉE
 
 **Phase 6.5 « Client jouable » est sortie.** https://github.com/kekel87/pokemon-tactics/releases/tag/v2026.8.2
@@ -74,7 +86,41 @@ n'a joué que **2 tests smoke sur 519**. Pour une release, toujours forcer `pnpm
   **Reste ouvert** : plus rien — wiki (commit wiki `5a7f24a`) et README soldés le 2026-08-29.
 
 
-### 2026-08-31 — Phase 7 PLANIFIÉE (pas démarrée)
+### 2026-09-02 — Phase 7 DÉMARRÉE : Lot A télémétrie, étapes 1-2 livrées
+
+Le Lot A (télémétrie) est lancé. `docs/plans/195-phase7-multijoueur-telemetrie.md` et
+`docs/plans/196-telemetrie-cloudflare-workers.md` passent `draft` → `in-progress`. **Compte
+Cloudflare créé** (`account_id fb522b06e2c2d12bfa3657f32a4fd44a`) et **base D1
+`pokemon-tactics-events` créée** (`database_id f0a2fca1-e016-4537-82c3-2f6cb8d53eca`, région
+WEUR) — étape 0 du plan 196 soldée.
+
+**Étape 1 (spike) FAITE** : le POST `sendBeacon` passe sur itch.io **et** GitHub Pages (origines
+mesurées : `html-classic.itch.zone`, `kekel87.github.io`). **Le diagnostic du plan 114 est
+réfuté** — l'iframe itch n'est pas sandboxée (`sandbox` vaut `null`), le document du jeu ne porte
+aucune CSP ; le blocage historique de Goatcounter venait des bloqueurs de publicité côté
+navigateur des joueurs, pas d'un sandboxing itch. Détail complet dans le plan 196 § Étape 1.
+
+**Étape 2 (paquet) LIVRÉE** : nouveau paquet `packages/telemetry-worker/` — `wrangler.toml`,
+`migrations/0001_init.sql`, `src/index.ts` (endpoint `POST /e`), `src/validate.ts` et
+`src/visitor.ts` (fonctions pures), 64 tests unitaires. **Pas de script `build`** (un Worker se
+déploie, il ne se build pas — voir `docs/architecture.md`). Dépendances `wrangler` et
+`@cloudflare/workers-types` ajoutées à la racine.
+
+**Décisions #880-881** (`docs/decisions.md`) : `battle_id` éphémère par partie retenu (tranche la
+question laissée ouverte le 2026-08-31, ci-dessous) ; POST `sendBeacon` + garde-fou `Origin`, et
+réfutation du plan 114.
+
+**Pas encore fait, à ne pas annoncer comme fait** : le Worker n'est **pas déployé**, la migration
+n'est **pas appliquée** sur la base distante, le client de jeu n'est **pas câblé** (étapes 3 à 8
+restantes du plan 196), et **Goatcounter est toujours en place** (son retrait est l'étape 7,
+volontairement après vérification en production).
+
+**Prochaine action concrète** : étapes 3-4 du plan 196 — client `telemetry.ts` + câblage des trois
+événements (`session`/`battle_started`/`battle_ended`), puis déploiement.
+
+---
+
+### 2026-08-31 — Phase 7 planifiée (état du jour — **démarrée le 2026-09-02**, voir ci-dessus)
 
 **Deux plans rédigés, statut `draft`, zéro ligne de code écrite.** `docs/plans/195-phase7-multijoueur-telemetrie.md`
 (plan-cadre : Lot A télémétrie, Lot B multijoueur P2P 1v1 en 4 tranches — transport+lobby / combat /
@@ -115,12 +161,13 @@ quotidien, IP jamais écrite) ; seules manquent l'information des personnes et l
 🔔 **À revisiter si l'audience devient significative** — points d'accroche déjà en place (écran de
 crédits, `settings-panel.ts`), schéma inchangé le jour où ça arrive.
 
-**Prochaine action concrète, qui bloque tout le reste : créer le compte Cloudflare** (étape 0 du plan
-196, action humaine non déléguable — compte, base D1, jeton d'API de déploiement).
+~~**Prochaine action concrète, qui bloque tout le reste : créer le compte Cloudflare** (étape 0 du plan
+196, action humaine non déléguable — compte, base D1, jeton d'API de déploiement).~~ **FAIT le
+2026-09-02** — compte Cloudflare et base D1 `pokemon-tactics-events` créés, voir section ci-dessus.
 
-**Reste ouverte (plan 196 § Décisions à trancher avant de coder), Reco : oui, non tranchée par
+~~**Reste ouverte (plan 196 § Décisions à trancher avant de coder), Reco : oui, non tranchée par
 l'humain** : un `battle_id` éphémère par partie (sans lui, le taux d'abandon n'existe qu'en global,
-jamais par carte ni par format).
+jamais par carte ni par format).~~ **TRANCHÉE le 2026-09-02 (#880) : retenu.**
 
 ---
 
@@ -156,11 +203,12 @@ reconnexion (délai, ce que voit l'autre pair) · saisie du code de partie à la
 domaine est tranché** (#871, décision du 2026-08-31) : pas de nom de domaine, l'API télémétrie reste
 sur `*.workers.dev`.
 
-- **Trancher la suite : toujours ouvert.** La Phase 7 est planifiée mais pas lancée. Options inchangées,
-  aucune imposée :
+- ~~**Trancher la suite : toujours ouvert.** La Phase 7 est planifiée mais pas lancée.~~ **Phase 7
+  DÉMARRÉE le 2026-09-02** (Lot A télémétrie, étapes 1-2 livrées — voir section datée ci-dessus).
+  Options Phase 6 / Phase 8 toujours entières, non dépriorisées par ce démarrage :
   - **Grosse phase** : Phase 6 (Maps & Éditeur 3D), Phase 7 (Multijoueur — **cadrée le 2026-08-29,
-    planifiée le 2026-08-31** par les plans 195/196, prête à démarrer par la création du compte
-    Cloudflare), Phase 8 (Équilibrage).
+    planifiée le 2026-08-31, démarrée le 2026-09-02** par les plans 195/196, Lot A en cours),
+    Phase 8 (Équilibrage).
 - **Phase 6.5 — Client jouable : contrôles & UI — CLOSE (2026-08-21)**, historique du périmètre conservé ici (plan-cadre `docs/plans/173-phase-client-jouable-ui-controles.md`, phase validée 2026-07-24). Elle était prioritaire avant le Multijoueur (retour réel : injouable mobile → contrôles tactiles) — cette justification est **levée**. **Lot 3 (compléter l'UI)** : ~~nature InfoPanel~~ **livré** (plan 174, 2026-07-24), ~~info terrain/modificateurs~~ **livré** (plan 177, panneau d'info de case, 2026-07-25), ~~preview combat~~ **livré** (plan 175, 2026-07-26), ~~info move~~ **livré** (plan 178, tooltip enrichi + harmonisation des types, 2026-08-03), ~~panneau ennemi + information cachée~~ **livré** (plan 176, information ennemie cachée, 2026-08-05), ~~responsive + dette mobile~~ **livré** (plan 179, 2026-08-06, voir § Fait récemment — validation humaine partielle : dialog de victoire et rendu 4K jamais vus) ~~auras~~ **livré** (plan 182, 2026-08-20, anneaux au sol) → **Lot 3 TERMINÉ**. (l'**a11y** est **abandonnée** le 2026-08-20, décision #752 : support lecteur d'écran non visé, le combat est un canvas ; la gestion du focus part au Lot 2, le HTML sémantique reste une règle vivante justifiée par le harnais e2e, la taille de cible tactile est livrée au plan 179). ~~Lot 1 (contrôles tactiles)~~ **livré** (plan 183, 2026-08-20, validé sur téléphone réel — voir § Fait récemment) : c'était la justification prioritaire de la phase (retour réel « injouable mobile »). **Dette assumée notée par le plan** : le tactile est codé en direct dans `combat-scene.ts`, pas derrière une couche d'actions logiques — le Lot 2 devra le **rapatrier**, pas l'envelopper. ~~**Prochaine étape : Lot 2 (clavier/manette)**~~ **LIVRÉ (plan 184, 2026-08-21, étapes A→E, gate local vert) → la Phase 6.5 « Client jouable » a ses 3 lots clos.** **Validé à la main le 2026-08-21**, scénario par scénario : clavier (AZERTY/Firefox), caméra, menus, choix d'orientation, placement, **manette Switch Pro** filaire, **téléphone réel** (pinch, pan à deux doigts, tap, boussole — la revalidation qu'exigeait l'étape E, le tactile ayant été déplacé sans être réécrit) et **téléphone + manette**. **→ Phase 6.5 CLOSE**, rien ne reste en attente de validation dessus. Deux retours de cette session de test ont été sortis du périmètre en chantiers dédiés (§ Reporté) : **légende de contrôles + écran de remapping** (à faire ensemble) et **refonte de l'écran de sélection d'équipe**. Décisions humaines actées : bindings **fixes** (l'écran de remapping part dans un plan dédié **après**), bindings par **position physique** (`KeyboardEvent.code`, un seul jeu pour AZERTY/QWERTY), navigation des menus par **focus DOM natif**, couche d'actions logiques dans `packages/app/src/input/`, perte d'inspection du plateau assumée pendant `action_menu`/`attack_submenu`, défilement journal/timeline par bindings dédiés. Assets Kenney CC0 — la feuille `input-prompts-pixel-1-bit` est déjà intégrée (chantier séparé « aide visuelle des gestes attendus », § Fait récemment ci-dessous) et sera réutilisée pour les glyphes clavier/manette ; `cursor-pixel-pack` reste non intégré. ⚠️ L'item « tooltips type chart » du plan-cadre 173 est **abandonné** (décision humaine 2026-08-03 : la preview du plan 175 donne déjà le multiplicateur résolu, une table 18×18 serait un mur d'icônes) ; l'« efficacité contextuelle par move » l'est aussi (exigeait une cible de référence collante, trop de design pour un tri grossier), ainsi que les descriptions textuelles de moves (la source décrit le canon Gen 8/9, divergent de nos règles).
 - ~~**Chantier séparé : ressusciter l'échelle `--tb-px` du Team Builder.**~~ **TRANCHÉ (2026-08-27) : on ne la ressuscite PAS, le code mort est purgé.** Décision humaine — rescaler l'écran à toutes les tailles (4K comprise) est un changement visuel qui mérite son propre chantier, pas un effet de bord de nettoyage. Purgé : les ~90 lignes de tokens `@container stage` inertes, le bloc de reflux `@container stage (width < 768px)`, les règles mortes `.ui-screen .tb-root` (rien ne monte cet écran dans la couche écran du stage depuis la suppression de `team-edit-harness.ts` le 2026-07-20), et les **7 indirections `var(--tb-*, Npx)` devenues vestigiales** dans `stat-bar.css`/`set-op.css`/`edit-panels.css` (plus aucun déclarant après la purge — `--tb-stat-col`, `--tb-statbar-h`, `--tb-setop-min-w`, `--tb-mv-col-{num,cat,pow,acc}`). `team-builder-overlay.css` passe de **216 à 78 lignes**, son en-tête raconte désormais l'état réel. Ce qui **reste vivant et intact** : le correctif étroit du plan 179 (tokens compacts `.tb-root` sous `@media (height < 500px), (width < 900px)`) et l'unité de la `type-chip`. Le retour « l'app est trop petite en 4K » reste donc **non traité pour cet écran** — c'est le chantier à ouvrir si tu veux y revenir.
 - ~~**Refaire les 5 visuels README/wiki**~~ **SOLDÉ le 2026-08-29** (reporté depuis le 2026-06-16). Volet **wiki** passé le matin (commit wiki `5a7f24a`), volet **README** l'après-midi. Les captures auto par `visual-tester` avaient été rejetées une fois par l'humain — c'est la séquence d'intro du plan 194 (`pnpm capture:release`) qui a fourni la matière validée. Résultat : `docs/images/` réduit aux **2 fichiers réellement référencés**, les 3 orphelins Phaser purgés.
@@ -330,14 +378,18 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
 
 ## Contexte prochaine session
 
-**2026-08-31 — Phase 7 planifiée, pas lancée.** Rien n'est en cours, aucune phase active. Deux plans
-en `draft`, zéro code écrit : `docs/plans/195-phase7-multijoueur-telemetrie.md` (plan-cadre) et
-`docs/plans/196-telemetrie-cloudflare-workers.md` (Lot A détaillé, 9 étapes). **Si la Phase 7 démarre,
-la première action est humaine et non déléguable : créer le compte Cloudflare** (étape 0 du plan 196 —
-compte, base D1, jeton d'API de déploiement). Avant de coder quoi que ce soit de réseau, **lire
-`docs/multiplayer.md` en entier** (v2, 2026-08-29), puis les deux plans. La Phase 6 (éditeur voxel)
-et la Phase 8 (équilibrage, avec son prérequis `loadMapDefinition` Node-compatible) restent des
-options entières — la planification de la 7 ne les a pas dépriorisées.
+**2026-09-02 — Phase 7 démarrée, Lot A télémétrie en cours (étapes 1-2/9 livrées).** Plans 195 et
+196 passés `in-progress`. Compte Cloudflare et base D1 `pokemon-tactics-events` créés (étape 0).
+Spike `sendBeacon` validé sur itch.io et GitHub Pages, diagnostic du plan 114 réfuté (étape 1).
+Paquet `packages/telemetry-worker/` livré avec ses 64 tests unitaires — pas déployé, migration pas
+appliquée, client pas câblé, Goatcounter toujours en place (étape 2). Décisions #880 (`battle_id`
+retenu) et #881 (`sendBeacon` + garde-fou `Origin`) inscrites. **Prochaine session : étapes 3-4 du
+plan 196** — écrire le client `telemetry.ts` et câbler les trois événements
+(`session`/`battle_started`/`battle_ended`), puis déployer le Worker et appliquer la migration
+distante. Avant de coder, relire `docs/plans/196-telemetrie-cloudflare-workers.md` § Étapes
+restantes. La Phase 6 (éditeur voxel) et la Phase 8 (équilibrage, avec son prérequis
+`loadMapDefinition` Node-compatible) restent des options entières, non dépriorisées par ce
+démarrage.
 
 **2026-08-26 — Plan 188 TERMINÉ.** Recette humaine 5/5 validée (clavier + manette Switch Pro
 filaire), code-review traitée (helper de focus partagé, boutons du panneau d'édition, résilience du

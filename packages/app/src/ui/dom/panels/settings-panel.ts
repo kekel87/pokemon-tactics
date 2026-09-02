@@ -1,3 +1,4 @@
+import { countAction, TelemetryAction } from "../../../analytics/telemetry";
 import { getLanguage, setLanguage, t } from "../../../i18n";
 import { Language } from "../../../i18n/types";
 import {
@@ -88,6 +89,8 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
       // Changer la langue retraduit chaque libellé, donc celui-ci reconstruit vraiment le panneau —
       // puis remet le focus où il était, sinon un joueur au clavier perd sa place.
       const languageToggle = menuButton(getLanguage() === Language.French ? "FR" : "EN", () => {
+        // Réglages réellement touchés (plan 196).
+        countAction(TelemetryAction.LanguageChange);
         setLanguage(getLanguage() === Language.French ? Language.English : Language.French);
         render();
         root?.querySelector<HTMLElement>("[data-testid='setting-language']")?.focus();
@@ -107,6 +110,7 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
         // utilisateur de ce clic, sinon la demande est rejetée. Le rendu suit via
         // `fullscreenchange`, ce qui couvre aussi les sorties non déclenchées par nous
         // (Échap, geste système).
+        countAction(TelemetryAction.FullscreenToggle);
         void toggleFullscreen();
       });
       fullscreenToggle.dataset.testid = "setting-fullscreen";

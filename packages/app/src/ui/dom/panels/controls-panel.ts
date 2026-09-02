@@ -1,3 +1,4 @@
+import { countAction, TelemetryAction } from "../../../analytics/telemetry";
 import { t } from "../../../i18n";
 import type { TranslationKey } from "../../../i18n/types";
 import {
@@ -319,6 +320,9 @@ export function createControlsPanel(options: PanelOptions): Panel {
         cancelCapture = system.beginCapture(sink);
         return;
       }
+      // L'écran de remapping du plan 186 sert-il ? Compté sur une assignation RÉUSSIE seulement :
+      // une capture annulée ou un mauvais périphérique ne sont pas un remapping (plan 196).
+      countAction(TelemetryAction.RemapBinding);
       const captureKey =
         captured.kind === "key" ? keyText(captured) : padButtonName(captured.index);
       endCapture();

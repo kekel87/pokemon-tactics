@@ -188,5 +188,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 192 | [Infobulle d'attaque : modificateurs contextuels](./192-infobulle-modificateurs-contextuels.md) | done | 2026-08-27 |
 | 193 | [Verrouiller le typecheck des fichiers de test](./193-typecheck-des-tests.md) | done | 2026-08-27 |
 | 194 | [Séquence d'intro : bande-annonce et captures](./194-sequence-intro-captures.md) | done | 2026-08-28 |
-| 195 | [Phase 7 « Multijoueur & télémétrie » (plan-cadre)](./195-phase7-multijoueur-telemetrie.md) | draft | 2026-08-31 |
-| 196 | [Télémétrie de jeu (Cloudflare Workers + D1)](./196-telemetrie-cloudflare-workers.md) | draft | 2026-08-31 |
+| 195 | [Phase 7 « Multijoueur & télémétrie » (plan-cadre)](./195-phase7-multijoueur-telemetrie.md) | in-progress | 2026-08-31 |
+| 196 | [Télémétrie de jeu (Cloudflare Workers + D1)](./196-telemetrie-cloudflare-workers.md) | in-progress | 2026-08-31 |

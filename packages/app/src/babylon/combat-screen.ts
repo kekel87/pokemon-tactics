@@ -43,6 +43,11 @@ import {
   preloadCombatSprites,
   sandboxInstanceId,
 } from "@pokemon-tactic/view-core";
+import {
+  beginBattleTelemetry,
+  endBattleTelemetry,
+  observeBattleTelemetry,
+} from "../analytics/battle-telemetry-session.js";
 import { type BattleResumeSave, battleResumeStore } from "../app/battle-persistence.js";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
@@ -264,6 +269,26 @@ async function mountPlacement(
     ) ?? loaded.map.formats[0];
   if (!format) {
     throw new Error(`Map "${mapUrl}" has no formats`);
+  }
+  /*
+   * `battle_started` part ICI, au même endroit que le seed (plan 196, décision #857).
+   *
+   * Contre-intuitif mais décisif : la composition doit voyager au DÉMARRAGE. Chez Showdown, l'usage
+   * d'un Pokemon est sa présence dans une équipe, pas le fait qu'il ait agi — si elle partait avec
+   * `battle_ended`, toutes les parties abandonnées disparaîtraient des statistiques d'usage, et
+   * l'abandon est justement la population qu'on veut mesurer.
+   *
+   * `telemetryTeams` n'existe que sur le chemin de l'écran de sélection : le bac à sable, la route
+   * `?combat=1` et un combat repris n'émettent donc rien, ce qui est le comportement voulu.
+   */
+  if (setup.telemetryTeams) {
+    beginBattleTelemetry({
+      mapUrl,
+      formatKey: setup.formatKey,
+      autoPlacement: setup.autoPlacement,
+      telemetryTeams: setup.telemetryTeams,
+      teams: setup.teams,
+    });
   }
   return startPlacementFlow({
     combat,
@@ -564,7 +589,12 @@ function runBattle(options: {
     report: (event) => {
       battleLog.report(event);
       spawnFloatingText(event);
+      // Télémétrie (plan 196) : point unique et exhaustif du flux d'événements, déjà utilisé par
+      // `onBattleClosed`. No-op quand aucune partie n'a été ouverte (bac à sable, reprise).
+      observeBattleTelemetry(event);
       if (event.type === BattleEventType.BattleEnded) {
+        // Le match nul (plan 191) passe ici aussi : `winnerId` vaut alors `null`.
+        endBattleTelemetry();
         onBattleClosed?.();
       }
     },

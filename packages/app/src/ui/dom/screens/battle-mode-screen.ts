@@ -1,4 +1,4 @@
-import { AnalyticsEvent, trackEvent } from "../../../analytics/analytics";
+import { countScreen, TelemetryScreen } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { t } from "../../../i18n";
 import { bindScreenInput, el, menuButton } from "./elements";
@@ -12,7 +12,7 @@ export function createBattleModeScreen(navigate: Navigate): Screen<"battle-mode"
 
   return {
     mount(host) {
-      trackEvent(AnalyticsEvent.BattleMode);
+      countScreen(TelemetryScreen.BattleMode);
       root = el("div", "mn-screen");
 
       const title = el("h1", "mn-title");

@@ -235,6 +235,16 @@
       }
     },
     {
+      "includes": ["packages/telemetry-worker/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["vite.config.ts", "vitest.config.ts", "*.config.mjs", "**/scripts/**"],
       "linter": {
         "rules": {

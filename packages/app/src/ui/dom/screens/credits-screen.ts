@@ -1,3 +1,4 @@
+import { countScreen, TelemetryScreen } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { t } from "../../../i18n";
 import { bindScreenInput, el, menuButton } from "./elements";
@@ -21,6 +22,8 @@ export function createCreditsScreen(navigate: Navigate): Screen<"credits"> {
 
   return {
     mount(host) {
+      // Est-ce que quelqu'un lit les attributions ? (plan 196)
+      countScreen(TelemetryScreen.Credits);
       root = el("div", "mn-screen");
 
       const title = el("h1", "mn-title");

@@ -1,4 +1,9 @@
-import { AnalyticsEvent, trackEvent } from "../../../analytics/analytics";
+import {
+  countAction,
+  countScreen,
+  TelemetryAction,
+  TelemetryScreen,
+} from "../../../analytics/telemetry";
 import { type BattleResumeSave, battleResumeStore } from "../../../app/battle-persistence";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { getLanguage, setLanguage, t } from "../../../i18n";
@@ -19,9 +24,14 @@ function resumeEntry(save: BattleResumeSave, navigate: Navigate): HTMLButtonElem
   const map = MAPS_REGISTRY.find((entry) => entry.url === save.mapUrl);
   const mapName = map?.displayName[getLanguage()];
   const label = mapName ? `${t("menu.resumeBattle")} — ${mapName}` : t("menu.resumeBattle");
-  return menuButton(label, () =>
-    navigate("combat", { mapUrl: save.mapUrl, setup: save.setup, resume: save }),
-  );
+  return menuButton(label, () => {
+    // La reprise du plan 181 est-elle voulue ? Ce compteur ne dit qu'« acceptée » ; le refus se
+    // déduit de l'écart avec « proposée », donc il n'a pas de compteur à lui (plan 196).
+    // ⚠️ Aucun `battle_started` ici : une reprise n'ouvre pas une nouvelle partie, sinon une partie
+    // reprise trois fois compterait pour quatre.
+    countAction(TelemetryAction.ResumeAccepted);
+    navigate("combat", { mapUrl: save.mapUrl, setup: save.setup, resume: save });
+  });
 }
 
 /**
@@ -44,6 +54,7 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
     // combat screen stops being offered without any cross-screen plumbing.
     const save = battleResumeStore().load();
     if (save) {
+      countAction(TelemetryAction.ResumeOffered);
       buttons.append(resumeEntry(save, navigate));
     }
     buttons.append(
@@ -71,7 +82,7 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
 
   return {
     mount(host) {
-      trackEvent(AnalyticsEvent.MainMenu);
+      countScreen(TelemetryScreen.MainMenu);
       render(host);
       // Sans « retour » (c'est le premier écran), mais les flèches doivent y naviguer comme partout.
       unbindScreenInput = bindScreenInput();

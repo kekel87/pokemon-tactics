@@ -87,6 +87,22 @@ L'humain **travaille et joue sur cette machine pendant que la suite tourne**. Un
   (`TaskStop`) dès que l'humain réclame sa machine.
 - `test:e2e:ui` reste **non bridé** : c'est l'humain qui le pilote, il sait ce qu'il lance.
 
+## Après avoir INTERROMPU une suite (piège vécu — 2026-09-02)
+
+Une suite tuée (`TaskStop`, SIGTERM, délai dépassé) laisse son serveur Vite **en train de mourir**,
+et `reuseExistingServer: !process.env.CI` est actif en local. Le run suivant, lancé aussitôt, voit le
+port encore tenu, en conclut qu'un serveur sain tourne, **ne démarre donc pas le sien** — puis
+l'ancien s'éteint et les 524 tests tombent d'un bloc en `net::ERR_CONNECTION_REFUSED`.
+
+- **Signature à reconnaître** : *tous* les tests échouent, la plupart en **130-160 ms** (la page ne
+  charge pas du tout), et le smoke de boot tombe en timeout. Ce n'est **jamais** une régression du
+  code — un échec de code ne fait pas tomber `smoke/boot`.
+- **Avant de relancer** : vérifier que le port e2e (port dev **+1000**, donc `6173` par défaut) est
+  libre — `ss -ltnp | grep 6173`. Ne tuer que ses propres process ; jamais le serveur de dev de
+  l'humain, jamais son navigateur.
+- Ne pas lire le résultat à travers `| tail -N` : le tampon avale tout si le run est tué. Rediriger
+  vers un fichier (`> run.log 2>&1`) et lire le fichier.
+
 ## Attente (anti-flaky)
 
 - **Bannir `page.waitForTimeout(ms)`**.

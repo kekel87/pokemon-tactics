@@ -1,4 +1,5 @@
 import type { TeamSet } from "@pokemon-tactic/core";
+import { countAction, TelemetryAction } from "../../analytics/telemetry";
 import { t } from "../../i18n";
 import { generateRandomTeam } from "../../team/team-generator";
 import { createEmptyTeam } from "../../team/team-helpers";
@@ -125,6 +126,8 @@ export class MyTeamsView {
   }
 
   private createNewTeam(): void {
+    // Le Team Builder est-il utilisé, ou joue-t-on avec les équipes par défaut ? (plan 196)
+    countAction(TelemetryAction.TeamSave);
     const team = createEmptyTeam(t("teamBuilder.untitledTeam"));
     saveTeam(team);
     this.options.onEditTeam(team.id);
@@ -136,6 +139,7 @@ export class MyTeamsView {
       s.name.startsWith(t("teamBuilder.randomTeamPrefix")),
     ).length;
     const name = `${t("teamBuilder.randomTeamPrefix")} #${existingCount + 1}`;
+    countAction(TelemetryAction.TeamGenerate);
     const team = generateRandomTeam({ name });
     saveTeam(team);
     this.options.onEditTeam(team.id);
@@ -145,6 +149,7 @@ export class MyTeamsView {
     openDeleteConfirmModal({
       teamName: team.name,
       onConfirm: () => {
+        countAction(TelemetryAction.TeamDelete);
         deleteTeam(team.id);
         this.renderTeams();
       },

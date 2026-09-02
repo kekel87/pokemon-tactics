@@ -407,6 +407,11 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 > reliquat d'avant. Détail complet et raisonnement : **[multiplayer.md](multiplayer.md)**, décisions
 > #862-870. **Plan-cadre de la phase** : `docs/plans/195-phase7-multijoueur-telemetrie.md` (lots, ordre,
 > risques et décisions ouvertes).
+>
+> **Phase DÉMARRÉE le 2026-09-02** par le Lot A (télémétrie) — `docs/plans/195` et `docs/plans/196`
+> passés `in-progress`. Compte Cloudflare + base D1 `pokemon-tactics-events` créés, spike `sendBeacon`
+> validé (itch.io + GitHub Pages, réfute le plan 114), paquet `packages/telemetry-worker/` livré
+> (étapes 1-2/9 du plan 196). Pas encore déployé, client pas câblé — détail : `docs/next.md`.
 
 **Ce qui est déjà prêt** : replay et déterminisme verrouillés (plan 181), port de persistance (#751),
 hot-seat N joueurs avec `humanPlayerIds` (plan 188) — le tour distant se greffe là où le tour hot-seat
@@ -419,7 +424,9 @@ existe déjà.
 - [ ] **Télémétrie de jeu** — Cloudflare Workers + D1, remplace Goatcounter (faussé par les bloqueurs).
       Usages seulement : parties jouées, Pokemon et attaques les plus joués, taux d'abandon.
       **Indépendante du réseau et déjà utile en solo** → première tranche livrable de la phase
-      (#867, #868, #870)
+      (#867, #868, #870). **EN COURS (2026-09-02)** : étapes 1-2/9 du plan 196 livrées (spike
+      `sendBeacon` validé, paquet `packages/telemetry-worker/` avec ses 64 tests) — Worker pas encore
+      déployé, client pas câblé, Goatcounter toujours en place
 - [ ] **Multijoueur réseau P2P** — lobby (`ScreenId` neuf), protocole d'actions, validation,
       détection de désync (sérialisation canonique à écrire), chronomètre local auto-déclarant
       (#864, #865), reconnexion par le chemin du plan 181. **Viser le 1v1**, retester le FFA à 12

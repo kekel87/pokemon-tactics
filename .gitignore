@@ -99,3 +99,10 @@ _*.mjs
 # Exports voxel intermédiaires (Goxel → .gltf) : régénérables, artefact runtime = .glb (public/),
 # sources = .gox (assets-src/voxel/goxel/). On ne commite pas l'étape .gltf.
 assets-src/voxel/*.gltf
+
+# Cloudflare Worker de télémétrie (plan 196) : état local de wrangler + secrets de dev.
+# `.dev.vars` porte le secret du haché de visiteur en local (décision #879) — jamais commité.
+# Les identifiants non secrets (account_id, database_id) restent, eux, dans wrangler.toml versionné.
+.wrangler/
+.dev.vars
+.dev.vars.*

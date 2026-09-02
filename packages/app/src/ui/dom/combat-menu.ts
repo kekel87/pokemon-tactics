@@ -1,3 +1,4 @@
+import { countAction, TelemetryAction } from "../../analytics/telemetry";
 import { t } from "../../i18n";
 import type { TranslationKey } from "../../i18n/types";
 import { activateFocusedControl, focusInDirection } from "../../input/focus-navigation";
@@ -145,6 +146,7 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
     if (onQuitKeepingSave && !isPlacement) {
       list.append(
         entry("combatMenu.quit", "combat-menu-quit", () => {
+          countAction(TelemetryAction.CombatMenuQuit);
           close();
           onQuitKeepingSave();
         }),
@@ -168,6 +170,13 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
           : "combatMenu.confirmAbandon",
     );
     const confirm = menuButton(t("combatMenu.confirm"), () => {
+      // Compté à la CONFIRMATION et non à l'ouverture de la question : ce qu'on veut savoir est par
+      // quelle sortie on part, pas combien de fois on a hésité (plan 196).
+      countAction(
+        action === "abandon"
+          ? TelemetryAction.CombatMenuForfeit
+          : TelemetryAction.CombatMenuRestart,
+      );
       close();
       if (action === "abandon") {
         onAbandon();
@@ -322,6 +331,9 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
       if (dialog !== null || document.querySelector("dialog[open]") !== null) {
         return false;
       }
+      // Ce que le plan 187 a livré sert-il ? Compté APRÈS le garde-fou ci-dessus, donc une seule
+      // fois par ouverture réelle (plan 196).
+      countAction(TelemetryAction.CombatMenuOpen);
       openedFrom = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       const created = document.createElement("dialog");
       created.className = "cm-dialog";

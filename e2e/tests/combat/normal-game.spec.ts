@@ -13,6 +13,21 @@ test("jeu normal : menu → carte → équipe → la scène de combat monte", as
   const teamSelect = new TeamSelectScreen(page);
   const scene = new CombatScene(page);
 
+  /*
+   * Garde de télémétrie (plan 196) : la suite ne doit émettre AUCUNE requête vers l'endpoint `/e`,
+   * sinon les 519 tests pollueraient la base de production. Le garde-fou testé est
+   * `platformPrefix()`, qui rend `null` hors des deux hôtes de publication — donc `null` sur
+   * `localhost`. Posé sur CE test parce que c'est le seul qui parcourt le vrai chemin joueur, celui
+   * où les compteurs d'écran et `battle_started` se déclenchent : ailleurs, l'assertion ne
+   * prouverait rien.
+   */
+  const telemetryRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("workers.dev")) {
+      telemetryRequests.push(request.url());
+    }
+  });
+
   await menu.goto();
   await menu.combat.click();
   await expect(battleMode.local).toBeVisible();
@@ -37,4 +52,6 @@ test("jeu normal : menu → carte → équipe → la scène de combat monte", as
   await expect
     .poll(() => scene.countByName("pokemon_plane"), { timeout: 15_000 })
     .toBeGreaterThanOrEqual(2);
+
+  expect(telemetryRequests).toEqual([]);
 });

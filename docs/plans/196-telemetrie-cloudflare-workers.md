@@ -1,10 +1,12 @@
 # Plan 196 — Télémétrie de jeu (Cloudflare Workers + D1)
 
-> **Statut** : draft
+> **Statut** : in-progress
 > **Créé** : 2026-08-31
+> **Démarré** : 2026-09-02
 > **Lot A de la Phase 7** — plan-cadre : `docs/plans/195-phase7-multijoueur-telemetrie.md`
 > **Décisions** : `#867` (Cloudflare plutôt que Goatcounter), `#868` (deux événements par partie, brut + agrégation à la lecture, RGPD par construction), `#870` (usages, pas de scores), `#215` (ce que Goatcounter offrait clés en main).
 > **Tranché le 2026-08-31** : pas de nom de domaine, l'API reste sur `*.workers.dev` · le Worker vit dans `packages/telemetry-worker/`.
+> **Tranché le 2026-09-02** : `battle_id` éphémère retenu (`#880`) — plus aucune décision ouverte, le plan est exécutable de bout en bout.
 
 ## But
 
@@ -232,35 +234,63 @@ Jeu (packages/app)                Worker (packages/telemetry-worker)      D1
 
 > **L'ordre compte, et il n'est pas celui qu'on croit.** Deux étapes sont placées à contre-intuition volontairement : le **spike itch.io** vient avant toute écriture de code, parce qu'il décide de la **forme de l'envoi** ; le **retrait de Goatcounter** vient après la validation en production, pour ne jamais se retrouver sans aucune mesure si la nouvelle chaîne échoue.
 
-### Étape 0 — Compte Cloudflare *(action humaine, bloque tout le reste)*
-- [ ] Créer le compte, noter l'`account_id`.
-- [ ] Créer la base D1, noter son `database_id`.
-- [ ] Créer un jeton d'API limité au déploiement de Workers (pour l'étape 5), **hors du dépôt**.
+### Étape 0 — Compte Cloudflare — ✅ FAIT le 2026-09-02
+- [x] Créer le compte (2026-09-02). `account_id` **à relever** (il est dans l'URL du dashboard).
+- [x] Base D1 `pokemon-tactics-events` créée le 2026-09-02 (région WEUR) — `database_id` `f0a2fca1-e016-4537-82c3-2f6cb8d53eca`.
+- [ ] Jeton d'API limité au déploiement de Workers — **reporté à l'étape 5** (le workflow GitHub). Le déploiement manuel du 2026-09-02 est passé par `wrangler login` (OAuth, jeton dans `~/.config/.wrangler/`, hors du dépôt).
 
-### Étape 1 — Spike : prouver que le beacon franchit l'iframe itch.io *(avant tout le reste)*
+### Étape 1 — Spike : prouver que le beacon franchit l'iframe itch.io — ✅ FAIT le 2026-09-02
 
 Le plan 114 avait constaté que l'iframe `html-classic.itch.zone` **bloque le `<script>` Goatcounter** — c'est toute la raison du beacon `Image` actuel. Le comportement d'un `sendBeacon` POST vers `*.workers.dev` depuis cette iframe est **non vérifié**, et il détermine la forme de l'envoi. Le découvrir à la fin coûterait de réécrire le client et l'endpoint.
 
-- [ ] Déployer un Worker **minimal** qui répond `204` à `POST /e` et à `GET /e`, sans base, sans validation, et qui **journalise l'en-tête `Origin` reçu**.
-- [ ] **Relever l'origine réelle** du document qui exécute le jeu dans l'iframe : c'est `html-classic.itch.zone` (ou une variante si le lecteur itch a changé), **pas** `kekel87.itch.io`. C'est cette valeur exacte qu'il faudra autoriser à l'étape 2 — à observer, jamais à supposer. Attention aussi au cas `Origin: null`, que produit une iframe sandboxée sans `allow-same-origin`.
-- [ ] **Le pronostic est plutôt favorable** : bloquer un `<script src>` tiers relève de `script-src`, directive **indépendante** de `connect-src`, qui régit `fetch`/`sendBeacon`. Rien ne dit que le blocage de Goatcounter en 2026-06 présage un blocage du beacon. Des jeux itch appellent couramment des API externes. Ça reste à prouver, pas à parier.
-- [ ] Depuis le jeu **déjà en ligne** (aucun code à changer) : ouvrir la console du navigateur sur la page itch.io, puis sur GitHub Pages, et tenter les deux formes — `navigator.sendBeacon(url, body)` et un beacon `Image` en GET.
-- [ ] Conclusion à écrire dans ce plan avant de continuer : **quelle forme passe sur les deux plateformes**. Si le POST passe partout, on le garde (il survit à la fermeture d'onglet et évite le préflight). Sinon, repli GET `Image` sur notre propre endpoint — la forme qui a déjà fait ses preuves dans ce sandbox précis.
-- [ ] ⚠️ **Si le repli GET est retenu, le garde-fou `Origin` de l'étape 2 tombe** : une sous-ressource passive (`<img src>`) **n'envoie pas** cet en-tête, contrairement à `fetch` et `sendBeacon`. Un Worker qui rejette toute requête sans `Origin` tuerait son propre repli. À trancher **ici**, pas après : valider ce chemin par le `Referer` et la taille, en acceptant un contrôle plus faible sur un GET.
+- [x] ~~Déployer un Worker **minimal**~~ **inutile** : la mesure a été obtenue sans déployer quoi que ce soit — l'absence totale de CSP se lit dans les en-têtes, et l'`Origin` réel a été relevé par un POST vers un service d'écho. Le Worker minimal aurait répondu à la même question pour le prix d'un déploiement. Il répond `204` à `POST /e` à `POST /e` et à `GET /e`, sans base, sans validation, et qui **journalise l'en-tête `Origin` reçu**.
+- [x] **Relever l'origine réelle** du document qui exécute le jeu dans l'iframe : c'est `html-classic.itch.zone` (ou une variante si le lecteur itch a changé), **pas** `kekel87.itch.io`. C'est cette valeur exacte qu'il faudra autoriser à l'étape 2 — à observer, jamais à supposer. Attention aussi au cas `Origin: null`, que produit une iframe sandboxée sans `allow-same-origin`.
+- [x] **Pronostic confirmé.** : bloquer un `<script src>` tiers relève de `script-src`, directive **indépendante** de `connect-src`, qui régit `fetch`/`sendBeacon`. Rien ne dit que le blocage de Goatcounter en 2026-06 présage un blocage du beacon. Des jeux itch appellent couramment des API externes. Ça reste à prouver, pas à parier.
+- [x] Depuis le jeu **déjà en ligne** (aucun code à changer) : ouvrir la console du navigateur sur la page itch.io, puis sur GitHub Pages, et tenter les deux formes — `navigator.sendBeacon(url, body)` et un beacon `Image` en GET.
+- [x] Conclusion à écrire dans ce plan avant de continuer : **quelle forme passe sur les deux plateformes**. Si le POST passe partout, on le garde (il survit à la fermeture d'onglet et évite le préflight). Sinon, repli GET `Image` sur notre propre endpoint — la forme qui a déjà fait ses preuves dans ce sandbox précis.
+- [x] ⚠️ **Sans objet — le repli GET n'est pas retenu.** (consigne d'origine conservée) **Si le repli GET est retenu, le garde-fou `Origin` de l'étape 2 tombe** : une sous-ressource passive (`<img src>`) **n'envoie pas** cet en-tête, contrairement à `fetch` et `sendBeacon`. Un Worker qui rejette toute requête sans `Origin` tuerait son propre repli. À trancher **ici**, pas après : valider ce chemin par le `Referer` et la taille, en acceptant un contrôle plus faible sur un GET.
 
 **Conclusion du spike — à remplir ici avant d'ouvrir l'étape 2** (ce plan est le compte rendu, pas seulement la consigne) :
 
 ```
-Forme retenue          : [ ] POST sendBeacon   [ ] GET beacon Image
-Origin observé itch    : ........................  (attendu : html-classic.itch.zone, ou null)
-Origin observé Pages   : ........................
-Validation de l'étape 2: [ ] par Origin (POST)  [ ] par Referer + taille (repli GET)
-Date, testé par        : ........................
+Forme retenue          : [x] POST sendBeacon   [ ] GET beacon Image
+Origin observé itch    : https://html-classic.itch.zone   (jamais null — voir ci-dessous)
+Origin observé Pages   : https://kekel87.github.io
+Validation de l'étape 2: [x] par Origin (POST)  [ ] par Referer + taille (repli GET)
+Date, testé par        : 2026-09-02, Claude via Firefox marionette (MCP firefox-devtools)
 ```
+
+**Le POST passe sur les deux plateformes, et le garde-fou `Origin` est donc conservé.** Mesures :
+
+| Ce qui a été mesuré | itch.io | GitHub Pages |
+|---|---|---|
+| `location.origin` | `https://html-classic.itch.zone` | `https://kekel87.github.io` |
+| `Origin` **vu par le serveur** sur un POST | `https://html-classic.itch.zone` | `https://kekel87.github.io` |
+| `Content-Type` réellement envoyé | `text/plain;charset=UTF-8` | `text/plain;charset=UTF-8` |
+| Statut de la réponse | `200` | `200` |
+| `navigator.sendBeacon(...)` rend | `true` | `true` |
+
+Le `Content-Type` confirme sur mesure ce que l'étape 3 exige : un corps passé en **chaîne** part en `text/plain`, la requête reste **CORS « simple »** et **aucun préflight `OPTIONS`** n'est déclenché.
+
+**🔴 Le diagnostic du plan 114 est réfuté — et c'est le vrai résultat de ce spike.** « L'iframe itch bloque le `<script>` Goatcounter » était faux sur ses deux termes :
+
+- **L'iframe n'est pas sandboxée.** Attribut relevé sur `kekel87.itch.io/pokemon-tactics` après « Run game » : `sandbox` vaut **`null`** — l'attribut est absent. Le `allow` est au contraire très large (`autoplay; fullscreen *; ... gamepad; gyroscope; accelerometer; xr; cross-origin-isolated; web-share`). Corollaire : **le cas `Origin: null` que ce plan redoutait ne peut pas se produire** — il vient d'une iframe sandboxée sans `allow-same-origin`, ce que celle-ci n'est pas.
+- **Le document du jeu ne porte aucune CSP.** `https://html-classic.itch.zone/html/<id>/index.html` répond `200 · text/html · server: cloudflare` **sans** `Content-Security-Policy`, sans `X-Frame-Options`, sans `Permissions-Policy`, sans `Referrer-Policy`, et le HTML servi ne contient **aucune** balise `<meta http-equiv>`. Ni `script-src` ni `connect-src` n'existent : **rien, au niveau de la plateforme, ne peut bloquer un envoi réseau**. Le `gc.zgo.at` de Goatcounter est d'ailleurs bien présent dans le HTML servi.
+
+Ce que Goatcounter subissait relevait donc du **navigateur du visiteur** (bloqueur de publicité et de traqueurs), pas d'itch.io — exactement l'argument de la décision `#867`, désormais mesuré et non plus supposé. Et c'est ce qui justifie a posteriori le chemin neutre **`/e`** de l'étape 2 : le seul adversaire réel est une liste de filtrage côté client, que le nom d'URL vise.
+
+**Deux limites de ce spike, à connaître avant de s'y fier :**
+
+1. **Le test a tourné dans un onglet ouvert directement sur l'origine du document du jeu** (`isFramed: false`), pas depuis l'intérieur de l'iframe itch — la page parente est cross-origin, on ne peut pas y injecter de script. L'inférence « être encadré n'ajoute aucune restriction réseau » repose sur les deux faits mesurés ci-dessus (pas de `sandbox`, pas de CSP), qui sont précisément les deux seuls mécanismes qui pourraient l'ajouter. **Confirmation définitive à l'étape 6**, que ce plan exigeait déjà : une partie réelle jouée sur itch.io.
+2. **L'endpoint de test était `httpbingo.org`, pas `*.workers.dev`.** En l'absence totale de CSP, l'hôte de destination n'entre pas dans la décision d'autoriser la requête — mais le Worker réel n'a pas encore été touché par un envoi. Idem : étape 6.
+
+**`document.referrer` valait `""`** dans les deux cas, onglet ouvert directement. Ça ne contredit ni ne confirme la limite de `#879` sur les référents itch (dans l'iframe il vaudra `html-classic.itch.zone`, jamais le vrai référent externe) — à relever à l'étape 6.
+
+✅ **Rien à revoir avant l'étape 2** : le POST est retenu, la liste blanche d'`Origin` s'écrit avec les deux valeurs mesurées, et le repli GET `Image` n'est pas nécessaire.
 
 🔁 **Cette conclusion pilote l'étape 2.** Si le repli GET l'emporte, revenir sur le garde-fou d'`Origin` avant d'écrire le Worker — ce n'est pas un détail d'implémentation, c'est un changement de contrat d'entrée.
 
-### Étape 2 — Paquet `packages/telemetry-worker/`
+### Étape 2 — Paquet `packages/telemetry-worker/` — ✅ FAIT le 2026-09-02
 - [ ] `package.json` avec un script `typecheck`, **et pas de script `build`** — `pnpm -r build` ignore les paquets qui n'en déclarent pas, et un Worker ne se « build » pas, il se déploie.
 - [ ] `wrangler.toml` :
   ```toml
@@ -271,10 +301,11 @@ Date, testé par        : ........................
   [[d1_databases]]
   binding = "DB"                            # ce que le Worker voit : env.DB
   database_name = "pokemon-tactics-events"
-  database_id = "<depuis l'étape 0>"
+  database_id = "<depuis l'étape 0>"       # relevé sur la page de la base D1
   ```
-  L'`account_id` se met dans `wrangler.toml` ou dans l'environnement — **jamais le jeton d'API**.
-- [ ] `@cloudflare/workers-types` en dépendance de dev **locale au paquet**, pour que ses types globaux ne débordent pas sur les autres paquets.
+  L'`account_id` se met dans `wrangler.toml` ou dans l'environnement — **jamais le jeton d'API**. **Relevé le 2026-09-02** : `fb522b06e2c2d12bfa3657f32a4fd44a`.
+- [ ] `wrangler` et `@cloudflare/workers-types` en dépendances de dev **à la racine** — ⚠️ **corrigé le 2026-09-02, la consigne d'origine (« locale au paquet ») était fausse** : vérification faite, la racine porte **toutes** les dépendances de dev du dépôt (`typescript`, `vitest`, `vite`, `@playwright/test`…) et **aucun paquet** ne déclare de bloc `dependencies`. On suit la convention du dépôt (décision humaine du 2026-09-02).
+- [ ] L'isolation des types globaux du Worker ne se fait **pas** par l'emplacement de la dépendance mais par le `tsconfig` du paquet : `"types": ["@cloudflare/workers-types"]`, exactement comme `packages/core/tsconfig.json` déclare `"types": ["node"]`. Aucun débordement sur les 9 autres paquets.
 - [ ] Schéma D1 en migration SQL :
   ```sql
   CREATE TABLE events (
@@ -303,7 +334,7 @@ Date, testé par        : ........................
 - [ ] Ne renseigner ces colonnes que pour les lignes `session` — les deux événements de partie n'en ont pas besoin.
 - [ ] Fonction de validation **pure**, testée en unitaire. `vitest.config.ts` ramasse déjà `packages/*/src/**/*.test.ts` : **aucune config à toucher**, et pas besoin d'un runtime Workers en test.
 
-### Étape 3 — Client de jeu : `telemetry.ts` remplace `analytics.ts`
+### Étape 3 — Client de jeu : `telemetry.ts` remplace `analytics.ts` — ✅ FAIT le 2026-09-02
 - [ ] Envoi dans la forme retenue à l'étape 1. Si c'est `sendBeacon` : repli `fetch(..., { keepalive: true })`.
 - [ ] 🔴 **`navigator.sendBeacon(url, JSON.stringify(payload))` — une chaîne, jamais un `Blob` typé `application/json`.** C'est la condition pour rester une requête CORS « simple » : une chaîne part en `text/plain;charset=UTF-8`, qui est sur la liste sûre. Un `Blob` JSON déclencherait un **préflight `OPTIONS`** que le Worker ne traite pas → échec **silencieux**, avalé par le `try/catch` muet, donc invisible en production. Même règle pour le repli `fetch` : ne pas poser d'en-tête `Content-Type: application/json`.
 - [ ] `sendBeacon` rend `false` s'il ne peut pas mettre la requête en file : **tester ce retour** et basculer sur `fetch keepalive`, pas seulement quand l'API est absente.
@@ -313,14 +344,24 @@ Date, testé par        : ........................
 - [ ] Joindre le `buildVersion` déjà utilisé pour invalider les sauvegardes (#748).
 - [ ] Supprimer le code mort hérité du refactor `e0c1a221` : les 8 constantes d'écran, `trackGameLoadedOnce()`, le beacon `Image` vers Goatcounter. **Zéro tolérance au code mort** (CLAUDE.md).
 
-### Étape 4 — Câbler les trois événements aux points d'accroche réels
+### Étape 4 — Câbler les trois événements aux points d'accroche réels — ✅ FAIT le 2026-09-02
 - [ ] `battle_started` au démarrage du combat, **là où le seed est tiré une seule fois** (`combat-screen.ts` → `startPlacementFlow({ randomSeed })`, décision #857).
 - [ ] ⚠️ **Ne pas émettre à la reprise d'un combat** (`resumeBattle`, plan 181), sinon une partie reprise trois fois compte pour quatre.
 - [ ] `battle_ended` sur `BattleEventType.BattleEnded` dans le `feedback.report` de `combat-screen.ts` — **point unique et exhaustif**, déjà utilisé par `onBattleClosed?.()`. Le match nul (plan 191) y passe aussi.
 - [ ] **Compteurs d'interface** : un incrément en mémoire à chaque action de la table du § `session`, et l'envoi des deltas sur `visibilitychange → hidden`. Un seul module compteur, appelé depuis les écrans — **pas** un appel réseau par bouton.
 - [ ] Vérifier que le bac à sable et les tests e2e n'émettent rien — **procédure, pas intention** : lancer `pnpm dev:sandbox`, jouer une partie, et confirmer dans l'onglet réseau des devtools **zéro requête vers `/e`**. `platformPrefix()` rend `null` sur `localhost`, c'est ce garde qu'on vérifie.
 
-### Étape 5 — Déploiement
+### Étape 5 — Déploiement — ⏳ manuel FAIT le 2026-09-02, workflow GitHub restant
+
+**URL de production** : `https://pokemon-tactics-telemetry.kekel87.workers.dev/e`
+
+⚠️ Le sous-domaine `*.workers.dev` est dérivé de l'adresse e-mail du compte à la création — ici
+`michael-parry-87`, donc le **nom civil** de l'auteur, dans une URL qui part dans le bundle public
+du jeu. Changé pour `kekel87` le 2026-09-02 (décision humaine), qui est déjà le pseudo public du
+dépôt et de la page itch, donc ne révèle rien de neuf. Le sous-domaine est **au niveau du compte** :
+les deux Workers à venir (mise en relation, relais réseau — décision #869) en hériteront.
+Le changement casse l'ancienne URL et demande quelques minutes d'émission de certificat TLS.
+`wrangler` n'expose **aucune** commande pour ça : tableau de bord uniquement.
 - [ ] `wrangler deploy` à la main d'abord, pour valider bout en bout avec un `curl`.
 - [ ] Puis un workflow, déclenché **uniquement** sur changement du paquet :
   ```yaml
@@ -392,8 +433,29 @@ Ce que l'exemption de mesure d'audience demanderait, pour mémoire et pour le jo
 ## Décisions à trancher avant de coder
 
 1. ~~**Garde-t-on un événement de fréquentation ?**~~ **RÉSOLU le 2026-08-31** : l'événement `session` à compteurs (§ Ce qu'on mesure) le couvre et va plus loin — il porte la fréquentation, le funnel d'écran **et** l'usage des boutons de menu. Aucune régression par rapport au funnel de Goatcounter, qui était ce qui avait révélé le blocage itch en juin.
-2. **Un `battle_id` éphémère dans le payload ?** Sans lui, le taux d'abandon n'existe qu'en **global** (deux compteurs comparés). Avec un identifiant aléatoire tiré par partie et **jamais persisté**, on obtient l'abandon **par carte et par format** — bien plus actionnable.
-   **Reco : oui**, en gardant la règle : aléatoire à chaque partie, jamais écrit sur le disque, jamais lié à un appareil. Un identifiant de partie non persistant ne réidentifie personne ; un identifiant stable, si — c'est la ligne à ne pas franchir.
+2. ~~**Un `battle_id` éphémère dans le payload ?**~~ **RÉSOLU le 2026-09-02 : oui** (décision humaine `#880`, conforme à la reco). Identifiant **aléatoire tiré à chaque partie**, porté par `battle_started` **et** `battle_ended` pour les relier — on obtient l'abandon **par carte et par format**, au lieu du seul taux global qu'auraient donné deux compteurs comparés. Règle non négociable qui accompagne la décision : **jamais écrit sur le disque, jamais lié à un appareil, jamais réutilisé d'une partie à l'autre**. Un identifiant de partie non persistant ne réidentifie personne ; un identifiant stable, si — c'est la ligne à ne pas franchir, et elle rejoint le sel quotidien de `#879`.
+
+**→ Plus aucune décision ouverte sur ce plan.**
+
+## Écarts au plan, constatés à l'exécution (2026-09-02)
+
+Ce plan a été écrit avant de toucher au code. Cinq de ses consignes se sont révélées fausses ou
+incomplètes ; elles sont corrigées ici pour que le document reste le compte rendu et non l'intention.
+
+| Ce que le plan disait | Ce qui est vrai | Pourquoi |
+|---|---|---|
+| Dépendances **locales au paquet** | **À la racine** | Convention réelle du dépôt, vérifiée : la racine porte l'outillage (`typescript`, `vitest`, `vite`, `biome`), les paquets ne portent que leurs dépendances de **code**. L'isolation des types globaux se fait par le `tsconfig` du paquet (`"types": [...]`), pas par l'emplacement. Décision humaine du 2026-09-02. |
+| Limitation de débit par `[[unsafe.bindings]]` | **`[[ratelimits]]`** | Syntaxe vérifiée dans la doc officielle le 2026-09-02 ; la forme `unsafe` est dépassée. Exige wrangler ≥ 4.36 (on a 4.128). |
+| `binding = "DB"`, point d'entrée `src/index.ts` | **`binding = "database"`, `src/worker.ts`** | `useNamingConvention` (Biome) refuse `DB`/`RATE_LIMITER`/`VISITOR_SECRET` en `SCREAMING_CASE` ; renommer est une mise en conformité, pas une exception — Cloudflare accepte tout identifiant JS valide. `index.ts` est réservé aux barrels par convention de dépôt. |
+| Deux `kind`, pas d'`[observability]` | **Trois `kind`, `[observability]` épinglé** | Le troisième (`session`) vient de la révision de `#878`. L'observabilité est déclarée explicitement plutôt qu'héritée du défaut, sur recommandation de la revue de code — c'est ce qui rend visible le `console.error` du chemin d'échec d'écriture. |
+| « Ne rien envoyer quand tous les compteurs sont à zéro » | **La première ligne part toujours** | Trou méthodologique : sans ça, le cas le plus fréquent (jouer sans toucher un bouton instrumenté) n'aurait produit aucune ligne, et la promesse « aucune régression sur le funnel de Goatcounter » était fausse. Décision `#883`. |
+
+Deux corrections de la revue de code ont par ailleurs changé le Worker : le corps de la requête
+n'est plus lu **avant** la vérification de méthode et d'origine (le garde-fou de quota était en aval
+de la dépense qu'il prétendait éviter), et l'échec d'écriture D1 est désormais **journalisé** au lieu
+d'être avalé — sans quoi une table absente aurait été indiscernable d'un fonctionnement normal, ce
+qui est le mode de défaillance le plus probable d'un premier déploiement. Ce dernier point a
+d'ailleurs servi le jour même : le binding déclaré ne correspondait plus au code après renommage.
 
 ## Tests
 
