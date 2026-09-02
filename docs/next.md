@@ -113,10 +113,11 @@ Goatcounter retiré du bundle. Décisions **#880-886** (`docs/decisions.md`).
    verrouillage ne portait pas l'entrée `packages/telemetry-worker: {}`, donc chaque `pnpm install`
    la rajoutait et salissait l'arbre. Deux hypothèses testées et réfutées avant celle-là ; c'est
    l'instrumentation du build qui a tranché en nommant le fichier coupable.
-4. **Fermeture du compte Goatcounter** — export récupéré par l'humain le 2026-09-02
-   (786 hits, 7 avril → 2 septembre). **Décision : on ne réinjecte pas** ces données dans la base —
-   Goatcounter comptait un hit par événement, nous comptons des visites au drapeau `first` : les
-   mélanger rendrait faux tous les chiffres historiques. Ne reste que la fermeture du compte.
+4. ~~**Fermeture du compte Goatcounter**~~ **FAIT le 2026-09-02.** Export récupéré avant fermeture
+   (786 hits, 7 avril → 2 septembre : 145 passages au menu sur itch contre 32 sur GitHub Pages,
+   27 combats lancés pour 7 terminés). **Décision : ces données ne sont PAS réinjectées** —
+   Goatcounter comptait un hit par événement, nous comptons des visites au drapeau `first` ; les
+   mélanger rendrait faux tous les chiffres historiques. L'archive reste chez l'humain.
 5. ~~**Rejouer la suite e2e complète**~~ **FAIT le 2026-09-02** — 524/524, après installation du
    binaire `chrome-headless-shell` absent du cache (faux positif documenté dans
    `.claude/rules/e2e.md`).

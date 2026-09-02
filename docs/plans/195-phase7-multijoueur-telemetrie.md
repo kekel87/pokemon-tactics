@@ -3,6 +3,9 @@
 > **Statut** : in-progress
 > **Créé** : 2026-08-31
 > **Phase démarrée** : 2026-09-02 — par le Lot A (télémétrie, plan 196). Compte Cloudflare créé le même jour.
+> **Avancement** : **Lot A ✅ clos le 2026-09-02** (plan 196 `done`, télémétrie en production, relevé live,
+> Goatcounter fermé). **Lot B** (multijoueur P2P 1v1) et **Lot C** (écran de victoire) : pas commencés.
+> ⚠️ Ce plan reste `in-progress` tant que les deux autres lots ne sont pas faits — le 196 n'en couvrait qu'un.
 > **Nature** : plan-cadre d'une phase entière. Chaque lot sera détaillé dans son propre plan au moment de l'attaquer. Ce document fixe le périmètre, l'ordre, les acquis, les décisions déjà prises et celles qui restent ouvertes.
 > **Référence de conception** : `docs/multiplayer.md` (réécrit en v2 le 2026-08-29). Décisions `#209-212` (fondations) et `#862-870` (cadrage). Ce plan **ne rejoue pas** le raisonnement de ce document — il l'ordonne en lots exécutables.
 
