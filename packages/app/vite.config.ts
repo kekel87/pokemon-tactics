@@ -2,7 +2,7 @@ import { execSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { visualizer } from "rollup-plugin-visualizer";
-import type { IndexHtmlTransformContext, Plugin, PluginOption } from "vite";
+import type { Plugin, PluginOption } from "vite";
 import { defineConfig } from "vite";
 
 // Dev server port. Lets N parallel worktree sessions run `pnpm dev` without
@@ -66,22 +66,6 @@ function stripPerPokemonSpriteFoldersPlugin(): Plugin {
   };
 }
 
-function goatcounterPlugin(): Plugin {
-  return {
-    name: "goatcounter",
-    transformIndexHtml: {
-      order: "post",
-      handler(html: string, context: IndexHtmlTransformContext): string {
-        if (context.server) {
-          return html;
-        }
-        const tag = `<script data-goatcounter="https://kekel87.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>`;
-        return html.replace("</body>", `${tag}\n</body>`);
-      },
-    },
-  };
-}
-
 // Bundle audit (Jalon 1 DoD): `BUNDLE_VISUALIZE=1 pnpm build` writes
 // `dist/stats.html` (treemap) to track the Babylon bundle vs the 180-220 kB gzip target.
 function bundleAuditPlugins(): PluginOption[] {
@@ -102,7 +86,7 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [goatcounterPlugin(), stripPerPokemonSpriteFoldersPlugin(), ...bundleAuditPlugins()],
+  plugins: [stripPerPokemonSpriteFoldersPlugin(), ...bundleAuditPlugins()],
   server: {
     port: resolveDevPort(),
     /*
