@@ -42,6 +42,18 @@ export interface BattleResumeSave {
   placements: PlacementEntry[];
   seed: number;
   actions: Action[];
+  /**
+   * Temps de jeu **cumulé** au moment de l'écriture, pour la durée du récapitulatif de victoire
+   * (plan 197).
+   *
+   * Un temps cumulé et non un horodatage de départ : une partie commencée le soir et reprise le
+   * lendemain doit afficher les minutes jouées, pas les heures écoulées. Chaque montage repart de
+   * cette valeur et y ajoute sa propre tranche.
+   *
+   * Facultatif parce que le type le permet sans coût, pas pour compatibilité ascendante : le
+   * contrôle de `buildVersion` ci-dessus jette déjà toute sauvegarde d'un autre build.
+   */
+  elapsedMs?: number;
 }
 
 /**
@@ -94,7 +106,20 @@ export function createBattleResumeStore(buildVersion: string): BattleResumeStore
           return null;
         }
         const parsed: unknown = JSON.parse(stored);
-        return isValidSave(parsed, buildVersion) ? parsed : null;
+        if (!isValidSave(parsed, buildVersion)) {
+          return null;
+        }
+        /*
+         * Un temps cumulé non numérique (stockage trafiqué ou corrompu) est NEUTRALISÉ, pas fatal :
+         * il donnerait une durée `NaN` à l'écran de fin, alors que jeter la sauvegarde coûterait la
+         * partie entière. Le principe est celui du commentaire du port ci-dessus — une partie est
+         * précieuse, un champ d'affichage ne l'est pas.
+         */
+        if (typeof parsed.elapsedMs !== "number" || !Number.isFinite(parsed.elapsedMs)) {
+          const { elapsedMs: _discarded, ...withoutElapsedMs } = parsed;
+          return withoutElapsedMs;
+        }
+        return parsed;
       } catch {
         // Corrupt JSON, or storage blocked (private mode). Treated as "no save".
         return null;

@@ -89,6 +89,7 @@ import type {
   PresentationContext,
   SemiInvulnerableDisplay,
 } from "@pokemon-tactic/render-ports";
+import { buildOutcomeSummary } from "./battle-outcome-summary.js";
 
 // Ports + chrome/board view-models live in the renderer contract package (plan
 // 125). Re-exported here so existing importers keep resolving while the
@@ -102,6 +103,8 @@ export type {
   BattleFeedback,
   BattleInstruction,
   BattleOrchestratorConfig,
+  BattleOutcomeMember,
+  BattleOutcomeSummary,
   BlockedMoveTag,
   BoardAuraIndicator,
   BoardDamageEstimate,
@@ -1905,7 +1908,14 @@ export class BattleOrchestrator {
     this.setInputState({ phase: "battle_over", winnerId });
     this.board.clearHighlights();
     this.board.setActive(null);
-    this.chrome.showVictory(winnerId);
+    this.chrome.showVictory(
+      winnerId,
+      buildOutcomeSummary({
+        state: this.state,
+        winnerId,
+        elapsedMs: this.config.getElapsedMs(),
+      }),
+    );
   }
 
   // --- legalActions helpers ---

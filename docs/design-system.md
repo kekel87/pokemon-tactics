@@ -443,6 +443,29 @@ Plan 071. Caractères Unicode `♂` / `♀` rendus dans le panneau info (DOM, `u
 
 ---
 
+## Écran de victoire — récapitulatif (plan 197)
+
+La dialog de fin de partie porte, sous le verdict, la rangée de portraits du camp vainqueur puis une
+ligne « N tours · M min SS ». Les portraits **K.O.** y sont grisés : c'est ce grisement qui fait dire
+à la rangée **à quel prix** la victoire est venue — sans lui, elle serait décorative.
+
+| Constante | Valeur | Usage |
+|-----------|--------|-------|
+| `--bc-victory-portrait-size` | `calc(40px * var(--ui-scale))` | Côté d'un portrait de la rangée. Déclaré avec les autres `--bc-*` sur `:where(.bc-root, .bc-left-col)` — la dialog est appendue à `.bc-root`, elle en hérite. Les crops sont natifs 40×40, donc le facteur reste entier et `image-rendering: pixelated` donne un ×2 propre en 4K. |
+| Opacité K.O. | `0.4` | Sur `.bc-victory-portrait[data-ko="true"]` |
+| Filtre K.O. | `grayscale(1)` | Idem. **Cumulé** à l'opacité à dessein : plusieurs portraits Gen 1 sont déjà quasi monochromes et resteraient indiscernables d'un survivant sous la seule désaturation. |
+
+Cadre **calqué** sur `.ts-portrait` — même intention, jetons du chrome : bordure
+`--color-border-surface`, rayon `--bc-radius-sm`, fond `--color-bg-elevated`,
+`image-rendering: pixelated`. (`.ts-portrait` utilise `--radius-sm` et `--color-bg-surface` : c'est
+une parenté d'aspect, pas une identité de jetons.)
+
+> `image-rendering: pixelated` ici ne contredit pas le « portraits en filtre `LINEAR` » de la
+> § Direction artistique : celui-ci parle du filtrage de **texture côté moteur**, celui-là du rendu
+> **DOM**, où tous les portraits existants sont déjà en `pixelated`.
+
+---
+
 ## Move Tooltip (grille pattern)
 
 La grille est pilotée par l'**intention** du move via `data-intent` sur `.mt-grid` (valeurs : `attack` / `buff` / `heal`) : tout l'ensemble affecté reçoit la couleur de son intention (rouge attaque / bleu buff / vert soin), exactement comme le sol. Les helpers partagés `moveIntent` / `selfPreviewRadius` dans `packages/view-core/src/move-intent.ts` fournissent l'intention et le rayon de self-preview.

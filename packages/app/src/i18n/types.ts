@@ -20,6 +20,11 @@ export interface Translations {
   "battle.drawMessage": string;
   "battle.restart": string;
   "battle.backToMenu": string;
+  "battle.summaryTurns": string;
+  "battle.summaryTurnsOne": string;
+  "battle.summaryDurationMinutes": string;
+  "battle.summaryDurationSeconds": string;
+  "battle.summaryDurationHours": string;
   "attack.selectTarget": string;
   "attack.aimDirection": string;
   "attack.confirm": string;

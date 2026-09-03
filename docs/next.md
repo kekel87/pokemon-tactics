@@ -406,6 +406,7 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
 
 ## Fait récemment
 
+- 2026-09-03 — **Plan 197 — Écran de victoire enrichi (Lot C de la Phase 7), livré et validé à la main.** La dialog de fin de partie affiche désormais, sous le verdict, une rangée de portraits de l'équipe du vainqueur (K.O. grisés par opacité **et** désaturation) puis « N tours · M min ». **Périmètre réduit avec l'humain sur menu** (#890) : pas de MVP — aucun événement du core ne nomme l'attaquant (`DamageDealt` ne porte que `targetId`, `PokemonKo` que `pokemonId`, `pokemon.lastHitBy` effacé au K.O.) —, pas de camp perdant (doublerait la hauteur de la dialog, ingérable à 12 camps), pas d'infobulle de cause de K.O. (inaccessible au clavier et à la manette). Nouveau `packages/view-core/src/battle-outcome-summary.ts` (`buildOutcomeSummary`, fonction libre — lit `state.pokemon`/`state.actionCounter`, testable sans monter d'orchestrateur), port `showVictory` étendu d'un `BattleOutcomeSummary`. **Temps de jeu cumulé** (`elapsedMs?: number` dans `BattleResumeSave`, #891) plutôt qu'un horodatage de départ : une partie reprise le lendemain affiche les minutes réellement jouées, pas les heures écoulées. ⚠️ **Durée de combat (écran, placement exclu) ≠ durée de session (télémétrie, placement compris, #857)** — deux sémantiques assumées, pas un bug à réconcilier (#892). Décisions #890–892. Plan 197 `done`, plan-cadre 195 reste `in-progress` (seul le Lot B — multijoueur P2P 1v1 — n'est pas commencé).
 - 2026-08-31 — **Phase 7 planifiée : plans 195 (cadre) et 196 (Lot A télémétrie détaillé) rédigés, `draft`, zéro code écrit.** Découpage : Lot A télémétrie Cloudflare Workers + D1, Lot B multijoueur P2P 1v1 en 4 tranches (transport+lobby / combat / robustesse / désync), Lot C réduit à l'écran de victoire enrichi (Speed controls et Tutoriel interactif partent en Phase 9 — Polish, décision humaine, sans lien avec le réseau ni la télémétrie). **Télémétrie sur trois événements**, pas deux : `session` (fréquentation, funnel d'écran ET usage de l'interface — crédits ouverts, Showdown import/export réussi ou échoué, équipe créée/sauvegardée/supprimée, écran des contrôles, touche réassignée, menu de combat, reprise de combat, langue, plein écran — compteurs accumulés en mémoire, envoyés en deltas par `sendBeacon` à `visibilitychange → hidden`, jamais un envoi par clic, sous peine de faire tomber le plafond à ~1 600 visites/jour), `battle_started` (composition d'équipe par mode — modèle *usage stats* à la Showdown/Smogon, la composition voyage au démarrage pour ne pas perdre les abandons des statistiques), `battle_ended` (issue, durée, tours, K.O. par cause, attaques réellement lancées). Décisions #871-878 : pas de nom de domaine (`*.workers.dev`), Worker dans `packages/telemetry-worker/`, `pnpm stats` + `wrangler d1 execute --remote` pour interroger la base en chat avec noms FR officiels, plafond réel ~25 000 parties/jour (correction du calcul du 2026-08-29), limitation de débit par le binding `ratelimit`, pas de bandeau de consentement. **Constat technique consigné (pas une décision)** : `analytics.ts` déclare 8 événements, 3 ne sont jamais émis (`game-loaded`, `battle-start`, `battle-end`) depuis le refactor `e0c1a221` du 2026-06-15 — aucun combat n'est mesuré depuis deux mois et demi ; traité par l'étape 3 du plan 196. Seule décision encore ouverte : un `battle_id` éphémère par partie (Reco : oui). Prochaine action concrète, bloquante : créer le compte Cloudflare (étape 0 du plan 196, action humaine).
 - 2026-08-29 — **Phase 7 préparée, pas démarrée (aucun code).** Audit de faisabilité de tout ce qui avait été noté sur le multijoueur depuis le 2026-04-06, vérifications faites sur le web. Deux prémisses mortes trouvées : « information complète, rien à cacher » (faux depuis le fog du plan 176) et « un serveur autoritaire arrivera en Phase 7 » (supposé par #728, #732, #751 et le plan 181). Tranché : **P2P sans backend** (#862), **fog cosmétique en ligne** — le report de #728/#732 est clos par un « non » (#863), **chronomètre local auto-déclarant** dont le timeout produit une *action* et non un message réseau, donc il traverse `exportReplay()` sans cas particulier (#864, #865), **codes de partie préfixés** car le namespace PeerJS Cloud est mondial et partagé (#866), **télémétrie sur Cloudflare Workers + D1** en remplacement de Goatcounter, faussé par les bloqueurs de publicité (#867, #868), ordre d'apparition de Workers (#869), pas de classement compétitif (#870). Supabase écarté (pause à 7 jours ; le cron GitHub censé la contourner est lui-même désactivé après 60 jours sans activité du dépôt). Livrables : `docs/multiplayer.md` réécrit en v2 (306 → 539 lignes), décisions #862-870 + section « Révisé à la préparation de la Phase 7 », Phase 7 de `roadmap.md` recadrée, mentions « WebSocket » de `roadmap.md` et `game-design.md` §14 corrigées — elles contredisaient la décision #209 depuis avril.
 
@@ -437,18 +438,25 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
 
 ## Contexte prochaine session
 
-**2026-09-02 — Phase 7 démarrée, Lot A télémétrie en cours (étapes 1-2/9 livrées).** Plans 195 et
-196 passés `in-progress`. Compte Cloudflare et base D1 `pokemon-tactics-events` créés (étape 0).
-Spike `sendBeacon` validé sur itch.io et GitHub Pages, diagnostic du plan 114 réfuté (étape 1).
-Paquet `packages/telemetry-worker/` livré avec ses 64 tests unitaires — pas déployé, migration pas
-appliquée, client pas câblé, Goatcounter toujours en place (étape 2). Décisions #880 (`battle_id`
-retenu) et #881 (`sendBeacon` + garde-fou `Origin`) inscrites. **Prochaine session : étapes 3-4 du
-plan 196** — écrire le client `telemetry.ts` et câbler les trois événements
-(`session`/`battle_started`/`battle_ended`), puis déployer le Worker et appliquer la migration
-distante. Avant de coder, relire `docs/plans/196-telemetrie-cloudflare-workers.md` § Étapes
-restantes. La Phase 6 (éditeur voxel) et la Phase 8 (équilibrage, avec son prérequis
-`loadMapDefinition` Node-compatible) restent des options entières, non dépriorisées par ce
-démarrage.
+**2026-09-03 — Lot C (écran de victoire enrichi) livré et validé ; suite naturelle = Lot B
+(multijoueur P2P 1v1).** Plan 197 `done` (portraits de l'équipe du vainqueur + « N tours · M min »,
+décisions #890-892). Le plan-cadre 195 reste `in-progress` : seul le **Lot B** — transport+lobby
+(B1) / combat en réseau (B2) / robustesse : chronomètre + reconnexion (B3) / détection de désync
+(B4) — n'est pas commencé ; voir `docs/plans/195-phase7-multijoueur-telemetrie.md` § Lot B pour le
+découpage et les deux correctifs déjà notés par l'audit (identifiant de carte stable, IA non
+rejouable telle quelle sur les deux pairs). **La comparaison télémétrie ↔ tableau de bord itch.io
+n'a pas bougé** — toujours en attente de quelques jours pleins de trafic postérieurs au
+redéploiement des correctifs `#888`/`#889` (§ « Dans quelques jours » ci-dessus), c'est l'item qui
+reste réellement ouvert côté Lot A.
+
+**2026-09-02 — Phase 7 démarrée, Lot A télémétrie en cours (étapes 1-2/9 livrées), depuis clos le
+2026-09-02 puis complété le 2026-09-03.** Plans 195 et 196 passés `in-progress` (196 `done`).
+Compte Cloudflare et base D1 `pokemon-tactics-events` créés (étape 0). Spike `sendBeacon` validé
+sur itch.io et GitHub Pages, diagnostic du plan 114 réfuté (étape 1). Paquet
+`packages/telemetry-worker/` livré, Goatcounter retiré. Décisions #880 (`battle_id` retenu) et
+#881 (`sendBeacon` + garde-fou `Origin`) inscrites. La Phase 6 (éditeur voxel) et la Phase 8
+(équilibrage, avec son prérequis `loadMapDefinition` Node-compatible) restent des options entières,
+non dépriorisées par ce démarrage.
 
 **2026-08-26 — Plan 188 TERMINÉ.** Recette humaine 5/5 validée (clavier + manette Switch Pro
 filaire), code-review traitée (helper de focus partagé, boutons du panneau d'édition, résilience du

@@ -6,6 +6,7 @@ import type {
   AttackSubmenuView,
   BattleChrome,
   BattleInstruction,
+  BattleOutcomeSummary,
   InfoPanelData,
   SelectedMoveView,
   TailwindView,
@@ -47,6 +48,88 @@ function definitionIdOf(pokemonId: string): string {
 function playerLabel(playerId: string, config: UiDomConfig): string {
   const number = playerId.match(/player-(\d+)/)?.[1] ?? "1";
   return config.translate(number === "2" ? "battle.player2" : "battle.player1");
+}
+
+/**
+ * `1 h 07`, `3 min 20`, ou `45 s` sous la minute — où « 0 min 45 » se lirait mal. L'unité de droite
+ * est complétée à deux chiffres, sinon `3 min 5` se lit comme 3 min 50.
+ *
+ * Le palier des heures n'est pas décoratif : la durée mesure le temps de jeu CUMULÉ d'une partie
+ * reprise autant de fois que le joueur le veut, donc dépasser l'heure est atteignable — et « 127 min
+ * 04 » se lirait mal.
+ *
+ * Exportée pour le test : c'est la seule part purement calculatoire du récapitulatif (plan 197), le
+ * reste construit du DOM que la suite unitaire ne peut pas monter (environnement `node`).
+ */
+export function formatBattleDuration(
+  durationMs: number,
+  config: Pick<UiDomConfig, "translate">,
+): string {
+  const totalSeconds = Math.max(0, Math.round(durationMs / 1000));
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (totalMinutes === 0) {
+    return config.translate("battle.summaryDurationSeconds", { seconds });
+  }
+  const hours = Math.floor(totalMinutes / 60);
+  if (hours === 0) {
+    return config.translate("battle.summaryDurationMinutes", {
+      minutes: totalMinutes,
+      seconds: String(seconds).padStart(2, "0"),
+    });
+  }
+  return config.translate("battle.summaryDurationHours", {
+    hours,
+    minutes: String(totalMinutes % 60).padStart(2, "0"),
+  });
+}
+
+/**
+ * Le récapitulatif sous le verdict (plan 197) : la rangée de portraits du camp vainqueur, K.O.
+ * grisés, puis les tours et la durée.
+ *
+ * Rend un tableau — potentiellement **vide** — parce que ses deux morceaux sont indépendamment
+ * facultatifs : pas de portraits sur un match nul (aucune équipe à mettre en avant), pas de durée
+ * quand l'heure de départ est inconnue.
+ */
+function buildVictorySummary(
+  summary: BattleOutcomeSummary,
+  config: UiDomConfig,
+): readonly HTMLElement[] {
+  const parts: HTMLElement[] = [];
+  const language = config.getLanguage();
+
+  if (summary.winnerTeam.length > 0) {
+    const roster = el("div", "bc-victory-roster", "victory-roster");
+    for (const member of summary.winnerTeam) {
+      const portrait = el("img", "bc-victory-portrait");
+      portrait.src = config.getPortraitUrl(member.definitionId);
+      // Le nom porte l'information pour un lecteur d'écran : la rangée n'est pas décorative, elle
+      // dit qui a survécu.
+      portrait.alt = getPokemonName(member.definitionId, language);
+      portrait.decoding = "async";
+      if (member.ko) {
+        // `dataset` et non une classe : l'e2e lit l'état K.O. sans se coupler au style.
+        portrait.dataset.ko = "true";
+      }
+      roster.appendChild(portrait);
+    }
+    parts.push(roster);
+  }
+
+  const stats = el("p", "bc-victory-stats", "victory-stats");
+  /*
+   * Clé singulière dédiée : `translate` ne fait qu'un remplacement de gabarit, le projet n'a aucun
+   * mécanisme de pluriel — et « 1 tours » est atteignable (une Explosion en 1v1 finit au tour 1).
+   */
+  const turnsText =
+    summary.turns === 1
+      ? config.translate("battle.summaryTurnsOne")
+      : config.translate("battle.summaryTurns", { count: summary.turns });
+  stats.textContent = `${turnsText} · ${formatBattleDuration(summary.durationMs, config)}`;
+  parts.push(stats);
+
+  return parts;
 }
 
 export interface BattleChromeOptions {
@@ -386,7 +469,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     },
     scrollTimeline: (delta) => timeline.scrollByStep(delta),
 
-    showVictory: (winnerId: string | null) => {
+    showVictory: (winnerId: string | null, summary: BattleOutcomeSummary) => {
       // Testid plutôt qu'une classe CSS : le harnais e2e a besoin de savoir « le combat est fini »
       // (plan 194) et la règle interdit de viser une classe, couplée au style.
       const dialog = el("dialog", "bc-victory", "battle-over");
@@ -421,7 +504,12 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       });
       const actions = el("div", "bc-victory-actions");
       actions.append(replay, exit);
-      dialog.append(heading, ...(message ? [message] : []), actions);
+      dialog.append(
+        heading,
+        ...(message ? [message] : []),
+        ...buildVictorySummary(summary, config),
+        actions,
+      );
       root.appendChild(dialog);
       dialog.showModal();
     },

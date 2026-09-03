@@ -262,3 +262,44 @@ export interface InfoPanelAttack {
   /** Secondary-effect chip (icon + affected stat + chance), when the move carries one. */
   readonly effectChip: TileInfoChip | null;
 }
+
+/**
+ * Un membre du camp vainqueur, dans le récapitulatif de fin de partie (plan 197).
+ *
+ * `definitionId` et non l'id d'instance : la dialog n'a besoin que de résoudre un portrait, et
+ * `I18nContext.getPortraitUrl` prend déjà une definition id.
+ */
+export interface BattleOutcomeMember {
+  readonly definitionId: string;
+  /**
+   * K.O. **ou éliminé** — le portrait est grisé dans les deux cas. La sortie d'arène (« Le Mur »,
+   * projection hors grille) compte ici : elle n'émet pas de `PokemonKo` mais retire bel et bien le
+   * Pokémon du combat.
+   */
+  readonly ko: boolean;
+}
+
+/**
+ * Récapitulatif de fin de partie affiché sous le verdict (plan 197, Lot C de la Phase 7).
+ *
+ * Volontairement pauvre : ce que l'écran montre est ce qui se dérive de l'état de fin de partie sans
+ * rien collecter en plus. Pas de MVP — aucun événement du core ne nomme l'attaquant d'un K.O.
+ */
+export interface BattleOutcomeSummary {
+  /**
+   * Effectif du camp vainqueur, ordre d'itération de l'état. **Vide sur un match nul** : il n'y a pas
+   * d'équipe à mettre en avant, et la dialog n'affiche alors aucune rangée de portraits.
+   */
+  readonly winnerTeam: readonly BattleOutcomeMember[];
+  /** Tours joués — l'horloge d'actions du moteur, immunisée à la reprise (elle est réincrémentée par le rejeu). */
+  readonly turns: number;
+  /**
+   * Temps de jeu **cumulé**, hors temps passé la partie fermée : une partie commencée le soir et
+   * reprise le lendemain compte les minutes jouées, pas les heures écoulées.
+   *
+   * Compté à partir du premier tour, **placement exclu** — c'est une durée de COMBAT. La télémétrie
+   * mesure de son côté une durée de SESSION, placement compris (plan 196) : les deux chiffres
+   * décrivent la même partie sans coïncider, et c'est délibéré.
+   */
+  readonly durationMs: number;
+}

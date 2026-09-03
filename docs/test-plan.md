@@ -69,6 +69,7 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Stockage/Relâche/Avale RÉUSSITE + Délestage (débloqués `stockpileCount`/`unburdenActive`) | §5.46 (+ §5.36, §5.37) |
 | Move (effet observable) | §5 (famille concernée) |
 | HUD DOM combat (log, timeline, menus, tooltip) | §4 |
+| Fin de partie (verdict, portraits du vainqueur, tours/durée) | §4.10 |
 | Glyphe de geste attendu / boussole tapable (aide visuelle des gestes) | §4.8, §4.18 |
 | Écran / menu / navigation | §6 |
 | Team Builder / sandbox | §7 |
@@ -529,15 +530,42 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
   en dessous le répétait (« Joueur 1 gagne ! »). Le titre porte désormais la phrase de verdict et la
   ligne de détail **n'existe plus sur une victoire** — `combat-flow.spec` (titre exact + « gagne »
   compté une fois dans la modale).
-- 👁 **Match nul** (« Match nul » en titre + « Double K.O. — personne ne l'emporte ! » en détail, le
-  seul cas qui garde une ligne de détail) : **non atteignable** en bac à sable, donc non automatisé.
-  `checkVictory` s'exécute à CHAQUE K.O. : le premier combattant à tomber laisse l'autre camp seul
-  vivant, le combat est déjà clos (`battleOver`) quand le second tombe. Vérifié : Explosion sur une
-  cible à 1 PV (le lanceur s'auto-K.O. dans la même résolution) rend « Joueur 1 gagne ! », pas un
-  match nul — `winnerId: null` n'a aucun chemin d'exécution connu aujourd'hui.
+- 🤖 **Match nul** (« Match nul » en titre + « Double K.O. — personne ne l'emporte ! » en détail, le
+  seul cas qui garde une ligne de détail) : Électrode emploie Destruction sur le dernier adversaire à
+  1 PV, les deux camps se vident dans la MÊME résolution — `driving.spec` (aucune ligne « remporte le
+  combat », titre exact, phrase de détail). Le cas était réputé inatteignable avant le **plan 191**,
+  qui a rendu le verdict RÉVISABLE jusqu'à la fin de la résolution ; la note « `winnerId: null` n'a
+  aucun chemin d'exécution » qui figurait ici était périmée.
+- 🤖 **Rangée de portraits de l'équipe vainqueur** (plan 197) : sous le verdict, un portrait par
+  membre du camp gagnant, K.O. compris. La rangée liste l'**effectif**, pas les survivants —
+  Florizarre debout + Dracaufeu et Tortank nés K.O. (`hp: 0`) donnent **trois** portraits, dont deux
+  marqués `data-ko` — `victory-summary.spec`. La DÉRIVATION du récapitulatif (filtre sur le camp
+  vainqueur, marquage K.O., tours, durée) est couverte à part en unitaire
+  (`view-core/battle-outcome-summary.test.ts`) ; l'e2e tient le seul bout que l'unitaire ne peut pas
+  atteindre — le DOM effectivement monté par la dialog.
+- 🤖 **Un allié tombé PENDANT le combat reste dans la rangée, grisé — jamais absent** : c'est le cas
+  de régression du plan 197, le récapitulatif se dérivant de `currentHp <= 0` dans `state.pokemon`
+  (un moteur qui retirerait le corps de l'état ferait disparaître le portrait sans rien casser
+  d'autre). Alakazam abat d'un Séisme l'ennemi ET son propre allié Florizarre par tir allié : deux
+  portraits, Florizarre marqué `data-ko` — `victory-summary.spec`.
+- 🤖 **Match nul → aucune rangée** : `winnerId` est `null`, il n'y a pas d'équipe à mettre en avant.
+  Le nœud `victory-roster` est **absent** du DOM (pas présent-et-vide) et la ligne de statistiques
+  demeure — `victory-summary.spec`.
+- 🤖 **Ligne « N tours · durée »** sous les portraits : `N tours · 12 s` sous la minute, `N tours ·
+  1 min 05` au-delà (secondes complétées à deux chiffres) — `victory-summary.spec` pour le rendu réel
+  dans la modale, `ui-dom/battle-chrome.test.ts` pour les 5 cas du formateur de durée (le projet
+  `unit` tourne en environnement `node` : il ne peut monter aucun DOM, d'où le partage).
+- 👁 **Grisement des portraits K.O.** : filtre CSS (désaturation + opacité) sur `[data-ko]`. L'e2e
+  prouve le MARQUEUR, pas le rendu — purement pixel → œil.
+- 👁 **Reprise après rechargement** : une sauvegarde d'avant le plan 197 n'a pas d'`startedAt`, la
+  ligne doit alors afficher les tours **sans** durée, et surtout aucun « 0 min 00 ». Non
+  automatisable : `SandboxConfig` n'expose pas d'heure de départ (le bac à sable horodate toujours
+  son boot) et il faudrait fabriquer une sauvegarde héritée à la main.
 - 👁 **Marges du titre en 4K** : le `<h2>` n'était stylé nulle part et prenait les `margin-block:
   0.83em` du navigateur, soit ~70 px de chaque côté en `--ui-scale` 2 (plan 190). Marges reprises sur
   les jetons `--bc-pad-*` du sous-arbre. Purement pixel → œil.
+- 👁 **Rangée en 4K et à 6 portraits** : la rangée passe à la ligne (`flex-wrap`) et les portraits
+  suivent `--bc-victory-portrait-size`. Mise en page → œil.
 
 ### 4.11 Transverse
 - 👁 Responsive (mobile/4K) : pas d'élément coupé/chevauché.
@@ -579,7 +607,8 @@ weather-hud, move-tooltip `.mt-*`, info-panel `.ip-*`), `app/babylon/combat-scre
 
 **Fin de combat**
 - 🤖 Le dernier adversaire K.O. → journal « remporte le combat » (`driving.spec`).
-- 👁 Modale de victoire + retour menu.
+- 🤖 Modale de victoire : verdict + retour menu, rangée de portraits du vainqueur (K.O. marqués) et
+  ligne « N tours · durée » — détail des cas en **§4.10** (`combat-flow.spec`, `victory-summary.spec`).
 
 ### 4.13 Panneau d'info de case (`.ti-panel`, plan 177)
 *Second panneau chrome à droite de l'InfoPanel Pokemon : terrain + modificateurs de la case sous le
@@ -3280,7 +3309,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/scene-graph.spec.ts` | boot scène : sprites (groupe 2), curseur (groupe 3), terrain, FOUC retiré ; **barres PV ×2 + ombres + silhouettes (groupe 1)**, **tiles nommées `tile_x_y` (groupe 0) + décor herbe (groupe 2)** ; §3.14 liquides : peu profond eau (4,2)/marais (2,2) = fond `tile_x_y` (groupe 0) + nappe translucide séparée `liquid_surface_x_y` (groupe sprite 2, `transparent`) ; plein lave (0,5)/eau profonde (5,5) = colonne unique `tile_x_y` **sans** `liquid_surface_*` ; sur `sandbox-flat` |
 | `combat/sprite-bundle.spec.ts` | §3.6/§4.7 rendu issu du bundle (plan 135) : billboards `pokemon_plane` ×2 slicés du bundle (scène prête), portrait InfoPanel = data-URL PNG croppé de `portraits.png` (pas le pixel de repli), pré-évo Pikachu rend son sprite |
 | `combat/scene-state.spec.ts` | §3.4 icône de statut (empoisonné) |
-| `combat/driving.spec.ts` | piloter : attaque + dégâts (journal), K.O. + fin de combat, déplacement ; §4.9 garde-fou i18n greffé sur le journal de FIN de combat (aucune clé `battleLog.*` brute sur les familles `pokemonKo` / `battleEnded.winner`, que le scénario dédié ne peut pas atteindre — sa cible survit exprès) |
+| `combat/driving.spec.ts` | piloter : attaque + dégâts (journal), K.O. + fin de combat, déplacement ; §4.10 **match nul** (Destruction d'Électrode sur le dernier adversaire à 1 PV : K.O. mutuel dans la même résolution → aucun « remporte le combat », titre « Match nul » + phrase de détail — atteignable depuis le plan 191) ; §4.9 garde-fou i18n greffé sur le journal de FIN de combat (aucune clé `battleLog.*` brute sur les familles `pokemonKo` / `battleEnded.winner`, que le scénario dédié ne peut pas atteindre — sa cible survit exprès) |
 | `combat/battle-log-i18n.spec.ts` | §4.9 **garde-fou i18n du journal** (plan 190) : le formateur n'émet plus que des clés `battleLog.*`, dont douze familles **composées à l'exécution** (`status.<statut>.applied`, `stat.<stat>`, `aura.<type>`…) donc invisibles au typecheck. Un duel de trois tours (Mach Punch super efficace → Spore → Danse Lames) déclenche usage de move / efficacité / dégâts / statut / cran de stat, puis TOUTES les lignes sont balayées : aucune ne doit contenir `battleLog.`. Les assertions de phrase FR couvrent l'autre moitié du filet (clé oubliée en FR mais présente en EN → phrase anglaise, pas clé brute). Vérifié rouge-vert dans les deux sens |
 | `combat/normal-game.spec.ts` | parcours réel menu → carte → équipe → combat monte ; **garde de télémétrie (plan 196)** — le parcours complet n'émet **aucune** requête vers `*.workers.dev`, ce qui prouve que `platformPrefix()` neutralise bien la collecte hors des deux hôtes de publication et que les 519 tests ne polluent pas la base de production. Placée ici et pas ailleurs : c'est le seul test qui traverse le vrai chemin joueur, donc le seul où les compteurs d'écran et `battle_started` se déclencheraient |
 | `combat/placement-menu.spec.ts` | §4.20 variante **placement** du menu de combat (plan 189, volet B) — 7 cas, tous par le **parcours réel** avec « Placement auto » DÉCOCHÉ (le studio sandbox n'a pas de phase de placement, et l'option cochée la rend invisible) : rangée haut-droite **réduite** (plein écran + `☰`, sans journal ni timeline) + capuchon de touche sous le bouton ; ouverture par `☰` avec **exactement 4 entrées** et **pas d'« Abandonner »** ; `Échap` ouvre quand il n'a rien à défaire, une seconde frappe referme ; `Échap` **défait d'abord** le dernier placement (observable seulement à partir du 2ᵉ Pokemon posé — l'IA pose toute son équipe entre les deux, et l'anti-triche bloque l'annulation) ; **Recommencer** (confirmation propre à la phase, « Annuler » dépile, « Confirmer » remet le compteur à 0/6 avec un seul `☰`) ; **Quitter** (confirmation → menu principal, **sans** entrée « Reprendre ») ; **passage de relais** (placement → combat : un seul bouton `☰`, un seul `<dialog>`, variante *combat* avec « Abandonner » et journal montés). Manette pendant le placement = 👁 |
@@ -3338,7 +3367,8 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/hud-state.spec.ts` | §4.6 tooltip (apparaît/disparaît + tag 2 tours), §4.2 timeline CT (`data-ct`), §4.7 badge statut, §4.5 nom EN |
 | `combat/preview-colours.spec.ts` | §4.6 couleurs de preview pilotées par l'intention : `data-intent` attack/buff/heal (Griffe/Danse Lames/Fontaine de Vie), cellules `data-cell` target/dash/caster/caster-target, croix lanceur, centre Séisme vide |
 | `combat/combat-menu.spec.ts` | §4.20 menu de combat (plan 187), **seul filet de la surcouche** (rien en unit : pas de DOM dans le projet `unit`) : `Échap` **remonte d'un cran sans ouvrir la modale** sur les 5 crans du tour (liste d'attaques, choix de cible, confirmation, destination de déplacement, orientation de fin de tour) ; `Échap` **au menu d'actions racine ouvre** le menu (4 entrées dans l'ordre, « Quitter » absent en sandbox) ; **une seule frappe referme, sans rouvrir** (`cancel` natif du `<dialog>` neutralisé) + l'entrée revient au combat + réouvrable ; **niveaux** Paramètres → Contrôles dépilés un cran à la fois, ligne « Menu de combat » à `Start` dans la table ; **action logique remappable** au clavier (le défaut `Start` n'est pas pilotable) ; **ouvrir n'annule rien** (visée retrouvée intacte ET vivante, menu ouvert par le bouton) ; bouton **`☰`** ouvre et **se grise en `locked`** ; **focus rendu** au déclencheur à la fermeture ; **capture de touche** dans les Contrôles de la modale annulée par `Échap` **sans** dépiler le niveau ; **Recommencer** (confirmation à libellé propre, « Annuler » dépile, « Confirmer » relance depuis zéro) ; **Abandonner** (confirmation à texte distinct → menu principal) ; **Quitter** sur un combat RÉEL (présent seulement là où une sauvegarde existe, **sans confirmation**, partie reprenable — puis contre-épreuve : Abandonner purge) ; **le dialogue de victoire garde la main** (`Échap` ne le referme pas, le menu refuse de s'ouvrir par-dessus). Victoire survenant **menu ouvert** = 👁 (l'IA n'agit qu'après que le joueur a passé la main, moment où le verrou interdit d'ouvrir le menu) ; manette + rendu de la modale = 👁 |
-| `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire : présence + retour au menu, **titre = phrase de verdict** (« Joueur 1 gagne ! ») et « gagne » compté **une seule fois** dans la modale — la ligne de détail en doublon a disparu des victoires (plan 190). Le match nul reste 👁 : `checkVictory` s'exécutant à chaque K.O., `winnerId: null` n'a aucun chemin atteignable |
+| `combat/combat-flow.spec.ts` | annuler attaque/déplacement, §4.12 Échap ciblage + clic hors portée, §4.10 modale de victoire : présence + retour au menu, **titre = phrase de verdict** (« Joueur 1 gagne ! ») et « gagne » compté **une seule fois** dans la modale — la ligne de détail en doublon a disparu des victoires (plan 190). Le match nul est couvert par `driving.spec`, le récapitulatif (portraits + tours/durée) par `victory-summary.spec` |
+| `combat/victory-summary.spec.ts` | §4.10 récapitulatif de la modale de fin de partie (plan 197), la part que la suite unitaire ne peut PAS atteindre (`ui-dom` tourne en environnement `node`, sans DOM) : **match nul → aucune rangée** (`victory-roster` absent du DOM, pas présent-et-vide ; `victory-stats` demeure) ; **victoire avec pertes** — la rangée liste l'EFFECTIF du vainqueur, pas les survivants (Florizarre debout + Dracaufeu et Tortank nés K.O. via `hp: 0` → 3 portraits, 2 marqués `data-ko`) + ligne « N tours · durée » au bon format ; **allié tombé pendant le combat** (Alakazam abat d'un Séisme l'ennemi ET son allié Florizarre par tir allié) → le portrait reste dans la rangée, marqué K.O. — cas de régression du plan 197, le récapitulatif se dérivant de `currentHp <= 0` dans `state.pokemon`. Grisement (filtre CSS), mise en page 4K / rangée à 6 portraits et reprise sans `startedAt` (non exposée par `SandboxConfig`) = 👁 |
 | `combat/touch-controls.spec.ts` | §4.18 comportement au doigt via **`tapTile`** (seule entrée du hook qui traverse la vraie couche d'entrée) : **un tap agit du premier coup** ; un **pattern directionnel** s'ouvre cône affiché, retaper la même **direction** lance, une autre direction re-vise sans lancer (validation depuis une case différente = la comparaison est directionnelle). + **annulation atteignable au doigt** sur les 3 phases réparées (destination, cible, orientation). Pinch / pan 2 doigts / orientation de fin de tour / seuil de glissé / `pointercancel` = 👁 téléphone réel ; la boussole est couverte par `compass-and-legend.spec` |
 | `combat/input-prompt-glyph.spec.ts` | §4.8 glyphe du geste attendu dans la ligne d'instruction (chantier « aide visuelle des gestes attendus », suite du Lot 1 du plan 173) : `data-glyph` = `act-twice` sur les 2 phases **directionnelles** (visée de cône/ligne/fauche/charge, orientation de fin de tour) et `act` sur les 4 autres (cible, confirmation, destination de déplacement, case de repli de Demi-Tour) ; **suffixe « ×2 » présent en pointeur grossier** (`hasTouch`) et **absent en pointeur fin** ; la pastille entière (glyphe compris) disparaît hors phase d'input ; **non-régression** du `textContent` exact de `combat-instruction`, restée un nœud de texte pur alors que la pastille est passée à la rangée parente ; **la feuille de tuiles change avec le pointeur** (plan 185) : `input-prompts-pixel-1-bit` en pointeur fin, `cursor-pixel-pack` en pointeur grossier, feuille et grille ensemble. Le DESSIN (souris vs main, masque CSS) = 👁 pixel |
 | `combat/compass-and-legend.spec.ts` | §4.18 boussole + légende de contrôles (ex `compass-rotate-hint.spec.ts`, renommé et étendu au plan 185) : **zone tapable CARRÉE ancrée sur le portrait** (plancher 44 px — le glyphe qui l'étendait vers la droite est supprimé) ; **un clic fait tourner la vue d'un cran** (vrai clic souris sur le point projeté du proxy de picking, donc à travers la couche d'entrée réelle) ; **cliquer juste sous la boussole ne tourne pas**, contre-épreuve dans le même test ; **légende posée à droite (glyphe « ça se clique »)**, ancrée sur la même mesure que le renderer (`chrome-insets.ts`), ses **lignes de contrôles caméra descendues dans la colonne latérale de l'ordre de jeu** entre les capuchons `Page↑`/`Page↓` (plan 189 — sous la boussole, elles finissaient par-dessus elle) ; **la légende suit la source d'entrée active** (`data-input-source` : souris/doigt/clavier/manette) ; **la légende reste immobile quand la timeline perd son entrée active** (case vide en prévisualisation de coût CT — trois approches successives : ancrage DOM dans la case active, réservation de sa largeur, et enfin réservation de sa **hauteur** au plan 189, la seule qui ne déplace pas la boussole ; décision #798). Dessin des glyphes / sens de rotation lu à l'œil / tap au doigt = 👁 |

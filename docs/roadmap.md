@@ -408,13 +408,12 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 > #862-870. **Plan-cadre de la phase** : `docs/plans/195-phase7-multijoueur-telemetrie.md` (lots, ordre,
 > risques et décisions ouvertes).
 >
-> **Phase DÉMARRÉE le 2026-09-02** par le Lot A (télémétrie), **quasi clos le même jour** —
-> `docs/plans/195` et `docs/plans/196` en `in-progress`. Worker en ligne
+> **Phase DÉMARRÉE le 2026-09-02** par le Lot A (télémétrie), **clos le même jour** — Worker en ligne
 > (`https://pokemon-tactics-telemetry.kekel87.workers.dev`), collecte vérifiée en production sur
 > itch.io et GitHub Pages, relevé live protégé par mot de passe (`GET /tableau`), `pnpm stats` pour
-> l'équilibrage, Goatcounter retiré du bundle. **Reste ouvert** : aucune partie menée à son terme en
-> production (`battle_ended` non éprouvé), workflow de déploiement (manuel pour l'instant), anomalie
-> de build `-dirty` non expliquée, fermeture du compte Goatcounter — détail : `docs/next.md`.
+> l'équilibrage, Goatcounter retiré du bundle. **Lot C (écran de victoire enrichi) livré et validé le
+> 2026-09-03** (plan 197). `docs/plans/195` reste `in-progress` : seul le **Lot B (multijoueur P2P
+> 1v1)** n'est pas commencé.
 
 **Ce qui est déjà prêt** : replay et déterminisme verrouillés (plan 181), port de persistance (#751),
 hot-seat N joueurs avec `humanPlayerIds` (plan 188) — le tour distant se greffe là où le tour hot-seat
@@ -437,8 +436,12 @@ existe déjà.
       détection de désync (sérialisation canonique à écrire), chronomètre local auto-déclarant
       (#864, #865), reconnexion par le chemin du plan 181. **Viser le 1v1**, retester le FFA à 12
       ensuite
-- [ ] Écran de victoire enrichi (récap, tours, KO, MVP) — sans dépendance réseau, mais **garde sa place ici** :
-      même matière que l'événement `battle_ended` de la télémétrie (durée, tours, camp vainqueur)
+- [x] **Écran de victoire enrichi** — sans dépendance réseau, garde sa place ici : même matière que
+      l'événement `battle_ended` de la télémétrie (durée, tours, camp vainqueur). **LIVRÉ ET VALIDÉ
+      (2026-09-03, plan 197)** : rangée de portraits de l'équipe du vainqueur (K.O. grisés) + « N tours ·
+      M min ». Périmètre réduit avec l'humain (#890) : **pas de MVP** (aucun événement du core ne nomme
+      l'attaquant), **pas de camp perdant**, **pas d'infobulle de cause de K.O.** (inaccessible au
+      clavier/manette)
 - [→] ~~Speed controls (skip/accélérer animations)~~ **déplacé en Phase 9 — Polish** (2026-08-31, plan-cadre 195) :
       aucun lien avec le réseau ni la télémétrie, jamais cadré depuis son ajout du 2026-04-02
 - [→] ~~Tutoriel interactif~~ **déplacé en Phase 9 — Polish** (2026-08-31, plan-cadre 195)

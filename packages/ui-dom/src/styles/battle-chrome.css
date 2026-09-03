@@ -29,6 +29,11 @@
     --bc-pad-lg: calc(12px * var(--ui-scale));
     --bc-radius-sm: calc(4px * var(--ui-scale));
     --bc-radius-md: calc(6px * var(--ui-scale));
+    /*
+     * Portrait de l'écran de victoire (plan 197). Les crops sont natifs 40×40 : à `--ui-scale` 2 le
+     * facteur reste entier, donc `image-rendering: pixelated` donne un ×2 propre.
+     */
+    --bc-victory-portrait-size: calc(40px * var(--ui-scale));
   }
 
   /* Left column: turn timeline (top, shrinks + scrolls) over the info panel
@@ -504,6 +509,46 @@
 
   .bc-victory-message {
     margin-block: var(--bc-pad-md);
+  }
+
+  /*
+   * Récapitulatif de fin de partie (plan 197) : l'équipe du vainqueur, K.O. grisés, puis les tours
+   * et la durée. La rangée raconte à quel prix la victoire est venue — un 6-0 et un 6-5 ne se
+   * ressemblent pas.
+   */
+  .bc-victory-roster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--bc-pad-sm);
+    justify-content: center;
+    margin-block: var(--bc-pad-md);
+  }
+
+  /* Cadre calqué sur les portraits de la sélection d'équipe (`.ts-portrait`) — même intention, mais
+     avec les jetons du chrome : la rangée doit se lire comme le reste du jeu, pas comme des vignettes
+     nues posées dans une modale. */
+  .bc-victory-portrait {
+    width: var(--bc-victory-portrait-size);
+    height: var(--bc-victory-portrait-size);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--bc-radius-sm);
+    background: var(--color-bg-elevated);
+    /* Les portraits sont du pixel-art : l'interpolation lissée les rendrait flous à l'agrandissement. */
+    image-rendering: pixelated;
+  }
+
+  /*
+   * K.O. — désaturé ET estompé. La seule désaturation ne suffit pas : plusieurs portraits Gen 1 sont
+   * déjà quasi monochromes, et resteraient indiscernables d'un survivant.
+   */
+  .bc-victory-portrait[data-ko="true"] {
+    opacity: 0.4;
+    filter: grayscale(1);
+  }
+
+  .bc-victory-stats {
+    margin-block: 0 var(--bc-pad-md);
+    color: var(--color-text-secondary);
   }
 
   .bc-victory-actions {

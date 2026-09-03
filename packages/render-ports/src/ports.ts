@@ -7,6 +7,7 @@ import type {
 } from "@pokemon-tactic/core";
 import { AuraKind } from "@pokemon-tactic/core";
 import type {
+  BattleOutcomeSummary,
   InfoPanelData,
   TailwindView,
   TileInfoChip,
@@ -355,7 +356,11 @@ export interface BattleChrome {
   activateFocusedMenuItem(): boolean;
   /** Step the timeline's predicted-order list (it only scrolled by wheel before plan 184). */
   scrollTimeline(delta: 1 | -1): void;
-  showVictory(winnerId: string | null): void;
+  /**
+   * Fin de partie. `winnerId` porte le verdict (null = match nul) ; `summary` porte le
+   * récapitulatif affiché sous lui (plan 197) — effectif du vainqueur, tours, durée.
+   */
+  showVictory(winnerId: string | null, summary: BattleOutcomeSummary): void;
 }
 
 /** Feedback port. 7b: no-op + console.debug; engine billboards (text) + DOM log land at 4c. */
@@ -379,4 +384,13 @@ export interface BattleOrchestratorConfig {
    * reload can resume it (plan 181); the orchestrator itself knows nothing of storage.
    */
   onActionCommitted?: () => void;
+  /**
+   * Temps de jeu cumulé depuis le début de la partie, pour la durée du récapitulatif de victoire
+   * (plan 197).
+   *
+   * Une **fonction** et non un horodatage : l'hôte seul sait recoller les tranches de jeu d'une
+   * partie reprise, et un horodatage absolu ferait compter le temps passé la partie fermée (« 843
+   * min » au lendemain d'une reprise).
+   */
+  getElapsedMs: () => number;
 }

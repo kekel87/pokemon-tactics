@@ -352,6 +352,8 @@ function runBattle(options: {
   onActionCommitted?: () => void;
   /** Called once the battle can no longer be resumed: it ended, or the player walked away. */
   onBattleClosed?: () => void;
+  /** Temps de jeu cumulé de la partie, pour la durée du récapitulatif de victoire (plan 197). */
+  getElapsedMs: () => number;
 }): BattleOrchestrator {
   const {
     backend,
@@ -369,6 +371,7 @@ function runBattle(options: {
     initialLogEvents,
     onActionCommitted,
     onBattleClosed,
+    getElapsedMs,
   } = options;
   const board = backend.createBattleBoardView(combat, handles);
   const inputSystem = getInputSystem();
@@ -610,12 +613,12 @@ function runBattle(options: {
    */
   const chromeWithMenuAwareVictory: typeof chrome = {
     ...chrome,
-    showVictory: (winnerId) => {
+    showVictory: (winnerId, summary) => {
       combatMenu.close();
       // Le menu refuse de s'ouvrir tant que la victoire est à l'écran (décision 15) : le bouton doit
       // donc le DIRE, sinon on tape trois fois dessus en croyant à un bug (décision 18). Le contexte
       // `battle_over` valant `menu` et non `locked`, la bascule ci-dessous ne l'aurait pas couvert.
-      chrome.showVictory(winnerId);
+      chrome.showVictory(winnerId, summary);
       // Après l'ouverture, pour que la règle voie la modale qui vient d'apparaître.
       refreshCombatMenuButton();
     },
@@ -627,7 +630,7 @@ function runBattle(options: {
     board,
     chromeWithMenuAwareVictory,
     feedback,
-    { confirmAttack: BATTLE_CONFIRM_ATTACK, humanPlayerIds, onActionCommitted },
+    { confirmAttack: BATTLE_CONFIRM_ATTACK, humanPlayerIds, onActionCommitted, getElapsedMs },
     presentationContext,
   );
   orchestrator.onTurnReady = wireTurnReady(battle);
@@ -883,6 +886,11 @@ function runResolvedBattle(options: {
   signal: AbortSignal;
   onReplay: () => void;
   initialLogEvents?: readonly BattleEvent[];
+  /**
+   * Temps de jeu déjà accumulé par les montages précédents de CETTE partie (plan 197). Zéro sur une
+   * partie fraîche, la valeur sauvegardée sur une reprise. Ce montage y ajoutera sa propre tranche.
+   */
+  resumedElapsedMs?: number;
 }): BattleOrchestrator {
   const {
     backend,
@@ -898,6 +906,14 @@ function runResolvedBattle(options: {
     onReplay,
   } = options;
   const store = battleResumeStore();
+  /*
+   * Temps de jeu cumulé (plan 197) : ce que les montages précédents ont accumulé, plus la tranche en
+   * cours. Un horodatage absolu compterait le temps passé la partie fermée — « 843 min » au
+   * lendemain d'une reprise.
+   */
+  const previousElapsedMs = options.resumedElapsedMs ?? 0;
+  const mountedAt = Date.now();
+  const getElapsedMs = (): number => previousElapsedMs + (Date.now() - mountedAt);
   const persist = (): void => {
     const replay = battle.engine.exportReplay();
     store.save({
@@ -907,6 +923,7 @@ function runResolvedBattle(options: {
       placements: inputs.placements,
       seed: replay.seed,
       actions: replay.actions,
+      elapsedMs: getElapsedMs(),
     });
   };
   // Saved before the first action too: a reload right after placement should resume the battle that was
@@ -934,6 +951,7 @@ function runResolvedBattle(options: {
       .map((team) => team.playerId),
     onActionCommitted: persist,
     onBattleClosed: () => store.clear(),
+    getElapsedMs,
   });
 }
 
@@ -1002,6 +1020,8 @@ function startResumedBattle(
     signal,
     onReplay,
     initialLogEvents: logEvents,
+    // Reprise : on repart du temps de jeu déjà accumulé avant le rechargement.
+    resumedElapsedMs: save.elapsedMs,
   });
 }
 
@@ -1099,6 +1119,9 @@ function startSandboxBattle(options: {
   });
   onPositionsResolved?.(resolved);
 
+  // Le bac à sable n'a pas de sauvegarde : son temps de jeu est simplement celui de ce montage.
+  const mountedAt = Date.now();
+
   return runBattle({
     backend,
     combat,
@@ -1112,6 +1135,7 @@ function startSandboxBattle(options: {
     // Studio default is OFF (debugging wants exact figures); the checkbox turns the fog on. The panel
     // remounts the whole scene on every config change, so no live update path is needed.
     enemyInfoHidden: config.fogOfWar === true,
+    getElapsedMs: () => Date.now() - mountedAt,
     // A "player" team is human-driven; hotseat (both teams player) hands the viewpoint over with the
     // turn, exactly like `viewerPlayerId` expects.
     humanPlayerIds: config.teams

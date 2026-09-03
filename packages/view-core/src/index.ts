@@ -11,6 +11,7 @@ export * from "./AnimationQueue.js";
 export * from "./aura-ring-view.js";
 export * from "./BattleSetup.js";
 export * from "./battle-orchestrator.js";
+export * from "./battle-outcome-summary.js";
 export * from "./battle-views.js";
 export * from "./combat-preview-view.js";
 export * from "./constants.js";

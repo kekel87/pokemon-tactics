@@ -4,8 +4,9 @@
 > **Créé** : 2026-08-31
 > **Phase démarrée** : 2026-09-02 — par le Lot A (télémétrie, plan 196). Compte Cloudflare créé le même jour.
 > **Avancement** : **Lot A ✅ clos le 2026-09-02** (plan 196 `done`, télémétrie en production, relevé live,
-> Goatcounter fermé). **Lot B** (multijoueur P2P 1v1) et **Lot C** (écran de victoire) : pas commencés.
-> ⚠️ Ce plan reste `in-progress` tant que les deux autres lots ne sont pas faits — le 196 n'en couvrait qu'un.
+> Goatcounter fermé). **Lot C ✅ livré le 2026-09-03** (plan 197 `done`, écran de victoire enrichi —
+> portraits + tours/durée, validé à la main). **Lot B** (multijoueur P2P 1v1) : pas commencé.
+> ⚠️ Ce plan reste `in-progress` tant que le Lot B n'est pas fait.
 > **Nature** : plan-cadre d'une phase entière. Chaque lot sera détaillé dans son propre plan au moment de l'attaquer. Ce document fixe le périmètre, l'ordre, les acquis, les décisions déjà prises et celles qui restent ouvertes.
 > **Référence de conception** : `docs/multiplayer.md` (réécrit en v2 le 2026-08-29). Décisions `#209-212` (fondations) et `#862-870` (cadrage). Ce plan **ne rejoue pas** le raisonnement de ce document — il l'ordonne en lots exécutables.
 
@@ -68,11 +69,15 @@ Viser le **1v1**, pas le FFA à 12 (§ ci-dessous). Découpage proposé, chaque 
 1. `mapUrl` → **identifiant stable de carte** (`MAPS_REGISTRY`). Une URL n'est pas un contrat entre deux pairs.
 2. **L'IA ne peut pas tourner sur les deux pairs** : elle est seedée sur `createPrng(Date.now())` (`combat-screen.ts:782`), deux pairs divergeraient au premier tour. Il faut soit désigner un pair émetteur qui joue l'IA et diffuse ses actions, soit fournir un seed d'IA de session.
 
-### Lot C — Écran de victoire enrichi *(sans dépendance réseau)*
+### Lot C — Écran de victoire enrichi *(sans dépendance réseau)* — ✅ livré le 2026-09-03 (plan 197)
 
 Récap de fin de partie : tours, KO, MVP. **Il partage sa matière avec l'événement `battle_ended` du Lot A** (durée, tours, camp vainqueur, Pokemon et attaques utilisés) : définir ce que la télémétrie collecte, c'est définir ce que cet écran peut afficher — et c'est ce qui garde le Lot C dans cette phase.
 
 > Ce lot aura **son propre plan détaillé**, comme les autres. Sa dépendance au Lot A porte sur la **donnée** (quels champs sont dérivables de l'état de fin de partie), pas sur le code : le plan 196 ne contient rien de cet écran et n'a pas à en contenir.
+
+> **Périmètre réellement livré (décision #890, plan 197)** : portraits de l'équipe du vainqueur (K.O.
+> grisés) + « N tours · M min ». **Ni MVP ni camp perdant** — le MVP a été écarté faute d'attribution
+> d'attaquant dans les événements du core (`DamageDealt`/`PokemonKo` ne portent que la cible).
 
 **Périmètre réduit le 2026-08-31** (décision humaine). Les deux autres items que la roadmap portait en Phase 7 en sortent, faute de tout lien avec le réseau ou la télémétrie :
 - **Speed controls** — configurer la vitesse des déplacements, passer les animations d'attaque → **Phase 9**. Item hérité du commit `f805821` (2026-04-02, réorganisation de roadmap), jamais cadré, aucune décision et aucun retour de playtest derrière. À noter : « passer les animations d'attaque » suppose des animations d'attaque, qui **n'existent pas aujourd'hui**.

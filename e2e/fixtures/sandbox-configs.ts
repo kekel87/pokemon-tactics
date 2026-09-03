@@ -2485,3 +2485,59 @@ export const BATTLE_LOG_I18N = {
   ...NORMAL_DUEL,
   moves: ["mach-punch", "spore", "swords-dance"],
 } as const;
+
+// --- Récapitulatif de fin de partie (plan 197, cahier §4.10) ------------------------------------
+// La modale de victoire montre désormais la rangée de portraits de l'équipe VAINQUEUR (K.O. grisés)
+// et une ligne « N tours · durée ». La rangée n'existe que dans le DOM : la suite unitaire de
+// `ui-dom` tourne en environnement `node` et ne peut monter que le formateur de durée. Les trois
+// configs ci-dessous ferment les trois cas que le plan désigne comme fragiles. Le cas MATCH NUL
+// réutilise `DUEL_MUTUAL_KO` (déjà prouvé par `driving.spec`) — aucune 4ᵉ config à maintenir.
+// Rangée y=4 : 6 tuiles `normal` (aucun DoT de terrain ne peut tuer un combattant à 1 % de PV avant
+// le cast). Passif en face → il n'agit jamais ; le joueur agit toujours en premier.
+
+/** **Victoire avec pertes**, membres K.O. AU SPAWN (`hp: 0`, cf. `SandboxMemberConfig`). Florizarre
+ *  (2,4) abat d'une Griffe (100 %, portée 1) le dummy à 5 % de PV en (3,4) — plus lent (Vit. 50 contre
+ *  80), il ne joue jamais. Les deux coéquipiers naissent K.O. : la rangée doit donc compter les TROIS
+ *  membres du camp vainqueur, un seul debout. C'est le contrôle « on liste l'effectif, pas les
+ *  survivants ». */
+export const VICTORY_ROSTER_WITH_LOSSES = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        { pokemon: "venusaur", moves: ["scratch"], position: { x: 2, y: 4 }, direction: "east" },
+        { pokemon: "charizard", hp: 0, position: { x: 4, y: 4 } },
+        { pokemon: "blastoise", hp: 0, position: { x: 5, y: 4 } },
+      ],
+    },
+    {
+      control: "passive",
+      members: [{ pokemon: "dummy", hp: 5, position: { x: 3, y: 4 } }],
+    },
+  ],
+} as const;
+
+/** **Allié tombé PENDANT le combat** — le cas de régression du plan 197 : le récapitulatif se dérive
+ *  de `currentHp <= 0` dans `state.pokemon`, donc un moteur qui retirerait un corps de l'état ferait
+ *  DISPARAÎTRE le portrait au lieu de le griser, sans rien casser d'autre. Alakazam (Vit. 120, il
+ *  joue en premier) lance Séisme (Zone r2 auto-centrée, lanceur exclu) depuis (2,4) : l'empreinte
+ *  couvre son ALLIÉ Florizarre en (3,4) ET l'ennemi Ronflex en (1,4), tous deux à 1 % de PV. Une
+ *  seule résolution → l'ennemi tombe (victoire de l'équipe 1) et l'allié tombe avec lui par tir
+ *  allié. Séisme est à 100 % de précision et Alakazam est hors de sa propre zone → déterministe. */
+export const VICTORY_ROSTER_ALLY_FELL = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        { pokemon: "alakazam", moves: ["earthquake"], position: { x: 2, y: 4 }, direction: "east" },
+        { pokemon: "venusaur", hp: 1, position: { x: 3, y: 4 } },
+      ],
+    },
+    {
+      control: "passive",
+      members: [{ pokemon: "snorlax", hp: 1, position: { x: 1, y: 4 } }],
+    },
+  ],
+} as const;

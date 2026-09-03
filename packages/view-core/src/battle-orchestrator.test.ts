@@ -179,7 +179,7 @@ function setup(
     board,
     chrome,
     { report: () => undefined },
-    { confirmAttack: options?.confirmAttack ?? false },
+    { confirmAttack: options?.confirmAttack ?? false, getElapsedMs: () => 0 },
     {
       translate: (key) => key,
       getLanguage: () => "en",
