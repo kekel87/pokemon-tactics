@@ -66,13 +66,57 @@ describe("buildReport", () => {
     const report = buildReport(
       [
         rowOf({ id: 1, browser: "Firefox 154", payload: { first: true } }),
-        rowOf({ id: 2, browser: "Firefox 153", payload: {} }),
+        rowOf({ id: 2, browser: "Firefox 153", payload: { first: true } }),
       ],
       30,
     );
 
     expect(report.browsers.get("Firefox")).toBe(2);
     expect(report.browsers.has("Firefox 154")).toBe(false);
+  });
+
+  it("🔴 compte l'audience par VISITE et non par ligne, une visite en produisant deux", () => {
+    const report = buildReport(
+      [
+        rowOf({
+          id: 1,
+          country: "FR",
+          browser: "Firefox 154",
+          os: "Linux",
+          lang: "fr",
+          payload: { first: true, screen: ">=1920", referrer: "https://kekel87.itch.io/" },
+        }),
+        rowOf({
+          id: 2,
+          country: "FR",
+          browser: "Firefox 154",
+          os: "Linux",
+          lang: "fr",
+          payload: { screen: ">=1920", referrer: "https://kekel87.itch.io/" },
+        }),
+      ],
+      30,
+    );
+
+    expect(report.visits).toBe(1);
+    expect(report.countries.get("FR")).toBe(1);
+    expect(report.browsers.get("Firefox")).toBe(1);
+    expect(report.systems.get("Linux")).toBe(1);
+    expect(report.languages.get("fr")).toBe(1);
+    expect(report.screenSizes.get(">=1920")).toBe(1);
+    expect(report.referrers.get("https://kekel87.itch.io/")).toBe(1);
+  });
+
+  it("compte la source d'entrée de la deuxième ligne, la ligne de boot ne pouvant pas la porter", () => {
+    const report = buildReport(
+      [
+        rowOf({ id: 1, payload: { first: true, inputSource: null } }),
+        rowOf({ id: 2, payload: { inputSource: "gamepad" } }),
+      ],
+      30,
+    );
+
+    expect(report.inputSources.get("gamepad")).toBe(1);
   });
 
   it("tire le taux d'abandon de l'écart entre parties lancées et terminées", () => {

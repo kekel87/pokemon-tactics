@@ -4,6 +4,14 @@ import { dirname, resolve } from "node:path";
 import { visualizer } from "rollup-plugin-visualizer";
 import type { Plugin, PluginOption } from "vite";
 import { defineConfig } from "vite";
+import {
+  NARROW_SCREEN_BUCKET,
+  SCREEN_BUCKETS,
+  TELEMETRY_ENDPOINT,
+  TELEMETRY_PLATFORM_HOSTS,
+  VISIT_BEACON_FLAG,
+} from "./src/analytics/telemetry-contract";
+import { LANGUAGE_STORAGE_KEY } from "./src/i18n/storage-key";
 
 // Dev server port. Lets N parallel worktree sessions run `pnpm dev` without
 // clashing on 5173: each worktree gets a deterministic port via `PT_PORT` env
@@ -95,12 +103,49 @@ function bundleAuditPlugins(): PluginOption[] {
   ];
 }
 
+/**
+ * Balise de visite, injectée dans `index.html` avant tout le reste (plan 196, décision #889).
+ *
+ * 🔴 Elle existe parce que `initTelemetry()`, dans le bundle, arrive TROP TARD pour une catégorie
+ * entière de joueurs. `index.html` ne charge qu'un module, `babylon-boot.ts`, dont le graphe
+ * d'imports statiques inclut Babylon : en ESM, tout ce graphe est téléchargé et évalué avant la
+ * première instruction du corps du module. Un joueur qui referme pendant ces 4,3 Mo n'exécute donc
+ * jamais une ligne de télémétrie — alors qu'itch.io a déjà compté son « Browser Play » (incident du
+ * 2026-09-03 : 2 plays comptés par itch, zéro ligne en base).
+ *
+ * Elle ne sait faire qu'une chose : envoyer la ligne `first`, celle qui porte le comptage des
+ * visites. Tous les compteurs d'écrans et d'actions restent au bundle.
+ *
+ * Le code est GÉNÉRÉ à partir de `src/analytics/telemetry-contract.ts` — endpoint, hôtes de
+ * publication, paliers d'écran et nom du drapeau viennent tous de là. Il n'y a donc pas deux
+ * sources de vérité, seulement deux émetteurs.
+ */
+function visitBeaconPlugin(): Plugin {
+  const beacon = `(function(){try{
+var host=location.hostname,platform=null,hosts=${JSON.stringify(TELEMETRY_PLATFORM_HOSTS)};
+for(var i=0;i<hosts.length;i++){if(host.indexOf(hosts[i][0])!==-1){platform=hosts[i][1];break;}}
+if(!platform)return;
+var width=screen.width,bucket=${JSON.stringify(NARROW_SCREEN_BUCKET)},buckets=${JSON.stringify(SCREEN_BUCKETS)};
+for(var j=0;j<buckets.length;j++){if(width>=buckets[j][0]){bucket=buckets[j][1];break;}}
+var language=null;try{language=localStorage.getItem(${JSON.stringify(LANGUAGE_STORAGE_KEY)});}catch(e){}
+var body=JSON.stringify({kind:"session",build:${JSON.stringify(resolveAppVersion())},platform:platform,payload:{uiLanguage:language,inputSource:null,screen:bucket,referrer:document.referrer||null,screens:{},actions:{},first:true}});
+if(navigator.sendBeacon&&navigator.sendBeacon(${JSON.stringify(TELEMETRY_ENDPOINT)},body)){window[${JSON.stringify(VISIT_BEACON_FLAG)}]=true;}
+}catch(e){}})();`;
+
+  return {
+    name: "visit-beacon",
+    transformIndexHtml() {
+      return [{ tag: "script", children: beacon, injectTo: "head" }];
+    },
+  };
+}
+
 export default defineConfig({
   base: process.env.ITCH_DEPLOY ? "./" : process.env.GITHUB_ACTIONS ? "/pokemon-tactics/" : "/",
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [stripPerPokemonSpriteFoldersPlugin(), ...bundleAuditPlugins()],
+  plugins: [visitBeaconPlugin(), stripPerPokemonSpriteFoldersPlugin(), ...bundleAuditPlugins()],
   server: {
     port: resolveDevPort(),
     /*

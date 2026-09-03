@@ -1,3 +1,5 @@
+import { VISIT_BEACON_FLAG } from "../analytics/telemetry-contract";
+
 /**
  * Doubles de navigateur pour les tests du client de télémétrie (plan 196).
  *
@@ -26,6 +28,8 @@ export interface TelemetryStub {
   emitVisibilityChange(state: "hidden" | "visible"): void;
   /** Déclenche `pagehide` — l'événement de fermeture d'onglet, celui que la production a raté. */
   emitPageHide(): void;
+  /** Combien d'écouteurs sont enregistrés pour ce type — de quoi prouver qu'on n'en installe qu'un. */
+  listenerCount(type: string): number;
 }
 
 /**
@@ -38,6 +42,8 @@ export function createTelemetryStub(options: {
   inputSource?: string;
   screenWidth?: number;
   referrer?: string;
+  /** Simule une balise inline qui a déjà mis la ligne de visite en file. */
+  visitAlreadySent?: boolean;
 }): TelemetryStub {
   const urls: string[] = [];
   const envelopes: Record<string, unknown>[] = [];
@@ -65,6 +71,7 @@ export function createTelemetryStub(options: {
       location: { hostname: options.hostname },
       screen: { width: options.screenWidth ?? 1920 },
       addEventListener: listen,
+      ...(options.visitAlreadySent === true ? { [VISIT_BEACON_FLAG]: true } : {}),
     },
     document: documentStub,
     navigator: {
@@ -84,6 +91,9 @@ export function createTelemetryStub(options: {
     },
     emitPageHide() {
       emit("pagehide");
+    },
+    listenerCount(type) {
+      return listeners.get(type)?.length ?? 0;
     },
   };
 }

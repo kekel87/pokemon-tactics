@@ -30,6 +30,7 @@ describe("garde-fou local", () => {
       const stub = createTelemetryStub({ hostname });
       const telemetry = await loadTelemetry(stub);
 
+      telemetry.initTelemetry();
       telemetry.countScreen(telemetry.TelemetryScreen.MainMenu);
       telemetry.flushSession();
       telemetry.trackBattleStarted({
@@ -181,55 +182,141 @@ describe("compteurs de visite", () => {
   });
 });
 
+describe("envoi de la visite à l'init", () => {
+  let stub: TelemetryStub;
+
+  beforeEach(() => {
+    stub = createTelemetryStub({ hostname: PAGES_HOST });
+  });
+
+  it("🔴 envoie la ligne de visite à l'init, sans dépendre d'un beacon de fin de page", async () => {
+    const telemetry = await loadTelemetry(stub);
+
+    telemetry.initTelemetry();
+
+    expect(stub.beacon.envelopes).toHaveLength(1);
+    expect(stub.beacon.envelopes[0]).toMatchObject({
+      kind: "session",
+      payload: expect.objectContaining({ first: true }),
+    });
+  });
+
+  it("🔴 ne recompte PAS la visite quand la balise inline l'a déjà envoyée", async () => {
+    const beaconed = createTelemetryStub({ hostname: PAGES_HOST, visitAlreadySent: true });
+    const telemetry = await loadTelemetry(beaconed);
+
+    telemetry.initTelemetry();
+
+    expect(beaconed.beacon.envelopes).toEqual([]);
+  });
+
+  it("envoie les compteurs sans `first` quand la balise inline a déjà porté la visite", async () => {
+    const beaconed = createTelemetryStub({ hostname: PAGES_HOST, visitAlreadySent: true });
+    const telemetry = await loadTelemetry(beaconed);
+    telemetry.initTelemetry();
+
+    telemetry.countScreen(telemetry.TelemetryScreen.MainMenu);
+    beaconed.emitPageHide();
+
+    expect(beaconed.beacon.envelopes).toHaveLength(1);
+    expect(beaconed.beacon.envelopes[0]?.payload).not.toHaveProperty("first");
+  });
+
+  it("reprend la ligne de visite quand la balise inline a échoué ou n'a pas tourné", async () => {
+    const telemetry = await loadTelemetry(stub);
+
+    telemetry.initTelemetry();
+
+    expect(stub.beacon.envelopes[0]?.payload).toMatchObject({ first: true });
+  });
+
+  it("ne renvoie pas de ligne à la fermeture quand aucun compteur n'a bougé depuis l'init", async () => {
+    const telemetry = await loadTelemetry(stub);
+    telemetry.initTelemetry();
+
+    stub.emitPageHide();
+
+    expect(stub.beacon.envelopes).toHaveLength(1);
+  });
+
+  it("envoie une deuxième ligne, SANS `first`, quand des compteurs ont bougé pendant la visite", async () => {
+    const telemetry = await loadTelemetry(stub);
+    telemetry.initTelemetry();
+
+    telemetry.countScreen(telemetry.TelemetryScreen.MainMenu);
+    stub.emitPageHide();
+
+    expect(stub.beacon.envelopes).toHaveLength(2);
+    expect(stub.beacon.envelopes[1]).toMatchObject({
+      payload: expect.objectContaining({ screens: { "main-menu": 1 } }),
+    });
+    expect(stub.beacon.envelopes[1]?.payload).not.toHaveProperty("first");
+  });
+});
+
 describe("déclencheurs de fin de vie de page", () => {
   it("envoie au passage en arrière-plan", async () => {
     const stub = createTelemetryStub({ hostname: PAGES_HOST });
     const telemetry = await loadTelemetry(stub);
     telemetry.initTelemetry();
+    telemetry.countScreen(telemetry.TelemetryScreen.MainMenu);
 
     stub.emitVisibilityChange("hidden");
 
-    expect(stub.beacon.envelopes).toHaveLength(1);
+    expect(stub.beacon.envelopes).toHaveLength(2);
   });
 
   it("n'envoie pas quand l'onglet redevient visible", async () => {
     const stub = createTelemetryStub({ hostname: PAGES_HOST });
     const telemetry = await loadTelemetry(stub);
     telemetry.initTelemetry();
+    telemetry.countScreen(telemetry.TelemetryScreen.MainMenu);
 
     stub.emitVisibilityChange("visible");
 
-    expect(stub.beacon.envelopes).toEqual([]);
+    expect(stub.beacon.envelopes).toHaveLength(1);
   });
 
   it("🔴 envoie à `pagehide` — le cas de la fermeture d'onglet, raté en production le 2026-09-02", async () => {
     const stub = createTelemetryStub({ hostname: PAGES_HOST });
     const telemetry = await loadTelemetry(stub);
     telemetry.initTelemetry();
+    telemetry.countScreen(telemetry.TelemetryScreen.MainMenu);
 
     stub.emitPageHide();
 
-    expect(stub.beacon.envelopes).toHaveLength(1);
+    expect(stub.beacon.envelopes).toHaveLength(2);
   });
 
   it("ne double PAS l'envoi quand les deux événements partent, les deltas rendant l'opération idempotente", async () => {
     const stub = createTelemetryStub({ hostname: PAGES_HOST });
     const telemetry = await loadTelemetry(stub);
     telemetry.initTelemetry();
+    telemetry.countScreen(telemetry.TelemetryScreen.MainMenu);
 
     stub.emitVisibilityChange("hidden");
     stub.emitPageHide();
 
-    expect(stub.beacon.envelopes).toHaveLength(1);
+    expect(stub.beacon.envelopes).toHaveLength(2);
   });
 
   it("n'installe ses écouteurs qu'une fois", async () => {
     const stub = createTelemetryStub({ hostname: PAGES_HOST });
     const telemetry = await loadTelemetry(stub);
+
     telemetry.initTelemetry();
     telemetry.initTelemetry();
 
-    stub.emitPageHide();
+    expect(stub.listenerCount("pagehide")).toBe(1);
+    expect(stub.listenerCount("visibilitychange")).toBe(1);
+  });
+
+  it("n'envoie qu'une seule ligne de visite même appelée deux fois", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const telemetry = await loadTelemetry(stub);
+
+    telemetry.initTelemetry();
+    telemetry.initTelemetry();
 
     expect(stub.beacon.envelopes).toHaveLength(1);
   });

@@ -8,6 +8,7 @@
 > **Décisions** : `#867` (Cloudflare plutôt que Goatcounter), `#868` (deux événements par partie, brut + agrégation à la lecture, RGPD par construction), `#870` (usages, pas de scores), `#215` (ce que Goatcounter offrait clés en main).
 > **Tranché le 2026-08-31** : pas de nom de domaine, l'API reste sur `*.workers.dev` · le Worker vit dans `packages/telemetry-worker/`.
 > **Tranché le 2026-09-02** : `battle_id` éphémère retenu (`#880`) — plus aucune décision ouverte, le plan est exécutable de bout en bout.
+> **Correctifs post-clôture le 2026-09-03** : la ligne `session` part au boot du bundle, pas seulement en fin de page (`#888`) ; une balise de visite inline dans `index.html` couvre en plus le cas que `#888` ne peut pas couvrir — fermeture pendant le téléchargement du bundle (`#889`). Voir § « Envoi par `sendBeacon` » et § « Écarts au plan ».
 
 ## But
 
@@ -43,6 +44,9 @@ Conséquence : **depuis le 2026-06-15, aucun combat n'est mesuré.** Le funnel s
 - **Un compteur par action**, incrémenté en mémoire, jamais envoyé à l'unité.
 - **Envoi par `sendBeacon` sur `visibilitychange → hidden`** — le cas d'usage canonique de cette API, qui survit à la fermeture de l'onglet. Plus fiable que `pagehide`, notoirement capricieux sur iOS.
 - **Envoyer des *deltas*, pas un cumul** : ce qui n'a pas encore été transmis. Plusieurs bascules d'onglet produisent alors des lignes qui **s'additionnent à la lecture**, sans identifiant de session ni déduplication. Ne rien envoyer quand tous les compteurs sont à zéro.
+- ⚠️ **Correctif du 2026-09-03 (`#888`) : la première ligne, celle qui porte `first: true`, part désormais au boot du bundle, pas seulement en fin de page.** Le paragraphe ci-dessus décrivait encore l'envoi unique en fin de vie de page — c'était le comportement livré à l'étape 4, et il avait un trou trouvé le 2026-09-03 matin : le tableau de bord itch affichait 2 « Browser Plays » du jour pour 0 ligne en base ce jour-là. `initTelemetry()` appelle maintenant `flushSession()` immédiatement après avoir posé ses écouteurs, dans le corps de `babylon-boot.ts`. Les deltas de compteurs restent envoyés en fin de page, et seulement s'ils ont bougé. Contrepartie : une visite réelle produit **2 lignes** au lieu d'une, et `inputSource` est **toujours** `null` sur cette première ligne — structurel, `initInputSystem()` tourne après `initTelemetry()`.
+  - ⚠️ **Correction du mécanisme, faite par revue de code le 2026-09-03** : ce ping au boot ne couvre **pas** le cas d'un joueur qui referme l'onglet pendant le téléchargement des 4,3 Mo de `main.js` plus Babylon — `initTelemetry()` est appelée depuis le **corps** du module `babylon-boot.ts`, dont le graphe d'imports statiques inclut Babylon ; en sémantique ESM, ce graphe entier est téléchargé, analysé et évalué **avant** la première instruction du corps, donc le ping ne peut jamais s'exécuter avant la fin du chargement. Ce que ce correctif couvre réellement : les visites où le bundle a **fini** de charger mais où le beacon de fin de page n'est jamais parti (bug WebKit sur `visibilitychange`, onglet tué par iOS, éviction du bfcache, iframe itch démontée par la page parente) — plausiblement la vraie cause du trou du 2026-09-03, puisque 3 des 4 visites itch de la veille étaient sur Safari iOS.
+  - **Correctif complémentaire du 2026-09-03 (`#889`) : une balise de visite inline** dans `index.html`, injectée par un greffon Vite (`visitBeaconPlugin`, `packages/app/vite.config.ts`), couvre le cas que le ping au boot ne peut pas couvrir — elle s'exécute **avant** le téléchargement du bundle et envoie elle-même la ligne `first`. Source de vérité unique (endpoint, hôtes de publication, paliers d'écran, nom du drapeau) dans `packages/app/src/analytics/telemetry-contract.ts`, importé par `telemetry.ts` **et** `vite.config.ts` ; clé de langue dans `packages/app/src/i18n/storage-key.ts`, pour ne pas embarquer les catalogues de traduction dans la config de build. Anti-double-comptage : la balise ne pose `window.__pokemonTacticsVisitSent` que si `sendBeacon` a mis la requête en file ; `initTelemetry()` lit ce drapeau et renonce à sa propre ligne `first` s'il est posé — sinon (balise en échec ou n'ayant pas tourné) le bundle reprend la ligne.
 - 🔴 **Marquer la première ligne de la visite d'un `first: true`.** Sans ce drapeau, **compter les visites deviendrait impossible** : les deltas font qu'une visite produit une à plusieurs lignes, donc compter les lignes `session` surestimerait la fréquentation. Le nombre de visites, c'est le nombre de lignes portant `first`. Le drapeau vit en mémoire et repart à zéro à chaque chargement de page — ce n'est pas un identifiant, il ne suit personne.
 - La même ligne porte le contexte de la visite : plateforme, `buildVersion`, **langue de l'interface**, **source d'entrée active** (souris / clavier / manette / tactile).
 
@@ -205,7 +209,9 @@ Vérifié le 2026-08-31. La doc D1 est explicite : une écriture sur une table i
 
 Oui, avec trois ordres de grandeur de marge. Les quotas gratuits vérifiés le 2026-08-31 : Workers **100 000 requêtes/jour**, D1 **100 000 lignes écrites/jour**, **5 M lignes lues/jour**, **5 Go** de stockage (500 Mo par base).
 
-Consommation d'un joueur qui vient et joue une partie : ~2 envois `session` + `battle_started` + `battle_ended` = **4 requêtes**, et **8 lignes écrites** (chaque insertion en coûte deux, § Quota réel).
+**Recalculé le 2026-09-03** (`#888`, `#889`) : depuis le double correctif de la ligne de visite, une visite avec partie envoie désormais **deux** requêtes `session` de façon quasi certaine, et non plus une approximation — la ligne `first` (balise inline avant le bundle, ou repli par `initTelemetry()` au boot, jamais les deux) puis une ligne de deltas en fin de page dès qu'un compteur a bougé pendant la partie. Le calcul retenu pour le plafond ne change pas : il comptait déjà 2 envois `session`.
+
+Consommation d'un joueur qui vient et joue une partie : 2 envois `session` + `battle_started` + `battle_ended` = **4 requêtes**, et **8 lignes écrites** (chaque insertion en coûte deux, § Quota réel).
 
 | Ressource | Plafond | Ce qu'il autorise | Marge |
 |-----------|---------|-------------------|-------|
@@ -507,11 +513,16 @@ mettre la table à jour.
   le plancher de chroma — il « lit gris » comme marque.
 - Pas de drapeau sur les **langues** : une langue n'est pas un pays, et on ne stocke pas la région.
 
-**Deux bugs trouvés par l'humain à l'usage**, tous deux corrigés :
+**Trois bugs trouvés à l'usage**, tous corrigés :
 1. Les **versions du jeu** étaient comptées par ligne et non par visite — « 8 versions » pour 4 visites.
 2. Le Worker n'a **aucun fuseau local** : il affichait l'heure UTC (deux heures de moins), et rangeait
    un événement de 00h30 heure de Paris au jour précédent. Corrigé sur `Europe/Paris` — le sel du
    haché de visiteur, lui, reste en UTC, c'est le mécanisme de confidentialité.
+3. **2026-09-03** : même bug que le 1, réintroduit ailleurs. Depuis qu'une visite produit deux lignes
+   `session` (`#888`, `#889`), `report.ts` comptait pays, navigateur, système, langue, palier d'écran
+   et référent **par ligne** — ces six axes doublaient. Corrigé : comptés sur la ligne `first`
+   uniquement. Seule exception : la source d'entrée, structurellement absente de la ligne de boot
+   (`initInputSystem()` tourne après `initTelemetry()`), reste comptée sur la ligne suivante.
 
 ## Écarts au plan, constatés à l'exécution (2026-09-02)
 
@@ -525,6 +536,7 @@ incomplètes ; elles sont corrigées ici pour que le document reste le compte re
 | `binding = "DB"`, point d'entrée `src/index.ts` | **`binding = "database"`, `src/worker.ts`** | `useNamingConvention` (Biome) refuse `DB`/`RATE_LIMITER`/`VISITOR_SECRET` en `SCREAMING_CASE` ; renommer est une mise en conformité, pas une exception — Cloudflare accepte tout identifiant JS valide. `index.ts` est réservé aux barrels par convention de dépôt. |
 | Deux `kind`, pas d'`[observability]` | **Trois `kind`, `[observability]` épinglé** | Le troisième (`session`) vient de la révision de `#878`. L'observabilité est déclarée explicitement plutôt qu'héritée du défaut, sur recommandation de la revue de code — c'est ce qui rend visible le `console.error` du chemin d'échec d'écriture. |
 | « Ne rien envoyer quand tous les compteurs sont à zéro » | **La première ligne part toujours** | Trou méthodologique : sans ça, le cas le plus fréquent (jouer sans toucher un bouton instrumenté) n'aurait produit aucune ligne, et la promesse « aucune régression sur le funnel de Goatcounter » était fausse. Décision `#883`. |
+| Cette première ligne part sur `visibilitychange`/`pagehide` (fin de vie de page) | **Elle part aussi au boot du bundle, immédiatement après `initTelemetry()`, plus une balise inline avant même ce boot** | Incident du 2026-09-03. Le ping au boot (`#888`) couvre les visites où le bundle a fini de charger mais où le beacon de fin de page n'est jamais parti (bug WebKit sur `visibilitychange`, onglet tué par iOS, éviction du bfcache, iframe itch démontée) — pas les fermetures pendant le chargement, qu'il ne peut structurellement pas voir (`initTelemetry()` s'exécute après tout le graphe d'imports statiques, Babylon compris). Ce second cas est couvert par la balise de visite inline (`#889`), injectée dans `index.html` avant le téléchargement du bundle. |
 
 Deux corrections de la revue de code ont par ailleurs changé le Worker : le corps de la requête
 n'est plus lu **avant** la vérification de méthode et d'origine (le garde-fou de quota était en aval

@@ -17,6 +17,13 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 - MapSelect preview noire : camera fadeOut(0)/fadeIn(150ms)
 -->
 
+## Suivi
+
+### Écart résiduel télémétrie vs compteur itch.io — à mesurer après redéploiement (2026-09-03)
+- Incident du 2026-09-03 : itch.io comptait 2 « Browser Plays » du jour, 0 ligne en base D1. Deux correctifs, tous deux dans `docs/decisions.md` : (`#888`) `initTelemetry()` envoie la ligne `session` (`first: true`) au boot du bundle en plus de la fin de page — couvre les cas où le beacon de fin de page ne part jamais (bug WebKit sur `visibilitychange`, onglet tué par iOS, éviction du bfcache, iframe itch démontée), pas les fermetures pendant le chargement ; (`#889`) une balise de visite inline dans `index.html`, exécutée avant le téléchargement du bundle, couvre ce second cas.
+- **Pas encore en ligne** : `deploy.yml` et `itch-deploy.yml` ne se déclenchent que sur release ou `workflow_dispatch` manuel — les deux déploiements restent à relancer à la main.
+- Une fois redéployé : comparer sur quelques jours le nombre de lignes `session` (`first: true`) au nombre de « Browser Plays » du tableau de bord itch. Un écart résiduel pointerait vers le bloqueur de publicité côté joueur (cause historique de la cécité de Goatcounter, `#867`/`#881`) plutôt qu'un trou de câblage.
+
 ## Dette technique
 
 <!-- Résolus 2026-08-27 : match nul sans chemin d'exécution (plan 191), repli anglais de `t()` sur les

@@ -1,5 +1,6 @@
 import en from "./locales/en";
 import fr from "./locales/fr";
+import { LANGUAGE_STORAGE_KEY } from "./storage-key";
 import type { TranslationKey, Translations } from "./types";
 import { Language } from "./types";
 
@@ -7,7 +8,7 @@ export { Language } from "./types";
 export type { TranslationKey, Translations };
 
 const LOCALES: Record<Language, Translations> = { fr, en };
-const STORAGE_KEY = "pt-lang";
+const STORAGE_KEY = LANGUAGE_STORAGE_KEY;
 
 type LanguageChangeCallback = (language: Language) => void;
 

@@ -11,13 +11,13 @@
  */
 
 import { getLanguage } from "../i18n";
-
-/**
- * ⚠️ Sous-domaine `*.workers.dev` (décision #871 : pas de nom de domaine). Chemin `/e` volontairement
- * anodin : `/track`, `/collect`, `/analytics` et `/count` sont visés directement par les listes de
- * filtrage — c'est ce qui rendait Goatcounter aveugle (décision #881, mesuré).
- */
-const ENDPOINT = "https://pokemon-tactics-telemetry.kekel87.workers.dev/e";
+import {
+  NARROW_SCREEN_BUCKET,
+  SCREEN_BUCKETS,
+  TELEMETRY_ENDPOINT,
+  TELEMETRY_PLATFORM_HOSTS,
+  VISIT_BEACON_FLAG,
+} from "./telemetry-contract";
 
 /**
  * Plafond partagé par `sendBeacon` et `fetch keepalive`. Nos payloads en sont très loin ; la garde
@@ -170,11 +170,10 @@ let listenerInstalled = false;
  */
 function platformPrefix(): string | null {
   const host = window.location.hostname;
-  if (host.includes("itch.zone")) {
-    return "itch";
-  }
-  if (host.includes("github.io")) {
-    return "ghp";
+  for (const [fragment, platform] of TELEMETRY_PLATFORM_HOSTS) {
+    if (host.includes(fragment)) {
+      return platform;
+    }
   }
   return null;
 }
@@ -190,16 +189,12 @@ function buildVersion(): string {
  */
 function screenBucket(): string {
   const width = window.screen.width;
-  if (width >= 1920) {
-    return ">=1920";
+  for (const [minWidth, label] of SCREEN_BUCKETS) {
+    if (width >= minWidth) {
+      return label;
+    }
   }
-  if (width >= 1280) {
-    return "1280-1919";
-  }
-  if (width >= 768) {
-    return "768-1279";
-  }
-  return "<768";
+  return NARROW_SCREEN_BUCKET;
 }
 
 /** Source d'entrée active, telle que l'`input-system` la publie sur la racine du document. */
@@ -232,13 +227,13 @@ function send(kind: EventKind, payload: Record<string, unknown>): void {
     }
     // `sendBeacon` rend `false` s'il ne peut pas mettre la requête en file : tester ce retour, et
     // pas seulement l'existence de l'API.
-    const queued = navigator.sendBeacon?.(ENDPOINT, body) ?? false;
+    const queued = navigator.sendBeacon?.(TELEMETRY_ENDPOINT, body) ?? false;
     if (queued) {
       return;
     }
     // Repli : `keepalive` pour survivre au déchargement, et surtout AUCUN en-tête `Content-Type`,
     // sans quoi on retomberait dans le préflight que la chaîne évitait.
-    void fetch(ENDPOINT, { method: "POST", body, keepalive: true, mode: "cors" }).catch(
+    void fetch(TELEMETRY_ENDPOINT, { method: "POST", body, keepalive: true, mode: "cors" }).catch(
       () => undefined,
     );
   } catch {
@@ -290,7 +285,27 @@ export function flushSession(): void {
 }
 
 /**
- * Installe l'envoi groupé, sur **les deux** événements de fin de vie de page.
+ * Installe l'envoi groupé, sur **les deux** événements de fin de vie de page — et envoie
+ * **immédiatement** la ligne de visite.
+ *
+ * 🔴 **Ne pas faire dépendre le comptage d'une visite d'un envoi de fin de page.** La production l'a
+ * montré le 2026-09-03 : itch.io comptait 2 « Browser Plays » quand la base ne portait aucune ligne
+ * pour ce jour. Tant que la ligne `first` ne partait qu'à la fermeture, toute défaillance du beacon
+ * terminal effaçait la visite entière — et ces défaillances sont nombreuses : bug WebKit de
+ * `visibilitychange`, onglet tué par iOS, éviction du bfcache, iframe itch démontée par la page
+ * parente. Envoyée à l'init, la visite est acquise dès que le code du jeu s'exécute.
+ *
+ * ⚠️ **Ce flush ne couvre pas le joueur qui referme AVANT la fin du chargement.** `initTelemetry()`
+ * est appelée depuis le corps de `babylon-boot.ts`, dont le graphe d'imports statiques inclut
+ * Babylon — en ESM, tout ce graphe est téléchargé et évalué avant la première instruction du corps,
+ * soit 4,3 Mo de `main.js` plus le module Babylon. C'est la **balise inline** injectée dans
+ * `index.html` par `vite.config.ts` qui couvre cette fenêtre (décision #889) ; quand elle a réussi,
+ * elle pose `VISIT_BEACON_FLAG` sur `window` et ce flush-ci renonce à sa ligne `first`, sans quoi la
+ * visite compterait double. Quand elle a échoué ou n'a pas tourné, le bundle reprend la main.
+ *
+ * Contrepartie assumée : `inputSource` est **toujours** `null` sur cette première ligne —
+ * `initInputSystem()`, qui pose `data-input-source`, tourne après `initTelemetry()`. La source
+ * d'entrée réelle arrive donc sur la ligne suivante, et `report.ts` la compte là.
  *
  * 🔴 `visibilitychange` NE SUFFIT PAS, et ça s'est vu en production le 2026-09-02 : une visite sur
  * itch.io a bien produit son `battle_started`, mais **jamais** sa ligne `session`. La documentation
@@ -318,6 +333,19 @@ export function initTelemetry(): void {
     }
   });
   window.addEventListener("pagehide", () => flushSession());
+  // `Reflect.get` plutôt qu'un cast : le drapeau vient d'un script hors bundle, donc hors typage.
+  if (Reflect.get(window, VISIT_BEACON_FLAG) === true) {
+    firstFlushPending = false;
+  }
+  // La visite part MAINTENANT, compteurs vides : cf. le bloc ci-dessus. Enveloppé parce que ce flush
+  // est le seul à tourner sur le chemin critique d'évaluation du module d'entrée : une exception ici
+  // avorterait le reste de `babylon-boot.ts`, donc le jeu. Le `try/catch` de `send()` ne couvre pas
+  // la construction du payload, qui a lieu en amont dans `flushSession()`.
+  try {
+    flushSession();
+  } catch {
+    // La télémétrie ne casse jamais le jeu (règle 1).
+  }
 }
 
 /**

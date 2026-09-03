@@ -333,29 +333,40 @@ export function buildReport(rows: EventRow[], days: number): Report {
       if (row.visitor) {
         visitors.add(row.visitor);
       }
-      if (row.country) {
-        bump(report.countries, row.country);
+      // 🔴 Toute l'AUDIENCE se compte sur la ligne `first`, pour la même raison que `builds` : une
+      // visite produit désormais deux lignes dans le cas courant (une au boot, une à la fermeture,
+      // décision #888), et ces dimensions décrivent le VISITEUR, pas l'événement. Comptées par
+      // ligne, elles doubleraient sur les visites qui atteignent le menu et resteraient à 1 sur les
+      // visites écourtées — des totaux gonflés, et incohérents entre eux.
+      if (payload.first === true) {
+        if (row.country) {
+          bump(report.countries, row.country);
+        }
+        if (row.browser) {
+          // Famille sans version (« Firefox 154 » → « Firefox ») : à l'échelle du jeu, une ligne par
+          // version noierait la liste pour une information qu'on n'exploite pas. Le regroupement se
+          // fait ICI et non dans le Worker — la version reste en base, disponible le jour où elle
+          // servirait (vérifier la compatibilité d'une API, par exemple).
+          bump(report.browsers, row.browser.replace(/ \d+$/, ""));
+        }
+        if (row.os) {
+          bump(report.systems, row.os);
+        }
+        if (row.lang) {
+          bump(report.languages, row.lang);
+        }
+        if (payload.screen) {
+          bump(report.screenSizes, payload.screen);
+        }
+        bump(report.referrers, payload.referrer ?? "(direct ou iframe)");
       }
-      if (row.browser) {
-        // Famille sans version (« Firefox 154 » → « Firefox ») : à l'échelle du jeu, une ligne par
-        // version noierait la liste pour une information qu'on n'exploite pas. Le regroupement se
-        // fait ICI et non dans le Worker — la version reste en base, disponible le jour où elle
-        // servirait (vérifier la compatibilité d'une API, par exemple).
-        bump(report.browsers, row.browser.replace(/ \d+$/, ""));
-      }
-      if (row.os) {
-        bump(report.systems, row.os);
-      }
-      if (row.lang) {
-        bump(report.languages, row.lang);
-      }
-      if (payload.screen) {
-        bump(report.screenSizes, payload.screen);
-      }
+      // Seule exception, et elle est structurelle : la source d'entrée est TOUJOURS absente de la
+      // ligne de boot (`initTelemetry()` précède `initInputSystem()`, qui pose l'attribut). La
+      // compter par ligne revient donc à la compter une fois par visite — celle où le joueur a
+      // effectivement touché quelque chose.
       if (payload.inputSource) {
         bump(report.inputSources, payload.inputSource);
       }
-      bump(report.referrers, payload.referrer ?? "(direct ou iframe)");
       for (const [screen, count] of Object.entries(payload.screens ?? {})) {
         bump(report.screens, screen, count);
       }

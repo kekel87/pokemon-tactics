@@ -40,6 +40,20 @@ sans jamais cliquer sur « Run game » — chez nous ils n'existent pas, le code
 (impossible sans double comptage — le drapeau `first` serait en cause), ou un rapport qui **s'effondre
 brutalement** d'un jour à l'autre sans changement de trafic (signe que la collecte casse).
 
+**2026-09-03 — premier essai de comparaison, un vrai signal d'alarme trouvé et corrigé (deux
+correctifs).** itch.io affichait 2 « Browser Plays » pour le jour même, la base D1 n'en portait
+**aucune ligne**. Ce n'était pas le déficit attendu (bloqueurs de pub) mais un trou de collecte : la
+ligne `session` ne partait qu'en fin de vie de page. **Correctif 1 (`#888`)** : `initTelemetry()`
+envoie désormais la ligne aussi au boot du bundle — couvre les visites où le bundle a fini de charger
+mais où le beacon de fin de page n'est jamais parti (bug WebKit sur `visibilitychange`, onglet tué
+par iOS, éviction du bfcache, iframe itch démontée). ⚠️ Ça ne couvre **pas** la fermeture pendant le
+chargement des 4,3 Mo de `main.js` + Babylon — `initTelemetry()` s'exécute après tout le graphe
+d'imports statiques, jamais avant (correction du mécanisme causal, faite par revue de code le jour
+même). **Correctif 2 (`#889`)** : une balise de visite inline dans `index.html`, exécutée avant le
+téléchargement du bundle, couvre ce second cas. **Les correctifs ne sont pas encore en ligne** :
+`deploy.yml` et `itch-deploy.yml` ne se déclenchent que sur release ou `workflow_dispatch` manuel, à
+relancer à la main avant de reprendre cette comparaison. Détail : `STATUS.md` (MAJ 2026-09-03),
+`docs/backlog.md` § Suivi.
 
 ### 2026-09-02 (fin de journée) — question ouverte héritée de la session
 
