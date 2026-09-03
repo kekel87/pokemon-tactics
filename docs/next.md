@@ -55,6 +55,22 @@ téléchargement du bundle, couvre ce second cas. **Les correctifs ne sont pas e
 relancer à la main avant de reprendre cette comparaison. Détail : `STATUS.md` (MAJ 2026-09-03),
 `docs/backlog.md` § Suivi.
 
+**2026-09-03 (suite) — les deux correctifs sont DÉPLOYÉS et la chaîne est prouvée.** `deploy.yml` et
+`itch-deploy.yml` relancés à la main par `workflow_dispatch`, les deux verts (runs
+[`33736940730`](https://github.com/kekel87/pokemon-tactics/actions/runs/33736940730) et
+[`33736956366`](https://github.com/kekel87/pokemon-tactics/actions/runs/33736956366) ; étiquette butler
+`v2026.8.2-telemetrie`, `main` étant en avance sur le tag). La page servie par GitHub Pages porte la
+balise inline au build `v2026.8.2-25-g8e6c45c` (= HEAD), et un chargement réel a produit **une seule**
+ligne `session` `first: true` (`id=12`) — la balise part, et la déduplication par
+`window.__pokemonTacticsVisitSent` empêche le double comptage qui aurait été le vrai signal d'alarme.
+Le build itch.io est couvert par construction (plugin Vite `visit-beacon` injecté sans condition,
+plateforme résolue au runtime par nom d'hôte). ⚠️ La ligne `id=12` est **synthétique**, à défalquer
+d'une comparaison fine du 2026-09-03.
+
+**→ La comparaison avec le tableau de bord itch.io peut reprendre dans quelques jours**, sur des
+journées entièrement postérieures au redéploiement. Un écart résiduel (nous en dessous de 10 à 30 %)
+sera alors la mesure du taux de blocage publicitaire, pas une panne.
+
 ### 2026-09-02 (fin de journée) — question ouverte héritée de la session
 
 **Classement compétitif : prémisse à rouvrir ou pas.** En validant la télémétrie, l'humain a évoqué
@@ -125,9 +141,11 @@ n'a joué que **2 tests smoke sur 519**. Pour une release, toujours forcer `pnpm
 
 ### 2026-09-02 (fin de journée) — Lot A télémétrie quasi clos, reste à faire
 
-`docs/plans/196-telemetrie-cloudflare-workers.md` reste `in-progress` : 7 des 9 étapes sont
-faites (0, 1, 2, 3, 4, 5, 7, 8), l'étape 6 (vérification en production) est **partielle**. Détail
-complet, écarts au plan : voir le plan 196 lui-même (§ Étapes 6-8), pas répété ici.
+`docs/plans/196-telemetrie-cloudflare-workers.md` est `done`. Cette section décrivait un reliquat :
+l'étape 6 (vérification en production) était **partielle** au 2026-09-02, et le trou de collecte
+trouvé le 2026-09-03 l'a confirmé. **Soldée le 2026-09-03** — correctifs `#888`/`#889` déployés et
+chaîne prouvée bout en bout (voir § « À faire maintenant »). Détail complet, écarts au plan : voir le
+plan 196 lui-même (§ Étapes 6-8), pas répété ici.
 
 **Livré** : Worker en ligne (`https://pokemon-tactics-telemetry.kekel87.workers.dev`), collecte
 `POST /e` vérifiée en production sur itch.io et GitHub Pages ; relevé live protégé par mot de
