@@ -18,6 +18,52 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
+### 2026-09-03 (soir) — Lot B1 du multijoueur : deux plans rédigés et relus, zéro ligne de code
+
+Séance de **cadrage uniquement** (décision humaine : « on fait que les plans ce soir »,
+implémentation le lendemain). Deux plans écrits, relus par trois agents, corrigés :
+
+- **`docs/plans/198-previsualisation-degats-parametre-partie.md`** — prérequis autonome. La
+  prévisualisation de dégâts quitte l'écran des réglages pour devenir un **paramètre de partie**, à
+  côté de « Placement auto », les deux persistés. Corrige au passage un oubli : « Placement auto »
+  n'était **pas** persisté (`team-select-screen.ts:54`). Décisions #893-894.
+- **`docs/plans/199-lot-b1-transport-lobby.md`** — le Lot B1 : paquet `packages/network/`, écran
+  `lobby`, salle d'attente, lancement accusé. Décisions #895-908.
+
+**L'ordre d'exécution est 198 puis 199** : le second a besoin que la prévisualisation soit un
+paramètre de partie pour la mettre dans l'encart du salon.
+
+**Le flux arrêté avec l'humain** : `lobby` (format + Créer/Rejoindre) → écran de terrain pour l'hôte
+seul → **l'écran de sélection d'équipe sert de salle d'attente** (code affiché, encart de paramètres,
+« Prêt »). Pas de second écran de salon. Le format se choisit **avant** la création, ce qui supprime
+toute éjection de joueur.
+
+**Cinq points du cadrage antérieur sont révisés** — `docs/multiplayer.md` dit encore le contraire, sa
+mise à jour est l'étape 9 du plan 199 : plus de lien d'invitation (le code seul) · le format avant la
+création · pas de salon d'attente séparé · l'IA autorisée en ligne · le refus de version ne porte pas
+sur `buildVersion`.
+
+**Trois trous trouvés en vérifiant le code, qui auraient mordu :**
+1. Le **placement automatique tire au hasard** localement — sans graine venue de l'hôte, deux pairs
+   ont deux plateaux différents avant le premier tour. Le setup porte donc **trois** graines.
+2. `buildVersion` change à **chaque commit** et diffère entre les déploiements Pages et itch.io :
+   refuser dessus **interdirait le jeu entre plateformes**. D'où `NETWORK_VERSION`, incrémentée à la
+   main.
+3. Les **formats sont déclarés par la carte** (`loaded.map.formats`), or le salon doit en proposer un
+   avant qu'une carte existe. Sans effet : toute carte doit déclarer **les cinq** formats pour être
+   valide, et `validateTiledMap` lève déjà une erreur sinon. Le salon lit `REQUIRED_TEAM_COUNTS`,
+   sans filtrer ni revalider quoi que ce soit (#907).
+
+✅ **Un blocage volontaire trouvé et tranché le jour même** (`#908`, s'écrit au Lot B3) : la règle
+« 3 tours manqués consécutifs valent forfait, compteur remis à zéro dès qu'il rejoue » laissait un
+joueur en train de perdre agir juste avant le troisième tour manqué, indéfiniment, imposant 45 s
+d'attente réelle à l'adversaire à chaque décision sans jamais perdre. Retenu : un **second compteur
+cumulatif non réinitialisable**, 6 tours manqués sur le combat entier. Trois autres réglages restent
+à arrêter avant d'écrire B3 (délais suivants raccourcis à 10 s, forfait qui contourne les clauses de
+survie, 45 s peut-être court pour une attaque de zone) — plan 199, encadré « Le modèle mental ».
+
+**Les deux plans sont en `ready`.** Prochaine séance : exécuter le 198, puis le 199.
+
 ### Dans quelques jours — croiser nos compteurs avec le tableau de bord itch.io
 
 Décidé le 2026-09-02. C'est la seule **validation externe** dont on dispose : itch compte côté
@@ -406,6 +452,16 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
 
 ## Fait récemment
 
+- 2026-09-03 (soir) — **Lot B1 cadré : plans 198 et 199 rédigés, relus et corrigés, aucun code.**
+  Longue discussion de cadrage avec l'humain qui a révisé cinq points du plan-cadre 195 et de
+  `docs/multiplayer.md` (voir § À faire maintenant). Décisions #893-908. Trois relectures lancées en
+  parallèle — `plan-reviewer` sur chaque plan, `game-designer` sur les règles de jeu du 199 ; les
+  corrections sont appliquées. Deux affirmations de relecture ont été **écartées après vérification**
+  dans le code : la manette qui ne saisit pas dans un champ texte est bien un choix explicite
+  (`focus-navigation.ts:237`), et une reprise de partie ne peut pas casser sur un setup sans
+  `damagePreview` (`battle-persistence.ts:80` jette déjà toute sauvegarde d'un autre build). Deux
+  idées notées au backlog : **carte aléatoire** (idée du frère de l'humain) et **éditer son équipe
+  depuis le salon**. Le plan 197, absent de l'index des plans, y a été ajouté.
 - 2026-09-03 — **Plan 197 — Écran de victoire enrichi (Lot C de la Phase 7), livré et validé à la main.** La dialog de fin de partie affiche désormais, sous le verdict, une rangée de portraits de l'équipe du vainqueur (K.O. grisés par opacité **et** désaturation) puis « N tours · M min ». **Périmètre réduit avec l'humain sur menu** (#890) : pas de MVP — aucun événement du core ne nomme l'attaquant (`DamageDealt` ne porte que `targetId`, `PokemonKo` que `pokemonId`, `pokemon.lastHitBy` effacé au K.O.) —, pas de camp perdant (doublerait la hauteur de la dialog, ingérable à 12 camps), pas d'infobulle de cause de K.O. (inaccessible au clavier et à la manette). Nouveau `packages/view-core/src/battle-outcome-summary.ts` (`buildOutcomeSummary`, fonction libre — lit `state.pokemon`/`state.actionCounter`, testable sans monter d'orchestrateur), port `showVictory` étendu d'un `BattleOutcomeSummary`. **Temps de jeu cumulé** (`elapsedMs?: number` dans `BattleResumeSave`, #891) plutôt qu'un horodatage de départ : une partie reprise le lendemain affiche les minutes réellement jouées, pas les heures écoulées. ⚠️ **Durée de combat (écran, placement exclu) ≠ durée de session (télémétrie, placement compris, #857)** — deux sémantiques assumées, pas un bug à réconcilier (#892). Décisions #890–892. Plan 197 `done`, plan-cadre 195 reste `in-progress` (seul le Lot B — multijoueur P2P 1v1 — n'est pas commencé).
 - 2026-08-31 — **Phase 7 planifiée : plans 195 (cadre) et 196 (Lot A télémétrie détaillé) rédigés, `draft`, zéro code écrit.** Découpage : Lot A télémétrie Cloudflare Workers + D1, Lot B multijoueur P2P 1v1 en 4 tranches (transport+lobby / combat / robustesse / désync), Lot C réduit à l'écran de victoire enrichi (Speed controls et Tutoriel interactif partent en Phase 9 — Polish, décision humaine, sans lien avec le réseau ni la télémétrie). **Télémétrie sur trois événements**, pas deux : `session` (fréquentation, funnel d'écran ET usage de l'interface — crédits ouverts, Showdown import/export réussi ou échoué, équipe créée/sauvegardée/supprimée, écran des contrôles, touche réassignée, menu de combat, reprise de combat, langue, plein écran — compteurs accumulés en mémoire, envoyés en deltas par `sendBeacon` à `visibilitychange → hidden`, jamais un envoi par clic, sous peine de faire tomber le plafond à ~1 600 visites/jour), `battle_started` (composition d'équipe par mode — modèle *usage stats* à la Showdown/Smogon, la composition voyage au démarrage pour ne pas perdre les abandons des statistiques), `battle_ended` (issue, durée, tours, K.O. par cause, attaques réellement lancées). Décisions #871-878 : pas de nom de domaine (`*.workers.dev`), Worker dans `packages/telemetry-worker/`, `pnpm stats` + `wrangler d1 execute --remote` pour interroger la base en chat avec noms FR officiels, plafond réel ~25 000 parties/jour (correction du calcul du 2026-08-29), limitation de débit par le binding `ratelimit`, pas de bandeau de consentement. **Constat technique consigné (pas une décision)** : `analytics.ts` déclare 8 événements, 3 ne sont jamais émis (`game-loaded`, `battle-start`, `battle-end`) depuis le refactor `e0c1a221` du 2026-06-15 — aucun combat n'est mesuré depuis deux mois et demi ; traité par l'étape 3 du plan 196. Seule décision encore ouverte : un `battle_id` éphémère par partie (Reco : oui). Prochaine action concrète, bloquante : créer le compte Cloudflare (étape 0 du plan 196, action humaine).
 - 2026-08-29 — **Phase 7 préparée, pas démarrée (aucun code).** Audit de faisabilité de tout ce qui avait été noté sur le multijoueur depuis le 2026-04-06, vérifications faites sur le web. Deux prémisses mortes trouvées : « information complète, rien à cacher » (faux depuis le fog du plan 176) et « un serveur autoritaire arrivera en Phase 7 » (supposé par #728, #732, #751 et le plan 181). Tranché : **P2P sans backend** (#862), **fog cosmétique en ligne** — le report de #728/#732 est clos par un « non » (#863), **chronomètre local auto-déclarant** dont le timeout produit une *action* et non un message réseau, donc il traverse `exportReplay()` sans cas particulier (#864, #865), **codes de partie préfixés** car le namespace PeerJS Cloud est mondial et partagé (#866), **télémétrie sur Cloudflare Workers + D1** en remplacement de Goatcounter, faussé par les bloqueurs de publicité (#867, #868), ordre d'apparition de Workers (#869), pas de classement compétitif (#870). Supabase écarté (pause à 7 jours ; le cron GitHub censé la contourner est lui-même désactivé après 60 jours sans activité du dépôt). Livrables : `docs/multiplayer.md` réécrit en v2 (306 → 539 lignes), décisions #862-870 + section « Révisé à la préparation de la Phase 7 », Phase 7 de `roadmap.md` recadrée, mentions « WebSocket » de `roadmap.md` et `game-design.md` §14 corrigées — elles contredisaient la décision #209 depuis avril.

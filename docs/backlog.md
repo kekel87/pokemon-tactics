@@ -52,6 +52,15 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
 <!-- Résolu 2026-08-28 (plan 194) : Scénario de combat piloté Joueur vs Joueur (QA + captures), devenu la
      séquence d'intro du jeu → docs/backlog-archive.md. -->
 
+### Carte aléatoire — option de sélection (2026-09-03, idée du frère de l'humain)
+- Ajouter une entrée « Carte aléatoire » à la sélection de terrain : tire une carte de `MAPS_REGISTRY` au hasard au lieu de la choisir.
+- Intérêt confirmé par le multijoueur : évite la négociation de carte entre deux joueurs (un système de vote a été évoqué puis écarté pour le Lot B1 — « on verra plus tard »).
+- Portée : écran de sélection de terrain + salon en ligne (l'hôte peut poser « aléatoire », le tirage doit alors venir de l'hôte avec le reste du setup, jamais tiré deux fois).
+
+### Éditer son équipe depuis le salon en ligne (2026-09-03)
+- Pendant l'attente des autres joueurs, pouvoir ouvrir le Team Builder sans quitter le salon (aujourd'hui `SCREEN_TRANSITIONS` ne relie pas `team-select` à `team-edit`).
+- Noté comme « peut-être plus tard » par l'humain pendant le cadrage du Lot B1 — hors périmètre B1.
+
 ### Toile Gluante — 0 learner Gen 1 (gap data roster, pas un bug) (2026-06-19, plan 131 ; reclassé 2026-07-19)
 - `sticky-web` n'est apprise par aucun Pokemon du roster Gen 1 → absente des movepools Team Builder (posable seulement en sandbox).
 - Pas un bug code : la mécanique marche en sandbox. Gap de données pur.
